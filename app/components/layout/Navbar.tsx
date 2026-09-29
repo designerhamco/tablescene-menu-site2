@@ -31,7 +31,7 @@ const NAV_ITEMS: readonly NavItem[] = [
 function DiscountChip() {
   return (
     <span className="type-caption inline-flex shrink-0 rounded-full bg-[#F8E731] px-1.5 py-0.5 text-black">
-      오픈할인
+      오픈 얼리버드
     </span>
   );
 }

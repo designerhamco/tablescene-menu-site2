@@ -81,7 +81,7 @@ test("기존 고객의 레거시 상품은 페이지 등급을 강제로 바꾸�
   assert.equal(getSubscriptionProduct(businessBasicMonthlyProduct.product_key)?.allowNewMenuSiteCreation, true);
 });
 
-test("오픈 할인 월 가격과 연간 10% 추가 할인 금액을 고정한다", () => {
+test("신규 월 구독 정상가와 기존 연간 상품 호환 금액을 고정한다", () => {
   assert.deepEqual(
     {
       singleRegularMonthly: businessBasicMonthlyProduct.regular_amount,
@@ -92,11 +92,11 @@ test("오픈 할인 월 가격과 연간 10% 추가 할인 금액을 고정한�
       multiYearly: businessBasicMultiYearlyProduct.amount,
     },
     {
-      singleRegularMonthly: 8_900,
+      singleRegularMonthly: 5_900,
       singleMonthly: 5_900,
       singleYearly: 63_700,
-      multiRegularMonthly: 12_900,
-      multiMonthly: 9_900,
+      multiRegularMonthly: 8_900,
+      multiMonthly: 8_900,
       multiYearly: 106_900,
     },
   );

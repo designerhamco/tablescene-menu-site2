@@ -9,7 +9,7 @@ import {
 } from "@/lib/server/mocha-forest-checkout-qa";
 import { createClient } from "@/lib/supabase/server";
 import { getAvailableTemplatesForService } from "@/lib/templates";
-import { businessBasicMonthlyProduct, type BasicProductKey } from "@/lib/payments";
+import type { BasicProductKey } from "@/lib/payments";
 import {
   formatBusinessFreeTrialFirstBillingDate,
   getBusinessFreeTrialPeriod,
@@ -29,11 +29,11 @@ const PAID_APPLY_COPY: Record<
 > = {
   menu: {
     title: "아티메뉴 다이닝 신청",
-    description: "요금제와 템플릿을 선택하고 매장 정보를 확인해 주세요.",
+    description: "구독할 디자인 템플릿을 선택하고 매장 정보를 확인해 주세요.",
   },
   screen: {
     title: "아티메뉴 디스플레이 신청",
-    description: "요금제와 템플릿을 선택하고 설치할 매장 정보를 확인해 주세요.",
+    description: "구독할 디스플레이 템플릿을 선택하고 설치할 매장 정보를 확인해 주세요.",
   },
   order: {
     title: "아티메뉴 오더 1.0 신청/결제",
@@ -80,12 +80,12 @@ export default async function PaidApplyPage({
     : serviceType === "menu"
       ? getCheckoutTemplatesWithMochaForestQa(availableTemplates, templateServiceType)
       : availableTemplates;
-  let singleMonthlyFreeTrialAvailable = false;
+  let monthlyFreeTrialAvailable = false;
 
-  if (serviceType === "menu") {
+  if (serviceType === "menu" || serviceType === "screen") {
     try {
       const eligibility = await getBusinessFreeTrialEligibility(user.id);
-      singleMonthlyFreeTrialAvailable = eligibility.eligible;
+      monthlyFreeTrialAvailable = eligibility.eligible;
     } catch (error) {
       console.error("[paid-apply] free trial eligibility check failed", {
         userId: user.id,
@@ -123,9 +123,8 @@ export default async function PaidApplyPage({
             displayCheckoutQaEnabled={displayCheckoutQaEnabled}
             initialBasicProductKey={initialBasicProductKey}
             initialTemplateKey={initialTemplateKey}
-            singleMonthlyFreeTrialAvailable={singleMonthlyFreeTrialAvailable}
-            singleMonthlyFreeTrialFirstBillingDate={formatBusinessFreeTrialFirstBillingDate(freeTrialPeriod.endsAt)}
-            singleMonthlyFreeTrialProductKey={businessBasicMonthlyProduct.product_key}
+            monthlyFreeTrialAvailable={monthlyFreeTrialAvailable}
+            monthlyFreeTrialFirstBillingDate={formatBusinessFreeTrialFirstBillingDate(freeTrialPeriod.endsAt)}
             initialRecoverPaymentId={initialRecoverPaymentId}
             initialRecoverSubscriptionId={initialRecoverSubscriptionId}
           />

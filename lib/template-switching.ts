@@ -23,7 +23,7 @@ export type TemplateSwitchDecision =
     }
   | {
       allowed: false;
-      reason: "same_template" | "unknown_template" | "coming_soon" | "cross_service" | "cross_tier";
+      reason: "same_template" | "unknown_template" | "coming_soon" | "cross_service" | "cross_tier" | "separate_subscription_required";
       message: string;
     };
 
@@ -172,11 +172,7 @@ export function getSwitchableTemplatesForService(service: TemplateServiceType) {
 export function getSwitchableTemplatesForTemplate(currentTemplateKey: string) {
   const currentService = getSingleSupportedService(currentTemplateKey);
   if (!currentService) return [];
-
-  const currentTier = getTemplateCommercialTier(currentTemplateKey);
-  return getSwitchableTemplatesForService(currentService).filter(
-    (template) => getTemplateCommercialTier(template.key) === currentTier,
-  );
+  return [];
 }
 
 export function getTemplateSwitchDecision(
@@ -188,6 +184,14 @@ export function getTemplateSwitchDecision(
       allowed: false,
       reason: "same_template",
       message: "현재 사용 중인 템플릿입니다.",
+    };
+  }
+
+  if (isTemplateKey(targetTemplateKey)) {
+    return {
+      allowed: false,
+      reason: "separate_subscription_required",
+      message: "디자인 템플릿은 각각 별도 구독 상품입니다. 새 템플릿을 구독한 뒤 메뉴 가져오기를 이용해주세요.",
     };
   }
 

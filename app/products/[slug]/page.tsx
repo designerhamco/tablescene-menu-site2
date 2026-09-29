@@ -62,10 +62,10 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               </p>
             </div>
             <div className="rounded-3xl bg-zinc-950 p-6 text-white">
-              <p className="text-sm font-bold text-zinc-400">부가세 포함</p>
+              <p className="text-sm font-bold text-zinc-400">오픈 얼리버드 · 부가세 포함</p>
               <p className="mt-2 text-3xl font-bold">{formatProductPrice(product.price)}</p>
               <p className="mt-2 text-sm font-semibold text-zinc-400">
-                정상가 {formatProductPrice(product.regularPrice)} · {product.billingLabel}
+                정상가 월 {formatProductPrice(product.regularPrice)} · {product.billingLabel}
               </p>
               <Link
                 href={purchaseHref}
@@ -99,13 +99,13 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <h2 className="type-content-title">포함 기능</h2>
               <ul className="mt-6 space-y-3 text-sm font-semibold leading-relaxed text-zinc-600">
                 <li>• 다이닝 메뉴판 1개 생성 및 관리</li>
-                <li>• 출시 대상 {getDiningTierLabel(templateTier)} 템플릿 선택</li>
+                <li>• 출시 대상 {getDiningTierLabel(templateTier)} 템플릿 중 디자인 1개 선택</li>
                 <li>• 메뉴·가격·이미지·매장 정보 편집</li>
                 <li>• 공개 URL과 QR 코드 제공</li>
                 <li>• 모바일·태블릿·PC 반응형 메뉴판</li>
               </ul>
               <p className="mt-6 rounded-2xl bg-zinc-50 p-4 break-keep text-xs font-bold leading-relaxed text-zinc-500">
-                신규 구매 또는 신규 구독 1건당 메뉴판 1개가 생성됩니다. 정기결제 갱신은 기존 메뉴판의 이용기간만 연장합니다.
+                템플릿 1개당 월 구독 1건이 적용됩니다. 다른 디자인은 별도 구독이며, 새 메뉴판에는 기존 메뉴 데이터를 가져올 수 있습니다.
               </p>
             </section>
           </div>

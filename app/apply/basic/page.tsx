@@ -5,7 +5,7 @@ import { getBasicPaymentProduct } from "@/lib/payments";
 
 export const metadata: Metadata = {
   title: "아티메뉴 다이닝 신청/결제 | ArtiMenu",
-  description: "단일·멀티페이지 사업자 월결제/연결제를 선택해 아티메뉴 다이닝 메뉴판을 신청합니다. 단일 월결제는 계정당 최초 1회 30일 무료체험을 제공합니다.",
+  description: "원페이지 또는 다이닝·멀티페이지 디자인 템플릿 1개를 월 구독합니다. 첫 구독은 계정당 최초 1회 30일 무료체험을 제공합니다.",
 };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;

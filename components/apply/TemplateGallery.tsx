@@ -36,12 +36,12 @@ const PRODUCT_TABS: readonly { key: ProductKey; label: string }[] = [
 
 const TIER_DETAILS: Record<DiningTemplateTier, { price: string; description: string; product: string }> = {
   single: {
-    price: "월 5,900원",
+    price: "얼리버드 월 4,900원 · 정상가 5,900원",
     description: "할인과 위젯을 사용하는 한 장 구성",
     product: "business_basic_single_monthly",
   },
   multi: {
-    price: "월 9,900원",
+    price: "얼리버드 월 6,900원 · 정상가 8,900원",
     description: "메뉴를 여러 페이지로 나누어 보여주는 구성",
     product: "business_basic_multi_monthly",
   },
@@ -97,7 +97,7 @@ export default function TemplateGallery({
   const selectedIndustryLabel = INDUSTRY_GROUPS.find((group) => group.key === industry)?.label ?? "선택한 업종";
 
   const productTitle = product === "display" ? "아티메뉴 디스플레이" : product === "dining_multi" ? "다이닝 멀티페이지" : "다이닝 원페이지";
-  const productPrice = service === "display" ? "월 14,900원" : TIER_DETAILS[tier].price;
+  const productPrice = service === "display" ? "얼리버드 월 10,900원 · 정상가 12,900원" : TIER_DETAILS[tier].price;
   const productDescription = service === "display"
     ? "이미지와 동영상을 함께 사용하는 대형 화면 구성"
     : TIER_DETAILS[tier].description;
@@ -146,7 +146,7 @@ export default function TemplateGallery({
           <div className="md:text-right">
             <p className="text-xl font-bold text-zinc-950">{productPrice}</p>
             <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700">
-              <Check className="h-4 w-4" aria-hidden="true" /> 같은 페이지 유형의 템플릿을 언제든 교체
+              <Check className="h-4 w-4" aria-hidden="true" /> 템플릿 1개별 월 구독 · 메뉴 데이터 가져오기 지원
             </p>
           </div>
         </div>

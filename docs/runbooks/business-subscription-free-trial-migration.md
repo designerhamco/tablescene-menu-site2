@@ -8,7 +8,8 @@
 - 기존 구독 24건 유지, 기존 trial 값 0건 유지
 - trial 컬럼 2개, 기간 CHECK, 사용자별 partial unique index, 기존 RLS 유지 확인
 - 공식 `npm run supabase:types`로 generated types 갱신 완료
-- Vercel Production에 `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED=true` Config 설정 완료
+- Vercel Production에 레거시 `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED=true` Config 설정 완료
+- 신규 월구독 공통 gate는 `BUSINESS_MONTHLY_FREE_TRIAL_ENABLED=true`이며, 이행 기간에는 레거시 gate도 fallback으로 인식한다.
 - PR #68 merge commit `ce844e0` Production 배포 `READY` 확인
 - 운영 `/pricing`, 단일 월결제 상품 상세, 신청 로그인 redirect, 폐기된 `/products/basic-trial` 404 route QA 완료
 - 전용 QA 계정의 실제 빌링키 발급·0원 시작 검증은 후속 운영 QA로 유지
@@ -34,7 +35,7 @@
 2. 사람의 특정 승인을 받은 뒤 migration 파일 한 건만 Production에 적용한다. — 완료
 3. constraint와 partial unique index, 기존 구독 건수 불변을 확인한다. — 완료
 4. 공식 generated types를 재생성한다. — 완료
-5. Vercel Production에 `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED=true`를 설정한다. — 완료
+5. Vercel Production에 `BUSINESS_MONTHLY_FREE_TRIAL_ENABLED=true`를 설정한다. — 레거시 gate가 현재 활성화되어 있으며, 신규 gate로의 전환은 후속 배포 설정 작업으로 남긴다.
 6. 승인된 애플리케이션을 병합하고 Production에 재배포한다. — 완료, PR #68
 7. 신규 전용 QA 계정에서 사업자 인증과 결제수단 등록까지만 진행해 첫 결제가 발생하지 않는지 확인한다.
 8. 구독의 `next_billing_at`, `current_period_end`, `trial_ends_at`이 시작 시각으로부터 정확히 30일 뒤인지 확인한다.
@@ -42,7 +43,7 @@
 
 ## 성공 기준
 
-- 단일페이지 월결제의 최초 대상 계정만 `오늘 결제 0원`과 정확한 첫 결제일을 본다.
+- 단일페이지·멀티페이지·디스플레이 월구독을 통틀어 최초 대상 계정만 `오늘 결제 0원`과 정확한 첫 결제일을 본다.
 - PortOne 빌링키는 발급되지만 체험 시작 시 `payments`·`orders`에 결제 완료 행이 생기지 않는다.
 - 30일 경계에서 활성·미해지 구독만 5,900원 첫 결제 대상으로 처리된다.
 - 해지 예약 구독은 첫 결제 없이 종료 처리된다.

@@ -204,7 +204,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
             <section className="rounded-3xl border border-zinc-200 bg-white p-8 text-center">
               <h2 className="type-subsection-title">가져올 다른 메뉴판이 없습니다</h2>
               <p className="mt-3 text-sm font-semibold text-zinc-500">같은 계정에 메뉴판이 두 개 이상 있을 때 사용할 수 있습니다.</p>
-              <Link href="/templates" className="mt-6 inline-flex rounded-full bg-zinc-950 px-6 py-3 text-sm font-bold text-white">
+              <Link href="/apply" className="mt-6 inline-flex rounded-full bg-zinc-950 px-6 py-3 text-sm font-bold text-white">
                 새 메뉴판 만들기
               </Link>
             </section>

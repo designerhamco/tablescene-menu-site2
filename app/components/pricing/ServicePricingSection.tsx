@@ -29,14 +29,14 @@ type PricingData = {
 const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
   basic: {
     title: "아티메뉴 다이닝 가격 안내",
-    description: "단일페이지는 할인·위젯, 멀티페이지는 여러 페이지 메뉴 구성을 제공합니다.",
+    description: "디자인 템플릿 1개마다 별도 월 구독이 적용되며, 기존 메뉴 데이터를 새 메뉴판으로 가져올 수 있습니다.",
     plans: [
       {
-        label: "단일페이지 월결제",
-        badge: "오픈할인",
-        title: "다이닝 단일페이지",
-        price: "5,900원 / 월",
-        subcopy: "정가 8,900원",
+        label: "원페이지 템플릿 월 구독",
+        badge: "오픈 얼리버드",
+        title: "원페이지 디자인 1개",
+        price: "4,900원 / 월",
+        subcopy: "정상가 5,900원",
         helper: "매월 자동 갱신",
         savings: "※ 모든 금액은 부가세 포함가입니다.",
         href: "/apply/basic?product=business_basic_single_monthly",
@@ -44,38 +44,14 @@ const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
         aiUsage: "첫 메뉴 생성 완료 시 AI 크레딧 6개를 계정당 1회 제공",
       },
       {
-        label: "단일페이지 연결제",
-        badge: "연간 10% 추가 할인",
-        title: "다이닝 단일페이지",
-        price: "63,700원 / 년",
-        subcopy: "정가 106,800원",
-        helper: "월 할인가 12개월 합계에서 10% 추가 할인",
-        savings: "※ 모든 금액은 부가세 포함가입니다.",
-        href: "/apply/basic?product=business_basic_single_yearly",
-        aiTitle: "계정 최초 메뉴 웰컴 크레딧",
-        aiUsage: "첫 메뉴 생성 완료 시 AI 크레딧 6개를 계정당 1회 제공",
-      },
-      {
-        label: "멀티페이지 월결제",
-        badge: "오픈할인",
-        title: "다이닝 멀티페이지",
-        price: "9,900원 / 월",
-        subcopy: "정가 12,900원",
+        label: "다이닝·멀티페이지 템플릿 월 구독",
+        badge: "오픈 얼리버드",
+        title: "다이닝·멀티페이지 디자인 1개",
+        price: "6,900원 / 월",
+        subcopy: "정상가 8,900원",
         helper: "매월 자동 갱신",
         savings: "※ 모든 금액은 부가세 포함가입니다.",
         href: "/apply/basic?product=business_basic_multi_monthly",
-        aiTitle: "계정 최초 메뉴 웰컴 크레딧",
-        aiUsage: "첫 메뉴 생성 완료 시 AI 크레딧 6개를 계정당 1회 제공",
-      },
-      {
-        label: "멀티페이지 연결제",
-        badge: "연간 10% 추가 할인",
-        title: "다이닝 멀티페이지",
-        price: "106,900원 / 년",
-        subcopy: "정가 154,800원",
-        helper: "월 할인가 12개월 합계에서 10% 추가 할인",
-        savings: "※ 모든 금액은 부가세 포함가입니다.",
-        href: "/apply/basic?product=business_basic_multi_yearly",
         aiTitle: "계정 최초 메뉴 웰컴 크레딧",
         aiUsage: "첫 메뉴 생성 완료 시 AI 크레딧 6개를 계정당 1회 제공",
       },
@@ -85,7 +61,8 @@ const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
       "멀티페이지: 할인 · 여러 페이지 구성 제공",
       "호출 · 오더 · PG 결제 기능 미제공",
       "신규 구매·신규 구독 1건당 다이닝 메뉴판 1개",
-      "추가 메뉴판은 별도 구매 후 같은 계정에서 관리",
+      "다른 템플릿은 별도 구독 후 같은 계정에서 관리",
+      "새 메뉴판으로 기존 메뉴 데이터 가져오기 지원",
       "정기 결제 갱신 시 기존 메뉴판 이용기간 연장",
       "공개 메뉴판 링크",
       "QR 이미지 다운로드",
@@ -105,26 +82,14 @@ const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
     description: "매장 TV와 모니터에 띄우는 대형 화면용 디지털 메뉴보드입니다.",
     plans: [
       {
-        label: "월결제",
-        badge: "오픈할인",
-        title: "아티메뉴 디스플레이",
-        price: "14,900원 / 월",
-        subcopy: "정가 19,900원",
+        label: "디스플레이 템플릿 월 구독",
+        badge: "오픈 얼리버드",
+        title: "디스플레이 디자인 1개",
+        price: "10,900원 / 월",
+        subcopy: "정상가 12,900원",
         helper: "매월 자동 갱신",
         savings: "※ 모든 금액은 부가세 포함가입니다.",
         href: "/apply/display?billing=monthly",
-        aiTitle: "계정 최초 메뉴 웰컴 크레딧",
-        aiUsage: "첫 메뉴 생성 완료 시 AI 크레딧 6개를 계정당 1회 제공",
-      },
-      {
-        label: "연결제",
-        badge: "연간 10% 추가 할인",
-        title: "아티메뉴 디스플레이",
-        price: "160,900원 / 년",
-        subcopy: "정가 238,800원",
-        helper: "월 할인가 12개월 합계에서 10% 추가 할인",
-        savings: "※ 모든 금액은 부가세 포함가입니다.",
-        href: "/apply/display?billing=yearly",
         aiTitle: "계정 최초 메뉴 웰컴 크레딧",
         aiUsage: "첫 메뉴 생성 완료 시 AI 크레딧 6개를 계정당 1회 제공",
       },
@@ -164,7 +129,8 @@ export default function ServicePricingSection({ service }: { service: ServicePri
 
         <div className="mb-8 rounded-2xl border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-bold leading-relaxed text-zinc-500">
           <p>※ 모든 금액은 부가세 포함가입니다.</p>
-          <p>※ 오픈할인은 공식 오픈일로부터 1년간 제공됩니다.</p>
+          <p>※ 첫 구독은 계정당 최초 1회 30일 무료이며, 오픈 얼리버드는 2026년 12월 31일까지 가입할 수 있습니다.</p>
+          <p>※ 얼리버드 가격은 구독을 유지하는 동안 계속 적용되며, 해지 후 재구독 시 정상가가 적용됩니다.</p>
         </div>
 
         <div className="grid gap-5 md:grid-cols-2">

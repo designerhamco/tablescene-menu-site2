@@ -1,16 +1,29 @@
-import { businessBasicMonthlyProduct } from "@/lib/payments";
+import {
+  businessBasicMonthlyProduct,
+  businessBasicMultiMonthlyProduct,
+  businessDisplayMonthlyProduct,
+} from "@/lib/payments";
 
 export const BUSINESS_FREE_TRIAL_DAYS = 30;
-export const BUSINESS_FREE_TRIAL_FEATURE_ENV = "BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED";
+export const BUSINESS_FREE_TRIAL_FEATURE_ENV = "BUSINESS_MONTHLY_FREE_TRIAL_ENABLED";
+export const LEGACY_BUSINESS_FREE_TRIAL_FEATURE_ENV = "BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED";
+
+const BUSINESS_FREE_TRIAL_PRODUCT_KEYS = new Set<string>([
+  businessBasicMonthlyProduct.product_key,
+  businessBasicMultiMonthlyProduct.product_key,
+  businessDisplayMonthlyProduct.product_key,
+]);
 
 export function isBusinessFreeTrialEnabled(
   environment: Record<string, string | undefined> = process.env,
 ) {
-  return environment[BUSINESS_FREE_TRIAL_FEATURE_ENV]?.trim().toLowerCase() === "true";
+  const configured = environment[BUSINESS_FREE_TRIAL_FEATURE_ENV]
+    ?? environment[LEGACY_BUSINESS_FREE_TRIAL_FEATURE_ENV];
+  return configured?.trim().toLowerCase() === "true";
 }
 
-export function isBusinessFreeTrialProduct(productKey: string) {
-  return productKey === businessBasicMonthlyProduct.product_key;
+export function isBusinessFreeTrialProduct(productKey: string | null | undefined) {
+  return typeof productKey === "string" && BUSINESS_FREE_TRIAL_PRODUCT_KEYS.has(productKey);
 }
 
 export function getBusinessFreeTrialPeriod(now = new Date()) {

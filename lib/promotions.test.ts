@@ -8,31 +8,51 @@ import {
   getPromotionAwareChargeAmount,
 } from "./promotions";
 
-test("one OPEN code resolves product-specific monthly and yearly prices", () => {
-  const singleMonthly = getPromotionApplyResult("business_basic_single_monthly", "OPEN");
-  const singleYearly = getPromotionApplyResult("business_basic_single_yearly", "OPEN");
-  const multiMonthly = getPromotionApplyResult("business_basic_multi_monthly", "OPEN");
-  const multiYearly = getPromotionApplyResult("business_basic_multi_yearly", "OPEN");
+const ACTIVE_PROMOTION_DATE = new Date("2026-10-01T00:00:00.000Z");
 
-  assert.equal(singleMonthly.promotion?.finalAmount, 5_900);
-  assert.equal(singleYearly.promotion?.finalAmount, 63_700);
-  assert.equal(multiMonthly.promotion?.finalAmount, 9_900);
-  assert.equal(multiYearly.promotion?.finalAmount, 106_900);
+test("one OPEN code resolves product-specific early-bird monthly prices", () => {
+  const singleMonthly = getPromotionApplyResult("business_basic_single_monthly", "OPEN", ACTIVE_PROMOTION_DATE);
+  const singleYearly = getPromotionApplyResult("business_basic_single_yearly", "OPEN", ACTIVE_PROMOTION_DATE);
+  const multiMonthly = getPromotionApplyResult("business_basic_multi_monthly", "OPEN", ACTIVE_PROMOTION_DATE);
+  const multiYearly = getPromotionApplyResult("business_basic_multi_yearly", "OPEN", ACTIVE_PROMOTION_DATE);
+  const displayMonthly = getPromotionApplyResult("business_display_monthly", "OPEN", ACTIVE_PROMOTION_DATE);
+
+  assert.equal(singleMonthly.promotion?.finalAmount, 4_900);
+  assert.equal(singleYearly.ok, false);
+  assert.equal(multiMonthly.promotion?.finalAmount, 6_900);
+  assert.equal(multiYearly.ok, false);
+  assert.equal(displayMonthly.promotion?.finalAmount, 10_900);
 });
 
 test("removing OPEN restores each product regular price", () => {
-  assert.equal(getPromotionAwareChargeAmount("business_basic_single_monthly", null), 8_900);
-  assert.equal(getPromotionAwareChargeAmount("business_basic_single_yearly", null), 106_800);
-  assert.equal(getPromotionAwareChargeAmount("business_basic_multi_monthly", null), 12_900);
-  assert.equal(getPromotionAwareChargeAmount("business_basic_multi_yearly", null), 154_800);
+  assert.equal(getPromotionAwareChargeAmount("business_basic_single_monthly", null), 5_900);
+  assert.equal(getPromotionAwareChargeAmount("business_basic_single_yearly", null), 63_700);
+  assert.equal(getPromotionAwareChargeAmount("business_basic_multi_monthly", null), 8_900);
+  assert.equal(getPromotionAwareChargeAmount("business_basic_multi_yearly", null), 106_900);
+  assert.equal(getPromotionAwareChargeAmount("business_display_monthly", null), 12_900);
 });
 
 test("applying OPEN uses the matching product promotion snapshot", () => {
-  const singlePromotion = getOpenPromotionSnapshot("business_basic_single_monthly");
-  const multiPromotion = getOpenPromotionSnapshot("business_basic_multi_monthly");
+  const singlePromotion = getOpenPromotionSnapshot("business_basic_single_monthly", ACTIVE_PROMOTION_DATE);
+  const multiPromotion = getOpenPromotionSnapshot("business_basic_multi_monthly", ACTIVE_PROMOTION_DATE);
 
-  assert.equal(getPromotionAwareChargeAmount("business_basic_single_monthly", singlePromotion), 5_900);
-  assert.equal(getPromotionAwareChargeAmount("business_basic_multi_monthly", multiPromotion), 9_900);
+  assert.equal(getPromotionAwareChargeAmount("business_basic_single_monthly", singlePromotion), 4_900);
+  assert.equal(getPromotionAwareChargeAmount("business_basic_multi_monthly", multiPromotion), 6_900);
+});
+
+test("OPEN is accepted only during the announced KST launch window", () => {
+  assert.equal(
+    getOpenPromotionSnapshot("business_basic_single_monthly", new Date("2026-09-30T14:59:59.999Z")),
+    null,
+  );
+  assert.equal(
+    getOpenPromotionSnapshot("business_basic_single_monthly", new Date("2026-09-30T15:00:00.000Z"))?.finalAmount,
+    4_900,
+  );
+  assert.equal(
+    getOpenPromotionSnapshot("business_basic_single_monthly", new Date("2026-12-31T15:00:00.000Z")),
+    null,
+  );
 });
 
 test("checkout validation, billing, storage, and renewal use the resolved charge amount", () => {

@@ -13,13 +13,15 @@ test("free trial is fail-closed unless the server feature flag is explicitly tru
   assert.equal(isBusinessFreeTrialEnabled({}), false);
   assert.equal(isBusinessFreeTrialEnabled({ BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED: "false" }), false);
   assert.equal(isBusinessFreeTrialEnabled({ BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED: " TRUE " }), true);
+  assert.equal(isBusinessFreeTrialEnabled({ BUSINESS_MONTHLY_FREE_TRIAL_ENABLED: "true" }), true);
 });
 
-test("free trial only applies to the dining single-page monthly product", () => {
+test("free trial applies once across all newly sold monthly template products", () => {
   assert.equal(isBusinessFreeTrialProduct("business_basic_single_monthly"), true);
   assert.equal(isBusinessFreeTrialProduct("business_basic_single_yearly"), false);
-  assert.equal(isBusinessFreeTrialProduct("business_basic_multi_monthly"), false);
-  assert.equal(isBusinessFreeTrialProduct("business_display_monthly"), false);
+  assert.equal(isBusinessFreeTrialProduct("business_basic_multi_monthly"), true);
+  assert.equal(isBusinessFreeTrialProduct("business_display_monthly"), true);
+  assert.equal(isBusinessFreeTrialProduct("business_display_yearly"), false);
 });
 
 test("free trial lasts exactly 30 days", () => {

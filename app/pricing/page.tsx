@@ -7,14 +7,14 @@ import { formatProductPrice, publicBasicProducts } from "@/lib/public-product-de
 
 export const metadata: Metadata = {
   title: "요금제 및 상품 | ArtiMenu",
-  description: "아티메뉴 다이닝의 월결제, 연간 상품, 30일 무료체험 가격과 제공·해지 기준을 확인하세요.",
+  description: "아티메뉴의 템플릿별 월 구독, 30일 무료체험, 오픈 얼리버드 가격을 확인하세요.",
 };
 
 const upcomingServices = [
   {
     name: "아티메뉴 디스플레이",
-    description: "신규 Display 구독 1건당 매장 TV와 모니터용 메뉴판 1개가 제공되며, 이미지와 MP4 동영상 업로드를 함께 지원합니다.",
-    price: "월 14,900원 / 연 160,900원",
+    description: "선택한 디스플레이 디자인 템플릿 1개를 월 구독하며, 계정당 최초 1회 30일 무료체험을 제공합니다.",
+    price: "정상가 월 12,900원 · 얼리버드 월 10,900원",
     cta: "준비 중",
   },
   {
@@ -42,10 +42,10 @@ export default function PricingPage() {
                 요금제를 확인한 뒤 신청 페이지에서 상품을 선택해주세요. 실제 결제와 메뉴판 생성은 `/apply` 및 `/apply/basic` 흐름에서만 진행됩니다.
               </p>
               <p className="site-body-support mt-3 font-bold text-zinc-600">
-                ※ 모든 금액은 부가세 포함가입니다. ※ 오픈할인은 공식 오픈일로부터 1년간 제공됩니다.
+                ※ 모든 금액은 부가세 포함가입니다. ※ 오픈 얼리버드는 2026년 10월 1일부터 12월 31일까지 가입할 수 있으며, 구독 유지 중 할인 가격이 유지됩니다.
               </p>
               <p className="site-body-support mt-2 font-bold text-zinc-600">
-                정기 결제 갱신 시에는 기존 메뉴판의 이용기간만 연장되며, 새 메뉴판이 추가로 생성되지 않습니다.
+                디자인 템플릿마다 별도 월 구독이 적용됩니다. 새 템플릿에는 기존 메뉴 데이터를 가져올 수 있습니다.
               </p>
             </div>
             <Link
@@ -64,14 +64,14 @@ export default function PricingPage() {
               </div>
               <p className="break-keep text-sm font-bold text-zinc-600">상품별 이용기간·제공 시점·환불 기준을 상세 페이지에서 확인할 수 있습니다.</p>
             </div>
-            <div className="grid gap-5 md:grid-cols-3">
+            <div className="grid gap-5 md:grid-cols-2">
               {publicBasicProducts.map((product) => (
                 <article key={product.slug} className="flex min-h-[310px] flex-col rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
                   <span className="w-fit rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">{product.billingLabel}</span>
                   <h3 className="type-subsection-title mt-5">{product.shortName}</h3>
                   <p className="mt-4 flex-1 break-keep text-sm font-semibold leading-relaxed text-zinc-600">{product.summary}</p>
                   <p className="mt-6 text-2xl font-bold text-zinc-950">{formatProductPrice(product.price)}</p>
-                  <p className="mt-1 text-xs font-bold text-zinc-600">정상가 {formatProductPrice(product.regularPrice)} · 부가세 포함</p>
+                  <p className="mt-1 text-xs font-bold text-zinc-600">정상가 월 {formatProductPrice(product.regularPrice)} · 부가세 포함</p>
                   <Link
                     href={`/products/${product.slug}`}
                     className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"

@@ -13,7 +13,6 @@ import {
   updateMenuSiteAction,
   updatePageSettingsAction,
   updatePublishSettingsAction,
-  switchMenuTemplateAction,
 } from "@/app/mypage/menus/actions";
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
@@ -104,12 +103,7 @@ import {
   getCustomBadgeStyles,
   mergeBadgeStyles,
 } from "@/lib/template-badge-styles";
-import { getTemplateDisplayName, getTemplatePreviewRouteKey } from "@/lib/templates";
-import {
-  getSwitchableTemplatesForTemplate,
-  getTemplateCommercialTier,
-  getTemplateCommercialTierLabel,
-} from "@/lib/template-switching";
+import { getTemplateDisplayName } from "@/lib/templates";
 import { MAX_MENU_WIDGET_DESCRIPTION_LENGTH, MAX_MENU_WIDGET_TITLE_LENGTH, type MenuWidget } from "@/lib/menu-widgets";
 import {
   getCustomBackgroundColor,
@@ -889,25 +883,6 @@ function FieldLabel({ children, required = false }: { children: ReactNode; requi
   );
 }
 
-function TemplateSwitchThumbnail({ templateKey, templateName }: { templateKey: string; templateName: string }) {
-  const previewQuery = templateKey === "cafe_brew_chapter_a" ? "?pagePresentation=multi" : "";
-
-  return (
-    <span className="relative block aspect-[4/3] overflow-hidden rounded-[1.1rem] border border-zinc-100 bg-zinc-100">
-      <iframe
-        aria-hidden="true"
-        className="pointer-events-none absolute left-0 top-0 h-[400%] w-[400%] origin-top-left border-0"
-        loading="lazy"
-        sandbox=""
-        src={`/templates/${getTemplatePreviewRouteKey(templateKey)}/preview${previewQuery}`}
-        style={{ transform: "scale(0.25)" }}
-        tabIndex={-1}
-        title={`${templateName} 템플릿 미리보기`}
-      />
-    </span>
-  );
-}
-
 function FieldHint({ children }: { children?: ReactNode }) {
   if (!children) {
     return null;
@@ -1484,8 +1459,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const latestOrder = orderData as MenuSiteOrder | null;
   const templateType = getTemplateType(site.template_key);
   const templateCapabilities = getTemplateCapabilities(site.template_key);
-  const switchableTemplates = getSwitchableTemplatesForTemplate(site.template_key);
-  const templateSwitchTargets = switchableTemplates.filter((template) => template.key !== site.template_key);
   const editorServiceType = getMenuEditorServiceTypeForMenuSite(latestOrder?.product_key, templateType);
   const editorCapabilities = getMenuEditorCapabilitiesForMenuSite(latestOrder?.product_key, templateType, {
     supportsMultiPage: templateCapabilities.multiPage?.enabled === true,
@@ -2532,89 +2505,35 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <HiddenMenuId menuId={site.id} />
                     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
                       <div>
-                        <h3 className="type-content-title text-zinc-950">템플릿 교체</h3>
+                        <h3 className="type-content-title text-zinc-950">현재 템플릿</h3>
                         <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-                          메뉴·가격·이미지·번역과 공개 주소는 유지됩니다. 할인은 내용을 보존한 채 꺼지고, 위젯은 다시 배치할 수 있게 숨겨집니다.
+                          디자인 템플릿은 각각 별도의 월 구독 상품입니다. 이 메뉴판 안에서 다른 템플릿으로 바로 변경할 수 없습니다.
                         </p>
                       </div>
-                      {accessContext.isOwner ? (
-                        <div className="mt-5 space-y-4">
-                          <p className="rounded-lg bg-white px-4 py-3 text-sm font-semibold text-zinc-600">
-                            현재 템플릿 <strong className="ml-1 font-bold text-zinc-950">{getTemplateDisplayName(site.template_key, site.template_category)}</strong>
-                            <span className="mx-2 text-zinc-300">·</span>
-                            {getTemplateCommercialTierLabel(getTemplateCommercialTier(site.template_key))}
-                          </p>
-                          {templateSwitchTargets.length > 0 ? (
-                            <>
-                              <fieldset>
-                                <legend className="text-sm font-bold text-zinc-800">변경할 템플릿</legend>
-                                <p className="mt-1 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-                                  현재 이용 중인 {getTemplateCommercialTierLabel(getTemplateCommercialTier(site.template_key))} 상품에서 선택할 수 있습니다.
-                                </p>
-                                <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                                  {templateSwitchTargets.map((template) => (
-                                    <label key={template.key} className="cursor-pointer">
-                                      <input
-                                        type="radio"
-                                        name="target_template_key"
-                                        value={template.key}
-                                        required
-                                        className="peer sr-only"
-                                      />
-                                      <span className="block rounded-[1.35rem] border border-zinc-200 bg-white p-3 transition peer-checked:border-zinc-950 peer-checked:ring-2 peer-checked:ring-zinc-950 peer-checked:ring-offset-2 peer-checked:[&_.template-switch-check]:border-zinc-950 peer-checked:[&_.template-switch-check]:bg-zinc-950 peer-checked:[&_.template-switch-check]:text-white hover:border-zinc-400">
-                                        <TemplateSwitchThumbnail templateKey={template.key} templateName={template.label} />
-                                        <span className="mt-3 flex items-center justify-between gap-3 px-1 pb-1">
-                                          <span className="min-w-0">
-                                            <span className="block truncate text-sm font-bold text-zinc-950">{template.label}</span>
-                                            <span className="mt-0.5 block text-xs font-bold text-zinc-500">
-                                              {getTemplateCommercialTierLabel(getTemplateCommercialTier(template.key))}
-                                            </span>
-                                          </span>
-                                          <span className="template-switch-check grid h-6 w-6 shrink-0 place-items-center rounded-full border border-zinc-300 text-xs font-bold text-transparent">
-                                            ✓
-                                          </span>
-                                        </span>
-                                      </span>
-                                    </label>
-                                  ))}
-                                </div>
-                              </fieldset>
-                              <label className="flex items-start gap-3 rounded-lg bg-white p-4 text-sm font-semibold leading-relaxed text-zinc-600">
-                                <input
-                                  type="checkbox"
-                                  name="confirm_template_switch"
-                                  value="confirmed"
-                                  className="mt-1 h-4 w-4 rounded border-zinc-300"
-                                />
-                                <span>
-                                  템플릿 변경 후 할인과 위젯을 다시 확인하고, 공개 화면을 미리보기로 검수하겠습니다.
-                                </span>
-                              </label>
-                              <PendingSubmitButton
-                                formAction={switchMenuTemplateAction}
-                                pendingLabel="템플릿 변경 중..."
-                                className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
-                              >
-                                템플릿 변경
-                              </PendingSubmitButton>
-                            </>
-                          ) : (
-                            <p className="break-keep rounded-lg bg-white p-4 text-sm font-semibold leading-relaxed text-zinc-500">
-                              같은 페이지 등급에서 변경할 수 있는 다른 템플릿이 아직 없습니다.
-                            </p>
-                          )}
+                      <div className="mt-5 space-y-4">
+                        <p className="rounded-lg bg-white px-4 py-3 text-sm font-semibold text-zinc-600">
+                          현재 템플릿 <strong className="ml-1 font-bold text-zinc-950">{getTemplateDisplayName(site.template_key, site.template_category)}</strong>
+                        </p>
+                        <p className="break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                          다른 디자인을 이용하려면 새 템플릿을 별도로 구독한 뒤, 새 메뉴판에서 기존 메뉴 데이터를 가져오세요.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          <Link
+                            href="/apply"
+                            className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
+                          >
+                            다른 템플릿 보기
+                          </Link>
+                          {accessContext.isOwner ? (
+                            <Link
+                              href={`/mypage/menus/${site.id}/import`}
+                              className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
+                            >
+                              메뉴 가져오기
+                            </Link>
+                          ) : null}
                         </div>
-                      ) : (
-                        <div className="mt-5">
-                          <FieldLabel>현재 템플릿</FieldLabel>
-                          <TextInput
-                            value={templateDisplayName}
-                            readOnly
-                            className="cursor-not-allowed bg-white text-zinc-600 focus:border-zinc-200"
-                            helperText="템플릿 교체는 메뉴판 소유자만 할 수 있습니다."
-                          />
-                        </div>
-                      )}
+                      </div>
                     </div>
                     <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
                       <div>

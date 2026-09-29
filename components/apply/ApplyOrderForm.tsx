@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type * as PortOneSdk from "@portone/browser-sdk/v2";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import { isBusinessFreeTrialProduct } from "@/lib/business-free-trial";
 import {
   getDiningProductTier,
   getDiningTierLabel,
@@ -13,10 +14,9 @@ import {
 import { DISPLAY_CHECKOUT_QA_MOCK_BILLING_PREFIX } from "@/lib/display-checkout-qa-constants";
 import { openDiscountPolicy } from "@/lib/promotion-policy";
 import {
-  basicPaymentProducts,
   businessBasicMonthlyProduct,
+  businessBasicMultiMonthlyProduct,
   businessDisplayMonthlyProduct,
-  businessDisplayYearlyProduct,
   canIndividualPurchasePlan,
   displayPaymentProducts,
   formatKrw,
@@ -87,9 +87,8 @@ type ApplyOrderFormProps = {
   displayCheckoutQaEnabled?: boolean;
   initialBasicProductKey?: BasicProductKey;
   initialTemplateKey?: string;
-  singleMonthlyFreeTrialAvailable?: boolean;
-  singleMonthlyFreeTrialFirstBillingDate?: string;
-  singleMonthlyFreeTrialProductKey?: BasicProductKey;
+  monthlyFreeTrialAvailable?: boolean;
+  monthlyFreeTrialFirstBillingDate?: string;
   initialRecoverPaymentId?: string;
   initialRecoverSubscriptionId?: string;
 };
@@ -298,10 +297,11 @@ const agreementLabels: Record<AgreementKey, string> = {
 const agreementDetails: Record<AgreementKey, string[]> = {
   terms: [
     "[서비스 목적] 아티메뉴는 음식점, 카페, 다이닝 매장 등에서 사용할 수 있는 웹 메뉴판 생성 및 관리 서비스입니다. 아티메뉴 다이닝은 템플릿 기반 메뉴판 생성 및 데이터 편집 기능을 제공합니다.",
-    "[사업자 정식 이용] 아티메뉴 다이닝 월결제/연결제는 사업자 인증 후 자동결제로 이용하는 정식 플랜입니다. 신규 구매 또는 신규 구독 1건당 Basic 메뉴판 1개가 제공되며, 추가 메뉴판은 별도로 구매해야 합니다.",
-    "[정기 결제 갱신] 월간 또는 연간 정기 결제가 갱신되면 기존 메뉴판의 이용기간만 연장되며, 새 메뉴판이 추가로 생성되지 않습니다.",
-    "[30일 무료체험] 계정당 최초 1회 단일페이지 월결제에 한해 결제수단을 등록하면 등록 완료 시점부터 30일간 무료로 이용할 수 있습니다. 체험 종료 시점에 월 5,900원이 처음 자동결제됩니다.",
+    "[템플릿별 월 구독] 선택한 디자인 템플릿 1개당 월 구독 1건이 적용됩니다. 다른 디자인을 함께 이용하려면 해당 템플릿을 별도로 구독해야 합니다.",
+    "[정기 결제 갱신] 월 정기 결제가 갱신되면 선택한 템플릿 메뉴판의 이용기간만 연장되며, 새 메뉴판이나 다른 템플릿 이용권이 추가되지 않습니다.",
+    "[30일 무료체험] 원페이지·다이닝 멀티페이지·디스플레이 월 구독 중 계정당 최초 1회에 한해 결제수단 등록 완료 시점부터 30일간 무료로 이용할 수 있습니다. 체험 종료 시 선택한 템플릿의 월 이용료가 처음 자동결제됩니다.",
     "[무료체험 해지] 무료체험 종료 전 언제든 해지를 예약할 수 있습니다. 중도 해지해도 30일 종료일까지 이용할 수 있으며, 종료 시점의 첫 결제는 실행되지 않습니다.",
+    "[메뉴 데이터 이동] 별도로 구매한 다른 템플릿 메뉴판에는 기존 메뉴판의 메뉴 데이터를 가져올 수 있습니다. 템플릿별 디자인, 레이아웃, 위젯, 할인 설정은 새 템플릿에 맞게 별도로 설정해야 합니다.",
     "[서비스 안내] 아티메뉴 디스플레이는 매장 TV와 모니터에 띄우는 디스플레이 메뉴보드 서비스입니다. 아티메뉴 커스텀과 비주얼 스튜디오는 상담 또는 준비 중인 서비스로, 제공 범위와 이용 조건은 별도 안내합니다.",
     "[서비스 이용 시작] 결제가 완료되고 메뉴판이 생성되면 서비스 이용이 시작된 것으로 봅니다. 생성된 메뉴판은 마이페이지에서 확인하고 편집할 수 있습니다.",
     "[메뉴판 주소] 사용자가 입력한 희망 메뉴판 주소는 중복 여부, 정책 위반 여부, 기술적 제한 등에 따라 사용할 수 없을 수 있습니다. 회사는 부적절하거나 오해를 유발하거나 제3자의 권리를 침해할 우려가 있는 주소 사용을 제한할 수 있습니다.",
@@ -325,7 +325,7 @@ const agreementDetails: Record<AgreementKey, string[]> = {
   contentPolicy: [
     "결제 완료 또는 30일 무료체험의 결제수단 등록 완료 즉시 선택한 요금제의 메뉴판이 생성되고, 메뉴판 편집·공개 설정·QR 및 공개 URL 이용이 시작됩니다.",
     "계정의 첫 메뉴판 생성이 완료되면 AI 웰컴 크레딧 6개가 계정당 1회 지급됩니다. 추가 메뉴판, 재구독, 결제 갱신으로는 추가 지급되지 않습니다.",
-    "월결제 또는 연결제 상품은 정기결제 상품이며, 이용자가 구독을 해지하기 전까지 선택한 결제 주기에 따라 자동 결제됩니다.",
+    "현재 신규 판매 상품은 템플릿별 월 정기결제 상품이며, 이용자가 구독을 해지하기 전까지 매월 자동 결제됩니다.",
     "구독을 해지하는 경우 다음 결제일부터 결제가 중단되며, 이미 결제된 이용기간 동안은 서비스를 계속 이용할 수 있습니다.",
     "서비스 제공이 개시된 이후에는 관련 법령상 허용되는 범위 내에서 단순 변심, 착오 구매, 미사용 등을 이유로 한 청약철회 및 환불이 제한될 수 있습니다.",
     "단, 중복 결제, 결제 오류, 회사의 귀책사유로 서비스가 정상적으로 제공되지 않은 경우 등 회사가 환불이 필요하다고 인정하거나 관련 법령상 환불이 필요한 경우에는 회사의 환불 정책 및 관계 법령에 따라 처리됩니다.",
@@ -356,7 +356,7 @@ const personalTrialAgreementDetails: Record<AgreementKey, string[]> = {
     "첫 달 체험은 아티메뉴 다이닝 기준으로 신청일로부터 1개월간 제공됩니다.",
     "체험 기간에는 메뉴판 1개만 만들 수 있습니다.",
     "첫 메뉴판 생성이 완료되면 계정당 최초 1회 AI 웰컴 크레딧 6개가 제공됩니다.",
-    "체험 기간 종료 후 메뉴판은 비공개 처리될 수 있으며, 종료 후 30일 이내 사업자 월결제 또는 연결제로 전환하면 기존 메뉴판 데이터를 계속 사용할 수 있습니다.",
+    "체험 기간 종료 후 메뉴판은 비공개 처리될 수 있으며, 종료 후 30일 이내 사업자 월 구독으로 전환하면 기존 메뉴판 데이터를 계속 사용할 수 있습니다.",
     "30일이 경과하면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있으며, 삭제된 데이터는 복구되지 않을 수 있습니다.",
     "첫 달 체험 후 사업자 플랜으로 전환하는 경우, 유료서비스 제공 및 결제 처리를 위해 사업자 정보 입력과 관련 동의가 필요합니다.",
   ],
@@ -390,20 +390,12 @@ const serviceProducts = {
 
 const basicProductCards = [
   {
-    product: basicPaymentProducts[0],
-    bullets: ["할인 · 위젯", "월 자동결제 · 웰컴 크레딧 6개"],
+    product: businessBasicMonthlyProduct,
+    bullets: ["원페이지 디자인 1개", "월 자동결제 · 웰컴 크레딧 6개"],
   },
   {
-    product: basicPaymentProducts[1],
-    bullets: ["할인 · 위젯", "연 자동결제 · 월결제 대비 10% 추가 할인"],
-  },
-  {
-    product: basicPaymentProducts[2],
-    bullets: ["할인 · 멀티페이지", "월 자동결제 · 웰컴 크레딧 6개"],
-  },
-  {
-    product: basicPaymentProducts[3],
-    bullets: ["할인 · 멀티페이지", "연 자동결제 · 월결제 대비 10% 추가 할인"],
+    product: businessBasicMultiMonthlyProduct,
+    bullets: ["다이닝·멀티페이지 디자인 1개", "월 자동결제 · 웰컴 크레딧 6개"],
   },
 ] as const satisfies readonly {
   product: BasicPaymentProduct;
@@ -413,11 +405,7 @@ const basicProductCards = [
 const displayProductCards = [
   {
     product: businessDisplayMonthlyProduct,
-    bullets: ["이미지 · 동영상 업로드", "월 자동결제 · 웰컴 크레딧 6개"],
-  },
-  {
-    product: businessDisplayYearlyProduct,
-    bullets: ["이미지 · 동영상 업로드", "연 자동결제 · 월결제 대비 10% 추가 할인"],
+    bullets: ["디스플레이 디자인 1개", "월 자동결제 · 웰컴 크레딧 6개"],
   },
 ] as const satisfies readonly {
   product: DisplayPaymentProduct;
@@ -911,9 +899,8 @@ export default function ApplyOrderForm({
   displayCheckoutQaEnabled = false,
   initialBasicProductKey = businessBasicMonthlyProduct.product_key,
   initialTemplateKey = "",
-  singleMonthlyFreeTrialAvailable = false,
-  singleMonthlyFreeTrialFirstBillingDate = "",
-  singleMonthlyFreeTrialProductKey = businessBasicMonthlyProduct.product_key,
+  monthlyFreeTrialAvailable = false,
+  monthlyFreeTrialFirstBillingDate = "",
   initialRecoverPaymentId = "",
   initialRecoverSubscriptionId = "",
 }: ApplyOrderFormProps) {
@@ -929,7 +916,10 @@ export default function ApplyOrderForm({
   const firstCategory = TEMPLATE_CATEGORIES[0].key;
   const requestedTemplate = serviceTemplates.find((template) => template.key === initialTemplateKey);
   const requestedInitialBasicProduct = getBasicPaymentProduct(initialBasicProductKey) ?? businessBasicMonthlyProduct;
-  const initialBasicProduct = serviceTemplates.some((template) =>
+  const isRequestedProductForNewSale = basicProductCards.some(
+    ({ product }) => product.product_key === requestedInitialBasicProduct.product_key,
+  );
+  const initialBasicProduct = isRequestedProductForNewSale && serviceTemplates.some((template) =>
     isDiningProductCompatibleWithTemplate(requestedInitialBasicProduct.product_key, template.key)
   )
     ? requestedInitialBasicProduct
@@ -957,9 +947,8 @@ export default function ApplyOrderForm({
     return serviceProducts[serviceType];
   }, [displayCheckoutQaEnabled, isMenuService, isScreenService, selectedBasicProductKey, selectedDisplayProductKey, serviceType]);
   const shouldStartFreeTrial =
-    isMenuService &&
-    singleMonthlyFreeTrialAvailable &&
-    activeProduct.product_key === singleMonthlyFreeTrialProductKey;
+    monthlyFreeTrialAvailable &&
+    isBusinessFreeTrialProduct(activeProduct.product_key);
   const activeDiningTier = isMenuService ? getDiningProductTier(activeProduct.product_key) : null;
   const eligibleServiceTemplates = useMemo(
     () => isMenuService
@@ -981,7 +970,11 @@ export default function ApplyOrderForm({
   });
   const [uiState, setUiState] = useState<UiState>({ type: "idle", message: null });
   const [promotionCodeInput, setPromotionCodeInput] = useState("OPEN");
-  const [promotionState, setPromotionState] = useState<PromotionUiState>({ type: "success", message: "오픈 할인이 적용되었습니다." });
+  const [promotionState, setPromotionState] = useState<PromotionUiState>(() =>
+    getOpenPromotionSnapshot(businessBasicMonthlyProduct.product_key)
+      ? { type: "success", message: "오픈 얼리버드 할인이 적용되었습니다." }
+      : { type: "idle", message: null },
+  );
   const [appliedPromotion, setAppliedPromotion] = useState<AppliedPromotionSnapshot | null | undefined>(undefined);
   const canUsePromotionCode = Boolean(activeProduct.product_key && isOpenPromotionProduct(activeProduct.product_key));
   const defaultOpenPromotion = useMemo(
@@ -1263,7 +1256,7 @@ export default function ApplyOrderForm({
       : hasVerifiedBusinessProfile
         ? isSubscriptionProduct
           ? shouldStartFreeTrial
-            ? `사업자 인증이 완료되었습니다. 결제수단 등록 후 30일 무료체험이 시작되며 ${singleMonthlyFreeTrialFirstBillingDate}에 첫 결제가 진행됩니다.`
+            ? `사업자 인증이 완료되었습니다. 결제수단 등록 후 30일 무료체험이 시작되며 ${monthlyFreeTrialFirstBillingDate}에 첫 결제가 진행됩니다.`
             : "사업자 인증이 완료되었습니다. 빌링키를 발급한 뒤 첫 결제를 진행합니다."
           : "사업자 인증이 완료되었습니다. 결제를 진행합니다."
         : businessVerificationState.type === "failed"
@@ -1382,7 +1375,11 @@ export default function ApplyOrderForm({
     setSelectedBasicProductKey(product.product_key);
     setUiState({ type: "idle", message: null });
     setPromotionCodeInput("OPEN");
-    setPromotionState({ type: "success", message: "오픈 할인이 적용되었습니다." });
+    setPromotionState(
+      getOpenPromotionSnapshot(product.product_key)
+        ? { type: "success", message: "오픈 얼리버드 할인이 적용되었습니다." }
+        : { type: "idle", message: null },
+    );
     setAppliedPromotion(undefined);
     setForm((current) => ({
       ...current,
@@ -1396,7 +1393,7 @@ export default function ApplyOrderForm({
     }));
     setBusinessVerificationState({
       type: "idle",
-      message: "사업자 월결제/연결제는 국세청 사업자 인증 성공 후 자동결제를 진행합니다.",
+      message: "사업자 월 구독은 국세청 사업자 인증 성공 후 자동결제를 진행합니다.",
     });
   }
 
@@ -1404,7 +1401,11 @@ export default function ApplyOrderForm({
     setSelectedDisplayProductKey(product.product_key);
     setUiState({ type: "idle", message: null });
     setPromotionCodeInput("OPEN");
-    setPromotionState({ type: "success", message: "오픈 할인이 적용되었습니다." });
+    setPromotionState(
+      getOpenPromotionSnapshot(product.product_key)
+        ? { type: "success", message: "오픈 얼리버드 할인이 적용되었습니다." }
+        : { type: "idle", message: null },
+    );
     setAppliedPromotion(undefined);
     setForm((current) => ({
       ...current,
@@ -1412,9 +1413,7 @@ export default function ApplyOrderForm({
     }));
     setBusinessVerificationState({
       type: "idle",
-      message: product.billing_cycle === "yearly"
-        ? "디스플레이 연결제는 사업자 인증 성공 후 빌링키 연 자동결제를 진행합니다."
-        : "디스플레이 월결제는 사업자 인증 성공 후 빌링키 월 자동결제를 진행합니다.",
+      message: "디스플레이 월 구독은 사업자 인증 성공 후 빌링키 월 자동결제를 진행합니다.",
     });
   }
 
@@ -1868,7 +1867,7 @@ export default function ApplyOrderForm({
       if (!hasVerifiedBusinessProfile || businessVerificationState.type !== "verified") {
         setUiState({
           type: "error",
-          message: "사업자 월결제/연결제는 사업자 인증 완료 후 진행할 수 있습니다.",
+          message: "사업자 월 구독은 사업자 인증 완료 후 진행할 수 있습니다.",
         });
         return;
       }
@@ -1955,7 +1954,7 @@ export default function ApplyOrderForm({
             promotion_original_amount: activePromotion?.originalAmount,
             promotion_final_amount: activePromotion?.finalAmount,
             free_trial_days: shouldStartFreeTrial ? 30 : undefined,
-            first_billing_date: shouldStartFreeTrial ? singleMonthlyFreeTrialFirstBillingDate : undefined,
+            first_billing_date: shouldStartFreeTrial ? monthlyFreeTrialFirstBillingDate : undefined,
             terms_accepted: agreements.terms,
             privacy_accepted: agreements.privacy,
             content_policy_accepted: agreements.contentPolicy,
@@ -2152,7 +2151,7 @@ export default function ApplyOrderForm({
   const activeAgreementDetails = activeProduct.product_key === personalTrialBasicProduct.product_key ? personalTrialAgreementDetails : agreementDetails;
   const allAgreementsChecked = Object.values(agreements).every(Boolean);
   const nextBillingLabel = shouldStartFreeTrial
-    ? singleMonthlyFreeTrialFirstBillingDate
+    ? monthlyFreeTrialFirstBillingDate
     : activeProduct.billing_cycle === "monthly"
     ? "결제 완료일로부터 1개월 후"
     : activeProduct.billing_cycle === "yearly"
@@ -2169,13 +2168,13 @@ export default function ApplyOrderForm({
         {isMenuService && (
           <section className="order-3 rounded-3xl bg-white p-7 shadow-sm">
             <div className="mb-6">
-              <h2 className="type-subsection-title">이용 방식</h2>
+              <h2 className="type-subsection-title">템플릿 유형</h2>
               <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
-                페이지 유형과 결제 주기를 선택해 주세요.
+                사용할 디자인 유형을 선택해 주세요. 모든 상품은 템플릿 1개 기준 월 구독입니다.
               </p>
-              {singleMonthlyFreeTrialAvailable ? (
+              {monthlyFreeTrialAvailable ? (
                 <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-emerald-700">
-                  단일페이지 월결제는 결제수단 등록 후 30일 무료입니다. 첫 결제일은 {singleMonthlyFreeTrialFirstBillingDate}입니다.
+                  첫 구독은 결제수단 등록 후 30일 무료입니다. 첫 결제일은 {monthlyFreeTrialFirstBillingDate}입니다.
                 </p>
               ) : null}
             </div>
@@ -2185,6 +2184,8 @@ export default function ApplyOrderForm({
                   isDiningProductCompatibleWithTemplate(product.product_key, template.key)
                 );
                 const isSelected = selectedBasicProductKey === product.product_key;
+                const promotion = getOpenPromotionSnapshot(product.product_key);
+                const displayedAmount = promotion?.finalAmount ?? product.amount;
 
                 return (
                   <button
@@ -2207,25 +2208,26 @@ export default function ApplyOrderForm({
                         <h3 className="type-content-title break-keep">{product.label}</h3>
                       </div>
                       <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
-                        {!hasAvailableTemplate ? "템플릿 준비중" : isSelected ? "선택됨" : product.billing_cycle === "yearly" ? "연 자동결제" : "자동결제"}
+                        {!hasAvailableTemplate ? "템플릿 준비중" : isSelected ? "선택됨" : "월 자동결제"}
                       </span>
                     </div>
                     <div className="mt-5">
-                      <p className={`text-xs font-bold line-through ${isSelected ? "text-white/35" : "text-zinc-400"}`}>
-                        정가 {product.billing_cycle === "monthly" ? "월 " : product.billing_cycle === "yearly" ? "연 " : ""}
-                        {formatKrw(product.regular_amount)}
-                      </p>
+                      {promotion ? (
+                        <p className={`text-xs font-bold line-through ${isSelected ? "text-white/35" : "text-zinc-400"}`}>
+                          정상가 월 {formatKrw(promotion.originalAmount)}
+                        </p>
+                      ) : null}
                       <p className="mt-1 text-2xl font-bold">
-                        {`${formatKrw(product.amount)} / ${product.billing_cycle === "monthly" ? "월" : "년"}`}
+                        {`${formatKrw(displayedAmount)} / 월`}
                       </p>
                       <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-white/55" : "text-zinc-400"}`}>
-                        {product.billing_cycle === "monthly"
-                            ? `정가 ${formatKrw(product.regular_amount)} · 오픈할인 ${product.discount_rate}%`
-                            : `연 정가 ${formatKrw(product.regular_amount)} · 월 할인가 12개월 합계에서 10% 추가 할인`}
+                        {promotion
+                          ? `오픈 얼리버드 월 ${formatKrw(displayedAmount)} · 구독 유지 시 할인 가격 유지`
+                          : `정상가 월 ${formatKrw(product.regular_amount)}`}
                       </p>
-                      {singleMonthlyFreeTrialAvailable && product.product_key === singleMonthlyFreeTrialProductKey ? (
+                      {monthlyFreeTrialAvailable && isBusinessFreeTrialProduct(product.product_key) ? (
                         <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-emerald-300" : "text-emerald-700"}`}>
-                          첫 30일 0원 · 결제수단 등록 필수 · {singleMonthlyFreeTrialFirstBillingDate} 첫 결제
+                          첫 30일 0원 · 계정당 최초 1회 · {monthlyFreeTrialFirstBillingDate} 첫 결제
                         </p>
                       ) : null}
                     </div>
@@ -2278,14 +2280,16 @@ export default function ApplyOrderForm({
         {isScreenService && displayCheckoutQaEnabled && (
           <section className="order-3 rounded-3xl bg-white p-7 shadow-sm">
             <div className="mb-6">
-              <h2 className="type-subsection-title">이용 방식</h2>
+              <h2 className="type-subsection-title">디스플레이 구독</h2>
               <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
-                월결제 또는 연결제를 선택해 주세요.
+                선택한 디스플레이 디자인 1개를 월 단위로 구독합니다.
               </p>
             </div>
             <div className="grid gap-4 lg:grid-cols-2">
               {displayProductCards.map(({ product, bullets }) => {
                 const isSelected = selectedDisplayProductKey === product.product_key;
+                const promotion = getOpenPromotionSnapshot(product.product_key);
+                const displayedAmount = promotion?.finalAmount ?? product.amount;
 
                 return (
                   <button
@@ -2303,20 +2307,28 @@ export default function ApplyOrderForm({
                         <h3 className="type-content-title break-keep">{product.label}</h3>
                       </div>
                       <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
-                        {isSelected ? "선택됨" : product.billing_cycle === "yearly" ? "연 자동결제" : "월 자동결제"}
+                        {isSelected ? "선택됨" : "월 자동결제"}
                       </span>
                     </div>
                     <div className="mt-5">
-                      <p className={`text-xs font-bold line-through ${isSelected ? "text-white/35" : "text-zinc-400"}`}>
-                        정가 {product.billing_cycle === "monthly" ? "월 " : "연 "}
-                        {formatKrw(product.regular_amount)}
-                      </p>
+                      {promotion ? (
+                        <p className={`text-xs font-bold line-through ${isSelected ? "text-white/35" : "text-zinc-400"}`}>
+                          정상가 월 {formatKrw(promotion.originalAmount)}
+                        </p>
+                      ) : null}
                       <p className="mt-1 text-2xl font-bold">
-                        {formatKrw(product.amount)} / {product.billing_cycle === "monthly" ? "월" : "년"}
+                        {formatKrw(displayedAmount)} / 월
                       </p>
                       <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-white/55" : "text-zinc-400"}`}>
-                        {product.billing_cycle === "yearly" ? "연 자동결제 · 빌링키 필요" : "매월 자동결제 · 빌링키 필요"}
+                        {promotion
+                          ? `오픈 얼리버드 · 구독 유지 시 할인 가격 유지`
+                          : "매월 자동결제 · 빌링키 필요"}
                       </p>
+                      {monthlyFreeTrialAvailable && isBusinessFreeTrialProduct(product.product_key) ? (
+                        <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-emerald-300" : "text-emerald-700"}`}>
+                          첫 30일 0원 · 계정당 최초 1회 · {monthlyFreeTrialFirstBillingDate} 첫 결제
+                        </p>
+                      ) : null}
                     </div>
                     <ul className={`mt-5 space-y-1.5 text-sm font-bold leading-relaxed ${isSelected ? "text-white/75" : "text-zinc-500"}`}>
                       {bullets.map((bullet) => (
@@ -2740,8 +2752,8 @@ export default function ApplyOrderForm({
                     <summary className="cursor-pointer select-none">결제·증빙 안내</summary>
                     <p className="mt-2 break-keep font-medium leading-relaxed text-amber-800">
                       {shouldStartFreeTrial
-                        ? `결제수단 등록 후 30일 무료체험이 시작되며 ${singleMonthlyFreeTrialFirstBillingDate}에 첫 결제가 진행됩니다. `
-                        : "확인 완료 후 선택한 결제 주기로 자동결제가 진행됩니다. "}
+                        ? `결제수단 등록 후 30일 무료체험이 시작되며 ${monthlyFreeTrialFirstBillingDate}에 첫 결제가 진행됩니다. `
+                        : "확인 완료 후 매월 자동결제가 진행됩니다. "}
                       매입세액 공제가 필요하면 결제창에서 지출증빙용을 선택하고 사업자번호를 입력해 주세요.
                     </p>
                   </details>
@@ -2760,19 +2772,13 @@ export default function ApplyOrderForm({
             {isMenuService && (
               <SummaryRow
                 label="이용 방식"
-                value={
-                  activeProduct.billing_cycle === "monthly"
-                    ? "사업자 월 자동결제"
-                    : activeProduct.billing_cycle === "yearly"
-                      ? activeProduct.is_subscription ? "사업자 연 자동결제" : "사업자 연결제"
-                      : "개인 1개월 단건 결제"
-                }
+                value={activeProduct.is_subscription ? "템플릿별 월 자동결제" : "개인 1개월 단건 결제"}
               />
             )}
             {isScreenService && displayCheckoutQaEnabled && (
               <SummaryRow
                 label="이용 방식"
-                value={activeProduct.billing_cycle === "yearly" ? "디스플레이 연 자동결제" : "디스플레이 월 자동결제"}
+                value="디스플레이 템플릿별 월 자동결제"
               />
             )}
             {(isMenuService || (isScreenService && displayCheckoutQaEnabled)) && <SummaryRow label="자동결제" value={activeProduct.is_subscription ? "필요" : "없음"} />}
@@ -2823,7 +2829,7 @@ export default function ApplyOrderForm({
                   ) : null}
                   {activePromotion ? (
                     <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                      현재 오픈 할인가로 결제됩니다.
+                      현재 오픈 얼리버드 가격으로 결제됩니다.
                     </p>
                   ) : null}
                 </dd>
@@ -2840,13 +2846,13 @@ export default function ApplyOrderForm({
                   label="정상가"
                   value={`${activeProduct.billing_cycle === "monthly" ? "월 " : activeProduct.billing_cycle === "yearly" ? "연 " : ""}${formatKrw(activePromotion.originalAmount)}`}
                 />
-                <SummaryRow label="오픈 할인" value={promotionDiscountLabel} />
+                <SummaryRow label="오픈 얼리버드 할인" value={promotionDiscountLabel} />
                 <SummaryRow label="최종 결제금액" value={formatKrw(activePromotion.finalAmount)} strong />
               </>
             ) : (
               <SummaryRow label={isMenuService ? "오늘 결제 금액" : "금액"} value={formatKrw(checkoutAmount)} strong />
             )}
-            {activePromotion ? <SummaryRow label="오픈 할인 적용 기간" value={openDiscountPolicy.durationLabel} /> : null}
+            {activePromotion ? <SummaryRow label="얼리버드 가입 기간" value={openDiscountPolicy.durationLabel} /> : null}
             {activeProduct.is_subscription ? <SummaryRow label={shouldStartFreeTrial ? "첫 결제 예정일" : "다음 결제 예정일"} value={nextBillingLabel} /> : null}
             {activeProduct.is_subscription ? <SummaryRow label={shouldStartFreeTrial ? "첫 결제 예정 금액" : "다음 결제 예정 금액"} value={formatKrw(checkoutAmount)} /> : null}
           </dl>
@@ -2856,10 +2862,11 @@ export default function ApplyOrderForm({
               <div className="mt-3 space-y-2 break-keep">
                 <p>
                   {shouldStartFreeTrial
-                    ? `결제수단 등록 후 30일 동안 무료로 이용하며, ${singleMonthlyFreeTrialFirstBillingDate} 전 해지하면 결제되지 않습니다.`
+                    ? `결제수단 등록 후 30일 동안 무료로 이용하며, ${monthlyFreeTrialFirstBillingDate} 전 해지하면 결제되지 않습니다.`
                     : "사업자 인증과 결제수단 등록 후 자동결제를 진행합니다."}
                 </p>
-                <p>추가 메뉴판은 별도 구매이며, 표시 금액은 VAT 포함입니다.</p>
+                <p>다른 템플릿은 별도 월 구독이며, 표시 금액은 VAT 포함입니다.</p>
+                <p>별도로 구독한 메뉴판에는 기존 메뉴 데이터를 가져올 수 있습니다.</p>
                 {activePromotion ? <p>{openDiscountPolicy.note}</p> : null}
               </div>
             </details>

@@ -31,7 +31,7 @@ Vercel의 Cron Jobs 기능은 `Enabled` 상태이며 다음 세 작업이 `verce
 
 값을 열지 않고 다음 핵심 변수의 존재와 scope를 확인했다.
 
-- Production 전용: `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED`, `STAFF_INVITATIONS_ENABLED`, `AI_SUPPORT_CHAT_ENABLED`, `OPENAI_SUPPORT_API_KEY`
+- Production 전용: `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED`(레거시, `BUSINESS_MONTHLY_FREE_TRIAL_ENABLED`로 전환 예정), `STAFF_INVITATIONS_ENABLED`, `AI_SUPPORT_CHAT_ENABLED`, `OPENAI_SUPPORT_API_KEY`
 - Production + Preview: Supabase 공개/서버 키, PortOne 키, OpenAI 키·모델, Resend 이메일 설정, `CRON_SECRET`, `ENABLE_SUBSCRIPTION_CRON_EXECUTE`, 공개 사이트 URL
 
 다음 runtime gate는 Vercel 목록에 없으며 코드의 기본값에 따라 닫힌 상태로 유지된다.
@@ -49,7 +49,7 @@ Vercel의 Cron Jobs 기능은 `Enabled` 상태이며 다음 세 작업이 `verce
 2026-09-14 Vercel Dashboard에서 값을 열지 않고 변수명, 유형, scope, 갱신 메타데이터와 `Needs Attention` 상태만 재확인했다.
 
 - Secret 유형: `CRON_SECRET`, `PORTONE_API_SECRET`, `SUPABASE_SERVICE_ROLE_KEY`, `OPENAI_SUPPORT_API_KEY`, `OPENAI_API_KEY`, `RESEND_API_KEY`, `DATA_GO_KR_SERVICE_KEY`, `ENABLE_SUBSCRIPTION_CRON_EXECUTE`, `PORTONE_MOCK_ENABLED`, `STAFF_INVITATIONS_ENABLED`
-- Config 유형: `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED`, `AI_SUPPORT_CHAT_ENABLED`
+- Config 유형: `BUSINESS_SINGLE_MONTHLY_FREE_TRIAL_ENABLED`(레거시, 신규 월구독 공통 gate는 `BUSINESS_MONTHLY_FREE_TRIAL_ENABLED`), `AI_SUPPORT_CHAT_ENABLED`
 - `OPENAI_SUPPORT_API_KEY`, 무료체험·직원초대·AI 상담 gate는 Production 전용이고, 그 외 핵심 서버 키와 결제·Cron gate는 Production + Preview scope다.
 - 대체 사업자 검증 키 `NTS_BUSINESS_API_KEY`는 없지만 실제 구현이 우선 사용하는 `DATA_GO_KR_SERVICE_KEY`가 Secret으로 등록되어 있다.
 - 확인한 12개 핵심 변수에는 Vercel의 `Needs Attention` 표시가 없었다.

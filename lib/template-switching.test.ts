@@ -29,51 +29,41 @@ test("다이닝 페이지 유형과 통합 디스플레이 상품을 구분한�
   assert.equal(getTemplateCommercialTier("display_menu_a"), "display");
 });
 
-test("현재 템플릿과 같은 페이지 등급의 교체 후보만 노출한다", () => {
-  assert.deepEqual(
-    getSwitchableTemplatesForTemplate("cafe_design_a").map((template) => template.key),
-    [
-      "cafe_design_a",
-      "cafe_mocha_forest_a",
-      "cafe_sunday_line_a",
-      "cafe_round_focus_a",
-    ],
-  );
-  assert.deepEqual(
-    getSwitchableTemplatesForTemplate("dining_aube_table_a").map((template) => template.key),
-    ["dining_aube_table_a", "dining_aube_table_b"],
-  );
-  assert.deepEqual(
-    getSwitchableTemplatesForTemplate("dining_aube_table_b").map((template) => template.key),
-    ["dining_aube_table_a", "dining_aube_table_b"],
-  );
+test("템플릿별 별도 구독 정책에서는 교체 후보를 노출하지 않는다", () => {
+  assert.deepEqual(getSwitchableTemplatesForTemplate("cafe_design_a"), []);
+  assert.deepEqual(getSwitchableTemplatesForTemplate("dining_aube_table_a"), []);
+  assert.deepEqual(getSwitchableTemplatesForTemplate("dining_aube_table_b"), []);
 });
 
-test("같은 서비스의 출시 템플릿으로만 교체한다", () => {
-  const allowed = getTemplateSwitchDecision("cafe_design_a", "cafe_sunday_line_a");
-  assert.equal(allowed.allowed, true);
+test("다른 디자인 템플릿 변경은 별도 구독과 메뉴 가져오기로 안내한다", () => {
+  const sameTier = getTemplateSwitchDecision("cafe_design_a", "cafe_sunday_line_a");
+  assert.deepEqual(sameTier, {
+    allowed: false,
+    reason: "separate_subscription_required",
+    message: "디자인 템플릿은 각각 별도 구독 상품입니다. 새 템플릿을 구독한 뒤 메뉴 가져오기를 이용해주세요.",
+  });
 
   const retired = getTemplateSwitchDecision("cafe_design_a", "cafe_noir_a");
   assert.equal(retired.allowed, false);
-  if (!retired.allowed) assert.equal(retired.reason, "coming_soon");
+  if (!retired.allowed) assert.equal(retired.reason, "separate_subscription_required");
 
   const crossService = getTemplateSwitchDecision("cafe_design_a", "display_menu_a");
   assert.deepEqual(crossService, {
     allowed: false,
-    reason: "cross_service",
-    message: "다이닝과 디스플레이 서비스 사이에서는 템플릿만 바꿀 수 없습니다.",
+    reason: "separate_subscription_required",
+    message: "디자인 템플릿은 각각 별도 구독 상품입니다. 새 템플릿을 구독한 뒤 메뉴 가져오기를 이용해주세요.",
   });
 
   const crossTier = getTemplateSwitchDecision("cafe_design_a", "dining_aube_table_a");
   assert.deepEqual(crossTier, {
     allowed: false,
-    reason: "cross_tier",
-    message: "단일 페이지와 멀티페이지 상품 사이에서는 템플릿만 바꿀 수 없습니다.",
+    reason: "separate_subscription_required",
+    message: "디자인 템플릿은 각각 별도 구독 상품입니다. 새 템플릿을 구독한 뒤 메뉴 가져오기를 이용해주세요.",
   });
 
   const comingSoon = getTemplateSwitchDecision("cafe_design_a", "cafe_design_b");
   assert.equal(comingSoon.allowed, false);
-  if (!comingSoon.allowed) assert.equal(comingSoon.reason, "coming_soon");
+  if (!comingSoon.allowed) assert.equal(comingSoon.reason, "separate_subscription_required");
 });
 
 test("템플릿별 디자인은 스냅샷으로 보존하고 공통 페이지 설정은 유지한다", () => {

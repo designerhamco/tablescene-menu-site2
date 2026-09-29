@@ -55,6 +55,8 @@ type StartBusinessSubscriptionRequest = {
   order?: unknown;
   consentSnapshot?: unknown;
   startWithFreeTrial?: unknown;
+  promotionCode?: unknown;
+  promotion?: unknown;
 };
 
 type ServerSupabaseClient = Awaited<ReturnType<typeof createClient>>;
@@ -1850,7 +1852,7 @@ export async function POST(request: Request) {
     return jsonStepError({
       step: "free_trial_eligibility_check",
       debugCode: "FREE_TRIAL_PRODUCT_NOT_ELIGIBLE",
-      message: "30일 무료체험은 신규 단일페이지 월결제에만 적용할 수 있습니다.",
+      message: "30일 무료체험은 신규 월 구독 상품에만 적용할 수 있습니다.",
       status: 400,
       userId: user.id,
       mode,
@@ -1864,7 +1866,7 @@ export async function POST(request: Request) {
     return jsonStepError({
       step: "new_or_convert_precheck",
       debugCode: "LEGACY_PRODUCT_NEW_PURCHASE_NOT_ALLOWED",
-      message: "기존 고객 전용 상품은 새로 신청할 수 없습니다. 현재 판매 중인 단일·멀티페이지 상품을 선택해주세요.",
+      message: "기존 고객 전용 상품은 새로 신청할 수 없습니다. 현재 판매 중인 월 구독 상품을 선택해주세요.",
       status: 409,
       userId: user.id,
       mode,
@@ -2254,7 +2256,34 @@ export async function POST(request: Request) {
     });
   }
 
-  const chargeAmount = order?.amount ?? product.amount;
+  const conversionPromotionValidation = mode === "convert"
+    ? validatePromotionForOrder({
+        productKey: product.productKey,
+        promotionCode: body.promotionCode,
+        promotion: body.promotion,
+      })
+    : null;
+
+  if (conversionPromotionValidation && !conversionPromotionValidation.ok) {
+    return jsonStepError({
+      step: "product_key_validation",
+      debugCode: "INVALID_PROMOTION_SNAPSHOT",
+      message: "프로모션 정보를 확인할 수 없습니다. 화면을 새로고침한 뒤 다시 시도해주세요.",
+      status: 400,
+      userId: user.id,
+      mode,
+      productKey: product.productKey,
+      billingCycle: product.billingCycle,
+      safeDebug: baseDebug,
+    });
+  }
+
+  const conversionChargeAmount = conversionPromotionValidation?.ok
+    ? getPromotionAwareChargeAmount(product.productKey, conversionPromotionValidation.promotion)
+    : product.amount;
+  const appliedPromotion = order?.promotion
+    ?? (conversionPromotionValidation?.ok ? conversionPromotionValidation.promotion : null);
+  const chargeAmount = order?.amount ?? conversionChargeAmount ?? product.amount;
   const paymentId = canonicalPaymentId;
   const billingPeriod = getSubscriptionBillingPeriod(product, new Date(), startsWithFreeTrial);
   const nextBillingAt = billingPeriod.nextBillingAt;
@@ -2588,7 +2617,7 @@ export async function POST(request: Request) {
         amount: chargeAmount,
         businessProfile,
         portonePayment: billingPayment?.rawPayment,
-        promotionSnapshot: (order?.promotion ?? null) as Json | null,
+        promotionSnapshot: appliedPromotion as Json | null,
         consentSnapshot: (order ? {
           termsAccepted: order.termsAccepted,
           privacyAccepted: order.privacyAccepted,

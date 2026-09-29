@@ -2,12 +2,14 @@ import {
   getPaymentProductDefinition,
   type PaymentProductKey,
 } from "@/lib/payments";
+import { getEarlyBirdMonthlyPrice } from "@/lib/template-subscription-pricing";
+import { isOpenDiscountPeriod } from "@/lib/promotion-policy";
 
 export type PromotionCodeType = "public";
 
 export type AppliedPromotionSnapshot = {
   promotionCode: "OPEN";
-  promotionName: "오픈 할인";
+  promotionName: "오픈 얼리버드 할인";
   promotionType: PromotionCodeType;
   originalAmount: number;
   discountAmount: number;
@@ -21,17 +23,12 @@ type PromotionValidationInput = {
 };
 
 export const OPEN_PROMOTION_CODE = "OPEN";
-export const OPEN_PROMOTION_NAME = "오픈 할인";
+export const OPEN_PROMOTION_NAME = "오픈 얼리버드 할인";
 
 const OPEN_PROMOTION_PRODUCT_KEYS = new Set<PaymentProductKey>([
   "business_basic_single_monthly",
-  "business_basic_single_yearly",
   "business_basic_multi_monthly",
-  "business_basic_multi_yearly",
-  "business_basic_monthly",
-  "business_basic_yearly",
   "business_display_monthly",
-  "business_display_yearly",
 ]);
 
 function positiveInteger(value: unknown) {
@@ -47,13 +44,16 @@ export function isOpenPromotionProduct(productKey: string | null | undefined): p
   return Boolean(productKey && OPEN_PROMOTION_PRODUCT_KEYS.has(productKey as PaymentProductKey));
 }
 
-export function getOpenPromotionSnapshot(productKey: string | null | undefined): AppliedPromotionSnapshot | null {
-  if (!isOpenPromotionProduct(productKey)) return null;
+export function getOpenPromotionSnapshot(productKey: string | null | undefined, now = new Date()): AppliedPromotionSnapshot | null {
+  if (!isOpenDiscountPeriod(now) || !isOpenPromotionProduct(productKey)) return null;
 
   const product = getPaymentProductDefinition(productKey);
   if (!product) return null;
 
-  const finalAmount = positiveInteger(product.amount);
+  const earlyBirdAmount = getEarlyBirdMonthlyPrice(productKey);
+  if (earlyBirdAmount === null) return null;
+
+  const finalAmount = positiveInteger(earlyBirdAmount);
   const originalAmount = Math.max(finalAmount, positiveInteger(product.regular_amount));
   const discountAmount = Math.max(0, originalAmount - finalAmount);
 
@@ -82,7 +82,7 @@ export function getPromotionAwareChargeAmount(
   return positiveInteger(product.amount);
 }
 
-export function getPromotionApplyResult(productKey: string | null | undefined, promotionCode: unknown) {
+export function getPromotionApplyResult(productKey: string | null | undefined, promotionCode: unknown, now = new Date()) {
   const normalizedCode = normalizePromotionCode(promotionCode);
 
   if (!normalizedCode) {
@@ -93,12 +93,12 @@ export function getPromotionApplyResult(productKey: string | null | undefined, p
     return { ok: false as const, message: "사용할 수 없는 프로모션 코드입니다.", promotion: null };
   }
 
-  const promotion = getOpenPromotionSnapshot(productKey);
+  const promotion = getOpenPromotionSnapshot(productKey, now);
   if (!promotion) {
-    return { ok: false as const, message: "사용할 수 없는 프로모션 코드입니다.", promotion: null };
+    return { ok: false as const, message: "현재 적용 기간이 아닌 프로모션 코드입니다.", promotion: null };
   }
 
-  return { ok: true as const, message: "오픈 할인이 적용되었습니다.", promotion };
+  return { ok: true as const, message: "오픈 얼리버드 할인이 적용되었습니다.", promotion };
 }
 
 function isPromotionSnapshotMatching(value: unknown, expected: AppliedPromotionSnapshot) {

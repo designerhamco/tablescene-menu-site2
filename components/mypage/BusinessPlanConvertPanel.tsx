@@ -6,8 +6,9 @@ import { useRouter } from "next/navigation";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { ConsentAgreementBox, ConsentDetailText, type ConsentAgreementItem } from "@/components/consent/ConsentAgreementBox";
-import { businessBasicMonthlyProduct, businessBasicYearlyProduct, formatKrw, type BasicProductKey } from "@/lib/payments";
+import { businessBasicMonthlyProduct, formatKrw, type BasicProductKey } from "@/lib/payments";
 import { openDiscountPolicy } from "@/lib/promotion-policy";
+import { getOpenPromotionSnapshot } from "@/lib/promotions";
 
 type BusinessVerificationResponse = {
   ok?: boolean;
@@ -70,7 +71,7 @@ type BusinessPlanConvertPanelProps = {
   billingChannelKey: string | null;
 };
 
-const conversionProducts = [businessBasicMonthlyProduct, businessBasicYearlyProduct] as const;
+const conversionProducts = [businessBasicMonthlyProduct] as const;
 
 const convertConsentItems: readonly ConsentAgreementItem[] = [
   {
@@ -89,7 +90,7 @@ const convertConsentItems: readonly ConsentAgreementItem[] = [
     detailTitle: "사업자 정보 수집·이용 동의",
     detail: (
       <ConsentDetailText>
-        <p>첫 달 체험 메뉴판의 유료서비스 전환, 사업자 확인, 월결제 또는 연결제 결제, 정기구독 관리, 증빙 처리, 고객지원 및 부정 이용 방지를 위해 상호명, 대표자명, 사업자등록번호, 사업장 주소, 업종, 업태, 담당자명, 담당자 연락처, 담당자 이메일을 수집·이용합니다.</p>
+        <p>첫 달 체험 메뉴판의 유료서비스 전환, 월 구독 결제, 사업자 확인, 정기구독 관리, 증빙 처리, 고객지원 및 부정 이용 방지를 위해 상호명, 대표자명, 사업자등록번호, 사업장 주소, 업종, 업태, 담당자명, 담당자 연락처, 담당자 이메일을 수집·이용합니다.</p>
         <p>사업자 정보는 사업자 인증 API를 통해 유효성이 확인될 수 있으며, 사업자등록증 파일은 기본적으로 수집하지 않습니다.</p>
         <p>보유기간은 유료서비스 이용기간 동안이며, 결제·정산·계약·소비자 분쟁 관련 기록은 관계 법령에 따라 일정 기간 보관됩니다.</p>
         <p>동의를 거부할 경우 첫 달 체험 메뉴판의 유료 전환, 결제 및 유료서비스 이용이 제한될 수 있습니다.</p>
@@ -158,6 +159,8 @@ export default function BusinessPlanConvertPanel({ menuSiteId, storeId, billingC
   });
 
   const selectedProduct = conversionProducts.find((product) => product.product_key === selectedProductKey) ?? businessBasicMonthlyProduct;
+  const selectedPromotion = getOpenPromotionSnapshot(selectedProduct.product_key);
+  const selectedAmount = selectedPromotion?.finalAmount ?? selectedProduct.amount;
   const businessNameError = getRequiredError("상호명", form.businessName);
   const representativeNameError = getRequiredError("대표자명", form.representativeName);
   const businessNumberError = form.businessNumber.trim() ? getBusinessNumberError(form.businessNumber) : "사업자등록번호를 입력해주세요.";
@@ -335,6 +338,8 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
           businessProfileId: verificationState.result.businessProfileId,
           productKey: selectedProduct.product_key,
           billingCycle: selectedProduct.billing_cycle,
+          promotionCode: selectedPromotion?.promotionCode ?? null,
+          promotion: selectedPromotion,
           menuSiteId,
           consentSnapshot: {
             termsAccepted: consents.termsAccepted,
@@ -372,7 +377,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
           아티메뉴 디스플레이 플랜은 템플릿과 화면 구성이 달라 신규 신청으로 제공될 예정입니다.
         </p>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
+        <div className="mt-6 grid gap-4">
           {conversionProducts.map((product) => {
             const selected = selectedProductKey === product.product_key;
 
@@ -386,14 +391,14 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
                 }`}
               >
                 <span className={`rounded-full px-3 py-1 text-xs font-bold ${selected ? "bg-white text-zinc-950" : "bg-zinc-100 text-zinc-600"}`}>
-                  {product.billing_cycle === "yearly" ? "연 자동결제" : "월 자동결제"}
+                  월 자동결제
                 </span>
                 <h3 className="type-content-title mt-4">{product.label}</h3>
                 <p className={`mt-2 text-sm font-bold leading-relaxed ${selected ? "text-white/70" : "text-zinc-500"}`}>
                   사업자 인증 후 기존 메뉴판을 정식 플랜으로 전환합니다.
                 </p>
                 <p className="mt-4 text-sm font-bold">
-                  정가 {formatKrw(product.regular_amount)} / 오픈 할인 {formatKrw(product.amount)}
+                  정상가 {formatKrw(product.regular_amount)} / 오픈 얼리버드 {formatKrw(getOpenPromotionSnapshot(product.product_key)?.finalAmount ?? product.amount)}
                 </p>
               </button>
             );
@@ -418,14 +423,14 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
           </div>
           <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
             <dt className="text-zinc-400">결제 방식</dt>
-            <dd className="text-right text-zinc-900">{selectedProduct.billing_cycle === "yearly" ? "연 자동결제" : "월 자동결제"}</dd>
+            <dd className="text-right text-zinc-900">월 자동결제</dd>
           </div>
           <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
             <dt className="text-zinc-400">오늘 결제 금액</dt>
-            <dd className="text-right text-zinc-900">{formatKrw(selectedProduct.amount)}</dd>
+            <dd className="text-right text-zinc-900">{formatKrw(selectedAmount)}</dd>
           </div>
           <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
-            <dt className="text-zinc-400">오픈 할인</dt>
+            <dt className="text-zinc-400">오픈 얼리버드 가입 기간</dt>
             <dd className="text-right text-zinc-900">{openDiscountPolicy.durationLabel}</dd>
           </div>
         </dl>

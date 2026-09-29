@@ -6,10 +6,10 @@ import { CheckCircle2 } from 'lucide-react';
 const services = [
   {
     title: '아티메뉴 다이닝',
-    badge: '오픈할인',
+    badge: '오픈 얼리버드',
     description: '직접 편집하는 기본 디지털 메뉴판',
-    price: '단일 월 5,900원 · 멀티 월 9,900원',
-    details: ['다양한 템플릿 제공', '실시간 메뉴 및 가격 수정', '모든 기기 호환 및 QR 지원'],
+    price: '원페이지 월 4,900원 · 멀티페이지 월 6,900원',
+    details: ['템플릿 1개별 월 구독', '첫 구독 30일 무료', '메뉴 데이터 가져오기 지원'],
     cta: '구매하기',
     href: '/apply/basic',
     highlighted: true,
@@ -19,7 +19,7 @@ const services = [
     title: '아티메뉴 디스플레이',
     badge: '준비 중',
     description: '매장 TV와 모니터에 띄우는 디스플레이 메뉴보드',
-    price: '월 14,900원 · 연 160,900원',
+    price: '얼리버드 월 10,900원 · 정상가 월 12,900원',
     details: ['매장 화면용 메뉴 구성', '이벤트와 안내 화면 확장', '디스플레이 환경 상담'],
     cta: '준비 중',
     href: '/apply/display',
