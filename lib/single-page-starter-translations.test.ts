@@ -51,3 +51,19 @@ test("single-page starter provisioning saves completed translations and enables 
   assert.match(source, /menu_item_translations/);
   assert.match(source, /menu_promotion_translations/);
 });
+
+test("REAL MATCHA keeps cream and classic matcha distinct without duplicating matcha in non-coffee", () => {
+  const preset = getStarterPreset("cafe_design_a");
+  const items = preset.pages.flatMap((page) => page.categories.flatMap((category) => category.items));
+  const itemByKey = new Map(items.map((item) => [item.key, item]));
+
+  assert.equal(itemByKey.get("real-matcha-cream-latte")?.name, "리얼 맛차 크림 라떼");
+  assert.equal(itemByKey.get("real-matcha-latte")?.name, "리얼 맛차 라떼");
+  assert.equal(itemByKey.get("black-sesame-latte")?.name, "흑임자 라떼");
+  assert.equal(itemByKey.has("deep-matcha-cloud"), false);
+  assert.equal(itemByKey.has("jeju-matcha-latte"), false);
+  assert.equal(
+    preset.featured_slides?.some((slide) => slide.featured_item_key === "real-matcha-latte"),
+    true,
+  );
+});

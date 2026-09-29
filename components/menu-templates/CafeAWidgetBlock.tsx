@@ -87,7 +87,12 @@ function renderMedia(widget: CafeAImageWidget | CafeAImageTextWidget) {
   );
 
   return (
-    <div className={styles.mediaFrame} style={mediaStyle} data-cafe-a-widget-media>
+    <div
+      className={joinClassNames(styles.mediaFrame, hasRenderableImage && styles.mediaFrameWithImage)}
+      style={mediaStyle}
+      data-cafe-a-widget-media
+      data-cafe-a-widget-has-image={hasRenderableImage ? "true" : "false"}
+    >
       {hasRenderableImage && widget.imageUrl ? (
         <img
           src={widget.imageUrl}

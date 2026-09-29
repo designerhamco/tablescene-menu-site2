@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
 
 import { signOutAction } from "@/app/auth/actions";
 import { formatNotificationBadgeCount } from "@/lib/notification-display-policy";
@@ -7,7 +6,6 @@ import { formatNotificationBadgeCount } from "@/lib/notification-display-policy"
 export type MypageNavigationKey =
   | "menus"
   | "payments"
-  | "staff"
   | "inquiries"
   | "notifications"
   | "account";
@@ -89,13 +87,11 @@ export function MypageNavigation({
   active,
   totalMenuCount,
   canShowOwnerCommerce,
-  hasOwnedMenuSites,
   unreadNotificationCount = 0,
 }: {
   active: MypageNavigationKey;
   totalMenuCount: number;
   canShowOwnerCommerce: boolean;
-  hasOwnedMenuSites: boolean;
   unreadNotificationCount?: number;
 }) {
   return (
@@ -105,31 +101,12 @@ export function MypageNavigation({
         <NavigationCount active={active === "menus"}>{totalMenuCount.toLocaleString("ko-KR")}</NavigationCount>
       </Link>
       <div className="mt-2 space-y-1">
-        <Link
-          href="/mypage/operations"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="매장 운영 새 창 열기"
-          className={getNavigationClassName(false)}
-        >
-          <span className="inline-flex items-center gap-1.5">
-            매장 운영
-            <ExternalLink className="h-3.5 w-3.5 text-zinc-400" strokeWidth={1.9} aria-hidden="true" />
-          </span>
-        </Link>
         {canShowOwnerCommerce ? (
           <Link href="/mypage?tab=payments" className={getNavigationClassName(active === "payments")}>
             <span>구독/결제 내역</span>
           </Link>
         ) : (
           <DisabledNavigationItem label="구독/결제 내역" reason="사장 계정만 구독과 결제 내역을 관리할 수 있습니다." />
-        )}
-        {hasOwnedMenuSites ? (
-          <Link href="/mypage/staff" className={getNavigationClassName(active === "staff")}>
-            <span>직원 관리</span>
-          </Link>
-        ) : (
-          <DisabledNavigationItem label="직원 관리" reason="소유한 메뉴판의 사장만 직원을 관리할 수 있습니다." />
         )}
         <Link href="/mypage?tab=inquiries" className={getNavigationClassName(active === "inquiries")}>
           <span>문의 내역</span>

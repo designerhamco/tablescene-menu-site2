@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { isStaffManagementAvailable } from "@/lib/product-focus-policy";
 import {
   isValidStaffInvitationToken,
   STAFF_INVITATION_INTENT_COOKIE,
@@ -13,6 +14,20 @@ function buildReviewUrl(request: NextRequest, error?: string) {
 }
 
 export async function GET(request: NextRequest) {
+  if (!isStaffManagementAvailable()) {
+    const response = NextResponse.redirect(new URL("/mypage?tab=menus", request.nextUrl.origin));
+    response.cookies.set({
+      name: STAFF_INVITATION_INTENT_COOKIE,
+      value: "",
+      httpOnly: true,
+      sameSite: "lax",
+      secure: request.nextUrl.protocol === "https:",
+      path: "/staff/invitations",
+      maxAge: 0,
+    });
+    return response;
+  }
+
   const token = request.nextUrl.searchParams.get("token");
   const response = NextResponse.redirect(
     isValidStaffInvitationToken(token)

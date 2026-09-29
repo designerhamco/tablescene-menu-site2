@@ -6,16 +6,14 @@ function readSource(relativePath: string) {
   return readFileSync(new URL(`../${relativePath}`, import.meta.url), "utf8");
 }
 
-test("마이페이지의 매장 운영 진입점은 두 곳 모두 새 창으로 열린다", () => {
+test("마이페이지에서 매장 운영과 직원 관리 진입점을 숨긴다", () => {
   const mypageSource = readSource("app/mypage/page.tsx");
   const sidebarSource = readSource("components/mypage/MypageSidebar.tsx");
 
-  for (const source of [mypageSource, sidebarSource]) {
-    assert.match(source, /href="\/mypage\/operations"/);
-    assert.match(source, /target="_blank"/);
-    assert.match(source, /rel="noopener noreferrer"/);
-    assert.match(source, /<ExternalLink/);
-  }
+  assert.doesNotMatch(mypageSource, /href="\/mypage\/operations"/);
+  assert.doesNotMatch(sidebarSource, /href="\/mypage\/operations"/);
+  assert.doesNotMatch(sidebarSource, /href="\/mypage\/staff"/);
+  assert.doesNotMatch(sidebarSource, /<ExternalLink/);
 });
 
 test("매장 운영 내비게이션은 주문·매출을 숨기고 현재 운영 기능만 노출한다", () => {
@@ -42,6 +40,7 @@ test("매장 운영 대시보드는 주문·매출 데이터를 불러오거나 
   assert.match(dashboardSource, /label="운영 테이블"/);
   assert.match(dashboardSource, /label="활성 대기번호"/);
   assert.match(dashboardSource, /title="최근 호출"/);
+  assert.match(dashboardSource, /if \(!isStoreOperationsAvailable\(\)\) redirect\("\/mypage\?tab=menus"\)/);
 });
 
 test("매장 운영 화면은 공통 여백·카드·피드백 시스템을 사용한다", () => {

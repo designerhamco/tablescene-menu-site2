@@ -1,4 +1,5 @@
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
+import { DESIGN_MENU_FOCUS_POLICY } from "@/lib/product-focus-policy";
 
 export type DiningTemplateTier = "single" | "multi";
 
@@ -48,7 +49,10 @@ export function getDiningTemplateTier(templateKey: string | null | undefined): D
 }
 
 export function getDiningTierFeatures(tier: DiningTemplateTier): DiningTierFeatures {
-  return DINING_TIER_FEATURES[tier];
+  return {
+    ...DINING_TIER_FEATURES[tier],
+    smartCall: DINING_TIER_FEATURES[tier].smartCall && DESIGN_MENU_FOCUS_POLICY.smartCall,
+  };
 }
 
 export function getDiningTemplateFeatures(templateKey: string | null | undefined): DiningTierFeatures {

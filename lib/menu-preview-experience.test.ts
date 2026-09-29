@@ -82,7 +82,7 @@ test("mobile preview converts visible price columns into editable order options"
   ]);
 });
 
-test("mobile preview keeps Order dormant and shows Smart Call only for multi-page Dining", () => {
+test("mobile preview keeps Order and Smart Call dormant across Dining templates", () => {
   const single = buildMenuPreviewOrderCallConfig({
     menuSiteId: "site-a",
     storeName: "ArtiMenu",
@@ -98,14 +98,9 @@ test("mobile preview keeps Order dormant and shows Smart Call only for multi-pag
   assert.equal(single.orderEnabled, false);
   assert.equal(single.previewOnly, true);
   assert.deepEqual(single.callItems, []);
-  assert.equal(multi.callEnabled, true);
+  assert.equal(multi.callEnabled, false);
   assert.equal(multi.orderEnabled, false);
-  assert.deepEqual(multi.callItems?.map((callItem) => callItem.label), [
-    "물 요청",
-    "식기 요청",
-    "테이블 정리",
-    "직원 호출",
-  ]);
+  assert.deepEqual(multi.callItems, []);
   assert.deepEqual(multi.orderCatalog, []);
   assert.equal(multi.checkoutModes, undefined);
 });

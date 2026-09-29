@@ -7,7 +7,7 @@ type Message = { role: "user" | "assistant"; text: string };
 
 const SUGGESTIONS = [
   "단일페이지와 멀티페이지의 차이가 궁금해요",
-  "테이블별 QR과 스마트호출은 어떻게 사용하나요?",
+  "대표 QR은 어떻게 사용하나요?",
   "AI 크레딧은 언제, 얼마나 사용되나요?",
   "디스플레이에서 할인과 동영상을 사용할 수 있나요?",
 ] as const;
@@ -78,7 +78,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
         <div className="border-b border-zinc-100 px-5 py-5 md:px-7">
           <h2 className="type-content-title">상담 범위</h2>
           <p className="type-body-sm mt-1 text-zinc-500">
-            요금제, 메뉴판 제작, 다국어, 스마트호출과 디스플레이 이용 방법을 안내합니다.
+            요금제, 메뉴판 제작, 다국어, 대표 QR과 디스플레이 이용 방법을 안내합니다.
           </p>
         </div>
       ) : null}

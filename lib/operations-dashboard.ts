@@ -5,6 +5,7 @@ import {
 } from "@/lib/menu-site-permissions";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { isPickupQueueTemplate } from "@/lib/pickup-queue-runtime";
+import { DESIGN_MENU_FOCUS_POLICY } from "@/lib/product-focus-policy";
 
 export type StoreOperationKey = "orders" | "calls" | "tables" | "sales" | "pickup";
 
@@ -34,7 +35,8 @@ function hasOperationPermission(
 }
 
 export function isStoreOperationsTemplate(templateKey: string | null | undefined) {
-  return Boolean(templateKey && getDiningTemplateFeatures(templateKey).smartCall);
+  return DESIGN_MENU_FOCUS_POLICY.storeOperations
+    && Boolean(templateKey && getDiningTemplateFeatures(templateKey).smartCall);
 }
 
 export function getStoreOperationAccess({
@@ -52,6 +54,16 @@ export function getStoreOperationAccess({
   pickupQueueEnabled: boolean;
   permissions?: readonly MenuSitePermission[];
 }): StoreOperationAccess {
+  if (!DESIGN_MENU_FOCUS_POLICY.storeOperations) {
+    return {
+      orders: false,
+      calls: false,
+      tables: false,
+      sales: false,
+      pickup: false,
+    };
+  }
+
   const smartCallTemplate = isStoreOperationsTemplate(templateKey);
   const pickupQueueTemplate = isPickupQueueTemplate(templateKey);
   if (!smartCallTemplate && !pickupQueueTemplate) {

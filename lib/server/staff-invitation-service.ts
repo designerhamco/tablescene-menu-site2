@@ -4,6 +4,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 
 import { isEmailProviderConfigured, sendNotificationEmail } from "@/lib/email-notifications";
 import type { MenuSiteMemberRole } from "@/lib/menu-site-permissions";
+import { DESIGN_MENU_FOCUS_POLICY } from "@/lib/product-focus-policy";
 import {
   buildStaffInvitationEmail,
   isStaffInvitationRole,
@@ -77,7 +78,8 @@ function getStaffInvitationSiteOrigin() {
 }
 
 export function isStaffInvitationCreationEnabled() {
-  return process.env.STAFF_INVITATIONS_ENABLED === "true"
+  return DESIGN_MENU_FOCUS_POLICY.staffManagement
+    && process.env.STAFF_INVITATIONS_ENABLED === "true"
     && isEmailProviderConfigured()
     && Boolean(getStaffInvitationSiteOrigin());
 }

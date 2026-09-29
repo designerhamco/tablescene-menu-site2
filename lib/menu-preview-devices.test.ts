@@ -193,7 +193,11 @@ test("device selector is open by default and collapses upward into a compact han
   assert.match(previewFrameSource, /width: showToolbar \? undefined : "5rem"/);
   assert.match(previewFrameSource, /translateY\(calc\(-100% \+ 1\.75rem\)\)/);
   assert.match(previewFrameSource, /transition-\[width,transform\] duration-300 ease-out/);
-  assert.match(previewFrameSource, /RotateCwSquare/);
+  assert.match(previewFrameSource, /function PreviewOrientationIcon\(\)/);
+  assert.match(previewFrameSource, /<svg[\s\S]*viewBox="0 0 383\.39 383\.38"/);
+  assert.match(previewFrameSource, /preserveAspectRatio="xMidYMid meet"/);
+  assert.match(previewFrameSource, /fill="currentColor"/);
+  assert.match(previewFrameSource, /M168\.78,354\.99/);
   assert.match(previewFrameSource, /data-preview-tablet-orientation-toggle=""/);
   assert.match(previewFrameSource, /orientation === "landscape" \? "portrait" : "landscape"/);
   assert.match(previewFrameSource, /태블릿을 \$\{MENU_PREVIEW_ORIENTATIONS\[nextTabletOrientation\]\}로 회전/);

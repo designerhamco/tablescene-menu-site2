@@ -119,6 +119,25 @@ try {
               boxShadow: style.boxShadow,
             };
           });
+        const widgetWidthMetrics = Array.from(document.querySelectorAll("[data-cafe-a-widget-block]"))
+          .flatMap((block) => {
+            const shell = block.querySelector(":scope > [data-cafe-a-widget-shell]");
+            const media = shell?.querySelector("[data-cafe-a-widget-media]");
+            if (!(shell instanceof HTMLElement) || !(media instanceof HTMLElement)) return [];
+            const blockRect = block.getBoundingClientRect();
+            const shellRect = shell.getBoundingClientRect();
+            const mediaRect = media.getBoundingClientRect();
+            if (blockRect.width <= 0 || shellRect.width <= 0 || mediaRect.width <= 0) return [];
+            const mediaStyle = getComputedStyle(media);
+            return [{
+              blockWidth: blockRect.width,
+              shellWidth: shellRect.width,
+              mediaWidth: mediaRect.width,
+              hasImage: media.getAttribute("data-cafe-a-widget-has-image") === "true",
+              backgroundColor: mediaStyle.backgroundColor,
+              backgroundImage: mediaStyle.backgroundImage,
+            }];
+          });
         return {
           text: textRoot instanceof HTMLElement ? textRoot.innerText.trim() : "",
           horizontalOverflow: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
@@ -138,6 +157,7 @@ try {
             : null,
           noticeFontFamilies,
           widgetShellStyles,
+          widgetWidthMetrics,
           typography: {
             category: visibleFontSize(".cafe-a-desktop-fit-board .cafe-a-category-title"),
             item: visibleFontSize(".cafe-a-desktop-fit-board .cafe-a-menu-title"),
@@ -179,6 +199,18 @@ try {
         }
         if (measurement.widgetShellStyles.some((style) => style.borderWidth !== "0px" || style.boxShadow !== "none")) {
           failures.push(`widget shell still has a border or shadow: ${JSON.stringify(measurement.widgetShellStyles)}`);
+        }
+        if (measurement.widgetWidthMetrics.some((metric) => (
+          Math.abs(metric.blockWidth - metric.shellWidth) > 1
+          || Math.abs(metric.shellWidth - metric.mediaWidth) > 1
+        ))) {
+          failures.push(`widget media does not fill its column width: ${JSON.stringify(measurement.widgetWidthMetrics)}`);
+        }
+        if (measurement.widgetWidthMetrics.some((metric) => (
+          metric.hasImage
+          && (metric.backgroundColor !== "rgba(0, 0, 0, 0)" || metric.backgroundImage !== "none")
+        ))) {
+          failures.push(`transparent widget image has a rendered backdrop: ${JSON.stringify(measurement.widgetWidthMetrics)}`);
         }
         if (templateKey === "cafe_round_focus_a" && (!measurement.text.includes("NO IMAGE") || measurement.text.includes("MENU IMAGE"))) {
           failures.push("empty Round Focus widget does not use the NO IMAGE fallback");
@@ -449,7 +481,10 @@ try {
           const deviceTypeScale = await page.locator(".cafe-a-typography").evaluate((element) => (
             getComputedStyle(element).getPropertyValue("--cafe-a-device-type-scale").trim()
           ));
-          if (deviceTypeScale !== "1.12") failures.push(`tablet typography scale is incorrect: ${deviceTypeScale || "missing"}`);
+          const expectedDeviceTypeScale = templateKey === "cafe_round_focus_a" ? "1.04" : "1.12";
+          if (deviceTypeScale !== expectedDeviceTypeScale) {
+            failures.push(`tablet typography scale is incorrect: ${deviceTypeScale || "missing"} / ${expectedDeviceTypeScale}`);
+          }
         }
         if (rhythm.itemGap === null || rhythm.titleGaps.length === 0) {
           failures.push(`spacing rhythm metrics are unavailable: ${JSON.stringify(rhythm)}`);

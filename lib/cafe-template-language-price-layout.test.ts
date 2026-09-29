@@ -110,6 +110,10 @@ test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12�
     globalStylesSource,
     /data-preview-device="tablet"\]\[data-cafe-a-skin="sunday_line"\] \{[\s\S]*--cafe-a-store-title-device-scale: 0\.94;/,
   );
+  assert.match(
+    globalStylesSource,
+    /data-preview-device="tablet"\]\[data-cafe-a-skin="round_focus"\] \{[\s\S]*--cafe-a-device-type-scale: 1\.04;/,
+  );
   assert.match(globalStylesSource, /\.cafe-a-store-title \{[\s\S]*var\(--cafe-a-store-title-device-scale, 1\)/);
   assert.match(globalStylesSource, /\.cafe-a-topline-title \{[\s\S]*var\(--cafe-a-store-title-device-scale, 1\)/);
 });
@@ -291,6 +295,9 @@ test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하�
   assert.match(templateSource, /isReturningToSeenSafeCandidate/);
   assert.match(templateSource, /data-fit-presentation-state=\{fitPresentationState\}/);
   assert.match(templateSource, /getCafeAActualDomCropMeasurement\(boardElement, menuElement, cropTolerance\)/);
+  assert.match(templateSource, /hasFlushBottomContent/);
+  assert.match(templateSource, /hasFlushBottomContent \? -cropTolerance : menuRegionSafetyGap/);
+  assert.match(templateSource, /fontFamily: "var\(--font-family-site\)"/);
   assert.match(templateSource, /최적의 배치를 찾고 있어요/);
   assert.match(templateSource, /메뉴와 글자 크기를 화면에 맞추고 있습니다/);
   assert.match(templateSource, /animate-spin[^"]*motion-reduce:animate-none/);

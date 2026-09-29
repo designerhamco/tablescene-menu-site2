@@ -46,13 +46,14 @@ test("Call MVP functions use an empty search path and execute only through servi
   assert.match(sql, /grant execute on function public\.cancel_pending_staff_call[\s\S]*to service_role/);
 });
 
-test("Call runtime fails closed and requires a site allowlist", () => {
+test("Call runtime stays closed while the product is focused on design menus", () => {
   const siteId = "11111111-1111-4111-8111-111111111111";
   assert.equal(callRuntime.isCallRuntimeEnabled(undefined), false);
+  assert.equal(callRuntime.isCallRuntimeEnabled("TRUE"), false);
   assert.equal(callRuntime.isCallRuntimeEnabledForSite(siteId, {
     enabled: true,
     allowedSiteIds: new Set([siteId]),
-  }), true);
+  }), false);
   assert.equal(callRuntime.isCallRuntimeEnabledForSite(siteId, {
     enabled: false,
     allowedSiteIds: new Set([siteId]),

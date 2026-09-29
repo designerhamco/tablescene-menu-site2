@@ -399,11 +399,11 @@ const basicProductCards = [
   },
   {
     product: basicPaymentProducts[2],
-    bullets: ["할인 · 스마트호출", "월 자동결제 · 웰컴 크레딧 6개"],
+    bullets: ["할인 · 멀티페이지", "월 자동결제 · 웰컴 크레딧 6개"],
   },
   {
     product: basicPaymentProducts[3],
-    bullets: ["할인 · 스마트호출", "연 자동결제 · 월결제 대비 10% 추가 할인"],
+    bullets: ["할인 · 멀티페이지", "연 자동결제 · 월결제 대비 10% 추가 할인"],
   },
 ] as const satisfies readonly {
   product: BasicPaymentProduct;

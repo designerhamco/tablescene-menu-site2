@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { isDeletedAccountStatus } from "@/lib/account-status";
+import { isStaffManagementAvailable } from "@/lib/product-focus-policy";
 import {
   hashStaffInvitationToken,
   isValidStaffInvitationToken,
@@ -40,6 +41,10 @@ export async function acceptStaffInvitationAction(
   previousState: StaffInvitationAcceptanceState,
 ): Promise<StaffInvitationAcceptanceState> {
   void previousState;
+  if (!isStaffManagementAvailable()) {
+    return { status: "error", message: "현재 직원 관리 기능은 제공하지 않습니다." };
+  }
+
   const cookieStore = await cookies();
   const token = cookieStore.get(STAFF_INVITATION_INTENT_COOKIE)?.value;
 

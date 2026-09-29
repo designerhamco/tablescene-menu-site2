@@ -9,14 +9,14 @@ import {
   isStoreOperationsTemplate,
 } from "./operations-dashboard";
 
-test("멀티페이지 Dining만 스마트호출 매장 운영에 포함한다", () => {
+test("디자인 메뉴판 집중 기간에는 모든 매장 운영 템플릿을 닫는다", () => {
   assert.equal(isStoreOperationsTemplate("cafe_design_a"), false);
-  assert.equal(isStoreOperationsTemplate("dining_aube_table_a"), true);
-  assert.equal(isStoreOperationsTemplate("dining_aube_table_b"), true);
+  assert.equal(isStoreOperationsTemplate("dining_aube_table_a"), false);
+  assert.equal(isStoreOperationsTemplate("dining_aube_table_b"), false);
   assert.equal(isStoreOperationsTemplate("display_menu_a"), false);
 });
 
-test("owner and manager operation access follows runtime gates", () => {
+test("owner and manager operation access stays closed despite runtime inputs", () => {
   const ownerAccess = getStoreOperationAccess({
     accessRole: "owner",
     templateKey: "dining_aube_table_a",
@@ -32,9 +32,9 @@ test("owner and manager operation access follows runtime gates", () => {
     pickupQueueEnabled: false,
   });
 
-  assert.deepEqual(ownerAccess, { orders: false, calls: true, tables: true, sales: false, pickup: false });
+  assert.deepEqual(ownerAccess, { orders: false, calls: false, tables: false, sales: false, pickup: false });
   assert.deepEqual(managerAccess, ownerAccess);
-  assert.equal(hasAvailableStoreOperation(ownerAccess), true);
+  assert.equal(hasAvailableStoreOperation(ownerAccess), false);
 });
 
 test("staff permissions and unavailable runtime gates fail closed", () => {
@@ -46,7 +46,7 @@ test("staff permissions and unavailable runtime gates fail closed", () => {
       callManagementEnabled: true,
       pickupQueueEnabled: false,
     }),
-    { orders: false, calls: true, tables: false, sales: false, pickup: false },
+    { orders: false, calls: false, tables: false, sales: false, pickup: false },
   );
 
   const disabledAccess = getStoreOperationAccess({
@@ -72,7 +72,7 @@ test("per-member operation overrides control each visible management surface", (
   assert.deepEqual(access, {
     orders: false,
     calls: false,
-    tables: true,
+    tables: false,
     sales: false,
     pickup: false,
   });
@@ -87,10 +87,10 @@ test("per-member operation overrides control each visible management surface", (
     tableManagementEnabled: true,
     callManagementEnabled: true,
     pickupQueueEnabled: false,
-  }), true);
+  }), false);
 });
 
-test("operations list published, active multi-page menus even before Smart Call runtime activation", () => {
+test("operations list excludes previously eligible multi-page menus", () => {
   const eligible = {
     accessRole: "owner" as const,
     templateKey: "dining_aube_table_a",
@@ -103,17 +103,17 @@ test("operations list published, active multi-page menus even before Smart Call 
     pickupQueueEnabled: false,
   };
 
-  assert.equal(isCurrentSmartCallOperationsSite(eligible), true);
+  assert.equal(isCurrentSmartCallOperationsSite(eligible), false);
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, menuSiteStatus: "draft" }), false);
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, lifecycleState: "expired_holding" }), false);
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, templateKey: "cafe_design_a" }), false);
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, templateKey: "display_menu_a" }), false);
-  assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, tableManagementEnabled: false }), true);
-  assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, callManagementEnabled: false }), true);
+  assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, tableManagementEnabled: false }), false);
+  assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, callManagementEnabled: false }), false);
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, accessRole: "viewer" }), false);
 });
 
-test("Display 메뉴판은 runtime 활성화 전에도 매장 운영에 표시하되 기능은 잠근다", () => {
+test("Display 메뉴판의 대기번호 운영도 닫는다", () => {
   const eligible = {
     accessRole: "owner" as const,
     templateKey: "display_menu_a",
@@ -125,15 +125,15 @@ test("Display 메뉴판은 runtime 활성화 전에도 매장 운영에 표시�
     callManagementEnabled: false,
     pickupQueueEnabled: true,
   };
-  assert.equal(isCurrentPickupQueueOperationsSite(eligible), true);
+  assert.equal(isCurrentPickupQueueOperationsSite(eligible), false);
   assert.equal(isCurrentPickupQueueOperationsSite({ ...eligible, templateKey: "dining_aube_table_a" }), false);
-  assert.equal(isCurrentPickupQueueOperationsSite({ ...eligible, pickupQueueEnabled: false }), true);
+  assert.equal(isCurrentPickupQueueOperationsSite({ ...eligible, pickupQueueEnabled: false }), false);
   assert.equal(isCurrentPickupQueueOperationsSite({ ...eligible, accessRole: "viewer" }), false);
   assert.deepEqual(getStoreOperationAccess(eligible), {
     orders: false,
     calls: false,
     tables: false,
     sales: false,
-    pickup: true,
+    pickup: false,
   });
 });

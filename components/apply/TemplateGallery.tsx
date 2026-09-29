@@ -42,7 +42,7 @@ const TIER_DETAILS: Record<DiningTemplateTier, { price: string; description: str
   },
   multi: {
     price: "월 9,900원",
-    description: "여러 페이지와 스마트호출을 사용하는 구성",
+    description: "메뉴를 여러 페이지로 나누어 보여주는 구성",
     product: "business_basic_multi_monthly",
   },
 };

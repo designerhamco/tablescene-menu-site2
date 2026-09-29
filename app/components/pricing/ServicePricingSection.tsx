@@ -29,7 +29,7 @@ type PricingData = {
 const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
   basic: {
     title: "아티메뉴 다이닝 가격 안내",
-    description: "단일페이지는 할인·위젯, 멀티페이지는 할인·스마트호출을 제공합니다. 오더 기능은 포함되지 않습니다.",
+    description: "단일페이지는 할인·위젯, 멀티페이지는 여러 페이지 메뉴 구성을 제공합니다.",
     plans: [
       {
         label: "단일페이지 월결제",
@@ -82,8 +82,8 @@ const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
     ],
     features: [
       "단일페이지: 할인 · 위젯 제공",
-      "멀티페이지: 할인 · 스마트호출 제공",
-      "오더 · PG 결제 기능 미제공",
+      "멀티페이지: 할인 · 여러 페이지 구성 제공",
+      "호출 · 오더 · PG 결제 기능 미제공",
       "신규 구매·신규 구독 1건당 다이닝 메뉴판 1개",
       "추가 메뉴판은 별도 구매 후 같은 계정에서 관리",
       "정기 결제 갱신 시 기존 메뉴판 이용기간 연장",

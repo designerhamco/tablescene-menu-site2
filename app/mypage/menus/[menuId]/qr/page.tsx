@@ -3,15 +3,10 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import Footer from "@/app/components/layout/Footer";
-import MenuTableManager from "@/app/mypage/menus/[menuId]/tables/MenuTableManager";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import QrAddressActions from "@/components/mypage/QrAddressActions";
 import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import { getMenuQrManagementPageData } from "@/lib/server/menu-qr-management-service";
-import {
-  listMenuTables,
-  MenuTableManagementError,
-} from "@/lib/server/menu-table-management-service";
 
 export const metadata: Metadata = {
   title: "QR 관리 | 아티메뉴",
@@ -57,15 +52,6 @@ export default async function MenuQrManagementPage({
     throw error;
   }
 
-  let tableData = null;
-  if (data.canManageTables) {
-    try {
-      tableData = await listMenuTables(menuId);
-    } catch (error) {
-      if (!(error instanceof MenuTableManagementError)) throw error;
-    }
-  }
-
   const publicBaseUrl = getConfiguredPublicBaseUrl();
   const representativePath = `/menu/${encodeURIComponent(data.menuSite.slug)}`;
 
@@ -81,36 +67,27 @@ export default async function MenuQrManagementPage({
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
             <h1 className="type-page-title mt-2">QR 관리</h1>
             <p className="mt-3 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500 md:text-base">
-              대표 메뉴 QR을 확인하고 언제든 다시 다운로드할 수 있습니다. 스마트호출을 지원하는 메뉴판은 같은 화면에서 테이블별 QR도 관리합니다.
+              이 메뉴판의 대표 QR을 확인하고 언제든 다시 다운로드할 수 있습니다.
             </p>
           </header>
 
           <div className="mt-8">
-            {tableData ? (
-              <MenuTableManager
-                menuSiteId={tableData.menuSite.id}
-                menuSlug={tableData.menuSite.slug}
+            <section className="site-card p-5 sm:p-6 md:p-8">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">대표 메뉴 QR</p>
+              <h2 className="type-subsection-title mt-2">메뉴판 공유 주소</h2>
+              <p className="mt-2 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
+                매장 입구·포스터·SNS에서 사용하는 대표 QR입니다. 메뉴판 주소가 유지되는 동안 같은 QR을 계속 사용할 수 있습니다.
+              </p>
+              <QrAddressActions
+                copyKey="representative"
+                feedbackLabel="대표 메뉴"
+                fileName={`arti-menu-${data.menuSite.slug}-qr.png`}
+                path={representativePath}
                 publicBaseUrl={publicBaseUrl}
-                tables={tableData.tables}
+                disabled={!data.canDownloadRepresentativeQr}
+                disabledReason={data.representativeQrDisabledReason}
               />
-            ) : (
-              <section className="site-card p-5 sm:p-6 md:p-8">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">대표 메뉴 QR</p>
-                <h2 className="type-subsection-title mt-2">메뉴판 공유 주소</h2>
-                <p className="mt-2 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
-                  매장 입구·포스터·SNS에서 사용하는 대표 QR입니다. 메뉴판 주소가 유지되는 동안 같은 QR을 계속 사용할 수 있습니다.
-                </p>
-                <QrAddressActions
-                  copyKey="representative"
-                  feedbackLabel="대표 메뉴"
-                  fileName={`arti-menu-${data.menuSite.slug}-qr.png`}
-                  path={representativePath}
-                  publicBaseUrl={publicBaseUrl}
-                  disabled={!data.canDownloadRepresentativeQr}
-                  disabledReason={data.representativeQrDisabledReason}
-                />
-              </section>
-            )}
+            </section>
           </div>
         </div>
       </main>

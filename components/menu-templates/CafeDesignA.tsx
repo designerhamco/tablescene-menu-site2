@@ -1712,13 +1712,24 @@ function getCafeAActualDomCropMeasurement(
     const columnStyle = window.getComputedStyle(columnElement);
     const paddingBottom = Number.parseFloat(columnStyle.paddingBottom);
     const columnSafeBottom = Math.min(safeBottom, menuRect.bottom) - (Number.isFinite(paddingBottom) ? paddingBottom : 0);
-    return [columnSafeBottom - columnVisibleBottom];
+    const hasFlushBottomContent = Boolean(
+      columnElement.querySelector<HTMLElement>(
+        ':scope > [data-cafe-a-menu-widget-block][data-cafe-a-widget-dock-bottom="true"], :scope > [data-cafe-a-footer-info]',
+      ),
+    );
+    return [{ gap: columnSafeBottom - columnVisibleBottom, hasFlushBottomContent }];
   });
-  const menuRegionSafeBottomGap = columnSafeBottomGaps.length > 0 ? Math.min(...columnSafeBottomGaps) : bottomGap;
+  const menuRegionSafeBottomGap = columnSafeBottomGaps.length > 0
+    ? Math.min(...columnSafeBottomGaps.map(({ gap }) => gap))
+    : bottomGap;
   const menuRegionSafetyGap = boardElement.closest('[data-cafe-a-skin="mocha_forest"]')
     ? MOCHA_FOREST_MENU_REGION_SAFETY_GAP
     : BALANCED_VISIBLE_GAP;
-  const menuRegionSafeBottomOverflow = menuRegionSafeBottomGap < menuRegionSafetyGap;
+  const menuRegionSafeBottomOverflow = columnSafeBottomGaps.length > 0
+    ? columnSafeBottomGaps.some(({ gap, hasFlushBottomContent }) =>
+        gap < (hasFlushBottomContent ? -cropTolerance : menuRegionSafetyGap),
+      )
+    : menuRegionSafeBottomGap < menuRegionSafetyGap;
   const footerElement = boardElement.querySelector<HTMLElement>('[data-cafe-a-footer-info][data-cafe-a-footer-placement="desktop"]');
   const footerRect = footerElement?.getBoundingClientRect();
   const boardRect = boardElement.getBoundingClientRect();
@@ -4075,6 +4086,7 @@ function CoverHero({
     <section
       className={`cafe-a-cover-hero flex min-w-0 ${heroMinHeightClassName} flex-col bg-[#eceeec] md:col-span-2 lg:col-span-1 lg:row-span-2 lg:min-h-0 ${desktopClassName}`}
       data-cafe-a-active-hero-index={safeActiveSlideIndex}
+      data-cafe-a-cover-has-image={activeSlide?.imageUrl ? "true" : "false"}
       onFocusCapture={() => setIsFocusPaused(true)}
       onBlurCapture={(event) => {
         const nextFocusedElement = event.relatedTarget instanceof Node ? event.relatedTarget : null;
@@ -4121,7 +4133,10 @@ function CoverHero({
           setIsDragging(false);
         }}
       >
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,#eef1ef_0%,#dfe6e2_42%,#f7f8f6_100%)]" />
+        <div
+          className="absolute inset-0 bg-[linear-gradient(135deg,#eef1ef_0%,#dfe6e2_42%,#f7f8f6_100%)]"
+          data-cafe-a-cover-placeholder=""
+        />
         {featuredSlides.map((slide, index) =>
           slide.imageUrl ? (
             <img
@@ -4131,6 +4146,7 @@ function CoverHero({
               className={`absolute inset-0 h-full w-full select-none object-cover transition-opacity duration-500 ${
                 index === safeActiveSlideIndex ? "opacity-100" : "opacity-0"
               }`}
+              data-cafe-a-cover-image=""
               draggable={false}
             />
           ) : null,
@@ -7224,6 +7240,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       let selectedScore = Number.POSITIVE_INFINITY;
       let fallbackState: CafeDesignAFitState | null = null;
       let fallbackScore = Number.POSITIVE_INFINITY;
+      const layoutVariants: readonly CafeDesignABalancedVariant[] = isRoundFocus
+        ? ["sourceSequential"]
+        : BALANCED_LAYOUT_VARIANTS;
 
       for (const columns of columnCandidates) {
         for (const fontScale of getPreviewFitFontScaleCandidates(FIT_FONT_SCALE_CANDIDATES, data.previewDevice === "tablet")) {
@@ -7232,7 +7251,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           if (blockMeasurements.length === 0) continue;
           const fitsWidth = fitMenuElement.scrollWidth <= fitMenuElement.clientWidth + 1;
 
-          for (const variant of BALANCED_LAYOUT_VARIANTS) {
+          for (const variant of layoutVariants) {
             const simulatedColumns = dockBottomWidgetMeasurements(
               createBalancedSimulatedColumns(blockMeasurements, columns, variant),
             );
@@ -7910,6 +7929,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     hasCoverSection,
     hasVisibleItemImages,
     isMochaForest,
+    isRoundFocus,
     layoutInputSignature,
     layoutMode,
     orderedBalancedFitRevision,
@@ -8743,7 +8763,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
     if (centerRail) {
       const centerRailColumnsVariant: CafeDesignABalancedVariant = isRoundFocus
-        ? "sourceRoundRobin"
+        ? "sourceSequential"
         : fitState.balancedVariant;
 
       return (
@@ -8921,7 +8941,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             data-fit-ordered-fit-effective-visual-scale={
               layoutMode === "orderedFit" ? roundFitScale(ORDERED_FIT_BASE_MENU_VISUAL_SCALE * orderedFitFinalFillCompensation) : undefined
             }
-            data-fit-balanced-variant={isRoundFocus ? "sourceRoundRobin" : fitState.balancedVariant}
+            data-fit-balanced-variant={isRoundFocus ? "sourceSequential" : fitState.balancedVariant}
             data-fit-ordered-balanced-breaks={fitState.orderedBalancedBreaks}
             data-fit-ordered-balanced-fingerprint={fitState.orderedBalancedFingerprint}
             data-fit-measured-columns={fitState.measuredColumns}
@@ -9046,7 +9066,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               }`}
               data-cafe-a-fit-presentation=""
               role="status"
-              style={{ backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor }}
+              style={{
+                backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor,
+                fontFamily: "var(--font-family-site)",
+              }}
             >
               <div className="flex max-w-sm flex-col items-center rounded-[1.75rem] border border-black/10 bg-white/90 px-8 py-7 text-zinc-900 shadow-[0_18px_55px_rgba(0,0,0,0.12)] backdrop-blur-sm">
                 {fitPresentationState === "reload" ? (

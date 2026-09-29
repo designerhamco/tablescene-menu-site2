@@ -19,6 +19,7 @@
   box-shadow: none;
   min-width: 0;
   overflow: visible;
+  width: 100%;
 }
 
 .mediaFrame {
@@ -30,6 +31,10 @@
   overflow: hidden;
   position: relative;
   width: 100%;
+}
+
+.mediaFrameWithImage {
+  background: transparent;
 }
 
 .media {

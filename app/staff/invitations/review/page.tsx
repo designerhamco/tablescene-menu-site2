@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { isDeletedAccountStatus } from "@/lib/account-status";
+import { isStaffManagementAvailable } from "@/lib/product-focus-policy";
 import {
   isValidStaffInvitationToken,
   STAFF_INVITATION_INTENT_COOKIE,
@@ -20,6 +22,8 @@ export const metadata: Metadata = {
 type SearchParams = Promise<{ error?: string | string[] }>;
 
 export default async function StaffInvitationReviewPage({ searchParams }: { searchParams: SearchParams }) {
+  if (!isStaffManagementAvailable()) redirect("/mypage?tab=menus");
+
   const { error } = await searchParams;
   const cookieStore = await cookies();
   const token = cookieStore.get(STAFF_INVITATION_INTENT_COOKIE)?.value;

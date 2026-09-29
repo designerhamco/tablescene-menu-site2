@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
 import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
+import { isStoreOperationsAvailable } from "@/lib/product-focus-policy";
 import {
   listPickupQueueDashboard,
   PickupQueueServiceError,
@@ -20,6 +21,8 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function PickupQueuePage({ params }: { params: Promise<{ menuId: string }> }) {
+  if (!isStoreOperationsAvailable()) redirect("/mypage?tab=menus");
+
   const { menuId } = await params;
   let data;
   try {

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
 import { formatKoreanDateTime } from "@/lib/korean-date-time";
+import { isStoreOperationsAvailable } from "@/lib/product-focus-policy";
 import { listCallDashboard } from "@/lib/server/call-management-service";
 import { listMenuTables } from "@/lib/server/menu-table-management-service";
 import { listPickupQueueDashboard } from "@/lib/server/pickup-queue-service";
@@ -70,6 +71,8 @@ async function loadOptionalDashboard<T>(
 }
 
 export default async function StoreOperationsPage({ searchParams }: { searchParams: SearchParams }) {
+  if (!isStoreOperationsAvailable()) redirect("/mypage?tab=menus");
+
   const supabase = await createClient();
   const {
     data: { user },

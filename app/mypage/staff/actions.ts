@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { isDeletedAccountStatus } from "@/lib/account-status";
+import { isStaffManagementAvailable } from "@/lib/product-focus-policy";
 import {
   MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS,
   type MenuSitePermission,
@@ -37,6 +38,10 @@ export async function createStaffInvitationAction(
   _previousState: StaffInvitationActionState,
   formData: FormData,
 ): Promise<StaffInvitationActionState> {
+  if (!isStaffManagementAvailable()) {
+    return { status: "error", message: "현재 직원 관리 기능은 제공하지 않습니다." };
+  }
+
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
 
@@ -88,6 +93,8 @@ function getStaffManagementActionError(error: unknown) {
 }
 
 export async function resendStaffInvitationAction(formData: FormData) {
+  if (!isStaffManagementAvailable()) redirect("/mypage?tab=menus");
+
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   let resultCode = "resent";
@@ -111,6 +118,8 @@ export async function resendStaffInvitationAction(formData: FormData) {
 }
 
 export async function cancelStaffInvitationAction(formData: FormData) {
+  if (!isStaffManagementAvailable()) redirect("/mypage?tab=menus");
+
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   let resultCode = "cancelled";
@@ -147,6 +156,8 @@ function isCustomizablePermission(value: FormDataEntryValue): value is MenuSiteP
 }
 
 export async function updateStaffMembershipPermissionsAction(formData: FormData) {
+  if (!isStaffManagementAvailable()) redirect("/mypage?tab=menus");
+
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   const permissionEntries = formData.getAll("permissions");
@@ -173,6 +184,8 @@ export async function updateStaffMembershipPermissionsAction(formData: FormData)
 }
 
 export async function updateStaffMembershipRoleAction(formData: FormData) {
+  if (!isStaffManagementAvailable()) redirect("/mypage?tab=menus");
+
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   const role = getFormString(formData, "role");
@@ -199,6 +212,8 @@ export async function updateStaffMembershipRoleAction(formData: FormData) {
 }
 
 export async function revokeStaffMembershipAction(formData: FormData) {
+  if (!isStaffManagementAvailable()) redirect("/mypage?tab=menus");
+
   const supabase = await createClient();
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   let resultCode = "access-revoked";

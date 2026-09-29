@@ -6,6 +6,7 @@ import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import { isDeletedAccountStatus } from "@/lib/account-status";
+import { isStaffManagementAvailable } from "@/lib/product-focus-policy";
 import {
   MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS,
   MENU_SITE_STAFF_PERMISSION_LABELS,
@@ -72,6 +73,8 @@ function getResultNotice(value: string | string[] | undefined) {
 }
 
 export default async function StaffManagementPage({ searchParams }: { searchParams: SearchParams }) {
+  if (!isStaffManagementAvailable()) redirect("/mypage?tab=menus");
+
   const { result } = await searchParams;
   const resultNotice = getResultNotice(result);
   const supabase = await createClient();

@@ -17,7 +17,7 @@ import {
 } from "./dining-product-tiers";
 import { getAvailableTemplatesForService } from "./templates";
 
-test("다이닝 요금제 기능 경계를 고정한다", () => {
+test("디자인 메뉴판 중심의 다이닝 요금제 기능 경계를 고정한다", () => {
   assert.deepEqual(getDiningTierFeatures("single"), {
     discounts: true,
     widgets: true,
@@ -29,7 +29,7 @@ test("다이닝 요금제 기능 경계를 고정한다", () => {
     discounts: true,
     widgets: false,
     multiPage: true,
-    smartCall: true,
+    smartCall: false,
     order: false,
   });
 });

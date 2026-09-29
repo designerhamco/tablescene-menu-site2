@@ -1849,6 +1849,7 @@ video {
   }
 
   .cafe-a-typography .cafe-a-balanced-menu-grid {
+    align-content: stretch;
     display: grid;
     gap: calc(var(--menu-board-column-gap) * var(--fit-menu-gap-scale));
     grid-template-columns: repeat(var(--fit-columns), minmax(0, 1fr));
@@ -1864,45 +1865,14 @@ video {
 
   .cafe-a-typography .cafe-a-balanced-column > .cafe-a-menu-widget-block[data-cafe-a-widget-dock-bottom="true"] {
     margin-top: auto;
-    flex-shrink: 1;
-    min-height: 0;
-  }
-
-  .cafe-a-typography .cafe-a-balanced-column
-    > .cafe-a-menu-widget-block[data-cafe-a-widget-dock-bottom="true"][data-cafe-a-widget-placement="bottom"]
-    > [data-cafe-a-widget-block][data-widget-type="image"][data-widget-aspect-ratio] {
-    height: 100%;
-    min-height: 0;
+    flex-shrink: 0;
     width: 100%;
   }
 
-  .cafe-a-typography .cafe-a-balanced-column
-    > .cafe-a-menu-widget-block[data-cafe-a-widget-dock-bottom="true"][data-cafe-a-widget-placement="bottom"]
-    > [data-cafe-a-widget-block][data-widget-type="image"][data-widget-aspect-ratio]
-    [data-cafe-a-widget-shell] {
-    display: flex;
-    height: 100%;
-    justify-content: flex-end;
-    min-height: 0;
+  .cafe-a-typography .cafe-a-menu-widget-block > [data-cafe-a-widget-block],
+  .cafe-a-typography .cafe-a-menu-widget-block [data-cafe-a-widget-shell],
+  .cafe-a-typography .cafe-a-menu-widget-block [data-cafe-a-widget-media] {
     width: 100%;
-  }
-
-  .cafe-a-typography .cafe-a-balanced-column
-    > .cafe-a-menu-widget-block[data-cafe-a-widget-dock-bottom="true"][data-cafe-a-widget-placement="bottom"]
-    > [data-cafe-a-widget-block][data-widget-type="image"][data-widget-aspect-ratio]
-    [data-cafe-a-widget-media] {
-    flex: 0 1 auto;
-    height: 100%;
-    max-width: 100%;
-    min-height: 0;
-    width: auto;
-  }
-
-  .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-balanced-column
-    > .cafe-a-menu-widget-block[data-cafe-a-widget-dock-bottom="true"][data-cafe-a-widget-placement="bottom"]
-    > [data-cafe-a-widget-block][data-widget-type="image"][data-widget-aspect-ratio]
-    [data-cafe-a-widget-media] {
-    min-height: clamp(10rem, 32vh, 14rem);
   }
 
   .cafe-a-typography .cafe-a-fit-menu-grid > .cafe-a-footer-info-anchor,
@@ -2707,7 +2677,9 @@ video {
   }
 
   .cafe-a-typography[data-preview-device="tablet"][data-cafe-a-skin="round_focus"] {
+    --cafe-a-device-type-scale: 1.04;
     --board-padding: clamp(2.25rem, 4.6vmin, 3rem);
+    --cafe-a-shell-category-title-boost: 1.06;
     --round-focus-column-gap: clamp(1.5rem, 2.6vw, 2rem);
     --round-focus-center-inset: clamp(1.125rem, 1.9vw, 1.625rem);
     --round-focus-column-inset: clamp(0.45rem, 0.8vw, 0.625rem);
@@ -2724,6 +2696,11 @@ video {
   .cafe-a-typography[data-preview-device="tablet"][data-cafe-a-skin="round_focus"] .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_center_column"] .cafe-a-rail-title {
     font-size: calc(clamp(calc(1.9rem * var(--menu-role-brand-size-scale, 1)), calc(13.5cqw * var(--menu-role-brand-size-scale, 1)), calc(2.4rem * var(--menu-role-brand-size-scale, 1))) * var(--cafe-a-device-type-scale));
   }
+}
+
+.cafe-a-typography[data-preview-device="tablet"][data-cafe-a-skin="round_focus"] {
+  --cafe-a-device-type-scale: 1.04;
+  --cafe-a-shell-category-title-boost: 1.06;
 }
 
 .cafe-a-typography[data-template-key="cafe_design_a"] {
@@ -2838,6 +2815,29 @@ video {
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-menu-item-stack:not(:last-child) {
   border-bottom: 0;
   padding-bottom: 0;
+}
+
+.cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-cover-hero[data-cafe-a-cover-has-image="true"] {
+  background: transparent;
+}
+
+.cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-cover-hero[data-cafe-a-cover-has-image="true"] [data-cafe-a-cover-placeholder] {
+  display: none;
+}
+
+.cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-cover-hero[data-cafe-a-cover-has-image="true"] [data-cafe-a-cover-image] {
+  object-fit: contain;
+}
+
+.cafe-a-typography[data-cafe-a-skin="mocha_forest"] :is(
+  .cafe-a-menu-item:not(.cafe-a-menu-item-with-image),
+  .cafe-a-menu-item-content-shell
+) {
+  align-items: baseline;
+}
+
+.cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-price-area {
+  align-self: baseline;
 }
 
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-menu-category-block,

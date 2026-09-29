@@ -34,15 +34,15 @@ test("대기번호 상태는 waiting에서 ready, ready에서 completed로만 �
   assert.throws(() => assertPickupQueueTransition("completed", "ready"), PickupQueueInputError);
 });
 
-test("대기번호 runtime은 Display 메뉴판과 명시적 site allowlist에서만 열린다", () => {
-  assert.equal(isPickupQueueTemplate("display_menu_a"), true);
+test("대기번호 runtime은 디자인 메뉴판 집중 기간에 닫힌다", () => {
+  assert.equal(isPickupQueueTemplate("display_menu_a"), false);
   assert.equal(isPickupQueueTemplate("dining_aube_table_a"), false);
   assert.deepEqual([...getPickupQueueAllowedSiteIds(`bad,${SITE_ID}`)], [SITE_ID]);
   assert.equal(isPickupQueueRuntimeEnabledForSite(SITE_ID), false);
   assert.equal(isPickupQueueRuntimeEnabledForSite(SITE_ID, {
     enabled: true,
     allowedSiteIds: new Set([SITE_ID]),
-  }), true);
+  }), false);
 });
 
 test("대기번호 migration은 server-only, RLS 강제, hard delete 금지 계약을 유지한다", () => {
