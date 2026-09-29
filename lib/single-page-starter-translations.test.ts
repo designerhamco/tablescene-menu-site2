@@ -62,8 +62,8 @@ test("REAL MATCHA keeps cream and classic matcha distinct without duplicating ma
   assert.equal(itemByKey.get("black-sesame-latte")?.name, "흑임자 라떼");
   assert.equal(itemByKey.has("deep-matcha-cloud"), false);
   assert.equal(itemByKey.has("jeju-matcha-latte"), false);
-  assert.equal(
-    preset.featured_slides?.some((slide) => slide.featured_item_key === "real-matcha-latte"),
-    true,
+  assert.deepEqual(
+    preset.featured_slides?.map((slide) => slide.featured_item_key ?? null),
+    ["real-matcha-latte", "real-matcha-cream-latte", null],
   );
 });
