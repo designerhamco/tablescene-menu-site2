@@ -1224,7 +1224,7 @@ cafeRoundFocusStarterPreset.widgets = [
     sort_order: 5,
     visible: true,
     settings: {
-      aspectRatio: "3:1",
+      aspectRatio: "4:3",
       objectFit: "cover",
       textAlign: "left",
       altText: "ROSY ORANGE 칵테일 이미지",

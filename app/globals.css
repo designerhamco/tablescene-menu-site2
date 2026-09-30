@@ -2704,7 +2704,7 @@ video {
     margin-top: 0;
     padding-bottom: clamp(28px, 7vw, 44px);
     padding-inline: var(--round-focus-mobile-inset);
-    padding-top: clamp(14px, 4vw, 22px);
+    padding-top: clamp(24px, 6vw, 36px);
   }
 
   .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-round-focus-mobile-notices .cafe-a-description-text {

@@ -111,7 +111,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(roundFocus.featured_slides?.length, 0);
   assert.equal(roundFocus.widgets?.[0]?.type, "image");
   assert.equal(roundFocus.widgets?.[0]?.image_url, "/menu-templates/cafe_round_focus_a/rosy-orange-widget.png");
-  assert.equal(roundFocus.widgets?.[0]?.settings?.aspectRatio, "3:1");
+  assert.equal(roundFocus.widgets?.[0]?.settings?.aspectRatio, "4:3");
   assert.deepEqual(roundFocus.time_sales?.map((sale) => sale.badge_text), ["HAPPY HOUR", "LAST CALL"]);
   assert.equal(roundFocus.time_sales?.every((sale) => sale.badge_background_color === "#F47A32"), true);
   assert.equal(

@@ -185,7 +185,7 @@ test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12�
   );
   assert.match(
     globalStylesSource,
-    /cafe-a-round-focus-mobile-notices \{[\s\S]*padding-bottom: clamp\(28px, 7vw, 44px\);/,
+    /cafe-a-round-focus-mobile-notices \{[\s\S]*padding-bottom: clamp\(28px, 7vw, 44px\);[\s\S]*padding-top: clamp\(24px, 6vw, 36px\);/,
   );
   assert.match(globalStylesSource, /\.cafe-a-store-title \{[\s\S]*var\(--cafe-a-store-title-device-scale, 1\)/);
   assert.match(globalStylesSource, /\.cafe-a-topline-title \{[\s\S]*var\(--cafe-a-store-title-device-scale, 1\)/);
