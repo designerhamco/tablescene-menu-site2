@@ -9,6 +9,7 @@ const SINGLE_PAGE_DENSITY_CONTRACT = {
   cafe_design_a: [3, 4, 3, 3, 5],
   cafe_mocha_forest_a: [3, 5, 4, 3, 3],
   cafe_sunday_line_a: [3, 3, 2, 3, 6],
+  cafe_van_gogh_a: [3, 4, 3, 3, 4],
   cafe_round_focus_a: [3, 4, 4, 4, 4],
 } as const;
 
@@ -72,6 +73,7 @@ test("every active single-page starter includes a sixty-minute stock closeout co
     ["cafe_design_a", "classic-butter-scone-closeout"],
     ["cafe_mocha_forest_a", "dark-chocolate-brownie-closeout"],
     ["cafe_sunday_line_a", "brown-butter-scone-closeout"],
+    ["cafe_van_gogh_a", "salted-caramel-scone-closeout"],
     ["cafe_round_focus_a", "truffle-fries-last-call"],
   ]);
 
@@ -83,7 +85,7 @@ test("every active single-page starter includes a sixty-minute stock closeout co
     assert.equal(closeout.time_display_mode, "countdown", `${templateKey}: stock closeout display mode`);
     assert.match(
       closeout.badge_text ?? "",
-      templateKey === "cafe_round_focus_a" ? /LAST CALL/ : /재고 마감/,
+      templateKey === "cafe_round_focus_a" ? /LAST CALL/ : templateKey === "cafe_van_gogh_a" ? /LAST BATCH/ : /재고 마감/,
       `${templateKey}: stock closeout badge`,
     );
   }
@@ -183,6 +185,19 @@ test("starter-specific image and promotion presentation stays intentional", () =
     assert.equal(sundayItems.find((item) => item.key === itemKey)?.image_url, undefined);
   }
   assert.equal(sundayItems.find((item) => item.key === "matcha-cream-latte")?.badge_label, undefined);
+
+  const vanGogh = getStarterPreset("cafe_van_gogh_a");
+  assert.equal(vanGogh.site.restaurant_name, "VAN GOGH");
+  assert.equal(vanGogh.menu_cover_enabled, false);
+  assert.equal(vanGogh.menu_cover_visible_pc, false);
+  assert.equal(vanGogh.menu_cover_visible_tablet, false);
+  assert.equal(vanGogh.menu_cover_visible_mobile, false);
+  assert.equal(vanGogh.site.cover_image_url, "");
+  assert.equal(vanGogh.featured_item_key, undefined);
+  assert.equal(vanGogh.featured_slides?.length, 0);
+  assert.deepEqual(vanGogh.widgets, []);
+  assert.equal(vanGogh.pages[0]?.categories[0]?.name, "MASTERPIECE");
+  assert.equal(vanGogh.pages[0]?.categories[0]?.items[0]?.name, "별이 빛나는 밤 라떼");
 
   const mochaMorningDeal = mochaForest.time_sales?.find((sale) => sale.key === "americano-morning-deal");
   assert.equal(mochaMorningDeal?.badge_background_color, "#852322");

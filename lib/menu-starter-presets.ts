@@ -1185,6 +1185,185 @@ cafeSundayLineStarterPreset.pages = [
   },
 ];
 
+const cafeVanGoghStarterPreset: StarterPreset = cloneStarterPresetForTemplate(cafeSundayLineStarterPreset, "cafe_van_gogh_a");
+
+cafeVanGoghStarterPreset.site = {
+  ...cafeVanGoghStarterPreset.site,
+  restaurant_name: "VAN GOGH",
+  restaurant_category: "카페/베이커리",
+  restaurant_type: "cafe",
+  intro_title: "VAN GOGH",
+  menu_cover_title: "VAN GOGH",
+  brand_description: "선명한 색과 따뜻한 빛에서 영감을 받아, 한 잔의 커피와 디저트를 작은 작품처럼 선보이는 아트 카페입니다.",
+  intro_description: "색과 빛에서 영감을 받은 커피와 디저트를 선보이는 아트 카페입니다.",
+  menu_cover_description: "색과 빛에서 영감을 받은 커피와 디저트를 선보이는 아트 카페입니다.",
+  about_description: "익숙한 재료에 회화적인 색감과 향을 더해 오래 기억되는 한 잔을 만듭니다.",
+  cover_image_url: "",
+  settings: {
+    ...(cafeVanGoghStarterPreset.site.settings ?? {}),
+    footer_notice_1: "Wi-Fi · VANGOGH_GUEST",
+    footer_notice_2: "Instagram · @vangogh.cafe",
+    footer_notice_3: "모든 음료는 디카페인 원두로 변경 가능합니다.",
+  },
+};
+cafeVanGoghStarterPreset.menu_cover_enabled = false;
+cafeVanGoghStarterPreset.menu_cover_visible_pc = false;
+cafeVanGoghStarterPreset.menu_cover_visible_tablet = false;
+cafeVanGoghStarterPreset.menu_cover_visible_mobile = false;
+cafeVanGoghStarterPreset.featured_item_name = undefined;
+cafeVanGoghStarterPreset.featured_item_key = undefined;
+cafeVanGoghStarterPreset.featured_slides = [];
+cafeVanGoghStarterPreset.widgets = [];
+cafeVanGoghStarterPreset.time_sales = [
+  {
+    key: "sunflower-cream-coffee-morning",
+    name: "해바라기 크림 커피 모닝 프로모션",
+    schedule_type: "once",
+    badge_text: "MORNING",
+    badge_background_color: "#F76A03",
+    time_display_mode: "message",
+    time_display_text: "매일 오전 8시부터 10시까지",
+    targets: [
+      { target_item_key: "sunflower-cream-coffee", target_item_name: "해바라기 크림 커피", sale_price: 5800 },
+    ],
+  },
+  {
+    key: "salted-caramel-scone-closeout",
+    name: "솔티드 카라멜 스콘 라스트 배치",
+    schedule_type: "once",
+    duration_minutes: 60,
+    badge_text: "LAST BATCH",
+    badge_background_color: "#F76A03",
+    time_display_mode: "countdown",
+    targets: [
+      { target_item_key: "salted-caramel-scone", target_item_name: "솔티드 카라멜 스콘", sale_price: 4200 },
+    ],
+  },
+];
+cafeVanGoghStarterPreset.mixed_content_order = [
+  { block_type: "category", page_key: "main-menu", category_key: "signature", sort_order: 0, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "coffee", sort_order: 1, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "palette-latte", sort_order: 2, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "tea-ade", sort_order: 3, visible: true },
+  { block_type: "category", page_key: "main-menu", category_key: "bakery-dessert", sort_order: 4, visible: true },
+];
+cafeVanGoghStarterPreset.pages = [
+  {
+    key: "main-menu",
+    title: "메뉴 페이지 1",
+    legacy_section_key: "main_menu",
+    categories: [
+      {
+        key: "signature",
+        name: "MASTERPIECE",
+        section_key: "main_menu",
+        items: [
+          item("별이 빛나는 밤 라떼", 7200, "블루베리 크림과 바닐라 우유가 밤하늘처럼 번지는 시그니처 라떼", {
+            key: "starry-night-latte",
+            set_name: "STARRY NIGHT LATTE",
+            badge_label: "SIGNATURE",
+            recommended: true,
+          }),
+          item("해바라기 크림 커피", 6800, "고소한 에스프레소 위에 솔티드 크림과 씨앗 프랄린을 더한 커피", {
+            key: "sunflower-cream-coffee",
+            set_name: "SUNFLOWER CREAM COFFEE",
+            badge_label: "BEST",
+          }),
+          item("아를 오렌지 콜드브루", 6800, "오렌지 향과 콜드브루가 선명하게 어우러지는 산뜻한 커피", {
+            key: "arles-orange-cold-brew",
+            set_name: "ARLES ORANGE COLD BREW",
+            badge_label: "NEW",
+          }),
+        ],
+      },
+      {
+        key: "coffee",
+        name: "COFFEE",
+        section_key: "main_menu",
+        items: [
+          item("아메리카노", 4500, "견과류의 고소함과 카카오의 은은한 단맛이 남는 커피", {
+            key: "americano",
+            set_name: "AMERICANO",
+          }),
+          item("카페 라떼", 5200, "진한 에스프레소와 부드러운 우유가 균형을 이루는 라떼", {
+            key: "cafe-latte",
+            set_name: "CAFE LATTE",
+          }),
+          item("헤이즐넛 카푸치노", 5800, "구운 헤이즐넛 향과 촘촘한 밀크폼을 올린 카푸치노", {
+            key: "hazelnut-cappuccino",
+            set_name: "HAZELNUT CAPPUCCINO",
+          }),
+          item("아몬드 모카", 6200, "다크 초콜릿과 아몬드의 고소한 풍미를 담은 모카", {
+            key: "almond-mocha",
+            set_name: "ALMOND MOCHA",
+          }),
+        ],
+      },
+      {
+        key: "palette-latte",
+        name: "PALETTE LATTE",
+        section_key: "main_menu",
+        items: [
+          item("피스타치오 라떼", 6300, "피스타치오의 깊은 고소함과 우유의 부드러움을 담은 라떼", {
+            key: "pistachio-latte",
+            set_name: "PISTACHIO LATTE",
+          }),
+          item("라벤더 바닐라 라떼", 6300, "은은한 라벤더 향과 바닐라의 달콤함이 번지는 라떼", {
+            key: "lavender-vanilla-latte",
+            set_name: "LAVENDER VANILLA LATTE",
+          }),
+          item("흑임자 크림 라떼", 6500, "진한 흑임자와 담백한 크림을 층층이 올린 라떼", {
+            key: "black-sesame-cream-latte",
+            set_name: "BLACK SESAME CREAM LATTE",
+          }),
+        ],
+      },
+      {
+        key: "tea-ade",
+        name: "TEA & ADE",
+        section_key: "dessert_drink",
+        items: [
+          item("프로방스 레몬 에이드", 6200, "레몬과 허브 향을 청량하게 담은 스파클링 에이드", {
+            key: "provence-lemon-ade",
+            set_name: "PROVENCE LEMON ADE",
+          }),
+          item("루비 자몽 티", 5800, "붉은 자몽의 산뜻한 과즙과 홍차 향이 어우러진 티", {
+            key: "ruby-grapefruit-tea",
+            set_name: "RUBY GRAPEFRUIT TEA",
+          }),
+          item("카모마일 애플 티", 5800, "카모마일과 사과의 편안한 향을 담은 블렌드 티", {
+            key: "chamomile-apple-tea",
+            set_name: "CHAMOMILE APPLE TEA",
+          }),
+        ],
+      },
+      {
+        key: "bakery-dessert",
+        name: "BAKERY & DESSERT",
+        section_key: "dessert_drink",
+        items: [
+          item("해바라기 레몬 케이크", 6500, "레몬 크림과 씨앗 프랄린을 올린 촉촉한 케이크", {
+            key: "sunflower-lemon-cake",
+            set_name: "SUNFLOWER LEMON CAKE",
+          }),
+          item("아몬드 크루아상", 5800, "아몬드 크림을 채워 바삭하게 구운 버터 크루아상", {
+            key: "almond-croissant",
+            set_name: "ALMOND CROISSANT",
+          }),
+          item("초콜릿 가나슈 타르트", 6800, "다크 초콜릿 가나슈와 바삭한 타르트 셸의 조화", {
+            key: "chocolate-ganache-tart",
+            set_name: "CHOCOLATE GANACHE TART",
+          }),
+          item("솔티드 카라멜 스콘", 5300, "버터 스콘에 솔티드 카라멜의 달콤짭짤함을 더한 디저트", {
+            key: "salted-caramel-scone",
+            set_name: "SALTED CARAMEL SCONE",
+          }),
+        ],
+      },
+    ],
+  },
+];
+
 cafeRoundFocusStarterPreset.site = {
   ...cafeRoundFocusStarterPreset.site,
   restaurant_name: "ROSY ORANGE",
@@ -1819,6 +1998,7 @@ const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
   cafe_design_a: cafeDesignAStarterPreset,
   cafe_mocha_forest_a: cafeMochaForestStarterPreset,
   cafe_sunday_line_a: cafeSundayLineStarterPreset,
+  cafe_van_gogh_a: cafeVanGoghStarterPreset,
   cafe_round_focus_a: cafeRoundFocusStarterPreset,
   cafe_brew_chapter_a: cafeBrewChapterStarterPreset,
   dining_aube_table_a: diningAubeTableStarterPreset,

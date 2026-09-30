@@ -13,6 +13,7 @@ const ACTIVE_TEMPLATE_EXPECTATIONS = {
   cafe_design_a: { pages: 1, categories: 5, items: 18 },
   cafe_mocha_forest_a: { pages: 1, categories: 5, items: 18 },
   cafe_sunday_line_a: { pages: 1, categories: 5, items: 17 },
+  cafe_van_gogh_a: { pages: 1, categories: 5, items: 17 },
   cafe_round_focus_a: { pages: 1, categories: 5, items: 19 },
   cafe_brew_chapter_a: { pages: 1, categories: 5, items: 15 },
   cafe_noir_a: { pages: 1, categories: 4, items: 20 },

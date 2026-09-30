@@ -55,6 +55,8 @@ export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
       return withPublicMenuShell(<CafeMochaForestA {...props} />);
     case "cafe_sunday_line_a":
       return withPublicMenuShell(<CafeSundayLineA {...props} />);
+    case "cafe_van_gogh_a":
+      return withPublicMenuShell(<CafeSundayLineA {...props} />);
     case "cafe_round_focus_a":
       return withPublicMenuShell(<CafeRoundFocusA {...props} />);
     case "cafe_brew_chapter_a":

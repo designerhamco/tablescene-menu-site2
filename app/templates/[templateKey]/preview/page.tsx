@@ -651,6 +651,7 @@ function applyActiveTemplateFeatureQaFixture(
     templateKey === "cafe_design_a" ||
     templateKey === "cafe_mocha_forest_a" ||
     templateKey === "cafe_sunday_line_a" ||
+    templateKey === "cafe_van_gogh_a" ||
     templateKey === "cafe_round_focus_a" ||
     templateKey === "cafe_brew_chapter_a"
   );

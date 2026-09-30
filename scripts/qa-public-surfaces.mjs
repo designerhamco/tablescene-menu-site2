@@ -18,6 +18,7 @@ const routes = [
   "/templates/cafe_real_matcha_a/preview",
   "/templates/cafe_mocha_forest_a/preview",
   "/templates/cafe_sunday_roasters_a/preview",
+  "/templates/cafe_van_gogh_a/preview",
   "/templates/cafe_round_focus_a/preview",
   "/templates/dining_aube_table_a/preview",
   "/templates/dining_aube_table_b/preview",

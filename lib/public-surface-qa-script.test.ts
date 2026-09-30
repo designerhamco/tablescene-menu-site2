@@ -15,6 +15,7 @@ test("공개 화면 회귀 QA는 핵심 페이지와 모든 판매 템플릿을 
     '"/templates/cafe_real_matcha_a/preview"',
     '"/templates/cafe_mocha_forest_a/preview"',
     '"/templates/cafe_sunday_roasters_a/preview"',
+    '"/templates/cafe_van_gogh_a/preview"',
     '"/templates/cafe_round_focus_a/preview"',
     '"/templates/dining_aube_table_a/preview"',
     '"/templates/dining_aube_table_b/preview"',

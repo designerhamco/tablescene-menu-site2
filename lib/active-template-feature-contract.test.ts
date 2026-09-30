@@ -12,6 +12,7 @@ const BASIC_FEATURE_EXPECTATIONS = {
   cafe_design_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_mocha_forest_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_sunday_line_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
+  cafe_van_gogh_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_round_focus_a: { widgets: true, images: true, starterImages: true, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_brew_chapter_a: { widgets: false, images: true, starterImages: true, starterBadges: true, priceOptions: true, cover: "page", timeSales: 1, soldOut: 1 },
   cafe_noir_a: { widgets: false, images: false, starterImages: false, starterBadges: true, priceOptions: false, cover: "none", timeSales: 0, soldOut: 0 },
@@ -48,7 +49,7 @@ test("Basic launch starters retain the fixture evidence used by feature QA", () 
     assert.equal(items.filter((item) => item.is_sold_out).length, expected.soldOut, `${templateKey}: sold out`);
     assert.equal(items.some((item) => item.badge_label), expected.starterBadges, `${templateKey}: badge`);
     assert.equal(items.some((item) => item.image_url), expected.starterImages, `${templateKey}: starter images`);
-    assert.equal(Boolean(preset.site.cover_image_url), expected.cover !== "none" && templateKey !== "cafe_round_focus_a", `${templateKey}: cover image`);
+    assert.equal(Boolean(preset.site.cover_image_url), expected.cover !== "none" && templateKey !== "cafe_round_focus_a" && templateKey !== "cafe_van_gogh_a", `${templateKey}: cover image`);
   }
 });
 
@@ -60,6 +61,7 @@ test("launch template typography defaults and Display-only size control stay exp
       cafe_design_a: "oswald",
       cafe_mocha_forest_a: "chelsea-market",
       cafe_sunday_line_a: "federo",
+      cafe_van_gogh_a: "federo",
       cafe_round_focus_a: "aboreto",
       cafe_brew_chapter_a: "alata",
       cafe_noir_a: "cutive-mono",
@@ -99,7 +101,7 @@ test("single-page cover controls describe the representative area instead of ove
 });
 
 test("active single-page representative areas allow up to five image slides", () => {
-  for (const templateKey of ["cafe_design_a", "cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_round_focus_a"]) {
+  for (const templateKey of ["cafe_design_a", "cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_van_gogh_a", "cafe_round_focus_a"]) {
     const capabilities = getTemplateCapabilities(templateKey);
     assert.equal(capabilities.featuredItemCarousel, true, `${templateKey}: representative image carousel`);
     assert.equal(capabilities.featuredItemMaxSlides, 5, `${templateKey}: representative image limit`);

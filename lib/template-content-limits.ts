@@ -18,6 +18,11 @@ const TEMPLATE_CONTENT_LIMIT_OVERRIDES: Record<string, TemplateContentLimits> = 
     brandDescription: 80,
     footerNotice: 36,
   },
+  cafe_van_gogh_a: {
+    restaurantName: 16,
+    brandDescription: 80,
+    footerNotice: 36,
+  },
 };
 
 export function getTemplateContentLimits(templateKey: string | null | undefined): TemplateContentLimits {

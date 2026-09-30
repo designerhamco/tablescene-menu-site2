@@ -16,6 +16,7 @@ test("사용 가능한 다이닝 템플릿을 페이지 등급에 맞는 교체 
       "cafe_design_a",
       "cafe_mocha_forest_a",
       "cafe_sunday_line_a",
+      "cafe_van_gogh_a",
       "dining_aube_table_a",
       "dining_aube_table_b",
       "cafe_round_focus_a",

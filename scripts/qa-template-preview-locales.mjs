@@ -8,6 +8,7 @@ const templates = [
   "cafe_design_a",
   "cafe_mocha_forest_a",
   "cafe_sunday_line_a",
+  "cafe_van_gogh_a",
   "cafe_round_focus_a",
   "dining_aube_table_a",
   "dining_aube_table_b",
@@ -17,11 +18,13 @@ const singlePageTemplates = new Set([
   "cafe_design_a",
   "cafe_mocha_forest_a",
   "cafe_sunday_line_a",
+  "cafe_van_gogh_a",
   "cafe_round_focus_a",
 ]);
 const previewRouteKey = (templateKey) => ({
   cafe_design_a: "cafe_real_matcha_a",
   cafe_sunday_line_a: "cafe_sunday_roasters_a",
+  cafe_van_gogh_a: "cafe_van_gogh_a",
 }[templateKey] ?? templateKey);
 const locales = ["en", "zh", "ja"].filter((locale) => !localeFilter || locale === localeFilter);
 const singlePageInternalTitleByLocale = {
@@ -193,7 +196,8 @@ try {
         const usesNameAndPriceOnly = templateKey === "cafe_mocha_forest_a";
         const hasNoFeaturedArea = templateKey === "cafe_design_a"
           || templateKey === "cafe_round_focus_a"
-          || templateKey === "cafe_mocha_forest_a";
+          || templateKey === "cafe_mocha_forest_a"
+          || templateKey === "cafe_van_gogh_a";
         if (!measurement.koreanFontFamily || measurement.noticeFontFamilies.length === 0) {
           failures.push(`footer notice font metrics are unavailable: ${JSON.stringify({ koreanFontFamily: measurement.koreanFontFamily, noticeFontFamilies: measurement.noticeFontFamilies })}`);
         } else if (measurement.noticeFontFamilies.some((fontFamily) => fontFamily !== measurement.koreanFontFamily)) {

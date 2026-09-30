@@ -261,8 +261,8 @@ export default function TypographySettingsForm({
 }: TypographySettingsFormProps) {
   const isDisplayTypography = isDisplayTypographyTemplate(templateKey);
   const isAubeTableTemplate = isAubeTableTemplateKey(templateKey);
-  const showRoleTypographyControl = isAubeTableTemplate || templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_round_focus_a";
-  const isSundayLineTemplate = templateKey === "cafe_sunday_line_a";
+  const showRoleTypographyControl = isAubeTableTemplate || templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a" || templateKey === "cafe_round_focus_a";
+  const isSundayLineTemplate = templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a";
   const isRoundFocusTemplate = templateKey === "cafe_round_focus_a";
   const isMochaForestTemplate = templateKey === "cafe_mocha_forest_a";
   const cafeAMiniPreviewBrandText = isRoundFocusTemplate
