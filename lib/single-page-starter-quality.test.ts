@@ -109,9 +109,10 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(roundHouseWhiteWine?.badge_label, undefined);
   assert.equal(roundFocus.menu_cover_enabled, false);
   assert.equal(roundFocus.featured_slides?.length, 0);
-  assert.equal(roundFocus.widgets?.[0]?.type, "image");
-  assert.equal(roundFocus.widgets?.[0]?.image_url, "/menu-templates/cafe_round_focus_a/rosy-orange-widget.png");
-  assert.equal(roundFocus.widgets?.[0]?.settings?.aspectRatio, "4:3");
+  assert.deepEqual(roundFocus.widgets, []);
+  const roundBarBites = roundFocus.pages[0]?.categories.find((category) => category.key === "bar-bites");
+  assert.equal(roundBarBites?.items.length, 4);
+  assert.equal(roundBarBites?.items.every((item) => Boolean(item.image_url)), true);
   assert.deepEqual(roundFocus.time_sales?.map((sale) => sale.badge_text), ["HAPPY HOUR", "LAST CALL"]);
   assert.equal(roundFocus.time_sales?.every((sale) => sale.badge_background_color === "#F47A32"), true);
   assert.equal(
@@ -126,8 +127,8 @@ test("starter-specific image and promotion presentation stays intentional", () =
     assert.equal(roundTranslations?.[locale].promotions["truffle-fries-last-call"]?.badgeText, "LAST CALL");
   }
   const roundFocusLastBlock = roundFocus.mixed_content_order?.at(-1);
-  assert.equal(roundFocusLastBlock?.block_type, "widget");
-  assert.equal(roundFocusLastBlock?.block_type === "widget" ? roundFocusLastBlock.widget_key : null, "round-focus-image-widget");
+  assert.equal(roundFocusLastBlock?.block_type, "category");
+  assert.equal(roundFocusLastBlock?.block_type === "category" ? roundFocusLastBlock.category_key : null, "bar-bites");
 
   const mochaForest = getStarterPreset("cafe_mocha_forest_a");
   assert.equal(mochaForest.widgets?.[0]?.type, "image");

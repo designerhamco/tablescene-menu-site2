@@ -2816,6 +2816,18 @@ video {
   width: 100%;
 }
 
+/* Rosy Orange keeps every price anchored to the product-name row, even when supporting copy is present. */
+.cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-menu-item-align-center {
+  align-items: start;
+}
+
+.cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-menu-item-align-center :is(
+  .cafe-a-menu-copy,
+  .cafe-a-price-area
+) {
+  align-self: start;
+}
+
 .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-round-focus-price-leader {
   align-self: center;
   background-image: radial-gradient(circle, currentColor 0 0.55px, transparent 0.85px);

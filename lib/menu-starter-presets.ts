@@ -1212,25 +1212,7 @@ cafeRoundFocusStarterPreset.menu_cover_enabled = false;
 cafeRoundFocusStarterPreset.featured_item_name = undefined;
 cafeRoundFocusStarterPreset.featured_item_key = undefined;
 cafeRoundFocusStarterPreset.featured_slides = [];
-cafeRoundFocusStarterPreset.widgets = [
-  {
-    key: "round-focus-image-widget",
-    page_key: "main-menu",
-    type: "image",
-    title: null,
-    description: null,
-    image_url: "/menu-templates/cafe_round_focus_a/rosy-orange-widget.png",
-    image_path: null,
-    sort_order: 5,
-    visible: true,
-    settings: {
-      aspectRatio: "4:3",
-      objectFit: "cover",
-      textAlign: "left",
-      altText: "ROSY ORANGE 칵테일 이미지",
-    },
-  },
-];
+cafeRoundFocusStarterPreset.widgets = [];
 cafeRoundFocusStarterPreset.time_sales = [
   {
     key: "classic-highball-happy-hour",
@@ -1263,7 +1245,6 @@ cafeRoundFocusStarterPreset.mixed_content_order = [
   { block_type: "category", page_key: "main-menu", category_key: "wine-beer", sort_order: 2, visible: true },
   { block_type: "category", page_key: "main-menu", category_key: "zero-proof", sort_order: 3, visible: true },
   { block_type: "category", page_key: "main-menu", category_key: "bar-bites", sort_order: 4, visible: true },
-  { block_type: "widget", page_key: "main-menu", widget_key: "round-focus-image-widget", sort_order: 5, visible: true },
 ];
 cafeRoundFocusStarterPreset.pages = [
   {
@@ -1357,15 +1338,19 @@ cafeRoundFocusStarterPreset.pages = [
         items: [
           item("트러플 감자튀김", 9000, "바삭한 감자튀김에 트러플 향과 파르메산을 더한 안주", {
             key: "truffle-fries",
+            image_url: "/menu-templates/cafe_round_focus_a/truffle-fries.jpg",
           }),
           item("하몽 & 올리브", 12000, "짭조름한 하몽과 허브에 절인 올리브 플레이트", {
             key: "jamon-olives",
+            image_url: "/menu-templates/cafe_round_focus_a/jamon-olives.jpg",
           }),
           item("스파이시 치킨 윙", 14000, "매콤달콤한 글레이즈를 입혀 구운 치킨 윙", {
             key: "spicy-chicken-wings",
+            image_url: "/menu-templates/cafe_round_focus_a/spicy-chicken-wings.jpg",
           }),
           item("치즈 플래터", 18000, "세 가지 치즈와 크래커, 제철 과일을 곁들인 플래터", {
             key: "cheese-platter",
+            image_url: "/menu-templates/cafe_round_focus_a/cheese-platter.jpg",
           }),
         ],
       },
