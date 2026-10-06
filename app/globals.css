@@ -412,7 +412,7 @@ video {
 .cafe-a-typography .cafe-a-category-title {
   --cafe-a-script-ko-font: var(--menu-role-category-font-ko, var(--menu-font-ko));
   --cafe-a-script-en-font: var(--menu-role-category-font-en, var(--menu-font-en));
-  color: var(--menu-role-category-color, #191c1b);
+  color: var(--cafe-a-category-heading-color, var(--menu-role-category-color, #191c1b));
   font-family: var(--menu-role-category-font-family, inherit);
   font-size: calc(clamp(1.125rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--menu-role-category-size-scale, 1) * var(--cafe-a-template-category-title-scale, 1)), 1.62rem) * var(--cafe-a-device-type-scale));
   font-weight: var(--menu-role-category-font-weight, 900);
@@ -675,7 +675,7 @@ video {
   --cafe-a-price-column-label-font-size: clamp(0.58rem, calc(0.58rem * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1) * var(--cafe-a-template-option-label-scale)), 0.78rem);
   --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
   --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
-  color: #191c1b;
+  color: var(--cafe-a-category-heading-color, var(--menu-role-category-color, #191c1b));
   font-family: var(--menu-role-supporting-font-family, inherit);
   font-size: var(--cafe-a-price-column-label-font-size);
   font-weight: var(--menu-role-supporting-font-weight, 600);
@@ -712,6 +712,7 @@ video {
   --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
   --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
   align-items: center;
+  color: inherit;
   display: flex;
   font-family: var(--menu-role-supporting-font-family, inherit);
   font-size: var(--cafe-a-price-column-label-font-size);
@@ -1803,7 +1804,7 @@ video {
     color: var(--round-focus-text);
   }
 
-  .cafe-a-typography[data-cafe-a-skin="round_focus"] :is(.cafe-a-menu-meta, .cafe-a-menu-description, .cafe-a-description-text, .cafe-a-price-label, .cafe-a-price-column-header) {
+  .cafe-a-typography[data-cafe-a-skin="round_focus"] :is(.cafe-a-menu-meta, .cafe-a-menu-description, .cafe-a-description-text, .cafe-a-price-label) {
     color: var(--round-focus-muted);
   }
 
@@ -2935,7 +2936,6 @@ video {
   .cafe-a-menu-price,
   .cafe-a-price-area,
   .cafe-a-price-label,
-  .cafe-a-price-column-header,
   .cafe-a-time-sale-line,
   .cafe-a-time-sale-time-text
 ) {
@@ -2945,7 +2945,7 @@ video {
 .cafe-a-typography[data-cafe-a-skin="round_focus"] :is(
   .cafe-a-category-title
 ) {
-  color: #a42e2e;
+  color: var(--menu-role-category-color, #a42e2e);
 }
 
 .cafe-a-typography[data-cafe-a-skin="round_focus"] :is(
@@ -3026,16 +3026,16 @@ video {
   display: none;
 }
 
-/* Loop Bagel keeps scripts explicit: Korean uses Pretendard and Latin uses the selected Bagel Fat One starter font. */
+/* Loop Bagel keeps scripts explicit: Korean uses Nanum Gothic and Latin uses the selected Bagel Fat One starter font. */
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-script-ko {
-  font-family: var(--menu-font-ko), "Pretendard", system-ui, sans-serif;
+  font-family: var(--menu-font-ko), "Nanum Gothic", system-ui, sans-serif;
 }
 
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-script-en {
   font-family: var(--menu-font-en), var(--menu-font-ko), system-ui, sans-serif;
 }
 
-/* Store support copy, notices, and language controls stay fully Pretendard, including Latin characters. */
+/* Store support copy, notices, and language controls stay fully Nanum Gothic, including Latin characters. */
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] :is(
   .cafe-a-store-description,
   .cafe-a-footer-info,
@@ -3046,9 +3046,9 @@ video {
   .cafe-a-footer-info,
   [data-template-language-control]
 ) * {
-  --cafe-a-script-ko-font: "Pretendard";
-  --cafe-a-script-en-font: "Pretendard";
-  font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif !important;
+  --cafe-a-script-ko-font: "Nanum Gothic";
+  --cafe-a-script-en-font: "Nanum Gothic";
+  font-family: "Nanum Gothic", "Noto Sans KR", system-ui, sans-serif !important;
 }
 
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-cover-hero {
@@ -3183,16 +3183,16 @@ video {
   color: var(--mocha-panel-primary);
 }
 
+.cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] {
+  --cafe-a-category-heading-color: var(--mocha-panel-primary);
+}
+
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-store-description,
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-menu-meta,
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-menu-description,
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-description-text,
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-price-label,
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-footer-info {
-  color: var(--mocha-panel-supporting);
-}
-
-.cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-price-column-header {
   color: var(--mocha-panel-supporting);
 }
 
@@ -3236,7 +3236,6 @@ video {
 .cafe-a-typography[data-template-key="cafe_van_gogh_a"] :is(
   .cafe-a-store-title,
   .cafe-a-store-description,
-  .cafe-a-category-title,
   .cafe-a-menu-title,
   .cafe-a-menu-meta,
   .cafe-a-menu-description,
@@ -3244,7 +3243,6 @@ video {
   .cafe-a-menu-price,
   .cafe-a-price-area,
   .cafe-a-price-label,
-  .cafe-a-price-column-header,
   .cafe-a-time-sale-line,
   .cafe-a-time-sale-time-text,
   .cafe-a-time-sale-regular-price,
@@ -3392,7 +3390,6 @@ video {
     .cafe-a-menu-description,
     .cafe-a-description-text,
     .cafe-a-price-label,
-    .cafe-a-price-column-header,
     .cafe-a-footer-info
   ) {
     color: var(--mocha-panel-supporting);
@@ -3782,6 +3779,7 @@ video {
 }
 
 .brew-chapter-option-header {
+  color: var(--menu-role-category-color, var(--brew-chapter-ink));
   font-size: clamp(0.68rem, calc(0.72rem * var(--menu-font-size-scale)), 0.82rem);
   font-weight: var(--menu-role-supporting-font-weight, 600);
   line-height: 1.1;

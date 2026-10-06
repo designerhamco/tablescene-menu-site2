@@ -590,8 +590,10 @@ export default function TypographySettingsForm({
               {["HOT", "ICE"].map((label) => (
                 <span
                   key={label}
-                  className="text-center text-xs font-bold uppercase text-[#17211F]"
-                  style={getCafeAMiniPreviewScriptStyle("price")}
+                  className="text-center text-xs font-bold uppercase"
+                  style={getCafeAMiniPreviewScriptStyle("category", {
+                    color: "var(--menu-role-category-color, #191c1b)",
+                  })}
                 >
                   <ScriptAwareText text={label} />
                 </span>

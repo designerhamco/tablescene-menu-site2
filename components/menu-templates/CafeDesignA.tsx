@@ -580,11 +580,11 @@ function getOrderedBalancedWidgetFitColumnCandidates(width: number, groupCount: 
   return Array.from(new Set([...baseCandidates, ...rescueCandidates])).sort((a, b) => b - a);
 }
 
-function getImageMenuColumnCandidates(width: number, groupCount: number) {
+function getImageMenuColumnCandidates(width: number, groupCount: number, maximumColumns = 3) {
   if (groupCount <= 1) return [1];
   if (width < 760) return [2];
 
-  const maxColumns = Math.min(3, groupCount);
+  const maxColumns = Math.min(maximumColumns, groupCount);
   return FIT_COLUMN_CANDIDATES.filter((columns) => columns >= 2 && columns <= maxColumns).sort((a, b) => b - a);
 }
 
@@ -6617,6 +6617,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const initialNowMs = normalizeInitialNowMs(data.initialNowMs);
   const timeSaleBoundaryNowMs = useTimeSaleBoundaryNowMs(data.timeSales, data.menuSite.template_key, initialNowMs);
   useNextTimeSaleStartRefresh(data.nextTimeSaleStartAt, isCafeDesignATimeSaleTemplate(data.menuSite.template_key));
+  const imageMenuMaximumColumns = data.menuSite.template_key === "fast_food_loop_bagel_a" ? 4 : 3;
 
   const timeSaleByItemId = useMemo(
     () => getTimeSaleByItemId(data.timeSales, data.menuSite.template_key, timeSaleBoundaryNowMs),
@@ -6639,7 +6640,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
   // Basic engine fit state: desktop candidate selection and validation feed these values into the CafeA shell.
   const baseRenderFitState = useMemo<CafeDesignAFitState>(() => {
-    const imageModeColumns = visibleFitBlockCount > 1 ? 3 : 1;
+    const imageModeColumns = visibleFitBlockCount > 1 ? imageMenuMaximumColumns : 1;
     const shouldClampImageModeColumns =
       hasVisibleItemImages &&
       !isRoundFocus &&
@@ -6665,6 +6666,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     hasVisibleItemImages,
     isDenseOrderedBalanced,
     isRoundFocus,
+    imageMenuMaximumColumns,
     layoutMode,
     orderedBalancedInitialColumns,
     visibleContentBlockCount,
@@ -6934,7 +6936,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     const syncInitialColumns = () => {
       const measuredWidth = menuElement.clientWidth || boardElement.clientWidth;
       const nextColumns = hasVisibleItemImages
-        ? getImageMenuColumnCandidates(measuredWidth, visibleFitBlockCount)[0] ?? 2
+        ? getImageMenuColumnCandidates(measuredWidth, visibleFitBlockCount, imageMenuMaximumColumns)[0] ?? 2
         : isDenseOrderedBalanced
           ? 3
           : measuredWidth >= 1100
@@ -6954,7 +6956,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [hasVisibleItemImages, isDenseOrderedBalanced, layoutMode, visibleFitBlockCount]);
+  }, [hasVisibleItemImages, imageMenuMaximumColumns, isDenseOrderedBalanced, layoutMode, visibleFitBlockCount]);
 
   useLayoutEffect(() => {
     const menuElement = desktopFitMenuRef.current;
@@ -7833,7 +7835,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                 ? [3]
                 : getOrderedBalancedWidgetFitColumnCandidates(menuWidth, visibleFitBlockCount, visibleItemCount)
               : hasVisibleItemImages
-                ? getImageMenuColumnCandidates(menuWidth, visibleFitBlockCount)
+                ? getImageMenuColumnCandidates(menuWidth, visibleFitBlockCount, imageMenuMaximumColumns)
                 : layoutMode === "orderedBalancedFit"
                   ? getOrderedBalancedFitColumnCandidates(menuWidth, visibleFitBlockCount, visibleItemCount)
                   : getBalancedFitColumnCandidates(menuWidth, visibleFitBlockCount);
@@ -8078,6 +8080,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     density,
     hasCoverSection,
     hasVisibleItemImages,
+    imageMenuMaximumColumns,
     isMochaForest,
     isRoundFocus,
     layoutInputSignature,

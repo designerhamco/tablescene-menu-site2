@@ -297,11 +297,18 @@ const AUBE_TABLE_COVER_IMAGE = "/menu-templates/dining_aube_table_a/aube-table-c
 const BREW_CHAPTER_SIGNATURE_ITEM_IMAGE = "/menu-templates/cafe_design_a/malcha_present.jpg";
 const BREW_CHAPTER_STARTER_ITEM_IMAGE = "/menu-templates/cafe_design_a/black-sesame.jpeg";
 const BREW_CHAPTER_MAIN_ITEM_IMAGE = "/menu-templates/cafe_design_a/nutty-cream.jpeg";
-const LOOP_BAGEL_FOOD_IMAGE_1 = "/menu-templates/fast_food_loop_bagel_a/plain-bagel.png";
-const LOOP_BAGEL_FOOD_IMAGE_2 = "/menu-templates/fast_food_loop_bagel_a/everything-bagel.png";
-const LOOP_BAGEL_FOOD_IMAGE_3 = "/menu-templates/fast_food_loop_bagel_a/scallion-cream-cheese-bagel.png";
-const LOOP_BAGEL_FOOD_IMAGE_4 = "/menu-templates/fast_food_loop_bagel_a/salmon-bagel-sandwich.png";
-const LOOP_BAGEL_EGG_CHEESE_HAM_IMAGE = "/menu-templates/fast_food_loop_bagel_a/egg-cheese-ham-bagel.png";
+const LOOP_BAGEL_SIGNATURE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/loop-signature-bagel.png";
+const LOOP_BAGEL_SALT_BUTTER_IMAGE = "/menu-templates/fast_food_loop_bagel_a/salt-butter-bagel.png";
+const LOOP_BAGEL_BLUEBERRY_CREAM_IMAGE = "/menu-templates/fast_food_loop_bagel_a/blueberry-cream-bagel.png";
+const LOOP_BAGEL_EVERYTHING_IMAGE = "/menu-templates/fast_food_loop_bagel_a/everything-bagel-v2.png";
+const LOOP_BAGEL_EGG_HAM_CHEESE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/egg-ham-cheese-bagel.png";
+const LOOP_BAGEL_BASIL_CHICKEN_IMAGE = "/menu-templates/fast_food_loop_bagel_a/basil-chicken-bagel-sandwich.png";
+const LOOP_BAGEL_SALMON_DILL_IMAGE = "/menu-templates/fast_food_loop_bagel_a/salmon-dill-bagel-sandwich-v2.png";
+const LOOP_BAGEL_MUSHROOM_MELT_IMAGE = "/menu-templates/fast_food_loop_bagel_a/mushroom-melt-bagel-sandwich.png";
+const LOOP_BAGEL_CLASSIC_PLAIN_IMAGE = "/menu-templates/fast_food_loop_bagel_a/classic-plain-bagel.png";
+const LOOP_BAGEL_ONION_IMAGE = "/menu-templates/fast_food_loop_bagel_a/onion-bagel.png";
+const LOOP_BAGEL_BLUEBERRY_IMAGE = "/menu-templates/fast_food_loop_bagel_a/blueberry-bagel.png";
+const LOOP_BAGEL_BLACK_OLIVE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/black-olive-bagel.png";
 const LOOP_BAGEL_PLAIN_CREAM_CHEESE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/plain-cream-cheese.png";
 const LOOP_BAGEL_SCALLION_CREAM_CHEESE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/scallion-cream-cheese.png";
 const LOOP_BAGEL_HONEY_WALNUT_CREAM_CHEESE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/honey-walnut-cream-cheese.png";
@@ -624,10 +631,10 @@ const loopBagelStarterPreset: StarterPreset = {
     opening_hours: "매일 08:00 - 20:00",
     restaurant_address: "서울시 예시구 루프로 24",
     restaurant_phone: "02-0000-0000",
-    cover_image_url: LOOP_BAGEL_FOOD_IMAGE_1,
+    cover_image_url: LOOP_BAGEL_SIGNATURE_IMAGE,
     settings: {
       typography: {
-        korean_font_key: "pretendard",
+        korean_font_key: "nanum-gothic",
         english_font_key: "bagel-fat-one",
         font_size_scale_key: "m",
       },
@@ -645,7 +652,7 @@ const loopBagelStarterPreset: StarterPreset = {
   featured_slides: [
     {
       id: "loop-bagel-featured-signature",
-      image_url: LOOP_BAGEL_FOOD_IMAGE_1,
+      image_url: LOOP_BAGEL_SIGNATURE_IMAGE,
       image_path: null,
       featured_item_key: "loop-signature-bagel",
       featured_item_name: "루프 시그니처 베이글",
@@ -653,10 +660,10 @@ const loopBagelStarterPreset: StarterPreset = {
     },
     {
       id: "loop-bagel-featured-sandwich",
-      image_url: LOOP_BAGEL_EGG_CHEESE_HAM_IMAGE,
+      image_url: LOOP_BAGEL_EGG_HAM_CHEESE_IMAGE,
       image_path: null,
       featured_item_key: "egg-cheese-bagel",
-      featured_item_name: "에그 치즈 햄 베이글",
+      featured_item_name: "에그 햄치즈 베이글",
       sort_order: 1,
     },
     {
@@ -671,13 +678,13 @@ const loopBagelStarterPreset: StarterPreset = {
   time_sales: [
     {
       key: "egg-cheese-morning-deal",
-      name: "에그 치즈 햄 베이글 모닝딜",
+      name: "에그 햄치즈 베이글 모닝딜",
       schedule_type: "once",
       badge_text: "MORNING",
       badge_background_color: "#4354EF",
       time_display_mode: "message",
       time_display_text: "매일 오전 8시부터 10시까지",
-      targets: [{ target_item_key: "egg-cheese-bagel", target_item_name: "에그 치즈 햄 베이글", sale_price: 5900 }],
+      targets: [{ target_item_key: "egg-cheese-bagel", target_item_name: "에그 햄치즈 베이글", sale_price: 5900 }],
     },
     {
       key: "everything-bagel-closeout",
@@ -693,9 +700,10 @@ const loopBagelStarterPreset: StarterPreset = {
   widgets: [],
   mixed_content_order: [
     { block_type: "category", page_key: "main-menu", category_key: "signature-bagels", sort_order: 0 },
-    { block_type: "category", page_key: "main-menu", category_key: "bagel-sandwiches", sort_order: 1 },
-    { block_type: "category", page_key: "main-menu", category_key: "cream-cheese", sort_order: 2 },
-    { block_type: "category", page_key: "main-menu", category_key: "coffee-drinks", sort_order: 3 },
+    { block_type: "category", page_key: "main-menu", category_key: "classic-bagels", sort_order: 1 },
+    { block_type: "category", page_key: "main-menu", category_key: "bagel-sandwiches", sort_order: 2 },
+    { block_type: "category", page_key: "main-menu", category_key: "cream-cheese", sort_order: 3 },
+    { block_type: "category", page_key: "main-menu", category_key: "coffee-drinks", sort_order: 4 },
   ],
   sample_items_visible: true,
   chefs: [],
@@ -713,16 +721,35 @@ const loopBagelStarterPreset: StarterPreset = {
           section_key: "main_menu",
           items: [
             item("루프 시그니처 베이글", 5200, "참깨와 양파 토핑을 듬뿍 올려 고소하고 쫄깃하게 구운 시그니처 베이글", {
-              key: "loop-signature-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_1, badge_label: "SIGNATURE", recommended: true,
+              key: "loop-signature-bagel", image_url: LOOP_BAGEL_SIGNATURE_IMAGE, badge_label: "SIGNATURE", recommended: true,
             }),
             item("솔트 버터 베이글", 4600, "담백한 베이글에 프렌치 버터와 플레이크 소금을 더한 단짠 조합", {
-              key: "salt-butter-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_2, badge_label: "BEST", recommended: true,
+              key: "salt-butter-bagel", image_url: LOOP_BAGEL_SALT_BUTTER_IMAGE, badge_label: "BEST", recommended: true,
             }),
             item("블루베리 크림 베이글", 4900, "상큼한 블루베리와 부드러운 크림치즈를 채운 달콤한 베이글", {
-              key: "blueberry-cream-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_3,
+              key: "blueberry-cream-bagel", image_url: LOOP_BAGEL_BLUEBERRY_CREAM_IMAGE,
             }),
             item("에브리띵 베이글", 4200, "참깨와 양파, 마늘 토핑의 풍미를 한입 가득 담은 클래식 베이글", {
-              key: "everything-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_4,
+              key: "everything-bagel", image_url: LOOP_BAGEL_EVERYTHING_IMAGE,
+            }),
+          ],
+        },
+        {
+          key: "classic-bagels",
+          name: "CLASSIC BAGELS",
+          section_key: "main_menu",
+          items: [
+            item("플레인 베이글", 3200, "담백한 풍미와 쫄깃한 식감을 그대로 즐기는 기본 베이글", {
+              key: "plain-bagel", image_url: LOOP_BAGEL_CLASSIC_PLAIN_IMAGE,
+            }),
+            item("어니언 베이글", 3800, "달콤하게 구운 양파 토핑의 깊은 풍미를 더한 베이글", {
+              key: "onion-bagel", image_url: LOOP_BAGEL_ONION_IMAGE,
+            }),
+            item("블루베리 베이글", 4200, "블루베리를 반죽에 듬뿍 넣어 은은하게 달콤한 베이글", {
+              key: "blueberry-bagel", image_url: LOOP_BAGEL_BLUEBERRY_IMAGE,
+            }),
+            item("블랙 올리브 베이글", 4300, "짭조름한 블랙 올리브를 넣어 담백하게 구운 세이보리 베이글", {
+              key: "black-olive-bagel", image_url: LOOP_BAGEL_BLACK_OLIVE_IMAGE,
             }),
           ],
         },
@@ -731,17 +758,17 @@ const loopBagelStarterPreset: StarterPreset = {
           name: "BAGEL SANDWICHES",
           section_key: "main_menu",
           items: [
-            item("에그 치즈 햄 베이글", 6900, "폭신한 에그와 체더 치즈, 짭조름한 햄을 따뜻한 플레인 베이글에 채운 든든한 모닝 샌드위치", {
-              key: "egg-cheese-bagel", image_url: LOOP_BAGEL_EGG_CHEESE_HAM_IMAGE,
+            item("에그 햄치즈 베이글", 6900, "폭신한 에그와 짭조름한 햄, 녹인 체더 치즈를 따뜻한 플레인 베이글에 채운 든든한 모닝 샌드위치", {
+              key: "egg-cheese-bagel", image_url: LOOP_BAGEL_EGG_HAM_CHEESE_IMAGE,
             }),
             item("바질 치킨 베이글", 7900, "로스트 치킨과 바질 페스토, 토마토를 담은 산뜻한 샌드위치", {
-              key: "basil-chicken-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_4, badge_label: "NEW",
+              key: "basil-chicken-bagel", image_url: LOOP_BAGEL_BASIL_CHICKEN_IMAGE, badge_label: "NEW",
             }),
             item("살몬 딜 베이글", 8900, "훈제 연어와 딜 크림치즈, 케이퍼를 겹겹이 담은 클래식 조합", {
-              key: "salmon-dill-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_3,
+              key: "salmon-dill-bagel", image_url: LOOP_BAGEL_SALMON_DILL_IMAGE,
             }),
             item("머쉬룸 멜트 베이글", 7600, "버터에 구운 버섯과 녹인 치즈, 캐러멜라이즈드 어니언의 깊은 풍미", {
-              key: "mushroom-melt-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_1,
+              key: "mushroom-melt-bagel", image_url: LOOP_BAGEL_MUSHROOM_MELT_IMAGE,
             }),
           ],
         },
@@ -767,26 +794,18 @@ const loopBagelStarterPreset: StarterPreset = {
           key: "coffee-drinks",
           name: "COFFEE & DRINKS",
           section_key: "dessert_drink",
-          price_columns: [
-            { key: "hot", label: "HOT" },
-            { key: "ice", label: "ICE" },
-          ],
           items: [
             item("아메리카노", 3500, "고소한 단맛과 깔끔한 여운을 지닌 데일리 커피", {
               key: "americano",
-              price_column_values: [{ key: "hot", price: 3500 }, { key: "ice", price: 4000 }],
             }),
             item("카페 라떼", 4300, "진한 에스프레소와 부드러운 우유의 균형", {
               key: "cafe-latte",
-              price_column_values: [{ key: "hot", price: 4300 }, { key: "ice", price: 4800 }],
             }),
             item("바닐라 빈 라떼", 5200, "바닐라 빈의 은은한 단맛을 더한 향긋한 라떼", {
               key: "vanilla-bean-latte",
-              price_column_values: [{ key: "hot", price: 5200 }, { key: "ice", price: 5700 }],
             }),
             item("레몬 스파클링", 5200, "생레몬의 산뜻한 향과 탄산을 시원하게 담은 에이드", {
               key: "lemon-sparkling",
-              price_column_values: [{ key: "ice", price: 5200 }],
             }),
           ],
         },

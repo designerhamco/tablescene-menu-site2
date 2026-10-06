@@ -15,6 +15,10 @@ const languageSwitcherSource = readFileSync(
   new URL("../components/menu-templates/shared/MenuLanguageSwitcher.tsx", import.meta.url),
   "utf8",
 );
+const typographySettingsSource = readFileSync(
+  new URL("../components/mypage/menu-editor/TypographySettingsForm.tsx", import.meta.url),
+  "utf8",
+);
 
 test("원페이지 템플릿의 핵심 타이포그래피와 간격은 화면 크기에 따라 유동적으로 조절된다", () => {
   assert.match(
@@ -75,7 +79,7 @@ test("Rosy Orange는 보조언어를 숨기고 제목 위계를 보장한다", (
   assert.match(globalStylesSource, /round_focus"\] \.cafe-a-menu-item-image-slot \{\s*border-radius: 0;/);
   assert.match(
     globalStylesSource,
-    /round_focus"\] :is\([\s\S]*\.cafe-a-category-title[\s\S]*\) \{\s*color: #a42e2e;/,
+    /round_focus"\] :is\([\s\S]*\.cafe-a-category-title[\s\S]*\) \{\s*color: var\(--menu-role-category-color, #a42e2e\);/,
   );
   assert.match(
     globalStylesSource,
@@ -341,6 +345,38 @@ test("원페이지 템플릿 옵션명은 가격 열 중앙에, 가격은 오른
     /<PriceColumnWidthSizer[\s\S]*candidates=\{priceRailColumns\?\.\[index\]\?\.widthCandidates/,
   );
   assert.doesNotMatch(globalStylesSource, /cafe-a-price-rail-safe-gap/);
+});
+
+test("가격 옵션명은 카테고리명 역할 색상을 그대로 공유한다", () => {
+  const linkedCategoryColor = "var(--cafe-a-category-heading-color, var(--menu-role-category-color, #191c1b))";
+  assert.match(
+    globalStylesSource,
+    new RegExp(`\\.cafe-a-category-title \\{[\\s\\S]*color: ${linkedCategoryColor.replace(/[()]/g, "\\$&")};`),
+  );
+  assert.match(
+    globalStylesSource,
+    new RegExp(`\\.cafe-a-price-column-header \\{[\\s\\S]*color: ${linkedCategoryColor.replace(/[()]/g, "\\$&")};`),
+  );
+  assert.match(
+    globalStylesSource,
+    /\.brew-chapter-option-header \{[\s\S]*color: var\(--menu-role-category-color, var\(--brew-chapter-ink\)\);/,
+  );
+  assert.match(
+    typographySettingsSource,
+    /\["HOT", "ICE"\][\s\S]*getCafeAMiniPreviewScriptStyle\("category", \{[\s\S]*color: "var\(--menu-role-category-color, #191c1b\)"/,
+  );
+});
+
+test("루프베이글의 이미지 메뉴는 늘어난 스타터 구성을 위해 PC에서만 네 열 후보를 허용한다", () => {
+  assert.match(templateSource, /const imageMenuMaximumColumns = data\.menuSite\.template_key === "fast_food_loop_bagel_a" \? 4 : 3;/);
+  assert.match(
+    templateSource,
+    /getImageMenuColumnCandidates\(menuWidth, visibleFitBlockCount, imageMenuMaximumColumns\)/,
+  );
+  assert.match(
+    templateSource,
+    /if \(width < 760\) return \[2\];[\s\S]*const maxColumns = Math\.min\(maximumColumns, groupCount\);/,
+  );
 });
 
 test("선데이 라인 데스크톱 언어 UI는 가격 우측 끝선에 보이는 영역을 맞춘다", () => {

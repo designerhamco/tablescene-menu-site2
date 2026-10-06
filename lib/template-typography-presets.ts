@@ -158,7 +158,7 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
     font_size_scale_key: "m",
   },
   fast_food_loop_bagel_a: {
-    korean_font_key: "pretendard",
+    korean_font_key: "nanum-gothic",
     english_font_key: "bagel-fat-one",
     font_size_scale_key: "m",
     typography_roles: {

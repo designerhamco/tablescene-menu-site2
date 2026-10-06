@@ -515,7 +515,7 @@ export const TEMPLATE_DEFAULT_KOREAN_FONTS: Record<string, KoreanFontValue> = {
   cafe_sunday_line_a: "pretendard",
   cafe_van_gogh_a: "pretendard",
   cafe_round_focus_a: "pretendard",
-  fast_food_loop_bagel_a: "pretendard",
+  fast_food_loop_bagel_a: "nanum-gothic",
   cafe_brew_chapter_a: "pretendard",
   cafe_noir_a: "pretendard",
   cafe_design_b: "pretendard",

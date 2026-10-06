@@ -13,7 +13,7 @@ const SINGLE_PAGE_DENSITY_CONTRACT = {
   cafe_sunday_line_a: [3, 3, 2, 3, 6],
   cafe_van_gogh_a: [3, 4, 3, 3, 4],
   cafe_round_focus_a: [3, 4, 4, 4, 4],
-  fast_food_loop_bagel_a: [4, 4, 3, 4],
+  fast_food_loop_bagel_a: [4, 4, 4, 3, 4],
 } as const;
 
 for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_DENSITY_CONTRACT)) {
@@ -110,7 +110,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(loopBagel.site.restaurant_name, "LOOP BAGEL");
   assert.equal(loopBagel.site.restaurant_category, "패스트푸드");
   assert.equal(loopBagel.site.restaurant_type, "fast_food");
-  assert.equal(loopBagelItems.length, 15);
+  assert.equal(loopBagelItems.length, 19);
   assert.equal(loopBagelItems.every((item) => !item.set_name?.trim()), true);
   assert.equal(loopBagelItems.every((item) => !item.price_options?.length), true);
   const loopBagelDrinks = loopBagel.pages[0]?.categories.find((category) => category.key === "coffee-drinks");
@@ -121,14 +121,8 @@ test("starter-specific image and promotion presentation stays intentional", () =
       .every((item) => Boolean(item.image_url)),
     true,
   );
-  assert.deepEqual(loopBagelDrinks?.price_columns, [
-    { key: "hot", label: "HOT" },
-    { key: "ice", label: "ICE" },
-  ]);
-  assert.deepEqual(
-    loopBagelDrinks?.items.map((item) => item.price_column_values?.map((value) => value.key) ?? []),
-    [["hot", "ice"], ["hot", "ice"], ["hot", "ice"], ["ice"]],
-  );
+  assert.equal(loopBagelDrinks?.price_columns, undefined);
+  assert.equal(loopBagelDrinks?.items.every((item) => !item.price_column_values?.length), true);
   const loopBagelCreamCheese = loopBagel.pages[0]?.categories.find((category) => category.key === "cream-cheese");
   assert.equal(loopBagelCreamCheese?.description, "매일 구운 베이글에 취향대로 곁들이는 세 가지 크림치즈");
   assert.equal(loopBagelCreamCheese?.description_visible, true);
@@ -136,9 +130,31 @@ test("starter-specific image and promotion presentation stays intentional", () =
   const loopBagelEggCheeseHam = loopBagel.pages[0]?.categories
     .flatMap((category) => category.items)
     .find((item) => item.key === "egg-cheese-bagel");
-  assert.equal(loopBagelEggCheeseHam?.name, "에그 치즈 햄 베이글");
+  assert.equal(loopBagelEggCheeseHam?.name, "에그 햄치즈 베이글");
   assert.match(loopBagelEggCheeseHam?.description ?? "", /햄/);
-  assert.equal(loopBagelEggCheeseHam?.image_url, "/menu-templates/fast_food_loop_bagel_a/egg-cheese-ham-bagel.png");
+  assert.equal(loopBagelEggCheeseHam?.image_url, "/menu-templates/fast_food_loop_bagel_a/egg-ham-cheese-bagel.png");
+  assert.deepEqual(
+    loopBagel.pages[0]?.categories.map((category) => category.key),
+    ["signature-bagels", "classic-bagels", "bagel-sandwiches", "cream-cheese", "coffee-drinks"],
+  );
+  assert.deepEqual(
+    loopBagel.pages[0]?.categories.find((category) => category.key === "classic-bagels")?.items.map((item) => item.image_url),
+    [
+      "/menu-templates/fast_food_loop_bagel_a/classic-plain-bagel.png",
+      "/menu-templates/fast_food_loop_bagel_a/onion-bagel.png",
+      "/menu-templates/fast_food_loop_bagel_a/blueberry-bagel.png",
+      "/menu-templates/fast_food_loop_bagel_a/black-olive-bagel.png",
+    ],
+  );
+  assert.deepEqual(
+    loopBagel.pages[0]?.categories.find((category) => category.key === "bagel-sandwiches")?.items.map((item) => item.image_url),
+    [
+      "/menu-templates/fast_food_loop_bagel_a/egg-ham-cheese-bagel.png",
+      "/menu-templates/fast_food_loop_bagel_a/basil-chicken-bagel-sandwich.png",
+      "/menu-templates/fast_food_loop_bagel_a/salmon-dill-bagel-sandwich-v2.png",
+      "/menu-templates/fast_food_loop_bagel_a/mushroom-melt-bagel-sandwich.png",
+    ],
+  );
   assert.deepEqual(
     loopBagelCreamCheese?.items.map((item) => item.image_url),
     [
@@ -158,6 +174,10 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(
     mergeTypographySettings("fast_food_loop_bagel_a", loopBagel.site.settings?.typography).english_font_key,
     "bagel-fat-one",
+  );
+  assert.equal(
+    mergeTypographySettings("fast_food_loop_bagel_a", loopBagel.site.settings?.typography).korean_font_key,
+    "nanum-gothic",
   );
   assert.equal(ENGLISH_FONT_OPTIONS.some((option) => option.value === "bagel-fat-one" && option.label === "Bagel Fat One"), true);
   assert.equal(loopBagel.time_sales?.every((sale) => sale.badge_background_color === "#4354EF"), true);
