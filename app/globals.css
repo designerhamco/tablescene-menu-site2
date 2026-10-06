@@ -3102,6 +3102,91 @@ video {
   height: 2px;
 }
 
+/*
+ * Van Gogh has no featured rail, so its five intact category blocks leave more
+ * vertical room than Sunday Roasters. Keep the shared fit safety checks, but
+ * trade some repeated item rhythm for larger PC type and clearer category
+ * separation. The separation ratio is shared by every device; its pixel value
+ * remains fluid because it is based on each device's local item rhythm.
+ */
+.cafe-a-typography[data-template-key="cafe_van_gogh_a"] {
+  --cafe-a-category-separation-ratio: 3.25;
+  --cafe-a-category-title-to-first-ratio: 1.15;
+  --menu-role-brand-color: #000000;
+  --menu-role-category-color: #000000;
+  color: #000000;
+}
+
+.cafe-a-typography[data-template-key="cafe_van_gogh_a"] .cafe-a-menu-category-top-divider {
+  display: none !important;
+}
+
+.cafe-a-typography[data-template-key="cafe_van_gogh_a"] :is(
+  .cafe-a-store-title,
+  .cafe-a-store-description,
+  .cafe-a-category-title,
+  .cafe-a-menu-title,
+  .cafe-a-menu-meta,
+  .cafe-a-menu-description,
+  .cafe-a-description-text,
+  .cafe-a-menu-price,
+  .cafe-a-price-area,
+  .cafe-a-price-label,
+  .cafe-a-price-column-header,
+  .cafe-a-time-sale-line,
+  .cafe-a-time-sale-time-text,
+  .cafe-a-time-sale-regular-price,
+  .cafe-a-footer-info,
+  [data-template-language-control],
+  [data-cafe-a-widget-title],
+  [data-cafe-a-widget-body]
+) {
+  color: #000000;
+}
+
+.cafe-a-typography[data-template-key="cafe_van_gogh_a"] .cafe-a-time-sale-badge {
+  color: #000000 !important;
+}
+
+@media (max-width: 1023px) {
+  .cafe-a-typography[data-template-key="cafe_van_gogh_a"] .cafe-a-menu-category-block + .cafe-a-menu-category-block {
+    margin-top: calc(var(--cafe-a-local-item-rhythm-gap) * var(--cafe-a-category-separation-ratio));
+  }
+}
+
+@media (min-width: 1024px) {
+  .cafe-a-typography[data-template-key="cafe_van_gogh_a"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] {
+    margin-bottom: var(--cafe-a-category-no-divider-gap);
+  }
+
+  .cafe-a-typography[data-template-key="cafe_van_gogh_a"]:is([data-preview-device="pc"], :not([data-preview-device])) {
+    --cafe-a-device-type-scale: 1;
+    --cafe-a-shell-category-block-rhythm-scale: 0.92;
+    --cafe-a-shell-category-title-boost: 1.24;
+    --cafe-a-shell-item-rhythm-scale: 0.55;
+    --cafe-a-shell-menu-copy-boost: 0.94;
+    --cafe-a-shell-menu-price-boost: 1;
+    --cafe-a-shell-menu-title-boost: 1.02;
+    --cafe-a-store-title-device-scale: 1.08;
+    --sunday-line-row-gap: clamp(0.5rem, 1.1vmin, 0.75rem);
+  }
+
+  .cafe-a-typography[data-template-key="cafe_van_gogh_a"]:is([data-preview-device="pc"], :not([data-preview-device])) .cafe-a-desktop-fit-board {
+    padding-block: clamp(0.75rem, 1.7vmin, 1rem);
+  }
+
+  .cafe-a-typography[data-template-key="cafe_van_gogh_a"]:is([data-preview-device="pc"], :not([data-preview-device])) .cafe-a-menu-title {
+    line-height: 1.28;
+  }
+
+  .cafe-a-typography[data-template-key="cafe_van_gogh_a"]:is([data-preview-device="pc"], :not([data-preview-device])) :is(
+    .cafe-a-menu-description,
+    .cafe-a-description-text
+  ) {
+    line-height: 1.36;
+  }
+}
+
 @media (max-width: 1023px) {
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] {
     --mocha-mobile-section-rhythm: clamp(1.25rem, 5.8vw, 1.75rem);

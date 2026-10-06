@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
+import { getTemplateContentSeparatorRules } from "./template-content-separator-rules";
+
 const cafeSource = readFileSync(
   new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url),
   "utf8",
@@ -61,6 +63,23 @@ test("단일페이지는 유동 기준 간격에 고정된 역할 비율을 한 
   assert.match(
     globalStylesSource,
     /data-cafe-a-skin="mocha_forest"[\s\S]*data-cafe-a-visual-next-block-type="category"[\s\S]*margin-bottom: var\(--cafe-a-category-no-divider-gap\);/,
+  );
+});
+
+test("반고흐는 분리선 없이 기기별 기준에 같은 카테고리 간격 비율을 적용한다", () => {
+  const rules = getTemplateContentSeparatorRules("cafe_van_gogh_a", "cafe");
+  assert.equal(rules.categoryDivider, "none");
+  assert.match(
+    globalStylesSource,
+    /data-template-key="cafe_van_gogh_a"[\s\S]*--cafe-a-category-separation-ratio: 3\.25;[\s\S]*--cafe-a-category-title-to-first-ratio: 1\.15;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-template-key="cafe_van_gogh_a"[\s\S]*cafe-a-menu-category-block \+ \.cafe-a-menu-category-block[\s\S]*var\(--cafe-a-category-separation-ratio\)/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-template-key="cafe_van_gogh_a"[\s\S]*data-cafe-a-visual-next-block-type="category"[\s\S]*margin-bottom: var\(--cafe-a-category-no-divider-gap\);/,
   );
 });
 

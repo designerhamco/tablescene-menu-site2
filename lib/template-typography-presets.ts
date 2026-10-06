@@ -142,18 +142,14 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
   },
   cafe_van_gogh_a: {
     korean_font_key: "pretendard",
-    english_font_key: "federo",
+    english_font_key: "special-elite",
     font_size_scale_key: "m",
     typography_roles: {
-      ...createDefaultTypographyRoleSettings(),
-      brand: {
-        ...createDefaultTypographyRoleSettings().brand,
-        color: "#24369C",
-      },
-      category: {
-        ...createDefaultTypographyRoleSettings().category,
-        color: "#24369C",
-      },
+      brand: { ...createDefaultTypographyRoleSettings().brand, color: "#000000" },
+      category: { ...createDefaultTypographyRoleSettings().category, color: "#000000" },
+      itemName: { ...createDefaultTypographyRoleSettings().itemName, color: "#000000" },
+      supporting: { ...createDefaultTypographyRoleSettings().supporting, color: "#000000" },
+      price: { ...createDefaultTypographyRoleSettings().price, color: "#000000" },
     },
   },
   cafe_round_focus_a: {

@@ -4,6 +4,7 @@ import test from "node:test";
 import { getStarterPreset } from "./menu-starter-presets";
 import { TEMPLATE_BADGE_STYLE_PRESETS } from "./template-badge-styles";
 import { getSinglePageStarterTranslations } from "./template-demo-data/single-page-starter-translations";
+import { mergeTypographySettings } from "./template-typography-presets";
 
 const SINGLE_PAGE_DENSITY_CONTRACT = {
   cafe_design_a: [3, 4, 3, 3, 5],
@@ -196,6 +197,17 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(vanGogh.featured_item_key, undefined);
   assert.equal(vanGogh.featured_slides?.length, 0);
   assert.deepEqual(vanGogh.widgets, []);
+  const vanGoghTypography = mergeTypographySettings("cafe_van_gogh_a");
+  assert.equal(vanGoghTypography.english_font_key, "special-elite");
+  for (const role of ["brand", "category", "itemName", "supporting", "price"] as const) {
+    assert.equal(vanGoghTypography.typography_roles[role].color, "#000000");
+  }
+  assert.equal(
+    Object.values(TEMPLATE_BADGE_STYLE_PRESETS.cafe_van_gogh_a ?? {}).every(
+      (style) => style?.background_color === "#F2C14E" && style.text_color === "#000000",
+    ),
+    true,
+  );
   assert.equal(vanGogh.pages[0]?.categories[0]?.name, "MASTERPIECE");
   assert.equal(vanGogh.pages[0]?.categories[0]?.items[0]?.name, "별이 빛나는 밤 라떼");
 
