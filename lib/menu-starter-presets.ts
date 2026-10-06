@@ -748,14 +748,16 @@ const loopBagelStarterPreset: StarterPreset = {
           key: "cream-cheese",
           name: "CREAM CHEESE",
           section_key: "main_menu",
+          description: "매일 구운 베이글에 취향대로 곁들이는 세 가지 크림치즈",
+          description_visible: true,
           items: [
-            item("플레인 크림치즈", 1500, "어떤 베이글에도 잘 어울리는 부드럽고 담백한 기본 크림치즈", {
+            item("플레인 크림치즈", 1500, "", {
               key: "plain-cream-cheese", image_url: LOOP_BAGEL_FOOD_IMAGE_1,
             }),
-            item("쪽파 크림치즈", 1900, "향긋한 쪽파와 후추를 섞어 산뜻하게 마무리한 세이버리 크림치즈", {
+            item("쪽파 크림치즈", 1900, "", {
               key: "scallion-cream-cheese", image_url: LOOP_BAGEL_FOOD_IMAGE_3,
             }),
-            item("허니 월넛 크림치즈", 2200, "달콤한 꿀과 바삭한 호두를 섞은 고소한 크림치즈", {
+            item("허니 월넛 크림치즈", 2200, "", {
               key: "honey-walnut-cream-cheese", image_url: LOOP_BAGEL_FOOD_IMAGE_2,
             }),
           ],

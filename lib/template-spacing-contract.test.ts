@@ -118,6 +118,22 @@ test("루프베이글은 분리선 없이 상하 2행 블루 체커보드를 유
     globalStylesSource,
     /data-template-key="fast_food_loop_bagel_a"[^}]*cafe-a-category-heading[^}]*border-bottom/,
   );
+  assert.match(
+    globalStylesSource,
+    /data-template-key="fast_food_loop_bagel_a"[^}]*:is\([\s\S]*data-preview-device="tablet"[\s\S]*data-preview-device="pc"[\s\S]*\)[^}]*\{[^}]*--cafe-a-category-separation-ratio: 4\.4;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-template-key="fast_food_loop_bagel_a"[^}]*cafe-a-desktop-fit-board[^}]*data-cafe-a-visual-next-block-type="category"[^}]*\{[^}]*margin-bottom: var\(--cafe-a-category-no-divider-gap\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-template-key="fast_food_loop_bagel_a"[^}]*cafe-a-cover-hero[^}]*\{[^}]*border-radius: clamp\(0\.875rem, 1\.65vmin, 1\.35rem\);[^}]*overflow: hidden;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-template-key="fast_food_loop_bagel_a"[^}]*cafe-a-menu-item-image-slot[^}]*\{[^}]*border-radius: clamp\(0\.5rem, 1vmin, 0\.8rem\);[^}]*overflow: hidden;/,
+  );
 });
 
 test("Display는 화면 행 예산으로 카테고리와 메뉴 간격을 함께 계산한다", () => {

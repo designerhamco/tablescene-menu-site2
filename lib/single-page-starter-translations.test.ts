@@ -16,12 +16,18 @@ for (const [templateKey, translations] of Object.entries(SINGLE_PAGE_STARTER_TRA
     const items = preset.pages.flatMap((page) => page.categories.flatMap((category) => category.items));
     const itemKeys = items.map((item) => item.key).filter((key): key is string => Boolean(key));
     const promotionKeys = (preset.time_sales ?? []).map((promotion) => promotion.key).filter((key): key is string => Boolean(key));
+    const descriptionlessItemKeys = templateKey === "fast_food_loop_bagel_a"
+      ? new Set(["plain-cream-cheese", "scallion-cream-cheese", "honey-walnut-cream-cheese"])
+      : new Set<string>();
 
     assert.equal(pageKeys.length, preset.pages.length, "Korean starter pages must have stable keys");
     assert.equal(categoryKeys.length, preset.pages.flatMap((page) => page.categories).length, "Korean starter categories must have stable keys");
     assert.equal(itemKeys.length, items.length, "Korean starter items must have stable keys");
     assert.equal(items.every((item) => item.name.trim()), true);
-    assert.equal(items.every((item) => Boolean(item.description.trim())), true);
+    assert.equal(
+      items.every((item) => descriptionlessItemKeys.has(item.key ?? "") ? !item.description.trim() : Boolean(item.description.trim())),
+      true,
+    );
 
     for (const locale of SINGLE_PAGE_STARTER_TRANSLATION_LOCALES) {
       const copy = translations[locale];
@@ -31,7 +37,15 @@ for (const [templateKey, translations] of Object.entries(SINGLE_PAGE_STARTER_TRA
       assert.deepEqual(Object.keys(copy.categoryNames).sort(), [...categoryKeys].sort());
       assert.deepEqual(Object.keys(copy.items).sort(), [...itemKeys].sort());
       assert.deepEqual(Object.keys(copy.promotions).sort(), [...promotionKeys].sort());
-      assert.equal(Object.values(copy.items).every((item) => item.name.trim() && item.description.trim()), true);
+      assert.equal(
+        Object.entries(copy.items).every(([itemKey, item]) => (
+          Boolean(item.name.trim()) && (descriptionlessItemKeys.has(itemKey) ? !item.description.trim() : Boolean(item.description.trim()))
+        )),
+        true,
+      );
+      if (templateKey === "fast_food_loop_bagel_a") {
+        assert.equal(Boolean(copy.categoryDescriptions?.["cream-cheese"]?.trim()), true);
+      }
       assert.equal(Object.values(copy.promotions).every((promotion) => promotion.badgeText.trim()), true);
     }
   });

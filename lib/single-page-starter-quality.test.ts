@@ -33,7 +33,11 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
     if (templateKey === "fast_food_loop_bagel_a") {
       const items = categories.flatMap((category) => category.items);
       assert.equal(items.every((item) => !item.set_name?.trim()), true);
-      assert.equal(items.every((item) => Boolean(item.description?.trim())), true);
+      const creamCheeseItems = new Set(["plain-cream-cheese", "scallion-cream-cheese", "honey-walnut-cream-cheese"]);
+      assert.equal(
+        items.every((item) => creamCheeseItems.has(item.key ?? "") ? !item.description.trim() : Boolean(item.description.trim())),
+        true,
+      );
     } else if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a") {
       const items = categories.flatMap((category) => category.items);
       assert.equal(items.every((item) => !item.set_name?.trim()), true);
@@ -119,6 +123,10 @@ test("starter-specific image and promotion presentation stays intentional", () =
     loopBagelDrinks?.items.map((item) => item.price_column_values?.map((value) => value.key) ?? []),
     [["hot", "ice"], ["hot", "ice"], ["hot", "ice"], ["ice"]],
   );
+  const loopBagelCreamCheese = loopBagel.pages[0]?.categories.find((category) => category.key === "cream-cheese");
+  assert.equal(loopBagelCreamCheese?.description, "매일 구운 베이글에 취향대로 곁들이는 세 가지 크림치즈");
+  assert.equal(loopBagelCreamCheese?.description_visible, true);
+  assert.equal(loopBagelCreamCheese?.items.every((item) => !item.description.trim()), true);
   assert.equal(
     mergeTypographySettings("fast_food_loop_bagel_a", loopBagel.site.settings?.typography).english_font_key,
     "bagel-fat-one",

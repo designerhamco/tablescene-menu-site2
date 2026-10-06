@@ -3026,6 +3026,66 @@ video {
   display: none;
 }
 
+/* Loop Bagel keeps scripts explicit: Korean uses Pretendard and Latin uses the selected Bagel Fat One starter font. */
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-script-ko {
+  font-family: var(--menu-font-ko), "Pretendard", system-ui, sans-serif;
+}
+
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-script-en {
+  font-family: var(--menu-font-en), var(--menu-font-ko), system-ui, sans-serif;
+}
+
+/* Store support copy, notices, and language controls stay fully Pretendard, including Latin characters. */
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] :is(
+  .cafe-a-store-description,
+  .cafe-a-footer-info,
+  [data-template-language-control]
+),
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] :is(
+  .cafe-a-store-description,
+  .cafe-a-footer-info,
+  [data-template-language-control]
+) * {
+  --cafe-a-script-ko-font: "Pretendard";
+  --cafe-a-script-en-font: "Pretendard";
+  font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif !important;
+}
+
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-cover-hero {
+  border-radius: clamp(0.875rem, 1.65vmin, 1.35rem);
+  overflow: hidden;
+}
+
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-menu-item-image-slot {
+  border-radius: clamp(0.5rem, 1vmin, 0.8rem);
+  overflow: hidden;
+}
+
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] :is(
+  .cafe-a-menu-badge,
+  .cafe-a-featured-badge,
+  .cafe-a-menu-chip
+) {
+  border-radius: clamp(0.22rem, 0.45vmin, 0.38rem);
+}
+
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"]:is(
+  [data-preview-device="tablet"],
+  [data-preview-device="pc"]
+) {
+  --cafe-a-category-separation-ratio: 4.4;
+}
+
+@media (min-width: 768px) {
+  .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"]:not([data-preview-device="mobile"]) {
+    --cafe-a-category-separation-ratio: 4.4;
+  }
+
+  .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] {
+    margin-bottom: var(--cafe-a-category-no-divider-gap);
+  }
+}
+
 .cafe-a-typography[data-template-key="cafe_design_a"] .cafe-a-category-heading {
   border-bottom: clamp(0.1rem, 0.14vmin, 0.15rem) solid currentColor;
   padding-bottom: clamp(0.32rem, 0.62vmin, 0.56rem);
@@ -4155,6 +4215,14 @@ video {
   font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * 0.62);
 }
 
+/* Bagel Fat One is visually heavy, so Loop Bagel's Korean item names use a matching Pretendard weight. */
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] :is(
+  .cafe-a-menu-title,
+  .cafe-a-featured-title
+) {
+  font-weight: 800;
+}
+
 /* Real Matcha and Mocha Forest follow Sunday Roasters' role hierarchy while each layout keeps its own fit result. */
 .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) {
   --cafe-a-sunday-category-ratio: 1.34;
@@ -4179,6 +4247,14 @@ video {
 
 .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"])[data-preview-device="tablet"] {
   --cafe-a-store-title-device-scale: 1.02;
+}
+
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] {
+  --cafe-a-store-title-device-scale: 1.18;
+}
+
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"][data-preview-device="tablet"] {
+  --cafe-a-store-title-device-scale: 1.14;
 }
 
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] {
@@ -4249,6 +4325,10 @@ video {
 
   .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"]) header .cafe-a-store-title {
     font-size: calc(clamp(calc(2.25rem * var(--menu-role-brand-size-scale, 1)), calc(11vw * var(--menu-role-brand-size-scale, 1)), calc(3rem * var(--menu-role-brand-size-scale, 1))) * 1.06);
+  }
+
+  .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] header .cafe-a-store-title {
+    font-size: calc(clamp(calc(2.25rem * var(--menu-role-brand-size-scale, 1)), calc(11vw * var(--menu-role-brand-size-scale, 1)), calc(3rem * var(--menu-role-brand-size-scale, 1))) * 1.16);
   }
 }
 
