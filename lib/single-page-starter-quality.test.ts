@@ -111,10 +111,16 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(loopBagel.site.restaurant_category, "패스트푸드");
   assert.equal(loopBagel.site.restaurant_type, "fast_food");
   assert.equal(loopBagelItems.length, 15);
-  assert.equal(loopBagelItems.every((item) => Boolean(item.image_url)), true);
   assert.equal(loopBagelItems.every((item) => !item.set_name?.trim()), true);
   assert.equal(loopBagelItems.every((item) => !item.price_options?.length), true);
   const loopBagelDrinks = loopBagel.pages[0]?.categories.find((category) => category.key === "coffee-drinks");
+  assert.equal(
+    loopBagel.pages[0]?.categories
+      .filter((category) => category.key !== "coffee-drinks")
+      .flatMap((category) => category.items)
+      .every((item) => Boolean(item.image_url)),
+    true,
+  );
   assert.deepEqual(loopBagelDrinks?.price_columns, [
     { key: "hot", label: "HOT" },
     { key: "ice", label: "ICE" },
@@ -133,9 +139,19 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(loopBagelEggCheeseHam?.name, "에그 치즈 햄 베이글");
   assert.match(loopBagelEggCheeseHam?.description ?? "", /햄/);
   assert.equal(loopBagelEggCheeseHam?.image_url, "/menu-templates/fast_food_loop_bagel_a/egg-cheese-ham-bagel.png");
+  assert.deepEqual(
+    loopBagelCreamCheese?.items.map((item) => item.image_url),
+    [
+      "/menu-templates/fast_food_loop_bagel_a/plain-cream-cheese.png",
+      "/menu-templates/fast_food_loop_bagel_a/scallion-cream-cheese.png",
+      "/menu-templates/fast_food_loop_bagel_a/honey-walnut-cream-cheese.png",
+    ],
+  );
+  assert.equal(loopBagelDrinks?.items.every((item) => !item.image_url), true);
   assert.equal(
-    loopBagel.pages.flatMap((page) => page.categories.flatMap((category) => category.items)).every(
-      (item) => item.image_url?.startsWith("/menu-templates/fast_food_loop_bagel_a/"),
+    loopBagel.featured_slides?.some(
+      (slide) => slide.featured_item_key === "honey-walnut-cream-cheese"
+        && slide.image_url === "/menu-templates/fast_food_loop_bagel_a/honey-walnut-cream-cheese.png",
     ),
     true,
   );

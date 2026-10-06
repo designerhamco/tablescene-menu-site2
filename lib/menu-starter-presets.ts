@@ -302,9 +302,9 @@ const LOOP_BAGEL_FOOD_IMAGE_2 = "/menu-templates/fast_food_loop_bagel_a/everythi
 const LOOP_BAGEL_FOOD_IMAGE_3 = "/menu-templates/fast_food_loop_bagel_a/scallion-cream-cheese-bagel.png";
 const LOOP_BAGEL_FOOD_IMAGE_4 = "/menu-templates/fast_food_loop_bagel_a/salmon-bagel-sandwich.png";
 const LOOP_BAGEL_EGG_CHEESE_HAM_IMAGE = "/menu-templates/fast_food_loop_bagel_a/egg-cheese-ham-bagel.png";
-const LOOP_BAGEL_DRINK_IMAGE_1 = LOOP_BAGEL_FOOD_IMAGE_1;
-const LOOP_BAGEL_DRINK_IMAGE_2 = LOOP_BAGEL_FOOD_IMAGE_2;
-const LOOP_BAGEL_DRINK_IMAGE_3 = LOOP_BAGEL_FOOD_IMAGE_3;
+const LOOP_BAGEL_PLAIN_CREAM_CHEESE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/plain-cream-cheese.png";
+const LOOP_BAGEL_SCALLION_CREAM_CHEESE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/scallion-cream-cheese.png";
+const LOOP_BAGEL_HONEY_WALNUT_CREAM_CHEESE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/honey-walnut-cream-cheese.png";
 
 const STARTER_PAGE_SETTINGS = {
   intro_enabled: true,
@@ -660,11 +660,11 @@ const loopBagelStarterPreset: StarterPreset = {
       sort_order: 1,
     },
     {
-      id: "loop-bagel-featured-coffee",
-      image_url: LOOP_BAGEL_DRINK_IMAGE_1,
+      id: "loop-bagel-featured-cream-cheese",
+      image_url: LOOP_BAGEL_HONEY_WALNUT_CREAM_CHEESE_IMAGE,
       image_path: null,
-      featured_item_key: "cafe-latte",
-      featured_item_name: "카페 라떼",
+      featured_item_key: "honey-walnut-cream-cheese",
+      featured_item_name: "허니 월넛 크림치즈",
       sort_order: 2,
     },
   ],
@@ -753,13 +753,13 @@ const loopBagelStarterPreset: StarterPreset = {
           description_visible: true,
           items: [
             item("플레인 크림치즈", 1500, "", {
-              key: "plain-cream-cheese", image_url: LOOP_BAGEL_FOOD_IMAGE_1,
+              key: "plain-cream-cheese", image_url: LOOP_BAGEL_PLAIN_CREAM_CHEESE_IMAGE,
             }),
             item("쪽파 크림치즈", 1900, "", {
-              key: "scallion-cream-cheese", image_url: LOOP_BAGEL_FOOD_IMAGE_3,
+              key: "scallion-cream-cheese", image_url: LOOP_BAGEL_SCALLION_CREAM_CHEESE_IMAGE,
             }),
             item("허니 월넛 크림치즈", 2200, "", {
-              key: "honey-walnut-cream-cheese", image_url: LOOP_BAGEL_FOOD_IMAGE_2,
+              key: "honey-walnut-cream-cheese", image_url: LOOP_BAGEL_HONEY_WALNUT_CREAM_CHEESE_IMAGE,
             }),
           ],
         },
@@ -773,19 +773,19 @@ const loopBagelStarterPreset: StarterPreset = {
           ],
           items: [
             item("아메리카노", 3500, "고소한 단맛과 깔끔한 여운을 지닌 데일리 커피", {
-              key: "americano", image_url: LOOP_BAGEL_DRINK_IMAGE_1,
+              key: "americano",
               price_column_values: [{ key: "hot", price: 3500 }, { key: "ice", price: 4000 }],
             }),
             item("카페 라떼", 4300, "진한 에스프레소와 부드러운 우유의 균형", {
-              key: "cafe-latte", image_url: LOOP_BAGEL_DRINK_IMAGE_2,
+              key: "cafe-latte",
               price_column_values: [{ key: "hot", price: 4300 }, { key: "ice", price: 4800 }],
             }),
             item("바닐라 빈 라떼", 5200, "바닐라 빈의 은은한 단맛을 더한 향긋한 라떼", {
-              key: "vanilla-bean-latte", image_url: LOOP_BAGEL_DRINK_IMAGE_3,
+              key: "vanilla-bean-latte",
               price_column_values: [{ key: "hot", price: 5200 }, { key: "ice", price: 5700 }],
             }),
             item("레몬 스파클링", 5200, "생레몬의 산뜻한 향과 탄산을 시원하게 담은 에이드", {
-              key: "lemon-sparkling", image_url: LOOP_BAGEL_DRINK_IMAGE_1,
+              key: "lemon-sparkling",
               price_column_values: [{ key: "ice", price: 5200 }],
             }),
           ],
