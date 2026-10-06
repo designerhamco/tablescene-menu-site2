@@ -3112,6 +3112,7 @@ video {
 .cafe-a-typography[data-template-key="cafe_van_gogh_a"] {
   --cafe-a-category-separation-ratio: 3.25;
   --cafe-a-category-title-to-first-ratio: 1.15;
+  --cafe-a-van-gogh-notice-size: clamp(0.7rem, 1.5vmin, 0.82rem);
   --menu-role-brand-color: #000000;
   --menu-role-category-color: #000000;
   color: #000000;
@@ -3145,7 +3146,18 @@ video {
 }
 
 .cafe-a-typography[data-template-key="cafe_van_gogh_a"] .cafe-a-time-sale-badge {
-  color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.cafe-a-typography[data-template-key="cafe_van_gogh_a"] .cafe-a-topline-notice-text.cafe-a-menu-description {
+  font-size: var(--cafe-a-van-gogh-notice-size);
+}
+
+.cafe-a-typography[data-template-key="cafe_van_gogh_a"] :is(
+  .cafe-a-topline-mobile-notices,
+  .cafe-a-footer-info
+) .cafe-a-description-text {
+  font-size: var(--cafe-a-van-gogh-notice-size);
 }
 
 /* Special Elite paints its capitals close to the top of a tight line box. */

@@ -85,6 +85,18 @@ test("반고흐는 분리선 없이 기기별 기준에 같은 카테고리 간�
     globalStylesSource,
     /data-template-key="cafe_van_gogh_a"[^}]*cafe-a-topline-title[^}]*\{[^}]*line-height: 1\.1;[^}]*padding-block: 0\.08em 0\.02em;/,
   );
+  assert.match(
+    globalStylesSource,
+    /data-template-key="cafe_van_gogh_a"[^}]*\{[^}]*--cafe-a-van-gogh-notice-size: clamp\(0\.7rem, 1\.5vmin, 0\.82rem\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-template-key="cafe_van_gogh_a"[^}]*cafe-a-topline-notice-text\.cafe-a-menu-description[^}]*\{[^}]*font-size: var\(--cafe-a-van-gogh-notice-size\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-template-key="cafe_van_gogh_a"[^}]*:is\([\s\S]*cafe-a-topline-mobile-notices,[\s\S]*cafe-a-footer-info[\s\S]*\) \.cafe-a-description-text[^}]*\{[^}]*font-size: var\(--cafe-a-van-gogh-notice-size\);/,
+  );
 });
 
 test("Display는 화면 행 예산으로 카테고리와 메뉴 간격을 함께 계산한다", () => {
