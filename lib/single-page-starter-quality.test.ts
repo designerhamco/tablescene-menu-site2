@@ -127,6 +127,18 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(loopBagelCreamCheese?.description, "매일 구운 베이글에 취향대로 곁들이는 세 가지 크림치즈");
   assert.equal(loopBagelCreamCheese?.description_visible, true);
   assert.equal(loopBagelCreamCheese?.items.every((item) => !item.description.trim()), true);
+  const loopBagelEggCheeseHam = loopBagel.pages[0]?.categories
+    .flatMap((category) => category.items)
+    .find((item) => item.key === "egg-cheese-bagel");
+  assert.equal(loopBagelEggCheeseHam?.name, "에그 치즈 햄 베이글");
+  assert.match(loopBagelEggCheeseHam?.description ?? "", /햄/);
+  assert.equal(loopBagelEggCheeseHam?.image_url, "/menu-templates/fast_food_loop_bagel_a/egg-cheese-ham-bagel.png");
+  assert.equal(
+    loopBagel.pages.flatMap((page) => page.categories.flatMap((category) => category.items)).every(
+      (item) => item.image_url?.startsWith("/menu-templates/fast_food_loop_bagel_a/"),
+    ),
+    true,
+  );
   assert.equal(
     mergeTypographySettings("fast_food_loop_bagel_a", loopBagel.site.settings?.typography).english_font_key,
     "bagel-fat-one",

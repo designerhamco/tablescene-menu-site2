@@ -297,13 +297,14 @@ const AUBE_TABLE_COVER_IMAGE = "/menu-templates/dining_aube_table_a/aube-table-c
 const BREW_CHAPTER_SIGNATURE_ITEM_IMAGE = "/menu-templates/cafe_design_a/malcha_present.jpg";
 const BREW_CHAPTER_STARTER_ITEM_IMAGE = "/menu-templates/cafe_design_a/black-sesame.jpeg";
 const BREW_CHAPTER_MAIN_ITEM_IMAGE = "/menu-templates/cafe_design_a/nutty-cream.jpeg";
-const LOOP_BAGEL_FOOD_IMAGE_1 = "/menu-templates/cafe_round_focus_a/cheese-platter.jpg";
-const LOOP_BAGEL_FOOD_IMAGE_2 = "/menu-templates/cafe_round_focus_a/truffle-fries.jpg";
-const LOOP_BAGEL_FOOD_IMAGE_3 = "/menu-templates/cafe_round_focus_a/jamon-olives.jpg";
-const LOOP_BAGEL_FOOD_IMAGE_4 = "/menu-templates/cafe_round_focus_a/spicy-chicken-wings.jpg";
-const LOOP_BAGEL_DRINK_IMAGE_1 = "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-01.png";
-const LOOP_BAGEL_DRINK_IMAGE_2 = "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-02.png";
-const LOOP_BAGEL_DRINK_IMAGE_3 = "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-03.png";
+const LOOP_BAGEL_FOOD_IMAGE_1 = "/menu-templates/fast_food_loop_bagel_a/plain-bagel.png";
+const LOOP_BAGEL_FOOD_IMAGE_2 = "/menu-templates/fast_food_loop_bagel_a/everything-bagel.png";
+const LOOP_BAGEL_FOOD_IMAGE_3 = "/menu-templates/fast_food_loop_bagel_a/scallion-cream-cheese-bagel.png";
+const LOOP_BAGEL_FOOD_IMAGE_4 = "/menu-templates/fast_food_loop_bagel_a/salmon-bagel-sandwich.png";
+const LOOP_BAGEL_EGG_CHEESE_HAM_IMAGE = "/menu-templates/fast_food_loop_bagel_a/egg-cheese-ham-bagel.png";
+const LOOP_BAGEL_DRINK_IMAGE_1 = LOOP_BAGEL_FOOD_IMAGE_1;
+const LOOP_BAGEL_DRINK_IMAGE_2 = LOOP_BAGEL_FOOD_IMAGE_2;
+const LOOP_BAGEL_DRINK_IMAGE_3 = LOOP_BAGEL_FOOD_IMAGE_3;
 
 const STARTER_PAGE_SETTINGS = {
   intro_enabled: true,
@@ -652,10 +653,10 @@ const loopBagelStarterPreset: StarterPreset = {
     },
     {
       id: "loop-bagel-featured-sandwich",
-      image_url: LOOP_BAGEL_FOOD_IMAGE_2,
+      image_url: LOOP_BAGEL_EGG_CHEESE_HAM_IMAGE,
       image_path: null,
       featured_item_key: "egg-cheese-bagel",
-      featured_item_name: "에그 치즈 베이글",
+      featured_item_name: "에그 치즈 햄 베이글",
       sort_order: 1,
     },
     {
@@ -670,13 +671,13 @@ const loopBagelStarterPreset: StarterPreset = {
   time_sales: [
     {
       key: "egg-cheese-morning-deal",
-      name: "에그 치즈 베이글 모닝딜",
+      name: "에그 치즈 햄 베이글 모닝딜",
       schedule_type: "once",
       badge_text: "MORNING",
       badge_background_color: "#4354EF",
       time_display_mode: "message",
       time_display_text: "매일 오전 8시부터 10시까지",
-      targets: [{ target_item_key: "egg-cheese-bagel", target_item_name: "에그 치즈 베이글", sale_price: 5900 }],
+      targets: [{ target_item_key: "egg-cheese-bagel", target_item_name: "에그 치즈 햄 베이글", sale_price: 5900 }],
     },
     {
       key: "everything-bagel-closeout",
@@ -730,8 +731,8 @@ const loopBagelStarterPreset: StarterPreset = {
           name: "BAGEL SANDWICHES",
           section_key: "main_menu",
           items: [
-            item("에그 치즈 베이글", 6900, "폭신한 에그와 체더 치즈를 따뜻한 플레인 베이글에 채운 모닝 샌드위치", {
-              key: "egg-cheese-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_2,
+            item("에그 치즈 햄 베이글", 6900, "폭신한 에그와 체더 치즈, 짭조름한 햄을 따뜻한 플레인 베이글에 채운 든든한 모닝 샌드위치", {
+              key: "egg-cheese-bagel", image_url: LOOP_BAGEL_EGG_CHEESE_HAM_IMAGE,
             }),
             item("바질 치킨 베이글", 7900, "로스트 치킨과 바질 페스토, 토마토를 담은 산뜻한 샌드위치", {
               key: "basil-chicken-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_4, badge_label: "NEW",

@@ -120,7 +120,7 @@ test("루프베이글은 분리선 없이 상하 2행 블루 체커보드를 유
   );
   assert.match(
     globalStylesSource,
-    /data-template-key="fast_food_loop_bagel_a"[^}]*:is\([\s\S]*data-preview-device="tablet"[\s\S]*data-preview-device="pc"[\s\S]*\)[^}]*\{[^}]*--cafe-a-category-separation-ratio: 4\.4;/,
+    /data-template-key="fast_food_loop_bagel_a"[^}]*:is\([\s\S]*data-preview-device="tablet"[\s\S]*data-preview-device="pc"[\s\S]*\)[^}]*\{[^}]*--cafe-a-category-separation-ratio: 3\.2;/,
   );
   assert.match(
     globalStylesSource,
@@ -133,6 +133,22 @@ test("루프베이글은 분리선 없이 상하 2행 블루 체커보드를 유
   assert.match(
     globalStylesSource,
     /data-template-key="fast_food_loop_bagel_a"[^}]*cafe-a-menu-item-image-slot[^}]*\{[^}]*border-radius: clamp\(0\.5rem, 1vmin, 0\.8rem\);[^}]*overflow: hidden;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-template-key="fast_food_loop_bagel_a"[^}]*cafe-a-menu-item-image-zoom[^}]*\{[^}]*border-radius: 0\.38rem;[^}]*color: #4354ef;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /cafe-a-image-lightbox\[data-template-key="fast_food_loop_bagel_a"\] img[^}]*\{[^}]*border-radius: clamp\(0\.875rem, 1\.8vmin, 1\.5rem\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-template-key="fast_food_loop_bagel_a"\][^}]*\{[^}]*--cafe-a-category-title-to-first-ratio: 1\.5;[^}]*--cafe-a-store-title-device-scale: 1\.36;[^}]*--cafe-a-sunday-category-ratio: 1\.62;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-template-key="fast_food_loop_bagel_a"\][^}]*cafe-a-menu-description[^}]*\{[^}]*line-height: 1\.38;/,
   );
 });
 

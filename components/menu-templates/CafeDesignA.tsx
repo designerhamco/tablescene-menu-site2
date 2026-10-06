@@ -3971,9 +3971,11 @@ function MenuItemRow({
 function CafeMenuImageLightbox({
   preview,
   onClose,
+  templateKey,
 }: {
   preview: CafeMenuImagePreview | null;
   onClose: () => void;
+  templateKey: string;
 }) {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -4028,6 +4030,7 @@ function CafeMenuImageLightbox({
     <div
       ref={dialogRef}
       className="cafe-a-image-lightbox fixed inset-0 z-[80] flex items-center justify-center bg-black/78 px-[max(1rem,env(safe-area-inset-left))] py-[max(1rem,env(safe-area-inset-top))] text-white"
+      data-template-key={templateKey}
       role="dialog"
       aria-modal="true"
       aria-label={`${preview.title} 이미지 크게 보기`}
@@ -9264,7 +9267,11 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         visibleItemCount={visibleItemCount}
         visibleWidgetCount={visibleWidgetCount}
       />
-      <CafeMenuImageLightbox preview={menuImagePreview} onClose={closeMenuImagePreview} />
+      <CafeMenuImageLightbox
+        preview={menuImagePreview}
+        onClose={closeMenuImagePreview}
+        templateKey={data.menuSite.template_key}
+      />
     </CafeATimeSaleInitialNowContext.Provider>
   );
 }

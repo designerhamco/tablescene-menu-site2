@@ -3061,6 +3061,27 @@ video {
   overflow: hidden;
 }
 
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-menu-item-image {
+  background: #ffffff;
+  object-fit: contain;
+}
+
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-menu-item-image-zoom {
+  background: rgb(255 255 255 / 90%);
+  border-radius: 0.38rem;
+  color: #4354ef;
+  opacity: 0.94;
+}
+
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-menu-item-image-slot:is(:hover, :focus-visible) .cafe-a-menu-item-image-zoom {
+  background: #ffffff;
+}
+
+.cafe-a-image-lightbox[data-template-key="fast_food_loop_bagel_a"] img {
+  background: #ffffff;
+  border-radius: clamp(0.875rem, 1.8vmin, 1.5rem);
+}
+
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] :is(
   .cafe-a-menu-badge,
   .cafe-a-featured-badge,
@@ -3073,12 +3094,12 @@ video {
   [data-preview-device="tablet"],
   [data-preview-device="pc"]
 ) {
-  --cafe-a-category-separation-ratio: 4.4;
+  --cafe-a-category-separation-ratio: 3.2;
 }
 
 @media (min-width: 768px) {
   .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"]:not([data-preview-device="mobile"]) {
-    --cafe-a-category-separation-ratio: 4.4;
+    --cafe-a-category-separation-ratio: 3.2;
   }
 
   .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] {
@@ -4250,11 +4271,15 @@ video {
 }
 
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] {
-  --cafe-a-store-title-device-scale: 1.18;
+  --cafe-a-category-title-to-first-ratio: 1.5;
+  --cafe-a-store-title-device-scale: 1.36;
+  --cafe-a-sunday-category-ratio: 1.62;
 }
 
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"][data-preview-device="tablet"] {
-  --cafe-a-store-title-device-scale: 1.14;
+  --cafe-a-category-title-to-first-ratio: 1.55;
+  --cafe-a-store-title-device-scale: 1.24;
+  --cafe-a-sunday-category-ratio: 1.55;
 }
 
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] {
@@ -4328,8 +4353,19 @@ video {
   }
 
   .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] header .cafe-a-store-title {
-    font-size: calc(clamp(calc(2.25rem * var(--menu-role-brand-size-scale, 1)), calc(11vw * var(--menu-role-brand-size-scale, 1)), calc(3rem * var(--menu-role-brand-size-scale, 1))) * 1.16);
+    font-size: calc(clamp(calc(2.25rem * var(--menu-role-brand-size-scale, 1)), calc(11vw * var(--menu-role-brand-size-scale, 1)), calc(3rem * var(--menu-role-brand-size-scale, 1))) * 1.3);
   }
+}
+
+@media (min-width: 1024px) {
+  .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"]:not([data-preview-device="tablet"]) {
+    --cafe-a-category-title-to-first-ratio: 1.55;
+    --cafe-a-sunday-category-ratio: 1.68;
+  }
+}
+
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-menu-description {
+  line-height: 1.38;
 }
 
 .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-category-title {
