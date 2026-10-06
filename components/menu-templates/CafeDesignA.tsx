@@ -300,7 +300,9 @@ type CafeDesignABalancedSimulatedColumn = {
 // Basic engine candidate: fit/fill candidate constants and safety thresholds
 // -----------------------------------------------------------------------------
 
-const FIT_COLUMN_CANDIDATES = [2, 3, 4, 5, 6] as const;
+// CafeA always stays within four menu columns. With the fixed brand rail this
+// yields at most five total columns across every single-page template.
+const FIT_COLUMN_CANDIDATES = [2, 3, 4] as const;
 const FIT_FONT_SCALE_CANDIDATES = [
   1.34,
   1.32,
@@ -420,6 +422,7 @@ const ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE = 0.75;
 const ORDERED_BALANCED_MAX_EXHAUSTIVE_BLOCKS = 12;
 const ORDERED_BALANCED_MAX_EXHAUSTIVE_COLUMNS = 4;
 const ORDERED_BALANCED_DEFAULT_MAX_COLUMNS = 3;
+const ORDERED_BALANCED_PREFERRED_MAX_MENU_COLUMNS = 3;
 const ORDERED_BALANCED_GAP_IMPROVEMENT_EPSILON = 2;
 const ORDERED_BALANCED_SCALE_EPSILON = 0.005;
 const ORDERED_BALANCED_CROP_TOLERANCE = 0.5;
@@ -528,9 +531,7 @@ const CAFE_A_FOOTER_INFO_TABLET_TOP_SAFETY_GAP_PX = 16;
 function getMaxFitColumns(width: number) {
   if (width < 720) return 2;
   if (width < 1120) return 3;
-  if (width < 1500) return 4;
-  if (width < 1800) return 5;
-  return 6;
+  return 4;
 }
 
 function getBalancedFitColumnCandidates(width: number, groupCount: number) {
@@ -585,7 +586,15 @@ function getImageMenuColumnCandidates(width: number, groupCount: number, maximum
   if (width < 760) return [2];
 
   const maxColumns = Math.min(maximumColumns, groupCount);
-  return FIT_COLUMN_CANDIDATES.filter((columns) => columns >= 2 && columns <= maxColumns).sort((a, b) => b - a);
+  const candidates = FIT_COLUMN_CANDIDATES.filter((columns) => columns >= 2 && columns <= maxColumns);
+  const preferredCandidates = candidates
+    .filter((columns) => columns <= ORDERED_BALANCED_PREFERRED_MAX_MENU_COLUMNS)
+    .sort((a, b) => b - a);
+  const rescueCandidates = candidates
+    .filter((columns) => columns > ORDERED_BALANCED_PREFERRED_MAX_MENU_COLUMNS)
+    .sort((a, b) => a - b);
+
+  return [...preferredCandidates, ...rescueCandidates];
 }
 
 function hasVisibleMenuItemImage(item: MenuItem) {
@@ -7629,10 +7638,14 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     }
 
     function getOrderedBalancedFitState(columnCandidates: number[]) {
-      let selectedState: CafeDesignAFitState | null = null;
-      let selectedScore = Number.POSITIVE_INFINITY;
-      let fallbackState: CafeDesignAFitState | null = null;
-      let fallbackScore = Number.POSITIVE_INFINITY;
+      let preferredSelectedState: CafeDesignAFitState | null = null;
+      let preferredSelectedScore = Number.POSITIVE_INFINITY;
+      let rescueSelectedState: CafeDesignAFitState | null = null;
+      let rescueSelectedScore = Number.POSITIVE_INFINITY;
+      let preferredFallbackState: CafeDesignAFitState | null = null;
+      let preferredFallbackScore = Number.POSITIVE_INFINITY;
+      let rescueFallbackState: CafeDesignAFitState | null = null;
+      let rescueFallbackScore = Number.POSITIVE_INFINITY;
       let emergencyState: CafeDesignAFitState | null = null;
       let emergencyScore = Number.POSITIVE_INFINITY;
 
@@ -7661,6 +7674,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
       for (const columns of effectiveColumnCandidates) {
         if (isOrderedBalancedColumnRejected(orderedBalancedFingerprint, columns)) continue;
+        const isRescueColumnCount = columns > ORDERED_BALANCED_PREFERRED_MAX_MENU_COLUMNS;
         for (const fontScale of fontScaleCandidates) {
           const candidateGapScale = getOrderedBalancedFitGapScale(fontScale, fitMenuElement.clientWidth);
           const isCandidateRejected = (breakIndices: readonly number[]) =>
@@ -7740,40 +7754,63 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               continue;
             }
 
+            const currentFallbackState = isRescueColumnCount ? rescueFallbackState : preferredFallbackState;
+            const currentFallbackScore = isRescueColumnCount ? rescueFallbackScore : preferredFallbackScore;
             if (
-              !fallbackState ||
+              !currentFallbackState ||
               isOrderedBalancedCandidateBetter({
                 candidateScore: nextFallbackScore,
                 candidateState,
-                currentScore: fallbackScore,
-                currentState: fallbackState,
+                currentScore: currentFallbackScore,
+                currentState: currentFallbackState,
               })
             ) {
-              fallbackScore = nextFallbackScore;
-              fallbackState = candidateState;
+              if (isRescueColumnCount) {
+                rescueFallbackScore = nextFallbackScore;
+                rescueFallbackState = candidateState;
+              } else {
+                preferredFallbackScore = nextFallbackScore;
+                preferredFallbackState = candidateState;
+              }
             }
 
             if (fontScale < ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE) continue;
             if (measurement.visibleAverageFillRatio < 0.56 || measurement.visibleMinFillRatio < 0.25) continue;
 
             const score = getOrderedBalancedFitScore(columns, fontScale, measurement, simulatedColumns, baseBlockMeasurements.length);
+            const currentSelectedState = isRescueColumnCount ? rescueSelectedState : preferredSelectedState;
+            const currentSelectedScore = isRescueColumnCount ? rescueSelectedScore : preferredSelectedScore;
             if (
-              !selectedState ||
+              !currentSelectedState ||
               isOrderedBalancedCandidateBetter({
                 candidateScore: score,
                 candidateState,
-                currentScore: selectedScore,
-                currentState: selectedState,
+                currentScore: currentSelectedScore,
+                currentState: currentSelectedState,
               })
             ) {
-              selectedScore = score;
-              selectedState = candidateState;
+              if (isRescueColumnCount) {
+                rescueSelectedScore = score;
+                rescueSelectedState = candidateState;
+              } else {
+                preferredSelectedScore = score;
+                preferredSelectedState = candidateState;
+              }
             }
           }
         }
       }
 
-      const nextState = selectedState ?? fallbackState ?? emergencyState;
+      // Keep the fixed brand rail plus menu within four total columns whenever a
+      // readable, non-overflowing three-menu-column candidate exists. A fourth
+      // menu column (five total) is a rescue path only when the preferred tier
+      // cannot produce an acceptable fit.
+      const nextState =
+        preferredSelectedState ??
+        rescueSelectedState ??
+        preferredFallbackState ??
+        rescueFallbackState ??
+        emergencyState;
       if (!nextState) return null;
       const currentState = fitStateRef.current;
       if (

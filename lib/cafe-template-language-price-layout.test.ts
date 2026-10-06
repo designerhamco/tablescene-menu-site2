@@ -369,6 +369,12 @@ test("가격 옵션명은 카테고리명 역할 색상을 그대로 공유한�
 
 test("루프베이글의 이미지 메뉴는 늘어난 스타터 구성을 위해 PC에서만 네 열 후보를 허용한다", () => {
   assert.match(templateSource, /const imageMenuMaximumColumns = data\.menuSite\.template_key === "fast_food_loop_bagel_a" \? 4 : 3;/);
+  assert.match(templateSource, /const ORDERED_BALANCED_PREFERRED_MAX_MENU_COLUMNS = 3;/);
+  assert.match(templateSource, /const FIT_COLUMN_CANDIDATES = \[2, 3, 4\] as const;/);
+  assert.match(
+    templateSource,
+    /preferredSelectedState \?\?[\s\S]*rescueSelectedState \?\?[\s\S]*preferredFallbackState \?\?[\s\S]*rescueFallbackState \?\?[\s\S]*emergencyState/,
+  );
   assert.match(
     templateSource,
     /getImageMenuColumnCandidates\(menuWidth, visibleFitBlockCount, imageMenuMaximumColumns\)/,
