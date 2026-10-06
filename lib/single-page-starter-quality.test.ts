@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { ENGLISH_FONT_OPTIONS } from "./font-options";
 import { getStarterPreset } from "./menu-starter-presets";
 import { TEMPLATE_BADGE_STYLE_PRESETS } from "./template-badge-styles";
 import { getSinglePageStarterTranslations } from "./template-demo-data/single-page-starter-translations";
@@ -29,7 +30,11 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
     const itemKeys = categories.flatMap((category) => category.items.map((item) => item.key));
     assert.equal(itemKeys.every((key) => typeof key === "string" && key.length > 0), true);
     assert.equal(new Set(itemKeys).size, itemKeys.length);
-    if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a") {
+    if (templateKey === "fast_food_loop_bagel_a") {
+      const items = categories.flatMap((category) => category.items);
+      assert.equal(items.every((item) => !item.set_name?.trim()), true);
+      assert.equal(items.every((item) => Boolean(item.description?.trim())), true);
+    } else if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a") {
       const items = categories.flatMap((category) => category.items);
       assert.equal(items.every((item) => !item.set_name?.trim()), true);
       if (templateKey === "cafe_mocha_forest_a") {
@@ -103,8 +108,22 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(loopBagel.site.restaurant_type, "fast_food");
   assert.equal(loopBagelItems.length, 15);
   assert.equal(loopBagelItems.every((item) => Boolean(item.image_url)), true);
-  assert.equal(loopBagelItems.filter((item) => item.price_options?.length).length, 3);
-  assert.equal(loopBagelItems.filter((item) => item.price_options?.length).every((item) => item.price_options?.map((option) => option.label).join("/") === "HOT/ICE"), true);
+  assert.equal(loopBagelItems.every((item) => !item.set_name?.trim()), true);
+  assert.equal(loopBagelItems.every((item) => !item.price_options?.length), true);
+  const loopBagelDrinks = loopBagel.pages[0]?.categories.find((category) => category.key === "coffee-drinks");
+  assert.deepEqual(loopBagelDrinks?.price_columns, [
+    { key: "hot", label: "HOT" },
+    { key: "ice", label: "ICE" },
+  ]);
+  assert.deepEqual(
+    loopBagelDrinks?.items.map((item) => item.price_column_values?.map((value) => value.key) ?? []),
+    [["hot", "ice"], ["hot", "ice"], ["hot", "ice"], ["ice"]],
+  );
+  assert.equal(
+    mergeTypographySettings("fast_food_loop_bagel_a", loopBagel.site.settings?.typography).english_font_key,
+    "bagel-fat-one",
+  );
+  assert.equal(ENGLISH_FONT_OPTIONS.some((option) => option.value === "bagel-fat-one" && option.label === "Bagel Fat One"), true);
   assert.equal(loopBagel.time_sales?.every((sale) => sale.badge_background_color === "#4354EF"), true);
   assert.equal(
     Object.values(TEMPLATE_BADGE_STYLE_PRESETS.fast_food_loop_bagel_a ?? {}).every(

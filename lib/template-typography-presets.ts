@@ -159,7 +159,7 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
   },
   fast_food_loop_bagel_a: {
     korean_font_key: "pretendard",
-    english_font_key: "oswald",
+    english_font_key: "bagel-fat-one",
     font_size_scale_key: "m",
     typography_roles: {
       ...createDefaultTypographyRoleSettings(),

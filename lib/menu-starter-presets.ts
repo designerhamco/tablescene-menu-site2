@@ -625,6 +625,11 @@ const loopBagelStarterPreset: StarterPreset = {
     restaurant_phone: "02-0000-0000",
     cover_image_url: LOOP_BAGEL_FOOD_IMAGE_1,
     settings: {
+      typography: {
+        korean_font_key: "pretendard",
+        english_font_key: "bagel-fat-one",
+        font_size_scale_key: "m",
+      },
       footer_notice_1: "Wi-Fi · LOOP_BAGEL",
       footer_notice_2: "Instagram · @loop.bagel",
       footer_notice_3: "베이글은 매일 한정 수량으로 굽습니다.",
@@ -707,16 +712,16 @@ const loopBagelStarterPreset: StarterPreset = {
           section_key: "main_menu",
           items: [
             item("루프 시그니처 베이글", 5200, "참깨와 양파 토핑을 듬뿍 올려 고소하고 쫄깃하게 구운 시그니처 베이글", {
-              key: "loop-signature-bagel", set_name: "LOOP SIGNATURE BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_1, badge_label: "SIGNATURE", recommended: true,
+              key: "loop-signature-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_1, badge_label: "SIGNATURE", recommended: true,
             }),
             item("솔트 버터 베이글", 4600, "담백한 베이글에 프렌치 버터와 플레이크 소금을 더한 단짠 조합", {
-              key: "salt-butter-bagel", set_name: "SALT BUTTER BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_2, badge_label: "BEST", recommended: true,
+              key: "salt-butter-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_2, badge_label: "BEST", recommended: true,
             }),
             item("블루베리 크림 베이글", 4900, "상큼한 블루베리와 부드러운 크림치즈를 채운 달콤한 베이글", {
-              key: "blueberry-cream-bagel", set_name: "BLUEBERRY CREAM BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_3,
+              key: "blueberry-cream-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_3,
             }),
             item("에브리띵 베이글", 4200, "참깨와 양파, 마늘 토핑의 풍미를 한입 가득 담은 클래식 베이글", {
-              key: "everything-bagel", set_name: "EVERYTHING BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_4,
+              key: "everything-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_4,
             }),
           ],
         },
@@ -726,16 +731,16 @@ const loopBagelStarterPreset: StarterPreset = {
           section_key: "main_menu",
           items: [
             item("에그 치즈 베이글", 6900, "폭신한 에그와 체더 치즈를 따뜻한 플레인 베이글에 채운 모닝 샌드위치", {
-              key: "egg-cheese-bagel", set_name: "EGG & CHEESE BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_2,
+              key: "egg-cheese-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_2,
             }),
             item("바질 치킨 베이글", 7900, "로스트 치킨과 바질 페스토, 토마토를 담은 산뜻한 샌드위치", {
-              key: "basil-chicken-bagel", set_name: "BASIL CHICKEN BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_4, badge_label: "NEW",
+              key: "basil-chicken-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_4, badge_label: "NEW",
             }),
             item("살몬 딜 베이글", 8900, "훈제 연어와 딜 크림치즈, 케이퍼를 겹겹이 담은 클래식 조합", {
-              key: "salmon-dill-bagel", set_name: "SALMON DILL BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_3,
+              key: "salmon-dill-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_3,
             }),
             item("머쉬룸 멜트 베이글", 7600, "버터에 구운 버섯과 녹인 치즈, 캐러멜라이즈드 어니언의 깊은 풍미", {
-              key: "mushroom-melt-bagel", set_name: "MUSHROOM MELT BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_1,
+              key: "mushroom-melt-bagel", image_url: LOOP_BAGEL_FOOD_IMAGE_1,
             }),
           ],
         },
@@ -745,13 +750,13 @@ const loopBagelStarterPreset: StarterPreset = {
           section_key: "main_menu",
           items: [
             item("플레인 크림치즈", 1500, "어떤 베이글에도 잘 어울리는 부드럽고 담백한 기본 크림치즈", {
-              key: "plain-cream-cheese", set_name: "PLAIN CREAM CHEESE", image_url: LOOP_BAGEL_FOOD_IMAGE_1,
+              key: "plain-cream-cheese", image_url: LOOP_BAGEL_FOOD_IMAGE_1,
             }),
             item("쪽파 크림치즈", 1900, "향긋한 쪽파와 후추를 섞어 산뜻하게 마무리한 세이버리 크림치즈", {
-              key: "scallion-cream-cheese", set_name: "SCALLION CREAM CHEESE", image_url: LOOP_BAGEL_FOOD_IMAGE_3,
+              key: "scallion-cream-cheese", image_url: LOOP_BAGEL_FOOD_IMAGE_3,
             }),
             item("허니 월넛 크림치즈", 2200, "달콤한 꿀과 바삭한 호두를 섞은 고소한 크림치즈", {
-              key: "honey-walnut-cream-cheese", set_name: "HONEY WALNUT CREAM CHEESE", image_url: LOOP_BAGEL_FOOD_IMAGE_2,
+              key: "honey-walnut-cream-cheese", image_url: LOOP_BAGEL_FOOD_IMAGE_2,
             }),
           ],
         },
@@ -759,21 +764,26 @@ const loopBagelStarterPreset: StarterPreset = {
           key: "coffee-drinks",
           name: "COFFEE & DRINKS",
           section_key: "dessert_drink",
+          price_columns: [
+            { key: "hot", label: "HOT" },
+            { key: "ice", label: "ICE" },
+          ],
           items: [
             item("아메리카노", 3500, "고소한 단맛과 깔끔한 여운을 지닌 데일리 커피", {
-              key: "americano", set_name: "AMERICANO", image_url: LOOP_BAGEL_DRINK_IMAGE_1,
-              price_options: [{ label: "HOT", price: 3500 }, { label: "ICE", price: 4000 }],
+              key: "americano", image_url: LOOP_BAGEL_DRINK_IMAGE_1,
+              price_column_values: [{ key: "hot", price: 3500 }, { key: "ice", price: 4000 }],
             }),
             item("카페 라떼", 4300, "진한 에스프레소와 부드러운 우유의 균형", {
-              key: "cafe-latte", set_name: "CAFE LATTE", image_url: LOOP_BAGEL_DRINK_IMAGE_2,
-              price_options: [{ label: "HOT", price: 4300 }, { label: "ICE", price: 4800 }],
+              key: "cafe-latte", image_url: LOOP_BAGEL_DRINK_IMAGE_2,
+              price_column_values: [{ key: "hot", price: 4300 }, { key: "ice", price: 4800 }],
             }),
             item("바닐라 빈 라떼", 5200, "바닐라 빈의 은은한 단맛을 더한 향긋한 라떼", {
-              key: "vanilla-bean-latte", set_name: "VANILLA BEAN LATTE", image_url: LOOP_BAGEL_DRINK_IMAGE_3,
-              price_options: [{ label: "HOT", price: 5200 }, { label: "ICE", price: 5700 }],
+              key: "vanilla-bean-latte", image_url: LOOP_BAGEL_DRINK_IMAGE_3,
+              price_column_values: [{ key: "hot", price: 5200 }, { key: "ice", price: 5700 }],
             }),
             item("레몬 스파클링", 5200, "생레몬의 산뜻한 향과 탄산을 시원하게 담은 에이드", {
-              key: "lemon-sparkling", set_name: "LEMON SPARKLING", image_url: LOOP_BAGEL_DRINK_IMAGE_1, price_note: "ICE ONLY",
+              key: "lemon-sparkling", image_url: LOOP_BAGEL_DRINK_IMAGE_1,
+              price_column_values: [{ key: "ice", price: 5200 }],
             }),
           ],
         },

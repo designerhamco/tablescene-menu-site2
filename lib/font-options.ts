@@ -338,6 +338,7 @@ const HANDWRITING_ENGLISH_FONT_LABELS = [
 ] as const;
 
 const RETRO_ENGLISH_FONT_LABELS = [
+  "Bagel Fat One",
   "Bevan",
   "Bigshot One",
   "Bitcount Prop Single",
@@ -537,7 +538,7 @@ export const TEMPLATE_DEFAULT_ENGLISH_FONTS: Record<string, EnglishFontValue> = 
   cafe_sunday_line_a: "alata",
   cafe_van_gogh_a: "special-elite",
   cafe_round_focus_a: "aboreto",
-  fast_food_loop_bagel_a: "oswald",
+  fast_food_loop_bagel_a: "bagel-fat-one",
   cafe_brew_chapter_a: "alata",
   cafe_noir_a: "cutive-mono",
   cafe_design_b: "outfit",
