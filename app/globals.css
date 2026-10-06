@@ -3148,6 +3148,12 @@ video {
   color: #000000 !important;
 }
 
+/* Special Elite paints its capitals close to the top of a tight line box. */
+.cafe-a-typography[data-template-key="cafe_van_gogh_a"] .cafe-a-topline-title {
+  line-height: 1.1;
+  padding-block: 0.08em 0.02em;
+}
+
 @media (max-width: 1023px) {
   .cafe-a-typography[data-template-key="cafe_van_gogh_a"] .cafe-a-menu-category-block + .cafe-a-menu-category-block {
     margin-top: calc(var(--cafe-a-local-item-rhythm-gap) * var(--cafe-a-category-separation-ratio));
