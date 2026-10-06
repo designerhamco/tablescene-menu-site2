@@ -1220,7 +1220,7 @@ cafeVanGoghStarterPreset.time_sales = [
     name: "해바라기 크림 커피 모닝 프로모션",
     schedule_type: "once",
     badge_text: "MORNING",
-    badge_background_color: "#852322",
+    badge_background_color: "#000000",
     time_display_mode: "message",
     time_display_text: "매일 오전 8시부터 10시까지",
     targets: [
@@ -1233,7 +1233,7 @@ cafeVanGoghStarterPreset.time_sales = [
     schedule_type: "once",
     duration_minutes: 60,
     badge_text: "LAST BATCH",
-    badge_background_color: "#852322",
+    badge_background_color: "#000000",
     time_display_mode: "countdown",
     targets: [
       { target_item_key: "salted-caramel-scone", target_item_name: "솔티드 카라멜 스콘", sale_price: 4200 },

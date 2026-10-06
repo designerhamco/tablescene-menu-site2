@@ -3149,6 +3149,13 @@ video {
   color: #ffffff !important;
 }
 
+.cafe-a-typography[data-template-key="cafe_van_gogh_a"] :is(
+  [data-cafe-a-menu-badge],
+  .cafe-a-featured-badge
+) {
+  border: 1px solid #000000;
+}
+
 .cafe-a-typography[data-template-key="cafe_van_gogh_a"] .cafe-a-topline-notice-text.cafe-a-menu-description {
   font-size: var(--cafe-a-van-gogh-notice-size);
 }

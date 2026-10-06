@@ -204,11 +204,11 @@ test("starter-specific image and promotion presentation stays intentional", () =
   }
   assert.equal(
     Object.values(TEMPLATE_BADGE_STYLE_PRESETS.cafe_van_gogh_a ?? {}).every(
-      (style) => style?.background_color === "#000000" && style.text_color === "#FFFFFF",
+      (style) => style?.background_color === "#FFFFFF" && style.text_color === "#000000",
     ),
     true,
   );
-  assert.equal(vanGogh.time_sales?.every((sale) => sale.badge_background_color === "#852322"), true);
+  assert.equal(vanGogh.time_sales?.every((sale) => sale.badge_background_color === "#000000"), true);
   assert.equal(vanGogh.pages[0]?.categories[0]?.name, "MASTERPIECE");
   assert.equal(vanGogh.pages[0]?.categories[0]?.items[0]?.name, "별이 빛나는 밤 라떼");
 
