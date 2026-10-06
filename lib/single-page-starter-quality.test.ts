@@ -12,6 +12,7 @@ const SINGLE_PAGE_DENSITY_CONTRACT = {
   cafe_sunday_line_a: [3, 3, 2, 3, 6],
   cafe_van_gogh_a: [3, 4, 3, 3, 4],
   cafe_round_focus_a: [3, 4, 4, 4, 4],
+  fast_food_loop_bagel_a: [4, 4, 3, 4],
 } as const;
 
 for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_DENSITY_CONTRACT)) {
@@ -76,6 +77,7 @@ test("every active single-page starter includes a sixty-minute stock closeout co
     ["cafe_sunday_line_a", "brown-butter-scone-closeout"],
     ["cafe_van_gogh_a", "salted-caramel-scone-closeout"],
     ["cafe_round_focus_a", "truffle-fries-last-call"],
+    ["fast_food_loop_bagel_a", "everything-bagel-closeout"],
   ]);
 
   for (const [templateKey, expectedSaleKey] of expectedCloseoutKeys) {
@@ -94,6 +96,23 @@ test("every active single-page starter includes a sixty-minute stock closeout co
 });
 
 test("starter-specific image and promotion presentation stays intentional", () => {
+  const loopBagel = getStarterPreset("fast_food_loop_bagel_a");
+  const loopBagelItems = loopBagel.pages[0]?.categories.flatMap((category) => category.items) ?? [];
+  assert.equal(loopBagel.site.restaurant_name, "LOOP BAGEL");
+  assert.equal(loopBagel.site.restaurant_category, "패스트푸드");
+  assert.equal(loopBagel.site.restaurant_type, "fast_food");
+  assert.equal(loopBagelItems.length, 15);
+  assert.equal(loopBagelItems.every((item) => Boolean(item.image_url)), true);
+  assert.equal(loopBagelItems.filter((item) => item.price_options?.length).length, 3);
+  assert.equal(loopBagelItems.filter((item) => item.price_options?.length).every((item) => item.price_options?.map((option) => option.label).join("/") === "HOT/ICE"), true);
+  assert.equal(loopBagel.time_sales?.every((sale) => sale.badge_background_color === "#4354EF"), true);
+  assert.equal(
+    Object.values(TEMPLATE_BADGE_STYLE_PRESETS.fast_food_loop_bagel_a ?? {}).every(
+      (style) => style?.background_color === "#4354EF" && style.text_color === "#FFFFFF",
+    ),
+    true,
+  );
+
   const roundFocus = getStarterPreset("cafe_round_focus_a");
   assert.equal(roundFocus.site.restaurant_name, "ROSY ORANGE");
   assert.equal(roundFocus.site.restaurant_category, "바/주점");

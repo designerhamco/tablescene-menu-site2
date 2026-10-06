@@ -19,6 +19,7 @@ test("사용 가능한 다이닝 템플릿을 페이지 등급에 맞는 교체 
       "cafe_van_gogh_a",
       "dining_aube_table_a",
       "dining_aube_table_b",
+      "fast_food_loop_bagel_a",
       "cafe_round_focus_a",
     ],
   );

@@ -157,6 +157,22 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
     english_font_key: "aboreto",
     font_size_scale_key: "m",
   },
+  fast_food_loop_bagel_a: {
+    korean_font_key: "pretendard",
+    english_font_key: "oswald",
+    font_size_scale_key: "m",
+    typography_roles: {
+      ...createDefaultTypographyRoleSettings(),
+      brand: {
+        ...createDefaultTypographyRoleSettings().brand,
+        color: "#4354EF",
+      },
+      category: {
+        ...createDefaultTypographyRoleSettings().category,
+        color: "#4354EF",
+      },
+    },
+  },
   cafe_brew_chapter_a: {
     korean_font_key: "pretendard",
     english_font_key: "alata",
@@ -203,6 +219,7 @@ function usesCafeARoleTypographyPolicy(templateKey?: string | null) {
     templateKey === "cafe_sunday_line_a" ||
     templateKey === "cafe_van_gogh_a" ||
     templateKey === "cafe_round_focus_a" ||
+    templateKey === "fast_food_loop_bagel_a" ||
     templateKey === "cafe_brew_chapter_a"
   );
 }

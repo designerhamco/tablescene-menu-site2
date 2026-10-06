@@ -8272,7 +8272,7 @@ export default function MenuManagementSection({
     }
 
     setIsSampleResetApplying(true);
-    if (starterPreset.template_key === "cafe_design_a" || starterPreset.template_key === "cafe_mocha_forest_a" || starterPreset.template_key === "cafe_sunday_line_a" || starterPreset.template_key === "cafe_van_gogh_a" || starterPreset.template_key === "cafe_round_focus_a") {
+    if (starterPreset.template_key === "cafe_design_a" || starterPreset.template_key === "cafe_mocha_forest_a" || starterPreset.template_key === "cafe_sunday_line_a" || starterPreset.template_key === "cafe_van_gogh_a" || starterPreset.template_key === "cafe_round_focus_a" || starterPreset.template_key === "fast_food_loop_bagel_a") {
       try {
         resetCafeAMenuManagementToStarterDraft(fixedPageId);
       } finally {

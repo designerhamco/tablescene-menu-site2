@@ -610,6 +610,7 @@ const TEMPLATE_CAPABILITY_ALIASES: Record<string, keyof typeof TEMPLATE_CAPABILI
   cafe_sunday_line_a: "cafe_sunday_line_a",
   cafe_van_gogh_a: "cafe_van_gogh_a",
   cafe_round_focus_a: "cafe_round_focus_a",
+  fast_food_loop_bagel_a: "cafe_design_a",
   cafe_brew_chapter_a: "cafe_brew_chapter_a",
   dining_aube_table_a: "dining_aube_table_a",
   dining_aube_table_b: "dining_aube_table_b",

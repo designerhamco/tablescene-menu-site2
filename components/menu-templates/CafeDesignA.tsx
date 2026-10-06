@@ -2327,7 +2327,7 @@ function getItemPriceColumnDisplay(
 }
 
 function isCafeDesignATimeSaleTemplate(templateKey?: string | null) {
-  return templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a" || templateKey === "cafe_round_focus_a";
+  return templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a" || templateKey === "cafe_round_focus_a" || templateKey === "fast_food_loop_bagel_a";
 }
 
 function getCafeASoldOutLabel(locale: CafeDesignALocale) {
@@ -2806,7 +2806,8 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
     data.menuSite.template_key === "cafe_mocha_forest_a" ||
     data.menuSite.template_key === "cafe_sunday_line_a" ||
     data.menuSite.template_key === "cafe_van_gogh_a" ||
-    data.menuSite.template_key === "cafe_round_focus_a";
+    data.menuSite.template_key === "cafe_round_focus_a" ||
+    data.menuSite.template_key === "fast_food_loop_bagel_a";
   const separatorRules = getTemplateContentSeparatorRules(data.menuSite.template_key);
   const widgets = shouldRenderWidgets ? data.widgets ?? [] : [];
 

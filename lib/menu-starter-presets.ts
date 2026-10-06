@@ -297,6 +297,13 @@ const AUBE_TABLE_COVER_IMAGE = "/menu-templates/dining_aube_table_a/aube-table-c
 const BREW_CHAPTER_SIGNATURE_ITEM_IMAGE = "/menu-templates/cafe_design_a/malcha_present.jpg";
 const BREW_CHAPTER_STARTER_ITEM_IMAGE = "/menu-templates/cafe_design_a/black-sesame.jpeg";
 const BREW_CHAPTER_MAIN_ITEM_IMAGE = "/menu-templates/cafe_design_a/nutty-cream.jpeg";
+const LOOP_BAGEL_FOOD_IMAGE_1 = "/menu-templates/cafe_round_focus_a/cheese-platter.jpg";
+const LOOP_BAGEL_FOOD_IMAGE_2 = "/menu-templates/cafe_round_focus_a/truffle-fries.jpg";
+const LOOP_BAGEL_FOOD_IMAGE_3 = "/menu-templates/cafe_round_focus_a/jamon-olives.jpg";
+const LOOP_BAGEL_FOOD_IMAGE_4 = "/menu-templates/cafe_round_focus_a/spicy-chicken-wings.jpg";
+const LOOP_BAGEL_DRINK_IMAGE_1 = "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-01.png";
+const LOOP_BAGEL_DRINK_IMAGE_2 = "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-02.png";
+const LOOP_BAGEL_DRINK_IMAGE_3 = "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-03.png";
 
 const STARTER_PAGE_SETTINGS = {
   intro_enabled: true,
@@ -386,6 +393,7 @@ function isCafeAStarterTemplateKey(templateKey?: string | null) {
     normalizedTemplateKey === "cafe_mocha_forest_a" ||
     normalizedTemplateKey === "cafe_sunday_line_a" ||
     normalizedTemplateKey === "cafe_round_focus_a" ||
+    normalizedTemplateKey === "fast_food_loop_bagel_a" ||
     normalizedTemplateKey === "cafe_brew_chapter_a"
   );
 }
@@ -594,6 +602,182 @@ const cafeDesignAStarterPreset: StarterPreset = {
           }),
         }))
       ),
+    },
+  ],
+};
+
+const loopBagelStarterPreset: StarterPreset = {
+  key: "fast_food",
+  template_key: "fast_food_loop_bagel_a",
+  site: {
+    restaurant_name: "LOOP BAGEL",
+    restaurant_category: "패스트푸드",
+    restaurant_type: "fast_food",
+    menu_cover_label: "BAGEL & COFFEE",
+    intro_title: "LOOP BAGEL",
+    intro_description: "매일 구운 쫄깃한 베이글과 산뜻한 크림치즈, 커피를 빠르고 즐겁게 만나는 베이글 숍입니다.",
+    brand_description: "루프베이글은 매일 구운 베이글과 다채로운 크림치즈, 든든한 샌드위치를 경쾌하게 제안합니다.",
+    menu_cover_title: "LOOP BAGEL",
+    menu_cover_description: "매일 구운 베이글과 산뜻한 크림치즈, 커피를 빠르고 즐겁게 만나는 베이글 숍입니다.",
+    about_description: "좋은 반죽을 천천히 숙성하고 매일 아침 쫄깃하게 굽습니다.",
+    opening_hours: "매일 08:00 - 20:00",
+    restaurant_address: "서울시 예시구 루프로 24",
+    restaurant_phone: "02-0000-0000",
+    cover_image_url: LOOP_BAGEL_FOOD_IMAGE_1,
+    settings: {
+      footer_notice_1: "Wi-Fi · LOOP_BAGEL",
+      footer_notice_2: "Instagram · @loop.bagel",
+      footer_notice_3: "베이글은 매일 한정 수량으로 굽습니다.",
+    },
+  },
+  menu_cover_enabled: true,
+  menu_cover_visible_pc: true,
+  menu_cover_visible_tablet: true,
+  menu_cover_visible_mobile: true,
+  featured_item_name: "루프 시그니처 베이글",
+  featured_item_key: "loop-signature-bagel",
+  featured_slides: [
+    {
+      id: "loop-bagel-featured-signature",
+      image_url: LOOP_BAGEL_FOOD_IMAGE_1,
+      image_path: null,
+      featured_item_key: "loop-signature-bagel",
+      featured_item_name: "루프 시그니처 베이글",
+      sort_order: 0,
+    },
+    {
+      id: "loop-bagel-featured-sandwich",
+      image_url: LOOP_BAGEL_FOOD_IMAGE_2,
+      image_path: null,
+      featured_item_key: "egg-cheese-bagel",
+      featured_item_name: "에그 치즈 베이글",
+      sort_order: 1,
+    },
+    {
+      id: "loop-bagel-featured-coffee",
+      image_url: LOOP_BAGEL_DRINK_IMAGE_1,
+      image_path: null,
+      featured_item_key: "cafe-latte",
+      featured_item_name: "카페 라떼",
+      sort_order: 2,
+    },
+  ],
+  time_sales: [
+    {
+      key: "egg-cheese-morning-deal",
+      name: "에그 치즈 베이글 모닝딜",
+      schedule_type: "once",
+      badge_text: "MORNING",
+      badge_background_color: "#4354EF",
+      time_display_mode: "message",
+      time_display_text: "매일 오전 8시부터 10시까지",
+      targets: [{ target_item_key: "egg-cheese-bagel", target_item_name: "에그 치즈 베이글", sale_price: 5900 }],
+    },
+    {
+      key: "everything-bagel-closeout",
+      name: "에브리띵 베이글 재고 마감",
+      schedule_type: "once",
+      duration_minutes: 60,
+      badge_text: "재고 마감",
+      badge_background_color: "#4354EF",
+      time_display_mode: "countdown",
+      targets: [{ target_item_key: "everything-bagel", target_item_name: "에브리띵 베이글", sale_price: 2500 }],
+    },
+  ],
+  widgets: [],
+  mixed_content_order: [
+    { block_type: "category", page_key: "main-menu", category_key: "signature-bagels", sort_order: 0 },
+    { block_type: "category", page_key: "main-menu", category_key: "bagel-sandwiches", sort_order: 1 },
+    { block_type: "category", page_key: "main-menu", category_key: "cream-cheese", sort_order: 2 },
+    { block_type: "category", page_key: "main-menu", category_key: "coffee-drinks", sort_order: 3 },
+  ],
+  sample_items_visible: true,
+  chefs: [],
+  events: [],
+  socialLinks: [],
+  pages: [
+    {
+      key: "main-menu",
+      title: "메뉴 페이지 1",
+      legacy_section_key: "main_menu",
+      categories: [
+        {
+          key: "signature-bagels",
+          name: "SIGNATURE BAGELS",
+          section_key: "main_menu",
+          items: [
+            item("루프 시그니처 베이글", 5200, "참깨와 양파 토핑을 듬뿍 올려 고소하고 쫄깃하게 구운 시그니처 베이글", {
+              key: "loop-signature-bagel", set_name: "LOOP SIGNATURE BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_1, badge_label: "SIGNATURE", recommended: true,
+            }),
+            item("솔트 버터 베이글", 4600, "담백한 베이글에 프렌치 버터와 플레이크 소금을 더한 단짠 조합", {
+              key: "salt-butter-bagel", set_name: "SALT BUTTER BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_2, badge_label: "BEST", recommended: true,
+            }),
+            item("블루베리 크림 베이글", 4900, "상큼한 블루베리와 부드러운 크림치즈를 채운 달콤한 베이글", {
+              key: "blueberry-cream-bagel", set_name: "BLUEBERRY CREAM BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_3,
+            }),
+            item("에브리띵 베이글", 4200, "참깨와 양파, 마늘 토핑의 풍미를 한입 가득 담은 클래식 베이글", {
+              key: "everything-bagel", set_name: "EVERYTHING BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_4,
+            }),
+          ],
+        },
+        {
+          key: "bagel-sandwiches",
+          name: "BAGEL SANDWICHES",
+          section_key: "main_menu",
+          items: [
+            item("에그 치즈 베이글", 6900, "폭신한 에그와 체더 치즈를 따뜻한 플레인 베이글에 채운 모닝 샌드위치", {
+              key: "egg-cheese-bagel", set_name: "EGG & CHEESE BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_2,
+            }),
+            item("바질 치킨 베이글", 7900, "로스트 치킨과 바질 페스토, 토마토를 담은 산뜻한 샌드위치", {
+              key: "basil-chicken-bagel", set_name: "BASIL CHICKEN BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_4, badge_label: "NEW",
+            }),
+            item("살몬 딜 베이글", 8900, "훈제 연어와 딜 크림치즈, 케이퍼를 겹겹이 담은 클래식 조합", {
+              key: "salmon-dill-bagel", set_name: "SALMON DILL BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_3,
+            }),
+            item("머쉬룸 멜트 베이글", 7600, "버터에 구운 버섯과 녹인 치즈, 캐러멜라이즈드 어니언의 깊은 풍미", {
+              key: "mushroom-melt-bagel", set_name: "MUSHROOM MELT BAGEL", image_url: LOOP_BAGEL_FOOD_IMAGE_1,
+            }),
+          ],
+        },
+        {
+          key: "cream-cheese",
+          name: "CREAM CHEESE",
+          section_key: "main_menu",
+          items: [
+            item("플레인 크림치즈", 1500, "어떤 베이글에도 잘 어울리는 부드럽고 담백한 기본 크림치즈", {
+              key: "plain-cream-cheese", set_name: "PLAIN CREAM CHEESE", image_url: LOOP_BAGEL_FOOD_IMAGE_1,
+            }),
+            item("쪽파 크림치즈", 1900, "향긋한 쪽파와 후추를 섞어 산뜻하게 마무리한 세이버리 크림치즈", {
+              key: "scallion-cream-cheese", set_name: "SCALLION CREAM CHEESE", image_url: LOOP_BAGEL_FOOD_IMAGE_3,
+            }),
+            item("허니 월넛 크림치즈", 2200, "달콤한 꿀과 바삭한 호두를 섞은 고소한 크림치즈", {
+              key: "honey-walnut-cream-cheese", set_name: "HONEY WALNUT CREAM CHEESE", image_url: LOOP_BAGEL_FOOD_IMAGE_2,
+            }),
+          ],
+        },
+        {
+          key: "coffee-drinks",
+          name: "COFFEE & DRINKS",
+          section_key: "dessert_drink",
+          items: [
+            item("아메리카노", 3500, "고소한 단맛과 깔끔한 여운을 지닌 데일리 커피", {
+              key: "americano", set_name: "AMERICANO", image_url: LOOP_BAGEL_DRINK_IMAGE_1,
+              price_options: [{ label: "HOT", price: 3500 }, { label: "ICE", price: 4000 }],
+            }),
+            item("카페 라떼", 4300, "진한 에스프레소와 부드러운 우유의 균형", {
+              key: "cafe-latte", set_name: "CAFE LATTE", image_url: LOOP_BAGEL_DRINK_IMAGE_2,
+              price_options: [{ label: "HOT", price: 4300 }, { label: "ICE", price: 4800 }],
+            }),
+            item("바닐라 빈 라떼", 5200, "바닐라 빈의 은은한 단맛을 더한 향긋한 라떼", {
+              key: "vanilla-bean-latte", set_name: "VANILLA BEAN LATTE", image_url: LOOP_BAGEL_DRINK_IMAGE_3,
+              price_options: [{ label: "HOT", price: 5200 }, { label: "ICE", price: 5700 }],
+            }),
+            item("레몬 스파클링", 5200, "생레몬의 산뜻한 향과 탄산을 시원하게 담은 에이드", {
+              key: "lemon-sparkling", set_name: "LEMON SPARKLING", image_url: LOOP_BAGEL_DRINK_IMAGE_1, price_note: "ICE ONLY",
+            }),
+          ],
+        },
+      ],
     },
   ],
 };
@@ -2000,6 +2184,7 @@ const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
   cafe_sunday_line_a: cafeSundayLineStarterPreset,
   cafe_van_gogh_a: cafeVanGoghStarterPreset,
   cafe_round_focus_a: cafeRoundFocusStarterPreset,
+  fast_food_loop_bagel_a: loopBagelStarterPreset,
   cafe_brew_chapter_a: cafeBrewChapterStarterPreset,
   dining_aube_table_a: diningAubeTableStarterPreset,
   dining_aube_table_b: diningAubeTableBStarterPreset,

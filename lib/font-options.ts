@@ -489,6 +489,7 @@ const TEMPLATE_ENGLISH_FONT_HIDDEN_OPTIONS: Record<string, readonly EnglishFontV
   cafe_sunday_line_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
   cafe_van_gogh_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
   cafe_round_focus_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
+  fast_food_loop_bagel_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
   cafe_brew_chapter_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
 };
 
@@ -513,6 +514,7 @@ export const TEMPLATE_DEFAULT_KOREAN_FONTS: Record<string, KoreanFontValue> = {
   cafe_sunday_line_a: "pretendard",
   cafe_van_gogh_a: "pretendard",
   cafe_round_focus_a: "pretendard",
+  fast_food_loop_bagel_a: "pretendard",
   cafe_brew_chapter_a: "pretendard",
   cafe_noir_a: "pretendard",
   cafe_design_b: "pretendard",
@@ -535,6 +537,7 @@ export const TEMPLATE_DEFAULT_ENGLISH_FONTS: Record<string, EnglishFontValue> = 
   cafe_sunday_line_a: "alata",
   cafe_van_gogh_a: "special-elite",
   cafe_round_focus_a: "aboreto",
+  fast_food_loop_bagel_a: "oswald",
   cafe_brew_chapter_a: "alata",
   cafe_noir_a: "cutive-mono",
   cafe_design_b: "outfit",

@@ -13,6 +13,7 @@ Basic 출시 대상:
 - 선데이 로스터스 (`cafe_sunday_line_a`, 공개 미리보기 `cafe_sunday_roasters_a`)
 - Van Gogh · 반고흐 (`cafe_van_gogh_a`)
 - 라운드 포커스 (`cafe_round_focus_a`)
+- 루프베이글 (`fast_food_loop_bagel_a`)
 - 오브 테이블 (`dining_aube_table_a`)
 - 메종 마레 (`dining_aube_table_b`)
 
@@ -36,6 +37,7 @@ Display 출시 대상:
 | 선데이 로스터스 | 통과 | 통과 | 없음 | 없음 | 없음 |
 | Van Gogh | 통과 | 통과 | 없음 | 없음 | 없음 |
 | 라운드 포커스 | 통과 | 통과 | 없음 | 없음 | 없음 |
+| 루프베이글 | 통과 | 통과 | 없음 | 없음 | 없음 |
 | 오브 테이블 | 통과 | 통과 | 없음 | 없음 | 없음 |
 | 메종 마레 | 통과 | 통과 | 없음 | 없음 | 없음 |
 | 브루 챕터 | 통과 | 통과 | 없음 | 없음 | 없음 |

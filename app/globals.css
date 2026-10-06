@@ -2767,7 +2767,7 @@ video {
   --cafe-a-shell-menu-copy-boost: 1.08;
 }
 
-.cafe-a-typography[data-template-key="cafe_design_a"] {
+.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"]) {
   --cafe-a-category-separation-ratio: 2.9;
   --cafe-a-template-category-title-scale: 1;
   --cafe-a-template-option-label-scale: 1;
@@ -2993,6 +2993,36 @@ video {
 }
 
 .cafe-a-typography[data-template-key="cafe_design_a"] .cafe-a-menu-category-top-divider {
+  display: none;
+}
+
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] {
+  --loop-bagel-checker-square: clamp(0.42rem, 1.05vmin, 0.72rem);
+  padding-block: calc(var(--loop-bagel-checker-square) * 2);
+}
+
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"]::before,
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"]::after {
+  background-color: #ffffff;
+  background-image: conic-gradient(#4354ef 25%, #ffffff 0 50%, #4354ef 0 75%, #ffffff 0);
+  background-size: calc(var(--loop-bagel-checker-square) * 2) calc(var(--loop-bagel-checker-square) * 2);
+  content: "";
+  height: calc(var(--loop-bagel-checker-square) * 2);
+  inset-inline: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 60;
+}
+
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"]::before {
+  inset-block-start: 0;
+}
+
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"]::after {
+  inset-block-end: 0;
+}
+
+.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-menu-category-top-divider {
   display: none;
 }
 
@@ -4126,7 +4156,7 @@ video {
 }
 
 /* Real Matcha and Mocha Forest follow Sunday Roasters' role hierarchy while each layout keeps its own fit result. */
-.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]) {
+.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) {
   --cafe-a-sunday-category-ratio: 1.34;
   --cafe-a-sunday-secondary-ratio: 0.68;
   --cafe-a-sunday-supporting-ratio: 0.81;
@@ -4134,7 +4164,7 @@ video {
   --cafe-a-sunday-option-ratio: 0.62;
 }
 
-.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"])[data-preview-device="tablet"] {
+.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"])[data-preview-device="tablet"] {
   --cafe-a-store-title-device-scale: 0.94;
   --cafe-a-sunday-category-ratio: 1.4;
   --cafe-a-sunday-secondary-ratio: 0.63;
@@ -4143,11 +4173,11 @@ video {
   --cafe-a-sunday-option-ratio: 0.53;
 }
 
-.cafe-a-typography[data-template-key="cafe_design_a"] {
+.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"]) {
   --cafe-a-store-title-device-scale: 1.06;
 }
 
-.cafe-a-typography[data-template-key="cafe_design_a"][data-preview-device="tablet"] {
+.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"])[data-preview-device="tablet"] {
   --cafe-a-store-title-device-scale: 1.02;
 }
 
@@ -4188,7 +4218,7 @@ video {
 }
 
 @media (min-width: 1024px) {
-  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]):not([data-preview-device="tablet"]) {
+  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]):not([data-preview-device="tablet"]) {
     --cafe-a-sunday-category-ratio: 1.5;
     --cafe-a-sunday-secondary-ratio: 0.64;
     --cafe-a-sunday-supporting-ratio: 0.71;
@@ -4207,30 +4237,30 @@ video {
 }
 
 @media (min-width: 1024px) {
-  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-desktop-fit-board .cafe-a-store-title {
+  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-desktop-fit-board .cafe-a-store-title {
     font-size: calc(clamp(calc(1.9rem * var(--menu-role-brand-size-scale, 1)), calc(5.4vh * var(--menu-role-brand-size-scale, 1)), calc(3.5rem * var(--menu-role-brand-size-scale, 1))) * var(--cafe-a-device-type-scale) * var(--cafe-a-store-title-device-scale, 1));
   }
 }
 
 @media (max-width: 1023px) {
-  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]) header .cafe-a-store-title {
+  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) header .cafe-a-store-title {
     font-size: clamp(calc(2.25rem * var(--menu-role-brand-size-scale, 1)), calc(11vw * var(--menu-role-brand-size-scale, 1)), calc(3rem * var(--menu-role-brand-size-scale, 1)));
   }
 
-  .cafe-a-typography[data-template-key="cafe_design_a"] header .cafe-a-store-title {
+  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"]) header .cafe-a-store-title {
     font-size: calc(clamp(calc(2.25rem * var(--menu-role-brand-size-scale, 1)), calc(11vw * var(--menu-role-brand-size-scale, 1)), calc(3rem * var(--menu-role-brand-size-scale, 1))) * 1.06);
   }
 }
 
-.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-category-title {
+.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-category-title {
   font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-category-ratio) * var(--cafe-a-template-category-title-scale, 1));
 }
 
-.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-menu-meta {
+.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-menu-meta {
   font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-secondary-ratio));
 }
 
-.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]) :is(
+.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) :is(
   .cafe-a-menu-description,
   [data-cafe-a-widget-body],
   .cafe-a-store-description,
@@ -4241,15 +4271,15 @@ video {
 }
 
 /* Cover selectors carry extra specificity; keep the featured description on the same role ratio in tablet portrait/mobile layouts too. */
-.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-cover-hero .cafe-a-featured-description {
+.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-cover-hero .cafe-a-featured-description {
   font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-template-supporting-copy-scale));
 }
 
-.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]) :is(.cafe-a-menu-price, .cafe-a-featured-price) {
+.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) :is(.cafe-a-menu-price, .cafe-a-featured-price) {
   font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-price-ratio));
 }
 
-.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]) :is(
+.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) :is(
   .cafe-a-price-column-header,
   .cafe-a-price-column-heading-label,
   .cafe-a-price-label
@@ -4259,7 +4289,7 @@ video {
 
 /* Desktop skins add rail/cover selectors with higher specificity; keep every linked role on the shared board token. */
 @media (min-width: 1024px) {
-  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-desktop-fit-board :is(
+  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-desktop-fit-board :is(
     .cafe-a-menu-description,
     [data-cafe-a-widget-body],
     .cafe-a-store-description,
@@ -4269,7 +4299,7 @@ video {
     font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-template-supporting-copy-scale));
   }
 
-  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-desktop-fit-board :is(.cafe-a-menu-price, .cafe-a-featured-price) {
+  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-desktop-fit-board :is(.cafe-a-menu-price, .cafe-a-featured-price) {
     font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-price-ratio));
   }
 }

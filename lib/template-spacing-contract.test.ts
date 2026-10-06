@@ -103,6 +103,23 @@ test("반고흐는 분리선 없이 기기별 기준에 같은 카테고리 간�
   );
 });
 
+test("루프베이글은 분리선 없이 상하 2행 블루 체커보드를 유지한다", () => {
+  const rules = getTemplateContentSeparatorRules("fast_food_loop_bagel_a", "fast_food");
+  assert.equal(rules.categoryDivider, "none");
+  assert.match(
+    globalStylesSource,
+    /data-template-key="fast_food_loop_bagel_a"[^}]*\{[^}]*padding-block: calc\(var\(--loop-bagel-checker-square\) \* 2\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-template-key="fast_food_loop_bagel_a"[^}]*::before,[\s\S]*::after[^}]*\{[^}]*conic-gradient\(#4354ef 25%, #ffffff 0 50%, #4354ef 0 75%, #ffffff 0\);[^}]*height: calc\(var\(--loop-bagel-checker-square\) \* 2\);/,
+  );
+  assert.doesNotMatch(
+    globalStylesSource,
+    /data-template-key="fast_food_loop_bagel_a"[^}]*cafe-a-category-heading[^}]*border-bottom/,
+  );
+});
+
 test("Display는 화면 행 예산으로 카테고리와 메뉴 간격을 함께 계산한다", () => {
   assert.match(displaySource, /data-spacing-contract="canvas-fit"/);
   assert.match(displaySource, /const categoryHeadingGapScale = itemGapScale;/);

@@ -88,6 +88,13 @@ export const TEMPLATE_BADGE_STYLE_PRESETS: Record<string, Partial<BadgeStyles>> 
     recommended: { background_color: "#F47A32", text_color: "#111111" },
     default: { background_color: "#F47A32", text_color: "#111111" },
   },
+  fast_food_loop_bagel_a: {
+    best: { background_color: "#4354EF", text_color: "#FFFFFF" },
+    signature: { background_color: "#4354EF", text_color: "#FFFFFF" },
+    new: { background_color: "#4354EF", text_color: "#FFFFFF" },
+    recommended: { background_color: "#4354EF", text_color: "#FFFFFF" },
+    default: { background_color: "#4354EF", text_color: "#FFFFFF" },
+  },
   cafe_brew_chapter_a: {
     best: { background_color: "#6F5A37", text_color: "#FFFFFF" },
     signature: { background_color: "#171717", text_color: "#FFFFFF" },

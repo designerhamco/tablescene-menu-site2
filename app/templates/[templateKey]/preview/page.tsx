@@ -653,6 +653,7 @@ function applyActiveTemplateFeatureQaFixture(
     templateKey === "cafe_sunday_line_a" ||
     templateKey === "cafe_van_gogh_a" ||
     templateKey === "cafe_round_focus_a" ||
+    templateKey === "fast_food_loop_bagel_a" ||
     templateKey === "cafe_brew_chapter_a"
   );
   const items = data.items.map((item) => {

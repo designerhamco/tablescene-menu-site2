@@ -10,6 +10,7 @@ const TEMPLATE_FIXED_ONE_PAGE_LAYOUT_SHELLS = {
   cafe_sunday_line_a: "brand_top_band",
   cafe_van_gogh_a: "brand_top_band",
   cafe_round_focus_a: "brand_center_column",
+  fast_food_loop_bagel_a: "brand_left_rail",
 } as const satisfies Record<string, OnePageLayoutShell>;
 
 const fixedOnePageLayoutShells: Partial<Record<string, OnePageLayoutShell>> = TEMPLATE_FIXED_ONE_PAGE_LAYOUT_SHELLS;

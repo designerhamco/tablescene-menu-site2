@@ -132,6 +132,7 @@ const BASIC_TIME_SALE_TEMPLATE_LIMITS = new Map<string, number>([
   ["cafe_sunday_line_a", MAX_TIME_SALES_PER_MENU_SITE],
   ["cafe_van_gogh_a", MAX_TIME_SALES_PER_MENU_SITE],
   ["cafe_round_focus_a", MAX_TIME_SALES_PER_MENU_SITE],
+  ["fast_food_loop_bagel_a", MAX_TIME_SALES_PER_MENU_SITE],
   ["cafe_brew_chapter_a", MAX_TIME_SALES_PER_MENU_SITE],
 ]);
 

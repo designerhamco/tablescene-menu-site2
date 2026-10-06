@@ -72,6 +72,7 @@ export const TEMPLATE_CATEGORIES = [
     key: "fast_food",
     label: "패스트푸드",
     templates: [
+      { key: "fast_food_loop_bagel_a", label: "루프베이글", design: "design_a" },
       { key: "fast_food_design_a", label: "Fast Food Design A", design: "design_a" },
       { key: "fast_food_design_b", label: "Fast Food Design B", design: "design_b" },
     ],
@@ -154,6 +155,7 @@ const TEMPLATE_PREVIEW_ROUTE_KEY_BY_TEMPLATE_KEY: Partial<Record<TemplateKey, st
   cafe_design_a: "cafe_real_matcha_a",
   cafe_sunday_line_a: "cafe_sunday_roasters_a",
   cafe_van_gogh_a: "cafe_van_gogh_a",
+  fast_food_loop_bagel_a: "fast_food_loop_bagel_a",
 };
 
 const TEMPLATE_KEY_BY_PREVIEW_ROUTE_KEY = Object.fromEntries(
@@ -239,6 +241,7 @@ const templateDescriptionByKey: Partial<Record<string, string>> = {
   cafe_sunday_line_a: "브랜드와 대표 메뉴를 상단에 두고 전체 폭 메뉴 영역으로 이어지는 로스터리 카페 메뉴판입니다.",
   cafe_van_gogh_a: "반고흐의 선명한 색과 따뜻한 빛에서 영감을 받은 커피와 디저트를 회화적인 분위기로 보여주는 아트 카페 메뉴판입니다.",
   cafe_round_focus_a: "오렌지 그라데이션 브랜드 영역을 중앙 축에 두고 칵테일과 하이볼, 바 푸드를 좌우로 나누는 바·주점 메뉴판입니다.",
+  fast_food_loop_bagel_a: "블루 체커보드 포인트와 베이글 사진을 중심으로 구성한 밝고 경쾌한 패스트푸드 메뉴판입니다.",
   cafe_brew_chapter_a: "메뉴 페이지를 장처럼 넘기며 보는 멀티 페이지 카페 메뉴판입니다.",
   dining_aube_table_a: "커버와 여러 메뉴 페이지로 코스의 흐름을 섬세하게 보여주는 파인다이닝 메뉴판입니다.",
   dining_aube_table_b: "버건디 사이드 메뉴와 아이보리 지면으로 구성한 모던 프렌치 멀티페이지 메뉴판입니다.",
@@ -258,6 +261,7 @@ const availableTemplateKeys = [
   "cafe_sunday_line_a",
   "cafe_van_gogh_a",
   "cafe_round_focus_a",
+  "fast_food_loop_bagel_a",
   "dining_aube_table_a",
   "dining_aube_table_b",
   "display_menu_a",

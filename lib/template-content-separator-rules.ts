@@ -30,6 +30,10 @@ const TEMPLATE_CONTENT_SEPARATOR_RULES = {
     categoryDivider: "before-category-except-first-block",
     widgetBoundary: "none",
   },
+  fast_food_loop_bagel_a: {
+    categoryDivider: "none",
+    widgetBoundary: "none",
+  },
 } as const satisfies Partial<Record<TemplateKey, TemplateContentSeparatorRules>>;
 
 export function getTemplateContentSeparatorRules(

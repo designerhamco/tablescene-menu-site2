@@ -11,6 +11,7 @@ const BASIC_LAUNCH_TEMPLATE_KEYS = [
   "cafe_sunday_line_a",
   "cafe_van_gogh_a",
   "cafe_round_focus_a",
+  "fast_food_loop_bagel_a",
   "dining_aube_table_a",
   "dining_aube_table_b",
   "cafe_noir_a",
@@ -25,6 +26,7 @@ test("every Basic launch template is service-compatible without changing catalog
     cafe_sunday_line_a: "available",
     cafe_van_gogh_a: "available",
     cafe_round_focus_a: "available",
+    fast_food_loop_bagel_a: "available",
     dining_aube_table_a: "available",
     dining_aube_table_b: "available",
     cafe_noir_a: "retired",
@@ -46,6 +48,14 @@ test("every Basic launch template is service-compatible without changing catalog
   assert.equal(
     templateCatalog.find((template) => template.key === "cafe_round_focus_a")?.template_category,
     "pub_bar",
+  );
+  assert.equal(
+    templateCatalog.find((template) => template.key === "fast_food_loop_bagel_a")?.label,
+    "루프베이글",
+  );
+  assert.equal(
+    templateCatalog.find((template) => template.key === "fast_food_loop_bagel_a")?.template_category,
+    "fast_food",
   );
 });
 

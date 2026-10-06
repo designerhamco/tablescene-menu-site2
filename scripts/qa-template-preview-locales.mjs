@@ -10,6 +10,7 @@ const templates = [
   "cafe_sunday_line_a",
   "cafe_van_gogh_a",
   "cafe_round_focus_a",
+  "fast_food_loop_bagel_a",
   "dining_aube_table_a",
   "dining_aube_table_b",
   "display_menu_a",
@@ -20,6 +21,7 @@ const singlePageTemplates = new Set([
   "cafe_sunday_line_a",
   "cafe_van_gogh_a",
   "cafe_round_focus_a",
+  "fast_food_loop_bagel_a",
 ]);
 const previewRouteKey = (templateKey) => ({
   cafe_design_a: "cafe_real_matcha_a",

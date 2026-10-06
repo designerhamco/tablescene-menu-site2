@@ -14,6 +14,7 @@ const BASIC_FEATURE_EXPECTATIONS = {
   cafe_sunday_line_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_van_gogh_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_round_focus_a: { widgets: true, images: true, starterImages: true, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
+  fast_food_loop_bagel_a: { widgets: true, images: true, starterImages: true, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_brew_chapter_a: { widgets: false, images: true, starterImages: true, starterBadges: true, priceOptions: true, cover: "page", timeSales: 1, soldOut: 1 },
   cafe_noir_a: { widgets: false, images: false, starterImages: false, starterBadges: true, priceOptions: false, cover: "none", timeSales: 0, soldOut: 0 },
 } as const satisfies Record<string, {
@@ -63,6 +64,7 @@ test("launch template typography defaults and Display-only size control stay exp
       cafe_sunday_line_a: "federo",
       cafe_van_gogh_a: "special-elite",
       cafe_round_focus_a: "aboreto",
+      fast_food_loop_bagel_a: "oswald",
       cafe_brew_chapter_a: "alata",
       cafe_noir_a: "cutive-mono",
     }[templateKey];
@@ -101,7 +103,7 @@ test("single-page cover controls describe the representative area instead of ove
 });
 
 test("active single-page representative areas allow up to five image slides", () => {
-  for (const templateKey of ["cafe_design_a", "cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_van_gogh_a", "cafe_round_focus_a"]) {
+  for (const templateKey of ["cafe_design_a", "cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_van_gogh_a", "cafe_round_focus_a", "fast_food_loop_bagel_a"]) {
     const capabilities = getTemplateCapabilities(templateKey);
     assert.equal(capabilities.featuredItemCarousel, true, `${templateKey}: representative image carousel`);
     assert.equal(capabilities.featuredItemMaxSlides, 5, `${templateKey}: representative image limit`);
