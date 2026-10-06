@@ -17,7 +17,15 @@ for (const [templateKey, translations] of Object.entries(SINGLE_PAGE_STARTER_TRA
     const itemKeys = items.map((item) => item.key).filter((key): key is string => Boolean(key));
     const promotionKeys = (preset.time_sales ?? []).map((promotion) => promotion.key).filter((key): key is string => Boolean(key));
     const descriptionlessItemKeys = templateKey === "fast_food_loop_bagel_a"
-      ? new Set(["plain-cream-cheese", "scallion-cream-cheese", "honey-walnut-cream-cheese"])
+      ? new Set([
+          "plain-cream-cheese",
+          "scallion-cream-cheese",
+          "honey-walnut-cream-cheese",
+          "americano",
+          "cafe-latte",
+          "vanilla-bean-latte",
+          "lemon-sparkling",
+        ])
       : new Set<string>();
 
     assert.equal(pageKeys.length, preset.pages.length, "Korean starter pages must have stable keys");

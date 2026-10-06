@@ -13,7 +13,7 @@ const SINGLE_PAGE_DENSITY_CONTRACT = {
   cafe_sunday_line_a: [3, 3, 2, 3, 6],
   cafe_van_gogh_a: [3, 4, 3, 3, 4],
   cafe_round_focus_a: [3, 4, 4, 4, 4],
-  fast_food_loop_bagel_a: [4, 4, 4, 3, 4],
+  fast_food_loop_bagel_a: [4, 4, 3, 4],
 } as const;
 
 for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_DENSITY_CONTRACT)) {
@@ -33,9 +33,17 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
     if (templateKey === "fast_food_loop_bagel_a") {
       const items = categories.flatMap((category) => category.items);
       assert.equal(items.every((item) => !item.set_name?.trim()), true);
-      const creamCheeseItems = new Set(["plain-cream-cheese", "scallion-cream-cheese", "honey-walnut-cream-cheese"]);
+      const descriptionlessItems = new Set([
+        "plain-cream-cheese",
+        "scallion-cream-cheese",
+        "honey-walnut-cream-cheese",
+        "americano",
+        "cafe-latte",
+        "vanilla-bean-latte",
+        "lemon-sparkling",
+      ]);
       assert.equal(
-        items.every((item) => creamCheeseItems.has(item.key ?? "") ? !item.description.trim() : Boolean(item.description.trim())),
+        items.every((item) => descriptionlessItems.has(item.key ?? "") ? !item.description.trim() : Boolean(item.description.trim())),
         true,
       );
     } else if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a") {
@@ -79,14 +87,13 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
   });
 }
 
-test("every active single-page starter includes a sixty-minute stock closeout countdown", () => {
+test("approved single-page starters keep their sixty-minute stock closeout countdown", () => {
   const expectedCloseoutKeys = new Map([
     ["cafe_design_a", "classic-butter-scone-closeout"],
     ["cafe_mocha_forest_a", "dark-chocolate-brownie-closeout"],
     ["cafe_sunday_line_a", "brown-butter-scone-closeout"],
     ["cafe_van_gogh_a", "salted-caramel-scone-closeout"],
     ["cafe_round_focus_a", "truffle-fries-last-call"],
-    ["fast_food_loop_bagel_a", "everything-bagel-closeout"],
   ]);
 
   for (const [templateKey, expectedSaleKey] of expectedCloseoutKeys) {
@@ -110,7 +117,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(loopBagel.site.restaurant_name, "LOOP BAGEL");
   assert.equal(loopBagel.site.restaurant_category, "패스트푸드");
   assert.equal(loopBagel.site.restaurant_type, "fast_food");
-  assert.equal(loopBagelItems.length, 19);
+  assert.equal(loopBagelItems.length, 15);
   assert.equal(loopBagelItems.every((item) => !item.set_name?.trim()), true);
   assert.equal(loopBagelItems.every((item) => !item.price_options?.length), true);
   const loopBagelDrinks = loopBagel.pages[0]?.categories.find((category) => category.key === "coffee-drinks");
@@ -123,19 +130,25 @@ test("starter-specific image and promotion presentation stays intentional", () =
   );
   assert.equal(loopBagelDrinks?.price_columns, undefined);
   assert.equal(loopBagelDrinks?.items.every((item) => !item.price_column_values?.length), true);
+  assert.equal(loopBagelDrinks?.items.every((item) => !item.description.trim()), true);
   const loopBagelCreamCheese = loopBagel.pages[0]?.categories.find((category) => category.key === "cream-cheese");
-  assert.equal(loopBagelCreamCheese?.description, "매일 구운 베이글에 취향대로 곁들이는 세 가지 크림치즈");
+  assert.equal(loopBagelCreamCheese?.description, "클래식 베이글을 고른 뒤 취향에 맞는 크림치즈를 곁들여 보세요.");
   assert.equal(loopBagelCreamCheese?.description_visible, true);
   assert.equal(loopBagelCreamCheese?.items.every((item) => !item.description.trim()), true);
   const loopBagelEggCheeseHam = loopBagel.pages[0]?.categories
     .flatMap((category) => category.items)
     .find((item) => item.key === "egg-cheese-bagel");
   assert.equal(loopBagelEggCheeseHam?.name, "에그 햄치즈 베이글");
-  assert.match(loopBagelEggCheeseHam?.description ?? "", /햄/);
+  assert.equal(loopBagelEggCheeseHam?.description, "에그와 햄, 체더 치즈를 담은 든든한 베이글 샌드위치");
   assert.equal(loopBagelEggCheeseHam?.image_url, "/menu-templates/fast_food_loop_bagel_a/egg-ham-cheese-bagel.png");
   assert.deepEqual(
     loopBagel.pages[0]?.categories.map((category) => category.key),
-    ["signature-bagels", "classic-bagels", "bagel-sandwiches", "cream-cheese", "coffee-drinks"],
+    ["classic-bagels", "bagel-sandwiches", "cream-cheese", "coffee-drinks"],
+  );
+  assert.equal(loopBagel.pages[0]?.categories.some((category) => category.key === "signature-bagels"), false);
+  assert.equal(
+    loopBagelItems.some((item) => ["loop-signature-bagel", "salt-butter-bagel", "blueberry-cream-bagel", "everything-bagel"].includes(item.key ?? "")),
+    false,
   );
   assert.deepEqual(
     loopBagel.pages[0]?.categories.find((category) => category.key === "classic-bagels")?.items.map((item) => item.image_url),
@@ -164,6 +177,9 @@ test("starter-specific image and promotion presentation stays intentional", () =
     ],
   );
   assert.equal(loopBagelDrinks?.items.every((item) => !item.image_url), true);
+  assert.equal(loopBagel.featured_item_key, "egg-cheese-bagel");
+  assert.equal(loopBagel.featured_slides?.some((slide) => slide.featured_item_key === "loop-signature-bagel"), false);
+  assert.deepEqual(loopBagel.time_sales?.map((sale) => sale.key), ["egg-cheese-morning-deal"]);
   assert.equal(
     loopBagel.featured_slides?.some(
       (slide) => slide.featured_item_key === "honey-walnut-cream-cheese"

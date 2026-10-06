@@ -3105,6 +3105,10 @@ video {
   .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] {
     margin-bottom: var(--cafe-a-category-no-divider-gap);
   }
+
+  .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-balanced-column > .cafe-a-footer-info {
+    margin-top: var(--cafe-a-category-no-divider-gap);
+  }
 }
 
 .cafe-a-typography[data-template-key="cafe_design_a"] .cafe-a-category-heading {
