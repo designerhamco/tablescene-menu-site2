@@ -5,6 +5,14 @@ const baseUrl = process.env.PUBLIC_SURFACE_QA_BASE_URL || "http://127.0.0.1:3000
 const navigationTimeout = Number(process.env.PUBLIC_SURFACE_QA_TIMEOUT_MS || 30_000);
 
 const routeFilter = process.env.PUBLIC_SURFACE_QA_ROUTE;
+const cafeOnePagePreviewPaths = new Set([
+  "/templates/cafe_real_matcha_a/preview",
+  "/templates/cafe_mocha_forest_a/preview",
+  "/templates/cafe_sunday_roasters_a/preview",
+  "/templates/cafe_van_gogh_a/preview",
+  "/templates/cafe_round_focus_a/preview",
+  "/templates/fast_food_loop_bagel_a/preview",
+]);
 const routes = [
   "/",
   "/apply",
@@ -21,6 +29,12 @@ const routes = [
   "/templates/cafe_van_gogh_a/preview",
   "/templates/cafe_round_focus_a/preview",
   "/templates/fast_food_loop_bagel_a/preview",
+  "/templates/cafe_real_matcha_a/preview?device=pc",
+  "/templates/cafe_mocha_forest_a/preview?device=pc",
+  "/templates/cafe_sunday_roasters_a/preview?device=pc",
+  "/templates/cafe_van_gogh_a/preview?device=pc",
+  "/templates/cafe_round_focus_a/preview?device=pc",
+  "/templates/fast_food_loop_bagel_a/preview?device=pc",
   "/templates/dining_aube_table_a/preview",
   "/templates/dining_aube_table_b/preview",
   "/templates/display_menu_a/preview?page=3",
@@ -248,6 +262,50 @@ async function inspectCafeFitPresentation(page) {
   if (crop.missing) failures.push("fit menu element is missing");
   if (crop.clippedCount > 0) failures.push(`fit menu has ${crop.clippedCount} visibly clipped elements`);
   if (crop.scrollOverflow) failures.push("fit menu has scroll overflow after stabilization");
+
+  const layoutContract = await previewFrame.evaluate(() => {
+    const boardElement = document.querySelector(".cafe-a-desktop-fit-board");
+    const templateElement = document.querySelector(".cafe-a-typography[data-template-key]");
+    const visibleColumns = [...document.querySelectorAll("[data-cafe-a-balanced-column]")].filter(
+      (column) => column.getBoundingClientRect().width > 0 && column.getBoundingClientRect().height > 0,
+    );
+    const footerElement = document.querySelector('[data-cafe-a-footer-info][data-cafe-a-footer-placement="desktop"]');
+    const fixedRail = document.querySelector(".cafe-a-fixed-rail");
+
+    return {
+      templateKey: templateElement?.getAttribute("data-template-key") ?? "",
+      shell: boardElement?.getAttribute("data-one-page-layout-shell") ?? "",
+      menuColumns: Number(boardElement?.getAttribute("data-fit-columns") ?? 0),
+      breaks: boardElement?.getAttribute("data-fit-ordered-balanced-breaks") ?? "",
+      headingsByColumn: visibleColumns.map((column) =>
+        [...column.querySelectorAll(".cafe-a-category-heading")].map((heading) => heading.textContent?.trim() ?? ""),
+      ),
+      footerColumn: footerElement ? visibleColumns.findIndex((column) => column.contains(footerElement)) : -1,
+      centerRailFooterPinned: Boolean(
+        fixedRail?.querySelector(".cafe-a-round-focus-lower-cluster .cafe-a-round-focus-footer-cluster"),
+      ),
+    };
+  });
+  const totalColumns = layoutContract.shell === "brand_top_band"
+    ? layoutContract.menuColumns
+    : layoutContract.menuColumns + 1;
+  if (layoutContract.menuColumns !== 3) {
+    failures.push(`starter menu did not settle on three menu columns: ${layoutContract.menuColumns || "missing"}`);
+  }
+  if (totalColumns > 4) failures.push(`starter menu uses ${totalColumns} total columns instead of the preferred maximum of four`);
+  if (layoutContract.shell === "brand_left_rail" && layoutContract.footerColumn !== layoutContract.menuColumns - 1) {
+    failures.push(`desktop footer is not pinned to the last menu column: ${layoutContract.footerColumn}`);
+  }
+  if (layoutContract.shell === "brand_center_column" && !layoutContract.centerRailFooterPinned) {
+    failures.push("center-column notices are not pinned inside the fixed center rail");
+  }
+  if (layoutContract.templateKey === "fast_food_loop_bagel_a") {
+    const lastHeadings = layoutContract.headingsByColumn[layoutContract.headingsByColumn.length - 1] ?? [];
+    if (layoutContract.breaks !== "1,2") failures.push(`Loop Bagel category breaks are ${layoutContract.breaks || "missing"}, expected 1,2`);
+    if (lastHeadings.join("|") !== "CREAM CHEESE|COFFEE & DRINKS") {
+      failures.push(`Loop Bagel last menu column is ${lastHeadings.join(" | ") || "empty"}`);
+    }
+  }
   return failures;
 }
 
@@ -258,6 +316,7 @@ try {
   for (const viewport of viewports) {
     for (const route of routes) {
       if (viewport.key === "mobile" && route.startsWith("/templates/display_menu_a/")) continue;
+      if (viewport.key === "mobile" && route.includes("device=pc")) continue;
 
       const context = await browser.newContext({
         viewport,
@@ -321,7 +380,7 @@ try {
         : [];
       const cafeFitFailures = !navigationError
         && viewport.key === "desktop"
-        && /^\/templates\/cafe_(?:design|mocha_forest|sunday_line|round_focus)_a\/preview$/.test(route)
+        && cafeOnePagePreviewPaths.has(new URL(route, baseUrl).pathname)
         ? await inspectCafeFitPresentation(page)
         : [];
       const failures = [

@@ -69,11 +69,18 @@ test("공개 화면 회귀 QA는 메뉴판 미리보기 도움말의 최초 노�
 
 test("공개 화면 회귀 QA는 원페이지 배치 안정화와 실제 DOM 잘림을 검사한다", () => {
   assert.match(source, /inspectCafeFitPresentation/);
+  assert.match(source, /cafeOnePagePreviewPaths = new Set/);
+  assert.match(source, /cafe_real_matcha_a[\s\S]*cafe_mocha_forest_a[\s\S]*cafe_sunday_roasters_a[\s\S]*cafe_van_gogh_a[\s\S]*cafe_round_focus_a[\s\S]*fast_food_loop_bagel_a/);
+  assert.match(source, /fast_food_loop_bagel_a\/preview\?device=pc/);
   assert.match(source, /iframe\[src\*="view=actual"\][\s\S]*state: "attached"/);
   assert.match(source, /data-fit-presentation-state/);
   assert.match(source, /presentationState !== "ready"/);
   assert.match(source, /fitOverflow === "true"/);
   assert.match(source, /clippedCount/);
   assert.match(source, /menuElement\.scrollHeight > menuElement\.clientHeight \+ 1/);
+  assert.match(source, /starter menu did not settle on three menu columns/);
+  assert.match(source, /CREAM CHEESE\|COFFEE & DRINKS/);
+  assert.match(source, /desktop footer is not pinned to the last menu column/);
+  assert.match(source, /center-column notices are not pinned inside the fixed center rail/);
   assert.match(source, /cafe fit: \$\{message\}/);
 });

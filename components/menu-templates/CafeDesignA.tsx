@@ -27,6 +27,12 @@ import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import { getFixedOnePageLayoutShell, type OnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import {
+  ONE_PAGE_MAX_MENU_COLUMNS,
+  ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS,
+  orderOnePageMenuColumnCandidates,
+  selectOnePageFitTierState,
+} from "@/lib/one-page-fit-policy";
+import {
   formatMenuPriceByMode,
   getPriceDisplayModeFromSettings,
   type PriceDisplayMode,
@@ -420,9 +426,8 @@ const BALANCED_FAILED_GAP = 10;
 const BALANCED_MIN_QUALITY_FONT_SCALE = 0.78;
 const ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE = 0.75;
 const ORDERED_BALANCED_MAX_EXHAUSTIVE_BLOCKS = 12;
-const ORDERED_BALANCED_MAX_EXHAUSTIVE_COLUMNS = 4;
-const ORDERED_BALANCED_DEFAULT_MAX_COLUMNS = 3;
-const ORDERED_BALANCED_PREFERRED_MAX_MENU_COLUMNS = 3;
+const ORDERED_BALANCED_MAX_EXHAUSTIVE_COLUMNS = ONE_PAGE_MAX_MENU_COLUMNS;
+const ORDERED_BALANCED_DEFAULT_MAX_COLUMNS = ONE_PAGE_MAX_MENU_COLUMNS;
 const ORDERED_BALANCED_GAP_IMPROVEMENT_EPSILON = 2;
 const ORDERED_BALANCED_SCALE_EPSILON = 0.005;
 const ORDERED_BALANCED_CROP_TOLERANCE = 0.5;
@@ -556,7 +561,12 @@ function isDenseOrderedBalancedMenu(groupCount: number, itemCount: number) {
 
 function getOrderedBalancedFitColumnCandidates(width: number, groupCount: number, itemCount: number) {
   if (groupCount <= 1) return [1];
-  if (isDenseOrderedBalancedMenu(groupCount, itemCount)) return [3];
+  if (isDenseOrderedBalancedMenu(groupCount, itemCount)) {
+    const denseMaximumColumns = width < 1120 ? 3 : ONE_PAGE_MAX_MENU_COLUMNS;
+    return orderOnePageMenuColumnCandidates(
+      FIT_COLUMN_CANDIDATES.filter((columns) => columns >= 3 && columns <= Math.min(denseMaximumColumns, groupCount)),
+    );
+  }
 
   const defaultMaxColumns = Math.min(ORDERED_BALANCED_DEFAULT_MAX_COLUMNS, groupCount);
   const maxWidthColumns =
@@ -570,7 +580,9 @@ function getOrderedBalancedFitColumnCandidates(width: number, groupCount: number
   const minColumns = 2;
   const maxUsefulColumns = Math.max(2, Math.min(maxWidthColumns, defaultMaxColumns));
 
-  return FIT_COLUMN_CANDIDATES.filter((columns) => columns >= minColumns && columns <= maxUsefulColumns).sort((a, b) => b - a);
+  return orderOnePageMenuColumnCandidates(
+    FIT_COLUMN_CANDIDATES.filter((columns) => columns >= minColumns && columns <= maxUsefulColumns),
+  );
 }
 
 function getOrderedBalancedWidgetFitColumnCandidates(width: number, groupCount: number, itemCount: number) {
@@ -578,23 +590,16 @@ function getOrderedBalancedWidgetFitColumnCandidates(width: number, groupCount: 
   const rescueMaxColumns = Math.min(ORDERED_FIT_DESKTOP_MAX_COLUMNS, Math.max(2, groupCount));
   const rescueCandidates = getOrderedFitColumnCandidates(width).filter((columns) => columns <= rescueMaxColumns);
 
-  return Array.from(new Set([...baseCandidates, ...rescueCandidates])).sort((a, b) => b - a);
+  return orderOnePageMenuColumnCandidates([...baseCandidates, ...rescueCandidates]);
 }
 
-function getImageMenuColumnCandidates(width: number, groupCount: number, maximumColumns = 3) {
+function getImageMenuColumnCandidates(width: number, groupCount: number, maximumColumns = ONE_PAGE_MAX_MENU_COLUMNS) {
   if (groupCount <= 1) return [1];
   if (width < 760) return [2];
 
   const maxColumns = Math.min(maximumColumns, groupCount);
   const candidates = FIT_COLUMN_CANDIDATES.filter((columns) => columns >= 2 && columns <= maxColumns);
-  const preferredCandidates = candidates
-    .filter((columns) => columns <= ORDERED_BALANCED_PREFERRED_MAX_MENU_COLUMNS)
-    .sort((a, b) => b - a);
-  const rescueCandidates = candidates
-    .filter((columns) => columns > ORDERED_BALANCED_PREFERRED_MAX_MENU_COLUMNS)
-    .sort((a, b) => a - b);
-
-  return [...preferredCandidates, ...rescueCandidates];
+  return orderOnePageMenuColumnCandidates(candidates);
 }
 
 function hasVisibleMenuItemImage(item: MenuItem) {
@@ -1427,7 +1432,6 @@ function getOrderedBalancedColumnTargetHeights(
 ) {
   if (!Number.isFinite(targetHeight) || (targetHeight ?? 0) <= 0 || columns <= 0) return undefined;
   const footerElement = boardElement.querySelector<HTMLElement>('[data-cafe-a-footer-info][data-cafe-a-footer-placement="desktop"]');
-  if (footerElement?.closest("[data-cafe-a-fit-menu]")) return undefined;
   const footerRect = footerElement?.getBoundingClientRect();
   if (!footerRect || footerRect.width <= 0 || footerRect.height <= 0) return undefined;
 
@@ -1436,6 +1440,16 @@ function getOrderedBalancedColumnTargetHeights(
   const footerSafetyGap = Math.max(BASIC_RIGHT_EDGE_SAFETY_GAP_PX, cropTolerance);
   const footerTopSafetyGap =
     boardRect.width < 1120 ? CAFE_A_FOOTER_INFO_TABLET_TOP_SAFETY_GAP_PX : CAFE_A_FOOTER_INFO_TOP_SAFETY_GAP_PX;
+  const footerIsInsideLastMenuColumn = Boolean(footerElement?.closest("[data-cafe-a-fit-menu]"));
+  if (footerIsInsideLastMenuColumn) {
+    const footerReservedTargetHeight = Math.max(
+      0,
+      (targetHeight ?? 0) - footerRect.height - footerTopSafetyGap,
+    );
+    return Array.from({ length: columns }, (_, columnIndex) =>
+      columnIndex === columns - 1 ? footerReservedTargetHeight : targetHeight ?? 0,
+    );
+  }
   const footerNoGoRect = {
     left: footerRect.left - CAFE_A_FOOTER_NO_GO_HORIZONTAL_SAFETY_GAP_PX,
     right: footerRect.right + CAFE_A_FOOTER_NO_GO_HORIZONTAL_SAFETY_GAP_PX,
@@ -6560,7 +6574,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const [fitPresentationState, setFitPresentationState] = useState<CafeDesignAFitPresentationState>("loading");
   const [fitPresentationSafetyScale, setFitPresentationSafetyScale] = useState(1);
   const [fitPresentationRevision, setFitPresentationRevision] = useState(0);
-  const [orderedBalancedInitialColumns, setOrderedBalancedInitialColumns] = useState(2);
+  const [orderedBalancedInitialColumns, setOrderedBalancedInitialColumns] = useState(
+    ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS,
+  );
   const [orderedBalancedFitRevision, setOrderedBalancedFitRevision] = useState(0);
   const [orderedBalancedValidationRevision, setOrderedBalancedValidationRevision] = useState(0);
   const [orderedBalancedFinalFillBoost, setOrderedBalancedFinalFillBoost] = useState<CafeDesignAFinalFillBoost>(DEFAULT_ORDERED_BALANCED_FINAL_FILL_BOOST);
@@ -6626,7 +6642,11 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const initialNowMs = normalizeInitialNowMs(data.initialNowMs);
   const timeSaleBoundaryNowMs = useTimeSaleBoundaryNowMs(data.timeSales, data.menuSite.template_key, initialNowMs);
   useNextTimeSaleStartRefresh(data.nextTimeSaleStartAt, isCafeDesignATimeSaleTemplate(data.menuSite.template_key));
-  const imageMenuMaximumColumns = data.menuSite.template_key === "fast_food_loop_bagel_a" ? 4 : 3;
+  const fitLayoutDevice = data.previewDevice === "tablet" ? "tablet" : "desktop";
+  const imageMenuMaximumColumns = Math.min(
+    ORDERED_BALANCED_MAX_EXHAUSTIVE_COLUMNS,
+    layoutRules.maxColumns[fitLayoutDevice],
+  );
 
   const timeSaleByItemId = useMemo(
     () => getTimeSaleByItemId(data.timeSales, data.menuSite.template_key, timeSaleBoundaryNowMs),
@@ -6649,7 +6669,15 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
   // Basic engine fit state: desktop candidate selection and validation feed these values into the CafeA shell.
   const baseRenderFitState = useMemo<CafeDesignAFitState>(() => {
-    const imageModeColumns = visibleFitBlockCount > 1 ? imageMenuMaximumColumns : 1;
+    const imageModeMaximumColumns = visibleFitBlockCount > 1 ? imageMenuMaximumColumns : 1;
+    const imageModeInitialColumns = Math.max(
+      1,
+      Math.min(
+        orderedBalancedInitialColumns,
+        imageModeMaximumColumns,
+        visibleContentBlockCount || orderedBalancedInitialColumns,
+      ),
+    );
     const shouldClampImageModeColumns =
       hasVisibleItemImages &&
       !isRoundFocus &&
@@ -6657,7 +6685,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     if (shouldClampImageModeColumns) {
       return {
         ...fitState,
-        columns: Math.min(fitState.columns, imageModeColumns),
+        columns: Math.min(fitState.columns, imageModeMaximumColumns),
       };
     }
     if (layoutMode !== "orderedBalancedFit" || fitState.orderedBalancedFingerprint) return fitState;
@@ -6665,7 +6693,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     return {
       ...fitState,
       columns: hasVisibleItemImages && visibleWidgetCount === 0
-        ? imageModeColumns
+        ? imageModeInitialColumns
         : isDenseOrderedBalanced
         ? 3
         : Math.max(1, Math.min(orderedBalancedInitialColumns, visibleContentBlockCount || orderedBalancedInitialColumns)),
@@ -7061,8 +7089,12 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           const seenKeys = orderedBalancedSeenStateRef.current.keys;
           const currentKey = getOrderedBalancedCandidateKey(currentState);
           const nextKey = getOrderedBalancedCandidateKey(nextState);
+          const isPreferredTierUpgrade =
+            currentState.columns > ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS &&
+            nextState.columns <= ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS;
           if (currentState.status !== "idle") seenKeys.add(currentKey);
           const isReturningToSeenSafeCandidate =
+            !isPreferredTierUpgrade &&
             currentState.status !== "idle" &&
             !currentState.overflow &&
             !nextState.overflow &&
@@ -7076,6 +7108,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
           seenKeys.add(nextKey);
           const hasValidatedSafeConvergenceCandidate =
+            !isPreferredTierUpgrade &&
             seenKeys.size >= ORDERED_BALANCED_SAFE_CONVERGENCE_LIMIT &&
             currentState.status !== "idle" &&
             !currentState.overflow &&
@@ -7467,13 +7500,16 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           : 0;
       const targetGapPenalty =
         longestVisibleGap > ORDERED_BALANCED_TARGET_MAX_VISIBLE_GAP
-          ? Math.max(0, longestVisibleGap - ORDERED_BALANCED_TARGET_MAX_VISIBLE_GAP) * 980 +
-            Math.max(0, longestVisibleGap - 12) * 2200 +
-            Math.max(0, longestVisibleGap - 24) * 3200
+          ? Math.max(0, longestVisibleGap - ORDERED_BALANCED_TARGET_MAX_VISIBLE_GAP) * 6 +
+            Math.max(0, longestVisibleGap - 48) * 8 +
+            Math.max(0, longestVisibleGap - 120) * 12
           : Math.abs(longestVisibleGap - ORDERED_BALANCED_TARGET_VISIBLE_GAP) * 36;
-      const itemGapPenalty = Math.max(0, measurement.visibleItemBottomGap - ORDERED_BALANCED_TARGET_MAX_VISIBLE_GAP) * 240;
-      const textGapPenalty = Math.max(0, measurement.visibleTextBottomGap - 10) * 120;
-      const priceGapPenalty = Math.max(0, measurement.visiblePriceBottomGap - 12) * 90;
+      // Item, text, and price gaps describe the same longest-column empty area.
+      // Keep them as gentle scale tie-breakers so they cannot overpower the
+      // cross-column balance and create a nearly empty final column.
+      const itemGapPenalty = Math.max(0, measurement.visibleItemBottomGap - 24) * 12;
+      const textGapPenalty = Math.max(0, measurement.visibleTextBottomGap - 24) * 6;
+      const priceGapPenalty = Math.max(0, measurement.visiblePriceBottomGap - 24) * 4;
       const averageFillPenalty = Math.max(0, 0.88 - measurement.visibleAverageFillRatio) * 1650;
       const minFillPenalty =
         Math.max(0, 0.72 - measurement.visibleMinFillRatio) * 2400 +
@@ -7485,22 +7521,23 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         Math.max(0, measurement.primaryBottomGap - 28) * 26;
       const secondColumnFillPenalty =
         columns >= 3
-          ? Math.max(0, 0.74 - columnFillMetrics.secondFillRatio) * 4200 +
-            Math.max(0, 0.82 - columnFillMetrics.secondFillRatio) * 1900 +
-            Math.max(0, columnFillMetrics.secondGap - 32) * 20 +
-            Math.max(0, columnFillMetrics.secondGap - 56) * 34
+          ? Math.max(0, 0.58 - columnFillMetrics.secondFillRatio) * 1600 +
+            Math.max(0, 0.68 - columnFillMetrics.secondFillRatio) * 600 +
+            Math.max(0, columnFillMetrics.secondGap - 96) * 4 +
+            Math.max(0, columnFillMetrics.secondGap - 180) * 6
           : Math.max(0, 0.74 - columnFillMetrics.secondFillRatio) * 1350 + Math.max(0, columnFillMetrics.secondGap - 96) * 8;
       const firstColumnIsShortestPenalty =
         columnFillMetrics.firstHeight <= columnFillMetrics.minHeight + 1 &&
-        columnFillMetrics.maxHeight - columnFillMetrics.firstHeight > 40
+        columnFillMetrics.maxHeight - columnFillMetrics.firstHeight > 40 &&
+        columnFillMetrics.firstFillRatio < 0.42
           ? 14000 + (columnFillMetrics.maxHeight - columnFillMetrics.firstHeight) * 48
           : 0;
       const leftRhythmPenalty =
         Math.max(0, columnFillMetrics.secondHeight - columnFillMetrics.firstHeight - 40) * 26 +
         Math.max(0, columnFillMetrics.lastHeight - columnFillMetrics.firstHeight - 70) * 14;
       const singletonMiddlePenalty =
-        columns >= 3 && columnFillMetrics.secondBlockCount <= 1 && columnFillMetrics.secondFillRatio < 0.84
-          ? 1900 + Math.max(0, 0.84 - columnFillMetrics.secondFillRatio) * 2600 + Math.max(0, columnFillMetrics.secondGap - 40) * 18
+        columns >= 3 && columnFillMetrics.secondBlockCount <= 1 && columnFillMetrics.secondFillRatio < 0.42
+          ? 1900 + Math.max(0, 0.42 - columnFillMetrics.secondFillRatio) * 2600 + Math.max(0, columnFillMetrics.secondGap - 40) * 18
           : 0;
       const fillVariancePenalty = columnFillMetrics.fillVariance * 3600;
       const lastColumnPenalty =
@@ -7640,6 +7677,8 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     function getOrderedBalancedFitState(columnCandidates: number[]) {
       let preferredSelectedState: CafeDesignAFitState | null = null;
       let preferredSelectedScore = Number.POSITIVE_INFINITY;
+      let preferredReadableFallbackState: CafeDesignAFitState | null = null;
+      let preferredReadableFallbackScore = Number.POSITIVE_INFINITY;
       let rescueSelectedState: CafeDesignAFitState | null = null;
       let rescueSelectedScore = Number.POSITIVE_INFINITY;
       let preferredFallbackState: CafeDesignAFitState | null = null;
@@ -7656,6 +7695,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       const cachedState = orderedBalancedFitCacheRef.current.get(orderedBalancedFingerprint);
       if (
         cachedState &&
+        cachedState.columns <= ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS &&
         !orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(cachedState)) &&
         !isOrderedBalancedColumnRejected(orderedBalancedFingerprint, cachedState.columns)
       ) {
@@ -7674,7 +7714,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
       for (const columns of effectiveColumnCandidates) {
         if (isOrderedBalancedColumnRejected(orderedBalancedFingerprint, columns)) continue;
-        const isRescueColumnCount = columns > ORDERED_BALANCED_PREFERRED_MAX_MENU_COLUMNS;
+        const isRescueColumnCount = columns > ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS;
         for (const fontScale of fontScaleCandidates) {
           const candidateGapScale = getOrderedBalancedFitGapScale(fontScale, fitMenuElement.clientWidth);
           const isCandidateRejected = (breakIndices: readonly number[]) =>
@@ -7775,6 +7815,19 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             }
 
             if (fontScale < ORDERED_BALANCED_MIN_QUALITY_FONT_SCALE) continue;
+            if (
+              !isRescueColumnCount &&
+              (!preferredReadableFallbackState ||
+                isOrderedBalancedCandidateBetter({
+                  candidateScore: nextFallbackScore,
+                  candidateState,
+                  currentScore: preferredReadableFallbackScore,
+                  currentState: preferredReadableFallbackState,
+                }))
+            ) {
+              preferredReadableFallbackScore = nextFallbackScore;
+              preferredReadableFallbackState = candidateState;
+            }
             if (measurement.visibleAverageFillRatio < 0.56 || measurement.visibleMinFillRatio < 0.25) continue;
 
             const score = getOrderedBalancedFitScore(columns, fontScale, measurement, simulatedColumns, baseBlockMeasurements.length);
@@ -7805,12 +7858,14 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       // readable, non-overflowing three-menu-column candidate exists. A fourth
       // menu column (five total) is a rescue path only when the preferred tier
       // cannot produce an acceptable fit.
-      const nextState =
-        preferredSelectedState ??
-        rescueSelectedState ??
-        preferredFallbackState ??
-        rescueFallbackState ??
-        emergencyState;
+      const nextState = selectOnePageFitTierState({
+        preferredSelectedState,
+        preferredReadableFallbackState,
+        rescueSelectedState,
+        preferredFallbackState,
+        rescueFallbackState,
+        emergencyState,
+      });
       if (!nextState) return null;
       const currentState = fitStateRef.current;
       if (

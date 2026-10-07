@@ -368,12 +368,15 @@ test("가격 옵션명은 카테고리명 역할 색상을 그대로 공유한�
 });
 
 test("이미지 메뉴는 세 메뉴 열을 우선하고 네 번째 메뉴 열은 안전한 최후 후보로만 사용한다", () => {
-  assert.match(templateSource, /const imageMenuMaximumColumns = data\.menuSite\.template_key === "fast_food_loop_bagel_a" \? 4 : 3;/);
-  assert.match(templateSource, /const ORDERED_BALANCED_PREFERRED_MAX_MENU_COLUMNS = 3;/);
+  assert.match(
+    templateSource,
+    /const imageMenuMaximumColumns = Math\.min\([\s\S]*layoutRules\.maxColumns\[fitLayoutDevice\]/,
+  );
+  assert.doesNotMatch(templateSource, /template_key === "fast_food_loop_bagel_a" \? 4 : 3/);
   assert.match(templateSource, /const FIT_COLUMN_CANDIDATES = \[2, 3, 4\] as const;/);
   assert.match(
     templateSource,
-    /preferredSelectedState \?\?[\s\S]*rescueSelectedState \?\?[\s\S]*preferredFallbackState \?\?[\s\S]*rescueFallbackState \?\?[\s\S]*emergencyState/,
+    /selectOnePageFitTierState\(\{[\s\S]*preferredSelectedState,[\s\S]*preferredReadableFallbackState,[\s\S]*rescueSelectedState,[\s\S]*preferredFallbackState,[\s\S]*rescueFallbackState,[\s\S]*emergencyState/,
   );
   assert.match(
     templateSource,
@@ -401,6 +404,33 @@ test("화면 채움은 열 수와 글자·간격 배율을 함께 평가하고 �
   assert.match(
     templateSource,
     /boardElement\.style\.setProperty\("--fit-menu-font-scale"[\s\S]*boardElement\.style\.setProperty\("--fit-menu-gap-scale"[\s\S]*const boostedMeasurement = getCafeAActualDomCropMeasurement[\s\S]*!boostedMeasurement\.overflow/,
+  );
+});
+
+test("네 번째 메뉴 열 구조 후보는 캐시나 수렴 방어보다 안전한 세 열 후보에 우선하지 않는다", () => {
+  assert.match(
+    templateSource,
+    /cachedState\.columns <= ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS/,
+  );
+  assert.match(
+    templateSource,
+    /const isPreferredTierUpgrade =[\s\S]*currentState\.columns > ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS[\s\S]*nextState\.columns <= ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS/,
+  );
+  assert.match(
+    templateSource,
+    /const isReturningToSeenSafeCandidate =[\s\S]*!isPreferredTierUpgrade &&/,
+  );
+  assert.match(
+    templateSource,
+    /const \[orderedBalancedInitialColumns, setOrderedBalancedInitialColumns\] = useState\([\s\S]*ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS/,
+  );
+  assert.match(
+    templateSource,
+    /const imageModeInitialColumns =[\s\S]*Math\.min\([\s\S]*orderedBalancedInitialColumns[\s\S]*imageModeMaximumColumns/,
+  );
+  assert.match(
+    templateSource,
+    /const itemGapPenalty =[\s\S]*\* 12;[\s\S]*const textGapPenalty =[\s\S]*\* 6;[\s\S]*const priceGapPenalty =[\s\S]*\* 4;/,
   );
 });
 

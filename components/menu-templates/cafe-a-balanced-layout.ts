@@ -202,25 +202,27 @@ export function getCafeAOrderedBalancedSimulatedSpreadScore<TBlock extends CafeA
   const targetGap = Number.isFinite(options.targetHeight) ? Math.max(0, (options.targetHeight ?? 0) - maxHeight) : 0;
   const targetGapPenalty = Number.isFinite(options.targetHeight)
     ? Math.max(0, maxHeight - (options.targetHeight ?? 0)) * 1000 +
-      Math.max(0, targetGap - options.targetMaxVisibleGap) * 420 +
-      Math.max(0, targetGap - 14) * 720 +
-      Math.max(0, targetGap - 24) * 1100
+      Math.max(0, targetGap - options.targetMaxVisibleGap) * 6 +
+      Math.max(0, targetGap - 48) * 8 +
+      Math.max(0, targetGap - 120) * 12
     : 0;
   const firstColumnIsShortestPenalty =
-    firstHeight <= minHeight + 1 && maxHeight - firstHeight > 40 ? 12000 + (maxHeight - firstHeight) * 42 : 0;
+    firstHeight <= minHeight + 1 && maxHeight - firstHeight > 40 && firstFillRatio < 0.42
+      ? 12000 + (maxHeight - firstHeight) * 42
+      : 0;
   const firstFillPenalty =
     Math.max(0, 0.8 - firstFillRatio) * 3600 +
     Math.max(0, 0.88 - firstFillRatio) * 1200 +
     Math.max(0, firstGap - 40) * 18 +
     Math.max(0, maxHeight - firstHeight - 80) * 7.2;
   const secondFillPenalty =
-    Math.max(0, 0.72 - secondFillRatio) * 3600 +
-    Math.max(0, 0.78 - secondFillRatio) * 1400 +
-    Math.max(0, secondGap - 40) * 11 +
-    Math.max(0, secondGap - 60) * 22;
+    Math.max(0, 0.58 - secondFillRatio) * 1600 +
+    Math.max(0, 0.68 - secondFillRatio) * 600 +
+    Math.max(0, secondGap - 96) * 4 +
+    Math.max(0, secondGap - 180) * 6;
   const singletonMiddlePenalty =
-    columns.length >= 3 && secondBlockCount <= 1 && secondFillRatio < 0.84
-      ? 1800 + Math.max(0, 0.84 - secondFillRatio) * 2600 + Math.max(0, secondGap - 40) * 16
+    columns.length >= 3 && secondBlockCount <= 1 && secondFillRatio < 0.42
+      ? 1800 + Math.max(0, 0.42 - secondFillRatio) * 2600 + Math.max(0, secondGap - 40) * 16
       : 0;
   const lastFillPenalty =
     Math.max(0, 0.58 - lastFillRatio) * 520 +

@@ -10,6 +10,7 @@ type DensityThreshold = {
 
 export type TemplateLayoutRules = {
   templateKey: TemplateKey;
+  /** Hard menu-column ceiling. Fixed brand rails are counted separately. */
   maxColumns: Record<MenuLayoutDevice, number>;
   densityThresholds: Record<MenuLayoutDevice, DensityThreshold[]>;
   gridClassNameByDensity: Record<MenuLayoutDensity, string>;
@@ -43,7 +44,7 @@ const defaultGridClassNameByDensity: TemplateLayoutRules["gridClassNameByDensity
 const TEMPLATE_LAYOUT_RULES = {
   cafe_design_a: {
     templateKey: "cafe_design_a",
-    maxColumns: { mobile: 2, tablet: 2, desktop: 4 },
+    maxColumns: { mobile: 2, tablet: 4, desktop: 4 },
     densityThresholds: {
       mobile: [
         { maxItems: 6, density: "spacious" },
@@ -70,7 +71,7 @@ const TEMPLATE_LAYOUT_RULES = {
   },
   fast_food_loop_bagel_a: {
     templateKey: "fast_food_loop_bagel_a",
-    maxColumns: { mobile: 2, tablet: 2, desktop: 4 },
+    maxColumns: { mobile: 2, tablet: 4, desktop: 4 },
     densityThresholds: {
       mobile: [
         { maxItems: 6, density: "spacious" },
@@ -97,7 +98,7 @@ const TEMPLATE_LAYOUT_RULES = {
   },
   cafe_mocha_forest_a: {
     templateKey: "cafe_mocha_forest_a",
-    maxColumns: { mobile: 2, tablet: 2, desktop: 4 },
+    maxColumns: { mobile: 2, tablet: 4, desktop: 4 },
     densityThresholds: {
       mobile: [
         { maxItems: 6, density: "spacious" },
@@ -124,7 +125,7 @@ const TEMPLATE_LAYOUT_RULES = {
   },
   cafe_sunday_line_a: {
     templateKey: "cafe_sunday_line_a",
-    maxColumns: { mobile: 2, tablet: 2, desktop: 4 },
+    maxColumns: { mobile: 2, tablet: 4, desktop: 4 },
     densityThresholds: {
       mobile: [
         { maxItems: 6, density: "spacious" },
@@ -151,7 +152,7 @@ const TEMPLATE_LAYOUT_RULES = {
   },
   cafe_van_gogh_a: {
     templateKey: "cafe_van_gogh_a",
-    maxColumns: { mobile: 2, tablet: 2, desktop: 4 },
+    maxColumns: { mobile: 2, tablet: 4, desktop: 4 },
     densityThresholds: {
       mobile: [
         { maxItems: 6, density: "spacious" },
@@ -178,7 +179,7 @@ const TEMPLATE_LAYOUT_RULES = {
   },
   cafe_round_focus_a: {
     templateKey: "cafe_round_focus_a",
-    maxColumns: { mobile: 2, tablet: 2, desktop: 4 },
+    maxColumns: { mobile: 2, tablet: 4, desktop: 4 },
     densityThresholds: {
       mobile: [
         { maxItems: 6, density: "spacious" },
