@@ -407,6 +407,27 @@ test("화면 채움은 열 수와 글자·간격 배율을 함께 평가하고 �
   );
 });
 
+test("반복 줄바꿈은 메뉴 상품 글자만 제한적으로 보정하고 제목 위계는 유지한다", () => {
+  assert.match(templateSource, /getCafeAMenuWrapDensityDecisionForColumns/);
+  assert.match(templateSource, /data-fit-wrap-scale=\{safeRenderFitState\.wrapScale\}/);
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-ordered-menu-flow \.cafe-a-menu-title \{[\s\S]*var\(--fit-menu-wrap-scale\)/,
+  );
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-balanced-menu-grid \.cafe-a-menu-description \{[\s\S]*var\(--fit-menu-wrap-scale\)/,
+  );
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-balanced-menu-grid \.cafe-a-category-title \{[\s\S]*var\(--cafe-a-template-category-title-scale, 1\)\)[\s\S]*\}/,
+  );
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-balanced-menu-grid \[data-cafe-a-widget-body\] \{[\s\S]*var\(--cafe-a-linked-supporting-copy-size\)[\s\S]*\}/,
+  );
+});
+
 test("네 번째 메뉴 열 구조 후보는 캐시나 수렴 방어보다 안전한 세 열 후보에 우선하지 않는다", () => {
   assert.match(
     templateSource,
