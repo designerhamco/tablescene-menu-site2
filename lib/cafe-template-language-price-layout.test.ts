@@ -367,7 +367,7 @@ test("가격 옵션명은 카테고리명 역할 색상을 그대로 공유한�
   );
 });
 
-test("루프베이글의 이미지 메뉴는 늘어난 스타터 구성을 위해 PC에서만 네 열 후보를 허용한다", () => {
+test("이미지 메뉴는 세 메뉴 열을 우선하고 네 번째 메뉴 열은 안전한 최후 후보로만 사용한다", () => {
   assert.match(templateSource, /const imageMenuMaximumColumns = data\.menuSite\.template_key === "fast_food_loop_bagel_a" \? 4 : 3;/);
   assert.match(templateSource, /const ORDERED_BALANCED_PREFERRED_MAX_MENU_COLUMNS = 3;/);
   assert.match(templateSource, /const FIT_COLUMN_CANDIDATES = \[2, 3, 4\] as const;/);
@@ -382,6 +382,25 @@ test("루프베이글의 이미지 메뉴는 늘어난 스타터 구성을 위�
   assert.match(
     templateSource,
     /if \(width < 760\) return \[2\];[\s\S]*const maxColumns = Math\.min\(maximumColumns, groupCount\);/,
+  );
+});
+
+test("화면 채움은 열 수와 글자·간격 배율을 함께 평가하고 실제 넘침 없는 확대만 허용한다", () => {
+  assert.match(
+    templateSource,
+    /const ORDERED_BALANCED_FIT_FONT_SCALE_CANDIDATES = \[\s*1\.34,[\s\S]*0\.64,[\s\S]*\] as const;/,
+  );
+  assert.match(
+    templateSource,
+    /function getOrderedBalancedFitGapScale\(fontScale: number, menuWidth: number\)[\s\S]*return getFitGapScale\(fontScale\);/,
+  );
+  assert.match(
+    templateSource,
+    /const targetGapPenalty =[\s\S]*ORDERED_BALANCED_TARGET_MAX_VISIBLE_GAP[\s\S]*const averageFillPenalty =[\s\S]*measurement\.visibleAverageFillRatio/,
+  );
+  assert.match(
+    templateSource,
+    /boardElement\.style\.setProperty\("--fit-menu-font-scale"[\s\S]*boardElement\.style\.setProperty\("--fit-menu-gap-scale"[\s\S]*const boostedMeasurement = getCafeAActualDomCropMeasurement[\s\S]*!boostedMeasurement\.overflow/,
   );
 });
 

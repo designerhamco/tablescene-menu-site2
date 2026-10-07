@@ -678,9 +678,6 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "cream-cheese": "CREAM CHEESE",
       "coffee-drinks": "COFFEE & DRINKS",
     },
-    categoryDescriptions: {
-      "cream-cheese": "Choose a classic bagel and add your favorite cream cheese.",
-    },
     items: {
       "plain-bagel": { name: "Plain Bagel", description: "A chewy classic bagel with a clean, toasty flavor" },
       "onion-bagel": { name: "Onion Bagel", description: "A savory bagel topped with sweet toasted onion" },
@@ -719,9 +716,6 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "cream-cheese": "奶油奶酪",
       "coffee-drinks": "咖啡与饮品",
     },
-    categoryDescriptions: {
-      "cream-cheese": "选好经典贝果，再搭配喜欢的奶油奶酪。",
-    },
     items: {
       "plain-bagel": { name: "原味贝果", description: "麦香清爽、口感有嚼劲的经典原味贝果" },
       "onion-bagel": { name: "洋葱贝果", description: "铺上香甜烤洋葱的咸香贝果" },
@@ -759,9 +753,6 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "bagel-sandwiches": "ベーグルサンド",
       "cream-cheese": "クリームチーズ",
       "coffee-drinks": "コーヒー＆ドリンク",
-    },
-    categoryDescriptions: {
-      "cream-cheese": "クラシックベーグルを選び、お好みのクリームチーズを添えてどうぞ。",
     },
     items: {
       "plain-bagel": { name: "プレーンベーグル", description: "小麦の香りともちもち食感を楽しむ定番ベーグル" },

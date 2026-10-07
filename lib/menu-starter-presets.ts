@@ -734,8 +734,6 @@ const loopBagelStarterPreset: StarterPreset = {
           key: "cream-cheese",
           name: "CREAM CHEESE",
           section_key: "main_menu",
-          description: "클래식 베이글을 고른 뒤 취향에 맞는 크림치즈를 곁들여 보세요.",
-          description_visible: true,
           items: [
             item("플레인 크림치즈", 1500, "", {
               key: "plain-cream-cheese", image_url: LOOP_BAGEL_PLAIN_CREAM_CHEESE_IMAGE,

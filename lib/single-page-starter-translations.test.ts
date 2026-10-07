@@ -52,7 +52,7 @@ for (const [templateKey, translations] of Object.entries(SINGLE_PAGE_STARTER_TRA
         true,
       );
       if (templateKey === "fast_food_loop_bagel_a") {
-        assert.equal(Boolean(copy.categoryDescriptions?.["cream-cheese"]?.trim()), true);
+        assert.equal(copy.categoryDescriptions?.["cream-cheese"], undefined);
       }
       assert.equal(Object.values(copy.promotions).every((promotion) => promotion.badgeText.trim()), true);
     }

@@ -132,8 +132,8 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(loopBagelDrinks?.items.every((item) => !item.price_column_values?.length), true);
   assert.equal(loopBagelDrinks?.items.every((item) => !item.description.trim()), true);
   const loopBagelCreamCheese = loopBagel.pages[0]?.categories.find((category) => category.key === "cream-cheese");
-  assert.equal(loopBagelCreamCheese?.description, "클래식 베이글을 고른 뒤 취향에 맞는 크림치즈를 곁들여 보세요.");
-  assert.equal(loopBagelCreamCheese?.description_visible, true);
+  assert.equal(loopBagelCreamCheese?.description, undefined);
+  assert.equal(loopBagelCreamCheese?.description_visible, undefined);
   assert.equal(loopBagelCreamCheese?.items.every((item) => !item.description.trim()), true);
   const loopBagelEggCheeseHam = loopBagel.pages[0]?.categories
     .flatMap((category) => category.items)
