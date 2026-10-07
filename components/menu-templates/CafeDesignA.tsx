@@ -23,6 +23,8 @@ import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
 import {
   getCafeAMenuWrapDensityDecision,
   getCafeAMenuWrapDensityDecisionForColumns,
+  getCafeAMenuWrapScaleCandidates,
+  hasCafeAMenuWrapDensityImproved,
   type CafeAMenuWrapDensityDecision,
 } from "@/lib/cafe-a-wrap-density";
 import { DEFAULT_LOCALE } from "@/lib/locales";
@@ -7234,11 +7236,23 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       }
 
       const baselineWrapDensity = measureCafeAMenuWrapDensity(fitMenuElement);
-      const wrapScale = baselineWrapDensity.recommendedScale;
-      fitBoardElement.style.setProperty("--fit-menu-wrap-scale", String(wrapScale));
+      let wrapScale = 1;
+      let wrapDensity = baselineWrapDensity;
+
+      for (const candidateScale of getCafeAMenuWrapScaleCandidates(baselineWrapDensity)) {
+        wrapScale = candidateScale;
+        fitBoardElement.style.setProperty("--fit-menu-wrap-scale", String(candidateScale));
+        wrapDensity = measureCafeAMenuWrapDensity(fitMenuElement);
+        if (
+          candidateScale === 1 ||
+          hasCafeAMenuWrapDensityImproved(baselineWrapDensity, wrapDensity)
+        ) {
+          break;
+        }
+      }
 
       return {
-        density: measureCafeAMenuWrapDensity(fitMenuElement),
+        density: wrapDensity,
         scale: wrapScale,
       };
     }

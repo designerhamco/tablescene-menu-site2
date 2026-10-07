@@ -210,7 +210,11 @@ test("모카 포레스트는 PC 전체 글자를 소폭 키우고 태블릿 상�
   );
   assert.match(
     globalStylesSource,
-    /data-preview-device="tablet"\] :is\(\.cafe-a-menu-title, \.cafe-a-featured-title\) \{[\s\S]*var\(--cafe-a-mocha-tablet-product-text-scale\)/,
+    /data-preview-device="tablet"\] \.cafe-a-menu-title \{[^}]*var\(--cafe-a-mocha-tablet-product-text-scale\)[^}]*var\(--fit-menu-wrap-scale, 1\)/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-preview-device="tablet"\] \.cafe-a-featured-title \{[^}]*var\(--cafe-a-mocha-tablet-product-text-scale\)/,
   );
   assert.match(
     globalStylesSource,
@@ -218,11 +222,19 @@ test("모카 포레스트는 PC 전체 글자를 소폭 키우고 태블릿 상�
   );
   assert.match(
     globalStylesSource,
-    /data-preview-device="tablet"\] :is\(\.cafe-a-menu-description, \.cafe-a-time-sale-time-text\),[\s\S]*\.cafe-a-featured-description \{[\s\S]*var\(--cafe-a-mocha-tablet-product-text-scale\)/,
+    /data-preview-device="tablet"\] :is\(\.cafe-a-menu-description, \.cafe-a-time-sale-time-text\) \{[^}]*var\(--cafe-a-mocha-tablet-product-text-scale\)[^}]*var\(--fit-menu-wrap-scale, 1\)/,
   );
   assert.match(
     globalStylesSource,
-    /data-preview-device="tablet"\] :is\(\.cafe-a-menu-price, \.cafe-a-featured-price\) \{[\s\S]*var\(--cafe-a-mocha-tablet-product-text-scale\)/,
+    /data-preview-device="tablet"\] \.cafe-a-cover-hero \.cafe-a-featured-description \{[^}]*var\(--cafe-a-mocha-tablet-product-text-scale\)/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-preview-device="tablet"\] \.cafe-a-menu-price \{[^}]*var\(--cafe-a-mocha-tablet-product-text-scale\)[^}]*var\(--fit-menu-wrap-scale, 1\)/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-preview-device="tablet"\] \.cafe-a-featured-price \{[^}]*var\(--cafe-a-mocha-tablet-product-text-scale\)/,
   );
   assert.match(
     globalStylesSource,
@@ -269,12 +281,12 @@ test("원페이지 템플릿의 상품·대표·안내 텍스트는 역할별 �
   assert.doesNotMatch(globalStylesSource, /\.cafe-a-menu-price-size-(?:spacious|default|compact|ultra-compact) \{[^}]*--cafe-a-menu-price-size:[^;]*cqw/);
   assert.match(
     globalStylesSource,
-    /\.cafe-a-typography:not\(\.brew-chapter-template\) :is\(\.cafe-a-menu-title, \.cafe-a-featured-title\) \{[\s\S]*font-size: calc\(var\(--cafe-a-linked-item-name-size\) \* var\(--cafe-a-device-type-scale\)\);[\s\S]*line-height: 1\.375;/,
+    /\.cafe-a-typography:not\(\.brew-chapter-template\) :is\(\.cafe-a-menu-title, \.cafe-a-featured-title\) \{[^}]*line-height: 1\.375;/,
   );
   assert.match(globalStylesSource, /\.cafe-a-cover-hero \.cafe-a-featured-title \{[\s\S]*var\(--cafe-a-featured-role-scale\)/);
   assert.match(
     globalStylesSource,
-    /\.cafe-a-typography:not\(\.brew-chapter-template\) \.cafe-a-menu-description \{[\s\S]*font-size: calc\(var\(--cafe-a-linked-supporting-copy-size\) \* var\(--cafe-a-device-type-scale\)\);[\s\S]*line-height: 1\.45;/,
+    /\.cafe-a-typography:not\(\.brew-chapter-template\) \.cafe-a-menu-description \{[^}]*font-size: calc\(var\(--cafe-a-linked-supporting-copy-size\) \* var\(--cafe-a-device-type-scale\) \* var\(--fit-menu-wrap-scale, 1\)\);[^}]*line-height: 1\.45;/,
   );
   assert.match(globalStylesSource, /\.cafe-a-cover-hero \.cafe-a-featured-description \{[\s\S]*var\(--cafe-a-featured-role-scale\)/);
   assert.match(
@@ -283,7 +295,7 @@ test("원페이지 템플릿의 상품·대표·안내 텍스트는 역할별 �
   );
   assert.match(
     globalStylesSource,
-    /\.cafe-a-typography:not\(\.brew-chapter-template\) :is\(\.cafe-a-menu-price, \.cafe-a-featured-price\) \{[\s\S]*font-size: calc\(var\(--cafe-a-linked-price-size\) \* var\(--cafe-a-device-type-scale\)\);[\s\S]*font-weight: var\(--menu-role-price-font-weight, 700\);/,
+    /\.cafe-a-typography:not\(\.brew-chapter-template\) :is\(\.cafe-a-menu-price, \.cafe-a-featured-price\) \{[^}]*font-weight: var\(--menu-role-price-font-weight, 700\);/,
   );
   assert.match(
     globalStylesSource,
@@ -585,4 +597,23 @@ test("ordered balanced fit은 안전 후보 순회를 제한해 로딩 상태에
     /boardElement\.closest\('\[data-cafe-a-skin="mocha_forest"\]'\)[\s\S]*MOCHA_FOREST_MENU_REGION_SAFETY_GAP[\s\S]*BALANCED_VISIBLE_GAP/,
   );
   assert.match(templateSource, /isMochaForest && menuWidth >= 760[\s\S]*\? \[3\]/);
+});
+
+test("줄바꿈 밀도 보정은 최종 메뉴 텍스트 역할에 실제로 반영된다", () => {
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-typography:not\(\.brew-chapter-template\) \.cafe-a-menu-title\s*\{[\s\S]*?font-size:[^;]*var\(--fit-menu-wrap-scale, 1\)/,
+  );
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-typography:not\(\.brew-chapter-template\) \.cafe-a-menu-description\s*\{[\s\S]*?font-size:[^;]*var\(--fit-menu-wrap-scale, 1\)/,
+  );
+  assert.match(
+    globalStylesSource,
+    /\.cafe-a-typography:not\(\.brew-chapter-template\) \.cafe-a-menu-price\s*\{[\s\S]*?font-size:[^;]*var\(--fit-menu-wrap-scale, 1\)/,
+  );
+  assert.doesNotMatch(
+    globalStylesSource,
+    /\.cafe-a-typography:not\(\.brew-chapter-template\) \.cafe-a-featured-title\s*\{[^}]*var\(--fit-menu-wrap-scale, 1\)/,
+  );
 });

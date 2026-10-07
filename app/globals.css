@@ -4202,10 +4202,17 @@ video {
  */
 .cafe-a-typography:not(.brew-chapter-template) :is(.cafe-a-menu-title, .cafe-a-featured-title) {
   font-family: var(--menu-role-item-name-font-family, inherit);
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale));
   font-weight: var(--menu-role-item-name-font-weight, 700);
   letter-spacing: 0;
   line-height: 1.375;
+}
+
+.cafe-a-typography:not(.brew-chapter-template) .cafe-a-menu-title {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--fit-menu-wrap-scale, 1));
+}
+
+.cafe-a-typography:not(.brew-chapter-template) .cafe-a-featured-title {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale));
 }
 
 .cafe-a-typography:not(.brew-chapter-template) {
@@ -4218,7 +4225,7 @@ video {
 
 .cafe-a-typography:not(.brew-chapter-template) .cafe-a-menu-description {
   font-family: var(--menu-role-supporting-font-family, inherit);
-  font-size: calc(var(--cafe-a-linked-supporting-copy-size) * var(--cafe-a-device-type-scale));
+  font-size: calc(var(--cafe-a-linked-supporting-copy-size) * var(--cafe-a-device-type-scale) * var(--fit-menu-wrap-scale, 1));
   font-weight: var(--menu-role-supporting-font-weight, 400);
   letter-spacing: 0;
   line-height: 1.45;
@@ -4230,11 +4237,18 @@ video {
 
 .cafe-a-typography:not(.brew-chapter-template) :is(.cafe-a-menu-price, .cafe-a-featured-price) {
   font-family: var(--menu-role-price-font-family, inherit);
-  font-size: calc(var(--cafe-a-linked-price-size) * var(--cafe-a-device-type-scale));
   font-variant-numeric: tabular-nums;
   font-weight: var(--menu-role-price-font-weight, 700);
   letter-spacing: normal;
   line-height: 1;
+}
+
+.cafe-a-typography:not(.brew-chapter-template) .cafe-a-menu-price {
+  font-size: calc(var(--cafe-a-linked-price-size) * var(--cafe-a-device-type-scale) * var(--fit-menu-wrap-scale, 1));
+}
+
+.cafe-a-typography:not(.brew-chapter-template) .cafe-a-featured-price {
+  font-size: calc(var(--cafe-a-linked-price-size) * var(--cafe-a-device-type-scale));
 }
 
 .cafe-a-typography:not(.brew-chapter-template) .cafe-a-cover-hero .cafe-a-featured-price {
@@ -4389,17 +4403,22 @@ video {
 }
 
 .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-menu-meta {
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-secondary-ratio));
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-secondary-ratio) * var(--fit-menu-wrap-scale, 1));
+}
+
+.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) :is(
+  [data-cafe-a-widget-body],
+  .cafe-a-store-description,
+  .cafe-a-description-text
+) {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-template-supporting-copy-scale));
 }
 
 .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) :is(
   .cafe-a-menu-description,
-  [data-cafe-a-widget-body],
-  .cafe-a-store-description,
-  .cafe-a-description-text,
   .cafe-a-time-sale-time-text
 ) {
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-template-supporting-copy-scale));
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-template-supporting-copy-scale) * var(--fit-menu-wrap-scale, 1));
 }
 
 /* Cover selectors carry extra specificity; keep the featured description on the same role ratio in tablet portrait/mobile layouts too. */
@@ -4407,7 +4426,11 @@ video {
   font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-template-supporting-copy-scale));
 }
 
-.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) :is(.cafe-a-menu-price, .cafe-a-featured-price) {
+.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-menu-price {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-price-ratio) * var(--fit-menu-wrap-scale, 1));
+}
+
+.cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-featured-price {
   font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-price-ratio));
 }
 
@@ -4422,16 +4445,25 @@ video {
 /* Desktop skins add rail/cover selectors with higher specificity; keep every linked role on the shared board token. */
 @media (min-width: 1024px) {
   .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-desktop-fit-board :is(
-    .cafe-a-menu-description,
     [data-cafe-a-widget-body],
     .cafe-a-store-description,
-    .cafe-a-description-text,
-    .cafe-a-time-sale-time-text
+    .cafe-a-description-text
   ) {
     font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-template-supporting-copy-scale));
   }
 
-  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-desktop-fit-board :is(.cafe-a-menu-price, .cafe-a-featured-price) {
+  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-desktop-fit-board :is(
+    .cafe-a-menu-description,
+    .cafe-a-time-sale-time-text
+  ) {
+    font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-template-supporting-copy-scale) * var(--fit-menu-wrap-scale, 1));
+  }
+
+  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-desktop-fit-board .cafe-a-menu-price {
+    font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-price-ratio) * var(--fit-menu-wrap-scale, 1));
+  }
+
+  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]) .cafe-a-desktop-fit-board .cafe-a-featured-price {
     font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-price-ratio));
   }
 }
@@ -4441,20 +4473,31 @@ video {
   --cafe-a-mocha-tablet-product-text-scale: 0.97;
 }
 
-.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] :is(.cafe-a-menu-title, .cafe-a-featured-title) {
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] .cafe-a-menu-title {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-mocha-tablet-product-text-scale) * var(--fit-menu-wrap-scale, 1));
+}
+
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] .cafe-a-featured-title {
   font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-mocha-tablet-product-text-scale));
 }
 
 .cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] .cafe-a-menu-meta {
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-secondary-ratio) * var(--cafe-a-mocha-tablet-product-text-scale));
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-secondary-ratio) * var(--cafe-a-mocha-tablet-product-text-scale) * var(--fit-menu-wrap-scale, 1));
 }
 
-.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] :is(.cafe-a-menu-description, .cafe-a-time-sale-time-text),
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] :is(.cafe-a-menu-description, .cafe-a-time-sale-time-text) {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-mocha-tablet-product-text-scale) * var(--cafe-a-template-supporting-copy-scale) * var(--fit-menu-wrap-scale, 1));
+}
+
 .cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] .cafe-a-cover-hero .cafe-a-featured-description {
   font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--cafe-a-mocha-tablet-product-text-scale) * var(--cafe-a-template-supporting-copy-scale));
 }
 
-.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] :is(.cafe-a-menu-price, .cafe-a-featured-price) {
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] .cafe-a-menu-price {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-price-ratio) * var(--cafe-a-mocha-tablet-product-text-scale) * var(--fit-menu-wrap-scale, 1));
+}
+
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="tablet"] .cafe-a-featured-price {
   font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-price-ratio) * var(--cafe-a-mocha-tablet-product-text-scale));
 }
 

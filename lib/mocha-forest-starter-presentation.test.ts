@@ -57,7 +57,11 @@ test("Mocha Forest slightly reduces the linked supporting copy off mobile", () =
   );
   assert.match(
     globalStylesSource,
-    /:is\(\s*\.cafe-a-menu-description,[\s\S]*\[data-cafe-a-widget-body\],[\s\S]*\.cafe-a-store-description,[\s\S]*\.cafe-a-description-text,[\s\S]*\.cafe-a-time-sale-time-text[\s\S]*var\(--cafe-a-template-supporting-copy-scale\)/,
+    /:is\(\s*\[data-cafe-a-widget-body\],[\s\S]*\.cafe-a-store-description,[\s\S]*\.cafe-a-description-text[\s\S]*var\(--cafe-a-template-supporting-copy-scale\)/,
+  );
+  assert.match(
+    globalStylesSource,
+    /:is\(\s*\.cafe-a-menu-description,[\s\S]*\.cafe-a-time-sale-time-text[\s\S]*var\(--cafe-a-template-supporting-copy-scale\)[^}]*var\(--fit-menu-wrap-scale, 1\)/,
   );
   assert.match(
     globalStylesSource,

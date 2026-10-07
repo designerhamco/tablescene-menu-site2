@@ -18,6 +18,7 @@ export const CAFE_A_MAX_COMFORTABLE_TITLE_LINES = 2;
 export const CAFE_A_MAX_COMFORTABLE_DESCRIPTION_LINES = 3;
 export const CAFE_A_MILD_WRAP_SCALE = 0.97;
 export const CAFE_A_DENSE_WRAP_SCALE = 0.94;
+export const CAFE_A_WRAP_SCALE_CANDIDATES = [0.97, 0.94, 0.91, 0.88, 0.85, 0.82] as const;
 
 function normalizeLineCount(value: number | null | undefined) {
   if (!Number.isFinite(value)) return 0;
@@ -110,4 +111,21 @@ export function getCafeAMenuWrapDensityDecisionForColumns(
     }
     return densestDecision;
   }, boardDecision);
+}
+
+export function getCafeAMenuWrapScaleCandidates(
+  decision: CafeAMenuWrapDensityDecision,
+) {
+  if (decision.recommendedScale >= 1) return [1] as const;
+  const startIndex = CAFE_A_WRAP_SCALE_CANDIDATES.findIndex(
+    (scale) => scale <= decision.recommendedScale,
+  );
+  return CAFE_A_WRAP_SCALE_CANDIDATES.slice(Math.max(0, startIndex));
+}
+
+export function hasCafeAMenuWrapDensityImproved(
+  baseline: CafeAMenuWrapDensityDecision,
+  candidate: CafeAMenuWrapDensityDecision,
+) {
+  return candidate.recommendedScale > baseline.recommendedScale;
 }
