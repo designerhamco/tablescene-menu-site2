@@ -303,6 +303,7 @@ const LOOP_BAGEL_SALMON_DILL_IMAGE = "/menu-templates/fast_food_loop_bagel_a/sal
 const LOOP_BAGEL_MUSHROOM_MELT_IMAGE = "/menu-templates/fast_food_loop_bagel_a/mushroom-melt-bagel-sandwich.png";
 const LOOP_BAGEL_CLASSIC_PLAIN_IMAGE = "/menu-templates/fast_food_loop_bagel_a/classic-plain-bagel.png";
 const LOOP_BAGEL_FEATURED_PLAIN_IMAGE = "/menu-templates/fast_food_loop_bagel_a/featured-plain-bagel-brand-blue.webp";
+const LOOP_BAGEL_FEATURED_FRESH_IMAGE = "/menu-templates/fast_food_loop_bagel_a/featured-baked-fresh-every-day.webp";
 const LOOP_BAGEL_ONION_IMAGE = "/menu-templates/fast_food_loop_bagel_a/onion-bagel.png";
 const LOOP_BAGEL_BLUEBERRY_IMAGE = "/menu-templates/fast_food_loop_bagel_a/blueberry-bagel.png";
 const LOOP_BAGEL_BLACK_OLIVE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/black-olive-bagel.png";
@@ -656,11 +657,9 @@ const loopBagelStarterPreset: StarterPreset = {
       sort_order: 0,
     },
     {
-      id: "loop-bagel-featured-cream-cheese",
-      image_url: LOOP_BAGEL_HONEY_WALNUT_CREAM_CHEESE_IMAGE,
+      id: "loop-bagel-featured-baked-fresh",
+      image_url: LOOP_BAGEL_FEATURED_FRESH_IMAGE,
       image_path: null,
-      featured_item_key: "honey-walnut-cream-cheese",
-      featured_item_name: "허니 월넛 크림치즈",
       sort_order: 1,
     },
   ],

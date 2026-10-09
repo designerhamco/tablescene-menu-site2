@@ -182,8 +182,8 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.deepEqual(loopBagel.time_sales?.map((sale) => sale.key), ["egg-cheese-morning-deal"]);
   assert.equal(
     loopBagel.featured_slides?.some(
-      (slide) => slide.featured_item_key === "honey-walnut-cream-cheese"
-        && slide.image_url === "/menu-templates/fast_food_loop_bagel_a/honey-walnut-cream-cheese.png",
+      (slide) => !slide.featured_item_key && !slide.featured_item_name
+        && slide.image_url === "/menu-templates/fast_food_loop_bagel_a/featured-baked-fresh-every-day.webp",
     ),
     true,
   );
