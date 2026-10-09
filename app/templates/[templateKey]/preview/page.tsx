@@ -862,8 +862,38 @@ function applyCafeDenseContentQaFixture(
   contentQa: string | string[] | undefined
 ): MenuPageData {
   if (process.env.NODE_ENV === "production") return data;
-  if (data.menuSite.template_key !== "cafe_design_a" && data.menuSite.template_key !== "cafe_sunday_line_a") return data;
   if (normalizeContentQaCase(contentQa) !== "dense") return data;
+
+  // Development-only stress data: do not modify Loop Bagel's saved starter.
+  if (data.menuSite.template_key === "fast_food_loop_bagel_a") {
+    const extraItems = data.items.filter((item) => item.visible !== false).map((item) => ({
+      ...item,
+      id: `${item.id}-spacing-qa`,
+      name: `${item.name} 스페셜`,
+      sort_order: item.sort_order + data.items.length,
+    }));
+    const firstItemId = data.items.find((item) => item.visible !== false)?.id;
+    return {
+      ...data,
+      items: [...data.items, ...extraItems].map((item) => item.id === firstItemId ? {
+        ...item,
+        name: "스모크 베이컨 체더 크림치즈 베이글",
+        set_name: "SMOKED BACON CHEDDAR CREAM CHEESE BAGEL",
+        description: "고소한 체더 치즈와 부드러운 크림치즈, 훈연 베이컨을 더해 매장에서 매일 정성껏 구워내는 베이글",
+        badge: "루프 한정 메뉴",
+        badge_label: "루프 한정 메뉴",
+      } : item),
+      priceOptions: [
+        ...data.priceOptions,
+        ...data.priceOptions.map((option) => ({
+          ...option,
+          id: `${option.id}-spacing-qa`,
+          menu_item_id: `${option.menu_item_id}-spacing-qa`,
+        })),
+      ],
+    };
+  }
+  if (data.menuSite.template_key !== "cafe_design_a" && data.menuSite.template_key !== "cafe_sunday_line_a") return data;
 
   const page = sortMenuPages(data.pages.filter((candidate) => candidate.visible !== false))[0] ?? data.pages[0];
   if (!page) return data;

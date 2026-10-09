@@ -16,6 +16,7 @@ type MenuLanguageSwitcherProps = {
   triggerVariant?: "default" | "cafe" | "aube";
   menuAlign?: "left" | "right";
   tone?: "default" | "inverse";
+  scriptAwareLabels?: boolean;
 };
 
 const SHORT_LOCALE_LABELS: Record<SupportedLocale, string> = {
@@ -57,6 +58,7 @@ export default function MenuLanguageSwitcher({
   triggerVariant = "default",
   menuAlign = "right",
   tone = "default",
+  scriptAwareLabels = false,
 }: MenuLanguageSwitcherProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -144,7 +146,7 @@ export default function MenuLanguageSwitcher({
         ) : null}
         {triggerVariant === "cafe" ? (
           <>
-            <span className="leading-none">{SHORT_LOCALE_LABELS[currentLocale]}</span>
+            <span className="leading-none">{scriptAwareLabels ? <ScriptAwareText text={SHORT_LOCALE_LABELS[currentLocale]} /> : SHORT_LOCALE_LABELS[currentLocale]}</span>
             <ChevronDown className={chevronClassName} strokeWidth={1.8} aria-hidden="true" />
           </>
         ) : triggerVariant === "aube" ? (
@@ -175,7 +177,7 @@ export default function MenuLanguageSwitcher({
                 locale === currentLocale ? "text-zinc-950" : "text-zinc-500"
               }`}
             >
-              {triggerVariant === "aube" ? <ScriptAwareText text={SHORT_LOCALE_LABELS[locale]} /> : LOCALE_LABELS[locale]}
+              {triggerVariant === "aube" ? <ScriptAwareText text={SHORT_LOCALE_LABELS[locale]} /> : scriptAwareLabels ? <ScriptAwareText text={LOCALE_LABELS[locale]} /> : LOCALE_LABELS[locale]}
             </a>
           ))}
         </div>

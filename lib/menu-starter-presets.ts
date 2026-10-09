@@ -307,6 +307,7 @@ const LOOP_BAGEL_FEATURED_FRESH_IMAGE = "/menu-templates/fast_food_loop_bagel_a/
 const LOOP_BAGEL_ONION_IMAGE = "/menu-templates/fast_food_loop_bagel_a/onion-bagel.png";
 const LOOP_BAGEL_BLUEBERRY_IMAGE = "/menu-templates/fast_food_loop_bagel_a/blueberry-bagel.png";
 const LOOP_BAGEL_BLACK_OLIVE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/black-olive-bagel.png";
+const LOOP_BAGEL_CHEDDAR_CHEESE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/cheddar-cheese-bagel.png";
 const LOOP_BAGEL_PLAIN_CREAM_CHEESE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/plain-cream-cheese.png";
 const LOOP_BAGEL_SCALLION_CREAM_CHEESE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/scallion-cream-cheese.png";
 const LOOP_BAGEL_HONEY_WALNUT_CREAM_CHEESE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/honey-walnut-cream-cheese.png";
@@ -668,11 +669,21 @@ const loopBagelStarterPreset: StarterPreset = {
       key: "egg-cheese-morning-deal",
       name: "에그 햄치즈 베이글 모닝딜",
       schedule_type: "once",
-      badge_text: "MORNING",
+      badge_text: "루프모닝",
       badge_background_color: "#4354EF",
       time_display_mode: "message",
       time_display_text: "매일 오전 8시부터 10시까지",
       targets: [{ target_item_key: "egg-cheese-bagel", target_item_name: "에그 햄치즈 베이글", sale_price: 5900 }],
+    },
+    {
+      key: "plain-cream-cheese-closeout",
+      name: "플레인 크림치즈 재고 할인",
+      schedule_type: "once",
+      duration_minutes: 60,
+      badge_text: "재고 할인",
+      badge_background_color: "#4354EF",
+      time_display_mode: "countdown",
+      targets: [{ target_item_key: "plain-cream-cheese", target_item_name: "플레인 크림치즈", sale_price: 1000 }],
     },
   ],
   widgets: [],
@@ -709,6 +720,9 @@ const loopBagelStarterPreset: StarterPreset = {
             item("블랙 올리브 베이글", 4300, "짭조름한 블랙 올리브를 넣어 담백하게 구운 세이보리 베이글", {
               key: "black-olive-bagel", image_url: LOOP_BAGEL_BLACK_OLIVE_IMAGE,
             }),
+            item("체더 치즈 베이글", 4500, "고소한 체더 치즈를 반죽과 토핑에 더해 짭짤하게 구운 베이글", {
+              key: "cheddar-cheese-bagel", image_url: LOOP_BAGEL_CHEDDAR_CHEESE_IMAGE,
+            }),
           ],
         },
         {
@@ -720,7 +734,7 @@ const loopBagelStarterPreset: StarterPreset = {
               key: "egg-cheese-bagel", image_url: LOOP_BAGEL_EGG_HAM_CHEESE_IMAGE,
             }),
             item("바질 치킨 베이글", 7900, "로스트 치킨과 바질 페스토, 토마토를 담은 산뜻한 샌드위치", {
-              key: "basil-chicken-bagel", image_url: LOOP_BAGEL_BASIL_CHICKEN_IMAGE, badge_label: "NEW",
+              key: "basil-chicken-bagel", image_url: LOOP_BAGEL_BASIL_CHICKEN_IMAGE, badge_label: "신상",
             }),
             item("살몬 딜 베이글", 8900, "훈제 연어와 딜 크림치즈, 케이퍼를 겹겹이 담은 클래식 조합", {
               key: "salmon-dill-bagel", image_url: LOOP_BAGEL_SALMON_DILL_IMAGE,

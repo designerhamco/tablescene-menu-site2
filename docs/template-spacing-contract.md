@@ -31,6 +31,18 @@ Viewport and fit calculations may change the base item gap, but semantic ratios 
 
 Display templates use the calculated content row (`--display-row`) as the base unit. Category-title-to-first-item spacing must use the same row-budget scale as item-to-item spacing.
 
+### Loop Bagel PC/tablet pilot
+
+Loop Bagel alone uses `getLoopBagelFitGapScale()` for its CafeA fit modes. Mobile and every other template keep their existing rules. The gap scale is derived from the selected font scale plus a continuous, bounded correction for menu-container width and viewport height, not the residual empty space after content layout:
+
+- width progress: `clamp((menuWidth - 640) / 800, 0, 1)`;
+- height progress: `clamp((viewportHeight - 640) / 440, 0, 1)`;
+- correction: `0.94 + 0.10 * widthProgress + 0.06 * heightProgress`;
+- upper limit: `0.78 + 0.22 * widthProgress + 0.10 * heightProgress`;
+- gap scale: `clamp((fontScale + 0.02) * correction, 0.44, upperLimit)`.
+
+The CSS pixel clamps and semantic ratios are unchanged. Candidate measurement, committed fit state, validation, and overflow backoff use the same mapping. Loop Bagel skips the secondary whitespace-driven enlargement/final-fill boosts; the primary fit selection and DOM-crop safety checks remain active. This pilot does not prescribe the same numeric calibration for another template.
+
 ## Editorial-scroll templates
 
 Multi-page templates do not stretch or compress content to fill a viewport. They keep a stable editorial rhythm, a maximum readable width, and natural vertical scrolling.

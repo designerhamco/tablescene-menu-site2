@@ -558,7 +558,7 @@ test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하�
   assert.match(templateSource, /const FIT_PRESENTATION_FONT_WAIT_MS = 1500;/);
   assert.match(templateSource, /fontTimeoutId = window\.setTimeout\(waitForStableLayout, FIT_PRESENTATION_FONT_WAIT_MS\)/);
   assert.match(templateSource, /verificationScheduled = true;/);
-  assert.match(templateSource, /if \(!isMochaForest && actualCropMeasurement\.bottomGap > 12\)/);
+  assert.match(templateSource, /if \(!isMochaForest && !isLoopBagelFitSpacing && actualCropMeasurement\.bottomGap > 12\)/);
   assert.match(templateSource, /orderedBalancedSeenStateRef/);
   assert.match(templateSource, /isReturningToSeenSafeCandidate/);
   assert.match(templateSource, /data-fit-presentation-state=\{fitPresentationState\}/);

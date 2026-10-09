@@ -683,6 +683,7 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "onion-bagel": { name: "Onion Bagel", description: "A savory bagel topped with sweet toasted onion" },
       "blueberry-bagel": { name: "Blueberry Bagel", description: "A gently sweet bagel baked with blueberries throughout" },
       "black-olive-bagel": { name: "Black Olive Bagel", description: "A savory bagel baked with briny black olive pieces" },
+      "cheddar-cheese-bagel": { name: "Cheddar Cheese Bagel", description: "A savory bagel baked with cheddar cheese in the dough and on top" },
       "egg-cheese-bagel": { name: "Egg, Ham & Cheese Bagel", description: "Egg, ham, and cheddar in a hearty bagel sandwich" },
       "basil-chicken-bagel": { name: "Basil Chicken Bagel", description: "Roast chicken, basil pesto, and tomato in a fresh bagel" },
       "salmon-dill-bagel": { name: "Salmon Dill Bagel", description: "Smoked salmon layered with dill cream cheese and capers" },
@@ -697,6 +698,7 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
     },
     promotions: {
       "egg-cheese-morning-deal": { badgeText: "MORNING", timeDisplayText: "Daily from 8 AM to 10 AM" },
+      "plain-cream-cheese-closeout": { badgeText: "STOCK SALE", timeDisplayText: "" },
     },
   },
   zh: {
@@ -721,6 +723,7 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "onion-bagel": { name: "洋葱贝果", description: "铺上香甜烤洋葱的咸香贝果" },
       "blueberry-bagel": { name: "蓝莓贝果", description: "面团中揉入蓝莓，带有柔和果香与甜味" },
       "black-olive-bagel": { name: "黑橄榄贝果", description: "加入咸香黑橄榄烘烤的风味贝果" },
+      "cheddar-cheese-bagel": { name: "切达芝士贝果", description: "面团与表面加入切达芝士烤制的咸香贝果" },
       "egg-cheese-bagel": { name: "鸡蛋火腿芝士贝果", description: "鸡蛋、火腿与切达芝士组成的饱满贝果三明治" },
       "basil-chicken-bagel": { name: "罗勒鸡肉贝果", description: "烤鸡、罗勒青酱与番茄的清新组合" },
       "salmon-dill-bagel": { name: "三文鱼莳萝贝果", description: "烟熏三文鱼、莳萝奶油奶酪与酸豆" },
@@ -735,6 +738,7 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
     },
     promotions: {
       "egg-cheese-morning-deal": { badgeText: "早餐优惠", timeDisplayText: "每天上午8点至10点" },
+      "plain-cream-cheese-closeout": { badgeText: "库存特惠", timeDisplayText: "" },
     },
   },
   ja: {
@@ -759,6 +763,7 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "onion-bagel": { name: "オニオンベーグル", description: "香ばしく焼いたオニオンをのせたセイボリーベーグル" },
       "blueberry-bagel": { name: "ブルーベリーベーグル", description: "ブルーベリーを練り込んだやさしい甘さのベーグル" },
       "black-olive-bagel": { name: "ブラックオリーブベーグル", description: "塩味のあるブラックオリーブを練り込んだベーグル" },
+      "cheddar-cheese-bagel": { name: "チェダーチーズベーグル", description: "生地とトッピングにチェダーチーズを加えて香ばしく焼いたベーグル" },
       "egg-cheese-bagel": { name: "エッグハムチーズベーグル", description: "卵、ハム、チェダーチーズを挟んだ食べ応えのあるベーグルサンド" },
       "basil-chicken-bagel": { name: "バジルチキンベーグル", description: "ローストチキン、バジルペスト、トマトの爽やかなサンド" },
       "salmon-dill-bagel": { name: "サーモンディルベーグル", description: "スモークサーモンとディルクリームチーズ、ケーパー" },
@@ -773,6 +778,7 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
     },
     promotions: {
       "egg-cheese-morning-deal": { badgeText: "MORNING", timeDisplayText: "毎日午前8時から10時まで" },
+      "plain-cream-cheese-closeout": { badgeText: "在庫セール", timeDisplayText: "" },
     },
   },
 };

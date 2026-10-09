@@ -13,7 +13,7 @@ const SINGLE_PAGE_DENSITY_CONTRACT = {
   cafe_sunday_line_a: [3, 3, 2, 3, 6],
   cafe_van_gogh_a: [3, 4, 3, 3, 4],
   cafe_round_focus_a: [3, 4, 4, 4, 4],
-  fast_food_loop_bagel_a: [4, 4, 3, 4],
+  fast_food_loop_bagel_a: [5, 4, 3, 4],
 } as const;
 
 for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_DENSITY_CONTRACT)) {
@@ -94,6 +94,7 @@ test("approved single-page starters keep their sixty-minute stock closeout count
     ["cafe_sunday_line_a", "brown-butter-scone-closeout"],
     ["cafe_van_gogh_a", "salted-caramel-scone-closeout"],
     ["cafe_round_focus_a", "truffle-fries-last-call"],
+    ["fast_food_loop_bagel_a", "plain-cream-cheese-closeout"],
   ]);
 
   for (const [templateKey, expectedSaleKey] of expectedCloseoutKeys) {
@@ -104,7 +105,7 @@ test("approved single-page starters keep their sixty-minute stock closeout count
     assert.equal(closeout.time_display_mode, "countdown", `${templateKey}: stock closeout display mode`);
     assert.match(
       closeout.badge_text ?? "",
-      templateKey === "cafe_round_focus_a" ? /LAST CALL/ : templateKey === "cafe_van_gogh_a" ? /LAST BATCH/ : /재고 마감/,
+      templateKey === "cafe_round_focus_a" ? /LAST CALL/ : templateKey === "cafe_van_gogh_a" ? /LAST BATCH/ : templateKey === "fast_food_loop_bagel_a" ? /재고 할인/ : /재고 마감/,
       `${templateKey}: stock closeout badge`,
     );
   }
@@ -117,7 +118,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(loopBagel.site.restaurant_name, "LOOP BAGEL");
   assert.equal(loopBagel.site.restaurant_category, "패스트푸드");
   assert.equal(loopBagel.site.restaurant_type, "fast_food");
-  assert.equal(loopBagelItems.length, 15);
+  assert.equal(loopBagelItems.length, 16);
   assert.equal(loopBagelItems.every((item) => !item.set_name?.trim()), true);
   assert.equal(loopBagelItems.every((item) => !item.price_options?.length), true);
   const loopBagelDrinks = loopBagel.pages[0]?.categories.find((category) => category.key === "coffee-drinks");
@@ -141,6 +142,13 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(loopBagelEggCheeseHam?.name, "에그 햄치즈 베이글");
   assert.equal(loopBagelEggCheeseHam?.description, "에그와 햄, 체더 치즈를 담은 든든한 베이글 샌드위치");
   assert.equal(loopBagelEggCheeseHam?.image_url, "/menu-templates/fast_food_loop_bagel_a/egg-ham-cheese-bagel.png");
+  const loopBagelCheddarCheese = loopBagel.pages[0]?.categories
+    .flatMap((category) => category.items)
+    .find((item) => item.key === "cheddar-cheese-bagel");
+  assert.equal(loopBagelCheddarCheese?.name, "체더 치즈 베이글");
+  assert.equal(loopBagelCheddarCheese?.description, "고소한 체더 치즈를 반죽과 토핑에 더해 짭짤하게 구운 베이글");
+  assert.equal(loopBagelCheddarCheese?.price, 4500);
+  assert.equal(loopBagelCheddarCheese?.image_url, "/menu-templates/fast_food_loop_bagel_a/cheddar-cheese-bagel.png");
   assert.deepEqual(
     loopBagel.pages[0]?.categories.map((category) => category.key),
     ["classic-bagels", "bagel-sandwiches", "cream-cheese", "coffee-drinks"],
@@ -157,6 +165,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
       "/menu-templates/fast_food_loop_bagel_a/onion-bagel.png",
       "/menu-templates/fast_food_loop_bagel_a/blueberry-bagel.png",
       "/menu-templates/fast_food_loop_bagel_a/black-olive-bagel.png",
+      "/menu-templates/fast_food_loop_bagel_a/cheddar-cheese-bagel.png",
     ],
   );
   assert.deepEqual(
@@ -179,7 +188,12 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(loopBagelDrinks?.items.every((item) => !item.image_url), true);
   assert.equal(loopBagel.featured_item_key, "plain-bagel");
   assert.equal(loopBagel.featured_slides?.some((slide) => slide.featured_item_key === "loop-signature-bagel"), false);
-  assert.deepEqual(loopBagel.time_sales?.map((sale) => sale.key), ["egg-cheese-morning-deal"]);
+  assert.deepEqual(loopBagel.time_sales?.map((sale) => sale.key), ["egg-cheese-morning-deal", "plain-cream-cheese-closeout"]);
+  assert.equal(loopBagel.time_sales?.[0]?.badge_text, "루프모닝");
+  assert.equal(loopBagelItems.find((item) => item.key === "basil-chicken-bagel")?.badge_label, "신상");
+  assert.deepEqual(loopBagel.time_sales?.[1]?.targets, [
+    { target_item_key: "plain-cream-cheese", target_item_name: "플레인 크림치즈", sale_price: 1000 },
+  ]);
   assert.equal(
     loopBagel.featured_slides?.some(
       (slide) => !slide.featured_item_key && !slide.featured_item_name
