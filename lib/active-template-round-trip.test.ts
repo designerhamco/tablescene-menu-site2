@@ -10,6 +10,7 @@ import {
 import { getStarterPreset } from "./menu-starter-presets";
 
 const ACTIVE_TEMPLATE_EXPECTATIONS = {
+  cafe_kohi_a: { pages: 1, categories: 5, items: 17 },
   cafe_design_a: { pages: 1, categories: 5, items: 18 },
   cafe_mocha_forest_a: { pages: 1, categories: 5, items: 18 },
   cafe_sunday_line_a: { pages: 1, categories: 5, items: 17 },

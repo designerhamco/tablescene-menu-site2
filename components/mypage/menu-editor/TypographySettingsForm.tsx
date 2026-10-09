@@ -261,7 +261,7 @@ export default function TypographySettingsForm({
 }: TypographySettingsFormProps) {
   const isDisplayTypography = isDisplayTypographyTemplate(templateKey);
   const isAubeTableTemplate = isAubeTableTemplateKey(templateKey);
-  const showRoleTypographyControl = isAubeTableTemplate || templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a" || templateKey === "cafe_round_focus_a" || templateKey === "fast_food_loop_bagel_a";
+  const showRoleTypographyControl = isAubeTableTemplate || templateKey === "cafe_design_a" || templateKey === "cafe_kohi_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a" || templateKey === "cafe_round_focus_a" || templateKey === "fast_food_loop_bagel_a";
   const isSundayLineTemplate = templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a";
   const isRoundFocusTemplate = templateKey === "cafe_round_focus_a";
   const isMochaForestTemplate = templateKey === "cafe_mocha_forest_a";
@@ -271,14 +271,14 @@ export default function TypographySettingsForm({
       ? "선데이 로스터스 SUNDAY 2026"
       : isMochaForestTemplate
         ? "모카 포레스트 MOCHA 2026"
-        : "리얼 맛차 REAL MATCHA 2026";
+        : templateKey === "cafe_kohi_a" ? "코히 KOHI 2026" : "리얼 맛차 REAL MATCHA 2026";
   const cafeAMiniPreviewDescriptionText = isRoundFocusTemplate
     ? "시트러스와 Deep 스피릿이 어우러지는 칵테일 바입니다."
     : isSundayLineTemplate
     ? "좋은 원두와 Simple 디저트를 준비하는 로스터리입니다."
     : isMochaForestTemplate
       ? "깊은 로스팅 향과 초콜릿 풍미를 담은 카페입니다."
-      : "좋은 맛차와 Organic 재료를 사용하는 카페입니다.";
+      : templateKey === "cafe_kohi_a" ? "좋은 커피와 Simple 디저트를 준비합니다." : "좋은 맛차와 Organic 재료를 사용하는 카페입니다.";
   const showFontSizeControl = getTemplateCapabilities(templateKey).typographyFontSizeControl === "simple";
   const fontSizeScaleOptions = getFontSizeScaleOptionsForTemplate(templateKey);
   const initialDisplaySafeFontSizeScale = normalizeFontSizeScaleKeyForTemplate(initialFontSizeScale, templateKey);

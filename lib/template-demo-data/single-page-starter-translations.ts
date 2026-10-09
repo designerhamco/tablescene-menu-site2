@@ -1,3 +1,5 @@
+import { KOHI_TRANSLATIONS } from "./kohi";
+
 export const SINGLE_PAGE_STARTER_TRANSLATION_LOCALES = ["en", "zh", "ja"] as const;
 
 export type SinglePageStarterTranslationLocale = (typeof SINGLE_PAGE_STARTER_TRANSLATION_LOCALES)[number];
@@ -785,6 +787,7 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
 
 export const SINGLE_PAGE_STARTER_TRANSLATIONS = {
   cafe_design_a: REAL_MATCHA_TRANSLATIONS,
+  cafe_kohi_a: KOHI_TRANSLATIONS,
   cafe_mocha_forest_a: MOCHA_FOREST_TRANSLATIONS,
   cafe_sunday_line_a: SUNDAY_LINE_TRANSLATIONS,
   cafe_van_gogh_a: VAN_GOGH_TRANSLATIONS,

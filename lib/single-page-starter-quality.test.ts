@@ -8,6 +8,7 @@ import { getSinglePageStarterTranslations } from "./template-demo-data/single-pa
 import { mergeTypographySettings } from "./template-typography-presets";
 
 const SINGLE_PAGE_DENSITY_CONTRACT = {
+  cafe_kohi_a: [5, 3, 3, 3, 3],
   cafe_design_a: [3, 4, 3, 3, 5],
   cafe_mocha_forest_a: [3, 5, 4, 3, 3],
   cafe_sunday_line_a: [3, 3, 2, 3, 6],

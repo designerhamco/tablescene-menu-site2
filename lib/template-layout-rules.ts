@@ -296,6 +296,9 @@ const fallbackLayoutRules: TemplateLayoutRules = {
 
 export function getTemplateLayoutRules(templateKey?: string | null, templateCategory?: string | null): TemplateLayoutRules {
   const normalizedTemplateKey = normalizeTemplateKey(templateKey, templateCategory);
+  if (normalizedTemplateKey === "cafe_kohi_a") {
+    return { ...TEMPLATE_LAYOUT_RULES.cafe_design_a, templateKey: "cafe_kohi_a" };
+  }
   const rules = TEMPLATE_LAYOUT_RULES[normalizedTemplateKey as keyof typeof TEMPLATE_LAYOUT_RULES];
 
   return rules ?? {

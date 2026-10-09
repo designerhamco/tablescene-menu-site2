@@ -9,6 +9,7 @@ import { mergeTypographySettings } from "./template-typography-presets";
 import { getTemplateByKey } from "./templates";
 
 const BASIC_FEATURE_EXPECTATIONS = {
+  cafe_kohi_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 0, soldOut: 0 },
   cafe_design_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_mocha_forest_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_sunday_line_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
@@ -61,6 +62,7 @@ test("launch template typography defaults and Display-only size control stay exp
     assert.equal(typography.korean_font_key, expectedKoreanFont, `${templateKey}: Korean font`);
     const expectedEnglishFont = {
       cafe_design_a: "oswald",
+      cafe_kohi_a: "oswald",
       cafe_mocha_forest_a: "chelsea-market",
       cafe_sunday_line_a: "federo",
       cafe_van_gogh_a: "special-elite",

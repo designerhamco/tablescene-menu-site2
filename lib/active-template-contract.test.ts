@@ -7,6 +7,7 @@ import { templateCatalog } from "./templates";
 
 const BASIC_LAUNCH_TEMPLATE_KEYS = [
   "cafe_design_a",
+  "cafe_kohi_a",
   "cafe_mocha_forest_a",
   "cafe_sunday_line_a",
   "cafe_van_gogh_a",
@@ -22,6 +23,7 @@ const BASIC_EDITOR_TAB_KEYS = ["basic", "cover", "menu", "design", "localization
 test("every Basic launch template is service-compatible without changing catalog visibility", () => {
   const expectedCatalogStatuses = {
     cafe_design_a: "available",
+    cafe_kohi_a: "available",
     cafe_mocha_forest_a: "available",
     cafe_sunday_line_a: "available",
     cafe_van_gogh_a: "available",

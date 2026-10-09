@@ -3,6 +3,7 @@ import { BASIC_DEFAULT_LAYOUT_MODE } from "@/lib/menu-layout-modes";
 import type { Database, Json, MenuSectionKey } from "@/lib/supabase/types";
 import type { SocialLinkType } from "@/lib/social-links";
 import { CAFE_DESIGN_A_STITCH_SAMPLE } from "@/lib/template-demo-data/cafe-design-a";
+import { createKohiStarterPreset } from "@/lib/template-demo-data/kohi";
 import { buildDisplayMenuAPreviewData } from "@/lib/template-demo-data/display-menu-a";
 import {
   SINGLE_PAGE_STARTER_TRANSLATION_LOCALES,
@@ -397,6 +398,7 @@ function isCafeAStarterTemplateKey(templateKey?: string | null) {
   const normalizedTemplateKey = templateKey?.trim().toLowerCase();
   return (
     normalizedTemplateKey === "cafe_design_a" ||
+    normalizedTemplateKey === "cafe_kohi_a" ||
     normalizedTemplateKey === "cafe_mocha_forest_a" ||
     normalizedTemplateKey === "cafe_sunday_line_a" ||
     normalizedTemplateKey === "cafe_round_focus_a" ||
@@ -409,6 +411,7 @@ function shouldApplyLeanStoreDescription(preset: StarterPreset, serviceType: Sta
   return (
     !shouldUseLeanStarterPreset(serviceType) ||
     preset === cafeDesignAStarterPreset ||
+    preset === cafeKohiStarterPreset ||
     preset === cafeMochaForestStarterPreset ||
     preset === cafeSundayLineStarterPreset ||
     preset === cafeRoundFocusStarterPreset ||
@@ -612,6 +615,8 @@ const cafeDesignAStarterPreset: StarterPreset = {
     },
   ],
 };
+
+const cafeKohiStarterPreset = createKohiStarterPreset(cloneStarterPresetForTemplate(cafeDesignAStarterPreset, "cafe_kohi_a"));
 
 const loopBagelStarterPreset: StarterPreset = {
   key: "fast_food",
@@ -2182,6 +2187,7 @@ const diningAubeTableBStarterPreset: StarterPreset = {
 
 const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
   cafe_design_a: cafeDesignAStarterPreset,
+  cafe_kohi_a: cafeKohiStarterPreset,
   cafe_mocha_forest_a: cafeMochaForestStarterPreset,
   cafe_sunday_line_a: cafeSundayLineStarterPreset,
   cafe_van_gogh_a: cafeVanGoghStarterPreset,

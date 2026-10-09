@@ -119,6 +119,18 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
     english_font_key: "oswald",
     font_size_scale_key: "m",
   },
+  cafe_kohi_a: {
+    korean_font_key: "pretendard",
+    english_font_key: "oswald",
+    font_size_scale_key: "m",
+    typography_roles: {
+      brand: { ...createDefaultTypographyRoleSettings().brand, color: "#000000" },
+      category: { ...createDefaultTypographyRoleSettings().category, color: "#B83A32" },
+      itemName: { ...createDefaultTypographyRoleSettings().itemName, color: "#000000" },
+      supporting: { ...createDefaultTypographyRoleSettings().supporting, color: "#000000" },
+      price: { ...createDefaultTypographyRoleSettings().price, color: "#000000" },
+    },
+  },
   cafe_mocha_forest_a: {
     korean_font_key: "pretendard",
     english_font_key: "chelsea-market",
@@ -215,6 +227,7 @@ const typographyRoleWeightKeys = new Set<TypographyRoleWeightKey>(TYPOGRAPHY_ROL
 function usesCafeARoleTypographyPolicy(templateKey?: string | null) {
   return (
     templateKey === "cafe_design_a" ||
+    templateKey === "cafe_kohi_a" ||
     templateKey === "cafe_mocha_forest_a" ||
     templateKey === "cafe_sunday_line_a" ||
     templateKey === "cafe_van_gogh_a" ||

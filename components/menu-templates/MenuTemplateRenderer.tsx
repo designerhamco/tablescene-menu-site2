@@ -60,6 +60,7 @@ export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
     case "cafe_round_focus_a":
       return withPublicMenuShell(<CafeRoundFocusA {...props} />);
     case "fast_food_loop_bagel_a":
+    case "cafe_kohi_a":
       return withPublicMenuShell(<CafeDesignA {...props} />);
     case "cafe_brew_chapter_a":
       return withPublicMenuShell(<CafeBrewChapterA {...props} />);

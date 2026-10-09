@@ -603,6 +603,7 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
 };
 
 const TEMPLATE_CAPABILITY_ALIASES: Record<string, keyof typeof TEMPLATE_CAPABILITIES> = {
+  cafe_kohi_a: "cafe_design_a",
   cafea: "cafe_design_a",
   cafe_a: "cafe_design_a",
   cafe_design_a: "cafe_design_a",

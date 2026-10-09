@@ -4695,6 +4695,102 @@ video {
   font-size: calc(clamp(0.58rem, calc(0.58rem * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 0.72rem) * var(--cafe-a-mocha-tablet-product-text-scale));
 }
 
+/* KOHI reuses REAL MATCHA's content rhythm; decorative page rules never take up flow space. */
+.cafe-a-typography[data-template-key="cafe_kohi_a"] {
+  --kohi-divider-width: clamp(1px, 0.12vmin, 1.6px);
+  --cafe-a-category-separation-ratio: 2.9;
+  --cafe-a-sunday-category-ratio: 1.34;
+  --cafe-a-sunday-secondary-ratio: 0.68;
+  --cafe-a-sunday-supporting-ratio: 0.81;
+  --cafe-a-sunday-price-ratio: 1.04;
+  --cafe-a-sunday-option-ratio: 0.62;
+  color: #000000;
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"][data-preview-device="tablet"] {
+  --cafe-a-sunday-category-ratio: 1.4;
+  --cafe-a-sunday-secondary-ratio: 0.63;
+  --cafe-a-sunday-supporting-ratio: 0.72;
+  --cafe-a-sunday-option-ratio: 0.53;
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-category-title {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-category-ratio));
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] :is(.cafe-a-menu-title, .cafe-a-featured-title, [data-cafe-a-widget-title]) {
+  color: #000000;
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-category-eyebrow.cafe-a-menu-description {
+  margin: 0 0 0.24em;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-menu-meta {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-secondary-ratio) * var(--fit-menu-wrap-scale, 1));
+  color: #000000;
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] :is(.cafe-a-store-description, .cafe-a-description-text, .cafe-a-featured-description) {
+  color: #000000;
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio));
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-menu-description {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--fit-menu-wrap-scale, 1));
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] :is(.cafe-a-menu-price, .cafe-a-featured-price) {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-price-ratio) * var(--fit-menu-wrap-scale, 1));
+  color: #000000;
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] :is(.cafe-a-menu-badge, .cafe-a-featured-badge, .cafe-a-menu-chip) {
+  border: 1px solid #000000;
+  border-radius: 0;
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-menu-category-top-divider {
+  display: none;
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] [data-template-language-control] {
+  color: #000000;
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero .cafe-a-featured-copy {
+  background: #f7f5f1;
+  color: #000000;
+  padding: clamp(0.625rem, 1.2vmin, 1rem);
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero .cafe-a-featured-description {
+  color: #000000;
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio));
+}
+
+@media (min-width: 1024px) {
+  .cafe-a-typography[data-template-key="cafe_kohi_a"]:not([data-preview-device="tablet"]) {
+    --cafe-a-sunday-category-ratio: 1.5;
+    --cafe-a-sunday-secondary-ratio: 0.64;
+    --cafe-a-sunday-supporting-ratio: 0.71;
+    --cafe-a-sunday-price-ratio: 1;
+    --cafe-a-sunday-option-ratio: 0.56;
+  }
+
+  .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-desktop-fit-board .cafe-a-store-title {
+    font-size: calc(clamp(calc(1.9rem * var(--menu-role-brand-size-scale, 1)), calc(5.4vh * var(--menu-role-brand-size-scale, 1)), calc(3.5rem * var(--menu-role-brand-size-scale, 1))) * var(--cafe-a-device-type-scale) * 1.06);
+  }
+}
+
+@media (max-width: 1023px) {
+  .cafe-a-typography[data-template-key="cafe_kohi_a"] :is(.kohi-mobile-menu-grid, .cafe-a-balanced-menu-grid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* Mocha Forest deliberately carries a stronger brand scale than the shared single-page hierarchy. */
 @media (min-width: 1024px) {
   .cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"] .cafe-a-desktop-fit-board .cafe-a-store-title {

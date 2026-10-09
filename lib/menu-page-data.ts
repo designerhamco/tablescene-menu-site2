@@ -100,7 +100,7 @@ const promotionItemSelect = "id, promotion_id, menu_item_id, price_column_id, sa
 const futurePromotionItemSelect = "promotion_id, menu_item_id, price_column_id, visible";
 
 function shouldLoadMenuWidgets(menuSite: MenuSite) {
-  return menuSite.template_key === "cafe_design_a" || menuSite.template_key === "cafe_mocha_forest_a" || menuSite.template_key === "cafe_sunday_line_a" || menuSite.template_key === "cafe_van_gogh_a" || menuSite.template_key === "cafe_round_focus_a" || menuSite.template_key === "fast_food_loop_bagel_a";
+  return menuSite.template_key === "cafe_design_a" || menuSite.template_key === "cafe_kohi_a" || menuSite.template_key === "cafe_mocha_forest_a" || menuSite.template_key === "cafe_sunday_line_a" || menuSite.template_key === "cafe_van_gogh_a" || menuSite.template_key === "cafe_round_focus_a" || menuSite.template_key === "fast_food_loop_bagel_a";
 }
 
 function orderBySortThenCreated<T extends { sort_order: number; created_at?: string }>(rows: T[]) {

@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
 import CafeAWidgetBlock, { type CafeAWidgetPreview } from "@/components/menu-templates/CafeAWidgetBlock";
+import KohiMenuDividers from "@/components/menu-templates/KohiMenuDividers";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import MenuOrderAddButton from "@/components/public-menu/order-call/MenuOrderAddButton";
@@ -3534,10 +3535,12 @@ function CategoryTitle({
   category,
   density,
   priceRailColumns,
+  descriptionAbove = false,
 }: {
   category: MenuCategory;
   density: MenuLayoutDensity;
   priceRailColumns?: CafeDesignAPriceRailColumn[];
+  descriptionAbove?: boolean;
 }) {
   const spacingClassName = getCategoryTitleSpacing(density);
   const titleClassName = {
@@ -3547,9 +3550,15 @@ function CategoryTitle({
     ultraCompact: "cafe-a-category-title-size-ultra-compact",
   }[density];
   const descriptionClassName = getMenuDescriptionSizeClassName(density);
+  const description = category.description_visible && category.description ? (
+    <p className={`cafe-a-description-text cafe-a-menu-description ${descriptionAbove ? "cafe-a-category-eyebrow" : "mt-2"} break-keep text-[#3f4945] ${descriptionClassName}`} data-cafe-a-category-description="">
+      <ScriptAwareText text={category.description} />
+    </p>
+  ) : null;
 
   return (
     <div className={`cafe-a-category-heading ${spacingClassName}`} data-cafe-a-category-heading="">
+      {descriptionAbove ? description : null}
       <div className="cafe-a-category-heading-row">
         <h2
           className={`cafe-a-category-title min-w-0 break-words font-black uppercase leading-tight text-[#191c1b] ${titleClassName}`}
@@ -3563,14 +3572,7 @@ function CategoryTitle({
           </div>
         ) : null}
       </div>
-      {category.description_visible && category.description && (
-        <p
-          className={`cafe-a-description-text cafe-a-menu-description mt-2 break-keep text-[#3f4945] ${descriptionClassName}`}
-          data-cafe-a-category-description=""
-        >
-          <ScriptAwareText text={category.description} />
-        </p>
-      )}
+      {!descriptionAbove ? description : null}
     </div>
   );
 }
@@ -6105,7 +6107,7 @@ function MenuCategoryContentBlock({
           data-cafe-a-category-divider-position="before"
         />
       ) : null}
-      <CategoryTitle category={block.category} density={density} priceRailColumns={priceRailColumns} />
+      <CategoryTitle category={block.category} density={density} priceRailColumns={priceRailColumns} descriptionAbove={data.menuSite.template_key === "cafe_kohi_a"} />
       <div className="cafe-a-category-items">
         {block.items.map((item) => (
           <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
@@ -9332,7 +9334,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               {isSundayLine ? <SundayLineMobileNotices data={data} capabilities={capabilities} density={density} /> : null}
             </>
           )}
-          <div className={`grid min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-[var(--cafe-a-page-block-end)] md:grid-cols-2 lg:hidden ${isRoundFocus ? "cafe-a-round-focus-mobile-menu-grid" : ""} ${outerGridGapClassName}`}>
+          <div className={`grid min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-[var(--cafe-a-page-block-end)] md:grid-cols-2 lg:hidden ${data.menuSite.template_key === "cafe_kohi_a" ? "kohi-mobile-menu-grid" : ""} ${isRoundFocus ? "cafe-a-round-focus-mobile-menu-grid" : ""} ${outerGridGapClassName}`}>
             {!isRoundFocus && shouldRenderMenuCoverSection && (
               <CoverHero
                 data={data}
@@ -9544,6 +9546,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             </div>
           </div>
         </div>
+        {data.menuSite.template_key === "cafe_kohi_a" ? <KohiMenuDividers /> : null}
       </main>
       <CafeADebugOverlay
         boardRef={desktopFitBoardRef}

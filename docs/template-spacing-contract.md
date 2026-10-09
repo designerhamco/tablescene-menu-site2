@@ -49,6 +49,12 @@ Multi-page templates do not stretch or compress content to fill a viewport. They
 
 Their page inset, column gap, section gap, item gap, and copy gap must still be fluid `clamp()` values. Content count must not drive a fit/fill loop, font reduction, or artificial vertical expansion.
 
+### KOHI full-bleed separators
+
+`cafe_kohi_a` keeps the REAL MATCHA content insets and `canvas-fit` rhythm. Only its decorative SVG rules use page coordinates: vertical column rules extend from page top to bottom, and horizontal rules extend to the adjacent column rules or outer page edge. The overlay is absolutely positioned, non-interactive and outside the measured menu board; it must not add border height, change fit candidates, or affect content gaps.
+
+Category descriptions render before their category name only in KOHI. Every starter category has a concise visible description in all four locales. In `orderedFit`, heading/item fragments are measured separately so a category continuing into the next column does not create a false heading or cross-column horizontal rule. Rules remain hidden while the desktop fit safety cover is active and refresh on layout, viewport, font and image changes. Scrolling/mobile layouts use a single menu column with page-wide horizontal rules and no vertical split through the brand area.
+
 ## Verification
 
 Changes to an active template spacing engine require:

@@ -644,7 +644,7 @@ function parseCafeAStarterResetFinalSavePayloadFromForm({
   const rawValue = getString(formData, CAFE_A_STARTER_RESET_FINAL_SAVE_PAYLOAD_FIELD);
   if (!rawValue) return null;
 
-  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_mocha_forest_a" && menuSite.template_key !== "cafe_sunday_line_a" && menuSite.template_key !== "cafe_van_gogh_a" && menuSite.template_key !== "cafe_round_focus_a" && menuSite.template_key !== "fast_food_loop_bagel_a") {
+  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_kohi_a" && menuSite.template_key !== "cafe_mocha_forest_a" && menuSite.template_key !== "cafe_sunday_line_a" && menuSite.template_key !== "cafe_van_gogh_a" && menuSite.template_key !== "cafe_round_focus_a" && menuSite.template_key !== "fast_food_loop_bagel_a") {
     redirectToMenuEditWithError(menuId, "CafeA starter family 샘플 저장 정보가 현재 템플릿과 맞지 않습니다.");
   }
 
@@ -1786,7 +1786,7 @@ function getCafeATypographyRolePayload(roleSettings: TypographyRoleSettings) {
 }
 
 function setDesignTypographyRoleSettings(designSettings: Record<string, unknown>, roleSettings: TypographyRoleSettings, templateKey?: string | null) {
-  if (templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a" || templateKey === "cafe_round_focus_a" || templateKey === "fast_food_loop_bagel_a") {
+  if (templateKey === "cafe_design_a" || templateKey === "cafe_kohi_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a" || templateKey === "cafe_round_focus_a" || templateKey === "fast_food_loop_bagel_a") {
     const cafeARolePayload = getCafeATypographyRolePayload(roleSettings);
     if (cafeARolePayload) {
       designSettings.typographyRoles = cafeARolePayload;
@@ -1837,7 +1837,7 @@ export async function updateTypographySettingsAction(formData: FormData) {
     delete designSettings.englishFont;
   }
 
-  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_mocha_forest_a" && menuSite.template_key !== "cafe_sunday_line_a" && menuSite.template_key !== "cafe_van_gogh_a" && menuSite.template_key !== "cafe_round_focus_a" && menuSite.template_key !== "fast_food_loop_bagel_a") {
+  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_kohi_a" && menuSite.template_key !== "cafe_mocha_forest_a" && menuSite.template_key !== "cafe_sunday_line_a" && menuSite.template_key !== "cafe_van_gogh_a" && menuSite.template_key !== "cafe_round_focus_a" && menuSite.template_key !== "fast_food_loop_bagel_a") {
     designSettings.fontSizeScale = fontSizeScaleKey;
   }
   setDesignTypographyRoleSettings(designSettings, typographyRoleSettings, menuSite.template_key);
@@ -2974,7 +2974,7 @@ export async function updateDesignSettingsAction(formData: FormData) {
     delete designSettings.englishFont;
   }
 
-  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_mocha_forest_a" && menuSite.template_key !== "cafe_sunday_line_a" && menuSite.template_key !== "cafe_van_gogh_a" && menuSite.template_key !== "cafe_round_focus_a" && menuSite.template_key !== "fast_food_loop_bagel_a") {
+  if (menuSite.template_key !== "cafe_design_a" && menuSite.template_key !== "cafe_kohi_a" && menuSite.template_key !== "cafe_mocha_forest_a" && menuSite.template_key !== "cafe_sunday_line_a" && menuSite.template_key !== "cafe_van_gogh_a" && menuSite.template_key !== "cafe_round_focus_a" && menuSite.template_key !== "fast_food_loop_bagel_a") {
     designSettings.fontSizeScale = fontSizeScaleKey;
   }
   setDesignTypographyRoleSettings(designSettings, typographyRoleSettings, menuSite.template_key);

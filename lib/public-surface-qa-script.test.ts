@@ -13,6 +13,7 @@ test("공개 화면 회귀 QA는 핵심 페이지와 모든 판매 템플릿을 
     '"/faq"',
     '"/sign-in"',
     '"/templates/cafe_real_matcha_a/preview"',
+    '"/templates/cafe_kohi_a/preview"',
     '"/templates/cafe_mocha_forest_a/preview"',
     '"/templates/cafe_sunday_roasters_a/preview"',
     '"/templates/cafe_van_gogh_a/preview"',

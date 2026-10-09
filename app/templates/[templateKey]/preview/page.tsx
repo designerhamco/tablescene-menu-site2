@@ -649,6 +649,7 @@ function applyActiveTemplateFeatureQaFixture(
   const supportsTimeSale = (
     templateKey === "display_menu_a" ||
     templateKey === "cafe_design_a" ||
+    templateKey === "cafe_kohi_a" ||
     templateKey === "cafe_mocha_forest_a" ||
     templateKey === "cafe_sunday_line_a" ||
     templateKey === "cafe_van_gogh_a" ||

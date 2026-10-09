@@ -46,6 +46,13 @@ export const DEFAULT_BADGE_STYLES: BadgeStyles = {
 };
 
 export const TEMPLATE_BADGE_STYLE_PRESETS: Record<string, Partial<BadgeStyles>> = {
+  cafe_kohi_a: {
+    best: { background_color: "#FFFFFF", text_color: "#000000" },
+    signature: { background_color: "#FFFFFF", text_color: "#000000" },
+    new: { background_color: "#FFFFFF", text_color: "#000000" },
+    recommended: { background_color: "#FFFFFF", text_color: "#000000" },
+    default: { background_color: "#FFFFFF", text_color: "#000000" },
+  },
   display_menu_a: {
     best: { background_color: "#006A9E", text_color: "#FFFFFF" },
     signature: { background_color: "#006D77", text_color: "#FFFFFF" },

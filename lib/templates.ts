@@ -14,6 +14,7 @@ export const TEMPLATE_CATEGORIES = [
     label: "카페",
     templates: [
       { key: "cafe_design_a", label: "REAL MATCHA", design: "design_a" },
+      { key: "cafe_kohi_a", label: "KOHI (코히)", design: "design_a" },
       { key: "cafe_mocha_forest_a", label: "모카 포레스트", design: "design_a" },
       { key: "cafe_sunday_line_a", label: "선데이 로스터스", design: "design_a" },
       { key: "cafe_van_gogh_a", label: "Van Gogh", design: "design_a" },
@@ -237,6 +238,7 @@ const templateDescriptionByDesign: Record<TemplateDesignKey, string> = {
 
 const templateDescriptionByKey: Partial<Record<string, string>> = {
   cafe_design_a: "선명한 그린 포인트와 맛차 시그니처 메뉴를 중심으로 구성한 카페 메뉴판입니다.",
+  cafe_kohi_a: "붉은 카테고리 제목과 지면 끝까지 이어지는 블랙 분리선으로 구성한 에디토리얼 카페 메뉴판입니다.",
   cafe_mocha_forest_a: "갈색·아이보리·초록 패널로 구성한 고급스러운 카페/베이커리 메뉴판입니다.",
   cafe_sunday_line_a: "브랜드와 대표 메뉴를 상단에 두고 전체 폭 메뉴 영역으로 이어지는 로스터리 카페 메뉴판입니다.",
   cafe_van_gogh_a: "반고흐의 선명한 색과 따뜻한 빛에서 영감을 받은 커피와 디저트를 회화적인 분위기로 보여주는 아트 카페 메뉴판입니다.",
@@ -257,6 +259,7 @@ const templatePreviewImageByKey: Partial<Record<string, string>> = {
 
 const availableTemplateKeys = [
   "cafe_design_a",
+  "cafe_kohi_a",
   "cafe_mocha_forest_a",
   "cafe_sunday_line_a",
   "cafe_van_gogh_a",

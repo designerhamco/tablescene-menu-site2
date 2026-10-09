@@ -6,6 +6,7 @@ const templateFilter = process.env.TEMPLATE_PREVIEW_LOCALE_QA_TEMPLATE;
 const localeFilter = process.env.TEMPLATE_PREVIEW_LOCALE_QA_LOCALE;
 const templates = [
   "cafe_design_a",
+  "cafe_kohi_a",
   "cafe_mocha_forest_a",
   "cafe_sunday_line_a",
   "cafe_van_gogh_a",
@@ -17,6 +18,7 @@ const templates = [
 ].filter((templateKey) => !templateFilter || templateKey === templateFilter);
 const singlePageTemplates = new Set([
   "cafe_design_a",
+  "cafe_kohi_a",
   "cafe_mocha_forest_a",
   "cafe_sunday_line_a",
   "cafe_van_gogh_a",

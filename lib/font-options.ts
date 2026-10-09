@@ -485,6 +485,7 @@ const TEMPLATE_ENGLISH_FONT_ALLOWLISTS: Record<string, readonly EnglishFontValue
 };
 
 const TEMPLATE_ENGLISH_FONT_HIDDEN_OPTIONS: Record<string, readonly EnglishFontValue[]> = {
+  cafe_kohi_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
   cafe_design_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
   cafe_mocha_forest_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
   cafe_sunday_line_a: CAFE_DESIGN_A_HIDDEN_ENGLISH_FONT_VALUES,
@@ -508,6 +509,7 @@ export const FALLBACK_KOREAN_FONT_VALUE: KoreanFontValue = "pretendard";
 export const FALLBACK_ENGLISH_FONT_VALUE: EnglishFontValue = "outfit";
 
 export const TEMPLATE_DEFAULT_KOREAN_FONTS: Record<string, KoreanFontValue> = {
+  cafe_kohi_a: "pretendard",
   dining_aube_table_a: "pretendard",
   dining_aube_table_b: "noto-serif-kr",
   cafe_design_a: "pretendard",
@@ -531,6 +533,7 @@ export const TEMPLATE_DEFAULT_KOREAN_FONTS: Record<string, KoreanFontValue> = {
 };
 
 export const TEMPLATE_DEFAULT_ENGLISH_FONTS: Record<string, EnglishFontValue> = {
+  cafe_kohi_a: "oswald",
   dining_aube_table_a: "tenor-sans",
   dining_aube_table_b: "cormorant-garamond",
   cafe_design_a: "alata",
