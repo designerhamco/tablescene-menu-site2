@@ -9,7 +9,7 @@ import { mergeTypographySettings } from "./template-typography-presets";
 import { getTemplateByKey } from "./templates";
 
 const BASIC_FEATURE_EXPECTATIONS = {
-  cafe_kohi_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 0, soldOut: 0 },
+  cafe_kohi_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 1, soldOut: 0 },
   cafe_design_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_mocha_forest_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },
   cafe_sunday_line_a: { widgets: true, images: true, starterImages: false, starterBadges: true, priceOptions: true, cover: "section", timeSales: 2, soldOut: 0 },

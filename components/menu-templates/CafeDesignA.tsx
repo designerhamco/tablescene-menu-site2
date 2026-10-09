@@ -2433,7 +2433,7 @@ function getItemPriceColumnDisplay(
 }
 
 function isCafeDesignATimeSaleTemplate(templateKey?: string | null) {
-  return templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a" || templateKey === "cafe_round_focus_a" || templateKey === "fast_food_loop_bagel_a";
+  return templateKey === "cafe_design_a" || templateKey === "cafe_kohi_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a" || templateKey === "cafe_round_focus_a" || templateKey === "fast_food_loop_bagel_a";
 }
 
 function getCafeASoldOutLabel(locale: CafeDesignALocale) {
@@ -2909,6 +2909,7 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
     .sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at));
   const shouldRenderWidgets =
     data.menuSite.template_key === "cafe_design_a" ||
+    data.menuSite.template_key === "cafe_kohi_a" ||
     data.menuSite.template_key === "cafe_mocha_forest_a" ||
     data.menuSite.template_key === "cafe_sunday_line_a" ||
     data.menuSite.template_key === "cafe_van_gogh_a" ||

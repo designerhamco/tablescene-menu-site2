@@ -21,7 +21,8 @@ test("KOHI is an independent editable REAL MATCHA-based template", () => {
   assert.equal(supportsPcTabletLayoutMode("cafe_kohi_a"), true);
   const roles = mergeTypographySettings("cafe_kohi_a").typography_roles;
   assert.equal(roles.category.color, "#B83A32");
-  for (const role of ["brand", "itemName", "supporting", "price"] as const) assert.equal(roles[role].color, "#000000");
+  assert.equal(roles.brand.color, roles.category.color);
+  for (const role of ["itemName", "supporting", "price"] as const) assert.equal(roles[role].color, "#000000");
 });
 
 test("every KOHI category has concise visible copy in every supported locale", () => {
@@ -61,4 +62,34 @@ test("KOHI server save, reset and widget loading use the existing CafeA contract
   assert.match(actions, /templateKey === "cafe_design_a" \|\| templateKey === "cafe_kohi_a"/);
   const loader = readFileSync(new URL("./menu-page-data.ts", import.meta.url), "utf8");
   assert.match(loader, /menuSite\.template_key === "cafe_design_a" \|\| menuSite\.template_key === "cafe_kohi_a"/);
+  const renderer = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
+  const timeSaleGuard = renderer.match(/function isCafeDesignATimeSaleTemplate\([\s\S]*?\n\}/)?.[0] ?? "";
+  assert.match(timeSaleGuard, /"cafe_kohi_a"/);
+  assert.match(renderer, /const shouldRenderWidgets =[\s\S]*?template_key === "cafe_kohi_a"/);
+});
+
+test("KOHI notices retain only option copy and one localized cake countdown", () => {
+  const preset = getStarterPreset("cafe_kohi_a");
+  assert.equal(preset.site.settings?.footer_notice_1, "디카페인 변경 +0.5 · 우유 변경 +0.5");
+  assert.equal(preset.site.settings?.footer_notice_2, "");
+  assert.equal(preset.site.settings?.footer_notice_3, "");
+  assert.equal(preset.time_sales?.length, 1);
+  const sale = preset.time_sales![0];
+  assert.equal(sale.duration_minutes, 60);
+  assert.equal(sale.time_display_mode, "countdown");
+  assert.equal(sale.targets?.[0].target_item_key, "basque-cheesecake");
+  assert.equal(sale.targets?.[0].sale_price, 5500);
+  assert.equal(sale.badge_background_color, "#000000");
+  const translations = getSinglePageStarterTranslations("cafe_kohi_a")!;
+  for (const locale of ["en", "zh", "ja"] as const) {
+    assert.ok(translations[locale].promotions[sale.key!]?.badgeText);
+    assert.deepEqual(translations[locale].site.footerNotices.slice(1), ["", ""]);
+  }
+});
+
+test("KOHI expands semantic boundary gaps without adding a featured copy panel", () => {
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /\[data-template-key="cafe_kohi_a"\] \{[^}]*--cafe-a-category-title-to-first-ratio: 2;[^}]*--cafe-a-category-separation-ratio: 3\.4;/);
+  assert.doesNotMatch(css, /\[data-template-key="cafe_kohi_a"\] \.cafe-a-cover-hero \.cafe-a-featured-copy \{/);
+  assert.match(css, /\[data-template-key="cafe_kohi_a"\] \.cafe-a-cover-hero :is\([^}]*color: #ffffff;/);
 });

@@ -124,7 +124,7 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
     english_font_key: "oswald",
     font_size_scale_key: "m",
     typography_roles: {
-      brand: { ...createDefaultTypographyRoleSettings().brand, color: "#000000" },
+      brand: { ...createDefaultTypographyRoleSettings().brand, color: "#B83A32" },
       category: { ...createDefaultTypographyRoleSettings().category, color: "#B83A32" },
       itemName: { ...createDefaultTypographyRoleSettings().itemName, color: "#000000" },
       supporting: { ...createDefaultTypographyRoleSettings().supporting, color: "#000000" },

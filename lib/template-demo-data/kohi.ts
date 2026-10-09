@@ -52,9 +52,9 @@ export function createKohiStarterPreset(base: StarterPreset): StarterPreset {
       restaurant_phone: "02-0000-0024",
       cover_image_url: KOHI_FEATURED_IMAGE,
       settings: {
-        footer_notice_1: "Wi-Fi · KOHI_GUEST",
-        footer_notice_2: "Instagram · @kohi.coffee",
-        footer_notice_3: "디카페인 변경 +0.5 · 우유 변경 +0.5",
+        footer_notice_1: "디카페인 변경 +0.5 · 우유 변경 +0.5",
+        footer_notice_2: "",
+        footer_notice_3: "",
       },
     },
     featured_item_key: "kohi-cream-coffee",
@@ -64,7 +64,16 @@ export function createKohiStarterPreset(base: StarterPreset): StarterPreset {
     menu_cover_visible_pc: true,
     menu_cover_visible_tablet: true,
     menu_cover_visible_mobile: true,
-    time_sales: [],
+    time_sales: [{
+      key: "basque-cheesecake-time-deal",
+      name: "바스크 치즈케이크 타임 할인",
+      schedule_type: "once",
+      duration_minutes: 60,
+      badge_text: "타임 할인",
+      badge_background_color: "#000000",
+      time_display_mode: "countdown",
+      targets: [{ target_item_key: "basque-cheesecake", target_item_name: "바스크 치즈케이크", sale_price: 5500 }],
+    }],
     widgets: [],
     mixed_content_order: categories.map((category, index) => ({ block_type: "category", page_key: "main-menu", category_key: category.key, sort_order: index, visible: true })),
     pages: [{
@@ -92,9 +101,9 @@ export function createKohiStarterPreset(base: StarterPreset): StarterPreset {
 }
 
 const siteCopy = {
-  en: { restaurantCategory: "Cafe", description: "Good coffee and little pleasures, served at KOHI.", about: "From espresso to hand brew, find your cup for today.", notices: ["Wi-Fi · KOHI_GUEST", "Instagram · @kohi.coffee", "Decaf +0.5 · Alternative milk +0.5"] },
-  zh: { restaurantCategory: "咖啡馆", description: "KOHI，用好咖啡带来日常的小确幸。", about: "从浓缩到手冲，为今天挑选一杯喜欢的咖啡。", notices: ["Wi-Fi · KOHI_GUEST", "Instagram · @kohi.coffee", "低因更换 +0.5 · 植物奶更换 +0.5"] },
-  ja: { restaurantCategory: "カフェ", description: "おいしいコーヒーと小さな喜びを届けるコヒです。", about: "エスプレッソからハンドドリップまで、今日の一杯を。", notices: ["Wi-Fi · KOHI_GUEST", "Instagram · @kohi.coffee", "デカフェ変更 +0.5 · ミルク変更 +0.5"] },
+  en: { restaurantCategory: "Cafe", description: "Good coffee and little pleasures, served at KOHI.", about: "From espresso to hand brew, find your cup for today.", notices: ["Decaf +0.5 · Alternative milk +0.5", "", ""], saleBadge: "TIME DEAL" },
+  zh: { restaurantCategory: "咖啡馆", description: "KOHI，用好咖啡带来日常的小确幸。", about: "从浓缩到手冲，为今天挑选一杯喜欢的咖啡。", notices: ["低因更换 +0.5 · 植物奶更换 +0.5", "", ""], saleBadge: "限时特惠" },
+  ja: { restaurantCategory: "カフェ", description: "おいしいコーヒーと小さな喜びを届けるコヒです。", about: "エスプレッソからハンドドリップまで、今日の一杯を。", notices: ["デカフェ変更 +0.5 · ミルク変更 +0.5", "", ""], saleBadge: "タイムセール" },
 } as const;
 
 function localeCopy(locale: "en" | "zh" | "ja") {
@@ -105,7 +114,7 @@ function localeCopy(locale: "en" | "zh" | "ja") {
     categoryNames: Object.fromEntries(categories.map((category) => [category.key, category[locale][0]])),
     categoryDescriptions: Object.fromEntries(categories.map((category) => [category.key, category[locale][1]])),
     items: Object.fromEntries(items.map((item) => [item.key, { name: item[locale][0], description: item[locale][1] }])),
-    promotions: {},
+    promotions: { "basque-cheesecake-time-deal": { badgeText: copy.saleBadge } },
   };
 }
 
