@@ -36,6 +36,19 @@ test("every KOHI category has concise visible copy in every supported locale", (
   }
 });
 
+test("KOHI starter uses the rounded logo instead of the store-name text", () => {
+  const preset = getStarterPreset("cafe_kohi_a");
+  const capabilities = getTemplateCapabilities("cafe_kohi_a");
+  assert.equal(preset.site.logo_url, "/menu-templates/cafe_kohi_a/kohi-rounded-logo.webp");
+  assert.equal(preset.site.settings?.logo_replaces_name, true);
+  assert.equal(capabilities.brandLogo, true);
+  assert.equal(capabilities.brandLogoReplacesName, true);
+  assert.ok(existsSync(new URL(`../public${preset.site.logo_url}`, import.meta.url)));
+  assert.notEqual(getStarterPreset("cafe_design_a").site.settings?.logo_replaces_name, true);
+  const previewSource = readFileSync(new URL("../app/templates/[templateKey]/preview/page.tsx", import.meta.url), "utf8");
+  assert.match(previewSource, /logo_url: template\.key === "cafe_noir_a" \|\| template\.key === "cafe_kohi_a" \? \(preset\.site\.logo_url \?\? null\) : null/);
+});
+
 test("KOHI featured content links to its own sample menu and an existing coffee image", () => {
   const preset = getStarterPreset("cafe_kohi_a");
   const itemKeys = new Set(preset.pages.flatMap((page) => page.categories.flatMap((category) => category.items.map((item) => item.key))));
