@@ -62,7 +62,7 @@ test("launch template typography defaults and Display-only size control stay exp
     assert.equal(typography.korean_font_key, expectedKoreanFont, `${templateKey}: Korean font`);
     const expectedEnglishFont = {
       cafe_design_a: "oswald",
-      cafe_kohi_a: "oswald",
+      cafe_kohi_a: "outfit",
       cafe_mocha_forest_a: "chelsea-market",
       cafe_sunday_line_a: "federo",
       cafe_van_gogh_a: "special-elite",

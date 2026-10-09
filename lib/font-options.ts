@@ -533,7 +533,7 @@ export const TEMPLATE_DEFAULT_KOREAN_FONTS: Record<string, KoreanFontValue> = {
 };
 
 export const TEMPLATE_DEFAULT_ENGLISH_FONTS: Record<string, EnglishFontValue> = {
-  cafe_kohi_a: "oswald",
+  cafe_kohi_a: "outfit",
   dining_aube_table_a: "tenor-sans",
   dining_aube_table_b: "cormorant-garamond",
   cafe_design_a: "alata",

@@ -4717,6 +4717,7 @@ video {
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-category-title {
   font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-category-ratio));
+  font-weight: 700;
 }
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"] :is(.cafe-a-menu-title, .cafe-a-featured-title, [data-cafe-a-widget-title]) {

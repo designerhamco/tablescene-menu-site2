@@ -2,7 +2,7 @@ import type { StarterPreset } from "@/lib/menu-starter-presets";
 import type { SinglePageStarterTranslationBundle } from "./single-page-starter-translations";
 
 const KOHI_FEATURED_IMAGE = "/menu-templates/cafe_design_a/nutty-cream-featured.jpg";
-const KOHI_LOGO_IMAGE = "/menu-templates/cafe_kohi_a/kohi-rounded-logo.webp";
+const KOHI_LOGO_IMAGE = "/menu-templates/cafe_kohi_a/kohi-outfit-logo.svg";
 
 const categories = [
   { key: "espresso", name: "ESPRESSO BASED", description: "에스프레소 커피", en: ["ESPRESSO BASED", "Espresso classics"], zh: ["意式咖啡", "经典浓缩咖啡"], ja: ["エスプレッソ", "定番のコーヒー"] },

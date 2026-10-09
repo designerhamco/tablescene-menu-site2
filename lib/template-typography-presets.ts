@@ -121,11 +121,11 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
   },
   cafe_kohi_a: {
     korean_font_key: "pretendard",
-    english_font_key: "oswald",
+    english_font_key: "outfit",
     font_size_scale_key: "m",
     typography_roles: {
-      brand: { ...createDefaultTypographyRoleSettings().brand, color: "#B83A32" },
-      category: { ...createDefaultTypographyRoleSettings().category, color: "#B83A32" },
+      brand: { ...createDefaultTypographyRoleSettings().brand, color: "#dc4235" },
+      category: { ...createDefaultTypographyRoleSettings().category, color: "#dc4235" },
       itemName: { ...createDefaultTypographyRoleSettings().itemName, color: "#000000" },
       supporting: { ...createDefaultTypographyRoleSettings().supporting, color: "#000000" },
       price: { ...createDefaultTypographyRoleSettings().price, color: "#000000" },

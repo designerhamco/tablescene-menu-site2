@@ -20,7 +20,8 @@ test("KOHI is an independent editable REAL MATCHA-based template", () => {
   assert.equal(getTemplateLayoutRules("cafe_kohi_a").maxColumns.desktop, 4);
   assert.equal(supportsPcTabletLayoutMode("cafe_kohi_a"), true);
   const roles = mergeTypographySettings("cafe_kohi_a").typography_roles;
-  assert.equal(roles.category.color, "#B83A32");
+  assert.equal(mergeTypographySettings("cafe_kohi_a").english_font_key, "outfit");
+  assert.equal(roles.category.color, "#DC4235");
   assert.equal(roles.brand.color, roles.category.color);
   for (const role of ["itemName", "supporting", "price"] as const) assert.equal(roles[role].color, "#000000");
 });
@@ -36,17 +37,28 @@ test("every KOHI category has concise visible copy in every supported locale", (
   }
 });
 
-test("KOHI starter uses the rounded logo instead of the store-name text", () => {
+test("KOHI starter uses the outlined Outfit logo with cafe and menu captions instead of the store-name text", () => {
   const preset = getStarterPreset("cafe_kohi_a");
   const capabilities = getTemplateCapabilities("cafe_kohi_a");
-  assert.equal(preset.site.logo_url, "/menu-templates/cafe_kohi_a/kohi-rounded-logo.webp");
+  assert.equal(preset.site.logo_url, "/menu-templates/cafe_kohi_a/kohi-outfit-logo.svg");
   assert.equal(preset.site.settings?.logo_replaces_name, true);
   assert.equal(capabilities.brandLogo, true);
   assert.equal(capabilities.brandLogoReplacesName, true);
   assert.ok(existsSync(new URL(`../public${preset.site.logo_url}`, import.meta.url)));
+  const logo = readFileSync(new URL(`../public${preset.site.logo_url}`, import.meta.url), "utf8");
+  assert.match(logo, /data-font-family="Outfit"/);
+  assert.match(logo, /aria-label="cafe"/);
+  assert.match(logo, /aria-label="menu"/);
+  assert.match(logo, /fill="#dc4235"/);
+  assert.doesNotMatch(logo, /<text[\s>]/);
   assert.notEqual(getStarterPreset("cafe_design_a").site.settings?.logo_replaces_name, true);
   const previewSource = readFileSync(new URL("../app/templates/[templateKey]/preview/page.tsx", import.meta.url), "utf8");
   assert.match(previewSource, /logo_url: template\.key === "cafe_noir_a" \|\| template\.key === "cafe_kohi_a" \? \(preset\.site\.logo_url \?\? null\) : null/);
+});
+
+test("KOHI category headings use a bold Outfit weight without overriding editable colors", () => {
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /\[data-template-key="cafe_kohi_a"\] \.cafe-a-category-title \{[^}]*font-weight: 700;/);
 });
 
 test("KOHI featured content links to its own sample menu and an existing coffee image", () => {
