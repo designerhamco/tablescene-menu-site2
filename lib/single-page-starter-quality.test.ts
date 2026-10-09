@@ -177,7 +177,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
     ],
   );
   assert.equal(loopBagelDrinks?.items.every((item) => !item.image_url), true);
-  assert.equal(loopBagel.featured_item_key, "egg-cheese-bagel");
+  assert.equal(loopBagel.featured_item_key, "plain-bagel");
   assert.equal(loopBagel.featured_slides?.some((slide) => slide.featured_item_key === "loop-signature-bagel"), false);
   assert.deepEqual(loopBagel.time_sales?.map((sale) => sale.key), ["egg-cheese-morning-deal"]);
   assert.equal(

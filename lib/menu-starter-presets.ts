@@ -302,6 +302,7 @@ const LOOP_BAGEL_BASIL_CHICKEN_IMAGE = "/menu-templates/fast_food_loop_bagel_a/b
 const LOOP_BAGEL_SALMON_DILL_IMAGE = "/menu-templates/fast_food_loop_bagel_a/salmon-dill-bagel-sandwich-v2.png";
 const LOOP_BAGEL_MUSHROOM_MELT_IMAGE = "/menu-templates/fast_food_loop_bagel_a/mushroom-melt-bagel-sandwich.png";
 const LOOP_BAGEL_CLASSIC_PLAIN_IMAGE = "/menu-templates/fast_food_loop_bagel_a/classic-plain-bagel.png";
+const LOOP_BAGEL_FEATURED_PLAIN_IMAGE = "/menu-templates/fast_food_loop_bagel_a/featured-plain-bagel-loop-packaging.webp";
 const LOOP_BAGEL_ONION_IMAGE = "/menu-templates/fast_food_loop_bagel_a/onion-bagel.png";
 const LOOP_BAGEL_BLUEBERRY_IMAGE = "/menu-templates/fast_food_loop_bagel_a/blueberry-bagel.png";
 const LOOP_BAGEL_BLACK_OLIVE_IMAGE = "/menu-templates/fast_food_loop_bagel_a/black-olive-bagel.png";
@@ -627,7 +628,7 @@ const loopBagelStarterPreset: StarterPreset = {
     opening_hours: "매일 08:00 - 20:00",
     restaurant_address: "서울시 예시구 루프로 24",
     restaurant_phone: "02-0000-0000",
-    cover_image_url: LOOP_BAGEL_EGG_HAM_CHEESE_IMAGE,
+    cover_image_url: LOOP_BAGEL_FEATURED_PLAIN_IMAGE,
     settings: {
       typography: {
         korean_font_key: "nanum-gothic",
@@ -643,15 +644,15 @@ const loopBagelStarterPreset: StarterPreset = {
   menu_cover_visible_pc: true,
   menu_cover_visible_tablet: true,
   menu_cover_visible_mobile: true,
-  featured_item_name: "에그 햄치즈 베이글",
-  featured_item_key: "egg-cheese-bagel",
+  featured_item_name: "플레인 베이글",
+  featured_item_key: "plain-bagel",
   featured_slides: [
     {
-      id: "loop-bagel-featured-sandwich",
-      image_url: LOOP_BAGEL_EGG_HAM_CHEESE_IMAGE,
+      id: "loop-bagel-featured-plain-bagel",
+      image_url: LOOP_BAGEL_FEATURED_PLAIN_IMAGE,
       image_path: null,
-      featured_item_key: "egg-cheese-bagel",
-      featured_item_name: "에그 햄치즈 베이글",
+      featured_item_key: "plain-bagel",
+      featured_item_name: "플레인 베이글",
       sort_order: 0,
     },
     {
