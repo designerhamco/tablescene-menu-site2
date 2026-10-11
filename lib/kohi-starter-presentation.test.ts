@@ -33,7 +33,9 @@ test("every KOHI category has concise visible copy in every supported locale", (
   assert.ok(translations);
   for (const category of categories) {
     assert.equal(category.description_visible, true);
-    assert.ok(category.description && category.description.length <= 18);
+    assert.ok(category.description && category.description.length <= 24);
+    assert.match(category.description, /^[A-Za-z &,]+$/);
+    assert.equal(translations.en.categoryDescriptions?.[category.key!], category.description);
     for (const locale of ["en", "zh", "ja"] as const) assert.ok(translations[locale].categoryDescriptions?.[category.key!]);
   }
 });
@@ -63,13 +65,15 @@ test("KOHI category headings and larger descriptions preserve linked sizing and 
   assert.match(css, /\[data-template-key="cafe_kohi_a"\] \.cafe-a-category-eyebrow\.cafe-a-menu-description \{[^}]*font-size: calc\(var\(--cafe-a-linked-item-name-size\) \* var\(--cafe-a-device-type-scale\) \* 0\.9\);[^}]*font-weight: 800;/);
 });
 
-test("KOHI starter has no item descriptions in any locale and adds only selected cold-drink price notes", () => {
+test("KOHI starter omits secondary names, restores all localized descriptions and keeps selected cold-drink price notes", () => {
   const items = getStarterPreset("cafe_kohi_a").pages.flatMap((page) => page.categories.flatMap((category) => category.items));
   assert.equal(items.length, 17);
-  assert.ok(items.every((item) => item.description === ""));
+  assert.ok(items.every((item) => !item.set_name?.trim()));
+  assert.ok(items.every((item) => item.description.trim()));
+  assert.equal(items.find((item) => item.key === "espresso")?.description, "견과와 다크 초콜릿의 짙은 풍미");
   assert.deepEqual(items.filter((item) => item.price_note).map((item) => [item.key, item.price_note]), [["kohi-cream-coffee", "Ice only"], ["lemon-soda", "Ice only"]]);
   const translations = getSinglePageStarterTranslations("cafe_kohi_a")!;
-  for (const locale of ["en", "zh", "ja"] as const) assert.ok(Object.values(translations[locale].items).every((item) => item.description === ""));
+  for (const locale of ["en", "zh", "ja"] as const) assert.ok(Object.values(translations[locale].items).every((item) => item.description.trim()));
 });
 
 test("KOHI defaults unify all regular and timed badge colors without changing other templates", () => {

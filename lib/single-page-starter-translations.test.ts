@@ -26,9 +26,7 @@ for (const [templateKey, translations] of Object.entries(SINGLE_PAGE_STARTER_TRA
           "vanilla-bean-latte",
           "lemon-sparkling",
         ])
-      : templateKey === "cafe_kohi_a"
-        ? new Set(itemKeys)
-        : new Set<string>();
+      : new Set<string>();
 
     assert.equal(pageKeys.length, preset.pages.length, "Korean starter pages must have stable keys");
     assert.equal(categoryKeys.length, preset.pages.flatMap((page) => page.categories).length, "Korean starter categories must have stable keys");
