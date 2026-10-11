@@ -57,10 +57,10 @@ test("candidate selection, validation and overflow backoff share the template-aw
   assert.equal((source.match(/getOrderedBalancedFitGapScale\(/g) ?? []).length, 2);
   assert.equal((source.match(/getOrderedFitGapScale\(/g) ?? []).length, 2);
   assert.match(source, /getLoopBagelFitGapScale\(fontScale, menuWidth, window.innerHeight\)/);
-  assert.match(source, /!isMochaForest && !isLoopBagelFitSpacing && actualCropMeasurement.bottomGap/);
-  assert.match(source, /if \(isMochaForest \|\| isLoopBagelFitSpacing\) return/);
-  assert.match(source, /if \(isLoopBagelFitSpacing\) \{\s*restoreOrderedFitValidationStyles\(\);\s*return;/);
-  assert.match(source, /isLoopBagelFitSpacing \? \[window.innerWidth, window.innerHeight\] : \[\]/);
+  assert.match(source, /!isMochaForest && !hasBoundedFitSpacing && actualCropMeasurement.bottomGap/);
+  assert.match(source, /if \(isMochaForest \|\| hasBoundedFitSpacing\) return/);
+  assert.match(source, /if \(hasBoundedFitSpacing\) \{\s*restoreOrderedFitValidationStyles\(\);\s*return;/);
+  assert.match(source, /hasBoundedFitSpacing \? \[window.innerWidth, window.innerHeight\] : \[\]/);
   assert.match(source, /const hasValidatedSafeConvergenceCandidate =\s*hasMatchingFitViewport &&/);
 });
 

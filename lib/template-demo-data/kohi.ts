@@ -5,11 +5,11 @@ const KOHI_FEATURED_IMAGE = "/menu-templates/cafe_design_a/nutty-cream-featured.
 const KOHI_LOGO_IMAGE = "/menu-templates/cafe_kohi_a/kohi-outfit-logo.svg";
 
 const categories = [
-  { key: "espresso", name: "ESPRESSO BASED", description: "Everyday espresso", en: ["ESPRESSO BASED", "Everyday espresso"], zh: ["意式咖啡", "经典浓缩咖啡"], ja: ["エスプレッソ", "定番のコーヒー"] },
-  { key: "pour-over", name: "POUR OVER", description: "Slow brew, full flavor", en: ["POUR OVER", "Slow brew, full flavor"], zh: ["手冲咖啡", "逐杯手工冲煮"], ja: ["ハンドドリップ", "一杯ずつ丁寧に"] },
-  { key: "matcha-more", name: "MATCHA & MORE", description: "Tea & creamy comforts", en: ["MATCHA & MORE", "Tea & creamy comforts"], zh: ["抹茶与更多", "茶香与柔滑牛奶"], ja: ["抹茶＆ティー", "お茶とミルク"] },
-  { key: "specials", name: "SPECIALS", description: "The KOHI favorites", en: ["SPECIALS", "The KOHI favorites"], zh: ["招牌特饮", "KOHI的特别一杯"], ja: ["スペシャル", "コヒの特別な一杯"] },
-  { key: "cakes-bakes", name: "CAKES & BAKES", description: "Little bites of joy", en: ["CAKES & BAKES", "Little bites of joy"], zh: ["蛋糕与烘焙", "咖啡旁的小甜点"], ja: ["ケーキ＆ベイク", "コーヒーのおとも"] },
+  { key: "espresso", name: "ESPRESSO BASED", description: "에스프레소 커피", en: ["ESPRESSO BASED", "Everyday espresso"], zh: ["意式咖啡", "经典浓缩咖啡"], ja: ["エスプレッソ", "定番のコーヒー"] },
+  { key: "pour-over", name: "POUR OVER", description: "한 잔씩 내리는 커피", en: ["POUR OVER", "Slow brew, full flavor"], zh: ["手冲咖啡", "逐杯手工冲煮"], ja: ["ハンドドリップ", "一杯ずつ丁寧に"] },
+  { key: "matcha-more", name: "MATCHA & MORE", description: "차와 부드러운 우유", en: ["MATCHA & MORE", "Tea & creamy comforts"], zh: ["抹茶与更多", "茶香与柔滑牛奶"], ja: ["抹茶＆ティー", "お茶とミルク"] },
+  { key: "specials", name: "SPECIALS", description: "코히만의 한 잔", en: ["SPECIALS", "The KOHI favorites"], zh: ["招牌特饮", "KOHI的特别一杯"], ja: ["スペシャル", "コヒの特別な一杯"] },
+  { key: "cakes-bakes", name: "CAKES & BAKES", description: "커피 곁의 작은 즐거움", en: ["CAKES & BAKES", "Little bites of joy"], zh: ["蛋糕与烘焙", "咖啡旁的小甜点"], ja: ["ケーキ＆ベイク", "コーヒーのおとも"] },
 ] as const;
 
 // Temporary, editable starter copy; no copied REAL MATCHA branding or products.

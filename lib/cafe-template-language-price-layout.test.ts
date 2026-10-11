@@ -152,7 +152,8 @@ test("재고 마감 카운트다운은 레이아웃이 흔들리지 않는 디�
 
 test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12배 큰 공통 글자 비율을 사용한다", () => {
   assert.match(templateSource, /TABLET_LANDSCAPE_MAX_FIT_FONT_SCALE = 1\.34/);
-  assert.match(templateSource, /getPreviewFitFontScaleCandidates\(FIT_FONT_SCALE_CANDIDATES, data\.previewDevice === "tablet"\)/);
+  assert.match(templateSource, /getTemplateFitFontCandidates\(FIT_FONT_SCALE_CANDIDATES\)/);
+  assert.match(templateSource, /getPreviewFitFontScaleCandidates\(candidates, data\.previewDevice === "tablet"\)/);
   assert.match(templateSource, /data-preview-device=\{data\.previewDevice\}/);
   assert.match(
     globalStylesSource,
@@ -558,7 +559,7 @@ test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하�
   assert.match(templateSource, /const FIT_PRESENTATION_FONT_WAIT_MS = 1500;/);
   assert.match(templateSource, /fontTimeoutId = window\.setTimeout\(waitForStableLayout, FIT_PRESENTATION_FONT_WAIT_MS\)/);
   assert.match(templateSource, /verificationScheduled = true;/);
-  assert.match(templateSource, /if \(!isMochaForest && !isLoopBagelFitSpacing && actualCropMeasurement\.bottomGap > 12\)/);
+  assert.match(templateSource, /if \(!isMochaForest && !hasBoundedFitSpacing && actualCropMeasurement\.bottomGap > 12\)/);
   assert.match(templateSource, /orderedBalancedSeenStateRef/);
   assert.match(templateSource, /isReturningToSeenSafeCandidate/);
   assert.match(templateSource, /data-fit-presentation-state=\{fitPresentationState\}/);

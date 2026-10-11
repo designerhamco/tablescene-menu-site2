@@ -4697,6 +4697,7 @@ video {
 
 /* KOHI reuses REAL MATCHA's content rhythm; decorative page rules never take up flow space. */
 .cafe-a-typography[data-template-key="cafe_kohi_a"] {
+  --kohi-item-rhythm-gap: var(--cafe-a-local-item-rhythm-gap);
   --kohi-divider-width: clamp(1px, 0.12vmin, 1.6px);
   --cafe-a-category-title-to-first-ratio: 2;
   --cafe-a-category-separation-ratio: 3.4;
@@ -4706,6 +4707,16 @@ video {
   --cafe-a-sunday-price-ratio: 1.04;
   --cafe-a-sunday-option-ratio: 0.62;
   color: #000000;
+}
+
+/* Copy-aware breathing room applies only BETWEEN items, never to category/footer boundaries.
+   The fit candidate and committed view measure the same CSS, including translated copy. */
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="1.15"]) {
+  margin-bottom: calc(var(--kohi-item-rhythm-gap) * 1.15);
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="1.35"]) {
+  margin-bottom: calc(var(--kohi-item-rhythm-gap) * 1.35);
 }
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"][data-preview-device="tablet"] {
@@ -4779,6 +4790,10 @@ video {
     --cafe-a-sunday-supporting-ratio: 0.71;
     --cafe-a-sunday-price-ratio: 1;
     --cafe-a-sunday-option-ratio: 0.56;
+  }
+
+  .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-desktop-fit-board {
+    --kohi-item-rhythm-gap: var(--cafe-a-item-rhythm-gap);
   }
 
   .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-desktop-fit-board .cafe-a-store-title {

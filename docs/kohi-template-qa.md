@@ -2,9 +2,19 @@
 
 ## Starter follow-up — 2026-10-11
 
+### KOHI-only proportion-first pilot
+
+- Default category descriptions are Korean again. Locale translations remain intact; secondary names remain empty and item descriptions remain present.
+- Fit font ceilings are `1.20` for tablet and `1.24` for PC, relative to existing linked typography. Gap ceilings are `0.96` and `1.00` respectively. These bound automatic fit enlargement, not customer-selected typography sizes. Public views without a device hint use the tablet ceiling at viewport widths up to 1366px.
+- Grouped/balanced/fill measurements and overflow backoff share this policy. Post-fit whitespace enlargement and final render boosts are disabled for KOHI. Dense-content and wrap-density safety backoff remain active.
+- Actual visible supporting fields control item boundaries: both fields = normal rhythm, one = `1.15×`, neither = `1.35×`. Promotion support, origin or trait copy retains normal rhythm. This also applies to mobile/scroll, only between items; last-item/category/footer boundaries remain unchanged.
+- Category merging, preferred three menu columns (four total with the brand rail), four-menu-column rescue, source order, price-option headers, footer docking, clipping validation and loading/ready gates are unchanged. Other templates retain their existing policies.
+- This is not a global rollout. Rendered responsive approval remains pending; automated/source checks alone do not establish final visual quality.
+- Pilot checks: 531 tests passed; TypeScript and targeted ESLint passed. The local Korean tablet preview returns HTTP 200 with all five Korean category descriptions, Tilt Warp, copy-aware rhythm attributes, and no secondary-name rows. Automated browser inspection remains restricted, so PC/tablet/portrait/mobile grouped/fill visual and clipping verification is not claimed. Keep this change local/committed until visual approval; do not deploy or roll out globally yet.
+
 - English starter typography is now Tilt Warp. Korean remains Pretendard; the existing Outfit outline logo with `cafe` / `menu` captions is unchanged.
 - Category descriptions use weight 800 and 0.9 times the shared device-scaled item-name size (previously weight 700 and the smaller supporting-copy ratio). This is KOHI-scoped and does not alter the fit engine.
-- Corrected after clarification: all 17 secondary-language names (`set_name`) are empty; Korean item descriptions and English/Chinese/Japanese description translations are restored. The default category descriptions now use concise English copy, with matching English translations. Only cream coffee and lemon soda carry an `Ice only` price note; prices and price-option logic are unchanged.
+- Corrected after clarification: all 17 secondary-language names (`set_name`) are empty; Korean item descriptions and English/Chinese/Japanese description translations are restored. Default category descriptions have subsequently been restored to Korean in the pilot above. Only cream coffee and lemon soda carry an `Ice only` price note; prices and price-option logic are unchanged.
 - All regular starter badge styles and the cake countdown badge use the brand red `#DC4235`; the old black outline is removed from the filled badges. Other templates and customer badge overrides are untouched.
 - Follow-up verification: 526 tests, TypeScript, targeted ESLint, and production build passed. The corrected local preview HTTP response contains Tilt Warp, red styles, English category descriptions and restored Korean item descriptions, with no secondary-name rows.
 - Automated browser inspection was blocked by the browser URL policy, so this follow-up does not claim rendered responsive or visual QA. Earlier browser observations below describe the pre-follow-up presentation.

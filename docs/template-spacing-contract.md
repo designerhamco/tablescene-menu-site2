@@ -11,6 +11,8 @@ New templates must select one contract before template-specific spacing is added
 
 ## Canvas-fit templates
 
+KOHI alone pilots a proportion-first policy in `lib/kohi-fit-policy.ts`: bounded automatic font/gap scales, no secondary whitespace-fill enlargement, and copy-visibility-aware item boundaries. See `docs/kohi-template-qa.md` for limits and pending visual approval. Existing column/category/price/footer/clipping contracts still apply; this policy is not yet shared with other templates.
+
 Canvas-fit spacing must be derived from viewport or container units and bounded with `clamp()`. The fitting engine may scale the shared rhythm down to prevent cropping or up to improve fill, but must not expose intermediate layouts.
 
 The shared hierarchy is:

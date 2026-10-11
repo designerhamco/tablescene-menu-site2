@@ -34,8 +34,8 @@ test("every KOHI category has concise visible copy in every supported locale", (
   for (const category of categories) {
     assert.equal(category.description_visible, true);
     assert.ok(category.description && category.description.length <= 24);
-    assert.match(category.description, /^[A-Za-z &,]+$/);
-    assert.equal(translations.en.categoryDescriptions?.[category.key!], category.description);
+    assert.match(category.description, /[가-힣]/);
+    assert.match(translations.en.categoryDescriptions?.[category.key!] ?? "", /^[A-Za-z &,]+$/);
     for (const locale of ["en", "zh", "ja"] as const) assert.ok(translations[locale].categoryDescriptions?.[category.key!]);
   }
 });
