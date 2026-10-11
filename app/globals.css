@@ -4721,6 +4721,36 @@ video {
   --cafe-a-copy-aware-item-rhythm-gap: var(--cafe-a-local-item-rhythm-gap);
 }
 
+/* The first product-name baseline, never the full copy block, anchors menu prices.
+   Keep this after skin rules so sparse copy, images and wrapped chips cannot
+   silently restore vertical centering. Multi-page/Display keep their own policy. */
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] :is(
+  .cafe-a-menu-item:not(.cafe-a-menu-item-with-image),
+  .cafe-a-menu-item-content-shell
+) {
+  align-items: first baseline;
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] .cafe-a-menu-item :is(
+  .cafe-a-menu-copy,
+  .cafe-a-price-area
+) {
+  align-self: first baseline;
+}
+
+@media (min-width: 1024px) {
+  /* Sunday hides thumbnails on desktop, but must retain the name/price columns. */
+  .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-skin="sunday_line"] .cafe-a-menu-item-with-image .cafe-a-menu-item-content-shell {
+    grid-template-columns: minmax(0, 1fr) max-content;
+  }
+
+  .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-skin="sunday_line"] .cafe-a-menu-item-with-image .cafe-a-price-area {
+    grid-column: 2;
+    justify-self: end;
+    margin-top: 0;
+  }
+}
+
 .cafe-a-typography[data-cafe-a-proportion-policy="true"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="1.15"]) {
   margin-bottom: calc(var(--cafe-a-copy-aware-item-rhythm-gap) * 1.15);
 }

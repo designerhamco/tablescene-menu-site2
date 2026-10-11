@@ -1,4 +1,5 @@
 import { chromium } from "@playwright/test";
+import { getMenuPriceAlignmentFailures, measureMenuPriceAlignment } from "./lib/menu-price-alignment.mjs";
 
 const baseUrl = process.env.TEMPLATE_PREVIEW_LOCALE_QA_BASE_URL || "http://127.0.0.1:3000";
 const navigationTimeout = Number(process.env.TEMPLATE_PREVIEW_LOCALE_QA_TIMEOUT_MS || 30_000);
@@ -180,7 +181,14 @@ try {
             : null,
         };
       });
+      const priceAlignment = singlePageTemplates.has(templateKey)
+        ? await page.evaluate(measureMenuPriceAlignment)
+        : [];
       const failures = [...errors];
+      if (singlePageTemplates.has(templateKey) && priceAlignment.length === 0) failures.push("menu price alignment metrics are unavailable");
+      for (const failure of getMenuPriceAlignmentFailures(priceAlignment)) {
+        failures.push(`price is not beside the product-name first line: ${JSON.stringify(failure)}`);
+      }
       if (!response || response.status() >= 400) failures.push(`http: ${response?.status() ?? "no response"}`);
       if (measurement.text.length < 10) failures.push("visible content is empty");
       if (hangulPattern.test(measurement.text)) {

@@ -245,6 +245,10 @@ CafeA is not yet extracted into a shared Basic engine package. In this stage, `c
 
 ### Basic common engine
 
+Active single-page menu rows anchor prices to the product name's **first baseline**, not the vertical center of the full copy block. Secondary names, descriptions, wrapped chips, time-sale messages and thumbnails must not move the price beside a lower line. Image content shells use the same rule. Category-level price-option headers and price rails remain unchanged; stacked option discounts keep their internal layout. The scoped single-page CSS follows skin overrides, including Sunday's hidden desktop thumbnails. Display, multi-page and featured-image overlays retain their separate layouts. Browser QA measures the first inline text rectangle, not the entire multiline heading/copy box.
+
+Scope, local-only regression fixtures and checked/unchecked stress cases are recorded in `docs/menu-price-alignment-qa.md`.
+
 These should be reusable across compatible Basic templates:
 
 - Layout mode handling.

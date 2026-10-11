@@ -30,6 +30,7 @@ import { DEFAULT_TEMPLATE_CONTENT_LIMITS, getTemplateContentLimits } from "@/lib
 import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib/template-demo-data/display-menu-a";
 import { applyStarterPreviewLocalization } from "@/lib/template-demo-data/starter-preview-localization";
 import { MENU_WIDGET_SETTINGS_VERSION, type MenuWidget } from "@/lib/menu-widgets";
+import { usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
 import { isDisplayTypographyTemplate, normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
 import { getTemplateByKey, resolveTemplatePreviewRouteKey, type TemplateKey } from "@/lib/templates";
 import { getDefaultPageSettings, sortMenuPages } from "@/types/menu";
@@ -46,6 +47,7 @@ type PageProps = {
     contentQa?: string | string[];
     featured?: string | string[];
     featureQa?: string | string[];
+    priceAlignmentQa?: string | string[];
     copyQa?: string | string[];
     brewCoverPageQa?: string | string[];
     brewCoverImageQa?: string | string[];
@@ -764,6 +766,48 @@ function applyActiveTemplateFeatureQaFixture(
   };
 }
 
+/** Small isolated fixtures: do not add widgets or alter saved/starter menu data. */
+function applyMenuPriceAlignmentQaFixture(data: MenuPageData, value: string | string[] | undefined): MenuPageData {
+  const qaCase = Array.isArray(value) ? value[0] : value;
+  if (process.env.NODE_ENV === "production" || !usesOnePageProportionPolicy(data.menuSite.template_key)) return data;
+  if (qaCase !== "copy" && qaCase !== "options") return data;
+  const category = data.categories.find((entry) => entry.visible !== false);
+  if (!category) return data;
+  const categoryItems = data.items.filter((item) => item.category_id === category.id && item.visible !== false);
+  const columns = ["HOT", "ICE", "LARGE"].map((label, index) => ({
+    id: `${category.id}-price-alignment-${index}`, categoryId: category.id,
+    key: label.toLowerCase(), label, visible: true, sortOrder: index,
+  }));
+  return {
+    ...data,
+    categories: qaCase === "options" ? data.categories.map((entry) => entry.id === category.id ? { ...entry, priceColumns: columns } : entry) : data.categories,
+    priceOptions: data.priceOptions.filter((option) => !categoryItems.some((item) => item.id === option.menu_item_id)),
+    items: data.items.map((item) => {
+      const index = categoryItems.findIndex((entry) => entry.id === item.id);
+      if (index < 0) return item;
+      if (qaCase === "options") return {
+        ...item,
+        priceColumnValues: columns.map((column, columnIndex) => ({
+          id: `${item.id}-${column.id}`, priceColumnId: column.id,
+          price: 5500 + columnIndex * 500, priceLabel: null, visible: true,
+        })),
+      };
+      if (index > 3) return item;
+      const isImageCase = index === Math.min(3, categoryItems.length - 1);
+      return {
+        ...item,
+        name: isImageCase ? "카라멜 크림 시그니처 커피" : item.name,
+        set_name: index >= 2 ? "SIGNATURE CREAM COFFEE" : null,
+        description: index === 1 || isImageCase ? "부드러운 크림과 고소한 커피의 풍미를 천천히 즐겨 보세요." : null,
+        image_url: isImageCase && getTemplateCapabilities(data.menuSite.template_key).menuItemImages ? "/menu-templates/cafe_design_a/malcha.jpg" : null,
+        badge: isImageCase ? "SPECIAL SELECTION" : null,
+        badge_label: isImageCase ? "SPECIAL SELECTION" : null,
+        is_best: false, recommended: false,
+      };
+    }),
+  };
+}
+
 function getOrderCallQaConfig(
   value: string | string[] | undefined,
   storeName: string,
@@ -1405,7 +1449,10 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     resolvedSearchParams.fontSizeScale
   );
   const data = applyActiveTemplateLocaleQaFixture(
-    applyPreviewLocale(fixtureData, resolvedSearchParams.lang),
+    applyMenuPriceAlignmentQaFixture(
+      applyPreviewLocale(fixtureData, resolvedSearchParams.lang),
+      resolvedSearchParams.priceAlignmentQa,
+    ),
     resolvedSearchParams.localeQa,
   );
   const requestedRenderMode = Array.isArray(resolvedSearchParams.renderMode)
