@@ -3009,6 +3009,13 @@ video {
   display: none;
 }
 
+/* REAL MATCHA hides the boundary rule, so use its full section rhythm instead of the rule's leading half. */
+@media (min-width: 1024px) {
+  .cafe-a-typography[data-template-key="cafe_design_a"][data-cafe-a-proportion-policy="true"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] {
+    margin-bottom: var(--cafe-a-category-no-divider-gap);
+  }
+}
+
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] {
   /* Keep the tablet's original proportions; both rows share this square size. */
   --loop-bagel-checker-square: clamp(0.42rem, 1.05vmin, 0.72rem);

@@ -66,6 +66,23 @@ test("단일페이지는 유동 기준 간격에 고정된 역할 비율을 한 
   );
 });
 
+test("리얼맛차 단일페이지의 데스크톱 카테고리 경계는 숨긴 분리선 간격 대신 2.9배 리듬을 사용한다", () => {
+  assert.match(
+    globalStylesSource,
+    /:is\(\[data-template-key="cafe_design_a"\], \[data-template-key="fast_food_loop_bagel_a"\]\) \{\s*--cafe-a-category-separation-ratio: 2\.9;/,
+  );
+  const selector = '.cafe-a-typography[data-template-key="cafe_design_a"][data-cafe-a-proportion-policy="true"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"]';
+  const boundaryRule = `${selector} {\n    margin-bottom: var(--cafe-a-category-no-divider-gap);\n  }`;
+  assert.ok(globalStylesSource.includes(`@media (min-width: 1024px) {\n  ${boundaryRule}`));
+  assert.equal(globalStylesSource.split(selector).length - 1, 1);
+  // The scoped rule follows both shared category transitions, including the two-column fallback.
+  assert.ok(globalStylesSource.indexOf(boundaryRule) > globalStylesSource.lastIndexOf('margin-bottom: var(--cafe-a-category-divider-before-gap);'));
+  assert.match(
+    globalStylesSource,
+    /data-template-key="cafe_design_a"\] \.cafe-a-menu-category-top-divider \{\s*display: none;/,
+  );
+});
+
 test("반고흐는 분리선 없이 기기별 기준에 같은 카테고리 간격 비율을 적용한다", () => {
   const rules = getTemplateContentSeparatorRules("cafe_van_gogh_a", "cafe");
   assert.equal(rules.categoryDivider, "none");
