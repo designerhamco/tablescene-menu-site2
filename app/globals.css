@@ -4726,7 +4726,8 @@ video {
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-category-eyebrow.cafe-a-menu-description {
   margin: 0 0 0.24em;
-  font-weight: 700;
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * 0.9);
+  font-weight: 800;
   line-height: 1.25;
 }
 
@@ -4750,8 +4751,13 @@ video {
 }
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"] :is(.cafe-a-menu-badge, .cafe-a-featured-badge, .cafe-a-menu-chip) {
-  border: 1px solid #000000;
+  border: 1px solid transparent;
   border-radius: 0;
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-menu-chip {
+  background-color: #dc4235;
+  color: #ffffff;
 }
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-menu-category-top-divider {

@@ -1,5 +1,14 @@
 # KOHI template verification — 2026-10-09
 
+## Starter follow-up — 2026-10-11
+
+- English starter typography is now Tilt Warp. Korean remains Pretendard; the existing Outfit outline logo with `cafe` / `menu` captions is unchanged.
+- Category descriptions use weight 800 and 0.9 times the shared device-scaled item-name size (previously weight 700 and the smaller supporting-copy ratio). This is KOHI-scoped and does not alter the fit engine.
+- All 17 item descriptions and their English/Chinese/Japanese starter translations are explicitly empty. Only cream coffee and lemon soda carry an `Ice only` price note; prices and price-option logic are unchanged.
+- All regular starter badge styles and the cake countdown badge use the brand red `#DC4235`; the old black outline is removed from the filled badges. Other templates and customer badge overrides are untouched.
+- Follow-up verification: 526 tests, TypeScript, targeted ESLint, and production build passed. The local preview HTTP response contains Tilt Warp, the red styles and price notes, and no previous item-description copy.
+- Automated browser inspection was blocked by the browser URL policy, so this follow-up does not claim rendered responsive or visual QA. Earlier browser observations below describe the pre-follow-up presentation.
+
 ## Scope
 
 - New independent `cafe_kohi_a` catalog entry and editable starter, based on REAL MATCHA's CafeA renderer.

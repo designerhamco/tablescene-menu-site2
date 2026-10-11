@@ -8,6 +8,7 @@ import { getTemplateCapabilities } from "./template-capabilities";
 import { getTemplateLayoutRules } from "./template-layout-rules";
 import { getTemplateByKey } from "./templates";
 import { supportsPcTabletLayoutMode } from "./menu-layout-modes";
+import { BADGE_STYLE_KEYS, getDefaultBadgeStyles } from "./template-badge-styles";
 
 test("KOHI is an independent editable REAL MATCHA-based template", () => {
   const kohi = getStarterPreset("cafe_kohi_a");
@@ -20,7 +21,7 @@ test("KOHI is an independent editable REAL MATCHA-based template", () => {
   assert.equal(getTemplateLayoutRules("cafe_kohi_a").maxColumns.desktop, 4);
   assert.equal(supportsPcTabletLayoutMode("cafe_kohi_a"), true);
   const roles = mergeTypographySettings("cafe_kohi_a").typography_roles;
-  assert.equal(mergeTypographySettings("cafe_kohi_a").english_font_key, "outfit");
+  assert.equal(mergeTypographySettings("cafe_kohi_a").english_font_key, "tilt-warp");
   assert.equal(roles.category.color, "#DC4235");
   assert.equal(roles.brand.color, roles.category.color);
   for (const role of ["itemName", "supporting", "price"] as const) assert.equal(roles[role].color, "#000000");
@@ -56,9 +57,25 @@ test("KOHI starter uses the outlined Outfit logo with cafe and menu captions ins
   assert.match(previewSource, /logo_url: template\.key === "cafe_noir_a" \|\| template\.key === "cafe_kohi_a" \? \(preset\.site\.logo_url \?\? null\) : null/);
 });
 
-test("KOHI category headings use a bold Outfit weight without overriding editable colors", () => {
+test("KOHI category headings and larger descriptions preserve linked sizing and editable colors", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(css, /\[data-template-key="cafe_kohi_a"\] \.cafe-a-category-title \{[^}]*font-weight: 700;/);
+  assert.match(css, /\[data-template-key="cafe_kohi_a"\] \.cafe-a-category-eyebrow\.cafe-a-menu-description \{[^}]*font-size: calc\(var\(--cafe-a-linked-item-name-size\) \* var\(--cafe-a-device-type-scale\) \* 0\.9\);[^}]*font-weight: 800;/);
+});
+
+test("KOHI starter has no item descriptions in any locale and adds only selected cold-drink price notes", () => {
+  const items = getStarterPreset("cafe_kohi_a").pages.flatMap((page) => page.categories.flatMap((category) => category.items));
+  assert.equal(items.length, 17);
+  assert.ok(items.every((item) => item.description === ""));
+  assert.deepEqual(items.filter((item) => item.price_note).map((item) => [item.key, item.price_note]), [["kohi-cream-coffee", "Ice only"], ["lemon-soda", "Ice only"]]);
+  const translations = getSinglePageStarterTranslations("cafe_kohi_a")!;
+  for (const locale of ["en", "zh", "ja"] as const) assert.ok(Object.values(translations[locale].items).every((item) => item.description === ""));
+});
+
+test("KOHI defaults unify all regular and timed badge colors without changing other templates", () => {
+  const styles = getDefaultBadgeStyles("cafe_kohi_a");
+  for (const key of BADGE_STYLE_KEYS) assert.deepEqual(styles[key], { background_color: "#DC4235", text_color: "#FFFFFF" });
+  assert.equal(getDefaultBadgeStyles("cafe_design_a").signature.background_color, "#2AA36D");
 });
 
 test("KOHI featured content links to its own sample menu and an existing coffee image", () => {
@@ -104,7 +121,7 @@ test("KOHI notices retain only option copy and one localized cake countdown", ()
   assert.equal(sale.time_display_mode, "countdown");
   assert.equal(sale.targets?.[0].target_item_key, "basque-cheesecake");
   assert.equal(sale.targets?.[0].sale_price, 5500);
-  assert.equal(sale.badge_background_color, "#000000");
+  assert.equal(sale.badge_background_color, "#DC4235");
   const translations = getSinglePageStarterTranslations("cafe_kohi_a")!;
   for (const locale of ["en", "zh", "ja"] as const) {
     assert.ok(translations[locale].promotions[sale.key!]?.badgeText);
