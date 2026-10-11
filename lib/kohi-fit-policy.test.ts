@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { getKohiFitGapScale, getKohiFitLimits, getKohiItemRhythmMultiplier, isKohiFitScaleWithinLimits, limitKohiFitFontCandidates, usesKohiFitPolicy } from "./kohi-fit-policy";
+import { getKohiFitGapScale, getKohiFitLimits, isKohiFitScaleWithinLimits, limitKohiFitFontCandidates, usesKohiFitPolicy } from "./kohi-fit-policy";
+import { getOnePageItemRhythmMultiplier } from "./one-page-proportion-policy";
 
 test("the proportion-first fit pilot stays scoped to KOHI PC/tablet", () => {
   for (const device of ["pc", "tablet", undefined] as const) assert.equal(usesKohiFitPolicy("cafe_kohi_a", device), true);
@@ -32,15 +33,15 @@ test("font and gap ceilings permit dense backoff without whitespace-driven growt
 });
 
 test("missing rendered supporting lines add bounded item-only breathing room", () => {
-  assert.equal(getKohiItemRhythmMultiplier(true, true), 1);
-  assert.equal(getKohiItemRhythmMultiplier(false, true), 1.15);
-  assert.equal(getKohiItemRhythmMultiplier(true, false), 1.15);
-  assert.equal(getKohiItemRhythmMultiplier(false, false), 1.35);
-  assert.equal(getKohiItemRhythmMultiplier(false, false, true), 1);
+  assert.equal(getOnePageItemRhythmMultiplier(true, true), 1);
+  assert.equal(getOnePageItemRhythmMultiplier(false, true), 1.15);
+  assert.equal(getOnePageItemRhythmMultiplier(true, false), 1.15);
+  assert.equal(getOnePageItemRhythmMultiplier(false, false), 1.35);
+  assert.equal(getOnePageItemRhythmMultiplier(false, false, true), 1);
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   for (const factor of ["1.15", "1.35"]) {
-    assert.ok(css.includes(`.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="${factor}"])`));
-    assert.ok(css.includes(`calc(var(--kohi-item-rhythm-gap) * ${factor})`));
+    assert.ok(css.includes(`.cafe-a-typography[data-cafe-a-proportion-policy="true"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="${factor}"])`));
+    assert.ok(css.includes(`calc(var(--cafe-a-copy-aware-item-rhythm-gap) * ${factor})`));
   }
 });
 
@@ -60,7 +61,7 @@ test("candidate selection, validation and final presentation share the bounded p
   const source = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
   assert.match(source, /const hasBoundedFitSpacing = isLoopBagelFitSpacing \|\| isKohiFitPolicy/);
   assert.match(source, /getKohiFitGapScale\(fontScale, data.previewDevice, window.innerWidth\)/);
-  assert.match(source, /getKohiItemRhythmMultiplier\(hasSecondaryText, hasDescriptionText, showMenuTimeSale/);
+  assert.match(source, /getOnePageItemRhythmMultiplier\(hasSecondaryText, hasDescriptionText, showMenuTimeSale/);
   for (const candidates of ["ORDERED_FIT_FONT_SCALE_CANDIDATES", "FIT_FONT_SCALE_CANDIDATES"]) {
     assert.ok(source.includes(`for (const fontScale of getTemplateFitFontCandidates(${candidates}))`));
   }

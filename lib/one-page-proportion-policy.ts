@@ -1,0 +1,26 @@
+import type { MenuPreviewDevice } from "./menu-preview-devices";
+
+/** Shared behavior, not shared typography calibration. Keep retired/other engines out. */
+export const ONE_PAGE_PROPORTION_TEMPLATE_KEYS = [
+  "cafe_design_a",
+  "cafe_kohi_a",
+  "cafe_mocha_forest_a",
+  "cafe_sunday_line_a",
+  "cafe_van_gogh_a",
+  "cafe_round_focus_a",
+  "fast_food_loop_bagel_a",
+] as const;
+
+export function usesOnePageProportionPolicy(templateKey: string | null | undefined, pagePresentation?: "one" | "multi"): boolean {
+  return pagePresentation !== "multi" && ONE_PAGE_PROPORTION_TEMPLATE_KEYS.some((key) => key === templateKey);
+}
+
+export function usesOnePageProportionFitPolicy(templateKey: string | null | undefined, previewDevice?: MenuPreviewDevice, pagePresentation?: "one" | "multi"): boolean {
+  return previewDevice !== "mobile" && usesOnePageProportionPolicy(templateKey, pagePresentation);
+}
+
+/** Actual visible copy, including translated secondary names; applies between items only. */
+export function getOnePageItemRhythmMultiplier(hasSecondary: boolean, hasDescription: boolean, hasAdditionalSupport = false): number {
+  if (hasAdditionalSupport || (hasSecondary && hasDescription)) return 1;
+  return hasSecondary || hasDescription ? 1.15 : 1.35;
+}

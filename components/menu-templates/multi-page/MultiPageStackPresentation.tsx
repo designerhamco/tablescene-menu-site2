@@ -37,7 +37,7 @@ export default function MultiPageStackPresentation({
           data-multi-page-stack-section=""
           data-multi-page-index={pageIndex + 1}
         >
-          <CafeDesignA {...data} pagePresentation="one" />
+          <CafeDesignA {...data} pagePresentation="multi" />
         </section>
       ))}
     </div>

@@ -29,13 +29,14 @@ import {
   type CafeAMenuWrapDensityDecision,
 } from "@/lib/cafe-a-wrap-density";
 import { DEFAULT_LOCALE } from "@/lib/locales";
-import { getKohiFitGapScale, getKohiItemRhythmMultiplier, isKohiFitScaleWithinLimits, limitKohiFitFontCandidates, usesKohiFitPolicy } from "@/lib/kohi-fit-policy";
+import { getKohiFitGapScale, isKohiFitScaleWithinLimits, limitKohiFitFontCandidates, usesKohiFitPolicy } from "@/lib/kohi-fit-policy";
 import { getLoopBagelFitGapScale, usesLoopBagelFitSpacing } from "@/lib/loop-bagel-fit-spacing";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { isMenuCoverVisibleOnDevice } from "@/lib/menu-cover-device-visibility";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import { getFixedOnePageLayoutShell, type OnePageLayoutShell } from "@/lib/one-page-layout-shells";
+import { getOnePageItemRhythmMultiplier, usesOnePageProportionFitPolicy, usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
 import {
   ONE_PAGE_MAX_MENU_COLUMNS,
   ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS,
@@ -4039,7 +4040,7 @@ function MenuItemRow({
       ref={itemRef}
       className={`cafe-a-menu-item grid items-start ${canCenterSparseContent ? "cafe-a-menu-item-align-center" : ""} ${hasItemImage ? "cafe-a-menu-item-with-image" : ""} ${priceCountClassName} ${itemGridClassName}`}
       data-cafe-a-content-variant={contentVariant}
-      data-cafe-a-item-rhythm={templateKey === "cafe_kohi_a" ? getKohiItemRhythmMultiplier(hasSecondaryText, hasDescriptionText, showMenuTimeSale || visibleTraits.length > 0 || hasOriginInfo) : undefined}
+      data-cafe-a-item-rhythm={usesOnePageProportionPolicy(templateKey) ? getOnePageItemRhythmMultiplier(hasSecondaryText, hasDescriptionText, showMenuTimeSale || visibleTraits.length > 0 || hasOriginInfo) : undefined}
       data-cafe-a-menu-item=""
       data-cafe-a-sold-out={isSoldOut ? "true" : undefined}
       data-cafe-a-tablet-price-layout={stackPriceOption ? "stacked" : undefined}
@@ -6641,7 +6642,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const layoutMode = (normalizedPreviewLayoutMode ?? savedLayoutMode) as CafeDesignALayoutMode;
   const isLoopBagelFitSpacing = usesLoopBagelFitSpacing(data.menuSite.template_key, data.previewDevice);
   const isKohiFitPolicy = usesKohiFitPolicy(data.menuSite.template_key, data.previewDevice);
-  const hasBoundedFitSpacing = isLoopBagelFitSpacing || isKohiFitPolicy;
+  const hasBoundedFitSpacing = isLoopBagelFitSpacing || isKohiFitPolicy || usesOnePageProportionFitPolicy(data.menuSite.template_key, data.previewDevice, data.pagePresentation);
   const canRetainTemplateFitState = useCallback((state: CafeDesignAFitState) =>
     !isKohiFitPolicy || isKohiFitScaleWithinLimits(state.fontScale, state.gapScale, data.previewDevice, window.innerWidth),
   [data.previewDevice, isKohiFitPolicy]);
@@ -8591,7 +8592,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           // Mocha Forest has its own image-heavy panel balance. Escalating its font
           // scale again here competes with the primary fit pass and can oscillate
           // between otherwise safe candidates, leaving the loading cover visible.
-          // Loop Bagel and KOHI use bounded screen/font rhythm, without a second
+          // Single-page templates keep their own bounded rhythm, without a second
           // whitespace-driven enlargement pass. DOM-crop safety still runs above.
           if (!isMochaForest && !hasBoundedFitSpacing && actualCropMeasurement.bottomGap > 12) {
             const previousFontScale = boardElement.style.getPropertyValue("--fit-font-scale");
@@ -9331,6 +9332,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         data-cafe-a-skin={cafeASkinAttribute}
         data-template-key={data.menuSite.template_key ?? undefined}
         data-preview-device={data.previewDevice}
+        data-cafe-a-proportion-policy={usesOnePageProportionPolicy(data.menuSite.template_key, data.pagePresentation) ? "true" : undefined}
         data-spacing-contract="canvas-fit"
         style={{ ...typographyStyle, ...skinStyle, backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor }}
       >

@@ -11,9 +11,9 @@ New templates must select one contract before template-specific spacing is added
 
 ## Canvas-fit templates
 
-KOHI alone pilots a proportion-first policy in `lib/kohi-fit-policy.ts`: bounded automatic font/gap scales, no secondary whitespace-fill enlargement, and copy-visibility-aware item boundaries. See `docs/kohi-template-qa.md` for limits and pending visual approval. Existing column/category/price/footer/clipping contracts still apply; this policy is not yet shared with other templates.
+The seven active dining single-page templates share the proportion-first behavior in `lib/one-page-proportion-policy.ts`: no secondary whitespace-fill enlargement, and copy-visibility-aware item boundaries. Numeric font/gap ceilings, role proportions and screen corrections remain template-owned. KOHI retains its approved `lib/kohi-fit-policy.ts` calibration; its `1.20`/`1.24` ceilings are NOT copied to other templates. Display, multi-page, retired and coming-soon engines are excluded. See `docs/one-page-proportion-rollout.md` for scope and verification limits.
 
-Canvas-fit spacing must be derived from viewport or container units and bounded with `clamp()`. The fitting engine may scale the shared rhythm down to prevent cropping or up to improve fill, but must not expose intermediate layouts.
+Canvas-fit spacing must be derived from viewport or container units and bounded with `clamp()`. Single-page fit chooses a readable bounded primary candidate and may scale down to prevent cropping; it must not enlarge again merely to erase residual whitespace or expose intermediate layouts. Display retains its separate row-budget policy.
 
 The shared hierarchy is:
 
@@ -22,6 +22,8 @@ The shared hierarchy is:
 3. category-title-to-first-item gap (`1`);
 4. category-to-category gap without a divider (`2.6`);
 5. category boundary with a divider (the existing balanced space on both sides of the rule).
+
+For single-page item-to-item boundaries only, multiply the existing rhythm by `1.15` when just one of secondary name/description is visible, or `1.35` when neither is visible. Both visible fields, or additional promotion/origin/trait support, keep the normal rhythm. Use actual rendered/translated visibility, not the mere presence of starter fields. Do not apply this multiplier to the last item, category/heading/widget/footer boundaries, or to nested copy gaps. Candidate measurement and final rendering must use identical CSS.
 
 Widgets are category-level content blocks. A category-to-widget or widget-to-widget boundary without a divider uses the same category-to-category ratio, and widget-to-category uses the same divider or no-divider rule as a category boundary. A `bottom` widget may add flexible space above its final-column stack, but widget-to-footer-notice spacing uses the same item-to-item rhythm token and must never be replaced by a separate fixed reserve.
 
@@ -35,7 +37,7 @@ Display templates use the calculated content row (`--display-row`) as the base u
 
 ### Loop Bagel PC/tablet pilot
 
-Loop Bagel alone uses `getLoopBagelFitGapScale()` for its CafeA fit modes. Mobile and every other template keep their existing rules. The gap scale is derived from the selected font scale plus a continuous, bounded correction for menu-container width and viewport height, not the residual empty space after content layout:
+Loop Bagel alone uses `getLoopBagelFitGapScale()` for its numeric CafeA fit calibration. Mobile and other templates retain their own base gap values, with the common between-item copy adjustment above. The gap scale is derived from the selected font scale plus a continuous, bounded correction for menu-container width and viewport height, not the residual empty space after content layout:
 
 - width progress: `clamp((menuWidth - 640) / 800, 0, 1)`;
 - height progress: `clamp((viewportHeight - 640) / 440, 0, 1)`;
@@ -57,7 +59,7 @@ Their page inset, column gap, section gap, item gap, and copy gap must still be 
 
 Category descriptions render before their category name only in KOHI. Every starter category has a concise visible description in all four locales. In `orderedFit`, heading/item fragments are measured separately so a category continuing into the next column does not create a false heading or cross-column horizontal rule. Rules remain hidden while the desktop fit safety cover is active and refresh on layout, viewport, font and image changes. Scrolling/mobile layouts use a single menu column with page-wide horizontal rules and no vertical split through the brand area.
 
-KOHI's category-title-to-first-item ratio is `2` and its category separation ratio is `3.4`, each applied once to the existing item rhythm. Desktop visual category transitions use the separation token instead of the smaller shared divider-before token. Scrolling layouts remove the last item's margin before applying category separation. Item-to-item rhythm and fit-engine calibration are unchanged.
+KOHI's category-title-to-first-item ratio is `2` and its category separation ratio is `3.4`, each applied once to the existing item rhythm. Desktop visual category transitions use the separation token instead of the smaller shared divider-before token. Scrolling layouts remove the last item's margin before applying category separation. Its approved proportion-first numeric calibration and common copy-aware item rhythm are independent of these category ratios.
 
 ## Verification
 

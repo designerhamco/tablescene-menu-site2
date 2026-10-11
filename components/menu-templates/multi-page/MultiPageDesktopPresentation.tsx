@@ -40,7 +40,7 @@ export default function MultiPageDesktopPresentation({
       data-multi-page-current={safePageIndex + 1}
       data-multi-page-total={pages.length}
     >
-      <CafeDesignA {...currentPage.data} pagePresentation="one" />
+      <CafeDesignA {...currentPage.data} pagePresentation="multi" />
       <MultiPageControls
         currentPage={safePageIndex}
         totalPages={pages.length}

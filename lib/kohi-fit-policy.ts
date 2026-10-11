@@ -1,6 +1,6 @@
 import type { MenuPreviewDevice } from "./menu-preview-devices";
 
-/** KOHI-only proportion-first pilot. Other templates keep their existing policy. */
+/** KOHI's approved numeric calibration. Other templates share behavior, not these values. */
 export function usesKohiFitPolicy(templateKey: string, previewDevice?: MenuPreviewDevice): boolean {
   return templateKey === "cafe_kohi_a" && previewDevice !== "mobile";
 }
@@ -28,10 +28,4 @@ export function getKohiFitGapScale(fontScale: number, previewDevice?: MenuPrevie
   const { maximumGapScale } = getKohiFitLimits(previewDevice, viewportWidth);
   const safeFontScale = Number.isFinite(fontScale) ? fontScale : 0.8;
   return Math.round(Math.max(0.44, Math.min(maximumGapScale, safeFontScale + 0.02)) * 1000) / 1000;
-}
-
-/** Use rendered copy visibility, not the existence of untranslated starter fields. */
-export function getKohiItemRhythmMultiplier(hasSecondary: boolean, hasDescription: boolean, hasAdditionalSupport = false): number {
-  if (hasAdditionalSupport || (hasSecondary && hasDescription)) return 1;
-  return hasSecondary || hasDescription ? 1.15 : 1.35;
 }
