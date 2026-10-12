@@ -1,5 +1,7 @@
 # Single-page mobile rhythm correction — 2026-10-12
 
+Historical initial correction (18px). The subsequent approved 20/24/48 unification and KOHI title pilot supersede its numeric mobile defaults; see `docs/template-spacing-contract.md`. This evidence remains a record of the original bug fix, not the current mobile calibration.
+
 ## Cause and scope
 
 The prior common rollout incorrectly enabled copy-aware canvas-fit spacing on mobile. Its root-level CSS alias referenced a density token that existed only on descendant item stacks. CSS resolves custom-property aliases at their declaration, so affected 1.15×/1.35× margins became invalid and computed to 0px. Full-copy 1× rows kept their old 16px margin and concealed the problem in some starters.

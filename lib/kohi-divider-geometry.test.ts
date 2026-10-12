@@ -34,3 +34,11 @@ test("KOHI invalid or overlapping measurements never draw through content", () =
   const lines = getKohiDividerLines({ width: 640, height: 480, columns, segments: [box("a", "heading", 220, 20, 60), box("a", "item", 220, 55, 100)] });
   assert.equal(lines.some((line) => line.kind === "heading"), false);
 });
+
+test("KOHI mobile rules measure whitespace from stroke edges instead of the old midpoint", () => {
+  const lines = getKohiDividerLines({ width: 390, height: 1600, columns: [{ left: 24, right: 366 }], mobileSpacing: { headingBefore: 8, categoryAfter: 12, strokeWidth: 1 }, segments: [box("a", "heading", 24, 100, 130), box("a", "item", 24, 163, 200), box("b", "heading", 24, 261, 291), box("b", "item", 24, 324, 380)] });
+  assert.equal(lines.find((line) => line.kind === "heading")?.y1, 138.5);
+  assert.equal(163 - (138.5 + 0.5), 24);
+  assert.equal(lines.find((line) => line.kind === "category")?.y1, 248.5);
+  assert.equal(261 - (248.5 + 0.5), 12);
+});

@@ -71,10 +71,12 @@ export default function KohiMenuDividers() {
         });
       });
       const brand = desktop ? board?.querySelector<HTMLElement>("[data-cafe-a-brand-panel]") : null;
+      const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
+      const mobileSpacing = root.dataset.cafeAMobileStyle === "true" ? { headingBefore: rem * 0.5, categoryAfter: rem * 0.75, strokeWidth: 1 } : undefined;
       const next = {
         width: rootRect.width,
         height: rootRect.height,
-        lines: getKohiDividerLines({ width: rootRect.width, height: rootRect.height, columns, segments, brandRight: brand && visible(brand) ? brand.getBoundingClientRect().right - rootRect.left : undefined }),
+        lines: getKohiDividerLines({ width: rootRect.width, height: rootRect.height, columns, segments, mobileSpacing, brandRight: brand && visible(brand) ? brand.getBoundingClientRect().right - rootRect.left : undefined }),
       };
       const fingerprint = JSON.stringify(next);
       if (fingerprint !== previousFingerprint) {

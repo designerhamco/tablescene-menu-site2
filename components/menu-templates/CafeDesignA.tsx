@@ -10,6 +10,7 @@ import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText"
 import CafeAWidgetBlock, { type CafeAWidgetPreview } from "@/components/menu-templates/CafeAWidgetBlock";
 import KohiMenuDividers from "@/components/menu-templates/KohiMenuDividers";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
+import MobileBrandTitle from "@/components/menu-templates/shared/MobileBrandTitle";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import MenuOrderAddButton from "@/components/public-menu/order-call/MenuOrderAddButton";
 import {
@@ -4469,11 +4470,13 @@ function StoreIdentity({
   capabilities,
   titleClassName,
   logoClassName,
+  mobileAutoFit = false,
 }: {
   data: PublicMenuTemplateProps;
   capabilities: TemplateCapabilities;
   titleClassName: string;
   logoClassName: string;
+  mobileAutoFit?: boolean;
 }) {
   const title = getDisplayName(data.menuSite) || "ArtiMenu";
   const [logoFailed, setLogoFailed] = useState(false);
@@ -4493,7 +4496,17 @@ function StoreIdentity({
     );
   }
 
+  if (mobileAutoFit) {
+    const typography = mergeTypographySettings(data.menuSite.template_key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
+    const brand = typography.typography_roles.brand;
+    const fontSignature = [typography.korean_font_key, typography.english_font_key, brand.font_ko_key, brand.font_en_key].join("|");
+    return <MobileBrandTitle title={title} className={titleClassName} fontSignature={fontSignature} />;
+  }
   return <h1 className={titleClassName} data-cafe-a-store-title=""><ScriptAwareText text={title} /></h1>;
+}
+
+function MobileNoticeList({ rows, density }: { rows: string[]; density: MenuLayoutDensity }) {
+  return <div className="cafe-a-mobile-notice-list">{rows.map((row, index) => <p key={`${index}-${row}`} className={`cafe-a-description-text cafe-a-menu-description whitespace-pre-line break-keep ${getMenuDescriptionSizeClassName(density)}`}><ScriptAwareText text={row} /></p>)}</div>;
 }
 
 function CafeAFooterInfo({
@@ -4501,11 +4514,13 @@ function CafeAFooterInfo({
   capabilities,
   density,
   placement = "desktop",
+  mobileReading = false,
 }: {
   data: PublicMenuTemplateProps;
   capabilities: TemplateCapabilities;
   density: MenuLayoutDensity;
   placement?: "desktop" | "mobile";
+  mobileReading?: boolean;
 }) {
   const infoRows = getCafeAFooterInfo(data, capabilities);
   const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
@@ -4519,12 +4534,12 @@ function CafeAFooterInfo({
       data-cafe-a-footer-info=""
       data-cafe-a-footer-placement={placement}
     >
-      <p
+      {mobileReading ? <MobileNoticeList rows={infoRows} density={density} /> : <p
         className={`cafe-a-description-text cafe-a-menu-description cafe-a-store-description cafe-a-rail-description whitespace-pre-line break-keep ${descriptionSizeClassName}`}
         data-cafe-a-store-description=""
       >
         <ScriptAwareText text={infoRows.join("\n")} />
-      </p>
+      </p>}
     </aside>
   );
 }
@@ -5759,16 +5774,19 @@ function HeaderBlock({
   data,
   density,
   className = "",
+  mobileReading = false,
 }: {
   data: PublicMenuTemplateProps;
   density: MenuLayoutDensity;
   className?: string;
+  mobileReading?: boolean;
 }) {
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const description = data.menuSite.brand_description || data.menuSite.description;
   const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
   const descriptionClassName = `cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap cafe-a-store-description mt-2 break-keep text-[#3f4945] ${descriptionSizeClassName}`;
   const hasLanguageSwitcher = Array.from(new Set(data.enabledLocales)).length > 1;
+  const mobileAutoFit = mobileReading && data.menuSite.template_key === "cafe_kohi_a";
 
   return (
     <header className={`w-full shrink-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-0 lg:border-b lg:border-[#191c1b] lg:px-[var(--board-padding)] lg:py-[var(--board-padding)] ${className}`}>
@@ -5784,6 +5802,7 @@ function HeaderBlock({
             capabilities={capabilities}
             titleClassName="cafe-a-store-title break-words font-black uppercase leading-[1.02] text-[#191c1b] lg:text-[clamp(42px,5.2vh,52px)]"
             logoClassName="max-h-[72px] max-w-[220px] object-contain"
+            mobileAutoFit={mobileAutoFit}
           />
           {description && (
             <p className={descriptionClassName} data-cafe-a-store-description="">
@@ -5862,10 +5881,12 @@ function SundayLineMobileNotices({
   data,
   capabilities,
   density,
+  mobileReading = false,
 }: {
   data: CafeDesignAProps;
   capabilities: TemplateCapabilities;
   density: MenuLayoutDensity;
+  mobileReading?: boolean;
 }) {
   const infoRows = getCafeAFooterInfo(data, capabilities);
   const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
@@ -5873,9 +5894,9 @@ function SundayLineMobileNotices({
 
   return (
     <aside className="cafe-a-topline-mobile-notices px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-copy-block-gap)] text-left text-[#58645f] md:hidden" data-cafe-a-topline-mobile-notices="">
-      <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap whitespace-pre-line break-keep ${descriptionSizeClassName}`}>
+      {mobileReading ? <MobileNoticeList rows={infoRows} density={density} /> : <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap whitespace-pre-line break-keep ${descriptionSizeClassName}`}>
         <ScriptAwareText text={infoRows.join("\n")} />
-      </p>
+      </p>}
     </aside>
   );
 }
@@ -9343,7 +9364,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
           {isRoundFocus ? (
             <section className="cafe-a-round-focus-mobile-brand-section lg:hidden" data-cafe-a-round-focus-mobile-brand-section="">
-              <HeaderBlock data={data} density={density} />
+              <HeaderBlock data={data} density={density} mobileReading={onePageRhythmMode === "mobile"} />
               {shouldRenderMenuCoverSection && (
                 <div className="cafe-a-round-focus-mobile-featured-shell min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)]">
                   <CoverHero
@@ -9358,14 +9379,19 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               )}
               <RoundFocusMobileNotices data={data} capabilities={capabilities} density={density} />
             </section>
+          ) : isMochaForest && onePageRhythmMode === "mobile" ? (
+            <section className="cafe-a-mobile-upper-box" data-cafe-a-mobile-upper-box="">
+              <HeaderBlock data={data} density={density} mobileReading />
+              {shouldRenderMenuCoverSection && <div className="cafe-a-mobile-upper-featured"><CoverHero data={data} featuredSlides={featuredHeroSlides} capabilities={capabilities} density={density} customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} /></div>}
+            </section>
           ) : (
             <>
-              <HeaderBlock data={data} density={density} className="lg:hidden" />
-              {isSundayLine ? <SundayLineMobileNotices data={data} capabilities={capabilities} density={density} /> : null}
+              <HeaderBlock data={data} density={density} className="lg:hidden" mobileReading={onePageRhythmMode === "mobile"} />
+              {isSundayLine ? <SundayLineMobileNotices data={data} capabilities={capabilities} density={density} mobileReading={onePageRhythmMode === "mobile"} /> : null}
             </>
           )}
           <div data-cafe-a-scroll-content="" className={`grid min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-[var(--cafe-a-page-block-end)] md:grid-cols-2 lg:hidden ${data.menuSite.template_key === "cafe_kohi_a" ? "kohi-mobile-menu-grid" : ""} ${isRoundFocus ? "cafe-a-round-focus-mobile-menu-grid" : ""} ${outerGridGapClassName}`}>
-            {!isRoundFocus && shouldRenderMenuCoverSection && (
+            {!isRoundFocus && !(isMochaForest && onePageRhythmMode === "mobile") && shouldRenderMenuCoverSection && (
               <CoverHero
                 data={data}
                 featuredSlides={featuredHeroSlides}
@@ -9393,7 +9419,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                 timeSaleByItemId={timeSaleByItemId}
                 priceDisplayMode={priceDisplayMode}
                 onOpenImage={openMenuImagePreview}
-                footerInfo={isSundayLine || isRoundFocus ? undefined : <CafeAFooterInfo data={data} capabilities={capabilities} density={density} placement="mobile" />}
+                footerInfo={isSundayLine || isRoundFocus ? undefined : <CafeAFooterInfo data={data} capabilities={capabilities} density={density} placement="mobile" mobileReading={onePageRhythmMode === "mobile"} />}
                 templateSkin={data.templateSkin}
               />
             )}

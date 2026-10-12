@@ -7,3 +7,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Menu layout boundaries
+
+- Before changing templates, read `docs/template-spacing-contract.md`. PC/tablet single-page fit is one policy; mobile single-page reading is a separate policy with its own numeric tokens. Never let a PC/tablet fit, density, fill or semantic-ratio change alter mobile sizing/spacing.
+- The seven active single-page mobile templates share the approved 20px item / 24px heading / 48px section defaults (rem-based). Measure colored upper boxes and separator stroke edges, not just text bounds. Preserve menu order, price/name alignment and desktop notice anchors.
+- Display and multi-page engines are excluded from this mobile rollout. KOHI mobile brand-width fitting is a pilot only; do not enable it in other templates or devices without approval.
+- Verify all affected mobile templates, narrow/wide phone widths and relevant locales, plus PC/tablet and excluded-engine regressions. Record actual DOM viewport dimensions, not just requested sizes; wait for the rendered layout/fonts to settle before claiming success.

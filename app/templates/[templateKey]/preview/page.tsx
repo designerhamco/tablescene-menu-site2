@@ -815,6 +815,15 @@ function applyMenuPriceAlignmentQaFixture(data: MenuPageData, value: string | st
 function applyOnePageRhythmQaFixture(data: MenuPageData, value: string | string[] | undefined): MenuPageData {
   const qaCase = Array.isArray(value) ? value[0] : value;
   if (process.env.NODE_ENV === "production" || !usesOnePageProportionPolicy(data.menuSite.template_key)) return data;
+  if (qaCase === "cover") return { ...data, pageSettings: { ...data.pageSettings, menu_cover_enabled: true, menu_cover_visible_mobile: true } };
+  if (data.menuSite.template_key === "cafe_kohi_a" && qaCase?.startsWith("brand-")) {
+    const titles: Record<string, string> = { "brand-long": "SUNDAY ROASTERS", "brand-cjk": "서울숲에서마시는따뜻한커피", "brand-unbroken": "ABCDEFGHIJKLMNOPQRSTUVWXYZ".repeat(3) };
+    const settings = data.menuSite.settings && typeof data.menuSite.settings === "object" && !Array.isArray(data.menuSite.settings) ? data.menuSite.settings : {};
+    const rawSettings = data.pageSettings as unknown as Record<string, unknown>;
+    const design = rawSettings.design && typeof rawSettings.design === "object" && !Array.isArray(rawSettings.design) ? rawSettings.design : {};
+    const pageSettings = qaCase === "brand-font-outfit" ? { ...data.pageSettings, design: { ...design, englishFont: "outfit" } } as MenuPageData["pageSettings"] : data.pageSettings;
+    return { ...data, pageSettings, menuSite: { ...data.menuSite, page_settings: pageSettings, restaurant_name: titles[qaCase] ?? "KOHI", logo_url: qaCase === "brand-logo" ? "/placeholders/starter/logo.svg" : null, settings: { ...settings, logo_replaces_name: qaCase === "brand-logo" } } };
+  }
   if (qaCase !== "copy" && qaCase !== "no-cover" && qaCase !== "copy-no-cover") return data;
   const pageSettings = qaCase.includes("no-cover") ? { ...data.pageSettings, menu_cover_enabled: false } : data.pageSettings;
   if (qaCase === "no-cover") return { ...data, pageSettings };
