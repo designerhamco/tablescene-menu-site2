@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import test from "node:test";
+import sharp from "sharp";
 import { getStarterPreset, resolveStarterFeaturedSlides } from "./menu-starter-presets";
 import { getSinglePageStarterTranslations } from "./template-demo-data/single-page-starter-translations";
 import { mergeTypographySettings } from "./template-typography-presets";
@@ -86,7 +87,7 @@ test("KOHI featured area contains only one original illustration without a produ
   const preset = getStarterPreset("cafe_kohi_a");
   assert.equal(preset.featured_slides?.length, 1);
   const slide = preset.featured_slides![0];
-  assert.equal(slide.image_url, "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-illustration.png");
+  assert.equal(slide.image_url, "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-transparent-v2.png");
   assert.equal(preset.site.cover_image_url, slide.image_url);
   assert.equal(slide.featured_item_key, undefined);
   assert.equal(slide.featured_item_name, undefined);
@@ -104,11 +105,39 @@ test("KOHI featured area contains only one original illustration without a produ
 
 test("KOHI illustration is not cropped in wide portrait-tablet headers, without changing customer photos", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
-  const selector = '.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-illustration.png"]';
+  const selector = '.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-transparent-v2.png"]';
   const rule = css.slice(css.indexOf(selector), css.indexOf("}", css.indexOf(selector)) + 1);
   assert.match(rule, /object-fit: contain;/);
-  assert.match(rule, /background-color: #f7f5f1;/);
+  assert.match(rule, /background: transparent;/);
   assert.doesNotMatch(rule, /height:|width:|padding:|margin:|grid-template/);
+});
+
+test("KOHI PNG has actual transparent pixels, not a painted paper/checkerboard background", async () => {
+  const path = new URL(`../public${getStarterPreset("cafe_kohi_a").site.cover_image_url}`, import.meta.url);
+  const image = sharp(readFileSync(path));
+  const metadata = await image.metadata();
+  const stats = await image.stats();
+  assert.equal(metadata.format, "png");
+  assert.equal(metadata.hasAlpha, true);
+  assert.equal(stats.isOpaque, false);
+  assert.equal(stats.channels[3]?.min, 0);
+  assert.equal(stats.channels[3]?.max, 255);
+  const { data, info } = await image.ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  for (const [x, y] of [[0, 0], [info.width - 1, 0], [0, info.height - 1], [info.width - 1, info.height - 1]]) {
+    assert.equal(data[(y * info.width + x) * info.channels + info.channels - 1], 0);
+  }
+});
+
+test("KOHI transparent illustration removes fallback backdrops without affecting other hero images", () => {
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  const scope = '.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-transparent-v2.png"])';
+  assert.ok(css.includes(`${scope} {\n  background: transparent;\n}`));
+  assert.ok(css.includes(`${scope} [data-cafe-a-cover-placeholder] {\n  display: none;\n}`));
+  const preview = readFileSync(new URL("../app/templates/[templateKey]/preview/page.tsx", import.meta.url), "utf8");
+  const fixture = preview.slice(preview.indexOf("function applyKohiBackgroundQaFixture"), preview.indexOf("function getOrderCallQaConfig"));
+  assert.match(fixture, /process\.env\.NODE_ENV === "production"/);
+  assert.match(fixture, /normalizeBackgroundColor/);
+  assert.match(fixture, /design: \{ \.\.\.design, backgroundColor \}/);
 });
 
 test("KOHI alone puts descriptions before headings and mounts non-interactive divider geometry", () => {

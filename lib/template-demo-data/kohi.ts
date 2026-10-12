@@ -1,7 +1,7 @@
 import type { StarterPreset } from "@/lib/menu-starter-presets";
 import type { SinglePageStarterTranslationBundle } from "./single-page-starter-translations";
 
-const KOHI_FEATURED_IMAGE = "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-illustration.png";
+const KOHI_FEATURED_IMAGE = "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-transparent-v2.png";
 const KOHI_LOGO_IMAGE = "/menu-templates/cafe_kohi_a/kohi-outfit-logo.svg";
 
 const categories = [

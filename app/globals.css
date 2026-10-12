@@ -4823,11 +4823,27 @@ video {
   color: #ffffff;
 }
 
-/* Keep the illustration's eyes and coffee cup intact in wide scrolling headers.
-   Scope to this asset: customer photographs retain the existing cover behavior. */
+/* Preserve the previous opaque version for already-saved menus/rollback.
+   Customer photographs retain the existing cover behavior. */
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-illustration.png"] {
   background-color: #f7f5f1;
   object-fit: contain;
+}
+
+/* Keep the transparent redraw intact in wide scrolling headers as well. */
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-transparent-v2.png"] {
+  background: transparent;
+  object-fit: contain;
+}
+
+/* A transparent PNG must reveal the customer's menu background, not the
+   photo fallback panel. Only this illustration opts out of those layers. */
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-transparent-v2.png"]) {
+  background: transparent;
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-transparent-v2.png"]) [data-cafe-a-cover-placeholder] {
+  display: none;
 }
 
 @media (min-width: 1024px) {

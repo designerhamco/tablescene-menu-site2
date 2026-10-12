@@ -31,6 +31,7 @@ import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib
 import { applyStarterPreviewLocalization } from "@/lib/template-demo-data/starter-preview-localization";
 import { MENU_WIDGET_SETTINGS_VERSION, type MenuWidget } from "@/lib/menu-widgets";
 import { usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
+import { normalizeBackgroundColor } from "@/lib/template-background-colors";
 import { isDisplayTypographyTemplate, normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
 import { getTemplateByKey, resolveTemplatePreviewRouteKey, type TemplateKey } from "@/lib/templates";
 import { getDefaultPageSettings, sortMenuPages } from "@/types/menu";
@@ -48,6 +49,7 @@ type PageProps = {
     featured?: string | string[];
     featureQa?: string | string[];
     priceAlignmentQa?: string | string[];
+    backgroundQa?: string | string[];
     copyQa?: string | string[];
     brewCoverPageQa?: string | string[];
     brewCoverImageQa?: string | string[];
@@ -808,6 +810,18 @@ function applyMenuPriceAlignmentQaFixture(data: MenuPageData, value: string | st
   };
 }
 
+/** Local-only: exercise the same design.backgroundColor field as the editor. */
+function applyKohiBackgroundQaFixture(data: MenuPageData, value: string | string[] | undefined): MenuPageData {
+  if (process.env.NODE_ENV === "production" || data.menuSite.template_key !== "cafe_kohi_a") return data;
+  const backgroundColor = normalizeBackgroundColor(Array.isArray(value) ? value[0] : value);
+  if (!backgroundColor) return data;
+  const settings = data.pageSettings as unknown as Record<string, unknown>;
+  const design = settings.design && typeof settings.design === "object" && !Array.isArray(settings.design)
+    ? settings.design as Record<string, unknown> : {};
+  const pageSettings = { ...data.pageSettings, design: { ...design, backgroundColor } } as MenuPageData["pageSettings"];
+  return { ...data, pageSettings, menuSite: { ...data.menuSite, page_settings: pageSettings as MenuPageData["menuSite"]["page_settings"] } };
+}
+
 function getOrderCallQaConfig(
   value: string | string[] | undefined,
   storeName: string,
@@ -1450,7 +1464,10 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   );
   const data = applyActiveTemplateLocaleQaFixture(
     applyMenuPriceAlignmentQaFixture(
-      applyPreviewLocale(fixtureData, resolvedSearchParams.lang),
+      applyKohiBackgroundQaFixture(
+        applyPreviewLocale(fixtureData, resolvedSearchParams.lang),
+        resolvedSearchParams.backgroundQa,
+      ),
       resolvedSearchParams.priceAlignmentQa,
     ),
     resolvedSearchParams.localeQa,
