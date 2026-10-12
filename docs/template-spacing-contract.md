@@ -56,10 +56,10 @@ The initial 18px/mobile template-ratio correction is historical (`docs/one-page-
 
 Applies only to REAL MATCHA, KOHI, Mocha Forest, Sunday Roasters, Van Gogh, ROSY ORANGE and Loop Bagel. Display, multi-page and inactive engines are unchanged. Explicit preview device hints win; public views infer the device with the existing viewport hook (<768px is mobile). Portrait tablet remains a PC/tablet policy, even while it scrolls.
 
-- Mobile does not fit a viewport or compress font/gap values when there is more content. Content scrolls naturally; width changes only rewrap text and resize responsive images/containers.
+- Mobile does not fit a viewport or compress body font/gap values when there is more content. Content scrolls naturally. Only the brand title follows the independent, approved 65%-inner-width policy below; it never changes body type or spacing.
 - Mobile selected in an explicitly wide preview/new window still uses mobile reading typography. PC media-query category/secondary sizing is excluded with a zero-specificity `:where(:not([data-cafe-a-mobile-style="true"]))` gate, preserving PC/tablet selector priority.
 - Item-to-item gap is `1.25rem` (20px at the default 16px root), independent of item count, supporting-copy visibility or phone width/height. No 1.15×/1.35× adjustment on mobile. Last items have zero trailing margin.
-- Stable typography bases: item name/price `1rem`, supporting copy `0.875rem`, secondary name `0.75rem`, category `1.5rem`, store title `2.75rem`. Fonts/colors remain template-owned, with the explicit exceptions below. Current one-page typography normalization fixes global/role size settings; this rollout does not introduce a new customer size control.
+- Stable typography bases: item name/price `1rem`, supporting copy/notices/category descriptions `0.875rem`, secondary name `0.75rem`, category `1.625rem`. Store text brand alone is width-fitted with a 48px minimum. Fonts/colors remain template-owned; old title/category/notice numeric exceptions are removed. Current one-page typography normalization fixes global/role size settings; this rollout does not introduce a new customer size control.
 - Section gap is the mobile-only `3rem` token. It governs **upper brand/logo + description + optional featured area/notices → first category**, category/widget boundaries, and the final mobile footer boundary. Do not add a last-item margin or independent outer row gap on top.
 - Featured enabled: its section ends the upper area. Featured disabled: header/last upper notice/ROSY ORANGE's whole brand section ends it. This preserves ordering without moving notice anchors or changing desktop fixed shells.
 - PC/tablet retain their distinct category-separation ratios (2.9/3.4/3/2.6/3.25/3.6). Mobile no longer aliases those ratios and uses 48px boundaries for all seven templates.
@@ -75,8 +75,8 @@ Applies to the same seven active single-page templates, not Display or multi-pag
 | Item name / price / featured item name / featured price | 16px |
 | Description / store description / notices / widget body | 14px |
 | Secondary name / ordinary chip / price-option label | 12px |
-| Category title | 24px |
-| Store title | 44px base, independent mobile brand correction |
+| Category title | 26px, identical across all seven |
+| Store title | Actual text width targets 65% of inner width, minimum 48px |
 | Item boundary | 20px (1.25rem), regardless of copy visibility/count |
 | Heading group or underline end to first item | 24px (1.5rem) |
 | Category/widget/footer boundary / upper area to first category | 48px (3rem) |
@@ -87,13 +87,19 @@ Applies to the same seven active single-page templates, not Display or multi-pag
 | Upper colored box inner padding | 24px |
 | Responsive featured frame | 4:5, no item-count/density-driven minimum height |
 
-Approved expressive exceptions remain explicit: REAL MATCHA brand 1.06×, ROSY ORANGE brand 1.1×, Loop Bagel brand 1.36× and category 25.92px, Van Gogh notices 12px, Loop Bagel description line-height 1.38. Other description line-height is 1.5. Fonts, colors, starter data, featured product links, ordering and existing notice placement are preserved.
+No template-specific mobile brand/category/notice size exception remains. Van Gogh notices are now 14px, Loop Bagel categories are 26px and REAL MATCHA/ROSY ORANGE/Loop Bagel brand multipliers are removed. Loop Bagel's existing item-description line-height 1.38 remains; other supporting-copy line-height is 1.5. KOHI's category description is 14px on mobile with its existing 800 weight, rather than an extra size multiplier. Fonts, colors, starter data, featured product links, ordering and existing notice placement are preserved.
 
 The boundary target is the first category block, not its first product row. A heading and its internal 24px gap come after that boundary. Colored upper-area padding belongs inside an actual wrapper; the following 48px belongs to the menu surface, not the upper color. Mocha Forest's new mobile-only upper wrapper contains its header and optional cover; the old brown-painted scroll padding must not swallow the external gap. ROSY ORANGE's existing wrapper uses 24px bottom padding and a 48px external boundary. Optional upper content must not leave empty spacer nodes.
 
 Line rules: REAL MATCHA retains an 8px title-to-underline inset and 24px after the underline edge. Sunday top rules retain 12px from line end to title. KOHI mobile changes its decorative geometry only: heading end → 8px → 1px stroke → 24px → first item; category boundary → 1px stroke → 12px → heading. The next category block's external margin remains 48px. Desktop/portrait-tablet midpoint geometry is unchanged. Stroke thickness is not counted as whitespace.
 
-The KOHI mobile 80% brand-width pilot was withdrawn by the user after visual review. All mobile text brands again use the fixed 2.75rem base with the explicit expressive exceptions above, without width-fitting observers, forced two-line selection or hidden title measurements. Logos retain their existing path. Keep the rest of the unified mobile contract. A possible PC/tablet-only 60–70% soft target is discussion only, not an implemented rule; it requires separate approval and bounded integration with the existing brand shell/canvas-fit policy.
+### Current mobile brand-width policy
+
+The earlier KOHI-only 80% pilot and subsequent 44px fallback are historical. The user now explicitly approved a common 65% policy for all seven mobile text brands. `MobileBrandTitle` measures the selected script-aware fonts at 100px and computes against the actual header content width (page width minus its existing left/right padding), not a width derived from the text itself. The minimum is `max(48px, 3rem)` for browser text scaling; there is no template-specific multiplier or undisclosed maximum-font cap.
+
+Choose the fewest balanced lines capable of reaching 65% at or above the minimum. Prefer whole-word boundaries. All lines share one font size; the longest line targets 65%, and other lines are balanced by measured width as closely as the words permit. If a whole word needs more than 65% at 48px but fits the full inner width, preserve the word and minimum, choosing the most balanced partition rather than the first one that merely fits the page; 65% is then a soft target, not a reason to shrink below 48px or distort text. If no whole-word partition fits the page at the minimum, split safely at grapheme boundaries, never truncate. CJK uses grapheme-aware balancing. Exceptional very long names use natural balanced wrapping in a 65%-width area at the minimum without losing characters. Keep safe line-height and glyph padding to avoid clipping. Hidden measurement spans are zero-sized/overflow-clipped so a very long reference text cannot enlarge page scroll width.
+
+Only container-width, title and typography/font-load changes recompute brand fitting. Do not observe sale timers/menu counts or feed brand results into the menu canvas fit loop. Logos use the existing logo branch. This policy runs only when `onePageRhythmMode` is `mobile`; PC/tablet (including portrait), Display and multi-page are excluded until the user's separate PC/tablet specification. Keep upper control-row/brand/copy/section gaps unchanged.
 
 ## Editorial-scroll templates
 

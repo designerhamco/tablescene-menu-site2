@@ -38,6 +38,10 @@ export function measureOnePageMobileRhythm() {
     copyAware: root.getAttribute('data-cafe-a-copy-aware-rhythm'),
     itemGap, sectionGap,
     autoBrand: Boolean(root.querySelector('[data-mobile-brand-fit]')),
+    brandState: root.querySelector('[data-mobile-brand-fit]')?.getAttribute('data-mobile-brand-fit'),
+    noticeSizes: [...root.querySelectorAll('.cafe-a-mobile-notice-list > p, .cafe-a-round-focus-notice-list > p')].filter(visible).map((element) => Number.parseFloat(getComputedStyle(element).fontSize)),
+    noticeLineHeights: [...root.querySelectorAll('.cafe-a-mobile-notice-list > p, .cafe-a-round-focus-notice-list > p')].filter(visible).map((element) => Number.parseFloat(getComputedStyle(element).lineHeight)),
+    categoryDescriptions: [...root.querySelectorAll('[data-cafe-a-category-description]')].filter(visible).map((element) => ({ size: Number.parseFloat(getComputedStyle(element).fontSize), weight: getComputedStyle(element).fontWeight })),
     noticeGaps: [...root.querySelectorAll('.cafe-a-mobile-notice-list, .cafe-a-round-focus-notice-list')].filter(visible).flatMap((list) => {
       const rows = [...list.children].filter(visible);
       return rows.slice(0, -1).map((row, index) => gap(row, rows[index + 1]));
@@ -73,7 +77,7 @@ export function getOnePageMobileRhythmFailures(measurement) {
   if (measurement.mobileStyle !== 'true') failures.push('mobile reading style is not active');
   if (measurement.contract !== 'mobile-reading') failures.push('mobile spacing contract is not separate from canvas-fit');
   if (measurement.copyAware === 'true') failures.push('PC/tablet copy-aware rhythm leaked into mobile');
-  if (measurement.autoBrand) failures.push('withdrawn mobile brand-width pilot is active');
+  if (measurement.autoBrand && measurement.brandState !== 'ready') failures.push('mobile brand-width measurement is not ready');
   if ((measurement.noticeGaps ?? []).some((gap) => Math.abs(gap) > 0.2)) failures.push('notice rows have extra paragraph spacing');
   if (!Number.isFinite(measurement.sectionGap) || measurement.sectionGap <= 0) failures.push('invalid section-gap token');
   if (measurement.categories.length === 0) failures.push('no rendered categories');
@@ -86,7 +90,11 @@ export function getOnePageMobileRhythmFailures(measurement) {
   if (measurement.blockGaps.some((gap) => Math.abs(gap - measurement.sectionGap) > 0.25)) failures.push('category/widget/footer boundary is not linked to section spacing');
   if (measurement.overflow > 1) failures.push('horizontal overflow');
   const rem = measurement.itemGap / 1.25;
-  const expectedFonts = { name: rem, price: rem, description: rem * 0.875, secondary: rem * 0.75, category: rem * (measurement.key === 'fast_food_loop_bagel_a' ? 1.62 : 1.5) };
+  const expectedFonts = { name: rem, price: rem, description: rem * 0.875, secondary: rem * 0.75, category: rem * 1.625 };
+  if (measurement.fonts?.brand != null && measurement.fonts.brand < Math.max(48, rem * 3) - 0.05) failures.push('mobile brand is below its 48px minimum');
+  if ((measurement.noticeSizes ?? []).some((size) => Math.abs(size - rem * 0.875) > 0.05)) failures.push('notices are not uniformly 14px');
+  if ((measurement.noticeLineHeights ?? []).some((height) => Math.abs(height - rem * 0.875 * 1.5) > 0.05)) failures.push('notices do not use normal body line-height');
+  if ((measurement.categoryDescriptions ?? []).some((description) => Math.abs(description.size - rem * 0.875) > 0.05)) failures.push('category descriptions are not 14px');
   for (const [role, expected] of Object.entries(expectedFonts)) if (measurement.fonts?.[role] != null && Math.abs(measurement.fonts[role] - expected) > 0.05) failures.push(`${role}: mobile typography base changed`);
   if (measurement.languageHeight != null && Math.abs(measurement.languageHeight - measurement.itemGap / 1.25 * 3) > 0.25) failures.push('top control row is not 48px');
   if (measurement.languageToBrand != null && Math.abs(measurement.languageToBrand - measurement.itemGap / 1.25 * 1.5) > 0.25) failures.push('top row to brand gap is not 24px');
@@ -98,6 +106,7 @@ export function getOnePageMobileRhythmFailures(measurement) {
 export function compareMobileRhythmViewports(first, next) {
   const failures = [];
   for (const [role, size] of Object.entries(first.fonts)) {
+    if (role === 'brand' && first.autoBrand && next.autoBrand) continue;
     if (size != null && next.fonts[role] != null && Math.abs(size - next.fonts[role]) > 0.05) failures.push(`${role} font changes with viewport`);
   }
   for (const key of ['itemGap', 'sectionGap']) if (Math.abs(first[key] - next[key]) > 0.05) failures.push(`${key} changes with viewport`);

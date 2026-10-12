@@ -82,8 +82,10 @@ test("mobile has fixed reading rhythm, independent type bases and one linked sec
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   const mobile = css.slice(css.indexOf("/* Mobile is a reading layout"));
   const renderer = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
-  assert.doesNotMatch(renderer, /MobileBrandTitle|mobileAutoFit/);
-  assert.doesNotMatch(mobile, /cafe-a-mobile-auto-brand-title|cafe-a-mobile-brand-measurements/);
+  assert.match(renderer, /mobileAutoFit=\{mobileReading\}/);
+  assert.match(mobile, /font-size: max\(48px, 3rem\)/);
+  assert.match(mobile, /--cafe-a-category-title-size: 1\.625rem/);
+  assert.doesNotMatch(mobile, /mobile-brand-scale|font-size: 1\.62rem|--cafe-a-van-gogh-notice-size: 0\.75rem/);
   assert.match(mobile, /--cafe-a-local-item-rhythm-gap: 1\.25rem/);
   assert.match(mobile, /--cafe-a-linked-item-name-size: calc\(1rem \* var\(--menu-font-size-scale/);
   assert.match(mobile, /--cafe-a-mobile-section-gap: 3rem/);

@@ -4936,7 +4936,7 @@ video {
   --cafe-a-local-item-rhythm-gap: 1.25rem;
   --cafe-a-menu-title-size: 1rem;
   --cafe-a-linked-item-name-size: calc(1rem * var(--menu-font-size-scale, 1) * var(--menu-role-item-name-size-scale, 1));
-  --cafe-a-category-title-size: 1.5rem;
+  --cafe-a-category-title-size: 1.625rem;
   --cafe-a-menu-meta-size: 0.75rem;
   --cafe-a-menu-description-size: 0.875rem;
   --cafe-a-linked-supporting-copy-base-size: 0.875rem;
@@ -4952,12 +4952,11 @@ video {
   --cafe-a-mobile-inner-gap: 1.5rem;
   --cafe-a-mobile-brand-copy-gap: 0.75rem;
   --cafe-a-mobile-notice-gap: 0;
-  --cafe-a-mobile-brand-scale: 1;
   --cafe-a-page-inline: 1.5rem;
   --cafe-a-page-block-start: 1.5rem;
   --cafe-a-page-block-end: 3rem;
   --cafe-a-copy-block-gap: 1.5rem;
-  --cafe-a-van-gogh-notice-size: 0.75rem;
+  --cafe-a-van-gogh-notice-size: 0.875rem;
   --round-focus-mobile-inset: 1.5rem;
   --mocha-mobile-section-rhythm: 1.5rem;
   height: auto;
@@ -4978,7 +4977,7 @@ video {
 }
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] header .cafe-a-store-title {
-  font-size: calc(2.75rem * var(--cafe-a-mobile-brand-scale));
+  font-size: max(48px, 3rem);
 }
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-menu-item-stack {
@@ -5039,12 +5038,7 @@ video {
 }
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-category-title {
-  font-size: 1.5rem;
-}
-
-/* Explicit approved expressive-heading exception, not a desktop ratio alias. */
-.cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="fast_food_loop_bagel_a"] .cafe-a-category-title {
-  font-size: 1.62rem;
+  font-size: 1.625rem;
 }
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(.cafe-a-menu-description, .cafe-a-description-text, .cafe-a-store-description, .cafe-a-featured-description, .cafe-a-time-sale-time-text, [data-cafe-a-widget-body]) {
@@ -5054,10 +5048,6 @@ video {
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="fast_food_loop_bagel_a"] .cafe-a-menu-description {
   line-height: 1.38;
-}
-
-.cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_van_gogh_a"] :is(.cafe-a-topline-mobile-notices, .cafe-a-footer-info) .cafe-a-description-text {
-  font-size: 0.75rem;
 }
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(.cafe-a-menu-meta, .cafe-a-menu-badge, .cafe-a-featured-badge, .cafe-a-menu-chip, .cafe-a-price-note, .cafe-a-price-column-header, .cafe-a-price-column-heading-label, .cafe-a-price-label) {
@@ -5104,6 +5094,7 @@ video {
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] header .cafe-a-mobile-header-copy > div {
   width: 100%;
+  max-width: none;
 }
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] header [data-cafe-a-store-description] {
@@ -5117,6 +5108,7 @@ video {
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(.cafe-a-mobile-notice-list, .cafe-a-round-focus-notice-list) > p {
   margin: 0;
+  line-height: 1.5;
 }
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-topline-mobile-notices {
@@ -5138,10 +5130,6 @@ video {
   overflow: visible;
   -webkit-line-clamp: unset;
 }
-
-.cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_design_a"] { --cafe-a-mobile-brand-scale: 1.06; }
-.cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_round_focus_a"] { --cafe-a-mobile-brand-scale: 1.1; }
-.cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="fast_food_loop_bagel_a"] { --cafe-a-mobile-brand-scale: 1.36; }
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-cafe-a-skin="round_focus"] .cafe-a-round-focus-mobile-brand-section {
   background: var(--round-focus-panel-bg);
@@ -5192,4 +5180,30 @@ video {
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_kohi_a"] .cafe-a-fit-menu-grid > * + .cafe-a-menu-category-block {
   padding-top: calc(0.75rem + var(--kohi-divider-width));
+}
+
+.cafe-a-typography[data-cafe-a-mobile-style="true"] header .cafe-a-mobile-auto-brand-title {
+  line-height: 1.08;
+  padding-block: 0.08em 0.04em;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.cafe-a-mobile-brand-natural-wrap {
+  display: block;
+  max-width: 65%;
+  text-wrap: balance;
+}
+
+.cafe-a-mobile-brand-measurements {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+  font-size: 100px;
+  white-space: pre;
 }

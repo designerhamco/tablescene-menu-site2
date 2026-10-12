@@ -7,7 +7,7 @@ const valid = {
   mobileStyle: "true", contract: "mobile-reading", copyAware: null, itemGap: 20, sectionGap: 48,
   upperGap: 48, blockGaps: [48, 48], overflow: 0,
   categories: [{ title: "Menu", itemGaps: [20, 20], lastMargin: 0 }],
-  fonts: { name: 16, brand: 44, category: 24, description: 14 },
+  fonts: { name: 16, brand: 48, category: 26, description: 14 },
 };
 
 test("rendered mobile gap assertions reject the original zero-gap bug and device-policy leaks", () => {
@@ -20,7 +20,12 @@ test("rendered mobile gap assertions reject the original zero-gap bug and device
   assert.ok(getOnePageMobileRhythmFailures({ ...valid, fonts: { ...valid.fonts, name: 14 } }).length);
   assert.deepEqual(getOnePageMobileRhythmFailures({ ...valid, noticeGaps: [0, 0] }), []);
   assert.ok(getOnePageMobileRhythmFailures({ ...valid, noticeGaps: [6, 6] }).length);
-  assert.ok(getOnePageMobileRhythmFailures({ ...valid, autoBrand: true }).length);
+  assert.ok(getOnePageMobileRhythmFailures({ ...valid, noticeSizes: [12] }).length);
+  assert.ok(getOnePageMobileRhythmFailures({ ...valid, noticeLineHeights: [19.32] }).length);
+  assert.deepEqual(getOnePageMobileRhythmFailures({ ...valid, noticeSizes: [14], noticeLineHeights: [21] }), []);
+  assert.ok(getOnePageMobileRhythmFailures({ ...valid, autoBrand: true, brandState: "pending" }).length);
+  assert.deepEqual(getOnePageMobileRhythmFailures({ ...valid, autoBrand: true, brandState: "ready" }), []);
+  assert.ok(getOnePageMobileRhythmFailures({ ...valid, fonts: { ...valid.fonts, brand: 44 } }).length);
 });
 
 test("mobile width/height changes must not auto-scale reading fonts or spacing", () => {
@@ -28,4 +33,5 @@ test("mobile width/height changes must not auto-scale reading fonts or spacing",
   assert.ok(compareMobileRhythmViewports(valid, { ...valid, fonts: { ...valid.fonts, name: 14 } }).length);
   assert.ok(compareMobileRhythmViewports(valid, { ...valid, itemGap: 10 }).length);
   assert.ok(compareMobileRhythmViewports(valid, { ...valid, fonts: { ...valid.fonts, brand: 90 } }).length);
+  assert.deepEqual(compareMobileRhythmViewports({ ...valid, autoBrand: true }, { ...valid, autoBrand: true, fonts: { ...valid.fonts, brand: 90 } }), []);
 });
