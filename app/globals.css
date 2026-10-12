@@ -4823,6 +4823,13 @@ video {
   color: #ffffff;
 }
 
+/* Keep the illustration's eyes and coffee cup intact in wide scrolling headers.
+   Scope to this asset: customer photographs retain the existing cover behavior. */
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-illustration.png"] {
+  background-color: #f7f5f1;
+  object-fit: contain;
+}
+
 @media (min-width: 1024px) {
   .cafe-a-typography[data-template-key="cafe_kohi_a"]:not([data-preview-device="tablet"]) {
     --cafe-a-sunday-category-ratio: 1.5;

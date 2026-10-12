@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import test from "node:test";
-import { getStarterPreset } from "./menu-starter-presets";
+import { getStarterPreset, resolveStarterFeaturedSlides } from "./menu-starter-presets";
 import { getSinglePageStarterTranslations } from "./template-demo-data/single-page-starter-translations";
 import { mergeTypographySettings } from "./template-typography-presets";
 import { getTemplateCapabilities } from "./template-capabilities";
@@ -82,14 +82,33 @@ test("KOHI defaults unify all regular and timed badge colors without changing ot
   assert.equal(getDefaultBadgeStyles("cafe_design_a").signature.background_color, "#2AA36D");
 });
 
-test("KOHI featured content links to its own sample menu and an existing coffee image", () => {
+test("KOHI featured area contains only one original illustration without a product link", () => {
   const preset = getStarterPreset("cafe_kohi_a");
-  const itemKeys = new Set(preset.pages.flatMap((page) => page.categories.flatMap((category) => category.items.map((item) => item.key))));
-  for (const slide of preset.featured_slides ?? []) {
-    assert.ok(itemKeys.has(slide.featured_item_key));
-    assert.ok(existsSync(new URL(`../public${slide.image_url}`, import.meta.url)));
-    assert.doesNotMatch(slide.image_url, /real-matcha/);
-  }
+  assert.equal(preset.featured_slides?.length, 1);
+  const slide = preset.featured_slides![0];
+  assert.equal(slide.image_url, "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-illustration.png");
+  assert.equal(preset.site.cover_image_url, slide.image_url);
+  assert.equal(slide.featured_item_key, undefined);
+  assert.equal(slide.featured_item_name, undefined);
+  assert.equal(preset.featured_item_key, undefined);
+  assert.equal(preset.featured_item_name, undefined);
+  assert.equal(preset.menu_cover_enabled, true);
+  assert.equal(preset.menu_cover_visible_pc, true);
+  assert.equal(preset.menu_cover_visible_tablet, true);
+  assert.equal(preset.menu_cover_visible_mobile, true);
+  assert.ok(existsSync(new URL(`../public${slide.image_url}`, import.meta.url)));
+  const items = preset.pages.flatMap((page) => page.categories.flatMap((category) => category.items.map((item, index) => ({ id: `item-${index}`, name: item.name, visible: true }))));
+  assert.equal(resolveStarterFeaturedSlides(preset, items)[0]?.featured_item_id, null);
+  assert.notEqual(getStarterPreset("cafe_design_a").site.cover_image_url, slide.image_url);
+});
+
+test("KOHI illustration is not cropped in wide portrait-tablet headers, without changing customer photos", () => {
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  const selector = '.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-illustration.png"]';
+  const rule = css.slice(css.indexOf(selector), css.indexOf("}", css.indexOf(selector)) + 1);
+  assert.match(rule, /object-fit: contain;/);
+  assert.match(rule, /background-color: #f7f5f1;/);
+  assert.doesNotMatch(rule, /height:|width:|padding:|margin:|grid-template/);
 });
 
 test("KOHI alone puts descriptions before headings and mounts non-interactive divider geometry", () => {

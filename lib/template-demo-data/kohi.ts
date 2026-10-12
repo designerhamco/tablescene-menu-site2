@@ -1,7 +1,7 @@
 import type { StarterPreset } from "@/lib/menu-starter-presets";
 import type { SinglePageStarterTranslationBundle } from "./single-page-starter-translations";
 
-const KOHI_FEATURED_IMAGE = "/menu-templates/cafe_design_a/nutty-cream-featured.jpg";
+const KOHI_FEATURED_IMAGE = "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-illustration.png";
 const KOHI_LOGO_IMAGE = "/menu-templates/cafe_kohi_a/kohi-outfit-logo.svg";
 
 const categories = [
@@ -60,9 +60,9 @@ export function createKohiStarterPreset(base: StarterPreset): StarterPreset {
         footer_notice_3: "",
       },
     },
-    featured_item_key: "kohi-cream-coffee",
-    featured_item_name: "코히 크림 커피",
-    featured_slides: [{ id: "kohi-featured-cream-coffee", image_url: KOHI_FEATURED_IMAGE, image_path: null, featured_item_key: "kohi-cream-coffee", featured_item_name: "코히 크림 커피", sort_order: 0 }],
+    featured_item_key: undefined,
+    featured_item_name: undefined,
+    featured_slides: [{ id: "kohi-featured-coffee-crocodile", image_url: KOHI_FEATURED_IMAGE, image_path: null, sort_order: 0 }],
     menu_cover_enabled: true,
     menu_cover_visible_pc: true,
     menu_cover_visible_tablet: true,

@@ -166,6 +166,11 @@ try {
           noticeFontFamilies,
           widgetShellStyles,
           widgetWidthMetrics,
+          featuredImages: Array.from(document.querySelectorAll("[data-cafe-a-cover-image]"))
+            .filter((element) => element.getBoundingClientRect().width > 0 && element.getBoundingClientRect().height > 0)
+            .map((element) => ({ src: element.getAttribute("src"), loaded: element.complete && element.naturalWidth > 0 })),
+          featuredCopyCount: Array.from(document.querySelectorAll(".cafe-a-featured-copy"))
+            .filter((element) => element.getBoundingClientRect().width > 0 && element.getBoundingClientRect().height > 0).length,
           typography: {
             category: visibleFontSize(".cafe-a-desktop-fit-board .cafe-a-category-title"),
             item: visibleFontSize(".cafe-a-desktop-fit-board .cafe-a-menu-title"),
@@ -210,6 +215,13 @@ try {
           || templateKey === "cafe_round_focus_a"
           || templateKey === "cafe_mocha_forest_a"
           || templateKey === "cafe_van_gogh_a";
+        const hasImageOnlyFeaturedArea = templateKey === "cafe_kohi_a";
+        if (hasImageOnlyFeaturedArea) {
+          if (measurement.featuredImages.length !== 1 || !measurement.featuredImages[0]?.loaded) {
+            failures.push(`KOHI image-only featured slide is missing or not loaded: ${JSON.stringify(measurement.featuredImages)}`);
+          }
+          if (measurement.featuredCopyCount !== 0) failures.push("KOHI image-only slide unexpectedly links product copy");
+        }
         if (!measurement.koreanFontFamily || measurement.noticeFontFamilies.length === 0) {
           failures.push(`footer notice font metrics are unavailable: ${JSON.stringify({ koreanFontFamily: measurement.koreanFontFamily, noticeFontFamilies: measurement.noticeFontFamilies })}`);
         } else if (measurement.noticeFontFamilies.some((fontFamily) => fontFamily !== measurement.koreanFontFamily)) {
@@ -237,7 +249,7 @@ try {
           failures.push(`single-page typography metrics are unavailable: ${JSON.stringify(measurement.typography)}`);
         } else {
           if (category < item * 1.35) failures.push(`category hierarchy is too weak: ${category}px / ${item}px`);
-          if (!hasNoFeaturedArea && featuredItem === null) {
+          if (!hasNoFeaturedArea && !hasImageOnlyFeaturedArea && featuredItem === null) {
             failures.push(`featured item typography is unavailable: ${JSON.stringify(measurement.typography)}`);
           } else if (featuredItem !== null && Math.abs(featuredItem - item) > 0.18) {
             failures.push(`featured item title is not linked to the menu item title: ${featuredItem}px / ${item}px`);
@@ -254,7 +266,7 @@ try {
               failures.push(`supporting copy does not share one linked size: ${linkedSupporting.join(", ")}px`);
             }
           } else {
-            if (!hasNoFeaturedArea && featuredDescription === null) {
+            if (!hasNoFeaturedArea && !hasImageOnlyFeaturedArea && featuredDescription === null) {
               failures.push(`featured description typography is unavailable: ${JSON.stringify(measurement.typography)}`);
             } else if (featuredDescription !== null && Math.abs(featuredDescription - description) > 0.18) {
               failures.push(`featured description is not linked to the menu description: ${featuredDescription}px / ${description}px`);
@@ -481,8 +493,9 @@ try {
         const hasNoFeaturedArea = templateKey === "cafe_design_a"
           || templateKey === "cafe_round_focus_a"
           || templateKey === "cafe_mocha_forest_a";
+        const hasImageOnlyFeaturedArea = templateKey === "cafe_kohi_a";
         const featuredScale = 1;
-        if (!hasNoFeaturedArea) {
+        if (!hasNoFeaturedArea && !hasImageOnlyFeaturedArea) {
           compareTypography("featured item name", typography.itemName, typography.featuredName, featuredScale);
           compareTypography("featured text chip", typography.itemBadge, typography.featuredBadge, featuredScale);
           compareTypography("featured price", typography.itemPrice, typography.featuredPrice, featuredScale);
