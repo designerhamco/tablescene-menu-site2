@@ -41,20 +41,15 @@ test("every KOHI category has concise visible copy in every supported locale", (
   }
 });
 
-test("KOHI starter uses the outlined Outfit logo with cafe and menu captions instead of the store-name text", () => {
+test("KOHI starter displays the KOHI store-name text in Tilt Warp without a logo image", () => {
   const preset = getStarterPreset("cafe_kohi_a");
   const capabilities = getTemplateCapabilities("cafe_kohi_a");
-  assert.equal(preset.site.logo_url, "/menu-templates/cafe_kohi_a/kohi-outfit-logo.svg");
-  assert.equal(preset.site.settings?.logo_replaces_name, true);
+  assert.equal(preset.site.logo_url, null);
+  assert.equal(preset.site.settings?.logo_replaces_name, false);
+  assert.equal(preset.site.restaurant_name, "KOHI");
+  assert.equal(mergeTypographySettings("cafe_kohi_a").english_font_key, "tilt-warp");
   assert.equal(capabilities.brandLogo, true);
   assert.equal(capabilities.brandLogoReplacesName, true);
-  assert.ok(existsSync(new URL(`../public${preset.site.logo_url}`, import.meta.url)));
-  const logo = readFileSync(new URL(`../public${preset.site.logo_url}`, import.meta.url), "utf8");
-  assert.match(logo, /data-font-family="Outfit"/);
-  assert.match(logo, /aria-label="cafe"/);
-  assert.match(logo, /aria-label="menu"/);
-  assert.match(logo, /fill="#dc4235"/);
-  assert.doesNotMatch(logo, /<text[\s>]/);
   assert.notEqual(getStarterPreset("cafe_design_a").site.settings?.logo_replaces_name, true);
   const previewSource = readFileSync(new URL("../app/templates/[templateKey]/preview/page.tsx", import.meta.url), "utf8");
   assert.match(previewSource, /logo_url: template\.key === "cafe_noir_a" \|\| template\.key === "cafe_kohi_a" \? \(preset\.site\.logo_url \?\? null\) : null/);
@@ -87,7 +82,7 @@ test("KOHI featured area contains only one original illustration without a produ
   const preset = getStarterPreset("cafe_kohi_a");
   assert.equal(preset.featured_slides?.length, 1);
   const slide = preset.featured_slides![0];
-  assert.equal(slide.image_url, "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-transparent-v2.png");
+  assert.equal(slide.image_url, "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-heart-v3.png");
   assert.equal(preset.site.cover_image_url, slide.image_url);
   assert.equal(slide.featured_item_key, undefined);
   assert.equal(slide.featured_item_name, undefined);
@@ -105,7 +100,7 @@ test("KOHI featured area contains only one original illustration without a produ
 
 test("KOHI illustration is not cropped in wide portrait-tablet headers, without changing customer photos", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
-  const selector = '.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-transparent-v2.png"]';
+  const selector = '.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-heart-v3.png"]';
   const rule = css.slice(css.indexOf(selector), css.indexOf("}", css.indexOf(selector)) + 1);
   assert.match(rule, /object-fit: contain;/);
   assert.match(rule, /background: transparent;/);
@@ -130,9 +125,11 @@ test("KOHI PNG has actual transparent pixels, not a painted paper/checkerboard b
 
 test("KOHI transparent illustration removes fallback backdrops without affecting other hero images", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
-  const scope = '.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-transparent-v2.png"])';
-  assert.ok(css.includes(`${scope} {\n  background: transparent;\n}`));
-  assert.ok(css.includes(`${scope} [data-cafe-a-cover-placeholder] {\n  display: none;\n}`));
+  for (const asset of ["kohi-coffee-crocodile-transparent-v2.png", "kohi-coffee-crocodile-heart-v3.png"]) {
+    const scope = `.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image][src$="/${asset}"])`;
+    assert.ok(css.includes(`${scope} {\n  background: transparent;\n}`));
+    assert.ok(css.includes(`${scope} [data-cafe-a-cover-placeholder] {\n  display: none;\n}`));
+  }
   const preview = readFileSync(new URL("../app/templates/[templateKey]/preview/page.tsx", import.meta.url), "utf8");
   const fixture = preview.slice(preview.indexOf("function applyKohiBackgroundQaFixture"), preview.indexOf("function getOrderCallQaConfig"));
   assert.match(fixture, /process\.env\.NODE_ENV === "production"/);

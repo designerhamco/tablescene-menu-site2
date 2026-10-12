@@ -1,5 +1,9 @@
 # KOHI template verification — 2026-10-09
 
+## Current starter follow-up — 2026-10-12
+
+The starter uses live `KOHI` text in Tilt Warp instead of the old Outfit logo image (`logo_url: null`, `logo_replaces_name: false`). The old SVG stays available for saved customer menus. The featured area uses one unlinked transparent crocodile illustration with a red heart on its cup. See `docs/kohi-featured-illustration.md` for generation provenance and verification. Prior sections below document earlier iterations, not the current starter logo or featured asset.
+
 ## Starter follow-up — 2026-10-11
 
 ### KOHI-only proportion-first pilot

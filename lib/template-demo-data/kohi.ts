@@ -1,8 +1,7 @@
 import type { StarterPreset } from "@/lib/menu-starter-presets";
 import type { SinglePageStarterTranslationBundle } from "./single-page-starter-translations";
 
-const KOHI_FEATURED_IMAGE = "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-transparent-v2.png";
-const KOHI_LOGO_IMAGE = "/menu-templates/cafe_kohi_a/kohi-outfit-logo.svg";
+const KOHI_FEATURED_IMAGE = "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-heart-v3.png";
 
 const categories = [
   { key: "espresso", name: "ESPRESSO BASED", description: "에스프레소 커피", en: ["ESPRESSO BASED", "Everyday espresso"], zh: ["意式咖啡", "经典浓缩咖啡"], ja: ["エスプレッソ", "定番のコーヒー"] },
@@ -52,9 +51,9 @@ export function createKohiStarterPreset(base: StarterPreset): StarterPreset {
       restaurant_address: "서울시 예시구 커피로 24",
       restaurant_phone: "02-0000-0024",
       cover_image_url: KOHI_FEATURED_IMAGE,
-      logo_url: KOHI_LOGO_IMAGE,
+      logo_url: null,
       settings: {
-        logo_replaces_name: true,
+        logo_replaces_name: false,
         footer_notice_1: "디카페인 변경 +0.5 · 우유 변경 +0.5",
         footer_notice_2: "",
         footer_notice_3: "",
