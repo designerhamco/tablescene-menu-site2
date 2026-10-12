@@ -22,8 +22,8 @@ const contractSource = readFileSync(
   "utf8",
 );
 
-test("단일페이지는 유동 기준 간격에 고정된 역할 비율을 한 번만 적용한다", () => {
-  assert.match(cafeSource, /data-spacing-contract="canvas-fit"/);
+test("단일페이지 PC·태블릿은 유동 fit 간격을, 모바일은 독립적인 reading 간격을 사용한다", () => {
+  assert.match(cafeSource, /data-spacing-contract=\{onePageRhythmMode === "mobile" \? "mobile-reading" : "canvas-fit"\}/);
   assert.match(cafeSource, /stack: "clamp\([^\n]+vmin[^\n]+\)"/);
   assert.match(globalStylesSource, /--cafe-a-page-inline: clamp\([^;]+vw[^;]+\);/);
   assert.match(globalStylesSource, /--cafe-a-item-rhythm-gap: clamp\([^;]+var\(--fit-menu-gap-scale\)[^;]+\);/);
@@ -194,6 +194,7 @@ test("멀티페이지는 fit/fill과 분리된 유동 editorial-scroll 계약을
 test("새 템플릿 간격 규칙은 두 엔진 계약과 고정값 예외를 문서화한다", () => {
   assert.match(contractSource, /data-spacing-contract="canvas-fit"/);
   assert.match(contractSource, /data-spacing-contract="editorial-scroll"/);
+  assert.match(contractSource, /data-spacing-contract="mobile-reading"/);
   assert.match(contractSource, /category-title-to-first-item gap \(`1`\)/);
   assert.match(contractSource, /category-to-category gap without a divider \(`2\.6`\)/);
   assert.match(contractSource, /semantic ratios are constants applied exactly once/);

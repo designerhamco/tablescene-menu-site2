@@ -40,7 +40,7 @@ test("missing rendered supporting lines add bounded item-only breathing room", (
   assert.equal(getOnePageItemRhythmMultiplier(false, false, true), 1);
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   for (const factor of ["1.15", "1.35"]) {
-    assert.ok(css.includes(`.cafe-a-typography[data-cafe-a-proportion-policy="true"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="${factor}"])`));
+    assert.ok(css.includes(`.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="${factor}"])`));
     assert.ok(css.includes(`calc(var(--cafe-a-copy-aware-item-rhythm-gap) * ${factor})`));
   }
 });

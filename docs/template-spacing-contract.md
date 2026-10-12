@@ -4,10 +4,11 @@
 
 Every active menu template must declare one spacing contract on its root element.
 
-- `data-spacing-contract="canvas-fit"`: single-page and Display templates that fill one viewport.
+- `data-spacing-contract="canvas-fit"`: PC/tablet single-page and Display templates that fill one viewport.
+- `data-spacing-contract="mobile-reading"`: the seven active single-page templates on phones; stable rem-based reading typography and natural scrolling, no canvas fitting or copy-visibility multipliers.
 - `data-spacing-contract="editorial-scroll"`: multi-page templates that preserve reading rhythm and allow natural scrolling.
 
-New templates must select one contract before template-specific spacing is added. Fixed lengths are allowed only for hard safety bounds, one-pixel rules, safe-area offsets, and minimum control or touch sizes.
+New templates must select the device-appropriate contract before template-specific spacing is added. Canvas-fit fixed lengths are allowed only for hard safety bounds, one-pixel rules, safe-area offsets, and minimum control or touch sizes. Mobile-reading uses stable rem bases by design, respecting browser text scaling and customer typography settings.
 
 ## Canvas-fit templates
 
@@ -23,15 +24,15 @@ The shared hierarchy is:
 4. category-to-category gap without a divider (`2.6`);
 5. category boundary with a divider (the existing balanced space on both sides of the rule).
 
-For single-page item-to-item boundaries only, multiply the existing rhythm by `1.15` when just one of secondary name/description is visible, or `1.35` when neither is visible. Both visible fields, or additional promotion/origin/trait support, keep the normal rhythm. Use actual rendered/translated visibility, not the mere presence of starter fields. Do not apply this multiplier to the last item, category/heading/widget/footer boundaries, or to nested copy gaps. Candidate measurement and final rendering must use identical CSS.
+For PC/tablet single-page item-to-item boundaries only, multiply the existing rhythm by `1.15` when just one of secondary name/description is visible, or `1.35` when neither is visible. Both visible fields, or additional promotion/origin/trait support, keep the normal rhythm. Use actual rendered/translated visibility, not the mere presence of starter fields. Do not apply this multiplier to mobile, the last item, category/heading/widget/footer boundaries, or to nested copy gaps. Candidate measurement and final rendering must use identical CSS. Declare its CSS base alias on the item stack, where the density token exists, never on a root that refers to a descendant-only variable.
 
 Widgets are category-level content blocks. A category-to-widget or widget-to-widget boundary without a divider uses the same category-to-category ratio, and widget-to-category uses the same divider or no-divider rule as a category boundary. A `bottom` widget may add flexible space above its final-column stack, but widget-to-footer-notice spacing uses the same item-to-item rhythm token and must never be replaced by a separate fixed reserve.
 
 Single-page skins inherit these values from the CafeA spacing tokens. A skin can adjust the bounded scale, but must not replace the semantic tokens with a fixed `px` margin, padding, or gap.
 
-Rosy Orange uses a visual correction of `1.25` from category title to first item and `3.6` between divider-free categories because its large title and title-only rows need a clearer section boundary. Real Matcha uses `2.9` between divider-free categories so its title underline and compact rows remain visually distinct. Mocha Forest keeps the shared `1` and `2.6` ratios and must not add per-item bottom padding on top of the shared item rhythm.
+Rosy Orange uses a visual correction of `1.25` from category title to first item and `3.6` between divider-free categories because its large title and title-only rows need a clearer section boundary. Real Matcha uses `2.9` between divider-free categories so its title underline and compact rows remain visually distinct. Mocha Forest uses `3` between categories and `1.2` from heading to items on PC/tablet (`1` on mobile); it must not add per-item bottom padding on top of the shared item rhythm.
 
-REAL MATCHA single-page desktop/landscape-tablet category-to-category transitions explicitly use the `2.9` separation token. Its category boundary rule is visually hidden, so the shared divider-before token (`1`) must not replace that separation or lose the hidden divider's trailing space. The override is scoped to actual same-column visual category transitions and the single-page policy; two-column fallback uses it too. Mobile/portrait-scroll spacing, category-title-to-first-item spacing, widget/footer boundaries and legacy multi-page presentations are unchanged. Candidate measurement and final rendering use the same CSS; column counts remain content-driven, not fixed.
+REAL MATCHA single-page desktop/landscape-tablet category-to-category transitions explicitly use the `2.9` separation token. Its category boundary rule is visually hidden, so the shared divider-before token (`1`) must not replace that separation or lose the hidden divider's trailing space. The override is scoped to actual same-column visual category transitions and the single-page policy; two-column fallback uses it too. That 2026-10-11 follow-up did not change mobile/portrait-scroll spacing, category-title-to-first-item spacing, widget/footer boundaries or legacy multi-page presentations. Mobile now follows the separate 2026-10-12 contract below. Candidate measurement and final rendering use the same CSS; column counts remain content-driven, not fixed.
 
 Viewport and fit calculations may change the base item gap, but semantic ratios are constants applied exactly once after that base calculation. Do not multiply a semantic ratio by a fit, device, density, or viewport scale again.
 
@@ -39,7 +40,7 @@ Display templates use the calculated content row (`--display-row`) as the base u
 
 ### Loop Bagel PC/tablet pilot
 
-Loop Bagel alone uses `getLoopBagelFitGapScale()` for its numeric CafeA fit calibration. Mobile and other templates retain their own base gap values, with the common between-item copy adjustment above. The gap scale is derived from the selected font scale plus a continuous, bounded correction for menu-container width and viewport height, not the residual empty space after content layout:
+Loop Bagel alone uses `getLoopBagelFitGapScale()` for its numeric CafeA fit calibration. Other PC/tablet templates retain their own numeric base gap values and the common copy adjustment. Mobile uses the independent reading contract below. The gap scale is derived from the selected font scale plus a continuous, bounded correction for menu-container width and viewport height, not the residual empty space after content layout:
 
 - width progress: `clamp((menuWidth - 640) / 800, 0, 1)`;
 - height progress: `clamp((viewportHeight - 640) / 440, 0, 1)`;
@@ -48,6 +49,20 @@ Loop Bagel alone uses `getLoopBagelFitGapScale()` for its numeric CafeA fit cali
 - gap scale: `clamp((fontScale + 0.02) * correction, 0.44, upperLimit)`.
 
 The CSS pixel clamps and semantic ratios are unchanged. Candidate measurement, committed fit state, validation, and overflow backoff use the same mapping. Loop Bagel skips the secondary whitespace-driven enlargement/final-fill boosts; the primary fit selection and DOM-crop safety checks remain active. This pilot does not prescribe the same numeric calibration for another template.
+
+## Single-page mobile-reading contract — 2026-10-12
+
+Applies only to REAL MATCHA, KOHI, Mocha Forest, Sunday Roasters, Van Gogh, ROSY ORANGE and Loop Bagel. Display, multi-page and inactive engines are unchanged. Explicit preview device hints win; public views infer the device with the existing viewport hook (<768px is mobile). Portrait tablet remains a PC/tablet policy, even while it scrolls.
+
+- Mobile does not fit a viewport or compress font/gap values when there is more content. Content scrolls naturally; width changes only rewrap text and resize responsive images/containers.
+- Mobile selected in an explicitly wide preview/new window still uses mobile reading typography. PC media-query category/secondary sizing is excluded with a zero-specificity `:where(:not([data-cafe-a-mobile-style="true"]))` gate, preserving PC/tablet selector priority.
+- Item-to-item gap is `1.125rem` (18px at the default 16px root), independent of item count, supporting-copy visibility or phone width/height. No 1.15×/1.35× adjustment on mobile. Last items have zero trailing margin.
+- Stable typography bases: item name `1rem`, supporting copy `0.8125rem`, secondary-name base `0.6875rem`, price base `1.04rem`, store-title base `2.75rem`. Existing template ratios, fonts/colors, brand boosts and customer global/role sizing remain applicable; the resulting values need not be identical across templates.
+- Section gap is `1.125rem × template category-separation ratio`. The same token governs **upper brand/logo + description + optional featured area/notices → first category**, category/widget boundaries, and the final mobile footer boundary. Do not add a last-item margin or independent outer row gap on top.
+- Featured enabled: its section ends the upper area. Featured disabled: header/last upper notice/ROSY ORANGE's whole brand section ends it. This preserves ordering without moving notice anchors or changing desktop fixed shells.
+- Template category-separation ratios remain distinct: REAL MATCHA/Loop Bagel 2.9, KOHI 3.4, Mocha Forest 3, Sunday Roasters 2.6, Van Gogh 3.25 and ROSY ORANGE 3.6. Mobile boundaries therefore range from 46.8px to 64.8px with the default root.
+
+DOM regression helpers in `scripts/lib/one-page-mobile-rhythm.mjs` assert nonzero fixed item gaps, linked upper/category/footer gaps, no copy-aware fit leakage and stable typography across 320/390/430px widths. Unit tests alone are insufficient; inspect each template and settle the PC/tablet fit before accepting rendered geometry.
 
 ## Editorial-scroll templates
 

@@ -19,7 +19,12 @@ export function usesOnePageProportionFitPolicy(templateKey: string | null | unde
   return previewDevice !== "mobile" && usesOnePageProportionPolicy(templateKey, pagePresentation);
 }
 
-/** Actual visible copy, including translated secondary names; applies between items only. */
+export function getOnePageRhythmMode(templateKey: string | null | undefined, device: MenuPreviewDevice, pagePresentation?: "one" | "multi"): "mobile" | "fit" | undefined {
+  if (!usesOnePageProportionPolicy(templateKey, pagePresentation)) return undefined;
+  return device === "mobile" ? "mobile" : "fit";
+}
+
+/** PC/tablet only. Actual visible copy; applies between items, not boundaries. */
 export function getOnePageItemRhythmMultiplier(hasSecondary: boolean, hasDescription: boolean, hasAdditionalSupport = false): number {
   if (hasAdditionalSupport || (hasSecondary && hasDescription)) return 1;
   return hasSecondary || hasDescription ? 1.15 : 1.35;

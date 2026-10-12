@@ -49,6 +49,7 @@ type PageProps = {
     featured?: string | string[];
     featureQa?: string | string[];
     priceAlignmentQa?: string | string[];
+    rhythmQa?: string | string[];
     backgroundQa?: string | string[];
     copyQa?: string | string[];
     brewCoverPageQa?: string | string[];
@@ -810,6 +811,31 @@ function applyMenuPriceAlignmentQaFixture(data: MenuPageData, value: string | st
   };
 }
 
+/** Local-only visibility/boundary regression cases. Never change starter/saved data. */
+function applyOnePageRhythmQaFixture(data: MenuPageData, value: string | string[] | undefined): MenuPageData {
+  const qaCase = Array.isArray(value) ? value[0] : value;
+  if (process.env.NODE_ENV === "production" || !usesOnePageProportionPolicy(data.menuSite.template_key)) return data;
+  if (qaCase !== "copy" && qaCase !== "no-cover" && qaCase !== "copy-no-cover") return data;
+  const pageSettings = qaCase.includes("no-cover") ? { ...data.pageSettings, menu_cover_enabled: false } : data.pageSettings;
+  if (qaCase === "no-cover") return { ...data, pageSettings };
+  const category = data.categories.find((entry) => entry.visible !== false);
+  const sample = data.items.find((item) => item.category_id === category?.id && item.visible !== false);
+  if (!category || !sample) return { ...data, pageSettings };
+  const originalItems = data.items.filter((item) => item.category_id === category.id && item.visible !== false);
+  const fixtureItems = Array.from({ length: 4 }, (_, index) => ({
+    ...(originalItems[index] ?? sample),
+    id: originalItems[index]?.id ?? `${category.id}-rhythm-${index}`,
+    sort_order: index,
+    name: `메뉴 ${index + 1}`,
+    set_name: index === 0 || index === 3 ? "SAMPLE MENU" : null,
+    description: index === 0 || index === 2 ? "간격 확인을 위한 메뉴 설명입니다." : null,
+    image_url: null, image_path: null,
+    badge: null, badge_label: null, is_best: false, recommended: false,
+    origin_info: null,
+  }));
+  return { ...data, pageSettings, items: [...fixtureItems, ...data.items.filter((item) => item.category_id !== category.id)], traits: [], timeSales: [], nextTimeSaleStartAt: null };
+}
+
 /** Local-only: exercise the same design.backgroundColor field as the editor. */
 function applyKohiBackgroundQaFixture(data: MenuPageData, value: string | string[] | undefined): MenuPageData {
   if (process.env.NODE_ENV === "production" || data.menuSite.template_key !== "cafe_kohi_a") return data;
@@ -1419,6 +1445,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   );
   const orientation = normalizeMenuPreviewOrientation(getFirstParam(resolvedSearchParams.orientation));
   const isActualView = getFirstParam(resolvedSearchParams.view) === "actual";
+  const inferRhythmDevice = process.env.NODE_ENV !== "production" && usesOnePageProportionPolicy(templateKey) && getFirstParam(resolvedSearchParams.rhythmQa) === "public";
 
   if (!isActualView && usesDevicePreviewFrame) {
     return (
@@ -1464,9 +1491,12 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   );
   const data = applyActiveTemplateLocaleQaFixture(
     applyMenuPriceAlignmentQaFixture(
-      applyKohiBackgroundQaFixture(
-        applyPreviewLocale(fixtureData, resolvedSearchParams.lang),
-        resolvedSearchParams.backgroundQa,
+      applyOnePageRhythmQaFixture(
+        applyKohiBackgroundQaFixture(
+          applyPreviewLocale(fixtureData, resolvedSearchParams.lang),
+          resolvedSearchParams.backgroundQa,
+        ),
+        resolvedSearchParams.rhythmQa,
       ),
       resolvedSearchParams.priceAlignmentQa,
     ),
@@ -1496,7 +1526,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     <>
       <MenuPageRenderer
         mode={renderMode}
-        previewDevice={isActualView ? device : undefined}
+        previewDevice={isActualView && !inferRhythmDevice ? device : undefined}
         previewLayoutMode={previewLayoutMode}
         initialPreviewPageId={templateKey === "display_menu_a" ? getDisplayPreviewInitialPageId(data, displayPreviewPageIndex) : null}
         pagePresentation={isMultiPagePresentationPreview(resolvedSearchParams.pagePresentation) ? "multi" : "one"}

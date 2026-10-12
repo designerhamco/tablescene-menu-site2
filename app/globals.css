@@ -1539,7 +1539,7 @@ video {
     font-size: calc(var(--cafe-a-linked-supporting-copy-size) * var(--cafe-a-device-type-scale));
   }
 
-  .cafe-a-typography[data-cafe-a-skin="sunday_line"] :is(.cafe-a-ordered-menu-flow, .cafe-a-balanced-menu-grid) .cafe-a-category-title {
+  .cafe-a-typography:where(:not([data-cafe-a-mobile-style="true"]))[data-cafe-a-skin="sunday_line"] :is(.cafe-a-ordered-menu-flow, .cafe-a-balanced-menu-grid) .cafe-a-category-title {
     font-size: max(
       calc(clamp(0.68rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1) * var(--cafe-a-template-category-title-scale, 1)), 2.12rem) * var(--cafe-a-device-type-scale)),
       calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * 1.22)
@@ -2109,7 +2109,7 @@ video {
     padding: clamp(0.16rem, calc(0.25rem * var(--fit-gap-scale)), 0.25rem) clamp(0.28rem, calc(0.375rem * var(--fit-gap-scale)), 0.375rem);
   }
 
-  .cafe-a-typography .cafe-a-category-title {
+  .cafe-a-typography:where(:not([data-cafe-a-mobile-style="true"])) .cafe-a-category-title {
     font-size: calc(clamp(0.56rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--menu-role-category-size-scale, 1) * var(--cafe-a-template-category-title-scale, 1)), 1.62rem) * var(--cafe-a-device-type-scale));
     line-height: clamp(1.04, calc(1.12 * var(--fit-menu-gap-scale) + 0.04), 1.12);
   }
@@ -2120,7 +2120,7 @@ video {
     line-height: clamp(1.08, calc(1.2 * var(--fit-menu-gap-scale) + 0.04), 1.22);
   }
 
-  .cafe-a-typography .cafe-a-menu-meta {
+  .cafe-a-typography:where(:not([data-cafe-a-mobile-style="true"])) .cafe-a-menu-meta {
     font-size: calc(clamp(0.4rem, calc(var(--cafe-a-menu-meta-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--menu-role-supporting-size-scale, 1) * var(--cafe-a-template-secondary-copy-scale)), 0.9rem) * var(--cafe-a-device-type-scale));
     line-height: clamp(1.08, calc(1.2 * var(--fit-menu-gap-scale) + 0.04), 1.22);
   }
@@ -2227,7 +2227,7 @@ video {
     column-gap: clamp(0.34rem, calc(0.48rem * var(--fit-menu-gap-scale)), 0.6rem);
   }
 
-  .cafe-a-typography .cafe-a-ordered-menu-flow .cafe-a-category-title {
+  .cafe-a-typography:where(:not([data-cafe-a-mobile-style="true"])) .cafe-a-ordered-menu-flow .cafe-a-category-title {
     font-size: calc(clamp(0.62rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1) * var(--cafe-a-template-category-title-scale, 1)), 2.08rem) * var(--cafe-a-device-type-scale));
   }
 
@@ -2243,7 +2243,7 @@ video {
     font-size: calc(var(--cafe-a-linked-price-size) * var(--cafe-a-device-type-scale) * var(--fit-menu-wrap-scale));
   }
 
-  .cafe-a-typography .cafe-a-ordered-menu-flow .cafe-a-menu-meta {
+  .cafe-a-typography:where(:not([data-cafe-a-mobile-style="true"])) .cafe-a-ordered-menu-flow .cafe-a-menu-meta {
     font-size: calc(clamp(0.4rem, calc(var(--cafe-a-menu-meta-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-menu-copy-boost) * var(--menu-role-supporting-size-scale, 1) * var(--cafe-a-template-secondary-copy-scale)), 0.9rem) * var(--cafe-a-device-type-scale) * var(--fit-menu-wrap-scale));
   }
 
@@ -2259,7 +2259,7 @@ video {
     font-size: calc(clamp(0.625rem, calc(var(--cafe-a-menu-description-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-menu-copy-boost) * var(--menu-role-supporting-size-scale, 1) * var(--cafe-a-time-sale-font-ratio)), 1rem) * var(--fit-menu-wrap-scale));
   }
 
-  .cafe-a-typography .cafe-a-balanced-menu-grid .cafe-a-category-title {
+  .cafe-a-typography:where(:not([data-cafe-a-mobile-style="true"])) .cafe-a-balanced-menu-grid .cafe-a-category-title {
     font-size: calc(clamp(0.62rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-balanced-menu-visual-scale) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1) * var(--cafe-a-template-category-title-scale, 1)), 2.08rem) * var(--cafe-a-device-type-scale));
   }
 
@@ -2275,7 +2275,7 @@ video {
     font-size: calc(var(--cafe-a-linked-price-size) * var(--cafe-a-device-type-scale) * var(--fit-menu-wrap-scale));
   }
 
-  .cafe-a-typography .cafe-a-balanced-menu-grid .cafe-a-menu-meta {
+  .cafe-a-typography:where(:not([data-cafe-a-mobile-style="true"])) .cafe-a-balanced-menu-grid .cafe-a-menu-meta {
     font-size: calc(clamp(0.4rem, calc(var(--cafe-a-menu-meta-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-balanced-menu-visual-scale) * var(--cafe-a-shell-menu-copy-boost) * var(--menu-role-supporting-size-scale, 1) * var(--cafe-a-template-secondary-copy-scale)), 0.9rem) * var(--cafe-a-device-type-scale) * var(--fit-menu-wrap-scale));
   }
 
@@ -2567,7 +2567,7 @@ video {
     margin-top: 0.18rem;
   }
 
-  .cafe-a-typography[data-cafe-a-skin="sunday_line"] :is(.cafe-a-ordered-menu-flow, .cafe-a-balanced-menu-grid) .cafe-a-category-title {
+  .cafe-a-typography:where(:not([data-cafe-a-mobile-style="true"]))[data-cafe-a-skin="sunday_line"] :is(.cafe-a-ordered-menu-flow, .cafe-a-balanced-menu-grid) .cafe-a-category-title {
     font-size: max(
       calc(clamp(0.64rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1) * var(--cafe-a-template-category-title-scale, 1)), 2rem) * var(--cafe-a-device-type-scale)),
       calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * 1.22)
@@ -2583,9 +2583,9 @@ video {
     font-size: calc(var(--cafe-a-linked-price-size) * var(--cafe-a-device-type-scale));
   }
 
-  .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-menu-meta,
-  .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-menu-description,
-  .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow [data-cafe-a-widget-body] {
+  .cafe-a-typography:where(:not([data-cafe-a-mobile-style="true"]))[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-menu-meta,
+  .cafe-a-typography:where(:not([data-cafe-a-mobile-style="true"]))[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow .cafe-a-menu-description,
+  .cafe-a-typography:where(:not([data-cafe-a-mobile-style="true"]))[data-cafe-a-skin="sunday_line"] .cafe-a-ordered-menu-flow [data-cafe-a-widget-body] {
     font-size: calc(var(--cafe-a-linked-supporting-copy-size) * var(--cafe-a-device-type-scale));
   }
 }
@@ -2873,7 +2873,7 @@ video {
 }
 
 @media (min-width: 768px) {
-  .cafe-a-typography[data-cafe-a-skin="round_focus"] .cafe-a-balanced-menu-grid .cafe-a-category-title {
+  .cafe-a-typography:where(:not([data-cafe-a-mobile-style="true"]))[data-cafe-a-skin="round_focus"] .cafe-a-balanced-menu-grid .cafe-a-category-title {
     font-size: max(
       calc(clamp(0.62rem, calc(var(--cafe-a-category-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-balanced-menu-visual-scale) * var(--cafe-a-shell-category-title-boost) * var(--menu-role-category-size-scale, 1) * var(--cafe-a-template-category-title-scale, 1)), 2.08rem) * var(--cafe-a-device-type-scale)),
       calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * 1.5)
@@ -4428,7 +4428,7 @@ video {
 }
 
 @media (min-width: 1024px) {
-  .cafe-a-typography:is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]):not([data-preview-device="tablet"]) {
+  .cafe-a-typography:where(:not([data-cafe-a-mobile-style="true"])):is([data-template-key="cafe_design_a"], [data-template-key="fast_food_loop_bagel_a"], [data-cafe-a-skin="mocha_forest"]):not([data-preview-device="tablet"]) {
     --cafe-a-sunday-category-ratio: 1.5;
     --cafe-a-sunday-secondary-ratio: 0.64;
     --cafe-a-sunday-supporting-ratio: 0.71;
@@ -4467,7 +4467,7 @@ video {
 }
 
 @media (min-width: 1024px) {
-  .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"]:not([data-preview-device="tablet"]) {
+  .cafe-a-typography:where(:not([data-cafe-a-mobile-style="true"]))[data-template-key="fast_food_loop_bagel_a"]:not([data-preview-device="tablet"]) {
     --cafe-a-category-title-to-first-ratio: 1.55;
     --cafe-a-sunday-category-ratio: 1.68;
   }
@@ -4717,7 +4717,7 @@ video {
 
 /* Copy-aware breathing room applies only BETWEEN items, never to category/footer boundaries.
    The fit candidate and committed view measure the same CSS, including translated copy. */
-.cafe-a-typography[data-cafe-a-proportion-policy="true"] {
+.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-menu-item-stack {
   --cafe-a-copy-aware-item-rhythm-gap: var(--cafe-a-local-item-rhythm-gap);
 }
 
@@ -4751,11 +4751,11 @@ video {
   }
 }
 
-.cafe-a-typography[data-cafe-a-proportion-policy="true"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="1.15"]) {
+.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="1.15"]) {
   margin-bottom: calc(var(--cafe-a-copy-aware-item-rhythm-gap) * 1.15);
 }
 
-.cafe-a-typography[data-cafe-a-proportion-policy="true"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="1.35"]) {
+.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="1.35"]) {
   margin-bottom: calc(var(--cafe-a-copy-aware-item-rhythm-gap) * 1.35);
 }
 
@@ -4875,7 +4875,7 @@ video {
 }
 
 @media (min-width: 1024px) {
-  .cafe-a-typography[data-template-key="cafe_kohi_a"]:not([data-preview-device="tablet"]) {
+  .cafe-a-typography[data-template-key="cafe_kohi_a"]:not([data-preview-device="tablet"]):not([data-preview-device="mobile"]):not([data-cafe-a-mobile-style="true"]) {
     --cafe-a-sunday-category-ratio: 1.5;
     --cafe-a-sunday-secondary-ratio: 0.64;
     --cafe-a-sunday-supporting-ratio: 0.71;
@@ -4883,7 +4883,7 @@ video {
     --cafe-a-sunday-option-ratio: 0.56;
   }
 
-  .cafe-a-typography[data-cafe-a-proportion-policy="true"] .cafe-a-desktop-fit-board {
+  .cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-desktop-fit-board .cafe-a-menu-item-stack {
     --cafe-a-copy-aware-item-rhythm-gap: var(--cafe-a-item-rhythm-gap);
   }
 
@@ -4921,4 +4921,102 @@ video {
   .cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"] header .cafe-a-store-title {
     font-size: clamp(calc(2.48rem * var(--menu-role-brand-size-scale, 1)), calc(12.1vw * var(--menu-role-brand-size-scale, 1)), calc(3.3rem * var(--menu-role-brand-size-scale, 1)));
   }
+}
+
+/* Mobile is a reading layout, not a canvas-fit candidate. Fixed rem bases keep
+   type and rhythm stable across phone widths; wrapping/images remain responsive.
+   Keep customer typography settings and each template's semantic ratios. */
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"],
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(
+  [class*="cafe-a-menu-title-size-"], [class*="cafe-a-menu-description-size-"],
+  [class*="cafe-a-menu-meta-size-"], [class*="cafe-a-menu-price-size-"],
+  [class*="cafe-a-category-title-size-"], [class*="cafe-a-rhythm-"]
+) {
+  --cafe-a-device-type-scale: 1;
+  --cafe-a-local-item-rhythm-gap: 1.125rem;
+  --cafe-a-menu-title-size: 1rem;
+  --cafe-a-linked-item-name-size: calc(1rem * var(--menu-font-size-scale, 1) * var(--menu-role-item-name-size-scale, 1));
+  --cafe-a-category-title-size: 1.34rem;
+  --cafe-a-menu-meta-size: 0.6875rem;
+  --cafe-a-menu-description-size: 0.8125rem;
+  --cafe-a-linked-supporting-copy-base-size: 0.8125rem;
+  --cafe-a-linked-supporting-copy-size: calc(0.8125rem * var(--menu-font-size-scale, 1) * var(--menu-role-supporting-size-scale, 1) * var(--cafe-a-template-supporting-copy-scale, 1));
+  --cafe-a-menu-price-size: 1.04rem;
+  --cafe-a-linked-price-size: calc(1.04rem * var(--menu-font-size-scale, 1) * var(--menu-role-price-size-scale, 1));
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] {
+  --cafe-a-mobile-section-gap: calc(1.125rem * var(--cafe-a-category-separation-ratio));
+  --cafe-a-page-inline: 1.5rem;
+  --cafe-a-page-block-start: 1.5rem;
+  --cafe-a-page-block-end: 3rem;
+  --cafe-a-copy-block-gap: 1rem;
+  --cafe-a-van-gogh-notice-size: 0.75rem;
+  --round-focus-mobile-inset: 1.75rem;
+  --mocha-mobile-section-rhythm: 1.5rem;
+  height: auto;
+  overflow-y: visible;
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] > div {
+  height: auto;
+  overflow-y: visible;
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(header, .cafe-a-round-focus-mobile-brand-section, .cafe-a-topline-mobile-notices) {
+  display: block;
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-desktop-fit-board {
+  display: none;
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] header .cafe-a-store-title {
+  font-size: calc(2.75rem * var(--menu-font-size-scale, 1) * var(--menu-role-brand-size-scale, 1) * var(--cafe-a-store-title-device-scale, 1) * var(--round-focus-brand-boost, 1));
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-menu-item-stack {
+  margin-block: 0;
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-menu-item-stack:not(:last-child) {
+  margin-bottom: 1.125rem;
+}
+
+/* One boundary token: upper brand/cover/notices -> first category = category ->
+   category (and widget/footer boundaries). No doubled last-item/section margins. */
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-cafe-a-scroll-content] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 0;
+  padding-top: var(--cafe-a-mobile-section-gap);
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-cafe-a-scroll-content]:has(> .cafe-a-cover-hero) {
+  padding-top: var(--cafe-a-copy-block-gap);
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-cafe-a-scroll-content] > .cafe-a-cover-hero {
+  grid-column: auto;
+  grid-row: auto;
+  margin-bottom: 0;
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-cafe-a-scroll-content] > .cafe-a-fit-menu-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-top: 0;
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-cafe-a-scroll-content] > .cafe-a-cover-hero + .cafe-a-fit-menu-grid {
+  margin-top: var(--cafe-a-mobile-section-gap);
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-fit-menu-grid > :is(.cafe-a-menu-category-block, .cafe-a-menu-widget-block, .cafe-a-footer-info) {
+  margin-block: 0;
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-fit-menu-grid > * + :is(.cafe-a-menu-category-block, .cafe-a-menu-widget-block, .cafe-a-footer-info) {
+  margin-top: var(--cafe-a-mobile-section-gap);
 }

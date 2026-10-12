@@ -36,7 +36,7 @@ import { isMenuCoverVisibleOnDevice } from "@/lib/menu-cover-device-visibility";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import { getFixedOnePageLayoutShell, type OnePageLayoutShell } from "@/lib/one-page-layout-shells";
-import { getOnePageItemRhythmMultiplier, usesOnePageProportionFitPolicy, usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
+import { getOnePageItemRhythmMultiplier, getOnePageRhythmMode, usesOnePageProportionFitPolicy, usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
 import {
   ONE_PAGE_MAX_MENU_COLUMNS,
   ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS,
@@ -4040,7 +4040,7 @@ function MenuItemRow({
       ref={itemRef}
       className={`cafe-a-menu-item grid items-start ${canCenterSparseContent ? "cafe-a-menu-item-align-center" : ""} ${hasItemImage ? "cafe-a-menu-item-with-image" : ""} ${priceCountClassName} ${itemGridClassName}`}
       data-cafe-a-content-variant={contentVariant}
-      data-cafe-a-item-rhythm={usesOnePageProportionPolicy(templateKey) ? getOnePageItemRhythmMultiplier(hasSecondaryText, hasDescriptionText, showMenuTimeSale || visibleTraits.length > 0 || hasOriginInfo) : undefined}
+      data-cafe-a-item-rhythm={usesOnePageProportionFitPolicy(templateKey, previewDevice) ? getOnePageItemRhythmMultiplier(hasSecondaryText, hasDescriptionText, showMenuTimeSale || visibleTraits.length > 0 || hasOriginInfo) : undefined}
       data-cafe-a-menu-item=""
       data-cafe-a-sold-out={isSoldOut ? "true" : undefined}
       data-cafe-a-tablet-price-layout={stackPriceOption ? "stacked" : undefined}
@@ -6637,12 +6637,14 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const customBadgeStyles = getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings);
   const backgroundColor = getResolvedBackgroundColor(data.menuSite.template_key, data.menuSite.page_settings);
   const featuredHeroSlides = getFeaturedHeroSlides(data, capabilities);
+  const menuCoverRenderDevice = useMenuCoverRenderDevice(data.previewDevice);
+  const onePageRhythmMode = getOnePageRhythmMode(data.menuSite.template_key, menuCoverRenderDevice, data.pagePresentation);
   const savedLayoutMode = getPcTabletLayoutModeFromPageSettings(data.menuSite.page_settings);
   const normalizedPreviewLayoutMode = data.mode === "preview" ? data.previewLayoutMode : undefined;
   const layoutMode = (normalizedPreviewLayoutMode ?? savedLayoutMode) as CafeDesignALayoutMode;
-  const isLoopBagelFitSpacing = usesLoopBagelFitSpacing(data.menuSite.template_key, data.previewDevice);
-  const isKohiFitPolicy = usesKohiFitPolicy(data.menuSite.template_key, data.previewDevice);
-  const hasBoundedFitSpacing = isLoopBagelFitSpacing || isKohiFitPolicy || usesOnePageProportionFitPolicy(data.menuSite.template_key, data.previewDevice, data.pagePresentation);
+  const isLoopBagelFitSpacing = onePageRhythmMode !== "mobile" && usesLoopBagelFitSpacing(data.menuSite.template_key, data.previewDevice);
+  const isKohiFitPolicy = onePageRhythmMode !== "mobile" && usesKohiFitPolicy(data.menuSite.template_key, data.previewDevice);
+  const hasBoundedFitSpacing = isLoopBagelFitSpacing || isKohiFitPolicy || (onePageRhythmMode !== "mobile" && usesOnePageProportionFitPolicy(data.menuSite.template_key, data.previewDevice, data.pagePresentation));
   const canRetainTemplateFitState = useCallback((state: CafeDesignAFitState) =>
     !isKohiFitPolicy || isKohiFitScaleWithinLimits(state.fontScale, state.gapScale, data.previewDevice, window.innerWidth),
   [data.previewDevice, isKohiFitPolicy]);
@@ -6725,7 +6727,6 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const layoutRules = getTemplateLayoutRules(data.menuSite.template_key, data.menuSite.template_category);
   const density = getMenuLayoutDensity(visibleItemCount, layoutRules, "desktop");
   const onePageLayoutShell = getFixedOnePageLayoutShell(data.menuSite.template_key);
-  const menuCoverRenderDevice = useMenuCoverRenderDevice(data.previewDevice);
   const hasCoverSection =
     publicCapabilities.menuCoverPage &&
     capabilities.menuCover.coverMode === "section" &&
@@ -6984,7 +6985,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       if (!cancelled && !hasFitPresentationReadyRef.current) setFitPresentationState("loading");
     });
 
-    if (visiblePageGroups.length === 0 || !window.matchMedia("(min-width: 1024px)").matches) {
+    if (visiblePageGroups.length === 0 || onePageRhythmMode === "mobile" || !window.matchMedia("(min-width: 1024px)").matches) {
       queueMicrotask(() => {
         if (!cancelled) {
           hasFitPresentationReadyRef.current = true;
@@ -7074,6 +7075,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     orderedBalancedFinalFillBoost.gapScale,
     orderedFitFinalFillCompensation,
     visiblePageGroups.length,
+    onePageRhythmMode,
   ]);
 
   useLayoutEffect(() => {
@@ -9333,7 +9335,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         data-template-key={data.menuSite.template_key ?? undefined}
         data-preview-device={data.previewDevice}
         data-cafe-a-proportion-policy={usesOnePageProportionPolicy(data.menuSite.template_key, data.pagePresentation) ? "true" : undefined}
-        data-spacing-contract="canvas-fit"
+        data-cafe-a-copy-aware-rhythm={onePageRhythmMode === "fit" ? "true" : undefined}
+        data-cafe-a-mobile-style={onePageRhythmMode === "mobile" ? "true" : undefined}
+        data-spacing-contract={onePageRhythmMode === "mobile" ? "mobile-reading" : "canvas-fit"}
         style={{ ...typographyStyle, ...skinStyle, backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor }}
       >
         <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
@@ -9360,7 +9364,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               {isSundayLine ? <SundayLineMobileNotices data={data} capabilities={capabilities} density={density} /> : null}
             </>
           )}
-          <div className={`grid min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-[var(--cafe-a-page-block-end)] md:grid-cols-2 lg:hidden ${data.menuSite.template_key === "cafe_kohi_a" ? "kohi-mobile-menu-grid" : ""} ${isRoundFocus ? "cafe-a-round-focus-mobile-menu-grid" : ""} ${outerGridGapClassName}`}>
+          <div data-cafe-a-scroll-content="" className={`grid min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-[var(--cafe-a-page-block-end)] md:grid-cols-2 lg:hidden ${data.menuSite.template_key === "cafe_kohi_a" ? "kohi-mobile-menu-grid" : ""} ${isRoundFocus ? "cafe-a-round-focus-mobile-menu-grid" : ""} ${outerGridGapClassName}`}>
             {!isRoundFocus && shouldRenderMenuCoverSection && (
               <CoverHero
                 data={data}
