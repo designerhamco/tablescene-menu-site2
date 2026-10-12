@@ -4951,7 +4951,7 @@ video {
   --cafe-a-mobile-heading-gap: 1.5rem;
   --cafe-a-mobile-inner-gap: 1.5rem;
   --cafe-a-mobile-brand-copy-gap: 0.75rem;
-  --cafe-a-mobile-notice-gap: 0.375rem;
+  --cafe-a-mobile-notice-gap: 0;
   --cafe-a-mobile-brand-scale: 1;
   --cafe-a-page-inline: 1.5rem;
   --cafe-a-page-block-start: 1.5rem;
@@ -5192,20 +5192,4 @@ video {
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_kohi_a"] .cafe-a-fit-menu-grid > * + .cafe-a-menu-category-block {
   padding-top: calc(0.75rem + var(--kohi-divider-width));
-}
-
-.cafe-a-typography[data-cafe-a-mobile-style="true"] header .cafe-a-mobile-auto-brand-title {
-  line-height: 1.08;
-  padding-block: 0.08em 0.04em;
-  overflow-wrap: anywhere;
-}
-
-.cafe-a-mobile-brand-measurements {
-  position: fixed;
-  left: -10000px;
-  top: 0;
-  visibility: hidden;
-  pointer-events: none;
-  font-size: 100px;
-  white-space: pre;
 }

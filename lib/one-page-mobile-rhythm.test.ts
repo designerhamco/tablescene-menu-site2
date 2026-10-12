@@ -18,11 +18,14 @@ test("rendered mobile gap assertions reject the original zero-gap bug and device
   assert.ok(getOnePageMobileRhythmFailures({ ...valid, blockGaps: [24] }).length);
   assert.ok(getOnePageMobileRhythmFailures({ ...valid, sectionGap: NaN }).length);
   assert.ok(getOnePageMobileRhythmFailures({ ...valid, fonts: { ...valid.fonts, name: 14 } }).length);
+  assert.deepEqual(getOnePageMobileRhythmFailures({ ...valid, noticeGaps: [0, 0] }), []);
+  assert.ok(getOnePageMobileRhythmFailures({ ...valid, noticeGaps: [6, 6] }).length);
+  assert.ok(getOnePageMobileRhythmFailures({ ...valid, autoBrand: true }).length);
 });
 
 test("mobile width/height changes must not auto-scale reading fonts or spacing", () => {
   assert.deepEqual(compareMobileRhythmViewports(valid, { ...valid, viewport: [430, 932] }), []);
   assert.ok(compareMobileRhythmViewports(valid, { ...valid, fonts: { ...valid.fonts, name: 14 } }).length);
   assert.ok(compareMobileRhythmViewports(valid, { ...valid, itemGap: 10 }).length);
-  assert.deepEqual(compareMobileRhythmViewports({ ...valid, autoBrand: true }, { ...valid, autoBrand: true, fonts: { ...valid.fonts, brand: 90 } }), []);
+  assert.ok(compareMobileRhythmViewports(valid, { ...valid, fonts: { ...valid.fonts, brand: 90 } }).length);
 });

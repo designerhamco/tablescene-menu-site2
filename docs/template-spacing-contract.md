@@ -59,14 +59,14 @@ Applies only to REAL MATCHA, KOHI, Mocha Forest, Sunday Roasters, Van Gogh, ROSY
 - Mobile does not fit a viewport or compress font/gap values when there is more content. Content scrolls naturally; width changes only rewrap text and resize responsive images/containers.
 - Mobile selected in an explicitly wide preview/new window still uses mobile reading typography. PC media-query category/secondary sizing is excluded with a zero-specificity `:where(:not([data-cafe-a-mobile-style="true"]))` gate, preserving PC/tablet selector priority.
 - Item-to-item gap is `1.25rem` (20px at the default 16px root), independent of item count, supporting-copy visibility or phone width/height. No 1.15×/1.35× adjustment on mobile. Last items have zero trailing margin.
-- Stable typography bases: item name/price `1rem`, supporting copy `0.875rem`, secondary name `0.75rem`, category `1.5rem`, store title `2.75rem`. Fonts/colors remain template-owned, with the explicit exceptions and KOHI brand-only pilot below. Current one-page typography normalization fixes global/role size settings; this rollout does not introduce a new customer size control.
+- Stable typography bases: item name/price `1rem`, supporting copy `0.875rem`, secondary name `0.75rem`, category `1.5rem`, store title `2.75rem`. Fonts/colors remain template-owned, with the explicit exceptions below. Current one-page typography normalization fixes global/role size settings; this rollout does not introduce a new customer size control.
 - Section gap is the mobile-only `3rem` token. It governs **upper brand/logo + description + optional featured area/notices → first category**, category/widget boundaries, and the final mobile footer boundary. Do not add a last-item margin or independent outer row gap on top.
 - Featured enabled: its section ends the upper area. Featured disabled: header/last upper notice/ROSY ORANGE's whole brand section ends it. This preserves ordering without moving notice anchors or changing desktop fixed shells.
 - PC/tablet retain their distinct category-separation ratios (2.9/3.4/3/2.6/3.25/3.6). Mobile no longer aliases those ratios and uses 48px boundaries for all seven templates.
 
 DOM regression helpers in `scripts/lib/one-page-mobile-rhythm.mjs` assert nonzero fixed item gaps, linked upper/category/footer gaps, no copy-aware fit leakage and stable typography across 320/390/430px widths. Unit tests alone are insufficient; inspect each template and settle the PC/tablet fit before accepting rendered geometry.
 
-### Approved unified mobile values and KOHI title pilot — 2026-10-12
+### Approved unified mobile values — 2026-10-12
 
 Applies to the same seven active single-page templates, not Display or multi-page. PC/tablet fit formulas, candidate limits, copy-aware 1/1.15/1.35 ratios, columns and fixed-shell notice anchors are not changed. Mobile uses its own variables rather than PC/tablet category-separation/title-device aliases.
 
@@ -83,7 +83,7 @@ Applies to the same seven active single-page templates, not Display or multi-pag
 | Upper control row / control touch target | 48px / at least 44px |
 | Control row to brand / upper content blocks | 24px |
 | Brand/logo to store description | 12px |
-| Notice paragraphs | 6px, preserving internal line breaks |
+| Notice paragraphs | Zero extra gap; normal supporting-copy line-height (1.5), preserving internal line breaks |
 | Upper colored box inner padding | 24px |
 | Responsive featured frame | 4:5, no item-count/density-driven minimum height |
 
@@ -93,7 +93,7 @@ The boundary target is the first category block, not its first product row. A he
 
 Line rules: REAL MATCHA retains an 8px title-to-underline inset and 24px after the underline edge. Sunday top rules retain 12px from line end to title. KOHI mobile changes its decorative geometry only: heading end → 8px → 1px stroke → 24px → first item; category boundary → 1px stroke → 12px → heading. The next category block's external margin remains 48px. Desktop/portrait-tablet midpoint geometry is unchanged. Stroke thickness is not counted as whitespace.
 
-KOHI mobile text brand is the only width-fitting pilot. `MobileBrandTitle` measures the selected script-aware fonts after font readiness and observes only its container width. It aims for 80% actual text width; short names stay on one line, longer names may use two balanced word-boundary lines at one shared size. CJK without spaces may use grapheme boundaries. The minimum is 2rem; one-line cap 8rem, two-line cap 4.5rem. These are soft fill targets and hard font safety bounds. Exceptional long/unbroken names wrap at the minimum without truncation or forced horizontal stretch. Logos bypass the pilot. Font/name/width changes recompute it; menu count, sale timers and unrelated DOM mutations do not. The title box grows naturally with safe line-height/padding. The pilot does not feed a fit value back into body text or spacing and does not run on PC/tablet, Display or multi-page.
+The KOHI mobile 80% brand-width pilot was withdrawn by the user after visual review. All mobile text brands again use the fixed 2.75rem base with the explicit expressive exceptions above, without width-fitting observers, forced two-line selection or hidden title measurements. Logos retain their existing path. Keep the rest of the unified mobile contract. A possible PC/tablet-only 60–70% soft target is discussion only, not an implemented rule; it requires separate approval and bounded integration with the existing brand shell/canvas-fit policy.
 
 ## Editorial-scroll templates
 

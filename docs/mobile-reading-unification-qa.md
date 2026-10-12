@@ -1,5 +1,7 @@
 # Mobile reading unification and KOHI brand pilot — 2026-10-12
 
+> Historical rollout evidence. Follow-up after user review: the KOHI mobile title-width pilot and its dedicated code/fixtures were removed; the fixed 44px mobile brand base is restored. Notice paragraphs now have zero extra gap and use the normal supporting-copy line-height, like consecutive line breaks. Other unified mobile rules remain. The current contract is `docs/template-spacing-contract.md`; the pilot measurements below document the earlier revision, not the current behavior.
+
 User approved shared mobile rules for seven active dining single-page templates and a KOHI-only title-width pilot. Display/multi-page and PC/tablet are excluded. No starter or saved menu data, production database/storage, fonts/colors, prices, images or product links are changed.
 
 The current contract is in `docs/template-spacing-contract.md`, with a mandatory future-work reminder in `AGENTS.md`. Defaults are 20px item boundaries, 24px heading/upper internal boundaries and 48px section/upper-box/footer boundaries; the same rules apply to full/title-only/description-only/secondary-only rows. Mobile base typography is 16/14/12px for name-price/support/secondary, 24px categories with the explicit Loop Bagel exception. Upper controls reserve 48px with 44px touch targets. Existing notice placement is retained.
@@ -21,3 +23,9 @@ Local-only `rhythmQa` fixtures cover copy visibility, optional cover, public-dev
 - No browser error/warning logs were observed in the final mobile checks. Session evidence is `/private/tmp/mobile-standard-qa.json` with `<templateKey>-mobile-standard-final.png` and `kohi-brand-*-mobile-standard.png` screenshots in the same temporary directory; these files are not durable repository assets.
 
 Automated suite/type/lint/build and Production confirmation are reported at delivery. This matrix is not an exhaustive guarantee for all customer datasets or browsers.
+
+## Follow-up: notices and title pilot withdrawal
+
+User review requested consecutive-line-break notice rhythm and restoration of the KOHI title, retaining the rest of the common mobile policy. The extra 6px paragraph gap is now zero, while normal supporting-copy line-height (1.5) and explicit Van Gogh size remain. The dedicated title observer, helper, styles, tests and local-only brand fixtures are removed, not merely disabled. KOHI again uses the 44px mobile base. No PC/tablet title-fit experiment was authorized or implemented.
+
+Local browser checks on all seven mobile starters at 320/390/430×844 passed: zero notice paragraph gaps, no width-fit pilot, stable mobile body/brand sizes, retained 20/24/48px boundaries and name/price alignment. English Sunday, Japanese ROSY ORANGE and Chinese Loop Bagel also passed. Sunday notices were visually checked as a continuous three-line block. PC/tablet fit source and decorative geometry are unchanged; sampled KOHI PC and six tablet templates matched earlier recorded metrics. ROSY ORANGE had different menu fit metrics between dev/Production (both ready, three menu columns, no horizontal overflow); do not claim an exact cross-environment match from that sample. Its mobile scope assertions passed, and this follow-up does not modify its PC/tablet fit calibration. Tests (551), type checking, touched-file lint, build and whitespace checks passed.

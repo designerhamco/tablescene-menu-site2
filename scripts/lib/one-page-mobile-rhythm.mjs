@@ -38,6 +38,10 @@ export function measureOnePageMobileRhythm() {
     copyAware: root.getAttribute('data-cafe-a-copy-aware-rhythm'),
     itemGap, sectionGap,
     autoBrand: Boolean(root.querySelector('[data-mobile-brand-fit]')),
+    noticeGaps: [...root.querySelectorAll('.cafe-a-mobile-notice-list, .cafe-a-round-focus-notice-list')].filter(visible).flatMap((list) => {
+      const rows = [...list.children].filter(visible);
+      return rows.slice(0, -1).map((row, index) => gap(row, rows[index + 1]));
+    }),
     languageHeight: visible(language) ? language.getBoundingClientRect().height : null,
     languageToBrand: visible(language) ? gap(language, brand) : null,
     brandToDescription: gap(brand, brandDescription),
@@ -69,6 +73,8 @@ export function getOnePageMobileRhythmFailures(measurement) {
   if (measurement.mobileStyle !== 'true') failures.push('mobile reading style is not active');
   if (measurement.contract !== 'mobile-reading') failures.push('mobile spacing contract is not separate from canvas-fit');
   if (measurement.copyAware === 'true') failures.push('PC/tablet copy-aware rhythm leaked into mobile');
+  if (measurement.autoBrand) failures.push('withdrawn mobile brand-width pilot is active');
+  if ((measurement.noticeGaps ?? []).some((gap) => Math.abs(gap) > 0.2)) failures.push('notice rows have extra paragraph spacing');
   if (!Number.isFinite(measurement.sectionGap) || measurement.sectionGap <= 0) failures.push('invalid section-gap token');
   if (measurement.categories.length === 0) failures.push('no rendered categories');
   for (const category of measurement.categories) {
@@ -92,7 +98,6 @@ export function getOnePageMobileRhythmFailures(measurement) {
 export function compareMobileRhythmViewports(first, next) {
   const failures = [];
   for (const [role, size] of Object.entries(first.fonts)) {
-    if (role === 'brand' && first.autoBrand && next.autoBrand) continue;
     if (size != null && next.fonts[role] != null && Math.abs(size - next.fonts[role]) > 0.05) failures.push(`${role} font changes with viewport`);
   }
   for (const key of ['itemGap', 'sectionGap']) if (Math.abs(first[key] - next[key]) > 0.05) failures.push(`${key} changes with viewport`);

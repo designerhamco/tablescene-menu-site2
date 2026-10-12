@@ -81,12 +81,15 @@ test("the common behavior gates all final-fill enlargement and only changes betw
 test("mobile has fixed reading rhythm, independent type bases and one linked section boundary", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   const mobile = css.slice(css.indexOf("/* Mobile is a reading layout"));
+  const renderer = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(renderer, /MobileBrandTitle|mobileAutoFit/);
+  assert.doesNotMatch(mobile, /cafe-a-mobile-auto-brand-title|cafe-a-mobile-brand-measurements/);
   assert.match(mobile, /--cafe-a-local-item-rhythm-gap: 1\.25rem/);
   assert.match(mobile, /--cafe-a-linked-item-name-size: calc\(1rem \* var\(--menu-font-size-scale/);
   assert.match(mobile, /--cafe-a-mobile-section-gap: 3rem/);
   assert.doesNotMatch(mobile, /var\(--cafe-a-category-separation-ratio\)/);
   assert.doesNotMatch(mobile, /var\(--cafe-a-store-title-device-scale|var\(--round-focus-brand-boost/);
-  for (const token of ["--cafe-a-mobile-heading-gap: 1.5rem", "--cafe-a-mobile-inner-gap: 1.5rem", "--cafe-a-mobile-brand-copy-gap: 0.75rem", "--cafe-a-mobile-notice-gap: 0.375rem"]) assert.ok(mobile.includes(token));
+  for (const token of ["--cafe-a-mobile-heading-gap: 1.5rem", "--cafe-a-mobile-inner-gap: 1.5rem", "--cafe-a-mobile-brand-copy-gap: 0.75rem", "--cafe-a-mobile-notice-gap: 0;"]) assert.ok(mobile.includes(token));
   assert.match(mobile, /padding-top: var\(--cafe-a-mobile-section-gap\)/);
   assert.match(mobile, /margin-top: var\(--cafe-a-mobile-section-gap\)/);
   assert.match(mobile, /\.cafe-a-menu-item-stack:not\(:last-child\) \{\s*margin-bottom: 1\.25rem/);
