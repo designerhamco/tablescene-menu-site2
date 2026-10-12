@@ -3,13 +3,14 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { getMobileBrandMeasurementTexts, selectMobileBrandTitleFit } from "./mobile-brand-title-fit";
 
-test("mobile brand reaches 65% of the actual inner width, with no template multiplier", () => {
+test("short mobile brand uses the width-relative 88px ceiling, not unlimited fill", () => {
   const widths = new Map([["KOHI", 235]]);
   for (const width of [272, 342, 382]) {
     const fit = selectMobileBrandTitleFit("KOHI", widths, width);
     assert.deepEqual(fit.lines, ["KOHI"]);
-    assert.ok(Math.abs(fit.fontSize * 235 / 100 / width - 0.65) < 0.00001);
-    assert.ok(fit.fontSize >= 48);
+    assert.ok(Math.abs(fit.fontSize / width - 88 / 342) < 0.00001);
+    assert.ok(fit.fontSize * 235 / 100 / width >= 0.60);
+    assert.ok(fit.fontSize >= 44);
   }
 });
 
@@ -17,19 +18,19 @@ test("long multiword names balance at word boundaries with a shared size", () =>
   const widths = new Map([["ESPRESSO BASEBASE", 920], ["ESPRESSO", 430], ["BASEBASE", 450]]);
   const fit = selectMobileBrandTitleFit("ESPRESSO BASEBASE", widths, 342);
   assert.deepEqual(fit.lines, ["ESPRESSO", "BASEBASE"]);
-  assert.ok(fit.fontSize >= 48);
-  assert.ok(Math.abs(fit.fontSize * 450 / 100 / 342 - 0.65) < 0.00001);
+  assert.ok(fit.fontSize >= 44);
+  assert.ok(Math.abs(fit.fontSize * 450 / 100 / 342 - 0.75) < 0.00001);
   assert.ok(fit.fontSize * 430 / 100 / 342 > 0.62);
 });
 
-test("48px minimum takes priority over 65% when an intact word needs more width", () => {
+test("44px minimum takes priority over target coverage when an intact word needs more width", () => {
   const fit = selectMobileBrandTitleFit("ESPRESSO BASEBASE", new Map([["ESPRESSO BASEBASE", 1200], ["ESPRESSO", 590], ["BASEBASE", 610]]), 342);
-  assert.equal(fit.fontSize, 48);
+  assert.equal(fit.fontSize, 44);
   assert.deepEqual(fit.lines, ["ESPRESSO", "BASEBASE"]);
   assert.equal(fit.naturalWrap, false);
 });
 
-test("minimum-size partitions stay balanced near 65%, not merely inside the page", () => {
+test("long names keep the fewest balanced whole-word rows that fit at the minimum", () => {
   const title = "SUNDAY ROASTERS COFFEE HOUSE";
   const units = new Map([["SUNDAY", 377], ["ROASTERS", 475], ["COFFEE", 368], ["HOUSE", 302]]);
   const widths = new Map(getMobileBrandMeasurementTexts(title).map((text) => {
@@ -37,8 +38,8 @@ test("minimum-size partitions stay balanced near 65%, not merely inside the page
     return [text, words.every((word) => units.has(word)) ? words.reduce((sum, word) => sum + units.get(word)!, 0) + (words.length - 1) * 30 : NaN];
   }));
   const fit = selectMobileBrandTitleFit(title, widths, 342);
-  assert.deepEqual(fit.lines, ["SUNDAY", "ROASTERS", "COFFEE", "HOUSE"]);
-  assert.equal(fit.fontSize, 48);
+  assert.deepEqual(fit.lines, ["SUNDAY", "ROASTERS", "COFFEE HOUSE"]);
+  assert.equal(fit.fontSize, 44);
 });
 
 test("CJK and oversized words retain every grapheme without truncating", () => {
@@ -48,17 +49,31 @@ test("CJK and oversized words retain every grapheme without truncating", () => {
     const fit = selectMobileBrandTitleFit(title, widths, 272);
     assert.equal(fit.lines.join(""), title);
     assert.ok(fit.lines.length > 1);
-    assert.ok(fit.fontSize >= 48);
+    assert.ok(fit.fontSize >= 44);
     for (const line of fit.lines) assert.ok(widths.get(line)! * fit.fontSize / 100 <= 272.01);
   }
 });
 
 test("extreme names, invalid measurements and width preserve text at the minimum", () => {
   const title = "가".repeat(80);
-  assert.deepEqual(selectMobileBrandTitleFit(title, new Map(), 272), { lines: [title], fontSize: 48, naturalWrap: true });
-  assert.equal(selectMobileBrandTitleFit("KOHI", new Map([["KOHI", 235]]), NaN).fontSize, 48);
+  assert.deepEqual(selectMobileBrandTitleFit(title, new Map(), 272), { lines: [title], fontSize: 44, naturalWrap: true });
+  assert.equal(selectMobileBrandTitleFit("KOHI", new Map([["KOHI", 235]]), NaN).fontSize, 44);
   assert.equal(selectMobileBrandTitleFit("KOHI", new Map([["KOHI", 235]]), 342, 60).fontSize >= 60, true);
   assert.ok(getMobileBrandMeasurementTexts("가".repeat(1000)).length < 2);
+});
+
+test("single lines prefer 100% when they fit without breaching the visual ceiling", () => {
+  const fit = selectMobileBrandTitleFit("ESPRESSO", new Map([["ESPRESSO", 500]]), 342);
+  assert.deepEqual(fit.lines, ["ESPRESSO"]);
+  assert.equal(fit.fontSize, 68.4);
+});
+
+test("multiline visual ceiling is 64px at 342px inner width; extremely short names do not overscale", () => {
+  const widths = new Map([["A B C", 850], ["A B", 375], ["B C", 375], ["A", 125], ["B", 125], ["C", 125]]);
+  const fit = selectMobileBrandTitleFit("A B C", widths, 342);
+  assert.equal(fit.fontSize, 64);
+  assert.equal(fit.lines.length, 2);
+  assert.equal(selectMobileBrandTitleFit("I", new Map([["I", 30]]), 342).fontSize, 88);
 });
 
 test("all seven use the mobile gate only and logos bypass the width fitter", () => {

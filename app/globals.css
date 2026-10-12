@@ -3122,11 +3122,11 @@ video {
 
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] [data-template-language-control],
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] [data-template-language-control] .cafe-a-script-ko {
-  font-family: "Nanum Gothic", "Noto Sans KR", system-ui, sans-serif;
+  font-family: var(--menu-font-ko), system-ui, sans-serif;
 }
 
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] [data-template-language-control] .cafe-a-script-en {
-  font-family: "Bagel Fat One", "Nanum Gothic", system-ui, sans-serif;
+  font-family: var(--menu-font-en), var(--menu-font-ko), system-ui, sans-serif;
 }
 
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-cover-hero {
@@ -4951,6 +4951,8 @@ video {
   --cafe-a-mobile-heading-gap: 1.5rem;
   --cafe-a-mobile-inner-gap: 1.5rem;
   --cafe-a-mobile-brand-copy-gap: 0.75rem;
+  --cafe-a-mobile-copy-gap: 0.125rem;
+  --cafe-a-mobile-category-copy-gap: 0.5rem;
   --cafe-a-mobile-notice-gap: 0;
   --cafe-a-page-inline: 1.5rem;
   --cafe-a-page-block-start: 1.5rem;
@@ -4977,7 +4979,7 @@ video {
 }
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] header .cafe-a-store-title {
-  font-size: max(48px, 3rem);
+  font-size: max(44px, 2.75rem);
 }
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-menu-item-stack {
@@ -5046,10 +5048,6 @@ video {
   line-height: 1.5;
 }
 
-.cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="fast_food_loop_bagel_a"] .cafe-a-menu-description {
-  line-height: 1.38;
-}
-
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(.cafe-a-menu-meta, .cafe-a-menu-badge, .cafe-a-featured-badge, .cafe-a-menu-chip, .cafe-a-price-note, .cafe-a-price-column-header, .cafe-a-price-column-heading-label, .cafe-a-price-label) {
   font-size: 0.75rem;
 }
@@ -5061,6 +5059,29 @@ video {
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-category-items {
   padding-top: 0;
+}
+
+/* Same internal copy rhythm for every skin, including KOHI's above-title copy.
+   Preserve the position of descriptions, not template-specific gap multipliers. */
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-cafe-a-category-description] {
+  margin: var(--cafe-a-mobile-category-copy-gap) 0 0;
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-cafe-a-category-description].cafe-a-category-eyebrow {
+  margin: 0 0 var(--cafe-a-mobile-category-copy-gap);
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-menu-copy > :is(.cafe-a-menu-title-row, .cafe-a-menu-meta) {
+  margin-bottom: var(--cafe-a-mobile-copy-gap);
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-menu-copy > :is(.cafe-a-menu-title-row, .cafe-a-menu-meta):last-child {
+  margin-bottom: 0;
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] [data-template-language-control] {
+  --cafe-a-script-ko-font: var(--menu-font-ko);
+  --cafe-a-script-en-font: var(--menu-font-en);
 }
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_design_a"] .cafe-a-category-heading {
@@ -5191,7 +5212,7 @@ video {
 
 .cafe-a-mobile-brand-natural-wrap {
   display: block;
-  max-width: 65%;
+  max-width: 100%;
   text-wrap: balance;
 }
 

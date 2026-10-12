@@ -25,7 +25,13 @@ test("rendered mobile gap assertions reject the original zero-gap bug and device
   assert.deepEqual(getOnePageMobileRhythmFailures({ ...valid, noticeSizes: [14], noticeLineHeights: [21] }), []);
   assert.ok(getOnePageMobileRhythmFailures({ ...valid, autoBrand: true, brandState: "pending" }).length);
   assert.deepEqual(getOnePageMobileRhythmFailures({ ...valid, autoBrand: true, brandState: "ready" }), []);
-  assert.ok(getOnePageMobileRhythmFailures({ ...valid, fonts: { ...valid.fonts, brand: 44 } }).length);
+  assert.deepEqual(getOnePageMobileRhythmFailures({ ...valid, fonts: { ...valid.fonts, brand: 44 } }), []);
+  assert.ok(getOnePageMobileRhythmFailures({ ...valid, fonts: { ...valid.fonts, brand: 43 } }).length);
+  assert.ok(getOnePageMobileRhythmFailures({ ...valid, upperContentGaps: [8] }).length);
+  assert.ok(getOnePageMobileRhythmFailures({ ...valid, categoryCopyGaps: [3] }).length);
+  assert.ok(getOnePageMobileRhythmFailures({ ...valid, copyGaps: [6] }).length);
+  assert.ok(getOnePageMobileRhythmFailures({ ...valid, supportingLineHeights: [19.32] }).length);
+  assert.deepEqual(getOnePageMobileRhythmFailures({ ...valid, upperContentGaps: [24], categoryCopyGaps: [8], copyGaps: [2], supportingLineHeights: [21] }), []);
 });
 
 test("mobile width/height changes must not auto-scale reading fonts or spacing", () => {

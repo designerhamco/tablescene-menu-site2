@@ -22,6 +22,7 @@ export function measureOnePageMobileRhythm() {
   const brand = header?.querySelector('[data-cafe-a-store-title], [data-cafe-a-store-logo]');
   const brandDescription = header?.querySelector('[data-cafe-a-store-description]');
   const gap = (first, next) => first && next ? next.getBoundingClientRect().top - first.getBoundingClientRect().bottom : null;
+  const upperContent = [header, ...root.querySelectorAll('.cafe-a-topline-mobile-notices .cafe-a-mobile-notice-list, .cafe-a-round-focus-mobile-notices .cafe-a-round-focus-notice-list, .cafe-a-round-focus-mobile-notices .cafe-a-mobile-notice-list, .cafe-a-cover-hero')].filter(visible).sort((first, next) => first.getBoundingClientRect().top - next.getBoundingClientRect().top);
   const rootTop = root.getBoundingClientRect().top;
   const kohiLineGaps = [...root.querySelectorAll('[data-kohi-divider]')].filter((line) => line.getAttribute('data-kohi-divider') !== 'column').map((line) => {
     const end = rootTop + Number(line.getAttribute('y1')) + 0.5;
@@ -49,6 +50,15 @@ export function measureOnePageMobileRhythm() {
     languageHeight: visible(language) ? language.getBoundingClientRect().height : null,
     languageToBrand: visible(language) ? gap(language, brand) : null,
     brandToDescription: gap(brand, brandDescription),
+    upperContentGaps: upperContent.slice(0, -1).map((block, index) => gap(block, upperContent[index + 1])),
+    brandInnerWidth: brand?.parentElement?.getBoundingClientRect().width ?? null,
+    brandLineCount: brand?.querySelectorAll('[data-mobile-brand-line]').length ?? 0,
+    categoryCopyGaps: [...root.querySelectorAll('[data-cafe-a-category-description]')].filter(visible).map((element) => {
+      const css = getComputedStyle(element);
+      return Number.parseFloat(element.classList.contains('cafe-a-category-eyebrow') ? css.marginBottom : css.marginTop);
+    }),
+    supportingLineHeights: [...root.querySelectorAll('[data-cafe-a-menu-description], [data-cafe-a-store-description], [data-cafe-a-category-description]')].filter(visible).map((element) => Number.parseFloat(getComputedStyle(element).lineHeight)),
+    copyGaps: [...root.querySelectorAll('.cafe-a-menu-copy > .cafe-a-menu-title-row, .cafe-a-menu-copy > .cafe-a-menu-meta')].filter(visible).filter((element) => Boolean(element.nextElementSibling)).map((element) => Number.parseFloat(getComputedStyle(element).marginBottom)),
     kohiLineGaps,
     upperGap: upper && blocks[0] ? blocks[0].getBoundingClientRect().top - upper.getBoundingClientRect().bottom : null,
     blockGaps: blocks.slice(0, -1).map((block, index) => blocks[index + 1].getBoundingClientRect().top - block.getBoundingClientRect().bottom),
@@ -91,7 +101,14 @@ export function getOnePageMobileRhythmFailures(measurement) {
   if (measurement.overflow > 1) failures.push('horizontal overflow');
   const rem = measurement.itemGap / 1.25;
   const expectedFonts = { name: rem, price: rem, description: rem * 0.875, secondary: rem * 0.75, category: rem * 1.625 };
-  if (measurement.fonts?.brand != null && measurement.fonts.brand < Math.max(48, rem * 3) - 0.05) failures.push('mobile brand is below its 48px minimum');
+  if (measurement.fonts?.brand != null && measurement.fonts.brand < Math.max(44, rem * 2.75) - 0.05) failures.push('mobile brand is below its 44px minimum');
+  if (measurement.brandInnerWidth && measurement.brandLineCount) {
+    const ceiling = Math.max(44, rem * 2.75, measurement.brandInnerWidth * (measurement.brandLineCount === 1 ? 88 : 64) / 342);
+    if (measurement.fonts.brand > ceiling + 0.1) failures.push('mobile brand exceeds its visual ceiling');
+  }
+  if ((measurement.categoryCopyGaps ?? []).some((gap) => Math.abs(gap - rem * 0.5) > 0.05)) failures.push('category copy gap is not 8px');
+  if ((measurement.supportingLineHeights ?? []).some((height) => Math.abs(height - rem * 0.875 * 1.5) > 0.05)) failures.push('supporting line-height is not shared 1.5');
+  if ((measurement.copyGaps ?? []).some((gap) => Math.abs(gap - rem * 0.125) > 0.05)) failures.push('item internal copy gap is not 2px');
   if ((measurement.noticeSizes ?? []).some((size) => Math.abs(size - rem * 0.875) > 0.05)) failures.push('notices are not uniformly 14px');
   if ((measurement.noticeLineHeights ?? []).some((height) => Math.abs(height - rem * 0.875 * 1.5) > 0.05)) failures.push('notices do not use normal body line-height');
   if ((measurement.categoryDescriptions ?? []).some((description) => Math.abs(description.size - rem * 0.875) > 0.05)) failures.push('category descriptions are not 14px');
@@ -99,6 +116,7 @@ export function getOnePageMobileRhythmFailures(measurement) {
   if (measurement.languageHeight != null && Math.abs(measurement.languageHeight - measurement.itemGap / 1.25 * 3) > 0.25) failures.push('top control row is not 48px');
   if (measurement.languageToBrand != null && Math.abs(measurement.languageToBrand - measurement.itemGap / 1.25 * 1.5) > 0.25) failures.push('top row to brand gap is not 24px');
   if (measurement.brandToDescription != null && Math.abs(measurement.brandToDescription - measurement.itemGap / 1.25 * 0.75) > 0.25) failures.push('brand to description gap is not 12px');
+  if ((measurement.upperContentGaps ?? []).some((gap) => Math.abs(gap - rem * 1.5) > 0.25)) failures.push('upper content block gap is not 24px');
   for (const line of measurement.kohiLineGaps ?? []) if (line.after == null || Math.abs(line.after - measurement.itemGap / 1.25 * (line.kind === 'heading' ? 1.5 : 0.75)) > 0.25) failures.push(`KOHI ${line.kind}: gap is not measured from stroke end`);
   return failures;
 }

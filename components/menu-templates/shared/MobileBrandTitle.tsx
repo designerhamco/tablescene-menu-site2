@@ -27,7 +27,7 @@ export default function MobileBrandTitle({ title, className, fontSignature }: { 
       if (width <= 0) return;
       const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       const widths = new Map([...measurements.children].map((element, index) => [texts[index], element.getBoundingClientRect().width]));
-      const result = selectMobileBrandTitleFit(title, widths, width, Math.max(48, rem * 3));
+      const result = selectMobileBrandTitleFit(title, widths, width, Math.max(44, rem * 2.75));
       const next = { ...result, remSize: result.fontSize / rem, inputKey };
       previousWidth = width;
       setFit((current) => current && JSON.stringify(current) === JSON.stringify(next) ? current : next);

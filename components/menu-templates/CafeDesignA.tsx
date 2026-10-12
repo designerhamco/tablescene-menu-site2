@@ -5381,7 +5381,7 @@ function CafeLanguageHoverControl({
           compact
           triggerVariant="cafe"
           tone={isMochaForestSkin(data.templateSkin) ? "inverse" : "default"}
-          scriptAwareLabels={data.menuSite.template_key === "fast_food_loop_bagel_a"}
+          scriptAwareLabels
           menuPlacement={menuPlacement}
           menuAlign={menuAlign}
         />

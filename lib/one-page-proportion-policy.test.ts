@@ -83,7 +83,7 @@ test("mobile has fixed reading rhythm, independent type bases and one linked sec
   const mobile = css.slice(css.indexOf("/* Mobile is a reading layout"));
   const renderer = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
   assert.match(renderer, /mobileAutoFit=\{mobileReading\}/);
-  assert.match(mobile, /font-size: max\(48px, 3rem\)/);
+  assert.match(mobile, /font-size: max\(44px, 2\.75rem\)/);
   assert.match(mobile, /--cafe-a-category-title-size: 1\.625rem/);
   assert.doesNotMatch(mobile, /mobile-brand-scale|font-size: 1\.62rem|--cafe-a-van-gogh-notice-size: 0\.75rem/);
   assert.match(mobile, /--cafe-a-local-item-rhythm-gap: 1\.25rem/);
@@ -92,6 +92,10 @@ test("mobile has fixed reading rhythm, independent type bases and one linked sec
   assert.doesNotMatch(mobile, /var\(--cafe-a-category-separation-ratio\)/);
   assert.doesNotMatch(mobile, /var\(--cafe-a-store-title-device-scale|var\(--round-focus-brand-boost/);
   for (const token of ["--cafe-a-mobile-heading-gap: 1.5rem", "--cafe-a-mobile-inner-gap: 1.5rem", "--cafe-a-mobile-brand-copy-gap: 0.75rem", "--cafe-a-mobile-notice-gap: 0;"]) assert.ok(mobile.includes(token));
+  for (const token of ["--cafe-a-mobile-copy-gap: 0.125rem", "--cafe-a-mobile-category-copy-gap: 0.5rem"]) assert.ok(mobile.includes(token));
+  assert.match(renderer, /scriptAwareLabels\s+menuPlacement=/);
+  assert.doesNotMatch(css, /\[data-template-language-control\] \.cafe-a-script-en \{\s*font-family: "Bagel Fat One"/);
+  assert.doesNotMatch(mobile, /line-height: 1\.38/);
   assert.match(mobile, /padding-top: var\(--cafe-a-mobile-section-gap\)/);
   assert.match(mobile, /margin-top: var\(--cafe-a-mobile-section-gap\)/);
   assert.match(mobile, /\.cafe-a-menu-item-stack:not\(:last-child\) \{\s*margin-bottom: 1\.25rem/);

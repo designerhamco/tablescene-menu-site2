@@ -1,6 +1,9 @@
 /** Brand-only mobile width policy. Independent of menu density/canvas fitting. */
-export const MOBILE_BRAND_WIDTH_RATIO = 0.65;
-export const MOBILE_BRAND_MINIMUM_PX = 48;
+export const MOBILE_BRAND_WIDTH_RATIO = 0.75;
+export const MOBILE_BRAND_MINIMUM_PX = 44;
+// 390px phone minus shared 24px side insets: width-relative visual ceilings.
+export const MOBILE_BRAND_SINGLE_LINE_CAP_RATIO = 88 / 342;
+export const MOBILE_BRAND_MULTILINE_CAP_RATIO = 64 / 342;
 const MAX_MEASURED_UNITS = 32;
 
 type TextPlan = { units: string[]; separator: string };
@@ -69,16 +72,22 @@ export function selectMobileBrandTitleFit(title: string, widths: ReadonlyMap<str
   const minimum = Math.max(MOBILE_BRAND_MINIMUM_PX, minimumPx);
   if (!text || !Number.isFinite(availableWidth) || availableWidth <= 0) return { lines: text ? [text] : [], fontSize: minimum, naturalWrap: true };
   const target = availableWidth * MOBILE_BRAND_WIDTH_RATIO;
+  const singleCap = Math.max(minimum, availableWidth * MOBILE_BRAND_SINGLE_LINE_CAP_RATIO);
+  const multiCap = Math.max(minimum, availableWidth * MOBILE_BRAND_MULTILINE_CAP_RATIO);
+  const fullWidth = widths.get(text);
+  // Prefer one intact line. Short names stop at the visual ceiling rather than
+  // growing without bound to fill 100%; 60% coverage is a preference, not a
+  // reason to break the ceiling for a one/two-letter customer name.
+  if (fullWidth && Number.isFinite(fullWidth) && fullWidth * minimum / 100 <= availableWidth) {
+    return { lines: [text], fontSize: Math.max(minimum, Math.min(singleCap, availableWidth * 100 / fullWidth)), naturalWrap: false };
+  }
   const plans = plansFor(title);
   for (let planIndex = 0; planIndex < plans.length; planIndex++) {
     const candidates = balancedLines(plans[planIndex], widths);
-    // Use the fewest lines that can reach 65% without dropping below 48px.
-    const targetCandidate = candidates.find((candidate) => target * 100 / candidate.widest >= minimum);
-    if (targetCandidate) return { lines: targetCandidate.lines, fontSize: target * 100 / targetCandidate.widest, naturalWrap: false };
-    // Preserve whole words when the minimum forces a line wider than 65%.
-    const minimumCandidate = candidates.filter((candidate) => candidate.widest * minimum / 100 <= availableWidth)
-      .sort((first, next) => first.widest - next.widest || first.lines.length - next.lines.length)[0];
-    if (minimumCandidate) return { lines: minimumCandidate.lines, fontSize: minimum, naturalWrap: false };
+    // Fewest balanced lines fitting the page at the minimum. Do not add rows
+    // solely to chase a target percentage, or scale each row independently.
+    const candidate = candidates.find((entry) => entry.widest * minimum / 100 <= availableWidth);
+    if (candidate) return { lines: candidate.lines, fontSize: Math.max(minimum, Math.min(multiCap, target * 100 / candidate.widest)), naturalWrap: false };
   }
   // Very long names/unavailable metrics: natural wrapping, never truncate text.
   return { lines: [text], fontSize: minimum, naturalWrap: true };
