@@ -4860,6 +4860,20 @@ video {
   display: none;
 }
 
+/* User-supplied transparent PNG: preserve the artwork and page background. */
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-user-v4.png"] {
+  background: transparent;
+  object-fit: contain;
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-user-v4.png"]) {
+  background: transparent;
+}
+
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-user-v4.png"]) [data-cafe-a-cover-placeholder] {
+  display: none;
+}
+
 @media (min-width: 1024px) {
   .cafe-a-typography[data-template-key="cafe_kohi_a"]:not([data-preview-device="tablet"]) {
     --cafe-a-sunday-category-ratio: 1.5;

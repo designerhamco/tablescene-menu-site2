@@ -1,14 +1,18 @@
 # KOHI featured illustration
 
-Current asset: `public/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-heart-v3.png`. Edited with the built-in image-generation tool on 2026-10-12 using `transparent_background: true`. The cup's red circle is replaced by a red heart; the approved character and transparent presentation are otherwise retained. The previous PNG versions and their asset-specific presentation remain available for already-saved menus and rollback; no customer data is rewritten.
+Current asset: `public/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-user-v4.png`. The user-supplied `거친 실루엣의 커피 악어.png` was copied byte-for-byte on 2026-10-12, without regeneration, cropping, recoloring or pixel editing. SHA-256: `41beff3e978c09ce8fbefd9988e5178fb0eb22fa128b84f09ad957a2ed01cc99`. The 1122×1402 PNG has genuine alpha transparency (0–255). The previous PNG versions and their asset-specific presentation remain available for already-saved menus and rollback; no customer data is rewritten.
 
 Starter contract: one image-only slide, no linked item/name/price/chip, visible on PC/tablet/mobile. The starter logo URL is explicitly null and `logo_replaces_name` is false, so the existing brand renderer shows live `KOHI` text using the existing Tilt Warp typography preset. The old logo assets are retained for saved menus; customer logo-upload capabilities are unchanged. Existing menu content, localization, time sale and the common price/fit/spacing logic are unchanged. Existing saved customer menus are not rewritten.
 
-An asset-specific `object-fit: contain` rule preserves the whole character in the wider portrait-tablet scrolling header. The image frame's size and layout are unchanged; future customer photographs retain the existing `cover` behavior.
+An asset-specific `object-fit: contain` rule preserves the entire supplied canvas in the wider portrait-tablet scrolling header. The user's artwork is already cropped at the lower torso; the implementation does not invent missing body parts or crop it further. The image frame's size and layout are unchanged; future customer photographs retain the existing `cover` behavior.
 
 For the current transparent asset, the image/hero backgrounds are transparent and the photo-placeholder gradient is hidden. The customer's `page_settings.design.backgroundColor` can therefore show through. White eyes, teeth, belly and cup are intentional opaque illustration details, not an exterior paper backdrop.
 
-## Current heart v3 verification
+## Current supplied v4 verification
+
+The supplied PNG retains genuine transparent corner pixels and all original bytes; a checksum regression locks its identity. Local PC/tablet/portrait/mobile and English/Chinese/Japanese tablet checks retain one loaded unlinked image, all 17 products, live Tilt Warp `KOHI` text, transparent image/hero/frame surfaces, no photo fallback, no horizontal overflow and no price-alignment failures. A blue-background fixture also reveals the page color directly. Title-size and fit-engine rules were inspected but not changed; see the title audit in `docs/kohi-template-qa.md`. All 547 tests, TypeScript, targeted ESLint, production build and whitespace checks passed. Production verification follows push.
+
+## Previous heart v3 verification (history)
 
 The generated 1122×1402 PNG was copied unchanged into the workspace. Alpha spans 0–255, the corner pixels remain transparent, and the pixel regression confirms `isOpaque=false`. The cup now has a recognizable red heart; the approved right-facing pose, face, waving hand, tail, feet and rough print texture are retained.
 
@@ -28,7 +32,7 @@ PC 1440×900, tablet 1198×838 (grouped/fill), portrait tablet 838×1198 and mob
 
 544 tests, TypeScript, targeted ESLint, production build and whitespace checks passed. Existing commits were synchronized with the remote branch before this change was committed. Production status must be checked separately after push.
 
-## Current final generation prompt (heart v3; built-in edit)
+## Previous heart v3 generation prompt (history; built-in edit)
 
 Use case: precise-object-edit. Input Image 1 is the edit target: the approved transparent KOHI crocodile illustration. Change ONLY the small red circular mark on the front of the white coffee cup into a small recognizable RED HEART, with two rounded lobes and a pointed bottom, in the same red ink and rough hand-printed texture. Keep its position and approximately the same overall size on the cup. The heart must read clearly even at small menu-preview size. Preserve EVERYTHING ELSE as closely as possible: the exact right-facing crocodile silhouette, snout, round and half-closed eyes with round red pupils, nostrils, three teeth, smile, waving hand, cup shape and handle, red steam, tail, feet, white belly and its marks, black dry-ink flecks, palette, composition, canvas framing and comfortable margin. Do not redesign or add details. Preserve genuine transparent background alpha outside the character; no opaque paper, white rectangle, checkerboard, shadow, halo, typography or new elements. White eyes, teeth, belly and cup remain opaque intentional pigment. Output transparent PNG.
 

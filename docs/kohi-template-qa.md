@@ -4,6 +4,25 @@
 
 The starter uses live `KOHI` text in Tilt Warp instead of the old Outfit logo image (`logo_url: null`, `logo_replaces_name: false`). The old SVG stays available for saved customer menus. The featured area uses one unlinked transparent crocodile illustration with a red heart on its cup. See `docs/kohi-featured-illustration.md` for generation provenance and verification. Prior sections below document earlier iterations, not the current starter logo or featured asset.
 
+### Supplied PNG and title-size audit
+
+The current featured asset is the user's `거친 실루엣의 커피 악어.png`, copied unchanged as `kohi-coffee-crocodile-user-v4.png`. The user requested inspection of title sizing; title/fit/typography values were not changed in this update.
+
+KOHI's desktop title is **not** a fixed multiple of item-name size. At widths ≥1024px it uses `clamp(1.9rem × brandRoleScale, 5.4vh × brandRoleScale, 3.5rem × brandRoleScale) × deviceTypeScale × 1.06`. With a 16px root, the clamped base ranges from 30.4 to 56px before device/KOHI multipliers. The tablet type scale is 1.12; the PC scale is 1. The brand role's S/M/L values are 0.94/1/1.06. This desktop formula does not multiply the menu fit font scale or overall menu font scale; item-name sizing does, so title:item ratios vary with content/fit.
+
+Scrolling/mobile titles use the shared `clamp(2.25rem, 2.55rem × overallFontScale × brandRoleScale + 0.9cqw, 3.25rem) × deviceTypeScale × storeTitleDeviceScale` rule instead. Category titles are genuinely item-name-linked (KOHI tablet 1.4×; PC 1.5×), unlike the store title. These formulae describe current KOHI rules, not a universal title ratio for other templates.
+
+Settled Korean starter measurements (default typography, grouped where applicable):
+
+| Viewport | Title | First item name | Title:item ratio |
+| --- | --- | --- | --- |
+| PC 1440×900 | 51.516px | 20.8706px | 2.468× |
+| Tablet 1198×838 | 53.7232px | 20.4681px | 2.625× |
+| Portrait tablet 838×1198 | 54.143px | 17.6467px | 3.068× |
+| Mobile 390×844 | 44.31px | 15.04px | 2.946× |
+
+The title has loaded Tilt Warp, the starter has no logo image, and the fit overlay is fully transparent in these measurements. A four-letter title occupies less width than the prior graphic logo, while the viewport-based ceiling prevents it from growing to fill the brand column. This is a conservative sizing policy, not a broken font or missing title render. If approved, an isolated KOHI brand-title increase is preferable to enlarging menu items or changing the common fit engine.
+
 ## Starter follow-up — 2026-10-11
 
 ### KOHI-only proportion-first pilot

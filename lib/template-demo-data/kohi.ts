@@ -1,7 +1,7 @@
 import type { StarterPreset } from "@/lib/menu-starter-presets";
 import type { SinglePageStarterTranslationBundle } from "./single-page-starter-translations";
 
-const KOHI_FEATURED_IMAGE = "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-heart-v3.png";
+const KOHI_FEATURED_IMAGE = "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-user-v4.png";
 
 const categories = [
   { key: "espresso", name: "ESPRESSO BASED", description: "에스프레소 커피", en: ["ESPRESSO BASED", "Everyday espresso"], zh: ["意式咖啡", "经典浓缩咖啡"], ja: ["エスプレッソ", "定番のコーヒー"] },
