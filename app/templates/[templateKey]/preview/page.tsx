@@ -815,6 +815,20 @@ function applyMenuPriceAlignmentQaFixture(data: MenuPageData, value: string | st
 function applyOnePageRhythmQaFixture(data: MenuPageData, value: string | string[] | undefined): MenuPageData {
   const qaCase = Array.isArray(value) ? value[0] : value;
   if (process.env.NODE_ENV === "production" || !usesOnePageProportionPolicy(data.menuSite.template_key)) return data;
+  if (qaCase === "featured-role-match") {
+    const item = data.items.find((entry) => entry.visible !== false);
+    if (!item) return data;
+    const imageUrl = "/menu-templates/cafe_design_a/malcha.jpg";
+    const pageSettings = { ...data.pageSettings, menu_cover_enabled: true, menu_cover_visible_pc: true, menu_cover_visible_tablet: true, menu_cover_visible_mobile: true, featured_item_enabled: true, featured_item_id: item.id };
+    return {
+      ...data,
+      menuSite: { ...data.menuSite, cover_image_url: imageUrl, page_settings: pageSettings },
+      pageSettings,
+      items: data.items.map((entry) => entry.id === item.id ? { ...entry, badge: "ROLE QA", badge_label: "ROLE QA", is_sold_out: false } : entry),
+      featuredSlides: [{ id: "featured-role-qa", imageUrl, featuredItemId: item.id, sortOrder: 0 }],
+      timeSales: [], nextTimeSaleStartAt: null,
+    };
+  }
   if (qaCase === "adaptive-sparse" || qaCase === "adaptive-dense") {
     const source = qaCase === "adaptive-sparse"
       ? data.categories.flatMap((category) => data.items.filter((item) => item.category_id === category.id).slice(0, 1))

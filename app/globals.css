@@ -4764,11 +4764,11 @@ video {
   --cafe-a-linked-item-name-size: clamp(1rem, calc(var(--cafe-a-menu-title-size) * var(--menu-font-size-scale, 1) * var(--fit-menu-font-scale, 1) * var(--fit-menu-typography-scale, 1) * var(--cafe-a-shell-menu-title-boost, 1) * var(--menu-role-item-name-size-scale, 1)), 2.5rem);
   --cafe-a-adaptive-support-size: max(0.75rem, calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-sunday-supporting-ratio, 0.72) * var(--cafe-a-template-supporting-copy-scale, 1)));
 }
-/* One atom for all four customer-approved roles, including featured names. */
-.cafe-a-typography[data-cafe-a-adaptive-fit="true"] :is(.cafe-a-menu-description:not(.cafe-a-category-eyebrow), .cafe-a-store-description, .cafe-a-description-text, .cafe-a-topline-description, .cafe-a-topline-notice-text, .cafe-a-featured-title, .cafe-a-featured-description, [data-cafe-a-widget-body]) {
+/* Supporting copy is linked across store, menu, featured descriptions and notices. */
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] :is(.cafe-a-menu-description:not(.cafe-a-category-eyebrow), .cafe-a-store-description, .cafe-a-description-text, .cafe-a-topline-description, .cafe-a-topline-notice-text, .cafe-a-featured-description, [data-cafe-a-widget-body]) {
   font-size: var(--cafe-a-adaptive-support-size) !important;
 }
-.cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-menu-title {
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] :is(.cafe-a-menu-title, .cafe-a-featured-title) {
   font-size: var(--cafe-a-linked-item-name-size) !important;
 }
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"] [class*="cafe-a-menu-title-size-"]:not(.cafe-a-desktop-fit-board) {
@@ -5487,4 +5487,43 @@ video {
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-menu-title-row[data-cafe-a-chip-placement="below"] .cafe-a-menu-badge {
   max-width: 100%;
   white-space: normal;
+}
+
+/* One-page featured and menu chips share the same readable size atom. */
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] :is(.cafe-a-menu-badge, .cafe-a-featured-badge) {
+  font-size: max(0.75rem, calc(var(--cafe-a-linked-item-name-size) * 0.62)) !important;
+}
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(.cafe-a-menu-title, .cafe-a-featured-title, .cafe-a-menu-price, .cafe-a-featured-price) {
+  font-size: 1rem !important;
+}
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(.cafe-a-menu-badge, .cafe-a-featured-badge) {
+  font-size: 0.75rem !important;
+}
+
+/* ROSY ORANGE's leader fills the space immediately following name/chips. */
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="round_focus"] .cafe-a-menu-title-row .cafe-a-round-focus-price-leader {
+  display: block;
+  flex: 1 1 0;
+  min-width: calc(var(--cafe-a-linked-item-name-size) * 0.75);
+  max-width: none;
+  margin-inline-start: 0;
+  align-self: start;
+  margin-block-start: calc(var(--cafe-a-linked-item-name-size) * 0.6875);
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="round_focus"] .cafe-a-menu-title-row[data-cafe-a-chip-placement="below"] {
+  grid-template-columns: minmax(0, max-content) minmax(calc(var(--cafe-a-linked-item-name-size) * 0.75), 1fr);
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="round_focus"] .cafe-a-menu-title-row[data-cafe-a-chip-placement="below"]:has(> :not([data-cafe-a-menu-name], .cafe-a-title-chips, .cafe-a-round-focus-price-leader)) {
+  grid-template-columns: minmax(0, max-content) minmax(calc(var(--cafe-a-linked-item-name-size) * 0.75), 1fr) auto;
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="round_focus"] .cafe-a-menu-title-row[data-cafe-a-chip-placement="below"] > [data-cafe-a-menu-name] {
+  grid-column: 1;
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="round_focus"] .cafe-a-menu-title-row[data-cafe-a-chip-placement="below"] > .cafe-a-round-focus-price-leader {
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="round_focus"] .cafe-a-menu-title-row[data-cafe-a-chip-placement="below"] > :not([data-cafe-a-menu-name], .cafe-a-title-chips, .cafe-a-round-focus-price-leader) {
+  grid-column: 3;
 }

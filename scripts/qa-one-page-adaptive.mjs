@@ -61,8 +61,9 @@ async function check(key, device, width, height, extra = '') {
     if(m.names!==null && m.names<m.rem-0.1) failures.push('name below readable floor');
     if(m.brand===null||m.store===null) failures.push('brand and store description must remain visible');
     if(m.copy.some(size=>size<m.rem*.75-.1)) failures.push('copy below readable floor');
-    const linked=[...m.copy,m.store,m.notice,m.featured].filter(size=>size!==null);
-    if(linked.length && Math.max(...linked)-Math.min(...linked)>.1) failures.push('description/store/notices/featured name are not linked');
+    const linked=[...m.copy,m.store,m.notice].filter(size=>size!==null);
+    if(linked.length && Math.max(...linked)-Math.min(...linked)>.1) failures.push('description/store/notices are not linked');
+    if(m.featured!==null && Math.abs(m.featured-m.names)>.1) failures.push('featured name and menu name are not linked');
     if(m.scroll==='auto'||m.scroll==='scroll') failures.push('one-page menu must not scroll');
     if(m.menu && m.menu.scrollWidth-m.menu.width>1) failures.push('menu horizontal overflow');
     if(m.menu && m.menu.scrollHeight-m.menu.height>1) failures.push('menu vertical overflow');

@@ -25,7 +25,7 @@ import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguag
 import MobileNoticeList from "@/components/menu-templates/one-page/mobile/MobileNoticeList";
 import MobileBrandTitle from "@/components/menu-templates/shared/MobileBrandTitle";
 import CanvasBrandTitle from "@/components/menu-templates/shared/CanvasBrandTitle";
-import { applyOnePageChipLayouts } from "@/components/menu-templates/one-page-chip-layout";
+import { applyOnePageChipLayout, applyOnePageChipLayouts } from "@/components/menu-templates/one-page-chip-layout";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import MenuOrderAddButton from "@/components/public-menu/order-call/MenuOrderAddButton";
 import { createCafeAOrderedBalancedColumnFromBlocks } from "@/components/menu-templates/cafe-a-balanced-layout";
@@ -1681,6 +1681,12 @@ function MenuItemRow({
     hasSingleLabeledPriceOption,
     previewDevice,
   });
+
+  useLayoutEffect(() => {
+    if (!usesOnePageProportionFitPolicy(templateKey, referenceDevice, pagePresentation)) return;
+    const row = itemRef.current?.querySelector<HTMLElement>(".cafe-a-menu-title-row");
+    if (row) applyOnePageChipLayout(row);
+  }, [item, itemRef, referenceDevice, templateKey, pagePresentation, showSoldOutBadge, showMenuTimeSale]);
 
   const menuCopyElement = (
     <div className="cafe-a-menu-copy min-w-0">
@@ -6016,7 +6022,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                   : getBalancedFitColumnCandidates(menuWidth, visibleFitBlockCount);
         const menuColumnGap = parseFloat(getComputedStyle(fitMenuElement).columnGap) || 0;
         const minimumRescueWidth = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) * 12;
-        const canUseReadableRescue = visibleFitBlockCount >= 4 && (menuWidth - menuColumnGap * 3) / 4 >= minimumRescueWidth;
+        const rescueGridColumns = isRoundFocus ? 5 : 4;
+        const canUseReadableRescue = visibleFitBlockCount >= 4 &&
+          (menuWidth - menuColumnGap * (rescueGridColumns - 1)) / rescueGridColumns >= minimumRescueWidth;
         const columnCandidates = isAdaptiveFit
           ? orderOnePageMenuColumnCandidates([...baseColumnCandidates.filter((columns) => columns < 4 || canUseReadableRescue), ...(canUseReadableRescue ? [4] : [])])
           : baseColumnCandidates;
