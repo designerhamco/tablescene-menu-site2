@@ -36,7 +36,7 @@ Template-owned fonts, role ratios, decorative rules, category boundaries and fea
 
 Sunday Roasters and Van Gogh now inherit the same outer padding and header-to-menu row-gap formula. Removed Van Gogh's PC-only `padding-block` and `--sunday-line-row-gap` overrides; preserved its typography and decorative rules.
 
-At PC 1516×844, both use approximately 38.2838px padding on all four sides and a 42.9258px header-to-menu gap. Previously Van Gogh used 14.348px top/bottom padding and a 9.284px gap. These numbers are measured examples; the shared CSS derives values from viewport units and root-relative clamps, not fixed targets.
+At PC 1516×844, both use approximately 38.2838px padding on all four sides and a 42.9258px base header-to-menu gap. PC text brands confirmed to occupy one line use 75% of this gap (32.19435px at this viewport); two/multiple lines and tablet devices keep the full base gap. Previously Van Gogh used 14.348px top/bottom padding and a 9.284px gap. These numbers are measured examples; the shared CSS derives values from viewport units and root-relative clamps, not fixed targets.
 
 Landscape/portrait tablets already used matching spacing and retain their existing shared rules. The 8–14% header height and 65% central title-width target remain active. Mobile, multi-page and display policies are independent.
 
@@ -45,3 +45,7 @@ Landscape/portrait tablets already used matching spacing and retain their existi
 339 existing named declarations retained their exact bodies/initializers. Unit tests: 590 passed. TypeScript, changed-file ESLint and production build passed. Browser QA covered 32 one-page viewport/device conditions plus three excluded engines; no failures or page errors occurred. Compared the 32 one-page results to pre-refactor records: item counts, column/category arrangement, brand text and measured font sizes matched. No CSS or spacing values changed.
 
 Top-row spacing correction verification: 590 tests and production build passed. Both templates passed 20 browser conditions covering PC 1516×844 / 1920×1080, landscape/portrait tablets, ordered flow, KO/EN/ZH/JA and narrow/wide mobile. Computed padding and row gaps matched across templates in every paired PC/tablet case; no crop, price-alignment failure or page error occurred.
+
+PC-only one-line top-row rule: determine the line count from the actual saved-font brand fit, not the template name. Unknown natural wrapping and logos retain the normal gap. Title candidate selection uses the unscaled base gap to avoid a one/two-line switching loop. Recompute on name, font, device and viewport changes; restore the normal gap on unmount/presentation change. Outer padding and the 8–14% row budget remain independent.
+
+PC one-line gap verification: 591 tests, changed-file ESLint and production build passed. 24 header viewport/device/language conditions passed, including wide tablet hints. Two same-mounted-preview resizes restored/reapplied the gap. First-column and central-column PC checks plus three excluded engines passed. At PC 1516×844 the confirmed one-line Van Gogh gap is 32.1944px; two-line Sunday Roasters remains 42.9258px. Outer padding remains 38.2838px on all sides.

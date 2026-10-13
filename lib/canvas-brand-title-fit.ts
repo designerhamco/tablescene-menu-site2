@@ -5,6 +5,11 @@ export const CANVAS_BRAND_FRAME_HEIGHT_RATIO = 0.18;
 export const CANVAS_HEADER_BASE_RATIO = 0.08;
 export const CANVAS_HEADER_MAX_RATIO = 0.14;
 
+/** Only confirmed one-line PC text brands use a more compact header gap. */
+export function getCanvasHeaderGapScale(device: "pc" | "tablet" | "mobile", lineCount: number, naturalWrap = false) {
+  return device === "pc" && lineCount === 1 && !naturalWrap ? 0.75 : 1;
+}
+
 export function getCanvasHeaderRatio(frameHeight: number, fontSize: number, lines: number, lineAdvance: number, sideHeight = 0) {
   if (frameHeight <= 0) return CANVAS_HEADER_BASE_RATIO;
   const needed = Math.max(fontSize * (Math.max(1.08, lineAdvance) * lines + 0.12), sideHeight);

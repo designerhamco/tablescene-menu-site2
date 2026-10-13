@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { getCanvasHeaderRatio, getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit } from "./canvas-brand-title-fit";
+import { getCanvasHeaderGapScale, getCanvasHeaderRatio, getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit } from "./canvas-brand-title-fit";
 import { getMobileBrandMeasurementTexts } from "./mobile-brand-title-fit";
 
 test("coverage is allocated by slot structure, not a template or fixed px size", () => {
@@ -97,4 +97,12 @@ test("horizontal row starts compact, grows for two lines or supporting copy, and
   assert.ok(Math.abs(getCanvasHeaderRatio(1000, 50, 2, 1.08) - .114) < 1e-8);
   assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08, 100), .1);
   assert.equal(getCanvasHeaderRatio(1000, 100, 2, 1.08), .14);
+});
+
+test("only a confirmed one-line PC brand compacts the header gap", () => {
+  assert.equal(getCanvasHeaderGapScale("pc", 1), .75);
+  assert.equal(getCanvasHeaderGapScale("pc", 2), 1);
+  assert.equal(getCanvasHeaderGapScale("tablet", 1), 1);
+  assert.equal(getCanvasHeaderGapScale("mobile", 1), 1);
+  assert.equal(getCanvasHeaderGapScale("pc", 1, true), 1);
 });

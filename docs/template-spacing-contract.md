@@ -150,3 +150,5 @@ Measure the name's unwrapped width, chip group and row inner width in every fit 
 ### Shared top-row outer spacing — 2026-10-13
 
 Sunday Roasters and Van Gogh share the same responsive outer padding and header-to-menu gap formula. Van Gogh's former PC-only smaller vertical padding and row gap are removed. Preserve the shared 8–14% header height and 65% central title-width target, their individual typography/decorations, and the independent mobile, multi-page and display policies.
+
+PC-only top-row one-line refinement: a confirmed one-line text brand uses 75% of the shared base header-to-menu gap. Balanced two/multiple lines, uncertain natural wrapping, logos and tablet/mobile devices keep their normal gap. Line selection measures against the unscaled gap to avoid feedback; viewport/font/title changes and unmount restore/recompute the policy. Do not change outer padding or the fixed-row height bounds.
