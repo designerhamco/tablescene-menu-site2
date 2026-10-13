@@ -1,6 +1,6 @@
 # Menu template responsibilities
 
-This refactor moves existing declarations without changing formulas, tokens, content order, presentation routing or CSS. The user's spacing comparison remains pending; no inset or row-gap changes are included.
+This refactor moves existing declarations without changing formulas, tokens, content order, presentation routing or CSS. The file split preserved rendering. The user subsequently approved the top-row spacing correction described below.
 
 ## Presentation boundaries
 
@@ -32,19 +32,16 @@ Shared components may render the same price or name, but presentation policies r
 
 Template-owned fonts, role ratios, decorative rules, category boundaries and featured-area differences remain intact.
 
-## Pending top-row spacing review
+## Shared top-row spacing — approved 2026-10-13
 
-Measured in settled actual DOM at PC 1516×844:
+Sunday Roasters and Van Gogh now inherit the same outer padding and header-to-menu row-gap formula. Removed Van Gogh's PC-only `padding-block` and `--sunday-line-row-gap` overrides; preserved its typography and decorative rules.
 
-| Template | Top/bottom padding | Left/right padding | Header-to-menu gap |
-| --- | --- | --- | --- |
-| Sunday Roasters | 38.2838px | 38.2838px | 42.9258px |
-| Van Gogh | 14.348px | 38.2838px | 9.284px |
+At PC 1516×844, both use approximately 38.2838px padding on all four sides and a 42.9258px header-to-menu gap. Previously Van Gogh used 14.348px top/bottom padding and a 9.284px gap. These numbers are measured examples; the shared CSS derives values from viewport units and root-relative clamps, not fixed targets.
 
-Van Gogh's PC-specific `padding-block` and `--sunday-line-row-gap` overrides in `app/globals.css` cause the difference. Padding exists on all four sides. At tablet 1198×838 both use 28.492px padding and 33.101px row gap; at portrait tablet 838×1198 both use 25.14px padding and 40px row gap.
-
-Recommendation awaiting the user's design decision: share the outer inset token and header-to-menu gap formula across the two top-row templates. Keep row height responsive to one/two-line brands and preserve their individual font/decorative styles. This refactor does not apply that recommendation.
+Landscape/portrait tablets already used matching spacing and retain their existing shared rules. The 8–14% header height and 65% central title-width target remain active. Mobile, multi-page and display policies are independent.
 
 ## Refactor verification
 
 339 existing named declarations retained their exact bodies/initializers. Unit tests: 590 passed. TypeScript, changed-file ESLint and production build passed. Browser QA covered 32 one-page viewport/device conditions plus three excluded engines; no failures or page errors occurred. Compared the 32 one-page results to pre-refactor records: item counts, column/category arrangement, brand text and measured font sizes matched. No CSS or spacing values changed.
+
+Top-row spacing correction verification: 590 tests and production build passed. Both templates passed 20 browser conditions covering PC 1516×844 / 1920×1080, landscape/portrait tablets, ordered flow, KO/EN/ZH/JA and narrow/wide mobile. Computed padding and row gaps matched across templates in every paired PC/tablet case; no crop, price-alignment failure or page error occurred.

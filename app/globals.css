@@ -3385,11 +3385,6 @@ video {
     --cafe-a-shell-menu-price-boost: 1;
     --cafe-a-shell-menu-title-boost: 1.02;
     --cafe-a-store-title-device-scale: 1.08;
-    --sunday-line-row-gap: clamp(0.5rem, 1.1vmin, 0.75rem);
-  }
-
-  .cafe-a-typography[data-template-key="cafe_van_gogh_a"]:is([data-preview-device="pc"], :not([data-preview-device])) .cafe-a-desktop-fit-board {
-    padding-block: clamp(0.75rem, 1.7vmin, 1rem);
   }
 
   .cafe-a-typography[data-template-key="cafe_van_gogh_a"]:is([data-preview-device="pc"], :not([data-preview-device])) .cafe-a-menu-title {

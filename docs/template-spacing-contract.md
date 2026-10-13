@@ -146,3 +146,7 @@ Changes to an active template spacing engine require:
 ### PC/tablet one-page chip placement — 2026-10-13
 
 Measure the name's unwrapped width, chip group and row inner width in every fit candidate and final crop check. If the name alone fits but name + chips + gap does not, move the chips to the next line while preserving name/price first-row alignment. A naturally long name retains its existing wrapping. Restore inline placement when width/font changes make the pair fit. Scope this to the seven adaptive one-page templates, excluding mobile, Display and multi-page.
+
+### Shared top-row outer spacing — 2026-10-13
+
+Sunday Roasters and Van Gogh share the same responsive outer padding and header-to-menu gap formula. Van Gogh's former PC-only smaller vertical padding and row gap are removed. Preserve the shared 8–14% header height and 65% central title-width target, their individual typography/decorations, and the independent mobile, multi-page and display policies.
