@@ -1,3 +1,4 @@
+import { readCafeTemplateSource } from "./test-helpers/cafe-template-source";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
@@ -46,14 +47,14 @@ test("existing numeric profiles stay template-specific instead of copying KOHI's
     assert.equal(usesKohiFitPolicy(key, "tablet"), key === "cafe_kohi_a");
     assert.equal(usesLoopBagelFitSpacing(key, "tablet"), key === "fast_food_loop_bagel_a");
   }
-  const source = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
+  const source = readCafeTemplateSource();
   assert.match(source, /return isKohiFitPolicy \? limitKohiFitFontCandidates\(previewCandidates, data.previewDevice, window.innerWidth\) : previewCandidates/);
   assert.match(source, /if \(isLoopBagelFitSpacing\) \{\s*return getLoopBagelFitGapScale/);
   assert.match(source, /return layoutMode === "orderedFit"\s*\? getOrderedFitGapScale[\s\S]*getOrderedBalancedFitGapScale[\s\S]*getBalancedFitGapScale/);
 });
 
 test("the common behavior gates all final-fill enlargement and only changes between-item CSS", () => {
-  const source = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
+  const source = readCafeTemplateSource();
   assert.match(source, /hasBoundedFitSpacing = [^;]*usesOnePageProportionFitPolicy\(data.menuSite.template_key, data.previewDevice, data.pagePresentation\)/);
   assert.match(source, /data-cafe-a-proportion-policy=\{usesOnePageProportionPolicy\(data.menuSite.template_key, data.pagePresentation\)/);
   assert.match(source, /data-cafe-a-item-rhythm=\{usesOnePageProportionFitPolicy\(templateKey, previewDevice\) \? getOnePageItemRhythmMultiplier\(hasSecondaryText, hasDescriptionText, showMenuTimeSale/);
@@ -79,7 +80,7 @@ test("the common behavior gates all final-fill enlargement and only changes betw
 });
 
 test("three-part reference is the default; actual content relaxation is conditional", () => {
-  const source = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
+  const source = readCafeTemplateSource();
   assert.match(source, /if \(onePageRhythmMode === "fit" && copyFitBasis === "three-field"\) restoreReference = beginCafeAThreePartReference\(fitBoardElement\)/);
   assert.ok(source.includes("shouldRelaxOnePageCopyReference"));
   assert.doesNotMatch(source, /setReadableScroll|data-fit-readable-scroll/);
@@ -93,7 +94,7 @@ test("three-part reference is the default; actual content relaxation is conditio
 test("mobile has fixed reading rhythm, independent type bases and one linked section boundary", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   const mobile = css.slice(css.indexOf("/* Mobile is a reading layout"));
-  const renderer = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
+  const renderer = readCafeTemplateSource();
   assert.match(renderer, /mobileAutoFit=\{mobileReading\}/);
   assert.match(mobile, /font-size: max\(44px, 2\.75rem\)/);
   assert.match(mobile, /--cafe-a-category-title-size: 1\.625rem/);

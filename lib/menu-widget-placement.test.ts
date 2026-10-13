@@ -1,3 +1,4 @@
+import { readCafeTemplateSource } from "./test-helpers/cafe-template-source";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
@@ -15,10 +16,7 @@ import {
   normalizeMenuWidgetDraft,
 } from "./menu-widgets";
 
-const templateSource = readFileSync(
-  new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url),
-  "utf8",
-);
+const templateSource = readCafeTemplateSource();
 const editorSource = readFileSync(
   new URL("../components/mypage/menu-editor/MenuManagementSection.tsx", import.meta.url),
   "utf8",

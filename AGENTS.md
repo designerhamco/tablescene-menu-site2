@@ -18,3 +18,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Verify all affected mobile templates, narrow/wide phone widths and relevant locales, plus PC/tablet and excluded-engine regressions. Record actual DOM viewport dimensions, not just requested sizes; wait for the rendered layout/fonts to settle before claiming success.
 
 - Customer content edits must invalidate fit caches even when IDs/counts stay the same. Recompute after visible copy, prices, images, widgets, fonts or viewport changes. Sale countdown ticks must not invalidate this content signature.
+
+- Renderer responsibilities and extracted modules are documented in `docs/menu-template-architecture.md`. PC/tablet fit geometry and packing live in `one-page/pc-tablet/cafe-fit-engine.ts`; reusable types, pricing and content helpers live in `shared/cafe-template-*.ts` / `shared/cafe-menu-pricing.ts`. Keep existing mobile title/reading policy, multi-page engines and display engine independent. The 2026-10-13 Van Gogh/Sunday outer-inset and row-gap difference is recorded for review only; the user explicitly deferred changing these values during the file split.

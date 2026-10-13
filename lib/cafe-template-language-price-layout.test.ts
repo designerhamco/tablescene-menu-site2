@@ -1,11 +1,9 @@
+import { readCafeTemplateSource } from "./test-helpers/cafe-template-source";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-const templateSource = readFileSync(
-  new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url),
-  "utf8",
-);
+const templateSource = readCafeTemplateSource();
 const globalStylesSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 const balancedLayoutSource = readFileSync(
   new URL("../components/menu-templates/cafe-a-balanced-layout.ts", import.meta.url),

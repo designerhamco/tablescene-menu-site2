@@ -1,13 +1,11 @@
+import { readCafeTemplateSource } from "./test-helpers/cafe-template-source";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { getTemplateContentSeparatorRules } from "./template-content-separator-rules";
 
-const cafeSource = readFileSync(
-  new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url),
-  "utf8",
-);
+const cafeSource = readCafeTemplateSource();
 const displaySource = readFileSync(
   new URL("../components/menu-templates/DisplayMenuA.tsx", import.meta.url),
   "utf8",

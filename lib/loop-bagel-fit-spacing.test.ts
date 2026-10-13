@@ -1,3 +1,4 @@
+import { readCafeTemplateSource } from "./test-helpers/cafe-template-source";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
@@ -53,7 +54,7 @@ test("invalid measurements produce a finite conservative scale", () => {
 });
 
 test("candidate selection, validation and overflow backoff share the template-aware spacing rule", () => {
-  const source = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
+  const source = readCafeTemplateSource();
   assert.equal((source.match(/getOrderedBalancedFitGapScale\(/g) ?? []).length, 2);
   assert.equal((source.match(/getOrderedFitGapScale\(/g) ?? []).length, 2);
   assert.match(source, /getLoopBagelFitGapScale\(fontScale, menuWidth, window.innerHeight\)/);

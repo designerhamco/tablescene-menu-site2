@@ -79,7 +79,7 @@ test("multiline visual ceiling is 48px at 342px inner width; extremely short nam
 
 test("all seven use the mobile gate only and logos bypass the width fitter", () => {
   const source = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
-  const identity = source.slice(source.indexOf("function StoreIdentity"), source.indexOf("function MobileNoticeList"));
+  const identity = source.slice(source.indexOf("function StoreIdentity"), source.indexOf("function CafeAFooterInfo"));
   assert.ok(identity.indexOf("if (useLogo)") < identity.indexOf("if (mobileAutoFit)"));
   assert.match(source, /mobileAutoFit=\{mobileReading\}/);
   assert.match(source, /mobileReading=\{onePageRhythmMode === "mobile"\}/);
