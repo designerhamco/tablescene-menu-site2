@@ -2,6 +2,14 @@ import { getBalancedBrandLinePlans, normalizeMobileBrandTitle, type MobileBrandT
 
 export const CANVAS_BRAND_TWO_LINE_GAIN = 1.15;
 export const CANVAS_BRAND_FRAME_HEIGHT_RATIO = 0.18;
+export const CANVAS_HEADER_BASE_RATIO = 0.08;
+export const CANVAS_HEADER_MAX_RATIO = 0.14;
+
+export function getCanvasHeaderRatio(frameHeight: number, fontSize: number, lines: number, lineAdvance: number, sideHeight = 0) {
+  if (frameHeight <= 0) return CANVAS_HEADER_BASE_RATIO;
+  const needed = Math.max(fontSize * (Math.max(1.08, lineAdvance) * lines + 0.12), sideHeight);
+  return Math.max(CANVAS_HEADER_BASE_RATIO, Math.min(CANVAS_HEADER_MAX_RATIO, needed / frameHeight));
+}
 
 export type CanvasBrandSlotLayout = "horizontal-header" | "brand-column";
 
@@ -15,7 +23,9 @@ export function getCanvasBrandLimits(width: number, layout: CanvasBrandSlotLayou
   // All dimensions come from the slot, never a template or device's fixed px.
   // A width-relative floor prevents extreme names becoming illegible solely
   // to chase coverage; those names use the existing text-preserving fallback.
-  return { minimum: Math.max(0, width) * 0.1 * rootScale, widthRatio: layout === "horizontal-header" ? 0.6 : 0.75 };
+  const horizontal = layout === "horizontal-header";
+  const minimum = Math.max(0, width) * (horizontal ? 0.08 : 0.1) * rootScale;
+  return { minimum, maximum: horizontal ? Math.max(minimum, width * 0.22 * rootScale) : Infinity, widthRatio: horizontal ? 0.65 : 0.75 };
 }
 
 /** Same inputs and scoring for every skin: no template IDs or per-template sizes. */
@@ -30,7 +40,7 @@ export function selectCanvasBrandTitleFit(title: string, widths: ReadonlyMap<str
       const count = plan.lines.length;
       // CJK fallback font metrics can expand the actual line box beyond 1.08.
       // Use its measured advance plus the common 0.12em safe padding.
-      const size = Math.min(width * limits.widthRatio * 100 / plan.widest, height / (lineAdvance * count + 0.12));
+      const size = Math.min(limits.maximum, width * limits.widthRatio * 100 / plan.widest, height / (lineAdvance * count + 0.12));
       if (plan.widest * limits.minimum / 100 > width + 0.01 || (lineAdvance * count + 0.12) * limits.minimum > height + 0.01) return [];
       return [{ lines: plan.lines, fontSize: Math.max(limits.minimum, size), naturalWrap: false }];
     });

@@ -12,6 +12,7 @@ import KohiMenuDividers from "@/components/menu-templates/KohiMenuDividers";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import MobileBrandTitle from "@/components/menu-templates/shared/MobileBrandTitle";
 import CanvasBrandTitle from "@/components/menu-templates/shared/CanvasBrandTitle";
+import { applyOnePageChipLayouts } from "./one-page-chip-layout";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import MenuOrderAddButton from "@/components/public-menu/order-call/MenuOrderAddButton";
 import {
@@ -1861,6 +1862,7 @@ function measureCafeAActualDomCrop(
   footerNoGoSafetyGapOverride?: number,
   options: { footerNoGoLeafOnly?: boolean } = {},
 ) {
+  applyOnePageChipLayouts(menuElement);
   const menuRect = menuElement.getBoundingClientRect();
   const safeBottom = getCafeAClippingBottom(boardElement, menuElement);
   const safetyGap = Math.max(cropTolerance, ORDERED_BALANCED_ORPHAN_SAFETY_GAP);
@@ -3867,6 +3869,7 @@ function MenuItemRow({
   priceDisplayMode,
   priceRailColumns,
   previewDevice,
+  pagePresentation,
   onOpenImage,
 }: {
   item: MenuItem;
@@ -3882,6 +3885,7 @@ function MenuItemRow({
   priceDisplayMode?: CafeDesignAPriceDisplayMode;
   priceRailColumns?: CafeDesignAPriceRailColumn[];
   previewDevice?: MenuPreviewDevice;
+  pagePresentation?: PublicMenuTemplateProps["pagePresentation"];
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
 }) {
   const initialNowMs = useCafeATimeSaleInitialNowMs();
@@ -3999,9 +4003,19 @@ function MenuItemRow({
         <h3 className={`cafe-a-menu-title break-words font-bold leading-snug ${titleTextColorClassName} ${titleClassName}`} data-cafe-a-menu-name="">
           <ScriptAwareText text={item.name} />
         </h3>
-        {showSoldOutBadge ? <SoldOutBadge locale={locale} className={titleClassName} /> : null}
-        {showRegularBadge ? <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} className={titleClassName} /> : null}
-        {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} className={titleClassName} /> : null}
+        {usesOnePageProportionFitPolicy(templateKey, referenceDevice, pagePresentation) ? (
+          (showSoldOutBadge || (showRegularBadge && capabilities.itemBadges && getMenuItemBadgeLabel(item)) || (showMenuTimeSale && timeSale)) ? (
+            <span className="cafe-a-title-chips inline-flex shrink-0 flex-wrap items-center gap-1.5">
+              {showSoldOutBadge ? <SoldOutBadge locale={locale} className={titleClassName} /> : null}
+              {showRegularBadge ? <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} className={titleClassName} /> : null}
+              {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} className={titleClassName} /> : null}
+            </span>
+          ) : null
+        ) : <>
+          {showSoldOutBadge ? <SoldOutBadge locale={locale} className={titleClassName} /> : null}
+          {showRegularBadge ? <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} className={titleClassName} /> : null}
+          {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} className={titleClassName} /> : null}
+        </>}
         <MenuOrderAddButton itemId={item.id} itemName={item.name} />
         <span className="cafe-a-round-focus-price-leader" aria-hidden="true" />
       </div>
@@ -6237,6 +6251,7 @@ function MenuCategoryContentBlock({
               priceDisplayMode={priceDisplayMode}
               priceRailColumns={priceRailColumns}
               previewDevice={data.previewDevice}
+              pagePresentation={data.pagePresentation}
               onOpenImage={onOpenImage}
             />
           </div>
@@ -7452,6 +7467,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         fitBoardElement.style.setProperty("--ordered-balanced-menu-visual-scale", "1");
       }
 
+      applyOnePageChipLayouts(fitMenuElement);
       const baselineWrapDensity = measureCafeAMenuWrapDensity(fitMenuElement);
       let wrapScale = 1;
       let wrapDensity = baselineWrapDensity;

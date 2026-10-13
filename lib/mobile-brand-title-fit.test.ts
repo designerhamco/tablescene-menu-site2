@@ -3,13 +3,13 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { getMobileBrandMeasurementTexts, selectMobileBrandTitleFit } from "./mobile-brand-title-fit";
 
-test("short mobile brand uses the width-relative 72px ceiling, not unlimited fill", () => {
+test("short mobile brand uses the width-relative 64px ceiling, not unlimited fill", () => {
   const widths = new Map([["KOHI", 235]]);
   for (const width of [272, 342, 382]) {
     const fit = selectMobileBrandTitleFit("KOHI", widths, width);
     assert.deepEqual(fit.lines, ["KOHI"]);
-    assert.ok(Math.abs(fit.fontSize / width - 72 / 342) < 0.00001);
-    assert.ok(fit.fontSize * 235 / 100 / width >= 0.45);
+    assert.ok(Math.abs(fit.fontSize / width - 64 / 342) < 0.00001);
+    assert.ok(fit.fontSize * 235 / 100 / width >= 0.43);
     assert.ok(fit.fontSize >= 44);
   }
 });
@@ -19,9 +19,9 @@ test("long multiword names balance at word boundaries with a shared size", () =>
   const fit = selectMobileBrandTitleFit("ESPRESSO BASEBASE", widths, 342);
   assert.deepEqual(fit.lines, ["ESPRESSO", "BASEBASE"]);
   assert.ok(fit.fontSize >= 44);
-  assert.equal(fit.fontSize, 56);
+  assert.equal(fit.fontSize, 48);
   assert.ok(fit.fontSize * 450 / 100 / 342 <= 0.75);
-  assert.ok(fit.fontSize * 430 / 100 / 342 > 0.62);
+  assert.ok(fit.fontSize * 430 / 100 / 342 > 0.60);
 });
 
 test("44px minimum takes priority over target coverage when an intact word needs more width", () => {
@@ -66,15 +66,15 @@ test("extreme names, invalid measurements and width preserve text at the minimum
 test("single lines prefer 100% when they fit without breaching the visual ceiling", () => {
   const fit = selectMobileBrandTitleFit("ESPRESSO", new Map([["ESPRESSO", 500]]), 342);
   assert.deepEqual(fit.lines, ["ESPRESSO"]);
-  assert.equal(fit.fontSize, 68.4);
+  assert.equal(fit.fontSize, 64);
 });
 
-test("multiline visual ceiling is 56px at 342px inner width; extremely short names do not overscale", () => {
+test("multiline visual ceiling is 48px at 342px inner width; extremely short names do not overscale", () => {
   const widths = new Map([["A B C", 850], ["A B", 375], ["B C", 375], ["A", 125], ["B", 125], ["C", 125]]);
   const fit = selectMobileBrandTitleFit("A B C", widths, 342);
-  assert.equal(fit.fontSize, 56);
+  assert.equal(fit.fontSize, 48);
   assert.equal(fit.lines.length, 2);
-  assert.equal(selectMobileBrandTitleFit("I", new Map([["I", 30]]), 342).fontSize, 72);
+  assert.equal(selectMobileBrandTitleFit("I", new Map([["I", 30]]), 342).fontSize, 64);
 });
 
 test("all seven use the mobile gate only and logos bypass the width fitter", () => {

@@ -1,27 +1,27 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
-import { getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit } from "./canvas-brand-title-fit";
+import { getCanvasHeaderRatio, getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit } from "./canvas-brand-title-fit";
 import { getMobileBrandMeasurementTexts } from "./mobile-brand-title-fit";
 
 test("coverage is allocated by slot structure, not a template or fixed px size", () => {
-  assert.deepEqual(getCanvasBrandLimits(380, "horizontal-header"), { minimum: 38, widthRatio: 0.6 });
-  assert.deepEqual(getCanvasBrandLimits(281, "brand-column"), { minimum: 28.1, widthRatio: 0.75 });
+  assert.deepEqual(getCanvasBrandLimits(380, "horizontal-header"), { minimum: 30.400000000000002, maximum: 83.6, widthRatio: 0.65 });
+  assert.deepEqual(getCanvasBrandLimits(281, "brand-column"), { minimum: 28.1, maximum: Infinity, widthRatio: 0.75 });
   const widths = new Map([["VAN GOGH", 453.5], ["VAN", 170], ["GOGH", 235]]);
   const height = getCanvasBrandHeight(380, 838, "horizontal-header");
   assert.ok(Math.abs(height - 106.4) < 0.0001);
   const fit = selectCanvasBrandTitleFit("VAN GOGH", widths, 380, height, getCanvasBrandLimits(380, "horizontal-header"));
   assert.deepEqual(fit.lines, ["VAN GOGH"]);
-  assert.ok(Math.abs(fit.fontSize * 453.5 / 100 / 380 - 0.6) < 0.0001);
+  assert.ok(Math.abs(fit.fontSize * 453.5 / 100 / 380 - 0.65) < 0.0001);
 });
 
-test("a horizontal title uses 60% even when two balanced lines win", () => {
+test("a horizontal title uses 65% even when two balanced lines win", () => {
   const widths = new Map([["SUNDAY ROASTERS", 896.9], ["SUNDAY", 350], ["ROASTERS", 500]]);
   const limits = getCanvasBrandLimits(380, "horizontal-header");
   const height = getCanvasBrandHeight(380, 838, "horizontal-header");
   const fit = selectCanvasBrandTitleFit("SUNDAY ROASTERS", widths, 380, height, limits);
   assert.deepEqual(fit.lines, ["SUNDAY", "ROASTERS"]);
-  assert.equal(fit.fontSize, 45.6);
+  assert.ok(Math.abs(fit.fontSize - 106.4 / 2.28) < 1e-8);
   assert.deepEqual(selectCanvasBrandTitleFit("SUNDAY ROASTERS", widths, 380, height, limits), fit);
 });
 
@@ -47,7 +47,8 @@ test("actual fallback-font line metrics, not just CSS leading, bound the height"
   const width = 380, height = getCanvasBrandHeight(width, 838, "horizontal-header");
   const fit = selectCanvasBrandTitleFit("梵高", new Map([["梵高", 172], ["梵", 86], ["高", 86]]), width, height, getCanvasBrandLimits(width, "horizontal-header"), 1.24);
   assert.deepEqual(fit.lines, ["梵高"]);
-  assert.ok(Math.abs(fit.fontSize * (1.24 + 0.12) - height) < 0.0001);
+  assert.ok(fit.fontSize * (1.24 + 0.12) <= height + 0.0001);
+  assert.ok(fit.fontSize <= getCanvasBrandLimits(width, "horizontal-header").maximum);
   assert.ok(fit.fontSize < height / 1.2);
 });
 
@@ -89,4 +90,11 @@ test("the common selector has no template-specific branch and mobile keeps its o
   const mobile = readFileSync(new URL("../components/menu-templates/shared/MobileBrandTitle.tsx", import.meta.url), "utf8");
   assert.match(mobile, /selectMobileBrandTitleFit/);
   assert.doesNotMatch(mobile, /selectCanvasBrandTitleFit/);
+});
+
+test("horizontal row starts compact, grows for two lines or supporting copy, and stays bounded", () => {
+  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08), .08);
+  assert.ok(Math.abs(getCanvasHeaderRatio(1000, 50, 2, 1.08) - .114) < 1e-8);
+  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08, 100), .1);
+  assert.equal(getCanvasHeaderRatio(1000, 100, 2, 1.08), .14);
 });

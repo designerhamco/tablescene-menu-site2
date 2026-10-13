@@ -103,7 +103,7 @@ export function getOnePageMobileRhythmFailures(measurement) {
   const expectedFonts = { name: rem, price: rem, description: rem * 0.875, secondary: rem * 0.75, category: rem * 1.625 };
   if (measurement.fonts?.brand != null && measurement.fonts.brand < Math.max(44, rem * 2.75) - 0.05) failures.push('mobile brand is below its 44px minimum');
   if (measurement.brandInnerWidth && measurement.brandLineCount) {
-    const ceiling = Math.max(44, rem * 2.75, measurement.brandInnerWidth * (measurement.brandLineCount === 1 ? 72 : 56) / 342);
+    const ceiling = Math.max(44, rem * 2.75, measurement.brandInnerWidth * (measurement.brandLineCount === 1 ? 64 : 48) / 342);
     if (measurement.fonts.brand > ceiling + 0.1) failures.push('mobile brand exceeds its visual ceiling');
   }
   if ((measurement.categoryCopyGaps ?? []).some((gap) => Math.abs(gap - rem * 0.5) > 0.05)) failures.push('category copy gap is not 8px');
@@ -114,7 +114,7 @@ export function getOnePageMobileRhythmFailures(measurement) {
   if ((measurement.categoryDescriptions ?? []).some((description) => Math.abs(description.size - rem * 0.875) > 0.05)) failures.push('category descriptions are not 14px');
   for (const [role, expected] of Object.entries(expectedFonts)) if (measurement.fonts?.[role] != null && Math.abs(measurement.fonts[role] - expected) > 0.05) failures.push(`${role}: mobile typography base changed`);
   if (measurement.languageHeight != null && Math.abs(measurement.languageHeight - measurement.itemGap / 1.25 * 3) > 0.25) failures.push('top control row is not 48px');
-  if (measurement.languageToBrand != null && Math.abs(measurement.languageToBrand - measurement.itemGap / 1.25 * 1.5) > 0.25) failures.push('top row to brand gap is not 24px');
+  if (measurement.languageToBrand != null && Math.abs(measurement.languageToBrand - measurement.itemGap / 1.25 * .75) > 0.25) failures.push('top row to brand gap is not the shared 12px brand-copy gap');
   if (measurement.brandToDescription != null && Math.abs(measurement.brandToDescription - measurement.itemGap / 1.25 * 0.75) > 0.25) failures.push('brand to description gap is not 12px');
   if ((measurement.upperContentGaps ?? []).some((gap) => Math.abs(gap - rem * 1.5) > 0.25)) failures.push('upper content block gap is not 24px');
   for (const line of measurement.kohiLineGaps ?? []) if (line.after == null || Math.abs(line.after - measurement.itemGap / 1.25 * (line.kind === 'heading' ? 1.5 : 0.75)) > 0.25) failures.push(`KOHI ${line.kind}: gap is not measured from stroke end`);
