@@ -22,7 +22,7 @@ The production build and the 570-test suite pass. English/Chinese/Japanese title
 
 These results cover the listed viewports/starters, not every possible customer title or typography customization. Extreme names use the text-preserving fallback.
 
-## Current percentage calibration — 2026-10-13
+## Percentage calibration before equal-column centering — 2026-10-13
 
 The old px bounds and 80%/75% one-line/multiline targets above are superseded by layout geometry: 60% for horizontal headers and 75% for vertical brand columns, regardless of line count. The actual central cell is the horizontal width reference, not the whole page. Its title height is bounded by the smaller of 18% of reading-frame height and 28% of central-cell width. Vertical columns retain the 18% reading-frame height bound. The common relative floor is 10% of inner slot width; whole-text fallback and root text enlargement remain supported. There are no template/device-specific fixed font sizes or ceilings.
 
@@ -37,3 +37,11 @@ Representative tablet 1198×838 results (calculated outputs, not configured px v
 Canvas-only font measurement now includes actual line advance at 100px, not just text width. Chinese fallback metrics can exceed the CSS 1.08 leading: the initial Van Gogh Chinese check exceeded its newly compact height budget, so the fitter was corrected to account for measured line-box height plus 0.12em padding. No mobile optical-gap or font-policy change was added.
 
 The 570-test suite, TypeScript, targeted lint and production build pass. Korean standard starters pass all 28 built-server device cases (seven × landscape tablet, PC, portrait tablet and mobile); English/Chinese/Japanese pass 21 focused title-box checks. Mobile typography/gaps, price/name alignment, page overflow and hidden reference rows are checked. Full multilingual menu readiness is not claimed; the previously documented Mocha Forest English body-fit issue remains outside this title calibration. All selected-font measurements use saved/starter typography; no font substitutions or content changes were made.
+
+## Equal-column centering correction — 2026-10-13
+
+Sunday and Van Gogh titles were centered inside their own cells, but those cells were offset: the top row reused unequal featured/menu widths from the lower board. At 1198px, the cells were about 309/380/380px and the title center was about 35px left of page center. PC had the same issue with about 42px displacement.
+
+The one-page PC/tablet horizontal header now uses `repeat(3, minmax(0, 1fr))`, independent of lower menu/featured columns. The existing middle-cell placement and 60% title target remain. Actual title sizes continue to follow the newly equal cell width, not fixed px. Mobile and the lower menu-column rules are untouched.
+
+The browser runner now asserts three equal cell widths and agreement between header, title-box and each rendered title-line center. Sunday and Van Gogh pass tablet landscape/portrait, PC and mobile: eight cases, with less than 0.02px center discrepancy on canvas title lines. At 1198px both title centers are about 599px; at 1440px both are 720px. All 570 unit tests pass and the production build succeeds. Centering and mobile contracts are checked in the built CSS too, not just development styles.

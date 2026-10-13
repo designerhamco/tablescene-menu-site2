@@ -4775,7 +4775,10 @@ video {
 }
 
 /* Layout geometry, not template exceptions: the horizontal header title uses
-   its central grid cell, never the full row shared with copy and notices. */
+   three equal cells independent of the featured/menu column calculations. */
+.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-topline-info-header {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
 .cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-topline-brand-identity:has(> .cafe-a-canvas-brand-title) {
   grid-column: 2;
 }

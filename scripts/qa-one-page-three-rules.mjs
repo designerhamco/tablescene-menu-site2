@@ -37,6 +37,8 @@ async function check(key, device, width, height, extra = '') {
     const board = document.querySelector('.cafe-a-desktop-fit-board');
     const brand = [...document.querySelectorAll('[data-cafe-a-store-title]')].find(visible);
     const items = [...document.querySelectorAll('[data-cafe-a-menu-item]')].filter(visible);
+    const header = [...document.querySelectorAll('[data-cafe-a-topline-info-header]')].find(visible);
+    const center = (e) => { const r = e.getBoundingClientRect(); return r.left + r.width / 2; };
     const font = (selector) => {
       const el = [...document.querySelectorAll(selector)].find(visible);
       return el ? parseFloat(getComputedStyle(el).fontSize) : null;
@@ -46,6 +48,13 @@ async function check(key, device, width, height, extra = '') {
       scale: board?.dataset.fitFontScale, safety: board?.dataset.fitPresentationSafetyScale,
       brand: brand ? parseFloat(getComputedStyle(brand).fontSize) : null,
       brandLines: brand?.querySelectorAll('[data-canvas-brand-line]').length,
+      topline: header && brand ? {
+        center: center(header), titleCenter: center(brand),
+        widths: [...header.children].map((e) => e.getBoundingClientRect().width),
+        lineCenters: [...brand.querySelectorAll('[data-canvas-brand-line]')].map((e) => {
+          const range = document.createRange(); range.selectNodeContents(e); const r = range.getBoundingClientRect(); return r.left + r.width / 2;
+        }),
+      } : null,
       brandBox: brand?.dataset.canvasBrandWidth ? {
         width: Number(brand.dataset.canvasBrandWidth), height: Number(brand.dataset.canvasBrandHeight),
         minimum: Number(brand.dataset.canvasBrandMinimum), target: Number(brand.dataset.canvasBrandTarget), layout: brand.dataset.canvasBrandLayout,
@@ -68,6 +77,9 @@ async function check(key, device, width, height, extra = '') {
   if (measurement.overflow > 1 || measurement.leakedReference) failures.push('overflow or leaked measurement reference');
   if (device === 'mobile') failures.push(...getOnePageMobileRhythmFailures(await page.evaluate(measureOnePageMobileRhythm)));
   else {
+    const topline = measurement.topline;
+    if (topline && (topline.widths.length !== 3 || Math.max(...topline.widths) - Math.min(...topline.widths) > 1 || Math.abs(topline.titleCenter - topline.center) > 1 || topline.lineCenters.some((center) => Math.abs(center - topline.center) > 1)))
+      failures.push('horizontal header is not three equal columns with centered title');
     const box = measurement.brandBox;
     if (box && measurement.brand < box.minimum - 0.1) failures.push('brand relative floor');
     if (box && box.target !== (box.layout === 'horizontal-header' ? 0.6 : 0.75)) failures.push('brand geometry target');
