@@ -27,5 +27,5 @@ export function getOnePageRhythmMode(templateKey: string | null | undefined, dev
 /** PC/tablet only. Actual visible copy; applies between items, not boundaries. */
 export function getOnePageItemRhythmMultiplier(hasSecondary: boolean, hasDescription: boolean, hasAdditionalSupport = false): number {
   if (hasAdditionalSupport || (hasSecondary && hasDescription)) return 1;
-  return hasSecondary || hasDescription ? 1.15 : 1.35;
+  return hasSecondary || hasDescription ? 1.10 : 1.20;
 }

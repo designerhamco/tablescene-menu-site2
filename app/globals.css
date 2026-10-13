@@ -4751,12 +4751,26 @@ video {
   }
 }
 
-.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="1.15"]) {
-  margin-bottom: calc(var(--cafe-a-copy-aware-item-rhythm-gap) * 1.15);
+.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="1.1"]) {
+  margin-bottom: calc(var(--cafe-a-copy-aware-item-rhythm-gap) * 1.1);
 }
 
-.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="1.35"]) {
-  margin-bottom: calc(var(--cafe-a-copy-aware-item-rhythm-gap) * 1.35);
+.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="1.2"]) {
+  margin-bottom: calc(var(--cafe-a-copy-aware-item-rhythm-gap) * 1.2);
+}
+
+/* Three semantic fields are the typography reference, not visible empty rows. */
+[data-cafe-a-reference-copy] { display: none !important; }
+.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] [data-cafe-a-three-part-reference] .cafe-a-menu-copy > :is(.cafe-a-menu-meta, [data-cafe-a-menu-description]) { display: none; }
+.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] [data-cafe-a-three-part-reference] .cafe-a-menu-copy > [data-cafe-a-reference-copy] { display: block !important; }
+/* Reserve the modest maximum boundary during fitting, including image-led rows. */
+.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] [data-cafe-a-three-part-reference] .cafe-a-menu-item-stack:not(:last-child) { margin-bottom: calc(var(--cafe-a-copy-aware-item-rhythm-gap) * 1.2); }
+.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-canvas-brand-title {
+  width: 100%;
+  line-height: 1.08;
+  padding-block: 0.08em 0.04em;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"][data-preview-device="tablet"] {

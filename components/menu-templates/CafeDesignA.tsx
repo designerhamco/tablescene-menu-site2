@@ -11,6 +11,7 @@ import CafeAWidgetBlock, { type CafeAWidgetPreview } from "@/components/menu-tem
 import KohiMenuDividers from "@/components/menu-templates/KohiMenuDividers";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import MobileBrandTitle from "@/components/menu-templates/shared/MobileBrandTitle";
+import CanvasBrandTitle from "@/components/menu-templates/shared/CanvasBrandTitle";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import MenuOrderAddButton from "@/components/public-menu/order-call/MenuOrderAddButton";
 import {
@@ -1012,6 +1013,7 @@ function getCafeARenderedLineCount(element: HTMLElement | null) {
 }
 
 function measureCafeAMenuWrapDensity(menuElement: HTMLElement): CafeAMenuWrapDensityDecision {
+  const measuringReference = menuElement.closest("[data-cafe-a-three-part-reference]") !== null;
   const itemMeasurements = Array.from(
     menuElement.querySelectorAll<HTMLElement>("[data-cafe-a-menu-item]"),
   )
@@ -1022,7 +1024,7 @@ function measureCafeAMenuWrapDensity(menuElement: HTMLElement): CafeAMenuWrapDen
         itemElement.querySelector<HTMLElement>("[data-cafe-a-menu-name]"),
       ),
       descriptionLines: getCafeARenderedLineCount(
-        itemElement.querySelector<HTMLElement>("[data-cafe-a-menu-description]"),
+        itemElement.querySelector<HTMLElement>(measuringReference ? '[data-cafe-a-reference-copy="description"]' : "[data-cafe-a-menu-description]"),
       ),
     }))
     .filter((measurement) => measurement.titleLines > 0 || measurement.descriptionLines > 0);
@@ -1069,7 +1071,27 @@ const CAFE_A_ORDERED_FIT_COLUMN_MEASUREMENT_SELECTOR = [
   "[data-cafe-a-menu-widget-block]",
 ].join(",");
 
+function beginCafeAThreePartReference(boardElement: HTMLElement) {
+  const suppressedDividers = [...boardElement.querySelectorAll<HTMLElement>('[data-cafe-a-category-divider-desktop-suppressed="true"]')];
+  for (const divider of suppressedDividers) divider.removeAttribute("data-cafe-a-category-divider-desktop-suppressed");
+  boardElement.setAttribute("data-cafe-a-three-part-reference", "");
+  return () => {
+    boardElement.removeAttribute("data-cafe-a-three-part-reference");
+    for (const divider of suppressedDividers) divider.setAttribute("data-cafe-a-category-divider-desktop-suppressed", "true");
+  };
+}
+
+function withCafeAThreePartReference<T>(boardElement: HTMLElement, measure: () => T): T {
+  if (!boardElement.closest('[data-cafe-a-copy-aware-rhythm="true"]') || boardElement.hasAttribute("data-cafe-a-three-part-reference")) return measure();
+  const restore = beginCafeAThreePartReference(boardElement);
+  try { return measure(); } finally { restore(); }
+}
+
 function measureCafeAOrderedFit(boardElement: HTMLElement, menuElement: HTMLElement, expectedColumns?: number): CafeDesignAFitMeasurement {
+  return withCafeAThreePartReference(boardElement, () => measureCafeAOrderedFitReference(boardElement, menuElement, expectedColumns));
+}
+
+function measureCafeAOrderedFitReference(boardElement: HTMLElement, menuElement: HTMLElement, expectedColumns?: number): CafeDesignAFitMeasurement {
   const boardRect = boardElement.getBoundingClientRect();
   const menuRect = menuElement.getBoundingClientRect();
   const flowHeight = menuElement.clientHeight || menuRect.height;
@@ -1807,6 +1829,26 @@ function getCafeAActualDomCropMeasurement(
   footerNoGoSafetyGapOverride?: number,
   options: { footerNoGoLeafOnly?: boolean } = {},
 ) {
+  const actual = measureCafeAActualDomCrop(boardElement, menuElement, cropTolerance, footerNoGoSafetyGapOverride, options);
+  if (!boardElement.closest('[data-cafe-a-copy-aware-rhythm="true"]') || boardElement.hasAttribute("data-cafe-a-three-part-reference")) return actual;
+  // Final safety/backoff must use the SAME three-part baseline as candidates.
+  // Also keep genuine actual-copy clipping (long translations, chips, etc.).
+  const restore = beginCafeAThreePartReference(boardElement);
+  try {
+    const reference = measureCafeAActualDomCrop(boardElement, menuElement, cropTolerance, footerNoGoSafetyGapOverride, options);
+    return actual.overflow ? actual : reference;
+  } finally {
+    restore();
+  }
+}
+
+function measureCafeAActualDomCrop(
+  boardElement: HTMLElement,
+  menuElement: HTMLElement,
+  cropTolerance: number,
+  footerNoGoSafetyGapOverride?: number,
+  options: { footerNoGoLeafOnly?: boolean } = {},
+) {
   const menuRect = menuElement.getBoundingClientRect();
   const safeBottom = getCafeAClippingBottom(boardElement, menuElement);
   const safetyGap = Math.max(cropTolerance, ORDERED_BALANCED_ORPHAN_SAFETY_GAP);
@@ -1992,6 +2034,17 @@ function getCafeAActualDomCropMeasurement(
 }
 
 function measureCafeABalancedFit(
+  boardElement: HTMLElement,
+  menuElement: HTMLElement,
+  expectedColumns?: number,
+  clampColumnHeight = true,
+  cropTolerance = 1,
+  includeActualDomCrop = false,
+): CafeDesignAFitMeasurement {
+  return withCafeAThreePartReference(boardElement, () => measureCafeABalancedFitReference(boardElement, menuElement, expectedColumns, clampColumnHeight, cropTolerance, includeActualDomCrop));
+}
+
+function measureCafeABalancedFitReference(
   boardElement: HTMLElement,
   menuElement: HTMLElement,
   expectedColumns?: number,
@@ -3200,8 +3253,9 @@ function estimateMenuGroupHeight(
     return (
       weight +
       1 +
-      (item.set_name ? 0.28 : 0) +
-      (item.description ? 0.55 : 0) +
+      (usesOnePageProportionFitPolicy(data.menuSite.template_key, data.previewDevice, data.pagePresentation)
+        ? 0.83
+        : (item.set_name ? 0.28 : 0) + (item.description ? 0.55 : 0)) +
       (priceTokens.length > 1 ? (priceTokens.length - 1) * 0.12 : 0) +
       (visibleTraits.length > 0 ? 0.35 : 0) +
       (item.origin_info ? 0.3 : 0)
@@ -3809,6 +3863,7 @@ function MenuItemRow({
   onOpenImage?: (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
 }) {
   const initialNowMs = useCafeATimeSaleInitialNowMs();
+  const referenceDevice = useMenuCoverRenderDevice(previewDevice);
   const isSoldOut = item.is_sold_out === true;
   const { priceTokens, usesPriceColumns } = getItemPriceTokensForCategory(item, category, priceOptions, capabilities, priceDisplayMode);
   const singleTimeSaleItem = timeSale?.item;
@@ -3942,6 +3997,10 @@ function MenuItemRow({
           <ScriptAwareText text={descriptionText} />
         </p>
       )}
+      {usesOnePageProportionFitPolicy(templateKey, referenceDevice) ? <>
+        <p aria-hidden="true" data-cafe-a-reference-copy="secondary" className={`menu-font-en cafe-a-menu-meta font-medium uppercase leading-snug ${metaClassName}`}><ScriptAwareText text="Ag" /></p>
+        <p aria-hidden="true" data-cafe-a-reference-copy="description" className={`cafe-a-description-text cafe-a-menu-description ${descriptionTextClassName} ${descriptionClassName}`}><ScriptAwareText text="가" /></p>
+      </> : null}
       {visibleTraits.length > 0 && (
         <div className="cafe-a-trait-list mt-2 flex flex-wrap gap-1.5">
           {visibleTraits.map((trait) => (
@@ -4480,6 +4539,7 @@ function StoreIdentity({
 }) {
   const title = getDisplayName(data.menuSite) || "ArtiMenu";
   const [logoFailed, setLogoFailed] = useState(false);
+  const device = useMenuCoverRenderDevice(data.previewDevice);
   const useLogo = shouldUseBrandLogo(data.menuSite, capabilities) && !logoFailed;
 
   if (useLogo) {
@@ -4500,6 +4560,11 @@ function StoreIdentity({
     const typography = mergeTypographySettings(data.menuSite.template_key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
     const fontSignature = JSON.stringify([typography.korean_font_key, typography.english_font_key, typography.typography_roles.brand]);
     return <MobileBrandTitle title={title} className={titleClassName} fontSignature={fontSignature} />;
+  }
+  if (device !== "mobile" && usesOnePageProportionPolicy(data.menuSite.template_key, data.pagePresentation)) {
+    const typography = mergeTypographySettings(data.menuSite.template_key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
+    const fontSignature = JSON.stringify([typography.korean_font_key, typography.english_font_key, typography.typography_roles.brand]);
+    return <CanvasBrandTitle title={title} className={titleClassName} fontSignature={fontSignature} device={device} />;
   }
   return <h1 className={titleClassName} data-cafe-a-store-title=""><ScriptAwareText text={title} /></h1>;
 }
@@ -8105,6 +8170,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       measurePending = false;
       if (cancelled || isMeasuring) return;
       isMeasuring = true;
+      let restoreReference: (() => void) | undefined;
 
       try {
         const isDesktopFitActive = window.matchMedia("(min-width: 1024px)").matches;
@@ -8125,6 +8191,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
         const menuWidth = fitMenuElement.clientWidth;
         if (menuWidth <= 0 || fitMenuElement.clientHeight <= 0) return;
+        // Only synchronous candidate measurement sees the three-field reference.
+        // Restore before paint; hidden fields never reserve visible blank rows.
+        if (onePageRhythmMode === "fit") restoreReference = beginCafeAThreePartReference(fitBoardElement);
 
         const previousColumns = fitBoardElement.style.getPropertyValue("--fit-columns");
         const previousFontScale = fitBoardElement.style.getPropertyValue("--fit-font-scale");
@@ -8313,6 +8382,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         }
         updateFitState(selectedState);
       } finally {
+        restoreReference?.();
         isMeasuring = false;
       }
     }
@@ -8409,6 +8479,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     layoutInputSignature,
     layoutMode,
     orderedBalancedFitRevision,
+    onePageRhythmMode,
     orderedBalancedPriceOptionSignature,
     orderedBalancedValidationRevision,
     visibleImageSignature,
@@ -8814,7 +8885,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   }, [data.previewDevice, density, fitState, getTemplateFitGapScale, getTemplateFitFontCandidates, hasVisibleItemImages, hasBoundedFitSpacing, isMochaForest, layoutMode, orderedBalancedValidationRevision, visibleImageSignature, visibleItemCount, visibleFitBlockCount]);
 
   useEffect(() => {
-    if (layoutMode !== "orderedFit") {
+    // The primary three-part candidate and final DOM safety own font backoff.
+    // Do not re-fit sparse actual copy using the legacy final-fill heuristics.
+    if (layoutMode !== "orderedFit" || hasBoundedFitSpacing) {
       const resetFrameId = window.requestAnimationFrame(() => {
         setOrderedFitFinalFillCompensation((currentCompensation) =>
           currentCompensation === DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION ? currentCompensation : DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION
@@ -9025,13 +9098,6 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           setOrderedFitFinalFillCompensation((currentCompensation) =>
             currentCompensation === DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION ? currentCompensation : DEFAULT_ORDERED_FIT_FINAL_FILL_COMPENSATION
           );
-          return;
-        }
-
-        // Keep the overflow backoff above, but do not expand bounded-rhythm templates to fill
-        // residual whitespace after its screen/font-based spacing was selected.
-        if (hasBoundedFitSpacing) {
-          restoreOrderedFitValidationStyles();
           return;
         }
 

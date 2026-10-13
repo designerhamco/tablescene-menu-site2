@@ -815,6 +815,13 @@ function applyMenuPriceAlignmentQaFixture(data: MenuPageData, value: string | st
 function applyOnePageRhythmQaFixture(data: MenuPageData, value: string | string[] | undefined): MenuPageData {
   const qaCase = Array.isArray(value) ? value[0] : value;
   if (process.env.NODE_ENV === "production" || !usesOnePageProportionPolicy(data.menuSite.template_key)) return data;
+  if (["reference-full", "reference-two", "reference-one"].includes(qaCase ?? "")) {
+    return { ...data, items: data.items.map((item) => ({ ...item,
+      set_name: qaCase === "reference-full" ? "HOUSE BLEND" : null,
+      description: qaCase === "reference-one" ? null : "고소한 풍미.",
+      badge: null, badge_label: null, is_best: false, recommended: false, origin_info: null,
+    })), traits: [], timeSales: [], nextTimeSaleStartAt: null };
+  }
   if (qaCase === "cover") return { ...data, pageSettings: { ...data.pageSettings, menu_cover_enabled: true, menu_cover_visible_mobile: true } };
   if (qaCase?.startsWith("brand-")) {
     const titles: Record<string, string> = { "brand-short": "KOHI", "brand-long": "ESPRESSO BASEBASE", "brand-three": "SUNDAY ROASTERS COFFEE HOUSE", "brand-cjk": "서울숲에서마시는따뜻한커피", "brand-unbroken": "ABCDEFGHIJKLMNOPQRSTUVWXYZ".repeat(3), "brand-extreme": "가".repeat(80), "brand-oversized": "가".repeat(500) };

@@ -33,9 +33,9 @@ test("the common policy covers every available dining single-page template, not 
 
 test("copy-aware rhythm follows actual visible supporting fields and avoids compounding promotion copy", () => {
   assert.equal(getOnePageItemRhythmMultiplier(true, true), 1);
-  assert.equal(getOnePageItemRhythmMultiplier(true, false), 1.15);
-  assert.equal(getOnePageItemRhythmMultiplier(false, true), 1.15);
-  assert.equal(getOnePageItemRhythmMultiplier(false, false), 1.35);
+  assert.equal(getOnePageItemRhythmMultiplier(true, false), 1.1);
+  assert.equal(getOnePageItemRhythmMultiplier(false, true), 1.1);
+  assert.equal(getOnePageItemRhythmMultiplier(false, false), 1.2);
   for (const secondary of [false, true]) for (const description of [false, true]) {
     assert.equal(getOnePageItemRhythmMultiplier(secondary, description, true), 1);
   }
@@ -61,7 +61,7 @@ test("the common behavior gates all final-fill enlargement and only changes betw
   assert.match(source, /data-cafe-a-copy-aware-rhythm=\{onePageRhythmMode === "fit"/);
   assert.match(source, /data-cafe-a-mobile-style=\{onePageRhythmMode === "mobile"/);
   assert.match(source, /!isMochaForest && !hasBoundedFitSpacing && actualCropMeasurement.bottomGap/);
-  assert.match(source, /if \(hasBoundedFitSpacing\) \{\s*restoreOrderedFitValidationStyles\(\);\s*return;/);
+  assert.match(source, /if \(layoutMode !== "orderedFit" \|\| hasBoundedFitSpacing\)/);
   assert.match(source, /if \(isMochaForest \|\| hasBoundedFitSpacing\) return/);
   assert.match(source, /data-fit-final-font-boost=\{hasBoundedFitSpacing \? 1/);
   assert.match(source, /data-fit-final-gap-boost=\{hasBoundedFitSpacing \? 1/);
@@ -70,12 +70,22 @@ test("the common behavior gates all final-fill enlargement and only changes betw
   // a root alias to a descendant-only variable computed to invalid/zero gaps.
   assert.match(css, /\[data-cafe-a-copy-aware-rhythm="true"\] \.cafe-a-menu-item-stack \{\s*--cafe-a-copy-aware-item-rhythm-gap: var\(--cafe-a-local-item-rhythm-gap\)/);
   assert.match(css, /\[data-cafe-a-copy-aware-rhythm="true"\] \.cafe-a-desktop-fit-board \.cafe-a-menu-item-stack \{\s*--cafe-a-copy-aware-item-rhythm-gap: var\(--cafe-a-item-rhythm-gap\)/);
-  for (const factor of ["1.15", "1.35"]) {
+  for (const factor of ["1.1", "1.2"]) {
     assert.ok(css.includes(`.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="${factor}"])`));
     assert.ok(css.includes(`margin-bottom: calc(var(--cafe-a-copy-aware-item-rhythm-gap) * ${factor});`));
   }
   // Existing category merging, wrap readability, preferred/rescue columns and footer docking still run.
   for (const contract of ["selectOnePageFitTierState", "getCafeAMenuWrapDensityDecision", "getCafeAActualDomCropMeasurement", "FIT_PRESENTATION_MIN_SAFETY_SCALE", "columnIndex === centerRailColumns.length - 1 && footerInfo"]) assert.ok(source.includes(contract));
+});
+
+test("three-part reference is synchronous, scoped to fit, and restored even on failure", () => {
+  const source = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
+  assert.match(source, /if \(onePageRhythmMode === "fit"\) restoreReference = beginCafeAThreePartReference\(fitBoardElement\)/);
+  assert.match(source, /finally \{\s*restoreReference\?\.\(\)/);
+  assert.match(source, /\? 0\.83\s*:/);
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.ok(css.includes('[data-cafe-a-reference-copy] { display: none !important; }'));
+  assert.ok(css.includes('[data-cafe-a-three-part-reference] .cafe-a-menu-copy > [data-cafe-a-reference-copy] { display: block !important; }'));
 });
 
 test("mobile has fixed reading rhythm, independent type bases and one linked section boundary", () => {

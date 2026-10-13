@@ -68,18 +68,30 @@ function balancedLines(plan: TextPlan, widths: ReadonlyMap<string, number>) {
 }
 
 export function selectMobileBrandTitleFit(title: string, widths: ReadonlyMap<string, number>, availableWidth: number, minimumPx = MOBILE_BRAND_MINIMUM_PX): MobileBrandTitleFit {
-  const text = normalizeMobileBrandTitle(title);
   const minimum = Math.max(MOBILE_BRAND_MINIMUM_PX, minimumPx);
+  return selectBrandTitleFit(title, widths, availableWidth, {
+    minimum,
+    singleCap: Math.max(minimum, availableWidth * MOBILE_BRAND_SINGLE_LINE_CAP_RATIO),
+    multiCap: Math.max(minimum, availableWidth * MOBILE_BRAND_MULTILINE_CAP_RATIO),
+    singleTarget: 1,
+    multiTarget: MOBILE_BRAND_WIDTH_RATIO,
+  });
+}
+
+/** Shared word balancing only; each device retains its independent limits. */
+export function selectBrandTitleFit(title: string, widths: ReadonlyMap<string, number>, availableWidth: number, limits: {
+  minimum: number; singleCap: number; multiCap: number; singleTarget: number; multiTarget: number;
+}): MobileBrandTitleFit {
+  const text = normalizeMobileBrandTitle(title);
+  const { minimum, singleCap, multiCap } = limits;
   if (!text || !Number.isFinite(availableWidth) || availableWidth <= 0) return { lines: text ? [text] : [], fontSize: minimum, naturalWrap: true };
-  const target = availableWidth * MOBILE_BRAND_WIDTH_RATIO;
-  const singleCap = Math.max(minimum, availableWidth * MOBILE_BRAND_SINGLE_LINE_CAP_RATIO);
-  const multiCap = Math.max(minimum, availableWidth * MOBILE_BRAND_MULTILINE_CAP_RATIO);
+  const target = availableWidth * limits.multiTarget;
   const fullWidth = widths.get(text);
   // Prefer one intact line. Short names stop at the visual ceiling rather than
   // growing without bound to fill 100%; 60% coverage is a preference, not a
   // reason to break the ceiling for a one/two-letter customer name.
   if (fullWidth && Number.isFinite(fullWidth) && fullWidth * minimum / 100 <= availableWidth) {
-    return { lines: [text], fontSize: Math.max(minimum, Math.min(singleCap, availableWidth * 100 / fullWidth)), naturalWrap: false };
+    return { lines: [text], fontSize: Math.max(minimum, Math.min(singleCap, availableWidth * limits.singleTarget * 100 / fullWidth)), naturalWrap: false };
   }
   const plans = plansFor(title);
   for (let planIndex = 0; planIndex < plans.length; planIndex++) {

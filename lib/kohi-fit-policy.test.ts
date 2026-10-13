@@ -34,12 +34,12 @@ test("font and gap ceilings permit dense backoff without whitespace-driven growt
 
 test("missing rendered supporting lines add bounded item-only breathing room", () => {
   assert.equal(getOnePageItemRhythmMultiplier(true, true), 1);
-  assert.equal(getOnePageItemRhythmMultiplier(false, true), 1.15);
-  assert.equal(getOnePageItemRhythmMultiplier(true, false), 1.15);
-  assert.equal(getOnePageItemRhythmMultiplier(false, false), 1.35);
+  assert.equal(getOnePageItemRhythmMultiplier(false, true), 1.1);
+  assert.equal(getOnePageItemRhythmMultiplier(true, false), 1.1);
+  assert.equal(getOnePageItemRhythmMultiplier(false, false), 1.2);
   assert.equal(getOnePageItemRhythmMultiplier(false, false, true), 1);
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
-  for (const factor of ["1.15", "1.35"]) {
+  for (const factor of ["1.1", "1.2"]) {
     assert.ok(css.includes(`.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-menu-item-stack:not(:last-child):has(> [data-cafe-a-item-rhythm="${factor}"])`));
     assert.ok(css.includes(`calc(var(--cafe-a-copy-aware-item-rhythm-gap) * ${factor})`));
   }
@@ -68,7 +68,7 @@ test("candidate selection, validation and final presentation share the bounded p
   assert.match(source, /getTemplateFitFontCandidates\(getOrderedBalancedFitFontScaleCandidates/);
   assert.match(source, /!isMochaForest && !hasBoundedFitSpacing && actualCropMeasurement.bottomGap/);
   assert.match(source, /if \(isMochaForest \|\| hasBoundedFitSpacing\) return/);
-  assert.match(source, /if \(hasBoundedFitSpacing\) \{\s*restoreOrderedFitValidationStyles\(\);\s*return;/);
+  assert.match(source, /if \(layoutMode !== "orderedFit" \|\| hasBoundedFitSpacing\)/);
   assert.match(source, /data-fit-final-font-boost=\{hasBoundedFitSpacing \? 1/);
   assert.match(source, /data-fit-final-gap-boost=\{hasBoundedFitSpacing \? 1/);
 });

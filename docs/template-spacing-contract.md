@@ -24,7 +24,15 @@ The shared hierarchy is:
 4. category-to-category gap without a divider (`2.6`);
 5. category boundary with a divider (the existing balanced space on both sides of the rule).
 
-For PC/tablet single-page item-to-item boundaries only, multiply the existing rhythm by `1.15` when just one of secondary name/description is visible, or `1.35` when neither is visible. Both visible fields, or additional promotion/origin/trait support, keep the normal rhythm. Use actual rendered/translated visibility, not the mere presence of starter fields. Do not apply this multiplier to mobile, the last item, category/heading/widget/footer boundaries, or to nested copy gaps. Candidate measurement and final rendering must use identical CSS. Declare its CSS base alias on the item stack, where the density token exists, never on a root that refers to a descendant-only variable.
+For PC/tablet single-page item-to-item boundaries only, multiply the existing rhythm by `1.10` when just one of secondary name/description is visible, or `1.20` when neither is visible. Both visible fields, or additional promotion/origin/trait support, keep the normal rhythm. Use actual rendered/translated visibility, not the mere presence of starter fields. Do not apply this multiplier to mobile, the last item, category/heading/widget/footer boundaries, or to nested copy gaps. Declare its CSS base alias on the item stack, where the density token exists, never on a root that refers to a descendant-only variable.
+
+### Scoped PC/tablet update — 2026-10-13
+
+Only three changes are approved: three-field product typography reference, the modest between-item adjustment above, and independent text-brand width fitting. Existing template-specific font/gap profiles, role ratios, outer insets, category spacing, column candidate rules, notice anchors and device detection remain unchanged. Display/multi-page and the completed mobile reading contract are excluded.
+
+Product name + secondary-language name + description are three semantic fields, not a truncation limit for wrapped text. Primary candidate measurement uses one reference line for each supporting field even when the starter hides them. Reference paragraphs are hidden by default and enabled only synchronously during candidate calculation, then removed from flow before paint. Candidate measurement reserves the maximum 1.20 item boundary for image-led rows; actual visible boundaries use 1/1.10/1.20. Existing final DOM safety checks still take priority when real content is longer than the reference; they may back off to prevent clipping, never enlarge because supporting fields were hidden. No visible empty-copy spacer is added.
+
+Text brands measure actual saved/starter script-aware fonts against their inner slot width, independently of menu density. Tablet minimum/single-line/multiline ceilings: 40/80/60px; PC: 44/88/64px (respect root text enlargement). Single-line target is a soft 80%, multiline longest-line target 75%; limits and whole-text preservation take precedence. Logos bypass fitting. Mobile keeps its previous independent fitter and all its existing spacing values.
 
 Widgets are category-level content blocks. A category-to-widget or widget-to-widget boundary without a divider uses the same category-to-category ratio, and widget-to-category uses the same divider or no-divider rule as a category boundary. A `bottom` widget may add flexible space above its final-column stack, but widget-to-footer-notice spacing uses the same item-to-item rhythm token and must never be replaced by a separate fixed reserve.
 
@@ -68,7 +76,7 @@ DOM regression helpers in `scripts/lib/one-page-mobile-rhythm.mjs` assert nonzer
 
 ### Approved unified mobile values — 2026-10-12
 
-Applies to the same seven active single-page templates, not Display or multi-page. PC/tablet fit formulas, candidate limits, copy-aware 1/1.15/1.35 ratios, columns and fixed-shell notice anchors are not changed. Mobile uses its own variables rather than PC/tablet category-separation/title-device aliases.
+Applies to the same seven active single-page templates, not Display or multi-page. This mobile rollout did not change PC/tablet formulas, candidates or notice anchors; its former PC/tablet 1/1.15/1.35 ratios were separately reduced to 1/1.10/1.20 on 2026-10-13. Mobile uses its own variables rather than PC/tablet category-separation/title-device aliases.
 
 | Role / gap | Default at 16px root |
 | --- | --- |
@@ -101,7 +109,7 @@ The earlier KOHI-only 80% pilot and the subsequent 65% / 48px policy are histori
 
 Prefer one intact line if it fits at the minimum. Enlarge toward 100% but stop at the visual ceiling; 60–100% coverage is a preference, not an unconditional constraint for a very short customer name. When wrapping is necessary, choose the fewest balanced whole-word lines that fit at the minimum. All lines share one font size; the longest line targets 75% subject to the multiline ceiling. Minimum, ceiling and intact words take priority if 65%+ coverage is mathematically unavailable. If no whole-word partition fits, split safely at grapheme boundaries, never truncate. CJK uses grapheme-aware balancing. Exceptional very long names use natural balanced wrapping within the full inner width at the minimum without losing characters. Keep existing safe line-height and glyph padding; do not introduce ink-bound optical gap correction. Hidden measurement spans are zero-sized/overflow-clipped so a very long reference text cannot enlarge page scroll width.
 
-Only container-width, title and typography/font-load changes recompute brand fitting. Do not observe sale timers/menu counts or feed brand results into the menu canvas fit loop. Logos use the existing logo branch. This policy runs only when `onePageRhythmMode` is `mobile`; PC/tablet (including portrait), Display and multi-page are excluded until the user's separate PC/tablet specification. Keep upper control-row/brand/copy/section gaps unchanged.
+Only container-width, title and typography/font-load changes recompute brand fitting. Do not observe sale timers/menu counts or feed brand results into the menu canvas fit loop. Logos use the existing logo branch. This mobile policy runs only when `onePageRhythmMode` is `mobile`; PC/tablet use the separately bounded brand fitter described above, while Display/multi-page remain excluded. Keep upper control-row/brand/copy/section gaps unchanged.
 
 ## Editorial-scroll templates
 

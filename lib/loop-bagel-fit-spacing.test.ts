@@ -59,7 +59,7 @@ test("candidate selection, validation and overflow backoff share the template-aw
   assert.match(source, /getLoopBagelFitGapScale\(fontScale, menuWidth, window.innerHeight\)/);
   assert.match(source, /!isMochaForest && !hasBoundedFitSpacing && actualCropMeasurement.bottomGap/);
   assert.match(source, /if \(isMochaForest \|\| hasBoundedFitSpacing\) return/);
-  assert.match(source, /if \(hasBoundedFitSpacing\) \{\s*restoreOrderedFitValidationStyles\(\);\s*return;/);
+  assert.match(source, /if \(layoutMode !== "orderedFit" \|\| hasBoundedFitSpacing\)/);
   assert.match(source, /hasBoundedFitSpacing \? \[window.innerWidth, window.innerHeight\] : \[\]/);
   assert.match(source, /const hasValidatedSafeConvergenceCandidate =\s*hasMatchingFitViewport &&/);
 });
