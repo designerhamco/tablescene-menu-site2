@@ -78,9 +78,11 @@ test("the common behavior gates all final-fill enlargement and only changes betw
   for (const contract of ["selectOnePageFitTierState", "getCafeAMenuWrapDensityDecision", "getCafeAActualDomCropMeasurement", "FIT_PRESENTATION_MIN_SAFETY_SCALE", "columnIndex === centerRailColumns.length - 1 && footerInfo"]) assert.ok(source.includes(contract));
 });
 
-test("legacy three-part reference is synchronous; adaptive fit measures actual content", () => {
+test("three-part reference is the default; actual content relaxation is conditional", () => {
   const source = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
-  assert.match(source, /if \(onePageRhythmMode === "fit" && !isAdaptiveFit\) restoreReference = beginCafeAThreePartReference\(fitBoardElement\)/);
+  assert.match(source, /if \(onePageRhythmMode === "fit" && copyFitBasis === "three-field"\) restoreReference = beginCafeAThreePartReference\(fitBoardElement\)/);
+  assert.ok(source.includes("shouldRelaxOnePageCopyReference"));
+  assert.doesNotMatch(source, /setReadableScroll|data-fit-readable-scroll/);
   assert.match(source, /finally \{\s*restoreReference\?\.\(\)/);
   assert.match(source, /\? 0\.83\s*:/);
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");

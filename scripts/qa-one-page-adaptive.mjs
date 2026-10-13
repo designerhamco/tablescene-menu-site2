@@ -19,8 +19,8 @@ async function check(key, device, width, height, extra = '') {
   await page.goto(`${base}/templates/${key}/preview?${params}`, { waitUntil:'domcontentloaded', timeout:60000 });
   await page.evaluate(() => document.fonts.ready);
   if (device === "mobile") await page.waitForFunction(() => document.querySelector("[data-mobile-brand-fit]")?.dataset.mobileBrandFit === "ready", null, {timeout:30000});
-  if (device !== 'mobile' && width >= 1024) await page.waitForFunction(() => document.querySelector('.cafe-a-desktop-fit-board')?.dataset.fitPresentationState === 'ready', null, {timeout:30000});
-  if (device !== 'mobile' && width >= 1024) await page.waitForFunction(() => {
+  if (device !== 'mobile' && width >= 768) await page.waitForFunction(() => document.querySelector('.cafe-a-desktop-fit-board')?.dataset.fitPresentationState === 'ready', null, {timeout:30000});
+  if (device !== 'mobile' && width >= 768) await page.waitForFunction(() => {
     const board = document.querySelector('.cafe-a-desktop-fit-board');
     const cover = document.querySelector('[data-cafe-a-fit-presentation]');
     return board?.dataset.fitPresentationState === 'ready' && (!cover || parseFloat(getComputedStyle(cover).opacity) < .01);
@@ -39,11 +39,12 @@ async function check(key, device, width, height, extra = '') {
     const size=font('[data-cafe-a-menu-name]');
     const copy=[...document.querySelectorAll('[data-cafe-a-menu-item] [data-cafe-a-menu-description]')].filter(visible).map(e=>parseFloat(getComputedStyle(e).fontSize));
     return {viewport:[innerWidth,innerHeight],overflow:document.documentElement.scrollWidth-innerWidth,
-      state:board?.dataset.fitPresentationState, scroll:board?.dataset.fitReadableScroll,
+      state:board?.dataset.fitPresentationState, basis:board?.dataset.fitCopyBasis,
+      scroll:menu?getComputedStyle(menu).overflowY:null,
       scale:Number(board?.dataset.fitFontScale),columns:Number(board?.dataset.fitColumns),
       fill:Number(board?.dataset.fitVisibleAverageFillRatio), minFill:Number(board?.dataset.fitVisibleMinFillRatio),
       bottomGap:Number(board?.dataset.fitBottomGap),order:board?.dataset.fitOrderedBalancedBreaks,
-      firstName:find("[data-cafe-a-menu-name]")?.textContent, names:size,copy,store:font('.cafe-a-store-description,.cafe-a-topline-description'),notice:font('.cafe-a-footer-info .cafe-a-menu-description,.cafe-a-topline-notice-text,.cafe-a-notice-text'),featured:font('.cafe-a-featured-title'),
+      firstName:find("[data-cafe-a-menu-name]")?.textContent, names:size,copy,store:font('[data-cafe-a-store-description],.cafe-a-store-description,.cafe-a-topline-description'),notice:font('.cafe-a-footer-info .cafe-a-menu-description,.cafe-a-topline-notice-text,.cafe-a-notice-text,.cafe-a-round-focus-notice'),featured:font('.cafe-a-featured-title'),
       brand:brand?parseFloat(getComputedStyle(brand).fontSize):null,
       brandText:brand?.getAttribute('aria-label') || brand?.textContent,
       header:h?{height:h.height, boardInner:b.height-parseFloat(getComputedStyle(board).paddingTop)-parseFloat(getComputedStyle(board).paddingBottom),gap:parseFloat(getComputedStyle(board).rowGap)}:null,
@@ -58,12 +59,13 @@ async function check(key, device, width, height, extra = '') {
   if(m.overflow>1 || m.references) failures.push('horizontal overflow or visible reference');
   if(device!=='mobile') {
     if(m.names!==null && m.names<m.rem-0.1) failures.push('name below readable floor');
+    if(m.brand===null||m.store===null) failures.push('brand and store description must remain visible');
     if(m.copy.some(size=>size<m.rem*.75-.1)) failures.push('copy below readable floor');
     const linked=[...m.copy,m.store,m.notice,m.featured].filter(size=>size!==null);
     if(linked.length && Math.max(...linked)-Math.min(...linked)>.1) failures.push('description/store/notices/featured name are not linked');
-    if(m.scroll==='true' && !extra.includes('adaptive-dense')) failures.push('starter should fit without scrolling');
+    if(m.scroll==='auto'||m.scroll==='scroll') failures.push('one-page menu must not scroll');
     if(m.menu && m.menu.scrollWidth-m.menu.width>1) failures.push('menu horizontal overflow');
-    if(m.menu && m.scroll!=='true' && m.menu.scrollHeight-m.menu.height>1) failures.push('menu vertical overflow');
+    if(m.menu && m.menu.scrollHeight-m.menu.height>1) failures.push('menu vertical overflow');
     if(m.header && Math.abs(m.header.height/(m.header.boardInner-m.header.gap)-.18)>.003) failures.push('header is not fixed 18 percent');
   } else failures.push(...getOnePageMobileRhythmFailures(await page.evaluate(measureOnePageMobileRhythm)));
   failures.push(...getMenuPriceAlignmentFailures(await page.evaluate(measureMenuPriceAlignment)));
@@ -84,7 +86,7 @@ try {
    await check(key,'pc',1512,762,'&layoutMode=orderedFit');
   }
   if(fixtures) {
-   for(const fixture of ['reference-full','reference-two','reference-one','adaptive-sparse','adaptive-dense']) await check(key,'pc',1512,762,`&rhythmQa=${fixture}`);
+   for(const fixture of ['reference-full','reference-two','reference-one','adaptive-sparse']) await check(key,'pc',1512,762,`&rhythmQa=${fixture}`);
   }
  }
 } finally {

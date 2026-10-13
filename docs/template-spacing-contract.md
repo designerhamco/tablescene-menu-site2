@@ -12,7 +12,7 @@ New templates must select the device-appropriate contract before template-specif
 
 ## Canvas-fit templates
 
-The seven active single-page templates now use the adaptive PC/tablet policy in `docs/one-page-adaptive-layout.md`. Actual content drives bounded enlargement and crop safety. Between-item spacing retains its template mapping and copy-aware 1/1.10/1.20 multipliers. Template category ratios, outer insets, colors, fonts and notice anchors are preserved. Display, multi-page, retired and coming-soon engines are excluded. The older no-enlargement/three-field-only policy below is superseded for these seven PC/tablet presentations.
+The seven active single-page templates now use the adaptive PC/tablet policy in `docs/one-page-adaptive-layout.md`. The three-field reference is the default; excessive actual whitespace with a safe size gain or real wrapped-copy overflow permits a stable switch to actual content. PC/tablet single-page fit never falls back to scrolling, including portrait tablets. Between-item spacing retains its template mapping and copy-aware 1/1.10/1.20 multipliers. Template category ratios, outer insets, colors, fonts and notice anchors are preserved. Display, multi-page, retired and coming-soon engines are excluded. The older no-enlargement/three-field-only policy below is superseded for these seven PC/tablet presentations.
 
 Canvas-fit spacing must be derived from viewport or container units and bounded with `clamp()`. Single-page fit chooses a readable bounded candidate and then probes the actual rendered partition for safe enlargement. Typography and its existing gap mapping grow together; neither may break its reading floor or crop text. Display retains its separate row-budget policy.
 
@@ -68,7 +68,7 @@ The CSS pixel clamps and semantic ratios are unchanged. Candidate measurement, c
 
 The initial 18px/mobile template-ratio correction is historical (`docs/one-page-mobile-rhythm-qa.md`). The approved unified contract below is the current mobile source of truth; PC/tablet calibration remains unchanged.
 
-Applies only to REAL MATCHA, KOHI, Mocha Forest, Sunday Roasters, Van Gogh, ROSY ORANGE and Loop Bagel. Display, multi-page and inactive engines are unchanged. Explicit preview device hints win; public views infer the device with the existing viewport hook (<768px is mobile). Portrait tablet remains a PC/tablet policy, even while it scrolls.
+Applies only to REAL MATCHA, KOHI, Mocha Forest, Sunday Roasters, Van Gogh, ROSY ORANGE and Loop Bagel. Display, multi-page and inactive engines are unchanged. Explicit preview device hints win; public views infer the device with the existing viewport hook (<768px is mobile). Portrait tablet remains a PC/tablet policy and now uses the same single-viewport engine. The earlier portrait reading-scroll behavior is superseded.
 
 - Mobile does not fit a viewport or compress body font/gap values when there is more content. Content scrolls naturally. Only the brand title follows the independent, bounded width policy below; it never changes body type or spacing.
 - Mobile selected in an explicitly wide preview/new window still uses mobile reading typography. PC media-query category/secondary sizing is excluded with a zero-specificity `:where(:not([data-cafe-a-mobile-style="true"]))` gate, preserving PC/tablet selector priority.

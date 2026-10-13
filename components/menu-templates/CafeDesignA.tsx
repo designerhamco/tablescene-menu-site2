@@ -39,6 +39,7 @@ import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import { getFixedOnePageLayoutShell, type OnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import { inferOnePageCategoryAffinity, parseCategoryOrder } from "@/lib/one-page-category-order";
+import { shouldRelaxOnePageCopyReference } from "@/lib/one-page-copy-reference";
 import { getOnePageItemRhythmMultiplier, getOnePageRhythmMode, usesOnePageProportionFitPolicy, usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
 import {
   ONE_PAGE_MAX_MENU_COLUMNS,
@@ -1085,7 +1086,7 @@ function beginCafeAThreePartReference(boardElement: HTMLElement) {
 }
 
 function withCafeAThreePartReference<T>(boardElement: HTMLElement, measure: () => T): T {
-  if (boardElement.closest('[data-cafe-a-adaptive-fit="true"]') || !boardElement.closest('[data-cafe-a-copy-aware-rhythm="true"]') || boardElement.hasAttribute("data-cafe-a-three-part-reference")) return measure();
+  if (boardElement.dataset.fitCopyBasis === "actual" || !boardElement.closest('[data-cafe-a-copy-aware-rhythm="true"]') || boardElement.hasAttribute("data-cafe-a-three-part-reference")) return measure();
   const restore = beginCafeAThreePartReference(boardElement);
   try { return measure(); } finally { restore(); }
 }
@@ -1873,6 +1874,12 @@ function measureCafeAActualDomCrop(
   const horizontalScrollOverflow =
     menuElement.scrollWidth > menuElement.clientWidth + 1 ||
     document.documentElement.scrollWidth > document.documentElement.clientWidth + 1;
+  const headerClipOverflow = Boolean(boardElement.closest('[data-cafe-a-adaptive-fit="true"]')) &&
+    [...boardElement.querySelectorAll<HTMLElement>(".cafe-a-topline-description-panel, .cafe-a-topline-notices, .cafe-a-topline-brand-identity")].some((element) => {
+      const rect = element.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0 &&
+        (element.scrollHeight > element.clientHeight + Math.max(1, cropTolerance) || element.scrollWidth > element.clientWidth + 1);
+    });
   const widgetInternalClipOverflow = Array.from(
     menuElement.querySelectorAll<HTMLElement>("[data-cafe-a-widget-block], [data-cafe-a-widget-shell], [data-cafe-a-widget-copy]")
   ).some((element) => {
@@ -2039,6 +2046,7 @@ function measureCafeAActualDomCrop(
       scrollOverflow ||
       widgetInternalClipOverflow ||
       horizontalScrollOverflow ||
+      headerClipOverflow ||
       footerOutOfBounds ||
       footerNoGoOverflow ||
       rightEdgeSafety.rightOverflow,
@@ -6744,8 +6752,8 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const normalizedPreviewLayoutMode = data.mode === "preview" ? data.previewLayoutMode : undefined;
   const requestedLayoutMode = (normalizedPreviewLayoutMode ?? savedLayoutMode) as CafeDesignALayoutMode;
   const [adaptiveFlowFallback, setAdaptiveFlowFallback] = useState(false);
-  const [readableScroll, setReadableScroll] = useState(false);
-  const layoutMode = isAdaptiveFit && adaptiveFlowFallback && !readableScroll && requestedLayoutMode === "orderedBalancedFit"
+  const [copyFitBasis, setCopyFitBasis] = useState<"three-field" | "actual">("three-field");
+  const layoutMode = isAdaptiveFit && adaptiveFlowFallback && requestedLayoutMode === "orderedBalancedFit"
     ? "orderedFit" : requestedLayoutMode;
   const isLoopBagelFitSpacing = onePageRhythmMode !== "mobile" && usesLoopBagelFitSpacing(data.menuSite.template_key, data.previewDevice);
   const isKohiFitPolicy = onePageRhythmMode !== "mobile" && usesKohiFitPolicy(data.menuSite.template_key, data.previewDevice);
@@ -6995,6 +7003,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         hasCoverSection,
         data.publicServiceType,
         visibleCopySignature,
+        copyFitBasis,
       ].join("|"),
     [
       data.locale,
@@ -7012,13 +7021,14 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       visibleItemCount,
       visibleWidgetCount,
       visibleCopySignature,
+      copyFitBasis,
     ],
   );
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       setAdaptiveFlowFallback(false);
-      setReadableScroll(false);
+      setCopyFitBasis("three-field");
       setFitPresentationSafetyScale(1);
     });
     return () => cancelAnimationFrame(frame);
@@ -7031,7 +7041,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         setAdaptiveFlowFallback(false);
-        setReadableScroll(false);
+        setCopyFitBasis("three-field");
         setFitPresentationSafetyScale(1);
       });
     };
@@ -7128,7 +7138,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       if (!cancelled && !hasFitPresentationReadyRef.current) setFitPresentationState("loading");
     });
 
-    if (readableScroll || visiblePageGroups.length === 0 || onePageRhythmMode === "mobile" || !window.matchMedia("(min-width: 1024px)").matches) {
+    if (visiblePageGroups.length === 0 || onePageRhythmMode === "mobile" || !window.matchMedia(isAdaptiveFit ? "(min-width: 768px)" : "(min-width: 1024px)").matches) {
       queueMicrotask(() => {
         if (!cancelled) {
           hasFitPresentationReadyRef.current = true;
@@ -7174,16 +7184,18 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               if (!hasFitPresentationReadyRef.current) setFitPresentationState("loading");
               return;
             }
-            if (isAdaptiveFit && requestedLayoutMode === "orderedBalancedFit" && !adaptiveFlowFallback) {
+            if (isAdaptiveFit && copyFitBasis === "three-field") {
+              // Real wrapped copy can exceed a one-line semantic reference.
+              // Re-measure actual content before changing the packing structure.
+              setCopyFitBasis("actual");
+              setFitPresentationSafetyScale(1);
+              setFitState(DEFAULT_FIT_STATE);
+            } else if (isAdaptiveFit && requestedLayoutMode === "orderedBalancedFit" && !adaptiveFlowFallback) {
               // Atomic category groups cannot always fit at the reading floor.
-              // Try an ordered item flow before allowing readable scrolling.
+              // Try ordered item flow, keeping the original single-viewport contract.
               setAdaptiveFlowFallback(true);
               setFitPresentationSafetyScale(1);
               setFitState(DEFAULT_FIT_STATE);
-            } else if (isAdaptiveFit) {
-              setReadableScroll(true);
-              setFitState((current) => ({ ...current, columns: Math.min(3, current.columns), orderedBalancedBreaks: "" }));
-              setFitPresentationState("ready");
             } else setFitPresentationState("reload");
           }, FIT_PRESENTATION_FAILURE_GRACE_MS);
         });
@@ -7216,7 +7228,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     fitPresentationRevision,
     fitPresentationSafetyScale,
     isAdaptiveFit,
-    readableScroll,
+    copyFitBasis,
     adaptiveFlowFallback,
     requestedLayoutMode,
     fitState.columns,
@@ -7314,7 +7326,6 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   ]);
 
   useEffect(() => {
-    if (readableScroll) return;
     const boardElement = desktopFitBoardRef.current;
     const menuElement = desktopFitMenuRef.current;
     if (!boardElement || !menuElement) return;
@@ -7966,6 +7977,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         visibleImageSignature,
         categorySignature,
         visibleCopySignature,
+        copyFitBasis,
         orderedBalancedPriceOptionSignature,
         fontStatus,
       ].join("|");
@@ -8249,7 +8261,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       let restoreReference: (() => void) | undefined;
 
       try {
-        const isDesktopFitActive = window.matchMedia("(min-width: 1024px)").matches;
+        const isDesktopFitActive = window.matchMedia(isAdaptiveFit ? "(min-width: 768px)" : "(min-width: 1024px)").matches;
         if (!isDesktopFitActive) {
           updateFitState(DEFAULT_FIT_STATE);
           return;
@@ -8269,7 +8281,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         if (menuWidth <= 0 || fitMenuElement.clientHeight <= 0) return;
         // Only synchronous candidate measurement sees the three-field reference.
         // Restore before paint; hidden fields never reserve visible blank rows.
-        if (onePageRhythmMode === "fit" && !isAdaptiveFit) restoreReference = beginCafeAThreePartReference(fitBoardElement);
+        if (onePageRhythmMode === "fit" && copyFitBasis === "three-field") restoreReference = beginCafeAThreePartReference(fitBoardElement);
 
         const previousColumns = fitBoardElement.style.getPropertyValue("--fit-columns");
         const previousFontScale = fitBoardElement.style.getPropertyValue("--fit-font-scale");
@@ -8311,9 +8323,11 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         }
         let selectedState: CafeDesignAFitState | null = null;
 
-        if (layoutMode === "orderedFit") {
+        if (layoutMode === "orderedFit" && !(isAdaptiveFit && isRoundFocus)) {
           selectedState = getOrderedFitState(columnCandidates);
-        } else if (layoutMode === "orderedBalancedFit") {
+        } else if (layoutMode === "orderedBalancedFit" || (isAdaptiveFit && isRoundFocus)) {
+          // Center-rail rendering always consists of category columns, even
+          // when the saved mode is orderedFit. Measure that actual structure.
           selectedState = getOrderedBalancedFitState(columnCandidates);
         } else {
           selectedState = getBalancedFitState(columnCandidates);
@@ -8571,7 +8585,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     visibleWidgetCount,
     visiblePageGroups.length,
     visibleCopySignature,
-    readableScroll,
+    copyFitBasis,
   ]);
 
   useEffect(() => {
@@ -8973,10 +8987,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   }, [data.previewDevice, density, fitState, getTemplateFitGapScale, getTemplateFitFontCandidates, hasVisibleItemImages, hasBoundedFitSpacing, isAdaptiveFit, isMochaForest, layoutMode, orderedBalancedValidationRevision, visibleImageSignature, visibleItemCount, visibleFitBlockCount]);
 
   useLayoutEffect(() => {
-    if (!isAdaptiveFit || readableScroll || fitState.status === "idle") return;
+    if (!isAdaptiveFit || fitState.status === "idle") return;
     const board = desktopFitBoardRef.current;
     const menu = desktopFitMenuRef.current;
-    if (!board || !menu || !window.matchMedia("(min-width: 1024px)").matches) return;
+    if (!board || !menu || !window.matchMedia("(min-width: 768px)").matches) return;
     let disposed = false;
     const frame = requestAnimationFrame(() => {
       if (disposed || document.fonts.status !== "loaded") return;
@@ -8985,6 +8999,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       const previousFont = board.style.getPropertyValue("--fit-menu-font-scale");
       const previousGap = board.style.getPropertyValue("--fit-menu-gap-scale");
       const original = safeRenderFitState.fontScale;
+      const name = menu.querySelector<HTMLElement>("[data-cafe-a-menu-name]");
+      const referenceNameSize = name ? parseFloat(getComputedStyle(name).fontSize) : 0;
+      let actualNameSize = referenceNameSize;
       let low = original, high = 2;
       try {
         // Probe the final rendered partition, preserving every linked role and
@@ -8997,13 +9014,28 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           const headerClips = [...board.querySelectorAll<HTMLElement>("[data-cafe-a-topline-description-panel], [data-cafe-a-topline-notices]")]
             .some((element) => element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1);
           if (measured.overflow || measured.bottomGap < 2 || headerClips) high = scale;
-          else low = scale;
+          else {
+            low = scale;
+            actualNameSize = name ? parseFloat(getComputedStyle(name).fontSize) : 0;
+          }
         }
       } finally {
         board.style.setProperty("--fit-menu-font-scale", previousFont);
         board.style.setProperty("--fit-menu-gap-scale", previousGap);
       }
       const scale = Math.floor(low * 1000) / 1000;
+      if (copyFitBasis === "three-field") {
+        const supportIsVisible = (element: Element | null) => Boolean(element && element.getBoundingClientRect().width > 0 && element.getBoundingClientRect().height > 0);
+        const hasHiddenSupport = [...menu.querySelectorAll<HTMLElement>(".cafe-a-menu-copy")].some((copy) =>
+          !supportIsVisible(copy.querySelector(".cafe-a-menu-meta:not([data-cafe-a-reference-copy])")) || !supportIsVisible(copy.querySelector("[data-cafe-a-menu-description]")));
+        const menuTop = menu.getBoundingClientRect().top;
+        const actualFills = [...menu.querySelectorAll<HTMLElement>("[data-cafe-a-balanced-column]")].map((column) =>
+          (getVisibleElementBottom([...column.querySelectorAll<HTMLElement>(CAFE_A_VISIBLE_CONTENT_SELECTOR)].filter((element) => !element.closest("[data-cafe-a-footer-info]"))) - menuTop) / menu.clientHeight).filter(Number.isFinite);
+        const averageFill = actualFills.length ? actualFills.reduce((sum, value) => sum + value, 0) / actualFills.length : 1 - crop.bottomGap / menu.clientHeight;
+        if (!shouldRelaxOnePageCopyReference({ hasHiddenSupport, overflow: crop.overflow, height: menu.clientHeight,
+          bottomGap: crop.bottomGap, averageFill, referenceScale: referenceNameSize, actualScale: actualNameSize })) return;
+        setCopyFitBasis("actual");
+      }
       if (scale <= original + 0.01) return;
       const next = { ...fitState, fontScale: scale, gapScale: getTemplateFitGapScale(scale, menu.clientWidth) };
       if (next.orderedBalancedFingerprint) orderedBalancedFitCacheRef.current.set(next.orderedBalancedFingerprint, next);
@@ -9012,7 +9044,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       setFitState(next);
     });
     return () => { disposed = true; cancelAnimationFrame(frame); };
-  }, [isAdaptiveFit, readableScroll, fitState, safeRenderFitState.fontScale, getTemplateFitGapScale]);
+  }, [isAdaptiveFit, copyFitBasis, fitState, safeRenderFitState.fontScale, getTemplateFitGapScale]);
 
   useEffect(() => {
     // The primary three-part candidate and final DOM safety own font backoff.
@@ -9625,7 +9657,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             className={`cafe-a-desktop-fit-board ${titleSizeClassName} ${descriptionSizeClassName} relative hidden min-w-0 lg:grid lg:min-h-0 lg:flex-1 lg:overflow-y-hidden lg:p-[var(--board-padding)] ${desktopGridClassName}`}
             aria-busy={fitPresentationState === "loading"}
             data-fit-layout-fallback={adaptiveFlowFallback ? "ordered-flow" : undefined}
-            data-fit-readable-scroll={readableScroll ? "true" : undefined}
+            data-fit-copy-basis={isAdaptiveFit ? copyFitBasis : undefined}
             data-fit-status={fitState.status}
             data-fit-presentation-state={fitPresentationState}
             data-layout-mode={layoutMode}
