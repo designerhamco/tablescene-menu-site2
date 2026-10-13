@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getMobileBrandMeasurementTexts, type MobileBrandTitleFit } from "@/lib/mobile-brand-title-fit";
-import { CANVAS_BRAND_FRAME_HEIGHT_RATIO, getCanvasBrandLimits, selectCanvasBrandTitleFit } from "@/lib/canvas-brand-title-fit";
+import { getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit, type CanvasBrandSlotLayout } from "@/lib/canvas-brand-title-fit";
 import ScriptAwareText from "./ScriptAwareText";
 
 export default function CanvasBrandTitle({ title, className, fontSignature, device }: {
@@ -31,23 +31,30 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       const frameHeight = board?.clientHeight ? board.clientHeight - (parseFloat(boardStyle!.paddingTop) || 0) - (parseFloat(boardStyle!.paddingBottom) || 0) : window.innerHeight;
       // Common height budget from the reading frame, independent of title
       // height/menu density so the fit cannot feed back into its own budget.
-      return { width, height: frameHeight * CANVAS_BRAND_FRAME_HEIGHT_RATIO };
+      const layout: CanvasBrandSlotLayout = container.classList.contains("cafe-a-topline-brand-identity") ? "horizontal-header" : "brand-column";
+      return { width, height: getCanvasBrandHeight(width, frameHeight, layout), layout };
     };
     const measure = () => {
       frame = 0;
       if (disposed) return;
-      const { width, height } = boxOf();
+      const { width, height, layout } = boxOf();
       if (width <= 0) return;
       const remScale = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) / 16;
       const widths = new Map([...measurements.children].map((element, index) => [texts[index], element.getBoundingClientRect().width]));
-      const next = { ...selectCanvasBrandTitleFit(title, widths, width, height, getCanvasBrandLimits(device, remScale)), inputKey };
+      const lineAdvance = Math.max(1.08, ...[...measurements.children].map((element) => element.getBoundingClientRect().height / 100));
+      const limits = getCanvasBrandLimits(width, layout, remScale);
+      const next = { ...selectCanvasBrandTitleFit(title, widths, width, height, limits, lineAdvance), inputKey };
       root.dataset.canvasBrandWidth = String(width);
       root.dataset.canvasBrandHeight = String(height);
-      previousBox = `${width}|${height}`;
+      root.dataset.canvasBrandLayout = layout;
+      root.dataset.canvasBrandTarget = String(limits.widthRatio);
+      root.dataset.canvasBrandMinimum = String(limits.minimum);
+      root.dataset.canvasBrandLineAdvance = String(lineAdvance);
+      previousBox = `${width}|${height}|${layout}`;
       setFit((current) => current && JSON.stringify(current) === JSON.stringify(next) ? current : next);
     };
     const schedule = () => { if (!disposed && !frame) frame = requestAnimationFrame(measure); };
-    const observer = new ResizeObserver(() => { const box = boxOf(); if (`${box.width}|${box.height}` !== previousBox) schedule(); });
+    const observer = new ResizeObserver(() => { const box = boxOf(); if (`${box.width}|${box.height}|${box.layout}` !== previousBox) schedule(); });
     observer.observe(container);
     const board = root.closest<HTMLElement>(".cafe-a-desktop-fit-board");
     if (board) observer.observe(board);
@@ -60,7 +67,7 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
 
   return (
     <h1 ref={rootRef} className={`${className} cafe-a-canvas-brand-title`} data-cafe-a-store-title="" data-canvas-brand-fit={activeFit ? "ready" : "pending"} aria-label={title}
-      style={{ fontSize: `${activeFit?.fontSize ?? (device === "tablet" ? 40 : 44)}px` }}>
+      style={activeFit ? { fontSize: `${activeFit.fontSize}px` } : undefined}>
       <span className={activeFit?.naturalWrap ? "cafe-a-mobile-brand-natural-wrap" : "block"}>
         {(activeFit?.lines.length ? activeFit.lines : [title]).map((line, index) => <span key={`${index}-${line}`} className="block" data-canvas-brand-line=""><ScriptAwareText text={line} /></span>)}
       </span>

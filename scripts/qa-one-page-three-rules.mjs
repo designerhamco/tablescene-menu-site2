@@ -48,6 +48,8 @@ async function check(key, device, width, height, extra = '') {
       brandLines: brand?.querySelectorAll('[data-canvas-brand-line]').length,
       brandBox: brand?.dataset.canvasBrandWidth ? {
         width: Number(brand.dataset.canvasBrandWidth), height: Number(brand.dataset.canvasBrandHeight),
+        minimum: Number(brand.dataset.canvasBrandMinimum), target: Number(brand.dataset.canvasBrandTarget), layout: brand.dataset.canvasBrandLayout,
+        lineAdvance: Number(brand.dataset.canvasBrandLineAdvance),
         renderedHeight: brand.getBoundingClientRect().height,
         natural: brand.querySelector('.cafe-a-mobile-brand-natural-wrap') !== null,
         lines: [...brand.querySelectorAll('[data-canvas-brand-line]')].map((line) => {
@@ -66,11 +68,12 @@ async function check(key, device, width, height, extra = '') {
   if (measurement.overflow > 1 || measurement.leakedReference) failures.push('overflow or leaked measurement reference');
   if (device === 'mobile') failures.push(...getOnePageMobileRhythmFailures(await page.evaluate(measureOnePageMobileRhythm)));
   else {
-    const max = device === 'tablet' ? (measurement.brandLines > 1 ? 60 : 80) : (measurement.brandLines > 1 ? 64 : 88);
-    const min = device === 'tablet' ? 40 : 44;
-    if (measurement.brand < min - 0.1 || measurement.brand > max + 0.1) failures.push('brand limit');
     const box = measurement.brandBox;
-    if (box && !box.natural && (box.renderedHeight > box.height + 1 || box.lines.some((line) => line.textWidth > box.width + 1 || line.boxHeight > line.lineHeight + 1)))
+    if (box && measurement.brand < box.minimum - 0.1) failures.push('brand relative floor');
+    if (box && box.target !== (box.layout === 'horizontal-header' ? 0.6 : 0.75)) failures.push('brand geometry target');
+    if (box && !box.natural && measurement.brand > box.minimum + 0.1 && box.lines.some((line) => line.textWidth > box.width * box.target + 1))
+      failures.push('brand exceeds coverage target');
+    if (box && !box.natural && (box.renderedHeight > box.height + 1 || box.lines.some((line) => line.textWidth > box.width + 1 || line.boxHeight > Math.max(line.lineHeight, measurement.brand * box.lineAdvance) + 1)))
       failures.push('brand exceeds slot or wraps a planned line');
   }
   failures.push(...getMenuPriceAlignmentFailures(await page.evaluate(measureMenuPriceAlignment)));

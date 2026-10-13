@@ -4,7 +4,7 @@
 
 1. Name + secondary-language name + description form the typography reference, including starters with missing fields. Initial candidates, final flow measurements and clipping safety use that same reference. Temporary reference paragraphs/divider flags are restored synchronously before paint; hidden content leaves no visible placeholder. Genuine actual-copy clipping still triggers the existing safety backoff.
 2. Actual item boundaries: full supporting copy 1.0, one supporting field 1.10, name only 1.20. Promotion/origin/traits retain their previous normal boundary. Last items, category/widget/footer boundaries and mobile 20px gaps are unchanged.
-3. Text-brand limits (minimum / single / multiline): tablet 40/80/60px; PC 44/88/64px. Actual saved fonts and inner slot width are measured independently, with soft 80% single / 75% multiline targets. Whole text and limits take priority; logos bypass fitting. Mobile fitting is unchanged.
+3. Text-brand fitting: the initial tablet 40/80/60px and PC 44/88/64px limits below are historical results. The current geometry-based 60% horizontal-header / 75% brand-column policy is defined in `template-spacing-contract.md` and verified in `canvas-brand-slot-qa.md`. Whole-text preservation and logos bypassing fitting remain unchanged, as does mobile fitting.
 
 ## Browser checks
 
