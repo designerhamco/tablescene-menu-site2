@@ -1,7 +1,8 @@
 "use client";
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { getMobileBrandMeasurementTexts, selectBrandTitleFit, type MobileBrandTitleFit } from "@/lib/mobile-brand-title-fit";
+import { getMobileBrandMeasurementTexts, type MobileBrandTitleFit } from "@/lib/mobile-brand-title-fit";
+import { CANVAS_BRAND_FRAME_HEIGHT_RATIO, getCanvasBrandLimits, selectCanvasBrandTitleFit } from "@/lib/canvas-brand-title-fit";
 import ScriptAwareText from "./ScriptAwareText";
 
 export default function CanvasBrandTitle({ title, className, fontSignature, device }: {
@@ -21,33 +22,40 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
     if (!root || !container || !measurements) return;
     let disposed = false;
     let frame = 0;
-    let previousWidth = -1;
-    const widthOf = () => {
+    let previousBox = "";
+    const boxOf = () => {
       const style = getComputedStyle(container);
-      return container.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
+      const width = container.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
+      const board = root.closest<HTMLElement>(".cafe-a-desktop-fit-board");
+      const boardStyle = board ? getComputedStyle(board) : null;
+      const frameHeight = board?.clientHeight ? board.clientHeight - (parseFloat(boardStyle!.paddingTop) || 0) - (parseFloat(boardStyle!.paddingBottom) || 0) : window.innerHeight;
+      // Common height budget from the reading frame, independent of title
+      // height/menu density so the fit cannot feed back into its own budget.
+      return { width, height: frameHeight * CANVAS_BRAND_FRAME_HEIGHT_RATIO };
     };
     const measure = () => {
       frame = 0;
       if (disposed) return;
-      const width = widthOf();
+      const { width, height } = boxOf();
       if (width <= 0) return;
       const remScale = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) / 16;
-      const limits = device === "tablet" ? [40, 80, 60] : [44, 88, 64];
       const widths = new Map([...measurements.children].map((element, index) => [texts[index], element.getBoundingClientRect().width]));
-      const next = { ...selectBrandTitleFit(title, widths, width, {
-        minimum: limits[0] * remScale, singleCap: limits[1] * remScale, multiCap: limits[2] * remScale,
-        singleTarget: 0.8, multiTarget: 0.75,
-      }), inputKey };
-      previousWidth = width;
+      const next = { ...selectCanvasBrandTitleFit(title, widths, width, height, getCanvasBrandLimits(device, remScale)), inputKey };
+      root.dataset.canvasBrandWidth = String(width);
+      root.dataset.canvasBrandHeight = String(height);
+      previousBox = `${width}|${height}`;
       setFit((current) => current && JSON.stringify(current) === JSON.stringify(next) ? current : next);
     };
     const schedule = () => { if (!disposed && !frame) frame = requestAnimationFrame(measure); };
-    const observer = new ResizeObserver(() => { if (Math.abs(widthOf() - previousWidth) > 0.25) schedule(); });
+    const observer = new ResizeObserver(() => { const box = boxOf(); if (`${box.width}|${box.height}` !== previousBox) schedule(); });
     observer.observe(container);
+    const board = root.closest<HTMLElement>(".cafe-a-desktop-fit-board");
+    if (board) observer.observe(board);
+    window.addEventListener("resize", schedule);
     schedule();
     void document.fonts.ready.then(schedule);
     document.fonts.addEventListener("loadingdone", schedule);
-    return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); document.fonts.removeEventListener("loadingdone", schedule); };
+    return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); window.removeEventListener("resize", schedule); document.fonts.removeEventListener("loadingdone", schedule); };
   }, [title, texts, inputKey, device]);
 
   return (

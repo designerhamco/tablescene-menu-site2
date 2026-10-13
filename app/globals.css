@@ -4767,10 +4767,23 @@ video {
 .cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] [data-cafe-a-three-part-reference] .cafe-a-menu-item-stack:not(:last-child) { margin-bottom: calc(var(--cafe-a-copy-aware-item-rhythm-gap) * 1.2); }
 .cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-canvas-brand-title {
   width: 100%;
+  max-width: 100%;
   line-height: 1.08;
   padding-block: 0.08em 0.04em;
   overflow-wrap: anywhere;
   word-break: normal;
+}
+
+/* Layout geometry, not template exceptions: the horizontal header title uses
+   its central grid cell, never the full row shared with copy and notices. */
+.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-topline-brand-identity:has(> .cafe-a-canvas-brand-title) {
+  grid-column: 2;
+}
+.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] [data-canvas-brand-line] {
+  white-space: nowrap;
+}
+.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-mobile-brand-natural-wrap [data-canvas-brand-line] {
+  white-space: normal;
 }
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"][data-preview-device="tablet"] {

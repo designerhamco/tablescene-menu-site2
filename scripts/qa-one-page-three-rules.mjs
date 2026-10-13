@@ -46,6 +46,15 @@ async function check(key, device, width, height, extra = '') {
       scale: board?.dataset.fitFontScale, safety: board?.dataset.fitPresentationSafetyScale,
       brand: brand ? parseFloat(getComputedStyle(brand).fontSize) : null,
       brandLines: brand?.querySelectorAll('[data-canvas-brand-line]').length,
+      brandBox: brand?.dataset.canvasBrandWidth ? {
+        width: Number(brand.dataset.canvasBrandWidth), height: Number(brand.dataset.canvasBrandHeight),
+        renderedHeight: brand.getBoundingClientRect().height,
+        natural: brand.querySelector('.cafe-a-mobile-brand-natural-wrap') !== null,
+        lines: [...brand.querySelectorAll('[data-canvas-brand-line]')].map((line) => {
+          const range = document.createRange(); range.selectNodeContents(line);
+          return { textWidth: range.getBoundingClientRect().width, boxHeight: line.getBoundingClientRect().height, lineHeight: parseFloat(getComputedStyle(line).lineHeight) };
+        }),
+      } : null,
       name: font('[data-cafe-a-menu-name]'), description: font('[data-cafe-a-menu-description]'), count: items.length,
       leakedReference: document.querySelector('[data-cafe-a-three-part-reference]') !== null || [...document.querySelectorAll('[data-cafe-a-reference-copy]')].some(visible),
       boundaries: items.filter((e) => e.parentElement.nextElementSibling?.querySelector('[data-cafe-a-menu-item]')).map((e) => ({
@@ -60,6 +69,9 @@ async function check(key, device, width, height, extra = '') {
     const max = device === 'tablet' ? (measurement.brandLines > 1 ? 60 : 80) : (measurement.brandLines > 1 ? 64 : 88);
     const min = device === 'tablet' ? 40 : 44;
     if (measurement.brand < min - 0.1 || measurement.brand > max + 0.1) failures.push('brand limit');
+    const box = measurement.brandBox;
+    if (box && !box.natural && (box.renderedHeight > box.height + 1 || box.lines.some((line) => line.textWidth > box.width + 1 || line.boxHeight > line.lineHeight + 1)))
+      failures.push('brand exceeds slot or wraps a planned line');
   }
   failures.push(...getMenuPriceAlignmentFailures(await page.evaluate(measureMenuPriceAlignment)));
   results.push({ key, device, extra, measurement, failures });

@@ -67,6 +67,11 @@ function balancedLines(plan: TextPlan, widths: ReadonlyMap<string, number>) {
   return dp.slice(1).map((row) => row[count]).filter((value): value is Candidate => Boolean(value));
 }
 
+/** Word/grapheme partitions only; does not change the independent mobile policy. */
+export function getBalancedBrandLinePlans(title: string, widths: ReadonlyMap<string, number>) {
+  return plansFor(title).map((plan) => balancedLines(plan, widths));
+}
+
 export function selectMobileBrandTitleFit(title: string, widths: ReadonlyMap<string, number>, availableWidth: number, minimumPx = MOBILE_BRAND_MINIMUM_PX): MobileBrandTitleFit {
   const minimum = Math.max(MOBILE_BRAND_MINIMUM_PX, minimumPx);
   return selectBrandTitleFit(title, widths, availableWidth, {
