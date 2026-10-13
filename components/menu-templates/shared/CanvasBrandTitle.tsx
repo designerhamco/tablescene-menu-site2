@@ -32,7 +32,10 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       // Common height budget from the reading frame, independent of title
       // height/menu density so the fit cannot feed back into its own budget.
       const layout: CanvasBrandSlotLayout = container.classList.contains("cafe-a-topline-brand-identity") ? "horizontal-header" : "brand-column";
-      return { width, height: getCanvasBrandHeight(width, frameHeight, layout), layout };
+      const rowHeight = layout === "horizontal-header" && board?.closest('[data-cafe-a-adaptive-fit="true"]')
+        ? container.closest("[data-cafe-a-topline-info-header]")?.getBoundingClientRect().height
+        : undefined;
+      return { width, height: rowHeight || getCanvasBrandHeight(width, frameHeight, layout), layout };
     };
     const measure = () => {
       frame = 0;

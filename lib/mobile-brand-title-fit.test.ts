@@ -3,13 +3,13 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { getMobileBrandMeasurementTexts, selectMobileBrandTitleFit } from "./mobile-brand-title-fit";
 
-test("short mobile brand uses the width-relative 88px ceiling, not unlimited fill", () => {
+test("short mobile brand uses the width-relative 72px ceiling, not unlimited fill", () => {
   const widths = new Map([["KOHI", 235]]);
   for (const width of [272, 342, 382]) {
     const fit = selectMobileBrandTitleFit("KOHI", widths, width);
     assert.deepEqual(fit.lines, ["KOHI"]);
-    assert.ok(Math.abs(fit.fontSize / width - 88 / 342) < 0.00001);
-    assert.ok(fit.fontSize * 235 / 100 / width >= 0.60);
+    assert.ok(Math.abs(fit.fontSize / width - 72 / 342) < 0.00001);
+    assert.ok(fit.fontSize * 235 / 100 / width >= 0.45);
     assert.ok(fit.fontSize >= 44);
   }
 });
@@ -19,7 +19,8 @@ test("long multiword names balance at word boundaries with a shared size", () =>
   const fit = selectMobileBrandTitleFit("ESPRESSO BASEBASE", widths, 342);
   assert.deepEqual(fit.lines, ["ESPRESSO", "BASEBASE"]);
   assert.ok(fit.fontSize >= 44);
-  assert.ok(Math.abs(fit.fontSize * 450 / 100 / 342 - 0.75) < 0.00001);
+  assert.equal(fit.fontSize, 56);
+  assert.ok(fit.fontSize * 450 / 100 / 342 <= 0.75);
   assert.ok(fit.fontSize * 430 / 100 / 342 > 0.62);
 });
 
@@ -68,12 +69,12 @@ test("single lines prefer 100% when they fit without breaching the visual ceilin
   assert.equal(fit.fontSize, 68.4);
 });
 
-test("multiline visual ceiling is 64px at 342px inner width; extremely short names do not overscale", () => {
+test("multiline visual ceiling is 56px at 342px inner width; extremely short names do not overscale", () => {
   const widths = new Map([["A B C", 850], ["A B", 375], ["B C", 375], ["A", 125], ["B", 125], ["C", 125]]);
   const fit = selectMobileBrandTitleFit("A B C", widths, 342);
-  assert.equal(fit.fontSize, 64);
+  assert.equal(fit.fontSize, 56);
   assert.equal(fit.lines.length, 2);
-  assert.equal(selectMobileBrandTitleFit("I", new Map([["I", 30]]), 342).fontSize, 88);
+  assert.equal(selectMobileBrandTitleFit("I", new Map([["I", 30]]), 342).fontSize, 72);
 });
 
 test("all seven use the mobile gate only and logos bypass the width fitter", () => {

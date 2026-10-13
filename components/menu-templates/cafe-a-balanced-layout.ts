@@ -1,3 +1,5 @@
+import { canRelaxCategoryOrder, getRelatedCategoryOrders, hasRelatedCategoryRegrouping } from "@/lib/one-page-category-order";
+
 export type CafeABalancedBlockType = "category" | "widget";
 
 export type CafeABalancedAtomicBlock<TPayload> = {
@@ -6,6 +8,8 @@ export type CafeABalancedAtomicBlock<TPayload> = {
   sourceIndex: number;
   sortOrder: number;
   estimatedHeight: number;
+  affinity?: string;
+  orderBoundary?: string;
   payload: TPayload;
 };
 
@@ -17,6 +21,8 @@ export type CafeAOrderedBalancedMeasuredBlock = {
   visibleContentHeight: number;
   marginBottom: number;
   estimatedHeight: number;
+  affinity?: string;
+  orderBoundary?: string;
 };
 
 export type CafeAOrderedBalancedColumn<TBlock extends CafeAOrderedBalancedMeasuredBlock> = {
@@ -49,6 +55,7 @@ type CafeAOrderedBalancedScoreOptions = {
 };
 
 type CafeAOrderedBalancedContiguousOptions = CafeAOrderedBalancedScoreOptions & {
+  allowRelatedOrder?: boolean;
   columnTargetHeights?: readonly number[];
   isCandidateRejected?: (breakIndices: readonly number[]) => boolean;
   maxExhaustiveBlocks: number;
@@ -102,7 +109,9 @@ export function getCafeAOrderedBalancedBreaksFromColumns<TBlock extends CafeAOrd
     if (cursor > 0) breaks.push(cursor);
   });
 
-  return breaks.join(",");
+  const order = columns.flatMap((column) => column.blocks.map((block) => block.order));
+  const reordered = order.some((value, index) => index > 0 && value < order[index - 1]);
+  return breaks.join(",") + (reordered ? `|order=${order.join(",")}` : "");
 }
 
 export function getCafeAOrderedBalancedColumnFillMetrics<TBlock extends CafeAOrderedBalancedMeasuredBlock>(
@@ -297,7 +306,7 @@ export function getCafeAOrderedBalancedContiguousColumnCandidates<TBlock extends
   blocks: readonly TBlock[],
   columns: number,
   options: CafeAOrderedBalancedContiguousOptions,
-) {
+): CafeAOrderedBalancedColumn<TBlock>[][] {
   const safeColumns = Math.max(1, Math.min(options.maxExhaustiveColumns, Math.floor(columns), blocks.length || 1));
   if (blocks.length === 0) return [Array.from({ length: safeColumns }, () => createCafeAOrderedBalancedColumnFromBlocks<TBlock>([]))];
   if (blocks.length < safeColumns) return [getCafeAOrderedBalancedSequentialColumns(blocks, blocks.length)];
@@ -348,7 +357,15 @@ export function getCafeAOrderedBalancedContiguousColumnCandidates<TBlock extends
   }
 
   visit(1, safeColumns - 1);
-  return candidates
+  const orderedCandidates = candidates
     .sort((current, next) => current.score - next.score)
     .map((candidate) => candidate.columns);
+  if (!options.allowRelatedOrder || !options.targetHeight) return orderedCandidates;
+  const originalHeights = orderedCandidates[0] ? getCafeAOrderedBalancedColumnFillMetrics(orderedCandidates[0], options.targetHeight).visibleHeights : [];
+  const relatedCandidates = getRelatedCategoryOrders(blocks).flatMap((order) =>
+    getCafeAOrderedBalancedContiguousColumnCandidates(order, columns, { ...options, allowRelatedOrder: false, isCandidateRejected: undefined })
+      .filter((candidate) => hasRelatedCategoryRegrouping(candidate) && canRelaxCategoryOrder(originalHeights, getCafeAOrderedBalancedColumnFillMetrics(candidate, options.targetHeight).visibleHeights, options.targetHeight!)),
+  );
+  // The source candidates remain available and win comparable results.
+  return [...orderedCandidates, ...relatedCandidates];
 }

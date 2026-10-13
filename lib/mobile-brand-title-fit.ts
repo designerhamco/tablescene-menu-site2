@@ -2,8 +2,8 @@
 export const MOBILE_BRAND_WIDTH_RATIO = 0.75;
 export const MOBILE_BRAND_MINIMUM_PX = 44;
 // 390px phone minus shared 24px side insets: width-relative visual ceilings.
-export const MOBILE_BRAND_SINGLE_LINE_CAP_RATIO = 88 / 342;
-export const MOBILE_BRAND_MULTILINE_CAP_RATIO = 64 / 342;
+export const MOBILE_BRAND_SINGLE_LINE_CAP_RATIO = 72 / 342;
+export const MOBILE_BRAND_MULTILINE_CAP_RATIO = 56 / 342;
 const MAX_MEASURED_UNITS = 32;
 
 type TextPlan = { units: string[]; separator: string };

@@ -103,7 +103,7 @@ export function getOnePageMobileRhythmFailures(measurement) {
   const expectedFonts = { name: rem, price: rem, description: rem * 0.875, secondary: rem * 0.75, category: rem * 1.625 };
   if (measurement.fonts?.brand != null && measurement.fonts.brand < Math.max(44, rem * 2.75) - 0.05) failures.push('mobile brand is below its 44px minimum');
   if (measurement.brandInnerWidth && measurement.brandLineCount) {
-    const ceiling = Math.max(44, rem * 2.75, measurement.brandInnerWidth * (measurement.brandLineCount === 1 ? 88 : 64) / 342);
+    const ceiling = Math.max(44, rem * 2.75, measurement.brandInnerWidth * (measurement.brandLineCount === 1 ? 72 : 56) / 342);
     if (measurement.fonts.brand > ceiling + 0.1) failures.push('mobile brand exceeds its visual ceiling');
   }
   if ((measurement.categoryCopyGaps ?? []).some((gap) => Math.abs(gap - rem * 0.5) > 0.05)) failures.push('category copy gap is not 8px');

@@ -1026,6 +1026,10 @@ video {
 }
 
 @media (min-width: 1024px) {
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board[data-fit-readable-scroll="true"] [data-cafe-a-fit-menu] {
+    overflow-y: auto !important;
+    overflow-x: hidden;
+  }
   .cafe-a-typography .cafe-a-menu-category-block[data-cafe-a-category-divider-desktop-suppressed="true"] > .cafe-a-menu-category-top-divider {
     display: none;
   }
@@ -4759,7 +4763,73 @@ video {
   margin-bottom: calc(var(--cafe-a-copy-aware-item-rhythm-gap) * 1.2);
 }
 
+/* PC/tablet: one measured primary fit, using actual copy and readable rem floors.
+   Declare derived tokens where fit variables exist, not above the board. */
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] {
+  --cafe-a-device-type-scale: 1;
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board,
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] > div > :is(header, section, [data-cafe-a-scroll-content]) {
+  --cafe-a-linked-item-name-size: clamp(1rem, calc(var(--cafe-a-menu-title-size) * var(--menu-font-size-scale, 1) * var(--fit-menu-font-scale, 1) * var(--fit-menu-typography-scale, 1) * var(--cafe-a-shell-menu-title-boost, 1) * var(--menu-role-item-name-size-scale, 1)), 2.5rem);
+  --cafe-a-adaptive-support-size: max(0.75rem, calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-sunday-supporting-ratio, 0.72) * var(--cafe-a-template-supporting-copy-scale, 1)));
+}
+/* One atom for all four customer-approved roles, including featured names. */
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] :is(.cafe-a-menu-description:not(.cafe-a-category-eyebrow), .cafe-a-store-description, .cafe-a-description-text, .cafe-a-topline-description, .cafe-a-topline-notice-text, .cafe-a-featured-title, .cafe-a-featured-description, [data-cafe-a-widget-body]) {
+  font-size: var(--cafe-a-adaptive-support-size) !important;
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-menu-title {
+  font-size: var(--cafe-a-linked-item-name-size) !important;
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] [class*="cafe-a-menu-title-size-"]:not(.cafe-a-desktop-fit-board) {
+  --cafe-a-linked-item-name-size: inherit;
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] :is(.cafe-a-menu-price, .cafe-a-featured-price) {
+  font-size: var(--cafe-a-linked-item-name-size) !important;
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-menu-meta {
+  font-size: max(0.75rem, calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-sunday-secondary-ratio, 0.64))) !important;
+}
+@media (min-width: 1024px) {
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_top_band"] {
+    grid-template-rows: minmax(0, 18fr) minmax(0, 82fr);
+  }
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-topline-info-header {
+    height: 100%;
+  }
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-topline-brand-identity {
+    height: 100%;
+  }
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] :is(.cafe-a-topline-description-panel, .cafe-a-topline-notices, .cafe-a-topline-brand-identity) {
+    max-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}
+
 /* Three semantic fields are the typography reference, not visible empty rows. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Portrait tablets use the existing reading surface. Do not expose a
+     landscape-only fixed board while its fit engine is inactive. */
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"],
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] > div {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: visible;
+  }
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board {
+    display: none !important;
+  }
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] > div > header {
+    display: block !important;
+  }
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] > div > :is([data-cafe-a-scroll-content], .cafe-a-round-focus-mobile-brand-section) {
+    display: grid !important;
+  }
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-topline-mobile-notices {
+    display: block !important;
+  }
+}
+
 [data-cafe-a-reference-copy] { display: none !important; }
 .cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] [data-cafe-a-three-part-reference] .cafe-a-menu-copy > :is(.cafe-a-menu-meta, [data-cafe-a-menu-description]) { display: none; }
 .cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] [data-cafe-a-three-part-reference] .cafe-a-menu-copy > [data-cafe-a-reference-copy] { display: block !important; }

@@ -12,9 +12,9 @@ New templates must select the device-appropriate contract before template-specif
 
 ## Canvas-fit templates
 
-The seven active dining single-page templates share the proportion-first behavior in `lib/one-page-proportion-policy.ts`: no secondary whitespace-fill enlargement, and copy-visibility-aware item boundaries. Numeric font/gap ceilings, role proportions and screen corrections remain template-owned. KOHI retains its approved `lib/kohi-fit-policy.ts` calibration; its `1.20`/`1.24` ceilings are NOT copied to other templates. Display, multi-page, retired and coming-soon engines are excluded. See `docs/one-page-proportion-rollout.md` for scope and verification limits.
+The seven active single-page templates now use the adaptive PC/tablet policy in `docs/one-page-adaptive-layout.md`. Actual content drives bounded enlargement and crop safety. Between-item spacing retains its template mapping and copy-aware 1/1.10/1.20 multipliers. Template category ratios, outer insets, colors, fonts and notice anchors are preserved. Display, multi-page, retired and coming-soon engines are excluded. The older no-enlargement/three-field-only policy below is superseded for these seven PC/tablet presentations.
 
-Canvas-fit spacing must be derived from viewport or container units and bounded with `clamp()`. Single-page fit chooses a readable bounded primary candidate and may scale down to prevent cropping; it must not enlarge again merely to erase residual whitespace or expose intermediate layouts. Display retains its separate row-budget policy.
+Canvas-fit spacing must be derived from viewport or container units and bounded with `clamp()`. Single-page fit chooses a readable bounded candidate and then probes the actual rendered partition for safe enlargement. Typography and its existing gap mapping grow together; neither may break its reading floor or crop text. Display retains its separate row-budget policy.
 
 The shared hierarchy is:
 
@@ -26,7 +26,9 @@ The shared hierarchy is:
 
 For PC/tablet single-page item-to-item boundaries only, multiply the existing rhythm by `1.10` when just one of secondary name/description is visible, or `1.20` when neither is visible. Both visible fields, or additional promotion/origin/trait support, keep the normal rhythm. Use actual rendered/translated visibility, not the mere presence of starter fields. Do not apply this multiplier to mobile, the last item, category/heading/widget/footer boundaries, or to nested copy gaps. Declare its CSS base alias on the item stack, where the density token exists, never on a root that refers to a descendant-only variable.
 
-### Scoped PC/tablet update — 2026-10-13
+### Earlier scoped PC/tablet update — 2026-10-13 (superseded)
+
+The user subsequently requested conditional related-category regrouping, safe whitespace enlargement, linked featured names, a fixed relative header row and smaller mobile brand ceilings. The current policy is `docs/one-page-adaptive-layout.md`; this section records the earlier implementation for context.
 
 Only three changes are approved: three-field product typography reference, the modest between-item adjustment above, and independent text-brand width fitting. Existing template-specific font/gap profiles, role ratios, outer insets, category spacing, column candidate rules, notice anchors and device detection remain unchanged. Display/multi-page and the completed mobile reading contract are excluded.
 
@@ -109,7 +111,7 @@ Line rules: REAL MATCHA retains an 8px title-to-underline inset and 24px after t
 
 ### Current mobile brand-width policy
 
-The earlier KOHI-only 80% pilot and the subsequent 65% / 48px policy are historical (`docs/mobile-brand-65-qa.md`). The current user-approved bounded policy applies to all seven mobile text brands. `MobileBrandTitle` measures the selected script-aware fonts at 100px and computes against actual header inner width, not the width of the text itself. Minimum: `max(44px, 2.75rem)` for browser text scaling. Single-line visual ceiling: `max(minimum, innerWidth * 88 / 342)`; multiline ceiling: `max(minimum, innerWidth * 64 / 342)`. These are 88px/64px at a 390px phone with the shared 24px left/right insets, not fixed target sizes for every title.
+The earlier KOHI-only 80% pilot and the subsequent 65% / 48px policy are historical (`docs/mobile-brand-65-qa.md`). The current user-approved bounded policy applies to all seven mobile text brands. `MobileBrandTitle` measures the selected script-aware fonts at 100px and computes against actual header inner width, not the width of the text itself. Minimum: `max(44px, 2.75rem)` for browser text scaling. Single-line visual ceiling: `max(minimum, innerWidth * 72 / 342)`; multiline ceiling: `max(minimum, innerWidth * 56 / 342)`. These are 72px/56px at a 390px phone with the shared 24px left/right insets, not fixed target sizes for every title.
 
 Prefer one intact line if it fits at the minimum. Enlarge toward 100% but stop at the visual ceiling; 60–100% coverage is a preference, not an unconditional constraint for a very short customer name. When wrapping is necessary, choose the fewest balanced whole-word lines that fit at the minimum. All lines share one font size; the longest line targets 75% subject to the multiline ceiling. Minimum, ceiling and intact words take priority if 65%+ coverage is mathematically unavailable. If no whole-word partition fits, split safely at grapheme boundaries, never truncate. CJK uses grapheme-aware balancing. Exceptional very long names use natural balanced wrapping within the full inner width at the minimum without losing characters. Keep existing safe line-height and glyph padding; do not introduce ink-bound optical gap correction. Hidden measurement spans are zero-sized/overflow-clipped so a very long reference text cannot enlarge page scroll width.
 

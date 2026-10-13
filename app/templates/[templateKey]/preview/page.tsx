@@ -815,6 +815,15 @@ function applyMenuPriceAlignmentQaFixture(data: MenuPageData, value: string | st
 function applyOnePageRhythmQaFixture(data: MenuPageData, value: string | string[] | undefined): MenuPageData {
   const qaCase = Array.isArray(value) ? value[0] : value;
   if (process.env.NODE_ENV === "production" || !usesOnePageProportionPolicy(data.menuSite.template_key)) return data;
+  if (qaCase === "adaptive-sparse" || qaCase === "adaptive-dense") {
+    const source = qaCase === "adaptive-sparse"
+      ? data.categories.flatMap((category) => data.items.filter((item) => item.category_id === category.id).slice(0, 1))
+      : data.items;
+    const items = qaCase === "adaptive-sparse" ? source : Array.from({ length: 4 }, (_, repeat) => source.map((item) => ({
+      ...item, id: `${item.id}-dense-${repeat}`, sort_order: (item.sort_order ?? 0) + repeat * 100,
+    }))).flat();
+    return { ...data, items, timeSales: [], nextTimeSaleStartAt: null, traits: [] };
+  }
   if (["reference-full", "reference-two", "reference-one"].includes(qaCase ?? "")) {
     return { ...data, items: data.items.map((item) => ({ ...item,
       set_name: qaCase === "reference-full" ? "HOUSE BLEND" : null,

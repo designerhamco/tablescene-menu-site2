@@ -62,6 +62,12 @@ test("unbalanced words do not wrap just to enlarge a short fragment", () => {
   assert.deepEqual(fit.lines, ["A LONGWORD"]);
 });
 
+test("a relative floor that overfills the single-line target favors balanced lines inside the same fixed row", () => {
+  const fit = selectCanvasBrandTitleFit("SUNDAY ROASTERS", new Map([["SUNDAY ROASTERS", 896], ["SUNDAY", 350], ["ROASTERS", 500]]), 450, 118, getCanvasBrandLimits(450, "horizontal-header"));
+  assert.deepEqual(fit.lines, ["SUNDAY", "ROASTERS"]);
+  assert.ok(fit.fontSize * 2.28 <= 118.01);
+});
+
 test("CJK and impossible-height fallbacks preserve every character", () => {
   const title = "서울숲따뜻한커피";
   const widths = new Map(getMobileBrandMeasurementTexts(title).map((text) => [text, Array.from(text).length * 100]));

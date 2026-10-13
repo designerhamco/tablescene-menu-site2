@@ -40,7 +40,9 @@ export function selectCanvasBrandTitleFit(title: string, widths: ReadonlyMap<str
     if (single && double) {
       const lineWidths = double.lines.map((line) => widths.get(line) ?? 0);
       const balanced = Math.min(...lineWidths) / Math.max(...lineWidths) >= 0.5;
-      return balanced && double.fontSize >= single.fontSize * CANVAS_BRAND_TWO_LINE_GAIN ? double : single;
+      const singleCoverage = (widths.get(text) ?? 0) * single.fontSize / 100;
+      const floorExceededTarget = singleCoverage > width * limits.widthRatio * 1.05;
+      return balanced && (double.fontSize >= single.fontSize * CANVAS_BRAND_TWO_LINE_GAIN || floorExceededTarget) ? double : single;
     }
     return single ?? double ?? candidates[0];
   }
