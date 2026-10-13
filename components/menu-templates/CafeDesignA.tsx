@@ -39,7 +39,8 @@ import { isMenuCoverVisibleOnDevice } from "@/lib/menu-cover-device-visibility";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import { getFixedOnePageLayoutShell, type OnePageLayoutShell } from "@/lib/one-page-layout-shells";
-import { inferOnePageCategoryAffinity } from "@/lib/one-page-category-order";
+import { inferOnePageCategoryAffinity, getConventionalCategoryRank } from "@/lib/one-page-category-order";
+import { getOnePageContentSignature } from "@/lib/one-page-content-signature";
 import { shouldRelaxOnePageCopyReference } from "@/lib/one-page-copy-reference";
 import { getOnePageItemRhythmMultiplier, getOnePageRhythmMode, usesOnePageProportionFitPolicy, usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
 import { ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS, orderOnePageMenuColumnCandidates, selectOnePageFitTierState } from "@/lib/one-page-fit-policy";
@@ -1477,7 +1478,7 @@ function useAdaptiveTabletPriceOptionLayout({
 
   useLayoutEffect(() => {
     const itemElement = itemRef.current;
-    if (!itemElement) return;
+    if (!itemElement || !hasSingleLabeledPriceOption || previewDevice === "mobile" || previewDevice === "pc") return;
 
     let frameId = 0;
     let disposed = false;
@@ -3950,6 +3951,7 @@ function MenuCategoryContentBlock({
           "data-cafe-a-balanced-category-block": groupKey,
           "data-cafe-a-balanced-source-order": balancedSourceOrder,
           "data-cafe-a-category-affinity": usesOnePageProportionFitPolicy(data.menuSite.template_key, data.previewDevice, data.pagePresentation) ? inferOnePageCategoryAffinity(block.category.name, block.items.map((item) => item.name)) : undefined,
+          "data-cafe-a-category-rank": getConventionalCategoryRank(block.category.name),
           "data-cafe-a-order-boundary": block.page.id,
           "data-balanced-estimated-height": estimateContentBlockHeight(block, data, capabilities).toFixed(2),
         };
@@ -4524,6 +4526,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const hasFitPresentationReadyRef = useRef(false);
   const menuImagePreviewTriggerRef = useRef<HTMLElement | null>(null);
   const orderedBalancedFitCacheRef = useRef<Map<string, CafeDesignAFitState>>(new Map());
+  const adaptiveGrowthProbeKeyRef = useRef("");
   const orderedBalancedRejectedCandidateRef = useRef<Set<string>>(new Set());
   const orderedBalancedRejectedColumnRef = useRef<Set<string>>(new Set());
   const orderedBalancedSeenStateRef = useRef<{ sessionKey: string; keys: Set<string> }>({ sessionKey: "", keys: new Set() });
@@ -4679,22 +4682,21 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     () =>
       data.priceOptions
         .filter((option) => option.visible !== false)
-        .map((option) => `${option.menu_item_id}:${option.label}:${option.sort_order}`)
+        .map((option) => JSON.stringify([option.id, option.menu_item_id, option.label, option.price, option.price_label, option.sort_order]))
         .sort()
         .join(","),
     [data.priceOptions],
   );
-  const visibleCopySignature = useMemo(() => visiblePageGroups.map(({ page, groups, blocks }) => [page.id,
-    ...groups.map(({ category, items }) => [category.id, category.name, category.description,
-      ...items.map((item) => [item.id, item.name, item.set_name, item.description, item.price, item.price_label, item.priceNote, item.image_url, item.is_sold_out, item.badge, item.badge_label, item.origin_info].join("~")),
-    ].join("^")),
-    ...blocks.filter((block) => block.blockType === "widget").map(({ widget }) => [widget.id, widget.type, widget.placement,
-      "title" in widget ? widget.title : "", "body" in widget ? widget.body : "", "imageUrl" in widget ? widget.imageUrl : "",
-    ].join("~")),
-    typographySettings.korean_font_key, typographySettings.english_font_key,
-    ...Object.values(typographySettings.typography_roles).map((role) => [role.font_ko_key, role.font_en_key, role.size, role.weight].join(":")),
-    data.menuSite.brand_description, data.menuSite.description, ...getCafeAFooterInfo(data, capabilities),
-  ].join(";")).join("|"), [visiblePageGroups, typographySettings.korean_font_key, typographySettings.english_font_key, typographySettings.typography_roles, data, capabilities]);
+  const visibleCopySignature = useMemo(() => getOnePageContentSignature({
+    pages: visiblePageGroups,
+    priceOptions: data.priceOptions,
+    traits: data.traits,
+    site: data.menuSite,
+    pageSettings: data.pageSettings,
+    featuredSlides: data.featuredSlides,
+    timeSales: data.timeSales,
+    typography: typographySettings,
+  }), [visiblePageGroups, data.menuSite, data.pageSettings, data.priceOptions, data.traits, data.featuredSlides, data.timeSales, typographySettings]);
   const layoutInputSignature = useMemo(
     () =>
       [
@@ -4736,6 +4738,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   );
 
   useEffect(() => {
+    orderedBalancedFitCacheRef.current.clear();
+    orderedBalancedRejectedCandidateRef.current.clear();
+    orderedBalancedRejectedColumnRef.current.clear();
+    orderedBalancedSeenStateRef.current = { sessionKey: "", keys: new Set() };
     const frame = requestAnimationFrame(() => {
       setAdaptiveFlowFallback(false);
       setCopyFitBasis("three-field");
@@ -4798,10 +4804,17 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   useLayoutEffect(() => {
     const boardElement = desktopFitBoardRef.current;
     const menuElement = desktopFitMenuRef.current;
-    if (!boardElement) return;
+    if (!boardElement || onePageRhythmMode === "mobile") return;
 
+    let previousGeometry = "";
+    const geometry = () => [boardElement.clientWidth, boardElement.clientHeight,
+      menuElement?.clientWidth, menuElement?.clientHeight, boardElement.getAttribute("style")].join("|");
+    previousGeometry = geometry();
     let revisionQueued = false;
-    const markLayoutUnstable = () => {
+    const markLayoutUnstable = (force = false) => {
+      const nextGeometry = geometry();
+      if (!force && nextGeometry === previousGeometry) return;
+      previousGeometry = nextGeometry;
       if (!hasFitPresentationReadyRef.current) {
         setFitPresentationState((currentState) => (currentState === "loading" ? currentState : "loading"));
       }
@@ -4812,24 +4825,26 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         setFitPresentationRevision((revision) => revision + 1);
       });
     };
-    const styleObserver = new MutationObserver(markLayoutUnstable);
-    const resizeObserver = new ResizeObserver(markLayoutUnstable);
+    const styleObserver = new MutationObserver(() => markLayoutUnstable());
+    const resizeObserver = new ResizeObserver(() => markLayoutUnstable());
+    const onResize = () => markLayoutUnstable();
+    const onLoad = () => markLayoutUnstable(true);
 
     styleObserver.observe(boardElement, { attributes: true, attributeFilter: ["style"] });
     resizeObserver.observe(boardElement);
     if (menuElement) resizeObserver.observe(menuElement);
-    boardElement.addEventListener("load", markLayoutUnstable, true);
-    window.addEventListener("resize", markLayoutUnstable);
-    window.visualViewport?.addEventListener("resize", markLayoutUnstable);
+    boardElement.addEventListener("load", onLoad, true);
+    window.addEventListener("resize", onResize);
+    window.visualViewport?.addEventListener("resize", onResize);
 
     return () => {
       styleObserver.disconnect();
       resizeObserver.disconnect();
-      boardElement.removeEventListener("load", markLayoutUnstable, true);
-      window.removeEventListener("resize", markLayoutUnstable);
-      window.visualViewport?.removeEventListener("resize", markLayoutUnstable);
+      boardElement.removeEventListener("load", onLoad, true);
+      window.removeEventListener("resize", onResize);
+      window.visualViewport?.removeEventListener("resize", onResize);
     };
-  }, [layoutInputSignature]);
+  }, [layoutInputSignature, onePageRhythmMode]);
 
   useLayoutEffect(() => {
     const boardElement = desktopFitBoardRef.current;
@@ -4958,7 +4973,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   ]);
 
   useLayoutEffect(() => {
-    if (layoutMode !== "orderedBalancedFit") return;
+    if (layoutMode !== "orderedBalancedFit" || onePageRhythmMode === "mobile") return;
     const boardElement = desktopFitBoardRef.current;
     const menuElement = desktopFitMenuRef.current;
     if (!boardElement || !menuElement) return;
@@ -4986,12 +5001,12 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     return () => {
       resizeObserver.disconnect();
     };
-  }, [hasVisibleItemImages, imageMenuMaximumColumns, isDenseOrderedBalanced, layoutMode, visibleFitBlockCount]);
+  }, [hasVisibleItemImages, imageMenuMaximumColumns, isDenseOrderedBalanced, layoutMode, visibleFitBlockCount, onePageRhythmMode]);
 
   useLayoutEffect(() => {
     const menuElement = desktopFitMenuRef.current;
     if (!menuElement) return;
-    if (layoutMode !== "orderedFit") return;
+    if (layoutMode !== "orderedFit" || onePageRhythmMode === "mobile") return;
 
     let frameId = 0;
     let cancelled = false;
@@ -5033,9 +5048,11 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     orderedFitFinalFillCompensation,
     layoutInputSignature,
     data.templateSkin,
+    onePageRhythmMode,
   ]);
 
   useEffect(() => {
+    if (onePageRhythmMode === "mobile") return;
     const boardElement = desktopFitBoardRef.current;
     const menuElement = desktopFitMenuRef.current;
     if (!boardElement || !menuElement) return;
@@ -6220,6 +6237,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     scheduleMeasure();
 
     const handleViewportChange = () => {
+      const nextViewportSignature = getViewportSignature();
+      if (nextViewportSignature === viewportSignature) return;
+      viewportSignature = nextViewportSignature;
       if (layoutMode === "orderedBalancedFit") {
         orderedBalancedFitCacheRef.current.clear();
         orderedBalancedSeenStateRef.current = { sessionKey: "", keys: new Set() };
@@ -6241,11 +6261,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     };
     let viewportSignature = getViewportSignature();
     const viewportPollId =
-      layoutMode === "orderedBalancedFit"
+      layoutMode === "orderedBalancedFit" && !isAdaptiveFit
         ? window.setInterval(() => {
             const nextViewportSignature = getViewportSignature();
             if (nextViewportSignature === viewportSignature) return;
-            viewportSignature = nextViewportSignature;
             handleViewportChange();
           }, 250)
         : 0;
@@ -6707,6 +6726,11 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     let disposed = false;
     const frame = requestAnimationFrame(() => {
       if (disposed || document.fonts.status !== "loaded") return;
+      const probeKey = [layoutInputSignature, board.clientWidth, board.clientHeight, menu.clientWidth, menu.clientHeight,
+        fitState.columns, fitState.fontScale, fitState.gapScale, fitState.orderedBalancedBreaks, safeRenderFitState.fontScale,
+        fitPresentationSafetyScale, getComputedStyle(menu).fontFamily].join("|");
+      if (adaptiveGrowthProbeKeyRef.current === probeKey) return;
+      adaptiveGrowthProbeKeyRef.current = probeKey;
       const crop = getCafeAActualDomCropMeasurement(board, menu, ORDERED_BALANCED_CROP_TOLERANCE);
       if (crop.overflow || crop.bottomGap < menu.clientHeight * 0.06) return;
       const previousFont = board.style.getPropertyValue("--fit-menu-font-scale");
@@ -6757,7 +6781,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       setFitState(next);
     });
     return () => { disposed = true; cancelAnimationFrame(frame); };
-  }, [isAdaptiveFit, copyFitBasis, fitState, safeRenderFitState.fontScale, getTemplateFitGapScale]);
+  }, [isAdaptiveFit, copyFitBasis, fitState, safeRenderFitState.fontScale, getTemplateFitGapScale, layoutInputSignature, fitPresentationSafetyScale]);
 
   useEffect(() => {
     // The primary three-part candidate and final DOM safety own font backoff.

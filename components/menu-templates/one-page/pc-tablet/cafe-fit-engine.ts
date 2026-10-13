@@ -1121,6 +1121,7 @@ export function getBalancedBlockMeasurements(menuElement: HTMLElement): CafeDesi
       const visibleHeights = getBalancedBlockVisibleHeights(blockElement);
 
       return {
+        categoryRank: blockElement.dataset.cafeACategoryRank === undefined ? undefined : Number(blockElement.dataset.cafeACategoryRank),
         affinity: blockElement.dataset.cafeACategoryAffinity,
         orderBoundary: blockElement.dataset.cafeAOrderBoundary,
         key: blockElement.dataset.cafeABalancedBlockId ?? blockElement.dataset.cafeABalancedCategoryBlock ?? "",
@@ -1938,6 +1939,7 @@ function measureCafeABalancedFitReference(
       const visibleHeights = getBalancedBlockVisibleHeights(blockElement);
 
       return {
+        categoryRank: blockElement.dataset.cafeACategoryRank === undefined ? undefined : Number(blockElement.dataset.cafeACategoryRank),
         affinity: blockElement.dataset.cafeACategoryAffinity,
         orderBoundary: blockElement.dataset.cafeAOrderBoundary,
         key: blockElement.dataset.cafeABalancedBlockId ?? blockElement.dataset.cafeABalancedCategoryBlock ?? "",

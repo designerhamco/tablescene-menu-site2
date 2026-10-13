@@ -1,4 +1,4 @@
-import { canRelaxCategoryOrder, getRelatedCategoryOrders, hasRelatedCategoryRegrouping } from "@/lib/one-page-category-order";
+import { canRelaxCategoryOrder, getFallbackCategoryOrders, getRelatedCategoryOrders, hasPoorCategoryPacking, hasRelatedCategoryRegrouping } from "@/lib/one-page-category-order";
 
 export type CafeABalancedBlockType = "category" | "widget";
 
@@ -8,6 +8,7 @@ export type CafeABalancedAtomicBlock<TPayload> = {
   sourceIndex: number;
   sortOrder: number;
   estimatedHeight: number;
+  categoryRank?: number;
   affinity?: string;
   orderBoundary?: string;
   payload: TPayload;
@@ -21,6 +22,7 @@ export type CafeAOrderedBalancedMeasuredBlock = {
   visibleContentHeight: number;
   marginBottom: number;
   estimatedHeight: number;
+  categoryRank?: number;
   affinity?: string;
   orderBoundary?: string;
 };
@@ -362,10 +364,17 @@ export function getCafeAOrderedBalancedContiguousColumnCandidates<TBlock extends
     .map((candidate) => candidate.columns);
   if (!options.allowRelatedOrder || !options.targetHeight) return orderedCandidates;
   const originalHeights = orderedCandidates[0] ? getCafeAOrderedBalancedColumnFillMetrics(orderedCandidates[0], options.targetHeight).visibleHeights : [];
-  const relatedCandidates = getRelatedCategoryOrders(blocks).flatMap((order) =>
+  const compare = (orders: TBlock[][], related: boolean) => orders.flatMap((order) =>
     getCafeAOrderedBalancedContiguousColumnCandidates(order, columns, { ...options, allowRelatedOrder: false, isCandidateRejected: undefined })
-      .filter((candidate) => hasRelatedCategoryRegrouping(candidate) && canRelaxCategoryOrder(originalHeights, getCafeAOrderedBalancedColumnFillMetrics(candidate, options.targetHeight).visibleHeights, options.targetHeight!)),
+      .filter((candidate) => (!related || hasRelatedCategoryRegrouping(candidate)) &&
+        canRelaxCategoryOrder(originalHeights, getCafeAOrderedBalancedColumnFillMetrics(candidate, options.targetHeight).visibleHeights, options.targetHeight!)),
   );
-  // The source candidates remain available and win comparable results.
-  return [...orderedCandidates, ...relatedCandidates];
+  // Healthy registered packing never needs the additional order search.
+  if (!hasPoorCategoryPacking(originalHeights, options.targetHeight)) return orderedCandidates;
+  const relatedCandidates = compare(getRelatedCategoryOrders(blocks), true);
+  if (relatedCandidates.length) return [...orderedCandidates, ...relatedCandidates];
+  const conventionalCandidates = compare(getFallbackCategoryOrders(blocks, "conventional"), false);
+  if (conventionalCandidates.length) return [...orderedCandidates, ...conventionalCandidates];
+  const freeCandidates = compare(getFallbackCategoryOrders(blocks, "free"), false);
+  return [...orderedCandidates, ...freeCandidates];
 }

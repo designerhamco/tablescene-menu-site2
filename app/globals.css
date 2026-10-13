@@ -5266,7 +5266,7 @@ video {
 }
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(.cafe-a-menu-title, .cafe-a-featured-title, [data-cafe-a-widget-title], .cafe-a-menu-price, .cafe-a-featured-price) {
-  font-size: 1rem;
+  font-size: 1rem !important;
 }
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-category-title {
@@ -5493,9 +5493,7 @@ video {
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"] :is(.cafe-a-menu-badge, .cafe-a-featured-badge) {
   font-size: max(0.75rem, calc(var(--cafe-a-linked-item-name-size) * 0.62)) !important;
 }
-.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(.cafe-a-menu-title, .cafe-a-featured-title, .cafe-a-menu-price, .cafe-a-featured-price) {
-  font-size: 1rem !important;
-}
+/* Chips use the same existing mobile role rule, with precedence over skins. */
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(.cafe-a-menu-badge, .cafe-a-featured-badge) {
   font-size: 0.75rem !important;
 }

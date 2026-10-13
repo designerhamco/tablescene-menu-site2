@@ -212,6 +212,7 @@ export type CafeDesignABalancedWeightedBlock = {
 };
 
 export type CafeDesignABalancedBlockMeasurement = {
+  categoryRank?: number;
   affinity?: string;
   orderBoundary?: string;
   key: string;

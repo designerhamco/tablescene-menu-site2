@@ -145,7 +145,7 @@ Changes to an active template spacing engine require:
 
 ### PC/tablet one-page chip placement — 2026-10-13
 
-Measure the name's unwrapped width, chip group and row inner width in every fit candidate and final crop check. If the name alone fits but name + chips + gap does not, move the chips to the next line while preserving name/price first-row alignment. A naturally long name retains its existing wrapping. Restore inline placement when width/font changes make the pair fit. Scope this to the seven adaptive one-page templates, excluding mobile, Display and multi-page.
+Measure the name's unwrapped width, chip group and row inner width in every fit candidate and final crop check. If the name alone fits but name + chips + gap does not, move the chips to the next line while preserving name/price first-row alignment. A naturally long name retains its inherent wrapping; chips move below if they add further name lines. Restore inline placement when width/font changes make the pair fit. Scope this to the seven adaptive one-page templates, excluding mobile, Display and multi-page.
 
 ### Shared top-row outer spacing — 2026-10-13
 
@@ -156,3 +156,7 @@ PC-only top-row one-line refinement: a confirmed one-line text brand uses 75% of
 ### Featured-role and leader corrections — 2026-10-14
 
 Featured name/chip/price sizes equal their respective menu counterparts in all seven one-page templates on PC/tablet/mobile. This supersedes the earlier PC/tablet featured-name-to-supporting-copy link. Descriptions/notices retain the support atom. ROSY ORANGE adaptive leaders reserve at least 0.75 name-em, remain visible beside the first name line when chips move below, and span the remaining row without a PC auto-start margin or short cap. Chip decisions reserve the leader, use unwrapped intrinsic sizes, and also move chips below when they add extra wrapped-name lines. Central-brand fourth-menu-column rescue checks all five actual columns, excluding no fixed-brand width from the readability budget.
+
+### Calculation ownership - 2026-10-14
+
+Adaptive packing uses registered, related, conventional and bounded free packing tiers in that order, with the existing material-improvement and barrier checks. Stable content signatures include option prices, price-column values, traits, widgets and featured settings; elapsed countdown ticks are excluded. Mobile does not install canvas-fit observers. Reuse chip measurements for identical row inputs and skip unchanged geometry/duplicate viewport notifications. The final crop check remains authoritative; caching never bypasses real content/font/viewport changes.

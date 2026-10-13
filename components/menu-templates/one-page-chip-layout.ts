@@ -9,13 +9,18 @@ export function hasChipAddedNameLines(inlineHeight: number, withoutChipHeight: n
     withoutChipHeight > 0 && inlineHeight > withoutChipHeight + 0.5;
 }
 
+const chipMeasurements = new WeakMap<HTMLElement, { key: string; below: boolean }>();
+const textStyleKey = (element: HTMLElement) => {
+  const style = getComputedStyle(element);
+  return [style.fontFamily, style.fontSize, style.fontWeight, style.letterSpacing, style.lineHeight, style.padding, style.borderWidth].join("|");
+};
+
 /** Also used after a row mounts, before the parent performs its final fit check. */
 export function applyOnePageChipLayout(row: HTMLElement) {
   if (!row.closest('[data-cafe-a-adaptive-fit="true"]')) return;
   const name = row.querySelector<HTMLElement>("[data-cafe-a-menu-name]");
   const chips = row.querySelector<HTMLElement>(".cafe-a-title-chips");
   if (!name || !chips || row.clientWidth <= 0) return;
-  row.removeAttribute("data-cafe-a-chip-placement");
   const rowStyle = getComputedStyle(row);
   const gap = parseFloat(rowStyle.columnGap) || 0;
   const leader = row.querySelector<HTMLElement>(".cafe-a-round-focus-price-leader");
@@ -24,6 +29,16 @@ export function applyOnePageChipLayout(row: HTMLElement) {
   const extras = [...row.children].filter((element) => element !== name && element !== chips && element !== leader);
   const extraWidth = extras.reduce((sum, element) => sum + element.getBoundingClientRect().width + gap, 0);
   const available = row.clientWidth - (parseFloat(rowStyle.paddingLeft) || 0) - (parseFloat(rowStyle.paddingRight) || 0) - extraWidth - leaderReserve;
+  const key = JSON.stringify([available, gap, name.textContent, chips.textContent, textStyleKey(name), textStyleKey(chips),
+    [...chips.children].map((chip) => textStyleKey(chip as HTMLElement)),
+    Boolean(row.closest("[data-cafe-a-three-part-reference]"))]);
+  const cached = chipMeasurements.get(row);
+  if (cached?.key === key) {
+    if (cached.below && row.dataset.cafeAChipPlacement !== "below") row.dataset.cafeAChipPlacement = "below";
+    else if (!cached.below) row.removeAttribute("data-cafe-a-chip-placement");
+    return;
+  }
+  row.removeAttribute("data-cafe-a-chip-placement");
   const previousNameStyle = name.getAttribute("style");
   const previousChipStyle = chips.getAttribute("style");
   const restore = (element: HTMLElement, style: string | null) => {
@@ -50,6 +65,7 @@ export function applyOnePageChipLayout(row: HTMLElement) {
     below = hasChipAddedNameLines(inlineHeight, withoutChipHeight);
   }
   if (below) row.dataset.cafeAChipPlacement = "below";
+  chipMeasurements.set(row, { key, below });
 }
 
 /** Candidate measurement and final DOM safety see the same chip placement. */

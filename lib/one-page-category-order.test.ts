@@ -56,3 +56,43 @@ test('a changed order alone is insufficient: the related pair must actually shar
   assert.equal(getOnePageCategoryAffinity('STEAK'), undefined);
   assert.equal(getOnePageCategoryAffinity('MADELEINE'), 'dessert');
 });
+
+test('conventional order separates signature, coffee, latte, drinks and bakery', async () => {
+  const { getConventionalCategoryRank, getFallbackCategoryOrders } = await import('./one-page-category-order');
+  const names = ['BAKERY', '라떼', 'TEA & ADE', 'COFFEE', 'SIGNATURE COFFEE'];
+  const input = names.map((key, order) => ({ key, order, blockType: 'category' as const, affinity: getOnePageCategoryAffinity(key), categoryRank: getConventionalCategoryRank(key), orderBoundary: 'page', height: 100 }));
+  assert.deepEqual(getFallbackCategoryOrders(input, 'conventional')[0].map(b => b.key), ['SIGNATURE COFFEE', 'COFFEE', '라떼', 'TEA & ADE', 'BAKERY']);
+});
+
+test('free packing is bounded and deterministic and never crosses widgets, unknown categories or pages', async () => {
+  const { getFallbackCategoryOrders } = await import('./one-page-category-order');
+  const known = (order: number, height: number, page = 'page') => ({ order, height, blockType: 'category' as const, affinity: 'coffee', orderBoundary: page });
+  const input = [known(0, 10), known(1, 100), { ...known(2, 50), affinity: undefined }, known(3, 10), known(4, 100), { ...known(5, 50), blockType: 'widget' as const }, known(6, 100, 'next'), known(7, 10, 'last')];
+  const plans = getFallbackCategoryOrders(input, 'free');
+  assert.deepEqual(plans, getFallbackCategoryOrders(input, 'free'));
+  assert.ok(plans.length <= 8);
+  assert.ok(plans.length > 0);
+  for (const plan of plans) {
+    assert.deepEqual(plan.slice(0, 2).map(b => b.order).sort(), [0, 1]);
+    assert.equal(plan[2].order, 2);
+    assert.deepEqual(plan.slice(3, 5).map(b => b.order).sort(), [3, 4]);
+    assert.equal(plan[5].order, 5);
+    assert.equal(plan[6].order, 6);
+    assert.equal(plan[7].order, 7);
+  }
+});
+
+test('packing uses conventional order before free order and keeps healthy registration order', async () => {
+  const input = [130, 130, 40, 40].map((height, order) => ({ key: String(order), order, height, visibleContentHeight: height, marginBottom: 0, estimatedHeight: height, blockType: 'category' as const, affinity: ['bread-and-spread', 'sandwich', 'dessert', 'coffee'][order], categoryRank: [4, 5, 6, 1][order], orderBoundary: 'page' }));
+  const options = { allowRelatedOrder: true, targetHeight: 200, maxExhaustiveBlocks: 10, maxExhaustiveColumns: 4, targetMaxVisibleGap: 20 };
+  const conventional = getCafeAOrderedBalancedContiguousColumnCandidates(input, 2, options);
+  assert.ok(conventional.length > 0);
+  assert.deepEqual(conventional[0].flatMap(column => column.blocks.map(block => block.order)), [3, 0, 1, 2]);
+  const healthy = input.map(block => ({ ...block, height: 80, visibleContentHeight: 80 }));
+  const registered = getCafeAOrderedBalancedContiguousColumnCandidates(healthy, 2, options);
+  assert.ok(registered.length > 0);
+  assert.ok(registered.every(candidate => candidate.flatMap(column => column.blocks.map(block => block.order)).join(',') === '0,1,2,3'));
+  const free = getCafeAOrderedBalancedContiguousColumnCandidates(input.map(block => ({ ...block, categoryRank: undefined })), 2, options);
+  assert.ok(free.length > 0);
+  assert.ok(free.every(candidate => candidate.every(column => column.height <= 200)));
+});
