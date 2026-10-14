@@ -109,8 +109,9 @@ test("mobile has fixed reading rhythm, independent type bases and one linked sec
   assert.match(renderer, /scriptAwareLabels\s+menuPlacement=/);
   assert.doesNotMatch(css, /\[data-template-language-control\] \.cafe-a-script-en \{\s*font-family: "Bagel Fat One"/);
   assert.doesNotMatch(mobile, /line-height: 1\.38/);
-  assert.match(mobile, /padding-top: var\(--cafe-a-mobile-section-gap\)/);
-  assert.match(mobile, /margin-top: var\(--cafe-a-mobile-section-gap\)/);
+  assert.match(mobile, /padding-top: var\(--cafe-a-mobile-menu-start-gap\)/);
+  assert.match(mobile, /margin-top: var\(--cafe-a-mobile-upper-to-menu-gap\)/);
+  assert.match(mobile, /margin-top: var\(--cafe-a-mobile-category-boundary-gap\)/);
   assert.match(mobile, /\.cafe-a-menu-item-stack:not\(:last-child\) \{\s*margin-bottom: 1\.25rem/);
   assert.match(mobile, /\.cafe-a-desktop-fit-board \{\s*display: none/);
   assert.match(css, /data-template-key="cafe_kohi_a"\]:not\(\[data-preview-device="tablet"\]\):not\(\[data-preview-device="mobile"\]\):not\(\[data-cafe-a-mobile-style="true"\]\)/);

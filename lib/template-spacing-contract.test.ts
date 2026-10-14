@@ -82,14 +82,20 @@ test("색상 패널 경계와 KOHI 외곽 프레임은 페이지 여백 계약�
 });
 
 test("KOHI 모바일은 마지막 아이템에서 경계선까지의 여백만 24px로 늘린다", () => {
+  assert.match(globalStylesSource, /--cafe-a-mobile-menu-start-gap: var\(--cafe-a-mobile-section-gap\);/);
+  assert.match(globalStylesSource, /--cafe-a-mobile-upper-to-menu-gap: var\(--cafe-a-mobile-section-gap\);/);
+  assert.match(globalStylesSource, /--cafe-a-mobile-category-boundary-gap: var\(--cafe-a-mobile-section-gap\);/);
   assert.match(globalStylesSource, /--kohi-mobile-line-content-gap: 0\.75rem;/);
   assert.match(globalStylesSource, /--kohi-mobile-heading-to-rule-gap: var\(--kohi-mobile-line-content-gap\);/);
   assert.match(globalStylesSource, /--kohi-mobile-rule-to-item-gap: var\(--kohi-mobile-line-content-gap\);/);
   assert.match(globalStylesSource, /--kohi-mobile-last-item-to-rule-gap: 1\.5rem;/);
   assert.match(globalStylesSource, /--kohi-mobile-category-rule-gap: var\(--kohi-mobile-line-content-gap\);/);
-  assert.match(globalStylesSource, /\.cafe-a-fit-menu-grid > \* \+ \.cafe-a-menu-category-block \{[\s\S]*margin-top: calc\(var\(--kohi-mobile-last-item-to-rule-gap\) \+ var\(--kohi-divider-width\) \+ var\(--kohi-mobile-category-rule-gap\)\);[\s\S]*padding-top: 0;/);
-  assert.match(globalStylesSource, /\.cafe-a-cover-hero \+ \.cafe-a-fit-menu-grid \{\s*margin-top: calc\(var\(--kohi-mobile-category-rule-gap\) \+ var\(--kohi-divider-width\) \+ var\(--kohi-mobile-category-rule-gap\)\);/);
-  assert.match(globalStylesSource, /\[data-cafe-a-scroll-content\]:not\(:has\(> \.cafe-a-cover-hero\)\) \{\s*padding-top: calc\(var\(--kohi-mobile-category-rule-gap\) \+ var\(--kohi-divider-width\) \+ var\(--kohi-mobile-category-rule-gap\)\);/);
+  assert.match(globalStylesSource, /--cafe-a-mobile-menu-start-gap: calc\(var\(--kohi-mobile-category-rule-gap\) \+ var\(--kohi-divider-width\) \+ var\(--kohi-mobile-category-rule-gap\)\);/);
+  assert.match(globalStylesSource, /--cafe-a-mobile-upper-to-menu-gap: var\(--cafe-a-mobile-menu-start-gap\);/);
+  assert.match(globalStylesSource, /--cafe-a-mobile-category-boundary-gap: calc\(var\(--kohi-mobile-last-item-to-rule-gap\) \+ var\(--kohi-divider-width\) \+ var\(--kohi-mobile-category-rule-gap\)\);/);
+  assert.match(globalStylesSource, /\.cafe-a-fit-menu-grid > \* \+ \.cafe-a-menu-category-block \{\s*margin-top: var\(--cafe-a-mobile-category-boundary-gap\);/);
+  assert.doesNotMatch(globalStylesSource, /data-template-key="cafe_kohi_a"\][^{]*\.cafe-a-fit-menu-grid > \* \+ \.cafe-a-menu-category-block \{/);
+  assert.match(globalStylesSource, /data-template-key="cafe_kohi_a"\]:where\(:not\(\[data-cafe-a-adaptive-fit="true"\]\)\):not\(\[data-cafe-a-mobile-style="true"\]\)/);
   assert.match(contractSource, /12px clearance around the internal heading rule/);
   assert.match(contractSource, /24px clearance from the preceding category's last item to the category-boundary stroke/);
 });
