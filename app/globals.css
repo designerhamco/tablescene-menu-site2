@@ -5576,12 +5576,12 @@ video {
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_kohi_a"] {
   --kohi-divider-width: 1px;
   --kohi-category-title-scale: 1.2;
-  /* Internal rules stay compact. Category boundaries keep the shared 48px
-     mobile section whitespace, weighted above the stroke as requested. */
+  /* Internal rules stay compact. Category boundaries add air only above the
+     stroke, between the previous category's last item and the rule. */
   --kohi-mobile-line-content-gap: 0.75rem;
   --kohi-mobile-heading-to-rule-gap: var(--kohi-mobile-line-content-gap);
   --kohi-mobile-rule-to-item-gap: var(--kohi-mobile-line-content-gap);
-  --kohi-mobile-last-item-to-rule-gap: 2.25rem;
+  --kohi-mobile-last-item-to-rule-gap: 1.5rem;
   --kohi-mobile-category-rule-gap: var(--kohi-mobile-line-content-gap);
 }
 

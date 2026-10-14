@@ -47,14 +47,14 @@ test("KOHI mobile QA validates its approved type and split rule spacing", () => 
     ...valid,
     key: "cafe_kohi_a",
     upperGap: 25,
-    blockGaps: [49, 49, 48],
+    blockGaps: [37, 37, 48],
     categories: [{ ...valid.categories[0], headingGap: 25 }],
     autoBrand: true,
     brandState: "ready",
     brandInnerWidth: 342,
     brandLineCount: 1,
     categoryCopyGaps: [4],
-    kohiLineGaps: [{ kind: "category", before: 36, after: 12 }, { kind: "heading", before: 12, after: 12 }],
+    kohiLineGaps: [{ kind: "category", before: 24, after: 12 }, { kind: "heading", before: 12, after: 12 }],
     fonts: { ...valid.fonts, brand: 84, category: 31.2 },
   };
   assert.deepEqual(getOnePageMobileRhythmFailures(kohi), []);
