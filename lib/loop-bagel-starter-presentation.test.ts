@@ -3,6 +3,26 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 const globalStylesSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+const templateSource = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
+
+test("Loop Bagel caps only the sparse PC canvas while retaining adaptive fill", () => {
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-adaptive-fit="true"\]\[data-template-key="fast_food_loop_bagel_a"\]\[data-preview-device="pc"\] \{\s*--cafe-a-linked-item-name-ceiling: 1\.25rem;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /@media \(min-width: 1024px\) \{[\s\S]*?data-cafe-a-adaptive-fit="true"\]\[data-template-key="fast_food_loop_bagel_a"\]:not\(\[data-preview-device\]\) \{\s*--cafe-a-linked-item-name-ceiling: 1\.25rem;/,
+  );
+  assert.doesNotMatch(
+    globalStylesSource,
+    /data-template-key="fast_food_loop_bagel_a"\]\[data-preview-device="tablet"\][^}]*--cafe-a-linked-item-name-ceiling/,
+  );
+  assert.match(
+    templateSource,
+    /ceilingScale=\{data\.menuSite\.template_key === "fast_food_loop_bagel_a" && device === "pc" \? 0\.96 : 1\}/,
+  );
+});
 
 test("Loop Bagel reduces non-heading type only on PC and tablet", () => {
   assert.match(

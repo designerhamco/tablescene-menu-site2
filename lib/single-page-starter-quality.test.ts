@@ -347,6 +347,12 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(vanGogh.time_sales?.every((sale) => sale.badge_background_color === "#000000"), true);
   assert.equal(vanGogh.pages[0]?.categories[0]?.name, "MASTERPIECE");
   assert.equal(vanGogh.pages[0]?.categories[0]?.items[0]?.name, "별이 빛나는 밤 라떼");
+  assert.equal(
+    vanGogh.pages.flatMap((page) => page.categories.flatMap((category) => category.items)).some(
+      (item) => Boolean(item.badge_label?.trim()) || item.recommended === true,
+    ),
+    false,
+  );
 
   const mochaMorningDeal = mochaForest.time_sales?.find((sale) => sale.key === "americano-morning-deal");
   assert.equal(mochaMorningDeal?.badge_background_color, "#852322");

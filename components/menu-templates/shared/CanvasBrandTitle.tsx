@@ -5,13 +5,13 @@ import { getMobileBrandMeasurementTexts, type MobileBrandTitleFit } from "@/lib/
 import { CANVAS_HEADER_MAX_RATIO, CANVAS_PC_BRAND_CEILING_SCALE, getCanvasHeaderGapScale, getCanvasHeaderRatio, getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit, type CanvasBrandSlotLayout } from "@/lib/canvas-brand-title-fit";
 import ScriptAwareText from "./ScriptAwareText";
 
-export default function CanvasBrandTitle({ title, className, fontSignature, device }: {
-  title: string; className: string; fontSignature: string; device: "tablet" | "pc";
+export default function CanvasBrandTitle({ title, className, fontSignature, device, ceilingScale = 1 }: {
+  title: string; className: string; fontSignature: string; device: "tablet" | "pc"; ceilingScale?: number;
 }) {
   const rootRef = useRef<HTMLHeadingElement>(null);
   const measurementRef = useRef<HTMLSpanElement>(null);
   const texts = useMemo(() => getMobileBrandMeasurementTexts(title), [title]);
-  const inputKey = `${title}|${fontSignature}|${device}`;
+  const inputKey = `${title}|${fontSignature}|${device}|${ceilingScale}`;
   const [fit, setFit] = useState<(MobileBrandTitleFit & { inputKey: string }) | null>(null);
   const activeFit = fit?.inputKey === inputKey ? fit : null;
 
@@ -52,8 +52,8 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       const widths = new Map([...measurements.children].map((element, index) => [texts[index], element.getBoundingClientRect().width]));
       const lineAdvance = Math.max(1.08, ...[...measurements.children].map((element) => element.getBoundingClientRect().height / 100));
       const limits = getCanvasBrandLimits(width, layout, remScale);
-      const ceilingScale = device === "pc" ? CANVAS_PC_BRAND_CEILING_SCALE : 1;
-      const next = { ...selectCanvasBrandTitleFit(title, widths, width, height, limits, lineAdvance, ceilingScale), inputKey };
+      const appliedCeilingScale = (device === "pc" ? CANVAS_PC_BRAND_CEILING_SCALE : 1) * ceilingScale;
+      const next = { ...selectCanvasBrandTitleFit(title, widths, width, height, limits, lineAdvance, appliedCeilingScale), inputKey };
       if (boundedHeader) {
         const gapScale = window.innerWidth >= 1024
           ? getCanvasHeaderGapScale(device, next.lines.length, next.naturalWrap) : 1;
@@ -75,7 +75,7 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       root.dataset.canvasBrandTarget = String(limits.widthRatio);
       root.dataset.canvasBrandMinimum = String(limits.minimum);
       root.dataset.canvasBrandMaximum = String(limits.maximum);
-      root.dataset.canvasBrandCeilingScale = String(ceilingScale);
+      root.dataset.canvasBrandCeilingScale = String(appliedCeilingScale);
       root.dataset.canvasBrandLineAdvance = String(lineAdvance);
       previousBox = `${width}|${height}|${layout}|${sideHeight}`;
       setFit((current) => current && JSON.stringify(current) === JSON.stringify(next) ? current : next);
@@ -103,7 +103,7 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
         delete board.dataset.fitHeaderBrandLines;
       }
     };
-  }, [title, texts, inputKey, device]);
+  }, [title, texts, inputKey, device, ceilingScale]);
 
   return (
     <h1 ref={rootRef} className={`${className} cafe-a-canvas-brand-title`} data-cafe-a-store-title="" data-canvas-brand-fit={activeFit ? "ready" : "pending"} aria-label={title}

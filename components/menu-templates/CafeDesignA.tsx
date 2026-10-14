@@ -2294,12 +2294,27 @@ function StoreIdentity({
   if (mobileAutoFit) {
     const typography = mergeTypographySettings(data.menuSite.template_key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
     const fontSignature = JSON.stringify([typography.korean_font_key, typography.english_font_key, typography.typography_roles.brand]);
-    return <MobileBrandTitle title={title} className={titleClassName} fontSignature={fontSignature} />;
+    return (
+      <MobileBrandTitle
+        title={title}
+        className={titleClassName}
+        fontSignature={fontSignature}
+        ceilingScale={data.menuSite.template_key === "cafe_kohi_a" ? 1.12 : 1}
+      />
+    );
   }
   if (device !== "mobile" && usesOnePageProportionPolicy(data.menuSite.template_key, data.pagePresentation)) {
     const typography = mergeTypographySettings(data.menuSite.template_key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
     const fontSignature = JSON.stringify([typography.korean_font_key, typography.english_font_key, typography.typography_roles.brand]);
-    return <CanvasBrandTitle title={title} className={titleClassName} fontSignature={fontSignature} device={device} />;
+    return (
+      <CanvasBrandTitle
+        title={title}
+        className={titleClassName}
+        fontSignature={fontSignature}
+        device={device}
+        ceilingScale={data.menuSite.template_key === "fast_food_loop_bagel_a" && device === "pc" ? 0.96 : 1}
+      />
+    );
   }
   return <h1 className={titleClassName} data-cafe-a-store-title=""><ScriptAwareText text={title} /></h1>;
 }

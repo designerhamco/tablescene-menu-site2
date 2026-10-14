@@ -1452,18 +1452,14 @@ cafeVanGoghStarterPreset.pages = [
           item("별이 빛나는 밤 라떼", 7200, "블루베리 크림과 바닐라 우유가 밤하늘처럼 번지는 시그니처 라떼", {
             key: "starry-night-latte",
             set_name: "STARRY NIGHT LATTE",
-            badge_label: "SIGNATURE",
-            recommended: true,
           }),
           item("해바라기 크림 커피", 6800, "고소한 에스프레소 위에 솔티드 크림과 씨앗 프랄린을 더한 커피", {
             key: "sunflower-cream-coffee",
             set_name: "SUNFLOWER CREAM COFFEE",
-            badge_label: "BEST",
           }),
           item("아를 오렌지 콜드브루", 6800, "오렌지 향과 콜드브루가 선명하게 어우러지는 산뜻한 커피", {
             key: "arles-orange-cold-brew",
             set_name: "ARLES ORANGE COLD BREW",
-            badge_label: "NEW",
           }),
         ],
       },

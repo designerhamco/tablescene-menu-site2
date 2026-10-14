@@ -72,12 +72,19 @@ export function getBalancedBrandLinePlans(title: string, widths: ReadonlyMap<str
   return plansFor(title).map((plan) => balancedLines(plan, widths));
 }
 
-export function selectMobileBrandTitleFit(title: string, widths: ReadonlyMap<string, number>, availableWidth: number, minimumPx = MOBILE_BRAND_MINIMUM_PX): MobileBrandTitleFit {
+export function selectMobileBrandTitleFit(
+  title: string,
+  widths: ReadonlyMap<string, number>,
+  availableWidth: number,
+  minimumPx = MOBILE_BRAND_MINIMUM_PX,
+  ceilingScale = 1,
+): MobileBrandTitleFit {
   const minimum = Math.max(MOBILE_BRAND_MINIMUM_PX, minimumPx);
+  const safeCeilingScale = Number.isFinite(ceilingScale) ? Math.max(1, ceilingScale) : 1;
   return selectBrandTitleFit(title, widths, availableWidth, {
     minimum,
-    singleCap: Math.max(minimum, availableWidth * MOBILE_BRAND_SINGLE_LINE_CAP_RATIO),
-    multiCap: Math.max(minimum, availableWidth * MOBILE_BRAND_MULTILINE_CAP_RATIO),
+    singleCap: Math.max(minimum, availableWidth * MOBILE_BRAND_SINGLE_LINE_CAP_RATIO * safeCeilingScale),
+    multiCap: Math.max(minimum, availableWidth * MOBILE_BRAND_MULTILINE_CAP_RATIO * safeCeilingScale),
     singleTarget: 1,
     multiTarget: MOBILE_BRAND_WIDTH_RATIO,
   });

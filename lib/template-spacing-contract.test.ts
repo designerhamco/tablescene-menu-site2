@@ -81,14 +81,15 @@ test("색상 패널 경계와 KOHI 외곽 프레임은 페이지 여백 계약�
   assert.doesNotMatch(globalStylesSource, /data-template-key="cafe_kohi_a"[^}]*--board-padding:/);
 });
 
-test("KOHI 모바일 분리선은 첫 카테고리부터 양쪽 24px 경계를 한 번만 적용한다", () => {
-  assert.match(globalStylesSource, /--kohi-mobile-heading-to-rule-gap: 0\.5rem;/);
-  assert.match(globalStylesSource, /--kohi-mobile-rule-to-item-gap: 1\.5rem;/);
-  assert.match(globalStylesSource, /--kohi-mobile-category-rule-gap: 1\.5rem;/);
+test("KOHI 모바일 분리선은 모든 선 가장자리에 동일한 20px 여백을 적용한다", () => {
+  assert.match(globalStylesSource, /--kohi-mobile-line-content-gap: 1\.25rem;/);
+  assert.match(globalStylesSource, /--kohi-mobile-heading-to-rule-gap: var\(--kohi-mobile-line-content-gap\);/);
+  assert.match(globalStylesSource, /--kohi-mobile-rule-to-item-gap: var\(--kohi-mobile-line-content-gap\);/);
+  assert.match(globalStylesSource, /--kohi-mobile-category-rule-gap: var\(--kohi-mobile-line-content-gap\);/);
   assert.match(globalStylesSource, /\.cafe-a-fit-menu-grid > \* \+ \.cafe-a-menu-category-block \{[\s\S]*margin-top: calc\(var\(--kohi-mobile-category-rule-gap\) \+ var\(--kohi-divider-width\) \+ var\(--kohi-mobile-category-rule-gap\)\);[\s\S]*padding-top: 0;/);
   assert.match(globalStylesSource, /\.cafe-a-cover-hero \+ \.cafe-a-fit-menu-grid \{\s*margin-top: calc\(var\(--kohi-mobile-category-rule-gap\) \+ var\(--kohi-divider-width\) \+ var\(--kohi-mobile-category-rule-gap\)\);/);
   assert.match(globalStylesSource, /\[data-cafe-a-scroll-content\]:not\(:has\(> \.cafe-a-cover-hero\)\) \{\s*padding-top: calc\(var\(--kohi-mobile-category-rule-gap\) \+ var\(--kohi-divider-width\) \+ var\(--kohi-mobile-category-rule-gap\)\);/);
-  assert.match(contractSource, /same 24px \/ stroke \/ 24px boundary frames the first category/);
+  assert.match(contractSource, /same 20px clearance from every horizontal stroke edge/);
 });
 
 test("리얼맛차 단일페이지의 데스크톱 카테고리 경계는 숨긴 분리선 간격 대신 2.9배 리듬을 사용한다", () => {

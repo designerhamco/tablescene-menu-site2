@@ -4783,9 +4783,10 @@ video {
 }
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board,
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"] > div > :is(header, section, [data-cafe-a-scroll-content]) {
-  --cafe-a-linked-item-name-size: clamp(1rem, calc(var(--cafe-a-menu-title-size) * var(--menu-font-size-scale, 1) * var(--fit-menu-font-scale, 1) * var(--fit-menu-typography-scale, 1) * var(--cafe-a-shell-menu-title-boost, 1) * var(--menu-role-item-name-size-scale, 1)), 2.5rem);
+  --cafe-a-linked-item-name-size: clamp(1rem, calc(var(--cafe-a-menu-title-size) * var(--menu-font-size-scale, 1) * var(--fit-menu-font-scale, 1) * var(--fit-menu-typography-scale, 1) * var(--cafe-a-shell-menu-title-boost, 1) * var(--menu-role-item-name-size-scale, 1)), var(--cafe-a-linked-item-name-ceiling, 2.5rem));
   --cafe-a-adaptive-support-size: max(0.75rem, calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-sunday-supporting-ratio, 0.72) * var(--cafe-a-template-supporting-copy-scale, 1)));
 }
+
 /* Supporting copy is linked across store, menu, featured descriptions and notices. */
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"] :is(.cafe-a-menu-description, [data-cafe-a-category-description], .cafe-a-time-sale-time-text, .cafe-a-store-description, .cafe-a-description-text, .cafe-a-topline-description, .cafe-a-topline-notice-text, .cafe-a-featured-description, [data-cafe-a-widget-body]) {
   font-size: var(--cafe-a-adaptive-support-size) !important;
@@ -4801,6 +4802,18 @@ video {
 }
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-menu-meta {
   font-size: max(0.75rem, calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-sunday-secondary-ratio, 0.64))) !important;
+}
+
+/* Loop Bagel has sparse PC content and a heavy display face. Keep fill active,
+   but stop it at the same readable visual range as the denser cafe starters. */
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-template-key="fast_food_loop_bagel_a"][data-preview-device="pc"] {
+  --cafe-a-linked-item-name-ceiling: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-template-key="fast_food_loop_bagel_a"]:not([data-preview-device]) {
+    --cafe-a-linked-item-name-ceiling: 1.25rem;
+  }
 }
 @media (min-width: 1024px) {
   .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_top_band"] {
@@ -5556,9 +5569,11 @@ video {
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_kohi_a"] {
   --kohi-divider-width: 1px;
-  --kohi-mobile-heading-to-rule-gap: 0.5rem;
-  --kohi-mobile-rule-to-item-gap: 1.5rem;
-  --kohi-mobile-category-rule-gap: 1.5rem;
+  /* Every rule edge uses one clearance, so the mobile rhythm stays visually predictable. */
+  --kohi-mobile-line-content-gap: 1.25rem;
+  --kohi-mobile-heading-to-rule-gap: var(--kohi-mobile-line-content-gap);
+  --kohi-mobile-rule-to-item-gap: var(--kohi-mobile-line-content-gap);
+  --kohi-mobile-category-rule-gap: var(--kohi-mobile-line-content-gap);
 }
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_kohi_a"] .cafe-a-category-title {
