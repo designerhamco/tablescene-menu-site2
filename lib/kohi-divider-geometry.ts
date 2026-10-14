@@ -23,7 +23,7 @@ export function getKohiDividerLines({
   columns: KohiColumn[];
   segments: KohiDividerSegment[];
   brandRight?: number;
-  mobileSpacing?: { headingBefore: number; categoryAfter: number; strokeWidth: number };
+  mobileSpacing?: { headingBefore: number; categoryAfter: number; strokeWidth: number; leadingCategory?: boolean };
   canvasSpacing?: { categoryBefore: number; contentGap: number; strokeWidth: number };
   canvasBounds?: KohiBox;
 }): KohiDividerLine[] {
@@ -59,6 +59,11 @@ export function getKohiDividerLines({
       const center = (segment.left + segment.right) / 2;
       return center >= column.left - 2 && center <= column.right + 2;
     }).sort((a, b) => a.top - b.top);
+    const first = fragments[0];
+    if (mobileSpacing?.leadingCategory && first?.kind === "heading") {
+      const y = first.top - mobileSpacing.categoryAfter - mobileSpacing.strokeWidth / 2;
+      if (y > boundedCanvas.top && y < first.top) addHorizontal("category", y, columnIndex);
+    }
     fragments.forEach((fragment, index) => {
       const previous = fragments[index - 1];
       if (previous && previous.group !== fragment.group && fragment.top > previous.bottom) {

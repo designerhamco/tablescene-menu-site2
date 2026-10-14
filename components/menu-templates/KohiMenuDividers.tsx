@@ -72,7 +72,23 @@ export default function KohiMenuDividers() {
       });
       const brand = desktop ? board?.querySelector<HTMLElement>("[data-cafe-a-brand-panel]") : null;
       const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
-      const mobileSpacing = root.dataset.cafeAMobileStyle === "true" ? { headingBefore: rem * 0.5, categoryAfter: rem * 0.75, strokeWidth: 1 } : undefined;
+      const rootStyle = getComputedStyle(root);
+      const readLength = (property: string, fallback: number) => {
+        const raw = rootStyle.getPropertyValue(property).trim();
+        const value = Number.parseFloat(raw);
+        if (!Number.isFinite(value)) return fallback;
+        if (raw.endsWith("rem")) return value * rem;
+        if (raw.endsWith("px")) return value;
+        return fallback;
+      };
+      const mobileSpacing = root.dataset.cafeAMobileStyle === "true"
+        ? {
+            headingBefore: readLength("--kohi-mobile-heading-to-rule-gap", rem * 0.5),
+            categoryAfter: readLength("--kohi-mobile-category-rule-gap", rem * 1.5),
+            strokeWidth: readLength("--kohi-divider-width", 1),
+            leadingCategory: true,
+          }
+        : undefined;
       const boardStyle = desktop && board ? getComputedStyle(board) : null;
       const dividerStrokeWidth = Number.parseFloat(getComputedStyle(layer).strokeWidth) || 1;
       const measuredColumnGap = boardStyle ? Number.parseFloat(boardStyle.columnGap) : Number.NaN;
