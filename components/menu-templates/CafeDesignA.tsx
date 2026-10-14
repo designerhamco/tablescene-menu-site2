@@ -2299,7 +2299,7 @@ function StoreIdentity({
         title={title}
         className={titleClassName}
         fontSignature={fontSignature}
-        ceilingScale={data.menuSite.template_key === "cafe_kohi_a" ? 1.12 : 1}
+        ceilingScale={data.menuSite.template_key === "cafe_kohi_a" ? 1.5 : 1}
       />
     );
   }
@@ -2312,7 +2312,6 @@ function StoreIdentity({
         className={titleClassName}
         fontSignature={fontSignature}
         device={device}
-        ceilingScale={data.menuSite.template_key === "fast_food_loop_bagel_a" && device === "pc" ? 0.96 : 1}
       />
     );
   }

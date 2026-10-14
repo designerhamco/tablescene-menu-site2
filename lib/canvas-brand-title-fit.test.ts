@@ -33,6 +33,17 @@ test("rail title uses 75% and the frame height can limit enlargement", () => {
   assert.ok(fit.fontSize * 300 / 100 <= 281 * 0.75);
 });
 
+test("a wide PC rail can fill 100% while keeping 65% coverage before accepting two lines", () => {
+  const widths = new Map([["LOOP BAGEL", 598.3], ["LOOP", 270], ["BAGEL", 300]]);
+  const tabletLimits = getCanvasBrandLimits(358, "brand-column");
+  const pcLimits = { ...tabletLimits, widthRatio: 1 };
+  const pc = selectCanvasBrandTitleFit("LOOP BAGEL", widths, 358, 131.24, pcLimits, 1.08, 1, 0.65);
+  const tablet = selectCanvasBrandTitleFit("LOOP BAGEL", widths, 358, 131.24, tabletLimits);
+  assert.deepEqual(pc.lines, ["LOOP BAGEL"]);
+  assert.ok(Math.abs(pc.fontSize * 598.3 / 100 / 358 - 1) < 0.0001);
+  assert.deepEqual(tablet.lines, ["LOOP", "BAGEL"]);
+});
+
 test("doubling slot dimensions doubles font size without any device px cap", () => {
   for (const layout of ["horizontal-header", "brand-column"] as const) {
     const widths = new Map([["KOHI", 235]]);
@@ -107,16 +118,14 @@ test("only a confirmed one-line PC brand compacts the header gap", () => {
   assert.equal(getCanvasHeaderGapScale("pc", 1, true), 1);
 });
 
-test("PC ceiling reduces both slot types while preserving tablet limits and reading floors", () => {
-  for (const layout of ["horizontal-header", "brand-column"] as const) {
-    const widths = new Map([["CAFE", 300]]);
-    const limits = getCanvasBrandLimits(380, layout);
-    const tablet = selectCanvasBrandTitleFit("CAFE", widths, 380, 120, limits);
-    const pc = selectCanvasBrandTitleFit("CAFE", widths, 380, 120, limits, 1.08, 0.875);
-    assert.ok(Math.abs(pc.fontSize - tablet.fontSize * 0.875) < 0.0001);
-    assert.ok(pc.fontSize >= limits.minimum);
-  }
-  const limits = getCanvasBrandLimits(380, "brand-column");
-  const floor = selectCanvasBrandTitleFit("VERY LONG CAFE", new Map([["VERY LONG CAFE", 900]]), 380, 120, limits, 1.08, 0.875);
+test("PC ceiling remains a horizontal-header safeguard while preserving reading floors", () => {
+  const widths = new Map([["CAFE", 300]]);
+  const limits = getCanvasBrandLimits(380, "horizontal-header");
+  const tablet = selectCanvasBrandTitleFit("CAFE", widths, 380, 120, limits);
+  const pc = selectCanvasBrandTitleFit("CAFE", widths, 380, 120, limits, 1.08, 0.875);
+  assert.ok(Math.abs(pc.fontSize - tablet.fontSize * 0.875) < 0.0001);
+  assert.ok(pc.fontSize >= limits.minimum);
+  const railLimits = getCanvasBrandLimits(380, "brand-column");
+  const floor = selectCanvasBrandTitleFit("VERY LONG CAFE", new Map([["VERY LONG CAFE", 900]]), 380, 120, railLimits);
   assert.ok(floor.fontSize >= limits.minimum);
 });

@@ -14,10 +14,10 @@ test("short mobile brand uses the width-relative 56px ceiling, not unlimited fil
   }
 });
 
-test("a narrow template exception can raise only its visual ceiling", () => {
+test("a narrow display face can raise only its visual ceiling", () => {
   const widths = new Map([["KOHI", 235]]);
   assert.equal(selectMobileBrandTitleFit("KOHI", widths, 342).fontSize, 56);
-  assert.ok(Math.abs(selectMobileBrandTitleFit("KOHI", widths, 342, 44, 1.12).fontSize - 62.72) < 0.00001);
+  assert.ok(Math.abs(selectMobileBrandTitleFit("KOHI", widths, 342, 44, 1.5).fontSize - 84) < 0.00001);
 });
 
 test("long multiword names balance at word boundaries with a shared size", () => {
@@ -91,7 +91,7 @@ test("all seven use the mobile gate only and logos bypass the width fitter", () 
   assert.match(source, /mobileReading=\{onePageRhythmMode === "mobile"\}/);
   const component = readFileSync(new URL("../components/menu-templates/shared/MobileBrandTitle.tsx", import.meta.url), "utf8");
   assert.match(component, /fit\?\.inputKey === inputKey/);
-  assert.match(source, /ceilingScale=\{data\.menuSite\.template_key === "cafe_kohi_a" \? 1\.12 : 1\}/);
+  assert.match(source, /ceilingScale=\{data\.menuSite\.template_key === "cafe_kohi_a" \? 1\.5 : 1\}/);
   assert.match(component, /document.fonts.ready/);
   assert.match(component, /previousWidth/);
   assert.doesNotMatch(component, /MutationObserver|fit-font-scale|setInterval/);

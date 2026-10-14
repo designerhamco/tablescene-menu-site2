@@ -4,6 +4,7 @@ import test from "node:test";
 
 const globalStylesSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 const templateSource = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
+const canvasBrandSource = readFileSync(new URL("../components/menu-templates/shared/CanvasBrandTitle.tsx", import.meta.url), "utf8");
 
 test("Loop Bagel caps only the sparse PC canvas while retaining adaptive fill", () => {
   assert.match(
@@ -18,10 +19,10 @@ test("Loop Bagel caps only the sparse PC canvas while retaining adaptive fill", 
     globalStylesSource,
     /data-template-key="fast_food_loop_bagel_a"\]\[data-preview-device="tablet"\][^}]*--cafe-a-linked-item-name-ceiling/,
   );
-  assert.match(
-    templateSource,
-    /ceilingScale=\{data\.menuSite\.template_key === "fast_food_loop_bagel_a" && device === "pc" \? 0\.96 : 1\}/,
-  );
+  assert.doesNotMatch(templateSource, /fast_food_loop_bagel_a[^\n]*ceilingScale/);
+  assert.match(canvasBrandSource, /device === "pc" && layout === "brand-column" \? 0\.65 : 0/);
+  assert.match(canvasBrandSource, /device === "pc" && layout === "brand-column"[\s\S]*?widthRatio: 1/);
+  assert.match(canvasBrandSource, /device === "pc" && layout === "horizontal-header" \? CANVAS_PC_HEADER_BRAND_CEILING_SCALE : 1/);
 });
 
 test("Loop Bagel reduces non-heading type only on PC and tablet", () => {

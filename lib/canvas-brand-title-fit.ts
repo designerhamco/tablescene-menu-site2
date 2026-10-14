@@ -2,7 +2,7 @@ import { getBalancedBrandLinePlans, normalizeMobileBrandTitle, type MobileBrandT
 
 export const CANVAS_BRAND_TWO_LINE_GAIN = 1.15;
 export const CANVAS_BRAND_FRAME_HEIGHT_RATIO = 0.18;
-export const CANVAS_PC_BRAND_CEILING_SCALE = 0.875;
+export const CANVAS_PC_HEADER_BRAND_CEILING_SCALE = 0.875;
 export const CANVAS_HEADER_BASE_RATIO = 0.08;
 export const CANVAS_HEADER_SINGLE_LINE_BASE_RATIO = 0.09;
 export const CANVAS_HEADER_MAX_RATIO = 0.14;
@@ -38,7 +38,8 @@ export function getCanvasBrandLimits(width: number, layout: CanvasBrandSlotLayou
 
 /** Same inputs and scoring for every skin: no template IDs or per-template sizes. */
 export function selectCanvasBrandTitleFit(title: string, widths: ReadonlyMap<string, number>, width: number, height: number,
-  limits: ReturnType<typeof getCanvasBrandLimits>, measuredLineAdvance = 1.08, ceilingScale = 1): MobileBrandTitleFit {
+  limits: ReturnType<typeof getCanvasBrandLimits>, measuredLineAdvance = 1.08, ceilingScale = 1,
+  minimumWrappedCoverage = 0): MobileBrandTitleFit {
   const text = normalizeMobileBrandTitle(title);
   const lineAdvance = Math.max(1.08, measuredLineAdvance);
   const fallback = { lines: text ? [text] : [], fontSize: limits.minimum, naturalWrap: true };
@@ -58,9 +59,11 @@ export function selectCanvasBrandTitleFit(title: string, widths: ReadonlyMap<str
     if (single && double) {
       const lineWidths = double.lines.map((line) => widths.get(line) ?? 0);
       const balanced = Math.min(...lineWidths) / Math.max(...lineWidths) >= 0.5;
+      const wrappedCoverage = Math.max(...lineWidths) * double.fontSize / 100 / width;
       const singleCoverage = (widths.get(text) ?? 0) * single.fontSize / 100;
       const floorExceededTarget = singleCoverage > width * limits.widthRatio * 1.05;
-      return balanced && (double.fontSize >= single.fontSize * CANVAS_BRAND_TWO_LINE_GAIN || floorExceededTarget) ? double : single;
+      return balanced && wrappedCoverage >= minimumWrappedCoverage
+        && (double.fontSize >= single.fontSize * CANVAS_BRAND_TWO_LINE_GAIN || floorExceededTarget) ? double : single;
     }
     return single ?? double ?? candidates[0];
   }

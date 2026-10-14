@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getMobileBrandMeasurementTexts, type MobileBrandTitleFit } from "@/lib/mobile-brand-title-fit";
-import { CANVAS_HEADER_MAX_RATIO, CANVAS_PC_BRAND_CEILING_SCALE, getCanvasHeaderGapScale, getCanvasHeaderRatio, getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit, type CanvasBrandSlotLayout } from "@/lib/canvas-brand-title-fit";
+import { CANVAS_HEADER_MAX_RATIO, CANVAS_PC_HEADER_BRAND_CEILING_SCALE, getCanvasHeaderGapScale, getCanvasHeaderRatio, getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit, type CanvasBrandSlotLayout } from "@/lib/canvas-brand-title-fit";
 import ScriptAwareText from "./ScriptAwareText";
 
 export default function CanvasBrandTitle({ title, className, fontSignature, device, ceilingScale = 1 }: {
@@ -51,9 +51,23 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       const remScale = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) / 16;
       const widths = new Map([...measurements.children].map((element, index) => [texts[index], element.getBoundingClientRect().width]));
       const lineAdvance = Math.max(1.08, ...[...measurements.children].map((element) => element.getBoundingClientRect().height / 100));
-      const limits = getCanvasBrandLimits(width, layout, remScale);
-      const appliedCeilingScale = (device === "pc" ? CANVAS_PC_BRAND_CEILING_SCALE : 1) * ceilingScale;
-      const next = { ...selectCanvasBrandTitleFit(title, widths, width, height, limits, lineAdvance, appliedCeilingScale), inputKey };
+      const baseLimits = getCanvasBrandLimits(width, layout, remScale);
+      // A wide PC brand rail may use the full inner width. Tablet keeps the
+      // calmer shared 75% target that already fits its narrower composition.
+      const limits = device === "pc" && layout === "brand-column"
+        ? { ...baseLimits, widthRatio: 1 }
+        : baseLimits;
+      // Horizontal headers retain the shared PC visual ceiling. Vertical brand
+      // rails already have a 75% slot target, so scaling them down breaks the
+      // common first-column coverage contract.
+      const appliedCeilingScale = (device === "pc" && layout === "horizontal-header" ? CANVAS_PC_HEADER_BRAND_CEILING_SCALE : 1) * ceilingScale;
+      // On wide PC brand rails, reject a two-line candidate that becomes tall
+      // while leaving most of the rail width empty. The single-line candidate
+      // then uses the shared 75% rail target. Tablet keeps the established
+      // one/two-line comparison because its narrower composition is already
+      // balanced independently.
+      const minimumWrappedCoverage = device === "pc" && layout === "brand-column" ? 0.65 : 0;
+      const next = { ...selectCanvasBrandTitleFit(title, widths, width, height, limits, lineAdvance, appliedCeilingScale, minimumWrappedCoverage), inputKey };
       if (boundedHeader) {
         const gapScale = window.innerWidth >= 1024
           ? getCanvasHeaderGapScale(device, next.lines.length, next.naturalWrap) : 1;
