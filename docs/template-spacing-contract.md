@@ -163,4 +163,8 @@ Adaptive packing uses registered, related, conventional and bounded free packing
 
 ### Notice/language linkage and quieter brands - 2026-10-14
 
-For all seven one-page presentations, notice 1/2/3 and language trigger/menu labels share the menu-description size. Both notice and language script runs use saved Korean/English font variables. PC text-brand ceilings are 87.5% of their prior geometry-derived ceiling, preserving minimums and header bounds. Tablet ceilings stay unchanged. Mobile single/multiline ceilings are 56/44px at 342px inner width, preserving the 44px minimum and text.
+For all seven one-page presentations, notice 1/2/3 and language trigger/menu labels share the menu-description size. Notice Korean and English runs both use the saved Korean font. Language UI keeps the saved Korean/English font by script. Category descriptions and time-sale supporting text share the product-description size. PC text-brand ceilings are 87.5% of their prior geometry-derived ceiling, preserving minimums and header bounds. Tablet ceilings stay unchanged. Mobile single/multiline ceilings are 56/44px at 342px inner width, preserving the 44px minimum and text.
+
+### Approved two-field exception - 2026-10-14
+
+Only name+secondary or name+description items gently increase their remaining secondary/description field by 5%. A description-only item's discount explanation and matching featured description follow that size. Three-field and name-only items do not increase. Category/store descriptions, notices and language UI keep the linked base size. This is an explicit exception to uniform description sizes, not a canvas density multiplier. Mobile uses 12.6px secondary / 14.7px description at a 16px root, keeping existing item/section/internal gaps; PC/tablet measurements include the actual increase.

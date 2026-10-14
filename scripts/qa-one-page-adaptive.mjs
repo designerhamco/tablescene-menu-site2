@@ -37,7 +37,7 @@ async function check(key, device, width, height, extra = '') {
     const brand=find('[data-cafe-a-store-title]');
     const b=board?.getBoundingClientRect();const h=header?.getBoundingClientRect();
     const size=font('[data-cafe-a-menu-name]');
-    const copy=[...document.querySelectorAll('[data-cafe-a-menu-item] [data-cafe-a-menu-description]')].filter(visible).map(e=>parseFloat(getComputedStyle(e).fontSize));
+    const copy=[...document.querySelectorAll('[data-cafe-a-menu-item] [data-cafe-a-menu-description]')].filter(visible).map(e=>parseFloat(getComputedStyle(e).fontSize)/(e.closest('[data-cafe-a-content-variant="description-only"]') && e.closest('.cafe-a-typography')?.dataset.cafeATwoFieldBoost !== 'off' ? 1.05 : 1));
     return {viewport:[innerWidth,innerHeight],overflow:document.documentElement.scrollWidth-innerWidth,
       state:board?.dataset.fitPresentationState, basis:board?.dataset.fitCopyBasis,
       scroll:menu?getComputedStyle(menu).overflowY:null,

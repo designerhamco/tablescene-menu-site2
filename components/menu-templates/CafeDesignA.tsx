@@ -2219,6 +2219,7 @@ function CoverHero({
           <div
             className="cafe-a-featured-copy absolute bottom-4 left-4 right-4 flex items-end justify-between gap-4 text-white"
             data-cafe-a-sold-out={featuredItemSoldOut ? "true" : undefined}
+            data-cafe-a-featured-description-only={!getMenuItemMetaText(featuredItem, data.locale).trim() && Boolean(featuredItem.description?.trim()) ? "true" : undefined}
           >
             <div className="min-w-0">
               {featuredItemSoldOut ? (
@@ -4465,6 +4466,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const requestedLayoutMode = (normalizedPreviewLayoutMode ?? savedLayoutMode) as CafeDesignALayoutMode;
   const [adaptiveFlowFallback, setAdaptiveFlowFallback] = useState(false);
   const [copyFitBasis, setCopyFitBasis] = useState<"three-field" | "actual">("three-field");
+  const [twoFieldBoostEnabled, setTwoFieldBoostEnabled] = useState(true);
   const layoutMode = isAdaptiveFit && adaptiveFlowFallback && requestedLayoutMode === "orderedBalancedFit"
     ? "orderedFit" : requestedLayoutMode;
   const isLoopBagelFitSpacing = onePageRhythmMode !== "mobile" && usesLoopBagelFitSpacing(data.menuSite.template_key, data.previewDevice);
@@ -4718,6 +4720,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         data.publicServiceType,
         visibleCopySignature,
         copyFitBasis,
+        twoFieldBoostEnabled,
       ].join("|"),
     [
       data.locale,
@@ -4736,6 +4739,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       visibleWidgetCount,
       visibleCopySignature,
       copyFitBasis,
+      twoFieldBoostEnabled,
     ],
   );
 
@@ -4749,6 +4753,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     const frame = requestAnimationFrame(() => {
       setAdaptiveFlowFallback(false);
       setCopyFitBasis("three-field");
+      setTwoFieldBoostEnabled(true);
       setFitPresentationSafetyScale(1);
     });
     return () => cancelAnimationFrame(frame);
@@ -4762,6 +4767,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       frame = requestAnimationFrame(() => {
         setAdaptiveFlowFallback(false);
         setCopyFitBasis("three-field");
+      setTwoFieldBoostEnabled(true);
         setFitPresentationSafetyScale(1);
       });
     };
@@ -4892,6 +4898,20 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           const cropTolerance = layoutMode === "orderedBalancedFit" ? ORDERED_BALANCED_CROP_TOLERANCE : 1;
           const cropMeasurement = getCafeAActualDomCropMeasurement(boardElement, menuElement, cropTolerance);
 
+          if (cropMeasurement.overflow && isAdaptiveFit && twoFieldBoostEnabled && menuElement) {
+            const minimumName = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16);
+            const name = menuElement.querySelector<HTMLElement>("[data-cafe-a-menu-name]");
+            const hasTwoFieldRows = Boolean(menuElement.querySelector('[data-cafe-a-content-variant="secondary-only"], [data-cafe-a-content-variant="description-only"]'));
+            if (hasTwoFieldRows && name && parseFloat(getComputedStyle(name).fontSize) <= minimumName + 0.1) {
+              // Optional emphasis never takes priority over the one-page floor.
+              setTwoFieldBoostEnabled(false);
+              orderedBalancedFitCacheRef.current.clear();
+              failedAdaptivePartitionsRef.current.clear();
+              setFitPresentationSafetyScale(1);
+              setFitState(DEFAULT_FIT_STATE);
+              return;
+            }
+          }
           if (!cropMeasurement.overflow) {
             hasFitPresentationReadyRef.current = true;
             setFitPresentationState("ready");
@@ -4990,6 +5010,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     visiblePageGroups.length,
     onePageRhythmMode,
     visibleCopySignature,
+    twoFieldBoostEnabled,
   ]);
 
   useLayoutEffect(() => {
@@ -5726,6 +5747,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         categorySignature,
         visibleCopySignature,
         copyFitBasis,
+        twoFieldBoostEnabled,
         orderedBalancedPriceOptionSignature,
         fontStatus,
       ].join("|");
@@ -6344,6 +6366,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     visiblePageGroups.length,
     visibleCopySignature,
     copyFitBasis,
+    twoFieldBoostEnabled,
   ]);
 
   useEffect(() => {
@@ -7344,6 +7367,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         data-cafe-a-skin={cafeASkinAttribute}
         data-template-key={data.menuSite.template_key ?? undefined}
         data-preview-device={data.previewDevice}
+        data-cafe-a-two-field-boost={isAdaptiveFit && !twoFieldBoostEnabled ? "off" : undefined}
         data-cafe-a-proportion-policy={usesOnePageProportionPolicy(data.menuSite.template_key, data.pagePresentation) ? "true" : undefined}
         data-cafe-a-adaptive-fit={isAdaptiveFit ? "true" : undefined}
         data-cafe-a-copy-aware-rhythm={onePageRhythmMode === "fit" ? "true" : undefined}

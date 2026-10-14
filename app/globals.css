@@ -4765,7 +4765,7 @@ video {
   --cafe-a-adaptive-support-size: max(0.75rem, calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-sunday-supporting-ratio, 0.72) * var(--cafe-a-template-supporting-copy-scale, 1)));
 }
 /* Supporting copy is linked across store, menu, featured descriptions and notices. */
-.cafe-a-typography[data-cafe-a-adaptive-fit="true"] :is(.cafe-a-menu-description:not(.cafe-a-category-eyebrow), .cafe-a-store-description, .cafe-a-description-text, .cafe-a-topline-description, .cafe-a-topline-notice-text, .cafe-a-featured-description, [data-cafe-a-widget-body]) {
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] :is(.cafe-a-menu-description, [data-cafe-a-category-description], .cafe-a-time-sale-time-text, .cafe-a-store-description, .cafe-a-description-text, .cafe-a-topline-description, .cafe-a-topline-notice-text, .cafe-a-featured-description, [data-cafe-a-widget-body]) {
   font-size: var(--cafe-a-adaptive-support-size) !important;
 }
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"] :is(.cafe-a-menu-title, .cafe-a-featured-title) {
@@ -5273,8 +5273,8 @@ video {
   font-size: 1.625rem;
 }
 
-.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(.cafe-a-menu-description, .cafe-a-description-text, .cafe-a-store-description, .cafe-a-featured-description, .cafe-a-time-sale-time-text, [data-cafe-a-widget-body]) {
-  font-size: 0.875rem;
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(.cafe-a-menu-description, [data-cafe-a-category-description], .cafe-a-description-text, .cafe-a-store-description, .cafe-a-featured-description, .cafe-a-time-sale-time-text, [data-cafe-a-widget-body]) {
+  font-size: var(--cafe-a-linked-supporting-copy-size) !important;
   line-height: 1.5;
 }
 
@@ -5538,4 +5538,26 @@ video {
 }
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-template-language-control] :is(button, [role="menuitem"]) {
   font-size: var(--cafe-a-linked-supporting-copy-size) !important;
+}
+
+/* Notices use the saved Korean face for both Korean and English; language UI keeps script-aware fonts. */
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] :is(.cafe-a-footer-info, .cafe-a-topline-notices, .cafe-a-topline-mobile-notices, .cafe-a-round-focus-notices, .cafe-a-round-focus-mobile-notices, .cafe-a-mobile-notice-list) .cafe-a-description-text .cafe-a-script-en {
+  font-family: var(--menu-font-ko), system-ui, sans-serif !important;
+}
+
+.cafe-a-typography[data-cafe-a-two-field-boost="off"] {
+  --cafe-a-two-field-boost: 1;
+}
+/* A two-field item gently emphasizes its remaining supporting field. */
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] [data-cafe-a-content-variant="secondary-only"] .cafe-a-menu-meta:not([data-cafe-a-reference-copy]) {
+  font-size: calc(max(0.75rem, calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-sunday-secondary-ratio, 0.64))) * var(--cafe-a-two-field-boost, 1.05)) !important;
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] :is([data-cafe-a-content-variant="description-only"] :is([data-cafe-a-menu-description], .cafe-a-time-sale-time-text), [data-cafe-a-featured-description-only="true"] .cafe-a-featured-description) {
+  font-size: calc(var(--cafe-a-adaptive-support-size) * var(--cafe-a-two-field-boost, 1.05)) !important;
+}
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-cafe-a-content-variant="secondary-only"] .cafe-a-menu-meta {
+  font-size: calc(0.75rem * var(--cafe-a-two-field-boost, 1.05)) !important;
+}
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is([data-cafe-a-content-variant="description-only"] :is([data-cafe-a-menu-description], .cafe-a-time-sale-time-text), [data-cafe-a-featured-description-only="true"] .cafe-a-featured-description) {
+  font-size: calc(var(--cafe-a-linked-supporting-copy-size) * var(--cafe-a-two-field-boost, 1.05)) !important;
 }
