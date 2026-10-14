@@ -83,8 +83,8 @@ export default function KohiMenuDividers() {
       };
       const mobileSpacing = root.dataset.cafeAMobileStyle === "true"
         ? {
-            headingBefore: readLength("--kohi-mobile-heading-to-rule-gap", rem * 0.5),
-            categoryAfter: readLength("--kohi-mobile-category-rule-gap", rem * 1.5),
+            headingBefore: readLength("--kohi-mobile-heading-to-rule-gap", rem * 0.75),
+            categoryAfter: readLength("--kohi-mobile-category-rule-gap", rem),
             strokeWidth: readLength("--kohi-divider-width", 1),
             leadingCategory: true,
           }

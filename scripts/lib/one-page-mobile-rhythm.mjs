@@ -104,7 +104,7 @@ export function getOnePageMobileRhythmFailures(measurement) {
     const headingGap = isKohi ? measurement.itemGap / 1.25 * 1.5625 : measurement.itemGap / 1.25 * 1.5;
     if (category.headingGap != null && Math.abs(category.headingGap - headingGap) > 0.25) failures.push(`${category.title}: heading gap is not the mobile rule`);
   }
-  const kohiRuleBoundary = measurement.itemGap / 1.25 * 1.5625;
+  const kohiRuleBoundary = measurement.itemGap / 1.25 * 2.0625;
   const upperBoundary = isKohi ? kohiRuleBoundary : measurement.sectionGap;
   if (measurement.upperGap == null || Math.abs(measurement.upperGap - upperBoundary) > 0.25) failures.push('upper-to-menu boundary is not linked to category spacing');
   if (measurement.blockGaps.some((gap) => isKohi
@@ -133,7 +133,10 @@ export function getOnePageMobileRhythmFailures(measurement) {
   if (measurement.languageToBrand != null && Math.abs(measurement.languageToBrand - measurement.itemGap / 1.25 * .75) > 0.25) failures.push('top row to brand gap is not the shared 12px brand-copy gap');
   if (measurement.brandToDescription != null && Math.abs(measurement.brandToDescription - measurement.itemGap / 1.25 * 0.75) > 0.25) failures.push('brand to description gap is not 12px');
   if ((measurement.upperContentGaps ?? []).some((gap) => Math.abs(gap - rem * 1.5) > 0.25)) failures.push('upper content block gap is not 24px');
-  for (const line of measurement.kohiLineGaps ?? []) if (line.after == null || Math.abs(line.after - rem * 0.75) > 0.25) failures.push(`KOHI ${line.kind}: gap is not measured from stroke end`);
+  for (const line of measurement.kohiLineGaps ?? []) {
+    const expected = rem * (line.kind === 'category' ? 1 : 0.75);
+    if (line.after == null || Math.abs(line.after - expected) > 0.25) failures.push(`KOHI ${line.kind}: gap is not measured from stroke end`);
+  }
   return failures;
 }
 

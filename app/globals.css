@@ -5580,7 +5580,9 @@ video {
   --kohi-mobile-line-content-gap: 0.75rem;
   --kohi-mobile-heading-to-rule-gap: var(--kohi-mobile-line-content-gap);
   --kohi-mobile-rule-to-item-gap: var(--kohi-mobile-line-content-gap);
-  --kohi-mobile-category-rule-gap: var(--kohi-mobile-line-content-gap);
+  /* Category-to-category transitions need slightly more air than the
+     heading-to-items rule while still measuring from the stroke edge. */
+  --kohi-mobile-category-rule-gap: 1rem;
 }
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_kohi_a"] .cafe-a-category-title {
