@@ -76,7 +76,7 @@ export default function KohiMenuDividers() {
       const boardStyle = desktop && board ? getComputedStyle(board) : null;
       const inset = boardStyle ? Number.parseFloat(boardStyle.paddingTop) : 0;
       const canvasSpacing = desktop && root.dataset.cafeAAdaptiveFit === "true"
-        ? { categoryBefore: inset, contentGap: inset / 2, strokeWidth: Number.parseFloat(getComputedStyle(layer).strokeWidth) || 1 }
+        ? { categoryBefore: inset, contentGap: inset, strokeWidth: Number.parseFloat(getComputedStyle(layer).strokeWidth) || 1 }
         : undefined;
       const next = {
         width: rootRect.width,

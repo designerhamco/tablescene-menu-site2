@@ -5208,9 +5208,12 @@ video {
 .cafe-a-desktop-call-button .cafe-a-script-ko { font-family: var(--menu-font-ko), system-ui, sans-serif !important; }
 
 /* KOHI measures whitespace from divider stroke edges, using its outer inset. */
+.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] {
+  --board-padding: clamp(0.875rem, 1.8vmin, 1.5rem);
+}
 .cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board {
   --kohi-canvas-inset: var(--board-padding);
-  --kohi-content-rule-gap: calc(var(--kohi-canvas-inset) * 0.5);
+  --kohi-content-rule-gap: var(--kohi-canvas-inset);
   --kohi-canvas-column-gap: calc(var(--kohi-canvas-inset) * 2 + var(--kohi-divider-width));
   column-gap: var(--kohi-canvas-column-gap) !important;
 }
@@ -5234,9 +5237,12 @@ video {
   margin-bottom: 0;
 }
 
-/* Panel shells express the visible gutter once, instead of adding two insets. */
+/* Ordinary visible gutters equal the page inset, measured once. */
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"] {
-  --cafe-a-panel-column-gap: clamp(1.5rem, 3vmin, 3rem);
+  --cafe-a-panel-column-gap: var(--board-padding);
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"]:not([data-template-key="cafe_kohi_a"]):not([data-cafe-a-skin="mocha_forest"]) :is(.cafe-a-desktop-fit-board, .cafe-a-balanced-menu-grid, .cafe-a-ordered-menu-flow, .cafe-a-topline-info-header) {
+  column-gap: var(--cafe-a-panel-column-gap) !important;
 }
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="round_focus"] {
   --round-focus-column-gap: var(--cafe-a-panel-column-gap);
@@ -5255,7 +5261,20 @@ video {
   padding-right: var(--board-padding);
 }
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="mocha_forest"] .cafe-a-ordered-menu-flow {
-  column-gap: var(--cafe-a-panel-column-gap);
+  column-gap: var(--cafe-a-panel-column-gap) !important;
+}
+@media (min-width: 1024px) {
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="mocha_forest"] .cafe-a-fixed-rail {
+    padding-right: calc(var(--cafe-a-panel-column-gap) * 0.5);
+  }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="mocha_forest"] .cafe-a-fixed-rail {
+    padding-right: calc(var(--cafe-a-panel-column-gap) * 0.5);
+  }
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="mocha_forest"] .cafe-a-balanced-column:last-child {
+    padding-right: 0;
+  }
 }
 
 /* Mobile is a reading layout, not a canvas-fit candidate. Fixed rem bases keep

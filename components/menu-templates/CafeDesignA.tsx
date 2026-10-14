@@ -4487,15 +4487,17 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     ? "orderedFit" : requestedLayoutMode;
   const isLoopBagelFitSpacing = onePageRhythmMode !== "mobile" && usesLoopBagelFitSpacing(data.menuSite.template_key, data.previewDevice);
   const isKohiFitPolicy = onePageRhythmMode !== "mobile" && usesKohiFitPolicy(data.menuSite.template_key, data.previewDevice);
+  // The gutter correction must not become another tablet enlargement rollout.
+  const adaptiveFontCeiling = isAdaptiveFit && isKohiFitPolicy && menuCoverRenderDevice === "tablet" ? 1.14 : 2;
   const hasBoundedFitSpacing = isLoopBagelFitSpacing || isKohiFitPolicy || (onePageRhythmMode !== "mobile" && usesOnePageProportionFitPolicy(data.menuSite.template_key, data.previewDevice, data.pagePresentation));
   const canRetainTemplateFitState = useCallback((state: CafeDesignAFitState) =>
-    isAdaptiveFit || !isKohiFitPolicy || isKohiFitScaleWithinLimits(state.fontScale, state.gapScale, data.previewDevice, window.innerWidth),
-  [data.previewDevice, isAdaptiveFit, isKohiFitPolicy]);
+    isAdaptiveFit ? state.fontScale <= adaptiveFontCeiling : !isKohiFitPolicy || isKohiFitScaleWithinLimits(state.fontScale, state.gapScale, data.previewDevice, window.innerWidth),
+  [adaptiveFontCeiling, data.previewDevice, isAdaptiveFit, isKohiFitPolicy]);
   const getTemplateFitFontCandidates = useCallback((candidates: readonly number[]) => {
-    if (isAdaptiveFit) return [...new Set([2, 1.9, 1.8, 1.7, 1.6, 1.5, 1.4, ...candidates])].sort((a, b) => b - a);
+    if (isAdaptiveFit) return [...new Set([2, 1.9, 1.8, 1.7, 1.6, 1.5, 1.4, ...candidates])].filter(scale => scale <= adaptiveFontCeiling).sort((a, b) => b - a);
     const previewCandidates = getPreviewFitFontScaleCandidates(candidates, data.previewDevice === "tablet");
     return isKohiFitPolicy ? limitKohiFitFontCandidates(previewCandidates, data.previewDevice, window.innerWidth) : previewCandidates;
-  }, [data.previewDevice, isAdaptiveFit, isKohiFitPolicy]);
+  }, [adaptiveFontCeiling, data.previewDevice, isAdaptiveFit, isKohiFitPolicy]);
   const getTemplateFitGapScale = useCallback((fontScale: number, menuWidth: number) => {
     if (isKohiFitPolicy) {
       return getKohiFitGapScale(fontScale, data.previewDevice, window.innerWidth);
@@ -6806,7 +6808,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       const name = menu.querySelector<HTMLElement>("[data-cafe-a-menu-name]");
       const referenceNameSize = name ? parseFloat(getComputedStyle(name).fontSize) : 0;
       let actualNameSize = referenceNameSize;
-      let low = original, high = 2;
+      let low = original, high = adaptiveFontCeiling;
       try {
         // Probe the final rendered partition, preserving every linked role and
         // the existing font-to-gap mapping. Never stretch gaps independently.
@@ -6848,7 +6850,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       setFitState(next);
     });
     return () => { disposed = true; cancelAnimationFrame(frame); };
-  }, [isAdaptiveFit, copyFitBasis, fitState, safeRenderFitState.fontScale, getTemplateFitGapScale, layoutInputSignature, fitPresentationSafetyScale]);
+  }, [adaptiveFontCeiling, isAdaptiveFit, copyFitBasis, fitState, safeRenderFitState.fontScale, getTemplateFitGapScale, layoutInputSignature, fitPresentationSafetyScale]);
 
   useEffect(() => {
     // The primary three-part candidate and final DOM safety own font backoff.
