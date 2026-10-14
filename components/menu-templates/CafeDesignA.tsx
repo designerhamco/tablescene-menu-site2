@@ -4527,6 +4527,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const menuImagePreviewTriggerRef = useRef<HTMLElement | null>(null);
   const orderedBalancedFitCacheRef = useRef<Map<string, CafeDesignAFitState>>(new Map());
   const adaptiveGrowthProbeKeyRef = useRef("");
+  const failedAdaptiveRescueSessionRef = useRef("");
   const orderedBalancedRejectedCandidateRef = useRef<Set<string>>(new Set());
   const orderedBalancedRejectedColumnRef = useRef<Set<string>>(new Set());
   const orderedBalancedSeenStateRef = useRef<{ sessionKey: string; keys: Set<string> }>({ sessionKey: "", keys: new Set() });
@@ -4739,6 +4740,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
   useEffect(() => {
     orderedBalancedFitCacheRef.current.clear();
+    failedAdaptiveRescueSessionRef.current = "";
     orderedBalancedRejectedCandidateRef.current.clear();
     orderedBalancedRejectedColumnRef.current.clear();
     orderedBalancedSeenStateRef.current = { sessionKey: "", keys: new Set() };
@@ -4909,7 +4911,15 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               if (!hasFitPresentationReadyRef.current) setFitPresentationState("loading");
               return;
             }
-            if (isAdaptiveFit && copyFitBasis === "three-field") {
+            if (isAdaptiveFit && copyFitBasis === "actual" && fitState.columns > ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS) {
+              // A simulated rescue must not be selected again after its real
+              // partition fails even at the readable floor/safety limit.
+              failedAdaptiveRescueSessionRef.current = [visibleCopySignature, window.innerWidth, window.innerHeight].join("|");
+              orderedBalancedFitCacheRef.current.clear();
+              setFitPresentationSafetyScale(1);
+              setFitState(DEFAULT_FIT_STATE);
+              setOrderedBalancedValidationRevision((revision) => revision + 1);
+            } else if (isAdaptiveFit && copyFitBasis === "three-field") {
               // Real wrapped copy can exceed a one-line semantic reference.
               // Re-measure actual content before changing the packing structure.
               setCopyFitBasis("actual");
@@ -4970,6 +4980,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     orderedFitFinalFillCompensation,
     visiblePageGroups.length,
     onePageRhythmMode,
+    visibleCopySignature,
   ]);
 
   useLayoutEffect(() => {
@@ -5780,6 +5791,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       if (
         cachedState &&
         canRetainTemplateFitState(cachedState) &&
+        columnCandidates.includes(cachedState.columns) &&
         (isAdaptiveFit || cachedState.columns <= ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS) &&
         !orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(cachedState)) &&
         !isOrderedBalancedColumnRejected(orderedBalancedFingerprint, cachedState.columns)
@@ -6040,7 +6052,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         const menuColumnGap = parseFloat(getComputedStyle(fitMenuElement).columnGap) || 0;
         const minimumRescueWidth = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) * 12;
         const rescueGridColumns = isRoundFocus ? 5 : 4;
-        const canUseReadableRescue = visibleFitBlockCount >= 4 &&
+        const canUseReadableRescue = failedAdaptiveRescueSessionRef.current !== [visibleCopySignature, window.innerWidth, window.innerHeight].join("|") && visibleFitBlockCount >= 4 &&
           (menuWidth - menuColumnGap * (rescueGridColumns - 1)) / rescueGridColumns >= minimumRescueWidth;
         const columnCandidates = isAdaptiveFit
           ? orderOnePageMenuColumnCandidates([...baseColumnCandidates.filter((columns) => columns < 4 || canUseReadableRescue), ...(canUseReadableRescue ? [4] : [])])
