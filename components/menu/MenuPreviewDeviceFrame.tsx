@@ -102,8 +102,6 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
   const detachedUrl = buildPreviewUrl({
     actual: true,
     embedded: true,
-    device,
-    orientation,
   });
   const showToolbar = isToolbarOpen;
 

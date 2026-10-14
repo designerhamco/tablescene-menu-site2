@@ -15,6 +15,7 @@ import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/m
 import { buildMenuPreviewOrderCallConfig } from "@/lib/menu-preview-experience";
 import {
   normalizeMenuPreviewDevice,
+  getActualMenuPreviewDevice,
   normalizeMenuPreviewOrientation,
   shouldUseMenuPreviewDeviceFrame,
 } from "@/lib/menu-preview-devices";
@@ -1571,7 +1572,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     <>
       <MenuPageRenderer
         mode={renderMode}
-        previewDevice={isActualView && !inferRhythmDevice ? device : undefined}
+        previewDevice={isActualView && !inferRhythmDevice ? getActualMenuPreviewDevice(getFirstParam(resolvedSearchParams.device)) : undefined}
         previewLayoutMode={previewLayoutMode}
         initialPreviewPageId={templateKey === "display_menu_a" ? getDisplayPreviewInitialPageId(data, displayPreviewPageIndex) : null}
         pagePresentation={isMultiPagePresentationPreview(resolvedSearchParams.pagePresentation) ? "multi" : "one"}

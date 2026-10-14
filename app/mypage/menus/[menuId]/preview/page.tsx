@@ -13,6 +13,7 @@ import { usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
 import {
   buildMenuPreviewUrl,
   normalizeMenuPreviewDevice,
+  getActualMenuPreviewDevice,
   normalizeMenuPreviewOrientation,
   shouldUseMenuPreviewDeviceFrame,
   type MenuPreviewQuery,
@@ -207,7 +208,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       ) : null}
       <MenuPageRenderer
         mode="preview"
-        previewDevice={isActualView ? device : undefined}
+        previewDevice={isActualView ? getActualMenuPreviewDevice(requestedDevice) : undefined}
         debugCafeA={debugCafeA}
         initialPreviewPageId={getDisplayPreviewInitialPageId(data, requestedPageIndex)}
         orderCallConfig={previewOrderCallConfig}

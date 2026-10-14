@@ -11,6 +11,7 @@ import {
   buildTemplatePreviewUrl,
   DEFAULT_MENU_PREVIEW_DEVICE,
   getMenuPreviewFrame,
+  getActualMenuPreviewDevice,
   MENU_PREVIEW_DEVICE_ORDER,
   MENU_PREVIEW_ORIENTATIONS,
   normalizeMenuPreviewDevice,
@@ -288,4 +289,26 @@ test("template previews open in device frames without carrying recursive frame p
     buildTemplatePreviewUrl("dining_aube_table_a", {}, { device: "pc", actual: true, embedded: true }),
     "/templates/dining_aube_table_a/preview?device=pc&view=actual&embedded=1",
   );
+});
+
+
+test("detached links infer the real viewport while iframe links retain their device", () => {
+  for (const device of MENU_PREVIEW_DEVICE_ORDER) {
+    const html = renderToStaticMarkup(createElement(MenuPreviewDeviceFrame, {
+      device, orientation: "portrait", menuId: "menu-a",
+      query: { lang: "en", page: "2", callPreview: "on" },
+    }));
+    const link = html.match(/<a[^>]*data-preview-detached-link=""[^>]*>/)?.[0] ?? "";
+    const href = link.match(/href="([^"]*)"/)?.[1].replaceAll("&amp;", "&");
+    assert.equal(href, "/mypage/menus/menu-a/preview?lang=en&page=2&callPreview=on&view=actual&embedded=1");
+    assert.match(html, new RegExp(`src="[^\"]*device=${device}`));
+    const starterUrl = buildTemplatePreviewUrl("fast_food_loop_bagel_a", {
+      device, orientation: "portrait", lang: "en", callPreview: "on",
+    }, { actual: true, embedded: true });
+    assert.doesNotMatch(starterUrl, /[?&](device|orientation)=/);
+    assert.match(starterUrl, /callPreview=on/);
+  }
+  assert.equal(getActualMenuPreviewDevice(undefined), undefined);
+  assert.equal(getActualMenuPreviewDevice("unknown"), undefined);
+  for (const device of MENU_PREVIEW_DEVICE_ORDER) assert.equal(getActualMenuPreviewDevice(device), device);
 });

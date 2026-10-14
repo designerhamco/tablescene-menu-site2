@@ -55,6 +55,11 @@ export function normalizeMenuPreviewDevice(
   return value === "pc" || value === "tablet" || value === "mobile" ? value : fallback;
 }
 
+/** Only iframe/device previews force a device; standalone views infer their viewport. */
+export function getActualMenuPreviewDevice(value: string | undefined): MenuPreviewDevice | undefined {
+  return value === "pc" || value === "tablet" || value === "mobile" ? value : undefined;
+}
+
 export function normalizeMenuPreviewOrientation(value: string | undefined): MenuPreviewOrientation {
   return value === "portrait" ? "portrait" : "landscape";
 }
