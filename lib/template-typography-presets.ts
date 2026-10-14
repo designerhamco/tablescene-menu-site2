@@ -121,7 +121,7 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
   },
   cafe_kohi_a: {
     korean_font_key: "pretendard",
-    english_font_key: "tilt-warp",
+    english_font_key: "darumadrop-one",
     font_size_scale_key: "m",
     typography_roles: {
       brand: { ...createDefaultTypographyRoleSettings().brand, color: "#dc4235" },

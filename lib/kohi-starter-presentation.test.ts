@@ -23,7 +23,7 @@ test("KOHI is an independent editable REAL MATCHA-based template", () => {
   assert.equal(getTemplateLayoutRules("cafe_kohi_a").maxColumns.desktop, 4);
   assert.equal(supportsPcTabletLayoutMode("cafe_kohi_a"), true);
   const roles = mergeTypographySettings("cafe_kohi_a").typography_roles;
-  assert.equal(mergeTypographySettings("cafe_kohi_a").english_font_key, "tilt-warp");
+  assert.equal(mergeTypographySettings("cafe_kohi_a").english_font_key, "darumadrop-one");
   assert.equal(roles.category.color, "#DC4235");
   assert.equal(roles.brand.color, roles.category.color);
   for (const role of ["itemName", "supporting", "price"] as const) assert.equal(roles[role].color, "#000000");
@@ -48,7 +48,7 @@ test("KOHI starter displays the KOHI store-name text in Tilt Warp without a logo
   assert.equal(preset.site.logo_url, null);
   assert.equal(preset.site.settings?.logo_replaces_name, false);
   assert.equal(preset.site.restaurant_name, "KOHI");
-  assert.equal(mergeTypographySettings("cafe_kohi_a").english_font_key, "tilt-warp");
+  assert.equal(mergeTypographySettings("cafe_kohi_a").english_font_key, "darumadrop-one");
   assert.equal(capabilities.brandLogo, true);
   assert.equal(capabilities.brandLogoReplacesName, true);
   assert.notEqual(getStarterPreset("cafe_design_a").site.settings?.logo_replaces_name, true);
@@ -83,7 +83,7 @@ test("KOHI featured area contains only one original illustration without a produ
   const preset = getStarterPreset("cafe_kohi_a");
   assert.equal(preset.featured_slides?.length, 1);
   const slide = preset.featured_slides![0];
-  assert.equal(slide.image_url, "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-user-v4.png");
+  assert.equal(slide.image_url, "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-user-v5.png");
   assert.equal(preset.site.cover_image_url, slide.image_url);
   assert.equal(slide.featured_item_key, undefined);
   assert.equal(slide.featured_item_name, undefined);
@@ -101,7 +101,7 @@ test("KOHI featured area contains only one original illustration without a produ
 
 test("KOHI illustration is not cropped in wide portrait-tablet headers, without changing customer photos", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
-  const selector = '.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-user-v4.png"]';
+  const selector = '.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"])';
   const rule = css.slice(css.indexOf(selector), css.indexOf("}", css.indexOf(selector)) + 1);
   assert.match(rule, /object-fit: contain;/);
   assert.match(rule, /background: transparent;/);
@@ -126,13 +126,16 @@ test("KOHI PNG has actual transparent pixels, not a painted paper/checkerboard b
 
 test("KOHI uses the user-supplied PNG unchanged, without regenerating or editing pixels", () => {
   const path = new URL(`../public${getStarterPreset("cafe_kohi_a").site.cover_image_url}`, import.meta.url);
-  assert.equal(createHash("sha256").update(readFileSync(path)).digest("hex"), "41beff3e978c09ce8fbefd9988e5178fb0eb22fa128b84f09ad957a2ed01cc99");
+  assert.equal(createHash("sha256").update(readFileSync(path)).digest("hex"), "f9fa7be9d4ac5dca6b8e0d85a3b818d932535d1cb0ea1cbb9c63db557306d71b");
 });
 
 test("KOHI transparent illustration removes fallback backdrops without affecting other hero images", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
-  for (const asset of ["kohi-coffee-crocodile-transparent-v2.png", "kohi-coffee-crocodile-heart-v3.png", "kohi-coffee-crocodile-user-v4.png"]) {
-    const scope = `.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image][src$="/${asset}"])`;
+  for (const asset of ["kohi-coffee-crocodile-transparent-v2.png", "kohi-coffee-crocodile-heart-v3.png", "kohi-coffee-crocodile-user-v5.png"]) {
+    const imageSelector = asset === "kohi-coffee-crocodile-user-v5.png"
+      ? '[data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"])'
+      : `[data-cafe-a-cover-image][src$="/${asset}"]`;
+    const scope = `.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has(${imageSelector})`;
     assert.ok(css.includes(`${scope} {\n  background: transparent;\n}`));
     assert.ok(css.includes(`${scope} [data-cafe-a-cover-placeholder] {\n  display: none;\n}`));
   }

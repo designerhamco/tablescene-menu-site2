@@ -5096,16 +5096,16 @@ video {
 }
 
 /* User-supplied transparent PNG: preserve the artwork and page background. */
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-user-v4.png"] {
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"]) {
   background: transparent;
   object-fit: contain;
 }
 
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-user-v4.png"]) {
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"])) {
   background: transparent;
 }
 
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-user-v4.png"]) [data-cafe-a-cover-placeholder] {
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"])) [data-cafe-a-cover-placeholder] {
   display: none;
 }
 
@@ -5126,9 +5126,10 @@ video {
     font-size: calc(clamp(calc(1.9rem * var(--menu-role-brand-size-scale, 1)), calc(5.4vh * var(--menu-role-brand-size-scale, 1)), calc(3.5rem * var(--menu-role-brand-size-scale, 1))) * var(--cafe-a-device-type-scale) * 1.06);
   }
 
-  .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] {
+  .cafe-a-typography[data-template-key="cafe_kohi_a"]:where(:not([data-cafe-a-adaptive-fit="true"])) .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] {
     margin-bottom: var(--cafe-a-category-no-divider-gap);
   }
+
 }
 
 @media (max-width: 1023px) {
@@ -5193,6 +5194,14 @@ video {
 .cafe-a-desktop-call-button svg, .cafe-a-mobile-call-button svg { inline-size: 1.5rem; block-size: 1.5rem; }
 .cafe-a-desktop-call-button:focus-visible, .cafe-a-mobile-call-button:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 .cafe-a-desktop-call-button .cafe-a-script-ko { font-family: var(--menu-font-ko), system-ui, sans-serif !important; }
+
+/* KOHI category boundaries belong to every adaptive PC/tablet canvas, including portrait. */
+.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] {
+  margin-bottom: var(--cafe-a-category-no-divider-gap);
+}
+.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] .cafe-a-category-items > .cafe-a-menu-item-stack:last-child {
+  margin-bottom: 0;
+}
 
 /* Mobile is a reading layout, not a canvas-fit candidate. Fixed rem bases keep
    type and rhythm stable across phone widths; wrapping/images remain responsive.

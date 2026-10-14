@@ -188,3 +188,7 @@ Loop Bagel starter and template fallback Korean font are Pretendard; saved custo
 ### Detached preview viewport
 
 The new-window link preserves content, locale and Call preview flags, but omits device/orientation overrides. Actual preview routes without an explicit valid device pass no override to the renderer: the browser viewport selects PC/tablet/mobile naturally. Device iframe URLs retain their explicit device/orientation, so the framed selector still simulates its requested layout. This applies to both starter and saved-menu previews; Display and multi-page engines keep their existing responsive policies.
+
+### KOHI portrait category boundaries
+
+KOHI category-to-category boundaries use their existing 3.4 item-rhythm ratio in every adaptive PC/tablet canvas, including 768–1023px portrait tablets. Apply the category boundary once to the preceding block; clear that block's last-item margin to avoid doubling the gap. First categories in each visual column have no added leading gap. Decorative divider strokes stay centered in the actual measured gap and outside fit measurement. Mobile keeps its independent 48px section boundary. KOHI's starter/default English font is Darumadrop One; the supplied v5 transparent illustration replaces the starter featured image with contain fitting.
