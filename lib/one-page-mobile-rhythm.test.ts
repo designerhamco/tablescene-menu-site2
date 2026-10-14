@@ -46,17 +46,18 @@ test("KOHI mobile QA validates its approved type and split rule spacing", () => 
   const kohi = {
     ...valid,
     key: "cafe_kohi_a",
-    upperGap: 33,
-    blockGaps: [33, 33, 48],
+    upperGap: 25,
+    blockGaps: [29, 29, 48],
     categories: [{ ...valid.categories[0], headingGap: 25 }],
     autoBrand: true,
     brandState: "ready",
     brandInnerWidth: 342,
     brandLineCount: 1,
     categoryCopyGaps: [4],
-    kohiLineGaps: [{ kind: "category", after: 16 }, { kind: "heading", after: 12 }],
+    kohiLineGaps: [{ kind: "category", before: 16, after: 12 }, { kind: "heading", before: 12, after: 12 }],
     fonts: { ...valid.fonts, brand: 84, category: 31.2 },
   };
   assert.deepEqual(getOnePageMobileRhythmFailures(kohi), []);
   assert.ok(getOnePageMobileRhythmFailures({ ...kohi, kohiLineGaps: [{ kind: "heading", after: 24 }] }).length);
+  assert.ok(getOnePageMobileRhythmFailures({ ...kohi, kohiLineGaps: [{ kind: "category", before: 12, after: 12 }] }).length);
 });

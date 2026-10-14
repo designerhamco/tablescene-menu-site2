@@ -84,7 +84,7 @@ export default function KohiMenuDividers() {
       const mobileSpacing = root.dataset.cafeAMobileStyle === "true"
         ? {
             headingBefore: readLength("--kohi-mobile-heading-to-rule-gap", rem * 0.75),
-            categoryAfter: readLength("--kohi-mobile-category-rule-gap", rem),
+            categoryAfter: readLength("--kohi-mobile-category-rule-gap", rem * 0.75),
             strokeWidth: readLength("--kohi-divider-width", 1),
             leadingCategory: true,
           }
