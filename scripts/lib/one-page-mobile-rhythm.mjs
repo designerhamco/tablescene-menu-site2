@@ -90,6 +90,7 @@ export function measureOnePageMobileRhythm() {
 export function getOnePageMobileRhythmFailures(measurement) {
   if (measurement.missingRoot) return ['missing single-page root'];
   const failures = [];
+  const isKohi = measurement.key === 'cafe_kohi_a';
   if (measurement.mobileStyle !== 'true') failures.push('mobile reading style is not active');
   if (measurement.contract !== 'mobile-reading') failures.push('mobile spacing contract is not separate from canvas-fit');
   if (measurement.copyAware === 'true') failures.push('PC/tablet copy-aware rhythm leaked into mobile');
@@ -100,19 +101,25 @@ export function getOnePageMobileRhythmFailures(measurement) {
   for (const category of measurement.categories) {
     if (category.itemGaps.some((gap) => Math.abs(gap - measurement.itemGap) > 0.2)) failures.push(`${category.title}: item gap is not the mobile reading gap`);
     if (Math.abs(category.lastMargin) > 0.2) failures.push(`${category.title}: duplicated last-item margin`);
-    if (category.headingGap != null && Math.abs(category.headingGap - (measurement.key === 'cafe_kohi_a' ? 2.0625 : 1.5) * measurement.itemGap / 1.25) > 0.25) failures.push(`${category.title}: heading gap is not the mobile rule`);
+    const headingGap = isKohi ? measurement.itemGap / 1.25 * 1.5625 : measurement.itemGap / 1.25 * 1.5;
+    if (category.headingGap != null && Math.abs(category.headingGap - headingGap) > 0.25) failures.push(`${category.title}: heading gap is not the mobile rule`);
   }
-  if (measurement.upperGap == null || Math.abs(measurement.upperGap - measurement.sectionGap) > 0.25) failures.push('upper-to-menu boundary is not linked to category spacing');
-  if (measurement.blockGaps.some((gap) => Math.abs(gap - measurement.sectionGap) > 0.25)) failures.push('category/widget/footer boundary is not linked to section spacing');
+  const kohiRuleBoundary = measurement.itemGap / 1.25 * 1.5625;
+  const upperBoundary = isKohi ? kohiRuleBoundary : measurement.sectionGap;
+  if (measurement.upperGap == null || Math.abs(measurement.upperGap - upperBoundary) > 0.25) failures.push('upper-to-menu boundary is not linked to category spacing');
+  if (measurement.blockGaps.some((gap) => isKohi
+    ? Math.min(Math.abs(gap - kohiRuleBoundary), Math.abs(gap - measurement.sectionGap)) > 0.25
+    : Math.abs(gap - measurement.sectionGap) > 0.25)) failures.push('category/widget/footer boundary is not linked to section spacing');
   if (measurement.overflow > 1) failures.push('horizontal overflow');
   const rem = measurement.itemGap / 1.25;
   const expectedFonts = { name: rem, price: rem, description: rem * 0.875 * (measurement.fontMultipliers?.description ?? 1), secondary: rem * 0.75 * (measurement.fontMultipliers?.secondary ?? 1), category: rem * 1.625 };
   if (measurement.fonts?.brand != null && measurement.fonts.brand < Math.max(44, rem * 2.75) - 0.05) failures.push('mobile brand is below its 44px minimum');
   if (measurement.brandInnerWidth && measurement.brandLineCount) {
-    const ceiling = Math.max(44, rem * 2.75, measurement.brandInnerWidth * (measurement.brandLineCount === 1 ? 56 : 44) / 342);
+    const ceilingScale = isKohi ? 1.5 : 1;
+    const ceiling = Math.max(44, rem * 2.75, measurement.brandInnerWidth * (measurement.brandLineCount === 1 ? 56 : 44) / 342 * ceilingScale);
     if (measurement.fonts.brand > ceiling + 0.1) failures.push('mobile brand exceeds its visual ceiling');
   }
-  if ((measurement.categoryCopyGaps ?? []).some((gap) => Math.abs(gap - rem * 0.5) > 0.05)) failures.push('category copy gap is not 8px');
+  if ((measurement.categoryCopyGaps ?? []).some((gap) => Math.abs(gap - rem * (isKohi ? 0.25 : 0.5)) > 0.05)) failures.push(`category copy gap is not ${isKohi ? 4 : 8}px`);
   if (measurement.supportingCopyRuns) {
     if (measurement.supportingCopyRuns.some(({ size, lineHeight }) => Math.abs(lineHeight - size * 1.5) > 0.05)) failures.push('supporting line-height is not shared 1.5');
   } else if ((measurement.supportingLineHeights ?? []).some((height) => Math.abs(height - rem * 0.875 * 1.5) > 0.05)) failures.push('supporting line-height is not shared 1.5');
@@ -120,12 +127,13 @@ export function getOnePageMobileRhythmFailures(measurement) {
   if ((measurement.noticeSizes ?? []).some((size) => Math.abs(size - rem * 0.875) > 0.05)) failures.push('notices are not uniformly 14px');
   if ((measurement.noticeLineHeights ?? []).some((height) => Math.abs(height - rem * 0.875 * 1.5) > 0.05)) failures.push('notices do not use normal body line-height');
   if ((measurement.categoryDescriptions ?? []).some((description) => Math.abs(description.size - rem * 0.875) > 0.05)) failures.push('category descriptions are not 14px');
+  if (isKohi) expectedFonts.category *= 1.2;
   for (const [role, expected] of Object.entries(expectedFonts)) if (measurement.fonts?.[role] != null && Math.abs(measurement.fonts[role] - expected) > 0.05) failures.push(`${role}: mobile typography base changed`);
   if (measurement.languageHeight != null && Math.abs(measurement.languageHeight - measurement.itemGap / 1.25 * 3) > 0.25) failures.push('top control row is not 48px');
   if (measurement.languageToBrand != null && Math.abs(measurement.languageToBrand - measurement.itemGap / 1.25 * .75) > 0.25) failures.push('top row to brand gap is not the shared 12px brand-copy gap');
   if (measurement.brandToDescription != null && Math.abs(measurement.brandToDescription - measurement.itemGap / 1.25 * 0.75) > 0.25) failures.push('brand to description gap is not 12px');
   if ((measurement.upperContentGaps ?? []).some((gap) => Math.abs(gap - rem * 1.5) > 0.25)) failures.push('upper content block gap is not 24px');
-  for (const line of measurement.kohiLineGaps ?? []) if (line.after == null || Math.abs(line.after - measurement.itemGap / 1.25 * (line.kind === 'heading' ? 1.5 : 0.75)) > 0.25) failures.push(`KOHI ${line.kind}: gap is not measured from stroke end`);
+  for (const line of measurement.kohiLineGaps ?? []) if (line.after == null || Math.abs(line.after - rem * 0.75) > 0.25) failures.push(`KOHI ${line.kind}: gap is not measured from stroke end`);
   return failures;
 }
 

@@ -2312,6 +2312,7 @@ function StoreIdentity({
         className={titleClassName}
         fontSignature={fontSignature}
         device={device}
+        layoutShell={getFixedOnePageLayoutShell(data.menuSite.template_key)}
       />
     );
   }

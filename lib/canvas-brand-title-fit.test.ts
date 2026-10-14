@@ -3,6 +3,7 @@ import test from "node:test";
 import { readFileSync } from "node:fs";
 import { getCanvasHeaderGapScale, getCanvasHeaderRatio, getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit } from "./canvas-brand-title-fit";
 import { getMobileBrandMeasurementTexts } from "./mobile-brand-title-fit";
+import { getFixedOnePageLayoutShell } from "./one-page-layout-shells";
 
 test("coverage is allocated by slot structure, not a template or fixed px size", () => {
   assert.deepEqual(getCanvasBrandLimits(380, "horizontal-header"), { minimum: 30.400000000000002, maximum: 83.6, widthRatio: 0.65 });
@@ -42,6 +43,25 @@ test("a wide PC rail can fill 100% while keeping 65% coverage before accepting t
   assert.deepEqual(pc.lines, ["LOOP BAGEL"]);
   assert.ok(Math.abs(pc.fontSize * 598.3 / 100 / 358 - 1) < 0.0001);
   assert.deepEqual(tablet.lines, ["LOOP", "BAGEL"]);
+});
+
+test("all seven one-page templates keep their explicit layout family", () => {
+  for (const key of ["cafe_design_a", "cafe_kohi_a", "cafe_mocha_forest_a", "fast_food_loop_bagel_a"]) {
+    assert.equal(getFixedOnePageLayoutShell(key), "brand_left_rail", key);
+  }
+  for (const key of ["cafe_sunday_line_a", "cafe_van_gogh_a"]) {
+    assert.equal(getFixedOnePageLayoutShell(key), "brand_top_band", key);
+  }
+  assert.equal(getFixedOnePageLayoutShell("cafe_round_focus_a"), "brand_center_column");
+});
+
+test("canvas brand fitting consumes the explicit shell instead of inferring it from CSS", () => {
+  const source = readFileSync(new URL("../components/menu-templates/shared/CanvasBrandTitle.tsx", import.meta.url), "utf8");
+  assert.match(source, /layoutShell === "brand_top_band" \? "horizontal-header" : "brand-column"/);
+  assert.match(source, /device === "pc" && isEdgeBrandColumn/);
+  assert.doesNotMatch(source, /classList\.contains\("cafe-a-topline-brand-identity"\)/);
+  const renderer = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
+  assert.match(renderer, /layoutShell=\{getFixedOnePageLayoutShell\(data\.menuSite\.template_key\)\}/);
 });
 
 test("doubling slot dimensions doubles font size without any device px cap", () => {
