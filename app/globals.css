@@ -5581,7 +5581,7 @@ video {
   --kohi-mobile-line-content-gap: 0.75rem;
   --kohi-mobile-heading-to-rule-gap: var(--kohi-mobile-line-content-gap);
   --kohi-mobile-rule-to-item-gap: var(--kohi-mobile-line-content-gap);
-  --kohi-mobile-last-item-to-rule-gap: 1rem;
+  --kohi-mobile-last-item-to-rule-gap: 1.5rem;
   --kohi-mobile-category-rule-gap: var(--kohi-mobile-line-content-gap);
 }
 

@@ -110,7 +110,7 @@ export function getOnePageMobileRhythmFailures(measurement) {
     if (category.headingGap != null && Math.abs(category.headingGap - headingGap) > 0.25) failures.push(`${category.title}: heading gap is not the mobile rule`);
   }
   const rem = measurement.itemGap / 1.25;
-  const kohiCategoryBoundary = rem * 1.8125;
+  const kohiCategoryBoundary = rem * 2.3125;
   const kohiLeadingBoundary = rem * 1.5625;
   const upperBoundary = isKohi ? kohiLeadingBoundary : measurement.sectionGap;
   if (measurement.upperGap == null || Math.abs(measurement.upperGap - upperBoundary) > 0.25) failures.push('upper-to-menu boundary is not linked to category spacing');
@@ -141,7 +141,7 @@ export function getOnePageMobileRhythmFailures(measurement) {
   if ((measurement.upperContentGaps ?? []).some((gap) => Math.abs(gap - rem * 1.5) > 0.25)) failures.push('upper content block gap is not 24px');
   for (const line of measurement.kohiLineGaps ?? []) {
     if (line.after == null || Math.abs(line.after - rem * 0.75) > 0.25) failures.push(`KOHI ${line.kind}: following gap is not measured from stroke end`);
-    if (line.kind === 'category' && line.before != null && Math.abs(line.before - rem) > 0.25) failures.push('KOHI category: last-item gap is not measured to the stroke edge');
+    if (line.kind === 'category' && line.before != null && Math.abs(line.before - rem * 1.5) > 0.25) failures.push('KOHI category: last-item gap is not measured to the stroke edge');
   }
   return failures;
 }
