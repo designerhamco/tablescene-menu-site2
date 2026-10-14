@@ -134,3 +134,15 @@ test("legacy multi-page presentations identify themselves to the reused single-p
     assert.doesNotMatch(source, /pagePresentation="one"/);
   }
 });
+
+
+test("adaptive canvases share category hierarchy and use the actual frame without legacy device boosts", () => {
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  const shared = css.slice(css.indexOf("/* PC/tablet: one measured primary fit"), css.indexOf("/* Supporting copy is linked"));
+  assert.match(shared, /--cafe-a-device-type-scale: 1 !important/);
+  assert.match(shared, /--cafe-a-common-category-ratio: 1\.6/);
+  assert.match(shared, /max-width: none !important/);
+  assert.match(shared, /max-height: none !important/);
+  assert.match(shared, /font-size: calc\(var\(--cafe-a-linked-item-name-size\) \* var\(--cafe-a-common-category-ratio\) \* var\(--menu-role-category-size-scale, 1\)\) !important/);
+  assert.doesNotMatch(shared, /data-template-key|data-preview-device|1920px|1080px/);
+});

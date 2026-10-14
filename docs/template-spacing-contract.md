@@ -192,3 +192,9 @@ The new-window link preserves content, locale and Call preview flags, but omits 
 ### KOHI portrait category boundaries
 
 KOHI category-to-category boundaries use their existing 3.4 item-rhythm ratio in every adaptive PC/tablet canvas, including 768–1023px portrait tablets. Apply the category boundary once to the preceding block; clear that block's last-item margin to avoid doubling the gap. First categories in each visual column have no added leading gap. Decorative divider strokes stay centered in the actual measured gap and outside fit measurement. Mobile keeps its independent 48px section boundary. KOHI's starter/default English font is Darumadrop One; the supplied v5 transparent illustration replaces the starter featured image with contain fitting.
+
+### Shared one-page canvas typography and available frame — 2026-10-14
+
+All seven adaptive PC/tablet templates now use category size = linked item-name size × 1.6 × saved category role scale. This supersedes the legacy template/device category ratios and extra category boosts for this engine only. The device type multiplier is exactly 1, so tablet 1.12 and template 1.04 multipliers cannot multiply chips/categories again after fitting. Saved fonts, weights and colors and each layout shell remain authoritative; actual pixel sizes vary with content/font/viewport fit.
+
+Adaptive boards use the complete available root content box, without the legacy 1920px width / 1080px height ceiling. Decorative outer padding still reserves its space; the full-viewport change does not cover checker bands or change content insets. Fit caches/observers recompute against that actual frame, preserving readable rem floors, bounded font candidates, linked role sizes and final crop safety. Display, multi-page, inactive engines and all mobile 16/14/12/26px and 20/24/48px reading rules retain their independent policy.

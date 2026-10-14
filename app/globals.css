@@ -4755,9 +4755,21 @@ video {
 }
 
 /* PC/tablet: one measured primary fit, using actual copy and readable rem floors.
-   Declare derived tokens where fit variables exist, not above the board. */
+   Legacy device and template multipliers belong to the excluded engines. */
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"] {
-  --cafe-a-device-type-scale: 1;
+  --cafe-a-device-type-scale: 1 !important;
+  --cafe-a-common-category-ratio: 1.6;
+  --cafe-a-desktop-max-visual-width: 100% !important;
+  --cafe-a-desktop-max-visual-height: 100% !important;
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-category-title {
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-common-category-ratio) * var(--menu-role-category-size-scale, 1)) !important;
 }
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board,
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"] > div > :is(header, section, [data-cafe-a-scroll-content]) {

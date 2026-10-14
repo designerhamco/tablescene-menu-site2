@@ -1,6 +1,6 @@
 import type { MenuPreviewDevice } from "./menu-preview-devices";
 
-/** Shared behavior, not shared typography calibration. Keep retired/other engines out. */
+/** Shared canvas sizing and category hierarchy; preserve template fonts/layout personalities and excluded engines. */
 export const ONE_PAGE_PROPORTION_TEMPLATE_KEYS = [
   "cafe_design_a",
   "cafe_kohi_a",
