@@ -190,7 +190,7 @@ test("device selector is open by default and collapses upward into a compact han
   assert.match(previewFrameSource, /data-preview-device-toolbar-content=""/);
   assert.match(previewFrameSource, /pointer-events-none opacity-0/);
   assert.match(previewFrameSource, /tabIndex=\{showToolbar \? undefined : -1\}/);
-  assert.match(previewFrameSource, /showToolbar \? "w-\[min\(27rem,calc\(100vw-1\.5rem\)\)\]" : "w-20 max-w-20"/);
+  assert.match(previewFrameSource, /showToolbar \? supportsCallPreview \? "w-\[min\(35rem,calc\(100vw-1\.5rem\)\)\]" : "w-\[min\(27rem,calc\(100vw-1\.5rem\)\)\]" : "w-20 max-w-20"/);
   assert.match(previewFrameSource, /width: showToolbar \? undefined : "5rem"/);
   assert.match(previewFrameSource, /translateY\(calc\(-100% \+ 1\.75rem\)\)/);
   assert.match(previewFrameSource, /transition-\[width,transform\] duration-300 ease-out/);

@@ -40,6 +40,7 @@ export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
       enabledLocales={props.enabledLocales}
       orderCallConfig={props.orderCallConfig}
       typographyStyle={typographyStyle}
+      pagePresentation={props.pagePresentation}
     >
       {children}
     </PublicMenuExperienceShell>

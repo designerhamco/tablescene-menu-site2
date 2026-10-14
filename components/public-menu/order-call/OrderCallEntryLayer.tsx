@@ -14,6 +14,8 @@ import { getOrderCallEntryVisibility, hasPrepayCheckout, LOCKED_ORDER_CALL_ENTRY
 import PostpayOrderCartDrawer from "./PostpayOrderCartDrawer";
 import { MenuOrderActionsProvider } from "./MenuOrderAddButton";
 import StaffCallDialog from "./StaffCallDialog";
+import { usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
+import { OnePageCallProvider } from "@/components/menu-templates/one-page/OnePageCallControls";
 
 type OrderCallEntryLayerProps = {
   templateKey: TemplateKey;
@@ -22,6 +24,7 @@ type OrderCallEntryLayerProps = {
   enabledLocales: SupportedLocale[];
   typographyStyle?: CSSProperties;
   children: ReactNode;
+  pagePresentation?: "one" | "multi";
 };
 
 export default function OrderCallEntryLayer({
@@ -31,6 +34,7 @@ export default function OrderCallEntryLayer({
   enabledLocales,
   typographyStyle,
   children,
+  pagePresentation,
 }: OrderCallEntryLayerProps) {
   const visibility = getOrderCallEntryVisibility(config);
   const [cartOpen, setCartOpen] = useState(false);
@@ -57,6 +61,16 @@ export default function OrderCallEntryLayer({
     const timeout = window.setTimeout(() => setToastMessage(""), 2400);
     return () => window.clearTimeout(timeout);
   }, [toastMessage]);
+
+  if (usesOnePageProportionPolicy(templateKey, pagePresentation)) {
+    const enabled = visibility.showCall && Boolean(config.menuSiteId);
+    return <OnePageCallProvider value={{ enabled, tableLabel: config.tableLabel ?? "", openCall: () => setCallOpen(true) }}>
+      {children}
+      {enabled ? <StaffCallDialog open={callOpen} onClose={() => setCallOpen(false)}
+        menuSiteId={config.menuSiteId!} tableLabel={config.tableLabel}
+        previewOnly={config.previewOnly ?? false} callItems={config.callItems} /> : null}
+    </OnePageCallProvider>;
+  }
 
   if (!visibility.showHeader) {
     return <>{children}</>;

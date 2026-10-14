@@ -18,6 +18,7 @@ type PublicMenuExperienceShellProps = {
   orderCallConfig?: OrderCallEntryConfig;
   typographyStyle?: CSSProperties;
   children: ReactNode;
+  pagePresentation?: "one" | "multi";
 };
 
 export default function PublicMenuExperienceShell({
@@ -28,6 +29,7 @@ export default function PublicMenuExperienceShell({
   orderCallConfig,
   typographyStyle,
   children,
+  pagePresentation,
 }: PublicMenuExperienceShellProps) {
   if (!supportsOrderCallExperienceShell(templateKey)) {
     return <>{children}</>;
@@ -40,6 +42,7 @@ export default function PublicMenuExperienceShell({
       currentLocale={currentLocale}
       enabledLocales={enabledLocales}
       typographyStyle={typographyStyle}
+      pagePresentation={pagePresentation}
     >
       {children}
     </OrderCallEntryLayer>

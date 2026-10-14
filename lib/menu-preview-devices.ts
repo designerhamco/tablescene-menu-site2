@@ -43,6 +43,7 @@ export type MenuPreviewQuery = {
   debugCafeA?: string;
   lang?: string;
   page?: string;
+  callPreview?: string;
 };
 
 export type TemplatePreviewQuery = Record<string, string | string[] | undefined>;
@@ -83,16 +84,21 @@ export function buildMenuPreviewUrl(
     paymentMode?: MenuPreviewPaymentMode;
     embedded?: boolean;
     actual?: boolean;
+    callPreview?: boolean;
   } = {},
 ) {
   const searchParams = new URLSearchParams();
 
-  for (const key of ["lang", "page", "debugCafeA"] as const) {
+  for (const key of ["lang", "page", "debugCafeA", "callPreview"] as const) {
     const value = query[key];
     if (value) searchParams.set(key, value);
   }
 
   if (options.device) searchParams.set("device", options.device);
+  if (options.callPreview !== undefined) {
+    if (options.callPreview) searchParams.set("callPreview", "on");
+    else searchParams.delete("callPreview");
+  }
   if (options.device === "tablet" && options.orientation) {
     searchParams.set("orientation", options.orientation);
   }
@@ -126,6 +132,7 @@ const TEMPLATE_PREVIEW_QUERY_KEYS = [
   "pagePresentation",
   "renderMode",
   "orderCallQa",
+  "callPreview",
 ] as const;
 
 export function buildTemplatePreviewUrl(
@@ -136,6 +143,7 @@ export function buildTemplatePreviewUrl(
     orientation?: MenuPreviewOrientation;
     embedded?: boolean;
     actual?: boolean;
+    callPreview?: boolean;
   } = {},
 ) {
   const searchParams = new URLSearchParams();
@@ -147,6 +155,10 @@ export function buildTemplatePreviewUrl(
   }
 
   if (options.device) searchParams.set("device", options.device);
+  if (options.callPreview !== undefined) {
+    if (options.callPreview) searchParams.set("callPreview", "on");
+    else searchParams.delete("callPreview");
+  }
   if (options.device === "tablet" && options.orientation) {
     searchParams.set("orientation", options.orientation);
   }

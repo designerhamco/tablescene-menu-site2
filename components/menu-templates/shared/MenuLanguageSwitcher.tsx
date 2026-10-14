@@ -17,6 +17,7 @@ type MenuLanguageSwitcherProps = {
   menuAlign?: "left" | "right";
   tone?: "default" | "inverse";
   scriptAwareLabels?: boolean;
+  iconOnly?: boolean;
 };
 
 const SHORT_LOCALE_LABELS: Record<SupportedLocale, string> = {
@@ -59,6 +60,7 @@ export default function MenuLanguageSwitcher({
   menuAlign = "right",
   tone = "default",
   scriptAwareLabels = false,
+  iconOnly = false,
 }: MenuLanguageSwitcherProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -92,7 +94,7 @@ export default function MenuLanguageSwitcher({
     };
   }, [isOpen]);
 
-  if (visibleLocales.length === 0 || (visibleLocales.length === 1 && triggerVariant !== "aube")) return null;
+  if (visibleLocales.length === 0 || (visibleLocales.length === 1 && triggerVariant !== "aube" && !iconOnly)) return null;
 
   const triggerClassName =
     triggerVariant === "cafe"
@@ -144,7 +146,7 @@ export default function MenuLanguageSwitcher({
         ) : triggerVariant === "default" ? (
           <Globe2 className={iconClassName} strokeWidth={2} aria-hidden="true" />
         ) : null}
-        {triggerVariant === "cafe" ? (
+        {triggerVariant === "cafe" && !iconOnly ? (
           <>
             <span className="leading-none">{scriptAwareLabels ? <ScriptAwareText text={SHORT_LOCALE_LABELS[currentLocale]} /> : SHORT_LOCALE_LABELS[currentLocale]}</span>
             <ChevronDown className={chevronClassName} strokeWidth={1.8} aria-hidden="true" />

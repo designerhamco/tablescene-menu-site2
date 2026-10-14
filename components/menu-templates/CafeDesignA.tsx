@@ -28,6 +28,7 @@ import CanvasBrandTitle from "@/components/menu-templates/shared/CanvasBrandTitl
 import { applyOnePageChipLayout, applyOnePageChipLayouts } from "@/components/menu-templates/one-page-chip-layout";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import MenuOrderAddButton from "@/components/public-menu/order-call/MenuOrderAddButton";
+import { OnePageCallButton, OnePageMobileCallBar, OnePageCallPalette, useOnePageCallActions } from "@/components/menu-templates/one-page/OnePageCallControls";
 import { createCafeAOrderedBalancedColumnFromBlocks } from "@/components/menu-templates/cafe-a-balanced-layout";
 import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
 import { getCafeAMenuWrapScaleCandidates, hasCafeAMenuWrapDensityImproved, type CafeAMenuWrapDensityDecision } from "@/lib/cafe-a-wrap-density";
@@ -2311,16 +2312,20 @@ function CafeAFooterInfo({
   density,
   placement = "desktop",
   mobileReading = false,
+  callOnly = false,
 }: {
   data: PublicMenuTemplateProps;
   capabilities: TemplateCapabilities;
   density: MenuLayoutDensity;
   placement?: "desktop" | "mobile";
   mobileReading?: boolean;
+  callOnly?: boolean;
 }) {
-  const infoRows = getCafeAFooterInfo(data, capabilities);
+  const call = useOnePageCallActions();
+  const showCall = placement === "desktop" && call.enabled;
+  const infoRows = callOnly ? [] : getCafeAFooterInfo(data, capabilities);
   const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
-  if (infoRows.length === 0) return null;
+  if (infoRows.length === 0 && !showCall) return null;
 
   return (
     <aside
@@ -2329,13 +2334,17 @@ function CafeAFooterInfo({
       }`}
       data-cafe-a-footer-info=""
       data-cafe-a-footer-placement={placement}
+      data-one-page-call-footer={showCall ? "" : undefined}
+      data-one-page-call-footer-only={showCall && callOnly ? "" : undefined}
     >
-      {mobileReading ? <MobileNoticeList rows={infoRows} density={density} /> : <p
+      {showCall ? <div className="cafe-a-call-footer-action"><OnePageCallButton /></div> : null}
+      {infoRows.length > 0 ? mobileReading ? <MobileNoticeList rows={infoRows} density={density} /> : <p
         className={`cafe-a-description-text cafe-a-menu-description cafe-a-store-description cafe-a-rail-description whitespace-pre-line break-keep ${descriptionSizeClassName}`}
         data-cafe-a-store-description=""
       >
         <ScriptAwareText text={infoRows.join("\n")} />
-      </p>}
+      </p> : null}
+      {showCall && callOnly && getFixedOnePageLayoutShell(data.menuSite.template_key) === "brand_top_band" ? <CafeLanguageHoverControl data={data} menuPlacement="top" /> : null}
     </aside>
   );
 }
@@ -3186,14 +3195,16 @@ function CafeLanguageHoverControl({
   className = "",
   menuPlacement = "bottom",
   menuAlign = "right",
+  iconOnly = false,
 }: {
   data: CafeDesignAProps;
   className?: string;
   menuPlacement?: "top" | "bottom";
   menuAlign?: "left" | "right";
+  iconOnly?: boolean;
 }) {
   const visibleLocaleCount = Array.from(new Set(data.enabledLocales)).length;
-  if (visibleLocaleCount <= 1) return null;
+  if (visibleLocaleCount <= 1 && !iconOnly) return null;
 
   return (
     <div className={`menu-font-en relative shrink-0 text-right text-[#191c1b] ${className}`} data-template-language-control="">
@@ -3207,6 +3218,7 @@ function CafeLanguageHoverControl({
           scriptAwareLabels
           menuPlacement={menuPlacement}
           menuAlign={menuAlign}
+          iconOnly={iconOnly}
         />
       </div>
     </div>
@@ -3618,6 +3630,7 @@ function HeaderBlock({
   className?: string;
   mobileReading?: boolean;
 }) {
+  const call = useOnePageCallActions();
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const description = data.menuSite.brand_description || data.menuSite.description;
   const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
@@ -3626,9 +3639,9 @@ function HeaderBlock({
 
   return (
     <header className={`w-full shrink-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-0 lg:border-b lg:border-[#191c1b] lg:px-[var(--board-padding)] lg:py-[var(--board-padding)] ${className}`}>
-      {hasLanguageSwitcher ? (
+      {hasLanguageSwitcher || call.enabled ? (
         <div className="cafe-a-mobile-language-row" data-cafe-a-mobile-language-row="">
-          <CafeLanguageHoverControl data={data} className="cursor-default" />
+          {call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} iconOnly />} /> : <CafeLanguageHoverControl data={data} className="cursor-default" />}
         </div>
       ) : null}
       <div className="cafe-a-mobile-header-copy flex min-w-0 items-start gap-[clamp(16px,2vw,32px)]">
@@ -4446,6 +4459,7 @@ function CenterRailMenuGrid({
 
 
 function CafeDesignAClassic(data: CafeDesignAProps) {
+  const onePageCall = useOnePageCallActions();
   // Basic engine wiring: capabilities, layout mode, visibility, density, and fit state.
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const basicPricingCapabilities = getBasicPricingCapabilities(data.menuSite.template_key);
@@ -4584,7 +4598,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       } as CSSProperties)
     : {};
   const shouldRenderToplineFeaturedHero = isSundayLine && shouldRenderMenuCoverSection && featuredHeroSlides.length > 0;
-  const footerInfo = <CafeAFooterInfo data={data} capabilities={capabilities} density={density} />;
+  const footerInfo = <CafeAFooterInfo data={data} capabilities={capabilities} density={density} callOnly={isSundayLine || isRoundFocus} />;
   const initialNowMs = normalizeInitialNowMs(data.initialNowMs);
   const timeSaleBoundaryNowMs = useTimeSaleBoundaryNowMs(data.timeSales, data.menuSite.template_key, initialNowMs);
   useNextTimeSaleStartRefresh(data.nextTimeSaleStartAt, isCafeDesignATimeSaleTemplate(data.menuSite.template_key));
@@ -4693,7 +4707,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         .join(","),
     [data.priceOptions],
   );
-  const visibleCopySignature = useMemo(() => getOnePageContentSignature({
+  const visibleCopySignature = useMemo(() => [getOnePageContentSignature({
     pages: visiblePageGroups,
     priceOptions: data.priceOptions,
     traits: data.traits,
@@ -4702,7 +4716,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     featuredSlides: data.featuredSlides,
     timeSales: data.timeSales,
     typography: typographySettings,
-  }), [visiblePageGroups, data.menuSite, data.pageSettings, data.priceOptions, data.traits, data.featuredSlides, data.timeSales, typographySettings]);
+  }), onePageCall.enabled ? `call:${onePageCall.tableLabel}` : "call:off"].join("|"), [visiblePageGroups, data.menuSite, data.pageSettings, data.priceOptions, data.traits, data.featuredSlides, data.timeSales, typographySettings, onePageCall.enabled, onePageCall.tableLabel]);
   const layoutInputSignature = useMemo(
     () =>
       [
@@ -4723,6 +4737,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         visibleCopySignature,
         copyFitBasis,
         twoFieldBoostEnabled,
+        onePageCall.enabled,
       ].join("|"),
     [
       data.locale,
@@ -4742,6 +4757,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       visibleCopySignature,
       copyFitBasis,
       twoFieldBoostEnabled,
+      onePageCall.enabled,
     ],
   );
 
@@ -7369,6 +7385,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         data-cafe-a-skin={cafeASkinAttribute}
         data-template-key={data.menuSite.template_key ?? undefined}
         data-preview-device={data.previewDevice}
+        data-one-page-call-enabled={onePageCall.enabled ? "true" : undefined}
         data-cafe-a-two-field-boost={isAdaptiveFit && !twoFieldBoostEnabled ? "off" : undefined}
         data-cafe-a-proportion-policy={usesOnePageProportionPolicy(data.menuSite.template_key, data.pagePresentation) ? "true" : undefined}
         data-cafe-a-adaptive-fit={isAdaptiveFit ? "true" : undefined}
@@ -7377,6 +7394,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         data-spacing-contract={onePageRhythmMode === "mobile" ? "mobile-reading" : "canvas-fit"}
         style={{ ...typographyStyle, ...skinStyle, backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor }}
       >
+        <OnePageCallPalette />
         <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
           {isRoundFocus ? (
             <section className="cafe-a-round-focus-mobile-brand-section lg:hidden" data-cafe-a-round-focus-mobile-brand-section="">
@@ -7520,8 +7538,8 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                       priceDisplayMode={priceDisplayMode}
                     />
                   ) : null}
-                  {renderDesktopMenuGrid()}
-                  <SundayLineDesktopLanguageDock data={data} />
+                  {renderDesktopMenuGrid({ includeFooter: onePageCall.enabled })}
+                  {!onePageCall.enabled ? <SundayLineDesktopLanguageDock data={data} /> : null}
                 </>
               ) : (
                 <>
@@ -7543,7 +7561,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               )
             ) : onePageLayoutShell === "brand_center_rail" || onePageLayoutShell === "brand_center_column" ? (
               <>
-                {renderDesktopMenuGrid({ centerRail: true, includeFooter: onePageLayoutShell === "brand_center_rail" })}
+                {renderDesktopMenuGrid({ centerRail: true, includeFooter: onePageCall.enabled || onePageLayoutShell === "brand_center_rail" })}
                 <DesktopFixedRail
                   data={data}
                   density={density}

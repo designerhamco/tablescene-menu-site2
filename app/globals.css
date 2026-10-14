@@ -5158,6 +5158,42 @@ video {
   }
 }
 
+/* Optional one-page Call controls: the desktop footer is measured as part of fit. */
+.cafe-a-call-footer-action {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--cafe-a-item-rhythm-gap, 0.75rem);
+}
+[data-one-page-call-footer] .cafe-a-call-footer-action:last-child { margin-bottom: 0; }
+[data-one-page-call-footer-only] {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-end;
+  gap: .75rem;
+}
+[data-one-page-call-footer-only] .cafe-a-call-footer-action { margin-bottom: 0; }
+.cafe-a-desktop-call-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  inline-size: clamp(3.5rem, 8.5vmin, 5.5rem);
+  block-size: clamp(3.5rem, 8.5vmin, 5.5rem);
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--cafe-a-call-accent, #191c1b);
+  color: var(--cafe-a-call-foreground, #fff);
+  font-size: var(--cafe-a-adaptive-support-size, 0.875rem);
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+.cafe-a-desktop-call-button svg, .cafe-a-mobile-call-button svg { inline-size: 1.5rem; block-size: 1.5rem; }
+.cafe-a-desktop-call-button:focus-visible, .cafe-a-mobile-call-button:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+.cafe-a-desktop-call-button .cafe-a-script-ko { font-family: var(--menu-font-ko), system-ui, sans-serif !important; }
+
 /* Mobile is a reading layout, not a canvas-fit candidate. Fixed rem bases keep
    type and rhythm stable across phone widths; wrapping/images remain responsive.
    Keep customer typography settings and each template's semantic ratios. */
@@ -5590,3 +5626,29 @@ video {
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is([data-cafe-a-content-variant="description-only"] :is([data-cafe-a-menu-description], .cafe-a-time-sale-time-text), [data-cafe-a-featured-description-only="true"] .cafe-a-featured-description) {
   font-size: calc(var(--cafe-a-linked-supporting-copy-size) * var(--cafe-a-two-field-boost, 1.05)) !important;
 }
+
+.cafe-a-mobile-call-bar {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
+  align-items: center;
+  width: 100%;
+  min-height: 3rem;
+  background: transparent;
+  color: var(--cafe-a-call-ink, #191c1b);
+}
+.cafe-a-mobile-call-button {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.cafe-a-call-table-label { text-align: center; font-size: var(--cafe-a-linked-supporting-copy-size, .875rem); font-weight: 600; }
+.cafe-a-call-language-slot { justify-self: end; }
+.cafe-a-typography .cafe-a-mobile-call-bar .cafe-a-call-language-slot,
+.cafe-a-typography .cafe-a-mobile-call-bar .cafe-a-call-language-slot * { color: var(--cafe-a-call-ink, #191c1b) !important; }
+.cafe-a-mobile-call-bar [data-template-language-control] button { padding: 0; border: 0; background: transparent; }

@@ -5,6 +5,7 @@ import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import type { OrderCallEntryConfig } from "@/components/public-menu/order-call/types";
+import { buildOnePageCallPreviewConfig } from "@/lib/one-page-call-preview";
 import { getAubeTableDefaultCoverBackgroundColor, isAubeTableTemplate } from "@/lib/aube-table";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { normalizeMenuPageDisplaySettings, serializeMenuPageDisplaySettings } from "@/lib/display-page-settings";
@@ -59,6 +60,7 @@ type PageProps = {
     pagePresentation?: string | string[];
     renderMode?: string | string[];
     orderCallQa?: string | string[];
+    callPreview?: string | string[];
     device?: string | string[];
     orientation?: string | string[];
     view?: string | string[];
@@ -1548,7 +1550,11 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     ? "public"
     : "preview";
   const previewStoreName = data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name;
-  const orderCallConfig = getOrderCallQaConfig(
+  const orderCallConfig = buildOnePageCallPreviewConfig({
+    enabled: getFirstParam(resolvedSearchParams.callPreview) === "on",
+    templateKey, pagePresentation: isMultiPagePresentationPreview(resolvedSearchParams.pagePresentation) ? "multi" : "one",
+    menuSiteId: data.menuSite.id, storeName: previewStoreName,
+  }) ?? getOrderCallQaConfig(
     resolvedSearchParams.orderCallQa,
     previewStoreName,
     templateKey,

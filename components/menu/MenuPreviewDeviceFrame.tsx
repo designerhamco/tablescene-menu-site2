@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
 import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
@@ -34,6 +36,15 @@ type MenuPreviewDeviceFrameProps = {
   menuId?: never;
 };
 
+function CallPreviewToggle({ checked, disabled, buildUrl }: { checked: boolean; disabled: boolean; buildUrl: (enabled: boolean) => string }) {
+  const router = useRouter();
+  return <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-white/10 px-2 text-xs font-bold">
+    <input type="checkbox" aria-label="호출 기능 미리보기" checked={checked} disabled={disabled} data-preview-call-toggle=""
+      onChange={event => router.push(buildUrl(event.target.checked), { scroll: false })} />
+    호출 기능
+  </label>;
+}
+
 function PreviewOrientationIcon() {
   return (
     <svg
@@ -57,9 +68,11 @@ function PreviewOrientationIcon() {
   );
 }
 
-export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProps) {
+export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean }) {
   const { device, orientation, query } = props;
   const [isToolbarOpen, setIsToolbarOpen] = useState(true);
+  const supportsCallPreview = props.supportsCallPreview ?? (typeof props.templateKey === "string" && usesOnePageProportionPolicy(props.templateKey, (query as TemplatePreviewQuery).pagePresentation === "multi" ? "multi" : "one"));
+  const callPreview = (Array.isArray(query.callPreview) ? query.callPreview[0] : query.callPreview) === "on";
   const frame = getMenuPreviewFrame(device, orientation);
   const orientationLabel = device === "tablet" ? MENU_PREVIEW_ORIENTATIONS[orientation] : null;
   const nextTabletOrientation: MenuPreviewOrientation = orientation === "landscape" ? "portrait" : "landscape";
@@ -68,6 +81,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
     orientation?: MenuPreviewOrientation;
     embedded?: boolean;
     actual?: boolean;
+    callPreview?: boolean;
   }) => {
     if (typeof props.templateKey === "string") {
       return buildTemplatePreviewUrl(props.templateKey, query as TemplatePreviewQuery, options);
@@ -100,7 +114,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
           data-preview-device-toolbar=""
           data-toolbar-open={showToolbar ? "true" : "false"}
           className={`pointer-events-auto relative min-w-0 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/48 p-2 text-white backdrop-blur-[2px] transition-[width,transform] duration-300 ease-out ${
-            showToolbar ? "w-[min(27rem,calc(100vw-1.5rem))]" : "w-20 max-w-20"
+            showToolbar ? supportsCallPreview ? "w-[min(35rem,calc(100vw-1.5rem))]" : "w-[min(27rem,calc(100vw-1.5rem))]" : "w-20 max-w-20"
           }`}
           style={{
             transform: showToolbar ? "translateY(0.5rem)" : "translateY(calc(-100% + 1.75rem))",
@@ -111,11 +125,11 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
           <div
             data-preview-device-toolbar-content=""
             aria-hidden={!showToolbar}
-            className={`flex w-full items-center gap-1.5 pl-1 pr-10 transition-opacity duration-150 ${
+            className={`flex w-full items-center gap-1.5 pl-1 pr-10 transition-opacity duration-150 ${supportsCallPreview ? "max-[560px]:flex-wrap" : ""} ${
               showToolbar ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
           >
-            <nav aria-label="미리보기 기기 선택" className="flex min-w-0 flex-1 items-center justify-center gap-0.5">
+            <nav aria-label="미리보기 기기 선택" className={`flex min-w-0 flex-1 items-center justify-center gap-0.5 ${supportsCallPreview ? "max-[560px]:basis-full" : ""}`}>
               {MENU_PREVIEW_DEVICE_ORDER.map((candidate) => {
                 const candidateFrame = MENU_PREVIEW_DEVICES[candidate];
                 const isSelected = candidate === device;
@@ -153,6 +167,8 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
                 <PreviewOrientationIcon />
               </Link>
             ) : null}
+            {supportsCallPreview ? <CallPreviewToggle checked={callPreview} disabled={!showToolbar}
+              buildUrl={enabled => buildPreviewUrl({ device, orientation, callPreview: enabled })} /> : null}
             <Link
               href={detachedUrl}
               target="_blank"
