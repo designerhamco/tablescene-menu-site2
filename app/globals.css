@@ -5545,6 +5545,14 @@ video {
   font-family: var(--menu-font-ko), system-ui, sans-serif !important;
 }
 
+/* One-page time-sale messages and countdown digits use the saved Korean face in every script. */
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] .cafe-a-time-sale-time-text,
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] .cafe-a-time-sale-time-text * {
+  --cafe-a-script-ko-font: var(--menu-font-ko);
+  --cafe-a-script-en-font: var(--menu-font-ko);
+  font-family: var(--menu-font-ko), system-ui, sans-serif !important;
+}
+
 .cafe-a-typography[data-cafe-a-two-field-boost="off"] {
   --cafe-a-two-field-boost: 1;
 }
