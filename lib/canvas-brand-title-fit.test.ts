@@ -93,7 +93,7 @@ test("the common selector has no template-specific branch and mobile keeps its o
 });
 
 test("horizontal row starts compact, grows for two lines or supporting copy, and stays bounded", () => {
-  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08), .08);
+  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08), .09);
   assert.ok(Math.abs(getCanvasHeaderRatio(1000, 50, 2, 1.08) - .114) < 1e-8);
   assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08, 100), .1);
   assert.equal(getCanvasHeaderRatio(1000, 100, 2, 1.08), .14);

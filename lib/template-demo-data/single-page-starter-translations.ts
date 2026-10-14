@@ -222,8 +222,8 @@ const MOCHA_FOREST_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "forest-tiramisu": { name: "Forest Tiramisu", description: "Layers of espresso and dark cacao" },
     },
     promotions: {
-      ...COMMON_PROMOTIONS.en,
-      "dark-chocolate-brownie-closeout": { badgeText: "LAST BATCH" },
+      "americano-morning-deal": { badgeText: "모닝딜", timeDisplayText: "Daily from 8 AM to 10 AM" },
+      "dark-chocolate-brownie-closeout": { badgeText: "재고 마감" },
     },
   },
   zh: {
@@ -265,8 +265,8 @@ const MOCHA_FOREST_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "forest-tiramisu": { name: "森林提拉米苏", description: "层层叠加的浓缩咖啡与黑可可" },
     },
     promotions: {
-      ...COMMON_PROMOTIONS.zh,
-      "dark-chocolate-brownie-closeout": { badgeText: "即将售罄" },
+      "americano-morning-deal": { badgeText: "모닝딜", timeDisplayText: "每天上午8点至10点" },
+      "dark-chocolate-brownie-closeout": { badgeText: "재고 마감" },
     },
   },
   ja: {
@@ -308,8 +308,8 @@ const MOCHA_FOREST_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "forest-tiramisu": { name: "フォレストティラミス", description: "エスプレッソとダークカカオを重ねたティラミス" },
     },
     promotions: {
-      ...COMMON_PROMOTIONS.ja,
-      "dark-chocolate-brownie-closeout": { badgeText: "まもなく完売" },
+      "americano-morning-deal": { badgeText: "모닝딜", timeDisplayText: "毎日午前8時から10時まで" },
+      "dark-chocolate-brownie-closeout": { badgeText: "재고 마감" },
     },
   },
 };
@@ -699,7 +699,7 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "lemon-sparkling": { name: "Lemon Sparkling", description: "" },
     },
     promotions: {
-      "egg-cheese-morning-deal": { badgeText: "MORNING", timeDisplayText: "Daily from 8 AM to 10 AM" },
+      "egg-cheese-morning-deal": { badgeText: "LOOP MORNING", timeDisplayText: "Daily from 8 AM to 10 AM" },
       "plain-cream-cheese-closeout": { badgeText: "STOCK SALE", timeDisplayText: "" },
     },
   },
@@ -739,8 +739,8 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "lemon-sparkling": { name: "柠檬气泡饮", description: "" },
     },
     promotions: {
-      "egg-cheese-morning-deal": { badgeText: "早餐优惠", timeDisplayText: "每天上午8点至10点" },
-      "plain-cream-cheese-closeout": { badgeText: "库存特惠", timeDisplayText: "" },
+      "egg-cheese-morning-deal": { badgeText: "LOOP MORNING", timeDisplayText: "每天上午8点至10点" },
+      "plain-cream-cheese-closeout": { badgeText: "STOCK SALE", timeDisplayText: "" },
     },
   },
   ja: {
@@ -779,8 +779,8 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "lemon-sparkling": { name: "レモンスパークリング", description: "" },
     },
     promotions: {
-      "egg-cheese-morning-deal": { badgeText: "MORNING", timeDisplayText: "毎日午前8時から10時まで" },
-      "plain-cream-cheese-closeout": { badgeText: "在庫セール", timeDisplayText: "" },
+      "egg-cheese-morning-deal": { badgeText: "LOOP MORNING", timeDisplayText: "毎日午前8時から10時まで" },
+      "plain-cream-cheese-closeout": { badgeText: "STOCK SALE", timeDisplayText: "" },
     },
   },
 };

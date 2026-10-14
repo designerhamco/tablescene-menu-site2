@@ -674,7 +674,7 @@ const loopBagelStarterPreset: StarterPreset = {
       key: "egg-cheese-morning-deal",
       name: "에그 햄치즈 베이글 모닝딜",
       schedule_type: "once",
-      badge_text: "루프모닝",
+      badge_text: "LOOP MORNING",
       badge_background_color: "#4354EF",
       time_display_mode: "message",
       time_display_text: "매일 오전 8시부터 10시까지",
@@ -685,7 +685,7 @@ const loopBagelStarterPreset: StarterPreset = {
       name: "플레인 크림치즈 재고 할인",
       schedule_type: "once",
       duration_minutes: 60,
-      badge_text: "재고 할인",
+      badge_text: "STOCK SALE",
       badge_background_color: "#4354EF",
       time_display_mode: "countdown",
       targets: [{ target_item_key: "plain-cream-cheese", target_item_name: "플레인 크림치즈", sale_price: 1000 }],
@@ -739,7 +739,7 @@ const loopBagelStarterPreset: StarterPreset = {
               key: "egg-cheese-bagel", image_url: LOOP_BAGEL_EGG_HAM_CHEESE_IMAGE,
             }),
             item("바질 치킨 베이글", 7900, "로스트 치킨과 바질 페스토, 토마토를 담은 산뜻한 샌드위치", {
-              key: "basil-chicken-bagel", image_url: LOOP_BAGEL_BASIL_CHICKEN_IMAGE, badge_label: "신상",
+              key: "basil-chicken-bagel", image_url: LOOP_BAGEL_BASIL_CHICKEN_IMAGE, badge_label: "NEW",
             }),
             item("살몬 딜 베이글", 8900, "훈제 연어와 딜 크림치즈, 케이퍼를 겹겹이 담은 클래식 조합", {
               key: "salmon-dill-bagel", image_url: LOOP_BAGEL_SALMON_DILL_IMAGE,
@@ -893,13 +893,13 @@ cafeMochaForestStarterPreset.pages = [
           item("포레스트 모카", 6500, "다크 초콜릿과 에스프레소에 부드러운 크림을 더한 시그니처 모카", {
             key: "forest-mocha",
             price_note: "ICE ONLY",
-            badge_label: "SIGNATURE",
+            badge_label: "시그니처",
             recommended: true,
           }),
           item("헤이즐넛 크림 라떼", 6300, "구운 헤이즐넛 크림과 진한 에스프레소의 고소한 조화", {
             key: "hazelnut-cream-latte",
             price_note: "ICE ONLY",
-            badge_label: "BEST",
+            badge_label: "베스트",
             recommended: true,
           }),
           item("말차 클라우드", 6500, "제주 말차 라떼 위에 가벼운 크림을 올린 부드러운 한 잔", {

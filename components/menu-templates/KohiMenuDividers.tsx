@@ -82,19 +82,10 @@ export default function KohiMenuDividers() {
       const canvasSpacing = desktop && root.dataset.cafeAAdaptiveFit === "true"
         ? { categoryBefore: canvasGap, contentGap: canvasGap, strokeWidth: dividerStrokeWidth }
         : undefined;
-      const boardRect = board?.getBoundingClientRect();
-      const canvasBounds = desktop && boardRect && boardStyle && root.dataset.cafeAAdaptiveFit === "true"
-        ? {
-            left: boardRect.left - rootRect.left + Number.parseFloat(boardStyle.paddingLeft),
-            right: boardRect.right - rootRect.left - Number.parseFloat(boardStyle.paddingRight),
-            top: boardRect.top - rootRect.top + Number.parseFloat(boardStyle.paddingTop),
-            bottom: boardRect.bottom - rootRect.top - Number.parseFloat(boardStyle.paddingBottom),
-          }
-        : undefined;
       const next = {
         width: rootRect.width,
         height: rootRect.height,
-        lines: getKohiDividerLines({ width: rootRect.width, height: rootRect.height, columns, segments, mobileSpacing, canvasSpacing, canvasBounds, brandRight: brand && visible(brand) ? brand.getBoundingClientRect().right - rootRect.left : undefined }),
+        lines: getKohiDividerLines({ width: rootRect.width, height: rootRect.height, columns, segments, mobileSpacing, canvasSpacing, brandRight: brand && visible(brand) ? brand.getBoundingClientRect().right - rootRect.left : undefined }),
       };
       const fingerprint = JSON.stringify(next);
       if (fingerprint !== previousFingerprint) {

@@ -56,8 +56,8 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
           items.filter((item) => item.badge_label?.trim()).map((item) => [item.key, item.badge_label] as const),
         );
         assert.deepEqual(mochaBadges, new Map([
-          ["forest-mocha", "SIGNATURE"],
-          ["hazelnut-cream-latte", "BEST"],
+          ["forest-mocha", "시그니처"],
+          ["hazelnut-cream-latte", "베스트"],
         ]));
       } else {
         assert.equal(items.every((item) => Boolean(item.description.trim())), true);
@@ -106,7 +106,7 @@ test("approved single-page starters keep their sixty-minute stock closeout count
     assert.equal(closeout.time_display_mode, "countdown", `${templateKey}: stock closeout display mode`);
     assert.match(
       closeout.badge_text ?? "",
-      templateKey === "cafe_round_focus_a" ? /LAST CALL/ : templateKey === "cafe_van_gogh_a" ? /LAST BATCH/ : templateKey === "fast_food_loop_bagel_a" ? /재고 할인/ : /재고 마감/,
+      templateKey === "cafe_round_focus_a" ? /LAST CALL/ : templateKey === "cafe_van_gogh_a" ? /LAST BATCH/ : templateKey === "fast_food_loop_bagel_a" ? /STOCK SALE/ : /재고 마감/,
       `${templateKey}: stock closeout badge`,
     );
   }
@@ -190,8 +190,13 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(loopBagel.featured_item_key, "plain-bagel");
   assert.equal(loopBagel.featured_slides?.some((slide) => slide.featured_item_key === "loop-signature-bagel"), false);
   assert.deepEqual(loopBagel.time_sales?.map((sale) => sale.key), ["egg-cheese-morning-deal", "plain-cream-cheese-closeout"]);
-  assert.equal(loopBagel.time_sales?.[0]?.badge_text, "루프모닝");
-  assert.equal(loopBagelItems.find((item) => item.key === "basil-chicken-bagel")?.badge_label, "신상");
+  assert.equal(loopBagel.time_sales?.[0]?.badge_text, "LOOP MORNING");
+  assert.equal(loopBagelItems.find((item) => item.key === "basil-chicken-bagel")?.badge_label, "NEW");
+  const loopTranslations = getSinglePageStarterTranslations("fast_food_loop_bagel_a");
+  for (const locale of ["en", "zh", "ja"] as const) {
+    assert.equal(loopTranslations?.[locale].promotions["egg-cheese-morning-deal"]?.badgeText, "LOOP MORNING");
+    assert.equal(loopTranslations?.[locale].promotions["plain-cream-cheese-closeout"]?.badgeText, "STOCK SALE");
+  }
   assert.deepEqual(loopBagel.time_sales?.[1]?.targets, [
     { target_item_key: "plain-cream-cheese", target_item_name: "플레인 크림치즈", sale_price: 1000 },
   ]);
@@ -275,8 +280,13 @@ test("starter-specific image and promotion presentation stays intentional", () =
   const mochaSignatureItems = mochaForest.pages[0]?.categories.find((category) => category.key === "signature-coffee")?.items ?? [];
   assert.equal(mochaSignatureItems.every((item) => !item.image_url), true);
   assert.equal(mochaSignatureItems.every((item) => Boolean(item.description?.trim())), true);
-  assert.equal(mochaSignatureItems.find((item) => item.key === "forest-mocha")?.badge_label, "SIGNATURE");
-  assert.equal(mochaSignatureItems.find((item) => item.key === "hazelnut-cream-latte")?.badge_label, "BEST");
+  assert.equal(mochaSignatureItems.find((item) => item.key === "forest-mocha")?.badge_label, "시그니처");
+  assert.equal(mochaSignatureItems.find((item) => item.key === "hazelnut-cream-latte")?.badge_label, "베스트");
+  const mochaTranslations = getSinglePageStarterTranslations("cafe_mocha_forest_a");
+  for (const locale of ["en", "zh", "ja"] as const) {
+    assert.equal(mochaTranslations?.[locale].promotions["americano-morning-deal"]?.badgeText, "모닝딜");
+    assert.equal(mochaTranslations?.[locale].promotions["dark-chocolate-brownie-closeout"]?.badgeText, "재고 마감");
+  }
   const mochaForestLastBlock = mochaForest.mixed_content_order?.at(-1);
   assert.equal(mochaForestLastBlock?.block_type, "widget");
   assert.equal(mochaForestLastBlock?.block_type === "widget" ? mochaForestLastBlock.widget_key : null, "mocha-forest-image-widget");
@@ -339,4 +349,17 @@ test("starter-specific image and promotion presentation stays intentional", () =
 
   const mochaMorningDeal = mochaForest.time_sales?.find((sale) => sale.key === "americano-morning-deal");
   assert.equal(mochaMorningDeal?.badge_background_color, "#852322");
+});
+
+test("starter chip languages remain intentional in every locale", () => {
+  const kohi = getStarterPreset("cafe_kohi_a");
+  assert.equal(kohi.time_sales?.[0]?.badge_text, "TIME SALE");
+  const kohiTranslations = getSinglePageStarterTranslations("cafe_kohi_a");
+  for (const locale of ["en", "zh", "ja"] as const) {
+    assert.equal(kohiTranslations?.[locale].promotions["basque-cheesecake-time-deal"]?.badgeText, "TIME SALE");
+  }
+
+  const realMatchaItems = getStarterPreset("cafe_design_a").pages[0]?.categories.flatMap((category) => category.items) ?? [];
+  assert.equal(realMatchaItems.find((item) => item.key === "real-matcha-cream-latte")?.badge_label, "시그니처");
+  assert.equal(realMatchaItems.find((item) => item.key === "nutty-cream-latte")?.badge_label, "베스트");
 });

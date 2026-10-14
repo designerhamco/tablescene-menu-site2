@@ -58,16 +58,14 @@ test("KOHI canvas rules link category leading space to outer insets and equalize
   assert.ok(Math.abs(nextHeadingTop - categoryLine.y1 - stroke / 2 - inset) < 0.001);
 });
 
-test("KOHI adaptive rule canvas preserves the page inset on every outer edge", () => {
-  const bounds = { left: 32, right: 608, top: 32, bottom: 448 };
+test("KOHI adaptive rule canvas crosses the page inset while content stays padded", () => {
   const lines = getKohiDividerLines({
     width: 640,
     height: 480,
     columns,
     brandRight: 180,
-    canvasBounds: bounds,
     segments: [box("a", "heading", 220, 60, 90), box("a", "item", 220, 120, 180), box("b", "heading", 420, 60, 90), box("b", "item", 420, 120, 180)],
   });
-  assert.deepEqual(lines.filter((line) => line.kind === "column").map((line) => [line.y1, line.y2]), [[32, 448], [32, 448]]);
-  assert.equal(lines.filter((line) => line.kind === "heading").every((line) => line.x1 >= 32 && line.x2 <= 608), true);
+  assert.deepEqual(lines.filter((line) => line.kind === "column").map((line) => [line.y1, line.y2]), [[0, 480], [0, 480]]);
+  assert.equal(lines.some((line) => line.kind === "heading" && (line.x1 === 0 || line.x2 === 640)), true);
 });

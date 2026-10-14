@@ -4,6 +4,7 @@ export const CANVAS_BRAND_TWO_LINE_GAIN = 1.15;
 export const CANVAS_BRAND_FRAME_HEIGHT_RATIO = 0.18;
 export const CANVAS_PC_BRAND_CEILING_SCALE = 0.875;
 export const CANVAS_HEADER_BASE_RATIO = 0.08;
+export const CANVAS_HEADER_SINGLE_LINE_BASE_RATIO = 0.09;
 export const CANVAS_HEADER_MAX_RATIO = 0.14;
 
 /** Only confirmed one-line PC text brands use a more compact header gap. */
@@ -12,9 +13,10 @@ export function getCanvasHeaderGapScale(device: "pc" | "tablet" | "mobile", line
 }
 
 export function getCanvasHeaderRatio(frameHeight: number, fontSize: number, lines: number, lineAdvance: number, sideHeight = 0) {
-  if (frameHeight <= 0) return CANVAS_HEADER_BASE_RATIO;
+  const baseRatio = lines === 1 ? CANVAS_HEADER_SINGLE_LINE_BASE_RATIO : CANVAS_HEADER_BASE_RATIO;
+  if (frameHeight <= 0) return baseRatio;
   const needed = Math.max(fontSize * (Math.max(1.08, lineAdvance) * lines + 0.12), sideHeight);
-  return Math.max(CANVAS_HEADER_BASE_RATIO, Math.min(CANVAS_HEADER_MAX_RATIO, needed / frameHeight));
+  return Math.max(baseRatio, Math.min(CANVAS_HEADER_MAX_RATIO, needed / frameHeight));
 }
 
 export type CanvasBrandSlotLayout = "horizontal-header" | "brand-column";

@@ -71,7 +71,7 @@ export function createKohiStarterPreset(base: StarterPreset): StarterPreset {
       name: "바스크 치즈케이크 타임 할인",
       schedule_type: "once",
       duration_minutes: 60,
-      badge_text: "타임 할인",
+      badge_text: "TIME SALE",
       badge_background_color: "#DC4235",
       time_display_mode: "countdown",
       targets: [{ target_item_key: "basque-cheesecake", target_item_name: "바스크 치즈케이크", sale_price: 5500 }],
@@ -104,9 +104,9 @@ export function createKohiStarterPreset(base: StarterPreset): StarterPreset {
 }
 
 const siteCopy = {
-  en: { restaurantCategory: "Cafe", description: "Good coffee and little pleasures, served at KOHI.", about: "From espresso to hand brew, find your cup for today.", notices: ["Decaf +0.5 · Alternative milk +0.5", "", ""], saleBadge: "TIME DEAL" },
-  zh: { restaurantCategory: "咖啡馆", description: "KOHI，用好咖啡带来日常的小确幸。", about: "从浓缩到手冲，为今天挑选一杯喜欢的咖啡。", notices: ["低因更换 +0.5 · 植物奶更换 +0.5", "", ""], saleBadge: "限时特惠" },
-  ja: { restaurantCategory: "カフェ", description: "おいしいコーヒーと小さな喜びを届けるコヒです。", about: "エスプレッソからハンドドリップまで、今日の一杯を。", notices: ["デカフェ変更 +0.5 · ミルク変更 +0.5", "", ""], saleBadge: "タイムセール" },
+  en: { restaurantCategory: "Cafe", description: "Good coffee and little pleasures, served at KOHI.", about: "From espresso to hand brew, find your cup for today.", notices: ["Decaf +0.5 · Alternative milk +0.5", "", ""], saleBadge: "TIME SALE" },
+  zh: { restaurantCategory: "咖啡馆", description: "KOHI，用好咖啡带来日常的小确幸。", about: "从浓缩到手冲，为今天挑选一杯喜欢的咖啡。", notices: ["低因更换 +0.5 · 植物奶更换 +0.5", "", ""], saleBadge: "TIME SALE" },
+  ja: { restaurantCategory: "カフェ", description: "おいしいコーヒーと小さな喜びを届けるコヒです。", about: "エスプレッソからハンドドリップまで、今日の一杯を。", notices: ["デカフェ変更 +0.5 · ミルク変更 +0.5", "", ""], saleBadge: "TIME SALE" },
 } as const;
 
 function localeCopy(locale: "en" | "zh" | "ja") {

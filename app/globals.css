@@ -3343,9 +3343,18 @@ video {
 
 .cafe-a-typography[data-template-key="cafe_van_gogh_a"] :is(
   [data-cafe-a-menu-badge],
-  .cafe-a-featured-badge
+  .cafe-a-featured-badge,
+  .cafe-a-time-sale-badge
 ) {
+  align-items: center;
+  background-image:
+    repeating-linear-gradient(-11deg, rgb(0 0 0 / 8%) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(7deg, rgb(255 255 255 / 18%) 0 1px, transparent 1px 4px);
   border: 1px solid #000000;
+  clip-path: polygon(1% 9%, 8% 2%, 51% 0, 98% 5%, 100% 88%, 95% 100%, 48% 97%, 2% 100%, 0 18%);
+  justify-content: center;
+  min-block-size: 1.5em;
+  text-align: center;
 }
 
 .cafe-a-typography[data-template-key="cafe_van_gogh_a"] .cafe-a-topline-notice-text.cafe-a-menu-description {
@@ -5185,6 +5194,11 @@ video {
   gap: .75rem;
 }
 [data-one-page-call-footer-only] .cafe-a-call-footer-action { margin-bottom: 0; }
+.cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_top_band"] [data-one-page-call-footer-only] {
+  align-items: flex-end;
+  flex-direction: column;
+  justify-content: flex-end;
+}
 .cafe-a-desktop-call-button {
   display: flex;
   flex-direction: column;
