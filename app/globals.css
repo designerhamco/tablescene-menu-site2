@@ -5525,3 +5525,17 @@ video {
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="round_focus"] .cafe-a-menu-title-row[data-cafe-a-chip-placement="below"] > :not([data-cafe-a-menu-name], .cafe-a-title-chips, .cafe-a-round-focus-price-leader) {
   grid-column: 3;
 }
+
+/* One-page notices and language labels use the saved script fonts, never the legacy notice face. */
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] :is(.cafe-a-footer-info, .cafe-a-topline-notices, .cafe-a-topline-mobile-notices, .cafe-a-round-focus-notices, .cafe-a-round-focus-mobile-notices, .cafe-a-mobile-notice-list, [data-template-language-control]) .cafe-a-script-ko {
+  font-family: var(--menu-font-ko), system-ui, sans-serif !important;
+}
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] :is(.cafe-a-footer-info, .cafe-a-topline-notices, .cafe-a-topline-mobile-notices, .cafe-a-round-focus-notices, .cafe-a-round-focus-mobile-notices, .cafe-a-mobile-notice-list, [data-template-language-control]) .cafe-a-script-en {
+  font-family: var(--menu-font-en), var(--menu-font-ko), system-ui, sans-serif !important;
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] [data-template-language-control] :is(button, [role="menuitem"]) {
+  font-size: var(--cafe-a-adaptive-support-size) !important;
+}
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-template-language-control] :is(button, [role="menuitem"]) {
+  font-size: var(--cafe-a-linked-supporting-copy-size) !important;
+}

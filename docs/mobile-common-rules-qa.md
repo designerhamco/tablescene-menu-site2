@@ -27,7 +27,7 @@ Decorative stroke offsets are not interchangeable with whitespace. KOHI heading 
 
 ## Bounded mobile title
 
-Minimum `max(44px, 2.75rem)`; prefer one intact line, enlarge toward full inner width, stop at a width-relative visual ceiling. At a 390px viewport / 342px inner width the ceiling is 88px for a single line and 64px for multiple lines. Other phone widths scale those ceilings proportionally. Multiple lines use one shared font size and a 75% soft longest-line target. Minimum, complete text/word preservation and visual ceiling take priority when all percentage wishes cannot be met. Logos bypass fitting; no ink-gap correction or PC/tablet title fitting is introduced.
+Minimum `max(44px, 2.75rem)`; prefer one intact line, enlarge toward full inner width, stop at a width-relative visual ceiling. At a 390px viewport / 342px inner width the ceiling is 56px for a single line and 44px for multiple lines. Other phone widths scale those ceilings proportionally. Multiple lines use one shared font size and a 75% soft longest-line target. Minimum, complete text/word preservation and visual ceiling take priority when all percentage wishes cannot be met. Logos bypass fitting; no ink-gap correction or PC/tablet title fitting is introduced.
 
 Actual 390px starter title sizes: REAL MATCHA 66.63px, KOHI 88px, Mocha Forest 63.39px, Sunday 52.47px, Van Gogh 75.42px, ROSY ORANGE 46.66px, Loop Bagel 57.16px. The sizes are outputs of selected-font widths and line count, not new per-template multipliers.
 

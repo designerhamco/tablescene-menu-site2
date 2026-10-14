@@ -22,7 +22,7 @@ test("Mocha Forest starter uses Pretendard and Lemon", () => {
   assert.equal(typography.english_font_key, "lemon");
 });
 
-test("Cafe A notices stay on Pretendard even when starter fonts change", () => {
+test("legacy notice face remains available to excluded engines; one-page uses its scoped saved-font rule", () => {
   assert.match(
     globalStylesSource,
     /\.cafe-a-typography :is\([\s\S]*?\.brew-chapter-cover-notices[\s\S]*?--cafe-a-script-ko-font: "Pretendard";[\s\S]*?--cafe-a-script-en-font: "Pretendard";[\s\S]*?font-family: "Pretendard", system-ui, sans-serif;/,

@@ -2,6 +2,7 @@ import { getBalancedBrandLinePlans, normalizeMobileBrandTitle, type MobileBrandT
 
 export const CANVAS_BRAND_TWO_LINE_GAIN = 1.15;
 export const CANVAS_BRAND_FRAME_HEIGHT_RATIO = 0.18;
+export const CANVAS_PC_BRAND_CEILING_SCALE = 0.875;
 export const CANVAS_HEADER_BASE_RATIO = 0.08;
 export const CANVAS_HEADER_MAX_RATIO = 0.14;
 
@@ -35,7 +36,7 @@ export function getCanvasBrandLimits(width: number, layout: CanvasBrandSlotLayou
 
 /** Same inputs and scoring for every skin: no template IDs or per-template sizes. */
 export function selectCanvasBrandTitleFit(title: string, widths: ReadonlyMap<string, number>, width: number, height: number,
-  limits: ReturnType<typeof getCanvasBrandLimits>, measuredLineAdvance = 1.08): MobileBrandTitleFit {
+  limits: ReturnType<typeof getCanvasBrandLimits>, measuredLineAdvance = 1.08, ceilingScale = 1): MobileBrandTitleFit {
   const text = normalizeMobileBrandTitle(title);
   const lineAdvance = Math.max(1.08, measuredLineAdvance);
   const fallback = { lines: text ? [text] : [], fontSize: limits.minimum, naturalWrap: true };
@@ -45,7 +46,7 @@ export function selectCanvasBrandTitleFit(title: string, widths: ReadonlyMap<str
       const count = plan.lines.length;
       // CJK fallback font metrics can expand the actual line box beyond 1.08.
       // Use its measured advance plus the common 0.12em safe padding.
-      const size = Math.min(limits.maximum, width * limits.widthRatio * 100 / plan.widest, height / (lineAdvance * count + 0.12));
+      const size = Math.min(limits.maximum, width * limits.widthRatio * 100 / plan.widest, height / (lineAdvance * count + 0.12)) * ceilingScale;
       if (plan.widest * limits.minimum / 100 > width + 0.01 || (lineAdvance * count + 0.12) * limits.minimum > height + 0.01) return [];
       return [{ lines: plan.lines, fontSize: Math.max(limits.minimum, size), naturalWrap: false }];
     });

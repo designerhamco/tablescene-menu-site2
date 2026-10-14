@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getMobileBrandMeasurementTexts, type MobileBrandTitleFit } from "@/lib/mobile-brand-title-fit";
-import { CANVAS_HEADER_MAX_RATIO, getCanvasHeaderGapScale, getCanvasHeaderRatio, getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit, type CanvasBrandSlotLayout } from "@/lib/canvas-brand-title-fit";
+import { CANVAS_HEADER_MAX_RATIO, CANVAS_PC_BRAND_CEILING_SCALE, getCanvasHeaderGapScale, getCanvasHeaderRatio, getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit, type CanvasBrandSlotLayout } from "@/lib/canvas-brand-title-fit";
 import ScriptAwareText from "./ScriptAwareText";
 
 export default function CanvasBrandTitle({ title, className, fontSignature, device }: {
@@ -52,7 +52,8 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       const widths = new Map([...measurements.children].map((element, index) => [texts[index], element.getBoundingClientRect().width]));
       const lineAdvance = Math.max(1.08, ...[...measurements.children].map((element) => element.getBoundingClientRect().height / 100));
       const limits = getCanvasBrandLimits(width, layout, remScale);
-      const next = { ...selectCanvasBrandTitleFit(title, widths, width, height, limits, lineAdvance), inputKey };
+      const ceilingScale = device === "pc" ? CANVAS_PC_BRAND_CEILING_SCALE : 1;
+      const next = { ...selectCanvasBrandTitleFit(title, widths, width, height, limits, lineAdvance, ceilingScale), inputKey };
       if (boundedHeader) {
         const gapScale = window.innerWidth >= 1024
           ? getCanvasHeaderGapScale(device, next.lines.length, next.naturalWrap) : 1;
@@ -74,6 +75,7 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       root.dataset.canvasBrandTarget = String(limits.widthRatio);
       root.dataset.canvasBrandMinimum = String(limits.minimum);
       root.dataset.canvasBrandMaximum = String(limits.maximum);
+      root.dataset.canvasBrandCeilingScale = String(ceilingScale);
       root.dataset.canvasBrandLineAdvance = String(lineAdvance);
       previousBox = `${width}|${height}|${layout}|${sideHeight}`;
       setFit((current) => current && JSON.stringify(current) === JSON.stringify(next) ? current : next);
