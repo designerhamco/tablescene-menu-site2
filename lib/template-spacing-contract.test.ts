@@ -64,6 +64,23 @@ test("단일페이지 PC·태블릿은 유동 fit 간격을, 모바일은 독립
   );
 });
 
+test("색상 패널 경계와 KOHI 외곽 프레임은 페이지 여백 계약을 지킨다", () => {
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-skin="mocha_forest"[^}]*\.cafe-a-balanced-column:first-child \{\s*padding-left: var\(--cafe-a-panel-column-gap\);/,
+  );
+  assert.doesNotMatch(
+    globalStylesSource,
+    /data-cafe-a-skin="mocha_forest"[^}]*\.cafe-a-fixed-rail \{\s*padding-right: calc\(var\(--cafe-a-panel-column-gap\) \* 0\.5\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-skin="round_focus"[^}]*\{\s*--round-focus-column-gap: var\(--cafe-a-panel-column-gap\);\s*--round-focus-column-inset: 0;/,
+  );
+  assert.match(globalStylesSource, /--kohi-content-rule-gap: clamp\(1rem, 1\.8vmin, 1\.25rem\);/);
+  assert.doesNotMatch(globalStylesSource, /data-template-key="cafe_kohi_a"[^}]*--board-padding:/);
+});
+
 test("리얼맛차 단일페이지의 데스크톱 카테고리 경계는 숨긴 분리선 간격 대신 2.9배 리듬을 사용한다", () => {
   assert.match(
     globalStylesSource,
