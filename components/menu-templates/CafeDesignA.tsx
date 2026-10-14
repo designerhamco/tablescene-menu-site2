@@ -4528,6 +4528,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const orderedBalancedFitCacheRef = useRef<Map<string, CafeDesignAFitState>>(new Map());
   const adaptiveGrowthProbeKeyRef = useRef("");
   const failedAdaptiveRescueSessionRef = useRef("");
+  const failedAdaptivePartitionsRef = useRef<Set<string>>(new Set());
   const orderedBalancedRejectedCandidateRef = useRef<Set<string>>(new Set());
   const orderedBalancedRejectedColumnRef = useRef<Set<string>>(new Set());
   const orderedBalancedSeenStateRef = useRef<{ sessionKey: string; keys: Set<string> }>({ sessionKey: "", keys: new Set() });
@@ -4741,6 +4742,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   useEffect(() => {
     orderedBalancedFitCacheRef.current.clear();
     failedAdaptiveRescueSessionRef.current = "";
+    failedAdaptivePartitionsRef.current.clear();
     orderedBalancedRejectedCandidateRef.current.clear();
     orderedBalancedRejectedColumnRef.current.clear();
     orderedBalancedSeenStateRef.current = { sessionKey: "", keys: new Set() };
@@ -4915,6 +4917,13 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               // A simulated rescue must not be selected again after its real
               // partition fails even at the readable floor/safety limit.
               failedAdaptiveRescueSessionRef.current = [visibleCopySignature, window.innerWidth, window.innerHeight].join("|");
+              orderedBalancedFitCacheRef.current.clear();
+              setFitPresentationSafetyScale(1);
+              setFitState(DEFAULT_FIT_STATE);
+              setOrderedBalancedValidationRevision((revision) => revision + 1);
+            } else if (isAdaptiveFit && copyFitBasis === "actual" && fitState.orderedBalancedBreaks &&
+              !failedAdaptivePartitionsRef.current.has([visibleCopySignature, window.innerWidth, window.innerHeight, fitState.columns, fitState.orderedBalancedBreaks].join("|"))) {
+              failedAdaptivePartitionsRef.current.add([visibleCopySignature, window.innerWidth, window.innerHeight, fitState.columns, fitState.orderedBalancedBreaks].join("|"));
               orderedBalancedFitCacheRef.current.clear();
               setFitPresentationSafetyScale(1);
               setFitState(DEFAULT_FIT_STATE);
@@ -5769,6 +5778,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       return candidates;
     }
 
+    function isActualPartitionRejected(columns: number, breaks: string) {
+      return isAdaptiveFit && failedAdaptivePartitionsRef.current.has([visibleCopySignature, window.innerWidth, window.innerHeight, columns, breaks].join("|"));
+    }
+
     function getOrderedBalancedFitState(columnCandidates: number[]) {
       let preferredSelectedState: CafeDesignAFitState | null = null;
       let preferredSelectedScore = Number.POSITIVE_INFINITY;
@@ -5792,6 +5805,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         cachedState &&
         canRetainTemplateFitState(cachedState) &&
         columnCandidates.includes(cachedState.columns) &&
+        !isActualPartitionRejected(cachedState.columns, cachedState.orderedBalancedBreaks) &&
         (isAdaptiveFit || cachedState.columns <= ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS) &&
         !orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(cachedState)) &&
         !isOrderedBalancedColumnRejected(orderedBalancedFingerprint, cachedState.columns)
@@ -5815,7 +5829,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         for (const fontScale of fontScaleCandidates) {
           const candidateGapScale = getTemplateFitGapScale(fontScale, fitMenuElement.clientWidth);
           const isCandidateRejected = (breakIndices: readonly number[]) =>
-            orderedBalancedRejectedCandidateRef.current.has(
+            isActualPartitionRejected(columns, breakIndices.join(",")) || orderedBalancedRejectedCandidateRef.current.has(
               getOrderedBalancedCandidateKeyFromParts({
                 orderedBalancedFingerprint,
                 columns,
@@ -5863,7 +5877,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               orderedBalancedBreaks,
               orderedBalancedFingerprint,
             );
-            if (orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(candidateState))) continue;
+            if (isActualPartitionRejected(columns, candidateState.orderedBalancedBreaks) || orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(candidateState))) continue;
             if (!fitsWidth) continue;
 
             const blockOverflow = hasOrderedBalancedAtomicBlockOverflow(
