@@ -38,7 +38,23 @@ async function check(key, device, width, height, extra = '') {
     const b=board?.getBoundingClientRect();const h=header?.getBoundingClientRect();
     const size=font('[data-cafe-a-menu-name]');
     const copy=[...document.querySelectorAll('[data-cafe-a-menu-item] [data-cafe-a-menu-description]')].filter(visible).map(e=>parseFloat(getComputedStyle(e).fontSize)/(e.closest('[data-cafe-a-content-variant="description-only"]') && e.closest('.cafe-a-typography')?.dataset.cafeATwoFieldBoost !== 'off' ? 1.05 : 1));
+    const columns=menu?[...menu.querySelectorAll(':scope > [data-cafe-a-balanced-column]')].filter(visible):[];
+    const columnRects=columns.map(e=>e.getBoundingClientRect());
+    const columnCollision=columnRects.some((rect,index)=>columnRects.slice(index+1).some(other=>rect.right>other.left+1&&other.right>rect.left+1));
+    const blockCollisions=[];
+    for(const column of columns) {
+      const rows=[...column.querySelectorAll('[data-cafe-a-category-heading],[data-cafe-a-item-stack]')].filter(visible);
+      for(let index=1;index<rows.length;index++) {
+        const previous=rows[index-1];
+        const leaves=[...previous.querySelectorAll('[data-cafe-a-menu-name],.cafe-a-menu-description,.cafe-a-menu-meta,.cafe-a-menu-price,.cafe-a-menu-badge,.cafe-a-menu-chip')].filter(visible);
+        const bottom=Math.max(previous.getBoundingClientRect().bottom,...leaves.map(e=>e.getBoundingClientRect().bottom));
+        if(bottom>rows[index].getBoundingClientRect().top+1) blockCollisions.push(previous.textContent.slice(0,50));
+      }
+    }
+    const hero=board?[...board.querySelectorAll('.cafe-a-cover-hero')].find(visible):null;
+    const featuredBottomGap=hero?b.bottom-parseFloat(getComputedStyle(board).paddingBottom)-hero.getBoundingClientRect().bottom:null;
     return {viewport:[innerWidth,innerHeight],overflow:document.documentElement.scrollWidth-innerWidth,
+      columnCollision,blockCollisions,featuredBottomGap,
       state:board?.dataset.fitPresentationState, basis:board?.dataset.fitCopyBasis,
       scroll:menu?getComputedStyle(menu).overflowY:null,
       scale:Number(board?.dataset.fitFontScale),columns:Number(board?.dataset.fitColumns),
@@ -58,6 +74,8 @@ async function check(key, device, width, height, extra = '') {
   const failures=[];
   if(m.overflow>1 || m.references) failures.push('horizontal overflow or visible reference');
   if(device!=='mobile') {
+    if(m.columnCollision||m.blockCollisions.length) failures.push('columns or category/item content overlap');
+    if(m.featuredBottomGap!==null&&m.featuredBottomGap < -1) failures.push('featured frame crosses the board inner bottom');
     if(m.names!==null && m.names<m.rem-0.1) failures.push('name below readable floor');
     if(m.brand===null||m.store===null) failures.push('brand and store description must remain visible');
     if(m.copy.some(size=>size<m.rem*.75-.1)) failures.push('copy below readable floor');
@@ -79,8 +97,9 @@ try {
  for(const key of keys) {
   await check(key,'pc',1512,762);
   await check(key,'tablet',1198,838);
+  await check(key,'tablet',838,1198);
   if(full) {
-   await check(key,'pc',1920,1080);await check(key,'tablet',838,1198);
+   await check(key,'pc',1920,1080);
    for(const locale of ['en','zh','ja']) await check(key,'pc',1512,762,`&lang=${locale}`);
    for(const width of [320,390,430]) await check(key,'mobile',width,844);
    for(const locale of ['en','zh','ja']) await check(key,'mobile',390,844,`&lang=${locale}`);

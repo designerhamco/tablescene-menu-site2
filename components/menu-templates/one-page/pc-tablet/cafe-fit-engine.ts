@@ -371,8 +371,10 @@ export function isDenseOrderedBalancedMenu(groupCount: number, itemCount: number
 }
 
 
-export function getOrderedBalancedFitColumnCandidates(width: number, groupCount: number, itemCount: number) {
+export function getOrderedBalancedFitColumnCandidates(width: number, groupCount: number, itemCount: number, adaptiveFit = false) {
   if (groupCount <= 1) return [1];
+  // Dense menus still respect the existing narrow menu-region width budget.
+  if (adaptiveFit && width < 640) return [2];
   if (isDenseOrderedBalancedMenu(groupCount, itemCount)) {
     const denseMaximumColumns = width < 1120 ? 3 : ONE_PAGE_MAX_MENU_COLUMNS;
     return orderOnePageMenuColumnCandidates(

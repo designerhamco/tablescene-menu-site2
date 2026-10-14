@@ -6085,7 +6085,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               : hasVisibleItemImages
                 ? getImageMenuColumnCandidates(menuWidth, visibleFitBlockCount, imageMenuMaximumColumns)
                 : layoutMode === "orderedBalancedFit"
-                  ? getOrderedBalancedFitColumnCandidates(menuWidth, visibleFitBlockCount, visibleItemCount)
+                  ? getOrderedBalancedFitColumnCandidates(menuWidth, visibleFitBlockCount, visibleItemCount, isAdaptiveFit)
                   : getBalancedFitColumnCandidates(menuWidth, visibleFitBlockCount);
         const menuColumnGap = parseFloat(getComputedStyle(fitMenuElement).columnGap) || 0;
         const minimumRescueWidth = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) * 12;

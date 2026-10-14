@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { getOrderedBalancedFitColumnCandidates } from "../components/menu-templates/one-page/pc-tablet/cafe-fit-engine";
 
 import {
   getCafeAOrderedBalancedBreaksFromColumns,
@@ -23,6 +24,13 @@ const ONE_PAGE_TEMPLATE_KEYS = [
   "cafe_round_focus_a",
   "fast_food_loop_bagel_a",
 ] as const;
+
+test("카테고리나 상품 수가 많아도 좁은 메뉴 영역에 세 열을 강제하지 않는다", () => {
+  assert.deepEqual(getOrderedBalancedFitColumnCandidates(538, 5, 17, true), [2]);
+  assert.deepEqual(getOrderedBalancedFitColumnCandidates(538, 1, 17, true), [1]);
+  assert.ok(getOrderedBalancedFitColumnCandidates(823, 5, 17, true).includes(3));
+  assert.ok(getOrderedBalancedFitColumnCandidates(538, 5, 17).includes(3));
+});
 
 test("원페이지 메뉴 열은 세 열을 우선하고 네 번째 열은 마지막 구조 후보로 둔다", () => {
   assert.equal(ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS, 3);

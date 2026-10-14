@@ -4801,9 +4801,14 @@ video {
 /* Three semantic fields are the typography reference, not visible empty rows. */
 @media (min-width: 768px) and (max-width: 1023px) {
   /* Portrait tablets share the one-viewport fit engine; mobile stays independent. */
-  .cafe-a-typography[data-cafe-a-adaptive-fit="true"],
-  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] > div {
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] {
     height: 100svh;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] > div {
+    /* Fit the root's content box, excluding decorative outer padding. */
+    height: 100%;
     min-height: 0;
     overflow: hidden;
   }
@@ -5127,15 +5132,15 @@ video {
 }
 
 @media (max-width: 1023px) {
-  .cafe-a-typography[data-template-key="cafe_kohi_a"] :is(.kohi-mobile-menu-grid, .cafe-a-balanced-menu-grid) {
+  .cafe-a-typography[data-template-key="cafe_kohi_a"]:where(:not([data-cafe-a-adaptive-fit="true"])) :is(.kohi-mobile-menu-grid, .cafe-a-balanced-menu-grid) {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-menu-category-block + .cafe-a-menu-category-block {
+  .cafe-a-typography[data-template-key="cafe_kohi_a"]:where(:not([data-cafe-a-adaptive-fit="true"])) .cafe-a-menu-category-block + .cafe-a-menu-category-block {
     margin-top: calc(var(--cafe-a-local-item-rhythm-gap) * var(--cafe-a-category-separation-ratio));
   }
 
-  .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-menu-item-stack:last-child {
+  .cafe-a-typography[data-template-key="cafe_kohi_a"]:where(:not([data-cafe-a-adaptive-fit="true"])) .cafe-a-menu-item-stack:last-child {
     margin-bottom: 0;
   }
 }

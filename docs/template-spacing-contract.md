@@ -172,3 +172,7 @@ All one-page menu/featured text chips, including sale/sold-out badges and trait 
 ### Approved two-field exception - 2026-10-14
 
 Only name+secondary or name+description items gently increase their remaining secondary/description field by 5%. A description-only item's discount explanation and matching featured description follow that size. Three-field and name-only items do not increase. Category/store descriptions, notices and language UI keep the linked base size. This is an explicit exception to uniform description sizes, not a canvas density multiplier. Mobile uses 12.6px secondary / 14.7px description at a 16px root, keeping existing item/section/internal gaps; PC/tablet measurements include the actual increase.
+
+### Portrait tablet grid and decorative insets - 2026-10-14
+
+KOHI's legacy single-column reading grid and category margins apply only outside the adaptive canvas engine. Actual balanced columns must match the fitted partition. A menu region below the existing 640px two-column width threshold keeps two columns even for dense menus; item/category counts cannot force three narrow columns. Portrait adaptive inner wrappers use their root's content-box height, excluding outer decorative padding, so Loop Bagel's featured frame and its rounded lower corners stay above the checker band. Verify both tablet orientations, actual column geometry, inter-block overlap and complete featured-frame bounds in addition to viewport overflow.
