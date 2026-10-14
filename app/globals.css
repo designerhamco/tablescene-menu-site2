@@ -5553,6 +5553,22 @@ video {
   font-family: var(--menu-font-ko), system-ui, sans-serif !important;
 }
 
+/* One-page chips follow the saved Korean/English fonts, including featured and sale badges. */
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] :is(.cafe-a-menu-badge, .cafe-a-featured-badge, .cafe-a-time-sale-badge, .cafe-a-menu-chip) {
+  --cafe-a-script-ko-font: var(--menu-font-ko);
+  --cafe-a-script-en-font: var(--menu-font-en);
+  font-family: var(--menu-font-ko), system-ui, sans-serif !important;
+}
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] :is(.cafe-a-menu-badge, .cafe-a-featured-badge, .cafe-a-time-sale-badge, .cafe-a-menu-chip) * {
+  font-family: inherit !important;
+}
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] :is(.cafe-a-menu-badge, .cafe-a-featured-badge, .cafe-a-time-sale-badge, .cafe-a-menu-chip) .cafe-a-script-ko {
+  font-family: var(--menu-font-ko), system-ui, sans-serif !important;
+}
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] :is(.cafe-a-menu-badge, .cafe-a-featured-badge, .cafe-a-time-sale-badge, .cafe-a-menu-chip) .cafe-a-script-en {
+  font-family: var(--menu-font-en), var(--menu-font-ko), system-ui, sans-serif !important;
+}
+
 .cafe-a-typography[data-cafe-a-two-field-boost="off"] {
   --cafe-a-two-field-boost: 1;
 }

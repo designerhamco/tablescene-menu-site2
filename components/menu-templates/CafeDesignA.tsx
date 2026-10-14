@@ -1733,7 +1733,9 @@ function MenuItemRow({
         <div className="cafe-a-trait-list mt-2 flex flex-wrap gap-1.5">
           {visibleTraits.map((trait) => (
             <span key={trait.id} className={`menu-chip cafe-a-menu-chip border border-[#bfc9c4] px-1.5 py-1 font-black ${descriptionTextColorClassName}`}>
-              {trait.label} {trait.value}/{trait.max_value}
+              {usesOnePageProportionPolicy(templateKey, pagePresentation)
+                ? <ScriptAwareText text={`${trait.label} ${trait.value}/${trait.max_value}`} />
+                : <>{trait.label} {trait.value}/{trait.max_value}</>}
             </span>
           ))}
         </div>

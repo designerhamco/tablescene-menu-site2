@@ -165,7 +165,9 @@ Adaptive packing uses registered, related, conventional and bounded free packing
 
 For all seven one-page presentations, notice 1/2/3 and language trigger/menu labels share the menu-description size. Notice Korean and English runs both use the saved Korean font. Language UI keeps the saved Korean/English font by script. Category descriptions and time-sale supporting text share the product-description size. PC text-brand ceilings are 87.5% of their prior geometry-derived ceiling, preserving minimums and header bounds. Tablet ceilings stay unchanged. Mobile single/multiline ceilings are 56/44px at 342px inner width, preserving the 44px minimum and text.
 
-Time-sale messages, deadline labels and countdown digits also use the saved Korean font for both Korean and English in every one-page PC/tablet/mobile presentation. Discount price/chip fonts and language UI script fonts retain their existing roles; Display and multi-page are excluded.
+Time-sale messages, deadline labels and countdown digits also use the saved Korean font for both Korean and English in every one-page PC/tablet/mobile presentation. Discount price fonts and language UI script fonts retain their existing roles; Display and multi-page are excluded.
+
+All one-page menu/featured text chips, including sale/sold-out badges and trait chips, use the saved Korean font for Korean and the saved English font for English. Mixed-script labels use script-aware runs. This supersedes fixed legacy chip fonts, preserving chip size/color and device-specific placement; time-sale supporting messages/countdowns keep their separate Korean-font-only rule.
 
 ### Approved two-field exception - 2026-10-14
 
