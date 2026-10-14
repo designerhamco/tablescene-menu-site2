@@ -79,11 +79,20 @@ test("KOHI defaults unify all regular and timed badge colors without changing ot
   assert.equal(getDefaultBadgeStyles("cafe_design_a").signature.background_color, "#2AA36D");
 });
 
+test("KOHI keeps its category-size and hand-drawn chip exceptions local to the template", () => {
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /data-template-key="cafe_kohi_a"[^}]*--kohi-category-title-scale: 1\.04;/);
+  assert.match(css, /data-template-key="cafe_kohi_a"[^}]*cafe-a-category-title[^}]*var\(--kohi-category-title-scale\)/);
+  assert.match(css, /data-template-key="cafe_kohi_a"[^}]*cafe-a-category-eyebrow\.cafe-a-menu-description[^}]*margin: 0 0 0\.18em;/);
+  assert.match(css, /data-cafe-a-mobile-style="true"[^}]*data-template-key="cafe_kohi_a"[^}]*data-cafe-a-category-description[^}]*margin-bottom: 0\.375rem;/);
+  assert.match(css, /data-template-key="cafe_kohi_a"[^}]*:is\([^}]*cafe-a-time-sale-badge[^}]*\)[^}]*background-image:[^}]*clip-path: polygon/);
+});
+
 test("KOHI featured area contains only one original illustration without a product link", () => {
   const preset = getStarterPreset("cafe_kohi_a");
   assert.equal(preset.featured_slides?.length, 1);
   const slide = preset.featured_slides![0];
-  assert.equal(slide.image_url, "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-user-v5.png");
+  assert.equal(slide.image_url, "/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-user-v6.png");
   assert.equal(preset.site.cover_image_url, slide.image_url);
   assert.equal(slide.featured_item_key, undefined);
   assert.equal(slide.featured_item_name, undefined);
@@ -101,7 +110,7 @@ test("KOHI featured area contains only one original illustration without a produ
 
 test("KOHI artwork keeps transparent backgrounds without overriding the shared cover fit", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
-  const selector = '.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"])';
+  const selector = '.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"], [src$="/kohi-coffee-crocodile-user-v6.png"])';
   const rule = css.slice(css.indexOf(selector), css.indexOf("}", css.indexOf(selector)) + 1);
   assert.match(rule, /background: transparent;/);
   assert.doesNotMatch(rule, /object-fit:|height:|width:|padding:|margin:|grid-template/);
@@ -127,14 +136,14 @@ test("KOHI PNG has actual transparent pixels, not a painted paper/checkerboard b
 
 test("KOHI uses the user-supplied PNG unchanged, without regenerating or editing pixels", () => {
   const path = new URL(`../public${getStarterPreset("cafe_kohi_a").site.cover_image_url}`, import.meta.url);
-  assert.equal(createHash("sha256").update(readFileSync(path)).digest("hex"), "f9fa7be9d4ac5dca6b8e0d85a3b818d932535d1cb0ea1cbb9c63db557306d71b");
+  assert.equal(createHash("sha256").update(readFileSync(path)).digest("hex"), "4eccf958f696a8599724d66f08a93d15e62253410d34839c435c6ccfa178f401");
 });
 
 test("KOHI transparent illustration removes fallback backdrops without affecting other hero images", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
-  for (const asset of ["kohi-coffee-crocodile-transparent-v2.png", "kohi-coffee-crocodile-heart-v3.png", "kohi-coffee-crocodile-user-v5.png"]) {
-    const imageSelector = asset === "kohi-coffee-crocodile-user-v5.png"
-      ? '[data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"])'
+  for (const asset of ["kohi-coffee-crocodile-transparent-v2.png", "kohi-coffee-crocodile-heart-v3.png", "kohi-coffee-crocodile-user-v6.png"]) {
+    const imageSelector = asset === "kohi-coffee-crocodile-user-v6.png"
+      ? '[data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"], [src$="/kohi-coffee-crocodile-user-v6.png"])'
       : `[data-cafe-a-cover-image][src$="/${asset}"]`;
     const scope = `.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has(${imageSelector})`;
     assert.ok(css.includes(`${scope} {\n  background: transparent;\n}`));

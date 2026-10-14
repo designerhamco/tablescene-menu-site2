@@ -699,8 +699,8 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "lemon-sparkling": { name: "Lemon Sparkling", description: "" },
     },
     promotions: {
-      "egg-cheese-morning-deal": { badgeText: "LOOP MORNING", timeDisplayText: "Daily from 8 AM to 10 AM" },
-      "plain-cream-cheese-closeout": { badgeText: "STOCK SALE", timeDisplayText: "" },
+      "egg-cheese-morning-deal": { badgeText: "SALE", timeDisplayText: "Daily from 8 AM to 10 AM" },
+      "plain-cream-cheese-closeout": { badgeText: "SALE", timeDisplayText: "" },
     },
   },
   zh: {
@@ -739,8 +739,8 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "lemon-sparkling": { name: "柠檬气泡饮", description: "" },
     },
     promotions: {
-      "egg-cheese-morning-deal": { badgeText: "LOOP MORNING", timeDisplayText: "每天上午8点至10点" },
-      "plain-cream-cheese-closeout": { badgeText: "STOCK SALE", timeDisplayText: "" },
+      "egg-cheese-morning-deal": { badgeText: "SALE", timeDisplayText: "每天上午8点至10点" },
+      "plain-cream-cheese-closeout": { badgeText: "SALE", timeDisplayText: "" },
     },
   },
   ja: {
@@ -779,8 +779,8 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "lemon-sparkling": { name: "レモンスパークリング", description: "" },
     },
     promotions: {
-      "egg-cheese-morning-deal": { badgeText: "LOOP MORNING", timeDisplayText: "毎日午前8時から10時まで" },
-      "plain-cream-cheese-closeout": { badgeText: "STOCK SALE", timeDisplayText: "" },
+      "egg-cheese-morning-deal": { badgeText: "SALE", timeDisplayText: "毎日午前8時から10時まで" },
+      "plain-cream-cheese-closeout": { badgeText: "SALE", timeDisplayText: "" },
     },
   },
 };

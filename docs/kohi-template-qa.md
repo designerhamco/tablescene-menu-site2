@@ -8,7 +8,7 @@ The starter uses live `KOHI` text in Tilt Warp instead of the old Outfit logo im
 
 > Historical audit at `c2e3649`: the mobile title values below are superseded by the user's common 65%-inner-width/48px-minimum brand policy, 26px categories and 14px notices. See `docs/template-spacing-contract.md` for the current mobile rule. PC/tablet formulas in this audit are unchanged by that mobile-only update.
 
-The current featured asset is the user's `거친 실루엣의 커피 악어.png`, copied unchanged as `kohi-coffee-crocodile-user-v4.png`. The user requested inspection of title sizing; title/fit/typography values were not changed in this update.
+The current featured asset is the user's `거친 실루엣의 커피 악어_수정3.png`, copied unchanged as `kohi-coffee-crocodile-user-v6.png`. Category titles use KOHI's documented 4% exception and the description-to-title gap is slightly tighter; shared item/supporting type rules remain unchanged.
 
 KOHI's desktop title is **not** a fixed multiple of item-name size. At widths ≥1024px it uses `clamp(1.9rem × brandRoleScale, 5.4vh × brandRoleScale, 3.5rem × brandRoleScale) × deviceTypeScale × 1.06`. With a 16px root, the clamped base ranges from 30.4 to 56px before device/KOHI multipliers. The tablet type scale is 1.12; the PC scale is 1. The brand role's S/M/L values are 0.94/1/1.06. This desktop formula does not multiply the menu fit font scale or overall menu font scale; item-name sizing does, so title:item ratios vary with content/fit.
 

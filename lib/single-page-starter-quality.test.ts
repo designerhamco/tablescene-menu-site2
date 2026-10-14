@@ -106,7 +106,7 @@ test("approved single-page starters keep their sixty-minute stock closeout count
     assert.equal(closeout.time_display_mode, "countdown", `${templateKey}: stock closeout display mode`);
     assert.match(
       closeout.badge_text ?? "",
-      templateKey === "cafe_round_focus_a" ? /LAST CALL/ : templateKey === "cafe_van_gogh_a" ? /LAST BATCH/ : templateKey === "fast_food_loop_bagel_a" ? /STOCK SALE/ : /재고 마감/,
+      templateKey === "cafe_round_focus_a" ? /LAST CALL/ : templateKey === "cafe_van_gogh_a" ? /LAST BATCH/ : templateKey === "fast_food_loop_bagel_a" ? /^SALE$/ : /재고 마감/,
       `${templateKey}: stock closeout badge`,
     );
   }
@@ -190,12 +190,13 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(loopBagel.featured_item_key, "plain-bagel");
   assert.equal(loopBagel.featured_slides?.some((slide) => slide.featured_item_key === "loop-signature-bagel"), false);
   assert.deepEqual(loopBagel.time_sales?.map((sale) => sale.key), ["egg-cheese-morning-deal", "plain-cream-cheese-closeout"]);
-  assert.equal(loopBagel.time_sales?.[0]?.badge_text, "LOOP MORNING");
+  assert.equal(loopBagel.time_sales?.[0]?.badge_text, "SALE");
+  assert.equal(loopBagel.time_sales?.[1]?.badge_text, "SALE");
   assert.equal(loopBagelItems.find((item) => item.key === "basil-chicken-bagel")?.badge_label, "NEW");
   const loopTranslations = getSinglePageStarterTranslations("fast_food_loop_bagel_a");
   for (const locale of ["en", "zh", "ja"] as const) {
-    assert.equal(loopTranslations?.[locale].promotions["egg-cheese-morning-deal"]?.badgeText, "LOOP MORNING");
-    assert.equal(loopTranslations?.[locale].promotions["plain-cream-cheese-closeout"]?.badgeText, "STOCK SALE");
+    assert.equal(loopTranslations?.[locale].promotions["egg-cheese-morning-deal"]?.badgeText, "SALE");
+    assert.equal(loopTranslations?.[locale].promotions["plain-cream-cheese-closeout"]?.badgeText, "SALE");
   }
   assert.deepEqual(loopBagel.time_sales?.[1]?.targets, [
     { target_item_key: "plain-cream-cheese", target_item_name: "플레인 크림치즈", sale_price: 1000 },
@@ -339,7 +340,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   }
   assert.equal(
     Object.values(TEMPLATE_BADGE_STYLE_PRESETS.cafe_van_gogh_a ?? {}).every(
-      (style) => style?.background_color === "#FFFFFF" && style.text_color === "#000000",
+      (style) => style?.background_color === "#000000" && style.text_color === "#FFFFFF",
     ),
     true,
   );

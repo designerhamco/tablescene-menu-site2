@@ -1,6 +1,6 @@
 # KOHI featured illustration
 
-Current asset: `public/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-user-v4.png`. The user-supplied `거친 실루엣의 커피 악어.png` was copied byte-for-byte on 2026-10-12, without regeneration, cropping, recoloring or pixel editing. SHA-256: `41beff3e978c09ce8fbefd9988e5178fb0eb22fa128b84f09ad957a2ed01cc99`. The 1122×1402 PNG has genuine alpha transparency (0–255). The previous PNG versions and their asset-specific presentation remain available for already-saved menus and rollback; no customer data is rewritten.
+Current asset: `public/menu-templates/cafe_kohi_a/kohi-coffee-crocodile-user-v6.png`. The user-supplied `거친 실루엣의 커피 악어_수정3.png` was copied byte-for-byte on 2026-10-14, without regeneration, cropping, recoloring or pixel editing. SHA-256: `4eccf958f696a8599724d66f08a93d15e62253410d34839c435c6ccfa178f401`. The 1400×1600 PNG has genuine alpha transparency (0–255). Previous PNG versions remain available for already-saved menus and rollback; no customer data is rewritten.
 
 Starter contract: one image-only slide, no linked item/name/price/chip, visible on PC/tablet/mobile. The starter logo URL is explicitly null and `logo_replaces_name` is false, so the existing brand renderer shows live `KOHI` text using the existing Tilt Warp typography preset. The old logo assets are retained for saved menus; customer logo-upload capabilities are unchanged. Existing menu content, localization, time sale and the common price/fit/spacing logic are unchanged. Existing saved customer menus are not rewritten.
 

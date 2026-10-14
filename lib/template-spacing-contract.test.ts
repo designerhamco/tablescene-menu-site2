@@ -129,7 +129,7 @@ test("반고흐는 분리선 없이 기기별 기준에 같은 카테고리 간�
   );
   assert.match(
     globalStylesSource,
-    /data-template-key="cafe_van_gogh_a"[^}]*:is\([\s\S]*data-cafe-a-menu-badge[\s\S]*cafe-a-featured-badge[\s\S]*\)[^}]*\{[^}]*border: 1px solid #000000;/,
+    /data-template-key="cafe_van_gogh_a"[^}]*:is\([\s\S]*data-cafe-a-menu-badge[\s\S]*cafe-a-featured-badge[\s\S]*\)[^}]*\{[^}]*border: 0;/,
   );
   assert.match(
     globalStylesSource,

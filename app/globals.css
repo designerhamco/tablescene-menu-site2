@@ -3350,7 +3350,7 @@ video {
   background-image:
     repeating-linear-gradient(-11deg, rgb(0 0 0 / 8%) 0 1px, transparent 1px 3px),
     repeating-linear-gradient(7deg, rgb(255 255 255 / 18%) 0 1px, transparent 1px 4px);
-  border: 1px solid #000000;
+  border: 0;
   clip-path: polygon(1% 9%, 8% 2%, 51% 0, 98% 5%, 100% 88%, 95% 100%, 48% 97%, 2% 100%, 0 18%);
   justify-content: center;
   min-block-size: 1.5em;
@@ -4709,6 +4709,7 @@ video {
 /* KOHI reuses REAL MATCHA's content rhythm; decorative page rules never take up flow space. */
 .cafe-a-typography[data-template-key="cafe_kohi_a"] {
   --kohi-divider-width: clamp(1px, 0.12vmin, 1.6px);
+  --kohi-category-title-scale: 1.04;
   --cafe-a-category-title-to-first-ratio: 2;
   --cafe-a-category-separation-ratio: 3.4;
   --cafe-a-sunday-category-ratio: 1.34;
@@ -5023,7 +5024,7 @@ video {
 }
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-category-title {
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-category-ratio));
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-category-ratio) * var(--kohi-category-title-scale));
   font-weight: 700;
 }
 
@@ -5032,7 +5033,7 @@ video {
 }
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-category-eyebrow.cafe-a-menu-description {
-  margin: 0 0 0.24em;
+  margin: 0 0 0.18em;
   font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * 0.9);
   font-weight: 800;
   line-height: 1.25;
@@ -5057,9 +5058,13 @@ video {
   color: #000000;
 }
 
-.cafe-a-typography[data-template-key="cafe_kohi_a"] :is(.cafe-a-menu-badge, .cafe-a-featured-badge, .cafe-a-menu-chip) {
-  border: 1px solid transparent;
+.cafe-a-typography[data-template-key="cafe_kohi_a"] :is(.cafe-a-menu-badge, .cafe-a-featured-badge, .cafe-a-time-sale-badge, .cafe-a-menu-chip) {
+  background-image:
+    repeating-linear-gradient(-9deg, rgb(255 255 255 / 14%) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(8deg, rgb(0 0 0 / 8%) 0 1px, transparent 1px 4px);
+  border: 0;
   border-radius: 0;
+  clip-path: polygon(1% 8%, 7% 2%, 53% 0, 97% 5%, 100% 86%, 95% 100%, 48% 97%, 3% 100%, 0 18%);
 }
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-menu-chip {
@@ -5116,15 +5121,15 @@ video {
 
 /* User-supplied transparent PNG: preserve the page background while the
    shared cover rule fills the representative frame. */
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"]) {
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"], [src$="/kohi-coffee-crocodile-user-v6.png"]) {
   background: transparent;
 }
 
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"])) {
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"], [src$="/kohi-coffee-crocodile-user-v6.png"])) {
   background: transparent;
 }
 
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"])) [data-cafe-a-cover-placeholder] {
+.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"], [src$="/kohi-coffee-crocodile-user-v6.png"])) [data-cafe-a-cover-placeholder] {
   display: none;
 }
 
@@ -5554,6 +5559,14 @@ video {
   --kohi-mobile-heading-to-rule-gap: 0.5rem;
   --kohi-mobile-rule-to-item-gap: 1.5rem;
   --kohi-mobile-category-rule-gap: 1.5rem;
+}
+
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_kohi_a"] .cafe-a-category-title {
+  font-size: calc(1.625rem * var(--kohi-category-title-scale));
+}
+
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_kohi_a"] [data-cafe-a-category-description].cafe-a-category-eyebrow {
+  margin-bottom: 0.375rem;
 }
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_kohi_a"] .cafe-a-category-heading {
