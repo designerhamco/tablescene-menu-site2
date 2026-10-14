@@ -42,3 +42,18 @@ test("KOHI mobile rules measure whitespace from stroke edges instead of the old 
   assert.equal(lines.find((line) => line.kind === "category")?.y1, 248.5);
   assert.equal(261 - (248.5 + 0.5), 12);
 });
+
+test("KOHI canvas rules link category leading space to outer insets and equalize text-to-stroke gaps", () => {
+  const inset = 32, gap = inset / 2, stroke = 1.6;
+  const headingBottom = 90, itemTop = headingBottom + gap * 2 + stroke;
+  const itemBottom = 200, nextHeadingTop = itemBottom + gap + inset + stroke;
+  const lines = getKohiDividerLines({ width: 640, height: 480, columns,
+    canvasSpacing: { categoryBefore: inset, contentGap: gap, strokeWidth: stroke },
+    segments: [box("a", "heading", 220, inset, headingBottom), box("a", "item", 220, itemTop, itemBottom), box("b", "heading", 220, nextHeadingTop, nextHeadingTop + 50)] });
+  const headingLine = lines.find(line => line.kind === "heading")!;
+  const categoryLine = lines.find(line => line.kind === "category")!;
+  for (const actual of [headingLine.y1 - stroke / 2 - headingBottom, itemTop - headingLine.y1 - stroke / 2, categoryLine.y1 - stroke / 2 - itemBottom]) {
+    assert.ok(Math.abs(actual - gap) < 0.001);
+  }
+  assert.ok(Math.abs(nextHeadingTop - categoryLine.y1 - stroke / 2 - inset) < 0.001);
+});

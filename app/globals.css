@@ -5207,12 +5207,55 @@ video {
 .cafe-a-desktop-call-button:focus-visible, .cafe-a-mobile-call-button:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 .cafe-a-desktop-call-button .cafe-a-script-ko { font-family: var(--menu-font-ko), system-ui, sans-serif !important; }
 
-/* KOHI category boundaries belong to every adaptive PC/tablet canvas, including portrait. */
-.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] {
-  margin-bottom: var(--cafe-a-category-no-divider-gap);
+/* KOHI measures whitespace from divider stroke edges, using its outer inset. */
+.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board {
+  --kohi-canvas-inset: var(--board-padding);
+  --kohi-content-rule-gap: calc(var(--kohi-canvas-inset) * 0.5);
+  --kohi-canvas-column-gap: calc(var(--kohi-canvas-inset) * 2 + var(--kohi-divider-width));
+  column-gap: var(--kohi-canvas-column-gap) !important;
 }
-.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] .cafe-a-category-items > .cafe-a-menu-item-stack:last-child {
+.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board :is(.cafe-a-balanced-menu-grid, .cafe-a-ordered-menu-flow) {
+  column-gap: var(--kohi-canvas-column-gap) !important;
+}
+.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-category-heading {
+  margin-bottom: calc(var(--kohi-content-rule-gap) + var(--kohi-divider-width) * 0.5);
+  padding-bottom: 0;
+}
+.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-category-items {
+  padding-top: calc(var(--kohi-content-rule-gap) + var(--kohi-divider-width) * 0.5);
+}
+.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-menu-category-top-divider {
+  display: none;
+}
+.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] {
+  margin-bottom: calc(var(--kohi-content-rule-gap) + var(--kohi-canvas-inset) + var(--kohi-divider-width));
+}
+.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-category-items > .cafe-a-menu-item-stack:last-child {
   margin-bottom: 0;
+}
+
+/* Panel shells express the visible gutter once, instead of adding two insets. */
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] {
+  --cafe-a-panel-column-gap: clamp(1.5rem, 3vmin, 3rem);
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="round_focus"] {
+  --round-focus-column-gap: var(--cafe-a-panel-column-gap);
+  --round-focus-column-inset: 0;
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="round_focus"] :is(.cafe-a-desktop-fit-board, .cafe-a-center-rail-menu-grid) {
+  column-gap: var(--cafe-a-panel-column-gap) !important;
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="mocha_forest"] :is(.cafe-a-desktop-fit-board, .cafe-a-balanced-menu-grid) {
+  column-gap: 0 !important;
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="mocha_forest"] .cafe-a-balanced-column {
+  padding-inline: calc(var(--cafe-a-panel-column-gap) * 0.5);
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="mocha_forest"] .cafe-a-balanced-column:last-child {
+  padding-right: var(--board-padding);
+}
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="mocha_forest"] .cafe-a-ordered-menu-flow {
+  column-gap: var(--cafe-a-panel-column-gap);
 }
 
 /* Mobile is a reading layout, not a canvas-fit candidate. Fixed rem bases keep
@@ -5656,6 +5699,20 @@ video {
   min-height: 3rem;
   background: transparent;
   color: var(--cafe-a-call-ink, #191c1b);
+}
+/* Enabled mobile Call starts at the page edge; OFF retains the reading inset. */
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] header,
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] .cafe-a-mobile-upper-box {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] {
+  padding-top: 0;
+}
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"][data-template-key="fast_food_loop_bagel_a"]::before {
+  inset-block-start: calc(3rem + env(safe-area-inset-top, 0px));
+}
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"][data-template-key="fast_food_loop_bagel_a"] header .cafe-a-mobile-header-copy {
+  margin-top: calc(var(--cafe-a-mobile-brand-copy-gap) + var(--loop-bagel-checker-square) * 2);
 }
 .cafe-a-mobile-call-button {
   display: grid;

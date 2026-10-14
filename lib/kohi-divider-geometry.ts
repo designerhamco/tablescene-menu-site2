@@ -15,6 +15,7 @@ export function getKohiDividerLines({
   segments,
   brandRight,
   mobileSpacing,
+  canvasSpacing,
 }: {
   width: number;
   height: number;
@@ -22,6 +23,7 @@ export function getKohiDividerLines({
   segments: KohiDividerSegment[];
   brandRight?: number;
   mobileSpacing?: { headingBefore: number; categoryAfter: number; strokeWidth: number };
+  canvasSpacing?: { categoryBefore: number; contentGap: number; strokeWidth: number };
 }): KohiDividerLine[] {
   if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return [];
   const sortedColumns = columns.filter((column) => Number.isFinite(column.left) && Number.isFinite(column.right) && column.right > column.left).sort((a, b) => a.left - b.left);
@@ -49,12 +51,14 @@ export function getKohiDividerLines({
     fragments.forEach((fragment, index) => {
       const previous = fragments[index - 1];
       if (previous && previous.group !== fragment.group && fragment.top > previous.bottom) {
-        const y = mobileSpacing && fragment.kind === "heading" ? fragment.top - mobileSpacing.categoryAfter - mobileSpacing.strokeWidth / 2 : (previous.bottom + fragment.top) / 2;
+        const spacing = canvasSpacing ? { categoryAfter: canvasSpacing.categoryBefore, strokeWidth: canvasSpacing.strokeWidth } : mobileSpacing;
+        const y = spacing && fragment.kind === "heading" ? fragment.top - spacing.categoryAfter - spacing.strokeWidth / 2 : (previous.bottom + fragment.top) / 2;
         if (y > previous.bottom && y < fragment.top) addHorizontal("category", y, columnIndex);
       }
       const next = fragments[index + 1];
       if (fragment.kind === "heading" && next?.kind === "item" && next.group === fragment.group && next.top > fragment.bottom) {
-        const y = mobileSpacing ? fragment.bottom + mobileSpacing.headingBefore + mobileSpacing.strokeWidth / 2 : (fragment.bottom + next.top) / 2;
+        const spacing = canvasSpacing ? { headingBefore: canvasSpacing.contentGap, strokeWidth: canvasSpacing.strokeWidth } : mobileSpacing;
+        const y = spacing ? fragment.bottom + spacing.headingBefore + spacing.strokeWidth / 2 : (fragment.bottom + next.top) / 2;
         if (y > fragment.bottom && y < next.top) addHorizontal("heading", y, columnIndex);
       }
     });

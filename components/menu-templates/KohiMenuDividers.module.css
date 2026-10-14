@@ -6,10 +6,10 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 5;
+  stroke-width: var(--kohi-divider-width, 1.25px);
 }
 
 .layer line {
   stroke: #000;
-  stroke-width: var(--kohi-divider-width, 1.25px);
   vector-effect: non-scaling-stroke;
 }
