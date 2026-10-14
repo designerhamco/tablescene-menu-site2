@@ -1,12 +1,20 @@
 # KOHI template verification — 2026-10-09
 
-## Current starter follow-up — 2026-10-12
+## Current authority — 2026-10-14
+
+KOHI uses the same one-page engines and device boundaries as the other six active templates. PC/tablet uses the shared 75% vertical-brand target, 10% slot-width floor and 18% reading-frame height budget; no KOHI title-size multiplier is passed into the fitter. Mobile uses the common 44px minimum and 56px/44px single/multiline ceilings at 342px inner width, with no KOHI ceiling override.
+
+PC/tablet category titles use the common item-name × 1.6 base plus KOHI's approved 1.1 visual scale. Mobile category titles are the common 26px and use the common 8px category-description gap. PC/tablet item boundaries use 1/1.10/1.20 according to visible support; mobile keeps the fixed 20px item gap. Ruled-panel clearances and outer decorative lines remain KOHI-specific and outside fit measurement. Tablet fit scale is capped at 1.14 while PC keeps the shared adaptive ceiling.
+
+The sections below are retained as historical audit records. Their older fixed title formulas, 1.12 device multiplier, 1.15/1.35 spacing and template-specific mobile title/category values are not current rules.
+
+## Historical starter follow-up — 2026-10-12
 
 The starter uses live `KOHI` text in Tilt Warp instead of the old Outfit logo image (`logo_url: null`, `logo_replaces_name: false`). The old SVG stays available for saved customer menus. The featured area uses one unlinked transparent crocodile illustration with a red heart on its cup. See `docs/kohi-featured-illustration.md` for generation provenance and verification. Prior sections below document earlier iterations, not the current starter logo or featured asset.
 
 ### Supplied PNG and title-size audit
 
-> Historical audit at `c2e3649`: the mobile title values below are superseded by the user's common 65%-inner-width/48px-minimum brand policy, 26px categories and 14px notices. See `docs/template-spacing-contract.md` for the current mobile rule. PC/tablet formulas in this audit are unchanged by that mobile-only update.
+> Historical audit at `c2e3649`: the mobile title values below are superseded by the shared 44px-minimum bounded fitter, 26px categories and 14px notices. See `docs/template-spacing-contract.md` for the current 56px/44px single/multiline ceiling rule. PC/tablet formulas in this audit are historical evidence rather than current authority.
 
 The current featured asset is the user's `거친 실루엣의 커피 악어_수정3.png`, copied unchanged as `kohi-coffee-crocodile-user-v6.png`. Category titles use KOHI's documented 4% exception and the description-to-title gap is slightly tighter; shared item/supporting type rules remain unchanged.
 

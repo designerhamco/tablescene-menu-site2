@@ -148,7 +148,7 @@ test("재고 마감 카운트다운은 레이아웃이 흔들리지 않는 디�
   assert.match(globalStylesSource, /\.cafe-a-time-sale-digital-value \{[\s\S]*font-variant-numeric: tabular-nums;[\s\S]*inline-size: 8ch;/);
 });
 
-test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12배 큰 공통 글자 비율을 사용한다", () => {
+test("구형 태블릿 배율은 제외 엔진에 남고 원페이지는 공통 fit 계약으로 차단한다", () => {
   assert.match(templateSource, /TABLET_LANDSCAPE_MAX_FIT_FONT_SCALE = 1\.34/);
   assert.match(templateSource, /getTemplateFitFontCandidates\(FIT_FONT_SCALE_CANDIDATES\)/);
   assert.match(templateSource, /getPreviewFitFontScaleCandidates\(candidates, data\.previewDevice === "tablet"\)/);
@@ -156,6 +156,10 @@ test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12�
   assert.match(
     globalStylesSource,
     /\.cafe-a-typography:not\(\.brew-chapter-template\)\[data-preview-device="tablet"\] \{[\s\S]*--cafe-a-device-type-scale: 1\.12;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-adaptive-fit="true"\] \{[\s\S]*--cafe-a-device-type-scale: 1 !important;/,
   );
   assert.match(
     globalStylesSource,
@@ -198,10 +202,14 @@ test("태블릿 미리보기는 안전 맞춤을 유지하면서 PC보다 1.12�
   assert.match(globalStylesSource, /\.cafe-a-topline-title \{[\s\S]*var\(--cafe-a-store-title-device-scale, 1\)/);
 });
 
-test("모카 포레스트는 PC 전체 글자를 소폭 키우고 태블릿 상품 역할만 소폭 줄인다", () => {
+test("모카 포레스트의 구형 장치 배율은 원페이지 공통 fit 계약보다 우선하지 않는다", () => {
   assert.match(
     globalStylesSource,
     /data-template-key="cafe_mocha_forest_a"\]\[data-cafe-a-skin="mocha_forest"\]:not\(\[data-preview-device="tablet"\]\) \{[\s\S]*--cafe-a-device-type-scale: 1\.04;/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-adaptive-fit="true"\] \{[\s\S]*--cafe-a-device-type-scale: 1 !important;/,
   );
   assert.match(
     globalStylesSource,

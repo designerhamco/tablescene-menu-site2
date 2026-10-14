@@ -31,14 +31,14 @@ test("legacy notice face remains available to excluded engines; one-page uses it
   assert.match(cafeSource, /assets=\{\[koreanFontAssets, englishFontAssets, noticeFontAssets, \.\.\.roleFontAssets\]\}/);
 });
 
-test("Mocha Forest widens category rhythm off mobile and enlarges only the mobile category role", () => {
+test("Mocha Forest widens category rhythm off mobile without overriding the shared mobile category size", () => {
   assert.match(
     globalStylesSource,
     /data-preview-device="tablet"\] \{\s*--cafe-a-category-title-to-first-ratio: 1\.2;/,
   );
-  assert.match(
+  assert.doesNotMatch(
     globalStylesSource,
-    /data-preview-device="mobile"\] \{\s*--cafe-a-sunday-category-ratio: 1\.44;/,
+    /data-template-key="cafe_mocha_forest_a"[^}]*data-preview-device="mobile"[^}]*--cafe-a-sunday-category-ratio/,
   );
   assert.match(
     globalStylesSource,

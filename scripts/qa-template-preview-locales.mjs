@@ -1,6 +1,10 @@
 import { chromium } from "@playwright/test";
 import { getMenuPriceAlignmentFailures, measureMenuPriceAlignment } from "./lib/menu-price-alignment.mjs";
 
+// Historical broad-preview harness retained for excluded-engine investigation.
+// Its one-page assertions describe the superseded pre-contract ratios. Run the
+// current seven-template contract through `npm run qa:template-preview-locales`.
+
 const baseUrl = process.env.TEMPLATE_PREVIEW_LOCALE_QA_BASE_URL || "http://127.0.0.1:3000";
 const navigationTimeout = Number(process.env.TEMPLATE_PREVIEW_LOCALE_QA_TIMEOUT_MS || 30_000);
 const templateFilter = process.env.TEMPLATE_PREVIEW_LOCALE_QA_TEMPLATE;

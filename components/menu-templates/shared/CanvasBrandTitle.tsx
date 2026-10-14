@@ -6,13 +6,13 @@ import { CANVAS_HEADER_MAX_RATIO, CANVAS_PC_HEADER_BRAND_CEILING_SCALE, getCanva
 import type { OnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import ScriptAwareText from "./ScriptAwareText";
 
-export default function CanvasBrandTitle({ title, className, fontSignature, device, layoutShell, ceilingScale = 1 }: {
-  title: string; className: string; fontSignature: string; device: "tablet" | "pc"; layoutShell: OnePageLayoutShell; ceilingScale?: number;
+export default function CanvasBrandTitle({ title, className, fontSignature, device, layoutShell }: {
+  title: string; className: string; fontSignature: string; device: "tablet" | "pc"; layoutShell: OnePageLayoutShell;
 }) {
   const rootRef = useRef<HTMLHeadingElement>(null);
   const measurementRef = useRef<HTMLSpanElement>(null);
   const texts = useMemo(() => getMobileBrandMeasurementTexts(title), [title]);
-  const inputKey = `${title}|${fontSignature}|${device}|${layoutShell}|${ceilingScale}`;
+  const inputKey = `${title}|${fontSignature}|${device}|${layoutShell}`;
   const [fit, setFit] = useState<(MobileBrandTitleFit & { inputKey: string }) | null>(null);
   const activeFit = fit?.inputKey === inputKey ? fit : null;
 
@@ -36,7 +36,6 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       // parent class collapsed left-rail and center-column templates into one
       // branch and allowed one layout family's PC policy to leak into another.
       const layout: CanvasBrandSlotLayout = layoutShell === "brand_top_band" ? "horizontal-header" : "brand-column";
-      const isEdgeBrandColumn = layoutShell === "brand_left_rail";
       const boundedHeader = layout === "horizontal-header" && Boolean(board?.closest('[data-cafe-a-adaptive-fit="true"]'));
       // Recover the unscaled gap so choosing one/two lines never feeds back
       // through the compact gap into the title's own height budget.
@@ -46,32 +45,21 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       const availableHeight = frameHeight - baseGap;
       const header = container.closest("[data-cafe-a-topline-info-header]");
       const sideHeight = Math.max(0, ...[...header?.querySelectorAll<HTMLElement>(".cafe-a-topline-description, .cafe-a-topline-notice-text") ?? []].map((element) => element.getBoundingClientRect().height));
-      return { width, height: boundedHeader ? availableHeight * CANVAS_HEADER_MAX_RATIO : getCanvasBrandHeight(width, frameHeight, layout), layout, isEdgeBrandColumn, boundedHeader, availableHeight, frameHeight, baseGap, sideHeight };
+      return { width, height: boundedHeader ? availableHeight * CANVAS_HEADER_MAX_RATIO : getCanvasBrandHeight(width, frameHeight, layout), layout, boundedHeader, availableHeight, frameHeight, baseGap, sideHeight };
     };
     const measure = () => {
       frame = 0;
       if (disposed) return;
-      const { width, height, layout, isEdgeBrandColumn, boundedHeader, frameHeight, baseGap, sideHeight } = boxOf();
+      const { width, height, layout, boundedHeader, frameHeight, baseGap, sideHeight } = boxOf();
       if (width <= 0) return;
       const remScale = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) / 16;
       const widths = new Map([...measurements.children].map((element, index) => [texts[index], element.getBoundingClientRect().width]));
       const lineAdvance = Math.max(1.08, ...[...measurements.children].map((element) => element.getBoundingClientRect().height / 100));
-      const baseLimits = getCanvasBrandLimits(width, layout, remScale);
-      // A wide PC brand rail may use the full inner width. Tablet keeps the
-      // calmer shared 75% target that already fits its narrower composition.
-      const limits = device === "pc" && isEdgeBrandColumn
-        ? { ...baseLimits, widthRatio: 1 }
-        : baseLimits;
+      const limits = getCanvasBrandLimits(width, layout, remScale);
       // The quieter PC ceiling belongs only to horizontal headers. Vertical
       // shells keep their own width policy and must never inherit that scale.
-      const appliedCeilingScale = (device === "pc" && layout === "horizontal-header" ? CANVAS_PC_HEADER_BRAND_CEILING_SCALE : 1) * ceilingScale;
-      // On wide PC brand rails, reject a two-line candidate that becomes tall
-      // while leaving most of the rail width empty. The single-line candidate
-      // then uses the full edge-rail target. Tablet keeps the established
-      // one/two-line comparison because its narrower composition is already
-      // balanced independently.
-      const minimumWrappedCoverage = device === "pc" && isEdgeBrandColumn ? 0.65 : 0;
-      const next = { ...selectCanvasBrandTitleFit(title, widths, width, height, limits, lineAdvance, appliedCeilingScale, minimumWrappedCoverage), inputKey };
+      const appliedCeilingScale = device === "pc" && layout === "horizontal-header" ? CANVAS_PC_HEADER_BRAND_CEILING_SCALE : 1;
+      const next = { ...selectCanvasBrandTitleFit(title, widths, width, height, limits, lineAdvance, appliedCeilingScale), inputKey };
       if (boundedHeader) {
         const gapScale = window.innerWidth >= 1024
           ? getCanvasHeaderGapScale(device, next.lines.length, next.naturalWrap) : 1;
@@ -122,7 +110,7 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
         delete board.dataset.fitHeaderBrandLines;
       }
     };
-  }, [title, texts, inputKey, device, layoutShell, ceilingScale]);
+  }, [title, texts, inputKey, device, layoutShell]);
 
   return (
     <h1 ref={rootRef} className={`${className} cafe-a-canvas-brand-title`} data-cafe-a-store-title="" data-canvas-brand-fit={activeFit ? "ready" : "pending"} aria-label={title}

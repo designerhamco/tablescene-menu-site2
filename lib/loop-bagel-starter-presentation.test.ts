@@ -20,9 +20,8 @@ test("Loop Bagel caps only the sparse PC canvas while retaining adaptive fill", 
     /data-template-key="fast_food_loop_bagel_a"\]\[data-preview-device="tablet"\][^}]*--cafe-a-linked-item-name-ceiling/,
   );
   assert.doesNotMatch(templateSource, /fast_food_loop_bagel_a[^\n]*ceilingScale/);
-  assert.match(canvasBrandSource, /device === "pc" && isEdgeBrandColumn \? 0\.65 : 0/);
-  assert.match(canvasBrandSource, /device === "pc" && isEdgeBrandColumn[\s\S]*?widthRatio: 1/);
-  assert.match(canvasBrandSource, /const isEdgeBrandColumn = layoutShell === "brand_left_rail"/);
+  assert.doesNotMatch(canvasBrandSource, /isEdgeBrandColumn|widthRatio: 1|ceilingScale\?:/);
+  assert.match(canvasBrandSource, /const limits = getCanvasBrandLimits\(width, layout, remScale\)/);
   assert.match(canvasBrandSource, /device === "pc" && layout === "horizontal-header" \? CANVAS_PC_HEADER_BRAND_CEILING_SCALE : 1/);
 });
 

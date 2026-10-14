@@ -77,14 +77,12 @@ export function selectMobileBrandTitleFit(
   widths: ReadonlyMap<string, number>,
   availableWidth: number,
   minimumPx = MOBILE_BRAND_MINIMUM_PX,
-  ceilingScale = 1,
 ): MobileBrandTitleFit {
   const minimum = Math.max(MOBILE_BRAND_MINIMUM_PX, minimumPx);
-  const safeCeilingScale = Number.isFinite(ceilingScale) ? Math.max(1, ceilingScale) : 1;
   return selectBrandTitleFit(title, widths, availableWidth, {
     minimum,
-    singleCap: Math.max(minimum, availableWidth * MOBILE_BRAND_SINGLE_LINE_CAP_RATIO * safeCeilingScale),
-    multiCap: Math.max(minimum, availableWidth * MOBILE_BRAND_MULTILINE_CAP_RATIO * safeCeilingScale),
+    singleCap: Math.max(minimum, availableWidth * MOBILE_BRAND_SINGLE_LINE_CAP_RATIO),
+    multiCap: Math.max(minimum, availableWidth * MOBILE_BRAND_MULTILINE_CAP_RATIO),
     singleTarget: 1,
     multiTarget: MOBILE_BRAND_WIDTH_RATIO,
   });

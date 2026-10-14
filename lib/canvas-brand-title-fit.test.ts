@@ -6,23 +6,23 @@ import { getMobileBrandMeasurementTexts } from "./mobile-brand-title-fit";
 import { getFixedOnePageLayoutShell } from "./one-page-layout-shells";
 
 test("coverage is allocated by slot structure, not a template or fixed px size", () => {
-  assert.deepEqual(getCanvasBrandLimits(380, "horizontal-header"), { minimum: 30.400000000000002, maximum: 83.6, widthRatio: 0.65 });
+  assert.deepEqual(getCanvasBrandLimits(380, "horizontal-header"), { minimum: 38, maximum: 83.6, widthRatio: 0.6 });
   assert.deepEqual(getCanvasBrandLimits(281, "brand-column"), { minimum: 28.1, maximum: Infinity, widthRatio: 0.75 });
   const widths = new Map([["VAN GOGH", 453.5], ["VAN", 170], ["GOGH", 235]]);
   const height = getCanvasBrandHeight(380, 838, "horizontal-header");
   assert.ok(Math.abs(height - 106.4) < 0.0001);
   const fit = selectCanvasBrandTitleFit("VAN GOGH", widths, 380, height, getCanvasBrandLimits(380, "horizontal-header"));
   assert.deepEqual(fit.lines, ["VAN GOGH"]);
-  assert.ok(Math.abs(fit.fontSize * 453.5 / 100 / 380 - 0.65) < 0.0001);
+  assert.ok(Math.abs(fit.fontSize * 453.5 / 100 / 380 - 0.6) < 0.0001);
 });
 
-test("a horizontal title uses 65% even when two balanced lines win", () => {
+test("a horizontal title uses 60% even when two balanced lines win", () => {
   const widths = new Map([["SUNDAY ROASTERS", 896.9], ["SUNDAY", 350], ["ROASTERS", 500]]);
   const limits = getCanvasBrandLimits(380, "horizontal-header");
   const height = getCanvasBrandHeight(380, 838, "horizontal-header");
   const fit = selectCanvasBrandTitleFit("SUNDAY ROASTERS", widths, 380, height, limits);
   assert.deepEqual(fit.lines, ["SUNDAY", "ROASTERS"]);
-  assert.ok(Math.abs(fit.fontSize - 106.4 / 2.28) < 1e-8);
+  assert.ok(Math.abs(fit.fontSize * 500 / 100 / 380 - 0.6) < 1e-8);
   assert.deepEqual(selectCanvasBrandTitleFit("SUNDAY ROASTERS", widths, 380, height, limits), fit);
 });
 
@@ -34,15 +34,13 @@ test("rail title uses 75% and the frame height can limit enlargement", () => {
   assert.ok(fit.fontSize * 300 / 100 <= 281 * 0.75);
 });
 
-test("a wide PC rail can fill 100% while keeping 65% coverage before accepting two lines", () => {
+test("PC and tablet rails use the same 75% one/two-line comparison", () => {
   const widths = new Map([["LOOP BAGEL", 598.3], ["LOOP", 270], ["BAGEL", 300]]);
-  const tabletLimits = getCanvasBrandLimits(358, "brand-column");
-  const pcLimits = { ...tabletLimits, widthRatio: 1 };
-  const pc = selectCanvasBrandTitleFit("LOOP BAGEL", widths, 358, 131.24, pcLimits, 1.08, 1, 0.65);
-  const tablet = selectCanvasBrandTitleFit("LOOP BAGEL", widths, 358, 131.24, tabletLimits);
-  assert.deepEqual(pc.lines, ["LOOP BAGEL"]);
-  assert.ok(Math.abs(pc.fontSize * 598.3 / 100 / 358 - 1) < 0.0001);
-  assert.deepEqual(tablet.lines, ["LOOP", "BAGEL"]);
+  const limits = getCanvasBrandLimits(358, "brand-column");
+  const pc = selectCanvasBrandTitleFit("LOOP BAGEL", widths, 358, 131.24, limits);
+  const tablet = selectCanvasBrandTitleFit("LOOP BAGEL", widths, 358, 131.24, limits);
+  assert.deepEqual(pc, tablet);
+  assert.equal(limits.widthRatio, 0.75);
 });
 
 test("all seven one-page templates keep their explicit layout family", () => {
@@ -58,7 +56,7 @@ test("all seven one-page templates keep their explicit layout family", () => {
 test("canvas brand fitting consumes the explicit shell instead of inferring it from CSS", () => {
   const source = readFileSync(new URL("../components/menu-templates/shared/CanvasBrandTitle.tsx", import.meta.url), "utf8");
   assert.match(source, /layoutShell === "brand_top_band" \? "horizontal-header" : "brand-column"/);
-  assert.match(source, /device === "pc" && isEdgeBrandColumn/);
+  assert.doesNotMatch(source, /isEdgeBrandColumn|widthRatio: 1/);
   assert.doesNotMatch(source, /classList\.contains\("cafe-a-topline-brand-identity"\)/);
   const renderer = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
   assert.match(renderer, /layoutShell=\{getFixedOnePageLayoutShell\(data\.menuSite\.template_key\)\}/);
@@ -123,11 +121,11 @@ test("the common selector has no template-specific branch and mobile keeps its o
   assert.doesNotMatch(mobile, /selectCanvasBrandTitleFit/);
 });
 
-test("horizontal row starts compact, grows for two lines or supporting copy, and stays bounded", () => {
-  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08), .09);
-  assert.ok(Math.abs(getCanvasHeaderRatio(1000, 50, 2, 1.08) - .114) < 1e-8);
-  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08, 100), .1);
-  assert.equal(getCanvasHeaderRatio(1000, 100, 2, 1.08), .14);
+test("horizontal row keeps the common 18% reading-frame budget", () => {
+  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08), .18);
+  assert.equal(getCanvasHeaderRatio(1000, 50, 2, 1.08), .18);
+  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08, 100), .18);
+  assert.equal(getCanvasHeaderRatio(1000, 100, 2, 1.08), .18);
 });
 
 test("only a confirmed one-line PC brand compacts the header gap", () => {

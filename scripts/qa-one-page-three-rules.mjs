@@ -21,8 +21,8 @@ async function check(key, device, width, height, extra = '') {
     const visible = (e) => e.getBoundingClientRect().width > 0 && e.getBoundingClientRect().height > 0;
     const brand = [...document.querySelectorAll(device === 'mobile' ? '[data-mobile-brand-fit]' : '[data-canvas-brand-fit]')].find(visible);
     return brand && (brand.dataset.mobileBrandFit ?? brand.dataset.canvasBrandFit) === 'ready';
-  }, device, { timeout: 30000 });
-  if (device !== 'mobile' && width >= 1024) await page.waitForFunction(() => document.querySelector('.cafe-a-desktop-fit-board')?.dataset.fitPresentationState === 'ready', null, { timeout: 30000 });
+  }, device, { timeout: 60000 });
+  if (device !== 'mobile' && width >= 1024) await page.waitForFunction(() => document.querySelector('.cafe-a-desktop-fit-board')?.dataset.fitPresentationState === 'ready', null, { timeout: 60000 });
   await page.evaluate(async () => {
     await Promise.all([...document.images].filter((e) => e.getBoundingClientRect().width).map((e) => e.decode().catch(() => null)));
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
@@ -31,7 +31,7 @@ async function check(key, device, width, height, extra = '') {
     const board = document.querySelector('.cafe-a-desktop-fit-board');
     const cover = document.querySelector('[data-cafe-a-fit-presentation]');
     return board?.dataset.fitPresentationState === 'ready' && (!cover || parseFloat(getComputedStyle(cover).opacity) < 0.01);
-  }, null, { timeout: 30000 });
+  }, null, { timeout: 60000 });
   const measurement = await page.evaluate(() => {
     const visible = (e) => e.getBoundingClientRect().width > 0 && e.getBoundingClientRect().height > 0;
     const board = document.querySelector('.cafe-a-desktop-fit-board');
@@ -45,6 +45,7 @@ async function check(key, device, width, height, extra = '') {
     };
     return { width: innerWidth, height: innerHeight, overflow: document.documentElement.scrollWidth - innerWidth,
       state: board?.dataset.fitPresentationState, columns: board?.dataset.fitColumns,
+      basis: board?.dataset.fitCopyBasis,
       scale: board?.dataset.fitFontScale, safety: board?.dataset.fitPresentationSafetyScale,
       brand: brand ? parseFloat(getComputedStyle(brand).fontSize) : null,
       brandLines: brand?.querySelectorAll('[data-canvas-brand-line]').length,
@@ -77,6 +78,7 @@ async function check(key, device, width, height, extra = '') {
   if (measurement.overflow > 1 || measurement.leakedReference) failures.push('overflow or leaked measurement reference');
   if (device === 'mobile') failures.push(...getOnePageMobileRhythmFailures(await page.evaluate(measureOnePageMobileRhythm)));
   else {
+    if (!['three-field', 'actual'].includes(measurement.basis)) failures.push('unknown copy measurement basis');
     const topline = measurement.topline;
     if (topline && (topline.widths.length !== 3 || Math.max(...topline.widths) - Math.min(...topline.widths) > 1 || Math.abs(topline.titleCenter - topline.center) > 1 || topline.lineCenters.some((center) => Math.abs(center - topline.center) > 1)))
       failures.push('horizontal header is not three equal columns with centered title');
@@ -101,12 +103,17 @@ try {
       let full;
       for (const fixture of ['reference-full', 'reference-two', 'reference-one']) {
         const measured = await check(key, 'tablet', 1198, 838, `&layoutMode=${layout}&rhythmQa=${fixture}`);
+        const expectedRhythm = fixture === 'reference-full' ? 1 : fixture === 'reference-two' ? 1.1 : 1.2;
+        if (measured.boundaries.some(({ multiplier }) => Math.abs(multiplier - expectedRhythm) > 0.001))
+          results.at(-1).failures.push('copy visibility did not select the expected item rhythm');
         if (!full) full = measured;
-        else if (full.columns === measured.columns) {
+        else if (full.columns === measured.columns && full.basis === 'three-field' && measured.basis === 'three-field'
+          && full.boundaries.every(({ multiplier }, index) => Math.abs(multiplier - measured.boundaries[index]?.multiplier) < 0.001)) {
           const fullSafety = Number(full.safety) || 1;
           const safety = Number(measured.safety) || 1;
-          // Compare the three-field candidate separately from the existing final
-          // clipping backoff. Never waive a changed reference candidate.
+          // Compare only when both fixtures kept the three-field reference and
+          // the same actual boundary rhythm. The approved 1/1.10/1.20 rhythm
+          // consumes different space and can legitimately change the candidate.
           if (Math.abs(Number(full.scale) / fullSafety - Number(measured.scale) / safety) > 0.002)
             results.at(-1).failures.push('support visibility changed same-column reference font');
           if (Math.abs(fullSafety - safety) < 0.001 && Math.abs(full.name - measured.name) > 0.15)

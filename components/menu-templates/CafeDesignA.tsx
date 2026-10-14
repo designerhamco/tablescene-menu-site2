@@ -2299,7 +2299,6 @@ function StoreIdentity({
         title={title}
         className={titleClassName}
         fontSignature={fontSignature}
-        ceilingScale={data.menuSite.template_key === "cafe_kohi_a" ? 1.5 : 1}
       />
     );
   }

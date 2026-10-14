@@ -2,7 +2,7 @@
 
 > Historical rollout evidence. Follow-up after user review: the KOHI mobile title-width pilot and its dedicated code/fixtures were removed; the fixed 44px mobile brand base is restored. Notice paragraphs now have zero extra gap and use the normal supporting-copy line-height, like consecutive line breaks. Other unified mobile rules remain. The current contract is `docs/template-spacing-contract.md`; the pilot measurements below document the earlier revision, not the current behavior.
 
-> Superseded again by the user's explicit common mobile specification: notices 14px, categories 26px, all text brands target 65% of inner width with a 48px minimum. All old brand/category/notice exceptions are removed. Follow `docs/template-spacing-contract.md`; neither the 80% pilot nor the 44px fallback below is the current rule.
+> Superseded again by the user's explicit common mobile specification: notices 14px, categories 26px, and one shared bounded text-brand fitter with a 44px minimum and 56px/44px single/multiline ceilings at 342px inner width. All old brand/category/notice exceptions are removed. Follow `docs/template-spacing-contract.md`; the earlier 80% and 65% pilots below are historical.
 
 User approved shared mobile rules for seven active dining single-page templates and a KOHI-only title-width pilot. Display/multi-page and PC/tablet are excluded. No starter or saved menu data, production database/storage, fonts/colors, prices, images or product links are changed.
 

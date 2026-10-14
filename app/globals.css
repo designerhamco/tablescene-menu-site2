@@ -4413,17 +4413,6 @@ video {
   --cafe-a-sunday-price-ratio: 0.98;
 }
 
-/* Keep mobile spacing intact while giving Mocha Forest's category label a little more hierarchy. */
-.cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"][data-preview-device="mobile"] {
-  --cafe-a-sunday-category-ratio: 1.44;
-}
-
-@media (max-width: 767px) {
-  .cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"]:not([data-preview-device="tablet"]):not([data-preview-device="pc"]) {
-    --cafe-a-sunday-category-ratio: 1.44;
-  }
-}
-
 /* Public tablet/desktop layouts and their previews share the wider category-to-first-item rhythm. */
 @media (min-width: 768px) {
   .cafe-a-typography[data-template-key="cafe_mocha_forest_a"][data-cafe-a-skin="mocha_forest"]:not([data-preview-device="mobile"]) {
@@ -4818,7 +4807,7 @@ video {
 @media (min-width: 1024px) {
   .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_top_band"] {
     row-gap: calc(var(--sunday-line-row-gap) * var(--cafe-a-header-gap-scale, 1));
-    grid-template-rows: minmax(0, var(--cafe-a-header-fr, 8fr)) minmax(0, var(--cafe-a-body-fr, 92fr));
+    grid-template-rows: minmax(0, var(--cafe-a-header-fr, 18fr)) minmax(0, var(--cafe-a-body-fr, 82fr));
   }
   .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-topline-info-header {
     height: 100%;
@@ -4916,7 +4905,7 @@ video {
   }
   .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_top_band"] {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, var(--cafe-a-header-fr, 8fr)) minmax(0, var(--cafe-a-body-fr, 92fr));
+    grid-template-rows: minmax(0, var(--cafe-a-header-fr, 18fr)) minmax(0, var(--cafe-a-body-fr, 82fr));
   }
   .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_top_band"] :is(.cafe-a-topline-info-header, .cafe-a-fixed-rail) {
     display: grid !important;
@@ -5582,7 +5571,6 @@ video {
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_kohi_a"] {
   --kohi-divider-width: 1px;
-  --kohi-category-title-scale: 1.2;
   /* Internal rules stay compact. Category boundaries add air only above the
      stroke, between the previous category's last item and the rule. */
   --kohi-mobile-line-content-gap: 0.75rem;
@@ -5593,14 +5581,6 @@ video {
   --cafe-a-mobile-menu-start-gap: calc(var(--kohi-mobile-category-rule-gap) + var(--kohi-divider-width) + var(--kohi-mobile-category-rule-gap));
   --cafe-a-mobile-upper-to-menu-gap: var(--cafe-a-mobile-menu-start-gap);
   --cafe-a-mobile-category-boundary-gap: calc(var(--kohi-mobile-last-item-to-rule-gap) + var(--kohi-divider-width) + var(--kohi-mobile-category-rule-gap));
-}
-
-.cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_kohi_a"] .cafe-a-category-title {
-  font-size: calc(1.625rem * var(--kohi-category-title-scale));
-}
-
-.cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_kohi_a"] [data-cafe-a-category-description].cafe-a-category-eyebrow {
-  margin-bottom: 0.25rem;
 }
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_kohi_a"] .cafe-a-category-heading {

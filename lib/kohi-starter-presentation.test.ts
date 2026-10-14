@@ -79,13 +79,14 @@ test("KOHI defaults unify all regular and timed badge colors without changing ot
   assert.equal(getDefaultBadgeStyles("cafe_design_a").signature.background_color, "#2AA36D");
 });
 
-test("KOHI keeps its category-size and hand-drawn chip exceptions local to the template", () => {
+test("KOHI keeps its PC/tablet category and hand-drawn chip exceptions local to the template", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(css, /data-template-key="cafe_kohi_a"[^}]*--kohi-category-title-scale: 1\.1;/);
-  assert.match(css, /data-cafe-a-mobile-style="true"[^}]*data-template-key="cafe_kohi_a"[^}]*--kohi-category-title-scale: 1\.2;/);
+  assert.doesNotMatch(css, /data-cafe-a-mobile-style="true"[^}]*data-template-key="cafe_kohi_a"[^}]*--kohi-category-title-scale/);
+  assert.doesNotMatch(css, /data-cafe-a-mobile-style="true"[^}]*data-template-key="cafe_kohi_a"[^}]*cafe-a-category-title[^}]*font-size/);
   assert.match(css, /data-template-key="cafe_kohi_a"[^}]*cafe-a-category-title[^}]*var\(--kohi-category-title-scale\)/);
   assert.match(css, /data-template-key="cafe_kohi_a"[^}]*cafe-a-category-eyebrow\.cafe-a-menu-description[^}]*margin: 0 0 0\.18em;/);
-  assert.match(css, /data-cafe-a-mobile-style="true"[^}]*data-template-key="cafe_kohi_a"[^}]*data-cafe-a-category-description[^}]*margin-bottom: 0\.25rem;/);
+  assert.doesNotMatch(css, /data-cafe-a-mobile-style="true"[^}]*data-template-key="cafe_kohi_a"[^}]*data-cafe-a-category-description[^}]*margin-bottom/);
   assert.match(css, /data-template-key="cafe_kohi_a"[^}]*:is\([^}]*cafe-a-time-sale-badge[^}]*\)[^}]*background-image:[^}]*clip-path: polygon/);
 });
 

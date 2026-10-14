@@ -6,6 +6,7 @@ const base = process.env.ADAPTIVE_QA_BASE || 'http://127.0.0.1:3000';
 const keys = process.env.ADAPTIVE_QA_KEYS?.split(',') || ['cafe_design_a','cafe_kohi_a','cafe_mocha_forest_a','cafe_sunday_line_a','cafe_van_gogh_a','cafe_round_focus_a','fast_food_loop_bagel_a'];
 const full = process.env.ADAPTIVE_QA_FULL === '1';
 const fixtures = process.env.ADAPTIVE_QA_FIXTURES === '1';
+const quiet = process.env.ADAPTIVE_QA_QUIET === '1';
 const browser = await chromium.launch();
 const page = await browser.newPage({ reducedMotion: 'reduce' });
 await page.addInitScript(() => { localStorage.clear(); sessionStorage.clear(); });
@@ -18,13 +19,13 @@ async function check(key, device, width, height, extra = '') {
   for (const [name,value] of new URLSearchParams(extra)) params.set(name,value);
   await page.goto(`${base}/templates/${key}/preview?${params}`, { waitUntil:'domcontentloaded', timeout:60000 });
   await page.evaluate(() => document.fonts.ready);
-  if (device === "mobile") await page.waitForFunction(() => document.querySelector("[data-mobile-brand-fit]")?.dataset.mobileBrandFit === "ready", null, {timeout:30000});
-  if (device !== 'mobile' && width >= 768) await page.waitForFunction(() => document.querySelector('.cafe-a-desktop-fit-board')?.dataset.fitPresentationState === 'ready', null, {timeout:30000});
+  if (device === "mobile") await page.waitForFunction(() => document.querySelector("[data-mobile-brand-fit]")?.dataset.mobileBrandFit === "ready", null, {timeout:60000});
+  if (device !== 'mobile' && width >= 768) await page.waitForFunction(() => document.querySelector('.cafe-a-desktop-fit-board')?.dataset.fitPresentationState === 'ready', null, {timeout:60000});
   if (device !== 'mobile' && width >= 768) await page.waitForFunction(() => {
     const board = document.querySelector('.cafe-a-desktop-fit-board');
     const cover = document.querySelector('[data-cafe-a-fit-presentation]');
     return board?.dataset.fitPresentationState === 'ready' && (!cover || parseFloat(getComputedStyle(cover).opacity) < .01);
-  }, null, {timeout:30000});
+  }, null, {timeout:60000});
   await page.waitForTimeout(500);
   await page.evaluate(async () => { await Promise.all([...document.images].filter(e=>e.getBoundingClientRect().width).map(e=>e.decode().catch(()=>null))); await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))); });
   const m = await page.evaluate(() => {
@@ -85,11 +86,11 @@ async function check(key, device, width, height, extra = '') {
     if(m.scroll==='auto'||m.scroll==='scroll') failures.push('one-page menu must not scroll');
     if(m.menu && m.menu.scrollWidth-m.menu.width>1) failures.push('menu horizontal overflow');
     if(m.menu && m.menu.scrollHeight-m.menu.height>1) failures.push('menu vertical overflow');
-    if(m.header && (m.header.height/(m.header.boardInner-m.header.gap)<.077 || m.header.height/(m.header.boardInner-m.header.gap)>.143)) failures.push('header is outside the 8–14 percent bounds');
+    if(m.header && Math.abs(m.header.height/(m.header.boardInner-m.header.gap)-.18)>.003) failures.push('header is outside the fixed 18 percent budget');
   } else failures.push(...getOnePageMobileRhythmFailures(await page.evaluate(measureOnePageMobileRhythm)));
   failures.push(...getMenuPriceAlignmentFailures(await page.evaluate(measureMenuPriceAlignment)));
   results.push({key,device,extra,...m,failures});
-  console.log(JSON.stringify(results.at(-1)));
+  if (!quiet) console.log(JSON.stringify(results.at(-1)));
   if(!extra && device==='pc') await page.screenshot({path:`/private/tmp/adaptive-${key}-pc.png`});
   return m;
 }

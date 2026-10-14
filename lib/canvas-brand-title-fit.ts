@@ -3,9 +3,9 @@ import { getBalancedBrandLinePlans, normalizeMobileBrandTitle, type MobileBrandT
 export const CANVAS_BRAND_TWO_LINE_GAIN = 1.15;
 export const CANVAS_BRAND_FRAME_HEIGHT_RATIO = 0.18;
 export const CANVAS_PC_HEADER_BRAND_CEILING_SCALE = 0.875;
-export const CANVAS_HEADER_BASE_RATIO = 0.08;
-export const CANVAS_HEADER_SINGLE_LINE_BASE_RATIO = 0.09;
-export const CANVAS_HEADER_MAX_RATIO = 0.14;
+export const CANVAS_HEADER_BASE_RATIO = CANVAS_BRAND_FRAME_HEIGHT_RATIO;
+export const CANVAS_HEADER_SINGLE_LINE_BASE_RATIO = CANVAS_BRAND_FRAME_HEIGHT_RATIO;
+export const CANVAS_HEADER_MAX_RATIO = CANVAS_BRAND_FRAME_HEIGHT_RATIO;
 
 /** Only confirmed one-line PC text brands use a more compact header gap. */
 export function getCanvasHeaderGapScale(device: "pc" | "tablet" | "mobile", lineCount: number, naturalWrap = false) {
@@ -13,10 +13,12 @@ export function getCanvasHeaderGapScale(device: "pc" | "tablet" | "mobile", line
 }
 
 export function getCanvasHeaderRatio(frameHeight: number, fontSize: number, lines: number, lineAdvance: number, sideHeight = 0) {
-  const baseRatio = lines === 1 ? CANVAS_HEADER_SINGLE_LINE_BASE_RATIO : CANVAS_HEADER_BASE_RATIO;
-  if (frameHeight <= 0) return baseRatio;
-  const needed = Math.max(fontSize * (Math.max(1.08, lineAdvance) * lines + 0.12), sideHeight);
-  return Math.max(baseRatio, Math.min(CANVAS_HEADER_MAX_RATIO, needed / frameHeight));
+  void frameHeight;
+  void fontSize;
+  void lines;
+  void lineAdvance;
+  void sideHeight;
+  return CANVAS_HEADER_MAX_RATIO;
 }
 
 export type CanvasBrandSlotLayout = "horizontal-header" | "brand-column";
@@ -32,14 +34,13 @@ export function getCanvasBrandLimits(width: number, layout: CanvasBrandSlotLayou
   // A width-relative floor prevents extreme names becoming illegible solely
   // to chase coverage; those names use the existing text-preserving fallback.
   const horizontal = layout === "horizontal-header";
-  const minimum = Math.max(0, width) * (horizontal ? 0.08 : 0.1) * rootScale;
-  return { minimum, maximum: horizontal ? Math.max(minimum, width * 0.22 * rootScale) : Infinity, widthRatio: horizontal ? 0.65 : 0.75 };
+  const minimum = Math.max(0, width) * 0.1 * rootScale;
+  return { minimum, maximum: horizontal ? Math.max(minimum, width * 0.22 * rootScale) : Infinity, widthRatio: horizontal ? 0.6 : 0.75 };
 }
 
 /** Same inputs and scoring for every skin: no template IDs or per-template sizes. */
 export function selectCanvasBrandTitleFit(title: string, widths: ReadonlyMap<string, number>, width: number, height: number,
-  limits: ReturnType<typeof getCanvasBrandLimits>, measuredLineAdvance = 1.08, ceilingScale = 1,
-  minimumWrappedCoverage = 0): MobileBrandTitleFit {
+  limits: ReturnType<typeof getCanvasBrandLimits>, measuredLineAdvance = 1.08, ceilingScale = 1): MobileBrandTitleFit {
   const text = normalizeMobileBrandTitle(title);
   const lineAdvance = Math.max(1.08, measuredLineAdvance);
   const fallback = { lines: text ? [text] : [], fontSize: limits.minimum, naturalWrap: true };
@@ -59,11 +60,9 @@ export function selectCanvasBrandTitleFit(title: string, widths: ReadonlyMap<str
     if (single && double) {
       const lineWidths = double.lines.map((line) => widths.get(line) ?? 0);
       const balanced = Math.min(...lineWidths) / Math.max(...lineWidths) >= 0.5;
-      const wrappedCoverage = Math.max(...lineWidths) * double.fontSize / 100 / width;
       const singleCoverage = (widths.get(text) ?? 0) * single.fontSize / 100;
       const floorExceededTarget = singleCoverage > width * limits.widthRatio * 1.05;
-      return balanced && wrappedCoverage >= minimumWrappedCoverage
-        && (double.fontSize >= single.fontSize * CANVAS_BRAND_TWO_LINE_GAIN || floorExceededTarget) ? double : single;
+      return balanced && (double.fontSize >= single.fontSize * CANVAS_BRAND_TWO_LINE_GAIN || floorExceededTarget) ? double : single;
     }
     return single ?? double ?? candidates[0];
   }
