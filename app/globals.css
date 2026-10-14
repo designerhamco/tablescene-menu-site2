@@ -5652,3 +5652,42 @@ video {
 .cafe-a-typography .cafe-a-mobile-call-bar .cafe-a-call-language-slot,
 .cafe-a-typography .cafe-a-mobile-call-bar .cafe-a-call-language-slot * { color: var(--cafe-a-call-ink, #191c1b) !important; }
 .cafe-a-mobile-call-bar [data-template-language-control] button { padding: 0; border: 0; background: transparent; }
+
+/* Call bars follow the brand; table labels always use the saved Korean font. */
+.cafe-a-typography .cafe-a-call-table-label {
+  font-family: var(--menu-font-ko), system-ui, sans-serif !important;
+  font-size: var(--cafe-a-linked-supporting-copy-size, .875rem);
+}
+.cafe-a-mobile-call-bar .cafe-a-call-language-slot button > svg,
+.cafe-a-mobile-call-dock-button svg { inline-size: 1.5rem; block-size: 1.5rem; }
+.cafe-a-mobile-call-dock { display: none; }
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] .cafe-a-mobile-call-dock {
+  display: block;
+  position: fixed;
+  z-index: 40;
+  inset-inline: 1.5rem;
+  bottom: calc(.75rem + env(safe-area-inset-bottom, 0px));
+}
+.cafe-a-mobile-call-dock-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  width: 100%;
+  min-height: 3.25rem;
+  padding: .75rem 1rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--cafe-a-call-foreground, #fff) 20%, transparent);
+  background: var(--cafe-a-call-accent, #191c1b);
+  color: var(--cafe-a-call-foreground, #fff);
+  font-family: var(--menu-font-ko), system-ui, sans-serif;
+  font-size: var(--cafe-a-linked-supporting-copy-size, .875rem);
+  font-weight: 600;
+  line-height: 1.5;
+  box-shadow: 0 .25rem 1rem #0002;
+  cursor: pointer;
+}
+.cafe-a-mobile-call-dock-button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] [data-cafe-a-scroll-content] {
+  padding-bottom: calc(var(--cafe-a-page-block-end) + 5rem + env(safe-area-inset-bottom, 0px));
+}

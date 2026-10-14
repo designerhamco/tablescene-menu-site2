@@ -28,7 +28,7 @@ import CanvasBrandTitle from "@/components/menu-templates/shared/CanvasBrandTitl
 import { applyOnePageChipLayout, applyOnePageChipLayouts } from "@/components/menu-templates/one-page-chip-layout";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import MenuOrderAddButton from "@/components/public-menu/order-call/MenuOrderAddButton";
-import { OnePageCallButton, OnePageMobileCallBar, OnePageCallPalette, useOnePageCallActions } from "@/components/menu-templates/one-page/OnePageCallControls";
+import { OnePageCallButton, OnePageMobileCallBar, OnePageMobileCallDock, OnePageCallPalette, useOnePageCallActions } from "@/components/menu-templates/one-page/OnePageCallControls";
 import { createCafeAOrderedBalancedColumnFromBlocks } from "@/components/menu-templates/cafe-a-balanced-layout";
 import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
 import { getCafeAMenuWrapScaleCandidates, hasCafeAMenuWrapDensityImproved, type CafeAMenuWrapDensityDecision } from "@/lib/cafe-a-wrap-density";
@@ -7395,6 +7395,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         style={{ ...typographyStyle, ...skinStyle, backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor }}
       >
         <OnePageCallPalette />
+        <OnePageMobileCallDock />
         <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
           {isRoundFocus ? (
             <section className="cafe-a-round-focus-mobile-brand-section lg:hidden" data-cafe-a-round-focus-mobile-brand-section="">

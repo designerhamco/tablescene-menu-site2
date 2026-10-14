@@ -9,7 +9,19 @@ const OnePageCallContext = createContext<OnePageCallActions>({ enabled: false, t
 export const OnePageCallProvider = OnePageCallContext.Provider;
 export function useOnePageCallActions() { return useContext(OnePageCallContext); }
 
-/** Read the rendered title/name so saved colors and template panel colors both work. */
+function colorLuminance(color: string) {
+  const hex = color.match(/^#([a-f\d]{6})$/i)?.[1];
+  const channels = hex ? [0, 2, 4].map(offset => Number.parseInt(hex.slice(offset, offset + 2), 16))
+    : color.match(/[\d.]+/g)?.slice(0, 3).map(Number) ?? [25, 28, 27];
+  const linear = channels.map(channel => { const value = channel / 255; return value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4; });
+  return linear[0] * .2126 + linear[1] * .7152 + linear[2] * .0722;
+}
+function colorContrast(first: string, second: string) {
+  const a = colorLuminance(first), b = colorLuminance(second);
+  return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
+}
+
+/** The bar follows the brand; buttons choose a visible accent from the menu palette. */
 export function OnePageCallPalette() {
   const marker = useRef<HTMLSpanElement>(null);
   const call = useOnePageCallActions();
@@ -22,13 +34,22 @@ export function OnePageCallPalette() {
       frame = 0;
       const visible = (element: Element) => element.getBoundingClientRect().width > 0;
       const brand = [...root.querySelectorAll<HTMLElement>("[data-cafe-a-store-title],.cafe-a-store-title")].find(visible);
-      const name = [...root.querySelectorAll<HTMLElement>("[data-cafe-a-menu-name]")].find(visible);
-      const colors = {
-        "--cafe-a-call-accent": brand ? getComputedStyle(brand).color : "#191c1b",
-        "--cafe-a-call-ink": name ? getComputedStyle(name).color : "#191c1b",
-      };
-      const rgb = colors["--cafe-a-call-accent"].match(/[\d.]+/g)?.map(Number);
-      const foreground = rgb && rgb.length >= 3 && rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722 > 180 ? "#191c1b" : "#ffffff";
+      const brandColor = brand ? getComputedStyle(brand).color
+        : getComputedStyle(root).getPropertyValue("--menu-role-brand-color").trim() || "#191c1b";
+      const button = [...root.querySelectorAll<HTMLElement>("[data-one-page-call-button]")].find(visible);
+      let panel = button?.parentElement ?? root;
+      let background = "#ffffff";
+      while (panel) {
+        const candidate = getComputedStyle(panel).backgroundColor;
+        if (candidate !== "transparent" && !/rgba\([^)]*,\s*0\)$/.test(candidate)) { background = candidate; break; }
+        if (!panel.parentElement) break;
+        panel = panel.parentElement;
+      }
+      const palette = [brandColor, ...[...root.querySelectorAll<HTMLElement>(".cafe-a-category-title,[data-cafe-a-menu-name]")]
+        .filter(visible).map(element => getComputedStyle(element).color), "#191c1b"];
+      const accent = palette.find(color => colorContrast(color, background) >= 3) ?? "#191c1b";
+      const colors = { "--cafe-a-call-accent": accent, "--cafe-a-call-ink": brandColor };
+      const foreground = colorContrast(accent, "#ffffff") >= colorContrast(accent, "#191c1b") ? "#ffffff" : "#191c1b";
       for (const [key, value] of Object.entries({ ...colors, "--cafe-a-call-foreground": foreground })) {
         if (root.style.getPropertyValue(key) !== value) root.style.setProperty(key, value);
       }
@@ -60,7 +81,20 @@ export function OnePageMobileCallBar({ languageControl }: { languageControl: Rea
   if (!call.enabled) return null;
   return <div className="cafe-a-mobile-call-bar" data-one-page-call-bar="">
     <OnePageCallButton mobile />
-    <span className="cafe-a-call-table-label" data-one-page-table-label=""><ScriptAwareText text={call.tableLabel} /></span>
+    <span className="cafe-a-call-table-label" data-one-page-table-label="">{call.tableLabel}</span>
     <div className="cafe-a-call-language-slot">{languageControl}</div>
+  </div>;
+}
+
+/** Mobile-only persistent entry; uses the same simulated/real call action as the header. */
+export function OnePageMobileCallDock() {
+  const call = useOnePageCallActions();
+  if (!call.enabled) return null;
+  return <div className="cafe-a-mobile-call-dock" data-one-page-call-dock="">
+    <button type="button" className="cafe-a-mobile-call-dock-button" aria-label="직원 호출하기"
+      data-one-page-call-button="mobile-bottom" onClick={call.openCall}>
+      <Bell aria-hidden="true" strokeWidth={1.8} />
+      <span>직원 호출하기</span>
+    </button>
   </div>;
 }
