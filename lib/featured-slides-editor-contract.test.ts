@@ -20,3 +20,9 @@ test("representative image editor keeps the five-slide limit", () => {
   assert.match(editorSource, /Math\.min\(5, Math\.trunc\(maxSlides\)\)/);
   assert.match(editorSource, /대표 이미지는 최대 \{effectiveMaxSlides\}개까지 등록할 수 있습니다/);
 });
+
+test("representative image editor explains the shared frame recommendation", () => {
+  assert.match(editorSource, /권장 크기: 1200×1500px 이상/);
+  assert.match(editorSource, /권장 비율: 4:5/);
+  assert.match(editorSource, /중앙 기준으로 일부 잘릴 수 있습니다/);
+});

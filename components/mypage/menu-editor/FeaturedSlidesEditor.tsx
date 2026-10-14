@@ -127,6 +127,9 @@ export default function FeaturedSlidesEditor({
           <h3 className="type-content-title text-zinc-950">대표 이미지</h3>
           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
             메뉴판 대표 영역에 보여줄 이미지를 최대 {effectiveMaxSlides}개까지 등록하고 순서를 정할 수 있습니다.
+            <span className="mt-1 block text-xs text-zinc-400">
+              권장 크기: 1200×1500px 이상 · 권장 비율: 4:5 (다른 비율은 영역을 채우기 위해 중앙 기준으로 일부 잘릴 수 있습니다.)
+            </span>
           </p>
         </div>
 

@@ -5080,16 +5080,15 @@ video {
 }
 
 /* Preserve the previous opaque version for already-saved menus/rollback.
-   Customer photographs retain the existing cover behavior. */
+   Image sizing still follows the shared representative-area cover rule. */
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-illustration.png"] {
   background-color: #f7f5f1;
-  object-fit: contain;
 }
 
-/* Keep the transparent redraw intact in wide scrolling headers as well. */
+/* Transparent KOHI artwork may remove fallback paint, but it must not
+   override the shared representative-area cover sizing. */
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-transparent-v2.png"] {
   background: transparent;
-  object-fit: contain;
 }
 
 /* A transparent PNG must reveal the customer's menu background, not the
@@ -5105,7 +5104,6 @@ video {
 /* The heart-cup edit retains the same transparent illustration contract. */
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-heart-v3.png"] {
   background: transparent;
-  object-fit: contain;
 }
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-heart-v3.png"]) {
@@ -5116,10 +5114,10 @@ video {
   display: none;
 }
 
-/* User-supplied transparent PNG: preserve the artwork and page background. */
+/* User-supplied transparent PNG: preserve the page background while the
+   shared cover rule fills the representative frame. */
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"]) {
   background: transparent;
-  object-fit: contain;
 }
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"])) {

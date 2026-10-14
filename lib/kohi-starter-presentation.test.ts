@@ -99,13 +99,14 @@ test("KOHI featured area contains only one original illustration without a produ
   assert.notEqual(getStarterPreset("cafe_design_a").site.cover_image_url, slide.image_url);
 });
 
-test("KOHI illustration is not cropped in wide portrait-tablet headers, without changing customer photos", () => {
+test("KOHI artwork keeps transparent backgrounds without overriding the shared cover fit", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   const selector = '.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"])';
   const rule = css.slice(css.indexOf(selector), css.indexOf("}", css.indexOf(selector)) + 1);
-  assert.match(rule, /object-fit: contain;/);
   assert.match(rule, /background: transparent;/);
-  assert.doesNotMatch(rule, /height:|width:|padding:|margin:|grid-template/);
+  assert.doesNotMatch(rule, /object-fit:|height:|width:|padding:|margin:|grid-template/);
+  const component = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
+  assert.match(component, /data-cafe-a-cover-image=""[\s\S]{0,500}?object-cover|object-cover[\s\S]{0,500}?data-cafe-a-cover-image=""/);
 });
 
 test("KOHI PNG has actual transparent pixels, not a painted paper/checkerboard background", async () => {
