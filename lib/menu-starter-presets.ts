@@ -638,7 +638,7 @@ const loopBagelStarterPreset: StarterPreset = {
     cover_image_url: LOOP_BAGEL_FEATURED_PLAIN_IMAGE,
     settings: {
       typography: {
-        korean_font_key: "nanum-gothic",
+        korean_font_key: "pretendard",
         english_font_key: "bagel-fat-one",
         font_size_scale_key: "m",
       },

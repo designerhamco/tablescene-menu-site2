@@ -3085,12 +3085,12 @@ video {
   .cafe-a-store-description,
   .cafe-a-footer-info
 ) * {
-  --cafe-a-script-ko-font: "Nanum Gothic";
-  --cafe-a-script-en-font: "Nanum Gothic";
-  font-family: "Nanum Gothic", "Noto Sans KR", system-ui, sans-serif !important;
+  --cafe-a-script-ko-font: var(--menu-font-ko);
+  --cafe-a-script-en-font: var(--menu-font-ko);
+  font-family: var(--menu-font-ko), system-ui, sans-serif !important;
 }
 
-/* Loop Bagel's promotional copy and text chips stay legible in one script-neutral Nanum Gothic face. */
+/* Loop Bagel's legacy supporting copy follows the saved Korean font; shared chip script rules override below. */
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] :is(
   .cafe-a-time-sale-time-text,
   .cafe-a-time-sale-badge,
@@ -3105,9 +3105,9 @@ video {
   .cafe-a-featured-badge,
   .cafe-a-menu-chip
 ) * {
-  --cafe-a-script-ko-font: "Nanum Gothic";
-  --cafe-a-script-en-font: "Nanum Gothic";
-  font-family: "Nanum Gothic", "Noto Sans KR", system-ui, sans-serif !important;
+  --cafe-a-script-ko-font: var(--menu-font-ko);
+  --cafe-a-script-en-font: var(--menu-font-ko);
+  font-family: var(--menu-font-ko), system-ui, sans-serif !important;
 }
 
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] [data-cafe-a-store-description] {
@@ -5664,7 +5664,7 @@ video {
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] .cafe-a-mobile-call-dock {
   display: block;
   position: fixed;
-  z-index: 40;
+  z-index: 80;
   inset-inline: 1.5rem;
   bottom: calc(.75rem + env(safe-area-inset-bottom, 0px));
 }
@@ -5676,7 +5676,7 @@ video {
   width: 100%;
   min-height: 3.25rem;
   padding: .75rem 1rem;
-  border-radius: 999px;
+  border-radius: .75rem;
   border: 1px solid color-mix(in srgb, var(--cafe-a-call-foreground, #fff) 20%, transparent);
   background: var(--cafe-a-call-accent, #191c1b);
   color: var(--cafe-a-call-foreground, #fff);

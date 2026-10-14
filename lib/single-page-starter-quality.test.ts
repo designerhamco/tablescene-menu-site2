@@ -208,7 +208,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   );
   assert.equal(
     mergeTypographySettings("fast_food_loop_bagel_a", loopBagel.site.settings?.typography).korean_font_key,
-    "nanum-gothic",
+    "pretendard",
   );
   assert.equal(ENGLISH_FONT_OPTIONS.some((option) => option.value === "bagel-fat-one" && option.label === "Bagel Fat One"), true);
   assert.equal(loopBagel.time_sales?.every((sale) => sale.badge_background_color === "#4354EF"), true);

@@ -58,7 +58,7 @@ test("Basic launch starters retain the fixture evidence used by feature QA", () 
 test("launch template typography defaults and Display-only size control stay explicit", () => {
   for (const templateKey of Object.keys(BASIC_FEATURE_EXPECTATIONS)) {
     const typography = mergeTypographySettings(templateKey);
-    const expectedKoreanFont = templateKey === "fast_food_loop_bagel_a" ? "nanum-gothic" : "pretendard";
+    const expectedKoreanFont = "pretendard";
     assert.equal(typography.korean_font_key, expectedKoreanFont, `${templateKey}: Korean font`);
     const expectedEnglishFont = {
       cafe_design_a: "oswald",

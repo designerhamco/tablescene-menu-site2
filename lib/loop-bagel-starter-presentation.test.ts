@@ -40,9 +40,9 @@ test("Loop Bagel applies the responsive scale to menu and featured roles without
   assert.doesNotMatch(loopScopedRules, /\.cafe-a-store-title[^}]*--cafe-a-loop-non-heading-type-scale/);
 });
 
-test("Loop Bagel renders promotion copy and text chips entirely in Nanum Gothic", () => {
+test("Loop Bagel legacy promotion rules follow the saved Korean font", () => {
   const promotionFontRules = globalStylesSource.match(
-    /\/\* Loop Bagel's promotional copy[\s\S]*?font-family: "Nanum Gothic", "Noto Sans KR", system-ui, sans-serif !important;\s*\}/,
+    /\/\* Loop Bagel's legacy supporting copy[\s\S]*?font-family: var\(--menu-font-ko\), system-ui, sans-serif !important;\s*\}/,
   )?.[0] ?? "";
 
   assert.match(promotionFontRules, /\.cafe-a-time-sale-time-text/);
@@ -51,5 +51,5 @@ test("Loop Bagel renders promotion copy and text chips entirely in Nanum Gothic"
   assert.match(promotionFontRules, /\.cafe-a-menu-badge/);
   assert.match(promotionFontRules, /\.cafe-a-featured-badge/);
   assert.match(promotionFontRules, /\.cafe-a-menu-chip/);
-  assert.match(promotionFontRules, /--cafe-a-script-en-font: "Nanum Gothic"/);
+  assert.match(promotionFontRules, /--cafe-a-script-en-font: var\(--menu-font-ko\)/);
 });
