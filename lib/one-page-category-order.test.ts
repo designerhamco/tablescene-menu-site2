@@ -96,3 +96,18 @@ test('packing uses conventional order before free order and keeps healthy regist
   assert.ok(free.length > 0);
   assert.ok(free.every(candidate => candidate.every(column => column.height <= 200)));
 });
+
+test('conventional packing wins before an available related-category packing', () => {
+  const ranked = blocks.map((block, index) => ({ ...block, categoryRank: [4, 5, 4, 1][index] }));
+  const candidates = getCafeAOrderedBalancedContiguousColumnCandidates(ranked, 2, {
+    allowRelatedOrder: true,
+    targetHeight: 700,
+    maxExhaustiveBlocks: 12,
+    maxExhaustiveColumns: 4,
+    targetMaxVisibleGap: 6,
+  });
+  assert.ok(candidates.length > 0);
+  assert.ok(candidates.every((candidate) =>
+    candidate.flatMap((column) => column.blocks.map((block) => block.order)).join(',') === '3,0,2,1'
+  ));
+});

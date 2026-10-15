@@ -4,17 +4,19 @@ export type OnePageTypographyProfileKey = "standard" | "heavy-display";
 
 type OnePageTypographyProfile = {
   key: OnePageTypographyProfileKey;
-  itemNameCeilingRem: Partial<Record<MenuPreviewDevice, number>>;
+};
+
+const ONE_PAGE_ITEM_NAME_CEILING_REM: Partial<Record<MenuPreviewDevice, number>> = {
+  pc: 1.35,
+  tablet: 1.3,
 };
 
 const ONE_PAGE_TYPOGRAPHY_PROFILES: Record<OnePageTypographyProfileKey, OnePageTypographyProfile> = {
   standard: {
     key: "standard",
-    itemNameCeilingRem: {},
   },
   "heavy-display": {
     key: "heavy-display",
-    itemNameCeilingRem: { pc: 1.25 },
   },
 };
 
@@ -27,8 +29,7 @@ export function getOnePageTypographyProfile(templateKey: string | null | undefin
 }
 
 export function getOnePageItemNameCeilingRem(
-  profile: OnePageTypographyProfile,
   device: MenuPreviewDevice,
 ): number | undefined {
-  return profile.itemNameCeilingRem[device];
+  return ONE_PAGE_ITEM_NAME_CEILING_REM[device];
 }

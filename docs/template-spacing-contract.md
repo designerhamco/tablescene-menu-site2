@@ -114,7 +114,7 @@ Prefer one intact line if it fits at the minimum. Enlarge toward 100% but stop a
 
 Only container-width, title and typography/font-load changes recompute brand fitting. Do not observe sale timers/menu counts or feed brand results into the menu canvas fit loop. Logos use the existing logo branch. This mobile policy runs only when `onePageRhythmMode` is `mobile`; PC/tablet use the separately bounded brand fitter described above, while Display/multi-page remain excluded. Keep upper control-row/brand/copy/section gaps unchanged.
 
-The reusable `heavy-display` typography profile caps the sparse PC linked item-name/price atom at 1.25rem; the shared 1.6 category ratio then stops at 2rem. Loop Bagel selects this profile because its display face is visually heavy. A future template with the same typography requirement may select the same profile without adding a template-key CSS override. Tablet and mobile do not inherit the cap. Loop Bagel's text brand uses the same 75% vertical-rail one/two-line comparison as every other PC/tablet vertical brand column, without a template or device multiplier.
+Typography profiles identify font characteristics without changing the shared semantic size limits. Every one-page profile uses the common 1.35rem PC and 1.30rem tablet linked item-name/price ceiling; mobile keeps its independent reading sizes. Loop Bagel still selects the reusable `heavy-display` profile for font behavior, but it no longer owns a template-only size cap. Its text brand uses the same 75% vertical-rail one/two-line comparison as every other PC/tablet vertical brand column, without a template or device multiplier.
 
 ## Editorial-scroll templates
 
@@ -157,7 +157,9 @@ Featured name/chip/price sizes equal their respective menu counterparts in all s
 
 ### Calculation ownership - 2026-10-14
 
-Adaptive packing uses registered, related, conventional and bounded free packing tiers in that order, with the existing material-improvement and barrier checks. Stable content signatures include option prices, price-column values, traits, widgets and featured settings; elapsed countdown ticks are excluded. Mobile does not install canvas-fit observers. Reuse chip measurements for identical row inputs and skip unchanged geometry/duplicate viewport notifications. The final crop check remains authoritative; caching never bypasses real content/font/viewport changes.
+Adaptive packing uses registered, conventional, related and bounded free packing tiers in that order, with the existing material-improvement and barrier checks. Stable content signatures include option prices, price-column values, traits, widgets and featured settings; elapsed countdown ticks are excluded. Mobile does not install canvas-fit observers. Reuse chip measurements for identical row inputs and skip unchanged geometry/duplicate viewport notifications. The final crop check remains authoritative; caching never bypasses real content/font/viewport changes. The three-field reference is the default typography safety basis, not a permanent empty-row reservation: one/two-field content with at least 12% verified longest-column headroom, or at least 8% headroom with broad low occupancy, may switch to actual-content packing only after a safe linked size gain of at least 8%, including when the item-name atom is already at its shared ceiling.
+
+All one-page PC/tablet typography profiles share the same product-name ceiling: 1.35rem on PC and 1.30rem on tablet. This is a visual upper bound, not a forced size; measured fit may select a smaller value. Mobile keeps its independent fixed reading policy.
 
 ### Notice/language linkage and quieter brands - 2026-10-14
 

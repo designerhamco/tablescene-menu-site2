@@ -4493,7 +4493,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const isAdaptiveFit = onePageRhythmMode === "fit";
   const onePageTypographyProfile = getOnePageTypographyProfile(data.menuSite.template_key);
   const itemNameCeilingRem = isAdaptiveFit
-    ? getOnePageItemNameCeilingRem(onePageTypographyProfile, menuCoverRenderDevice)
+    ? getOnePageItemNameCeilingRem(menuCoverRenderDevice)
     : undefined;
   const savedLayoutMode = getPcTabletLayoutModeFromPageSettings(data.menuSite.page_settings);
   const normalizedPreviewLayoutMode = data.mode === "preview" ? data.previewLayoutMode : undefined;
@@ -6815,7 +6815,12 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       if (adaptiveGrowthProbeKeyRef.current === probeKey) return;
       adaptiveGrowthProbeKeyRef.current = probeKey;
       const crop = getCafeAActualDomCropMeasurement(board, menu, ORDERED_BALANCED_CROP_TOLERANCE);
-      if (crop.overflow || crop.bottomGap < menu.clientHeight * 0.06) return;
+      const menuTop = menu.getBoundingClientRect().top;
+      const actualFills = [...menu.querySelectorAll<HTMLElement>("[data-cafe-a-balanced-column]")].map((column) =>
+        (getVisibleElementBottom([...column.querySelectorAll<HTMLElement>(CAFE_A_VISIBLE_CONTENT_SELECTOR)].filter((element) => !element.closest("[data-cafe-a-footer-info]"))) - menuTop) / menu.clientHeight).filter(Number.isFinite);
+      const actualLongestFill = actualFills.length ? Math.max(...actualFills) : 1 - crop.bottomGap / menu.clientHeight;
+      const actualBottomGap = Math.max(0, menu.clientHeight * (1 - actualLongestFill));
+      if (crop.overflow || actualBottomGap < menu.clientHeight * 0.06) return;
       const previousFont = board.style.getPropertyValue("--fit-menu-font-scale");
       const previousGap = board.style.getPropertyValue("--fit-menu-gap-scale");
       const original = safeRenderFitState.fontScale;
@@ -6848,12 +6853,11 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         const supportIsVisible = (element: Element | null) => Boolean(element && element.getBoundingClientRect().width > 0 && element.getBoundingClientRect().height > 0);
         const hasHiddenSupport = [...menu.querySelectorAll<HTMLElement>(".cafe-a-menu-copy")].some((copy) =>
           !supportIsVisible(copy.querySelector(".cafe-a-menu-meta:not([data-cafe-a-reference-copy])")) || !supportIsVisible(copy.querySelector("[data-cafe-a-menu-description]")));
-        const menuTop = menu.getBoundingClientRect().top;
-        const actualFills = [...menu.querySelectorAll<HTMLElement>("[data-cafe-a-balanced-column]")].map((column) =>
-          (getVisibleElementBottom([...column.querySelectorAll<HTMLElement>(CAFE_A_VISIBLE_CONTENT_SELECTOR)].filter((element) => !element.closest("[data-cafe-a-footer-info]"))) - menuTop) / menu.clientHeight).filter(Number.isFinite);
-        const averageFill = actualFills.length ? actualFills.reduce((sum, value) => sum + value, 0) / actualFills.length : 1 - crop.bottomGap / menu.clientHeight;
-        if (!shouldRelaxOnePageCopyReference({ hasHiddenSupport, overflow: crop.overflow, height: menu.clientHeight,
-          bottomGap: crop.bottomGap, averageFill, referenceScale: referenceNameSize, actualScale: actualNameSize })) return;
+        const averageFill = actualFills.length ? actualFills.reduce((sum, value) => sum + value, 0) / actualFills.length : 1 - actualBottomGap / menu.clientHeight;
+        const relaxationInput = { hasHiddenSupport, overflow: crop.overflow, height: menu.clientHeight,
+          bottomGap: actualBottomGap, averageFill, referenceScale: referenceNameSize, actualScale: actualNameSize,
+          referenceFitScale: original, actualFitScale: scale };
+        if (!shouldRelaxOnePageCopyReference(relaxationInput)) return;
         setCopyFitBasis("actual");
       }
       if (scale <= original + 0.01) return;

@@ -6,10 +6,10 @@ const globalStylesSource = readFileSync(new URL("../app/globals.css", import.met
 const templateSource = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
 const canvasBrandSource = readFileSync(new URL("../components/menu-templates/shared/CanvasBrandTitle.tsx", import.meta.url), "utf8");
 
-test("Loop Bagel uses the reusable heavy-display profile for its sparse PC item ceiling", () => {
+test("Loop Bagel keeps its font profile while using the shared one-page item ceiling", () => {
   assert.doesNotMatch(globalStylesSource, /data-template-key="fast_food_loop_bagel_a"[^}]*--cafe-a-linked-item-name-ceiling/);
   assert.match(templateSource, /data-one-page-typography-profile=\{isAdaptiveFit \? onePageTypographyProfile\.key : undefined\}/);
-  assert.match(templateSource, /getOnePageItemNameCeilingRem\(onePageTypographyProfile, menuCoverRenderDevice\)/);
+  assert.match(templateSource, /getOnePageItemNameCeilingRem\(menuCoverRenderDevice\)/);
   assert.doesNotMatch(templateSource, /fast_food_loop_bagel_a[^\n]*ceilingScale/);
   assert.doesNotMatch(canvasBrandSource, /isEdgeBrandColumn|widthRatio: 1|ceilingScale\?:/);
   assert.match(canvasBrandSource, /const limits = getCanvasBrandLimits\(width, layout, remScale\)/);

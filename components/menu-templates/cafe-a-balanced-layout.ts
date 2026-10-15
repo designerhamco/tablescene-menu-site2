@@ -371,10 +371,10 @@ export function getCafeAOrderedBalancedContiguousColumnCandidates<TBlock extends
   );
   // Healthy registered packing never needs the additional order search.
   if (!hasPoorCategoryPacking(originalHeights, options.targetHeight)) return orderedCandidates;
-  const relatedCandidates = compare(getRelatedCategoryOrders(blocks), true);
-  if (relatedCandidates.length) return [...orderedCandidates, ...relatedCandidates];
   const conventionalCandidates = compare(getFallbackCategoryOrders(blocks, "conventional"), false);
   if (conventionalCandidates.length) return [...orderedCandidates, ...conventionalCandidates];
+  const relatedCandidates = compare(getRelatedCategoryOrders(blocks), true);
+  if (relatedCandidates.length) return [...orderedCandidates, ...relatedCandidates];
   const freeCandidates = compare(getFallbackCategoryOrders(blocks, "free"), false);
   return [...orderedCandidates, ...freeCandidates];
 }
