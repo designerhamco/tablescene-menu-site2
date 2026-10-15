@@ -4688,7 +4688,6 @@ video {
 /* KOHI reuses REAL MATCHA's content rhythm; decorative page rules never take up flow space. */
 .cafe-a-typography[data-template-key="cafe_kohi_a"] {
   --kohi-divider-width: clamp(1px, 0.12vmin, 1.6px);
-  --kohi-category-title-scale: 1.1;
   --cafe-a-category-title-to-first-ratio: 2;
   --cafe-a-category-separation-ratio: 3.4;
   --cafe-a-sunday-category-ratio: 1.34;
@@ -5005,14 +5004,14 @@ video {
 }
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-category-title {
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-category-ratio) * var(--kohi-category-title-scale));
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-category-ratio) * var(--menu-role-category-size-scale, 1));
   font-weight: 700;
 }
 
 /* KOHI keeps a slightly stronger category hierarchy on fitted PC/tablet
    boards. This must follow the shared !important fit rule above it. */
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-template-key="cafe_kohi_a"] .cafe-a-category-title {
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-common-category-ratio) * var(--menu-role-category-size-scale, 1) * var(--kohi-category-title-scale)) !important;
+  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-common-category-ratio) * var(--menu-role-category-size-scale, 1)) !important;
 }
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"] :is(.cafe-a-menu-title, .cafe-a-featured-title, [data-cafe-a-widget-title]) {
@@ -5138,10 +5137,6 @@ video {
 
   .cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-desktop-fit-board .cafe-a-menu-item-stack {
     --cafe-a-copy-aware-item-rhythm-gap: var(--cafe-a-item-rhythm-gap);
-  }
-
-  .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-desktop-fit-board .cafe-a-store-title {
-    font-size: calc(clamp(calc(1.9rem * var(--menu-role-brand-size-scale, 1)), calc(5.4vh * var(--menu-role-brand-size-scale, 1)), calc(3.5rem * var(--menu-role-brand-size-scale, 1))) * var(--cafe-a-device-type-scale) * 1.06);
   }
 
   .cafe-a-typography[data-template-key="cafe_kohi_a"]:where(:not([data-cafe-a-adaptive-fit="true"])) .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] {
@@ -5404,7 +5399,7 @@ video {
 }
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-category-title {
-  font-size: 1.625rem;
+  font-size: calc(1.625rem * var(--menu-role-category-size-scale, 1));
 }
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(.cafe-a-menu-description, [data-cafe-a-category-description], .cafe-a-description-text, .cafe-a-store-description, .cafe-a-featured-description, .cafe-a-time-sale-time-text, [data-cafe-a-widget-body]) {

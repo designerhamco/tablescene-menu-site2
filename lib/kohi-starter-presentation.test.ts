@@ -5,7 +5,7 @@ import test from "node:test";
 import sharp from "sharp";
 import { getStarterPreset, resolveStarterFeaturedSlides } from "./menu-starter-presets";
 import { getSinglePageStarterTranslations } from "./template-demo-data/single-page-starter-translations";
-import { mergeTypographySettings } from "./template-typography-presets";
+import { getEnglishFontOpticalSizeScale, mergeTypographySettings } from "./template-typography-presets";
 import { getTemplateCapabilities } from "./template-capabilities";
 import { getTemplateLayoutRules } from "./template-layout-rules";
 import { getTemplateByKey } from "./templates";
@@ -80,12 +80,19 @@ test("KOHI defaults unify all regular and timed badge colors without changing ot
   assert.equal(getDefaultBadgeStyles("cafe_design_a").signature.background_color, "#2AA36D");
 });
 
-test("KOHI keeps its PC/tablet category and hand-drawn chip exceptions local to the template", () => {
+test("Darumadrop One optical sizing follows the font instead of the KOHI template key", () => {
+  assert.equal(getEnglishFontOpticalSizeScale("darumadrop-one"), 1.1);
+  assert.equal(getEnglishFontOpticalSizeScale("special-elite"), 1);
+  assert.equal(getEnglishFontOpticalSizeScale(null), 1);
+});
+
+test("KOHI keeps only its spacing and hand-drawn chip exceptions local to the template", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
-  assert.match(css, /data-template-key="cafe_kohi_a"[^}]*--kohi-category-title-scale: 1\.1;/);
-  assert.doesNotMatch(css, /data-cafe-a-mobile-style="true"[^}]*data-template-key="cafe_kohi_a"[^}]*--kohi-category-title-scale/);
+  assert.doesNotMatch(css, /--kohi-category-title-scale/);
   assert.doesNotMatch(css, /data-cafe-a-mobile-style="true"[^}]*data-template-key="cafe_kohi_a"[^}]*cafe-a-category-title[^}]*font-size/);
-  assert.match(css, /data-template-key="cafe_kohi_a"[^}]*cafe-a-category-title[^}]*var\(--kohi-category-title-scale\)/);
+  assert.doesNotMatch(css, /font-size-adjust/);
+  assert.match(css, /font-size: calc\(1\.625rem \* var\(--menu-role-category-size-scale, 1\)\)/);
+  assert.doesNotMatch(css, /data-template-key="cafe_kohi_a"[^}]*cafe-a-store-title[^}]*\* 1\.06/);
   assert.match(css, /data-template-key="cafe_kohi_a"[^}]*cafe-a-category-eyebrow\.cafe-a-menu-description[^}]*margin: 0 0 0\.18em;/);
   assert.doesNotMatch(css, /data-cafe-a-mobile-style="true"[^}]*data-template-key="cafe_kohi_a"[^}]*data-cafe-a-category-description[^}]*margin-bottom/);
   assert.match(css, /data-template-key="cafe_kohi_a"[^}]*:is\([^}]*cafe-a-time-sale-badge[^}]*\)[^}]*background-image:[^}]*clip-path: polygon/);

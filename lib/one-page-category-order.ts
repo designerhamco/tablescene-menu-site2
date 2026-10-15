@@ -41,6 +41,29 @@ export type RelatedCategoryBlock = {
   order: number; blockType?: "category" | "widget"; affinity?: string; orderBoundary?: string;
 };
 
+export type OnePageCategoryOrderTier = 0 | 1 | 2 | 3;
+
+function categoryOrderKey<T extends RelatedCategoryBlock>(blocks: readonly T[]) {
+  return blocks.map((block) => block.order).join(",");
+}
+
+/**
+ * Registered order is always evaluated first. The remaining bounded order
+ * families follow the customer-facing policy: conventional, related, then
+ * stable free packing. Unknown permutations belong to the final tier.
+ */
+export function getOnePageCategoryOrderTier<T extends RelatedCategoryBlock>(
+  encodedBreaks: string,
+  blocks: readonly T[],
+): OnePageCategoryOrderTier {
+  const parsedOrder = parseCategoryOrder(encodedBreaks, blocks.length);
+  if (!parsedOrder) return 0;
+  const key = parsedOrder.join(",");
+  if (getFallbackCategoryOrders(blocks, "conventional").some((order) => categoryOrderKey(order) === key)) return 1;
+  if (getRelatedCategoryOrders(blocks).some((order) => categoryOrderKey(order) === key)) return 2;
+  return 3;
+}
+
 /** A stable family move, within one page and without crossing any widget. Never all permutations. */
 export function getRelatedCategoryOrders<T extends RelatedCategoryBlock>(blocks: readonly T[]): T[][] {
   const orders: T[][] = [];

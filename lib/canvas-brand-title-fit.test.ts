@@ -156,3 +156,14 @@ test("PC ceiling remains a horizontal-header safeguard while preserving reading 
   const floor = selectCanvasBrandTitleFit("VERY LONG CAFE", new Map([["VERY LONG CAFE", 900]]), 380, 120, railLimits);
   assert.ok(floor.fontSize >= limits.minimum);
 });
+
+test("font optical correction expands width targets but respects a fixed header height", () => {
+  const widths = new Map([["KOHI", 220]]);
+  const limits = getCanvasBrandLimits(380, "horizontal-header");
+  const regular = selectCanvasBrandTitleFit("KOHI", widths, 380, 120, limits);
+  const corrected = selectCanvasBrandTitleFit("KOHI", widths, 380, 120, limits, 1.08, 1, 1.1);
+  assert.ok(corrected.fontSize > regular.fontSize);
+
+  const heightBound = selectCanvasBrandTitleFit("KOHI", widths, 380, 44, limits, 1.08, 1, 1.1);
+  assert.ok(heightBound.fontSize * (1.08 + 0.12) <= 44.01);
+});

@@ -38,7 +38,7 @@ export function getCanvasBrandLimits(width: number, layout: CanvasBrandSlotLayou
 
 /** Same inputs and scoring for every skin: no template IDs or per-template sizes. */
 export function selectCanvasBrandTitleFit(title: string, widths: ReadonlyMap<string, number>, width: number, height: number,
-  limits: ReturnType<typeof getCanvasBrandLimits>, measuredLineAdvance = 1.08, ceilingScale = 1): MobileBrandTitleFit {
+  limits: ReturnType<typeof getCanvasBrandLimits>, measuredLineAdvance = 1.08, ceilingScale = 1, opticalScale = 1): MobileBrandTitleFit {
   const text = normalizeMobileBrandTitle(title);
   const lineAdvance = Math.max(1.08, measuredLineAdvance);
   const fallback = { lines: text ? [text] : [], fontSize: limits.minimum, naturalWrap: true };
@@ -48,7 +48,15 @@ export function selectCanvasBrandTitleFit(title: string, widths: ReadonlyMap<str
       const count = plan.lines.length;
       // CJK fallback font metrics can expand the actual line box beyond 1.08.
       // Use its measured advance plus the common 0.12em safe padding.
-      const size = Math.min(limits.maximum, width * limits.widthRatio * 100 / plan.widest, height / (lineAdvance * count + 0.12)) * ceilingScale;
+      // Font-metric correction may expand the width target and nominal ceiling,
+      // but it must never expand the fixed slot height.
+      const safeOpticalScale = Math.max(1, opticalScale);
+      const safeCeilingScale = Math.min(1, Math.max(0, ceilingScale));
+      const size = Math.min(
+        limits.maximum * safeOpticalScale,
+        width * limits.widthRatio * safeOpticalScale * 100 / plan.widest,
+        height / (lineAdvance * count + 0.12),
+      ) * safeCeilingScale;
       if (plan.widest * limits.minimum / 100 > width + 0.01 || (lineAdvance * count + 0.12) * limits.minimum > height + 0.01) return [];
       return [{ lines: plan.lines, fontSize: Math.max(limits.minimum, size), naturalWrap: false }];
     });

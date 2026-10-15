@@ -6,13 +6,13 @@ import { CANVAS_HEADER_MAX_RATIO, CANVAS_PC_HEADER_BRAND_CEILING_SCALE, getCanva
 import type { OnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import ScriptAwareText from "./ScriptAwareText";
 
-export default function CanvasBrandTitle({ title, className, fontSignature, device, layoutShell }: {
-  title: string; className: string; fontSignature: string; device: "tablet" | "pc"; layoutShell: OnePageLayoutShell;
+export default function CanvasBrandTitle({ title, className, fontSignature, device, layoutShell, opticalScale = 1 }: {
+  title: string; className: string; fontSignature: string; device: "tablet" | "pc"; layoutShell: OnePageLayoutShell; opticalScale?: number;
 }) {
   const rootRef = useRef<HTMLHeadingElement>(null);
   const measurementRef = useRef<HTMLSpanElement>(null);
   const texts = useMemo(() => getMobileBrandMeasurementTexts(title), [title]);
-  const inputKey = `${title}|${fontSignature}|${device}|${layoutShell}`;
+  const inputKey = `${title}|${fontSignature}|${device}|${layoutShell}|${opticalScale}`;
   const [fit, setFit] = useState<(MobileBrandTitleFit & { inputKey: string }) | null>(null);
   const activeFit = fit?.inputKey === inputKey ? fit : null;
 
@@ -59,7 +59,7 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       // The quieter PC ceiling belongs only to horizontal headers. Vertical
       // shells keep their own width policy and must never inherit that scale.
       const appliedCeilingScale = device === "pc" && layout === "horizontal-header" ? CANVAS_PC_HEADER_BRAND_CEILING_SCALE : 1;
-      const next = { ...selectCanvasBrandTitleFit(title, widths, width, height, limits, lineAdvance, appliedCeilingScale), inputKey };
+      const next = { ...selectCanvasBrandTitleFit(title, widths, width, height, limits, lineAdvance, appliedCeilingScale, opticalScale), inputKey };
       if (boundedHeader) {
         const gapScale = window.innerWidth >= 1024
           ? getCanvasHeaderGapScale(device, next.lines.length, next.naturalWrap) : 1;
@@ -110,7 +110,7 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
         delete board.dataset.fitHeaderBrandLines;
       }
     };
-  }, [title, texts, inputKey, device, layoutShell]);
+  }, [title, texts, inputKey, device, layoutShell, opticalScale]);
 
   return (
     <h1 ref={rootRef} className={`${className} cafe-a-canvas-brand-title`} data-cafe-a-store-title="" data-canvas-brand-fit={activeFit ? "ready" : "pending"} aria-label={title}

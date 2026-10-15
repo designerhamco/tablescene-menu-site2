@@ -39,12 +39,12 @@ import { isMenuCoverVisibleOnDevice } from "@/lib/menu-cover-device-visibility";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import { getFixedOnePageLayoutShell, type OnePageLayoutShell } from "@/lib/one-page-layout-shells";
-import { inferOnePageCategoryAffinity, getConventionalCategoryRank } from "@/lib/one-page-category-order";
+import { getOnePageCategoryOrderTier, inferOnePageCategoryAffinity, getConventionalCategoryRank } from "@/lib/one-page-category-order";
 import { getOnePageContentSignature } from "@/lib/one-page-content-signature";
 import { shouldRelaxOnePageCopyReference } from "@/lib/one-page-copy-reference";
 import { getOnePageItemRhythmMultiplier, getOnePageRhythmMode, usesOnePageProportionFitPolicy, usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
 import { getOnePageItemNameCeilingRem, getOnePageTypographyProfile } from "@/lib/one-page-typography-profile";
-import { ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS, orderOnePageMenuColumnCandidates, selectOnePageFitTierState } from "@/lib/one-page-fit-policy";
+import { isOnePageCategoryOrderCandidatePreferred, ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS, orderOnePageMenuColumnCandidates, selectOnePageFitTierState } from "@/lib/one-page-fit-policy";
 import { formatMenuPriceByMode, getPriceDisplayModeFromSettings } from "@/lib/menu-price-format";
 import { getMenuPublicCapabilities } from "@/lib/menu-public-capabilities";
 import { formatTimeSaleDigitalCountdownLabel } from "@/lib/menu-time-sale-display";
@@ -60,6 +60,7 @@ import { getMenuLayoutDensity, getTemplateLayoutRules, type MenuLayoutDensity } 
 import {
   getCustomTypographySettings,
   getEnglishFontLoadAssets,
+  getEnglishFontOpticalSizeScale,
   getKoreanFontLoadAssets,
   getTypographyCssVariables,
   getTypographyRoleFontLoadAssets,
@@ -2294,17 +2295,20 @@ function StoreIdentity({
   if (mobileAutoFit) {
     const typography = mergeTypographySettings(data.menuSite.template_key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
     const fontSignature = JSON.stringify([typography.korean_font_key, typography.english_font_key, typography.typography_roles.brand]);
+    const brandEnglishFontKey = typography.typography_roles.brand.font_en_key ?? typography.english_font_key;
     return (
       <MobileBrandTitle
         title={title}
         className={titleClassName}
         fontSignature={fontSignature}
+        opticalScale={getEnglishFontOpticalSizeScale(brandEnglishFontKey)}
       />
     );
   }
   if (device !== "mobile" && usesOnePageProportionPolicy(data.menuSite.template_key, data.pagePresentation)) {
     const typography = mergeTypographySettings(data.menuSite.template_key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
     const fontSignature = JSON.stringify([typography.korean_font_key, typography.english_font_key, typography.typography_roles.brand]);
+    const brandEnglishFontKey = typography.typography_roles.brand.font_en_key ?? typography.english_font_key;
     return (
       <CanvasBrandTitle
         title={title}
@@ -2312,6 +2316,7 @@ function StoreIdentity({
         fontSignature={fontSignature}
         device={device}
         layoutShell={getFixedOnePageLayoutShell(data.menuSite.template_key)}
+        opticalScale={getEnglishFontOpticalSizeScale(brandEnglishFontKey)}
       />
     );
   }
@@ -4599,6 +4604,8 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const outerGridGapClassName = getOuterGridGapClassName(density);
   const itemStackSpacing = getItemStackSpacing(density);
   const typographyStyle = getTypographyCssVariables(typographySettings, data.menuSite.template_key);
+  const brandEnglishFontKey = typographySettings.typography_roles.brand.font_en_key ?? typographySettings.english_font_key;
+  const categoryEnglishFontKey = typographySettings.typography_roles.category.font_en_key ?? typographySettings.english_font_key;
   const isMochaForest = isMochaForestSkin(data.templateSkin);
   const isSundayLine = isSundayLineSkin(data.templateSkin);
   const isRoundFocus = isRoundFocusSkin(data.templateSkin);
@@ -5879,6 +5886,12 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       let rescueFallbackScore = Number.POSITIVE_INFINITY;
       let emergencyState: CafeDesignAFitState | null = null;
       let emergencyScore = Number.POSITIVE_INFINITY;
+      let preferredSelectedOrderTier = Number.POSITIVE_INFINITY;
+      let preferredReadableFallbackOrderTier = Number.POSITIVE_INFINITY;
+      let rescueSelectedOrderTier = Number.POSITIVE_INFINITY;
+      let preferredFallbackOrderTier = Number.POSITIVE_INFINITY;
+      let rescueFallbackOrderTier = Number.POSITIVE_INFINITY;
+      let emergencyOrderTier = Number.POSITIVE_INFINITY;
 
       const baseBlockMeasurements = getBalancedBlockMeasurements(fitMenuElement);
       if (baseBlockMeasurements.length === 0) return null;
@@ -5961,6 +5974,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               orderedBalancedBreaks,
               orderedBalancedFingerprint,
             );
+            const candidateOrderTier = getOnePageCategoryOrderTier(orderedBalancedBreaks, baseBlockMeasurements);
             if (isActualPartitionRejected(columns, candidateState.orderedBalancedBreaks) || orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(candidateState))) continue;
             if (!fitsWidth) continue;
 
@@ -5983,36 +5997,48 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               const nextEmergencyScore = nextFallbackScore + Math.max(0, -measurement.visibleContentBottomGap) * 1200 + 250000;
               if (
                 !emergencyState ||
-                isOrderedBalancedCandidateBetter({
+                isOnePageCategoryOrderCandidatePreferred({
+                  candidateOrderTier,
+                  currentOrderTier: emergencyOrderTier,
+                  sameTierCandidateIsBetter: isOrderedBalancedCandidateBetter({
                   candidateScore: nextEmergencyScore,
                   candidateState,
                   currentScore: emergencyScore,
                   currentState: emergencyState,
+                  }),
                 })
               ) {
                 emergencyScore = nextEmergencyScore;
                 emergencyState = candidateState;
+                emergencyOrderTier = candidateOrderTier;
               }
               continue;
             }
 
             const currentFallbackState = isRescueColumnCount ? rescueFallbackState : preferredFallbackState;
             const currentFallbackScore = isRescueColumnCount ? rescueFallbackScore : preferredFallbackScore;
+            const currentFallbackOrderTier = isRescueColumnCount ? rescueFallbackOrderTier : preferredFallbackOrderTier;
             if (
               !currentFallbackState ||
-              isOrderedBalancedCandidateBetter({
-                candidateScore: nextFallbackScore,
-                candidateState,
-                currentScore: currentFallbackScore,
-                currentState: currentFallbackState,
+              isOnePageCategoryOrderCandidatePreferred({
+                candidateOrderTier,
+                currentOrderTier: currentFallbackOrderTier,
+                sameTierCandidateIsBetter: isOrderedBalancedCandidateBetter({
+                  candidateScore: nextFallbackScore,
+                  candidateState,
+                  currentScore: currentFallbackScore,
+                  currentState: currentFallbackState,
+                }),
               })
             ) {
               if (isRescueColumnCount) {
                 rescueFallbackScore = nextFallbackScore;
                 rescueFallbackState = candidateState;
+                rescueFallbackOrderTier = candidateOrderTier;
               } else {
                 preferredFallbackScore = nextFallbackScore;
                 preferredFallbackState = candidateState;
+                preferredFallbackOrderTier = candidateOrderTier;
               }
             }
 
@@ -6020,19 +6046,24 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             if (
               !isRescueColumnCount &&
               (!preferredReadableFallbackState ||
-                isOrderedBalancedCandidateBetter({
-                  candidateScore: nextFallbackScore,
-                  candidateState,
-                  currentScore: preferredReadableFallbackScore,
-                  currentState: preferredReadableFallbackState,
+                isOnePageCategoryOrderCandidatePreferred({
+                  candidateOrderTier,
+                  currentOrderTier: preferredReadableFallbackOrderTier,
+                  sameTierCandidateIsBetter: isOrderedBalancedCandidateBetter({
+                    candidateScore: nextFallbackScore,
+                    candidateState,
+                    currentScore: preferredReadableFallbackScore,
+                    currentState: preferredReadableFallbackState,
+                  }),
                 }))
             ) {
               preferredReadableFallbackScore = nextFallbackScore;
               preferredReadableFallbackState = candidateState;
+              preferredReadableFallbackOrderTier = candidateOrderTier;
             }
             if (measurement.visibleAverageFillRatio < 0.56 || measurement.visibleMinFillRatio < 0.25) continue;
 
-            const score = (orderedBalancedBreaks.includes("|order=") ? 600 : 0) + getOrderedBalancedFitScore(
+            const score = getOrderedBalancedFitScore(
               columns,
               fontScale,
               measurement,
@@ -6042,21 +6073,28 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             );
             const currentSelectedState = isRescueColumnCount ? rescueSelectedState : preferredSelectedState;
             const currentSelectedScore = isRescueColumnCount ? rescueSelectedScore : preferredSelectedScore;
+            const currentSelectedOrderTier = isRescueColumnCount ? rescueSelectedOrderTier : preferredSelectedOrderTier;
             if (
               !currentSelectedState ||
-              isOrderedBalancedCandidateBetter({
-                candidateScore: score,
-                candidateState,
-                currentScore: currentSelectedScore,
-                currentState: currentSelectedState,
+              isOnePageCategoryOrderCandidatePreferred({
+                candidateOrderTier,
+                currentOrderTier: currentSelectedOrderTier,
+                sameTierCandidateIsBetter: isOrderedBalancedCandidateBetter({
+                  candidateScore: score,
+                  candidateState,
+                  currentScore: currentSelectedScore,
+                  currentState: currentSelectedState,
+                }),
               })
             ) {
               if (isRescueColumnCount) {
                 rescueSelectedScore = score;
                 rescueSelectedState = candidateState;
+                rescueSelectedOrderTier = candidateOrderTier;
               } else {
                 preferredSelectedScore = score;
                 preferredSelectedState = candidateState;
+                preferredSelectedOrderTier = candidateOrderTier;
               }
             }
           }
@@ -7440,6 +7478,8 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         data-one-page-typography-profile={isAdaptiveFit ? onePageTypographyProfile.key : undefined}
         data-cafe-a-copy-aware-rhythm={onePageRhythmMode === "fit" ? "true" : undefined}
         data-cafe-a-mobile-style={onePageRhythmMode === "mobile" ? "true" : undefined}
+        data-cafe-a-brand-font-en={brandEnglishFontKey}
+        data-cafe-a-category-font-en={categoryEnglishFontKey}
         data-spacing-contract={onePageRhythmMode === "mobile" ? "mobile-reading" : "canvas-fit"}
         style={{
           ...typographyStyle,

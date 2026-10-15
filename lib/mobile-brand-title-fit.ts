@@ -81,12 +81,14 @@ export function selectMobileBrandTitleFit(
   widths: ReadonlyMap<string, number>,
   availableWidth: number,
   minimumPx = MOBILE_BRAND_MINIMUM_PX,
+  opticalScale = 1,
 ): MobileBrandTitleFit {
   const minimum = Math.max(MOBILE_BRAND_MINIMUM_PX, minimumPx);
   const text = normalizeMobileBrandTitle(title);
   const fullWidth = widths.get(text);
   const compactLength = graphemes(text.replace(/\s+/gu, "")).length;
-  const regularSingleCap = Math.max(minimum, availableWidth * MOBILE_BRAND_SINGLE_LINE_CAP_RATIO);
+  const safeOpticalScale = Number.isFinite(opticalScale) ? Math.max(1, opticalScale) : 1;
+  const regularSingleCap = Math.max(minimum, availableWidth * MOBILE_BRAND_SINGLE_LINE_CAP_RATIO) * safeOpticalScale;
   const regularCoverage = fullWidth && Number.isFinite(fullWidth) && availableWidth > 0
     ? fullWidth * regularSingleCap / 100 / availableWidth
     : Infinity;
@@ -96,9 +98,9 @@ export function selectMobileBrandTitleFit(
   return selectBrandTitleFit(title, widths, availableWidth, {
     minimum,
     singleCap: useShortNameBoost
-      ? Math.max(regularSingleCap, availableWidth * MOBILE_BRAND_SHORT_SINGLE_LINE_CAP_RATIO)
+      ? Math.max(regularSingleCap, availableWidth * MOBILE_BRAND_SHORT_SINGLE_LINE_CAP_RATIO * safeOpticalScale)
       : regularSingleCap,
-    multiCap: Math.max(minimum, availableWidth * MOBILE_BRAND_MULTILINE_CAP_RATIO),
+    multiCap: Math.max(minimum, availableWidth * MOBILE_BRAND_MULTILINE_CAP_RATIO) * safeOpticalScale,
     singleTarget: 1,
     multiTarget: MOBILE_BRAND_WIDTH_RATIO,
   });

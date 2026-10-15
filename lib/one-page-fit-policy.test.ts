@@ -13,6 +13,7 @@ import {
   ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS,
   orderOnePageMenuColumnCandidates,
   selectOnePageFitTierState,
+  isOnePageCategoryOrderCandidatePreferred,
 } from "./one-page-fit-policy";
 
 const ONE_PAGE_TEMPLATE_KEYS = [
@@ -51,6 +52,12 @@ test("읽을 수 있고 넘치지 않는 세 열 후보는 정상 네 열 후보
     }),
     "safe-three-columns",
   );
+});
+
+test("카테고리 배치는 점수보다 등록·일반·연관·자유 순서를 우선한다", () => {
+  assert.equal(isOnePageCategoryOrderCandidatePreferred({ candidateOrderTier: 0, currentOrderTier: 1, sameTierCandidateIsBetter: false }), true);
+  assert.equal(isOnePageCategoryOrderCandidatePreferred({ candidateOrderTier: 2, currentOrderTier: 1, sameTierCandidateIsBetter: true }), false);
+  assert.equal(isOnePageCategoryOrderCandidatePreferred({ candidateOrderTier: 1, currentOrderTier: 1, sameTierCandidateIsBetter: true }), true);
 });
 
 test("가게명 고정 열을 포함한 전체 열 수를 별도로 계산한다", () => {

@@ -14,6 +14,13 @@ test("three-to-four-grapheme narrow mobile brand can use the bounded 64px ceilin
   }
 });
 
+test("font optical scale raises the ceiling without exceeding the available width", () => {
+  const width = 342;
+  const fit = selectMobileBrandTitleFit("KOHI", new Map([["KOHI", 235]]), width, 44, 1.1);
+  assert.ok(Math.abs(fit.fontSize - 70.4) < 0.00001);
+  assert.ok(235 * fit.fontSize / 100 <= width);
+});
+
 test("short-name boost requires three-to-four graphemes and under 45% regular coverage", () => {
   assert.equal(selectMobileBrandTitleFit("HI", new Map([["HI", 120]]), 342).fontSize, 56);
   assert.equal(selectMobileBrandTitleFit("KOHII", new Map([["KOHII", 260]]), 342).fontSize, 56);

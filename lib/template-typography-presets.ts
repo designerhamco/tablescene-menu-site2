@@ -512,7 +512,13 @@ export function getTypographyCssVariables(settings: TypographySettings, template
   TYPOGRAPHY_ROLE_KEYS.forEach((role) => {
     const setting = settings.typography_roles[role];
     const cssRoleKey = role.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
-    cssVariables[`--menu-role-${cssRoleKey}-size-scale`] = usesCafeARoleTypographyPolicy(templateKey) ? "1" : String(getTypographyRoleSizeMultiplier(setting.size));
+    const effectiveEnglishFontKey = setting.font_en_key ?? settings.english_font_key;
+    const fontOpticalScale = role === "brand" || role === "category"
+      ? getEnglishFontOpticalSizeScale(effectiveEnglishFontKey)
+      : 1;
+    cssVariables[`--menu-role-${cssRoleKey}-size-scale`] = usesCafeARoleTypographyPolicy(templateKey)
+      ? String(fontOpticalScale)
+      : String(getTypographyRoleSizeMultiplier(setting.size) * fontOpticalScale);
     if (setting.font_ko_key) cssVariables[`--menu-role-${cssRoleKey}-font-ko`] = getKoreanFontFamily(setting.font_ko_key);
     if (setting.font_en_key) cssVariables[`--menu-role-${cssRoleKey}-font-en`] = getEnglishFontFamily(setting.font_en_key);
     cssVariables[`--menu-role-${cssRoleKey}-font-family`] =
@@ -523,4 +529,9 @@ export function getTypographyCssVariables(settings: TypographySettings, template
   });
 
   return cssVariables as CSSProperties;
+}
+
+/** Font-family metric correction shared by every template using the font. */
+export function getEnglishFontOpticalSizeScale(fontKey?: string | null) {
+  return fontKey === "darumadrop-one" ? 1.1 : 1;
 }

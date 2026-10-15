@@ -49,6 +49,19 @@ export function selectOnePageFitTierState<TState>({
   );
 }
 
+export function isOnePageCategoryOrderCandidatePreferred({
+  candidateOrderTier,
+  currentOrderTier,
+  sameTierCandidateIsBetter,
+}: {
+  candidateOrderTier: number;
+  currentOrderTier: number;
+  sameTierCandidateIsBetter: boolean;
+}) {
+  return candidateOrderTier < currentOrderTier ||
+    (candidateOrderTier === currentOrderTier && sameTierCandidateIsBetter);
+}
+
 export function getOnePageTotalColumnCount(shell: OnePageLayoutShell, menuColumns: number) {
   return shell === "brand_top_band" ? menuColumns : menuColumns + 1;
 }
