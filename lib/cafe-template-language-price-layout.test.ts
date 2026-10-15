@@ -581,7 +581,9 @@ test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하�
   assert.match(templateSource, /메뉴와 글자 크기를 화면에 맞추고 있습니다/);
   assert.match(templateSource, /animate-spin[^"]*motion-reduce:animate-none/);
   assert.match(templateSource, /fitPresentationSafetyScale > FIT_PRESENTATION_MIN_SAFETY_SCALE/);
-  assert.match(templateSource, /currentScale \* FIT_PRESENTATION_SAFETY_STEP/);
+  assert.match(templateSource, /findHighestSafeFitPresentationScale\(\{/);
+  assert.match(templateSource, /renderFitState\.fontScale \* candidateScale/);
+  assert.match(templateSource, /renderFitState\.gapScale \* candidateScale/);
   assert.match(templateSource, /hasFitPresentationReadyRef\.current/);
   assert.match(templateSource, /if \(!hasFitPresentationReadyRef\.current\) \{/);
   assert.match(templateSource, /setFitPresentationState\("reload"\)/);

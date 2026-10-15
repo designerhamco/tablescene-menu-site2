@@ -251,9 +251,9 @@ export const ORDERED_FIT_FINAL_FILL_TARGET_GAP = 12;
 
 export const ORDERED_FIT_FINAL_FILL_MIN_GAP = 2;
 
-export const FIT_PRESENTATION_SAFETY_STEP = 0.91;
-
 export const FIT_PRESENTATION_MIN_SAFETY_SCALE = 0.72;
+
+export const FIT_PRESENTATION_SAFETY_SEARCH_STEPS = 8;
 
 export const ORDERED_FIT_FONT_SCALE_CANDIDATES = [1.24, 1.2, 1.16, 1.12, 1.08, 1.04, 1, 0.95, 0.88, 0.85, 0.83, 0.82, 0.78, 0.76, 0.75, 0.72, 0.71, 0.68, 0.64, 0.62, 0.6, 0.58, 0.56, 0.54, 0.5, 0.48, 0.46] as const;
 
@@ -514,6 +514,36 @@ export function roundFitMetric(value: number) {
 
 export function roundFitScale(value: number) {
   return Number.isFinite(value) ? Math.round(value * 1000) / 1000 : 1;
+}
+
+
+export function findHighestSafeFitPresentationScale({
+  minimumScale,
+  maximumScale,
+  isSafe,
+  steps = FIT_PRESENTATION_SAFETY_SEARCH_STEPS,
+}: {
+  minimumScale: number;
+  maximumScale: number;
+  isSafe: (scale: number) => boolean;
+  steps?: number;
+}) {
+  const minimum = Math.max(0, Math.min(minimumScale, maximumScale));
+  const maximum = Math.max(minimum, maximumScale);
+  if (!isSafe(minimum)) return roundFitScale(minimum);
+  if (isSafe(maximum)) return Math.floor(maximum * 1000) / 1000;
+
+  let safe = minimum;
+  let unsafe = maximum;
+  for (let index = 0; index < Math.max(1, steps); index += 1) {
+    const candidate = (safe + unsafe) / 2;
+    if (isSafe(candidate)) safe = candidate;
+    else unsafe = candidate;
+  }
+
+  // Flooring prevents the committed value from rounding back across the
+  // measured crop boundary.
+  return Math.floor(safe * 1000) / 1000;
 }
 
 

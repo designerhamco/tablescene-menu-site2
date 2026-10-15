@@ -48,8 +48,6 @@ Rosy Orange uses a visual correction of `1.25` from category title to first item
 
 REAL MATCHA single-page desktop/landscape-tablet category-to-category transitions explicitly use the `2.9` separation token. Its category boundary rule is visually hidden, so the shared divider-before token (`1`) must not replace that separation or lose the hidden divider's trailing space. The override is scoped to actual same-column visual category transitions and the single-page policy; two-column fallback uses it too. That 2026-10-11 follow-up did not change mobile/portrait-scroll spacing, category-title-to-first-item spacing, widget/footer boundaries or legacy multi-page presentations. Mobile now follows the separate 2026-10-12 contract below. Candidate measurement and final rendering use the same CSS; column counts remain content-driven, not fixed.
 
-Sunday Roasters keeps its dotted rule as the leading edge of the following category on PC/tablet. The preceding category's last item to that rule uses the shared category-to-category gap, while the rule to the following heading keeps the ordinary heading inset. This is one token substitution on the canvas-fit board, not an added margin, and it does not alter the mobile-reading boundary.
-
 Viewport and fit calculations may change the base item gap, but semantic ratios are constants applied exactly once after that base calculation. Do not multiply a semantic ratio by a fit, device, density, or viewport scale again.
 
 Display templates use the calculated content row (`--display-row`) as the base unit. Category-title-to-first-item spacing must use the same row-budget scale as item-to-item spacing.

@@ -118,7 +118,6 @@ import {
   FIT_PRESENTATION_FAILURE_GRACE_MS,
   FIT_PRESENTATION_FONT_WAIT_MS,
   FIT_PRESENTATION_MIN_SAFETY_SCALE,
-  FIT_PRESENTATION_SAFETY_STEP,
   FIT_PRESENTATION_STABLE_MS,
   FIT_WARNING_FONT_SCALE,
   ORDERED_BALANCED_CROP_TOLERANCE,
@@ -158,6 +157,7 @@ import {
   createBalancedSimulatedColumns,
   createOrderedBalancedColumnsFromBreakIndices,
   estimateContentBlockHeight,
+  findHighestSafeFitPresentationScale,
   getBalancedBlockMeasurements,
   getBalancedFitColumnCandidates,
   getBalancedFitGapScale,
@@ -4958,9 +4958,38 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               return;
             }
             if (fitPresentationSafetyScale > FIT_PRESENTATION_MIN_SAFETY_SCALE + 0.001) {
-              setFitPresentationSafetyScale((currentScale) =>
-                roundFitScale(Math.max(FIT_PRESENTATION_MIN_SAFETY_SCALE, currentScale * FIT_PRESENTATION_SAFETY_STEP)),
-              );
+              const previousMenuFontScale = boardElement.style.getPropertyValue("--fit-menu-font-scale");
+              const previousMenuGapScale = boardElement.style.getPropertyValue("--fit-menu-gap-scale");
+              let refinedSafetyScale = FIT_PRESENTATION_MIN_SAFETY_SCALE;
+              try {
+                refinedSafetyScale = findHighestSafeFitPresentationScale({
+                  minimumScale: FIT_PRESENTATION_MIN_SAFETY_SCALE,
+                  maximumScale: fitPresentationSafetyScale,
+                  isSafe: (candidateScale) => {
+                    boardElement.style.setProperty(
+                      "--fit-menu-font-scale",
+                      String(roundFitScale(renderFitState.fontScale * candidateScale)),
+                    );
+                    boardElement.style.setProperty(
+                      "--fit-menu-gap-scale",
+                      String(roundFitScale(renderFitState.gapScale * candidateScale)),
+                    );
+                    return !getCafeAActualDomCropMeasurement(boardElement, menuElement, cropTolerance).overflow;
+                  },
+                });
+              } finally {
+                if (previousMenuFontScale) {
+                  boardElement.style.setProperty("--fit-menu-font-scale", previousMenuFontScale);
+                } else {
+                  boardElement.style.removeProperty("--fit-menu-font-scale");
+                }
+                if (previousMenuGapScale) {
+                  boardElement.style.setProperty("--fit-menu-gap-scale", previousMenuGapScale);
+                } else {
+                  boardElement.style.removeProperty("--fit-menu-gap-scale");
+                }
+              }
+              setFitPresentationSafetyScale(refinedSafetyScale);
               if (!hasFitPresentationReadyRef.current) setFitPresentationState("loading");
               return;
             }
@@ -5038,6 +5067,8 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     orderedBalancedFinalFillBoost.fontScale,
     orderedBalancedFinalFillBoost.gapScale,
     orderedFitFinalFillCompensation,
+    renderFitState.fontScale,
+    renderFitState.gapScale,
     visiblePageGroups.length,
     onePageRhythmMode,
     visibleCopySignature,
