@@ -80,7 +80,10 @@ export function measureOnePageMobileRhythm() {
     copyGaps: [...root.querySelectorAll('.cafe-a-menu-copy > .cafe-a-menu-title-row, .cafe-a-menu-copy > .cafe-a-menu-meta')].filter(visible).filter((element) => Boolean(element.nextElementSibling)).map((element) => Number.parseFloat(getComputedStyle(element).marginBottom)),
     kohiLineGaps,
     upperGap: upper && blocks[0] ? blocks[0].getBoundingClientRect().top - upper.getBoundingClientRect().bottom : null,
-    blockGaps: blocks.slice(0, -1).map((block, index) => blocks[index + 1].getBoundingClientRect().top - block.getBoundingClientRect().bottom),
+    blockTransitions: blocks.slice(0, -1).map((block, index) => ({
+      gap: blocks[index + 1].getBoundingClientRect().top - block.getBoundingClientRect().bottom,
+      nextIsCategory: blocks[index + 1].matches('[data-cafe-a-category-block]'),
+    })),
     categories: categories.map((category) => {
       const stacks = [...category.querySelectorAll('[data-cafe-a-item-stack]')].filter(visible);
       return {
@@ -92,6 +95,10 @@ export function measureOnePageMobileRhythm() {
       };
     }),
     fontMultipliers: { secondary: fieldMultiplier('.cafe-a-menu-meta', 'secondary-only'), description: fieldMultiplier('[data-cafe-a-menu-description]', 'description-only') },
+    roleScales: {
+      brand: Number.parseFloat(getComputedStyle(root).getPropertyValue('--menu-role-brand-size-scale')) || 1,
+      category: Number.parseFloat(getComputedStyle(root).getPropertyValue('--menu-role-category-size-scale')) || 1,
+    },
     supportingCopyRuns: [...root.querySelectorAll('.cafe-a-description-text, .cafe-a-time-sale-time-text')].filter(visible).map(element => ({ size: parseFloat(getComputedStyle(element).fontSize), lineHeight: parseFloat(getComputedStyle(element).lineHeight) })),
     fonts: {
       brand: fieldSize('[data-cafe-a-store-title]'), category: fieldSize('.cafe-a-category-title'),
@@ -119,21 +126,23 @@ export function getOnePageMobileRhythmFailures(measurement) {
     if (category.headingGap != null && Math.abs(category.headingGap - headingGap) > 0.25) failures.push(`${category.title}: heading gap is not the mobile rule`);
   }
   const rem = measurement.itemGap / 1.25;
+  const expectedCategoryBoundary = measurement.key === 'cafe_sunday_line_a' ? rem * 1.5 : rem * 3;
   const upperBoundary = measurement.sectionGap;
   if (measurement.upperGap == null || Math.abs(measurement.upperGap - upperBoundary) > 0.25) failures.push('upper-to-menu boundary is not linked to category spacing');
-  if (measurement.blockGaps.some((gap) => Math.abs(gap - measurement.sectionGap) > 0.25)) failures.push('category/widget/footer boundary is not linked to section spacing');
+  if ((measurement.blockTransitions ?? []).some(({ gap, nextIsCategory }) => Math.abs(gap - (nextIsCategory ? expectedCategoryBoundary : measurement.sectionGap)) > 0.25)) failures.push('category/widget/footer boundary is not linked to its approved spacing');
   if (measurement.overflow > 1) failures.push('horizontal overflow');
-  const expectedFonts = { name: rem, price: rem, description: rem * 0.875 * (measurement.fontMultipliers?.description ?? 1), secondary: rem * 0.75 * (measurement.fontMultipliers?.secondary ?? 1), category: rem * 1.625 };
+  const expectedFonts = { name: rem, price: rem, description: rem * 0.875 * (measurement.fontMultipliers?.description ?? 1), secondary: rem * 0.75 * (measurement.fontMultipliers?.secondary ?? 1), category: rem * 1.625 * (measurement.roleScales?.category ?? 1) };
   if (measurement.fonts?.brand != null && measurement.fonts.brand < Math.max(44, rem * 2.75) - 0.05) failures.push('mobile brand is below its 44px minimum');
   if (measurement.brandInnerWidth && measurement.brandLineCount) {
     const compactLength = Array.from((measurement.brandText ?? '').replace(/\s+/gu, '')).length;
-    const regularSingleCeiling = Math.max(44, rem * 2.75, measurement.brandInnerWidth * 56 / 342);
+    const brandOpticalScale = measurement.roleScales?.brand ?? 1;
+    const regularSingleCeiling = Math.max(44, rem * 2.75, measurement.brandInnerWidth * 56 / 342) * brandOpticalScale;
     const regularCoverage = measurement.brandLineCount === 1 && measurement.brandLineWidth && measurement.fonts.brand
       ? measurement.brandLineWidth * regularSingleCeiling / measurement.fonts.brand / measurement.brandInnerWidth
       : Infinity;
     const shortNameBoost = compactLength >= 3 && compactLength <= 4 && regularCoverage < 0.45;
     const oneLineRatio = shortNameBoost ? 64 : 56;
-    const ceiling = Math.max(44, rem * 2.75, measurement.brandInnerWidth * (measurement.brandLineCount === 1 ? oneLineRatio : 44) / 342);
+    const ceiling = Math.max(44, rem * 2.75, measurement.brandInnerWidth * (measurement.brandLineCount === 1 ? oneLineRatio : 44) / 342) * brandOpticalScale;
     if (measurement.fonts.brand > ceiling + 0.1) failures.push('mobile brand exceeds its visual ceiling');
   }
   if ((measurement.categoryCopyGaps ?? []).some((gap) => Math.abs(gap - rem * 0.5) > 0.05)) failures.push('category copy gap is not 8px');

@@ -5062,7 +5062,7 @@ video {
 /* Sunday Roasters owns a visible category separator. Keep the shared total
    category boundary, but split it evenly around the stroke so the rule reads
    as the center of the transition instead of the next heading's underline. */
-.cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-desktop-fit-board {
+.cafe-a-typography[data-template-key="cafe_sunday_line_a"] .cafe-a-desktop-fit-board {
   --cafe-a-category-divider-before-gap: calc(var(--cafe-a-category-no-divider-gap) * 0.5);
   --cafe-a-category-divider-after-gap: calc(var(--cafe-a-category-no-divider-gap) * 0.5);
 }
@@ -5544,11 +5544,11 @@ video {
   padding: var(--cafe-a-mobile-section-gap) var(--cafe-a-page-inline) var(--cafe-a-page-block-end);
 }
 
-.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"][data-cafe-a-skin="sunday_line"] {
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"][data-template-key="cafe_sunday_line_a"] {
   --cafe-a-mobile-category-boundary-gap: calc(var(--cafe-a-mobile-section-gap) * 0.5);
 }
 
-.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"][data-cafe-a-skin="sunday_line"] .cafe-a-menu-category-top-divider {
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"][data-template-key="cafe_sunday_line_a"] .cafe-a-menu-category-top-divider {
   margin-bottom: calc(var(--cafe-a-mobile-section-gap) * 0.5);
 }
 

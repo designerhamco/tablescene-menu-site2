@@ -514,7 +514,7 @@ export function getTypographyCssVariables(settings: TypographySettings, template
     const cssRoleKey = role.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
     const effectiveEnglishFontKey = setting.font_en_key ?? settings.english_font_key;
     const fontOpticalScale = role === "brand" || role === "category"
-      ? getEnglishFontOpticalSizeScale(effectiveEnglishFontKey)
+      ? getEnglishFontOpticalSizeScale(effectiveEnglishFontKey, role)
       : 1;
     cssVariables[`--menu-role-${cssRoleKey}-size-scale`] = usesCafeARoleTypographyPolicy(templateKey)
       ? String(fontOpticalScale)
@@ -532,6 +532,13 @@ export function getTypographyCssVariables(settings: TypographySettings, template
 }
 
 /** Font-family metric correction shared by every template using the font. */
-export function getEnglishFontOpticalSizeScale(fontKey?: string | null) {
-  return fontKey === "darumadrop-one" ? 1.1 : 1;
+export function getEnglishFontOpticalSizeScale(
+  fontKey?: string | null,
+  role: "brand" | "category" = "category",
+) {
+  if (fontKey !== "darumadrop-one") return 1;
+  // Darumadrop One's painted uppercase body is short inside its nominal line
+  // box. Keep the mobile short-brand result within the 72px visual ceiling,
+  // while category headings need a little more compensation at 26px.
+  return role === "brand" ? 1.1 : 1.18;
 }

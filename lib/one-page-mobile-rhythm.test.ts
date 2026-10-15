@@ -5,7 +5,7 @@ import { compareMobileRhythmViewports, getOnePageMobileRhythmFailures } from "..
 
 const valid = {
   mobileStyle: "true", contract: "mobile-reading", copyAware: null, itemGap: 20, sectionGap: 48,
-  upperGap: 48, blockGaps: [48, 48], overflow: 0,
+  upperGap: 48, blockTransitions: [{ gap: 48, nextIsCategory: true }, { gap: 48, nextIsCategory: false }], overflow: 0,
   categories: [{ title: "Menu", itemGaps: [20, 20], lastMargin: 0 }],
   fonts: { name: 16, brand: 48, category: 26, description: 14 },
 };
@@ -15,7 +15,7 @@ test("rendered mobile gap assertions reject the original zero-gap bug and device
   assert.ok(getOnePageMobileRhythmFailures({ ...valid, categories: [{ ...valid.categories[0], itemGaps: [0, 0] }] }).length);
   assert.ok(getOnePageMobileRhythmFailures({ ...valid, copyAware: "true" }).length);
   assert.ok(getOnePageMobileRhythmFailures({ ...valid, upperGap: 24 }).length);
-  assert.ok(getOnePageMobileRhythmFailures({ ...valid, blockGaps: [24] }).length);
+  assert.ok(getOnePageMobileRhythmFailures({ ...valid, blockTransitions: [{ gap: 24, nextIsCategory: true }] }).length);
   assert.ok(getOnePageMobileRhythmFailures({ ...valid, sectionGap: NaN }).length);
   assert.ok(getOnePageMobileRhythmFailures({ ...valid, fonts: { ...valid.fonts, name: 14 } }).length);
   assert.deepEqual(getOnePageMobileRhythmFailures({ ...valid, noticeGaps: [0, 0] }), []);
@@ -47,7 +47,7 @@ test("KOHI mobile uses the shared reading rhythm without decorative rules", () =
     ...valid,
     key: "cafe_kohi_a",
     upperGap: 48,
-    blockGaps: [48, 48],
+    blockTransitions: [{ gap: 48, nextIsCategory: true }, { gap: 48, nextIsCategory: false }],
     categories: [{ ...valid.categories[0], headingGap: 24 }],
     autoBrand: true,
     brandState: "ready",
@@ -59,4 +59,18 @@ test("KOHI mobile uses the shared reading rhythm without decorative rules", () =
   };
   assert.deepEqual(getOnePageMobileRhythmFailures(kohi), []);
   assert.ok(getOnePageMobileRhythmFailures({ ...kohi, kohiLineGaps: [{ kind: "category", before: 24, after: 24 }] }).length);
+});
+
+test("only Sunday may split the 48px mobile category boundary around its visible divider", () => {
+  const splitBoundary = [{ gap: 24, nextIsCategory: true }, { gap: 48, nextIsCategory: false }];
+  assert.deepEqual(getOnePageMobileRhythmFailures({ ...valid, key: "cafe_sunday_line_a", blockTransitions: splitBoundary }), []);
+  assert.ok(getOnePageMobileRhythmFailures({ ...valid, key: "cafe_van_gogh_a", blockTransitions: splitBoundary }).length);
+});
+
+test("registered category optical scaling remains part of the common mobile size check", () => {
+  assert.deepEqual(getOnePageMobileRhythmFailures({
+    ...valid,
+    roleScales: { brand: 1, category: 1.18 },
+    fonts: { ...valid.fonts, category: 30.68 },
+  }), []);
 });

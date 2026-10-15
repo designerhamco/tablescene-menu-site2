@@ -95,15 +95,15 @@ test("KOHI 모바일은 장식선을 끄고 공통 48px/24px 읽기 리듬을 �
 test("선데이 로스터스 분리선은 기기별 카테고리 경계의 정중앙에 놓인다", () => {
   assert.match(
     globalStylesSource,
-    /data-cafe-a-skin="sunday_line"\] \.cafe-a-desktop-fit-board \{\s*--cafe-a-category-divider-before-gap: calc\(var\(--cafe-a-category-no-divider-gap\) \* 0\.5\);\s*--cafe-a-category-divider-after-gap: calc\(var\(--cafe-a-category-no-divider-gap\) \* 0\.5\);/,
+    /data-template-key="cafe_sunday_line_a"\] \.cafe-a-desktop-fit-board \{\s*--cafe-a-category-divider-before-gap: calc\(var\(--cafe-a-category-no-divider-gap\) \* 0\.5\);\s*--cafe-a-category-divider-after-gap: calc\(var\(--cafe-a-category-no-divider-gap\) \* 0\.5\);/,
   );
   assert.match(
     globalStylesSource,
-    /data-cafe-a-mobile-style="true"\]\[data-cafe-a-skin="sunday_line"\] \{\s*--cafe-a-mobile-category-boundary-gap: calc\(var\(--cafe-a-mobile-section-gap\) \* 0\.5\);/,
+    /data-cafe-a-mobile-style="true"\]\[data-template-key="cafe_sunday_line_a"\] \{\s*--cafe-a-mobile-category-boundary-gap: calc\(var\(--cafe-a-mobile-section-gap\) \* 0\.5\);/,
   );
   assert.match(
     globalStylesSource,
-    /data-cafe-a-mobile-style="true"\]\[data-cafe-a-skin="sunday_line"\] \.cafe-a-menu-category-top-divider \{\s*margin-bottom: calc\(var\(--cafe-a-mobile-section-gap\) \* 0\.5\);/,
+    /data-cafe-a-mobile-style="true"\]\[data-template-key="cafe_sunday_line_a"\] \.cafe-a-menu-category-top-divider \{\s*margin-bottom: calc\(var\(--cafe-a-mobile-section-gap\) \* 0\.5\);/,
   );
 });
 

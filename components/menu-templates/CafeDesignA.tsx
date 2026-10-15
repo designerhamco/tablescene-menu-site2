@@ -2301,7 +2301,7 @@ function StoreIdentity({
         title={title}
         className={titleClassName}
         fontSignature={fontSignature}
-        opticalScale={getEnglishFontOpticalSizeScale(brandEnglishFontKey)}
+        opticalScale={getEnglishFontOpticalSizeScale(brandEnglishFontKey, "brand")}
       />
     );
   }
@@ -2316,7 +2316,7 @@ function StoreIdentity({
         fontSignature={fontSignature}
         device={device}
         layoutShell={getFixedOnePageLayoutShell(data.menuSite.template_key)}
-        opticalScale={getEnglishFontOpticalSizeScale(brandEnglishFontKey)}
+        opticalScale={getEnglishFontOpticalSizeScale(brandEnglishFontKey, "brand")}
       />
     );
   }

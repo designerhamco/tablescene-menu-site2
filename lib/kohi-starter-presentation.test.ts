@@ -81,7 +81,8 @@ test("KOHI defaults unify all regular and timed badge colors without changing ot
 });
 
 test("Darumadrop One optical sizing follows the font instead of the KOHI template key", () => {
-  assert.equal(getEnglishFontOpticalSizeScale("darumadrop-one"), 1.1);
+  assert.equal(getEnglishFontOpticalSizeScale("darumadrop-one", "category"), 1.18);
+  assert.equal(getEnglishFontOpticalSizeScale("darumadrop-one", "brand"), 1.1);
   assert.equal(getEnglishFontOpticalSizeScale("special-elite"), 1);
   assert.equal(getEnglishFontOpticalSizeScale(null), 1);
 });
