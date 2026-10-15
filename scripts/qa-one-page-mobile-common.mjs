@@ -21,7 +21,7 @@ async function visit(key, width, device = 'mobile', extra = '') {
   const response = await page.goto(`${base}/templates/${key}/preview?${params}`, { waitUntil: 'domcontentloaded' });
   if (!response?.ok()) throw new Error(`HTTP ${response?.status()} ${key}`);
   if (device === 'mobile' && !extra.includes('brand-logo')) await page.waitForFunction(() => document.querySelector('[data-mobile-brand-fit]')?.dataset.mobileBrandFit === 'ready', null, { timeout: 60000 });
-  if (device !== 'mobile' && width >= 1024) await page.waitForFunction(() => document.querySelector('.cafe-a-desktop-fit-board')?.getAttribute('data-fit-presentation-state') === 'ready', null, { timeout: 60000 });
+  if (device !== 'mobile') await page.waitForFunction(() => document.querySelector('.cafe-a-desktop-fit-board')?.getAttribute('data-fit-presentation-state') === 'ready', null, { timeout: 60000 });
   await page.evaluate(async () => {
     await Promise.race([document.fonts.ready, new Promise((_, reject) => setTimeout(() => reject(new Error('font loading timeout')), 15000))]);
     const visibleImages = [...document.images].filter((img) => img.getBoundingClientRect().width && img.getBoundingClientRect().height);

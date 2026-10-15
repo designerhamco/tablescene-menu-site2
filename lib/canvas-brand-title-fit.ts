@@ -2,11 +2,9 @@ import { getBalancedBrandLinePlans, normalizeMobileBrandTitle, type MobileBrandT
 
 export const CANVAS_BRAND_TWO_LINE_GAIN = 1.15;
 export const CANVAS_BRAND_FRAME_HEIGHT_RATIO = 0.18;
-export const CANVAS_HEADER_FRAME_HEIGHT_RATIO = 0.16;
 export const CANVAS_PC_HEADER_BRAND_CEILING_SCALE = 0.875;
-export const CANVAS_HEADER_BASE_RATIO = CANVAS_HEADER_FRAME_HEIGHT_RATIO;
-export const CANVAS_HEADER_SINGLE_LINE_BASE_RATIO = CANVAS_HEADER_FRAME_HEIGHT_RATIO;
-export const CANVAS_HEADER_MAX_RATIO = CANVAS_HEADER_FRAME_HEIGHT_RATIO;
+export const CANVAS_HEADER_BASE_RATIO = 0.08;
+export const CANVAS_HEADER_MAX_RATIO = 0.14;
 
 /** Only confirmed one-line PC text brands use a more compact header gap. */
 export function getCanvasHeaderGapScale(device: "pc" | "tablet" | "mobile", lineCount: number, naturalWrap = false) {
@@ -14,12 +12,10 @@ export function getCanvasHeaderGapScale(device: "pc" | "tablet" | "mobile", line
 }
 
 export function getCanvasHeaderRatio(frameHeight: number, fontSize: number, lines: number, lineAdvance: number, sideHeight = 0) {
-  void frameHeight;
-  void fontSize;
-  void lines;
-  void lineAdvance;
-  void sideHeight;
-  return CANVAS_HEADER_MAX_RATIO;
+  if (frameHeight <= 0) return CANVAS_HEADER_BASE_RATIO;
+  const titleHeight = fontSize * (Math.max(1.08, lineAdvance) * lines + 0.12);
+  const neededHeight = Math.max(titleHeight, sideHeight);
+  return Math.max(CANVAS_HEADER_BASE_RATIO, Math.min(CANVAS_HEADER_MAX_RATIO, neededHeight / frameHeight));
 }
 
 export type CanvasBrandSlotLayout = "horizontal-header" | "brand-column";
@@ -27,7 +23,7 @@ export type CanvasBrandSlotLayout = "horizontal-header" | "brand-column";
 export function getCanvasBrandHeight(width: number, frameHeight: number, layout: CanvasBrandSlotLayout) {
   // A horizontal title must remain a compact band, not expand to the tall
   // brand-rail budget merely because a two-word title can become two lines.
-  const frameRatio = layout === "horizontal-header" ? CANVAS_HEADER_FRAME_HEIGHT_RATIO : CANVAS_BRAND_FRAME_HEIGHT_RATIO;
+  const frameRatio = layout === "horizontal-header" ? CANVAS_HEADER_MAX_RATIO : CANVAS_BRAND_FRAME_HEIGHT_RATIO;
   return Math.min(frameHeight * frameRatio, layout === "horizontal-header" ? width * 0.28 : Infinity);
 }
 
@@ -36,8 +32,8 @@ export function getCanvasBrandLimits(width: number, layout: CanvasBrandSlotLayou
   // A width-relative floor prevents extreme names becoming illegible solely
   // to chase coverage; those names use the existing text-preserving fallback.
   const horizontal = layout === "horizontal-header";
-  const minimum = Math.max(0, width) * 0.1 * rootScale;
-  return { minimum, maximum: horizontal ? Math.max(minimum, width * 0.22 * rootScale) : Infinity, widthRatio: horizontal ? 0.6 : 0.75 };
+  const minimum = Math.max(0, width) * (horizontal ? 0.08 : 0.1) * rootScale;
+  return { minimum, maximum: horizontal ? Math.max(minimum, width * 0.22 * rootScale) : Infinity, widthRatio: horizontal ? 0.65 : 0.75 };
 }
 
 /** Same inputs and scoring for every skin: no template IDs or per-template sizes. */

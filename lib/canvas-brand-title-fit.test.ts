@@ -6,23 +6,27 @@ import { getMobileBrandMeasurementTexts } from "./mobile-brand-title-fit";
 import { getFixedOnePageLayoutShell } from "./one-page-layout-shells";
 
 test("coverage is allocated by slot structure, not a template or fixed px size", () => {
-  assert.deepEqual(getCanvasBrandLimits(380, "horizontal-header"), { minimum: 38, maximum: 83.6, widthRatio: 0.6 });
+  const horizontalLimits = getCanvasBrandLimits(380, "horizontal-header");
+  assert.ok(Math.abs(horizontalLimits.minimum - 30.4) < 1e-8);
+  assert.equal(horizontalLimits.maximum, 83.6);
+  assert.equal(horizontalLimits.widthRatio, 0.65);
   assert.deepEqual(getCanvasBrandLimits(281, "brand-column"), { minimum: 28.1, maximum: Infinity, widthRatio: 0.75 });
   const widths = new Map([["VAN GOGH", 453.5], ["VAN", 170], ["GOGH", 235]]);
   const height = getCanvasBrandHeight(380, 838, "horizontal-header");
   assert.ok(Math.abs(height - 106.4) < 0.0001);
   const fit = selectCanvasBrandTitleFit("VAN GOGH", widths, 380, height, getCanvasBrandLimits(380, "horizontal-header"));
   assert.deepEqual(fit.lines, ["VAN GOGH"]);
-  assert.ok(Math.abs(fit.fontSize * 453.5 / 100 / 380 - 0.6) < 0.0001);
+  assert.ok(Math.abs(fit.fontSize * 453.5 / 100 / 380 - 0.65) < 0.0001);
 });
 
-test("a horizontal title uses 60% even when two balanced lines win", () => {
+test("a horizontal title targets up to 65% while preserving the height bound", () => {
   const widths = new Map([["SUNDAY ROASTERS", 896.9], ["SUNDAY", 350], ["ROASTERS", 500]]);
   const limits = getCanvasBrandLimits(380, "horizontal-header");
   const height = getCanvasBrandHeight(380, 838, "horizontal-header");
   const fit = selectCanvasBrandTitleFit("SUNDAY ROASTERS", widths, 380, height, limits);
   assert.deepEqual(fit.lines, ["SUNDAY", "ROASTERS"]);
-  assert.ok(Math.abs(fit.fontSize * 500 / 100 / 380 - 0.6) < 1e-8);
+  assert.ok(fit.fontSize * 500 / 100 / 380 <= 0.65);
+  assert.ok(Math.abs(fit.fontSize * 2.28 - height) < 1e-8);
   assert.deepEqual(selectCanvasBrandTitleFit("SUNDAY ROASTERS", widths, 380, height, limits), fit);
 });
 
@@ -121,11 +125,11 @@ test("the common selector has no template-specific branch and mobile keeps its o
   assert.doesNotMatch(mobile, /selectCanvasBrandTitleFit/);
 });
 
-test("horizontal row keeps the common 16% reading-frame budget", () => {
-  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08), .16);
-  assert.equal(getCanvasHeaderRatio(1000, 50, 2, 1.08), .16);
-  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08, 100), .16);
-  assert.equal(getCanvasHeaderRatio(1000, 100, 2, 1.08), .16);
+test("horizontal row grows from 8% to 14% using the tallest measured content", () => {
+  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08), .08);
+  assert.ok(Math.abs(getCanvasHeaderRatio(1000, 50, 2, 1.08) - .114) < 1e-8);
+  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08, 100), .1);
+  assert.equal(getCanvasHeaderRatio(1000, 100, 2, 1.08), .14);
 });
 
 test("reducing the horizontal header does not change the vertical brand-column budget", () => {

@@ -4786,7 +4786,7 @@ video {
 @media (min-width: 1024px) {
   .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_top_band"] {
     row-gap: calc(var(--sunday-line-row-gap) * var(--cafe-a-header-gap-scale, 1));
-    grid-template-rows: minmax(0, var(--cafe-a-header-fr, 16fr)) minmax(0, var(--cafe-a-body-fr, 84fr));
+    grid-template-rows: minmax(0, var(--cafe-a-header-fr, 8fr)) minmax(0, var(--cafe-a-body-fr, 92fr));
   }
   .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-topline-info-header {
     height: 100%;
@@ -4884,7 +4884,7 @@ video {
   }
   .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_top_band"] {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(0, var(--cafe-a-header-fr, 16fr)) minmax(0, var(--cafe-a-body-fr, 84fr));
+    grid-template-rows: minmax(0, var(--cafe-a-header-fr, 8fr)) minmax(0, var(--cafe-a-body-fr, 92fr));
   }
   .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_top_band"] :is(.cafe-a-topline-info-header, .cafe-a-fixed-rail) {
     display: grid !important;

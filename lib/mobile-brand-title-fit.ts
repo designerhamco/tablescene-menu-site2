@@ -4,6 +4,10 @@ export const MOBILE_BRAND_MINIMUM_PX = 44;
 // 390px phone minus shared 24px side insets: width-relative visual ceilings.
 export const MOBILE_BRAND_SINGLE_LINE_CAP_RATIO = 56 / 342;
 export const MOBILE_BRAND_MULTILINE_CAP_RATIO = 44 / 342;
+export const MOBILE_BRAND_SHORT_SINGLE_LINE_CAP_RATIO = 64 / 342;
+export const MOBILE_BRAND_SHORT_SINGLE_LINE_COVERAGE = 0.45;
+export const MOBILE_BRAND_SHORT_NAME_MIN_GRAPHEMES = 3;
+export const MOBILE_BRAND_SHORT_NAME_MAX_GRAPHEMES = 4;
 const MAX_MEASURED_UNITS = 32;
 
 type TextPlan = { units: string[]; separator: string };
@@ -79,9 +83,21 @@ export function selectMobileBrandTitleFit(
   minimumPx = MOBILE_BRAND_MINIMUM_PX,
 ): MobileBrandTitleFit {
   const minimum = Math.max(MOBILE_BRAND_MINIMUM_PX, minimumPx);
+  const text = normalizeMobileBrandTitle(title);
+  const fullWidth = widths.get(text);
+  const compactLength = graphemes(text.replace(/\s+/gu, "")).length;
+  const regularSingleCap = Math.max(minimum, availableWidth * MOBILE_BRAND_SINGLE_LINE_CAP_RATIO);
+  const regularCoverage = fullWidth && Number.isFinite(fullWidth) && availableWidth > 0
+    ? fullWidth * regularSingleCap / 100 / availableWidth
+    : Infinity;
+  const useShortNameBoost = compactLength >= MOBILE_BRAND_SHORT_NAME_MIN_GRAPHEMES
+    && compactLength <= MOBILE_BRAND_SHORT_NAME_MAX_GRAPHEMES
+    && regularCoverage < MOBILE_BRAND_SHORT_SINGLE_LINE_COVERAGE;
   return selectBrandTitleFit(title, widths, availableWidth, {
     minimum,
-    singleCap: Math.max(minimum, availableWidth * MOBILE_BRAND_SINGLE_LINE_CAP_RATIO),
+    singleCap: useShortNameBoost
+      ? Math.max(regularSingleCap, availableWidth * MOBILE_BRAND_SHORT_SINGLE_LINE_CAP_RATIO)
+      : regularSingleCap,
     multiCap: Math.max(minimum, availableWidth * MOBILE_BRAND_MULTILINE_CAP_RATIO),
     singleTarget: 1,
     multiTarget: MOBILE_BRAND_WIDTH_RATIO,

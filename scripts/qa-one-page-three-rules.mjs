@@ -22,12 +22,12 @@ async function check(key, device, width, height, extra = '') {
     const brand = [...document.querySelectorAll(device === 'mobile' ? '[data-mobile-brand-fit]' : '[data-canvas-brand-fit]')].find(visible);
     return brand && (brand.dataset.mobileBrandFit ?? brand.dataset.canvasBrandFit) === 'ready';
   }, device, { timeout: 60000 });
-  if (device !== 'mobile' && width >= 1024) await page.waitForFunction(() => document.querySelector('.cafe-a-desktop-fit-board')?.dataset.fitPresentationState === 'ready', null, { timeout: 60000 });
+  if (device !== 'mobile') await page.waitForFunction(() => document.querySelector('.cafe-a-desktop-fit-board')?.dataset.fitPresentationState === 'ready', null, { timeout: 60000 });
   await page.evaluate(async () => {
     await Promise.all([...document.images].filter((e) => e.getBoundingClientRect().width).map((e) => e.decode().catch(() => null)));
     await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   });
-  if (device !== 'mobile' && width >= 1024) await page.waitForFunction(() => {
+  if (device !== 'mobile') await page.waitForFunction(() => {
     const board = document.querySelector('.cafe-a-desktop-fit-board');
     const cover = document.querySelector('[data-cafe-a-fit-presentation]');
     return board?.dataset.fitPresentationState === 'ready' && (!cover || parseFloat(getComputedStyle(cover).opacity) < 0.01);
@@ -47,6 +47,8 @@ async function check(key, device, width, height, extra = '') {
       state: board?.dataset.fitPresentationState, columns: board?.dataset.fitColumns,
       basis: board?.dataset.fitCopyBasis,
       scale: board?.dataset.fitFontScale, safety: board?.dataset.fitPresentationSafetyScale,
+      headerRatio: board?.dataset.fitHeaderRatio ? Number(board.dataset.fitHeaderRatio) : null,
+      headerGapScale: board?.dataset.fitHeaderGapScale ? Number(board.dataset.fitHeaderGapScale) : null,
       brand: brand ? parseFloat(getComputedStyle(brand).fontSize) : null,
       brandLines: brand?.querySelectorAll('[data-canvas-brand-line]').length,
       topline: header && brand ? {
@@ -83,8 +85,10 @@ async function check(key, device, width, height, extra = '') {
     if (topline && (topline.widths.length !== 3 || Math.max(...topline.widths) - Math.min(...topline.widths) > 1 || Math.abs(topline.titleCenter - topline.center) > 1 || topline.lineCenters.some((center) => Math.abs(center - topline.center) > 1)))
       failures.push('horizontal header is not three equal columns with centered title');
     const box = measurement.brandBox;
+    if (box?.layout === 'horizontal-header' && (measurement.headerRatio == null || measurement.headerRatio < 0.08 - 0.001 || measurement.headerRatio > 0.14 + 0.001))
+      failures.push('horizontal header is outside the shared 8-14% content-driven range');
     if (box && measurement.brand < box.minimum - 0.1) failures.push('brand relative floor');
-    if (box && box.target !== (box.layout === 'horizontal-header' ? 0.6 : 0.75)) failures.push('brand geometry target');
+    if (box && box.target !== (box.layout === 'horizontal-header' ? 0.65 : 0.75)) failures.push('brand geometry target');
     if (box && !box.natural && measurement.brand > box.minimum + 0.1 && box.lines.some((line) => line.textWidth > box.width * box.target + 1))
       failures.push('brand exceeds coverage target');
     if (box && !box.natural && (box.renderedHeight > box.height + 1 || box.lines.some((line) => line.textWidth > box.width + 1 || line.boxHeight > Math.max(line.lineHeight, measurement.brand * box.lineAdvance) + 1)))

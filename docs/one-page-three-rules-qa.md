@@ -4,7 +4,7 @@
 
 1. Name + secondary-language name + description form the default typography reference, including starters with missing fields. Temporary reference paragraphs/divider flags are restored synchronously before paint; hidden content leaves no visible placeholder. Materially excessive whitespace with a safe size gain, or genuine actual-copy clipping, may select the explicit `actual` measurement basis. The current basis is exposed on the board and included in QA.
 2. Actual item boundaries: full supporting copy 1.0, one supporting field 1.10, name only 1.20. Promotion/origin/traits retain their previous normal boundary. Last items, category/widget/footer boundaries and mobile 20px gaps are unchanged.
-3. Text-brand fitting: the initial tablet 40/80/60px and PC 44/88/64px limits below are historical results. The current geometry-based 60% horizontal-header / 75% brand-column policy is defined in `template-spacing-contract.md` and verified in `canvas-brand-slot-qa.md`. Whole-text preservation and logos bypassing fitting remain unchanged, as does mobile fitting.
+3. Text-brand fitting: the initial tablet 40/80/60px and PC 44/88/64px limits below are historical results. The current geometry-based 65% horizontal-header / 75% brand-column policy is defined in `template-spacing-contract.md` and verified in `canvas-brand-slot-qa.md`. Whole-text preservation and logos bypassing fitting remain unchanged, as does mobile fitting.
 
 ## Browser checks
 

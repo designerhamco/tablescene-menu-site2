@@ -2,7 +2,7 @@
 
 ## Current authority — 2026-10-14
 
-KOHI uses the same one-page engines and device boundaries as the other six active templates. PC/tablet uses the shared 75% vertical-brand target, 10% slot-width floor and 18% reading-frame height budget; no KOHI title-size multiplier is passed into the fitter. Mobile uses the common 44px minimum and 56px/44px single/multiline ceilings at 342px inner width, with no KOHI ceiling override.
+KOHI uses the same one-page engines and device boundaries as the other six active templates. PC/tablet uses the shared 75% vertical-brand target, 10% slot-width floor and 18% reading-frame height budget; no KOHI title-size multiplier is passed into the fitter. Mobile uses the common 44px minimum and 56px/44px single/multiline ceilings at 342px inner width. Its four-letter name qualifies for the shared 3–4-grapheme, below-45%-coverage branch, so it reaches the common 64px short-name ceiling without a KOHI override.
 
 PC/tablet category titles use the common item-name × 1.6 base plus KOHI's approved 1.1 visual scale. Mobile category titles are the common 26px and use the common 8px category-description gap. PC/tablet item boundaries use 1/1.10/1.20 according to visible support; mobile keeps the fixed 20px item gap. Ruled-panel clearances and outer decorative lines remain KOHI-specific and outside fit measurement. Tablet fit scale is capped at 1.14 while PC keeps the shared adaptive ceiling.
 

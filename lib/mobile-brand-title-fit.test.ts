@@ -3,15 +3,21 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { getMobileBrandMeasurementTexts, selectMobileBrandTitleFit } from "./mobile-brand-title-fit";
 
-test("short mobile brand uses the width-relative 56px ceiling, not unlimited fill", () => {
+test("three-to-four-grapheme narrow mobile brand can use the bounded 64px ceiling", () => {
   const widths = new Map([["KOHI", 235]]);
   for (const width of [272, 342, 382]) {
     const fit = selectMobileBrandTitleFit("KOHI", widths, width);
     assert.deepEqual(fit.lines, ["KOHI"]);
-    assert.ok(Math.abs(fit.fontSize / width - 56 / 342) < 0.00001);
-    assert.ok(fit.fontSize * 235 / 100 / width >= 0.38);
+    assert.ok(Math.abs(fit.fontSize / width - 64 / 342) < 0.00001);
+    assert.ok(fit.fontSize * 235 / 100 / width >= 0.43);
     assert.ok(fit.fontSize >= 44);
   }
+});
+
+test("short-name boost requires three-to-four graphemes and under 45% regular coverage", () => {
+  assert.equal(selectMobileBrandTitleFit("HI", new Map([["HI", 120]]), 342).fontSize, 56);
+  assert.equal(selectMobileBrandTitleFit("KOHII", new Map([["KOHII", 260]]), 342).fontSize, 56);
+  assert.equal(selectMobileBrandTitleFit("WIDE", new Map([["WIDE", 400]]), 342).fontSize, 56);
 });
 
 test("long multiword names balance at word boundaries with a shared size", () => {
