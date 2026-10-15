@@ -121,11 +121,16 @@ test("the common selector has no template-specific branch and mobile keeps its o
   assert.doesNotMatch(mobile, /selectCanvasBrandTitleFit/);
 });
 
-test("horizontal row keeps the common 18% reading-frame budget", () => {
-  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08), .18);
-  assert.equal(getCanvasHeaderRatio(1000, 50, 2, 1.08), .18);
-  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08, 100), .18);
-  assert.equal(getCanvasHeaderRatio(1000, 100, 2, 1.08), .18);
+test("horizontal row keeps the common 16% reading-frame budget", () => {
+  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08), .16);
+  assert.equal(getCanvasHeaderRatio(1000, 50, 2, 1.08), .16);
+  assert.equal(getCanvasHeaderRatio(1000, 40, 1, 1.08, 100), .16);
+  assert.equal(getCanvasHeaderRatio(1000, 100, 2, 1.08), .16);
+});
+
+test("reducing the horizontal header does not change the vertical brand-column budget", () => {
+  assert.ok(Math.abs(getCanvasBrandHeight(400, 1000, "horizontal-header") - 112) < 0.0001);
+  assert.equal(getCanvasBrandHeight(400, 1000, "brand-column"), 180);
 });
 
 test("only a confirmed one-line PC brand compacts the header gap", () => {

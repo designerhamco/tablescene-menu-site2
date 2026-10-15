@@ -2,10 +2,11 @@ import { getBalancedBrandLinePlans, normalizeMobileBrandTitle, type MobileBrandT
 
 export const CANVAS_BRAND_TWO_LINE_GAIN = 1.15;
 export const CANVAS_BRAND_FRAME_HEIGHT_RATIO = 0.18;
+export const CANVAS_HEADER_FRAME_HEIGHT_RATIO = 0.16;
 export const CANVAS_PC_HEADER_BRAND_CEILING_SCALE = 0.875;
-export const CANVAS_HEADER_BASE_RATIO = CANVAS_BRAND_FRAME_HEIGHT_RATIO;
-export const CANVAS_HEADER_SINGLE_LINE_BASE_RATIO = CANVAS_BRAND_FRAME_HEIGHT_RATIO;
-export const CANVAS_HEADER_MAX_RATIO = CANVAS_BRAND_FRAME_HEIGHT_RATIO;
+export const CANVAS_HEADER_BASE_RATIO = CANVAS_HEADER_FRAME_HEIGHT_RATIO;
+export const CANVAS_HEADER_SINGLE_LINE_BASE_RATIO = CANVAS_HEADER_FRAME_HEIGHT_RATIO;
+export const CANVAS_HEADER_MAX_RATIO = CANVAS_HEADER_FRAME_HEIGHT_RATIO;
 
 /** Only confirmed one-line PC text brands use a more compact header gap. */
 export function getCanvasHeaderGapScale(device: "pc" | "tablet" | "mobile", lineCount: number, naturalWrap = false) {
@@ -26,7 +27,8 @@ export type CanvasBrandSlotLayout = "horizontal-header" | "brand-column";
 export function getCanvasBrandHeight(width: number, frameHeight: number, layout: CanvasBrandSlotLayout) {
   // A horizontal title must remain a compact band, not expand to the tall
   // brand-rail budget merely because a two-word title can become two lines.
-  return Math.min(frameHeight * CANVAS_BRAND_FRAME_HEIGHT_RATIO, layout === "horizontal-header" ? width * 0.28 : Infinity);
+  const frameRatio = layout === "horizontal-header" ? CANVAS_HEADER_FRAME_HEIGHT_RATIO : CANVAS_BRAND_FRAME_HEIGHT_RATIO;
+  return Math.min(frameHeight * frameRatio, layout === "horizontal-header" ? width * 0.28 : Infinity);
 }
 
 export function getCanvasBrandLimits(width: number, layout: CanvasBrandSlotLayout, rootScale = 1) {

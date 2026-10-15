@@ -64,7 +64,15 @@ async function check(key, device, width, height, extra = '') {
       firstName:find("[data-cafe-a-menu-name]")?.textContent, names:size,copy,store:font('[data-cafe-a-store-description],.cafe-a-store-description,.cafe-a-topline-description'),notice:font('.cafe-a-footer-info .cafe-a-menu-description,.cafe-a-topline-notice-text,.cafe-a-notice-text,.cafe-a-round-focus-notice'),featured:font('.cafe-a-featured-title'),
       brand:brand?parseFloat(getComputedStyle(brand).fontSize):null,
       brandText:brand?.getAttribute('aria-label') || brand?.textContent,
-      header:h?{height:h.height, boardInner:b.height-parseFloat(getComputedStyle(board).paddingTop)-parseFloat(getComputedStyle(board).paddingBottom),gap:parseFloat(getComputedStyle(board).rowGap)}:null,
+      header:h?{
+        height:h.height,
+        boardInner:b.height-parseFloat(getComputedStyle(board).paddingTop)-parseFloat(getComputedStyle(board).paddingBottom),
+        gap:parseFloat(getComputedStyle(board).rowGap),
+        baseGapCss:getComputedStyle(board).getPropertyValue('--sunday-line-row-gap').trim(),
+        boardPaddingCss:getComputedStyle(board).getPropertyValue('--board-padding').trim(),
+        columnGapCss:getComputedStyle(board).getPropertyValue('--menu-board-column-gap').trim(),
+        gapScale:Number(board.dataset.fitHeaderGapScale || 1),
+      }:null,
       items:[...document.querySelectorAll('[data-cafe-a-menu-item]')].filter(visible).length,
       categories:menu?[...menu.querySelectorAll('[data-cafe-a-balanced-column]')].map(c=>[...c.querySelectorAll('[data-cafe-a-category-title-text]')].map(e=>e.textContent)):[],
       menu:menu?{height:menu.clientHeight,scrollHeight:menu.scrollHeight,width:menu.clientWidth,scrollWidth:menu.scrollWidth}:null,
@@ -86,7 +94,7 @@ async function check(key, device, width, height, extra = '') {
     if(m.scroll==='auto'||m.scroll==='scroll') failures.push('one-page menu must not scroll');
     if(m.menu && m.menu.scrollWidth-m.menu.width>1) failures.push('menu horizontal overflow');
     if(m.menu && m.menu.scrollHeight-m.menu.height>1) failures.push('menu vertical overflow');
-    if(m.header && Math.abs(m.header.height/(m.header.boardInner-m.header.gap)-.18)>.003) failures.push('header is outside the fixed 18 percent budget');
+    if(m.header && Math.abs(m.header.height/(m.header.boardInner-m.header.gap)-.16)>.003) failures.push('header is outside the fixed 16 percent budget');
   } else failures.push(...getOnePageMobileRhythmFailures(await page.evaluate(measureOnePageMobileRhythm)));
   failures.push(...getMenuPriceAlignmentFailures(await page.evaluate(measureMenuPriceAlignment)));
   results.push({key,device,extra,...m,failures});

@@ -167,6 +167,6 @@ test("adaptive canvases share category hierarchy and use the actual frame withou
   assert.match(shared, /max-height: none !important/);
   assert.match(shared, /font-size: calc\(var\(--cafe-a-linked-item-name-size\) \* var\(--cafe-a-common-category-ratio\) \* var\(--menu-role-category-size-scale, 1\)\) !important/);
   assert.doesNotMatch(shared, /data-template-key|data-preview-device|1920px|1080px/);
-  assert.equal((css.match(/grid-template-rows: minmax\(0, var\(--cafe-a-header-fr, 18fr\)\) minmax\(0, var\(--cafe-a-body-fr, 82fr\)\);/g) ?? []).length, 2);
-  assert.doesNotMatch(css, /var\(--cafe-a-header-fr, 8fr\)|var\(--cafe-a-body-fr, 92fr\)/);
+  assert.equal((css.match(/grid-template-rows: minmax\(0, var\(--cafe-a-header-fr, 16fr\)\) minmax\(0, var\(--cafe-a-body-fr, 84fr\)\);/g) ?? []).length, 2);
+  assert.doesNotMatch(css, /var\(--cafe-a-header-fr, (?:8|18)fr\)|var\(--cafe-a-body-fr, (?:82|92)fr\)/);
 });
