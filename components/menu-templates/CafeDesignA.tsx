@@ -33,7 +33,7 @@ import { createCafeAOrderedBalancedColumnFromBlocks } from "@/components/menu-te
 import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
 import { getCafeAMenuWrapScaleCandidates, hasCafeAMenuWrapDensityImproved, type CafeAMenuWrapDensityDecision } from "@/lib/cafe-a-wrap-density";
 import { DEFAULT_LOCALE } from "@/lib/locales";
-import { getKohiFitGapScale, isKohiFitScaleWithinLimits, limitKohiFitFontCandidates, usesKohiFitPolicy } from "@/lib/kohi-fit-policy";
+import { isKohiFitFontScaleWithinLimits, limitKohiFitFontCandidates, usesKohiFitPolicy } from "@/lib/kohi-fit-policy";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { isMenuCoverVisibleOnDevice } from "@/lib/menu-cover-device-visibility";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
@@ -4508,7 +4508,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const adaptiveFontCeiling = isAdaptiveFit && isKohiFitPolicy && menuCoverRenderDevice === "tablet" ? 1.14 : 2;
   const hasBoundedFitSpacing = isKohiFitPolicy || (onePageRhythmMode !== "mobile" && usesOnePageProportionFitPolicy(data.menuSite.template_key, data.previewDevice, data.pagePresentation));
   const canRetainTemplateFitState = useCallback((state: CafeDesignAFitState) =>
-    isAdaptiveFit ? state.fontScale <= adaptiveFontCeiling : !isKohiFitPolicy || isKohiFitScaleWithinLimits(state.fontScale, state.gapScale, data.previewDevice, window.innerWidth),
+    isAdaptiveFit ? state.fontScale <= adaptiveFontCeiling : !isKohiFitPolicy || isKohiFitFontScaleWithinLimits(state.fontScale, data.previewDevice, window.innerWidth),
   [adaptiveFontCeiling, data.previewDevice, isAdaptiveFit, isKohiFitPolicy]);
   const getTemplateFitFontCandidates = useCallback((candidates: readonly number[]) => {
     if (isAdaptiveFit) return [...new Set([2, 1.9, 1.8, 1.7, 1.6, 1.5, 1.4, ...candidates])].filter(scale => scale <= adaptiveFontCeiling).sort((a, b) => b - a);
@@ -4516,15 +4516,12 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     return isKohiFitPolicy ? limitKohiFitFontCandidates(previewCandidates, data.previewDevice, window.innerWidth) : previewCandidates;
   }, [adaptiveFontCeiling, data.previewDevice, isAdaptiveFit, isKohiFitPolicy]);
   const getTemplateFitGapScale = useCallback((fontScale: number, menuWidth: number) => {
-    if (isKohiFitPolicy) {
-      return getKohiFitGapScale(fontScale, data.previewDevice, window.innerWidth);
-    }
     return layoutMode === "orderedFit"
       ? getOrderedFitGapScale(fontScale, menuWidth)
       : layoutMode === "orderedBalancedFit"
         ? getOrderedBalancedFitGapScale(fontScale, menuWidth)
         : getBalancedFitGapScale(fontScale, menuWidth);
-  }, [data.previewDevice, isKohiFitPolicy, layoutMode]);
+  }, [layoutMode]);
   const visiblePageGroups = useMemo(() => publicCapabilities.menuPages ? getVisibleMenuPageGroups(data) : [], [publicCapabilities.menuPages, data]);
   const visibleMenuGroupCount = visiblePageGroups.reduce((count, pageGroup) => count + pageGroup.groups.length, 0);
   const visibleContentBlockCount = visiblePageGroups.reduce((count, pageGroup) => count + pageGroup.blocks.length, 0);

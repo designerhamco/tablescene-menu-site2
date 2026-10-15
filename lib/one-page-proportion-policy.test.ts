@@ -47,8 +47,29 @@ test("all templates share the layout-mode gap mapping while KOHI keeps only its 
   }
   const source = readCafeTemplateSource();
   assert.match(source, /return isKohiFitPolicy \? limitKohiFitFontCandidates\(previewCandidates, data.previewDevice, window.innerWidth\) : previewCandidates/);
-  assert.doesNotMatch(source, /getLoopBagelFitGapScale|usesLoopBagelFitSpacing|isLoopBagelFitSpacing/);
+  assert.doesNotMatch(source, /getKohiFitGapScale|getLoopBagelFitGapScale|usesLoopBagelFitSpacing|isLoopBagelFitSpacing/);
   assert.match(source, /return layoutMode === "orderedFit"\s*\? getOrderedFitGapScale[\s\S]*getOrderedBalancedFitGapScale[\s\S]*getBalancedFitGapScale/);
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(css, /--cafe-a-shell-item-rhythm-scale: 0\.74/);
+  const styleBlocks = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
+  const templateItemRhythmOverrides = styleBlocks.filter(([, selector, declarations]) =>
+    /data-template-key|data-cafe-a-skin/.test(selector) && /--cafe-a-shell-item-rhythm-scale/.test(declarations),
+  );
+  assert.deepEqual(templateItemRhythmOverrides.map(([, selector]) => selector.trim()), []);
+});
+
+test("product-internal row and image gaps stay on common fit-linked selectors", () => {
+  const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
+  for (const selector of [".cafe-a-menu-item", ".cafe-a-menu-title-row", ".cafe-a-menu-meta", ".cafe-a-price-stack"]) {
+    assert.match(css, new RegExp(`\\.cafe-a-desktop-fit-board[^}]+${selector.replaceAll(".", "\\.")}`));
+  }
+  assert.match(css, /data-cafe-a-adaptive-fit="true"[^}]*\.cafe-a-menu-item-with-image[^}]*\{[^}]*column-gap: calc\(0\.5rem \* var\(--fit-menu-gap-scale\)\)/);
+  assert.match(css, /data-cafe-a-adaptive-fit="true"[^}]*\.cafe-a-menu-item-content-shell[^}]*\{[^}]*column-gap: calc\(0\.5rem \* var\(--fit-menu-gap-scale\)\)/);
+  const styleBlocks = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
+  const templateInternalGapOverrides = styleBlocks.filter(([, selector, declarations]) =>
+    /data-template-key|data-cafe-a-skin/.test(selector) && /--cafe-a-menu-name-to-description-gap/.test(declarations),
+  );
+  assert.deepEqual(templateInternalGapOverrides.map(([, selector]) => selector.trim()), []);
 });
 
 test("the common behavior gates all final-fill enlargement and only changes between-item CSS", () => {

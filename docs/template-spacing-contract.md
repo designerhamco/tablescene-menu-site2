@@ -54,7 +54,7 @@ Display templates use the calculated content row (`--display-row`) as the base u
 
 ### PC/tablet fit gap policy
 
-All seven one-page templates use the gap mapping belonging to the selected layout mode: ordered flow, ordered balanced flow, or balanced flow. A template may keep its visual shell boundaries and category ratios, but it must not replace the common item-gap calculation with a template-key-specific mapper. Candidate measurement, committed fit state, validation and overflow backoff use the same mapping. Mobile uses the independent reading contract below.
+All seven one-page templates use the gap mapping belonging to the selected layout mode: ordered flow, ordered balanced flow, or balanced flow. A template may keep its visual shell boundaries and category ratios, but it must not replace the common item-gap calculation or the shared `0.74` item-rhythm coefficient with a template-key-specific mapper or coefficient. Candidate measurement, committed fit state, validation and overflow backoff use the same mapping. Product-internal title/chip/secondary/promotion/description gaps and image-to-information gaps also use the common fit-linked tokens; a skin may restyle those elements but must not replace their spacing. KOHI's rule-adjacent clearances remain a structural exception and do not replace product spacing. Mobile uses the independent reading contract below.
 
 ## Single-page mobile-reading contract — 2026-10-12
 

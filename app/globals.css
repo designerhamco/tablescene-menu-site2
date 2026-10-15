@@ -2365,7 +2365,6 @@ video {
     --ordered-fit-text-rhythm-scale: 1;
     --cafe-a-shell-menu-visual-scale: 0.99;
     --cafe-a-shell-category-block-rhythm-scale: 0.74;
-    --cafe-a-shell-item-rhythm-scale: 0.74;
     --cafe-a-shell-category-title-boost: 1.08;
     --cafe-a-shell-menu-title-boost: 1.02;
     --cafe-a-linked-item-name-size: clamp(0.48rem, calc(var(--cafe-a-menu-title-size) * var(--menu-font-size-scale) * var(--fit-menu-font-scale) * var(--fit-menu-typography-scale) * var(--ordered-fit-menu-visual-scale) * var(--ordered-fit-final-fill-compensation) * var(--cafe-a-shell-menu-title-boost) * var(--menu-role-item-name-size-scale, 1)), 1.24rem);
@@ -2378,7 +2377,6 @@ video {
     --menu-item-gap: var(--fit-stack-gap);
     --menu-line-gap: 1.45;
     --menu-inline-gap: 0.375rem;
-    --cafe-a-menu-name-to-description-gap: clamp(0.1rem, calc(0.2rem * var(--fit-menu-gap-scale)), 0.28rem);
     height: 100vh;
     min-height: 100vh;
     overflow-y: hidden;
@@ -2397,13 +2395,6 @@ video {
   }
 
   .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-desktop-fit-board {
-    --cafe-a-item-rhythm-gap: clamp(0.55rem, calc(var(--menu-item-gap) * var(--fit-menu-gap-scale) * var(--ordered-fit-item-rhythm-scale) * var(--cafe-a-shell-item-rhythm-scale) * var(--ordered-fit-final-fill-compensation)), 1.15rem);
-    --cafe-a-category-no-divider-gap: calc(var(--cafe-a-item-rhythm-gap) * var(--cafe-a-category-separation-ratio));
-    --cafe-a-category-title-to-items-gap: calc(var(--cafe-a-item-rhythm-gap) * var(--cafe-a-category-title-to-first-ratio));
-    --cafe-a-category-heading-bottom-gap: calc(var(--cafe-a-category-title-to-items-gap) * 0.5);
-    --cafe-a-category-items-top-gap: calc(var(--cafe-a-category-title-to-items-gap) * 0.5);
-    --cafe-a-category-divider-before-gap: var(--cafe-a-category-title-to-items-gap);
-    --cafe-a-category-divider-after-gap: var(--cafe-a-category-title-to-items-gap);
     background: var(--sunday-line-bg);
     display: grid !important;
     flex: 1 1 auto;
@@ -3389,7 +3380,6 @@ video {
     --cafe-a-device-type-scale: 1;
     --cafe-a-shell-category-block-rhythm-scale: 0.92;
     --cafe-a-shell-category-title-boost: 1.24;
-    --cafe-a-shell-item-rhythm-scale: 0.55;
     --cafe-a-shell-menu-copy-boost: 0.94;
     --cafe-a-shell-menu-price-boost: 1;
     --cafe-a-shell-menu-title-boost: 1.02;
