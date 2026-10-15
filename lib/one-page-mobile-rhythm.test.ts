@@ -42,22 +42,21 @@ test("mobile width/height changes must not auto-scale reading fonts or spacing",
   assert.deepEqual(compareMobileRhythmViewports({ ...valid, autoBrand: true }, { ...valid, autoBrand: true, fonts: { ...valid.fonts, brand: 90 } }), []);
 });
 
-test("KOHI mobile QA keeps shared type while validating its split rule spacing", () => {
+test("KOHI mobile uses the shared reading rhythm without decorative rules", () => {
   const kohi = {
     ...valid,
     key: "cafe_kohi_a",
-    upperGap: 25,
-    blockGaps: [37, 37, 48],
-    categories: [{ ...valid.categories[0], headingGap: 25 }],
+    upperGap: 48,
+    blockGaps: [48, 48],
+    categories: [{ ...valid.categories[0], headingGap: 24 }],
     autoBrand: true,
     brandState: "ready",
     brandInnerWidth: 342,
     brandLineCount: 1,
     categoryCopyGaps: [8],
-    kohiLineGaps: [{ kind: "category", before: 24, after: 12 }, { kind: "heading", before: 12, after: 12 }],
+    kohiLineGaps: [],
     fonts: { ...valid.fonts, brand: 56, category: 26 },
   };
   assert.deepEqual(getOnePageMobileRhythmFailures(kohi), []);
-  assert.ok(getOnePageMobileRhythmFailures({ ...kohi, kohiLineGaps: [{ kind: "heading", after: 24 }] }).length);
-  assert.ok(getOnePageMobileRhythmFailures({ ...kohi, kohiLineGaps: [{ kind: "category", before: 12, after: 12 }] }).length);
+  assert.ok(getOnePageMobileRhythmFailures({ ...kohi, kohiLineGaps: [{ kind: "category", before: 24, after: 24 }] }).length);
 });

@@ -99,6 +99,16 @@ test("모카 포레스트 언어 선택 버튼은 어두운 배경용 베이지 
     languageSwitcherSource,
     /tone === "inverse"[\s\S]*"text-\[#F4EDDC\] hover:bg-\[#F4EDDC\]\/10 focus-visible:ring-\[#F4EDDC\]\/40"/,
   );
+  assert.match(languageSwitcherSource, /data-language-menu-surface=""/);
+  assert.match(languageSwitcherSource, /data-language-menu-item=""/);
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-mobile-style="true"\]\[data-cafe-a-skin="mocha_forest"\] \{\s*--cafe-a-language-menu-ink: var\(--mocha-forest-brown, #852322\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /\[data-language-menu-surface\] \[data-language-menu-item\] \{\s*color: var\(--cafe-a-language-menu-ink, var\(--menu-role-category-color, #191c1b\)\) !important;/,
+  );
 });
 
 test("모카 포레스트 모바일은 데스크톱과 같은 베이지·와인 역할 색상을 사용한다", () => {

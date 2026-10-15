@@ -71,24 +71,6 @@ export default function KohiMenuDividers() {
         });
       });
       const brand = desktop ? board?.querySelector<HTMLElement>("[data-cafe-a-brand-panel]") : null;
-      const rem = Number.parseFloat(getComputedStyle(document.documentElement).fontSize);
-      const rootStyle = getComputedStyle(root);
-      const readLength = (property: string, fallback: number) => {
-        const raw = rootStyle.getPropertyValue(property).trim();
-        const value = Number.parseFloat(raw);
-        if (!Number.isFinite(value)) return fallback;
-        if (raw.endsWith("rem")) return value * rem;
-        if (raw.endsWith("px")) return value;
-        return fallback;
-      };
-      const mobileSpacing = root.dataset.cafeAMobileStyle === "true"
-        ? {
-            headingBefore: readLength("--kohi-mobile-heading-to-rule-gap", rem * 0.75),
-            categoryAfter: readLength("--kohi-mobile-category-rule-gap", rem * 0.75),
-            strokeWidth: readLength("--kohi-divider-width", 1),
-            leadingCategory: true,
-          }
-        : undefined;
       const boardStyle = desktop && board ? getComputedStyle(board) : null;
       const dividerStrokeWidth = Number.parseFloat(getComputedStyle(layer).strokeWidth) || 1;
       const measuredColumnGap = boardStyle ? Number.parseFloat(boardStyle.columnGap) : Number.NaN;
@@ -101,7 +83,7 @@ export default function KohiMenuDividers() {
       const next = {
         width: rootRect.width,
         height: rootRect.height,
-        lines: getKohiDividerLines({ width: rootRect.width, height: rootRect.height, columns, segments, mobileSpacing, canvasSpacing, brandRight: brand && visible(brand) ? brand.getBoundingClientRect().right - rootRect.left : undefined }),
+        lines: getKohiDividerLines({ width: rootRect.width, height: rootRect.height, columns, segments, canvasSpacing, brandRight: brand && visible(brand) ? brand.getBoundingClientRect().right - rootRect.left : undefined }),
       };
       const fingerprint = JSON.stringify(next);
       if (fingerprint !== previousFingerprint) {

@@ -7693,7 +7693,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             </div>
           </div>
         </div>
-        {data.menuSite.template_key === "cafe_kohi_a" ? <KohiMenuDividers /> : null}
+        {data.menuSite.template_key === "cafe_kohi_a" && onePageRhythmMode !== "mobile" ? <KohiMenuDividers /> : null}
       </main>
       <CafeADebugOverlay
         boardRef={desktopFitBoardRef}

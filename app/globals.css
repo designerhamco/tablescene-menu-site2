@@ -5062,6 +5062,14 @@ video {
   display: none;
 }
 
+/* Sunday Roasters owns a visible category separator. Keep the shared total
+   category boundary, but split it evenly around the stroke so the rule reads
+   as the center of the transition instead of the next heading's underline. */
+.cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-desktop-fit-board {
+  --cafe-a-category-divider-before-gap: calc(var(--cafe-a-category-no-divider-gap) * 0.5);
+  --cafe-a-category-divider-after-gap: calc(var(--cafe-a-category-no-divider-gap) * 0.5);
+}
+
 .cafe-a-typography[data-template-key="cafe_kohi_a"] [data-template-language-control] {
   color: #000000;
 }
@@ -5547,22 +5555,12 @@ video {
   padding: var(--cafe-a-mobile-section-gap) var(--cafe-a-page-inline) var(--cafe-a-page-block-end);
 }
 
-.cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_kohi_a"] {
-  --kohi-divider-width: 1px;
-  /* Internal rules stay compact. Category boundaries add air only above the
-     stroke, between the previous category's last item and the rule. */
-  --kohi-mobile-line-content-gap: 0.75rem;
-  --kohi-mobile-heading-to-rule-gap: var(--kohi-mobile-line-content-gap);
-  --kohi-mobile-rule-to-item-gap: var(--kohi-mobile-line-content-gap);
-  --kohi-mobile-last-item-to-rule-gap: 1.5rem;
-  --kohi-mobile-category-rule-gap: var(--kohi-mobile-line-content-gap);
-  --cafe-a-mobile-menu-start-gap: calc(var(--kohi-mobile-category-rule-gap) + var(--kohi-divider-width) + var(--kohi-mobile-category-rule-gap));
-  --cafe-a-mobile-upper-to-menu-gap: var(--cafe-a-mobile-menu-start-gap);
-  --cafe-a-mobile-category-boundary-gap: calc(var(--kohi-mobile-last-item-to-rule-gap) + var(--kohi-divider-width) + var(--kohi-mobile-category-rule-gap));
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"][data-cafe-a-skin="sunday_line"] {
+  --cafe-a-mobile-category-boundary-gap: calc(var(--cafe-a-mobile-section-gap) * 0.5);
 }
 
-.cafe-a-typography[data-cafe-a-mobile-style="true"][data-template-key="cafe_kohi_a"] .cafe-a-category-heading {
-  margin-bottom: calc(var(--kohi-mobile-heading-to-rule-gap) + var(--kohi-divider-width) + var(--kohi-mobile-rule-to-item-gap));
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"][data-cafe-a-skin="sunday_line"] .cafe-a-menu-category-top-divider {
+  margin-bottom: calc(var(--cafe-a-mobile-section-gap) * 0.5);
 }
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"] header .cafe-a-mobile-auto-brand-title {
@@ -5761,6 +5759,17 @@ video {
 .cafe-a-typography .cafe-a-mobile-call-bar .cafe-a-call-language-slot,
 .cafe-a-typography .cafe-a-mobile-call-bar .cafe-a-call-language-slot * { color: var(--cafe-a-call-ink, #191c1b) !important; }
 .cafe-a-mobile-call-bar [data-template-language-control] button { padding: 0; border: 0; background: transparent; }
+
+/* A bright trigger can sit on a dark brand panel, while its popup always sits
+   on white. Keep popup ink on a separate semantic role so trigger color never
+   leaks into the list. Templates may choose a readable representative ink. */
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-language-menu-surface] [data-language-menu-item] {
+  color: var(--cafe-a-language-menu-ink, var(--menu-role-category-color, #191c1b)) !important;
+}
+
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-cafe-a-skin="mocha_forest"] {
+  --cafe-a-language-menu-ink: var(--mocha-forest-brown, #852322);
+}
 
 /* Call bars follow the brand; table labels always use the saved Korean font. */
 .cafe-a-typography .cafe-a-call-table-label {

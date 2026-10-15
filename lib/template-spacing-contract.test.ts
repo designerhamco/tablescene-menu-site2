@@ -81,23 +81,30 @@ test("색상 패널 경계와 KOHI 외곽 프레임은 페이지 여백 계약�
   assert.doesNotMatch(globalStylesSource, /data-template-key="cafe_kohi_a"[^}]*--board-padding:/);
 });
 
-test("KOHI 모바일은 마지막 아이템에서 경계선까지의 여백만 24px로 늘린다", () => {
+test("KOHI 모바일은 장식선을 끄고 공통 48px/24px 읽기 리듬을 사용한다", () => {
   assert.match(globalStylesSource, /--cafe-a-mobile-menu-start-gap: var\(--cafe-a-mobile-section-gap\);/);
   assert.match(globalStylesSource, /--cafe-a-mobile-upper-to-menu-gap: var\(--cafe-a-mobile-section-gap\);/);
   assert.match(globalStylesSource, /--cafe-a-mobile-category-boundary-gap: var\(--cafe-a-mobile-section-gap\);/);
-  assert.match(globalStylesSource, /--kohi-mobile-line-content-gap: 0\.75rem;/);
-  assert.match(globalStylesSource, /--kohi-mobile-heading-to-rule-gap: var\(--kohi-mobile-line-content-gap\);/);
-  assert.match(globalStylesSource, /--kohi-mobile-rule-to-item-gap: var\(--kohi-mobile-line-content-gap\);/);
-  assert.match(globalStylesSource, /--kohi-mobile-last-item-to-rule-gap: 1\.5rem;/);
-  assert.match(globalStylesSource, /--kohi-mobile-category-rule-gap: var\(--kohi-mobile-line-content-gap\);/);
-  assert.match(globalStylesSource, /--cafe-a-mobile-menu-start-gap: calc\(var\(--kohi-mobile-category-rule-gap\) \+ var\(--kohi-divider-width\) \+ var\(--kohi-mobile-category-rule-gap\)\);/);
-  assert.match(globalStylesSource, /--cafe-a-mobile-upper-to-menu-gap: var\(--cafe-a-mobile-menu-start-gap\);/);
-  assert.match(globalStylesSource, /--cafe-a-mobile-category-boundary-gap: calc\(var\(--kohi-mobile-last-item-to-rule-gap\) \+ var\(--kohi-divider-width\) \+ var\(--kohi-mobile-category-rule-gap\)\);/);
+  assert.doesNotMatch(globalStylesSource, /--kohi-mobile-/);
   assert.match(globalStylesSource, /\.cafe-a-fit-menu-grid > \* \+ \.cafe-a-menu-category-block \{\s*margin-top: var\(--cafe-a-mobile-category-boundary-gap\);/);
   assert.doesNotMatch(globalStylesSource, /data-template-key="cafe_kohi_a"\][^{]*\.cafe-a-fit-menu-grid > \* \+ \.cafe-a-menu-category-block \{/);
   assert.match(globalStylesSource, /data-template-key="cafe_kohi_a"\]:where\(:not\(\[data-cafe-a-adaptive-fit="true"\]\)\):not\(\[data-cafe-a-mobile-style="true"\]\)/);
-  assert.match(contractSource, /12px clearance around the internal heading rule/);
-  assert.match(contractSource, /24px clearance from the preceding category's last item to the category-boundary stroke/);
+  assert.match(contractSource, /KOHI mobile does not mount its decorative rule canvas/);
+});
+
+test("선데이 로스터스 분리선은 기기별 카테고리 경계의 정중앙에 놓인다", () => {
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-skin="sunday_line"\] \.cafe-a-desktop-fit-board \{\s*--cafe-a-category-divider-before-gap: calc\(var\(--cafe-a-category-no-divider-gap\) \* 0\.5\);\s*--cafe-a-category-divider-after-gap: calc\(var\(--cafe-a-category-no-divider-gap\) \* 0\.5\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-mobile-style="true"\]\[data-cafe-a-skin="sunday_line"\] \{\s*--cafe-a-mobile-category-boundary-gap: calc\(var\(--cafe-a-mobile-section-gap\) \* 0\.5\);/,
+  );
+  assert.match(
+    globalStylesSource,
+    /data-cafe-a-mobile-style="true"\]\[data-cafe-a-skin="sunday_line"\] \.cafe-a-menu-category-top-divider \{\s*margin-bottom: calc\(var\(--cafe-a-mobile-section-gap\) \* 0\.5\);/,
+  );
 });
 
 test("리얼맛차 단일페이지의 데스크톱 카테고리 경계는 숨긴 분리선 간격 대신 2.9배 리듬을 사용한다", () => {

@@ -163,6 +163,7 @@ export default function MenuLanguageSwitcher({
       {isOpen && visibleLocales.length > 1 && (
         <div
           role="menu"
+          data-language-menu-surface=""
           className={`absolute z-30 overflow-hidden border border-zinc-200 bg-white py-1 text-left ${menuPlacementClassName} ${menuAlignClassName} ${
             triggerVariant === "aube" ? "min-w-20 rounded-md shadow-none" : "min-w-36 rounded-lg shadow-xl"
           }`}
@@ -172,6 +173,7 @@ export default function MenuLanguageSwitcher({
               key={locale}
               href={getLocaleHref(locale)}
               role="menuitem"
+              data-language-menu-item=""
               aria-current={locale === currentLocale ? "true" : undefined}
               className={`block px-3 py-2 transition hover:bg-zinc-50 ${
                 triggerVariant === "aube" ? "text-[13px] font-medium tracking-[0.1em]" : "text-sm font-bold"

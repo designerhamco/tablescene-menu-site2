@@ -159,11 +159,13 @@ test("KOHI transparent illustration removes fallback backdrops without affecting
   assert.match(fixture, /design: \{ \.\.\.design, backgroundColor \}/);
 });
 
-test("KOHI alone puts descriptions before headings and mounts non-interactive divider geometry", () => {
+test("KOHI puts descriptions before headings and mounts divider geometry only on PC/tablet", () => {
   const source = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
   assert.match(source, /\{descriptionAbove \? description : null\}[\s\S]*cafe-a-category-heading-row/);
   assert.match(source, /descriptionAbove=\{data\.menuSite\.template_key === "cafe_kohi_a"\}/);
-  assert.match(source, /data\.menuSite\.template_key === "cafe_kohi_a" \? <KohiMenuDividers \/>/);
+  assert.match(source, /data\.menuSite\.template_key === "cafe_kohi_a" && onePageRhythmMode !== "mobile" \? <KohiMenuDividers \/>/);
+  const dividerSource = readFileSync(new URL("../components/menu-templates/KohiMenuDividers.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(dividerSource, /--kohi-mobile-/);
   const css = readFileSync(new URL("../components/menu-templates/KohiMenuDividers.module.css", import.meta.url), "utf8");
   assert.match(css, /position: absolute/);
   assert.match(css, /pointer-events: none/);
