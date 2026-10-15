@@ -59,7 +59,8 @@ test("KOHI starter displays the KOHI store-name text in Tilt Warp without a logo
 test("KOHI category headings and larger descriptions preserve linked sizing and editable colors", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(css, /\[data-template-key="cafe_kohi_a"\] \.cafe-a-category-title \{[^}]*font-weight: 700;/);
-  assert.match(css, /\[data-template-key="cafe_kohi_a"\] \.cafe-a-category-eyebrow\.cafe-a-menu-description \{[^}]*font-size: calc\(var\(--cafe-a-linked-item-name-size\) \* var\(--cafe-a-device-type-scale\) \* 0\.9\);[^}]*font-weight: 800;/);
+  assert.match(css, /\[data-template-key="cafe_kohi_a"\] \.cafe-a-category-eyebrow\.cafe-a-menu-description \{[^}]*font-weight: 800;/);
+  assert.doesNotMatch(css, /\[data-template-key="cafe_kohi_a"\] \.cafe-a-category-eyebrow\.cafe-a-menu-description \{[^}]*font-size:/);
 });
 
 test("KOHI starter omits secondary names, restores all localized descriptions and keeps selected cold-drink price notes", () => {

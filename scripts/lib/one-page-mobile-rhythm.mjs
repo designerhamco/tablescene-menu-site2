@@ -23,6 +23,7 @@ export function measureOnePageMobileRhythm() {
   };
   const header = [...root.querySelectorAll('header')].find(visible);
   const language = header?.querySelector('[data-cafe-a-mobile-language-row]');
+  const callBar = header?.querySelector('[data-one-page-call-bar]');
   const brand = header?.querySelector('[data-cafe-a-store-title], [data-cafe-a-store-logo]');
   const brandLine = brand?.querySelector('[data-mobile-brand-line]');
   const brandDescription = header?.querySelector('[data-cafe-a-store-description]');
@@ -58,6 +59,8 @@ export function measureOnePageMobileRhythm() {
       return rows.slice(0, -1).map((row, index) => gap(row, rows[index + 1]));
     }),
     languageHeight: visible(language) ? language.getBoundingClientRect().height : null,
+    callEnabled: root.getAttribute('data-one-page-call-enabled') === 'true',
+    callBarHeight: visible(callBar) ? callBar.getBoundingClientRect().height : null,
     languageToBrand: visible(language) ? gap(language, brand) : null,
     brandToDescription: gap(brand, brandDescription),
     upperContentGaps: upperContent.slice(0, -1).map((block, index) => gap(block, upperContent[index + 1])),
@@ -147,8 +150,11 @@ export function getOnePageMobileRhythmFailures(measurement) {
   if ((measurement.noticeLineHeights ?? []).some((height) => Math.abs(height - rem * 0.875 * 1.5) > 0.05)) failures.push('notices do not use normal body line-height');
   if ((measurement.categoryDescriptions ?? []).some((description) => Math.abs(description.size - rem * 0.875) > 0.05)) failures.push('category descriptions are not 14px');
   for (const [role, expected] of Object.entries(expectedFonts)) if (measurement.fonts?.[role] != null && Math.abs(measurement.fonts[role] - expected) > 0.05) failures.push(`${role}: mobile typography base changed`);
-  if (measurement.languageHeight != null && Math.abs(measurement.languageHeight - measurement.itemGap / 1.25 * 3) > 0.25) failures.push('top control row is not 48px');
-  if (measurement.languageToBrand != null && Math.abs(measurement.languageToBrand - measurement.itemGap / 1.25 * .75) > 0.25) failures.push('top row to brand gap is not the shared 12px brand-copy gap');
+  const expectedTopControlHeight = measurement.callEnabled ? rem * 3.5 : rem * 3;
+  const expectedTopControlGap = measurement.callEnabled ? rem : rem * .75;
+  if (measurement.languageHeight != null && Math.abs(measurement.languageHeight - expectedTopControlHeight) > 0.25) failures.push(`top control row is not ${measurement.callEnabled ? 56 : 48}px`);
+  if (measurement.callEnabled && (measurement.callBarHeight == null || Math.abs(measurement.callBarHeight - rem * 3.5) > 0.25)) failures.push('enabled Call bar is not 56px');
+  if (measurement.languageToBrand != null && Math.abs(measurement.languageToBrand - expectedTopControlGap) > 0.25) failures.push(`top row to brand gap is not ${measurement.callEnabled ? 16 : 12}px`);
   if (measurement.brandToDescription != null && Math.abs(measurement.brandToDescription - measurement.itemGap / 1.25 * 0.75) > 0.25) failures.push('brand to description gap is not 12px');
   if ((measurement.upperContentGaps ?? []).some((gap) => Math.abs(gap - rem * 1.5) > 0.25)) failures.push('upper content block gap is not 24px');
   for (const line of measurement.kohiLineGaps ?? []) {

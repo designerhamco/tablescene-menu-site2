@@ -5021,7 +5021,6 @@ video {
 
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-category-eyebrow.cafe-a-menu-description {
   margin: 0 0 0.18em;
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * 0.9);
   font-weight: 800;
   line-height: 1.25;
 }
@@ -5724,7 +5723,8 @@ video {
   grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
   align-items: center;
   width: 100%;
-  min-height: 3rem;
+  height: 3.5rem;
+  min-height: 3.5rem;
   background: transparent;
   color: var(--cafe-a-call-ink, #191c1b);
 }
@@ -5736,11 +5736,14 @@ video {
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] {
   padding-top: 0;
 }
-.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"][data-template-key="fast_food_loop_bagel_a"]::before {
-  inset-block-start: calc(3rem + env(safe-area-inset-top, 0px));
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] header .cafe-a-mobile-language-row + .cafe-a-mobile-header-copy {
+  margin-top: 1rem;
 }
-.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"][data-template-key="fast_food_loop_bagel_a"] header .cafe-a-mobile-header-copy {
-  margin-top: calc(var(--cafe-a-mobile-brand-copy-gap) + var(--loop-bagel-checker-square) * 2);
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"][data-template-key="fast_food_loop_bagel_a"] {
+  padding-top: calc(var(--loop-bagel-checker-square) * 2);
+}
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"][data-template-key="fast_food_loop_bagel_a"]::before {
+  inset-block-start: 0;
 }
 .cafe-a-mobile-call-button {
   display: grid;

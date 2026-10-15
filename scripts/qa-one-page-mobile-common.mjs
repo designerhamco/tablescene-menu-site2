@@ -61,6 +61,7 @@ try {
       if (width === 390) await page.screenshot({ path: `/private/tmp/${key}-mobile-common.png`, fullPage: true });
     }
     if (!fixturesOnly) await languageFonts(key);
+    if (!fixturesOnly) await check(key, 390, '&callPreview=on');
     if (!production) {
       for (const fixture of ['copy-no-cover', 'cover', 'brand-long', 'brand-cjk', 'brand-unbroken', 'brand-oversized', 'brand-logo']) await check(key, 320, `&rhythmQa=${fixture}`);
       await languageFonts(key, true);
