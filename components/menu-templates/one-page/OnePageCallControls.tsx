@@ -26,16 +26,25 @@ export function OnePageCallPalette() {
   const marker = useRef<HTMLSpanElement>(null);
   const call = useOnePageCallActions();
   useEffect(() => {
-    if (!call.enabled) return;
     const root = marker.current?.closest<HTMLElement>(".cafe-a-typography");
     if (!root) return;
     let frame = 0;
     const update = () => {
       frame = 0;
+      const setVariable = (key: string, value: string) => {
+        if (root.style.getPropertyValue(key) !== value) root.style.setProperty(key, value);
+      };
       const visible = (element: Element) => element.getBoundingClientRect().width > 0;
       const brand = [...root.querySelectorAll<HTMLElement>("[data-cafe-a-store-title],.cafe-a-store-title")].find(visible);
       const brandColor = brand ? getComputedStyle(brand).color
         : getComputedStyle(root).getPropertyValue("--menu-role-brand-color").trim() || "#191c1b";
+      const category = [...root.querySelectorAll<HTMLElement>(".cafe-a-category-title")].find(visible);
+      const categoryColor = category ? getComputedStyle(category).color
+        : getComputedStyle(root).getPropertyValue("--menu-role-category-color").trim() || "#191c1b";
+      setVariable("--cafe-a-language-trigger-ink", brandColor);
+      setVariable("--cafe-a-language-menu-ink", categoryColor);
+
+      if (!call.enabled) return;
       const button = [...root.querySelectorAll<HTMLElement>("[data-one-page-call-button]")].find(visible);
       let panel = button?.parentElement ?? root;
       let background = "#ffffff";
@@ -51,7 +60,7 @@ export function OnePageCallPalette() {
       const colors = { "--cafe-a-call-accent": accent, "--cafe-a-call-ink": brandColor };
       const foreground = colorContrast(accent, "#ffffff") >= colorContrast(accent, "#191c1b") ? "#ffffff" : "#191c1b";
       for (const [key, value] of Object.entries({ ...colors, "--cafe-a-call-foreground": foreground })) {
-        if (root.style.getPropertyValue(key) !== value) root.style.setProperty(key, value);
+        setVariable(key, value);
       }
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
@@ -61,7 +70,7 @@ export function OnePageCallPalette() {
     schedule();
     return () => { observer.disconnect(); cancelAnimationFrame(frame); window.removeEventListener("resize", schedule); };
   }, [call.enabled]);
-  return call.enabled ? <span ref={marker} hidden aria-hidden="true" /> : null;
+  return <span ref={marker} hidden aria-hidden="true" />;
 }
 
 export function OnePageCallButton({ mobile = false }: { mobile?: boolean }) {

@@ -13,6 +13,10 @@ const languageSwitcherSource = readFileSync(
   new URL("../components/menu-templates/shared/MenuLanguageSwitcher.tsx", import.meta.url),
   "utf8",
 );
+const onePageCallControlsSource = readFileSync(
+  new URL("../components/menu-templates/one-page/OnePageCallControls.tsx", import.meta.url),
+  "utf8",
+);
 const typographySettingsSource = readFileSync(
   new URL("../components/mypage/menu-editor/TypographySettingsForm.tsx", import.meta.url),
   "utf8",
@@ -89,7 +93,7 @@ test("Rosy Orange는 보조언어를 숨기고 제목 위계를 보장한다", (
   );
 });
 
-test("모카 포레스트 언어 선택 버튼은 어두운 배경용 베이지 톤을 사용한다", () => {
+test("원페이지 언어 UI는 실제 가게명과 카테고리명 색상을 공통으로 따른다", () => {
   assert.match(
     templateSource,
     /tone=\{isMochaForestSkin\(data\.templateSkin\) \? "inverse" : "default"\}/,
@@ -103,12 +107,12 @@ test("모카 포레스트 언어 선택 버튼은 어두운 배경용 베이지 
   assert.match(languageSwitcherSource, /data-language-menu-item=""/);
   assert.match(
     globalStylesSource,
-    /data-cafe-a-mobile-style="true"\]\[data-cafe-a-skin="mocha_forest"\] \{\s*--cafe-a-language-menu-ink: var\(--mocha-forest-brown, #852322\);/,
+    /\[data-template-language-control\] button[\s\S]*color: var\(--cafe-a-language-trigger-ink, var\(--menu-role-brand-color, #191c1b\)\) !important;/,
   );
-  assert.match(
-    globalStylesSource,
-    /\[data-language-menu-surface\] \[data-language-menu-item\] \{\s*color: var\(--cafe-a-language-menu-ink, var\(--menu-role-category-color, #191c1b\)\) !important;/,
-  );
+  assert.match(globalStylesSource, /\[data-language-menu-surface\] \[data-language-menu-item\][\s\S]*var\(--cafe-a-language-menu-ink, var\(--menu-role-category-color, #191c1b\)\)/);
+  assert.match(onePageCallControlsSource, /--cafe-a-language-trigger-ink", brandColor/);
+  assert.match(onePageCallControlsSource, /--cafe-a-language-menu-ink", categoryColor/);
+  assert.doesNotMatch(globalStylesSource, /--cafe-a-language-menu-ink: var\(--mocha-forest-brown/);
 });
 
 test("모카 포레스트 모바일은 데스크톱과 같은 베이지·와인 역할 색상을 사용한다", () => {

@@ -3107,7 +3107,6 @@ video {
 
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] [data-template-language-control],
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] [data-template-language-control] * {
-  color: #4354ef;
   font-weight: 800;
 }
 
@@ -3321,7 +3320,6 @@ video {
   .cafe-a-time-sale-time-text,
   .cafe-a-time-sale-regular-price,
   .cafe-a-footer-info,
-  [data-template-language-control],
   [data-cafe-a-widget-title],
   [data-cafe-a-widget-body]
 ) {
@@ -5069,10 +5067,6 @@ video {
   --cafe-a-category-divider-after-gap: calc(var(--cafe-a-category-no-divider-gap) * 0.5);
 }
 
-.cafe-a-typography[data-template-key="cafe_kohi_a"] [data-template-language-control] {
-  color: #000000;
-}
-
 .cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero :is(.cafe-a-featured-title, .cafe-a-featured-description, .cafe-a-featured-price) {
   color: #ffffff;
 }
@@ -5752,18 +5746,19 @@ video {
 .cafe-a-call-table-label { text-align: center; font-size: var(--cafe-a-linked-supporting-copy-size, .875rem); font-weight: 600; }
 .cafe-a-call-language-slot { justify-self: end; }
 .cafe-a-typography .cafe-a-mobile-call-bar .cafe-a-call-language-slot,
-.cafe-a-typography .cafe-a-mobile-call-bar .cafe-a-call-language-slot * { color: var(--cafe-a-call-ink, #191c1b) !important; }
+.cafe-a-typography .cafe-a-mobile-call-bar .cafe-a-call-language-slot * { color: var(--cafe-a-language-trigger-ink, var(--cafe-a-call-ink, #191c1b)) !important; }
 .cafe-a-mobile-call-bar [data-template-language-control] button { padding: 0; border: 0; background: transparent; }
 
-/* A bright trigger can sit on a dark brand panel, while its popup always sits
-   on white. Keep popup ink on a separate semantic role so trigger color never
-   leaks into the list. Templates may choose a readable representative ink. */
-.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-language-menu-surface] [data-language-menu-item] {
-  color: var(--cafe-a-language-menu-ink, var(--menu-role-category-color, #191c1b)) !important;
+/* Every one-page language trigger follows the rendered store title. Its white
+   popup follows the rendered category title, independently of trigger tone. */
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] [data-template-language-control],
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] [data-template-language-control] button,
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] [data-template-language-control] button * {
+  color: var(--cafe-a-language-trigger-ink, var(--menu-role-brand-color, #191c1b)) !important;
 }
-
-.cafe-a-typography[data-cafe-a-mobile-style="true"][data-cafe-a-skin="mocha_forest"] {
-  --cafe-a-language-menu-ink: var(--mocha-forest-brown, #852322);
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] [data-language-menu-surface] [data-language-menu-item],
+.cafe-a-typography[data-cafe-a-proportion-policy="true"] [data-language-menu-surface] [data-language-menu-item] * {
+  color: var(--cafe-a-language-menu-ink, var(--menu-role-category-color, #191c1b)) !important;
 }
 
 /* Call bars follow the brand; table labels always use the saved Korean font. */
