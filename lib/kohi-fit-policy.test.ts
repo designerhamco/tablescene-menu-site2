@@ -59,7 +59,7 @@ test("settled or cached states cannot bypass a tighter viewport ceiling", () => 
 
 test("candidate selection, validation and final presentation share the bounded policy", () => {
   const source = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
-  assert.match(source, /const hasBoundedFitSpacing = isLoopBagelFitSpacing \|\| isKohiFitPolicy/);
+  assert.match(source, /const hasBoundedFitSpacing = isKohiFitPolicy \|\|/);
   assert.match(source, /getKohiFitGapScale\(fontScale, data.previewDevice, window.innerWidth\)/);
   assert.match(source, /getOnePageItemRhythmMultiplier\(hasSecondaryText, hasDescriptionText, showMenuTimeSale/);
   for (const candidates of ["ORDERED_FIT_FONT_SCALE_CANDIDATES", "FIT_FONT_SCALE_CANDIDATES"]) {

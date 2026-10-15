@@ -1,5 +1,7 @@
 # Loop Bagel spacing pilot — 2026-10-09
 
+> Historical note: this pilot was retired on 2026-10-15. Loop Bagel now uses the common layout-mode PC/tablet gap calculation documented in `template-spacing-contract.md`. The development-only dense fixture remains available for regression checks.
+
 ## Scope
 
 Only Loop Bagel's desktop fit modes use the new font-linked, screen-corrected gap mapping. Other templates and mobile retain their previous mapping. Tablet portrait remains a natural scrolling layout below the desktop fit breakpoint. No starter menu content is changed by this pilot.

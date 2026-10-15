@@ -34,7 +34,6 @@ import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
 import { getCafeAMenuWrapScaleCandidates, hasCafeAMenuWrapDensityImproved, type CafeAMenuWrapDensityDecision } from "@/lib/cafe-a-wrap-density";
 import { DEFAULT_LOCALE } from "@/lib/locales";
 import { getKohiFitGapScale, isKohiFitScaleWithinLimits, limitKohiFitFontCandidates, usesKohiFitPolicy } from "@/lib/kohi-fit-policy";
-import { getLoopBagelFitGapScale, usesLoopBagelFitSpacing } from "@/lib/loop-bagel-fit-spacing";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { isMenuCoverVisibleOnDevice } from "@/lib/menu-cover-device-visibility";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
@@ -44,6 +43,7 @@ import { inferOnePageCategoryAffinity, getConventionalCategoryRank } from "@/lib
 import { getOnePageContentSignature } from "@/lib/one-page-content-signature";
 import { shouldRelaxOnePageCopyReference } from "@/lib/one-page-copy-reference";
 import { getOnePageItemRhythmMultiplier, getOnePageRhythmMode, usesOnePageProportionFitPolicy, usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
+import { getOnePageItemNameCeilingRem, getOnePageTypographyProfile } from "@/lib/one-page-typography-profile";
 import { ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS, orderOnePageMenuColumnCandidates, selectOnePageFitTierState } from "@/lib/one-page-fit-policy";
 import { formatMenuPriceByMode, getPriceDisplayModeFromSettings } from "@/lib/menu-price-format";
 import { getMenuPublicCapabilities } from "@/lib/menu-public-capabilities";
@@ -4491,6 +4491,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const menuCoverRenderDevice = useMenuCoverRenderDevice(data.previewDevice);
   const onePageRhythmMode = getOnePageRhythmMode(data.menuSite.template_key, menuCoverRenderDevice, data.pagePresentation);
   const isAdaptiveFit = onePageRhythmMode === "fit";
+  const onePageTypographyProfile = getOnePageTypographyProfile(data.menuSite.template_key);
+  const itemNameCeilingRem = isAdaptiveFit
+    ? getOnePageItemNameCeilingRem(onePageTypographyProfile, menuCoverRenderDevice)
+    : undefined;
   const savedLayoutMode = getPcTabletLayoutModeFromPageSettings(data.menuSite.page_settings);
   const normalizedPreviewLayoutMode = data.mode === "preview" ? data.previewLayoutMode : undefined;
   const requestedLayoutMode = (normalizedPreviewLayoutMode ?? savedLayoutMode) as CafeDesignALayoutMode;
@@ -4499,11 +4503,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const [twoFieldBoostEnabled, setTwoFieldBoostEnabled] = useState(true);
   const layoutMode = isAdaptiveFit && adaptiveFlowFallback && requestedLayoutMode === "orderedBalancedFit"
     ? "orderedFit" : requestedLayoutMode;
-  const isLoopBagelFitSpacing = onePageRhythmMode !== "mobile" && usesLoopBagelFitSpacing(data.menuSite.template_key, data.previewDevice);
   const isKohiFitPolicy = onePageRhythmMode !== "mobile" && usesKohiFitPolicy(data.menuSite.template_key, data.previewDevice);
   // The gutter correction must not become another tablet enlargement rollout.
   const adaptiveFontCeiling = isAdaptiveFit && isKohiFitPolicy && menuCoverRenderDevice === "tablet" ? 1.14 : 2;
-  const hasBoundedFitSpacing = isLoopBagelFitSpacing || isKohiFitPolicy || (onePageRhythmMode !== "mobile" && usesOnePageProportionFitPolicy(data.menuSite.template_key, data.previewDevice, data.pagePresentation));
+  const hasBoundedFitSpacing = isKohiFitPolicy || (onePageRhythmMode !== "mobile" && usesOnePageProportionFitPolicy(data.menuSite.template_key, data.previewDevice, data.pagePresentation));
   const canRetainTemplateFitState = useCallback((state: CafeDesignAFitState) =>
     isAdaptiveFit ? state.fontScale <= adaptiveFontCeiling : !isKohiFitPolicy || isKohiFitScaleWithinLimits(state.fontScale, state.gapScale, data.previewDevice, window.innerWidth),
   [adaptiveFontCeiling, data.previewDevice, isAdaptiveFit, isKohiFitPolicy]);
@@ -4516,15 +4519,12 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     if (isKohiFitPolicy) {
       return getKohiFitGapScale(fontScale, data.previewDevice, window.innerWidth);
     }
-    if (isLoopBagelFitSpacing) {
-      return getLoopBagelFitGapScale(fontScale, menuWidth, window.innerHeight);
-    }
     return layoutMode === "orderedFit"
       ? getOrderedFitGapScale(fontScale, menuWidth)
       : layoutMode === "orderedBalancedFit"
         ? getOrderedBalancedFitGapScale(fontScale, menuWidth)
         : getBalancedFitGapScale(fontScale, menuWidth);
-  }, [data.previewDevice, isKohiFitPolicy, isLoopBagelFitSpacing, layoutMode]);
+  }, [data.previewDevice, isKohiFitPolicy, layoutMode]);
   const visiblePageGroups = useMemo(() => publicCapabilities.menuPages ? getVisibleMenuPageGroups(data) : [], [publicCapabilities.menuPages, data]);
   const visibleMenuGroupCount = visiblePageGroups.reduce((count, pageGroup) => count + pageGroup.groups.length, 0);
   const visibleContentBlockCount = visiblePageGroups.reduce((count, pageGroup) => count + pageGroup.blocks.length, 0);
@@ -7405,10 +7405,16 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         data-cafe-a-two-field-boost={isAdaptiveFit && !twoFieldBoostEnabled ? "off" : undefined}
         data-cafe-a-proportion-policy={usesOnePageProportionPolicy(data.menuSite.template_key, data.pagePresentation) ? "true" : undefined}
         data-cafe-a-adaptive-fit={isAdaptiveFit ? "true" : undefined}
+        data-one-page-typography-profile={isAdaptiveFit ? onePageTypographyProfile.key : undefined}
         data-cafe-a-copy-aware-rhythm={onePageRhythmMode === "fit" ? "true" : undefined}
         data-cafe-a-mobile-style={onePageRhythmMode === "mobile" ? "true" : undefined}
         data-spacing-contract={onePageRhythmMode === "mobile" ? "mobile-reading" : "canvas-fit"}
-        style={{ ...typographyStyle, ...skinStyle, backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor }}
+        style={{
+          ...typographyStyle,
+          ...skinStyle,
+          ...(itemNameCeilingRem ? { "--cafe-a-linked-item-name-ceiling": `${itemNameCeilingRem}rem` } as CSSProperties : {}),
+          backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor,
+        }}
       >
         <OnePageCallPalette />
         <OnePageMobileCallDock />

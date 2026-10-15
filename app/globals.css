@@ -4793,17 +4793,6 @@ video {
   font-size: max(0.75rem, calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-sunday-secondary-ratio, 0.64))) !important;
 }
 
-/* Loop Bagel has sparse PC content and a heavy display face. Keep fill active,
-   but stop it at the same readable visual range as the denser cafe starters. */
-.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-template-key="fast_food_loop_bagel_a"][data-preview-device="pc"] {
-  --cafe-a-linked-item-name-ceiling: 1.25rem;
-}
-
-@media (min-width: 1024px) {
-  .cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-template-key="fast_food_loop_bagel_a"]:not([data-preview-device]) {
-    --cafe-a-linked-item-name-ceiling: 1.25rem;
-  }
-}
 @media (min-width: 1024px) {
   .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board[data-one-page-layout-shell="brand_top_band"] {
     row-gap: calc(var(--sunday-line-row-gap) * var(--cafe-a-header-gap-scale, 1));

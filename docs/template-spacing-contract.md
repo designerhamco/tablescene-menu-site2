@@ -52,17 +52,9 @@ Viewport and fit calculations may change the base item gap, but semantic ratios 
 
 Display templates use the calculated content row (`--display-row`) as the base unit. Category-title-to-first-item spacing must use the same row-budget scale as item-to-item spacing.
 
-### Loop Bagel PC/tablet pilot
+### PC/tablet fit gap policy
 
-Loop Bagel alone uses `getLoopBagelFitGapScale()` for its numeric CafeA fit calibration. Other PC/tablet templates retain their own numeric base gap values and the common copy adjustment. Mobile uses the independent reading contract below. The gap scale is derived from the selected font scale plus a continuous, bounded correction for menu-container width and viewport height, not the residual empty space after content layout:
-
-- width progress: `clamp((menuWidth - 640) / 800, 0, 1)`;
-- height progress: `clamp((viewportHeight - 640) / 440, 0, 1)`;
-- correction: `0.94 + 0.10 * widthProgress + 0.06 * heightProgress`;
-- upper limit: `0.78 + 0.22 * widthProgress + 0.10 * heightProgress`;
-- gap scale: `clamp((fontScale + 0.02) * correction, 0.44, upperLimit)`.
-
-The CSS pixel clamps and semantic ratios are unchanged. Candidate measurement, committed fit state, validation, and overflow backoff use the same mapping. Loop Bagel skips the secondary whitespace-driven enlargement/final-fill boosts; the primary fit selection and DOM-crop safety checks remain active. This pilot does not prescribe the same numeric calibration for another template.
+All seven one-page templates use the gap mapping belonging to the selected layout mode: ordered flow, ordered balanced flow, or balanced flow. A template may keep its visual shell boundaries and category ratios, but it must not replace the common item-gap calculation with a template-key-specific mapper. Candidate measurement, committed fit state, validation and overflow backoff use the same mapping. Mobile uses the independent reading contract below.
 
 ## Single-page mobile-reading contract — 2026-10-12
 
@@ -122,7 +114,7 @@ Prefer one intact line if it fits at the minimum. Enlarge toward 100% but stop a
 
 Only container-width, title and typography/font-load changes recompute brand fitting. Do not observe sale timers/menu counts or feed brand results into the menu canvas fit loop. Logos use the existing logo branch. This mobile policy runs only when `onePageRhythmMode` is `mobile`; PC/tablet use the separately bounded brand fitter described above, while Display/multi-page remain excluded. Keep upper control-row/brand/copy/section gaps unchanged.
 
-Loop Bagel's sparse PC canvas keeps adaptive packing active but caps the linked item-name/price atom at 1.25rem; the shared 1.6 category ratio then stops at 2rem. Tablet and mobile do not inherit that cap. Its text brand uses the same 75% vertical-rail one/two-line comparison as every other PC/tablet vertical brand column, without a template or device multiplier.
+The reusable `heavy-display` typography profile caps the sparse PC linked item-name/price atom at 1.25rem; the shared 1.6 category ratio then stops at 2rem. Loop Bagel selects this profile because its display face is visually heavy. A future template with the same typography requirement may select the same profile without adding a template-key CSS override. Tablet and mobile do not inherit the cap. Loop Bagel's text brand uses the same 75% vertical-rail one/two-line comparison as every other PC/tablet vertical brand column, without a template or device multiplier.
 
 ## Editorial-scroll templates
 

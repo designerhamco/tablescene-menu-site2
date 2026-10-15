@@ -6,7 +6,6 @@ import { getTemplateCapabilities } from "./template-capabilities";
 import { getAllTemplates } from "./templates";
 import { getOnePageItemRhythmMultiplier, getOnePageRhythmMode, ONE_PAGE_PROPORTION_TEMPLATE_KEYS, usesOnePageProportionFitPolicy, usesOnePageProportionPolicy } from "./one-page-proportion-policy";
 import { usesKohiFitPolicy } from "./kohi-fit-policy";
-import { usesLoopBagelFitSpacing } from "./loop-bagel-fit-spacing";
 
 test("the common policy covers every available dining single-page template, not other engines", () => {
   const singlePageKeys = getAllTemplates().filter((template) =>
@@ -42,14 +41,13 @@ test("copy-aware rhythm follows actual visible supporting fields and avoids comp
   }
 });
 
-test("existing numeric profiles stay template-specific instead of copying KOHI's ceilings", () => {
+test("all templates share the layout-mode gap mapping while KOHI keeps only its ruled-panel ceiling", () => {
   for (const key of ONE_PAGE_PROPORTION_TEMPLATE_KEYS) {
     assert.equal(usesKohiFitPolicy(key, "tablet"), key === "cafe_kohi_a");
-    assert.equal(usesLoopBagelFitSpacing(key, "tablet"), key === "fast_food_loop_bagel_a");
   }
   const source = readCafeTemplateSource();
   assert.match(source, /return isKohiFitPolicy \? limitKohiFitFontCandidates\(previewCandidates, data.previewDevice, window.innerWidth\) : previewCandidates/);
-  assert.match(source, /if \(isLoopBagelFitSpacing\) \{\s*return getLoopBagelFitGapScale/);
+  assert.doesNotMatch(source, /getLoopBagelFitGapScale|usesLoopBagelFitSpacing|isLoopBagelFitSpacing/);
   assert.match(source, /return layoutMode === "orderedFit"\s*\? getOrderedFitGapScale[\s\S]*getOrderedBalancedFitGapScale[\s\S]*getBalancedFitGapScale/);
 });
 
