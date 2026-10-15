@@ -3288,6 +3288,16 @@ video {
 }
 
 /*
+ * Sunday keeps its dotted rule as part of the following category. On the
+ * canvas-fit surface, the preceding category therefore needs the full shared
+ * category boundary before that rule; the rule-to-heading side keeps the
+ * ordinary heading inset. Mobile owns an independent reading boundary.
+ */
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="sunday_line"] .cafe-a-desktop-fit-board {
+  --cafe-a-category-divider-before-gap: var(--cafe-a-category-no-divider-gap);
+}
+
+/*
  * Van Gogh has no featured rail, so its five intact category blocks leave more
  * vertical room than Sunday Roasters. Keep the shared fit safety checks, but
  * trade some repeated item rhythm for larger PC type and clearer category

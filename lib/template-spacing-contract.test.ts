@@ -154,6 +154,14 @@ test("반고흐는 분리선 없이 기기별 기준에 같은 카테고리 간�
   );
 });
 
+test("선데이 PC·태블릿은 마지막 상품에서 점선까지 공통 카테고리 경계를 한 번만 적용한다", () => {
+  const selector = '.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="sunday_line"] .cafe-a-desktop-fit-board';
+  const rule = `${selector} {\n  --cafe-a-category-divider-before-gap: var(--cafe-a-category-no-divider-gap);\n}`;
+  assert.ok(globalStylesSource.includes(rule));
+  assert.equal(globalStylesSource.split(selector).length - 1, 1);
+  assert.match(contractSource, /Sunday Roasters keeps its dotted rule as the leading edge of the following category on PC\/tablet/);
+});
+
 test("루프베이글은 분리선 없이 상하 2행 블루 체커보드를 유지한다", () => {
   const rules = getTemplateContentSeparatorRules("fast_food_loop_bagel_a", "fast_food");
   assert.equal(rules.categoryDivider, "none");
