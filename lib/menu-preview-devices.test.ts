@@ -205,12 +205,12 @@ test("device selector is open by default and collapses upward into a compact han
   assert.match(previewFrameSource, /태블릿을 \$\{MENU_PREVIEW_ORIENTATIONS\[nextTabletOrientation\]\}로 회전/);
   assert.doesNotMatch(previewFrameSource, /태블릿 방향 선택/);
   assert.match(previewFrameSource, /flex w-full items-center gap-1\.5 pl-1 pr-10/);
-  assert.match(previewFrameSource, /bg-zinc-950\/48/);
+  assert.match(previewFrameSource, /bg-zinc-950\/90/);
   assert.match(previewFrameSource, /backdrop-blur-\[2px\]/);
   assert.doesNotMatch(previewFrameSource, /flex w-full flex-col items-center/);
   assert.doesNotMatch(previewFrameSource, /backdrop-blur-xl/);
   assert.doesNotMatch(previewFrameSource, /border-l border-white\/20 pl-2/);
-  assert.equal((previewFrameSource.match(/bg-zinc-950\/48/g) ?? []).length, 1);
+  assert.equal((previewFrameSource.match(/bg-zinc-950\/90/g) ?? []).length, 1);
   assert.match(previewFrameSource, /data-preview-detached-link=""/);
   assert.match(previewFrameSource, /target="_blank"/);
   assert.match(previewFrameSource, /rel="noopener noreferrer"/);

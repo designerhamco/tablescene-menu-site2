@@ -12,10 +12,10 @@ export default function CustomPage() {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="min-h-screen bg-[#f7f4ef] text-zinc-950">
-        <section className="site-gutter border-b border-[#ddd4c5] py-20 md:py-28">
-          <div className="mx-auto max-w-6xl">
-            <span className="type-caption inline-flex rounded-full border border-[#A88745]/35 bg-[#2F2418] px-3 py-1 text-[#F4E7C5]">
+      <main className="min-h-screen bg-white text-zinc-950">
+        <section className="site-gutter border-b border-zinc-200 py-20 md:py-28">
+          <div className="mx-auto max-w-[var(--site-content-width)]">
+            <span className="type-caption inline-flex rounded-full site-brand-note px-3 py-1">
               PREMIUM CUSTOM
             </span>
             <h1 className="type-page-title mt-8 text-zinc-950">
@@ -39,23 +39,23 @@ export default function CustomPage() {
         </section>
 
         <section className="site-gutter py-16 md:py-20">
-          <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
+          <div className="mx-auto grid max-w-[var(--site-content-width)] gap-8 md:grid-cols-3">
             <div>
-              <p className="text-sm font-bold tracking-[0.18em] text-[#7A5A28]">01</p>
+              <p className="text-sm font-bold tracking-[0.18em] text-zinc-600">01</p>
               <h2 className="type-subsection-title mt-3">브랜드 맞춤 구성</h2>
               <p className="site-body-support mt-4 text-zinc-600">
                 매장의 톤, 메뉴 구조, 운영 방식에 맞춰 메뉴 경험의 형태를 함께 설계합니다.
               </p>
             </div>
             <div>
-              <p className="text-sm font-bold tracking-[0.18em] text-[#7A5A28]">02</p>
+              <p className="text-sm font-bold tracking-[0.18em] text-zinc-600">02</p>
               <h2 className="type-subsection-title mt-3">주문 제작 화면</h2>
               <p className="site-body-support mt-4 text-zinc-600">
                 정형 템플릿으로 담기 어려운 브랜드 전용 레이아웃과 인터랙션을 준비합니다.
               </p>
             </div>
             <div>
-              <p className="text-sm font-bold tracking-[0.18em] text-[#7A5A28]">03</p>
+              <p className="text-sm font-bold tracking-[0.18em] text-zinc-600">03</p>
               <h2 className="type-subsection-title mt-3">문의 기반 진행</h2>
               <p className="site-body-support mt-4 text-zinc-600">
                 구체적인 범위와 제작 일정은 상담을 통해 차분하게 안내드릴 예정입니다.

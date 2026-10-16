@@ -38,7 +38,7 @@ const routes = [
   "/templates/dining_aube_table_a/preview",
   "/templates/dining_aube_table_b/preview",
   "/templates/display_menu_a/preview?page=3",
-].filter((route) => !routeFilter || route === routeFilter);
+].filter((route) => !routeFilter || routeFilter.split(",").includes(route));
 
 const viewports = [
   { key: "desktop", width: 1440, height: 900 },

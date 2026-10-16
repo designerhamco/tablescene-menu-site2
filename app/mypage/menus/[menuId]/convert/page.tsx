@@ -188,7 +188,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
     <>
       <OfficialSiteNavbar />
       <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
-        <div className="mx-auto w-full max-w-7xl">
+        <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <div className="mb-6 flex flex-col justify-between gap-4 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
               <h1 className="type-page-title">사업자 플랜 전환</h1>

@@ -7,6 +7,7 @@ import { getTemplateTypeLabelByTemplateKey } from "@/lib/template-types";
 type TemplateCardProps = {
   template: TemplateCatalogItem;
   selected?: boolean;
+  inverted?: boolean;
   showServiceBadge?: boolean;
   action?: ReactNode;
   className?: string;
@@ -23,6 +24,10 @@ function getThumbnailClassName(tone: TemplateCatalogItem["thumbnailTone"]) {
 }
 
 export function TemplateThumbnail({ template }: { template: TemplateCatalogItem }) {
+  return <div data-template-artwork className="site-template-artwork"><TemplateArtwork template={template} /></div>;
+}
+
+function TemplateArtwork({ template }: { template: TemplateCatalogItem }) {
   const isDark = template.thumbnailTone === "dark";
   const previewImage = template.previewImage ?? template.thumbnailUrl;
 
@@ -138,6 +143,7 @@ export function TemplateThumbnail({ template }: { template: TemplateCatalogItem 
 export default function TemplateCard({
   template,
   selected = false,
+  inverted = false,
   action,
   className = "",
 }: TemplateCardProps) {
@@ -145,14 +151,14 @@ export default function TemplateCard({
 
   return (
     <div
-      className={`group flex h-full flex-col rounded-[1.5rem] bg-transparent transition ${
+      className={`group flex h-full flex-col rounded-xl bg-transparent transition ${
         selected ? "ring-2 ring-zinc-950 ring-offset-4 ring-offset-white" : ""
       } ${className}`}
     >
-      <div className="relative overflow-hidden rounded-[1.5rem] bg-zinc-100">
+      <div className="site-template-media relative">
         <TemplateThumbnail template={template} />
         <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-[#F8E731] px-3 py-1.5 text-xs font-bold text-zinc-950">
+          <span className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-zinc-950">
             {templateTypeLabel}
           </span>
           {template.status === "coming_soon" ? (
@@ -163,17 +169,17 @@ export default function TemplateCard({
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col px-1 pt-5">
+      <div className="flex flex-1 flex-col pt-3">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h3 className="type-content-title inline-flex max-w-full items-center gap-1.5 break-keep text-zinc-950">
+            <h3 className={`type-content-title inline-flex max-w-full items-center gap-1.5 break-keep ${inverted ? "text-white" : "text-zinc-950"}`}>
               <span className="min-w-0">{template.name}</span>
               <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 stroke-[2.4] md:h-[18px] md:w-[18px]" aria-hidden="true" />
             </h3>
           </div>
           {action}
         </div>
-        <p className="mt-2 break-keep text-sm font-medium leading-relaxed text-zinc-600 md:text-base">
+        <p className={`type-body-sm mt-2 ${inverted ? "text-zinc-400" : "text-zinc-600"}`}>
           {template.description}
         </p>
       </div>

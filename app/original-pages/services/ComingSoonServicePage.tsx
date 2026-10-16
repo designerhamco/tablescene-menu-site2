@@ -26,8 +26,8 @@ export default function ComingSoonServicePage({ kind }: ComingSoonServicePagePro
   const Icon = copy.icon;
 
   return (
-    <section className="min-h-[calc(100vh-18rem)] bg-zinc-50 px-6 pb-24 pt-36 md:px-10 md:pb-36 md:pt-44">
-      <div className="mx-auto grid max-w-[1180px] items-center gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
+    <section className="min-h-[calc(100vh-18rem)] site-gutter bg-zinc-50 pb-24 pt-36 md:pb-36 md:pt-44">
+      <div className="mx-auto grid max-w-[var(--site-content-width)] items-center gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
         <MarketingSectionCopy eyebrow={copy.eyebrow} title={copy.title} body={copy.body} className="max-w-xl" />
 
         <div className="flex min-h-[360px] items-center justify-center rounded-[2rem] bg-white p-8 shadow-[0_24px_70px_rgba(0,0,0,0.08)] md:min-h-[480px] md:rounded-[2.5rem]">

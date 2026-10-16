@@ -173,7 +173,7 @@ function StorySection({
 
   return (
     <section className={`site-gutter bg-transparent text-white ${spacingClass}`}>
-      <div className="mx-auto grid max-w-[1280px] items-center gap-12 lg:grid-cols-2 lg:gap-20">
+      <div className="mx-auto grid max-w-[var(--site-content-width)] items-center gap-12 lg:grid-cols-2 lg:gap-20">
         <motion.div {...fadeUp} className={reverse ? "lg:order-2" : ""}>
           <MarketingSectionCopy inverted eyebrow={eyebrow} title={title} body={body} className="max-w-xl" />
         </motion.div>
@@ -501,7 +501,7 @@ export function AiFeaturesSection({ service = "dining", inverted = false }: { se
 
   return (
     <section className={`site-gutter py-16 md:py-24 ${inverted ? "bg-zinc-950 text-white" : "bg-white text-zinc-950"}`}>
-      <div className="mx-auto max-w-[1280px]">
+      <div className="mx-auto max-w-[var(--site-content-width)]">
         <motion.div {...fadeUp} className="mb-14 max-w-3xl">
           <MarketingSectionCopy
             inverted={inverted}
@@ -553,7 +553,7 @@ export function StoreScenesSection({ service = "dining", inverted = false }: { s
 
   return (
     <section className={`site-gutter pb-20 pt-12 md:pb-24 md:pt-12 ${inverted ? "bg-zinc-950 text-white" : "bg-white text-zinc-950"}`}>
-      <div className="mx-auto max-w-[1280px]">
+      <div className="mx-auto max-w-[var(--site-content-width)]">
         <motion.div {...fadeUp} className="mb-14 max-w-4xl md:mb-20">
           <MarketingSectionCopy
             inverted={inverted}

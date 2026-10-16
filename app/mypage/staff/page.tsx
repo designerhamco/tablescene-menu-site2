@@ -156,7 +156,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
     <>
       <OfficialSiteNavbar />
       <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950 md:py-16">
-        <div className="mx-auto w-full max-w-7xl space-y-8">
+        <div className="mx-auto w-full max-w-[var(--site-content-width)] space-y-8">
         <ActionFeedbackToast
           message={resultNotice?.message}
           tone={resultNotice?.tone ?? "success"}

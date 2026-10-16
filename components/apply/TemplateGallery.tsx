@@ -2,7 +2,7 @@
 
 import { ArrowUpRight, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useRef, useState } from "react";
+import { useId, useMemo, useRef, useState } from "react";
 
 import { TemplateThumbnail } from "@/components/templates/TemplateCard";
 import { getDiningTemplateTier, getDiningTierLabel, type DiningTemplateTier } from "@/lib/dining-product-tiers";
@@ -72,6 +72,7 @@ export default function TemplateGallery({
   const [industry, setIndustry] = useState<IndustryKey>("all");
   const [page, setPage] = useState(1);
   const galleryStartRef = useRef<HTMLDivElement>(null);
+  const tabsId = useId();
   const service = product === "display" ? "display" : "dining";
   const tier: DiningTemplateTier = product === "dining_multi" ? "multi" : "single";
 
@@ -122,14 +123,29 @@ export default function TemplateGallery({
 
   return (
     <>
-      <div className="border-b border-zinc-200">
-        <div className="flex gap-7 overflow-x-auto" aria-label="서비스 및 페이지 유형 선택">
+      <div className="border-b border-zinc-200 pb-5">
+        <div className="site-tabs" role="tablist" aria-label="서비스 및 페이지 유형 선택"
+          onKeyDown={(event) => {
+            const current = PRODUCT_TABS.findIndex((tab) => tab.key === product);
+            const next = event.key === "ArrowRight" ? (current + 1) % PRODUCT_TABS.length
+              : event.key === "ArrowLeft" ? (current + PRODUCT_TABS.length - 1) % PRODUCT_TABS.length
+              : event.key === "Home" ? 0 : event.key === "End" ? PRODUCT_TABS.length - 1 : -1;
+            if (next < 0) return;
+            event.preventDefault();
+            selectProduct(PRODUCT_TABS[next].key);
+            event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+          }}>
           {PRODUCT_TABS.map(({ key, label }) => (
             <button
               key={key}
               type="button"
+              role="tab"
+              id={`${tabsId}-${key}`}
+              aria-controls={`${tabsId}-panel`}
+              aria-selected={product === key}
+              tabIndex={product === key ? 0 : -1}
               onClick={() => selectProduct(key)}
-              className={`shrink-0 border-b-2 pb-4 text-base font-bold transition-colors md:text-lg ${product === key ? "border-zinc-950 text-zinc-950" : "border-transparent text-zinc-600 hover:text-zinc-950"}`}
+              className="site-tab"
             >
               {label}
             </button>
@@ -137,6 +153,7 @@ export default function TemplateGallery({
         </div>
       </div>
 
+      <div role="tabpanel" id={`${tabsId}-panel`} aria-labelledby={`${tabsId}-${product}`} tabIndex={0}>
       <section className="mt-7 border-y border-zinc-200 bg-white py-6" aria-label="템플릿 이용 안내">
         <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
           <div>
@@ -145,7 +162,7 @@ export default function TemplateGallery({
           </div>
           <div className="md:text-right">
             <p className="text-xl font-bold text-zinc-950">{productPrice}</p>
-            <p className="mt-1 inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700">
+            <p className="site-brand-note mt-2 inline-flex items-center gap-1.5 text-sm font-medium">
               <Check className="h-4 w-4" aria-hidden="true" /> 템플릿 1개별 월 구독 · 메뉴 데이터 가져오기 지원
             </p>
           </div>
@@ -153,13 +170,14 @@ export default function TemplateGallery({
       </section>
 
       <div ref={galleryStartRef} className="scroll-mt-24">
-        <div className="mt-8 flex gap-2 overflow-x-auto pb-1" aria-label="업종 선택">
+        <div className="site-tabs mt-8" role="group" aria-label="업종 선택">
           {INDUSTRY_GROUPS.map((group) => (
             <button
               key={group.key}
               type="button"
               onClick={() => selectIndustry(group.key)}
-              className={`site-button site-button-sm shrink-0 ${industry === group.key ? "site-button-primary" : "site-button-secondary"}`}
+              aria-pressed={industry === group.key}
+              className="site-tab"
             >
               {group.label}
             </button>
@@ -168,16 +186,16 @@ export default function TemplateGallery({
       </div>
 
       {paginatedTemplates.length > 0 ? (
-        <div className="mt-8 grid gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="site-template-grid mt-8">
           {paginatedTemplates.map((template) => {
             const templateTier = service === "dining" ? getDiningTemplateTier(template.key) : tier;
             const startDisabled = service === "display" && !displayCheckoutEnabled;
             const industryLabel = getIndustryGroup(template)?.label ?? template.categoryLabel;
 
             return (
-              <article key={template.key} className="group">
+              <article key={template.key} className="site-template-card group">
                 <Link href={`/templates/${getTemplatePreviewRouteKey(template.key)}/preview`} target="_blank" rel="noopener noreferrer" className="block" aria-label={`${template.name} 새 창에서 미리보기`}>
-                  <div className="overflow-hidden rounded-[1.5rem] bg-zinc-100 ring-1 ring-inset ring-zinc-200 transition-shadow group-hover:ring-zinc-400">
+                  <div className="site-template-media">
                     <TemplateThumbnail template={template} />
                   </div>
                 </Link>
@@ -254,6 +272,7 @@ export default function TemplateGallery({
           </button>
         </nav>
       ) : null}
+      </div>
     </>
   );
 }

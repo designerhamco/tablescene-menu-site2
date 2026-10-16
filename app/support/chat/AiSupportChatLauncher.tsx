@@ -54,7 +54,7 @@ export default function AiSupportChatLauncher() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="type-label pointer-events-auto fixed bottom-5 right-5 z-40 inline-flex h-12 items-center gap-2 rounded-full bg-zinc-950 px-5 text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-950 md:bottom-8 md:right-8"
+        className="site-support-launcher type-label pointer-events-auto fixed bottom-5 z-40 inline-flex h-12 items-center gap-2 rounded-full bg-zinc-950 px-5 text-white transition-colors hover:bg-zinc-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-950 md:bottom-8"
         aria-label="AI 상담 열기"
         aria-expanded={open}
       >

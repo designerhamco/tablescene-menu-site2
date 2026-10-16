@@ -24,7 +24,7 @@ interface AgencyDetailSectionProps {
 const AgencyDetailSection = ({ title, subtitle, items }: AgencyDetailSectionProps) => {
   return (
     <section className="py-12 md:py-40 bg-white">
-      <div className="max-w-[1600px] mx-auto px-6 md:px-12">
+      <div className="site-container">
         <div className="flex flex-col lg:flex-row gap-12 md:gap-32">
           
           {/* Left: Sticky Title */}
@@ -345,7 +345,7 @@ const CustomServicePage = () => {
 
       {/* 5. Process Flow (Simple Arrow Design with 2-Col Mobile Grid) */}
       <section className="pt-16 pb-32 md:pt-24 md:pb-40 bg-zinc-50 border-t border-zinc-100 overflow-hidden">
-        <div className="max-w-[1600px] mx-auto px-6 md:px-12">
+        <div className="site-container">
             <div className="mb-12 md:mb-24 text-center">
                 <h3 className="text-3xl md:text-[48px] font-bold text-zinc-900 mb-4 md:mb-8 tracking-tight">커스터마이징 프로세스</h3>
                 <p className="text-zinc-500 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">

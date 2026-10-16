@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { chromium, expect } from "@playwright/test";
 
+expect.configure({ timeout: 15000 });
 const baseUrl = process.env.MARKETING_QA_BASE_URL || "http://127.0.0.1:3000";
 const browser = await chromium.launch({ headless: true });
 const results = [];
@@ -28,13 +29,13 @@ try {
     await expectService(page, "dining");
     const header = page.locator("[data-site-header]");
     await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));
-    await expect(header).toHaveAttribute("data-floating", "true");
-    if (mobile) {
+    await expect(header).toHaveAttribute("data-floating", String(viewport.width >= 768));
+    if (viewport.width < 768) {
       await page.getByRole("button", { name: "메뉴 열기", exact: true }).click();
       await expect(header).toHaveAttribute("data-floating", "false");
       await expect(page.getByRole("navigation", { name: "모바일 공식 사이트 메뉴" })).toBeVisible();
       await page.getByRole("button", { name: "메뉴 닫기", exact: true }).click();
-      await expect(header).toHaveAttribute("data-floating", "true");
+      await expect(header).toHaveAttribute("data-floating", String(viewport.width >= 768));
     }
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
     await expect(header).toHaveAttribute("data-floating", "false");

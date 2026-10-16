@@ -115,7 +115,7 @@ export default function ServicePricingSection({ service }: { service: ServicePri
 
   return (
     <section className="site-gutter py-20 md:py-28">
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto max-w-[var(--site-content-width)]">
         <div className="mx-auto mb-10 max-w-3xl text-center">
           <h2 className="type-section-title text-zinc-950">
             {data.title}

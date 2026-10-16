@@ -92,7 +92,7 @@ test("마이페이지와 주요 서브페이지는 같은 사이트 여백 계�
 test("전역 여백은 최대 폭 요소 안에 중복 적용하지 않는다", () => {
   assert.doesNotMatch(mypageNewMenuSource, /site-gutter[^"\n]*max-w/);
   assert.match(mypageNewMenuSource, /site-gutter w-full/);
-  assert.match(mypageNewMenuSource, /mx-auto w-full max-w-7xl/);
+  assert.match(mypageNewMenuSource, /mx-auto w-full max-w-\[var\(--site-content-width\)\]/);
   assert.doesNotMatch(displayProductStorySource, /site-gutter[^"\n]*max-w/);
   assert.match(displayProductStorySource, /site-container absolute/);
   assert.doesNotMatch(templateShowcaseSource, /site-gutter[^"\n]*max-w/);
@@ -104,8 +104,8 @@ test("공개 페이지의 검정 CTA는 홈과 같은 표면 규칙을 공유한
   assert.match(applySource, /className="site-dark-cta/);
 });
 
-test("만들기 템플릿 썸네일은 하나의 24px 라운드 외곽선만 사용한다", () => {
-  assert.match(templateGallerySource, /rounded-\[1\.5rem\].*ring-1 ring-inset/);
+test("만들기 템플릿 썸네일은 공통 갤러리 외곽선만 사용한다", () => {
+  assert.match(templateGallerySource, /className="site-template-media"/);
   assert.doesNotMatch(templateGallerySource, /rounded-2xl border border-zinc-200 bg-zinc-100/);
 });
 

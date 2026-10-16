@@ -19,17 +19,17 @@
   --font-weight-semibold: 600;
   --font-weight-strong: 700;
 
-  --type-display-size: clamp(2.75rem, 6.5vw, 5.25rem);
+  --type-display-size: 2rem;
   --type-page-title-size: clamp(2rem, 4vw, 3rem);
-  --type-section-title-size: clamp(1.875rem, 3.5vw, 3rem);
-  --type-subsection-title-size: clamp(1.5rem, 2.3vw, 1.875rem);
-  --type-content-title-size: clamp(1.125rem, 1.45vw, 1.375rem);
+  --type-section-title-size: clamp(1.25rem, 2.4vw, 1.5rem);
+  --type-subsection-title-size: clamp(1.25rem, 2.4vw, 1.5rem);
+  --type-content-title-size: clamp(.875rem, 1.4vw, 1rem);
   --type-item-title-size: var(--font-size-300);
-  --type-body-lg-size: clamp(1rem, 1.15vw, 1.125rem);
-  --type-body-size: var(--font-size-300);
-  --type-body-sm-size: clamp(0.875rem, 0.9vw, 0.9375rem);
+  --type-body-lg-size: clamp(.875rem, 1.4vw, 1rem);
+  --type-body-size: clamp(.875rem, 1.4vw, 1rem);
+  --type-body-sm-size: .875rem;
   --type-label-size: var(--font-size-200);
-  --type-nav-size: var(--font-size-300);
+  --type-nav-size: .875rem;
   --type-caption-size: var(--font-size-100);
 }
 
@@ -42,8 +42,8 @@
   word-break: keep-all;
   font-size: var(--type-display-size);
   font-weight: var(--font-weight-strong);
-  line-height: 1;
-  letter-spacing: -0.05em;
+  line-height: 1.25;
+  letter-spacing: -0.04em;
 }
 
 .type-page-title,
@@ -51,7 +51,7 @@
   word-break: keep-all;
   font-size: var(--type-page-title-size);
   font-weight: var(--font-weight-strong);
-  line-height: 1.16;
+  line-height: 1.3125;
   letter-spacing: -0.04em;
 }
 
@@ -60,7 +60,7 @@
   word-break: keep-all;
   font-size: var(--type-section-title-size);
   font-weight: var(--font-weight-strong);
-  line-height: 1.16;
+  line-height: 1.3125;
   letter-spacing: -0.04em;
 }
 
@@ -76,8 +76,8 @@
 .site-body-title {
   word-break: keep-all;
   font-size: var(--type-content-title-size);
-  font-weight: var(--font-weight-strong);
-  line-height: 1.42;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.5;
   letter-spacing: -0.025em;
 }
 
@@ -93,16 +93,16 @@
 .site-body {
   word-break: keep-all;
   font-size: var(--type-body-lg-size);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.72;
+  font-weight: var(--font-weight-regular);
+  line-height: 1.625;
   letter-spacing: -0.015em;
 }
 
 .type-body {
   word-break: keep-all;
   font-size: var(--type-body-size);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.68;
+  font-weight: var(--font-weight-regular);
+  line-height: 1.625;
   letter-spacing: -0.015em;
 }
 
@@ -110,8 +110,8 @@
 .site-body-support {
   word-break: keep-all;
   font-size: var(--type-body-sm-size);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.68;
+  font-weight: var(--font-weight-regular);
+  line-height: 1.625;
   letter-spacing: -0.01em;
 }
 
@@ -124,7 +124,7 @@
 
 .type-nav {
   font-size: var(--type-nav-size);
-  font-weight: var(--font-weight-strong);
+  font-weight: var(--font-weight-semibold);
   line-height: 1.4;
   letter-spacing: -0.02em;
 }
@@ -134,4 +134,11 @@
   font-weight: var(--font-weight-semibold);
   line-height: 1.45;
   letter-spacing: -0.005em;
+}
+
+@media (min-width: 768px) {
+  :root { --type-display-size: 2.25rem; }
+}
+@media (min-width: 992px) {
+  :root { --type-display-size: 3rem; }
 }

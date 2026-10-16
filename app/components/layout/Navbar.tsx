@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import * as Dialog from '@radix-ui/react-dialog';
 import { ArrowUpRight, Bell, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { formatNotificationBadgeCount, formatNotificationDateTime, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
 import { createClient } from '@/lib/supabase/client';
+import { supportsGlassSiteHeader } from '@/lib/site-header-policy';
 import styles from './Navbar.module.css';
 
 type NavItem = {
@@ -52,6 +53,7 @@ type NotificationEvent = {
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isTabletOrDesktop, setIsTabletOrDesktop] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notificationEvents, setNotificationEvents] = useState<NotificationEvent[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -76,6 +78,7 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleResize = () => {
+      setIsTabletOrDesktop(window.innerWidth >= 768);
       if (window.innerWidth >= 1280) {
         setIsOpen(false);
       }
@@ -92,6 +95,7 @@ const Navbar = () => {
       if (nextIsScrolled === scrolledRef.current) return;
       scrolledRef.current = nextIsScrolled;
       setIsScrolled(nextIsScrolled);
+      if (nextIsScrolled) setIsNotificationOpen(false);
     };
 
     handleScroll();
@@ -210,11 +214,9 @@ const Navbar = () => {
     return () => window.removeEventListener('pointerdown', handlePointerDown);
   }, [isNotificationOpen]);
 
-  const isFloating = isScrolled && !isOpen;
-  const navTextClass = 'text-current opacity-85 hover:opacity-100';
+  const isFloating = supportsGlassSiteHeader(pathname) && isTabletOrDesktop && isScrolled && !isOpen;
+  const navTextClass = styles.navLink;
   const menuButtonClass = 'text-current hover:opacity-70';
-  const primaryButtonClass = 'bg-zinc-950 hover:bg-zinc-800';
-  const primaryButtonStyle = { color: '#ffffff' };
   const secondaryButtonClass = 'border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50';
   const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
   const accountCtaLabel = authState.isAuthenticated ? 'MY/메뉴판' : '로그인';
@@ -250,14 +252,14 @@ const Navbar = () => {
   };
 
   return (
-    <>
-      <nav data-site-header data-floating={isFloating} className={styles.shell}>
+    <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
+      <nav aria-label="공식 사이트 메뉴" data-site-header data-floating={isFloating} className={styles.shell}>
         <div className={`site-container relative flex h-full items-center justify-between ${styles.panel}`}>
-          <Link href="/" className="group z-50 flex shrink-0 items-center">
-            <span className="type-subsection-title text-current">ArtiMenu</span>
+          <Link href="/" className={`group z-50 flex shrink-0 items-center ${styles.brand}`}>
+            <span className={styles.wordmark}>ArtiMenu</span>
           </Link>
 
-          <div className="absolute left-1/2 top-1/2 hidden h-full -translate-x-1/2 -translate-y-1/2 items-center gap-5 xl:flex xl:gap-8">
+          <div className={styles.primaryNav}>
             {NAV_ITEMS.map((item) => {
               const isActive = (item.activePaths ?? [item.path]).includes(pathname);
 
@@ -279,9 +281,7 @@ const Navbar = () => {
                     className={`type-nav relative inline-flex items-center gap-1.5 py-2 transition-opacity duration-200 ${
                       item.disabled
                         ? 'pointer-events-none cursor-not-allowed text-current opacity-35'
-                        : isActive
-                          ? 'opacity-100'
-                          : navTextClass
+                        : navTextClass
                     }`}
                   >
                     <span>{item.label}</span>
@@ -293,11 +293,10 @@ const Navbar = () => {
             })}
           </div>
 
-          <div className="z-50 flex shrink-0 items-center gap-2 md:gap-3">
+          <div className={`z-50 flex shrink-0 items-center gap-2 md:gap-3 ${styles.actions}`}>
             <Link
               href="/apply"
-              className={`type-nav hidden rounded-full px-5 py-2.5 transition-colors xl:inline-flex ${primaryButtonClass}`}
-              style={primaryButtonStyle}
+              className="site-button site-button-primary hidden xl:inline-flex"
             >
               만들기
             </Link>
@@ -356,7 +355,7 @@ const Navbar = () => {
             {!authState.loading ? (
               <Link
                 href={accountCtaHref}
-                className={`type-nav hidden rounded-full border px-5 py-2.5 transition-colors xl:inline-flex ${secondaryButtonClass}`}
+                className="site-button site-button-secondary hidden xl:inline-flex"
               >
                 {accountCtaLabel}
               </Link>
@@ -376,27 +375,26 @@ const Navbar = () => {
               </Link>
             ) : null}
 
-            <button
+            <Dialog.Trigger asChild><button
               className={`inline-flex aspect-square h-9 w-9 shrink-0 items-center justify-center p-0 transition-opacity xl:hidden ${menuButtonClass}`}
-              onClick={() => setIsOpen((currentIsOpen) => !currentIsOpen)}
               aria-label={isOpen ? '메뉴 닫기' : '메뉴 열기'}
               aria-expanded={isOpen}
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+            </button></Dialog.Trigger>
           </div>
         </div>
       </nav>
 
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-            className="fixed inset-0 top-20 z-40 bg-white"
-          >
+      <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-[60] bg-white" />
+          <Dialog.Content className={styles.drawer}>
+            <Dialog.Title className="sr-only">아티메뉴 전체 메뉴</Dialog.Title>
+            <Dialog.Description className="sr-only">서비스와 계정 메뉴를 선택하세요.</Dialog.Description>
+            <div className={`site-container flex items-center justify-between ${styles.drawerHeader}`}>
+              <Link href="/" onClick={closeMobileMenu} className={styles.wordmark}>ArtiMenu</Link>
+              <Dialog.Close className="site-button site-button-icon site-button-ghost" aria-label="메뉴 닫기"><X size={24} /></Dialog.Close>
+            </div>
             <div className="site-container flex h-full flex-col overflow-y-auto pb-8">
               <div className="flex-1 py-5">
                 <div className="mb-6 grid grid-cols-2 gap-2 border-b border-zinc-100 pb-6">
@@ -478,10 +476,9 @@ const Navbar = () => {
                 </div>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+          </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 };
 

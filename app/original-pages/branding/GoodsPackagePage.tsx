@@ -11,7 +11,7 @@ const GoodsPackagePage = () => {
         bgImage="https://images.unsplash.com/photo-1606836591695-4d58a73eba1e?q=80&w=2071&auto=format&fit=crop"
       />
       
-      <div className="max-w-7xl mx-auto px-6 py-24">
+      <div className="site-container py-24">
         <div className="grid md:grid-cols-2 gap-16 items-center">
           <motion.div
             initial={{ opacity: 0, x: -20 }}

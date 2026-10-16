@@ -28,7 +28,7 @@ export default function OrderServiceReviewContent() {
   return (
     <div className="bg-zinc-50 text-zinc-950">
       <section className="site-gutter py-20 md:py-28">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-[var(--site-content-width)]">
           <span className="inline-flex rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600 shadow-sm">
             출시 준비 중 · 실제 주문/결제 미제공
           </span>
@@ -58,7 +58,7 @@ export default function OrderServiceReviewContent() {
       </section>
 
       <section className="site-gutter border-y border-zinc-200 bg-white py-16">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-[var(--site-content-width)]">
           <div className="max-w-3xl">
             <p className="text-sm font-bold text-zinc-500">준비된 범위</p>
             <h2 className="type-section-title mt-2">검증 중인 주문 운영 기능</h2>
@@ -79,7 +79,7 @@ export default function OrderServiceReviewContent() {
       </section>
 
       <section className="site-gutter py-16 md:py-20">
-        <div className="mx-auto grid max-w-6xl gap-8 rounded-[2rem] bg-zinc-950 p-8 text-white md:grid-cols-[1fr_1.2fr] md:p-12">
+        <div className="mx-auto grid max-w-[var(--site-content-width)] gap-8 rounded-[2rem] bg-zinc-950 p-8 text-white md:grid-cols-[1fr_1.2fr] md:p-12">
           <div>
             <p className="text-sm font-bold text-zinc-400">정식 제공 전 필수 단계</p>
             <h2 className="type-section-title mt-3">결제·정산은 계약 후 별도 출시합니다</h2>

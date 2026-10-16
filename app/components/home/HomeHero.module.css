@@ -1,7 +1,7 @@
 .hero {
   padding: 7.5rem var(--site-gutter) 3rem;
   background: #fff;
-  color: #09090b;
+  color: var(--ui-text);
 }
 
 .layout {
@@ -13,10 +13,8 @@
 }
 
 .hero .title {
-  --type-display-size: clamp(1.875rem, 9vw, 2.375rem);
   margin: 0;
   text-align: center;
-  line-height: 1.08;
 }
 
 .titleLine {
@@ -29,7 +27,7 @@
   aspect-ratio: 0.95;
   overflow: hidden;
   border-radius: clamp(2rem, 5vw, 3rem);
-  background: #f4f4f5;
+  background: var(--ui-surface-muted);
 }
 
 .image {
@@ -49,10 +47,6 @@
 
   .layout {
     gap: clamp(2.5rem, 5vw, 4rem);
-  }
-
-  .hero .title {
-    --type-display-size: clamp(2.5rem, 5.5vw, 4.25rem);
   }
 
   .frame {
@@ -75,10 +69,6 @@
 
   .layout {
     gap: clamp(2.5rem, 4.5vw, 4rem);
-  }
-
-  .hero .title {
-    --type-display-size: clamp(3.75rem, 5vw, 4.75rem);
   }
 
   .frame {

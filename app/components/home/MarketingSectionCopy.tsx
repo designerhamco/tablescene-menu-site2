@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
  * title > eyebrow > body. The body stays the smallest supporting copy.
  */
 export const MARKETING_COPY_STYLES = {
-  eyebrow: "type-content-title",
+  eyebrow: "site-eyebrow",
   title: "mt-3",
   body: "type-body-lg mt-5",
 } as const;
@@ -30,7 +30,7 @@ export function MarketingSectionCopy({
   className = "",
 }: MarketingSectionCopyProps) {
   const alignmentClass = centered ? "mx-auto text-center" : "text-left";
-  const eyebrowColor = inverted ? "text-zinc-400" : "text-zinc-500";
+  const eyebrowColor = inverted ? "text-white" : "text-zinc-950";
   const titleColor = inverted ? "text-white" : "text-zinc-950";
   const bodyColor = inverted ? "text-zinc-400" : "text-zinc-500";
 

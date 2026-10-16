@@ -141,7 +141,7 @@ function DisplayDarkStorySection({
 
   return (
     <section className={`site-gutter bg-transparent text-white ${spacingClass}`}>
-      <div className="mx-auto grid max-w-[1280px] items-center gap-12 lg:grid-cols-2 lg:gap-20">
+      <div className="mx-auto grid max-w-[var(--site-content-width)] items-center gap-12 lg:grid-cols-2 lg:gap-20">
         <motion.div {...fadeUp} className={reverse ? "lg:order-2" : ""}>
           <MarketingSectionCopy inverted eyebrow={eyebrow} title={title} body={body} className="max-w-xl" />
         </motion.div>

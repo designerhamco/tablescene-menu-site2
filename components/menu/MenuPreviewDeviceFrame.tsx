@@ -111,7 +111,7 @@ export default function MenuPreviewDeviceFrame(props: MenuPreviewDeviceFrameProp
         <header
           data-preview-device-toolbar=""
           data-toolbar-open={showToolbar ? "true" : "false"}
-          className={`pointer-events-auto relative min-w-0 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/48 p-2 text-white backdrop-blur-[2px] transition-[width,transform] duration-300 ease-out ${
+          className={`pointer-events-auto relative min-w-0 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/90 p-2 text-white backdrop-blur-[2px] transition-[width,transform] duration-300 ease-out ${
             showToolbar ? supportsCallPreview ? "w-[min(35rem,calc(100vw-1.5rem))]" : "w-[min(27rem,calc(100vw-1.5rem))]" : "w-20 max-w-20"
           }`}
           style={{

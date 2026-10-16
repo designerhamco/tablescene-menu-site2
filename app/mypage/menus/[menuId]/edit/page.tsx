@@ -1753,7 +1753,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const requestedEditorTab = visibleEditorTabs.find((item) => item.key === requestedActiveTab);
   const permissionTabNotice = requestedEditorTab?.disabledReason ?? null;
   const activeTab = enabledEditorTabs.some((item) => item.key === requestedActiveTab) ? requestedActiveTab : enabledEditorTabs[0]?.key ?? "basic";
-  const editorShellMaxWidth = "max-w-7xl";
+  const editorShellMaxWidth = "max-w-[var(--site-content-width)]";
   const bannerMessage = message;
   const bannerError =
     activeTab === "localization"

@@ -11,7 +11,7 @@ const VisualStudioPage = () => {
         bgImage="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?q=80&w=2070&auto=format&fit=crop"
       />
       
-      <div className="max-w-7xl mx-auto px-6 py-24">
+      <div className="site-container py-24">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold mb-6 text-zinc-900">시각으로 맛을 전하다</h2>
           <p className="text-lg text-zinc-600 max-w-2xl mx-auto">

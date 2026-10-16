@@ -59,7 +59,7 @@ export default async function MenuQrManagementPage({
     <>
       <OfficialSiteNavbar />
       <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
-        <div className="mx-auto w-full max-w-6xl">
+        <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <Link href="/mypage?tab=menus" className="text-sm font-bold text-emerald-700 hover:text-emerald-900">
             ← MY/메뉴판
           </Link>

@@ -43,7 +43,7 @@ const Store = () => {
         bgImage="https://images.unsplash.com/photo-1472851294608-415522f96485?q=80&w=2070&auto=format&fit=crop"
       />
       
-      <div className="max-w-7xl mx-auto px-6 py-24">
+      <div className="site-container py-24">
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
           {products.map((product) => (
             <motion.div

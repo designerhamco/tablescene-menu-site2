@@ -54,7 +54,7 @@ export default async function StoreOperationsShell({
     <>
       <OfficialSiteNavbar />
       <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
-        <div className="mx-auto w-full max-w-[1280px]">
+        <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <header className="mb-5 border-b border-zinc-200 pb-6 md:mb-6 md:pb-8">
             <h1 className="type-page-title">매장 운영</h1>
             <p className="type-body mt-4 break-keep text-zinc-500">

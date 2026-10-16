@@ -3,6 +3,7 @@
 @import "../styles/theme.css";
 @import "../styles/typography.css";
 @import "../styles/ui-system.css";
+@import "../styles/site-design.css";
 
 * {
   box-sizing: border-box;
@@ -24,12 +25,18 @@ body {
 }
 
 :root {
-  --site-content-max: 80rem;
+  --site-content-max: 100rem;
+  --site-content-width: 95rem;
+  --site-header-height: 4rem;
   --site-gutter: clamp(1.25rem, 3vw, 2.5rem);
-  --site-page-space: clamp(3.5rem, 7vw, 6rem);
+  --site-page-space: clamp(3rem, 6vw, 6rem);
   --site-page-space-compact: clamp(2.5rem, 5vw, 4rem);
   --site-section-space: clamp(3rem, 6vw, 5rem);
   --site-grid-gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+@media (min-width: 768px) {
+  :root { --site-header-height: 4.5rem; }
 }
 
 /*
@@ -70,17 +77,13 @@ body {
 
 /* Shared dark CTA surface used at the end of public pages. */
 .site-dark-cta {
-  border-radius: 2rem;
-  background: #09090b;
-  padding: 3.5rem 1.75rem;
+  border-radius: 1rem;
+  background: var(--ui-text);
+  padding: 3rem 1.5rem;
   color: #fff;
 }
-
-@media (min-width: 768px) {
-  .site-dark-cta {
-    border-radius: 2.5rem;
-    padding: 5rem 4rem;
-  }
+@media (min-width: 992px) {
+  .site-dark-cta { padding: 4rem 2.5rem; }
 }
 
 @media (max-width: 767px) {

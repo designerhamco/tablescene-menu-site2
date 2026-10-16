@@ -39,7 +39,7 @@ export default async function NewMenuSitePage({
       <OfficialSiteNavbar />
 
       <section className="site-gutter w-full site-page-spacing-compact">
-        <div className="mx-auto w-full max-w-7xl">
+        <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <div className="flex w-full max-w-3xl flex-col">
             <Link href="/mypage?tab=menus" className="w-fit text-sm font-bold text-zinc-500 transition-colors hover:text-zinc-950">
               ← 마이페이지로 돌아가기

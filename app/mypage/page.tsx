@@ -2710,7 +2710,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         tone={messageCode === "staff-invitation-accepted" ? "success" : "warning"}
       />
       <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
-        <div className="mx-auto w-full max-w-7xl">
+        <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <header className="mb-5 flex flex-col justify-between gap-5 border-b border-zinc-200 pb-6 md:mb-6 md:flex-row md:items-end md:pb-8">
             <div>
               <h1 className="type-page-title">마이페이지</h1>

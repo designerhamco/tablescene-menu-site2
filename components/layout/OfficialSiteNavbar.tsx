@@ -16,7 +16,7 @@ export default function OfficialSiteNavbar() {
     <>
       <Navbar />
       {shouldShowQuickMenu ? <ScrollToTopButton /> : null}
-      <div className="h-20" aria-hidden="true" />
+      <div className="site-header-spacer" aria-hidden="true" />
     </>
   );
 }

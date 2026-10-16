@@ -43,7 +43,7 @@ export default async function ForgotPasswordPage({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-950 py-24 text-white">
+      <main className="site-gutter site-page-spacing min-h-screen bg-white text-zinc-950">
       <ActionFeedbackToast message={notice} tone="success" />
       <ActionFeedbackToast message={errorMessage} tone="error" />
       <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-md flex-col justify-center">
