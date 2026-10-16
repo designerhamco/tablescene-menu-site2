@@ -22,8 +22,8 @@ test("호출 디자인 미리보기는 일곱 원페이지에서만 켜지고 �
 });
 test("호출 미리보기는 기기·회전·언어·새 창 URL을 따라가며 OFF에서 제거된다", () => {
   const query = { callPreview: "on", lang: "en" };
-  assert.match(buildTemplatePreviewUrl("cafe_kohi_a", query, { device: "tablet", orientation: "portrait", actual: true, embedded: true }), /callPreview=on.*device=tablet.*orientation=portrait.*view=actual.*embedded=1/);
-  assert.doesNotMatch(buildTemplatePreviewUrl("cafe_kohi_a", query, { device: "mobile", callPreview: false }), /callPreview/);
+  assert.match(buildTemplatePreviewUrl("cafe_design_a", query, { device: "tablet", orientation: "portrait", actual: true, embedded: true }), /callPreview=on.*device=tablet.*orientation=portrait.*view=actual.*embedded=1/);
+  assert.doesNotMatch(buildTemplatePreviewUrl("cafe_design_a", query, { device: "mobile", callPreview: false }), /callPreview/);
   assert.match(buildMenuPreviewUrl("menu", query, { device: "pc" }), /callPreview=on/);
   assert.doesNotMatch(buildMenuPreviewUrl("menu", query, { device: "pc", callPreview: false }), /callPreview/);
 });

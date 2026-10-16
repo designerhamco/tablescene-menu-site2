@@ -30,19 +30,6 @@ export function measureOnePageMobileRhythm() {
   const brandDescription = header?.querySelector('[data-cafe-a-store-description]');
   const gap = (first, next) => first && next ? next.getBoundingClientRect().top - first.getBoundingClientRect().bottom : null;
   const upperContent = (panelIntro ? [panelIntro] : [header, ...root.querySelectorAll('.cafe-a-topline-mobile-notices .cafe-a-mobile-notice-list, .cafe-a-round-focus-mobile-notices .cafe-a-round-focus-notice-list, .cafe-a-round-focus-mobile-notices .cafe-a-mobile-notice-list, .cafe-a-cover-hero')]).filter(visible).sort((first, next) => first.getBoundingClientRect().top - next.getBoundingClientRect().top);
-  const rootTop = root.getBoundingClientRect().top;
-  const kohiLineGaps = [...root.querySelectorAll('[data-kohi-divider]')].filter((line) => line.getAttribute('data-kohi-divider') !== 'column').map((line) => {
-    const center = rootTop + Number(line.getAttribute('y1'));
-    const halfStroke = (Number.parseFloat(getComputedStyle(line).strokeWidth) || 1) / 2;
-    const start = center - halfStroke;
-    const end = center + halfStroke;
-    const kind = line.getAttribute('data-kohi-divider');
-    const selector = kind === 'heading' ? '[data-cafe-a-item-stack]' : '[data-cafe-a-category-heading]';
-    const next = [...(flow?.querySelectorAll(selector) ?? [])].filter(visible).find((element) => element.getBoundingClientRect().top >= end);
-    const previousSelector = kind === 'heading' ? '[data-cafe-a-category-heading]' : '[data-cafe-a-item-stack]';
-    const previous = [...(flow?.querySelectorAll(previousSelector) ?? [])].filter(visible).filter((element) => element.getBoundingClientRect().bottom <= start).at(-1);
-    return { kind, before: previous ? start - previous.getBoundingClientRect().bottom : null, after: next ? next.getBoundingClientRect().top - end : null };
-  });
   return {
     key: root.getAttribute('data-template-key'),
     viewport: [innerWidth, innerHeight],
@@ -81,7 +68,6 @@ export function measureOnePageMobileRhythm() {
     }),
     supportingLineHeights: [...root.querySelectorAll('[data-cafe-a-menu-description], [data-cafe-a-store-description], [data-cafe-a-category-description]')].filter(visible).map((element) => Number.parseFloat(getComputedStyle(element).lineHeight)),
     copyGaps: [...root.querySelectorAll('.cafe-a-menu-copy > .cafe-a-menu-title-row, .cafe-a-menu-copy > .cafe-a-menu-meta')].filter(visible).filter((element) => Boolean(element.nextElementSibling)).map((element) => Number.parseFloat(getComputedStyle(element).marginBottom)),
-    kohiLineGaps,
     upperGap: upper && blocks[0] ? blocks[0].getBoundingClientRect().top - upper.getBoundingClientRect().bottom : null,
     blockTransitions: blocks.slice(0, -1).map((block, index) => ({
       gap: blocks[index + 1].getBoundingClientRect().top - block.getBoundingClientRect().bottom,
@@ -164,7 +150,6 @@ export function getOnePageMobileRhythmFailures(measurement) {
   if (measurement.languageToBrand != null && Math.abs(measurement.languageToBrand - expectedTopControlGap) > 0.25) failures.push(`top row to brand gap is not ${measurement.callEnabled ? 16 : 12}px`);
   if (measurement.brandToDescription != null && Math.abs(measurement.brandToDescription - measurement.itemGap / 1.25 * 0.75) > 0.25) failures.push('brand to description gap is not 12px');
   if ((measurement.upperContentGaps ?? []).some((gap) => Math.abs(gap - rem * 1.5) > 0.25)) failures.push('upper content block gap is not 24px');
-  if (measurement.key === 'cafe_kohi_a' && (measurement.kohiLineGaps ?? []).length > 0) failures.push('KOHI mobile decorative rules must stay disabled');
   return failures;
 }
 

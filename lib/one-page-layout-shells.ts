@@ -7,7 +7,6 @@ export const DEFAULT_ONE_PAGE_LAYOUT_SHELL: OnePageLayoutShell = "brand_left_rai
 const TEMPLATE_FIXED_ONE_PAGE_LAYOUT_SHELLS = {
   restaurant_onue_a: "brand_panel_flow",
   cafe_design_a: "brand_left_rail",
-  cafe_kohi_a: "brand_left_rail",
   cafe_mocha_forest_a: "brand_left_rail",
   cafe_sunday_line_a: "brand_top_band",
   cafe_van_gogh_a: "brand_top_band",

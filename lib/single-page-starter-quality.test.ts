@@ -8,7 +8,7 @@ import { getSinglePageStarterTranslations } from "./template-demo-data/single-pa
 import { mergeTypographySettings } from "./template-typography-presets";
 
 const SINGLE_PAGE_DENSITY_CONTRACT = {
-  cafe_kohi_a: [5, 3, 3, 3, 3],
+
   cafe_design_a: [3, 4, 3, 3, 5],
   cafe_mocha_forest_a: [3, 5, 4, 3, 3],
   cafe_sunday_line_a: [3, 3, 2, 3, 6],
@@ -47,7 +47,7 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
         items.every((item) => descriptionlessItems.has(item.key ?? "") ? !item.description.trim() : Boolean(item.description.trim())),
         true,
       );
-    } else if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a" || templateKey === "cafe_kohi_a") {
+    } else if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a") {
       const items = categories.flatMap((category) => category.items);
       assert.equal(items.every((item) => !item.set_name?.trim()), true);
       if (templateKey === "cafe_mocha_forest_a") {
@@ -359,13 +359,6 @@ test("starter-specific image and promotion presentation stays intentional", () =
 });
 
 test("starter chip languages remain intentional in every locale", () => {
-  const kohi = getStarterPreset("cafe_kohi_a");
-  assert.equal(kohi.time_sales?.[0]?.badge_text, "TIME SALE");
-  const kohiTranslations = getSinglePageStarterTranslations("cafe_kohi_a");
-  for (const locale of ["en", "zh", "ja"] as const) {
-    assert.equal(kohiTranslations?.[locale].promotions["basque-cheesecake-time-deal"]?.badgeText, "TIME SALE");
-  }
-
   const realMatchaItems = getStarterPreset("cafe_design_a").pages[0]?.categories.flatMap((category) => category.items) ?? [];
   assert.equal(realMatchaItems.find((item) => item.key === "real-matcha-cream-latte")?.badge_label, "시그니처");
   assert.equal(realMatchaItems.find((item) => item.key === "nutty-cream-latte")?.badge_label, "베스트");

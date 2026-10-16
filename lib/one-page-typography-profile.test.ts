@@ -12,7 +12,7 @@ test("all one-page typography profiles share the same PC and tablet item-name ce
   assert.equal(getOnePageItemNameCeilingRem("tablet"), 1.3);
   assert.equal(getOnePageItemNameCeilingRem("mobile"), undefined);
 
-  for (const key of ["cafe_design_a", "cafe_kohi_a", "cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_van_gogh_a", "cafe_round_focus_a", "unknown"]) {
+  for (const key of ["cafe_design_a",  "cafe_mocha_forest_a", "cafe_sunday_line_a", "cafe_van_gogh_a", "cafe_round_focus_a", "unknown"]) {
     const profile = getOnePageTypographyProfile(key);
     assert.equal(profile.key, "standard");
     assert.equal(getOnePageItemNameCeilingRem("pc"), 1.35);

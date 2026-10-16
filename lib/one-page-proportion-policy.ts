@@ -4,7 +4,6 @@ import type { MenuPreviewDevice } from "./menu-preview-devices";
 export const ONE_PAGE_PROPORTION_TEMPLATE_KEYS = [
   "restaurant_onue_a",
   "cafe_design_a",
-  "cafe_kohi_a",
   "cafe_mocha_forest_a",
   "cafe_sunday_line_a",
   "cafe_van_gogh_a",

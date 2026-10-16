@@ -47,13 +47,7 @@ export const DEFAULT_BADGE_STYLES: BadgeStyles = {
 
 export const TEMPLATE_BADGE_STYLE_PRESETS: Record<string, Partial<BadgeStyles>> = {
   restaurant_onue_a: Object.fromEntries(BADGE_STYLE_KEYS.map(key => [key, { background_color: "#713F36", text_color: "#FFFFFF" }])) as BadgeStyles,
-  cafe_kohi_a: {
-    best: { background_color: "#DC4235", text_color: "#FFFFFF" },
-    signature: { background_color: "#DC4235", text_color: "#FFFFFF" },
-    new: { background_color: "#DC4235", text_color: "#FFFFFF" },
-    recommended: { background_color: "#DC4235", text_color: "#FFFFFF" },
-    default: { background_color: "#DC4235", text_color: "#FFFFFF" },
-  },
+
   display_menu_a: {
     best: { background_color: "#006A9E", text_color: "#FFFFFF" },
     signature: { background_color: "#006D77", text_color: "#FFFFFF" },

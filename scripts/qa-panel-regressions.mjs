@@ -1,7 +1,7 @@
 import { chromium } from '@playwright/test';
 import assert from 'node:assert/strict';
 const requestedKey=process.argv.find(arg=>arg.startsWith('--key='))?.slice(6);
-const keys=['cafe_design_a','cafe_kohi_a','cafe_mocha_forest_a','cafe_sunday_line_a','cafe_van_gogh_a','cafe_round_focus_a','fast_food_loop_bagel_a'].filter(key=>!requestedKey||key===requestedKey);
+const keys=['cafe_design_a','cafe_mocha_forest_a','cafe_sunday_line_a','cafe_van_gogh_a','cafe_round_focus_a','fast_food_loop_bagel_a'].filter(key=>!requestedKey||key===requestedKey);
 const browser=await chromium.launch();let checked=0;
 const mode=process.argv.includes("--ordered")?"&layoutMode=orderedFit":"";
 try {for(let i=0;i<keys.length;i+=3)await Promise.all(keys.slice(i,i+3).map(async key=>{

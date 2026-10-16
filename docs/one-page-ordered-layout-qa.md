@@ -1,5 +1,7 @@
 # 원페이지 채움형 배치 감사 — 2026-10-16
 
+KOHI 삭제 후 현재 검수 목록은 ONUE 포함 **7종**이다. 아래 8종 검증 결과는 삭제 전 이력이다. 삭제 후 PC 7/7, 태블릿 7/7, 모바일 320/430px 14/14를 재검증했고 모카 패널 색상 검사도 통과했다. 증거: `/private/tmp/removed-kohi-pc/report.json`, `/private/tmp/removed-kohi-tablet/report.json`, `/private/tmp/removed-kohi-mobile/report.json`. 삭제된 KOHI 미리보기와 대표 이미지 URL은 404, 검수 UI에는 KOHI 버튼이 없음을 별도로 확인했다.
+
 ## 직접 확인하는 환경
 
 - 개발 서버: `http://localhost:3000/qa/ordered-layout`

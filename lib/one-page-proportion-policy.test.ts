@@ -5,7 +5,6 @@ import test from "node:test";
 import { getTemplateCapabilities } from "./template-capabilities";
 import { getAllTemplates } from "./templates";
 import { getOnePageItemRhythmMultiplier, getOnePageRhythmMode, ONE_PAGE_PROPORTION_TEMPLATE_KEYS, usesOnePageProportionFitPolicy, usesOnePageProportionPolicy } from "./one-page-proportion-policy";
-import { usesKohiFitPolicy } from "./kohi-fit-policy";
 
 test("the common policy covers every available dining single-page template, not other engines", () => {
   const singlePageKeys = getAllTemplates().filter((template) =>
@@ -41,13 +40,9 @@ test("copy-aware rhythm follows actual visible supporting fields and avoids comp
   }
 });
 
-test("all templates share the layout-mode gap mapping while KOHI keeps only its ruled-panel ceiling", () => {
-  for (const key of ONE_PAGE_PROPORTION_TEMPLATE_KEYS) {
-    assert.equal(usesKohiFitPolicy(key, "tablet"), key === "cafe_kohi_a");
-  }
+test("all active templates share the layout-mode gap mapping", () => {
   const source = readCafeTemplateSource();
-  assert.match(source, /return isKohiFitPolicy \? limitKohiFitFontCandidates\(previewCandidates, data.previewDevice, window.innerWidth\) : previewCandidates/);
-  assert.doesNotMatch(source, /getKohiFitGapScale|getLoopBagelFitGapScale|usesLoopBagelFitSpacing|isLoopBagelFitSpacing/);
+  assert.doesNotMatch(source, /getLoopBagelFitGapScale|usesLoopBagelFitSpacing|isLoopBagelFitSpacing/);
   assert.match(source, /return layoutMode === "orderedFit"\s*\? getOrderedFitGapScale[\s\S]*getOrderedBalancedFitGapScale[\s\S]*getBalancedFitGapScale/);
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   assert.match(css, /--cafe-a-shell-item-rhythm-scale: 0\.74/);
@@ -135,7 +130,6 @@ test("mobile has fixed reading rhythm, independent type bases and one linked sec
   assert.match(mobile, /margin-top: var\(--cafe-a-mobile-category-boundary-gap\)/);
   assert.match(mobile, /\.cafe-a-menu-item-stack:not\(:last-child\) \{\s*margin-bottom: 1\.25rem/);
   assert.match(mobile, /\.cafe-a-desktop-fit-board \{\s*display: none/);
-  assert.match(css, /data-template-key="cafe_kohi_a"\]:not\(\[data-preview-device="tablet"\]\):not\(\[data-preview-device="mobile"\]\):not\(\[data-cafe-a-mobile-style="true"\]\)/);
   // Width-only desktop selectors must not change mobile category/meta sizes
   // when an explicit mobile preview is opened in a wide standalone window.
   const desktopGuard = '.cafe-a-typography:where(:not([data-cafe-a-mobile-style="true"]))';
@@ -144,7 +138,7 @@ test("mobile has fixed reading rhythm, independent type bases and one linked sec
   assert.ok(css.includes(`${desktopGuard}[data-cafe-a-skin="round_focus"] .cafe-a-balanced-menu-grid .cafe-a-category-title`));
   assert.doesNotMatch(mobile, /\d(?:vw|vh|vmin|cqw)|--fit-menu-font-scale|--fit-menu-gap-scale|--cafe-a-copy-aware-item-rhythm-gap/);
   const preview = readFileSync(new URL("../app/templates/[templateKey]/preview/page.tsx", import.meta.url), "utf8");
-  const fixture = preview.slice(preview.indexOf("function applyOnePageRhythmQaFixture"), preview.indexOf("function applyKohiBackgroundQaFixture"));
+  const fixture = preview.slice(preview.indexOf("function applyOnePageRhythmQaFixture"), preview.indexOf("function getOrderCallQaConfig"));
   assert.match(fixture, /process\.env\.NODE_ENV === "production"/);
   assert.match(fixture, /usesOnePageProportionPolicy/);
 });

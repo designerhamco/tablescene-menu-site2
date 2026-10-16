@@ -48,7 +48,7 @@ test("PC and tablet rails use the same 75% one/two-line comparison", () => {
 });
 
 test("all seven one-page templates keep their explicit layout family", () => {
-  for (const key of ["cafe_design_a", "cafe_kohi_a", "cafe_mocha_forest_a", "fast_food_loop_bagel_a"]) {
+  for (const key of ["cafe_design_a",  "cafe_mocha_forest_a", "fast_food_loop_bagel_a"]) {
     assert.equal(getFixedOnePageLayoutShell(key), "brand_left_rail", key);
   }
   for (const key of ["cafe_sunday_line_a", "cafe_van_gogh_a"]) {
@@ -68,9 +68,9 @@ test("canvas brand fitting consumes the explicit shell instead of inferring it f
 
 test("doubling slot dimensions doubles font size without any device px cap", () => {
   for (const layout of ["horizontal-header", "brand-column"] as const) {
-    const widths = new Map([["KOHI", 235]]);
-    const small = selectCanvasBrandTitleFit("KOHI", widths, 300, 160, getCanvasBrandLimits(300, layout));
-    const large = selectCanvasBrandTitleFit("KOHI", widths, 600, 320, getCanvasBrandLimits(600, layout));
+    const widths = new Map([["DODO", 235]]);
+    const small = selectCanvasBrandTitleFit("DODO", widths, 300, 160, getCanvasBrandLimits(300, layout));
+    const large = selectCanvasBrandTitleFit("DODO", widths, 600, 320, getCanvasBrandLimits(600, layout));
     assert.equal(large.fontSize, small.fontSize * 2);
     assert.deepEqual(large.lines, small.lines);
   }
@@ -119,7 +119,7 @@ test("CJK and impossible-height fallbacks preserve every character", () => {
 
 test("the common selector has no template-specific branch and mobile keeps its own fitter", () => {
   const source = readFileSync(new URL("./canvas-brand-title-fit.ts", import.meta.url), "utf8");
-  assert.doesNotMatch(source, /templateKey|cafe_sunday|van_gogh|loop_bagel|round_focus|cafe_kohi|singleCap|multiCap/);
+  assert.doesNotMatch(source, /templateKey|cafe_sunday|van_gogh|loop_bagel|round_focus|singleCap|multiCap/);
   const mobile = readFileSync(new URL("../components/menu-templates/shared/MobileBrandTitle.tsx", import.meta.url), "utf8");
   assert.match(mobile, /selectMobileBrandTitleFit/);
   assert.doesNotMatch(mobile, /selectCanvasBrandTitleFit/);
@@ -158,12 +158,12 @@ test("PC ceiling remains a horizontal-header safeguard while preserving reading 
 });
 
 test("font optical correction expands width targets but respects a fixed header height", () => {
-  const widths = new Map([["KOHI", 220]]);
+  const widths = new Map([["DODO", 220]]);
   const limits = getCanvasBrandLimits(380, "horizontal-header");
-  const regular = selectCanvasBrandTitleFit("KOHI", widths, 380, 120, limits);
-  const corrected = selectCanvasBrandTitleFit("KOHI", widths, 380, 120, limits, 1.08, 1, 1.1);
+  const regular = selectCanvasBrandTitleFit("DODO", widths, 380, 120, limits);
+  const corrected = selectCanvasBrandTitleFit("DODO", widths, 380, 120, limits, 1.08, 1, 1.1);
   assert.ok(corrected.fontSize > regular.fontSize);
 
-  const heightBound = selectCanvasBrandTitleFit("KOHI", widths, 380, 44, limits, 1.08, 1, 1.1);
+  const heightBound = selectCanvasBrandTitleFit("DODO", widths, 380, 44, limits, 1.08, 1, 1.1);
   assert.ok(heightBound.fontSize * (1.08 + 0.12) <= 44.01);
 });

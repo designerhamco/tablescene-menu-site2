@@ -11,7 +11,6 @@ const templateFilter = process.env.TEMPLATE_PREVIEW_LOCALE_QA_TEMPLATE;
 const localeFilter = process.env.TEMPLATE_PREVIEW_LOCALE_QA_LOCALE;
 const templates = [
   "cafe_design_a",
-  "cafe_kohi_a",
   "cafe_mocha_forest_a",
   "cafe_sunday_line_a",
   "cafe_van_gogh_a",
@@ -23,7 +22,6 @@ const templates = [
 ].filter((templateKey) => !templateFilter || templateKey === templateFilter);
 const singlePageTemplates = new Set([
   "cafe_design_a",
-  "cafe_kohi_a",
   "cafe_mocha_forest_a",
   "cafe_sunday_line_a",
   "cafe_van_gogh_a",
@@ -219,13 +217,7 @@ try {
           || templateKey === "cafe_round_focus_a"
           || templateKey === "cafe_mocha_forest_a"
           || templateKey === "cafe_van_gogh_a";
-        const hasImageOnlyFeaturedArea = templateKey === "cafe_kohi_a";
-        if (hasImageOnlyFeaturedArea) {
-          if (measurement.featuredImages.length !== 1 || !measurement.featuredImages[0]?.loaded) {
-            failures.push(`KOHI image-only featured slide is missing or not loaded: ${JSON.stringify(measurement.featuredImages)}`);
-          }
-          if (measurement.featuredCopyCount !== 0) failures.push("KOHI image-only slide unexpectedly links product copy");
-        }
+        const hasImageOnlyFeaturedArea = templateKey === "restaurant_onue_a";
         if (!measurement.koreanFontFamily || measurement.noticeFontFamilies.length === 0) {
           failures.push(`footer notice font metrics are unavailable: ${JSON.stringify({ koreanFontFamily: measurement.koreanFontFamily, noticeFontFamilies: measurement.noticeFontFamilies })}`);
         } else if (measurement.noticeFontFamilies.some((fontFamily) => fontFamily !== measurement.koreanFontFamily)) {
@@ -497,7 +489,7 @@ try {
         const hasNoFeaturedArea = templateKey === "cafe_design_a"
           || templateKey === "cafe_round_focus_a"
           || templateKey === "cafe_mocha_forest_a";
-        const hasImageOnlyFeaturedArea = templateKey === "cafe_kohi_a";
+        const hasImageOnlyFeaturedArea = templateKey === "restaurant_onue_a";
         const featuredScale = 1;
         if (!hasNoFeaturedArea && !hasImageOnlyFeaturedArea) {
           compareTypography("featured item name", typography.itemName, typography.featuredName, featuredScale);

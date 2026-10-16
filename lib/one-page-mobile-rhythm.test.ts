@@ -42,25 +42,6 @@ test("mobile width/height changes must not auto-scale reading fonts or spacing",
   assert.deepEqual(compareMobileRhythmViewports({ ...valid, autoBrand: true }, { ...valid, autoBrand: true, fonts: { ...valid.fonts, brand: 90 } }), []);
 });
 
-test("KOHI mobile uses the shared reading rhythm without decorative rules", () => {
-  const kohi = {
-    ...valid,
-    key: "cafe_kohi_a",
-    upperGap: 48,
-    blockTransitions: [{ gap: 48, nextIsCategory: true }, { gap: 48, nextIsCategory: false }],
-    categories: [{ ...valid.categories[0], headingGap: 24 }],
-    autoBrand: true,
-    brandState: "ready",
-    brandInnerWidth: 342,
-    brandLineCount: 1,
-    categoryCopyGaps: [8],
-    kohiLineGaps: [],
-    fonts: { ...valid.fonts, brand: 56, category: 26 },
-  };
-  assert.deepEqual(getOnePageMobileRhythmFailures(kohi), []);
-  assert.ok(getOnePageMobileRhythmFailures({ ...kohi, kohiLineGaps: [{ kind: "category", before: 24, after: 24 }] }).length);
-});
-
 test("only Sunday may split the 48px mobile category boundary around its visible divider", () => {
   const splitBoundary = [{ gap: 24, nextIsCategory: true }, { gap: 48, nextIsCategory: false }];
   assert.deepEqual(getOnePageMobileRhythmFailures({ ...valid, key: "cafe_sunday_line_a", blockTransitions: splitBoundary }), []);

@@ -85,7 +85,6 @@ const TEMPLATE_SERVICE_ALLOWLIST: Record<TemplateServiceType, readonly string[]>
   basic: [
     "restaurant_onue_a",
     "cafe_design_a",
-    "cafe_kohi_a",
     "cafe_mocha_forest_a",
     "cafe_sunday_line_a",
     "cafe_van_gogh_a",
@@ -119,7 +118,6 @@ const TEMPLATE_TYPE_BY_TEMPLATE_KEY: Record<string, TemplateType> = {
   restaurant_onue_a: "menu",
   display_menu_a: "menu",
   cafe_design_a: "menu",
-  cafe_kohi_a: "menu",
   cafe_mocha_forest_a: "menu",
   cafe_sunday_line_a: "menu",
   cafe_van_gogh_a: "menu",
@@ -288,10 +286,7 @@ const AUBE_TABLE_EDITOR_TABS = [
 ] as const satisfies readonly TemplateEditorTab[];
 
 export const TEMPLATE_EDIT_CONFIG = {
-  cafe_kohi_a: {
-    tabs: CAFE_DESIGN_A_EDITOR_TABS,
-    heroMode: "featured",
-  },
+
   cafe_design_a: {
     tabs: CAFE_DESIGN_A_EDITOR_TABS,
     heroMode: "featured",
@@ -339,7 +334,7 @@ export const TEMPLATE_EDIT_CONFIG = {
 } as const satisfies Record<string, { tabs: readonly TemplateEditorTab[]; heroMode?: "featured" | "cover" }>;
 
 const TEMPLATE_EDIT_CONFIG_ALIASES: Record<string, keyof typeof TEMPLATE_EDIT_CONFIG> = {
-  cafe_kohi_a: "cafe_kohi_a",
+
   cafea: "cafe_design_a",
   cafe_a: "cafe_design_a",
   cafe_design_a: "cafe_design_a",

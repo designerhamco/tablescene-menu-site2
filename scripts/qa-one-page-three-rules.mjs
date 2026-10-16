@@ -4,7 +4,7 @@ import { measureOnePageMobileRhythm, getOnePageMobileRhythmFailures } from './li
 import { measureMenuPriceAlignment, getMenuPriceAlignmentFailures } from './lib/menu-price-alignment.mjs';
 
 const base = process.env.THREE_RULES_QA_BASE || 'http://127.0.0.1:3000';
-const keys = process.env.THREE_RULES_QA_KEYS?.split(',') || ['cafe_kohi_a', 'cafe_design_a', 'cafe_mocha_forest_a', 'cafe_sunday_line_a', 'cafe_van_gogh_a', 'cafe_round_focus_a', 'fast_food_loop_bagel_a'];
+const keys = process.env.THREE_RULES_QA_KEYS?.split(',') || ['cafe_design_a', 'cafe_mocha_forest_a', 'cafe_sunday_line_a', 'cafe_van_gogh_a', 'cafe_round_focus_a', 'fast_food_loop_bagel_a'];
 const referencesOnly = process.env.THREE_RULES_QA_REFERENCES_ONLY === '1';
 const skipReferences = process.env.THREE_RULES_QA_SKIP_REFERENCES === '1';
 const browser = await chromium.launch();

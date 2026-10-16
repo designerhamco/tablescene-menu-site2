@@ -1,7 +1,7 @@
 /** Local QA inventory: the active single-page starters that share canvas fitting. */
 export const ONE_PAGE_QA_TEMPLATES = [
   { key: "cafe_design_a", name: "REAL MATCHA" },
-  { key: "cafe_kohi_a", name: "KOHI" },
+
   { key: "cafe_mocha_forest_a", name: "모카 포레스트" },
   { key: "cafe_sunday_line_a", name: "선데이 로스터스" },
   { key: "cafe_van_gogh_a", name: "Van Gogh" },

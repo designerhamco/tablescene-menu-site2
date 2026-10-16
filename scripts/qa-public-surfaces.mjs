@@ -6,7 +6,6 @@ const navigationTimeout = Number(process.env.PUBLIC_SURFACE_QA_TIMEOUT_MS || 30_
 
 const routeFilter = process.env.PUBLIC_SURFACE_QA_ROUTE;
 const cafeOnePagePreviewPaths = new Set([
-  "/templates/cafe_kohi_a/preview",
   "/templates/cafe_real_matcha_a/preview",
   "/templates/cafe_mocha_forest_a/preview",
   "/templates/cafe_sunday_roasters_a/preview",
@@ -24,7 +23,6 @@ const routes = [
   "/sign-in",
   "/sign-up",
   "/forgot-password",
-  "/templates/cafe_kohi_a/preview",
   "/templates/cafe_real_matcha_a/preview",
   "/templates/cafe_mocha_forest_a/preview",
   "/templates/cafe_sunday_roasters_a/preview",
@@ -32,7 +30,6 @@ const routes = [
   "/templates/cafe_round_focus_a/preview",
   "/templates/fast_food_loop_bagel_a/preview",
   "/templates/cafe_real_matcha_a/preview?device=pc",
-  "/templates/cafe_kohi_a/preview?device=pc",
   "/templates/cafe_mocha_forest_a/preview?device=pc",
   "/templates/cafe_sunday_roasters_a/preview?device=pc",
   "/templates/cafe_van_gogh_a/preview?device=pc",

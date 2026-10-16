@@ -4,10 +4,10 @@ import test from "node:test";
 import { getMobileBrandMeasurementTexts, selectMobileBrandTitleFit } from "./mobile-brand-title-fit";
 
 test("three-to-four-grapheme narrow mobile brand can use the bounded 64px ceiling", () => {
-  const widths = new Map([["KOHI", 235]]);
+  const widths = new Map([["DODO", 235]]);
   for (const width of [272, 342, 382]) {
-    const fit = selectMobileBrandTitleFit("KOHI", widths, width);
-    assert.deepEqual(fit.lines, ["KOHI"]);
+    const fit = selectMobileBrandTitleFit("DODO", widths, width);
+    assert.deepEqual(fit.lines, ["DODO"]);
     assert.ok(Math.abs(fit.fontSize / width - 64 / 342) < 0.00001);
     assert.ok(fit.fontSize * 235 / 100 / width >= 0.43);
     assert.ok(fit.fontSize >= 44);
@@ -16,14 +16,14 @@ test("three-to-four-grapheme narrow mobile brand can use the bounded 64px ceilin
 
 test("font optical scale raises the ceiling without exceeding the available width", () => {
   const width = 342;
-  const fit = selectMobileBrandTitleFit("KOHI", new Map([["KOHI", 235]]), width, 44, 1.1);
+  const fit = selectMobileBrandTitleFit("DODO", new Map([["DODO", 235]]), width, 44, 1.1);
   assert.ok(Math.abs(fit.fontSize - 70.4) < 0.00001);
   assert.ok(235 * fit.fontSize / 100 <= width);
 });
 
 test("short-name boost requires three-to-four graphemes and under 45% regular coverage", () => {
   assert.equal(selectMobileBrandTitleFit("HI", new Map([["HI", 120]]), 342).fontSize, 56);
-  assert.equal(selectMobileBrandTitleFit("KOHII", new Map([["KOHII", 260]]), 342).fontSize, 56);
+  assert.equal(selectMobileBrandTitleFit("DODOI", new Map([["DODOI", 260]]), 342).fontSize, 56);
   assert.equal(selectMobileBrandTitleFit("WIDE", new Map([["WIDE", 400]]), 342).fontSize, 56);
 });
 
@@ -71,8 +71,8 @@ test("CJK and oversized words retain every grapheme without truncating", () => {
 test("extreme names, invalid measurements and width preserve text at the minimum", () => {
   const title = "가".repeat(80);
   assert.deepEqual(selectMobileBrandTitleFit(title, new Map(), 272), { lines: [title], fontSize: 44, naturalWrap: true });
-  assert.equal(selectMobileBrandTitleFit("KOHI", new Map([["KOHI", 235]]), NaN).fontSize, 44);
-  assert.equal(selectMobileBrandTitleFit("KOHI", new Map([["KOHI", 235]]), 342, 60).fontSize >= 60, true);
+  assert.equal(selectMobileBrandTitleFit("DODO", new Map([["DODO", 235]]), NaN).fontSize, 44);
+  assert.equal(selectMobileBrandTitleFit("DODO", new Map([["DODO", 235]]), 342, 60).fontSize >= 60, true);
   assert.ok(getMobileBrandMeasurementTexts("가".repeat(1000)).length < 2);
 });
 

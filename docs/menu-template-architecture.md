@@ -26,7 +26,7 @@ Shared components may render the same price or name, but presentation policies r
 
 | Structure | Templates | Fixed content |
 | --- | --- | --- |
-| First column | REAL MATCHA, KOHI, Mocha Forest, Loop Bagel | First brand/featured column |
+| First column | REAL MATCHA, Mocha Forest, Loop Bagel | First brand/featured column |
 | Central column | ROSY ORANGE | Total 3/4/5 columns place the brand in column 2/2/3 |
 | Top row | Sunday Roasters, Van Gogh | Three equal header cells; content-driven 8–14% row; central brand width target 65% |
 

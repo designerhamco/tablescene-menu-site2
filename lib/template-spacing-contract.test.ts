@@ -64,7 +64,7 @@ test("단일페이지 PC·태블릿은 유동 fit 간격을, 모바일은 독립
   );
 });
 
-test("색상 패널 경계와 KOHI 외곽 프레임은 페이지 여백 계약을 지킨다", () => {
+test("색상 패널 경계는 페이지 여백 계약을 지킨다", () => {
   assert.match(
     globalStylesSource,
     /data-cafe-a-skin="mocha_forest"[^}]*\.cafe-a-balanced-column:first-child \{\s*padding-left: var\(--cafe-a-panel-column-gap\);/,
@@ -77,19 +77,13 @@ test("색상 패널 경계와 KOHI 외곽 프레임은 페이지 여백 계약�
     globalStylesSource,
     /data-cafe-a-skin="round_focus"[^}]*\{\s*--round-focus-column-gap: var\(--cafe-a-panel-column-gap\);\s*--round-focus-column-inset: 0;/,
   );
-  assert.match(globalStylesSource, /--kohi-content-rule-gap: clamp\(1rem, 1\.8vmin, 1\.25rem\);/);
-  assert.doesNotMatch(globalStylesSource, /data-template-key="cafe_kohi_a"[^}]*--board-padding:/);
 });
 
-test("KOHI 모바일은 장식선을 끄고 공통 48px/24px 읽기 리듬을 사용한다", () => {
+test("모바일은 공통 48px/24px 읽기 리듬을 사용한다", () => {
   assert.match(globalStylesSource, /--cafe-a-mobile-menu-start-gap: var\(--cafe-a-mobile-section-gap\);/);
   assert.match(globalStylesSource, /--cafe-a-mobile-upper-to-menu-gap: var\(--cafe-a-mobile-section-gap\);/);
   assert.match(globalStylesSource, /--cafe-a-mobile-category-boundary-gap: var\(--cafe-a-mobile-section-gap\);/);
-  assert.doesNotMatch(globalStylesSource, /--kohi-mobile-/);
   assert.match(globalStylesSource, /\.cafe-a-fit-menu-grid > \* \+ \.cafe-a-menu-category-block \{\s*margin-top: var\(--cafe-a-mobile-category-boundary-gap\);/);
-  assert.doesNotMatch(globalStylesSource, /data-template-key="cafe_kohi_a"\][^{]*\.cafe-a-fit-menu-grid > \* \+ \.cafe-a-menu-category-block \{/);
-  assert.match(globalStylesSource, /data-template-key="cafe_kohi_a"\]:where\(:not\(\[data-cafe-a-adaptive-fit="true"\]\)\):not\(\[data-cafe-a-mobile-style="true"\]\)/);
-  assert.match(contractSource, /KOHI mobile does not mount its decorative rule canvas/);
 });
 
 test("선데이 로스터스 분리선은 기기별 카테고리 경계의 정중앙에 놓인다", () => {

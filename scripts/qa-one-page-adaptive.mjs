@@ -3,7 +3,7 @@ import { writeFile } from 'node:fs/promises';
 import { measureMenuPriceAlignment, getMenuPriceAlignmentFailures } from './lib/menu-price-alignment.mjs';
 import { measureOnePageMobileRhythm, getOnePageMobileRhythmFailures } from './lib/one-page-mobile-rhythm.mjs';
 const base = process.env.ADAPTIVE_QA_BASE || 'http://127.0.0.1:3000';
-const keys = process.env.ADAPTIVE_QA_KEYS?.split(',') || ['cafe_design_a','cafe_kohi_a','cafe_mocha_forest_a','cafe_sunday_line_a','cafe_van_gogh_a','cafe_round_focus_a','fast_food_loop_bagel_a'];
+const keys = process.env.ADAPTIVE_QA_KEYS?.split(',') || ['cafe_design_a','cafe_mocha_forest_a','cafe_sunday_line_a','cafe_van_gogh_a','cafe_round_focus_a','fast_food_loop_bagel_a'];
 const full = process.env.ADAPTIVE_QA_FULL === '1';
 const fixtures = process.env.ADAPTIVE_QA_FIXTURES === '1';
 const quiet = process.env.ADAPTIVE_QA_QUIET === '1';

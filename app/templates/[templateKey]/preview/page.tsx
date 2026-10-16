@@ -33,7 +33,6 @@ import { buildDisplayMenuAPreviewData, normalizeDisplayMenuAQaCase } from "@/lib
 import { applyStarterPreviewLocalization } from "@/lib/template-demo-data/starter-preview-localization";
 import { MENU_WIDGET_SETTINGS_VERSION, type MenuWidget } from "@/lib/menu-widgets";
 import { usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
-import { normalizeBackgroundColor } from "@/lib/template-background-colors";
 import { isDisplayTypographyTemplate, normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
 import { getTemplateByKey, resolveTemplatePreviewRouteKey, type TemplateKey } from "@/lib/templates";
 import { getDefaultPageSettings, sortMenuPages } from "@/types/menu";
@@ -52,7 +51,6 @@ type PageProps = {
     featureQa?: string | string[];
     priceAlignmentQa?: string | string[];
     rhythmQa?: string | string[];
-    backgroundQa?: string | string[];
     copyQa?: string | string[];
     brewCoverPageQa?: string | string[];
     brewCoverImageQa?: string | string[];
@@ -396,7 +394,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
       template_category: template.template_category,
       status: "published",
       description: template.description,
-      logo_url: template.key === "cafe_noir_a" || template.key === "cafe_kohi_a" ? (preset.site.logo_url ?? null) : null,
+      logo_url: template.key === "cafe_noir_a" ? (preset.site.logo_url ?? null) : null,
       cover_image_url: firstFeaturedImageSlide?.image_url ?? preset.site.cover_image_url,
       intro_image_url: null,
       brand_color: "#111111",
@@ -658,7 +656,6 @@ function applyActiveTemplateFeatureQaFixture(
   const supportsTimeSale = (
     templateKey === "display_menu_a" ||
     templateKey === "cafe_design_a" ||
-    templateKey === "cafe_kohi_a" ||
     templateKey === "cafe_mocha_forest_a" ||
     templateKey === "cafe_sunday_line_a" ||
     templateKey === "cafe_van_gogh_a" ||
@@ -857,12 +854,12 @@ function applyOnePageRhythmQaFixture(data: MenuPageData, value: string | string[
   }
   if (qaCase === "cover") return { ...data, pageSettings: { ...data.pageSettings, menu_cover_enabled: true, menu_cover_visible_mobile: true } };
   if (qaCase?.startsWith("brand-")) {
-    const titles: Record<string, string> = { "brand-short": "KOHI", "brand-long": "ESPRESSO BASEBASE", "brand-three": "SUNDAY ROASTERS COFFEE HOUSE", "brand-cjk": "서울숲에서마시는따뜻한커피", "brand-unbroken": "ABCDEFGHIJKLMNOPQRSTUVWXYZ".repeat(3), "brand-extreme": "가".repeat(80), "brand-oversized": "가".repeat(500) };
+    const titles: Record<string, string> = { "brand-short": "DODO", "brand-long": "ESPRESSO BASEBASE", "brand-three": "SUNDAY ROASTERS COFFEE HOUSE", "brand-cjk": "서울숲에서마시는따뜻한커피", "brand-unbroken": "ABCDEFGHIJKLMNOPQRSTUVWXYZ".repeat(3), "brand-extreme": "가".repeat(80), "brand-oversized": "가".repeat(500) };
     const settings = data.menuSite.settings && typeof data.menuSite.settings === "object" && !Array.isArray(data.menuSite.settings) ? data.menuSite.settings : {};
     const rawSettings = data.pageSettings as unknown as Record<string, unknown>;
     const design = rawSettings.design && typeof rawSettings.design === "object" && !Array.isArray(rawSettings.design) ? rawSettings.design : {};
     const pageSettings = qaCase === "brand-font-outfit" ? { ...data.pageSettings, design: { ...design, englishFont: "outfit" } } as MenuPageData["pageSettings"] : data.pageSettings;
-    return { ...data, pageSettings, menuSite: { ...data.menuSite, page_settings: pageSettings, restaurant_name: titles[qaCase] ?? "KOHI", logo_url: qaCase === "brand-logo" ? "/placeholders/starter/logo.svg" : null, settings: { ...settings, logo_replaces_name: qaCase === "brand-logo" } } };
+    return { ...data, pageSettings, menuSite: { ...data.menuSite, page_settings: pageSettings, restaurant_name: titles[qaCase] ?? "DODO", logo_url: qaCase === "brand-logo" ? "/placeholders/starter/logo.svg" : null, settings: { ...settings, logo_replaces_name: qaCase === "brand-logo" } } };
   }
   if (qaCase !== "copy" && qaCase !== "no-cover" && qaCase !== "copy-no-cover") return data;
   const pageSettings = qaCase.includes("no-cover") ? { ...data.pageSettings, menu_cover_enabled: false } : data.pageSettings;
@@ -883,18 +880,6 @@ function applyOnePageRhythmQaFixture(data: MenuPageData, value: string | string[
     origin_info: null,
   }));
   return { ...data, pageSettings, items: [...fixtureItems, ...data.items.filter((item) => item.category_id !== category.id)], traits: [], timeSales: [], nextTimeSaleStartAt: null };
-}
-
-/** Local-only: exercise the same design.backgroundColor field as the editor. */
-function applyKohiBackgroundQaFixture(data: MenuPageData, value: string | string[] | undefined): MenuPageData {
-  if (process.env.NODE_ENV === "production" || data.menuSite.template_key !== "cafe_kohi_a") return data;
-  const backgroundColor = normalizeBackgroundColor(Array.isArray(value) ? value[0] : value);
-  if (!backgroundColor) return data;
-  const settings = data.pageSettings as unknown as Record<string, unknown>;
-  const design = settings.design && typeof settings.design === "object" && !Array.isArray(settings.design)
-    ? settings.design as Record<string, unknown> : {};
-  const pageSettings = { ...data.pageSettings, design: { ...design, backgroundColor } } as MenuPageData["pageSettings"];
-  return { ...data, pageSettings, menuSite: { ...data.menuSite, page_settings: pageSettings as MenuPageData["menuSite"]["page_settings"] } };
 }
 
 function getOrderCallQaConfig(
@@ -1541,10 +1526,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   const data = applyActiveTemplateLocaleQaFixture(
     applyMenuPriceAlignmentQaFixture(
       applyOnePageRhythmQaFixture(
-        applyKohiBackgroundQaFixture(
-          applyPreviewLocale(fixtureData, resolvedSearchParams.lang),
-          resolvedSearchParams.backgroundQa,
-        ),
+        applyPreviewLocale(fixtureData, resolvedSearchParams.lang),
         resolvedSearchParams.rhythmQa,
       ),
       resolvedSearchParams.priceAlignmentQa,

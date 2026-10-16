@@ -21,7 +21,6 @@ import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAsset
 import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
 import CafeAWidgetBlock, { type CafeAWidgetPreview } from "@/components/menu-templates/CafeAWidgetBlock";
 import { applyOrderedCanvasLayout, clearOrderedCanvasLayout } from "@/components/menu-templates/one-page/pc-tablet/ordered-canvas-layout";
-import KohiMenuDividers from "@/components/menu-templates/KohiMenuDividers";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import MobileNoticeList from "@/components/menu-templates/one-page/mobile/MobileNoticeList";
 import MobileBrandTitle from "@/components/menu-templates/shared/MobileBrandTitle";
@@ -34,7 +33,6 @@ import { createCafeAOrderedBalancedColumnFromBlocks } from "@/components/menu-te
 import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
 import { getCafeAMenuWrapScaleCandidates, hasCafeAMenuWrapDensityImproved, type CafeAMenuWrapDensityDecision } from "@/lib/cafe-a-wrap-density";
 import { DEFAULT_LOCALE } from "@/lib/locales";
-import { isKohiFitFontScaleWithinLimits, limitKohiFitFontCandidates, usesKohiFitPolicy } from "@/lib/kohi-fit-policy";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { isMenuCoverVisibleOnDevice } from "@/lib/menu-cover-device-visibility";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
@@ -413,7 +411,7 @@ function getItemPriceColumnDisplay(
 
 
 function isCafeDesignATimeSaleTemplate(templateKey?: string | null) {
-  return templateKey === "restaurant_onue_a" || templateKey === "cafe_design_a" || templateKey === "cafe_kohi_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a" || templateKey === "cafe_round_focus_a" || templateKey === "fast_food_loop_bagel_a";
+  return templateKey === "restaurant_onue_a" || templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a" || templateKey === "cafe_round_focus_a" || templateKey === "fast_food_loop_bagel_a";
 }
 
 
@@ -913,7 +911,6 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
     .sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at));
   const shouldRenderWidgets =
     data.menuSite.template_key === "cafe_design_a" ||
-    data.menuSite.template_key === "cafe_kohi_a" ||
     data.menuSite.template_key === "cafe_mocha_forest_a" ||
     data.menuSite.template_key === "cafe_sunday_line_a" ||
     data.menuSite.template_key === "cafe_van_gogh_a" ||
@@ -1305,12 +1302,10 @@ function CategoryTitle({
   category,
   density,
   priceRailColumns,
-  descriptionAbove = false,
 }: {
   category: MenuCategory;
   density: MenuLayoutDensity;
   priceRailColumns?: CafeDesignAPriceRailColumn[];
-  descriptionAbove?: boolean;
 }) {
   const spacingClassName = getCategoryTitleSpacing(density);
   const titleClassName = {
@@ -1321,14 +1316,13 @@ function CategoryTitle({
   }[density];
   const descriptionClassName = getMenuDescriptionSizeClassName(density);
   const description = category.description_visible && category.description ? (
-    <p className={`cafe-a-description-text cafe-a-menu-description ${descriptionAbove ? "cafe-a-category-eyebrow" : "mt-2"} break-keep text-[#3f4945] ${descriptionClassName}`} data-cafe-a-category-description="">
+    <p className={`cafe-a-description-text cafe-a-menu-description mt-2 break-keep text-[#3f4945] ${descriptionClassName}`} data-cafe-a-category-description="">
       <ScriptAwareText text={category.description} />
     </p>
   ) : null;
 
   return (
     <div className={`cafe-a-category-heading ${spacingClassName}`} data-cafe-a-category-heading="">
-      {descriptionAbove ? description : null}
       <div className="cafe-a-category-heading-row">
         <h2
           className={`cafe-a-category-title min-w-0 break-words font-black uppercase leading-tight text-[#191c1b] ${titleClassName}`}
@@ -1342,7 +1336,7 @@ function CategoryTitle({
           </div>
         ) : null}
       </div>
-      {!descriptionAbove ? description : null}
+      {description}
     </div>
   );
 }
@@ -4046,7 +4040,7 @@ function MenuCategoryContentBlock({
           data-cafe-a-category-divider-position="before"
         />
       ) : null}
-      <CategoryTitle category={block.category} density={density} priceRailColumns={priceRailColumns} descriptionAbove={data.menuSite.template_key === "cafe_kohi_a"} />
+      <CategoryTitle category={block.category} density={density} priceRailColumns={priceRailColumns} />
       <div className="cafe-a-category-items">
         {block.items.map((item) => (
           <div key={item.id} className={`cafe-a-menu-item-stack break-inside-avoid ${itemStackSpacing}`} data-cafe-a-item-stack="">
@@ -4554,18 +4548,15 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const [twoFieldBoostEnabled, setTwoFieldBoostEnabled] = useState(true);
   const layoutMode = !isPanelFlow && isAdaptiveFit && adaptiveFlowFallback && requestedLayoutMode === "orderedBalancedFit"
     ? "orderedFit" : requestedLayoutMode;
-  const isKohiFitPolicy = onePageRhythmMode !== "mobile" && usesKohiFitPolicy(data.menuSite.template_key, data.previewDevice);
-  // The gutter correction must not become another tablet enlargement rollout.
-  const adaptiveFontCeiling = isAdaptiveFit && isKohiFitPolicy && menuCoverRenderDevice === "tablet" ? 1.14 : 2;
-  const hasBoundedFitSpacing = isKohiFitPolicy || (onePageRhythmMode !== "mobile" && usesOnePageProportionFitPolicy(data.menuSite.template_key, data.previewDevice, data.pagePresentation));
+  const adaptiveFontCeiling = 2;
+  const hasBoundedFitSpacing = onePageRhythmMode !== "mobile" && usesOnePageProportionFitPolicy(data.menuSite.template_key, data.previewDevice, data.pagePresentation);
   const canRetainTemplateFitState = useCallback((state: CafeDesignAFitState) =>
-    isAdaptiveFit ? state.fontScale <= adaptiveFontCeiling : !isKohiFitPolicy || isKohiFitFontScaleWithinLimits(state.fontScale, data.previewDevice, window.innerWidth),
-  [adaptiveFontCeiling, data.previewDevice, isAdaptiveFit, isKohiFitPolicy]);
+    !isAdaptiveFit || state.fontScale <= adaptiveFontCeiling,
+  [isAdaptiveFit]);
   const getTemplateFitFontCandidates = useCallback((candidates: readonly number[]) => {
     if (isAdaptiveFit) return [...new Set([2, 1.9, 1.8, 1.7, 1.6, 1.5, 1.4, ...candidates])].filter(scale => scale <= adaptiveFontCeiling).sort((a, b) => b - a);
-    const previewCandidates = getPreviewFitFontScaleCandidates(candidates, data.previewDevice === "tablet");
-    return isKohiFitPolicy ? limitKohiFitFontCandidates(previewCandidates, data.previewDevice, window.innerWidth) : previewCandidates;
-  }, [adaptiveFontCeiling, data.previewDevice, isAdaptiveFit, isKohiFitPolicy]);
+    return getPreviewFitFontScaleCandidates(candidates, data.previewDevice === "tablet");
+  }, [data.previewDevice, isAdaptiveFit]);
   const getTemplateFitGapScale = useCallback((fontScale: number, menuWidth: number) => {
     return layoutMode === "orderedFit"
       ? getOrderedFitGapScale(fontScale, menuWidth)
@@ -7633,7 +7624,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               {isSundayLine ? <SundayLineMobileNotices data={data} capabilities={capabilities} density={density} mobileReading={onePageRhythmMode === "mobile"} /> : null}
             </>
           )}
-          <div data-cafe-a-scroll-content="" className={`grid min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-[var(--cafe-a-page-block-end)] md:grid-cols-2 lg:hidden ${data.menuSite.template_key === "cafe_kohi_a" ? "kohi-mobile-menu-grid" : ""} ${isRoundFocus ? "cafe-a-round-focus-mobile-menu-grid" : ""} ${outerGridGapClassName}`}>
+          <div data-cafe-a-scroll-content="" className={`grid min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-[var(--cafe-a-page-block-end)] md:grid-cols-2 lg:hidden ${isRoundFocus ? "cafe-a-round-focus-mobile-menu-grid" : ""} ${outerGridGapClassName}`}>
             {!isPanelFlow && !isRoundFocus && !(isMochaForest && onePageRhythmMode === "mobile") && shouldRenderMenuCoverSection && (
               <CoverHero
                 data={data}
@@ -7850,7 +7841,6 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             </div>
           </div>
         </div>
-        {data.menuSite.template_key === "cafe_kohi_a" && onePageRhythmMode !== "mobile" ? <KohiMenuDividers /> : null}
       </main>
       <CafeADebugOverlay
         boardRef={desktopFitBoardRef}

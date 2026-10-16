@@ -8,7 +8,7 @@ const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8")
 const qa = readFileSync(new URL("../scripts/qa-template-preview-locales.mjs", import.meta.url), "utf8");
 const preview = readFileSync(new URL("../app/templates/[templateKey]/preview/page.tsx", import.meta.url), "utf8");
 const measure = (top: number, bottom: number) => ({
-  name: "코히 크림 커피",
+  name: "바닐라 크림 커피",
   nameFirstLine: { top: 100, bottom: 124 },
   priceAnchor: { top, bottom },
 });

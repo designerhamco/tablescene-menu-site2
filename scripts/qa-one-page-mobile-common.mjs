@@ -6,7 +6,7 @@ import { measureMenuPriceAlignment, getMenuPriceAlignmentFailures } from './lib/
 const base = process.env.MOBILE_COMMON_QA_BASE_URL || 'http://127.0.0.1:3000';
 const production = process.env.MOBILE_COMMON_QA_PRODUCTION === '1';
 const fixturesOnly = process.env.MOBILE_COMMON_QA_FIXTURES_ONLY === '1';
-const keys = ['cafe_design_a', 'cafe_kohi_a', 'cafe_mocha_forest_a', 'cafe_sunday_line_a', 'cafe_van_gogh_a', 'cafe_round_focus_a', 'fast_food_loop_bagel_a'];
+const keys = ['cafe_design_a', 'cafe_mocha_forest_a', 'cafe_sunday_line_a', 'cafe_van_gogh_a', 'cafe_round_focus_a', 'fast_food_loop_bagel_a'];
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: 'reduce' });
 const errors = [];

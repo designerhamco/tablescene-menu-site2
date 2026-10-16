@@ -4683,19 +4683,6 @@ video {
   font-size: calc(clamp(0.58rem, calc(0.58rem * var(--menu-font-size-scale) * var(--menu-role-supporting-size-scale, 1)), 0.72rem) * var(--cafe-a-mocha-tablet-product-text-scale));
 }
 
-/* KOHI reuses REAL MATCHA's content rhythm; decorative page rules never take up flow space. */
-.cafe-a-typography[data-template-key="cafe_kohi_a"] {
-  --kohi-divider-width: clamp(1px, 0.12vmin, 1.6px);
-  --cafe-a-category-title-to-first-ratio: 2;
-  --cafe-a-category-separation-ratio: 3.4;
-  --cafe-a-sunday-category-ratio: 1.34;
-  --cafe-a-sunday-secondary-ratio: 0.68;
-  --cafe-a-sunday-supporting-ratio: 0.81;
-  --cafe-a-sunday-price-ratio: 1.04;
-  --cafe-a-sunday-option-ratio: 0.62;
-  color: #000000;
-}
-
 /* Copy-aware breathing room applies only BETWEEN items, never to category/footer boundaries.
    The fit candidate and committed view measure the same CSS, including translated copy. */
 .cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-menu-item-stack {
@@ -5012,71 +4999,6 @@ video {
   white-space: normal;
 }
 
-.cafe-a-typography[data-template-key="cafe_kohi_a"][data-preview-device="tablet"] {
-  --cafe-a-sunday-category-ratio: 1.4;
-  --cafe-a-sunday-secondary-ratio: 0.63;
-  --cafe-a-sunday-supporting-ratio: 0.72;
-  --cafe-a-sunday-option-ratio: 0.53;
-}
-
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-category-title {
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-category-ratio) * var(--menu-role-category-size-scale, 1));
-  font-weight: 700;
-}
-
-/* KOHI keeps a slightly stronger category hierarchy on fitted PC/tablet
-   boards. This must follow the shared !important fit rule above it. */
-.cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-template-key="cafe_kohi_a"] .cafe-a-category-title {
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-common-category-ratio) * var(--menu-role-category-size-scale, 1)) !important;
-}
-
-.cafe-a-typography[data-template-key="cafe_kohi_a"] :is(.cafe-a-menu-title, .cafe-a-featured-title, [data-cafe-a-widget-title]) {
-  color: #000000;
-}
-
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-category-eyebrow.cafe-a-menu-description {
-  margin: 0 0 0.18em;
-  font-weight: 800;
-  line-height: 1.25;
-}
-
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-menu-meta {
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-secondary-ratio) * var(--fit-menu-wrap-scale, 1));
-  color: #000000;
-}
-
-.cafe-a-typography[data-template-key="cafe_kohi_a"] :is(.cafe-a-store-description, .cafe-a-description-text, .cafe-a-featured-description) {
-  color: #000000;
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio));
-}
-
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-menu-description {
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-supporting-ratio) * var(--fit-menu-wrap-scale, 1));
-}
-
-.cafe-a-typography[data-template-key="cafe_kohi_a"] :is(.cafe-a-menu-price, .cafe-a-featured-price) {
-  font-size: calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-device-type-scale) * var(--cafe-a-sunday-price-ratio) * var(--fit-menu-wrap-scale, 1));
-  color: #000000;
-}
-
-.cafe-a-typography[data-template-key="cafe_kohi_a"] :is(.cafe-a-menu-badge, .cafe-a-featured-badge, .cafe-a-time-sale-badge, .cafe-a-menu-chip) {
-  background-image:
-    repeating-linear-gradient(-9deg, rgb(255 255 255 / 14%) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(8deg, rgb(0 0 0 / 8%) 0 1px, transparent 1px 4px);
-  border: 0;
-  border-radius: 0;
-  clip-path: polygon(1% 8%, 7% 2%, 53% 0, 97% 5%, 100% 86%, 95% 100%, 48% 97%, 3% 100%, 0 18%);
-}
-
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-menu-chip {
-  background-color: #dc4235;
-  color: #ffffff;
-}
-
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-menu-category-top-divider {
-  display: none;
-}
-
 /* Sunday Roasters owns a visible category separator. Keep the shared total
    category boundary, but split it evenly around the stroke so the rule reads
    as the center of the transition instead of the next heading's underline. */
@@ -5085,90 +5007,23 @@ video {
   --cafe-a-category-divider-after-gap: calc(var(--cafe-a-category-no-divider-gap) * 0.5);
 }
 
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero :is(.cafe-a-featured-title, .cafe-a-featured-description, .cafe-a-featured-price) {
-  color: #ffffff;
-}
-
 /* Preserve the previous opaque version for already-saved menus/rollback.
    Image sizing still follows the shared representative-area cover rule. */
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-illustration.png"] {
-  background-color: #f7f5f1;
-}
-
-/* Transparent KOHI artwork may remove fallback paint, but it must not
-   override the shared representative-area cover sizing. */
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-transparent-v2.png"] {
-  background: transparent;
-}
 
 /* A transparent PNG must reveal the customer's menu background, not the
    photo fallback panel. Only this illustration opts out of those layers. */
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-transparent-v2.png"]) {
-  background: transparent;
-}
-
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-transparent-v2.png"]) [data-cafe-a-cover-placeholder] {
-  display: none;
-}
 
 /* The heart-cup edit retains the same transparent illustration contract. */
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-heart-v3.png"] {
-  background: transparent;
-}
-
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-heart-v3.png"]) {
-  background: transparent;
-}
-
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image][src$="/kohi-coffee-crocodile-heart-v3.png"]) [data-cafe-a-cover-placeholder] {
-  display: none;
-}
 
 /* User-supplied transparent PNG: preserve the page background while the
    shared cover rule fills the representative frame. */
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero [data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"], [src$="/kohi-coffee-crocodile-user-v6.png"]) {
-  background: transparent;
-}
-
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"], [src$="/kohi-coffee-crocodile-user-v6.png"])) {
-  background: transparent;
-}
-
-.cafe-a-typography[data-template-key="cafe_kohi_a"] .cafe-a-cover-hero:has([data-cafe-a-cover-image]:is([src$="/kohi-coffee-crocodile-user-v4.png"], [src$="/kohi-coffee-crocodile-user-v5.png"], [src$="/kohi-coffee-crocodile-user-v6.png"])) [data-cafe-a-cover-placeholder] {
-  display: none;
-}
 
 @media (min-width: 1024px) {
-  .cafe-a-typography[data-template-key="cafe_kohi_a"]:not([data-preview-device="tablet"]):not([data-preview-device="mobile"]):not([data-cafe-a-mobile-style="true"]) {
-    --cafe-a-sunday-category-ratio: 1.5;
-    --cafe-a-sunday-secondary-ratio: 0.64;
-    --cafe-a-sunday-supporting-ratio: 0.71;
-    --cafe-a-sunday-price-ratio: 1;
-    --cafe-a-sunday-option-ratio: 0.56;
-  }
 
   .cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"] .cafe-a-desktop-fit-board .cafe-a-menu-item-stack {
     --cafe-a-copy-aware-item-rhythm-gap: var(--cafe-a-item-rhythm-gap);
   }
 
-  .cafe-a-typography[data-template-key="cafe_kohi_a"]:where(:not([data-cafe-a-adaptive-fit="true"])) .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] {
-    margin-bottom: var(--cafe-a-category-no-divider-gap);
-  }
-
-}
-
-@media (max-width: 1023px) {
-  .cafe-a-typography[data-template-key="cafe_kohi_a"]:where(:not([data-cafe-a-adaptive-fit="true"])) :is(.kohi-mobile-menu-grid, .cafe-a-balanced-menu-grid) {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .cafe-a-typography[data-template-key="cafe_kohi_a"]:where(:not([data-cafe-a-adaptive-fit="true"])):not([data-cafe-a-mobile-style="true"]) .cafe-a-menu-category-block + .cafe-a-menu-category-block {
-    margin-top: calc(var(--cafe-a-local-item-rhythm-gap) * var(--cafe-a-category-separation-ratio));
-  }
-
-  .cafe-a-typography[data-template-key="cafe_kohi_a"]:where(:not([data-cafe-a-adaptive-fit="true"])):not([data-cafe-a-mobile-style="true"]) .cafe-a-menu-item-stack:last-child {
-    margin-bottom: 0;
-  }
 }
 
 /* Mocha Forest deliberately carries a stronger brand scale than the shared single-page hierarchy. */
@@ -5225,39 +5080,9 @@ video {
 .cafe-a-desktop-call-button:focus-visible, .cafe-a-mobile-call-button:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 .cafe-a-desktop-call-button .cafe-a-script-ko { font-family: var(--menu-font-ko), system-ui, sans-serif !important; }
 
-/* KOHI keeps the shared page inset outside its rule canvas. Rule-adjacent copy
-   uses a smaller linked clearance, measured from the visible stroke edge. */
-.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board {
-  --kohi-content-rule-gap: clamp(1rem, 1.8vmin, 1.25rem);
-  --kohi-canvas-column-gap: calc(var(--kohi-content-rule-gap) * 2 + var(--kohi-divider-width));
-  column-gap: var(--kohi-canvas-column-gap) !important;
-}
-.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board :is(.cafe-a-balanced-menu-grid, .cafe-a-ordered-menu-flow) {
-  column-gap: var(--kohi-canvas-column-gap) !important;
-}
-.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-category-heading {
-  margin-bottom: calc(var(--kohi-content-rule-gap) + var(--kohi-divider-width) * 0.5);
-  padding-bottom: 0;
-}
-.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-category-items {
-  padding-top: calc(var(--kohi-content-rule-gap) + var(--kohi-divider-width) * 0.5);
-}
-.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-menu-category-top-divider {
-  display: none;
-}
-.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] {
-  margin-bottom: calc(var(--kohi-content-rule-gap) * 2 + var(--kohi-divider-width));
-}
-.cafe-a-typography[data-template-key="cafe_kohi_a"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-category-items > .cafe-a-menu-item-stack:last-child {
-  margin-bottom: 0;
-}
-
 /* Ordinary visible gutters equal the page inset, measured once. */
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"] {
   --cafe-a-panel-column-gap: var(--board-padding);
-}
-.cafe-a-typography[data-cafe-a-adaptive-fit="true"]:not([data-template-key="cafe_kohi_a"]):not([data-cafe-a-skin="mocha_forest"]) :is(.cafe-a-desktop-fit-board, .cafe-a-balanced-menu-grid, .cafe-a-ordered-menu-flow, .cafe-a-topline-info-header) {
-  column-gap: var(--cafe-a-panel-column-gap) !important;
 }
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="round_focus"] {
   --round-focus-column-gap: var(--cafe-a-panel-column-gap);
@@ -5599,9 +5424,6 @@ video {
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-category-items {
   padding-top: 0;
 }
-
-/* Same internal copy rhythm for every skin, including KOHI's above-title copy.
-   Preserve the position of descriptions, not template-specific gap multipliers. */
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-cafe-a-category-description] {
   margin: var(--cafe-a-mobile-category-copy-gap) 0 0;
 }
