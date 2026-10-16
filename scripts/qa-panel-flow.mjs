@@ -45,6 +45,9 @@ try {
     noticesInIdentity:Boolean((intro||plain)?.querySelector('.cafe-a-mobile-notice-list')),
     footerText:footer?.innerText??'',
     controlWithinFrame:Boolean(controls&&frame&&controls.top>=frame.top-1&&controls.right<=frame.right+1),
+    imageSource:intro?.querySelector('[data-cafe-a-cover-image]')?.getAttribute('src')??null,
+    imageLoaded:Boolean(intro?.querySelector('[data-cafe-a-cover-image]')?.naturalWidth),
+    featuredCopyCount:(intro||plain)?.querySelectorAll('.cafe-a-featured-copy').length??0,
     callInsideIntro:Boolean((intro||plain)?.querySelector('[data-one-page-call-bar]')),
     controlRightInset:controls&&frame?frame.right-controls.right:null,
     equalGapDifference:controls&&identity&&featured?Math.abs(identity.top-controls.bottom-(featured.top-identity.bottom)):null,
@@ -60,6 +63,7 @@ try {
     panels:[...board.querySelectorAll('[data-cafe-a-balanced-column]')].filter(visible).map(e=>({width:e.offsetWidth,text:e.innerText.slice(0,25)})),
    };
   });
+  assert.equal(metrics.featuredCopyCount,0,JSON.stringify(metrics));
   assert.equal(metrics.documentOverflow,0,JSON.stringify({device,fixture,metrics}));
   assert.equal(metrics.featuredWithinFrame,true,JSON.stringify(metrics));
   assert.equal(metrics.overlap,false,JSON.stringify({device,fixture,metrics}));
@@ -72,6 +76,7 @@ try {
   if(fixture==='no-cover'||fixture==='panel-single')assert.equal(metrics.plain,true);
   if(fixture==='panel-single')assert.equal(metrics.columns,1);
   if(fixture==='brand-logo')assert.equal(metrics.logo,true);
+  if(introCase(fixture)) {assert.ok(metrics.imageSource.endsWith('/restaurant_onue_a/onue-dining-atmosphere-v1.webp'),JSON.stringify(metrics));assert.equal(metrics.imageLoaded,true,JSON.stringify(metrics));}
   if(introCase(fixture))assert.ok(Math.abs(metrics.imageRatio-(device==='mobile'||fixture==='square-boundary'?1:4/3))<.01);
   await page.screenshot({path:`/tmp/onue-${device}-${width}-${lang}-${fixture||'default'}.png`,fullPage:true});
   results.push({device,fixture,lang,...metrics});console.log(JSON.stringify(results.at(-1)));

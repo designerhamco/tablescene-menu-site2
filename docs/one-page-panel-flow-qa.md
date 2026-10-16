@@ -48,3 +48,6 @@ Device ratio/category boundary follow-up (2026-10-16): the fixed representative 
 
 
 Validation for the ratio/boundary revision: 12 ONUE PC/tablet cases, six ONUE mobile cases, one forced square/split-category reproduction and 21 existing-template ordered PC/mobile views passed. Mobile retained a measured 1:1 frame and PC/tablet measured approximately 1.333. All 642 tests, TypeScript, ESLint and the production build passed.
+
+
+Standalone starter image follow-up (2026-10-16): one built-in image_gen photograph replaces the representative asset; the starter has no featured item name/key, no slide-level product link and no `recommended` fallback item. Three signature menu thumbnails remain independent. The new 1254×1254 WebP is approximately 106 KiB; its prompt/provenance is saved beside it. Four PC/tablet/localized views and six mobile Call/cover/logo cases confirm image loading, zero featured-product overlays, 4:3 PC/tablet and 1:1 mobile frames. All 643 tests, TypeScript, targeted ESLint and the production build passed.

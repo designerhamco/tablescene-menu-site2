@@ -1,6 +1,7 @@
 import type { StarterPreset } from "@/lib/menu-starter-presets";
 
-const COVER = "/menu-templates/dining_aube_table_a/aube-table-cover.png";
+const COVER = "/menu-templates/restaurant_onue_a/onue-dining-atmosphere-v1.webp";
+const SCALLOP_IMAGE = "/menu-templates/dining_aube_table_a/aube-table-cover.png";
 export const ONUE_STARTER: StarterPreset = {
   key: "restaurant", template_key: "restaurant_onue_a",
   site: {
@@ -15,12 +16,11 @@ export const ONUE_STARTER: StarterPreset = {
     settings: { footer_notice_1: "런치 11:30–15:00 · 디너 17:00–22:00", footer_notice_2: "알레르기 유발 식재료는 직원에게 문의해 주세요.", footer_notice_3: "모든 가격은 부가세 포함입니다." },
   },
   menu_cover_enabled: true, menu_cover_visible_pc: true, menu_cover_visible_tablet: true, menu_cover_visible_mobile: true,
-  featured_item_key: "scallop", featured_item_name: "버터 관자 구이",
-  featured_slides: [{ id: "onue-featured", image_url: COVER, image_path: null, featured_item_key: "scallop", featured_item_name: "버터 관자 구이", sort_order: 0 }],
+  featured_slides: [{ id: "onue-featured", image_url: COVER, image_path: null, sort_order: 0 }],
   chefs: [], events: [], socialLinks: [], widgets: [], time_sales: [],
   pages: [{ key: "main-menu", title: "온유 테이블 메뉴", legacy_section_key: "main_menu", categories: [
     { key: "signature", name: "SIGNATURE", description: "온유의 계절을 담은 세 가지", description_visible: true, items: [
-      { key: "scallop", name: "버터 관자 구이", set_name: "SEARED SCALLOP", price: 24000, description: "노릇하게 구운 관자와 허브 퓌레", image_url: COVER, badge_label: "SIGNATURE", recommended: true },
+      { key: "scallop", name: "버터 관자 구이", set_name: "SEARED SCALLOP", price: 24000, description: "노릇하게 구운 관자와 허브 퓌레", image_url: SCALLOP_IMAGE, badge_label: "SIGNATURE" },
       { key: "cheese", name: "아티장 치즈 플레이트", set_name: "ARTISAN CHEESE", price: 22000, description: "숙성 치즈와 제철 과일, 크래커", image_url: "/menu-templates/cafe_round_focus_a/cheese-platter.jpg" },
       { key: "chicken", name: "스파이시 치킨 윙", set_name: "SPICY CHICKEN WINGS", price: 21000, description: "매콤한 글레이즈와 바삭한 치킨 윙", image_url: "/menu-templates/cafe_round_focus_a/spicy-chicken-wings.jpg" },
     ] },

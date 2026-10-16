@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getStarterPreset } from "./menu-starter-presets";
+import { getStarterPreset, resolveStarterFeaturedSlides } from "./menu-starter-presets";
 import { getFixedOnePageLayoutShell } from "./one-page-layout-shells";
 import { getOnePageTotalColumnCount } from "./one-page-fit-policy";
 import { PANEL_INTRO_KEY, PANEL_FEATURED_IMAGE, PANEL_MOBILE_FEATURED_IMAGE, resolvePanelTextInk, withPanelIntro } from "./one-page-panel-flow";
@@ -44,4 +44,18 @@ test("panel-flow defaults to fill in preview and editor while an explicit choice
  assert.equal(normalizePcTabletLayoutMode(undefined, "restaurant_onue_a"), "orderedFit");
  assert.equal(getPcTabletLayoutModeFromPageSettings({design:{pcTabletLayoutMode:"orderedBalancedFit"}}, "restaurant_onue_a"), "orderedBalancedFit");
  assert.equal(getDefaultPcTabletLayoutMode("cafe_design_a"), "orderedBalancedFit");
+});
+
+
+test("ONUE starter has one standalone image and no featured-product fallback", () => {
+ const preset=getStarterPreset("restaurant_onue_a");
+ const items=preset.pages.flatMap(page=>page.categories.flatMap(category=>category.items));
+ assert.equal(preset.featured_item_key,undefined);
+ assert.equal(preset.featured_item_name,undefined);
+ assert.equal(items.some(item=>item.recommended===true),false);
+ assert.equal(preset.featured_slides?.length,1);
+ assert.equal(preset.featured_slides?.[0].image_url,preset.site.cover_image_url);
+ const slides=resolveStarterFeaturedSlides(preset,items.map(item=>({id:item.key!,name:item.name})));
+ assert.equal(slides[0].featured_item_id,null);
+ assert.notEqual(preset.site.cover_image_url,items.find(item=>item.key==="scallop")?.image_url);
 });
