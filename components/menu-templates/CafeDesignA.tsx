@@ -4234,6 +4234,9 @@ function MenuGroupsGrid({
       data-cafe-a-fit-menu=""
       data-cafe-a-flow-mode="ordered"
       data-cafe-a-skin={isMochaForestSkin(templateSkin) ? "mocha_forest" : undefined}
+      // Keep the menu palette owned by the rendered surface. Ordered packing
+      // may flatten category wrappers or split a category across columns.
+      data-mocha-panel={isMochaForestSkin(templateSkin) ? "ivory" : undefined}
     >
       {pageGroups.flatMap((pageGroup) => pageGroup.blocks).map((block) => (
         <MenuContentBlock

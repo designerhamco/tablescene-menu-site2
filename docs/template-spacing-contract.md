@@ -134,6 +134,8 @@ KOHI's category-title-to-first-item ratio is `2` and its category separation rat
 
 ## Verification
 
+Mocha Forest's ordered menu surface owns its ivory-panel palette in React, independently of row packing and category fragmentation. Its existing panel CSS supplies wine primary/supporting ink; the brown brand rail keeps ivory ink. Do not depend on a post-layout category-rectangle scan to install the menu palette: ordered categories may have `display: contents` or span columns. Geometry checks must be accompanied by rendered menu/brand/call and language-palette checks when panel ownership changes.
+
 REAL MATCHA boundary follow-up (2026-10-11): local in-app browser checks settled to `ready` without content clipping or horizontal overflow on tablet 1198×838 (Korean grouped/fill, Chinese/Japanese grouped) and PC 1440×900 (Korean grouped, English fill). Actual same-column category margins were exactly `2.9` times the base rhythm, including the English fill two-column fallback; the Korean grouped tablet margin was 32.23px. All 18 items remained visible. Portrait tablet 838×1198 and mobile 390×844 retained scrolling layouts with all 18 items and no horizontal clipping. KOHI tablet retained `3.4` category spacing and all 17 items; no browser error/warning logs were observed. The 537-test suite, TypeScript, targeted ESLint, production build and whitespace checks passed. These checks cover this scoped boundary change, not the remaining six templates' full proportion rollout.
 
 Changes to an active template spacing engine require:

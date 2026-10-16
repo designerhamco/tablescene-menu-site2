@@ -1,6 +1,7 @@
 import { chromium } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { ONE_PAGE_QA_TEMPLATES, ONE_PAGE_QA_VIEWPORTS, getOnePageQaPreviewUrl } from '../lib/one-page-qa.ts';
+import { MOCHA_FOREST_PANEL_COLORS } from '../lib/mocha-forest-panels.ts';
 import { measureMenuPriceAlignment, getMenuPriceAlignmentFailures } from './lib/menu-price-alignment.mjs';
 import { measureOnePageMobileRhythm, getOnePageMobileRhythmFailures } from './lib/one-page-mobile-rhythm.mjs';
 
@@ -19,6 +20,35 @@ const cases = templates.flatMap(template => mobile
     ...ONE_PAGE_QA_VIEWPORTS.filter(v => v.device !== 'mobile' && (!widths || widths.includes(v.width)) && (!quick || v.width === 1512)).flatMap(v => callModes.map(call => ({ ...template, ...v, call, locale: 'ko' }))),
     ...(!quick ? locales.filter(locale => locale !== 'ko').flatMap(locale => [ONE_PAGE_QA_VIEWPORTS[0], ONE_PAGE_QA_VIEWPORTS[2]].map(v => ({ ...template, ...v, call: true, locale }))) : []),
   ]);
+
+/** Geometry passing does not prove that a fragmented panel retained its ink. */
+function measureMochaPalette(palette) {
+  const root = document.querySelector('.cafe-a-typography[data-cafe-a-skin="mocha_forest"]');
+  const visible = e => e.getBoundingClientRect().width > 0 && e.getBoundingClientRect().height > 0;
+  const rgb = hex => `rgb(${[1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)).join(', ')})`;
+  const wine = rgb(palette.brown), ivory = rgb(palette.ivory);
+  const checks = [
+    ['brand', '.cafe-a-store-title, .cafe-a-store-description', ivory],
+    ['menu', '.cafe-a-fit-menu-grid :is(.cafe-a-category-title, .cafe-a-menu-title, .cafe-a-menu-price, .cafe-a-menu-meta, .cafe-a-menu-description, .cafe-a-description-text)', wine],
+    ['call', '[data-one-page-call-button="desktop"], [data-one-page-call-button="mobile-bottom"]', wine, 'backgroundColor'],
+  ];
+  const counts = {}, mismatches = [];
+  for (const [role, selector, expected, property = 'color'] of checks) {
+    const elements = [...root.querySelectorAll(selector)].filter(visible)
+      .filter(e => role !== 'brand' || !e.closest('[data-cafe-a-footer-info]'));
+    counts[role] = elements.length;
+    for (const element of elements) {
+      const actual = getComputedStyle(element)[property];
+      if (actual !== expected) mismatches.push({ role, text: element.textContent.slice(0, 40), actual, expected });
+    }
+  }
+  const style = getComputedStyle(root);
+  for (const [variable, expected] of [['--cafe-a-language-trigger-ink', ivory], ['--cafe-a-language-menu-ink', wine]]) {
+    const actual = style.getPropertyValue(variable).trim();
+    if (actual !== expected) mismatches.push({ variable, actual, expected });
+  }
+  return { counts, mismatches };
+}
 
 /** Check physical painted rows; union rectangles of fragmented categories are not rows. */
 function measureOrderedLayout() {
@@ -134,6 +164,10 @@ try {
         await page.waitForFunction(() => [...document.querySelectorAll('[data-mobile-brand-fit]')].filter(e => e.getBoundingClientRect().width > 0).every(e => e.dataset.mobileBrandFit === 'ready'));
         metrics = await page.evaluate(measureOnePageMobileRhythm);
         failures.push(...getOnePageMobileRhythmFailures(metrics));
+      }
+      if (c.key === 'cafe_mocha_forest_a') {
+        metrics.palette = await page.evaluate(measureMochaPalette, MOCHA_FOREST_PANEL_COLORS);
+        if (!metrics.palette.counts.brand || !metrics.palette.counts.menu || metrics.palette.mismatches.length) failures.push('Mocha panel palette mismatch');
       }
       if (getMenuPriceAlignmentFailures(await page.evaluate(measureMenuPriceAlignment)).length) failures.push('price/name first-line mismatch');
     } catch (error) { failures.push(error.message); if (!mobile) metrics = await page.evaluate(measureOrderedLayout).catch(() => null); }
