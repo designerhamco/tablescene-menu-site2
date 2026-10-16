@@ -9,7 +9,7 @@ const cases = [
  ['pc',1516,844,'ko','no-cover'],['mobile',390,844,'ko','brand-logo'],
  ['pc',1516,844,'ko','brand-logo'],['mobile',320,844,'ko','call-off'],['mobile',430,900,'en','call-off'],['pc',1516,844,'ko','call-off'],['pc',1516,844,'ko','panel-single'],['tablet',1024,768,'ko','panel-two'],
 ];
-const selectedCases=process.argv.includes("--quick") ? cases.slice(0,2) : process.argv.includes("--geometry") ? cases.filter(([device,,,lang,fixture])=>device==='mobile'&&lang==='ko'&&(fixture===''||fixture==='call-off')) : cases;
+const selectedCases=process.argv.includes("--mobile") ? cases.filter(([device])=>device==='mobile') : process.argv.includes("--quick") ? cases.slice(0,2) : process.argv.includes("--geometry") ? cases.filter(([device,,,lang,fixture])=>device==='mobile'&&lang==='ko'&&(fixture===''||fixture==='call-off')) : cases;
 const results=[];
 try {
  for (let index=0;index<selectedCases.length;index+=1) await Promise.all(selectedCases.slice(index,index+1).map(async ([device,width,height,lang,fixture])=>{
@@ -30,11 +30,15 @@ try {
    const featured=intro?.querySelector('.cafe-a-featured-copy')?.getBoundingClientRect();
    const controls=(intro||plain)?.querySelector('.cafe-a-panel-controls')?.getBoundingClientRect();
    const frame=(intro||plain)?.getBoundingClientRect();
-   const footer=board?.querySelector('[data-cafe-a-footer-info]');
+   const footer=[...document.querySelectorAll('[data-cafe-a-footer-info]')].find(visible);
+   const lastItem=[...document.querySelectorAll('[data-cafe-a-menu-item]')].filter(visible).at(-1)?.getBoundingClientRect();
    const brand=(intro||plain)?.querySelector('[data-cafe-a-store-title]');
    const column=footer?.closest('[data-cafe-a-balanced-column]');
    return {viewport:[innerWidth,innerHeight],state:board?.dataset.fitPresentationState,layout:board?.dataset.layoutMode,inset:parseFloat(getComputedStyle(board.querySelector("[data-cafe-a-fit-menu]")).paddingLeft),overflow:board?.dataset.fitOverflow,columns:Number(board?.dataset.fitColumns),basis:board?.dataset.fitCopyBasis,
-    noticesInIdentity:Boolean((intro||plain)?.querySelector('.cafe-a-panel-notices')),
+    footerAlignment:footer?getComputedStyle(footer).textAlign:null,
+    footerGap:footer&&lastItem?footer.getBoundingClientRect().top-lastItem.bottom:null,
+    noticeListCount:[...document.querySelectorAll('.cafe-a-mobile-notice-list')].filter(visible).length,
+    noticesInIdentity:Boolean((intro||plain)?.querySelector('.cafe-a-mobile-notice-list')),
     footerText:footer?.innerText??'',
     controlWithinFrame:Boolean(controls&&frame&&controls.top>=frame.top-1&&controls.right<=frame.right+1),
     callInsideIntro:Boolean((intro||plain)?.querySelector('[data-one-page-call-bar]')),
@@ -58,7 +62,7 @@ try {
   if(device!=='mobile') {assert.equal(metrics.layout,'orderedFit');assert.ok(metrics.inset>=36);assert.equal(metrics.noticesInIdentity,false);assert.ok(metrics.footerText.includes('런치')||lang!=='ko'||fixture==='panel-single');assert.equal(metrics.brandTarget,fixture==='brand-logo'?undefined:'0.75');if(metrics.equalGapDifference!==null)assert.ok(metrics.equalGapDifference<2,JSON.stringify(metrics));assert.equal(metrics.overflow,'false',JSON.stringify({device,fixture,metrics}));assert.ok(metrics.footerClearance===null||metrics.footerClearance>=-2,JSON.stringify(metrics));}
   assert.equal(metrics.controlWithinFrame,true,JSON.stringify(metrics));
   assert.ok(metrics.identityCenterDelta<2,JSON.stringify(metrics));
-  if(device==='mobile')assert.equal(metrics.callInsideIntro,fixture!=='call-off');
+  if(device==='mobile') {assert.equal(metrics.callInsideIntro,fixture!=='call-off');assert.equal(metrics.noticesInIdentity,false);assert.equal(metrics.noticeListCount,1);assert.equal(metrics.footerAlignment,'right');assert.ok(Math.abs(metrics.footerGap-48)<2,JSON.stringify(metrics));}
   if(fixture==='no-cover'||fixture==='panel-single')assert.equal(metrics.plain,true);
   if(fixture==='panel-single')assert.equal(metrics.columns,1);
   if(fixture==='brand-logo')assert.equal(metrics.logo,true);

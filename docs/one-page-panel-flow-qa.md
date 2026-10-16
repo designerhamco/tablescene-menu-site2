@@ -33,3 +33,6 @@ Representative alignment follow-up (2026-10-16):
 - 16 ONUE browser cases passed, including both tablet orientations, PC, phone widths, four-language content coverage, Call OFF, cover OFF, logo and sparse panel counts. Equal-gap difference was under 0.02px in the main PC/tablet cases. PC 1516×844 and landscape tablet 1024×768 selected three readable panels after actual-copy rescue.
 
 - Final mobile 320px Call ON/OFF geometry checks confirmed that the controls and featured copy remain within the square photograph. Existing-template ordered-mode regressions passed all 21 views (six templates in the main run, Loop Bagel retried separately after a page `load` timeout; subsequent checks use `domcontentloaded`). All 639 tests, TypeScript, ESLint and the final production build passed.
+
+
+Mobile notice footer follow-up (2026-10-16): notices 1/2/3 now render once in the common right-aligned mobile footer after all menu items, separated by the shared 48px section gap. The representative identity no longer contains notices. PC/tablet footer anchors and the in-image mobile Call/language row are unchanged. Browser checks cover 320/390/430px, Call ON/OFF, Japanese/English copy, cover OFF and logo.

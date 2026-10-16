@@ -3653,7 +3653,6 @@ function PanelFlowIntro({ data, density, mobileReading = false }: { data: Public
   const identity = <div className="cafe-a-panel-identity">
     <StoreIdentity data={data} capabilities={capabilities} titleClassName="cafe-a-store-title cafe-a-panel-brand" logoClassName="cafe-a-store-logo" mobileAutoFit={mobileReading} />
     {(data.menuSite.brand_description || data.menuSite.description) && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p>}
-    {mobileReading && <div className="cafe-a-panel-notices"><MobileNoticeList rows={getCafeAFooterInfo(data, capabilities)} density={density} /></div>}
   </div>;
   const typography = mergeTypographySettings(data.menuSite.template_key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
   const plainInk = resolvePanelTextInk(typography.typography_roles.brand.color, typography.typography_roles.category.color);
@@ -7624,7 +7623,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                 timeSaleByItemId={timeSaleByItemId}
                 priceDisplayMode={priceDisplayMode}
                 onOpenImage={openMenuImagePreview}
-                footerInfo={isSundayLine || isRoundFocus || isPanelFlow ? undefined : <CafeAFooterInfo data={data} capabilities={capabilities} density={density} placement="mobile" mobileReading={onePageRhythmMode === "mobile"} />}
+                footerInfo={isSundayLine || isRoundFocus ? undefined : <CafeAFooterInfo data={data} capabilities={capabilities} density={density} placement="mobile" mobileReading={onePageRhythmMode === "mobile"} />}
                 templateSkin={data.templateSkin}
               />
             )}

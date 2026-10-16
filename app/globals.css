@@ -5312,7 +5312,6 @@ video {
   text-align: center;
 }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-identity :is(.cafe-a-menu-description, .cafe-a-store-description, .cafe-a-description-text) { color: inherit; margin: 0; }
-.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-identity .cafe-a-panel-notices { margin-top: 0.25rem; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-brand { width: 100%; font-weight: 400; line-height: 1.08; margin: 0; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro .cafe-a-featured-copy {
   z-index: 1;
@@ -5391,7 +5390,6 @@ video {
 }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-identity { gap: 0; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-identity .cafe-a-store-description { margin-top: 0.75rem; }
-.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-identity .cafe-a-panel-notices { margin-top: 0.5rem; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-controls {
   min-height: 3rem;
 }
