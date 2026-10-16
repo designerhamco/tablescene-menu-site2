@@ -65,13 +65,11 @@ const Navbar = () => {
   const [notificationEvents, setNotificationEvents] = useState<NotificationEvent[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
     userId: null,
     loading: true,
   });
-  const isScrolledRef = useRef(false);
   const notificationLayerRef = useRef<HTMLDivElement | null>(null);
   const pathname = usePathname();
 
@@ -207,56 +205,14 @@ const Navbar = () => {
     return () => window.removeEventListener('pointerdown', handlePointerDown);
   }, [isNotificationOpen]);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const nextIsScrolled = window.scrollY > 50;
-
-      if (isScrolledRef.current === nextIsScrolled) {
-        return;
-      }
-
-      isScrolledRef.current = nextIsScrolled;
-      setIsScrolled(nextIsScrolled);
-    };
-
-    handleScroll();
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const transparentNavPaths = ['/', '/services/basic', '/services/display', '/services/menu', '/services/screen', '/services/signature', '/store'];
-  const solidNavPaths = ['/custom', '/services/order', '/services/custom', '/services/simple-template', '/services/pro-v1', '/services/design-customizing'];
-  const isApplyPath = pathname === '/apply' || pathname.startsWith('/apply/');
-  const navVariant = isApplyPath || solidNavPaths.includes(pathname)
-    ? 'solid'
-    : transparentNavPaths.includes(pathname)
-      ? 'transparent'
-      : 'solid';
-  const shouldShowSolidNav = navVariant === 'solid' || isScrolled || isOpen;
-  const shouldShowDarkNav = navVariant === 'transparent' && isScrolled && !isOpen;
-
-  const navBgClass = shouldShowDarkNav
-    ? 'bg-zinc-950 border-b border-zinc-800'
-    : shouldShowSolidNav
-    ? 'bg-white border-b border-zinc-200'
-    : 'bg-transparent border-transparent';
-  const navToneClass = shouldShowDarkNav ? 'text-white' : shouldShowSolidNav ? 'text-black' : 'text-white';
+  const navBgClass = 'bg-white border-b border-zinc-200';
+  const navToneClass = 'text-zinc-950';
   const logoTextClass = 'text-current';
-  const navTextClass = shouldShowSolidNav
-    ? 'text-current opacity-70 hover:opacity-100'
-    : 'text-current opacity-90 hover:opacity-100';
-  const menuButtonClass = shouldShowSolidNav ? 'text-current hover:opacity-70' : 'text-current hover:opacity-80';
-  const primaryButtonClass = shouldShowDarkNav
-    ? 'bg-white hover:bg-zinc-100'
-    : shouldShowSolidNav
-    ? 'bg-zinc-950 hover:bg-zinc-800'
-    : 'bg-white hover:bg-zinc-100';
-  const primaryButtonStyle = { color: shouldShowDarkNav ? '#09090b' : shouldShowSolidNav ? '#ffffff' : '#09090b' };
-  const secondaryButtonClass = shouldShowDarkNav
-    ? 'border-zinc-700 bg-zinc-900 text-white hover:bg-zinc-800'
-    : shouldShowSolidNav
-    ? 'border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50'
-    : 'border-zinc-700 bg-zinc-950 text-white hover:bg-zinc-800';
+  const navTextClass = 'text-current opacity-70 hover:opacity-100';
+  const menuButtonClass = 'text-current hover:opacity-70';
+  const primaryButtonClass = 'bg-zinc-950 hover:bg-zinc-800';
+  const primaryButtonStyle = { color: '#ffffff' };
+  const secondaryButtonClass = 'border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50';
   const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
   const accountCtaLabel = authState.isAuthenticated ? 'MY/메뉴판' : '로그인';
   const unreadBadgeLabel = formatNotificationBadgeCount(unreadCount);

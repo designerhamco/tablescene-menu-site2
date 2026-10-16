@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router';
+import { BrowserRouter, Routes, Route } from 'react-router';
+import { usePathname } from 'next/navigation';
 import Navbar from './components/layout/Navbar';
 import Home from './original-pages/Home';
 import DisplayServicePage from './original-pages/services/DisplayServicePage';
@@ -15,7 +16,7 @@ import ScrollToTopButton from './components/ui/ScrollToTop';
 import Footer from './components/layout/Footer';
 
 const ScrollToTop = () => {
-  const { pathname } = useLocation();
+  const pathname = usePathname();
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
@@ -31,6 +32,8 @@ const ReloadNextRoute = () => {
 };
 
 export default function App() {
+  const pathname = usePathname();
+
   return (
     <BrowserRouter>
       <ScrollToTop />
@@ -40,7 +43,8 @@ export default function App() {
         <ScrollToTopButton />
         
         <main className="relative">
-          <Routes>
+          {/* Next Link owns navigation; never match against BrowserRouter's stale pathname. */}
+          <Routes location={pathname}>
             <Route path="/" element={<Home />} />
             <Route path="/services/basic" element={<Home />} />
             <Route path="/services/display" element={<DisplayServicePage />} />

@@ -110,7 +110,7 @@ const TemplateShowcase = ({ service = 'all', presentation = 'catalog' }: Templat
     const isDisplayShowcase = selectedService === 'display';
 
     return (
-      <section className="bg-transparent py-28 text-white md:py-36">
+      <section className={`bg-transparent py-28 md:py-36 ${isDisplayShowcase ? 'text-white' : 'text-zinc-950'}`}>
         <div className="mx-auto max-w-[1280px]">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -121,7 +121,7 @@ const TemplateShowcase = ({ service = 'all', presentation = 'catalog' }: Templat
           >
             <MarketingSectionCopy
               centered
-              inverted
+              inverted={isDisplayShowcase}
               eyebrow={isDisplayShowcase ? '대형 화면 전용 템플릿' : '디자이너 템플릿'}
               title={isDisplayShowcase
                 ? <>매장 화면에 맞춘<br />디스플레이 디자인</>
@@ -134,8 +134,8 @@ const TemplateShowcase = ({ service = 'all', presentation = 'catalog' }: Templat
           </motion.div>
 
           <div className="relative overflow-hidden">
-            <div className="pointer-events-none absolute inset-y-0 left-0 z-20 w-20 bg-gradient-to-r from-zinc-950 via-zinc-950/80 to-transparent md:w-44" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 z-20 w-20 bg-gradient-to-l from-zinc-950 via-zinc-950/80 to-transparent md:w-44" />
+            <div className={`pointer-events-none absolute inset-y-0 left-0 z-20 w-20 bg-gradient-to-r to-transparent md:w-44 ${isDisplayShowcase ? 'from-zinc-950 via-zinc-950/80' : 'from-white via-white/80'}`} />
+            <div className={`pointer-events-none absolute inset-y-0 right-0 z-20 w-20 bg-gradient-to-l to-transparent md:w-44 ${isDisplayShowcase ? 'from-zinc-950 via-zinc-950/80' : 'from-white via-white/80'}`} />
             <motion.div
               className="flex w-max gap-4 px-4 md:gap-6"
               animate={{ x: ['0%', '-50%'] }}
@@ -157,7 +157,7 @@ const TemplateShowcase = ({ service = 'all', presentation = 'catalog' }: Templat
           </div>
 
           <div className="mt-12 flex justify-center">
-            <a href="/apply" className="inline-flex items-center justify-center rounded-full border border-white bg-white px-6 py-3 text-sm font-bold text-zinc-950 transition-colors hover:bg-zinc-100">
+            <a href="/apply" className={`inline-flex items-center justify-center rounded-full border px-6 py-3 text-sm font-bold transition-colors ${isDisplayShowcase ? 'border-white bg-white text-zinc-950 hover:bg-zinc-100' : 'border-zinc-950 bg-zinc-950 text-white hover:bg-zinc-800'}`}>
               더 많은 디자인 보기
             </a>
           </div>

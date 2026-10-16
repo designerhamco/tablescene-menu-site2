@@ -16,7 +16,7 @@ test("public product and support surfaces keep secondary copy at accessible cont
   assert.match(gallery, /border-transparent text-zinc-600/);
   assert.doesNotMatch(pricing, /text-zinc-400/);
   assert.match(faq, /bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-950/);
-  assert.match(footer, /type-caption uppercase tracking-wide text-zinc-600/);
+  assert.match(footer, /type-caption uppercase tracking-wide text-zinc-400/);
 });
 
 test("auth consent and compact product previews avoid low-opacity essential copy", () => {
@@ -50,7 +50,7 @@ test("homepage autoplay previews pause when reduced motion is requested", () => 
   const reducedMotionGuardCount = productStory.match(/if \(prefersReducedMotion\) return;/g)?.length ?? 0;
 
   assert.match(productStory, /import \{ AnimatePresence, motion, useReducedMotion \} from "motion\/react"/);
-  assert.equal(autoplayCount, 6);
+  assert.equal(autoplayCount, 5);
   assert.equal(reducedMotionGuardCount, autoplayCount);
 });
 

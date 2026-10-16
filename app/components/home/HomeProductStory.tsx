@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   ChevronLeft,
@@ -117,49 +118,25 @@ function RotatingMenuScreen({ screenIndex, compact = false }: { screenIndex: num
 }
 
 export function BrandHero() {
-  const [screenIndex, setScreenIndex] = useState(0);
-  const prefersReducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    if (prefersReducedMotion) return;
-
-    const interval = window.setInterval(() => {
-      setScreenIndex((current) => (current + 1) % heroScreens.length);
-    }, 3200);
-
-    return () => window.clearInterval(interval);
-  }, [prefersReducedMotion]);
-
   return (
-    <section className="site-gutter relative min-h-[760px] overflow-hidden bg-[linear-gradient(155deg,#a97e00_0%,#e5c546_24%,#fff0a3_100%)] pt-28 text-zinc-950 md:min-h-[930px] md:pt-36">
-      <motion.div {...fadeUp} className="relative z-10 mx-auto max-w-[1180px] text-center">
-        <p className="text-base font-bold tracking-[-0.02em] md:text-xl">다이닝의 새로운 메뉴 경험</p>
-        <h1 className="type-display mt-5">
-          ArtiMenu<br />Perfect For Your Store
-        </h1>
-      </motion.div>
-
-      <motion.div
-        {...fadeUp}
-        transition={{ ...fadeUp.transition, delay: 0.12 }}
-        className="absolute bottom-0 left-1/2 h-[390px] w-[740px] max-w-[116vw] -translate-x-1/2 md:h-[520px] md:w-[1120px]"
-        aria-label="PC, 태블릿, 모바일에서 바뀌는 아티메뉴 화면 예시"
-      >
-        <div className="absolute bottom-4 left-0 w-[66%] md:bottom-8">
-          <div className="overflow-hidden rounded-t-[1rem] border-[7px] border-zinc-950 bg-white shadow-[0_28px_80px_rgba(0,0,0,0.22)] md:rounded-t-[1.4rem] md:border-[10px]">
-            <div className="aspect-[16/10]"><RotatingMenuScreen screenIndex={screenIndex} /></div>
-          </div>
-          <div className="mx-auto h-3 w-[108%] -translate-x-[4%] rounded-b-xl bg-zinc-950 md:h-5" />
-        </div>
-
-        <div className="absolute bottom-0 right-[5%] w-[35%] overflow-hidden rounded-[1.45rem] border-[7px] border-zinc-950 bg-white shadow-[0_30px_80px_rgba(0,0,0,0.24)] md:rounded-[2rem] md:border-[10px]">
-          <div className="aspect-[4/3]"><RotatingMenuScreen screenIndex={screenIndex} compact /></div>
-        </div>
-
-        <div className="absolute bottom-[-1rem] left-1/2 w-[18%] -translate-x-1/2 overflow-hidden rounded-[1.6rem] border-[6px] border-zinc-950 bg-white shadow-[0_32px_80px_rgba(0,0,0,0.28)] md:bottom-[-2rem] md:rounded-[2.4rem] md:border-[9px]">
-          <div className="aspect-[9/18]"><RotatingMenuScreen screenIndex={screenIndex} compact /></div>
-        </div>
-      </motion.div>
+    <section className="relative bg-white px-[var(--site-gutter)] pb-8 pt-24 text-zinc-950 md:pb-12 md:pt-28">
+      <div data-home-hero-frame className="relative isolate mx-auto max-w-[1520px] overflow-hidden rounded-[2rem] bg-[#f4f4f5] md:rounded-[2.5rem]">
+        <motion.div {...fadeUp} className="relative z-10 mx-auto max-w-[1180px] px-5 pt-10 text-center md:px-10 md:pt-14">
+          <p className="text-base font-bold tracking-[-0.02em] md:text-xl">다이닝의 새로운 메뉴 경험</p>
+          <h1 className="type-display mt-5">
+            ArtiMenu<br />Perfect For Your Store
+          </h1>
+        </motion.div>
+        <Image
+          src="/assets/artimenu-home-hero.webp"
+          alt="밝은 카운터 위 PC 모니터, 태블릿과 스마트폰에 표시된 메뉴 화면"
+          width={1536}
+          height={1024}
+          preload
+          sizes="(min-width: 1600px) 1520px, (min-width: 768px) calc(100vw - 80px), calc(100vw - 40px)"
+          className="relative -mt-8 h-auto w-full md:-mt-40"
+        />
+      </div>
     </section>
   );
 }
@@ -172,7 +149,7 @@ function StoryVisualFrame({ children }: { children: React.ReactNode }) {
   );
 }
 
-function DarkStorySection({
+function StorySection({
   eyebrow,
   title,
   body,
@@ -188,14 +165,14 @@ function DarkStorySection({
   endOfRegion?: boolean;
 }) {
   const spacingClass = endOfRegion
-    ? "pb-36 pt-20 md:pb-52 md:pt-24"
+    ? "pb-24 pt-20 md:pb-32 md:pt-24"
     : "py-20 md:py-24";
 
   return (
-    <section className={`site-gutter bg-transparent text-white ${spacingClass}`}>
+    <section className={`site-gutter bg-transparent text-zinc-950 ${spacingClass}`}>
       <div className="mx-auto grid max-w-[1280px] items-center gap-12 lg:grid-cols-2 lg:gap-20">
         <motion.div {...fadeUp} className={reverse ? "lg:order-2" : ""}>
-          <MarketingSectionCopy inverted eyebrow={eyebrow} title={title} body={body} className="max-w-xl" />
+          <MarketingSectionCopy eyebrow={eyebrow} title={title} body={body} className="max-w-xl" />
         </motion.div>
         <div className={reverse ? "lg:order-1" : ""}><StoryVisualFrame>{visual}</StoryVisualFrame></div>
       </div>
@@ -306,15 +283,15 @@ function CustomizationVisual() {
 }
 
 export function ProductHero() {
-  return <DarkStorySection eyebrow="간편한 메뉴 제작" title={<>텍스트 입력만으로<br />완성되는 메뉴판</>} body="메뉴명·설명·가격 입력 즉시 선택한 템플릿에 반영됩니다." visual={<InputSyncVisual />} />;
+  return <StorySection eyebrow="간편한 메뉴 제작" title={<>텍스트 입력만으로<br />완성되는 메뉴판</>} body="메뉴명·설명·가격 입력 즉시 선택한 템플릿에 반영됩니다." visual={<InputSyncVisual />} />;
 }
 
 export function AutoLayoutSection() {
-  return <DarkStorySection reverse eyebrow="묶음형 or 채움형 배치" title={<>보기 좋은 배치를 위한<br />두 가지 방식</>} body="카테고리 구성에 맞춰 묶음형과 채움형을 전환할 수 있습니다." visual={<LayoutModeVisual />} />;
+  return <StorySection reverse eyebrow="묶음형 or 채움형 배치" title={<>보기 좋은 배치를 위한<br />두 가지 방식</>} body="카테고리 구성에 맞춰 묶음형과 채움형을 전환할 수 있습니다." visual={<LayoutModeVisual />} />;
 }
 
 export function CustomizationSection() {
-  return <DarkStorySection eyebrow="자유로운 커스터마이징" title={<>이미지도 내맘대로 변경.<br />글자, 색상도 내맘대로 변경.</>} body="이미지 노출과 교체부터 글자 모양, 배경색까지 자유롭게 설정할 수 있습니다." visual={<CustomizationVisual />} />;
+  return <StorySection eyebrow="자유로운 커스터마이징" title={<>이미지도 내맘대로 변경.<br />글자, 색상도 내맘대로 변경.</>} body="이미지 노출과 교체부터 글자 모양, 배경색까지 자유롭게 설정할 수 있습니다." visual={<CustomizationVisual />} />;
 }
 
 function TimeSaleVisual() {
@@ -382,8 +359,8 @@ function WidgetVisual() {
 export function SalesAndLanguageSection() {
   return (
     <>
-      <DarkStorySection reverse eyebrow="실시간 타임 세일" title={<>타임 세일로 만드는<br />구매의 순간</>} body="할인 메뉴와 남은 시간을 실시간으로 노출해 혜택을 강조합니다." visual={<TimeSaleVisual />} />
-      <DarkStorySection eyebrow="콘텐츠 위젯" title={<>매장 소식을 강조하는<br />위젯</>} body="추천 메뉴와 신메뉴, 매장 소식을 원하는 위치에 배치할 수 있습니다." visual={<WidgetVisual />} />
+      <StorySection reverse eyebrow="실시간 타임 세일" title={<>타임 세일로 만드는<br />구매의 순간</>} body="할인 메뉴와 남은 시간을 실시간으로 노출해 혜택을 강조합니다." visual={<TimeSaleVisual />} />
+      <StorySection eyebrow="콘텐츠 위젯" title={<>매장 소식을 강조하는<br />위젯</>} body="추천 메뉴와 신메뉴, 매장 소식을 원하는 위치에 배치할 수 있습니다." visual={<WidgetVisual />} />
     </>
   );
 }
@@ -470,7 +447,7 @@ function MultiPageVisual() {
 
 export function MultiPageSection() {
   return (
-    <DarkStorySection
+    <StorySection
       reverse
       eyebrow="파인다이닝 멀티 페이지"
       title={<>여러 장의 메뉴를<br />한 권처럼</>}
@@ -502,7 +479,7 @@ function TranslationVisual() {
 
 type MarketingService = "dining" | "display";
 
-export function AiFeaturesSection({ service = "dining" }: { service?: MarketingService } = {}) {
+export function AiFeaturesSection({ service = "dining", inverted = false }: { service?: MarketingService; inverted?: boolean } = {}) {
   const isDisplay = service === "display";
   const features = [
     {
@@ -520,21 +497,22 @@ export function AiFeaturesSection({ service = "dining" }: { service?: MarketingS
   ];
 
   return (
-    <section className="site-gutter bg-white pb-12 pt-16 md:pb-12 md:pt-16">
+    <section className={`site-gutter py-16 md:py-24 ${inverted ? "bg-zinc-950 text-white" : "bg-white text-zinc-950"}`}>
       <div className="mx-auto max-w-[1280px]">
         <motion.div {...fadeUp} className="mb-14 max-w-3xl">
           <MarketingSectionCopy
+            inverted={inverted}
             eyebrow={isDisplay ? "AI 디스플레이 관리" : "AI 메뉴 관리"}
             title={isDisplay ? <>AI로 정리되는<br />매장 화면 콘텐츠</> : <>AI로 정리되는<br />반복 메뉴 작업</>}
           />
         </motion.div>
-        <div className="grid gap-6 lg:grid-cols-2">{features.map((feature, index) => <motion.article key={feature.eyebrow} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className="overflow-hidden rounded-[2rem] border border-zinc-200 bg-white"><div className="h-[360px] overflow-hidden md:h-[420px]">{feature.visual}</div><div className="px-6 pb-8 pt-6 md:px-8 md:pb-10"><p className="type-body-lg text-zinc-500">{feature.eyebrow}</p><h3 className="type-subsection-title mt-3 text-zinc-950">{feature.title}</h3><p className="type-body-sm mt-4 text-zinc-500">{feature.body}</p></div></motion.article>)}</div>
+        <div className="grid gap-6 lg:grid-cols-2">{features.map((feature, index) => <motion.article key={feature.eyebrow} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className={`overflow-hidden rounded-[2rem] border ${inverted ? "border-zinc-800 bg-zinc-900" : "border-zinc-200 bg-white"}`}><div className="h-[360px] overflow-hidden md:h-[420px]">{feature.visual}</div><div className="px-6 pb-8 pt-6 md:px-8 md:pb-10"><p className={`type-body-lg ${inverted ? "text-zinc-400" : "text-zinc-500"}`}>{feature.eyebrow}</p><h3 className={`type-subsection-title mt-3 ${inverted ? "text-white" : "text-zinc-950"}`}>{feature.title}</h3><p className={`type-body-sm mt-4 ${inverted ? "text-zinc-400" : "text-zinc-500"}`}>{feature.body}</p></div></motion.article>)}</div>
       </div>
     </section>
   );
 }
 
-export function StoreScenesSection({ service = "dining" }: { service?: MarketingService } = {}) {
+export function StoreScenesSection({ service = "dining", inverted = false }: { service?: MarketingService; inverted?: boolean } = {}) {
   const isDisplay = service === "display";
   const scenes = isDisplay ? [
     {
@@ -571,10 +549,11 @@ export function StoreScenesSection({ service = "dining" }: { service?: Marketing
   ];
 
   return (
-    <section className="site-gutter bg-white pb-20 pt-12 md:pb-24 md:pt-12">
+    <section className={`site-gutter pb-20 pt-12 md:pb-24 md:pt-12 ${inverted ? "bg-zinc-950 text-white" : "bg-white text-zinc-950"}`}>
       <div className="mx-auto max-w-[1280px]">
         <motion.div {...fadeUp} className="mb-14 max-w-4xl md:mb-20">
           <MarketingSectionCopy
+            inverted={inverted}
             eyebrow="매장 활용"
             title={isDisplay ? <>매장 화면에서 만나는<br />아티메뉴 디스플레이</> : <>매장에서 만나는<br />아티메뉴</>}
           />
@@ -586,8 +565,8 @@ export function StoreScenesSection({ service = "dining" }: { service?: Marketing
               <div className="aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-zinc-100 md:rounded-[2rem]">
                 <img src={scene.image} alt="" className="h-full w-full object-cover" />
               </div>
-              <h3 className="type-content-title mt-6 text-zinc-950">{scene.title}</h3>
-              <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500 md:text-base">{scene.body}</p>
+              <h3 className={`type-content-title mt-6 ${inverted ? "text-white" : "text-zinc-950"}`}>{scene.title}</h3>
+              <p className={`mt-3 break-keep text-sm font-medium leading-relaxed md:text-base ${inverted ? "text-zinc-400" : "text-zinc-500"}`}>{scene.body}</p>
             </motion.article>
           ))}
         </div>
@@ -661,7 +640,7 @@ function DeviceSetVisual() {
 
 export function DeviceEverywhereSection() {
   return (
-    <DarkStorySection
+    <StorySection
       endOfRegion
       eyebrow="반응형 메뉴판"
       title={<>하나의 링크,<br />모든 디바이스에 최적화</>}
