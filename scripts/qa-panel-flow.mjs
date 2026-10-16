@@ -9,13 +9,14 @@ const cases = [
  ['pc',1516,844,'ko','no-cover'],['mobile',390,844,'ko','brand-logo'],
  ['pc',1516,844,'ko','brand-logo'],['mobile',320,844,'ko','call-off'],['mobile',430,900,'en','call-off'],['pc',1516,844,'ko','call-off'],['pc',1516,844,'ko','panel-single'],['tablet',1024,768,'ko','panel-two'],
 ];
-const selectedCases=process.argv.includes("--desktop") ? cases.filter(([device])=>device!=='mobile') : process.argv.includes("--short") ? cases.filter(([device,,height])=>device==='pc'&&height===762) : process.argv.includes("--wide") ? cases.filter(([device,,height,,fixture])=>device==='pc'&&fixture===''&&height!==844) : process.argv.includes("--mobile") ? cases.filter(([device])=>device==='mobile') : process.argv.includes("--quick") ? cases.filter(([device,width,height,,fixture])=>fixture===''&&((device==='pc'&&height===844)||(device==='tablet'&&width===1024))) : process.argv.includes("--geometry") ? cases.filter(([device,,,lang,fixture])=>device==='mobile'&&lang==='ko'&&(fixture===''||fixture==='call-off')) : cases;
+const selectedCases=process.argv.includes("--square-boundary") ? [['pc',1512,762,'ko','square-boundary']] : process.argv.includes("--desktop") ? cases.filter(([device])=>device!=='mobile') : process.argv.includes("--short") ? cases.filter(([device,,height])=>device==='pc'&&height===762) : process.argv.includes("--wide") ? cases.filter(([device,,height,,fixture])=>device==='pc'&&fixture===''&&height!==844) : process.argv.includes("--mobile") ? cases.filter(([device])=>device==='mobile') : process.argv.includes("--quick") ? cases.filter(([device,width,height,,fixture])=>fixture===''&&((device==='pc'&&height===844)||(device==='tablet'&&width===1024))) : process.argv.includes("--geometry") ? cases.filter(([device,,,lang,fixture])=>device==='mobile'&&lang==='ko'&&(fixture===''||fixture==='call-off')) : cases;
 const results=[];
 try {
  for (let index=0;index<selectedCases.length;index+=1) await Promise.all(selectedCases.slice(index,index+1).map(async ([device,width,height,lang,fixture])=>{
   const page=await browser.newPage({viewport:{width,height},reducedMotion:'reduce'});
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(`http://localhost:3000/templates/restaurant_onue_a/preview?device=${device}&view=actual&embedded=1&callPreview=${fixture==='call-off'?'off':'on'}&lang=${lang}&rhythmQa=${fixture}`,{waitUntil:'domcontentloaded',timeout:60000});
+  if(fixture==='square-boundary') await page.addStyleTag({content:'.cafe-a-panel-intro { aspect-ratio: 1 !important; }'});
   await page.evaluate(()=>document.fonts.ready);
   if(device!=='mobile') await page.waitForFunction(()=>document.querySelector('.cafe-a-desktop-fit-board')?.dataset.fitPresentationState==='ready',null,{timeout:45000});
   else await page.waitForFunction(()=>[...document.querySelectorAll('[data-mobile-brand-fit]')].filter(e=>e.getBoundingClientRect().width).every(e=>e.dataset.mobileBrandFit==='ready'),null,{timeout:15000});
@@ -36,6 +37,7 @@ try {
    const column=footer?.closest('[data-cafe-a-balanced-column]');
    return {viewport:[innerWidth,innerHeight],state:board?.dataset.fitPresentationState,layout:board?.dataset.layoutMode,inset:parseFloat(getComputedStyle(board.querySelector("[data-cafe-a-fit-menu]")).paddingLeft),overflow:board?.dataset.fitOverflow,columns:Number(board?.dataset.fitColumns),basis:board?.dataset.fitCopyBasis,
     menuColumnsWithItems:[...new Set([...board.querySelectorAll('[data-cafe-a-menu-item]')].filter(visible).map(e=>Math.round(e.getBoundingClientRect().left/((board.clientWidth+8)/Number(board.dataset.fitColumns)))))].length,
+    boundaries:[...board.querySelectorAll('[data-cafe-a-category-block]')].filter(visible).map(e=>({title:e.querySelector('[data-cafe-a-category-heading]')?.textContent,next:e.dataset.cafeAVisualNextBlockType,gap:parseFloat(getComputedStyle(e).marginBottom),lastItemGap:parseFloat(getComputedStyle(e.querySelector('[data-cafe-a-item-stack]:last-child')).marginBottom),fragments:e.getClientRects().length})),
     minimumItemFont:Math.min(...[...board.querySelectorAll('[data-cafe-a-menu-name]')].filter(visible).map(e=>parseFloat(getComputedStyle(e).fontSize))),
     footerAlignment:footer?getComputedStyle(footer).textAlign:null,
     footerGap:footer&&lastItem?footer.getBoundingClientRect().top-lastItem.bottom:null,
@@ -66,10 +68,11 @@ try {
   assert.equal(metrics.controlWithinFrame,true,JSON.stringify(metrics));
   assert.ok(metrics.identityCenterDelta<2,JSON.stringify(metrics));
   if(device==='mobile') {assert.equal(metrics.callInsideIntro,fixture!=='call-off');assert.equal(metrics.noticesInIdentity,false);assert.equal(metrics.noticeListCount,1);assert.equal(metrics.footerAlignment,'right');assert.ok(Math.abs(metrics.footerGap-48)<2,JSON.stringify(metrics));}
+  if(fixture==='square-boundary') { const first=metrics.boundaries[0];assert.ok(first.fragments>1,JSON.stringify(metrics));assert.equal(first.next,'category',JSON.stringify(metrics));const peers=metrics.boundaries.filter(e=>e.next==='category');assert.ok(peers.every(e=>Math.abs(e.gap-first.gap)<1),JSON.stringify(metrics));assert.ok(peers.every(e=>e.lastItemGap===0),JSON.stringify(metrics));}
   if(fixture==='no-cover'||fixture==='panel-single')assert.equal(metrics.plain,true);
   if(fixture==='panel-single')assert.equal(metrics.columns,1);
   if(fixture==='brand-logo')assert.equal(metrics.logo,true);
-  if(introCase(fixture))assert.ok(Math.abs(metrics.imageRatio-1)<.01);
+  if(introCase(fixture))assert.ok(Math.abs(metrics.imageRatio-(device==='mobile'||fixture==='square-boundary'?1:4/3))<.01);
   await page.screenshot({path:`/tmp/onue-${device}-${width}-${lang}-${fixture||'default'}.png`,fullPage:true});
   results.push({device,fixture,lang,...metrics});console.log(JSON.stringify(results.at(-1)));
   await page.close();

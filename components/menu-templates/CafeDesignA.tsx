@@ -38,9 +38,10 @@ import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { isMenuCoverVisibleOnDevice } from "@/lib/menu-cover-device-visibility";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
-import { PANEL_INTRO_KEY, PANEL_FEATURED_IMAGE, resolvePanelTextInk, withPanelIntro } from "@/lib/one-page-panel-flow";
+import { PANEL_INTRO_KEY, PANEL_FEATURED_IMAGE, PANEL_MOBILE_FEATURED_IMAGE, resolvePanelTextInk, withPanelIntro } from "@/lib/one-page-panel-flow";
 import { getFixedOnePageLayoutShell, type OnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import { getOnePageCategoryOrderTier, inferOnePageCategoryAffinity, getConventionalCategoryRank } from "@/lib/one-page-category-order";
+import { getOrderedFlowNextBlockTypes } from "@/lib/one-page-flow-boundaries";
 import { getOnePageContentSignature } from "@/lib/one-page-content-signature";
 import { shouldRelaxOnePageCopyReference } from "@/lib/one-page-copy-reference";
 import { getOnePageItemRhythmMultiplier, getOnePageRhythmMode, usesOnePageProportionFitPolicy, usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
@@ -1139,7 +1140,11 @@ function syncOrderedFitColumnStartCategoryDividers(menuElement: HTMLElement, tem
     columns.set(columnKey, columnBlocks);
   });
 
-  const visualNextBlockTypes = new Map<HTMLElement, CafeDesignAContentBlockType>();
+  const visualNextBlockTypes = getOrderedFlowNextBlockTypes(blockElements.flatMap(block =>
+    Array.from(block.element.getClientRects()).filter(rect => rect.width > 0 && rect.height > 0).map(rect => ({
+      block: block.element, type: block.type, left: rect.left, top: rect.top, order: block.index,
+    })),
+  ));
   const sortedColumns = Array.from(columns.entries()).sort(([left], [right]) => left - right);
   sortedColumns.forEach(([, columnBlocks], columnIndex) => {
     const sortedColumnBlocks = columnBlocks
@@ -1151,7 +1156,7 @@ function syncOrderedFitColumnStartCategoryDividers(menuElement: HTMLElement, tem
       suppressedCategoryElements.add(firstBlock.element);
     }
 
-    sortedColumnBlocks.forEach((block, blockIndex) => {
+    sortedColumnBlocks.forEach((block) => {
       if (isMochaForestSkin(templateSkin)) {
         const visualColumnIndex = columnIndex + 1;
         const visualColumnCount = sortedColumns.length + 1;
@@ -1161,11 +1166,6 @@ function syncOrderedFitColumnStartCategoryDividers(menuElement: HTMLElement, tem
         block.element.setAttribute("data-mocha-column-count", String(visualColumnCount));
       } else {
         clearMochaForestPanelAttributes(block.element);
-      }
-
-      const nextBlockType = sortedColumnBlocks[blockIndex + 1]?.type;
-      if (nextBlockType === "category" || nextBlockType === "widget") {
-        visualNextBlockTypes.set(block.element, nextBlockType);
       }
     });
   });
@@ -3657,7 +3657,7 @@ function PanelFlowIntro({ data, density, mobileReading = false }: { data: Public
   const typography = mergeTypographySettings(data.menuSite.template_key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
   const plainInk = resolvePanelTextInk(typography.typography_roles.brand.color, typography.typography_roles.category.color);
   if (!showCover || !slides.length) return <div className="cafe-a-panel-plain-intro" style={{ "--menu-role-brand-color": plainInk } as CSSProperties}>{controls}{identity}</div>;
-  return <div className="cafe-a-panel-intro" style={{ "--panel-featured-ratio": PANEL_FEATURED_IMAGE.cssRatio } as CSSProperties}>
+  return <div className="cafe-a-panel-intro" style={{ "--panel-featured-ratio": (mobileReading ? PANEL_MOBILE_FEATURED_IMAGE : PANEL_FEATURED_IMAGE).cssRatio } as CSSProperties}>
     <CoverHero data={data} featuredSlides={slides} capabilities={capabilities} density={density}
       customBadgeStyles={getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings)}
       priceDisplayMode={getPriceDisplayModeFromSettings(data.menuSite.settings, data.menuSite.template_key)} identity={<>{controls}{identity}</>} />

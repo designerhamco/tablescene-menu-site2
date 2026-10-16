@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { getStarterPreset } from "./menu-starter-presets";
 import { getFixedOnePageLayoutShell } from "./one-page-layout-shells";
 import { getOnePageTotalColumnCount } from "./one-page-fit-policy";
-import { PANEL_INTRO_KEY, PANEL_FEATURED_IMAGE, resolvePanelTextInk, withPanelIntro } from "./one-page-panel-flow";
+import { PANEL_INTRO_KEY, PANEL_FEATURED_IMAGE, PANEL_MOBILE_FEATURED_IMAGE, resolvePanelTextInk, withPanelIntro } from "./one-page-panel-flow";
 import { getTemplateLayoutRules } from "./template-layout-rules";
 import { getTemplateCapabilities } from "./template-capabilities";
 import { usesOnePageProportionPolicy } from "./one-page-proportion-policy";
@@ -18,7 +18,8 @@ test("panel shell shares fitting without reserving an extra brand column", () =>
  assert.equal(getTemplateCapabilities("restaurant_onue_a").brandLogo, true);
  const preset = getStarterPreset("restaurant_onue_a");
  assert.equal(preset.pages.flatMap(p=>p.categories.flatMap(c=>c.items)).filter(i=>i.image_url).length, 3);
- assert.equal(PANEL_FEATURED_IMAGE.width / PANEL_FEATURED_IMAGE.height, 1);
+ assert.equal(PANEL_FEATURED_IMAGE.width / PANEL_FEATURED_IMAGE.height, 4 / 3);
+ assert.equal(PANEL_MOBILE_FEATURED_IMAGE.width / PANEL_MOBILE_FEATURED_IMAGE.height, 1);
 });
 
 test("plain representative content keeps readable saved ink and falls back when it is white", () => {

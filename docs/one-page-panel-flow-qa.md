@@ -42,3 +42,9 @@ Short-PC packing follow-up (2026-10-16): reproduced the empty fourth panel at ac
 
 
 Validation: 12 ONUE PC/tablet cases and 21 existing-template ordered-mode PC/mobile views passed. Product-name minimum remains at least 16px in ONUE PC/tablet; the exact 1512×762 case has 36px menu insets and three occupied panels. All 640 unit/contract tests, TypeScript, ESLint and the production build passed. Portrait-tablet ordered footer visibility was also corrected so the reserved notices/Call are actually rendered below the 1024px breakpoint.
+
+
+Device ratio/category boundary follow-up (2026-10-16): the fixed representative ratio is now 4:3 on PC/tablet and 1:1 on mobile. Recommend one 1600×1600px source with center cropping; the editor describes both display ratios. Prior square-frame records above describe earlier revisions. In ordered CSS columns, union category rectangles could conceal the trailing signature→next-category boundary. Physical fragments now set the shared boundary attribute, preserving existing role/color/divider rules. A square-frame reproduction of the original split-signature case confirmed equal category boundary margins (29.63px) and zero last-item trailing margin for all adjacent categories.
+
+
+Validation for the ratio/boundary revision: 12 ONUE PC/tablet cases, six ONUE mobile cases, one forced square/split-category reproduction and 21 existing-template ordered PC/mobile views passed. Mobile retained a measured 1:1 frame and PC/tablet measured approximately 1.333. All 642 tests, TypeScript, ESLint and the production build passed.

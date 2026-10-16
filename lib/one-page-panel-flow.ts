@@ -1,7 +1,8 @@
 import type { MenuPageGroup, CafeDesignAWidgetContentBlock } from "@/components/menu-templates/shared/cafe-template-types";
 
 export const PANEL_INTRO_KEY = "__one-page-panel-intro";
-export const PANEL_FEATURED_IMAGE = { ratio: "1:1", cssRatio: "1 / 1", width: 1600, height: 1600 } as const;
+export const PANEL_FEATURED_IMAGE = { ratio: "4:3", cssRatio: "4 / 3", width: 1600, height: 1200 } as const;
+export const PANEL_MOBILE_FEATURED_IMAGE = { ratio: "1:1", cssRatio: "1 / 1", width: 1600, height: 1600 } as const;
 
 /** Render-only structural block: measured by the shared packer, never saved as a customer widget. */
 export function withPanelIntro(groups: MenuPageGroup[]): MenuPageGroup[] {
