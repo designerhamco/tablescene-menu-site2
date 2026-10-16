@@ -77,7 +77,7 @@ body {
 
 /* Shared dark CTA surface used at the end of public pages. */
 .site-dark-cta {
-  border-radius: 1rem;
+  border-radius: var(--ui-radius-box);
   background: var(--ui-text);
   padding: 3rem 1.5rem;
   color: #fff;

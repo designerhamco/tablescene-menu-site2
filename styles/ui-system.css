@@ -4,9 +4,10 @@
   --ui-control-height-lg: 3rem;
   --ui-radius-control: 9999px;
   --ui-radius-field: .5rem;
-  --ui-radius-card: .75rem;
-  --ui-radius-card-compact: .5rem;
-  --ui-radius-surface: .75rem;
+  --ui-radius-box: clamp(2rem, 5vw, 3rem);
+  --ui-radius-card: var(--ui-radius-box);
+  --ui-radius-card-compact: var(--ui-radius-box);
+  --ui-radius-surface: var(--ui-radius-box);
   --ui-border: #dbdee3;
   --ui-border-strong: #9fa3ab;
   --ui-surface: #ffffff;
@@ -268,7 +269,7 @@
   ):not(.menu-typography *):not(.menu-typography, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) {
   min-height: var(--ui-control-height-md);
   border: 1px solid var(--ui-border);
-  border-radius: var(--ui-radius-card-compact);
+  border-radius: var(--ui-radius-field);
   background: var(--ui-surface);
   color: var(--ui-text);
   box-shadow: none;
@@ -706,14 +707,6 @@ textarea.site-field,
 }
 
 @media (max-width: 639px) {
-  :root {
-    --ui-radius-card: .75rem;
-    --ui-radius-surface: .75rem;
-    --ui-action-hover: #24282f;
-    --ui-action-pressed: #4b515b;
-    --ui-action-soft-pressed: #e2e5e9;
-  }
-
   .site-button-lg {
     min-height: 3rem;
     padding-inline: 1.25rem;

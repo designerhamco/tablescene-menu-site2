@@ -8,7 +8,7 @@ test("사이트 입력·선택·본문 입력은 공통 컨트롤 토큰을 사�
   assert.match(uiSource, /\.site-field,/);
   assert.match(uiSource, /min-height: var\(--ui-control-height-md\)/);
   assert.match(uiSource, /border: 1px solid var\(--ui-border\)/);
-  assert.match(uiSource, /border-radius: var\(--ui-radius-card-compact\)/);
+  assert.match(uiSource, /border-radius: var\(--ui-radius-field\)/);
   assert.match(uiSource, /font-size: var\(--font-size-200\)/);
   assert.match(uiSource, /box-shadow: none/);
 });

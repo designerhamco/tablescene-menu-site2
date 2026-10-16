@@ -42,18 +42,18 @@ const GoodsPackagePage = () => {
             className="grid grid-cols-2 gap-4"
           >
              <div className="space-y-4">
-               <div className="aspect-[3/4] rounded-xl overflow-hidden shadow-lg">
+               <div className="aspect-[3/4] site-media-frame shadow-lg">
                  <img src="https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover" alt="Package" />
                </div>
-               <div className="aspect-square rounded-xl overflow-hidden shadow-lg">
+               <div className="aspect-square site-media-frame shadow-lg">
                  <img src="https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover" alt="Box" />
                </div>
              </div>
              <div className="space-y-4 pt-8">
-               <div className="aspect-square rounded-xl overflow-hidden shadow-lg">
+               <div className="aspect-square site-media-frame shadow-lg">
                  <img src="https://images.unsplash.com/photo-1544816155-12df9643f363?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover" alt="Coffee Cup" />
                </div>
-               <div className="aspect-[3/4] rounded-xl overflow-hidden shadow-lg">
+               <div className="aspect-[3/4] site-media-frame shadow-lg">
                  <img src="https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1000&auto=format&fit=crop" className="w-full h-full object-cover" alt="Tote Bag" />
                </div>
              </div>

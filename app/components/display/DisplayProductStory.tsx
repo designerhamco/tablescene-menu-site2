@@ -113,7 +113,7 @@ function StoryVisualFrame({ children }: { children: React.ReactNode }) {
     <motion.div
       {...fadeUp}
       transition={{ ...fadeUp.transition, delay: 0.08 }}
-      className="h-[380px] overflow-hidden rounded-[2rem] border border-white/10 bg-[#171717] shadow-2xl md:h-[500px]"
+      className="site-media-frame h-[380px] border border-white/10 bg-[#171717] shadow-none md:h-[500px]"
     >
       {children}
     </motion.div>

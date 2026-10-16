@@ -35,7 +35,7 @@ const VisualStudioPage = () => {
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
-              className="aspect-square rounded-lg overflow-hidden cursor-pointer group"
+              className="aspect-square site-media-frame cursor-pointer group"
             >
               <img 
                 src={src} 

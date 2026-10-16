@@ -63,10 +63,11 @@
 .site-tab[aria-selected="true"], .site-tab[aria-pressed="true"] { background: var(--ui-text); color: #fff; font-weight: 600; }
 .site-template-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
 .site-template-card { min-width: 0; }
-.site-template-media { overflow: hidden; border: 1px solid var(--ui-border); border-radius: .75rem; background: var(--ui-surface-muted); }
+.site-media-frame { overflow: hidden; border-radius: var(--ui-radius-box); }
+.site-template-media { overflow: hidden; border: 1px solid var(--ui-border); border-radius: var(--ui-radius-box); background: var(--ui-surface-muted); }
 .site-template-media [data-template-artwork] > * { border-radius: 0; }
 .site-template-card > :last-child { padding-top: .75rem; }
-.site-template-artwork { overflow: hidden; border-radius: .75rem; }
+.site-template-artwork { overflow: hidden; border-radius: var(--ui-radius-box); }
 .site-template-artwork > * { border-radius: inherit; }
 
 /* Compatibility rules for existing site pages, including account and editor
@@ -80,7 +81,7 @@
 :is(.border-zinc-100, .divide-zinc-100):not(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) { border-color: var(--site-divider); }
 :is(article, section, form, aside, div)[class*="rounded-"][class~="border"]:not(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) { border-radius: var(--ui-radius-card); box-shadow: none; }
 :where(input, select, textarea):not(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) { border-radius: var(--ui-radius-field); }
-.site-dark-cta { border-radius: 1rem; background: var(--ui-text); padding: 3rem 1.5rem; }
+.site-dark-cta { border-radius: var(--ui-radius-box); background: var(--ui-text); padding: 3rem 1.5rem; }
 [data-slot="tabs-list"]:not(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *) { border-radius: 9999px; background: transparent; }
 [data-slot="tabs-trigger"][data-state="active"]:not(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *) { background: var(--ui-text); color: #fff; border-radius: 9999px; box-shadow: none; }
 @media (min-width: 640px) {

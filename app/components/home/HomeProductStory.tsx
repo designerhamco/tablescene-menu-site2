@@ -146,7 +146,7 @@ export function BrandHero() {
 
 function StoryVisualFrame({ children }: { children: React.ReactNode }) {
   return (
-    <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.08 }} className="h-[380px] overflow-hidden rounded-[2rem] border border-white/10 bg-[#171717] shadow-2xl md:h-[500px]">
+    <motion.div {...fadeUp} transition={{ ...fadeUp.transition, delay: 0.08 }} className="site-media-frame h-[380px] border border-white/10 bg-[#171717] shadow-none md:h-[500px]">
       <div className="h-full overflow-hidden">{children}</div>
     </motion.div>
   );
@@ -565,7 +565,7 @@ export function StoreScenesSection({ service = "dining", inverted = false }: { s
         <div className="grid gap-10 md:grid-cols-3 md:gap-6">
           {scenes.map((scene, index) => (
             <motion.article key={scene.title} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }}>
-              <div className="aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-zinc-100 md:rounded-[2rem]">
+              <div className="site-media-frame aspect-[4/5] bg-zinc-100">
                 <img src={scene.image} alt="" className="h-full w-full object-cover" />
               </div>
               <h3 className={`type-content-title mt-6 ${inverted ? "text-white" : "text-zinc-950"}`}>{scene.title}</h3>
