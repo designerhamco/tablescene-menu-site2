@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {getOrderedFlowNextBlockTypes} from "./one-page-flow-boundaries";
+import {getOrderedFlowNextBlockTypes, resolveOrderedFlowBoundary} from "./one-page-flow-boundaries";
 
 test("a category continued in the next column uses its trailing fragment's boundary", () => {
   const next=getOrderedFlowNextBlockTypes([
@@ -23,4 +23,12 @@ test("a fragment ending a column does not borrow a follower from an earlier frag
   ]);
   assert.equal(next.get("first"),"category");
   assert.equal(next.has("long"),false);
+});
+
+test("ordered category spacing survives the column break that its own gap caused", () => {
+  assert.equal(resolveOrderedFlowBoundary("category", "category"), "category");
+  assert.equal(resolveOrderedFlowBoundary("category", undefined), "category");
+  assert.equal(resolveOrderedFlowBoundary("widget", undefined), "widget");
+  assert.equal(resolveOrderedFlowBoundary(undefined, undefined), undefined);
+  assert.equal(resolveOrderedFlowBoundary(undefined, "category"), "category");
 });

@@ -20,3 +20,11 @@ export function getOrderedFlowNextBlockTypes<T>(fragments: readonly {
   }
   return result;
 }
+
+/** Spacing must not disappear merely because it moved the follower to another column. */
+export function resolveOrderedFlowBoundary(
+  registeredNext: string | undefined,
+  physicalNext: "category" | "widget" | undefined,
+): "category" | "widget" | undefined {
+  return registeredNext === "category" || registeredNext === "widget" ? registeredNext : physicalNext;
+}

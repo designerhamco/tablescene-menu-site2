@@ -12,7 +12,8 @@ export function measureOnePageMobileRhythm() {
   const categories = flow ? [...flow.querySelectorAll('[data-cafe-a-category-block]')].filter(visible) : [];
   const blocks = flow ? [...flow.children].filter(visible) : [];
   const cover = scroll ? [...scroll.children].find((element) => element.classList.contains('cafe-a-cover-hero') && visible(element)) : null;
-  const upper = [...root.querySelectorAll('[data-cafe-a-mobile-upper-box]')].find(visible) || cover || [...document.querySelectorAll('[data-cafe-a-round-focus-mobile-brand-section], [data-cafe-a-topline-mobile-notices]')].filter(visible).at(-1) || [...root.querySelectorAll('header')].find(visible);
+  const panelIntro = [...root.querySelectorAll('.cafe-a-panel-mobile-intro')].find(visible);
+  const upper = panelIntro || [...root.querySelectorAll('[data-cafe-a-mobile-upper-box]')].find(visible) || cover || [...document.querySelectorAll('[data-cafe-a-round-focus-mobile-brand-section], [data-cafe-a-topline-mobile-notices]')].filter(visible).at(-1) || [...root.querySelectorAll('header')].find(visible);
   const fieldSize = (selector) => {
     const element = [...root.querySelectorAll(selector)].find(visible);
     return element ? Number.parseFloat(getComputedStyle(element).fontSize) : null;
@@ -21,14 +22,14 @@ export function measureOnePageMobileRhythm() {
     const element = [...root.querySelectorAll(selector)].find(visible);
     return element?.closest(`[data-cafe-a-content-variant="${variant}"]`) ? 1.05 : 1;
   };
-  const header = [...root.querySelectorAll('header')].find(visible);
-  const language = header?.querySelector('[data-cafe-a-mobile-language-row]');
+  const header = panelIntro || [...root.querySelectorAll('header')].find(visible);
+  const language = header?.querySelector(panelIntro ? '.cafe-a-panel-controls' : '[data-cafe-a-mobile-language-row]');
   const callBar = header?.querySelector('[data-one-page-call-bar]');
   const brand = header?.querySelector('[data-cafe-a-store-title], [data-cafe-a-store-logo]');
   const brandLine = brand?.querySelector('[data-mobile-brand-line]');
   const brandDescription = header?.querySelector('[data-cafe-a-store-description]');
   const gap = (first, next) => first && next ? next.getBoundingClientRect().top - first.getBoundingClientRect().bottom : null;
-  const upperContent = [header, ...root.querySelectorAll('.cafe-a-topline-mobile-notices .cafe-a-mobile-notice-list, .cafe-a-round-focus-mobile-notices .cafe-a-round-focus-notice-list, .cafe-a-round-focus-mobile-notices .cafe-a-mobile-notice-list, .cafe-a-cover-hero')].filter(visible).sort((first, next) => first.getBoundingClientRect().top - next.getBoundingClientRect().top);
+  const upperContent = (panelIntro ? [panelIntro] : [header, ...root.querySelectorAll('.cafe-a-topline-mobile-notices .cafe-a-mobile-notice-list, .cafe-a-round-focus-mobile-notices .cafe-a-round-focus-notice-list, .cafe-a-round-focus-mobile-notices .cafe-a-mobile-notice-list, .cafe-a-cover-hero')]).filter(visible).sort((first, next) => first.getBoundingClientRect().top - next.getBoundingClientRect().top);
   const rootTop = root.getBoundingClientRect().top;
   const kohiLineGaps = [...root.querySelectorAll('[data-kohi-divider]')].filter((line) => line.getAttribute('data-kohi-divider') !== 'column').map((line) => {
     const center = rootTop + Number(line.getAttribute('y1'));
@@ -61,7 +62,9 @@ export function measureOnePageMobileRhythm() {
     languageHeight: visible(language) ? language.getBoundingClientRect().height : null,
     callEnabled: root.getAttribute('data-one-page-call-enabled') === 'true',
     callBarHeight: visible(callBar) ? callBar.getBoundingClientRect().height : null,
-    languageToBrand: visible(language) ? gap(language, brand) : null,
+    // Panel-flow centers identity inside its fixed photo rather than using the
+    // ordinary control-to-brand reading gap. The bar height is still shared.
+    languageToBrand: !panelIntro && visible(language) ? gap(language, brand) : null,
     brandToDescription: gap(brand, brandDescription),
     upperContentGaps: upperContent.slice(0, -1).map((block, index) => gap(block, upperContent[index + 1])),
     brandInnerWidth: brand?.parentElement?.getBoundingClientRect().width ?? null,

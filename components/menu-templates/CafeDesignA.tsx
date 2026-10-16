@@ -41,7 +41,7 @@ import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import { PANEL_INTRO_KEY, PANEL_FEATURED_IMAGE, PANEL_MOBILE_FEATURED_IMAGE, resolvePanelTextInk, withPanelIntro } from "@/lib/one-page-panel-flow";
 import { getFixedOnePageLayoutShell, type OnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import { getOnePageCategoryOrderTier, inferOnePageCategoryAffinity, getConventionalCategoryRank } from "@/lib/one-page-category-order";
-import { getOrderedFlowNextBlockTypes } from "@/lib/one-page-flow-boundaries";
+import { getOrderedFlowNextBlockTypes, resolveOrderedFlowBoundary } from "@/lib/one-page-flow-boundaries";
 import { getOnePageContentSignature } from "@/lib/one-page-content-signature";
 import { shouldRelaxOnePageCopyReference } from "@/lib/one-page-copy-reference";
 import { getOnePageItemRhythmMultiplier, getOnePageRhythmMode, usesOnePageProportionFitPolicy, usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
@@ -1175,7 +1175,12 @@ function syncOrderedFitColumnStartCategoryDividers(menuElement: HTMLElement, tem
   }
 
   blockElements.forEach(({ element }) => {
-    const visualNextBlockType = visualNextBlockTypes.get(element);
+    // Ordered flow has a known next content block. Keep its boundary spacing
+    // even when that very spacing pushes the follower into the next column.
+    // Toggling the gap from post-layout geometry can otherwise alternate two
+    // different column breaks without ever settling. Physical fragments still
+    // determine column decorations and boundaries without a registered follower.
+    const visualNextBlockType = resolveOrderedFlowBoundary(element.dataset.cafeANextBlockType, visualNextBlockTypes.get(element));
     if (visualNextBlockType) {
       element.setAttribute("data-cafe-a-visual-next-block-type", visualNextBlockType);
       return;
@@ -5191,6 +5196,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     if (desktopFitBoardRef.current) {
       resizeObserver.observe(desktopFitBoardRef.current);
     }
+    // The column container can stay the same size while fitted fonts or wrapped
+    // copy move a category boundary. Observe the painted rows as well.
+    menuElement.querySelectorAll<HTMLElement>("[data-cafe-a-category-heading], [data-cafe-a-item-stack]").forEach(element => resizeObserver.observe(element));
 
     return () => {
       cancelled = true;
@@ -5204,6 +5212,11 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     renderFitState.columns,
     renderFitState.fontScale,
     renderFitState.gapScale,
+    safeRenderFitState.fontScale,
+    safeRenderFitState.gapScale,
+    fitPresentationState,
+    copyFitBasis,
+    twoFieldBoostEnabled,
     orderedFitFinalFillCompensation,
     layoutInputSignature,
     data.templateSkin,
@@ -6169,6 +6182,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       const currentState = fitStateRef.current;
       if (
         canRetainTemplateFitState(currentState) &&
+        columnCandidates.includes(currentState.columns) &&
+        !isActualPartitionRejected(currentState.columns, currentState.orderedBalancedBreaks) &&
+        !isOrderedBalancedColumnRejected(orderedBalancedFingerprint, currentState.columns) &&
         !orderedBalancedRejectedCandidateRef.current.has(getOrderedBalancedCandidateKey(currentState)) &&
         shouldKeepOrderedBalancedSettledCandidate(currentState, nextState)
       ) {

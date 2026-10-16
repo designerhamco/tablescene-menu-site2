@@ -116,8 +116,10 @@ test("리얼맛차 단일페이지의 데스크톱 카테고리 경계는 숨긴
   const boundaryRule = `${selector} {\n    margin-bottom: var(--cafe-a-category-no-divider-gap);\n  }`;
   assert.ok(globalStylesSource.includes(`@media (min-width: 1024px) {\n  ${boundaryRule}`));
   assert.equal(globalStylesSource.split(selector).length - 1, 1);
-  // The scoped rule follows both shared category transitions, including the two-column fallback.
-  assert.ok(globalStylesSource.indexOf(boundaryRule) > globalStylesSource.lastIndexOf('margin-bottom: var(--cafe-a-category-divider-before-gap);'));
+  // The wide-canvas override follows the common wide rule. The later portrait
+  // media scope has its own matching divider-free override, verified in DOM QA.
+  const wideCanvasStyles = globalStylesSource.slice(0, globalStylesSource.indexOf("/* PC/tablet: one measured primary fit"));
+  assert.ok(wideCanvasStyles.indexOf(boundaryRule) > wideCanvasStyles.lastIndexOf('margin-bottom: var(--cafe-a-category-divider-before-gap);'));
   assert.match(
     globalStylesSource,
     /data-template-key="cafe_design_a"\] \.cafe-a-menu-category-top-divider \{\s*display: none;/,

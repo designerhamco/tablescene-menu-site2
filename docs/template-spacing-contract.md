@@ -244,3 +244,9 @@ The normal ordered-gap mapping is unchanged at fit font scales of 0.95 and above
 ### Fragment-aware ordered category boundaries — 2026-10-16
 
 Ordered flow determines the next visual block from each category's physical `getClientRects()` fragments, not its union bounding box spanning several columns. Only the trailing fragment's following category/widget sets the block's boundary attribute. A category continued into a second column therefore retains the same common boundary token and zero last-item trailing margin as adjacent nonfragmented categories. Image-bearing categories have no separate boundary multiplier. Existing color-panel assignment and first-column divider suppression remain separate; mobile reading boundaries are unchanged.
+
+### Ordered-flow audit follow-up — 2026-10-16
+
+The registered next block owns ordered-flow **spacing**, even if that spacing pushes its follower into another column. Do not repeatedly remove/reapply the gap from post-layout geometry: that can alternate column breaks and miss boundaries. Physical fragments still own column decoration and supply boundaries without a registered follower. Refresh after final safety/copy/row-height changes. Adaptive 768–1023px tablets reuse the canvas boundary tokens, suppress the legacy sibling top margin and clear last-item margin once a category boundary owns it. Mobile retains its separate contract.
+
+Header side-copy height includes its full scroll height when the current header already clips it, within the existing header ratio bounds. Central-brand grid widths must follow the candidate `--fit-columns` during measurement, including the extra brand column. A rejected actual partition cannot survive through settled-state retention. These corrections do not establish a zero-error baseline: the full ordered audit and outstanding narrow-tablet cases are recorded in `docs/one-page-ordered-layout-qa.md`.

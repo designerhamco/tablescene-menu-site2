@@ -4963,6 +4963,24 @@ video {
   .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-menu-item-content-shell {
     column-gap: calc(0.5rem * var(--fit-menu-gap-scale));
   }
+
+  /* Tablet canvas categories use the same boundary tokens as the wide canvas;
+     the legacy small-screen sibling margin must not supply a second gap. */
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block + .cafe-a-menu-category-block {
+    margin-top: 0;
+  }
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] {
+    margin-bottom: var(--cafe-a-category-divider-before-gap);
+  }
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"]:not([data-template-key="cafe_sunday_line_a"]):not([data-template-key="cafe_sunday_roasters_a"]) .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] {
+    margin-bottom: var(--cafe-a-category-no-divider-gap);
+  }
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board :is(.cafe-a-menu-category-block, .cafe-a-menu-widget-block)[data-cafe-a-visual-next-block-type="widget"] {
+    margin-bottom: var(--cafe-a-category-no-divider-gap);
+  }
+  .cafe-a-typography[data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type] .cafe-a-category-items > .cafe-a-menu-item-stack:last-child {
+    margin-bottom: 0;
+  }
 }
 
 [data-cafe-a-reference-copy] { display: none !important; }
@@ -5247,6 +5265,9 @@ video {
 }
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="round_focus"] :is(.cafe-a-desktop-fit-board, .cafe-a-center-rail-menu-grid) {
   column-gap: var(--cafe-a-panel-column-gap) !important;
+  /* Candidate measurement changes this variable before React commits the data
+     attribute. Measure the candidate's menu columns plus its brand column. */
+  grid-template-columns: repeat(calc(var(--fit-columns) + 1), minmax(0, 1fr)) !important;
 }
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"][data-cafe-a-skin="mocha_forest"] :is(.cafe-a-desktop-fit-board, .cafe-a-balanced-menu-grid) {
   column-gap: 0 !important;

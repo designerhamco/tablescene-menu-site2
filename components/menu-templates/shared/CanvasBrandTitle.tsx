@@ -44,7 +44,9 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       const baseGap = (parseFloat(boardStyle?.rowGap ?? "0") || 0) / appliedGapScale;
       const availableHeight = frameHeight - baseGap;
       const header = container.closest("[data-cafe-a-topline-info-header]");
-      const sideHeight = Math.max(0, ...[...header?.querySelectorAll<HTMLElement>(".cafe-a-topline-description, .cafe-a-topline-notice-text") ?? []].map((element) => element.getBoundingClientRect().height));
+      // Header copy can already be capped by the current row height. Its
+      // scroll height preserves the required wrapped-copy height for the next fit.
+      const sideHeight = Math.max(0, ...[...header?.querySelectorAll<HTMLElement>(".cafe-a-topline-description, .cafe-a-topline-notice-text") ?? []].map((element) => Math.max(element.getBoundingClientRect().height, element.scrollHeight)));
       const panelFrame = layoutShell === "brand_panel_flow" ? root.closest<HTMLElement>(".cafe-a-panel-intro") : null;
       // Panel brands use the common column target/height budget, bounded only
       // by the actual controls, supporting copy and featured item around them.
