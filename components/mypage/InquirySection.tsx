@@ -200,7 +200,7 @@ export function InquirySection({
         </div>
       )}
 
-      <section className="site-card p-5 sm:p-7">
+      <section className="site-detail-section pb-7">
         <h3 className="type-subsection-title">새 문의 등록</h3>
 
         <form action={createInquiryAction} className="mt-7 space-y-5">
@@ -270,7 +270,7 @@ export function InquirySection({
           </p>
         </div>
 
-        <form method="get" action={filterPathname} className="site-card mb-5 grid gap-3 p-4 sm:grid-cols-[minmax(0,1fr)_180px_auto] sm:items-end">
+        <form method="get" action={filterPathname} className="site-filter-panel mb-5 grid gap-3 sm:grid-cols-[minmax(0,1fr)_180px_auto] sm:items-end">
           {filterBaseParams.map(([key, value]) => (
             <input key={key} type="hidden" name={key} value={value} />
           ))}
@@ -303,7 +303,7 @@ export function InquirySection({
         </form>
 
         {inquiries.length > 0 ? (
-          <div className="site-card overflow-hidden">
+          <div className="site-record-list overflow-hidden">
             <div className="type-caption hidden grid-cols-[56px_112px_1fr_96px_144px_52px] gap-3 border-b border-zinc-100 bg-zinc-50 px-4 py-3 font-bold text-zinc-400 md:grid">
               <p>번호</p>
               <p>유형</p>
@@ -353,7 +353,7 @@ export function InquirySection({
                         </p>
                       </div>
                     ) : (
-                      <div className="site-section mt-3 p-4">
+                      <div className="site-supporting-note mt-3">
                         <p className="text-xs font-bold text-zinc-500">관리자 답변</p>
                         <p className="type-body-sm mt-2 break-keep text-zinc-500">
                           아직 답변이 등록되지 않았습니다.
@@ -361,7 +361,7 @@ export function InquirySection({
                       </div>
                     )}
 
-                    <div className="site-section mt-3 p-4">
+                    <div className="site-supporting-note mt-3">
                       <div className="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-center">
                         <div>
                           <p className="type-label text-zinc-900">문의 관리</p>
@@ -473,7 +473,7 @@ export function InquirySection({
             </div>
           </div>
         ) : (
-          <div className="site-card border-dashed p-10 text-center">
+          <div className="site-empty-state p-10 text-center">
             <h3 className="type-subsection-title">{inquiryQuery || inquiryStatus !== "all" ? "조건에 맞는 문의가 없습니다" : "아직 문의 내역이 없습니다"}</h3>
             <p className="type-body-sm mx-auto mt-3 max-w-md break-keep text-zinc-500">
               궁금한 점이 있다면 새 문의를 남겨주세요. 답변 상태와 내용을 이곳에서 확인할 수 있습니다.

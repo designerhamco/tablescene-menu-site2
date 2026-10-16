@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bot, MessageSquareText } from "lucide-react";
+import { ArrowUpRight, Bot, MessageSquareText } from "lucide-react";
 import Link from "next/link";
 
 import FAQ, { DETAILED_FAQ_DATA } from "@/app/components/common/FAQ";
@@ -29,23 +29,25 @@ export default function FAQPage() {
               자주 묻는 질문을 먼저 확인하고, 더 자세한 도움이 필요하면 AI 상담이나 1:1 문의를 이용해 주세요.
             </p>
 
-            <div className="site-card-grid mt-12 md:max-w-3xl md:grid-cols-2">
-              <AiSupportChatOpenButton className="site-card site-card-interactive group flex min-h-44 flex-col items-stretch justify-between p-6 text-left">
-                <Bot className="h-6 w-6 text-zinc-950" aria-hidden="true" />
-                <div>
+            <div className="site-support-actions mt-10">
+              <AiSupportChatOpenButton className="site-support-action">
+                <Bot className="site-support-action-icon" aria-hidden="true" />
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <p className="site-body-title">AI 상담</p>
                     {!aiSupportEnabled ? <span className="type-caption rounded-full bg-zinc-100 px-2 py-1 text-zinc-500">준비 중</span> : null}
                   </div>
-                  <p className="site-body-support mt-2 text-zinc-500">기능과 이용 방법을 바로 질문합니다.</p>
+                  <p className="site-body-support mt-1 text-zinc-500">기능과 이용 방법을 바로 질문합니다.</p>
                 </div>
+                <ArrowUpRight className="h-5 w-5 shrink-0 text-zinc-500" aria-hidden="true" />
               </AiSupportChatOpenButton>
-              <Link href="/mypage/inquiries" className="site-card site-card-interactive group flex min-h-44 flex-col justify-between p-6">
-                <MessageSquareText className="h-6 w-6 text-zinc-950" aria-hidden="true" />
-                <div>
+              <Link href="/mypage/inquiries" className="site-support-action">
+                <MessageSquareText className="site-support-action-icon" aria-hidden="true" />
+                <div className="min-w-0 flex-1">
                   <p className="site-body-title">1:1 문의</p>
-                  <p className="site-body-support mt-2 text-zinc-500">계정, 결제처럼 확인이 필요한 내용을 남깁니다.</p>
+                  <p className="site-body-support mt-1 text-zinc-500">계정, 결제처럼 확인이 필요한 내용을 남깁니다.</p>
                 </div>
+                <ArrowUpRight className="h-5 w-5 shrink-0 text-zinc-500" aria-hidden="true" />
               </Link>
             </div>
           </div>

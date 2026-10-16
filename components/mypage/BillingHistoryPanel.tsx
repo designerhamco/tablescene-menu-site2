@@ -559,7 +559,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
 
   return (
     <section className="space-y-5">
-      <div className="site-section p-5">
+      <div className="site-filter-panel">
         <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
           <div>
             <h3 className="type-content-title text-zinc-950">결제내역 필터</h3>
@@ -571,13 +571,13 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
             type="button"
             onClick={() => setFilters(initialFilters)}
             disabled={!hasActiveFilters}
-            className="inline-flex shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-600 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-40"
+            className="site-button site-button-secondary site-button-sm shrink-0"
           >
             필터 초기화
           </button>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-5 grid grid-cols-1 gap-3 min-[375px]:grid-cols-2 xl:grid-cols-4">
           <label className="block">
             <span className="text-xs font-bold text-zinc-400">결제 시작일</span>
             <input
@@ -629,7 +629,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
             onChange={(value) => setFilters((current) => ({ ...current, paymentStatus: value as FilterState["paymentStatus"] }))}
             options={paymentStatusFilterOptions}
           />
-          <label className="block md:col-span-2">
+          <label className="block min-[375px]:col-span-2">
             <span className="text-xs font-bold text-zinc-400">매장명 / 메뉴판 주소 / 결제번호 검색</span>
             <input
               value={filters.query}
@@ -641,7 +641,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
         </div>
       </div>
 
-      <div className="rounded-md bg-amber-50 p-5 text-sm font-bold leading-relaxed text-amber-900">
+      <div className="rounded-md bg-amber-50 p-5 text-sm font-medium leading-relaxed text-amber-900">
         <p>월결제와 연결제는 모두 정기결제 상품입니다. 해지 예약 시 다음 결제일부터 자동결제가 중단되며, 이미 결제된 이용 기간까지 계속 사용할 수 있습니다.</p>
         <p className="mt-2">
           연결제 중도해지/환불은 사용 기간을 월결제 기준 금액으로 재정산한 뒤, 잔여 환불 가능액에서 중도해지 수수료 10%를 공제하는 방식으로 안내합니다.
@@ -659,10 +659,10 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
       </div>
 
       {filteredEntries.length > 0 ? (
-        <div className="grid gap-3">
+        <div className="site-record-list">
           {filteredEntries.map((entry) => (
-            <article key={entry.id} className="site-section p-4">
-              <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+            <article key={entry.id} className="site-record">
+              <div className="site-record-layout">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h4 className="type-content-title text-zinc-950">{entry.productName}</h4>
@@ -674,7 +674,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
                     </span>
                   </div>
 
-                  <dl className="mt-4 grid gap-x-5 gap-y-2 text-sm md:grid-cols-2 xl:grid-cols-4">
+                  <dl className="site-record-details mt-5 grid grid-cols-2 gap-x-5 gap-y-4 text-sm xl:grid-cols-4">
                     <div>
                       <dt className="text-xs font-bold text-zinc-400">결제일</dt>
                       <dd className="mt-1 font-bold text-zinc-900">{entry.paidAtLabel}</dd>
@@ -724,13 +724,13 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
                   </dl>
 
                   {entry.supportMessage ? (
-                    <div className="site-section mt-4 p-3 text-xs font-bold leading-relaxed text-zinc-600">
+                    <div className="site-supporting-note mt-5 text-xs font-medium leading-relaxed text-zinc-600">
                       {entry.supportMessage}
                     </div>
                   ) : null}
 
                   {entry.billingMethod === "yearly" ? (
-                    <div className="site-section mt-4 p-3 text-xs font-bold leading-relaxed text-zinc-500">
+                    <div className="site-supporting-note mt-3 text-xs font-medium leading-relaxed text-zinc-500">
                       연결제는 매년 자동결제되는 연 정기결제 상품입니다. 중도해지/환불 요청 시 사용 기간은 월결제 기준 금액으로 재정산되며, 잔여 환불 가능액에서 중도해지 수수료 10%가 공제됩니다.
                     </div>
                   ) : null}
@@ -763,7 +763,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
           ))}
         </div>
       ) : (
-        <article className="site-section p-8 text-center">
+        <article className="site-empty-state p-8 text-center">
           <h4 className="type-content-title">조건에 맞는 결제내역이 없습니다</h4>
           <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">필터를 초기화하거나 다른 조건으로 다시 확인해주세요.</p>
         </article>

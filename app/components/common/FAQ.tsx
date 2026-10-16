@@ -416,7 +416,7 @@ const FAQ = ({
           )}
 
           {/* FAQ List */}
-          <div className={`min-h-[400px] w-full rounded-2xl border p-4 md:p-8 ${homeDark ? 'border-zinc-700 bg-zinc-950' : 'border-zinc-200 bg-white'} ${showSupport ? 'mb-12' : ''}`}>
+          <div className={`site-faq-list w-full ${homeDark ? 'site-faq-list-inverted' : ''} ${showSupport ? 'mb-12' : ''}`}>
             {normalizedSearchQuery ? (
               searchResults.length > 0 ? (
                 <div>

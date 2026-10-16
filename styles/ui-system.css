@@ -3,7 +3,7 @@
   --ui-control-height-md: 2.5rem;
   --ui-control-height-lg: 3rem;
   --ui-radius-control: 9999px;
-  --ui-radius-field: .5rem;
+  --ui-radius-field: 1rem;
   --ui-radius-hero: clamp(2rem, 5vw, 3rem);
   --ui-radius-box: clamp(1.25rem, 2vw, 2rem);
   --ui-radius-card: 0;
@@ -98,6 +98,14 @@
 .site-button-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
   border-color: var(--ui-border-strong);
   background: var(--ui-surface-muted);
+}
+
+.site-button-secondary:disabled,
+.site-button-secondary[aria-disabled="true"] {
+  border: 1px solid var(--ui-border);
+  background: var(--ui-surface-muted);
+  color: #9fa3ab;
+  opacity: 1;
 }
 
 .site-button-ghost {
@@ -238,6 +246,8 @@
 }
 
 .site-card-interactive {
+  border: 1px solid var(--ui-border);
+  border-radius: .75rem;
   transition:
     background-color var(--ui-transition),
     border-color var(--ui-transition),
@@ -245,6 +255,7 @@
 }
 
 .site-card-interactive:hover {
+  border-color: var(--ui-border-strong);
   background: var(--ui-surface-muted);
 }
 
@@ -690,11 +701,12 @@ textarea.site-field,
 }
 
 .site-choice {
-  border: 0;
-  border-radius: var(--ui-radius-field);
+  border: 1px solid var(--ui-border);
+  border-radius: .75rem;
   box-shadow: none;
 }
 .site-choice[class~="bg-white"] { background: var(--ui-surface-muted); }
+.site-choice[class~="bg-zinc-950"] { border-color: var(--ui-text); }
 
 @media (max-width: 639px) {
   .site-button-lg {

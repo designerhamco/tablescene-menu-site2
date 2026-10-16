@@ -2723,7 +2723,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           </header>
 
         <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-8">
-          <aside className="space-y-3 lg:sticky lg:top-28">
+          <aside className="site-account-sidebar min-w-0 space-y-3 lg:sticky lg:top-28">
             <MypageAccountCard
               email={user.email ?? "이메일 정보 없음"}
               roleLabel={accountRoleLabel}
@@ -2753,7 +2753,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
               </div>
 
-              <nav className="site-card site-card-compact mb-5 flex gap-2 overflow-x-auto p-1.5" aria-label="내 메뉴판 탭">
+              <nav className="site-card site-card-compact mb-5 flex gap-2 overflow-x-auto p-1.5 site-account-tabs" aria-label="내 메뉴판 탭">
                 <Link href="/mypage?tab=menus&menuTab=active" className={getBillingTabClassName(activeMenuTab === "active")}>
                   이용 중
                   <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{activeMenuCardCount.toLocaleString("ko-KR")}</span>
@@ -2866,7 +2866,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   </div>
                 </div>
 
-                <nav className="site-card site-card-compact mb-5 flex gap-2 overflow-x-auto p-1.5" aria-label="구독/결제 내역 탭">
+                <nav className="site-card site-card-compact mb-5 flex gap-2 overflow-x-auto p-1.5 site-account-tabs" aria-label="구독/결제 내역 탭">
                   <Link href="/mypage?tab=payments&billingTab=history" className={getBillingTabClassName(activeBillingTab === "history")}>
                     결제내역
                   </Link>
@@ -2943,7 +2943,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                             : getEntitlementStatusLabel(entitlement?.status);
 
                         return (
-                          <article key={key} className="site-card site-card-compact p-4">
+                          <article key={key} className="site-detail-section pb-5">
                             <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                               <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
@@ -3270,7 +3270,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   </div>
 
                   {displayedAiCreditTransactions.length > 0 ? (
-                    <div className="site-card site-card-compact overflow-hidden">
+                    <div className="site-record-list">
                       {displayedAiCreditTransactions.map((transaction, index) => {
                         const isPurchase = transaction.transaction_type === "purchase";
                         const product = isPurchase ? getAiCreditPack(transaction.product_key) : null;

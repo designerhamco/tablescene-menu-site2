@@ -46,39 +46,42 @@ export function MypageAccountCard({
   accountAiCreditRemaining?: number;
 }) {
   return (
-    <section className="site-card p-6">
-      <h2 className="type-content-title min-w-0 truncate" title={email}>{email}</h2>
-      {roleLabel ? (
-        <div className="mt-4 flex flex-wrap gap-2" aria-label="계정 역할">
-          <span
-            className={roleLabel === "사장"
-              ? "rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800"
-              : "rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700"}
-          >
-            {roleLabel}
-          </span>
+    <section className="site-account-summary">
+      <div className="site-account-heading">
+        <div className="min-w-0">
+          <h2 className="type-content-title min-w-0 truncate" title={email}>{email}</h2>
+          {roleLabel ? (
+            <div className="mt-2 flex flex-wrap gap-2" aria-label="계정 역할">
+              <span
+                className={roleLabel === "사장"
+                  ? "rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800"
+                  : "rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700"}
+              >
+                {roleLabel}
+              </span>
+            </div>
+          ) : null}
         </div>
-      ) : null}
+        <form action={signOutAction}>
+          <button type="submit" className="site-button site-button-secondary site-button-sm site-account-signout">
+            로그아웃
+          </button>
+        </form>
+      </div>
       {canShowOwnerCommerce && accountAiCreditRemaining !== undefined ? (
-        <div className="mt-5 border-t border-zinc-100 pt-4">
-          <p className="text-xs font-bold text-zinc-400">AI 도우미 크레딧</p>
-          <p className="mt-1 text-sm font-bold text-zinc-950">잔여 {accountAiCreditRemaining.toLocaleString("ko-KR")}개</p>
+        <div className="site-account-credits">
+          <div>
+            <p className="text-xs font-bold text-zinc-400">AI 도우미 크레딧</p>
+            <p className="mt-1 text-sm font-bold text-zinc-950">잔여 {accountAiCreditRemaining.toLocaleString("ko-KR")}개</p>
+          </div>
           <Link
             href="/mypage?tab=payments&billingTab=ai-credits"
-            className="mt-2 inline-flex text-xs font-bold text-zinc-500 underline decoration-zinc-300 underline-offset-4 transition-colors hover:text-zinc-950"
+            className="inline-flex text-xs font-bold text-zinc-500 underline decoration-zinc-300 underline-offset-4 transition-colors hover:text-zinc-950"
           >
             AI 충전/사용내역
           </Link>
         </div>
       ) : null}
-      <form action={signOutAction} className="mt-5">
-        <button
-          type="submit"
-          className="site-button site-button-secondary w-full"
-        >
-          로그아웃
-        </button>
-      </form>
     </section>
   );
 }
@@ -95,34 +98,32 @@ export function MypageNavigation({
   unreadNotificationCount?: number;
 }) {
   return (
-    <nav className="site-card p-3" aria-label="마이페이지 메뉴">
+    <nav className="site-account-nav" aria-label="마이페이지 메뉴">
       <Link href="/mypage?tab=menus" className={getNavigationClassName(active === "menus")}>
         <span>내 메뉴판</span>
         <NavigationCount active={active === "menus"}>{totalMenuCount.toLocaleString("ko-KR")}</NavigationCount>
       </Link>
-      <div className="mt-2 space-y-1">
-        {canShowOwnerCommerce ? (
-          <Link href="/mypage?tab=payments" className={getNavigationClassName(active === "payments")}>
-            <span>구독/결제 내역</span>
-          </Link>
-        ) : (
-          <DisabledNavigationItem label="구독/결제 내역" reason="사장 계정만 구독과 결제 내역을 관리할 수 있습니다." />
-        )}
-        <Link href="/mypage?tab=inquiries" className={getNavigationClassName(active === "inquiries")}>
-          <span>문의 내역</span>
+      {canShowOwnerCommerce ? (
+        <Link href="/mypage?tab=payments" className={getNavigationClassName(active === "payments")}>
+          <span>구독/결제 내역</span>
         </Link>
-        <Link href="/mypage?tab=notifications" className={getNavigationClassName(active === "notifications")}>
-          <span>알림 내역</span>
-          {unreadNotificationCount > 0 ? (
-            <NavigationCount active={active === "notifications"}>
-              {formatNotificationBadgeCount(unreadNotificationCount)}
-            </NavigationCount>
-          ) : null}
-        </Link>
-        <Link href="/mypage?tab=account" className={getNavigationClassName(active === "account")}>
-          <span>계정 정보</span>
-        </Link>
-      </div>
+      ) : (
+        <DisabledNavigationItem label="구독/결제 내역" reason="사장 계정만 구독과 결제 내역을 관리할 수 있습니다." />
+      )}
+      <Link href="/mypage?tab=inquiries" className={getNavigationClassName(active === "inquiries")}>
+        <span>문의 내역</span>
+      </Link>
+      <Link href="/mypage?tab=notifications" className={getNavigationClassName(active === "notifications")}>
+        <span>알림 내역</span>
+        {unreadNotificationCount > 0 ? (
+          <NavigationCount active={active === "notifications"}>
+            {formatNotificationBadgeCount(unreadNotificationCount)}
+          </NavigationCount>
+        ) : null}
+      </Link>
+      <Link href="/mypage?tab=account" className={getNavigationClassName(active === "account")}>
+        <span>계정 정보</span>
+      </Link>
     </nav>
   );
 }
