@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
 import CafeAWidgetBlock, { type CafeAWidgetPreview } from "@/components/menu-templates/CafeAWidgetBlock";
+import { applyOrderedCanvasLayout, clearOrderedCanvasLayout } from "@/components/menu-templates/one-page/pc-tablet/ordered-canvas-layout";
 import KohiMenuDividers from "@/components/menu-templates/KohiMenuDividers";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import MobileNoticeList from "@/components/menu-templates/one-page/mobile/MobileNoticeList";
@@ -42,6 +43,7 @@ import { PANEL_INTRO_KEY, PANEL_FEATURED_IMAGE, PANEL_MOBILE_FEATURED_IMAGE, res
 import { getFixedOnePageLayoutShell, type OnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import { getOnePageCategoryOrderTier, inferOnePageCategoryAffinity, getConventionalCategoryRank } from "@/lib/one-page-category-order";
 import { getOrderedFlowNextBlockTypes, resolveOrderedFlowBoundary } from "@/lib/one-page-flow-boundaries";
+import { getOrderedFlowColumnWidth } from "@/lib/ordered-flow-packing";
 import { getOnePageContentSignature } from "@/lib/one-page-content-signature";
 import { shouldRelaxOnePageCopyReference } from "@/lib/one-page-copy-reference";
 import { getOnePageItemRhythmMultiplier, getOnePageRhythmMode, usesOnePageProportionFitPolicy, usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
@@ -5170,14 +5172,15 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   useLayoutEffect(() => {
     const menuElement = desktopFitMenuRef.current;
     if (!menuElement) return;
-    if (layoutMode !== "orderedFit" || onePageRhythmMode === "mobile") return;
+    if (layoutMode !== "orderedFit" || onePageRhythmMode === "mobile") { clearOrderedCanvasLayout(menuElement); return; }
 
     let frameId = 0;
     let cancelled = false;
 
     const sync = () => {
       if (cancelled) return;
-      syncOrderedFitColumnStartCategoryDividers(menuElement, data.templateSkin);
+      const board = desktopFitBoardRef.current;
+      if (!board || !applyOrderedCanvasLayout(board, menuElement)) syncOrderedFitColumnStartCategoryDividers(menuElement, data.templateSkin);
     };
 
     const scheduleSync = () => {
@@ -5190,6 +5193,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       });
     };
 
+    sync();
     scheduleSync();
     const resizeObserver = new ResizeObserver(scheduleSync);
     resizeObserver.observe(menuElement);
@@ -5206,6 +5210,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         window.cancelAnimationFrame(frameId);
       }
       resizeObserver.disconnect();
+      clearOrderedCanvasLayout(menuElement);
     };
   }, [
     layoutMode,
@@ -5386,6 +5391,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     ): CafeDesignAFitState {
       return {
         columns,
+        featuredColumnShare: layoutMode === "orderedFit" && fitBoardElement.dataset.cafeAToplineFeatured === "true" ? parseFloat(fitBoardElement.style.getPropertyValue("--fit-featured-column-share")) || 0.28 : undefined,
         fontScale,
         wrapScale,
         gapScale: getTemplateFitGapScale(fontScale, fitMenuElement.clientWidth),
@@ -5428,8 +5434,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
     function getOrderedFitCandidateColumnWidth(columns: number) {
       const menuRect = fitMenuElement.getBoundingClientRect();
-      const columnGap = Number.parseFloat(window.getComputedStyle(fitMenuElement).columnGap || "0") || 0;
-      return (menuRect.width - columnGap * Math.max(0, columns - 1)) / Math.max(1, columns);
+      const style = getComputedStyle(fitMenuElement);
+      const tracks = columns + (isRoundFocus ? 1 : 0);
+      return getOrderedFlowColumnWidth(menuRect.width, parseFloat(style.paddingLeft) || 0, parseFloat(style.paddingRight) || 0, parseFloat(style.columnGap) || 0, tracks);
     }
 
     function getOrderedFitScore(
@@ -5524,7 +5531,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       );
     }
 
-    function getOrderedFitState(columnCandidates: number[]) {
+    function getOrderedFitState(columnCandidates: number[], featuredShare = 0.28): CafeDesignAFitState | null {
+      fitBoardElement.style.setProperty("--fit-featured-column-share", String(featuredShare));
+      if (fitBoardElement.dataset.cafeAToplineFeatured === "true") fitBoardElement.style.gridTemplateColumns = `minmax(0, ${featuredShare}fr) minmax(0, ${1 - featuredShare}fr)`;
       let selectedState: CafeDesignAFitState | null = null;
       let selectedScore = Number.POSITIVE_INFINITY;
       let fallbackState: CafeDesignAFitState | null = null;
@@ -5579,7 +5588,13 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         }
       }
 
-      return selectedState ?? fallbackState;
+      const result = selectedState ?? fallbackState;
+      // A side image may yield some width before readable text or ordered rows
+      // are sacrificed. This is a bounded shell-level rescue, never mobile.
+      if (!result && isAdaptiveFit && fitBoardElement.dataset.cafeAToplineFeatured === "true" && featuredShare > 0.20) {
+        return getOrderedFitState(columnCandidates, featuredShare > 0.24 ? 0.24 : 0.20);
+      }
+      return result;
     }
 
     function getBalancedFitScore(
@@ -6202,6 +6217,8 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       if (cancelled || isMeasuring) return;
       isMeasuring = true;
       let restoreReference: (() => void) | undefined;
+      const previousFeaturedShare = fitBoardElement.style.getPropertyValue("--fit-featured-column-share");
+      const previousGridTracks = fitBoardElement.style.gridTemplateColumns;
 
       try {
         const isDesktopFitActive = window.matchMedia(isAdaptiveFit ? "(min-width: 768px)" : "(min-width: 1024px)").matches;
@@ -6252,11 +6269,12 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                 : layoutMode === "orderedBalancedFit"
                   ? getOrderedBalancedFitColumnCandidates(menuWidth, visibleFitBlockCount, visibleItemCount, isAdaptiveFit)
                   : getBalancedFitColumnCandidates(menuWidth, visibleFitBlockCount);
-        const menuColumnGap = parseFloat(getComputedStyle(fitMenuElement).columnGap) || 0;
+        const menuSizing = getComputedStyle(fitMenuElement);
+        const menuColumnGap = parseFloat(menuSizing.columnGap) || 0;
         const minimumRescueWidth = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) * 12;
         const rescueGridColumns = isRoundFocus ? 5 : 4;
         const canUseReadableRescue = failedAdaptiveRescueSessionRef.current !== [visibleCopySignature, window.innerWidth, window.innerHeight].join("|") && visibleFitBlockCount >= 4 &&
-          (menuWidth - menuColumnGap * (rescueGridColumns - 1)) / rescueGridColumns >= minimumRescueWidth;
+          getOrderedFlowColumnWidth(menuWidth, parseFloat(menuSizing.paddingLeft) || 0, parseFloat(menuSizing.paddingRight) || 0, menuColumnGap, rescueGridColumns) >= minimumRescueWidth;
         const columnCandidates = isAdaptiveFit
           ? orderOnePageMenuColumnCandidates([...(isPanelFlow ? [1] : []), ...baseColumnCandidates.filter((columns) => columns < 4 || canUseReadableRescue), ...(canUseReadableRescue ? [4] : [])])
           : baseColumnCandidates;
@@ -6268,7 +6286,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         }
         let selectedState: CafeDesignAFitState | null = null;
 
-        if (layoutMode === "orderedFit" && !(isAdaptiveFit && isRoundFocus)) {
+        if (layoutMode === "orderedFit") {
           selectedState = getOrderedFitState(columnCandidates);
           // Before a rescue column, try real copy in the preferred widths.
           // Removing reference-only support may avoid an otherwise empty
@@ -6287,9 +6305,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               restoreReference = beginCafeAThreePartReference(fitBoardElement);
             }
           }
-        } else if (layoutMode === "orderedBalancedFit" || (isAdaptiveFit && isRoundFocus)) {
-          // Center-rail rendering always consists of category columns, even
-          // when the saved mode is orderedFit. Measure that actual structure.
+        } else if (layoutMode === "orderedBalancedFit") {
           selectedState = getOrderedBalancedFitState(columnCandidates);
         } else {
           selectedState = getBalancedFitState(columnCandidates);
@@ -6441,6 +6457,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         updateFitState(selectedState);
       } finally {
         restoreReference?.();
+        fitBoardElement.style.gridTemplateColumns = previousGridTracks;
+        if (previousFeaturedShare) fitBoardElement.style.setProperty("--fit-featured-column-share", previousFeaturedShare);
+        else fitBoardElement.style.removeProperty("--fit-featured-column-share");
+        applyOrderedCanvasLayout(fitBoardElement, fitMenuElement);
         isMeasuring = false;
       }
     }

@@ -1,6 +1,7 @@
 // Extracted without changing the existing rendering or fit formulas.
 import { type CSSProperties } from "react";
 import { type CafeAWidgetPreview } from "@/components/menu-templates/CafeAWidgetBlock";
+import { applyOrderedCanvasLayout, queueOrderedCanvasLayout } from "./ordered-canvas-layout";
 import { applyOnePageChipLayouts } from "@/components/menu-templates/one-page-chip-layout";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import {
@@ -481,6 +482,8 @@ export function getOrderedFitGapScale(fontScale: number, menuWidth: number) {
 export function getFitStyle(fitState: CafeDesignAFitState, menuFitState: CafeDesignAFitState = fitState): CSSProperties {
   return {
     "--fit-columns": String(fitState.columns),
+    "--fit-featured-column-share": String(fitState.featuredColumnShare ?? 0.28),
+    ...(fitState.featuredColumnShare ? { gridTemplateColumns: `minmax(0, ${fitState.featuredColumnShare}fr) minmax(0, ${1 - fitState.featuredColumnShare}fr)` } : {}),
     "--fit-font-scale": String(fitState.fontScale),
     "--fit-gap-scale": String(fitState.gapScale),
     "--fit-menu-font-scale": String(menuFitState.fontScale),
@@ -558,6 +561,7 @@ function roundFitRatio(value: number) {
 export function areFitStatesEqual(currentState: CafeDesignAFitState, nextState: CafeDesignAFitState) {
   return (
     currentState.columns === nextState.columns &&
+    currentState.featuredColumnShare === nextState.featuredColumnShare &&
     currentState.fontScale === nextState.fontScale &&
     currentState.wrapScale === nextState.wrapScale &&
     currentState.gapScale === nextState.gapScale &&
@@ -600,7 +604,7 @@ export function areFitStatesEqual(currentState: CafeDesignAFitState, nextState: 
 
 
 export function getOrderedFitCycleStateKey(state: CafeDesignAFitState) {
-  return [state.columns, state.fontScale.toFixed(3), state.wrapScale.toFixed(3), state.gapScale.toFixed(3), state.measuredColumns, state.status].join(":");
+  return [state.columns, state.featuredColumnShare ?? 0.28, state.fontScale.toFixed(3), state.wrapScale.toFixed(3), state.gapScale.toFixed(3), state.measuredColumns, state.status].join(":");
 }
 
 
@@ -960,11 +964,53 @@ function withCafeAThreePartReference<T>(boardElement: HTMLElement, measure: () =
 
 
 export function measureCafeAOrderedFit(boardElement: HTMLElement, menuElement: HTMLElement, expectedColumns?: number): CafeDesignAFitMeasurement {
-  return withCafeAThreePartReference(boardElement, () => measureCafeAOrderedFitReference(boardElement, menuElement, expectedColumns));
+  const reference = withCafeAThreePartReference(boardElement, () => measureCafeAOrderedFitReference(boardElement, menuElement, expectedColumns));
+  if (reference.overflow || !boardElement.closest('[data-cafe-a-adaptive-fit="true"]') || boardElement.dataset.fitCopyBasis === "actual") return reference;
+  // The semantic reference cannot certify long, actually wrapped translations.
+  // Keep it as the sizing basis, but reject a candidate that clips real rows.
+  const hadReference = boardElement.hasAttribute("data-cafe-a-three-part-reference");
+  boardElement.removeAttribute("data-cafe-a-three-part-reference");
+  try {
+    const actual = measureCafeAOrderedFitReference(boardElement, menuElement, expectedColumns);
+    // Semantic rows constrain safe type sizing; painted rows determine how
+    // full the chosen columns look. Reference-only blank rows cannot earn a
+    // high fill score or justify another almost-empty column.
+    return { ...actual, overflow: reference.overflow || actual.overflow };
+  } finally {
+    if (hadReference) boardElement.setAttribute("data-cafe-a-three-part-reference", "");
+    queueOrderedCanvasLayout(boardElement, menuElement);
+  }
 }
 
 
 function measureCafeAOrderedFitReference(boardElement: HTMLElement, menuElement: HTMLElement, expectedColumns?: number): CafeDesignAFitMeasurement {
+  const ordered = applyOrderedCanvasLayout(boardElement, menuElement, expectedColumns);
+  if (ordered) {
+    const ratios = ordered.heights.map((height, index) => height / Math.max(1, ordered.capacities[index]));
+    const gaps = ordered.heights.map((height, index) => ordered.capacities[index] - height);
+    const minimumGap = Math.min(...gaps);
+    const average = ratios.reduce((sum, ratio) => sum + ratio, 0) / ratios.length;
+    const right = getCafeARightEdgeSafetyMeasurement(boardElement, menuElement);
+    const crop = measureCafeAActualDomCrop(boardElement, menuElement, ORDERED_FIT_MIN_SAFETY_GAP, undefined, { footerNoGoLeafOnly: true });
+    return {
+      boardInnerHeight: boardElement.clientHeight,
+      flowHeight: ordered.height,
+      measuredColumns: ordered.heights.filter(height => height > 0).length,
+      primaryColumnBottom: ordered.heights[0], primaryBottomGap: gaps[0],
+      longestColumnBottom: Math.max(...ordered.heights),
+      primaryFillRatio: ratios[0], averageFillRatio: average,
+      minFillRatio: Math.min(...ratios), lastColumnFillRatio: ratios.at(-1) ?? 0,
+      bottomGap: minimumGap, contentGap: Math.max(0, minimumGap),
+      itemBoxGap: ordered.footerGap, textVisualGap: getAverageTextVisualGap(menuElement),
+      categoryBlockGap: Math.max(0, minimumGap), visibleItemBottomGap: Math.max(0, minimumGap),
+      visibleTextBottomGap: getAverageTextVisualGap(menuElement), visiblePriceBottomGap: Math.max(0, minimumGap),
+      visibleContentBottomGap: gaps.at(-1) ?? 0,
+      visibleAverageFillRatio: average, visibleMinFillRatio: Math.min(...ratios),
+      visibleLastColumnFillRatio: ratios.at(-1) ?? 0,
+      ...right,
+      overflow: ordered.overflow || crop.overflow || right.rightOverflow,
+    };
+  }
   const boardRect = boardElement.getBoundingClientRect();
   const menuRect = menuElement.getBoundingClientRect();
   const flowHeight = menuElement.clientHeight || menuRect.height;
@@ -1741,6 +1787,8 @@ export function getCafeAActualDomCropMeasurement(
   footerNoGoSafetyGapOverride?: number,
   options: { footerNoGoLeafOnly?: boolean } = {},
 ) {
+  applyOrderedCanvasLayout(boardElement, menuElement);
+  queueOrderedCanvasLayout(boardElement, menuElement);
   const adaptive = boardElement.closest('[data-cafe-a-adaptive-fit="true"]');
   const resolvedOptions = adaptive && boardElement.dataset.layoutMode === "orderedFit" ? { ...options, footerNoGoLeafOnly: true } : options;
   const actual = measureCafeAActualDomCrop(boardElement, menuElement, cropTolerance, footerNoGoSafetyGapOverride, resolvedOptions);
@@ -1809,9 +1857,9 @@ function measureCafeAActualDomCrop(
     );
   });
   const rectOverflow = Number.isFinite(visibleBottom) && bottomGap < -cropTolerance;
-  const columnSafeBottomGaps = Array.from(
+  const columnSafeBottomGaps = (menuElement.dataset.orderedCanvas ? [] : Array.from(
     menuElement.querySelectorAll<HTMLElement>(":scope > [data-cafe-a-balanced-column]")
-  ).flatMap((columnElement) => {
+  )).flatMap((columnElement) => {
     const columnVisibleElements = Array.from(
       columnElement.querySelectorAll<HTMLElement>(CAFE_A_VISIBLE_CONTENT_SELECTOR)
     ).filter((element) => !boardElement.closest('[data-cafe-a-adaptive-fit="true"]') || !element.closest("[data-cafe-a-footer-info]"));
@@ -1843,11 +1891,11 @@ function measureCafeAActualDomCrop(
   const footerRect = footerElement?.getBoundingClientRect();
   const boardRect = boardElement.getBoundingClientRect();
   const footerIsVisible = Boolean(footerRect && footerRect.width > 0 && footerRect.height > 0);
-  const footerIsOverlay = footerIsVisible && !footerElement?.closest("[data-cafe-a-fit-menu]");
+  const footerIsOverlay = footerIsVisible && (Boolean(menuElement.dataset.orderedCanvas) || !footerElement?.closest("[data-cafe-a-fit-menu]"));
   const footerSafetyGap = Math.max(BASIC_RIGHT_EDGE_SAFETY_GAP_PX, cropTolerance);
   const footerTopSafetyGap =
     footerIsOverlay && boardRect.width < 1120 ? CAFE_A_FOOTER_INFO_TABLET_TOP_SAFETY_GAP_PX : CAFE_A_FOOTER_INFO_TOP_SAFETY_GAP_PX;
-  const footerNoGoVerticalGap = footerNoGoSafetyGapOverride ?? footerTopSafetyGap + footerSafetyGap;
+  const footerNoGoVerticalGap = footerNoGoSafetyGapOverride ?? (menuElement.dataset.orderedCanvas ? Number(menuElement.dataset.orderedFooterGap) : footerTopSafetyGap + footerSafetyGap);
   const footerNoGoTop = footerIsOverlay
     ? footerRect!.top - footerNoGoVerticalGap
     : 0;
@@ -1859,7 +1907,7 @@ function measureCafeAActualDomCrop(
         bottom: boardRect.bottom,
       }
     : null;
-  const footerColumn = footerIsVisible ? footerElement?.closest<HTMLElement>("[data-cafe-a-balanced-column]") : null;
+  const footerColumn = footerIsVisible && !menuElement.dataset.orderedCanvas ? footerElement?.closest<HTMLElement>("[data-cafe-a-balanced-column]") : null;
   const footerColumnStyle = footerColumn ? getComputedStyle(footerColumn) : null;
   const inlineFooterOutOfBounds = Boolean(footerColumn && footerRect && footerRect.bottom >
     footerColumn.getBoundingClientRect().bottom - (parseFloat(footerColumnStyle?.paddingBottom ?? "0") || 0) + cropTolerance);
@@ -1905,6 +1953,7 @@ function measureCafeAActualDomCrop(
     ? Array.from(
         menuElement.querySelectorAll<HTMLElement>(footerNoGoSelectors.join(","))
       ).filter((element) => {
+        if (element.closest("[data-cafe-a-footer-info]")) return false;
         const rect = element.getBoundingClientRect();
         if (rect.width <= 0 || rect.height <= 0) return false;
         const horizontalOverlap = rect.right > footerNoGoRect.left && rect.left < footerNoGoRect.right;
@@ -1961,6 +2010,7 @@ function measureCafeAActualDomCrop(
     menuRegionSafeBottomGap,
     orphanCategoryHeading,
     overflow:
+      (menuElement.dataset.orderedCanvas === "true" && menuElement.dataset.orderedFlowOverflow === "true") ||
       orphanCategoryHeading ||
       rectOverflow ||
       menuRegionSafeBottomOverflow ||

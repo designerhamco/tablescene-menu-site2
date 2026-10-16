@@ -14,7 +14,7 @@ const mobile = process.argv.includes('--mobile');
 const widths = process.env.ORDERED_QA_WIDTHS?.split(',').map(Number);
 const locales = process.env.ORDERED_QA_LOCALES?.split(',') || ['en', 'zh', 'ja'];
 const cases = templates.flatMap(template => mobile
-  ? [320, 430].map(width => ({ ...template, device: 'mobile', width, height: 844, call: true, locale: 'ko' }))
+  ? [320, 430].flatMap(width => (process.env.ORDERED_QA_MOBILE_LOCALES?.split(',') || ['ko']).map(locale => ({ ...template, device: 'mobile', width, height: 844, call: true, locale })))
   : [
     ...ONE_PAGE_QA_VIEWPORTS.filter(v => v.device !== 'mobile' && (!widths || widths.includes(v.width)) && (!quick || v.width === 1512)).flatMap(v => callModes.map(call => ({ ...template, ...v, call, locale: 'ko' }))),
     ...(!quick ? locales.filter(locale => locale !== 'ko').flatMap(locale => [ONE_PAGE_QA_VIEWPORTS[0], ONE_PAGE_QA_VIEWPORTS[2]].map(v => ({ ...template, ...v, call: true, locale }))) : []),
@@ -39,14 +39,32 @@ function measureOrderedLayout() {
   const splitItems = rows.filter(e => e.hasAttribute('data-cafe-a-item-stack') && [...e.getClientRects()].filter(r => r.width > 0 && r.height > 0).length > 1).map(e => e.textContent.slice(0, 55));
   const visualOrder = [...physicalRows].sort((a, b) => Math.abs(a.left - b.left) < 3 ? a.top - b.top : a.left - b.left).map(r => r.order);
   const outOfOrder = visualOrder.some((order, i) => i > 0 && order < visualOrder[i - 1]);
-  const blocks = [...menu.querySelectorAll('[data-cafe-a-block-type]')].filter(visible);
-  const fragments = blocks.flatMap((e, order) => [...e.getClientRects()].filter(r => r.width > 0 && r.height > 0).map(r => ({ e, order, ...rect(r) })));
+  const blocks = [...menu.querySelectorAll('[data-cafe-a-block-type]')].filter(e => visible(e) || (menu.dataset.orderedCanvas && e.dataset.cafeABlockType === 'category'));
+  const fragments = blocks.flatMap((e, order) => {
+    const parts = menu.dataset.orderedCanvas && e.dataset.cafeABlockType === 'category'
+      ? [...e.querySelectorAll('[data-cafe-a-category-heading], [data-cafe-a-item-stack]')].flatMap(row => [...row.getClientRects()])
+      : [...e.getClientRects()];
+    const groups = new Map();
+    for (const r of parts.filter(r => r.width > 0 && r.height > 0)) {
+      const key = Math.round(r.left), previous = groups.get(key);
+      groups.set(key, previous ? { ...previous, top: Math.min(previous.top, r.top), bottom: Math.max(previous.bottom, r.bottom) } : rect(r));
+    }
+    return [...groups.values()].map(r => ({ e, order, ...r }));
+  });
   const boundaries = blocks.filter(e => e.dataset.cafeABlockType === 'category').map(e => {
     const tail = [...fragments].filter(f => f.e === e).sort((a, b) => a.left - b.left || a.top - b.top).at(-1);
     const next = tail && fragments.filter(f => f.e !== e && Math.abs(f.left - tail.left) < 3 && f.top >= tail.top).sort((a, b) => a.top - b.top || a.order - b.order)[0];
     const last = [...e.querySelectorAll('[data-cafe-a-item-stack]')].at(-1);
-    return { title: e.querySelector('[data-cafe-a-category-title-text]')?.textContent, fragments: e.getClientRects().length, expected: next?.e.dataset.cafeABlockType || null, actual: e.dataset.cafeAVisualNextBlockType || null, margin: parseFloat(getComputedStyle(e).marginBottom), lastItemMargin: last ? parseFloat(getComputedStyle(last).marginBottom) : null, physicalGap: next ? next.top - tail.bottom : null };
+    return { title: e.querySelector('[data-cafe-a-category-title-text]')?.textContent, fragments: fragments.filter(f => f.e === e).length, expected: next?.e.dataset.cafeABlockType || null, actual: e.dataset.cafeAVisualNextBlockType || null, margin: parseFloat(getComputedStyle(e).marginBottom), lastItemMargin: last ? parseFloat(getComputedStyle(last).marginBottom) : null, physicalGap: next ? next.top - tail.bottom : null };
   });
+  const headingOrphans = blocks.filter(e => e.dataset.cafeABlockType === 'category').filter(e => {
+    const heading = e.querySelector('[data-cafe-a-category-heading]')?.getBoundingClientRect();
+    const first = e.querySelector('[data-cafe-a-item-stack]')?.getBoundingClientRect();
+    return heading && first && (Math.abs(heading.left - first.left) > 3 || first.top < heading.bottom - 1);
+  }).map(e => e.textContent.slice(0, 55));
+  const footerAnchorGaps = menu.dataset.orderedCanvas ? [...board.querySelectorAll('[data-cafe-a-footer-info][data-cafe-a-footer-placement="desktop"]')].filter(visible).map(e => menuRect.bottom - (Number(menu.dataset.orderedInsetBottom) || 0) - e.getBoundingClientRect().bottom) : [];
+  const footerRightGaps = menu.dataset.orderedCanvas ? [...board.querySelectorAll('[data-cafe-a-footer-info][data-cafe-a-footer-placement="desktop"]')].filter(visible).map(e => menuRect.right - (parseFloat(getComputedStyle(menu).paddingRight) || 0) - e.getBoundingClientRect().right) : [];
+  const footerOnlyColumns = menu.dataset.orderedCanvas ? [...board.querySelectorAll('[data-cafe-a-footer-info][data-cafe-a-footer-placement="desktop"]')].filter(visible).filter(e => !physicalRows.some(row => Math.abs(row.left - e.getBoundingClientRect().left) < 3)).length : 0;
   const footerLeaves = [...board.querySelectorAll('[data-cafe-a-footer-info] button, [data-cafe-a-footer-info] p')].filter(visible).map(e => rect(e.getBoundingClientRect()));
   const footerOverlaps = physicalRows.filter(r => footerLeaves.some(f => Math.min(r.right, f.right) - Math.max(r.left, f.left) > 2 && Math.min(r.bottom, f.bottom) - Math.max(r.top, f.top) > 1.5));
   const itemNames = [...menu.querySelectorAll('[data-cafe-a-menu-name]')].filter(visible);
@@ -54,13 +72,16 @@ function measureOrderedLayout() {
   return {
     viewport: [innerWidth, innerHeight], state: board.dataset.fitPresentationState, mode: board.dataset.layoutMode, fallback: board.dataset.fitLayoutFallback || null,
     overflow: board.dataset.fitOverflow, columns: Number(board.dataset.fitColumns), basis: board.dataset.fitCopyBasis,
+    featuredShare: Number(getComputedStyle(board).getPropertyValue("--fit-featured-column-share")),
     scale: Number(board.dataset.fitFontScale), gapScale: Number(board.dataset.fitGapScale),
     documentOverflow: document.documentElement.scrollWidth - innerWidth,
     menuOverflow: [menu.scrollWidth - menu.clientWidth, menu.scrollHeight - menu.clientHeight],
     scroll: getComputedStyle(menu).overflowY, itemCount: itemNames.length, sourceItems,
     minimumName: Math.min(...itemNames.map(e => parseFloat(getComputedStyle(e).fontSize))),
     rem: parseFloat(getComputedStyle(document.documentElement).fontSize),
-    boundaries, collisions, clipped, splitItems, outOfOrder, footerOverlaps,
+    boundaries, collisions, clipped, splitItems, outOfOrder, footerOverlaps, headingOrphans, footerAnchorGaps, footerRightGaps, footerOnlyColumns,
+    columnHeights: menu.dataset.orderedColumnHeights, columnCapacities: menu.dataset.orderedColumnCapacities,
+    orderedCanvas: menu.dataset.orderedCanvas, orderedFlowOverflow: menu.dataset.orderedFlowOverflow,
     brokenImages: [...board.querySelectorAll('img')].filter(visible).filter(e => !e.complete || !e.naturalWidth).map(e => e.getAttribute('src')),
   };
 }
@@ -98,9 +119,11 @@ try {
           // fitOverflow is the candidate estimate; final actual-copy validation can safely supersede it.
           if (!expectedMode || metrics.state !== 'ready') failures.push('selected layout mode or ready state mismatch');
           if (metrics.documentOverflow > 1 || metrics.menuOverflow.some(v => v > 1)) failures.push('viewport/menu overflow');
-          if (metrics.collisions.length || metrics.clipped.length || metrics.footerOverlaps.length || metrics.splitItems.length) failures.push('content clipping, collision or split product');
+          if (metrics.collisions.length || metrics.clipped.length || metrics.footerOverlaps.length || metrics.splitItems.length || metrics.headingOrphans.length) failures.push('content clipping, collision or split product');
+          if ([...metrics.footerAnchorGaps, ...metrics.footerRightGaps].some(gap => Math.abs(gap) > 2)) failures.push('footer not anchored to final column bottom');
           if (mode === 'orderedFit' && metrics.outOfOrder) failures.push('registered visual order changed');
           if (metrics.itemCount !== metrics.sourceItems) failures.push('items missing or duplicated');
+          if (metrics.orderedFlowOverflow === 'true' || metrics.footerOnlyColumns) failures.push('reserved column packing or footer-only column');
           if (metrics.minimumName < metrics.rem - .1) failures.push('name below reading floor');
           if (['auto', 'scroll'].includes(metrics.scroll)) failures.push('canvas scrolling');
           if (metrics.brokenImages.length) failures.push('broken image');

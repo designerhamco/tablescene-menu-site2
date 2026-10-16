@@ -49,7 +49,7 @@ export default function KohiMenuDividers() {
       if (desktop && board?.dataset.layoutMode === "orderedFit") {
         const menuRect = menu.getBoundingClientRect();
         const computed = getComputedStyle(menu);
-        const count = Math.max(1, Number.parseInt(computed.columnCount, 10) || 1);
+        const count = Math.max(1, Number.parseInt(menu.dataset.orderedCanvas ? getComputedStyle(board).getPropertyValue("--fit-columns") : computed.columnCount, 10) || 1);
         const gap = Number.parseFloat(computed.columnGap) || 0;
         const width = (menuRect.width - gap * (count - 1)) / count;
         columns = Array.from({ length: count }, (_, index) => ({ left: menuRect.left - rootRect.left + index * (width + gap), right: menuRect.left - rootRect.left + index * (width + gap) + width }));

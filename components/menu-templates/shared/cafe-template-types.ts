@@ -115,6 +115,7 @@ export type CafeDesignABalancedVariant = "estimatedGreedy" | "sourceSequential" 
 
 export type CafeDesignAFitState = {
   columns: number;
+  featuredColumnShare?: number;
   fontScale: number;
   wrapScale: number;
   gapScale: number;
