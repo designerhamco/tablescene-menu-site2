@@ -45,6 +45,7 @@ try {
         neighbors: [rects[(selected + 1) % rects.length], rects[(selected + rects.length - 1) % rects.length]],
         centerStyle: panelStyles[selected],
         neighborStyles: [panelStyles[(selected + 1) % panels.length], panelStyles[(selected + panels.length - 1) % panels.length]],
+        distantStyles: [panelStyles[(selected + 2) % panels.length], panelStyles[(selected + panels.length - 2) % panels.length]],
       };
     });
     assert.equal(dimensions.viewportWidth, width);
@@ -55,10 +56,17 @@ try {
     assert.equal(dimensions.centerStyle.padding, '0px');
     assert.ok(Math.abs(dimensions.centerStyle.radius - Math.max(12, Math.min(width * 0.015, 20))) < 0.1);
     assert.ok(dimensions.centerStyle.blur < 0.01 && dimensions.centerStyle.opacity > 0.99, 'center screen stays sharp');
-    for (const style of dimensions.neighborStyles) assert.ok(style.blur > 1.5 && style.opacity < 0.75, 'side screens are softly blurred and faded');
+    for (const style of dimensions.neighborStyles) assert.ok(style.blur > 2.8 && style.opacity < 0.64, 'side screens are blurred and faded');
+    for (const style of dimensions.distantStyles) {
+      assert.ok(style.blur > dimensions.neighborStyles[0].blur + 2.5, 'distant screens blur more');
+      assert.ok(style.opacity < dimensions.neighborStyles[0].opacity - 0.3, 'distant screens fade more');
+    }
     assert.ok(Math.abs((dimensions.center.left + dimensions.center.right) / 2 - width / 2) < 2);
     for (const neighbor of dimensions.neighbors) {
-      assert.ok(dimensions.center.width > neighbor.width * 1.18, 'center screen must be larger');
+      assert.ok(neighbor.width / dimensions.center.width < 0.7, 'side screens must be substantially smaller');
+      const centerY = dimensions.center.top + dimensions.center.height / 2;
+      const neighborY = neighbor.top + neighbor.height / 2;
+      assert.ok(centerY - neighborY >= 5 && centerY - neighborY <= 13, 'side screens sit slightly above the center');
       assert.ok(neighbor.right > dimensions.stage.left + 10 && neighbor.left < dimensions.stage.right - 10, 'neighbor must peek into view');
     }
     const cta = page.locator('#templates').getByRole('link', { name: '더 많은 디자인 보기' });

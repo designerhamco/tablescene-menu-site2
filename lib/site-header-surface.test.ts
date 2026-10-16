@@ -24,11 +24,11 @@ test("공통 헤더의 스크롤 글래스와 불투명 알림 레이어는 독�
   );
 });
 
-test("글래스 헤더는 1차 메뉴 페이지만 허용한다", () => {
-  for (const path of ["/", "/services/basic", "/services/display", "/faq", "/apply", "/apply/"]) {
+test("글래스 헤더는 다이닝·디스플레이 소개와 호환 별칭만 허용한다", () => {
+  for (const path of ["/", "/services/basic", "/services/menu", "/services/signature", "/services/display", "/services/display/", "/services/screen", "/services/full-option", "/tablescene-pro"]) {
     assert.equal(supportsGlassSiteHeader(path), true, path);
   }
-  for (const path of ["/mypage", "/mypage/staff", "/apply/basic", "/apply/display", "/apply/custom", "/sign-in", "/support/chat", "/terms", "/templates/cafe_design_a/preview", "/m/store"]) {
+  for (const path of ["/faq", "/apply", "/apply/", "/mypage", "/mypage/staff", "/apply/basic", "/apply/display", "/apply/custom", "/sign-in", "/support/chat", "/terms", "/templates/cafe_design_a/preview", "/m/store", "/services/qr-order", "/services/custom"]) {
     assert.equal(supportsGlassSiteHeader(path), false, path);
   }
 });

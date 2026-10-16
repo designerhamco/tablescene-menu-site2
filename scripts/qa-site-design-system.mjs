@@ -58,6 +58,15 @@ for (const width of [375, 768, 992, 1280, 1440, 2560]) {
             return { background: s.backgroundColor, color: s.color, radius: s.borderRadius };
         });
         assert.deepEqual(style, { background: 'rgb(21, 24, 30)', color: 'rgb(255, 255, 255)', radius: '9999px' });
+        const header = page.locator('[data-site-header]');
+        const account = header.getByRole('link', { name: '로그인·회원가입', exact: true });
+        await expect(account).toBeVisible();
+        await expect(account).toHaveAttribute('href', '/sign-in');
+        const accountBox = await account.boundingBox();
+        const makeBox = await make.boundingBox();
+        assert.ok(accountBox.x + accountBox.width < makeBox.x, 'account text precedes create button');
+        const order = await header.locator('a').evaluateAll(elements => elements.filter(el => el.getClientRects().length > 0).map(el => el.textContent.trim()));
+        assert.ok(order.indexOf('템플릿 보러가기') < order.indexOf('고객센터'));
     }
     await page.screenshot({ path: `${output}/home-${width}.png` });
     await page.evaluate(() => scrollTo({ top: 400, behavior: 'instant' }));
@@ -95,11 +104,11 @@ for (const width of [375, 768, 992, 1280, 1440, 2560]) {
     const columns = await page.locator('.site-template-grid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length);
     assert.equal(columns, width < 640 ? 1 : width < 992 ? 2 : 3);
     await page.screenshot({ path: `${output}/apply-${width}.png` });
-    for (const path of ['/sign-in', '/terms', '/pricing', '/faq']) {
+    for (const path of ['/apply', '/sign-in', '/terms', '/pricing', '/faq']) {
         await page.goto(base + path, { waitUntil: 'domcontentloaded' });
         await page.evaluate(() => scrollTo({ top: 400, behavior: 'instant' }));
         await page.waitForTimeout(100);
-        await expect(page.locator('[data-site-header]')).toHaveAttribute('data-floating', String(path === '/faq' && width >= 768));
+        await expect(page.locator('[data-site-header]')).toHaveAttribute('data-floating', 'false');
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
         assert.equal(overflow, 0, `${path} ${width}`);
     }

@@ -14,7 +14,18 @@
 }
 .wordmark { font-size: 1.75rem; font-weight: 700; line-height: 1; letter-spacing: -.055em; }
 .primaryNav { display: none; }
+.actions { gap: clamp(.5rem, 1.5vw, 1.25rem); }
 .actions > :global(.site-button) { display: none; }
+.accountLink, .accountDivider { display: none; }
+.accountLink, .notificationButton { color: var(--ui-text); transition: color 180ms ease; }
+.accountLink:hover, .notificationButton:hover { color: var(--ui-text-muted); }
+.notificationButton { border: 0; background: transparent; }
+.accountLink:focus-visible, .notificationButton:focus-visible {
+  outline: 2px solid var(--ui-focus);
+  outline-offset: 4px;
+  border-radius: .25rem;
+}
+.makeButton { min-height: 2.75rem; min-width: 5rem; padding-inline: 1.25rem; }
 .navLink { color: var(--ui-text); transition: color 180ms ease; }
 .navLink:hover { color: var(--ui-text-muted); }
 .drawer {
@@ -30,6 +41,8 @@
 .drawer > :last-child { min-height: 0; }
 @media (min-width: 1280px) {
   .actions > :global(.site-button) { display: inline-flex; }
+  .accountLink { display: inline-flex; align-items: center; min-height: 2.75rem; white-space: nowrap; }
+  .accountDivider { display: block; width: 1px; height: 1.25rem; background: #d1d5db; }
   .primaryNav {
     position: absolute;
     left: 50%;

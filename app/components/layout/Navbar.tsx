@@ -23,8 +23,8 @@ const NAV_ITEMS: readonly NavItem[] = [
     activePaths: ['/', '/services/basic', '/services/menu', '/services/signature'],
   },
   { label: '아티메뉴 디스플레이', path: '/services/display', activePaths: ['/services/display', '/services/screen', '/services/full-option', '/tablescene-pro'] },
-  { label: '고객센터', path: '/faq', activePaths: ['/faq', '/support/chat'] },
   { label: '템플릿 보러가기', path: '/apply', activePaths: ['/apply'] },
+  { label: '고객센터', path: '/faq', activePaths: ['/faq', '/support/chat'] },
 ];
 
 function DisabledChip() {
@@ -73,6 +73,7 @@ const Navbar = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Close transient navigation when Next Link changes the route.
     setIsOpen(false);
   }, [pathname]);
 
@@ -147,6 +148,7 @@ const Navbar = () => {
 
   useEffect(() => {
     if (!authState.userId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Clear the previous account's transient notification UI after sign-out.
       setNotificationEvents([]);
       setUnreadCount(0);
       setIsNotificationOpen(false);
@@ -217,9 +219,8 @@ const Navbar = () => {
   const isFloating = supportsGlassSiteHeader(pathname) && isTabletOrDesktop && isScrolled && !isOpen;
   const navTextClass = styles.navLink;
   const menuButtonClass = 'text-current hover:opacity-70';
-  const secondaryButtonClass = 'border-zinc-200 bg-white text-zinc-800 hover:bg-zinc-50';
   const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
-  const accountCtaLabel = authState.isAuthenticated ? 'MY/메뉴판' : '로그인';
+  const accountCtaLabel = authState.isAuthenticated ? '마이 메뉴' : '로그인·회원가입';
   const unreadBadgeLabel = formatNotificationBadgeCount(unreadCount);
 
   const markNotificationAsRead = async (notificationId: string) => {
@@ -293,13 +294,7 @@ const Navbar = () => {
             })}
           </div>
 
-          <div className={`z-50 flex shrink-0 items-center gap-2 md:gap-3 ${styles.actions}`}>
-            <Link
-              href="/apply"
-              className="site-button site-button-primary hidden xl:inline-flex"
-            >
-              만들기
-            </Link>
+          <div className={`z-50 flex shrink-0 items-center ${styles.actions}`} data-site-header-actions>
             {authState.isAuthenticated ? (
               <div ref={notificationLayerRef} className="relative hidden xl:block">
                 <button
@@ -307,9 +302,9 @@ const Navbar = () => {
                   aria-label="알림"
                   aria-expanded={isNotificationOpen}
                   onClick={() => setIsNotificationOpen((current) => !current)}
-                  className={`relative inline-flex size-10 min-h-10 min-w-10 shrink-0 items-center justify-center rounded-full border p-0 transition-colors ${secondaryButtonClass}`}
+                  className={`relative inline-flex size-10 min-h-10 min-w-10 shrink-0 items-center justify-center p-0 transition-colors ${styles.notificationButton}`}
                 >
-                  <Bell size={18} strokeWidth={2.2} aria-hidden="true" />
+                  <Bell size={23} strokeWidth={1.5} aria-hidden="true" />
                   {unreadCount > 0 ? (
                     <span className="type-caption absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-white">
                       {unreadBadgeLabel}
@@ -352,14 +347,22 @@ const Navbar = () => {
                 ) : null}
               </div>
             ) : null}
+            {authState.isAuthenticated ? <span className={styles.accountDivider} aria-hidden="true" /> : null}
             {!authState.loading ? (
               <Link
                 href={accountCtaHref}
-                className="site-button site-button-secondary hidden xl:inline-flex"
+                className={`type-nav ${styles.accountLink}`}
+                data-site-header-account
               >
                 {accountCtaLabel}
               </Link>
             ) : null}
+            <Link
+              href="/apply"
+              className={`site-button site-button-primary ${styles.makeButton}`}
+            >
+              만들기
+            </Link>
             {authState.isAuthenticated ? (
               <Link
                 href={NOTIFICATION_FALLBACK_HREF}

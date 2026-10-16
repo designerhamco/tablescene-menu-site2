@@ -56,12 +56,13 @@ export default function TabletTemplateCarousel() {
           if (point.target() > 0) distance = snap + (1 - progress);
         });
         const steps = Math.abs(distance * slides.length);
-        const scale = Math.max(0.72, 1 - steps * 0.18);
+        const scale = Math.max(0.48, 1 - steps * 0.32);
+        const lift = Math.min(2, steps) * Math.min(12, Math.max(6, window.innerWidth * 0.01));
         const panel = panels[index];
         if (panel) {
-          panel.style.transform = `scale(${scale})`;
-          panel.style.filter = `blur(${Math.min(3, steps * 1.8)}px)`;
-          panel.style.opacity = String(Math.max(0.5, 1 - steps * 0.28));
+          panel.style.transform = `translateY(${-lift}px) scale(${scale})`;
+          panel.style.filter = `blur(${Math.min(8, steps * 3)}px)`;
+          panel.style.opacity = String(Math.max(0.18, 1 - steps * 0.38));
         }
         slides[index].style.zIndex = String(10 - Math.min(5, Math.round(steps)));
       });
