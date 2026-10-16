@@ -818,6 +818,12 @@ function applyMenuPriceAlignmentQaFixture(data: MenuPageData, value: string | st
 function applyOnePageRhythmQaFixture(data: MenuPageData, value: string | string[] | undefined): MenuPageData {
   const qaCase = Array.isArray(value) ? value[0] : value;
   if (process.env.NODE_ENV === "production" || !usesOnePageProportionPolicy(data.menuSite.template_key)) return data;
+  if (data.menuSite.template_key === "restaurant_onue_a" && (qaCase === "panel-single" || qaCase === "panel-two")) {
+    const categories = data.categories.slice(0, qaCase === "panel-single" ? 1 : 2);
+    const items = data.items.filter(item => categories.some(category => category.id === item.category_id)).slice(0, qaCase === "panel-single" ? 1 : 6);
+    const pageSettings = { ...data.pageSettings, menu_cover_enabled: qaCase !== "panel-single" };
+    return { ...data, categories, items, pageSettings, timeSales: [], nextTimeSaleStartAt: null };
+  }
   if (qaCase === "featured-role-match") {
     const item = data.items.find((entry) => entry.visible !== false);
     if (!item) return data;

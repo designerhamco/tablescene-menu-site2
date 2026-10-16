@@ -1420,9 +1420,16 @@ export function getOrderedBalancedColumnTargetHeights(
   cropTolerance = ORDERED_BALANCED_CROP_TOLERANCE,
 ) {
   if (!Number.isFinite(targetHeight) || (targetHeight ?? 0) <= 0 || columns <= 0) return undefined;
+  // Panel padding belongs to the readable column height, including its footer.
+  const panelColumn = boardElement.dataset.onePageLayoutShell === "brand_panel_flow"
+    ? menuElement.querySelector<HTMLElement>("[data-cafe-a-balanced-column]") : null;
+  if (panelColumn) {
+    const style = getComputedStyle(panelColumn);
+    targetHeight = Math.max(0, (targetHeight ?? 0) - (parseFloat(style.paddingTop) || 0) - (parseFloat(style.paddingBottom) || 0));
+  }
   const footerElement = boardElement.querySelector<HTMLElement>('[data-cafe-a-footer-info][data-cafe-a-footer-placement="desktop"]');
   const footerRect = footerElement?.getBoundingClientRect();
-  if (!footerRect || footerRect.width <= 0 || footerRect.height <= 0) return undefined;
+  if (!footerRect || footerRect.width <= 0 || footerRect.height <= 0) return panelColumn ? Array(columns).fill(targetHeight) as number[] : undefined;
 
   const boardRect = boardElement.getBoundingClientRect();
   const menuRect = menuElement.getBoundingClientRect();
@@ -1758,6 +1765,14 @@ function measureCafeAActualDomCrop(
   const horizontalScrollOverflow =
     menuElement.scrollWidth > menuElement.clientWidth + 1 ||
     document.documentElement.scrollWidth > document.documentElement.clientWidth + 1;
+  const panelIntroOverflow = [...menuElement.querySelectorAll<HTMLElement>(".cafe-a-panel-intro")].some((frame) => {
+    const identity = frame.querySelector<HTMLElement>(".cafe-a-panel-identity");
+    const featured = frame.querySelector<HTMLElement>(".cafe-a-featured-copy");
+    if (!identity) return false;
+    const contentBottom = identity.getBoundingClientRect().bottom;
+    const limit = featured ? featured.getBoundingClientRect().top - 12 : frame.getBoundingClientRect().bottom - 12;
+    return contentBottom > limit + cropTolerance;
+  });
   const headerClipOverflow = Boolean(boardElement.closest('[data-cafe-a-adaptive-fit="true"]')) &&
     [...boardElement.querySelectorAll<HTMLElement>(".cafe-a-topline-description-panel, .cafe-a-topline-notices, .cafe-a-topline-brand-identity")].some((element) => {
       const rect = element.getBoundingClientRect();
@@ -1826,6 +1841,10 @@ function measureCafeAActualDomCrop(
         bottom: boardRect.bottom,
       }
     : null;
+  const footerColumn = footerIsVisible ? footerElement?.closest<HTMLElement>("[data-cafe-a-balanced-column]") : null;
+  const footerColumnStyle = footerColumn ? getComputedStyle(footerColumn) : null;
+  const inlineFooterOutOfBounds = Boolean(footerColumn && footerRect && footerRect.bottom >
+    footerColumn.getBoundingClientRect().bottom - (parseFloat(footerColumnStyle?.paddingBottom ?? "0") || 0) + cropTolerance);
   const footerOutOfBounds = footerIsOverlay
     ? footerRect!.bottom > boardRect.bottom - footerSafetyGap ||
       footerRect!.right > boardRect.right - footerSafetyGap ||
@@ -1931,7 +1950,9 @@ function measureCafeAActualDomCrop(
       widgetInternalClipOverflow ||
       horizontalScrollOverflow ||
       headerClipOverflow ||
+      panelIntroOverflow ||
       footerOutOfBounds ||
+      inlineFooterOutOfBounds ||
       footerNoGoOverflow ||
       rightEdgeSafety.rightOverflow,
   };

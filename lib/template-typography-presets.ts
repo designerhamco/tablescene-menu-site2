@@ -104,6 +104,13 @@ export const DEFAULT_TYPOGRAPHY_PRESET: TypographySettings = {
 };
 
 export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySettings>> = {
+  restaurant_onue_a: {
+    korean_font_key: "pretendard", english_font_key: "tenor-sans", font_size_scale_key: "m",
+    typography_roles: { ...createDefaultTypographyRoleSettings(),
+      brand: { ...createDefaultTypographyRoleSettings().brand, color: "#FFF9EE" },
+      category: { ...createDefaultTypographyRoleSettings().category, color: "#713F36" },
+    },
+  },
   dining_aube_table_a: {
     korean_font_key: "pretendard",
     english_font_key: "tenor-sans",
@@ -226,6 +233,7 @@ const typographyRoleWeightKeys = new Set<TypographyRoleWeightKey>(TYPOGRAPHY_ROL
 
 function usesCafeARoleTypographyPolicy(templateKey?: string | null) {
   return (
+    templateKey === "restaurant_onue_a" ||
     templateKey === "cafe_design_a" ||
     templateKey === "cafe_kohi_a" ||
     templateKey === "cafe_mocha_forest_a" ||

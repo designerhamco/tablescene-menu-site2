@@ -3,6 +3,7 @@ import { BASIC_DEFAULT_LAYOUT_MODE } from "@/lib/menu-layout-modes";
 import type { Database, Json, MenuSectionKey } from "@/lib/supabase/types";
 import type { SocialLinkType } from "@/lib/social-links";
 import { CAFE_DESIGN_A_STITCH_SAMPLE } from "@/lib/template-demo-data/cafe-design-a";
+import { ONUE_STARTER } from "@/lib/template-demo-data/onue";
 import { createKohiStarterPreset } from "@/lib/template-demo-data/kohi";
 import { buildDisplayMenuAPreviewData } from "@/lib/template-demo-data/display-menu-a";
 import {
@@ -397,6 +398,7 @@ function item(
 function isCafeAStarterTemplateKey(templateKey?: string | null) {
   const normalizedTemplateKey = templateKey?.trim().toLowerCase();
   return (
+    normalizedTemplateKey === "restaurant_onue_a" ||
     normalizedTemplateKey === "cafe_design_a" ||
     normalizedTemplateKey === "cafe_kohi_a" ||
     normalizedTemplateKey === "cafe_mocha_forest_a" ||
@@ -2188,6 +2190,7 @@ const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
   cafe_sunday_line_a: cafeSundayLineStarterPreset,
   cafe_van_gogh_a: cafeVanGoghStarterPreset,
   cafe_round_focus_a: cafeRoundFocusStarterPreset,
+  restaurant_onue_a: ONUE_STARTER,
   fast_food_loop_bagel_a: loopBagelStarterPreset,
   cafe_brew_chapter_a: cafeBrewChapterStarterPreset,
   dining_aube_table_a: diningAubeTableStarterPreset,

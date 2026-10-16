@@ -44,7 +44,7 @@ export const TEMPLATE_CATEGORIES = [
   {
     key: "restaurant",
     label: "식당",
-    templates: [],
+    templates: [{ key: "restaurant_onue_a", label: "온유 테이블", design: "design_a" }],
   },
   {
     key: "japanese",
@@ -237,6 +237,7 @@ const templateDescriptionByDesign: Record<TemplateDesignKey, string> = {
 };
 
 const templateDescriptionByKey: Partial<Record<string, string>> = {
+  restaurant_onue_a: "따뜻한 배경 위의 흰 패널과 첫 패널 상단의 대표영역으로 구성한 레스토랑 다이닝 메뉴판입니다.",
   cafe_design_a: "선명한 그린 포인트와 맛차 시그니처 메뉴를 중심으로 구성한 카페 메뉴판입니다.",
   cafe_kohi_a: "붉은 카테고리 제목과 지면 끝까지 이어지는 블랙 분리선으로 구성한 에디토리얼 카페 메뉴판입니다.",
   cafe_mocha_forest_a: "갈색·아이보리·초록 패널로 구성한 고급스러운 카페/베이커리 메뉴판입니다.",
@@ -252,12 +253,14 @@ const templateDescriptionByKey: Partial<Record<string, string>> = {
 };
 
 const templatePreviewImageByKey: Partial<Record<string, string>> = {
+  restaurant_onue_a: "/menu-templates/dining_aube_table_a/aube-table-cover.png",
   cafe_design_a: "/menu-templates/cafe_design_a/black-sesame-featured.jpg",
   dining_aube_table_a: "/menu-templates/dining_aube_table_a/aube-table-cover.png",
   display_menu_a: "/menu-templates/display_menu_a/summer-blue-signature.png",
 };
 
 const availableTemplateKeys = [
+  "restaurant_onue_a",
   "cafe_design_a",
   "cafe_kohi_a",
   "cafe_mocha_forest_a",

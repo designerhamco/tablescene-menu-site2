@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 
 import { CafeAStarterFeaturedEnabledSwitch } from "@/components/mypage/menu-editor/CafeAStarterCoverDraftFields";
 import { useCafeAStarterResetCoordinator } from "@/components/mypage/menu-editor/CafeAStarterResetCoordinator";
+import { getFixedOnePageLayoutShell } from "@/lib/one-page-layout-shells";
+import { PANEL_FEATURED_IMAGE } from "@/lib/one-page-panel-flow";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 
 export type FeaturedSlideDraft = {
@@ -23,6 +25,7 @@ export type FeaturedSlideItemOption = {
 };
 
 type FeaturedSlidesEditorProps = {
+  templateKey?: string | null;
   menuId: string;
   formId: string;
   initialSlides: FeaturedSlideDraft[];
@@ -48,6 +51,7 @@ function getCompletionLabel(slide: FeaturedSlideDraft) {
 }
 
 export default function FeaturedSlidesEditor({
+  templateKey,
   menuId,
   formId,
   initialSlides,
@@ -128,7 +132,7 @@ export default function FeaturedSlidesEditor({
           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
             메뉴판 대표 영역에 보여줄 이미지를 최대 {effectiveMaxSlides}개까지 등록하고 순서를 정할 수 있습니다.
             <span className="mt-1 block text-xs text-zinc-400">
-              권장 크기: 1200×1500px 이상 · 권장 비율: 4:5 (다른 비율은 영역을 채우기 위해 중앙 기준으로 일부 잘릴 수 있습니다.)
+              {getFixedOnePageLayoutShell(templateKey) === "brand_panel_flow" ? `권장 크기: ${PANEL_FEATURED_IMAGE.width}×${PANEL_FEATURED_IMAGE.height}px 이상 · 권장 비율: ${PANEL_FEATURED_IMAGE.ratio}` : "권장 크기: 1200×1500px 이상 · 권장 비율: 4:5"} (다른 비율은 중앙 기준으로 일부 잘릴 수 있습니다.)
             </span>
           </p>
         </div>

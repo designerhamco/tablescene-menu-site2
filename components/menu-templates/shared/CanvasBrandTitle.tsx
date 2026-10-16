@@ -45,7 +45,9 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       const availableHeight = frameHeight - baseGap;
       const header = container.closest("[data-cafe-a-topline-info-header]");
       const sideHeight = Math.max(0, ...[...header?.querySelectorAll<HTMLElement>(".cafe-a-topline-description, .cafe-a-topline-notice-text") ?? []].map((element) => element.getBoundingClientRect().height));
-      return { width, height: boundedHeader ? availableHeight * CANVAS_HEADER_MAX_RATIO : getCanvasBrandHeight(width, frameHeight, layout), layout, boundedHeader, availableHeight, frameHeight, baseGap, sideHeight };
+      const panelFrame = layoutShell === "brand_panel_flow" ? root.closest<HTMLElement>(".cafe-a-panel-intro") : null;
+      const panelBudget = panelFrame ? panelFrame.clientHeight * 0.22 : Infinity;
+      return { width, height: panelFrame ? panelBudget : boundedHeader ? availableHeight * CANVAS_HEADER_MAX_RATIO : getCanvasBrandHeight(width, frameHeight, layout), layout, boundedHeader, availableHeight, frameHeight, baseGap, sideHeight };
     };
     const measure = () => {
       frame = 0;

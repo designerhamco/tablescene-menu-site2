@@ -5269,6 +5269,107 @@ video {
   }
 }
 
+/* Panel-flow shell: each equal-width panel participates in the shared packer. */
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] {
+  --board-padding: clamp(0.5rem, 0.85vmin, 0.875rem);
+  --panel-content-inset: clamp(1rem, 1.8vmin, 1.75rem);
+  --cafe-a-category-separation-ratio: 2.6;
+}
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro {
+  aspect-ratio: var(--panel-featured-ratio, 1 / 1);
+  position: relative;
+  width: 100%;
+  container-type: inline-size;
+}
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro :is(.cafe-a-cover-hero, .cafe-a-cover-frame) {
+  position: absolute !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  border-radius: 0;
+}
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro .cafe-a-cover-frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #160e0bd9, #160e0b66 60%, #160e0bd9);
+  pointer-events: none;
+}
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-identity {
+  position: absolute;
+  inset: var(--panel-content-inset) var(--panel-content-inset) auto;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--menu-role-brand-color, #fff9ee);
+  text-align: center;
+}
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-identity :is(.cafe-a-menu-description, .cafe-a-store-description, .cafe-a-description-text) { color: inherit; margin: 0; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-identity .cafe-a-panel-notices { margin-top: 0.25rem; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-brand { width: 100%; font-weight: 400; line-height: 1.08; margin: 0; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro .cafe-a-featured-copy {
+  z-index: 1;
+  bottom: var(--panel-content-inset);
+  left: var(--panel-content-inset);
+  right: var(--panel-content-inset);
+}
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro .cafe-a-featured-description { display: block; overflow: visible; -webkit-line-clamp: unset; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro-block {
+  margin: calc(-1 * var(--panel-content-inset)) calc(-1 * var(--panel-content-inset)) var(--panel-content-inset);
+}
+@media (min-width: 768px) {
+  .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: minmax(0, 1fr);
+    padding: var(--board-padding) !important;
+    gap: 0 !important;
+  }
+  .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-adaptive-fit="true"] .cafe-a-fit-menu-grid {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    display: grid !important;
+    grid-template-columns: repeat(var(--fit-columns), minmax(0, 1fr));
+    grid-template-rows: 100%;
+    grid-auto-rows: 100%;
+    gap: var(--board-padding) !important;
+    height: 100%;
+    padding: 0;
+    overflow: visible;
+  }
+  .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-balanced-column {
+    background: #fff;
+    padding: var(--panel-content-inset);
+    height: 100%;
+  }
+  .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-balanced-column > .cafe-a-footer-info { margin-top: auto; }
+  .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-adaptive-fit="true"] .cafe-a-panel-mobile-intro { display: none; }
+}
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] { background: #fff !important; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-mobile-language .cafe-a-mobile-header-copy { display: none; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-mobile-language header { padding: 0 var(--cafe-a-page-inline); border: 0; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-mobile-language { background: #33221e; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-identity { gap: 0.75rem; }
+
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-plain-intro { padding: var(--panel-content-inset); background: #fff; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-plain-intro .cafe-a-panel-identity { position: relative; inset: auto; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-identity .cafe-a-store-logo { object-fit: contain; max-width: 75%; max-height: 5rem; width: auto; height: auto; filter: drop-shadow(0 1px 1px #0006) drop-shadow(0 -1px 1px #fff5); }
+
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-balanced-column > :is(.cafe-a-panel-intro-block, .cafe-a-menu-category-block, .cafe-a-menu-widget-block, .cafe-a-footer-info) { flex-shrink: 0; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] { --panel-content-inset: 1rem; }
+
+@media (min-width: 768px) {
+ .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] { margin-bottom: var(--cafe-a-category-no-divider-gap); }
+}
+
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-mobile-language { padding-inline: var(--cafe-a-page-inline); }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"]:has(.cafe-a-panel-plain-intro) { --cafe-a-call-ink: var(--panel-plain-ink) !important; --cafe-a-language-trigger-ink: var(--panel-plain-ink) !important; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"]:has(.cafe-a-panel-plain-intro) .cafe-a-panel-mobile-language { background: #fff; }
+
 /* Mobile is a reading layout, not a canvas-fit candidate. Fixed rem bases keep
    type and rhythm stable across phone widths; wrapping/images remain responsive.
    Keep customer typography settings and each template's semantic ratios. */

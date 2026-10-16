@@ -63,5 +63,5 @@ export function isOnePageCategoryOrderCandidatePreferred({
 }
 
 export function getOnePageTotalColumnCount(shell: OnePageLayoutShell, menuColumns: number) {
-  return shell === "brand_top_band" ? menuColumns : menuColumns + 1;
+  return shell === "brand_top_band" || shell === "brand_panel_flow" ? menuColumns : menuColumns + 1;
 }

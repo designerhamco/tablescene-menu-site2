@@ -2304,6 +2304,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     {canUseFeaturedSlides ? (
                       <div className="md:col-span-2">
                         <FeaturedSlidesEditor
+                          templateKey={site.template_key}
                           menuId={site.id}
                           formId="menu-cover-form"
                           initialSlides={featuredSlideDrafts}

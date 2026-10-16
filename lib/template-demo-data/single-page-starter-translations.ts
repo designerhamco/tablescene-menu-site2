@@ -1,3 +1,4 @@
+import { ONUE_TRANSLATIONS } from "./onue-translations";
 import { KOHI_TRANSLATIONS } from "./kohi";
 
 export const SINGLE_PAGE_STARTER_TRANSLATION_LOCALES = ["en", "zh", "ja"] as const;
@@ -787,6 +788,7 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
 
 export const SINGLE_PAGE_STARTER_TRANSLATIONS = {
   cafe_design_a: REAL_MATCHA_TRANSLATIONS,
+  restaurant_onue_a: ONUE_TRANSLATIONS,
   cafe_kohi_a: KOHI_TRANSLATIONS,
   cafe_mocha_forest_a: MOCHA_FOREST_TRANSLATIONS,
   cafe_sunday_line_a: SUNDAY_LINE_TRANSLATIONS,

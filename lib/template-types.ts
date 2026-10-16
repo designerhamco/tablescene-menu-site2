@@ -83,6 +83,7 @@ export const TEMPLATE_TYPE_OPTIONS_BY_SERVICE = {
 
 const TEMPLATE_SERVICE_ALLOWLIST: Record<TemplateServiceType, readonly string[]> = {
   basic: [
+    "restaurant_onue_a",
     "cafe_design_a",
     "cafe_kohi_a",
     "cafe_mocha_forest_a",
@@ -115,6 +116,7 @@ const TEMPLATE_SERVICE_ALLOWLIST: Record<TemplateServiceType, readonly string[]>
 };
 
 const TEMPLATE_TYPE_BY_TEMPLATE_KEY: Record<string, TemplateType> = {
+  restaurant_onue_a: "menu",
   display_menu_a: "menu",
   cafe_design_a: "menu",
   cafe_kohi_a: "menu",
@@ -310,6 +312,7 @@ export const TEMPLATE_EDIT_CONFIG = {
     tabs: CAFE_DESIGN_A_EDITOR_TABS,
     heroMode: "featured",
   },
+  restaurant_onue_a: { tabs: CAFE_DESIGN_A_EDITOR_TABS, heroMode: "featured" },
   fast_food_loop_bagel_a: {
     tabs: CAFE_DESIGN_A_EDITOR_TABS,
     heroMode: "featured",

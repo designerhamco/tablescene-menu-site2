@@ -2,6 +2,7 @@ import type { MenuPreviewDevice } from "./menu-preview-devices";
 
 /** Shared canvas sizing and category hierarchy; preserve template fonts/layout personalities and excluded engines. */
 export const ONE_PAGE_PROPORTION_TEMPLATE_KEYS = [
+  "restaurant_onue_a",
   "cafe_design_a",
   "cafe_kohi_a",
   "cafe_mocha_forest_a",
