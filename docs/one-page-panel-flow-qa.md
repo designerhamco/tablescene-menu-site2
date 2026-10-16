@@ -14,8 +14,12 @@ Shell: `brand_panel_flow`, independent from left-rail, top-band and center-colum
 
 Verification (2026-10-16):
 
-- 637 unit/contract tests; TypeScript, ESLint, production build and whitespace checks.
+- 638 unit/contract tests; TypeScript, ESLint, production build and whitespace checks.
 - `node scripts/qa-panel-flow.mjs`: 13 new-template browser cases, including 1516×844 PC, 1024×768 and 768×1024 tablets, 320/390/430px phones, localized copy, cover OFF, logo and sparse-menu panel changes. Exact DOM viewport sizes and crop results are asserted.
 - `node scripts/qa-panel-regressions.mjs`: 21 existing-template PC/mobile views, all seven starters. No horizontal overflow or canvas scrolling; no browser runtime errors.
 
 Preview: `/templates/restaurant_onue_a/preview`.
+
+Follow-up: PC/tablet menu insets enlarged to 28–44px (bounded viewport units). Default is registered-order fill (`orderedFit`), including editor and provisioning; saved grouped choices remain usable. Representative image stays flush. Physical-column measurement normalizes the flush image and inset copy so it cannot invent an extra empty panel.
+
+Follow-up verification: all 13 ONUE browser cases passed again with ordered fill; 1516×844 PC and 1024×768 landscape tablet use three panels with 28px menu insets, while sparse fixtures select one/two panels. The shared ordered engine considers a fourth column only after preferred safe layouts fail. All 638 unit/contract tests, TypeScript, ESLint and production build passed. The 21-view existing-template run above belongs to the initial implementation; it was not repeated for this follow-up.

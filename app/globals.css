@@ -5272,7 +5272,8 @@ video {
 /* Panel-flow shell: each equal-width panel participates in the shared packer. */
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] {
   --board-padding: clamp(0.5rem, 0.85vmin, 0.875rem);
-  --panel-content-inset: clamp(1rem, 1.8vmin, 1.75rem);
+  --panel-content-inset: clamp(1.75rem, 3vmin, 2.75rem);
+  --panel-hero-inset: clamp(1rem, 1.8vmin, 1.75rem);
   --cafe-a-category-separation-ratio: 2.6;
 }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro {
@@ -5300,7 +5301,7 @@ video {
 }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-identity {
   position: absolute;
-  inset: var(--panel-content-inset) var(--panel-content-inset) auto;
+  inset: var(--panel-hero-inset) var(--panel-hero-inset) auto;
   z-index: 1;
   display: flex;
   align-items: center;
@@ -5314,9 +5315,9 @@ video {
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-brand { width: 100%; font-weight: 400; line-height: 1.08; margin: 0; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro .cafe-a-featured-copy {
   z-index: 1;
-  bottom: var(--panel-content-inset);
-  left: var(--panel-content-inset);
-  right: var(--panel-content-inset);
+  bottom: var(--panel-hero-inset);
+  left: var(--panel-hero-inset);
+  right: var(--panel-hero-inset);
 }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro .cafe-a-featured-description { display: block; overflow: visible; -webkit-line-clamp: unset; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro-block {
@@ -5355,12 +5356,12 @@ video {
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-mobile-language { background: #33221e; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-identity { gap: 0.75rem; }
 
-.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-plain-intro { padding: var(--panel-content-inset); background: #fff; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-plain-intro { padding: var(--panel-hero-inset); background: #fff; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-plain-intro .cafe-a-panel-identity { position: relative; inset: auto; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-identity .cafe-a-store-logo { object-fit: contain; max-width: 75%; max-height: 5rem; width: auto; height: auto; filter: drop-shadow(0 1px 1px #0006) drop-shadow(0 -1px 1px #fff5); }
 
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-balanced-column > :is(.cafe-a-panel-intro-block, .cafe-a-menu-category-block, .cafe-a-menu-widget-block, .cafe-a-footer-info) { flex-shrink: 0; }
-.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] { --panel-content-inset: 1rem; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] { --panel-content-inset: 1rem; --panel-hero-inset: 1rem; }
 
 @media (min-width: 768px) {
  .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] { margin-bottom: var(--cafe-a-category-no-divider-gap); }
@@ -5369,6 +5370,38 @@ video {
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-mobile-language { padding-inline: var(--cafe-a-page-inline); }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"]:has(.cafe-a-panel-plain-intro) { --cafe-a-call-ink: var(--panel-plain-ink) !important; --cafe-a-language-trigger-ink: var(--panel-plain-ink) !important; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"]:has(.cafe-a-panel-plain-intro) .cafe-a-panel-mobile-language { background: #fff; }
+
+/* Ordered panel flow uses the common CSS-column engine. White backgrounds
+   belong to panel tracks; copy insets do not create another column gutter. */
+@media (min-width: 768px) {
+ .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-adaptive-fit="true"] .cafe-a-desktop-fit-board[data-layout-mode="orderedFit"] {
+   background-origin: content-box;
+   background-clip: content-box;
+   background-repeat: repeat-x;
+   background-size: calc((100% + var(--board-padding)) / var(--fit-columns)) 100%;
+   background-image: linear-gradient(to right, #fff calc(100% - var(--board-padding)), transparent 0);
+ }
+ .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-adaptive-fit="true"] .cafe-a-fit-menu-grid.cafe-a-ordered-menu-flow {
+   display: block !important;
+   box-sizing: border-box;
+   padding: var(--panel-content-inset);
+   column-count: var(--fit-columns);
+   column-gap: calc(var(--board-padding) + 2 * var(--panel-content-inset)) !important;
+   column-fill: auto;
+   overflow: visible;
+ }
+ .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-ordered-menu-flow > .cafe-a-panel-intro-block {
+   break-inside: avoid;
+ }
+ .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-desktop-fit-board[data-layout-mode="orderedFit"] > .cafe-a-footer-info {
+   position: absolute;
+   background-color: #fff;
+   bottom: calc(var(--board-padding) + var(--panel-content-inset));
+   right: calc(var(--board-padding) + var(--panel-content-inset));
+   left: auto;
+   width: calc((100% - var(--board-padding) * (var(--fit-columns) + 1)) / var(--fit-columns) - 2 * var(--panel-content-inset));
+ }
+}
 
 /* Mobile is a reading layout, not a canvas-fit candidate. Fixed rem bases keep
    type and rhythm stable across phone widths; wrapping/images remain responsive.

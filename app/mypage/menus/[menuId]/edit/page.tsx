@@ -1582,7 +1582,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const templateEditorLabels = getTemplateEditorLabels(site.template_key);
   const menuManagementStarterPreset = getStarterPreset(site.template_key, site.restaurant_category, site.template_category);
   const canConfigurePcTabletLayoutMode = supportsPcTabletLayoutMode(site.template_key);
-  const pcTabletLayoutMode = getPcTabletLayoutModeFromPageSettings(site.page_settings);
+  const pcTabletLayoutMode = getPcTabletLayoutModeFromPageSettings(site.page_settings, site.template_key);
   const customBadgeStyles = getCustomBadgeStyles(site.settings, site.page_settings);
   const badgeStyles = mergeBadgeStyles(site.template_key, customBadgeStyles);
   const customTypography = getCustomTypographySettings(site.settings, site.page_settings);

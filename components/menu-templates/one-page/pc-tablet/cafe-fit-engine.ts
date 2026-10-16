@@ -772,12 +772,20 @@ function getColumnMeasurements(menuElement: HTMLElement, measurementSelector: st
   const menuRect = menuElement.getBoundingClientRect();
   const measuredElements = Array.from(menuElement.querySelectorAll<HTMLElement>(measurementSelector));
   const columns: CafeDesignAColumnMeasurement[] = [];
+  const panelFlow = menuElement.closest<HTMLElement>('[data-one-page-layout-shell="brand_panel_flow"]') && menuElement.dataset.cafeAFlowMode === "ordered";
+  const style = panelFlow ? getComputedStyle(menuElement) : null;
+  const inset = parseFloat(style?.paddingLeft ?? "0") || 0;
+  const count = parseInt(style?.columnCount ?? "1", 10) || 1;
+  const stride = style ? (menuElement.clientWidth - inset - (parseFloat(style.paddingRight) || 0) + (parseFloat(style.columnGap) || 0)) / count : 0;
 
   for (const element of measuredElements) {
     const rect = element.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) continue;
 
-    const relativeLeft = rect.left - menuRect.left;
+    // A flush representative image and inset menu text share the same panel.
+    const relativeLeft = panelFlow && stride > 0
+      ? inset + Math.max(0, Math.round((rect.left - menuRect.left - inset) / stride)) * stride
+      : rect.left - menuRect.left;
     const relativeTop = rect.top - menuRect.top;
     const relativeBottom = rect.bottom - menuRect.top;
     const existingColumn = columns.find((column) => Math.abs(column.left - relativeLeft) <= ORDERED_FIT_COLUMN_TOLERANCE);
@@ -905,6 +913,7 @@ export function measureCafeAMenuWrapDensity(menuElement: HTMLElement): CafeAMenu
 
 
 export const CAFE_A_VISIBLE_CONTENT_SELECTOR = [
+  "[data-cafe-a-panel-intro-block]",
   "[data-cafe-a-category-heading]",
   "[data-cafe-a-menu-name]",
   "[data-cafe-a-menu-price]",
@@ -922,6 +931,7 @@ export const CAFE_A_VISIBLE_CONTENT_SELECTOR = [
 
 
 const CAFE_A_ORDERED_FIT_COLUMN_MEASUREMENT_SELECTOR = [
+  "[data-cafe-a-panel-intro-block]",
   "[data-cafe-a-category-heading]",
   "[data-cafe-a-item-stack]",
   "[data-cafe-a-menu-widget-block]",

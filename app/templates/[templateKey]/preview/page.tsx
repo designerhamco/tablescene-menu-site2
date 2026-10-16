@@ -11,7 +11,7 @@ import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { normalizeMenuPageDisplaySettings, serializeMenuPageDisplaySettings } from "@/lib/display-page-settings";
 import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES, normalizeLocale, type SupportedLocale } from "@/lib/locales";
 import type { MenuPageData } from "@/lib/menu-page-data";
-import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
+import { getDefaultPcTabletLayoutMode, normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { buildMenuPreviewOrderCallConfig } from "@/lib/menu-preview-experience";
 import {
   normalizeMenuPreviewDevice,
@@ -244,6 +244,7 @@ function buildPreviewData(templateKey: TemplateKey, qaCase: string | null = null
   const firstFeaturedImageSlide = getFirstStarterFeaturedImageSlide(featuredSlides);
   const pageSettings = {
     ...getDefaultPageSettings(),
+    design: { pcTabletLayoutMode: getDefaultPcTabletLayoutMode(templateKey) },
     menu_cover_enabled: preset.menu_cover_enabled ?? getDefaultPageSettings().menu_cover_enabled,
     menu_cover_visible_pc: preset.menu_cover_visible_pc ?? getDefaultPageSettings().menu_cover_visible_pc,
     menu_cover_visible_tablet: preset.menu_cover_visible_tablet ?? getDefaultPageSettings().menu_cover_visible_tablet,
@@ -1472,7 +1473,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     ? resolvedSearchParams.layoutMode[0]
     : resolvedSearchParams.layoutMode;
   const previewLayoutMode = supportsPcTabletLayoutMode(templateKey)
-    ? normalizePcTabletLayoutMode(layoutModeParam)
+    ? normalizePcTabletLayoutMode(layoutModeParam, templateKey)
     : undefined;
   const displayPreviewPageIndex = templateKey === "display_menu_a"
     ? getDisplayPreviewPageIndex(resolvedSearchParams.page)

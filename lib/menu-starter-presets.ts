@@ -1,5 +1,5 @@
 import type { createClient } from "@/lib/supabase/server";
-import { BASIC_DEFAULT_LAYOUT_MODE } from "@/lib/menu-layout-modes";
+import { BASIC_DEFAULT_LAYOUT_MODE, getDefaultPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import type { Database, Json, MenuSectionKey } from "@/lib/supabase/types";
 import type { SocialLinkType } from "@/lib/social-links";
 import { CAFE_DESIGN_A_STITCH_SAMPLE } from "@/lib/template-demo-data/cafe-design-a";
@@ -3010,6 +3010,7 @@ async function applyStarterSiteDefaults(
   const starterPageSettings = useLeanPreset ? MENU_SCREEN_STARTER_PAGE_SETTINGS : STARTER_PAGE_SETTINGS;
   const resolvedStarterPageSettings = {
     ...starterPageSettings,
+    design: { ...starterPageSettings.design, pcTabletLayoutMode: getDefaultPcTabletLayoutMode(preset.template_key) },
     menu_cover_enabled: preset.menu_cover_enabled ?? starterPageSettings.menu_cover_enabled,
     menu_cover_visible_pc: preset.menu_cover_visible_pc ?? starterPageSettings.menu_cover_visible_pc,
     menu_cover_visible_tablet: preset.menu_cover_visible_tablet ?? starterPageSettings.menu_cover_visible_tablet,

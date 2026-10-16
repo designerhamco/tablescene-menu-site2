@@ -9,9 +9,10 @@ const cases = [
  ['pc',1516,844,'ko','no-cover'],['mobile',390,844,'ko','brand-logo'],
  ['pc',1516,844,'ko','brand-logo'],['pc',1516,844,'ko','panel-single'],['tablet',1024,768,'ko','panel-two'],
 ];
+const selectedCases=process.argv.includes("--quick") ? cases.slice(0,2) : cases;
 const results=[];
 try {
- for (let index=0;index<cases.length;index+=3) await Promise.all(cases.slice(index,index+3).map(async ([device,width,height,lang,fixture])=>{
+ for (let index=0;index<selectedCases.length;index+=1) await Promise.all(selectedCases.slice(index,index+1).map(async ([device,width,height,lang,fixture])=>{
   const page=await browser.newPage({viewport:{width,height},reducedMotion:'reduce'});
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(`http://localhost:3000/templates/restaurant_onue_a/preview?device=${device}&view=actual&embedded=1&callPreview=on&lang=${lang}&rhythmQa=${fixture}`,{waitUntil:'domcontentloaded',timeout:60000});
@@ -28,7 +29,7 @@ try {
    const featured=intro?.querySelector('.cafe-a-featured-copy')?.getBoundingClientRect();
    const footer=board?.querySelector('[data-cafe-a-footer-info]');
    const column=footer?.closest('[data-cafe-a-balanced-column]');
-   return {viewport:[innerWidth,innerHeight],state:board?.dataset.fitPresentationState,overflow:board?.dataset.fitOverflow,columns:Number(board?.dataset.fitColumns),basis:board?.dataset.fitCopyBasis,
+   return {viewport:[innerWidth,innerHeight],state:board?.dataset.fitPresentationState,layout:board?.dataset.layoutMode,inset:parseFloat(getComputedStyle(board.querySelector("[data-cafe-a-fit-menu]")).paddingLeft),overflow:board?.dataset.fitOverflow,columns:Number(board?.dataset.fitColumns),basis:board?.dataset.fitCopyBasis,
     documentOverflow:document.documentElement.scrollWidth-innerWidth,
     overlap:identity&&featured?identity.bottom+12>featured.top+1:false,
     footerClearance:footer&&column?column.getBoundingClientRect().bottom-parseFloat(getComputedStyle(column).paddingBottom)-footer.getBoundingClientRect().bottom:null,
@@ -39,7 +40,7 @@ try {
   });
   assert.equal(metrics.documentOverflow,0,JSON.stringify({device,fixture,metrics}));
   assert.equal(metrics.overlap,false,JSON.stringify({device,fixture,metrics}));
-  if(device!=='mobile') {assert.equal(metrics.overflow,'false',JSON.stringify({device,fixture,metrics}));assert.ok(metrics.footerClearance===null||metrics.footerClearance>=-2,JSON.stringify(metrics));}
+  if(device!=='mobile') {assert.equal(metrics.layout,'orderedFit');assert.ok(metrics.inset>=28);assert.equal(metrics.overflow,'false',JSON.stringify({device,fixture,metrics}));assert.ok(metrics.footerClearance===null||metrics.footerClearance>=-2,JSON.stringify(metrics));}
   if(fixture==='no-cover'||fixture==='panel-single')assert.equal(metrics.plain,true);
   if(fixture==='panel-single')assert.equal(metrics.columns,1);
   if(fixture==='brand-logo')assert.equal(metrics.logo,true);

@@ -35,3 +35,12 @@ test("intro is a measured unsaved barrier ahead of every category order candidat
  const blocks=[{order:0,blockType:"widget" as const}, {order:1,blockType:"category" as const,affinity:"coffee",categoryRank:1}, {order:2,blockType:"category" as const,affinity:"dessert",categoryRank:4}];
  for(const candidate of getFallbackCategoryOrders(blocks, "conventional")) assert.equal(candidate[0].order, 0);
 });
+
+test("panel-flow defaults to fill in preview and editor while an explicit choice survives", async () => {
+ const { getDefaultPcTabletLayoutMode, getPcTabletLayoutModeFromPageSettings, normalizePcTabletLayoutMode } = await import("./menu-layout-modes");
+ assert.equal(getDefaultPcTabletLayoutMode("restaurant_onue_a"), "orderedFit");
+ assert.equal(getPcTabletLayoutModeFromPageSettings({}, "restaurant_onue_a"), "orderedFit");
+ assert.equal(normalizePcTabletLayoutMode(undefined, "restaurant_onue_a"), "orderedFit");
+ assert.equal(getPcTabletLayoutModeFromPageSettings({design:{pcTabletLayoutMode:"orderedBalancedFit"}}, "restaurant_onue_a"), "orderedBalancedFit");
+ assert.equal(getDefaultPcTabletLayoutMode("cafe_design_a"), "orderedBalancedFit");
+});

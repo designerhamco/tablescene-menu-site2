@@ -4143,7 +4143,7 @@ function MenuContentBlock({
   dockWidgetToBottom?: boolean;
 }) {
   if (block.key === PANEL_INTRO_KEY) {
-    return <section className="cafe-a-panel-intro-block" data-cafe-a-balanced-atomic-block=""
+    return <section className="cafe-a-panel-intro-block" data-cafe-a-panel-intro-block="" data-cafe-a-balanced-atomic-block=""
       data-cafe-a-balanced-block-type="widget" data-cafe-a-balanced-block-id={block.key}
       data-cafe-a-balanced-source-order={balancedSourceOrder ?? 0} data-cafe-a-block-type="widget"
       data-cafe-a-widget-placement="flow" data-cafe-a-order-boundary="panel-intro">
@@ -4533,10 +4533,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const itemNameCeilingRem = isAdaptiveFit
     ? getOnePageItemNameCeilingRem(menuCoverRenderDevice)
     : undefined;
-  const savedLayoutMode = getPcTabletLayoutModeFromPageSettings(data.menuSite.page_settings);
+  const savedLayoutMode = getPcTabletLayoutModeFromPageSettings(data.menuSite.page_settings, data.menuSite.template_key);
   const normalizedPreviewLayoutMode = data.mode === "preview" ? data.previewLayoutMode : undefined;
   const isPanelFlow = getFixedOnePageLayoutShell(data.menuSite.template_key) === "brand_panel_flow";
-  const requestedLayoutMode = (isPanelFlow ? "orderedBalancedFit" : normalizedPreviewLayoutMode ?? savedLayoutMode) as CafeDesignALayoutMode;
+  const requestedLayoutMode = (normalizedPreviewLayoutMode ?? savedLayoutMode) as CafeDesignALayoutMode;
   const [adaptiveFlowFallback, setAdaptiveFlowFallback] = useState(false);
   const [copyFitBasis, setCopyFitBasis] = useState<"three-field" | "actual">("three-field");
   const [twoFieldBoostEnabled, setTwoFieldBoostEnabled] = useState(true);
@@ -5518,6 +5518,8 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       const unsafeCandidateKeys = new Set<string>();
 
       for (const columns of columnCandidates) {
+        // Fourth-column rescue must not displace a readable, safe preferred layout.
+        if (columns > ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS && selectedState) break;
         for (const fontScale of getTemplateFitFontCandidates(ORDERED_FIT_FONT_SCALE_CANDIDATES)) {
           const candidateKey = `${columns}:${fontScale}`;
           if (unsafeCandidateKeys.has(candidateKey)) continue;
@@ -7674,7 +7676,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             data-one-page-layout-shell={onePageLayoutShell}
             style={{ ...fitGapStyle, ...fitStyle, ...orderedFitFillStyle }}
           >
-            {isPanelFlow ? renderDesktopMenuGrid({ includeFooter: true }) : onePageLayoutShell === "brand_top_band" ? (
+            {isPanelFlow ? <>
+              {renderDesktopMenuGrid({ includeFooter: layoutMode !== "orderedFit" })}
+              {layoutMode === "orderedFit" ? footerInfo : null}
+            </> : onePageLayoutShell === "brand_top_band" ? (
               isSundayLine ? (
                 <>
                   <DesktopToplineInformationHeader
