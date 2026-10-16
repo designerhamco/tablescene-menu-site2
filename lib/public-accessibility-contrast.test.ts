@@ -16,7 +16,7 @@ test("public product and support surfaces keep secondary copy at accessible cont
   assert.match(gallery, /border-transparent text-zinc-600/);
   assert.doesNotMatch(pricing, /text-zinc-400/);
   assert.match(faq, /bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-950/);
-  assert.match(footer, /type-caption uppercase tracking-wide text-zinc-400/);
+  assert.match(footer, /type-caption uppercase tracking-wide text-zinc-600/);
 });
 
 test("auth consent and compact product previews avoid low-opacity essential copy", () => {

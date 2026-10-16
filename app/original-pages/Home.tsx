@@ -18,6 +18,8 @@ const Home = () => {
       <section id="hero" className="relative"><BrandHero /></section>
       <div className="relative bg-white text-zinc-950">
         <section id="templates" className="relative"><TemplateShowcase /></section>
+      </div>
+      <div className="relative bg-zinc-950 text-white">
         <section id="automatic" className="relative"><ProductHero /></section>
         <section id="layout" className="relative"><AutoLayoutSection /></section>
         <section id="customize" className="relative"><CustomizationSection /></section>
@@ -25,9 +27,9 @@ const Home = () => {
         <section id="multi-page" className="relative"><MultiPageSection /></section>
         <section id="devices" className="relative"><DeviceEverywhereSection /></section>
       </div>
-      <div className="relative overflow-hidden rounded-t-[2rem] bg-zinc-950 text-white md:rounded-t-[3rem]">
-        <section id="ai" className="relative"><AiFeaturesSection inverted /></section>
-        <section id="store-scenes" className="relative"><StoreScenesSection inverted /></section>
+      <div className="relative overflow-hidden rounded-t-[2rem] bg-white text-zinc-950 md:rounded-t-[3rem]">
+        <section id="ai" className="relative"><AiFeaturesSection /></section>
+        <section id="store-scenes" className="relative"><StoreScenesSection /></section>
       </div>
     </>
   );

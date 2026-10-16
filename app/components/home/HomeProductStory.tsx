@@ -128,13 +128,13 @@ export function BrandHero() {
           </h1>
         </motion.div>
         <Image
-          src="/assets/artimenu-home-hero.webp"
+          src="/assets/artimenu-home-showcase.webp"
           alt="밝은 카운터 위 PC 모니터, 태블릿과 스마트폰에 표시된 메뉴 화면"
-          width={1536}
-          height={1024}
+          width={1672}
+          height={941}
           preload
           sizes="(min-width: 1600px) 1520px, (min-width: 768px) calc(100vw - 80px), calc(100vw - 40px)"
-          className="relative -mt-8 h-auto w-full md:-mt-40"
+          className="relative -mt-8 h-auto w-full lg:-mt-16 xl:-mt-28"
         />
       </div>
     </section>
@@ -169,10 +169,10 @@ function StorySection({
     : "py-20 md:py-24";
 
   return (
-    <section className={`site-gutter bg-transparent text-zinc-950 ${spacingClass}`}>
+    <section className={`site-gutter bg-transparent text-white ${spacingClass}`}>
       <div className="mx-auto grid max-w-[1280px] items-center gap-12 lg:grid-cols-2 lg:gap-20">
         <motion.div {...fadeUp} className={reverse ? "lg:order-2" : ""}>
-          <MarketingSectionCopy eyebrow={eyebrow} title={title} body={body} className="max-w-xl" />
+          <MarketingSectionCopy inverted eyebrow={eyebrow} title={title} body={body} className="max-w-xl" />
         </motion.div>
         <div className={reverse ? "lg:order-1" : ""}><StoryVisualFrame>{visual}</StoryVisualFrame></div>
       </div>

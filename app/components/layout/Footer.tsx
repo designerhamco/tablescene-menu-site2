@@ -2,12 +2,12 @@ const Footer = () => {
   const showAdminLink = process.env.NODE_ENV !== "production";
 
   return (
-    <footer className="border-t border-zinc-800 bg-zinc-950 py-14 text-zinc-400 md:py-16">
+    <footer className="border-t border-zinc-200 bg-white py-14 text-zinc-600 md:py-16">
       <div className="site-container">
         <div className="mb-12">
           <div className="space-y-4">
-            <h2 className="type-subsection-title text-white">ArtiMenu</h2>
-            <p className="type-body-lg max-w-sm text-zinc-400">
+            <h2 className="type-subsection-title text-zinc-950">ArtiMenu</h2>
+            <p className="type-body-lg max-w-sm text-zinc-500">
               디지털 혁신과 시각적 스토리텔링을 통해<br/>
               다이닝 경험의 새로운 장면을 만듭니다.
             </p>
@@ -15,57 +15,57 @@ const Footer = () => {
         </div>
 
         {/* Divider */}
-        <div className="mb-8 border-t border-zinc-800" />
+        <div className="mb-8 border-t border-zinc-200" />
 
         {/* Legal Info & Copyright */}
         <div className="flex flex-col md:flex-row justify-between items-end md:items-start gap-8">
             {/* Legal Text */}
-            <div className="type-body-sm w-full space-y-2 text-zinc-400 md:max-w-4xl">
+            <div className="type-body-sm w-full space-y-2 text-zinc-500 md:max-w-4xl">
               <div className="flex flex-wrap gap-x-3 gap-y-1">
-                <span><span className="font-semibold text-zinc-400">상호명</span> 디앤디커머스</span>
-                <span className="text-zinc-600">|</span>
-                <span><span className="font-semibold text-zinc-400">대표자</span> 나형미</span>
-                <span className="text-zinc-600">|</span>
-                <span><span className="font-semibold text-zinc-400">개인정보보호책임자</span> 나형미</span>
+                <span><span className="font-semibold text-zinc-500">상호명</span> 디앤디커머스</span>
+                <span className="text-zinc-300">|</span>
+                <span><span className="font-semibold text-zinc-500">대표자</span> 나형미</span>
+                <span className="text-zinc-300">|</span>
+                <span><span className="font-semibold text-zinc-500">개인정보보호책임자</span> 나형미</span>
               </div>
               <div className="flex flex-wrap gap-x-3 gap-y-1">
-                <span><span className="font-semibold text-zinc-400">사업자등록번호</span> 876-47-00697 <a href="https://www.ftc.go.kr/bizCommPop.do?wrkr_no=8764700697" target="_blank" rel="noopener noreferrer" className="ml-1 underline hover:text-white">[사업자정보확인]</a></span>
-                <span className="text-zinc-600">|</span>
-                <span><span className="font-semibold text-zinc-400">통신판매업신고번호</span> 2026-경기양평-0670</span>
+                <span><span className="font-semibold text-zinc-600">사업자등록번호</span> 876-47-00697 <a href="https://www.ftc.go.kr/bizCommPop.do?wrkr_no=8764700697" target="_blank" rel="noopener noreferrer" className="ml-1 underline hover:text-zinc-950">[사업자정보확인]</a></span>
+                <span className="text-zinc-300">|</span>
+                <span><span className="font-semibold text-zinc-500">통신판매업신고번호</span> 2026-경기양평-0670</span>
               </div>
               <div className="flex flex-wrap gap-x-3 gap-y-1">
-                 <span><span className="font-semibold text-zinc-400">사업장 소재지</span> 경기도 양평군 지평면 수곡로 150-5</span>
+                 <span><span className="font-semibold text-zinc-500">사업장 소재지</span> 경기도 양평군 지평면 수곡로 150-5</span>
               </div>
               <div className="flex flex-wrap gap-x-3 gap-y-1">
-                <span><span className="font-semibold text-zinc-400">고객센터</span> 010-3646-0642</span>
-                <span className="text-zinc-600">|</span>
-                <span><span className="font-semibold text-zinc-400">이메일</span> admin@dndcommerce.co.kr</span>
+                <span><span className="font-semibold text-zinc-500">고객센터</span> 010-3646-0642</span>
+                <span className="text-zinc-300">|</span>
+                <span><span className="font-semibold text-zinc-500">이메일</span> admin@dndcommerce.co.kr</span>
               </div>
            </div>
 
            {/* Copyright & Links */}
            <div className="flex flex-col md:items-end gap-3 shrink-0 w-full md:w-auto text-left md:text-right mt-4 md:mt-0">
-              <div className="type-body-sm flex flex-wrap gap-x-5 gap-y-2 text-zinc-400 md:justify-end md:gap-x-6">
-                <a href="/faq" className="transition-colors hover:text-white">
+              <div className="type-body-sm flex flex-wrap gap-x-5 gap-y-2 text-zinc-500 md:justify-end md:gap-x-6">
+                <a href="/faq" className="transition-colors hover:text-zinc-950">
                   고객센터
                 </a>
                 {showAdminLink ? (
-                  <a href="/admin" className="transition-colors hover:text-white">
+                  <a href="/admin" className="transition-colors hover:text-zinc-950">
                     Admin
                   </a>
                 ) : null}
 
-                <a href="/terms" className="transition-colors hover:text-white">
+                <a href="/terms" className="transition-colors hover:text-zinc-950">
                   이용약관
                 </a>
-                <a href="/privacy" className="transition-colors hover:text-white">
+                <a href="/privacy" className="transition-colors hover:text-zinc-950">
                   개인정보 처리방침
                 </a>
-                <a href="mailto:admin@dndcommerce.co.kr" className="transition-colors hover:text-white">
+                <a href="mailto:admin@dndcommerce.co.kr" className="transition-colors hover:text-zinc-950">
                   고객지원
                 </a>
               </div>
-              <p className="type-caption uppercase tracking-wide text-zinc-400">
+              <p className="type-caption uppercase tracking-wide text-zinc-600">
                 © 2026 ArtiMenu Studio.
               </p>
            </div>
