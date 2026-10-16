@@ -1,5 +1,11 @@
 # ONUE TABLE panel-flow template
 
+## PC/tablet optical centering — 2026-10-16
+
+The photograph's bottom grid row now reserves the same shared 3rem (48px at the default root) minimum as the language row. With no linked featured item, the complete brand/description group centers on the image rather than on the area below the controls. A taller featured-copy row remains available. The brand safety budget and final crop check both include this bottom reservation; an undersized 768×1024 three-panel candidate now safely repacks into two panels. Mobile and natural-height cover-OFF composition retain their existing rules.
+
+Actual DOM checks passed 12 PC/tablet cases (including Call OFF, logo, cover OFF, one/two-panel fixtures and locales), six mobile cases, and two grouped PC/tablet cases. All measured desktop photo identity centers were within 0.01px of the frame center. Evidence: `/private/tmp/onue-center-desktop.txt`, `/private/tmp/onue-center-mobile.txt`, `/private/tmp/onue-center-grouped/report.json` and the corresponding ONUE screenshots. The 23 panel/brand unit tests, TypeScript, touched-file ESLint and final Production build passed.
+
 Template key: `restaurant_onue_a`; catalog group: 레스토랑·다이닝 (restaurant).
 Shell: `brand_panel_flow`, independent from left-rail, top-band and center-column shells.
 

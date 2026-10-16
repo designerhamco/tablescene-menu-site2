@@ -53,6 +53,7 @@ try {
     equalGapDifference:controls&&identity&&featured?Math.abs(identity.top-controls.bottom-(featured.top-identity.bottom)):null,
     brandTarget:brand?.dataset.canvasBrandTarget,
     identityCenterDelta:identity&&frame?Math.abs((identity.left+identity.right-frame.left-frame.right)/2):null,
+    identityVerticalCenterDelta:identity&&frame?Math.abs((identity.top+identity.bottom-frame.top-frame.bottom)/2):null,
     documentOverflow:document.documentElement.scrollWidth-innerWidth,
     overlap:identity&&featured?identity.bottom+12>featured.top+1:false,
     footerClearance:footer&&column?column.getBoundingClientRect().bottom-parseFloat(getComputedStyle(column).paddingBottom)-footer.getBoundingClientRect().bottom:null,
@@ -71,6 +72,7 @@ try {
   if(device!=='mobile') {assert.equal(metrics.layout,'orderedFit');assert.ok(metrics.minimumItemFont>=15.99,JSON.stringify(metrics));assert.ok(metrics.inset>=36);assert.equal(metrics.noticesInIdentity,false);assert.ok(metrics.footerText.includes('런치')||lang!=='ko'||fixture==='panel-single');assert.equal(metrics.brandTarget,fixture==='brand-logo'?undefined:'0.75');if(metrics.equalGapDifference!==null)assert.ok(metrics.equalGapDifference<2,JSON.stringify(metrics));assert.equal(metrics.overflow,'false',JSON.stringify({device,fixture,metrics}));assert.ok(metrics.footerClearance===null||metrics.footerClearance>=-2,JSON.stringify(metrics));}
   assert.equal(metrics.controlWithinFrame,true,JSON.stringify(metrics));
   assert.ok(metrics.identityCenterDelta<2,JSON.stringify(metrics));
+  if(device!=='mobile'&&introCase(fixture)&&!metrics.featuredCopyCount) assert.ok(metrics.identityVerticalCenterDelta<2,JSON.stringify(metrics));
   if(device==='mobile') {assert.equal(metrics.callInsideIntro,fixture!=='call-off');assert.equal(metrics.noticesInIdentity,false);assert.equal(metrics.noticeListCount,1);assert.equal(metrics.footerAlignment,'right');assert.ok(Math.abs(metrics.footerGap-48)<2,JSON.stringify(metrics));}
   if(fixture==='square-boundary') { const first=metrics.boundaries[0];assert.ok(first.fragments>1,JSON.stringify(metrics));assert.equal(first.next,'category',JSON.stringify(metrics));const peers=metrics.boundaries.filter(e=>e.next==='category');assert.ok(peers.every(e=>Math.abs(e.gap-first.gap)<1),JSON.stringify(metrics));assert.ok(peers.every(e=>e.lastItemGap===0),JSON.stringify(metrics));}
   if(fixture==='no-cover'||fixture==='panel-single')assert.equal(metrics.plain,true);

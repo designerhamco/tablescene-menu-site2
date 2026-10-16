@@ -55,7 +55,8 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       const panelDescriptionHeight = panelIdentity?.querySelector<HTMLElement>(".cafe-a-store-description")?.getBoundingClientRect().height ?? 0;
       const panelControlsHeight = panelFrame?.querySelector<HTMLElement>(".cafe-a-panel-controls")?.getBoundingClientRect().height ?? 0;
       const panelFeaturedHeight = panelFrame?.querySelector<HTMLElement>(".cafe-a-featured-copy")?.getBoundingClientRect().height ?? 0;
-      const panelBudget = panelFrame ? Math.max(0, panelFrame.clientHeight - panelControlsHeight - panelFeaturedHeight - panelDescriptionHeight
+      const panelBottomHeight = Math.max(panelControlsHeight, panelFeaturedHeight);
+      const panelBudget = panelFrame ? Math.max(0, panelFrame.clientHeight - panelControlsHeight - panelBottomHeight - panelDescriptionHeight
         - (parseFloat(panelStyle?.paddingTop ?? "0") || 0) - (parseFloat(panelStyle?.paddingBottom ?? "0") || 0)
         - 2 * (parseFloat(panelStyle?.getPropertyValue("--panel-equal-gap") ?? "0") || 0) * (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) - (panelDescriptionHeight ? parseFloat(getComputedStyle(panelIdentity!).rowGap) || 0 : 0)) : Infinity;
       return { width, height: boundedHeader ? availableHeight * CANVAS_HEADER_MAX_RATIO : Math.min(panelBudget, getCanvasBrandHeight(width, frameHeight, layout)), layout, boundedHeader, availableHeight, frameHeight, baseGap, sideHeight };

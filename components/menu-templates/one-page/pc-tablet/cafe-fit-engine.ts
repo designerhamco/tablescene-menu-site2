@@ -1831,9 +1831,12 @@ function measureCafeAActualDomCrop(
     const featured = frame.querySelector<HTMLElement>(".cafe-a-featured-copy");
     if (!identity) return false;
     const contentBottom = identity.getBoundingClientRect().bottom;
-    const limit = featured ? featured.getBoundingClientRect().top - 12 : frame.getBoundingClientRect().bottom - 12;
     const controls = frame.querySelector<HTMLElement>(".cafe-a-panel-controls")?.getBoundingClientRect();
     const frameRect = frame.getBoundingClientRect();
+    const imageFrame = frame.querySelector<HTMLElement>(".cafe-a-cover-frame");
+    const bottomInset = imageFrame ? parseFloat(getComputedStyle(imageFrame).paddingBottom) || 0 : 0;
+    const limit = featured ? featured.getBoundingClientRect().top - 12
+      : frameRect.bottom - bottomInset - (controls?.height ?? 0) - 12;
     const featuredRect = featured?.getBoundingClientRect();
     return contentBottom > limit + cropTolerance ||
       Boolean(controls && controls.bottom + 12 > identity.getBoundingClientRect().top + cropTolerance) ||

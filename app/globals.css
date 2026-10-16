@@ -5295,6 +5295,7 @@ video {
   --board-padding: clamp(0.5rem, 0.85vmin, 0.875rem);
   --panel-content-inset: clamp(2.25rem, 4vmin, 3.25rem);
   --panel-hero-inset: clamp(1rem, 1.8vmin, 1.75rem);
+  --panel-controls-row-size: 3rem;
   --cafe-a-category-separation-ratio: 2.6;
 }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro {
@@ -5402,8 +5403,13 @@ video {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  min-height: 3rem;
+  min-height: var(--panel-controls-row-size);
   width: 100%;
+}
+/* Mirror the language row below the identity on canvas devices. A linked
+   featured item can use a taller bottom row; phones keep their own composition. */
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-desktop-fit-board .cafe-a-panel-intro .cafe-a-cover-frame {
+  grid-template-rows: auto minmax(var(--panel-equal-gap), 1fr) auto minmax(var(--panel-equal-gap), 1fr) minmax(var(--panel-controls-row-size), auto);
 }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro .cafe-a-cover-frame > .absolute:has(button[aria-current]) { right: auto; left: var(--panel-hero-inset); }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-intro .cafe-a-cover-frame {

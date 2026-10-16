@@ -231,6 +231,8 @@ Mobile reuses independent 16/14/12/26px reading type and 20/24/48px rhythm. For 
 
 ### Panel-flow default and readable panel insets — 2026-10-16
 
+PC/tablet representative frames mirror the language-control row's shared `3rem` minimum in their bottom grid row. Without featured-product copy, this balances the top/bottom occupied bands and centers the complete brand + description group in the photograph, rather than below the language row. Featured copy may use a taller bottom row; the title safety budget reserves the greater of that copy's actual height and the controls height. Mobile composition and natural-height cover-OFF content remain unchanged.
+
 Panel-flow shells default to `orderedFit` (채움형 배치) in starter provisioning, public renderer, preview and menu editor. Registered order continues item by item across panels; categories can continue in the next panel while individual products remain intact. Explicit saved mode choices are respected. Other shells retain their grouped default. Menu panel content uses `clamp(2.25rem, 4vmin, 3.25rem)` on all four sides; image frames stay flush to the first panel's top and side edges. Ordinary outer gutters retain the existing small shared token. The ordered CSS-column canvas paints equal white panel backgrounds independently from text insets, measures the flush image and inset copy as one physical column, and reserves the lower-right Call footer. Mobile spacing is unchanged.
 
 ### Ordered rescue and actual copy — 2026-10-16
