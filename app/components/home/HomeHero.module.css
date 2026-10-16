@@ -1,5 +1,5 @@
 .hero {
-  padding: 7rem var(--site-gutter) 3rem;
+  padding: 7.5rem var(--site-gutter) 3rem;
   background: #fff;
   color: #09090b;
 }
@@ -12,11 +12,11 @@
   margin-inline: auto;
 }
 
-.title {
-  --type-display-size: clamp(2rem, 10.7vw, 3rem);
-  order: 2;
+.hero .title {
+  --type-display-size: clamp(1.875rem, 9vw, 2.375rem);
   margin: 0;
   text-align: center;
+  line-height: 1.08;
 }
 
 .titleLine {
@@ -26,7 +26,6 @@
 .frame {
   position: relative;
   isolation: isolate;
-  order: 1;
   aspect-ratio: 0.95;
   overflow: hidden;
   border-radius: clamp(2rem, 5vw, 3rem);
@@ -44,12 +43,16 @@
 }
 
 @media (min-width: 640px) {
-  .layout {
-    gap: clamp(3.5rem, 6vw, 5rem);
+  .hero {
+    padding-top: 8.25rem;
   }
 
-  .title {
-    --type-display-size: clamp(3rem, 6.5vw, 5.25rem);
+  .layout {
+    gap: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .hero .title {
+    --type-display-size: clamp(2.5rem, 5.5vw, 4.25rem);
   }
 
   .frame {
@@ -67,20 +70,18 @@
 
 @media (min-width: 1280px) {
   .hero {
-    padding-top: clamp(10rem, 11.5vw, 14rem);
+    padding-top: clamp(8.5rem, 10vw, 11rem);
   }
 
   .layout {
-    gap: clamp(3.5rem, 5vw, 5rem);
+    gap: clamp(2.5rem, 4.5vw, 4rem);
   }
 
-  .title {
-    --type-display-size: clamp(4.5rem, 6.25vw, 6rem);
-    order: 1;
+  .hero .title {
+    --type-display-size: clamp(3.75rem, 5vw, 4.75rem);
   }
 
   .frame {
-    order: 2;
     aspect-ratio: 2.3;
   }
 }

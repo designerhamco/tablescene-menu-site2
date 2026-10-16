@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import {
   ChevronLeft,
@@ -127,13 +126,16 @@ export function BrandHero() {
           <span className={heroStyles.titleLine}>새로운 경험</span>
         </h1>
         <div data-home-hero-frame className={heroStyles.frame}>
-          <Image
-            src="/assets/artimenu-home-showcase.webp"
+          <img
+            src="/assets/artimenu-home-hero-hq-3344.webp"
+            srcSet="/assets/artimenu-home-hero-hq-640.webp 640w, /assets/artimenu-home-hero-hq-960.webp 960w, /assets/artimenu-home-hero-hq-1536.webp 1536w, /assets/artimenu-home-hero-hq-2304.webp 2304w, /assets/artimenu-home-hero-hq-3344.webp 3344w"
             alt="밝은 카운터 위 PC 모니터, 태블릿과 스마트폰에 표시된 메뉴 화면"
-            width={1672}
-            height={941}
-            preload
-            sizes="(max-width: 639px) calc(150vw - 60px), (min-width: 1600px) 1520px, (min-width: 768px) calc(100vw - 80px), calc(100vw - 40px)"
+            width={3344}
+            height={1882}
+            loading="eager"
+            fetchPriority="high"
+            decoding="async"
+            sizes="(max-width: 639px) calc(150vw - 60px), (min-width: 1600px) 1520px, (min-width: 1334px) calc(100vw - 80px), (min-width: 667px) 94vw, calc(100vw - 40px)"
             className={heroStyles.image}
           />
         </div>

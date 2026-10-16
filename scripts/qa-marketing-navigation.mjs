@@ -19,13 +19,25 @@ async function selectService(page, service, mobile) {
 
 try {
   // Exercise Next Link transitions in both directions, including history and reload.
-  for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844 }]) {
-    const mobile = viewport.width < 1024;
+  for (const viewport of [{ width: 1440, height: 1000 }, { width: 1024, height: 768 }, { width: 390, height: 844 }]) {
+    const mobile = viewport.width < 1280;
     const page = await browser.newPage({ viewport, reducedMotion: "reduce" });
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
     await expectService(page, "dining");
+    const header = page.locator("[data-site-header]");
+    await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));
+    await expect(header).toHaveAttribute("data-floating", "true");
+    if (mobile) {
+      await page.getByRole("button", { name: "메뉴 열기", exact: true }).click();
+      await expect(header).toHaveAttribute("data-floating", "false");
+      await expect(page.getByRole("navigation", { name: "모바일 공식 사이트 메뉴" })).toBeVisible();
+      await page.getByRole("button", { name: "메뉴 닫기", exact: true }).click();
+      await expect(header).toHaveAttribute("data-floating", "true");
+    }
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await expect(header).toHaveAttribute("data-floating", "false");
     for (let round = 0; round < 3; round += 1) {
       await selectService(page, "display", mobile);
       await selectService(page, "dining", mobile);
@@ -39,8 +51,12 @@ try {
     await page.goto(new URL("/services/display", baseUrl).href, { waitUntil: "domcontentloaded" });
     await expectService(page, "display");
     await selectService(page, "dining", mobile);
+    if (mobile) await page.getByRole("button", { name: "메뉴 열기", exact: true }).click();
+    await page.getByRole("link", { name: "템플릿 보러가기", exact: true }).click();
+    await expect(page).toHaveURL(new URL("/apply", baseUrl).href);
+    await selectService(page, "dining", mobile);
     assert.deepEqual(errors, []);
-    results.push({ check: "navigation", viewport, repeatedRoundTrips: 3, history: true, reload: true, directDisplayEntry: true });
+    results.push({ check: "navigation", viewport, repeatedRoundTrips: 3, history: true, reload: true, directDisplayEntry: true, floatingHeader: true, templateEntry: true });
     await page.close();
   }
 

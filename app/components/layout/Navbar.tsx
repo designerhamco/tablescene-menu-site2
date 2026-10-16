@@ -6,14 +6,12 @@ import { usePathname } from 'next/navigation';
 
 import { formatNotificationBadgeCount, formatNotificationDateTime, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
 import { createClient } from '@/lib/supabase/client';
-
-const logoImage = '/assets/tablescene-symbol.png';
+import styles from './Navbar.module.css';
 
 type NavItem = {
   label: string;
   path: string;
   activePaths?: readonly string[];
-  discount?: boolean;
   disabled?: boolean;
 };
 
@@ -22,19 +20,11 @@ const NAV_ITEMS: readonly NavItem[] = [
     label: '아티메뉴 다이닝',
     path: '/',
     activePaths: ['/', '/services/basic', '/services/menu', '/services/signature'],
-    discount: true,
   },
   { label: '아티메뉴 디스플레이', path: '/services/display', activePaths: ['/services/display', '/services/screen', '/services/full-option', '/tablescene-pro'] },
   { label: '고객센터', path: '/faq', activePaths: ['/faq', '/support/chat'] },
+  { label: '템플릿 보러가기', path: '/apply', activePaths: ['/apply'] },
 ];
-
-function DiscountChip() {
-  return (
-    <span className="type-caption inline-flex shrink-0 rounded-full bg-[#F8E731] px-1.5 py-0.5 text-black">
-      오픈 얼리버드
-    </span>
-  );
-}
 
 function DisabledChip() {
   return (
@@ -61,6 +51,7 @@ type NotificationEvent = {
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notificationEvents, setNotificationEvents] = useState<NotificationEvent[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -71,6 +62,7 @@ const Navbar = () => {
     loading: true,
   });
   const notificationLayerRef = useRef<HTMLDivElement | null>(null);
+  const scrolledRef = useRef(false);
   const pathname = usePathname();
 
   const closeMobileMenu = () => {
@@ -84,7 +76,7 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 1024) {
+      if (window.innerWidth >= 1280) {
         setIsOpen(false);
       }
     };
@@ -92,6 +84,19 @@ const Navbar = () => {
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const nextIsScrolled = window.scrollY > 24;
+      if (nextIsScrolled === scrolledRef.current) return;
+      scrolledRef.current = nextIsScrolled;
+      setIsScrolled(nextIsScrolled);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   useEffect(() => {
@@ -205,10 +210,8 @@ const Navbar = () => {
     return () => window.removeEventListener('pointerdown', handlePointerDown);
   }, [isNotificationOpen]);
 
-  const navBgClass = 'bg-white border-b border-zinc-200';
-  const navToneClass = 'text-zinc-950';
-  const logoTextClass = 'text-current';
-  const navTextClass = 'text-current opacity-70 hover:opacity-100';
+  const isFloating = isScrolled && !isOpen;
+  const navTextClass = 'text-current opacity-85 hover:opacity-100';
   const menuButtonClass = 'text-current hover:opacity-70';
   const primaryButtonClass = 'bg-zinc-950 hover:bg-zinc-800';
   const primaryButtonStyle = { color: '#ffffff' };
@@ -248,25 +251,13 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className={`fixed left-0 right-0 top-0 z-50 h-20 transition-all duration-300 ${navBgClass} ${navToneClass}`}>
-        <div className="site-container relative flex h-full items-center justify-between">
-          <Link href="/" className="group z-50 flex shrink-0 items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#F8E731] transition-transform duration-300 group-hover:scale-105 md:h-10 md:w-10 md:rounded-xl">
-              <img
-                src={logoImage}
-                alt="ArtiMenu Symbol"
-                className="h-5 w-5 rotate-45 object-contain md:h-6 md:w-6"
-              />
-            </div>
-
-            <div className="flex flex-col items-start leading-none">
-              <span className={`text-xl font-bold tracking-tighter transition-colors duration-300 md:text-2xl ${logoTextClass}`}>
-                ArtiMenu
-              </span>
-            </div>
+      <nav data-site-header data-floating={isFloating} className={styles.shell}>
+        <div className={`site-container relative flex h-full items-center justify-between ${styles.panel}`}>
+          <Link href="/" className="group z-50 flex shrink-0 items-center">
+            <span className="type-subsection-title text-current">ArtiMenu</span>
           </Link>
 
-          <div className="absolute left-1/2 top-1/2 hidden h-full -translate-x-1/2 -translate-y-1/2 items-center gap-5 lg:flex xl:gap-8">
+          <div className="absolute left-1/2 top-1/2 hidden h-full -translate-x-1/2 -translate-y-1/2 items-center gap-5 xl:flex xl:gap-8">
             {NAV_ITEMS.map((item) => {
               const isActive = (item.activePaths ?? [item.path]).includes(pathname);
 
@@ -285,16 +276,15 @@ const Navbar = () => {
                         event.preventDefault();
                       }
                     }}
-                    className={`type-nav relative inline-flex items-center gap-1.5 py-2 transition-opacity duration-200 after:absolute after:bottom-0 after:left-1/2 after:h-0.5 after:-translate-x-1/2 after:rounded-full after:bg-current after:transition-all ${
+                    className={`type-nav relative inline-flex items-center gap-1.5 py-2 transition-opacity duration-200 ${
                       item.disabled
-                        ? 'pointer-events-none cursor-not-allowed text-current opacity-35 after:w-0'
+                        ? 'pointer-events-none cursor-not-allowed text-current opacity-35'
                         : isActive
-                          ? 'opacity-100 after:w-6'
-                          : `${navTextClass} after:w-0`
+                          ? 'opacity-100'
+                          : navTextClass
                     }`}
                   >
                     <span>{item.label}</span>
-                    {item.discount ? <DiscountChip /> : null}
                     {item.disabled ? <DisabledChip /> : null}
                   </Link>
 
@@ -306,13 +296,13 @@ const Navbar = () => {
           <div className="z-50 flex shrink-0 items-center gap-2 md:gap-3">
             <Link
               href="/apply"
-              className={`type-nav hidden rounded-full px-5 py-2.5 transition-colors lg:inline-flex ${primaryButtonClass}`}
+              className={`type-nav hidden rounded-full px-5 py-2.5 transition-colors xl:inline-flex ${primaryButtonClass}`}
               style={primaryButtonStyle}
             >
               만들기
             </Link>
             {authState.isAuthenticated ? (
-              <div ref={notificationLayerRef} className="relative hidden lg:block">
+              <div ref={notificationLayerRef} className="relative hidden xl:block">
                 <button
                   type="button"
                   aria-label="알림"
@@ -366,7 +356,7 @@ const Navbar = () => {
             {!authState.loading ? (
               <Link
                 href={accountCtaHref}
-                className={`type-nav hidden rounded-full border px-5 py-2.5 transition-colors lg:inline-flex ${secondaryButtonClass}`}
+                className={`type-nav hidden rounded-full border px-5 py-2.5 transition-colors xl:inline-flex ${secondaryButtonClass}`}
               >
                 {accountCtaLabel}
               </Link>
@@ -375,7 +365,7 @@ const Navbar = () => {
               <Link
                 href={NOTIFICATION_FALLBACK_HREF}
                 aria-label={unreadCount > 0 ? `알림, 읽지 않음 ${unreadBadgeLabel}개` : '알림'}
-                className={`relative inline-flex size-9 min-h-9 min-w-9 shrink-0 items-center justify-center rounded-full p-0 transition-opacity lg:hidden ${menuButtonClass}`}
+                className={`relative inline-flex size-9 min-h-9 min-w-9 shrink-0 items-center justify-center rounded-full p-0 transition-opacity xl:hidden ${menuButtonClass}`}
               >
                 <Bell size={23} strokeWidth={2.1} aria-hidden="true" />
                 {unreadCount > 0 ? (
@@ -387,7 +377,7 @@ const Navbar = () => {
             ) : null}
 
             <button
-              className={`inline-flex aspect-square h-9 w-9 shrink-0 items-center justify-center p-0 transition-opacity lg:hidden ${menuButtonClass}`}
+              className={`inline-flex aspect-square h-9 w-9 shrink-0 items-center justify-center p-0 transition-opacity xl:hidden ${menuButtonClass}`}
               onClick={() => setIsOpen((currentIsOpen) => !currentIsOpen)}
               aria-label={isOpen ? '메뉴 닫기' : '메뉴 열기'}
               aria-expanded={isOpen}
@@ -453,7 +443,6 @@ const Navbar = () => {
                       >
                         <span>{item.label}</span>
                         <span className="flex shrink-0 items-center gap-2">
-                          {item.discount ? <DiscountChip /> : null}
                           {item.disabled ? <DisabledChip /> : null}
                           {!item.disabled ? <ArrowUpRight className="h-4 w-4 text-zinc-300 transition-colors group-active:text-zinc-950" aria-hidden="true" /> : null}
                         </span>
