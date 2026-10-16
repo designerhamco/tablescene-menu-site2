@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import TemplateCard from '@/components/templates/TemplateCard';
 import { MarketingSectionCopy } from './MarketingSectionCopy';
+import TabletTemplateCarousel from './TabletTemplateCarousel';
 import {
   BASIC_TEMPLATE_CATEGORY_GROUPS,
   DISPLAY_TEMPLATE_CATEGORY_GROUPS,
@@ -21,8 +22,8 @@ type TemplateShowcaseProps = {
   presentation?: 'catalog' | 'marquee';
 };
 
-// The former marquee presentation now shares the site's accessible card grid.
 export default function TemplateShowcase({ service = 'all', presentation = 'catalog' }: TemplateShowcaseProps) {
+  const isDiningShowcase = service === 'all';
   const selectedService = service === 'all' ? 'basic' : service;
   const isFeatured = service === 'all' || presentation === 'marquee';
   const isDisplay = selectedService === 'display';
@@ -55,7 +56,7 @@ export default function TemplateShowcase({ service = 'all', presentation = 'cata
             {categories.map((item) => <button key={item.key} type="button" className="site-tab" aria-pressed={category === item.key} onClick={() => setCategory(item.key)}>{item.label}</button>)}
           </div>
         ) : null}
-        <div className="site-template-grid">
+        {isDiningShowcase ? <TabletTemplateCarousel /> : <div className="site-template-grid">
           {visibleTemplates.map((template, index) => (
             <motion.article
               key={template.key}
@@ -72,8 +73,8 @@ export default function TemplateShowcase({ service = 'all', presentation = 'cata
               ) : <TemplateCard template={template} inverted={isDisplay} />}
             </motion.article>
           ))}
-        </div>
-        {visibleTemplates.length === 0 ? <p className="type-body py-16 text-center">등록된 템플릿이 아직 없습니다.</p> : null}
+        </div>}
+        {!isDiningShowcase && visibleTemplates.length === 0 ? <p className="type-body py-16 text-center">등록된 템플릿이 아직 없습니다.</p> : null}
         <div className="mt-12 flex justify-center">
           <a href="/apply" className={`site-button ${isDisplay ? 'site-button-secondary' : 'site-button-primary'}`}>더 많은 디자인 보기</a>
         </div>
