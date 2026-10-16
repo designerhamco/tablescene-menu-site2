@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { MarketingSectionCopy } from "./MarketingSectionCopy";
+import heroStyles from "./HomeHero.module.css";
 
 const menuItems = [
   { name: "Black sesame latte", price: "6.5", image: "/menu-templates/cafe_design_a/black-sesame-featured.jpg" },
@@ -119,23 +120,23 @@ function RotatingMenuScreen({ screenIndex, compact = false }: { screenIndex: num
 
 export function BrandHero() {
   return (
-    <section className="relative bg-white px-[var(--site-gutter)] pb-8 pt-24 text-zinc-950 md:pb-12 md:pt-28">
-      <div data-home-hero-frame className="relative isolate mx-auto max-w-[1520px] overflow-hidden rounded-[2rem] bg-[#f4f4f5] md:rounded-[2.5rem]">
-        <motion.div {...fadeUp} className="relative z-10 mx-auto max-w-[1180px] px-5 pt-10 text-center md:px-10 md:pt-14">
-          <p className="text-base font-bold tracking-[-0.02em] md:text-xl">다이닝의 새로운 메뉴 경험</p>
-          <h1 className="type-display mt-5">
-            ArtiMenu<br />Perfect For Your Store
-          </h1>
-        </motion.div>
-        <Image
-          src="/assets/artimenu-home-showcase.webp"
-          alt="밝은 카운터 위 PC 모니터, 태블릿과 스마트폰에 표시된 메뉴 화면"
-          width={1672}
-          height={941}
-          preload
-          sizes="(min-width: 1600px) 1520px, (min-width: 768px) calc(100vw - 80px), calc(100vw - 40px)"
-          className="relative -mt-8 h-auto w-full lg:-mt-16 xl:-mt-28"
-        />
+    <section className={heroStyles.hero}>
+      <div className={heroStyles.layout}>
+        <h1 className={`type-display ${heroStyles.title}`}>
+          <span className={heroStyles.titleLine}>디지털 메뉴판의</span>{" "}
+          <span className={heroStyles.titleLine}>새로운 경험</span>
+        </h1>
+        <div data-home-hero-frame className={heroStyles.frame}>
+          <Image
+            src="/assets/artimenu-home-showcase.webp"
+            alt="밝은 카운터 위 PC 모니터, 태블릿과 스마트폰에 표시된 메뉴 화면"
+            width={1672}
+            height={941}
+            preload
+            sizes="(max-width: 639px) calc(150vw - 60px), (min-width: 1600px) 1520px, (min-width: 768px) calc(100vw - 80px), calc(100vw - 40px)"
+            className={heroStyles.image}
+          />
+        </div>
       </div>
     </section>
   );

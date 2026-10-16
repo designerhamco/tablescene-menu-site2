@@ -7,7 +7,7 @@ const results = [];
 
 async function expectService(page, service) {
   await expect(page).toHaveURL(new URL(service === "display" ? "/services/display" : "/", baseUrl).href);
-  await expect(page.locator("h1")).toHaveText(service === "display" ? "ArtiMenu DisplayMade to Be Seen" : "ArtiMenuPerfect For Your Store");
+  await expect(page.locator("h1")).toHaveText(service === "display" ? "ArtiMenu DisplayMade to Be Seen" : "디지털 메뉴판의 새로운 경험");
   await expect(page.locator("[data-home-hero-frame]")).toHaveCount(service === "display" ? 0 : 1);
 }
 
