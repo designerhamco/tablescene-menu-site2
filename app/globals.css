@@ -5418,6 +5418,7 @@ video {
    break-inside: avoid;
  }
  .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-desktop-fit-board[data-layout-mode="orderedFit"] > .cafe-a-footer-info {
+   display: block;
    position: absolute;
    background-color: #fff;
    bottom: calc(var(--board-padding) + var(--panel-content-inset));

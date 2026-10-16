@@ -470,8 +470,11 @@ export function getPreviewFitFontScaleCandidates<T extends number>(candidates: r
 
 export function getOrderedFitGapScale(fontScale: number, menuWidth: number) {
   if (menuWidth < 760) return Math.max(0.64, Math.min(0.72, fontScale - 0.29));
-  if (menuWidth < 1080) return Math.max(0.76, Math.min(0.92, fontScale - 0.12));
-  return Math.max(0.84, Math.min(0.96, fontScale - 0.16));
+  // Wide but short canvases also need a real spacing backoff. The normal
+  // width floor must not freeze gaps after type reaches its readable floor.
+  const baseFloor = menuWidth < 1080 ? 0.76 : 0.84;
+  const readableFloor = Math.max(0.64, baseFloor - Math.max(0, 0.95 - fontScale));
+  return Math.max(readableFloor, Math.min(menuWidth < 1080 ? 0.92 : 0.96, fontScale - (menuWidth < 1080 ? 0.12 : 0.16)));
 }
 
 

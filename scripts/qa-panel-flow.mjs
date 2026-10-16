@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 const browser = await chromium.launch();
 const errors = [];
 const cases = [
- ['pc',1516,844,'ko',''],['tablet',1024,768,'ko',''],['tablet',768,1024,'ko',''],
+ ['pc',1516,844,'ko',''],['pc',1512,762,'ko',''],['pc',1920,1080,'ko',''],['tablet',1024,768,'ko',''],['tablet',768,1024,'ko',''],
  ['mobile',320,844,'ko',''],['mobile',430,900,'ja',''],['pc',1516,844,'en',''],
  ['pc',1516,844,'zh',''],['mobile',390,844,'ko','no-cover'],
  ['pc',1516,844,'ko','no-cover'],['mobile',390,844,'ko','brand-logo'],
  ['pc',1516,844,'ko','brand-logo'],['mobile',320,844,'ko','call-off'],['mobile',430,900,'en','call-off'],['pc',1516,844,'ko','call-off'],['pc',1516,844,'ko','panel-single'],['tablet',1024,768,'ko','panel-two'],
 ];
-const selectedCases=process.argv.includes("--mobile") ? cases.filter(([device])=>device==='mobile') : process.argv.includes("--quick") ? cases.slice(0,2) : process.argv.includes("--geometry") ? cases.filter(([device,,,lang,fixture])=>device==='mobile'&&lang==='ko'&&(fixture===''||fixture==='call-off')) : cases;
+const selectedCases=process.argv.includes("--desktop") ? cases.filter(([device])=>device!=='mobile') : process.argv.includes("--short") ? cases.filter(([device,,height])=>device==='pc'&&height===762) : process.argv.includes("--wide") ? cases.filter(([device,,height,,fixture])=>device==='pc'&&fixture===''&&height!==844) : process.argv.includes("--mobile") ? cases.filter(([device])=>device==='mobile') : process.argv.includes("--quick") ? cases.filter(([device,width,height,,fixture])=>fixture===''&&((device==='pc'&&height===844)||(device==='tablet'&&width===1024))) : process.argv.includes("--geometry") ? cases.filter(([device,,,lang,fixture])=>device==='mobile'&&lang==='ko'&&(fixture===''||fixture==='call-off')) : cases;
 const results=[];
 try {
  for (let index=0;index<selectedCases.length;index+=1) await Promise.all(selectedCases.slice(index,index+1).map(async ([device,width,height,lang,fixture])=>{
@@ -35,6 +35,8 @@ try {
    const brand=(intro||plain)?.querySelector('[data-cafe-a-store-title]');
    const column=footer?.closest('[data-cafe-a-balanced-column]');
    return {viewport:[innerWidth,innerHeight],state:board?.dataset.fitPresentationState,layout:board?.dataset.layoutMode,inset:parseFloat(getComputedStyle(board.querySelector("[data-cafe-a-fit-menu]")).paddingLeft),overflow:board?.dataset.fitOverflow,columns:Number(board?.dataset.fitColumns),basis:board?.dataset.fitCopyBasis,
+    menuColumnsWithItems:[...new Set([...board.querySelectorAll('[data-cafe-a-menu-item]')].filter(visible).map(e=>Math.round(e.getBoundingClientRect().left/((board.clientWidth+8)/Number(board.dataset.fitColumns)))))].length,
+    minimumItemFont:Math.min(...[...board.querySelectorAll('[data-cafe-a-menu-name]')].filter(visible).map(e=>parseFloat(getComputedStyle(e).fontSize))),
     footerAlignment:footer?getComputedStyle(footer).textAlign:null,
     footerGap:footer&&lastItem?footer.getBoundingClientRect().top-lastItem.bottom:null,
     noticeListCount:[...document.querySelectorAll('.cafe-a-mobile-notice-list')].filter(visible).length,
@@ -59,7 +61,8 @@ try {
   assert.equal(metrics.documentOverflow,0,JSON.stringify({device,fixture,metrics}));
   assert.equal(metrics.featuredWithinFrame,true,JSON.stringify(metrics));
   assert.equal(metrics.overlap,false,JSON.stringify({device,fixture,metrics}));
-  if(device!=='mobile') {assert.equal(metrics.layout,'orderedFit');assert.ok(metrics.inset>=36);assert.equal(metrics.noticesInIdentity,false);assert.ok(metrics.footerText.includes('런치')||lang!=='ko'||fixture==='panel-single');assert.equal(metrics.brandTarget,fixture==='brand-logo'?undefined:'0.75');if(metrics.equalGapDifference!==null)assert.ok(metrics.equalGapDifference<2,JSON.stringify(metrics));assert.equal(metrics.overflow,'false',JSON.stringify({device,fixture,metrics}));assert.ok(metrics.footerClearance===null||metrics.footerClearance>=-2,JSON.stringify(metrics));}
+  if(device==='pc'&&lang==='ko'&&fixture===''&&[762,844,1080].includes(height))assert.equal(metrics.columns,3,JSON.stringify(metrics));
+  if(device!=='mobile') {assert.equal(metrics.layout,'orderedFit');assert.ok(metrics.minimumItemFont>=15.99,JSON.stringify(metrics));assert.ok(metrics.inset>=36);assert.equal(metrics.noticesInIdentity,false);assert.ok(metrics.footerText.includes('런치')||lang!=='ko'||fixture==='panel-single');assert.equal(metrics.brandTarget,fixture==='brand-logo'?undefined:'0.75');if(metrics.equalGapDifference!==null)assert.ok(metrics.equalGapDifference<2,JSON.stringify(metrics));assert.equal(metrics.overflow,'false',JSON.stringify({device,fixture,metrics}));assert.ok(metrics.footerClearance===null||metrics.footerClearance>=-2,JSON.stringify(metrics));}
   assert.equal(metrics.controlWithinFrame,true,JSON.stringify(metrics));
   assert.ok(metrics.identityCenterDelta<2,JSON.stringify(metrics));
   if(device==='mobile') {assert.equal(metrics.callInsideIntro,fixture!=='call-off');assert.equal(metrics.noticesInIdentity,false);assert.equal(metrics.noticeListCount,1);assert.equal(metrics.footerAlignment,'right');assert.ok(Math.abs(metrics.footerGap-48)<2,JSON.stringify(metrics));}

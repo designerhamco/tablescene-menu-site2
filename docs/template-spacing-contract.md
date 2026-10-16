@@ -234,3 +234,8 @@ Panel-flow shells default to `orderedFit` (채움형 배치) in starter provisio
 ### Ordered rescue and actual copy — 2026-10-16
 
 Before an adaptive ordered-flow reference fit commits a fourth rescue column, retry actual visible copy in the preferred one-to-three-column widths. Accept only a measured non-overflow candidate at the shared standard readable scale or above, with at least 8% wider columns; persist `actual` as the measurement basis. This avoids an unnecessary mostly empty rescue panel caused by reference-only support rows. If no safe readable candidate exists, retain reference fitting and the rescue. Content/font/viewport changes still reset the basis, and final DOM crop and footer no-go checks remain authoritative. This is shared ordered-flow safety policy, not an ONUE text-size multiplier.
+
+
+### Ordered flow on wide, short canvases — 2026-10-16
+
+The normal ordered-gap mapping is unchanged at fit font scales of 0.95 and above. Below that scale, its width-dependent floor can decrease continuously to 0.64, still bounded by the common 0.55rem CSS item-gap floor and the shared 0.74 rhythm coefficient. This lets safe preferred-width packing reduce inter-item/category spacing after text reaches its readable floor, instead of reserving a mostly empty fourth column for Call/notices. All templates using ordered PC/tablet flow share this mapping; mobile reading gaps and template panel insets are unchanged. A fourth column remains available when safe readable packing actually needs it.

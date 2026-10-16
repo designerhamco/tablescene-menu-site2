@@ -36,3 +36,9 @@ Representative alignment follow-up (2026-10-16):
 
 
 Mobile notice footer follow-up (2026-10-16): notices 1/2/3 now render once in the common right-aligned mobile footer after all menu items, separated by the shared 48px section gap. The representative identity no longer contains notices. PC/tablet footer anchors and the in-image mobile Call/language row are unchanged. Browser checks cover 320/390/430px, Call ON/OFF, Japanese/English copy, cover OFF and logo.
+
+
+Short-PC packing follow-up (2026-10-16): reproduced the empty fourth panel at actual 1512×762 (the earlier 1516×844 case was taller). A frozen wide-menu gap floor rejected preferred widths even at minimum readable type. The common ordered-gap floor now backs off smoothly below font scale 0.95; normal scales, 0.74 rhythm, text floors, 36–52px panel padding and square representative ratio remain. The exact 1512×762 case now uses three occupied panels, with Call/notices in the third panel and no crop/overflow; regression explicitly requires three panels at 1512×762, 1516×844 and 1920×1080.
+
+
+Validation: 12 ONUE PC/tablet cases and 21 existing-template ordered-mode PC/mobile views passed. Product-name minimum remains at least 16px in ONUE PC/tablet; the exact 1512×762 case has 36px menu insets and three occupied panels. All 640 unit/contract tests, TypeScript, ESLint and the production build passed. Portrait-tablet ordered footer visibility was also corrected so the reserved notices/Call are actually rendered below the 1024px breakpoint.

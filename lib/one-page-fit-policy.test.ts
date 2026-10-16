@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getOrderedBalancedFitColumnCandidates } from "../components/menu-templates/one-page/pc-tablet/cafe-fit-engine";
+import { getOrderedFitGapScale, getOrderedBalancedFitColumnCandidates } from "../components/menu-templates/one-page/pc-tablet/cafe-fit-engine";
 
 import {
   getCafeAOrderedBalancedBreaksFromColumns,
@@ -127,4 +127,18 @@ test("actual-copy rescue retains safe readable preferred widths", async () => {
   assert.equal(shouldPreferActualCopyBeforeRescue({columns: 4}, {...safe, columns: 4}, 0.71), false);
   assert.equal(shouldPreferActualCopyBeforeRescue({columns: 3}, safe, 0.71), false);
   assert.equal(shouldPreferActualCopyBeforeRescue({columns: 4}, null, 0.71), false);
+});
+
+
+test("ordered spacing can back off on wide short canvases without changing normal rhythm", () => {
+  assert.equal(getOrderedFitGapScale(1, 1500), 0.84);
+  assert.equal(getOrderedFitGapScale(1.2, 1500), 0.96);
+  assert.equal(getOrderedFitGapScale(1, 1000), 0.88);
+  for (const width of [1000, 1500]) {
+    const scales = [1, 0.95, 0.88, 0.85, 0.71, 0.46].map(font => getOrderedFitGapScale(font, width));
+    assert.ok(scales.at(-1)! >= 0.64);
+    assert.ok(scales.at(-1)! < scales[0]);
+    for (let i=1; i<scales.length; i++) assert.ok(scales[i]<=scales[i-1]);
+  }
+  assert.equal(getOrderedFitGapScale(0.71, 700), 0.64);
 });
