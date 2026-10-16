@@ -1,6 +1,5 @@
 .carousel {
-  --tablet-bezel: clamp(0.5rem, 1.1vw, 0.875rem);
-  --tablet-radius: var(--ui-radius-box);
+  --showcase-radius: clamp(0.75rem, 1.5vw, 1.25rem);
   position: relative;
   isolation: isolate;
 }
@@ -31,29 +30,16 @@
   justify-content: center;
 }
 
-.device {
+.panel {
   position: relative;
   flex: none;
   width: 135%;
-  border: 1px solid #626265;
-  border-radius: var(--tablet-radius);
-  padding: var(--tablet-bezel);
-  background: #171719;
-  box-shadow: 0 1px 0 1px #333336, 0 12px 26px -15px rgb(0 0 0 / 0.32);
+  overflow: hidden;
+  border-radius: var(--showcase-radius);
+  box-shadow: 0 12px 26px -20px rgb(0 0 0 / 0.18);
   transform-origin: center bottom;
-  will-change: transform;
+  will-change: transform, filter, opacity;
   user-select: none;
-}
-
-.device::before {
-  position: absolute;
-  top: 50%;
-  left: calc(var(--tablet-bezel) * 0.35);
-  width: 3px;
-  height: 3px;
-  border-radius: 50%;
-  background: #343438;
-  content: '';
 }
 
 .screen {
@@ -64,21 +50,10 @@
   grid-template-columns: 45% 55%;
   overflow: hidden;
   aspect-ratio: 4 / 3;
-  border-radius: calc(var(--tablet-radius) - var(--tablet-bezel));
+  border-radius: inherit;
   background: var(--preview-paper);
   color: var(--preview-ink);
   container-type: inline-size;
-}
-
-.screen::after {
-  position: absolute;
-  z-index: 1;
-  inset: 0;
-  border-radius: inherit;
-  background: #101012;
-  opacity: var(--screen-shade, 0);
-  pointer-events: none;
-  content: '';
 }
 
 .screen[data-theme='ivory'] {
@@ -202,7 +177,7 @@
     flex-basis: 54%;
   }
 
-  .device {
+  .panel {
     width: 125%;
   }
 }
@@ -224,7 +199,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .device {
+  .panel {
     will-change: auto;
   }
 }

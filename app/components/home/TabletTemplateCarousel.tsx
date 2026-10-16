@@ -17,16 +17,16 @@ const PREVIEW_SCREENS = [
   { id: 'coffee', image: '/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-01.png', title: 'Your daily\nlittle ritual', category: 'COFFEE MENU', theme: 'blue' },
 ] as const;
 
-const AUTO_ADVANCE_MS = 4200;
+const AUTO_ADVANCE_MS = 3200;
 
 export default function TabletTemplateCarousel() {
   const root = useRef<HTMLDivElement>(null);
-  const isInView = useInView(root, { amount: 0.35 });
+  const isInView = useInView(root, { amount: 0.2 });
   const reducedMotion = useReducedMotion();
   const [viewportRef, carousel] = useEmblaCarousel({ loop: true, align: 'center', duration: 40 });
   const [selected, setSelected] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [hovered, setHovered] = useState(false);
+  const [motionOptIn, setMotionOptIn] = useState(false);
   const [focused, setFocused] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [documentVisible, setDocumentVisible] = useState(true);
@@ -41,7 +41,7 @@ export default function TabletTemplateCarousel() {
   useEffect(() => {
     if (!carousel) return;
     const slides = carousel.slideNodes();
-    const devices = slides.map((slide) => slide.querySelector<HTMLElement>('[data-tablet-device]'));
+    const panels = slides.map((slide) => slide.querySelector<HTMLElement>('[data-showcase-screen]'));
 
     // Scale from the actual scroll position so swiping and automatic movement
     // share the same continuous center-to-side transition, including the loop.
@@ -57,10 +57,11 @@ export default function TabletTemplateCarousel() {
         });
         const steps = Math.abs(distance * slides.length);
         const scale = Math.max(0.72, 1 - steps * 0.18);
-        const device = devices[index];
-        if (device) {
-          device.style.transform = `scale(${scale})`;
-          device.style.setProperty('--screen-shade', String(Math.min(0.32, steps * 0.14)));
+        const panel = panels[index];
+        if (panel) {
+          panel.style.transform = `scale(${scale})`;
+          panel.style.filter = `blur(${Math.min(3, steps * 1.8)}px)`;
+          panel.style.opacity = String(Math.max(0.5, 1 - steps * 0.28));
         }
         slides[index].style.zIndex = String(10 - Math.min(5, Math.round(steps)));
       });
@@ -78,12 +79,14 @@ export default function TabletTemplateCarousel() {
     };
   }, [carousel]);
 
-  const autoPlaying = reducedMotion === false && !paused && !hovered && !focused && !dragging && documentVisible && isInView;
+  const motionAllowed = reducedMotion === false || motionOptIn;
+  const playbackPaused = paused || !motionAllowed || focused;
+  const autoPlaying = motionAllowed && !paused && !focused && !dragging && documentVisible && isInView;
   useEffect(() => {
     if (!carousel || !autoPlaying) return;
-    const timer = window.setInterval(() => carousel.scrollNext(), AUTO_ADVANCE_MS);
+    const timer = window.setInterval(() => carousel.scrollNext(Boolean(reducedMotion)), AUTO_ADVANCE_MS);
     return () => window.clearInterval(timer);
-  }, [autoPlaying, carousel, selected]);
+  }, [autoPlaying, carousel, reducedMotion, selected]);
 
   return (
     <div
@@ -91,11 +94,14 @@ export default function TabletTemplateCarousel() {
       className={styles.carousel}
       role="region"
       aria-roledescription="캐러셀"
-      aria-label="태블릿으로 둘러보는 메뉴 디자인"
+      aria-label="메뉴 디자인 화면 둘러보기"
       data-tablet-carousel
       data-selected-slide={selected}
       data-auto-playing={autoPlaying}
-      onFocusCapture={() => setFocused(true)}
+      onFocusCapture={(event) => {
+        // Keyboard navigation pauses playback; clicking the arrows does not.
+        setFocused(event.target instanceof HTMLElement && event.target.matches(':focus-visible'));
+      }}
       onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }}
       onKeyDown={(event) => {
         if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
@@ -104,12 +110,7 @@ export default function TabletTemplateCarousel() {
         else carousel?.scrollNext(Boolean(reducedMotion));
       }}
     >
-      <div
-        className={styles.viewport}
-        ref={viewportRef}
-        onPointerEnter={(event) => { if (event.pointerType === 'mouse') setHovered(true); }}
-        onPointerLeave={() => setHovered(false)}
-      >
+      <div className={styles.viewport} ref={viewportRef}>
         <div className={styles.track}>
           {PREVIEW_SCREENS.map((screen, index) => (
             <div
@@ -120,7 +121,7 @@ export default function TabletTemplateCarousel() {
               aria-label={`임시 메뉴 화면 ${index + 1} / ${PREVIEW_SCREENS.length}`}
               aria-hidden={selected !== index}
             >
-              <div className={styles.device} data-tablet-device>
+              <div className={styles.panel} data-showcase-screen>
                 <div className={styles.screen} data-theme={screen.theme} aria-hidden="true">
                   <Image
                     src={screen.image}
@@ -160,13 +161,16 @@ export default function TabletTemplateCarousel() {
         <button type="button" className="site-button site-button-ghost site-button-icon" aria-label="다음 메뉴 디자인" onClick={() => carousel?.scrollNext(Boolean(reducedMotion))}>
           <ArrowRight size={18} aria-hidden="true" />
         </button>
-        {!reducedMotion ? <button type="button" className="site-button site-button-ghost site-button-icon" aria-label={paused ? '메뉴 디자인 자동 넘김 재생' : '메뉴 디자인 자동 넘김 일시 정지'} onClick={() => {
+        <button type="button" className="site-button site-button-ghost site-button-icon" aria-label={playbackPaused ? '메뉴 디자인 자동 넘김 재생' : '메뉴 디자인 자동 넘김 일시 정지'} onClick={() => {
           // Explicit playback must work while the playback button keeps focus.
-          if (paused) setFocused(false);
-          setPaused((value) => !value);
+          if (playbackPaused) {
+            setMotionOptIn(true);
+            setFocused(false);
+            setPaused(false);
+          } else setPaused(true);
         }}>
-          {paused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}
-        </button> : null}
+          {playbackPaused ? <Play size={16} aria-hidden="true" /> : <Pause size={16} aria-hidden="true" />}
+        </button>
       </div>
     </div>
   );

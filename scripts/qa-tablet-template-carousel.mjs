@@ -26,27 +26,39 @@ try {
     const page = await browser.newPage({ viewport: { width, height: 1000 }, reducedMotion: 'reduce' });
     const carousel = await openShowcase(page);
     await expect(carousel).toHaveAttribute('data-auto-playing', 'false');
-    await expect(carousel.getByRole('button', { name: /자동 넘김/ })).toHaveCount(0);
+    await expect(carousel.getByRole('button', { name: '메뉴 디자인 자동 넘김 재생', exact: true })).toBeVisible();
     const dimensions = await carousel.evaluate((element) => {
       const viewport = element.firstElementChild.getBoundingClientRect();
       const selected = Number(element.dataset.selectedSlide);
-      const devices = [...element.querySelectorAll('[data-tablet-device]')].map((device) => device.getBoundingClientRect().toJSON());
-      const center = devices[selected];
+      const panels = [...element.querySelectorAll('[data-showcase-screen]')];
+      const rects = panels.map((panel) => panel.getBoundingClientRect().toJSON());
+      const panelStyles = panels.map((panel) => {
+        const style = getComputedStyle(panel);
+        return { border: style.borderTopWidth, padding: style.paddingTop, radius: parseFloat(style.borderTopLeftRadius), blur: parseFloat(style.filter.slice(5)), opacity: Number(style.opacity) };
+      });
+      const center = rects[selected];
       return {
         viewportWidth: innerWidth,
         overflow: document.documentElement.scrollWidth - innerWidth,
         center,
         stage: viewport.toJSON(),
-        neighbors: [devices[(selected + 1) % devices.length], devices[(selected + devices.length - 1) % devices.length]],
+        neighbors: [rects[(selected + 1) % rects.length], rects[(selected + rects.length - 1) % rects.length]],
+        centerStyle: panelStyles[selected],
+        neighborStyles: [panelStyles[(selected + 1) % panels.length], panelStyles[(selected + panels.length - 1) % panels.length]],
       };
     });
     assert.equal(dimensions.viewportWidth, width);
     assert.equal(dimensions.overflow, 0);
-    assert.ok(dimensions.center.top >= dimensions.stage.top, 'center tablet must not be cropped at the top');
-    assert.ok(dimensions.center.bottom <= dimensions.stage.bottom, 'center tablet must not be cropped at the bottom');
+    assert.ok(dimensions.center.top >= dimensions.stage.top, 'center screen must not be cropped at the top');
+    assert.ok(dimensions.center.bottom <= dimensions.stage.bottom, 'center screen must not be cropped at the bottom');
+    assert.equal(dimensions.centerStyle.border, '0px');
+    assert.equal(dimensions.centerStyle.padding, '0px');
+    assert.ok(Math.abs(dimensions.centerStyle.radius - Math.max(12, Math.min(width * 0.015, 20))) < 0.1);
+    assert.ok(dimensions.centerStyle.blur < 0.01 && dimensions.centerStyle.opacity > 0.99, 'center screen stays sharp');
+    for (const style of dimensions.neighborStyles) assert.ok(style.blur > 1.5 && style.opacity < 0.75, 'side screens are softly blurred and faded');
     assert.ok(Math.abs((dimensions.center.left + dimensions.center.right) / 2 - width / 2) < 2);
     for (const neighbor of dimensions.neighbors) {
-      assert.ok(dimensions.center.width > neighbor.width * 1.18, 'center tablet must be larger');
+      assert.ok(dimensions.center.width > neighbor.width * 1.18, 'center screen must be larger');
       assert.ok(neighbor.right > dimensions.stage.left + 10 && neighbor.left < dimensions.stage.right - 10, 'neighbor must peek into view');
     }
     const cta = page.locator('#templates').getByRole('link', { name: '더 많은 디자인 보기' });
@@ -64,28 +76,40 @@ try {
     await expect(carousel).toHaveAttribute('data-selected-slide', '0');
     await page.keyboard.press('ArrowLeft');
     await expect(carousel).toHaveAttribute('data-selected-slide', '4');
+    if (width === 390) {
+      // Reduced-motion users can explicitly start automatic, instant changes.
+      await carousel.getByRole('button', { name: '메뉴 디자인 자동 넘김 재생', exact: true }).click();
+      await expect(carousel).toHaveAttribute('data-auto-playing', 'true');
+      await expect(carousel).toHaveAttribute('data-selected-slide', '0', { timeout: 5000 });
+      await carousel.getByRole('button', { name: '메뉴 디자인 자동 넘김 일시 정지', exact: true }).click();
+      await expect(carousel).toHaveAttribute('data-auto-playing', 'false');
+    }
     results.push({ width, dimensions, reducedMotion: 'no autoplay; manual loop and keyboard passed' });
     await page.close();
   }
 
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'no-preference' });
   const carousel = await openShowcase(page, '/services/basic');
+  await carousel.hover();
   await expect(carousel).toHaveAttribute('data-auto-playing', 'true');
   for (const expected of [1, 2, 3, 4, 0]) {
     await expect(carousel).toHaveAttribute('data-selected-slide', String(expected), { timeout: 6500 });
   }
-  await carousel.hover();
+  // Mouse hover and clicking a navigation arrow must not leave it paused.
+  await carousel.getByRole('button', { name: '다음 메뉴 디자인', exact: true }).click();
+  await expect(carousel).toHaveAttribute('data-selected-slide', '1');
+  await expect(carousel).toHaveAttribute('data-auto-playing', 'true');
+  await expect(carousel).toHaveAttribute('data-selected-slide', '2', { timeout: 5000 });
+  await page.locator('#templates a').focus();
+  await page.keyboard.press('Shift+Tab');
   await expect(carousel).toHaveAttribute('data-auto-playing', 'false');
-  const hoveredSelection = await carousel.getAttribute('data-selected-slide');
-  await page.waitForTimeout(4600);
-  await expect(carousel).toHaveAttribute('data-selected-slide', hoveredSelection);
-  await page.mouse.move(0, 0);
+  await page.keyboard.press('Tab');
   await expect(carousel).toHaveAttribute('data-auto-playing', 'true');
   await carousel.getByRole('button', { name: '메뉴 디자인 자동 넘김 일시 정지', exact: true }).click();
   await page.locator('#templates a').focus();
   await page.mouse.move(0, 0);
   const pausedSelection = await carousel.getAttribute('data-selected-slide');
-  await page.waitForTimeout(4600);
+  await page.waitForTimeout(3600);
   await expect(carousel).toHaveAttribute('data-selected-slide', pausedSelection);
   await expect(carousel).toHaveAttribute('data-auto-playing', 'false');
   await carousel.getByRole('button', { name: '메뉴 디자인 자동 넘김 재생', exact: true }).click();
@@ -95,7 +119,7 @@ try {
   await expect(carousel).toHaveAttribute('data-auto-playing', 'true');
   await page.evaluate(() => scrollTo({ top: 0, behavior: 'instant' }));
   await expect(carousel).toHaveAttribute('data-auto-playing', 'false');
-  results.push({ width: 1440, path: '/services/basic', autoplay: 'full cycle, hover, explicit pause/resume, offscreen pause passed' });
+  results.push({ width: 1440, path: '/services/basic', autoplay: 'full cycle while hovered, mouse navigation keeps playing, keyboard focus pause, explicit pause/resume, offscreen pause passed' });
   await page.close();
 
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
@@ -110,6 +134,7 @@ try {
   }
   await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
   await expect(phoneCarousel).not.toHaveAttribute('data-selected-slide', '0');
+  await expect(phoneCarousel).toHaveAttribute('data-auto-playing', 'true');
   assert.equal(await phone.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
   results.push({ width: 390, touch: 'swipe passed' });
   await phone.close();
