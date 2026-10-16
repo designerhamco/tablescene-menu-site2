@@ -204,7 +204,7 @@ export default function OperationalArrivalAlert({
 
   return (
     <div className="space-y-3">
-      <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-3">
+      <section className="site-section flex flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div>
           <p className="text-sm font-bold text-zinc-900">새 {copy.noun} 알림·소리</p>
           <p className="mt-1 max-w-2xl break-keep text-xs font-bold leading-relaxed text-zinc-500">

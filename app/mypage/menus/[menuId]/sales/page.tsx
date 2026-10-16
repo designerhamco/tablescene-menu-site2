@@ -82,27 +82,27 @@ export default async function SalesSummaryPage({
         </header>
 
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <article className="site-section p-6">
             <p className="text-xs font-bold text-zinc-400">오늘 주문</p>
             <p className="mt-3 text-3xl font-bold">{summary.today.orderCount.toLocaleString("ko-KR")}건</p>
           </article>
-          <article className="rounded-3xl border border-emerald-100 bg-emerald-50 p-6 shadow-sm">
+          <article className="rounded-md bg-emerald-50 p-6 shadow-sm">
             <p className="text-xs font-bold text-emerald-700">오늘 결제 완료액</p>
             <p className="mt-3 text-3xl font-bold text-emerald-950">{formatAmount(summary.today.collectedAmount)}</p>
             <p className="mt-2 text-xs font-bold text-emerald-700">{summary.today.paidOrderCount.toLocaleString("ko-KR")}건</p>
           </article>
-          <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <article className="site-section p-6">
             <p className="text-xs font-bold text-zinc-400">{summary.month}월 주문</p>
             <p className="mt-3 text-3xl font-bold">{summary.monthTotals.orderCount.toLocaleString("ko-KR")}건</p>
           </article>
-          <article className="rounded-3xl border border-sky-100 bg-sky-50 p-6 shadow-sm">
+          <article className="rounded-md bg-sky-50 p-6 shadow-sm">
             <p className="text-xs font-bold text-sky-700">{summary.month}월 결제 완료액</p>
             <p className="mt-3 text-3xl font-bold text-sky-950">{formatAmount(summary.monthTotals.collectedAmount)}</p>
             <p className="mt-2 text-xs font-bold text-sky-700">{summary.monthTotals.paidOrderCount.toLocaleString("ko-KR")}건</p>
           </article>
         </section>
 
-        <section className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
+        <section className="site-section overflow-hidden">
           <div className="flex flex-col justify-between gap-3 border-b border-zinc-100 px-6 py-5 sm:flex-row sm:items-center">
             <div>
               <h2 className="type-content-title">{summary.year}년 {summary.month}월 일별 현황</h2>
@@ -137,7 +137,7 @@ export default async function SalesSummaryPage({
         </section>
 
         <section className="grid gap-5 lg:grid-cols-2">
-          <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+          <article className="site-section p-6">
             <h2 className="type-content-title">메뉴별 판매량 Top 10</h2>
             <p className="mt-1 text-xs font-bold text-zinc-500">이번 달 결제 완료 주문의 주문 당시 메뉴명 snapshot 기준입니다.</p>
             {summary.topItems.length === 0 ? (
@@ -158,7 +158,7 @@ export default async function SalesSummaryPage({
           </article>
 
           <div className="space-y-5">
-            <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+            <article className="site-section p-6">
               <h2 className="type-content-title">결제수단별 완료액</h2>
               <div className="mt-5 space-y-3">
                 {summary.paymentMethods.length === 0 ? (
@@ -175,7 +175,7 @@ export default async function SalesSummaryPage({
               </div>
             </article>
 
-            <article className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+            <article className="site-section p-6">
               <h2 className="type-content-title">취소·미결제 현황</h2>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl bg-rose-50 p-4 text-rose-950">

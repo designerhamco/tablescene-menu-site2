@@ -187,7 +187,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <div className="mb-6 flex flex-col justify-between gap-4 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
@@ -225,7 +225,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
           </section>
 
           {isPendingDelete ? (
-            <section className="rounded-3xl border border-amber-100 bg-amber-50 p-8 text-center">
+            <section className="rounded-md bg-amber-50 p-8 text-center">
               <h2 className="type-subsection-title text-amber-900">고객지원 문의가 필요합니다</h2>
               <p className="mx-auto mt-3 max-w-2xl break-keep text-sm font-bold leading-relaxed text-amber-800">
                 복구 가능 기간이 종료되었습니다. 데이터 복구 가능 여부는 고객지원으로 문의해주세요.

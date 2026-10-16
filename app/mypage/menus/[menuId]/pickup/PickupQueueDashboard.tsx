@@ -48,7 +48,7 @@ export default function PickupQueueDashboard({
         tone={createState.status === "success" ? "success" : "error"}
         eventKey={createState}
       />
-      <section className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm md:p-6">
+      <section className="site-section p-5 md:p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
             <h3 className="type-content-title">수동 대기번호 등록</h3>
@@ -94,7 +94,7 @@ export default function PickupQueueDashboard({
         ) : null}
       </section>
 
-      <section className="rounded-3xl border border-zinc-200 bg-white shadow-sm">
+      <section className="site-section">
         <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4 md:px-6">
           <div>
             <h3 className="type-content-title">오늘 운영 현황</h3>
@@ -110,7 +110,7 @@ export default function PickupQueueDashboard({
         )}
       </section>
 
-      <section className="rounded-3xl border border-zinc-200 bg-white shadow-sm">
+      <section className="site-section">
         <div className="border-b border-zinc-100 px-5 py-4 md:px-6">
           <h3 className="type-content-title">오늘 처리 이력</h3>
         </div>

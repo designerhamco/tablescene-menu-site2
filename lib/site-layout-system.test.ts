@@ -35,7 +35,7 @@ test("주요 공개·인증·고객지원 화면은 공통 페이지 간격을 �
     "../app/mypage/page.tsx",
     "../app/mypage/inquiries/page.tsx",
   ]) {
-    assert.match(readSource(path), /site-page-spacing/);
+    assert.match(readSource(path), /site-page-spacing|site-auth-page/);
   }
 });
 

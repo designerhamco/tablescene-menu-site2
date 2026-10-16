@@ -155,7 +155,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-10 text-zinc-950 md:py-16">
+      <main className="site-gutter min-h-screen bg-white py-10 text-zinc-950 md:py-16">
         <div className="mx-auto w-full max-w-[var(--site-content-width)] space-y-8">
         <ActionFeedbackToast
           message={resultNotice?.message}
@@ -174,7 +174,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
         </header>
 
         {menuSitesError ? (
-          <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">
+          <p className="rounded-md bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">
             메뉴판 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
           </p>
         ) : null}
@@ -200,20 +200,20 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
           }))}
         />
 
-        <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
+        <section className="site-section p-6 md:p-8">
           <div>
             <h2 className="type-content-title">활동 중인 직원</h2>
             <p className="mt-2 text-sm font-medium text-zinc-500">메뉴판별 역할 프리셋을 변경하거나 접근을 즉시 회수할 수 있습니다.</p>
           </div>
 
           {membershipResult.error || acceptedInvitationResult.error ? (
-            <p className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">
+            <p className="mt-5 rounded-md bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">
               직원 목록을 불러오지 못했습니다.
             </p>
           ) : activeMemberships.length === 0 ? (
             <p className="mt-5 rounded-2xl bg-zinc-100 px-4 py-5 text-sm font-bold text-zinc-600">활동 중인 직원이 없습니다.</p>
           ) : (
-            <div className="mt-5 divide-y divide-zinc-100 overflow-hidden rounded-2xl border border-zinc-200">
+            <div className="site-section mt-5 divide-y divide-zinc-100 overflow-hidden">
               {activeMemberships.map((membership) => {
                 const email = memberEmailBySiteAndUser.get(`${membership.menu_site_id}:${membership.user_id}`);
                 const effectivePermissions = resolvePermissionsForAccessRole(
@@ -297,20 +297,20 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
           )}
         </section>
 
-        <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
+        <section className="site-section p-6 md:p-8">
           <div>
             <h2 className="type-content-title">대기 중인 초대</h2>
             <p className="mt-2 text-sm font-medium text-zinc-500">재전송과 취소는 다음 안전한 작업 범위에서 연결됩니다.</p>
           </div>
 
           {invitationResult.error ? (
-            <p className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">
+            <p className="mt-5 rounded-md bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">
               초대 목록을 불러오지 못했습니다.
             </p>
           ) : pendingInvitationBatches.length === 0 ? (
             <p className="mt-5 rounded-2xl bg-zinc-100 px-4 py-5 text-sm font-bold text-zinc-600">대기 중인 초대가 없습니다.</p>
           ) : (
-            <div className="mt-5 divide-y divide-zinc-100 overflow-hidden rounded-2xl border border-zinc-200">
+            <div className="site-section mt-5 divide-y divide-zinc-100 overflow-hidden">
               {pendingInvitationBatches.map((invitation) => (
                 <div key={invitation.inviteBatchId} className="grid gap-4 px-4 py-4 md:grid-cols-[1.2fr_1fr_auto] md:items-center">
                   <div className="min-w-0">

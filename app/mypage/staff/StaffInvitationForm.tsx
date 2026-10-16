@@ -40,7 +40,7 @@ export default function StaffInvitationForm({
   const unavailable = !enabled || menuSites.length === 0;
 
   return (
-    <form action={formAction} className="space-y-7 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8">
+    <form action={formAction} className="site-section space-y-7 p-6 md:p-8">
       <ActionFeedbackToast
         message={state.message}
         tone={state.status === "success" ? "success" : "error"}
@@ -54,7 +54,7 @@ export default function StaffInvitationForm({
       </div>
 
       {!enabled ? (
-        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-bold leading-relaxed text-amber-900">
+        <div className="rounded-md bg-amber-50 px-4 py-3 text-sm font-bold leading-relaxed text-amber-900">
           초대 수락 화면과 이메일 운영 환경을 검증한 뒤 발송 기능이 활성화됩니다. 지금은 실제 이메일을 보내지 않습니다.
         </div>
       ) : null}

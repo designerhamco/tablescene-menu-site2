@@ -120,7 +120,7 @@ export default async function ConsultingApplyPage({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-16 text-zinc-950">
+      <main className="site-gutter min-h-screen bg-white py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-4xl">
           <header className="mb-10 border-b border-zinc-200 pb-8">
             <h1 className="type-page-title">{copy.title}</h1>
@@ -131,7 +131,7 @@ export default async function ConsultingApplyPage({
 
           <form
             action={createConsultingApplyAction}
-            className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm md:p-8"
+            className="site-section p-6 md:p-8"
           >
             <input type="hidden" name="serviceType" value={serviceType} />
 

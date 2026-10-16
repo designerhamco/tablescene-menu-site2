@@ -2166,7 +2166,7 @@ export default function ApplyOrderForm({
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
       <div className="flex flex-col gap-6">
         {isMenuService && (
-          <section className="order-3 rounded-3xl bg-white p-7 shadow-sm">
+          <section className="order-3 site-section p-7">
             <div className="mb-6">
               <h2 className="type-subsection-title">템플릿 유형</h2>
               <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
@@ -2195,7 +2195,7 @@ export default function ApplyOrderForm({
                     onClick={() => {
                       if (hasAvailableTemplate) selectBasicProduct(product);
                     }}
-                    className={`flex min-h-[220px] flex-col rounded-2xl border p-5 text-left transition ${
+                    className={`site-choice flex min-h-[220px] flex-col p-5 text-left transition ${
                       !hasAvailableTemplate
                         ? "cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400 opacity-70"
                         : isSelected
@@ -2244,7 +2244,7 @@ export default function ApplyOrderForm({
         )}
 
         {isScreenService && (
-          <section className="order-2 rounded-3xl bg-white p-7 shadow-sm">
+          <section className="order-2 site-section p-7">
             <div className="mb-6">
               <h2 className="type-subsection-title">디스플레이 용도</h2>
               <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
@@ -2262,7 +2262,7 @@ export default function ApplyOrderForm({
                       key={option}
                       type="button"
                       onClick={() => updateField("screenPurpose", option)}
-                      className={`rounded-2xl border px-4 py-3 text-left text-sm font-bold transition-colors ${
+                      className={`site-choice px-4 py-3 text-left text-sm font-bold transition-colors ${
                         isSelected
                           ? "border-zinc-950 bg-zinc-950 text-white"
                           : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:text-zinc-950"
@@ -2278,7 +2278,7 @@ export default function ApplyOrderForm({
         )}
 
         {isScreenService && displayCheckoutQaEnabled && (
-          <section className="order-3 rounded-3xl bg-white p-7 shadow-sm">
+          <section className="order-3 site-section p-7">
             <div className="mb-6">
               <h2 className="type-subsection-title">디스플레이 구독</h2>
               <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
@@ -2296,7 +2296,7 @@ export default function ApplyOrderForm({
                     key={product.product_key}
                     type="button"
                     onClick={() => selectDisplayProduct(product)}
-                    className={`flex min-h-[210px] flex-col rounded-2xl border p-5 text-left transition ${
+                    className={`site-choice flex min-h-[210px] flex-col p-5 text-left transition ${
                       isSelected
                         ? "border-zinc-950 bg-zinc-950 text-white shadow-md"
                         : "border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400"
@@ -2342,7 +2342,7 @@ export default function ApplyOrderForm({
           </section>
         )}
 
-        <section className="order-2 rounded-3xl bg-white p-7 shadow-sm">
+        <section className="order-2 site-section p-7">
           <div className="mb-6">
             <h2 className="type-subsection-title">
               {isScreenService ? "디스플레이 템플릿" : "템플릿"}
@@ -2493,7 +2493,7 @@ export default function ApplyOrderForm({
               })}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-5 py-8 text-center">
+            <div className="site-section px-5 py-8 text-center">
               <p className="text-base font-bold text-zinc-800">
                 템플릿 준비 중입니다.
               </p>
@@ -2506,7 +2506,7 @@ export default function ApplyOrderForm({
           )}
         </section>
 
-        <section className="order-1 rounded-3xl bg-white p-7 shadow-sm">
+        <section className="order-1 site-section p-7">
           <h2 className="type-subsection-title mb-6">{isScreenService || isMenuService ? "기본 신청 정보" : "메뉴판 기본 정보"}</h2>
           <div className="grid gap-5 md:grid-cols-2">
             <Field
@@ -2572,7 +2572,7 @@ export default function ApplyOrderForm({
         </section>
 
         {isOrderService && (
-          <section className="order-3 rounded-3xl bg-white p-7 shadow-sm">
+          <section className="order-3 site-section p-7">
             <h2 className="type-subsection-title">오더 도입 정보</h2>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
               입력해주신 정보는 아티메뉴 오더 1.0 도입 준비와 초기 세팅 안내에 활용됩니다.
@@ -2630,7 +2630,7 @@ export default function ApplyOrderForm({
           </section>
         )}
 
-        <section className="order-4 rounded-3xl bg-white p-7 shadow-sm">
+        <section className="order-4 site-section p-7">
           <h2 className="type-subsection-title mb-6">구매자 및 담당자</h2>
           <div className="mb-6 border-l-2 border-zinc-300 pl-4">
             <p className="break-keep text-sm font-medium leading-relaxed text-zinc-500">
@@ -2647,14 +2647,14 @@ export default function ApplyOrderForm({
             <div className="md:col-span-2">
               <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">구매자 유형 *</span>
               {isDisplayBusinessOnly ? (
-                <div className="mt-2 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3">
+                <div className="mt-2 rounded-md bg-emerald-50 px-4 py-3">
                   <p className="text-sm font-bold text-emerald-900">사업자 전용</p>
                   <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-emerald-700">
                     디스플레이 메뉴보드는 사업자 정보 확인 후 결제할 수 있습니다. 개인 구매자로는 신청할 수 없습니다.
                   </p>
                 </div>
               ) : isMenuService ? (
-                <div className="mt-2 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-bold text-zinc-700">
+                <div className="site-section mt-2 px-4 py-3 text-sm font-bold text-zinc-700">
                   {activeProductRequiresBusinessVerification ? "사업자 정식 이용" : "개인 체험 이용"}
                 </div>
               ) : (
@@ -2720,7 +2720,7 @@ export default function ApplyOrderForm({
                   onChange={(value) => updateField("businessPhone", value)}
                   errorText={form.businessPhone.trim() ? businessPhoneError : null}
                 />
-                <div className="md:col-span-2 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
+                <div className="md:col-span-2 rounded-md bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                       <p className="font-bold text-amber-900">사업자 정보 확인</p>
@@ -2765,7 +2765,7 @@ export default function ApplyOrderForm({
       </div>
 
       <aside className="space-y-6 xl:sticky xl:top-8 xl:self-start">
-        <section className="rounded-3xl bg-white p-7 shadow-sm">
+        <section className="site-section p-7">
           <h2 className="type-subsection-title">주문 요약</h2>
           <dl className="mt-6 space-y-4 text-sm font-medium">
             <SummaryRow label="상품명" value={activeProduct.name} />
@@ -2873,7 +2873,7 @@ export default function ApplyOrderForm({
           )}
         </section>
 
-        <section className="rounded-3xl bg-white p-7 shadow-sm">
+        <section className="site-section p-7">
           <h2 className="type-subsection-title mb-5">약관 동의</h2>
           <div className="space-y-3">
             <label className="flex items-start gap-3 rounded-2xl border border-zinc-200 bg-white p-4 text-sm font-bold leading-relaxed text-zinc-900">
@@ -2881,7 +2881,7 @@ export default function ApplyOrderForm({
               <span>전체 동의</span>
             </label>
             {(Object.keys(agreementLabels) as AgreementKey[]).map((key) => (
-              <div key={key} className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
+              <div key={key} className="site-section p-4">
                 <div className="flex items-start gap-3 text-sm font-bold leading-relaxed text-zinc-600">
                   <input type="checkbox" checked={agreements[key]} onChange={() => toggleAgreement(key)} className="mt-1 h-4 w-4 accent-zinc-950" />
                   <div className="flex-1">
@@ -2904,7 +2904,7 @@ export default function ApplyOrderForm({
           </div>
 
           {!isPortOneReady && (
-            <div className="mt-6 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
+            <div className="mt-6 rounded-md bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
               {isDevelopment && mockEnabled
                 ? "결제 설정 확인 전에도 신청 화면을 확인할 수 있습니다."
                 : "PortOne 공개 환경변수가 없어서 결제를 진행할 수 없습니다. 개발 mock은 PORTONE_MOCK_ENABLED=true일 때만 동작합니다."}
@@ -2912,7 +2912,7 @@ export default function ApplyOrderForm({
           )}
 
           {isSubscriptionProduct && !isBillingPortOneReady && (
-            <div className="mt-6 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
+            <div className="mt-6 rounded-md bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
               사업자 월/연 정기결제는 PortOne V2 빌링키 발급을 지원하는 채널의 channelKey가 필요합니다.
               `NEXT_PUBLIC_PORTONE_BILLING_CHANNEL_KEY`를 설정해주세요.
             </div>
@@ -2923,7 +2923,7 @@ export default function ApplyOrderForm({
           )}
 
           {canShowPaymentCompletionRecovery && (
-            <div className="mt-6 rounded-2xl border border-sky-100 bg-sky-50 p-4 text-sm font-bold leading-relaxed text-sky-800">
+            <div className="mt-6 rounded-md bg-sky-50 p-4 text-sm font-bold leading-relaxed text-sky-800">
               <p>
                 이미 승인된 Display {activeProduct.billing_cycle === "yearly" ? "연결제" : "월결제"} 결제가 있다면 새 결제창 없이 생성 처리만 다시 시도할 수 있습니다.
               </p>

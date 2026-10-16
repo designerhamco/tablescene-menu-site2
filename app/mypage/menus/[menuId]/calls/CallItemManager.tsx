@@ -56,7 +56,7 @@ export default function CallItemManager({
   const serializedItems = JSON.stringify(draft.map((item, sortOrder) => ({ ...item, sortOrder })));
 
   return (
-    <section className="rounded-3xl border border-zinc-200 bg-white p-5 md:p-6">
+    <section className="site-section p-5 md:p-6">
       <ActionFeedbackToast
         message={state.message}
         tone={state.status === "success" ? "success" : "error"}
@@ -87,7 +87,7 @@ export default function CallItemManager({
         <input type="hidden" name="menuSiteId" value={menuSiteId} />
         <input type="hidden" name="itemsJson" value={serializedItems} />
         {draft.map((item, index) => (
-          <div key={item.key} className="grid gap-3 rounded-2xl border border-zinc-200 p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] sm:items-center">
+          <div key={item.key} className="site-section grid gap-3 p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] sm:items-center">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 text-xs font-bold text-zinc-600">{index + 1}</span>
             <label className="text-xs font-bold text-zinc-600">
               항목 이름

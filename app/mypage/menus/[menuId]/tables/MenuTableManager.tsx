@@ -53,7 +53,7 @@ export default function MenuTableManager({
       <ActionNotice state={createState} />
       <ActionNotice state={mutationState} />
 
-      <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <section className="site-section p-6">
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">대표 메뉴 QR</p>
         <h2 className="type-subsection-title mt-2">테이블 정보 없이 메뉴판 공유</h2>
         <p className="mt-2 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
@@ -68,7 +68,7 @@ export default function MenuTableManager({
         />
       </section>
 
-      <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+      <section className="site-section p-6">
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">테이블별 QR</p>
         <h2 className="type-subsection-title mt-2">새 테이블 추가</h2>
         <p className="mt-2 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
@@ -109,7 +109,7 @@ export default function MenuTableManager({
             아직 등록된 테이블이 없습니다.
           </p>
         ) : tables.map((table) => (
-          <article key={table.id} className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+          <article key={table.id} className="site-section p-5">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
               <div>
                 <h3 className="type-content-title">{table.label}</h3>

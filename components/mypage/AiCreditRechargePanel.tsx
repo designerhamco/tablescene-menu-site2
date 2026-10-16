@@ -87,10 +87,10 @@ export default function AiCreditRechargePanel({
   const totalUsedCredits = balance?.accountUsedCredits ?? 0;
   const totalCredits = totalGrantedCredits + totalPurchasedCredits;
   const wrapperClassName = accountSummaryOnly
-    ? "rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm"
+    ? "site-section p-6"
     : compact
-      ? "mt-4 rounded-2xl border border-zinc-100 bg-white p-4"
-      : "mt-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-4";
+      ? "site-section mt-4 p-4"
+      : "site-section mt-6 p-4";
 
   return (
     <div className={wrapperClassName}>
@@ -135,7 +135,7 @@ export default function AiCreditRechargePanel({
         </div>
       ) : null}
       {accountSummaryOnly ? (
-        <div className="mt-4 rounded-xl border border-zinc-100 bg-zinc-50 p-4 text-xs font-bold leading-relaxed text-zinc-500">
+        <div className="site-section mt-4 p-4 text-xs font-bold leading-relaxed text-zinc-500">
           <p>차감 기준: AI 설명 작성 1크레딧 · 부분 자동 번역 1크레딧 · AI 메뉴 정리 3크레딧 · 전체 자동 번역 3크레딧</p>
           <p className="mt-2">AI 웰컴 크레딧은 현금성 가치가 없으며 환불, 현금 교환 또는 양도 대상이 아닙니다.</p>
           <p className="mt-2">AI 결과물은 참고용 초안이므로 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.</p>

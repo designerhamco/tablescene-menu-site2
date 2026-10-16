@@ -825,7 +825,7 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <section className="mx-auto flex min-h-[70vh] w-full max-w-3xl flex-col justify-center">
           <Link href="/mypage?tab=menus&menuTab=archived" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
             ← 메뉴판 목록으로
@@ -1116,7 +1116,7 @@ function CustomEditorUnavailable({ siteName }: { siteName: string }) {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-3xl">
           <Link href="/mypage" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
             ← 메뉴판 목록으로
@@ -1150,7 +1150,7 @@ function HiddenMenuId({ menuId }: { menuId: string }) {
 function SchedulePlaceholder() {
   return (
     <SectionCard title="일정표 관리">
-      <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-6">
+      <div className="site-section p-6">
         <h3 className="type-content-title text-zinc-950">일정표형 템플릿은 준비 중입니다.</h3>
         <div className="mt-3 space-y-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
           <p>이번 1차 작업에서는 템플릿 유형, 관리자 라벨, 탭 구성만 준비합니다.</p>
@@ -1816,7 +1816,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <MenuEditorScrollRestoration menuId={menuId} />
         <MenuEditorToastBridge message={bannerMessage} error={finalSaveError} />
         <div className={`mx-auto w-full ${editorShellMaxWidth}`}>
@@ -2018,7 +2018,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     />
                   </div>
                   {(supportsBrandLogo || supportsFooterStoreInfo) && (
-                    <div className="space-y-5 rounded-2xl border border-zinc-100 bg-zinc-50 p-5 md:col-span-2">
+                    <div className="site-section space-y-5 p-5 md:col-span-2">
                       <div>
                         <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">Store Display</p>
                         <h3 className="type-content-title mt-1 text-zinc-950">매장 표시 정보</h3>
@@ -2133,7 +2133,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     const settingLabel = key === "menu_cover_enabled" ? coverToggleLabel : pageSettingLabels[key];
 
                     return (
-                      <div key={key} className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+                      <div key={key} className="site-section p-4">
                         <Checkbox name={key} label={settingLabel} defaultChecked={pageSettings[key]} />
                       </div>
                     );
@@ -2198,7 +2198,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
               >
                 <form id="menu-cover-form" action={updateMenuCoverAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
-                  <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+                  <div className="site-section md:col-span-2 p-5">
                     <p className="break-keep text-sm font-bold leading-relaxed text-zinc-600">
                       {coverDescription ||
                         (usesStoreIdentityForCover
@@ -2250,7 +2250,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       </div>
                     )}
                     {isAubeTable && (
-                      <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-white p-4">
+                      <div className="site-section md:col-span-2 p-4">
                         <FieldLabel>커버 배경색</FieldLabel>
                         <div className="mt-2 flex flex-wrap items-center gap-3">
                           <input
@@ -2273,7 +2273,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       </div>
                     )}
                     {menuCoverCapabilities.usesCoverImage && coverMode === "page" && (
-                      <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-white p-4">
+                      <div className="site-section md:col-span-2 p-4">
                         <Checkbox
                           name="cover_image_visible"
                           label="커버 이미지 표시"
@@ -2314,7 +2314,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         />
                       </div>
                     ) : canUseFeaturedItemCover && (
-                      <div className="md:col-span-2 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+                      <div className="site-section md:col-span-2 p-5">
                         <div className="mb-4">
                           <h3 className="type-content-title text-zinc-950">대표 추천 메뉴</h3>
                           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
@@ -2504,7 +2504,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 <div className="space-y-5">
                   <form id="design-settings-form" action={updateDesignSettingsAction} className="space-y-5">
                     <HiddenMenuId menuId={site.id} />
-                    <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+                    <div className="site-section p-5">
                       <div>
                         <h3 className="type-content-title text-zinc-950">현재 템플릿</h3>
                         <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
@@ -2536,7 +2536,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         </div>
                       </div>
                     </div>
-                    <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+                    <div className="site-section p-5">
                       <div>
                         <h3 className="type-content-title text-zinc-950">배경색</h3>
                         <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
@@ -2551,7 +2551,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         hasCustomBackgroundColor={Boolean(customBackgroundColor)}
                       />
                     </div>
-                    <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+                    <div className="site-section p-5">
                       <div>
                         <div>
                           <h3 className="type-content-title text-zinc-950">폰트 설정</h3>
@@ -2679,7 +2679,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold leading-relaxed text-emerald-700">
                     저장 전에는 미리보기와 공개 메뉴판에 반영되지 않습니다. 공개 페이지 보기와 미리보기는 저장된 데이터 기준으로 열립니다.
                   </div>
-                  <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-5">
+                  <div className="site-section p-5">
                     <h3 className="type-item-title">공개 전 필수 체크리스트</h3>
                     <div className="mt-4 grid gap-3 md:grid-cols-2">
                       {checklist.map((item) => (
@@ -2690,7 +2690,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     </div>
                   </div>
                   {optionalChecklist.length > 1 && (
-                    <div className="rounded-lg border border-zinc-100 bg-white p-5">
+                    <div className="site-section p-5">
                       <h3 className="type-item-title">선택 콘텐츠</h3>
                       <div className="mt-4 grid gap-3 md:grid-cols-2">
                         {optionalChecklist.map((item) => (

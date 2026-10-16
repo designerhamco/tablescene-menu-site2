@@ -127,7 +127,7 @@ export default function ServicePricingSection({ service }: { service: ServicePri
           ) : null}
         </div>
 
-        <div className="mb-8 rounded-2xl border border-zinc-200 bg-white px-5 py-4 text-center text-sm font-bold leading-relaxed text-zinc-500">
+        <div className="site-section mb-8 px-5 py-4 text-center text-sm font-bold leading-relaxed text-zinc-500">
           <p>※ 모든 금액은 부가세 포함가입니다.</p>
           <p>※ 첫 구독은 계정당 최초 1회 30일 무료이며, 오픈 얼리버드는 2026년 12월 31일까지 가입할 수 있습니다.</p>
           <p>※ 얼리버드 가격은 구독을 유지하는 동안 계속 적용되며, 해지 후 재구독 시 정상가가 적용됩니다.</p>
@@ -138,7 +138,7 @@ export default function ServicePricingSection({ service }: { service: ServicePri
             return (
               <div
                 key={plan.label}
-                className="relative overflow-hidden rounded-[2rem] border border-zinc-950 bg-white p-7 text-zinc-950 md:p-9"
+                className="site-section relative overflow-hidden p-7 text-zinc-950 md:p-9"
               >
                 <div className="absolute right-0 top-0 rounded-bl-[1.4rem] bg-[#F8E731] px-7 py-4 text-sm font-bold text-zinc-950 md:text-base">
                   {plan.badge}

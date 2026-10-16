@@ -125,7 +125,7 @@ export default function OrderDashboard({
           arrivalIds={orders.filter((order) => order.status !== "cancelled").map((order) => order.id)}
           onBackgroundPollingChange={setBackgroundPollingEnabled}
         />
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <div className="site-section flex flex-wrap items-center justify-between gap-3 p-5">
           <div>
             <p className="text-sm font-bold text-zinc-900">최근 주문 {orders.length.toLocaleString("ko-KR")}건</p>
             <p className="mt-1 text-xs font-bold text-zinc-500">15초마다 자동 갱신하며, 상태 변경은 서버가 현재 값을 다시 확인합니다.</p>
@@ -146,7 +146,7 @@ export default function OrderDashboard({
             아직 접수된 주문이 없습니다.
           </p>
         ) : orders.map((order) => (
-          <article key={order.id} className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm md:p-6">
+          <article key={order.id} className="site-section p-5 md:p-6">
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -187,7 +187,7 @@ export default function OrderDashboard({
 
             <div className="mt-5 grid gap-3 lg:grid-cols-3">
               {permissions.canManage && order.nextStatus ? (
-                <form action={action} className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                <form action={action} className="rounded-md bg-emerald-50 p-4">
                   <input type="hidden" name="menuSiteId" value={menuSiteId} />
                   <input type="hidden" name="orderId" value={order.id} />
                   <input type="hidden" name="nextStatus" value={order.nextStatus} />
@@ -199,7 +199,7 @@ export default function OrderDashboard({
               ) : null}
 
               {permissions.canMarkManualPayment && order.canMarkManualPayment ? (
-                <form action={action} className="rounded-2xl border border-sky-100 bg-sky-50 p-4">
+                <form action={action} className="rounded-md bg-sky-50 p-4">
                   <input type="hidden" name="menuSiteId" value={menuSiteId} />
                   <input type="hidden" name="orderId" value={order.id} />
                   <label className="text-xs font-bold text-sky-900">
@@ -216,7 +216,7 @@ export default function OrderDashboard({
               ) : null}
 
               {permissions.canCancelUnpaid && order.canCancelUnpaid ? (
-                <form action={action} className="rounded-2xl border border-rose-100 bg-rose-50 p-4">
+                <form action={action} className="rounded-md bg-rose-50 p-4">
                   <input type="hidden" name="menuSiteId" value={menuSiteId} />
                   <input type="hidden" name="orderId" value={order.id} />
                   <label className="text-xs font-bold text-rose-900">

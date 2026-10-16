@@ -111,7 +111,7 @@ export default function MenuWidgetImageField({
   }
 
   return (
-    <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+    <div className="site-section p-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
         <div className="flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-lg border border-zinc-200 bg-white sm:w-40">
           {imageUrl ? (

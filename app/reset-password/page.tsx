@@ -41,23 +41,23 @@ export default async function ResetPasswordPage({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter site-page-spacing min-h-screen bg-white text-zinc-950">
-      <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-md flex-col justify-center">
-        <div className="site-card p-8">
-          <div className="mb-8">
-            <h1 className="type-subsection-title">새 비밀번호 설정</h1>
-            <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">새로운 비밀번호를 입력해주세요.</p>
-          </div>
+      <main className="site-gutter site-auth-page bg-white text-zinc-950">
+        <div className="site-auth-content">
+          <div className="site-auth-form">
+            <div className="site-auth-header">
+              <h1 className="type-subsection-title">새 비밀번호 설정</h1>
+              <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">새로운 비밀번호를 입력해주세요.</p>
+            </div>
 
-          <ResetPasswordForm recoveryAuthorized={recoveryAuthorized} />
+            <ResetPasswordForm recoveryAuthorized={recoveryAuthorized} />
 
-          <div className="mt-6 text-center text-sm font-medium text-zinc-500">
-            <Link href="/sign-in" className="font-bold text-zinc-950 hover:underline">
-              로그인으로 돌아가기
-            </Link>
+            <div className="mt-6 text-center text-sm font-medium text-zinc-500">
+              <Link href="/sign-in" className="font-bold text-zinc-950 hover:underline">
+                로그인으로 돌아가기
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
       </main>
       <Footer />
     </>

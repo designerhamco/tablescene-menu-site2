@@ -305,7 +305,7 @@ export default function SubscriptionManagementModal({
 
             {isViewingRefundGuide ? (
               <div className="mt-5">
-                <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-900">
+                <div className="rounded-md bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-900">
                   <h3 className="type-content-title text-amber-950">중도해지/환불 요청 안내</h3>
                   <p className="mt-3">
                     연결제는 매년 자동결제되는 연 정기결제 상품입니다. 중도해지/환불을 요청하면 환불금액은 요청일을 기준으로 산정됩니다.
@@ -323,13 +323,13 @@ export default function SubscriptionManagementModal({
                 </div>
 
                 {refundQuoteState.status === "loading" ? (
-                  <div className="mt-5 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-600">
+                  <div className="site-section mt-5 p-4 text-sm font-bold leading-relaxed text-zinc-600">
                     예상 환불금액을 계산하고 있습니다.
                   </div>
                 ) : null}
 
                 {refundQuoteState.status === "error" ? (
-                  <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-bold leading-relaxed text-red-700">
+                  <div className="mt-5 rounded-md bg-red-50 p-4 text-sm font-bold leading-relaxed text-red-700">
                     <h4 className="type-item-title text-red-800">자동 계산이 어렵습니다</h4>
                     <p className="mt-2">{refundQuoteState.message}</p>
                     <p className="mt-2 text-red-600">
@@ -339,7 +339,7 @@ export default function SubscriptionManagementModal({
                 ) : null}
 
                 {refundQuoteState.status === "success" ? (
-                  <div className="mt-5 rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+                  <div className="site-section mt-5 p-4">
                     <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                       <div>
                         <h4 className="type-item-title text-zinc-950">최종 예상 환불금액</h4>
@@ -425,13 +425,13 @@ export default function SubscriptionManagementModal({
                 ) : null}
 
                 {refundConfirmState.status === "processing" ? (
-                  <div className="mt-5 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-600">
+                  <div className="site-section mt-5 p-4 text-sm font-bold leading-relaxed text-zinc-600">
                     환불 처리를 진행하고 있습니다. 창을 닫지 말고 잠시만 기다려주세요.
                   </div>
                 ) : null}
 
                 {refundConfirmState.status === "completed" ? (
-                  <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold leading-relaxed text-emerald-800">
+                  <div className="mt-5 rounded-md bg-emerald-50 p-4 text-sm font-bold leading-relaxed text-emerald-800">
                     <h4 className="type-item-title text-emerald-950">환불 처리가 접수되었습니다</h4>
                     <p className="mt-2">{refundConfirmState.message}</p>
                     {typeof refundConfirmState.finalRefundAmount === "number" ? (
@@ -441,7 +441,7 @@ export default function SubscriptionManagementModal({
                 ) : null}
 
                 {refundConfirmState.status === "needs_review" ? (
-                  <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-900">
+                  <div className="mt-5 rounded-md bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-900">
                     <h4 className="type-item-title text-amber-950">고객지원 확인이 필요합니다</h4>
                     <p className="mt-2">{refundConfirmState.message}</p>
                     <p className="mt-2">추가 결제나 재요청 없이 아티메뉴 고객지원 안내를 기다려주세요.</p>
@@ -449,7 +449,7 @@ export default function SubscriptionManagementModal({
                 ) : null}
 
                 {refundConfirmState.status === "error" ? (
-                  <div className="mt-5 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-bold leading-relaxed text-red-700">
+                  <div className="mt-5 rounded-md bg-red-50 p-4 text-sm font-bold leading-relaxed text-red-700">
                     <h4 className="type-item-title text-red-800">환불 처리에 실패했습니다</h4>
                     <p className="mt-2">{refundConfirmState.message}</p>
                     <p className="mt-2">추가 결제나 재요청 없이 고객지원으로 문의해주세요.</p>
@@ -494,14 +494,14 @@ export default function SubscriptionManagementModal({
             ) : (
               <>
             {restoredNotice ? (
-              <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold leading-relaxed text-emerald-800">
+              <div className="mt-5 rounded-md bg-emerald-50 p-4 text-sm font-bold leading-relaxed text-emerald-800">
                 <h3 className="type-content-title text-emerald-950">{restoredNotice.title}</h3>
                 <p className="mt-2">{restoredNotice.message}</p>
                 <p className="mt-2">이 결제 기록은 환불 처리 완료 내역으로 보관되며, 현재 이용 중인 새 구독은 별도 카드에서 확인할 수 있습니다.</p>
               </div>
             ) : null}
 
-            <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
+            <div className="mt-5 rounded-md bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
               {restoredNotice
                 ? "기존 결제/환불 내역과 새 구독 내역은 분리되어 보관됩니다."
                 : isYearlyBilling
@@ -510,7 +510,7 @@ export default function SubscriptionManagementModal({
             </div>
 
             {isYearlyBilling && !restoredNotice ? (
-              <div className="mt-4 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-600">
+              <div className="site-section mt-4 p-4 text-sm font-bold leading-relaxed text-zinc-600">
                 <p>
                   중도해지 및 환불이 필요한 경우 별도로 요청할 수 있습니다. 사용한 기간은 월결제 기준 금액으로 재정산되며, 잔여 환불 가능액에서 중도해지 수수료 10%가 공제됩니다.
                 </p>

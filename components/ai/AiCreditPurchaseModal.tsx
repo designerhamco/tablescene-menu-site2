@@ -204,7 +204,7 @@ export default function AiCreditPurchaseModal({
                 type="button"
                 disabled={Boolean(pendingProductKey) || !refundPolicyAgreed}
                 onClick={() => startPurchase(product.productKey)}
-                className="rounded-2xl border border-zinc-200 bg-white p-5 text-left transition-colors hover:border-zinc-500 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
+                className="site-choice bg-zinc-50 p-5 text-left transition-colors hover:border-zinc-500 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 <span className="block text-base font-bold text-zinc-950">{product.name}</span>
                 <span className="mt-3 block text-2xl font-bold text-zinc-950">{product.amount.toLocaleString("ko-KR")}원</span>
@@ -216,7 +216,7 @@ export default function AiCreditPurchaseModal({
           })}
         </div>
 
-        <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4">
+        <div className="mt-5 rounded-md bg-amber-50 p-4">
           <p className="break-keep text-sm font-bold leading-relaxed text-amber-800">
             AI 크레딧은 결제 완료 즉시 계정에 지급되는 디지털 소모성 상품입니다. 크레딧 지급 후에는 단순 변심에 따른 취소/환불이 불가합니다. 중복 결제 또는 크레딧 미지급이 발생한 경우 고객지원으로 문의해주세요.
           </p>
@@ -233,7 +233,7 @@ export default function AiCreditPurchaseModal({
         </div>
 
         {localError ? (
-          <p className="mt-5 break-keep rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-bold leading-relaxed text-red-700">
+          <p className="mt-5 break-keep rounded-md bg-red-50 p-4 text-sm font-bold leading-relaxed text-red-700">
             {localError}
           </p>
         ) : null}

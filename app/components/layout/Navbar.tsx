@@ -35,6 +35,10 @@ function DisabledChip() {
   );
 }
 
+function HeaderBellIcon() {
+  return <Bell size={23} strokeWidth={2.1} aria-hidden="true" />;
+}
+
 type AuthState = {
   isAuthenticated: boolean;
   userId: string | null;
@@ -296,58 +300,60 @@ const Navbar = () => {
 
           <div className={`z-50 flex shrink-0 items-center ${styles.actions}`} data-site-header-actions>
             {authState.isAuthenticated ? (
-              <div ref={notificationLayerRef} className="relative hidden xl:block">
-                <button
-                  type="button"
-                  aria-label="알림"
-                  aria-expanded={isNotificationOpen}
-                  onClick={() => setIsNotificationOpen((current) => !current)}
-                  className={`relative inline-flex size-10 min-h-10 min-w-10 shrink-0 items-center justify-center p-0 transition-colors ${styles.notificationButton}`}
-                >
-                  <Bell size={23} strokeWidth={1.5} aria-hidden="true" />
-                  {unreadCount > 0 ? (
-                    <span className="type-caption absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-white">
-                      {unreadBadgeLabel}
-                    </span>
-                  ) : null}
-                </button>
+              <div className={styles.notificationGroup}>
+                <div ref={notificationLayerRef} className="relative">
+                  <button
+                    type="button"
+                    aria-label="알림"
+                    aria-expanded={isNotificationOpen}
+                    onClick={() => setIsNotificationOpen((current) => !current)}
+                    className={`relative inline-flex size-10 min-h-10 min-w-10 shrink-0 items-center justify-center p-0 transition-colors ${styles.notificationButton}`}
+                  >
+                    <HeaderBellIcon />
+                    {unreadCount > 0 ? (
+                      <span className="type-caption absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-white">
+                        {unreadBadgeLabel}
+                      </span>
+                    ) : null}
+                  </button>
 
-                {isNotificationOpen ? (
-                  <div className="absolute right-0 top-12 w-[360px] overflow-hidden rounded-2xl border border-zinc-200 bg-white text-zinc-950">
-                    <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
-                      <p className="text-sm font-bold">알림</p>
-                      {unreadCount > 0 ? <p className="text-xs font-bold text-zinc-400">읽지 않음 {unreadBadgeLabel}</p> : null}
+                  {isNotificationOpen ? (
+                    <div className="site-popover absolute right-0 top-12 w-[360px] overflow-hidden text-zinc-950" data-site-notification-popover>
+                      <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
+                        <p className="text-sm font-bold">알림</p>
+                        {unreadCount > 0 ? <p className="text-xs font-bold text-zinc-400">읽지 않음 {unreadBadgeLabel}</p> : null}
+                      </div>
+                      <div className="max-h-[420px] overflow-y-auto">
+                        {notificationsLoading ? (
+                          <p className="px-4 py-8 text-center text-sm font-bold text-zinc-400">알림을 불러오는 중입니다.</p>
+                        ) : notificationEvents.length > 0 ? (
+                          <div className="divide-y divide-zinc-100">
+                            {notificationEvents.map((event) => (
+                              <NotificationItem
+                                key={event.id}
+                                event={event}
+                                onRead={markNotificationAsRead}
+                                onNavigate={() => setIsNotificationOpen(false)}
+                              />
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="px-4 py-8 text-center text-sm font-bold text-zinc-400">새 알림이 없습니다.</p>
+                        )}
+                      </div>
+                      <Link
+                        href={NOTIFICATION_FALLBACK_HREF}
+                        onClick={() => setIsNotificationOpen(false)}
+                        className="block border-t border-zinc-100 px-4 py-3 text-center text-sm font-bold text-zinc-900 transition-colors hover:bg-zinc-50"
+                      >
+                        전체 알림 보기
+                      </Link>
                     </div>
-                    <div className="max-h-[420px] overflow-y-auto">
-                      {notificationsLoading ? (
-                        <p className="px-4 py-8 text-center text-sm font-bold text-zinc-400">알림을 불러오는 중입니다.</p>
-                      ) : notificationEvents.length > 0 ? (
-                        <div className="divide-y divide-zinc-100">
-                          {notificationEvents.map((event) => (
-                            <NotificationItem
-                              key={event.id}
-                              event={event}
-                              onRead={markNotificationAsRead}
-                              onNavigate={() => setIsNotificationOpen(false)}
-                            />
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="px-4 py-8 text-center text-sm font-bold text-zinc-400">새 알림이 없습니다.</p>
-                      )}
-                    </div>
-                    <Link
-                      href={NOTIFICATION_FALLBACK_HREF}
-                      onClick={() => setIsNotificationOpen(false)}
-                      className="block border-t border-zinc-100 px-4 py-3 text-center text-sm font-bold text-zinc-900 transition-colors hover:bg-zinc-50"
-                    >
-                      전체 알림 보기
-                    </Link>
-                  </div>
-                ) : null}
+                  ) : null}
+                </div>
+                <span className={styles.accountDivider} aria-hidden="true" />
               </div>
             ) : null}
-            {authState.isAuthenticated ? <span className={styles.accountDivider} aria-hidden="true" /> : null}
             {!authState.loading ? (
               <Link
                 href={accountCtaHref}
@@ -369,7 +375,7 @@ const Navbar = () => {
                 aria-label={unreadCount > 0 ? `알림, 읽지 않음 ${unreadBadgeLabel}개` : '알림'}
                 className={`relative inline-flex size-9 min-h-9 min-w-9 shrink-0 items-center justify-center rounded-full p-0 transition-opacity xl:hidden ${menuButtonClass}`}
               >
-                <Bell size={23} strokeWidth={2.1} aria-hidden="true" />
+                <HeaderBellIcon />
                 {unreadCount > 0 ? (
                   <span className="type-caption absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-white">
                     {unreadBadgeLabel}

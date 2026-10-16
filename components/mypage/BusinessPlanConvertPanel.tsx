@@ -370,7 +370,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
-      <section className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
+      <section className="site-section p-7">
         <h2 className="type-subsection-title">사업자 플랜 선택</h2>
         <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
           현재 메뉴판은 아티메뉴 다이닝 체험 메뉴판입니다. 기존 메뉴판을 그대로 이어서 사용하려면 아티메뉴 다이닝 사업자 플랜으로 전환할 수 있습니다.
@@ -406,7 +406,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
         </div>
       </section>
 
-      <aside className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm lg:sticky lg:top-28 lg:self-start">
+      <aside className="site-section p-7 lg:sticky lg:top-28 lg:self-start">
         <h2 className="type-subsection-title">전환 준비</h2>
         <dl className="mt-6 space-y-4 text-sm font-bold">
           <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
@@ -470,7 +470,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
         )}
       </aside>
 
-      <section className="rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm lg:col-span-2">
+      <section className="site-section p-7 lg:col-span-2">
         <h2 className="type-subsection-title">사업자 인증</h2>
         <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
           사업자 플랜 전환은 사업자 정보 확인 후 진행됩니다. 이번 단계에서는 인증만 진행하고, 자동결제 연결은 아직 호출하지 않습니다.
@@ -500,7 +500,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
         </div>
 
         {verificationState.type === "verified" && (
-          <dl className="mt-6 grid gap-3 rounded-3xl border border-emerald-100 bg-emerald-50 p-5 md:grid-cols-3">
+          <dl className="mt-6 grid gap-3 rounded-md bg-emerald-50 p-5 md:grid-cols-3">
             <SummaryItem label="상호명" value={verificationState.result.businessName || form.businessName || "-"} />
             <SummaryItem label="대표자명" value={verificationState.result.representativeName || form.representativeName || "-"} />
             <SummaryItem label="사업자등록번호" value={verificationState.result.businessRegistrationNumberMasked ?? "-"} />

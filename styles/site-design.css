@@ -19,6 +19,16 @@
 }
 .site-content { width: 100%; max-width: var(--site-content-width); margin-inline: auto; }
 .site-header-spacer { height: var(--site-header-height); flex: none; }
+.site-auth-page {
+  display: grid;
+  min-height: calc(100svh - var(--site-header-height));
+  align-content: center;
+  padding-block: clamp(3rem, 7vh, 5rem);
+}
+.site-auth-content { width: 100%; max-width: 26rem; margin-inline: auto; }
+.site-auth-content-wide { max-width: 30rem; }
+.site-auth-form { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.site-auth-header { margin-bottom: 2rem; text-align: center; }
 .site-scroll-top, .site-support-launcher { right: max(var(--site-gutter), calc((100vw - var(--site-content-width)) / 2)); }
 .site-eyebrow {
   display: inline-flex;
@@ -64,10 +74,10 @@
 .site-template-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
 .site-template-card { min-width: 0; }
 .site-media-frame { overflow: hidden; border-radius: var(--ui-radius-box); }
-.site-template-media { overflow: hidden; border: 1px solid var(--ui-border); border-radius: var(--ui-radius-box); background: var(--ui-surface-muted); }
+.site-template-media { overflow: hidden; border: 0; border-radius: .75rem; background: var(--ui-surface-muted); }
 .site-template-media [data-template-artwork] > * { border-radius: 0; }
 .site-template-card > :last-child { padding-top: .75rem; }
-.site-template-artwork { overflow: hidden; border-radius: var(--ui-radius-box); }
+.site-template-artwork { overflow: hidden; border-radius: .75rem; }
 .site-template-artwork > * { border-radius: inherit; }
 
 /* Compatibility rules for existing site pages, including account and editor
@@ -79,7 +89,6 @@
 .bg-zinc-50:not(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) { background-color: var(--ui-surface-muted) !important; }
 :is(.border-zinc-200, .ring-zinc-200):not(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) { border-color: var(--ui-border); --tw-ring-color: var(--ui-border); }
 :is(.border-zinc-100, .divide-zinc-100):not(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) { border-color: var(--site-divider); }
-:is(article, section, form, aside, div)[class*="rounded-"][class~="border"]:not(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) { border-radius: var(--ui-radius-card); box-shadow: none; }
 :where(input, select, textarea):not(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) { border-radius: var(--ui-radius-field); }
 .site-dark-cta { border-radius: var(--ui-radius-box); background: var(--ui-text); padding: 3rem 1.5rem; }
 [data-slot="tabs-list"]:not(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *) { border-radius: 9999px; background: transparent; }
@@ -101,8 +110,6 @@
 :is(main, section, article, div, aside, footer):is(.bg-zinc-950, .bg-black, .site-dark-cta):not(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) { --site-muted-ink: #b5bac4; --ui-focus: #fff; }
 .bg-white:not(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) { --site-muted-ink: #717680; --ui-focus: #15181e; }
 
-/* Buttons and filters carry the soft, round ArtiMenu brand across legacy UI.
-   Menu artwork and public template engines remain outside this contract. */
-:where(button, [role="button"], a[class~="inline-flex"], a.site-button)[class*="rounded-"]:not(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) { border-radius: 9999px !important; }
+/* Pill corners belong to actions and tabs, not every selectable row or layer. */
 .site-tab[aria-selected="true"]:hover, .site-tab[aria-pressed="true"]:hover { background: var(--ui-action-hover); }
 .site-tab[aria-selected="true"]:active, .site-tab[aria-pressed="true"]:active { background: var(--ui-action-pressed); }

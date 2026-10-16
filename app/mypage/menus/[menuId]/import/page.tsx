@@ -105,7 +105,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <ActionFeedbackToast message={message} tone="success" />
         <ActionFeedbackToast message={error} tone="error" />
         <div className="mx-auto w-full max-w-5xl">
@@ -157,13 +157,13 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
           </section>
 
           <div className="mb-6 grid gap-5 md:grid-cols-2">
-            <section className="rounded-3xl border border-zinc-200 bg-white p-7">
+            <section className="site-section p-7">
               <h2 className="type-content-title">연결 시 함께 변경</h2>
               <ul className="mt-5 space-y-3 text-sm font-semibold text-zinc-600">
                 {MENU_CATALOG_LINKED_SHARED_FIELDS.map((field) => <li key={field}>✓ {field}</li>)}
               </ul>
             </section>
-            <section className="rounded-3xl border border-zinc-200 bg-white p-7">
+            <section className="site-section p-7">
               <h2 className="type-content-title">메뉴판별로 개별 관리</h2>
               <ul className="mt-5 space-y-3 text-sm font-semibold text-zinc-600">
                 {MENU_CATALOG_MENU_SPECIFIC_FIELDS.map((field) => <li key={field}>• {field}</li>)}
@@ -201,7 +201,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
               </form>
             </section>
           ) : sourceMenuSites.length === 0 ? (
-            <section className="rounded-3xl border border-zinc-200 bg-white p-8 text-center">
+            <section className="site-section p-8 text-center">
               <h2 className="type-subsection-title">가져올 다른 메뉴판이 없습니다</h2>
               <p className="mt-3 text-sm font-semibold text-zinc-500">같은 계정에 메뉴판이 두 개 이상 있을 때 사용할 수 있습니다.</p>
               <Link href="/apply" className="mt-6 inline-flex rounded-full bg-zinc-950 px-6 py-3 text-sm font-bold text-white">
@@ -246,7 +246,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
                 </fieldset>
               </section>
 
-              <section className="rounded-3xl border border-amber-200 bg-amber-50 p-7">
+              <section className="rounded-md bg-amber-50 p-7">
                 <h2 className="type-content-title text-amber-950">3. 대상 내용 교체 확인</h2>
                 <p className="mt-3 break-keep text-sm font-semibold leading-6 text-amber-900">
                   대상 메뉴판의 현재 페이지·카테고리·메뉴·타임세일·위젯은 제거되고 원본 메뉴 내용으로 교체됩니다. 원본 메뉴판은 삭제하거나 변경하지 않습니다.

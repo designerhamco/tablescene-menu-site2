@@ -43,30 +43,30 @@ export default async function ForgotPasswordPage({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter site-page-spacing min-h-screen bg-white text-zinc-950">
-      <ActionFeedbackToast message={notice} tone="success" />
-      <ActionFeedbackToast message={errorMessage} tone="error" />
-      <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-md flex-col justify-center">
-        <div className="site-card p-8">
-          <div className="mb-8">
-            <h1 className="type-subsection-title">비밀번호 재설정</h1>
-            <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-              가입한 이메일을 입력하면 비밀번호를 다시 설정할 수 있는 링크를 보내드립니다.
-            </p>
-          </div>
+      <main className="site-gutter site-auth-page bg-white text-zinc-950">
+        <ActionFeedbackToast message={notice} tone="success" />
+        <ActionFeedbackToast message={errorMessage} tone="error" />
+        <div className="site-auth-content">
+          <div className="site-auth-form">
+            <div className="site-auth-header">
+              <h1 className="type-subsection-title">비밀번호 재설정</h1>
+              <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
+                가입한 이메일을 입력하면 비밀번호를 다시 설정할 수 있는 링크를 보내드립니다.
+              </p>
+            </div>
 
-          {notice && <div className="mb-6 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">{notice}</div>}
-          {errorMessage && <div className="mb-6 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{errorMessage}</div>}
+            {notice && <div className="mb-6 rounded-md bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">{notice}</div>}
+            {errorMessage && <div className="mb-6 rounded-md bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{errorMessage}</div>}
 
-          <RequestPasswordResetForm />
+            <RequestPasswordResetForm />
 
-          <div className="mt-6 text-center text-sm font-medium text-zinc-500">
-            <Link href="/sign-in" className="font-bold text-zinc-950 hover:underline">
-              로그인으로 돌아가기
-            </Link>
+            <div className="mt-6 text-center text-sm font-medium text-zinc-500">
+              <Link href="/sign-in" className="font-bold text-zinc-950 hover:underline">
+                로그인으로 돌아가기
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
       </main>
       <Footer />
     </>

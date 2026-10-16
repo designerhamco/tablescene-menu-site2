@@ -20,10 +20,10 @@ export default async function PasswordRecoveryVerificationPage({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter site-page-spacing min-h-screen bg-white text-zinc-950">
-        <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-md flex-col justify-center">
-          <div className="rounded-3xl border border-white/10 bg-white p-8 text-zinc-950 shadow-2xl">
-            <div className="mb-8">
+      <main className="site-gutter site-auth-page bg-white text-zinc-950">
+        <div className="site-auth-content">
+          <div className="site-auth-form">
+            <div className="site-auth-header">
               <h1 className="type-subsection-title">비밀번호 재설정</h1>
               <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
                 본인 확인을 마치고 새 비밀번호를 설정합니다.
@@ -43,7 +43,7 @@ export default async function PasswordRecoveryVerificationPage({
               </form>
             ) : (
               <div className="space-y-5">
-                <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-medium leading-relaxed text-amber-800">
+                <div className="rounded-md bg-amber-50 px-4 py-3 text-sm font-medium leading-relaxed text-amber-800">
                   비밀번호 재설정 링크가 만료되었거나 유효하지 않습니다. 다시 요청해주세요.
                 </div>
                 <Link

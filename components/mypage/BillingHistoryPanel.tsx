@@ -408,7 +408,7 @@ function RestoreSubscriptionModal({
               </button>
             </div>
 
-            <div className="mt-5 rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-900">
+            <div className="mt-5 rounded-md bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-900">
               <p>{restore.retentionLabel}</p>
               <p className="mt-2">보관 기간 안에 재구독하면 기존 메뉴판을 다시 사용할 수 있습니다.</p>
               <p className="mt-2">
@@ -502,7 +502,7 @@ function RestoreSubscriptionModal({
               </div>
             ) : null}
 
-            <div className="mt-5 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-xs font-bold leading-relaxed text-zinc-500">
+            <div className="site-section mt-5 p-4 text-xs font-bold leading-relaxed text-zinc-500">
               {restoreCheckoutEnabled
                 ? "QA 환경에서만 복구 전용 결제 흐름이 활성화됩니다. 결제 완료 후 보관 중인 메뉴판이 다시 이용 가능한 상태로 전환됩니다."
                 : "이번 단계에서는 실제 결제를 실행하지 않습니다. 다음 단계에서 복구 전용 결제 흐름이 연결되면 결제 완료 후 보관 중인 메뉴판이 다시 이용 가능한 상태로 전환됩니다."}
@@ -559,7 +559,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
 
   return (
     <section className="space-y-5">
-      <div className="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <div className="site-section p-5">
         <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
           <div>
             <h3 className="type-content-title text-zinc-950">결제내역 필터</h3>
@@ -641,7 +641,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
         </div>
       </div>
 
-      <div className="rounded-3xl border border-amber-100 bg-amber-50 p-5 text-sm font-bold leading-relaxed text-amber-900">
+      <div className="rounded-md bg-amber-50 p-5 text-sm font-bold leading-relaxed text-amber-900">
         <p>월결제와 연결제는 모두 정기결제 상품입니다. 해지 예약 시 다음 결제일부터 자동결제가 중단되며, 이미 결제된 이용 기간까지 계속 사용할 수 있습니다.</p>
         <p className="mt-2">
           연결제 중도해지/환불은 사용 기간을 월결제 기준 금액으로 재정산한 뒤, 잔여 환불 가능액에서 중도해지 수수료 10%를 공제하는 방식으로 안내합니다.
@@ -661,7 +661,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
       {filteredEntries.length > 0 ? (
         <div className="grid gap-3">
           {filteredEntries.map((entry) => (
-            <article key={entry.id} className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+            <article key={entry.id} className="site-section p-4">
               <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
@@ -724,13 +724,13 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
                   </dl>
 
                   {entry.supportMessage ? (
-                    <div className="mt-4 rounded-xl border border-zinc-100 bg-zinc-50 p-3 text-xs font-bold leading-relaxed text-zinc-600">
+                    <div className="site-section mt-4 p-3 text-xs font-bold leading-relaxed text-zinc-600">
                       {entry.supportMessage}
                     </div>
                   ) : null}
 
                   {entry.billingMethod === "yearly" ? (
-                    <div className="mt-4 rounded-xl border border-zinc-100 bg-zinc-50 p-3 text-xs font-bold leading-relaxed text-zinc-500">
+                    <div className="site-section mt-4 p-3 text-xs font-bold leading-relaxed text-zinc-500">
                       연결제는 매년 자동결제되는 연 정기결제 상품입니다. 중도해지/환불 요청 시 사용 기간은 월결제 기준 금액으로 재정산되며, 잔여 환불 가능액에서 중도해지 수수료 10%가 공제됩니다.
                     </div>
                   ) : null}
@@ -763,7 +763,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
           ))}
         </div>
       ) : (
-        <article className="rounded-2xl border border-dashed border-zinc-200 bg-white p-8 text-center shadow-sm">
+        <article className="site-section p-8 text-center">
           <h4 className="type-content-title">조건에 맞는 결제내역이 없습니다</h4>
           <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">필터를 초기화하거나 다른 조건으로 다시 확인해주세요.</p>
         </article>

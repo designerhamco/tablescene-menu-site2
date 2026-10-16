@@ -62,22 +62,22 @@ export default async function SuccessPage({ searchParams }: PageProps) {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-16 text-zinc-950">
+      <main className="site-gutter min-h-screen bg-white py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-3xl">
-          <section className="rounded-3xl bg-white p-8 shadow-sm">
+          <section className="site-section p-8">
             <h1 className="type-page-title">메뉴판이 생성되었습니다.</h1>
             <p className="site-body mt-4 text-zinc-500">
               결제 또는 무료체험 신청 처리가 완료되면 메뉴판은 작성중 상태로 생성됩니다. 마이페이지에서 내용을 수정한 뒤 공개 상태로 변경하세요.
             </p>
 
           {errorMessage && (
-            <div className="mt-6 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">
+            <div className="mt-6 rounded-md bg-red-50 p-4 text-sm font-bold text-red-700">
               메뉴판 정보를 불러오지 못했습니다: {errorMessage}
             </div>
           )}
 
           {menuSite ? (
-            <div className="mt-8 rounded-2xl border border-zinc-100 bg-zinc-50 p-5">
+            <div className="site-section mt-8 p-5">
               <h2 className="type-subsection-title">{menuSite.name}</h2>
               <dl className="mt-5 space-y-3 text-sm font-medium">
                 <div className="flex justify-between gap-4 border-t border-zinc-200 pt-3">
@@ -99,7 +99,7 @@ export default async function SuccessPage({ searchParams }: PageProps) {
               </dl>
             </div>
           ) : (
-            <div className="mt-8 rounded-2xl border border-amber-100 bg-amber-50 p-5 text-sm font-bold leading-relaxed text-amber-700">
+            <div className="mt-8 rounded-md bg-amber-50 p-5 text-sm font-bold leading-relaxed text-amber-700">
               아직 연결된 메뉴판 정보를 찾지 못했습니다. 실제 결제 연동 전이라면 `/apply`의 payload 확인 모드에서 여기로 자동 이동하지 않습니다.
             </div>
           )}

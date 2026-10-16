@@ -45,13 +45,13 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-14 text-zinc-950 md:py-20">
+      <main className="site-gutter min-h-screen bg-white py-14 text-zinc-950 md:py-20">
         <article className="mx-auto max-w-5xl">
           <Link href="/pricing" className="text-sm font-bold text-zinc-500 transition hover:text-zinc-950">
             ← 요금제 안내
           </Link>
 
-          <header className="mt-7 grid gap-8 rounded-[2rem] border border-zinc-200 bg-white p-7 shadow-sm md:grid-cols-[1fr_320px] md:p-10">
+          <header className="mt-7 grid gap-8 site-section p-7 md:grid-cols-[1fr_320px] md:p-10">
             <div>
               <span className="inline-flex rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">
                 아티메뉴 다이닝
@@ -77,7 +77,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           </header>
 
           <div className="mt-8 grid gap-6 md:grid-cols-2">
-            <section className="rounded-3xl border border-zinc-200 bg-white p-7">
+            <section className="site-section p-7">
               <h2 className="type-content-title">상품·제공 정보</h2>
               <dl className="mt-6 space-y-5 text-sm">
                 {[
@@ -95,7 +95,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               </dl>
             </section>
 
-            <section className="rounded-3xl border border-zinc-200 bg-white p-7">
+            <section className="site-section p-7">
               <h2 className="type-content-title">포함 기능</h2>
               <ul className="mt-6 space-y-3 text-sm font-semibold leading-relaxed text-zinc-600">
                 <li>• 다이닝 메뉴판 1개 생성 및 관리</li>
@@ -110,7 +110,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             </section>
           </div>
 
-          <section className="mt-6 rounded-3xl border border-zinc-200 bg-white p-7 md:p-9">
+          <section className="site-section mt-6 p-7 md:p-9">
             <h2 className="type-content-title">구독 해지·청약철회·환불 안내</h2>
             <ul className="mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed text-zinc-600">
               {product.cancellation.map((item) => (

@@ -199,7 +199,7 @@ export default function ImageUploadField({
   }
 
   return (
-    <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+    <div className="site-section p-4">
       {deferredDeleteName && isMarkedForDeferredDelete && <input type="hidden" name={deferredDeleteName} value="on" />}
       {draftImageUrlInputName && draftImageUrl && <input type="hidden" name={draftImageUrlInputName} value={draftImageUrl} />}
       {draftImagePathInputName && draftImagePath && <input type="hidden" name={draftImagePathInputName} value={draftImagePath} />}

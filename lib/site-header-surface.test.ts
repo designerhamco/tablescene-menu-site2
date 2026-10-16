@@ -17,7 +17,7 @@ test("공통 헤더의 스크롤 글래스와 불투명 알림 레이어는 독�
   assert.match(navbarSource, /data-floating=\{isFloating\}/);
   assert.match(navbarStyles, /backdrop-filter: blur\(20px\)/);
   assert.match(navbarStyles, /prefers-reduced-motion: reduce/);
-  assert.match(navbarSource, /w-\[360px\][^\n]*bg-white/);
+  assert.match(navbarSource, /site-popover[^\n]*w-\[360px\]/);
   assert.doesNotMatch(
     navbarSource,
     /w-\[360px\][^\n]*bg-white[^\n]*shadow-/,

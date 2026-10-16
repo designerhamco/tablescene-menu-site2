@@ -17,6 +17,7 @@
 .actions { gap: clamp(.5rem, 1.5vw, 1.25rem); }
 .actions > :global(.site-button) { display: none; }
 .accountLink, .accountDivider { display: none; }
+.notificationGroup { display: none; align-items: center; gap: .5rem; }
 .accountLink, .notificationButton { color: var(--ui-text); transition: color 180ms ease; }
 .accountLink:hover, .notificationButton:hover { color: var(--ui-text-muted); }
 .notificationButton { border: 0; background: transparent; }
@@ -40,6 +41,7 @@
 .drawerHeader { height: var(--site-header-height); flex: none; }
 .drawer > :last-child { min-height: 0; }
 @media (min-width: 1280px) {
+  .notificationGroup { display: flex; }
   .actions > :global(.site-button) { display: inline-flex; }
   .accountLink { display: inline-flex; align-items: center; min-height: 2.75rem; white-space: nowrap; }
   .accountDivider { display: block; width: 1px; height: 1.25rem; background: #d1d5db; }

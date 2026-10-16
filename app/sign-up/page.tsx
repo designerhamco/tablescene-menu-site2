@@ -36,9 +36,9 @@ export default async function SignUpPage({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
-        <section className="site-card mx-auto w-full max-w-xl p-6 sm:p-8">
-          <div>
+      <main className="site-gutter site-auth-page bg-white text-zinc-950">
+        <section className="site-auth-content site-auth-content-wide">
+          <div className="site-auth-header">
             <h1 className="type-subsection-title">아티메뉴 회원가입</h1>
             <p className="mt-4 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
               카카오 계정 또는 이메일로 간편하게 가입할 수 있습니다. 가입 후 마이페이지에서 메뉴판을 만들고 관리할 수 있습니다.
@@ -46,7 +46,7 @@ export default async function SignUpPage({
           </div>
 
           {errorMessage ? (
-            <div className="mt-6 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+            <div className="mt-6 rounded-md bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
               {errorMessage}
             </div>
           ) : null}

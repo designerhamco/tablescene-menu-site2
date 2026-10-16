@@ -35,7 +35,7 @@ export default async function NewMenuSitePage({
   }
 
   return (
-    <main className="min-h-screen bg-zinc-50 text-zinc-950">
+    <main className="min-h-screen bg-white text-zinc-950">
       <OfficialSiteNavbar />
 
       <section className="site-gutter w-full site-page-spacing-compact">

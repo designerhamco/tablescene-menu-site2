@@ -154,7 +154,7 @@ export default function MenuWidgetDraftEditor({
           <MenuWidgetTypePicker value={draft.type} onChange={changeType} />
         </FieldBlock>
 
-        <div className="rounded-lg border border-zinc-100 bg-zinc-50 p-4">
+        <div className="site-section p-4">
           <label className="flex items-center justify-between gap-3">
             <span>
               <span className="block text-sm font-bold text-zinc-950">메뉴판에 표시</span>
@@ -247,7 +247,7 @@ export default function MenuWidgetDraftEditor({
         )}
 
         {usesImage && (
-          <div className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4 md:grid-cols-2">
+          <div className="site-section grid gap-4 p-4 md:grid-cols-2">
             <FieldBlock label="이미지 비율">
               <select
                 value={draft.settings.aspectRatio}

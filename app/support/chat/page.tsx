@@ -18,7 +18,7 @@ export default function AiSupportChatPage() {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-12 text-zinc-950 md:py-16">
+      <main className="site-gutter min-h-screen bg-white py-12 text-zinc-950 md:py-16">
         <div className="mx-auto w-full max-w-4xl">
           <header className="mb-8 flex flex-col gap-5 border-b border-zinc-200 pb-8 md:flex-row md:items-end md:justify-between">
             <div>
@@ -34,7 +34,7 @@ export default function AiSupportChatPage() {
           {enabled ? (
             <AiSupportChat />
           ) : (
-            <section className="rounded-[2rem] border border-zinc-200 bg-white px-6 py-16 text-center">
+            <section className="site-section px-6 py-16 text-center">
               <p className="site-body-title">AI 상담 준비 중</p>
               <p className="site-body-support mx-auto mt-3 max-w-lg text-zinc-500">
                 안전성과 답변 품질을 확인한 뒤 열 예정입니다. 지금은 1:1 문의를 남겨 주세요.

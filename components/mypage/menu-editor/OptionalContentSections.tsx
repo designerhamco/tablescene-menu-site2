@@ -189,7 +189,7 @@ function EmptyState({
   disabledMessage?: string;
 }) {
   return (
-    <div className="rounded-lg border border-dashed border-zinc-200 bg-zinc-50 p-8 text-center">
+    <div className="site-section p-8 text-center">
       <p className="text-sm font-bold text-zinc-400">{message}</p>
       {disabledMessage && <p className="mt-3 text-sm font-bold text-zinc-400">{disabledMessage}</p>}
       <button
@@ -236,7 +236,7 @@ export function ChefsSection({ menuId, chefs }: { menuId: string; chefs: MenuChe
       ) : (
         <div className="space-y-4">
           {chefs.map((chef) => (
-            <article key={chef.id} className="rounded-lg border border-zinc-100 p-5">
+            <article key={chef.id} className="site-section p-5">
               {editingChefId === chef.id ? (
                 <>
                   <form id={`chef-form-${chef.id}`} action={updateChefAction} className="grid gap-4 md:grid-cols-2">
@@ -295,7 +295,7 @@ export function ChefsSection({ menuId, chefs }: { menuId: string; chefs: MenuChe
 
 function ChefForm({ menuId, count, onCancel }: { menuId: string; count: number; onCancel: () => void }) {
   return (
-    <form id="chef-form-new" action={createChefAction} className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
+    <form id="chef-form-new" action={createChefAction} className="site-section grid gap-4 p-5 md:grid-cols-2">
       <HiddenMenuId menuId={menuId} />
       <ChefFields count={count} />
       <div className="flex flex-wrap items-center justify-end gap-3 md:col-span-2">
@@ -327,7 +327,7 @@ function ChefFields({ chef, count }: { chef?: MenuChef; count?: number }) {
         {chef ? (
           <ImageUploadField label="셰프/인물 이미지" menuId={chef.menu_site_id} target="menu-chef" recordId={chef.id} currentUrl={chef.chef_image_url} />
         ) : (
-          <div className="rounded-lg border border-dashed border-zinc-200 bg-white p-4 text-sm font-bold leading-relaxed text-zinc-400">
+          <div className="site-section p-4 text-sm font-bold leading-relaxed text-zinc-400">
             셰프/인물 정보를 먼저 추가한 뒤 이미지를 등록할 수 있습니다.
           </div>
         )}
@@ -358,7 +358,7 @@ export function EventsSection({ menuId, events }: { menuId: string; events: Menu
       ) : (
         <div className="space-y-4">
           {events.map((event) => (
-            <article key={event.id} className="rounded-lg border border-zinc-100 p-5">
+            <article key={event.id} className="site-section p-5">
               {editingEventId === event.id ? (
                 <form id={`event-form-${event.id}`} action={updateEventAction} className="grid gap-4 md:grid-cols-2">
                   <HiddenMenuId menuId={menuId} />
@@ -418,7 +418,7 @@ export function EventsSection({ menuId, events }: { menuId: string; events: Menu
 
 function EventForm({ menuId, count, onCancel }: { menuId: string; count: number; onCancel: () => void }) {
   return (
-    <form id="event-form-new" action={createEventAction} className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
+    <form id="event-form-new" action={createEventAction} className="site-section grid gap-4 p-5 md:grid-cols-2">
       <HiddenMenuId menuId={menuId} />
       <EventFields count={count} />
       <div className="flex flex-wrap items-center justify-end gap-3 md:col-span-2">
@@ -458,7 +458,7 @@ function EventFields({ event, count }: { event?: MenuEvent; count?: number }) {
         {event ? (
           <ImageUploadField label="이벤트 이미지" menuId={event.menu_site_id} target="menu-event" recordId={event.id} currentUrl={event.event_image_url} />
         ) : (
-          <div className="rounded-lg border border-dashed border-zinc-200 bg-white p-4 text-sm font-bold leading-relaxed text-zinc-400">
+          <div className="site-section p-4 text-sm font-bold leading-relaxed text-zinc-400">
             이벤트를 먼저 추가한 뒤 이미지를 등록할 수 있습니다.
           </div>
         )}
@@ -539,7 +539,7 @@ export function SocialLinksSection({ menuId, socialLinks }: { menuId: string; so
       ) : (
         <div className="space-y-4">
           {socialLinks.map((link) => (
-            <article key={link.id} className="rounded-lg border border-zinc-100 p-5">
+            <article key={link.id} className="site-section p-5">
               {editingSocialLinkId === link.id ? (
                 <form id={`social-link-form-${link.id}`} action={updateSocialLinkAction} className="grid gap-4 md:grid-cols-2">
                   <HiddenMenuId menuId={menuId} />
@@ -594,7 +594,7 @@ export function SocialLinksSection({ menuId, socialLinks }: { menuId: string; so
 
 function SocialLinkForm({ menuId, count, onCancel }: { menuId: string; count: number; onCancel: () => void }) {
   return (
-    <form id="social-link-form-new" action={createSocialLinkAction} className="grid gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-5 md:grid-cols-2">
+    <form id="social-link-form-new" action={createSocialLinkAction} className="site-section grid gap-4 p-5 md:grid-cols-2">
       <HiddenMenuId menuId={menuId} />
       <SocialLinkFields count={count} />
       <div className="flex flex-wrap items-center justify-end gap-3 md:col-span-2">

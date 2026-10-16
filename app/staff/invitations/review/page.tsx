@@ -39,8 +39,8 @@ export default async function StaffInvitationReviewPage({ searchParams }: { sear
   const returnPath = "/staff/invitations/review";
 
   return (
-    <main className="site-gutter flex min-h-screen items-center justify-center bg-zinc-50 py-12 text-zinc-950">
-      <section className="w-full max-w-lg rounded-[2rem] border border-zinc-200 bg-white p-7 shadow-sm md:p-10">
+    <main className="site-gutter flex min-h-screen items-center justify-center bg-white py-12 text-zinc-950">
+      <section className="site-section w-full max-w-lg p-7 md:p-10">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">ArtiMenu staff</p>
         <h1 className="type-subsection-title mt-4">직원 초대 확인</h1>
 

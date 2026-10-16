@@ -26,7 +26,7 @@
   isolation: isolate;
   aspect-ratio: 0.95;
   overflow: hidden;
-  border-radius: var(--ui-radius-box);
+  border-radius: var(--ui-radius-hero);
   background: var(--ui-surface-muted);
 }
 

@@ -97,7 +97,7 @@ export default function NotificationHistorySection({ events }: NotificationHisto
       </div>
 
       {items.length > 0 ? (
-        <div className="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
+        <div className="site-section overflow-hidden">
           {items.map((event, index) => {
             const eventId = event.id ?? `${event.title}-${event.created_at}-${index}`;
             const href = getNotificationHref(event.metadata);
@@ -153,7 +153,7 @@ export default function NotificationHistorySection({ events }: NotificationHisto
           })}
         </div>
       ) : (
-        <article className="rounded-3xl border border-dashed border-zinc-200 bg-white p-10 text-center shadow-sm">
+        <article className="site-section p-10 text-center">
           <h3 className="type-subsection-title">새 알림이 없습니다.</h3>
           <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
             아티메뉴 이용 중 새 알림이 생기면 이곳에 표시됩니다.

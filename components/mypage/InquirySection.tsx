@@ -343,7 +343,7 @@ export function InquirySection({
                     </div>
 
                     {inquiry.admin_reply ? (
-                      <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
+                      <div className="mt-3 rounded-md bg-emerald-50 p-4">
                         <div className="mb-2 flex flex-col justify-between gap-1 md:flex-row md:items-center">
                           <p className="text-xs font-bold text-emerald-800">관리자 답변</p>
                           <p className="text-xs font-medium text-emerald-700/70">답변일 {formatDate(inquiry.replied_at)}</p>
@@ -353,7 +353,7 @@ export function InquirySection({
                         </p>
                       </div>
                     ) : (
-                      <div className="mt-3 rounded-2xl border border-zinc-200 bg-white p-4">
+                      <div className="site-section mt-3 p-4">
                         <p className="text-xs font-bold text-zinc-500">관리자 답변</p>
                         <p className="type-body-sm mt-2 break-keep text-zinc-500">
                           아직 답변이 등록되지 않았습니다.
@@ -361,7 +361,7 @@ export function InquirySection({
                       </div>
                     )}
 
-                    <div className="mt-3 rounded-2xl border border-zinc-200 bg-white p-4">
+                    <div className="site-section mt-3 p-4">
                       <div className="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-center">
                         <div>
                           <p className="type-label text-zinc-900">문의 관리</p>

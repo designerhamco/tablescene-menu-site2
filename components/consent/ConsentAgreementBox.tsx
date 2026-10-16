@@ -50,7 +50,7 @@ export function ConsentAgreementBox<T extends string>({
 
   return (
     <>
-      <div className="rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2.5">
+      <div className="site-section py-2.5">
         {title ? <p className="mb-1 px-1 text-sm font-bold text-zinc-700">{title}</p> : null}
 
         <label className="flex min-h-9 cursor-pointer items-center gap-3 px-1 py-2 text-sm font-bold text-zinc-900">

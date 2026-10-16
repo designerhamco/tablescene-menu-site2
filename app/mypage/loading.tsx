@@ -4,20 +4,20 @@ export default function MyPageLoading() {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-16 text-zinc-950">
+      <main className="site-gutter min-h-screen bg-white py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <header className="mb-12 border-b border-zinc-200 pb-8">
             <div className="h-12 w-56 rounded-2xl bg-zinc-200" />
             <div className="mt-5 h-5 w-full max-w-lg rounded-full bg-zinc-100" />
           </header>
-          <section className="mb-8 rounded-3xl bg-white p-8 shadow-sm">
+          <section className="mb-8 site-section p-8">
             <div className="h-4 w-24 rounded-full bg-zinc-100" />
             <div className="mt-5 h-8 w-64 rounded-xl bg-zinc-200" />
             <div className="mt-4 h-4 w-80 max-w-full rounded-full bg-zinc-100" />
           </section>
           <section className="grid gap-5 md:grid-cols-2">
             {[0, 1].map((item) => (
-              <div key={item} className="rounded-3xl bg-white p-7 shadow-sm">
+              <div key={item} className="site-section p-7">
                 <div className="h-7 w-40 rounded-xl bg-zinc-200" />
                 <div className="mt-4 h-4 w-full rounded-full bg-zinc-100" />
                 <div className="mt-8 space-y-3">

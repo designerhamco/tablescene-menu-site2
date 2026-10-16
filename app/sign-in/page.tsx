@@ -39,94 +39,94 @@ export default async function SignInPage({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter site-page-spacing min-h-screen bg-white text-zinc-950">
-      <ActionFeedbackToast message={notice} tone="success" />
-      <ActionFeedbackToast message={errorMessage} tone="error" />
-      <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-md flex-col justify-center">
-        <div className="site-card p-8">
-          <div className="mb-8">
-            <h1 className="type-subsection-title">로그인</h1>
-            <p className="type-body-sm mt-3 text-zinc-500">
-              아티메뉴 마이페이지에서 메뉴판 생성과 관리 기능을 준비합니다.
+      <main className="site-gutter site-auth-page bg-white text-zinc-950">
+        <ActionFeedbackToast message={notice} tone="success" />
+        <ActionFeedbackToast message={errorMessage} tone="error" />
+        <div className="site-auth-content">
+          <div className="site-auth-form">
+            <div className="site-auth-header">
+              <h1 className="type-subsection-title">로그인</h1>
+              <p className="type-body-sm mt-3 text-zinc-500">
+                아티메뉴 마이페이지에서 메뉴판 생성과 관리 기능을 준비합니다.
+              </p>
+            </div>
+
+            {notice && (
+              <div className="mb-6 rounded-md bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+                {notice}
+              </div>
+            )}
+
+            {errorMessage && (
+              <div className="mb-6 rounded-md bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                {errorMessage}
+              </div>
+            )}
+
+            <form action={signInAction} className="space-y-5">
+              <input type="hidden" name="next" value={safeNext} />
+
+              <div>
+                <label htmlFor="email" className="type-label mb-2 block">
+                  이메일
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-base outline-none transition-colors focus:border-zinc-950"
+                  placeholder="owner@example.com"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="password" className="type-label mb-2 block">
+                  비밀번호
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  autoComplete="current-password"
+                  className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-base outline-none transition-colors focus:border-zinc-950"
+                  placeholder="비밀번호"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="site-button site-button-primary site-button-lg w-full"
+              >
+                로그인
+              </button>
+            </form>
+
+            <OAuthButtons next={safeNext} buttonLabel="카카오로 로그인" />
+
+            <div className="mt-5 flex flex-col items-center justify-center gap-2 text-sm font-semibold text-zinc-500 sm:flex-row sm:gap-3">
+              <Link href="/forgot-password" className="hover:text-zinc-950 hover:underline">
+                비밀번호를 잊으셨나요?
+              </Link>
+              <span className="hidden text-zinc-300 sm:inline">·</span>
+              <Link href="/find-account" className="hover:text-zinc-950 hover:underline">
+                로그인 이메일을 잊으셨나요?
+              </Link>
+            </div>
+
+            <p className="mt-6 text-center text-sm font-medium text-zinc-500">
+              계정이 없나요?{" "}
+              <Link
+                href={`/sign-up?next=${encodeURIComponent(safeNext)}`}
+                className="font-bold text-zinc-950 hover:underline"
+              >
+                아티메뉴 회원가입
+              </Link>
             </p>
           </div>
-
-          {notice && (
-            <div className="mb-6 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
-              {notice}
-            </div>
-          )}
-
-          {errorMessage && (
-            <div className="mb-6 rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-              {errorMessage}
-            </div>
-          )}
-
-          <form action={signInAction} className="space-y-5">
-            <input type="hidden" name="next" value={safeNext} />
-
-            <div>
-              <label htmlFor="email" className="type-label mb-2 block">
-                이메일
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                autoComplete="email"
-                className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-base outline-none transition-colors focus:border-zinc-950"
-                placeholder="owner@example.com"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="type-label mb-2 block">
-                비밀번호
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                autoComplete="current-password"
-                className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-base outline-none transition-colors focus:border-zinc-950"
-                placeholder="비밀번호"
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="site-button site-button-primary site-button-lg w-full"
-            >
-              로그인
-            </button>
-          </form>
-
-          <OAuthButtons next={safeNext} buttonLabel="카카오로 로그인" />
-
-          <div className="mt-5 flex flex-col items-center justify-center gap-2 text-sm font-semibold text-zinc-500 sm:flex-row sm:gap-3">
-            <Link href="/forgot-password" className="hover:text-zinc-950 hover:underline">
-              비밀번호를 잊으셨나요?
-            </Link>
-            <span className="hidden text-zinc-300 sm:inline">·</span>
-            <Link href="/find-account" className="hover:text-zinc-950 hover:underline">
-              로그인 이메일을 잊으셨나요?
-            </Link>
-          </div>
-
-          <p className="mt-6 text-center text-sm font-medium text-zinc-500">
-            계정이 없나요?{" "}
-            <Link
-              href={`/sign-up?next=${encodeURIComponent(safeNext)}`}
-              className="font-bold text-zinc-950 hover:underline"
-            >
-              아티메뉴 회원가입
-            </Link>
-          </p>
         </div>
-      </div>
       </main>
       <Footer />
     </>

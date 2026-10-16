@@ -74,7 +74,7 @@ export default function MarketingConsentSettings({
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-5">
+    <section className="site-section mt-6 p-5">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0">
           <h3 className="type-content-title text-zinc-950">광고성 정보 수신 동의</h3>

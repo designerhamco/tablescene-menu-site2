@@ -2510,7 +2510,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
     return (
       <article key={card.key} className="site-card p-5">
-        <div className="mb-5 overflow-hidden rounded-[1.25rem] border border-zinc-100 bg-zinc-50">
+        <div className="site-section mb-5 overflow-hidden">
           <TemplateThumbnail template={card.template} />
         </div>
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
@@ -2589,7 +2589,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
     return (
       <article key={card.key} className="site-card p-5">
-        <div className="mb-5 overflow-hidden rounded-[1.25rem] border border-zinc-100 bg-zinc-50">
+        <div className="site-section mb-5 overflow-hidden">
           <TemplateThumbnail template={card.template} />
         </div>
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
@@ -2709,7 +2709,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         message={mypageNotice}
         tone={messageCode === "staff-invitation-accepted" ? "success" : "warning"}
       />
-      <main className="site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <header className="mb-5 flex flex-col justify-between gap-5 border-b border-zinc-200 pb-6 md:mb-6 md:flex-row md:items-end md:pb-8">
             <div>
@@ -2989,7 +2989,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                   </p>
                                 ) : null}
                                 {isBusinessSubscription ? (
-                                  <div className="mt-3 rounded-xl border border-zinc-100 bg-zinc-50 p-3 text-xs font-bold leading-relaxed text-zinc-500">
+                                  <div className="site-section mt-3 p-3 text-xs font-bold leading-relaxed text-zinc-500">
                                     구독을 해지하면 다음 결제일부터 결제가 중단됩니다. 이미 결제된 이용기간은 종료일까지 계속 이용할 수 있으며, 이용기간 종료 후 메뉴판은 비공개 처리되고 90일 보관 기간이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다.
                                   </div>
                                 ) : null}
@@ -3427,7 +3427,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     <dd className="mt-2 break-all font-mono text-xs font-bold text-zinc-600">{user.id}</dd>
                   </div>
                 </dl>
-                <section className="mt-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-5">
+                <section className="site-section mt-6 p-5">
                   <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                     <div>
                       <h3 className="type-content-title text-zinc-950">
@@ -3486,7 +3486,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     </p>
                   )}
                 </section>
-                <section className="mt-6 rounded-2xl border border-zinc-100 bg-white p-5">
+                <section className="site-section mt-6 p-5">
                   <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                     <div>
                       <h3 className="type-content-title text-zinc-950">서비스 안내 및 문의 수신 정보</h3>

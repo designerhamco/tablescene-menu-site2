@@ -107,7 +107,7 @@ export default function CallDashboard({ menuSiteId, calls, callItems }: {
         <CallItemManager key={callItems.map((item) => `${item.key}:${item.label}:${item.sortOrder}:${item.active}`).join("|")} menuSiteId={menuSiteId} items={callItems} />
       ) : (
         <div className="space-y-4" role="tabpanel">
-          <section className="rounded-3xl border border-zinc-200 bg-white p-4 md:p-5">
+          <section className="site-section p-4 md:p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-bold text-zinc-900">처리할 호출 {unresolvedCount.toLocaleString("ko-KR")}건 · 최근 이력 {calls.length.toLocaleString("ko-KR")}건</p>
@@ -145,7 +145,7 @@ export default function CallDashboard({ menuSiteId, calls, callItems }: {
           ) : filteredCalls.length === 0 ? (
             <p className="rounded-3xl border border-dashed border-zinc-300 bg-white px-6 py-12 text-center text-sm font-bold text-zinc-500">조건에 맞는 호출 내역이 없습니다.</p>
           ) : filteredCalls.map((call) => (
-            <article key={call.id} className="rounded-3xl border border-zinc-200 bg-white p-5 md:p-6">
+            <article key={call.id} className="site-section p-5 md:p-6">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">

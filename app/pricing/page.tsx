@@ -30,7 +30,7 @@ export default function PricingPage() {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-zinc-50 py-16 text-zinc-950">
+      <main className="site-gutter min-h-screen bg-white py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <header className="mb-10 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
@@ -66,7 +66,7 @@ export default function PricingPage() {
             </div>
             <div className="grid gap-5 md:grid-cols-2">
               {publicBasicProducts.map((product) => (
-                <article key={product.slug} className="flex min-h-[310px] flex-col rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
+                <article key={product.slug} className="site-section flex min-h-[310px] flex-col p-7">
                   <span className="w-fit rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">{product.billingLabel}</span>
                   <h3 className="type-subsection-title mt-5">{product.shortName}</h3>
                   <p className="mt-4 flex-1 break-keep text-sm font-semibold leading-relaxed text-zinc-600">{product.summary}</p>
@@ -87,7 +87,7 @@ export default function PricingPage() {
             <h2 id="upcoming-services-heading" className="type-subsection-title">다른 서비스</h2>
             <div className="mt-5 grid gap-5 md:grid-cols-2">
               {upcomingServices.map((plan) => (
-                <article key={plan.name} className="flex min-h-[250px] flex-col rounded-3xl border border-zinc-200 bg-white p-7 shadow-sm">
+                <article key={plan.name} className="site-section flex min-h-[250px] flex-col p-7">
                   <h3 className="type-subsection-title">{plan.name}</h3>
                   <p className="mt-4 flex-1 break-keep text-sm font-semibold leading-relaxed text-zinc-600">{plan.description}</p>
                   <p className="mt-6 text-lg font-bold text-zinc-950">{plan.price}</p>
