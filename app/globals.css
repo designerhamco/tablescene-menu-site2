@@ -5272,7 +5272,7 @@ video {
 /* Panel-flow shell: each equal-width panel participates in the shared packer. */
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] {
   --board-padding: clamp(0.5rem, 0.85vmin, 0.875rem);
-  --panel-content-inset: clamp(1.75rem, 3vmin, 2.75rem);
+  --panel-content-inset: clamp(2.25rem, 4vmin, 3.25rem);
   --panel-hero-inset: clamp(1rem, 1.8vmin, 1.75rem);
   --cafe-a-category-separation-ratio: 2.6;
 }
@@ -5300,8 +5300,9 @@ video {
   pointer-events: none;
 }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-identity {
-  position: absolute;
-  inset: var(--panel-hero-inset) var(--panel-hero-inset) auto;
+  position: relative;
+  inset: auto;
+  grid-row: 3;
   z-index: 1;
   display: flex;
   align-items: center;
@@ -5315,9 +5316,10 @@ video {
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-brand { width: 100%; font-weight: 400; line-height: 1.08; margin: 0; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro .cafe-a-featured-copy {
   z-index: 1;
-  bottom: var(--panel-hero-inset);
-  left: var(--panel-hero-inset);
-  right: var(--panel-hero-inset);
+  position: relative;
+  inset: auto;
+  grid-row: 5;
+  align-self: end;
 }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro .cafe-a-featured-description { display: block; overflow: visible; -webkit-line-clamp: unset; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro-block {
@@ -5351,12 +5353,7 @@ video {
   .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-adaptive-fit="true"] .cafe-a-panel-mobile-intro { display: none; }
 }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] { background: #fff !important; }
-.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-mobile-language .cafe-a-mobile-header-copy { display: none; }
-.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-mobile-language header { padding: 0 var(--cafe-a-page-inline); border: 0; }
-.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-mobile-language { background: #33221e; }
-.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-identity { gap: 0.75rem; }
-
-.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-plain-intro { padding: var(--panel-hero-inset); background: #fff; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-plain-intro { padding: var(--panel-hero-inset); background: #fff; display: flex; flex-direction: column; gap: 1rem; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-plain-intro .cafe-a-panel-identity { position: relative; inset: auto; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-identity .cafe-a-store-logo { object-fit: contain; max-width: 75%; max-height: 5rem; width: auto; height: auto; filter: drop-shadow(0 1px 1px #0006) drop-shadow(0 -1px 1px #fff5); }
 
@@ -5367,9 +5364,38 @@ video {
  .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-menu-category-block[data-cafe-a-visual-next-block-type="category"] { margin-bottom: var(--cafe-a-category-no-divider-gap); }
 }
 
-.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-mobile-language { padding-inline: var(--cafe-a-page-inline); }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"]:has(.cafe-a-panel-plain-intro) { --cafe-a-call-ink: var(--panel-plain-ink) !important; --cafe-a-language-trigger-ink: var(--panel-plain-ink) !important; }
-.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"]:has(.cafe-a-panel-plain-intro) .cafe-a-panel-mobile-language { background: #fff; }
+
+/* Panel representative composition: equal flexible space above/below the
+   centered identity; controls and item copy remain measured layout rows. */
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro .cafe-a-cover-frame {
+  --panel-equal-gap: 0.75rem;
+  display: grid;
+  grid-template-rows: auto minmax(var(--panel-equal-gap), 1fr) auto minmax(var(--panel-equal-gap), 1fr) auto;
+  padding: var(--panel-hero-inset);
+  overflow: visible;
+}
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-controls {
+  position: relative;
+  z-index: 2;
+  grid-row: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 3rem;
+  width: 100%;
+}
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro .cafe-a-cover-frame > .absolute:has(button[aria-current]) { right: auto; left: var(--panel-hero-inset); }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-intro .cafe-a-cover-frame {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-identity { gap: 0; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-identity .cafe-a-store-description { margin-top: 0.75rem; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-identity .cafe-a-panel-notices { margin-top: 0.5rem; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-controls {
+  min-height: 3rem;
+}
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] .cafe-a-panel-controls { min-height: 3.5rem; }
 
 /* Ordered panel flow uses the common CSS-column engine. White backgrounds
    belong to panel tracks; copy insets do not create another column gutter. */

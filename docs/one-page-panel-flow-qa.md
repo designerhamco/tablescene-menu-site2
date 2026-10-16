@@ -23,3 +23,13 @@ Preview: `/templates/restaurant_onue_a/preview`.
 Follow-up: PC/tablet menu insets enlarged to 28–44px (bounded viewport units). Default is registered-order fill (`orderedFit`), including editor and provisioning; saved grouped choices remain usable. Representative image stays flush. Physical-column measurement normalizes the flush image and inset copy so it cannot invent an extra empty panel.
 
 Follow-up verification: all 13 ONUE browser cases passed again with ordered fill; 1516×844 PC and 1024×768 landscape tablet use three panels with 28px menu insets, while sparse fixtures select one/two panels. The shared ordered engine considers a fourth column only after preferred safe layouts fail. All 638 unit/contract tests, TypeScript, ESLint and production build passed. The 21-view existing-template run above belongs to the initial implementation; it was not repeated for this follow-up.
+
+
+Representative alignment follow-up (2026-10-16):
+
+- PC/tablet notices moved to the rightmost lower footer; optional Call stays above notices. The image's language control is top-right. Centered brand/description has equal measured gaps above and below it, before the featured item.
+- Removed the separate 22%-of-image brand cap; common 75% column-width target and one/two-line selection are bounded by actual neighboring content. Menu insets now use 36–52px; hero insets and the square image remain unchanged.
+- Mobile Call ON uses the existing 56px bar inside the representative frame. OFF uses a top-right language row inside it. Cover OFF and logo cases remain supported. No mobile body typography or reading-gap changes.
+- 16 ONUE browser cases passed, including both tablet orientations, PC, phone widths, four-language content coverage, Call OFF, cover OFF, logo and sparse panel counts. Equal-gap difference was under 0.02px in the main PC/tablet cases. PC 1516×844 and landscape tablet 1024×768 selected three readable panels after actual-copy rescue.
+
+- Final mobile 320px Call ON/OFF geometry checks confirmed that the controls and featured copy remain within the square photograph. Existing-template ordered-mode regressions passed all 21 views (six templates in the main run, Loop Bagel retried separately after a page `load` timeout; subsequent checks use `domcontentloaded`). All 639 tests, TypeScript, ESLint and the final production build passed.

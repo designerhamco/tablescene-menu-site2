@@ -1781,7 +1781,12 @@ function measureCafeAActualDomCrop(
     if (!identity) return false;
     const contentBottom = identity.getBoundingClientRect().bottom;
     const limit = featured ? featured.getBoundingClientRect().top - 12 : frame.getBoundingClientRect().bottom - 12;
-    return contentBottom > limit + cropTolerance;
+    const controls = frame.querySelector<HTMLElement>(".cafe-a-panel-controls")?.getBoundingClientRect();
+    const frameRect = frame.getBoundingClientRect();
+    const featuredRect = featured?.getBoundingClientRect();
+    return contentBottom > limit + cropTolerance ||
+      Boolean(controls && controls.bottom + 12 > identity.getBoundingClientRect().top + cropTolerance) ||
+      Boolean(featuredRect && featuredRect.bottom + 12 > frameRect.bottom + cropTolerance);
   });
   const headerClipOverflow = Boolean(boardElement.closest('[data-cafe-a-adaptive-fit="true"]')) &&
     [...boardElement.querySelectorAll<HTMLElement>(".cafe-a-topline-description-panel, .cafe-a-topline-notices, .cafe-a-topline-brand-identity")].some((element) => {

@@ -116,3 +116,15 @@ test("세로 공간이 넉넉한 PC에서도 한 열만 채우려고 짧은 마�
 
   assert.equal(getCafeAOrderedBalancedBreaksFromColumns(candidates[0] ?? []), "1,2");
 });
+
+
+test("actual-copy rescue retains safe readable preferred widths", async () => {
+  const { shouldPreferActualCopyBeforeRescue } = await import("./one-page-fit-policy");
+  const safe = { columns: 3, fontScale: 0.85, overflow: false };
+  assert.equal(shouldPreferActualCopyBeforeRescue({columns: 4}, safe, 0.71), true);
+  assert.equal(shouldPreferActualCopyBeforeRescue({columns: 4}, {...safe, overflow: true}, 0.71), false);
+  assert.equal(shouldPreferActualCopyBeforeRescue({columns: 4}, {...safe, fontScale: 0.6}, 0.71), false);
+  assert.equal(shouldPreferActualCopyBeforeRescue({columns: 4}, {...safe, columns: 4}, 0.71), false);
+  assert.equal(shouldPreferActualCopyBeforeRescue({columns: 3}, safe, 0.71), false);
+  assert.equal(shouldPreferActualCopyBeforeRescue({columns: 4}, null, 0.71), false);
+});

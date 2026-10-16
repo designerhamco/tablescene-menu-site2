@@ -45,7 +45,7 @@ import { getOnePageContentSignature } from "@/lib/one-page-content-signature";
 import { shouldRelaxOnePageCopyReference } from "@/lib/one-page-copy-reference";
 import { getOnePageItemRhythmMultiplier, getOnePageRhythmMode, usesOnePageProportionFitPolicy, usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
 import { getOnePageItemNameCeilingRem, getOnePageTypographyProfile } from "@/lib/one-page-typography-profile";
-import { isOnePageCategoryOrderCandidatePreferred, ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS, orderOnePageMenuColumnCandidates, selectOnePageFitTierState } from "@/lib/one-page-fit-policy";
+import { shouldPreferActualCopyBeforeRescue, isOnePageCategoryOrderCandidatePreferred, ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS, orderOnePageMenuColumnCandidates, selectOnePageFitTierState } from "@/lib/one-page-fit-policy";
 import { formatMenuPriceByMode, getPriceDisplayModeFromSettings } from "@/lib/menu-price-format";
 import { getMenuPublicCapabilities } from "@/lib/menu-public-capabilities";
 import { formatTimeSaleDigitalCountdownLabel } from "@/lib/menu-time-sale-display";
@@ -3644,21 +3644,24 @@ function CafeNoirA({ data }: { data: PublicMenuTemplateProps }) {
 
 function PanelFlowIntro({ data, density, mobileReading = false }: { data: PublicMenuTemplateProps; density: MenuLayoutDensity; mobileReading?: boolean }) {
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
+  const call = useOnePageCallActions();
+  const controls = <div className="cafe-a-panel-controls" data-cafe-a-panel-controls="">
+    {mobileReading && call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} iconOnly />} /> : <CafeLanguageHoverControl data={data} />}
+  </div>;
   const showCover = data.pageSettings.menu_cover_enabled !== false && isMenuCoverVisibleOnDevice(data.pageSettings, mobileReading ? "mobile" : data.previewDevice ?? "pc");
   const slides = showCover ? getFeaturedHeroSlides(data, capabilities) : [];
   const identity = <div className="cafe-a-panel-identity">
-    {!mobileReading && <CafeLanguageHoverControl data={data} />}
     <StoreIdentity data={data} capabilities={capabilities} titleClassName="cafe-a-store-title cafe-a-panel-brand" logoClassName="cafe-a-store-logo" mobileAutoFit={mobileReading} />
     {(data.menuSite.brand_description || data.menuSite.description) && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p>}
-    <div className="cafe-a-panel-notices"><MobileNoticeList rows={getCafeAFooterInfo(data, capabilities)} density={density} /></div>
+    {mobileReading && <div className="cafe-a-panel-notices"><MobileNoticeList rows={getCafeAFooterInfo(data, capabilities)} density={density} /></div>}
   </div>;
   const typography = mergeTypographySettings(data.menuSite.template_key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
   const plainInk = resolvePanelTextInk(typography.typography_roles.brand.color, typography.typography_roles.category.color);
-  if (!showCover || !slides.length) return <div className="cafe-a-panel-plain-intro" style={{ "--menu-role-brand-color": plainInk } as CSSProperties}>{identity}</div>;
+  if (!showCover || !slides.length) return <div className="cafe-a-panel-plain-intro" style={{ "--menu-role-brand-color": plainInk } as CSSProperties}>{controls}{identity}</div>;
   return <div className="cafe-a-panel-intro" style={{ "--panel-featured-ratio": PANEL_FEATURED_IMAGE.cssRatio } as CSSProperties}>
     <CoverHero data={data} featuredSlides={slides} capabilities={capabilities} density={density}
       customBadgeStyles={getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings)}
-      priceDisplayMode={getPriceDisplayModeFromSettings(data.menuSite.settings, data.menuSite.template_key)} identity={identity} />
+      priceDisplayMode={getPriceDisplayModeFromSettings(data.menuSite.settings, data.menuSite.template_key)} identity={<>{controls}{identity}</>} />
   </div>;
 }
 
@@ -4656,7 +4659,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       } as CSSProperties)
     : {};
   const shouldRenderToplineFeaturedHero = isSundayLine && shouldRenderMenuCoverSection && featuredHeroSlides.length > 0;
-  const footerInfo = <CafeAFooterInfo data={data} capabilities={capabilities} density={density} callOnly={isSundayLine || isRoundFocus || isPanelFlow} />;
+  const footerInfo = <CafeAFooterInfo data={data} capabilities={capabilities} density={density} callOnly={isSundayLine || isRoundFocus} />;
   const initialNowMs = normalizeInitialNowMs(data.initialNowMs);
   const timeSaleBoundaryNowMs = useTimeSaleBoundaryNowMs(data.timeSales, data.menuSite.template_key, initialNowMs);
   useNextTimeSaleStartRefresh(data.nextTimeSaleStartAt, isCafeDesignATimeSaleTemplate(data.menuSite.template_key));
@@ -6252,6 +6255,23 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
         if (layoutMode === "orderedFit" && !(isAdaptiveFit && isRoundFocus)) {
           selectedState = getOrderedFitState(columnCandidates);
+          // Before a rescue column, try real copy in the preferred widths.
+          // Removing reference-only support may avoid an otherwise empty
+          // fourth panel while preserving the shared readable type floors.
+          if (isAdaptiveFit && restoreReference && selectedState && selectedState.columns > ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS) {
+            const referenceState = selectedState;
+            restoreReference();
+            restoreReference = undefined;
+            fitBoardElement.dataset.fitCopyBasis = "actual";
+            const actualState = getOrderedFitState(columnCandidates.filter((columns) => columns <= ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS));
+            if (actualState && shouldPreferActualCopyBeforeRescue(referenceState, actualState, ORDERED_FIT_MIN_STANDARD_FONT_SCALE)) {
+              selectedState = actualState;
+              setCopyFitBasis("actual");
+            } else {
+              fitBoardElement.dataset.fitCopyBasis = "three-field";
+              restoreReference = beginCafeAThreePartReference(fitBoardElement);
+            }
+          }
         } else if (layoutMode === "orderedBalancedFit" || (isAdaptiveFit && isRoundFocus)) {
           // Center-rail rendering always consists of category columns, even
           // when the saved mode is orderedFit. Measure that actual structure.
@@ -7545,11 +7565,6 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
           {isPanelFlow ? (
             <section className="cafe-a-panel-mobile-intro lg:hidden">
-              <div className="cafe-a-panel-mobile-language">
-                <div className="cafe-a-mobile-language-row" data-cafe-a-mobile-language-row="">
-                  {onePageCall.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} iconOnly />} /> : <CafeLanguageHoverControl data={data} />}
-                </div>
-              </div>
               <PanelFlowIntro data={data} density={density} mobileReading />
             </section>
           ) : isRoundFocus ? (

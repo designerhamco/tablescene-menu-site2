@@ -46,8 +46,17 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       const header = container.closest("[data-cafe-a-topline-info-header]");
       const sideHeight = Math.max(0, ...[...header?.querySelectorAll<HTMLElement>(".cafe-a-topline-description, .cafe-a-topline-notice-text") ?? []].map((element) => element.getBoundingClientRect().height));
       const panelFrame = layoutShell === "brand_panel_flow" ? root.closest<HTMLElement>(".cafe-a-panel-intro") : null;
-      const panelBudget = panelFrame ? panelFrame.clientHeight * 0.22 : Infinity;
-      return { width, height: panelFrame ? panelBudget : boundedHeader ? availableHeight * CANVAS_HEADER_MAX_RATIO : getCanvasBrandHeight(width, frameHeight, layout), layout, boundedHeader, availableHeight, frameHeight, baseGap, sideHeight };
+      // Panel brands use the common column target/height budget, bounded only
+      // by the actual controls, supporting copy and featured item around them.
+      const panelStyle = panelFrame ? getComputedStyle(panelFrame.querySelector<HTMLElement>(".cafe-a-cover-frame")!) : null;
+      const panelIdentity = root.closest<HTMLElement>(".cafe-a-panel-identity");
+      const panelDescriptionHeight = panelIdentity?.querySelector<HTMLElement>(".cafe-a-store-description")?.getBoundingClientRect().height ?? 0;
+      const panelControlsHeight = panelFrame?.querySelector<HTMLElement>(".cafe-a-panel-controls")?.getBoundingClientRect().height ?? 0;
+      const panelFeaturedHeight = panelFrame?.querySelector<HTMLElement>(".cafe-a-featured-copy")?.getBoundingClientRect().height ?? 0;
+      const panelBudget = panelFrame ? Math.max(0, panelFrame.clientHeight - panelControlsHeight - panelFeaturedHeight - panelDescriptionHeight
+        - (parseFloat(panelStyle?.paddingTop ?? "0") || 0) - (parseFloat(panelStyle?.paddingBottom ?? "0") || 0)
+        - 2 * (parseFloat(panelStyle?.getPropertyValue("--panel-equal-gap") ?? "0") || 0) * (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) - (panelDescriptionHeight ? parseFloat(getComputedStyle(panelIdentity!).rowGap) || 0 : 0)) : Infinity;
+      return { width, height: boundedHeader ? availableHeight * CANVAS_HEADER_MAX_RATIO : Math.min(panelBudget, getCanvasBrandHeight(width, frameHeight, layout)), layout, boundedHeader, availableHeight, frameHeight, baseGap, sideHeight };
     };
     const measure = () => {
       frame = 0;
@@ -94,6 +103,8 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
     observer.observe(container);
     const board = root.closest<HTMLElement>(".cafe-a-desktop-fit-board");
     if (board) observer.observe(board);
+    const panelFrame = layoutShell === "brand_panel_flow" ? root.closest(".cafe-a-panel-intro") : null;
+    for (const element of panelFrame?.querySelectorAll(".cafe-a-panel-controls, .cafe-a-featured-copy, .cafe-a-store-description") ?? []) observer.observe(element);
     for (const element of board?.querySelectorAll(".cafe-a-topline-description, .cafe-a-topline-notice-text") ?? []) observer.observe(element);
     window.addEventListener("resize", schedule);
     schedule();

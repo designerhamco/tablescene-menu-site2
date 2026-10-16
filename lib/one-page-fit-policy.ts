@@ -65,3 +65,10 @@ export function isOnePageCategoryOrderCandidatePreferred({
 export function getOnePageTotalColumnCount(shell: OnePageLayoutShell, menuColumns: number) {
   return shell === "brand_top_band" || shell === "brand_panel_flow" ? menuColumns : menuColumns + 1;
 }
+
+/** A real-copy preferred-width fit can rescue an unnecessary fourth column. */
+export function shouldPreferActualCopyBeforeRescue(reference: { columns: number }, actual: { columns: number; fontScale: number; overflow: boolean } | null, minimumReadableScale: number) {
+  return reference.columns > ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS && Boolean(actual && !actual.overflow &&
+    actual.columns <= ONE_PAGE_PREFERRED_MAX_MENU_COLUMNS && actual.fontScale >= minimumReadableScale &&
+    reference.columns / actual.columns >= 1.08);
+}
