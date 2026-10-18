@@ -1,10 +1,11 @@
 "use client";
 
-import { ArrowUpRight, Check, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUpRight, Check } from "lucide-react";
 import Link from "next/link";
 import { useId, useMemo, useRef, useState } from "react";
 
-import { TemplateThumbnail } from "@/components/templates/TemplateCard";
+import TemplateCatalogMedia from "@/components/templates/TemplateCatalogMedia";
+import TemplatePagination from "./TemplatePagination";
 import { getDiningTemplateTier, getDiningTierLabel, type DiningTemplateTier } from "@/lib/dining-product-tiers";
 import { getTemplatePreviewRouteKey, type TemplateCatalogItem, type TemplateCategoryKey } from "@/lib/templates";
 
@@ -26,7 +27,7 @@ const INDUSTRY_GROUPS: readonly IndustryGroup[] = [
   { key: "quick_meal", label: "패스트푸드·분식", categoryKeys: ["fast_food"] },
 ];
 
-const TEMPLATES_PER_PAGE = 8;
+const TEMPLATES_PER_PAGE = 6;
 
 const PRODUCT_TABS: readonly { key: ProductKey; label: string }[] = [
   { key: "dining_single", label: "다이닝 원페이지" },
@@ -117,13 +118,13 @@ export default function TemplateGallery({
   function selectPage(nextPage: number) {
     setPage(nextPage);
     window.requestAnimationFrame(() => {
-      galleryStartRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      galleryStartRef.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
     });
   }
 
   return (
     <>
-      <div className="border-b border-zinc-200 pb-5">
+      <div className="site-catalog-services">
         <div className="site-tabs" role="tablist" aria-label="서비스 및 페이지 유형 선택"
           onKeyDown={(event) => {
             const current = PRODUCT_TABS.findIndex((tab) => tab.key === product);
@@ -154,129 +155,83 @@ export default function TemplateGallery({
       </div>
 
       <div role="tabpanel" id={`${tabsId}-panel`} aria-labelledby={`${tabsId}-${product}`} tabIndex={0}>
-      <section className="mt-7 border-y border-zinc-200 bg-white py-6" aria-label="템플릿 이용 안내">
-        <div className="flex flex-col justify-between gap-5 md:flex-row md:items-center">
+        <section className="site-catalog-plan" aria-label="템플릿 이용 안내">
           <div>
-            <p className="site-body-title text-zinc-950">{productTitle}</p>
+            <p className="site-body-title">{productTitle}</p>
             <p className="site-body-support mt-1 text-zinc-500">{productDescription}</p>
           </div>
-          <div className="md:text-right">
-            <p className="text-xl font-bold text-zinc-950">{productPrice}</p>
-            <p className="site-brand-note mt-2 inline-flex items-center gap-1.5 text-sm font-medium">
+          <div>
+            <p className="text-lg font-bold">{productPrice}</p>
+            <p className="site-brand-note mt-2 inline-flex items-center gap-1.5 text-xs font-medium">
               <Check className="h-4 w-4" aria-hidden="true" /> 템플릿 1개별 월 구독 · 메뉴 데이터 가져오기 지원
             </p>
           </div>
-        </div>
-      </section>
-
-      <div ref={galleryStartRef} className="scroll-mt-24">
-        <div className="site-tabs site-tabs-brand mt-8" role="group" aria-label="업종 선택">
-          {INDUSTRY_GROUPS.map((group) => (
-            <button
-              key={group.key}
-              type="button"
-              onClick={() => selectIndustry(group.key)}
-              aria-pressed={industry === group.key}
-              className="site-tab"
-            >
-              {group.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {paginatedTemplates.length > 0 ? (
-        <div className="site-template-grid mt-8">
-          {paginatedTemplates.map((template) => {
-            const templateTier = service === "dining" ? getDiningTemplateTier(template.key) : tier;
-            const startDisabled = service === "display" && !displayCheckoutEnabled;
-            const industryLabel = getIndustryGroup(template)?.label ?? template.categoryLabel;
-            const recommended = service === "display" ? template.featuredDisplay : template.featuredBasic;
-            const lightArtwork = template.thumbnailTone === "light" && !(template.previewImage ?? template.thumbnailUrl);
-
-            return (
-              <article key={template.key} className="site-template-card site-template-selection-card group">
-                <Link href={`/templates/${getTemplatePreviewRouteKey(template.key)}/preview`} target="_blank" rel="noopener noreferrer" className="block" aria-label={`${template.name} 새 창에서 미리보기`}>
-                  <div className={`site-template-media${lightArtwork ? " site-template-media-light" : ""}`}>
-                    <TemplateThumbnail template={template} />
-                  </div>
-                </Link>
-                <div className="site-template-details">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="site-template-meta">
-                        <p className="site-template-category">{industryLabel}</p>
-                        {recommended ? <span className="site-badge-accent">추천</span> : null}
-                      </div>
-                      <h2 className="type-content-title site-template-title mt-1 text-zinc-950">{template.name}</h2>
-                    </div>
-                    <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-bold text-zinc-600">
-                      {service === "display" ? "디스플레이" : getDiningTierLabel(templateTier)}
-                    </span>
-                  </div>
-                  <p className="site-template-description mt-2 line-clamp-2 whitespace-pre-line">
-                    {template.description}
-                  </p>
-                  <div className="site-template-actions">
-                    <Link href={`/templates/${getTemplatePreviewRouteKey(template.key)}/preview`} target="_blank" rel="noopener noreferrer" className="site-template-preview-link">
-                      미리보기 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                    </Link>
-                    {startDisabled ? (
-                      <span className="text-sm font-bold text-zinc-400">신청 준비 중</span>
-                    ) : (
-                      <Link href={getStartHref(product, templateTier, template.key)} className="site-button site-button-accent site-button-compact">
-                        이 디자인으로 시작 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-                      </Link>
-                    )}
-                  </div>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      ) : (
-        <section className="site-card site-card-empty mt-8 flex min-h-72 flex-col items-center justify-center bg-zinc-50 px-6">
-          <h2 className="type-content-title text-zinc-950">{selectedIndustryLabel} 템플릿 준비 중</h2>
-          <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500 md:text-base">
-            매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다.
-          </p>
         </section>
-      )}
 
-      {totalPages > 1 ? (
-        <nav className="mt-14 flex items-center justify-center gap-1" aria-label="템플릿 페이지">
-          <button
-            type="button"
-            onClick={() => selectPage(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="site-button site-button-ghost site-button-sm site-button-icon text-zinc-600 disabled:opacity-30"
-            aria-label="이전 템플릿 페이지"
-          >
-            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          </button>
-          {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
-            <button
-              key={pageNumber}
-              type="button"
-              onClick={() => selectPage(pageNumber)}
-              className={`site-button site-button-sm min-w-10 px-3 ${currentPage === pageNumber ? "site-button-primary" : "site-button-ghost"}`}
-              aria-current={currentPage === pageNumber ? "page" : undefined}
-              aria-label={`${pageNumber}페이지`}
-            >
-              {pageNumber}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => selectPage(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="site-button site-button-ghost site-button-sm site-button-icon text-zinc-600 disabled:opacity-30"
-            aria-label="다음 템플릿 페이지"
-          >
-            <ChevronRight className="h-4 w-4" aria-hidden="true" />
-          </button>
-        </nav>
-      ) : null}
+        <div ref={galleryStartRef} className="site-catalog-layout scroll-mt-24">
+          <aside className="site-catalog-filters" aria-label="템플릿 카테고리">
+            <div className="site-category-desktop">
+              <h2 className="type-item-title mb-4">카테고리</h2>
+              <div className="site-category-list" role="group" aria-label="업종 선택">
+                {INDUSTRY_GROUPS.map(group => (
+                  <button key={group.key} type="button" aria-pressed={industry === group.key} onClick={() => selectIndustry(group.key)}>
+                    {group.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <label className="site-category-mobile">
+              <span className="type-label">카테고리</span>
+              <select className="site-category-select" value={industry} onChange={event => selectIndustry(event.target.value as IndustryKey)} aria-label="업종 선택">
+                {INDUSTRY_GROUPS.map(group => <option key={group.key} value={group.key}>{group.label}</option>)}
+              </select>
+            </label>
+          </aside>
+
+          <div className="site-catalog-results">
+            <p className="site-catalog-count">{industry === "all" ? "전체 디자인" : selectedIndustryLabel} <span>{visibleTemplates.length}</span></p>
+            {paginatedTemplates.length > 0 ? (
+              <div className="site-template-grid">
+                {paginatedTemplates.map(template => {
+                  const templateTier = service === "dining" ? getDiningTemplateTier(template.key) : tier;
+                  const startDisabled = service === "display" && !displayCheckoutEnabled;
+                  const industryLabel = getIndustryGroup(template)?.label ?? template.categoryLabel;
+                  const recommended = service === "display" ? template.featuredDisplay : template.featuredBasic;
+                  const previewHref = `/templates/${getTemplatePreviewRouteKey(template.key)}/preview`;
+
+                  return (
+                    <article key={template.key} className="site-template-card site-template-selection-card">
+                      <Link href={previewHref} target="_blank" rel="noopener noreferrer" className="site-catalog-media-link" aria-label={`${template.name} 새 창에서 미리보기`}>
+                        <div className="site-template-media"><TemplateCatalogMedia template={template} /></div>
+                        <span className="site-catalog-open" aria-hidden="true"><ArrowUpRight /></span>
+                      </Link>
+                      <div className="site-template-details">
+                        <div className="site-catalog-title-row">
+                          <h2 className="type-content-title site-template-title"><Link href={previewHref} target="_blank" rel="noopener noreferrer">{template.name}</Link></h2>
+                          {recommended ? <span className="site-template-recommended">추천</span> : null}
+                        </div>
+                        <p className="site-template-category mt-1">{industryLabel} · {service === "display" ? "디스플레이" : getDiningTierLabel(templateTier)}</p>
+                        <p className="site-template-description mt-2 line-clamp-2 whitespace-pre-line">{template.description}</p>
+                        <div className="site-template-actions">
+                          <Link href={previewHref} target="_blank" rel="noopener noreferrer" className="site-template-preview-link">미리보기 <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
+                          {startDisabled ? <span className="site-template-unavailable">신청 준비 중</span> : (
+                            <Link href={getStartHref(product, templateTier, template.key)} className="site-template-start-link">이 디자인으로 시작 <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
+                          )}
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : (
+              <section className="site-card site-card-empty flex min-h-72 flex-col items-center justify-center px-6">
+                <h2 className="type-content-title">{selectedIndustryLabel} 템플릿 준비 중</h2>
+                <p className="mt-3 break-keep text-sm text-zinc-500">매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다.</p>
+              </section>
+            )}
+            <TemplatePagination currentPage={currentPage} totalPages={totalPages} onSelect={selectPage} />
+          </div>
+        </div>
       </div>
     </>
   );

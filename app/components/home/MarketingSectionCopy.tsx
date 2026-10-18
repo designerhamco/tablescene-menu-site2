@@ -26,7 +26,7 @@ export function MarketingSectionCopy({
   title,
   body,
   inverted = false,
-  centered = false,
+  centered = true,
   className = "",
 }: MarketingSectionCopyProps) {
   const alignmentClass = centered ? "mx-auto text-center" : "text-left";

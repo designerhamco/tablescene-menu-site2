@@ -103,10 +103,6 @@
   color: var(--ui-text);
 }
 
-.site-button-accent { background: var(--site-accent); color: var(--ui-text); }
-.site-button-accent:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--site-accent-hover); }
-.site-button-accent:active:not(:disabled):not([aria-disabled="true"]) { background: var(--site-accent-pressed); }
-
 .site-button-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--ui-surface-hover);
 }

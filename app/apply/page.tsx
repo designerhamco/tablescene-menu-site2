@@ -22,7 +22,7 @@ export default function ApplyPage() {
       <OfficialSiteNavbar />
       <main className="site-page-spacing min-h-screen bg-white text-zinc-950">
         <div className="site-container">
-          <header className="max-w-3xl pb-12 md:pb-16">
+          <header className="site-page-heading max-w-3xl pb-12 md:pb-16">
             <h1 className="type-page-title">
               매장에 맞는 디자인 선택
             </h1>
@@ -37,14 +37,14 @@ export default function ApplyPage() {
             displayCheckoutEnabled={displayCheckoutEnabled}
           />
 
-          <section className="site-dark-cta mt-20 md:mt-28 md:flex md:items-end md:justify-between md:gap-12">
-            <div className="max-w-2xl">
+          <section className="site-dark-cta site-catalog-consultation mt-20 md:mt-28">
+            <div className="mx-auto max-w-2xl">
               <h2 className="type-section-title">브랜드 맞춤 제작</h2>
               <p className="site-body mt-5 text-zinc-400">
                 템플릿 범위를 넘어선 별도 브랜딩과 기능이 필요하다면 커스텀 제작을 상담해 주세요.
               </p>
             </div>
-            <Link href="/apply/custom" className="site-button site-button-accent site-consultation-button mt-8 shrink-0 md:mt-0">
+            <Link href="/apply/custom" className="site-button site-button-secondary site-consultation-button mt-8">
               커스텀 상담
             </Link>
           </section>

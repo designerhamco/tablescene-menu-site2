@@ -106,9 +106,9 @@ for (const width of [375, 768, 992, 1280, 1440, 2560]) {
         return { background: s.backgroundColor, color: s.color, radius: s.borderRadius };
     });
     assert.deepEqual(selectedStyle, { background: 'rgb(21, 24, 30)', color: 'rgb(255, 255, 255)', radius: '9999px' });
-    await expect(page.locator('.site-template-media').first()).toHaveCSS('border-top-left-radius', '20px');
+    await expect(page.locator('.site-template-media').first()).toHaveCSS('border-top-left-radius', '16px');
     const columns = await page.locator('.site-template-grid').evaluate(el => getComputedStyle(el).gridTemplateColumns.split(' ').length);
-    assert.equal(columns, width < 640 ? 1 : width < 992 ? 2 : 3);
+    assert.equal(columns, width < 640 ? 1 : width < 1280 ? 2 : 3);
     await page.screenshot({ path: `${output}/apply-${width}.png` });
     for (const path of ['/apply', '/sign-in', '/terms', '/pricing', '/faq']) {
         await page.goto(base + path, { waitUntil: 'domcontentloaded' });

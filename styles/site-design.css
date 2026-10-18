@@ -1,10 +1,7 @@
 /* Official ArtiMenu UI only. Menu fonts, canvas geometry and theme tokens are
    owned by the renderers and are deliberately absent from this stylesheet. */
 :root {
-  --site-accent: #f5c542;
-  --site-accent-hover: #eab52b;
-  --site-accent-pressed: #dda61d;
-  --site-accent-soft: #fff4c7;
+  --site-accent: #f8e731;
   --site-text-secondary: #4b515b;
   --site-text-muted: #717680;
   --site-divider: #e2e5e9;
@@ -122,38 +119,83 @@
   cursor: pointer;
   transition: background-color var(--ui-transition), color var(--ui-transition), opacity var(--ui-transition);
 }
-.site-tab:hover:not(:disabled) { background: var(--site-tab-hover, var(--ui-surface-hover)); color: var(--ui-text); }
+.site-tab:hover:not(:disabled) { background: var(--ui-surface-hover); color: var(--ui-text); }
 .site-tab:active { background: var(--ui-action-soft-pressed); }
-.site-tab:is([aria-selected="true"], [aria-pressed="true"], [data-state="active"]) { background: var(--site-tab-selected, var(--ui-text)); color: var(--site-tab-selected-ink, #fff); font-weight: 600; }
+.site-tab:is([aria-selected="true"], [aria-pressed="true"], [data-state="active"]) { background: var(--ui-text); color: #fff; font-weight: 600; }
 .site-tab:disabled { cursor: not-allowed; opacity: .48; }
 .site-tabs-demo { background: var(--ui-surface); }
-.site-tabs-brand {
-  --site-tab-hover: var(--site-accent-soft);
-  --site-tab-selected: var(--site-accent);
-  --site-tab-selected-ink: var(--ui-text);
-  --site-tab-selected-hover: var(--site-accent-hover);
-  --site-tab-selected-pressed: var(--site-accent-pressed);
-}
 .site-template-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
 .site-template-card { min-width: 0; }
 .site-media-frame { overflow: hidden; border-radius: var(--ui-radius-box); }
 .site-template-media { overflow: hidden; border: 0; border-radius: var(--ui-radius-preview); background: var(--ui-surface-muted); }
 .site-template-media [data-template-artwork] > * { border-radius: 0; }
-.site-template-media-light { outline: 1px solid rgb(64 64 64 / 8%); outline-offset: -1px; }
 .site-template-card > :last-child { padding-top: .75rem; }
 .site-template-selection-card { display: flex; flex-direction: column; }
 .site-template-details { display: flex; flex: 1; flex-direction: column; }
-.site-template-meta { display: flex; min-height: 1.25rem; flex-wrap: wrap; align-items: center; gap: .5rem; }
 .site-template-category { color: var(--site-text-muted); font-size: var(--font-size-100); font-weight: 500; line-height: 1.5; }
 .site-template-title { font-size: var(--font-size-300); font-weight: 600; }
 .site-template-description { font-size: .8125rem; line-height: 1.6; color: var(--site-text-secondary); }
-.site-template-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin-top: auto; padding-top: 1rem; }
+.site-template-actions { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-top: auto; padding-top: .75rem; }
 .site-template-preview-link { display: inline-flex; min-height: var(--ui-control-height-compact); align-items: center; gap: .375rem; color: var(--ui-text-muted); font-size: .8125rem; font-weight: 500; white-space: nowrap; transition: color var(--ui-transition); }
 .site-template-preview-link:hover { color: var(--ui-text); }
-.site-badge-accent { display: inline-flex; min-height: 1.25rem; align-items: center; border-radius: var(--ui-radius-control); background: var(--site-accent-soft); padding: .125rem .5rem; color: var(--ui-text); font-size: var(--font-size-100); font-weight: 600; line-height: 1.25; white-space: nowrap; }
 .site-consultation-button { min-height: var(--ui-control-height-lg); padding: .75rem 1.5rem; }
 .site-template-artwork { overflow: hidden; border-radius: var(--ui-radius-preview); }
 .site-template-artwork > * { border-radius: inherit; }
+
+/* Public headings are centered; cards, forms and workspaces keep their reading alignment. */
+.site-page-heading, .site-section-heading { margin-inline: auto; text-align: center; }
+.site-page-heading p { margin-inline: auto; }
+.site-catalog-services { display: flex; justify-content: center; padding-bottom: 2rem; border-bottom: 1px solid var(--site-divider); }
+.site-catalog-services .site-tabs { flex-wrap: wrap; justify-content: center; overflow: visible; }
+.site-catalog-plan { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem; padding-block: 1.75rem; border-bottom: 1px solid var(--site-divider); text-align: center; }
+.site-catalog-layout { display: grid; gap: 1.75rem; margin-top: 2.5rem; }
+.site-catalog-results { min-width: 0; }
+.site-category-desktop { display: none; }
+.site-category-mobile { display: grid; gap: .625rem; }
+.site-category-mobile .site-category-select { width: 100%; min-width: 0; min-height: 2.75rem; border-radius: .75rem; background-color: #fff; color: var(--ui-text); font-size: .875rem; }
+.site-category-list { display: grid; gap: .25rem; }
+.site-category-list > button { min-height: 2.75rem; border: 0; border-radius: .5rem; background: transparent; padding: .75rem; color: var(--site-text-secondary); font-size: .875rem; line-height: 1.5; text-align: left; overflow-wrap: anywhere; cursor: pointer; }
+.site-category-list > button:hover { background: var(--ui-surface-muted); color: var(--ui-text); }
+.site-category-list > button[aria-pressed="true"] { background: var(--ui-surface-soft); color: var(--ui-text); font-weight: 600; }
+.site-catalog-count { margin-bottom: 1.25rem; font-size: .875rem; font-weight: 600; }
+.site-catalog-count > span { margin-left: .375rem; color: var(--site-text-muted); font-weight: 500; }
+.site-catalog-results .site-template-grid { grid-template-columns: minmax(0, 1fr); column-gap: 1.5rem; row-gap: 2.5rem; }
+.site-catalog-media-link { position: relative; display: block; border-radius: 1rem; }
+.site-catalog-media-link .site-template-media { border-radius: inherit; outline: 1px solid rgb(21 24 30 / 6%); outline-offset: -1px; }
+.site-catalog-image { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
+.site-catalog-open { position: absolute; right: .75rem; bottom: .75rem; display: grid; width: 2.25rem; height: 2.25rem; place-items: center; border: 1px solid var(--site-divider); border-radius: 50%; background: #fff; color: var(--ui-text); transition: background-color var(--ui-transition), color var(--ui-transition); }
+.site-catalog-open > svg { width: 1.125rem; height: 1.125rem; }
+.site-catalog-media-link:hover .site-catalog-open { background: var(--ui-text); color: #fff; border-color: var(--ui-text); }
+.site-catalog-title-row { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; }
+.site-template-title a:hover { text-decoration: underline; text-underline-offset: .2em; }
+.site-template-recommended { display: inline-flex; flex: none; align-items: center; gap: .25rem; color: var(--site-text-secondary); font-size: .75rem; line-height: 1.5; }
+.site-template-recommended::before { content: ""; width: .25rem; height: .25rem; border-radius: 50%; background: var(--site-accent); }
+.site-template-start-link { display: inline-flex; min-height: 2rem; align-items: center; gap: .25rem; color: var(--ui-text); font-size: .8125rem; font-weight: 600; white-space: nowrap; }
+.site-template-start-link:hover { text-decoration: underline; text-underline-offset: .2em; }
+.site-template-unavailable { color: var(--site-text-muted); font-size: .8125rem; }
+.site-catalog-consultation { text-align: center; }
+.site-pagination { display: flex; align-items: center; justify-content: center; gap: .25rem; margin-top: 3.5rem; }
+.site-pagination > button { display: inline-flex; width: 2.25rem; height: 2.25rem; flex: none; align-items: center; justify-content: center; border: 0; border-radius: .5rem; background: transparent; padding: 0; color: var(--site-text-secondary); font-size: .875rem; font-weight: 600; cursor: pointer; }
+.site-pagination > button:hover:not(:disabled) { background: var(--ui-surface-soft); }
+.site-pagination > button[aria-current="page"] { background: var(--ui-text); color: #fff; }
+.site-pagination > button:disabled { opacity: .35; cursor: default; }
+.site-pagination > button > svg { width: 1.125rem; height: 1.125rem; }
+.site-pagination .site-pagination-number[data-mobile-visible="false"] { display: none; }
+@media (min-width: 640px) {
+  .site-catalog-plan { flex-direction: row; gap: 3rem; }
+  .site-catalog-results .site-template-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .site-pagination .site-pagination-number[data-desktop-visible="true"] { display: inline-flex; }
+  .site-pagination .site-pagination-number[data-desktop-visible="false"] { display: none; }
+}
+@media (min-width: 1024px) {
+  .site-catalog-layout { grid-template-columns: 11rem minmax(0, 1fr); gap: 2rem; }
+  .site-catalog-filters { position: sticky; top: calc(var(--site-header-height) + 1.5rem); align-self: start; }
+  .site-category-desktop { display: block; }
+  .site-category-mobile { display: none; }
+}
+@media (min-width: 1280px) {
+  .site-catalog-results .site-template-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 
 /* Compatibility rules for existing site pages, including account and editor
    chrome. Never style the root or descendants of any menu engine/artwork. */
@@ -183,5 +225,5 @@
 .bg-white:not(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) { --site-muted-ink: #717680; --ui-focus: #0b63ce; }
 
 /* Pill corners belong to actions and tabs, not every selectable row or layer. */
-.site-tab:is([aria-selected="true"], [aria-pressed="true"], [data-state="active"]):hover:not(:disabled) { background: var(--site-tab-selected-hover, var(--ui-action-hover)); color: var(--site-tab-selected-ink, #fff); }
-.site-tab:is([aria-selected="true"], [aria-pressed="true"], [data-state="active"]):active:not(:disabled) { background: var(--site-tab-selected-pressed, var(--ui-action-pressed)); }
+.site-tab:is([aria-selected="true"], [aria-pressed="true"], [data-state="active"]):hover:not(:disabled) { background: var(--ui-action-hover); color: #fff; }
+.site-tab:is([aria-selected="true"], [aria-pressed="true"], [data-state="active"]):active:not(:disabled) { background: var(--ui-action-pressed); }

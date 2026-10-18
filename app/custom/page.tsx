@@ -14,7 +14,7 @@ export default function CustomPage() {
       <OfficialSiteNavbar />
       <main className="min-h-screen bg-white text-zinc-950">
         <section className="site-gutter border-b border-zinc-200 py-20 md:py-28">
-          <div className="mx-auto max-w-[var(--site-content-width)]">
+          <div className="site-page-heading max-w-[var(--site-content-width)]">
             <span className="type-caption inline-flex rounded-full site-brand-note px-3 py-1">
               PREMIUM CUSTOM
             </span>

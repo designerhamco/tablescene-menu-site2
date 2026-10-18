@@ -10,7 +10,6 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "site-button-primary",
-        accent: "site-button-accent",
         destructive:
           "site-button-danger",
         outline: "site-button-outline",

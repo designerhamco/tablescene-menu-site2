@@ -493,7 +493,7 @@ export function AiFeaturesSection({ service = "dining", inverted = false }: { se
   return (
     <section className={`site-gutter py-16 md:py-24 ${inverted ? "bg-zinc-950 text-white" : "bg-white text-zinc-950"}`}>
       <div className="mx-auto max-w-[var(--site-content-width)]">
-        <motion.div {...fadeUp} className="mb-14 max-w-3xl">
+        <motion.div {...fadeUp} className="site-section-heading mb-14 max-w-3xl">
           <MarketingSectionCopy
             inverted={inverted}
             eyebrow={isDisplay ? "AI 디스플레이 관리" : "AI 메뉴 관리"}
@@ -545,7 +545,7 @@ export function StoreScenesSection({ service = "dining", inverted = false }: { s
   return (
     <section className={`site-gutter pb-20 pt-12 md:pb-24 md:pt-12 ${inverted ? "bg-zinc-950 text-white" : "bg-white text-zinc-950"}`}>
       <div className="mx-auto max-w-[var(--site-content-width)]">
-        <motion.div {...fadeUp} className="mb-14 max-w-4xl md:mb-20">
+        <motion.div {...fadeUp} className="site-section-heading mb-14 max-w-4xl md:mb-20">
           <MarketingSectionCopy
             inverted={inverted}
             eyebrow="매장 활용"
@@ -651,7 +651,7 @@ export function ResourceCtaSection({ service = "dining" }: { service?: Marketing
     <section className="bg-white pb-12 pt-0 md:pb-16 md:pt-0">
       <div className="site-container">
         <motion.div {...fadeUp} className="site-dark-cta relative overflow-hidden md:min-h-[500px] lg:grid lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
-          <div className="relative z-10 max-w-2xl">
+          <div className="relative z-10 mx-auto max-w-2xl">
             <MarketingSectionCopy
               inverted
               eyebrow={isDisplay ? "디스플레이 가이드" : "아티메뉴 가이드"}
@@ -659,7 +659,7 @@ export function ResourceCtaSection({ service = "dining" }: { service?: Marketing
               body={isDisplay ? "디스플레이 특징과 매장 화면 연결 방법을 한곳에서 확인할 수 있습니다." : "서비스 특징과 메뉴판 제작 방법을 한곳에서 확인할 수 있습니다."}
               className="max-w-xl"
             />
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row">
               <a href="#" onClick={(event) => event.preventDefault()} className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3.5 text-sm font-bold text-zinc-950 transition-colors hover:bg-zinc-100">서비스 소개서</a>
               <a href="#" onClick={(event) => event.preventDefault()} className="inline-flex items-center justify-center rounded-full bg-zinc-800 px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-zinc-700">이용 가이드</a>
             </div>

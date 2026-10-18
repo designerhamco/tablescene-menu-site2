@@ -22,14 +22,15 @@ export default function FAQPage() {
       <main className="min-h-screen bg-white text-zinc-950">
         <section className="site-page-spacing border-b border-zinc-200">
           <div className="site-container">
-            <h1 className="type-page-title max-w-3xl">
-              필요한 도움을<br className="hidden md:block" /> 빠르게 확인
-            </h1>
-            <p className="site-body mt-6 max-w-2xl text-zinc-500">
-              자주 묻는 질문을 먼저 확인하고, 더 자세한 도움이 필요하면 AI 상담이나 1:1 문의를 이용해 주세요.
-            </p>
-
-            <div className="site-support-actions mt-10">
+            <header className="site-page-heading max-w-3xl">
+              <h1 className="type-page-title">
+                필요한 도움을<br className="hidden md:block" /> 빠르게 확인
+              </h1>
+              <p className="site-body mt-6 max-w-2xl text-zinc-500">
+                자주 묻는 질문을 먼저 확인하고, 더 자세한 도움이 필요하면 AI 상담이나 1:1 문의를 이용해 주세요.
+              </p>
+            </header>
+            <div className="site-support-actions mx-auto mt-10">
               <AiSupportChatOpenButton className="site-support-action">
                 <Bot className="site-support-action-icon" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
@@ -54,7 +55,7 @@ export default function FAQPage() {
         </section>
         <FAQ
           id="frequently-asked"
-          align="left"
+          align="center"
           className="pt-20 md:pt-28"
           data={DETAILED_FAQ_DATA}
           title="자주 묻는 질문"

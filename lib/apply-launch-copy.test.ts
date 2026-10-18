@@ -29,7 +29,7 @@ test("만들기 화면은 판매 가능한 템플릿을 서비스와 페이지 �
   assert.match(templateGallerySource, /디스플레이/);
   assert.match(templateGallerySource, /getDiningTierLabel/);
   assert.match(templateGallerySource, /템플릿 1개별 월 구독 · 메뉴 데이터 가져오기 지원/);
-  assert.match(templateGallerySource, /const TEMPLATES_PER_PAGE = 8/);
+  assert.match(templateGallerySource, /const TEMPLATES_PER_PAGE = 6/);
   assert.match(templateGallerySource, /target="_blank"/);
   assert.match(templateGallerySource, /INDUSTRY_GROUPS\.map/);
   assert.match(templateGallerySource, /템플릿 준비 중/);

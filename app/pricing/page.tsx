@@ -32,7 +32,7 @@ export default function PricingPage() {
       <OfficialSiteNavbar />
       <main className="site-gutter min-h-screen bg-white py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
-          <header className="mb-10 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
+          <header className="site-page-heading mb-10 flex flex-col items-center gap-6 border-b border-zinc-200 pb-8">
             <div>
               <Link href="/mypage" className="mb-6 inline-block text-sm font-bold text-zinc-600 hover:text-zinc-950">
                 ← 마이페이지
@@ -57,7 +57,7 @@ export default function PricingPage() {
           </header>
 
           <section aria-labelledby="basic-products-heading">
-            <div className="mb-5 flex flex-col justify-between gap-2 md:flex-row md:items-end">
+            <div className="site-section-heading mb-5 flex flex-col items-center gap-2">
               <div>
                 <p className="text-sm font-bold text-zinc-600">현재 신청 가능</p>
                 <h2 id="basic-products-heading" className="type-subsection-title mt-1">아티메뉴 다이닝 상품</h2>
@@ -84,7 +84,7 @@ export default function PricingPage() {
           </section>
 
           <section className="mt-12 border-t border-zinc-200 pt-10" aria-labelledby="upcoming-services-heading">
-            <h2 id="upcoming-services-heading" className="type-subsection-title">다른 서비스</h2>
+            <h2 id="upcoming-services-heading" className="type-subsection-title text-center">다른 서비스</h2>
             <div className="mt-5 grid gap-5 md:grid-cols-2">
               {upcomingServices.map((plan) => (
                 <article key={plan.name} className="site-section flex min-h-[250px] flex-col p-7">
