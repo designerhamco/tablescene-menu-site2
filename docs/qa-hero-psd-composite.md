@@ -1,5 +1,21 @@
 # PSD 합성 히어로 검수
 
+## 사용자 수정본 v2 (2026-10-18)
+
+- 사용자가 Photoshop에서 열어 수정·저장한 /private/tmp/artimenu-psd-hero/artimenu-hero-layered.psd (15:39:25, SHA-256 8479cf8131ad917bb8cc9d5fab09ca103d9a6dc4b67036cf547ef1276b73b350)를 사용했다. Downloads의 이전 PSD와 구분했다.
+- 화면이 이미 차콜인 수정본을 Photoshop에서 추가 편집 없이 PNG로 빠른 내보내기했다. 크기는 3344×1882, sRGB RGBA다. 사용자가 수정한 기기 레이어와 모서리, 투명도를 그대로 출력한다.
+- 로컬 보관본: design/hero/artimenu-hero-layered-v2.psd 및 .png. 배포 정본: public/assets/artimenu-home-hero-psd-v2.png. 640/960/1536/2304/3344px 무손실 WebP를 같은 파일에서 생성한다. 이전 파일은 새 버전으로 교체해 캐시를 구분한다.
+- 이전 정본과 비교하면 43,612픽셀이 달라졌다. 브라우저 도형이나 CSS 보정은 추가하지 않았다. Hero 형태·카피·4초 순환은 그대로 유지한다.
+
+v2 검수 결과:
+
+- 실제 viewport 320/390/768/992/1440/2560px 6/6 통과. 새 WebP 로드, 어두운 화면, SVG 덮개 없음, 네 장 선택, 가로 넘침/브라우저 예외 없음.
+- 원본 3344×1882 전체 6,293,408픽셀 비교 통과. PSD 출력과 브라우저 표시의 최대 채널 차이는 1(알파 합성 반올림 범위)이다.
+- 4초 순환, 진행 표시, 정지/재생, 키보드, 화면 밖/문서 비활성, 터치, 모션 감소 검수 통과. 홈/다이닝/디스플레이 내비게이션·별칭 6/6 통과.
+- TypeScript, 변경 파일 ESLint, Production build, diff 검사 통과. 캡처와 로그: /private/tmp/artimenu-hero-psd-v2/qa/.
+
+아래는 최초 PSD 적용 시의 제작·검수 기록이다. 현재 파일은 위 v2 자산을 사용한다.
+
 2026-10-18. 사용자 제공 `모니터·태블릿·스마트폰 쇼케이스 Firefly Upscaler 2x 비율.psd`를 Photoshop 2026에서 직접 열고 복제했다. 원본 다운로드 파일은 변경하지 않았다.
 
 ## 제작과 보존

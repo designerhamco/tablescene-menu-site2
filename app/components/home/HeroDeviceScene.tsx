@@ -10,8 +10,8 @@ export default function HeroDeviceScene({ onLoad }: { onLoad: () => void }) {
       {/* Native responsive exports preserve the Photoshop composite and alpha. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/assets/artimenu-home-hero-psd-3344.webp"
-        srcSet="/assets/artimenu-home-hero-psd-640.webp 640w, /assets/artimenu-home-hero-psd-960.webp 960w, /assets/artimenu-home-hero-psd-1536.webp 1536w, /assets/artimenu-home-hero-psd-2304.webp 2304w, /assets/artimenu-home-hero-psd-3344.webp 3344w"
+        src="/assets/artimenu-home-hero-psd-v2-3344.webp"
+        srcSet="/assets/artimenu-home-hero-psd-v2-640.webp 640w, /assets/artimenu-home-hero-psd-v2-960.webp 960w, /assets/artimenu-home-hero-psd-v2-1536.webp 1536w, /assets/artimenu-home-hero-psd-v2-2304.webp 2304w, /assets/artimenu-home-hero-psd-v2-3344.webp 3344w"
         alt="카운터 위 모니터, 태블릿과 스마트폰의 어두운 화면"
         width={3344}
         height={1882}
