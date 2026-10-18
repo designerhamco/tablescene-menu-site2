@@ -17,6 +17,7 @@ import {
 
 import { MarketingSectionCopy } from "./MarketingSectionCopy";
 import heroStyles from "./HomeHero.module.css";
+import HomeHeroCarousel from "./HomeHeroCarousel";
 
 const menuItems = [
   { name: "Black sesame latte", price: "6.5", image: "/menu-templates/cafe_design_a/black-sesame-featured.jpg" },
@@ -121,24 +122,14 @@ export function BrandHero() {
   return (
     <section className={heroStyles.hero}>
       <div className={heroStyles.layout}>
-        <h1 className={`type-display ${heroStyles.title}`}>
-          <span className={heroStyles.titleLine}>디지털 메뉴판의</span>{" "}
-          <span className={heroStyles.titleLine}>새로운 경험</span>
-        </h1>
-        <div data-home-hero-frame className={heroStyles.frame}>
-          <img
-            src="/assets/artimenu-home-hero-hq-3344.webp"
-            srcSet="/assets/artimenu-home-hero-hq-640.webp 640w, /assets/artimenu-home-hero-hq-960.webp 960w, /assets/artimenu-home-hero-hq-1536.webp 1536w, /assets/artimenu-home-hero-hq-2304.webp 2304w, /assets/artimenu-home-hero-hq-3344.webp 3344w"
-            alt="밝은 카운터 위 PC 모니터, 태블릿과 스마트폰에 표시된 메뉴 화면"
-            width={3344}
-            height={1882}
-            loading="eager"
-            fetchPriority="high"
-            decoding="async"
-            sizes="(max-width: 639px) calc(150vw - 60px), (min-width: 1600px) 1520px, (min-width: 1334px) calc(100vw - 80px), (min-width: 667px) 94vw, calc(100vw - 40px)"
-            className={heroStyles.image}
-          />
+        <div className={heroStyles.heading}>
+          <h1 className={`type-display ${heroStyles.title}`}>
+            <span className={heroStyles.titleLine}>디지털 메뉴판의</span>{" "}
+            <span className={heroStyles.titleLine}>새로운 경험</span>
+          </h1>
+          <p className={heroStyles.subtitle}>디자인 커스터마이징∙<wbr />할인∙<wbr />위젯∙<wbr />호출기능 까지 한 번에</p>
         </div>
+        <HomeHeroCarousel />
       </div>
     </section>
   );
