@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { Bell, ShoppingCart } from "lucide-react";
+import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import type { SupportedLocale } from "@/lib/locales";
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
@@ -47,21 +48,24 @@ type Actions = {
   openCart: () => void;
   locale: SupportedLocale;
   locales: SupportedLocale[];
+  presentation: "cafe" | "aube";
 };
 const Context = createContext<Actions | null>(null);
-export function TableMenuActionButtons() {
+export function TableMenuActionButtons({ appearance = "circle" }: { appearance?: "circle" | "inline" }) {
   const a = useContext(Context);
-  if (!a) return null;
+  if (!a || (!a.call && !a.order)) return null;
+  const inline = appearance === "inline";
   return (
-    <div className={styles.actions} data-table-menu-actions>
+    <div className={styles.actions} data-table-menu-actions data-appearance={appearance}>
       {a.order ? (
         <button
           type="button"
-          className={styles.circle}
+          className={inline ? styles.inlineAction : styles.circle}
           aria-label={`장바구니 ${a.count}개`}
           onClick={a.openCart}
         >
           <ShoppingCart aria-hidden="true" />
+          {inline ? <ScriptAwareText text="장바구니" /> : null}
           {a.count > 0 ? (
             <span className={styles.badge}>
               {a.count > 99 ? "99+" : a.count}
@@ -72,11 +76,12 @@ export function TableMenuActionButtons() {
       {a.call ? (
         <button
           type="button"
-          className={styles.circle}
+          className={inline ? styles.inlineAction : styles.circle}
           aria-label="직원 호출"
           onClick={a.openCall}
         >
           <Bell aria-hidden="true" />
+          {inline ? <ScriptAwareText text="호출" /> : null}
         </button>
       ) : null}
     </div>
@@ -91,8 +96,8 @@ export function TableMenuHeader({ actions = true }: { actions?: boolean }) {
         currentLocale={a.locale}
         enabledLocales={a.locales}
         compact
-        iconOnly
-        triggerVariant="cafe"
+        iconOnly={a.presentation !== "aube"}
+        triggerVariant={a.presentation}
         menuAlign="left"
       />
       <span className={styles.table}>{a.table}</span>
@@ -106,6 +111,7 @@ export default function TableMenuInteractions({
   locales,
   device,
   embedded = false,
+  presentation = "cafe",
   typographyStyle,
   children,
 }: {
@@ -114,10 +120,11 @@ export default function TableMenuInteractions({
   locales: SupportedLocale[];
   device?: MenuPreviewDevice;
   embedded?: boolean;
+  presentation?: "cafe" | "aube";
   typographyStyle?: CSSProperties;
   children: ReactNode;
 }) {
-  const presentation = useMenuPresentationDevice(device);
+  const devicePresentation = useMenuPresentationDevice(device);
   const [cartOpen, setCartOpen] = useState(false);
   const [callOpen, setCallOpen] = useState(false);
   const [selected, setSelected] = useState<string | null>(null);
@@ -149,6 +156,7 @@ export default function TableMenuInteractions({
     },
     locale,
     locales,
+    presentation,
   };
   return (
     <Context.Provider value={actions}>
@@ -174,14 +182,15 @@ export default function TableMenuInteractions({
             className={`menu-typography ${styles.shell}`}
             style={typographyStyle}
             data-menu-interaction-shell
-            data-device={presentation}
+            data-device={devicePresentation}
+            data-presentation={presentation}
             data-embedded={embedded ? "true" : "false"}
           >
-            {!embedded && presentation === "mobile" ? (
+            {!embedded && devicePresentation === "mobile" ? (
               <TableMenuHeader />
             ) : null}
             <div className={styles.content}>{children}</div>
-            {!embedded && presentation !== "mobile" ? (
+            {!embedded && devicePresentation !== "mobile" ? (
               <div className={styles.dock}>
                 <TableMenuActionButtons />
               </div>
@@ -204,7 +213,7 @@ export default function TableMenuInteractions({
                 previewOnly={config.previewOnly}
                 typographyStyle={typographyStyle}
                 checkoutModes={
-                  presentation === "mobile" &&
+                  devicePresentation === "mobile" &&
                   config.checkoutModes?.includes("prepay")
                     ? ["postpay", "prepay"]
                     : ["postpay"]
@@ -226,6 +235,7 @@ export default function TableMenuInteractions({
                 tableLabel={config.tableLabel}
                 previewOnly={config.previewOnly}
                 callItems={config.callItems}
+                presentation={presentation === "aube" ? "aube" : "default"}
               />
             ) : null}
           </div>

@@ -83,6 +83,17 @@ async function paged(device, width, height, scenario, layout) {
     );
     const geometry = await p.locator("[data-paged-brand]").boundingBox(),
       actions = await p.locator("[data-table-menu-actions]").boundingBox();
+    assert.ok(actions && geometry && actions.x >= geometry.x - 1 && actions.x + actions.width <= geometry.x + geometry.width + 1, "actions stay inside the fixed brand column");
+    assert.ok(actions.y < geometry.y + geometry.height / 2, "actions stay at the top of the brand column");
+    const controls = await p.locator("[data-paged-brand] button, [data-paged-item] [data-menu-order-add]").evaluateAll((buttons) => buttons.map((button) => {
+      const style = getComputedStyle(button);
+      return { label: button.getAttribute("aria-label"), background: style.backgroundColor, shadow: style.boxShadow, border: style.borderTopWidth };
+    }));
+    assert.ok(controls.length >= 3);
+    for (const control of controls) {
+      assert.ok(["rgba(0, 0, 0, 0)", "transparent"].includes(control.background), JSON.stringify(control));
+      assert.ok(control.shadow === "none" || /^(?:rgba\(0, 0, 0, 0\) 0px 0px 0px 0px(?:, )?)+$/.test(control.shadow), JSON.stringify(control));
+    }
     const seen = [];
     for (let page = 1; page <= total; page++) {
       if (page > 1)

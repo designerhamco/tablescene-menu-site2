@@ -6,6 +6,7 @@ import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
 import { formatKoreanDateTime } from "@/lib/korean-date-time";
 import { isStoreOperationsAvailable } from "@/lib/product-focus-policy";
 import { listCallDashboard } from "@/lib/server/call-management-service";
+import { listOrderDashboard } from "@/lib/server/order-management-service";
 import { listMenuTables } from "@/lib/server/menu-table-management-service";
 import { listPickupQueueDashboard } from "@/lib/server/pickup-queue-service";
 import { getStoreOperationsContext } from "@/lib/server/store-operations-context";
@@ -100,7 +101,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
           <article className="site-card p-8 text-center md:p-12">
             <h2 className="type-subsection-title">운영 가능한 메뉴판이 없습니다</h2>
             <p className="mx-auto mt-3 max-w-xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
-              현재 공개 중이고 이용 기간이 유효한 멀티페이지 또는 Display 메뉴판만 표시됩니다.
+              현재 공개 중이고 이용 기간이 유효하며 운영 기능이 활성화된 메뉴판만 표시됩니다.
             </p>
             <Link
               href="/mypage?tab=menus"
@@ -115,12 +116,14 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
   }
 
   const access = selectedSite.operationAccess;
-  const [callData, tableData, pickupData] = await Promise.all([
+  const [orderData, callData, tableData, pickupData] = await Promise.all([
+    loadOptionalDashboard(access.orders, "orders", () => listOrderDashboard(selectedSite.menuSiteId)),
     loadOptionalDashboard(access.calls, "calls", () => listCallDashboard(selectedSite.menuSiteId)),
     loadOptionalDashboard(access.tables, "tables", () => listMenuTables(selectedSite.menuSiteId)),
     loadOptionalDashboard(access.pickup, "pickup", () => listPickupQueueDashboard(selectedSite.menuSiteId)),
   ]);
 
+  const openOrders = orderData?.orders.filter((order) => !["served", "cancelled"].includes(order.status)) ?? [];
   const pendingCalls = callData?.calls.filter((call) => call.status === "pending") ?? [];
   const activeTables = tableData?.tables.filter((table) => table.status === "active") ?? [];
   const recentCalls = callData?.calls.slice(0, 5) ?? [];
@@ -133,11 +136,17 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
         <header>
           <h2 className="type-subsection-title">{selectedSite.name} 운영 현황</h2>
           <p className="type-body-sm mt-3 break-keep text-zinc-500">
-            현재 호출과 테이블, 대기번호 현황을 빠르게 확인합니다.
+            현재 주문과 호출, 테이블 현황을 빠르게 확인합니다.
           </p>
         </header>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" aria-label="매장 운영 요약">
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="매장 운영 요약">
+          <SummaryCard
+            label="진행 중 주문"
+            value={orderData ? `${openOrders.length.toLocaleString("ko-KR")}건` : access.orders ? "확인 불가" : "이용 불가"}
+            detail={orderData ? `최근 주문 ${orderData.orders.length.toLocaleString("ko-KR")}건` : "주문 기능 활성화 시 표시됩니다."}
+            href={access.orders ? `/mypage/menus/${selectedSite.menuSiteId}/orders` : null}
+          />
           <SummaryCard
             label="대기 중 호출"
             value={callData ? `${pendingCalls.length.toLocaleString("ko-KR")}건` : access.calls ? "확인 불가" : "이용 불가"}
