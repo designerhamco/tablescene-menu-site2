@@ -170,7 +170,7 @@ export default function TemplateGallery({
       </section>
 
       <div ref={galleryStartRef} className="scroll-mt-24">
-        <div className="site-tabs mt-8" role="group" aria-label="업종 선택">
+        <div className="site-tabs site-tabs-brand mt-8" role="group" aria-label="업종 선택">
           {INDUSTRY_GROUPS.map((group) => (
             <button
               key={group.key}
@@ -191,35 +191,40 @@ export default function TemplateGallery({
             const templateTier = service === "dining" ? getDiningTemplateTier(template.key) : tier;
             const startDisabled = service === "display" && !displayCheckoutEnabled;
             const industryLabel = getIndustryGroup(template)?.label ?? template.categoryLabel;
+            const recommended = service === "display" ? template.featuredDisplay : template.featuredBasic;
+            const lightArtwork = template.thumbnailTone === "light" && !(template.previewImage ?? template.thumbnailUrl);
 
             return (
-              <article key={template.key} className="site-template-card group">
+              <article key={template.key} className="site-template-card site-template-selection-card group">
                 <Link href={`/templates/${getTemplatePreviewRouteKey(template.key)}/preview`} target="_blank" rel="noopener noreferrer" className="block" aria-label={`${template.name} 새 창에서 미리보기`}>
-                  <div className="site-template-media">
+                  <div className={`site-template-media${lightArtwork ? " site-template-media-light" : ""}`}>
                     <TemplateThumbnail template={template} />
                   </div>
                 </Link>
-                <div className="pt-4">
+                <div className="site-template-details">
                   <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-bold text-zinc-600">{industryLabel}</p>
-                      <h2 className="type-content-title mt-1 text-zinc-950">{template.name}</h2>
+                    <div className="min-w-0">
+                      <div className="site-template-meta">
+                        <p className="site-template-category">{industryLabel}</p>
+                        {recommended ? <span className="site-badge-accent">추천</span> : null}
+                      </div>
+                      <h2 className="type-content-title site-template-title mt-1 text-zinc-950">{template.name}</h2>
                     </div>
                     <span className="shrink-0 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-bold text-zinc-600">
                       {service === "display" ? "디스플레이" : getDiningTierLabel(templateTier)}
                     </span>
                   </div>
-                  <p className="site-body-support mt-2 line-clamp-2 whitespace-pre-line text-zinc-500">
+                  <p className="site-template-description mt-2 line-clamp-2 whitespace-pre-line">
                     {template.description}
                   </p>
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    <Link href={`/templates/${getTemplatePreviewRouteKey(template.key)}/preview`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 border-b border-zinc-400 pb-1 text-sm font-bold text-zinc-700 hover:border-zinc-950 hover:text-zinc-950">
+                  <div className="site-template-actions">
+                    <Link href={`/templates/${getTemplatePreviewRouteKey(template.key)}/preview`} target="_blank" rel="noopener noreferrer" className="site-template-preview-link">
                       미리보기 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
                     {startDisabled ? (
                       <span className="text-sm font-bold text-zinc-400">신청 준비 중</span>
                     ) : (
-                      <Link href={getStartHref(product, templateTier, template.key)} className="inline-flex items-center gap-1.5 border-b border-zinc-950 pb-1 text-sm font-bold text-zinc-950">
+                      <Link href={getStartHref(product, templateTier, template.key)} className="site-button site-button-accent site-button-compact">
                         이 디자인으로 시작 <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                       </Link>
                     )}

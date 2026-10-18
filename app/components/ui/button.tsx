@@ -10,6 +10,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "site-button-primary",
+        accent: "site-button-accent",
         destructive:
           "site-button-danger",
         outline: "site-button-outline",
@@ -20,6 +21,7 @@ const buttonVariants = cva(
       size: {
         default: "has-[>svg]:px-4",
         sm: "site-button-sm gap-1.5 has-[>svg]:px-3",
+        compact: "site-button-compact",
         lg: "site-button-lg has-[>svg]:px-5",
         icon: "site-button-icon",
       },

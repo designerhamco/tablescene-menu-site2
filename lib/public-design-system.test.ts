@@ -105,7 +105,7 @@ test("공개 페이지의 검정 CTA는 홈과 같은 표면 규칙을 공유한
 });
 
 test("만들기 템플릿 썸네일은 공통 갤러리 외곽선만 사용한다", () => {
-  assert.match(templateGallerySource, /className="site-template-media"/);
+  assert.match(templateGallerySource, /className=\{`site-template-media/);
   assert.doesNotMatch(templateGallerySource, /rounded-2xl border border-zinc-200 bg-zinc-100/);
 });
 

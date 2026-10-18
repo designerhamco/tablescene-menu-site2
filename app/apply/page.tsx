@@ -44,7 +44,7 @@ export default function ApplyPage() {
                 템플릿 범위를 넘어선 별도 브랜딩과 기능이 필요하다면 커스텀 제작을 상담해 주세요.
               </p>
             </div>
-            <Link href="/apply/custom" className="mt-8 inline-flex shrink-0 items-center justify-center rounded-full bg-white px-6 py-3.5 text-sm font-bold text-zinc-950 transition-colors hover:bg-zinc-200 md:mt-0">
+            <Link href="/apply/custom" className="site-button site-button-accent site-consultation-button mt-8 shrink-0 md:mt-0">
               커스텀 상담
             </Link>
           </section>

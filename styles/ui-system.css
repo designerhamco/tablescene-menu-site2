@@ -1,5 +1,6 @@
 :root {
   --ui-control-height-sm: 2.5rem;
+  --ui-control-height-compact: 2rem;
   --ui-control-height-md: 2.5rem;
   --ui-control-height-header: 2.75rem;
   --ui-control-height-lg: 3rem;
@@ -102,6 +103,10 @@
   color: var(--ui-text);
 }
 
+.site-button-accent { background: var(--site-accent); color: var(--ui-text); }
+.site-button-accent:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--site-accent-hover); }
+.site-button-accent:active:not(:disabled):not([aria-disabled="true"]) { background: var(--site-accent-pressed); }
+
 .site-button-secondary:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--ui-surface-hover);
 }
@@ -170,6 +175,13 @@
   min-height: var(--ui-control-height-lg);
   padding: 0.875rem 1.5rem;
   font-size: var(--font-size-300);
+}
+
+.site-button-compact {
+  min-height: var(--ui-control-height-compact);
+  padding: .25rem .625rem;
+  font-size: .8125rem;
+  white-space: nowrap;
 }
 
 .site-button-icon {
