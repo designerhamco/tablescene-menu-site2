@@ -4,7 +4,10 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type * as PortOneSdk from "@portone/browser-sdk/v2";
 
+import { Check } from "lucide-react";
+import TemplateCatalogMedia from "@/components/templates/TemplateCatalogMedia";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import "./apply-checkout.css";
 import { isBusinessFreeTrialProduct } from "@/lib/business-free-trial";
 import {
   getDiningProductTier,
@@ -436,28 +439,6 @@ const orderPosUsageOptions = ["사용 중", "사용하지 않음", "잘 모름"]
 const orderPaymentPreferenceOptions = ["선불", "후불", "둘 다 필요", "아직 미정"] as const;
 const orderNeedOptions = ["필요", "불필요", "아직 미정"] as const;
 const orderLaunchTimelineOptions = ["즉시", "1개월 이내", "3개월 이내", "아직 미정"] as const;
-const templateTagMap = {
-  cafe: ["카페/베이커리", "이미지형", "모바일/QR"],
-  display: ["디스플레이", "메뉴보드", "16:9"],
-  bakery: ["카페/베이커리", "디저트", "모바일/QR"],
-  dessert: ["카페/베이커리", "디저트", "모바일/QR"],
-  restaurant: ["음식점/다이닝", "메뉴판", "모바일/QR"],
-  japanese: ["일식", "메뉴판", "모바일/QR"],
-  brunch: ["음식점/다이닝", "브런치", "모바일/QR"],
-  casual_dining: ["음식점/다이닝", "모바일/QR"],
-  fine_dining: ["음식점/다이닝", "코스", "프리미엄"],
-  fast_food: ["음식점/다이닝", "테이크아웃", "빠른 주문"],
-  pub_bar: ["음식점/다이닝", "바", "모바일/QR"],
-  hair_salon: ["뷰티/웰니스", "가격표", "모바일/QR"],
-  nail_shop: ["뷰티/웰니스", "가격표", "모바일/QR"],
-  beauty_esthetic: ["뷰티/웰니스", "가격표", "모바일/QR"],
-  workshop_class: ["클래스/공방", "안내"],
-  fitness_pt: ["뷰티/웰니스", "가격표"],
-  pet_shop: ["뷰티/웰니스", "가격표"],
-  clinic: ["병원/클리닉", "안내"],
-  popup_event: ["클래스/공방", "안내"],
-  etc: ["클래스/공방", "메뉴판", "가격표"],
-} as const satisfies Record<TemplateCategoryKey, readonly string[]>;
 const screenPurposeOptions = [
   "카페/베이커리",
   "음식점/다이닝",
@@ -666,10 +647,6 @@ function getFallbackTemplateCategoriesWithTemplates(templates: readonly Template
   );
 }
 
-function getMenuTemplateTags(template: TemplateCatalogItem) {
-  return templateTagMap[template.template_category] ?? [template.categoryLabel, "모바일/QR"];
-}
-
 function validatePersonName(label: string, value: string) {
   const trimmed = value.trim();
 
@@ -693,18 +670,6 @@ function getMenuAddressError(value: string) {
   if (value.length > 40) return "주소는 최대 40자까지 입력할 수 있습니다.";
   if (value.startsWith("-") || value.endsWith("-")) return "주소는 하이픈으로 시작하거나 끝날 수 없습니다.";
   return null;
-}
-
-function getThumbnailClassName(tone: TemplateCatalogItem["thumbnailTone"]) {
-  if (tone === "dark") {
-    return "bg-zinc-950 text-white";
-  }
-
-  if (tone === "warm") {
-    return "bg-[#f6eee3] text-zinc-950";
-  }
-
-  return "bg-white text-zinc-950";
 }
 
 function getUiStateClassName(type: UiState["type"]) {
@@ -823,67 +788,6 @@ function getAgreementModalTitle(key: AgreementKey) {
   if (key === "terms") return "서비스 이용약관 및 플랜별 이용 조건";
   if (key === "privacy") return "개인정보 수집 및 이용 동의";
   return "부적절한 사용 및 콘텐츠 정책";
-}
-
-function TemplatePreview({ template }: { template: TemplateCatalogItem }) {
-  if (template.key === "cafe_noir_a") {
-    return (
-      <div className="mb-4 h-44 rounded-lg border border-zinc-200 bg-[#f8f8f5] p-4 text-zinc-950">
-        <div className="grid h-full grid-cols-[0.75fr_1fr_1fr] gap-3">
-          <div className="flex flex-col justify-between border-r border-zinc-900 pr-2">
-            <div className="flex">
-              <span className="grid h-7 w-7 place-items-center rounded-full border border-zinc-900 text-xs font-semibold">N</span>
-              <span className="-ml-2 grid h-7 w-7 place-items-center rounded-full border border-zinc-900 bg-[#f8f8f5] text-xs font-semibold">R</span>
-            </div>
-            <p className="text-4xl font-light uppercase leading-none tracking-[-0.12em] [writing-mode:vertical-rl]">MENU</p>
-            <div className="space-y-1 text-[6px] uppercase tracking-[0.12em] text-zinc-500">
-              <p>Cold desserts</p>
-              <p>Quiet coffee</p>
-            </div>
-          </div>
-          {[0, 1].map((column) => (
-            <div key={column} className="flex flex-col gap-3">
-              <div className="h-2.5 w-16 bg-zinc-950" />
-              {[0, 1].map((group) => (
-                <div key={group} className="space-y-1.5 border-t border-zinc-900 pt-2">
-                  <div className="h-1.5 w-12 bg-zinc-900" />
-                  {[0, 1, 2].map((row) => (
-                    <div key={row} className="flex items-center justify-between gap-2">
-                      <span className="h-1.5 w-12 bg-zinc-500/70" />
-                      <span className="h-1.5 w-4 bg-zinc-800" />
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={`mb-4 h-44 rounded-lg border border-zinc-100 p-4 ${getThumbnailClassName(template.thumbnailTone)}`}>
-      <div className="flex h-full flex-col">
-        <div className="flex items-center justify-between">
-          <div className="h-7 w-7 rounded-full bg-current opacity-90" />
-          <div className="h-2 w-14 rounded-full bg-current opacity-20" />
-        </div>
-        <div className="mt-8 space-y-2">
-          <div className="h-3 w-24 rounded-full bg-current opacity-90" />
-          <div className="h-2 w-32 rounded-full bg-current opacity-20" />
-        </div>
-        <div className="mt-auto grid grid-cols-2 gap-2">
-          {[1, 2].map((item) => (
-            <div key={item} className="rounded-lg border border-current/10 bg-white/70 p-2">
-              <div className="h-2 w-14 rounded-full bg-zinc-800/70" />
-              <div className="mt-2 h-1.5 w-20 rounded-full bg-zinc-400/40" />
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export default function ApplyOrderForm({
@@ -1372,6 +1276,11 @@ export default function ApplyOrderForm({
       isDiningProductCompatibleWithTemplate(product.product_key, template.key),
     );
     const fallbackTemplate = compatibleTemplates[0];
+    const nextTemplate = compatibleTemplates.find((template) => template.key === form.template_key) ?? fallbackTemplate;
+    if (nextTemplate) {
+      setSelectedMenuTemplateGroup(getMenuTemplateGroupByTemplateCategory(nextTemplate.template_category).key);
+      setSelectedCategory(nextTemplate.template_category);
+    }
     setSelectedBasicProductKey(product.product_key);
     setUiState({ type: "idle", message: null });
     setPromotionCodeInput("OPEN");
@@ -2163,10 +2072,74 @@ export default function ApplyOrderForm({
   const isOpenPromotionApplied = Boolean(activePromotion && normalizePromotionCode(promotionCodeInput) === activePromotion.promotionCode);
 
   return (
-    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-      <div className="flex flex-col gap-6">
+    <div className="site-checkout">
+      <div className="site-checkout-main">
+        <section className="order-1 site-checkout-section">
+          <h2 className="type-subsection-title mb-6">{isScreenService || isMenuService ? "기본 신청 정보" : "메뉴판 기본 정보"}</h2>
+          <div className="grid gap-5 md:grid-cols-2">
+            <Field
+              label={isScreenService ? "디스플레이 이름 또는 메뉴보드 이름" : "메뉴판 관리용 이름"}
+              value={form.menuName}
+              onChange={(value) => updateField("menuName", value)}
+              required
+              helperText={isScreenService ? "마이페이지에서 구분할 수 있는 디스플레이/메뉴보드 이름을 입력해주세요." : "관리자가 구분할 수 있는 이름을 입력해주세요."}
+              errorText={form.menuName.trim() ? menuNameError : null}
+              successText="입력 완료"
+            />
+            <div>
+              <Field
+                label={isScreenService ? "희망 공개 주소" : "희망 메뉴판 주소"}
+                value={form.desiredSlug}
+                onChange={(value) => updateField("desiredSlug", value)}
+                required
+                maxLength={40}
+                placeholder="예: gangnam-cafe"
+                helperText={visibleSlugState.type === "checking" ? visibleSlugState.message : MENU_ADDRESS_HELPER_TEXT}
+                helperIcon={visibleSlugState.type === "checking" ? <LoadingSpinner className="h-3.5 w-3.5" /> : undefined}
+                errorText={visibleSlugState.type === "unavailable" || visibleSlugState.type === "error" ? visibleSlugState.message : null}
+                successText={visibleSlugState.type === "available" ? visibleSlugState.message : undefined}
+              />
+              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                생성될 주소: {isSlugValid ? getPublicMenuUrl(payload.desiredSlug) : getPublicMenuUrl("your-menu")}
+              </p>
+              <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-amber-700">
+                주소 확인 후 결제를 완료하면 이 공개 주소는 고객 화면에서 변경할 수 없습니다.
+              </p>
+            </div>
+            <Field label="매장명" value={form.restaurantName} onChange={(value) => updateField("restaurantName", value)} required helperText={isScreenService ? "디스플레이 메뉴보드에 표시될 매장명을 입력해주세요." : "공개 메뉴판에 표시될 매장명을 입력해주세요."} errorText={form.restaurantName.trim() ? restaurantNameError : null} successText="입력 완료" />
+            {isOrderService && (
+              <SelectField
+                label="업종"
+                value={form.restaurantType}
+                onChange={(value) => updateRestaurantType(value as FormState["restaurantType"])}
+                options={businessTypeOptions}
+                required
+                helperText="업종은 신청 정보 확인에 활용됩니다."
+                placeholder="업종을 선택해주세요"
+                errorText={visibleRestaurantTypeError}
+              />
+            )}
+            <Field
+              label="매장 주소"
+              value={form.restaurantAddress}
+              onChange={(value) => updateField("restaurantAddress", value)}
+              maxLength={MENU_FIELD_LIMITS.menuSites.restaurantAddress}
+              helperText={isScreenService ? "선택 입력입니다. 설치 매장 또는 화면 운영 매장 주소로 사용할 수 있습니다." : "선택 입력입니다. 템플릿에 따라 공개 메뉴판에 표시될 수 있습니다."}
+              errorText={restaurantAddressError}
+              successText={form.restaurantAddress.trim() ? "입력 완료" : undefined}
+              className="md:col-span-2"
+            />
+            <PhoneInput
+              label="매장 전화번호"
+              value={form.restaurantPhone}
+              onChange={(value) => updateField("restaurantPhone", value)}
+              required
+              errorText={form.restaurantPhone.trim() ? restaurantPhoneError : null}
+            />
+          </div>
+        </section>
         {isMenuService && (
-          <section className="order-3 site-section p-7">
+          <section className="order-2 site-checkout-section">
             <div className="mb-6">
               <h2 className="type-subsection-title">템플릿 유형</h2>
               <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
@@ -2195,11 +2168,12 @@ export default function ApplyOrderForm({
                     onClick={() => {
                       if (hasAvailableTemplate) selectBasicProduct(product);
                     }}
-                    className={`site-choice flex min-h-[220px] flex-col p-5 text-left transition ${
+                    aria-pressed={isSelected}
+                    className={`site-choice site-checkout-plan flex min-h-[220px] flex-col p-5 text-left transition ${
                       !hasAvailableTemplate
                         ? "cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400 opacity-70"
                         : isSelected
-                        ? "border-zinc-950 bg-zinc-950 text-white shadow-md"
+                        ? "border-zinc-950 bg-white text-zinc-950"
                         : "border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400"
                     }`}
                   >
@@ -2207,31 +2181,31 @@ export default function ApplyOrderForm({
                       <div>
                         <h3 className="type-content-title break-keep">{product.label}</h3>
                       </div>
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isSelected ? "bg-zinc-950 text-white" : "bg-zinc-100 text-zinc-500"}`}>
                         {!hasAvailableTemplate ? "템플릿 준비중" : isSelected ? "선택됨" : "월 자동결제"}
                       </span>
                     </div>
                     <div className="mt-5">
                       {promotion ? (
-                        <p className={`text-xs font-bold line-through ${isSelected ? "text-white/35" : "text-zinc-400"}`}>
+                        <p className={`text-xs font-bold line-through text-zinc-500`}>
                           정상가 월 {formatKrw(promotion.originalAmount)}
                         </p>
                       ) : null}
                       <p className="mt-1 text-2xl font-bold">
                         {`${formatKrw(displayedAmount)} / 월`}
                       </p>
-                      <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-white/55" : "text-zinc-400"}`}>
+                      <p className={`mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500`}>
                         {promotion
                           ? `오픈 얼리버드 월 ${formatKrw(displayedAmount)} · 구독 유지 시 할인 가격 유지`
                           : `정상가 월 ${formatKrw(product.regular_amount)}`}
                       </p>
                       {monthlyFreeTrialAvailable && isBusinessFreeTrialProduct(product.product_key) ? (
-                        <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-emerald-300" : "text-emerald-700"}`}>
+                        <p className={`mt-2 break-keep text-xs font-bold leading-relaxed text-emerald-700`}>
                           첫 30일 0원 · 계정당 최초 1회 · {monthlyFreeTrialFirstBillingDate} 첫 결제
                         </p>
                       ) : null}
                     </div>
-                    <ul className={`mt-5 space-y-1.5 text-sm font-bold leading-relaxed ${isSelected ? "text-white/75" : "text-zinc-500"}`}>
+                    <ul className={`mt-5 space-y-1.5 text-sm font-bold leading-relaxed text-zinc-600`}>
                       {bullets.map((bullet) => (
                         <li key={bullet}>• {bullet}</li>
                       ))}
@@ -2244,7 +2218,7 @@ export default function ApplyOrderForm({
         )}
 
         {isScreenService && (
-          <section className="order-2 site-section p-7">
+          <section className="order-2 site-checkout-section">
             <div className="mb-6">
               <h2 className="type-subsection-title">디스플레이 용도</h2>
               <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
@@ -2252,7 +2226,7 @@ export default function ApplyOrderForm({
               </p>
             </div>
             <div>
-              <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">디스플레이 용도</span>
+              <span className="site-checkout-label">디스플레이 용도</span>
               <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {screenPurposeOptions.map((option) => {
                   const isSelected = form.screenPurpose === option;
@@ -2278,7 +2252,7 @@ export default function ApplyOrderForm({
         )}
 
         {isScreenService && displayCheckoutQaEnabled && (
-          <section className="order-3 site-section p-7">
+          <section className="order-3 site-checkout-section">
             <div className="mb-6">
               <h2 className="type-subsection-title">디스플레이 구독</h2>
               <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
@@ -2296,9 +2270,10 @@ export default function ApplyOrderForm({
                     key={product.product_key}
                     type="button"
                     onClick={() => selectDisplayProduct(product)}
-                    className={`site-choice flex min-h-[210px] flex-col p-5 text-left transition ${
+                    aria-pressed={isSelected}
+                    className={`site-choice site-checkout-plan flex min-h-[210px] flex-col p-5 text-left transition ${
                       isSelected
-                        ? "border-zinc-950 bg-zinc-950 text-white shadow-md"
+                        ? "border-zinc-950 bg-white text-zinc-950"
                         : "border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400"
                     }`}
                   >
@@ -2306,31 +2281,31 @@ export default function ApplyOrderForm({
                       <div>
                         <h3 className="type-content-title break-keep">{product.label}</h3>
                       </div>
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
+                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isSelected ? "bg-zinc-950 text-white" : "bg-zinc-100 text-zinc-500"}`}>
                         {isSelected ? "선택됨" : "월 자동결제"}
                       </span>
                     </div>
                     <div className="mt-5">
                       {promotion ? (
-                        <p className={`text-xs font-bold line-through ${isSelected ? "text-white/35" : "text-zinc-400"}`}>
+                        <p className={`text-xs font-bold line-through text-zinc-500`}>
                           정상가 월 {formatKrw(promotion.originalAmount)}
                         </p>
                       ) : null}
                       <p className="mt-1 text-2xl font-bold">
                         {formatKrw(displayedAmount)} / 월
                       </p>
-                      <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-white/55" : "text-zinc-400"}`}>
+                      <p className={`mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500`}>
                         {promotion
                           ? `오픈 얼리버드 · 구독 유지 시 할인 가격 유지`
                           : "매월 자동결제 · 빌링키 필요"}
                       </p>
                       {monthlyFreeTrialAvailable && isBusinessFreeTrialProduct(product.product_key) ? (
-                        <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${isSelected ? "text-emerald-300" : "text-emerald-700"}`}>
+                        <p className={`mt-2 break-keep text-xs font-bold leading-relaxed text-emerald-700`}>
                           첫 30일 0원 · 계정당 최초 1회 · {monthlyFreeTrialFirstBillingDate} 첫 결제
                         </p>
                       ) : null}
                     </div>
-                    <ul className={`mt-5 space-y-1.5 text-sm font-bold leading-relaxed ${isSelected ? "text-white/75" : "text-zinc-500"}`}>
+                    <ul className={`mt-5 space-y-1.5 text-sm font-bold leading-relaxed text-zinc-600`}>
                       {bullets.map((bullet) => (
                         <li key={bullet}>• {bullet}</li>
                       ))}
@@ -2342,7 +2317,7 @@ export default function ApplyOrderForm({
           </section>
         )}
 
-        <section className="order-2 site-section p-7">
+        <section className="order-3 site-checkout-section">
           <div className="mb-6">
             <h2 className="type-subsection-title">
               {isScreenService ? "디스플레이 템플릿" : "템플릿"}
@@ -2359,7 +2334,7 @@ export default function ApplyOrderForm({
             )}
           </div>
 
-          <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
+          <div className="site-checkout-category-filters mb-5 flex gap-2 overflow-x-auto pb-1">
             {isScreenService
               ? DISPLAY_TEMPLATE_CATEGORY_GROUPS.map((filter) => (
                   <button
@@ -2432,10 +2407,9 @@ export default function ApplyOrderForm({
           </div>
 
           {filteredTemplates.length > 0 ? (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="site-checkout-template-grid">
               {filteredTemplates.map((template) => {
               const isSelected = form.template_key === template.key;
-              const tags = getMenuTemplateTags(template);
               const templateTypeLabel = template.templateTypeLabel ?? getTemplateTypeLabelByTemplateKey(template.key);
 
               return (
@@ -2449,45 +2423,21 @@ export default function ApplyOrderForm({
                       template_key: template.key,
                     }))
                   }
-                  className={`rounded-lg border p-3 text-left transition-colors ${
-                    isSelected ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400"
-                  }`}
+                  aria-pressed={isSelected}
+                  className="site-choice site-checkout-template"
                 >
-                  <TemplatePreview template={template} />
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
+                  <div className="site-checkout-template-media"><TemplateCatalogMedia template={template} /></div>
+                  <div className="site-checkout-template-copy">
+                    <div className="flex items-start justify-between gap-3">
                       <h3 className="type-content-title">{template.name}</h3>
-                      <p className={`mt-1 font-mono text-xs font-bold ${isSelected ? "text-white/60" : "text-zinc-400"}`}>{template.key}</p>
-                      <p className={`mt-1 text-xs font-bold ${isSelected ? "text-white/60" : "text-zinc-400"}`}>
-                        {isScreenService ? getDisplayTemplateCategoryLabel(template.template_category) : getBasicTemplateCategoryLabel(template.template_category)}
-                      </p>
+                      <span className="site-checkout-selection" aria-hidden="true">{isSelected ? <Check /> : null}</span>
                     </div>
-                    <div className="flex shrink-0 flex-col items-end gap-1.5">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isSelected ? "bg-[#F8E731] text-zinc-950" : "bg-zinc-100 text-zinc-500"}`}>
-                        {isSelected ? "선택됨" : template.badge}
-                      </span>
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isSelected ? "bg-white/10 text-white/80" : "bg-[#F8E731] text-zinc-950"}`}>
-                        {templateTypeLabel}
-                      </span>
-                    </div>
+                    <p className="site-checkout-template-meta">
+                      {isScreenService ? getDisplayTemplateCategoryLabel(template.template_category) : getBasicTemplateCategoryLabel(template.template_category)} · {templateTypeLabel}
+                    </p>
+                    <p className="site-checkout-template-description">{template.description}</p>
+                    <p className="site-checkout-template-status">{isSelected ? "선택한 디자인" : "이 디자인 선택"}</p>
                   </div>
-                  <p className={`mt-3 break-keep text-sm font-medium leading-relaxed ${isSelected ? "text-white/70" : "text-zinc-500"}`}>
-                    {template.description}
-                  </p>
-                  {isMenuService && (
-                    <div className="mt-4 flex flex-wrap gap-1.5">
-                      {tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className={`rounded-full border px-2 py-0.5 text-xs font-bold ${
-                            isSelected ? "border-white/15 bg-white/10 text-white/70" : "border-zinc-200 bg-zinc-50 text-zinc-500"
-                          }`}
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
                 </button>
               );
               })}
@@ -2506,73 +2456,10 @@ export default function ApplyOrderForm({
           )}
         </section>
 
-        <section className="order-1 site-section p-7">
-          <h2 className="type-subsection-title mb-6">{isScreenService || isMenuService ? "기본 신청 정보" : "메뉴판 기본 정보"}</h2>
-          <div className="grid gap-5 md:grid-cols-2">
-            <Field
-              label={isScreenService ? "디스플레이 이름 또는 메뉴보드 이름" : "메뉴판 관리용 이름"}
-              value={form.menuName}
-              onChange={(value) => updateField("menuName", value)}
-              required
-              helperText={isScreenService ? "마이페이지에서 구분할 수 있는 디스플레이/메뉴보드 이름을 입력해주세요." : "관리자가 구분할 수 있는 이름을 입력해주세요."}
-              errorText={form.menuName.trim() ? menuNameError : null}
-              successText="입력 완료"
-            />
-            <div>
-              <Field
-                label={isScreenService ? "희망 공개 주소" : "희망 메뉴판 주소"}
-                value={form.desiredSlug}
-                onChange={(value) => updateField("desiredSlug", value)}
-                required
-                maxLength={40}
-                placeholder="예: gangnam-cafe"
-                helperText={visibleSlugState.type === "checking" ? visibleSlugState.message : MENU_ADDRESS_HELPER_TEXT}
-                helperIcon={visibleSlugState.type === "checking" ? <LoadingSpinner className="h-3.5 w-3.5" /> : undefined}
-                errorText={visibleSlugState.type === "unavailable" || visibleSlugState.type === "error" ? visibleSlugState.message : null}
-                successText={visibleSlugState.type === "available" ? visibleSlugState.message : undefined}
-              />
-              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
-                생성될 주소: {isSlugValid ? getPublicMenuUrl(payload.desiredSlug) : getPublicMenuUrl("your-menu")}
-              </p>
-              <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-amber-700">
-                주소 확인 후 결제를 완료하면 이 공개 주소는 고객 화면에서 변경할 수 없습니다.
-              </p>
-            </div>
-            <Field label="매장명" value={form.restaurantName} onChange={(value) => updateField("restaurantName", value)} required helperText={isScreenService ? "디스플레이 메뉴보드에 표시될 매장명을 입력해주세요." : "공개 메뉴판에 표시될 매장명을 입력해주세요."} errorText={form.restaurantName.trim() ? restaurantNameError : null} successText="입력 완료" />
-            {isOrderService && (
-              <SelectField
-                label="업종"
-                value={form.restaurantType}
-                onChange={(value) => updateRestaurantType(value as FormState["restaurantType"])}
-                options={businessTypeOptions}
-                required
-                helperText="업종은 신청 정보 확인에 활용됩니다."
-                placeholder="업종을 선택해주세요"
-                errorText={visibleRestaurantTypeError}
-              />
-            )}
-            <Field
-              label="매장 주소"
-              value={form.restaurantAddress}
-              onChange={(value) => updateField("restaurantAddress", value)}
-              maxLength={MENU_FIELD_LIMITS.menuSites.restaurantAddress}
-              helperText={isScreenService ? "선택 입력입니다. 설치 매장 또는 화면 운영 매장 주소로 사용할 수 있습니다." : "선택 입력입니다. 템플릿에 따라 공개 메뉴판에 표시될 수 있습니다."}
-              errorText={restaurantAddressError}
-              successText={form.restaurantAddress.trim() ? "입력 완료" : undefined}
-              className="md:col-span-2"
-            />
-            <PhoneInput
-              label="매장 전화번호"
-              value={form.restaurantPhone}
-              onChange={(value) => updateField("restaurantPhone", value)}
-              required
-              errorText={form.restaurantPhone.trim() ? restaurantPhoneError : null}
-            />
-          </div>
-        </section>
+
 
         {isOrderService && (
-          <section className="order-3 site-section p-7">
+          <section className="order-3 site-checkout-section">
             <h2 className="type-subsection-title">오더 도입 정보</h2>
             <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
               입력해주신 정보는 아티메뉴 오더 1.0 도입 준비와 초기 세팅 안내에 활용됩니다.
@@ -2630,7 +2517,7 @@ export default function ApplyOrderForm({
           </section>
         )}
 
-        <section className="order-4 site-section p-7">
+        <section className="order-4 site-checkout-section">
           <h2 className="type-subsection-title mb-6">구매자 및 담당자</h2>
           <div className="mb-6 border-l-2 border-zinc-300 pl-4">
             <p className="break-keep text-sm font-medium leading-relaxed text-zinc-500">
@@ -2645,7 +2532,7 @@ export default function ApplyOrderForm({
           </div>
           <div className="grid gap-5 md:grid-cols-2">
             <div className="md:col-span-2">
-              <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">구매자 유형 *</span>
+              <span className="site-checkout-label">구매자 유형 *</span>
               {isDisplayBusinessOnly ? (
                 <div className="mt-2 rounded-md bg-emerald-50 px-4 py-3">
                   <p className="text-sm font-bold text-emerald-900">사업자 전용</p>
@@ -2720,11 +2607,11 @@ export default function ApplyOrderForm({
                   onChange={(value) => updateField("businessPhone", value)}
                   errorText={form.businessPhone.trim() ? businessPhoneError : null}
                 />
-                <div className="md:col-span-2 rounded-md bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
+                <div className="site-checkout-verification md:col-span-2 rounded-md bg-zinc-50 p-4 text-sm font-medium leading-relaxed text-zinc-700">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
-                      <p className="font-bold text-amber-900">사업자 정보 확인</p>
-                      <p className={`mt-1 break-keep ${businessVerificationState.type === "failed" ? "text-red-700" : businessVerificationState.type === "verified" ? "text-emerald-700" : "text-amber-800"}`}>
+                      <p className="font-semibold text-zinc-950">사업자 정보 확인</p>
+                      <p className={`mt-1 break-keep ${businessVerificationState.type === "failed" ? "text-red-700" : businessVerificationState.type === "verified" ? "text-emerald-700" : "text-zinc-600"}`}>
                         {businessVerificationState.message}
                       </p>
                     </div>
@@ -2732,7 +2619,7 @@ export default function ApplyOrderForm({
                       type="button"
                       onClick={handleBusinessVerificationCheck}
                       disabled={businessVerificationState.type === "checking"}
-                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-amber-900 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {businessVerificationState.type === "checking" ? <LoadingSpinner className="h-3.5 w-3.5" /> : null}
                       {businessVerificationState.type === "checking" ? "확인 중..." : "사업자 정보 확인"}
@@ -2764,10 +2651,16 @@ export default function ApplyOrderForm({
         </section>
       </div>
 
-      <aside className="space-y-6 xl:sticky xl:top-8 xl:self-start">
-        <section className="site-section p-7">
+      <aside className="site-checkout-sidebar">
+        <section className="site-checkout-panel">
           <h2 className="type-subsection-title">주문 요약</h2>
-          <dl className="mt-6 space-y-4 text-sm font-medium">
+          {selectedTemplate ? (
+            <div className="site-checkout-selected-design">
+              <div><TemplateCatalogMedia template={selectedTemplate} /></div>
+              <div><p className="text-xs text-zinc-500">선택한 디자인</p><p className="mt-1 text-sm font-semibold">{selectedTemplate.name}</p></div>
+            </div>
+          ) : null}
+          <dl className="site-checkout-summary mt-6 text-sm font-medium">
             <SummaryRow label="상품명" value={activeProduct.name} />
             {isMenuService && (
               <SummaryRow
@@ -2781,12 +2674,10 @@ export default function ApplyOrderForm({
                 value="디스플레이 템플릿별 월 자동결제"
               />
             )}
-            {(isMenuService || (isScreenService && displayCheckoutQaEnabled)) && <SummaryRow label="자동결제" value={activeProduct.is_subscription ? "필요" : "없음"} />}
             {isScreenService && <SummaryRow label="디스플레이 용도" value={form.screenPurpose || "-"} />}
             {isScreenService && <SummaryRow label="디스플레이 카테고리" value={selectedScreenTemplateCategory.label} />}
             {isMenuService && <SummaryRow label="템플릿 그룹" value={getMenuTemplateGroupLabel(selectedMenuTemplateGroup)} />}
             {(isMenuService || isScreenService) && <SummaryRow label="제공 메뉴판" value="1개" />}
-            <SummaryRow label="선택 템플릿" value={selectedTemplate ? `${selectedTemplate.name} (${selectedTemplate.key})` : "-"} />
             <SummaryRow label={isScreenService ? "메뉴보드 이름" : "메뉴판 이름"} value={payload.menuName || "-"} />
             <SummaryRow label="공개 메뉴판 주소" value={payload.desiredSlug ? getPublicMenuUrl(payload.desiredSlug) : "-"} />
             <SummaryRow label="구매자 유형" value={payload.buyerType === "business" ? "사업자" : "개인"} />
@@ -2812,6 +2703,7 @@ export default function ApplyOrderForm({
                         }
                       }}
                       placeholder="프로모션 코드를 입력하세요"
+                      aria-label="프로모션 코드"
                       className="min-w-0 flex-1 rounded-full border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-900 outline-none transition focus:border-zinc-900"
                     />
                     <button
@@ -2873,7 +2765,7 @@ export default function ApplyOrderForm({
           )}
         </section>
 
-        <section className="site-section p-7">
+        <section className="site-checkout-panel">
           <h2 className="type-subsection-title mb-5">약관 동의</h2>
           <div className="space-y-3">
             <label className="flex items-start gap-3 rounded-2xl border border-zinc-200 bg-white p-4 text-sm font-bold leading-relaxed text-zinc-900">
@@ -2881,9 +2773,9 @@ export default function ApplyOrderForm({
               <span>전체 동의</span>
             </label>
             {(Object.keys(agreementLabels) as AgreementKey[]).map((key) => (
-              <div key={key} className="site-section p-4">
+              <div key={key} className="site-checkout-agreement">
                 <div className="flex items-start gap-3 text-sm font-bold leading-relaxed text-zinc-600">
-                  <input type="checkbox" checked={agreements[key]} onChange={() => toggleAgreement(key)} className="mt-1 h-4 w-4 accent-zinc-950" />
+                  <input type="checkbox" aria-label={activeAgreementLabels[key]} checked={agreements[key]} onChange={() => toggleAgreement(key)} className="mt-1 h-4 w-4 accent-zinc-950" />
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <span>{activeAgreementLabels[key]}</span>
@@ -3038,7 +2930,7 @@ function Field({
 
   return (
     <label className={className}>
-      <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">
+      <span className="site-checkout-label">
         {label}
         {isRequired && <span className="text-red-500"> *</span>}
       </span>
@@ -3090,7 +2982,7 @@ function SelectField({
 
   return (
     <label className={className}>
-      <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">
+      <span className="site-checkout-label">
         {label}
         {isRequired && <span className="text-red-500"> *</span>}
       </span>
@@ -3132,7 +3024,7 @@ function TextareaField({
 }) {
   return (
     <label className={className}>
-      <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">{label}</span>
+      <span className="site-checkout-label">{label}</span>
       <textarea
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -3170,13 +3062,14 @@ function PhoneInput({
 
   return (
     <div className={className}>
-      <span className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">
+      <span className="site-checkout-label">
         {label}
         {isRequired && <span className="text-red-500"> *</span>}
       </span>
-      <div className="mt-2 grid grid-cols-[96px_1fr_1fr] gap-2">
+      <div className="site-checkout-phone mt-2 grid grid-cols-[80px_minmax(0,1fr)_minmax(0,1fr)] gap-2">
         <select
           value={prefix}
+          aria-label={`${label} 앞자리`}
           onChange={(event) => updatePhone(event.target.value, middle, last)}
           className="w-full rounded-2xl border border-zinc-200 bg-white px-3 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
         >
@@ -3188,6 +3081,7 @@ function PhoneInput({
         </select>
         <input
           value={middle}
+          aria-label={`${label} 중간 번호`}
           onChange={(event) => updatePhone(prefix, getDigits(event.target.value, 4), last)}
           inputMode="numeric"
           maxLength={4}
@@ -3199,6 +3093,7 @@ function PhoneInput({
         />
         <input
           value={last}
+          aria-label={`${label} 끝 번호`}
           onChange={(event) => updatePhone(prefix, middle, getDigits(event.target.value, 4))}
           inputMode="numeric"
           maxLength={4}
@@ -3254,7 +3149,7 @@ function TermsModal({ title, details, onClose }: { title: string; details: strin
 
 function SummaryRow({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
   return (
-    <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
+    <div className="site-checkout-summary-row" data-strong={strong}>
       <dt className="text-zinc-400">{label}</dt>
       <dd className={`text-right ${strong ? "text-xl font-bold text-zinc-950" : "font-bold text-zinc-800"}`}>{value}</dd>
     </div>

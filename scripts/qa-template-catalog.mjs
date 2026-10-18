@@ -16,19 +16,29 @@ try {
     assert.equal(response.status(), 200);
     await page.evaluate(() => document.fonts.ready);
     const services = page.getByRole('tablist', { name: '서비스 및 페이지 유형 선택' });
-    const categories = page.getByRole('group', { name: '업종 선택' });
+    const categories = page.getByRole('group', { name: '업종 선택', exact: true });
+    const circleCategories = page.getByRole('group', { name: '모바일 업종 선택', exact: true });
     const categorySelect = page.getByRole('combobox', { name: '업종 선택' });
     if (width >= 1024) {
       await expect(categories).toBeVisible();
       await expect(categorySelect).toBeHidden();
-    } else {
+    } else if (width >= 768) {
       await expect(categories).toBeHidden();
+      await expect(circleCategories).toBeHidden();
       await expect(categorySelect).toBeVisible();
       await expect(categorySelect.locator('option')).toHaveCount(6);
+    } else {
+      await expect(categories).toBeHidden();
+      await expect(categorySelect).toBeHidden();
+      await expect(circleCategories).toBeVisible();
+      await expect(circleCategories.getByRole('button')).toHaveCount(6);
+      await expect(circleCategories.locator('.site-category-circle').first()).toHaveCSS('border-top-left-radius', '50%');
+      await expect(circleCategories.getByRole('button', { pressed: true }).locator('.site-category-circle')).toHaveCSS('background-color', 'rgb(21, 24, 30)');
     }
     const selectCategory = async (name, value) => width >= 1024
       ? categories.getByRole('button', { name, exact: true }).click()
-      : categorySelect.selectOption(value);
+      : width >= 768 ? categorySelect.selectOption(value)
+      : circleCategories.getByRole('button', { name, exact: true }).click();
     const states = [];
     for (const service of ['다이닝 원페이지', '다이닝 멀티페이지', '디스플레이']) {
       await services.getByRole('tab', { name: service, exact: true }).click();
@@ -126,6 +136,11 @@ try {
     await page.locator('.site-category-list').evaluate(list => {
       for (let i = 0; i < 20; i++) { const item = list.firstElementChild.cloneNode(true); item.textContent = `새 카테고리 ${i} · 긴 이름의 레스토랑과 베이커리`; list.append(item); }
     });
+    if (width < 768) {
+      await circleCategories.getByRole('button').last().focus();
+      const rail = await circleCategories.evaluate(el => ({ width: el.clientWidth, contentWidth: el.scrollWidth, left: el.scrollLeft }));
+      if (rail.contentWidth > rail.width) assert.ok(rail.left > 0, 'keyboard focus reveals offscreen mobile categories');
+    }
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
     assert.deepEqual(errors, []);
     results.push({ viewport: states[0].viewport, states, center, pass: true });

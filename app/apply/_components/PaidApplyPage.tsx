@@ -101,7 +101,7 @@ export default async function PaidApplyPage({
       <OfficialSiteNavbar />
       <main className="site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="site-container">
-          <header className="mb-10 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
+          <header className="site-page-heading mb-12 max-w-3xl md:mb-16">
             <div>
               <h1 className="type-page-title">{copy.title}</h1>
               <p className="site-body mt-4 max-w-2xl text-zinc-500">

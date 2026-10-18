@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, Check } from "lucide-react";
+import { ArrowUpRight, Check, Coffee, Grid2X2, Sandwich, Soup, Utensils, Wine, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useId, useMemo, useRef, useState } from "react";
 
@@ -16,15 +16,16 @@ type IndustryGroup = {
   key: IndustryKey;
   label: string;
   categoryKeys: readonly TemplateCategoryKey[];
+  icon: LucideIcon;
 };
 
 const INDUSTRY_GROUPS: readonly IndustryGroup[] = [
-  { key: "all", label: "전체", categoryKeys: [] },
-  { key: "cafe_bakery", label: "카페·베이커리", categoryKeys: ["cafe", "bakery", "dessert", "display"] },
-  { key: "restaurant_dining", label: "레스토랑·다이닝", categoryKeys: ["restaurant", "brunch", "casual_dining", "fine_dining"] },
-  { key: "japanese", label: "일식", categoryKeys: ["japanese"] },
-  { key: "pub_bar", label: "바·주점", categoryKeys: ["pub_bar"] },
-  { key: "quick_meal", label: "패스트푸드·분식", categoryKeys: ["fast_food"] },
+  { key: "all", icon: Grid2X2, label: "전체", categoryKeys: [] },
+  { key: "cafe_bakery", icon: Coffee, label: "카페·베이커리", categoryKeys: ["cafe", "bakery", "dessert", "display"] },
+  { key: "restaurant_dining", icon: Utensils, label: "레스토랑·다이닝", categoryKeys: ["restaurant", "brunch", "casual_dining", "fine_dining"] },
+  { key: "japanese", icon: Soup, label: "일식", categoryKeys: ["japanese"] },
+  { key: "pub_bar", icon: Wine, label: "바·주점", categoryKeys: ["pub_bar"] },
+  { key: "quick_meal", icon: Sandwich, label: "패스트푸드·분식", categoryKeys: ["fast_food"] },
 ];
 
 const TEMPLATES_PER_PAGE = 6;
@@ -180,9 +181,20 @@ export default function TemplateGallery({
                 ))}
               </div>
             </div>
-            <label className="site-category-mobile">
+            <div className="site-category-mobile">
+              <h2 className="type-label mb-4">카테고리</h2>
+              <div className="site-category-circles" role="group" aria-label="모바일 업종 선택">
+                {INDUSTRY_GROUPS.map(({ key, label, icon: Icon }) => (
+                  <button key={key} type="button" aria-pressed={industry === key} onClick={() => selectIndustry(key)} className="site-category-circle-button">
+                    <span className="site-category-circle" aria-hidden="true"><Icon /></span>
+                    <span className="site-category-circle-label">{label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+            <label className="site-category-tablet">
               <span className="type-label">카테고리</span>
-              <select className="site-category-select" value={industry} onChange={event => selectIndustry(event.target.value as IndustryKey)} aria-label="업종 선택">
+              <select className="site-category-select" value={industry} onChange={event => selectIndustry(event.target.value as IndustryKey)} aria-label="카테고리 업종 선택">
                 {INDUSTRY_GROUPS.map(group => <option key={group.key} value={group.key}>{group.label}</option>)}
               </select>
             </label>
