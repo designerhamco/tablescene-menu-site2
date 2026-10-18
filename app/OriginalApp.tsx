@@ -5,7 +5,8 @@ import { BrowserRouter, Routes, Route } from 'react-router';
 import { usePathname } from 'next/navigation';
 import Navbar from './components/layout/Navbar';
 import Home from './original-pages/Home';
-import DisplayServicePage from './original-pages/services/DisplayServicePage';
+import DisplayServicePage from './original-pages/services/DisplayComingSoonPage';
+import DiningServicePage from './original-pages/services/DiningServicePage';
 import ComingSoonServicePage from './original-pages/services/ComingSoonServicePage';
 import OrderServiceReviewContent from './components/services/OrderServiceReviewContent';
 import CustomServicePage from './original-pages/services/CustomServicePage';
@@ -47,6 +48,7 @@ export default function App() {
           <Routes location={pathname}>
             <Route path="/" element={<Home />} />
             <Route path="/services/basic" element={<Home />} />
+            <Route path="/services/dining" element={<DiningServicePage />} />
             <Route path="/services/display" element={<DisplayServicePage />} />
             <Route path="/services/qr-order" element={<ComingSoonServicePage kind="qr-order" />} />
             <Route path="/services/smart-call" element={<ComingSoonServicePage kind="smart-call" />} />

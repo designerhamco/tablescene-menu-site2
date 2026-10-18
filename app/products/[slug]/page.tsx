@@ -54,7 +54,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           <header className="mt-7 grid gap-8 site-section p-7 md:grid-cols-[1fr_320px] md:p-10">
             <div>
               <span className="inline-flex rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">
-                아티메뉴 다이닝
+                베이직·다이닝
               </span>
               <h1 className="type-page-title mt-5">{product.shortName}</h1>
               <p className="site-body mt-5 max-w-2xl text-zinc-600">

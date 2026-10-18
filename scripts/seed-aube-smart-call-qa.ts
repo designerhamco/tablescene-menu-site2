@@ -6,6 +6,11 @@ import { createStarterMenuData } from "../lib/menu-starter-presets";
 
 const DEFAULT_TEMPLATE_KEY = "dining_aube_table_a";
 const TEMPLATE_CONFIG = {
+  cafe_real_matcha_paged_test: {
+    menuName: "QA 베이직 페이지형 주문",
+    restaurantName: "REAL MATCHA QA",
+    qaScope: "basic_paged_postpay_order",
+  },
   dining_aube_table_a: {
     menuName: "QA 오브 테이블 스마트호출",
     restaurantName: "오브 테이블 QA",
@@ -18,7 +23,6 @@ const TEMPLATE_CONFIG = {
   },
 } as const;
 type QaTemplateKey = keyof typeof TEMPLATE_CONFIG;
-const PRODUCT_KEY = "business_basic_multi_monthly";
 const DEFAULT_DURATION_DAYS = 14;
 
 type Args = {
@@ -55,7 +59,7 @@ function parseArgs(argv: string[]): Args {
     throw new Error("--duration-days는 1~30 사이의 정수여야 합니다.");
   }
   if (!(args.templateKey in TEMPLATE_CONFIG)) {
-    throw new Error("--template-key는 dining_aube_table_a 또는 dining_aube_table_b여야 합니다.");
+    throw new Error(`--template-key는 ${Object.keys(TEMPLATE_CONFIG).join(", ")} 중 하나여야 합니다.`);
   }
   return args;
 }
@@ -80,6 +84,9 @@ async function main() {
   const accessExpiresAt = addDays(now, args.durationDays);
   const retentionUntil = addDays(now, args.durationDays + 90);
   const templateConfig = TEMPLATE_CONFIG[args.templateKey];
+  const isBasic = args.templateKey === "cafe_real_matcha_paged_test";
+  const productKey = isBasic ? "business_basic_single_monthly" : "business_basic_multi_monthly";
+  const category = isBasic ? "cafe" : "fine_dining";
 
   const { data: existing, error: existingError } = await supabase
     .from("menu_sites")
@@ -94,7 +101,7 @@ async function main() {
     targetUserId: userId,
     slug: args.slug,
     templateKey: args.templateKey,
-    productKey: PRODUCT_KEY,
+    productKey: productKey,
     accessExpiresAt,
     existing: existing ?? null,
   };
@@ -109,15 +116,15 @@ async function main() {
       name: templateConfig.menuName,
       slug: args.slug,
       template_key: args.templateKey,
-      template_category: "fine_dining",
+      template_category: category,
       status: "published",
       restaurant_name: templateConfig.restaurantName,
-      restaurant_category: "fine_dining",
-      restaurant_type: "fine_dining",
+      restaurant_category: category,
+      restaurant_type: category,
       settings: {
         source: "codex_production_qa",
         qa_scope: templateConfig.qaScope,
-        product_key: PRODUCT_KEY,
+        product_key: productKey,
         plan_type: "business_basic",
         billing_cycle: "monthly",
         access_starts_at: now.toISOString(),
@@ -134,17 +141,17 @@ async function main() {
       supabase,
       menuSite.id,
       args.templateKey,
-      "fine_dining",
-      "fine_dining",
-      PRODUCT_KEY,
+      category,
+      category,
+      productKey,
     );
     const { data: entitlement, error: entitlementError } = await supabase
       .from("service_entitlements")
       .insert({
         user_id: userId,
         menu_site_id: menuSite.id,
-        product_key: PRODUCT_KEY,
-        plan_key: "business_basic_multi",
+        product_key: productKey,
+        plan_key: isBasic ? "business_basic_single" : "business_basic_multi",
         plan_type: "business_basic",
         billing_type: "subscription",
         billing_cycle: "monthly",

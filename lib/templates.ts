@@ -1,3 +1,4 @@
+import { getTemplateCapabilities } from "./template-capabilities";
 import {
   getTemplateType,
   getTemplateTypeLabel,
@@ -14,6 +15,7 @@ export const TEMPLATE_CATEGORIES = [
     label: "카페",
     templates: [
       { key: "cafe_design_a", label: "REAL MATCHA", design: "design_a" },
+      { key: "cafe_real_matcha_paged_test", label: "리얼맛차 · 페이지형 테스트", design: "design_a" },
 
       { key: "cafe_mocha_forest_a", label: "모카 포레스트", design: "design_a" },
       { key: "cafe_sunday_line_a", label: "선데이 로스터스", design: "design_a" },
@@ -270,7 +272,7 @@ const availableTemplateKeys = [
   "dining_aube_table_b",
   "display_menu_a",
 ] as const satisfies readonly string[];
-const hiddenTemplateKeys = [] as const satisfies readonly string[];
+const hiddenTemplateKeys = ["cafe_real_matcha_paged_test"] as const satisfies readonly string[];
 // Brew Chapter remains renderable for backward compatibility, but is retired
 // from every new-selection and template-switching surface.
 const retiredTemplateKeys = ["cafe_noir_a", "cafe_brew_chapter_a"] as const satisfies readonly string[];
@@ -320,7 +322,7 @@ export const templateCatalog = TEMPLATE_CATEGORIES.flatMap((category) =>
       key: template.key,
       templateKey: template.key,
       service: primaryService,
-      serviceLabel: primaryService === "display" ? "아티메뉴 디스플레이" : "아티메뉴 다이닝",
+      serviceLabel: primaryService === "display" ? "디스플레이" : getTemplateCapabilities(template.key).multiPage?.enabled ? "다이닝" : "베이직",
       name: template.label,
       displayName: template.label,
       label: template.label,

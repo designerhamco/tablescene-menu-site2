@@ -1,8 +1,8 @@
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-// Product policy: QR Order is dormant for the foreseeable future. Environment
-// variables and stale allowlists must not be able to reactivate writes alone.
-export const POSTPAY_ORDER_PRODUCT_POLICY_ENABLED = false;
+// Product support is restored; runtime enablement, an explicit site allowlist,
+// a valid table session and owner settings are still required by submission.
+export const POSTPAY_ORDER_PRODUCT_POLICY_ENABLED = true;
 
 export function isUuid(value: unknown): value is string {
   return typeof value === "string" && UUID_PATTERN.test(value);

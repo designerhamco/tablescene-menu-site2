@@ -443,7 +443,7 @@ export function MultiPageSection() {
   return (
     <StorySection
       reverse
-      eyebrow="파인다이닝 멀티 페이지"
+      eyebrow="스페셜 다이닝 플랜"
       title={<>여러 장의 메뉴를<br />한 권처럼</>}
       body="코스·와인·디저트를 페이지별로 나눠 다이닝의 흐름을 구성합니다."
       visual={<MultiPageVisual />}

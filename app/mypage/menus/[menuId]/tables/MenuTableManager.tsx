@@ -36,7 +36,7 @@ export default function MenuTableManager({
 }) {
   const [createState, createAction, createPending] = useActionState(createMenuTableAction, initialMenuTableActionState);
   const [mutationState, mutationAction, mutationPending] = useActionState(mutateMenuTableAction, initialMenuTableActionState);
-  const representativePath = `/menu/${encodeURIComponent(menuSlug)}`;
+  const representativePath = `/menu/${encodeURIComponent(menuSlug)}?mode=customer`;
 
   return (
     <div className="space-y-6">
@@ -132,6 +132,8 @@ export default function MenuTableManager({
               publicBaseUrl={publicBaseUrl}
             />
 
+            <a className="site-button site-button-secondary mt-4" href={table.qrPath+"?mode=terminal"} target="_blank" rel="noopener noreferrer">매장 PC·태블릿에서 열기</a>
+            <p className="mt-2 text-sm text-zinc-500">손님용 QR은 모바일 화면으로 열리고, 이 주소는 기기 크기에 맞춰 후불 주문만 사용합니다.</p>
             <form action={mutationAction} className="mt-5 grid gap-3 border-t border-zinc-100 pt-5 sm:grid-cols-[minmax(0,1fr)_160px_auto] sm:items-end">
               <input type="hidden" name="menuSiteId" value={menuSiteId} />
               <input type="hidden" name="tableId" value={table.id} />

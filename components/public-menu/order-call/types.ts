@@ -1,3 +1,5 @@
+import { isKnownTemplateKey } from "@/lib/templates";
+import { readMenuOrderSettings } from "@/lib/menu-order-settings";
 import type { StaffCallItem } from "@/lib/call-items";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 
@@ -96,7 +98,7 @@ export function hasPrepayCheckout(config: Pick<OrderCallEntryConfig, "checkoutMo
 }
 
 export function supportsOrderCallExperienceShell(templateKey: string | null | undefined) {
-  return templateKey !== "display_menu_a";
+  return typeof templateKey === "string" && isKnownTemplateKey(templateKey) && templateKey !== "display_menu_a";
 }
 
 export function getPublicOrderCallCapabilityState({
@@ -104,13 +106,17 @@ export function getPublicOrderCallCapabilityState({
   planType,
   hasValidTableSession,
   callRuntimeEnabled,
+  postpayOrderRuntimeEnabled,
+  settings,
 }: {
+  settings?: unknown;
   templateKey: string | null | undefined;
   planType: string | null | undefined;
   hasValidTableSession: boolean;
   postpayOrderRuntimeEnabled: boolean;
   callRuntimeEnabled: boolean;
 }): PublicOrderCallCapabilityState {
+  const preferences = readMenuOrderSettings(settings);
   const supportsExperience = supportsOrderCallExperienceShell(templateKey);
   const diningFeatures = getDiningTemplateFeatures(templateKey);
   const canUseBusinessTableFeatures = supportsExperience
@@ -119,11 +125,9 @@ export function getPublicOrderCallCapabilityState({
 
   return {
     supportsExperience,
-    // QR Order/PG is intentionally dormant across every Dining tier. Keep the
-    // runtime input in the public contract so a future relaunch requires an
-    // explicit product-policy change instead of an environment-only toggle.
-    orderEnabled: false,
-    callEnabled: canUseBusinessTableFeatures && diningFeatures.smartCall && callRuntimeEnabled,
+    // Runtime allowlist + signed table session + explicit owner opt-in are all required.
+    orderEnabled: canUseBusinessTableFeatures && postpayOrderRuntimeEnabled && preferences.orderEnabled && preferences.postpayEnabled,
+    callEnabled: canUseBusinessTableFeatures && diningFeatures.smartCall && callRuntimeEnabled && preferences.callEnabled,
   };
 }
 

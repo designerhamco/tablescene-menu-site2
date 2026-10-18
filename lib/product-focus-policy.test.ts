@@ -8,13 +8,13 @@ function readSource(relativePath: string) {
   return readFileSync(new URL(`../${relativePath}`, import.meta.url), "utf8");
 }
 
-test("디자인 메뉴판 집중 정책은 대표 QR만 유지하고 운영 기능을 닫는다", () => {
+test("베이직과 다이닝의 주문·호출 운영을 열고 직원 초대와 픽업은 유지한다", () => {
   assert.deepEqual(DESIGN_MENU_FOCUS_POLICY, {
     representativeQr: true,
-    smartCall: false,
-    storeOperations: false,
+    smartCall: true,
+    storeOperations: true,
     staffManagement: false,
-    tableManagement: false,
+    tableManagement: true,
     pickupQueue: false,
   });
 });

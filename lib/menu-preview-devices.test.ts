@@ -4,6 +4,7 @@ import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
+import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import MenuPreviewDeviceFrame from "../components/menu/MenuPreviewDeviceFrame";
 
 import {
@@ -20,6 +21,9 @@ import {
   shouldUseMenuPreviewDeviceFrame,
 } from "./menu-preview-devices";
 
+function renderFrame(element: ReturnType<typeof createElement>) {
+  return renderToStaticMarkup(createElement(AppRouterContext.Provider, {value: {push() {}} as never}, element));
+}
 const previewFrameSource = readFileSync(
   new URL("../components/menu/MenuPreviewDeviceFrame.tsx", import.meta.url),
   "utf8",
@@ -97,7 +101,7 @@ test("tablet landscape swaps the real iframe viewport dimensions", () => {
 });
 
 test("preview selector renders labeled PC, tablet, and mobile device icons", () => {
-  const html = renderToStaticMarkup(createElement(MenuPreviewDeviceFrame, {
+  const html = renderFrame(createElement(MenuPreviewDeviceFrame, {
     device: "pc",
     orientation: "landscape",
     menuId: "4f7be4a1-90db-4e1f-987d-e91385f0bf91",
@@ -127,7 +131,7 @@ test("preview selector renders labeled PC, tablet, and mobile device icons", () 
 
 test("scrollable tablet and mobile preview frames are keyboard focusable", () => {
   for (const device of ["tablet", "mobile"] as const) {
-    const html = renderToStaticMarkup(createElement(MenuPreviewDeviceFrame, {
+    const html = renderFrame(createElement(MenuPreviewDeviceFrame, {
       device,
       orientation: "landscape",
       menuId: "4f7be4a1-90db-4e1f-987d-e91385f0bf91",
@@ -191,7 +195,7 @@ test("device selector is open by default and collapses upward into a compact han
   assert.match(previewFrameSource, /data-preview-device-toolbar-content=""/);
   assert.match(previewFrameSource, /pointer-events-none opacity-0/);
   assert.match(previewFrameSource, /tabIndex=\{showToolbar \? undefined : -1\}/);
-  assert.match(previewFrameSource, /showToolbar \? supportsCallPreview \? "w-\[min\(35rem,calc\(100vw-1\.5rem\)\)\]" : "w-\[min\(27rem,calc\(100vw-1\.5rem\)\)\]" : "w-20 max-w-20"/);
+  assert.match(previewFrameSource.replace(/\s+/g, " "), /showToolbar \? supportsOrderPreview \? "w-\[min\(43rem,calc\(100vw-1\.5rem\)\)\]" : "w-\[min\(27rem,calc\(100vw-1\.5rem\)\)\]" : "w-20 max-w-20"/);
   assert.match(previewFrameSource, /width: showToolbar \? undefined : "5rem"/);
   assert.match(previewFrameSource, /translateY\(calc\(-100% \+ 1\.75rem\)\)/);
   assert.match(previewFrameSource, /transition-\[width,transform\] duration-300 ease-out/);
@@ -292,15 +296,15 @@ test("template previews open in device frames without carrying recursive frame p
 });
 
 
-test("detached links infer the real viewport while iframe links retain their device", () => {
+test("detached links retain the selected device and interactive feature toggles", () => {
   for (const device of MENU_PREVIEW_DEVICE_ORDER) {
-    const html = renderToStaticMarkup(createElement(MenuPreviewDeviceFrame, {
+    const html = renderFrame(createElement(MenuPreviewDeviceFrame, {
       device, orientation: "portrait", menuId: "menu-a",
       query: { lang: "en", page: "2", callPreview: "on" },
     }));
     const link = html.match(/<a[^>]*data-preview-detached-link=""[^>]*>/)?.[0] ?? "";
     const href = link.match(/href="([^"]*)"/)?.[1].replaceAll("&amp;", "&");
-    assert.equal(href, "/mypage/menus/menu-a/preview?lang=en&page=2&callPreview=on&view=actual&embedded=1");
+    assert.equal(href, `/mypage/menus/menu-a/preview?lang=en&page=2&callPreview=on&device=${device}${device === "tablet" ? "&orientation=portrait" : ""}&view=actual&embedded=1`);
     assert.match(html, new RegExp(`src="[^\"]*device=${device}`));
     const starterUrl = buildTemplatePreviewUrl("fast_food_loop_bagel_a", {
       device, orientation: "portrait", lang: "en", callPreview: "on",

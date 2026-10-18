@@ -2829,7 +2829,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
 
 export function getStarterPreset(templateKey?: string | null, restaurantCategory?: string | null, templateCategory?: string | null): StarterPreset {
   const normalizedTemplateKey = templateKey?.trim().toLowerCase() ?? "";
-  const templatePreset = normalizedTemplateKey ? templateStarterPresets[normalizedTemplateKey] : null;
+  const templatePreset = normalizedTemplateKey ? templateStarterPresets[normalizedTemplateKey === "cafe_real_matcha_paged_test" ? "cafe_design_a" : normalizedTemplateKey] : null;
   if (templatePreset) {
     return templatePreset;
   }

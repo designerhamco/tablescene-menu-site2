@@ -9,10 +9,12 @@ import { getAvailableTemplatesForService } from "@/lib/templates";
 
 export const metadata: Metadata = {
   title: "메뉴판 만들기 | ArtiMenu",
-  description: "아티메뉴 다이닝과 디스플레이 템플릿을 미리 보고 원하는 디자인으로 시작하세요.",
+  description: "아티메뉴 베이직과 다이닝 템플릿을 미리 보고 원하는 디자인으로 시작하세요.",
 };
 
-export default function ApplyPage() {
+export default async function ApplyPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const query = await searchParams;
+  const initialProduct = query.plan === "dining" ? "dining_multi" : query.plan === "display" ? "display" : "dining_single";
   const displayCheckoutEnabled = isDisplayCheckoutQaEnabled();
   const diningTemplates = getAvailableTemplatesForService("basic");
   const displayTemplates = getAvailableTemplatesForService("display");
@@ -32,6 +34,7 @@ export default function ApplyPage() {
           </header>
 
           <TemplateGallery
+            initialProduct={initialProduct}
             diningTemplates={diningTemplates}
             displayTemplates={displayTemplates}
             displayCheckoutEnabled={displayCheckoutEnabled}

@@ -1,3 +1,4 @@
+import { isKnownTemplateKey } from "@/lib/templates";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { DESIGN_MENU_FOCUS_POLICY } from "@/lib/product-focus-policy";
 
@@ -16,15 +17,15 @@ const DINING_TIER_FEATURES = {
     discounts: true,
     widgets: true,
     multiPage: false,
-    smartCall: false,
-    order: false,
+    smartCall: true,
+    order: true,
   },
   multi: {
     discounts: true,
     widgets: false,
     multiPage: true,
     smartCall: true,
-    order: false,
+    order: true,
   },
 } as const satisfies Record<DiningTemplateTier, DiningTierFeatures>;
 
@@ -56,6 +57,7 @@ export function getDiningTierFeatures(tier: DiningTemplateTier): DiningTierFeatu
 }
 
 export function getDiningTemplateFeatures(templateKey: string | null | undefined): DiningTierFeatures {
+  if (!templateKey || templateKey === "display_menu_a" || !isKnownTemplateKey(templateKey)) return { discounts: false, widgets: false, multiPage: false, smartCall: false, order: false };
   return getDiningTierFeatures(getDiningTemplateTier(templateKey));
 }
 
@@ -81,5 +83,5 @@ export function isDiningProductCompatibleWithTemplate(
 }
 
 export function getDiningTierLabel(tier: DiningTemplateTier) {
-  return tier === "multi" ? "멀티페이지" : "단일페이지";
+  return tier === "multi" ? "다이닝" : "베이직";
 }

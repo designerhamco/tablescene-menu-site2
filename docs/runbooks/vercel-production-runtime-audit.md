@@ -57,3 +57,12 @@ Vercel의 Cron Jobs 기능은 `Enabled` 상태이며 다음 세 작업이 `verce
 현재 유효성은 값을 직접 조회하는 대신 실제 runtime 근거로 확인했다. `CRON_SECRET`은 세 예약 경로의 인증된 `GET 200`, OpenAI 상담 키는 Production 실제 답변, Supabase 서버 키는 Auth·메뉴 편집·호출·QR Production E2E, Resend 키는 실제 `delivered` 메일, PortOne 키는 2026-09-01 결제 상태 읽기 재조회로 동작 근거가 있다. `PORTONE_MOCK_ENABLED`는 Production 코드에서 항상 무시되며 구독 Cron 로그는 `execute=false`를 확인했다.
 
 키를 무작정 동시에 교체하면 결제·구독·메일·로그인에 장애가 생길 수 있다. Vercel 경고나 runtime 오류가 없으므로 즉시 일괄 교체하지 않고, 제공자별 새 키 발급 → Vercel Secret 교체 → 재배포 → 읽기/발송 smoke → 이전 키 폐기 순서로 한 공급자씩 회전한다. 실제 카드 등록 무료체험 E2E 전에 PortOne 키를 먼저 바꾸지 않는다. 사업자 검증 키의 외부 API 실제 응답과 제공자별 키 교체는 운영자 인증이 필요한 후속 작업으로 유지한다.
+
+## 2026-10-18 베이직·다이닝 주문 전환 전 재확인
+
+Vercel Dashboard 환경변수 목록을 읽기 전용으로 확인했다. 값은 열거나 복사하지 않았다.
+
+- `CALL_ENABLED`, `CALL_ALLOWED_SITE_IDS`, `TABLE_MANAGEMENT_ENABLED`, `TABLE_MANAGEMENT_ALLOWED_SITE_IDS`: Production Config로 존재한다. 위 9월의 미등록 기록보다 이 확인이 최신이다. 값 자체와 현재 allowlist 내용은 이번 감사에서 확인하지 않았다.
+- `POSTPAY` 검색: No Results Found. `ORDER_DASHBOARD` 검색: No Results Found. 따라서 새 코드 배포만으로 실제 후불 주문이나 주문 관리가 활성화되지는 않는다.
+- 설정·비밀키·Cron Run·운영 데이터는 변경하지 않았다.
+- 후불 주문 pilot을 열려면 검토한 신규 RPC 두 개의 DB 적용, 특정 QA 메뉴판의 유효한 entitlement 및 주문 설정, 해당 UUID에만 한정한 후불/대시보드 runtime 설정과 후속 배포가 필요하다.

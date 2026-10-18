@@ -7,6 +7,7 @@ import {
   mergeTypographySettings,
 } from "@/lib/template-typography-presets";
 
+import RealMatchaPaged from "./experimental/RealMatchaPaged";
 import BasicMenuTemplate from "./BasicMenuTemplate";
 import CafeBrewChapterA from "./CafeBrewChapterA";
 import CafeRoundFocusA from "./CafeRoundFocusA";
@@ -41,12 +42,15 @@ export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
       orderCallConfig={props.orderCallConfig}
       typographyStyle={typographyStyle}
       pagePresentation={props.pagePresentation}
+      previewDevice={props.previewDevice}
     >
       {children}
     </PublicMenuExperienceShell>
   );
 
   switch (templateKey) {
+    case "cafe_real_matcha_paged_test":
+      return withPublicMenuShell(<RealMatchaPaged {...props} />);
     case "cafe_design_a":
       if (props.pagePresentation === "multi") {
         return withPublicMenuShell(<MultiPageMenuEngine {...props} />);

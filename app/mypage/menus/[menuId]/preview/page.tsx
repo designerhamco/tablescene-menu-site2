@@ -1,3 +1,4 @@
+import { buildInteractivePreviewConfig } from "@/lib/preview-order-config";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -7,9 +8,7 @@ import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
 import { getAuthorizedPreviewMenuPageData, type MenuPageData } from "@/lib/menu-page-data";
-import { buildMenuPreviewOrderCallConfig } from "@/lib/menu-preview-experience";
 import { buildOnePageCallPreviewConfig } from "@/lib/one-page-call-preview";
-import { usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
 import {
   buildMenuPreviewUrl,
   normalizeMenuPreviewDevice,
@@ -35,6 +34,7 @@ type PageProps = {
     page?: string | string[];
     view?: string | string[];
     callPreview?: string | string[];
+    orderPreview?: string | string[];
   }>;
 };
 
@@ -142,6 +142,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
     lang: getSearchParamValue(query.lang),
     page: getSearchParamValue(query.page),
     callPreview: getSearchParamValue(query.callPreview),
+    orderPreview: getSearchParamValue(query.orderPreview),
   };
   const supabase = await createClient();
   const {
@@ -182,22 +183,15 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
         orientation={orientation}
         menuId={menuId}
         query={previewQuery}
-        supportsCallPreview={usesOnePageProportionPolicy(data.menuSite.template_key)}
+        supportsCallPreview={data.menuSite.template_key !== "display_menu_a"}
       />
     );
   }
 
-  const previewOrderCallConfig = buildOnePageCallPreviewConfig({
+  const previewOrderCallConfig = buildInteractivePreviewConfig(data, getSearchParamValue(query.callPreview) === "on", getSearchParamValue(query.orderPreview) === "on") ?? buildOnePageCallPreviewConfig({
     enabled: getSearchParamValue(query.callPreview) === "on", templateKey: data.menuSite.template_key,
     menuSiteId: data.menuSite.id, storeName: data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name,
-  }) ?? (device === "mobile"
-    ? buildMenuPreviewOrderCallConfig({
-        menuSiteId: data.menuSite.id,
-        storeName: data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name,
-        templateKey: data.menuSite.template_key,
-        locale: data.locale,
-      })
-    : undefined);
+  });
 
   return (
     <>

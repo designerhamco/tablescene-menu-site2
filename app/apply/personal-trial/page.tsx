@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
-  title: "아티메뉴 다이닝 신청/결제 | ArtiMenu",
-  description: "결제수단 등록 후 30일 무료체험이 적용되는 아티메뉴 다이닝 단일페이지 월결제 신청 페이지로 이동합니다.",
+  title: "아티메뉴 베이직 신청/결제 | ArtiMenu",
+  description: "결제수단 등록 후 30일 무료체험이 적용되는 아티메뉴 베이직 월결제 신청 페이지로 이동합니다.",
 };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;

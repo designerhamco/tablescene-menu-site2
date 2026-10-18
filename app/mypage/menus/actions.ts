@@ -568,7 +568,7 @@ async function canManageMenuPagesForMenuSite(supabase: SupabaseServerClient, men
 async function assertCanManageMenuPages(supabase: SupabaseServerClient, menuId: string, templateKey?: string | null) {
   if (await canManageMenuPagesForMenuSite(supabase, menuId, templateKey)) return;
 
-  redirectToMenuEditWithError(menuId, "아티메뉴 다이닝은 1장 메뉴판으로 제공되어 페이지를 추가, 수정, 복사, 삭제하거나 정렬할 수 없습니다.");
+  redirectToMenuEditWithError(menuId, "베이직은 하나의 메뉴 구성으로 제공되어 페이지를 추가, 수정, 복사, 삭제하거나 정렬할 수 없습니다.");
 }
 
 function getString(formData: FormData, key: string) {
@@ -7642,7 +7642,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   const supportsPriceDisplayMode = basicPricingCapabilities.supportsPriceDisplayMode;
   const supportsPriceNote = basicPricingCapabilities.supportsPriceNote;
   const supportsPriceNoteWithPriceColumns = basicPricingCapabilities.supportsPriceNoteWithPriceColumns;
-  const pageManagementBlockedMessage = "아티메뉴 다이닝은 1장 메뉴판으로 제공되어 페이지를 추가, 수정, 복사, 삭제하거나 정렬할 수 없습니다.";
+  const pageManagementBlockedMessage = "베이직은 하나의 메뉴 구성으로 제공되어 페이지를 추가, 수정, 복사, 삭제하거나 정렬할 수 없습니다.";
   const pcTabletLayoutModeInput = formData.get("pc_tablet_layout_mode");
   const shouldSavePcTabletLayoutMode =
     typeof pcTabletLayoutModeInput === "string" && supportsPcTabletLayoutMode(menuSite.template_key);

@@ -18,12 +18,13 @@ type NavItem = {
 
 const NAV_ITEMS: readonly NavItem[] = [
   {
-    label: '아티메뉴 다이닝',
+    label: '베이직',
     path: '/',
     activePaths: ['/', '/services/basic', '/services/menu', '/services/signature'],
   },
-  { label: '아티메뉴 디스플레이', path: '/services/display', activePaths: ['/services/display', '/services/screen', '/services/full-option', '/tablescene-pro'] },
-  { label: '템플릿 보러가기', path: '/apply', activePaths: ['/apply'] },
+  { label: '다이닝', path: '/services/dining', activePaths: ['/services/dining'] },
+  { label: '디스플레이', path: '/services/display', activePaths: ['/services/display', '/services/screen', '/services/full-option', '/tablescene-pro'] },
+  { label: '디자인 템플릿', path: '/apply', activePaths: ['/apply'] },
   { label: '고객센터', path: '/faq', activePaths: ['/faq', '/support/chat'] },
 ];
 

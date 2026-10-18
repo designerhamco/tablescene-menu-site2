@@ -9,17 +9,18 @@ import {
   isStoreOperationsTemplate,
 } from "./operations-dashboard";
 
-test("디자인 메뉴판 집중 기간에는 모든 매장 운영 템플릿을 닫는다", () => {
-  assert.equal(isStoreOperationsTemplate("cafe_design_a"), false);
-  assert.equal(isStoreOperationsTemplate("dining_aube_table_a"), false);
-  assert.equal(isStoreOperationsTemplate("dining_aube_table_b"), false);
+test("베이직·다이닝은 운영 대상이며 디스플레이는 제외한다", () => {
+  assert.equal(isStoreOperationsTemplate("cafe_design_a"), true);
+  assert.equal(isStoreOperationsTemplate("dining_aube_table_a"), true);
+  assert.equal(isStoreOperationsTemplate("dining_aube_table_b"), true);
   assert.equal(isStoreOperationsTemplate("display_menu_a"), false);
 });
 
-test("owner and manager operation access stays closed despite runtime inputs", () => {
+test("owner and manager access requires runtime availability", () => {
   const ownerAccess = getStoreOperationAccess({
     accessRole: "owner",
     templateKey: "dining_aube_table_a",
+    orderDashboardEnabled: true,
     tableManagementEnabled: true,
     callManagementEnabled: true,
     pickupQueueEnabled: false,
@@ -27,14 +28,15 @@ test("owner and manager operation access stays closed despite runtime inputs", (
   const managerAccess = getStoreOperationAccess({
     accessRole: "manager",
     templateKey: "dining_aube_table_a",
+    orderDashboardEnabled: true,
     tableManagementEnabled: true,
     callManagementEnabled: true,
     pickupQueueEnabled: false,
   });
 
-  assert.deepEqual(ownerAccess, { orders: false, calls: false, tables: false, sales: false, pickup: false });
+  assert.deepEqual(ownerAccess, { orders: true, calls: true, tables: true, sales: false, pickup: false });
   assert.deepEqual(managerAccess, ownerAccess);
-  assert.equal(hasAvailableStoreOperation(ownerAccess), false);
+  assert.equal(hasAvailableStoreOperation(ownerAccess), true);
 });
 
 test("staff permissions and unavailable runtime gates fail closed", () => {
@@ -42,11 +44,12 @@ test("staff permissions and unavailable runtime gates fail closed", () => {
     getStoreOperationAccess({
       accessRole: "order_staff",
       templateKey: "dining_aube_table_a",
-      tableManagementEnabled: true,
+      orderDashboardEnabled: true,
+    tableManagementEnabled: true,
       callManagementEnabled: true,
       pickupQueueEnabled: false,
     }),
-    { orders: false, calls: false, tables: false, sales: false, pickup: false },
+    { orders: true, calls: true, tables: false, sales: false, pickup: false },
   );
 
   const disabledAccess = getStoreOperationAccess({
@@ -64,6 +67,7 @@ test("per-member operation overrides control each visible management surface", (
     accessRole: "manager",
     permissions: ["menu.read", "table.manage"],
     templateKey: "dining_aube_table_a",
+    orderDashboardEnabled: true,
     tableManagementEnabled: true,
     callManagementEnabled: true,
     pickupQueueEnabled: false,
@@ -72,7 +76,7 @@ test("per-member operation overrides control each visible management surface", (
   assert.deepEqual(access, {
     orders: false,
     calls: false,
-    tables: false,
+    tables: true,
     sales: false,
     pickup: false,
   });
@@ -84,13 +88,14 @@ test("per-member operation overrides control each visible management surface", (
     lifecycleState: "active",
     lifecycleReason: "active",
     canPreview: true,
+    orderDashboardEnabled: true,
     tableManagementEnabled: true,
     callManagementEnabled: true,
     pickupQueueEnabled: false,
-  }), false);
+  }), true);
 });
 
-test("operations list excludes previously eligible multi-page menus", () => {
+test("operations list excludes inactive, unauthorized and unsupported menus", () => {
   const eligible = {
     accessRole: "owner" as const,
     templateKey: "dining_aube_table_a",
@@ -98,18 +103,19 @@ test("operations list excludes previously eligible multi-page menus", () => {
     lifecycleState: "active",
     lifecycleReason: "active",
     canPreview: true,
+    orderDashboardEnabled: true,
     tableManagementEnabled: true,
     callManagementEnabled: true,
     pickupQueueEnabled: false,
   };
 
-  assert.equal(isCurrentSmartCallOperationsSite(eligible), false);
+  assert.equal(isCurrentSmartCallOperationsSite(eligible), true);
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, menuSiteStatus: "draft" }), false);
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, lifecycleState: "expired_holding" }), false);
-  assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, templateKey: "cafe_design_a" }), false);
+  assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, templateKey: "cafe_design_a" }), true);
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, templateKey: "display_menu_a" }), false);
-  assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, tableManagementEnabled: false }), false);
-  assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, callManagementEnabled: false }), false);
+  assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, tableManagementEnabled: false }), true);
+  assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, callManagementEnabled: false }), true);
   assert.equal(isCurrentSmartCallOperationsSite({ ...eligible, accessRole: "viewer" }), false);
 });
 

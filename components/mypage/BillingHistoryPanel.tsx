@@ -114,7 +114,7 @@ const initialFilters: FilterState = {
 
 const serviceTypeFilterOptions = [
   { value: "all", label: "전체" },
-  { value: "basic", label: "아티메뉴 다이닝" },
+  { value: "basic", label: "베이직·다이닝" },
   { value: "display", label: "아티메뉴 디스플레이" },
 ];
 

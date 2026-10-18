@@ -33,7 +33,8 @@ export async function GET(
       existingSessionToken: request.cookies.get(TABLE_VISIT_SESSION_COOKIE)?.value,
       userAgent: request.headers.get("user-agent"),
     });
-    const response = NextResponse.redirect(new URL(getPublicMenuPath(session.slug), request.url), 303);
+    const mode = request.nextUrl.searchParams.get("mode") === "terminal" ? "terminal" : "customer";
+    const response = NextResponse.redirect(new URL(getPublicMenuPath(session.slug) + "?mode=" + mode, request.url), 303);
     response.cookies.set(TABLE_VISIT_SESSION_COOKIE, session.rawSessionToken, {
       ...TABLE_VISIT_SESSION_COOKIE_SECURITY,
       expires: new Date(session.expiresAt),

@@ -60,7 +60,7 @@ export default function PricingPage() {
             <div className="site-section-heading mb-5 flex flex-col items-center gap-2">
               <div>
                 <p className="text-sm font-bold text-zinc-600">현재 신청 가능</p>
-                <h2 id="basic-products-heading" className="type-subsection-title mt-1">아티메뉴 다이닝 상품</h2>
+                <h2 id="basic-products-heading" className="type-subsection-title mt-1">베이직·다이닝 플랜</h2>
               </div>
               <p className="break-keep text-sm font-bold text-zinc-600">상품별 이용기간·제공 시점·환불 기준을 상세 페이지에서 확인할 수 있습니다.</p>
             </div>

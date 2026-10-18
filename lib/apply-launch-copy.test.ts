@@ -24,8 +24,8 @@ const marketingSectionCopySource = readFileSync(
 
 test("만들기 화면은 판매 가능한 템플릿을 서비스와 페이지 유형별로 탐색한다", () => {
   assert.match(applyPageSource, /TemplateGallery/);
-  assert.match(templateGallerySource, /다이닝 원페이지/);
-  assert.match(templateGallerySource, /다이닝 멀티페이지/);
+  assert.match(templateGallerySource, /label: "베이직"/);
+  assert.match(templateGallerySource, /label: "다이닝"/);
   assert.match(templateGallerySource, /디스플레이/);
   assert.match(templateGallerySource, /getDiningTierLabel/);
   assert.match(templateGallerySource, /템플릿 1개별 월 구독 · 메뉴 데이터 가져오기 지원/);

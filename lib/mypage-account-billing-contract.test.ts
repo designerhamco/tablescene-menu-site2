@@ -15,7 +15,7 @@ test("mypage account card keeps long email contained and presents AI balance wit
 });
 
 test("billing filters use the current product names and do not expose a legacy trial filter", () => {
-  assert.match(billingPanelSource, /아티메뉴 다이닝/);
+  assert.match(billingPanelSource, /베이직·다이닝/);
   assert.match(billingPanelSource, /아티메뉴 디스플레이/);
   assert.doesNotMatch(billingPanelSource, /value: "trial", label: "체험 결제"/);
   assert.match(billingPanelSource, /이전 체험 상품/);

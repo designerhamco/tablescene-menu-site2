@@ -629,7 +629,7 @@ export function getTemplateCapabilities(templateKey: string | null | undefined):
   }
 
   const normalizedKey = normalizeTemplateCapabilityKey(templateKey);
-  const capabilityKey = TEMPLATE_CAPABILITY_ALIASES[normalizedKey] ?? normalizedKey;
+  const capabilityKey = normalizedKey === "cafe_real_matcha_paged_test" ? "cafe_design_a" : TEMPLATE_CAPABILITY_ALIASES[normalizedKey] ?? normalizedKey;
 
   return TEMPLATE_CAPABILITIES[capabilityKey] ?? DEFAULT_TEMPLATE_CAPABILITIES;
 }

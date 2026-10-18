@@ -17,20 +17,20 @@ import {
 } from "./dining-product-tiers";
 import { getAvailableTemplatesForService } from "./templates";
 
-test("디자인 메뉴판 중심의 다이닝 요금제 기능 경계를 고정한다", () => {
+test("베이직과 다이닝은 공통 호출·주문을 지원하되 페이지·위젯 경계를 유지한다", () => {
   assert.deepEqual(getDiningTierFeatures("single"), {
     discounts: true,
     widgets: true,
     multiPage: false,
-    smartCall: false,
-    order: false,
+    smartCall: true,
+    order: true,
   });
   assert.deepEqual(getDiningTierFeatures("multi"), {
     discounts: true,
     widgets: false,
     multiPage: true,
-    smartCall: false,
-    order: false,
+    smartCall: true,
+    order: true,
   });
 });
 
