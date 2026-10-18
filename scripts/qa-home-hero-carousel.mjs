@@ -7,52 +7,33 @@ const base = process.env.HOME_HERO_QA_BASE_URL || 'http://127.0.0.1:3000';
 const output = process.env.HOME_HERO_QA_OUTPUT || '/tmp/artimenu-home-hero-qa';
 mkdirSync(output, { recursive: true });
 
-// Static/reduced-motion rendering: actual photo/overlay transforms, dark-screen
-// pixels, responsive bounds, all images and direct slide selection.
+// The authored PSD is a single image. Verify its responsive crop and pixels,
+// rather than accepting independently positioned browser screen overlays.
 const b=await chromium.launch();const rows=[];
 try{for(const width of [320,390,768,992,1440,2560]){
  const page=await b.newPage({viewport:{width,height:1100},reducedMotion:'reduce'});const errors=[];page.on('pageerror',e=>errors.push(e.message));
- await page.goto(base + '/',{waitUntil:'networkidle'});await page.evaluate(()=>document.fonts.ready);
+ await page.goto(base+'/',{waitUntil:'networkidle'});await page.evaluate(()=>document.fonts.ready);
  const root=page.locator('[data-hero-carousel]');await expect(root).toHaveAttribute('data-selected-slide','0');await expect(root).toHaveAttribute('data-auto-playing','false');
  await expect(page.locator('h1')).toHaveText('디지털 메뉴판의 새로운 경험');await expect(page.getByText('디자인 커스터마이징∙할인∙위젯∙호출기능 까지 한 번에',{exact:true})).toBeVisible();
- const frame=page.locator('[data-home-hero-frame]');await expect(frame).toBeVisible();await expect(root.locator('[data-device-screen]')).toHaveCount(3);
- await frame.screenshot({path:`${output}/frame-${width}.png`});
- const geometry=await page.evaluate(()=>{
-  const photo=document.querySelector('[data-hero-device-scene] img'),r=photo.getBoundingClientRect(),svg=document.querySelector('[data-hero-device-scene] svg');
-  const scale=Math.max(r.width/3344,r.height/1882),left=r.x+(r.width-3344*scale)/2,top=r.y+(r.height-1882*scale)/2;
-  const points=[[2150,830],[1150,1150],[1630,1250]];
-  return {width:innerWidth,overflow:document.documentElement.scrollWidth-innerWidth,rect:{x:r.x,y:r.y,width:r.width,height:r.height},centers:points.map(([x,y])=>{const actual=new DOMPoint(x,y).matrixTransform(svg.getScreenCTM());return{x:actual.x,y:actual.y,expectedX:left+x*scale,expectedY:top+y*scale}})};
- });
- assert.equal(geometry.overflow,0);for(const p of geometry.centers){assert.ok(Math.abs(p.x-p.expectedX)<.5);assert.ok(Math.abs(p.y-p.expectedY)<.5);}
+ const scene=root.locator('[data-hero-device-scene]');await expect(scene).toHaveAttribute('data-hero-composite','psd');await expect(scene.locator('svg')).toHaveCount(0);await expect(root.locator('[data-device-screen]')).toHaveCount(0);
+ const photo=scene.locator('img');await expect.poll(()=>photo.evaluate(el=>el.complete&&el.naturalWidth>0)).toBe(true);await photo.evaluate(el=>el.decode());
+ const frame=root.locator('[data-home-hero-frame]');await frame.screenshot({path:`${output}/frame-${width}.png`});
+ const geometry=await photo.evaluate(img=>{const r=img.getBoundingClientRect(),s=Math.max(r.width/img.naturalWidth,r.height/img.naturalHeight),left=r.x+(r.width-img.naturalWidth*s)/2,top=r.y+(r.height-img.naturalHeight*s)/2;return{width:innerWidth,overflow:document.documentElement.scrollWidth-innerWidth,src:img.currentSrc,centers:[[2150,830],[1150,1150],[1630,1250]].map(([x,y])=>({x:left+x/3344*img.naturalWidth*s,y:top+y/1882*img.naturalHeight*s}))};});
+ assert.equal(geometry.overflow,0);assert.ok(geometry.src.includes('artimenu-home-hero-psd-'));
  const buffer=await page.screenshot();const raw=await sharp(buffer).raw().toBuffer({resolveWithObject:true});
- for(const p of geometry.centers){if(p.y<0||p.y>=1100)continue;const offset=(Math.floor(p.y)*raw.info.width+Math.floor(p.x))*raw.info.channels;const rgb=[...raw.data.subarray(offset,offset+3)];assert.ok(Math.max(...rgb)<65,`${width}: dark screen sample (${p.x}, ${p.y}) ${rgb}`);}
- for(let i=1;i<4;i++){await root.getByRole('button',{name:`${i+1}번 슬라이드 보기`,exact:true}).click();await expect(root).toHaveAttribute('data-selected-slide',String(i));const image=root.locator(`[data-hero-slide]`).nth(i).locator('img');await expect(image).toBeVisible();await expect.poll(()=>image.evaluate(el=>el.complete&&el.naturalWidth>0)).toBe(true);}
- await root.getByRole('button',{name:'1번 슬라이드 보기',exact:true}).click();await page.evaluate(()=>scrollTo(0,0));await page.mouse.move(0,0);await page.screenshot({path:`${output}/hero-${width}.png`,fullPage:false});
- assert.deepEqual(errors,[]);rows.push({width,geometry:geometry.rect,centers:geometry.centers,pass:true});console.log('PASS',width);await page.close();
+ for(const point of geometry.centers){if(point.y<0||point.y>=1100)continue;const i=(Math.floor(point.y)*raw.info.width+Math.floor(point.x))*raw.info.channels;assert.ok(Math.max(...raw.data.subarray(i,i+3))<65,`${width}: dark device screen`);}
+ for(let i=1;i<4;i++){await root.getByRole('button',{name:`${i+1}번 슬라이드 보기`,exact:true}).click();await expect(root).toHaveAttribute('data-selected-slide',String(i));const img=root.locator('[data-hero-slide]').nth(i).locator('img');await expect.poll(()=>img.evaluate(el=>el.complete&&el.naturalWidth>0)).toBe(true);}
+ await root.getByRole('button',{name:'1번 슬라이드 보기',exact:true}).click();await page.evaluate(()=>scrollTo(0,0));await page.screenshot({path:`${output}/hero-${width}.png`});assert.deepEqual(errors,[]);rows.push(geometry);console.log('PASS',width);await page.close();
 }
-// Inspect the known white seams at the photo's native resolution. At phone
-// sizes, one CSS pixel also contains the real metallic bezel, so edge color
-// assertions there would confuse the device frame with an uncovered screen.
-const nativePage=await b.newPage({viewport:{width:3500,height:2100},reducedMotion:'reduce'});
-await nativePage.goto(base+'/',{waitUntil:'networkidle'});
-await nativePage.locator('[data-hero-device-scene] img').evaluate(async img=>{
- img.removeAttribute('srcset');img.src='/assets/artimenu-home-hero-hq-3344.webp';await img.decode();
- Object.assign(document.querySelector('[data-home-hero-frame]').style,{position:'fixed',top:'0',left:'0',width:'3344px',height:'1882px',aspectRatio:'auto',borderRadius:'0',zIndex:'999'});
-});
-const nativeBuffer=await nativePage.locator('[data-home-hero-frame]').screenshot({path:`${output}/native-screen-edges.png`});
-const nativeRaw=await sharp(nativeBuffer).raw().toBuffer({resolveWithObject:true});
-const edgePoints=[[1582,800],[2150,497],[2695,800],[810,1100],[1150,936],[1499,1100],[1544,1200],[1590,1043],[1718,1200],[1630,1439]];
-for(const[x,y]of edgePoints){const offset=(y*nativeRaw.info.width+x)*nativeRaw.info.channels;const rgb=[...nativeRaw.data.subarray(offset,offset+3)];assert.ok(Math.max(...rgb)<65,`native screen seam (${x}, ${y}) ${rgb}`);}
-// A dark seam alone is insufficient: the foreground phone's original metal
-// rim and the tablet's rounded bezel must remain identical to the source.
-const sourcePhoto=await sharp('public/assets/artimenu-home-hero-hq-3344.webp').ensureAlpha().raw().toBuffer({resolveWithObject:true});
-function assertOriginalPixel(x,y){const a=(y*sourcePhoto.info.width+x)*4,b=(y*nativeRaw.info.width+x)*nativeRaw.info.channels;for(let c=0;c<3;c++)assert.ok(Math.abs(sourcePhoto.data[a+c]-nativeRaw.data[b+c])<=2,`original device rim changed (${x}, ${y}), channel ${c}`);}
-const rimPoints=[[1640,1030],[1690,1028],[1726,1044],[1738,1100],[1738,1150],[1740,1080]];
-for(const[x,y]of rimPoints)assertOriginalPixel(x,y);
-let bezelPixels=0;
-for(const[x0,y0,x1,y1]of[[1460,925,1510,963],[1590,1020,1700,1042],[1718,1060,1745,1165],[1710,1030,1738,1064]])for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const i=(y*sourcePhoto.info.width+x)*4;if(sourcePhoto.data[i+3]===255&&Math.max(...sourcePhoto.data.subarray(i,i+3))<75){assertOriginalPixel(x,y);bezelPixels++;}}
-assert.ok(bezelPixels>2000);console.log('NATIVE SCREEN EDGES PASSED',edgePoints.length,'ORIGINAL RIM PIXELS PRESERVED',bezelPixels+rimPoints.length);await nativePage.close();
-writeFileSync(`${output}/visual-results.json`,JSON.stringify(rows,null,2));}finally{await b.close();}
+// Compare the entire native image with the Photoshop export, including all
+// device corners, metallic rims, counter and transparent background edges.
+const native=await b.newPage({viewport:{width:3500,height:2100},reducedMotion:'reduce'});await native.goto(base+'/',{waitUntil:'networkidle'});
+await native.locator('[data-hero-device-scene] img').evaluate(async img=>{img.removeAttribute('srcset');img.src='/assets/artimenu-home-hero-psd-3344.webp';await img.decode();Object.assign(document.querySelector('[data-home-hero-frame]').style,{position:'fixed',top:'0',left:'0',width:'3344px',height:'1882px',aspectRatio:'auto',borderRadius:'0',zIndex:'2147483647'});const header=document.querySelector('header');if(header)header.style.visibility='hidden';});
+const nativeFrame=native.locator('[data-home-hero-frame]');const background=await nativeFrame.evaluate(el=>getComputedStyle(el).backgroundColor);
+const actual=await sharp(await nativeFrame.screenshot({path:`${output}/native-psd-composite.png`})).removeAlpha().raw().toBuffer({resolveWithObject:true});
+const expected=await sharp('public/assets/artimenu-home-hero-psd.png').flatten({background}).removeAlpha().raw().toBuffer({resolveWithObject:true});
+assert.equal(actual.info.width,3344);assert.equal(actual.info.height,1882);assert.equal(actual.data.length,expected.data.length);let maxDifference=0;for(let i=0;i<actual.data.length;i++)maxDifference=Math.max(maxDifference,Math.abs(actual.data[i]-expected.data[i]));assert.ok(maxDifference<=2,`native PSD composite differs by ${maxDifference}`);
+console.log('NATIVE PSD COMPOSITE MATCH',3344*1882,'PIXELS, MAX CHANNEL DIFFERENCE',maxDifference);await native.close();writeFileSync(`${output}/visual-results.json`,JSON.stringify(rows,null,2));}finally{await b.close();}
 
 // Playback timing, pause/resume, focus, visibility and a real touch gesture.
 const browser=await chromium.launch();
