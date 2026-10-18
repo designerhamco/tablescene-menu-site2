@@ -43,7 +43,15 @@ const nativeBuffer=await nativePage.locator('[data-home-hero-frame]').screenshot
 const nativeRaw=await sharp(nativeBuffer).raw().toBuffer({resolveWithObject:true});
 const edgePoints=[[1582,800],[2150,497],[2695,800],[810,1100],[1150,936],[1499,1100],[1544,1200],[1590,1043],[1718,1200],[1630,1439]];
 for(const[x,y]of edgePoints){const offset=(y*nativeRaw.info.width+x)*nativeRaw.info.channels;const rgb=[...nativeRaw.data.subarray(offset,offset+3)];assert.ok(Math.max(...rgb)<65,`native screen seam (${x}, ${y}) ${rgb}`);}
-console.log('NATIVE SCREEN EDGES PASSED',edgePoints.length);await nativePage.close();
+// A dark seam alone is insufficient: the foreground phone's original metal
+// rim and the tablet's rounded bezel must remain identical to the source.
+const sourcePhoto=await sharp('public/assets/artimenu-home-hero-hq-3344.webp').ensureAlpha().raw().toBuffer({resolveWithObject:true});
+function assertOriginalPixel(x,y){const a=(y*sourcePhoto.info.width+x)*4,b=(y*nativeRaw.info.width+x)*nativeRaw.info.channels;for(let c=0;c<3;c++)assert.ok(Math.abs(sourcePhoto.data[a+c]-nativeRaw.data[b+c])<=2,`original device rim changed (${x}, ${y}), channel ${c}`);}
+const rimPoints=[[1640,1030],[1690,1028],[1726,1044],[1738,1100],[1738,1150],[1740,1080]];
+for(const[x,y]of rimPoints)assertOriginalPixel(x,y);
+let bezelPixels=0;
+for(const[x0,y0,x1,y1]of[[1460,925,1510,963],[1590,1020,1700,1042],[1718,1060,1745,1165],[1710,1030,1738,1064]])for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){const i=(y*sourcePhoto.info.width+x)*4;if(sourcePhoto.data[i+3]===255&&Math.max(...sourcePhoto.data.subarray(i,i+3))<75){assertOriginalPixel(x,y);bezelPixels++;}}
+assert.ok(bezelPixels>2000);console.log('NATIVE SCREEN EDGES PASSED',edgePoints.length,'ORIGINAL RIM PIXELS PRESERVED',bezelPixels+rimPoints.length);await nativePage.close();
 writeFileSync(`${output}/visual-results.json`,JSON.stringify(rows,null,2));}finally{await b.close();}
 
 // Playback timing, pause/resume, focus, visibility and a real touch gesture.
