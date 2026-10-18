@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from 'react';
+import React, { useId, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Minus, Search } from 'lucide-react';
 
@@ -279,11 +279,15 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
 ];
 
 const FAQItem = ({ item, isOpen, onToggle, inverted = false }: { item: FAQCategory["items"][number], isOpen: boolean, onToggle: () => void, inverted?: boolean }) => {
+  const answerId = useId();
   return (
     <div
       className={`border-b last:border-none ${inverted ? 'border-zinc-700' : 'border-zinc-200'}`}
     >
       <button
+        type="button"
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? answerId : undefined}
         onClick={onToggle}
         className={`group flex w-full items-start justify-between gap-6 rounded-lg px-4 py-6 text-left transition-colors md:items-center ${inverted ? 'hover:bg-zinc-800' : 'hover:bg-zinc-50'}`}
       >
@@ -298,6 +302,7 @@ const FAQItem = ({ item, isOpen, onToggle, inverted = false }: { item: FAQCatego
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            id={answerId}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}

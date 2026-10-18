@@ -12,10 +12,10 @@ const buttonVariants = cva(
         default: "site-button-primary",
         destructive:
           "site-button-danger",
-        outline: "site-button-secondary",
+        outline: "site-button-outline",
         secondary: "site-button-secondary",
         ghost: "site-button-ghost",
-        link: "text-primary underline-offset-4 hover:underline",
+        link: "site-button-link underline-offset-4 hover:underline",
       },
       size: {
         default: "has-[>svg]:px-4",

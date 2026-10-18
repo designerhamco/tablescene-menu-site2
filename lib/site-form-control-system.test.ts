@@ -14,7 +14,7 @@ test("사이트 입력·선택·본문 입력은 공통 컨트롤 토큰을 사�
 });
 
 test("공통 폼은 포커스·비활성·오류 상태를 구분한다", () => {
-  assert.match(uiSource, /\.site-field:focus,/);
+  assert.match(uiSource, /\.site-field:focus:not\(:disabled\),/);
   assert.match(uiSource, /outline: 2px solid var\(--ui-focus\)/);
   assert.match(uiSource, /\.site-field:disabled,/);
   assert.match(uiSource, /\.site-field:read-only:not\(:disabled\),/);

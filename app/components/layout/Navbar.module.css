@@ -26,7 +26,7 @@
   outline-offset: 4px;
   border-radius: .25rem;
 }
-.makeButton { min-height: 2.75rem; min-width: 5rem; padding-inline: 1.25rem; }
+.makeButton { min-height: var(--ui-control-height-header); min-width: 5rem; padding-inline: 1.25rem; }
 .navLink { color: var(--ui-text); transition: color 180ms ease; }
 .navLink:hover { color: var(--ui-text-muted); }
 .drawer {

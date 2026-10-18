@@ -231,9 +231,9 @@ function LayoutModeVisual() {
 
   return (
     <div className="flex h-full flex-col bg-[#eee8dc] p-5 text-zinc-950 md:p-8">
-      <div className="mx-auto flex rounded-full bg-white p-1.5 shadow-sm">
+      <div className="site-tabs site-tabs-demo mx-auto" role="group" aria-label="메뉴 배치 데모">
         {[{ key: "group", label: "묶음형 자동 배치" }, { key: "fill", label: "채움형 배치" }].map((item) => (
-          <button key={item.key} type="button" onClick={() => setMode(item.key as "group" | "fill")} className={`rounded-full px-4 py-2 text-[10px] font-bold transition-colors md:text-xs ${mode === item.key ? "bg-zinc-950 text-white" : "text-zinc-400"}`}>{item.label}</button>
+          <button key={item.key} type="button" aria-pressed={mode === item.key} onClick={() => setMode(item.key as "group" | "fill")} className="site-tab">{item.label}</button>
         ))}
       </div>
       <motion.div layout className={`mt-6 grid min-h-0 flex-1 gap-3 ${mode === "group" ? "grid-cols-2" : "grid-cols-3"}`}>
@@ -500,7 +500,7 @@ export function AiFeaturesSection({ service = "dining", inverted = false }: { se
             title={isDisplay ? <>AI로 정리되는<br />매장 화면 콘텐츠</> : <>AI로 정리되는<br />반복 메뉴 작업</>}
           />
         </motion.div>
-        <div className="grid gap-6 lg:grid-cols-2">{features.map((feature, index) => <motion.article key={feature.eyebrow} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className={`overflow-hidden rounded-[2rem] border ${inverted ? "border-zinc-800 bg-zinc-900" : "border-zinc-200 bg-white"}`}><div className="h-[360px] overflow-hidden md:h-[420px]">{feature.visual}</div><div className="px-6 pb-8 pt-6 md:px-8 md:pb-10"><p className={`type-body-lg ${inverted ? "text-zinc-400" : "text-zinc-500"}`}>{feature.eyebrow}</p><h3 className={`type-subsection-title mt-3 ${inverted ? "text-white" : "text-zinc-950"}`}>{feature.title}</h3><p className={`type-body-sm mt-4 ${inverted ? "text-zinc-400" : "text-zinc-500"}`}>{feature.body}</p></div></motion.article>)}</div>
+        <div className="grid gap-6 lg:grid-cols-2">{features.map((feature, index) => <motion.article key={feature.eyebrow} {...fadeUp} transition={{ ...fadeUp.transition, delay: index * 0.08 }} className={`site-card-surface ${inverted ? "site-card-surface-inverted" : ""}`}><div className="h-[360px] overflow-hidden md:h-[420px]">{feature.visual}</div><div className="px-6 pb-8 pt-6 md:px-8 md:pb-10"><p className={`type-body-lg ${inverted ? "text-zinc-400" : "text-zinc-500"}`}>{feature.eyebrow}</p><h3 className={`type-subsection-title mt-3 ${inverted ? "text-white" : "text-zinc-950"}`}>{feature.title}</h3><p className={`type-body-sm mt-4 ${inverted ? "text-zinc-400" : "text-zinc-500"}`}>{feature.body}</p></div></motion.article>)}</div>
       </div>
     </section>
   );
