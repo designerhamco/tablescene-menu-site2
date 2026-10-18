@@ -42,6 +42,7 @@
 .site-checkout-agreement .flex-1 { min-width: 0; }
 .site-checkout-agreement :is(span, button, a) { font-weight: 400; }
 .site-checkout .site-checkout-verification { border: 1px solid var(--site-divider); border-radius: .75rem; }
+.site-checkout :is(.site-checkout-template, .site-checkout-plan):focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
 @media (min-width: 640px) {
   .site-checkout-template-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .site-checkout .site-checkout-template { flex-direction: column; }
