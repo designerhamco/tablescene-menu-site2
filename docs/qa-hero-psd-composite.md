@@ -1,5 +1,17 @@
 # PSD 합성 히어로 검수
 
+## 레이어 8 수정본 v3 (2026-10-18)
+
+- 사용자 원본: /private/tmp/artimenu-psd-hero/artimenu-hero-layered.psd (15:48:53, SHA-256 c213094b53d496a6d74f02134663ed68f71c7fb6da51fab9552ba2e40c6e84e3).
+- Photoshop에서 전체 레이어를 복제한 뒤 추가된 회색 배경 레이어 9만 숨겼다. 레이어 8과 나머지 기기/화면/카운터는 추가 편집 없이 그대로 내보냈다. 사용자의 원본 PSD는 변경하지 않았다.
+- 이전 v2와 밝은 회색 위에서 비교한 변경 픽셀은 140개이며 모두 모니터 오른쪽 위 [2700,450]–[2735,481] 안이다. 모니터 레이어 밖의 가시 픽셀 차이는 0이다.
+- 로컬 보관: design/hero/artimenu-hero-layered-v3-source.psd (원본 보존), artimenu-hero-layered-v3.psd 및 .png (투명 출력 복사본).
+- 정본 public/assets/artimenu-home-hero-psd-v3.png, 반응형 640/960/1536/2304/3344px 무손실 WebP를 사용한다. Hero 레이아웃과 4초 슬라이드는 유지한다.
+
+v3 검수: 실제 viewport 320/390/768/992/1440/2560px 6/6 통과. 원본 해상도 6,293,408픽셀 전체 비교의 최대 채널 차이 1. 자동 슬라이드와 홈/다이닝 별칭의 새 자산 공유를 확인했다. TypeScript, ESLint, Production build, diff 검사 통과. 캡처: /private/tmp/artimenu-hero-psd-v3/qa/.
+
+아래 v2와 최초 제작 기록은 이전 버전이다. 현재 자산은 v3다.
+
 ## 사용자 수정본 v2 (2026-10-18)
 
 - 사용자가 Photoshop에서 열어 수정·저장한 /private/tmp/artimenu-psd-hero/artimenu-hero-layered.psd (15:39:25, SHA-256 8479cf8131ad917bb8cc9d5fab09ca103d9a6dc4b67036cf547ef1276b73b350)를 사용했다. Downloads의 이전 PSD와 구분했다.
