@@ -21,7 +21,9 @@ test("AI 상담 지식은 현재 판매 상품과 대표 QR을 포함한다", ()
   }
 });
 
-test("AI 상담 지식은 비활성 운영 기능을 제공한다고 안내하지 않는다", () => {
-  assert.match(AI_SUPPORT_PRODUCT_CONTEXT, /스마트호출, 테이블별 QR, 테이블 관리, 대기번호, 주문·QR 결제, 매장 운영, 직원 관리는 현재 제공하지 않는다/);
-  assert.doesNotMatch(AI_SUPPORT_PRODUCT_CONTEXT, /스마트호출을 제공/);
+test("AI 상담은 새 플랜 명칭과 운영 연결 범위를 구분한다", () => {
+  for (const label of ["원페이지 베이직 플랜", "스페셜 다이닝 플랜", "디스플레이 플랜은 현재 준비 중"]) assert.ok(AI_SUPPORT_PRODUCT_CONTEXT.includes(label));
+  assert.match(AI_SUPPORT_PRODUCT_CONTEXT, /전용 QA 검증 단계/);
+  assert.match(AI_SUPPORT_PRODUCT_CONTEXT, /일반 매장에 실제 접수가 이미 열려 있다고 안내하지 않는다/);
+  assert.match(AI_SUPPORT_PRODUCT_CONTEXT, /실제 PG 결제를 실행하지 않는다/);
 });

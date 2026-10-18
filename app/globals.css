@@ -5718,7 +5718,7 @@ video {
 
 .cafe-a-mobile-call-bar {
   display: grid;
-  grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
+  grid-template-columns: minmax(6.125rem, 1fr) minmax(0, 1fr) minmax(6.125rem, 1fr);
   align-items: center;
   width: 100%;
   height: 3.5rem;
@@ -5754,8 +5754,8 @@ video {
   color: inherit;
   cursor: pointer;
 }
-.cafe-a-call-table-label { text-align: center; font-size: var(--cafe-a-linked-supporting-copy-size, .875rem); font-weight: 600; }
-.cafe-a-call-language-slot { justify-self: end; }
+.cafe-a-call-table-label { overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align: center; font-size: var(--cafe-a-linked-supporting-copy-size, .875rem); font-weight: 600; }
+.cafe-a-call-language-slot { justify-self: start; }
 .cafe-a-typography .cafe-a-mobile-call-bar .cafe-a-call-language-slot,
 .cafe-a-typography .cafe-a-mobile-call-bar .cafe-a-call-language-slot * { color: var(--cafe-a-language-trigger-ink, var(--cafe-a-call-ink, #191c1b)) !important; }
 .cafe-a-mobile-call-bar [data-template-language-control] button { padding: 0; border: 0; background: transparent; }
@@ -5810,3 +5810,18 @@ video {
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] [data-cafe-a-scroll-content] {
   padding-bottom: calc(var(--cafe-a-page-block-end) + 5rem + env(safe-area-inset-bottom, 0px));
 }
+
+/* Order controls occupy the same measured footer as Call; no viewport overlay on fitted boards. */
+.cafe-a-table-actions { display:flex; align-items:center; justify-content:flex-end; gap:.625rem; }
+.cafe-a-table-actions > button { position:relative; }
+.cafe-a-cart-count { position:absolute; inset-block-start:-.15rem; inset-inline-end:-.15rem; min-width:1.25rem; padding:.15rem; border-radius:9999px; background:#191c1b; color:white; font:600 .65rem/1rem sans-serif; }
+.aube-table-item-heading:has([data-menu-order-add]) { grid-template-columns:minmax(0,1fr) auto auto; }
+
+/* Keep fitted menu rows at their readable text height when ordering is enabled. */
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] [data-menu-order-add] { width:1.5rem; height:1.5rem; }
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] [data-menu-order-add] > span { width:.625rem; height:.625rem; }
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] [data-menu-order-add] > span > svg { width:.5rem; height:.5rem; }
+
+.cafe-a-price-area .cafe-a-price-order-add { display:flex; margin-inline-start:auto; margin-block-start:.25rem; }
+
+.cafe-a-typography[data-cafe-a-adaptive-fit="true"] [data-menu-order-add] > span { inset-inline-end:0; inset-block-start:0; }

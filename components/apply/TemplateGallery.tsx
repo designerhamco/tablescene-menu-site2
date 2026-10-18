@@ -31,8 +31,8 @@ const INDUSTRY_GROUPS: readonly IndustryGroup[] = [
 const TEMPLATES_PER_PAGE = 6;
 
 const PRODUCT_TABS: readonly { key: ProductKey; label: string }[] = [
-  { key: "dining_single", label: "다이닝 원페이지" },
-  { key: "dining_multi", label: "다이닝 멀티페이지" },
+  { key: "dining_single", label: "베이직" },
+  { key: "dining_multi", label: "다이닝" },
   { key: "display", label: "디스플레이" },
 ];
 
@@ -64,13 +64,14 @@ function getStartHref(product: ProductKey, tier: DiningTemplateTier, templateKey
 export default function TemplateGallery({
   diningTemplates,
   displayTemplates,
-  displayCheckoutEnabled,
+  initialProduct = "dining_single",
 }: {
   diningTemplates: readonly TemplateCatalogItem[];
   displayTemplates: readonly TemplateCatalogItem[];
-  displayCheckoutEnabled: boolean;
+  displayCheckoutEnabled?: boolean;
+  initialProduct?: ProductKey;
 }) {
-  const [product, setProduct] = useState<ProductKey>("dining_single");
+  const [product, setProduct] = useState<ProductKey>(initialProduct);
   const [industry, setIndustry] = useState<IndustryKey>("all");
   const [page, setPage] = useState(1);
   const galleryStartRef = useRef<HTMLDivElement>(null);
@@ -99,10 +100,10 @@ export default function TemplateGallery({
   );
   const selectedIndustryLabel = INDUSTRY_GROUPS.find((group) => group.key === industry)?.label ?? "선택한 업종";
 
-  const productTitle = product === "display" ? "아티메뉴 디스플레이" : product === "dining_multi" ? "다이닝 멀티페이지" : "다이닝 원페이지";
-  const productPrice = service === "display" ? "얼리버드 월 10,900원 · 정상가 12,900원" : TIER_DETAILS[tier].price;
+  const productTitle = product === "display" ? "아티메뉴 디스플레이" : product === "dining_multi" ? "스페셜 다이닝 플랜" : "원페이지 베이직 플랜";
+  const productPrice = service === "display" ? "준비 중" : TIER_DETAILS[tier].price;
   const productDescription = service === "display"
-    ? "이미지와 동영상을 함께 사용하는 대형 화면 구성"
+    ? "현재 준비 중이며 신규 신청은 받지 않습니다."
     : TIER_DETAILS[tier].description;
 
   function selectProduct(nextProduct: ProductKey) {
@@ -206,7 +207,7 @@ export default function TemplateGallery({
               <div className="site-template-grid">
                 {paginatedTemplates.map(template => {
                   const templateTier = service === "dining" ? getDiningTemplateTier(template.key) : tier;
-                  const startDisabled = service === "display" && !displayCheckoutEnabled;
+                  const startDisabled = service === "display";
                   const industryLabel = getIndustryGroup(template)?.label ?? template.categoryLabel;
                   const recommended = service === "display" ? template.featuredDisplay : template.featuredBasic;
                   const previewHref = `/templates/${getTemplatePreviewRouteKey(template.key)}/preview`;

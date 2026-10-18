@@ -1,5 +1,6 @@
 import "server-only";
 
+import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-runtime";
 import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
 import {
   getStoreOperationAccess,
@@ -38,12 +39,13 @@ export async function getStoreOperationsContext(
 
   const sites = candidates.flatMap((site, index): StoreOperationsSite[] => {
     const lifecycle = lifecycleStates[index];
+    const orderDashboardEnabled = isOrderDashboardRuntimeEnabledForSite(site.menuSiteId);
     const tableManagementEnabled = isTableManagementRuntimeEnabledForSite(site.menuSiteId);
     const callManagementEnabled = isCallRuntimeEnabledForSite(site.menuSiteId);
     const pickupQueueEnabled = isPickupQueueRuntimeEnabledForSite(site.menuSiteId);
 
     if (
-      !lifecycle
+      !lifecycle || lifecycle.planType !== "business_basic"
       || (!isCurrentSmartCallOperationsSite({
         accessRole: site.accessRole,
         templateKey: site.templateKey,
@@ -51,6 +53,7 @@ export async function getStoreOperationsContext(
         lifecycleState: lifecycle.lifecycleState,
         lifecycleReason: lifecycle.reason,
         canPreview: lifecycle.canPreview,
+        orderDashboardEnabled,
         tableManagementEnabled,
         callManagementEnabled,
         pickupQueueEnabled,
@@ -62,6 +65,7 @@ export async function getStoreOperationsContext(
         lifecycleState: lifecycle.lifecycleState,
         lifecycleReason: lifecycle.reason,
         canPreview: lifecycle.canPreview,
+        orderDashboardEnabled,
         tableManagementEnabled,
         callManagementEnabled,
         pickupQueueEnabled,
@@ -76,6 +80,7 @@ export async function getStoreOperationsContext(
       operationAccess: getStoreOperationAccess({
         accessRole: site.accessRole,
         templateKey: site.templateKey,
+        orderDashboardEnabled,
         tableManagementEnabled,
         callManagementEnabled,
         pickupQueueEnabled,

@@ -11,7 +11,8 @@ export const POSTPAY_ORDER_MAX_REQUEST_LENGTH = 300;
 export const POSTPAY_ORDER_MAX_OPTIONS_PER_LINE = 20;
 
 export type PostpayOrderLineInput = {
-  menuItemId: string;
+  menuItemId?: string;
+  menuCategoryId?: string;
   quantity: number;
   optionValueIds: string[];
 };
@@ -61,7 +62,7 @@ export function parsePostpayOrderPayload(value: unknown): PostpayOrderInput {
     const quantity = parsePositiveInteger(line.quantity);
     const optionValueIds = line.optionValueIds ?? [];
     if (
-      !isUuid(line.menuItemId)
+      !((isUuid(line.menuItemId) && line.menuCategoryId == null) || (isUuid(line.menuCategoryId) && line.menuItemId == null))
       || quantity === null
       || quantity < 1
       || quantity > POSTPAY_ORDER_MAX_LINE_UNITS
@@ -72,9 +73,10 @@ export function parsePostpayOrderPayload(value: unknown): PostpayOrderInput {
     ) {
       throw new InvalidPostpayOrderPayloadError();
     }
+    if (line.menuCategoryId && optionValueIds.length) throw new InvalidPostpayOrderPayloadError("코스 주문에는 개별 요리 옵션을 선택할 수 없습니다.");
     totalUnits += quantity;
     return {
-      menuItemId: line.menuItemId,
+      ...(isUuid(line.menuItemId) ? {menuItemId:line.menuItemId} : {menuCategoryId:line.menuCategoryId as string}),
       quantity,
       optionValueIds: [...optionValueIds] as string[],
     };

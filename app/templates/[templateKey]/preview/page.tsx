@@ -5,6 +5,8 @@ import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import type { OrderCallEntryConfig } from "@/components/public-menu/order-call/types";
+import { applyPagedMatchaFixture } from "@/lib/template-demo-data/paged-matcha";
+import { buildInteractivePreviewConfig } from "@/lib/preview-order-config";
 import { buildOnePageCallPreviewConfig } from "@/lib/one-page-call-preview";
 import { getAubeTableDefaultCoverBackgroundColor, isAubeTableTemplate } from "@/lib/aube-table";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
@@ -12,7 +14,6 @@ import { normalizeMenuPageDisplaySettings, serializeMenuPageDisplaySettings } fr
 import { DEFAULT_LOCALE, DEFAULT_ENABLED_LOCALES, normalizeLocale, type SupportedLocale } from "@/lib/locales";
 import type { MenuPageData } from "@/lib/menu-page-data";
 import { getDefaultPcTabletLayoutMode, normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
-import { buildMenuPreviewOrderCallConfig } from "@/lib/menu-preview-experience";
 import {
   normalizeMenuPreviewDevice,
   getActualMenuPreviewDevice,
@@ -60,6 +61,9 @@ type PageProps = {
     renderMode?: string | string[];
     orderCallQa?: string | string[];
     callPreview?: string | string[];
+    orderPreview?: string | string[];
+    pageTest?: string | string[];
+    prepayPreview?: string | string[];
     device?: string | string[];
     orientation?: string | string[];
     view?: string | string[];
@@ -1533,6 +1537,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     ),
     resolvedSearchParams.localeQa,
   );
+  if (templateKey === "cafe_real_matcha_paged_test") applyPagedMatchaFixture(data, getFirstParam(resolvedSearchParams.pageTest));
   const requestedRenderMode = Array.isArray(resolvedSearchParams.renderMode)
     ? resolvedSearchParams.renderMode[0]
     : resolvedSearchParams.renderMode;
@@ -1540,7 +1545,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     ? "public"
     : "preview";
   const previewStoreName = data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name;
-  const orderCallConfig = buildOnePageCallPreviewConfig({
+  const orderCallConfig = buildInteractivePreviewConfig(data, getFirstParam(resolvedSearchParams.callPreview) === "on", getFirstParam(resolvedSearchParams.orderPreview) === "on") ?? buildOnePageCallPreviewConfig({
     enabled: getFirstParam(resolvedSearchParams.callPreview) === "on",
     templateKey, pagePresentation: isMultiPagePresentationPreview(resolvedSearchParams.pagePresentation) ? "multi" : "one",
     menuSiteId: data.menuSite.id, storeName: previewStoreName,
@@ -1548,15 +1553,9 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     resolvedSearchParams.orderCallQa,
     previewStoreName,
     templateKey,
-  ) ?? (getDiningTemplateFeatures(templateKey).smartCall
-    ? buildMenuPreviewOrderCallConfig({
-        menuSiteId: data.menuSite.id,
-        storeName: previewStoreName,
-        templateKey,
-        locale: data.locale,
-      })
-    : undefined);
+  );
 
+  if (orderCallConfig && getFirstParam(resolvedSearchParams.prepayPreview) === "off") orderCallConfig.checkoutModes = ["postpay"];
   return (
     <>
       <MenuPageRenderer

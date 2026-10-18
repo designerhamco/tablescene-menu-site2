@@ -9,11 +9,11 @@ const {
   new URL("./table-management-runtime.ts", import.meta.url).href
 ) as typeof import("./table-management-runtime");
 
-test("table management stays closed while the product is focused on design menus", () => {
+test("table management requires explicit runtime enablement", () => {
   assert.equal(isTableManagementRuntimeEnabled(undefined), false);
   assert.equal(isTableManagementRuntimeEnabled(""), false);
   assert.equal(isTableManagementRuntimeEnabled("false"), false);
-  assert.equal(isTableManagementRuntimeEnabled("TRUE"), false);
+  assert.equal(isTableManagementRuntimeEnabled("TRUE"), true);
 });
 
 test("table management requires an explicit per-site allowlist", () => {
@@ -22,7 +22,7 @@ test("table management requires an explicit per-site allowlist", () => {
   const allowedSiteIds = getTableManagementAllowedSiteIds(`${allowedId},invalid,${allowedId.toUpperCase()}`);
 
   assert.deepEqual([...allowedSiteIds], [allowedId]);
-  assert.equal(isTableManagementRuntimeEnabledForSite(allowedId, { enabled: true, allowedSiteIds }), false);
+  assert.equal(isTableManagementRuntimeEnabledForSite(allowedId, { enabled: true, allowedSiteIds }), true);
   assert.equal(isTableManagementRuntimeEnabledForSite(deniedId, { enabled: true, allowedSiteIds }), false);
   assert.equal(isTableManagementRuntimeEnabledForSite(allowedId, { enabled: false, allowedSiteIds }), false);
 });

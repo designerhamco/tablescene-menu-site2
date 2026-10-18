@@ -1,4 +1,5 @@
 import "server-only";
+import { readMenuOrderSettings } from "@/lib/menu-order-settings";
 
 import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
 import { normalizeCallId } from "@/lib/call-management";
@@ -72,10 +73,10 @@ async function assertPublicBusinessAccess(menuSiteId: string) {
   const supabase = createAdminClient();
   const { data: menuSite, error } = await supabase
     .from("menu_sites")
-    .select("template_key")
+    .select("template_key,settings")
     .eq("id", menuSiteId)
     .maybeSingle();
-  if (error || !menuSite || !getDiningTemplateFeatures(menuSite.template_key).smartCall) {
+  if (error || !menuSite || !getDiningTemplateFeatures(menuSite.template_key).smartCall || !readMenuOrderSettings(menuSite.settings).callEnabled) {
     throw new StaffCallSubmissionError();
   }
 }

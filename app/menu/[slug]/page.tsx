@@ -1,3 +1,5 @@
+import { usesCustomerMenuPresentation } from "@/lib/menu-customer-presentation";
+import { readMenuOrderSettings } from "@/lib/menu-order-settings";
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
 import { notFound } from "next/navigation";
@@ -23,7 +25,7 @@ import { sortMenuPages } from "@/types/menu";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
-  searchParams?: Promise<{ lang?: string | string[]; page?: string | string[] }>;
+  searchParams?: Promise<{ lang?: string | string[]; page?: string | string[]; mode?: string | string[] }>;
 };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -146,13 +148,14 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
   const storeName = data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name;
   const capabilityState = getPublicOrderCallCapabilityState({
     templateKey: data.menuSite.template_key,
+    settings: data.menuSite.settings,
     planType: accessState.planType,
     hasValidTableSession: Boolean(tableSession),
     postpayOrderRuntimeEnabled: isPostpayOrderRuntimeEnabledForSite(data.menuSite.id),
     callRuntimeEnabled: isCallRuntimeEnabledForSite(data.menuSite.id),
   });
   const [orderCatalog, callItems] = await Promise.all([
-    capabilityState.orderEnabled ? getPostpayOrderCatalog(data.menuSite.id) : [],
+    capabilityState.orderEnabled ? getPostpayOrderCatalog(data.menuSite.id,data) : [],
     capabilityState.callEnabled
       ? listStaffCallItems({ menuSiteId: data.menuSite.id })
       : [],
@@ -167,9 +170,12 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
     callItems,
   });
 
+  const customerMode = usesCustomerMenuPresentation(getSearchParamValue(query.mode), data.menuSite.template_key);
+  if (orderCallConfig) orderCallConfig.checkoutModes = customerMode && readMenuOrderSettings(data.menuSite.settings).mobilePrepayVisible ? ["postpay", "prepay"] : ["postpay"];
   return (
     <MenuPageRenderer
       mode="public"
+      previewDevice={customerMode ? "mobile" : undefined}
       initialPreviewPageId={getDisplayInitialPageId(data, requestedPageIndex)}
       orderCallConfig={orderCallConfig}
       {...data}

@@ -28,7 +28,7 @@ const PAID_APPLY_COPY: Record<
   }
 > = {
   menu: {
-    title: "아티메뉴 다이닝 신청",
+    title: "베이직·다이닝 신청",
     description: "구독할 디자인 템플릿을 선택하고 매장 정보를 확인해 주세요.",
   },
   screen: {

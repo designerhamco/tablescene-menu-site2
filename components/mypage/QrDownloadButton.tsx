@@ -1,11 +1,12 @@
 "use client";
 
+import { buildCustomerMenuPath } from "@/lib/menu-customer-presentation";
 import { toDataURL } from "qrcode";
 import { useState } from "react";
 import { toast } from "sonner";
 
 function resolvePublicUrl(path: string, publicBaseUrl: string | null) {
-  return new URL(path, publicBaseUrl ?? window.location.origin).toString();
+  return new URL(buildCustomerMenuPath(path), publicBaseUrl ?? window.location.origin).toString();
 }
 
 export default function QrDownloadButton({

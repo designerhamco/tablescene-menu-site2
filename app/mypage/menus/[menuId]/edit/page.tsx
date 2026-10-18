@@ -1940,6 +1940,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         )}
 
         <CafeAStarterResetProvider menuId={site.id}>
+        {accessContext.isOwner && site.template_key !== "display_menu_a" ? <div className="site-container mb-6"><Link className="site-button site-button-secondary" href={"/mypage/menus/"+menuId+"/order-settings"}>주문·호출 설정</Link></div> : null}
         <MenuEditorNavigation menuId={menuId} activeTab={activeTab} tabs={visibleEditorTabs} />
 
         <div className={`space-y-6 ${isReadOnly ? "pointer-events-none opacity-60" : ""}`} aria-disabled={isReadOnly}>

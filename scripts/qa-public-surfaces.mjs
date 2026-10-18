@@ -16,7 +16,11 @@ const cafeOnePagePreviewPaths = new Set([
 const routes = [
   "/",
   "/apply",
+  "/services/dining",
+  "/services/display",
   "/pricing",
+  "/products/dining-single-monthly",
+  "/products/dining-multi-monthly",
   "/faq",
   "/terms",
   "/privacy",

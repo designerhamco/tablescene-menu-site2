@@ -53,7 +53,7 @@ export default async function MenuQrManagementPage({
   }
 
   const publicBaseUrl = getConfiguredPublicBaseUrl();
-  const representativePath = `/menu/${encodeURIComponent(data.menuSite.slug)}`;
+  const representativePath = `/menu/${encodeURIComponent(data.menuSite.slug)}?mode=customer`;
 
   return (
     <>

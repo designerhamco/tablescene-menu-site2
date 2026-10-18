@@ -1712,7 +1712,7 @@ function MenuItemRow({
           {showRegularBadge ? <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} className={titleClassName} /> : null}
           {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} className={titleClassName} /> : null}
         </>}
-        <MenuOrderAddButton itemId={item.id} itemName={item.name} />
+        {referenceDevice === "mobile" ? <MenuOrderAddButton itemId={item.id} itemName={item.name} /> : null}
         <span className="cafe-a-round-focus-price-leader" aria-hidden="true" />
       </div>
       {hasSecondaryText && (
@@ -1784,6 +1784,7 @@ function MenuItemRow({
               </span>
             ))}
           </div>
+          {referenceDevice !== "mobile" ? <MenuOrderAddButton itemId={item.id} itemName={item.name} className="cafe-a-price-order-add" /> : null}
           {priceNote && (
             <p className={`cafe-a-price-note mt-1 break-keep text-right font-bold leading-snug ${isSoldOut ? "cafe-a-sold-out-muted" : "text-[#65706b]"}`}>
               <ScriptAwareText text={priceNote} />
@@ -1819,6 +1820,7 @@ function MenuItemRow({
               </span>
             ))}
           </div>
+          {referenceDevice !== "mobile" ? <MenuOrderAddButton itemId={item.id} itemName={item.name} className="cafe-a-price-order-add" /> : null}
           {priceNote && (
             <p className={`cafe-a-price-note mt-1 break-keep text-right font-bold leading-snug ${isSoldOut ? "cafe-a-sold-out-muted" : "text-[#65706b]"}`}>
               <ScriptAwareText text={priceNote} />
@@ -3647,7 +3649,7 @@ function PanelFlowIntro({ data, density, mobileReading = false }: { data: Public
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const call = useOnePageCallActions();
   const controls = <div className="cafe-a-panel-controls" data-cafe-a-panel-controls="">
-    {mobileReading && call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} iconOnly />} /> : <CafeLanguageHoverControl data={data} />}
+    {mobileReading && call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} iconOnly menuAlign="left" />} /> : <CafeLanguageHoverControl data={data} />}
   </div>;
   const showCover = data.pageSettings.menu_cover_enabled !== false && isMenuCoverVisibleOnDevice(data.pageSettings, mobileReading ? "mobile" : data.previewDevice ?? "pc");
   const slides = showCover ? getFeaturedHeroSlides(data, capabilities) : [];
@@ -3859,7 +3861,7 @@ function DesktopToplineFeaturedSlot({
 }
 
 
-function CafeATypographyFontAssets({ typographySettings }: { typographySettings: TypographySettings }) {
+export function CafeATypographyFontAssets({ typographySettings }: { typographySettings: TypographySettings }) {
   const koreanFontAssets = getKoreanFontLoadAssets(typographySettings.korean_font_key);
   const englishFontAssets = getEnglishFontLoadAssets(typographySettings.english_font_key);
   const noticeFontAssets = getKoreanFontLoadAssets("pretendard");
@@ -4777,7 +4779,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     featuredSlides: data.featuredSlides,
     timeSales: data.timeSales,
     typography: typographySettings,
-  }), onePageCall.enabled ? `call:${onePageCall.tableLabel}` : "call:off"].join("|"), [visiblePageGroups, data.menuSite, data.pageSettings, data.priceOptions, data.traits, data.featuredSlides, data.timeSales, typographySettings, onePageCall.enabled, onePageCall.tableLabel]);
+  }), onePageCall.enabled ? `call:${onePageCall.tableLabel}:order:${Boolean(onePageCall.orderEnabled)}:bell:${onePageCall.callEnabled !== false}` : "call:off"].join("|"), [visiblePageGroups, data.menuSite, data.pageSettings, data.priceOptions, data.traits, data.featuredSlides, data.timeSales, typographySettings, onePageCall.enabled, onePageCall.tableLabel, onePageCall.orderEnabled, onePageCall.callEnabled]);
   const layoutInputSignature = useMemo(
     () =>
       [

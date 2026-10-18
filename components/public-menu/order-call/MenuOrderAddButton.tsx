@@ -44,7 +44,8 @@ export default function MenuOrderAddButton({
   return (
     <button
       type="button"
-      className={`relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-300 bg-white/90 text-zinc-800 shadow-sm transition-colors hover:border-zinc-500 hover:bg-zinc-50 md:hidden ${className}`}
+      className={`relative inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-300 bg-white/90 text-zinc-800 shadow-sm transition-colors hover:border-zinc-500 hover:bg-zinc-50 ${className}`}
+      data-menu-order-add={itemId}
       aria-label={`${itemName} 담기`}
       onClick={(event) => {
         event.preventDefault();

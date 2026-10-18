@@ -3,6 +3,7 @@ import {
   type MenuSiteAccessRole,
   type MenuSitePermission,
 } from "@/lib/menu-site-permissions";
+import { isKnownTemplateKey } from "@/lib/templates";
 import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { isPickupQueueTemplate } from "@/lib/pickup-queue-runtime";
 import { DESIGN_MENU_FOCUS_POLICY } from "@/lib/product-focus-policy";
@@ -18,6 +19,7 @@ export type StoreOperationsSiteEligibility = {
   lifecycleState: string | null | undefined;
   lifecycleReason: string | null | undefined;
   canPreview: boolean;
+  orderDashboardEnabled?: boolean;
   tableManagementEnabled: boolean;
   callManagementEnabled: boolean;
   pickupQueueEnabled: boolean;
@@ -36,12 +38,13 @@ function hasOperationPermission(
 
 export function isStoreOperationsTemplate(templateKey: string | null | undefined) {
   return DESIGN_MENU_FOCUS_POLICY.storeOperations
-    && Boolean(templateKey && getDiningTemplateFeatures(templateKey).smartCall);
+    && Boolean(templateKey && templateKey !== "display_menu_a" && isKnownTemplateKey(templateKey) && getDiningTemplateFeatures(templateKey).smartCall);
 }
 
 export function getStoreOperationAccess({
   accessRole,
   templateKey,
+  orderDashboardEnabled = false,
   tableManagementEnabled,
   callManagementEnabled,
   pickupQueueEnabled,
@@ -49,6 +52,7 @@ export function getStoreOperationAccess({
 }: {
   accessRole: MenuSiteAccessRole;
   templateKey: string | null | undefined;
+  orderDashboardEnabled?: boolean;
   tableManagementEnabled: boolean;
   callManagementEnabled: boolean;
   pickupQueueEnabled: boolean;
@@ -77,7 +81,7 @@ export function getStoreOperationAccess({
   }
 
   return {
-    orders: false,
+    orders: smartCallTemplate && orderDashboardEnabled && hasOperationPermission(accessRole, permissions, "order.read"),
     calls: smartCallTemplate && callManagementEnabled && hasOperationPermission(accessRole, permissions, "call.manage"),
     tables: smartCallTemplate && tableManagementEnabled && hasOperationPermission(accessRole, permissions, "table.manage"),
     sales: false,
@@ -96,6 +100,9 @@ export function isCurrentSmartCallOperationsSite({
   lifecycleState,
   lifecycleReason,
   canPreview,
+  orderDashboardEnabled = false,
+  tableManagementEnabled,
+  callManagementEnabled,
   permissions,
 }: StoreOperationsSiteEligibility) {
   return isStoreOperationsTemplate(templateKey)
@@ -104,8 +111,9 @@ export function isCurrentSmartCallOperationsSite({
     && lifecycleReason === "active"
     && canPreview
     && (
-      hasOperationPermission(accessRole, permissions, "call.manage")
-      || hasOperationPermission(accessRole, permissions, "table.manage")
+      (orderDashboardEnabled && hasOperationPermission(accessRole, permissions, "order.read"))
+      || (callManagementEnabled && hasOperationPermission(accessRole, permissions, "call.manage"))
+      || (tableManagementEnabled && hasOperationPermission(accessRole, permissions, "table.manage"))
     );
 }
 

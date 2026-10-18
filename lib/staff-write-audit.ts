@@ -8,6 +8,7 @@ export const MENU_SITE_WRITE_SURFACES = [
   "menu_widget_mutation",
   "menu_widget_final_save",
   "menu_table_management",
+  "menu_order_settings",
   "order_status_management",
   "order_unpaid_cancellation",
   "order_manual_payment",

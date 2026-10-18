@@ -71,3 +71,12 @@ test("postpay payload caps customer request length", () => {
     /300자/,
   );
 });
+
+
+test("course orders use one category identity and reject mixed identities or item options", () => {
+  const menuSiteId="11111111-1111-4111-8111-111111111111",clientRequestId="22222222-2222-4222-8222-222222222222",category="33333333-3333-4333-8333-333333333333";
+  const line={menuCategoryId:category,quantity:2,optionValueIds:[]};
+  const parsed=parsePostpayOrderPayload({menuSiteId,clientRequestId,lines:[line]});assert.equal(parsed.lines[0].menuCategoryId,category);assert.equal(parsed.lines[0].menuItemId,undefined);
+  assert.throws(()=>parsePostpayOrderPayload({menuSiteId,clientRequestId,lines:[{...line,menuItemId:category}]}));
+  assert.throws(()=>parsePostpayOrderPayload({menuSiteId,clientRequestId,lines:[{...line,optionValueIds:[category]}]}));
+});

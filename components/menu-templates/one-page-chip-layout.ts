@@ -33,7 +33,7 @@ export function applyOnePageChipLayout(row: HTMLElement) {
     [...chips.children].map((chip) => textStyleKey(chip as HTMLElement)),
     Boolean(row.closest("[data-cafe-a-three-part-reference]"))]);
   const cached = chipMeasurements.get(row);
-  if (cached?.key === key) {
+  if (cached?.key === key && (cached.below || row.scrollWidth <= row.clientWidth + 1)) {
     if (cached.below && row.dataset.cafeAChipPlacement !== "below") row.dataset.cafeAChipPlacement = "below";
     else if (!cached.below) row.removeAttribute("data-cafe-a-chip-placement");
     return;
@@ -64,6 +64,8 @@ export function applyOnePageChipLayout(row: HTMLElement) {
     restore(chips, previousChipStyle);
     below = hasChipAddedNameLines(inlineHeight, withoutChipHeight);
   }
+  // Actual font loading and a reserved action can expose overflow without adding a name line.
+  if (!below && row.scrollWidth > row.clientWidth + 1) below = true;
   if (below) row.dataset.cafeAChipPlacement = "below";
   chipMeasurements.set(row, { key, below });
 }

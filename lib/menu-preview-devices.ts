@@ -44,6 +44,7 @@ export type MenuPreviewQuery = {
   lang?: string;
   page?: string;
   callPreview?: string;
+  orderPreview?: string;
 };
 
 export type TemplatePreviewQuery = Record<string, string | string[] | undefined>;
@@ -90,16 +91,21 @@ export function buildMenuPreviewUrl(
     embedded?: boolean;
     actual?: boolean;
     callPreview?: boolean;
+    orderPreview?: boolean;
   } = {},
 ) {
   const searchParams = new URLSearchParams();
 
-  for (const key of ["lang", "page", "debugCafeA", "callPreview"] as const) {
+  for (const key of ["lang", "page", "debugCafeA", "callPreview", "orderPreview"] as const) {
     const value = query[key];
     if (value) searchParams.set(key, value);
   }
 
   if (options.device) searchParams.set("device", options.device);
+  if (options.orderPreview !== undefined) {
+    if (options.orderPreview) searchParams.set("orderPreview", "on");
+    else searchParams.delete("orderPreview");
+  }
   if (options.callPreview !== undefined) {
     if (options.callPreview) searchParams.set("callPreview", "on");
     else searchParams.delete("callPreview");
@@ -138,6 +144,9 @@ const TEMPLATE_PREVIEW_QUERY_KEYS = [
   "renderMode",
   "orderCallQa",
   "callPreview",
+  "orderPreview",
+  "pageTest",
+  "prepayPreview",
 ] as const;
 
 export function buildTemplatePreviewUrl(
@@ -149,6 +158,7 @@ export function buildTemplatePreviewUrl(
     embedded?: boolean;
     actual?: boolean;
     callPreview?: boolean;
+    orderPreview?: boolean;
   } = {},
 ) {
   const searchParams = new URLSearchParams();
@@ -160,6 +170,10 @@ export function buildTemplatePreviewUrl(
   }
 
   if (options.device) searchParams.set("device", options.device);
+  if (options.orderPreview !== undefined) {
+    if (options.orderPreview) searchParams.set("orderPreview", "on");
+    else searchParams.delete("orderPreview");
+  }
   if (options.callPreview !== undefined) {
     if (options.callPreview) searchParams.set("callPreview", "on");
     else searchParams.delete("callPreview");

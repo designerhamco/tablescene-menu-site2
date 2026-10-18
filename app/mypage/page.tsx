@@ -514,7 +514,7 @@ function getMenuServiceBadge({
   }
 
   return {
-    label: "아티메뉴 다이닝",
+    label: "베이직·다이닝",
     className: "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-100",
   };
 }
@@ -878,7 +878,7 @@ function getBillingHistoryServiceType(productKey: string | null | undefined, tem
 function getBillingHistoryServiceTypeLabel(serviceType: BillingHistoryEntry["serviceType"]) {
   if (serviceType === "trial") return "이전 체험 상품";
   if (serviceType === "display") return "아티메뉴 디스플레이";
-  if (serviceType === "basic") return "아티메뉴 다이닝";
+  if (serviceType === "basic") return "베이직·다이닝";
   return "기타";
 }
 

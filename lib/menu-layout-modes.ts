@@ -45,5 +45,5 @@ export function getPcTabletLayoutModeFromPageSettings(pageSettings: unknown, tem
 }
 
 export function supportsPcTabletLayoutMode(templateKey: string | null | undefined) {
-  return templateKey === "restaurant_onue_a" || templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a" || templateKey === "cafe_round_focus_a" || templateKey === "fast_food_loop_bagel_a" || templateKey === "cafe_noir_a";
+  return templateKey === "cafe_real_matcha_paged_test" || templateKey === "restaurant_onue_a" || templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a" || templateKey === "cafe_round_focus_a" || templateKey === "fast_food_loop_bagel_a" || templateKey === "cafe_noir_a";
 }

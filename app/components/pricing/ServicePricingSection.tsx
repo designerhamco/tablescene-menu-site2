@@ -28,13 +28,13 @@ type PricingData = {
 
 const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
   basic: {
-    title: "아티메뉴 다이닝 가격 안내",
+    title: "베이직·다이닝 가격 안내",
     description: "디자인 템플릿 1개마다 별도 월 구독이 적용되며, 기존 메뉴 데이터를 새 메뉴판으로 가져올 수 있습니다.",
     plans: [
       {
-        label: "원페이지 템플릿 월 구독",
+        label: "베이직 플랜 월 구독",
         badge: "오픈 얼리버드",
-        title: "원페이지 디자인 1개",
+        title: "베이직 디자인 1개",
         price: "4,900원 / 월",
         subcopy: "정상가 5,900원",
         helper: "매월 자동 갱신",
@@ -44,9 +44,9 @@ const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
         aiUsage: "첫 메뉴 생성 완료 시 AI 크레딧 6개를 계정당 1회 제공",
       },
       {
-        label: "다이닝·멀티페이지 템플릿 월 구독",
+        label: "다이닝 플랜 월 구독",
         badge: "오픈 얼리버드",
-        title: "다이닝·멀티페이지 디자인 1개",
+        title: "다이닝 디자인 1개",
         price: "6,900원 / 월",
         subcopy: "정상가 8,900원",
         helper: "매월 자동 갱신",
@@ -57,10 +57,10 @@ const PRICING_DATA: Record<ServicePricingKey, PricingData> = {
       },
     ],
     features: [
-      "단일페이지: 할인 · 위젯 제공",
-      "멀티페이지: 할인 · 여러 페이지 구성 제공",
-      "호출 · 오더 · PG 결제 기능 미제공",
-      "신규 구매·신규 구독 1건당 다이닝 메뉴판 1개",
+      "베이직: 할인 · 위젯 제공",
+      "다이닝: 할인 · 여러 페이지 구성 제공",
+      "호출 · 후불 주문 연결 준비 중 · 선결제 미제공",
+      "신규 구매·신규 구독 1건당 메뉴판 1개",
       "다른 템플릿은 별도 구독 후 같은 계정에서 관리",
       "새 메뉴판으로 기존 메뉴 데이터 가져오기 지원",
       "정기 결제 갱신 시 기존 메뉴판 이용기간 연장",

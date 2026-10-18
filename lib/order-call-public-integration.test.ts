@@ -27,11 +27,12 @@ function createCapabilityState(overrides: Partial<Parameters<typeof getPublicOrd
     hasValidTableSession: true,
     postpayOrderRuntimeEnabled: true,
     callRuntimeEnabled: true,
+    settings: {table_order:{orderEnabled:true,callEnabled:true,postpayEnabled:true}},
     ...overrides,
   });
 }
 
-test("멀티페이지도 디자인 메뉴판 집중 기간에는 스마트호출을 열지 않는다", () => {
+test("다이닝은 세션·운영 연결·사장님 설정이 모두 충족되면 호출과 주문을 연다", () => {
   const capabilityState = createCapabilityState({ templateKey: "dining_aube_table_a" });
   const config = buildPublicOrderCallEntryConfig({
     capabilityState,
@@ -48,8 +49,8 @@ test("멀티페이지도 디자인 메뉴판 집중 기간에는 스마트호출
     showHeader: true,
     showLanguage: true,
     showTableLabel: true,
-    showCall: false,
-    showCart: false,
+    showCall: true,
+    showCart: true,
   });
 });
 
@@ -81,16 +82,17 @@ test("missing session, non-business access, and Display templates fail closed be
   }), undefined);
 });
 
-test("단일페이지는 runtime 환경값과 무관하게 Order와 스마트호출을 닫는다", () => {
+test("베이직도 명시적으로 활성화한 테이블 주문과 호출을 지원한다", () => {
   const singlePage = createCapabilityState();
 
-  assert.equal(singlePage.orderEnabled, false);
-  assert.equal(singlePage.callEnabled, false);
+  assert.equal(singlePage.orderEnabled, true);
+  assert.equal(singlePage.callEnabled, true);
 });
 
-test("멀티페이지 다이닝은 runtime 입력과 무관하게 Order와 스마트호출을 닫는다", () => {
+test("다이닝의 두 기능을 매장 설정에서 각각 끌 수 있다", () => {
   const callOnly = createCapabilityState({
     templateKey: "dining_aube_table_a",
+    settings: {table_order:{callEnabled:true}},
     postpayOrderRuntimeEnabled: true,
     callRuntimeEnabled: true,
   });
@@ -98,8 +100,14 @@ test("멀티페이지 다이닝은 runtime 입력과 무관하게 Order와 스�
   assert.deepEqual(callOnly, {
     supportsExperience: true,
     orderEnabled: false,
-    callEnabled: false,
+    callEnabled: true,
   });
+});
+
+test("owner opt-in, runtime, table session and known template are all required", () => {
+  for (const overrides of [{settings:{}},{settings:{table_order:{orderEnabled:"true",callEnabled:"true"}}},{postpayOrderRuntimeEnabled:false,callRuntimeEnabled:false},{templateKey:"not-a-template"}]) {
+    const state=createCapabilityState(overrides);assert.equal(state.orderEnabled,false);assert.equal(state.callEnabled,false);
+  }
 });
 
 test("one local table visit can submit a bounded order and complete both staff workflows", () => {
