@@ -113,3 +113,13 @@
 - 619개 테스트, TypeScript, ESLint, Production build, `git diff --check` 통과. 변경 컴포넌트의 명시적 ESLint는 오류 0이며 `HomeProductStory`의 기존 네이티브 이미지 경고 8개는 남아 있다. 메뉴판 원본·엔진·전역 스타일·인증/운영 API는 변경하지 않았다.
 
 실행: `HOME_HERO_QA_BASE_URL=http://127.0.0.1:3006 node scripts/qa-home-hero-carousel.mjs`. 최종 검사/캡처: `/private/tmp/artimenu-home-hero-qa/final/`.
+
+### 기기 화면 가장자리 틈 보정
+
+2026-10-18 후속 요청: 모니터/태블릿의 얇은 원본 화면 잔여와 휴대폰의 안쪽으로 잡힌 윤곽을 원본 픽셀에 맞춰 보정했다. 화면/베젤 경계의 안티앨리어싱을 덮도록 소폭 겹치며, 휴대폰 외곽을 path와 mask로 중복 처리하지 않는다. 센서 마스크는 원본의 검은 내부만 보존한다.
+
+- 변경 전/후를 원본 3344×1882 해상도로 같은 조건에서 렌더링했다. 문제가 있던 경계 10곳은 변경 전 RGB 최댓값 127–254, 보정 후 38–48로 측정됐다. 확대 캡처에서 세 화면의 밝은 틈 제거와 베젤/센서 보존을 확인했다.
+- 최종 Production 빌드 320/390/768/992/1440/2560px의 사진/SVG 정렬·어두운 화면·4장 선택·가로 넘침 없음 6/6과 원본 해상도 경계 10곳을 확인했다. 작은 화면의 한 픽셀에는 실제 금속 베젤도 섞이므로 경계 색상은 원본 해상도로 검사하고, 반응형은 기하 정렬과 화면 중심 픽셀을 따로 확인한다.
+- 자동 4장 순환·진행 표시·정지/복귀·hover·키보드·화면 밖/문서 비활성·터치·모션 감소 검수 통과. TypeScript·변경 파일 ESLint·Production build·`git diff --check` 통과. 원본 사진/프레임/슬라이드 로직/메뉴판은 변경하지 않았다.
+
+검사/캡처: `/private/tmp/artimenu-home-hero-qa/seam-final/`, 확대 비교 `seams-before.png` / `seams-after.png`는 그 상위 디렉터리.

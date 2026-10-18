@@ -5,10 +5,12 @@ import styles from './HomeHero.module.css';
 
 // Coordinates belong to the original 3344 × 1882 photo, never the viewport.
 // Keep the photo and these replaceable screen surfaces in the same crop box.
+// Overlap the screen/bezel seam by 1–2 source pixels so resampling cannot
+// expose the original white screen along the antialiased boundary.
 const SCREENS = {
-  monitor: { path: 'M1584 515 L2695 482 L2694 1197 L1585 1168 Z', x: 1584, y: 482, width: 1111, height: 715 },
-  tablet: { path: 'M830 935 L1481 941 Q1499 941 1499 960 L1499 1378 Q1499 1398 1480 1397 L830 1370 Q811 1369 811 1350 L811 954 Q811 935 830 935 Z', x: 811, y: 935, width: 688, height: 463 },
-  phone: { path: 'M1572 1047 L1693 1043 Q1717 1043 1717 1067 L1715 1418 Q1715 1439 1694 1438 L1573 1431 Q1551 1430 1551 1409 L1552 1072 Q1552 1049 1572 1047 Z', x: 1551, y: 1043, width: 166, height: 395 },
+  monitor: { path: 'M1580 511 L2698 477 L2697 1200 L1580 1168 Z', x: 1580, y: 477, width: 1118, height: 723 },
+  tablet: { path: 'M829 932 L1482 937 Q1502 937 1502 959 L1502 1378 Q1502 1398 1480 1398 L829 1371 Q808 1370 808 1349 L808 953 Q808 932 829 932 Z', x: 808, y: 932, width: 694, height: 466 },
+  phone: { path: 'M1570 1040 L1694 1036 C1711 1035 1721 1048 1721 1070 L1721 1416 C1721 1434 1714 1446 1694 1445 L1573 1440 C1553 1440 1540 1431 1540 1410 L1540 1072 C1540 1052 1551 1041 1570 1040 Z', x: 1540, y: 1036, width: 181, height: 410 },
 } as const;
 
 type ScreenImages = Partial<Record<keyof typeof SCREENS, string>>;
@@ -43,8 +45,8 @@ export default function HeroDeviceScene({ onLoad, screenImages = {} }: { onLoad:
             <path d="M1572 1036 L1688 1033 Q1734 1032 1734 1078 L1732 1410 Q1732 1452 1691 1451 L1575 1444 Q1534 1443 1534 1404 L1535 1077 Q1535 1038 1572 1036 Z" fill="black" />
           </mask>
           <mask id={`${id}-phone-screen`} maskUnits="userSpaceOnUse" x="0" y="0" width="3344" height="1882">
-            <path d={SCREENS.phone.path} fill="white" />
-            <rect x="1602" y="1048" width="63" height="18" rx="9" fill="black" />
+            <rect width="3344" height="1882" fill="white" />
+            <rect x="1604" y="1050" width="59" height="14" rx="7" fill="black" />
           </mask>
           {Object.entries(SCREENS).map(([name, screen]) => <clipPath key={name} id={`${id}-${name}`}><path d={screen.path} /></clipPath>)}
         </defs>
