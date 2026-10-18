@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 import type { SupportedLocale } from "@/lib/locales";
 import type { TemplateKey } from "@/lib/templates";
 
+import { isAubeTableTemplate } from "@/lib/aube-table";
 import { usesOnePageProportionPolicy } from "@/lib/one-page-proportion-policy";
 import TableMenuInteractions from "./order-call/TableMenuInteractions";
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
@@ -47,6 +48,7 @@ export default function PublicMenuExperienceShell({
     return (
       <TableMenuInteractions
         config={orderCallConfig}
+        presentation={isAubeTableTemplate(templateKey) ? "aube" : "cafe"}
         locale={currentLocale}
         locales={enabledLocales}
         device={previewDevice}

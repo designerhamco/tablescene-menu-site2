@@ -15,6 +15,7 @@ const operationNavigation: Array<{
   label: string;
   permission: MenuSitePermission;
 }> = [
+  { key: "orders", label: "주문관리", permission: "order.read" },
   { key: "calls", label: "호출관리", permission: "call.manage" },
   { key: "tables", label: "테이블·QR관리", permission: "table.manage" },
   { key: "pickup", label: "대기번호", permission: "pickup.manage" },
@@ -58,7 +59,7 @@ export default async function StoreOperationsShell({
           <header className="mb-5 border-b border-zinc-200 pb-6 md:mb-6 md:pb-8">
             <h1 className="type-page-title">매장 운영</h1>
             <p className="type-body mt-4 break-keep text-zinc-500">
-              운영 중인 메뉴판의 호출과 테이블, 수동 대기번호를 한곳에서 관리합니다.
+              운영 중인 메뉴판의 주문, 호출과 테이블을 한곳에서 관리합니다.
             </p>
           </header>
 

@@ -89,7 +89,7 @@ export async function saveMenuItemOrderConfiguration(
     "menu_order_settings",
   );
   const { data, error } = await supabase.rpc(
-    "replace_menu_item_order_options" as never,
+    "replace_menu_item_order_options",
     {
       p_menu_site_id: menuId,
       p_menu_item_id: configuration.id,
@@ -98,7 +98,7 @@ export async function saveMenuItemOrderConfiguration(
       p_orderable: configuration.orderable,
       p_price: configuration.price,
       p_groups: configuration.groups as unknown as Json,
-    } as never,
+    },
   );
   if (error?.code === "PGRST202")
     throw new Error(

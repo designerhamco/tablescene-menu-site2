@@ -66,3 +66,7 @@ Vercel Dashboard 환경변수 목록을 읽기 전용으로 확인했다. 값은
 - `POSTPAY` 검색: No Results Found. `ORDER_DASHBOARD` 검색: No Results Found. 따라서 새 코드 배포만으로 실제 후불 주문이나 주문 관리가 활성화되지는 않는다.
 - 설정·비밀키·Cron Run·운영 데이터는 변경하지 않았다.
 - 후불 주문 pilot을 열려면 검토한 신규 RPC 두 개의 DB 적용, 특정 QA 메뉴판의 유효한 entitlement 및 주문 설정, 해당 UUID에만 한정한 후불/대시보드 runtime 설정과 후속 배포가 필요하다.
+
+## 2026-10-19 승인된 후불 주문 QA 활성화
+
+10-18 읽기 감사 이후 사용자가 DB 함수 2개·14일 QA 메뉴판 2개·QA별 미결제 후불 접수를 승인했다. Production에 POSTPAY_ORDER_ENABLED / ORDER_DASHBOARD_ENABLED=true를 추가하고 각각의 allowlist는 `91ba803b-906d-40fd-a21d-06dc25ba70d6`, `ddb3a082-0004-4445-b6b3-a21110f49bb2` 두 곳만 넣었다. 기존 Call/Table allowlist의 이전 QA UUID는 유지하고 새 두 UUID만 추가했다. 값은 비밀키가 아닌 사이트 범위 Config다. 재배포 `5yM1uXDyJLDSv8ANgdt4kuWpZUVE` Production Ready 및 두 사이트의 실제 미결제 주문/관리자 상태 전환을 확인했다. 상세는 `basic-dining-postpay-production-qa.md`.

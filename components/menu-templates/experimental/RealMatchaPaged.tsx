@@ -357,9 +357,13 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
               currentLocale={data.locale}
               enabledLocales={data.enabledLocales}
               compact
+              triggerVariant="cafe"
+              scriptAwareLabels
+              menuAlign="left"
             />
             <span>{data.orderCallConfig?.tableLabel}</span>
           </div>
+          <TableMenuActionButtons appearance="inline" />
           {data.menuSite.logo_url ? (
             <img
               className={styles.logo}
@@ -486,7 +490,6 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
               <ChevronRight />
             </button>
           </nav>
-          <TableMenuActionButtons />
         </footer>
       </main>
     </>

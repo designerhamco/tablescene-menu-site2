@@ -98,14 +98,15 @@ export async function submitPostpayOrder({
   )
     throw new PostpayOrderSubmissionError("현재 후불 주문을 받을 수 없습니다.");
   const { data, error } = await supabase.rpc(
-    "submit_postpay_order_v2" as never,
+    "submit_postpay_order_v2",
     {
       p_menu_site_id: input.menuSiteId,
       p_table_visit_session_id: tableSession.id,
       p_client_request_id: input.clientRequestId,
-      p_request_text: input.requestText,
+      // Supabase generated RPC arguments omit SQL parameter nullability.
+      p_request_text: input.requestText as string,
       p_lines: input.lines as unknown as Json,
-    } as never,
+    },
   );
 
   if (error) throw new PostpayOrderSubmissionError();

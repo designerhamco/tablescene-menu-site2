@@ -24,7 +24,7 @@ import type { ReactNode } from "react";
 export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
   const templateKey = normalizeTemplateKey(props.menuSite.template_key, props.menuSite.template_category);
   const storeName = props.menuSite.restaurant_name || props.menuSite.business_name || props.menuSite.name;
-  const typographyStyle = isAubeTableTemplate(templateKey)
+  const typographyStyle = isAubeTableTemplate(templateKey) || templateKey === "cafe_real_matcha_paged_test"
     ? getTypographyCssVariables(
         mergeTypographySettings(
           templateKey,
