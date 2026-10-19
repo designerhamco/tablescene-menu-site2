@@ -100,6 +100,18 @@ test("trailing widgets keep registered order above notices and empty content nee
   assert.equal(empty.contentHeight,40);assert.equal(empty.height,500);
 });
 
+test("the final widget-to-notice boundary grows with the same fill scale as category boundaries", () => {
+  const input = [
+    {id:"heading",group:"a",kind:"heading" as const,height:52,gapAfter:12},
+    {id:"product",group:"a",kind:"item" as const,height:112,gapAfter:32},
+    {id:"widget",group:"widget",kind:"widget" as const,height:132,gapAfter:32},
+  ];
+  const layout = layoutScrollableMenu(input, 1, 600, false, {footerHeight:60});
+  assert.ok(layout.gapScales[0] > 1);
+  assert.equal(layout.naturalHeights[0], 40+80+100+60+12+32+32);
+  assert.equal(layout.contentHeight, layout.naturalHeights[0] + (12+32+32)*(layout.gapScales[0]-1));
+});
+
 test("fewer columns cannot trade away more than eight percent of the safe readable type", () => {
   const input=category("a",12);
   const candidates=[{columnCount:2,columnWidth:500,itemSize:18.8,layout:layoutScrollableMenu(input,2,1000)},

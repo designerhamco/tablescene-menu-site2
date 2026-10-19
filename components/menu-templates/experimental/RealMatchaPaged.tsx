@@ -361,10 +361,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         <CafeDesignA {...baseProps} />
       </div>
     );
-  const bottomStackStart = units.findIndex((value, index) => value.kind === "widget" && units.slice(index).every(next =>
-    next.kind === "widget" && data.widgets?.find(w => w.id === next.id)?.settings.placement === "bottom"));
-  const bottomWidgetIds = new Set(bottomStackStart < 0 ? [] : units.slice(bottomStackStart).map(value => value.id));
-  const unit = (block: ScrollableMenuBlock, last: boolean, hasFooter: boolean) => {
+  const unit = (block: ScrollableMenuBlock, last: boolean, hasFooter: boolean, nextKind?: Unit["kind"] | "notices") => {
     const id = block.id;
     const value = unitById.get(id);
     if (!value) return null;
@@ -373,8 +370,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         key={id}
         className={styles.unit}
         data-kind={value.kind}
+        data-next-kind={nextKind}
         data-paged-block={id}
-        style={{ "--scroll-base-gap": `${block.gapAfter ?? 0}px`, ...(last ? hasFooter ? { "--scroll-unit-gap-scale": 1 } : { paddingBottom: 0 } : {}) } as CSSProperties & Record<`--${string}`, string | number>}
+        style={{ "--scroll-base-gap": `${block.gapAfter ?? 0}px`, ...(last && !hasFooter ? { paddingBottom: 0 } : {}) } as CSSProperties & Record<`--${string}`, string | number>}
       >
         {value.node}
       </div>
@@ -437,7 +435,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             >
               <div className={styles.measure} ref={measure} aria-hidden="true" inert>
                 {units.map((u, index) => (
-                  <div key={u.id} className={styles.unit} data-kind={u.kind} data-next-kind={units[index + 1]?.kind} data-measure-id={u.id}>
+                  <div key={u.id} className={styles.unit} data-kind={u.kind} data-next-kind={units[index + 1]?.kind ?? (notices.length ? "notices" : undefined)} data-measure-id={u.id}>
                     {u.node}
                   </div>
                 ))}
@@ -449,16 +447,15 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
                 {!units.length ? <p role="status">메뉴를 준비하고 있어요.</p> : null}
                 <div className={styles.columns} style={{ height: layout.contentHeight, maxWidth: layout.columns.length === 1 ? layout.columnWidth : undefined }}>
                   {layout.columns.map((column, i) => {
-                    const firstBottomWidget = column.findIndex((b, index) => bottomWidgetIds.has(b.id) &&
-                      column.slice(index).every(next => bottomWidgetIds.has(next.id)));
                     return <div key={i} className={styles.column} data-paged-column={i + 1}
                       data-scroll-natural-height={layout.naturalHeights[i]} data-scroll-gap-scale={layout.gapScales[i]}
                       style={{ "--scroll-gap-scale": layout.gapScales[i] } as CSSProperties}>
-                      {column.map((b, index) => <div key={b.id} style={index === firstBottomWidget ? { marginTop: "auto" } : undefined}>
-                        {unit(b, index === column.length - 1, i === layout.footerColumn && notices.length > 0)}
+                      {column.map((b, index) => <div key={b.id}>
+                        {unit(b, index === column.length - 1, i === layout.footerColumn && notices.length > 0,
+                          column[index + 1]?.kind ?? (i === layout.footerColumn && notices.length ? "notices" : undefined))}
                       </div>)}
                       {i === layout.footerColumn ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description text-[#58645f]`}
-                        style={firstBottomWidget < 0 ? { marginTop: "auto" } : undefined} data-paged-notices>
+                        data-paged-notices>
                         {notices.map((n, index) => <p key={index}><ScriptAwareText text={n} /></p>)}
                       </div> : null}
                     </div>;
