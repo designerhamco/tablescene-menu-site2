@@ -120,14 +120,11 @@ const AUBE_TABLE_COURSE_REVEAL_ITEMS = {
   },
 };
 
-function getPrice(item: PublicMenuItem, options: PublicMenuItemPriceOption[]) {
-  const itemOptions = options
+function getPriceOptions(item: PublicMenuItem, options: PublicMenuItemPriceOption[]) {
+  return options
     .filter((option) => option.menu_item_id === item.id && option.visible !== false)
-    .sort((left, right) => left.sort_order - right.sort_order);
-  if (itemOptions.length > 0) {
-    return itemOptions.map((option) => `${option.label} ${option.price_label?.trim() || (option.price == null ? "" : `${option.price.toLocaleString("ko-KR")}원`)}`.trim()).join(" · ");
-  }
-  return formatMenuPrice(item);
+    .sort((left, right) => left.sort_order - right.sort_order)
+    .map((option) => ({ id: option.id, text: `${option.label} ${option.price_label?.trim() || (option.price == null ? "" : `${option.price.toLocaleString("ko-KR")}원`)}`.trim() }));
 }
 
 function CoursePrice({ course }: { course: CourseWithItems }) {
@@ -146,15 +143,19 @@ function MenuItemRow({
   priceOptions: PublicMenuItemPriceOption[];
   showImage?: boolean;
 }) {
-  const price = item.price_visible === false ? "" : getPrice(item, priceOptions);
+  const options = item.price_visible === false ? [] : getPriceOptions(item, priceOptions);
+  const price = item.price_visible === false ? "" : options.length ? options.map(option => option.text).join(" · ") : formatMenuPrice(item);
   return (
     <article className="aube-table-item" data-aube-table-item="">
       {showImage && item.image_url ? <img className="aube-table-item-image" src={item.image_url} alt="" /> : null}
       <div className="aube-table-item-copy">
-        <div className="aube-table-item-heading" data-has-price={price ? "true" : "false"}>
+        <div className="aube-table-item-heading" data-has-price={price ? "true" : "false"} data-price-options={options.length && price ? "true" : undefined}>
           <h3><ScriptAwareText text={item.name} /></h3>
           <div className="aube-table-item-purchase">
-            {price ? <p className="aube-table-item-price"><ScriptAwareText text={price} /></p> : null}
+            {price ? <p className="aube-table-item-price">{options.length ? options.map((option, index) => <span key={option.id}>
+              {index > 0 ? <span className="aube-table-option-separator"><ScriptAwareText text=" · " /></span> : null}
+              <span className="aube-table-option-price"><ScriptAwareText text={option.text} /></span>
+            </span>) : <ScriptAwareText text={price} />}</p> : null}
             {!item.is_sold_out ? <MenuOrderAddButton itemId={item.id} itemName={item.name} /> : null}
           </div>
         </div>
@@ -682,6 +683,15 @@ export default function DiningAubeTableA({
           .aube-table-page[data-align="center"] .aube-table-item { grid-template-columns: clamp(76px, 21vw, 92px) minmax(0, 1fr); }
           .aube-table-item-image { width: clamp(76px, 21vw, 92px); height: clamp(76px, 21vw, 92px); }
           .aube-table-item-heading { gap: clamp(8px, 2.5vw, 11px); }
+          .aube-table-item-heading[data-price-options="true"] { flex-wrap: wrap; row-gap: .375rem; }
+          .aube-table-item-heading[data-price-options="true"]::after { display: none; }
+          .aube-table-item-heading[data-price-options="true"] h3 { flex: 0 0 100%; min-width: 0; overflow-wrap: anywhere; }
+          .aube-table-item-heading[data-price-options="true"] .aube-table-item-purchase { flex: 0 0 100%; justify-content: flex-start; }
+          .aube-table-item-heading[data-price-options="true"] .aube-table-item-price { display: flex; flex: 0 1 auto; flex-wrap: wrap; gap: .375rem .75rem; min-width: 0; text-align: left; }
+          .aube-table-page[data-align="center"] .aube-table-item-heading[data-price-options="true"] .aube-table-item-purchase { justify-content: center; }
+          .aube-table-item-heading[data-price-options="true"] .aube-table-item-price > span { min-width: 0; max-width: 100%; }
+          .aube-table-option-price { display: inline-block; max-width: 100%; overflow-wrap: anywhere; }
+          .aube-table-option-separator { display: none; }
           .aube-table-bottom-fade { height: clamp(104px, 15vh, 136px); }
           .aube-table-root[data-layout="sidebar"] { min-height: var(--aube-viewport-height, 100dvh); overflow: visible; }
           .aube-table-root[data-layout="sidebar"] .aube-table-mobile-page-tabs { position: sticky; z-index: 40; top: var(--aube-sidebar-mobile-top); display: flex; gap: var(--aube-mobile-tab-gap); width: 100%; overflow-x: auto; border-bottom: 1px solid var(--aube-rule); padding: 0 var(--aube-mobile-tab-inline); background: var(--aube-surface); scrollbar-width: none; scroll-snap-type: x proximity; }

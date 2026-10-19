@@ -132,7 +132,7 @@ export default function MenuPreviewDeviceFrame(
     : [
       { label: "영역·이미지", choices: [["coverPreview", "커버 페이지"], ["imagesPreview", "상품 이미지"]] },
       { label: "메뉴 정보", choices: [["categoryDescriptionsPreview", "카테고리 설명"], ["secondaryNamesPreview", "보조 언어명"], ["descriptionsPreview", "메뉴 설명"]] },
-      { label: "판매 상태", choices: [["soldOutPreview", "품절"]] },
+      { label: "가격·판매 상태", choices: [["priceOptionsPreview", "가격 옵션"], ["soldOutPreview", "품절"]] },
     ];
   const displayChoices = displayGroups.flatMap(group => group.choices);
   const enabledDisplayCount = displayChoices.filter(([key]) => displayOptions[key]).length;
