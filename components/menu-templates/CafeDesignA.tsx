@@ -7876,3 +7876,13 @@ export default function CafeDesignA(data: CafeDesignAProps) {
 
   return <CafeDesignAClassic {...data} />;
 }
+
+// The paginated REAL MATCHA experiment shares these exact visual primitives.
+// Pagination owns geometry only; the original one-page renderer remains unchanged.
+export {
+  CategoryTitle as CafeACategoryTitle, MenuItemRow as CafeAMenuItemRow,
+  StoreIdentity as CafeAStoreIdentity, CoverHero as CafeACoverHero,
+  CafeLanguageHoverControl, CafeMenuImageLightbox,
+  getFeaturedHeroSlides, getTimeSaleByItemId, getCategoryPriceRailColumns, getCafeAFooterInfo,
+};
+export const CafeATimeSaleClock = CafeATimeSaleInitialNowContext.Provider;

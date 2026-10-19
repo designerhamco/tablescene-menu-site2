@@ -195,7 +195,7 @@ test("device selector is open by default and collapses upward into a compact han
   assert.match(previewFrameSource, /data-preview-device-toolbar-content=""/);
   assert.match(previewFrameSource, /pointer-events-none opacity-0/);
   assert.match(previewFrameSource, /tabIndex=\{showToolbar \? undefined : -1\}/);
-  assert.match(previewFrameSource.replace(/\s+/g, " "), /showToolbar \? supportsOrderPreview \? "w-\[min\(43rem,calc\(100vw-1\.5rem\)\)\]" : "w-\[min\(27rem,calc\(100vw-1\.5rem\)\)\]" : "w-20 max-w-20"/);
+  assert.match(previewFrameSource.replace(/\s+/g, " "), /showToolbar \? supportsLayoutPreview \? "w-\[min\(53rem,calc\(100vw-1\.5rem\)\)\]" : supportsOrderPreview \? "w-\[min\(43rem,calc\(100vw-1\.5rem\)\)\]" : "w-\[min\(27rem,calc\(100vw-1\.5rem\)\)\]" : "w-20 max-w-20"/);
   assert.match(previewFrameSource, /width: showToolbar \? undefined : "5rem"/);
   assert.match(previewFrameSource, /translateY\(calc\(-100% \+ 1\.75rem\)\)/);
   assert.match(previewFrameSource, /transition-\[width,transform\] duration-300 ease-out/);
@@ -315,4 +315,16 @@ test("detached links retain the selected device and interactive feature toggles"
   assert.equal(getActualMenuPreviewDevice(undefined), undefined);
   assert.equal(getActualMenuPreviewDevice("unknown"), undefined);
   for (const device of MENU_PREVIEW_DEVICE_ORDER) assert.equal(getActualMenuPreviewDevice(device), device);
+});
+
+test("layout comparisons survive device, feature and detached preview changes", () => {
+  for (const device of ["pc", "tablet", "mobile"] as const) {
+    for (const build of [() => buildTemplatePreviewUrl("cafe_real_matcha_paged_test", {layoutMode: "orderedFit", pageTest: "widgets", callPreview: "on"}, {device, actual: true, embedded: true, orderPreview: true}), () => buildMenuPreviewUrl("qa", {layoutMode: "orderedFit", callPreview: "on"}, {device, actual: true, orderPreview: true})]) {
+      const params = new URL(build(), "https://example.com").searchParams;
+      assert.equal(params.get("layoutMode"), "orderedFit");
+      assert.equal(params.get("orderPreview"), "on");
+      assert.equal(params.get("callPreview"), "on");
+    }
+  }
+  assert.match(buildTemplatePreviewUrl("cafe_real_matcha_paged_test", {layoutMode: "orderedFit"}, {layoutMode: "orderedBalancedFit"}), /layoutMode=orderedBalancedFit/);
 });

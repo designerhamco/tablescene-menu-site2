@@ -164,6 +164,22 @@ export function OnePageCallButton({ mobile = false }: { mobile?: boolean }) {
     : "cafe-a-desktop-call-button";
   return (
     <div className="cafe-a-table-actions" data-one-page-table-actions="">
+      {actions.callEnabled !== false ? (
+        <button
+          type="button"
+          className={buttonClass}
+          aria-label="직원 호출"
+          data-one-page-call-button={mobile ? "mobile" : "desktop"}
+          onClick={actions.openCall}
+        >
+          <Bell aria-hidden="true" strokeWidth={1.8} />
+          {!mobile ? (
+            <span>
+              <ScriptAwareText text="호출" />
+            </span>
+          ) : null}
+        </button>
+      ) : null}
       {actions.orderEnabled ? (
         <button
           type="button"
@@ -180,22 +196,6 @@ export function OnePageCallButton({ mobile = false }: { mobile?: boolean }) {
           ) : null}
           {(actions.cartCount ?? 0) > 0 ? (
             <span className="cafe-a-cart-count">{actions.cartCount}</span>
-          ) : null}
-        </button>
-      ) : null}
-      {actions.callEnabled !== false ? (
-        <button
-          type="button"
-          className={buttonClass}
-          aria-label="직원 호출"
-          data-one-page-call-button={mobile ? "mobile" : "desktop"}
-          onClick={actions.openCall}
-        >
-          <Bell aria-hidden="true" strokeWidth={1.8} />
-          {!mobile ? (
-            <span>
-              <ScriptAwareText text="호출" />
-            </span>
           ) : null}
         </button>
       ) : null}

@@ -82,7 +82,7 @@ function PreviewOrientationIcon() {
 }
 
 export default function MenuPreviewDeviceFrame(
-  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean },
+  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean },
 ) {
   const { device, orientation, query } = props;
   const router = useRouter();
@@ -105,6 +105,8 @@ export default function MenuPreviewDeviceFrame(
     call: callPreview,
     order: orderPreview,
   });
+  const supportsLayoutPreview = props.supportsLayoutPreview ?? props.templateKey === "cafe_real_matcha_paged_test";
+  const layoutMode = (Array.isArray(query.layoutMode) ? query.layoutMode[0] : query.layoutMode) === "orderedFit" ? "orderedFit" : "orderedBalancedFit";
   const frame = getMenuPreviewFrame(device, orientation);
   const orientationLabel =
     device === "tablet" ? MENU_PREVIEW_ORIENTATIONS[orientation] : null;
@@ -117,6 +119,7 @@ export default function MenuPreviewDeviceFrame(
     actual?: boolean;
     callPreview?: boolean;
     orderPreview?: boolean;
+    layoutMode?: string;
   }) => {
     if (typeof props.templateKey === "string") {
       return buildTemplatePreviewUrl(
@@ -177,7 +180,9 @@ export default function MenuPreviewDeviceFrame(
           data-toolbar-open={showToolbar ? "true" : "false"}
           className={`pointer-events-auto relative min-w-0 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/90 p-2 text-white backdrop-blur-[2px] transition-[width,transform] duration-300 ease-out ${
             showToolbar
-              ? supportsOrderPreview
+              ? supportsLayoutPreview
+                ? "w-[min(53rem,calc(100vw-1.5rem))]"
+                : supportsOrderPreview
                 ? "w-[min(43rem,calc(100vw-1.5rem))]"
                 : "w-[min(27rem,calc(100vw-1.5rem))]"
               : "w-20 max-w-20"
@@ -193,13 +198,13 @@ export default function MenuPreviewDeviceFrame(
           <div
             data-preview-device-toolbar-content=""
             aria-hidden={!showToolbar}
-            className={`flex w-full items-center gap-1.5 pl-1 pr-10 transition-opacity duration-150 ${supportsCallPreview ? "max-[560px]:flex-wrap" : ""} ${
+            className={`flex w-full items-center gap-1.5 pl-1 pr-10 transition-opacity duration-150 ${supportsLayoutPreview ? "max-[850px]:flex-wrap" : supportsCallPreview ? "max-[560px]:flex-wrap" : ""} ${
               showToolbar ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
           >
             <nav
               aria-label="미리보기 기기 선택"
-              className={`flex min-w-0 flex-1 items-center justify-center gap-0.5 ${supportsCallPreview ? "max-[560px]:basis-full" : ""}`}
+              className={`flex min-w-0 flex-1 items-center justify-center gap-0.5 ${supportsLayoutPreview ? "max-[850px]:basis-full" : supportsCallPreview ? "max-[560px]:basis-full" : ""}`}
             >
               {MENU_PREVIEW_DEVICE_ORDER.map((candidate) => {
                 const candidateFrame = MENU_PREVIEW_DEVICES[candidate];
@@ -258,6 +263,17 @@ export default function MenuPreviewDeviceFrame(
                 disabled={!showToolbar || isPending}
                 onChange={(enabled) => changeFeature("order", enabled)}
               />
+            ) : null}
+            {supportsLayoutPreview && device !== "mobile" ? (
+              <div className="flex shrink-0 gap-0.5 rounded-xl bg-white/10 p-0.5" role="group" aria-label="메뉴 배치 방식">
+                {([['orderedBalancedFit', '묶음형'], ['orderedFit', '채움형']] as const).map(([mode, label]) => (
+                  <Link key={mode} href={buildPreviewUrl({device, orientation, layoutMode: mode})} scroll={false} tabIndex={showToolbar ? undefined : -1}
+                    aria-current={layoutMode === mode ? "true" : undefined} data-preview-layout-mode={mode}
+                    className={`rounded-lg px-2 py-2 text-xs font-bold ${layoutMode === mode ? "bg-white text-zinc-950" : "text-white/75 hover:bg-white/10"}`}>
+                    {label}
+                  </Link>
+                ))}
+              </div>
             ) : null}
             <Link
               href={detachedUrl}

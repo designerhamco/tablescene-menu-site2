@@ -1,7 +1,7 @@
 "use client";
-/* eslint-disable @next/next/no-img-element */
 import {
   useEffect,
+  useCallback,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -11,15 +11,31 @@ import {
 } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { PublicMenuTemplateProps } from "../types";
-import CafeDesignA, { CafeATypographyFontAssets } from "../CafeDesignA";
+import CafeDesignA, {
+  CafeATypographyFontAssets,
+  CafeACategoryTitle,
+  CafeAStoreIdentity,
+  CafeACoverHero,
+  CafeLanguageHoverControl,
+  CafeMenuImageLightbox,
+  CafeATimeSaleClock,
+  getFeaturedHeroSlides,
+  getTimeSaleByItemId,
+  getCategoryPriceRailColumns,
+  getCafeAFooterInfo,
+} from "../CafeDesignA";
+import type { CafeMenuImagePreview } from "../shared/cafe-template-types";
+import { OnePageMobileCallBar, OnePageCallPalette, useOnePageCallActions } from "../one-page/OnePageCallControls";
+import { getTemplateCapabilities } from "@/lib/template-capabilities";
+import { getPriceDisplayModeFromSettings } from "@/lib/menu-price-format";
+import { getCustomBadgeStyles } from "@/lib/template-badge-styles";
+import { getResolvedBackgroundColor } from "@/lib/template-background-colors";
+import { isMenuCoverVisibleOnDevice } from "@/lib/menu-cover-device-visibility";
 import CafeAWidgetBlock, { type CafeAWidgetPreview } from "../CafeAWidgetBlock";
 import ScriptAwareText from "../shared/ScriptAwareText";
-import MenuLanguageSwitcher from "../shared/MenuLanguageSwitcher";
 import PagedMenuItem from "./PagedMenuItem";
-import { isMenuTimeSaleActive } from "@/lib/menu-time-sale-display";
 import { getNextTimeSaleBoundaryMs } from "@/lib/menu-time-sale-schedule";
 import {
-  TableMenuActionButtons,
   useMenuPresentationDevice,
 } from "@/components/public-menu/order-call/TableMenuInteractions";
 import {
@@ -29,12 +45,15 @@ import {
 } from "@/lib/template-typography-presets";
 import {
   paginateMenuBlocks,
+  selectMenuPaginationCandidate,
   type MeasuredMenuBlock,
   type MenuPagePartition,
 } from "@/lib/basic-menu-pagination";
 
 import type { MenuWidget } from "@/lib/menu-widgets";
 import styles from "./RealMatchaPaged.module.css";
+const capabilities = getTemplateCapabilities("cafe_design_a");
+
 type Unit = {
   id: string;
   group: string;
@@ -94,6 +113,13 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     brandOverflow: false,
   });
   const [page, setPage] = useState(0);
+  const call = useOnePageCallActions();
+  const [imagePreview, setImagePreview] = useState<CafeMenuImagePreview | null>(null);
+  const imageTrigger = useRef<HTMLElement | null>(null);
+  const openImage = useCallback((preview: CafeMenuImagePreview, trigger: HTMLElement) => {
+    imageTrigger.current = trigger;
+    setImagePreview(preview);
+  }, []);
   const [saleNow, setSaleNow] = useState(data.initialNowMs);
   useEffect(() => {
     const current = Date.now();
@@ -118,14 +144,15 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       window.removeEventListener("focus", refresh);
     };
   }, [data.timeSales, saleNow]);
-  const activeSales = useMemo(
-    () => data.timeSales.filter((s) => isMenuTimeSaleActive(s, saleNow)),
-    [data.timeSales, saleNow],
-  );
   const baseProps = {
     ...data,
+    previewDevice: device,
     menuSite: { ...data.menuSite, template_key: "cafe_design_a" },
   };
+  const customBadgeStyles = useMemo(() => getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings), [data.menuSite.settings, data.menuSite.page_settings]);
+  const priceDisplayMode = getPriceDisplayModeFromSettings(data.menuSite.settings, "cafe_design_a");
+  const timeSaleByItemId = useMemo(() => getTimeSaleByItemId(data.timeSales, "cafe_design_a", saleNow), [data.timeSales, saleNow]);
+  const featuredSlides = getFeaturedHeroSlides(baseProps, capabilities);
   const typographySettings = mergeTypographySettings(
     "cafe_design_a",
     getCustomTypographySettings(
@@ -137,14 +164,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     typographySettings,
     "cafe_design_a",
   );
-  const settings = (data.menuSite.settings ?? {}) as Record<string, unknown>;
-  const notices = [1, 2, 3]
-    .map((i) =>
-      typeof settings["footer_notice_" + i] === "string"
-        ? String(settings["footer_notice_" + i])
-        : "",
-    )
-    .filter(Boolean);
+  const notices = getCafeAFooterInfo(baseProps, capabilities);
 
   const units = useMemo(() => {
     const result: Unit[] = [];
@@ -194,21 +214,13 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         .filter((i) => i.visible !== false && i.category_id === category.id)
         .sort((a, b) => a.sort_order - b.sort_order);
       if (!items.length) continue;
+      const priceRailColumns = getCategoryPriceRailColumns({ category, items, timeSaleByItemId, templateKey: "cafe_design_a", priceDisplayMode, nowMs: saleNow });
       result.push({
         id: "heading-" + category.id,
         group: category.id,
         kind: "heading",
         node: (
-          <div className={styles.category}>
-            <h2>
-              <ScriptAwareText text={category.name} />
-            </h2>
-            {category.description_visible && category.description ? (
-              <p>
-                <ScriptAwareText text={category.description} />
-              </p>
-            ) : null}
-          </div>
+          <CafeACategoryTitle category={category} density="default" priceRailColumns={priceRailColumns} />
         ),
       });
       for (const item of items) {
@@ -218,18 +230,29 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
           kind: "item",
           node: (
             <PagedMenuItem
-              data={data}
               item={item}
               category={category}
-              activeSales={activeSales}
-              now={saleNow}
+              priceOptions={data.priceOptions}
+              traits={data.traits.filter((trait) => trait.menu_item_id === item.id && trait.visible !== false)}
+              capabilities={capabilities}
+              density="default"
+              templateKey="cafe_design_a"
+              timeSale={timeSaleByItemId.get(item.id)}
+              customBadgeStyles={customBadgeStyles}
+              locale={data.locale}
+              priceDisplayMode={priceDisplayMode}
+              priceRailColumns={priceRailColumns}
+              previewDevice={device}
+              onOpenImage={openImage}
             />
           ),
         });
       }
     }
     return result;
-  }, [data, activeSales, saleNow]);
+  // Rebuild measurements for content, role fonts, features and sale boundaries.
+  // Countdown ticks stay inside the original sale component.
+  }, [data, timeSaleByItemId, device, saleNow, customBadgeStyles, priceDisplayMode, openImage]);
   const unitById = useMemo(() => new Map(units.map((u) => [u.id, u])), [units]);
   useLayoutEffect(() => {
     if (mobile || !area.current || !measure.current) return;
@@ -238,28 +261,22 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     const update = () => {
       if (disposed || !area.current || !measure.current) return;
       const bounds = area.current.getBoundingClientRect();
-      const columns = bounds.width >= 850 ? 3 : bounds.width >= 470 ? 2 : 1;
-      area.current.style.setProperty("--paged-columns", String(columns));
-      measure.current.style.width = `${(bounds.width - (columns - 1) * 24) / columns}px`;
-      const measured = units.map((u) => ({
-        id: u.id,
-        group: u.group,
-        kind: u.kind,
-        height:
-          Math.ceil(
-            measure
-              .current!.querySelector<HTMLElement>(
-                `[data-measure-id="${u.id}"]`,
-              )!
-              .getBoundingClientRect().height,
-          ) + 1,
-      }));
-      const pages = paginateMenuBlocks(
-        measured,
-        columns,
-        bounds.height,
-        data.previewLayoutMode !== "orderedFit",
-      );
+      if (bounds.width <= 1 || bounds.height <= 1) return;
+      const gap = parseFloat(getComputedStyle(area.current).columnGap) || 24;
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      // Measure each readable width; wider columns can wrap less and use fewer pages.
+      const maxColumns = Math.max(1, Math.min(3, Math.floor((bounds.width + gap) / (12 * rem + gap))));
+      const candidates = Array.from({length: maxColumns}, (_, index) => {
+        const columns = index + 1;
+        measure.current!.style.width = `${(bounds.width - (columns - 1) * gap) / columns}px`;
+        const measured = units.map((u) => ({
+          id: u.id, group: u.group, kind: u.kind,
+          height: Math.ceil(measure.current!.querySelector<HTMLElement>(`[data-measure-id="${u.id}"]`)!.getBoundingClientRect().height) + 1,
+        }));
+        return { columns, pages: paginateMenuBlocks(measured, columns, bounds.height, data.previewLayoutMode !== "orderedFit") };
+      });
+      const { columns, pages } = selectMenuPaginationCandidate(candidates);
+      measure.current.style.width = `${(bounds.width - (columns - 1) * gap) / columns}px`;
       const next = anchor.current
         ? pages.findIndex((p) =>
             p.columns.some((c) => c.some((u) => u.id === anchor.current)),
@@ -334,17 +351,23 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     );
   };
   return (
-    <>
+    <CafeATimeSaleClock value={saleNow}>
       <CafeATypographyFontAssets typographySettings={typographySettings} />
       <main
-        className={`menu-typography ${styles.frame}`}
+        className={`menu-typography cafe-a-typography ${styles.frame}`}
         style={
           {
             ...typography,
+            backgroundColor: getResolvedBackgroundColor("cafe_design_a", data.menuSite.page_settings),
             "--paged-capacity": layout.capacity + "px",
           } as CSSProperties
         }
-        data-template-key="cafe_real_matcha_paged_test"
+        data-template-key="cafe_design_a"
+        data-paged-template-key="cafe_real_matcha_paged_test"
+        data-preview-device={device}
+        data-cafe-a-proportion-policy="true"
+        data-cafe-a-adaptive-fit="true"
+        data-cafe-a-mobile-style="false"
         data-spacing-contract="paged-reading"
         data-paged-ready={layout.ready && !overflow ? "true" : "false"}
         data-paged-page={page + 1}
@@ -352,50 +375,21 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         data-paged-layout={data.previewLayoutMode ?? "orderedBalancedFit"}
       >
         <aside ref={brandArea} className={styles.brand} data-paged-brand>
-          <div className={styles.brandLanguage}>
-            <MenuLanguageSwitcher
-              currentLocale={data.locale}
-              enabledLocales={data.enabledLocales}
-              compact
-              triggerVariant="cafe"
-              scriptAwareLabels
-              menuAlign="left"
-            />
-            <span>{data.orderCallConfig?.tableLabel}</span>
+          <OnePageCallPalette />
+          <div className={styles.brandControls} data-paged-controls>
+            {call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly />} /> : <CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly />}
           </div>
-          <TableMenuActionButtons appearance="inline" />
-          {data.menuSite.logo_url ? (
-            <img
-              className={styles.logo}
-              src={data.menuSite.logo_url}
-              alt={data.menuSite.restaurant_name || data.menuSite.name}
-            />
-          ) : (
-            <h1>
-              <ScriptAwareText
-                text={data.menuSite.restaurant_name || data.menuSite.name}
-              />
-            </h1>
-          )}
-          <p className={styles.brandDescription}>
-            <ScriptAwareText
-              text={
-                data.menuSite.brand_description ||
-                data.menuSite.description ||
-                ""
-              }
-            />
-          </p>
-          {data.pageSettings.menu_cover_enabled &&
-          data.menuSite.cover_image_url ? (
-            <img
-              className={styles.cover}
-              src={data.menuSite.cover_image_url}
-              alt="대표 메뉴"
-            />
+          <div className={styles.identity}>
+            <CafeAStoreIdentity data={baseProps} capabilities={capabilities} titleClassName="cafe-a-store-title cafe-a-rail-title" logoClassName={styles.logo} />
+            {(data.menuSite.brand_description || data.menuSite.description) ? <p className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null}
+          </div>
+          {data.pageSettings.menu_cover_enabled && featuredSlides.length > 0 && isMenuCoverVisibleOnDevice(data.pageSettings, device) ? (
+            <CafeACoverHero data={baseProps} featuredSlides={featuredSlides} capabilities={capabilities} density="default" customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} desktopClassName={styles.cover} />
           ) : null}
         </aside>
-        <section
+        <div className={styles.menuPanel} data-paged-menu-panel>
+        <div
+          role="region"
           className={styles.menu}
           ref={area}
           aria-label="메뉴 페이지"
@@ -452,9 +446,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
               조정해 주세요.
             </p>
           ) : null}
-        </section>
+        </div>
         <footer className={styles.footer} data-paged-footer>
-          <div className={styles.notices} data-paged-notices>
+          <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description text-[#58645f]`} data-paged-notices>
             {notices.map((n, i) => (
               <p key={i}>
                 <ScriptAwareText text={n} />
@@ -491,7 +485,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             </button>
           </nav>
         </footer>
+        </div>
+        <CafeMenuImageLightbox preview={imagePreview} templateKey="cafe_design_a" onClose={() => { setImagePreview(null); imageTrigger.current?.focus({preventScroll: true}); }} />
       </main>
-    </>
+    </CafeATimeSaleClock>
   );
 }

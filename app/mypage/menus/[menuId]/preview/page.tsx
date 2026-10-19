@@ -20,6 +20,7 @@ import {
 import { MenuSiteAccessError, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
 import { type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
 import { createClient } from "@/lib/supabase/server";
+import { normalizePcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { sortMenuPages } from "@/types/menu";
 
 type PageProps = {
@@ -35,6 +36,7 @@ type PageProps = {
     view?: string | string[];
     callPreview?: string | string[];
     orderPreview?: string | string[];
+    layoutMode?: string | string[];
   }>;
 };
 
@@ -143,6 +145,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
     page: getSearchParamValue(query.page),
     callPreview: getSearchParamValue(query.callPreview),
     orderPreview: getSearchParamValue(query.orderPreview),
+    layoutMode: getSearchParamValue(query.layoutMode),
   };
   const supabase = await createClient();
   const {
@@ -184,6 +187,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
         menuId={menuId}
         query={previewQuery}
         supportsCallPreview={data.menuSite.template_key !== "display_menu_a"}
+        supportsLayoutPreview={data.menuSite.template_key === "cafe_real_matcha_paged_test"}
       />
     );
   }
@@ -203,6 +207,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       <MenuPageRenderer
         mode="preview"
         previewDevice={isActualView ? getActualMenuPreviewDevice(requestedDevice) : undefined}
+        previewLayoutMode={data.menuSite.template_key === "cafe_real_matcha_paged_test" && getSearchParamValue(query.layoutMode) ? normalizePcTabletLayoutMode(getSearchParamValue(query.layoutMode)) : undefined}
         debugCafeA={debugCafeA}
         initialPreviewPageId={getDisplayPreviewInitialPageId(data, requestedPageIndex)}
         orderCallConfig={previewOrderCallConfig}
