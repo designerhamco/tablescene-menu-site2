@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { layoutScrollableMenu, selectScrollableMenuCandidate } from "./basic-menu-scroll";
+import { layoutScrollableMenu, selectScrollableMenuCandidate, shouldPreferWiderScrollableNames, type ScrollableMenuNameMeasurement } from "./basic-menu-scroll";
 import type { MeasuredMenuBlock } from "./basic-menu-pagination";
 const category = (id: string, count: number): MeasuredMenuBlock[] => [
   { id: `h-${id}`, group: id, kind: "heading", height: 30 },
@@ -125,14 +125,46 @@ test("fewer columns cannot trade away more than eight percent of the safe readab
   assert.equal(selectScrollableMenuCandidate(candidates).columnCount,3);
 });
 
-test("four columns rescue measured overflow without replacing a safe preferred layout", () => {
+test("automatic four-column candidates are excluded even when they would remove overflow", () => {
   const input = [...category("a", 12), ...category("b", 12), ...category("c", 12), ...category("d", 12)];
   const candidate = (count: number, height: number, itemSize = 20) => ({ columnCount: count, columnWidth: 250, itemSize,
     layout: { ...layoutScrollableMenu(input, count, 500), naturalHeights: Array(count).fill(height) } });
   for (const grouped of [false, true]) {
     assert.equal(selectScrollableMenuCandidate([candidate(2, 700), candidate(3, 490), candidate(4, 400)], grouped).columnCount, 3);
-    assert.equal(selectScrollableMenuCandidate([candidate(2, 1100), candidate(3, 800), candidate(4, 600)], grouped).columnCount, 4);
+    assert.equal(selectScrollableMenuCandidate([candidate(2, 1100), candidate(3, 800), candidate(4, 400)], grouped).columnCount, 3);
     assert.equal(selectScrollableMenuCandidate([candidate(3, 800), candidate(4, 750)], grouped).columnCount, 3);
     assert.equal(selectScrollableMenuCandidate([candidate(3, 800), candidate(4, 400, 16)], grouped).columnCount, 3);
   }
+  assert.throws(() => selectScrollableMenuCandidate([candidate(4, 400)]), /1–3-column/);
+});
+
+const names = (width: number, lines: number, count = 3): ScrollableMenuNameMeasurement[] =>
+  Array.from({ length: count }, (_, i) => ({ id: String(i), availableWidth: width, naturalWidth: 210, fontSize: 20, lines, overflow: false }));
+
+test("name width and wrapping take priority over one-screen fit for both layouts", () => {
+  const input = [...category("a", 9), ...category("b", 9), ...category("c", 9)];
+  const candidate = (count: number, height: number, measured: ScrollableMenuNameMeasurement[]) => ({
+    columnCount: count, columnWidth: 300, itemSize: 20, names: measured,
+    layout: { ...layoutScrollableMenu(input, count, 600), naturalHeights: Array(count).fill(height) },
+  });
+  for (const grouped of [false, true]) {
+    const wide = candidate(2, 900, names(230, 1));
+    const cramped = candidate(3, 580, names(85, 3));
+    assert.equal(selectScrollableMenuCandidate([wide, cramped], grouped), wide);
+    const readable = candidate(3, 580, names(180, 2));
+    assert.equal(selectScrollableMenuCandidate([wide, readable], grouped), readable);
+  }
+});
+
+test("moderate repeated name squeezing matters, but an isolated normal wrap does not", () => {
+  assert.equal(shouldPreferWiderScrollableNames(names(120, 2), names(220, 1)), true);
+  assert.equal(shouldPreferWiderScrollableNames(names(120, 2, 1), names(220, 1, 1)), false);
+  assert.equal(shouldPreferWiderScrollableNames(names(175, 2), names(240, 1)), false);
+  assert.equal(shouldPreferWiderScrollableNames(names(80, 4), names(140, 4)), false, "changing columns must improve the actual name");
+  assert.equal(shouldPreferWiderScrollableNames(names(80, 4, 1), names(160, 3, 1)), true);
+  assert.equal(shouldPreferWiderScrollableNames(names(70, 1).map(n => ({ ...n, naturalWidth: 65 })), names(130, 1)), false);
+});
+
+test("actual name overflow can select two columns even without extra line boxes", () => {
+  assert.equal(shouldPreferWiderScrollableNames(names(80, 1, 1).map(n => ({ ...n, overflow: true })), names(200, 1, 1)), true);
 });

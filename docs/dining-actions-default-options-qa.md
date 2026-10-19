@@ -21,7 +21,7 @@
 - The neutral Basic toolbar groups eleven controls under 영역·이미지 / 메뉴 정보 / 가격·판매 상태. Dining's five controls use the same grouped panel with 판매 상태. The panel can collapse independently of the device/action toolbar, preserving all selections and the current iframe.
 - Basic's new 텍스트칩 switch controls ordinary product/featured badges only. Period promotions and sold-out status retain their independent switches. The selection survives device and detached-window URLs.
 - Neutral Basic image rows with no secondary name, description or other supporting content center the name block and price on the thumbnail. The add action keeps its own measured space below the price; no absolute overlay or mobile reading-token change is introduced. Shared Basic sold-out badges have no outline.
-- Column selection is **unchanged in this follow-up**. The user's proposed remaining-copy-width/wrapping criterion and an automatic three-column ceiling are pending discussion. Do not interpret this UI release as approval to change the current 1–3 plus guarded fourth-column policy.
+- Column selection was unchanged in the UI follow-up. The subsequently approved name-width/wrapping policy now selects two or three columns and removes automatic fourth-column rescue in the contained Basic engine. See `docs/basic-menu-scroll-policy.md` and the latest `docs/real-matcha-scroll-qa.md` entry; mobile remains independent.
 - `qa-default-title-only.mjs` passed twenty PC/tablet/phone, order on/off and price-option on/off cases. The existing option suite passed twenty scenario groups including group structure, collapse persistence and independent badge/sale/stock visibility; fifteen design/cart regression cases and 662 unit tests also passed.
 
 - `qa-dining-menu-actions.mjs`: 57 actual viewport/state cases across original Dining A/B, the neutral Dining preview and seven Basic templates. Checks top-toolbar order, mobile layout, price adjacency across pages, fixed controls during scrolling, SVG variants and viewport overflow.
@@ -29,7 +29,7 @@
 - `qa-menu-interaction-theme.mjs`: 12 cases; template colors, button type, modal/call/cart flow, Pretendard, borders and shared CTA weight. Desktop Dining toolbar expectations follow its transparent icon treatment.
 - `qa-default-design-options.mjs`: 20 scenario groups across all display toggles, typography, default category strokes, selection persistence, wrapped-toolbar clearance and nine templates' mobile language popups at an actual 320×844 viewport, with Call on/off. All popups stay inside the viewport with at least 8px side clearance.
 - `qa-default-design-navigation.mjs`: 6 checks for device/detached navigation, Dining item images and price options, the original empty-cart popup and invalid design routes.
-- `qa-real-matcha-fill.mjs`: 32 actual viewport/content/layout cases include measured 1/2/3/4 menu tracks, four-track readable widths, category/widget/notice spacing, source order, fixed brand/actions and scroll/fade behavior.
+- `qa-real-matcha-fill.mjs`: 32 actual viewport/content/layout cases include measured 1/2/3 menu tracks, no automatic fourth track, category/widget/notice spacing, source order, fixed brand/actions and scroll/fade behavior.
 - TypeScript, changed-file ESLint, 662 unit tests and optimized build pass. Browser checks block API writes and assert no page errors. No customer orders, payments, subscriptions or database records are changed.
 
 ## Remaining rollout

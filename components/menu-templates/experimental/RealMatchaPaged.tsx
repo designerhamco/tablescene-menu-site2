@@ -35,6 +35,7 @@ import { isMenuCoverVisibleOnDevice } from "@/lib/menu-cover-device-visibility";
 import CafeAWidgetBlock, { type CafeAWidgetPreview } from "../CafeAWidgetBlock";
 import ScriptAwareText from "../shared/ScriptAwareText";
 import PagedMenuItem from "./PagedMenuItem";
+import { measureScrollableNames } from "./scroll-name-readability";
 import { applyOnePageChipLayouts } from "../one-page-chip-layout";
 import { getNextTimeSaleBoundaryMs } from "@/lib/menu-time-sale-schedule";
 import {
@@ -272,8 +273,8 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const gap = parseFloat(getComputedStyle(area.current).columnGap) || 24;
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       // The menu region already excludes the fixed brand column and its gutter.
-      // A fourth track is measured only when every real inner track keeps 12rem.
-      const maxColumns = Math.max(1, Math.min(4, Math.floor((width + gap) / (12 * rem + gap))));
+      // Automatic tracks stop at three. Overflow stays on the scroll surface.
+      const maxColumns = Math.max(1, Math.min(3, Math.floor((width + gap) / (12 * rem + gap))));
       const root = area.current.closest<HTMLElement>("[data-scroll-template]")!;
       const grouped = layoutMode !== "orderedFit";
       const collect = (columnCount: number, reference = false) => {
@@ -307,9 +308,13 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const candidates = Array.from({ length: maxColumns }, (_, index) => {
         const count = index + 1;
         const ceiling = (getOnePageItemNameCeilingRem(device) ?? 1.3) * rem;
+        // Compare names at one shared reading size. Shrinking a cramped 3-track
+        // candidate must not disguise its width/wrapping cost during selection.
+        setSize(ceiling);
+        const natural = collect(count);
+        const names = measureScrollableNames(measure.current!);
         if (!grouped) {
-          setSize(ceiling);
-          return { ...collect(count), itemSize: ceiling };
+          return { ...natural, itemSize: ceiling, names };
         }
         const fits = (size: number) => {
           setSize(size);
@@ -323,7 +328,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
           if (fits(middle)) low = middle; else high = middle;
         }
         setSize(low);
-        return { ...collect(count), itemSize: low };
+        return { ...collect(count), itemSize: low, names };
       });
       const selected = selectScrollableMenuCandidate(candidates, grouped) as typeof candidates[number];
       setSize(selected.itemSize);

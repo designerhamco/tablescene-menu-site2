@@ -1,5 +1,17 @@
 # REAL MATCHA contained-scroll experiment — 2026-10-19
 
+## Product-name readability chooses two or three columns — 2026-10-19
+
+The user approved measuring the space left for names after thumbnails, price rails, gaps and chip placement. The contained Basic engine now compares actual rendered text ranges at the same device type ceiling. When a wider two-column layout materially reduces cramped wrapping or horizontal clipping, it takes priority over fitting three columns in one viewport. Ordinary single two-line names and long names that do not improve are not sufficient by themselves. Automatic fourth-column rescue is removed; sparse/physically narrow one-column fallback remains. Existing grouped fitting, fill typography, original visual primitives, mobile delegation and other engines are unchanged. The policy is in `docs/basic-menu-scroll-policy.md`.
+
+- Neutral Basic at actual 1180×820 with thumbnails and the two-/three-price examples selects two menu columns in both grouped and fill. The sample product names are single-line after selection; overflow remains scrollable with the fade. Actual 1920×1080 PC retains three readable columns. Resizing the same document in both directions and toggling image/price options in the real toolbar selects the corresponding columns again without stale state.
+- `qa-basic-readable-columns.mjs`: 10 measured cases cover the above transitions, stable layout, no horizontal overflow and separate name/thumbnail/price rails.
+- `qa-real-matcha-fill.mjs`: 32 viewport/content cases enforce at most three columns, retain sparse one-column behavior, and check both layout types, long/dense/empty content, widgets, notices, root text scaling, exact original padding/gutters/semantic gaps, fixed brand/dock, ordered items and conditional fade.
+- `qa-default-title-only.mjs`: 20 PC/tablet/mobile configurations retain thumbnail/name/price center alignment and the add button's own space. `qa-default-designs.mjs`: 15 default design/cart cases pass. `qa-default-design-options.mjs`: 20 option/language scenario groups pass, including ordinary badges independent from promotion/sold-out labels.
+- All 665 unit tests, TypeScript, changed-file ESLint, whitespace checks and optimized build pass. Final readability, scroll geometry and title-only checks use the optimized build. Development-only title QA saw one streaming hydration mismatch; its complete optimized-build rerun has zero runtime errors. No API writes are allowed in these checks.
+
+Evidence: `/private/tmp/readable-names-build/report.json`, `/private/tmp/readable-fill-build/report.json`, `/private/tmp/readable-title-build/report.json`, `/private/tmp/readable-designs/report.json`, `/private/tmp/readable-options/report.json`, `/private/tmp/readable-build.log`.
+
 ## 채움형 고정 읽기 크기와 스크롤 하단 안전여백 — 2026-10-19
 
 정식 `cafe_design_a` 단일 페이지와 숨김 호환 테스트의 PC·태블릿 **채움형만** 남는 높이를 메우던 열별 최대 1.6배 간격 확대와 메뉴 전체 세로 중앙 이동을 중단했다. 기존 상품/카테고리/위젯/안내 의미 간격과 원본 역할별 서체·색상은 그대로 사용하며, 상품명 기준 크기는 PC 1.35rem·태블릿 1.30rem으로 안정화했다. 실제 DOM 폭·높이 측정은 1–3열 선택, 카테고리 이어짐, 위젯/안내 순서 및 스크롤 여부에 계속 사용한다. 모두 넘칠 때에는 같은 읽기 크기에서 실제 스크롤 길이가 가장 짧은 열 배치를 고른다. 묶음형의 기존 화면 맞춤과 모바일 CafeDesignA 위임은 유지한다.

@@ -84,20 +84,47 @@ export function layoutScrollableMenu(
   return { columns, height: Math.max(viewport, contentHeight), contentHeight, naturalHeights, footerColumn, viewportHeight: viewport };
 }
 
-export type ScrollableMenuCandidate = { columnCount: number; columnWidth: number; layout: ScrollableMenuLayout; itemSize?: number };
+export type ScrollableMenuNameMeasurement = {
+  id: string;
+  availableWidth: number;
+  naturalWidth: number;
+  fontSize: number;
+  lines: number;
+  overflow: boolean;
+};
+export type ScrollableMenuCandidate = {
+  columnCount: number; columnWidth: number; layout: ScrollableMenuLayout; itemSize?: number;
+  /** Measured at the SAME device typography ceiling, before any grouped fit. */
+  names?: readonly ScrollableMenuNameMeasurement[];
+};
+
+/** Do not buy a shorter scroll with cramped product names. A single very long
+ * name need not change the board unless the wider candidate actually helps it. */
+export function shouldPreferWiderScrollableNames(narrow: readonly ScrollableMenuNameMeasurement[], wide: readonly ScrollableMenuNameMeasurement[]) {
+  const widerById = new Map(wide.map(name => [name.id, name]));
+  let improvedCrampedNames = 0;
+  for (const name of narrow) {
+    const wider = widerById.get(name.id);
+    if (!wider || wider.availableWidth < name.availableWidth * 1.15) continue;
+    const improvesOverflow = name.overflow && !wider.overflow;
+    const improvesWrapping = wider.lines < name.lines;
+    if (!improvesOverflow && !improvesWrapping) continue;
+    if (improvesOverflow || name.lines >= 3) return true;
+    // Eight em is a width budget, not a forced one-line/character-count rule.
+    // Short labels use only their own natural width and remain eligible for 3.
+    const desiredWidth = Math.min(name.naturalWidth, name.fontSize * 8);
+    if (name.lines > 1 && name.availableWidth < desiredWidth - name.fontSize * .25) improvedCrampedNames++;
+  }
+  return improvedCrampedNames >= 2;
+}
 /** Prefer readable width to underfilled/empty columns. Sparse content stays honestly sparse. */
 export function selectScrollableMenuCandidate(candidates: readonly ScrollableMenuCandidate[], grouped = false) {
-  if (!candidates.length) throw new Error("At least one measured scroll candidate is required");
-  const preferred = candidates.filter(candidate => candidate.columnCount <= 3);
-  const selected = selectPreferredScrollCandidate(preferred.length ? preferred : candidates, grouped);
-  const rescue = candidates.find(candidate => candidate.columnCount === 4 && candidate.layout.columns.every(column => column.length));
-  if (!rescue || (rescue.itemSize && selected.itemSize && rescue.itemSize < selected.itemSize * (1 - SCROLL_FILL_MAX_TYPE_LOSS))) return selected;
-  const selectedHeight = Math.max(...selected.layout.naturalHeights);
-  if (selectedHeight <= selected.layout.viewportHeight + .1) return selected;
-  const rescueHeight = Math.max(...rescue.layout.naturalHeights);
-  // Four columns are a readable overflow rescue, never a fixed desktop count.
-  // Accept a one-screen fit or a material reduction in actual scroll height.
-  return rescueHeight <= rescue.layout.viewportHeight + .1 || rescueHeight <= selectedHeight * .85 ? rescue : selected;
+  const preferred = candidates.filter(candidate => candidate.columnCount >= 1 && candidate.columnCount <= 3);
+  if (!preferred.length) throw new Error("At least one measured 1–3-column scroll candidate is required");
+  const two = preferred.find(candidate => candidate.columnCount === 2 && candidate.layout.columns.every(column => column.length));
+  const three = preferred.find(candidate => candidate.columnCount === 3 && candidate.layout.columns.every(column => column.length));
+  if (two?.names && three?.names && shouldPreferWiderScrollableNames(three.names, two.names)) return two;
+  return selectPreferredScrollCandidate(preferred, grouped);
 }
 
 function selectPreferredScrollCandidate(candidates: readonly ScrollableMenuCandidate[], grouped: boolean) {
