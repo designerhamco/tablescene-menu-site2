@@ -157,7 +157,7 @@ function MenuItemRow({
         onClick={event => onOpenImage({ src: item.image_url!, title: item.name, secondaryTitle: item.set_name }, event.currentTarget)}>
         <img className="aube-table-item-image" src={item.image_url} alt={`${item.name} 이미지`} loading="lazy" />
       </button> : null}
-      <div className="aube-table-item-copy">
+      <div className="aube-table-item-copy" data-price-options={options.length && price ? "true" : undefined}>
         <div className="aube-table-item-heading" data-has-price={price ? "true" : "false"} data-price-options={options.length && price ? "true" : undefined}>
           <h3><ScriptAwareText text={item.name} /></h3>
           <div className="aube-table-item-purchase">
@@ -710,10 +710,16 @@ export default function DiningAubeTableA({
           .aube-table-page[data-align="center"] .aube-table-item { grid-template-columns: clamp(76px, 21vw, 92px) minmax(0, 1fr); }
           .aube-table-item-image { width: clamp(76px, 21vw, 92px); height: clamp(76px, 21vw, 92px); }
           .aube-table-item-heading { gap: clamp(8px, 2.5vw, 11px); }
-          .aube-table-item-heading[data-price-options="true"] { flex-wrap: wrap; row-gap: .375rem; }
+          /* Keep the translated name next to its product before the mobile price rail. */
+          .aube-table-item-copy[data-price-options="true"] { display: flex; flex-direction: column; min-width: 0; }
+          .aube-table-item-heading[data-price-options="true"] { display: contents; }
+          .aube-table-item-copy[data-price-options="true"] .aube-table-item-secondary { order: 2; }
+          .aube-table-item-copy[data-price-options="true"] .aube-table-item-purchase { order: 3; width: 100%; margin-top: .375rem; }
+          .aube-table-item-copy[data-price-options="true"] .aube-table-item-description { order: 4; }
+          .aube-table-item-copy[data-price-options="true"] .aube-table-sold-out { order: 5; }
           .aube-table-item-heading[data-price-options="true"]::after { display: none; }
-          .aube-table-item-heading[data-price-options="true"] h3 { flex: 0 0 100%; max-width: 100%; min-width: 0; overflow-wrap: anywhere; }
-          .aube-table-item-heading[data-price-options="true"] .aube-table-item-purchase { flex: 0 0 100%; justify-content: flex-end; }
+          .aube-table-item-heading[data-price-options="true"] h3 { flex: none; max-width: 100%; min-width: 0; overflow-wrap: anywhere; }
+          .aube-table-item-heading[data-price-options="true"] .aube-table-item-purchase { flex: none; justify-content: flex-end; }
           .aube-table-item-heading[data-price-options="true"] .aube-table-item-purchase::before { content: ""; min-width: 24px; height: 1.5px; flex: 1 0 24px; background: radial-gradient(circle, var(--aube-leader-dot) .65px, transparent .78px) left center / 5px 1.5px repeat-x; }
           .aube-table-item-heading[data-price-options="true"] .aube-table-item-price { display: flex; flex: 0 1 auto; flex-direction: column; align-items: flex-end; gap: .375rem; min-width: 0; text-align: right; }
           .aube-table-item-heading[data-price-options="true"] .aube-table-item-price > span { min-width: 0; max-width: 100%; }

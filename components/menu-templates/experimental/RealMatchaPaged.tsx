@@ -284,6 +284,11 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       // Automatic tracks stop at three. Overflow stays on the scroll surface.
       const maxColumns = Math.max(1, Math.min(centerColumn ? 2 : 3, Math.floor((width + gap) / (12 * rem + gap))));
       const root = area.current.closest<HTMLElement>("[data-scroll-template]")!;
+      if (upperLeft) {
+        const boardStyle = getComputedStyle(root);
+        const innerHeight = root.clientHeight - parseFloat(boardStyle.paddingTop) - parseFloat(boardStyle.paddingBottom);
+        root.style.setProperty("--scroll-corner-height", `${Math.min(30 * rem, innerHeight * .56)}px`);
+      }
       root.style.setProperty("--scroll-center-slot", `${brandWidth}px`);
       const grouped = layoutMode !== "orderedFit";
       const collect = (columnCount: number, reference = false) => {
@@ -414,6 +419,10 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   const storeDescription = (data.menuSite.brand_description || data.menuSite.description)
     ? <p className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null;
   const showCover = data.pageSettings.menu_cover_enabled && featuredSlides.length > 0 && isMenuCoverVisibleOnDevice(data.pageSettings, device);
+  const brandPanel = <aside ref={brandArea} className={styles.brand} data-paged-brand>
+          {!topRow ? <>{languageControl}<div className={styles.identity}>{storeIdentity}{storeDescription}</div></> : null}
+          {showCover ? <CafeACoverHero data={baseProps} featuredSlides={featuredSlides} capabilities={capabilities} density="default" customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} desktopClassName={styles.cover} /> : null}
+        </aside>;
   return (
     <CafeATimeSaleClock value={saleNow}>
       <CafeATypographyFontAssets typographySettings={typographySettings} />
@@ -454,10 +463,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             {allNotices.map((n, i) => <p key={i}><ScriptAwareText text={n} /></p>)}
           </div>
         </header> : null}
-        <aside ref={brandArea} className={styles.brand} data-paged-brand>
-          {!topRow ? <>{languageControl}<div className={styles.identity}>{storeIdentity}{storeDescription}</div></> : null}
-          {showCover ? <CafeACoverHero data={baseProps} featuredSlides={featuredSlides} capabilities={capabilities} density="default" customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} desktopClassName={styles.cover} /> : null}
-        </aside>
+        {!upperLeft ? brandPanel : null}
         <div className={styles.menuPanel} data-paged-menu-panel>
           <div className={styles.viewport} data-scroll-viewport>
             <div
@@ -485,8 +491,8 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
                 <div className={styles.columns} data-scroll-columns style={{ height: layout.contentHeight, maxWidth: layout.columns.length === 1 && !upperLeft && !centerColumn ? layout.columnWidth : undefined }}>
                   {layout.columns.map((column, i) => {
                     return <div key={i} className={styles.column} data-paged-column={i + 1}
-                      style={upperLeft && i === 0 ? { paddingTop: "var(--scroll-first-inset)" } : undefined}
                       data-scroll-natural-height={layout.naturalHeights[i]}>
+                      {upperLeft && i === 0 ? brandPanel : null}
                       {column.map((b, index) => <div key={b.id}>
                         {unit(b, index === column.length - 1, i === layout.footerColumn && notices.length > 0,
                           column[index + 1]?.kind ?? (i === layout.footerColumn && notices.length ? "notices" : undefined))}

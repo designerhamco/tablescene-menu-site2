@@ -7,7 +7,7 @@ export const MENU_LAYOUTS = {
   "basic-first-column": { service: "basic", label: "1열 고정형" },
   "basic-top-row": { service: "basic", label: "상단행 고정형" },
   "basic-center-column": { service: "basic", label: "중앙열 고정형" },
-  "basic-upper-left": { service: "basic", label: "좌상단 고정형" },
+  "basic-upper-left": { service: "basic", label: "좌상단 배치형" },
   "dining-full-page": { service: "dining", label: "전면 페이지형" },
   "dining-sidebar": { service: "dining", label: "좌측 내비게이션형" },
 } as const;

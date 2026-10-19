@@ -28,3 +28,28 @@
  .backdrop[data-device="auto"] .panel { max-width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; }
  .backdrop[data-device="auto"] .body { flex: 1; padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
 }
+
+.tabs { display: flex; flex: none; width: 100%; max-width: 56rem; margin-inline: auto; padding-inline: 1.25rem; border-bottom: 1px solid #e7e8e7; }
+.panel .tabs button { flex: 1; min-height: 3rem; border: 0; border-bottom: 2px solid transparent; border-radius: 0; background: none; color: #777d79; font-size: .9375rem; }
+.tabs button[aria-selected="true"] { color: #191c1b; border-bottom-color: #191c1b; }
+.empty .historyLink { margin-top: 1rem; border: 0; background: transparent; color: #414842; text-decoration: underline; text-underline-offset: .25rem; min-height: 44px; font-size: .875rem; }
+.historyHint { font-size: .8125rem; color: #686e6b; line-height: 1.6; }
+.historyOrder { padding-block: 1.5rem; border-bottom: 1px solid #e7e8e7; }
+.historyTitle { display: flex; gap: 1rem; justify-content: space-between; }
+.historyTitle h3 { font-size: 1rem; font-weight: 600; }
+.historyTitle p { font-size: .8125rem; color: #686e6b; margin-top: .25rem; }
+.historyState { display: flex; flex: none; flex-direction: column; align-items: flex-end; font-size: .875rem; }
+.historyState strong, .historyTotal strong { font-weight: 500; }
+.historyState span { font-size: .8125rem; color: #686e6b; }
+.progress { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .375rem; padding: 0; margin-block: 1.25rem; list-style: none; }
+.progress li { border-top: 2px solid #e7e8e7; padding-top: .5rem; font-size: .75rem; color: #737974; text-align: center; word-break: keep-all; }
+.progress li[data-reached="true"] { border-top-color: #191c1b; }
+.progress li[aria-current="step"] { color: #191c1b; font-weight: 600; }
+.historyLines { list-style: none; padding: 0; margin-block: 1rem; }
+.historyLines li { display: flex; justify-content: space-between; gap: 1rem; padding-block: .5rem; font-size: .875rem; }
+.historyLines li > span { flex: none; }
+.historyLines small { color: #686e6b; }
+.historyTotal { display: flex; justify-content: space-between; gap: 1rem; margin-block: 1rem; font-size: .9375rem; }
+.cancelRow, .cancelConfirm { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; font-size: .8125rem; color: #686e6b; }
+.cancelRow p, .cancelConfirm p { flex: 1 1 12rem; }
+.cancelConfirm button, .cancelRow button { flex: none; min-height: 2.75rem; }
