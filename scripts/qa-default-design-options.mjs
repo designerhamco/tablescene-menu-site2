@@ -58,7 +58,7 @@ try {
     assert.equal(await frame.locator(description).filter({ visible: true }).count(), 0);
     if (basic) {
       assert.ok(await frame.locator('[data-cafe-a-menu-badge]').filter({ visible: true }).count());
-      frame = await toggle(design, 'badgesPreview', '텍스트칩', false);
+      frame = await toggle(design, 'badgesPreview', '일반 텍스트칩', false);
       assert.equal(await frame.locator('[data-cafe-a-menu-badge]').count(), 0);
       assert.ok(await frame.locator('.cafe-a-time-sale-time-text').filter({ visible: true }).count(), 'regular chips do not hide promotions');
       assert.equal(await frame.locator('[data-cafe-a-sold-out="true"]').filter({ visible: true }).count(), 1, 'regular chips do not hide sold-out state');
@@ -66,7 +66,7 @@ try {
       assert.ok(chipBorders.length && chipBorders.every(border => border === '0px'), 'sold-out chips have no border');
       await optionsToggle.click();
       await optionsToggle.click();
-      assert.equal(await p.getByRole('checkbox', { name: '텍스트칩 보기', exact: true }).isChecked(), false);
+      assert.equal(await p.getByRole('checkbox', { name: '일반 텍스트칩 보기', exact: true }).isChecked(), false);
       const headings = frame.locator('.cafe-a-price-column-header').filter({ visible: true });
       assert.deepEqual(await headings.evaluateAll(els => els.map(e => e.querySelectorAll('.cafe-a-price-column-heading').length)), [2, 3]);
       frame = await toggle(design, 'priceOptionsPreview', '가격 옵션', false);
@@ -121,7 +121,7 @@ try {
     if (basic) {
       assert.equal(url.searchParams.get('badgesPreview'), 'off');
       assert.equal(await frame.locator('[data-cafe-a-menu-badge]').count(), 0);
-      frame = await toggle(design, 'badgesPreview', '텍스트칩', true);
+      frame = await toggle(design, 'badgesPreview', '일반 텍스트칩', true);
       assert.ok(await frame.locator('[data-cafe-a-menu-badge]').filter({ visible: true }).count());
     }
     frame = await toggle(design, 'secondaryNamesPreview', '보조 언어명', true);

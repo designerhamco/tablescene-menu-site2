@@ -126,7 +126,7 @@ export default function MenuPreviewDeviceFrame(
   const displayGroups: { label: string; choices: [DefaultDesignOptionKey, string][] }[] = defaultDesign?.layout === "basic-first-column"
     ? [
       { label: "영역·이미지", choices: [["coverPreview", "대표 영역"], ["featuredPreview", "대표 상품"], ["imagesPreview", "상품 이미지"], ["widgetsPreview", "위젯"]] },
-      { label: "메뉴 정보", choices: [["secondaryNamesPreview", "보조 언어명"], ["descriptionsPreview", "메뉴 설명"], ["badgesPreview", "텍스트칩"]] },
+      { label: "메뉴 정보", choices: [["secondaryNamesPreview", "보조 언어명"], ["descriptionsPreview", "메뉴 설명"], ["badgesPreview", "일반 텍스트칩"]] },
       { label: "가격·판매 상태", choices: [["priceOptionsPreview", "가격 옵션"], ["priceNotesPreview", "가격 설명"], ["timeSalesPreview", "기간 할인"], ["soldOutPreview", "품절"]] },
     ]
     : [
