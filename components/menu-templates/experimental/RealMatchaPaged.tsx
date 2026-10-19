@@ -25,7 +25,7 @@ import CafeDesignA, {
   getCafeAFooterInfo,
 } from "../CafeDesignA";
 import type { CafeMenuImagePreview } from "../shared/cafe-template-types";
-import { OnePageMobileCallBar, OnePageCallPalette, useOnePageCallActions } from "../one-page/OnePageCallControls";
+import { OnePageCallPalette, useOnePageCallActions } from "../one-page/OnePageCallControls";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { getPriceDisplayModeFromSettings } from "@/lib/menu-price-format";
 import { getCustomBadgeStyles } from "@/lib/template-badge-styles";
@@ -362,7 +362,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         <aside ref={brandArea} className={styles.brand} data-paged-brand>
           <OnePageCallPalette />
           <div className={styles.brandControls} data-paged-controls>
-            {call.enabled ? <OnePageMobileCallBar showActions={false} languageControl={<CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly />} /> : <CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly />}
+            <CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly />
           </div>
           <div className={styles.identity}>
             <CafeAStoreIdentity data={baseProps} capabilities={capabilities} titleClassName="cafe-a-store-title cafe-a-rail-title" logoClassName={styles.logo} />

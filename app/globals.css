@@ -5781,7 +5781,8 @@ video {
 .cafe-a-mobile-call-dock-button svg { inline-size: 1.5rem; block-size: 1.5rem; }
 .cafe-a-mobile-call-dock { display: none; }
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] .cafe-a-mobile-call-dock {
-  display: block;
+  display: flex;
+  gap: .5rem;
   position: fixed;
   z-index: 80;
   inset-inline: 1.5rem;
@@ -5825,3 +5826,8 @@ video {
 .cafe-a-price-area .cafe-a-price-order-add { display:flex; margin-inline-start:auto; margin-block-start:.25rem; }
 
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"] [data-menu-order-add] > span { inset-inline-end:0; inset-block-start:0; }
+
+/* Mobile order/call share one reserved dock row; no menu reading tokens change. */
+.cafe-a-mobile-call-dock > button { flex: 1 1 0; min-width: 0; }
+.cafe-a-mobile-call-dock[data-has-order="true"] .cafe-a-mobile-order-dock-button { background: #191c1b; color: #fff; border-color: #191c1b; box-shadow: none; }
+.cafe-a-mobile-call-dock[data-has-order="true"] [data-one-page-call-button="mobile-bottom"] { background: #fff; color: #191c1b; border-color: #b8bcb9; box-shadow: none; }

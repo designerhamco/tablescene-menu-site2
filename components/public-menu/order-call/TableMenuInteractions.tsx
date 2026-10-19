@@ -51,13 +51,13 @@ type Actions = {
   presentation: "cafe" | "aube";
 };
 const Context = createContext<Actions | null>(null);
-export function TableMenuActionButtons({ appearance = "circle" }: { appearance?: "circle" | "inline" }) {
+export function TableMenuActionButtons({ appearance = "circle", headerOnly = false }: { appearance?: "circle" | "inline"; headerOnly?: boolean }) {
   const a = useContext(Context);
   if (!a || (!a.call && !a.order)) return null;
   const inline = appearance === "inline";
   return (
     <div className={styles.actions} data-table-menu-actions data-appearance={appearance}>
-      {a.call ? (
+      {a.call && (!headerOnly || !a.order) ? (
         <button
           type="button"
           className={inline ? styles.inlineAction : styles.circle}
@@ -96,14 +96,26 @@ export function TableMenuHeader({ actions = true }: { actions?: boolean }) {
         currentLocale={a.locale}
         enabledLocales={a.locales}
         compact
-        iconOnly={a.presentation !== "aube"}
+        iconOnly
         triggerVariant={a.presentation}
         menuAlign="left"
       />
       <span className={styles.table}>{a.table}</span>
-      {actions ? <TableMenuActionButtons /> : <span />}
+      {actions ? <TableMenuActionButtons headerOnly /> : <span />}
     </header>
   );
+}
+function TableMenuMobileDock() {
+  const actions = useContext(Context);
+  if (!actions || (!actions.call && !actions.order)) return null;
+  return <div className={styles.mobileDock} data-table-mobile-dock>
+    {actions.order ? <button type="button" className={styles.mobileOrder} onClick={actions.openCart} aria-label={`주문하기, 장바구니 ${actions.count}개`}>
+      <ShoppingCart aria-hidden="true" /><span>주문하기{actions.count ? ` (${actions.count})` : ""}</span>
+    </button> : null}
+    {actions.call ? <button type="button" className={actions.order ? styles.mobileCall : styles.mobileCallOnly} onClick={actions.openCall} aria-label="직원 호출하기">
+      <Bell aria-hidden="true" /><span>호출하기</span>
+    </button> : null}
+  </div>;
 }
 export default function TableMenuInteractions({
   config,
@@ -185,11 +197,13 @@ export default function TableMenuInteractions({
             data-device={devicePresentation}
             data-presentation={presentation}
             data-embedded={embedded ? "true" : "false"}
+            data-mobile-dock={!embedded && devicePresentation === "mobile" && (call || order) ? "true" : "false"}
           >
             {!embedded && devicePresentation === "mobile" ? (
               <TableMenuHeader />
             ) : null}
             <div className={styles.content}>{children}</div>
+            {!embedded && devicePresentation === "mobile" ? <TableMenuMobileDock /> : null}
             {!embedded && devicePresentation !== "mobile" ? (
               <div className={styles.dock}>
                 <TableMenuActionButtons />
@@ -212,6 +226,8 @@ export default function TableMenuInteractions({
                 catalog={config.orderCatalog ?? []}
                 previewOnly={config.previewOnly}
                 typographyStyle={typographyStyle}
+                tableLabel={actions.table}
+                device={devicePresentation}
                 checkoutModes={
                   devicePresentation === "mobile" &&
                   config.checkoutModes?.includes("prepay")

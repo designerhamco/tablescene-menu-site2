@@ -20,10 +20,7 @@ try {
    assert.equal(await page.locator('[data-scroll-order]').count(),Number(order));
    assert.equal(await page.locator('[data-scroll-actions]').count(),Number(call||order));
    assert.equal(await page.locator('[data-paged-controls] [data-one-page-table-actions]').count(),0);
-   if(call||order) {
-    const brand=await page.locator('[data-paged-brand]').boundingBox(),table=await page.locator('[data-one-page-table-label]').boundingBox();
-    assert.ok(Math.abs((brand.x+brand.width/2)-(table.x+table.width/2))<1,'table label stays centered in the fixed brand rail');
-   }
+   assert.equal(await page.locator('[data-paged-controls] [data-one-page-table-label]').count(),0);
    const metrics=await page.locator('[data-scroll-actions] button').evaluateAll(buttons=>buttons.map(button=>{const r=button.getBoundingClientRect(),s=getComputedStyle(button);return {x:r.x,y:r.y,width:r.width,height:r.height,radius:s.borderRadius,background:s.backgroundColor,shadow:s.boxShadow}}));
    for(const m of metrics){assert.ok(m.width>m.height*2);assert.equal(m.radius,'8px');assert.equal(m.shadow,'none');assert.ok(m.height>=44)}
    if(call)assert.equal(metrics[0].background,'rgb(255, 255, 255)');

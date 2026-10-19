@@ -187,6 +187,7 @@ export default function OrderCallEntryLayer({
           menuSiteId={config.menuSiteId!}
           cartScope={config.cartScope!}
           catalog={config.orderCatalog!}
+          tableLabel={config.tableLabel}
           checkoutMode={config.checkoutMode ?? "postpay"}
           checkoutModes={config.checkoutModes}
           previewOnly={config.previewOnly ?? false}
