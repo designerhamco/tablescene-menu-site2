@@ -17,7 +17,7 @@ try {
   const p=await browser.newPage({viewport:{width:w,height:h},reducedMotion:'reduce'});p.on('pageerror',e=>errors.push(e.message));
   await p.route('**/api/public-menu/**',r=>r.request().method()==='GET'?r.continue():(writes.push(r.request().url()),r.abort()));
   try {
-   await p.goto(base+`/templates/${key}/preview?`+new URLSearchParams({device,view:'actual',embedded:'1',callPreview:'on',orderPreview:'on',pageTest:'options'}),{waitUntil:'domcontentloaded'});
+   await p.goto(base+`/templates/${key}/preview?`+new URLSearchParams({device,view:'actual',embedded:'1',callPreview:'on',orderPreview:'on',pageTest:'options'}),{waitUntil:'networkidle'});
    await p.evaluate(()=>document.fonts.ready);
    if(device==='mobile'&&key.startsWith('cafe_'))await p.waitForSelector('[data-mobile-brand-fit="ready"]');
    else if(key==='cafe_real_matcha_paged_test')await p.waitForSelector('[data-paged-ready="true"]');

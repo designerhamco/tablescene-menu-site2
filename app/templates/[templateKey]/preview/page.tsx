@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
+import defaultDesignStyles from "@/components/menu-templates/defaults/DefaultDesignPreview.module.css";
+import { getDefaultDesignReview } from "@/lib/menu-design-policy";
+import { buildDefaultDesignPreview } from "@/lib/default-design-preview";
 import type { OrderCallEntryConfig } from "@/components/public-menu/order-call/types";
 import { applyPagedMatchaFixture } from "@/lib/template-demo-data/paged-matcha";
 import { buildInteractivePreviewConfig } from "@/lib/preview-order-config";
@@ -41,6 +44,7 @@ import { getDefaultPageSettings, sortMenuPages } from "@/types/menu";
 type PageProps = {
   params: Promise<{ templateKey: string }>;
   searchParams?: Promise<{
+    design?: string | string[];
     fontSizeScale?: string | string[];
     layoutMode?: string | string[];
     page?: string | string[];
@@ -1430,7 +1434,7 @@ function applyCafeAFooterStressData(data: MenuPageData, footerStress: string | s
   };
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
   const { templateKey: routeTemplateKey } = await params;
   const templateKey = resolveTemplatePreviewRouteKey(routeTemplateKey);
 
@@ -1442,10 +1446,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   const template = getTemplateByKey(templateKey);
+  const query = searchParams ? await searchParams : {};
+  const design = getDefaultDesignReview(Array.isArray(query.design) ? query.design[0] : query.design, templateKey);
+  const label = design?.label ?? template.name;
 
   return {
-    title: `${template.name} 미리보기 | ArtiMenu`,
-    description: `${template.name} 템플릿 화면을 미리 확인해보세요.`,
+    title: `${label} 미리보기 | ArtiMenu`,
+    description: `${label} 템플릿 화면을 미리 확인해보세요.`,
     robots: { index: false, follow: false },
   };
 }
@@ -1458,6 +1465,9 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   }
   const resolvedSearchParams = searchParams ? await searchParams : {};
   const getFirstParam = (value: string | string[] | undefined) => Array.isArray(value) ? value[0] : value;
+  const requestedDesign = getFirstParam(resolvedSearchParams.design);
+  const defaultDesign = getDefaultDesignReview(requestedDesign, templateKey);
+  if (requestedDesign && !defaultDesign) notFound();
   const layoutModeParam = Array.isArray(resolvedSearchParams.layoutMode)
     ? resolvedSearchParams.layoutMode[0]
     : resolvedSearchParams.layoutMode;
@@ -1527,7 +1537,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     ),
     resolvedSearchParams.fontSizeScale
   );
-  const data = applyActiveTemplateLocaleQaFixture(
+  const localizedData = applyActiveTemplateLocaleQaFixture(
     applyMenuPriceAlignmentQaFixture(
       applyOnePageRhythmQaFixture(
         applyPreviewLocale(fixtureData, resolvedSearchParams.lang),
@@ -1537,6 +1547,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     ),
     resolvedSearchParams.localeQa,
   );
+  const data = defaultDesign ? buildDefaultDesignPreview(localizedData, defaultDesign) : localizedData;
   if (templateKey === "cafe_real_matcha_paged_test") applyPagedMatchaFixture(data, getFirstParam(resolvedSearchParams.pageTest));
   const requestedRenderMode = Array.isArray(resolvedSearchParams.renderMode)
     ? resolvedSearchParams.renderMode[0]
@@ -1556,7 +1567,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   );
 
   if (orderCallConfig && getFirstParam(resolvedSearchParams.prepayPreview) === "off") orderCallConfig.checkoutModes = ["postpay"];
-  return (
+  const preview = (
     <>
       <MenuPageRenderer
         mode={renderMode}
@@ -1570,4 +1581,5 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
       {templateKey === "display_menu_a" && !isActualView ? <MenuPreviewGuide variant="display" /> : null}
     </>
   );
+  return defaultDesign ? <div className={defaultDesignStyles.surface} data-default-design={defaultDesign.id}>{preview}</div> : preview;
 }

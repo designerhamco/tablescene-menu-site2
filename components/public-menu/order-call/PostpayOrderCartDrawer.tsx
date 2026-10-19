@@ -612,7 +612,7 @@ export default function PostpayOrderCartDrawer({
       onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
     >
       <div ref={dialogRef} className={`${styles.panel} ${ui.typography}`} role="dialog" aria-modal="true" aria-label="장바구니">
-        <header className={styles.header}>
+        {cart.length > 0 ? <header className={styles.header}>
           <button type="button" className={styles.back} onClick={onClose} aria-label="메뉴판으로 돌아가기" data-cart-back>
             <ArrowLeft aria-hidden="true" strokeWidth={1.7} />
           </button>
@@ -621,7 +621,7 @@ export default function PostpayOrderCartDrawer({
             <p data-cart-table>{tableLabel}</p>
           </div>
           <span className={styles.count}>{totalUnits}/50</span>
-        </header>
+        </header> : null}
 
         <div className={styles.body}>
 
