@@ -76,6 +76,7 @@ type PageProps = {
     imagesPreview?: string | string[];
     secondaryNamesPreview?: string | string[];
     descriptionsPreview?: string | string[];
+    badgesPreview?: string | string[];
     priceOptionsPreview?: string | string[];
     priceNotesPreview?: string | string[];
     timeSalesPreview?: string | string[];

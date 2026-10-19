@@ -90,6 +90,7 @@ export default function MenuPreviewDeviceFrame(
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isToolbarOpen, setIsToolbarOpen] = useState(true);
+  const [areDisplayOptionsOpen, setAreDisplayOptionsOpen] = useState(true);
   const toolbarRef = useRef<HTMLElement>(null);
   const [toolbarHeight, setToolbarHeight] = useState(128);
   useEffect(() => {
@@ -122,9 +123,19 @@ export default function MenuPreviewDeviceFrame(
   const designParam = (query as TemplatePreviewQuery).design;
   const defaultDesign = props.templateKey ? getDefaultDesignReview(Array.isArray(designParam) ? designParam[0] : designParam, props.templateKey) : undefined;
   const [displayOptions, setDisplayOptions] = useOptimistic(getDefaultDesignOptions(query as TemplatePreviewQuery));
-  const displayChoices: [DefaultDesignOptionKey, string][] = defaultDesign?.layout === "basic-first-column"
-    ? [["widgetsPreview", "위젯"], ["coverPreview", "대표 영역"], ["featuredPreview", "대표 상품"], ["imagesPreview", "상품 이미지"], ["secondaryNamesPreview", "보조 언어명"], ["descriptionsPreview", "메뉴 설명"], ["priceOptionsPreview", "가격 옵션"], ["priceNotesPreview", "가격 설명"], ["timeSalesPreview", "기간 할인"], ["soldOutPreview", "품절"]]
-    : [["coverPreview", "커버 페이지"], ["imagesPreview", "상품 이미지"], ["secondaryNamesPreview", "보조 언어명"], ["descriptionsPreview", "메뉴 설명"], ["soldOutPreview", "품절"]];
+  const displayGroups: { label: string; choices: [DefaultDesignOptionKey, string][] }[] = defaultDesign?.layout === "basic-first-column"
+    ? [
+      { label: "영역·이미지", choices: [["coverPreview", "대표 영역"], ["featuredPreview", "대표 상품"], ["imagesPreview", "상품 이미지"], ["widgetsPreview", "위젯"]] },
+      { label: "메뉴 정보", choices: [["secondaryNamesPreview", "보조 언어명"], ["descriptionsPreview", "메뉴 설명"], ["badgesPreview", "텍스트칩"]] },
+      { label: "가격·판매 상태", choices: [["priceOptionsPreview", "가격 옵션"], ["priceNotesPreview", "가격 설명"], ["timeSalesPreview", "기간 할인"], ["soldOutPreview", "품절"]] },
+    ]
+    : [
+      { label: "영역·이미지", choices: [["coverPreview", "커버 페이지"], ["imagesPreview", "상품 이미지"]] },
+      { label: "메뉴 정보", choices: [["secondaryNamesPreview", "보조 언어명"], ["descriptionsPreview", "메뉴 설명"]] },
+      { label: "판매 상태", choices: [["soldOutPreview", "품절"]] },
+    ];
+  const displayChoices = displayGroups.flatMap(group => group.choices);
+  const enabledDisplayCount = displayChoices.filter(([key]) => displayOptions[key]).length;
   const changeDisplayOption = (key: DefaultDesignOptionKey, enabled: boolean) => {
     if (!props.templateKey || !defaultDesign) return;
     startTransition(() => {
@@ -321,16 +332,31 @@ export default function MenuPreviewDeviceFrame(
             </Link>
           </div>
           {defaultDesign && showToolbar ? (
-            <fieldset className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/15 px-2 pb-1 pt-2 text-xs" data-preview-display-options>
-              <legend className="sr-only">보기 옵션</legend>
-              <span className="text-white/60" aria-hidden="true">보기 옵션</span>
-              {displayChoices.map(([key, label]) => (
-                <label key={key} className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 font-medium has-[:disabled]:cursor-default has-[:disabled]:opacity-40">
-                  <input type="checkbox" aria-label={`${label} 보기`} checked={displayOptions[key]} disabled={isPending || (key === "featuredPreview" && !displayOptions.coverPreview)}
-                    onChange={event => changeDisplayOption(key, event.target.checked)} />{label}
-                </label>
-              ))}
-            </fieldset>
+            <section className="mt-2 border-t border-white/15 px-2 pb-1 pt-1 text-xs" aria-label="보기 옵션">
+              <button type="button" className="flex min-h-9 w-full items-center gap-2 text-left font-medium text-white/90"
+                aria-expanded={areDisplayOptionsOpen} aria-controls="preview-display-options"
+                onClick={() => setAreDisplayOptionsOpen(open => !open)}>
+                보기 옵션 <span className="font-normal text-white/60">{enabledDisplayCount}/{displayChoices.length} 선택</span>
+                {areDisplayOptionsOpen ? <ChevronUp className="ml-auto h-3.5 w-3.5" aria-hidden="true" /> : <ChevronDown className="ml-auto h-3.5 w-3.5" aria-hidden="true" />}
+              </button>
+              <div id="preview-display-options" data-preview-display-options hidden={!areDisplayOptionsOpen}>
+                <div className="grid gap-x-5 gap-y-2 pb-1 min-[640px]:grid-cols-3">
+                  {displayGroups.map(group => (
+                    <fieldset key={group.label} className="min-w-0">
+                      <legend className="mb-1 text-[0.65rem] font-medium text-white/60">{group.label}</legend>
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5">
+                        {group.choices.map(([key, label]) => (
+                          <label key={key} className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 font-medium has-[:disabled]:cursor-default has-[:disabled]:opacity-40">
+                            <input type="checkbox" aria-label={`${label} 보기`} checked={displayOptions[key]} disabled={isPending || (key === "featuredPreview" && !displayOptions.coverPreview)}
+                              onChange={event => changeDisplayOption(key, event.target.checked)} />{label}
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
+                  ))}
+                </div>
+              </div>
+            </section>
           ) : null}
           <button
             type="button"

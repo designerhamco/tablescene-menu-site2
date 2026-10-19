@@ -31,7 +31,15 @@ try {
     let frame = await frameReady(design);
     const guide = p.locator('[data-preview-guide-variant]');
     if (await guide.isVisible()) await guide.getByRole('button', { name: '닫기', exact: true }).click();
-    assert.equal(await p.locator('[data-preview-display-options] input:checked').count(), basic ? 10 : 5);
+    assert.equal(await p.locator('[data-preview-display-options] input:checked').count(), basic ? 11 : 5);
+    assert.equal(await p.locator('[data-preview-display-options] fieldset').count(), 3);
+    const optionsToggle = p.getByRole('button', { name: /^보기 옵션/ });
+    const initialSrc = await p.locator('iframe').getAttribute('src');
+    await optionsToggle.click();
+    assert.equal(await p.locator('[data-preview-display-options]').isVisible(), false);
+    assert.equal(await p.locator('iframe').getAttribute('src'), initialSrc, 'collapsing options preserves the menu');
+    await optionsToggle.click();
+    assert.equal(await p.locator('[data-preview-display-options]').isVisible(), true);
     if (!basic) {
       await frame.getByRole('button', { name: /A La Carte.*페이지로 이동/ }).click();
       await frame.getByRole('heading', { name: 'A La Carte Menu', exact: true }).waitFor();
@@ -49,6 +57,16 @@ try {
     assert.equal(await frame.locator(secondary).filter({ visible: true }).count(), 0);
     assert.equal(await frame.locator(description).filter({ visible: true }).count(), 0);
     if (basic) {
+      assert.ok(await frame.locator('[data-cafe-a-menu-badge]').filter({ visible: true }).count());
+      frame = await toggle(design, 'badgesPreview', '텍스트칩', false);
+      assert.equal(await frame.locator('[data-cafe-a-menu-badge]').count(), 0);
+      assert.ok(await frame.locator('.cafe-a-time-sale-time-text').filter({ visible: true }).count(), 'regular chips do not hide promotions');
+      assert.equal(await frame.locator('[data-cafe-a-sold-out="true"]').filter({ visible: true }).count(), 1, 'regular chips do not hide sold-out state');
+      const chipBorders = await frame.locator('.cafe-a-sold-out-chip').filter({ visible: true }).evaluateAll(els => els.map(e => getComputedStyle(e).borderWidth));
+      assert.ok(chipBorders.length && chipBorders.every(border => border === '0px'), 'sold-out chips have no border');
+      await optionsToggle.click();
+      await optionsToggle.click();
+      assert.equal(await p.getByRole('checkbox', { name: '텍스트칩 보기', exact: true }).isChecked(), false);
       const headings = frame.locator('.cafe-a-price-column-header').filter({ visible: true });
       assert.deepEqual(await headings.evaluateAll(els => els.map(e => e.querySelectorAll('.cafe-a-price-column-heading').length)), [2, 3]);
       frame = await toggle(design, 'priceOptionsPreview', '가격 옵션', false);
@@ -100,6 +118,12 @@ try {
     assert.equal(await frame.locator('.cafe-a-menu-item-image,.aube-table-item-image').count(), 0);
     const url = new URL(await p.locator('iframe').getAttribute('src'), base);
     for (const name of ['coverPreview', 'imagesPreview', 'secondaryNamesPreview', 'descriptionsPreview']) assert.equal(url.searchParams.get(name), 'off');
+    if (basic) {
+      assert.equal(url.searchParams.get('badgesPreview'), 'off');
+      assert.equal(await frame.locator('[data-cafe-a-menu-badge]').count(), 0);
+      frame = await toggle(design, 'badgesPreview', '텍스트칩', true);
+      assert.ok(await frame.locator('[data-cafe-a-menu-badge]').filter({ visible: true }).count());
+    }
     frame = await toggle(design, 'secondaryNamesPreview', '보조 언어명', true);
     frame = await toggle(design, 'descriptionsPreview', '메뉴 설명', true);
     frame = await toggle(design, 'coverPreview', basic ? '대표 영역' : '커버 페이지', true);
@@ -114,6 +138,13 @@ try {
     assert.ok(await frame.locator(description).filter({ visible: true }).count());
     for (const outerWidth of [1440, 390]) {
       await p.setViewportSize({ width: outerWidth, height: 1000 });
+      await p.waitForFunction(() => {
+        const toolbar = document.querySelector('[data-preview-device-toolbar]').getBoundingClientRect();
+        return toolbar.left >= 8 && toolbar.right <= innerWidth - 8;
+      });
+      // Clicking a page inside the iframe can scroll the outer preview to that
+      // focused control. Measure initial toolbar clearance at the scroll origin.
+      await p.locator('main > section').evaluate(section => { section.scrollTop = 0; });
       await p.waitForFunction(() => document.querySelector('[data-preview-frame-shell]').getBoundingClientRect().top >= document.querySelector('[data-preview-device-toolbar]').getBoundingClientRect().bottom + 8);
     }
     await p.screenshot({ path: `${output}/${design}-toolbar.png` });

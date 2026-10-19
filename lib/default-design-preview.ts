@@ -93,6 +93,7 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
     ...item,
     set_name: options.secondaryNamesPreview ? item.set_name : null,
     description: options.descriptionsPreview ? item.description : null,
+    ...(options.badgesPreview ? {} : { badge: null, badge_label: null, badge_type: "none" as const, recommended: false }),
     is_sold_out: options.soldOutPreview && item.id === soldOutItem?.id,
   }));
   if (!options.widgetsPreview) data.widgets = [];
