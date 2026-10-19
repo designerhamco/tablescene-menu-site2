@@ -31,6 +31,7 @@ import type {
 
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import styles from "./PostpayOrderCartDrawer.module.css";
+import ui from "./MenuInteractionUI.module.css";
 
 type StoredCartLine = {
   menuItemId: string;
@@ -55,6 +56,7 @@ type PostpayOrderCartDrawerProps = {
   checkoutModes?: OrderCheckoutMode[];
   previewOnly?: boolean;
   typographyStyle?: CSSProperties;
+  interactionStyle?: CSSProperties;
   tableLabel?: string;
   device?: MenuPreviewDevice;
   selectedMenuItemId?: string | null;
@@ -121,6 +123,7 @@ export default function PostpayOrderCartDrawer({
   checkoutModes,
   previewOnly = false,
   typographyStyle,
+  interactionStyle,
   tableLabel = "현재 테이블",
   device,
   selectedMenuItemId = null,
@@ -475,8 +478,8 @@ export default function PostpayOrderCartDrawer({
     return createPortal(
       <div
         ref={dialogRef}
-        style={typographyStyle}
-        className={`${styles.typography} fixed inset-0 z-[1200] flex items-end justify-center bg-zinc-950/35 text-zinc-950`}
+        style={{ ...typographyStyle, ...interactionStyle }}
+        className={`${ui.typography} fixed inset-0 z-[1200] flex items-end justify-center bg-zinc-950/35 text-zinc-950`}
         role="dialog"
         aria-modal="true"
         aria-label={`${activeItem.name} 담기`}
@@ -489,7 +492,7 @@ export default function PostpayOrderCartDrawer({
         />
         <section className="relative z-10 mx-auto max-h-[72dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white px-5 pb-[max(24px,env(safe-area-inset-bottom))] pt-3 shadow-none">
           <div
-            className="mx-auto h-1 w-10 rounded-full bg-zinc-300"
+            className={ui.handle}
             aria-hidden="true"
           />
           <div className="mt-4 flex items-start justify-between gap-4">
@@ -501,11 +504,11 @@ export default function PostpayOrderCartDrawer({
             </div>
             <button
               type="button"
-              className="flex h-10 w-10 shrink-0 items-center justify-center"
+              className={ui.close}
               aria-label="메뉴 담기 닫기"
               onClick={closeItemSheet}
             >
-              <X className="h-4 w-4" aria-hidden="true" />
+              <X aria-hidden="true" />
             </button>
           </div>
 
@@ -513,7 +516,7 @@ export default function PostpayOrderCartDrawer({
             {activeItem.optionGroups.map((group) => (
               <fieldset
                 key={group.id}
-                className="rounded-2xl border border-zinc-200 p-4"
+                className="border-0 border-b border-zinc-200 px-0 pb-4"
               >
                 <legend className="px-1 text-sm font-semibold">
                   {group.name}{" "}
@@ -531,7 +534,7 @@ export default function PostpayOrderCartDrawer({
                       <button
                         key={value.id}
                         type="button"
-                        className={`flex w-full items-center justify-between rounded-xl border px-3 py-3 text-left text-sm font-medium ${selected ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200"}`}
+                        className={`flex w-full items-center justify-between rounded-lg border px-3 py-3 text-left text-sm font-medium ${selected ? ui.primary : "border-zinc-200"}`}
                         aria-pressed={selected}
                         onClick={() => toggleOption(group, value.id)}
                       >
@@ -556,7 +559,7 @@ export default function PostpayOrderCartDrawer({
               <div className="flex items-center gap-4">
                 <button
                   type="button"
-                  className="rounded-full border border-zinc-200 p-2"
+                  className="rounded-lg border border-zinc-200 p-2"
                   aria-label="수량 줄이기"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 >
@@ -567,7 +570,7 @@ export default function PostpayOrderCartDrawer({
                 </span>
                 <button
                   type="button"
-                  className="rounded-full border border-zinc-200 p-2"
+                  className="rounded-lg border border-zinc-200 p-2"
                   aria-label="수량 늘리기"
                   onClick={() => setQuantity(Math.min(20, quantity + 1))}
                 >
@@ -577,7 +580,7 @@ export default function PostpayOrderCartDrawer({
             </div>
             <button
               type="button"
-              className="w-full rounded-2xl bg-zinc-950 px-5 py-4 text-sm font-semibold text-white"
+              className={`${ui.primary} w-full px-5 py-3.5 text-sm`}
               onClick={addActiveItem}
             >
               {editingLineKey
@@ -586,7 +589,7 @@ export default function PostpayOrderCartDrawer({
             </button>
             {message ? (
               <p
-                className="rounded-2xl bg-zinc-100 p-4 text-sm font-medium"
+                className="rounded-lg bg-zinc-100 p-4 text-sm font-medium"
                 role="status"
               >
                 {message}
@@ -602,12 +605,13 @@ export default function PostpayOrderCartDrawer({
   return createPortal(
     <div
       className={styles.backdrop}
+      style={interactionStyle}
       data-device={device ?? "auto"}
       data-empty={cart.length ? "false" : "true"}
       data-menu-cart=""
       onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
     >
-      <div ref={dialogRef} className={`${styles.panel} ${styles.typography}`} role="dialog" aria-modal="true" aria-label="장바구니">
+      <div ref={dialogRef} className={`${styles.panel} ${ui.typography}`} role="dialog" aria-modal="true" aria-label="장바구니">
         <header className={styles.header}>
           <button type="button" className={styles.back} onClick={onClose} aria-label="메뉴판으로 돌아가기" data-cart-back>
             <ArrowLeft aria-hidden="true" strokeWidth={1.7} />
@@ -647,7 +651,7 @@ export default function PostpayOrderCartDrawer({
                               ?.optionGroups.length ? (
                               <button
                                 type="button"
-                                className="flex items-center gap-1 rounded-full px-2 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100"
+                                className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100"
                                 onClick={() => beginEditLine(line)}
                               >
                                 <Pencil
@@ -659,7 +663,7 @@ export default function PostpayOrderCartDrawer({
                             ) : null}
                             <button
                               type="button"
-                              className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950"
+                              className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950"
                               aria-label={`${line.name} 삭제`}
                               onClick={() => removeLine(line.key)}
                             >
@@ -669,7 +673,7 @@ export default function PostpayOrderCartDrawer({
                           <div className="flex items-center gap-3">
                             <button
                               type="button"
-                              className="rounded-full border border-zinc-200 p-2 disabled:cursor-not-allowed disabled:opacity-35"
+                              className="rounded-lg border border-zinc-200 p-2 disabled:cursor-not-allowed disabled:opacity-35"
                               aria-label={`${line.name} 수량 줄이기`}
                               disabled={line.quantity <= 1}
                               onClick={() => changeLineQuantity(line.key, -1)}
@@ -681,7 +685,7 @@ export default function PostpayOrderCartDrawer({
                             </span>
                             <button
                               type="button"
-                              className="rounded-full border border-zinc-200 p-2"
+                              className="rounded-lg border border-zinc-200 p-2"
                               aria-label={`${line.name} 수량 늘리기`}
                               onClick={() => changeLineQuantity(line.key, 1)}
                             >
@@ -695,7 +699,7 @@ export default function PostpayOrderCartDrawer({
                 </section>
                 <button
                   type="button"
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-zinc-300 px-5 py-3.5 text-sm font-semibold"
+                  className={`${ui.secondary} flex w-full items-center justify-center gap-2 px-5 py-3.5 text-sm`}
                   onClick={onClose}
                 >
                   <Plus className="h-4 w-4" aria-hidden="true" /> 메뉴 더 담기
@@ -708,7 +712,7 @@ export default function PostpayOrderCartDrawer({
                   <h3 className="text-sm font-semibold">결제 방식</h3>
                   {availableCheckoutModes.length > 1 ? (
                     <div
-                      className="mt-3 grid grid-cols-2 rounded-2xl bg-zinc-100 p-1"
+                      className="mt-3 grid grid-cols-2 rounded-lg bg-zinc-100 p-1"
                       role="group"
                       aria-label="결제 방식 선택"
                     >
@@ -720,7 +724,7 @@ export default function PostpayOrderCartDrawer({
                             type="button"
                             aria-pressed={selected}
                             disabled={mode === "prepay"}
-                            className={`rounded-xl px-3 py-3 text-sm font-semibold transition-colors ${selected ? "bg-white text-zinc-950 shadow-sm" : "text-zinc-500"}`}
+                            className={`rounded-lg px-3 py-3 text-sm font-semibold transition-colors ${selected ? "bg-white text-zinc-950" : "text-zinc-500"}`}
                             onClick={() => {
                               setSelectedCheckoutMode(mode);
                               setMessage("");
@@ -734,7 +738,7 @@ export default function PostpayOrderCartDrawer({
                       })}
                     </div>
                   ) : (
-                    <div className="mt-3 flex items-center justify-between rounded-2xl border border-zinc-200 px-4 py-3 text-sm font-medium">
+                    <div className="mt-3 flex items-center justify-between border-y border-zinc-200 py-3 text-sm font-normal">
                       <span>매장에서 결제</span>
                       <span className="text-zinc-500">후불 결제</span>
                     </div>
@@ -747,7 +751,7 @@ export default function PostpayOrderCartDrawer({
                 </section>
                 <button
                   type="button"
-                  className="w-full rounded-2xl bg-zinc-950 px-5 py-4 text-sm font-semibold text-white disabled:opacity-50"
+                  className={`${ui.primary} w-full px-5 py-3.5 text-sm disabled:opacity-50`}
                   disabled={submitting}
                   onClick={submitOrder}
                 >
@@ -769,7 +773,7 @@ export default function PostpayOrderCartDrawer({
                 </p>
                 <button
                   type="button"
-                  className="mt-6 rounded-full bg-zinc-950 px-6 py-3 text-sm font-semibold text-white"
+                  className={`${ui.primary} mt-6 px-6 py-3 text-sm`}
                   onClick={onClose}
                 >
                   메뉴 보러 가기
@@ -778,7 +782,7 @@ export default function PostpayOrderCartDrawer({
             )}
             {message ? (
               <p
-                className="rounded-2xl bg-zinc-100 p-4 text-sm font-medium"
+                className="rounded-lg bg-zinc-100 p-4 text-sm font-medium"
                 role="status"
               >
                 {message}

@@ -29,29 +29,7 @@ export function useOnePageCallActions() {
   return useContext(OnePageCallContext);
 }
 
-function colorLuminance(color: string) {
-  const hex = color.match(/^#([a-f\d]{6})$/i)?.[1];
-  const channels = hex
-    ? [0, 2, 4].map((offset) =>
-        Number.parseInt(hex.slice(offset, offset + 2), 16),
-      )
-    : (color
-        .match(/[\d.]+/g)
-        ?.slice(0, 3)
-        .map(Number) ?? [25, 28, 27]);
-  const linear = channels.map((channel) => {
-    const value = channel / 255;
-    return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
-  });
-  return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
-}
-function colorContrast(first: string, second: string) {
-  const a = colorLuminance(first),
-    b = colorLuminance(second);
-  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
-}
-
-/** The bar follows the brand; buttons choose a visible accent from the menu palette. */
+/** Language UI follows the rendered brand and category; action colors come from the menu shell. */
 export function OnePageCallPalette() {
   const marker = useRef<HTMLSpanElement>(null);
   const call = useOnePageCallActions();
@@ -85,55 +63,9 @@ export function OnePageCallPalette() {
         : getComputedStyle(root)
             .getPropertyValue("--menu-role-category-color")
             .trim() || "#191c1b";
+      setVariable("--cafe-a-call-ink", brandColor);
       setVariable("--cafe-a-language-trigger-ink", brandColor);
       setVariable("--cafe-a-language-menu-ink", categoryColor);
-
-      if (!call.enabled) return;
-      const button = [
-        ...root.querySelectorAll<HTMLElement>("[data-one-page-call-button]"),
-      ].find(visible);
-      let panel = button?.parentElement ?? root;
-      let background = "#ffffff";
-      while (panel) {
-        const candidate = getComputedStyle(panel).backgroundColor;
-        if (
-          candidate !== "transparent" &&
-          !/rgba\([^)]*,\s*0\)$/.test(candidate)
-        ) {
-          background = candidate;
-          break;
-        }
-        if (!panel.parentElement) break;
-        panel = panel.parentElement;
-      }
-      const palette = [
-        brandColor,
-        ...[
-          ...root.querySelectorAll<HTMLElement>(
-            ".cafe-a-category-title,[data-cafe-a-menu-name]",
-          ),
-        ]
-          .filter(visible)
-          .map((element) => getComputedStyle(element).color),
-        "#191c1b",
-      ];
-      const accent =
-        palette.find((color) => colorContrast(color, background) >= 3) ??
-        "#191c1b";
-      const colors = {
-        "--cafe-a-call-accent": accent,
-        "--cafe-a-call-ink": brandColor,
-      };
-      const foreground =
-        colorContrast(accent, "#ffffff") >= colorContrast(accent, "#191c1b")
-          ? "#ffffff"
-          : "#191c1b";
-      for (const [key, value] of Object.entries({
-        ...colors,
-        "--cafe-a-call-foreground": foreground,
-      })) {
-        setVariable(key, value);
-      }
     };
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(update);

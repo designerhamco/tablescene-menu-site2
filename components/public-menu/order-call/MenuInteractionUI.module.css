@@ -1,0 +1,11 @@
+/* Operational UI stays independent from customer fonts and the site's pill system. */
+.typography { font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif; font-size: 1rem; font-weight: 400; line-height: 1.5; color: #191c1b; }
+.typography :is(button,input,select) { font-family: inherit; }
+.typography button { border-radius: .5rem; }
+.typography button:focus-visible { outline: 2px solid #191c1b; outline-offset: 3px; }
+.typography svg { stroke-width: 1.7; }
+.handle { width: 4rem; height: 2px; margin-inline: auto; border-radius: 1px; background: #d4d4d8; }
+.close { display: grid; place-items: center; width: 44px; height: 44px; flex: none; padding: 0; border: 0; background: transparent; color: #191c1b; cursor: pointer; }
+.close svg { width: 22px; height: 22px; }
+.typography .primary { background: var(--menu-order-bg, #191c1b); color: var(--menu-order-ink, #fff); border: 1px solid var(--menu-order-border, #191c1b); font-weight: 500; }
+.typography .secondary { background: #fff; border: 1px solid #191c1b; color: #191c1b; font-weight: 500; }

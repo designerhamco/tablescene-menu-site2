@@ -24,7 +24,7 @@ try {
    const metrics=await page.locator('[data-scroll-actions] button').evaluateAll(buttons=>buttons.map(button=>{const r=button.getBoundingClientRect(),s=getComputedStyle(button);return {x:r.x,y:r.y,width:r.width,height:r.height,radius:s.borderRadius,background:s.backgroundColor,shadow:s.boxShadow}}));
    for(const m of metrics){assert.ok(m.width>m.height*2);assert.equal(m.radius,'8px');assert.equal(m.shadow,'none');assert.ok(m.height>=44)}
    if(call)assert.equal(metrics[0].background,'rgb(255, 255, 255)');
-   if(order)assert.equal(metrics.at(-1).background,'rgb(25, 28, 27)');
+   if(order){const brand=await page.locator('[data-cafe-a-store-title]').filter({visible:true}).first().evaluate(e=>getComputedStyle(e).color);assert.equal(metrics.at(-1).background,brand)}
    await page.locator('[data-scroll-menu]').focus();await page.keyboard.press('End');
    await page.waitForFunction(()=>document.querySelector('[data-scroll-more]').dataset.scrollMore==='false');
    if(call){await page.locator('[data-scroll-call]').click();await page.getByRole('dialog').waitFor();await page.getByRole('dialog').press('Escape')}
