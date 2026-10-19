@@ -14,6 +14,7 @@ export function paginateMenuBlocks(
   columnCount: number,
   capacity: number,
   grouped = false,
+  options: { repeatContinuationHeadings?: boolean } = {},
 ): MenuPagePartition[] {
   const count = Math.max(1, Math.floor(columnCount)),
     height = Math.max(1, capacity);
@@ -50,7 +51,7 @@ export function paginateMenuBlocks(
         ? b.height + next.height
         : b.height;
     if (used > 0 && used + pair > height) advance();
-    if (used === 0 && b.kind === "item") {
+    if (options.repeatContinuationHeadings !== false && used === 0 && b.kind === "item") {
       const h = headings.get(b.group);
       if (h) {
         page.columns[column].push(h);

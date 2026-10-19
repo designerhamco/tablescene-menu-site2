@@ -14,7 +14,9 @@ export function layoutScrollableMenu(
   // Grouped mode keeps even a tall category together; scrolling removes the old viewport limit.
   let low = Math.ceil(Math.max(1, viewportHeight, largestBlock, grouped ? Math.max(0, ...groups.values()) : 0));
   let high = Math.ceil(Math.max(low, blocks.reduce((sum, block) => sum + block.height, 0)));
-  const partition = (height: number) => paginateMenuBlocks(blocks, count, height, grouped);
+  // One continuous reading surface: a column break never starts a new category.
+  // Keep the pagination helper's repeated-heading default for its other callers.
+  const partition = (height: number) => paginateMenuBlocks(blocks, count, height, grouped, { repeatContinuationHeadings: false });
   const fits = (height: number) => {
     const pages = partition(height);
     return pages.length === 1 && pages[0].overflow.length === 0;
