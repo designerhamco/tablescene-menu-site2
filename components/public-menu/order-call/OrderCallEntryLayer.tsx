@@ -1,6 +1,7 @@
 "use client";
 
-import { Bell, CreditCard, ShoppingBag } from "lucide-react";
+import { CreditCard, ShoppingBag } from "lucide-react";
+import { StaffCallIcon } from "./MenuActionIcons";
 import { type CSSProperties, type ReactNode, useCallback, useEffect, useState } from "react";
 
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
@@ -138,7 +139,7 @@ export default function OrderCallEntryLayer({
               disabled={!canOpenCall}
               onClick={() => setCallOpen(true)}
             >
-              <Bell className={usesAubeCallPresentation ? "h-5 w-5" : "h-4.5 w-4.5"} strokeWidth={usesAubeCallPresentation ? 1.6 : 2} aria-hidden="true" />
+              <StaffCallIcon className={usesAubeCallPresentation ? "h-5 w-5" : "h-4.5 w-4.5"} strokeWidth={usesAubeCallPresentation ? 1.6 : 2} aria-hidden="true" />
             </button>
           ) : null}
           {visibility.showCart ? (
@@ -177,7 +178,7 @@ export default function OrderCallEntryLayer({
             data-smart-call-quick-button=""
             onClick={() => setCallOpen(true)}
           >
-            <Bell className="h-5 w-5 sm:h-5.5 sm:w-5.5" strokeWidth={1.65} aria-hidden="true" />
+            <StaffCallIcon className="h-5 w-5 sm:h-5.5 sm:w-5.5" strokeWidth={1.65} aria-hidden="true" />
           </button>
         ) : null}
         {canOpenCart ? (

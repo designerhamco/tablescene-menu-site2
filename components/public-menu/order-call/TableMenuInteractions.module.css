@@ -145,15 +145,33 @@
 .inlineAction:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 .inlineAction .badge { position: static; border: 0; background: transparent; color: inherit; padding: 0; min-width: 0; }
 
-/* Dining keeps its entry geometry; colors follow the rendered menu palette. */
-.shell[data-presentation="aube"] .dock .circle {
-  width: 4rem;
-  height: 4rem;
-  background: var(--menu-call-bg, #fff);
+/* Dining desktop/tablet controls share the existing fixed top language slot. */
+.diningToolbar {
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  padding: .25rem;
+  border-radius: .5rem;
+  background: var(--aube-surface, #fff);
   color: var(--menu-call-ink, #191c1b);
   box-shadow: none;
 }
-.shell[data-presentation="aube"] .dock .circle svg { width: 1.375rem; height: 1.375rem; stroke-width: 1.65; }
+.diningToolbar .actions { gap: .25rem; }
+.diningToolbar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: .5rem;
+  background: transparent;
+  color: inherit;
+  box-shadow: none;
+}
+.diningToolbar button:hover { opacity: .65; }
+.diningToolbar svg { width: 24px; height: 24px; }
 .shell[data-presentation="aube"] .header { color: #27272a; }
 
 /* Mobile ordering keeps one header icon and reserves one shared bottom action row. */

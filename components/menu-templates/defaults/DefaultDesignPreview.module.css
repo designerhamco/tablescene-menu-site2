@@ -1,5 +1,9 @@
 /* Review-only neutral appearance. Existing template routes have no wrapper. */
 .surface { min-height: 100dvh; background: #fff; }
+.surface[data-default-design="basic-first-column"] :global(.cafe-a-typography .cafe-a-category-heading) {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
 .surface :global(.aube-table-root) {
   --aube-accent: #191c1b;
   --aube-surface: #fff;

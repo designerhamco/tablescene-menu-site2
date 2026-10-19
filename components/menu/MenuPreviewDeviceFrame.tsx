@@ -7,6 +7,8 @@ import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
+import { getDefaultDesignReview } from "@/lib/menu-design-policy";
+import { getDefaultDesignOptions, type DefaultDesignOptionKey } from "@/lib/default-design-options";
 
 import {
   buildMenuPreviewUrl,
@@ -106,6 +108,19 @@ export default function MenuPreviewDeviceFrame(
     order: orderPreview,
   });
   const supportsLayoutPreview = props.supportsLayoutPreview ?? (props.templateKey === "cafe_real_matcha_paged_test" || props.templateKey === "cafe_design_a");
+  const designParam = (query as TemplatePreviewQuery).design;
+  const defaultDesign = props.templateKey ? getDefaultDesignReview(Array.isArray(designParam) ? designParam[0] : designParam, props.templateKey) : undefined;
+  const [displayOptions, setDisplayOptions] = useOptimistic(getDefaultDesignOptions(query as TemplatePreviewQuery));
+  const displayChoices: [DefaultDesignOptionKey, string][] = defaultDesign?.layout === "basic-first-column"
+    ? [["widgetsPreview", "위젯"], ["coverPreview", "대표 영역"], ["featuredPreview", "대표 상품"], ["imagesPreview", "상품 이미지"]]
+    : [["coverPreview", "커버 페이지"], ["imagesPreview", "상품 이미지"]];
+  const changeDisplayOption = (key: DefaultDesignOptionKey, enabled: boolean) => {
+    if (!props.templateKey || !defaultDesign) return;
+    startTransition(() => {
+      setDisplayOptions({ ...displayOptions, [key]: enabled });
+      router.push(buildTemplatePreviewUrl(props.templateKey!, { ...query, [key]: enabled ? "on" : "off" }, { device, orientation, callPreview: features.call, orderPreview: features.order }), { scroll: false });
+    });
+  };
   const layoutMode = (Array.isArray(query.layoutMode) ? query.layoutMode[0] : query.layoutMode) === "orderedFit" ? "orderedFit" : "orderedBalancedFit";
   const frame = getMenuPreviewFrame(device, orientation);
   const orientationLabel =
@@ -293,6 +308,18 @@ export default function MenuPreviewDeviceFrame(
               <span className="hidden min-[430px]:inline">새 창에서 보기</span>
             </Link>
           </div>
+          {defaultDesign && showToolbar ? (
+            <fieldset className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/15 px-2 pb-1 pt-2 text-xs" data-preview-display-options>
+              <legend className="sr-only">보기 옵션</legend>
+              <span className="text-white/60" aria-hidden="true">보기 옵션</span>
+              {displayChoices.map(([key, label]) => (
+                <label key={key} className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 font-medium has-[:disabled]:cursor-default has-[:disabled]:opacity-40">
+                  <input type="checkbox" aria-label={`${label} 보기`} checked={displayOptions[key]} disabled={isPending || (key === "featuredPreview" && !displayOptions.coverPreview)}
+                    onChange={event => changeDisplayOption(key, event.target.checked)} />{label}
+                </label>
+              ))}
+            </fieldset>
+          ) : null}
           <button
             type="button"
             onClick={() => setIsToolbarOpen((open) => !open)}
@@ -319,7 +346,9 @@ export default function MenuPreviewDeviceFrame(
         className={
           device === "pc"
             ? "h-screen w-screen overflow-hidden"
-            : "h-screen overflow-auto px-4 py-16"
+            : defaultDesign && showToolbar
+              ? "h-screen overflow-auto px-4 pb-16 pt-28 max-[850px]:pt-40 max-[430px]:pt-52"
+              : "h-screen overflow-auto px-4 py-16"
         }
         tabIndex={device === "pc" ? undefined : 0}
         aria-label={`${frame.label}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
