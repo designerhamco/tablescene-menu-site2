@@ -711,7 +711,8 @@ video {
   white-space: nowrap;
 }
 
-.cafe-a-typography .cafe-a-price-column-heading-label {
+.cafe-a-typography .cafe-a-price-column-heading-label,
+.cafe-a-typography .cafe-a-price-column-label-sizer {
   --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
   --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));
   align-items: center;
@@ -727,6 +728,10 @@ video {
   position: absolute;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.cafe-a-typography .cafe-a-price-column-label-sizer {
+  display: none;
 }
 
 .cafe-a-typography .cafe-a-price-column-cell {
@@ -5442,6 +5447,27 @@ video {
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-category-heading {
   margin-bottom: var(--cafe-a-mobile-heading-gap);
   padding-bottom: 0;
+}
+
+/* Mobile labels can be wider than their prices. Reserve the same intrinsic
+   label/price width in both rails so labels never consume the column gap. */
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(.cafe-a-price-column-header, .cafe-a-price-columns-grid) {
+  --cafe-a-price-column-gap: 0.625rem;
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] :is(.cafe-a-price-column-heading-label, .cafe-a-price-column-label-sizer) {
+  font-size: 0.75rem;
+  grid-area: price-column;
+  position: static;
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-price-column-label-sizer {
+  display: block;
+  visibility: hidden;
+}
+
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-price-column-cell > :not(.cafe-a-price-column-sizer) {
+  justify-self: center;
 }
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-category-items {

@@ -766,7 +766,7 @@ export default function PostpayOrderCartDrawer({
               </>
             ) : (
               <div className={styles.empty}>
-                <MenuOrderIcon variant={iconVariant} className="h-8 w-8 text-zinc-400" strokeWidth={1.5} />
+                <MenuOrderIcon variant={iconVariant} purpose="view" className="h-8 w-8 text-zinc-400" strokeWidth={1.5} />
                 <h3 className="mt-5 text-xl font-semibold">
                   장바구니가 비어 있어요
                 </h3>

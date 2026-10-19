@@ -1,5 +1,16 @@
 # Dining actions and default preview options — 2026-10-19
 
+## Latest refinement: heading, price columns and category descriptions
+
+- Both neutral designs add an independent category-description checkbox (Basic 12 controls, Dining 6). Basic has examples on SIGNATURE and BAKERY only. Product descriptions remain independent; URL/device/detached transitions preserve the option.
+- Contained Basic heading gap is max(saved ratio, 1.25) times item rhythm, just above the existing ordinary 1.20 maximum. Its mobile wrapper changes heading 24→26px; item 20px and section 48px remain. Mobile CafeDesignA option headers and prices reserve the same intrinsic label/price widths, keep 10px between columns and center prices under labels. PC/tablet price geometry is unchanged.
+- The neutral Basic cover placeholder is medium gray (#898e90) so white slide dots are distinguishable. Its lower black fade, customer images and neutral Dining cover remain unchanged.
+- Dining PC/tablet top toolbar now has language and order only; the lower-right circular Call remains. Global cart/open actions use the menu outline without a plus, while item/course add actions retain the plus. Mobile control positions remain.
+- Pricing audit: both Dining capabilities allow 3 actual price options; Glass/Bottle use those options. The current individual-item renderer joins label+price inline and does not draw category-level price headers. Mobile option-price reflow and its preview toggle await the user's response to the requested explanation.
+- Verification on optimized local build: 665 unit tests, TypeScript, changed-file ESLint, build; heading/price spacing 12, preview options 20, action combinations 57, readable-column transitions 10, contained-scroll geometry 32 = 131 browser conditions, no page errors or API writes. Reports: `/private/tmp/menu-controls-prod-{spacing,options,actions,columns,fill}/report.json`. The spacing suite checks actual 320/390/430/820 mobile viewports, 1180×820 tablet and 1920×1080 PC, including designer and neutral Basic. Existing mobile/other-template action and language regressions also pass.
+
+The following records describe earlier checkpoints; the latest refinement above supersedes their duplicate top Call and option counts.
+
 ## Scope
 
 - Dining PC/tablet keeps KR/chevron, staff call and order in the top toolbar. When Call is enabled, a fixed circular call button also appears at the lower right; both open the same dialog. Mobile keeps its existing top/bottom control layout. Item and course add actions sit next to the corresponding price. Dining order actions use a rounded menu outline without a folded corner and a dark plus badge; Basic keeps the cart glyph. Cart counts have equal width/height.

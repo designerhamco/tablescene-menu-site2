@@ -374,7 +374,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   }, [mobile, updateScrollHint, layout]);
   if (mobile)
     return (
-      <div data-paged-mobile>
+      <div className={styles.mobile} data-paged-mobile>
         <CafeDesignA {...baseProps} />
       </div>
     );

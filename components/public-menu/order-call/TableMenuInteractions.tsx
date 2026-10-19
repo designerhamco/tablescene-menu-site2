@@ -54,13 +54,13 @@ type Actions = {
   device: MenuPreviewDevice;
 };
 const Context = createContext<Actions | null>(null);
-export function TableMenuActionButtons({ appearance = "circle", headerOnly = false }: { appearance?: "circle" | "inline"; headerOnly?: boolean }) {
+export function TableMenuActionButtons({ appearance = "circle", headerOnly = false, hideCall = false }: { appearance?: "circle" | "inline"; headerOnly?: boolean; hideCall?: boolean }) {
   const a = useContext(Context);
-  if (!a || (!a.call && !a.order)) return null;
+  if (!a || ((!a.call || hideCall) && !a.order)) return null;
   const inline = appearance === "inline";
   return (
     <div className={styles.actions} data-table-menu-actions data-appearance={appearance}>
-      {a.call && (!headerOnly || !a.order) ? (
+      {a.call && !hideCall && (!headerOnly || !a.order) ? (
         <button
           type="button"
           className={inline ? styles.inlineAction : styles.circle}
@@ -78,7 +78,7 @@ export function TableMenuActionButtons({ appearance = "circle", headerOnly = fal
           aria-label={`장바구니 ${a.count}개`}
           onClick={a.openCart}
         >
-          <MenuOrderIcon variant={a.presentation === "aube" ? "document" : "cart"} />
+          <MenuOrderIcon variant={a.presentation === "aube" ? "document" : "cart"} purpose="view" />
           {inline ? <ScriptAwareText text="장바구니" /> : null}
           {a.count > 0 ? (
             <span className={styles.badge}>
@@ -114,7 +114,7 @@ export function DiningMenuToolbar({ children }: { children: ReactNode }) {
   if (!actions || actions.device === "mobile") return <>{children}</>;
   return <div className={styles.diningToolbar} data-dining-menu-toolbar role="group" aria-label="메뉴판 도구">
     <MenuLanguageSwitcher currentLocale={actions.locale} enabledLocales={actions.locales} compact triggerVariant="aube" menuAlign="right" />
-    <TableMenuActionButtons />
+    <TableMenuActionButtons hideCall />
   </div>;
 }
 function TableMenuMobileDock() {
@@ -122,7 +122,7 @@ function TableMenuMobileDock() {
   if (!actions || (!actions.call && !actions.order)) return null;
   return <div className={styles.mobileDock} data-table-mobile-dock>
     {actions.order ? <button type="button" className={styles.mobileOrder} onClick={actions.openCart} aria-label={`주문하기, 장바구니 ${actions.count}개`}>
-      <MenuOrderIcon variant={actions.presentation === "aube" ? "document" : "cart"} /><span>주문하기{actions.count ? ` (${actions.count})` : ""}</span>
+      <MenuOrderIcon variant={actions.presentation === "aube" ? "document" : "cart"} purpose="view" /><span>주문하기{actions.count ? ` (${actions.count})` : ""}</span>
     </button> : null}
     {actions.call ? <button type="button" className={actions.order ? styles.mobileCall : styles.mobileCallOnly} onClick={actions.openCall} aria-label="직원 호출하기">
       <StaffCallIcon aria-hidden="true" /><span>호출하기</span>

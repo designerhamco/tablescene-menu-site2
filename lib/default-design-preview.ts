@@ -5,7 +5,6 @@ import { BADGE_STYLE_KEYS } from "./template-badge-styles";
 import { getDefaultDesignOptions, type DefaultDesignOptions } from "./default-design-options";
 
 const image = "/placeholders/starter/default-menu-item.svg";
-const coverImage = "/placeholders/starter/default-cover.svg";
 const ink = "#191c1b";
 const diningSecondaryNames: Record<string, string> = {
   "관자와 시금치": "SCALLOPS & SPINACH",
@@ -17,6 +16,7 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
   if (source.menuSite.template_key !== design.renderer) throw new Error("Default design renderer mismatch");
   const data = structuredClone(source);
   const basic = design.layout === "basic-first-column";
+  const coverImage = basic ? "/placeholders/starter/default-basic-cover.svg" : "/placeholders/starter/default-cover.svg";
   const title = basic ? "CAFE ARTIMENU" : "DINING ARTIMENU";
   const description = basic ? "좋은 커피와 갓 구운 디저트를 준비합니다." : "계절의 재료로 정성껏 준비한 식사를 만나보세요.";
   const roles = Object.fromEntries(TYPOGRAPHY_ROLE_KEYS.map(role => [role, {
@@ -58,7 +58,15 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
     badge_label: index === 0 ? "추천" : item.badge_label,
   }));
   data.pages = data.pages.map(page => ({ ...page, description: page.description?.replace(/오브 테이블/g, "아티메뉴 다이닝") ?? null }));
-  data.categories = data.categories.map(category => ({ ...category, name: basic ? category.name.replace("MATCHA SIGNATURE", "SIGNATURE").replace("CLASSIC COFFEE", "COFFEE") : category.name.replace(/Aube signature/i, "Signature"), description_visible: true }));
+  const basicCategoryDescriptions: Record<string, string> = {
+    SIGNATURE: "좋은 재료로 완성한 시그니처 음료입니다.",
+    BAKERY: "커피와 함께 즐기기 좋은 디저트입니다.",
+  };
+  data.categories = data.categories.map(category => {
+    const name = basic ? category.name.replace("MATCHA SIGNATURE", "SIGNATURE").replace("CLASSIC COFFEE", "COFFEE") : category.name.replace(/Aube signature/i, "Signature");
+    return { ...category, name, description: basic ? basicCategoryDescriptions[name] ?? null : category.description,
+      description_visible: options.categoryDescriptionsPreview };
+  });
   data.featuredSlides = (data.featuredSlides ?? []).map(slide => ({ ...slide, imageUrl: coverImage, featuredItemId: slide.featuredItemId ?? data.items[0]?.id ?? null }));
   data.timeSales = basic && options.timeSalesPreview ? data.timeSales.map(sale => ({ ...sale, badgeBackgroundColor: ink })) : [];
   // The basic starter demonstrates both price options and category-ordered widgets.

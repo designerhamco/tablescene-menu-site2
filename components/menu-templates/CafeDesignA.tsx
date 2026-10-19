@@ -1769,6 +1769,9 @@ function MenuItemRow({
                   candidates={priceRailColumns?.[index]?.widthCandidates ?? [token.price, token.salePrice ?? ""].filter(Boolean)}
                   priceClassName={priceClassName}
                 />
+                <span aria-hidden="true" className="cafe-a-price-column-label-sizer">
+                  <ScriptAwareText text={priceRailColumns?.[index]?.label ?? token.label} />
+                </span>
                 {token.price && token.salePrice && timeSale ? (
                   <TimeSalePriceBlock
                     timeSale={timeSale.promotion}
