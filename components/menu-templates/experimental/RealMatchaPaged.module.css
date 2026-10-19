@@ -76,7 +76,7 @@
 .unit[data-kind="widget"] { padding-top: 1.5rem; }
 .unit :global(.cafe-a-category-heading) { margin-bottom: 0; }
 .footer { display: flex; flex-direction: column; gap: 0.75rem; align-items: stretch; padding-top: 0.75rem; min-height: 3.5rem; }
-.notices { line-height: 1.5; white-space: pre-line; text-align: right; }
+.notices { overflow-wrap: anywhere; line-height: 1.5; white-space: pre-line; text-align: right; }
 .notices:empty { display: none; }
 .pagination { display: flex; align-items: center; justify-content: center; gap: 0.25rem; width: 100%; flex-wrap: wrap; }
 .pagination button { display: grid; place-items: center; min-width: 2.5rem; min-height: 2.5rem; border-radius: 50%; cursor: pointer; background: transparent; font-size: 0.875rem; }
@@ -89,3 +89,28 @@
 @media (max-width: 900px) {
   .frame { grid-template-columns: minmax(12rem, 26%) minmax(0, 1fr); }
 }
+
+/* Call-only preserves the original circle, after widgets and above notices.
+   The measured footer reserves its space; pagination keeps the menu center. */
+.frame[data-paged-call-only="true"] .brandControls :global(.cafe-a-mobile-call-bar) {
+  grid-template-columns: 2.75rem minmax(0, 1fr) 2.75rem;
+}
+.footerWithCall {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: auto;
+  align-items: end;
+}
+.callCluster { grid-column: 3; grid-row: 1; min-width: 0; }
+.footerCall { display: flex; justify-content: flex-end; margin-bottom: 0.75rem; }
+.footerCall:last-child, .footerCall:has(+ .notices:empty) { margin-bottom: 0; }
+.footerWithCall .pagination {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  align-self: end;
+  padding-inline: calc(100% / 3 - 0.5rem);
+  pointer-events: none;
+}
+.footerWithCall .pagination button { pointer-events: auto; }
+
+.noticeCluster:has(> .notices:empty) { display: none; }
