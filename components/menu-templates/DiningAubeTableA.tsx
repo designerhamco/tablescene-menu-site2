@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "motion/react";
 
 import MenuOrderAddButton from "@/components/public-menu/order-call/MenuOrderAddButton";
+import { DiningMenuToolbar } from "@/components/public-menu/order-call/TableMenuInteractions";
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
@@ -152,8 +153,10 @@ function MenuItemRow({
       <div className="aube-table-item-copy">
         <div className="aube-table-item-heading" data-has-price={price ? "true" : "false"}>
           <h3><ScriptAwareText text={item.name} /></h3>
-          {price ? <p className="aube-table-item-price"><ScriptAwareText text={price} /></p> : null}
-          {!item.is_sold_out ? <MenuOrderAddButton itemId={item.id} itemName={item.name} /> : null}
+          <div className="aube-table-item-purchase">
+            {price ? <p className="aube-table-item-price"><ScriptAwareText text={price} /></p> : null}
+            {!item.is_sold_out ? <MenuOrderAddButton itemId={item.id} itemName={item.name} /> : null}
+          </div>
         </div>
         {item.set_name ? <p className="aube-table-item-secondary"><ScriptAwareText text={item.set_name} /></p> : null}
         {item.description ? <p className="aube-table-item-description"><ScriptAwareText text={item.description} /></p> : null}
@@ -174,8 +177,10 @@ function CourseBlock({ course, priceOptions }: { course: CourseWithItems; priceO
             <h2><ScriptAwareText text={course.name} /></h2>
           </div>
           <span className="aube-table-course-rule" aria-hidden="true" />
-          <CoursePrice course={course} />
-          <MenuOrderAddButton itemId={"course:"+course.id} itemName={course.name+" 코스"}/>
+          <div className="aube-table-course-purchase">
+            <CoursePrice course={course} />
+            <MenuOrderAddButton itemId={"course:"+course.id} itemName={course.name+" 코스"}/>
+          </div>
         </header>
         {course.description_visible !== false && course.description ? (
           <p className="aube-table-course-description"><ScriptAwareText text={course.description} /></p>
@@ -304,6 +309,7 @@ export default function DiningAubeTableA({
         data-theme={themeVariant}
       >
       <div className="aube-table-language-control" data-aube-table-language-control="">
+        <DiningMenuToolbar>
         <MenuLanguageSwitcher
           currentLocale={data.locale}
           enabledLocales={data.enabledLocales}
@@ -311,6 +317,7 @@ export default function DiningAubeTableA({
           triggerVariant="aube"
           menuAlign="right"
         />
+        </DiningMenuToolbar>
       </div>
       {usesSidebarNavigation && units.length > 1 ? (
         <>
@@ -471,7 +478,6 @@ export default function DiningAubeTableA({
       <style jsx global>{`
         .aube-table-viewport { container-name:aube; container-type:inline-size; width:100%; margin-inline:auto; }
         .aube-table-viewport[data-preview-device="mobile"] { max-width:767px; }
-        .aube-table-course-header:has([data-menu-order-add]) { grid-template-columns:auto minmax(20px,1fr) auto auto; }
         .aube-table-root {
           --aube-accent: #c5a165;
           --aube-surface: #fff;
@@ -558,7 +564,9 @@ export default function DiningAubeTableA({
         .aube-table-page[data-columns="2"] .aube-table-page-content { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--aube-column-gap); row-gap: var(--aube-space-course); }
         .aube-table-course { min-width: 0; }
         .aube-table-course-header { display: grid; grid-template-columns: auto minmax(32px, 1fr) auto; align-items: baseline; gap: clamp(14px, 1.5vw, 22px); }
-        .aube-table-course-header:not(:has(.aube-table-course-price)) { grid-template-columns: auto minmax(32px, 1fr); }
+        .aube-table-course-header:not(:has(.aube-table-course-price, [data-menu-order-add])) { grid-template-columns: auto minmax(32px, 1fr); }
+        .aube-table-course-purchase, .aube-table-item-purchase { display: flex; align-items: center; gap: .375rem; min-width: 0; }
+        .aube-table-course-purchase:empty, .aube-table-item-purchase:empty { display: none; }
         .aube-table-course-title { min-width: 0; }
         .aube-table-course-rule { width: 100%; border-top: 1px solid var(--aube-rule); }
         .aube-table-course-header h2 { --cafe-a-script-ko-font: var(--menu-role-category-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-category-font-en, var(--menu-font-en)); margin: 0; color: var(--menu-role-category-color, var(--aube-ink)); font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: var(--aube-type-course-title); font-weight: var(--menu-role-category-font-weight, 500); line-height: 1.18; letter-spacing: -.025em; }
@@ -578,6 +586,8 @@ export default function DiningAubeTableA({
         .aube-table-item:not(:has(.aube-table-item-image)) { grid-template-columns: minmax(0, 1fr); }
         .aube-table-item-image { width: clamp(96px, 9vw, 124px); height: clamp(96px, 9vw, 124px); border-radius: 2px; object-fit: cover; }
         .aube-table-item-heading { display: flex; align-items: baseline; gap: clamp(10px, 1vw, 16px); }
+        .aube-table-item-purchase { order: 3; justify-content: flex-end; }
+        .aube-table-item-purchase .aube-table-item-price { order: 0; }
         .aube-table-item-heading[data-has-price="true"]::after { content: ""; order: 2; min-width: 24px; height: 1.5px; flex: 1; background-image: radial-gradient(circle, var(--aube-leader-dot) .65px, transparent .78px); background-position: left center; background-repeat: repeat-x; background-size: 5px 1.5px; }
         .aube-table-item h3 { --cafe-a-script-ko-font: var(--menu-role-item-name-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-item-name-font-en, var(--menu-font-en)); order: 1; margin: 0; font-family: var(--menu-role-item-name-font-family, var(--menu-font-ko)); font-size: var(--aube-type-item-title); font-weight: var(--menu-role-item-name-font-weight, 500); line-height: 1.3; letter-spacing: -.018em; }
         .aube-table-item-price { --cafe-a-script-ko-font: var(--menu-role-price-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-price-font-en, var(--menu-font-en)); order: 3; margin: 0; white-space: normal; text-align: right; color: var(--aube-accent); font-family: var(--menu-role-price-font-family, var(--menu-font-ko)); font-size: var(--aube-type-item-price); font-weight: var(--menu-role-price-font-weight, 600); line-height: 1.32; }

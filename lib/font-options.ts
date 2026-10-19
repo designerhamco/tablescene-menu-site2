@@ -497,6 +497,13 @@ const TEMPLATE_ENGLISH_FONT_HIDDEN_OPTIONS: Record<string, readonly EnglishFontV
 
 const SYSTEM_ENGLISH_FONT_OPTIONS = [
   {
+    label: "Pretendard",
+    value: "pretendard",
+    category: "modern",
+    fontFamily: "'Pretendard', sans-serif",
+    href: "https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/variable/pretendardvariable.css",
+  },
+  {
     label: "Outfit",
     value: "outfit",
     category: "modern",

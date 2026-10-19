@@ -29,7 +29,8 @@ try {
    const theme=await shell.evaluate(e=>Object.fromEntries(['--menu-order-bg','--menu-order-ink','--menu-call-bg','--menu-call-ink'].map(k=>[k,getComputedStyle(e).getPropertyValue(k).trim()])));
    for(const [button,bg,ink]of[[call,'--menu-call-bg','--menu-call-ink'],[order,'--menu-order-bg','--menu-order-ink']]){
     const s=await button.evaluate(e=>{const s=getComputedStyle(e);return {bg:s.backgroundColor,ink:s.color,radius:s.borderRadius,shadow:s.boxShadow,weight:s.fontWeight}});
-    assert.equal(s.bg,rgb(theme[bg]));assert.equal(s.ink,rgb(theme[ink]));assert.equal(s.radius,'8px');assert.equal(s.shadow,'none');assert.equal(s.weight,'500');
+    const toolbar = key.startsWith('dining_') && device !== 'mobile';
+    assert.equal(s.bg, toolbar ? 'rgba(0, 0, 0, 0)' : rgb(theme[bg]));assert.equal(s.ink,rgb(theme[toolbar ? '--menu-call-ink' : ink]));assert.equal(s.radius,'8px');assert.equal(s.shadow,'none');assert.equal(s.weight,'500');
    }
    await call.click();let dialog=p.getByRole('dialog');await dialog.waitFor();await uiCheck(dialog);
    const rows=await dialog.getByRole('group',{name:'직원 호출 항목'}).locator('button').evaluateAll(els=>els.map(e=>{const s=getComputedStyle(e);return {widths:[s.borderTopWidth,s.borderRightWidth,s.borderBottomWidth,s.borderLeftWidth],styles:[s.borderTopStyle,s.borderRightStyle,s.borderBottomStyle,s.borderLeftStyle],color:s.borderColor,selected:e.getAttribute('aria-pressed')}}));

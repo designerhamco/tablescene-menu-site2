@@ -2,7 +2,7 @@
 
 import { ChevronDown, Globe2 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { LOCALE_LABELS, type SupportedLocale } from "@/lib/locales";
 import ScriptAwareText from "./ScriptAwareText";
@@ -66,9 +66,30 @@ export default function MenuLanguageSwitcher({
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
   const visibleLocales = enabledLocales.filter((locale, index) => enabledLocales.indexOf(locale) === index);
   const menuPlacementClassName = menuPlacement === "top" ? "bottom-12" : "top-12";
   const menuAlignClassName = menuAlign === "left" ? "left-0" : "right-0";
+
+  // Keep either anchor inside the actual viewport, including iframe previews.
+  // Correct before paint so left-edge mobile triggers never flash offscreen.
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    const fitMenu = () => {
+      const menu = menuRef.current;
+      if (!menu) return;
+      menu.style.transform = "none";
+      const rect = menu.getBoundingClientRect();
+      const scale = menu.offsetWidth ? rect.width / menu.offsetWidth : 1;
+      const shift = Math.max(8 - rect.left, Math.min(0, window.innerWidth - 8 - rect.right));
+      if (scale > 0) menu.style.transform = `translateX(${shift / scale}px)`;
+    };
+    fitMenu();
+    const observer = new ResizeObserver(fitMenu);
+    if (rootRef.current) observer.observe(rootRef.current);
+    window.addEventListener("resize", fitMenu);
+    return () => { observer.disconnect(); window.removeEventListener("resize", fitMenu); };
+  }, [isOpen, menuAlign, menuPlacement]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -143,7 +164,7 @@ export default function MenuLanguageSwitcher({
       >
         {triggerVariant === "cafe" ? (
           <CafeWireframeGlobeIcon className={iconClassName} />
-        ) : triggerVariant === "default" ? (
+        ) : triggerVariant === "default" || (triggerVariant === "aube" && iconOnly) ? (
           <Globe2 className={iconClassName} strokeWidth={2} aria-hidden="true" />
         ) : null}
         {triggerVariant === "cafe" && !iconOnly ? (
@@ -151,7 +172,7 @@ export default function MenuLanguageSwitcher({
             <span className="leading-none">{scriptAwareLabels ? <ScriptAwareText text={SHORT_LOCALE_LABELS[currentLocale]} /> : SHORT_LOCALE_LABELS[currentLocale]}</span>
             <ChevronDown className={chevronClassName} strokeWidth={1.8} aria-hidden="true" />
           </>
-        ) : triggerVariant === "aube" ? (
+        ) : triggerVariant === "aube" && !iconOnly ? (
           <>
             <span className="leading-none"><ScriptAwareText text={SHORT_LOCALE_LABELS[currentLocale]} /></span>
             {visibleLocales.length > 1 ? <ChevronDown className={chevronClassName} strokeWidth={1.6} aria-hidden="true" /> : null}
@@ -162,6 +183,7 @@ export default function MenuLanguageSwitcher({
       </button>
       {isOpen && visibleLocales.length > 1 && (
         <div
+          ref={menuRef}
           role="menu"
           data-language-menu-surface=""
           className={`absolute z-30 overflow-hidden border border-zinc-200 bg-white py-1 text-left ${menuPlacementClassName} ${menuAlignClassName} ${

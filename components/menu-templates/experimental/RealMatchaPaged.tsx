@@ -9,7 +9,8 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { Bell, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
+import { StaffCallIcon } from "@/components/public-menu/order-call/MenuActionIcons";
 import type { PublicMenuTemplateProps } from "../types";
 import CafeDesignA, {
   CafeATypographyFontAssets,
@@ -476,7 +477,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             <footer className={styles.footer} data-scroll-actions aria-label="메뉴 이용">
               {showCall ? (
                 <button type="button" className={styles.callButton} onClick={call.openCall} aria-label="직원 호출하기" data-scroll-call>
-                  <Bell aria-hidden="true" strokeWidth={1.8} /><ScriptAwareText text="호출하기" />
+                  <StaffCallIcon aria-hidden="true" strokeWidth={1.8} /><ScriptAwareText text="호출하기" />
                 </button>
               ) : null}
               {showOrder ? (

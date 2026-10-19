@@ -6,7 +6,6 @@ import {
   Minus,
   Pencil,
   Plus,
-  ShoppingCart,
   Trash2,
   X,
 } from "lucide-react";
@@ -32,6 +31,7 @@ import type {
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import styles from "./PostpayOrderCartDrawer.module.css";
 import ui from "./MenuInteractionUI.module.css";
+import { MenuOrderIcon, type MenuOrderIconVariant } from "./MenuActionIcons";
 
 type StoredCartLine = {
   menuItemId: string;
@@ -47,6 +47,7 @@ type CartLine = StoredCartLine & {
 };
 
 type PostpayOrderCartDrawerProps = {
+  iconVariant?: MenuOrderIconVariant;
   open: boolean;
   onClose: () => void;
   menuSiteId: string;
@@ -114,6 +115,7 @@ function getCheckoutModeLabel(mode: OrderCheckoutMode) {
 }
 
 export default function PostpayOrderCartDrawer({
+  iconVariant = "cart",
   open,
   onClose,
   menuSiteId,
@@ -764,7 +766,7 @@ export default function PostpayOrderCartDrawer({
               </>
             ) : (
               <div className={styles.empty}>
-                <ShoppingCart className="h-8 w-8 text-zinc-400" aria-hidden="true" strokeWidth={1.5} />
+                <MenuOrderIcon variant={iconVariant} className="h-8 w-8 text-zinc-400" strokeWidth={1.5} />
                 <h3 className="mt-5 text-xl font-semibold">
                   장바구니가 비어 있어요
                 </h3>

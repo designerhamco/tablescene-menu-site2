@@ -1,6 +1,7 @@
 "use client";
 
-import { Bell, ShoppingCart } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
+import { StaffCallIcon } from "@/components/public-menu/order-call/MenuActionIcons";
 import {
   createContext,
   useContext,
@@ -104,7 +105,7 @@ export function OnePageCallButton({ mobile = false }: { mobile?: boolean }) {
           data-one-page-call-button={mobile ? "mobile" : "desktop"}
           onClick={actions.openCall}
         >
-          <Bell aria-hidden="true" strokeWidth={1.8} />
+          <StaffCallIcon aria-hidden="true" strokeWidth={1.8} />
           {!mobile ? (
             <span>
               <ScriptAwareText text="호출" />
@@ -170,7 +171,7 @@ export function OnePageMobileCallDock() {
       </button> : null}
       {showCall ? <button type="button" className="cafe-a-mobile-call-dock-button" aria-label="직원 호출하기"
         data-one-page-call-button="mobile-bottom" onClick={call.openCall}>
-        <Bell aria-hidden="true" strokeWidth={1.8} /><span>{showOrder ? "호출하기" : "직원 호출하기"}</span>
+        <StaffCallIcon aria-hidden="true" strokeWidth={1.8} /><span>{showOrder ? "호출하기" : "직원 호출하기"}</span>
       </button> : null}
     </div>
   );

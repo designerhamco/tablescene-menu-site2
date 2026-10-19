@@ -1,11 +1,12 @@
 "use client";
 
-import { ShoppingCart } from "lucide-react";
+import { MenuOrderIcon, type MenuOrderIconVariant } from "./MenuActionIcons";
 import { createContext, type ReactNode, useContext, useMemo } from "react";
 
 import type { PostpayOrderCatalogItem } from "./types";
 
 type MenuOrderActions = {
+  iconVariant: MenuOrderIconVariant;
   orderableItemIds: ReadonlySet<string>;
   openItem: (itemId: string) => void;
 };
@@ -13,18 +14,21 @@ type MenuOrderActions = {
 const MenuOrderActionsContext = createContext<MenuOrderActions | null>(null);
 
 export function MenuOrderActionsProvider({
+  iconVariant = "cart",
   catalog,
   onOpenItem,
   children,
 }: {
+  iconVariant?: MenuOrderIconVariant;
   catalog: PostpayOrderCatalogItem[];
   onOpenItem: (itemId: string) => void;
   children: ReactNode;
 }) {
   const value = useMemo<MenuOrderActions>(() => ({
+    iconVariant,
     orderableItemIds: new Set(catalog.map((item) => item.id)),
     openItem: onOpenItem,
-  }), [catalog, onOpenItem]);
+  }), [catalog, onOpenItem, iconVariant]);
 
   return <MenuOrderActionsContext.Provider value={value}>{children}</MenuOrderActionsContext.Provider>;
 }
@@ -53,7 +57,7 @@ export default function MenuOrderAddButton({
         actions.openItem(itemId);
       }}
     >
-      <ShoppingCart className="h-5 w-5" strokeWidth={1.8} aria-hidden="true" />
+      <MenuOrderIcon variant={actions.iconVariant} className="h-5 w-5" />
     </button>
   );
 }

@@ -7,6 +7,7 @@ import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import defaultDesignStyles from "@/components/menu-templates/defaults/DefaultDesignPreview.module.css";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import { buildDefaultDesignPreview } from "@/lib/default-design-preview";
+import { getDefaultDesignOptions } from "@/lib/default-design-options";
 import type { OrderCallEntryConfig } from "@/components/public-menu/order-call/types";
 import { applyPagedMatchaFixture } from "@/lib/template-demo-data/paged-matcha";
 import { buildInteractivePreviewConfig } from "@/lib/preview-order-config";
@@ -68,6 +69,10 @@ type PageProps = {
     orderPreview?: string | string[];
     pageTest?: string | string[];
     prepayPreview?: string | string[];
+    widgetsPreview?: string | string[];
+    coverPreview?: string | string[];
+    featuredPreview?: string | string[];
+    imagesPreview?: string | string[];
     device?: string | string[];
     orientation?: string | string[];
     view?: string | string[];
@@ -1547,7 +1552,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     ),
     resolvedSearchParams.localeQa,
   );
-  const data = defaultDesign ? buildDefaultDesignPreview(localizedData, defaultDesign) : localizedData;
+  const data = defaultDesign ? buildDefaultDesignPreview(localizedData, defaultDesign, getDefaultDesignOptions(resolvedSearchParams)) : localizedData;
   if (templateKey === "cafe_real_matcha_paged_test") applyPagedMatchaFixture(data, getFirstParam(resolvedSearchParams.pageTest));
   const requestedRenderMode = Array.isArray(resolvedSearchParams.renderMode)
     ? resolvedSearchParams.renderMode[0]
