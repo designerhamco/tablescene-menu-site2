@@ -26,8 +26,8 @@ const subscribe = (listener: () => void) => {
   window.addEventListener("resize", listener);
   return () => window.removeEventListener("resize", listener);
 };
-export function useMenuPresentationDevice(explicit?: MenuPreviewDevice) {
-  const inferred = useSyncExternalStore(
+export function useMenuPresentationDevice(explicit?: MenuPreviewDevice): MenuPreviewDevice {
+  const inferred = useSyncExternalStore<MenuPreviewDevice>(
     subscribe,
     () =>
       window.innerWidth < 768
@@ -57,6 +57,17 @@ export function TableMenuActionButtons({ appearance = "circle" }: { appearance?:
   const inline = appearance === "inline";
   return (
     <div className={styles.actions} data-table-menu-actions data-appearance={appearance}>
+      {a.call ? (
+        <button
+          type="button"
+          className={inline ? styles.inlineAction : styles.circle}
+          aria-label="직원 호출"
+          onClick={a.openCall}
+        >
+          <Bell aria-hidden="true" />
+          {inline ? <ScriptAwareText text="호출" /> : null}
+        </button>
+      ) : null}
       {a.order ? (
         <button
           type="button"
@@ -71,17 +82,6 @@ export function TableMenuActionButtons({ appearance = "circle" }: { appearance?:
               {a.count > 99 ? "99+" : a.count}
             </span>
           ) : null}
-        </button>
-      ) : null}
-      {a.call ? (
-        <button
-          type="button"
-          className={inline ? styles.inlineAction : styles.circle}
-          aria-label="직원 호출"
-          onClick={a.openCall}
-        >
-          <Bell aria-hidden="true" />
-          {inline ? <ScriptAwareText text="호출" /> : null}
         </button>
       ) : null}
     </div>

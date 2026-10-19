@@ -82,10 +82,15 @@ async function paged(device, width, height, scenario, layout) {
       await p.locator("[data-paged-total]").getAttribute("data-paged-total"),
     );
     const geometry = await p.locator("[data-paged-brand]").boundingBox(),
-      actions = await p.locator("[data-table-menu-actions]").boundingBox();
+      actions = await p.locator("[data-one-page-table-actions]").boundingBox(),
+      pagination = await p.getByRole("navigation", {name: "메뉴 페이지 이동"}).boundingBox();
+    const menuBounds = await p.getByRole("region", {name: "메뉴 페이지"}).boundingBox();
+    assert.ok(pagination && menuBounds && Math.abs(pagination.x - menuBounds.x) < 1 && Math.abs(pagination.width - menuBounds.width) < 1, "pagination belongs to all menu columns, excluding the brand");
+    assert.ok(Math.abs(pagination.y + pagination.height - (height - geometry.y)) < 1, "pagination is pinned to the menu frame bottom");
+    assert.deepEqual(await p.locator("[data-paged-controls] [data-one-page-call-button]").evaluateAll(buttons => buttons.map(b => b.dataset.onePageCallButton)), ["mobile", "mobile-cart"]);
     assert.ok(actions && geometry && actions.x >= geometry.x - 1 && actions.x + actions.width <= geometry.x + geometry.width + 1, "actions stay inside the fixed brand column");
     assert.ok(actions.y < geometry.y + geometry.height / 2, "actions stay at the top of the brand column");
-    const controls = await p.locator("[data-paged-brand] button, [data-paged-item] [data-menu-order-add]").evaluateAll((buttons) => buttons.map((button) => {
+    const controls = await p.locator("[data-paged-controls] button, [data-paged-item] [data-menu-order-add]").evaluateAll((buttons) => buttons.map((button) => {
       const style = getComputedStyle(button);
       return { label: button.getAttribute("aria-label"), background: style.backgroundColor, shadow: style.boxShadow, border: style.borderTopWidth };
     }));
@@ -102,7 +107,7 @@ async function paged(device, width, height, scenario, layout) {
           .click();
       const m = await p.evaluate(() => {
         const root = document.querySelector("[data-paged-ready]"),
-          menu = root.querySelector('section[aria-label="메뉴 페이지"]'),
+          menu = root.querySelector('[role="region"][aria-label="메뉴 페이지"]'),
           bounds = menu.getBoundingClientRect();
         const blocks = [
           ...document.querySelectorAll(
@@ -153,9 +158,10 @@ async function paged(device, width, height, scenario, layout) {
         geometry,
       );
       assert.deepEqual(
-        await p.locator("[data-table-menu-actions]").boundingBox(),
+        await p.locator("[data-one-page-table-actions]").boundingBox(),
         actions,
       );
+      assert.deepEqual(await p.getByRole("navigation", {name: "메뉴 페이지 이동"}).boundingBox(), pagination, "pagination stays fixed on sparse and full pages");
       if (m.widgetBottom)
         assert.ok(
           m.widgetBottom <= m.noticeTop + 1,
@@ -231,6 +237,7 @@ try {
         });
       assert.ok(order.language < order.table && order.table < order.actions);
       assert.ok(order.scrollWidth <= width + 1);
+      assert.deepEqual(await p.locator("[data-one-page-call-bar] [data-one-page-call-button]").evaluateAll(buttons => buttons.map(b => b.dataset.onePageCallButton)), ["mobile", "mobile-cart"]);
       if (width < 768)
         assert.deepEqual(
           getOnePageMobileRhythmFailures(
@@ -458,6 +465,18 @@ try {
       ).searchParams.get("orderPreview"),
       "on",
     );
+    await toolbar.goto(base + "/templates/cafe_real_matcha_paged_test/preview?device=pc&callPreview=on&orderPreview=on");
+    await toolbar.locator('[data-preview-layout-mode="orderedFit"]').click();
+    await toolbar.waitForURL(/layoutMode=orderedFit/);
+    let embedded = new URL(await toolbar.locator("iframe").getAttribute("src"), base);
+    assert.equal(embedded.searchParams.get("layoutMode"), "orderedFit");
+    assert.equal(embedded.searchParams.get("orderPreview"), "on");
+    await toolbar.getByRole("link", {name: "태블릿", exact: true}).click();
+    await toolbar.waitForURL(/device=tablet/);
+    assert.equal(new URL(await toolbar.locator("iframe").getAttribute("src"), base).searchParams.get("layoutMode"), "orderedFit");
+    await toolbar.locator('[data-preview-layout-mode="orderedBalancedFit"]').click();
+    await toolbar.waitForURL(/layoutMode=orderedBalancedFit/);
+    assert.equal(new URL(await toolbar.locator("[data-preview-detached-link]").getAttribute("href"), base).searchParams.get("layoutMode"), "orderedBalancedFit");
     results.push({ kind: "toolbar", independentToggles: true });
   } catch (e) {
     failures.push({ kind: "toolbar", error: e.message });

@@ -113,15 +113,9 @@ export default function TableOrderLab() {
           />{" "}
           선결제 표시 · 준비 중
         </label>
-        <select
-          aria-label="배치 방식"
-          className="rounded-xl border border-zinc-300 p-2"
-          value={layout}
-          onChange={(e) => setLayout(e.target.value)}
-        >
-          <option value="orderedBalancedFit">카테고리 묶음 배치</option>
-          <option value="orderedFit">연속 배치</option>
-        </select>
+        <div role="group" aria-label="배치 방식" className="flex rounded-full border border-zinc-300 p-1">
+          {([['orderedBalancedFit', '묶음형'], ['orderedFit', '채움형']] as const).map(([mode, label]) => <button key={mode} type="button" aria-pressed={layout === mode} onClick={() => setLayout(mode)} className={`rounded-full px-4 py-2 ${layout === mode ? "bg-zinc-950 text-white" : "text-zinc-700"}`}>{label}</button>)}
+        </div>
         <select
           aria-label="테스트 콘텐츠"
           className="rounded-xl border border-zinc-300 p-2"
@@ -152,7 +146,7 @@ export default function TableOrderLab() {
         <Link
           className="site-button site-button-secondary"
           target="_blank"
-          href="/templates/cafe_real_matcha_paged_test/preview?callPreview=on&orderPreview=on"
+          href={"/templates/cafe_real_matcha_paged_test/preview?" + new URLSearchParams({...Object.fromEntries(query), view: "", embedded: ""})}
         >
           전체 미리보기
         </Link>

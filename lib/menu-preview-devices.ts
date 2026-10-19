@@ -45,6 +45,7 @@ export type MenuPreviewQuery = {
   page?: string;
   callPreview?: string;
   orderPreview?: string;
+  layoutMode?: string;
 };
 
 export type TemplatePreviewQuery = Record<string, string | string[] | undefined>;
@@ -92,15 +93,17 @@ export function buildMenuPreviewUrl(
     actual?: boolean;
     callPreview?: boolean;
     orderPreview?: boolean;
+    layoutMode?: string;
   } = {},
 ) {
   const searchParams = new URLSearchParams();
 
-  for (const key of ["lang", "page", "debugCafeA", "callPreview", "orderPreview"] as const) {
+  for (const key of ["lang", "page", "debugCafeA", "callPreview", "orderPreview", "layoutMode"] as const) {
     const value = query[key];
     if (value) searchParams.set(key, value);
   }
 
+  if (options.layoutMode) searchParams.set("layoutMode", options.layoutMode);
   if (options.device) searchParams.set("device", options.device);
   if (options.orderPreview !== undefined) {
     if (options.orderPreview) searchParams.set("orderPreview", "on");
@@ -159,6 +162,7 @@ export function buildTemplatePreviewUrl(
     actual?: boolean;
     callPreview?: boolean;
     orderPreview?: boolean;
+    layoutMode?: string;
   } = {},
 ) {
   const searchParams = new URLSearchParams();
@@ -169,6 +173,7 @@ export function buildTemplatePreviewUrl(
     if (value) searchParams.set(key, value);
   }
 
+  if (options.layoutMode) searchParams.set("layoutMode", options.layoutMode);
   if (options.device) searchParams.set("device", options.device);
   if (options.orderPreview !== undefined) {
     if (options.orderPreview) searchParams.set("orderPreview", "on");

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   paginateMenuBlocks,
+  selectMenuPaginationCandidate,
   type MeasuredMenuBlock,
 } from "./basic-menu-pagination";
 import {
@@ -85,4 +86,24 @@ test("absent merchant opt-in stays off and prepay is never enabled", () => {
     getAllowedCheckoutModes(enabled, "terminal").prepayVisible,
     false,
   );
+});
+
+test("measured width search minimizes page turns before choosing wider columns", () => {
+  const input = [block("1", "a", 60), block("2", "a", 60), block("3", "a", 60)];
+  const candidates = [1, 2, 3].map(columns => ({columns, pages: paginateMenuBlocks(input, columns, 100)}));
+  assert.equal(selectMenuPaginationCandidate(candidates).columns, 3);
+  const small = [block("1", "a", 30), block("2", "a", 30)];
+  assert.equal(selectMenuPaginationCandidate([1, 2, 3].map(columns => ({columns, pages: paginateMenuBlocks(small, columns, 100)}))).columns, 1);
+});
+test("a narrower candidate that clips is rejected even if it has fewer pages", () => {
+  const invalid = {columns: 3, pages: [{columns: [[block("oversize", "a", 200)]], overflow: ["oversize"]}]};
+  const valid = {columns: 2, pages: paginateMenuBlocks([block("1", "a", 80), block("2", "a", 80), block("3", "a", 80)], 2, 100)};
+  assert.equal(selectMenuPaginationCandidate([invalid, valid]), valid);
+});
+test("flow fills free space without changing fonts, order or widget boundaries", () => {
+  const input = Array.from({length: 4}, (_, i) => [block(`h${i}`, String(i), 10, "heading"), block(`a${i}`, String(i), 25), block(`b${i}`, String(i), 25)]).flat();
+  assert.equal(paginateMenuBlocks(input, 3, 100, true).length, 2);
+  const flow = paginateMenuBlocks(input, 3, 100, false);
+  assert.equal(flow.length, 1);
+  assert.deepEqual(flow.flatMap(p => p.columns.flat()).filter(b => b.kind !== "heading").map(b => b.id), input.filter(b => b.kind !== "heading").map(b => b.id));
 });

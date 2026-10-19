@@ -64,3 +64,13 @@ export function paginateMenuBlocks(
   if (page.columns.some((c) => c.length) || !pages.length) pages.push(page);
   return pages;
 }
+
+export type MenuPaginationCandidate = { columns: number; pages: MenuPagePartition[] };
+/** Minimize page turns first, then prefer the widest equally effective columns.
+ * Each candidate is measured independently, so wrapping is never estimated.
+ */
+export function selectMenuPaginationCandidate(candidates: readonly MenuPaginationCandidate[]): MenuPaginationCandidate {
+  if (!candidates.length) throw new Error("At least one measured menu layout is required");
+  const overflow = (candidate: MenuPaginationCandidate) => candidate.pages.reduce((sum, page) => sum + page.overflow.length, 0);
+  return [...candidates].sort((a, b) => overflow(a) - overflow(b) || a.pages.length - b.pages.length || a.columns - b.columns)[0];
+}
