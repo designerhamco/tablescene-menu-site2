@@ -114,7 +114,10 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   const showOrder = call.enabled && Boolean(call.orderEnabled);
   const updateScrollHint = useCallback(() => {
     const viewport = area.current;
-    setMoreBelow(Boolean(viewport && viewport.scrollHeight - viewport.clientHeight - viewport.scrollTop > 2));
+    const content = scrollContent.current?.querySelector<HTMLElement>("[data-scroll-columns]");
+    // A fill-only bottom safety inset is scrollable, but blank padding alone
+    // must not claim that there are more menu items below the viewport.
+    setMoreBelow(Boolean(viewport && content && content.getBoundingClientRect().bottom - viewport.getBoundingClientRect().bottom > 2));
   }, []);
   const [imagePreview, setImagePreview] = useState<CafeMenuImagePreview | null>(null);
   const imageTrigger = useRef<HTMLElement | null>(null);
@@ -295,16 +298,22 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         const base = Math.min(1.08 * rem, 0.88 * rem + Math.min(innerWidth, innerHeight) * 0.002);
         root.style.setProperty("--fit-menu-gap-scale", String((grouped ? getOrderedBalancedFitGapScale : getOrderedFitGapScale)(size / base, width)));
       };
-      // Each readable column count gets its own largest safe shared type size.
-      // This lets two well-filled columns beat three sparse tracks without adding scroll.
+      // Grouped mode retains its one-screen fit. Fill mode uses one stable
+      // device-scale size; additional copy is allowed to scroll instead of
+      // shrinking fonts or expanding gaps to manufacture a full viewport.
       const candidates = Array.from({ length: maxColumns }, (_, index) => {
         const count = index + 1;
+        const ceiling = (getOnePageItemNameCeilingRem(device) ?? 1.3) * rem;
+        if (!grouped) {
+          setSize(ceiling);
+          return { ...collect(count), itemSize: ceiling };
+        }
         const fits = (size: number) => {
           setSize(size);
           return [collect(count, true), collect(count)].every(candidate =>
             candidate.layout.naturalHeights.every(h => h <= bounds.height - 1));
         };
-        let low = rem, high = (getOnePageItemNameCeilingRem(device) ?? 1.3) * rem;
+        let low = rem, high = ceiling;
         if (fits(high)) low = high;
         else if (fits(low)) for (let attempt = 0; attempt < 7; attempt++) {
           const middle = (low + high) / 2;
@@ -406,7 +415,6 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         data-paged-layout={layoutMode}
         data-scroll-columns={layout.columns.length}
         data-scroll-content-height={layout.contentHeight}
-        data-scroll-centering={layout.topInset}
       >
         <aside ref={brandArea} className={styles.brand} data-paged-brand>
           <OnePageCallPalette />
@@ -443,13 +451,12 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
                   {notices.map((n, i) => <p key={i}><ScriptAwareText text={n} /></p>)}
                 </div>
               </div>
-              <div ref={scrollContent} className={styles.scrollContent} data-scroll-content style={{ paddingBlock: layout.topInset }}>
+              <div ref={scrollContent} className={styles.scrollContent} data-scroll-content>
                 {!units.length ? <p role="status">메뉴를 준비하고 있어요.</p> : null}
-                <div className={styles.columns} style={{ height: layout.contentHeight, maxWidth: layout.columns.length === 1 ? layout.columnWidth : undefined }}>
+                <div className={styles.columns} data-scroll-columns style={{ height: layout.contentHeight, maxWidth: layout.columns.length === 1 ? layout.columnWidth : undefined }}>
                   {layout.columns.map((column, i) => {
                     return <div key={i} className={styles.column} data-paged-column={i + 1}
-                      data-scroll-natural-height={layout.naturalHeights[i]} data-scroll-gap-scale={layout.gapScales[i]}
-                      style={{ "--scroll-gap-scale": layout.gapScales[i] } as CSSProperties}>
+                      data-scroll-natural-height={layout.naturalHeights[i]}>
                       {column.map((b, index) => <div key={b.id}>
                         {unit(b, index === column.length - 1, i === layout.footerColumn && notices.length > 0,
                           column[index + 1]?.kind ?? (i === layout.footerColumn && notices.length ? "notices" : undefined))}

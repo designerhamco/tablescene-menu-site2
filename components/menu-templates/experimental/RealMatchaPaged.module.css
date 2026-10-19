@@ -79,6 +79,8 @@
 }
 .menu:focus-visible { outline: 2px solid var(--paged-brand); outline-offset: -2px; }
 .scrollContent { min-height: 100%; box-sizing: border-box; }
+/* Only continuous fill gets one page inset after its last real menu/notice row. */
+.frame[data-paged-layout="orderedFit"] .scrollContent { padding-bottom: var(--scroll-page-inset); }
 .columns {
   display: grid;
   grid-template-columns: repeat(var(--paged-columns), minmax(0, 1fr));
@@ -89,7 +91,7 @@
 .column { display: flex; flex-direction: column; min-width: 0; }
 .column > div { flex: none; }
 .measure { height: 0; overflow: hidden; position: absolute; left: 0; top: 0; visibility: hidden; pointer-events: none; contain: layout; z-index: -1; }
-.unit { --scroll-base-gap: calc(var(--cafe-a-item-rhythm-gap) * var(--scroll-item-rhythm, 1)); box-sizing: border-box; min-width: 0; padding-bottom: calc(var(--scroll-base-gap) * var(--scroll-unit-gap-scale, var(--scroll-gap-scale, 1))); }
+.unit { --scroll-base-gap: calc(var(--cafe-a-item-rhythm-gap) * var(--scroll-item-rhythm, 1)); box-sizing: border-box; min-width: 0; padding-bottom: var(--scroll-base-gap); }
 .unit[data-kind="heading"] { --scroll-base-gap: calc(var(--cafe-a-item-rhythm-gap) * var(--cafe-a-category-title-to-first-ratio)); }
 /* A category transition replaces the previous item boundary, rather than doubling it. */
 .unit:is([data-next-kind="heading"], [data-next-kind="widget"], [data-next-kind="notices"]) { --scroll-base-gap: calc(var(--cafe-a-item-rhythm-gap) * var(--cafe-a-category-separation-ratio)); }

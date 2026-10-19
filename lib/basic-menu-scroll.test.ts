@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { layoutScrollableMenu, selectScrollableMenuCandidate, SCROLL_FILL_MAX_GAP_SCALE } from "./basic-menu-scroll";
+import { layoutScrollableMenu, selectScrollableMenuCandidate } from "./basic-menu-scroll";
 import type { MeasuredMenuBlock } from "./basic-menu-pagination";
 const category = (id: string, count: number): MeasuredMenuBlock[] => [
   { id: `h-${id}`, group: id, kind: "heading", height: 30 },
@@ -69,15 +69,13 @@ test("notices consume only the final real column and cannot become a notice-only
   }
   assert.deepEqual(layout.columns.flat(),input);
 });
-test("outer gap growth is bounded, sparse content is centered honestly and grouped is not stretched", () => {
+test("fill keeps measured semantic gaps and top alignment when content is sparse", () => {
   const input=category("a",3).map(b=>({...b,gapAfter:10}));
   const flow=layoutScrollableMenu(input,1,1000);
-  assert.equal(flow.gapScales[0],SCROLL_FILL_MAX_GAP_SCALE);
   assert.equal(flow.height,1000);
-  assert.equal(flow.topInset,(1000-flow.contentHeight)/2);
-  assert.ok(flow.contentHeight<500,"no invented full-page content height");
+  assert.equal(flow.contentHeight,flow.naturalHeights[0],"unused height never expands category spacing");
   const grouped=layoutScrollableMenu(input,1,1000,true);
-  assert.deepEqual(grouped.gapScales,[1]);assert.equal(grouped.topInset,0);
+  assert.equal(grouped.contentHeight,1000,"grouped retains its original viewport-sized canvas");
 });
 test("column selection prefers one-viewport fit over occupancy, and never adds avoidable scrolling", () => {
   const candidate=(count:number, heights:number[])=>({columnCount:count,columnWidth:300,layout:{...layoutScrollableMenu(category("a",12),count,500),naturalHeights:heights}});
@@ -89,7 +87,7 @@ test("fractional measurements do not add per-item rounding or trailing phantom g
   const input=Array.from({length:10},(_,i)=>({id:String(i),group:"a",kind:"item" as const,height:50.25,gapAfter:10.25}));
   const layout=layoutScrollableMenu(input,1,492.25);
   assert.equal(layout.naturalHeights[0],492.25);
-  assert.equal(layout.height,492.25);assert.equal(layout.topInset,0);
+  assert.equal(layout.height,492.25);
 });
 test("trailing widgets keep registered order above notices and empty content needs no fake canvas", () => {
   const input=[...category("a",4),...Array.from({length:2},(_,i)=>({id:`w${i}`,group:`w${i}`,kind:"widget" as const,height:100,gapAfter:20}))];
@@ -100,16 +98,24 @@ test("trailing widgets keep registered order above notices and empty content nee
   assert.equal(empty.contentHeight,40);assert.equal(empty.height,500);
 });
 
-test("the final widget-to-notice boundary grows with the same fill scale as category boundaries", () => {
+test("the final widget-to-notice boundary keeps the same measured gap as category boundaries", () => {
   const input = [
     {id:"heading",group:"a",kind:"heading" as const,height:52,gapAfter:12},
     {id:"product",group:"a",kind:"item" as const,height:112,gapAfter:32},
     {id:"widget",group:"widget",kind:"widget" as const,height:132,gapAfter:32},
   ];
   const layout = layoutScrollableMenu(input, 1, 600, false, {footerHeight:60});
-  assert.ok(layout.gapScales[0] > 1);
   assert.equal(layout.naturalHeights[0], 40+80+100+60+12+32+32);
-  assert.equal(layout.contentHeight, layout.naturalHeights[0] + (12+32+32)*(layout.gapScales[0]-1));
+  assert.equal(layout.contentHeight, layout.naturalHeights[0]);
+});
+
+test("when all fixed-size fill candidates overflow, choose the shortest measured scroll", () => {
+  const input=category("a",12);
+  const candidate=(count:number,heights:number[])=>({columnCount:count,columnWidth:300,itemSize:20,
+    layout:{...layoutScrollableMenu(input,count,500),naturalHeights:heights}});
+  assert.equal(selectScrollableMenuCandidate([
+    candidate(1,[1100]),candidate(2,[670,700]),candidate(3,[800,810,790]),
+  ]).columnCount,2);
 });
 
 test("fewer columns cannot trade away more than eight percent of the safe readable type", () => {

@@ -102,7 +102,8 @@ async function paged(device, width, height, scenario, layout) {
         }
       }
       return {viewport:[innerWidth,innerHeight], outer:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],
-        scrollTop:menu.scrollTop, max:menu.scrollHeight-menu.clientHeight, bad,
+        scrollTop:menu.scrollTop, max:menu.scrollHeight-menu.clientHeight,
+        contentBelow:document.querySelector('[data-scroll-content] [data-scroll-columns]').getBoundingClientRect().bottom-bounds.bottom, bad,
         first:blocks[0]?.getBoundingClientRect().top,
         last:Math.max(...blocks.map(e => e.getBoundingClientRect().bottom)), bottom:bounds.bottom,
         widgetBottom:widget?.getBoundingClientRect().bottom,
@@ -114,7 +115,7 @@ async function paged(device, width, height, scenario, layout) {
     const start = await measure();
     assert.deepEqual(start.viewport,[width,height]);
     assert.ok(start.outer[0] <= width + 1 && start.outer[1] <= height + 1);
-    assert.equal(start.more,start.max > 2 ? "true" : "false");
+    assert.equal(start.more,start.contentBelow > 2 ? "true" : "false","trailing safe padding alone does not trigger the content fade");
     assert.equal(start.pointer,"none");
     for (const fraction of [0.5,1]) {
       await p.locator("[data-scroll-menu]").evaluate((e,f) => {e.scrollTop=(e.scrollHeight-e.clientHeight)*f},fraction);
