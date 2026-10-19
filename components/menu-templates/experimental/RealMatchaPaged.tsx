@@ -46,6 +46,7 @@ import {
 import type { MeasuredMenuBlock } from "@/lib/basic-menu-pagination";
 
 import { layoutScrollableMenu } from "@/lib/basic-menu-scroll";
+import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 
 import type { MenuWidget } from "@/lib/menu-widgets";
 import styles from "./RealMatchaPaged.module.css";
@@ -92,6 +93,9 @@ function widgetView(w: MenuWidget): CafeAWidgetPreview {
 export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   const device = useMenuPresentationDevice(data.previewDevice);
   const mobile = device === "mobile";
+  const layoutMode = data.mode === "preview" && data.previewLayoutMode
+    ? data.previewLayoutMode
+    : getPcTabletLayoutModeFromPageSettings(data.menuSite.page_settings, "cafe_design_a");
   const area = useRef<HTMLDivElement>(null);
   const brandArea = useRef<HTMLElement>(null);
   const measure = useRef<HTMLDivElement>(null);
@@ -269,7 +273,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         height: Math.ceil(measure.current!.querySelector<HTMLElement>(`[data-measure-id="${u.id}"]`)!.getBoundingClientRect().height) + 1,
       }));
       const noticesHeight = noticeArea.current?.getBoundingClientRect().height ?? 0;
-      const partition = layoutScrollableMenu(measured, columns, Math.max(1, bounds.height - noticesHeight), data.previewLayoutMode !== "orderedFit");
+      const partition = layoutScrollableMenu(measured, columns, Math.max(1, bounds.height - noticesHeight), layoutMode !== "orderedFit");
       const brandBounds = brandArea.current?.getBoundingClientRect();
       const brandOverflow = Boolean(
         brandBounds &&
@@ -304,7 +308,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       observer.disconnect();
       document.fonts.removeEventListener("loadingdone", schedule);
     };
-  }, [mobile, units, data.previewLayoutMode, showCall, showOrder]);
+  }, [mobile, units, layoutMode, showCall, showOrder]);
   useLayoutEffect(() => {
     if (mobile || !area.current || !scrollContent.current) return;
     const observer = new ResizeObserver(updateScrollHint);
@@ -357,7 +361,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         data-paged-ready={layout.ready ? "true" : "false"}
         data-scroll-template="real-matcha"
         data-scroll-more={moreBelow ? "true" : "false"}
-        data-paged-layout={data.previewLayoutMode ?? "orderedBalancedFit"}
+        data-paged-layout={layoutMode}
       >
         <aside ref={brandArea} className={styles.brand} data-paged-brand>
           <OnePageCallPalette />

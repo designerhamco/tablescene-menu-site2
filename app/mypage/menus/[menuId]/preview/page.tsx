@@ -187,7 +187,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
         menuId={menuId}
         query={previewQuery}
         supportsCallPreview={data.menuSite.template_key !== "display_menu_a"}
-        supportsLayoutPreview={data.menuSite.template_key === "cafe_real_matcha_paged_test"}
+        supportsLayoutPreview={data.menuSite.template_key === "cafe_real_matcha_paged_test" || data.menuSite.template_key === "cafe_design_a"}
       />
     );
   }
@@ -207,7 +207,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       <MenuPageRenderer
         mode="preview"
         previewDevice={isActualView ? getActualMenuPreviewDevice(requestedDevice) : undefined}
-        previewLayoutMode={data.menuSite.template_key === "cafe_real_matcha_paged_test" && getSearchParamValue(query.layoutMode) ? normalizePcTabletLayoutMode(getSearchParamValue(query.layoutMode)) : undefined}
+        previewLayoutMode={(data.menuSite.template_key === "cafe_real_matcha_paged_test" || data.menuSite.template_key === "cafe_design_a") && getSearchParamValue(query.layoutMode) ? normalizePcTabletLayoutMode(getSearchParamValue(query.layoutMode)) : undefined}
         debugCafeA={debugCafeA}
         initialPreviewPageId={getDisplayPreviewInitialPageId(data, requestedPageIndex)}
         orderCallConfig={previewOrderCallConfig}

@@ -105,7 +105,7 @@ export default function MenuPreviewDeviceFrame(
     call: callPreview,
     order: orderPreview,
   });
-  const supportsLayoutPreview = props.supportsLayoutPreview ?? props.templateKey === "cafe_real_matcha_paged_test";
+  const supportsLayoutPreview = props.supportsLayoutPreview ?? (props.templateKey === "cafe_real_matcha_paged_test" || props.templateKey === "cafe_design_a");
   const layoutMode = (Array.isArray(query.layoutMode) ? query.layoutMode[0] : query.layoutMode) === "orderedFit" ? "orderedFit" : "orderedBalancedFit";
   const frame = getMenuPreviewFrame(device, orientation);
   const orientationLabel =

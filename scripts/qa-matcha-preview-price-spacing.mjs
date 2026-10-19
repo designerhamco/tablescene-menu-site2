@@ -15,12 +15,7 @@ try{
    const p=await pageAt({width:w,height:h});
    try{
     await p.goto(base+`/templates/${key}/preview?`+new URLSearchParams({device,view:'actual',embedded:'1',callPreview:'on',orderPreview:'on',layoutMode}),{waitUntil:'domcontentloaded'});await p.evaluate(()=>document.fonts.ready);
-    if(key==='cafe_design_a'&&w===768){
-     // The shipped original canvas already fails this dense portrait fit; the scroll copy must pass.
-     await p.waitForFunction(()=>{const e=document.querySelector('[data-fit-presentation-state]');return e?.dataset.fitPresentationState==='ready'||e?.dataset.fitStatus==='warning'});
-     const state=await p.locator('.cafe-a-desktop-fit-board').evaluate(e=>({fitStatus:e.dataset.fitStatus,presentation:e.dataset.fitPresentationState}));
-     if(state.presentation!=='ready'){baselineWarnings.push({key,device,w,h,layoutMode,...state});continue;}
-    }else await p.waitForFunction(({device,key})=>device==='mobile'?document.querySelector('[data-mobile-brand-fit]')?.dataset.mobileBrandFit==='ready':key.includes('paged')?document.querySelector('[data-paged-ready]')?.dataset.pagedReady==='true':document.querySelector('[data-fit-presentation-state]')?.dataset.fitPresentationState==='ready',{device,key});
+    await p.waitForFunction(({device})=>device==='mobile'?document.querySelector('[data-mobile-brand-fit]')?.dataset.mobileBrandFit==='ready':document.querySelector('[data-paged-ready]')?.dataset.pagedReady==='true',{device});
     await p.waitForTimeout(250);
     const m=await p.locator('.cafe-a-price-pair-with-note').filter({visible:true}).evaluateAll(els=>els.filter(e=>!e.closest('[aria-hidden="true"]')).map(e=>{const label=e.querySelector('.cafe-a-price-label'),price=e.querySelector('.cafe-a-menu-price'),s=getComputedStyle(e),l=label.getBoundingClientRect(),v=price.getBoundingClientRect();return {label:label.textContent,price:price.textContent,gap:s.columnGap,actual:v.left-l.right,scale:Number(s.getPropertyValue('--fit-menu-gap-scale').trim()||1),rem:parseFloat(getComputedStyle(document.documentElement).fontSize),font:getComputedStyle(label).fontFamily,color:getComputedStyle(label).color,weight:getComputedStyle(label).fontWeight,size:getComputedStyle(label).fontSize,priceSize:getComputedStyle(price).fontSize}}));
     assert.ok(m.length>=5,'real labeled prices are present');

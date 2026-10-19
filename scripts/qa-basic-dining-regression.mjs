@@ -82,7 +82,7 @@ async function check(c) {
       });
     else
       await page.waitForSelector(
-        '.cafe-a-desktop-fit-board[data-fit-presentation-state="ready"]',
+        c.key === 'cafe_design_a' ? '[data-paged-ready="true"]' : '.cafe-a-desktop-fit-board[data-fit-presentation-state="ready"]',
         { timeout: 60000 },
       );
     await page.waitForTimeout(250);
@@ -100,8 +100,9 @@ async function check(c) {
       const board = [
         ...document.querySelectorAll(".cafe-a-desktop-fit-board"),
       ].find(visible);
-      const menu = board?.querySelector(".cafe-a-fit-menu-scroll-root");
-      const r = board?.getBoundingClientRect();
+      const scroll = document.querySelector('[data-spacing-contract="contained-reading"]');
+      const menu = scroll?.querySelector("[data-scroll-menu]") ?? board?.querySelector(".cafe-a-fit-menu-scroll-root");
+      const r = (scroll ?? board)?.getBoundingClientRect();
       const name = [
         ...document.querySelectorAll("[data-cafe-a-menu-name]"),
       ].find(visible);
@@ -112,7 +113,7 @@ async function check(c) {
         .filter((e) => {
           const b = e.getBoundingClientRect();
           return (
-            b.bottom > r.bottom + 1 ||
+            (!scroll && b.bottom > r.bottom + 1) ||
             b.right > r.right + 1 ||
             b.left < r.left - 1
           );
@@ -120,6 +121,7 @@ async function check(c) {
         .map((e) => e.textContent.slice(0, 40));
       return {
         viewport: [innerWidth, innerHeight],
+        contained: Boolean(scroll),
         width: document.documentElement.scrollWidth,
         height: document.documentElement.scrollHeight,
         clipped,
@@ -137,7 +139,7 @@ async function check(c) {
           visible,
         ).length,
         actions: [
-          ...document.querySelectorAll("[data-one-page-table-actions]"),
+          ...document.querySelectorAll("[data-one-page-table-actions], [data-scroll-actions]"),
         ].filter(visible).length,
       };
     });
@@ -157,7 +159,7 @@ async function check(c) {
       assert.deepEqual(m.clipped, []);
       assert.ok(m.nameSize >= m.rem - 0.1);
       if (m.menu) {
-        assert.ok(m.menu.scrollHeight <= m.menu.height + 1);
+        if (!m.contained) assert.ok(m.menu.scrollHeight <= m.menu.height + 1);
         assert.ok(m.menu.scrollWidth <= m.menu.width + 1);
       }
     }

@@ -1,5 +1,10 @@
 # Menu template spacing contract
 
+## Current production exception — REAL MATCHA contained reading (2026-10-19)
+
+The user approved promoting the tested contained-scroll presentation to formal `cafe_design_a` single-page menus. That route and the hidden compatibility test use `experimental/RealMatchaPaged.tsx`: fixed brand, stable reading sizes, shared internal menu scroll, conditional background fade, and a dock outside the scroll. Saved grouped/fill preferences remain effective. Mobile still delegates unchanged to CafeDesignA. Multi-page REAL MATCHA and Display are excluded. The six other Basic templates continue the canvas-fit policies below until their individual fixed structures pass a separate rollout. Do not infer that all seven have switched or route other skins through the Matcha shell.
+
+
 KOHI was deleted on 2026-10-16. The current adaptive inventory has seven templates including ONUE TABLE. KOHI-only rules and assets are removed; historical QA records do not make it an active template.
 
 ## Scope

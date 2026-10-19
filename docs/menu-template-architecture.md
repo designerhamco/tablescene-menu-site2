@@ -5,7 +5,8 @@ This refactor moves existing declarations without changing formulas, tokens, con
 ## Presentation boundaries
 
 - `MenuTemplateRenderer.tsx` chooses the supported template and presentation.
-- The seven one-page starters share `CafeDesignA.tsx` as the renderer and state coordinator. Its PC/tablet fitting is enabled by the one-page fit policy; mobile uses the separate reading policy.
+- Formal REAL MATCHA (`cafe_design_a`, single presentation) and its hidden compatibility test use `experimental/RealMatchaPaged.tsx` for PC/tablet contained reading. That component delegates mobile unchanged to `CafeDesignA.tsx`.
+- The other six Basic templates still share `CafeDesignA.tsx` as renderer and state coordinator, retaining their own PC/tablet fixed shells and fit policy; mobile uses the separate reading policy.
 - `one-page/pc-tablet/cafe-fit-engine.ts` owns fit candidates, geometry, content estimates, column packing, crop measurement and state comparisons. It exports existing functions for the coordinator; it does not set mobile reading typography.
 - `lib/mobile-brand-title-fit.ts`, `shared/MobileBrandTitle.tsx` and `one-page/mobile/MobileNoticeList.tsx` handle independent mobile title fitting and notice rendering. Mobile 20/24/48px body rhythm and 12px language/brand/description gap remain scoped in CSS.
 - `multi-page/MultiPageMenuEngine.tsx` and its Desktop/Stack presentations retain their existing page-based policy and device breakpoint. They do not inherit one-page fit rules.
