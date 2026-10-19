@@ -4,9 +4,13 @@ import { TYPOGRAPHY_ROLE_KEYS } from "./template-typography-presets";
 import { BADGE_STYLE_KEYS } from "./template-badge-styles";
 import { getDefaultDesignOptions, type DefaultDesignOptions } from "./default-design-options";
 
-const image = "/placeholders/starter/menu-item.svg";
+const image = "/placeholders/starter/default-menu-item.svg";
 const coverImage = "/placeholders/starter/default-cover.svg";
 const ink = "#191c1b";
+const diningSecondaryNames: Record<string, string> = {
+  "관자와 시금치": "SCALLOPS & SPINACH",
+  "랍스터 비스크": "LOBSTER BISQUE",
+};
 
 /** Isolated sample data. Never used to replace a customer's content on switching. */
 export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultDesignReview, options: DefaultDesignOptions = getDefaultDesignOptions({})): MenuPageData {
@@ -17,7 +21,7 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
   const description = basic ? "좋은 커피와 갓 구운 디저트를 준비합니다." : "계절의 재료로 정성껏 준비한 식사를 만나보세요.";
   const roles = Object.fromEntries(TYPOGRAPHY_ROLE_KEYS.map(role => [role, {
     font_ko_key: "pretendard", font_en_key: "pretendard", size: "inherit",
-    weight: role === "supporting" ? "regular" : "medium",
+    weight: role === "brand" || role === "category" ? "bold" : role === "supporting" ? "regular" : "medium",
     color: role === "supporting" ? "#606561" : ink,
   }]));
   const settings = (data.menuSite.settings && typeof data.menuSite.settings === "object" && !Array.isArray(data.menuSite.settings)) ? data.menuSite.settings : {};
@@ -48,7 +52,7 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
   data.menuSite.page_settings = { ...savedPage, ...data.pageSettings, design: { ...savedDesign, backgroundColor: "#ffffff" } };
   data.items = data.items.map((item, index) => ({
     ...item, name: item.name.replace(/리얼 맛차/g, "말차").replace(/REAL MATCHA/g, "MATCHA"),
-    set_name: item.set_name?.replace(/REAL MATCHA/g, "MATCHA") ?? null,
+    set_name: item.set_name?.replace(/REAL MATCHA/g, "MATCHA") ?? (!basic ? diningSecondaryNames[item.name] ?? null : null),
     image_url: options.imagesPreview ? image : null,
     badge: index === 0 ? "추천" : item.badge,
     badge_label: index === 0 ? "추천" : item.badge_label,
@@ -56,21 +60,41 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
   data.pages = data.pages.map(page => ({ ...page, description: page.description?.replace(/오브 테이블/g, "아티메뉴 다이닝") ?? null }));
   data.categories = data.categories.map(category => ({ ...category, name: basic ? category.name.replace("MATCHA SIGNATURE", "SIGNATURE").replace("CLASSIC COFFEE", "COFFEE") : category.name.replace(/Aube signature/i, "Signature"), description_visible: true }));
   data.featuredSlides = (data.featuredSlides ?? []).map(slide => ({ ...slide, imageUrl: coverImage, featuredItemId: slide.featuredItemId ?? data.items[0]?.id ?? null }));
-  data.timeSales = data.timeSales.map(sale => ({ ...sale, badgeBackgroundColor: ink }));
+  data.timeSales = basic && options.timeSalesPreview ? data.timeSales.map(sale => ({ ...sale, badgeBackgroundColor: ink })) : [];
   // The basic starter demonstrates both price options and category-ordered widgets.
   if (basic) {
     const first = data.items[0];
     Object.assign(first, { name: "말차 라떼", set_name: "MATCHA LATTE", description: "부드러운 말차와 우유의 조화" });
-    data.priceOptions = data.priceOptions.filter(option => option.menu_item_id !== first.id);
-    data.priceOptions.push(
-      { id: `${first.id}-hot`, menu_item_id: first.id, label: "HOT", price: 5500, price_label: "5.5", visible: true, sort_order: 0 },
-      { id: `${first.id}-ice`, menu_item_id: first.id, label: "ICE", price: 6000, price_label: "6.0", visible: true, sort_order: 1 },
-    );
+    // Category price rails and per-item price descriptions are separate features.
+    // Keep ordinary prices in all other categories, including discount examples.
+    data.priceOptions = [];
+    data.categories = data.categories.map(category => ({ ...category, priceColumns: [] }));
+    data.items = data.items.map(item => ({ ...item, priceColumnValues: [], priceNote: options.priceNotesPreview ? item.priceNote : null }));
+    if (options.priceOptionsPreview) {
+      for (const [name, labels] of [["COFFEE", ["HOT", "ICE"]], ["ADE", ["Small", "Tall", "Large"]]] as const) {
+        const category = data.categories.find(entry => entry.name === name);
+        if (!category) continue;
+        category.priceColumns = labels.map((label, index) => ({ id: `${category.id}-option-${index}`, categoryId: category.id, key: label.toLowerCase(), label, sortOrder: index, visible: true }));
+        for (const item of data.items.filter(entry => entry.category_id === category.id)) {
+          item.priceColumnValues = category.priceColumns.map((column, index) => ({ id: `${item.id}-${column.id}`, priceColumnId: column.id, price: (item.price ?? 5000) + index * 500, priceLabel: null, visible: true }));
+        }
+      }
+    }
     data.widgets = [
       { id: "default-text", menuSiteId: data.menuSite.id, menuPageId: data.pages[0].id, type: "text", title: "매장 이용 안내", description: "모든 음료는 포장할 수 있습니다.", imageUrl: null, imagePath: null, sortOrder: 100, visible: true, settings: { schemaVersion: 1, placement: "flow", textAlign: "left" } },
       { id: "default-image", menuSiteId: data.menuSite.id, menuPageId: data.pages[0].id, type: "image", title: null, description: null, imageUrl: image, imagePath: null, sortOrder: 101, visible: true, settings: { schemaVersion: 1, placement: "flow", aspectRatio: "3:1", objectFit: "cover", objectPosition: "center", altText: "이미지 위젯 예시" } },
     ];
   }
+  // One clear sold-out example, away from the first orderable product/course.
+  const soldOutItem = basic
+    ? data.items.find(item => item.name === "플랫화이트")
+    : data.items.find(item => item.name.includes("랍스터"));
+  data.items = data.items.map(item => ({
+    ...item,
+    set_name: options.secondaryNamesPreview ? item.set_name : null,
+    description: options.descriptionsPreview ? item.description : null,
+    is_sold_out: options.soldOutPreview && item.id === soldOutItem?.id,
+  }));
   if (!options.widgetsPreview) data.widgets = [];
   return data;
 }

@@ -28,7 +28,7 @@ The user approved the overall sequence but explicitly wants **one Basic and one 
 
 Neutral appearance is preview-only and driven by standard typography settings. Basic reuses the exact approved contained-scroll renderer; Dining reuses the full-page engine and its supported course/individual-item modes. Sample images explicitly show replaceable image areas. Empty carts omit the entire header (back arrow, title, table and item count); populated carts retain the full-page header, table label and back action.
 
-The new Basic appearance enables every item image. Its PC/tablet price/options row sits below the copy so thumbnails and multiple prices cannot squeeze the text into a few characters. The same scoped CSS participates in hidden measurement and visible rows. Existing designer templates and all mobile layout rules are unchanged.
+The neutral Basic appearance enables item images and keeps each price rail to the right of the item name, with its add action beside/below the price. This supersedes the first draft's price-below-copy layout. The review opens in grouped mode. COFFEE demonstrates two category prices, ADE three, and the other categories keep ordinary prices. Optional secondary names, descriptions, price options/notes, time sales and one sold-out sample can be toggled independently without changing saved customer data. Original designer typography and mobile reading tokens remain independent.
 
 ## Verification
 

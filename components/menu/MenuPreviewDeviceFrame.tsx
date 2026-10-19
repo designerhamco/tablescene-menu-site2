@@ -1,6 +1,6 @@
 "use client";
 
-import { useOptimistic, useState, useTransition } from "react";
+import { useEffect, useOptimistic, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
@@ -90,6 +90,17 @@ export default function MenuPreviewDeviceFrame(
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isToolbarOpen, setIsToolbarOpen] = useState(true);
+  const toolbarRef = useRef<HTMLElement>(null);
+  const [toolbarHeight, setToolbarHeight] = useState(128);
+  useEffect(() => {
+    const toolbar = toolbarRef.current;
+    if (!toolbar) return;
+    const measure = () => setToolbarHeight(toolbar.offsetHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(toolbar);
+    return () => observer.disconnect();
+  }, []);
   const supportsCallPreview =
     props.supportsCallPreview ?? props.templateKey !== "display_menu_a";
   const supportsOrderPreview =
@@ -112,8 +123,8 @@ export default function MenuPreviewDeviceFrame(
   const defaultDesign = props.templateKey ? getDefaultDesignReview(Array.isArray(designParam) ? designParam[0] : designParam, props.templateKey) : undefined;
   const [displayOptions, setDisplayOptions] = useOptimistic(getDefaultDesignOptions(query as TemplatePreviewQuery));
   const displayChoices: [DefaultDesignOptionKey, string][] = defaultDesign?.layout === "basic-first-column"
-    ? [["widgetsPreview", "위젯"], ["coverPreview", "대표 영역"], ["featuredPreview", "대표 상품"], ["imagesPreview", "상품 이미지"]]
-    : [["coverPreview", "커버 페이지"], ["imagesPreview", "상품 이미지"]];
+    ? [["widgetsPreview", "위젯"], ["coverPreview", "대표 영역"], ["featuredPreview", "대표 상품"], ["imagesPreview", "상품 이미지"], ["secondaryNamesPreview", "보조 언어명"], ["descriptionsPreview", "메뉴 설명"], ["priceOptionsPreview", "가격 옵션"], ["priceNotesPreview", "가격 설명"], ["timeSalesPreview", "기간 할인"], ["soldOutPreview", "품절"]]
+    : [["coverPreview", "커버 페이지"], ["imagesPreview", "상품 이미지"], ["secondaryNamesPreview", "보조 언어명"], ["descriptionsPreview", "메뉴 설명"], ["soldOutPreview", "품절"]];
   const changeDisplayOption = (key: DefaultDesignOptionKey, enabled: boolean) => {
     if (!props.templateKey || !defaultDesign) return;
     startTransition(() => {
@@ -191,6 +202,7 @@ export default function MenuPreviewDeviceFrame(
     <main className="h-screen overflow-hidden bg-zinc-100 text-zinc-950">
       <div className="pointer-events-none fixed inset-x-0 top-0 z-[80] flex flex-col items-center">
         <header
+          ref={toolbarRef}
           data-preview-device-toolbar=""
           data-toolbar-open={showToolbar ? "true" : "false"}
           className={`pointer-events-auto relative min-w-0 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/90 p-2 text-white backdrop-blur-[2px] transition-[width,transform] duration-300 ease-out ${
@@ -346,10 +358,9 @@ export default function MenuPreviewDeviceFrame(
         className={
           device === "pc"
             ? "h-screen w-screen overflow-hidden"
-            : defaultDesign && showToolbar
-              ? "h-screen overflow-auto px-4 pb-16 pt-28 max-[850px]:pt-40 max-[430px]:pt-52"
-              : "h-screen overflow-auto px-4 py-16"
+            : "h-screen overflow-auto px-4 py-16"
         }
+        style={device !== "pc" && defaultDesign && showToolbar ? { paddingTop: toolbarHeight + 24 } : undefined}
         tabIndex={device === "pc" ? undefined : 0}
         aria-label={`${frame.label}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
       >

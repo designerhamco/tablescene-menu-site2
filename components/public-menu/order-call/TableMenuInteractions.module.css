@@ -61,13 +61,18 @@
   position: absolute;
   right: -0.2rem;
   top: -0.2rem;
-  min-width: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  min-width: 1.25rem;
   border: 2px solid white;
   border-radius: 9999px;
   background: #17191b;
   color: white;
-  font: 700 0.65rem/1.2rem sans-serif;
-  padding: 0 0.15rem;
+  font: 500 0.65rem/1 "Pretendard", sans-serif;
+  padding: 0;
 }
 .header [data-template-language-control] {
   justify-self: start;
@@ -172,6 +177,30 @@
 }
 .diningToolbar button:hover { opacity: .65; }
 .diningToolbar svg { width: 24px; height: 24px; }
+.diningToolbar [data-template-language-control] > button { width: auto; min-width: 64px; gap: .375rem; padding-inline: .5rem; }
+.diningToolbar [data-template-language-control] svg { width: 16px; height: 16px; }
+.shell[data-presentation="aube"] :is(.circle, .mobileDock, [data-menu-order-add]) svg { stroke-width: 1.6; }
+.diningFloatingCall {
+  position: fixed;
+  right: max(24px, env(safe-area-inset-right));
+  bottom: max(24px, env(safe-area-inset-bottom));
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .25rem;
+  width: 4.5rem;
+  height: 4.5rem;
+  border: 0;
+  border-radius: 50%;
+  background: var(--menu-order-bg, #191c1b);
+  color: var(--menu-order-ink, #fff);
+  font: 500 .75rem/1.2 "Pretendard", sans-serif;
+  cursor: pointer;
+}
+.diningFloatingCall svg { width: 24px; height: 24px; stroke-width: 1.6; }
+.diningFloatingCall:focus-visible { outline: 2px solid var(--menu-order-bg, #191c1b); outline-offset: 4px; }
 .shell[data-presentation="aube"] .header { color: #27272a; }
 
 /* Mobile ordering keeps one header icon and reserves one shared bottom action row. */

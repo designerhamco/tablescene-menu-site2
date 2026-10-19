@@ -88,6 +88,19 @@ export type ScrollableMenuCandidate = { columnCount: number; columnWidth: number
 /** Prefer readable width to underfilled/empty columns. Sparse content stays honestly sparse. */
 export function selectScrollableMenuCandidate(candidates: readonly ScrollableMenuCandidate[], grouped = false) {
   if (!candidates.length) throw new Error("At least one measured scroll candidate is required");
+  const preferred = candidates.filter(candidate => candidate.columnCount <= 3);
+  const selected = selectPreferredScrollCandidate(preferred.length ? preferred : candidates, grouped);
+  const rescue = candidates.find(candidate => candidate.columnCount === 4 && candidate.layout.columns.every(column => column.length));
+  if (!rescue || (rescue.itemSize && selected.itemSize && rescue.itemSize < selected.itemSize * (1 - SCROLL_FILL_MAX_TYPE_LOSS))) return selected;
+  const selectedHeight = Math.max(...selected.layout.naturalHeights);
+  if (selectedHeight <= selected.layout.viewportHeight + .1) return selected;
+  const rescueHeight = Math.max(...rescue.layout.naturalHeights);
+  // Four columns are a readable overflow rescue, never a fixed desktop count.
+  // Accept a one-screen fit or a material reduction in actual scroll height.
+  return rescueHeight <= rescue.layout.viewportHeight + .1 || rescueHeight <= selectedHeight * .85 ? rescue : selected;
+}
+
+function selectPreferredScrollCandidate(candidates: readonly ScrollableMenuCandidate[], grouped: boolean) {
   const ordered = [...candidates].sort((a, b) => b.columnCount - a.columnCount);
   const nonempty = ordered.filter(candidate => candidate.columnCount === 1 || candidate.layout.columns.every(column => column.length));
   // Never choose a narrower-count overflow when a readable candidate fits one viewport.

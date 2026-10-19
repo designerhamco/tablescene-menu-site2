@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" role="img" aria-label="Menu item placeholder">
-  <rect width="960" height="600" rx="48" fill="#f4f4f5"/>
+  <rect width="960" height="600" rx="8" fill="#f4f4f5"/>
   <circle cx="360" cy="260" r="120" fill="#e4e4e7"/>
   <rect x="500" y="190" width="220" height="28" rx="14" fill="#d4d4d8"/>
   <rect x="500" y="250" width="320" height="22" rx="11" fill="#e4e4e7"/>

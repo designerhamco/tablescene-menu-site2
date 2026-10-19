@@ -9,7 +9,7 @@ const category = (id: string, count: number): MeasuredMenuBlock[] => [
 const ids = (blocks: MeasuredMenuBlock[]) => blocks.filter(b => b.kind !== "heading").map(b => b.id);
 test("dense menus extend one shared canvas without losing, duplicating or reordering products", () => {
   const input = [...category("a", 20), ...category("b", 20)];
-  for (const columns of [1, 2, 3]) for (const grouped of [false, true]) {
+  for (const columns of [1, 2, 3, 4]) for (const grouped of [false, true]) {
     const layout = layoutScrollableMenu(input, columns, 500, grouped);
     assert.ok(layout.height > 500);
     assert.deepEqual(layout.columns.flat().map(b => b.id), input.map(b => b.id), "each category heading and product occurs exactly once in registered order");
@@ -123,4 +123,16 @@ test("fewer columns cannot trade away more than eight percent of the safe readab
   const candidates=[{columnCount:2,columnWidth:500,itemSize:18.8,layout:layoutScrollableMenu(input,2,1000)},
     {columnCount:3,columnWidth:320,itemSize:21.6,layout:layoutScrollableMenu(input,3,1000)}];
   assert.equal(selectScrollableMenuCandidate(candidates).columnCount,3);
+});
+
+test("four columns rescue measured overflow without replacing a safe preferred layout", () => {
+  const input = [...category("a", 12), ...category("b", 12), ...category("c", 12), ...category("d", 12)];
+  const candidate = (count: number, height: number, itemSize = 20) => ({ columnCount: count, columnWidth: 250, itemSize,
+    layout: { ...layoutScrollableMenu(input, count, 500), naturalHeights: Array(count).fill(height) } });
+  for (const grouped of [false, true]) {
+    assert.equal(selectScrollableMenuCandidate([candidate(2, 700), candidate(3, 490), candidate(4, 400)], grouped).columnCount, 3);
+    assert.equal(selectScrollableMenuCandidate([candidate(2, 1100), candidate(3, 800), candidate(4, 600)], grouped).columnCount, 4);
+    assert.equal(selectScrollableMenuCandidate([candidate(3, 800), candidate(4, 750)], grouped).columnCount, 3);
+    assert.equal(selectScrollableMenuCandidate([candidate(3, 800), candidate(4, 400, 16)], grouped).columnCount, 3);
+  }
 });

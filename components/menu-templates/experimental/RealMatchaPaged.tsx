@@ -271,7 +271,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const width = Math.min(area.current.clientWidth, bounds.width - (area.current.offsetWidth - area.current.clientWidth));
       const gap = parseFloat(getComputedStyle(area.current).columnGap) || 24;
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-      const maxColumns = Math.max(1, Math.min(3, Math.floor((width + gap) / (12 * rem + gap))));
+      // The menu region already excludes the fixed brand column and its gutter.
+      // A fourth track is measured only when every real inner track keeps 12rem.
+      const maxColumns = Math.max(1, Math.min(4, Math.floor((width + gap) / (12 * rem + gap))));
       const root = area.current.closest<HTMLElement>("[data-scroll-template]")!;
       const grouped = layoutMode !== "orderedFit";
       const collect = (columnCount: number, reference = false) => {

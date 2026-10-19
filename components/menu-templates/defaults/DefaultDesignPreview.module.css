@@ -1,5 +1,5 @@
 /* Review-only neutral appearance. Existing template routes have no wrapper. */
-.surface { min-height: 100dvh; background: #fff; }
+.surface { min-height: 100dvh; background: #fff; --menu-image-preview-radius: 0px; }
 .surface[data-default-design="basic-first-column"] :global(.cafe-a-typography .cafe-a-category-heading) {
   border-bottom: 0;
   padding-bottom: 0;
@@ -14,29 +14,21 @@
 .surface :global(.aube-table-cover-copy) { color: #606561; }
 .surface :global(.aube-table-cover h1) { letter-spacing: -.035em; text-indent: 0; line-height: 1.1; }
 .surface :global(.cafe-a-store-title),
-.surface :global(.cafe-a-category-title) { font-weight: 600; }
+.surface :global(.cafe-a-category-title) { font-weight: 700; }
 .surface :global(.cafe-a-menu-title),
 .surface :global(.cafe-a-menu-price),
 .surface :global(.cafe-a-menu-badge),
 .surface :global(.cafe-a-menu-chip),
 .surface :global(.cafe-a-time-sale-time-text) { font-weight: 500; }
 
-/* The neutral starter enables every thumbnail. Give its copy the full remaining
-   width, with price/options below; match hidden measurement and visible rows.
-   This applies only to the new contained-scroll design, never existing/mobile. */
-.surface :global([data-scroll-template] .cafe-a-menu-item-with-image .cafe-a-menu-item-content-shell) {
-  grid-template-columns: minmax(0, 1fr);
-  row-gap: .5rem;
-}
-.surface :global([data-scroll-template] .cafe-a-menu-item-with-image .cafe-a-price-area) {
-  grid-column: 1;
-  justify-self: stretch;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-  text-align: left;
-}
-.surface :global([data-scroll-template] .cafe-a-menu-item-with-image .cafe-a-price-inline) {
-  justify-content: flex-start;
+/* Price rails stay beside the item name in visible and measuring rows. */
+.surface :global(.cafe-a-typography .cafe-a-price-area) { align-self: start; }
+.surface :global(.cafe-a-image-lightbox) { font-family: "Pretendard", sans-serif; --menu-font-en: "Pretendard", sans-serif; }
+
+/* Neutral Dining: reduce only large mobile cover/page headings; course copy
+   remains the approved reading reference. Explicit mobile previews are scoped. */
+@container aube (max-width: 767px) {
+  .surface :global(.aube-table-cover h1) { font-size: clamp(34px, 9cqw, 40px); line-height: 1.12; }
+  .surface :global(.aube-table-cover-description) { font-size: 15px; }
+  .surface :global(.aube-table-page[data-course-priced="false"] .aube-table-page-header h1) { font-size: clamp(30px, 8cqw, 36px); }
 }
