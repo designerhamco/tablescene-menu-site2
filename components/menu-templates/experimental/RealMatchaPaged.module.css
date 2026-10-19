@@ -92,10 +92,16 @@
 .column > div { flex: none; }
 .measure { height: 0; overflow: hidden; position: absolute; left: 0; top: 0; visibility: hidden; pointer-events: none; contain: layout; z-index: -1; }
 .unit { --scroll-base-gap: calc(var(--cafe-a-item-rhythm-gap) * var(--scroll-item-rhythm, 1)); box-sizing: border-box; min-width: 0; padding-bottom: var(--scroll-base-gap); }
-.unit[data-kind="heading"] { --scroll-base-gap: calc(var(--cafe-a-item-rhythm-gap) * var(--cafe-a-category-title-to-first-ratio)); }
+/* Slightly above the largest ordinary 1.2 item rhythm; measure and render agree. */
+.unit[data-kind="heading"] { --scroll-base-gap: calc(var(--cafe-a-item-rhythm-gap) * max(1.25, var(--cafe-a-category-title-to-first-ratio))); }
 /* A category transition replaces the previous item boundary, rather than doubling it. */
 .unit:is([data-next-kind="heading"], [data-next-kind="widget"], [data-next-kind="notices"]) { --scroll-base-gap: calc(var(--cafe-a-item-rhythm-gap) * var(--cafe-a-category-separation-ratio)); }
 .unit :global(.cafe-a-category-heading) { margin-bottom: 0; }
+/* The requested mobile heading-only adjustment is independent of desktop fit.
+   Keep the existing 20px item / 48px section and internal copy gaps intact. */
+.mobile :global(.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"]) {
+  --cafe-a-mobile-heading-gap: 1.625rem;
+}
 .notices { padding-block: 0 0.25rem; overflow-wrap: anywhere; line-height: 1.5; white-space: pre-line; text-align: right; }
 .notices:empty { display: none; }
 .fade {

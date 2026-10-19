@@ -1,6 +1,6 @@
 import type { TemplatePreviewQuery } from "./menu-preview-devices";
 
-export const DEFAULT_DESIGN_OPTION_KEYS = ["widgetsPreview", "coverPreview", "featuredPreview", "imagesPreview", "secondaryNamesPreview", "descriptionsPreview", "badgesPreview", "priceOptionsPreview", "priceNotesPreview", "timeSalesPreview", "soldOutPreview"] as const;
+export const DEFAULT_DESIGN_OPTION_KEYS = ["widgetsPreview", "coverPreview", "featuredPreview", "imagesPreview", "categoryDescriptionsPreview", "secondaryNamesPreview", "descriptionsPreview", "badgesPreview", "priceOptionsPreview", "priceNotesPreview", "timeSalesPreview", "soldOutPreview"] as const;
 export type DefaultDesignOptionKey = typeof DEFAULT_DESIGN_OPTION_KEYS[number];
 export type DefaultDesignOptions = Record<DefaultDesignOptionKey, boolean>;
 

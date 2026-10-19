@@ -14,6 +14,9 @@ async function frameReady(design) {
   if (design.startsWith('basic')) await frame.locator('[data-paged-ready="true"],[data-mobile-brand-fit="ready"]').first().waitFor();
   else await frame.locator('.aube-table-stage .cafe-a-script-ko,.aube-table-stage .cafe-a-script-en').first().waitFor();
   await frame.locator('body').evaluate(() => document.fonts.ready);
+  // Expanded options can push the framed device below the outer viewport.
+  // Scroll the outer preview before interacting with its bottom pagination.
+  if (!design.startsWith('basic')) await p.locator('iframe').scrollIntoViewIfNeeded();
   return frame;
 }
 async function toggle(design, key, label, value) {
@@ -31,7 +34,7 @@ try {
     let frame = await frameReady(design);
     const guide = p.locator('[data-preview-guide-variant]');
     if (await guide.isVisible()) await guide.getByRole('button', { name: '닫기', exact: true }).click();
-    assert.equal(await p.locator('[data-preview-display-options] input:checked').count(), basic ? 11 : 5);
+    assert.equal(await p.locator('[data-preview-display-options] input:checked').count(), basic ? 12 : 6);
     assert.equal(await p.locator('[data-preview-display-options] fieldset').count(), 3);
     const optionsToggle = p.getByRole('button', { name: /^보기 옵션/ });
     const initialSrc = await p.locator('iframe').getAttribute('src');
@@ -46,6 +49,16 @@ try {
     }
     const secondary = '.cafe-a-menu-meta:not([data-cafe-a-reference-copy]),.aube-table-item-secondary';
     const description = '[data-cafe-a-menu-description],.aube-table-item-description';
+    const categoryDescription = '[data-cafe-a-category-description],.aube-table-course-description';
+    const categoryCount = await frame.locator(categoryDescription).filter({ visible: true }).count();
+    assert.ok(categoryCount > 0);
+    if (basic) assert.equal(categoryCount, 2, 'only two Basic sample categories have descriptions');
+    frame = await toggle(design, 'categoryDescriptionsPreview', '카테고리 설명', false);
+    if (!basic) {
+      await frame.getByRole('button', { name: /A La Carte.*페이지로 이동/ }).click();
+      await frame.getByRole('heading', { name: 'A La Carte Menu', exact: true }).waitFor();
+    }
+    assert.equal(await frame.locator(categoryDescription).filter({ visible: true }).count(), 0);
     assert.ok(await frame.locator(secondary).filter({ visible: true }).count());
     assert.ok(await frame.locator(description).filter({ visible: true }).count());
     frame = await toggle(design, 'secondaryNamesPreview', '보조 언어명', false);
@@ -117,7 +130,9 @@ try {
     frame = await frameReady(design);
     assert.equal(await frame.locator('.cafe-a-menu-item-image,.aube-table-item-image').count(), 0);
     const url = new URL(await p.locator('iframe').getAttribute('src'), base);
-    for (const name of ['coverPreview', 'imagesPreview', 'secondaryNamesPreview', 'descriptionsPreview']) assert.equal(url.searchParams.get(name), 'off');
+    for (const name of ['coverPreview', 'imagesPreview', 'categoryDescriptionsPreview', 'secondaryNamesPreview', 'descriptionsPreview']) assert.equal(url.searchParams.get(name), 'off');
+    assert.equal(await p.getByRole('checkbox', { name: '카테고리 설명 보기', exact: true }).isChecked(), false);
+    frame = await toggle(design, 'categoryDescriptionsPreview', '카테고리 설명', true);
     if (basic) {
       assert.equal(url.searchParams.get('badgesPreview'), 'off');
       assert.equal(await frame.locator('[data-cafe-a-menu-badge]').count(), 0);
@@ -136,6 +151,7 @@ try {
     assert.ok(await frame.locator('.cafe-a-menu-item-image,.aube-table-item-image').count() > 0);
     assert.ok(await frame.locator(secondary).filter({ visible: true }).count());
     assert.ok(await frame.locator(description).filter({ visible: true }).count());
+    assert.ok(await frame.locator(categoryDescription).filter({ visible: true }).count());
     for (const outerWidth of [1440, 390]) {
       await p.setViewportSize({ width: outerWidth, height: 1000 });
       await p.waitForFunction(() => {

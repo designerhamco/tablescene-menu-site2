@@ -47,13 +47,13 @@ try {
         }
         if (!mobile && (c.call || c.order)) {
           const controls = await toolbar.locator('button').evaluateAll(els => els.map(e => ({ label: e.getAttribute('aria-label'), x: e.getBoundingClientRect().x, y: e.getBoundingClientRect().y, h: e.getBoundingClientRect().height })));
-          assert.equal(controls.length, 1 + Number(c.call) + Number(c.order));
+          assert.equal(controls.length, 1 + Number(c.order));
           assert.match(controls[0].label, /언어/);
-          if (c.call) assert.equal(controls[1].label, '직원 호출');
+          assert.equal(await toolbar.getByRole('button', { name: '직원 호출', exact: true }).count(), 0, 'floating call is the sole desktop call entry');
           if (c.order) assert.match(controls.at(-1).label, /^장바구니/);
           for (let i = 1; i < controls.length; i++) { assert.ok(controls[i].x > controls[i - 1].x); assert.equal(controls[i].y, controls[0].y); }
           assert.ok(controls[0].y < 80 && controls[0].h >= 44);
-          assert.equal(await p.locator('[data-table-menu-actions]').filter({ visible: true }).count(), 1, 'no bottom duplicate');
+          assert.equal(await p.locator('[data-table-menu-actions]').filter({ visible: true }).count(), c.order ? 1 : 0, 'only order belongs in desktop toolbar');
           const language = toolbar.locator('button').first();
           assert.match(await language.innerText(), /KR/);
           assert.equal(await language.locator('.lucide-globe').count(), 0);
@@ -68,6 +68,11 @@ try {
         }
         if (c.call) assert.ok(await p.locator('.lucide-concierge-bell').filter({ visible: true }).count() > 0);
         if (c.order) assert.equal(await p.locator('.lucide-shopping-cart').filter({ visible: true }).count(), 0);
+        if (c.order) {
+          const cartEntry = p.locator('[data-table-menu-actions] [data-menu-order-icon="document"]').filter({ visible: true });
+          assert.equal(await cartEntry.getAttribute('data-menu-order-purpose'), 'view');
+          assert.equal(await cartEntry.locator('circle').count(), 0, 'opening an order has no add badge');
+        }
         if (c.call && c.order) {
           const pages = p.locator('.aube-table-pagination-dots button,.aube-table-sidebar-list button,.aube-table-mobile-page-tabs button').filter({ visible: true });
           const count = await pages.count();
@@ -76,7 +81,7 @@ try {
             const measurements = await p.locator('.aube-table-course-purchase:has([data-menu-order-add]),.aube-table-item-purchase:has([data-menu-order-add])').evaluateAll(els => els.map(e => {
               const button = e.querySelector('button'), price = e.querySelector('p');
               const b = button.getBoundingClientRect(), r = price?.getBoundingClientRect(), item = e.closest('.aube-table-item')?.getBoundingClientRect();
-              return { icon: !!button.querySelector('[data-menu-order-icon="document"]'), button: { x: b.x, right: b.right, y: b.y, bottom: b.bottom }, price: r && { right: r.right, y: r.y, bottom: r.bottom }, itemRight: item?.right };
+              return { icon: !!button.querySelector('[data-menu-order-icon="document"][data-menu-order-purpose="add"] circle'), button: { x: b.x, right: b.right, y: b.y, bottom: b.bottom }, price: r && { right: r.right, y: r.y, bottom: r.bottom }, itemRight: item?.right };
             }));
             for (const m of measurements) {
               assert.ok(m.icon);
