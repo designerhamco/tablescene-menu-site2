@@ -23,6 +23,19 @@
 
 /* Price rails stay beside the item name in visible and measuring rows. */
 .surface :global(.cafe-a-typography .cafe-a-price-area) { align-self: start; }
+/* A title-only row centers the name AND its price on the thumbnail. The empty
+   grid track mirrors the real add button's height without absolute positioning,
+   so ordering, wrapped names and the measuring rows all keep their full height. */
+.surface :global(.cafe-a-typography [data-cafe-a-image-title-only] .cafe-a-menu-item-image-slot),
+.surface :global(.cafe-a-typography [data-cafe-a-image-title-only] .cafe-a-menu-copy),
+.surface :global(.cafe-a-typography [data-cafe-a-image-title-only] .cafe-a-price-area) { align-self: center; }
+.surface :global(.cafe-a-typography [data-cafe-a-image-title-only] .cafe-a-menu-item-content-shell) { align-items: center; }
+.surface :global(.cafe-a-typography [data-cafe-a-image-title-only] .cafe-a-price-area:has(> .cafe-a-price-order-add)) {
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  justify-items: end;
+}
+.surface :global(.cafe-a-typography [data-cafe-a-image-title-only] .cafe-a-price-area:has(> .cafe-a-price-order-add)::before) { content: ""; }
 .surface :global(.cafe-a-image-lightbox) { font-family: "Pretendard", sans-serif; --menu-font-en: "Pretendard", sans-serif; }
 
 /* Neutral Dining: reduce only large mobile cover/page headings; course copy

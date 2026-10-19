@@ -136,6 +136,7 @@ const TEMPLATE_PREVIEW_QUERY_KEYS = [
   "imagesPreview",
   "secondaryNamesPreview",
   "descriptionsPreview",
+  "badgesPreview",
   "priceOptionsPreview",
   "priceNotesPreview",
   "timeSalesPreview",

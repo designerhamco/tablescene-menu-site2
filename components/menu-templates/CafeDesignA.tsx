@@ -1426,7 +1426,7 @@ function Badge({
 
 function SoldOutBadge({ locale, className = "" }: { locale: CafeDesignALocale; className?: string }) {
   return (
-    <span className={`menu-badge cafe-a-menu-badge cafe-a-sold-out-chip inline-flex rounded-none border px-1.5 py-1 font-black uppercase leading-none ${className}`}>
+    <span className={`menu-badge cafe-a-menu-badge cafe-a-sold-out-chip inline-flex rounded-none px-1.5 py-1 font-black uppercase leading-none ${className}`}>
       <ScriptAwareText text={getCafeASoldOutLabel(locale)} />
     </span>
   );
@@ -1839,6 +1839,7 @@ function MenuItemRow({
       ref={itemRef}
       className={`cafe-a-menu-item grid items-start ${canCenterSparseContent ? "cafe-a-menu-item-align-center" : ""} ${hasItemImage ? "cafe-a-menu-item-with-image" : ""} ${priceCountClassName} ${itemGridClassName}`}
       data-cafe-a-content-variant={contentVariant}
+      data-cafe-a-image-title-only={hasItemImage && !hasContentAfterTitle ? "" : undefined}
       data-cafe-a-item-rhythm={usesOnePageProportionFitPolicy(templateKey, previewDevice) ? getOnePageItemRhythmMultiplier(hasSecondaryText, hasDescriptionText, showMenuTimeSale || visibleTraits.length > 0 || hasOriginInfo) : undefined}
       data-cafe-a-menu-item=""
       data-cafe-a-sold-out={isSoldOut ? "true" : undefined}

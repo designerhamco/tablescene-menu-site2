@@ -16,6 +16,14 @@
 
 ## Verification
 
+### Preview grouping and title-only alignment follow-up
+
+- The neutral Basic toolbar groups eleven controls under 영역·이미지 / 메뉴 정보 / 가격·판매 상태. Dining's five controls use the same grouped panel with 판매 상태. The panel can collapse independently of the device/action toolbar, preserving all selections and the current iframe.
+- Basic's new 텍스트칩 switch controls ordinary product/featured badges only. Period promotions and sold-out status retain their independent switches. The selection survives device and detached-window URLs.
+- Neutral Basic image rows with no secondary name, description or other supporting content center the name block and price on the thumbnail. The add action keeps its own measured space below the price; no absolute overlay or mobile reading-token change is introduced. Shared Basic sold-out badges have no outline.
+- Column selection is **unchanged in this follow-up**. The user's proposed remaining-copy-width/wrapping criterion and an automatic three-column ceiling are pending discussion. Do not interpret this UI release as approval to change the current 1–3 plus guarded fourth-column policy.
+- `qa-default-title-only.mjs` passed twenty PC/tablet/phone, order on/off and price-option on/off cases. The existing option suite passed twenty scenario groups including group structure, collapse persistence and independent badge/sale/stock visibility; fifteen design/cart regression cases and 662 unit tests also passed.
+
 - `qa-dining-menu-actions.mjs`: 57 actual viewport/state cases across original Dining A/B, the neutral Dining preview and seven Basic templates. Checks top-toolbar order, mobile layout, price adjacency across pages, fixed controls during scrolling, SVG variants and viewport overflow.
 - `qa-default-designs.mjs`: 15 device/layout/design cases; default grouped and fill placement, actual name/price geometry including 320px phones and three-option rails, square lightbox, circular count badge, empty-cart popup, populated full-screen cart and table context.
 - `qa-menu-interaction-theme.mjs`: 12 cases; template colors, button type, modal/call/cart flow, Pretendard, borders and shared CTA weight. Desktop Dining toolbar expectations follow its transparent icon treatment.
