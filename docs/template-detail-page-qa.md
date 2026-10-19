@@ -5,7 +5,8 @@
 ## 화면과 동작
 
 - `/apply`의 썸네일과 상품명은 `/templates/[templateKey]`로 같은 창에서 이동한다. 목록의 `미리보기`는 기존 새 창 동작을 유지한다.
-- 768px 이상은 왼쪽 설명과 오른쪽 정보의 2열이다. 오른쪽은 기본 사이트 헤더 아래에 sticky로 고정한다. 제목·이미지·기능·요금·안내만 내부 스크롤하며, 미리보기와 시작 버튼은 독립된 흰 하단 영역에 항상 노출한다. 첫 화면의 breadcrumb 높이까지 포함해 실제 남은 viewport에 맞추며, 푸터에서는 고정을 해제한다.
+- 768px 이상은 왼쪽 설명과 오른쪽 정보의 2열이다. 처음에는 오른쪽 전체를 자연 높이로 펼쳐 페이지와 함께 스크롤한다. 미리보기/시작 버튼의 하단이 viewport 하단 여백에 도달하면 갤러리를 숨기고 헤더 아래 정보·하단 액션을 고정한다. 처음부터 전체가 들어가는 긴 화면에서는 열 상단이 헤더 아래 고정 위치에 도달한 뒤 전환한다.
+- 고정 상태에서만 오른쪽 정보에 높이 제한을 적용하며, 넘칠 때만 내부 스크롤한다. 원래 펼친 열의 높이로 전환 지점을 계산하고 갤러리 안쪽 크기는 유지해, 축소로 인한 경계 흔들림을 방지한다. 위로 돌아가면 고정을 해제하고 갤러리/선택 상태를 복원하며 내부 스크롤을 초기화한다. 열 끝에서는 사이트 푸터를 덮지 않는다.
 - 버튼 위 32px 흰색 페이드는 실제로 아래에 남은 내용이 있을 때만 표시하고, 끝까지 스크롤하거나 높이가 충분해지면 숨긴다. 폰트/이미지·기기 크기·페이지 스크롤 변화에도 다시 측정한다. 스크롤 영역은 키보드 Home/End로도 접근하며 버튼 위치와 페이지 스크롤은 유지한다.
 - 상세페이지에서는 모든 기기의 AI 상담·위로가기 퀵 메뉴를 숨긴다. 공통 헤더의 선택적 prop으로 이 호출부에만 적용하며, 목록과 다른 사이트 경로의 퀵 메뉴는 유지한다.
 - 767px 이하는 기존 템플릿 정보·이미지 선택·요금·액션·구독 안내 순서를 보존하고 설명 전체를 자연스럽게 이어 읽는다. 버튼 고정·내부 스크롤·페이드는 적용하지 않는다.
@@ -26,7 +27,7 @@
 ```sh
 npm test
 npx tsc --noEmit
-npx eslint 'app/templates/[templateKey]/page.tsx' components/templates/TemplateDetailGallery.tsx components/templates/TemplateDetailStory.tsx components/apply/TemplateGallery.tsx lib/template-details.ts scripts/qa-template-details.mjs
+npx eslint 'app/templates/[templateKey]/page.tsx' components/templates/TemplateDetailSidebar.tsx components/templates/TemplateDetailGallery.tsx components/templates/TemplateDetailStory.tsx components/apply/TemplateGallery.tsx lib/template-details.ts scripts/qa-template-details.mjs
 npm run build
 TEMPLATE_DETAIL_QA_BASE_URL=http://127.0.0.1:3011 node scripts/qa-template-details.mjs
 git diff --check
@@ -36,7 +37,7 @@ git diff --check
 
 ## 2026-10-19 로컬 배포용 빌드 검수
 
-아래 25개 검사는 최초 상세페이지 배포 당시 기록이다. 고정 액션 후속 검수는 마지막 절을 따른다.
+아래 25개 검사는 최초 상세페이지 배포 당시 기록이다. 아래 후속 기록은 당시 동작이며, 현재 스크롤 후 고정 정책은 마지막 절을 따른다.
 
 - `npm test`: 648/648. 변경 파일 ESLint, 별도 TypeScript, Production build, `git diff --check` 통과.
 - 상세 검수 25개 결과 모두 실패 0건. 실제 DOM viewport는 320×844, 390×844, 430×932, 640×960, 768×1024, 820×1180, 1024×600, 1180×820, 1440×900, 1920×1080이다. 폰트와 이미지를 기다린 뒤 가로 넘침·깨진 이미지·page error·WCAG A/AA `critical`/`serious` 위반 0건을 확인했다.
@@ -53,3 +54,11 @@ git diff --check
 - 키보드 End/Home은 정보 영역만 스크롤한다. 브라우저 기본 Home 스크롤이 실제 끝난 것을 기다린 뒤 연속 높이 전환을 검사한다. 상세페이지의 퀵 메뉴 부재, 목록에서 두 퀵 메뉴 유지, 모바일 정보/버튼/구독 안내 순서와 기존 디자인 선택·미리보기·로그인 복귀 경로도 확인했다.
 - 결과/화면: `/tmp/artimenu-fixed-actions-qa`. 짧은 화면 초기/정보 끝 캡처는 `1024x400-*`, `1366x600-*`이다.
 - 목록 PC/모바일, 모카 포레스트 PC, 오브 테이블 PC/모바일, Display PC/모바일의 기존 공개 검사 7개도 실패 0건이다. REAL MATCHA는 최신 기준에서 이미 내부 스크롤 엔진으로 전환되어 예전 `desktop fit board` 검사기가 실패하며, 변경 전 운영 사이트에서도 같은 1건이 재현된다(HTTP 200·가로 넘침/깨진 이미지/주요 접근성 위반 0). 이 작업에서는 해당 메뉴판 엔진이나 공용 canvas 검사기를 변경하지 않았다.
+
+## 2026-10-19 자연 스크롤 후 고정 전환
+
+- 기존 첫 화면 고정 정책을 대체한다. 처음에는 내부에 숨겨진 정보 없이 전체를 펼치고, 하단 버튼에 도달한 이후에만 갤러리를 접고 고정한다. PC·태블릿 고정 정보는 헤더 아래, 액션은 화면 하단 1.5rem 여백에 놓이며 정보가 넘칠 때만 페이드를 표시한다.
+- 검수는 전환 직전/직후의 버튼 좌표, 갤러리 표시, 전체 문서 높이, 경계 반복 왕복, 페이지 끝에서의 푸터 비겹침을 확인한다. 작은 화면의 내부 스크롤/페이드와 Home/End, 화면 크기 전환, 125% 글자 확대, 갤러리 선택 및 키보드 포커스 복원도 포함한다.
+- 모바일 자연 읽기, 상세페이지 퀵 메뉴 숨김, 요금·신청 연결 및 고객 메뉴판 엔진의 경계를 유지한다.
+- 검증 완료: 656/656 단위 테스트, 별도 TypeScript·변경 파일 ESLint·Production build·diff 검사 통과. 실제 DOM 15개 viewport 및 판매 디자인 10종을 포함한 상세 검사 33개 모두 실패 0건이다. 고정 상태의 실제 휠 스크롤과 WCAG A/AA critical/serious 위반 0건도 확인했다.
+- 결과/화면: `/tmp/artimenu-scroll-dock-qa/results.json`, `1366x600-expanded.png`, `1366x600-docked.png`, `1024x400-docked.png`, `1440x900-docked.png`. 스크립트는 320–1920px 너비, 최저 400px 높이에서 초기 자연 배치·고정·복원과 모바일 흐름을 검사한다.

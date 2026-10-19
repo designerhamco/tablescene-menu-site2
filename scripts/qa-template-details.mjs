@@ -32,16 +32,24 @@ async function inspect(page, width, height) {
   const sidebar = page.getByRole("complementary", { name: "템플릿 정보 및 시작" });
   const info = sidebar.getByRole("region", { name: "템플릿 상세 정보" });
   const actions = sidebar.locator("[data-template-detail-actions]");
+  const gallery = sidebar.getByRole("region", { name: /디자인 갤러리/ });
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await expect(sidebar).toHaveAttribute("data-docked", "false");
+  await expect(gallery).toBeVisible();
+  await expect(actions).toHaveAttribute("data-scroll-more", "false");
   await expect(page.getByRole("button", { name: "AI 상담 열기" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "맨 위로 이동" })).toHaveCount(0);
-  const geometry = await page.locator('aside[aria-label="템플릿 정보 및 시작"]').evaluate(sidebar => {
+  const geometry = await sidebar.evaluate(sidebar => {
     const story = sidebar.nextElementSibling;
     const side = sidebar.getBoundingClientRect();
     const content = story.getBoundingClientRect();
     return {
       viewport: [innerWidth, innerHeight], overflow: document.documentElement.scrollWidth - innerWidth,
-      sidebar: { x: side.x, y: side.y, right: side.right, bottom: side.bottom, height: side.height, scroll: sidebar.scrollHeight, client: sidebar.clientHeight, position: getComputedStyle(sidebar).position, targetTop: parseFloat(getComputedStyle(sidebar).top) },
+      sidebar: { x: side.x, y: side.y, right: side.right, bottom: side.bottom, height: side.height, scroll: sidebar.scrollHeight, client: sidebar.clientHeight },
       story: { x: content.x, y: content.y, right: content.right, bottom: content.bottom },
+      pageHeight: document.documentElement.scrollHeight,
+      headerBottom: document.querySelector("[data-site-header]").getBoundingClientRect().bottom,
+      gap: parseFloat(getComputedStyle(document.documentElement).fontSize) * 1.5,
       brokenImages: [...document.images].filter(image => !image.complete || image.naturalWidth === 0).map(image => image.src),
     };
   });
@@ -49,17 +57,33 @@ async function inspect(page, width, height) {
   assert.equal(geometry.overflow, 0);
   assert.deepEqual(geometry.brokenImages, []);
   if (width >= 768) {
-    assert.equal(geometry.sidebar.position, "sticky");
     assert.ok(geometry.story.right < geometry.sidebar.x, "Story and sidebar must occupy separate columns");
+    assert.ok(await info.evaluate(element => element.scrollHeight <= element.clientHeight + 1), "Initial information is expanded without internal clipping");
     const checkActions = () => actions.locator("a, button").evaluateAll(buttons => buttons.map(button => {
       const rect = button.getBoundingClientRect();
       const headerBottom = document.querySelector("[data-site-header]").getBoundingClientRect().bottom;
       const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
-      return { top: rect.top, bottom: rect.bottom, headerBottom, inViewport: rect.top >= headerBottom && rect.bottom <= innerHeight, unobscured: button === hit || button.contains(hit) };
+      return { top: rect.top, bottom: rect.bottom, inViewport: rect.top >= headerBottom && rect.bottom <= innerHeight, unobscured: button === hit || button.contains(hit) };
     }));
-    const initialActions = await checkActions();
-    assert.equal(initialActions.length, 2);
-    assert.ok(initialActions.every(button => button.inViewport && button.unobscured), "Both actions are visible and clickable BEFORE scrolling");
+    if ([1024, 1366].includes(width)) await page.screenshot({ path: `${output}/${width}x${height}-expanded.png` });
+    const initialArea = await actions.boundingBox();
+    const trigger = Math.max(1, geometry.sidebar.y - geometry.headerBottom - geometry.gap, initialArea.y + initialArea.height - height + geometry.gap);
+    geometry.dockAt = trigger;
+    await page.evaluate(top => window.scrollTo({ top, behavior: "instant" }), Math.max(0, trigger - 2));
+    await expect(sidebar).toHaveAttribute("data-docked", "false");
+    await expect(gallery).toBeVisible();
+    const before = await actions.boundingBox();
+    await page.evaluate(top => window.scrollTo({ top, behavior: "instant" }), trigger + 2);
+    await expect(sidebar).toHaveAttribute("data-docked", "true");
+    await expect(gallery).toBeHidden();
+    const pinnedActions = await checkActions();
+    assert.equal(pinnedActions.length, 2);
+    assert.ok(pinnedActions.every(button => button.inViewport && button.unobscured), "Both actions are visible and clickable after reaching the dock");
+    assert.ok(Math.abs(pinnedActions[1].bottom - (height - geometry.gap)) < 2, "Actions dock at the viewport bottom");
+    if (initialArea.y + initialArea.height > height - geometry.gap) {
+      assert.ok(Math.abs(before.y + before.height - pinnedActions[1].bottom) < 4, "Actions do not jump when the gallery collapses");
+    }
+    assert.equal(await page.evaluate(() => document.documentElement.scrollHeight), geometry.pageHeight, "Docking preserves document geometry");
     const overflows = await info.evaluate(element => element.scrollHeight > element.clientHeight + 1);
     await expect(actions).toHaveAttribute("data-scroll-more", String(overflows));
     if (overflows) {
@@ -70,24 +94,36 @@ async function inspect(page, width, height) {
     await expect(actions).toHaveAttribute("data-scroll-more", "false");
     await expect(sidebar.locator("[data-template-detail-fade]")).toHaveCSS("opacity", "0");
     const afterInfoScroll = await checkActions();
-    assert.ok(afterInfoScroll.every((button, index) => button.inViewport && button.unobscured && Math.abs(button.top - initialActions[index].top) < 1), "Information scrolls independently while both actions stay fixed");
+    assert.ok(afterInfoScroll.every((button, index) => button.inViewport && button.unobscured && Math.abs(button.top - pinnedActions[index].top) < 1), "Information scrolls independently while both actions stay fixed");
     await info.evaluate(element => { element.scrollTop = 0; });
-    await expect(actions).toHaveAttribute("data-scroll-more", String(overflows));
-    await page.evaluate(() => window.scrollTo({ top: 600, behavior: "instant" }));
-    const pinned = await page.locator('aside[aria-label="템플릿 정보 및 시작"]').boundingBox();
-    assert.ok(Math.abs(pinned.y - geometry.sidebar.targetTop) < 2, "Sidebar stays below the fixed site header");
+    await page.evaluate(top => window.scrollTo({ top, behavior: "instant" }), trigger + 600);
+    await expect(sidebar).toHaveAttribute("data-docked", "true");
     assert.ok((await checkActions()).every(button => button.inViewport && button.unobscured), "Both actions stay visible while the left column scrolls");
-    await expect(page.getByRole("button", { name: "맨 위로 이동" })).toHaveCount(0);
+    if ([1024, 1366].includes(width)) await page.screenshot({ path: `${output}/${width}x${height}-docked.png` });
+    await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
+    const end = await actions.evaluate(element => ({ bottom: element.getBoundingClientRect().bottom, storyBottom: element.closest("aside").nextElementSibling.getBoundingClientRect().bottom }));
+    assert.ok(end.bottom <= end.storyBottom + 1, "The dock stops with its column before the site footer");
+    // Crossing the same boundary in both directions must restore the gallery
+    // without moving the threshold when its rendered height changes.
+    for (const offset of [-2, 2, -2]) {
+      await page.evaluate(top => window.scrollTo({ top, behavior: "instant" }), Math.max(0, trigger + offset));
+      await expect(sidebar).toHaveAttribute("data-docked", String(offset > 0));
+    }
+    await expect(gallery).toBeVisible();
+    assert.equal(await info.evaluate(element => element.scrollTop), 0);
   } else {
-    assert.equal(geometry.sidebar.position, "static");
     assert.ok(geometry.story.y >= geometry.sidebar.bottom, "Mobile shows template information before the story");
     assert.equal(geometry.sidebar.scroll, geometry.sidebar.client);
     await expect(sidebar.locator("[data-template-detail-fade]")).toHaveCSS("display", "none");
     const note = await sidebar.getByText(/첫 구독은 계정당|디스플레이는 현재/).boundingBox();
     const buttonArea = await actions.boundingBox();
     assert.ok(note.y >= buttonArea.y + buttonArea.height, "Mobile preserves the original actions-then-billing-note order");
+    await page.evaluate(() => window.scrollTo({ top: 600, behavior: "instant" }));
+    await expect(sidebar).toHaveAttribute("data-docked", "false");
+    await expect(gallery).toBeVisible();
   }
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await expect(sidebar).toHaveAttribute("data-docked", "false");
   return geometry;
 }
 
@@ -147,21 +183,44 @@ try {
   await settle(page);
   const sidebarInfo = page.getByRole("region", { name: "템플릿 상세 정보" });
   const footer = page.locator("[data-template-detail-actions]");
-  await page.setViewportSize({ width: 1024, height: 500 });
+  const sidebar = page.getByRole("complementary", { name: "템플릿 정보 및 시작" });
+  await page.setViewportSize({ width: 1024, height: 400 });
+  await page.evaluate(() => window.scrollTo({ top: 1000, behavior: "instant" }));
+  await expect(sidebar).toHaveAttribute("data-docked", "true");
   await expect(footer).toHaveAttribute("data-scroll-more", "true");
+  const dockedScroll = await page.evaluate(() => window.scrollY);
   await sidebarInfo.focus();
   await sidebarInfo.press("End");
   await expect(footer).toHaveAttribute("data-scroll-more", "false");
-  assert.equal(await page.evaluate(() => window.scrollY), 0);
+  assert.equal(await page.evaluate(() => window.scrollY), dockedScroll);
   await sidebarInfo.press("Home");
   await expect(footer).toHaveAttribute("data-scroll-more", "true");
   await expect.poll(() => sidebarInfo.evaluate(element => element.scrollTop)).toBe(0);
   await page.setViewportSize({ width: 1024, height: 1400 });
   await expect(footer).toHaveAttribute("data-scroll-more", "false");
-  await page.setViewportSize({ width: 1024, height: 500 });
+  await page.setViewportSize({ width: 1024, height: 400 });
   await expect(footer).toHaveAttribute("data-scroll-more", "true");
-  await inspect(page, 1024, 500);
-  results.push({ case: "resize-and-keyboard", fade: "overflow, end, no-overflow, overflow restored", keyboard: "End/Home scroll only the information" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(sidebar).toHaveAttribute("data-docked", "false");
+  await expect(sidebar.getByRole("region", { name: /디자인 갤러리/ })).toBeVisible();
+  await page.setViewportSize({ width: 1024, height: 400 });
+  await inspect(page, 1024, 400);
+  results.push({ case: "resize-and-keyboard", fade: "overflow, end, no-overflow, overflow restored", keyboard: "End/Home scroll only the docked information", mobile: "undocks and restores gallery" });
+  await page.evaluate(() => { document.documentElement.style.fontSize = "125%"; });
+  await inspect(page, 1024, 400);
+  await page.evaluate(() => { document.documentElement.style.fontSize = ""; });
+  results.push({ case: "enlarged-text", viewport: [1024, 400], rootFont: "125%", expandedAndDocked: "no clipping or covered actions" });
+  const selectedImage = page.getByRole("button", { name: "오른쪽 디테일", exact: true });
+  await selectedImage.click();
+  await selectedImage.focus();
+  await page.evaluate(() => window.scrollTo({ top: 1500, behavior: "instant" }));
+  await expect(sidebar).toHaveAttribute("data-docked", "true");
+  await expect(sidebarInfo).toBeFocused();
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await expect(sidebar).toHaveAttribute("data-docked", "false");
+  await expect(selectedImage).toBeVisible();
+  await expect(selectedImage).toHaveAttribute("aria-pressed", "true");
+  results.push({ case: "gallery-restoration", selection: "preserved", hiddenFocus: "moves to information without scrolling" });
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${base}/apply`, { waitUntil: "networkidle" });
   await expect(page.getByRole("button", { name: "AI 상담 열기" })).toBeVisible();
