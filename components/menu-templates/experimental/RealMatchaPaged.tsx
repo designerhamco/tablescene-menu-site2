@@ -34,6 +34,7 @@ import { isMenuCoverVisibleOnDevice } from "@/lib/menu-cover-device-visibility";
 import CafeAWidgetBlock, { type CafeAWidgetPreview } from "../CafeAWidgetBlock";
 import ScriptAwareText from "../shared/ScriptAwareText";
 import PagedMenuItem from "./PagedMenuItem";
+import { applyOnePageChipLayouts } from "../one-page-chip-layout";
 import { getNextTimeSaleBoundaryMs } from "@/lib/menu-time-sale-schedule";
 import {
   useMenuPresentationDevice,
@@ -45,7 +46,9 @@ import {
 } from "@/lib/template-typography-presets";
 import type { MeasuredMenuBlock } from "@/lib/basic-menu-pagination";
 
-import { layoutScrollableMenu } from "@/lib/basic-menu-scroll";
+import { layoutScrollableMenu, selectScrollableMenuCandidate, type ScrollableMenuLayout, type ScrollableMenuBlock } from "@/lib/basic-menu-scroll";
+import { getOnePageItemNameCeilingRem } from "@/lib/one-page-typography-profile";
+import { getOrderedFitGapScale, getOrderedBalancedFitGapScale } from "../one-page/pc-tablet/cafe-fit-engine";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 
 import type { MenuWidget } from "@/lib/menu-widgets";
@@ -100,13 +103,11 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   const brandArea = useRef<HTMLElement>(null);
   const measure = useRef<HTMLDivElement>(null);
   const scrollContent = useRef<HTMLDivElement>(null);
-  const noticeArea = useRef<HTMLDivElement>(null);
-  const [layout, setLayout] = useState<{
-    columns: MeasuredMenuBlock[][];
-    capacity: number;
-    ready: boolean;
-    brandOverflow: boolean;
-  }>({ columns: [[], []], capacity: 600, ready: false, brandOverflow: false });
+  const noticeMeasure = useRef<HTMLDivElement>(null);
+  const layoutSignature = useRef("");
+  const [layout, setLayout] = useState<ScrollableMenuLayout & {
+    capacity: number; ready: boolean; brandOverflow: boolean; columnWidth: number;
+  }>({ ...layoutScrollableMenu([], 1, 600), capacity: 600, ready: false, brandOverflow: false, columnWidth: 600 });
   const [moreBelow, setMoreBelow] = useState(false);
   const call = useOnePageCallActions();
   const showCall = call.enabled && call.callEnabled !== false;
@@ -263,31 +264,68 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       if (disposed || !area.current || !measure.current) return;
       const bounds = area.current.getBoundingClientRect();
       if (bounds.width <= 1 || bounds.height <= 1) return;
-      const width = area.current.clientWidth;
+      const width = Math.min(area.current.clientWidth, bounds.width - (area.current.offsetWidth - area.current.clientWidth));
       const gap = parseFloat(getComputedStyle(area.current).columnGap) || 24;
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-      const columns = Math.max(1, Math.min(3, Math.floor((width + gap) / (12 * rem + gap))));
-      measure.current.style.width = `${(width - (columns - 1) * gap) / columns}px`;
-      const measured = units.map((u) => ({
-        id: u.id, group: u.group, kind: u.kind,
-        height: Math.ceil(measure.current!.querySelector<HTMLElement>(`[data-measure-id="${u.id}"]`)!.getBoundingClientRect().height) + 1,
-      }));
-      const noticesHeight = noticeArea.current?.getBoundingClientRect().height ?? 0;
-      const partition = layoutScrollableMenu(measured, columns, Math.max(1, bounds.height - noticesHeight), layoutMode !== "orderedFit");
-      const brandBounds = brandArea.current?.getBoundingClientRect();
-      const brandOverflow = Boolean(
-        brandBounds &&
-        [...(brandArea.current?.children ?? [])].some(
-          (node) =>
-            node.getBoundingClientRect().bottom > brandBounds.bottom + 1,
-        ),
-      );
-      setLayout({
-        columns: partition.columns,
-        capacity: partition.height,
-        ready: !brandOverflow,
-        brandOverflow,
+      const maxColumns = Math.max(1, Math.min(3, Math.floor((width + gap) / (12 * rem + gap))));
+      const root = area.current.closest<HTMLElement>("[data-scroll-template]")!;
+      const grouped = layoutMode !== "orderedFit";
+      const collect = (columnCount: number, reference = false) => {
+        measure.current!.toggleAttribute("data-cafe-a-three-part-reference", reference);
+        // Match fractional CSS grid widths; integer clientWidth can cross a text-wrap boundary.
+        const columnWidth = Math.min(columnCount === 1 ? 40 * rem : Infinity, (width - (columnCount - 1) * gap) / columnCount);
+        measure.current!.style.width = `${columnWidth}px`;
+        applyOnePageChipLayouts(measure.current!);
+        const measured = units.map(u => {
+          const element = measure.current!.querySelector<HTMLElement>(`[data-measure-id="${u.id}"]`)!;
+          const rhythm = Number(element.querySelector<HTMLElement>("[data-cafe-a-item-rhythm]")?.dataset.cafeAItemRhythm ?? 1);
+          element.style.setProperty("--scroll-item-rhythm", String(reference && u.kind === "item" ? 1.2 : rhythm));
+          return { id: u.id, group: u.group, kind: u.kind,
+            height: element.getBoundingClientRect().height,
+            gapAfter: parseFloat(getComputedStyle(element).paddingBottom) || 0 };
+        });
+        const footerHeight = noticeMeasure.current?.getBoundingClientRect().height ?? 0;
+        const candidate = { columnCount, columnWidth, layout: layoutScrollableMenu(measured, columnCount, bounds.height, grouped, { footerHeight }) };
+        measure.current!.removeAttribute("data-cafe-a-three-part-reference");
+        return candidate;
+      };
+      const setSize = (size: number) => {
+        root.style.setProperty("--scroll-item-size", `${size}px`);
+        // The original shared gap mapper and 0.74 rhythm coefficient remain authoritative.
+        const base = Math.min(1.08 * rem, 0.88 * rem + Math.min(innerWidth, innerHeight) * 0.002);
+        root.style.setProperty("--fit-menu-gap-scale", String((grouped ? getOrderedBalancedFitGapScale : getOrderedFitGapScale)(size / base, width)));
+      };
+      // Each readable column count gets its own largest safe shared type size.
+      // This lets two well-filled columns beat three sparse tracks without adding scroll.
+      const candidates = Array.from({ length: maxColumns }, (_, index) => {
+        const count = index + 1;
+        const fits = (size: number) => {
+          setSize(size);
+          return [collect(count, true), collect(count)].every(candidate =>
+            candidate.layout.naturalHeights.every(h => h <= bounds.height - 1));
+        };
+        let low = rem, high = (getOnePageItemNameCeilingRem(device) ?? 1.3) * rem;
+        if (fits(high)) low = high;
+        else if (fits(low)) for (let attempt = 0; attempt < 7; attempt++) {
+          const middle = (low + high) / 2;
+          if (fits(middle)) low = middle; else high = middle;
+        }
+        setSize(low);
+        return { ...collect(count), itemSize: low };
       });
+      const selected = selectScrollableMenuCandidate(candidates, grouped) as typeof candidates[number];
+      setSize(selected.itemSize);
+      collect(selected.columnCount); // Restore final-width chip/rhythm measurements after probes.
+      measure.current!.style.width = `${selected.columnWidth}px`;
+      const brandBounds = brandArea.current?.getBoundingClientRect();
+      const brandOverflow = Boolean(brandBounds && [...(brandArea.current?.children ?? [])].some(node => node.getBoundingClientRect().bottom > brandBounds.bottom + 1));
+      const next = { ...selected.layout, columnWidth: selected.columnWidth, capacity: selected.layout.height, ready: !brandOverflow, brandOverflow };
+      const signature = JSON.stringify([next, units.map(u => u.id)]);
+      if (signature !== layoutSignature.current) {
+        layoutSignature.current = signature;
+        setLayout(next);
+      }
+      updateScrollHint();
     };
     const schedule = () => {
       cancelAnimationFrame(raf);
@@ -295,7 +333,6 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     };
     const observer = new ResizeObserver(schedule);
     observer.observe(area.current);
-    if (noticeArea.current) observer.observe(noticeArea.current);
     for (const node of measure.current.children) observer.observe(node);
     if (brandArea.current)
       for (const node of brandArea.current.children) observer.observe(node);
@@ -308,22 +345,27 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       observer.disconnect();
       document.fonts.removeEventListener("loadingdone", schedule);
     };
-  }, [mobile, units, layoutMode, showCall, showOrder]);
+  }, [mobile, units, layoutMode, showCall, showOrder, device, updateScrollHint]);
   useLayoutEffect(() => {
     if (mobile || !area.current || !scrollContent.current) return;
     const observer = new ResizeObserver(updateScrollHint);
     observer.observe(area.current);
     observer.observe(scrollContent.current);
     updateScrollHint();
+    applyOnePageChipLayouts(scrollContent.current);
     return () => observer.disconnect();
-  }, [mobile, updateScrollHint]);
+  }, [mobile, updateScrollHint, layout]);
   if (mobile)
     return (
       <div data-paged-mobile>
         <CafeDesignA {...baseProps} />
       </div>
     );
-  const unit = (id: string) => {
+  const bottomStackStart = units.findIndex((value, index) => value.kind === "widget" && units.slice(index).every(next =>
+    next.kind === "widget" && data.widgets?.find(w => w.id === next.id)?.settings.placement === "bottom"));
+  const bottomWidgetIds = new Set(bottomStackStart < 0 ? [] : units.slice(bottomStackStart).map(value => value.id));
+  const unit = (block: ScrollableMenuBlock, last: boolean, hasFooter: boolean) => {
+    const id = block.id;
     const value = unitById.get(id);
     if (!value) return null;
     return (
@@ -332,6 +374,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         className={styles.unit}
         data-kind={value.kind}
         data-paged-block={id}
+        style={{ "--scroll-base-gap": `${block.gapAfter ?? 0}px`, ...(last ? hasFooter ? { "--scroll-unit-gap-scale": 1 } : { paddingBottom: 0 } : {}) } as CSSProperties & Record<`--${string}`, string | number>}
       >
         {value.node}
       </div>
@@ -356,12 +399,16 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         data-preview-device={device}
         data-cafe-a-proportion-policy="true"
         data-cafe-a-adaptive-fit="true"
+        data-cafe-a-copy-aware-rhythm="true"
         data-cafe-a-mobile-style="false"
         data-spacing-contract="contained-reading"
         data-paged-ready={layout.ready ? "true" : "false"}
         data-scroll-template="real-matcha"
         data-scroll-more={moreBelow ? "true" : "false"}
         data-paged-layout={layoutMode}
+        data-scroll-columns={layout.columns.length}
+        data-scroll-content-height={layout.contentHeight}
+        data-scroll-centering={layout.topInset}
       >
         <aside ref={brandArea} className={styles.brand} data-paged-brand>
           <OnePageCallPalette />
@@ -389,29 +436,33 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
               data-scroll-menu
             >
               <div className={styles.measure} ref={measure} aria-hidden="true" inert>
-                {units.map((u) => (
-                  <div key={u.id} className={styles.unit} data-kind={u.kind} data-measure-id={u.id}>
+                {units.map((u, index) => (
+                  <div key={u.id} className={styles.unit} data-kind={u.kind} data-next-kind={units[index + 1]?.kind} data-measure-id={u.id}>
                     {u.node}
                   </div>
                 ))}
-              </div>
-              <div ref={scrollContent} className={styles.scrollContent} data-scroll-content>
-                <div className={styles.columns} style={{ minHeight: units.length ? layout.capacity : undefined }}>
-                  {layout.columns.map((column, i) => (
-                    <div key={i} className={styles.column} data-paged-column={i + 1}>
-                      {column.map((b, index) => {
-                        const sourceWidget = data.widgets?.find((w) => w.id === b.id);
-                        const trailingBottom = sourceWidget?.settings.placement === "bottom" &&
-                          column.slice(index).every((next) => next.kind === "widget" &&
-                            data.widgets?.find((w) => w.id === next.id)?.settings.placement === "bottom");
-                        return <div key={b.id} style={trailingBottom ? { marginTop: "auto" } : undefined}>{unit(b.id)}</div>;
-                      })}
-                    </div>
-                  ))}
-                </div>
-                {!units.length ? <p role="status">메뉴를 준비하고 있어요.</p> : null}
-                <div ref={noticeArea} className={`${styles.notices} cafe-a-description-text cafe-a-menu-description text-[#58645f]`} data-paged-notices>
+                <div ref={noticeMeasure} className={`${styles.notices} cafe-a-description-text cafe-a-menu-description text-[#58645f]`}>
                   {notices.map((n, i) => <p key={i}><ScriptAwareText text={n} /></p>)}
+                </div>
+              </div>
+              <div ref={scrollContent} className={styles.scrollContent} data-scroll-content style={{ paddingBlock: layout.topInset }}>
+                {!units.length ? <p role="status">메뉴를 준비하고 있어요.</p> : null}
+                <div className={styles.columns} style={{ height: layout.contentHeight, maxWidth: layout.columns.length === 1 ? layout.columnWidth : undefined }}>
+                  {layout.columns.map((column, i) => {
+                    const firstBottomWidget = column.findIndex((b, index) => bottomWidgetIds.has(b.id) &&
+                      column.slice(index).every(next => bottomWidgetIds.has(next.id)));
+                    return <div key={i} className={styles.column} data-paged-column={i + 1}
+                      data-scroll-natural-height={layout.naturalHeights[i]} data-scroll-gap-scale={layout.gapScales[i]}
+                      style={{ "--scroll-gap-scale": layout.gapScales[i] } as CSSProperties}>
+                      {column.map((b, index) => <div key={b.id} style={index === firstBottomWidget ? { marginTop: "auto" } : undefined}>
+                        {unit(b, index === column.length - 1, i === layout.footerColumn && notices.length > 0)}
+                      </div>)}
+                      {i === layout.footerColumn ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description text-[#58645f]`}
+                        style={firstBottomWidget < 0 ? { marginTop: "auto" } : undefined} data-paged-notices>
+                        {notices.map((n, index) => <p key={index}><ScriptAwareText text={n} /></p>)}
+                      </div> : null}
+                    </div>;
+                  })}
                 </div>
               </div>
             </div>

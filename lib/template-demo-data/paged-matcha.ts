@@ -29,6 +29,11 @@ export function applyPagedMatchaFixture(data: MenuPageData, scenario: string = "
       ...data.priceOptions.filter((option) => option.menu_item_id !== first.id),
     ];
   }
+  if (scenario === "sparse") data.items = data.items.slice(0, 2);
+  if (scenario === "empty") data.items = [];
+  if (scenario === "long-notices") data.menuSite.settings = {
+    ...(data.menuSite.settings as Record<string, never>), footer_notice_3: "긴 안내사항입니다. 줄이 바뀌어도 마지막 메뉴 열의 공간만 사용합니다. ".repeat(8),
+  };
   if (scenario === "images")
     data.items = data.items.map(item => ({...item, image_url: "/menu-templates/cafe_design_a/malcha.jpg"}));
   if (scenario === "dense") {

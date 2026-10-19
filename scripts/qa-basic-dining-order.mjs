@@ -401,9 +401,8 @@ try {
     await toolbar.goto(base + "/templates/cafe_design_a/preview", {
       waitUntil: "domcontentloaded",
     });
-    await toolbar.waitForTimeout(500);
-    if (await toolbar.locator("[data-preview-guide-variant]").count())
-      await toolbar.getByRole("button", { name: "닫기", exact: true }).click();
+    await toolbar.locator("[data-preview-guide-variant]").waitFor({state:"visible"});
+    await toolbar.locator("[data-preview-guide-variant]").getByRole("button", { name: "닫기", exact: true }).click();
     await toolbar.getByLabel("주문 기능 미리보기").check();
     await toolbar.waitForURL(/orderPreview=on/);
     await toolbar.getByLabel("호출 기능 미리보기").check();

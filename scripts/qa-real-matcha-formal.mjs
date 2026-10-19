@@ -44,7 +44,8 @@ try {
  const toolbar=await browser.newPage({viewport:{width:1440,height:1000}});
  await toolbar.goto(base+'/templates/cafe_design_a/preview?device=tablet');
  const guide=toolbar.locator('[data-preview-guide-variant]');
- if(await guide.count())await guide.getByRole('button',{name:'닫기',exact:true}).click();
+ await guide.waitFor({state:'visible'});
+ await guide.getByRole('button',{name:'닫기',exact:true}).click();
  assert.equal(await toolbar.locator('[data-preview-layout-mode]').count(),2,'formal template exposes both layout previews');
  await toolbar.locator('[data-preview-layout-mode="orderedFit"]').click();
  await toolbar.waitForFunction(()=>new URL(document.querySelector('iframe').src).searchParams.get('layoutMode')==='orderedFit');

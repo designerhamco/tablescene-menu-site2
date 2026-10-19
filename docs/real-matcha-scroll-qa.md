@@ -41,3 +41,23 @@ Evidence: `/private/tmp/matcha-preview-price-spacing/report.json`, `/private/tmp
 - Regression first reproduced two unit failures (duplicate full block sequence and repeated headings), then passed all 649 tests. Production build, independent TypeScript, changed-file ESLint and diff checks pass.
 - Strengthened the existing 52 scroll/order checks and 28 formal checks to compare **all** source blocks, including category headings, against rendered column order; all 80 pass with zero runtime errors or real API writes.
 - Direct 1180×820 tablet checks on formal and hidden test routes: first/second/third columns start heading/item/item, respectively, with 5/6/7 products (18 total), all five category headings exactly once and ADE once. Evidence: `/private/tmp/matcha-heading-visual.json`, `/private/tmp/matcha-heading-order/report.json`, `/private/tmp/matcha-heading-formal/report.json`.
+
+
+## Viewport-first fill and responsive sizing — 2026-10-19
+
+Scope: formal REAL MATCHA single-page and the hidden compatibility test only. The implementation rules are in `docs/basic-menu-scroll-policy.md`; older experiment-only/no-type-fit statements above describe earlier checkpoints and are superseded for this route.
+
+The audit reproduced width-only maximum columns, greedy partitioning with a viewport floor, per-unit rounding and notice height deducted from every column. At 1440×900 the final column left about 258px of its old budget unused; at 1920×1080 about 328px. The wrapper also replaced the common size calculation with a plain vw clamp and skipped the shared category/item boundary rules and all-script Korean notice face.
+
+The final implementation measures real fractional grid widths for every readable 1–3-column candidate. It first finds the largest shared readable type that fits one viewport (1rem floor, PC 1.35rem/tablet 1.30rem ceilings), checking three-field reference and real wrapped content. It reuses ordered gap mappers, 0.74 rhythm, 1/1.10/1.20 item spacing and the Matcha 2.9 category boundary. Fill balances contiguous units, preserves title-once/source order, prefers meaningful occupancy without sacrificing more than 8% of available readable type, expands only outside gaps up to 1.6× and centers a short common grid. Grouped preserves category atoms and unexpanded gaps. Dense content scrolls at the floor; no shrinking below it, fake fade or blank filler rows.
+
+Notices use height only in the final menu column and follow the last widgets. The fixed Call/Order dock uses the separate measured bottom row; only the first actual trailing bottom widget absorbs free space. Corrected Call-outline selector priority so its template palette border remains visible. Original role fonts/colors, language, carousel and mobile rendering remain shared. Other six Basic, Dining and Display engines are not migrated.
+
+Validation against the final Production build:
+
+- 656 unit tests, independent TypeScript, changed-file ESLint, whitespace and Production build pass.
+- New `qa-real-matcha-fill.mjs`: 25 conditions pass, zero runtime errors/writes. Actual PC 1280×800, 1440×900, 1920×1080, 2560×1440; tablets 1180×820, 820×1180, 768×1024; sparse/empty/dense/long/images/widgets/long notices; feature-off and 20px root text scaling. Checks actual plan/DOM order, bounded gaps, aligned/centered tracks, reading sizes, stable rerenders, fixed dock/brand and real conditional fade. Default fill fits one viewport in every measured device. 1280px PC grows from 19.675px to 21.6px at 1440px, then respects the common ceiling. At 2560px two sufficiently filled columns keep that 21.6px size; at 1920px three tracks retain readable type and share optical vertical centering.
+- Existing formal/mobile/locales/feature toolbar: 28 pass; feature combinations, same-mounted rotation and mobile parity: 27 pass. These include independent 320/390/430px mobile reading and wide forced-mobile behavior.
+- Existing scroll/order/Dining suite: 52 pass. The toolbar test now awaits and closes the actual asynchronously mounted preview guide before clicking controls; product guide behavior is unchanged.
+
+Evidence: `/private/tmp/fill-policy-release-visual/report.json`, `/private/tmp/fill-policy-release-formal/report.json`, `/private/tmp/fill-policy-release-controls/report.json`, `/private/tmp/fill-policy-release-order/report.json`, `/private/tmp/fill-policy-build-release.log`, `/private/tmp/fill-policy-types-release.log`, `/private/tmp/fill-policy-lint-release.log`. All API writes are blocked; order checks use the existing mocked local preview flow.

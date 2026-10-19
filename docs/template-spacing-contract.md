@@ -2,7 +2,7 @@
 
 ## Current production exception — REAL MATCHA contained reading (2026-10-19)
 
-The user approved promoting the tested contained-scroll presentation to formal `cafe_design_a` single-page menus. That route and the hidden compatibility test use `experimental/RealMatchaPaged.tsx`: fixed brand, stable reading sizes, shared internal menu scroll, conditional background fade, and a dock outside the scroll. Saved grouped/fill preferences remain effective. Mobile still delegates unchanged to CafeDesignA. Multi-page REAL MATCHA and Display are excluded. The six other Basic templates continue the canvas-fit policies below until their individual fixed structures pass a separate rollout. Do not infer that all seven have switched or route other skins through the Matcha shell.
+The user approved promoting the tested contained-scroll presentation to formal `cafe_design_a` single-page menus. That route and the hidden compatibility test use `experimental/RealMatchaPaged.tsx`: fixed brand, shared responsive readable sizing, shared internal menu scroll, conditional background fade, and a dock outside the scroll. Saved grouped/fill preferences remain effective. Mobile still delegates unchanged to CafeDesignA. Multi-page REAL MATCHA and Display are excluded. The six other Basic templates continue the canvas-fit policies below until their individual fixed structures pass a separate rollout. Do not infer that all seven have switched or route other skins through the Matcha shell.
 
 
 KOHI was deleted on 2026-10-16. The current adaptive inventory has seven templates including ONUE TABLE. KOHI-only rules and assets are removed; historical QA records do not make it an active template.
@@ -13,14 +13,14 @@ Every active menu template must declare one spacing contract on its root element
 
 - `data-spacing-contract="canvas-fit"`: PC/tablet single-page and Display templates that fill one viewport.
 - `data-spacing-contract="mobile-reading"`: the seven active single-page templates on phones; stable rem-based reading typography and natural scrolling, no canvas fitting or copy-visibility multipliers.
-- `data-spacing-contract="contained-reading"`: hidden REAL MATCHA scroll experiment on PC/tablet only; fixed brand column and bottom actions, one internal menu scroll canvas. Explicitly approved 2026-10-19; the seven production starters retain canvas-fit.
+- `data-spacing-contract="contained-reading"`: formal REAL MATCHA single-page and its hidden compatibility test on PC/tablet; fixed brand column and bottom actions, one internal menu scroll canvas. It first tries shared readable sizing in one viewport, then permits overflow at the reading floor. See `docs/basic-menu-scroll-policy.md`. The other six starters retain canvas-fit.
 - `data-spacing-contract="editorial-scroll"`: multi-page templates that preserve reading rhythm and allow natural scrolling.
 
 New templates must select the device-appropriate contract before template-specific spacing is added. Canvas-fit fixed lengths are allowed only for hard safety bounds, one-pixel rules, safe-area offsets, and minimum control or touch sizes. Mobile-reading uses stable rem bases by design, respecting browser text scaling and customer typography settings.
 
 ## Canvas-fit templates
 
-The seven active single-page templates now use the adaptive PC/tablet policy in `docs/one-page-adaptive-layout.md`. The three-field reference is the default; excessive actual whitespace with a safe size gain or real wrapped-copy overflow permits a stable switch to actual content. PC/tablet single-page fit never falls back to scrolling, including portrait tablets. Between-item spacing retains its template mapping and copy-aware 1/1.10/1.20 multipliers. Template category ratios, outer insets, colors, fonts and notice anchors are preserved. Display, multi-page, retired and coming-soon engines are excluded. The older no-enlargement/three-field-only policy below is superseded for these seven PC/tablet presentations.
+Except for the REAL MATCHA contained-reading override above, the active single-page templates use the adaptive PC/tablet policy in `docs/one-page-adaptive-layout.md`. The three-field reference is the default; excessive actual whitespace with a safe size gain or real wrapped-copy overflow permits a stable switch to actual content. PC/tablet single-page fit never falls back to scrolling, including portrait tablets. Between-item spacing retains its template mapping and copy-aware 1/1.10/1.20 multipliers. Template category ratios, outer insets, colors, fonts and notice anchors are preserved. Display, multi-page, retired and coming-soon engines are excluded. The older no-enlargement/three-field-only policy below is superseded for these seven PC/tablet presentations.
 
 Canvas-fit spacing must be derived from viewport or container units and bounded with `clamp()`. Single-page fit chooses a readable bounded candidate and then probes the actual rendered partition for safe enlargement. Typography and its existing gap mapping grow together; neither may break its reading floor or crop text. Display retains its separate row-budget policy.
 
