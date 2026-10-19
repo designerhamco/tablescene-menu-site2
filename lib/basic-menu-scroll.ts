@@ -82,7 +82,11 @@ export function layoutScrollableMenu(
     (index === footerColumn && footerHeight > 0 ? 0 : gapOf(column.at(-1))) +
     (index === footerColumn ? footerHeight : 0));
   const target = Math.max(viewport, ...naturalHeights);
-  const budgets = columns.map(column => column.slice(0, -1).reduce((sum, block) => sum + gapOf(block), 0));
+  // The notice boundary is a category-level gap too, so fill scales it with
+  // other category/widget boundaries in the final column.
+  const budgets = columns.map((column, index) =>
+    column.slice(0, index === footerColumn && footerHeight > 0 ? undefined : -1)
+      .reduce((sum, block) => sum + gapOf(block), 0));
   const gapScales = budgets.map((budget, index) => grouped || !budget ? 1 :
     Math.min(SCROLL_FILL_MAX_GAP_SCALE, 1 + Math.max(0, target - naturalHeights[index]) / budget));
   const expanded = naturalHeights.map((height, index) => height + budgets[index] * (gapScales[index] - 1));

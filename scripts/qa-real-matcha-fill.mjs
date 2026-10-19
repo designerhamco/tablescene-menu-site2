@@ -12,6 +12,8 @@ for(const scenario of ['sparse','empty','dense','long','images','widgets','long-
   for(const [device,width,height] of [['pc',1440,900],['tablet',820,1180]])cases.push({device,width,height,scenario,features:true});
 for(const [device,width,height] of [['pc',1440,900],['tablet',1180,820],['tablet',820,1180]])cases.push({device,width,height,scenario:'',features:false});
 cases.push({device:'tablet',width:1180,height:820,scenario:'long',features:true,rootSize:20});
+for(const [device,width,height,scenario] of [['pc',1440,900,''],['pc',1440,900,'widgets'],['tablet',820,1180,'widgets']])
+  cases.push({device,width,height,scenario,features:true,layoutMode:'orderedBalancedFit'});
 const metrics=()=>{
   const root=document.querySelector('[data-scroll-template]'), menu=document.querySelector('[data-scroll-menu]'), rect=menu.getBoundingClientRect();
   const columns=[...document.querySelectorAll('[data-paged-column]')];
@@ -22,17 +24,24 @@ const metrics=()=>{
     actualGutters:trackRects.slice(1).map((r,i)=>r.left-trackRects[i].right),dockGap:dock?dock.querySelector('button').getBoundingClientRect().top-rect.bottom:null};
   const name=[...root.querySelectorAll('[data-cafe-a-menu-name]')].find(e=>!e.closest('[aria-hidden=true]'));
   const notices=root.querySelector('[data-paged-notices]');
-  const gapFailures=[];
+  const title=root.querySelector('[data-canvas-brand-fit]');
+  const gapFailures=[], boundaryBases=[], widgetTopPadding=[];
   for(const block of root.querySelectorAll('[data-paged-column] [data-paged-block]')) {
     const s=getComputedStyle(block), base=parseFloat(s.getPropertyValue('--scroll-base-gap'))||0;
     const scale=Number(block.closest('[data-paged-column]').dataset.scrollGapScale);
     const last=block.parentElement.nextElementSibling?.matches('[data-paged-notices]')||!block.parentElement.nextElementSibling;
-    const expected=last ? (block.parentElement.nextElementSibling?.children.length ? base : 0) : base*scale;
+    const expected=last && !block.parentElement.nextElementSibling?.children.length ? 0 : base*scale;
     if(Math.abs(parseFloat(s.paddingBottom)-expected)>.2)gapFailures.push(block.dataset.pagedBlock);
+    if(['heading','widget','notices'].includes(block.dataset.nextKind) && expected>0)boundaryBases.push({id:block.dataset.pagedBlock,next:block.dataset.nextKind,base});
+    if(block.dataset.kind==='widget')widgetTopPadding.push(parseFloat(s.paddingTop));
   }
+  const footerColumn=notices.closest('[data-paged-column]');
+  const finalBlock=[...footerColumn.querySelectorAll('[data-paged-block]')].at(-1);
+  const noticeGap=finalBlock&&notices.children.length ? notices.getBoundingClientRect().top-(finalBlock.getBoundingClientRect().bottom-parseFloat(getComputedStyle(finalBlock).paddingBottom)) : null;
   return {viewport:[innerWidth,innerHeight],rootRem:parseFloat(getComputedStyle(document.documentElement).fontSize),size:parseFloat(style.getPropertyValue('--scroll-item-size')),
-    spacing,font:name?getComputedStyle(name).fontSize:null, contentHeight:Number(root.dataset.scrollContentHeight),topInset:Number(root.dataset.scrollCentering),
-    region:{width:rect.width,height:rect.height,scroll:menu.scrollHeight-menu.clientHeight},more:root.dataset.scrollMore,gapFailures,
+    spacing,font:name?getComputedStyle(name).fontSize:null,brandTarget:title?.dataset.canvasBrandTarget,brandLayout:title?.dataset.canvasBrandLayout,
+    contentHeight:Number(root.dataset.scrollContentHeight),topInset:Number(root.dataset.scrollCentering),
+    region:{width:rect.width,height:rect.height,scroll:menu.scrollHeight-menu.clientHeight},more:root.dataset.scrollMore,gapFailures,boundaryBases,widgetTopPadding,noticeGap,
     footerColumn:notices.closest('[data-paged-column]').dataset.pagedColumn,noticeHeight:notices.getBoundingClientRect().height,
     noticeFont:notices.querySelector('.cafe-a-script-en')?getComputedStyle(notices.querySelector('.cafe-a-script-en')).fontFamily:null,koFont:style.getPropertyValue('--menu-font-ko').trim(),
     columns:columns.map(c=>({width:c.getBoundingClientRect().width,top:c.getBoundingClientRect().top,scale:Number(c.dataset.scrollGapScale),natural:Number(c.dataset.scrollNaturalHeight),
@@ -43,14 +52,19 @@ try{
   for(const c of cases){const p=await browser.newPage({viewport:{width:c.width,height:c.height},reducedMotion:'reduce'});p.on('pageerror',e=>errors.push(e.message));
     await p.route('**/api/public-menu/**',r=>r.request().method()==='GET'?r.continue():(writes.push(r.request().url()),r.abort()));
     try{
-      await p.goto(`${base}/templates/cafe_real_matcha_paged_test/preview?`+new URLSearchParams({device:c.device,view:'actual',embedded:'1',layoutMode:'orderedFit',pageTest:c.scenario,callPreview:c.features?'on':'off',orderPreview:c.features?'on':'off'}));
-      await p.evaluate(()=>document.fonts.ready);await p.waitForSelector('[data-paged-ready=true]');
+      await p.goto(`${base}/templates/cafe_real_matcha_paged_test/preview?`+new URLSearchParams({device:c.device,view:'actual',embedded:'1',layoutMode:c.layoutMode||'orderedFit',pageTest:c.scenario,callPreview:c.features?'on':'off',orderPreview:c.features?'on':'off'}));
+      await p.evaluate(()=>document.fonts.ready);await p.waitForSelector('[data-paged-ready=true]');await p.waitForSelector('[data-canvas-brand-fit=ready]');
       if(c.rootSize)await p.evaluate(n=>document.documentElement.style.fontSize=n+'px',c.rootSize);
       await p.waitForTimeout(350);
       const a=await p.evaluate(metrics);await p.waitForTimeout(150);const stable=await p.evaluate(metrics);
       assert.deepEqual(a,stable,'fonts, measurement and column plan must settle without oscillation');
       assert.deepEqual(a.viewport,[c.width,c.height]);assert.ok(a.outer[0]<=c.width+1&&a.outer[1]<=c.height+1);assert.deepEqual(a.gapFailures,[]);
+      assert.ok(a.boundaryBases.every(b=>Math.abs(b.base-a.boundaryBases[0].base)<.2),'category, widget and notice transitions share one semantic gap');
+      assert.ok(a.widgetTopPadding.every(padding=>padding<.1),'widgets do not add an unrelated leading gap');
+      if(a.noticeGap!==null)assert.ok(Math.abs(a.noticeGap-a.boundaryBases[0].base*a.columns[Number(a.footerColumn)-1].scale)<.3,'visible notice clearance follows the category gap');
       const inset=a.spacing.sides[0];
+      const vmin=Math.min(c.width,c.height),expectedInset=c.width>=1024?Math.max(2*a.rootRem,Math.min(.042*vmin,4.25*a.rootRem)):Math.max(1.25*a.rootRem,Math.min(.03*vmin,2*a.rootRem));
+      assert.ok(Math.abs(inset-expectedInset)<.15,'outer inset follows the original responsive board rule');
       assert.ok(a.spacing.sides.every(side=>Math.abs(side-inset)<.1),'one page inset on all four sides');
       for(const gap of [a.spacing.brandGap,a.spacing.menuGap,a.spacing.trackGap,...a.spacing.actualGutters])assert.ok(Math.abs(gap-inset)<.15,'actual brand/menu gutters equal the page inset');
       if(a.spacing.dockGap!==null){
@@ -59,6 +73,8 @@ try{
         assert.ok(a.spacing.dockGap<=inset+.1,'dock clearance never exceeds the page inset');
       }
       assert.deepEqual(a.columns.flatMap(col=>col.ids),a.expected,'every heading/item/widget once in source order');
+      assert.equal(Number(a.brandTarget),.75,'representative title retains the shared 75% width target');
+      assert.equal(a.brandLayout,'brand-column');
       assert.equal(a.more,a.region.scroll>2?'true':'false');assert.ok(a.columns.every(col=>col.scale>=1&&col.scale<=1.60001));
       if(a.expected.length){assert.ok(a.columns.every(col=>col.ids.length>0));assert.equal(Number(a.footerColumn),a.columns.length);}
       assert.ok(a.size>=a.rootRem-.01&&a.size<=a.rootRem*(c.device==='pc'?1.35:1.3)+.01);
@@ -66,7 +82,7 @@ try{
       if(a.topInset>0)assert.ok(Math.abs(a.topInset-(a.region.height-a.contentHeight)/2)<.1,'bounded sparse content centers as one composition');
       if(c.scenario==='dense'||c.scenario==='long')assert.ok(a.region.scroll>2,'excess content remains scrollable');
       if(c.scenario==='sparse'||c.scenario==='empty'){assert.equal(a.region.scroll,0);assert.equal(a.more,'false');assert.equal(a.columns.length,1);}
-      if(c.scenario===''&&c.width===1440){assert.equal(a.region.scroll,0);assert.ok(a.columns[0].bottom-a.columns[0].top>=a.region.height*.95,'fill uses the actual reading height');}
+      if(c.scenario===''&&c.width===1440&&c.layoutMode!=='orderedBalancedFit'){assert.equal(a.region.scroll,0);assert.ok(a.columns.every(col=>col.bottom-col.top>=a.region.height*.9),'fill uses at least 90% of the actual reading height with the original larger page inset');}
       if(a.noticeFont)assert.equal(a.noticeFont.replaceAll(/['"]/g,''),a.koFont.replaceAll(/['"]/g,''),'notices retain the saved Korean font for English too');
       const beforeDock=await p.locator('[data-scroll-actions]').count()?await p.locator('[data-scroll-actions]').boundingBox():null;
       const beforeBrand=await p.locator('[data-paged-brand]').boundingBox();

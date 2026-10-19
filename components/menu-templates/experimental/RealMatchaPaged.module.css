@@ -3,7 +3,8 @@
   --paged-columns: 2;
   --paged-ink: #191c1b;
   --paged-brand: var(--menu-role-brand-color, #191c1b);
-  --scroll-page-inset: clamp(1rem, 2.5vmin, 2rem);
+  /* Match the original adaptive board inset at each actual viewport width. */
+  --scroll-page-inset: clamp(2rem, 4.2vmin, 4.25rem);
   --scroll-column-gap: var(--scroll-page-inset);
   --scroll-action-clearance: clamp(0.875rem, calc(var(--scroll-page-inset) * 0.75), 1.25rem);
   --cafe-a-linked-item-name-size: max(1rem, calc(var(--scroll-item-size, 1rem) * var(--menu-font-size-scale, 1) * var(--menu-role-item-name-size-scale, 1)));
@@ -91,8 +92,7 @@
 .unit { --scroll-base-gap: calc(var(--cafe-a-item-rhythm-gap) * var(--scroll-item-rhythm, 1)); box-sizing: border-box; min-width: 0; padding-bottom: calc(var(--scroll-base-gap) * var(--scroll-unit-gap-scale, var(--scroll-gap-scale, 1))); }
 .unit[data-kind="heading"] { --scroll-base-gap: calc(var(--cafe-a-item-rhythm-gap) * var(--cafe-a-category-title-to-first-ratio)); }
 /* A category transition replaces the previous item boundary, rather than doubling it. */
-.unit[data-next-kind="heading"] { --scroll-base-gap: calc(var(--cafe-a-item-rhythm-gap) * var(--cafe-a-category-separation-ratio)); }
-.unit[data-kind="widget"] { padding-top: 1.5rem; }
+.unit:is([data-next-kind="heading"], [data-next-kind="widget"], [data-next-kind="notices"]) { --scroll-base-gap: calc(var(--cafe-a-item-rhythm-gap) * var(--cafe-a-category-separation-ratio)); }
 .unit :global(.cafe-a-category-heading) { margin-bottom: 0; }
 .notices { padding-block: 0 0.25rem; overflow-wrap: anywhere; line-height: 1.5; white-space: pre-line; text-align: right; }
 .notices:empty { display: none; }
@@ -135,6 +135,9 @@
 .error { position: absolute; inset: auto 0 0; background: #fff5dc; color: #6b3500; padding: 0.5rem; font-size: 0.875rem; }
 @media (max-width: 900px) {
   .frame { grid-template-columns: minmax(12rem, 26%) minmax(0, 1fr); }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .frame { --scroll-page-inset: clamp(1.25rem, 3vmin, 2rem); }
 }
 
 /* The original one-page notice contract uses the saved Korean face for every script. */
