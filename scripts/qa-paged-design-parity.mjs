@@ -18,7 +18,7 @@ try {
     for (const key of ['cafe_design_a', 'cafe_real_matcha_paged_test']) {
       await page.goto(`${base}/templates/${key}/preview?${new URLSearchParams({device, view: 'actual', embedded: '1', callPreview: 'on', orderPreview: 'on'})}`);
       await page.evaluate(() => document.fonts.ready);
-      await page.waitForFunction(paged => paged ? document.querySelector('[data-paged-ready]')?.dataset.pagedReady === 'true' : document.querySelector('.cafe-a-desktop-fit-board')?.dataset.fitPresentationState === 'ready', key.includes('paged'));
+      await page.waitForFunction(() => document.querySelector('[data-paged-ready]')?.dataset.pagedReady === 'true');
       await page.waitForTimeout(300);
       styles[key] = await page.evaluate(() => Object.fromEntries([
         ['brand', '.cafe-a-store-title .cafe-a-script-en'],

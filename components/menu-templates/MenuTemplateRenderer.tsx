@@ -55,7 +55,9 @@ export default function MenuTemplateRenderer(props: PublicMenuTemplateProps) {
       if (props.pagePresentation === "multi") {
         return withPublicMenuShell(<MultiPageMenuEngine {...props} />);
       }
-      return withPublicMenuShell(<CafeDesignA {...props} />);
+      // The approved REAL MATCHA scroll experiment is now the formal Basic presentation.
+      // Mobile still delegates to CafeDesignA inside RealMatchaPaged; multi-page stays above.
+      return withPublicMenuShell(<RealMatchaPaged {...props} />);
     case "cafe_mocha_forest_a":
       return withPublicMenuShell(<CafeMochaForestA {...props} />);
     case "cafe_sunday_line_a":
