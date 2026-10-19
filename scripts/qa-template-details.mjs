@@ -29,6 +29,11 @@ async function settle(page) {
 }
 
 async function inspect(page, width, height) {
+  const sidebar = page.getByRole("complementary", { name: "템플릿 정보 및 시작" });
+  const info = sidebar.getByRole("region", { name: "템플릿 상세 정보" });
+  const actions = sidebar.locator("[data-template-detail-actions]");
+  await expect(page.getByRole("button", { name: "AI 상담 열기" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "맨 위로 이동" })).toHaveCount(0);
   const geometry = await page.locator('aside[aria-label="템플릿 정보 및 시작"]').evaluate(sidebar => {
     const story = sidebar.nextElementSibling;
     const side = sidebar.getBoundingClientRect();
@@ -46,25 +51,48 @@ async function inspect(page, width, height) {
   if (width >= 768) {
     assert.equal(geometry.sidebar.position, "sticky");
     assert.ok(geometry.story.right < geometry.sidebar.x, "Story and sidebar must occupy separate columns");
+    const checkActions = () => actions.locator("a, button").evaluateAll(buttons => buttons.map(button => {
+      const rect = button.getBoundingClientRect();
+      const headerBottom = document.querySelector("[data-site-header]").getBoundingClientRect().bottom;
+      const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
+      return { top: rect.top, bottom: rect.bottom, headerBottom, inViewport: rect.top >= headerBottom && rect.bottom <= innerHeight, unobscured: button === hit || button.contains(hit) };
+    }));
+    const initialActions = await checkActions();
+    assert.equal(initialActions.length, 2);
+    assert.ok(initialActions.every(button => button.inViewport && button.unobscured), "Both actions are visible and clickable BEFORE scrolling");
+    const overflows = await info.evaluate(element => element.scrollHeight > element.clientHeight + 1);
+    await expect(actions).toHaveAttribute("data-scroll-more", String(overflows));
+    if (overflows) {
+      await expect(info).toHaveAttribute("tabindex", "0");
+      await expect(sidebar.locator("[data-template-detail-fade]")).toHaveCSS("opacity", "1");
+    }
+    await info.evaluate(element => { element.scrollTop = element.scrollHeight; });
+    await expect(actions).toHaveAttribute("data-scroll-more", "false");
+    await expect(sidebar.locator("[data-template-detail-fade]")).toHaveCSS("opacity", "0");
+    const afterInfoScroll = await checkActions();
+    assert.ok(afterInfoScroll.every((button, index) => button.inViewport && button.unobscured && Math.abs(button.top - initialActions[index].top) < 1), "Information scrolls independently while both actions stay fixed");
+    await info.evaluate(element => { element.scrollTop = 0; });
+    await expect(actions).toHaveAttribute("data-scroll-more", String(overflows));
     await page.evaluate(() => window.scrollTo({ top: 600, behavior: "instant" }));
     const pinned = await page.locator('aside[aria-label="템플릿 정보 및 시작"]').boundingBox();
     assert.ok(Math.abs(pinned.y - geometry.sidebar.targetTop) < 2, "Sidebar stays below the fixed site header");
-    await page.locator('aside[aria-label="템플릿 정보 및 시작"]').evaluate(sidebar => { sidebar.scrollTop = sidebar.scrollHeight; });
-    const actions = page.getByRole("link", { name: "미리보기", exact: true });
-    const bounds = await actions.boundingBox();
-    assert.ok(bounds.y >= pinned.y && bounds.y + bounds.height <= height, "Actions remain reachable on short screens");
-    await page.locator('aside[aria-label="템플릿 정보 및 시작"]').evaluate(sidebar => { sidebar.scrollTop = 0; });
+    assert.ok((await checkActions()).every(button => button.inViewport && button.unobscured), "Both actions stay visible while the left column scrolls");
+    await expect(page.getByRole("button", { name: "맨 위로 이동" })).toHaveCount(0);
   } else {
     assert.equal(geometry.sidebar.position, "static");
     assert.ok(geometry.story.y >= geometry.sidebar.bottom, "Mobile shows template information before the story");
     assert.equal(geometry.sidebar.scroll, geometry.sidebar.client);
+    await expect(sidebar.locator("[data-template-detail-fade]")).toHaveCSS("display", "none");
+    const note = await sidebar.getByText(/첫 구독은 계정당|디스플레이는 현재/).boundingBox();
+    const buttonArea = await actions.boundingBox();
+    assert.ok(note.y >= buttonArea.y + buttonArea.height, "Mobile preserves the original actions-then-billing-note order");
   }
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
   return geometry;
 }
 
 try {
-  for (const [width, height] of [[320, 844], [390, 844], [430, 932], [640, 960], [768, 1024], [820, 1180], [1024, 600], [1180, 820], [1440, 900], [1920, 1080]]) {
+  for (const [width, height] of [[320, 844], [390, 844], [430, 932], [640, 960], [768, 500], [768, 1024], [820, 1180], [1024, 400], [1024, 600], [1180, 820], [1280, 600], [1366, 600], [1440, 650], [1440, 900], [1920, 1080]]) {
     const page = await browser.newPage({ viewport: { width, height }, reducedMotion: "reduce" });
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
@@ -103,17 +131,43 @@ try {
       assert.equal(url.searchParams.get("template"), route === "cafe_real_matcha_a" ? "cafe_design_a" : route === "cafe_sunday_roasters_a" ? "cafe_sunday_line_a" : route);
       await expect(sidebar).toContainText(tier === "multi" ? "6,900원" : "4,900원");
     }
-    await inspect(page, 1440, 900);
+    await page.setViewportSize({ width: 1024, height: 500 });
+    await settle(page);
+    await inspect(page, 1024, 500);
     await page.setViewportSize({ width: 390, height: 844 });
     await settle(page);
     await inspect(page, 390, 844);
-    results.push({ case: "catalog", route, tier, viewports: [[1440, 900], [390, 844]] });
+    results.push({ case: "catalog", route, tier, viewports: [[1440, 900], [1024, 500], [390, 844]] });
     await page.close();
   }
 
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce", permissions: ["clipboard-read", "clipboard-write"] });
   const page = await context.newPage();
+  await page.goto(`${base}/templates/cafe_real_matcha_a`, { waitUntil: "networkidle" });
+  await settle(page);
+  const sidebarInfo = page.getByRole("region", { name: "템플릿 상세 정보" });
+  const footer = page.locator("[data-template-detail-actions]");
+  await page.setViewportSize({ width: 1024, height: 500 });
+  await expect(footer).toHaveAttribute("data-scroll-more", "true");
+  await sidebarInfo.focus();
+  await sidebarInfo.press("End");
+  await expect(footer).toHaveAttribute("data-scroll-more", "false");
+  assert.equal(await page.evaluate(() => window.scrollY), 0);
+  await sidebarInfo.press("Home");
+  await expect(footer).toHaveAttribute("data-scroll-more", "true");
+  await expect.poll(() => sidebarInfo.evaluate(element => element.scrollTop)).toBe(0);
+  await page.setViewportSize({ width: 1024, height: 1400 });
+  await expect(footer).toHaveAttribute("data-scroll-more", "false");
+  await page.setViewportSize({ width: 1024, height: 500 });
+  await expect(footer).toHaveAttribute("data-scroll-more", "true");
+  await inspect(page, 1024, 500);
+  results.push({ case: "resize-and-keyboard", fade: "overflow, end, no-overflow, overflow restored", keyboard: "End/Home scroll only the information" });
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`${base}/apply`, { waitUntil: "networkidle" });
+  await expect(page.getByRole("button", { name: "AI 상담 열기" })).toBeVisible();
+  await page.evaluate(() => window.scrollTo({ top: 600, behavior: "instant" }));
+  await expect(page.getByRole("button", { name: "맨 위로 이동" })).toBeVisible();
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
   const thumbnail = page.getByRole("link", { name: "REAL MATCHA 상세 보기", exact: true });
   await expect(thumbnail).not.toHaveAttribute("target", "_blank");
   await thumbnail.click();
