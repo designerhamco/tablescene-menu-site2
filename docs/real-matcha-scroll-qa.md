@@ -1,5 +1,15 @@
 # REAL MATCHA contained-scroll experiment — 2026-10-19
 
+## 채움형 고정 읽기 크기와 스크롤 하단 안전여백 — 2026-10-19
+
+정식 `cafe_design_a` 단일 페이지와 숨김 호환 테스트의 PC·태블릿 **채움형만** 남는 높이를 메우던 열별 최대 1.6배 간격 확대와 메뉴 전체 세로 중앙 이동을 중단했다. 기존 상품/카테고리/위젯/안내 의미 간격과 원본 역할별 서체·색상은 그대로 사용하며, 상품명 기준 크기는 PC 1.35rem·태블릿 1.30rem으로 안정화했다. 실제 DOM 폭·높이 측정은 1–3열 선택, 카테고리 이어짐, 위젯/안내 순서 및 스크롤 여부에 계속 사용한다. 모두 넘칠 때에는 같은 읽기 크기에서 실제 스크롤 길이가 가장 짧은 열 배치를 고른다. 묶음형의 기존 화면 맞춤과 모바일 CafeDesignA 위임은 유지한다.
+
+채움형의 마지막 실제 콘텐츠 뒤에는 해당 기기의 원본 페이지 여백 한 번을 스크롤 영역 안에 예약한다. 페이드는 실제 메뉴/안내가 가려졌을 때만 켜지므로 안전여백만 남은 경우에는 꺼진다. 1440×900 PC는 글자 21.6px, 하단 여백 37.8px, 기본 콘텐츠 스크롤 58px이며 820×1180 세로 태블릿은 20.8px, 24.6px, 183px이다. 두 화면 모두 열별 간격 배율은 1이다. 같은 PC 묶음형은 이전처럼 콘텐츠 기준 19.5875px로 한 화면에 맞고 별도 하단 여백이 없다.
+
+로컬 Production 빌드에서 단위 658개, 독립 타입 검사, 변경 파일 lint와 빌드가 통과했다. 최종 코드 실측 브라우저 검사 28개 레이아웃/여백/페이드/순서 조건과 52개 주문·장바구니·다이닝 조건이 통과했다. 같은 화면 정책의 정식·모바일·언어 회귀 28개와 호출·주문/회전 조건 27개도 통과했다. 런타임 오류와 실제 public-menu 쓰기 요청은 0건이다. 상단과 스크롤 맨 아래 스크린샷을 확인했다. 기록: `/private/tmp/matcha-stable-clean-final/report.json`, `/private/tmp/matcha-stable-order-clean-final/report.json`, `/private/tmp/matcha-stable-formal/report.json`, `/private/tmp/matcha-stable-controls/report.json`.
+
+## 초기 숨김 테스트 이력
+
 Scope: hidden `cafe_real_matcha_paged_test` only. The compatibility key and existing QA/public URLs remain usable; visible test labels now say 스크롤. Original REAL MATCHA, other starters, multi-page/Display engines and customer data are unchanged. This explicitly approved PC/tablet experiment is an exception to the seven production starters' canvas-fit rule.
 
 ## Behavior

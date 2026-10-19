@@ -1,16 +1,13 @@
 import type { MeasuredMenuBlock } from "./basic-menu-pagination";
 
-/** Outer gaps only. Copy, prices, fonts and the mobile engine never participate in fill. */
+/** Fill changes column flow, not typography or the semantic spacing rhythm. */
 export const SCROLL_FILL_MIN_OCCUPANCY = 0.8;
-export const SCROLL_FILL_MAX_GAP_SCALE = 1.6;
 export const SCROLL_FILL_MAX_TYPE_LOSS = 0.08;
 export type ScrollableMenuBlock = MeasuredMenuBlock & { gapAfter?: number };
 export type ScrollableMenuLayout = {
   columns: ScrollableMenuBlock[][];
   height: number;
   contentHeight: number;
-  topInset: number;
-  gapScales: number[];
   naturalHeights: number[];
   footerColumn: number;
   viewportHeight: number;
@@ -81,18 +78,10 @@ export function layoutScrollableMenu(
     column.reduce((sum, block) => sum + block.height, 0) -
     (index === footerColumn && footerHeight > 0 ? 0 : gapOf(column.at(-1))) +
     (index === footerColumn ? footerHeight : 0));
-  const target = Math.max(viewport, ...naturalHeights);
-  // The notice boundary is a category-level gap too, so fill scales it with
-  // other category/widget boundaries in the final column.
-  const budgets = columns.map((column, index) =>
-    column.slice(0, index === footerColumn && footerHeight > 0 ? undefined : -1)
-      .reduce((sum, block) => sum + gapOf(block), 0));
-  const gapScales = budgets.map((budget, index) => grouped || !budget ? 1 :
-    Math.min(SCROLL_FILL_MAX_GAP_SCALE, 1 + Math.max(0, target - naturalHeights[index]) / budget));
-  const expanded = naturalHeights.map((height, index) => height + budgets[index] * (gapScales[index] - 1));
-  const contentHeight = blocks.length ? Math.max(grouped ? target : 0, ...expanded) : footerHeight;
-  const topInset = !grouped && blocks.length ? Math.max(0, (viewport - contentHeight) / 2) : 0;
-  return { columns, height: Math.max(viewport, contentHeight), contentHeight, topInset, gapScales, naturalHeights, footerColumn, viewportHeight: viewport };
+  const contentHeight = blocks.length
+    ? Math.max(grouped ? viewport : 0, ...naturalHeights)
+    : footerHeight;
+  return { columns, height: Math.max(viewport, contentHeight), contentHeight, naturalHeights, footerColumn, viewportHeight: viewport };
 }
 
 export type ScrollableMenuCandidate = { columnCount: number; columnWidth: number; layout: ScrollableMenuLayout; itemSize?: number };
@@ -107,7 +96,14 @@ export function selectScrollableMenuCandidate(candidates: readonly ScrollableMen
   // Do not shrink readable type substantially just to hide another column's whitespace.
   const eligible = fitting.length ? fitting.filter(candidate => !candidate.itemSize ||
     candidate.itemSize >= largestFittingType * (1 - SCROLL_FILL_MAX_TYPE_LOSS)) : nonempty;
-  if (!fitting.length) return eligible[0] ?? ordered.at(-1)!;
+  if (!fitting.length) {
+    if (grouped) return eligible[0] ?? ordered.at(-1)!;
+    // At the fixed readable type size, use the arrangement with the least
+    // actual scrolling; narrower tracks can wrap enough to be taller.
+    return [...nonempty].sort((a, b) =>
+      Math.max(...a.layout.naturalHeights) - Math.max(...b.layout.naturalHeights) ||
+      b.columnCount - a.columnCount)[0] ?? ordered.at(-1)!;
+  }
   return eligible.find(candidate => candidate.columnCount === 1 || grouped ||
     candidate.layout.naturalHeights.reduce((sum, height) => sum + height, 0) /
       (candidate.columnCount * candidate.layout.viewportHeight) >= SCROLL_FILL_MIN_OCCUPANCY) ?? eligible.at(-1)!;
