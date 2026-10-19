@@ -107,3 +107,13 @@ test("flow fills free space without changing fonts, order or widget boundaries",
   assert.equal(flow.length, 1);
   assert.deepEqual(flow.flatMap(p => p.columns.flat()).filter(b => b.kind !== "heading").map(b => b.id), input.filter(b => b.kind !== "heading").map(b => b.id));
 });
+
+test("a bounded gap rescue must save a whole column; otherwise keep original spacing", () => {
+  const input = [30, 60, 30, 30, 40].flatMap((height, i) => [block(`h${i}`, String(i), 10, "heading"), block(`i${i}`, String(i), height)]);
+  const original = {columns: 2, gapScale: 1, pages: paginateMenuBlocks(input, 2, 100, true)};
+  const compact = {columns: 2, gapScale: 0.9, pages: paginateMenuBlocks(input.map(b => ({...b, height: b.height * 0.9})), 2, 100, true)};
+  assert.equal(original.pages.length, 2);
+  assert.equal(compact.pages.length, 2);
+  assert.equal(selectMenuPaginationCandidate([original, compact]), compact);
+  assert.equal(selectMenuPaginationCandidate([original, {...original, gapScale: 0.9}]), original);
+});

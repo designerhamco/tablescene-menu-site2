@@ -124,6 +124,7 @@ export default function TableOrderLab() {
         >
           <option value="">기본 메뉴</option>
           <option value="options">필수 옵션</option>
+          <option value="images">전체 상품 썸네일</option>
           <option value="dense">많은 메뉴</option>
           <option value="widgets">중간·마지막 위젯</option>
           <option value="long">긴 상품 설명</option>

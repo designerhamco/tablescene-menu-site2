@@ -29,6 +29,8 @@ export function applyPagedMatchaFixture(data: MenuPageData, scenario: string = "
       ...data.priceOptions.filter((option) => option.menu_item_id !== first.id),
     ];
   }
+  if (scenario === "images")
+    data.items = data.items.map(item => ({...item, image_url: "/menu-templates/cafe_design_a/malcha.jpg"}));
   if (scenario === "dense") {
     data.items = data.items.flatMap((item) =>
       Array.from({ length: 4 }, (_, i) => ({

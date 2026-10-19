@@ -103,12 +103,14 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     pages: MenuPagePartition[];
     columns: number;
     capacity: number;
+    gapScale: number;
     ready: boolean;
     brandOverflow: boolean;
   }>({
     pages: [],
     columns: 2,
     capacity: 600,
+    gapScale: 1,
     ready: false,
     brandOverflow: false,
   });
@@ -266,16 +268,18 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       // Measure each readable width; wider columns can wrap less and use fewer pages.
       const maxColumns = Math.max(1, Math.min(3, Math.floor((bounds.width + gap) / (12 * rem + gap))));
-      const candidates = Array.from({length: maxColumns}, (_, index) => {
+      const candidates = [1, 0.9, 0.8].flatMap(gapScale => Array.from({length: maxColumns}, (_, index) => {
         const columns = index + 1;
         measure.current!.style.width = `${(bounds.width - (columns - 1) * gap) / columns}px`;
+        measure.current!.style.setProperty("--paged-gap-scale", String(gapScale));
         const measured = units.map((u) => ({
           id: u.id, group: u.group, kind: u.kind,
           height: Math.ceil(measure.current!.querySelector<HTMLElement>(`[data-measure-id="${u.id}"]`)!.getBoundingClientRect().height) + 1,
         }));
-        return { columns, pages: paginateMenuBlocks(measured, columns, bounds.height, data.previewLayoutMode !== "orderedFit") };
-      });
-      const { columns, pages } = selectMenuPaginationCandidate(candidates);
+        return { columns, gapScale, pages: paginateMenuBlocks(measured, columns, bounds.height, data.previewLayoutMode !== "orderedFit") };
+      }));
+      const { columns, pages, gapScale = 1 } = selectMenuPaginationCandidate(candidates);
+      measure.current.style.setProperty("--paged-gap-scale", String(gapScale));
       measure.current.style.width = `${(bounds.width - (columns - 1) * gap) / columns}px`;
       const next = anchor.current
         ? pages.findIndex((p) =>
@@ -294,6 +298,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         pages,
         columns,
         capacity: bounds.height,
+        gapScale,
         ready: !brandOverflow,
         brandOverflow,
       });
@@ -360,6 +365,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             ...typography,
             backgroundColor: getResolvedBackgroundColor("cafe_design_a", data.menuSite.page_settings),
             "--paged-capacity": layout.capacity + "px",
+            "--paged-gap-scale": layout.gapScale,
           } as CSSProperties
         }
         data-template-key="cafe_design_a"
@@ -372,6 +378,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         data-paged-ready={layout.ready && !overflow ? "true" : "false"}
         data-paged-page={page + 1}
         data-paged-total={layout.pages.length}
+        data-paged-gap-scale={layout.gapScale}
         data-paged-layout={data.previewLayoutMode ?? "orderedBalancedFit"}
       >
         <aside ref={brandArea} className={styles.brand} data-paged-brand>

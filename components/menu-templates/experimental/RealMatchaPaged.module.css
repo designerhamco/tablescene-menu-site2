@@ -28,6 +28,9 @@
   gap: 1.5rem;
 }
 .brandControls { flex: none; color: var(--paged-brand); }
+.brandControls > :global([data-template-language-control]) { text-align: left; }
+.brandControls :global([data-template-language-control] button[aria-haspopup="menu"]) { width: 2.75rem; height: 2.75rem; padding: 0; }
+.brandControls :global([data-template-language-control] button > svg) { width: 1.5rem; height: 1.5rem; }
 .brandControls :global(.cafe-a-mobile-call-bar) {
   grid-template-columns: 2.75rem minmax(0, 1fr) auto;
   gap: 0;
@@ -68,8 +71,8 @@
 .column { display: flex; flex-direction: column; min-width: 0; height: 100%; overflow: visible; }
 .column > div { flex: none; }
 .measure { height: 0; overflow: hidden; position: absolute; left: 0; top: 0; visibility: hidden; pointer-events: none; contain: layout; z-index: -1; }
-.unit { box-sizing: border-box; min-width: 0; padding-bottom: 1.25rem; }
-.unit[data-kind="heading"] { padding-bottom: 1.5rem; }
+.unit { box-sizing: border-box; min-width: 0; padding-bottom: calc(1.25rem * var(--paged-gap-scale, 1)); }
+.unit[data-kind="heading"] { padding-bottom: calc(1.5rem * var(--paged-gap-scale, 1)); }
 .unit[data-kind="widget"] { padding-top: 1.5rem; }
 .unit :global(.cafe-a-category-heading) { margin-bottom: 0; }
 .footer { display: flex; flex-direction: column; gap: 0.75rem; align-items: stretch; padding-top: 0.75rem; min-height: 3.5rem; }
