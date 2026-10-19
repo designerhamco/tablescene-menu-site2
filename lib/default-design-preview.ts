@@ -6,6 +6,7 @@ import { getDefaultDesignOptions, type DefaultDesignOptions } from "./default-de
 
 const image = "/placeholders/starter/default-menu-item.svg";
 const ink = "#191c1b";
+const basicTextOnlyItems = new Set(["초콜릿 휘낭시에", "버터 크루아상", "맛차 테린"]);
 const diningSecondaryNames: Record<string, string> = {
   "관자와 시금치": "SCALLOPS & SPINACH",
   "랍스터 비스크": "LOBSTER BISQUE",
@@ -53,7 +54,7 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
   data.items = data.items.map((item, index) => ({
     ...item, name: item.name.replace(/리얼 맛차/g, "말차").replace(/REAL MATCHA/g, "MATCHA"),
     set_name: item.set_name?.replace(/REAL MATCHA/g, "MATCHA") ?? (!basic ? diningSecondaryNames[item.name] ?? null : null),
-    image_url: options.imagesPreview ? image : null,
+    image_url: options.imagesPreview && !(basic && basicTextOnlyItems.has(item.name)) ? image : null,
     badge: index === 0 ? "추천" : item.badge,
     badge_label: index === 0 ? "추천" : item.badge_label,
   }));
@@ -93,6 +94,7 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
       { id: "default-image", menuSiteId: data.menuSite.id, menuPageId: data.pages[0].id, type: "image", title: null, description: null, imageUrl: image, imagePath: null, sortOrder: 101, visible: true, settings: { schemaVersion: 1, placement: "flow", aspectRatio: "3:1", objectFit: "cover", objectPosition: "center", altText: "이미지 위젯 예시" } },
     ];
   }
+  if (!basic && !options.priceOptionsPreview) data.priceOptions = [];
   // One clear sold-out example, away from the first orderable product/course.
   const soldOutItem = basic
     ? data.items.find(item => item.name === "플랫화이트")

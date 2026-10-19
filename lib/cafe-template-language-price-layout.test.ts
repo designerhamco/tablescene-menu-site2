@@ -359,7 +359,7 @@ test("원페이지 템플릿 옵션명은 가격 열 중앙에, 가격은 오른
   );
   assert.match(
     globalStylesSource,
-    /\.cafe-a-price-column-heading-label \{[\s\S]*font-size: var\(--cafe-a-price-column-label-font-size\);[\s\S]*inset: 0;[\s\S]*justify-content: center;/,
+    /\.cafe-a-price-column-heading-label,\s*\.cafe-a-typography \.cafe-a-price-column-label-sizer \{[^}]*font-size: var\(--cafe-a-price-column-label-font-size\);[^}]*inset: 0;[^}]*justify-content: center;/,
   );
   assert.match(
     globalStylesSource,

@@ -1,6 +1,15 @@
 # Dining actions and default preview options — 2026-10-19
 
-## Latest refinement: heading, price columns and category descriptions
+## Latest refinement: mobile Dining option prices and text-only Basic samples
+
+- Existing Dining A/B and the neutral Dining review put real option prices on a separate row below the item name at the existing mobile container boundary. Label/price pairs wrap together and the add action remains next to the prices. PC/tablet and ordinary single-price rows retain their layout. Standalone Wine pairing / Non-alcohol pairing sections and prices are explicitly preserved.
+- The neutral Dining toolbar now has seven controls, including independent 가격 옵션 under 가격·판매 상태. OFF displays the item's base price; ON restores its actual option selections. Device and detached URLs preserve the state.
+- Neutral Basic's 초콜릿 휘낭시에, 버터 크루아상 and 맛차 테린 always have no image, even after toggling 상품 이미지 off and on. Other samples still follow the switch. Designer presets and customer content are untouched.
+- `qa-dining-price-options.mjs` captures 21 old-build screens and compares the changed build: existing A/B and neutral Dining at 1440×900 PC, 1180×820 and 820×1180 tablet, and 320/390/430/820×932 forced mobile. It checks whole-name space, option row position, button adjacency, viewport boundaries, unchanged standalone prices and course-gap token. Desktop/tablet bounds permit only 0.1px inline glyph-rounding variation; text and fonts compare exactly. Evidence: `/private/tmp/dining-price-before/report.json`, `/private/tmp/dining-price-after/report.json`.
+- TypeScript, ESLint, 665 unit tests and optimized build pass. An existing CSS-source assertion was updated to the already approved shared price-label/sizer selector; no production Basic spacing CSS changed in this follow-up.
+- All 78 browser conditions pass: price layout 21, preview toggles/device persistence/language 20, default design/cart 15, heading/price spacing 12, readable columns 10. The option suite checks both image-less examples after re-enabling images and actual Glass/Bottle selections in the item dialog. No page errors or API writes. Reports: `/private/tmp/dining-price-{after,options-ui,designs,spacing,columns}/report.json`.
+
+## Previous refinement: heading, price columns and category descriptions
 
 - Both neutral designs add an independent category-description checkbox (Basic 12 controls, Dining 6). Basic has examples on SIGNATURE and BAKERY only. Product descriptions remain independent; URL/device/detached transitions preserve the option.
 - Contained Basic heading gap is max(saved ratio, 1.25) times item rhythm, just above the existing ordinary 1.20 maximum. Its mobile wrapper changes heading 24→26px; item 20px and section 48px remain. Mobile CafeDesignA option headers and prices reserve the same intrinsic label/price widths, keep 10px between columns and center prices under labels. PC/tablet price geometry is unchanged.

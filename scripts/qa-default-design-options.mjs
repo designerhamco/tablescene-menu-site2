@@ -34,7 +34,7 @@ try {
     let frame = await frameReady(design);
     const guide = p.locator('[data-preview-guide-variant]');
     if (await guide.isVisible()) await guide.getByRole('button', { name: '닫기', exact: true }).click();
-    assert.equal(await p.locator('[data-preview-display-options] input:checked').count(), basic ? 12 : 6);
+    assert.equal(await p.locator('[data-preview-display-options] input:checked').count(), basic ? 12 : 7);
     assert.equal(await p.locator('[data-preview-display-options] fieldset').count(), 3);
     const optionsToggle = p.getByRole('button', { name: /^보기 옵션/ });
     const initialSrc = await p.locator('iframe').getAttribute('src');
@@ -70,6 +70,11 @@ try {
     assert.equal(await frame.locator(secondary).filter({ visible: true }).count(), 0);
     assert.equal(await frame.locator(description).filter({ visible: true }).count(), 0);
     if (basic) {
+      for (const name of ['초콜릿 휘낭시에', '버터 크루아상', '맛차 테린']) {
+        const item = frame.locator('[data-paged-column] [data-cafe-a-menu-item]').filter({ hasText: name });
+        assert.equal(await item.count(), 1);
+        assert.equal(await item.locator('.cafe-a-menu-item-image').count(), 0, 'text-only examples never gain a sample image');
+      }
       assert.ok(await frame.locator('[data-cafe-a-menu-badge]').filter({ visible: true }).count());
       frame = await toggle(design, 'badgesPreview', '일반 텍스트칩', false);
       assert.equal(await frame.locator('[data-cafe-a-menu-badge]').count(), 0);
@@ -108,6 +113,18 @@ try {
       frame = await toggle(design, 'featuredPreview', '대표 상품', true);
       assert.ok(await frame.locator('[data-cafe-a-featured-title]').filter({ visible: true }).count());
     }
+    if (!basic) {
+      await frame.getByRole('button', { name: 'Drink Menu 페이지로 이동', exact: true }).click();
+      const champagne = frame.locator('.aube-table-item').filter({ has: frame.getByRole('heading', { name: 'Champagne', exact: true }) });
+      await champagne.waitFor();
+      assert.equal(await champagne.locator('.aube-table-option-price').count(), 2);
+      frame = await toggle(design, 'priceOptionsPreview', '가격 옵션', false);
+      await frame.getByRole('button', { name: 'Drink Menu 페이지로 이동', exact: true }).click();
+      await champagne.waitFor();
+      assert.equal(await frame.locator('.aube-table-option-price').count(), 0);
+      assert.equal((await champagne.locator('.aube-table-item-price').innerText()).replace(/\D/g, ''), '35000');
+      assert.equal(await frame.locator('.aube-table-direct-items .aube-table-item').count(), 2);
+    }
     frame = await toggle(design, 'coverPreview', basic ? '대표 영역' : '커버 페이지', false);
     assert.equal(await frame.locator(basic ? '[data-cafe-a-cover-image]' : '.aube-table-cover').count(), 0);
     if (basic) assert.equal(await p.getByRole('checkbox', { name: '대표 상품 보기', exact: true }).isDisabled(), true);
@@ -130,6 +147,7 @@ try {
     frame = await frameReady(design);
     assert.equal(await frame.locator('.cafe-a-menu-item-image,.aube-table-item-image').count(), 0);
     const url = new URL(await p.locator('iframe').getAttribute('src'), base);
+    if (!basic) assert.equal(url.searchParams.get('priceOptionsPreview'), 'off');
     for (const name of ['coverPreview', 'imagesPreview', 'categoryDescriptionsPreview', 'secondaryNamesPreview', 'descriptionsPreview']) assert.equal(url.searchParams.get(name), 'off');
     assert.equal(await p.getByRole('checkbox', { name: '카테고리 설명 보기', exact: true }).isChecked(), false);
     frame = await toggle(design, 'categoryDescriptionsPreview', '카테고리 설명', true);
@@ -149,9 +167,26 @@ try {
       await frame.getByRole('heading', { name: 'A La Carte Menu', exact: true }).waitFor();
     }
     assert.ok(await frame.locator('.cafe-a-menu-item-image,.aube-table-item-image').count() > 0);
+    if (basic) for (const name of ['초콜릿 휘낭시에', '버터 크루아상', '맛차 테린']) {
+      const item = frame.locator('[data-cafe-a-menu-item]').filter({ visible: true, hasText: name });
+      assert.equal(await item.count(), 1);
+      assert.equal(await item.locator('.cafe-a-menu-item-image').count(), 0, 'enabling images again keeps text-only examples unchanged');
+    }
     assert.ok(await frame.locator(secondary).filter({ visible: true }).count());
     assert.ok(await frame.locator(description).filter({ visible: true }).count());
     assert.ok(await frame.locator(categoryDescription).filter({ visible: true }).count());
+    if (!basic) {
+      frame = await toggle(design, 'priceOptionsPreview', '가격 옵션', true);
+      await frame.getByRole('button', { name: 'Drink Menu 페이지로 이동', exact: true }).click();
+      const champagne = frame.locator('.aube-table-item').filter({ has: frame.getByRole('heading', { name: 'Champagne', exact: true }) });
+      await champagne.waitFor();
+      assert.equal(await champagne.locator('.aube-table-option-price').count(), 2);
+      await champagne.locator('[data-menu-order-add]').click();
+      await frame.getByRole('dialog').waitFor();
+      assert.ok((await frame.getByRole('dialog').innerText()).includes('Glass'));
+      assert.ok((await frame.getByRole('dialog').innerText()).includes('Bottle'));
+      await frame.getByRole('button', { name: '메뉴 담기 닫기', exact: true }).last().click();
+    }
     for (const outerWidth of [1440, 390]) {
       await p.setViewportSize({ width: outerWidth, height: 1000 });
       await p.waitForFunction(() => {
