@@ -204,7 +204,7 @@ try {
   for (const [device, w, h] of process.env.ORDER_QA_INTERACTION_ONLY
     ? []
     : sizes)
-    for (const scenario of ["", "dense", "long", "widgets"])
+    for (const scenario of ["", "images", "dense", "long", "widgets"])
       for (const layout of ["orderedBalancedFit", "orderedFit"])
         await paged(device, w, h, scenario, layout);
   for (const width of process.env.ORDER_QA_INTERACTION_ONLY

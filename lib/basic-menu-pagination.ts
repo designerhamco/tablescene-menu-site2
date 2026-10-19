@@ -65,12 +65,20 @@ export function paginateMenuBlocks(
   return pages;
 }
 
-export type MenuPaginationCandidate = { columns: number; pages: MenuPagePartition[] };
+export type MenuPaginationCandidate = { columns: number; pages: MenuPagePartition[]; gapScale?: number };
 /** Minimize page turns first, then prefer the widest equally effective columns.
+ * Only a complete column saved justifies modest gap compaction. Text never shrinks.
  * Each candidate is measured independently, so wrapping is never estimated.
  */
 export function selectMenuPaginationCandidate(candidates: readonly MenuPaginationCandidate[]): MenuPaginationCandidate {
   if (!candidates.length) throw new Error("At least one measured menu layout is required");
   const overflow = (candidate: MenuPaginationCandidate) => candidate.pages.reduce((sum, page) => sum + page.overflow.length, 0);
-  return [...candidates].sort((a, b) => overflow(a) - overflow(b) || a.pages.length - b.pages.length || a.columns - b.columns)[0];
+  const usedColumns = (candidate: MenuPaginationCandidate) => candidate.pages.reduce(
+    (sum, page) => sum + page.columns.filter(column => column.length > 0).length, 0,
+  );
+  return [...candidates].sort((a, b) =>
+    overflow(a) - overflow(b) || a.pages.length - b.pages.length ||
+    usedColumns(a) - usedColumns(b) || (b.gapScale ?? 1) - (a.gapScale ?? 1) ||
+    a.columns - b.columns,
+  )[0];
 }
