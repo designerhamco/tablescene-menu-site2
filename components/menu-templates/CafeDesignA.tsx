@@ -1887,10 +1887,12 @@ function CafeMenuImageLightbox({
   preview,
   onClose,
   templateKey,
+  zIndex = 80,
 }: {
   preview: CafeMenuImagePreview | null;
   onClose: () => void;
   templateKey: string;
+  zIndex?: number;
 }) {
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -1945,6 +1947,7 @@ function CafeMenuImageLightbox({
     <div
       ref={dialogRef}
       className="cafe-a-image-lightbox fixed inset-0 z-[80] flex items-center justify-center bg-black/78 px-[max(1rem,env(safe-area-inset-left))] py-[max(1rem,env(safe-area-inset-top))] text-white"
+      style={{ zIndex }}
       data-template-key={templateKey}
       role="dialog"
       aria-modal="true"
@@ -2280,12 +2283,14 @@ function StoreIdentity({
   titleClassName,
   logoClassName,
   mobileAutoFit = false,
+  layoutShell,
 }: {
   data: PublicMenuTemplateProps;
   capabilities: TemplateCapabilities;
   titleClassName: string;
   logoClassName: string;
   mobileAutoFit?: boolean;
+  layoutShell?: ReturnType<typeof getFixedOnePageLayoutShell>;
 }) {
   const title = getDisplayName(data.menuSite) || "ArtiMenu";
   const [logoFailed, setLogoFailed] = useState(false);
@@ -2329,7 +2334,7 @@ function StoreIdentity({
         className={titleClassName}
         fontSignature={fontSignature}
         device={device}
-        layoutShell={getFixedOnePageLayoutShell(data.menuSite.template_key)}
+        layoutShell={layoutShell ?? getFixedOnePageLayoutShell(data.menuSite.template_key)}
         opticalScale={getEnglishFontOpticalSizeScale(brandEnglishFontKey, "brand")}
       />
     );

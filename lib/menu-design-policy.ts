@@ -28,6 +28,9 @@ export function canUseMenuDesign(service: MenuService, access: MenuDesignAccess,
 
 export const DEFAULT_DESIGN_REVIEWS = [
   { id: "basic-first-column", label: "베이직 기본 디자인", layout: "basic-first-column", kind: "standard", renderer: "cafe_design_a" },
+  { id: "basic-top-row", label: "베이직 기본 디자인", layout: "basic-top-row", kind: "standard", renderer: "cafe_design_a" },
+  { id: "basic-center-column", label: "베이직 기본 디자인", layout: "basic-center-column", kind: "standard", renderer: "cafe_design_a" },
+  { id: "basic-upper-left", label: "베이직 기본 디자인", layout: "basic-upper-left", kind: "standard", renderer: "cafe_design_a" },
   { id: "dining-full-page", label: "다이닝 기본 디자인", layout: "dining-full-page", kind: "standard", renderer: "dining_aube_table_a" },
 ] as const satisfies readonly (MenuDesign & { renderer: string })[];
 export type DefaultDesignReview = typeof DEFAULT_DESIGN_REVIEWS[number];

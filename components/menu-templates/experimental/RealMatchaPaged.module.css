@@ -150,3 +150,29 @@
 
 /* The original one-page notice contract uses the saved Korean face for every script. */
 .notices :global(.cafe-a-script-en), .notices :global(.cafe-a-script-ko) { font-family: var(--menu-font-ko) !important; }
+
+/* New neutral review structures share the approved reading units and mobile renderer. */
+.frame[data-basic-structure="basic-top-row"] { grid-template-rows: minmax(0, var(--cafe-a-header-fr, 8fr)) minmax(0, var(--cafe-a-body-fr, 92fr)); row-gap: calc(var(--scroll-page-inset) * var(--cafe-a-header-gap-scale, 1)); }
+.topRow { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--scroll-column-gap); align-items: center; min-width: 0; }
+.topDescription { display: flex; align-items: center; gap: .75rem; min-width: 0; }
+.topIdentity { min-width: 0; text-align: center; }
+.topIdentity :global(.cafe-a-store-title) { line-height: 1.08; }
+.frame[data-basic-structure="basic-top-row"] > .brand, .frame[data-basic-structure="basic-top-row"] > .menuPanel { grid-row: 2; }
+.frame[data-basic-structure="basic-top-row"][data-show-cover="false"] > .brand { display: none; }
+.frame[data-basic-structure="basic-top-row"][data-show-cover="false"] > .menuPanel { grid-column: 1 / -1; }
+.frame:is([data-basic-structure="basic-center-column"], [data-basic-structure="basic-upper-left"]) { grid-template-columns: minmax(0, 1fr); }
+.frame:is([data-basic-structure="basic-center-column"], [data-basic-structure="basic-upper-left"]) > .menuPanel { grid-column: 1; }
+.frame:is([data-basic-structure="basic-center-column"], [data-basic-structure="basic-upper-left"]) > .brand { position: absolute; z-index: 3; top: var(--scroll-page-inset); background: var(--scroll-background); }
+.frame[data-basic-structure="basic-center-column"] { --scroll-center-width: calc((100% - 2 * var(--scroll-page-inset)) * .24); }
+.frame[data-basic-structure="basic-center-column"] > .brand { left: 50%; transform: translateX(-50%); width: var(--scroll-center-width); bottom: var(--scroll-page-inset); }
+.frame[data-basic-structure="basic-center-column"] .columns { column-gap: calc(var(--scroll-center-slot) + 2 * var(--scroll-column-gap)); }
+.frame[data-basic-structure="basic-center-column"] .footer { display: grid; grid-template-columns: minmax(0, 1fr) var(--scroll-center-slot) minmax(0, 1fr); gap: var(--scroll-column-gap); }
+.frame[data-basic-structure="basic-center-column"] .footer button { width: min(100%, 17.5rem); justify-self: center; }
+.frame[data-basic-structure="basic-center-column"] .footer .callButton { grid-column: 1; }
+.frame[data-basic-structure="basic-center-column"] .footer .orderButton { grid-column: 3; }
+.frame[data-basic-structure="basic-upper-left"] > .brand { left: var(--scroll-page-inset); width: var(--scroll-track-width, 30%); height: min(30rem, calc((100% - 2 * var(--scroll-page-inset)) * .56)); }
+.frame[data-basic-structure="basic-upper-left"][data-show-cover="false"] > .brand { height: auto; }
+/* Cover scrolled text underneath the fixed corner, including the category gap. */
+.frame[data-basic-structure="basic-upper-left"] > .brand::after { position: absolute; top: 100%; left: 0; right: 0; height: var(--scroll-column-gap); background: var(--scroll-background); content: ""; }
+
+.frame[data-basic-structure="basic-upper-left"] .column:first-child [data-paged-block] { scroll-margin-top: var(--scroll-first-inset); }

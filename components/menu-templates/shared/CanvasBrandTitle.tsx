@@ -27,7 +27,7 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
     const boxOf = () => {
       const style = getComputedStyle(container);
       const width = container.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
-      const board = root.closest<HTMLElement>(".cafe-a-desktop-fit-board");
+      const board = root.closest<HTMLElement>(".cafe-a-desktop-fit-board, [data-scroll-brand-board]");
       const boardStyle = board ? getComputedStyle(board) : null;
       const frameHeight = board?.clientHeight ? board.clientHeight - (parseFloat(boardStyle!.paddingTop) || 0) - (parseFloat(boardStyle!.paddingBottom) || 0) : window.innerHeight;
       // Common height budget from the reading frame, independent of title
@@ -43,10 +43,10 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
         ? Number(board?.style.getPropertyValue("--cafe-a-header-gap-scale")) || 1 : 1;
       const baseGap = (parseFloat(boardStyle?.rowGap ?? "0") || 0) / appliedGapScale;
       const availableHeight = frameHeight - baseGap;
-      const header = container.closest("[data-cafe-a-topline-info-header]");
+      const header = container.closest("[data-cafe-a-topline-info-header], [data-basic-top-row]");
       // Header copy can already be capped by the current row height. Its
       // scroll height preserves the required wrapped-copy height for the next fit.
-      const sideHeight = Math.max(0, ...[...header?.querySelectorAll<HTMLElement>(".cafe-a-topline-description, .cafe-a-topline-notice-text") ?? []].map((element) => Math.max(element.getBoundingClientRect().height, element.scrollHeight)));
+      const sideHeight = Math.max(0, ...[...header?.querySelectorAll<HTMLElement>(".cafe-a-topline-description, .cafe-a-topline-notice-text, [data-scroll-header-copy]") ?? []].map((element) => Math.max(element.getBoundingClientRect().height, element.scrollHeight)));
       const panelFrame = layoutShell === "brand_panel_flow" ? root.closest<HTMLElement>(".cafe-a-panel-intro") : null;
       // Panel brands use the common column target/height budget, bounded only
       // by the actual controls, supporting copy and featured item around them.
@@ -79,7 +79,7 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
           ? getCanvasHeaderGapScale(device, next.lines.length, next.naturalWrap) : 1;
         const availableHeight = frameHeight - baseGap * gapScale;
         const ratio = getCanvasHeaderRatio(availableHeight, next.fontSize, next.lines.length, lineAdvance, sideHeight);
-        const board = root.closest<HTMLElement>(".cafe-a-desktop-fit-board");
+        const board = root.closest<HTMLElement>(".cafe-a-desktop-fit-board, [data-scroll-brand-board]");
         board?.style.setProperty("--cafe-a-header-fr", `${ratio * 100}fr`);
         board?.style.setProperty("--cafe-a-body-fr", `${(1 - ratio) * 100}fr`);
         board?.style.setProperty("--cafe-a-header-gap-scale", String(gapScale));
@@ -104,11 +104,11 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
     const schedule = () => { if (!disposed && !frame) frame = requestAnimationFrame(measure); };
     const observer = new ResizeObserver(() => { const box = boxOf(); if (`${box.width}|${box.height}|${box.layout}|${box.sideHeight}` !== previousBox) schedule(); });
     observer.observe(container);
-    const board = root.closest<HTMLElement>(".cafe-a-desktop-fit-board");
+    const board = root.closest<HTMLElement>(".cafe-a-desktop-fit-board, [data-scroll-brand-board]");
     if (board) observer.observe(board);
     const panelFrame = layoutShell === "brand_panel_flow" ? root.closest(".cafe-a-panel-intro") : null;
     for (const element of panelFrame?.querySelectorAll(".cafe-a-panel-controls, .cafe-a-featured-copy, .cafe-a-store-description") ?? []) observer.observe(element);
-    for (const element of board?.querySelectorAll(".cafe-a-topline-description, .cafe-a-topline-notice-text") ?? []) observer.observe(element);
+    for (const element of board?.querySelectorAll(".cafe-a-topline-description, .cafe-a-topline-notice-text, [data-scroll-header-copy]") ?? []) observer.observe(element);
     window.addEventListener("resize", schedule);
     schedule();
     void document.fonts.ready.then(schedule);

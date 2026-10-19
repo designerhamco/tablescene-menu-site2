@@ -70,7 +70,7 @@ try {
     assert.equal(await frame.locator(secondary).filter({ visible: true }).count(), 0);
     assert.equal(await frame.locator(description).filter({ visible: true }).count(), 0);
     if (basic) {
-      for (const name of ['초콜릿 휘낭시에', '버터 크루아상', '맛차 테린']) {
+      for (const name of ['클래식 버터 스콘', '레몬 마들렌', '초콜릿 휘낭시에', '버터 크루아상', '맛차 테린']) {
         const item = frame.locator('[data-paged-column] [data-cafe-a-menu-item]').filter({ hasText: name });
         assert.equal(await item.count(), 1);
         assert.equal(await item.locator('.cafe-a-menu-item-image').count(), 0, 'text-only examples never gain a sample image');
@@ -115,7 +115,7 @@ try {
     }
     if (!basic) {
       await frame.getByRole('button', { name: 'Drink Menu 페이지로 이동', exact: true }).click();
-      const champagne = frame.locator('.aube-table-item').filter({ has: frame.getByRole('heading', { name: 'Champagne', exact: true }) });
+      const champagne = frame.locator('.aube-table-item').filter({ has: frame.getByRole('heading', { name: '샴페인', exact: true }) });
       await champagne.waitFor();
       assert.equal(await champagne.locator('.aube-table-option-price').count(), 2);
       frame = await toggle(design, 'priceOptionsPreview', '가격 옵션', false);
@@ -167,7 +167,7 @@ try {
       await frame.getByRole('heading', { name: 'A La Carte Menu', exact: true }).waitFor();
     }
     assert.ok(await frame.locator('.cafe-a-menu-item-image,.aube-table-item-image').count() > 0);
-    if (basic) for (const name of ['초콜릿 휘낭시에', '버터 크루아상', '맛차 테린']) {
+    if (basic) for (const name of ['클래식 버터 스콘', '레몬 마들렌', '초콜릿 휘낭시에', '버터 크루아상', '맛차 테린']) {
       const item = frame.locator('[data-cafe-a-menu-item]').filter({ visible: true, hasText: name });
       assert.equal(await item.count(), 1);
       assert.equal(await item.locator('.cafe-a-menu-item-image').count(), 0, 'enabling images again keeps text-only examples unchanged');
@@ -178,7 +178,7 @@ try {
     if (!basic) {
       frame = await toggle(design, 'priceOptionsPreview', '가격 옵션', true);
       await frame.getByRole('button', { name: 'Drink Menu 페이지로 이동', exact: true }).click();
-      const champagne = frame.locator('.aube-table-item').filter({ has: frame.getByRole('heading', { name: 'Champagne', exact: true }) });
+      const champagne = frame.locator('.aube-table-item').filter({ has: frame.getByRole('heading', { name: '샴페인', exact: true }) });
       await champagne.waitFor();
       assert.equal(await champagne.locator('.aube-table-option-price').count(), 2);
       await champagne.locator('[data-menu-order-add]').click();

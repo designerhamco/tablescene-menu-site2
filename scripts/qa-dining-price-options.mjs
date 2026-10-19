@@ -13,11 +13,11 @@ const p = await browser.newPage({ reducedMotion: 'reduce' });
 p.on('pageerror', e => errors.push(e.message));
 await p.route('**/api/**', r => r.request().method() === 'GET' ? r.continue() : (writes.push(r.request().url()), r.abort()));
 const sizes = [['pc', 1440, 900], ['tablet', 1180, 820], ['tablet', 820, 1180], ...[320, 390, 430, 820].map(w => ['mobile', w, 932])];
-async function drinkPage(target, key) {
+async function drinkPage(target, key, design) {
   await target.getByRole('button', { name: key.endsWith('_b') ? 'Wine & Pairing' : 'Drink Menu 페이지로 이동', exact: true }).filter({ visible: true }).click();
   await target.locator('body').evaluate(() => document.fonts.ready);
   await target.locator('body').evaluate(async () => { await Promise.all(document.getAnimations().filter(a => a.effect?.getTiming().iterations !== Infinity).map(a => a.finished.catch(() => {}))); });
-  await target.getByRole('heading', { name: key.endsWith('_b') ? 'Pierre Gimonnet Brut' : 'Champagne', exact: true }).waitFor();
+  await target.getByRole('heading', { name: key.endsWith('_b') ? 'Pierre Gimonnet Brut' : design ? '샴페인' : 'Champagne', exact: true }).waitFor();
 }
 const geometry = () => {
   const rect = el => { if (!el) return null; const b = el.getBoundingClientRect(); return { x: b.x, y: b.y, width: b.width, height: b.height, right: b.right, bottom: b.bottom }; };
@@ -38,7 +38,7 @@ try {
       const id = `${design || key}-${device}-${width}`;
       await p.setViewportSize({ width, height });
       await p.goto(`${base}/templates/${key}/preview?` + new URLSearchParams({ view: 'actual', device, design, callPreview: 'on', orderPreview: 'on' }), { waitUntil: 'networkidle' });
-      await drinkPage(p, key);
+      await drinkPage(p, key, design);
       const value = await p.evaluate(geometry);
       assert.deepEqual(value.viewport, [width, height]);
       assert.equal(value.outerWidth, width);
@@ -46,11 +46,12 @@ try {
       assert.equal(direct.length, 2, 'pairings remain standalone items');
       if (key.endsWith('_a')) assert.deepEqual(direct.map(i => i.text.replace(/\D/g, '')), ['120000', '65000']);
       if (!capture) {
-        const champagne = value.items.find(i => i.name === (key.endsWith('_b') ? 'Pierre Gimonnet Brut' : 'Champagne'));
+        const champagne = value.items.find(i => i.name === (key.endsWith('_b') ? 'Pierre Gimonnet Brut' : design ? '샴페인' : 'Champagne'));
         assert.equal(champagne.pairs.length, 2);
         for (const item of value.items.filter(i => i.pairs.length)) {
           assert.ok(item.button.right <= item.item.right + 1);
           assert.ok(item.button.x >= item.price.right - 1, 'add remains next to option prices');
+          assert.ok(item.pairs.every((pair, i, rows) => i === 0 || pair.y >= rows[i - 1].bottom + 3), 'one option per line');
           if (device === 'mobile') {
             assert.ok(item.purchase.y >= item.title.bottom + 3, 'options start on their own row below the name');
             assert.ok(item.title.width >= item.purchase.width - 1, 'option prices no longer squeeze the name');

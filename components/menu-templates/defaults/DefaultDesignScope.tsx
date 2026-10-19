@@ -1,11 +1,13 @@
 "use client";
 
 import { createContext, useContext, type ReactNode } from "react";
+import type { MenuLayoutId } from "@/lib/menu-design-policy";
 
-const DefaultDesignContext = createContext(false);
-export const useDefaultDesign = () => useContext(DefaultDesignContext);
+const DefaultDesignContext = createContext<MenuLayoutId | undefined>(undefined);
+export const useDefaultDesign = () => Boolean(useContext(DefaultDesignContext));
+export const useDefaultDesignLayout = () => useContext(DefaultDesignContext);
 
-/** Appearance-only preview scope; never inferred from customer IDs or copy. */
-export default function DefaultDesignScope({ children }: { children: ReactNode }) {
-  return <DefaultDesignContext.Provider value>{children}</DefaultDesignContext.Provider>;
+/** Explicit review scope; never inferred from customer IDs or copy. */
+export default function DefaultDesignScope({ children, layout }: { children: ReactNode; layout: MenuLayoutId }) {
+  return <DefaultDesignContext.Provider value={layout}>{children}</DefaultDesignContext.Provider>;
 }

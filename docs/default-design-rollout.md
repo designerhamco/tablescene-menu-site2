@@ -4,7 +4,7 @@
 
 Start from Production merge `a6d174c` (PR #252), including spacing restoration #251 and stable fill reading #252. `docs/basic-menu-scroll-policy.md` is authoritative for REAL MATCHA. Do not restore the earlier gap enlargement, vertical centering or pagination. Mobile remains the independent 20/24/48 reading contract.
 
-The user approved the overall sequence but explicitly wants **one Basic and one Dining neutral design reviewed before extending the remaining four**. First review: first-column Basic and full-page Dining. `/design-review` links to isolated, noindex, simulated previews using the existing renderers and neutral sample data. These are not purchasable presets and do not change saved customer menus. Other six existing Basic skins remain on their original renderers until structure-specific rollout and regression evidence exists.
+The user approved the first-column Basic and full-page Dining neutral designs. The next approved review adds the three remaining Basic structures; Dining sidebar follows after the current Dining price/image refinements. First review: first-column Basic and full-page Dining. `/design-review` links to isolated, noindex, simulated previews using the existing renderers and neutral sample data. These are not purchasable presets and do not change saved customer menus. Other six existing Basic skins remain on their original renderers until structure-specific rollout and regression evidence exists.
 
 ## Approved product policy
 
@@ -37,3 +37,17 @@ The neutral Basic appearance enables item images and keeps each price rail to th
 - `qa-default-design-navigation.mjs`: 6 checks covering device/iframe/detached-link identity retention, Dining individual images and Glass/Bottle prices, original Matcha's empty popup and mismatched design 404.
 - Existing `qa-real-matcha-fill.mjs`: 28 conditions preserve approved geometry, stable fill sizes, grouped mode, widgets/notices, fade and safety padding. Existing `qa-menu-interaction-theme.mjs`: 12 conditions across Matcha/Mocha/both Dining templates preserve CTA/modal typography, borders, theme and cart flow. Its navigation now waits for idle network before reading the asynchronously measured palette.
 - Preview evidence is stored under `/private/tmp/default-design-review`, `/private/tmp/default-design-navigation`, `/private/tmp/real-matcha-fill` and `/private/tmp/menu-interaction-theme`. No customer orders, payments, database records or subscriptions are changed by these checks.
+
+
+## Neutral Basic structure expansion — 2026-10-20
+
+The explicit preview design ID selects a review-only shell through `DefaultDesignScope`. Existing customer/template keys do not infer a new shell. The original first-column scroll renderer and all four neutral mobile previews retain their approved shared rendering. `/design-review` now lists four Basic structures and the approved full-page Dining design.
+
+- Top row: description/language, fitted brand title, and notices occupy three fixed header cells. The representative image sits beneath the header; the menu scrolls beside it. Turning off the image releases that lower region to the menu.
+- Center column: a fixed center representative rail separates two readable menu tracks. One scroll surface keeps both sides synchronized, with the fixed call/order actions outside the center rail.
+- Upper left: a fixed representative panel occupies only the top of the first track. Its measured height plus the shared category/column clearance participates in packing. The first menu continues below it and the other columns start at the top. Scrolled content passes behind the opaque panel; all products remain reachable. This is not a full-height brand rail.
+- Grouped mode preserves category units; fill continues items without duplicated category headings. Existing reading type, 2/3-track name-width selection, semantic category/widget/notice gaps, fade, action clearance and mobile behavior remain shared. The center structure uses one menu track per side. No automatic fourth track is introduced.
+- Neutral Basic BAKERY has no item images, regardless of the preview image toggle. Neutral product names are Korean and all secondary names English. Customer content and designer starter records are unchanged.
+- Dining option prices use one option per right-aligned row on all devices. Mobile keeps this price block below the name and retains a dotted leader. Other prices and standalone pairing spacing are unchanged. Dining thumbnails open the shared image lightbox without a magnifier glyph, with Escape/close and trigger focus restoration.
+
+The six other existing Basic designer skins, remaining Dining neutral sidebar, entitlement switching, editor and operational rollout remain separate work.
