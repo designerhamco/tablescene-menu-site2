@@ -117,8 +117,8 @@
   box-shadow: none;
 }
 .footer button svg { width: 1.25rem; height: 1.25rem; flex: none; }
-.callButton { background: #fff; color: #191c1b; }
-.footer .orderButton { background: #191c1b; border-color: #191c1b; color: #fff; }
+.callButton { background: var(--menu-call-bg, #fff); color: var(--menu-call-ink, #191c1b); border-color: var(--menu-call-border, #191c1b); }
+.footer .orderButton { background: var(--menu-order-bg, #191c1b); border-color: var(--menu-order-border, #191c1b); color: var(--menu-order-ink, #fff); }
 .footer button:hover { filter: brightness(0.94); }
 .footer button:focus-visible { outline: 2px solid var(--paged-brand); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .fade { transition: none; } }

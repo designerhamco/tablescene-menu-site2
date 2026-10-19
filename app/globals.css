@@ -5071,9 +5071,9 @@ video {
   block-size: clamp(3.5rem, 8.5vmin, 5.5rem);
   flex-shrink: 0;
   border: 0;
-  border-radius: 50%;
-  background: var(--cafe-a-call-accent, #191c1b);
-  color: var(--cafe-a-call-foreground, #fff);
+  border-radius: .5rem;
+  background: var(--menu-call-bg, #fff);
+  color: var(--menu-call-ink, #191c1b);
   font-size: var(--cafe-a-adaptive-support-size, 0.875rem);
   font-weight: 600;
   line-height: 1;
@@ -5796,15 +5796,15 @@ video {
   width: 100%;
   min-height: 3.25rem;
   padding: .75rem 1rem;
-  border-radius: .75rem;
-  border: 1px solid color-mix(in srgb, var(--cafe-a-call-foreground, #fff) 20%, transparent);
-  background: var(--cafe-a-call-accent, #191c1b);
-  color: var(--cafe-a-call-foreground, #fff);
+  border-radius: .5rem;
+  border: 1px solid var(--menu-call-border, #191c1b);
+  background: var(--menu-call-bg, #fff);
+  color: var(--menu-call-ink, #191c1b);
   font-family: var(--menu-font-ko), system-ui, sans-serif;
   font-size: var(--cafe-a-linked-supporting-copy-size, .875rem);
   font-weight: 600;
   line-height: 1.5;
-  box-shadow: 0 .25rem 1rem #0002;
+  box-shadow: none;
   cursor: pointer;
 }
 .cafe-a-mobile-call-dock-button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
@@ -5829,5 +5829,5 @@ video {
 
 /* Mobile order/call share one reserved dock row; no menu reading tokens change. */
 .cafe-a-mobile-call-dock > button { flex: 1 1 0; min-width: 0; }
-.cafe-a-mobile-call-dock[data-has-order="true"] .cafe-a-mobile-order-dock-button { background: #191c1b; color: #fff; border-color: #191c1b; box-shadow: none; }
-.cafe-a-mobile-call-dock[data-has-order="true"] [data-one-page-call-button="mobile-bottom"] { background: #fff; color: #191c1b; border-color: #b8bcb9; box-shadow: none; }
+.cafe-a-mobile-call-dock .cafe-a-mobile-order-dock-button, .cafe-a-desktop-call-button[data-one-page-call-button="desktop-cart"] { background: var(--menu-order-bg, #191c1b); color: var(--menu-order-ink, #fff); border: 1px solid var(--menu-order-border, #191c1b); box-shadow: none; }
+.cafe-a-desktop-call-button:not([data-one-page-call-button="desktop-cart"]) { border: 1px solid var(--menu-call-border, #191c1b); }

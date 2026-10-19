@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useRef,
   useSyncExternalStore,
   type CSSProperties,
   type ReactNode,
@@ -22,6 +23,7 @@ import {
   type OrderCallEntryConfig,
 } from "./types";
 import styles from "./TableMenuInteractions.module.css";
+import useMenuInteractionTheme from "./useMenuInteractionTheme";
 const subscribe = (listener: () => void) => {
   window.addEventListener("resize", listener);
   return () => window.removeEventListener("resize", listener);
@@ -136,6 +138,8 @@ export default function TableMenuInteractions({
   typographyStyle?: CSSProperties;
   children: ReactNode;
 }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const interactionStyle = useMenuInteractionTheme(contentRef);
   const devicePresentation = useMenuPresentationDevice(device);
   const [cartOpen, setCartOpen] = useState(false);
   const [callOpen, setCallOpen] = useState(false);
@@ -192,7 +196,7 @@ export default function TableMenuInteractions({
         >
           <div
             className={`menu-typography ${styles.shell}`}
-            style={typographyStyle}
+            style={{ ...typographyStyle, ...interactionStyle }}
             data-menu-interaction-shell
             data-device={devicePresentation}
             data-presentation={presentation}
@@ -202,7 +206,7 @@ export default function TableMenuInteractions({
             {!embedded && devicePresentation === "mobile" ? (
               <TableMenuHeader />
             ) : null}
-            <div className={styles.content}>{children}</div>
+            <div ref={contentRef} className={styles.content}>{children}</div>
             {!embedded && devicePresentation === "mobile" ? <TableMenuMobileDock /> : null}
             {!embedded && devicePresentation !== "mobile" ? (
               <div className={styles.dock}>
@@ -226,6 +230,7 @@ export default function TableMenuInteractions({
                 catalog={config.orderCatalog ?? []}
                 previewOnly={config.previewOnly}
                 typographyStyle={typographyStyle}
+                interactionStyle={interactionStyle}
                 tableLabel={actions.table}
                 device={devicePresentation}
                 checkoutModes={
@@ -248,7 +253,8 @@ export default function TableMenuInteractions({
                 open={callOpen}
                 onClose={() => setCallOpen(false)}
                 menuSiteId={config.menuSiteId!}
-                tableLabel={config.tableLabel}
+                tableLabel={actions.table}
+                interactionStyle={interactionStyle}
                 previewOnly={config.previewOnly}
                 callItems={config.callItems}
                 presentation={presentation === "aube" ? "aube" : "default"}
