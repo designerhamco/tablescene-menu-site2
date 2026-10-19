@@ -5075,7 +5075,7 @@ video {
   background: var(--menu-call-bg, #fff);
   color: var(--menu-call-ink, #191c1b);
   font-size: var(--cafe-a-adaptive-support-size, 0.875rem);
-  font-weight: 600;
+  font-weight: var(--menu-action-font-weight, 500);
   line-height: 1;
   cursor: pointer;
 }
@@ -5802,7 +5802,7 @@ video {
   color: var(--menu-call-ink, #191c1b);
   font-family: var(--menu-font-ko), system-ui, sans-serif;
   font-size: var(--cafe-a-linked-supporting-copy-size, .875rem);
-  font-weight: 600;
+  font-weight: var(--menu-action-font-weight, 500);
   line-height: 1.5;
   box-shadow: none;
   cursor: pointer;

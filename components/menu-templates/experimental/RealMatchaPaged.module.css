@@ -111,7 +111,7 @@
   border: 1px solid #919492;
   font-size: max(0.875rem, var(--cafe-a-linked-supporting-copy-size));
   font-family: var(--menu-font-ko);
-  font-weight: 600;
+  font-weight: var(--menu-action-font-weight, 500);
   line-height: 1.5;
   cursor: pointer;
   box-shadow: none;
