@@ -35,10 +35,10 @@ try {
       for (const role of Object.keys(styles[key])) assert.ok(styles[key][role], `${key}: missing ${role}`);
     }
     assert.deepEqual(styles.cafe_real_matcha_paged_test, styles.cafe_design_a, `${device}: original role styles`);
-    const metrics = await page.evaluate(() => ({viewport: [innerWidth, innerHeight], pages: Number(document.querySelector('[data-paged-total]').dataset.pagedTotal), coverImages: document.querySelectorAll('[data-cafe-a-cover-image]').length}));
+    const metrics = await page.evaluate(() => ({viewport: [innerWidth, innerHeight], coverImages: document.querySelectorAll('[data-cafe-a-cover-image]').length}));
     assert.deepEqual(metrics.viewport, [width, height]);
     assert.ok(metrics.coverImages > 1, 'original representative-image carousel is retained');
-    if (width === 1440) assert.equal(metrics.pages, 1, 'ordinary starter content should not require unnecessary page turns');
+    assert.equal(await page.getByRole('navigation', {name:'메뉴 페이지 이동'}).count(), 0);
     await page.screenshot({path: `${output}/${device}-${width}.png`});
     results.push({device, ...metrics, styles: styles.cafe_design_a});
     await page.close();

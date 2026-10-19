@@ -134,7 +134,7 @@ export default function TableOrderLab() {
         <iframe
           ref={frame}
           src={src}
-          title="리얼맛차 페이지형 주문 테스트"
+          title="리얼맛차 스크롤 주문 테스트"
           className="mx-auto block border-0 bg-white"
           style={{
             width: device === "mobile" ? 390 : device === "tablet" ? 820 : 1440,

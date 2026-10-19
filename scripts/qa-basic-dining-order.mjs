@@ -78,108 +78,64 @@ async function paged(device, width, height, scenario, layout) {
           .map((e) => e.dataset.measureId),
       );
     assert.equal(await p.locator("[data-paged-layout]").getAttribute("data-paged-layout"),layout);
-    const total = Number(
-      await p.locator("[data-paged-total]").getAttribute("data-paged-total"),
-    );
-    const geometry = await p.locator("[data-paged-brand]").boundingBox(),
-      actions = await p.locator("[data-one-page-table-actions]").boundingBox(),
-      pagination = await p.getByRole("navigation", {name: "메뉴 페이지 이동"}).boundingBox();
-    const menuBounds = await p.getByRole("region", {name: "메뉴 페이지"}).boundingBox();
-    assert.ok(pagination && menuBounds && Math.abs(pagination.x - menuBounds.x) < 1 && Math.abs(pagination.width - menuBounds.width) < 1, "pagination belongs to all menu columns, excluding the brand");
-    assert.ok(Math.abs(pagination.y + pagination.height - (height - geometry.y)) < 1, "pagination is pinned to the menu frame bottom");
-    assert.deepEqual(await p.locator("[data-paged-controls] [data-one-page-call-button]").evaluateAll(buttons => buttons.map(b => b.dataset.onePageCallButton)), ["mobile", "mobile-cart"]);
-    assert.ok(actions && geometry && actions.x >= geometry.x - 1 && actions.x + actions.width <= geometry.x + geometry.width + 1, "actions stay inside the fixed brand column");
-    assert.ok(actions.y < geometry.y + geometry.height / 2, "actions stay at the top of the brand column");
-    const controls = await p.locator("[data-paged-controls] button, [data-paged-item] [data-menu-order-add]").evaluateAll((buttons) => buttons.map((button) => {
-      const style = getComputedStyle(button);
-      return { label: button.getAttribute("aria-label"), background: style.backgroundColor, shadow: style.boxShadow, border: style.borderTopWidth };
-    }));
-    assert.ok(controls.length >= 3);
-    for (const control of controls) {
-      assert.ok(["rgba(0, 0, 0, 0)", "transparent"].includes(control.background), JSON.stringify(control));
-      assert.ok(control.shadow === "none" || /^(?:rgba\(0, 0, 0, 0\) 0px 0px 0px 0px(?:, )?)+$/.test(control.shadow), JSON.stringify(control));
-    }
-    const seen = [];
-    for (let page = 1; page <= total; page++) {
-      if (page > 1)
-        await p
-          .getByRole("button", { name: page + "페이지 보기", exact: true })
-          .click();
-      const m = await p.evaluate(() => {
-        const root = document.querySelector("[data-paged-ready]"),
-          menu = root.querySelector('[role="region"][aria-label="메뉴 페이지"]'),
-          bounds = menu.getBoundingClientRect();
-        const blocks = [
-          ...document.querySelectorAll(
-            "[data-paged-column] [data-paged-block]",
-          ),
-        ];
-        const clipped = blocks
-          .filter((e) => {
-            const r = e.getBoundingClientRect();
-            return (
-              r.top < bounds.top - 1 ||
-              r.bottom > bounds.bottom + 1 ||
-              r.left < bounds.left - 1 ||
-              r.right > bounds.right + 1
-            );
-          })
-          .map((e) => e.dataset.pagedBlock);
-        const widget = [
-          ...document.querySelectorAll(
-            "[data-paged-column] [data-paged-block]",
-          ),
-        ].find((e) => e.dataset.pagedBlock === "test-last-widget");
-        return {
-          viewport: [innerWidth, innerHeight],
-          scroll: [
-            document.documentElement.scrollWidth,
-            document.documentElement.scrollHeight,
-          ],
-          clipped,
-          ids: blocks
-            .filter((e) => e.dataset.kind !== "heading")
-            .map((e) => e.dataset.pagedBlock),
-          columns: document.querySelectorAll("[data-paged-column]").length,
-          widgetBottom: widget?.getBoundingClientRect().bottom,
-          noticeTop: document
-            .querySelector("[data-paged-notices]")
-            .getBoundingClientRect().top,
-        };
-      });
-      assert.deepEqual(m.viewport, [width, height]);
-      assert.ok(
-        m.scroll[0] <= width + 1 && m.scroll[1] <= height + 1,
-        JSON.stringify(m),
-      );
-      assert.deepEqual(m.clipped, []);
-      assert.deepEqual(
-        await p.locator("[data-paged-brand]").boundingBox(),
-        geometry,
-      );
-      assert.deepEqual(
-        await p.locator("[data-one-page-table-actions]").boundingBox(),
-        actions,
-      );
-      assert.deepEqual(await p.getByRole("navigation", {name: "메뉴 페이지 이동"}).boundingBox(), pagination, "pagination stays fixed on sparse and full pages");
-      if (m.widgetBottom)
-        assert.ok(
-          m.widgetBottom <= m.noticeTop + 1,
-          "terminal widget precedes notices",
-        );
-      seen.push(...m.ids);
-    }
+    assert.equal(await p.getByRole("navigation", {name: "메뉴 페이지 이동"}).count(), 0);
+    assert.equal(await p.locator("[data-paged-controls] [data-one-page-call-button]").count(), 0);
+    const geometry = await p.locator("[data-paged-brand]").boundingBox();
+    const actions = await p.locator("[data-scroll-actions]").boundingBox();
+    const viewport = await p.locator("[data-scroll-menu]").boundingBox();
+    assert.ok(actions.x >= viewport.x - 1 && actions.x + actions.width <= viewport.x + viewport.width + 1);
+    assert.ok(Math.abs(actions.y + actions.height - (height - geometry.y)) < 1, "actions are fixed at the menu bottom");
+    assert.equal(await p.locator("[data-scroll-call]").count(), 1);
+    assert.equal(await p.locator("[data-scroll-order]").count(), 1);
+    const seen = await p.locator("[data-paged-column] [data-paged-block]").evaluateAll(els => els.filter(e => e.dataset.kind !== "heading").map(e => e.dataset.pagedBlock));
     assert.deepEqual(seen, expected);
-    results.push({
-      kind: "paged",
-      device,
-      viewport: [width, height],
-      scenario,
-      layout,
-      pages: total,
+    const measure = async () => p.evaluate(() => {
+      const menu = document.querySelector("[data-scroll-menu]"), bounds = menu.getBoundingClientRect();
+      const blocks = [...document.querySelectorAll("[data-paged-column] [data-paged-block]")];
+      const widget = blocks.find(e => e.dataset.pagedBlock === "test-last-widget");
+      const bad = [];
+      for (const column of document.querySelectorAll("[data-paged-column]")) {
+        let end = -Infinity;
+        for (const block of column.querySelectorAll("[data-paged-block]")) {
+          const rect = block.getBoundingClientRect();
+          if (rect.left < bounds.left - 1 || rect.right > bounds.right + 1 || rect.top < end - 1) bad.push(block.dataset.pagedBlock);
+          end = rect.bottom;
+        }
+      }
+      return {viewport:[innerWidth,innerHeight], outer:[document.documentElement.scrollWidth,document.documentElement.scrollHeight],
+        scrollTop:menu.scrollTop, max:menu.scrollHeight-menu.clientHeight, bad,
+        first:blocks[0]?.getBoundingClientRect().top,
+        last:Math.max(...blocks.map(e => e.getBoundingClientRect().bottom)), bottom:bounds.bottom,
+        widgetBottom:widget?.getBoundingClientRect().bottom,
+        noticeTop:document.querySelector("[data-paged-notices]").getBoundingClientRect().top,
+        noticeBottom:document.querySelector("[data-paged-notices]").getBoundingClientRect().bottom,
+        more:document.querySelector("[data-scroll-more]").dataset.scrollMore,
+        pointer:getComputedStyle(document.querySelector("[data-scroll-fade]")).pointerEvents};
     });
-    if (!scenario && width === 1440)
-      await p.screenshot({ path: output + "/paged-desktop.png" });
+    const start = await measure();
+    assert.deepEqual(start.viewport,[width,height]);
+    assert.ok(start.outer[0] <= width + 1 && start.outer[1] <= height + 1);
+    assert.equal(start.more,start.max > 2 ? "true" : "false");
+    assert.equal(start.pointer,"none");
+    for (const fraction of [0.5,1]) {
+      await p.locator("[data-scroll-menu]").evaluate((e,f) => {e.scrollTop=(e.scrollHeight-e.clientHeight)*f},fraction);
+      await p.waitForTimeout(180);
+      const current = await measure();
+      assert.deepEqual(current.bad,[]);
+      assert.ok(Math.abs((start.first-current.first)-current.scrollTop)<1,"all menu columns share the scroll offset");
+      assert.deepEqual(await p.locator("[data-paged-brand]").boundingBox(),geometry);
+      assert.deepEqual(await p.locator("[data-scroll-actions]").boundingBox(),actions);
+      if(fraction===1) {
+        assert.equal(current.more,"false");
+        assert.ok(current.last <= current.bottom + 1 && current.noticeBottom <= current.bottom + 1,"last content and notices stay reachable above the fixed buttons");
+        if(current.widgetBottom)assert.ok(current.widgetBottom<=current.noticeTop+1,"last widget precedes notices");
+      }
+    }
+    results.push({kind:"scroll",device,viewport:[width,height],scenario,layout,overflow:start.max});
+    if(!scenario) {
+      await p.locator("[data-scroll-menu]").evaluate(e => {e.scrollTop=0});
+      await p.screenshot({path:output+`/scroll-${device}-${width}-${layout}.png`});
+    }
   } catch (e) {
     failures.push({
       kind: "paged",
@@ -257,7 +213,7 @@ try {
     await p.goto(base + "/qa/table-order", { waitUntil: "domcontentloaded" });
     await p.getByLabel("테스트 기기").selectOption("mobile");
     await p.getByLabel("테스트 콘텐츠").selectOption("options");
-    let f = p.frameLocator('iframe[title="리얼맛차 페이지형 주문 테스트"]');
+    let f = p.frameLocator('iframe[title="리얼맛차 스크롤 주문 테스트"]');
     await f.locator('[data-mobile-brand-fit="ready"]').waitFor();
     await p.locator("iframe").scrollIntoViewIfNeeded();
     await f
@@ -356,10 +312,7 @@ try {
       .click();
     await p.getByLabel("테스트 기기").selectOption("pc");
     await f.locator('[data-paged-ready="true"]').waitFor();
-    await f
-      .getByRole("button", { name: "장바구니 0개", exact: true })
-      .filter({ visible: true })
-      .click();
+    await f.locator("[data-scroll-order]").click();
     assert.equal(
       await f
         .getByRole("button", { name: "선결제 · 준비 중", exact: true })

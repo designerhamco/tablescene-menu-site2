@@ -15,7 +15,7 @@ export const TEMPLATE_CATEGORIES = [
     label: "카페",
     templates: [
       { key: "cafe_design_a", label: "REAL MATCHA", design: "design_a" },
-      { key: "cafe_real_matcha_paged_test", label: "리얼맛차 · 페이지형 테스트", design: "design_a" },
+      { key: "cafe_real_matcha_paged_test", label: "리얼맛차 · 스크롤 테스트", design: "design_a" },
 
       { key: "cafe_mocha_forest_a", label: "모카 포레스트", design: "design_a" },
       { key: "cafe_sunday_line_a", label: "선데이 로스터스", design: "design_a" },
