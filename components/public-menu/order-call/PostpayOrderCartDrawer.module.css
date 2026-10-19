@@ -15,6 +15,12 @@
 .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-block: 1.5rem; text-align: center; }
 .empty h3 { font-size: 1.125rem; }
 .backdrop[data-empty="true"] .panel { max-width: 25rem; }
+/* A populated cart is a full page; only the empty desktop state is a popup. */
+.backdrop[data-empty="false"] { padding: 0; background: #fff; }
+.backdrop[data-empty="false"] .panel { max-width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; }
+.backdrop[data-empty="false"] .header { padding-inline: max(1rem, calc((100% - 56rem) / 2)); padding-top: max(.75rem, env(safe-area-inset-top)); }
+.backdrop[data-empty="false"] .body { flex: 1; padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+.backdrop[data-empty="false"] .body > div { width: 100%; max-width: 56rem; margin-inline: auto; }
 .backdrop[data-device="mobile"] { padding: 0; background: #fff; }
 .backdrop[data-device="mobile"] .panel { max-width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; }
 .backdrop[data-device="mobile"] .header { padding-top: max(.75rem, env(safe-area-inset-top)); }
