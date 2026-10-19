@@ -559,7 +559,7 @@ export default function PostpayOrderCartDrawer({
               <div className="flex items-center gap-4">
                 <button
                   type="button"
-                  className="rounded-lg border border-zinc-200 p-2"
+                  className={`${ui.quantity} border border-zinc-200 p-2`}
                   aria-label="수량 줄이기"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 >
@@ -570,7 +570,7 @@ export default function PostpayOrderCartDrawer({
                 </span>
                 <button
                   type="button"
-                  className="rounded-lg border border-zinc-200 p-2"
+                  className={`${ui.quantity} border border-zinc-200 p-2`}
                   aria-label="수량 늘리기"
                   onClick={() => setQuantity(Math.min(20, quantity + 1))}
                 >
@@ -673,7 +673,7 @@ export default function PostpayOrderCartDrawer({
                           <div className="flex items-center gap-3">
                             <button
                               type="button"
-                              className="rounded-lg border border-zinc-200 p-2 disabled:cursor-not-allowed disabled:opacity-35"
+                              className={`${ui.quantity} border border-zinc-200 p-2 disabled:cursor-not-allowed disabled:opacity-35`}
                               aria-label={`${line.name} 수량 줄이기`}
                               disabled={line.quantity <= 1}
                               onClick={() => changeLineQuantity(line.key, -1)}
@@ -685,7 +685,7 @@ export default function PostpayOrderCartDrawer({
                             </span>
                             <button
                               type="button"
-                              className="rounded-lg border border-zinc-200 p-2"
+                              className={`${ui.quantity} border border-zinc-200 p-2`}
                               aria-label={`${line.name} 수량 늘리기`}
                               onClick={() => changeLineQuantity(line.key, 1)}
                             >
