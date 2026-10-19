@@ -1,3 +1,5 @@
+> Historical pagination record: the hidden copy was subsequently changed to internal scrolling on 2026-10-19. Current behavior and validation: `docs/real-matcha-scroll-qa.md`.
+
 # REAL MATCHA 페이지형 원본 디자인·배치 복원 (2026-10-19)
 
 범위는 숨김 `cafe_real_matcha_paged_test` 복사본이다. 원본 `cafe_design_a` 및 다른 기본 템플릿의 배치/모바일 읽기 정책은 유지한다. 공통 액션의 순서만 호출→장바구니로 바로잡았다. 운영 DB·주문·결제 데이터 변경은 없다.

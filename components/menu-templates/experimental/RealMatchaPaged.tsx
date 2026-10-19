@@ -9,7 +9,7 @@ import {
   type CSSProperties,
   type ReactNode,
 } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Bell, ShoppingCart } from "lucide-react";
 import type { PublicMenuTemplateProps } from "../types";
 import CafeDesignA, {
   CafeATypographyFontAssets,
@@ -25,7 +25,7 @@ import CafeDesignA, {
   getCafeAFooterInfo,
 } from "../CafeDesignA";
 import type { CafeMenuImagePreview } from "../shared/cafe-template-types";
-import { OnePageCallButton, OnePageMobileCallBar, OnePageCallPalette, useOnePageCallActions } from "../one-page/OnePageCallControls";
+import { OnePageMobileCallBar, OnePageCallPalette, useOnePageCallActions } from "../one-page/OnePageCallControls";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { getPriceDisplayModeFromSettings } from "@/lib/menu-price-format";
 import { getCustomBadgeStyles } from "@/lib/template-badge-styles";
@@ -43,12 +43,9 @@ import {
   getTypographyCssVariables,
   mergeTypographySettings,
 } from "@/lib/template-typography-presets";
-import {
-  paginateMenuBlocks,
-  selectMenuPaginationCandidate,
-  type MeasuredMenuBlock,
-  type MenuPagePartition,
-} from "@/lib/basic-menu-pagination";
+import type { MeasuredMenuBlock } from "@/lib/basic-menu-pagination";
+
+import { layoutScrollableMenu } from "@/lib/basic-menu-scroll";
 
 import type { MenuWidget } from "@/lib/menu-widgets";
 import styles from "./RealMatchaPaged.module.css";
@@ -98,25 +95,22 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   const area = useRef<HTMLDivElement>(null);
   const brandArea = useRef<HTMLElement>(null);
   const measure = useRef<HTMLDivElement>(null);
-  const anchor = useRef<string | null>(null);
+  const scrollContent = useRef<HTMLDivElement>(null);
+  const noticeArea = useRef<HTMLDivElement>(null);
   const [layout, setLayout] = useState<{
-    pages: MenuPagePartition[];
-    columns: number;
+    columns: MeasuredMenuBlock[][];
     capacity: number;
-    gapScale: number;
     ready: boolean;
     brandOverflow: boolean;
-  }>({
-    pages: [],
-    columns: 2,
-    capacity: 600,
-    gapScale: 1,
-    ready: false,
-    brandOverflow: false,
-  });
-  const [page, setPage] = useState(0);
+  }>({ columns: [[], []], capacity: 600, ready: false, brandOverflow: false });
+  const [moreBelow, setMoreBelow] = useState(false);
   const call = useOnePageCallActions();
-  const callOnly = call.enabled && call.callEnabled !== false && !call.orderEnabled;
+  const showCall = call.enabled && call.callEnabled !== false;
+  const showOrder = call.enabled && Boolean(call.orderEnabled);
+  const updateScrollHint = useCallback(() => {
+    const viewport = area.current;
+    setMoreBelow(Boolean(viewport && viewport.scrollHeight - viewport.clientHeight - viewport.scrollTop > 2));
+  }, []);
   const [imagePreview, setImagePreview] = useState<CafeMenuImagePreview | null>(null);
   const imageTrigger = useRef<HTMLElement | null>(null);
   const openImage = useCallback((preview: CafeMenuImagePreview, trigger: HTMLElement) => {
@@ -265,28 +259,17 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       if (disposed || !area.current || !measure.current) return;
       const bounds = area.current.getBoundingClientRect();
       if (bounds.width <= 1 || bounds.height <= 1) return;
+      const width = area.current.clientWidth;
       const gap = parseFloat(getComputedStyle(area.current).columnGap) || 24;
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-      // Measure each readable width; wider columns can wrap less and use fewer pages.
-      const maxColumns = Math.max(1, Math.min(3, Math.floor((bounds.width + gap) / (12 * rem + gap))));
-      const candidates = [1, 0.9, 0.8].flatMap(gapScale => Array.from({length: maxColumns}, (_, index) => {
-        const columns = index + 1;
-        measure.current!.style.width = `${(bounds.width - (columns - 1) * gap) / columns}px`;
-        measure.current!.style.setProperty("--paged-gap-scale", String(gapScale));
-        const measured = units.map((u) => ({
-          id: u.id, group: u.group, kind: u.kind,
-          height: Math.ceil(measure.current!.querySelector<HTMLElement>(`[data-measure-id="${u.id}"]`)!.getBoundingClientRect().height) + 1,
-        }));
-        return { columns, gapScale, pages: paginateMenuBlocks(measured, columns, bounds.height, data.previewLayoutMode !== "orderedFit") };
+      const columns = Math.max(1, Math.min(3, Math.floor((width + gap) / (12 * rem + gap))));
+      measure.current.style.width = `${(width - (columns - 1) * gap) / columns}px`;
+      const measured = units.map((u) => ({
+        id: u.id, group: u.group, kind: u.kind,
+        height: Math.ceil(measure.current!.querySelector<HTMLElement>(`[data-measure-id="${u.id}"]`)!.getBoundingClientRect().height) + 1,
       }));
-      const { columns, pages, gapScale = 1 } = selectMenuPaginationCandidate(candidates);
-      measure.current.style.setProperty("--paged-gap-scale", String(gapScale));
-      measure.current.style.width = `${(bounds.width - (columns - 1) * gap) / columns}px`;
-      const next = anchor.current
-        ? pages.findIndex((p) =>
-            p.columns.some((c) => c.some((u) => u.id === anchor.current)),
-          )
-        : -1;
+      const noticesHeight = noticeArea.current?.getBoundingClientRect().height ?? 0;
+      const partition = layoutScrollableMenu(measured, columns, Math.max(1, bounds.height - noticesHeight), data.previewLayoutMode !== "orderedFit");
       const brandBounds = brandArea.current?.getBoundingClientRect();
       const brandOverflow = Boolean(
         brandBounds &&
@@ -296,14 +279,11 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         ),
       );
       setLayout({
-        pages,
-        columns,
-        capacity: bounds.height,
-        gapScale,
+        columns: partition.columns,
+        capacity: partition.height,
         ready: !brandOverflow,
         brandOverflow,
       });
-      setPage((p) => (next >= 0 ? next : Math.min(p, pages.length - 1)));
     };
     const schedule = () => {
       cancelAnimationFrame(raf);
@@ -311,6 +291,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     };
     const observer = new ResizeObserver(schedule);
     observer.observe(area.current);
+    if (noticeArea.current) observer.observe(noticeArea.current);
     for (const node of measure.current.children) observer.observe(node);
     if (brandArea.current)
       for (const node of brandArea.current.children) observer.observe(node);
@@ -323,25 +304,21 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       observer.disconnect();
       document.fonts.removeEventListener("loadingdone", schedule);
     };
-  }, [mobile, units, data.previewLayoutMode, callOnly]);
-  const changePage = (index: number) => {
-    const next = Math.max(0, Math.min(layout.pages.length - 1, index));
-    anchor.current =
-      layout.pages[next]?.columns.flat().find((b) => b.kind === "item")?.id ??
-      null;
-    setPage(next);
-  };
+  }, [mobile, units, data.previewLayoutMode, showCall, showOrder]);
+  useLayoutEffect(() => {
+    if (mobile || !area.current || !scrollContent.current) return;
+    const observer = new ResizeObserver(updateScrollHint);
+    observer.observe(area.current);
+    observer.observe(scrollContent.current);
+    updateScrollHint();
+    return () => observer.disconnect();
+  }, [mobile, updateScrollHint]);
   if (mobile)
     return (
       <div data-paged-mobile>
         <CafeDesignA {...baseProps} />
       </div>
     );
-  const current = layout.pages[page];
-  const overflow = layout.pages.reduce(
-    (count, page) => count + page.overflow.length,
-    0,
-  );
   const unit = (id: string) => {
     const value = unitById.get(id);
     if (!value) return null;
@@ -365,8 +342,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
           {
             ...typography,
             backgroundColor: getResolvedBackgroundColor("cafe_design_a", data.menuSite.page_settings),
+            "--scroll-background": getResolvedBackgroundColor("cafe_design_a", data.menuSite.page_settings),
             "--paged-capacity": layout.capacity + "px",
-            "--paged-gap-scale": layout.gapScale,
+            "--paged-gap-scale": 1,
           } as CSSProperties
         }
         data-template-key="cafe_design_a"
@@ -375,18 +353,16 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         data-cafe-a-proportion-policy="true"
         data-cafe-a-adaptive-fit="true"
         data-cafe-a-mobile-style="false"
-        data-spacing-contract="paged-reading"
-        data-paged-ready={layout.ready && !overflow ? "true" : "false"}
-        data-paged-page={page + 1}
-        data-paged-total={layout.pages.length}
-        data-paged-call-only={callOnly ? "true" : "false"}
-        data-paged-gap-scale={layout.gapScale}
+        data-spacing-contract="contained-reading"
+        data-paged-ready={layout.ready ? "true" : "false"}
+        data-scroll-template="real-matcha"
+        data-scroll-more={moreBelow ? "true" : "false"}
         data-paged-layout={data.previewLayoutMode ?? "orderedBalancedFit"}
       >
         <aside ref={brandArea} className={styles.brand} data-paged-brand>
           <OnePageCallPalette />
           <div className={styles.brandControls} data-paged-controls>
-            {call.enabled ? <OnePageMobileCallBar showActions={!callOnly} languageControl={<CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly />} /> : <CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly />}
+            {call.enabled ? <OnePageMobileCallBar showActions={false} languageControl={<CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly />} /> : <CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly />}
           </div>
           <div className={styles.identity}>
             <CafeAStoreIdentity data={baseProps} capabilities={capabilities} titleClassName="cafe-a-store-title cafe-a-rail-title" logoClassName={styles.logo} />
@@ -397,106 +373,62 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
           ) : null}
         </aside>
         <div className={styles.menuPanel} data-paged-menu-panel>
-        <div
-          role="region"
-          className={styles.menu}
-          ref={area}
-          aria-label="메뉴 페이지"
-          style={{ "--paged-columns": layout.columns } as CSSProperties}
-        >
-          <div
-            className={styles.measure}
-            ref={measure}
-            aria-hidden="true"
-            inert
-          >
-            {units.map((u) => (
-              <div
-                key={u.id}
-                className={styles.unit}
-                data-kind={u.kind}
-                data-measure-id={u.id}
-              >
-                {u.node}
-              </div>
-            ))}
-          </div>
-          {current?.columns.map((column, i) => (
-            <div key={i} className={styles.column} data-paged-column={i + 1}>
-              {column.map((b) => {
-                const sourceWidget = data.widgets?.find((w) => w.id === b.id);
-                const trailingBottom =
-                  sourceWidget?.settings.placement === "bottom" &&
-                  column
-                    .slice(column.indexOf(b))
-                    .every(
-                      (next) =>
-                        next.kind === "widget" &&
-                        data.widgets?.find((w) => w.id === next.id)?.settings
-                          .placement === "bottom",
-                    );
-                return (
-                  <div
-                    key={b.id}
-                    style={trailingBottom ? { marginTop: "auto" } : undefined}
-                  >
-                    {unit(b.id)}
+          <div className={styles.viewport} data-scroll-viewport>
+            <div
+              role="region"
+              tabIndex={0}
+              className={styles.menu}
+              ref={area}
+              aria-label="메뉴 내용"
+              onScroll={updateScrollHint}
+              style={{ "--paged-columns": layout.columns.length } as CSSProperties}
+              data-scroll-menu
+            >
+              <div className={styles.measure} ref={measure} aria-hidden="true" inert>
+                {units.map((u) => (
+                  <div key={u.id} className={styles.unit} data-kind={u.kind} data-measure-id={u.id}>
+                    {u.node}
                   </div>
-                );
-              })}
+                ))}
+              </div>
+              <div ref={scrollContent} className={styles.scrollContent} data-scroll-content>
+                <div className={styles.columns} style={{ minHeight: units.length ? layout.capacity : undefined }}>
+                  {layout.columns.map((column, i) => (
+                    <div key={i} className={styles.column} data-paged-column={i + 1}>
+                      {column.map((b, index) => {
+                        const sourceWidget = data.widgets?.find((w) => w.id === b.id);
+                        const trailingBottom = sourceWidget?.settings.placement === "bottom" &&
+                          column.slice(index).every((next) => next.kind === "widget" &&
+                            data.widgets?.find((w) => w.id === next.id)?.settings.placement === "bottom");
+                        return <div key={b.id} style={trailingBottom ? { marginTop: "auto" } : undefined}>{unit(b.id)}</div>;
+                      })}
+                    </div>
+                  ))}
+                </div>
+                {!units.length ? <p role="status">메뉴를 준비하고 있어요.</p> : null}
+                <div ref={noticeArea} className={`${styles.notices} cafe-a-description-text cafe-a-menu-description text-[#58645f]`} data-paged-notices>
+                  {notices.map((n, i) => <p key={i}><ScriptAwareText text={n} /></p>)}
+                </div>
+              </div>
             </div>
-          ))}
-          {!layout.pages.length ? (
-            <p role="status">메뉴를 준비하고 있어요.</p>
-          ) : null}
-          {overflow || layout.brandOverflow ? (
-            <p role="alert" className={styles.error}>
-              이 콘텐츠는 현재 화면보다 큽니다. 이미지 비율 또는 설명 길이를
-              조정해 주세요.
-            </p>
-          ) : null}
-        </div>
-        <footer className={`${styles.footer} ${callOnly ? styles.footerWithCall : ""}`} data-paged-footer>
-          <div className={callOnly ? styles.callCluster : styles.noticeCluster}>
-          {callOnly ? <div className={styles.footerCall} data-paged-call-footer><OnePageCallButton /></div> : null}
-          <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description text-[#58645f]`} data-paged-notices>
-            {notices.map((n, i) => (
-              <p key={i}>
-                <ScriptAwareText text={n} />
-              </p>
-            ))}
+            <div className={styles.fade} data-scroll-fade aria-hidden="true" />
           </div>
-          </div>
-          <nav className={styles.pagination} aria-label="메뉴 페이지 이동">
-            <button
-              type="button"
-              aria-label="이전 메뉴 페이지"
-              disabled={page === 0}
-              onClick={() => changePage(page - 1)}
-            >
-              <ChevronLeft />
-            </button>
-            {layout.pages.map((_, i) => (
-              <button
-                key={i}
-                type="button"
-                aria-label={`${i + 1}페이지 보기`}
-                aria-current={page === i ? "page" : undefined}
-                onClick={() => changePage(i)}
-              >
-                {i + 1}
-              </button>
-            ))}
-            <button
-              type="button"
-              aria-label="다음 메뉴 페이지"
-              disabled={page >= layout.pages.length - 1}
-              onClick={() => changePage(page + 1)}
-            >
-              <ChevronRight />
-            </button>
-          </nav>
-        </footer>
+          {showCall || showOrder ? (
+            <footer className={styles.footer} data-scroll-actions aria-label="메뉴 이용">
+              {showCall ? (
+                <button type="button" className={styles.callButton} onClick={call.openCall} aria-label="직원 호출하기" data-scroll-call>
+                  <Bell aria-hidden="true" strokeWidth={1.8} /><ScriptAwareText text="호출하기" />
+                </button>
+              ) : null}
+              {showOrder ? (
+                <button type="button" className={styles.orderButton} onClick={call.openCart} aria-label={`주문하기, 장바구니 ${call.cartCount ?? 0}개`} data-scroll-order>
+                  <ShoppingCart aria-hidden="true" strokeWidth={1.8} /><ScriptAwareText text="주문하기" />
+                  {(call.cartCount ?? 0) > 0 ? <span aria-hidden="true">({call.cartCount})</span> : null}
+                </button>
+              ) : null}
+            </footer>
+          ) : null}
+          {layout.brandOverflow ? <p role="alert" className={styles.error}>대표영역의 이미지 비율 또는 설명 길이를 조정해 주세요.</p> : null}
         </div>
         <CafeMenuImageLightbox preview={imagePreview} templateKey="cafe_design_a" onClose={() => { setImagePreview(null); imageTrigger.current?.focus({preventScroll: true}); }} />
       </main>

@@ -8,6 +8,7 @@ Every active menu template must declare one spacing contract on its root element
 
 - `data-spacing-contract="canvas-fit"`: PC/tablet single-page and Display templates that fill one viewport.
 - `data-spacing-contract="mobile-reading"`: the seven active single-page templates on phones; stable rem-based reading typography and natural scrolling, no canvas fitting or copy-visibility multipliers.
+- `data-spacing-contract="contained-reading"`: hidden REAL MATCHA scroll experiment on PC/tablet only; fixed brand column and bottom actions, one internal menu scroll canvas. Explicitly approved 2026-10-19; the seven production starters retain canvas-fit.
 - `data-spacing-contract="editorial-scroll"`: multi-page templates that preserve reading rhythm and allow natural scrolling.
 
 New templates must select the device-appropriate contract before template-specific spacing is added. Canvas-fit fixed lengths are allowed only for hard safety bounds, one-pixel rules, safe-area offsets, and minimum control or touch sizes. Mobile-reading uses stable rem bases by design, respecting browser text scaling and customer typography settings.
