@@ -4,8 +4,10 @@
 .breadcrumb a:hover { color: var(--ui-text); }
 .breadcrumb > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 3.5rem; align-items: start; }
-.sidebar { min-width: 0; display: flex; flex-direction: column; }
+.sidebar { min-width: 0; }
+.sidebarPanel { display: flex; flex-direction: column; }
 .sidebarInfo, .sidebarScrollContent { display: contents; }
+.sidebarGallery, .sidebarGalleryContent { display: flow-root; }
 .sidebarContent { order: 0; }
 .sidebarFooter { order: 1; }
 .sidebarNote { order: 2; }
@@ -129,10 +131,13 @@
   .page { padding-block: 2rem 6rem; }
   .breadcrumb { margin-bottom: 2rem; }
   .layout { grid-template-columns: minmax(0, 1fr) minmax(17rem, .75fr); gap: clamp(1.5rem, 4vw, 5rem); }
-  .sidebar { grid-column: 2; grid-row: 1; position: sticky; top: calc(var(--site-header-height) + 1.5rem); max-height: var(--detail-available-height, calc(100dvh - var(--site-header-height) - 7rem)); }
-  .sidebarInfo { display: block; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--ui-border) transparent; padding: .25rem .5rem .75rem; margin: -.25rem -.5rem 0; scroll-padding-block: .5rem; }
+  .sidebar { grid-column: 2; grid-row: 1; align-self: stretch; min-height: var(--detail-natural-height, auto); overflow-anchor: none; }
+  .sidebar[data-docked="true"] .sidebarPanel { position: sticky; top: calc(var(--site-header-height) + 1.5rem); height: calc(100dvh - var(--site-header-height) - 3rem); }
+  .sidebar[data-docked="true"] .sidebarInfo { flex: 1; }
+  .sidebar[data-docked="true"] .sidebarGallery { height: 1.5rem; overflow: hidden; visibility: hidden; }
+  .sidebarInfo { display: block; min-height: 0; overflow-y: auto; scrollbar-gutter: stable; scrollbar-width: thin; scrollbar-color: var(--ui-border) transparent; padding: .25rem .5rem .75rem; margin: -.25rem -.5rem 0; scroll-padding-block: .5rem; }
   .sidebarInfo:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
-  .sidebarScrollContent { display: block; }
+  .sidebarScrollContent { display: flow-root; }
   .sidebarFooter { position: relative; flex: none; padding-top: 1rem; background: var(--ui-surface); }
   .sidebarFooter .actions { margin-top: 0; }
   .scrollFade { display: block; position: absolute; inset: -2rem 0 auto; height: 2rem; background: linear-gradient(to bottom, rgb(255 255 255 / 0), var(--ui-surface)); opacity: 0; pointer-events: none; }
