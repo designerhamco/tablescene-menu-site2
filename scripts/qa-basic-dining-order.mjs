@@ -193,7 +193,7 @@ try {
         });
       assert.ok(order.language < order.table && order.table < order.actions);
       assert.ok(order.scrollWidth <= width + 1);
-      assert.deepEqual(await p.locator("[data-one-page-call-bar] [data-one-page-call-button]").evaluateAll(buttons => buttons.map(b => b.dataset.onePageCallButton)), ["mobile", "mobile-cart"]);
+      assert.deepEqual(await p.locator("[data-one-page-call-bar] [data-one-page-call-button]").evaluateAll(buttons => buttons.map(b => b.dataset.onePageCallButton)), ["mobile-cart"]);
       if (width < 768)
         assert.deepEqual(
           getOnePageMobileRhythmFailures(
@@ -286,7 +286,7 @@ try {
     assert.match(await p.locator("[data-demo-order]").innerText(), /제공 완료/);
     await p.screenshot({ path: output + "/order-demo.png", fullPage: true });
     await p.locator("iframe").scrollIntoViewIfNeeded();
-    await dialog.getByRole("button", { name: "장바구니 닫기" }).click();
+    await dialog.getByRole("button", { name: "메뉴판으로 돌아가기" }).click();
     // Closing a product without adding must not leave that sheet stuck on the next cart open.
     await f
       .locator("[data-menu-order-add]")
@@ -308,7 +308,7 @@ try {
       .waitFor();
     await f
       .getByRole("dialog")
-      .getByRole("button", { name: "장바구니 닫기" })
+      .getByRole("button", { name: "메뉴판으로 돌아가기" })
       .click();
     await p.getByLabel("테스트 기기").selectOption("pc");
     await f.locator('[data-paged-ready="true"]').waitFor();
@@ -370,7 +370,7 @@ try {
         await p
           .getByRole("dialog", { name: "장바구니", exact: true })
           .waitFor();
-        await p.getByRole("button", { name: "장바구니 닫기" }).click();
+        await p.getByRole("button", { name: "메뉴판으로 돌아가기" }).click();
         const m = await p.evaluate(() => ({
           width: innerWidth,
           scroll: document.documentElement.scrollWidth,

@@ -164,7 +164,7 @@ export function OnePageCallButton({ mobile = false }: { mobile?: boolean }) {
     : "cafe-a-desktop-call-button";
   return (
     <div className="cafe-a-table-actions" data-one-page-table-actions="">
-      {actions.callEnabled !== false ? (
+      {actions.callEnabled !== false && (!mobile || !actions.orderEnabled) ? (
         <button
           type="button"
           className={buttonClass}
@@ -223,23 +223,23 @@ export function OnePageMobileCallBar({
   );
 }
 
-/** Mobile-only persistent entry; uses the same simulated/real call action as the header. */
+/** Mobile entries share the same call/cart actions as the header. */
 export function OnePageMobileCallDock() {
   const call = useOnePageCallActions();
-  if (!call.enabled || call.callEnabled === false || call.orderEnabled)
-    return null;
+  if (!call.enabled) return null;
+  const showCall = call.callEnabled !== false;
+  const showOrder = Boolean(call.orderEnabled);
+  if (!showCall && !showOrder) return null;
   return (
-    <div className="cafe-a-mobile-call-dock" data-one-page-call-dock="">
-      <button
-        type="button"
-        className="cafe-a-mobile-call-dock-button"
-        aria-label="직원 호출하기"
-        data-one-page-call-button="mobile-bottom"
-        onClick={call.openCall}
-      >
-        <Bell aria-hidden="true" strokeWidth={1.8} />
-        <span>직원 호출하기</span>
-      </button>
+    <div className="cafe-a-mobile-call-dock" data-one-page-call-dock="" data-has-order={showOrder ? "true" : "false"}>
+      {showOrder ? <button type="button" className="cafe-a-mobile-call-dock-button cafe-a-mobile-order-dock-button"
+        aria-label={`주문하기, 장바구니 ${call.cartCount ?? 0}개`} data-one-page-call-button="mobile-order-bottom" onClick={call.openCart}>
+        <ShoppingCart aria-hidden="true" strokeWidth={1.8} /><span>주문하기{(call.cartCount ?? 0) > 0 ? ` (${call.cartCount})` : ""}</span>
+      </button> : null}
+      {showCall ? <button type="button" className="cafe-a-mobile-call-dock-button" aria-label="직원 호출하기"
+        data-one-page-call-button="mobile-bottom" onClick={call.openCall}>
+        <Bell aria-hidden="true" strokeWidth={1.8} /><span>{showOrder ? "호출하기" : "직원 호출하기"}</span>
+      </button> : null}
     </div>
   );
 }

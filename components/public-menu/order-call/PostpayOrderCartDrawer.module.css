@@ -1,0 +1,27 @@
+.typography { font-family: "Pretendard", "Noto Sans KR", system-ui, sans-serif; font-size: 1rem; font-weight: 400; line-height: 1.5; color: #191c1b; }
+.typography :is(button,input,select) { font-family: inherit; }
+.typography svg { stroke-width: 1.7; }
+.backdrop { position: fixed; inset: 0; z-index: 1200; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background: #181b1b66; }
+.panel { display: flex; flex-direction: column; width: 100%; max-width: 32rem; max-height: calc(100dvh - 3rem); min-height: 0; border-radius: 1rem; background: #fff; overflow: hidden; }
+.header { display: grid; grid-template-columns: 2.75rem minmax(0,1fr) 2.75rem; gap: .5rem; align-items: center; flex: none; padding: .75rem 1rem; border-bottom: 1px solid #eee; }
+.back { display: grid; place-items: center; width: 2.75rem; height: 2.75rem; background: transparent; border: 0; cursor: pointer; }
+.back svg { width: 1.5rem; height: 1.5rem; }
+.back:focus-visible { outline: 2px solid #191c1b; outline-offset: -2px; }
+.heading { text-align: center; min-width: 0; }
+.heading h2 { font-size: 1rem; font-weight: 600; }
+.heading p { font-size: .8125rem; font-weight: 400; color: #686e6b; overflow-wrap: anywhere; }
+.count { text-align: right; font-size: .75rem; font-weight: 400; color: #686e6b; }
+.body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 1.25rem; }
+.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-block: 1.5rem; text-align: center; }
+.empty h3 { font-size: 1.125rem; }
+.backdrop[data-empty="true"] .panel { max-width: 25rem; }
+.backdrop[data-device="mobile"] { padding: 0; background: #fff; }
+.backdrop[data-device="mobile"] .panel { max-width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; }
+.backdrop[data-device="mobile"] .header { padding-top: max(.75rem, env(safe-area-inset-top)); }
+.backdrop[data-device="mobile"] .body { flex: 1; padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+.backdrop[data-device="mobile"][data-empty="true"] .body { display: flex; align-items: center; justify-content: center; }
+@media (max-width: 767px) {
+ .backdrop[data-device="auto"] { padding: 0; background: #fff; }
+ .backdrop[data-device="auto"] .panel { max-width: 100%; height: 100dvh; max-height: 100dvh; border-radius: 0; }
+ .backdrop[data-device="auto"] .body { flex: 1; padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
+}
