@@ -1,6 +1,6 @@
 /* Review-only neutral appearance. Existing template routes have no wrapper. */
 .surface { min-height: 100dvh; background: #fff; --menu-image-preview-radius: 0px; }
-.surface[data-default-design="basic-first-column"] :global(.cafe-a-typography .cafe-a-category-heading) {
+.surface[data-default-design^="basic-"] :global(.cafe-a-typography .cafe-a-category-heading) {
   border-bottom: 0;
   padding-bottom: 0;
 }

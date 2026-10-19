@@ -168,3 +168,18 @@ test("moderate repeated name squeezing matters, but an isolated normal wrap does
 test("actual name overflow can select two columns even without extra line boxes", () => {
   assert.equal(shouldPreferWiderScrollableNames(names(80, 1, 1).map(n => ({ ...n, overflow: true })), names(200, 1, 1)), true);
 });
+
+
+test("upper-left reserved panel participates in packing without losing the menu below it", () => {
+  const blocks = [...category("a", 6), ...category("b", 4), ...category("c", 3)];
+  for (const grouped of [false, true]) {
+    const layout = layoutScrollableMenu(blocks, 2, 650, grouped, { firstColumnInset: 350, footerHeight: 60 });
+    assert.deepEqual(layout.columns.flat(), blocks);
+    assert.ok(layout.columns[0].length > 0, "the corner's column retains real menu content");
+    for (const [index, column] of layout.columns.entries()) {
+      const expected = column.reduce((sum, block) => sum + block.height, 0) + (index === 0 ? 350 : 0) + (index === layout.footerColumn ? 60 : 0);
+      assert.equal(layout.naturalHeights[index], expected);
+      assert.ok(expected <= layout.contentHeight);
+    }
+  }
+});

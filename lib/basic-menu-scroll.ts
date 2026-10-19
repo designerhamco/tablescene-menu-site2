@@ -36,9 +36,9 @@ function makeAtoms(blocks: readonly ScrollableMenuBlock[], grouped: boolean, foo
   }
   return atoms;
 }
-function partition(atoms: readonly Atom[], capacity: number) {
+function partition(atoms: readonly Atom[], capacity: number, firstColumnInset: number) {
   const columns: ScrollableMenuBlock[][] = [[]];
-  let used = 0;
+  let used = firstColumnInset;
   for (const atom of atoms) {
     if (columns.at(-1)!.length && used + atom.height - atom.trailingGap > capacity + 0.01) {
       columns.push([]);
@@ -56,26 +56,27 @@ export function layoutScrollableMenu(
   columnCount: number,
   viewportHeight: number,
   grouped = false,
-  options: { footerHeight?: number } = {},
+  options: { footerHeight?: number; firstColumnInset?: number } = {},
 ): ScrollableMenuLayout {
   const count = Math.max(1, Math.floor(columnCount));
   const viewport = Math.max(1, viewportHeight);
   const footerHeight = Math.max(0, options.footerHeight ?? 0);
+  const firstColumnInset = Math.max(0, options.firstColumnInset ?? 0);
   const atoms = makeAtoms(blocks, grouped, footerHeight);
-  let low = Math.ceil(Math.max(1, ...atoms.map(a => a.height - a.trailingGap), grouped ? viewport : 0));
-  let high = Math.ceil(Math.max(low, atoms.reduce((sum, atom) => sum + atom.height, 0)));
+  let low = Math.ceil(Math.max(1, firstColumnInset + (atoms[0] ? atoms[0].height - atoms[0].trailingGap : 0), ...atoms.map(a => a.height - a.trailingGap), grouped ? viewport : 0));
+  let high = Math.ceil(Math.max(low, firstColumnInset + atoms.reduce((sum, atom) => sum + atom.height, 0)));
   // Flow balances contiguous reading runs independently of the viewport floor.
   // Grouped retains category-first flow with a viewport-sized minimum canvas.
   while (low < high) {
     const middle = Math.floor((low + high) / 2);
-    if (partition(atoms, middle).length <= count) high = middle;
+    if (partition(atoms, middle, firstColumnInset).length <= count) high = middle;
     else low = middle + 1;
   }
-  const columns = partition(atoms, low);
+  const columns = partition(atoms, low, firstColumnInset);
   while (columns.length < count) columns.push([]);
   const footerColumn = Math.max(0, columns.findLastIndex(column => column.length > 0));
   const naturalHeights = columns.map((column, index) =>
-    column.reduce((sum, block) => sum + block.height, 0) -
+    (index === 0 ? firstColumnInset : 0) + column.reduce((sum, block) => sum + block.height, 0) -
     (index === footerColumn && footerHeight > 0 ? 0 : gapOf(column.at(-1))) +
     (index === footerColumn ? footerHeight : 0));
   const contentHeight = blocks.length

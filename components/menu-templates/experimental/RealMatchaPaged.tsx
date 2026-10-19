@@ -53,6 +53,7 @@ import { getOnePageItemNameCeilingRem } from "@/lib/one-page-typography-profile"
 import { getOrderedFitGapScale, getOrderedBalancedFitGapScale } from "../one-page/pc-tablet/cafe-fit-engine";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 
+import { useDefaultDesignLayout } from "../defaults/DefaultDesignScope";
 import type { MenuWidget } from "@/lib/menu-widgets";
 import styles from "./RealMatchaPaged.module.css";
 const capabilities = getTemplateCapabilities("cafe_design_a");
@@ -98,6 +99,10 @@ function widgetView(w: MenuWidget): CafeAWidgetPreview {
 export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   const device = useMenuPresentationDevice(data.previewDevice);
   const mobile = device === "mobile";
+  const structure = useDefaultDesignLayout() ?? "basic-first-column";
+  const topRow = structure === "basic-top-row";
+  const centerColumn = structure === "basic-center-column";
+  const upperLeft = structure === "basic-upper-left";
   const layoutMode = data.mode === "preview" && data.previewLayoutMode
     ? data.previewLayoutMode
     : getPcTabletLayoutModeFromPageSettings(data.menuSite.page_settings, "cafe_design_a");
@@ -171,7 +176,8 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     typographySettings,
     "cafe_design_a",
   );
-  const notices = getCafeAFooterInfo(baseProps, capabilities);
+  const allNotices = getCafeAFooterInfo(baseProps, capabilities);
+  const notices = topRow ? [] : allNotices;
 
   const units = useMemo(() => {
     const result: Unit[] = [];
@@ -269,13 +275,16 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       if (disposed || !area.current || !measure.current) return;
       const bounds = area.current.getBoundingClientRect();
       if (bounds.width <= 1 || bounds.height <= 1) return;
-      const width = Math.min(area.current.clientWidth, bounds.width - (area.current.offsetWidth - area.current.clientWidth));
+      const regionWidth = Math.min(area.current.clientWidth, bounds.width - (area.current.offsetWidth - area.current.clientWidth));
       const gap = parseFloat(getComputedStyle(area.current).columnGap) || 24;
+      const brandWidth = brandArea.current?.getBoundingClientRect().width ?? 0;
+      const width = centerColumn ? regionWidth - brandWidth - gap : regionWidth;
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       // The menu region already excludes the fixed brand column and its gutter.
       // Automatic tracks stop at three. Overflow stays on the scroll surface.
-      const maxColumns = Math.max(1, Math.min(3, Math.floor((width + gap) / (12 * rem + gap))));
+      const maxColumns = Math.max(1, Math.min(centerColumn ? 2 : 3, Math.floor((width + gap) / (12 * rem + gap))));
       const root = area.current.closest<HTMLElement>("[data-scroll-template]")!;
+      root.style.setProperty("--scroll-center-slot", `${brandWidth}px`);
       const grouped = layoutMode !== "orderedFit";
       const collect = (columnCount: number, reference = false) => {
         measure.current!.toggleAttribute("data-cafe-a-three-part-reference", reference);
@@ -291,8 +300,11 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             height: element.getBoundingClientRect().height,
             gapAfter: parseFloat(getComputedStyle(element).paddingBottom) || 0 };
         });
+        root.style.setProperty("--scroll-track-width", `${columnWidth}px`);
+        const firstColumnInset = upperLeft ? (brandArea.current?.getBoundingClientRect().height ?? 0) + gap : 0;
+        root.style.setProperty("--scroll-first-inset", `${firstColumnInset}px`);
         const footerHeight = noticeMeasure.current?.getBoundingClientRect().height ?? 0;
-        const candidate = { columnCount, columnWidth, layout: layoutScrollableMenu(measured, columnCount, bounds.height, grouped, { footerHeight }) };
+        const candidate = { columnCount, columnWidth, layout: layoutScrollableMenu(measured, columnCount, bounds.height, grouped, { footerHeight, firstColumnInset }) };
         measure.current!.removeAttribute("data-cafe-a-three-part-reference");
         return candidate;
       };
@@ -305,8 +317,8 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       // Grouped mode retains its one-screen fit. Fill mode uses one stable
       // device-scale size; additional copy is allowed to scroll instead of
       // shrinking fonts or expanding gaps to manufacture a full viewport.
-      const candidates = Array.from({ length: maxColumns }, (_, index) => {
-        const count = index + 1;
+      const counts = centerColumn ? [2] : Array.from({ length: maxColumns }, (_, index) => index + 1);
+      const candidates = counts.map(count => {
         const ceiling = (getOnePageItemNameCeilingRem(device) ?? 1.3) * rem;
         // Compare names at one shared reading size. Shrinking a cramped 3-track
         // candidate must not disguise its width/wrapping cost during selection.
@@ -362,7 +374,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       observer.disconnect();
       document.fonts.removeEventListener("loadingdone", schedule);
     };
-  }, [mobile, units, layoutMode, showCall, showOrder, device, updateScrollHint]);
+  }, [mobile, units, layoutMode, showCall, showOrder, device, updateScrollHint, centerColumn, upperLeft, topRow]);
   useLayoutEffect(() => {
     if (mobile || !area.current || !scrollContent.current) return;
     const observer = new ResizeObserver(updateScrollHint);
@@ -395,6 +407,13 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       </div>
     );
   };
+  const languageControl = <div className={styles.brandControls} data-paged-controls><CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly /></div>;
+  const storeIdentity = <CafeAStoreIdentity data={baseProps} capabilities={capabilities}
+    titleClassName="cafe-a-store-title cafe-a-rail-title" logoClassName={styles.logo}
+    layoutShell={topRow ? "brand_top_band" : centerColumn ? "brand_center_column" : "brand_left_rail"} />;
+  const storeDescription = (data.menuSite.brand_description || data.menuSite.description)
+    ? <p className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null;
+  const showCover = data.pageSettings.menu_cover_enabled && featuredSlides.length > 0 && isMenuCoverVisibleOnDevice(data.pageSettings, device);
   return (
     <CafeATimeSaleClock value={saleNow}>
       <CafeATypographyFontAssets typographySettings={typographySettings} />
@@ -409,6 +428,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             "--paged-gap-scale": 1,
           } as CSSProperties
         }
+        data-scroll-brand-board={topRow ? "" : undefined}
+        data-basic-structure={structure}
+        data-show-cover={showCover ? "true" : "false"}
         data-template-key="cafe_design_a"
         data-paged-template-key="cafe_real_matcha_paged_test"
         data-preview-device={device}
@@ -424,18 +446,17 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         data-scroll-columns={layout.columns.length}
         data-scroll-content-height={layout.contentHeight}
       >
+        <OnePageCallPalette />
+        {topRow ? <header className={styles.topRow} data-basic-top-row>
+          <div className={styles.topDescription} data-scroll-header-copy>{languageControl}{storeDescription}</div>
+          <div className={styles.topIdentity}>{storeIdentity}</div>
+          <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices data-scroll-header-copy>
+            {allNotices.map((n, i) => <p key={i}><ScriptAwareText text={n} /></p>)}
+          </div>
+        </header> : null}
         <aside ref={brandArea} className={styles.brand} data-paged-brand>
-          <OnePageCallPalette />
-          <div className={styles.brandControls} data-paged-controls>
-            <CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly />
-          </div>
-          <div className={styles.identity}>
-            <CafeAStoreIdentity data={baseProps} capabilities={capabilities} titleClassName="cafe-a-store-title cafe-a-rail-title" logoClassName={styles.logo} />
-            {(data.menuSite.brand_description || data.menuSite.description) ? <p className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null}
-          </div>
-          {data.pageSettings.menu_cover_enabled && featuredSlides.length > 0 && isMenuCoverVisibleOnDevice(data.pageSettings, device) ? (
-            <CafeACoverHero data={baseProps} featuredSlides={featuredSlides} capabilities={capabilities} density="default" customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} desktopClassName={styles.cover} />
-          ) : null}
+          {!topRow ? <>{languageControl}<div className={styles.identity}>{storeIdentity}{storeDescription}</div></> : null}
+          {showCover ? <CafeACoverHero data={baseProps} featuredSlides={featuredSlides} capabilities={capabilities} density="default" customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} desktopClassName={styles.cover} /> : null}
         </aside>
         <div className={styles.menuPanel} data-paged-menu-panel>
           <div className={styles.viewport} data-scroll-viewport>
@@ -461,9 +482,10 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
               </div>
               <div ref={scrollContent} className={styles.scrollContent} data-scroll-content>
                 {!units.length ? <p role="status">메뉴를 준비하고 있어요.</p> : null}
-                <div className={styles.columns} data-scroll-columns style={{ height: layout.contentHeight, maxWidth: layout.columns.length === 1 ? layout.columnWidth : undefined }}>
+                <div className={styles.columns} data-scroll-columns style={{ height: layout.contentHeight, maxWidth: layout.columns.length === 1 && !upperLeft && !centerColumn ? layout.columnWidth : undefined }}>
                   {layout.columns.map((column, i) => {
                     return <div key={i} className={styles.column} data-paged-column={i + 1}
+                      style={upperLeft && i === 0 ? { paddingTop: "var(--scroll-first-inset)" } : undefined}
                       data-scroll-natural-height={layout.naturalHeights[i]}>
                       {column.map((b, index) => <div key={b.id}>
                         {unit(b, index === column.length - 1, i === layout.footerColumn && notices.length > 0,

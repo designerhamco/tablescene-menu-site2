@@ -123,7 +123,7 @@ export default function MenuPreviewDeviceFrame(
   const designParam = (query as TemplatePreviewQuery).design;
   const defaultDesign = props.templateKey ? getDefaultDesignReview(Array.isArray(designParam) ? designParam[0] : designParam, props.templateKey) : undefined;
   const [displayOptions, setDisplayOptions] = useOptimistic(getDefaultDesignOptions(query as TemplatePreviewQuery));
-  const displayGroups: { label: string; choices: [DefaultDesignOptionKey, string][] }[] = defaultDesign?.layout === "basic-first-column"
+  const displayGroups: { label: string; choices: [DefaultDesignOptionKey, string][] }[] = defaultDesign?.layout.startsWith("basic-")
     ? [
       { label: "영역·이미지", choices: [["coverPreview", "대표 영역"], ["featuredPreview", "대표 상품"], ["imagesPreview", "상품 이미지"], ["widgetsPreview", "위젯"]] },
       { label: "메뉴 정보", choices: [["categoryDescriptionsPreview", "카테고리 설명"], ["secondaryNamesPreview", "보조 언어명"], ["descriptionsPreview", "메뉴 설명"], ["badgesPreview", "일반 텍스트칩"]] },

@@ -63,7 +63,7 @@ test("canvas brand fitting consumes the explicit shell instead of inferring it f
   assert.doesNotMatch(source, /isEdgeBrandColumn|widthRatio: 1/);
   assert.doesNotMatch(source, /classList\.contains\("cafe-a-topline-brand-identity"\)/);
   const renderer = readFileSync(new URL("../components/menu-templates/CafeDesignA.tsx", import.meta.url), "utf8");
-  assert.match(renderer, /layoutShell=\{getFixedOnePageLayoutShell\(data\.menuSite\.template_key\)\}/);
+  assert.match(renderer, /layoutShell=\{layoutShell \?\? getFixedOnePageLayoutShell\(data\.menuSite\.template_key\)\}/);
 });
 
 test("doubling slot dimensions doubles font size without any device px cap", () => {
