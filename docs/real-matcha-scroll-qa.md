@@ -61,3 +61,19 @@ Validation against the final Production build:
 - Existing scroll/order/Dining suite: 52 pass. The toolbar test now awaits and closes the actual asynchronously mounted preview guide before clicking controls; product guide behavior is unchanged.
 
 Evidence: `/private/tmp/fill-policy-release-visual/report.json`, `/private/tmp/fill-policy-release-formal/report.json`, `/private/tmp/fill-policy-release-controls/report.json`, `/private/tmp/fill-policy-release-order/report.json`, `/private/tmp/fill-policy-build-release.log`, `/private/tmp/fill-policy-types-release.log`, `/private/tmp/fill-policy-lint-release.log`. All API writes are blocked; order checks use the existing mocked local preview flow.
+
+
+## Page-relative gutters and small dock clearance — 2026-10-19
+
+The contained-reading wrapper already used responsive units and real DOM width/height measurements, but its outer inset, brand-to-menu gutter and ordinary menu gutters used different formulas. The dock alone used a fixed .75rem top gap. The page's four-side inset remains `clamp(1rem, 2.5vmin, 2rem)`; a single scoped token now drives every ordinary gutter and the width used by the existing fitter. No fit algorithm, font role, mobile, other Basic template, Dining or Display engine was changed.
+
+Dock clearance follows 75% of that page inset, bounded .875–1.25rem (14–20px at the default 16px root). It reserves actual empty space above the buttons independently of the conditional fade, and does not reserve a row when both features are off.
+
+Measured final build values (viewport → page inset = brand gutter = menu gutters; dock clearance):
+
+- Tablet 1180×820 and 820×1180 → 20.5px; 15.375px.
+- Tablet 768×1024 → 19.2px (19.1875px grid rounding); 14.390625px.
+- PC 1280×800 → 20px; 15px. PC 1440×900 → 22.5px; 16.875px.
+- PC 1920×1080 → 27px; 20px. PC 2560×1440 → 32px; 20px.
+
+The existing fill QA now compares all four actual paddings, actual brand/menu gutter edges and the button-to-viewport clearance, including sparse/empty/dense/long/image/widget/notice content, feature-off cases and 20px root scaling. The fixed brand/dock, source order, real overflow fade and original typography checks remain in place. All 80 browser conditions pass (25 geometry, 28 formal/mobile/locales, 27 feature/rotation), with zero runtime errors and real API writes. TypeScript, changed-script ESLint, Production build and whitespace checks pass. Evidence: `/private/tmp/matcha-relative-geometry/report.json`, `/private/tmp/matcha-relative-formal/report.json`, `/private/tmp/matcha-relative-controls/report.json`, `/private/tmp/matcha-relative-build.log`.
