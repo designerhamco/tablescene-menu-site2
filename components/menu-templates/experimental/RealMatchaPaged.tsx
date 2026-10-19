@@ -25,7 +25,7 @@ import CafeDesignA, {
   getCafeAFooterInfo,
 } from "../CafeDesignA";
 import type { CafeMenuImagePreview } from "../shared/cafe-template-types";
-import { OnePageMobileCallBar, OnePageCallPalette, useOnePageCallActions } from "../one-page/OnePageCallControls";
+import { OnePageCallButton, OnePageMobileCallBar, OnePageCallPalette, useOnePageCallActions } from "../one-page/OnePageCallControls";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { getPriceDisplayModeFromSettings } from "@/lib/menu-price-format";
 import { getCustomBadgeStyles } from "@/lib/template-badge-styles";
@@ -116,6 +116,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   });
   const [page, setPage] = useState(0);
   const call = useOnePageCallActions();
+  const callOnly = call.enabled && call.callEnabled !== false && !call.orderEnabled;
   const [imagePreview, setImagePreview] = useState<CafeMenuImagePreview | null>(null);
   const imageTrigger = useRef<HTMLElement | null>(null);
   const openImage = useCallback((preview: CafeMenuImagePreview, trigger: HTMLElement) => {
@@ -322,7 +323,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       observer.disconnect();
       document.fonts.removeEventListener("loadingdone", schedule);
     };
-  }, [mobile, units, data.previewLayoutMode]);
+  }, [mobile, units, data.previewLayoutMode, callOnly]);
   const changePage = (index: number) => {
     const next = Math.max(0, Math.min(layout.pages.length - 1, index));
     anchor.current =
@@ -378,13 +379,14 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         data-paged-ready={layout.ready && !overflow ? "true" : "false"}
         data-paged-page={page + 1}
         data-paged-total={layout.pages.length}
+        data-paged-call-only={callOnly ? "true" : "false"}
         data-paged-gap-scale={layout.gapScale}
         data-paged-layout={data.previewLayoutMode ?? "orderedBalancedFit"}
       >
         <aside ref={brandArea} className={styles.brand} data-paged-brand>
           <OnePageCallPalette />
           <div className={styles.brandControls} data-paged-controls>
-            {call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly />} /> : <CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly />}
+            {call.enabled ? <OnePageMobileCallBar showActions={!callOnly} languageControl={<CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly />} /> : <CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly />}
           </div>
           <div className={styles.identity}>
             <CafeAStoreIdentity data={baseProps} capabilities={capabilities} titleClassName="cafe-a-store-title cafe-a-rail-title" logoClassName={styles.logo} />
@@ -454,13 +456,16 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             </p>
           ) : null}
         </div>
-        <footer className={styles.footer} data-paged-footer>
+        <footer className={`${styles.footer} ${callOnly ? styles.footerWithCall : ""}`} data-paged-footer>
+          <div className={callOnly ? styles.callCluster : styles.noticeCluster}>
+          {callOnly ? <div className={styles.footerCall} data-paged-call-footer><OnePageCallButton /></div> : null}
           <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description text-[#58645f]`} data-paged-notices>
             {notices.map((n, i) => (
               <p key={i}>
                 <ScriptAwareText text={n} />
               </p>
             ))}
+          </div>
           </div>
           <nav className={styles.pagination} aria-label="메뉴 페이지 이동">
             <button

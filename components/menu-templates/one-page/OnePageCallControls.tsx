@@ -205,8 +205,10 @@ export function OnePageCallButton({ mobile = false }: { mobile?: boolean }) {
 
 export function OnePageMobileCallBar({
   languageControl,
+  showActions = true,
 }: {
   languageControl: ReactNode;
+  showActions?: boolean;
 }) {
   const call = useOnePageCallActions();
   if (!call.enabled) return null;
@@ -216,7 +218,7 @@ export function OnePageMobileCallBar({
       <span className="cafe-a-call-table-label" data-one-page-table-label="">
         {call.tableLabel}
       </span>
-      <OnePageCallButton mobile />
+      {showActions ? <OnePageCallButton mobile /> : <span aria-hidden="true" />}
     </div>
   );
 }
