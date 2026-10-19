@@ -28,8 +28,8 @@ try {
    assert.equal(await p.locator('[data-paged-layout]').getAttribute('data-paged-layout'),c.layout);
    assert.equal(await p.locator('[data-scroll-call]').count(),+c.call);assert.equal(await p.locator('[data-scroll-order]').count(),+c.order);
    const brand=await p.locator('[data-paged-brand]').boundingBox();const action=await p.locator('[data-scroll-actions]').count()?await p.locator('[data-scroll-actions]').boundingBox():null;
-   const expected=await p.locator('[data-measure-id][data-kind=item]').evaluateAll(es=>es.map(e=>e.dataset.measureId));
-   const shown=await p.locator('[data-paged-column] [data-kind=item]').evaluateAll(es=>es.map(e=>e.dataset.pagedBlock));assert.deepEqual(shown,expected,'registered menu order is complete');
+   const expected=await p.locator('[data-measure-id]').evaluateAll(es=>es.map(e=>e.dataset.measureId));
+   const shown=await p.locator('[data-paged-column] [data-paged-block]').evaluateAll(es=>es.map(e=>e.dataset.pagedBlock));assert.deepEqual(shown,expected,'headings and products appear once in registered order');
    await p.locator('[data-scroll-menu]').evaluate(e=>e.scrollTo({top:e.scrollHeight,behavior:'instant'}));
    assert.deepEqual(await p.locator('[data-paged-brand]').boundingBox(),brand,'representative column stays fixed');
    if(action)assert.deepEqual(await p.locator('[data-scroll-actions]').boundingBox(),action,'dock stays fixed');

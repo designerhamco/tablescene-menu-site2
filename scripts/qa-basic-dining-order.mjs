@@ -74,7 +74,6 @@ async function paged(device, width, height, scenario, layout) {
       .locator("[data-measure-id]")
       .evaluateAll((els) =>
         els
-          .filter((e) => e.dataset.kind !== "heading")
           .map((e) => e.dataset.measureId),
       );
     assert.equal(await p.locator("[data-paged-layout]").getAttribute("data-paged-layout"),layout);
@@ -87,7 +86,7 @@ async function paged(device, width, height, scenario, layout) {
     assert.ok(Math.abs(actions.y + actions.height - (height - geometry.y)) < 1, "actions are fixed at the menu bottom");
     assert.equal(await p.locator("[data-scroll-call]").count(), 1);
     assert.equal(await p.locator("[data-scroll-order]").count(), 1);
-    const seen = await p.locator("[data-paged-column] [data-paged-block]").evaluateAll(els => els.filter(e => e.dataset.kind !== "heading").map(e => e.dataset.pagedBlock));
+    const seen = await p.locator("[data-paged-column] [data-paged-block]").evaluateAll(els => els.map(e => e.dataset.pagedBlock));
     assert.deepEqual(seen, expected);
     const measure = async () => p.evaluate(() => {
       const menu = document.querySelector("[data-scroll-menu]"), bounds = menu.getBoundingClientRect();

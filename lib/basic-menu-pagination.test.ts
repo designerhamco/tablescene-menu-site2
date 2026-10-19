@@ -48,6 +48,13 @@ test("continued columns reserve their repeated category heading", () => {
     ["h", "2"],
   );
 });
+test("continuous reading can omit continuation headings without losing products", () => {
+  const input = [block("h", "a", 20, "heading"), block("1", "a", 60), block("2", "a", 60)];
+  const pages = paginateMenuBlocks(input, 1, 100, false, { repeatContinuationHeadings: false });
+  assert.equal(pages.length, 2);
+  assert.deepEqual(pages[1].columns[0].map(b => b.id), ["2"]);
+  assert.deepEqual(pages.flatMap(page => page.columns.flat()).map(b => b.id), input.map(b => b.id));
+});
 test("grouped layout moves a fitting category intact; flow may split it", () => {
   const input = [
     block("h1", "a", 10, "heading"),
