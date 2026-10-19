@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { layoutScrollableMenu } from "./basic-menu-scroll";
+import { layoutScrollableMenu, selectScrollableMenuCandidate, SCROLL_FILL_MAX_GAP_SCALE } from "./basic-menu-scroll";
 import type { MeasuredMenuBlock } from "./basic-menu-pagination";
 const category = (id: string, count: number): MeasuredMenuBlock[] => [
   { id: `h-${id}`, group: id, kind: "heading", height: 30 },
@@ -48,4 +48,61 @@ test("large images and changed content remain reachable without a stale fit limi
   const after = layoutScrollableMenu(input.map(b => ({...b, height:b.height * 2})), 2, 300);
   assert.ok(after.height > before.height);
   assert.deepEqual(ids(after.columns.flat()), ids(before.columns.flat()));
+});
+
+
+test("fill balances continuous runs even when their combined height is below the viewport", () => {
+  const input = category("a", 12);
+  const flow = layoutScrollableMenu(input, 3, 1100);
+  assert.ok(flow.columns.every(c => c.length > 0));
+  assert.ok(Math.max(...flow.naturalHeights) - Math.min(...flow.naturalHeights) <= 110);
+  assert.deepEqual(flow.columns.flat(), input);
+});
+test("notices consume only the final real column and cannot become a notice-only track", () => {
+  const input = category("a", 8).map(b => ({...b, gapAfter:10}));
+  const layout = layoutScrollableMenu(input, 3, 500, false, {footerHeight:90});
+  assert.equal(layout.footerColumn, 2);
+  for (const [i,c] of layout.columns.entries()) {
+    const expected = c.reduce((sum,b)=>sum+b.height,0) + (i===2 ? 90 : -10);
+    assert.equal(layout.naturalHeights[i],expected);
+    assert.ok(c.length > 0);
+  }
+  assert.deepEqual(layout.columns.flat(),input);
+});
+test("outer gap growth is bounded, sparse content is centered honestly and grouped is not stretched", () => {
+  const input=category("a",3).map(b=>({...b,gapAfter:10}));
+  const flow=layoutScrollableMenu(input,1,1000);
+  assert.equal(flow.gapScales[0],SCROLL_FILL_MAX_GAP_SCALE);
+  assert.equal(flow.height,1000);
+  assert.equal(flow.topInset,(1000-flow.contentHeight)/2);
+  assert.ok(flow.contentHeight<500,"no invented full-page content height");
+  const grouped=layoutScrollableMenu(input,1,1000,true);
+  assert.deepEqual(grouped.gapScales,[1]);assert.equal(grouped.topInset,0);
+});
+test("column selection prefers one-viewport fit over occupancy, and never adds avoidable scrolling", () => {
+  const candidate=(count:number, heights:number[])=>({columnCount:count,columnWidth:300,layout:{...layoutScrollableMenu(category("a",12),count,500),naturalHeights:heights}});
+  assert.equal(selectScrollableMenuCandidate([candidate(1,[1300]),candidate(2,[650,650]),candidate(3,[440,430,430])]).columnCount,3);
+  assert.equal(selectScrollableMenuCandidate([candidate(1,[800]),candidate(2,[450,450]),candidate(3,[300,300,300])]).columnCount,2);
+  assert.equal(selectScrollableMenuCandidate([candidate(1,[2000]),candidate(2,[1100,1100]),candidate(3,[750,750,750])]).columnCount,3);
+});
+test("fractional measurements do not add per-item rounding or trailing phantom gaps", () => {
+  const input=Array.from({length:10},(_,i)=>({id:String(i),group:"a",kind:"item" as const,height:50.25,gapAfter:10.25}));
+  const layout=layoutScrollableMenu(input,1,492.25);
+  assert.equal(layout.naturalHeights[0],492.25);
+  assert.equal(layout.height,492.25);assert.equal(layout.topInset,0);
+});
+test("trailing widgets keep registered order above notices and empty content needs no fake canvas", () => {
+  const input=[...category("a",4),...Array.from({length:2},(_,i)=>({id:`w${i}`,group:`w${i}`,kind:"widget" as const,height:100,gapAfter:20}))];
+  const layout=layoutScrollableMenu(input,2,300,false,{footerHeight:80});
+  assert.deepEqual(layout.columns.flat(),input);
+  assert.equal(layout.columns[layout.footerColumn].at(-1)?.id,"w1");
+  const empty=layoutScrollableMenu([],1,500,false,{footerHeight:40});
+  assert.equal(empty.contentHeight,40);assert.equal(empty.height,500);
+});
+
+test("fewer columns cannot trade away more than eight percent of the safe readable type", () => {
+  const input=category("a",12);
+  const candidates=[{columnCount:2,columnWidth:500,itemSize:18.8,layout:layoutScrollableMenu(input,2,1000)},
+    {columnCount:3,columnWidth:320,itemSize:21.6,layout:layoutScrollableMenu(input,3,1000)}];
+  assert.equal(selectScrollableMenuCandidate(candidates).columnCount,3);
 });
