@@ -15,7 +15,12 @@ cases.push({device:'tablet',width:1180,height:820,scenario:'long',features:true,
 const metrics=()=>{
   const root=document.querySelector('[data-scroll-template]'), menu=document.querySelector('[data-scroll-menu]'), rect=menu.getBoundingClientRect();
   const columns=[...document.querySelectorAll('[data-paged-column]')];
-  const style=getComputedStyle(root), name=[...root.querySelectorAll('[data-cafe-a-menu-name]')].find(e=>!e.closest('[aria-hidden=true]'));
+  const style=getComputedStyle(root), dock=root.querySelector('[data-scroll-actions]'), tracks=root.querySelector('[data-paged-column]').parentElement;
+  const sides=['paddingTop','paddingRight','paddingBottom','paddingLeft'].map(key=>parseFloat(style[key]));
+  const trackRects=columns.map(c=>c.getBoundingClientRect()), brand=root.querySelector('[data-paged-brand]').getBoundingClientRect(), panel=root.querySelector('[data-paged-menu-panel]').getBoundingClientRect();
+  const spacing={sides,brandGap:panel.left-brand.right,menuGap:parseFloat(getComputedStyle(menu).columnGap),trackGap:parseFloat(getComputedStyle(tracks).columnGap),
+    actualGutters:trackRects.slice(1).map((r,i)=>r.left-trackRects[i].right),dockGap:dock?dock.querySelector('button').getBoundingClientRect().top-rect.bottom:null};
+  const name=[...root.querySelectorAll('[data-cafe-a-menu-name]')].find(e=>!e.closest('[aria-hidden=true]'));
   const notices=root.querySelector('[data-paged-notices]');
   const gapFailures=[];
   for(const block of root.querySelectorAll('[data-paged-column] [data-paged-block]')) {
@@ -26,7 +31,7 @@ const metrics=()=>{
     if(Math.abs(parseFloat(s.paddingBottom)-expected)>.2)gapFailures.push(block.dataset.pagedBlock);
   }
   return {viewport:[innerWidth,innerHeight],rootRem:parseFloat(getComputedStyle(document.documentElement).fontSize),size:parseFloat(style.getPropertyValue('--scroll-item-size')),
-    font:name?getComputedStyle(name).fontSize:null, contentHeight:Number(root.dataset.scrollContentHeight),topInset:Number(root.dataset.scrollCentering),
+    spacing,font:name?getComputedStyle(name).fontSize:null, contentHeight:Number(root.dataset.scrollContentHeight),topInset:Number(root.dataset.scrollCentering),
     region:{width:rect.width,height:rect.height,scroll:menu.scrollHeight-menu.clientHeight},more:root.dataset.scrollMore,gapFailures,
     footerColumn:notices.closest('[data-paged-column]').dataset.pagedColumn,noticeHeight:notices.getBoundingClientRect().height,
     noticeFont:notices.querySelector('.cafe-a-script-en')?getComputedStyle(notices.querySelector('.cafe-a-script-en')).fontFamily:null,koFont:style.getPropertyValue('--menu-font-ko').trim(),
@@ -45,6 +50,14 @@ try{
       const a=await p.evaluate(metrics);await p.waitForTimeout(150);const stable=await p.evaluate(metrics);
       assert.deepEqual(a,stable,'fonts, measurement and column plan must settle without oscillation');
       assert.deepEqual(a.viewport,[c.width,c.height]);assert.ok(a.outer[0]<=c.width+1&&a.outer[1]<=c.height+1);assert.deepEqual(a.gapFailures,[]);
+      const inset=a.spacing.sides[0];
+      assert.ok(a.spacing.sides.every(side=>Math.abs(side-inset)<.1),'one page inset on all four sides');
+      for(const gap of [a.spacing.brandGap,a.spacing.menuGap,a.spacing.trackGap,...a.spacing.actualGutters])assert.ok(Math.abs(gap-inset)<.15,'actual brand/menu gutters equal the page inset');
+      if(a.spacing.dockGap!==null){
+        const safeGap=Math.max(.875*a.rootRem,Math.min(inset*.75,1.25*a.rootRem));
+        assert.ok(Math.abs(a.spacing.dockGap-safeGap)<.15,'fixed dock clearance follows the page inset within modest rem bounds');
+        assert.ok(a.spacing.dockGap<=inset+.1,'dock clearance never exceeds the page inset');
+      }
       assert.deepEqual(a.columns.flatMap(col=>col.ids),a.expected,'every heading/item/widget once in source order');
       assert.equal(a.more,a.region.scroll>2?'true':'false');assert.ok(a.columns.every(col=>col.scale>=1&&col.scale<=1.60001));
       if(a.expected.length){assert.ok(a.columns.every(col=>col.ids.length>0));assert.equal(Number(a.footerColumn),a.columns.length);}
