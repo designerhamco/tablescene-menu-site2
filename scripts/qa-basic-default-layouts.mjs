@@ -16,7 +16,7 @@ const bounds = () => {
   return { viewport:[innerWidth,innerHeight], outerWidth:document.documentElement.scrollWidth, ready:document.querySelector('[data-paged-ready]')?.dataset.pagedReady,
     brand:rect(document.querySelector('[data-paged-brand]')), header:rect(document.querySelector('[data-basic-top-row]')), actions:rect(document.querySelector('[data-scroll-actions]')),
     menu:rect(menu), scrollHeight:menu.scrollHeight, scrollTop:menu.scrollTop, clientHeight:menu.clientHeight,
-    columns:[...document.querySelectorAll('[data-paged-column]')].map(c=>({rect:rect(c),first:rect(c.firstElementChild),items:c.querySelectorAll('[data-cafe-a-menu-item]').length})),
+    columns:[...document.querySelectorAll('[data-paged-column]')].map(c=>({rect:rect(c),first:rect(c.querySelector("[data-paged-block]")),items:c.querySelectorAll('[data-cafe-a-menu-item]').length})),
     names:[...document.querySelectorAll('[data-paged-column] [data-cafe-a-menu-name]')].map(e=>e.textContent),
     headings:[...document.querySelectorAll('[data-paged-column] .cafe-a-category-title')].map(e=>e.textContent),
     fade:document.querySelector('[data-scroll-more]')?.dataset.scrollMore,
@@ -44,7 +44,7 @@ try {
         const ratio = await p.locator('[data-scroll-brand-board]').getAttribute('data-fit-header-ratio');
         assert.ok(Number(ratio)>=.08&&Number(ratio)<=.14, 'shared 8–14% header policy');
       } else if(structure==='basic-upper-left') {
-        assert.ok(before.columns[0].first.top >= before.brand.bottom+10,'left menu begins below the fixed panel');
+        assert.ok(before.columns[0].first.top >= before.brand.bottom+10,'left menu begins below the scrolling panel');
         assert.ok(before.columns[1].first.top < before.brand.bottom-10,'other columns use the full viewport');
         assert.ok(before.brand.height < before.menu.height*.75,'corner is not a full-height rail');
       }
@@ -52,7 +52,7 @@ try {
         await p.locator('[data-scroll-menu]').evaluate(e=>e.scrollTop=e.scrollHeight);
         await p.waitForFunction(()=>document.querySelector('[data-scroll-more]').dataset.scrollMore==='false');
         const after=await p.evaluate(bounds);
-        assert.deepEqual(after.brand,before.brand,'representative area stays fixed');assert.deepEqual(after.actions,before.actions,'actions stay fixed');
+        if(structure==='basic-upper-left') assert.ok(Math.abs(after.brand.top-before.brand.top+after.scrollTop-before.scrollTop)<1,'corner moves with menu scroll'); else assert.deepEqual(after.brand,before.brand,'representative area stays fixed');assert.deepEqual(after.actions,before.actions,'actions stay fixed');
         assert.ok(after.notices.bottom<=after.menu.bottom+1 || structure==='basic-top-row','notices are reachable');
       }
       results.push({id,before}); console.log('PASS',id);

@@ -16,6 +16,7 @@ import {
 import { createPortal } from "react-dom";
 import {
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -28,6 +29,8 @@ import type {
   PostpayOrderCatalogOptionGroup,
 } from "./types";
 
+import CustomerOrderHistory from "./CustomerOrderHistory";
+import { canCustomerCancelOrder, parsePreviewOrderHistory, type CustomerOrderSnapshot } from "@/lib/customer-order-history";
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import styles from "./PostpayOrderCartDrawer.module.css";
 import ui from "./MenuInteractionUI.module.css";
@@ -133,6 +136,59 @@ export default function PostpayOrderCartDrawer({
   onItemAdded,
 }: PostpayOrderCartDrawerProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
+  const tabId = useId();
+  const [activeTab, setActiveTab] = useState<"cart" | "history">("cart");
+  const [historySurface, setHistorySurface] = useState(false);
+  const [historyState, setHistoryState] = useState<{ scope: string; orders: CustomerOrderSnapshot[] }>({ scope: "", orders: [] });
+  const historyKey = `artimenu-preview-order-history:${menuSiteId}:${cartScope}`;
+  const history = previewOnly && historyState.scope === historyKey ? historyState.orders : [];
+  useEffect(() => {
+    if (!previewOnly) return;
+    let cancelled = false;
+    let orders: CustomerOrderSnapshot[] = [];
+    try { orders = parsePreviewOrderHistory(window.sessionStorage.getItem(historyKey)); } catch {}
+    queueMicrotask(() => { if (!cancelled) setHistoryState({ scope: historyKey, orders }); });
+    return () => { cancelled = true; };
+  }, [historyKey, previewOnly]);
+  useEffect(() => {
+    if (!previewOnly || historyState.scope !== historyKey) return;
+    try { window.sessionStorage.setItem(historyKey, JSON.stringify(historyState.orders)); } catch {}
+  }, [historyState, historyKey, previewOnly]);
+
+  useEffect(() => {
+    if (!open || !previewOnly || !historySurface) return;
+    const frame = requestAnimationFrame(() => {
+      const panel = document.getElementById(`${tabId}-panel`);
+      if (panel) panel.scrollTop = 0;
+      document.getElementById(`${tabId}-${activeTab}`)?.focus();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [open, previewOnly, historySurface, activeTab, tabId]);
+
+  function openHistory() {
+    setActiveTab("history");
+    setHistorySurface(true);
+    setMessage("");
+  }
+  function cancelPreviewOrder(id: string) {
+    if (!previewOnly) return;
+    setHistoryState(current => current.scope !== historyKey ? current : ({ ...current,
+      orders: current.orders.map(order => order.id === id && canCustomerCancelOrder(order.status, order.paymentStatus)
+        ? { ...order, status: "cancelled" } : order),
+    }));
+    setMessage("미리보기 주문이 취소되었습니다.");
+  }
+  function showHistoryExamples() {
+    if (!previewOnly || !catalog.length || history.length) return;
+    const orders: CustomerOrderSnapshot[] = (["received", "cooking", "served"] as const).map((status, index) => {
+      const item = catalog[index % catalog.length];
+      return { id: crypto.randomUUID(), orderNumber: 3-index, tableLabel, status,
+        createdAt: new Date(Date.now() - index * 600000).toISOString(),
+        paymentStatus: status === "served" ? "manual_paid" : "unpaid", example: true,
+        totalAmount: item.price, lines: [{ name: item.name, quantity: 1, options: [], unitPrice: item.price }] };
+    });
+    setHistoryState({ scope: historyKey, orders });
+  }
   const storageKey = `${previewOnly ? "artimenu-preview-cart" : "menulink-postpay-cart"}:${menuSiteId}:${cartScope}`;
   const availableCheckoutModes = useMemo(() => {
     const allowed = checkoutModes?.filter(
@@ -206,6 +262,8 @@ export default function PostpayOrderCartDrawer({
       queueMicrotask(() => {
         setActiveItem(null);
         setEditingLineKey(null);
+        setActiveTab("cart");
+        setHistorySurface(false);
       });
       return;
     }
@@ -352,30 +410,17 @@ export default function PostpayOrderCartDrawer({
   async function submitOrder() {
     if (cart.length < 1 || submitting) return;
     if (previewOnly) {
-      if (window.parent !== window)
-        window.parent.postMessage(
-          {
-            type: "artimenu-preview-order",
-            order: {
-              id: crypto.randomUUID(),
-              tableLabel,
-              createdAt: new Date().toISOString(),
-              status: "received",
-              totalAmount,
-              lines: cart.map((line) => ({
-                name: line.name,
-                quantity: line.quantity,
-                options: line.optionNames,
-                unitPrice: line.unitPrice,
-              })),
-            },
-          },
-          window.location.origin,
-        );
+      const order: CustomerOrderSnapshot = {
+        id: crypto.randomUUID(), orderNumber: Math.max(0, ...history.map(order => order.orderNumber)) + 1,
+        tableLabel, createdAt: new Date().toISOString(), status: "received", paymentStatus: "unpaid", totalAmount,
+        lines: cart.map(line => ({ name: line.name, quantity: line.quantity, options: line.optionNames, unitPrice: line.unitPrice })),
+      };
+      setHistoryState(current => ({ scope: historyKey, orders: [order, ...(current.scope === historyKey ? current.orders : [])] }));
+      if (window.parent !== window) window.parent.postMessage({ type: "artimenu-preview-order", order }, window.location.origin);
       setCart([]);
-      setMessage(
-        "미리보기 주문이 접수되었습니다. 실제 매장에는 전송되지 않습니다.",
-      );
+      setActiveTab("history");
+      setHistorySurface(true);
+      setMessage("미리보기 주문이 접수되었습니다. 실제 매장에는 전송되지 않습니다.");
       return;
     }
     const requestId = pendingRequestId ?? crypto.randomUUID();
@@ -609,26 +654,42 @@ export default function PostpayOrderCartDrawer({
       className={styles.backdrop}
       style={interactionStyle}
       data-device={device ?? "auto"}
-      data-empty={cart.length ? "false" : "true"}
+      data-empty={cart.length || (previewOnly && historySurface) ? "false" : "true"}
       data-menu-cart=""
       onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
     >
-      <div ref={dialogRef} className={`${styles.panel} ${ui.typography}`} role="dialog" aria-modal="true" aria-label="장바구니">
-        {cart.length > 0 ? <header className={styles.header}>
+      <div ref={dialogRef} className={`${styles.panel} ${ui.typography}`} role="dialog" aria-modal="true" aria-label={activeTab === "history" ? "주문내역" : "장바구니"}>
+        {cart.length > 0 || (previewOnly && historySurface) ? <header className={styles.header}>
           <button type="button" className={styles.back} onClick={onClose} aria-label="메뉴판으로 돌아가기" data-cart-back>
             <ArrowLeft aria-hidden="true" strokeWidth={1.7} />
           </button>
           <div className={styles.heading}>
-            <h2>장바구니</h2>
+            <h2>{activeTab === "history" ? "주문내역" : "장바구니"}</h2>
             <p data-cart-table>{tableLabel}</p>
           </div>
-          <span className={styles.count}>{totalUnits}/50</span>
+          <span className={styles.count}>{activeTab === "history" ? `${history.length}건` : `${totalUnits}/50`}</span>
         </header> : null}
 
-        <div className={styles.body}>
+        {previewOnly && (cart.length > 0 || historySurface) ? <div className={styles.tabs} role="tablist" aria-label="주문 메뉴"
+          onKeyDown={event => {
+            if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+            event.preventDefault();
+            const next = event.key === "Home" ? "cart" : event.key === "End" ? "history" : activeTab === "cart" ? "history" : "cart";
+            setActiveTab(next); setHistorySurface(true); setMessage("");
+            event.currentTarget.querySelector<HTMLButtonElement>(`[data-tab="${next}"]`)?.focus();
+          }}>
+          {(["cart", "history"] as const).map(tab => <button key={tab} type="button" role="tab" data-tab={tab}
+            id={`${tabId}-${tab}`} aria-selected={activeTab === tab} aria-controls={`${tabId}-panel`} tabIndex={activeTab === tab ? 0 : -1}
+            onClick={() => { setActiveTab(tab); setHistorySurface(true); setMessage(""); }}>
+            {tab === "cart" ? `장바구니${totalUnits ? ` (${totalUnits})` : ""}` : "주문내역"}
+          </button>)}
+        </div> : null}
+        <div className={styles.body} id={`${tabId}-panel`}
+          role={previewOnly && (cart.length > 0 || historySurface) ? "tabpanel" : undefined}
+          aria-labelledby={previewOnly && (cart.length > 0 || historySurface) ? `${tabId}-${activeTab}` : undefined}>
 
           <div className="space-y-6">
-            {cart.length ? (
+            {previewOnly && activeTab === "history" ? <CustomerOrderHistory orders={history} onCancel={cancelPreviewOrder} onExamples={showHistoryExamples} /> : cart.length ? (
               <>
                 <section>
                   <div className="divide-y divide-zinc-200">
@@ -780,6 +841,7 @@ export default function PostpayOrderCartDrawer({
                 >
                   메뉴 보러 가기
                 </button>
+                {previewOnly && !historySurface ? <button type="button" className={styles.historyLink} onClick={openHistory}>주문내역 보기</button> : null}
               </div>
             )}
             {message ? (
