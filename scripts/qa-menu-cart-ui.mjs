@@ -46,7 +46,17 @@ try {
      await dialog.getByRole('button',{name:/장바구니 담기/}).click();await openCart();
      dialog=p.getByRole('dialog',{name:'장바구니',exact:true});await dialog.waitFor();await styleCheck(dialog);
      assert.equal(await dialog.locator('[data-cart-table]').innerText(),'Table 1');assert.ok(await dialog.getByText('최종 주문 금액',{exact:true}).isVisible());
+     const full=await dialog.boundingBox();
+     assert.ok(Math.abs(full.x)<1&&Math.abs(full.y)<1&&Math.abs(full.width-w)<1&&Math.abs(full.height-h)<1,'filled cart fills the actual viewport');
+     assert.equal(await dialog.evaluate(e=>getComputedStyle(e).borderRadius),'0px');
+     assert.equal(await p.locator('[data-menu-cart]').evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(255, 255, 255)');
      await p.screenshot({path:`${output}/${device}-${w}-${call?'both':'order'}.png`});
+     await dialog.getByRole('button',{name:'메뉴판으로 돌아가기',exact:true}).click();
+     await openCart();dialog=p.getByRole('dialog',{name:'장바구니',exact:true});
+     assert.ok(await dialog.getByText('최종 주문 금액',{exact:true}).isVisible(),'back keeps the cart contents');
+     await dialog.getByRole('button',{name:/ 삭제$/}).click();
+     await dialog.getByText('장바구니가 비어 있어요',{exact:true}).waitFor();
+     if(device!=='mobile')assert.ok((await dialog.boundingBox()).width<=400,'empty state remains a popup after removing the last item');
      await dialog.getByRole('button',{name:'메뉴판으로 돌아가기',exact:true}).click();
     }
     assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));

@@ -6,7 +6,7 @@
 - One-page mobile Call only: globe / table / bell, one bottom Call button. Order only: globe / table / cart, one bottom Order button. Both: globe / table / cart, bottom Order then Call side by side. The existing 56px row, 24px icons, menu fonts, 20/24/48 reading rhythm and bottom content reservation remain.
 - Dining A/B use the same mobile feature combinations. Its own content engine and desktop controls remain; reserve one action row and keep page navigation above it.
 - Entry copy is 주문하기; the review screen is 장바구니. Entry opens the existing cart and never submits an order directly.
-- Empty PC/tablet cart is a centered, bounded 400px popup with a dim backdrop. Filled carts remain bounded scrollable dialogs. Explicit mobile presentation (including 820px QR/foldable widths) keeps its full-height cart.
+- Empty PC/tablet cart is a centered, bounded 400px popup with a dim backdrop. Populated carts subsequently changed to full-viewport pages on every device; only the empty PC/tablet cart keeps the popup. The white full-page shell has no rounded outer frame or dim backdrop; its reading content stays centered and scrollable. This supersedes the initial filled-dialog behavior. Explicit mobile presentation (including 820px QR/foldable widths) keeps its full-height cart.
 - Cart/options use Pretendard explicitly, body weight 400, supporting controls 500 and headings/prices up to 600. The previous font-black (900) and excessive bold classes were removed. The cart header has a simple back arrow with no circular fill/shadow; the empty-state cart icon has no decorative circle.
 - Table label is displayed in empty and filled cart headers; quantity/options, storage, merchant opt-ins, backend payload/authorization, idempotency and disabled prepay behavior remain unchanged. No Production data/SQL/payment changes.
 
@@ -19,3 +19,9 @@
 - Original seven-template regression: 112 passed across devices/features/locales, no failures/runtime errors. Display smoke: three devices retained their separate fitting engine and had no cart/dock UI.
 
 Evidence: `/private/tmp/menu-cart-ui/report.json`, `/private/tmp/cart-ui-review/`, `/private/tmp/cart-ui-order/`, `/private/tmp/cart-ui-controls/`, `/private/tmp/cart-ui-regressions.log`, `/private/tmp/cart-ui-build.log`. Browser tests block public-menu writes and use preview demos only.
+
+## Filled-cart full-page correction — 2026-10-19
+
+User clarified that PC/tablet should show a full page after products are added. Only the empty state remains the small popup. The existing cart state, table label, Pretendard, back action, options, quantities and checkout contract remain. Browser QA now asserts filled cart x/y = 0, dimensions = actual viewport, white backdrop and zero outer radius; back/reopen preserves items and deleting the last product restores the empty popup.
+
+Correction verification: 643 unit/contract tests, independent TypeScript, changed QA script ESLint, whitespace check and Production build passed. Updated UI matrix 33/33, existing order interaction matrix 8/8, Dining A/B populated-cart checks 2/2 passed. Filled dialogs matched actual 1440×900, 1180×820 and 820×1180 viewports with no dim menu border; forced mobile 820px retained its full view. Evidence: `/private/tmp/full-cart-ui/`, `/private/tmp/full-cart-order/`, `/private/tmp/full-cart-dining.json`, `/private/tmp/full-cart-build.log`. No real API writes.
