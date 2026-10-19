@@ -45,7 +45,7 @@ export default function TableOrderLab() {
     pageTest: scenario,
     ...(order ? { orderPreview: "on" } : {}),
     ...(call ? { callPreview: "on" } : {}),
-    prepayPreview: prepay ? "on" : "off",
+    prepayPreview: device === "mobile" && order && prepay ? "on" : "off",
   });
   const src = "/templates/cafe_real_matcha_paged_test/preview?" + query;
   useEffect(() => {
@@ -105,14 +105,16 @@ export default function TableOrderLab() {
           />{" "}
           주문 기능
         </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={prepay}
-            onChange={(e) => setPrepay(e.target.checked)}
-          />{" "}
-          선결제 표시 · 준비 중
-        </label>
+        {device === "mobile" && order ? (
+          <label>
+            <input
+              type="checkbox"
+              checked={prepay}
+              onChange={(e) => setPrepay(e.target.checked)}
+            />{" "}
+            선결제 표시 · 준비 중
+          </label>
+        ) : null}
         <div role="group" aria-label="배치 방식" className="flex rounded-full border border-zinc-300 p-1">
           {([['orderedBalancedFit', '묶음형'], ['orderedFit', '채움형']] as const).map(([mode, label]) => <button key={mode} type="button" aria-pressed={layout === mode} onClick={() => setLayout(mode)} className={`rounded-full px-4 py-2 ${layout === mode ? "bg-zinc-950 text-white" : "text-zinc-700"}`}>{label}</button>)}
         </div>
