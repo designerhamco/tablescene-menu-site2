@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useId, useMemo, useRef, useState } from "react";
 
 import TemplateCatalogMedia from "@/components/templates/TemplateCatalogMedia";
+import { getTemplateDetailHref } from "@/lib/template-details";
 import TemplatePagination from "./TemplatePagination";
 import { getDiningTemplateTier, getDiningTierLabel, type DiningTemplateTier } from "@/lib/dining-product-tiers";
 import { getTemplatePreviewRouteKey, type TemplateCatalogItem, type TemplateCategoryKey } from "@/lib/templates";
@@ -211,16 +212,17 @@ export default function TemplateGallery({
                   const industryLabel = getIndustryGroup(template)?.label ?? template.categoryLabel;
                   const recommended = service === "display" ? template.featuredDisplay : template.featuredBasic;
                   const previewHref = `/templates/${getTemplatePreviewRouteKey(template.key)}/preview`;
+                  const detailHref = getTemplateDetailHref(template.key);
 
                   return (
                     <article key={template.key} className="site-template-card site-template-selection-card">
-                      <Link href={previewHref} target="_blank" rel="noopener noreferrer" className="site-catalog-media-link" aria-label={`${template.name} 새 창에서 미리보기`}>
+                      <Link href={detailHref} className="site-catalog-media-link" aria-label={`${template.name} 상세 보기`}>
                         <div className="site-template-media"><TemplateCatalogMedia template={template} /></div>
                         <span className="site-catalog-open" aria-hidden="true"><ArrowUpRight /></span>
                       </Link>
                       <div className="site-template-details">
                         <div className="site-catalog-title-row">
-                          <h2 className="type-content-title site-template-title"><Link href={previewHref} target="_blank" rel="noopener noreferrer">{template.name}</Link></h2>
+                          <h2 className="type-content-title site-template-title"><Link href={detailHref}>{template.name}</Link></h2>
                           {recommended ? <span className="site-template-recommended">추천</span> : null}
                         </div>
                         <p className="site-template-category mt-1">{industryLabel} · {service === "display" ? "디스플레이" : getDiningTierLabel(templateTier)}</p>
