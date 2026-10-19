@@ -3168,8 +3168,10 @@ video {
 
 .cafe-a-image-lightbox[data-template-key="fast_food_loop_bagel_a"] img {
   background: #ffffff;
-  border-radius: clamp(0.875rem, 1.8vmin, 1.5rem);
+  border-radius: var(--menu-image-preview-radius, 0.75rem);
 }
+
+.cafe-a-image-lightbox img { border-radius: var(--menu-image-preview-radius, 0.75rem); }
 
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] :is(
   .cafe-a-menu-badge,

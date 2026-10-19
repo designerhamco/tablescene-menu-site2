@@ -403,6 +403,7 @@ export default function DiningAubeTableA({
             className="aube-table-page"
             data-align={pageAlignment}
             data-columns={pageColumns}
+            data-course-priced={courses.some(course => course.course_price != null || Boolean(course.course_price_label?.trim()))}
           >
             <motion.header
               className="aube-table-page-header"

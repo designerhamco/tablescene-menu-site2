@@ -36,6 +36,15 @@ try {
         const toolbar = p.locator('[data-dining-menu-toolbar]').filter({ visible: true });
         const mobile = c.device === 'mobile';
         assert.equal(await toolbar.count(), !mobile && (c.call || c.order) ? 1 : 0);
+        const floatingCall = p.locator('[data-dining-floating-call]');
+        assert.equal(await floatingCall.count(), !mobile && c.call ? 1 : 0);
+        if (!mobile && c.call) {
+          const circle = await floatingCall.boundingBox();
+          assert.equal(circle.width, circle.height);
+          await floatingCall.click();
+          await p.getByRole('dialog').waitFor();
+          await p.getByRole('dialog').getByRole('button', { name: '직원 호출 닫기', exact: true }).last().click();
+        }
         if (!mobile && (c.call || c.order)) {
           const controls = await toolbar.locator('button').evaluateAll(els => els.map(e => ({ label: e.getAttribute('aria-label'), x: e.getBoundingClientRect().x, y: e.getBoundingClientRect().y, h: e.getBoundingClientRect().height })));
           assert.equal(controls.length, 1 + Number(c.call) + Number(c.order));
@@ -46,6 +55,8 @@ try {
           assert.ok(controls[0].y < 80 && controls[0].h >= 44);
           assert.equal(await p.locator('[data-table-menu-actions]').filter({ visible: true }).count(), 1, 'no bottom duplicate');
           const language = toolbar.locator('button').first();
+          assert.match(await language.innerText(), /KR/);
+          assert.equal(await language.locator('.lucide-globe').count(), 0);
           if (await language.isEnabled()) { await language.click(); await toolbar.getByRole('menu').waitFor(); await p.keyboard.press('Escape'); }
         }
         if (mobile && (c.call || c.order)) {

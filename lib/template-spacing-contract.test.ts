@@ -198,7 +198,7 @@ test("루프베이글은 분리선 없이 상하 2행 블루 체커보드를 유
   );
   assert.match(
     globalStylesSource,
-    /cafe-a-image-lightbox\[data-template-key="fast_food_loop_bagel_a"\] img[^}]*\{[^}]*border-radius: clamp\(0\.875rem, 1\.8vmin, 1\.5rem\);/,
+    /cafe-a-image-lightbox\[data-template-key="fast_food_loop_bagel_a"\] img[^}]*\{[^}]*border-radius: var\(--menu-image-preview-radius, 0\.75rem\);/,
   );
   assert.match(
     globalStylesSource,

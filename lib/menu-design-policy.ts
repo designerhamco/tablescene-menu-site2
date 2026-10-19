@@ -37,5 +37,5 @@ export function getDefaultDesignReview(value: string | undefined, renderer: stri
 }
 
 export function getDefaultDesignReviewUrl(design: DefaultDesignReview) {
-  return `/templates/${design.renderer}/preview?design=${design.id}&device=tablet&layoutMode=orderedFit&callPreview=on&orderPreview=on`;
+  return `/templates/${design.renderer}/preview?design=${design.id}&device=tablet&layoutMode=orderedBalancedFit&callPreview=on&orderPreview=on`;
 }

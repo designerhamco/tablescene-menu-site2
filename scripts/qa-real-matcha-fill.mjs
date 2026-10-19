@@ -6,6 +6,8 @@ const output=process.env.ORDER_QA_OUTPUT||'/private/tmp/real-matcha-fill';
 await fs.mkdir(output,{recursive:true});
 const browser=await chromium.launch(), results=[], failures=[], errors=[], writes=[];
 const cases=[];
+for(const width of [1920,2560]) for(const layoutMode of ['orderedFit','orderedBalancedFit'])
+  cases.push({device:'pc',width,height:1080,scenario:'dense',features:true,layoutMode});
 for(const [device,width,height] of [['pc',1280,800],['pc',1440,900],['pc',1920,1080],['pc',2560,1440],['tablet',1180,820],['tablet',820,1180],['tablet',768,1024]])
   cases.push({device,width,height,scenario:'',features:true});
 for(const scenario of ['sparse','empty','dense','long','images','widgets','long-notices'])
@@ -53,7 +55,7 @@ try{
   for(const c of cases){const p=await browser.newPage({viewport:{width:c.width,height:c.height},reducedMotion:'reduce'});p.on('pageerror',e=>errors.push(e.message));
     await p.route('**/api/public-menu/**',r=>r.request().method()==='GET'?r.continue():(writes.push(r.request().url()),r.abort()));
     try{
-      await p.goto(`${base}/templates/cafe_real_matcha_paged_test/preview?`+new URLSearchParams({device:c.device,view:'actual',embedded:'1',layoutMode:c.layoutMode||'orderedFit',pageTest:c.scenario,callPreview:c.features?'on':'off',orderPreview:c.features?'on':'off'}));
+      await p.goto(`${base}/templates/cafe_real_matcha_paged_test/preview?`+new URLSearchParams({device:c.device,view:'actual',embedded:'1',layoutMode:c.layoutMode||'orderedFit',pageTest:c.scenario,callPreview:c.features?'on':'off',orderPreview:c.features?'on':'off'}), {waitUntil:'networkidle'});
       await p.evaluate(()=>document.fonts.ready);await p.waitForSelector('[data-paged-ready=true]');await p.waitForSelector('[data-canvas-brand-fit=ready]');
       if(c.rootSize)await p.evaluate(n=>document.documentElement.style.fontSize=n+'px',c.rootSize);
       await p.waitForTimeout(350);
@@ -80,6 +82,8 @@ try{
       if(c.layoutMode!=='orderedBalancedFit')assert.ok(Math.abs(a.safePadding-inset)<.15,'fill-only trailing safe area equals the page inset');
       else assert.equal(a.safePadding,0,'grouped mode retains its existing bottom edge');
       if(a.expected.length){assert.ok(a.columns.every(col=>col.ids.length>0));assert.equal(Number(a.footerColumn),a.columns.length);}
+      assert.ok(a.columns.length <= 4);
+      if(a.columns.length===4)assert.ok(a.columns.every(col=>col.width>=12*a.rootRem-.1),'four readable tracks fit after brand and gutters');
       assert.ok(a.size>=a.rootRem-.01&&a.size<=a.rootRem*(c.device==='pc'?1.35:1.3)+.01);
       assert.ok(Math.max(...a.columns.map(col=>col.top))-Math.min(...a.columns.map(col=>col.top))<.1,'all columns share one top alignment');
       if(c.scenario==='dense'||c.scenario==='long')assert.ok(a.region.scroll>2,'excess content remains scrollable');
@@ -97,5 +101,6 @@ try{
       results.push({...c,...a});console.log('PASS',c.device,c.width,c.scenario||'default',a.size,a.columns.length,a.region.scroll);
     }catch(e){failures.push({...c,error:e.message});console.log('FAIL',c.device,c.width,c.scenario,e.message);}finally{await p.close();}}
   assert.deepEqual(failures,[]);assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);
+  for(const count of [1,2,3,4])assert.ok(results.some(r=>r.columns.length===count),`actual adaptive ${count}-column case`);
 }finally{await browser.close();await fs.writeFile(`${output}/report.json`,JSON.stringify({results,failures,errors,writes},null,2));}
 console.log(JSON.stringify({passed:results.length,failures,errors,writes}));

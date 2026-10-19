@@ -25,13 +25,47 @@ async function toggle(design, key, label, value) {
 }
 try {
   for (const [key, design] of [['cafe_design_a', 'basic-first-column'], ['dining_aube_table_a', 'dining-full-page']]) {
+    await p.setViewportSize({ width: 1440, height: 1000 });
     const basic = design.startsWith('basic');
     await p.goto(`${base}/templates/${key}/preview?design=${design}&device=tablet&orderPreview=on&callPreview=on`, { waitUntil: 'domcontentloaded' });
     let frame = await frameReady(design);
     const guide = p.locator('[data-preview-guide-variant]');
     if (await guide.isVisible()) await guide.getByRole('button', { name: '닫기', exact: true }).click();
-    assert.equal(await p.locator('[data-preview-display-options] input:checked').count(), basic ? 4 : 2);
+    assert.equal(await p.locator('[data-preview-display-options] input:checked').count(), basic ? 10 : 5);
+    if (!basic) {
+      await frame.getByRole('button', { name: /A La Carte.*페이지로 이동/ }).click();
+      await frame.getByRole('heading', { name: 'A La Carte Menu', exact: true }).waitFor();
+    }
+    const secondary = '.cafe-a-menu-meta:not([data-cafe-a-reference-copy]),.aube-table-item-secondary';
+    const description = '[data-cafe-a-menu-description],.aube-table-item-description';
+    assert.ok(await frame.locator(secondary).filter({ visible: true }).count());
+    assert.ok(await frame.locator(description).filter({ visible: true }).count());
+    frame = await toggle(design, 'secondaryNamesPreview', '보조 언어명', false);
+    frame = await toggle(design, 'descriptionsPreview', '메뉴 설명', false);
+    if (!basic) {
+      await frame.getByRole('button', { name: /A La Carte.*페이지로 이동/ }).click();
+      await frame.getByRole('heading', { name: 'A La Carte Menu', exact: true }).waitFor();
+    }
+    assert.equal(await frame.locator(secondary).filter({ visible: true }).count(), 0);
+    assert.equal(await frame.locator(description).filter({ visible: true }).count(), 0);
     if (basic) {
+      const headings = frame.locator('.cafe-a-price-column-header').filter({ visible: true });
+      assert.deepEqual(await headings.evaluateAll(els => els.map(e => e.querySelectorAll('.cafe-a-price-column-heading').length)), [2, 3]);
+      frame = await toggle(design, 'priceOptionsPreview', '가격 옵션', false);
+      assert.equal(await frame.locator('.cafe-a-price-column-header').count(), 0);
+      frame = await toggle(design, 'priceOptionsPreview', '가격 옵션', true);
+      assert.ok(await frame.locator('.cafe-a-price-label').filter({ visible: true }).count() > 0);
+      frame = await toggle(design, 'priceNotesPreview', '가격 설명', false);
+      assert.equal(await frame.locator('.cafe-a-price-label').count(), 0);
+      frame = await toggle(design, 'priceNotesPreview', '가격 설명', true);
+      assert.ok(await frame.locator('.cafe-a-time-sale-time-text').filter({ visible: true }).count() > 0);
+      frame = await toggle(design, 'timeSalesPreview', '기간 할인', false);
+      assert.equal(await frame.locator('.cafe-a-time-sale-time-text').count(), 0);
+      frame = await toggle(design, 'timeSalesPreview', '기간 할인', true);
+      assert.equal(await frame.locator('[data-cafe-a-sold-out="true"]').filter({ visible: true }).count(), 1);
+      frame = await toggle(design, 'soldOutPreview', '품절', false);
+      assert.equal(await frame.locator('[data-cafe-a-sold-out="true"]').count(), 0);
+      frame = await toggle(design, 'soldOutPreview', '품절', true);
       const borders = await frame.locator('[data-cafe-a-category-heading]').filter({ visible: true }).evaluateAll(els => els.map(e => getComputedStyle(e).borderBottomWidth));
       assert.ok(borders.length); assert.ok(borders.every(b => b === '0px'));
       assert.ok(await frame.locator('[data-paged-block="default-text"]').count());
@@ -50,6 +84,12 @@ try {
     if (!basic) {
       await frame.getByRole('button', { name: /A La Carte.*페이지로 이동/ }).click();
       await frame.getByRole('heading', { name: 'A La Carte Menu', exact: true }).waitFor();
+      assert.equal(await frame.locator('.aube-table-sold-out').count(), 1);
+      assert.equal(await frame.locator('.aube-table-item:has(.aube-table-sold-out) [data-menu-order-add]').count(), 0);
+      frame = await toggle(design, 'soldOutPreview', '품절', false);
+      await frame.getByRole('button', { name: /A La Carte.*페이지로 이동/ }).click();
+      await frame.getByRole('heading', { name: 'A La Carte Menu', exact: true }).waitFor();
+      assert.equal(await frame.locator('.aube-table-sold-out').count(), 0);
     }
     assert.equal(await frame.locator('.cafe-a-menu-item-image,.aube-table-item-image').count(), 0);
     const fonts = await frame.locator('.cafe-a-script-en,.cafe-a-script-ko').filter({ visible: true }).evaluateAll(els => els.map(e => getComputedStyle(e).fontFamily.split(',')[0]));
@@ -59,7 +99,9 @@ try {
     frame = await frameReady(design);
     assert.equal(await frame.locator('.cafe-a-menu-item-image,.aube-table-item-image').count(), 0);
     const url = new URL(await p.locator('iframe').getAttribute('src'), base);
-    for (const name of ['coverPreview', 'imagesPreview']) assert.equal(url.searchParams.get(name), 'off');
+    for (const name of ['coverPreview', 'imagesPreview', 'secondaryNamesPreview', 'descriptionsPreview']) assert.equal(url.searchParams.get(name), 'off');
+    frame = await toggle(design, 'secondaryNamesPreview', '보조 언어명', true);
+    frame = await toggle(design, 'descriptionsPreview', '메뉴 설명', true);
     frame = await toggle(design, 'coverPreview', basic ? '대표 영역' : '커버 페이지', true);
     assert.ok(await frame.locator(basic ? '[data-cafe-a-cover-image]' : '.aube-table-cover').filter({ visible: true }).count());
     frame = await toggle(design, 'imagesPreview', '상품 이미지', true);
@@ -68,6 +110,12 @@ try {
       await frame.getByRole('heading', { name: 'A La Carte Menu', exact: true }).waitFor();
     }
     assert.ok(await frame.locator('.cafe-a-menu-item-image,.aube-table-item-image').count() > 0);
+    assert.ok(await frame.locator(secondary).filter({ visible: true }).count());
+    assert.ok(await frame.locator(description).filter({ visible: true }).count());
+    for (const outerWidth of [1440, 390]) {
+      await p.setViewportSize({ width: outerWidth, height: 1000 });
+      await p.waitForFunction(() => document.querySelector('[data-preview-frame-shell]').getBoundingClientRect().top >= document.querySelector('[data-preview-device-toolbar]').getBoundingClientRect().bottom + 8);
+    }
     await p.screenshot({ path: `${output}/${design}-toolbar.png` });
     results.push({ kind: 'options-fonts-device-persistence', design });
   }

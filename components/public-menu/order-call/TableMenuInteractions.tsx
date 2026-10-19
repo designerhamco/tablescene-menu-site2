@@ -113,7 +113,7 @@ export function DiningMenuToolbar({ children }: { children: ReactNode }) {
   const actions = useContext(Context);
   if (!actions || actions.device === "mobile") return <>{children}</>;
   return <div className={styles.diningToolbar} data-dining-menu-toolbar role="group" aria-label="메뉴판 도구">
-    <MenuLanguageSwitcher currentLocale={actions.locale} enabledLocales={actions.locales} compact iconOnly triggerVariant="aube" menuAlign="right" />
+    <MenuLanguageSwitcher currentLocale={actions.locale} enabledLocales={actions.locales} compact triggerVariant="aube" menuAlign="right" />
     <TableMenuActionButtons />
   </div>;
 }
@@ -224,6 +224,11 @@ export default function TableMenuInteractions({
               <div className={styles.dock}>
                 <TableMenuActionButtons />
               </div>
+            ) : null}
+            {!embedded && devicePresentation !== "mobile" && presentation === "aube" && call ? (
+              <button type="button" className={styles.diningFloatingCall} data-dining-floating-call aria-label="직원 호출하기" onClick={actions.openCall}>
+                <StaffCallIcon aria-hidden="true" /><span>호출</span>
+              </button>
             ) : null}
             {toast ? (
               <div className={styles.toast} role="status">

@@ -5,6 +5,7 @@ import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import defaultDesignStyles from "@/components/menu-templates/defaults/DefaultDesignPreview.module.css";
+import DefaultDesignScope from "@/components/menu-templates/defaults/DefaultDesignScope";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import { buildDefaultDesignPreview } from "@/lib/default-design-preview";
 import { getDefaultDesignOptions } from "@/lib/default-design-options";
@@ -73,6 +74,12 @@ type PageProps = {
     coverPreview?: string | string[];
     featuredPreview?: string | string[];
     imagesPreview?: string | string[];
+    secondaryNamesPreview?: string | string[];
+    descriptionsPreview?: string | string[];
+    priceOptionsPreview?: string | string[];
+    priceNotesPreview?: string | string[];
+    timeSalesPreview?: string | string[];
+    soldOutPreview?: string | string[];
     device?: string | string[];
     orientation?: string | string[];
     view?: string | string[];
@@ -1586,5 +1593,5 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
       {templateKey === "display_menu_a" && !isActualView ? <MenuPreviewGuide variant="display" /> : null}
     </>
   );
-  return defaultDesign ? <div className={defaultDesignStyles.surface} data-default-design={defaultDesign.id}>{preview}</div> : preview;
+  return defaultDesign ? <DefaultDesignScope><div className={defaultDesignStyles.surface} data-default-design={defaultDesign.id}>{preview}</div></DefaultDesignScope> : preview;
 }
