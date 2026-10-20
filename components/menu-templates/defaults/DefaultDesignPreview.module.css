@@ -95,6 +95,11 @@
   margin-inline: auto;
   object-position: center;
 }
+/* Keep the mobile brand description aligned with its optional centered logo.
+   Target only identity copy, never footer notices or menu descriptions. */
+.surface :global(.cafe-a-typography[data-cafe-a-mobile-style="true"] .cafe-a-mobile-header-copy:has([data-default-design-logo]) [data-cafe-a-store-description]) {
+  text-align: center;
+}
 @container aube (max-width: 767px) {
   .surface :global([data-default-design-logo]) { max-height: min(20svh, 8rem) !important; }
 }
