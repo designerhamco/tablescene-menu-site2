@@ -23,3 +23,5 @@ Display, inactive layouts and the Brew multi-page renderer retain their separate
 ## Verification
 
 `scripts/qa-template-typography-parity.mjs` compares actual rendered name, secondary name, description and price sizes against each family's default design across seven Basic skins, two Dining skins, ten default/album variants and PC/tablet/mobile. It also checks Basic grouped/fill parity and live Loop checker recoloring without geometry changes. Existing native layout QA separately checks order, columns, complete content, fixed actions and mobile rhythm. All measurements wait for actual viewport, layout and font settlement.
+
+Candidate measurements observe their real viewport, incoming content, font readiness and image load events. Hidden probe rows are measurement outputs and no longer trigger their own next measurement. Both native and Matcha readers restore final-width chip measurements after probing. The browser parity check samples sixteen consecutive animation frames to reject changing column choices or moving item geometry after settlement.

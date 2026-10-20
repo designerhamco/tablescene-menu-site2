@@ -25,6 +25,13 @@ async function check(c){
    const select={name:'.cafe-a-menu-title,.aube-table-item h3',secondary:'.cafe-a-menu-meta:not([data-cafe-a-reference-copy]),.aube-table-item-secondary',description:'.cafe-a-menu-description,.aube-table-item-description',price:'.cafe-a-menu-price,.aube-table-item-price'};
    return {viewport:[innerWidth,innerHeight],roles:Object.fromEntries(Object.entries(select).map(([role,selector])=>[role,[...new Set([...root.querySelectorAll(selector)].filter(e=>visible(e)&&e.closest('[data-cafe-a-menu-item],.aube-table-item')).map(e=>Number(parseFloat(getComputedStyle(e).fontSize).toFixed(3))))].sort((a,b)=>a-b)]))};
   });
+  if(!dining&&c.device!=='mobile'){
+   const settled=await p.evaluate(async()=>{
+    const root=document.querySelector('[data-native-scroll],[data-scroll-template]'),states=[];
+    for(let i=0;i<16;i++){await new Promise(requestAnimationFrame);states.push([root.getAttribute('data-scroll-columns')||root.style.getPropertyValue('--native-columns'),...([...root.querySelectorAll('[data-native-unit],[data-paged-block]')].slice(0,4).map(e=>Math.round(e.getBoundingClientRect().y)))]);}
+    return states;
+   });assert.ok(settled.every(state=>JSON.stringify(state)===JSON.stringify(settled[0])),'column choice and item geometry stay stable after measurement');
+  }
   if(!dining){
    const rails=await p.locator('.cafe-a-price-column-header').filter({visible:true}).evaluateAll(headers=>headers.filter(e=>!e.closest('[inert]')).map(header=>{
     const labels=[...header.querySelectorAll('.cafe-a-price-column-heading-label')].map(e=>e.getBoundingClientRect());
