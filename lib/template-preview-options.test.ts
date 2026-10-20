@@ -153,3 +153,14 @@ test("an empty representative ON receives a real image slot and optional feature
   assert.equal(data.pageSettings.menu_cover_enabled, true);
   assert.equal(source.menuSite.cover_image_url, null);
 });
+
+
+test("generated sold-out samples do not conceal independently enabled promotions", () => {
+  const source = fixture();
+  source.items.forEach(item => { item.is_sold_out = false; });
+  source.items.push({ ...source.items[0], id: "ordinary-without-sale" });
+  source.timeSales[0].items.push({ ...source.timeSales[0].items[0], id: "second-sale-target", menuItemId: "two" });
+  const data = applyTemplatePreviewOptions(source, { soldOutPreview: "on", timeSalesPreview: "on" });
+  assert.deepEqual(data.items.filter(item => item.is_sold_out).map(item => item.id), ["ordinary-without-sale"]);
+  assert.deepEqual(data.timeSales, source.timeSales);
+});

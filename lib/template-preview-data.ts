@@ -109,7 +109,12 @@ export function applyTemplatePreviewOptions(source: MenuPageData, query: Templat
   }
   if (enabled("timeSalesPreview") === false) { data.timeSales = []; data.nextTimeSaleStartAt = null; }
   if (enabled("soldOutPreview") === false) data.items.forEach(item => { item.is_sold_out = false; });
-  if (enabled("soldOutPreview") === true && !ordinary.some(item => item.is_sold_out) && ordinary.length) ordinary[Math.min(1, ordinary.length - 1)].is_sold_out = true;
+  if (enabled("soldOutPreview") === true && !ordinary.some(item => item.is_sold_out) && ordinary.length) {
+    const promotedIds = new Set(data.timeSales.flatMap(sale => sale.items.map(item => item.menuItemId)));
+    const candidates = [...ordinary.slice(1), ordinary[0]];
+    const soldOutSample = candidates.find(item => !promotedIds.has(item.id)) ?? candidates[0];
+    soldOutSample.is_sold_out = true;
+  }
   if (enabled("widgetsPreview") === false) data.widgets = [];
   if (enabled("widgetsPreview") === true && data.pages[0]) {
     const widgets = data.widgets?.length ? data.widgets : [{ id: "catalog-preview-full-widget", menuSiteId: data.menuSite.id, menuPageId: data.pages[0].id, sortOrder: 1000, visible: true }];

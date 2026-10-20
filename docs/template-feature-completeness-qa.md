@@ -2,7 +2,7 @@
 
 ## Scope and behavior
 
-- Active Basic 7 / Dining 2 catalog previews fill **every missing eligible example** only when the corresponding view option is explicitly ON. Existing real images/copy, IDs, source data and template skins stay intact. Images, secondary names, item/category descriptions, prices, discounts and sold-out state remain independent options. A price-note example must remain visible outside category/per-item price-option rails when both features are enabled.
+- Active Basic 7 / Dining 2 catalog previews fill **every missing eligible example** only when the corresponding view option is explicitly ON. Existing real images/copy, IDs, source data and template skins stay intact. Images, secondary names, item/category descriptions, prices, discounts and sold-out state remain independent options. A price-note example must remain visible outside category/per-item price-option rails when both features are enabled. A synthesized sold-out example prefers a non-promoted item so independently enabled sales remain visible; existing saved/starter sold-out states are preserved.
 - All active starters except Mocha Forest now contain image+title+body widgets. Mocha retains its default character-only widget; explicitly enabling its view option shows a full feature example. ONUE uses capability-based widget rendering, fixing its omission from the old renderer allowlist. Dining reuses the existing widget component and generic editor/save capability after page content. No SQL/schema/data migration.
 - Basic tablet preview rotation is removed; Dining rotation remains. Basic's actual portrait viewport support is unchanged.
 - Loop Bagel has real sesame/strawberry cream cheese cutouts and a visible ICE ONLY example. Asset provenance and prompt set: `loop-bagel-product-images.md`.
@@ -12,7 +12,7 @@
 
 ## Verification
 
-- 693 unit checks, separate TypeScript, changed-file ESLint and optimized production build pass. No authenticated/database/payment mutations were used.
+- 694 unit checks, separate TypeScript, changed-file ESLint and optimized production build pass. No authenticated/database/payment mutations were used.
 - `qa-template-feature-completeness.mjs`: final optimized build **34 checks** (9 skins × PC/tablet/mobile, Basic vs Dining rotation, real Loop assets and ONUE default sales). Actual viewports: 1440×900, 1180×820, 390×844. Checks eligible image/copy completeness, every category description, real note spacing, full widget content, lighter item icons, palette roles, centered logo, preserved course image exceptions and no horizontal clipping. Browser errors and attempted non-GET API writes: zero.
 - Narrow ONUE rerun: **9 checks**, including 320×844 and 430×932 with logo+cover+featured enabled. Representative content stays inside the original square mobile frame.
 - `qa-menu-logo-language.mjs`: **27 combinations**, logo OFF/ON; language colors and call/order palettes remain identical.
