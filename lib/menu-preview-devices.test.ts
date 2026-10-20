@@ -304,7 +304,7 @@ test("detached links retain the selected device and interactive feature toggles"
     }));
     const link = html.match(/<a[^>]*data-preview-detached-link=""[^>]*>/)?.[0] ?? "";
     const href = link.match(/href="([^"]*)"/)?.[1].replaceAll("&amp;", "&");
-    assert.equal(href, `/mypage/menus/menu-a/preview?lang=en&page=2&callPreview=on&device=${device}${device === "tablet" ? "&orientation=portrait" : ""}&view=actual&embedded=1`);
+    assert.equal(href, `/mypage/menus/menu-a/preview?lang=en&page=2&callPreview=on&device=${device}${device === "tablet" ? "&orientation=landscape" : ""}&view=actual&embedded=1`);
     assert.match(html, new RegExp(`src="[^\"]*device=${device}`));
     const starterUrl = buildTemplatePreviewUrl("fast_food_loop_bagel_a", {
       device, orientation: "portrait", lang: "en", callPreview: "on",

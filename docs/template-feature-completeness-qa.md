@@ -1,0 +1,27 @@
+# Template feature completeness — 2026-10-20
+
+## Scope and behavior
+
+- Active Basic 7 / Dining 2 catalog previews fill **every missing eligible example** only when the corresponding view option is explicitly ON. Existing real images/copy, IDs, source data and template skins stay intact. Images, secondary names, item/category descriptions, prices, discounts and sold-out state remain independent options. A price-note example must remain visible outside category/per-item price-option rails when both features are enabled.
+- All active starters except Mocha Forest now contain image+title+body widgets. Mocha retains its default character-only widget; explicitly enabling its view option shows a full feature example. ONUE uses capability-based widget rendering, fixing its omission from the old renderer allowlist. Dining reuses the existing widget component and generic editor/save capability after page content. No SQL/schema/data migration.
+- Basic tablet preview rotation is removed; Dining rotation remains. Basic's actual portrait viewport support is unchanged.
+- Loop Bagel has real sesame/strawberry cream cheese cutouts and a visible ICE ONLY example. Asset provenance and prompt set: `loop-bagel-product-images.md`.
+- ONUE has image slots, English secondary names and descriptions for all 20 products; two category price rails; price-note examples; wine `#713F36` TABLE SPECIAL countdown and SEASONAL message discounts. Logo centering uses the identity slot. The original representative ratio stays **PC/tablet 4:3, mobile 1:1**. A tested mobile 4:3 candidate clipped the fully enabled logo/description/featured content at 320px; it was rejected rather than reducing approved text or spacing.
+- Van Gogh's original cover default remains OFF. Explicit cover ON supplies a neutral image slot, featured ON supplies a linked product. Coffee and palette-latte demonstrate 2/3 category prices. Price-note examples remain outside those rails. Van Gogh/Sunday language controls occupy the description cell's top-left, reserving space above copy. Sunday category divider strokes are removed while category gap tokens remain.
+- Shared rectangular Call uses the brightest menu surface plus readable representative ink/border; Order uses the darkest menu swatch plus bright text. Actual menu surfaces/declared inks supply colors; site chrome and photo pixels do not. Contrast fallback covers unreadable palettes. Existing solid Call circles keep their independent representative accent. Item-add icons mix ink with 32% white. Basic notes/prices keep a 0.375rem (6px at the standard root) gap. Photo-fade featured copy uses bright ink rather than page ink.
+
+## Verification
+
+- 693 unit checks, separate TypeScript, changed-file ESLint and optimized production build pass. No authenticated/database/payment mutations were used.
+- `qa-template-feature-completeness.mjs`: final optimized build **34 checks** (9 skins × PC/tablet/mobile, Basic vs Dining rotation, real Loop assets and ONUE default sales). Actual viewports: 1440×900, 1180×820, 390×844. Checks eligible image/copy completeness, every category description, real note spacing, full widget content, lighter item icons, palette roles, centered logo, preserved course image exceptions and no horizontal clipping. Browser errors and attempted non-GET API writes: zero.
+- Narrow ONUE rerun: **9 checks**, including 320×844 and 430×932 with logo+cover+featured enabled. Representative content stays inside the original square mobile frame.
+- `qa-menu-logo-language.mjs`: **27 combinations**, logo OFF/ON; language colors and call/order palettes remain identical.
+- `qa-native-basic-scroll.mjs`: previous-skin **78-case scope** across narrow/wide phones, both tablet orientations, 4 locales, menu order, measured column counts, fixed actions/rails, reachable last content/notices and existing 20/24/48 mobile rhythm. Initial run passed 77; ONUE's newly required price option correctly blocked a test that skipped selection. The harness now selects options and its **18-check ONUE/Dining rerun passes**, including the real add/cart/call flow. No product validation was weakened.
+- `qa-default-design-options.mjs`: **20 checks** for toggles, all-category descriptions, full widgets, explicit neutral bakery image exceptions, option/sale/sold-out independence, locale/device link persistence and real Dining add options. The harness handles the outer scrolling preview and its asynchronously measured toolbar before physically clicking iframe navigation.
+- `qa-menu-popup-albums.mjs`: **11 checks** for albums, square item thumbnails, category/standalone equal tracks, right-aligned price/add icons, per-price leaders, course image/one-column rules and advertisement controls.
+
+Evidence reports/screenshots were written under `/private/tmp/template-feature-final`, `template-narrow-final`, `template-logo-final`, `template-native-final`, `template-onue-final`, `template-neutral-final` and `template-album-final`.
+
+## Release boundary
+
+Changes affect catalog demonstrations, future/reset starter data and shared renderers. Existing customer records are not backfilled or rewritten. Display/inactive engines, independent representative-background editor geometry, subscription/payment changes and separate Dining color controls remain outside this release. Native mobile typography/spacing, Dining page navigation and priced-course semantics are preserved.

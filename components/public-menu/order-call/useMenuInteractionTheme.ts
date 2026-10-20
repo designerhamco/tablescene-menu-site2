@@ -32,7 +32,12 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
         surfaces.push(getComputedStyle(panel).backgroundColor);
         if (panel === root) break;
       }
-      const inks = [...root.querySelectorAll<HTMLElement>(".cafe-a-category-title,[data-cafe-a-menu-name]")].filter(visible).slice(0, 12).map(e => getComputedStyle(e).color);
+      const declaredInks = ["--menu-role-category-color", "--aube-accent", "--aube-ink", "--cafe-a-ink", "--menu-role-item-name-color", "--menu-role-price-color"].map(key => style.getPropertyValue(key).trim()).filter(Boolean);
+      const inks = [...declaredInks, ...[...root.querySelectorAll<HTMLElement>(".cafe-a-category-title,[data-cafe-a-menu-name],.cafe-a-menu-price,.aube-table-course-title,.aube-table-item-heading h3,.aube-table-item-price")].filter(visible).slice(0, 12).map(e => getComputedStyle(e).color)];
+      // Include the actual reading panels, not photo pixels or site chrome.
+      for (const panel of root.querySelectorAll<HTMLElement>("[data-native-column],.aube-table-page,.cafe-a-fixed-rail")) {
+        if (visible(panel)) surfaces.push(getComputedStyle(panel).backgroundColor);
+      }
       const next = resolveMenuInteractionTheme({ brand: brandColor, surfaces, inks });
       setTheme(previous => JSON.stringify(previous) === JSON.stringify(next) ? previous : next);
     };

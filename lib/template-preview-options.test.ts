@@ -94,7 +94,7 @@ test("supported options match each native engine and preserve neutral album excl
   const basic = getTemplatePreviewOptionGroups("cafe_sunday_line_a").flatMap(group => group.choices.map(([key]) => key));
   const dining = getTemplatePreviewOptionGroups("dining_aube_table_a").flatMap(group => group.choices.map(([key]) => key));
   assert.equal(basic.length, 14); assert.ok(basic.includes("widgetsPreview"));
-  assert.equal(dining.length, 10); assert.ok(dining.includes("coverImagesPreview"));
+  assert.equal(dining.length, 11); assert.ok(dining.includes("coverImagesPreview"));
   assert.ok(!dining.includes("featuredPreview") && !dining.includes("timeSalesPreview"));
   assert.deepEqual(getTemplatePreviewOptionGroups("display_menu_a"), []);
   for (const design of DEFAULT_DESIGN_REVIEWS.filter(design => design.itemLayout === "album" && design.layout.startsWith("basic-"))) {
@@ -124,4 +124,32 @@ test("explicit secondary-name previews use existing translations and OFF also re
   enabled.items[0].default_name = "포레스트 모카";
   const disabled = applyTemplatePreviewOptions(enabled, { secondaryNamesPreview: "off" });
   assert.ok(disabled.items.every(item => !item.set_name && !item.default_name));
+});
+
+
+test("ON fills partially missing fields for every eligible item and category", () => {
+  const source = fixture();
+  source.items[0].image_url = "/original.jpg";
+  source.items[1].image_url = null;
+  source.items[1].description = null;
+  source.categories[0].description = "Original category copy";
+  const data = applyTemplatePreviewOptions(source, { imagesPreview: "on", descriptionsPreview: "on", categoryDescriptionsPreview: "on", widgetsPreview: "on" });
+  assert.equal(data.items[0].image_url, "/original.jpg");
+  assert.ok(data.items[1].image_url && data.items[1].description);
+  assert.equal(data.items[2].image_url, source.items[2].image_url, "priced-course media remains registered but is excluded by the course renderer");
+  assert.ok(data.categories.every(category => category.description && category.description_visible));
+  assert.ok(data.widgets?.every(widget => widget.type === "image_text" && widget.imageUrl && widget.title && widget.description));
+  assert.equal(source.items[1].image_url, null, "preview does not rewrite the source");
+});
+
+test("an empty representative ON receives a real image slot and optional featured product", () => {
+  const source = fixture();
+  source.featuredSlides = []; source.menuSite.cover_image_url = null;
+  source.pageSettings.menu_cover_enabled = false;
+  source.pageSettings.featured_item_id = null;
+  const data = applyTemplatePreviewOptions(source, { coverPreview: "on", featuredPreview: "on" });
+  assert.ok(data.featuredSlides?.[0].imageUrl);
+  assert.equal(data.featuredSlides?.[0].featuredItemId, source.items[0].id);
+  assert.equal(data.pageSettings.menu_cover_enabled, true);
+  assert.equal(source.menuSite.cover_image_url, null);
 });

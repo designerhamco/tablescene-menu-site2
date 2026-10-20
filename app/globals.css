@@ -5888,3 +5888,18 @@ video {
 .cafe-a-typography[data-menu-text-colors~="price"] :is(.cafe-a-menu-price, .cafe-a-featured-price, .cafe-a-price-label, .cafe-a-time-sale-price, .aube-table-item-price, .aube-table-course-price) {
   color: var(--menu-role-price-color) !important;
 }
+
+/* Customer-menu actions keep lighter line icons and one shared price-note gap. */
+[data-menu-order-add] { color: color-mix(in srgb, currentColor 68%, white 32%) !important; }
+.cafe-a-typography .cafe-a-price-pair-with-note { column-gap: .375rem !important; }
+.cafe-a-typography [data-cafe-a-tablet-price-layout="stacked"] .cafe-a-price-pair-with-note { row-gap: .25rem; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-identity .cafe-a-store-logo-wrap { width: 100%; display: flex; justify-content: center; }
+.cafe-a-typography[data-template-key="cafe_sunday_line_a"] .cafe-a-menu-category-top-divider { display: none; }
+
+/* Featured copy sits over the shared dark photo fade, not the page ink surface. */
+.cafe-a-typography .cafe-a-cover-hero[data-cafe-a-cover-has-image="true"] .cafe-a-featured-copy {
+  --menu-role-item-name-color: #fff;
+  --menu-role-price-color: #fff;
+  --menu-role-supporting-color: rgb(255 255 255 / 82%);
+  color: #fff;
+}

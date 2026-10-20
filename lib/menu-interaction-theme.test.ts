@@ -2,29 +2,30 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { resolveMenuInteractionTheme, menuColorContrast } from "./menu-interaction-theme";
 
-test("dark brand uses the menu's light paper and matching outlined Call", () => {
+test("rectangular actions use the brightest and darkest menu swatches with representative Call ink", () => {
   const t = resolveMenuInteractionTheme({ brand: "rgb(22, 95, 60)", surfaces: ["#fff", "#f6f3ed"], inks: ["#191c1b"] });
-  assert.equal(t["--menu-order-bg"], "#165f3c");
+  assert.equal(t["--menu-order-bg"], "#191c1b");
   assert.equal(t["--menu-order-ink"], "#ffffff");
   assert.equal(t["--menu-call-bg"], "#ffffff");
   assert.equal(t["--menu-call-ink"], "#165f3c");
   assert.equal(t["--menu-call-border"], "#165f3c");
+  assert.equal(t["--menu-call-circle-bg"], "#165f3c");
 });
-test("bright brand remains the Order fill while unreadable text gets a darker menu ink", () => {
-  const t = resolveMenuInteractionTheme({ brand: "#ffe500", surfaces: ["#faf6eb"], inks: ["#222"] });
-  assert.equal(t["--menu-order-bg"], "#ffe500");
-  assert.equal(t["--menu-order-ink"], "#222222");
-  assert.equal(t["--menu-call-ink"], "#222222");
-  assert.equal(t["--menu-order-border"], "#222222");
+test("a bright photo-title brand does not turn the Order fill into a bright button", () => {
+  const t = resolveMenuInteractionTheme({ brand: "#fff9ee", surfaces: ["#252525", "#fff"], inks: ["#713f36", "#33221e"] });
+  assert.equal(t["--menu-order-bg"], "#252525");
+  assert.equal(t["--menu-order-ink"], "#ffffff");
+  assert.equal(t["--menu-call-bg"], "#ffffff");
+  assert.equal(t["--menu-call-border"], "#713f36");
 });
-test("dark menu retains its own surface and light brand", () => {
+test("dark menus invert the two rectangular surfaces while retaining solid call circle branding", () => {
   const t = resolveMenuInteractionTheme({ brand: "#f7eedc", surfaces: ["#15181b"], inks: ["#f7eedc"] });
-  assert.equal(t["--menu-order-bg"], "#f7eedc");
-  assert.equal(t["--menu-order-ink"], "#15181b");
-  assert.equal(t["--menu-call-bg"], "#15181b");
-  assert.equal(t["--menu-call-ink"], "#f7eedc");
+  assert.equal(t["--menu-order-bg"], "#15181b");
+  assert.equal(t["--menu-order-ink"], "#f7eedc");
+  assert.equal(t["--menu-call-bg"], "#f7eedc");
+  assert.equal(t["--menu-call-circle-bg"], "#f7eedc");
 });
-test("all light palettes and middle gray still produce readable controls", () => {
+test("all-light or invalid palettes still produce readable controls", () => {
   for (const brand of ["#fff", "#777", "rgb(100% 100% 100%)", "invalid", "#fefecc"]) {
     const t = resolveMenuInteractionTheme({ brand, surfaces: ["transparent", "#fff", "rgba(0,0,0,0)"] });
     assert.ok(menuColorContrast(t["--menu-order-bg"], t["--menu-order-ink"]) >= 4.5);
@@ -32,9 +33,10 @@ test("all light palettes and middle gray still produce readable controls", () =>
     assert.ok(menuColorContrast(t["--menu-order-border"], "#fff") >= 3);
   }
 });
-test("alpha brand colors resolve as rendered, transparent surfaces are ignored", () => {
+test("alpha brand is composited only for the persistent brand circle", () => {
   const t = resolveMenuInteractionTheme({ brand: "rgba(0 0 0 / 50%)", surfaces: ["rgba(0,0,0,0)", "#fff"] });
-  assert.equal(t["--menu-order-bg"], "#808080");
+  assert.equal(t["--menu-call-circle-bg"], "#808080");
+  assert.equal(t["--menu-order-bg"], "#191c1b");
   assert.equal(t["--menu-call-bg"], "#ffffff");
-  assert.equal(t["--menu-order-ink"], "#000000");
+  assert.equal(t["--menu-order-ink"], "#ffffff");
 });

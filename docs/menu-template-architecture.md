@@ -21,6 +21,12 @@ This refactor moves existing declarations without changing formulas, tokens, con
 
 Shared components may render the same price or name, but presentation policies retain separate scopes. Existing functions and constants were moved verbatim. Source-contract tests read the renderer plus the extracted modules instead of assuming every declaration lives in one file.
 
+## Catalog feature examples
+
+`lib/template-preview-data.ts` adapts explicit catalog option overrides only. It preserves source data, fills every missing eligible field, supplies a cover/featured example for empty starters and converts explicit widget previews to full image+title+body examples. Saved-menu/public routes never import this adapter. Starter records supply default examples only when creating/resetting menus; they do not update existing customers.
+
+Widget rendering follows `getTemplateCapabilities(...).menuWidgets.enabled`, not a parallel template-key allowlist. `CafeAWidgetBlock` and its `toCafeAWidgetPreview` adapter are reused by Dining A/B after the current page's category/standalone content; sorting, visibility, image fitting and the existing generic editor/save path remain shared. Priced-course imagery/one-column exceptions are independent.
+
 ## One-page PC/tablet structures
 
 `lib/one-page-layout-shells.ts` owns the fixed template-to-structure mapping. Common font links, readable floors, order/packing rules and fit safety apply across structures, while their fixed content placement differs.

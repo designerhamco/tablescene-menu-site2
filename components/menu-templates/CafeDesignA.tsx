@@ -912,13 +912,7 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
   const visiblePages = data.pages
     .filter((page) => page.visible !== false)
     .sort((a, b) => a.sort_order - b.sort_order || a.created_at.localeCompare(b.created_at));
-  const shouldRenderWidgets =
-    data.menuSite.template_key === "cafe_design_a" ||
-    data.menuSite.template_key === "cafe_mocha_forest_a" ||
-    data.menuSite.template_key === "cafe_sunday_line_a" ||
-    data.menuSite.template_key === "cafe_van_gogh_a" ||
-    data.menuSite.template_key === "cafe_round_focus_a" ||
-    data.menuSite.template_key === "fast_food_loop_bagel_a";
+  const shouldRenderWidgets = getTemplateCapabilities(data.menuSite.template_key).menuWidgets.enabled;
   const separatorRules = getTemplateContentSeparatorRules(data.menuSite.template_key);
   const widgets = shouldRenderWidgets ? data.widgets ?? [] : [];
 

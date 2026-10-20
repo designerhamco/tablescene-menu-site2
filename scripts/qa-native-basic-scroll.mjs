@@ -7,7 +7,7 @@ const out=process.env.ORDER_QA_OUTPUT || '/private/tmp/native-template-rollout/a
 await fs.mkdir(out,{recursive:true});
 const baselinePath=process.env.NATIVE_QA_BASELINE;
 const baseline=baselinePath ? JSON.parse(await fs.readFile(baselinePath,'utf8')) : [];
-const keys=['cafe_mocha_forest_a','fast_food_loop_bagel_a','cafe_sunday_line_a','cafe_van_gogh_a','cafe_round_focus_a','restaurant_onue_a'];
+const keys=['cafe_mocha_forest_a','fast_food_loop_bagel_a','cafe_sunday_line_a','cafe_van_gogh_a','cafe_round_focus_a','restaurant_onue_a'].filter(key => !process.env.QA_KEYS || process.env.QA_KEYS.split(',').includes(key));
 const browser=await chromium.launch(), results=[], failures=[], errors=[], writes=[];
 const smoke=process.env.NATIVE_QA_SMOKE==='1';
 const cases=[];
@@ -92,6 +92,7 @@ try{
    assert.equal(await frame.locator('[data-cart-back],[data-cart-table]').count(),0,'empty cart has no full-page header');
    await frame.getByRole('button',{name:'메뉴 보러 가기',exact:true}).click();
    await frame.locator('[data-menu-order-add]').filter({visible:true}).first().click();
+   for (const group of await frame.getByRole('dialog').locator('fieldset').all()) await group.getByRole('button').first().click();
    await frame.getByRole('button',{name:/장바구니 담기/}).click();
    await frame.locator('[data-native-actions] button').last().click();
    const cart=frame.getByRole('dialog',{name:'장바구니',exact:true});await cart.waitFor();

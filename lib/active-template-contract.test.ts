@@ -74,7 +74,7 @@ test("specialized launch template capabilities remain fail-closed", () => {
   assert.equal(aubeTable.multiPage?.enabled, true);
   assert.equal(aubeTable.menuCover.coverMode, "page");
   assert.equal(aubeTable.events, false);
-  assert.equal(aubeTable.menuWidgets.enabled, false);
+  assert.equal(aubeTable.menuWidgets.enabled, true);
 
   assert.equal(templateCatalog.find((template) => template.key === "cafe_brew_chapter_a")?.status, "retired");
 
@@ -97,7 +97,7 @@ test("메종 마레는 판매 가능한 멀티페이지 템플릿으로 사이�
   assert.equal(capabilities.multiPage?.fixedShell, "fine_dining_sidebar");
   assert.equal(capabilities.multiPage?.mobileMenuLayout, "page_scroll_tabs");
   assert.equal(capabilities.multiPage?.globalPagination, "sidebar_and_mobile_tabs");
-  assert.equal(capabilities.menuWidgets.enabled, false);
+  assert.equal(capabilities.menuWidgets.enabled, true);
 });
 
 test("Display launch template stays isolated to the Display service", () => {

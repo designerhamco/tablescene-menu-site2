@@ -16,7 +16,7 @@ for (const [templateKey, translations] of Object.entries(SINGLE_PAGE_STARTER_TRA
     const items = preset.pages.flatMap((page) => page.categories.flatMap((category) => category.items));
     const itemKeys = items.map((item) => item.key).filter((key): key is string => Boolean(key));
     const promotionKeys = (preset.time_sales ?? []).map((promotion) => promotion.key).filter((key): key is string => Boolean(key));
-    const descriptionlessItemKeys = templateKey === "restaurant_onue_a" ? new Set(["americano", "ade"]) : templateKey === "fast_food_loop_bagel_a"
+    const descriptionlessItemKeys = templateKey === "fast_food_loop_bagel_a"
       ? new Set([
           "plain-cream-cheese",
           "scallion-cream-cheese",

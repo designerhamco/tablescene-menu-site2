@@ -34,8 +34,9 @@ test("buildCafeAStarterResetSnapshot creates a complete CafeA reset snapshot", (
   }
 
   const { snapshot } = result;
-  assert.equal(snapshot.widgets.length, 0);
-  assert.deepEqual(snapshot.referenceMap.widget, {});
+  assert.equal(snapshot.widgets.length, 1);
+  assert.equal(snapshot.widgets[0].type, "image_text");
+  assert.equal(Object.keys(snapshot.referenceMap.widget).length, 1);
   assert.equal(snapshot.categoryPriceColumns.length, 0);
   assert.equal(snapshot.itemPriceColumnValues.length, 0);
   assert.deepEqual(snapshot.deletedPageIds, ["existing-page"]);
@@ -50,12 +51,13 @@ test("buildCafeAStarterResetSnapshot creates a complete CafeA reset snapshot", (
   const pageId = snapshot.pages[0]?.id;
   assert.ok(pageId);
   const blocks = snapshot.mixedContentOrder[pageId] ?? [];
-  assert.equal(blocks.length, 5);
-  assert.equal(blocks.length, snapshot.categories.length);
-  assert.equal(blocks.every((block) => block.blockType === "category"), true);
+  assert.equal(blocks.length, 6);
+  assert.equal(blocks.length, snapshot.categories.length + snapshot.widgets.length);
+  assert.equal(blocks.slice(0, -1).every((block) => block.blockType === "category"), true);
+  assert.equal(blocks.at(-1)?.blockType, "widget");
   assert.deepEqual(blocks.map((block) => block.sortOrder), blocks.map((_, index) => index));
   assert.deepEqual(
-    blocks.map((block) => snapshot.categories.find((category) => category.id === block.id)?.presetKey),
+    blocks.filter(block => block.blockType === "category").map((block) => snapshot.categories.find((category) => category.id === block.id)?.presetKey),
     ["signature-coffee", "classic-coffee", "non-coffee", "ade", "bakery"],
   );
 

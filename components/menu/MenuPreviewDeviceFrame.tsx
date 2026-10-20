@@ -86,9 +86,11 @@ function PreviewOrientationIcon() {
 }
 
 export default function MenuPreviewDeviceFrame(
-  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions },
+  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; supportsTabletOrientation?: boolean },
 ) {
-  const { device, orientation, query } = props;
+  const { device, query } = props;
+  const supportsTabletOrientation = props.supportsTabletOrientation ?? props.templateKey?.startsWith("dining_") ?? false;
+  const orientation = supportsTabletOrientation ? props.orientation : "landscape";
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isToolbarOpen, setIsToolbarOpen] = useState(true);
@@ -264,7 +266,7 @@ export default function MenuPreviewDeviceFrame(
                 );
               })}
             </nav>
-            {device === "tablet" ? (
+            {device === "tablet" && supportsTabletOrientation ? (
               <Link
                 aria-label={`태블릿을 ${MENU_PREVIEW_ORIENTATIONS[nextTabletOrientation]}로 회전`}
                 title={`태블릿을 ${MENU_PREVIEW_ORIENTATIONS[nextTabletOrientation]}로 회전`}
