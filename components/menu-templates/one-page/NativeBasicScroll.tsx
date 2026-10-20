@@ -180,15 +180,20 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       const ratio = logo.naturalWidth ? logo.naturalHeight / logo.naturalWidth : 0;
       const copyHeight = Math.max(0, ...[...root.querySelectorAll<HTMLElement>(".cafe-a-topline-description,.cafe-a-topline-notice-text")].map(el => Math.max(el.scrollHeight, el.getBoundingClientRect().height)));
+      root.style.setProperty("--cafe-a-header-copy-height", `${Math.ceil(copyHeight)}px`);
       const headerRatio = getCanvasHeaderRatio(height, 0, 0, 1, Math.max(copyHeight, Math.min(slot.clientWidth * .75 * ratio, innerHeight * .2, 12 * rem)));
       root.style.setProperty("--cafe-a-header-fr", `${headerRatio * 100}fr`);
       root.style.setProperty("--cafe-a-body-fr", `${(1 - headerRatio) * 100}fr`);
     };
     const schedule = () => { if (!disposed && !frame) frame = requestAnimationFrame(update); };
     const observer = new ResizeObserver(schedule); observer.observe(root); observer.observe(slot);
+    for (const element of root.querySelectorAll(".cafe-a-topline-description,.cafe-a-topline-notice-text")) observer.observe(element);
+    const copyObserver = new MutationObserver(schedule);
+    const header = root.querySelector("[data-cafe-a-topline-info-header]");
+    if (header) copyObserver.observe(header, { childList: true, characterData: true, subtree: true });
     logo.addEventListener("load", schedule); document.fonts.addEventListener("loadingdone", schedule);
     void document.fonts.ready.then(schedule); schedule();
-    return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); logo.removeEventListener("load", schedule); document.fonts.removeEventListener("loadingdone", schedule); };
+    return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); copyObserver.disconnect(); logo.removeEventListener("load", schedule); document.fonts.removeEventListener("loadingdone", schedule); root.style.removeProperty("--cafe-a-header-copy-height"); };
   }, [top, data.menuSite.logo_url]);
   const noticeNode = !top && !center && notices.length ? <div className={`${styles.notices} cafe-a-menu-description cafe-a-description-text`} data-native-notices>{notices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>)}</div> : null;
   const dock = showCall || showOrder ? <footer className={styles.actions} data-native-actions data-call-only={showCall && !showOrder ? "true" : undefined} aria-label={t("메뉴 이용")}>

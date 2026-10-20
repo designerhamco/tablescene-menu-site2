@@ -33,7 +33,7 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
     assert.equal(new Set(itemKeys).size, itemKeys.length);
     if (templateKey === "fast_food_loop_bagel_a") {
       const items = categories.flatMap((category) => category.items);
-      assert.equal(items.every((item) => !item.set_name?.trim()), true);
+      assert.equal(items.every((item) => Boolean(item.set_name?.trim())), true);
       const descriptionlessItems = new Set([
         "plain-cream-cheese",
         "scallion-cream-cheese",
@@ -50,7 +50,7 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
       );
     } else if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a") {
       const items = categories.flatMap((category) => category.items);
-      assert.equal(items.every((item) => !item.set_name?.trim()), true);
+      assert.equal(items.every((item) => templateKey === "cafe_mocha_forest_a" ? Boolean(item.set_name?.trim()) : !item.set_name?.trim()), true);
       if (templateKey === "cafe_mocha_forest_a") {
         assert.equal(items.every((item) => Boolean(item.description?.trim())), true);
         const mochaBadges = new Map(
@@ -121,7 +121,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(loopBagel.site.restaurant_category, "패스트푸드");
   assert.equal(loopBagel.site.restaurant_type, "fast_food");
   assert.equal(loopBagelItems.length, 18);
-  assert.equal(loopBagelItems.every((item) => !item.set_name?.trim()), true);
+  assert.equal(loopBagelItems.every((item) => Boolean(item.set_name?.trim())), true);
   assert.equal(loopBagelItems.every((item) => !item.price_options?.length), true);
   const loopBagelDrinks = loopBagel.pages[0]?.categories.find((category) => category.key === "coffee-drinks");
   assert.equal(
@@ -213,7 +213,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   );
   assert.equal(
     mergeTypographySettings("fast_food_loop_bagel_a", loopBagel.site.settings?.typography).english_font_key,
-    "bagel-fat-one",
+    "mogra",
   );
   assert.equal(
     mergeTypographySettings("fast_food_loop_bagel_a", loopBagel.site.settings?.typography).korean_font_key,
@@ -392,4 +392,17 @@ test("ONUE starters demonstrate complete product copy, multiple price rails and 
   assert.ok(items.some(item => item.price_note));
   assert.deepEqual(new Set(preset.time_sales?.map(sale => sale.time_display_mode)), new Set(["countdown", "message"]));
   assert.ok(preset.time_sales?.every(sale => sale.badge_background_color === "#713F36"));
+});
+
+
+test("Mocha and Loop bilingual starters use the registered English copy for every item", () => {
+  for (const templateKey of ["cafe_mocha_forest_a", "fast_food_loop_bagel_a"]) {
+    const english = getSinglePageStarterTranslations(templateKey)!.en.items;
+    const first = getStarterPreset(templateKey);
+    for (const menuItem of first.pages.flatMap(page => page.categories.flatMap(category => category.items))) {
+      assert.equal(menuItem.set_name, english[menuItem.key!].name.toUpperCase());
+    }
+    first.pages[0].categories[0].items[0].set_name = "CUSTOMER EDIT";
+    assert.notEqual(getStarterPreset(templateKey).pages[0].categories[0].items[0].set_name, "CUSTOMER EDIT", "reads do not mutate the starter source");
+  }
 });

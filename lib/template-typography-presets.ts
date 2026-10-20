@@ -129,7 +129,7 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
 
   cafe_mocha_forest_a: {
     korean_font_key: "pretendard",
-    english_font_key: "chelsea-market",
+    english_font_key: "carme",
     font_size_scale_key: "m",
   },
   cafe_sunday_line_a: {
@@ -167,7 +167,7 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
   },
   fast_food_loop_bagel_a: {
     korean_font_key: "pretendard",
-    english_font_key: "bagel-fat-one",
+    english_font_key: "mogra",
     font_size_scale_key: "m",
     typography_roles: {
       ...createDefaultTypographyRoleSettings(),

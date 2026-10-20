@@ -2366,7 +2366,7 @@ function CafeAFooterInfo({
 
   return (
     <aside
-      className={`cafe-a-footer-info break-inside-avoid text-right text-[#58645f] ${
+      className={`cafe-a-footer-info break-inside-avoid text-right text-[#3f4945] ${
         placement === "desktop" ? "cafe-a-footer-info-anchor hidden lg:block" : "mt-6 md:col-span-2 lg:hidden"
       }`}
       data-cafe-a-footer-info=""
@@ -3805,7 +3805,7 @@ function SundayLineMobileNotices({
   if (infoRows.length === 0) return null;
 
   return (
-    <aside className="cafe-a-topline-mobile-notices px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-copy-block-gap)] text-left text-[#58645f] md:hidden" data-cafe-a-topline-mobile-notices="">
+    <aside className="cafe-a-topline-mobile-notices px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-copy-block-gap)] text-left text-[#3f4945] md:hidden" data-cafe-a-topline-mobile-notices="">
       {mobileReading ? <MobileNoticeList rows={infoRows} density={density} /> : <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap whitespace-pre-line break-keep ${descriptionSizeClassName}`}>
         <ScriptAwareText text={infoRows.join("\n")} />
       </p>}

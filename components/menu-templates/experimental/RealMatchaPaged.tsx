@@ -421,6 +421,8 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const naturalRatio = logo.naturalWidth > 0 ? logo.naturalHeight / logo.naturalWidth : 0;
       const desiredLogoHeight = Math.min(slot.clientWidth * .75 * naturalRatio, innerHeight * .2, 12 * rem);
       const sideHeight = Math.max(0, ...[...header.querySelectorAll<HTMLElement>("[data-scroll-header-copy]")].map(element => Math.max(element.scrollHeight, element.getBoundingClientRect().height)));
+      // Copy sets a real minimum; the compact title/logo budget must not crop it.
+      board.style.setProperty("--cafe-a-header-copy-height", `${Math.ceil(sideHeight)}px`);
       const ratio = getCanvasHeaderRatio(height, 0, 0, 1, Math.max(desiredLogoHeight, sideHeight));
       board.style.setProperty("--cafe-a-header-fr", `${ratio * 100}fr`);
       board.style.setProperty("--cafe-a-body-fr", `${(1 - ratio) * 100}fr`);
@@ -433,6 +435,8 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     observer.observe(board);
     observer.observe(slot);
     for (const element of header.querySelectorAll("[data-scroll-header-copy]")) observer.observe(element);
+    const copyObserver = new MutationObserver(schedule);
+    copyObserver.observe(header, { childList: true, characterData: true, subtree: true });
     logo.addEventListener("load", schedule);
     document.fonts.addEventListener("loadingdone", schedule);
     void document.fonts.ready.then(schedule);
@@ -441,9 +445,10 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       disposed = true;
       cancelAnimationFrame(frame);
       observer.disconnect();
+      copyObserver.disconnect();
       logo.removeEventListener("load", schedule);
       document.fonts.removeEventListener("loadingdone", schedule);
-      for (const property of ["--cafe-a-header-fr", "--cafe-a-body-fr", "--cafe-a-header-gap-scale"]) board.style.removeProperty(property);
+      for (const property of ["--cafe-a-header-fr", "--cafe-a-body-fr", "--cafe-a-header-gap-scale", "--cafe-a-header-copy-height"]) board.style.removeProperty(property);
       delete board.dataset.fitHeaderRatio;
       delete board.dataset.fitHeaderGapScale;
       delete board.dataset.fitHeaderBrandLines;
@@ -570,7 +575,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
                     {u.node}
                   </div>
                 ))}
-                <div ref={noticeMeasure} className={`${styles.notices} cafe-a-description-text cafe-a-menu-description text-[#58645f]`}>
+                <div ref={noticeMeasure} className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`}>
                   {notices.map((n, i) => <p key={i}><ScriptAwareText text={n} /></p>)}
                 </div>
               </div>
@@ -594,7 +599,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
                         {unit(b, index === column.length - 1, i === layout.footerColumn && notices.length > 0,
                           column[index + 1]?.kind ?? (i === layout.footerColumn && notices.length ? "notices" : undefined))}
                       </div>)}
-                      {i === layout.footerColumn ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description text-[#58645f]`}
+                      {i === layout.footerColumn ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`}
                         data-paged-notices>
                         {notices.map((n, index) => <p key={index}><ScriptAwareText text={n} /></p>)}
                       </div> : null}

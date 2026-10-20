@@ -1,5 +1,11 @@
 # Menu template spacing contract
 
+## Header copy and supporting ink — 2026-10-21
+
+Active contained-reading top rows keep the existing independent 8–14% title-fit budget, but their grid row also has a measured copy-height minimum. This includes native language-row reservation and wrapped notices/description, for text brands and logos alike. A long store description grows the fixed header and reduces the scrolling body; it must never be clipped to the title ratio. Recompute the minimum on real copy, font, logo or viewport changes and release it when the text/logo presentation unmounts. The shared neutral top-row design follows the same policy; mobile natural flow and legacy canvas engines remain separate.
+
+Notice 1/2/3 use the ordinary supporting-copy ink (including the native panel palette and saved supporting-color overrides), without independent dark defaults. Mocha Forest and Loop Bagel starters now use Carme and Mogra respectively, and their registered English item names are present by default, so catalog secondary-name checkboxes infer ON while explicit OFF remains available. Saved customer fonts/content are not overwritten.
+
 ## Current Basic contained reading — 2026-10-20
 
 The user confirmed the neutral designs and approved rollout to the six existing designer skins. All seven active Basic single-page templates now use contained reading on PC/tablet. The legacy canvas-fit and no-scroll rules below apply only to excluded/legacy presentations. Mobile keeps its independent approved reading contract.
