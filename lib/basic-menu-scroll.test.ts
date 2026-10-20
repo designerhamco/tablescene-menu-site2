@@ -183,3 +183,21 @@ test("upper-left reserved panel participates in packing without losing the menu 
     }
   }
 });
+
+
+test("severely uneven grouped ends select two only for a material measured improvement", () => {
+  const input = [...category("a", 6), ...category("b", 6), ...category("c", 6)];
+  const candidate = (heights: number[], itemSize = 20) => ({ columnCount: heights.length, columnWidth: 300, itemSize,
+    layout: { ...layoutScrollableMenu(input, heights.length, 760, true), naturalHeights: heights } });
+  const mocha = candidate([473, 1054, 1120]);
+  assert.equal(selectScrollableMenuCandidate([mocha, candidate([1226, 1013])], true).columnCount, 2);
+  assert.equal(selectScrollableMenuCandidate([mocha, candidate([1800, 1600])], true), mocha, "too much extra scroll");
+  assert.equal(selectScrollableMenuCandidate([mocha, candidate([1200, 800])], true), mocha, "not enough improvement");
+  assert.equal(selectScrollableMenuCandidate([mocha, candidate([1226, 1013], 17)], true), mocha, "do not shrink type");
+  const balanced = candidate([900, 950, 1120]);
+  assert.equal(selectScrollableMenuCandidate([balanced, candidate([1200, 1150])], true), balanced, "ordinary category differences stay native");
+  const fitting = candidate([200, 740, 750]);
+  assert.equal(selectScrollableMenuCandidate([fitting, candidate([850, 840])], true), fitting, "do not introduce scrolling for whitespace");
+  const worse = candidate([450, 750, 850]);
+  assert.equal(selectScrollableMenuCandidate([worse, candidate([1350, 900])], true), worse, "fewer tracks can worsen balance");
+});

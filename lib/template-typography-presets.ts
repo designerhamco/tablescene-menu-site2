@@ -519,7 +519,7 @@ export function getTypographyCssVariables(settings: TypographySettings, template
     if (setting.font_en_key) cssVariables[`--menu-role-${cssRoleKey}-font-en`] = getEnglishFontFamily(setting.font_en_key);
     cssVariables[`--menu-role-${cssRoleKey}-font-family`] =
       `var(--menu-role-${cssRoleKey}-font-en, var(--menu-font-en)), var(--menu-role-${cssRoleKey}-font-ko, var(--menu-font-ko)), system-ui, sans-serif`;
-    if (setting.color && (role === "brand" || role === "category")) cssVariables[`--menu-role-${cssRoleKey}-color`] = setting.color;
+    if (setting.color) cssVariables[`--menu-role-${cssRoleKey}-color`] = setting.color;
     const weightValue = usesCafeARoleTypographyPolicy(templateKey) ? null : getTypographyRoleWeightValue(setting.weight);
     if (weightValue) cssVariables[`--menu-role-${cssRoleKey}-font-weight`] = weightValue;
   });
@@ -537,4 +537,36 @@ export function getEnglishFontOpticalSizeScale(
   // box. Keep the mobile short-brand result within the 72px visual ceiling,
   // while category headings need a little more compensation at 26px.
   return role === "brand" ? 1.1 : 1.18;
+}
+
+/** Scope custom text colors explicitly; absent settings retain every native palette. */
+export function getTypographyCustomColorRoles(settings: TypographySettings): string | undefined {
+  return (["itemName", "supporting", "price"] as const).filter(role => settings.typography_roles[role].color).join(" ") || undefined;
+}
+
+export function getCafeATypographyRolePayload(roleSettings: TypographyRoleSettings) {
+  const payload = TYPOGRAPHY_ROLE_KEYS.reduce((roles, role) => {
+    const setting = roleSettings[role];
+    const rolePayload: Record<string, string> = {};
+
+    if (setting.font_ko_key) {
+      rolePayload.font_ko_key = setting.font_ko_key;
+    }
+
+    if (setting.font_en_key) {
+      rolePayload.font_en_key = setting.font_en_key;
+    }
+
+    if (setting.color) {
+      rolePayload.color = setting.color;
+    }
+
+    if (Object.keys(rolePayload).length > 0) {
+      roles[role] = rolePayload;
+    }
+
+    return roles;
+  }, {} as Record<string, Record<string, string>>);
+
+  return Object.keys(payload).length > 0 ? payload : null;
 }

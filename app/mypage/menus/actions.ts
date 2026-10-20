@@ -126,6 +126,7 @@ import { getTemplateType } from "@/lib/template-types";
 import { isEnglishFontValue, isKoreanFontValue } from "@/lib/font-options";
 import {
   TYPOGRAPHY_ROLE_KEYS,
+  getCafeATypographyRolePayload,
   hasCustomTypographyRoleSettings,
   normalizeFontSizeScaleKeyForTemplate,
   normalizeTypographyRoleSettings,
@@ -1757,33 +1758,6 @@ function getTypographyRoleSettingsFromFormData(formData: FormData, templateKey?:
   }, {} as Record<string, Record<string, string>>);
 
   return normalizeTypographyRoleSettings(rawRoles, templateKey);
-}
-
-function getCafeATypographyRolePayload(roleSettings: TypographyRoleSettings) {
-  const payload = TYPOGRAPHY_ROLE_KEYS.reduce((roles, role) => {
-    const setting = roleSettings[role];
-    const rolePayload: Record<string, string> = {};
-
-    if (setting.font_ko_key) {
-      rolePayload.font_ko_key = setting.font_ko_key;
-    }
-
-    if (setting.font_en_key) {
-      rolePayload.font_en_key = setting.font_en_key;
-    }
-
-    if ((role === "brand" || role === "category") && setting.color) {
-      rolePayload.color = setting.color;
-    }
-
-    if (Object.keys(rolePayload).length > 0) {
-      roles[role] = rolePayload;
-    }
-
-    return roles;
-  }, {} as Record<string, Record<string, string>>);
-
-  return Object.keys(payload).length > 0 ? payload : null;
 }
 
 function setDesignTypographyRoleSettings(designSettings: Record<string, unknown>, roleSettings: TypographyRoleSettings, templateKey?: string | null) {

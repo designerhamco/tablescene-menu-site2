@@ -45,6 +45,7 @@ import {
 import {
   getCustomTypographySettings,
   getTypographyCssVariables,
+  getTypographyCustomColorRoles,
   mergeTypographySettings,
 } from "@/lib/template-typography-presets";
 import type { MeasuredMenuBlock } from "@/lib/basic-menu-pagination";
@@ -519,6 +520,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             "--paged-gap-scale": 1,
           } as CSSProperties
         }
+        data-menu-text-colors={getTypographyCustomColorRoles(typographySettings)}
         data-scroll-brand-board={topRow ? "" : undefined}
         data-basic-structure={structure}
         data-default-reading={defaultStructure ? "true" : undefined}

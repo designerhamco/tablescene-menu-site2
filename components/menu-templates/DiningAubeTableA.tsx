@@ -34,6 +34,7 @@ import {
   getEnglishFontLoadAssets,
   getKoreanFontLoadAssets,
   getTypographyCssVariables,
+  getTypographyCustomColorRoles,
   getTypographyRoleFontLoadAssets,
   mergeTypographySettings,
 } from "@/lib/template-typography-presets";
@@ -240,6 +241,7 @@ export default function DiningAubeTableA({
   const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
   const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
   const typographyStyle = getTypographyCssVariables(typographySettings, data.menuSite.template_key);
+  const customColorRoles = getTypographyCustomColorRoles(typographySettings);
   const fontAssets = [
     getKoreanFontLoadAssets(typographySettings.korean_font_key),
     getEnglishFontLoadAssets(typographySettings.english_font_key),
@@ -342,6 +344,7 @@ export default function DiningAubeTableA({
       <div
         className="aube-table-root cafe-a-typography"
         style={typographyStyle}
+        data-menu-text-colors={customColorRoles}
         data-aube-table=""
         data-layout={layoutVariant}
         data-item-layout={album ? "album" : undefined}

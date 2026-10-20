@@ -5876,3 +5876,15 @@ video {
 .cafe-a-mobile-call-dock > button { flex: 1 1 0; min-width: 0; }
 .cafe-a-mobile-call-dock .cafe-a-mobile-order-dock-button, .cafe-a-desktop-call-button[data-one-page-call-button="desktop-cart"] { background: var(--menu-order-bg, #191c1b); color: var(--menu-order-ink, #fff); border: 1px solid var(--menu-order-border, #191c1b); box-shadow: none; }
 .cafe-a-desktop-call-button:not([data-one-page-call-button="desktop-cart"]) { border: 1px solid var(--menu-call-border, #191c1b); }
+
+/* Saved other-text colors opt in per role. Native panel/overlay palettes stay
+   authoritative until the customer chooses a color; chips keep their own theme. */
+.cafe-a-typography[data-menu-text-colors~="itemName"] :is(.cafe-a-menu-title, .cafe-a-featured-title, .aube-table-item-heading h3) {
+  color: var(--menu-role-item-name-color) !important;
+}
+.cafe-a-typography[data-menu-text-colors~="supporting"] :is(.cafe-a-menu-meta:not([data-cafe-a-reference-copy]), .cafe-a-menu-description, .cafe-a-description-text, .cafe-a-price-note, .cafe-a-time-sale-time-text, [data-cafe-a-widget-title], [data-cafe-a-widget-body], .aube-table-page-description, .aube-table-course-description, .aube-table-course-price-description, .aube-table-item-secondary, .aube-table-item-description, .aube-table-cover-description) {
+  color: var(--menu-role-supporting-color) !important;
+}
+.cafe-a-typography[data-menu-text-colors~="price"] :is(.cafe-a-menu-price, .cafe-a-featured-price, .cafe-a-price-label, .cafe-a-time-sale-price, .aube-table-item-price, .aube-table-course-price) {
+  color: var(--menu-role-price-color) !important;
+}

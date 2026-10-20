@@ -121,9 +121,9 @@ const TYPOGRAPHY_CONTROL_GROUPS = [
   {
     key: "otherText",
     label: "나머지 글자",
-    description: "브랜드 설명, 메뉴명, 설명, 가격, 특가 문구, 위젯, 푸터에는 폰트만 적용됩니다.",
+    description: "브랜드 설명, 메뉴명, 설명, 가격, 특가 문구, 위젯, 푸터의 폰트와 색상을 함께 설정합니다.",
     roles: ["itemName", "supporting", "price"],
-    allowColor: false,
+    allowColor: true,
   },
 ] as const satisfies readonly TypographyControlGroup[];
 
@@ -261,7 +261,7 @@ export default function TypographySettingsForm({
 }: TypographySettingsFormProps) {
   const isDisplayTypography = isDisplayTypographyTemplate(templateKey);
   const isAubeTableTemplate = isAubeTableTemplateKey(templateKey);
-  const showRoleTypographyControl = isAubeTableTemplate || templateKey === "cafe_design_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a" || templateKey === "cafe_round_focus_a" || templateKey === "fast_food_loop_bagel_a";
+  const showRoleTypographyControl = isAubeTableTemplate || templateKey === "cafe_design_a" || templateKey === "restaurant_onue_a" || templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a" || templateKey === "cafe_round_focus_a" || templateKey === "fast_food_loop_bagel_a";
   const isSundayLineTemplate = templateKey === "cafe_sunday_line_a" || templateKey === "cafe_van_gogh_a";
   const isRoundFocusTemplate = templateKey === "cafe_round_focus_a";
   const isMochaForestTemplate = templateKey === "cafe_mocha_forest_a";
@@ -315,6 +315,9 @@ export default function TypographySettingsForm({
     () => [getFontLoadAssets(previewKoreanFont), getFontLoadAssets(previewEnglishFont), ...getTypographyRoleFontLoadAssets(selectedRoleSettings)],
     [previewEnglishFont, previewKoreanFont, selectedRoleSettings],
   );
+  const getColorAwareMiniStyle = (role: CafeAScriptFontRole, extraStyle: CSSProperties = {}) => getCafeAMiniPreviewScriptStyle(role, {
+    ...extraStyle, ...(selectedRoleSettings[role].color ? { color: selectedRoleSettings[role].color! } : {}),
+  });
   const isPriceList = templateType === "price_list";
   function updateControlGroupSetting(roles: readonly TypographyRoleKey[], key: "font_ko_key" | "font_en_key" | "color", value: string) {
     if (value === MIXED_SELECT_VALUE) return;
@@ -342,7 +345,7 @@ export default function TypographySettingsForm({
             <section className="site-section p-4">
               {TYPOGRAPHY_ROLE_KEYS.map((role) => {
                 const setting = selectedRoleSettings[role];
-                const roleColor = role === "brand" || role === "category" ? setting.color : null;
+                const roleColor = setting.color;
 
                 return (
                   <div key={`typography-role-hidden-${role}`} hidden>
@@ -357,8 +360,8 @@ export default function TypographySettingsForm({
                   <h4 className="type-label text-zinc-950">글자 설정</h4>
                   <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                     {isAubeTableTemplate
-                      ? "가게명과 페이지·코스명은 폰트와 색상을, 나머지 글자는 폰트만 조정합니다."
-                      : "가게명과 카테고리명은 폰트와 색상을, 나머지 글자는 폰트만 조정합니다."}
+                      ? "가게명, 페이지·코스명, 나머지 글자의 폰트와 색상을 각각 조정합니다."
+                      : "가게명, 카테고리명, 나머지 글자의 폰트와 색상을 각각 조정합니다."}
                   </p>
                   <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
                     현재 템플릿 기본 폰트: 한글 <span className="text-zinc-700">{defaultFont.label}</span> · 영문/숫자 <span className="text-zinc-700">{safeDefaultEnglishFont.label}</span>
@@ -565,7 +568,7 @@ export default function TypographySettingsForm({
             <div>
               <p
                 className="break-keep text-3xl font-bold uppercase leading-none"
-                style={getCafeAMiniPreviewScriptStyle("brand", {
+                style={getColorAwareMiniStyle("brand", {
                   color: "var(--menu-role-brand-color, #191c1b)",
                 })}
               >
@@ -573,7 +576,7 @@ export default function TypographySettingsForm({
               </p>
               <p
                 className="mt-2 break-keep text-xs font-semibold leading-relaxed text-[#66726f]"
-                style={getCafeAMiniPreviewScriptStyle("supporting")}
+                style={getColorAwareMiniStyle("supporting")}
               >
                 <ScriptAwareText text={cafeAMiniPreviewDescriptionText} />
               </p>
@@ -581,7 +584,7 @@ export default function TypographySettingsForm({
             <div className="mt-5 grid grid-cols-[minmax(0,1fr)_2.75rem_2.75rem] items-end gap-3">
               <h5
                 className="type-label break-keep uppercase"
-                style={getCafeAMiniPreviewScriptStyle("category", {
+                style={getColorAwareMiniStyle("category", {
                   color: "var(--menu-role-category-color, #191c1b)",
                 })}
               >
@@ -591,7 +594,7 @@ export default function TypographySettingsForm({
                 <span
                   key={label}
                   className="text-center text-xs font-bold uppercase"
-                  style={getCafeAMiniPreviewScriptStyle("category", {
+                  style={getColorAwareMiniStyle("category", {
                     color: "var(--menu-role-category-color, #191c1b)",
                   })}
                 >
@@ -610,33 +613,33 @@ export default function TypographySettingsForm({
                     <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-1">
                       <p
                         className="break-keep font-bold leading-tight text-[#17211F]"
-                        style={getCafeAMiniPreviewScriptStyle("itemName")}
+                        style={getColorAwareMiniStyle("itemName")}
                       >
                         <ScriptAwareText text={item.name} />
                       </p>
                       <p
                         className="min-w-0 break-words font-bold uppercase leading-tight text-[#5F6F6B]"
-                        style={getCafeAMiniPreviewScriptStyle("supporting")}
+                        style={getColorAwareMiniStyle("supporting")}
                       >
                         <ScriptAwareText text={item.en} />
                       </p>
                     </div>
                     <p
                       className="mt-1 break-keep text-xs font-normal leading-snug text-[#3F4945]"
-                      style={getCafeAMiniPreviewScriptStyle("supporting")}
+                      style={getColorAwareMiniStyle("supporting")}
                     >
                       <ScriptAwareText text={item.desc} />
                     </p>
                   </div>
                   <span
                     className="text-center font-bold leading-none text-[#17211F]"
-                    style={getCafeAMiniPreviewScriptStyle("price")}
+                    style={getColorAwareMiniStyle("price")}
                   >
                     <ScriptAwareText text={item.hot} />
                   </span>
                   <span
                     className="text-center font-bold leading-none text-[#17211F]"
-                    style={getCafeAMiniPreviewScriptStyle("price")}
+                    style={getColorAwareMiniStyle("price")}
                   >
                     <ScriptAwareText text={item.ice} />
                   </span>
