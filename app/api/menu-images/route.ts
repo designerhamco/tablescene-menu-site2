@@ -18,7 +18,7 @@ type ImageTarget = SharedImageUploadTarget;
 type SupabaseDataClient = ReturnType<typeof createAdminClient>;
 type PersistentImageTarget = Exclude<
   ImageTarget,
-  "site-logo-draft" | "site-cover-draft" | "site-intro-image-draft" | "display-page-image-draft" | "menu-item-draft"
+  "menu-popup-image-draft" | "site-logo-draft" | "site-cover-draft" | "site-intro-image-draft" | "display-page-image-draft" | "menu-item-draft"
 >;
 
 type TargetRecord = {
@@ -30,6 +30,7 @@ type TargetRecord = {
 
 function isImageTarget(value: string): value is ImageTarget {
   return (
+    value === "menu-popup-image-draft" ||
     value === "site-logo" ||
     value === "site-logo-draft" ||
     value === "site-cover" ||
@@ -45,6 +46,7 @@ function isImageTarget(value: string): value is ImageTarget {
 
 function isDraftImageTarget(target: ImageTarget) {
   return (
+    target === "menu-popup-image-draft" ||
     target === "site-logo-draft" ||
     target === "site-cover-draft" ||
     target === "site-intro-image-draft" ||
@@ -83,6 +85,8 @@ function getExtension(file: File) {
 
 function getPath(target: ImageTarget, menuId: string, recordId: string, extension: string) {
   switch (target) {
+    case "menu-popup-image-draft":
+      return `menu-sites/${menuId}/draft/popup/${crypto.randomUUID()}.${extension}`;
     case "site-logo":
       return `menu-sites/${menuId}/brand/logo.${extension}`;
     case "site-logo-draft":
@@ -108,6 +112,8 @@ function getPath(target: ImageTarget, menuId: string, recordId: string, extensio
 
 function getPathPrefix(target: ImageTarget, menuId: string, recordId: string) {
   switch (target) {
+    case "menu-popup-image-draft":
+      return `menu-sites/${menuId}/draft/popup/`;
     case "site-logo":
       return `menu-sites/${menuId}/brand/logo.`;
     case "site-logo-draft":
@@ -202,7 +208,7 @@ async function getTargetRecord(
     };
   }
 
-  if (target === "site-logo-draft") {
+  if (target === "menu-popup-image-draft" || target === "site-logo-draft") {
     return {
       error: null,
       record: {

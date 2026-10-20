@@ -131,6 +131,7 @@ export function buildMenuPreviewUrl(
 const TEMPLATE_PREVIEW_QUERY_KEYS = [
   "design",
   "logoPreview",
+  "popupPreview",
   "coverImagesPreview",
   "widgetsPreview",
   "coverPreview",

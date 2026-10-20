@@ -1,6 +1,7 @@
 export const IMAGE_UPLOAD_ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 
 export type ImageUploadTarget =
+  | "menu-popup-image-draft"
   | "site-logo"
   | "site-logo-draft"
   | "site-cover"

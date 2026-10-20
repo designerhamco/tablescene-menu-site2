@@ -73,6 +73,7 @@ export default function ImageUploadField({
   const [draftImagePath, setDraftImagePath] = useState("");
   const isLoading = state.type === "loading";
   const usesDraftUpload =
+    target === "menu-popup-image-draft" ||
     target === "site-logo-draft" ||
     target === "site-cover-draft" ||
     target === "site-intro-image-draft" ||

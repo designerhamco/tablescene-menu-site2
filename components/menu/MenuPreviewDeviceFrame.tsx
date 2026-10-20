@@ -125,15 +125,18 @@ export default function MenuPreviewDeviceFrame(
   const [displayOptions, setDisplayOptions] = useOptimistic(getDefaultDesignOptions(query as TemplatePreviewQuery));
   const displayGroups: { label: string; choices: [DefaultDesignOptionKey, string][] }[] = defaultDesign?.layout.startsWith("basic-")
     ? [
-      { label: "영역·이미지", choices: [["logoPreview", "로고"], ["coverPreview", "대표 영역"], ["featuredPreview", "대표 상품"], ["imagesPreview", "상품 이미지"], ["widgetsPreview", "위젯"]] },
+      { label: "영역·이미지", choices: [["popupPreview", "팝업"], ["logoPreview", "로고"], ["coverPreview", "대표 영역"], ["featuredPreview", "대표 상품"], ["imagesPreview", "상품 이미지"], ["widgetsPreview", "위젯"]] },
       { label: "메뉴 정보", choices: [["categoryDescriptionsPreview", "카테고리 설명"], ["secondaryNamesPreview", "보조 언어명"], ["descriptionsPreview", "메뉴 설명"], ["badgesPreview", "일반 텍스트칩"]] },
       { label: "가격·판매 상태", choices: [["priceOptionsPreview", "가격 옵션"], ["priceNotesPreview", "가격 설명"], ["timeSalesPreview", "기간 할인"], ["soldOutPreview", "품절"]] },
     ]
     : [
-      { label: "영역·이미지", choices: [["logoPreview", "로고"], ["coverPreview", "커버 페이지"], ["coverImagesPreview", "커버 이미지"], ["imagesPreview", "상품 이미지"]] },
+      { label: "영역·이미지", choices: [["popupPreview", "팝업"], ["logoPreview", "로고"], ["coverPreview", "커버 페이지"], ["coverImagesPreview", "커버 이미지"], ["imagesPreview", "상품 이미지"]] },
       { label: "메뉴 정보", choices: [["categoryDescriptionsPreview", "카테고리 설명"], ["secondaryNamesPreview", "보조 언어명"], ["descriptionsPreview", "메뉴 설명"]] },
       { label: "가격·판매 상태", choices: [["priceOptionsPreview", "가격 옵션"], ["soldOutPreview", "품절"]] },
     ];
+  if (defaultDesign?.itemLayout === "album" && defaultDesign.layout.startsWith("basic-")) {
+    for (const group of displayGroups) group.choices = group.choices.filter(([key]) => key !== "priceOptionsPreview");
+  }
   const displayChoices = displayGroups.flatMap(group => group.choices);
   const enabledDisplayCount = displayChoices.filter(([key]) => displayOptions[key]).length;
   const changeDisplayOption = (key: DefaultDesignOptionKey, enabled: boolean) => {

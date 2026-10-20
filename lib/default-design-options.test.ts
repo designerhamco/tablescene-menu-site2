@@ -4,7 +4,7 @@ import { getDefaultDesignOptions } from "./default-design-options";
 import { DEFAULT_DESIGN_REVIEWS } from "./menu-design-policy";
 import { buildTemplatePreviewUrl } from "./menu-preview-devices";
 
-test("all six default designs open with the logo disabled", () => {
+test("all default designs open with the logo disabled", () => {
   for (const design of DEFAULT_DESIGN_REVIEWS) {
     const options = getDefaultDesignOptions({ design: design.id });
     assert.equal(options.logoPreview, false);

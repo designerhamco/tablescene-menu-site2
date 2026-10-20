@@ -29,6 +29,8 @@ import CoverBackgroundOpacityField from "@/components/mypage/menu-editor/CoverBa
 import DirtySubmitButton from "@/components/mypage/menu-editor/DirtySubmitButton";
 import FeaturedSlidesEditor, { type FeaturedSlideDraft } from "@/components/mypage/menu-editor/FeaturedSlidesEditor";
 import MenuEditorNavigation from "@/components/mypage/menu-editor/MenuEditorNavigation";
+import MenuPopupSettingsForm from "@/components/mypage/menu-editor/MenuPopupSettingsForm";
+import { readMenuPopupSettings } from "@/lib/menu-popup";
 import ImageUploadField from "@/components/mypage/menu-editor/ImageUploadField";
 import LocalizationSection from "@/components/mypage/menu-editor/LocalizationSection";
 import LiveCharacterCounter from "@/components/mypage/menu-editor/LiveCharacterCounter";
@@ -2125,6 +2127,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 </SectionCard>
               </>
             )}
+
+            {activeTab === "basic" && site.template_key !== "display_menu_a" ? <SectionCard title="광고 팝업"><MenuPopupSettingsForm key={JSON.stringify(readMenuPopupSettings(site.settings))} menuId={site.id} settings={readMenuPopupSettings(site.settings)} disabled={isReadOnly} /></SectionCard> : null}
 
             {activeTab === "pages" && (
               <SectionCard title="페이지 설정">

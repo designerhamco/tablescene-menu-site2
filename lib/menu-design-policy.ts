@@ -27,13 +27,17 @@ export function canUseMenuDesign(service: MenuService, access: MenuDesignAccess,
 }
 
 export const DEFAULT_DESIGN_REVIEWS = [
-  { id: "basic-first-column", label: "베이직 기본 디자인", layout: "basic-first-column", kind: "standard", renderer: "cafe_design_a" },
-  { id: "basic-top-row", label: "베이직 기본 디자인", layout: "basic-top-row", kind: "standard", renderer: "cafe_design_a" },
-  { id: "basic-center-column", label: "베이직 기본 디자인", layout: "basic-center-column", kind: "standard", renderer: "cafe_design_a" },
-  { id: "basic-upper-left", label: "베이직 기본 디자인", layout: "basic-upper-left", kind: "standard", renderer: "cafe_design_a" },
-  { id: "dining-full-page", label: "다이닝 기본 디자인", layout: "dining-full-page", kind: "standard", renderer: "dining_aube_table_a" },
-  { id: "dining-sidebar", label: "다이닝 기본 디자인", layout: "dining-sidebar", kind: "standard", renderer: "dining_aube_table_b" },
-] as const satisfies readonly (MenuDesign & { renderer: string })[];
+  { id: "basic-first-column", label: "베이직 기본 디자인", layout: "basic-first-column", kind: "standard", renderer: "cafe_design_a", itemLayout: "list" },
+  { id: "basic-top-row", label: "베이직 기본 디자인", layout: "basic-top-row", kind: "standard", renderer: "cafe_design_a", itemLayout: "list" },
+  { id: "basic-center-column", label: "베이직 기본 디자인", layout: "basic-center-column", kind: "standard", renderer: "cafe_design_a", itemLayout: "list" },
+  { id: "basic-upper-left", label: "베이직 기본 디자인", layout: "basic-upper-left", kind: "standard", renderer: "cafe_design_a", itemLayout: "list" },
+  { id: "dining-full-page", label: "다이닝 기본 디자인", layout: "dining-full-page", kind: "standard", renderer: "dining_aube_table_a", itemLayout: "list" },
+  { id: "dining-sidebar", label: "다이닝 기본 디자인", layout: "dining-sidebar", kind: "standard", renderer: "dining_aube_table_b", itemLayout: "list" },
+  { id: "basic-first-column-album", label: "베이직 기본 디자인 · 앨범형", layout: "basic-first-column", kind: "standard", renderer: "cafe_design_a", itemLayout: "album" },
+  { id: "basic-top-row-album", label: "베이직 기본 디자인 · 앨범형", layout: "basic-top-row", kind: "standard", renderer: "cafe_design_a", itemLayout: "album" },
+  { id: "dining-full-page-album", label: "다이닝 기본 디자인 · 앨범형", layout: "dining-full-page", kind: "standard", renderer: "dining_aube_table_a", itemLayout: "album" },
+  { id: "dining-sidebar-album", label: "다이닝 기본 디자인 · 앨범형", layout: "dining-sidebar", kind: "standard", renderer: "dining_aube_table_b", itemLayout: "album" },
+] as const satisfies readonly (MenuDesign & { renderer: string; itemLayout: "list" | "album" })[];
 export type DefaultDesignReview = typeof DEFAULT_DESIGN_REVIEWS[number];
 
 export function getDefaultDesignReview(value: string | undefined, renderer: string): DefaultDesignReview | undefined {

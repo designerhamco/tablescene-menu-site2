@@ -1596,5 +1596,5 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
       {templateKey === "display_menu_a" && !isActualView ? <MenuPreviewGuide variant="display" /> : null}
     </>
   );
-  return defaultDesign ? <DefaultDesignScope layout={defaultDesign.layout}><div className={defaultDesignStyles.surface} data-default-design={defaultDesign.id}>{preview}</div></DefaultDesignScope> : preview;
+  return defaultDesign ? <DefaultDesignScope layout={defaultDesign.layout} itemLayout={defaultDesign.itemLayout}><div className={defaultDesignStyles.surface} data-default-design={defaultDesign.id} data-menu-item-layout={defaultDesign.itemLayout}>{preview}</div></DefaultDesignScope> : preview;
 }
