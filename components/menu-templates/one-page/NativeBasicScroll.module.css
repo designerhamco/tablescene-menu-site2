@@ -3,8 +3,9 @@
 .root.root { position: relative; height: 100dvh; min-height: 0; overflow: hidden; box-sizing: border-box; }
 .board.board {
   --native-gap: var(--board-padding, clamp(2rem, 4.2vmin, 4.25rem));
-  --cafe-a-linked-item-name-size: max(1rem, calc(var(--native-item-size, 1.3rem) * var(--menu-font-size-scale, 1) * var(--menu-role-item-name-size-scale, 1)));
-  --cafe-a-adaptive-support-size: max(.75rem, calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-sunday-supporting-ratio, .72) * var(--cafe-a-template-supporting-copy-scale, 1)));
+  --cafe-a-reading-reference-size: var(--native-item-size, 1.3rem);
+  --cafe-a-linked-item-name-size: max(1rem, calc(var(--cafe-a-reading-reference-size) * var(--menu-font-size-scale, 1) * var(--menu-role-item-name-size-scale, 1)));
+  --cafe-a-adaptive-support-size: max(.75rem, calc(var(--cafe-a-linked-item-name-size) * .72));
   --cafe-a-linked-supporting-copy-size: var(--cafe-a-adaptive-support-size);
   --cafe-a-item-rhythm-gap: clamp(.55rem, calc(1.25rem * var(--fit-menu-gap-scale, 1) * .74), 1.15rem);
   --cafe-a-local-item-rhythm-gap: var(--cafe-a-item-rhythm-gap);
@@ -76,7 +77,7 @@
 @media (prefers-reduced-motion: reduce) { .fade { transition: none; } }
 
 .actions[data-call-only="true"] { justify-content: flex-end; }
-.actions[data-call-only="true"] button { flex: none; flex-direction: column; width: 4.5rem; min-height: 4.5rem; border-radius: 50%; background: var(--menu-call-circle-bg, #191c1b); color: var(--menu-call-circle-ink, white); border-color: transparent; padding: .5rem; }
+.actions[data-call-only="true"] button { flex: none; flex-direction: column; width: 4.5rem; min-height: 4.5rem; border-radius: 50%; background: var(--menu-call-circle-bg, #191c1b); color: var(--menu-call-circle-ink, white); border-color: var(--menu-call-circle-border, #191c1b); padding: .5rem; }
 .column > .unit:first-child > :global(.cafe-a-menu-category-top-divider) { display: none; }
 
 .board[data-native-shell="brand_panel_flow"] .column { background: #fff; padding-block: var(--panel-content-inset); }

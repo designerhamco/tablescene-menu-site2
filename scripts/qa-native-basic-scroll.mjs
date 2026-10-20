@@ -54,6 +54,7 @@ async function run(c){
    const count=await page.locator('[data-native-column]').count();assert.ok(count>=1&&count<=3,'no automatic fourth track');
    const menu=page.locator('[data-native-menu]');
    const actions=page.locator('[data-native-actions]');
+   await actions.waitFor({state:'visible'});
    const dockBefore=await actions.boundingBox();
    const brand=page.locator('[data-native-brand]');const brandBefore=await brand.count()?await brand.boundingBox():null;
    const bounds=await menu.boundingBox();assert.ok(bounds.height>100,'menu has real reading height');
@@ -87,6 +88,8 @@ try{
    await page.getByRole('checkbox',{name:'광고 보기',exact:true}).check();
    const frame=page.frameLocator('iframe');await frame.locator('[data-menu-advertisement-popup]').waitFor();
    await frame.getByRole('button',{name:'닫기',exact:true}).click();
+   await page.getByRole('button',{name:'기기 선택 도구 닫기',exact:true}).click();
+   await page.waitForTimeout(400);await frame.locator('[data-native-ready=true]').waitFor();
    await frame.locator('[data-native-actions] button').last().click();
    await frame.getByRole('dialog').waitFor();
    assert.equal(await frame.locator('[data-cart-back],[data-cart-table]').count(),0,'empty cart has no full-page header');

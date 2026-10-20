@@ -20,6 +20,12 @@ The shared 2/3-track measurement includes category title text after price-header
 
 Order background now retains the representative brand color, superseding the darkest-palette Order rule below. Foreground prefers the brightest menu color but falls back to readable dark/black ink for light brands (minimum 4.5 contrast). Call and solid Call-circle policies remain separate. Catalog widget options default OFF; explicit ON retains full examples without removing starter/customer widget content. Advertisement progression is five seconds with a compact active-dot ring, desktop arrows and common manual navigation; pause for hover, keyboard manipulation or background, and respect reduced motion.
 
+## Final type and action-color unification — 2026-10-20
+
+The active Basic contained-reading policy now applies the approved 94% product role to designer, default and album presentations equally. Product/featured copy and hidden measuring rows use the same reference token; categories/store descriptions/notices retain their reference size. Active supporting/secondary/option ratios no longer inherit Mocha/Loop skin corrections. Mobile reading sizes, gaps and brand fitting stay independent. Dining PC/tablet uses `1.06 × .94` for all skins/defaults/albums rather than a neutral-only correction. See `docs/template-typography-audit.md`.
+
+The latest user decision supersedes the brand-color action policy above: **category-name color** fills Order and colors Call ink/border. Call uses the brightest actual menu swatch as its surface, including circular Call. Order text prefers that bright swatch and retains its readable fallback for a light category. Category ink remains stable through cover/logo/page changes. Loop Bagel checker bands alone follow the saved **brand-name color**; their geometry and white squares remain unchanged.
+
 ## Preview completeness and interaction palette — 2026-10-20
 
 Explicit catalog options fill all missing eligible examples, while saved-menu/public customer data remains untouched. Category descriptions ON covers every category; ordinary images and supporting descriptions retain existing content and fill missing slots. Priced Dining courses still suppress item images and keep a single item track. Starter widgets are image+title+body except Mocha's approved default character image; explicitly enabling widgets in previews shows full examples in every supported template. Dining reuses the common widget component after page content, at category-level spacing.

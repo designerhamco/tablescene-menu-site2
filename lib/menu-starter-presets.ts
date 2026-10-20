@@ -2224,7 +2224,7 @@ for (const key of ["cafe_design_a", "cafe_sunday_line_a", "cafe_van_gogh_a", "ca
   }
 }
 // Van Gogh shows a second category price rail, with its original cover OFF by default.
-for (const [categoryKey, labels] of [["coffee", ["HOT", "ICE"]], ["palette-latte", ["Small", "Tall", "Large"]]] as const) {
+for (const [categoryKey, labels] of [["coffee", ["HOT", "ICE"]], ["palette-latte", ["HOT", "ICE"]]] as const) {
   const category = cafeVanGoghStarterPreset.pages[0].categories.find(category => category.key === categoryKey)!;
   category.price_columns = labels.map(label => ({ key: label.toLowerCase(), label }));
   for (const item of category.items) item.price_column_values = labels.map((label, index) => ({ key: label.toLowerCase(), price: item.price + index * 500 }));

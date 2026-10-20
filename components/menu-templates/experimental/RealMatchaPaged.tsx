@@ -357,7 +357,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     };
     const observer = new ResizeObserver(schedule);
     observer.observe(area.current);
-    for (const node of measure.current.children) observer.observe(node);
+    // Probe row sizes are measurement outputs, not independent resize inputs.
+    const measuredContent = measure.current;
+    measuredContent.addEventListener("load", schedule, true);
     if (brandArea.current)
       for (const node of brandArea.current.children) observer.observe(node);
     document.fonts.ready.then(schedule);
@@ -367,6 +369,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       disposed = true;
       cancelAnimationFrame(raf);
       observer.disconnect();
+      measuredContent.removeEventListener("load", schedule, true);
       document.fonts.removeEventListener("loadingdone", schedule);
     };
   }, [mobile, album, units, layoutMode, showCall, showOrder, device, updateScrollHint, centerColumn, upperLeft, topRow]);

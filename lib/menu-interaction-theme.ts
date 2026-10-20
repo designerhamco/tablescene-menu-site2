@@ -34,13 +34,13 @@ export function menuColorContrast(first: string, second: string) {
   const b = luminance(parseColor(second)?.rgb ?? [255, 255, 255]);
   return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
 }
-export function resolveMenuInteractionTheme({ brand, surfaces, inks = [] }: {
-  brand: string; surfaces: string[]; inks?: string[];
+export function resolveMenuInteractionTheme({ category, surfaces, inks = [] }: {
+  category: string; surfaces: string[]; inks?: string[];
 }) {
   // Ignore transparent/invalid swatches; never sample photos or include site colors.
   const backgrounds = surfaces.map(opaque).filter((c): c is string => Boolean(c));
   const panel = backgrounds[0] ?? LIGHT;
-  const parsed = parseColor(brand);
+  const parsed = parseColor(category);
   const base = parseColor(panel)!.rgb;
   const accent = parsed ? hexColor(parsed.rgb.map((c, i) => c * parsed.alpha + base[i] * (1 - parsed.alpha)) as RGB) : DARK;
   const inksOnly = [accent, ...inks.map(opaque).filter((c): c is string => Boolean(c))];
@@ -50,7 +50,7 @@ export function resolveMenuInteractionTheme({ brand, surfaces, inks = [] }: {
   const readableInk = (background: string, candidates: string[]) =>
     candidates.find(c => menuColorContrast(c, background) >= 4.5) ??
     [DARK, LIGHT, "#000000"].find(color => menuColorContrast(color, background) >= 4.5) ?? DARK;
-  const callForeground = readableInk(lightest, inksOnly);
+  const callForeground = accent;
   const orderBackground = accent;
   const orderForeground = readableInk(orderBackground, [lightest]);
   return {
@@ -60,8 +60,9 @@ export function resolveMenuInteractionTheme({ brand, surfaces, inks = [] }: {
     "--menu-call-bg": lightest,
     "--menu-call-ink": callForeground,
     "--menu-call-border": callForeground,
-    // Existing solid call circles retain the saved/rendered representative color.
-    "--menu-call-circle-bg": accent,
-    "--menu-call-circle-ink": readableInk(accent, [lightest, ...palette]),
+    // Circular and rectangular Call share the same category ink/paper policy.
+    "--menu-call-circle-bg": lightest,
+    "--menu-call-circle-ink": accent,
+    "--menu-call-circle-border": accent,
   };
 }

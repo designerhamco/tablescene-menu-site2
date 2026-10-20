@@ -328,6 +328,13 @@ test("starter-specific image and promotion presentation stays intentional", () =
 
   const vanGogh = getStarterPreset("cafe_van_gogh_a");
   assert.equal(vanGogh.site.restaurant_name, "VAN GOGH");
+  for (const key of ["coffee", "palette-latte"]) {
+    const category = vanGogh.pages[0].categories.find(category => category.key === key)!;
+    assert.deepEqual(category.price_columns, [{ key: "hot", label: "HOT" }, { key: "ice", label: "ICE" }]);
+    for (const item of category.items) assert.deepEqual(item.price_column_values, [
+      { key: "hot", price: item.price }, { key: "ice", price: item.price + 500 },
+    ]);
+  }
   assert.equal(vanGogh.menu_cover_enabled, false);
   assert.equal(vanGogh.menu_cover_visible_pc, false);
   assert.equal(vanGogh.menu_cover_visible_tablet, false);

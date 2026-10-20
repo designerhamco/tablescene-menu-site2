@@ -136,6 +136,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       });
       const selected = selectScrollableMenuCandidate(candidates, grouped);
       measure.current.style.width = `${selected.columnWidth}px`;
+      applyOnePageChipLayouts(measure.current); // Leave probes at the chosen width, as in the shared Matcha reader.
       root.dataset.nativeNameMeasurements = String(selected.names?.filter(name => name.role !== "category").length ?? 0);
       root.style.setProperty("--native-track-width", `${selected.columnWidth}px`);
       setLayout(previous => JSON.stringify(previous) === JSON.stringify(selected.layout) ? previous : selected.layout);
@@ -145,11 +146,15 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
     const schedule = () => { if (!disposed && !frame) frame = requestAnimationFrame(update); };
     const observer = new ResizeObserver(schedule);
     observer.observe(area.current);
-    for (const element of measure.current.children) observer.observe(element);
+    // Candidate probes resize hidden rows themselves. Observing those outputs
+    // feeds the next measurement back into the current decision. Real content
+    // changes restart this effect; fonts, images and viewport remain live inputs.
+    const measuredContent = measure.current;
+    measuredContent.addEventListener("load", schedule, true);
     document.fonts.addEventListener("loadingdone", schedule);
     void document.fonts.ready.then(schedule);
     schedule();
-    return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); document.fonts.removeEventListener("loadingdone", schedule); };
+    return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); measuredContent.removeEventListener("load", schedule, true); document.fonts.removeEventListener("loadingdone", schedule); };
   }, [units, device, grouped, center, panel, updateHint]);
   useLayoutEffect(() => {
     if (!area.current || !tracks.current) return;

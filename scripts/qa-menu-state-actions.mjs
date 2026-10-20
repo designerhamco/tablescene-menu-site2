@@ -25,10 +25,14 @@ async function check(c,[device,width,height]){
   assert.ok(colors.every(c=>{const nums=c.match(/[\d.]+/g).map(Number);return Math.max(...nums.slice(0,3))-Math.min(...nums.slice(0,3))<2&&nums[0]>=100;}),'sold-out copy uses neutral gray despite native/saved color overrides');
   const theme=await p.locator('[data-menu-interaction-shell]').evaluate(e=>{
    const root=e.querySelector('.cafe-a-typography,.aube-table-root'),s=getComputedStyle(e),rs=getComputedStyle(root);
-   const brand=[...root.querySelectorAll('[data-cafe-a-store-title],.cafe-a-store-title,[data-cafe-a-brand-color-probe]')].find(e=>!e.closest('[inert]')&&(e.hasAttribute('data-cafe-a-brand-color-probe')||e.getBoundingClientRect().width>0));
+   const category=[...root.querySelectorAll('.cafe-a-category-title,.aube-table-course-header h2')].find(e=>!e.closest('[inert]')&&e.getBoundingClientRect().width>0);
    const normalize=color=>{const canvas=document.createElement('canvas');canvas.width=canvas.height=1;const ctx=canvas.getContext('2d');ctx.fillStyle=color;ctx.fillRect(0,0,1,1);return [...ctx.getImageData(0,0,1,1).data].slice(0,3).join(',');};
-   return {fill:normalize(s.getPropertyValue('--menu-order-bg')),brand:normalize(root.matches('.aube-table-root')?(rs.getPropertyValue('--menu-role-brand-color').trim()||rs.getPropertyValue('--aube-accent')):getComputedStyle(brand).color)};
-  });assert.equal(theme.fill,theme.brand,'Order fill matches the persistent representative color');
+   return {fill:normalize(s.getPropertyValue('--menu-order-bg')),category:normalize(rs.getPropertyValue('--menu-role-category-color').trim()||(category&&getComputedStyle(category).color)||rs.getPropertyValue('--aube-accent'))};
+  });assert.equal(theme.fill,theme.category,'Order fill matches the persistent category color');
+  const actionColors=await p.locator('[data-menu-interaction-shell]').evaluate(e=>{
+   const theme=getComputedStyle(e),normalize=color=>{const ctx=document.createElement('canvas').getContext('2d');ctx.fillStyle=color;ctx.fillRect(0,0,1,1);return [...ctx.getImageData(0,0,1,1).data].slice(0,3).join(',');};
+   return [...e.querySelectorAll('button')].filter(b=>b.getBoundingClientRect().width>0&&(/^(호출하기|주문하기)$/.test(b.textContent.trim())||b.className.includes('diningFloatingCall'))).map(b=>{const order=b.textContent.trim()==='주문하기',s=getComputedStyle(b);return {background:normalize(s.backgroundColor),expectedBackground:normalize(theme.getPropertyValue(order?'--menu-order-bg':'--menu-call-bg')),ink:normalize(s.color),expectedInk:normalize(theme.getPropertyValue(order?'--menu-order-ink':'--menu-call-ink')),border:normalize(s.borderTopColor),expectedBorder:normalize(theme.getPropertyValue(order?'--menu-order-border':'--menu-call-border'))};});
+  });assert.ok(actionColors.length);for(const color of actionColors){assert.equal(color.background,color.expectedBackground);assert.equal(color.ink,color.expectedInk);assert.equal(color.border,color.expectedBorder);}
   await p.screenshot({path:`${out}/${c.design||c.key}-${device}.png`});results.push({...c,device,icons:geometry.length,colors,theme});console.log('PASS',c.design||c.key,device);
  }catch(e){failures.push({...c,device,error:e.message});console.log('FAIL',c.design||c.key,device,e.message);}finally{await p.close();}
 }
