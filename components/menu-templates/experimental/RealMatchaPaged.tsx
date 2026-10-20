@@ -442,6 +442,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         }
         data-scroll-brand-board={topRow ? "" : undefined}
         data-basic-structure={structure}
+        data-default-reading={defaultStructure ? "true" : undefined}
         data-show-cover={showCover ? "true" : "false"}
         data-template-key="cafe_design_a"
         data-paged-template-key="cafe_real_matcha_paged_test"
