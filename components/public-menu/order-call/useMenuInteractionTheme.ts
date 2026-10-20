@@ -18,11 +18,16 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
       const brand = [...root.querySelectorAll<HTMLElement>("[data-cafe-a-store-title],.cafe-a-store-title,.aube-table-cover h1")].find(visible);
       const style = getComputedStyle(root);
       const savedBrand = style.getPropertyValue("--menu-role-brand-color").trim();
-      brandColor = brand ? getComputedStyle(brand).color : savedBrand || style.getPropertyValue("--aube-accent").trim() || brandColor;
+      const dining = root.matches(".aube-table-root");
+      // Cover text may invert over photography. Operational buttons retain the
+      // saved brand palette instead of sampling that temporary white title.
+      brandColor = dining
+        ? savedBrand || style.getPropertyValue("--aube-accent").trim() || brandColor
+        : brand ? getComputedStyle(brand).color : savedBrand || style.getPropertyValue("--aube-accent").trim() || brandColor;
       const surfaces = [style.backgroundColor];
       // Representative columns may have their own paper color. Walk only the brand's
       // ancestors, excluding photos, image overlays and interactive control fills.
-      for (let panel = brand?.parentElement; panel && root.contains(panel); panel = panel.parentElement) {
+      for (let panel = dining ? null : brand?.parentElement; panel && root.contains(panel); panel = panel.parentElement) {
         surfaces.push(getComputedStyle(panel).backgroundColor);
         if (panel === root) break;
       }

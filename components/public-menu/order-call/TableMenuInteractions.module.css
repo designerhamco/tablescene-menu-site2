@@ -161,6 +161,11 @@
   color: var(--menu-call-ink, #191c1b);
   box-shadow: none;
 }
+/* Photo-cover tools invert locally; dropdowns and the branded Call stay separate. */
+.shell :global(.aube-table-root[data-cover-image-active="true"]) .diningToolbar {
+  background: transparent;
+  color: #fff;
+}
 .diningToolbar .actions { gap: .25rem; }
 .diningToolbar button {
   display: inline-flex;
