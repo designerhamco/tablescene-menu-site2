@@ -1,3 +1,4 @@
+import { translateMenuText } from "@/lib/menu-ui-copy";
 import type { MenuPageData } from "@/lib/menu-page-data";
 import type { SupportedLocale } from "@/lib/locales";
 import { getStarterPreset } from "@/lib/menu-starter-presets";
@@ -375,7 +376,9 @@ function applyDisplayCopy(data: MenuPageData, locale: PreviewTextLocale): MenuPa
 }
 
 export function applyStarterPreviewLocalization(data: MenuPageData, locale: SupportedLocale): MenuPageData {
-  const localizedBase = { ...data, locale, enabledLocales: ["ko", "en", "zh", "ja"] as SupportedLocale[] };
+  const localizedBase = { ...data, locale,
+    widgets: data.widgets?.map(widget => widget.type === "image" ? widget : { ...widget, title: widget.title ? translateMenuText(widget.title, locale) : null, description: translateMenuText(widget.description, locale) }),
+    enabledLocales: ["ko", "en", "zh", "ja"] as SupportedLocale[] };
   if (locale === "ko") return localizedBase;
 
   if (getSinglePageStarterTranslations(data.menuSite.template_key)) {

@@ -8,6 +8,25 @@ const browser = await chromium.launch(), results = [], errors = [], writes = [];
 const p = await browser.newPage({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
 p.on('pageerror', e => errors.push(e.message));
 await p.route('**/api/**', r => r.request().method() === 'GET' ? r.continue() : (writes.push(r.request().url()), r.abort()));
+async function diningPage(frame, name) {
+  // ResizeObserver updates the outer inset after the option group expands.
+  await p.waitForFunction(() => {
+    const toolbar = document.querySelector('[data-preview-device-toolbar]');
+    const stage = document.querySelector('main > section[aria-label]');
+    return Math.abs(parseFloat(getComputedStyle(stage).paddingTop) - toolbar.offsetHeight - 24) < 1;
+  });
+  const target = frame.getByRole('button', { name, exact: typeof name === 'string' });
+  const initial = await target.boundingBox();
+  const safeTop = await p.locator('[data-preview-device-toolbar]').evaluate(e => e.getBoundingClientRect().bottom + 8);
+  await p.locator('main > section[aria-label]').evaluate((e, { box, safeTop, height }) => {
+    if (box.y < safeTop) e.scrollTop -= safeTop - box.y;
+    else if (box.y + box.height > height - 16) e.scrollTop += box.y + box.height - height + 16;
+  }, { box: initial, safeTop, height: p.viewportSize().height });
+  const bounds = await target.boundingBox();
+  assert.ok(bounds && bounds.y > 0 && bounds.y + bounds.height <= p.viewportSize().height, 'page navigation is reachable through outer preview scrolling');
+  await p.mouse.click(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+}
+
 async function frameReady(design) {
   const frame = p.frameLocator('iframe');
   await frame.locator(`[data-default-design="${design}"]`).waitFor();
@@ -34,7 +53,7 @@ try {
     let frame = await frameReady(design);
     const guide = p.locator('[data-preview-guide-variant]');
     if (await guide.isVisible()) await guide.getByRole('button', { name: '닫기', exact: true }).click();
-    assert.equal(await p.locator('[data-preview-display-options] input:checked').count(), basic ? 12 : 7);
+    assert.equal(await p.locator('[data-preview-display-options] input:checked').count(), basic ? 12 : 8);
     assert.equal(await p.locator('[data-preview-display-options] fieldset').count(), 3);
     const optionsToggle = p.getByRole('button', { name: /^보기 옵션/ });
     const initialSrc = await p.locator('iframe').getAttribute('src');
@@ -44,7 +63,7 @@ try {
     await optionsToggle.click();
     assert.equal(await p.locator('[data-preview-display-options]').isVisible(), true);
     if (!basic) {
-      await frame.getByRole('button', { name: /A La Carte.*페이지로 이동/ }).click();
+      await diningPage(frame, /A La Carte.*페이지로 이동/);
       await frame.getByRole('heading', { name: 'A La Carte Menu', exact: true }).waitFor();
     }
     const secondary = '.cafe-a-menu-meta:not([data-cafe-a-reference-copy]),.aube-table-item-secondary';
@@ -52,10 +71,10 @@ try {
     const categoryDescription = '[data-cafe-a-category-description],.aube-table-course-description';
     const categoryCount = await frame.locator(categoryDescription).filter({ visible: true }).count();
     assert.ok(categoryCount > 0);
-    if (basic) assert.equal(categoryCount, 2, 'only two Basic sample categories have descriptions');
+    if (basic) assert.equal(categoryCount, await frame.locator('.cafe-a-category-title').filter({ visible: true }).count(), 'every Basic category has a description when enabled');
     frame = await toggle(design, 'categoryDescriptionsPreview', '카테고리 설명', false);
     if (!basic) {
-      await frame.getByRole('button', { name: /A La Carte.*페이지로 이동/ }).click();
+      await diningPage(frame, /A La Carte.*페이지로 이동/);
       await frame.getByRole('heading', { name: 'A La Carte Menu', exact: true }).waitFor();
     }
     assert.equal(await frame.locator(categoryDescription).filter({ visible: true }).count(), 0);
@@ -64,7 +83,7 @@ try {
     frame = await toggle(design, 'secondaryNamesPreview', '보조 언어명', false);
     frame = await toggle(design, 'descriptionsPreview', '메뉴 설명', false);
     if (!basic) {
-      await frame.getByRole('button', { name: /A La Carte.*페이지로 이동/ }).click();
+      await diningPage(frame, /A La Carte.*페이지로 이동/);
       await frame.getByRole('heading', { name: 'A La Carte Menu', exact: true }).waitFor();
     }
     assert.equal(await frame.locator(secondary).filter({ visible: true }).count(), 0);
@@ -104,9 +123,11 @@ try {
       frame = await toggle(design, 'soldOutPreview', '품절', true);
       const borders = await frame.locator('[data-cafe-a-category-heading]').filter({ visible: true }).evaluateAll(els => els.map(e => getComputedStyle(e).borderBottomWidth));
       assert.ok(borders.length); assert.ok(borders.every(b => b === '0px'));
-      assert.ok(await frame.locator('[data-paged-block="default-text"]').count());
+      assert.ok(await frame.locator('[data-cafe-a-widget-block] [data-cafe-a-widget-media]').count());
+      assert.ok(await frame.locator('[data-cafe-a-widget-block] [data-cafe-a-widget-title]').count());
+      assert.ok(await frame.locator('[data-cafe-a-widget-block] [data-cafe-a-widget-body]').count());
       frame = await toggle(design, 'widgetsPreview', '위젯', false);
-      assert.equal(await frame.locator('[data-paged-block="default-text"],[data-paged-block="default-image"]').count(), 0);
+      assert.equal(await frame.locator('[data-cafe-a-widget-block]').count(), 0);
       frame = await toggle(design, 'featuredPreview', '대표 상품', false);
       assert.equal(await frame.locator('[data-cafe-a-featured-title]').count(), 0);
       assert.ok(await frame.locator('[data-cafe-a-cover-image]').filter({ visible: true }).count());
@@ -114,12 +135,12 @@ try {
       assert.ok(await frame.locator('[data-cafe-a-featured-title]').filter({ visible: true }).count());
     }
     if (!basic) {
-      await frame.getByRole('button', { name: 'Drink Menu 페이지로 이동', exact: true }).click();
+      await diningPage(frame, 'Drink Menu 페이지로 이동');
       const champagne = frame.locator('.aube-table-item').filter({ has: frame.getByRole('heading', { name: '샴페인', exact: true }) });
       await champagne.waitFor();
       assert.equal(await champagne.locator('.aube-table-option-price').count(), 2);
       frame = await toggle(design, 'priceOptionsPreview', '가격 옵션', false);
-      await frame.getByRole('button', { name: 'Drink Menu 페이지로 이동', exact: true }).click();
+      await diningPage(frame, 'Drink Menu 페이지로 이동');
       await champagne.waitFor();
       assert.equal(await frame.locator('.aube-table-option-price').count(), 0);
       assert.equal((await champagne.locator('.aube-table-item-price').innerText()).replace(/\D/g, ''), '35000');
@@ -130,12 +151,12 @@ try {
     if (basic) assert.equal(await p.getByRole('checkbox', { name: '대표 상품 보기', exact: true }).isDisabled(), true);
     frame = await toggle(design, 'imagesPreview', '상품 이미지', false);
     if (!basic) {
-      await frame.getByRole('button', { name: /A La Carte.*페이지로 이동/ }).click();
+      await diningPage(frame, /A La Carte.*페이지로 이동/);
       await frame.getByRole('heading', { name: 'A La Carte Menu', exact: true }).waitFor();
       assert.equal(await frame.locator('.aube-table-sold-out').count(), 1);
       assert.equal(await frame.locator('.aube-table-item:has(.aube-table-sold-out) [data-menu-order-add]').count(), 0);
       frame = await toggle(design, 'soldOutPreview', '품절', false);
-      await frame.getByRole('button', { name: /A La Carte.*페이지로 이동/ }).click();
+      await diningPage(frame, /A La Carte.*페이지로 이동/);
       await frame.getByRole('heading', { name: 'A La Carte Menu', exact: true }).waitFor();
       assert.equal(await frame.locator('.aube-table-sold-out').count(), 0);
     }
@@ -163,7 +184,7 @@ try {
     assert.ok(await frame.locator(basic ? '[data-cafe-a-cover-image]' : '.aube-table-cover').filter({ visible: true }).count());
     frame = await toggle(design, 'imagesPreview', '상품 이미지', true);
     if (!basic) {
-      await frame.getByRole('button', { name: /A La Carte.*페이지로 이동/ }).click();
+      await diningPage(frame, /A La Carte.*페이지로 이동/);
       await frame.getByRole('heading', { name: 'A La Carte Menu', exact: true }).waitFor();
     }
     assert.ok(await frame.locator('.cafe-a-menu-item-image,.aube-table-item-image').count() > 0);
@@ -177,7 +198,7 @@ try {
     assert.ok(await frame.locator(categoryDescription).filter({ visible: true }).count());
     if (!basic) {
       frame = await toggle(design, 'priceOptionsPreview', '가격 옵션', true);
-      await frame.getByRole('button', { name: 'Drink Menu 페이지로 이동', exact: true }).click();
+      await diningPage(frame, 'Drink Menu 페이지로 이동');
       const champagne = frame.locator('.aube-table-item').filter({ has: frame.getByRole('heading', { name: '샴페인', exact: true }) });
       await champagne.waitFor();
       assert.equal(await champagne.locator('.aube-table-option-price').count(), 2);

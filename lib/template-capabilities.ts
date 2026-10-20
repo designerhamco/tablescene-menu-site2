@@ -454,9 +454,9 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
     events: false,
     socialLinks: false,
     menuWidgets: {
-      enabled: false,
-      maxPerPage: 0,
-      supportedTypes: [],
+      enabled: true,
+      maxPerPage: 3,
+      supportedTypes: ["text", "image", "image_text"],
     },
     menuCover: {
       coverMode: "page",
@@ -502,9 +502,9 @@ export const TEMPLATE_CAPABILITIES: Record<string, TemplateCapabilities> = {
     events: false,
     socialLinks: false,
     menuWidgets: {
-      enabled: false,
-      maxPerPage: 0,
-      supportedTypes: [],
+      enabled: true,
+      maxPerPage: 3,
+      supportedTypes: ["text", "image", "image_text"],
     },
     menuCover: {
       coverMode: "page",

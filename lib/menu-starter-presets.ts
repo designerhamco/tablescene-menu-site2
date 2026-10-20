@@ -725,7 +725,7 @@ const loopBagelStarterPreset: StarterPreset = {
             item("체더 치즈 베이글", 4500, "고소한 체더 치즈를 반죽과 토핑에 더해 짭짤하게 구운 베이글", {
               key: "cheddar-cheese-bagel", image_url: LOOP_BAGEL_CHEDDAR_CHEESE_IMAGE,
             }),
-            item("세서미 베이글", 4200, "고소한 참깨를 듬뿍 묻혀 구운 쫄깃한 베이글", {key:"sesame-bagel",image_url:"/placeholders/starter/menu-item.svg"}),
+            item("세서미 베이글", 4200, "고소한 참깨를 듬뿍 묻혀 구운 쫄깃한 베이글", {key:"sesame-bagel",image_url:"/menu-templates/fast_food_loop_bagel_a/sesame-bagel.webp"}),
           ],
         },
         {
@@ -761,7 +761,7 @@ const loopBagelStarterPreset: StarterPreset = {
             item("허니 월넛 크림치즈", 2200, "", {
               key: "honey-walnut-cream-cheese", image_url: LOOP_BAGEL_HONEY_WALNUT_CREAM_CHEESE_IMAGE,
             }),
-            item("스트로베리 크림치즈", 2500, "", {key:"strawberry-cream-cheese",image_url:"/placeholders/starter/menu-item.svg"}),
+            item("스트로베리 크림치즈", 2500, "", {key:"strawberry-cream-cheese",image_url:"/menu-templates/fast_food_loop_bagel_a/strawberry-cream-cheese.webp"}),
           ],
         },
         {
@@ -779,7 +779,7 @@ const loopBagelStarterPreset: StarterPreset = {
               key: "vanilla-bean-latte",
             }),
             item("레몬 스파클링", 5200, "", {
-              key: "lemon-sparkling",
+              key: "lemon-sparkling", price_note: "ICE ONLY",
             }),
           ],
         },
@@ -2211,6 +2211,25 @@ const templateStarterPresets: Partial<Record<string, StarterPreset>> = {
   dining_aube_table_b: diningAubeTableBStarterPreset,
   cafe_noir_a: cafeNoirAStarterPreset,
 };
+
+// Full feature starters: these examples are provisioned only for new menus.
+// Existing customer data and Mocha's approved character-only widget stay intact.
+for (const key of ["cafe_design_a", "cafe_sunday_line_a", "cafe_van_gogh_a", "cafe_round_focus_a", "fast_food_loop_bagel_a", "restaurant_onue_a", "dining_aube_table_a", "dining_aube_table_b"]) {
+  const preset = templateStarterPresets[key]!;
+  const pageKey = preset.pages[0].key;
+  const existing = preset.widgets?.length ? preset.widgets : [{ key: `${key}-store-guide`, page_key: pageKey, sort_order: 1000 }];
+  preset.widgets = existing.map(widget => ({ ...widget, type: "image_text", title: "title" in widget && widget.title || "매장 이용 안내", description: "description" in widget && widget.description || "계절 메뉴와 매장 소식을 확인해 주세요.", image_url: "image_url" in widget && widget.image_url || "/placeholders/starter/default-basic-cover.svg", settings: { ...("settings" in widget ? widget.settings : {}), placement: "flow", aspectRatio: "3:1", objectFit: "cover", objectPosition: "center", textAlign: "left" } }));
+  if (preset.mixed_content_order) {
+    for (const widget of preset.widgets) if (!preset.mixed_content_order.some(block => block.block_type === "widget" && block.widget_key === widget.key)) preset.mixed_content_order.push({ block_type: "widget", page_key: widget.page_key ?? pageKey, widget_key: widget.key, sort_order: 1000 + preset.mixed_content_order.length });
+  }
+}
+// Van Gogh shows a second category price rail, with its original cover OFF by default.
+for (const [categoryKey, labels] of [["coffee", ["HOT", "ICE"]], ["palette-latte", ["Small", "Tall", "Large"]]] as const) {
+  const category = cafeVanGoghStarterPreset.pages[0].categories.find(category => category.key === categoryKey)!;
+  category.price_columns = labels.map(label => ({ key: label.toLowerCase(), label }));
+  for (const item of category.items) item.price_column_values = labels.map((label, index) => ({ key: label.toLowerCase(), price: item.price + index * 500 }));
+}
+for (const category of cafeVanGoghStarterPreset.pages[0].categories) if (["signature", "tea-ade"].includes(category.key ?? "")) for (const item of category.items) if (["starry-night-latte", "arles-orange-cold-brew"].includes(item.key ?? "")) item.price_note = "ICE ONLY";
 
 const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe: StarterPreset } = {
   cafe: {

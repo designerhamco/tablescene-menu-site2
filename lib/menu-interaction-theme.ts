@@ -43,19 +43,26 @@ export function resolveMenuInteractionTheme({ brand, surfaces, inks = [] }: {
   const parsed = parseColor(brand);
   const base = parseColor(panel)!.rgb;
   const accent = parsed ? hexColor(parsed.rgb.map((c, i) => c * parsed.alpha + base[i] * (1 - parsed.alpha)) as RGB) : DARK;
-  const callBackground = [...backgrounds].sort((a, b) => luminance(parseColor(b)!.rgb) - luminance(parseColor(a)!.rgb))[0] ?? LIGHT;
-  const palette = [accent, ...inks.map(opaque).filter((c): c is string => Boolean(c))];
+  const inksOnly = [accent, ...inks.map(opaque).filter((c): c is string => Boolean(c))];
+  const palette = [...inksOnly, ...backgrounds];
+  const sorted = [...palette].sort((a, b) => luminance(parseColor(a)!.rgb) - luminance(parseColor(b)!.rgb));
+  const lightest = sorted.at(-1) ?? LIGHT;
+  const darkest = sorted[0] ?? DARK;
   const readableInk = (background: string, candidates: string[]) =>
     candidates.find(c => menuColorContrast(c, background) >= 4.5) ??
-    ["#000000", LIGHT].sort((a, b) => menuColorContrast(b, background) - menuColorContrast(a, background))[0];
-  const orderForeground = readableInk(accent, [callBackground, ...palette]);
-  const callForeground = readableInk(callBackground, palette);
+    [DARK, LIGHT].sort((a, b) => menuColorContrast(b, background) - menuColorContrast(a, background))[0];
+  const callForeground = readableInk(lightest, inksOnly);
+  const orderBackground = menuColorContrast(darkest, lightest) >= 4.5 ? darkest : readableInk(lightest, [DARK]);
+  const orderForeground = readableInk(orderBackground, [lightest, ...palette]);
   return {
-    "--menu-order-bg": accent,
+    "--menu-order-bg": orderBackground,
     "--menu-order-ink": orderForeground,
-    "--menu-order-border": menuColorContrast(accent, panel) >= 3 ? accent : orderForeground,
-    "--menu-call-bg": callBackground,
+    "--menu-order-border": orderBackground,
+    "--menu-call-bg": lightest,
     "--menu-call-ink": callForeground,
     "--menu-call-border": callForeground,
+    // Existing solid call circles retain the saved/rendered representative color.
+    "--menu-call-circle-bg": accent,
+    "--menu-call-circle-ink": readableInk(accent, [lightest, ...palette]),
   };
 }

@@ -8,6 +8,7 @@ import type {
   MenuWidgetPlacement,
   MenuWidgetTextAlign,
   MenuWidgetType,
+  MenuWidget,
 } from "@/lib/menu-widgets";
 import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
 
@@ -203,4 +204,13 @@ export default function CafeAWidgetBlock({ widget, className }: CafeAWidgetBlock
       </div>
     </section>
   );
+}
+
+
+/** Shared adapter for page-based menus that use the existing full widget. */
+export function toCafeAWidgetPreview(widget: MenuWidget): CafeAWidgetPreview {
+  const base = { id: widget.id, visible: widget.visible, placement: widget.settings.placement };
+  if (widget.type === "text") return { ...base, type: "text", title: widget.title ?? "", body: widget.description, textAlign: widget.settings.textAlign };
+  const media = { imageUrl: widget.imageUrl, altText: widget.settings.altText ?? "", aspectRatio: widget.settings.aspectRatio, objectFit: widget.settings.objectFit, objectPosition: widget.settings.objectPosition };
+  return widget.type === "image" ? { ...base, ...media, type: "image" } : { ...base, ...media, type: "image_text", title: widget.title ?? "", body: widget.description, textAlign: widget.settings.textAlign };
 }

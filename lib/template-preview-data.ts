@@ -22,6 +22,12 @@ export function applyTemplatePreviewOptions(source: MenuPageData, query: Templat
   const ordinary = data.items.filter(item => item.visible !== false && !courseIds.has(item.category_id ?? ""));
   const sample = ordinary[0];
   const image = "/placeholders/starter/default-menu-item.svg";
+  const copy = {
+    ko: { category: "정성껏 준비한 메뉴를 만나보세요.", item: "재료의 풍미와 식감을 살려 준비한 메뉴입니다.", widget: "매장 이용 안내", body: "계절 메뉴와 매장 소식을 확인해 주세요." },
+    en: { category: "Discover our carefully prepared selection.", item: "Prepared to bring out the flavour and texture of its ingredients.", widget: "Store information", body: "Discover seasonal menus and news from our store." },
+    zh: { category: "品尝我们精心准备的菜单。", item: "呈现食材的风味与口感。", widget: "门店指南", body: "了解季节菜单和门店资讯。" },
+    ja: { category: "丁寧に仕上げたメニューをお楽しみください。", item: "素材の風味と食感を生かして仕上げています。", widget: "店舗のご案内", body: "季節のメニューとお店のお知らせをご確認ください。" },
+  }[data.locale];
 
   if (enabled("popupPreview") !== undefined) settings.advertisementPopup = { enabled: enabled("popupPreview")!, images: [1, 2, 3].map(number => ({ imageUrl: `/placeholders/starter/default-popup-${number}.svg`, imagePath: null })) };
   if (enabled("logoPreview") !== undefined) {
@@ -32,6 +38,10 @@ export function applyTemplatePreviewOptions(source: MenuPageData, query: Templat
     menu_cover_enabled: enabled("coverPreview"),
     ...(enabled("coverPreview") ? { menu_cover_visible_pc: true, menu_cover_visible_tablet: true, menu_cover_visible_mobile: true } : {}),
   });
+  if (enabled("coverPreview") === true && !data.featuredSlides?.length && capabilities.menuCover.coverMode === "section") {
+    data.menuSite.cover_image_url ||= "/placeholders/starter/default-basic-cover.svg";
+    data.featuredSlides = [{ id: "catalog-preview-cover", imageUrl: data.menuSite.cover_image_url, featuredItemId: data.pageSettings.featured_item_enabled ? sample?.id ?? null : null, sortOrder: 0 }];
+  }
   if (enabled("featuredPreview") !== undefined) {
     data.pageSettings.featured_item_enabled = enabled("featuredPreview")!;
     if (enabled("featuredPreview") && sample) {
@@ -41,11 +51,10 @@ export function applyTemplatePreviewOptions(source: MenuPageData, query: Templat
   }
   if (enabled("coverImagesPreview") !== undefined) data.pageSettings.cover_image_visible = enabled("coverImagesPreview")!;
   if (enabled("imagesPreview") === false) data.items.forEach(item => { item.image_url = null; });
-  if (enabled("imagesPreview") === true && !ordinary.some(item => item.image_url)) ordinary.forEach(item => { item.image_url = image; });
+  if (enabled("imagesPreview") === true) ordinary.forEach(item => { item.image_url ||= image; });
   if (enabled("categoryDescriptionsPreview") === false) data.categories.forEach(category => { category.description = null; category.description_visible = false; });
   if (enabled("categoryDescriptionsPreview") === true) {
-    data.categories.forEach(category => { category.description_visible = true; });
-    if (!data.categories.some(category => category.description) && data.categories[0]) data.categories[0].description = data.menuSite.brand_description || data.menuSite.menu_cover_description || data.menuSite.description;
+    data.categories.forEach(category => { category.description_visible = true; category.description ||= copy.category; });
   }
   if (enabled("secondaryNamesPreview") === true) {
     const englishNames = new Map(applyStarterPreviewLocalization(source, "en").items.map(item => [item.id, item.name]));
@@ -61,9 +70,7 @@ export function applyTemplatePreviewOptions(source: MenuPageData, query: Templat
       if (data.locale !== "ko") item.default_name ||= originalNames.get(item.id);
     });
   }
-  if (enabled("descriptionsPreview") === true && sample && !data.items.some(item => item.description)) {
-    sample.description = ({ ko: "메뉴의 특징과 재료를 소개하는 설명입니다.", en: "A description of the ingredients and character of this menu item.", zh: "介绍这款餐品的食材与特色。", ja: "このメニューの食材と特徴をご紹介します。" })[data.locale];
-  }
+  if (enabled("descriptionsPreview") === true) data.items.forEach(item => { item.description ||= copy.item; });
   if (enabled("secondaryNamesPreview") === false) data.items.forEach(item => { item.set_name = null; item.default_name = undefined; });
   if (enabled("descriptionsPreview") === false) data.items.forEach(item => { item.description = null; });
   if (enabled("badgesPreview") === false) data.items.forEach(item => Object.assign(item, { badge: null, badge_label: null, badge_type: "none", recommended: false, is_best: false }));
@@ -89,6 +96,12 @@ export function applyTemplatePreviewOptions(source: MenuPageData, query: Templat
       data.priceOptions = labels.map((label, index) => ({ id: `${sample.id}-preview-option-${index}`, menu_item_id: sample.id, label, price: (sample.price ?? 5000) * (index === 0 ? 1 : 5), price_label: null, visible: true, sort_order: index }));
     }
   }
+  // A category price rail can intentionally suppress per-item notes. Keep a
+  // note example on an ordinary-price item so both enabled features are visible.
+  if (enabled("priceNotesPreview") === true && capabilities.supportsPriceNote) {
+    const eligible = ordinary.filter(item => !data.categories.find(category => category.id === item.category_id)?.priceColumns.length && !data.priceOptions.some(option => option.menu_item_id === item.id && option.visible !== false));
+    if (!eligible.some(item => item.priceNote || item.portion_label) && eligible[0]) eligible[0].priceNote = "ICE ONLY";
+  }
   if (enabled("timeSalesPreview") === true && !data.timeSales.length && sample?.price) {
     const column = sample.priceColumnValues[0];
     const price = column?.price ?? sample.price;
@@ -97,9 +110,17 @@ export function applyTemplatePreviewOptions(source: MenuPageData, query: Templat
   if (enabled("timeSalesPreview") === false) { data.timeSales = []; data.nextTimeSaleStartAt = null; }
   if (enabled("soldOutPreview") === false) data.items.forEach(item => { item.is_sold_out = false; });
   if (enabled("soldOutPreview") === true && !ordinary.some(item => item.is_sold_out) && ordinary.length) ordinary[Math.min(1, ordinary.length - 1)].is_sold_out = true;
-  if (enabled("widgetsPreview") === true) data.widgets?.forEach(widget => { widget.visible = true; });
   if (enabled("widgetsPreview") === false) data.widgets = [];
-  if (enabled("widgetsPreview") === true && !data.widgets?.length && data.pages[0]) data.widgets = [{ id: "catalog-preview-image-widget", menuSiteId: data.menuSite.id, menuPageId: data.pages[0].id, type: "image", title: null, description: null, imageUrl: image, imagePath: null, sortOrder: 1000, visible: true, settings: { schemaVersion: 1, placement: "flow", aspectRatio: "3:1", objectFit: "cover", objectPosition: "center", altText: "" } }];
+  if (enabled("widgetsPreview") === true && data.pages[0]) {
+    const widgets = data.widgets?.length ? data.widgets : [{ id: "catalog-preview-full-widget", menuSiteId: data.menuSite.id, menuPageId: data.pages[0].id, sortOrder: 1000, visible: true }];
+    data.widgets = widgets.map(widget => ({ ...widget, type: "image_text", visible: true,
+      title: "title" in widget && widget.title || copy.widget,
+      description: "description" in widget && widget.description || copy.body,
+      imageUrl: "imageUrl" in widget && widget.imageUrl || image,
+      imagePath: "imagePath" in widget ? widget.imagePath : null,
+      settings: { ...("settings" in widget ? widget.settings : {}), schemaVersion: 1, placement: "settings" in widget ? widget.settings.placement : "flow", aspectRatio: "settings" in widget && "aspectRatio" in widget.settings ? widget.settings.aspectRatio ?? "3:1" : "3:1", objectFit: "cover", objectPosition: "center", textAlign: "left", altText: copy.widget },
+    }));
+  }
   data.menuSite.settings = settings;
   data.menuSite.page_settings = { ...(data.menuSite.page_settings && typeof data.menuSite.page_settings === "object" && !Array.isArray(data.menuSite.page_settings) ? data.menuSite.page_settings : {}), ...data.pageSettings };
   return data;

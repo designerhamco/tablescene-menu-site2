@@ -91,7 +91,7 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
   };
   data.categories = data.categories.map(category => {
     const name = basic ? category.name.replace("MATCHA SIGNATURE", "SIGNATURE").replace("CLASSIC COFFEE", "COFFEE") : category.name.replace(/Aube signature/i, "Signature");
-    return { ...category, name, description: basic ? basicCategoryDescriptions[name] ?? null : category.description,
+    return { ...category, name, description: basic ? basicCategoryDescriptions[name] ?? "정성껏 준비한 메뉴를 만나보세요." : category.description || "정성껏 준비한 메뉴를 만나보세요.",
       description_visible: options.categoryDescriptionsPreview };
   });
   data.featuredSlides = (data.featuredSlides ?? []).map(slide => ({ ...slide, imageUrl: coverImage, featuredItemId: slide.featuredItemId ?? data.items[0]?.id ?? null }));
@@ -115,10 +115,7 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
         }
       }
     }
-    data.widgets = [
-      { id: "default-text", menuSiteId: data.menuSite.id, menuPageId: data.pages[0].id, type: "text", title: "매장 이용 안내", description: "모든 음료는 포장할 수 있습니다.", imageUrl: null, imagePath: null, sortOrder: 100, visible: true, settings: { schemaVersion: 1, placement: "flow", textAlign: "left" } },
-      { id: "default-image", menuSiteId: data.menuSite.id, menuPageId: data.pages[0].id, type: "image", title: null, description: null, imageUrl: image, imagePath: null, sortOrder: 101, visible: true, settings: { schemaVersion: 1, placement: "flow", aspectRatio: "3:1", objectFit: "cover", objectPosition: "center", altText: "이미지 위젯 예시" } },
-    ];
+    data.widgets = [{ id: "default-full-widget", menuSiteId: data.menuSite.id, menuPageId: data.pages[0].id, type: "image_text", title: "매장 이용 안내", description: "모든 음료는 포장할 수 있습니다.", imageUrl: image, imagePath: null, sortOrder: 100, visible: true, settings: { schemaVersion: 1, placement: "flow", textAlign: "left", aspectRatio: "3:1", objectFit: "cover", objectPosition: "center", altText: "매장 이용 안내" } }];
   }
   if (!basic && !options.priceOptionsPreview) data.priceOptions = [];
   // One clear sold-out example, away from the first orderable product/course.

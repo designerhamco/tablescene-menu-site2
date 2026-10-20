@@ -185,6 +185,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
         device={device}
         orientation={orientation}
         menuId={menuId}
+        supportsTabletOrientation={data.menuSite.template_key?.startsWith("dining_")}
         query={previewQuery}
         supportsCallPreview={data.menuSite.template_key !== "display_menu_a"}
         supportsLayoutPreview={data.menuSite.template_key === "cafe_real_matcha_paged_test" || data.menuSite.template_key === "cafe_design_a"}

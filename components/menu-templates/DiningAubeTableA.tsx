@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
+import CafeAWidgetBlock, { toCafeAWidgetPreview } from "./CafeAWidgetBlock";
 import { formatMenuMoney } from "@/lib/menu-ui-copy";
 import type { SupportedLocale } from "@/lib/locales";
 import { useMenuLocale, useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
@@ -327,6 +328,7 @@ export default function DiningAubeTableA({
         .filter((item) => item.visible !== false && !item.category_id && item.menu_page_id === activePage.id)
         .sort((left, right) => left.sort_order - right.sort_order)
     : [];
+  const pageWidgets = (data.widgets ?? []).filter(widget => widget.visible !== false && widget.menuPageId === activePage?.id).sort((a, b) => a.sortOrder - b.sortOrder);
   const pageAlignment = normalizeAubeTableTextAlignment(activePage?.text_alignment);
   const pageColumns = normalizeAubeTableLayoutColumns(activePage?.layout_columns);
   const coverColor = normalizeAubeTableCoverBackgroundColor(data.pageSettings.multi_page_cover_background_color);
@@ -474,6 +476,7 @@ export default function DiningAubeTableA({
                   {directItems.map((item) => <MenuItemRow key={item.id} item={item} priceOptions={data.priceOptions} onOpenImage={openImage} />)}
                 </motion.section>
               ) : null}
+              {pageWidgets.length ? <section className="aube-table-widgets" data-aube-table-widgets>{pageWidgets.map(widget => <CafeAWidgetBlock key={widget.id} widget={toCafeAWidgetPreview(widget)} />)}</section> : null}
             </motion.div>
           </main>
         </div>
@@ -607,6 +610,7 @@ export default function DiningAubeTableA({
         .aube-table-page[data-align="center"] { text-align: center; }
         .aube-table-page-header { --cafe-a-script-ko-font: var(--menu-role-category-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-category-font-en, var(--menu-font-en)); max-width: 820px; margin: 0 auto var(--aube-space-section-start); text-align: center; }
         .aube-table-page-header h1 { margin: 0; color: var(--menu-role-category-color, var(--aube-accent)); font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: clamp(48px, 4.7vw, 68px); font-weight: var(--menu-role-category-font-weight, 400); line-height: 1.05; letter-spacing: -.025em; }
+        .aube-table-widgets { grid-column: 1 / -1; display: grid; gap: var(--aube-space-course); --cafe-a-widget-ink: var(--aube-ink); }
         .aube-table-page-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 680px; margin: clamp(11px, 1.1vw, 16px) auto 0; color: var(--aube-muted); font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-page-description); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.55; }
         .aube-table-page-content { display: grid; gap: var(--aube-space-course); text-align: left; }
         .aube-table-page[data-align="center"] .aube-table-page-content { text-align: center; }

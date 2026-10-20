@@ -17,7 +17,7 @@ test("panel shell shares fitting without reserving an extra brand column", () =>
  assert.equal(usesOnePageProportionPolicy("restaurant_onue_a"), true);
  assert.equal(getTemplateCapabilities("restaurant_onue_a").brandLogo, true);
  const preset = getStarterPreset("restaurant_onue_a");
- assert.equal(preset.pages.flatMap(p=>p.categories.flatMap(c=>c.items)).filter(i=>i.image_url).length, 3);
+ assert.equal(preset.pages.flatMap(p=>p.categories.flatMap(c=>c.items)).filter(i=>i.image_url).length, 20);
  assert.equal(PANEL_FEATURED_IMAGE.width / PANEL_FEATURED_IMAGE.height, 4 / 3);
  assert.equal(PANEL_MOBILE_FEATURED_IMAGE.width / PANEL_MOBILE_FEATURED_IMAGE.height, 1);
 });

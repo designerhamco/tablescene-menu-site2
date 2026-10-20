@@ -199,8 +199,8 @@
   height: 4.5rem;
   border: 0;
   border-radius: 50%;
-  background: var(--menu-order-bg, #191c1b);
-  color: var(--menu-order-ink, #fff);
+  background: var(--menu-call-circle-bg, #191c1b);
+  color: var(--menu-call-circle-ink, #fff);
   font: 500 .75rem/1.2 "Pretendard", sans-serif;
   cursor: pointer;
 }

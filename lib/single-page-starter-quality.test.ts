@@ -168,7 +168,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
       "/menu-templates/fast_food_loop_bagel_a/blueberry-bagel.png",
       "/menu-templates/fast_food_loop_bagel_a/black-olive-bagel.png",
       "/menu-templates/fast_food_loop_bagel_a/cheddar-cheese-bagel.png",
-      "/placeholders/starter/menu-item.svg",
+      "/menu-templates/fast_food_loop_bagel_a/sesame-bagel.webp",
     ],
   );
   assert.deepEqual(
@@ -186,7 +186,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
       "/menu-templates/fast_food_loop_bagel_a/plain-cream-cheese.png",
       "/menu-templates/fast_food_loop_bagel_a/scallion-cream-cheese.png",
       "/menu-templates/fast_food_loop_bagel_a/honey-walnut-cream-cheese.png",
-      "/placeholders/starter/menu-item.svg",
+      "/menu-templates/fast_food_loop_bagel_a/strawberry-cream-cheese.webp",
     ],
   );
   assert.equal(loopBagelDrinks?.items.every((item) => !item.image_url), true);
@@ -246,7 +246,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(roundHouseWhiteWine?.badge_label, undefined);
   assert.equal(roundFocus.menu_cover_enabled, false);
   assert.equal(roundFocus.featured_slides?.length, 0);
-  assert.deepEqual(roundFocus.widgets, []);
+  assert.ok(roundFocus.widgets?.every(widget => widget.type === "image_text"));
   const roundBarBites = roundFocus.pages[0]?.categories.find((category) => category.key === "bar-bites");
   assert.equal(roundBarBites?.items.length, 4);
   assert.equal(roundBarBites?.items.every((item) => Boolean(item.image_url)), true);
@@ -264,8 +264,8 @@ test("starter-specific image and promotion presentation stays intentional", () =
     assert.equal(roundTranslations?.[locale].promotions["truffle-fries-last-call"]?.badgeText, "LAST CALL");
   }
   const roundFocusLastBlock = roundFocus.mixed_content_order?.at(-1);
-  assert.equal(roundFocusLastBlock?.block_type, "category");
-  assert.equal(roundFocusLastBlock?.block_type === "category" ? roundFocusLastBlock.category_key : null, "bar-bites");
+  assert.equal(roundFocusLastBlock?.block_type, "widget");
+  assert.equal(roundFocusLastBlock?.block_type === "widget" ? roundFocusLastBlock.widget_key : null, "cafe_round_focus_a-store-guide");
 
   const mochaForest = getStarterPreset("cafe_mocha_forest_a");
   assert.equal(mochaForest.widgets?.[0]?.type, "image");
@@ -335,7 +335,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(vanGogh.site.cover_image_url, "");
   assert.equal(vanGogh.featured_item_key, undefined);
   assert.equal(vanGogh.featured_slides?.length, 0);
-  assert.deepEqual(vanGogh.widgets, []);
+  assert.ok(vanGogh.widgets?.every(widget => widget.type === "image_text"));
   const vanGoghTypography = mergeTypographySettings("cafe_van_gogh_a");
   assert.equal(vanGoghTypography.english_font_key, "special-elite");
   for (const role of ["brand", "category", "itemName", "supporting", "price"] as const) {
@@ -365,4 +365,24 @@ test("starter chip languages remain intentional in every locale", () => {
   const realMatchaItems = getStarterPreset("cafe_design_a").pages[0]?.categories.flatMap((category) => category.items) ?? [];
   assert.equal(realMatchaItems.find((item) => item.key === "real-matcha-cream-latte")?.badge_label, "시그니처");
   assert.equal(realMatchaItems.find((item) => item.key === "nutty-cream-latte")?.badge_label, "베스트");
+});
+
+test("feature starters include full widgets without changing Mocha's character widget", () => {
+  for (const key of ["cafe_design_a", "cafe_sunday_line_a", "cafe_van_gogh_a", "cafe_round_focus_a", "fast_food_loop_bagel_a", "restaurant_onue_a", "dining_aube_table_a", "dining_aube_table_b"]) {
+    const widgets = getStarterPreset(key).widgets ?? [];
+    assert.ok(widgets.length > 0, `${key} has a widget`);
+    assert.ok(widgets.every(widget => widget.type === "image_text" && widget.image_url && widget.title && widget.description), `${key} demonstrates image and supporting copy together`);
+  }
+  assert.ok(getStarterPreset("cafe_mocha_forest_a").widgets?.every(widget => widget.type === "image"));
+});
+
+test("ONUE starters demonstrate complete product copy, multiple price rails and both wine-colored sale modes", () => {
+  const preset = getStarterPreset("restaurant_onue_a");
+  const categories = preset.pages.flatMap(page => page.categories);
+  const items = categories.flatMap(category => category.items);
+  assert.ok(items.every(item => item.image_url && item.set_name && item.description));
+  assert.ok(categories.filter(category => category.price_columns?.length).length >= 2);
+  assert.ok(items.some(item => item.price_note));
+  assert.deepEqual(new Set(preset.time_sales?.map(sale => sale.time_display_mode)), new Set(["countdown", "message"]));
+  assert.ok(preset.time_sales?.every(sale => sale.badge_background_color === "#713F36"));
 });
