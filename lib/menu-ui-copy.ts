@@ -1,6 +1,8 @@
 import type { SupportedLocale } from "./locales";
 
 export const MENU_UI_COPY: Record<string, readonly [string, string, string]> = {
+  "이전 광고": ["Previous announcement", "前のお知らせ", "上一条广告"],
+  "다음 광고": ["Next announcement", "次のお知らせ", "下一条广告"],
   "정성껏 준비한 메뉴를 만나보세요.": ["Discover our carefully prepared selection.", "丁寧に仕上げたメニューをお楽しみください。", "品尝我们精心准备的菜单。"],
   "계절 메뉴와 매장 소식을 확인해 주세요.": ["Discover seasonal menus and news from our store.", "季節のメニューとお店のお知らせをご確認ください。", "了解季节菜单和门店资讯。"],
   "계절 디저트 특별가": ["Seasonal dessert special", "季節のデザート特別価格", "季节甜品特价"],

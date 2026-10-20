@@ -6,12 +6,12 @@ const out = process.env.ORDER_QA_OUTPUT || '/private/tmp/basic-column-balance-be
 await fs.mkdir(out, { recursive: true });
 const bundled = await build({ stdin: { contents: `export {layoutScrollableMenu,selectScrollableMenuCandidate} from './lib/basic-menu-scroll'; export {measureScrollableNames} from './components/menu-templates/experimental/scroll-name-readability'; export {applyOnePageChipLayouts} from './components/menu-templates/one-page-chip-layout';`, resolveDir: process.cwd(), loader: 'ts' }, bundle: true, write: false, platform: 'browser', format: 'iife', globalName: 'ColumnAudit' });
 const browser = await chromium.launch(), results = [];
-const keys = ['cafe_design_a','cafe_mocha_forest_a','cafe_sunday_line_a','cafe_van_gogh_a','cafe_round_focus_a','fast_food_loop_bagel_a','restaurant_onue_a'];
+const keys = ['cafe_design_a','cafe_mocha_forest_a','cafe_sunday_line_a','cafe_van_gogh_a','cafe_round_focus_a','fast_food_loop_bagel_a','restaurant_onue_a'].filter(key=>!process.env.QA_KEYS||process.env.QA_KEYS.split(',').includes(key));
 try {
  for (const key of keys) for (const [device,width,height] of [['pc',1440,900],['tablet',1180,820],['tablet',820,1180]]) for (const mode of ['orderedBalancedFit','orderedFit']) {
   const page = await browser.newPage({viewport:{width,height},reducedMotion:'reduce'});
   try {
-   await page.goto(`${base}/templates/${key}/preview?`+new URLSearchParams({device,view:'actual',embedded:'1',callPreview:'on',orderPreview:'on',layoutMode:mode}),{waitUntil:'networkidle'});
+   await page.goto(`${base}/templates/${key}/preview?`+new URLSearchParams({device,view:'actual',embedded:'1',callPreview:'on',orderPreview:'on',layoutMode:mode,...(process.env.WRAP_QA==='1'?{logoPreview:'on',coverPreview:'on',imagesPreview:'off',categoryDescriptionsPreview:'on',secondaryNamesPreview:'on',descriptionsPreview:'on',priceOptionsPreview:'on'}:{})}),{waitUntil:'networkidle'});
    await page.evaluate(()=>document.fonts.ready);
    await page.locator('[data-native-ready=true],[data-paged-ready=true]').first().waitFor();
    await page.addScriptTag({content:bundled.outputFiles[0].text});
@@ -48,10 +48,10 @@ try {
     });
     if(previous===null)measure.removeAttribute('style');else measure.setAttribute('style',previous);
     ColumnAudit.applyOnePageChipLayouts(measure);
-    return {viewport:[innerWidth,innerHeight],current:document.querySelectorAll(native?'[data-native-column]':'[data-paged-column]').length,menuHeight:menu.clientHeight,candidates:candidates.map(c=>({count:c.columnCount,width:c.columnWidth,metrics:c.metrics,groups:c.layout.columns.map(col=>[...new Set(col.map(b=>b.group))]),names:c.names.map(n=>({id:n.id,lines:n.lines,availableWidth:n.availableWidth,overflow:n.overflow}))}))};
+    return {viewport:[innerWidth,innerHeight],current:document.querySelectorAll(native?'[data-native-column]':'[data-paged-column]').length,menuHeight:menu.clientHeight,candidates:candidates.map(c=>({count:c.columnCount,width:c.columnWidth,metrics:c.metrics,groups:c.layout.columns.map(col=>[...new Set(col.map(b=>b.group))]),names:c.names.map(n=>({id:n.id,role:n.role,lines:n.lines,availableWidth:n.availableWidth,overflow:n.overflow}))}))};
    },{key,mode});
    results.push({key,device,width,height,mode,...result});
-   if(key==='cafe_mocha_forest_a'&&mode==='orderedBalancedFit')await page.screenshot({path:`${out}/${key}-${width}.png`});
+   if((key==='cafe_mocha_forest_a'||process.env.WRAP_QA==='1')&&mode==='orderedBalancedFit')await page.screenshot({path:`${out}/${key}-${width}.png`});
   } finally {await page.close();}
  }
 } finally {await browser.close();await fs.writeFile(`${out}/report.json`,JSON.stringify(results,null,2));}

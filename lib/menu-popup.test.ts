@@ -32,6 +32,7 @@ test("four album reviews share existing structures while all previews default po
   assert.equal(DEFAULT_DESIGN_REVIEWS.filter(design => design.itemLayout === "list").length, 6);
   for (const design of DEFAULT_DESIGN_REVIEWS) {
     assert.equal(getDefaultDesignOptions({ design: design.id }).popupPreview, false);
+    assert.equal(getDefaultDesignOptions({ design: design.id }).widgetsPreview, false);
     const url = new URL(buildTemplatePreviewUrl(design.renderer, { design: design.id, popupPreview: "on" }, { device: "mobile", actual: true }), "https://example.com");
     assert.equal(url.searchParams.get("popupPreview"), "on");
     assert.equal(url.searchParams.get("design"), design.id);

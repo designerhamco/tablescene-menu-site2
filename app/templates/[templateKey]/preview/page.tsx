@@ -1557,7 +1557,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     resolvedSearchParams.localeQa,
   );
   const data = defaultDesign ? buildDefaultDesignPreview({ ...fixtureData, locale: localizedData.locale, enabledLocales: localizedData.enabledLocales,
-    menuSite: { ...fixtureData.menuSite, template_key: templateKey } }, defaultDesign, getDefaultDesignOptions(resolvedSearchParams)) : applyTemplatePreviewOptions(localizedData, resolvedSearchParams);
+    menuSite: { ...fixtureData.menuSite, template_key: templateKey } }, defaultDesign, getDefaultDesignOptions(resolvedSearchParams)) : applyTemplatePreviewOptions(localizedData, { ...resolvedSearchParams, widgetsPreview: getFirstParam(resolvedSearchParams.widgetsPreview) ?? "off" });
   if (!isActualView && usesDevicePreviewFrame) {
     return <MenuPreviewDeviceFrame device={device} orientation={orientation} templateKey={templateKey} query={resolvedSearchParams}
       previewDisplayOptions={defaultDesign ? getDefaultDesignOptions(resolvedSearchParams) : getTemplatePreviewOptions(localizedData, resolvedSearchParams)} />;

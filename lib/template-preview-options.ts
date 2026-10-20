@@ -54,7 +54,7 @@ export function getTemplatePreviewOptions(source: MenuPageData, query: TemplateP
     coverPreview: source.pageSettings.menu_cover_enabled !== false,
     featuredPreview: source.pageSettings.featured_item_enabled === true,
     imagesPreview: source.items.some(item => Boolean(item.image_url)),
-    widgetsPreview: Boolean(source.widgets?.some(widget => widget.visible !== false)),
+    widgetsPreview: false,
     categoryDescriptionsPreview: source.categories.some(category => category.description_visible !== false && Boolean(category.description)),
     secondaryNamesPreview: source.items.some(item => basic && source.locale !== "ko" ? Boolean(item.default_name && item.default_name !== item.name) : Boolean(item.set_name)),
     descriptionsPreview: source.items.some(item => Boolean(item.description)),

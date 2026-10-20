@@ -5903,3 +5903,16 @@ video {
   --menu-role-supporting-color: rgb(255 255 255 / 82%);
   color: #fff;
 }
+
+
+/* Sold-out state wins over saved/native text roles while keeping chip styling. */
+.cafe-a-typography [data-cafe-a-menu-item][data-cafe-a-sold-out="true"] :is(.cafe-a-menu-title, .cafe-a-menu-price, .cafe-a-price-label),
+.aube-table-root .aube-table-item[data-cafe-a-sold-out="true"] :is(h3, .aube-table-item-price) {
+  color: #797979 !important;
+}
+.cafe-a-typography [data-cafe-a-menu-item][data-cafe-a-sold-out="true"] :is(.cafe-a-menu-meta, .cafe-a-menu-description, .cafe-a-price-note),
+.aube-table-root .aube-table-item[data-cafe-a-sold-out="true"] :is(.aube-table-item-secondary, .aube-table-item-description) {
+  color: #8b8b8b !important;
+}
+
+.cafe-a-price-area:empty { display: none; }

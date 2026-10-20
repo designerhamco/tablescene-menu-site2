@@ -53,7 +53,7 @@ try {
     let frame = await frameReady(design);
     const guide = p.locator('[data-preview-guide-variant]');
     if (await guide.isVisible()) await guide.getByRole('button', { name: '닫기', exact: true }).click();
-    assert.equal(await p.locator('[data-preview-display-options] input:checked').count(), basic ? 12 : 8);
+    assert.equal(await p.locator('[data-preview-display-options] input:checked').count(), basic ? 11 : 7);
     assert.equal(await p.locator('[data-preview-display-options] fieldset').count(), 3);
     const optionsToggle = p.getByRole('button', { name: /^보기 옵션/ });
     const initialSrc = await p.locator('iframe').getAttribute('src');
@@ -123,6 +123,8 @@ try {
       frame = await toggle(design, 'soldOutPreview', '품절', true);
       const borders = await frame.locator('[data-cafe-a-category-heading]').filter({ visible: true }).evaluateAll(els => els.map(e => getComputedStyle(e).borderBottomWidth));
       assert.ok(borders.length); assert.ok(borders.every(b => b === '0px'));
+      assert.equal(await p.getByRole('checkbox', { name: '위젯 보기', exact: true }).isChecked(), false);
+      frame = await toggle(design, 'widgetsPreview', '위젯', true);
       assert.ok(await frame.locator('[data-cafe-a-widget-block] [data-cafe-a-widget-media]').count());
       assert.ok(await frame.locator('[data-cafe-a-widget-block] [data-cafe-a-widget-title]').count());
       assert.ok(await frame.locator('[data-cafe-a-widget-block] [data-cafe-a-widget-body]').count());

@@ -1577,8 +1577,6 @@ function MenuItemRow({
 }) {
   const initialNowMs = useCafeATimeSaleInitialNowMs();
   const referenceDevice = useMenuCoverRenderDevice(previewDevice);
-  const defaultDesign = useDefaultDesign();
-  const priceAction = defaultDesign || referenceDevice !== "mobile";
   const isSoldOut = item.is_sold_out === true;
   const { priceTokens, usesPriceColumns } = getItemPriceTokensForCategory(item, category, priceOptions, capabilities, priceDisplayMode);
   const singleTimeSaleItem = timeSale?.item;
@@ -1711,7 +1709,6 @@ function MenuItemRow({
           {showRegularBadge ? <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} className={titleClassName} /> : null}
           {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} className={titleClassName} /> : null}
         </>}
-        {!priceAction ? <MenuOrderAddButton itemId={item.id} itemName={item.name} /> : null}
         <span className="cafe-a-round-focus-price-leader" aria-hidden="true" />
       </div>
       {hasSecondaryText && (
@@ -1752,6 +1749,7 @@ function MenuItemRow({
   );
   const priceAreaElement = (
     <>
+      {priceTokens.length === 0 ? <div className="cafe-a-price-area" data-cafe-a-menu-price=""><MenuOrderAddButton itemId={item.id} itemName={item.name} className="cafe-a-price-order-add" /></div> : null}
       {priceTokens.length > 0 && usesPriceColumns && (
         <div className={`menu-price cafe-a-price-area shrink-0 text-right ${priceTextColorClassName} lg:justify-self-end`} data-cafe-a-menu-price="">
           <div
@@ -1786,7 +1784,7 @@ function MenuItemRow({
               </span>
             ))}
           </div>
-          {priceAction ? <MenuOrderAddButton itemId={item.id} itemName={item.name} className="cafe-a-price-order-add" /> : null}
+          <MenuOrderAddButton itemId={item.id} itemName={item.name} className="cafe-a-price-order-add" />
           {priceNote && (
             <p className={`cafe-a-price-note mt-1 break-keep text-right font-bold leading-snug ${isSoldOut ? "cafe-a-sold-out-muted" : "text-[#65706b]"}`}>
               <ScriptAwareText text={priceNote} />
@@ -1822,7 +1820,7 @@ function MenuItemRow({
               </span>
             ))}
           </div>
-          {priceAction ? <MenuOrderAddButton itemId={item.id} itemName={item.name} className="cafe-a-price-order-add" /> : null}
+          <MenuOrderAddButton itemId={item.id} itemName={item.name} className="cafe-a-price-order-add" />
           {priceNote && (
             <p className={`cafe-a-price-note mt-1 break-keep text-right font-bold leading-snug ${isSoldOut ? "cafe-a-sold-out-muted" : "text-[#65706b]"}`}>
               <ScriptAwareText text={priceNote} />

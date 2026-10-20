@@ -38,6 +38,9 @@ test("unmodified designer previews retain the exact native data and ignore unrel
   assert.equal(options.imagesPreview, true);
   assert.equal(options.soldOutPreview, true);
   assert.equal(options.popupPreview, false);
+  assert.equal(options.widgetsPreview, false);
+  assert.equal(getTemplatePreviewOptions(source, { widgetsPreview: "on" }).widgetsPreview, true);
+  assert.equal(source.widgets?.length, 1, "the preview default never removes stored starter content");
 });
 
 test("catalog visibility overrides preserve source, native styles, content identity and course pricing", () => {

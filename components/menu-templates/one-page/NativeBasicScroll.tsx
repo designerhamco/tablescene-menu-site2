@@ -136,7 +136,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       });
       const selected = selectScrollableMenuCandidate(candidates, grouped);
       measure.current.style.width = `${selected.columnWidth}px`;
-      root.dataset.nativeNameMeasurements = String(selected.names?.length ?? 0);
+      root.dataset.nativeNameMeasurements = String(selected.names?.filter(name => name.role !== "category").length ?? 0);
       root.style.setProperty("--native-track-width", `${selected.columnWidth}px`);
       setLayout(previous => JSON.stringify(previous) === JSON.stringify(selected.layout) ? previous : selected.layout);
       setReady(true);
