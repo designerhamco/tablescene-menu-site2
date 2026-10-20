@@ -43,7 +43,7 @@ try{for(const [design,key,device,width,height] of cases){
   if(device==='mobile')assert.deepEqual(value.mobileItems,old.mobileItems,'mobile item geometry stays unchanged');
  }
  if(value.slot&&device!=='mobile'){
-  assert.ok(Math.abs(value.image.width/value.image.height-.8)<.01);
+  assert.ok(Math.abs(value.image.width/value.image.height-(design==='basic-first-column'&&device==='tablet'?2/3:.8))<.01);
   assert.ok(Math.abs(value.image.bottom-value.slot.bottom)<1,'portrait image sits at the bottom of the available rail');
   if(design==='basic-center-column')assert.ok(value.actions.y-value.image.bottom>=20&&value.actions.y-value.image.bottom<=25,'actions follow the bottom-aligned image with the original gap');
  }

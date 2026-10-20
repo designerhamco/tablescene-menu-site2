@@ -12,7 +12,8 @@ try{
    await p.goto(`${base}/templates/cafe_design_a/preview?`+new URLSearchParams({design,device,view:'actual',callPreview:'on',orderPreview:'on'}),{waitUntil:'networkidle'});await p.evaluate(()=>document.fonts.ready);
    if(device!=='mobile')await p.locator('[data-paged-ready=true]').waitFor();
    const image=p.locator('.cafe-a-cover-frame').filter({visible:true}).first();const box=await image.boundingBox();
-   if(design==='basic-first-column'||design==='basic-center-column')assert.ok(Math.abs(box.width/box.height-.8)<.01,'representative image is 4:5');
+   if(design==='basic-first-column'||design==='basic-center-column')assert.ok(Math.abs(box.width/box.height-(design==='basic-first-column'&&device==='tablet'?2/3:.8))<.01,'first-column tablet is 4:6; other portrait images are 4:5');
+   if(design==='basic-first-column'&&device!=='mobile'){const brand=await p.locator('[data-paged-brand]').boundingBox();assert.ok(Math.abs(box.y+box.height-brand.y-brand.height)<1,'representative image stays at the bottom');}
    if(design==='basic-upper-left')assert.ok(Math.abs(box.width/box.height-4/3)<.01);
    if(design==='basic-center-column'&&device!=='mobile'){
     assert.equal(await p.locator('[data-paged-brand] [data-scroll-actions]').count(),1);
