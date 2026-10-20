@@ -39,6 +39,7 @@ import {
 } from "@/lib/template-typography-presets";
 import { formatMenuPrice } from "@/types/menu";
 import { CafeMenuImageLightbox } from "./CafeDesignA";
+import { useDefaultDesign, useDefaultDesignLogoImage } from "./defaults/DefaultDesignScope";
 import type { CafeMenuImagePreview } from "./shared/cafe-template-types";
 
 type OpenItemImage = (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
@@ -227,6 +228,7 @@ export default function DiningAubeTableA({
   ...data
 }: DiningAubeTableProps) {
   const t = useMenuText();
+  const defaultDesign = useDefaultDesign();
   const usesSidebarNavigation = layoutVariant === "sidebar";
   const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
   const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
@@ -255,6 +257,7 @@ export default function DiningAubeTableA({
   }, []);
   const [transitionDirection, setTransitionDirection] = useState(1);
   const [failedCoverLogoUrl, setFailedCoverLogoUrl] = useState<string | null>(null);
+  const logoImageRef = useDefaultDesignLogoImage(data.menuSite.logo_url, () => setFailedCoverLogoUrl(data.menuSite.logo_url));
   const prefersReducedMotion = useReducedMotion();
   const scrollRef = useRef<HTMLDivElement>(null);
   const safeActiveIndex = Math.max(0, Math.min(activeIndex, units.length - 1));
@@ -398,7 +401,7 @@ export default function DiningAubeTableA({
           onDragEnd={onSwipeEnd}
         >
       {activeUnit.type === "cover" ? (
-        <section className="aube-table-cover" style={{ backgroundColor: coverColor }} data-aube-table-cover="">
+        <section className="aube-table-cover" style={{ backgroundColor: coverColor }} data-aube-table-cover="" data-default-cover-image={defaultDesign && data.pageSettings.cover_image_visible !== false && data.menuSite.cover_image_url ? "true" : undefined}>
           {data.pageSettings.cover_image_visible !== false && data.menuSite.cover_image_url ? (
             <img className="aube-table-cover-image" src={data.menuSite.cover_image_url} alt="" />
           ) : null}
@@ -416,13 +419,15 @@ export default function DiningAubeTableA({
               <motion.div variants={AUBE_TABLE_COVER_REVEAL_ITEM}>
                 <img
                   className="aube-table-cover-logo"
+                  data-default-design-logo={defaultDesign ? "" : undefined}
+                  ref={logoImageRef}
                   src={data.menuSite.logo_url ?? ""}
                   alt={t("{0} 로고", storeName)}
                   onError={() => setFailedCoverLogoUrl(data.menuSite.logo_url)}
                 />
               </motion.div>
             ) : null}
-            {coverTitle ? <motion.h1 variants={AUBE_TABLE_COVER_REVEAL_ITEM}><ScriptAwareText text={coverTitle} /></motion.h1> : null}
+            {coverTitle && !(defaultDesign && useCoverLogo) ? <motion.h1 variants={AUBE_TABLE_COVER_REVEAL_ITEM}><ScriptAwareText text={coverTitle} /></motion.h1> : null}
             {coverDescription ? <motion.p className="aube-table-cover-description" variants={AUBE_TABLE_COVER_REVEAL_ITEM}><ScriptAwareText text={coverDescription} /></motion.p> : null}
           </motion.div>
         </section>

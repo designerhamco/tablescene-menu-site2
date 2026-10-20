@@ -28,7 +28,7 @@ import CanvasBrandTitle from "@/components/menu-templates/shared/CanvasBrandTitl
 import { applyOnePageChipLayout, applyOnePageChipLayouts } from "@/components/menu-templates/one-page-chip-layout";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import MenuOrderAddButton from "@/components/public-menu/order-call/MenuOrderAddButton";
-import { useDefaultDesign } from "@/components/menu-templates/defaults/DefaultDesignScope";
+import { useDefaultDesign, useDefaultDesignLogoImage } from "@/components/menu-templates/defaults/DefaultDesignScope";
 import { OnePageCallButton, OnePageMobileCallBar, OnePageMobileCallDock, OnePageCallPalette, useOnePageCallActions } from "@/components/menu-templates/one-page/OnePageCallControls";
 import { createCafeAOrderedBalancedColumnFromBlocks } from "@/components/menu-templates/cafe-a-balanced-layout";
 import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
@@ -2296,6 +2296,8 @@ function StoreIdentity({
   const [logoFailed, setLogoFailed] = useState(false);
   const device = useMenuCoverRenderDevice(data.previewDevice);
   const useLogo = shouldUseBrandLogo(data.menuSite, capabilities) && !logoFailed;
+  const defaultDesign = useDefaultDesign();
+  const logoImageRef = useDefaultDesignLogoImage(data.menuSite.logo_url, () => setLogoFailed(true));
 
   if (useLogo) {
     return (
@@ -2304,6 +2306,8 @@ function StoreIdentity({
           src={data.menuSite.logo_url ?? ""}
           alt={`${title} 로고`}
           className={`cafe-a-store-logo ${logoClassName}`}
+          data-default-design-logo={defaultDesign ? "" : undefined}
+          ref={logoImageRef}
           onError={() => setLogoFailed(true)}
         />
         <span className="sr-only">{title}</span>
