@@ -1,7 +1,8 @@
 import type { OrderCallEntryConfig } from "@/components/public-menu/order-call/types";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import { buildMenuPreviewOrderCatalog } from "./menu-preview-experience";
-import { getDefaultStaffCallItems } from "./call-items";
+import { isAubeTableTemplate } from "./aube-table";
+import { getPreviewStaffCallItems } from "./staff-call-preview";
 export function buildInteractivePreviewConfig(
   data: Pick<
     PublicMenuTemplateProps,
@@ -37,6 +38,6 @@ export function buildInteractivePreviewConfig(
     orderCatalog: catalog,
     checkoutModes: ["postpay", "prepay"],
     previewOnly: true,
-    callItems: getDefaultStaffCallItems(),
+    callItems: getPreviewStaffCallItems(isAubeTableTemplate(data.menuSite.template_key) ? "dining" : "basic"),
   };
 }

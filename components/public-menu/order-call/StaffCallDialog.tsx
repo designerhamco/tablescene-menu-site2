@@ -5,8 +5,8 @@ import {
   Loader2,
   X,
 } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "motion/react";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { AnimatePresence, motion, useDragControls, useReducedMotion, type PanInfo } from "motion/react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 
 import ui from "./MenuInteractionUI.module.css";
 import styles from "./StaffCallDialog.module.css";
@@ -59,14 +59,44 @@ export default function StaffCallDialog({
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const prefersReducedMotion = useReducedMotion();
+  const dragControls = useDragControls();
+  const listRef = useRef<HTMLDivElement>(null);
+  const itemsRef = useRef<HTMLDivElement>(null);
+  const [hasMoreItems, setHasMoreItems] = useState(false);
   const availableItems = useMemo(
     () => orderStaffCallItemsForGuest(
       (callItems?.length ? callItems : getDefaultStaffCallItems()).filter((item) => item.active),
     ),
     [callItems],
   );
-  const [selectedItemKey, setSelectedItemKey] = useState(availableItems[0]?.key ?? "staff");
-  const selectedItem = availableItems.find((item) => item.key === selectedItemKey) ?? availableItems[0];
+  const [selectedItemKeys, setSelectedItemKeys] = useState<string[]>([availableItems[0]?.key ?? "staff"]);
+  // Live reception still accepts one key. Preview multiple choices as one request,
+  // rather than sending separate calls that would hit duplicate/cooldown limits.
+  const selectedItems = availableItems.filter(item => selectedItemKeys.includes(item.key));
+  const selectedItem = selectedItems[0];
+
+  useEffect(() => {
+    const list = listRef.current;
+    const items = itemsRef.current;
+    if (!open || call || !list || !items) return;
+    const update = () => setHasMoreItems(list.scrollHeight - list.clientHeight - list.scrollTop > 1);
+    const frame = requestAnimationFrame(update);
+    const observer = new ResizeObserver(update);
+    observer.observe(list);
+    observer.observe(items);
+    list.addEventListener("scroll", update, { passive: true });
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      list.removeEventListener("scroll", update);
+    };
+  }, [open, call, availableItems]);
+
+  function selectItem(key: string) {
+    setSelectedItemKeys(current => previewOnly
+      ? current.includes(key) ? current.filter(value => value !== key) : [...current, key]
+      : [key]);
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -88,6 +118,7 @@ export default function StaffCallDialog({
   }
 
   async function requestCall() {
+    if (pending || !selectedItem) return;
     setPending(true);
     setMessage(null);
     if (previewOnly) {
@@ -96,8 +127,8 @@ export default function StaffCallDialog({
         callNumber: 12,
         status: "pending",
         duplicate: false,
-        requestKey: selectedItem?.key ?? "staff",
-        requestLabel: selectedItem?.label ?? "직원 호출",
+        requestKey: selectedItem.key,
+        requestLabel: selectedItems.map(item => item.label).join(" · "),
       });
       setPending(false);
       return;
@@ -175,6 +206,8 @@ export default function StaffCallDialog({
             exit={{ opacity: 0, y: isAube ? "60%" : 44, scale: isAube ? 0.998 : 0.99 }}
             transition={{ duration: prefersReducedMotion ? 0.01 : isAube ? 0.78 : 0.56, ease: isAube ? [0.25, 0.1, 0.25, 1] : [0.16, 1, 0.3, 1] }}
             drag={isAube && !prefersReducedMotion ? "y" : false}
+            dragControls={dragControls}
+            dragListener={false}
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0.02, bottom: 0.32 }}
             dragMomentum={false}
@@ -184,7 +217,7 @@ export default function StaffCallDialog({
             onMouseDown={(event) => event.stopPropagation()}
           >
             {isAube ? (
-              <button type="button" onClick={closeDialog} className={styles.handleControl} aria-label="직원 호출 닫기">
+              <button type="button" onClick={closeDialog} onPointerDown={event => dragControls.start(event)} className={styles.handleControl} aria-label="직원 호출 닫기">
                 <span className={ui.handle} aria-hidden="true" />
               </button>
             ) : <div className={`${ui.handle} ${styles.handle}`} aria-hidden="true" />}
@@ -210,20 +243,28 @@ export default function StaffCallDialog({
               </div>
             ) : (
               <div className={styles.content}>
-                <div className={styles.items} role="group" aria-label="직원 호출 항목">
-                  {availableItems.map(item => {
-                    const selected = item.key === selectedItem?.key;
-                    return <button key={item.key} type="button" aria-pressed={selected}
-                      onClick={() => setSelectedItemKey(item.key)}>
-                      <span>{item.label}</span>
-                      {selected ? <Check size={18} aria-hidden="true" /> : null}
-                    </button>;
-                  })}
+                <p className={styles.selectionHelp} id="staff-call-selection-help">
+                  {previewOnly ? "필요한 항목을 여러 개 선택할 수 있어요." : "요청할 항목을 선택해 주세요."}
+                </p>
+                <div className={styles.listWindow} data-call-more={hasMoreItems}>
+                  <div ref={listRef} className={styles.listViewport} data-call-list-scroll>
+                    <div ref={itemsRef} className={styles.items} role="group" aria-label="직원 호출 항목" aria-describedby="staff-call-selection-help">
+                      {availableItems.map(item => {
+                        const selected = selectedItemKeys.includes(item.key);
+                        return <button key={item.key} type="button" aria-pressed={selected} disabled={pending}
+                          onClick={() => selectItem(item.key)}>
+                          <span>{item.label}</span>
+                          {selected ? <Check size={18} aria-hidden="true" /> : null}
+                        </button>;
+                      })}
+                    </div>
+                  </div>
+                  <div className={styles.listFade} aria-hidden="true" data-call-list-fade />
                 </div>
                 <button type="button" onClick={requestCall} disabled={pending || !selectedItem}
                   className={`${styles.submit} ${ui.primary}`} data-smart-call-submit>
                   {pending ? <Loader2 size={18} className="animate-spin" aria-hidden="true" /> : null}
-                  {selectedItem ? `${selectedItem.label} 보내기` : "호출 항목 없음"}
+                  {selectedItems.length > 1 ? `${selectedItems.length}개 요청 보내기` : selectedItem ? `${selectedItem.label} 보내기` : "요청할 항목을 선택해 주세요"}
                 </button>
               </div>
             )}
