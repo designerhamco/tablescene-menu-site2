@@ -21,6 +21,7 @@ for (const [templateKey, translations] of Object.entries(SINGLE_PAGE_STARTER_TRA
           "plain-cream-cheese",
           "scallion-cream-cheese",
           "honey-walnut-cream-cheese",
+        "strawberry-cream-cheese",
           "americano",
           "cafe-latte",
           "vanilla-bean-latte",

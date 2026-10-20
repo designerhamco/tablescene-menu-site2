@@ -387,6 +387,8 @@ const fullItems: DemoItem[] = [
     badge: "BEST",
     recommended: true,
   },
+  {pageIndex:0,categoryIndex:0,itemIndex:6,name:"헤이즐넛 크림 라떼",setName:"HAZELNUT CREAM LATTE",priceLabel:"6.8",sortOrder:7},
+  {pageIndex:0,categoryIndex:1,itemIndex:6,name:"에스프레소 토닉",setName:"ESPRESSO TONIC",priceLabel:"5.8",sortOrder:7},
 ];
 
 const splitItems: DemoItem[] = [
@@ -509,6 +511,7 @@ const splitItems: DemoItem[] = [
     sortOrder: 5,
     badge: "NEW",
   },
+  {pageIndex:1,categoryIndex:0,itemIndex:7,name:"패션 오렌지 에이드",setName:"PASSION ORANGE ADE",priceLabel:"6.5",sortOrder:8},
 ];
 
 const STARTER_FULL_ITEM_KEYS = new Set([
@@ -532,6 +535,8 @@ const STARTER_FULL_ITEM_KEYS = new Set([
   "3:1",
   "3:2",
   "3:3",
+  "0:6",
+  "1:6",
 ]);
 
 const STARTER_SPLIT_ITEM_KEYS = new Set([
@@ -544,6 +549,7 @@ const STARTER_SPLIT_ITEM_KEYS = new Set([
   "1:1",
   "1:2",
   "1:3",
+  "0:7",
 ]);
 
 const STARTER_BADGE_ITEM_KEYS = new Set([

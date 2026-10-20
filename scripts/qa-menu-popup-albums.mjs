@@ -55,7 +55,7 @@ try {
         if (basic) {
           assert.equal(await page.locator('.cafe-a-price-column-heading-label').filter({ visible: true }).count(), 0, 'Basic album omits category price-option columns');
           const edges = await card.evaluate(e => {
-            const row = e.querySelector('.cafe-a-price-area').getBoundingClientRect(), add = e.querySelector('[data-menu-order-add]').getBoundingClientRect();
+            const row = e.getBoundingClientRect(), add = e.querySelector('[data-menu-order-add]').getBoundingClientRect();
             return { rowRight: row.right, addRight: add.right };
           });
           assert.ok(Math.abs(edges.rowRight - edges.addRight) < 2, 'Basic add icon sits at far right');
@@ -82,6 +82,16 @@ try {
           if (device === 'mobile' && width >= 390) {
             const grid = wine.locator('xpath=ancestor::*[contains(@class,"aube-table-course-items")][1]');
             assert.equal(await grid.evaluate(e => getComputedStyle(e).gridTemplateColumns.split(' ').length), 2, 'option products use the same two mobile card columns');
+            const direct = page.locator('.aube-table-direct-items');
+            const matching = await direct.evaluate(e => {
+              const peer = e.closest('.aube-table-page-content').querySelector('.aube-table-course[data-course-priced=false] .aube-table-course-items');
+              return { columns: getComputedStyle(e).gridTemplateColumns, gap: getComputedStyle(e).columnGap,
+                peerColumns: getComputedStyle(peer).gridTemplateColumns, peerGap: getComputedStyle(peer).columnGap };
+            });
+            assert.equal(matching.columns, matching.peerColumns, 'standalone products use the same mobile album tracks');
+            assert.equal(matching.gap, matching.peerGap, 'standalone products use the same mobile album gutter');
+            await direct.scrollIntoViewIfNeeded();
+            await page.screenshot({ path: `${out}/${design}-standalone-${width}.png` });
           }
         }
         const add = page.locator('[data-menu-order-add]').filter({ visible: true }).first();
