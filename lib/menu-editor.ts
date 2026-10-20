@@ -7,6 +7,7 @@ export const MENU_EDITOR_TABS = [
   { key: "cover", label: "커버 이미지" },
   { key: "menu", label: "메뉴 관리" },
   { key: "design", label: "디자인" },
+  { key: "advertising", label: "광고" },
   { key: "about", label: "소개" },
   { key: "events", label: "이벤트" },
   { key: "publish", label: "공개 설정" },

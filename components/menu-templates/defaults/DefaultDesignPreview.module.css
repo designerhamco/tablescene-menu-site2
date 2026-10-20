@@ -141,8 +141,8 @@
 .surface[data-menu-item-layout="album"] :global(.aube-table-item h3) { order: 0; flex: none; }
 .surface[data-menu-item-layout="album"] :global(.aube-table-item-secondary) { order: 1; }
 .surface[data-menu-item-layout="album"] :global(.aube-table-item-description) { order: 2; }
-.surface[data-menu-item-layout="album"] :global(.aube-table-item-purchase) { order: 3; display: flex; align-items: baseline; justify-content: flex-start; gap: .5rem; margin-top: .625rem; width: 100%; }
-.surface[data-menu-item-layout="album"] :global(.aube-table-item-price) { text-align: left; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-purchase) { order: 3; display: flex; align-items: baseline; justify-content: flex-end; gap: .375rem; margin-top: .625rem; width: 100%; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-price) { text-align: right; }
 .surface[data-menu-item-layout="album"] :global(.aube-table-item-price > span) { display: block; white-space: nowrap; }
 .surface[data-menu-item-layout="album"] :global(.aube-table-option-separator) { display: none; }
 @container aube (max-width: 767px) {
@@ -151,13 +151,17 @@
 }
 
 .surface[data-menu-item-layout="album"] :global([data-paged-item]) { height: 100%; }
-.surface[data-menu-item-layout="album"] :global(.cafe-a-price-order-add) { margin: 0; align-self: center; }
-/* Album purchase rows have no dotted list leader or name-width reservation. */
+.surface[data-menu-item-layout="album"] :global(.cafe-a-price-order-add) { margin: 0 0 0 auto; align-self: center; }
+/* Album cards own one dotted leader per price row, independent of list name leaders. */
 .surface[data-menu-item-layout="album"] :global(.aube-table-item-heading[data-price-options="true"] h3) { max-width: 100%; }
 .surface[data-menu-item-layout="album"] :global(.aube-table-item-heading .aube-table-item-purchase::before) { content: none; display: none; }
 .surface[data-menu-item-layout="album"] :global(.aube-table-item-copy[data-price-options="true"] .aube-table-item-secondary) { order: 1; }
 .surface[data-menu-item-layout="album"] :global(.aube-table-item-copy[data-price-options="true"] .aube-table-item-description) { order: 2; }
-.surface[data-menu-item-layout="album"] :global(.aube-table-item-copy[data-price-options="true"] .aube-table-item-purchase) { order: 3; justify-content: flex-start; }
-@container aube (max-width: 767px) {
-  .surface[data-menu-item-layout="album"] :global(.aube-table-course-items:has([data-price-options="true"])) { grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr)) !important; }
-}
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-copy[data-price-options="true"] .aube-table-item-purchase) { order: 3; justify-content: flex-end; }
+/* A priced course is a single vertical sequence, never a product album. */
+.surface[data-menu-item-layout="album"] :global(.aube-table-course[data-course-priced="true"] .aube-table-course-items) { grid-template-columns: minmax(0, 1fr) !important; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-heading .aube-table-item-purchase .aube-table-album-prices) { display: flex; flex: 1; flex-direction: column; align-items: stretch; gap: .375rem; min-width: 0; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-album-price-row) { display: flex; align-items: baseline; justify-content: flex-end; gap: .375rem; min-width: 0; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-album-price-leader) { flex: 1; min-width: .5rem; height: 1.5px; align-self: center; background: radial-gradient(circle, var(--aube-leader-dot) .65px, transparent .78px) left center / 5px 1.5px repeat-x; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-album-price-row .aube-table-option-price) { flex: none; white-space: nowrap; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-purchase [data-menu-order-add]) { flex: none; align-self: center; }

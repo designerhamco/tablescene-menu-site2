@@ -3,6 +3,7 @@ export type TemplateServiceType = "basic" | "display";
 
 export type TemplateEditorTabKey =
   | "basic"
+  | "advertising"
   | "pages"
   | "intro"
   | "cover"
@@ -236,6 +237,7 @@ const TEMPLATE_EDITOR_TABS = {
     { key: "cover", label: "커버 이미지" },
     { key: "menu", label: "메뉴판 구성" },
     { key: "design", label: "디자인" },
+    { key: "advertising", label: "광고" },
     { key: "about", label: "소개" },
     { key: "events", label: "이벤트" },
     { key: "publish", label: "공개 설정" },
@@ -246,6 +248,7 @@ const TEMPLATE_EDITOR_TABS = {
     { key: "cover", label: "커버 이미지" },
     { key: "menu", label: "가격표 관리" },
     { key: "design", label: "디자인" },
+    { key: "advertising", label: "광고" },
     { key: "about", label: "소개" },
     { key: "events", label: "이벤트" },
     { key: "publish", label: "공개 설정" },
@@ -264,6 +267,7 @@ const CAFE_DESIGN_A_EDITOR_TABS = [
   { key: "cover", label: "커버 이미지" },
   { key: "menu", label: "메뉴판 구성" },
   { key: "design", label: "디자인" },
+  { key: "advertising", label: "광고" },
   { key: "localization", label: "다국어" },
   { key: "publish", label: "공개 설정" },
 ] as const satisfies readonly TemplateEditorTab[];
@@ -281,6 +285,7 @@ const AUBE_TABLE_EDITOR_TABS = [
   { key: "cover", label: "커버 페이지" },
   { key: "menu", label: "메뉴판 구성" },
   { key: "design", label: "디자인" },
+  { key: "advertising", label: "광고" },
   { key: "localization", label: "다국어" },
   { key: "publish", label: "공개 설정" },
 ] as const satisfies readonly TemplateEditorTab[];

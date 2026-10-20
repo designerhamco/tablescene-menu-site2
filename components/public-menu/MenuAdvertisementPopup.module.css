@@ -1,19 +1,18 @@
 .overlay { position: fixed; inset: 0; z-index: 350; background: rgb(0 0 0 / .5); }
-.popup { position: fixed; z-index: 351; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(30rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow: auto; background: #fff; color: #191c1b; border-radius: .5rem; font: 400 .875rem/1.5 "Pretendard", sans-serif; box-shadow: 0 12px 48px rgb(0 0 0 / .15); }
+.popup { position: fixed; z-index: 351; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(30rem, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow: hidden; border: 0; outline: none; background: #898e90; color: #fff; border-radius: .5rem; font: 400 .875rem/1.5 "Pretendard", sans-serif; box-shadow: 0 12px 48px rgb(0 0 0 / .15); }
+.popup:focus, .popup:focus-visible { outline: none; }
 .srOnly { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.x { position: absolute; z-index: 2; top: .5rem; right: .5rem; width: 2.75rem; height: 2.75rem; display: grid; place-items: center; border: 0; border-radius: 0; background: #fff; color: #191c1b; cursor: pointer; }
-.viewport { overflow: hidden; touch-action: pan-y; cursor: grab; outline-offset: -2px; }
+.x { position: absolute; z-index: 2; top: .5rem; right: .5rem; width: 2.75rem; height: 2.75rem; display: grid; place-items: center; padding: 0; border: 0; border-radius: 0; background: transparent; color: #fff; cursor: pointer; }
+.x svg { filter: drop-shadow(0 1px 3px rgb(0 0 0 / .75)); }
+.viewport { position: relative; overflow: hidden; touch-action: pan-y; cursor: grab; }
 .viewport:active { cursor: grabbing; }
-.slides { display: flex; transition: transform .25s ease; }
-.slide { flex: 0 0 100%; min-width: 0; display: flex; align-items: center; justify-content: center; }
-.slide img { width: 100%; height: auto; max-height: min(65dvh, 36rem); object-fit: contain; user-select: none; }
-.dots { display: flex; justify-content: center; padding-block: .25rem; }
-.dots button { width: 2rem; height: 2rem; display: grid; place-items: center; border: 0; background: transparent; cursor: pointer; }
-.dots span { width: .375rem; height: .375rem; border-radius: 50%; background: #c5c8c6; }
-.dots button[data-active="true"] span { background: #191c1b; }
-.footer { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .75rem 1rem; }
-.footer label { display: flex; align-items: center; gap: .5rem; min-width: 0; cursor: pointer; }
-.footer input { width: 1rem; height: 1rem; accent-color: #191c1b; }
-.footer button { min-width: 5rem; min-height: 2.75rem; border: 1px solid #191c1b; border-radius: .5rem; background: #191c1b; color: #fff; padding: .5rem 1rem; font: 500 .875rem/1.5 "Pretendard", sans-serif; cursor: pointer; }
-.popup :is(button, input):focus-visible { outline: 2px solid #191c1b; outline-offset: 2px; }
+.viewport:focus-visible { outline: 2px solid #fff; outline-offset: -4px; }
+.slides { display: flex; align-items: stretch; transition: transform .25s ease; }
+.slide { flex: 0 0 100%; min-width: 0; display: flex; align-items: stretch; }
+.slide img { display: block; width: 100%; height: auto; max-height: calc(100dvh - 2rem); object-fit: cover; user-select: none; }
+.dots { position: absolute; z-index: 1; bottom: .625rem; left: 50%; transform: translateX(-50%); display: flex; justify-content: center; }
+.dots button { width: .875rem; height: 2rem; display: grid; place-items: center; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.dots span { width: .375rem; height: .375rem; border-radius: 50%; background: rgb(255 255 255 / .45); box-shadow: 0 1px 2px rgb(0 0 0 / .2); }
+.dots button[data-active="true"] span { background: #fff; }
+.popup button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 @media(prefers-reduced-motion:reduce) { .slides { transition: none; } }

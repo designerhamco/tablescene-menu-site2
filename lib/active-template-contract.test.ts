@@ -17,7 +17,7 @@ const BASIC_LAUNCH_TEMPLATE_KEYS = [
   "cafe_noir_a",
 ] as const;
 
-const BASIC_EDITOR_TAB_KEYS = ["basic", "cover", "menu", "design", "localization", "publish"];
+const BASIC_EDITOR_TAB_KEYS = ["basic", "cover", "menu", "design", "advertising", "localization", "publish"];
 
 test("every Basic launch template is service-compatible without changing catalog visibility", () => {
   const expectedCatalogStatuses = {
