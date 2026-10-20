@@ -31,14 +31,14 @@ const diningSampleNames: Record<string, readonly [string, string]> = {
 };
 
 /** Isolated sample data. Never used to replace a customer's content on switching. */
-export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultDesignReview, options: DefaultDesignOptions = getDefaultDesignOptions({})): MenuPageData {
+export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultDesignReview, options: DefaultDesignOptions = getDefaultDesignOptions({ design: design.id })): MenuPageData {
   if (source.menuSite.template_key !== design.renderer) throw new Error("Default design renderer mismatch");
   const data = structuredClone(source);
   const basic = design.layout.startsWith("basic-");
   const imageFreeCategories = new Set(basic ? source.categories.filter(category => category.name === "BAKERY").map(category => category.id) : []);
   const coverImage = basic ? "/placeholders/starter/default-basic-cover.svg" : "/placeholders/starter/default-cover.svg";
   const title = basic ? "CAFE ARTIMENU" : "DINING ARTIMENU";
-  const description = basic ? "좋은 커피와 갓 구운 디저트를 준비합니다." : "계절의 재료로 정성껏 준비한 식사를 만나보세요.";
+  const description = basic ? design.layout === "basic-top-row" ? "좋은 커피와 갓 구운 디저트를 준비합니다. 향긋한 한 잔과 함께 편안한 시간을 즐겨보세요." : "좋은 커피와 갓 구운 디저트를 준비합니다." : "계절의 재료로 정성껏 준비한 식사를 만나보세요.";
   const roles = Object.fromEntries(TYPOGRAPHY_ROLE_KEYS.map(role => [role, {
     font_ko_key: "pretendard", font_en_key: "pretendard", size: "inherit",
     weight: role === "brand" || role === "category" ? "bold" : role === "supporting" ? "regular" : "medium",

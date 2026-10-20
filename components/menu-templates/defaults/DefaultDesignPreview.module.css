@@ -47,7 +47,7 @@
 }
 
 .surface[data-default-design="dining-sidebar"] :global(.aube-table-root) {
-  --aube-sidebar: #fff; --aube-sidebar-hover: #f4f4f3; --aube-sidebar-border: #d9dcda;
+  --aube-sidebar: #f4f5f3; --aube-sidebar-hover: #f4f4f3; --aube-sidebar-border: #d9dcda;
   --aube-sidebar-text: #191c1b; --aube-sidebar-active-text: #fff;
 }
 /* The sidebar renderer retains its original theme outside this neutral review. */

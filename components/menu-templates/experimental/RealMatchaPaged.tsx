@@ -101,7 +101,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   const t = useMenuText();
   const device = useMenuPresentationDevice(data.previewDevice);
   const mobile = device === "mobile";
-  const structure = useDefaultDesignLayout() ?? "basic-first-column";
+  const defaultStructure = useDefaultDesignLayout();
+  const structure = defaultStructure ?? "basic-first-column";
+  const portraitCover = defaultStructure === "basic-first-column" || defaultStructure === "basic-center-column";
   const topRow = structure === "basic-top-row";
   const centerColumn = structure === "basic-center-column";
   const upperLeft = structure === "basic-upper-left";
@@ -376,7 +378,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   }, [mobile, updateScrollHint, layout]);
   if (mobile)
     return (
-      <div className={styles.mobile} data-paged-mobile data-basic-structure={structure}>
+      <div className={styles.mobile} data-paged-mobile data-basic-structure={structure} data-portrait-cover={portraitCover ? "true" : undefined}>
         <CafeDesignA {...baseProps} />
       </div>
     );
@@ -404,9 +406,25 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   const storeDescription = (data.menuSite.brand_description || data.menuSite.description)
     ? <p className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null;
   const showCover = data.pageSettings.menu_cover_enabled && featuredSlides.length > 0 && isMenuCoverVisibleOnDevice(data.pageSettings, device);
+  const actionFooter = showCall || showOrder ? (
+            <footer className={styles.footer} data-scroll-actions aria-label={t("메뉴 이용")}>
+              {showCall ? (
+                <button type="button" className={styles.callButton} onClick={call.openCall} aria-label={t("직원 호출하기")} data-scroll-call>
+                  <StaffCallIcon aria-hidden="true" strokeWidth={1.8} /><ScriptAwareText text={t("호출하기")} />
+                </button>
+              ) : null}
+              {showOrder ? (
+                <button type="button" className={styles.orderButton} onClick={call.openCart} aria-label={t("주문하기, 장바구니 {0}개", call.cartCount ?? 0)} data-scroll-order>
+                  <ShoppingCart aria-hidden="true" strokeWidth={1.8} /><ScriptAwareText text={t("주문하기")} />
+                  {(call.cartCount ?? 0) > 0 ? <span aria-hidden="true">({call.cartCount})</span> : null}
+                </button>
+              ) : null}
+            </footer>
+          ) : null;
   const brandPanel = <aside ref={brandArea} className={styles.brand} data-paged-brand>
           {!topRow ? <>{languageControl}<div className={styles.identity}>{storeIdentity}{storeDescription}</div></> : null}
-          {showCover ? <CafeACoverHero data={baseProps} featuredSlides={featuredSlides} capabilities={capabilities} density="default" customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} desktopClassName={styles.cover} /> : null}
+          {showCover ? (portraitCover ? <div className={styles.portraitCoverSlot} data-portrait-cover-slot><CafeACoverHero data={baseProps} featuredSlides={featuredSlides} capabilities={capabilities} density="default" customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} desktopClassName={styles.cover} /></div> : <CafeACoverHero data={baseProps} featuredSlides={featuredSlides} capabilities={capabilities} density="default" customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} desktopClassName={styles.cover} />) : null}
+          {centerColumn ? actionFooter : null}
         </aside>;
   return (
     <CafeATimeSaleClock value={saleNow}>
@@ -493,21 +511,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             </div>
             <div className={styles.fade} data-scroll-fade aria-hidden="true" />
           </div>
-          {showCall || showOrder ? (
-            <footer className={styles.footer} data-scroll-actions aria-label={t("메뉴 이용")}>
-              {showCall ? (
-                <button type="button" className={styles.callButton} onClick={call.openCall} aria-label={t("직원 호출하기")} data-scroll-call>
-                  <StaffCallIcon aria-hidden="true" strokeWidth={1.8} /><ScriptAwareText text={t("호출하기")} />
-                </button>
-              ) : null}
-              {showOrder ? (
-                <button type="button" className={styles.orderButton} onClick={call.openCart} aria-label={t("주문하기, 장바구니 {0}개", call.cartCount ?? 0)} data-scroll-order>
-                  <ShoppingCart aria-hidden="true" strokeWidth={1.8} /><ScriptAwareText text={t("주문하기")} />
-                  {(call.cartCount ?? 0) > 0 ? <span aria-hidden="true">({call.cartCount})</span> : null}
-                </button>
-              ) : null}
-            </footer>
-          ) : null}
+          {!centerColumn ? actionFooter : null}
           {layout.brandOverflow ? <p role="alert" className={styles.error}>{t("대표영역의 이미지 비율 또는 설명 길이를 조정해 주세요.")}</p> : null}
         </div>
         <CafeMenuImageLightbox preview={imagePreview} templateKey="cafe_design_a" onClose={() => { setImagePreview(null); imageTrigger.current?.focus({preventScroll: true}); }} />

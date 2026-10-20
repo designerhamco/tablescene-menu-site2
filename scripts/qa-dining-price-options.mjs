@@ -63,7 +63,15 @@ try {
           }
         }
         const before = previous.find(r => r.id === id)?.value;
-        if (before && device !== 'mobile') {
+        const readingScale = Number(process.env.DINING_READING_SCALE || 1);
+        if (before && readingScale !== 1) {
+          for (const [index, item] of value.items.entries()) {
+            const fontSize = font => Number(font.match(/([\d.]+)px/)[1]);
+            const ratio = fontSize(item.font) / fontSize(before.items[index].font);
+            assert.ok(Math.abs(ratio - (device === 'mobile' ? 1 : readingScale)) < .002, 'requested reading gain is PC/tablet only');
+          }
+        }
+        if (before && device !== 'mobile' && readingScale === 1) {
           assert.deepEqual(value.viewport, before.viewport);
           assert.equal(value.items.length, before.items.length);
           for (const [index, item] of value.items.entries()) for (const [key, actual] of Object.entries(item)) {
