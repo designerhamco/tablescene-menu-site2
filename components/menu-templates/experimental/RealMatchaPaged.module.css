@@ -7,7 +7,8 @@
   --scroll-page-inset: clamp(2rem, 4.2vmin, 4.25rem);
   --scroll-column-gap: var(--scroll-page-inset);
   --scroll-action-clearance: clamp(0.875rem, calc(var(--scroll-page-inset) * 0.75), 1.25rem);
-  --cafe-a-linked-item-name-size: max(1rem, calc(var(--scroll-item-size, 1rem) * var(--menu-font-size-scale, 1) * var(--menu-role-item-name-size-scale, 1)));
+  --cafe-a-reading-reference-size: var(--scroll-item-size, 1rem);
+  --cafe-a-linked-item-name-size: max(1rem, calc(var(--cafe-a-reading-reference-size) * var(--menu-font-size-scale, 1) * var(--menu-role-item-name-size-scale, 1)));
   --cafe-a-item-rhythm-gap: clamp(0.55rem, calc(1.25rem * var(--fit-menu-gap-scale, 1) * 0.74), 1.15rem);
   --cafe-a-category-separation-ratio: 2.9;
   --cafe-a-adaptive-support-size: max(0.75rem, calc(var(--cafe-a-linked-item-name-size) * 0.72));
@@ -189,14 +190,6 @@
   aspect-ratio: 4 / 6 !important;
 }
 .mobile[data-portrait-cover="true"] :global(.cafe-a-cover-hero) { height: auto !important; min-height: 0 !important; aspect-ratio: 4 / 5 !important; flex: none !important; }
-
-/* Neutral defaults: soften only product roles, including measuring rows and
-   linked featured copy. Headings, page rhythm and mobile retain their tokens. */
-.frame[data-default-reading="true"] :is(.unit[data-kind="item"], .cover) {
-  --cafe-a-linked-item-name-size: max(1rem, calc(var(--scroll-item-size, 1rem) * .94 * var(--menu-font-size-scale, 1) * var(--menu-role-item-name-size-scale, 1)));
-  --cafe-a-adaptive-support-size: max(.75rem, calc(var(--cafe-a-linked-item-name-size) * .72));
-  --cafe-a-linked-supporting-copy-size: var(--cafe-a-adaptive-support-size);
-}
 
 /* A logo uses the existing top-row title cell without enlarging the header. */
 .topIdentity:has(:global([data-default-design-logo])) {

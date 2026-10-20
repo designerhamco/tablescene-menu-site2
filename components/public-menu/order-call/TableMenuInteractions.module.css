@@ -197,7 +197,7 @@
   gap: .25rem;
   width: 4.5rem;
   height: 4.5rem;
-  border: 0;
+  border: 1px solid var(--menu-call-circle-border, #191c1b);
   border-radius: 50%;
   background: var(--menu-call-circle-bg, #191c1b);
   color: var(--menu-call-circle-ink, #fff);

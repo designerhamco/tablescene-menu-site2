@@ -571,7 +571,7 @@ export default function DiningAubeTableA({
           color: var(--aube-ink);
           font-family: var(--menu-font-ko), "Pretendard", sans-serif;
         }
-        @container aube (min-width: 768px) { .aube-table-root { --aube-item-reading-scale: 1.06; } }
+        @container aube (min-width: 768px) { .aube-table-root { --aube-item-reading-scale: calc(1.06 * .94); } }
         .aube-table-root[data-theme="maison-marais"] {
           --aube-accent: #a66d52;
           --aube-surface: #f7f2ea;

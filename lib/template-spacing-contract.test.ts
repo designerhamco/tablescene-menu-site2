@@ -157,7 +157,7 @@ test("반고흐는 분리선 없이 기기별 기준에 같은 카테고리 간�
   );
 });
 
-test("루프베이글은 분리선 없이 상하 2행 블루 체커보드를 유지한다", () => {
+test("루프베이글은 분리선 없이 상하 2행 체커보드를 가게명 색상에 연결한다", () => {
   const rules = getTemplateContentSeparatorRules("fast_food_loop_bagel_a", "fast_food");
   assert.equal(rules.categoryDivider, "none");
   assert.match(
@@ -166,7 +166,7 @@ test("루프베이글은 분리선 없이 상하 2행 블루 체커보드를 유
   );
   assert.match(
     globalStylesSource,
-    /data-template-key="fast_food_loop_bagel_a"[^}]*::before,[\s\S]*::after[^}]*\{[^}]*conic-gradient\(#4354ef 25%, #ffffff 0 50%, #4354ef 0 75%, #ffffff 0\);[^}]*height: calc\(var\(--loop-bagel-checker-square\) \* 2\);/,
+    /data-template-key="fast_food_loop_bagel_a"[^}]*::before,[\s\S]*::after[^}]*\{[^}]*conic-gradient\(var\(--menu-role-brand-color, #4354ef\) 25%, #ffffff 0 50%, var\(--menu-role-brand-color, #4354ef\) 0 75%, #ffffff 0\);[^}]*height: calc\(var\(--loop-bagel-checker-square\) \* 2\);/,
   );
   assert.doesNotMatch(
     globalStylesSource,
