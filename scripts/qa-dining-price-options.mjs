@@ -55,8 +55,7 @@ try {
           assert.ok(item.pairs.every((pair, i, rows) => i === 0 || pair.y >= rows[i - 1].bottom + 3), 'one option per line');
           if (device === 'mobile') {
             if (item.secondary) {
-              assert.ok(item.secondary.y >= item.title.bottom, 'secondary name follows title');
-              assert.ok(item.secondary.bottom <= item.purchase.y, 'secondary name precedes options');
+              assert.ok(item.secondary.y >= item.purchase.bottom, 'secondary name follows option prices');
             }
             assert.ok(item.purchase.y >= item.title.bottom + 3, 'options start on their own row below the name');
             assert.ok(item.title.width >= item.purchase.width - 1, 'option prices no longer squeeze the name');

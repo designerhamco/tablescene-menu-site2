@@ -1,5 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
+import { formatMenuMoney } from "@/lib/menu-ui-copy";
+import type { SupportedLocale } from "@/lib/locales";
+import { useMenuLocale, useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "motion/react";
@@ -124,16 +127,17 @@ const AUBE_TABLE_COURSE_REVEAL_ITEMS = {
   },
 };
 
-function getPriceOptions(item: PublicMenuItem, options: PublicMenuItemPriceOption[]) {
+function getPriceOptions(item: PublicMenuItem, options: PublicMenuItemPriceOption[], locale: SupportedLocale) {
   return options
     .filter((option) => option.menu_item_id === item.id && option.visible !== false)
     .sort((left, right) => left.sort_order - right.sort_order)
-    .map((option) => ({ id: option.id, text: `${option.label} ${option.price_label?.trim() || (option.price == null ? "" : `${option.price.toLocaleString("ko-KR")}원`)}`.trim() }));
+    .map((option) => ({ id: option.id, text: `${option.label} ${option.price_label?.trim() || (option.price == null ? "" : formatMenuMoney(option.price, locale))}`.trim() }));
 }
 
 function CoursePrice({ course }: { course: CourseWithItems }) {
+  const t = useMenuText();
   if (course.course_price_visible === false) return null;
-  const price = course.course_price_label?.trim() || (course.course_price == null ? "" : `${course.course_price.toLocaleString("ko-KR")}원`);
+  const price = course.course_price_label?.trim() || (course.course_price == null ? "" : t("{0}원", course.course_price.toLocaleString("ko-KR")));
   if (!price) return null;
   return <p className="aube-table-course-price"><ScriptAwareText text={price} /></p>;
 }
@@ -149,13 +153,15 @@ function MenuItemRow({
   showImage?: boolean;
   onOpenImage: OpenItemImage;
 }) {
-  const options = item.price_visible === false ? [] : getPriceOptions(item, priceOptions);
+  const t = useMenuText();
+  const locale = useMenuLocale();
+  const options = item.price_visible === false ? [] : getPriceOptions(item, priceOptions, locale);
   const price = item.price_visible === false ? "" : options.length ? options.map(option => option.text).join(" · ") : formatMenuPrice(item);
   return (
     <article className="aube-table-item" data-aube-table-item="">
-      {showImage && item.image_url ? <button type="button" className="aube-table-image-trigger" aria-label={`${item.name} 이미지 크게 보기`}
+      {showImage && item.image_url ? <button type="button" className="aube-table-image-trigger" aria-label={t("{0} 이미지 크게 보기", item.name)}
         onClick={event => onOpenImage({ src: item.image_url!, title: item.name, secondaryTitle: item.set_name }, event.currentTarget)}>
-        <img className="aube-table-item-image" src={item.image_url} alt={`${item.name} 이미지`} loading="lazy" />
+        <img className="aube-table-item-image" src={item.image_url} alt={t("{0} 이미지", item.name)} loading="lazy" />
       </button> : null}
       <div className="aube-table-item-copy" data-price-options={options.length && price ? "true" : undefined}>
         <div className="aube-table-item-heading" data-has-price={price ? "true" : "false"} data-price-options={options.length && price ? "true" : undefined}>
@@ -170,13 +176,14 @@ function MenuItemRow({
         </div>
         {item.set_name ? <p className="aube-table-item-secondary"><ScriptAwareText text={item.set_name} /></p> : null}
         {item.description ? <p className="aube-table-item-description"><ScriptAwareText text={item.description} /></p> : null}
-        {item.is_sold_out ? <span className="aube-table-sold-out"><ScriptAwareText text="품절" /></span> : null}
+        {item.is_sold_out ? <span className="aube-table-sold-out"><ScriptAwareText text={t("품절")} /></span> : null}
       </div>
     </article>
   );
 }
 
 function CourseBlock({ course, priceOptions, onOpenImage }: { course: CourseWithItems; priceOptions: PublicMenuItemPriceOption[]; onOpenImage: OpenItemImage }) {
+  const t = useMenuText();
   const showItemImages = shouldShowAubeTableCourseItemImages(course);
 
   return (
@@ -189,7 +196,7 @@ function CourseBlock({ course, priceOptions, onOpenImage }: { course: CourseWith
           <span className="aube-table-course-rule" aria-hidden="true" />
           <div className="aube-table-course-purchase">
             <CoursePrice course={course} />
-            <MenuOrderAddButton itemId={"course:"+course.id} itemName={course.name+" 코스"}/>
+            <MenuOrderAddButton itemId={"course:"+course.id} itemName={course.name+t(" 코스")}/>
           </div>
         </header>
         {course.description_visible !== false && course.description ? (
@@ -219,6 +226,7 @@ export default function DiningAubeTableA({
   themeVariant = "aube",
   ...data
 }: DiningAubeTableProps) {
+  const t = useMenuText();
   const usesSidebarNavigation = layoutVariant === "sidebar";
   const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
   const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
@@ -342,7 +350,7 @@ export default function DiningAubeTableA({
       </div>
       {usesSidebarNavigation && units.length > 1 ? (
         <>
-          <nav className="aube-table-sidebar-navigation" aria-label="메뉴 페이지 이동">
+          <nav className="aube-table-sidebar-navigation" aria-label={t("메뉴 페이지 이동")}>
             <div className="aube-table-sidebar-list">
               {units.map((unit, index) => (
                 <button
@@ -357,7 +365,7 @@ export default function DiningAubeTableA({
               ))}
             </div>
           </nav>
-          <nav className="aube-table-mobile-page-tabs" aria-label="메뉴 페이지 이동">
+          <nav className="aube-table-mobile-page-tabs" aria-label={t("메뉴 페이지 이동")}>
             {units.map((unit, index) => (
               <button
                 type="button"
@@ -409,7 +417,7 @@ export default function DiningAubeTableA({
                 <img
                   className="aube-table-cover-logo"
                   src={data.menuSite.logo_url ?? ""}
-                  alt={`${storeName} 로고`}
+                  alt={t("{0} 로고", storeName)}
                   onError={() => setFailedCoverLogoUrl(data.menuSite.logo_url)}
                 />
               </motion.div>
@@ -457,11 +465,11 @@ export default function DiningAubeTableA({
       </AnimatePresence>
 
       {!usesSidebarNavigation && units.length > 1 ? (
-        <nav className="aube-table-pagination" aria-label="메뉴 페이지 이동">
+        <nav className="aube-table-pagination" aria-label={t("메뉴 페이지 이동")}>
           <button
             type="button"
             className="aube-table-pagination-direction aube-table-pagination-prev"
-            aria-label="이전 메뉴 페이지"
+            aria-label={t("이전 메뉴 페이지")}
             disabled={safeActiveIndex === 0}
             onClick={() => selectUnit(safeActiveIndex - 1)}
           >
@@ -474,7 +482,7 @@ export default function DiningAubeTableA({
                 type="button"
                 className="aube-table-pagination-dot"
                 key={unit.id}
-                aria-label={`${unit.label} 페이지로 이동`}
+                aria-label={t("{0} 페이지로 이동", unit.label)}
                 aria-current={index === safeActiveIndex ? "page" : undefined}
                 data-active={index === safeActiveIndex ? "true" : "false"}
                 onClick={() => selectUnit(index)}
@@ -484,7 +492,7 @@ export default function DiningAubeTableA({
           <button
             type="button"
             className="aube-table-pagination-direction aube-table-pagination-next"
-            aria-label="다음 메뉴 페이지"
+            aria-label={t("다음 메뉴 페이지")}
             disabled={safeActiveIndex === units.length - 1}
             onClick={() => selectUnit(safeActiveIndex + 1)}
           >
@@ -710,11 +718,11 @@ export default function DiningAubeTableA({
           .aube-table-page[data-align="center"] .aube-table-item { grid-template-columns: clamp(76px, 21vw, 92px) minmax(0, 1fr); }
           .aube-table-item-image { width: clamp(76px, 21vw, 92px); height: clamp(76px, 21vw, 92px); }
           .aube-table-item-heading { gap: clamp(8px, 2.5vw, 11px); }
-          /* Keep the translated name next to its product before the mobile price rail. */
+          /* Mobile option prices precede secondary-language supporting copy. */
           .aube-table-item-copy[data-price-options="true"] { display: flex; flex-direction: column; min-width: 0; }
           .aube-table-item-heading[data-price-options="true"] { display: contents; }
-          .aube-table-item-copy[data-price-options="true"] .aube-table-item-secondary { order: 2; }
-          .aube-table-item-copy[data-price-options="true"] .aube-table-item-purchase { order: 3; width: 100%; margin-top: .375rem; }
+          .aube-table-item-copy[data-price-options="true"] .aube-table-item-secondary { order: 3; }
+          .aube-table-item-copy[data-price-options="true"] .aube-table-item-purchase { order: 2; width: 100%; margin-top: .375rem; }
           .aube-table-item-copy[data-price-options="true"] .aube-table-item-description { order: 4; }
           .aube-table-item-copy[data-price-options="true"] .aube-table-sold-out { order: 5; }
           .aube-table-item-heading[data-price-options="true"]::after { display: none; }

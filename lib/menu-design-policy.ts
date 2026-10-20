@@ -32,6 +32,7 @@ export const DEFAULT_DESIGN_REVIEWS = [
   { id: "basic-center-column", label: "베이직 기본 디자인", layout: "basic-center-column", kind: "standard", renderer: "cafe_design_a" },
   { id: "basic-upper-left", label: "베이직 기본 디자인", layout: "basic-upper-left", kind: "standard", renderer: "cafe_design_a" },
   { id: "dining-full-page", label: "다이닝 기본 디자인", layout: "dining-full-page", kind: "standard", renderer: "dining_aube_table_a" },
+  { id: "dining-sidebar", label: "다이닝 기본 디자인", layout: "dining-sidebar", kind: "standard", renderer: "dining_aube_table_b" },
 ] as const satisfies readonly (MenuDesign & { renderer: string })[];
 export type DefaultDesignReview = typeof DEFAULT_DESIGN_REVIEWS[number];
 

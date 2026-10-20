@@ -45,3 +45,24 @@
   .surface :global(.aube-table-cover-description) { font-size: 15px; }
   .surface :global(.aube-table-page[data-course-priced="false"] .aube-table-page-header h1) { font-size: clamp(30px, 8cqw, 36px); }
 }
+
+.surface[data-default-design="dining-sidebar"] :global(.aube-table-root) {
+  --aube-sidebar: #fff; --aube-sidebar-hover: #f4f4f3; --aube-sidebar-border: #d9dcda;
+  --aube-sidebar-text: #191c1b; --aube-sidebar-active-text: #fff;
+}
+/* The sidebar renderer retains its original theme outside this neutral review. */
+.surface[data-default-design="dining-sidebar"] :global(.aube-table-root[data-theme="maison-marais"]) {
+  --aube-accent: #191c1b;
+  --aube-surface: #fff;
+  --aube-ink: #191c1b;
+  --aube-subtle: #606561;
+  --aube-muted: #606561;
+  --aube-course-copy: #606561;
+  --aube-item-copy: #606561;
+  --aube-rule: #d9dcda;
+  --aube-leader-dot: #b7bcb9;
+}
+@media (min-width: 768px) and (max-width: 1279px) {
+  .surface[data-default-design="dining-sidebar"] :global(.aube-table-page[data-columns="2"] .aube-table-page-content),
+  .surface[data-default-design="dining-sidebar"] :global(.aube-table-page[data-columns="2"] .aube-table-direct-items) { grid-template-columns: minmax(0, 1fr); }
+}

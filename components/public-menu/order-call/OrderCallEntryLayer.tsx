@@ -1,4 +1,5 @@
 "use client";
+import { useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
 
 import { CreditCard, ShoppingBag } from "lucide-react";
 import { StaffCallIcon } from "./MenuActionIcons";
@@ -37,6 +38,7 @@ export default function OrderCallEntryLayer({
   children,
   pagePresentation,
 }: OrderCallEntryLayerProps) {
+  const t = useMenuText();
   const visibility = getOrderCallEntryVisibility(config);
   const [cartOpen, setCartOpen] = useState(false);
   const [callOpen, setCallOpen] = useState(false);
@@ -54,8 +56,8 @@ export default function OrderCallEntryLayer({
   const handleItemAdded = useCallback((itemName: string) => {
     setCartOpen(false);
     setSelectedMenuItemId(null);
-    setToastMessage(`${itemName} 장바구니에 담았어요.`);
-  }, []);
+    setToastMessage(t("{0} 장바구니에 담았어요.", itemName));
+  }, [t]);
 
   useEffect(() => {
     if (!toastMessage) return;
@@ -135,7 +137,7 @@ export default function OrderCallEntryLayer({
               className={usesAubeCallPresentation
                 ? "flex h-10 w-10 items-center justify-end border-0 bg-transparent p-0 text-zinc-800 shadow-none transition-colors hover:text-[#c5a165] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#c5a165]"
                 : "flex h-10 w-10 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-800 shadow-sm"}
-              aria-label="직원 호출"
+              aria-label={t("직원 호출")}
               disabled={!canOpenCall}
               onClick={() => setCallOpen(true)}
             >
@@ -146,7 +148,7 @@ export default function OrderCallEntryLayer({
             <button
               type="button"
               className="relative flex h-10 w-10 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-800 shadow-sm"
-              aria-label={`장바구니${cartCount > 0 ? ` ${cartCount}개` : ""}`}
+              aria-label={t("장바구니{0}", cartCount > 0 ? ` ${cartCount}개` : "")}
               disabled={!canOpenCart}
               onClick={openCart}
             >
@@ -155,7 +157,7 @@ export default function OrderCallEntryLayer({
                 <span
                   className="absolute -bottom-1 -left-1 flex h-4.5 w-4.5 items-center justify-center rounded-full border border-white bg-zinc-950 text-white"
                   data-public-menu-prepay-enabled=""
-                  title="모바일 결제 가능"
+                  title={t("모바일 결제 가능")}
                 >
                   <CreditCard className="h-2.5 w-2.5" aria-hidden="true" />
                 </span>
@@ -174,7 +176,7 @@ export default function OrderCallEntryLayer({
           <button
             type="button"
             className="fixed bottom-[max(26px,env(safe-area-inset-bottom))] right-[max(24px,env(safe-area-inset-right))] z-[1100] hidden h-15 w-15 items-center justify-center rounded-full bg-[#c5a165] text-white shadow-none transition-transform duration-300 ease-out hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#c5a165] active:translate-y-0 md:flex md:h-16 md:w-16"
-            aria-label="스마트호출 열기"
+            aria-label={t("스마트호출 열기")}
             data-smart-call-quick-button=""
             onClick={() => setCallOpen(true)}
           >

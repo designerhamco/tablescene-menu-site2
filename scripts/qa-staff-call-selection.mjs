@@ -65,20 +65,20 @@ try {
         await session.detach();
       }
       await choices.last().click();
-      await submit.getByText('2개 요청 보내기', { exact: true }).waitFor();
+      assert.equal(await group.getByRole('button', { pressed: true }).count(),1);
+      await submit.getByText('직원 호출 보내기', { exact: true }).waitFor();
       await p.screenshot({ path: `${output}/${id}-end.png` });
       await submit.click();
-      await dialog.locator('[data-call-status]').getByText(`${expected[0]} · 직원 호출 · 호출 #12`, { exact: true }).waitFor();
+      await dialog.locator('[data-call-status]').getByText(`직원 호출 · 호출 #12`, { exact: true }).waitFor();
       await dialog.getByRole('button', { name: '호출 취소', exact: true }).click();
       await group.waitFor();
-      // Every selected choice can be cleared, and an empty request cannot be sent.
-      while (await group.getByRole('button', { pressed: true }).count()) await group.getByRole('button', { pressed: true }).first().click();
-      assert.equal(await submit.isDisabled(), true);
-      for (const choice of await choices.all()) await choice.click();
-      assert.equal(await group.getByRole('button', { pressed: true }).count(), 5);
-      await submit.getByText('5개 요청 보내기', { exact: true }).waitFor();
+      // Selecting another request replaces the selection in preview and live UI.
+      for (const choice of await choices.all()) {
+        await choice.click();
+        assert.equal(await group.getByRole('button', { pressed: true }).count(), 1);
+      }
       await submit.click();
-      await dialog.locator('[data-call-status]').getByText(`${expected.join(' · ')} · 호출 #12`, { exact: true }).waitFor();
+      await dialog.locator('[data-call-status]').getByText('직원 호출 · 호출 #12', { exact: true }).waitFor();
       await p.screenshot({ path: `${output}/${id}-sent.png` });
       await p.keyboard.press('Escape');
       await dialog.waitFor({ state: 'hidden' });

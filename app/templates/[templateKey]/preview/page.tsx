@@ -1529,7 +1529,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
               applyBrewChapterCoverImageQaFixture(
                 applyCafeDenseContentQaFixture(
                   applyCafeAFooterStressData(
-                    buildPreviewData(templateKey, displayPreviewQaCase),
+                    buildPreviewData(defaultDesign?.layout === "dining-sidebar" ? "dining_aube_table_a" : templateKey, displayPreviewQaCase),
                     resolvedSearchParams.footerStress
                   ),
                   resolvedSearchParams.contentQa
@@ -1561,7 +1561,8 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     ),
     resolvedSearchParams.localeQa,
   );
-  const data = defaultDesign ? buildDefaultDesignPreview(localizedData, defaultDesign, getDefaultDesignOptions(resolvedSearchParams)) : localizedData;
+  const data = defaultDesign ? buildDefaultDesignPreview({ ...fixtureData, locale: localizedData.locale, enabledLocales: localizedData.enabledLocales,
+    menuSite: { ...fixtureData.menuSite, template_key: templateKey } }, defaultDesign, getDefaultDesignOptions(resolvedSearchParams)) : localizedData;
   if (templateKey === "cafe_real_matcha_paged_test") applyPagedMatchaFixture(data, getFirstParam(resolvedSearchParams.pageTest));
   const requestedRenderMode = Array.isArray(resolvedSearchParams.renderMode)
     ? resolvedSearchParams.renderMode[0]

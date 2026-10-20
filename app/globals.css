@@ -5861,7 +5861,7 @@ video {
 /* Order controls occupy the same measured footer as Call; no viewport overlay on fitted boards. */
 .cafe-a-table-actions { display:flex; align-items:center; justify-content:flex-end; gap:.625rem; }
 .cafe-a-table-actions > button { position:relative; }
-.cafe-a-cart-count { position:absolute; inset-block-start:-.15rem; inset-inline-end:-.15rem; min-width:1.25rem; padding:.15rem; border-radius:9999px; background:#191c1b; color:white; font:600 .65rem/1rem sans-serif; }
+.cafe-a-cart-count { position:absolute; inset-block-start:.125rem; inset-inline-end:.125rem; display:grid; place-items:center; width:1.25rem; height:1.25rem; padding:0; border-radius:50%; background:#191c1b; color:white; font:500 .65rem/1 "Pretendard",sans-serif; }
 
 /* Keep fitted menu rows at their readable text height when ordering is enabled. */
 .cafe-a-typography[data-cafe-a-adaptive-fit="true"] [data-menu-order-add] { width:1.5rem; height:1.5rem; }

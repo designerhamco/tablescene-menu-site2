@@ -1,11 +1,13 @@
 import type { OrderCallEntryConfig } from "@/components/public-menu/order-call/types";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import { buildMenuPreviewOrderCatalog } from "./menu-preview-experience";
+import { translateMenuText } from "./menu-ui-copy";
 import { isAubeTableTemplate } from "./aube-table";
 import { getPreviewStaffCallItems } from "./staff-call-preview";
 export function buildInteractivePreviewConfig(
   data: Pick<
     PublicMenuTemplateProps,
+    | "locale"
     | "menuSite"
     | "items"
     | "categories"
@@ -35,9 +37,9 @@ export function buildInteractivePreviewConfig(
     storeName: data.menuSite.restaurant_name || data.menuSite.name,
     menuSiteId: data.menuSite.id,
     cartScope: "preview",
-    orderCatalog: catalog,
+    orderCatalog: catalog.map(item => ({ ...item, optionGroups: item.optionGroups.map(group => ({ ...group, name: translateMenuText(group.name, data.locale) })) })),
     checkoutModes: ["postpay", "prepay"],
     previewOnly: true,
-    callItems: getPreviewStaffCallItems(isAubeTableTemplate(data.menuSite.template_key) ? "dining" : "basic"),
+    callItems: getPreviewStaffCallItems(isAubeTableTemplate(data.menuSite.template_key) ? "dining" : "basic").map(item => ({ ...item, label: translateMenuText(item.label, data.locale) })),
   };
 }

@@ -1,4 +1,5 @@
 "use client";
+import { useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
 
 import { ShoppingCart } from "lucide-react";
 import { StaffCallIcon } from "@/components/public-menu/order-call/MenuActionIcons";
@@ -90,6 +91,7 @@ export function OnePageCallPalette() {
 }
 
 export function OnePageCallButton({ mobile = false }: { mobile?: boolean }) {
+  const t = useMenuText();
   const actions = useOnePageCallActions();
   if (!actions.enabled) return null;
   const buttonClass = mobile
@@ -101,14 +103,14 @@ export function OnePageCallButton({ mobile = false }: { mobile?: boolean }) {
         <button
           type="button"
           className={buttonClass}
-          aria-label="직원 호출"
+          aria-label={t("직원 호출")}
           data-one-page-call-button={mobile ? "mobile" : "desktop"}
           onClick={actions.openCall}
         >
           <StaffCallIcon aria-hidden="true" strokeWidth={1.8} />
           {!mobile ? (
             <span>
-              <ScriptAwareText text="호출" />
+              <ScriptAwareText text={t("호출")} />
             </span>
           ) : null}
         </button>
@@ -117,14 +119,14 @@ export function OnePageCallButton({ mobile = false }: { mobile?: boolean }) {
         <button
           type="button"
           className={buttonClass}
-          aria-label={`장바구니 ${actions.cartCount ?? 0}개`}
+          aria-label={t("장바구니 {0}개", actions.cartCount ?? 0)}
           data-one-page-call-button={mobile ? "mobile-cart" : "desktop-cart"}
           onClick={actions.openCart}
         >
           <ShoppingCart aria-hidden="true" strokeWidth={1.8} />
           {!mobile ? (
             <span>
-              <ScriptAwareText text="장바구니" />
+              <ScriptAwareText text={t("장바구니")} />
             </span>
           ) : null}
           {(actions.cartCount ?? 0) > 0 ? (
@@ -158,6 +160,7 @@ export function OnePageMobileCallBar({
 
 /** Mobile entries share the same call/cart actions as the header. */
 export function OnePageMobileCallDock() {
+  const t = useMenuText();
   const call = useOnePageCallActions();
   if (!call.enabled) return null;
   const showCall = call.callEnabled !== false;
@@ -166,12 +169,12 @@ export function OnePageMobileCallDock() {
   return (
     <div className="cafe-a-mobile-call-dock" data-one-page-call-dock="" data-has-order={showOrder ? "true" : "false"}>
       {showOrder ? <button type="button" className="cafe-a-mobile-call-dock-button cafe-a-mobile-order-dock-button"
-        aria-label={`주문하기, 장바구니 ${call.cartCount ?? 0}개`} data-one-page-call-button="mobile-order-bottom" onClick={call.openCart}>
-        <ShoppingCart aria-hidden="true" strokeWidth={1.8} /><span>주문하기{(call.cartCount ?? 0) > 0 ? ` (${call.cartCount})` : ""}</span>
+        aria-label={t("주문하기, 장바구니 {0}개", call.cartCount ?? 0)} data-one-page-call-button="mobile-order-bottom" onClick={call.openCart}>
+        <ShoppingCart aria-hidden="true" strokeWidth={1.8} /><span>{t("주문하기")}{(call.cartCount ?? 0) > 0 ? ` (${call.cartCount})` : ""}</span>
       </button> : null}
-      {showCall ? <button type="button" className="cafe-a-mobile-call-dock-button" aria-label="직원 호출하기"
+      {showCall ? <button type="button" className="cafe-a-mobile-call-dock-button" aria-label={t("직원 호출하기")}
         data-one-page-call-button="mobile-bottom" onClick={call.openCall}>
-        <StaffCallIcon aria-hidden="true" strokeWidth={1.8} /><span>{showOrder ? "호출하기" : "직원 호출하기"}</span>
+        <StaffCallIcon aria-hidden="true" strokeWidth={1.8} /><span>{showOrder ? t("호출하기") : t("직원 호출하기")}</span>
       </button> : null}
     </div>
   );

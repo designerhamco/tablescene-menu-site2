@@ -1,4 +1,5 @@
 "use client";
+import { useMenuText } from "./MenuLocaleScope";
 
 import { ChevronDown, Globe2 } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -62,6 +63,7 @@ export default function MenuLanguageSwitcher({
   scriptAwareLabels = false,
   iconOnly = false,
 }: MenuLanguageSwitcherProps) {
+  const t = useMenuText();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -153,10 +155,10 @@ export default function MenuLanguageSwitcher({
       <button
         type="button"
         className={triggerClassName}
-        aria-label={visibleLocales.length > 1 ? "언어 변경" : `현재 언어: ${SHORT_LOCALE_LABELS[currentLocale]}`}
+        aria-label={visibleLocales.length > 1 ? t("언어 변경") : t("현재 언어: {0}", SHORT_LOCALE_LABELS[currentLocale])}
         aria-haspopup={visibleLocales.length > 1 ? "menu" : undefined}
         aria-expanded={visibleLocales.length > 1 ? isOpen : undefined}
-        title={visibleLocales.length > 1 ? "언어 변경" : undefined}
+        title={visibleLocales.length > 1 ? t("언어 변경") : undefined}
         disabled={visibleLocales.length === 1}
         onClick={() => {
           if (visibleLocales.length > 1) setIsOpen((current) => !current);
