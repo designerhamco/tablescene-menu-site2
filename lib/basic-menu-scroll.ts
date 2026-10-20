@@ -125,7 +125,26 @@ export function selectScrollableMenuCandidate(candidates: readonly ScrollableMen
   const two = preferred.find(candidate => candidate.columnCount === 2 && candidate.layout.columns.every(column => column.length));
   const three = preferred.find(candidate => candidate.columnCount === 3 && candidate.layout.columns.every(column => column.length));
   if (two?.names && three?.names && shouldPreferWiderScrollableNames(three.names, two.names)) return two;
-  return selectPreferredScrollCandidate(preferred, grouped);
+  const selected = selectPreferredScrollCandidate(preferred, grouped);
+  return selected.columnCount === 3 && two && shouldReduceScrollColumnImbalance(selected, two) ? two : selected;
+}
+
+/** Compare measured ends, without resizing type or reordering categories. A shorter
+ * category alone is not a reason to add scrolling or collapse every board to two. */
+function shouldReduceScrollColumnImbalance(three: ScrollableMenuCandidate, two: ScrollableMenuCandidate) {
+  const metrics = (candidate: ScrollableMenuCandidate) => {
+    const heights = candidate.layout.naturalHeights;
+    const max = Math.max(...heights);
+    const spread = max - Math.min(...heights);
+    return { max, spread, empty: 1 - heights.reduce((sum, height) => sum + height, 0) / (max * heights.length) };
+  };
+  const narrow = metrics(three), wide = metrics(two);
+  const viewport = three.layout.viewportHeight;
+  if (narrow.max <= viewport + .1 && wide.max > viewport + .1) return false;
+  if (three.itemSize && two.itemSize && two.itemSize < three.itemSize * (1 - SCROLL_FILL_MAX_TYPE_LOSS)) return false;
+  return narrow.spread >= viewport * .4 && narrow.spread >= narrow.max * .45 &&
+    wide.spread <= narrow.spread * .6 && narrow.empty - wide.empty >= .08 &&
+    Math.max(0, wide.max - viewport) - Math.max(0, narrow.max - viewport) <= viewport * .35;
 }
 
 function selectPreferredScrollCandidate(candidates: readonly ScrollableMenuCandidate[], grouped: boolean) {

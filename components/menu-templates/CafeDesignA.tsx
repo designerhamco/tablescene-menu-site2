@@ -67,6 +67,7 @@ import {
   getEnglishFontOpticalSizeScale,
   getKoreanFontLoadAssets,
   getTypographyCssVariables,
+  getTypographyCustomColorRoles,
   getTypographyRoleFontLoadAssets,
   mergeTypographySettings,
   type TypographySettings,
@@ -2312,6 +2313,7 @@ function StoreIdentity({
           onError={() => setLogoFailed(true)}
         />
         <span className="sr-only">{title}</span>
+        <span hidden aria-hidden="true" className={titleClassName} data-cafe-a-brand-color-probe="" />
       </div>
     );
   }
@@ -7585,6 +7587,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       <CafeATypographyFontAssets typographySettings={typographySettings} />
       <main
         className={`menu-typography cafe-a-typography ${titleSizeClassName} group/cafe-board relative min-h-screen w-full max-w-full min-w-0 text-[#191c1b] lg:h-screen lg:overflow-y-hidden`}
+        data-menu-text-colors={getTypographyCustomColorRoles(typographySettings)}
         data-cafe-a-menu-image-mode={hasVisibleItemImages ? "true" : "false"}
         data-cafe-a-skin={cafeASkinAttribute}
         data-template-key={data.menuSite.template_key ?? undefined}

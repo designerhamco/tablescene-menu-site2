@@ -396,7 +396,7 @@ test("가격 옵션명은 카테고리명 역할 색상을 그대로 공유한�
   );
   assert.match(
     typographySettingsSource,
-    /\["HOT", "ICE"\][\s\S]*getCafeAMiniPreviewScriptStyle\("category", \{[\s\S]*color: "var\(--menu-role-category-color, #191c1b\)"/,
+    /\["HOT", "ICE"\][\s\S]*getColorAwareMiniStyle\("category", \{[\s\S]*color: "var\(--menu-role-category-color, #191c1b\)"/,
   );
 });
 

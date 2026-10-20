@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, type CSSProperties, type RefObject } from "react";
+import { getRenderedMenuBrandColor, getRenderedMenuBrandElement } from "@/components/menu-templates/shared/rendered-menu-colors";
 import { resolveMenuInteractionTheme } from "@/lib/menu-interaction-theme";
 
 export default function useMenuInteractionTheme(content: RefObject<HTMLDivElement | null>) {
@@ -15,7 +16,7 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
       frame = 0;
       const root = container.querySelector<HTMLElement>(".cafe-a-typography,.aube-table-root");
       if (!root) return;
-      const brand = [...root.querySelectorAll<HTMLElement>("[data-cafe-a-store-title],.cafe-a-store-title,.aube-table-cover h1")].find(visible);
+      const brand = getRenderedMenuBrandElement(root);
       const style = getComputedStyle(root);
       const savedBrand = style.getPropertyValue("--menu-role-brand-color").trim();
       const dining = root.matches(".aube-table-root");
@@ -23,7 +24,7 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
       // saved brand palette instead of sampling that temporary white title.
       brandColor = dining
         ? savedBrand || style.getPropertyValue("--aube-accent").trim() || brandColor
-        : brand ? getComputedStyle(brand).color : savedBrand || style.getPropertyValue("--aube-accent").trim() || brandColor;
+        : getRenderedMenuBrandColor(root);
       const surfaces = [style.backgroundColor];
       // Representative columns may have their own paper color. Walk only the brand's
       // ancestors, excluding photos, image overlays and interactive control fills.

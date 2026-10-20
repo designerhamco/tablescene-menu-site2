@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import ScriptAwareText from "../shared/ScriptAwareText";
+import { getRenderedMenuBrandColor } from "../shared/rendered-menu-colors";
 
 type OnePageCallActions = {
   enabled: boolean;
@@ -47,16 +48,7 @@ export function OnePageCallPalette() {
       };
       const visible = (element: Element) =>
         element.getBoundingClientRect().width > 0;
-      const brand = [
-        ...root.querySelectorAll<HTMLElement>(
-          "[data-cafe-a-store-title],.cafe-a-store-title",
-        ),
-      ].find(visible);
-      const brandColor = brand
-        ? getComputedStyle(brand).color
-        : getComputedStyle(root)
-            .getPropertyValue("--menu-role-brand-color")
-            .trim() || "#191c1b";
+      const brandColor = getRenderedMenuBrandColor(root);
       const category = [
         ...root.querySelectorAll<HTMLElement>(".cafe-a-category-title"),
       ].find(visible);
