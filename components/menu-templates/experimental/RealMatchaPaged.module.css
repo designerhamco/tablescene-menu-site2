@@ -183,6 +183,11 @@
 
 .portraitCoverSlot { flex: 1; min-height: 0; min-width: 0; container-type: size; display: grid; place-items: end center; }
 .portraitCoverSlot .cover { align-self: end !important; justify-self: center; flex: none !important; width: min(100cqw, 80cqh) !important; height: auto !important; aspect-ratio: 4 / 5 !important; }
+/* Only the first-column neutral tablet has the taller representative crop. */
+.frame[data-basic-structure="basic-first-column"][data-preview-device="tablet"] .portraitCoverSlot .cover {
+  width: min(100cqw, 66.666667cqh) !important;
+  aspect-ratio: 4 / 6 !important;
+}
 .mobile[data-portrait-cover="true"] :global(.cafe-a-cover-hero) { height: auto !important; min-height: 0 !important; aspect-ratio: 4 / 5 !important; flex: none !important; }
 
 /* Neutral defaults: soften only product roles, including measuring rows and
