@@ -11,7 +11,7 @@ test("Summer Blue starter keeps a concise menu and distinct discount copy", () =
 
   assert.equal(data.pages.length, 4);
   assert.equal(data.categories.length, 6);
-  assert.equal(data.items.length, 29);
+  assert.equal(data.items.length, 32);
   assert.equal(data.items.filter((item) => item.badge_label).length, 6);
   assert.equal(data.timeSales.length, 2);
 

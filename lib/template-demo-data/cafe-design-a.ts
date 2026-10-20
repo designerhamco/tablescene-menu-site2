@@ -117,6 +117,14 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               description: "진한 제주 맛차와 부드러운 우유를 담은 기본 라떼",
               price_note: "ICE ONLY",
             },
+            {
+              key: "coconut-matcha-latte",
+              name: "코코넛 말차 라떼",
+              price: 6500,
+              description: "제주 말차와 코코넛 밀크의 부드럽고 고소한 조화",
+              set_name: "COCONUT MATCHA LATTE",
+              price_note: "ICE ONLY"
+            },
           ],
         },
         {
@@ -179,6 +187,13 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price: 5700,
               description: "베르가못 향과 우유가 어우러진 밀크티",
             },
+            {
+              key: "roasted-hojicha-latte",
+              name: "호지차 라떼",
+              price: 5500,
+              description: "볶은 찻잎의 고소한 향과 우유가 어우러진 라떼",
+              set_name: "ROASTED HOJICHA LATTE"
+            },
           ],
         },
         {
@@ -209,6 +224,14 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               price: 5800,
               description: "청포도의 달콤함과 민트의 청량함",
               price_note: "ICE ONLY",
+            },
+            {
+              key: "passion-fruit-ade",
+              name: "패션프루트 에이드",
+              price: 5800,
+              description: "패션프루트의 새콤한 향을 담은 청량한 에이드",
+              set_name: "PASSION FRUIT ADE",
+              price_note: "ICE ONLY"
             },
           ],
         },
@@ -251,6 +274,13 @@ export const CAFE_DESIGN_A_STITCH_SAMPLE = {
               set_name: "MATCHA TERRINE",
               price: 5800,
               description: "진한 제주 맛차를 꾸덕하게 구운 디저트",
+            },
+            {
+              key: "vanilla-financier",
+              name: "바닐라 휘낭시에",
+              price: 3500,
+              description: "바닐라와 구운 버터의 향을 담은 촉촉한 휘낭시에",
+              set_name: "VANILLA FINANCIER"
             },
           ],
         },

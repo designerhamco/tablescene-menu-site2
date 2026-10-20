@@ -121,7 +121,7 @@
 .surface[data-menu-item-layout="album"] :global(.cafe-a-menu-item-image) { width: 100% !important; height: 100% !important; object-fit: cover; }
 .surface[data-menu-item-layout="album"] :global(.cafe-a-menu-item-content-shell) { display: contents !important; }
 .surface[data-menu-item-layout="album"] :global(.cafe-a-menu-copy) { order: 2; width: 100%; flex: 1; align-self: stretch !important; }
-.surface[data-menu-item-layout="album"] :global(.cafe-a-typography .cafe-a-price-area) { order: 3; display: flex !important; flex-direction: row; justify-content: flex-start; gap: .625rem; align-items: center; align-self: stretch; width: 100%; margin-top: 0; }
+.surface[data-menu-item-layout="album"] :global(.cafe-a-typography .cafe-a-price-area) { order: 3; display: flex !important; flex-direction: row; justify-content: flex-start; gap: .625rem; align-items: center; align-self: stretch; width: 100%; max-width: none; min-width: 0; margin-top: 0; }
 .surface[data-menu-item-layout="album"] :global(.cafe-a-price-area::before) { display: none; }
 .surface[data-menu-item-layout="album"] :global(.cafe-a-menu-title-row) { width: 100%; }
 .surface[data-menu-item-layout="album"] :global(.cafe-a-typography[data-cafe-a-mobile-style="true"] .cafe-a-category-items) {
@@ -129,7 +129,7 @@
 }
 .surface[data-menu-item-layout="album"] :global(.cafe-a-typography[data-cafe-a-mobile-style="true"] .cafe-a-menu-item-stack) { padding-bottom: 0; margin: 0; }
 .surface[data-menu-item-layout="album"] :global(.aube-table-course-items),
-.surface[data-menu-item-layout="album"] :global(.aube-table-direct-items) {
+.surface[data-menu-item-layout="album"] :global(.aube-table-page .aube-table-direct-items) {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)) !important; gap: 2rem 1.5rem;
 }
 .surface[data-menu-item-layout="album"] :global(.aube-table-item) { display: flex; flex-direction: column; gap: .75rem; padding: 0; min-width: 0; }
@@ -147,7 +147,7 @@
 .surface[data-menu-item-layout="album"] :global(.aube-table-option-separator) { display: none; }
 @container aube (max-width: 767px) {
   .surface[data-menu-item-layout="album"] :global(.aube-table-course-items),
-  .surface[data-menu-item-layout="album"] :global(.aube-table-direct-items) { grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr)) !important; gap: 1.25rem; }
+  .surface[data-menu-item-layout="album"] :global(.aube-table-page .aube-table-direct-items) { grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr)) !important; gap: 1.25rem; }
 }
 
 .surface[data-menu-item-layout="album"] :global([data-paged-item]) { height: 100%; }

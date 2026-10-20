@@ -94,7 +94,12 @@ async function check(key, device, width, height, extra = '') {
     if(m.scroll==='auto'||m.scroll==='scroll') failures.push('one-page menu must not scroll');
     if(m.menu && m.menu.scrollWidth-m.menu.width>1) failures.push('menu horizontal overflow');
     if(m.menu && m.menu.scrollHeight-m.menu.height>1) failures.push('menu vertical overflow');
-    if(m.header && Math.abs(m.header.height/(m.header.boardInner-m.header.gap)-.16)>.003) failures.push('header is outside the fixed 16 percent budget');
+    if(m.header) {
+      // Header candidates use the approved 8–14% content-driven budget and the
+      // unscaled gap; a single-line PC brand may reduce the rendered gap later.
+      const ratio = m.header.height / (m.header.boardInner - m.header.gap / (m.header.gapScale || 1));
+      if(ratio < .08 - .003 || ratio > .14 + .003) failures.push('header is outside the adaptive 8–14 percent budget');
+    }
   } else failures.push(...getOnePageMobileRhythmFailures(await page.evaluate(measureOnePageMobileRhythm)));
   failures.push(...getMenuPriceAlignmentFailures(await page.evaluate(measureMenuPriceAlignment)));
   results.push({key,device,extra,...m,failures});

@@ -27,6 +27,8 @@ const diningSampleNames: Record<string, readonly [string, string]> = {
   "Seasonal mocktail": ["제철 목테일", "SEASONAL MOCKTAIL"],
   "Sparkling tea": ["스파클링 티", "SPARKLING TEA"],
   "Mineral water": ["미네랄 워터", "MINERAL WATER"],
+  "Cabernet sauvignon": ["카베르네 소비뇽", "CABERNET SAUVIGNON"],
+  "Kombucha": ["콤부차", "KOMBUCHA"],
   "Wine pairing": ["와인 페어링", "WINE PAIRING"],
   "Non-alcohol pairing": ["논알코올 페어링", "NON-ALCOHOL PAIRING"],
 };

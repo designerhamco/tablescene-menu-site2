@@ -9,12 +9,12 @@ import { mergeTypographySettings } from "./template-typography-presets";
 
 const SINGLE_PAGE_DENSITY_CONTRACT = {
 
-  cafe_design_a: [3, 4, 3, 3, 5],
-  cafe_mocha_forest_a: [3, 5, 4, 3, 3],
-  cafe_sunday_line_a: [3, 3, 2, 3, 6],
-  cafe_van_gogh_a: [3, 4, 3, 3, 4],
-  cafe_round_focus_a: [3, 4, 4, 4, 4],
-  fast_food_loop_bagel_a: [5, 4, 3, 4],
+  cafe_design_a: [4, 4, 4, 4, 6],
+  cafe_mocha_forest_a: [4, 6, 4, 4, 4],
+  cafe_sunday_line_a: [4, 4, 2, 4, 6],
+  cafe_van_gogh_a: [4, 4, 4, 4, 4],
+  cafe_round_focus_a: [4, 4, 4, 4, 4],
+  fast_food_loop_bagel_a: [6, 4, 4, 4],
 } as const;
 
 for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_DENSITY_CONTRACT)) {
@@ -38,6 +38,7 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
         "plain-cream-cheese",
         "scallion-cream-cheese",
         "honey-walnut-cream-cheese",
+        "strawberry-cream-cheese",
         "americano",
         "cafe-latte",
         "vanilla-bean-latte",
@@ -119,7 +120,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(loopBagel.site.restaurant_name, "LOOP BAGEL");
   assert.equal(loopBagel.site.restaurant_category, "패스트푸드");
   assert.equal(loopBagel.site.restaurant_type, "fast_food");
-  assert.equal(loopBagelItems.length, 16);
+  assert.equal(loopBagelItems.length, 18);
   assert.equal(loopBagelItems.every((item) => !item.set_name?.trim()), true);
   assert.equal(loopBagelItems.every((item) => !item.price_options?.length), true);
   const loopBagelDrinks = loopBagel.pages[0]?.categories.find((category) => category.key === "coffee-drinks");
@@ -167,6 +168,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
       "/menu-templates/fast_food_loop_bagel_a/blueberry-bagel.png",
       "/menu-templates/fast_food_loop_bagel_a/black-olive-bagel.png",
       "/menu-templates/fast_food_loop_bagel_a/cheddar-cheese-bagel.png",
+      "/placeholders/starter/menu-item.svg",
     ],
   );
   assert.deepEqual(
@@ -184,6 +186,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
       "/menu-templates/fast_food_loop_bagel_a/plain-cream-cheese.png",
       "/menu-templates/fast_food_loop_bagel_a/scallion-cream-cheese.png",
       "/menu-templates/fast_food_loop_bagel_a/honey-walnut-cream-cheese.png",
+      "/placeholders/starter/menu-item.svg",
     ],
   );
   assert.equal(loopBagelDrinks?.items.every((item) => !item.image_url), true);
@@ -235,7 +238,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(roundFocus.site.settings?.footer_notice_2, "Instagram · @rosy.orange");
   assert.equal(roundFocus.site.settings?.footer_notice_3, "논알코올 칵테일로 변경 가능합니다.");
   const roundHouseSpecials = roundFocus.pages[0]?.categories.find((category) => category.key === "signature-cocktails");
-  assert.equal(roundHouseSpecials?.items.length, 3);
+  assert.equal(roundHouseSpecials?.items.length, 4);
   assert.equal(roundHouseSpecials?.items.every((item) => Boolean(item.image_url)), true);
   const roundHouseWhiteWine = roundFocus.pages[0]?.categories
     .flatMap((category) => category.items)

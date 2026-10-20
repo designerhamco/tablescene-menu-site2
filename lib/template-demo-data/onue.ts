@@ -19,15 +19,29 @@ export const ONUE_STARTER: StarterPreset = {
   featured_slides: [{ id: "onue-featured", image_url: COVER, image_path: null, sort_order: 0 }],
   chefs: [], events: [], socialLinks: [], widgets: [], time_sales: [],
   pages: [{ key: "main-menu", title: "온유 테이블 메뉴", legacy_section_key: "main_menu", categories: [
-    { key: "signature", name: "SIGNATURE", description: "온유의 계절을 담은 세 가지", description_visible: true, items: [
+    { key: "signature", name: "SIGNATURE", description: "온유의 계절을 담은 시그니처", description_visible: true, items: [
       { key: "scallop", name: "버터 관자 구이", set_name: "SEARED SCALLOP", price: 24000, description: "노릇하게 구운 관자와 허브 퓌레", image_url: SCALLOP_IMAGE, badge_label: "SIGNATURE" },
       { key: "cheese", name: "아티장 치즈 플레이트", set_name: "ARTISAN CHEESE", price: 22000, description: "숙성 치즈와 제철 과일, 크래커", image_url: "/menu-templates/cafe_round_focus_a/cheese-platter.jpg" },
       { key: "chicken", name: "스파이시 치킨 윙", set_name: "SPICY CHICKEN WINGS", price: 21000, description: "매콤한 글레이즈와 바삭한 치킨 윙", image_url: "/menu-templates/cafe_round_focus_a/spicy-chicken-wings.jpg" },
+      {
+        key: "mushroom-crostini",
+        name: "버섯 크로스티니",
+        price: 18000,
+        description: "구운 버섯과 리코타를 올린 바삭한 바게트",
+        set_name: "MUSHROOM CROSTINI"
+      },
     ] },
     { key: "starters", name: "STARTERS", description: "식탁을 여는 가벼운 한 접시", description_visible: true, items: [
       { key: "salad", name: "시트러스 가든 샐러드", price: 14000, description: "어린잎 채소와 오렌지, 레몬 드레싱" },
       { key: "burrata", name: "부라타 토마토", price: 17000, description: "부라타 치즈와 완숙 토마토, 바질 오일" },
       { key: "soup", name: "오늘의 수프", price: 9000, description: "제철 채소로 끓인 수프와 사워도우" },
+      {
+        key: "roasted-beet-salad",
+        name: "로스트 비트 샐러드",
+        price: 14000,
+        description: "구운 비트와 어린잎 채소, 산뜻한 발사믹 드레싱",
+        set_name: "ROASTED BEET SALAD"
+      },
     ] },
     { key: "mains", name: "PASTA & MAINS", description: "천천히 즐기는 든든한 메인", description_visible: true, items: [
       { key: "ragu", name: "슬로우 라구 파스타", price: 23000, description: "오래 끓인 소고기 라구와 파르미자노" },
@@ -47,6 +61,13 @@ export const ONUE_STARTER: StarterPreset = {
       { key: "americano", name: "아메리카노", price: 5000, description: "" },
       { key: "ade", name: "자몽 로즈메리 에이드", price: 7000, description: "" },
       { key: "wine", name: "하우스 와인", price: 10000, description: "레드 또는 화이트 · 잔" },
+      {
+        key: "lemon-mint-soda",
+        name: "레몬 민트 소다",
+        price: 6500,
+        description: "레몬과 민트의 산뜻한 탄산음료",
+        set_name: "LEMON MINT SODA"
+      },
     ] },
   ] }],
 };

@@ -725,6 +725,7 @@ const loopBagelStarterPreset: StarterPreset = {
             item("체더 치즈 베이글", 4500, "고소한 체더 치즈를 반죽과 토핑에 더해 짭짤하게 구운 베이글", {
               key: "cheddar-cheese-bagel", image_url: LOOP_BAGEL_CHEDDAR_CHEESE_IMAGE,
             }),
+            item("세서미 베이글", 4200, "고소한 참깨를 듬뿍 묻혀 구운 쫄깃한 베이글", {key:"sesame-bagel",image_url:"/placeholders/starter/menu-item.svg"}),
           ],
         },
         {
@@ -760,6 +761,7 @@ const loopBagelStarterPreset: StarterPreset = {
             item("허니 월넛 크림치즈", 2200, "", {
               key: "honey-walnut-cream-cheese", image_url: LOOP_BAGEL_HONEY_WALNUT_CREAM_CHEESE_IMAGE,
             }),
+            item("스트로베리 크림치즈", 2500, "", {key:"strawberry-cream-cheese",image_url:"/placeholders/starter/menu-item.svg"}),
           ],
         },
         {
@@ -903,6 +905,7 @@ cafeMochaForestStarterPreset.pages = [
             key: "matcha-cloud",
             price_note: "ICE ONLY",
           }),
+          item("솔티드 크림 모카", 6500, "진한 초콜릿과 에스프레소에 소금 크림을 더한 모카", {key:"salt-cream-mocha"}),
         ],
       },
       {
@@ -925,6 +928,7 @@ cafeMochaForestStarterPreset.pages = [
           item("바닐라 크림 콜드브루", 5900, "부드러운 콜드브루 위에 바닐라 크림을 올린 커피", {
             key: "vanilla-cream-cold-brew",
           }),
+          item("에스프레소 콘파냐", 4800, "진한 에스프레소 위에 부드러운 생크림을 올린 커피", {key:"espresso-con-panna"}),
         ],
       },
       {
@@ -954,6 +958,7 @@ cafeMochaForestStarterPreset.pages = [
           item("블랙티 플럼 에이드", 5800, "홍차와 자두의 산뜻한 향을 담은 탄산 에이드", { key: "black-tea-plum-ade" }),
           item("레몬 진저 티", 5500, "레몬과 생강을 따뜻하게 우려낸 향긋한 티", { key: "lemon-ginger-tea" }),
           item("캐모마일 애플 티", 5500, "캐모마일과 사과 향이 편안하게 어우러진 블렌드 티", { key: "chamomile-apple-tea" }),
+          item("히비스커스 베리 티", 5500, "히비스커스와 베리의 새콤한 향이 어우러진 블렌드 티", {key:"hibiscus-berry-tea"}),
         ],
       },
       {
@@ -964,6 +969,7 @@ cafeMochaForestStarterPreset.pages = [
           item("다크 초콜릿 브라우니", 4500, "진한 다크 초콜릿을 넣어 촉촉하게 구운 브라우니", { key: "dark-chocolate-brownie" }),
           item("헤이즐넛 휘낭시에", 3800, "구운 헤이즐넛과 버터 풍미가 진한 휘낭시에", { key: "hazelnut-financier" }),
           item("포레스트 티라미수", 6200, "에스프레소와 다크 카카오를 층층이 담은 티라미수", { key: "forest-tiramisu" }),
+          item("헤이즐넛 쿠키", 3800, "구운 헤이즐넛과 초콜릿을 넣어 바삭하게 구운 쿠키", {key:"hazelnut-cookie"}),
         ],
       },
     ],
@@ -1055,6 +1061,7 @@ const cafeBrewChapterStarterPreset: StarterPreset = {
               key: "vegetable-tasting",
               set_name: "VEGETABLE TASTING",
             }),
+            item("시푸드 테이스팅", 145000, "제철 해산물의 풍미를 여섯 접시로 풀어낸 코스", {key:"seafood-tasting",set_name:"SEAFOOD TASTING"}),
           ],
         },
         {
@@ -1077,6 +1084,7 @@ const cafeBrewChapterStarterPreset: StarterPreset = {
               key: "lobster-bisque",
               set_name: "LOBSTER BISQUE",
             }),
+            item("비트 타르타르", 24000, "천천히 구운 비트와 사과, 홀스래디시 크림", {key:"beet-tartare",set_name:"BEET TARTARE"}),
           ],
         },
         {
@@ -1098,6 +1106,7 @@ const cafeBrewChapterStarterPreset: StarterPreset = {
               set_name: "MARKET FISH & SAFFRON",
               price_label: "MARKET PRICE",
             }),
+            item("양 등심과 허브", 49000, "허브 향을 더한 양 등심과 구운 뿌리채소", {key:"lamb-loin",set_name:"LAMB LOIN & HERBS"}),
           ],
         },
         {
@@ -1117,6 +1126,7 @@ const cafeBrewChapterStarterPreset: StarterPreset = {
               key: "seasonal-fruit-pavlova",
               set_name: "SEASONAL FRUIT PAVLOVA",
             }),
+            item("레몬 무스", 16000, "레몬 커드와 가벼운 무스, 바삭한 크럼블", {key:"lemon-mousse",set_name:"LEMON MOUSSE"}),
           ],
         },
         {
@@ -1152,6 +1162,7 @@ const cafeBrewChapterStarterPreset: StarterPreset = {
                 { key: "five-glasses", price: 28000 },
               ],
             }),
+            item("스파클링 페어링", 38000, "코스에 어울리는 세 가지 스파클링 와인", {key:"sparkling-pairing",set_name:"SPARKLING PAIRING"}),
           ],
         },
       ],
@@ -1263,6 +1274,7 @@ cafeSundayLineStarterPreset.pages = [
             set_name: "ORANGE VANILLA COLD BREW",
             badge_label: "NEW",
           }),
+          item("브라운 슈가 크림 라떼", 6800, "브라운 슈가의 깊은 단맛과 부드러운 크림이 어우러진 라떼", {key:"brown-sugar-cream-latte",set_name:"BROWN SUGAR CREAM LATTE"}),
         ],
       },
       {
@@ -1294,6 +1306,7 @@ cafeSundayLineStarterPreset.pages = [
             key: "flat-white",
             set_name: "FLAT WHITE",
           }),
+          item("바닐라 라떼", 5800, "바닐라 빈의 은은한 향을 더한 부드러운 카페 라떼", {key:"vanilla-latte",set_name:"VANILLA LATTE"}),
         ],
       },
       {
@@ -1336,6 +1349,7 @@ cafeSundayLineStarterPreset.pages = [
             key: "earl-grey-peach-tea",
             set_name: "EARL GREY PEACH TEA",
           }),
+          item("레몬 민트 에이드", 6200, "상큼한 레몬과 산뜻한 민트를 담은 탄산 에이드", {key:"lemon-mint-ade",set_name:"LEMON MINT ADE"}),
         ],
       },
       {
@@ -1458,6 +1472,7 @@ cafeVanGoghStarterPreset.pages = [
             key: "arles-orange-cold-brew",
             set_name: "ARLES ORANGE COLD BREW",
           }),
+          item("프로방스 허니 라떼", 6800, "꽃꿀의 은은한 단맛과 에스프레소가 어우러진 라떼", {key:"provence-honey-latte",set_name:"PROVENCE HONEY LATTE"}),
         ],
       },
       {
@@ -1500,6 +1515,7 @@ cafeVanGoghStarterPreset.pages = [
             key: "black-sesame-cream-latte",
             set_name: "BLACK SESAME CREAM LATTE",
           }),
+          item("호지차 라떼", 6200, "볶은 찻잎의 고소한 향과 우유가 어우러진 라떼", {key:"roasted-hojicha-latte",set_name:"ROASTED HOJICHA LATTE"}),
         ],
       },
       {
@@ -1519,6 +1535,7 @@ cafeVanGoghStarterPreset.pages = [
             key: "chamomile-apple-tea",
             set_name: "CHAMOMILE APPLE TEA",
           }),
+          item("베리 히비스커스 티", 5800, "히비스커스와 붉은 베리의 향긋하고 산뜻한 블렌드 티", {key:"berry-hibiscus-tea",set_name:"BERRY HIBISCUS TEA"}),
         ],
       },
       {
@@ -1635,6 +1652,7 @@ cafeRoundFocusStarterPreset.pages = [
             badge_label: "NEW",
             image_url: "/menu-templates/cafe_round_focus_a/basil-gin-tonic.jpg",
           }),
+          item("블러드 오렌지 스프리츠", 14000, "블러드 오렌지와 스파클링 와인의 산뜻한 만남", {key:"blood-orange-spritz", image_url: STARTER_PLACEHOLDERS.item}),
         ],
       },
       {
@@ -1957,6 +1975,7 @@ const diningAubeTableStarterPreset: StarterPreset = {
               { label: "Glass", price: 30000 },
               { label: "Bottle", price: 180000 },
             ] }),
+            item("Cabernet sauvignon", 32000, "Bordeaux · France", {key:"cabernet-sauvignon",set_name:"CABERNET SAUVIGNON",price_options:[{label:"Glass",price:32000},{label:"Bottle",price:190000}]}),
           ],
         },
         {
@@ -1973,6 +1992,7 @@ const diningAubeTableStarterPreset: StarterPreset = {
             item("Seasonal mocktail", 18000, "제철 과실과 허브로 완성한 논알코올 칵테일"),
             item("Sparkling tea", 16000, "제철 허브와 차를 발효한 스파클링 티"),
             item("Mineral water", 9000, "Still / Sparkling"),
+            item("Kombucha", 12000, "제철 과일로 발효한 산뜻한 콤부차", {key:"kombucha",set_name:"KOMBUCHA"}),
           ],
         },
       ],
@@ -2271,6 +2291,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
               }),
               item("에스프레소", 4000, "진한 커피의 향을 짧고 강하게 즐기는 메뉴"),
               item("콜드브루", 5500, "천천히 추출해 부드럽게 즐기는 콜드브루", { portion_label: "ICE" }),
+              item("에스프레소 마키아토", 4500, "진한 에스프레소에 부드러운 우유 거품을 더한 커피", {key:"espresso-macchiato",set_name:"ESPRESSO MACCHIATO"}),
             ],
           },
           {
@@ -2285,6 +2306,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
               }),
               item("바닐라라떼", 6000, "달콤한 바닐라 향을 더한 라떼", { portion_label: "HOT / ICE" }),
               item("오트 라떼", 6500, "오트 밀크로 만든 부드러운 라떼", { portion_label: "HOT / ICE" }),
+              item("카라멜 라떼", 6500, "카라멜의 은은한 단맛을 더한 카페 라떼", {key:"caramel-latte",set_name:"CARAMEL LATTE"}),
             ],
           },
         ],
@@ -2299,6 +2321,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
               item("말차 라떼", 6000, "진한 말차와 우유가 어우러진 음료", { portion_label: "HOT / ICE" }),
               item("초코 라떼", 5800, "달콤한 초콜릿 풍미의 음료", { portion_label: "HOT / ICE" }),
               item("딸기 라떼", 6500, "딸기와 우유가 어우러진 시즌 음료", { portion_label: "ICE" }),
+              item("호지차 라떼", 6000, "볶은 찻잎의 고소한 향을 담은 밀크 라떼", {key:"roasted-hojicha-latte",set_name:"ROASTED HOJICHA LATTE"}),
             ],
           },
           {
@@ -2386,6 +2409,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
               item("프렌치 토스트", 12000, "부드러운 식감과 달콤한 풍미의 토스트", { recommended: true }),
               item("아보카도 오픈 샌드위치", 13500, "아보카도와 신선한 채소를 올린 오픈 샌드위치"),
               item("햄치즈 토스트", 11000, "햄과 치즈를 따뜻하게 구운 토스트"),
+              item("머쉬룸 토스트", 12000, "구운 버섯과 치즈를 올린 사워도우 토스트", {key:"mushroom-toast",set_name:"MUSHROOM TOAST"}),
             ],
           },
         ],
@@ -2420,6 +2444,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
               item("팬케이크", 11500, "부드럽고 달콤한 팬케이크"),
               item("그래놀라 요거트", 9000, "그래놀라와 요거트를 곁들인 디저트"),
               item("스콘", 4500, "담백하게 즐기기 좋은 베이커리"),
+              item("레몬 파운드 케이크", 5500, "레몬 향과 버터 풍미를 담아 촉촉하게 구운 케이크", {key:"lemon-pound-cake",set_name:"LEMON POUND CAKE"}),
             ],
           },
         ],
@@ -2519,6 +2544,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
               item("오늘의 생선 요리", 42000, "계절 생선과 소스를 곁들인 단품 메뉴"),
               item("한우 스테이크", 68000, "한우를 사용한 메인 스테이크", { portion_label: "180g", recommended: true }),
               item("계절 리조또", 32000, "계절 재료를 활용한 리조또"),
+              item("허브 로스트 오리", 38000, "허브 향을 더한 오리 가슴살과 제철 채소", {key:"roasted-duck",set_name:"HERB ROASTED DUCK"}),
             ],
           },
         ],
@@ -2533,6 +2559,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
               item("와인 페어링 3잔", 45000, "코스와 어울리는 와인 3잔 구성"),
               item("와인 페어링 5잔", 70000, "디너 코스와 함께 즐기는 와인 5잔 구성"),
               item("논알콜 페어링", 38000, "차와 주스를 활용한 논알콜 페어링"),
+              item("티 페어링", 28000, "코스의 향과 온도에 맞춰 준비한 세 가지 차", {key:"tea-pairing",set_name:"TEA PAIRING"}),
             ],
           },
           {
@@ -2653,6 +2680,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
               item("마르게리타 피자", 19000, "토마토와 바질, 치즈가 어우러진 피자"),
               item("페퍼로니 피자", 21000, "페퍼로니를 듬뿍 올린 피자"),
               item("고르곤졸라 피자", 20000, "치즈 풍미와 꿀을 곁들이는 피자"),
+              item("머쉬룸 피자", 21000, "구운 버섯과 모차렐라를 듬뿍 올린 피자", {key:"mushroom-pizza",set_name:"MUSHROOM PIZZA"}),
             ],
           },
         ],
@@ -2681,6 +2709,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
               item("하우스 에이드", 6500, "상큼하게 즐기는 에이드"),
               item("탄산음료", 3500, "콜라, 사이다 중 선택"),
               item("아이스티", 4000, "가볍게 즐기기 좋은 음료"),
+              item("레몬 민트 소다", 6500, "레몬과 민트를 더한 산뜻한 탄산음료", {key:"lemon-mint-soda",set_name:"LEMON MINT SODA"}),
             ],
           },
         ],
@@ -2739,6 +2768,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
               item("클래식 버거 세트", 8900, "버거, 감자튀김, 음료가 포함된 기본 세트", { recommended: true }),
               item("치즈 버거 세트", 9900, "치즈 버거와 사이드가 포함된 세트"),
               item("시그니처 버거 세트", 11900, "대표 버거와 사이드가 포함된 세트", { recommended: true }),
+              item("머쉬룸 버거 세트", 10900, "구운 버섯을 더한 버거와 감자튀김, 음료 세트", {key:"mushroom-burger-set",set_name:"MUSHROOM BURGER SET"}),
             ],
           },
           {
@@ -2783,6 +2813,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
               item("크리스피 치킨", 7900, "바삭한 식감의 치킨 메뉴", { recommended: true }),
               item("치킨 텐더", 6900, "가볍게 즐기기 좋은 텐더"),
               item("치킨 윙", 8500, "매콤하게 즐기는 윙 메뉴"),
+              item("허니 치킨", 8500, "꿀 소스를 가볍게 입힌 바삭한 순살 치킨", {key:"honey-chicken",set_name:"HONEY CHICKEN"}),
             ],
           },
           {
@@ -2804,6 +2835,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
               item("감자튀김", 3500, "바삭하게 튀긴 기본 사이드"),
               item("어니언링", 4000, "양파를 바삭하게 튀긴 사이드"),
               item("콘샐러드", 3000, "가볍게 곁들이기 좋은 사이드"),
+              item("치즈 프라이", 4500, "따뜻한 감자튀김에 체더 치즈 소스를 더한 사이드", {key:"cheese-fries",set_name:"CHEESE FRIES"}),
             ],
           },
           {
@@ -2812,6 +2844,7 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
               item("탄산음료", 2500, "콜라, 사이다 중 선택"),
               item("아이스티", 3000, "시원하게 즐기는 음료"),
               item("오렌지 주스", 3500, "상큼한 과일 주스"),
+              item("레모네이드", 3500, "레몬의 산뜻한 맛을 담은 시원한 음료", {key:"lemonade",set_name:"LEMONADE"}),
             ],
           },
           {
