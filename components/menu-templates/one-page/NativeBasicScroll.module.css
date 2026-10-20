@@ -1,0 +1,92 @@
+/* Reading geometry only. Every visible role, panel and decoration remains
+   owned by the existing CafeDesignA skin styles and saved typography. */
+.root.root { position: relative; height: 100dvh; min-height: 0; overflow: hidden; box-sizing: border-box; }
+.board.board {
+  --native-gap: var(--board-padding, clamp(2rem, 4.2vmin, 4.25rem));
+  --cafe-a-linked-item-name-size: max(1rem, calc(var(--native-item-size, 1.3rem) * var(--menu-font-size-scale, 1) * var(--menu-role-item-name-size-scale, 1)));
+  --cafe-a-adaptive-support-size: max(.75rem, calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-sunday-supporting-ratio, .72) * var(--cafe-a-template-supporting-copy-scale, 1)));
+  --cafe-a-linked-supporting-copy-size: var(--cafe-a-adaptive-support-size);
+  --cafe-a-item-rhythm-gap: clamp(.55rem, calc(1.25rem * var(--fit-menu-gap-scale, 1) * .74), 1.15rem);
+  --cafe-a-local-item-rhythm-gap: var(--cafe-a-item-rhythm-gap);
+  --native-section-gap: calc(var(--cafe-a-item-rhythm-gap) * var(--cafe-a-category-separation-ratio, 2.9));
+  --cafe-a-category-title-to-items-gap: calc(var(--cafe-a-item-rhythm-gap) * max(1.25, var(--cafe-a-category-title-to-first-ratio, 1.25)));
+  display: grid; grid-template-columns: minmax(12rem, 25%) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr); gap: var(--native-gap);
+  width: 100%; height: 100%; min-height: 0; min-width: 0;
+  padding: var(--native-gap); box-sizing: border-box;
+}
+.brand { min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+.board .brand :global(.cafe-a-fixed-rail) { display: flex !important; flex-direction: column; height: 100%; min-height: 0; width: 100%; justify-content: space-between; gap: 1.5rem; container-type: inline-size; }
+.board .brand :global(.cafe-a-cover-hero) { flex: 1 1 0; min-height: 0 !important; height: auto !important; width: 100%; margin-top: auto; }
+.board .brand :global(.cafe-a-cover-frame) { height: 100% !important; min-height: 0 !important; }
+.board .brand :global(.cafe-a-fixed-rail-copy) { flex: none; }
+.menuPanel { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; min-width: 0; }
+.viewport { min-width: 0; min-height: 0; position: relative; }
+.menu { height: 100%; min-height: 0; min-width: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: thin; column-gap: var(--native-gap); }
+.menu:focus-visible { outline: 2px solid var(--menu-role-brand-color); outline-offset: -2px; }
+.tracks { display: grid; grid-template-columns: repeat(var(--native-columns), minmax(0, 1fr)); column-gap: var(--native-gap); min-height: 100%; }
+.board[data-layout-mode="orderedFit"] .tracks { padding-bottom: var(--native-gap); }
+.column { min-width: 0; display: flex; flex-direction: column; }
+.unit { flex: none; min-width: 0; padding-bottom: calc(var(--cafe-a-item-rhythm-gap) * var(--native-rhythm, 1)); }
+.unit[data-kind="heading"] { padding-bottom: var(--cafe-a-category-title-to-items-gap); }
+.unit[data-boundary="section"] { padding-bottom: var(--native-section-gap); }
+.board .unit :global(.cafe-a-category-heading) { margin-bottom: 0; }
+.measure { position: absolute; height: 0; visibility: hidden; pointer-events: none; overflow: hidden; contain: layout; }
+.notices { margin-top: auto; padding-top: var(--native-section-gap); text-align: right; white-space: pre-line; line-height: 1.5; }
+.notices p { margin: 0; }
+.fade { position: absolute; bottom: 0; inset-inline: 0; height: clamp(3rem, 9vh, 6rem); background: linear-gradient(to bottom, transparent, var(--native-background) 95%); opacity: 0; pointer-events: none; transition: opacity .15s; }
+.board[data-native-more="true"] .fade { opacity: 1; }
+.actions { display: flex; justify-content: center; gap: .75rem; padding-top: clamp(.875rem, calc(var(--native-gap) * .75), 1.25rem); }
+.actions button { display: flex; flex: 0 1 17.5rem; align-items: center; justify-content: center; gap: .5rem; min-width: 0; min-height: 2.75rem; padding: .5rem 1rem; border: 1px solid; border-radius: .5rem; box-shadow: none; font-family: var(--menu-font-ko); font-size: max(.875rem, var(--cafe-a-adaptive-support-size)); font-weight: var(--menu-action-font-weight, 500); line-height: 1.5; cursor: pointer; }
+.actions svg { width: 1.25rem; height: 1.25rem; flex: none; }
+.actions .call { background: var(--menu-call-bg, white); color: var(--menu-call-ink, #191c1b); border-color: var(--menu-call-border, #191c1b); }
+.actions .order { background: var(--menu-order-bg, #191c1b); color: var(--menu-order-ink, white); border-color: var(--menu-order-border, #191c1b); }
+.actions button:focus-visible { outline: 2px solid var(--menu-role-brand-color); outline-offset: 3px; }
+/* The existing three native header cells stay above their featured/menu body. */
+.board[data-native-shell="brand_top_band"] { grid-template-rows: minmax(0, var(--cafe-a-header-fr, 8fr)) minmax(0, var(--cafe-a-body-fr, 92fr)); row-gap: calc(var(--native-gap) * var(--cafe-a-header-gap-scale, 1)); }
+.header { grid-column: 1 / -1; position: relative; min-height: 0; }
+.board .header :global(.cafe-a-topline-info-header) { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--native-gap); width: 100%; height: 100%; min-height: 0; }
+.headerLanguage { position: absolute; bottom: 0; left: 0; transform: translateY(100%); z-index: 5; }
+.board[data-native-shell="brand_top_band"] > .brand, .board[data-native-shell="brand_top_band"] > .menuPanel { grid-row: 2; }
+.board[data-native-shell="brand_top_band"]:has(.brand:empty) { grid-template-columns: minmax(0, 1fr); }
+.board[data-native-shell="brand_top_band"]:has(.brand:empty) > .brand { display: none; }
+.board .brand :global(.cafe-a-topline-featured-slot) { display: flex !important; flex-direction: column; height: 100%; }
+/* One shared scroll surface straddles the fixed central panel. Neither track
+   is independently scrolled, and keyboard reading order remains contiguous. */
+.board[data-native-shell="brand_center_column"] { grid-template-columns: minmax(0, 1fr); padding-block: 0; }
+.board[data-native-shell="brand_center_column"] > .brand { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); top: 0; bottom: 0; width: calc((100% - 4 * var(--native-gap)) / 3); background: var(--round-focus-panel-bg); padding: var(--native-gap) clamp(.75rem, 1.8vmin, 1.5rem); }
+.board[data-native-shell="brand_center_column"] > .menuPanel { grid-column: 1; padding-block: var(--native-gap); }
+.board[data-native-shell="brand_center_column"] .tracks { column-gap: calc((100% - 2 * var(--native-gap)) / 3 + 2 * var(--native-gap)); }
+.board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-fixed-rail) { background: transparent; padding: 0; }
+.board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-round-focus-lower-cluster) { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: .75rem; }
+.board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-round-focus-featured-stack) { flex: 1; min-height: 0; display: flex; }
+.board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-round-focus-footer-cluster) { flex: none; margin-top: auto; }
+.board[data-native-shell="brand_center_column"] .actions { flex-direction: column; flex: none; }
+.board[data-native-shell="brand_center_column"] .actions button { flex: none; }
+/* The native ONUE intro remains the first real flow block, with usable space
+   below it. It is neither a replacement rail nor a fixed overlay. */
+.board[data-native-shell="brand_panel_flow"] { grid-template-columns: minmax(0, 1fr); }
+.board[data-native-shell="brand_panel_flow"] .unit :global(.cafe-a-panel-intro) { width: 100%; }
+/* Keep Mocha's brown representative panel; measure gutters from its colored
+   edge rather than counting its internal padding as an outside gutter. */
+.root[data-cafe-a-skin="mocha_forest"] .board { padding: 0; column-gap: 0; }
+.root[data-cafe-a-skin="mocha_forest"] .brand { background: var(--mocha-forest-brown); padding: 0; }
+.root[data-cafe-a-skin="mocha_forest"] .menuPanel { padding: var(--native-gap); }
+@media (prefers-reduced-motion: reduce) { .fade { transition: none; } }
+
+.actions[data-call-only="true"] { justify-content: flex-end; }
+.actions[data-call-only="true"] button { flex: none; flex-direction: column; width: 4.5rem; min-height: 4.5rem; border-radius: 50%; background: var(--menu-order-bg, #191c1b); color: var(--menu-order-ink, white); border-color: transparent; padding: .5rem; }
+.column > .unit:first-child > :global(.cafe-a-menu-category-top-divider) { display: none; }
+
+.board[data-native-shell="brand_panel_flow"] .column { background: #fff; padding-block: var(--panel-content-inset); }
+.board[data-native-shell="brand_panel_flow"] .unit { padding-inline: var(--panel-content-inset); }
+.board[data-native-shell="brand_panel_flow"] .unit:is([data-native-unit="native-intro"], [data-native-measure="native-intro"]) { padding-inline: 0; }
+.board[data-native-shell="brand_panel_flow"] .unit[data-native-unit="native-intro"] { margin-top: calc(-1 * var(--panel-content-inset)); }
+.board[data-native-shell="brand_panel_flow"] .notices { padding-inline: var(--panel-content-inset); }
+.board[data-native-shell="brand_panel_flow"] .fade { background-image: linear-gradient(to right, #fff calc(100% - var(--native-gap)), transparent 0); background-size: calc((100% + var(--native-gap)) / var(--native-columns)) 100%; mask-image: linear-gradient(to bottom, transparent, #000 95%); }
+
+.notices :global(.cafe-a-script-en), .notices :global(.cafe-a-script-ko) { font-family: var(--menu-font-ko) !important; }
+
+.board .header :global(.cafe-a-topline-brand-identity):has(img) { container-type: size; }
+.board .header :global(.cafe-a-store-logo-wrap):has(img) { width: 100%; height: 100%; display: grid; place-items: center; }
+.board .header :global(.cafe-a-store-logo) { width: auto; height: auto; max-width: 75cqw !important; max-height: 100cqh !important; object-fit: contain; }

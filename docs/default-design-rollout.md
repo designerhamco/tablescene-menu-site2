@@ -4,7 +4,7 @@
 
 Start from Production merge `a6d174c` (PR #252), including spacing restoration #251 and stable fill reading #252. `docs/basic-menu-scroll-policy.md` is authoritative for REAL MATCHA. Do not restore the earlier gap enlargement, vertical centering or pagination. Mobile remains the independent 20/24/48 reading contract.
 
-The user approved the first-column Basic and full-page Dining neutral designs. The next approved review adds the three remaining Basic structures; Dining sidebar is now included in the six-layout review. First review: first-column Basic and full-page Dining. `/design-review` links to isolated, noindex, simulated previews using the existing renderers and neutral sample data. These are not purchasable presets and do not change saved customer menus. Other six existing Basic skins remain on their original renderers until structure-specific rollout and regression evidence exists.
+The user approved the first-column Basic and full-page Dining neutral designs. The next approved review adds the three remaining Basic structures; Dining sidebar is now included in the six-layout review. First review: first-column Basic and full-page Dining. `/design-review` links to isolated, noindex, simulated previews using the existing renderers and neutral sample data. These are not purchasable presets and do not change saved customer menus. The user has now confirmed the basic designs and authorized the native-skin scroll/common-function rollout documented in `docs/basic-scroll-rollout.md`.
 
 ## Approved product policy
 
@@ -50,7 +50,7 @@ The explicit preview design ID selects a review-only shell through `DefaultDesig
 - Neutral Basic BAKERY has no item images, regardless of the preview image toggle. Neutral product names are Korean and all secondary names English. Customer content and designer starter records are unchanged.
 - Dining option prices use one option per right-aligned row on all devices. Mobile keeps this price block below the name and retains a dotted leader. Other prices and standalone pairing spacing are unchanged. Dining thumbnails open the shared image lightbox without a magnifier glyph, with Escape/close and trigger focus restoration.
 
-The six other existing Basic designer skins, remaining Dining neutral sidebar, entitlement switching, editor and operational rollout remain separate work.
+The six Basic designer skins now have the approved native-skin contained-reading rollout. The neutral Dining sidebar is included in the confirmed designs. Entitlement switching, editor and operational rollout remain the subsequent stage.
 
 ## 2026-10-20 order-history preview and color audit
 
@@ -69,4 +69,4 @@ The six other existing Basic designer skins, remaining Dining neutral sidebar, e
 - Source-ID-based neutral sample localization and a shared UI dictionary cover ko/en/ja/zh. Actual customer content is still supplied by the existing saved translation pipeline.
 - Dining mobile option rows now appear after the product name and before the secondary language name/description. PC/tablet coordinates are unchanged.
 - Cart badges remain circular and move inward by roughly 4–5px, near the icon corner.
-- These are still isolated, non-purchasable reviews. Wait for the user's final design confirmation before the next catalog/editor/operational rollout stage.
+- These are still isolated, non-purchasable reviews. Final design confirmation was received on 2026-10-20. Native-skin scroll/common-function rollout precedes catalog/editor/operational integration.
