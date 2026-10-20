@@ -4,11 +4,14 @@ import { notFound } from "next/navigation";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
+import previewDisplayStyles from "@/components/menu/template-preview-display.module.css";
 import defaultDesignStyles from "@/components/menu-templates/defaults/DefaultDesignPreview.module.css";
 import DefaultDesignScope from "@/components/menu-templates/defaults/DefaultDesignScope";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import { buildDefaultDesignPreview } from "@/lib/default-design-preview";
 import { getDefaultDesignOptions } from "@/lib/default-design-options";
+import { getTemplatePreviewOptionOverride, getTemplatePreviewOptions } from "@/lib/template-preview-options";
+import { applyTemplatePreviewOptions } from "@/lib/template-preview-data";
 import type { OrderCallEntryConfig } from "@/components/public-menu/order-call/types";
 import { applyPagedMatchaFixture } from "@/lib/template-demo-data/paged-matcha";
 import { buildInteractivePreviewConfig } from "@/lib/preview-order-config";
@@ -71,6 +74,8 @@ type PageProps = {
     pageTest?: string | string[];
     prepayPreview?: string | string[];
     popupPreview?: string | string[];
+    logoPreview?: string | string[];
+    coverImagesPreview?: string | string[];
     widgetsPreview?: string | string[];
     coverPreview?: string | string[];
     featuredPreview?: string | string[];
@@ -1510,17 +1515,6 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   const isActualView = getFirstParam(resolvedSearchParams.view) === "actual";
   const inferRhythmDevice = process.env.NODE_ENV !== "production" && usesOnePageProportionPolicy(templateKey) && getFirstParam(resolvedSearchParams.rhythmQa) === "public";
 
-  if (!isActualView && usesDevicePreviewFrame) {
-    return (
-      <MenuPreviewDeviceFrame
-        device={device}
-        orientation={orientation}
-        templateKey={templateKey}
-        query={resolvedSearchParams}
-      />
-    );
-  }
-
   const fixtureData = applyPreviewFontSizeScale(
     applyDisplayPreviewSplitImagePosition(
       applyCafeAMultiPagePreviewFixture(
@@ -1563,10 +1557,10 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     resolvedSearchParams.localeQa,
   );
   const data = defaultDesign ? buildDefaultDesignPreview({ ...fixtureData, locale: localizedData.locale, enabledLocales: localizedData.enabledLocales,
-    menuSite: { ...fixtureData.menuSite, template_key: templateKey } }, defaultDesign, getDefaultDesignOptions(resolvedSearchParams)) : localizedData;
-  if (!defaultDesign && templateKey !== "display_menu_a" && getFirstParam(resolvedSearchParams.popupPreview) === "on") {
-    const settings = data.menuSite.settings;
-    data.menuSite.settings = { ...(settings && typeof settings === "object" && !Array.isArray(settings) ? settings : {}), advertisementPopup: { enabled: true, images: [1, 2, 3].map(number => ({ imageUrl: `/placeholders/starter/default-popup-${number}.svg`, imagePath: null })) } };
+    menuSite: { ...fixtureData.menuSite, template_key: templateKey } }, defaultDesign, getDefaultDesignOptions(resolvedSearchParams)) : applyTemplatePreviewOptions(localizedData, resolvedSearchParams);
+  if (!isActualView && usesDevicePreviewFrame) {
+    return <MenuPreviewDeviceFrame device={device} orientation={orientation} templateKey={templateKey} query={resolvedSearchParams}
+      previewDisplayOptions={defaultDesign ? getDefaultDesignOptions(resolvedSearchParams) : getTemplatePreviewOptions(localizedData, resolvedSearchParams)} />;
   }
   if (templateKey === "cafe_real_matcha_paged_test") applyPagedMatchaFixture(data, getFirstParam(resolvedSearchParams.pageTest));
   const requestedRenderMode = Array.isArray(resolvedSearchParams.renderMode)
@@ -1601,5 +1595,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
       {templateKey === "display_menu_a" && !isActualView ? <MenuPreviewGuide variant="display" /> : null}
     </>
   );
-  return defaultDesign ? <DefaultDesignScope layout={defaultDesign.layout} itemLayout={defaultDesign.itemLayout}><div className={defaultDesignStyles.surface} data-default-design={defaultDesign.id} data-menu-item-layout={defaultDesign.itemLayout}>{preview}</div></DefaultDesignScope> : preview;
+  return defaultDesign ? <DefaultDesignScope layout={defaultDesign.layout} itemLayout={defaultDesign.itemLayout}><div className={defaultDesignStyles.surface} data-default-design={defaultDesign.id} data-menu-item-layout={defaultDesign.itemLayout}>{preview}</div></DefaultDesignScope> : templateKey !== "display_menu_a" ? <div className={previewDisplayStyles.surface}
+    data-preview-secondary={getTemplatePreviewOptionOverride(resolvedSearchParams, "secondaryNamesPreview") === true ? "on" : undefined}
+    data-preview-category-description={getTemplatePreviewOptionOverride(resolvedSearchParams, "categoryDescriptionsPreview") === true ? "on" : undefined}>{preview}</div> : preview;
 }

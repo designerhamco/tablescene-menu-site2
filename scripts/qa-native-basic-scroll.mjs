@@ -84,7 +84,7 @@ try{
   try{
    await page.goto(`${base}/templates/${key}/preview?device=tablet&orderPreview=on&callPreview=on`);
    assert.equal(await page.locator('[data-preview-layout-mode]').count(),2);
-   await page.getByRole('checkbox',{name:'광고',exact:true}).check();
+   await page.getByRole('checkbox',{name:'광고 보기',exact:true}).check();
    const frame=page.frameLocator('iframe');await frame.locator('[data-menu-advertisement-popup]').waitFor();
    await frame.getByRole('button',{name:'닫기',exact:true}).click();
    await frame.locator('[data-native-actions] button').last().click();
