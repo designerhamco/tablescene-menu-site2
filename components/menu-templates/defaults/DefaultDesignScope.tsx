@@ -3,13 +3,16 @@
 import { createContext, useContext, useEffect, useRef, type ReactNode } from "react";
 import type { MenuLayoutId } from "@/lib/menu-design-policy";
 
+const AlbumContext = createContext(false);
+export const useDefaultAlbum = () => useContext(AlbumContext);
+
 const DefaultDesignContext = createContext<MenuLayoutId | undefined>(undefined);
 export const useDefaultDesign = () => Boolean(useContext(DefaultDesignContext));
 export const useDefaultDesignLayout = () => useContext(DefaultDesignContext);
 
 /** Explicit review scope; never inferred from customer IDs or copy. */
-export default function DefaultDesignScope({ children, layout }: { children: ReactNode; layout: MenuLayoutId }) {
-  return <DefaultDesignContext.Provider value={layout}>{children}</DefaultDesignContext.Provider>;
+export default function DefaultDesignScope({ children, layout, itemLayout = "list" }: { children: ReactNode; layout: MenuLayoutId; itemLayout?: "list" | "album" }) {
+  return <DefaultDesignContext.Provider value={layout}><AlbumContext.Provider value={itemLayout === "album"}>{children}</AlbumContext.Provider></DefaultDesignContext.Provider>;
 }
 
 /** Image errors can occur before hydration attaches React's onError handler. */

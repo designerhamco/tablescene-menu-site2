@@ -46,12 +46,12 @@
   .surface :global(.aube-table-page[data-course-priced="false"] .aube-table-page-header h1) { font-size: clamp(30px, 8cqw, 36px); }
 }
 
-.surface[data-default-design="dining-sidebar"] :global(.aube-table-root) {
+.surface[data-default-design^="dining-sidebar"] :global(.aube-table-root) {
   --aube-sidebar: #f4f5f3; --aube-sidebar-hover: #f4f4f3; --aube-sidebar-border: #d9dcda;
   --aube-sidebar-text: #191c1b; --aube-sidebar-active-text: #fff;
 }
 /* The sidebar renderer retains its original theme outside this neutral review. */
-.surface[data-default-design="dining-sidebar"] :global(.aube-table-root[data-theme="maison-marais"]) {
+.surface[data-default-design^="dining-sidebar"] :global(.aube-table-root[data-theme="maison-marais"]) {
   --aube-accent: #191c1b;
   --aube-surface: #fff;
   --aube-ink: #191c1b;
@@ -63,8 +63,8 @@
   --aube-leader-dot: #b7bcb9;
 }
 @media (min-width: 768px) and (max-width: 1279px) {
-  .surface[data-default-design="dining-sidebar"] :global(.aube-table-page[data-columns="2"] .aube-table-page-content),
-  .surface[data-default-design="dining-sidebar"] :global(.aube-table-page[data-columns="2"] .aube-table-direct-items) { grid-template-columns: minmax(0, 1fr); }
+  .surface[data-default-design^="dining-sidebar"] :global(.aube-table-page[data-columns="2"] .aube-table-page-content),
+  .surface[data-default-design^="dining-sidebar"] :global(.aube-table-page[data-columns="2"] .aube-table-direct-items) { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* Keep the existing designer themes and mobile at their approved sizes. */
@@ -110,3 +110,54 @@
 /* Keep page controls readable while the optional dark cover is visible. */
 .surface :global(.aube-table-root:has([data-default-cover-image="true"]) .aube-table-pagination) { --aube-accent: #ffffff; }
 .surface :global(.aube-table-root:has([data-default-cover-image="true"]) .aube-table-pagination-direction) { color: #ffffff; }
+
+/* Explicit album variants only. Existing six list designs retain their rules. */
+.surface[data-menu-item-layout="album"] :global(.cafe-a-typography .cafe-a-menu-item) {
+  display: flex !important; flex-direction: column; align-items: stretch; gap: .75rem; height: 100%; margin: 0; padding: 0;
+}
+.surface[data-menu-item-layout="album"] :global(.cafe-a-menu-item-image-slot) {
+  display: block; width: 100% !important; height: auto !important; aspect-ratio: 1 / 1; align-self: stretch !important; margin: 0; flex: none;
+}
+.surface[data-menu-item-layout="album"] :global(.cafe-a-menu-item-image) { width: 100% !important; height: 100% !important; object-fit: cover; }
+.surface[data-menu-item-layout="album"] :global(.cafe-a-menu-item-content-shell) { display: contents !important; }
+.surface[data-menu-item-layout="album"] :global(.cafe-a-menu-copy) { order: 2; width: 100%; flex: 1; align-self: stretch !important; }
+.surface[data-menu-item-layout="album"] :global(.cafe-a-typography .cafe-a-price-area) { order: 3; display: flex !important; flex-direction: row; justify-content: flex-start; gap: .625rem; align-items: center; align-self: stretch; width: 100%; margin-top: 0; }
+.surface[data-menu-item-layout="album"] :global(.cafe-a-price-area::before) { display: none; }
+.surface[data-menu-item-layout="album"] :global(.cafe-a-menu-title-row) { width: 100%; }
+.surface[data-menu-item-layout="album"] :global(.cafe-a-typography[data-cafe-a-mobile-style="true"] .cafe-a-category-items) {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr)); gap: 1.25rem; align-items: stretch;
+}
+.surface[data-menu-item-layout="album"] :global(.cafe-a-typography[data-cafe-a-mobile-style="true"] .cafe-a-menu-item-stack) { padding-bottom: 0; margin: 0; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-course-items),
+.surface[data-menu-item-layout="album"] :global(.aube-table-direct-items) {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)) !important; gap: 2rem 1.5rem;
+}
+.surface[data-menu-item-layout="album"] :global(.aube-table-item) { display: flex; flex-direction: column; gap: .75rem; padding: 0; min-width: 0; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-image-trigger) { width: 100%; aspect-ratio: 1 / 1; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-image) { width: 100%; height: 100%; aspect-ratio: 1 / 1; object-fit: cover; border-radius: 0; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-copy) { display: flex; flex-direction: column; flex: 1; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-heading) { display: contents; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-heading::after) { display: none; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item h3) { order: 0; flex: none; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-secondary) { order: 1; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-description) { order: 2; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-purchase) { order: 3; display: flex; align-items: baseline; justify-content: flex-start; gap: .5rem; margin-top: .625rem; width: 100%; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-price) { text-align: left; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-price > span) { display: block; white-space: nowrap; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-option-separator) { display: none; }
+@container aube (max-width: 767px) {
+  .surface[data-menu-item-layout="album"] :global(.aube-table-course-items),
+  .surface[data-menu-item-layout="album"] :global(.aube-table-direct-items) { grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr)) !important; gap: 1.25rem; }
+}
+
+.surface[data-menu-item-layout="album"] :global([data-paged-item]) { height: 100%; }
+.surface[data-menu-item-layout="album"] :global(.cafe-a-price-order-add) { margin: 0; align-self: center; }
+/* Album purchase rows have no dotted list leader or name-width reservation. */
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-heading[data-price-options="true"] h3) { max-width: 100%; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-heading .aube-table-item-purchase::before) { content: none; display: none; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-copy[data-price-options="true"] .aube-table-item-secondary) { order: 1; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-copy[data-price-options="true"] .aube-table-item-description) { order: 2; }
+.surface[data-menu-item-layout="album"] :global(.aube-table-item-copy[data-price-options="true"] .aube-table-item-purchase) { order: 3; justify-content: flex-start; }
+@container aube (max-width: 767px) {
+  .surface[data-menu-item-layout="album"] :global(.aube-table-course-items:has([data-price-options="true"])) { grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr)) !important; }
+}

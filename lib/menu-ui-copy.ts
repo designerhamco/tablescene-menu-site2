@@ -1,6 +1,14 @@
 import type { SupportedLocale } from "./locales";
 
 export const MENU_UI_COPY: Record<string, readonly [string, string, string]> = {
+  "닫기": ["Close", "閉じる", "关闭"],
+  "매장 소식": ["Store news", "お店のお知らせ", "店铺消息"],
+  "매장의 안내와 혜택을 확인하세요.": ["Discover news and offers from the store.", "お店のお知らせと特典をご覧ください。", "查看店铺消息与优惠。"],
+  "매장 소식 {0}": ["Store news {0}", "お店のお知らせ {0}", "店铺消息 {0}"],
+  "광고 이미지 선택": ["Choose an announcement", "お知らせ画像を選択", "选择公告图片"],
+  "이미지 {0}": ["Image {0}", "画像 {0}", "图片 {0}"],
+  "오늘 하루 보지 않기": ["Do not show again today", "今日は表示しない", "今天不再显示"],
+
   "좋은 커피와 갓 구운 디저트를 준비합니다. 향긋한 한 잔과 함께 편안한 시간을 즐겨보세요.": ["Good coffee and freshly baked treats. Enjoy a relaxing moment with a fragrant cup and a little something sweet.", "おいしいコーヒーと焼きたてのお菓子をご用意しています。香り豊かな一杯とともに、心安らぐひとときをお楽しみください。", "用心准备好咖啡和新鲜烘焙甜点。伴着一杯香醇咖啡，享受轻松惬意的休憩时光。"],
   "호출": ["Call", "呼び出し", "呼叫"],
   "호출하기": ["Call staff", "スタッフを呼ぶ", "呼叫员工"],

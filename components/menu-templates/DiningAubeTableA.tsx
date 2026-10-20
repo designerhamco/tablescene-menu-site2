@@ -39,7 +39,7 @@ import {
 } from "@/lib/template-typography-presets";
 import { formatMenuPrice } from "@/types/menu";
 import { CafeMenuImageLightbox } from "./CafeDesignA";
-import { useDefaultDesign, useDefaultDesignLogoImage } from "./defaults/DefaultDesignScope";
+import { useDefaultAlbum, useDefaultDesign, useDefaultDesignLogoImage } from "./defaults/DefaultDesignScope";
 import type { CafeMenuImagePreview } from "./shared/cafe-template-types";
 
 type OpenItemImage = (preview: CafeMenuImagePreview, trigger: HTMLElement) => void;
@@ -185,7 +185,8 @@ function MenuItemRow({
 
 function CourseBlock({ course, priceOptions, onOpenImage }: { course: CourseWithItems; priceOptions: PublicMenuItemPriceOption[]; onOpenImage: OpenItemImage }) {
   const t = useMenuText();
-  const showItemImages = shouldShowAubeTableCourseItemImages(course);
+  const album = useDefaultAlbum();
+  const showItemImages = album || shouldShowAubeTableCourseItemImages(course);
 
   return (
     <motion.section className="aube-table-course" data-aube-table-course="" variants={AUBE_TABLE_COURSE_REVEAL_GROUP}>
@@ -229,6 +230,7 @@ export default function DiningAubeTableA({
 }: DiningAubeTableProps) {
   const t = useMenuText();
   const defaultDesign = useDefaultDesign();
+  const album = useDefaultAlbum();
   const usesSidebarNavigation = layoutVariant === "sidebar";
   const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
   const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
@@ -337,6 +339,7 @@ export default function DiningAubeTableA({
         style={typographyStyle}
         data-aube-table=""
         data-layout={layoutVariant}
+        data-item-layout={album ? "album" : undefined}
         data-spacing-contract="editorial-scroll"
         data-theme={themeVariant}
         data-cover-image-active={activeUnit.type === "cover" && data.pageSettings.cover_image_visible !== false && Boolean(data.menuSite.cover_image_url) ? "true" : undefined}

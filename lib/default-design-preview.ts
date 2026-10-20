@@ -55,6 +55,7 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
     cover_image_url: coverImage, brand_color: ink,
     settings: {
       ...settings,
+      advertisementPopup: { enabled: options.popupPreview, images: [1, 2, 3].map(number => ({ imageUrl: `/placeholders/starter/default-popup-${number}.svg`, imagePath: null })) },
       logo_replaces_name: options.logoPreview,
       typography: { korean_font_key: "pretendard", english_font_key: "pretendard", font_size_scale_key: "m", typography_roles: roles },
       badge_styles: Object.fromEntries(BADGE_STYLE_KEYS.map(key => [key, { background_color: ink, text_color: "#ffffff" }])),
@@ -102,7 +103,7 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
     data.priceOptions = [];
     data.categories = data.categories.map(category => ({ ...category, priceColumns: [] }));
     data.items = data.items.map(item => ({ ...item, priceColumnValues: [], priceNote: options.priceNotesPreview ? item.priceNote : null }));
-    if (options.priceOptionsPreview) {
+    if (options.priceOptionsPreview && design.itemLayout !== "album") {
       for (const [name, labels] of [["COFFEE", ["HOT", "ICE"]], ["ADE", ["Small", "Tall", "Large"]]] as const) {
         const category = data.categories.find(entry => entry.name === name);
         if (!category) continue;

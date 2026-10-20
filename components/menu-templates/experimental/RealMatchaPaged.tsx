@@ -55,7 +55,7 @@ import { getOnePageItemNameCeilingRem } from "@/lib/one-page-typography-profile"
 import { getOrderedFitGapScale } from "../one-page/pc-tablet/cafe-fit-engine";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 
-import { useDefaultDesignLayout } from "../defaults/DefaultDesignScope";
+import { useDefaultAlbum, useDefaultDesignLayout } from "../defaults/DefaultDesignScope";
 import type { MenuWidget } from "@/lib/menu-widgets";
 import styles from "./RealMatchaPaged.module.css";
 const capabilities = getTemplateCapabilities("cafe_design_a");
@@ -103,6 +103,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   const device = useMenuPresentationDevice(data.previewDevice);
   const mobile = device === "mobile";
   const defaultStructure = useDefaultDesignLayout();
+  const album = useDefaultAlbum();
   const structure = defaultStructure ?? "basic-first-column";
   const portraitCover = defaultStructure === "basic-first-column" || defaultStructure === "basic-center-column";
   const topRow = structure === "basic-top-row";
@@ -126,7 +127,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   const showOrder = call.enabled && Boolean(call.orderEnabled);
   const updateScrollHint = useCallback(() => {
     const viewport = area.current;
-    const content = scrollContent.current?.querySelector<HTMLElement>("[data-scroll-columns]");
+    const content = scrollContent.current?.querySelector<HTMLElement>("[data-scroll-columns], [data-album-sections]");
     // A fill-only bottom safety inset is scrollable, but blank padding alone
     // must not claim that there are more menu items below the viewport.
     setMoreBelow(Boolean(viewport && content && content.getBoundingClientRect().bottom - viewport.getBoundingClientRect().bottom > 2));
@@ -273,7 +274,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   }, [data, timeSaleByItemId, device, saleNow, customBadgeStyles, priceDisplayMode, openImage]);
   const unitById = useMemo(() => new Map(units.map((u) => [u.id, u])), [units]);
   useLayoutEffect(() => {
-    if (mobile || !area.current || !measure.current) return;
+    if (mobile || album || !area.current || !measure.current) return;
     let disposed = false,
       raf = 0;
     const update = () => {
@@ -367,7 +368,36 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       observer.disconnect();
       document.fonts.removeEventListener("loadingdone", schedule);
     };
-  }, [mobile, units, layoutMode, showCall, showOrder, device, updateScrollHint, centerColumn, upperLeft, topRow]);
+  }, [mobile, album, units, layoutMode, showCall, showOrder, device, updateScrollHint, centerColumn, upperLeft, topRow]);
+  // Album flow does not use list packing, but its fixed identity still needs
+  // the same actual overflow guard before reporting a settled layout.
+  useLayoutEffect(() => {
+    if (!album || mobile || !area.current) return;
+    const viewport = area.current;
+    let frame = 0, disposed = false;
+    const check = () => {
+      frame = 0;
+      if (disposed) return;
+      const panel = brandArea.current;
+      const bounds = panel?.getBoundingClientRect();
+      const header = viewport.closest("[data-scroll-brand-board]")?.querySelector<HTMLElement>("[data-basic-top-row]");
+      const headerBounds = header?.getBoundingClientRect();
+      const brandOverflow = Boolean(bounds && bounds.height > 0 && [...(panel?.children ?? [])].some(node => node.getBoundingClientRect().bottom > bounds.bottom + 1)) ||
+        Boolean(headerBounds && [...(header?.children ?? [])].some(node => node.getBoundingClientRect().bottom > headerBounds.bottom + 1));
+      setLayout(previous => previous.ready === !brandOverflow && previous.brandOverflow === brandOverflow ? previous : { ...previous, ready: !brandOverflow, brandOverflow });
+      updateScrollHint();
+    };
+    const schedule = () => { if (disposed) return; cancelAnimationFrame(frame); frame = requestAnimationFrame(check); };
+    const observer = new ResizeObserver(schedule);
+    observer.observe(viewport);
+    if (brandArea.current) for (const node of brandArea.current.children) observer.observe(node);
+    const header = viewport.closest("[data-scroll-brand-board]")?.querySelector("[data-basic-top-row]");
+    if (header) observer.observe(header);
+    document.fonts.addEventListener("loadingdone", schedule);
+    void document.fonts.ready.then(schedule);
+    schedule();
+    return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); document.fonts.removeEventListener("loadingdone", schedule); };
+  }, [album, mobile, units, updateScrollHint]);
   // A logo replaces CanvasBrandTitle, but must retain its shared header budget.
   useLayoutEffect(() => {
     if (mobile || !topRow || !defaultStructure || !data.menuSite.logo_url) return;
@@ -485,6 +515,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             backgroundColor: getResolvedBackgroundColor("cafe_design_a", data.menuSite.page_settings),
             "--scroll-background": getResolvedBackgroundColor("cafe_design_a", data.menuSite.page_settings),
             "--paged-capacity": layout.capacity + "px",
+            ...(album ? { "--scroll-item-size": `${getOnePageItemNameCeilingRem(device) ?? 1.3}rem` } : {}),
             "--paged-gap-scale": 1,
           } as CSSProperties
         }
@@ -504,7 +535,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         data-scroll-template="real-matcha"
         data-scroll-more={moreBelow ? "true" : "false"}
         data-paged-layout={layoutMode}
-        data-scroll-columns={layout.columns.length}
+        data-scroll-columns={album ? undefined : layout.columns.length}
         data-scroll-content-height={layout.contentHeight}
       >
         <OnePageCallPalette />
@@ -540,7 +571,16 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
               </div>
               <div ref={scrollContent} className={styles.scrollContent} data-scroll-content>
                 {!units.length ? <p role="status">{t("메뉴를 준비하고 있어요.")}</p> : null}
-                <div className={styles.columns} data-scroll-columns style={{ height: layout.contentHeight, maxWidth: layout.columns.length === 1 && !upperLeft && !centerColumn ? layout.columnWidth : undefined }}>
+                {album ? <div className={styles.albumSections} data-album-sections>
+                  {units.filter((value, index) => index === 0 || value.group !== units[index - 1].group).map(first => {
+                    const group = units.filter(value => value.group === first.group);
+                    return <section key={first.group} data-album-category>
+                      {group.filter(value => value.kind !== "item").map(value => <div key={value.id}>{value.node}</div>)}
+                      {group.some(value => value.kind === "item") ? <div className={styles.albumGrid} data-album-grid>{group.filter(value => value.kind === "item").map(value => <div key={value.id}>{value.node}</div>)}</div> : null}
+                    </section>;
+                  })}
+                  {notices.length ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices>{notices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>)}</div> : null}
+                </div> : <div className={styles.columns} data-scroll-columns style={{ height: layout.contentHeight, maxWidth: layout.columns.length === 1 && !upperLeft && !centerColumn ? layout.columnWidth : undefined }}>
                   {layout.columns.map((column, i) => {
                     return <div key={i} className={styles.column} data-paged-column={i + 1}
                       data-scroll-natural-height={layout.naturalHeights[i]}>
@@ -555,7 +595,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
                       </div> : null}
                     </div>;
                   })}
-                </div>
+                </div>}
               </div>
             </div>
             <div className={styles.fade} data-scroll-fade aria-hidden="true" />

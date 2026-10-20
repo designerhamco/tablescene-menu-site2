@@ -217,3 +217,9 @@
 }
 
 .topRow:has(:global([data-default-design-logo])) { grid-template-rows: minmax(0, 1fr); }
+
+/* Album items flow inside the same fixed-brand/menu-scroll/dock geometry. */
+.albumSections { display: flex; flex-direction: column; gap: calc(var(--cafe-a-item-rhythm-gap) * var(--cafe-a-category-separation-ratio)); }
+.albumGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); gap: calc(var(--cafe-a-item-rhythm-gap) * 1.5) var(--scroll-column-gap); margin-top: calc(var(--cafe-a-item-rhythm-gap) * 1.25); }
+.albumGrid > div { min-width: 0; }
+.albumSections > section { min-width: 0; }
