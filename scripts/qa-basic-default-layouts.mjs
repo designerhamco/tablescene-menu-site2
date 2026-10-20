@@ -46,7 +46,8 @@ try {
       } else if(structure==='basic-upper-left') {
         assert.ok(before.columns[0].first.top >= before.brand.bottom+10,'left menu begins below the scrolling panel');
         assert.ok(before.columns[1].first.top < before.brand.bottom-10,'other columns use the full viewport');
-        assert.ok(before.brand.height < before.menu.height*.75,'corner is not a full-height rail');
+        const imageRatio = await p.locator('.cafe-a-cover-frame').filter({visible:true}).first().evaluate(el=>{const b=el.getBoundingClientRect();return b.width/b.height});
+        assert.ok(Math.abs(imageRatio-4/3)<.01,'corner image uses 4:3');
       }
       if(before.scrollHeight>before.clientHeight+2) {
         await p.locator('[data-scroll-menu]').evaluate(e=>e.scrollTop=e.scrollHeight);
@@ -58,15 +59,15 @@ try {
       results.push({id,before}); console.log('PASS',id);
     } catch(e) {failures.push({id,error:e.message});await p.screenshot({path:`${output}/${id}-failure.png`});console.log('FAIL',id,e.message.split('\n')[0]);}
   }
-  // All neutral structures deliberately delegate mobile to the exact approved renderer.
+  // All structures keep the same mobile menu rhythm; the upper-left cover alone is 4:3.
   for(const width of [320,390,430]) {
     let reference;
     for(const structure of structures) {
       await p.setViewportSize({width,height:932});
       await p.goto(`${base}/templates/cafe_design_a/preview?design=${structure}&view=actual&device=mobile&callPreview=on&orderPreview=on`,{waitUntil:'networkidle'});
       await p.evaluate(()=>document.fonts.ready);await p.locator('[data-mobile-brand-fit="ready"]').waitFor();
-      const value=await p.locator('[data-cafe-a-menu-item]').filter({visible:true}).evaluateAll(es=>es.map(e=>({text:e.textContent,rect:e.getBoundingClientRect().toJSON()})));
-      if(reference)assert.deepEqual(value,reference,'mobile geometry and data are identical across Basic structures');else reference=value;
+      const value=await p.locator('[data-cafe-a-menu-item]').filter({visible:true}).evaluateAll(es=>{const offset=es[0].getBoundingClientRect().top;return es.map(e=>{const r=e.getBoundingClientRect().toJSON();return {text:e.textContent.replace(/\d{2}:\d{2}:\d{2}/g,'CLOCK'),rect:{...r,y:r.y-offset,top:r.top-offset,bottom:r.bottom-offset}};});});
+      if(reference)assert.deepEqual(value,reference,'mobile menu geometry and data stay identical after the cover offset');else reference=value;
       results.push({id:`${structure}-mobile-${width}`});
     }
   }

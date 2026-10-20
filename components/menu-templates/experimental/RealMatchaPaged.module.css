@@ -174,7 +174,11 @@
 .frame[data-basic-structure="basic-upper-left"] .column > .brand {
   flex: none;
   width: var(--scroll-track-width, 100%);
-  height: var(--scroll-corner-height, 25rem);
+  height: auto;
   margin-bottom: var(--scroll-column-gap);
 }
 .frame[data-basic-structure="basic-upper-left"][data-show-cover="false"] .column > .brand { height: auto; }
+
+.frame[data-basic-structure="basic-upper-left"] .cover { flex: none !important; aspect-ratio: 4 / 3; }
+.mobile[data-basic-structure="basic-upper-left"] :global(.cafe-a-cover-hero) { height: auto !important; min-height: 0 !important; aspect-ratio: 4 / 3 !important; flex: none !important; }
+.mobile[data-basic-structure="basic-upper-left"] :global(.cafe-a-cover-frame) { height: 100% !important; min-height: 0 !important; }

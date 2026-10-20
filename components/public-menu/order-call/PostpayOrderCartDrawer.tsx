@@ -1,4 +1,6 @@
 "use client";
+import { formatMenuMoney } from "@/lib/menu-ui-copy";
+import { useMenuLocale, useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
 
 import {
   ArrowLeft,
@@ -68,9 +70,6 @@ type PostpayOrderCartDrawerProps = {
   onItemAdded: (itemName: string) => void;
 };
 
-function formatPrice(value: number) {
-  return new Intl.NumberFormat("ko-KR").format(value) + "원";
-}
 
 function getLineKey(menuItemId: string, optionValueIds: string[]) {
   return `${menuItemId}:${[...optionValueIds].sort().join(",")}`;
@@ -135,6 +134,9 @@ export default function PostpayOrderCartDrawer({
   onCountChange,
   onItemAdded,
 }: PostpayOrderCartDrawerProps) {
+  const t = useMenuText();
+  const locale = useMenuLocale();
+  const formatPrice = (value: number) => formatMenuMoney(value, locale);
   const dialogRef = useRef<HTMLDivElement>(null);
   const tabId = useId();
   const [activeTab, setActiveTab] = useState<"cart" | "history">("cart");
@@ -176,7 +178,7 @@ export default function PostpayOrderCartDrawer({
       orders: current.orders.map(order => order.id === id && canCustomerCancelOrder(order.status, order.paymentStatus)
         ? { ...order, status: "cancelled" } : order),
     }));
-    setMessage("미리보기 주문이 취소되었습니다.");
+    setMessage(t("미리보기 주문이 취소되었습니다."));
   }
   function showHistoryExamples() {
     if (!previewOnly || !catalog.length || history.length) return;
@@ -326,7 +328,7 @@ export default function PostpayOrderCartDrawer({
         (group) => !isOrderOptionSelectionValid(group, selectedOptionIds),
       )
     ) {
-      setMessage("필수 옵션과 선택 개수를 확인해 주세요.");
+      setMessage(t("필수 옵션과 선택 개수를 확인해 주세요."));
       return;
     }
     const optionValueIds = [...selectedOptionIds].sort();
@@ -335,7 +337,7 @@ export default function PostpayOrderCartDrawer({
       catalog,
     );
     if (!hydrated) {
-      setMessage("메뉴 정보를 다시 확인해 주세요.");
+      setMessage(t("메뉴 정보를 다시 확인해 주세요."));
       return;
     }
     const itemName = activeItem.name;
@@ -351,7 +353,7 @@ export default function PostpayOrderCartDrawer({
         existing.quantity +
         nextQuantity;
       if (nextQuantity > 20 || nextUnitCount > 50) {
-        setMessage("한 메뉴는 20개, 장바구니 전체는 50개까지 담을 수 있어요.");
+        setMessage(t("한 메뉴는 20개, 장바구니 전체는 50개까지 담을 수 있어요."));
         return;
       }
       nextCart = workingCart.map((line) =>
@@ -361,7 +363,7 @@ export default function PostpayOrderCartDrawer({
       const nextUnitCount =
         workingCart.reduce((sum, line) => sum + line.quantity, 0) + quantity;
       if (workingCart.length >= 20 || nextUnitCount > 50) {
-        setMessage("장바구니에는 메뉴 20종, 전체 50개까지 담을 수 있어요.");
+        setMessage(t("장바구니에는 메뉴 20종, 전체 50개까지 담을 수 있어요."));
         return;
       }
       nextCart = [...workingCart, hydrated];
@@ -373,7 +375,7 @@ export default function PostpayOrderCartDrawer({
     setQuantity(1);
     if (editingLineKey) {
       setEditingLineKey(null);
-      setMessage(`${itemName}의 옵션과 수량을 변경했어요.`);
+      setMessage(t("{0}의 옵션과 수량을 변경했어요.", itemName));
     } else {
       onItemAdded(itemName);
     }
@@ -420,7 +422,7 @@ export default function PostpayOrderCartDrawer({
       setCart([]);
       setActiveTab("history");
       setHistorySurface(true);
-      setMessage("미리보기 주문이 접수되었습니다. 실제 매장에는 전송되지 않습니다.");
+      setMessage(t("미리보기 주문이 접수되었습니다. 실제 매장에는 전송되지 않습니다."));
       return;
     }
     const requestId = pendingRequestId ?? crypto.randomUUID();
@@ -452,13 +454,13 @@ export default function PostpayOrderCartDrawer({
         order?: { orderNumber?: number };
       };
       if (!result.ok || !body.ok)
-        throw new Error(body.message || "주문을 전송하지 못했습니다.");
+        throw new Error(body.message || t("주문을 전송하지 못했습니다."));
       setCart([]);
       setPendingRequestId(null);
-      setMessage(`주문 ${body.order?.orderNumber ?? ""}번이 접수되었습니다.`);
+      setMessage(t("주문 {0}번이 접수되었습니다.", body.order?.orderNumber ?? ""));
     } catch (error) {
       setMessage(
-        error instanceof Error ? error.message : "주문을 전송하지 못했습니다.",
+        error instanceof Error ? error.message : t("주문을 전송하지 못했습니다."),
       );
     } finally {
       setSubmitting(false);
@@ -529,12 +531,12 @@ export default function PostpayOrderCartDrawer({
         className={`${ui.typography} fixed inset-0 z-[1200] flex items-end justify-center bg-zinc-950/35 text-zinc-950`}
         role="dialog"
         aria-modal="true"
-        aria-label={`${activeItem.name} 담기`}
+        aria-label={t("{0} 담기", activeItem.name)}
       >
         <button
           type="button"
           className="absolute inset-0 cursor-default"
-          aria-label="메뉴 담기 닫기"
+          aria-label={t("메뉴 담기 닫기")}
           onClick={closeItemSheet}
         />
         <section className="relative z-10 mx-auto max-h-[72dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-white px-5 pb-[max(24px,env(safe-area-inset-bottom))] pt-3 shadow-none">
@@ -552,7 +554,7 @@ export default function PostpayOrderCartDrawer({
             <button
               type="button"
               className={ui.close}
-              aria-label="메뉴 담기 닫기"
+              aria-label={t("메뉴 담기 닫기")}
               onClick={closeItemSheet}
             >
               <X aria-hidden="true" />
@@ -566,14 +568,13 @@ export default function PostpayOrderCartDrawer({
                 className="border-0 border-b border-zinc-200 px-0 pb-4"
               >
                 <legend className="px-1 text-sm font-semibold">
-                  {group.name}{" "}
+                  {t(group.name)}{" "}
                   {group.isRequired ? (
-                    <span className="text-zinc-500">필수</span>
+                    <span className="text-zinc-500">{t("필수")}</span>
                   ) : null}
                 </legend>
                 <p className="mb-3 text-xs font-medium text-zinc-400">
-                  {group.minSelections}–{group.maxSelections}개 선택
-                </p>
+                  {group.minSelections}–{group.maxSelections}{t("개 선택")}</p>
                 <div className="space-y-2">
                   {group.values.map((value) => {
                     const selected = selectedOptionIds.has(value.id);
@@ -602,12 +603,12 @@ export default function PostpayOrderCartDrawer({
               </fieldset>
             ))}
             <div className="flex items-center justify-between border-y border-zinc-100 py-4">
-              <span className="text-sm font-semibold">수량</span>
+              <span className="text-sm font-semibold">{t("수량")}</span>
               <div className="flex items-center gap-4">
                 <button
                   type="button"
                   className={`${ui.quantity} border border-zinc-200 p-2`}
-                  aria-label="수량 줄이기"
+                  aria-label={t("수량 줄이기")}
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 >
                   <Minus className="h-4 w-4" />
@@ -618,7 +619,7 @@ export default function PostpayOrderCartDrawer({
                 <button
                   type="button"
                   className={`${ui.quantity} border border-zinc-200 p-2`}
-                  aria-label="수량 늘리기"
+                  aria-label={t("수량 늘리기")}
                   onClick={() => setQuantity(Math.min(20, quantity + 1))}
                 >
                   <Plus className="h-4 w-4" />
@@ -631,8 +632,8 @@ export default function PostpayOrderCartDrawer({
               onClick={addActiveItem}
             >
               {editingLineKey
-                ? "변경사항 저장"
-                : `${formatPrice(activeItemUnitPrice * quantity)} · 장바구니 담기`}
+                ? t("변경사항 저장")
+                : t("{0} · 장바구니 담기", formatPrice(activeItemUnitPrice * quantity))}
             </button>
             {message ? (
               <p
@@ -658,19 +659,19 @@ export default function PostpayOrderCartDrawer({
       data-menu-cart=""
       onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
     >
-      <div ref={dialogRef} className={`${styles.panel} ${ui.typography}`} role="dialog" aria-modal="true" aria-label={activeTab === "history" ? "주문내역" : "장바구니"}>
+      <div ref={dialogRef} className={`${styles.panel} ${ui.typography}`} role="dialog" aria-modal="true" aria-label={activeTab === "history" ? t("주문내역") : t("장바구니")}>
         {cart.length > 0 || (previewOnly && historySurface) ? <header className={styles.header}>
-          <button type="button" className={styles.back} onClick={onClose} aria-label="메뉴판으로 돌아가기" data-cart-back>
+          <button type="button" className={styles.back} onClick={onClose} aria-label={t("메뉴판으로 돌아가기")} data-cart-back>
             <ArrowLeft aria-hidden="true" strokeWidth={1.7} />
           </button>
           <div className={styles.heading}>
-            <h2>{activeTab === "history" ? "주문내역" : "장바구니"}</h2>
+            <h2>{activeTab === "history" ? t("주문내역") : t("장바구니")}</h2>
             <p data-cart-table>{tableLabel}</p>
           </div>
-          <span className={styles.count}>{activeTab === "history" ? `${history.length}건` : `${totalUnits}/50`}</span>
+          <span className={styles.count}>{activeTab === "history" ? t("{0}건", history.length) : `${totalUnits}/50`}</span>
         </header> : null}
 
-        {previewOnly && (cart.length > 0 || historySurface) ? <div className={styles.tabs} role="tablist" aria-label="주문 메뉴"
+        {previewOnly && (cart.length > 0 || historySurface) ? <div className={styles.tabs} role="tablist" aria-label={t("주문 메뉴")}
           onKeyDown={event => {
             if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
             event.preventDefault();
@@ -681,7 +682,7 @@ export default function PostpayOrderCartDrawer({
           {(["cart", "history"] as const).map(tab => <button key={tab} type="button" role="tab" data-tab={tab}
             id={`${tabId}-${tab}`} aria-selected={activeTab === tab} aria-controls={`${tabId}-panel`} tabIndex={activeTab === tab ? 0 : -1}
             onClick={() => { setActiveTab(tab); setHistorySurface(true); setMessage(""); }}>
-            {tab === "cart" ? `장바구니${totalUnits ? ` (${totalUnits})` : ""}` : "주문내역"}
+            {tab === "cart" ? t("장바구니{0}", totalUnits ? ` (${totalUnits})` : "") : t("주문내역")}
           </button>)}
         </div> : null}
         <div className={styles.body} id={`${tabId}-panel`}
@@ -721,13 +722,12 @@ export default function PostpayOrderCartDrawer({
                                   className="h-3.5 w-3.5"
                                   aria-hidden="true"
                                 />{" "}
-                                옵션 변경
-                              </button>
+                                {t("옵션 변경")}</button>
                             ) : null}
                             <button
                               type="button"
                               className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950"
-                              aria-label={`${line.name} 삭제`}
+                              aria-label={t("{0} 삭제", line.name)}
                               onClick={() => removeLine(line.key)}
                             >
                               <Trash2 className="h-4 w-4" aria-hidden="true" />
@@ -737,7 +737,7 @@ export default function PostpayOrderCartDrawer({
                             <button
                               type="button"
                               className={`${ui.quantity} border border-zinc-200 p-2 disabled:cursor-not-allowed disabled:opacity-35`}
-                              aria-label={`${line.name} 수량 줄이기`}
+                              aria-label={t("{0} 수량 줄이기", line.name)}
                               disabled={line.quantity <= 1}
                               onClick={() => changeLineQuantity(line.key, -1)}
                             >
@@ -749,7 +749,7 @@ export default function PostpayOrderCartDrawer({
                             <button
                               type="button"
                               className={`${ui.quantity} border border-zinc-200 p-2`}
-                              aria-label={`${line.name} 수량 늘리기`}
+                              aria-label={t("{0} 수량 늘리기", line.name)}
                               onClick={() => changeLineQuantity(line.key, 1)}
                             >
                               <Plus className="h-3.5 w-3.5" />
@@ -765,19 +765,18 @@ export default function PostpayOrderCartDrawer({
                   className={`${ui.secondary} flex w-full items-center justify-center gap-2 px-5 py-3.5 text-sm`}
                   onClick={onClose}
                 >
-                  <Plus className="h-4 w-4" aria-hidden="true" /> 메뉴 더 담기
-                </button>
+                  <Plus className="h-4 w-4" aria-hidden="true" /> {t("메뉴 더 담기")}</button>
                 <div className="flex items-center justify-between text-lg font-semibold">
-                  <span>최종 주문 금액</span>
+                  <span>{t("최종 주문 금액")}</span>
                   <span>{formatPrice(totalAmount)}</span>
                 </div>
                 <section>
-                  <h3 className="text-sm font-semibold">결제 방식</h3>
+                  <h3 className="text-sm font-semibold">{t("결제 방식")}</h3>
                   {availableCheckoutModes.length > 1 ? (
                     <div
                       className="mt-3 grid grid-cols-2 rounded-lg bg-zinc-100 p-1"
                       role="group"
-                      aria-label="결제 방식 선택"
+                      aria-label={t("결제 방식 선택")}
                     >
                       {availableCheckoutModes.map((mode) => {
                         const selected = mode === selectedCheckoutMode;
@@ -794,22 +793,22 @@ export default function PostpayOrderCartDrawer({
                             }}
                           >
                             {mode === "prepay"
-                              ? "선결제 · 준비 중"
-                              : getCheckoutModeLabel(mode)}
+                              ? t("선결제 · 준비 중")
+                              : t(getCheckoutModeLabel(mode))}
                           </button>
                         );
                       })}
                     </div>
                   ) : (
                     <div className="mt-3 flex items-center justify-between border-y border-zinc-200 py-3 text-sm font-normal">
-                      <span>매장에서 결제</span>
-                      <span className="text-zinc-500">후불 결제</span>
+                      <span>{t("매장에서 결제")}</span>
+                      <span className="text-zinc-500">{t("후불 결제")}</span>
                     </div>
                   )}
                   <p className="mt-2 text-xs font-medium leading-relaxed text-zinc-500">
                     {selectedCheckoutMode === "prepay"
-                      ? "휴대폰에서 바로 결제한 뒤 주문을 전송합니다."
-                      : "지금 주문하고 매장에서 나중에 결제합니다."}
+                      ? t("휴대폰에서 바로 결제한 뒤 주문을 전송합니다.")
+                      : t("지금 주문하고 매장에서 나중에 결제합니다.")}
                   </p>
                 </section>
                 <button
@@ -819,29 +818,26 @@ export default function PostpayOrderCartDrawer({
                   onClick={submitOrder}
                 >
                   {submitting
-                    ? "주문 전송 중…"
+                    ? t("주문 전송 중…")
                     : selectedCheckoutMode === "prepay"
-                      ? `${formatPrice(totalAmount)} 결제하기`
-                      : "후불로 주문하기"}
+                      ? t("{0} 결제하기", formatPrice(totalAmount))
+                      : t("후불로 주문하기")}
                 </button>
               </>
             ) : (
               <div className={styles.empty}>
                 <MenuOrderIcon variant={iconVariant} purpose="view" className="h-8 w-8 text-zinc-400" strokeWidth={1.5} />
                 <h3 className="mt-5 text-xl font-semibold">
-                  장바구니가 비어 있어요
-                </h3>
+                  {t("장바구니가 비어 있어요")}</h3>
                 <p className="mt-2 text-sm font-medium text-zinc-500">
-                  메뉴판에서 원하는 메뉴를 담아보세요.
-                </p>
+                  {t("메뉴판에서 원하는 메뉴를 담아보세요.")}</p>
                 <button
                   type="button"
                   className={`${ui.primary} mt-6 px-6 py-3 text-sm`}
                   onClick={onClose}
                 >
-                  메뉴 보러 가기
-                </button>
-                {previewOnly && !historySurface ? <button type="button" className={styles.historyLink} onClick={openHistory}>주문내역 보기</button> : null}
+                  {t("메뉴 보러 가기")}</button>
+                {previewOnly && !historySurface ? <button type="button" className={styles.historyLink} onClick={openHistory}>{t("주문내역 보기")}</button> : null}
               </div>
             )}
             {message ? (

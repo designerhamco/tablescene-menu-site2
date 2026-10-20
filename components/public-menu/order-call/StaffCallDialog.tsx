@@ -1,4 +1,5 @@
 "use client";
+import { useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
 
 import {
   Check,
@@ -55,6 +56,7 @@ export default function StaffCallDialog({
   presentation?: "default" | "aube";
   interactionStyle?: CSSProperties;
 }) {
+  const t = useMenuText();
   const [call, setCall] = useState<StaffCall | null>(null);
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -70,8 +72,7 @@ export default function StaffCallDialog({
     [callItems],
   );
   const [selectedItemKeys, setSelectedItemKeys] = useState<string[]>([availableItems[0]?.key ?? "staff"]);
-  // Live reception still accepts one key. Preview multiple choices as one request,
-  // rather than sending separate calls that would hit duplicate/cooldown limits.
+  // Preview and live reception share the same single-choice contract.
   const selectedItems = availableItems.filter(item => selectedItemKeys.includes(item.key));
   const selectedItem = selectedItems[0];
 
@@ -93,9 +94,7 @@ export default function StaffCallDialog({
   }, [open, call, availableItems]);
 
   function selectItem(key: string) {
-    setSelectedItemKeys(current => previewOnly
-      ? current.includes(key) ? current.filter(value => value !== key) : [...current, key]
-      : [key]);
+    setSelectedItemKeys([key]);
   }
 
   useEffect(() => {
@@ -141,11 +140,11 @@ export default function StaffCallDialog({
       });
       const body = await result.json() as ApiResult;
       if (!result.ok || !body.ok || !body.call || !("callNumber" in body.call)) {
-        throw new Error(body.message || "직원 호출을 전송하지 못했습니다.");
+        throw new Error(body.message || t("직원 호출을 전송하지 못했습니다."));
       }
       setCall(body.call);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "직원 호출을 전송하지 못했습니다.");
+      setMessage(error instanceof Error ? error.message : t("직원 호출을 전송하지 못했습니다."));
     } finally {
       setPending(false);
     }
@@ -157,7 +156,7 @@ export default function StaffCallDialog({
     setMessage(null);
     if (previewOnly) {
       setCall(null);
-      setMessage("화면 미리보기에서 호출을 취소했습니다. 실제 메뉴판에서는 2분 뒤 다시 호출할 수 있습니다.");
+      setMessage(t("화면 미리보기에서 호출을 취소했습니다. 실제 메뉴판에서는 2분 뒤 다시 호출할 수 있습니다."));
       setPending(false);
       return;
     }
@@ -168,11 +167,11 @@ export default function StaffCallDialog({
         body: JSON.stringify({ menuSiteId, callId: call.callId }),
       });
       const body = await result.json() as ApiResult;
-      if (!result.ok || !body.ok) throw new Error(body.message || "호출을 취소하지 못했습니다.");
+      if (!result.ok || !body.ok) throw new Error(body.message || t("호출을 취소하지 못했습니다."));
       setCall(null);
-      setMessage("직원 호출을 취소했습니다. 2분 뒤 다시 호출할 수 있습니다.");
+      setMessage(t("직원 호출을 취소했습니다. 2분 뒤 다시 호출할 수 있습니다."));
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "호출을 취소하지 못했습니다.");
+      setMessage(error instanceof Error ? error.message : t("호출을 취소하지 못했습니다."));
     } finally {
       setPending(false);
     }
@@ -217,43 +216,42 @@ export default function StaffCallDialog({
             onMouseDown={(event) => event.stopPropagation()}
           >
             {isAube ? (
-              <button type="button" onClick={closeDialog} onPointerDown={event => dragControls.start(event)} className={styles.handleControl} aria-label="직원 호출 닫기">
+              <button type="button" onClick={closeDialog} onPointerDown={event => dragControls.start(event)} className={styles.handleControl} aria-label={t("직원 호출 닫기")}>
                 <span className={ui.handle} aria-hidden="true" />
               </button>
             ) : <div className={`${ui.handle} ${styles.handle}`} aria-hidden="true" />}
             <div className={styles.header}>
               <div>
-                <p className={styles.table}>{tableLabel || "현재 테이블"}</p>
-                <h2 id="staff-call-title">무엇을 도와드릴까요?</h2>
+                <p className={styles.table}>{tableLabel || t("현재 테이블")}</p>
+                <h2 id="staff-call-title">{t("무엇을 도와드릴까요?")}</h2>
               </div>
-              <button type="button" onClick={closeDialog} className={ui.close} aria-label="직원 호출 닫기">
+              <button type="button" onClick={closeDialog} className={ui.close} aria-label={t("직원 호출 닫기")}>
                 <X aria-hidden="true" />
               </button>
             </div>
             {call ? (
               <div className={styles.status} data-call-status>
-                <p className={styles.statusTitle}>{STATUS_COPY[call.status]}</p>
-                <p className={styles.request}>{call.requestLabel} · 호출 #{call.callNumber}</p>
+                <p className={styles.statusTitle}>{t(STATUS_COPY[call.status])}</p>
+                <p className={styles.request}>{t(call.requestLabel)} {t(" · 호출 #")}{call.callNumber}</p>
                 {call.status === "pending" ? (
                   <button type="button" onClick={cancelCall} disabled={pending} className={`${styles.cancel} ${ui.secondary}`}>
-                    호출 취소
-                  </button>
-                ) : <p className={styles.help}>직원이 확인한 뒤에는 손님이 취소할 수 없습니다.</p>}
-                <p className={styles.help}>처리 완료 또는 취소 후 2분 뒤 다시 호출할 수 있습니다.</p>
+                    {t("호출 취소")}</button>
+                ) : <p className={styles.help}>{t("직원이 확인한 뒤에는 손님이 취소할 수 없습니다.")}</p>}
+                <p className={styles.help}>{t("처리 완료 또는 취소 후 2분 뒤 다시 호출할 수 있습니다.")}</p>
               </div>
             ) : (
               <div className={styles.content}>
                 <p className={styles.selectionHelp} id="staff-call-selection-help">
-                  {previewOnly ? "필요한 항목을 여러 개 선택할 수 있어요." : "요청할 항목을 선택해 주세요."}
+                  {t("요청할 항목을 하나 선택해 주세요.")}
                 </p>
                 <div className={styles.listWindow} data-call-more={hasMoreItems}>
                   <div ref={listRef} className={styles.listViewport} data-call-list-scroll>
-                    <div ref={itemsRef} className={styles.items} role="group" aria-label="직원 호출 항목" aria-describedby="staff-call-selection-help">
+                    <div ref={itemsRef} className={styles.items} role="group" aria-label={t("직원 호출 항목")} aria-describedby="staff-call-selection-help">
                       {availableItems.map(item => {
                         const selected = selectedItemKeys.includes(item.key);
                         return <button key={item.key} type="button" aria-pressed={selected} disabled={pending}
                           onClick={() => selectItem(item.key)}>
-                          <span>{item.label}</span>
+                          <span>{t(item.label)}</span>
                           {selected ? <Check size={18} aria-hidden="true" /> : null}
                         </button>;
                       })}
@@ -264,11 +262,11 @@ export default function StaffCallDialog({
                 <button type="button" onClick={requestCall} disabled={pending || !selectedItem}
                   className={`${styles.submit} ${ui.primary}`} data-smart-call-submit>
                   {pending ? <Loader2 size={18} className="animate-spin" aria-hidden="true" /> : null}
-                  {selectedItems.length > 1 ? `${selectedItems.length}개 요청 보내기` : selectedItem ? `${selectedItem.label} 보내기` : "요청할 항목을 선택해 주세요"}
+                  {selectedItem ? t("{0} 보내기", t(selectedItem.label)) : t("요청할 항목을 선택해 주세요")}
                 </button>
               </div>
             )}
-            {previewOnly ? <p className={styles.preview}>미리보기 화면입니다. 버튼을 눌러도 실제 직원 호출은 전송되지 않습니다.</p> : null}
+            {previewOnly ? <p className={styles.preview}>{t("미리보기 화면입니다. 버튼을 눌러도 실제 직원 호출은 전송되지 않습니다.")}</p> : null}
             {message ? <p className={styles.message} role="status">{message}</p> : null}
 
           </motion.section>

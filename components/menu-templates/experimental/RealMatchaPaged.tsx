@@ -1,4 +1,5 @@
 "use client";
+import { useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
 import {
   useEffect,
   useCallback,
@@ -50,7 +51,7 @@ import type { MeasuredMenuBlock } from "@/lib/basic-menu-pagination";
 
 import { layoutScrollableMenu, selectScrollableMenuCandidate, type ScrollableMenuLayout, type ScrollableMenuBlock } from "@/lib/basic-menu-scroll";
 import { getOnePageItemNameCeilingRem } from "@/lib/one-page-typography-profile";
-import { getOrderedFitGapScale, getOrderedBalancedFitGapScale } from "../one-page/pc-tablet/cafe-fit-engine";
+import { getOrderedFitGapScale } from "../one-page/pc-tablet/cafe-fit-engine";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 
 import { useDefaultDesignLayout } from "../defaults/DefaultDesignScope";
@@ -97,6 +98,7 @@ function widgetView(w: MenuWidget): CafeAWidgetPreview {
       };
 }
 export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
+  const t = useMenuText();
   const device = useMenuPresentationDevice(data.previewDevice);
   const mobile = device === "mobile";
   const structure = useDefaultDesignLayout() ?? "basic-first-column";
@@ -317,11 +319,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         root.style.setProperty("--scroll-item-size", `${size}px`);
         // The original shared gap mapper and 0.74 rhythm coefficient remain authoritative.
         const base = Math.min(1.08 * rem, 0.88 * rem + Math.min(innerWidth, innerHeight) * 0.002);
-        root.style.setProperty("--fit-menu-gap-scale", String((grouped ? getOrderedBalancedFitGapScale : getOrderedFitGapScale)(size / base, width)));
+        root.style.setProperty("--fit-menu-gap-scale", String(getOrderedFitGapScale(size / base, width)));
       };
-      // Grouped mode retains its one-screen fit. Fill mode uses one stable
-      // device-scale size; additional copy is allowed to scroll instead of
-      // shrinking fonts or expanding gaps to manufacture a full viewport.
+      // Grouping changes partition boundaries, never the shared reading size.
       const counts = centerColumn ? [2] : Array.from({ length: maxColumns }, (_, index) => index + 1);
       const candidates = counts.map(count => {
         const ceiling = (getOnePageItemNameCeilingRem(device) ?? 1.3) * rem;
@@ -330,22 +330,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         setSize(ceiling);
         const natural = collect(count);
         const names = measureScrollableNames(measure.current!);
-        if (!grouped) {
-          return { ...natural, itemSize: ceiling, names };
-        }
-        const fits = (size: number) => {
-          setSize(size);
-          return [collect(count, true), collect(count)].every(candidate =>
-            candidate.layout.naturalHeights.every(h => h <= bounds.height - 1));
-        };
-        let low = rem, high = ceiling;
-        if (fits(high)) low = high;
-        else if (fits(low)) for (let attempt = 0; attempt < 7; attempt++) {
-          const middle = (low + high) / 2;
-          if (fits(middle)) low = middle; else high = middle;
-        }
-        setSize(low);
-        return { ...collect(count), itemSize: low, names };
+        return { ...natural, itemSize: ceiling, names };
       });
       const selected = selectScrollableMenuCandidate(candidates, grouped) as typeof candidates[number];
       setSize(selected.itemSize);
@@ -391,7 +376,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   }, [mobile, updateScrollHint, layout]);
   if (mobile)
     return (
-      <div className={styles.mobile} data-paged-mobile>
+      <div className={styles.mobile} data-paged-mobile data-basic-structure={structure}>
         <CafeDesignA {...baseProps} />
       </div>
     );
@@ -471,7 +456,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
               tabIndex={0}
               className={styles.menu}
               ref={area}
-              aria-label="메뉴 내용"
+              aria-label={t("메뉴 내용")}
               onScroll={updateScrollHint}
               style={{ "--paged-columns": layout.columns.length } as CSSProperties}
               data-scroll-menu
@@ -487,7 +472,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
                 </div>
               </div>
               <div ref={scrollContent} className={styles.scrollContent} data-scroll-content>
-                {!units.length ? <p role="status">메뉴를 준비하고 있어요.</p> : null}
+                {!units.length ? <p role="status">{t("메뉴를 준비하고 있어요.")}</p> : null}
                 <div className={styles.columns} data-scroll-columns style={{ height: layout.contentHeight, maxWidth: layout.columns.length === 1 && !upperLeft && !centerColumn ? layout.columnWidth : undefined }}>
                   {layout.columns.map((column, i) => {
                     return <div key={i} className={styles.column} data-paged-column={i + 1}
@@ -509,21 +494,21 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             <div className={styles.fade} data-scroll-fade aria-hidden="true" />
           </div>
           {showCall || showOrder ? (
-            <footer className={styles.footer} data-scroll-actions aria-label="메뉴 이용">
+            <footer className={styles.footer} data-scroll-actions aria-label={t("메뉴 이용")}>
               {showCall ? (
-                <button type="button" className={styles.callButton} onClick={call.openCall} aria-label="직원 호출하기" data-scroll-call>
-                  <StaffCallIcon aria-hidden="true" strokeWidth={1.8} /><ScriptAwareText text="호출하기" />
+                <button type="button" className={styles.callButton} onClick={call.openCall} aria-label={t("직원 호출하기")} data-scroll-call>
+                  <StaffCallIcon aria-hidden="true" strokeWidth={1.8} /><ScriptAwareText text={t("호출하기")} />
                 </button>
               ) : null}
               {showOrder ? (
-                <button type="button" className={styles.orderButton} onClick={call.openCart} aria-label={`주문하기, 장바구니 ${call.cartCount ?? 0}개`} data-scroll-order>
-                  <ShoppingCart aria-hidden="true" strokeWidth={1.8} /><ScriptAwareText text="주문하기" />
+                <button type="button" className={styles.orderButton} onClick={call.openCart} aria-label={t("주문하기, 장바구니 {0}개", call.cartCount ?? 0)} data-scroll-order>
+                  <ShoppingCart aria-hidden="true" strokeWidth={1.8} /><ScriptAwareText text={t("주문하기")} />
                   {(call.cartCount ?? 0) > 0 ? <span aria-hidden="true">({call.cartCount})</span> : null}
                 </button>
               ) : null}
             </footer>
           ) : null}
-          {layout.brandOverflow ? <p role="alert" className={styles.error}>대표영역의 이미지 비율 또는 설명 길이를 조정해 주세요.</p> : null}
+          {layout.brandOverflow ? <p role="alert" className={styles.error}>{t("대표영역의 이미지 비율 또는 설명 길이를 조정해 주세요.")}</p> : null}
         </div>
         <CafeMenuImageLightbox preview={imagePreview} templateKey="cafe_design_a" onClose={() => { setImagePreview(null); imageTrigger.current?.focus({preventScroll: true}); }} />
       </main>

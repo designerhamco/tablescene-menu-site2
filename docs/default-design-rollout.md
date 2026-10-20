@@ -4,7 +4,7 @@
 
 Start from Production merge `a6d174c` (PR #252), including spacing restoration #251 and stable fill reading #252. `docs/basic-menu-scroll-policy.md` is authoritative for REAL MATCHA. Do not restore the earlier gap enlargement, vertical centering or pagination. Mobile remains the independent 20/24/48 reading contract.
 
-The user approved the first-column Basic and full-page Dining neutral designs. The next approved review adds the three remaining Basic structures; Dining sidebar follows after the current Dining price/image refinements. First review: first-column Basic and full-page Dining. `/design-review` links to isolated, noindex, simulated previews using the existing renderers and neutral sample data. These are not purchasable presets and do not change saved customer menus. Other six existing Basic skins remain on their original renderers until structure-specific rollout and regression evidence exists.
+The user approved the first-column Basic and full-page Dining neutral designs. The next approved review adds the three remaining Basic structures; Dining sidebar is now included in the six-layout review. First review: first-column Basic and full-page Dining. `/design-review` links to isolated, noindex, simulated previews using the existing renderers and neutral sample data. These are not purchasable presets and do not change saved customer menus. Other six existing Basic skins remain on their original renderers until structure-specific rollout and regression evidence exists.
 
 ## Approved product policy
 
@@ -59,3 +59,14 @@ The six other existing Basic designer skins, remaining Dining neutral sidebar, e
 - Real customer history and cancellation are not enabled by this UI. The next operations step must provide visit-scoped, no-store history retrieval and atomic cancellation (site/table/session/order ownership + received/unpaid compare-and-set), reject expired/cross-table sessions and concurrent preparation/payment, and refresh statuses from server truth. Never treat a local preview snapshot as a real order, payment or cancellation. No paid cancellation/refund is implemented here.
 - Existing editor colors: brand and category are editable; `otherText` explicitly allows fonts only and clears hidden other-role color inputs. Dining cover title reads brand color; page titles and both normal/course categories read category color. Cover background/opacity exist in Cover settings. Therefore the user’s expectation that other-text color is already editable is not the current implementation.
 - In the editor phase, add a consistent other-text color group for Basic/Dining, connect saved role colors to all affected renderers, and offer a separate optional cover-description color (fallback to original template contrast) because cover backgrounds/photos differ from the menu body. Preserve preset defaults and avoid migrations that recolor existing customer boards. This is a shared editor capability, not a separate basic-design layout.
+
+## 2026-10-20 six-layout review completion
+
+- Four Basic reviews plus Dining paged/sidebar are available through `/design-review`.
+- Upper-left representative image alone uses 4:3 on all devices and remains part of the scrolling column. Other mobile reading tokens stay independent.
+- Grouped/fill share the same device type size and base gap mapper. Grouped keeps categories intact; fill permits ordered splits with headings shown once. Menu overflow remains scrollable.
+- Staff requests are single-select in preview and live UI. Five service-specific examples remain, with internal scrolling/fade and a fixed submit button.
+- Source-ID-based neutral sample localization and a shared UI dictionary cover ko/en/ja/zh. Actual customer content is still supplied by the existing saved translation pipeline.
+- Dining mobile option rows now appear after the product name and before the secondary language name/description. PC/tablet coordinates are unchanged.
+- Cart badges remain circular and move inward by roughly 4–5px, near the icon corner.
+- These are still isolated, non-purchasable reviews. Wait for the user's final design confirmation before the next catalog/editor/operational rollout stage.

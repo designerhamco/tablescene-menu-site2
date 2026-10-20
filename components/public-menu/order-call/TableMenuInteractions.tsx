@@ -1,4 +1,5 @@
 "use client";
+import { useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
 import { OnePageCallProvider } from "@/components/menu-templates/one-page/OnePageCallControls";
 import {
   createContext,
@@ -55,6 +56,7 @@ type Actions = {
 };
 const Context = createContext<Actions | null>(null);
 export function TableMenuActionButtons({ appearance = "circle", headerOnly = false, hideCall = false }: { appearance?: "circle" | "inline"; headerOnly?: boolean; hideCall?: boolean }) {
+  const t = useMenuText();
   const a = useContext(Context);
   if (!a || ((!a.call || hideCall) && !a.order)) return null;
   const inline = appearance === "inline";
@@ -64,22 +66,22 @@ export function TableMenuActionButtons({ appearance = "circle", headerOnly = fal
         <button
           type="button"
           className={inline ? styles.inlineAction : styles.circle}
-          aria-label="직원 호출"
+          aria-label={t("직원 호출")}
           onClick={a.openCall}
         >
           <StaffCallIcon aria-hidden="true" />
-          {inline ? <ScriptAwareText text="호출" /> : null}
+          {inline ? <ScriptAwareText text={t("호출")} /> : null}
         </button>
       ) : null}
       {a.order ? (
         <button
           type="button"
           className={inline ? styles.inlineAction : styles.circle}
-          aria-label={`장바구니 ${a.count}개`}
+          aria-label={t("장바구니 {0}개", a.count)}
           onClick={a.openCart}
         >
           <MenuOrderIcon variant={a.presentation === "aube" ? "document" : "cart"} purpose="view" />
-          {inline ? <ScriptAwareText text="장바구니" /> : null}
+          {inline ? <ScriptAwareText text={t("장바구니")} /> : null}
           {a.count > 0 ? (
             <span className={styles.badge}>
               {a.count > 99 ? "99+" : a.count}
@@ -110,22 +112,24 @@ export function TableMenuHeader({ actions = true }: { actions?: boolean }) {
 }
 /** Lives in Dining's fixed language slot, outside the moving page stage. */
 export function DiningMenuToolbar({ children }: { children: ReactNode }) {
+  const t = useMenuText();
   const actions = useContext(Context);
   if (!actions || actions.device === "mobile") return <>{children}</>;
-  return <div className={styles.diningToolbar} data-dining-menu-toolbar role="group" aria-label="메뉴판 도구">
+  return <div className={styles.diningToolbar} data-dining-menu-toolbar role="group" aria-label={t("메뉴판 도구")}>
     <MenuLanguageSwitcher currentLocale={actions.locale} enabledLocales={actions.locales} compact triggerVariant="aube" menuAlign="right" />
     <TableMenuActionButtons hideCall />
   </div>;
 }
 function TableMenuMobileDock() {
+  const t = useMenuText();
   const actions = useContext(Context);
   if (!actions || (!actions.call && !actions.order)) return null;
   return <div className={styles.mobileDock} data-table-mobile-dock>
-    {actions.order ? <button type="button" className={styles.mobileOrder} onClick={actions.openCart} aria-label={`주문하기, 장바구니 ${actions.count}개`}>
-      <MenuOrderIcon variant={actions.presentation === "aube" ? "document" : "cart"} purpose="view" /><span>주문하기{actions.count ? ` (${actions.count})` : ""}</span>
+    {actions.order ? <button type="button" className={styles.mobileOrder} onClick={actions.openCart} aria-label={t("주문하기, 장바구니 {0}개", actions.count)}>
+      <MenuOrderIcon variant={actions.presentation === "aube" ? "document" : "cart"} purpose="view" /><span>{t("주문하기")}{actions.count ? ` (${actions.count})` : ""}</span>
     </button> : null}
-    {actions.call ? <button type="button" className={actions.order ? styles.mobileCall : styles.mobileCallOnly} onClick={actions.openCall} aria-label="직원 호출하기">
-      <StaffCallIcon aria-hidden="true" /><span>호출하기</span>
+    {actions.call ? <button type="button" className={actions.order ? styles.mobileCall : styles.mobileCallOnly} onClick={actions.openCall} aria-label={t("직원 호출하기")}>
+      <StaffCallIcon aria-hidden="true" /><span>{t("호출하기")}</span>
     </button> : null}
   </div>;
 }
@@ -148,6 +152,7 @@ export default function TableMenuInteractions({
   typographyStyle?: CSSProperties;
   children: ReactNode;
 }) {
+  const t = useMenuText();
   const contentRef = useRef<HTMLDivElement>(null);
   const interactionStyle = useMenuInteractionTheme(contentRef);
   const devicePresentation = useMenuPresentationDevice(device);
@@ -226,8 +231,8 @@ export default function TableMenuInteractions({
               </div>
             ) : null}
             {!embedded && devicePresentation !== "mobile" && presentation === "aube" && call ? (
-              <button type="button" className={styles.diningFloatingCall} data-dining-floating-call aria-label="직원 호출하기" onClick={actions.openCall}>
-                <StaffCallIcon aria-hidden="true" /><span>호출</span>
+              <button type="button" className={styles.diningFloatingCall} data-dining-floating-call aria-label={t("직원 호출하기")} onClick={actions.openCall}>
+                <StaffCallIcon aria-hidden="true" /><span>{t("호출")}</span>
               </button>
             ) : null}
             {toast ? (
@@ -262,7 +267,7 @@ export default function TableMenuInteractions({
                 onItemAdded={(name) => {
                   setCartOpen(false);
                   setSelected(null);
-                  setToast(name + " 장바구니에 담았어요.");
+                  setToast(name + t(" 장바구니에 담았어요."));
                 }}
               />
             ) : null}

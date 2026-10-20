@@ -1,3 +1,4 @@
+import { localizeDefaultDesignPreview } from "./default-design-localization";
 import type { MenuPageData } from "./menu-page-data";
 import type { DefaultDesignReview } from "./menu-design-policy";
 import { TYPOGRAPHY_ROLE_KEYS } from "./template-typography-presets";
@@ -125,5 +126,5 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
     is_sold_out: options.soldOutPreview && item.id === soldOutItem?.id,
   }));
   if (!options.widgetsPreview) data.widgets = [];
-  return data;
+  return localizeDefaultDesignPreview(data, source, source.locale);
 }

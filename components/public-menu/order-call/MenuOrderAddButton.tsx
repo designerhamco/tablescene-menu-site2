@@ -1,4 +1,5 @@
 "use client";
+import { useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
 
 import { MenuOrderIcon, type MenuOrderIconVariant } from "./MenuActionIcons";
 import { createContext, type ReactNode, useContext, useMemo } from "react";
@@ -42,6 +43,7 @@ export default function MenuOrderAddButton({
   itemName: string;
   className?: string;
 }) {
+  const t = useMenuText();
   const actions = useContext(MenuOrderActionsContext);
   if (!actions?.orderableItemIds.has(itemId)) return null;
 
@@ -50,7 +52,7 @@ export default function MenuOrderAddButton({
       type="button"
       className={`relative inline-flex h-8 w-8 shrink-0 items-center justify-center border-0 bg-transparent p-0 text-inherit shadow-none transition-opacity hover:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 ${className}`}
       data-menu-order-add={itemId}
-      aria-label={`${itemName} 담기`}
+      aria-label={t("{0} 담기", itemName)}
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();

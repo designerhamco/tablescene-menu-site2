@@ -59,8 +59,8 @@
 }
 .badge {
   position: absolute;
-  right: -0.2rem;
-  top: -0.2rem;
+  right: .125rem;
+  top: .125rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
