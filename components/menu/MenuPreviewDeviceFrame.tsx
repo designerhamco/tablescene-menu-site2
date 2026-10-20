@@ -7,6 +7,7 @@ import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
+import { supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import { getDefaultDesignOptions, type DefaultDesignOptionKey } from "@/lib/default-design-options";
 
@@ -119,7 +120,7 @@ export default function MenuPreviewDeviceFrame(
     call: callPreview,
     order: orderPreview,
   });
-  const supportsLayoutPreview = props.supportsLayoutPreview ?? (props.templateKey === "cafe_real_matcha_paged_test" || props.templateKey === "cafe_design_a");
+  const supportsLayoutPreview = props.supportsLayoutPreview ?? supportsPcTabletLayoutMode(props.templateKey);
   const designParam = (query as TemplatePreviewQuery).design;
   const defaultDesign = props.templateKey ? getDefaultDesignReview(Array.isArray(designParam) ? designParam[0] : designParam, props.templateKey) : undefined;
   const [displayOptions, setDisplayOptions] = useOptimistic(getDefaultDesignOptions(query as TemplatePreviewQuery));
@@ -305,6 +306,11 @@ export default function MenuPreviewDeviceFrame(
                 onChange={(enabled) => changeFeature("order", enabled)}
               />
             ) : null}
+            {!defaultDesign && props.templateKey && props.templateKey !== "display_menu_a" ? <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-white/10 px-2 text-xs font-bold">
+              <input type="checkbox" aria-label="광고" checked={displayOptions.popupPreview} disabled={!showToolbar || isPending} onChange={event => {
+                const enabled = event.target.checked;
+                startTransition(() => { setDisplayOptions({ ...displayOptions, popupPreview: enabled }); router.push(buildTemplatePreviewUrl(props.templateKey!, { ...query, popupPreview: enabled ? "on" : "off" }, { device, orientation, callPreview: features.call, orderPreview: features.order }), { scroll: false }); });
+              }} />광고</label> : null}
             {supportsLayoutPreview && device !== "mobile" ? (
               <div className="flex shrink-0 gap-0.5 rounded-xl bg-white/10 p-0.5" role="group" aria-label="메뉴 배치 방식">
                 {([['orderedBalancedFit', '묶음형'], ['orderedFit', '채움형']] as const).map(([mode, label]) => (

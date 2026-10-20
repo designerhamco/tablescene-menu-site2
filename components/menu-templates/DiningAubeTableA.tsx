@@ -467,7 +467,7 @@ export default function DiningAubeTableA({
             >
               {courses.map((course) => <CourseBlock key={course.id} course={course} priceOptions={data.priceOptions} onOpenImage={openImage} />)}
               {directItems.length > 0 ? (
-                <motion.section className="aube-table-direct-items" variants={AUBE_TABLE_COURSE_REVEAL_ITEMS}>
+                <motion.section className="aube-table-direct-items" data-separated={courses.length ? "true" : undefined} variants={AUBE_TABLE_COURSE_REVEAL_ITEMS}>
                   {directItems.map((item) => <MenuItemRow key={item.id} item={item} priceOptions={data.priceOptions} onOpenImage={openImage} />)}
                 </motion.section>
               ) : null}
@@ -622,6 +622,7 @@ export default function DiningAubeTableA({
         .aube-table-course-items, .aube-table-direct-items { display: grid; gap: 0; }
         .aube-table-course-items { margin-top: var(--aube-space-section-start); }
         .aube-table-direct-items { margin-top: 0; }
+        .aube-table-direct-items[data-separated="true"] { border-top: 1px solid var(--aube-rule); padding-top: var(--aube-space-section-start); }
         .aube-table-page[data-align="center"] .aube-table-course-header { display: flex; flex-direction: column; align-items: center; gap: clamp(8px, .8vw, 12px); }
         .aube-table-page[data-align="center"] .aube-table-course-rule { width: clamp(42px, 4vw, 58px); }
         .aube-table-page[data-align="center"] .aube-table-course-description { margin-left: auto; margin-right: auto; }

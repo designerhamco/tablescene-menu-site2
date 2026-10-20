@@ -6,7 +6,7 @@ This refactor moves existing declarations without changing formulas, tokens, con
 
 - `MenuTemplateRenderer.tsx` chooses the supported template and presentation.
 - Formal REAL MATCHA (`cafe_design_a`, single presentation) and its hidden compatibility test use `experimental/RealMatchaPaged.tsx` for PC/tablet contained reading. That component delegates mobile unchanged to `CafeDesignA.tsx`.
-- The other six Basic templates still share `CafeDesignA.tsx` as renderer and state coordinator, retaining their own PC/tablet fixed shells and fit policy; mobile uses the separate reading policy.
+- The other six Basic single-page templates use `one-page/NativeBasicScroll.tsx` for PC/tablet contained geometry. It reuses their native CafeDesignA visual primitives and the approved `lib/basic-menu-scroll.ts` measured ordered packer. Original mobile rendering stays in CafeDesignAClassic; multi-page and inactive branches retain their prior policies.
 - `one-page/pc-tablet/cafe-fit-engine.ts` owns fit candidates, geometry, content estimates, column packing, crop measurement and state comparisons. It exports existing functions for the coordinator; it does not set mobile reading typography.
 - `lib/mobile-brand-title-fit.ts`, `shared/MobileBrandTitle.tsx` and `one-page/mobile/MobileNoticeList.tsx` handle independent mobile title fitting and notice rendering. Mobile 20/24/48px body rhythm and 12px language/brand/description gap remain scoped in CSS.
 - `multi-page/MultiPageMenuEngine.tsx` and its Desktop/Stack presentations retain their existing page-based policy and device breakpoint. They do not inherit one-page fit rules.
@@ -28,7 +28,7 @@ Shared components may render the same price or name, but presentation policies r
 | Structure | Templates | Fixed content |
 | --- | --- | --- |
 | First column | REAL MATCHA, Mocha Forest, Loop Bagel | First brand/featured column |
-| Central column | ROSY ORANGE | Total 3/4/5 columns place the brand in column 2/2/3 |
+| Central column | ROSY ORANGE | Fixed native rail between two synchronized menu tracks |
 | Top row | Sunday Roasters, Van Gogh | Three equal header cells; content-driven 8–14% row; central brand width target 65% |
 
 Template-owned fonts, role ratios, decorative rules, category boundaries and featured-area differences remain intact.

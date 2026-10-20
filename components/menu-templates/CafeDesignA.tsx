@@ -15,6 +15,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
+import NativeBasicScroll from "./one-page/NativeBasicScroll";
 import { Clock3, RefreshCw, X, ZoomIn } from "lucide-react";
 import { useRouter } from "next/navigation";
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
@@ -7886,6 +7887,10 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
 
 
 export default function CafeDesignA(data: CafeDesignAProps) {
+  const device = useMenuCoverRenderDevice(data.previewDevice);
+  if (device !== "mobile" && data.pagePresentation !== "multi" && ["cafe_mocha_forest_a", "fast_food_loop_bagel_a", "cafe_sunday_line_a", "cafe_van_gogh_a", "cafe_round_focus_a", "restaurant_onue_a"].includes(data.menuSite.template_key)) {
+    return <NativeBasicScroll data={{ ...data, previewDevice: device }} device={device} />;
+  }
   if (data.menuSite.template_key === "cafe_noir_a") {
     return <CafeNoirA data={data} />;
   }
@@ -7893,9 +7898,11 @@ export default function CafeDesignA(data: CafeDesignAProps) {
   return <CafeDesignAClassic {...data} />;
 }
 
-// The paginated REAL MATCHA experiment shares these exact visual primitives.
-// Pagination owns geometry only; the original one-page renderer remains unchanged.
+// Contained presentations reuse these native visual primitives. Geometry is
+// separate from skin appearance, mobile reading and the legacy multi-page engine.
 export {
+  DesktopFixedRail as CafeADesktopFixedRail, DesktopToplineInformationHeader as CafeADesktopToplineInformationHeader,
+  DesktopToplineFeaturedSlot as CafeADesktopToplineFeaturedSlot, PanelFlowIntro as CafeAPanelFlowIntro, getVisibleMenuPageGroups,
   CategoryTitle as CafeACategoryTitle, MenuItemRow as CafeAMenuItemRow,
   StoreIdentity as CafeAStoreIdentity, CoverHero as CafeACoverHero,
   CafeLanguageHoverControl, CafeMenuImageLightbox,

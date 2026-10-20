@@ -70,6 +70,7 @@ type PageProps = {
     orderPreview?: string | string[];
     pageTest?: string | string[];
     prepayPreview?: string | string[];
+    popupPreview?: string | string[];
     widgetsPreview?: string | string[];
     coverPreview?: string | string[];
     featuredPreview?: string | string[];
@@ -1563,6 +1564,10 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   );
   const data = defaultDesign ? buildDefaultDesignPreview({ ...fixtureData, locale: localizedData.locale, enabledLocales: localizedData.enabledLocales,
     menuSite: { ...fixtureData.menuSite, template_key: templateKey } }, defaultDesign, getDefaultDesignOptions(resolvedSearchParams)) : localizedData;
+  if (!defaultDesign && templateKey !== "display_menu_a" && getFirstParam(resolvedSearchParams.popupPreview) === "on") {
+    const settings = data.menuSite.settings;
+    data.menuSite.settings = { ...(settings && typeof settings === "object" && !Array.isArray(settings) ? settings : {}), advertisementPopup: { enabled: true, images: [1, 2, 3].map(number => ({ imageUrl: `/placeholders/starter/default-popup-${number}.svg`, imagePath: null })) } };
+  }
   if (templateKey === "cafe_real_matcha_paged_test") applyPagedMatchaFixture(data, getFirstParam(resolvedSearchParams.pageTest));
   const requestedRenderMode = Array.isArray(resolvedSearchParams.renderMode)
     ? resolvedSearchParams.renderMode[0]
