@@ -1,11 +1,12 @@
 import type { ScrollableMenuNameMeasurement } from "@/lib/basic-menu-scroll";
 
-/** Read the real name slot after thumbnail, price rails, gaps and chip layout.
+/** Read item/category title slots after thumbnails, price rails, gaps and chips.
  * Text-node ranges avoid counting ScriptAwareText wrappers twice, and preserve
  * actual font/script/word-break behavior instead of estimating from characters. */
 export function measureScrollableNames(container: HTMLElement): ScrollableMenuNameMeasurement[] {
-  return [...container.querySelectorAll<HTMLElement>('[data-measure-id][data-kind="item"]')].flatMap(row => {
-    const name = row.querySelector<HTMLElement>("[data-cafe-a-menu-name]");
+  return [...container.querySelectorAll<HTMLElement>('[data-measure-id][data-kind="item"],[data-measure-id][data-kind="heading"]')].flatMap(row => {
+    const heading = row.dataset.kind === "heading";
+    const name = row.querySelector<HTMLElement>(heading ? "[data-cafe-a-category-title-text]" : "[data-cafe-a-menu-name]");
     if (!name?.textContent?.trim()) return [];
     const bounds = name.getBoundingClientRect();
     const fontSize = parseFloat(getComputedStyle(name).fontSize) || 16;
@@ -24,7 +25,7 @@ export function measureScrollableNames(container: HTMLElement): ScrollableMenuNa
       }
     }
     return [{
-      id: row.dataset.measureId!, availableWidth: bounds.width, naturalWidth,
+      id: row.dataset.measureId!, role: heading ? "category" : "item", availableWidth: bounds.width, naturalWidth,
       fontSize, lines: Math.max(1, tops.length), overflow,
     }];
   });

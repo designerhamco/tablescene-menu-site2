@@ -86,6 +86,7 @@ export function layoutScrollableMenu(
 }
 
 export type ScrollableMenuNameMeasurement = {
+  role?: "item" | "category";
   id: string;
   availableWidth: number;
   naturalWidth: number;
@@ -103,7 +104,10 @@ export type ScrollableMenuCandidate = {
  * name need not change the board unless the wider candidate actually helps it. */
 export function shouldPreferWiderScrollableNames(narrow: readonly ScrollableMenuNameMeasurement[], wide: readonly ScrollableMenuNameMeasurement[]) {
   const widerById = new Map(wide.map(name => [name.id, name]));
-  let improvedCrampedNames = 0;
+  let improvedCrampedNames = 0, improvedItems = 0, savedItemLines = 0, improvedHeadings = 0;
+  const items = narrow.filter(name => name.role !== "category");
+  const wrappedItems = items.filter(name => name.lines > 1).length;
+  const wrappedHeadings = narrow.filter(name => name.role === "category" && name.lines > 1).length;
   for (const name of narrow) {
     const wider = widerById.get(name.id);
     if (!wider || wider.availableWidth < name.availableWidth * 1.15) continue;
@@ -111,12 +115,17 @@ export function shouldPreferWiderScrollableNames(narrow: readonly ScrollableMenu
     const improvesWrapping = wider.lines < name.lines;
     if (!improvesOverflow && !improvesWrapping) continue;
     if (improvesOverflow || name.lines >= 3) return true;
-    // Eight em is a width budget, not a forced one-line/character-count rule.
-    // Short labels use only their own natural width and remain eligible for 3.
+    if (name.role === "category") { improvedHeadings++; continue; }
+    improvedItems++;
+    savedItemLines += name.lines - wider.lines;
     const desiredWidth = Math.min(name.naturalWidth, name.fontSize * 8);
     if (name.lines > 1 && name.availableWidth < desiredWidth - name.fontSize * .25) improvedCrampedNames++;
   }
-  return improvedCrampedNames >= 2;
+  // Isolated ordinary wraps are harmless. Repeated wrapping must improve in the
+  // actual wider candidate; typography, category order and mobile stay unchanged.
+  return improvedCrampedNames >= 2 ||
+    (wrappedItems >= Math.max(3, Math.ceil(items.length * .3)) && improvedItems >= 3 && savedItemLines >= Math.ceil(wrappedItems * .35)) ||
+    (wrappedHeadings >= 2 && improvedHeadings >= 2);
 }
 /** Prefer readable width to underfilled/empty columns. Sparse content stays honestly sparse. */
 export function selectScrollableMenuCandidate(candidates: readonly ScrollableMenuCandidate[], grouped = false) {

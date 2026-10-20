@@ -1,5 +1,7 @@
 # Template feature completeness — 2026-10-20
 
+Follow-up: `menu-state-layout-carousel-qa.md` supersedes this release's darkest-swatch Order rule and default-visible widget examples. Catalog widgets now default OFF; full examples remain available when ON.
+
 ## Scope and behavior
 
 - Active Basic 7 / Dining 2 catalog previews fill **every missing eligible example** only when the corresponding view option is explicitly ON. Existing real images/copy, IDs, source data and template skins stay intact. Images, secondary names, item/category descriptions, prices, discounts and sold-out state remain independent options. A price-note example must remain visible outside category/per-item price-option rails when both features are enabled. A synthesized sold-out example prefers a non-promoted item so independently enabled sales remain visible; existing saved/starter sold-out states are preserved.

@@ -47,13 +47,12 @@ export function resolveMenuInteractionTheme({ brand, surfaces, inks = [] }: {
   const palette = [...inksOnly, ...backgrounds];
   const sorted = [...palette].sort((a, b) => luminance(parseColor(a)!.rgb) - luminance(parseColor(b)!.rgb));
   const lightest = sorted.at(-1) ?? LIGHT;
-  const darkest = sorted[0] ?? DARK;
   const readableInk = (background: string, candidates: string[]) =>
     candidates.find(c => menuColorContrast(c, background) >= 4.5) ??
-    [DARK, LIGHT].sort((a, b) => menuColorContrast(b, background) - menuColorContrast(a, background))[0];
+    [DARK, LIGHT, "#000000"].find(color => menuColorContrast(color, background) >= 4.5) ?? DARK;
   const callForeground = readableInk(lightest, inksOnly);
-  const orderBackground = menuColorContrast(darkest, lightest) >= 4.5 ? darkest : readableInk(lightest, [DARK]);
-  const orderForeground = readableInk(orderBackground, [lightest, ...palette]);
+  const orderBackground = accent;
+  const orderForeground = readableInk(orderBackground, [lightest]);
   return {
     "--menu-order-bg": orderBackground,
     "--menu-order-ink": orderForeground,

@@ -162,7 +162,7 @@ function MenuItemRow({
   const options = item.price_visible === false ? [] : getPriceOptions(item, priceOptions, locale);
   const price = item.price_visible === false ? "" : options.length ? options.map(option => option.text).join(" · ") : formatMenuPrice(item);
   return (
-    <article className="aube-table-item" data-aube-table-item="">
+    <article className="aube-table-item" data-aube-table-item="" data-cafe-a-sold-out={item.is_sold_out ? "true" : undefined}>
       {showImage && item.image_url ? <button type="button" className="aube-table-image-trigger" aria-label={t("{0} 이미지 크게 보기", item.name)}
         onClick={event => onOpenImage({ src: item.image_url!, title: item.name, secondaryTitle: item.set_name }, event.currentTarget)}>
         <img className="aube-table-item-image" src={item.image_url} alt={t("{0} 이미지", item.name)} loading="lazy" />

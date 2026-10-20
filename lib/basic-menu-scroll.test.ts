@@ -152,14 +152,14 @@ test("name width and wrapping take priority over one-screen fit for both layouts
     const cramped = candidate(3, 580, names(85, 3));
     assert.equal(selectScrollableMenuCandidate([wide, cramped], grouped), wide);
     const readable = candidate(3, 580, names(180, 2));
-    assert.equal(selectScrollableMenuCandidate([wide, readable], grouped), readable);
+    assert.equal(selectScrollableMenuCandidate([wide, readable], grouped), wide, "repeated ordinary wrapping also benefits from measured width");
   }
 });
 
 test("moderate repeated name squeezing matters, but an isolated normal wrap does not", () => {
   assert.equal(shouldPreferWiderScrollableNames(names(120, 2), names(220, 1)), true);
   assert.equal(shouldPreferWiderScrollableNames(names(120, 2, 1), names(220, 1, 1)), false);
-  assert.equal(shouldPreferWiderScrollableNames(names(175, 2), names(240, 1)), false);
+  assert.equal(shouldPreferWiderScrollableNames(names(175, 2), names(240, 1)), true);
   assert.equal(shouldPreferWiderScrollableNames(names(80, 4), names(140, 4)), false, "changing columns must improve the actual name");
   assert.equal(shouldPreferWiderScrollableNames(names(80, 4, 1), names(160, 3, 1)), true);
   assert.equal(shouldPreferWiderScrollableNames(names(70, 1).map(n => ({ ...n, naturalWidth: 65 })), names(130, 1)), false);
@@ -200,4 +200,12 @@ test("severely uneven grouped ends select two only for a material measured impro
   assert.equal(selectScrollableMenuCandidate([fitting, candidate([850, 840])], true), fitting, "do not introduce scrolling for whitespace");
   const worse = candidate([450, 750, 850]);
   assert.equal(selectScrollableMenuCandidate([worse, candidate([1350, 900])], true), worse, "fewer tracks can worsen balance");
+});
+
+
+test("repeated category wrapping participates in the same measured 2/3-track policy", () => {
+  const headings = (width: number, lines: number, count = 2) => names(width, lines, count).map(name => ({ ...name, role: "category" as const }));
+  assert.equal(shouldPreferWiderScrollableNames(headings(130, 2), headings(260, 1)), true);
+  assert.equal(shouldPreferWiderScrollableNames(headings(130, 2, 1), headings(260, 1, 1)), false);
+  assert.equal(shouldPreferWiderScrollableNames(headings(130, 2), headings(260, 2)), false);
 });

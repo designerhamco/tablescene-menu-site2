@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {chromium} from '@playwright/test';
+const base=process.env.ORDER_QA_BASE||'http://localhost:3000',out=process.env.ORDER_QA_OUTPUT||'/private/tmp/menu-advertisement-carousel';
+await fs.mkdir(out,{recursive:true});const b=await chromium.launch(),results=[],errors=[],failures=[];
+async function check(key,device,width,height){const p=await b.newPage({viewport:{width,height},reducedMotion:'no-preference'});p.on('pageerror',e=>errors.push(e.message));try{
+ await p.goto(`${base}/templates/${key}/preview?`+new URLSearchParams({device,view:'actual',popupPreview:'on'}),{waitUntil:'networkidle'});const popup=p.locator('[data-menu-advertisement-popup]');await popup.waitFor();
+ await popup.getByRole('button',{name:'이미지 1',exact:true}).click();await p.mouse.move(0,0);assert.equal(await popup.getAttribute('data-popup-active'),'0');assert.equal(await popup.locator('[data-popup-dots] button').count(),3);assert.equal(await popup.locator('[data-popup-next]').isVisible(),width>=1024);
+ await p.waitForTimeout(1100);assert.ok(Number(await popup.getAttribute('data-popup-progress'))>.1,'active dot shows elapsed time');await p.waitForFunction(()=>document.querySelector('[data-menu-advertisement-popup]')?.dataset.popupActive==='1',null,{timeout:6000});
+ await popup.getByRole('button',{name:'이미지 3',exact:true}).click();assert.equal(await popup.getAttribute('data-popup-active'),'2');await p.mouse.move(0,0);assert.ok(Number(await popup.getAttribute('data-popup-progress'))<.1,'manual selection resets the full interval');
+ if(width>=1024){await popup.locator('[data-popup-next]').click();assert.equal(await popup.getAttribute('data-popup-active'),'0');await popup.locator('[data-popup-prev]').click();assert.equal(await popup.getAttribute('data-popup-active'),'2');}
+ const region=popup.getByRole('region'),r=await region.boundingBox();await p.mouse.move(r.x+r.width*.75,r.y+r.height*.45);await p.mouse.down();await p.mouse.move(r.x+r.width*.25,r.y+r.height*.45,{steps:8});await p.mouse.up();assert.equal(await popup.getAttribute('data-popup-active'),'0','drag/swipe wraps to the next announcement');
+ if(key==='cafe_design_a'&&device==='pc'){const index=await popup.getAttribute('data-popup-active'),progress=Number(await popup.getAttribute('data-popup-progress'));await p.waitForTimeout(5400);assert.equal(await popup.getAttribute('data-popup-active'),index,'hover pauses auto advancement');assert.ok(Math.abs(Number(await popup.getAttribute('data-popup-progress'))-progress)<.06);}
+ await region.focus();await p.keyboard.press('ArrowRight');assert.equal(await popup.getAttribute('data-popup-active'),'1','keyboard navigation stays available');
+ await p.screenshot({path:`${out}/${key}-${device}.png`});await popup.getByRole('button',{name:'닫기',exact:true}).click();await popup.waitFor({state:'hidden'});results.push({key,device,viewport:[width,height]});console.log('PASS',key,device);
+}catch(e){failures.push({key,device,error:e.message});console.log('FAIL',key,device,e.message);}finally{await p.close();}}
+try{await Promise.all([check('cafe_design_a','pc',1440,900),check('dining_aube_table_a','pc',1440,900),check('cafe_design_a','mobile',390,844),check('dining_aube_table_a','mobile',390,844)]);
+ const p=await b.newPage({viewport:{width:390,height:844},reducedMotion:'reduce'});try{await p.goto(`${base}/templates/cafe_design_a/preview?device=mobile&view=actual&popupPreview=on`,{waitUntil:'networkidle'});const popup=p.locator('[data-menu-advertisement-popup]');await popup.waitFor();await p.waitForTimeout(5300);assert.equal(await popup.getAttribute('data-popup-active'),'0');await popup.getByRole('button',{name:'이미지 2',exact:true}).click();assert.equal(await popup.getAttribute('data-popup-active'),'1');results.push({behavior:'reduced-motion-manual-navigation'});}finally{await p.close();}
+}finally{await b.close();await fs.writeFile(`${out}/report.json`,JSON.stringify({results,failures,errors},null,2));}
+assert.deepEqual(failures,[]);assert.deepEqual(errors,[]);console.log(JSON.stringify({checked:results.length}));

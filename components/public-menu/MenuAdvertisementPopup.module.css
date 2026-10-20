@@ -16,3 +16,11 @@
 .dots button[data-active="true"] span { background: #fff; }
 .popup button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 @media(prefers-reduced-motion:reduce) { .slides { transition: none; } }
+.dots button { position: relative; }
+.progress { position: absolute; inset: 50% auto auto 50%; width: .875rem; height: .875rem; transform: translate(-50%, -50%) rotate(-90deg); fill: none; stroke: #fff; stroke-width: 1; stroke-linecap: round; }
+.progressTrack { stroke: rgb(255 255 255 / .3); }
+.arrow { position: absolute; z-index: 2; top: 50%; transform: translateY(-50%); display: none; place-items: center; width: 2.75rem; height: 2.75rem; padding: 0; border: 0; background: transparent; color: #fff; cursor: pointer; }
+.arrow svg { filter: drop-shadow(0 1px 3px rgb(0 0 0 / .7)); }
+.previous { left: .25rem; }
+.next { right: .25rem; }
+@media (min-width: 1024px) { .arrow { display: grid; } }
