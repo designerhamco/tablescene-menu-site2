@@ -221,3 +221,24 @@
 
 .shell .dock .circle[aria-label^="장바구니"] { background: var(--menu-order-bg, #191c1b); color: var(--menu-order-ink, #fff); border-color: var(--menu-order-border, #191c1b); }
 .header .circle { border: 0; }
+
+/* A mobile photo cover extends behind both operational bars. Their container
+   paper disappears locally; branded Order/Call button fills remain unchanged. */
+.shell[data-presentation="aube"][data-device="mobile"][data-mobile-dock="true"]:has(:global([data-cover-image-active="true"])) {
+  --aube-viewport-height: 100dvh;
+  padding-bottom: 0;
+}
+.shell[data-presentation="aube"][data-device="mobile"]:has(:global([data-cover-image-active="true"])) .header {
+  position: fixed; inset: 0 0 auto; background: transparent; color: #fff;
+}
+.shell[data-presentation="aube"][data-device="mobile"]:has(:global([data-cover-image-active="true"])) .header button {
+  background: transparent; color: inherit;
+}
+.shell[data-presentation="aube"][data-device="mobile"]:has(:global([data-cover-image-active="true"])) .mobileDock { background: transparent; }
+.shell[data-presentation="aube"][data-device="mobile"]:has(:global([data-cover-image-active="true"])) :global(.aube-table-root[data-layout="sidebar"] .aube-table-mobile-page-tabs) {
+  position: absolute; top: 56px; background: transparent; border-color: transparent;
+}
+.shell[data-presentation="aube"][data-device="mobile"]:has(:global([data-cover-image-active="true"])) :global(.aube-table-mobile-page-tabs button) { color: #fff; }
+.shell[data-presentation="aube"][data-device="mobile"]:has(:global([data-cover-image-active="true"])) :global(.aube-table-mobile-page-tabs button[data-active="true"]) { border-bottom-color: #fff; }
+.shell[data-presentation="aube"][data-device="mobile"]:has(:global([data-cover-image-active="true"])) :global(.aube-table-root[data-layout="sidebar"] .aube-table-stage),
+.shell[data-presentation="aube"][data-device="mobile"]:has(:global([data-cover-image-active="true"])) :global(.aube-table-root[data-layout="sidebar"] .aube-table-cover) { min-height: 100dvh; }
