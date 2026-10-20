@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readMenuPopupSettings, nextMenuPopupMidnight, menuPopupSuppressionKey, validateMenuPopupImage } from "./menu-popup";
+import { readMenuPopupSettings, validateMenuPopupImage } from "./menu-popup";
 import { DEFAULT_DESIGN_REVIEWS } from "./menu-design-policy";
 import { getDefaultDesignOptions } from "./default-design-options";
 import { buildTemplatePreviewUrl } from "./menu-preview-devices";
@@ -13,10 +13,6 @@ test("popup defaults OFF and rejects invalid image schemes and malformed setting
 });
 test("popup reads one to three images and never renders more than three", () => {
   for (const count of [1, 2, 3, 4]) assert.equal(readMenuPopupSettings({ advertisementPopup: { images: Array.from({ length: count }, (_, n) => ({ imageUrl: `https://example.com/${n}.png` })) } }).images.length, Math.min(3, count));
-});
-test("today dismissal ends at Korean midnight, including month/year rollover", () => {
-  for (const [now, end] of [["2026-10-20T14:59:59.000Z", "2026-10-20T15:00:00.000Z"], ["2026-10-20T15:00:00.000Z", "2026-10-21T15:00:00.000Z"], ["2026-12-31T14:00:00.000Z", "2026-12-31T15:00:00.000Z"]]) assert.equal(new Date(nextMenuPopupMidnight(Date.parse(now))).toISOString(), end);
-  assert.notEqual(menuPopupSuppressionKey("one"), menuPopupSuppressionKey("two"));
 });
 test("popup save accepts only matching Storage URLs owned by this menu", () => {
   const imagePath = "menu-sites/menu-one/draft/popup/abc-123.webp";

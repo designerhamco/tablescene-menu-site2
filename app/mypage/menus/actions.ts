@@ -9663,23 +9663,23 @@ export async function updateMenuPopupSettingsAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  if (menuSite.template_key === "display_menu_a") redirectToTabEditWithError(menuId, "basic", "이 메뉴판은 광고 팝업을 지원하지 않습니다.");
+  if (menuSite.template_key === "display_menu_a") redirectToTabEditWithError(menuId, "advertising", "이 메뉴판은 광고 팝업을 지원하지 않습니다.");
   let raw: unknown;
   try { raw = JSON.parse(getString(formData, "popup_images") || "[]"); }
-  catch { redirectToTabEditWithError(menuId, "basic", "광고 이미지 정보를 확인해주세요."); }
-  if (!Array.isArray(raw) || raw.length > MAX_MENU_POPUP_IMAGES) redirectToTabEditWithError(menuId, "basic", "광고 이미지는 최대 3개까지 등록할 수 있습니다.");
+  catch { redirectToTabEditWithError(menuId, "advertising", "광고 이미지 정보를 확인해주세요."); }
+  if (!Array.isArray(raw) || raw.length > MAX_MENU_POPUP_IMAGES) redirectToTabEditWithError(menuId, "advertising", "광고 이미지는 최대 3개까지 등록할 수 있습니다.");
   const images: MenuPopupImage[] = [];
   for (const entry of raw) {
     if (!entry || typeof entry !== "object" || typeof entry.imageUrl !== "string" || typeof entry.imagePath !== "string" || !validateMenuPopupImage(entry, menuId, process.env.NEXT_PUBLIC_SUPABASE_URL ?? "")) {
-      redirectToTabEditWithError(menuId, "basic", "광고 이미지는 이 메뉴판에 직접 등록한 이미지만 사용할 수 있습니다.");
+      redirectToTabEditWithError(menuId, "advertising", "광고 이미지는 이 메뉴판에 직접 등록한 이미지만 사용할 수 있습니다.");
     }
     images.push({ imageUrl: entry.imageUrl, imagePath: entry.imagePath });
   }
   const enabled = getBoolean(formData, "popup_enabled");
-  if (enabled && !images.length) redirectToTabEditWithError(menuId, "basic", "광고 이미지를 1개 이상 등록해주세요.");
+  if (enabled && !images.length) redirectToTabEditWithError(menuId, "advertising", "광고 이미지를 1개 이상 등록해주세요.");
   const settings = { ...getJsonObject(menuSite.settings), advertisementPopup: { enabled, images } };
   const { error } = await supabase.from("menu_sites").update({ settings, updated_at: new Date().toISOString() }).eq("id", menuId);
-  if (error) redirectToTabEditWithError(menuId, "basic", "광고 팝업을 저장하지 못했습니다.");
+  if (error) redirectToTabEditWithError(menuId, "advertising", "광고를 저장하지 못했습니다.");
   revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "basic", "광고 팝업이 저장되었습니다.");
+  redirectToTabEdit(menuId, "advertising", "광고가 저장되었습니다.");
 }

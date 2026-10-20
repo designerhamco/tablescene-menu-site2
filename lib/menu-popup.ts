@@ -12,12 +12,6 @@ export function readMenuPopupSettings(settings: unknown): MenuPopupSettings {
   }) : [];
   return { enabled: popup.enabled === true, images };
 }
-export function menuPopupSuppressionKey(menuId: string) { return `artimenu:popup:hidden:${menuId}`; }
-/** Today's dismissal expires at midnight in the store's Korean calendar. */
-export function nextMenuPopupMidnight(now: number) {
-  const korean = new Date(now + 9 * 60 * 60 * 1000);
-  return Date.UTC(korean.getUTCFullYear(), korean.getUTCMonth(), korean.getUTCDate() + 1) - 9 * 60 * 60 * 1000;
-}
 export function validateMenuPopupImage(image: MenuPopupImage, menuId: string, publicStorageOrigin: string) {
   const prefix = `menu-sites/${menuId}/draft/popup/`;
   if (!image.imagePath?.startsWith(prefix) || image.imagePath.includes("..") || !/^[-\w/]+\.(png|jpg|webp)$/.test(image.imagePath)) return false;

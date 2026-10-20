@@ -9,7 +9,7 @@ test("all default designs open with the logo disabled", () => {
     const options = getDefaultDesignOptions({ design: design.id });
     assert.equal(options.logoPreview, false);
     assert.equal(options.coverImagesPreview, false);
-    assert.equal(options.coverPreview, true);
+    assert.equal(options.coverPreview, design.id !== "basic-top-row-album");
     assert.equal(options.featuredPreview, design.id !== "basic-upper-left");
   }
 });
@@ -28,4 +28,8 @@ test("logo selection is independent of representative content and survives previ
       }
     }
   }
+});
+
+test("top-row album representative area can still be explicitly enabled", () => {
+  assert.equal(getDefaultDesignOptions({ design: "basic-top-row-album", coverPreview: "on" }).coverPreview, true);
 });

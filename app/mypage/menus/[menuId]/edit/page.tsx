@@ -2128,7 +2128,12 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
               </>
             )}
 
-            {activeTab === "basic" && site.template_key !== "display_menu_a" ? <SectionCard title="광고 팝업"><MenuPopupSettingsForm key={JSON.stringify(readMenuPopupSettings(site.settings))} menuId={site.id} settings={readMenuPopupSettings(site.settings)} disabled={isReadOnly} /></SectionCard> : null}
+            {activeTab === "advertising" && site.template_key !== "display_menu_a" ? (
+              <SectionCard title="광고">
+                <MenuPopupSettingsForm key={JSON.stringify(readMenuPopupSettings(site.settings))} menuId={site.id} settings={readMenuPopupSettings(site.settings)} disabled={isReadOnly} />
+                <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
+              </SectionCard>
+            ) : null}
 
             {activeTab === "pages" && (
               <SectionCard title="페이지 설정">

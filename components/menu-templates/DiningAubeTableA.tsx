@@ -156,6 +156,7 @@ function MenuItemRow({
 }) {
   const t = useMenuText();
   const locale = useMenuLocale();
+  const album = useDefaultAlbum();
   const options = item.price_visible === false ? [] : getPriceOptions(item, priceOptions, locale);
   const price = item.price_visible === false ? "" : options.length ? options.map(option => option.text).join(" · ") : formatMenuPrice(item);
   return (
@@ -168,7 +169,12 @@ function MenuItemRow({
         <div className="aube-table-item-heading" data-has-price={price ? "true" : "false"} data-price-options={options.length && price ? "true" : undefined}>
           <h3><ScriptAwareText text={item.name} /></h3>
           <div className="aube-table-item-purchase">
-            {price ? <p className="aube-table-item-price">{options.length ? options.map((option, index) => <span key={option.id}>
+            {price && album ? <div className="aube-table-item-price aube-table-album-prices">
+              {(options.length ? options : [{ id: item.id, text: price }]).map(option => <div className="aube-table-album-price-row" key={option.id}>
+                <span className="aube-table-album-price-leader" data-album-price-leader aria-hidden="true" />
+                <span className="aube-table-option-price"><ScriptAwareText text={option.text} /></span>
+              </div>)}
+            </div> : price ? <p className="aube-table-item-price">{options.length ? options.map((option, index) => <span key={option.id}>
               {index > 0 ? <span className="aube-table-option-separator"><ScriptAwareText text=" · " /></span> : null}
               <span className="aube-table-option-price"><ScriptAwareText text={option.text} /></span>
             </span>) : <ScriptAwareText text={price} />}</p> : null}
@@ -185,11 +191,10 @@ function MenuItemRow({
 
 function CourseBlock({ course, priceOptions, onOpenImage }: { course: CourseWithItems; priceOptions: PublicMenuItemPriceOption[]; onOpenImage: OpenItemImage }) {
   const t = useMenuText();
-  const album = useDefaultAlbum();
-  const showItemImages = album || shouldShowAubeTableCourseItemImages(course);
+  const showItemImages = shouldShowAubeTableCourseItemImages(course);
 
   return (
-    <motion.section className="aube-table-course" data-aube-table-course="" variants={AUBE_TABLE_COURSE_REVEAL_GROUP}>
+    <motion.section className="aube-table-course" data-aube-table-course="" data-course-priced={!showItemImages ? "true" : "false"} variants={AUBE_TABLE_COURSE_REVEAL_GROUP}>
       <motion.div variants={AUBE_TABLE_COURSE_REVEAL_HEADING}>
         <header className="aube-table-course-header">
           <div className="aube-table-course-title">

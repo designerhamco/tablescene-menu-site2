@@ -159,6 +159,7 @@ export function getMenuEditorCapabilitiesForMenuSite(
 
 export function isMenuEditorTabEnabled(tabKey: MenuEditorTabKey, capabilities: MenuEditorCapabilities) {
   switch (tabKey) {
+    case "advertising":
     case "basic":
       return capabilities.basicInfo;
     case "pages":

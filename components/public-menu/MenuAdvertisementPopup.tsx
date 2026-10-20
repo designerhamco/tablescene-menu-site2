@@ -4,25 +4,20 @@ import { useEffect, useRef, useState, type PointerEvent } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
-import { menuPopupSuppressionKey, nextMenuPopupMidnight, type MenuPopupSettings } from "@/lib/menu-popup";
+import type { MenuPopupSettings } from "@/lib/menu-popup";
 import styles from "./MenuAdvertisementPopup.module.css";
 
-export default function MenuAdvertisementPopup({ menuId, settings, preview = false }: { menuId: string; settings: MenuPopupSettings; preview?: boolean }) {
+export default function MenuAdvertisementPopup({ settings }: { settings: MenuPopupSettings }) {
   const t = useMenuText();
-  const [open, setOpen] = useState(false), [today, setToday] = useState(false), [active, setActive] = useState(0), [drag, setDrag] = useState(0);
+  const [open, setOpen] = useState(false), [active, setActive] = useState(0), [drag, setDrag] = useState(0);
   const popupRef = useRef<HTMLDivElement>(null);
   const pointer = useRef<{ x: number; y: number; id: number } | null>(null);
   const signature = JSON.stringify(settings);
   useEffect(() => {
-    let hiddenUntil = 0;
-    if (!preview) { try { hiddenUntil = Number(localStorage.getItem(menuPopupSuppressionKey(menuId))) || 0; } catch { /* Private browsing may deny storage. */ } }
-    const id = requestAnimationFrame(() => { setActive(0); setToday(false); setOpen(settings.enabled && settings.images.length > 0 && (preview || hiddenUntil <= Date.now())); });
+    const id = requestAnimationFrame(() => { setActive(0); setDrag(0); setOpen(settings.enabled && settings.images.length > 0); });
     return () => cancelAnimationFrame(id);
-  }, [menuId, preview, signature, settings.enabled, settings.images.length]);
-  function close() {
-    if (today && !preview) { try { localStorage.setItem(menuPopupSuppressionKey(menuId), String(nextMenuPopupMidnight(Date.now()))); } catch { /* Closing must still work without storage. */ } }
-    setOpen(false);
-  }
+  }, [signature, settings.enabled, settings.images.length]);
+  function close() { setOpen(false); }
   function endDrag(event: PointerEvent<HTMLDivElement>) {
     const start = pointer.current; pointer.current = null; setDrag(0);
     if (!start || start.id !== event.pointerId) return;
@@ -42,9 +37,8 @@ export default function MenuAdvertisementPopup({ menuId, settings, preview = fal
         <div className={styles.slides} style={{ transform: `translateX(calc(${-active * 100}% + ${drag}px))`, transition: drag !== 0 ? "none" : undefined }}>
           {settings.images.map((image, index) => <div className={styles.slide} key={image.imageUrl + index} aria-hidden={index !== active}><img src={image.imageUrl} alt={t("매장 소식 {0}", index + 1)} draggable={false} /></div>)}
         </div>
+        {settings.images.length > 1 ? <div className={styles.dots} data-popup-dots aria-label={t("광고 이미지 선택")}>{settings.images.map((_, index) => <button type="button" key={index} data-active={index === active} aria-label={t("이미지 {0}", index + 1)} aria-current={index === active ? "true" : undefined} onPointerDown={event => event.stopPropagation()} onClick={() => setActive(index)}><span /></button>)}</div> : null}
       </div>
-      {settings.images.length > 1 ? <div className={styles.dots} data-popup-dots aria-label={t("광고 이미지 선택")}>{settings.images.map((_, index) => <button type="button" key={index} data-active={index === active} aria-label={t("이미지 {0}", index + 1)} aria-current={index === active ? "true" : undefined} onClick={() => setActive(index)}><span /></button>)}</div> : null}
-      <footer className={styles.footer}><label><input type="checkbox" checked={today} onChange={e => setToday(e.target.checked)} />{t("오늘 하루 보지 않기")}</label><button type="button" onClick={close}>{t("닫기")}</button></footer>
     </Dialog.Content></Dialog.Portal>
   </Dialog.Root>;
 }

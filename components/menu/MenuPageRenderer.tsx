@@ -16,5 +16,5 @@ type MenuPageRendererProps = MenuPageData & {
 
 export default function MenuPageRenderer({ mode, ...data }: MenuPageRendererProps) {
   const popup = readMenuPopupSettings(data.menuSite.settings);
-  return <MenuLocaleScope locale={data.locale}><MenuTemplateRenderer key={data.initialPreviewPageId ?? "default-preview-page"} mode={mode} {...data} />{data.menuSite.template_key !== "display_menu_a" && popup.enabled && popup.images.length > 0 ? <MenuAdvertisementPopup menuId={data.menuSite.id} settings={popup} preview={mode === "preview"} /> : null}</MenuLocaleScope>;
+  return <MenuLocaleScope locale={data.locale}><MenuTemplateRenderer key={data.initialPreviewPageId ?? "default-preview-page"} mode={mode} {...data} />{data.menuSite.template_key !== "display_menu_a" && popup.enabled && popup.images.length > 0 ? <MenuAdvertisementPopup settings={popup} /> : null}</MenuLocaleScope>;
 }
