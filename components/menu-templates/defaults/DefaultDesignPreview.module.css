@@ -66,3 +66,10 @@
   .surface[data-default-design="dining-sidebar"] :global(.aube-table-page[data-columns="2"] .aube-table-page-content),
   .surface[data-default-design="dining-sidebar"] :global(.aube-table-page[data-columns="2"] .aube-table-direct-items) { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Keep the existing designer themes and mobile at their approved sizes. */
+@container aube (min-width: 768px) {
+  .surface[data-default-design^="dining-"] :global(.aube-table-root) {
+    --aube-item-reading-scale: calc(1.06 * .94);
+  }
+}

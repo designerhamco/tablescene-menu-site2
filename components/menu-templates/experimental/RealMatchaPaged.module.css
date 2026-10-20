@@ -181,6 +181,14 @@
 .mobile[data-basic-structure="basic-upper-left"] :global(.cafe-a-cover-hero) { height: auto !important; min-height: 0 !important; aspect-ratio: 4 / 3 !important; flex: none !important; }
 .mobile[data-basic-structure="basic-upper-left"] :global(.cafe-a-cover-frame) { height: 100% !important; min-height: 0 !important; }
 
-.portraitCoverSlot { flex: 1; min-height: 0; min-width: 0; container-type: size; display: grid; place-items: center; }
-.portraitCoverSlot .cover { flex: none !important; width: min(100cqw, 80cqh) !important; height: auto !important; aspect-ratio: 4 / 5 !important; }
+.portraitCoverSlot { flex: 1; min-height: 0; min-width: 0; container-type: size; display: grid; place-items: end center; }
+.portraitCoverSlot .cover { align-self: end !important; justify-self: center; flex: none !important; width: min(100cqw, 80cqh) !important; height: auto !important; aspect-ratio: 4 / 5 !important; }
 .mobile[data-portrait-cover="true"] :global(.cafe-a-cover-hero) { height: auto !important; min-height: 0 !important; aspect-ratio: 4 / 5 !important; flex: none !important; }
+
+/* Neutral defaults: soften only product roles, including measuring rows and
+   linked featured copy. Headings, page rhythm and mobile retain their tokens. */
+.frame[data-default-reading="true"] :is(.unit[data-kind="item"], .cover) {
+  --cafe-a-linked-item-name-size: max(1rem, calc(var(--scroll-item-size, 1rem) * .94 * var(--menu-font-size-scale, 1) * var(--menu-role-item-name-size-scale, 1)));
+  --cafe-a-adaptive-support-size: max(.75rem, calc(var(--cafe-a-linked-item-name-size) * .72));
+  --cafe-a-linked-supporting-copy-size: var(--cafe-a-adaptive-support-size);
+}
