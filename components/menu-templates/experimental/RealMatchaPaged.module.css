@@ -103,7 +103,7 @@
 .mobile :global(.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"]) {
   --cafe-a-mobile-heading-gap: 1.625rem;
 }
-.notices { padding-block: 0 0.25rem; overflow-wrap: anywhere; line-height: 1.5; white-space: pre-line; text-align: right; }
+.notices { color: var(--menu-role-supporting-color, #3f4945); padding-block: 0 0.25rem; overflow-wrap: anywhere; line-height: 1.5; white-space: pre-line; text-align: right; }
 .notices:empty { display: none; }
 .fade {
   position: absolute;
@@ -153,7 +153,7 @@
 .notices :global(.cafe-a-script-en), .notices :global(.cafe-a-script-ko) { font-family: var(--menu-font-ko) !important; }
 
 /* New neutral review structures share the approved reading units and mobile renderer. */
-.frame[data-basic-structure="basic-top-row"] { grid-template-rows: minmax(0, var(--cafe-a-header-fr, 8fr)) minmax(0, var(--cafe-a-body-fr, 92fr)); row-gap: calc(var(--scroll-page-inset) * var(--cafe-a-header-gap-scale, 1)); }
+.frame[data-basic-structure="basic-top-row"] { grid-template-rows: minmax(var(--cafe-a-header-copy-height, 0px), var(--cafe-a-header-fr, 8fr)) minmax(0, var(--cafe-a-body-fr, 92fr)); row-gap: calc(var(--scroll-page-inset) * var(--cafe-a-header-gap-scale, 1)); }
 .topRow { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--scroll-column-gap); align-items: center; min-width: 0; }
 .topDescription { display: flex; align-items: center; gap: .75rem; min-width: 0; }
 .topIdentity { min-width: 0; text-align: center; }

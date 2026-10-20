@@ -11,7 +11,7 @@ const cafeSource = readFileSync(
   "utf8",
 );
 
-test("Mocha Forest starter uses Pretendard and Lemon", () => {
+test("Mocha Forest starter uses Pretendard and Carme", () => {
   const preset = getStarterPreset("cafe_mocha_forest_a");
   const typography = mergeTypographySettings(
     preset.template_key,
@@ -19,7 +19,7 @@ test("Mocha Forest starter uses Pretendard and Lemon", () => {
   );
 
   assert.equal(typography.korean_font_key, "pretendard");
-  assert.equal(typography.english_font_key, "lemon");
+  assert.equal(typography.english_font_key, "carme");
 });
 
 test("legacy notice face remains available to excluded engines; one-page uses its scoped saved-font rule", () => {

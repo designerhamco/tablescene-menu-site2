@@ -80,6 +80,9 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
         const availableHeight = frameHeight - baseGap * gapScale;
         const ratio = getCanvasHeaderRatio(availableHeight, next.fontSize, next.lines.length, lineAdvance, sideHeight);
         const board = root.closest<HTMLElement>(".cafe-a-desktop-fit-board, [data-scroll-brand-board]");
+        // Reading headers may grow for actual side copy (including language
+        // space) without enlarging the title's independent 14% fit budget.
+        if (board?.hasAttribute("data-scroll-brand-board")) board.style.setProperty("--cafe-a-header-copy-height", `${Math.ceil(sideHeight)}px`);
         board?.style.setProperty("--cafe-a-header-fr", `${ratio * 100}fr`);
         board?.style.setProperty("--cafe-a-body-fr", `${(1 - ratio) * 100}fr`);
         board?.style.setProperty("--cafe-a-header-gap-scale", String(gapScale));
@@ -109,6 +112,11 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
     const panelFrame = layoutShell === "brand_panel_flow" ? root.closest(".cafe-a-panel-intro") : null;
     for (const element of panelFrame?.querySelectorAll(".cafe-a-panel-controls, .cafe-a-featured-copy, .cafe-a-store-description") ?? []) observer.observe(element);
     for (const element of board?.querySelectorAll(".cafe-a-topline-description, .cafe-a-topline-notice-text, [data-scroll-header-copy]") ?? []) observer.observe(element);
+    // Capped legacy copy can change its scrollHeight without changing its box.
+    // Watch content too, including edits that retain the same menu IDs/counts.
+    const copyObserver = new MutationObserver(schedule);
+    const header = board?.querySelector("[data-cafe-a-topline-info-header], [data-basic-top-row]");
+    if (header) copyObserver.observe(header, { childList: true, characterData: true, subtree: true });
     window.addEventListener("resize", schedule);
     schedule();
     void document.fonts.ready.then(schedule);
@@ -117,10 +125,12 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       disposed = true;
       cancelAnimationFrame(frame);
       observer.disconnect();
+      copyObserver.disconnect();
       window.removeEventListener("resize", schedule);
       document.fonts.removeEventListener("loadingdone", schedule);
       // A logo or another presentation must not inherit the text-only gap.
       board?.style.removeProperty("--cafe-a-header-gap-scale");
+      board?.style.removeProperty("--cafe-a-header-copy-height");
       if (board) {
         delete board.dataset.fitHeaderGapScale;
         delete board.dataset.fitHeaderBrandLines;

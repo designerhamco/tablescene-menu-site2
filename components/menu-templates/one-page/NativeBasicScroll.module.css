@@ -33,7 +33,7 @@
 .unit[data-boundary="section"] { padding-bottom: var(--native-section-gap); }
 .board .unit :global(.cafe-a-category-heading) { margin-bottom: 0; }
 .measure { position: absolute; height: 0; visibility: hidden; pointer-events: none; overflow: hidden; contain: layout; }
-.notices { margin-top: auto; padding-top: var(--native-section-gap); text-align: right; white-space: pre-line; line-height: 1.5; }
+.notices { color: var(--menu-role-supporting-color, var(--mocha-panel-supporting, #3f4945)); margin-top: auto; padding-top: var(--native-section-gap); text-align: right; white-space: pre-line; line-height: 1.5; }
 .notices p { margin: 0; }
 .fade { position: absolute; bottom: 0; inset-inline: 0; height: clamp(3rem, 9vh, 6rem); background: linear-gradient(to bottom, transparent, var(--native-background) 95%); opacity: 0; pointer-events: none; transition: opacity .15s; }
 .board[data-native-more="true"] .fade { opacity: 1; }
@@ -44,7 +44,7 @@
 .actions .order { background: var(--menu-order-bg, #191c1b); color: var(--menu-order-ink, white); border-color: var(--menu-order-border, #191c1b); }
 .actions button:focus-visible { outline: 2px solid var(--menu-role-brand-color); outline-offset: 3px; }
 /* The existing three native header cells stay above their featured/menu body. */
-.board[data-native-shell="brand_top_band"] { grid-template-rows: minmax(0, var(--cafe-a-header-fr, 8fr)) minmax(0, var(--cafe-a-body-fr, 92fr)); row-gap: calc(var(--native-gap) * var(--cafe-a-header-gap-scale, 1)); }
+.board[data-native-shell="brand_top_band"] { grid-template-rows: minmax(max(2.75rem, var(--cafe-a-header-copy-height, 0px)), var(--cafe-a-header-fr, 8fr)) minmax(0, var(--cafe-a-body-fr, 92fr)); row-gap: calc(var(--native-gap) * var(--cafe-a-header-gap-scale, 1)); }
 .header { grid-column: 1 / -1; position: relative; min-height: 0; }
 .board .header :global(.cafe-a-topline-info-header) { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--native-gap); width: 100%; height: 100%; min-height: 0; }
 .headerLanguage { position: absolute; top: 0; left: 0; z-index: 5; }

@@ -636,7 +636,7 @@ const loopBagelStarterPreset: StarterPreset = {
     settings: {
       typography: {
         korean_font_key: "pretendard",
-        english_font_key: "bagel-fat-one",
+        english_font_key: "mogra",
         font_size_scale_key: "m",
       },
       footer_notice_1: "Wi-Fi · LOOP_BAGEL",
@@ -804,7 +804,7 @@ cafeMochaForestStarterPreset.site = {
     ...(cafeMochaForestStarterPreset.site.settings ?? {}),
     typography: {
       korean_font_key: "pretendard",
-      english_font_key: "lemon",
+      english_font_key: "carme",
       font_size_scale_key: "m",
     },
     footer_notice_1: "Wi-Fi · MOCHA_GUEST",
@@ -2883,6 +2883,18 @@ export function getStarterPreset(templateKey?: string | null, restaurantCategory
   const normalizedTemplateKey = templateKey?.trim().toLowerCase() ?? "";
   const templatePreset = normalizedTemplateKey ? templateStarterPresets[normalizedTemplateKey === "cafe_real_matcha_paged_test" ? "cafe_design_a" : normalizedTemplateKey] : null;
   if (templatePreset) {
+    // These bilingual starters show their secondary names from the first open,
+    // both in the catalog preview and when creating a new menu.
+    if (normalizedTemplateKey === "cafe_mocha_forest_a" || normalizedTemplateKey === "fast_food_loop_bagel_a") {
+      const englishItems = getSinglePageStarterTranslations(normalizedTemplateKey)?.en.items;
+      return { ...templatePreset, pages: templatePreset.pages.map(page => ({ ...page,
+        categories: page.categories.map(category => ({ ...category,
+          items: category.items.map(menuItem => ({ ...menuItem,
+            set_name: menuItem.set_name || (menuItem.key ? englishItems?.[menuItem.key]?.name.toUpperCase() : undefined),
+          })),
+        })),
+      })) };
+    }
     return templatePreset;
   }
 
