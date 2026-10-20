@@ -339,6 +339,7 @@ export default function DiningAubeTableA({
         data-layout={layoutVariant}
         data-spacing-contract="editorial-scroll"
         data-theme={themeVariant}
+        data-cover-image-active={activeUnit.type === "cover" && data.pageSettings.cover_image_visible !== false && Boolean(data.menuSite.cover_image_url) ? "true" : undefined}
       >
       <div className="aube-table-language-control" data-aube-table-language-control="">
         <DiningMenuToolbar>
