@@ -9,7 +9,8 @@ import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
 import { supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
-import { getDefaultDesignOptions, type DefaultDesignOptionKey } from "@/lib/default-design-options";
+import { getTemplatePreviewOptionGroups } from "@/lib/template-preview-options";
+import { getDefaultDesignOptions, type DefaultDesignOptionKey, type DefaultDesignOptions } from "@/lib/default-design-options";
 
 import {
   buildMenuPreviewUrl,
@@ -85,7 +86,7 @@ function PreviewOrientationIcon() {
 }
 
 export default function MenuPreviewDeviceFrame(
-  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean },
+  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions },
 ) {
   const { device, orientation, query } = props;
   const router = useRouter();
@@ -123,25 +124,13 @@ export default function MenuPreviewDeviceFrame(
   const supportsLayoutPreview = props.supportsLayoutPreview ?? supportsPcTabletLayoutMode(props.templateKey);
   const designParam = (query as TemplatePreviewQuery).design;
   const defaultDesign = props.templateKey ? getDefaultDesignReview(Array.isArray(designParam) ? designParam[0] : designParam, props.templateKey) : undefined;
-  const [displayOptions, setDisplayOptions] = useOptimistic(getDefaultDesignOptions(query as TemplatePreviewQuery));
-  const displayGroups: { label: string; choices: [DefaultDesignOptionKey, string][] }[] = defaultDesign?.layout.startsWith("basic-")
-    ? [
-      { label: "영역·이미지", choices: [["popupPreview", "광고"], ["logoPreview", "로고"], ["coverPreview", "대표 영역"], ["featuredPreview", "대표 상품"], ["imagesPreview", "상품 이미지"], ["widgetsPreview", "위젯"]] },
-      { label: "메뉴 정보", choices: [["categoryDescriptionsPreview", "카테고리 설명"], ["secondaryNamesPreview", "보조 언어명"], ["descriptionsPreview", "메뉴 설명"], ["badgesPreview", "일반 텍스트칩"]] },
-      { label: "가격·판매 상태", choices: [["priceOptionsPreview", "가격 옵션"], ["priceNotesPreview", "가격 설명"], ["timeSalesPreview", "기간 할인"], ["soldOutPreview", "품절"]] },
-    ]
-    : [
-      { label: "영역·이미지", choices: [["popupPreview", "광고"], ["logoPreview", "로고"], ["coverPreview", "커버 페이지"], ["coverImagesPreview", "커버 이미지"], ["imagesPreview", "상품 이미지"]] },
-      { label: "메뉴 정보", choices: [["categoryDescriptionsPreview", "카테고리 설명"], ["secondaryNamesPreview", "보조 언어명"], ["descriptionsPreview", "메뉴 설명"]] },
-      { label: "가격·판매 상태", choices: [["priceOptionsPreview", "가격 옵션"], ["soldOutPreview", "품절"]] },
-    ];
-  if (defaultDesign?.itemLayout === "album" && defaultDesign.layout.startsWith("basic-")) {
-    for (const group of displayGroups) group.choices = group.choices.filter(([key]) => key !== "priceOptionsPreview");
-  }
+  const [displayOptions, setDisplayOptions] = useOptimistic(props.previewDisplayOptions ?? getDefaultDesignOptions(query as TemplatePreviewQuery));
+  const displayGroups = props.templateKey ? getTemplatePreviewOptionGroups(props.templateKey, defaultDesign) : [];
+  const hasDisplayOptions = displayGroups.length > 0;
   const displayChoices = displayGroups.flatMap(group => group.choices);
   const enabledDisplayCount = displayChoices.filter(([key]) => displayOptions[key]).length;
   const changeDisplayOption = (key: DefaultDesignOptionKey, enabled: boolean) => {
-    if (!props.templateKey || !defaultDesign) return;
+    if (!props.templateKey || !hasDisplayOptions) return;
     startTransition(() => {
       setDisplayOptions({ ...displayOptions, [key]: enabled });
       router.push(buildTemplatePreviewUrl(props.templateKey!, { ...query, [key]: enabled ? "on" : "off" }, { device, orientation, callPreview: features.call, orderPreview: features.order }), { scroll: false });
@@ -306,11 +295,6 @@ export default function MenuPreviewDeviceFrame(
                 onChange={(enabled) => changeFeature("order", enabled)}
               />
             ) : null}
-            {!defaultDesign && props.templateKey && props.templateKey !== "display_menu_a" ? <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-white/10 px-2 text-xs font-bold">
-              <input type="checkbox" aria-label="광고" checked={displayOptions.popupPreview} disabled={!showToolbar || isPending} onChange={event => {
-                const enabled = event.target.checked;
-                startTransition(() => { setDisplayOptions({ ...displayOptions, popupPreview: enabled }); router.push(buildTemplatePreviewUrl(props.templateKey!, { ...query, popupPreview: enabled ? "on" : "off" }, { device, orientation, callPreview: features.call, orderPreview: features.order }), { scroll: false }); });
-              }} />광고</label> : null}
             {supportsLayoutPreview && device !== "mobile" ? (
               <div className="flex shrink-0 gap-0.5 rounded-xl bg-white/10 p-0.5" role="group" aria-label="메뉴 배치 방식">
                 {([['orderedBalancedFit', '묶음형'], ['orderedFit', '채움형']] as const).map(([mode, label]) => (
@@ -340,7 +324,7 @@ export default function MenuPreviewDeviceFrame(
               <span className="hidden min-[430px]:inline">새 창에서 보기</span>
             </Link>
           </div>
-          {defaultDesign && showToolbar ? (
+          {hasDisplayOptions && showToolbar ? (
             <section className="mt-2 border-t border-white/15 px-2 pb-1 pt-1 text-xs" aria-label="보기 옵션">
               <button type="button" className="flex min-h-9 w-full items-center gap-2 text-left font-medium text-white/90"
                 aria-expanded={areDisplayOptionsOpen} aria-controls="preview-display-options"
@@ -356,7 +340,7 @@ export default function MenuPreviewDeviceFrame(
                       <div className="flex flex-wrap gap-x-3 gap-y-0.5">
                         {group.choices.map(([key, label]) => (
                           <label key={key} className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 font-medium has-[:disabled]:cursor-default has-[:disabled]:opacity-40">
-                            <input type="checkbox" aria-label={`${label} 보기`} checked={displayOptions[key]} disabled={isPending || (key === "featuredPreview" && !displayOptions.coverPreview)}
+                            <input type="checkbox" aria-label={`${label} 보기`} checked={displayOptions[key]} disabled={isPending || ((key === "featuredPreview" || key === "coverImagesPreview") && !displayOptions.coverPreview)}
                               onChange={event => changeDisplayOption(key, event.target.checked)} />{label}
                           </label>
                         ))}
@@ -395,7 +379,7 @@ export default function MenuPreviewDeviceFrame(
             ? "h-screen w-screen overflow-hidden"
             : "h-screen overflow-auto px-4 py-16"
         }
-        style={device !== "pc" && defaultDesign && showToolbar ? { paddingTop: toolbarHeight + 24 } : undefined}
+        style={device !== "pc" && hasDisplayOptions && showToolbar ? { paddingTop: toolbarHeight + 24 } : undefined}
         tabIndex={device === "pc" ? undefined : 0}
         aria-label={`${frame.label}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
       >

@@ -1,0 +1,5 @@
+/* Explicit catalog preview controls can demonstrate roles hidden by a native
+   starter skin. Without an opt-in, every original rule remains in force. */
+.surface { display: contents; }
+.surface[data-preview-secondary="on"] :global(.cafe-a-menu-meta:not([data-cafe-a-reference-copy])) { display: block !important; }
+.surface[data-preview-category-description="on"] :global([data-cafe-a-category-description]) { display: block !important; }
