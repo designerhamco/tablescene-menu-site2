@@ -1,3 +1,4 @@
+import { AUBE_TABLE_DEFAULT_COVER_BACKGROUND_OPACITY } from "./aube-table";
 import { localizeDefaultDesignPreview } from "./default-design-localization";
 import type { MenuPageData } from "./menu-page-data";
 import type { DefaultDesignReview } from "./menu-design-policy";
@@ -47,13 +48,14 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
   const settings = (data.menuSite.settings && typeof data.menuSite.settings === "object" && !Array.isArray(data.menuSite.settings)) ? data.menuSite.settings : {};
   data.menuSite = {
     ...data.menuSite, id: `default-design-preview-${design.id}`, name: title,
-    restaurant_name: title, business_name: title, logo_url: null,
+    restaurant_name: title, business_name: title, logo_url: options.logoPreview ? "/placeholders/starter/default-logo.svg" : null,
     intro_title: title, intro_description: description, description,
     brand_description: description, menu_cover_title: title,
     menu_cover_description: description, menu_cover_label: "MENU",
     cover_image_url: coverImage, brand_color: ink,
     settings: {
       ...settings,
+      logo_replaces_name: options.logoPreview,
       typography: { korean_font_key: "pretendard", english_font_key: "pretendard", font_size_scale_key: "m", typography_roles: roles },
       badge_styles: Object.fromEntries(BADGE_STYLE_KEYS.map(key => [key, { background_color: ink, text_color: "#ffffff" }])),
       footer_notice_1: "영업시간 10:00–21:00",
@@ -65,7 +67,9 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
     ...data.pageSettings, menu_cover_enabled: options.coverPreview,
     featured_item_enabled: options.featuredPreview,
     menu_cover_visible_pc: true, menu_cover_visible_tablet: true, menu_cover_visible_mobile: true,
-    multi_page_cover_background_color: "#ffffff", multi_page_cover_background_opacity: 90,
+    ...(!basic ? { cover_image_visible: options.coverImagesPreview } : {}),
+    multi_page_cover_background_color: !basic && options.coverImagesPreview ? "#000000" : "#ffffff",
+    multi_page_cover_background_opacity: !basic && options.coverImagesPreview ? AUBE_TABLE_DEFAULT_COVER_BACKGROUND_OPACITY : 90,
   };
   const savedPage = data.menuSite.page_settings && typeof data.menuSite.page_settings === "object" && !Array.isArray(data.menuSite.page_settings) ? data.menuSite.page_settings : {};
   const savedDesign = savedPage.design && typeof savedPage.design === "object" && !Array.isArray(savedPage.design) ? savedPage.design : {};

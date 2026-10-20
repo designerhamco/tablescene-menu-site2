@@ -73,3 +73,35 @@
     --aube-item-reading-scale: calc(1.06 * .94);
   }
 }
+
+/* Logo artwork keeps its intrinsic ratio; only its available size is bounded.
+   These selectors cannot change existing designer/customer logo rendering. */
+.surface :global([data-default-design-logo]) {
+  display: block;
+  width: auto !important;
+  height: auto !important;
+  max-width: 75% !important;
+  max-height: min(20svh, 12rem) !important;
+  margin: 0;
+  object-fit: contain;
+  object-position: left center;
+}
+.surface[data-default-design^="dining-"] :global([data-default-design-logo]) {
+  margin: 0 auto;
+  object-position: center;
+}
+.surface :global(.cafe-a-typography[data-cafe-a-mobile-style="true"] [data-default-design-logo]) {
+  max-height: min(20svh, 8rem) !important;
+  margin-inline: auto;
+  object-position: center;
+}
+@container aube (max-width: 767px) {
+  .surface :global([data-default-design-logo]) { max-height: min(20svh, 8rem) !important; }
+}
+
+/* The optional neutral cover photo has its own readable title/copy palette. */
+.surface :global([data-default-cover-image="true"]) { --menu-role-brand-color: #ffffff; }
+.surface :global([data-default-cover-image="true"] .aube-table-cover-copy) { color: #ffffff; }
+/* Keep page controls readable while the optional dark cover is visible. */
+.surface :global(.aube-table-root:has([data-default-cover-image="true"]) .aube-table-pagination) { --aube-accent: #ffffff; }
+.surface :global(.aube-table-root:has([data-default-cover-image="true"]) .aube-table-pagination-direction) { color: #ffffff; }

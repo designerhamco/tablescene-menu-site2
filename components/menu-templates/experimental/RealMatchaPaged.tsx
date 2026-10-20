@@ -50,6 +50,7 @@ import {
 import type { MeasuredMenuBlock } from "@/lib/basic-menu-pagination";
 
 import { layoutScrollableMenu, selectScrollableMenuCandidate, type ScrollableMenuLayout, type ScrollableMenuBlock } from "@/lib/basic-menu-scroll";
+import { getCanvasHeaderRatio } from "@/lib/canvas-brand-title-fit";
 import { getOnePageItemNameCeilingRem } from "@/lib/one-page-typography-profile";
 import { getOrderedFitGapScale } from "../one-page/pc-tablet/cafe-fit-engine";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
@@ -367,6 +368,53 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       document.fonts.removeEventListener("loadingdone", schedule);
     };
   }, [mobile, units, layoutMode, showCall, showOrder, device, updateScrollHint, centerColumn, upperLeft, topRow]);
+  // A logo replaces CanvasBrandTitle, but must retain its shared header budget.
+  useLayoutEffect(() => {
+    if (mobile || !topRow || !defaultStructure || !data.menuSite.logo_url) return;
+    const board = area.current?.closest<HTMLElement>("[data-scroll-brand-board]");
+    const header = board?.querySelector<HTMLElement>("[data-basic-top-row]");
+    const logo = header?.querySelector<HTMLImageElement>("[data-default-design-logo]");
+    const slot = logo?.closest<HTMLElement>(".cafe-a-store-logo-wrap");
+    if (!board || !header || !logo || !slot) return;
+    let frame = 0, disposed = false;
+    const measureLogoHeader = () => {
+      frame = 0;
+      if (disposed || !logo.isConnected) return;
+      board.style.setProperty("--cafe-a-header-gap-scale", "1");
+      const style = getComputedStyle(board);
+      const height = board.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) - parseFloat(style.rowGap);
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      const naturalRatio = logo.naturalWidth > 0 ? logo.naturalHeight / logo.naturalWidth : 0;
+      const desiredLogoHeight = Math.min(slot.clientWidth * .75 * naturalRatio, innerHeight * .2, 12 * rem);
+      const sideHeight = Math.max(0, ...[...header.querySelectorAll<HTMLElement>("[data-scroll-header-copy]")].map(element => Math.max(element.scrollHeight, element.getBoundingClientRect().height)));
+      const ratio = getCanvasHeaderRatio(height, 0, 0, 1, Math.max(desiredLogoHeight, sideHeight));
+      board.style.setProperty("--cafe-a-header-fr", `${ratio * 100}fr`);
+      board.style.setProperty("--cafe-a-body-fr", `${(1 - ratio) * 100}fr`);
+      board.dataset.fitHeaderRatio = String(ratio);
+      board.dataset.fitHeaderGapScale = "1";
+      board.dataset.fitHeaderBrandLines = "logo";
+    };
+    const schedule = () => { if (!disposed && !frame) frame = requestAnimationFrame(measureLogoHeader); };
+    const observer = new ResizeObserver(schedule);
+    observer.observe(board);
+    observer.observe(slot);
+    for (const element of header.querySelectorAll("[data-scroll-header-copy]")) observer.observe(element);
+    logo.addEventListener("load", schedule);
+    document.fonts.addEventListener("loadingdone", schedule);
+    void document.fonts.ready.then(schedule);
+    schedule();
+    return () => {
+      disposed = true;
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      logo.removeEventListener("load", schedule);
+      document.fonts.removeEventListener("loadingdone", schedule);
+      for (const property of ["--cafe-a-header-fr", "--cafe-a-body-fr", "--cafe-a-header-gap-scale"]) board.style.removeProperty(property);
+      delete board.dataset.fitHeaderRatio;
+      delete board.dataset.fitHeaderGapScale;
+      delete board.dataset.fitHeaderBrandLines;
+    };
+  }, [mobile, topRow, defaultStructure, data.menuSite.logo_url]);
   useLayoutEffect(() => {
     if (mobile || !area.current || !scrollContent.current) return;
     const observer = new ResizeObserver(updateScrollHint);
