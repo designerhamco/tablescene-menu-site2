@@ -4,7 +4,7 @@
 
 ## 준비 상태
 
-- 코드와 `20261021140627_add_menu_plan_change_reservations.sql`은 로컬 준비 단계다. 이 파일은 운영 적용 전 별도 승인이 필요하다. 이전 승인 파일 `20261021122057_add_menu_design_subscription_contract.sql`과 다른 파일이다.
+- 코드는 PR #295에 검토 가능한 상태로 준비했다. `20261021140627_add_menu_plan_change_reservations.sql`은 아직 운영에 적용하지 않았다. 이 파일은 운영 적용 전 별도 승인이 필요하다. 이전 승인 파일 `20261021122057_add_menu_design_subscription_contract.sql`과 다른 파일이다.
 - `MENU_PLAN_CHANGE_LEDGER_READY`·`ENABLE_MENU_PLAN_CHANGE_RENEWALS`·`ENABLE_MENU_PLAN_CHANGES`가 모두 true일 때만 신규 예약을 받는다. 기본은 모두 미설정/OFF다. 신규 예약의 결제 실행은 기존 자동청구 설정과 분리해 신청한 전환 건만 처리한다. 기존 갱신 cron의 실행 승인 스위치·실카드 설정은 변경하지 않는다.
 - 실제 고객 계약·청구·환불·예약 행은 검사를 위해 변경하지 않는다. 아래 검수는 임시 DB와 모의 결제사를 사용한다.
 
