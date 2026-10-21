@@ -9,7 +9,7 @@ import {
 } from "@/lib/call-management";
 import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
 import type { StaffCallItem } from "@/lib/call-items";
-import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
+import { getDiningTemplateFeatures, getDiningTemplateTier } from "@/lib/dining-product-tiers";
 import { listStaffCallItems } from "@/lib/server/call-item-service";
 import {
   requireMenuSitePermission,
@@ -56,6 +56,7 @@ export type CallDashboardCall = {
 
 export type CallDashboardPageData = {
   menuSite: { id: string; name: string };
+  callService: "basic" | "dining";
   calls: CallDashboardCall[];
   callItems: StaffCallItem[];
 };
@@ -141,7 +142,7 @@ export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallD
     failRead(siteResult.error);
   }
   if (!getDiningTemplateFeatures(siteResult.data.template_key).smartCall) {
-    throw new CallManagementError("DASHBOARD_UNAVAILABLE", "멀티페이지 다이닝 메뉴판에서만 스마트호출을 사용할 수 있습니다.", 403);
+    throw new CallManagementError("DASHBOARD_UNAVAILABLE", "이 메뉴판 유형에서는 직원 호출을 사용할 수 없습니다.", 403);
   }
   if (callsResult.error) failRead(callsResult.error);
   if (tablesResult.error) failRead(tablesResult.error);
@@ -161,6 +162,7 @@ export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallD
   const calls = (callsResult.data ?? []) as unknown as CallRow[];
   return {
     menuSite: siteResult.data,
+    callService: getDiningTemplateTier(siteResult.data.template_key) === "multi" ? "dining" : "basic",
     calls: calls.map((call) => ({
       id: call.id,
       callNumber: call.call_number,
@@ -207,7 +209,7 @@ export async function transitionStaffCall({
     .eq("id", menuSiteId)
     .maybeSingle();
   if (menuSiteResult.error || !menuSiteResult.data || !getDiningTemplateFeatures(menuSiteResult.data.template_key).smartCall) {
-    throw new CallManagementError("DASHBOARD_UNAVAILABLE", "멀티페이지 다이닝 메뉴판에서만 스마트호출을 사용할 수 있습니다.", 403);
+    throw new CallManagementError("DASHBOARD_UNAVAILABLE", "이 메뉴판 유형에서는 직원 호출을 사용할 수 없습니다.", 403);
   }
   const currentResult = await supabase
     .from("menu_customer_calls")

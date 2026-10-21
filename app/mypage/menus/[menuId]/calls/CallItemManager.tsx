@@ -6,6 +6,8 @@ import { useActionState, useState } from "react";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import {
   createCustomStaffCallItemKey,
+  getServiceStaffCallItems,
+  type StaffCallService,
   MAX_STAFF_CALL_ITEMS,
   MAX_STAFF_CALL_ITEM_LABEL_LENGTH,
   type StaffCallItem,
@@ -17,9 +19,11 @@ import { saveCallItemsAction } from "./actions";
 export default function CallItemManager({
   menuSiteId,
   items,
+  service = "basic",
 }: {
   menuSiteId: string;
   items: StaffCallItem[];
+  service?: StaffCallService;
 }) {
   const [draft, setDraft] = useState<StaffCallItem[]>(items);
   const [state, action, pending] = useActionState(saveCallItemsAction, initialCallItemActionState);
@@ -66,24 +70,30 @@ export default function CallItemManager({
         <div>
           <h2 className="type-subsection-title">호출 항목 설정</h2>
           <p className="mt-2 max-w-2xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
-            손님에게 보여줄 요청 항목을 최대 {MAX_STAFF_CALL_ITEMS}개까지 정합니다. 사용 중지를 해도 이전 호출 이력의 항목명은 그대로 보존됩니다.
+            손님이 한 번에 선택할 요청 항목을 최대 {MAX_STAFF_CALL_ITEMS}개까지 정합니다. 기본 항목을 불러와도 저장하기 전에는 반영되지 않습니다. 이전 호출 이력의 항목명은 그대로 보존됩니다.
           </p>
           {draft.length > MAX_STAFF_CALL_ITEMS ? (
             <p className="mt-2 text-xs font-bold text-amber-700">기존 항목을 {MAX_STAFF_CALL_ITEMS}개 이하로 줄인 뒤 저장해 주세요.</p>
           ) : null}
         </div>
+        <div className="flex flex-wrap gap-2">
+        <button type="button" disabled={pending} onClick={() => setDraft(getServiceStaffCallItems(service))} className="site-button site-button-secondary text-xs">
+          기본 항목 불러오기
+        </button>
         <button
           type="button"
           onClick={addItem}
-          disabled={draft.length >= MAX_STAFF_CALL_ITEMS}
+          disabled={pending || draft.length >= MAX_STAFF_CALL_ITEMS}
           className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-300 bg-white px-4 py-2.5 text-xs font-bold text-zinc-800 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           항목 추가
         </button>
+        </div>
       </div>
 
       <form action={action} className="mt-5 space-y-3">
+        <fieldset disabled={pending} className="space-y-3">
         <input type="hidden" name="menuSiteId" value={menuSiteId} />
         <input type="hidden" name="itemsJson" value={serializedItems} />
         {draft.map((item, index) => (
@@ -133,6 +143,7 @@ export default function CallItemManager({
             {pending ? "저장 중" : "호출 항목 저장"}
           </button>
         </div>
+        </fieldset>
       </form>
     </section>
   );

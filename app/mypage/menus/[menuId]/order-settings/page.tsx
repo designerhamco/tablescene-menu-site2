@@ -7,6 +7,8 @@ import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import OrderCatalogSettings from "./OrderCatalogSettings";
 import { loadMenuOrderCatalogSettings } from "@/lib/server/menu-order-catalog-settings-service";
 import OrderSettingsForm from "./OrderSettingsForm";
+import CallItemManager from "../calls/CallItemManager";
+import { listStaffCallItems } from "@/lib/server/call-item-service";
 export const metadata = {
   title: "주문·호출 설정 | 아티메뉴",
   robots: { index: false, follow: false },
@@ -32,7 +34,7 @@ export default async function OrderSettingsPage({
     throw e;
   }
   if (data.site.template_key === "display_menu_a") notFound();
-  const items = await loadMenuOrderCatalogSettings(menuId);
+  const [items, callItems] = await Promise.all([loadMenuOrderCatalogSettings(menuId), listStaffCallItems({menuSiteId: menuId, includeInactive: true})]);
   return (
     <>
       <OfficialSiteNavbar />
@@ -49,27 +51,17 @@ export default async function OrderSettingsPage({
           menuId={menuId}
           settings={data.settings}
           courses={data.courses}
+          runtime={data.runtime}
         />
+        <div className="mt-10">
+          <CallItemManager key={callItems.map(item => `${item.key}:${item.label}:${item.active}:${item.sortOrder}`).join("|")} menuSiteId={menuId} items={callItems} service={data.callService} />
+        </div>
         <OrderCatalogSettings menuId={menuId} items={items} />
         <div className="mt-12 flex flex-wrap gap-4">
-          <Link
-            className="site-button site-button-secondary"
-            href={"/mypage/menus/" + menuId + "/tables"}
-          >
-            테이블·QR 관리
-          </Link>
-          <Link
-            className="site-button site-button-secondary"
-            href={"/mypage/menus/" + menuId + "/orders"}
-          >
-            주문관리
-          </Link>
-          <Link
-            className="site-button site-button-secondary"
-            href="/qa/table-order"
-          >
-            후불 주문 테스트
-          </Link>
+          {data.runtime.tables ? <Link className="site-button site-button-secondary" href={"/mypage/menus/" + menuId + "/tables"}>테이블·QR 관리</Link> : null}
+          {data.runtime.calls ? <Link className="site-button site-button-secondary" href={"/mypage/menus/" + menuId + "/calls"}>호출관리</Link> : null}
+          {data.runtime.dashboard ? <Link className="site-button site-button-secondary" href={"/mypage/menus/" + menuId + "/orders"}>주문관리</Link> : null}
+
         </div>
       </main>
       <Footer />

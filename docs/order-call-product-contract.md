@@ -1,12 +1,26 @@
 # ArtiMenu Order·Call Product Contract
 
-Last updated: 2026-08-30
+Current scope reviewed with the approved Basic/Dining rollout; historical sections below are retained for provenance.
+
+## 현재 정책과 운영 경계
+
+- 베이직과 다이닝의 기본 디자인/디자인 템플릿은 같은 호출·테이블·후불 주문 기능 계약을 사용한다. 디자인 이용권 범위는 디자인 선택권이며 운영 권한을 더 주거나 빼지 않는다. 가격은 `lib/menu-plan-pricing.ts`를 기준으로 한다.
+- 실제 접수에는 활성 사업자 이용권, 공개 메뉴판, 서버에서 확인한 테이블 방문 세션, 해당 사이트의 운영 연결, 사장님이 저장한 기능 사용 설정이 모두 필요하다. 대표 QR·미리보기 체크·화면 너비만으로 권한을 얻지 않는다. Display와 알 수 없는 템플릿은 제외한다.
+- 운영 연결과 직원별 권한은 각각 검사한다. 호출 관리/테이블 관리/주문 조회 권한은 독립적이며, 사장님만 주문·호출 사용 설정을 변경한다. 기존 운영 allowlist나 전역 설정을 코드 배포만으로 확대하지 않는다.
+- 호출은 한 번에 한 항목만 선택한다. 항목 최대 5개·이름 30자, 직원 호출은 손님 목록 마지막이다. 기존 저장 항목과 과거 호출 스냅샷을 보존한다. 서비스별 기본 항목 불러오기는 편집 초안만 바꾸고 저장 시 반영한다.
+- 베이직 기본 항목은 물 요청/식기 요청/테이블 정리/계산 요청/직원 호출, 다이닝은 주문 요청/계산 요청/와인 문의/물 요청/직원 호출이다. 기본값 SQL은 `20261021145548_align_staff_call_service_defaults.sql`이며 별도 운영 적용 기록을 확인한다. 미적용 DB는 기존 기본값과 호환된다.
+- 테이블 이름 변경 시 QR 유지, QR 교체 시 이전 QR 및 방문 세션 차단, 비활성/보관 테이블의 새 접수 차단, 호출 중복 방지·재호출 제한을 유지한다. 실제 호출·테이블 생성은 검수를 위해 운영에 쓰지 않는다.
+- 후불 주문은 매장 결제이며 앱이 PG 선결제를 실행하지 않는다. 주문 내역·취소·결제 상태 연동 검수는 다음 단계에서 별도 기록한다. 실제 카드 청구/환불과 운영 대상 확대는 이 문서 수정의 승인이 아니다.
+
+## 과거 계약과 구현 기록
+
+아래 내용은 이전 제품 정책/구현 이력이다. 현재 정책과 충돌하는 가격, 베이직 호출 미지원, 다이닝 전용 또는 주문 장기 비활성 설명은 위 현재 정책과 실제 서버의 개별 운영 연결 조건으로 대체한다.
 
 ## 1. Purpose
 
 This document records the current ArtiMenu Dining feature boundary and preserves the dormant Order implementation contract for a possible distant relaunch.
 
-Current launch policy takes precedence over historical Order sections below:
+Historical launch policy recorded at that time (superseded by the current scope above):
 
 - Single-page Dining: KRW 5,900/month normal price and KRW 4,900/month launch price per design template; discount and widgets are included, while multi-page/Smart Call/Order are excluded.
 - Multi-page Dining: KRW 8,900/month normal price and KRW 6,900/month launch price per design template; Smart Call and Order are currently excluded.
