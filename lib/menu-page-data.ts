@@ -28,6 +28,7 @@ import {
 } from "@/lib/server/menu-site-access-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { createPublicReadClient } from "@/lib/supabase/public-read";
 import type { Database, Json } from "@/lib/supabase/types";
 import { isAubeTableTemplate } from "@/lib/aube-table";
 import { getReadyAubeTableLocales } from "@/lib/aube-table-language-readiness";
@@ -1180,7 +1181,7 @@ async function normalizeMenuPageData(menuSite: MenuSite, options: MenuPageDataOp
 }
 
 export async function getPublicMenuPageData(slug: string, options: MenuPageDataOptions = {}) {
-  const supabase = await createClient();
+  const supabase = createPublicReadClient();
   const primarySiteResult = await supabase
     .from("menu_sites")
     .select(siteSelect)
@@ -1212,7 +1213,7 @@ export async function getPublicMenuPageData(slug: string, options: MenuPageDataO
     return null;
   }
 
-  return normalizeMenuPageData(site as MenuSite, options);
+  return normalizeMenuPageData(site as MenuSite, options, supabase);
 }
 
 async function loadPreviewMenuSite(
