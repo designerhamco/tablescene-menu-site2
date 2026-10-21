@@ -18,7 +18,7 @@
 @container (min-width: 640px) { .groups { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; } }
 @media (min-width: 960px) {
   .panel { position: fixed; left: .75rem; top: 50%; width: 2.5rem; margin: 0; transform: translateY(-50%); }
-  .panel[data-options-open="true"] { top: .75rem; bottom: .75rem; display: flex; flex-direction: column; width: 20rem; transform: none; }
+  .panel[data-options-open="true"] { top: var(--preview-options-top, 5rem); bottom: .75rem; display: flex; flex-direction: column; width: 20rem; transform: none; }
   .panel[data-options-open="false"] .toggle { flex-direction: column; gap: .75rem; min-height: 8rem; padding: .75rem .5rem; }
   .panel[data-options-open="false"] .label { writing-mode: vertical-rl; letter-spacing: .1em; }
   .panel[data-options-open="false"] .count { display: none; }

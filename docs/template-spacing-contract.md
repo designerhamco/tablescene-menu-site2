@@ -1,8 +1,10 @@
 # Menu template spacing contract
 
-## Preview option drawer and display scaling — 2026-10-21
+## Preview option overlay — 2026-10-21
 
-Catalog options start collapsed, including links that select the Design tab. At actual browser widths of 960px and above, a left-edge tab opens a light options drawer independently of the dark top device/service toolbar. Opening reserves a separate side column; the preview fits the remaining canvas by display scaling. The iframe keeps its original device viewport: tablet/mobile use the registered dimensions/orientation and PC uses the actual outer browser viewport. Opening/closing/tabs must preserve the iframe document, source size and menu scroll position. Only an actual browser resize or selected device/orientation changes source geometry. At narrower browser widths, options stay below the top toolbar with the approved two-column mobile controls. Both layouts share the same temporary selections, keyboard tabs and light color picker. The reset icon is beside each swatch; HEX remains inside the picker. Display and saved-menu preview surfaces retain their prior paths.
+At actual browser widths of 960px and above, catalog options start **open** as a light left-edge overlay, including links that select the Design tab. Opening or closing covers/reveals the menu without reserving a side column, shifting the centered preview, or changing its size or display scale. The dark top device/service toolbar stays centered in the full browser width; the open drawer sits below it so both controls remain usable. Drawer state must preserve the iframe document, source size and menu scroll position. Tablet/mobile use their registered dimensions/orientation; PC uses the actual outer browser viewport. Only an actual browser resize or selected device/orientation changes source geometry. This supersedes the earlier collapsed/reserved-column/scaled-preview behavior.
+
+At narrower browser widths, options still start collapsed below the top toolbar with the approved two-column mobile controls. Explicit open/closed choices persist through tab/device navigation and browser resizing. Both layouts share temporary selections, keyboard tabs and the light color picker. The reset icon is beside each swatch; HEX remains inside the picker. Display and saved-menu preview surfaces retain their prior paths.
 
 ## Compact design controls — 2026-10-21
 
