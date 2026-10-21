@@ -22,6 +22,10 @@ async function mobile(c,width){const p=await page(width);try{
  assert.equal(await p.locator('.cafe-a-mobile-price-stack').count(),0,'no image means no stacked exception');
  for(const cat of await priceGeometry(p)){assert.equal(cat.headerVisible,true,'original category option labels return');for(const row of cat.rows)assert.ok(row.price.left>=row.copy.right-1);}
  assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+ if(width===390&&(c.key==='restaurant_onue_a'||c.design==='basic-first-column')){
+  await open(p,c.key,'mobile',{...(c.design?{design:c.design}:{}),imagesPreview:'on',secondaryNamesPreview:'off',descriptionsPreview:'off',badgesPreview:'off',timeSalesPreview:'off',soldOutPreview:'off'});
+  const offsets=await p.locator('.cafe-a-mobile-price-stack[data-cafe-a-image-title-only]').filter({visible:true}).evaluateAll(es=>es.map(e=>{const i=e.querySelector('.cafe-a-menu-item-image-slot').getBoundingClientRect(),c=e.querySelector('.cafe-a-menu-copy').getBoundingClientRect();return Math.abs((i.top+i.bottom-c.top-c.bottom)/2);}));assert.ok(offsets.length&&offsets.every(n=>n<1),'title-only stacked products retain thumbnail centering');
+ }
  rows.push({kind:'mobile-prices',...c,width});console.log('PASS mobile',c.design||c.key,width);
  if(c.key==='restaurant_onue_a'&&width===390){await p.locator('[data-cafe-a-category-block]').filter({visible:true}).last().scrollIntoViewIfNeeded();await p.screenshot({path:`${out}/mobile-price-options.png`});}
  }finally{await p.close();}}
