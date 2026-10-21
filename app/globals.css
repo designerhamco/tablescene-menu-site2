@@ -3083,13 +3083,13 @@ video {
   display: none;
 }
 
-/* Loop Bagel keeps scripts explicit: Korean uses Nanum Gothic and Latin uses the selected Bagel Fat One starter font. */
+/* Loop Bagel keeps its starter faces while honoring each configured typography role. */
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-script-ko {
-  font-family: var(--menu-font-ko), "Nanum Gothic", system-ui, sans-serif;
+  font-family: var(--cafe-a-script-ko-font, var(--menu-font-ko)), var(--menu-font-ko), system-ui, sans-serif;
 }
 
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] .cafe-a-script-en {
-  font-family: var(--menu-font-en), var(--menu-font-ko), system-ui, sans-serif;
+  font-family: var(--cafe-a-script-en-font, var(--menu-font-en)), var(--menu-font-en), var(--menu-font-ko), system-ui, sans-serif;
 }
 
 /* Store support copy and notices stay fully Nanum Gothic, including Latin characters. */
@@ -3275,8 +3275,6 @@ video {
   background: var(--mocha-forest-green, #f4eddc);
 }
 
-.cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-store-title,
-.cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-category-title,
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-menu-title,
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-menu-price,
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-price-area {
@@ -3284,8 +3282,10 @@ video {
 }
 
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] {
-  --cafe-a-category-heading-color: var(--mocha-panel-primary);
+  --cafe-a-category-heading-color: var(--menu-role-category-color, var(--mocha-panel-primary));
 }
+.cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-store-title { color: var(--menu-role-brand-color, var(--mocha-panel-primary)); }
+.cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-category-title { color: var(--menu-role-category-color, var(--mocha-panel-primary)); }
 
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-store-description,
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-menu-meta,
@@ -5983,3 +5983,11 @@ video {
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-mobile-price-stack .cafe-a-price-area > .cafe-a-price-note { flex-basis: 100%; }
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-cafe-a-category-block]:has(.cafe-a-mobile-price-stack):not(:has(.cafe-a-menu-item-has-price-columns:not(.cafe-a-mobile-price-stack))) .cafe-a-category-price-column-slot { display: none; }
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-mobile-price-stack[data-cafe-a-image-title-only] :is(.cafe-a-menu-item-image-slot, .cafe-a-menu-copy) { align-self: center; }
+
+/* Option names belong to the category role; their smaller reading size stays. */
+.cafe-a-typography :is(.cafe-a-price-column-header, .cafe-a-price-column-heading-label, .cafe-a-price-column-label-sizer, .cafe-a-mobile-option-label) {
+  --cafe-a-script-ko-font: var(--menu-role-category-font-ko, var(--menu-font-ko)) !important;
+  --cafe-a-script-en-font: var(--menu-role-category-font-en, var(--menu-font-en)) !important;
+  font-family: var(--menu-role-category-font-family, inherit) !important;
+  color: var(--menu-role-category-color, inherit) !important;
+}

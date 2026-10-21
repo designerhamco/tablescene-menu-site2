@@ -8,7 +8,8 @@ import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
 import { supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
-import { ALBUM_IMAGE_RATIOS } from "@/lib/menu-appearance";
+import PreviewDesignOptions from "./PreviewDesignOptions";
+import { readPreviewDesign, serializePreviewDesign, type PreviewDesign, type PreviewDesignDefaults } from "@/lib/menu-preview-design";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import { getTemplatePreviewOptionGroups } from "@/lib/template-preview-options";
 import { getDefaultDesignOptions, type DefaultDesignOptionKey, type DefaultDesignOptions } from "@/lib/default-design-options";
@@ -87,7 +88,7 @@ function PreviewOrientationIcon() {
 }
 
 export default function MenuPreviewDeviceFrame(
-  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; supportsTabletOrientation?: boolean },
+  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; previewDesignDefaults?: PreviewDesignDefaults; supportsTabletOrientation?: boolean },
 ) {
   const { device, query } = props;
   const designParam = (query as TemplatePreviewQuery).design;
@@ -98,6 +99,12 @@ export default function MenuPreviewDeviceFrame(
   const [isPending, startTransition] = useTransition();
   const [isToolbarOpen, setIsToolbarOpen] = useState(true);
   const [areDisplayOptionsOpen, setAreDisplayOptionsOpen] = useState(true);
+  const [optionsTab, setOptionsTab] = useState((query as TemplatePreviewQuery).previewOptions === "design" ? "design" : "features");
+  const initialDesign = readPreviewDesign((query as TemplatePreviewQuery).designPreview);
+  const legacyRatio = readPreviewDesign({albumImageRatio:(query as TemplatePreviewQuery).albumImageRatio}).albumImageRatio;
+  if (legacyRatio && !initialDesign.albumImageRatio) initialDesign.albumImageRatio = legacyRatio;
+  const [designOptions, setDesignOptions] = useOptimistic(initialDesign);
+  const templateQuery = { ...query, previewOptions: optionsTab, designPreview: serializePreviewDesign(designOptions) };
   const toolbarRef = useRef<HTMLElement>(null);
   const [toolbarHeight, setToolbarHeight] = useState(128);
   useEffect(() => {
@@ -136,7 +143,7 @@ export default function MenuPreviewDeviceFrame(
     if (!props.templateKey || !hasDisplayOptions) return;
     startTransition(() => {
       setDisplayOptions({ ...displayOptions, [key]: enabled });
-      router.push(buildTemplatePreviewUrl(props.templateKey!, { ...query, [key]: enabled ? "on" : "off" }, { device, orientation, callPreview: features.call, orderPreview: features.order }), { scroll: false });
+      router.push(buildTemplatePreviewUrl(props.templateKey!, { ...templateQuery, [key]: enabled ? "on" : "off" }, { device, orientation, callPreview: features.call, orderPreview: features.order }), { scroll: false });
     });
   };
   const layoutMode = (Array.isArray(query.layoutMode) ? query.layoutMode[0] : query.layoutMode) === "orderedFit" ? "orderedFit" : "orderedBalancedFit";
@@ -157,7 +164,7 @@ export default function MenuPreviewDeviceFrame(
     if (typeof props.templateKey === "string") {
       return buildTemplatePreviewUrl(
         props.templateKey,
-        query as TemplatePreviewQuery,
+        templateQuery as TemplatePreviewQuery,
         {
           callPreview: features.call,
           orderPreview: features.order,
@@ -204,6 +211,19 @@ export default function MenuPreviewDeviceFrame(
     embedded: true,
   });
   const showToolbar = isToolbarOpen;
+  const changeDesign = (next: PreviewDesign) => {
+    if (!props.templateKey) return;
+    if (serializePreviewDesign(next) === serializePreviewDesign(designOptions)) return;
+    startTransition(() => {
+      setDesignOptions(next);
+      router.replace(buildTemplatePreviewUrl(props.templateKey!, { ...templateQuery, designPreview: serializePreviewDesign(next), appearanceQa: undefined, albumImageRatio: undefined }, {device, orientation, callPreview:features.call, orderPreview:features.order}), {scroll:false});
+    });
+  };
+  const changeOptionsTab = (tab: string) => {
+    setOptionsTab(tab);
+    const url = new URL(window.location.href); url.searchParams.set("previewOptions",tab);
+    window.history.replaceState(null,"",url);
+  };
 
   return (
     <main className="h-screen overflow-hidden bg-zinc-100 text-zinc-950">
@@ -332,15 +352,14 @@ export default function MenuPreviewDeviceFrame(
               <button type="button" className="flex min-h-9 w-full items-center gap-2 text-left font-medium text-white/90"
                 aria-expanded={areDisplayOptionsOpen} aria-controls="preview-display-options"
                 onClick={() => setAreDisplayOptionsOpen(open => !open)}>
-                보기 옵션 <span className="font-normal text-white/60">{enabledDisplayCount}/{displayChoices.length} 선택</span>
+                보기 옵션 <span className="font-normal text-white/60">{optionsTab==='features'?`${enabledDisplayCount}/${displayChoices.length} 선택`:'디자인 미리보기'}</span>
                 {areDisplayOptionsOpen ? <ChevronUp className="ml-auto h-3.5 w-3.5" aria-hidden="true" /> : <ChevronDown className="ml-auto h-3.5 w-3.5" aria-hidden="true" />}
               </button>
-              <div id="preview-display-options" data-preview-display-options hidden={!areDisplayOptionsOpen}>
-                {defaultDesign?.itemLayout === "album" ? <label className="mb-3 flex items-center gap-2 text-white/90">상품 이미지 비율
-                  <select aria-label="앨범형 상품 이미지 비율" value={ALBUM_IMAGE_RATIOS.includes((query as TemplatePreviewQuery).albumImageRatio as typeof ALBUM_IMAGE_RATIOS[number]) ? (query as TemplatePreviewQuery).albumImageRatio as string : "1:1"} disabled={isPending}
-                    onChange={event=>{const ratio=event.target.value;startTransition(()=>router.push(buildTemplatePreviewUrl(props.templateKey!,{...query,albumImageRatio:ratio},{device,orientation,callPreview:features.call,orderPreview:features.order}),{scroll:false}));}}
-                    className="rounded-md border border-white/20 bg-zinc-900 px-2 py-1.5 text-white">{ALBUM_IMAGE_RATIOS.map(ratio=><option key={ratio} value={ratio}>{ratio}{ratio==='1:1'?' · 기본':''}</option>)}</select>
-                </label> : null}
+              <div id="preview-display-options" hidden={!areDisplayOptionsOpen}>
+                <div role="tablist" aria-label="미리보기 옵션 종류" className="mb-3 flex gap-1 rounded-lg bg-black/20 p-1">
+                  {([['features','기능 옵션'],['design','디자인 옵션']] as const).map(([tab,label])=><button key={tab} type="button" role="tab" id={`preview-${tab}-tab`} aria-controls={`preview-${tab}-panel`} aria-selected={optionsTab===tab} tabIndex={optionsTab===tab?0:-1} onClick={()=>changeOptionsTab(tab)} onKeyDown={event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const next=event.key==='Home'?'features':event.key==='End'?'design':tab==='features'?'design':'features';changeOptionsTab(next);document.getElementById(`preview-${next}-tab`)?.focus();}}} className={`min-h-8 flex-1 rounded-md px-3 font-semibold ${optionsTab===tab?'bg-white text-zinc-950':'text-white/65 hover:text-white'}`}>{label}</button>)}
+                </div>
+                <div id="preview-features-panel" role="tabpanel" aria-labelledby="preview-features-tab" data-preview-display-options hidden={optionsTab!=='features'}>
                 <div className="grid gap-x-5 gap-y-2 pb-1 min-[640px]:grid-cols-3">
                   {displayGroups.map(group => (
                     <fieldset key={group.label} className="min-w-0">
@@ -355,6 +374,10 @@ export default function MenuPreviewDeviceFrame(
                       </div>
                     </fieldset>
                   ))}
+                </div>
+                </div>
+                <div id="preview-design-panel" role="tabpanel" aria-labelledby="preview-design-tab" hidden={optionsTab!=='design'}>
+                  {props.templateKey && props.previewDesignDefaults ? <PreviewDesignOptions templateKey={props.templateKey} defaults={props.previewDesignDefaults} value={designOptions} album={defaultDesign?.itemLayout==='album'} dining={props.templateKey.startsWith('dining_')} disabled={isPending} onChange={changeDesign}/> : null}
                 </div>
               </div>
             </section>

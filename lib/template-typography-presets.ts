@@ -544,6 +544,19 @@ export function getTypographyCustomColorRoles(settings: TypographySettings): str
   return (["itemName", "supporting", "price"] as const).filter(role => settings.typography_roles[role].color).join(" ") || undefined;
 }
 
+/** Distinguish explicit title edits from a skin's default contrast palette. */
+export function getTypographyTitleColorOverrides(templateKey: string, pageSettings: unknown) {
+  const roles = getCustomTypographySettings({},pageSettings)?.typography_roles;
+  const native = getDefaultTypographyPreset(templateKey).typography_roles;
+  const previewTargets = getRecord(getRecord(pageSettings)?.design)?.previewTitleColorRoles;
+  const colors: Partial<Record<"brand" | "category",string>> = {};
+  for (const role of ["brand","category"] as const) {
+    const color = roles?.[role]?.color;
+    if (color && (Array.isArray(previewTargets) ? previewTargets.includes(role) : color.toUpperCase() !== native[role].color?.toUpperCase())) colors[role] = color;
+  }
+  return colors;
+}
+
 export function getCafeATypographyRolePayload(roleSettings: TypographyRoleSettings) {
   const payload = TYPOGRAPHY_ROLE_KEYS.reduce((roles, role) => {
     const setting = roleSettings[role];

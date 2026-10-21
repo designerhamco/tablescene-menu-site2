@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { menuAppearancePreview } from "@/lib/menu-appearance";
+import { applyPreviewDesign, previewDesignDefaults } from "@/lib/menu-preview-design";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
@@ -51,6 +52,8 @@ type PageProps = {
   params: Promise<{ templateKey: string }>;
   searchParams?: Promise<{
     design?: string | string[];
+    designPreview?: string | string[];
+    previewOptions?: string | string[];
     fontSizeScale?: string | string[];
     layoutMode?: string | string[];
     page?: string | string[];
@@ -1559,12 +1562,14 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     ),
     resolvedSearchParams.localeQa,
   );
-  const data = defaultDesign ? buildDefaultDesignPreview({ ...fixtureData, locale: localizedData.locale, enabledLocales: localizedData.enabledLocales,
+  let data = defaultDesign ? buildDefaultDesignPreview({ ...fixtureData, locale: localizedData.locale, enabledLocales: localizedData.enabledLocales,
     menuSite: { ...fixtureData.menuSite, template_key: templateKey } }, defaultDesign, getDefaultDesignOptions(resolvedSearchParams)) : applyTemplatePreviewOptions(localizedData, { ...resolvedSearchParams, widgetsPreview: getFirstParam(resolvedSearchParams.widgetsPreview) ?? (getTemplatePreviewOptions(localizedData, {}).widgetsPreview ? "on" : "off") });
+  const designDefaults = previewDesignDefaults(data);
   data.menuSite.page_settings = menuAppearancePreview(data.menuSite.page_settings, resolvedSearchParams, defaultDesign?.itemLayout === "album") as typeof data.menuSite.page_settings;
+  data = applyPreviewDesign(data, getFirstParam(resolvedSearchParams.designPreview), defaultDesign?.itemLayout === "album");
   if (!isActualView && usesDevicePreviewFrame) {
     return <MenuPreviewDeviceFrame device={device} orientation={orientation} templateKey={templateKey} query={resolvedSearchParams}
-      previewDisplayOptions={defaultDesign ? getDefaultDesignOptions(resolvedSearchParams) : getTemplatePreviewOptions(localizedData, resolvedSearchParams)} />;
+      previewDesignDefaults={designDefaults} previewDisplayOptions={defaultDesign ? getDefaultDesignOptions(resolvedSearchParams) : getTemplatePreviewOptions(localizedData, resolvedSearchParams)} />;
   }
   if (templateKey === "cafe_real_matcha_paged_test") applyPagedMatchaFixture(data, getFirstParam(resolvedSearchParams.pageTest));
   const requestedRenderMode = Array.isArray(resolvedSearchParams.renderMode)

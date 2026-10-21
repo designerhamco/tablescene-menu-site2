@@ -49,3 +49,13 @@ export function getCustomBackgroundColor(pageSettings: unknown): string | null {
 export function getResolvedBackgroundColor(templateKey: string | null | undefined, pageSettings: unknown): string {
   return getCustomBackgroundColor(pageSettings) ?? getTemplateDefaultBackgroundColor(templateKey);
 }
+
+/** Optional secondary surfaces share the same saved Design JSON as page paper. */
+export function getMenuDesignBackgrounds(templateKey: string, pageSettings: unknown) {
+  const design = getRecord(getRecord(pageSettings)?.design);
+  const page = getCustomBackgroundColor(pageSettings);
+  const auxiliary = normalizeBackgroundColor(design?.auxiliaryBackgroundColor);
+  const sidebar = normalizeBackgroundColor(design?.sidebarBackgroundColor);
+  const nativePage = templateKey === "cafe_mocha_forest_a" ? "#F4EDDC" : getTemplateDefaultBackgroundColor(templateKey);
+  return { page, auxiliary, sidebar, coloredPanel: Boolean(auxiliary && auxiliary !== (page ?? nativePage).toUpperCase()) };
+}
