@@ -16,6 +16,16 @@ export const DEFAULT_STAFF_CALL_ITEMS = [
   { key: "staff", label: "직원 호출", sortOrder: 3, active: true },
 ] as const satisfies readonly StaffCallItem[];
 
+export type StaffCallService = "basic" | "dining";
+
+/** Used by preview and the explicit reset action; saved store choices remain authoritative. */
+export function getServiceStaffCallItems(service: StaffCallService): StaffCallItem[] {
+  const choices = service === "dining"
+    ? [["order", "주문 요청"], ["payment", "계산 요청"], ["wine", "와인 문의"], ["water", "물 요청"], ["staff", "직원 호출"]]
+    : [["water", "물 요청"], ["tableware", "식기 요청"], ["table_cleanup", "테이블 정리"], ["payment", "계산 요청"], ["staff", "직원 호출"]];
+  return choices.map(([key, label], sortOrder) => ({ key, label, sortOrder, active: true }));
+}
+
 const LEGACY_DEFAULT_STAFF_CALL_ITEMS = [
   { key: "staff", label: "직원 호출" },
   { key: "water", label: "물 요청" },
@@ -42,7 +52,12 @@ export function orderStaffCallItemsForGuest(items: StaffCallItem[]): StaffCallIt
 }
 
 export function replaceLegacyDefaultStaffCallItems(items: StaffCallItem[]): StaffCallItem[] {
-  const isLegacyDefault = items.length === LEGACY_DEFAULT_STAFF_CALL_ITEMS.length
+  const isLegacyDefault = isLegacyDefaultStaffCallItems(items);
+  return isLegacyDefault ? getDefaultStaffCallItems() : items;
+}
+
+export function isLegacyDefaultStaffCallItems(items: StaffCallItem[]) {
+  return items.length === LEGACY_DEFAULT_STAFF_CALL_ITEMS.length
     && LEGACY_DEFAULT_STAFF_CALL_ITEMS.every((legacyItem, index) => {
       const item = items[index];
       return item?.key === legacyItem.key
@@ -50,7 +65,6 @@ export function replaceLegacyDefaultStaffCallItems(items: StaffCallItem[]): Staf
         && item.sortOrder === index
         && item.active;
     });
-  return isLegacyDefault ? getDefaultStaffCallItems() : items;
 }
 
 export function createCustomStaffCallItemKey() {

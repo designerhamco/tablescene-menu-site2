@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   getDefaultStaffCallItems,
+  isLegacyDefaultStaffCallItems,
   normalizeStaffCallItems,
   replaceLegacyDefaultStaffCallItems,
   StaffCallItemInputError,
@@ -51,7 +52,7 @@ function mapRows(value: unknown): StaffCallItem[] {
   if (items.length !== rows.length || items.length < 1) {
     throw new CallItemServiceError("READ_FAILED", "호출 항목을 불러오지 못했습니다.", 500);
   }
-  return replaceLegacyDefaultStaffCallItems(items);
+  return items;
 }
 
 export async function listStaffCallItems({
@@ -76,7 +77,14 @@ export async function listStaffCallItems({
     console.warn("[call-items] read failed", { code: error.code ?? "unknown", message: error.message ?? "unknown" });
     throw new CallItemServiceError("READ_FAILED", "호출 항목을 불러오지 못했습니다.", 500);
   }
-  return mapRows(data);
+  const items = mapRows(data);
+  // Old DBs return six virtual defaults. Never mistake an owner's identical saved set for a fallback.
+  if (!isLegacyDefaultStaffCallItems(items)) return items;
+  const configured = await supabase.from("menu_call_items")
+    .select("item_key", { count: "exact", head: true })
+    .eq("menu_site_id", menuSiteId).is("archived_at", null);
+  if (configured.error) throw new CallItemServiceError("READ_FAILED", "호출 항목을 불러오지 못했습니다.", 500);
+  return configured.count === 0 ? replaceLegacyDefaultStaffCallItems(items) : items;
 }
 
 export async function saveStaffCallItems({

@@ -1,4 +1,9 @@
 import "server-only";
+import { getDiningTemplateTier } from "@/lib/dining-product-tiers";
+import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
+import { isTableManagementRuntimeEnabledForSite } from "@/lib/table-management-runtime";
+import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-runtime";
+import { isPostpayOrderRuntimeEnabledForSite } from "@/lib/postpay-order-runtime";
 import {
   requireMenuSitePermission,
   requireMenuSiteWriteAccess,
@@ -36,6 +41,13 @@ export async function loadMenuOrderSettings(menuId: string) {
     site: data,
     courses: courses ?? [],
     settings: readMenuOrderSettings(data.settings),
+    callService: getDiningTemplateTier(data.template_key) === "multi" ? "dining" as const : "basic" as const,
+    runtime: {
+      calls: isCallRuntimeEnabledForSite(menuId) && isTableManagementRuntimeEnabledForSite(menuId),
+      orders: isPostpayOrderRuntimeEnabledForSite(menuId) && isTableManagementRuntimeEnabledForSite(menuId),
+      tables: isTableManagementRuntimeEnabledForSite(menuId),
+      dashboard: isOrderDashboardRuntimeEnabledForSite(menuId),
+    },
   };
 }
 export async function saveMenuOrderSettings(

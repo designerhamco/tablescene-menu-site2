@@ -6,9 +6,11 @@ export default function OrderSettingsForm({
   menuId,
   settings,
   courses,
+  runtime,
 }: {
   menuId: string;
   settings: MenuOrderSettings;
+  runtime: {calls:boolean;orders:boolean};
   courses: { id: string; name: string; course_price: number | null }[];
 }) {
   const [state, action, pending] = useActionState(updateOrderSettings, {
@@ -18,6 +20,10 @@ export default function OrderSettingsForm({
   return (
     <form action={action} className="mt-10 max-w-2xl">
       <input type="hidden" name="menuId" value={menuId} />
+      <p className="site-notice mb-4" role="status">
+        {runtime.calls ? "직원 호출이 연결되어 있습니다. 테이블별 QR로 접속한 손님이 사용할 수 있습니다." : "호출 항목과 사용 여부를 미리 저장할 수 있습니다. 실제 호출은 운영 연결 후 테이블별 QR에서 사용할 수 있습니다."}
+        {runtime.orders ? " 후불 주문이 연결되어 있습니다." : " 후불 주문 설정은 저장되며, 실제 주문은 운영 연결 후 사용할 수 있습니다."}
+      </p>
       {[
         [
           "orderEnabled",

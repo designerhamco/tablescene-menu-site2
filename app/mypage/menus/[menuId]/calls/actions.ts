@@ -47,6 +47,8 @@ export async function saveCallItemsAction(
     const items = JSON.parse(formString(formData, "itemsJson")) as unknown;
     await saveStaffCallItems({ menuSiteId, items });
     revalidatePath(`/mypage/menus/${menuSiteId}/calls`);
+    revalidatePath(`/mypage/menus/${menuSiteId}/order-settings`);
+    revalidatePath("/menu", "layout");
     return { status: "success", message: "호출 항목을 저장했습니다." };
   } catch (error) {
     if (error instanceof SyntaxError) {

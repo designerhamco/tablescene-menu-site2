@@ -39,10 +39,11 @@ function getKoreanDateKey(value: string) {
   }).format(date);
 }
 
-export default function CallDashboard({ menuSiteId, calls, callItems }: {
+export default function CallDashboard({ menuSiteId, calls, callItems, callService = "basic" }: {
   menuSiteId: string;
   calls: CallDashboardPageData["calls"];
   callItems: CallDashboardPageData["callItems"];
+  callService?: CallDashboardPageData["callService"];
 }) {
   const router = useRouter();
   const [state, action, pending] = useActionState(mutateCallAction, initialCallManagementActionState);
@@ -104,7 +105,7 @@ export default function CallDashboard({ menuSiteId, calls, callItems }: {
       </div>
 
       {activeTab === "settings" ? (
-        <CallItemManager key={callItems.map((item) => `${item.key}:${item.label}:${item.sortOrder}:${item.active}`).join("|")} menuSiteId={menuSiteId} items={callItems} />
+        <CallItemManager key={callItems.map((item) => `${item.key}:${item.label}:${item.sortOrder}:${item.active}`).join("|")} menuSiteId={menuSiteId} items={callItems} service={callService} />
       ) : (
         <div className="space-y-4" role="tabpanel">
           <section className="site-section p-4 md:p-5">
