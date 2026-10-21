@@ -13,7 +13,11 @@
 
 ## 운영 DB 적용 상태
 
-사용자가 `20261021122057_add_menu_design_subscription_contract.sql` 한 건 적용을 승인했다. 현재 운영 DB 적용은 로그인 인증 완료를 기다리고 있으며 미적용이다. 운영 배포도 보류한다.
+Approved migration `20261021122057_add_menu_design_subscription_contract.sql` was applied once to Production `tablescene-prod` in the authenticated SQL Editor on 2026-10-21. No historical migrations were replayed.
+
+- Before/after: 24 subscriptions, total stored amount KRW 509,400, identical ordered ID/amount fingerprint `ef7b898c90315b8eedcb1c864c9884c7`. All 24 legacy contracts retain NULL in the three new fields.
+- Verified: three nullable text columns, one validated CHECK, one enabled guard, empty function search path, no anon/authenticated EXECUTE privilege, and RLS enabled. Security Advisor rerun reports 0 errors; its 23 existing warnings remain unchanged. The application service-role Data API also reads the columns successfully. No real payment or refund was executed.
+- Browser login does not authenticate the CLI. Instead of regenerating the complete schema through an unavailable CLI session, the three verified nullable fields were synchronized into Row/Insert/Update of the existing DB types.
 
 SQL은 임시 PGlite DB에서 기존 금액/NULL 계약 보존, 유효한 교체, 위조 설정/교차 서비스 차단, 함수 권한을 확인했다. 실결제·환불은 실행하지 않았다.
 
@@ -25,7 +29,7 @@ SQL은 임시 PGlite DB에서 기존 금액/NULL 계약 보존, 유효한 교체
    ```
 
 3. 컬럼 3개, 제약, 트리거, 함수 실행 권한을 확인하고 기존 구독 건수·금액 및 기존 계약 NULL 보존을 비교한다.
-4. 공식 `npm run supabase:types`로 타입을 갱신하고 타입·테스트·빌드를 재검증한다.
+4. Verify the applied schema, synchronize DB types and rerun type checking, tests and build. Full generation with `npm run supabase:types` remains available with separate CLI authentication.
 5. 승인한 앱 변경을 Production에 배포한 뒤 공개 목록·상세·로그인 보호·신규 계약 저장 경로를 확인한다. 실제 카드 검증은 별도 승인/전용 QA로 진행한다.
 
 ## 검수

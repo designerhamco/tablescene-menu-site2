@@ -4,7 +4,7 @@
 
 - `IN_PROGRESS` 기본/디자인 템플릿 분류, 유형/업종, 그룹별 요금, 미리보기·상세 카드와 계정별 좋아요 목록을 연결했다. 기본 디자인 10종의 실제 썸네일을 추가했다.
 - `IN_PROGRESS` 신규 월구독의 기본/디자인 포함 가격 검증·계약 저장, 같은 서비스·이용권 범위의 디자인 교체와 스타일 복원을 구현했다. 기존 계약·갱신 금액은 보존하며 기존 계약 이관/구독 중 이용권 변경은 후속 정책으로 분리한다.
-- `WAITING_AUTH` 사용자가 승인한 SQL 1건의 운영 적용은 Supabase 로그인 대기 중이다. SQL/타입 반영·운영 확인 전 Production 병합·배포를 진행하지 않는다. 상세: `docs/runbooks/menu-design-subscription-contract.md`.
+- `IN_PROGRESS` Approved SQL applied once to Production on 2026-10-21. Existing 24 contracts, saved amounts and fingerprint are unchanged. Columns/CHECK/guard/RLS/API access verified; code types synchronized. Final regression and release verification continue. Details: `docs/runbooks/menu-design-subscription-contract.md`.
 
 ## 2026-10-21 밝은 옵션 패널·좌측 접기
 
