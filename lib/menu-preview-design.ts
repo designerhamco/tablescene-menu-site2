@@ -2,7 +2,8 @@ import type { MenuPageData } from "./menu-page-data";
 import { isKoreanFontValue, isEnglishFontValue, getSafeEnglishFontValueForTemplate, type KoreanFontValue, type EnglishFontValue } from "./font-options";
 import { ALBUM_IMAGE_RATIOS, CHIP_SHAPES, IMAGE_RADIUS_KEYS, MAX_IMAGE_RADIUS, readMenuAppearance, type MenuAppearance } from "./menu-appearance";
 import { getCustomTypographySettings, mergeTypographySettings, type TypographyRoleKey } from "./template-typography-presets";
-import { normalizeBackgroundColor } from "./template-background-colors";
+import { getMenuDesignBackgrounds, getResolvedBackgroundColor, normalizeBackgroundColor } from "./template-background-colors";
+import { MOCHA_FOREST_PANEL_COLORS } from "./mocha-forest-panels";
 
 export const PREVIEW_FONT_GROUPS = ["brand", "category", "other"] as const;
 export type PreviewFontGroup = typeof PREVIEW_FONT_GROUPS[number];
@@ -41,8 +42,22 @@ export function readPreviewDesign(raw: unknown): PreviewDesign {
 }
 export function serializePreviewDesign(value: PreviewDesign) { const clean = readPreviewDesign(value); return Object.keys(clean).length ? JSON.stringify(clean) : undefined; }
 export function previewDesignDefaults(data: MenuPageData) {
-  const typography = mergeTypographySettings(data.menuSite.template_key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
-  return { fonts: Object.fromEntries(PREVIEW_FONT_GROUPS.map(group => { const role = typography.typography_roles[group === "other" ? "supporting" : group]; return [group, { ko: role.font_ko_key ?? typography.korean_font_key, en: role.font_en_key ?? typography.english_font_key }]; })) as Record<PreviewFontGroup, Required<Pick<PreviewFontChoice, "ko" | "en">>>, appearance: readMenuAppearance(data.menuSite.page_settings) };
+  const key = data.menuSite.template_key;
+  const typography = mergeTypographySettings(key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
+  const backgrounds = getMenuDesignBackgrounds(key, data.menuSite.page_settings);
+  const neutral = data.menuSite.id.startsWith("default-design-preview-");
+  const page = backgrounds.page ?? (key === "cafe_mocha_forest_a" ? MOCHA_FOREST_PANEL_COLORS.ivory : !neutral && key === "dining_aube_table_b" ? "#F7F2EA" : getResolvedBackgroundColor(key, data.menuSite.page_settings));
+  return {
+    fonts: Object.fromEntries(PREVIEW_FONT_GROUPS.map(group => {
+      const role = typography.typography_roles[group === "other" ? "supporting" : group];
+      return [group, { ko: role.font_ko_key ?? typography.korean_font_key, en: role.font_en_key ?? typography.english_font_key,
+        color: role.color ?? (group === "other" ? "#191C1B" : normalizeBackgroundColor(data.menuSite.brand_color) ?? "#191C1B") }];
+    })) as Record<PreviewFontGroup, Required<PreviewFontChoice>>,
+    colors: { page, auxiliary: backgrounds.auxiliary ?? (key === "cafe_mocha_forest_a" ? MOCHA_FOREST_PANEL_COLORS.brown : page),
+      cover: normalizeBackgroundColor(data.pageSettings.multi_page_cover_background_color) ?? "#FFFFFF",
+      sidebar: backgrounds.sidebar ?? (neutral ? "#F4F5F3" : "#401E24") },
+    appearance: readMenuAppearance(data.menuSite.page_settings),
+  };
 }
 export type PreviewDesignDefaults = ReturnType<typeof previewDesignDefaults>;
 

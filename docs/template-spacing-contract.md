@@ -1,5 +1,11 @@
 # Menu template spacing contract
 
+## Compact design controls — 2026-10-21
+
+Catalog color controls keep the label and swatch adjacent. HEX editing lives inside the collision-aware picker; no separate default/HEX textbox appears in the main panel. Its spectrum supports pointer/touch and keyboard input. Mobile design controls use two columns for backgrounds, image shapes and related choices; the third typography group spans the row with Korean/English choices side by side. Larger screens retain three typography columns. These controls do not change menu reading geometry.
+
+Basic/Dining image radius selectors share template/square/soft/rounded/round choices (native, 0, 8, 16, 24 CSS px) in catalog and editor. The existing bounded numeric JSON/form contract remains compatible; non-preset stored radii show “기존 설정 유지” and remain unchanged until the user chooses another option. Template restores the native radius. Chips retain their independent shape options. Category option labels follow the actual category heading ink, including Mocha panel contrast and Rosy Orange's native accent, as well as explicit saved/preview category colors.
+
 ## Catalog functional/design options — 2026-10-21
 
 Catalog preview controls have separate Functional and Design tabs. Existing feature checkboxes and defaults remain unchanged. Design values are temporary, validated `designPreview` URL data; they never write to a customer menu. Device/orientation/layout/feature/detached navigation retains them, while changing tabs alone must not reload the menu iframe. Reset clears only the temporary design values. Display and saved-menu preview behavior stay separate.

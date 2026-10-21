@@ -1,18 +1,17 @@
 "use client";
 import { useState } from "react";
-import { ALBUM_IMAGE_RATIOS, CHIP_SHAPES, CHIP_SHAPE_LABELS, IMAGE_RADIUS_KEYS, IMAGE_RADIUS_LABELS, MAX_IMAGE_RADIUS, type MenuAppearance } from "@/lib/menu-appearance";
+import { ALBUM_IMAGE_RATIOS, CHIP_SHAPES, CHIP_SHAPE_LABELS, IMAGE_RADIUS_KEYS, IMAGE_RADIUS_LABELS, type MenuAppearance } from "@/lib/menu-appearance";
+import ImageRadiusSelect from "@/components/menu/ImageRadiusSelect";
 export default function MenuAppearanceSettingsForm({ initial, basic, formId }: { initial: MenuAppearance; basic: boolean; formId: string }) {
   const [value,setValue] = useState(initial);
   const inputClass = "h-10 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-900";
   return <section className="site-section space-y-5 p-5" aria-label="이미지와 텍스트칩 모양">
     <input type="hidden" name="menu_appearance_present" value="1" form={formId}/>
-    <div><h3 className="type-content-title text-zinc-950">이미지와 텍스트칩 모양</h3><p className="mt-2 text-sm leading-relaxed text-zinc-500">템플릿 기본값을 유지하거나 원하는 모양으로 조절할 수 있습니다. 이미지 라운드는 0~32px 범위에서 입력하세요.</p></div>
-      <div className="grid gap-4 md:grid-cols-2">{IMAGE_RADIUS_KEYS.map(key=>{const radius=value.imageRadii[key],label=key==='cover'&&!basic?'커버 이미지':IMAGE_RADIUS_LABELS[key];return <fieldset key={key} className="space-y-2 rounded-xl border border-zinc-200 p-4">
+    <div><h3 className="type-content-title text-zinc-950">이미지와 텍스트칩 모양</h3><p className="mt-2 text-sm leading-relaxed text-zinc-500">템플릿 기본값을 유지하거나 원하는 둥글기 단계를 선택하세요. 기존에 저장한 모양은 다른 단계를 선택할 때까지 유지됩니다.</p></div>
+      <div className="grid grid-cols-2 gap-3">{IMAGE_RADIUS_KEYS.map(key=>{const radius=value.imageRadii[key],label=key==='cover'&&!basic?'커버 이미지':IMAGE_RADIUS_LABELS[key];return <fieldset key={key} className="min-w-0 space-y-2 rounded-xl border border-zinc-200 p-3">
         <legend className="px-1 text-sm font-semibold">{label} 라운드</legend>
-        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={radius==null} onChange={e=>setValue(v=>({...v,imageRadii:{...v.imageRadii,[key]:e.target.checked?undefined:0}}))}/>템플릿 기본값</label>
         <input type="hidden" form={formId} name={`image_radius_${key}`} value={radius??""}/>
-        {radius!=null ? <div className="flex items-center gap-3"><input type="range" min={0} max={MAX_IMAGE_RADIUS} step={1} aria-label={`${label} 라운드 슬라이더`} value={radius} onChange={e=>setValue(v=>({...v,imageRadii:{...v.imageRadii,[key]:Number(e.target.value)}}))} className="min-w-0 flex-1 accent-zinc-950"/>
-          <input type="number" min={0} max={MAX_IMAGE_RADIUS} step={1} required aria-label={`${label} 라운드 값`} className={`${inputClass} w-20`} value={radius} onChange={e=>{const n=e.currentTarget.valueAsNumber;if(Number.isFinite(n))setValue(v=>({...v,imageRadii:{...v.imageRadii,[key]:Math.max(0,Math.min(MAX_IMAGE_RADIUS,Math.round(n)))}}));}}/><span className="text-sm text-zinc-500">px</span></div>:<p className="text-xs text-zinc-500">현재 템플릿의 반응형 라운드를 그대로 사용합니다.</p>}
+        <ImageRadiusSelect label={label} radius={radius} className={`${inputClass} w-full min-w-0`} onChange={next=>setValue(v=>({...v,imageRadii:{...v.imageRadii,[key]:next}}))}/>
       </fieldset>;})}</div>
       <label className="flex flex-wrap items-center gap-3 text-sm font-semibold">텍스트칩 모양<select form={formId} name="chip_shape" className={inputClass} value={value.chipShape} onChange={e=>setValue(v=>({...v,chipShape:e.target.value as MenuAppearance['chipShape']}))}>{CHIP_SHAPES.map(shape=><option key={shape} value={shape}>{CHIP_SHAPE_LABELS[shape]}</option>)}</select></label>
     <label className="flex flex-wrap items-center gap-3 text-sm font-semibold">앨범형 상품 이미지 비율<select form={formId} name="album_image_ratio" className={inputClass} value={value.albumImageRatio} onChange={e=>setValue(v=>({...v,albumImageRatio:e.target.value as MenuAppearance['albumImageRatio']}))}>{ALBUM_IMAGE_RATIOS.map(ratio=><option key={ratio} value={ratio}>{ratio}{ratio==='1:1'?' · 기본':''}</option>)}</select></label>
