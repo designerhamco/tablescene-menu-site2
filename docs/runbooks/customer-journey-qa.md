@@ -19,7 +19,7 @@ PR #299의 운영 기능과 문서 PR #300을 기준으로 공개·로그인 읽
 
 ## 운영 연결 상태의 읽기 감사
 
-Vercel의 Production Config 화면에서 기존 값만 확인했다. 새 배포·환경변수/권한/대상 목록 변경은 없다.
+Vercel의 Production Config 화면에서 기존 값만 확인했다. 감사 당시 환경변수/권한/대상 목록 변경은 없으며 이후 공개 조회 수정만 배포했다.
 
 - POSTPAY_ORDER_ENABLED, ORDER_DASHBOARD_ENABLED, CALL_ENABLED, TABLE_MANAGEMENT_ENABLED: 모두 true.
 - 주문/주문관리 대상 2개, 호출/테이블 대상 3개. 대상 UUID는 결과 문서에 공개하지 않는다.
@@ -45,7 +45,7 @@ Vercel의 Production Config 화면에서 기존 값만 확인했다. 새 배포�
 
 ## 다음 단계: 실제 QA 이력 생성 검수 계획
 
-현재 기존 QA 메뉴판 두 개만 사용한다. 실제 영업 매장으로 운영 대상을 확대하지 않는다. 실행 전 별도 승인과 해당 QA 소유 계정 로그인이 필요하다.
+2026-10-22 KST 사용자가 “QA 계정 로그인 후 진행”으로 아래 실행 범위를 승인했다. 현재 기존 QA 메뉴판 두 개만 사용하며 실제 영업 매장으로 운영 대상을 확대하지 않는다. 추가 승인을 재요청하지 않고 해당 QA 소유 계정 로그인 완료 후 실행한다. 현재 로그인 계정은 QA 관리 권한이 없어 로그인 인계를 준비한다. 아직 운영 이력은 생성하지 않았다.
 
 1. 기존 활성 테이블 QR로 메뉴판당 방문 1개를 만든다(총 2개). 테이블·공개 QR 식별자·이름·설정을 변경하지 않는다.
 2. 메뉴판당 수량 1의 테스트 주문을 2건 만든다(총 4건). 요청 메모에 `QA 동선 검수 2026-10-22`를 명시한다. 1건은 received/unpaid 상태에서 손님이 취소한다. 1건은 직원이 accepted → cooking → ready로 옮기고 손님 취소 차단을 확인한 뒤 직원 취소 사유 `QA 동선 검수 종료`로 미결제 취소한다.
@@ -65,6 +65,15 @@ Vercel의 Production Config 화면에서 기존 값만 확인했다. 새 배포�
 - `node scripts/qa-public-menu-read-scope.mjs`: 실제 클라이언트/로더 회귀 19건 통과. anon 키만 전송, 쿠키/저장 세션 없음, 방문 계정과 무관한 공개 내용, draft/expired/missing/hidden 차단, draft 소유자 미리보기 보존.
 - Production 무로그인 공개 메뉴 2종은 정상이고 수정 전 로그인 방문은 실패했다. 공개 키와 서버 키의 페이지/카테고리/상품 건수는 같아서 내용 손실과 구분했다.
 - 로컬 수정 화면의 베이직 상품 18개와 1440x900 실제 DOM, 가로 넘침 0을 확인했다.
-- 수정 후 단위 744건, 타입, 변경 파일 린트, 최적화 빌드 통과. 운영 배포와 같은 로그인 세션 사후 검수를 이어서 진행한다.
+- 수정 후 단위 744건, 타입, 변경 파일 린트, 최적화 빌드 통과. PR #301 병합과 운영 배포를 완료했고 같은 로그인 세션의 사후 검수를 통과했다.
 
 이번 수정은 공개 데이터 읽기 경로에만 적용한다. 메뉴 렌더러, 디자인과 모바일 규칙은 바꾸지 않는다.
+
+
+## 공개 조회 수정 Production 결과 — 2026-10-22 KST
+
+- PR #301 병합 `7fb329c5250ed2ea45b0e249406580bb8c37e7a1`. [운영 배포](https://vercel.com/designerhamcos-projects/tablescene-menu-site2/G2iYBYBMUhhTK5yJ3SXDfViKyyPA) Ready, 1분 11초, 같은 소스와 `tablescene-menu-site2.vercel.app` 연결을 확인했다.
+- 수정 전에 실패한 Chrome 로그인 세션을 그대로 유지해 공개 베이직 18상품과 다이닝 Drink 페이지 8상품/가격을 확인했다. 실제 DOM은 1512×762, 두 화면 모두 가로 넘침 0, not-found 0이다. 이어서 운영 페이지에서 기존 로그인 유지와 QA 관리 권한 미부여도 확인했다.
+- 익명 공개 메뉴 2종의 실제 서버 제목/200과 만료 메뉴 차단, 없는 메뉴 404를 확인했다. 방문 쿠키 없는 주문내역 GET·취소 PATCH는 401, 외부 Origin PATCH는 403이며 API 응답의 no-store/Vary: Cookie와 내역 비노출을 확인했다. 이 검사는 실제 주문·취소를 실행하지 않는다.
+- 증빙: `/private/tmp/journey-production-ready.jpg`, `journey-production-signed-in-basic.jpg`, `journey-production-signed-in-dining.jpg`, `journey-production-smoke.json`.
+- 실제 이력 검수는 사용자 승인 완료 상태다. Chrome의 아티메뉴 `/sign-in?next=/mypage/operations` 화면을 QA 소유 계정 로그인용으로 인계했다. 자격증명/권한을 우회하지 않으며 승인된 방문 2개·주문 4건·호출 2건은 로그인 완료 전 생성하지 않는다.
