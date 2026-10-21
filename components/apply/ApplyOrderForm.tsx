@@ -306,9 +306,9 @@ const agreementLabels: Record<AgreementKey, string> = {
 const agreementDetails: Record<AgreementKey, string[]> = {
   terms: [
     "[서비스 목적] 아티메뉴는 음식점, 카페, 다이닝 매장 등에서 사용할 수 있는 웹 메뉴판 생성 및 관리 서비스입니다. 아티메뉴 베이직과 다이닝은 템플릿 기반 메뉴판 생성 및 데이터 편집 기능을 제공합니다.",
-    "[템플릿별 월 구독] 선택한 디자인 템플릿 1개당 월 구독 1건이 적용됩니다. 다른 디자인을 함께 이용하려면 해당 템플릿을 별도로 구독해야 합니다.",
-    "[정기 결제 갱신] 월 정기 결제가 갱신되면 선택한 템플릿 메뉴판의 이용기간만 연장되며, 새 메뉴판이나 다른 템플릿 이용권이 추가되지 않습니다.",
-    "[30일 무료체험] 베이직·다이닝·디스플레이 월 구독 중 계정당 최초 1회에 한해 결제수단 등록 완료 시점부터 30일간 무료로 이용할 수 있습니다. 체험 종료 시 선택한 템플릿의 월 이용료가 처음 자동결제됩니다.",
+    "[메뉴판별 월 구독] 베이직·다이닝은 메뉴판 1개당 월 구독 1건이 적용됩니다. 기본 이용권은 같은 서비스의 기본 디자인끼리, 디자인 포함 이용권은 기본 디자인과 디자인 템플릿을 교체할 수 있습니다. 기존 구독은 기존 계약을 유지합니다.",
+    "[정기 결제 갱신] 월 정기 결제가 갱신되면 구독한 메뉴판의 이용기간이 연장되며, 디자인은 선택한 이용권 범위 안에서 교체할 수 있습니다. 새 메뉴판은 추가되지 않습니다.",
+    "[30일 무료체험] 베이직·다이닝·디스플레이 월 구독 중 계정당 최초 1회에 한해 결제수단 등록 완료 시점부터 30일간 무료로 이용할 수 있습니다. 체험 종료 시 선택한 요금제의 월 이용료가 처음 자동결제됩니다.",
     "[무료체험 해지] 무료체험 종료 전 언제든 해지를 예약할 수 있습니다. 중도 해지해도 30일 종료일까지 이용할 수 있으며, 종료 시점의 첫 결제는 실행되지 않습니다.",
     "[메뉴 데이터 이동] 별도로 구매한 다른 템플릿 메뉴판에는 기존 메뉴판의 메뉴 데이터를 가져올 수 있습니다. 템플릿별 디자인, 레이아웃, 위젯, 할인 설정은 새 템플릿에 맞게 별도로 설정해야 합니다.",
     "[서비스 안내] 아티메뉴 디스플레이는 매장 TV와 모니터에 띄우는 디스플레이 메뉴보드 서비스입니다. 아티메뉴 커스텀과 비주얼 스튜디오는 상담 또는 준비 중인 서비스로, 제공 범위와 이용 조건은 별도 안내합니다.",
@@ -334,7 +334,7 @@ const agreementDetails: Record<AgreementKey, string[]> = {
   contentPolicy: [
     "결제 완료 또는 30일 무료체험의 결제수단 등록 완료 즉시 선택한 요금제의 메뉴판이 생성되고, 메뉴판 편집·공개 설정·QR 및 공개 URL 이용이 시작됩니다.",
     "계정의 첫 메뉴판 생성이 완료되면 AI 웰컴 크레딧 6개가 계정당 1회 지급됩니다. 추가 메뉴판, 재구독, 결제 갱신으로는 추가 지급되지 않습니다.",
-    "현재 신규 판매 상품은 템플릿별 월 정기결제 상품이며, 이용자가 구독을 해지하기 전까지 매월 자동 결제됩니다.",
+    "현재 신규 베이직·다이닝 상품은 메뉴판별 월 정기결제 상품이며, 이용자가 구독을 해지하기 전까지 매월 자동 결제됩니다.",
     "구독을 해지하는 경우 다음 결제일부터 결제가 중단되며, 이미 결제된 이용기간 동안은 서비스를 계속 이용할 수 있습니다.",
     "서비스 제공이 개시된 이후에는 관련 법령상 허용되는 범위 내에서 단순 변심, 착오 구매, 미사용 등을 이유로 한 청약철회 및 환불이 제한될 수 있습니다.",
     "단, 중복 결제, 결제 오류, 회사의 귀책사유로 서비스가 정상적으로 제공되지 않은 경우 등 회사가 환불이 필요하다고 인정하거나 관련 법령상 환불이 필요한 경우에는 회사의 환불 정책 및 관계 법령에 따라 처리됩니다.",
@@ -841,7 +841,15 @@ export default function ApplyOrderForm({
     ?? templates[0];
   const firstMenuTemplateGroup = getMenuTemplateGroupByTemplateCategory(firstTemplate?.template_category).key;
   const firstDisplayTemplateGroup = getDisplayTemplateGroupByTemplateCategory(firstTemplate?.template_category).key;
-  const [selectedMenuDesignId, setSelectedMenuDesignId] = useState(() => getMenuPlanSelection(initialBasicProduct.product_key, initialMenuDesignId, firstTemplate?.key)?.designId ?? firstTemplate?.key ?? "cafe_design_a");
+  const [selectedMenuDesignId, setSelectedMenuDesignId] = useState(() => {
+    const requestedDesign = getMenuPlanSelection(initialBasicProduct.product_key, initialMenuDesignId, firstTemplate?.key);
+    if (requestedDesign) return requestedDesign.designId;
+    if (compatibleRequestedTemplate) return compatibleRequestedTemplate.key;
+    const service = initialBasicProduct.product_key === "business_basic_multi_monthly" ? "dining" : "basic";
+    return catalogDesigns.find(design => design.service === service && design.kind === "standard")?.id
+      ?? firstTemplate?.key
+      ?? "basic-first-column";
+  });
   const selectedMenuDesign = getCatalogDesign(selectedMenuDesignId);
   const selectedDesignKind = selectedMenuDesign?.kind ?? "designer";
   const [selectedBasicProductKey, setSelectedBasicProductKey] = useState<BasicProductKey>(initialBasicProduct.product_key);
@@ -2793,7 +2801,7 @@ export default function ApplyOrderForm({
                     ? `결제수단 등록 후 30일 동안 무료로 이용하며, ${monthlyFreeTrialFirstBillingDate} 전 해지하면 결제되지 않습니다.`
                     : "사업자 인증과 결제수단 등록 후 자동결제를 진행합니다."}
                 </p>
-                <p>다른 템플릿은 별도 월 구독이며, 표시 금액은 VAT 포함입니다.</p>
+                <p>{isMenuService ? "같은 서비스에서 선택한 이용권에 포함된 디자인을 교체할 수 있습니다. 표시 금액은 VAT 포함입니다." : "디스플레이 메뉴판마다 별도 월 구독이 적용되며, 표시 금액은 VAT 포함입니다."}</p>
                 <p>별도로 구독한 메뉴판에는 기존 메뉴 데이터를 가져올 수 있습니다.</p>
                 {activePromotion ? <p>{openDiscountPolicy.note}</p> : null}
               </div>

@@ -2652,6 +2652,7 @@ export async function POST(request: Request) {
           marketingAccepted: order.marketingAccepted,
           consentAgreedAt: order.consentAgreedAt,
           consentContext: order.consentContext,
+          ...(order.menuDesignId ? { menuPlanContract: getMenuPlanSelection(product.productKey, order.menuDesignId) } : {}),
         } : requestConsentSnapshot ?? {
           consentContext: "personal_trial_convert",
           capturedFromRequest: true,

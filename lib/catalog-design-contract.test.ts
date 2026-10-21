@@ -84,3 +84,20 @@ test('favorites and switching accept the public proxy host, rejecting foreign or
   assert.equal(isSameOriginRequest(request('https://menu.example:4000','menu.example')),false);
   assert.equal(isSameOriginRequest(request('https://menu.example','menu.example','cross-site')),false);
 });
+
+
+test('public base-price purchase links select the same standard contract and design-inclusive quotes', async () => {
+  const { publicBasicProducts } = await import('./public-product-details');
+  for (const product of publicBasicProducts) {
+    const design = getCatalogDesign(product.standardDesignId)!;
+    const quote = getMenuPlanSelection(product.productKey, design.id, design.templateKey)!;
+    assert.equal(quote.access, 'standard');
+    assert.equal(product.price, quote.earlyBirdAmount);
+    assert.equal(product.regularPrice, quote.regularAmount);
+    const designer = catalogDesigns.find(item => item.service === quote.service && item.kind === 'designer')!;
+    const all = getMenuPlanSelection(product.productKey, designer.id)!;
+    assert.equal(product.designPrice, all.earlyBirdAmount);
+    assert.equal(product.designRegularPrice, all.regularAmount);
+    assert.equal(new URL(design.startHref, 'https://example.test').searchParams.get('design'), product.standardDesignId);
+  }
+});
