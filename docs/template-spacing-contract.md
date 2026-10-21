@@ -1,8 +1,12 @@
 # Menu template spacing contract
 
+## Preview option drawer and display scaling — 2026-10-21
+
+Catalog options start collapsed, including links that select the Design tab. At actual browser widths of 960px and above, a left-edge tab opens a light options drawer independently of the dark top device/service toolbar. Opening reserves a separate side column; the preview fits the remaining canvas by display scaling. The iframe keeps its original device viewport: tablet/mobile use the registered dimensions/orientation and PC uses the actual outer browser viewport. Opening/closing/tabs must preserve the iframe document, source size and menu scroll position. Only an actual browser resize or selected device/orientation changes source geometry. At narrower browser widths, options stay below the top toolbar with the approved two-column mobile controls. Both layouts share the same temporary selections, keyboard tabs and light color picker. The reset icon is beside each swatch; HEX remains inside the picker. Display and saved-menu preview surfaces retain their prior paths.
+
 ## Compact design controls — 2026-10-21
 
-Catalog color controls keep the label and swatch adjacent. HEX editing lives inside the collision-aware picker; no separate default/HEX textbox appears in the main panel. Its spectrum supports pointer/touch and keyboard input. Mobile design controls use two columns for backgrounds, image shapes and related choices; the third typography group spans the row with Korean/English choices side by side. Larger screens retain three typography columns. These controls do not change menu reading geometry.
+Catalog color controls keep the label and swatch adjacent. HEX editing lives inside the collision-aware picker; no separate default/HEX textbox appears in the main panel. Its spectrum supports pointer/touch and keyboard input. Mobile design controls use two columns for backgrounds, image shapes and related choices; the third typography group spans the row with Korean/English choices side by side. Option containers at least 640px wide retain three typography columns; narrow side drawers keep two. These controls do not change menu reading geometry.
 
 Basic/Dining image radius selectors share template/square/soft/rounded/round choices (native, 0, 8, 16, 24 CSS px) in catalog and editor. The existing bounded numeric JSON/form contract remains compatible; non-preset stored radii show “기존 설정 유지” and remain unchanged until the user chooses another option. Template restores the native radius. Chips retain their independent shape options. Category option labels follow the actual category heading ink, including Mocha panel contrast and Rosy Orange's native accent, as well as explicit saved/preview category colors.
 

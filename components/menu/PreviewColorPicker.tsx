@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState, type PointerEvent } from "react";
 import * as Popover from "@radix-ui/react-popover";
-import { X } from "lucide-react";
+import { RotateCcw, X } from "lucide-react";
 import { hexToHsv, hsvToHex, type HSV } from "@/lib/color-picker";
 import styles from "./PreviewColorPicker.module.css";
 
@@ -72,8 +72,9 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
         <label className={styles.hexRow}><span>HEX</span><input className={styles.hex} aria-label={`${accessibleLabel} 색상값`} value={draft} maxLength={7} autoComplete="off" spellCheck={false} aria-invalid={invalid} aria-describedby={invalid ? `${id}-error` : undefined}
           onChange={event => { setDraft(event.target.value); setInvalid(false); }} onBlur={commitHex} onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); commitHex(); } }} /></label>
         {invalid ? <p id={`${id}-error`} className={styles.error}>#과 여섯 자리 색상값을 입력해주세요.</p> : null}
-        <button type="button" className={styles.reset} disabled={disabled || !value} onPointerDown={event => event.preventDefault()} onClick={() => { onChange(undefined); update(hexToHsv(defaultColor)); }}>템플릿 기본색 복원</button>
       </Popover.Content></Popover.Portal>
     </Popover.Root>
+    <button type="button" className={styles.restore} aria-label={`${accessibleLabel} 기본색 복원`} title="템플릿 기본색 복원" disabled={disabled || !value}
+      onPointerDown={event => event.preventDefault()} onClick={() => { setOpen(false); onChange(undefined); update(hexToHsv(defaultColor)); }}><RotateCcw size={15} strokeWidth={1.7} aria-hidden="true" /></button>
   </div>;
 }

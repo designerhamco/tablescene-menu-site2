@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useOptimistic, useRef, useState, useTransition } from "react";
+import { useEffect, useOptimistic, useRef, useState, useTransition, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
@@ -8,7 +8,8 @@ import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
 import { supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
-import PreviewDesignOptions from "./PreviewDesignOptions";
+import MenuPreviewOptionsPanel from "./MenuPreviewOptionsPanel";
+import styles from "./MenuPreviewDeviceFrame.module.css";
 import { readPreviewDesign, serializePreviewDesign, type PreviewDesign, type PreviewDesignDefaults } from "@/lib/menu-preview-design";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import { getTemplatePreviewOptionGroups } from "@/lib/template-preview-options";
@@ -98,14 +99,16 @@ export default function MenuPreviewDeviceFrame(
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isToolbarOpen, setIsToolbarOpen] = useState(true);
-  const [areDisplayOptionsOpen, setAreDisplayOptionsOpen] = useState(true);
+  const [areDisplayOptionsOpen, setAreDisplayOptionsOpen] = useState(false);
   const [optionsTab, setOptionsTab] = useState((query as TemplatePreviewQuery).previewOptions === "design" ? "design" : "features");
   const initialDesign = readPreviewDesign((query as TemplatePreviewQuery).designPreview);
   const legacyRatio = readPreviewDesign({albumImageRatio:(query as TemplatePreviewQuery).albumImageRatio}).albumImageRatio;
   if (legacyRatio && !initialDesign.albumImageRatio) initialDesign.albumImageRatio = legacyRatio;
   const [designOptions, setDesignOptions] = useOptimistic(initialDesign);
   const templateQuery = { ...query, previewOptions: optionsTab, designPreview: serializePreviewDesign(designOptions) };
-  const toolbarRef = useRef<HTMLElement>(null);
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [metrics, setMetrics] = useState({ width: 0, height: 0, availableWidth: 0, availableHeight: 0 });
   const [toolbarHeight, setToolbarHeight] = useState(128);
   useEffect(() => {
     const toolbar = toolbarRef.current;
@@ -115,6 +118,16 @@ export default function MenuPreviewDeviceFrame(
     const observer = new ResizeObserver(measure);
     observer.observe(toolbar);
     return () => observer.disconnect();
+  }, []);
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const measure = () => setMetrics({ width: window.innerWidth, height: window.innerHeight, availableWidth: canvas.clientWidth, availableHeight: canvas.clientHeight });
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(canvas);
+    window.addEventListener("resize", measure);
+    return () => { observer.disconnect(); window.removeEventListener("resize", measure); };
   }, []);
   const supportsCallPreview =
     props.supportsCallPreview ?? props.templateKey !== "display_menu_a";
@@ -137,8 +150,6 @@ export default function MenuPreviewDeviceFrame(
   const [displayOptions, setDisplayOptions] = useOptimistic(props.previewDisplayOptions ?? getDefaultDesignOptions(query as TemplatePreviewQuery));
   const displayGroups = props.templateKey ? getTemplatePreviewOptionGroups(props.templateKey, defaultDesign) : [];
   const hasDisplayOptions = displayGroups.length > 0;
-  const displayChoices = displayGroups.flatMap(group => group.choices);
-  const enabledDisplayCount = displayChoices.filter(([key]) => displayOptions[key]).length;
   const changeDisplayOption = (key: DefaultDesignOptionKey, enabled: boolean) => {
     if (!props.templateKey || !hasDisplayOptions) return;
     startTransition(() => {
@@ -148,6 +159,13 @@ export default function MenuPreviewDeviceFrame(
   };
   const layoutMode = (Array.isArray(query.layoutMode) ? query.layoutMode[0] : query.layoutMode) === "orderedFit" ? "orderedFit" : "orderedBalancedFit";
   const frame = getMenuPreviewFrame(device, orientation);
+  const sidePanelLayout = hasDisplayOptions && metrics.width >= 960;
+  // Opening a panel changes display scale, never the iframe's device viewport.
+  const sourceWidth = device === "pc" ? metrics.width : frame.width;
+  const sourceHeight = device === "pc" ? metrics.height : frame.height;
+  const rim = device === "pc" ? 0 : 20;
+  const scale = sidePanelLayout && metrics.availableWidth > 0 && metrics.availableHeight > 0
+    ? Math.min(1, metrics.availableWidth / (sourceWidth + rim), metrics.availableHeight / (sourceHeight + rim)) : 1;
   const orientationLabel =
     device === "tablet" ? MENU_PREVIEW_ORIENTATIONS[orientation] : null;
   const nextTabletOrientation: MenuPreviewOrientation =
@@ -226,13 +244,13 @@ export default function MenuPreviewDeviceFrame(
   };
 
   return (
-    <main className="h-screen overflow-hidden bg-zinc-100 text-zinc-950">
-      <div className="pointer-events-none fixed inset-x-0 top-0 z-[80] flex flex-col items-center">
+    <main className={`${styles.workspace} h-screen overflow-hidden bg-zinc-100 text-zinc-950`} data-has-options={hasDisplayOptions ? "true" : "false"} data-options-open={areDisplayOptionsOpen ? "true" : "false"} data-toolbar-open={showToolbar ? "true" : "false"}
+      style={{ "--preview-top-clearance": `${showToolbar ? toolbarHeight + 24 : 40}px` } as CSSProperties}>
+      <div ref={toolbarRef} className={`${styles.toolbarRegion} pointer-events-none fixed right-0 top-0 z-[80] flex flex-col items-center`}>
         <header
-          ref={toolbarRef}
           data-preview-device-toolbar=""
           data-toolbar-open={showToolbar ? "true" : "false"}
-          className={`pointer-events-auto relative min-w-0 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/90 p-2 text-white backdrop-blur-[2px] transition-[width,transform] duration-300 ease-out ${
+          className={`${styles.toolbar} pointer-events-auto relative min-w-0 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/90 p-2 text-white backdrop-blur-[2px] transition-[width,transform] duration-300 ease-out ${
             showToolbar
               ? supportsLayoutPreview
                 ? "w-[min(53rem,calc(100vw-1.5rem))]"
@@ -246,19 +264,19 @@ export default function MenuPreviewDeviceFrame(
               ? "translateY(0.5rem)"
               : "translateY(calc(-100% + 1.75rem))",
             width: showToolbar ? undefined : "5rem",
-            maxWidth: showToolbar ? undefined : "5rem",
+            maxWidth: showToolbar ? "calc(100% - 1.5rem)" : "5rem",
           }}
         >
           <div
             data-preview-device-toolbar-content=""
             aria-hidden={!showToolbar}
-            className={`flex w-full items-center gap-1.5 pl-1 pr-10 transition-opacity duration-150 ${supportsLayoutPreview ? "max-[850px]:flex-wrap" : supportsCallPreview ? "max-[560px]:flex-wrap" : ""} ${
+            className={`${styles.toolbarContent} flex w-full items-center gap-1.5 pl-1 pr-10 transition-opacity duration-150 ${supportsLayoutPreview ? "max-[850px]:flex-wrap" : supportsCallPreview ? "max-[560px]:flex-wrap" : ""} ${
               showToolbar ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
           >
             <nav
               aria-label="미리보기 기기 선택"
-              className={`flex min-w-0 flex-1 items-center justify-center gap-0.5 ${supportsLayoutPreview ? "max-[850px]:basis-full" : supportsCallPreview ? "max-[560px]:basis-full" : ""}`}
+              className={`${styles.deviceNav} flex min-w-0 flex-1 items-center justify-center gap-0.5 ${supportsLayoutPreview ? "max-[850px]:basis-full" : supportsCallPreview ? "max-[560px]:basis-full" : ""}`}
             >
               {MENU_PREVIEW_DEVICE_ORDER.map((candidate) => {
                 const candidateFrame = MENU_PREVIEW_DEVICES[candidate];
@@ -347,41 +365,6 @@ export default function MenuPreviewDeviceFrame(
               <span className="hidden min-[430px]:inline">새 창에서 보기</span>
             </Link>
           </div>
-          {hasDisplayOptions && showToolbar ? (
-            <section className="mt-2 border-t border-white/15 px-2 pb-1 pt-1 text-xs" aria-label="보기 옵션">
-              <button type="button" className="flex min-h-9 w-full items-center gap-2 text-left font-medium text-white/90"
-                aria-expanded={areDisplayOptionsOpen} aria-controls="preview-display-options"
-                onClick={() => setAreDisplayOptionsOpen(open => !open)}>
-                보기 옵션 <span className="font-normal text-white/60">{optionsTab==='features'?`${enabledDisplayCount}/${displayChoices.length} 선택`:'디자인 미리보기'}</span>
-                {areDisplayOptionsOpen ? <ChevronUp className="ml-auto h-3.5 w-3.5" aria-hidden="true" /> : <ChevronDown className="ml-auto h-3.5 w-3.5" aria-hidden="true" />}
-              </button>
-              <div id="preview-display-options" hidden={!areDisplayOptionsOpen}>
-                <div role="tablist" aria-label="미리보기 옵션 종류" className="mb-3 flex gap-1 rounded-lg bg-black/20 p-1">
-                  {([['features','기능 옵션'],['design','디자인 옵션']] as const).map(([tab,label])=><button key={tab} type="button" role="tab" id={`preview-${tab}-tab`} aria-controls={`preview-${tab}-panel`} aria-selected={optionsTab===tab} tabIndex={optionsTab===tab?0:-1} onClick={()=>changeOptionsTab(tab)} onKeyDown={event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const next=event.key==='Home'?'features':event.key==='End'?'design':tab==='features'?'design':'features';changeOptionsTab(next);document.getElementById(`preview-${next}-tab`)?.focus();}}} className={`min-h-8 flex-1 rounded-md px-3 font-semibold ${optionsTab===tab?'bg-white text-zinc-950':'text-white/65 hover:text-white'}`}>{label}</button>)}
-                </div>
-                <div id="preview-features-panel" role="tabpanel" aria-labelledby="preview-features-tab" data-preview-display-options hidden={optionsTab!=='features'}>
-                <div className="grid gap-x-5 gap-y-2 pb-1 min-[640px]:grid-cols-3">
-                  {displayGroups.map(group => (
-                    <fieldset key={group.label} className="min-w-0">
-                      <legend className="mb-1 text-[0.65rem] font-medium text-white/60">{group.label}</legend>
-                      <div className="flex flex-wrap gap-x-3 gap-y-0.5">
-                        {group.choices.map(([key, label]) => (
-                          <label key={key} className="inline-flex min-h-8 cursor-pointer items-center gap-1.5 font-medium has-[:disabled]:cursor-default has-[:disabled]:opacity-40">
-                            <input type="checkbox" aria-label={`${label} 보기`} checked={displayOptions[key]} disabled={isPending || ((key === "featuredPreview" || key === "coverImagesPreview") && !displayOptions.coverPreview)}
-                              onChange={event => changeDisplayOption(key, event.target.checked)} />{label}
-                          </label>
-                        ))}
-                      </div>
-                    </fieldset>
-                  ))}
-                </div>
-                </div>
-                <div id="preview-design-panel" role="tabpanel" aria-labelledby="preview-design-tab" hidden={optionsTab!=='design'}>
-                  {props.templateKey && props.previewDesignDefaults ? <PreviewDesignOptions templateKey={props.templateKey} defaults={props.previewDesignDefaults} value={designOptions} album={defaultDesign?.itemLayout==='album'} dining={props.templateKey.startsWith('dining_')} disabled={isPending} onChange={changeDesign}/> : null}
-                </div>
-              </div>
-            </section>
-          ) : null}
           <button
             type="button"
             onClick={() => setIsToolbarOpen((open) => !open)}
@@ -402,18 +385,20 @@ export default function MenuPreviewDeviceFrame(
             )}
           </button>
         </header>
+        {hasDisplayOptions && props.templateKey ? <MenuPreviewOptionsPanel open={areDisplayOptionsOpen} onToggle={() => setAreDisplayOptionsOpen(value => !value)} tab={optionsTab} onTabChange={changeOptionsTab}
+          groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} pending={isPending} templateKey={props.templateKey} defaults={props.previewDesignDefaults} design={designOptions} onDesignChange={changeDesign} album={defaultDesign?.itemLayout === "album"} /> : null}
       </div>
 
       <section
         className={
-          device === "pc"
-            ? "h-screen w-screen overflow-hidden"
-            : "h-screen overflow-auto px-4 py-16"
+          `${styles.stage} ${device === "pc" ? "h-screen w-screen overflow-hidden" : "h-screen overflow-auto px-4 py-16"}`
         }
-        style={device !== "pc" && hasDisplayOptions && showToolbar ? { paddingTop: toolbarHeight + 24 } : undefined}
+        style={!sidePanelLayout && device !== "pc" && hasDisplayOptions && showToolbar ? { paddingTop: toolbarHeight + 24 } : undefined}
         tabIndex={device === "pc" ? undefined : 0}
         aria-label={`${frame.label}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
       >
+        <div ref={canvasRef} className={styles.canvas} data-preview-canvas>
+        <div className={styles.scaledFrame} data-preview-display-scale={sidePanelLayout ? scale : undefined} style={sidePanelLayout ? { width: (sourceWidth + rim) * scale, height: (sourceHeight + rim) * scale } : undefined}>
         <div
           data-preview-frame-shell=""
           className={
@@ -422,9 +407,9 @@ export default function MenuPreviewDeviceFrame(
               : "mx-auto overflow-hidden rounded-[28px] border-[10px] border-zinc-900 bg-white shadow-2xl"
           }
           style={
-            device === "pc"
-              ? undefined
-              : { width: frame.width + 20, height: frame.height + 20 }
+            sidePanelLayout
+              ? { width: sourceWidth + rim, height: sourceHeight + rim, transform: `scale(${scale})` }
+              : device === "pc" ? undefined : { width: frame.width + 20, height: frame.height + 20 }
           }
         >
           <iframe
@@ -434,6 +419,8 @@ export default function MenuPreviewDeviceFrame(
             className="h-full w-full border-0 bg-white"
             referrerPolicy="no-referrer"
           />
+        </div>
+        </div>
         </div>
       </section>
 
