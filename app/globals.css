@@ -4797,7 +4797,8 @@ video {
 
 /* Active Basic reading: one product-size policy for designer, neutral and album
    presentations. Legacy canvas and mobile retain their independent contracts.
-   Reference-size headings/store copy keep their geometry; the 94% product role
+   Reference-size headings keep their geometry; all descriptions share one token,
+   while the 94% product role
    is shared by visible rows, measuring rows and representative products. */
 .cafe-a-typography[data-spacing-contract="contained-reading"] {
   --cafe-a-product-reading-scale: .94;
@@ -4814,7 +4815,7 @@ video {
 }
 .cafe-a-typography[data-spacing-contract="contained-reading"] :is([data-cafe-a-menu-item], .cafe-a-featured-copy, .cafe-a-price-column-header .cafe-a-price-column-sizer) {
   --cafe-a-linked-item-name-size: max(1rem, calc(var(--cafe-a-reading-reference-size) * var(--cafe-a-product-reading-scale) * var(--menu-font-size-scale, 1) * var(--menu-role-item-name-size-scale, 1)));
-  --cafe-a-adaptive-support-size: max(.75rem, calc(var(--cafe-a-linked-item-name-size) * .72));
+  --cafe-a-adaptive-support-size: var(--cafe-a-reading-supporting-size);
   --cafe-a-linked-supporting-copy-size: var(--cafe-a-adaptive-support-size);
 }
 .cafe-a-typography[data-spacing-contract="contained-reading"] :is(.cafe-a-price-column-header, .cafe-a-price-column-heading-label, .cafe-a-price-label, .cafe-a-price-note) {
@@ -5788,6 +5789,12 @@ video {
 }
 .cafe-a-typography[data-cafe-a-proportion-policy="true"] :is(.cafe-a-menu-badge, .cafe-a-featured-badge, .cafe-a-time-sale-badge, .cafe-a-menu-chip) .cafe-a-script-en {
   font-family: var(--menu-font-en), var(--menu-font-ko), system-ui, sans-serif !important;
+}
+
+/* Active Basic descriptions have one size regardless of visible field count.
+   Keep secondary-only emphasis and legacy/other-family presentations separate. */
+.cafe-a-typography:is([data-spacing-contract="contained-reading"], [data-spacing-contract="mobile-reading"]) :is([data-cafe-a-content-variant="description-only"], [data-cafe-a-featured-description-only="true"]) {
+  --cafe-a-two-field-boost: 1;
 }
 
 .cafe-a-typography[data-cafe-a-two-field-boost="off"] {

@@ -76,7 +76,6 @@ export function applyTemplatePreviewOptions(source: MenuPageData, query: Templat
   if (enabled("badgesPreview") === false) data.items.forEach(item => Object.assign(item, { badge: null, badge_label: null, badge_type: "none", recommended: false, is_best: false }));
   if (enabled("badgesPreview") === true && sample && !data.items.some(item => item.badge_label || item.badge || item.recommended || item.is_best)) Object.assign(sample, { badge_label: "NEW", badge: "NEW" });
   if (enabled("priceNotesPreview") === false) data.items.forEach(item => Object.assign(item, { priceNote: null, portion_label: null, portion_visible: false }));
-  if (enabled("priceNotesPreview") === true && sample && !ordinary.some(item => item.priceNote || item.portion_label)) sample.priceNote = "ICE ONLY";
   if (enabled("priceOptionsPreview") === false) {
     data.priceOptions = [];
     data.categories.forEach(category => { category.priceColumns = []; });
@@ -96,11 +95,25 @@ export function applyTemplatePreviewOptions(source: MenuPageData, query: Templat
       data.priceOptions = labels.map((label, index) => ({ id: `${sample.id}-preview-option-${index}`, menu_item_id: sample.id, label, price: (sample.price ?? 5000) * (index === 0 ? 1 : 5), price_label: null, visible: true, sort_order: index }));
     }
   }
-  // A category price rail can intentionally suppress per-item notes. Keep a
-  // note example on an ordinary-price item so both enabled features are visible.
+  if (enabled("priceOptionsPreview") === true && capabilities.supportsBasicPriceColumns) {
+    for (const category of data.categories.filter(category => category.priceColumns.length)) {
+      for (const item of ordinary.filter(item => item.category_id === category.id)) {
+        const existing = new Map(item.priceColumnValues.map(value => [value.priceColumnId, value]));
+        item.priceColumnValues = category.priceColumns.map((column, index) => existing.get(column.id) ?? ({ id: `${item.id}-${column.id}`, priceColumnId: column.id, price: (item.price ?? 5000) + index * 500, priceLabel: null, visible: true }));
+      }
+    }
+  }
+  // Basic category-wide examples must remain complete. A price-column rail
+  // suppresses item notes, so keep at least one ordinary-price note category.
   if (enabled("priceNotesPreview") === true && capabilities.supportsPriceNote) {
     const eligible = ordinary.filter(item => !data.categories.find(category => category.id === item.category_id)?.priceColumns.length && !data.priceOptions.some(option => option.menu_item_id === item.id && option.visible !== false));
-    if (!eligible.some(item => item.priceNote || item.portion_label) && eligible[0]) eligible[0].priceNote = "ICE ONLY";
+    const noteCategories = new Set(eligible.filter(item => item.priceNote || item.portion_label).map(item => item.category_id));
+    if (!noteCategories.size && eligible[0]) noteCategories.add(eligible[0].category_id);
+    for (const categoryId of noteCategories) {
+      const items = eligible.filter(item => item.category_id === categoryId);
+      const note = items.find(item => item.priceNote)?.priceNote || "ICE ONLY";
+      for (const item of items) if (!item.priceNote && !item.portion_label) item.priceNote = note;
+    }
   }
   if (enabled("timeSalesPreview") === true && !data.timeSales.length && sample?.price) {
     const column = sample.priceColumnValues[0];

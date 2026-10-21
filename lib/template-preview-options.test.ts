@@ -167,3 +167,16 @@ test("generated sold-out samples do not conceal independently enabled promotions
   assert.deepEqual(data.items.filter(item => item.is_sold_out).map(item => item.id), ["ordinary-without-sale"]);
   assert.deepEqual(data.timeSales, source.timeSales);
 });
+
+test("Basic preview completes whole-category examples without changing independent items", () => {
+  const source = fixture();
+  source.items[0].priceColumnValues = [];
+  source.items[1].priceNote = null as unknown as string;
+  source.categories.push({ id: "note-category", name: "Cold drinks", priceColumns: [] } as unknown as MenuPageData["categories"][number]);
+  source.items.push(...["three", "four"].map(id => ({ ...source.items[0], id, category_id: "note-category", priceNote: id === "three" ? "ICE ONLY" : null, priceColumnValues: [] })) as unknown as MenuPageData["items"]);
+  const data = applyTemplatePreviewOptions(source, { priceOptionsPreview: "on", priceNotesPreview: "on" });
+  assert.ok(data.items.filter(item => item.category_id === "category").every(item => item.priceColumnValues.length === 1));
+  assert.ok(data.items.filter(item => item.category_id === "note-category").every(item => item.priceNote === "ICE ONLY"));
+  assert.equal(data.items.find(item => item.id === "course-item")?.priceColumnValues.length, source.items.find(item => item.id === "course-item")?.priceColumnValues.length);
+  assert.equal(source.items.find(item => item.id === "four")?.priceNote, null);
+});
