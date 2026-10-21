@@ -2,7 +2,7 @@
 
 ## 적용 상태
 
-2026-10-22 KST 사용자 승인 “이 SQL 한 건 적용 후 배포”에 따라 `20261021151631_add_visit_order_history_and_cancellation.sql` 원문 한 건을 `tablescene-prod`에 1회 적용했다. 기존 migration은 재실행하지 않았다. 공식 `npm run supabase:types`로 운영 스키마 타입을 생성하고 두 RPC의 임시 계약 어댑터를 제거했다. 타입 생성에는 앞서 승인·적용한 구독 전환 원장/RPC도 함께 반영된다. 운영 대상 목록·실제 결제 실행 설정은 변경하지 않았다. 코드 병합·Production 배포 검수는 이어서 진행한다.
+2026-10-22 KST 사용자 승인 “이 SQL 한 건 적용 후 배포”에 따라 `20261021151631_add_visit_order_history_and_cancellation.sql` 원문 한 건을 `tablescene-prod`에 1회 적용했다. 기존 migration은 재실행하지 않았다. 공식 `npm run supabase:types`로 운영 스키마 타입을 생성하고 두 RPC의 임시 계약 어댑터를 제거했다. 타입 생성에는 앞서 승인·적용한 구독 전환 원장/RPC도 함께 반영된다. 운영 대상 목록·실제 결제 실행 설정은 변경하지 않았다. PR #299를 운영 브랜치에 병합하고 Production 배포·실제 도메인 사후 검수를 완료했다.
 
 ### 운영 적용 근거
 
@@ -46,3 +46,15 @@
 `scripts/qa-visit-order-history-ui.mjs`는 공통 실제 컴포넌트와 모의 API를 사용한다. 베이직·다이닝 320/390/820/1180/1440px 10조합 및 충돌/오류/재시도/자동 갱신/만료, 실제 주문 후 내역 열기, EN/JA/ZH 좁은 화면을 포함한 15건이 통과했다. 실제 DOM 해상도와 넘침, 시각/수량/옵션/가격/상태, 취소 확인과 중복 클릭·예시 버튼 미노출을 확인했다. 검수용 앱 경로는 종료 시 제거된다.
 
 단위 744건·타입·변경 파일 린트·최적화 빌드를 통과했다. 운영 데이터 쓰기·실주문·실결제는 0회다. 기존 미리보기 8조합도 별도 3017 배포 빌드 서버에서 브라우저 오류·실제 쓰기 없이 통과했다. 사용자 3000 개발 서버는 종료하거나 초기화하지 않았다.
+
+## Production 배포 결과 — 2026-10-22 KST
+
+- PR #299 병합: `4497aab4019a05af202e4be68d67cdd9f314dc2f`. 최종 소스 `ddbe2c381e282b889ea9ec80bf7a35437bbc5b73`와 배포 대상 app/components/lib/scripts/supabase가 동일함을 확인했다.
+- GitHub 자동 배포 지연 안내 아래 최신 운영 브랜치를 직접 지정했다. Vercel이 해석한 Production/`4497aab`를 확인하고 1회 배포했다.
+- [Production 배포](https://vercel.com/designerhamcos-projects/tablescene-menu-site2/8dQnFwf5oWaXE5drHk8JzwSNt9sb) `Ready`, 빌드 1분 13초, `tablescene-menu-site2.vercel.app` 연결과 소스 커밋 확인.
+- 실제 도메인 사후 확인 7건: 신청 페이지·베이직/다이닝 모바일 미리보기 200, 임시 QA 경로 404, 방문 쿠키 없는 GET/PATCH 401·다른 Origin PATCH 403, `no-store`/`Vary: Cookie`·비공개 정보 미반환 확인.
+- 운영 조회 RPC도 존재하지 않는 방문으로만 읽기 검수해 `ORDER_VISIT_INACTIVE`/42501 차단을 확인했다. 실제 주문·취소·테이블 방문을 생성하거나 변경하지 않았다.
+- 배포된 실제 사이트에서 기존 장바구니/주문내역 미리보기 8건(베이직/다이닝 × PC 1440, 태블릿 1180, 모바일 390/320) 재통과. 브라우저 오류·실제 API 쓰기 0건. 실제 DOM 너비·장바구니 탭·예시 취소·새로고침 보존·가격/옵션 표시 검증.
+- 로컬 증빙: `/private/tmp/visit-history-production-before.json`, `visit-history-production-after.json`, `visit-history-production-smoke.json`, `visit-history-production-ready.jpg`, `/private/tmp/visit-history-preview-live/report.json`.
+- 검수 계정에는 현재 주문 운영 대상의 활성 사업자 메뉴가 없어 실제 고객 주문/취소 E2E는 실행하지 않았다. 서비스/API 통합은 임시 DB 79건, 실제 컴포넌트 화면은 모의 API 15건으로 구분해 기록한다. 실제 운영 대상 확대와 실결제 검수는 승인 범위가 다른 다음 단계다.
+- 사용자 3000 서버는 계속 실행 중이며 종료·초기화하지 않았다. 다음은 전체 고객 동선 검수와 운영 연결 가능 상태의 읽기 전용 감사다.
