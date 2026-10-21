@@ -10,13 +10,23 @@ async function page(width=390,height=844){const p=await b.newPage({viewport:{wid
 async function open(p,key,device,extra={}){await p.goto(`${base}/templates/${key}/preview?`+new URLSearchParams({view:'actual',device,callPreview:'on',orderPreview:'on',imagesPreview:'on',priceOptionsPreview:'on',...extra}),{waitUntil:'networkidle'});await p.evaluate(()=>document.fonts.ready);await p.waitForTimeout(200);}
 async function priceGeometry(p){return p.locator('[data-cafe-a-category-block]').filter({visible:true}).evaluateAll(es=>es.filter(e=>e.querySelector('[data-cafe-a-price-columns]')).map(category=>{
  const rect=e=>{const r=e.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width}};
- return {layout:category.dataset.mobilePriceLayout,headerVisible:[...category.querySelectorAll('.cafe-a-category-price-column-slot')].some(e=>e.getBoundingClientRect().width>0),rows:[...category.querySelectorAll('.cafe-a-menu-item-has-price-columns')].map(e=>{const area=e.querySelector('.cafe-a-price-area'),copy=e.querySelector('.cafe-a-menu-copy'),img=e.querySelector('.cafe-a-menu-item-image-slot');return {stack:e.classList.contains('cafe-a-mobile-price-stack'),item:rect(e),copy:rect(copy),img:img&&rect(img),price:rect(area),labels:[...e.querySelectorAll('.cafe-a-mobile-option-label')].map(e=>{const range=document.createRange();range.selectNodeContents(e);return rect({getBoundingClientRect:()=>range.getBoundingClientRect()});}),numbers:[...e.querySelectorAll('.cafe-a-price-column-cell > .cafe-a-menu-price')].map(rect)};})};}));}
+ return {layout:category.dataset.mobilePriceLayout,headerVisible:[...category.querySelectorAll('.cafe-a-category-price-column-slot')].some(e=>e.getBoundingClientRect().width>0),rows:[...category.querySelectorAll('.cafe-a-menu-item-has-price-columns')].map(e=>{const area=e.querySelector('.cafe-a-price-area'),copy=e.querySelector('.cafe-a-menu-copy'),img=e.querySelector('.cafe-a-menu-item-image-slot'),add=area.querySelector('[data-menu-order-add]');return {stack:e.classList.contains('cafe-a-mobile-price-stack'),item:rect(e),copy:rect(copy),img:img&&rect(img),add:add&&rect(add),price:rect(area),cells:[...e.querySelectorAll('.cafe-a-price-column-cell')].map(rect),labels:[...e.querySelectorAll('.cafe-a-mobile-option-label')].map(e=>{const range=document.createRange();range.selectNodeContents(e);return rect({getBoundingClientRect:()=>range.getBoundingClientRect()});}),numbers:[...e.querySelectorAll('.cafe-a-price-column-cell > :is(.cafe-a-menu-price, .cafe-a-time-sale-price-block):not(.cafe-a-price-column-sizer)')].map(rect)};})};}));}
+function assertPriceStrip(row){
+ assert.ok(row.img&&row.labels.length===3,'only images with three options use the strip');assert.ok(Math.abs(row.price.width-row.item.width)<1);assert.ok(row.price.top>=Math.max(row.copy.bottom,row.img.bottom)-1);
+ assert.equal(row.numbers.length,3);const priceTop=row.numbers[0].top;
+ for(let i=0;i<3;i++){assert.ok(row.numbers[i].top>=row.labels[i].bottom-1,'each label stays above its price');assert.ok(Math.abs(row.numbers[i].top-priceTop)<1,'wrapped labels keep all prices on one line');assert.ok(row.labels[i].left>=row.cells[i].left-1&&row.labels[i].right<=row.cells[i].right+1,'labels stay inside their cells');if(i)assert.ok(row.cells[i].left>row.cells[i-1].right,'three horizontal cells keep a real gap');}
+ if(row.add){assert.ok(Math.abs(row.add.right-row.price.right)<1,'add control stays at the product right edge');assert.ok(row.add.left>=row.cells[2].right,'add control does not overlap prices');}
+}
 async function mobile(c,width){const p=await page(width);try{
  await open(p,c.key,'mobile',c.design?{design:c.design}:{});assert.deepEqual(await p.evaluate(()=>[innerWidth,innerHeight]),[width,844]);
  const data=await priceGeometry(p);assert.ok(data.length,'price-option categories present');
  for(const cat of data)for(const row of cat.rows){
-  if(row.stack){assert.ok(row.img&&row.labels.length===3,'only images with three options stack');assert.ok(Math.abs(row.price.width-row.item.width)<1);assert.ok(row.price.top>=Math.max(row.copy.bottom,row.img.bottom)-1);for(let i=1;i<row.labels.length;i++)assert.ok(row.labels[i].top>row.labels[i-1].bottom,'three options form a vertical list');}
+  if(row.stack)assertPriceStrip(row);
   else {assert.ok(row.price.left>=row.copy.right-1,'ordinary options stay beside the product');assert.ok(row.price.top<row.copy.bottom,'ordinary options stay in the original product row');}
+ }
+ const strip=p.locator('.cafe-a-mobile-price-stack').first();
+ if(await strip.count()){
+  for(const labels of [['SMALL','REGULAR SIZE','EXTRA LARGE SIZE'],['아이스 전용','레귤러','패밀리 쉐어']]){await strip.locator('.cafe-a-mobile-option-label').evaluateAll((es,labels)=>es.forEach((e,i)=>{e.textContent=labels[i];}),labels);for(const cat of await priceGeometry(p))for(const row of cat.rows)if(row.stack)assertPriceStrip(row);}
  }
  await open(p,c.key,'mobile',{...(c.design?{design:c.design}:{}),imagesPreview:'off'});
  assert.equal(await p.locator('.cafe-a-mobile-price-stack').count(),0,'no image means no stacked exception');
