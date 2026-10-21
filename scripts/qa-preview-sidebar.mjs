@@ -78,7 +78,7 @@ async function run([device, width, height, variant]) {
     }));
     const panel = p.locator('[data-preview-options-panel]'), rect = await box(panel), frame = await box(shell);
     const toolbar = await box(p.locator('[data-preview-device-toolbar]'));
-    await expect(panel).toHaveCSS('background-color', 'rgb(246, 247, 249)');
+    await expect(panel).toHaveCSS('background-color', 'rgba(255, 255, 255, 0.94)');
     if (wide) {
       sameGeometry(frame, initialFrame);
       sameGeometry(toolbar, initialToolbar);
