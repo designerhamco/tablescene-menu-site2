@@ -3,6 +3,17 @@ export const IMAGE_RADIUS_KEYS = ["advertisement", "cover", "item", "widget", "l
 export type ImageRadiusKey = typeof IMAGE_RADIUS_KEYS[number];
 export const IMAGE_RADIUS_LABELS: Record<ImageRadiusKey, string> = { advertisement: "광고 이미지", cover: "대표 이미지", item: "상품 이미지", widget: "위젯 이미지", logo: "로고 이미지" };
 export const MAX_IMAGE_RADIUS = 32;
+export const IMAGE_RADIUS_PRESETS = [
+  { value: "template", label: "템플릿 기본값", radius: undefined },
+  { value: "square", label: "각진 모양", radius: 0 },
+  { value: "soft", label: "살짝 둥글게", radius: 8 },
+  { value: "rounded", label: "둥글게", radius: 16 },
+  { value: "round", label: "많이 둥글게", radius: 24 },
+] as const;
+/** Existing arbitrary saved values remain untouched until another preset is chosen. */
+export function imageRadiusPreset(radius?: number) {
+  return IMAGE_RADIUS_PRESETS.find(preset => preset.radius === radius)?.value ?? "saved";
+}
 export const CHIP_SHAPES = ["template", "square", "soft", "rounded", "pill"] as const;
 export type ChipShape = typeof CHIP_SHAPES[number];
 export const CHIP_SHAPE_LABELS: Record<ChipShape,string> = { template: "템플릿 기본값", square: "각진 모양", soft: "살짝 둥글게", rounded: "둥글게", pill: "알약형" };

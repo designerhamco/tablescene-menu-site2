@@ -1,0 +1,23 @@
+.panel { max-height: min(60dvh, 32rem); overflow-y: auto; overscroll-behavior: contain; padding: 0 .25rem .5rem 0; }
+.panel > * + * { margin-top: 1rem; }
+.intro { display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: #aaaab0; }
+.reset { flex: none; border: 1px solid #ffffff35; border-radius: .4rem; padding: .4rem .6rem; color: white; }
+.reset:disabled { opacity: .4; }
+.legend { margin-bottom: .6rem; font-weight: 600; }
+.backgrounds, .radiusGrid, .extras { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.fontGroups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+.fontGroup { min-width: 0; border: 1px solid #ffffff25; border-radius: .5rem; padding: .65rem; }
+.fontGroup > legend { padding: 0 .2rem; font-weight: 600; }
+.fontGroup:last-child { grid-column: 1 / -1; }
+.fonts { display: grid; gap: .65rem; margin-top: .65rem; }
+.fontGroup:last-child .fonts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.option { display: grid; min-width: 0; gap: .35rem; color: #dddde1; }
+.select.select { width: 100%; min-width: 0; height: 2.25rem; padding: .35rem .5rem; border: 1px solid #ffffff35; border-radius: .4rem; background-color: #18181b; color: white; font-size: .75rem; }
+.select:disabled { opacity: .5; }
+.hint { color: #a5a5ad; line-height: 1.5; }
+@media (min-width: 640px) {
+  .fontGroups, .radiusGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .fontGroup:last-child { grid-column: auto; }
+  .fontGroup:last-child .fonts { grid-template-columns: minmax(0, 1fr); }
+  .fontGroup { padding: .75rem; }
+}
