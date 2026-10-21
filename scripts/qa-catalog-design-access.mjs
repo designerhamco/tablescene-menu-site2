@@ -16,7 +16,7 @@ try {
    const response=await page.goto(`${base}/templates/${renderer}/preview?${query}`,{waitUntil:'networkidle',timeout:90000});assert.equal(response.status(),200);
    await page.evaluate(()=>document.fonts.ready);if(id.startsWith('dining-'))await page.getByRole('button',{name:id.includes('sidebar')?'A La Carte Menu':'A La Carte Menu 페이지로 이동',exact:true}).first().click();await page.waitForTimeout(1200);
    await page.addStyleTag({content:'nextjs-portal { display: none !important; }'});
-   await page.screenshot({path:`public/template-previews/default-${id}.jpg`,type:'jpeg',quality:85});
+   await page.screenshot({path:`public/template-previews/default-${id}-20261021.jpg`,type:'jpeg',quality:85});
    results.push({capture:id,viewport:await page.evaluate(()=>({width:innerWidth,height:innerHeight})),title:await page.title()});
   }
   await page.close();
