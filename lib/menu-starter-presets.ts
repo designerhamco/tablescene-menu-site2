@@ -2231,6 +2231,38 @@ for (const [categoryKey, labels] of [["coffee", ["HOT", "ICE"]], ["palette-latte
 }
 for (const category of cafeVanGoghStarterPreset.pages[0].categories) if (["signature", "tea-ade"].includes(category.key ?? "")) for (const item of category.items) if (["starry-night-latte", "arles-orange-cold-brew"].includes(item.key ?? "")) item.price_note = "ICE ONLY";
 
+// Complete category-wide Basic examples in starter data, never customer data.
+const basicPriceExamples: [StarterPreset, string, readonly string[], string][] = [
+  [cafeDesignAStarterPreset, "classic-coffee", ["HOT", "ICE"], "signature-coffee"],
+  [cafeMochaForestStarterPreset, "non-coffee", ["HOT", "ICE"], "signature-coffee"],
+  [cafeSundayLineStarterPreset, "coffee", ["HOT", "ICE"], "signature"],
+  [cafeVanGoghStarterPreset, "coffee", ["HOT", "ICE"], "signature"],
+  [cafeRoundFocusStarterPreset, "zero-proof", ["REGULAR", "LARGE"], "signature-cocktails"],
+  [loopBagelStarterPreset, "cream-cheese", ["40g", "80g"], "coffee-drinks"],
+  [ONUE_STARTER, "signature", ["Small", "Regular"], "drinks"],
+];
+for (const [preset, optionCategoryKey, optionLabels, noteCategoryKey] of basicPriceExamples) {
+  for (const page of preset.pages) {
+    const optionCategory = page.categories.find(category => category.key === optionCategoryKey);
+    if (optionCategory && !optionCategory.price_columns?.length) optionCategory.price_columns = optionLabels.map(label => ({ key: label.toLowerCase(), label }));
+    for (const category of page.categories) {
+      if (category.price_columns?.length) for (const menuItem of category.items) {
+        const existing = new Map(menuItem.price_column_values?.map(value => [value.key, value]));
+        menuItem.price_column_values = category.price_columns.map((column, index) => existing.get(column.key) ?? ({ key: column.key, price: menuItem.price + index * (preset === cafeRoundFocusStarterPreset ? 2000 : 500) }));
+      }
+      const firstNote = category.items.find(menuItem => menuItem.price_note)?.price_note;
+      if (category.key !== noteCategoryKey && !firstNote) continue;
+      for (const menuItem of category.items) {
+        if (menuItem.price_note) continue;
+        menuItem.price_note = category.key === "coffee-drinks" ? "HOT / ICE"
+          : preset === ONUE_STARTER && menuItem.key === "americano" ? "HOT / ICE"
+          : preset === ONUE_STARTER && menuItem.key === "wine" ? "GLASS"
+          : firstNote || "ICE ONLY";
+      }
+    }
+  }
+}
+
 const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe: StarterPreset } = {
   cafe: {
     key: "cafe",

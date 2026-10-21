@@ -37,8 +37,8 @@ test("buildCafeAStarterResetSnapshot creates a complete CafeA reset snapshot", (
   assert.equal(snapshot.widgets.length, 1);
   assert.equal(snapshot.widgets[0].type, "image_text");
   assert.equal(Object.keys(snapshot.referenceMap.widget).length, 1);
-  assert.equal(snapshot.categoryPriceColumns.length, 0);
-  assert.equal(snapshot.itemPriceColumnValues.length, 0);
+  assert.equal(snapshot.categoryPriceColumns.length, 2);
+  assert.equal(snapshot.itemPriceColumnValues.length, 8);
   assert.deepEqual(snapshot.deletedPageIds, ["existing-page"]);
   assert.deepEqual(snapshot.deletedCategoryIds, ["existing-category"]);
   assert.deepEqual(snapshot.deletedItemIds, ["existing-item"]);

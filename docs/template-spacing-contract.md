@@ -1,5 +1,13 @@
 # Menu template spacing contract
 
+## Strict Basic supporting-size and category examples — 2026-10-21
+
+Latest user clarification: both this size alignment and category-wide price examples apply to Basic only. Dining retains its existing type hierarchy, including the larger cover introduction.
+
+Active Basic PC/tablet store description, product/featured description, category description, notices, widget body and language supporting copy share one reading-supporting token: reference × .94 × .72, with the existing .75rem floor and saved global/supporting scale. The token is resolved on the reading board/frame rather than recalculated from an individual product role. This removes the 6% store/notice-versus-product difference. Description-only products no longer receive the old 5% description emphasis, on desktop/tablet or mobile; secondary-only emphasis remains independent. Mobile descriptions remain 14px with existing line-height and gap tokens. Other product/name/price/category sizes are unchanged.
+
+Every active Basic starter has a complete category-level price-option example (up to three columns) and a complete ordinary-price note category. All products in a category with price columns have explicit values for every declared column. Every product in a demonstrated price-note category has a meaningful note; notes may differ where the drinks have different serving modes. Catalog ON fills incomplete category examples, OFF hides them, and customer data is not modified. Basic albums still exclude category price-option rails; Dining and standalone items keep their prior data rules.
+
 ## Header copy and supporting ink — 2026-10-21
 
 Active contained-reading top rows keep the existing independent 8–14% title-fit budget, but their grid row also has a measured copy-height minimum. This includes native language-row reservation and wrapped notices/description, for text brands and logos alike. A long store description grows the fixed header and reduces the scrolling body; it must never be clipped to the title ratio. Recompute the minimum on real copy, font, logo or viewport changes and release it when the text/logo presentation unmounts. The shared neutral top-row design follows the same policy; mobile natural flow and legacy canvas engines remain separate.

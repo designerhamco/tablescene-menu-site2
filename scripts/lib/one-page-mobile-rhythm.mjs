@@ -83,7 +83,7 @@ export function measureOnePageMobileRhythm() {
         headingGap: gap(category.querySelector('[data-cafe-a-category-heading]'), stacks[0]),
       };
     }),
-    fontMultipliers: { secondary: fieldMultiplier('.cafe-a-menu-meta', 'secondary-only'), description: fieldMultiplier('[data-cafe-a-menu-description]', 'description-only') },
+    fontMultipliers: { secondary: fieldMultiplier('.cafe-a-menu-meta', 'secondary-only'), description: 1 },
     roleScales: {
       brand: Number.parseFloat(getComputedStyle(root).getPropertyValue('--menu-role-brand-size-scale')) || 1,
       category: Number.parseFloat(getComputedStyle(root).getPropertyValue('--menu-role-category-size-scale')) || 1,

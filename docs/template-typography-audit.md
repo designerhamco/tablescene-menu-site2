@@ -14,9 +14,9 @@ The approved Basic and Dining default designs are the reading-size references fo
 | Some native price-option labels retained fixed 9.28/10px sizes | One reference/product-linked option/price-note rule; long labels reserve intrinsic width and a .625rem gap |
 | Dining neutral product roles alone had an extra .94 | All Dining PC/tablet use `1.06 × .94` |
 
-Basic reference ceilings remain PC 1.35rem / tablet 1.30rem; product roles use 94% with a 1rem floor. Categories retain reference ×1.6. Supporting/secondary roles retain a .75rem floor. Option/price-note roles use reference/product size × .56 PC / .53 tablet, floor .625rem. Featured identity over ONUE photography is store copy, not a product role.
+Basic reference ceilings remain PC 1.35rem / tablet 1.30rem; product roles use 94% with a 1rem floor. Categories retain reference ×1.6. All Basic supporting descriptions retain a .75rem floor and share reference ×.94 ×.72, while secondary names retain their independent role. Option/price-note roles use reference/product size × .56 PC / .53 tablet, floor .625rem. Featured identity over ONUE photography is store copy, not a product role.
 
-Mobile Basic retains 16px names/prices, 12px secondary, 14px descriptions and 26px categories at a 16px root. Existing 20/26/48 item/heading/section rhythm and internal copy gaps do not change. Dining retains its independent mobile item/price/course reading tokens. Customer role size settings and the shared two-field 5% supporting exception remain semantic rules, not template-name exceptions.
+Mobile Basic retains 16px names/prices, 12px secondary, 14px descriptions and 26px categories at a 16px root. Existing 20/26/48 item/heading/section rhythm and internal copy gaps do not change. Dining retains its independent mobile item/price/course reading tokens. Customer role size settings remain semantic rules. The latest strict Basic supporting-copy policy removes description-only 5% emphasis; secondary-only emphasis remains separate. Store, product, category, featured descriptions and notices share the same reading-supporting size.
 
 Display, inactive layouts and the Brew multi-page renderer retain their separate contracts; they do not inherit active Basic contained-reading tokens. Native brand typography and Dining cover/page title styling remain design identity rather than product-size overrides.
 

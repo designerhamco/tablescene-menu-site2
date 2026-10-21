@@ -406,3 +406,19 @@ test("Mocha and Loop bilingual starters use the registered English copy for ever
     assert.notEqual(getStarterPreset(templateKey).pages[0].categories[0].items[0].set_name, "CUSTOMER EDIT", "reads do not mutate the starter source");
   }
 });
+
+test("every Basic starter demonstrates complete category price rails and notes", () => {
+  for (const key of [...Object.keys(SINGLE_PAGE_DENSITY_CONTRACT), "restaurant_onue_a"]) {
+    const categories = getStarterPreset(key).pages.flatMap(page => page.categories);
+    assert.ok(categories.some(category => category.price_columns?.length), `${key}: category price options example`);
+    assert.ok(categories.some(category => category.items.some(item => item.price_note)), `${key}: price note example`);
+    for (const category of categories) {
+      const columns = category.price_columns ?? [];
+      if (columns.length) {
+        assert.ok(columns.length <= 3);
+        for (const item of category.items) assert.deepEqual(item.price_column_values?.map(value => value.key), columns.map(column => column.key), `${key}/${category.key}/${item.key}: all category prices`);
+      }
+      if (category.items.some(item => item.price_note)) assert.ok(category.items.every(item => item.price_note), `${key}/${category.key}: notes cover the full category`);
+    }
+  }
+});

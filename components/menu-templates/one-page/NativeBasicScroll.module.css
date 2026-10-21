@@ -4,8 +4,9 @@
 .board.board {
   --native-gap: var(--board-padding, clamp(2rem, 4.2vmin, 4.25rem));
   --cafe-a-reading-reference-size: var(--native-item-size, 1.3rem);
+  --cafe-a-reading-supporting-size: max(.75rem, calc(var(--cafe-a-reading-reference-size) * .94 * var(--menu-font-size-scale, 1) * var(--menu-role-supporting-size-scale, 1) * .72));
   --cafe-a-linked-item-name-size: max(1rem, calc(var(--cafe-a-reading-reference-size) * var(--menu-font-size-scale, 1) * var(--menu-role-item-name-size-scale, 1)));
-  --cafe-a-adaptive-support-size: max(.75rem, calc(var(--cafe-a-linked-item-name-size) * .72));
+  --cafe-a-adaptive-support-size: var(--cafe-a-reading-supporting-size);
   --cafe-a-linked-supporting-copy-size: var(--cafe-a-adaptive-support-size);
   --cafe-a-item-rhythm-gap: clamp(.55rem, calc(1.25rem * var(--fit-menu-gap-scale, 1) * .74), 1.15rem);
   --cafe-a-local-item-rhythm-gap: var(--cafe-a-item-rhythm-gap);
