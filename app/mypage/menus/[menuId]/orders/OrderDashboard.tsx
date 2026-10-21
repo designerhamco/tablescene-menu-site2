@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { CUSTOMER_ORDER_STATUS_LABELS } from "@/lib/customer-order-history";
 import { useActionState, useEffect, useState } from "react";
 
 import OperationalArrivalAlert from "@/components/mypage/OperationalArrivalAlert";
@@ -12,14 +13,7 @@ import type { OrderDashboardPageData } from "@/lib/server/order-management-servi
 import { initialOrderManagementActionState } from "./action-state";
 import { mutateOrderAction } from "./actions";
 
-const STATUS_LABELS: Record<string, string> = {
-  received: "접수",
-  accepted: "조리 전",
-  cooking: "조리 중",
-  ready: "조리 완료",
-  served: "제공 완료",
-  cancelled: "취소",
-};
+const STATUS_LABELS: Record<string, string> = CUSTOMER_ORDER_STATUS_LABELS;
 
 const PAYMENT_LABELS: Record<string, string> = {
   unpaid: "미결제",

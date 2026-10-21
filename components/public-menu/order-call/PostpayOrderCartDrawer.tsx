@@ -32,6 +32,7 @@ import type {
 } from "./types";
 
 import CustomerOrderHistory from "./CustomerOrderHistory";
+import { useCustomerOrderHistory } from "./useCustomerOrderHistory";
 import { canCustomerCancelOrder, parsePreviewOrderHistory, type CustomerOrderSnapshot } from "@/lib/customer-order-history";
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import styles from "./PostpayOrderCartDrawer.module.css";
@@ -143,7 +144,8 @@ export default function PostpayOrderCartDrawer({
   const [historySurface, setHistorySurface] = useState(false);
   const [historyState, setHistoryState] = useState<{ scope: string; orders: CustomerOrderSnapshot[] }>({ scope: "", orders: [] });
   const historyKey = `artimenu-preview-order-history:${menuSiteId}:${cartScope}`;
-  const history = previewOnly && historyState.scope === historyKey ? historyState.orders : [];
+  const liveHistory = useCustomerOrderHistory(menuSiteId, cartScope, open && !previewOnly && historySurface && activeTab === "history");
+  const history = previewOnly ? (historyState.scope === historyKey ? historyState.orders : []) : liveHistory.orders;
   useEffect(() => {
     if (!previewOnly) return;
     let cancelled = false;
@@ -158,14 +160,14 @@ export default function PostpayOrderCartDrawer({
   }, [historyState, historyKey, previewOnly]);
 
   useEffect(() => {
-    if (!open || !previewOnly || !historySurface) return;
+    if (!open || !historySurface) return;
     const frame = requestAnimationFrame(() => {
       const panel = document.getElementById(`${tabId}-panel`);
       if (panel) panel.scrollTop = 0;
       document.getElementById(`${tabId}-${activeTab}`)?.focus();
     });
     return () => cancelAnimationFrame(frame);
-  }, [open, previewOnly, historySurface, activeTab, tabId]);
+  }, [open, historySurface, activeTab, tabId]);
 
   function openHistory() {
     setActiveTab("history");
@@ -179,6 +181,12 @@ export default function PostpayOrderCartDrawer({
         ? { ...order, status: "cancelled" } : order),
     }));
     setMessage(t("미리보기 주문이 취소되었습니다."));
+  }
+  async function cancelOrder(id: string) {
+    if (previewOnly) { cancelPreviewOrder(id); return; }
+    setMessage("");
+    const message = await liveHistory.cancel(id);
+    if (message) setMessage(t(message));
   }
   function showHistoryExamples() {
     if (!previewOnly || !catalog.length || history.length) return;
@@ -457,6 +465,9 @@ export default function PostpayOrderCartDrawer({
         throw new Error(body.message || t("주문을 전송하지 못했습니다."));
       setCart([]);
       setPendingRequestId(null);
+      setActiveTab("history");
+      setHistorySurface(true);
+      liveHistory.refresh();
       setMessage(t("주문 {0}번이 접수되었습니다.", body.order?.orderNumber ?? ""));
     } catch (error) {
       setMessage(
@@ -655,12 +666,12 @@ export default function PostpayOrderCartDrawer({
       className={styles.backdrop}
       style={interactionStyle}
       data-device={device ?? "auto"}
-      data-empty={cart.length || (previewOnly && historySurface) ? "false" : "true"}
+      data-empty={cart.length || historySurface ? "false" : "true"}
       data-menu-cart=""
       onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}
     >
       <div ref={dialogRef} className={`${styles.panel} ${ui.typography}`} role="dialog" aria-modal="true" aria-label={activeTab === "history" ? t("주문내역") : t("장바구니")}>
-        {cart.length > 0 || (previewOnly && historySurface) ? <header className={styles.header}>
+        {cart.length > 0 || historySurface ? <header className={styles.header}>
           <button type="button" className={styles.back} onClick={onClose} aria-label={t("메뉴판으로 돌아가기")} data-cart-back>
             <ArrowLeft aria-hidden="true" strokeWidth={1.7} />
           </button>
@@ -671,7 +682,7 @@ export default function PostpayOrderCartDrawer({
           <span className={styles.count}>{activeTab === "history" ? t("{0}건", history.length) : `${totalUnits}/50`}</span>
         </header> : null}
 
-        {previewOnly && (cart.length > 0 || historySurface) ? <div className={styles.tabs} role="tablist" aria-label={t("주문 메뉴")}
+        {(cart.length > 0 || historySurface) ? <div className={styles.tabs} role="tablist" aria-label={t("주문 메뉴")}
           onKeyDown={event => {
             if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
             event.preventDefault();
@@ -686,11 +697,13 @@ export default function PostpayOrderCartDrawer({
           </button>)}
         </div> : null}
         <div className={styles.body} id={`${tabId}-panel`}
-          role={previewOnly && (cart.length > 0 || historySurface) ? "tabpanel" : undefined}
-          aria-labelledby={previewOnly && (cart.length > 0 || historySurface) ? `${tabId}-${activeTab}` : undefined}>
+          role={(cart.length > 0 || historySurface) ? "tabpanel" : undefined}
+          aria-labelledby={(cart.length > 0 || historySurface) ? `${tabId}-${activeTab}` : undefined}>
 
           <div className="space-y-6">
-            {previewOnly && activeTab === "history" ? <CustomerOrderHistory orders={history} onCancel={cancelPreviewOrder} onExamples={showHistoryExamples} /> : cart.length ? (
+            {activeTab === "history" ? <CustomerOrderHistory orders={history} onCancel={cancelOrder} onExamples={previewOnly ? showHistoryExamples : undefined}
+              previewOnly={previewOnly} loading={!previewOnly && liveHistory.loading} error={previewOnly ? "" : liveHistory.error}
+              pendingId={liveHistory.pendingId} hasMore={!previewOnly && liveHistory.hasMore} onRefresh={liveHistory.refresh} /> : cart.length ? (
               <>
                 <section>
                   <div className="divide-y divide-zinc-200">
@@ -837,7 +850,7 @@ export default function PostpayOrderCartDrawer({
                   onClick={onClose}
                 >
                   {t("메뉴 보러 가기")}</button>
-                {previewOnly && !historySurface ? <button type="button" className={styles.historyLink} onClick={openHistory}>{t("주문내역 보기")}</button> : null}
+                {!historySurface ? <button type="button" className={styles.historyLink} onClick={openHistory}>{t("주문내역 보기")}</button> : null}
               </div>
             )}
             {message ? (

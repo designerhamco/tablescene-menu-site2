@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { canCustomerCancelOrder, getCustomerPaymentLabel, parsePreviewOrderHistory } from "./customer-order-history";
+import { canCustomerCancelOrder, getCustomerPaymentLabel, parsePreviewOrderHistory, parseCustomerOrderHistory } from "./customer-order-history";
 
 test("customers can cancel only unpaid received orders; staff privileges are not inherited", () => {
   for (const status of ["received", "accepted", "cooking", "ready", "served", "cancelled", "unknown"]) {
@@ -21,4 +21,14 @@ test("stale or corrupted preview storage cannot break the history screen", () =>
   assert.deepEqual(parsePreviewOrderHistory("bad json"), []);
   assert.deepEqual(parsePreviewOrderHistory('{"orders":[]}'), []);
   assert.deepEqual(parsePreviewOrderHistory(JSON.stringify([null, valid, {...valid, status: "toString"}, {...valid, createdAt: "bad"}, {...valid, lines: [null]}])), [valid]);
+});
+
+test("live history rejects corrupt or duplicate orders and strips private fields", () => {
+  const order = {id: "11111111-1111-4111-8111-111111111111", orderNumber: 12, tableLabel: "테이블 1", createdAt: "2026-10-22T03:00:00Z", status: "received", paymentStatus: "unpaid", totalAmount: 11000,
+    lines: [{name: "주문 당시 상품명", quantity: 2, unitPrice: 5500, options: ["온도: ICE"], privateOptionKey: "secret"}], ownerId: "private"};
+  const result = parseCustomerOrderHistory({orders: [order], hasMore: false});
+  assert.equal(result.orders[0].lines[0].name, "주문 당시 상품명");
+  assert.equal("ownerId" in result.orders[0], false);
+  assert.equal("privateOptionKey" in result.orders[0].lines[0], false);
+  for (const value of [null, {orders: [order]}, {orders: [order, order], hasMore: false}, {orders: [{...order, example: true}], hasMore: false}, {orders: [{...order, status: "toString"}], hasMore: false}, {orders: [{...order, id: "-".repeat(36)}], hasMore: false}]) assert.throws(() => parseCustomerOrderHistory(value));
 });
