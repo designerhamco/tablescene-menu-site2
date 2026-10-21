@@ -31,9 +31,9 @@ export function menuAppearanceFromForm(form: Pick<FormData,"get">): MenuAppearan
   if (!CHIP_SHAPES.includes(chipShape as ChipShape) || !ALBUM_IMAGE_RATIOS.includes(albumImageRatio as AlbumImageRatio)) throw new Error("이미지·텍스트칩 모양 선택값이 올바르지 않습니다.");
   return normalizeMenuAppearance({ imageRadii: radii, chipShape, albumImageRatio });
 }
-export function menuAppearanceStyle(appearance: MenuAppearance, basic: boolean, album: boolean): CSSProperties {
+export function menuAppearanceStyle(appearance: MenuAppearance, supportsShapes: boolean, album: boolean): CSSProperties {
   const style: Record<string,string> = {};
-  if (basic) {
+  if (supportsShapes) {
     for (const key of IMAGE_RADIUS_KEYS) if (appearance.imageRadii[key] != null) style[`--menu-image-radius-${key}`] = `${appearance.imageRadii[key]}px`;
     const radii = { square: "0px", soft: "2px", rounded: "4px", pill: "9999px" };
     if (appearance.chipShape !== "template") style["--menu-chip-radius"] = radii[appearance.chipShape];
