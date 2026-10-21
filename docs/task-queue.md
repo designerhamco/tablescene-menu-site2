@@ -2,9 +2,9 @@
 
 ## 2026-10-21 디자인 카탈로그·좋아요·신규 디자인 이용권
 
-- `IN_PROGRESS` 기본/디자인 템플릿 분류, 유형/업종, 그룹별 요금, 미리보기·상세 카드와 계정별 좋아요 목록을 연결했다. 기본 디자인 10종의 실제 썸네일을 추가했다.
-- `IN_PROGRESS` 신규 월구독의 기본/디자인 포함 가격 검증·계약 저장, 같은 서비스·이용권 범위의 디자인 교체와 스타일 복원을 구현했다. 기존 계약·갱신 금액은 보존하며 기존 계약 이관/구독 중 이용권 변경은 후속 정책으로 분리한다.
-- `IN_PROGRESS` Approved SQL applied once to Production on 2026-10-21. Existing 24 contracts, saved amounts and fingerprint are unchanged. Columns/CHECK/guard/RLS/API access verified; code types synchronized. Final regression and release verification continue. Details: `docs/runbooks/menu-design-subscription-contract.md`.
+- `DONE` 기본/디자인 템플릿 분류, 유형/업종, 그룹별 요금, 미리보기·상세 카드와 계정별 좋아요 목록을 연결했다. 기본 디자인 10종의 실제 썸네일을 추가했다.
+- `DONE` 신규 월구독의 기본/디자인 포함 가격 검증·계약 저장, 같은 서비스·이용권 범위의 디자인 교체와 스타일 복원을 구현했다. 기존 계약·갱신 금액은 보존하며 기존 계약 이관/구독 중 이용권 변경은 후속 정책으로 분리한다.
+- `DONE` 승인된 SQL을 운영 DB에 1회 적용했다. 기존 구독 24건·금액·계약 필드는 보존했고 스키마·보안·API·타입을 확인했다. PR #292 운영 배포와 6개 실제 화면 너비의 카탈로그, 공개 안내 10개 화면·기존 미리보기 3종, 비로그인 접근 차단 검수를 완료했다. 단위 검증 727개·타입·빌드 통과. 실카드 결제는 미실행. `docs/runbooks/menu-design-subscription-contract.md`.
 
 ## 2026-10-21 밝은 옵션 패널·좌측 접기
 

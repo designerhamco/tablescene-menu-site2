@@ -21,16 +21,13 @@ Approved migration `20261021122057_add_menu_design_subscription_contract.sql` wa
 
 SQL은 임시 PGlite DB에서 기존 금액/NULL 계약 보존, 유효한 교체, 위조 설정/교차 서비스 차단, 함수 권한을 확인했다. 실결제·환불은 실행하지 않았다.
 
-1. 운영 프로젝트 `kfbekbapwsyeanobyjsv` 로그인 확인 후 컬럼/함수/트리거가 없는지, 구독 건수와 금액 합계를 읽기 전용으로 기록한다.
-2. 승인된 **파일 한 건만** 적용한다. `db push`, linked `migration up` 또는 과거 migration 재실행은 금지한다.
+운영 반영 기록:
 
-   ```sh
-   supabase db query --linked --project-ref kfbekbapwsyeanobyjsv --file supabase/migrations/20261021122057_add_menu_design_subscription_contract.sql
-   ```
-
-3. 컬럼 3개, 제약, 트리거, 함수 실행 권한을 확인하고 기존 구독 건수·금액 및 기존 계약 NULL 보존을 비교한다.
-4. Verify the applied schema, synchronize DB types and rerun type checking, tests and build. Full generation with `npm run supabase:types` remains available with separate CLI authentication.
-5. 승인한 앱 변경을 Production에 배포한 뒤 공개 목록·상세·로그인 보호·신규 계약 저장 경로를 확인한다. 실제 카드 검증은 별도 승인/전용 QA로 진행한다.
+1. `tablescene-prod`에서 새 컬럼·함수·트리거가 없음을 확인하고 기존 구독 수·금액 합계·정렬된 금액 지문을 기록했다.
+2. 사용자 로그인 후 SQL Editor에서 승인된 **파일 한 건만 한 번** 실행했다. `db push`, linked `migration up`, 과거 migration 재실행은 사용하지 않았다.
+3. 컬럼·제약·트리거·함수 권한·RLS·Security Advisor·Data API를 확인하고, 기존 24건의 금액과 새 필드 NULL 보존을 비교했다.
+4. 확인된 세 필드를 기존 Row/Insert/Update 타입에 반영했다. 전체 스키마 자동 생성은 별도 CLI 인증이 필요하며 이번 적용에서 실행하지 않았다.
+5. PR #292의 운영 코드 `f7580c6910fbbc58cc370a5de72e69e5c73fbdc8`은 Vercel 성공 후 실제 공개 사이트에서 검수했다. 실제 카드 등록·청구·환불은 실행하지 않았다.
 
 ## 검수
 
@@ -43,3 +40,11 @@ SQL은 임시 PGlite DB에서 기존 금액/NULL 계약 보존, 유효한 교체
 
 - 최종 공개 안내 정합성: 신청서 동의·상품 상세·요금제·FAQ·약관·AI 상담 안내를 메뉴판별 이용권 정책으로 맞췄다. 일반 신청 진입은 기본 디자인 금액을 선택하며, 명시한 디자인 템플릿 진입은 디자인 포함 금액을 유지한다. 결제 동의 기록에는 서버에서 확인한 이용권 계약을 함께 보관한다.
 - 요금·상품 2종·FAQ·약관의 실제 390/1440px 10개 화면은 정상 응답, 가로 넘침 없음, 기본 신청 링크와 새 정책 안내 일치를 확인했다.
+
+## 운영 배포 검수 완료
+
+- 2026-10-21 PR #292 병합 및 Vercel Production 성공: https://vercel.com/designerhamcos-projects/tablescene-menu-site2/9gPgLMxszgJrqHiZx4GmHn2wJXHa
+- 실제 https://tablescene-menu-site2.vercel.app 에서 320/390/430/820/1024/1440px 목록 분류·요금·이미지·상세 링크·키보드·좋아요 UI와 비로그인 API 차단을 재확인했다. 좋아요 UI 왕복은 모의 API이고 운영 계정 저장 변경은 하지 않았다.
+- 요금·상품 2종·FAQ·약관 390/1440px 10개 화면과 리얼맛차·모카 포레스트·다이닝 미리보기 3종이 정상 응답했다. 공개 안내 화면의 가로 넘침과 검사한 미리보기의 깨진 이미지는 없었다.
+- 배포 후 운영 DB 읽기 전용 재확인: 구독 24건, 저장 금액 합계 509,400원, 동일한 금액 지문, 기존 24건의 계약 필드 NULL 유지. 기존 고객 행 변경 없이 완료했다.
+- 검수 산출물은 `/private/tmp/catalog-production/results.json`, `/private/tmp/catalog-policy-production/results.json`, SQL 확인 화면은 `/private/tmp/artimenu-production-sql-proof.jpg`에 남겼다.
