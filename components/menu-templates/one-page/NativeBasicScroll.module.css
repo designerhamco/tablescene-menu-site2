@@ -93,3 +93,12 @@
 .board .header :global(.cafe-a-topline-brand-identity):has(img) { container-type: size; }
 .board .header :global(.cafe-a-store-logo-wrap):has(img) { width: 100%; height: 100%; display: grid; place-items: center; }
 .board .header :global(.cafe-a-store-logo) { width: auto; height: auto; max-width: 75cqw !important; max-height: 100cqh !important; object-fit: contain; }
+
+/* Mocha's picture keeps its portrait crop and touches the rail's bottom edge.
+   A short viewport may reduce its width as well as its height, never its ratio. */
+.root[data-cafe-a-skin="mocha_forest"] .board .brand :global(.cafe-a-fixed-rail) { padding-bottom: 0; }
+.root[data-cafe-a-skin="mocha_forest"] .board .brand :global(.cafe-a-cover-hero) { container-type: size; position: relative; background: transparent; margin-bottom: 0; }
+.root[data-cafe-a-skin="mocha_forest"] .board .brand :global(.cafe-a-cover-frame) {
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  flex: none; width: min(100cqw, 80cqh); height: auto !important; aspect-ratio: 4 / 5;
+}

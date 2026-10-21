@@ -21,9 +21,11 @@ This refactor moves existing declarations without changing formulas, tokens, con
 
 Shared components may render the same price or name, but presentation policies retain separate scopes. Existing functions and constants were moved verbatim. Source-contract tests read the renderer plus the extracted modules instead of assuming every declaration lives in one file.
 
+`one-page/mobile/useMobileCategoryPriceLayout.ts` measures category-wide intrinsic label/price widths for the approved Basic mobile purchase rows. It is independent of PC/tablet packing and the Dining option engine. `MenuCartCountBadge` shares rendered-icon ink/contrast across service entry points; `shared/menu-image-radius.ts` carries thumbnail geometry into the common lightbox. Neutral designs reuse all three paths.
+
 ## Catalog feature examples
 
-`lib/template-preview-data.ts` adapts explicit catalog option overrides only. It preserves source data, fills every missing eligible field, supplies a cover/featured example for empty starters and converts explicit widget previews to full image+title+body examples. Saved-menu/public routes never import this adapter. Starter records supply default examples only when creating/resetting menus; they do not update existing customers.
+`lib/template-preview-data.ts` adapts explicit catalog option overrides only. It preserves source data, fills every missing eligible field, supplies a cover/featured example for empty starters and preserves explicit widget previews, synthesizing a full image+title+body example only when none exists. Saved-menu/public routes never import this adapter. Starter records supply default examples only when creating/resetting menus; they do not update existing customers.
 
 Widget rendering follows `getTemplateCapabilities(...).menuWidgets.enabled`, not a parallel template-key allowlist. `CafeAWidgetBlock` and its `toCafeAWidgetPreview` adapter are reused by Dining A/B after the current page's category/standalone content; sorting, visibility, image fitting and the existing generic editor/save path remain shared. Priced-course imagery/one-column exceptions are independent.
 

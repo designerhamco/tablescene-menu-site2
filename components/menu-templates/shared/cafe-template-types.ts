@@ -65,6 +65,7 @@ export type CafeDesignATimeSaleMatch = {
 
 export type CafeMenuImagePreview = {
   src: string;
+  borderRadius?: string;
   title: string;
   secondaryTitle?: string | null;
 };

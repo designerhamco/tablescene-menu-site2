@@ -2987,7 +2987,6 @@ video {
 
 .cafe-a-typography[data-cafe-a-skin="round_focus"] [data-cafe-a-widget-block] {
   --cafe-a-widget-border: rgb(23 19 15 / 62%);
-  --cafe-a-widget-ink: #17130f;
   --cafe-a-widget-muted: rgb(23 19 15 / 68%);
 }
 
@@ -5968,3 +5967,33 @@ video {
 }
 
 .cafe-a-price-area:empty { display: none; }
+
+/* Basic mobile multi-price reading: photo/copy keep their full width; the
+   shared purchase rail follows them. PC/tablet rails remain unchanged. */
+.cafe-a-mobile-option-label { display: none; }
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-category-price-column-slot { display: none; }
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-menu-item-has-price-columns:not(.cafe-a-menu-item-with-image) { grid-template-columns: minmax(0, 1fr); }
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-menu-item-has-price-columns .cafe-a-menu-item-content-shell { display: contents; }
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-menu-item-has-price-columns .cafe-a-price-area {
+  grid-column: 1 / -1; grid-row: 2; display: flex; align-items: flex-end; column-gap: .75rem;
+  min-width: 0; max-width: none; width: 100%; margin-top: .5rem;
+}
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-menu-item-has-price-columns .cafe-a-price-columns-grid {
+  flex: 1; min-width: 0; width: 100%; grid-template-columns: repeat(var(--cafe-a-price-column-count), minmax(max-content, 1fr));
+}
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-price-column-cell {
+  width: 100%; grid-template-areas: "label" "price-column"; row-gap: .375rem; justify-items: center;
+}
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-price-column-label-sizer { display: none; }
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-price-column-cell > .cafe-a-mobile-option-label {
+  display: block; grid-area: label; font-family: var(--menu-role-supporting-font-family, inherit); font-size: .75rem;
+  font-weight: var(--menu-role-supporting-font-weight, 600); white-space: nowrap; line-height: 1.5; text-transform: uppercase;
+}
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-mobile-price-layout="vertical"] .cafe-a-price-columns-grid { grid-template-columns: minmax(0, 1fr); row-gap: .375rem; }
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-mobile-price-layout="vertical"] .cafe-a-price-column-cell {
+  grid-template-areas: "label price-column"; grid-template-columns: minmax(0, 1fr) max-content; column-gap: .625rem;
+}
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-mobile-price-layout="vertical"] .cafe-a-mobile-option-label { justify-self: start; white-space: normal; overflow-wrap: anywhere; }
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] [data-mobile-price-layout="vertical"] .cafe-a-price-column-cell > :not(.cafe-a-mobile-option-label) { justify-self: end; }
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-menu-item-has-price-columns .cafe-a-menu-copy { grid-row: 1; }
+.cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] .cafe-a-menu-item-with-image.cafe-a-menu-item-has-price-columns .cafe-a-menu-copy { grid-column: 2; }

@@ -23,6 +23,7 @@ import {
   getOrderCallEntryVisibility,
   type OrderCallEntryConfig,
 } from "./types";
+import MenuCartCountBadge from "./MenuCartCountBadge";
 import styles from "./TableMenuInteractions.module.css";
 import useMenuInteractionTheme from "./useMenuInteractionTheme";
 const subscribe = (listener: () => void) => {
@@ -83,9 +84,8 @@ export function TableMenuActionButtons({ appearance = "circle", headerOnly = fal
           <MenuOrderIcon variant={a.presentation === "aube" ? "document" : "cart"} purpose="view" />
           {inline ? <ScriptAwareText text={t("장바구니")} /> : null}
           {a.count > 0 ? (
-            <span className={styles.badge}>
-              {a.count > 99 ? "99+" : a.count}
-            </span>
+            inline ? <span className={styles.badge}>{a.count > 99 ? "99+" : a.count}</span>
+              : <MenuCartCountBadge className={styles.badge} count={a.count} />
           ) : null}
         </button>
       ) : null}

@@ -1,4 +1,5 @@
 "use client";
+import MenuCartCountBadge from "./MenuCartCountBadge";
 import { useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
 
 import { CreditCard, ShoppingBag } from "lucide-react";
@@ -163,9 +164,7 @@ export default function OrderCallEntryLayer({
                 </span>
               ) : null}
               {cartCount > 0 ? (
-                <span className="absolute -right-1 -top-1 flex min-h-5 min-w-5 items-center justify-center rounded-full bg-zinc-950 px-1 text-[10px] font-black leading-none text-white" data-public-menu-cart-count="">
-                  {cartCount > 99 ? "99+" : cartCount}
-                </span>
+                <MenuCartCountBadge className="absolute -right-1 -top-1" count={cartCount} />
               ) : null}
             </button>
           ) : null}
