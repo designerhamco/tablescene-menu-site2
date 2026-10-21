@@ -1,4 +1,6 @@
 import Link from "next/link";
+import FavoriteTemplates from "@/components/mypage/FavoriteTemplates";
+import { readTemplateFavorites } from "@/lib/template-favorites";
 import { redirect } from "next/navigation";
 
 import Footer from "@/app/components/layout/Footer";
@@ -71,7 +73,7 @@ export const revalidate = 0;
 
 const MYPAGE_QUERY_TIMEOUT_MS = 5000;
 
-type MyPageTab = "menus" | "payments" | "inquiries" | "notifications" | "account";
+type MyPageTab = "menus" | "payments" | "inquiries" | "notifications" | "account" | "favorites";
 type MenuTab = "active" | "holding" | "deleted";
 type BillingTab = "history" | "active" | "holding" | "deleted" | "ai-credits";
 
@@ -362,7 +364,7 @@ function getProviderLabel(provider: string | null | undefined) {
 function getActiveTab(value: string | string[] | undefined): MyPageTab {
   const tab = Array.isArray(value) ? value[0] : value;
 
-  if (tab === "payments" || tab === "inquiries" || tab === "notifications" || tab === "account") {
+  if (tab === "payments" || tab === "inquiries" || tab === "notifications" || tab === "account" || tab === "favorites") {
     return tab;
   }
 
@@ -1342,7 +1344,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const user = userResult?.data.user ?? null;
 
   if (!user) {
-    redirect("/sign-in?next=/mypage");
+    redirect(`/sign-in?next=${encodeURIComponent(activeTab === "favorites" ? "/mypage?tab=favorites" : "/mypage")}`);
   }
 
   if (isDeletedAccountStatus(user.app_metadata)) {
@@ -3342,6 +3344,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 ) : null}
               </section>
             ) : null}
+
+            {activeTab === "favorites" ? <FavoriteTemplates initialFavorites={readTemplateFavorites(user.user_metadata)} /> : null}
 
             {activeTab === "inquiries" ? (
               <section id="inquiry-history" className="scroll-mt-28">

@@ -1,3 +1,5 @@
+import { getMenuPlanSelection } from "@/lib/menu-plan-contract";
+import { initializePurchasedMenuDesign } from "@/lib/server/menu-plan-design-service";
 import { NextResponse } from "next/server";
 
 import { getSubscriptionProduct, type SubscriptionProduct } from "@/lib/billing-products";
@@ -436,7 +438,7 @@ function isDisplayCheckoutQaProduct(product: SubscriptionProduct | null | undefi
   );
 }
 
-function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null {
+function normalizeBusinessOrder(value: unknown, recoveryContract?: { amount: number; designId: string | null }): NormalizedBusinessOrder | null {
   const payload = getRecord(value);
   const product = getSubscriptionProduct(getString(payload.product_key));
   const isDisplayQaOrder = isDisplayCheckoutQaProduct(product);
@@ -449,13 +451,16 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
   const amount = typeof payload.amount === "number" ? payload.amount : Number(payload.amount);
   const planKey = getString(payload.plan_key) || "basic";
   const restaurantType = getString(payload.restaurantType);
-  const promotionValidation = validatePromotionForOrder({
+  const menuDesignId = recoveryContract ? recoveryContract.designId ?? undefined : product && ["business_basic_single_monthly", "business_basic_multi_monthly"].includes(product.productKey) ? getString(payload.menuDesignId) || templateKey : undefined;
+  if (menuDesignId && !getMenuPlanSelection(product?.productKey, menuDesignId, templateKey)) return null;
+  const promotionValidation = recoveryContract ? {ok: true as const, promotion: null} : validatePromotionForOrder({
+    menuDesignId,
     productKey: product?.productKey,
     promotionCode: payload.promotionCode,
     promotion: payload.promotion,
   });
-  const expectedAmount = promotionValidation.ok
-    ? getPromotionAwareChargeAmount(product?.productKey, promotionValidation.promotion)
+  const expectedAmount = recoveryContract ? recoveryContract.amount : promotionValidation.ok
+    ? getPromotionAwareChargeAmount(product?.productKey, promotionValidation.promotion, menuDesignId)
     : null;
 
   if (
@@ -483,6 +488,7 @@ function normalizeBusinessOrder(value: unknown): NormalizedBusinessOrder | null 
   }
 
   const order: NormalizedBusinessOrder = {
+    menuDesignId,
     product_key: product.productKey as NormalizedBusinessOrder["product_key"],
     plan_type: product.planType,
     payment_type: product.paymentType,
@@ -671,6 +677,7 @@ async function createPendingSubscription({
   amount,
   menuSiteId,
   trialPeriod,
+  menuDesignId,
 }: {
   adminSupabase: ReturnType<typeof createAdminClient>;
   subscriptionId: string;
@@ -681,7 +688,9 @@ async function createPendingSubscription({
   amount: number;
   menuSiteId?: string | null;
   trialPeriod?: SubscriptionBillingPeriod | null;
+  menuDesignId?: string;
 }) {
+  const selection = getMenuPlanSelection(product.productKey, menuDesignId);
   const trialFields = trialPeriod
     ? {
         trial_started_at: trialPeriod.currentPeriodStart,
@@ -702,6 +711,7 @@ async function createPendingSubscription({
       status: "pending",
       amount,
       currency: product.currency,
+      ...(selection ? {menu_design_access: selection.access, menu_plan_version: selection.version, initial_design_id: selection.designId} : {}),
       ...trialFields,
     }) as never)
     .select("id")
@@ -1125,6 +1135,7 @@ async function createBusinessMenuSite({
   billingPeriod: SubscriptionBillingPeriod;
 }) {
   const settings = {
+    ...(order.menuDesignId ? {menu_design_id: order.menuDesignId} : {}),
     source: "business_subscription",
     product_key: product.productKey,
     plan_type: product.planType,
@@ -2154,7 +2165,20 @@ export async function POST(request: Request) {
         });
       }
 
-      order = normalizeBusinessOrder(body.order);
+      // Recovery uses the already saved contract, including legacy prices. Never
+      // reprice a paid/pending purchase using the current catalog or client data.
+      let recoveryContract: { amount: number; designId: string | null } | undefined;
+      if (isPaymentRecovery) {
+        const { data: saved, error: savedError } = await adminSupabase.from("business_subscriptions")
+          .select("amount,initial_design_id,product_key,business_profile_id")
+          .eq("id", recoverSubscriptionId).eq("user_id", user.id).maybeSingle();
+        const contract = saved as unknown as {amount: number;initial_design_id:string|null;product_key:string;business_profile_id:string} | null;
+        if (savedError || !contract || contract.product_key !== product.productKey || contract.business_profile_id !== businessProfile.id) {
+          throw new BusinessSubscriptionRouteError("business_subscription_insert", "RECOVERY_CONTRACT_MISSING", "기존 구독 계약을 확인할 수 없습니다.", 409);
+        }
+        recoveryContract = { amount: contract.amount, designId: contract.initial_design_id };
+      }
+      order = normalizeBusinessOrder(body.order, recoveryContract);
 
       if (!order || order.product_key !== product.productKey || order.businessProfileId !== businessProfile.id) {
         return jsonStepError({
@@ -2377,6 +2401,7 @@ export async function POST(request: Request) {
         amount: chargeAmount,
         menuSiteId: existingMenuSite?.id ?? null,
         trialPeriod: startsWithFreeTrial ? billingPeriod : null,
+        menuDesignId: order?.menuDesignId,
       });
     } catch (error) {
       if (error instanceof BusinessSubscriptionRouteError && error.debugCode === "PURCHASE_ATTEMPT_ALREADY_EXISTS") {
@@ -2564,6 +2589,8 @@ export async function POST(request: Request) {
       menuSiteId: menuSite.id,
       slug: menuSite.slug,
     });
+
+    if (mode === "new" && order?.menuDesignId) await initializePurchasedMenuDesign(adminSupabase, menuSite.id, order.menuDesignId);
 
     await markSubscriptionActive({
       adminSupabase,

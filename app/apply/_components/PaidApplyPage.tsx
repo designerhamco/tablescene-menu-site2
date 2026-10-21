@@ -51,6 +51,7 @@ type PaidApplyPageProps = {
   initialRecoverSubscriptionId?: string;
   initialBasicProductKey?: BasicProductKey;
   initialTemplateKey?: string;
+  initialMenuDesignId?: string;
 };
 
 export default async function PaidApplyPage({
@@ -60,6 +61,7 @@ export default async function PaidApplyPage({
   initialRecoverSubscriptionId,
   initialBasicProductKey,
   initialTemplateKey,
+  initialMenuDesignId,
 }: PaidApplyPageProps) {
   const supabase = await createClient();
   const {
@@ -123,6 +125,7 @@ export default async function PaidApplyPage({
             displayCheckoutQaEnabled={displayCheckoutQaEnabled}
             initialBasicProductKey={initialBasicProductKey}
             initialTemplateKey={initialTemplateKey}
+            initialMenuDesignId={initialMenuDesignId}
             monthlyFreeTrialAvailable={monthlyFreeTrialAvailable}
             monthlyFreeTrialFirstBillingDate={formatBusinessFreeTrialFirstBillingDate(freeTrialPeriod.endsAt)}
             initialRecoverPaymentId={initialRecoverPaymentId}

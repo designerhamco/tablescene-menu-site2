@@ -1,6 +1,6 @@
 import type { MenuDesignAccess, MenuService } from "./menu-design-policy";
 
-/** Approved 2026-10-19. Not connected to existing subscriptions until rollout.
+/** Approved 2026-10-19. New purchases use this pricebook.
  * New offers read this pricebook; saved contract amounts and receipts stay immutable.
  */
 export const menuPlanPricebook = {

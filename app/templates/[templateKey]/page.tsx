@@ -26,6 +26,7 @@ export default async function TemplateDetailPage({ params }: Props) {
   if (!template) notFound();
   const info = getTemplateDetailInfo(template);
   const checkoutEnabled = !info.display || isDisplayCheckoutQaEnabled();
+  const standard = template.categoryLabel === "기본 디자인";
   const included = ["디자인 커스터마이징", "다국어 메뉴", "할인·타임세일", info.display ? "이미지·동영상" : info.multiPage ? "커버·메뉴 페이지" : "이미지·텍스트 위젯"];
 
   return <>
@@ -49,8 +50,9 @@ export default async function TemplateDetailPage({ params }: Props) {
           >
             <ul className={styles.included}>{included.map(label => <li key={label}><Check size={15} aria-hidden="true" /><span>{label}</span></li>)}</ul>
             <div className={styles.purchase}>
-              <div className={styles.priceHeader}><span className="type-label">{info.formatLabel}</span><span className="type-caption">템플릿 1개 · 월 구독</span></div>
+              <div className={styles.priceHeader}><span className="type-label">{info.formatLabel}</span><span className="type-caption">메뉴판 1개 · 월 구독</span></div>
               <div className={styles.price}><span className="type-body-sm">얼리버드</span><strong>{formatProductPrice(info.pricing.earlyBirdMonthly)}<span> / 월</span></strong><del className="type-caption">{formatProductPrice(info.pricing.regularMonthly)}</del></div>
+              {!info.display && <p className="type-caption mt-3 text-zinc-600">{standard ? "같은 서비스의 기본 디자인끼리 교체할 수 있습니다." : "같은 서비스의 기본 디자인과 디자인 템플릿을 자유롭게 교체할 수 있습니다."}</p>}
             </div>
           </TemplateDetailSidebar>
           <TemplateDetailStory template={template} />

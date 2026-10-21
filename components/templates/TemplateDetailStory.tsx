@@ -4,7 +4,7 @@ import { ArrowRight, Bell, Check, Globe2, ImageIcon, LayoutGrid, Monitor, Palett
 import type { ReactNode } from "react";
 
 import { getTemplateDetailInfo } from "@/lib/template-details";
-import type { TemplateCatalogItem } from "@/lib/templates";
+import type { PublicTemplateDetail } from "@/lib/template-details";
 import styles from "./template-detail.module.css";
 
 function StorySection({ number, title, description, children }: { number: string; title: string; description: string; children: ReactNode }) {
@@ -18,7 +18,7 @@ function StorySection({ number, title, description, children }: { number: string
   </section>;
 }
 
-export default function TemplateDetailStory({ template }: { template: TemplateCatalogItem }) {
+export default function TemplateDetailStory({ template }: { template: PublicTemplateDetail }) {
   const info = getTemplateDetailInfo(template);
   const summary = [
     { icon: Palette, title: "브랜드에 맞는 디자인", text: "로고, 글꼴, 색상을 바꿔 우리 매장의 분위기를 담으세요." },
