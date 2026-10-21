@@ -16,7 +16,6 @@ import {
   type RefObject,
 } from "react";
 import { getMenuImageRadius } from "./shared/menu-image-radius";
-import { useMobileCategoryPriceLayout } from "./one-page/mobile/useMobileCategoryPriceLayout";
 import NativeBasicScroll from "./one-page/NativeBasicScroll";
 import { Clock3, RefreshCw, X, ZoomIn } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -1838,7 +1837,7 @@ function MenuItemRow({
   return (
     <article
       ref={itemRef}
-      className={`cafe-a-menu-item grid items-start ${canCenterSparseContent ? "cafe-a-menu-item-align-center" : ""} ${hasItemImage ? "cafe-a-menu-item-with-image" : ""} ${priceCountClassName} ${itemGridClassName}`}
+      className={`cafe-a-menu-item grid items-start ${canCenterSparseContent ? "cafe-a-menu-item-align-center" : ""} ${hasItemImage ? "cafe-a-menu-item-with-image" : ""} ${priceCountClassName} ${hasItemImage && usesPriceColumns && priceTokens.length === 3 ? "cafe-a-mobile-price-stack" : ""} ${itemGridClassName}`}
       data-cafe-a-content-variant={contentVariant}
       data-cafe-a-image-title-only={hasItemImage && !hasContentAfterTitle ? "" : undefined}
       data-cafe-a-item-rhythm={usesOnePageProportionFitPolicy(templateKey, previewDevice) ? getOnePageItemRhythmMultiplier(hasSecondaryText, hasDescriptionText, showMenuTimeSale || visibleTraits.length > 0 || hasOriginInfo) : undefined}
@@ -4022,10 +4021,6 @@ function MenuCategoryContentBlock({
     priceDisplayMode,
     nowMs: initialNowMs,
   });
-  const mobilePriceRef = useMobileCategoryPriceLayout({
-    enabled: useMenuCoverRenderDevice(data.previewDevice) === "mobile" && usesOnePageProportionPolicy(data.menuSite.template_key, data.pagePresentation),
-    signature: JSON.stringify([priceRailColumns, block.items.map(item => item.priceColumnValues)]),
-  });
   const balancedAttributes =
     balancedSourceOrder == null
       ? {}
@@ -4044,7 +4039,6 @@ function MenuCategoryContentBlock({
   return (
     <section
       key={groupKey}
-      ref={mobilePriceRef}
       className={`${getCategoryBlockClassName()} ${itemStackSpacing}`}
       data-cafe-a-category-block=""
       data-cafe-a-block-type="category"

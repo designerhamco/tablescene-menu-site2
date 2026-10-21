@@ -1,0 +1,13 @@
+.scope { display: contents; }
+.scope[data-radius-cover] :global(.cafe-a-cover-frame), .scope[data-radius-cover] :global(.cafe-a-cover-hero) { border-radius: var(--menu-image-radius-cover) !important; overflow: hidden; }
+.scope[data-radius-item] :global(.cafe-a-menu-item-image-slot), .scope[data-radius-item] :global(.cafe-a-menu-item-image) { border-radius: var(--menu-image-radius-item) !important; }
+.scope[data-radius-widget] :global([data-cafe-a-widget-media]) { border-radius: var(--menu-image-radius-widget) !important; overflow: hidden; }
+.scope[data-radius-logo] :global(.cafe-a-store-logo) { border-radius: var(--menu-image-radius-logo) !important; }
+.scope[data-chip-shape] :global(.cafe-a-menu-badge), .scope[data-chip-shape] :global(.cafe-a-featured-badge), .scope[data-chip-shape] :global(.cafe-a-menu-chip), .scope[data-chip-shape] :global(.cafe-a-sold-out-chip) { border-radius: var(--menu-chip-radius) !important; }
+.scope[data-album-image-ratio] :global(.cafe-a-menu-item-image-slot), .scope[data-album-image-ratio] :global(.aube-table-image-trigger), .scope[data-album-image-ratio] :global(.aube-table-item-image) { aspect-ratio: var(--menu-album-image-ratio) !important; }
+/* Store introductions follow the saved Korean face in every script, matching
+   notices. Type sizes, colors, weights and spacing remain separate roles. */
+.scope[data-menu-appearance-basic="true"] :global([data-cafe-a-store-description]), .scope[data-menu-appearance-basic="true"] :global([data-cafe-a-store-description] *),
+.scope[data-menu-appearance-basic="true"] :global(.cafe-a-topline-description), .scope[data-menu-appearance-basic="true"] :global(.cafe-a-topline-description *) { font-family: var(--menu-font-ko), system-ui, sans-serif !important; }
+
+.scope[data-menu-appearance-basic="true"] :global(.cafe-a-store-description), .scope[data-menu-appearance-basic="true"] :global(.cafe-a-store-description *) { font-family: var(--menu-font-ko), system-ui, sans-serif !important; }

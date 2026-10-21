@@ -10,7 +10,7 @@ import styles from "./MenuAdvertisementPopup.module.css";
 const SLIDE_DURATION_MS = 5000;
 const CIRCUMFERENCE = 2 * Math.PI * 5;
 
-export default function MenuAdvertisementPopup({ settings }: { settings: MenuPopupSettings }) {
+export default function MenuAdvertisementPopup({ settings, imageRadius }: { settings: MenuPopupSettings; imageRadius?: number }) {
   const t = useMenuText();
   const [open, setOpen] = useState(false), [active, setActive] = useState(0), [drag, setDrag] = useState(0);
   const [progress, setProgress] = useState(0), [reset, setReset] = useState(0);
@@ -48,7 +48,7 @@ export default function MenuAdvertisementPopup({ settings }: { settings: MenuPop
     if (Math.abs(dx) > 35 && Math.abs(dx) > Math.abs(dy) * 1.2) go(active + (dx < 0 ? 1 : -1));
   }
   return <Dialog.Root open={open} onOpenChange={value => { if (!value) close(); }}>
-    <Dialog.Portal><Dialog.Overlay className={styles.overlay} /><Dialog.Content ref={popupRef} className={styles.popup} data-menu-advertisement-popup data-popup-active={active} data-popup-progress={progress.toFixed(2)}
+    <Dialog.Portal><Dialog.Overlay className={styles.overlay} /><Dialog.Content ref={popupRef} className={styles.popup} style={imageRadius == null ? undefined : { borderRadius: imageRadius }} data-menu-advertisement-popup data-popup-active={active} data-popup-progress={progress.toFixed(2)}
       onPointerEnter={event => { if (event.pointerType === "mouse") hovered.current = true; }} onPointerLeave={() => { hovered.current = false; }}
       onFocusCapture={event => { keyboardFocus.current = event.target !== event.currentTarget && event.target.matches(":focus-visible"); }} onBlurCapture={() => { keyboardFocus.current = false; }}
       onOpenAutoFocus={event => { event.preventDefault(); popupRef.current?.focus(); }}>

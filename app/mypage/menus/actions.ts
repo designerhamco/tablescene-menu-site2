@@ -1,4 +1,5 @@
 "use server";
+import { menuAppearanceFromForm } from "@/lib/menu-appearance";
 
 import { MAX_MENU_POPUP_IMAGES, validateMenuPopupImage, type MenuPopupImage } from "@/lib/menu-popup";
 import { randomUUID } from "node:crypto";
@@ -2935,6 +2936,12 @@ export async function updateDesignSettingsAction(formData: FormData) {
   const pageSettings = getJsonObject(menuSite.page_settings);
   const designSettings = getJsonObject(pageSettings.design);
 
+  try {
+    const appearance = menuAppearanceFromForm(formData);
+    if (appearance) designSettings.appearance = JSON.parse(JSON.stringify(appearance));
+  } catch (error) {
+    redirectToTabEditWithError(menuId, "design", error instanceof Error ? error.message : "이미지 모양 설정을 확인해주세요.");
+  }
   designSettings.backgroundColor = backgroundColor;
 
   if (koreanFontKey) {
@@ -3116,6 +3123,7 @@ export async function resetDesignSettingsToTemplateDefaultAction(formData: FormD
   delete pageSettings.badge_styles;
   delete pageSettings.typography;
   const designSettings = getJsonObject(pageSettings.design);
+  delete designSettings.appearance;
   delete designSettings.backgroundColor;
   delete designSettings.koreanFont;
   delete designSettings.englishFont;

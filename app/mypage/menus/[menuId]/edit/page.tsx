@@ -41,6 +41,8 @@ import MenuEditorToastBridge from "@/components/mypage/menu-editor/MenuEditorToa
 import PendingSubmitButton from "@/components/mypage/menu-editor/PendingSubmitButton";
 import ResetTabActionButton from "@/components/mypage/menu-editor/ResetTabActionButton";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
+import MenuAppearanceSettingsForm from "@/components/mypage/menu-editor/MenuAppearanceSettingsForm";
+import { readMenuAppearance } from "@/lib/menu-appearance";
 import TypographySettingsForm from "@/components/mypage/menu-editor/TypographySettingsForm";
 import AboutDraftSections, { EventDraftSections } from "@/components/mypage/menu-editor/AboutDraftSections";
 import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
@@ -2586,6 +2588,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         templateKey={site.template_key}
                       />
                     </div>
+                    {(menuCoverCapabilities.coverMode === "section" || isAubeTableTemplate(site.template_key)) ? <MenuAppearanceSettingsForm key={JSON.stringify(readMenuAppearance(site.page_settings))} initial={readMenuAppearance(site.page_settings)} basic={menuCoverCapabilities.coverMode === "section"} formId="design-settings-form" /> : null}
                     <FinalActionRow>
                       <ResetTabActionButton menuId={site.id} kind="design" />
                       <SubmitButton tone="final" dirtyFormId="design-settings-form" disabled={isReadOnly}>저장</SubmitButton>

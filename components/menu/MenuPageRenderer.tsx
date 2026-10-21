@@ -1,3 +1,6 @@
+import MenuAppearanceScope from "@/components/menu-templates/shared/MenuAppearanceScope";
+import { readMenuAppearance } from "@/lib/menu-appearance";
+import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import MenuAdvertisementPopup from "@/components/public-menu/MenuAdvertisementPopup";
 import { readMenuPopupSettings } from "@/lib/menu-popup";
 import MenuLocaleScope from "@/components/menu-templates/shared/MenuLocaleScope";
@@ -16,5 +19,7 @@ type MenuPageRendererProps = MenuPageData & {
 
 export default function MenuPageRenderer({ mode, ...data }: MenuPageRendererProps) {
   const popup = readMenuPopupSettings(data.menuSite.settings);
-  return <MenuLocaleScope locale={data.locale}><MenuTemplateRenderer key={data.initialPreviewPageId ?? "default-preview-page"} mode={mode} {...data} />{data.menuSite.template_key !== "display_menu_a" && popup.enabled && popup.images.length > 0 ? <MenuAdvertisementPopup settings={popup} /> : null}</MenuLocaleScope>;
+  const basic = getTemplateCapabilities(data.menuSite.template_key).menuCover.coverMode === "section";
+  const appearance = readMenuAppearance(data.menuSite.page_settings);
+  return <MenuLocaleScope locale={data.locale}><MenuAppearanceScope pageSettings={data.menuSite.page_settings} templateKey={data.menuSite.template_key}><MenuTemplateRenderer key={data.initialPreviewPageId ?? "default-preview-page"} mode={mode} {...data} />{data.menuSite.template_key !== "display_menu_a" && popup.enabled && popup.images.length > 0 ? <MenuAdvertisementPopup settings={popup} imageRadius={basic ? appearance.imageRadii.advertisement : undefined} /> : null}</MenuAppearanceScope></MenuLocaleScope>;
 }
