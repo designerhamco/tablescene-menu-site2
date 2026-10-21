@@ -491,7 +491,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     titleClassName="cafe-a-store-title cafe-a-rail-title" logoClassName={styles.logo}
     layoutShell={topRow ? "brand_top_band" : centerColumn ? "brand_center_column" : "brand_left_rail"} />;
   const storeDescription = (data.menuSite.brand_description || data.menuSite.description)
-    ? <p className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null;
+    ? <p data-representative-copy className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null;
   const showCover = data.pageSettings.menu_cover_enabled && featuredSlides.length > 0 && isMenuCoverVisibleOnDevice(data.pageSettings, device);
   const actionFooter = showCall || showOrder ? (
             <footer className={styles.footer} data-scroll-actions aria-label={t("메뉴 이용")}>
@@ -509,7 +509,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             </footer>
           ) : null;
   const brandPanel = <aside ref={brandArea} className={styles.brand} data-paged-brand>
-          {!topRow ? <>{languageControl}<div className={styles.identity}>{storeIdentity}{storeDescription}</div></> : null}
+          {!topRow ? <>{languageControl}<div className={styles.identity} data-representative-copy>{storeIdentity}{storeDescription}</div></> : null}
           {showCover ? (portraitCover ? <div className={styles.portraitCoverSlot} data-portrait-cover-slot><CafeACoverHero data={baseProps} featuredSlides={featuredSlides} capabilities={capabilities} density="default" customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} desktopClassName={styles.cover} /></div> : <CafeACoverHero data={baseProps} featuredSlides={featuredSlides} capabilities={capabilities} density="default" customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} desktopClassName={styles.cover} />) : null}
           {centerColumn ? actionFooter : null}
         </aside>;

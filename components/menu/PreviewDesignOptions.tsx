@@ -3,6 +3,7 @@
 import { ALBUM_IMAGE_RATIOS, CHIP_SHAPES, CHIP_SHAPE_LABELS, IMAGE_RADIUS_KEYS, IMAGE_RADIUS_LABELS } from "@/lib/menu-appearance";
 import { KOREAN_FONT_OPTIONS, getAvailableEnglishFontsForTemplate, getEnglishFontOption, getKoreanFontOption } from "@/lib/font-options";
 import { PREVIEW_FONT_GROUPS, type PreviewDesign, type PreviewDesignDefaults, type PreviewFontChoice } from "@/lib/menu-preview-design";
+import { REPRESENTATIVE_ALIGNMENTS } from "@/lib/menu-design-surfaces";
 import ImageRadiusSelect from "./ImageRadiusSelect";
 import PreviewColorPicker from "./PreviewColorPicker";
 import styles from "./PreviewDesignOptions.module.css";
@@ -48,6 +49,8 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
         onChange={radius => set({ imageRadii: { ...value.imageRadii, [key]: radius } })} /></label>;
     })}</div></fieldset>
     <div className={styles.extras}>
+      {!dining ? <label className={styles.option}>대표영역 내용 정렬<select aria-label="대표영역 내용 정렬" value={value.representativeAlignment ?? "template"} disabled={disabled} className={styles.select} onChange={event => set({ representativeAlignment: event.target.value === "template" ? undefined : event.target.value as PreviewDesign["representativeAlignment"] })}><option value="template">템플릿 기본값</option>{REPRESENTATIVE_ALIGNMENTS.map(align => <option key={align} value={align}>{{ left: "왼쪽 정렬", center: "가운데 정렬", right: "오른쪽 정렬" }[align]}</option>)}</select></label> : <PreviewColorPicker label="커버 소개 글자색" value={value.coverDescriptionColor} defaultColor={defaults.colors.coverDescription} onChange={coverDescriptionColor => set({ coverDescriptionColor })} disabled={disabled} />}
+
       <label className={styles.option}>텍스트칩 모양<select aria-label="텍스트칩 모양" value={value.chipShape ?? "template"} onChange={event => set({ chipShape: event.target.value as PreviewDesign["chipShape"] })} disabled={disabled} className={styles.select}>{CHIP_SHAPES.map(shape => <option key={shape} value={shape}>{CHIP_SHAPE_LABELS[shape]}</option>)}</select></label>
       {album ? <label className={styles.option}>상품 이미지 비율<select aria-label="앨범형 상품 이미지 비율" value={value.albumImageRatio ?? defaults.appearance.albumImageRatio} onChange={event => set({ albumImageRatio: event.target.value as PreviewDesign["albumImageRatio"] })} disabled={disabled} className={styles.select}>{ALBUM_IMAGE_RATIOS.map(ratio => <option key={ratio} value={ratio}>{ratio}</option>)}</select></label> : null}
     </div>
