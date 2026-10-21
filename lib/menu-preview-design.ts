@@ -1,3 +1,4 @@
+import { REPRESENTATIVE_ALIGNMENTS, type RepresentativeAlignment } from "./menu-design-surfaces";
 import type { MenuPageData } from "./menu-page-data";
 import { isKoreanFontValue, isEnglishFontValue, getSafeEnglishFontValueForTemplate, type KoreanFontValue, type EnglishFontValue } from "./font-options";
 import { ALBUM_IMAGE_RATIOS, CHIP_SHAPES, IMAGE_RADIUS_KEYS, MAX_IMAGE_RADIUS, readMenuAppearance, type MenuAppearance } from "./menu-appearance";
@@ -13,6 +14,8 @@ export type PreviewDesign = {
   auxiliaryBackground?: string;
   coverBackground?: string;
   sidebarBackground?: string;
+  coverDescriptionColor?: string;
+  representativeAlignment?: RepresentativeAlignment;
   fonts?: Partial<Record<PreviewFontGroup, PreviewFontChoice>>;
   imageRadii?: MenuAppearance["imageRadii"];
   chipShape?: MenuAppearance["chipShape"];
@@ -23,9 +26,10 @@ export function readPreviewDesign(raw: unknown): PreviewDesign {
   let source: Record<string, unknown>;
   try { source = record(typeof raw === "string" && raw.length <= 4000 ? JSON.parse(raw) : raw); } catch { return {}; }
   const result: PreviewDesign = {};
-  for (const key of ["pageBackground", "auxiliaryBackground", "coverBackground", "sidebarBackground"] as const) {
+  for (const key of ["pageBackground", "auxiliaryBackground", "coverBackground", "sidebarBackground", "coverDescriptionColor"] as const) {
     const color = normalizeBackgroundColor(source[key]); if (color) result[key] = color;
   }
+  if (REPRESENTATIVE_ALIGNMENTS.includes(source.representativeAlignment as RepresentativeAlignment)) result.representativeAlignment = source.representativeAlignment as RepresentativeAlignment;
   const fonts = record(source.fonts);
   for (const group of PREVIEW_FONT_GROUPS) {
     const input = record(fonts[group]), choice: PreviewFontChoice = {};
@@ -55,7 +59,8 @@ export function previewDesignDefaults(data: MenuPageData) {
     })) as Record<PreviewFontGroup, Required<PreviewFontChoice>>,
     colors: { page, auxiliary: backgrounds.auxiliary ?? (key === "cafe_mocha_forest_a" ? MOCHA_FOREST_PANEL_COLORS.brown : page),
       cover: normalizeBackgroundColor(data.pageSettings.multi_page_cover_background_color) ?? "#FFFFFF",
-      sidebar: backgrounds.sidebar ?? (neutral ? "#F4F5F3" : "#401E24") },
+      sidebar: backgrounds.sidebar ?? (neutral ? "#F4F5F3" : "#401E24"),
+      coverDescription: normalizeBackgroundColor(record(record(data.menuSite.page_settings).design).coverDescriptionColor) ?? (neutral ? "#606561" : "#FFFFFF") },
     appearance: readMenuAppearance(data.menuSite.page_settings),
   };
 }
@@ -66,6 +71,8 @@ export function applyPreviewDesign(source: MenuPageData, value: unknown, album: 
   const overrides = readPreviewDesign(value);
   if (source.menuSite.template_key === "display_menu_a" || !Object.keys(overrides).length) return source;
   const data = structuredClone(source), page = record(data.menuSite.page_settings), design = record(page.design);
+  if (overrides.representativeAlignment) design.representativeAlignment = overrides.representativeAlignment;
+  if (overrides.coverDescriptionColor) design.coverDescriptionColor = overrides.coverDescriptionColor;
   if (overrides.pageBackground) design.backgroundColor = overrides.pageBackground;
   if (overrides.auxiliaryBackground) design.auxiliaryBackgroundColor = overrides.auxiliaryBackground;
   if (overrides.sidebarBackground) design.sidebarBackgroundColor = overrides.sidebarBackground;

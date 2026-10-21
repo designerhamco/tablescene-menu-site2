@@ -1,3 +1,4 @@
+import { isAubeTableTemplate, getAubeTableDefaultCoverBackgroundColor } from "./aube-table";
 import { getCatalogDesign } from './catalog-designs';
 import { TYPOGRAPHY_ROLE_KEYS } from './template-typography-presets';
 import { BADGE_STYLE_KEYS } from './template-badge-styles';
@@ -12,10 +13,10 @@ export function buildMenuDesignMutation(input:{settings:unknown;pageSettings:unk
   const design=getCatalogDesign(input.targetId);if(!design)throw new Error('선택한 디자인을 찾을 수 없습니다.');
   const settings=record(input.settings),page=record(input.pageSettings),previous=String(settings.menu_design_id??input.templateKey);
   const snapshots=record(settings.menu_design_snapshots);
-  snapshots[previous]={design:record(page.design),typography:settings.typography??null,badge_styles:settings.badge_styles??null,brand_color:input.brandColor};
+  snapshots[previous]={design:record(page.design),typography:settings.typography??null,badge_styles:settings.badge_styles??null,brand_color:input.brandColor,...(isAubeTableTemplate(input.templateKey)?{cover_background_color:page.multi_page_cover_background_color}: {})};
   const saved=record(snapshots[design.id]),hasSaved=Object.keys(saved).length>0;
   const appearance=hasSaved?{typography:saved.typography,badge_styles:saved.badge_styles}:design.kind==='standard'?getNeutralDesignAppearance():{typography:null,badge_styles:null};
   return {settings:{...settings,...appearance,menu_design_id:design.id,menu_design_snapshots:snapshots},
-    pageSettings:{...page,design:hasSaved?record(saved.design):design.kind==='standard'?{backgroundColor:'#ffffff'}:{}},
+    pageSettings:{...page,...(isAubeTableTemplate(design.templateKey)?{multi_page_cover_background_color:hasSaved && typeof saved.cover_background_color === "string"?saved.cover_background_color:design.kind==='standard'?'#FFFFFF':getAubeTableDefaultCoverBackgroundColor(design.templateKey)}:{}),design:hasSaved?record(saved.design):design.kind==='standard'?{backgroundColor:'#ffffff'}:{}},
     brandColor:hasSaved?(typeof saved.brand_color==='string'?saved.brand_color:null):design.kind==='standard'?'#191c1b':null};
 }

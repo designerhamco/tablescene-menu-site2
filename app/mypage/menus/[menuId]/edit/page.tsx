@@ -1,3 +1,5 @@
+import { getDefaultDesignReview } from "@/lib/menu-design-policy";
+import MenuSurfaceSettingsForm from "@/components/mypage/menu-editor/MenuSurfaceSettingsForm";
 import MenuDesignSwitcher from "@/components/mypage/menu-editor/MenuDesignSwitcher";
 import { getMenuPlanEntitlement } from "@/lib/server/menu-plan-design-service";
 import { createAdminClient as createDesignAdminClient } from "@/lib/supabase/admin";
@@ -2554,6 +2556,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         </div>
                       </div>
                     </div>
+                    {(menuCoverCapabilities.coverMode === "section" || isAubeTableTemplate(site.template_key)) ? <MenuSurfaceSettingsForm key={`surfaces-${JSON.stringify(site.page_settings)}`} pageSettings={site.page_settings} settings={site.settings} templateKey={site.template_key} formId="design-settings-form" disabled={isReadOnly} /> : (
                     <div className="site-section p-5">
                       <div>
                         <h3 className="type-content-title text-zinc-950">배경색</h3>
@@ -2569,6 +2572,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         hasCustomBackgroundColor={Boolean(customBackgroundColor)}
                       />
                     </div>
+                    )}
                     <div className="site-section p-5">
                       <div>
                         <div>
@@ -2594,7 +2598,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         templateKey={site.template_key}
                       />
                     </div>
-                    {(menuCoverCapabilities.coverMode === "section" || isAubeTableTemplate(site.template_key)) ? <MenuAppearanceSettingsForm key={JSON.stringify(readMenuAppearance(site.page_settings))} initial={readMenuAppearance(site.page_settings)} basic={menuCoverCapabilities.coverMode === "section"} formId="design-settings-form" /> : null}
+                    {(menuCoverCapabilities.coverMode === "section" || isAubeTableTemplate(site.template_key)) ? <MenuAppearanceSettingsForm key={JSON.stringify(readMenuAppearance(site.page_settings))} initial={readMenuAppearance(site.page_settings)} basic={menuCoverCapabilities.coverMode === "section"} album={getDefaultDesignReview(typeof (site.settings as Record<string, unknown> | null)?.menu_design_id === "string" ? (site.settings as Record<string, string>).menu_design_id : undefined, site.template_key)?.itemLayout === "album"} formId="design-settings-form" /> : null}
                     <FinalActionRow>
                       <ResetTabActionButton menuId={site.id} kind="design" />
                       <SubmitButton tone="final" dirtyFormId="design-settings-form" disabled={isReadOnly}>저장</SubmitButton>

@@ -1,4 +1,7 @@
 "use server";
+import { getNeutralDesignAppearance } from "@/lib/menu-design-mutation";
+import { getDefaultDesignReview } from "@/lib/menu-design-policy";
+import { menuSurfaceSettingsFromForm, withMenuSurfaceSettings } from "@/lib/menu-design-surfaces";
 import { menuAppearanceFromForm } from "@/lib/menu-appearance";
 
 import { MAX_MENU_POPUP_IMAGES, validateMenuPopupImage, type MenuPopupImage } from "@/lib/menu-popup";
@@ -2898,6 +2901,11 @@ export async function resetTypographySettingsAction(formData: FormData) {
     delete pageSettings.design;
   }
 
+  if (getDefaultDesignReview(typeof settings.menu_design_id === "string" ? settings.menu_design_id : undefined, menuSite.template_key)) {
+    const neutral = getNeutralDesignAppearance();
+    settings.typography = JSON.parse(JSON.stringify(neutral.typography));
+  }
+
   const { error } = await supabase
     .from("menu_sites")
     .update({ settings, page_settings: pageSettings, updated_at: new Date().toISOString() })
@@ -2933,7 +2941,13 @@ export async function updateDesignSettingsAction(formData: FormData) {
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const fontSizeScaleKey = normalizeFontSizeScaleKeyForTemplate(rawFontSizeScaleKey, menuSite.template_key);
   const typographyRoleSettings = getTypographyRoleSettingsFromFormData(formData, menuSite.template_key);
-  const pageSettings = getJsonObject(menuSite.page_settings);
+  let pageSettings = getJsonObject(menuSite.page_settings);
+  try {
+    const surfaces = menuSurfaceSettingsFromForm(formData, menuSite.template_key);
+    if (surfaces) pageSettings = withMenuSurfaceSettings(pageSettings, menuSite.settings, menuSite.template_key, surfaces) as typeof pageSettings;
+  } catch (error) {
+    redirectToTabEditWithError(menuId, "design", error instanceof Error ? error.message : "배경 설정을 확인해주세요.");
+  }
   const designSettings = getJsonObject(pageSettings.design);
 
   try {
@@ -2942,7 +2956,7 @@ export async function updateDesignSettingsAction(formData: FormData) {
   } catch (error) {
     redirectToTabEditWithError(menuId, "design", error instanceof Error ? error.message : "이미지 모양 설정을 확인해주세요.");
   }
-  designSettings.backgroundColor = backgroundColor;
+  if (formData.get("menu_surfaces_present") !== "1") designSettings.backgroundColor = backgroundColor;
 
   if (koreanFontKey) {
     designSettings.koreanFont = koreanFontKey;
@@ -3116,7 +3130,7 @@ export async function resetDesignSettingsToTemplateDefaultAction(formData: FormD
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
   const settings = getJsonObject(menuSite.settings);
-  const pageSettings = getJsonObject(menuSite.page_settings);
+  const pageSettings = withMenuSurfaceSettings(menuSite.page_settings, menuSite.settings, menuSite.template_key, {}) as ReturnType<typeof getJsonObject>;
 
   delete settings.badge_styles;
   delete settings.typography;
@@ -3145,6 +3159,12 @@ export async function resetDesignSettingsToTemplateDefaultAction(formData: FormD
   delete pageSettings.typography_roles;
   delete pageSettings.onePageLayoutShell;
   delete pageSettings.one_page_layout_shell;
+
+  if (getDefaultDesignReview(typeof settings.menu_design_id === "string" ? settings.menu_design_id : undefined, menuSite.template_key)) {
+    const neutral = getNeutralDesignAppearance();
+    settings.typography = JSON.parse(JSON.stringify(neutral.typography));
+    settings.badge_styles = JSON.parse(JSON.stringify(neutral.badge_styles));
+  }
 
   const { error } = await supabase
     .from("menu_sites")

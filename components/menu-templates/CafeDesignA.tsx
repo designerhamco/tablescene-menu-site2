@@ -2240,7 +2240,7 @@ function CoverHero({
             data-cafe-a-sold-out={featuredItemSoldOut ? "true" : undefined}
             data-cafe-a-featured-description-only={!getMenuItemMetaText(featuredItem, data.locale).trim() && Boolean(featuredItem.description?.trim()) ? "true" : undefined}
           >
-            <div className="min-w-0">
+            <div className="min-w-0" data-representative-copy>
               {featuredItemSoldOut ? (
                 <div className="cafe-a-featured-badges mb-2 flex max-w-full flex-wrap gap-2">
                   <SoldOutBadge locale={data.locale} className={`cafe-a-featured-badge ${getMenuTitleSizeClassName(density)}`} />
@@ -3668,7 +3668,7 @@ function PanelFlowIntro({ data, density, mobileReading = false }: { data: Public
   </div>;
   const showCover = data.pageSettings.menu_cover_enabled !== false && isMenuCoverVisibleOnDevice(data.pageSettings, mobileReading ? "mobile" : data.previewDevice ?? "pc");
   const slides = showCover ? getFeaturedHeroSlides(data, capabilities) : [];
-  const identity = <div className="cafe-a-panel-identity">
+  const identity = <div className="cafe-a-panel-identity" data-representative-copy>
     <StoreIdentity data={data} capabilities={capabilities} titleClassName="cafe-a-store-title cafe-a-panel-brand" logoClassName="cafe-a-store-logo" mobileAutoFit={mobileReading} />
     {(data.menuSite.brand_description || data.menuSite.description) && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p>}
   </div>;
@@ -3709,7 +3709,7 @@ function HeaderBlock({
         </div>
       ) : null}
       <div className="cafe-a-mobile-header-copy flex min-w-0 items-start gap-[clamp(16px,2vw,32px)]">
-        <div className="min-w-0 max-w-5xl">
+        <div className="min-w-0 max-w-5xl" data-representative-copy>
           <StoreIdentity
             data={data}
             capabilities={capabilities}
@@ -3912,7 +3912,7 @@ function DesktopFixedRail({
 
   return (
     <aside className="cafe-a-fixed-rail hidden min-w-0 lg:flex lg:flex-col" data-cafe-a-brand-panel={variant} {...mochaPanelAttributes}>
-      <div className="cafe-a-fixed-rail-copy min-w-0">
+      <div className="cafe-a-fixed-rail-copy min-w-0" data-representative-copy>
         <div className="cafe-a-rail-heading flex min-w-0 flex-col items-stretch gap-[clamp(0.5rem,1.1vmin,0.875rem)]">
           {!isCenterColumn && !isAubeCoffee ? (
             <div

@@ -28,3 +28,18 @@
 .scope[data-design-sidebar-background] :global(.aube-table-root) { --aube-sidebar: var(--menu-design-sidebar-bg) !important; --aube-sidebar-hover: var(--menu-design-sidebar-bg) !important; --aube-sidebar-text: var(--menu-design-sidebar-ink) !important; }
 .scope[data-design-brand-ink] :global(.cafe-a-typography[data-template-key] .cafe-a-store-title), .scope[data-design-brand-ink] :global(.aube-table-root .aube-table-cover h1) { color: var(--menu-design-brand-ink) !important; }
 .scope[data-design-category-ink] :global(.cafe-a-typography[data-template-key] .cafe-a-category-title), .scope[data-design-category-ink] :global(.aube-table-root .aube-table-course-title h2) { color: var(--menu-design-category-ink) !important; }
+
+/* Explicit alignment affects representative content only, never menu/notice anchors. */
+.scope[data-representative-align] :global(.cafe-a-store-title),
+.scope[data-representative-align] :global([data-representative-copy]),
+.scope[data-representative-align] :global([data-representative-copy] .cafe-a-store-description),
+.scope[data-representative-align] :global([data-representative-copy] [data-cafe-a-store-description]),
+.scope[data-representative-align] :global(.cafe-a-topline-description),
+.scope[data-representative-align] :global(.cafe-a-featured-caption) { text-align: var(--menu-representative-align) !important; }
+.scope[data-representative-align] :global(.cafe-a-store-logo-wrap) { display: flex; justify-content: var(--menu-representative-justify); width: 100%; }
+.scope[data-representative-align] :global(.cafe-a-store-logo) { margin-inline-start: var(--menu-representative-logo-start) !important; margin-inline-end: var(--menu-representative-logo-end) !important; object-position: var(--menu-representative-align) center !important; }
+.scope[data-cover-description-ink] :global(.aube-table-cover-description) { --menu-role-supporting-color: var(--menu-cover-description-ink); color: var(--menu-cover-description-ink) !important; }
+.scope[data-design-sidebar-background] :global(.aube-table-root[data-layout="sidebar"] .aube-table-mobile-page-tabs) { background: var(--menu-design-sidebar-bg); --aube-ink: var(--menu-design-sidebar-ink); --aube-subtle: color-mix(in srgb, var(--menu-design-sidebar-ink) 80%, transparent); --aube-accent: var(--menu-design-sidebar-ink); }
+
+.scope[data-representative-align] :global(.cafe-a-featured-copy > [data-representative-copy]) { flex: 1; min-width: 0; }
+.scope[data-representative-align] :global([data-representative-copy] .cafe-a-featured-badges) { justify-content: var(--menu-representative-justify); }

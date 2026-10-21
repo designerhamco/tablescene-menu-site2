@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { ALBUM_IMAGE_RATIOS, CHIP_SHAPES, CHIP_SHAPE_LABELS, IMAGE_RADIUS_KEYS, IMAGE_RADIUS_LABELS, type MenuAppearance } from "@/lib/menu-appearance";
 import ImageRadiusSelect from "@/components/menu/ImageRadiusSelect";
-export default function MenuAppearanceSettingsForm({ initial, basic, formId }: { initial: MenuAppearance; basic: boolean; formId: string }) {
+export default function MenuAppearanceSettingsForm({ initial, basic, album = false, formId }: { initial: MenuAppearance; basic: boolean; album?: boolean; formId: string }) {
   const [value,setValue] = useState(initial);
   const inputClass = "h-10 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-900";
   return <section className="site-section space-y-5 p-5" aria-label="이미지와 텍스트칩 모양">
@@ -14,7 +14,9 @@ export default function MenuAppearanceSettingsForm({ initial, basic, formId }: {
         <ImageRadiusSelect label={label} radius={radius} className={`${inputClass} w-full min-w-0`} onChange={next=>setValue(v=>({...v,imageRadii:{...v.imageRadii,[key]:next}}))}/>
       </fieldset>;})}</div>
       <label className="flex flex-wrap items-center gap-3 text-sm font-semibold">텍스트칩 모양<select form={formId} name="chip_shape" className={inputClass} value={value.chipShape} onChange={e=>setValue(v=>({...v,chipShape:e.target.value as MenuAppearance['chipShape']}))}>{CHIP_SHAPES.map(shape=><option key={shape} value={shape}>{CHIP_SHAPE_LABELS[shape]}</option>)}</select></label>
+    {album ? <>
     <label className="flex flex-wrap items-center gap-3 text-sm font-semibold">앨범형 상품 이미지 비율<select form={formId} name="album_image_ratio" className={inputClass} value={value.albumImageRatio} onChange={e=>setValue(v=>({...v,albumImageRatio:e.target.value as MenuAppearance['albumImageRatio']}))}>{ALBUM_IMAGE_RATIOS.map(ratio=><option key={ratio} value={ratio}>{ratio}{ratio==='1:1'?' · 기본':''}</option>)}</select></label>
     <p className="text-xs leading-relaxed text-zinc-500">상품 이미지 비율은 앨범형에만 적용되며 PC·태블릿·모바일에서 동일합니다. 대표 이미지와 코스 카테고리의 이미지 표시 규칙은 유지됩니다.</p>
+    </> : <input type="hidden" form={formId} name="album_image_ratio" value={value.albumImageRatio} />}
   </section>;
 }
