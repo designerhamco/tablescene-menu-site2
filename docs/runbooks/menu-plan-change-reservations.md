@@ -2,11 +2,11 @@
 
 사용자 승인 정책(2026-10-21): 고객이 직접 변경을 선택한 경우에만 **다음 결제일부터** 새 요금·이용권을 적용한다. 중간 차액·즉시 청구·자동 기존 계약 이관은 없다.
 
-## 준비 상태
+## 운영 적용 상태
 
-- 코드는 PR #295에 검토 가능한 상태로 준비했다. `20261021140627_add_menu_plan_change_reservations.sql`은 아직 운영에 적용하지 않았다. 이 파일은 운영 적용 전 별도 승인이 필요하다. 이전 승인 파일 `20261021122057_add_menu_design_subscription_contract.sql`과 다른 파일이다.
-- `MENU_PLAN_CHANGE_LEDGER_READY`·`ENABLE_MENU_PLAN_CHANGE_RENEWALS`·`ENABLE_MENU_PLAN_CHANGES`가 모두 true일 때만 신규 예약을 받는다. 기본은 모두 미설정/OFF다. 신규 예약의 결제 실행은 기존 자동청구 설정과 분리해 신청한 전환 건만 처리한다. 기존 갱신 cron의 실행 승인 스위치·실카드 설정은 변경하지 않는다.
-- 실제 고객 계약·청구·환불·예약 행은 검사를 위해 변경하지 않는다. 아래 검수는 임시 DB와 모의 결제사를 사용한다.
+- 사용자에게 새 파일 1건의 운영 적용·전환 활성화 승인을 받은 뒤 `20261021140627_add_menu_plan_change_reservations.sql`을 운영 `tablescene-prod`에 정확히 1회 적용했다. PR #295는 `ceb13a4277421a83d16511556f4ff29742965388`로 병합했다. 이전 계약 SQL과 별도 파일이며 일괄 migration 실행은 하지 않았다.
+- `MENU_PLAN_CHANGE_LEDGER_READY`·`ENABLE_MENU_PLAN_CHANGE_RENEWALS`·`ENABLE_MENU_PLAN_CHANGES`가 모두 true일 때만 신규 예약을 받는다. 코드 기본값은 미설정/OFF이며, 이번 승인 범위의 Production 세 값은 true로 설정했다. Preview/Development와 다른 기능 활성화 설정은 변경하지 않았다. 신규 예약의 결제 실행은 기존 자동청구 설정과 분리해 신청한 전환 건만 처리한다. 기존 갱신 cron의 실행 승인 스위치·실카드 설정은 변경하지 않는다.
+- 실제 고객 계약·청구·환불·예약 행은 검사를 위해 변경하지 않았다. 로컬 검수는 임시 DB와 모의 결제사를 사용하고, 운영 검수는 읽기 및 명시적 POST dry-run만 실행한다.
 
 ## 고객 흐름
 
@@ -45,3 +45,13 @@
 - `lib/menu-plan-change-policy.test.ts`: 기존 계약 비변경, 다음 결제일·연결제 기간 보존, 두 서비스/이용권 가격, 위조 동의·교차 서비스·다른 소유자·해지/연체/카드 누락 차단, 얼리버드 유지.
 - `scripts/qa-menu-plan-change-db.mjs`: 임시 PGlite 스키마에서 예약 생성/교체/취소·진행 중 취소 차단·잘못된 금액·메뉴 편집 충돌·권한·트랜잭션 롤백·중복 확정을 검증한다. 실제 서버 서비스를 같은 임시 DB/모의 결제사로 실행해 결제 후 DB 저장 실패 → 재시도에서도 모의 과금 1회, 같은 ID 2회 확인, 내용 보존을 검사한다. 실제 운영 스키마 통합 검증을 대체한다고 주장하지 않는다.
 - `scripts/qa-menu-plan-change-ui.mjs`: 실제 컴포넌트와 모의 API로 베이직/다이닝 320/390/430/1280px 예약·재열기·취소·디자인 범위·동의 필수, 처리 상태 및 실제 비로그인/외부 요청 차단을 검사한다.
+
+## 운영 적용 증거 (2026-10-21)
+
+- 적용 전후 구독 24건, 계약 금액 합계 509,400원, 계약 필드 지문 `561cf0a27f15075a8dc462f126b3778f`가 일치했다. 기존 계약 24건은 변경하지 않았다. 주문 45건·결제 40건·새 예약 0건을 유지했다.
+- 새 원장 RLS ON, anon/authenticated 테이블 읽기·쓰기와 5개 RPC 실행 권한 없음, service_role 접근/실행 허용. 5개 함수는 security invoker 및 빈 search_path, 구독 해지 경합 방지 트리거 1개가 활성화됐다. 서버 API 읽기도 예약 0건으로 성공했다. Security Advisor 재검사 결과 오류 0·기존 경고 23건이었다.
+- SQL 전 검사: `031fa472-7ccc-4def-9144-9de6babe5537`, 승인 파일 실행: `204930a9-0461-43d4-8850-ef3e5734faca`, 적용 후 읽기 검사: `dcc5c6fe-ce9c-44a2-9924-e9f6c30aaa61`.
+- 원장만 켠 운영 배포: [4xsFEAUa8Sas7MiRLXoEVz7hZsUx](https://vercel.com/designerhamcos-projects/tablescene-menu-site2/4xsFEAUa8Sas7MiRLXoEVz7hZsUx), Production Ready 및 공개 도메인 연결을 확인했다. POST `{execute:false,dryRun:true}`는 갱신 대상 15건, 청구 0·실패 0·생명주기 오류 0, legacy/new 실행 모두 false였다. 기존 자동 청구 GET 실행 설정도 false 그대로였다.
+- 활성화 배포: [J3hPWVTwAk1yHg3nwJHv59B2wpM1](https://vercel.com/designerhamcos-projects/tablescene-menu-site2/J3hPWVTwAk1yHg3nwJHv59B2wpM1), Production Ready 및 공개 도메인 연결을 확인했다. 세 새 설정은 모두 Production true이며 기존 `ENABLE_SUBSCRIPTION_CRON_EXECUTE`는 false 그대로다.
+- 최종 운영 검수: 공개 목록·모바일 미리보기 HTTP 200, 비로그인 전환 API 401, 다른 출처 쓰기 403. 로그인된 소유 계정의 구독 관리에서 ‘이용권 변경’과 다음 결제일·중간 차액 없음 안내를 실제 확인했다. 이미 결제 예정일이 지난 기존 구독은 신규 전환 예약을 막았다. 확인을 위해 실제 예약·구독·결제·환불 행을 만들거나 변경하지 않았다.
+- 활성화 후 명시적 POST dry-run도 읽기 전용(true)/실행 false, legacy/new 실행 false, 청구 0·실패 0·생명주기 오류 0으로 통과했다. 기존 구독 지문·주문/결제 수와 예약 0건은 그대로였다. 운영 결과는 `/private/tmp/menu-plan-change-production-check.json`, 배포 화면은 `/private/tmp/menu-plan-change-production-ready.jpg`에 저장했다. 실제 미래 결제일까지의 카드 청구 검증은 실행하지 않았다.
