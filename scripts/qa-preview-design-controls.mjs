@@ -9,10 +9,10 @@ async function run(name,fn){try{await fn();results.push(name);console.log('PASS'
 async function controls(width,dining){const p=await page(width,1000);try{
  const key=dining?'dining_aube_table_b':'cafe_real_matcha_a',design=dining?'dining-sidebar-album':'basic-first-column-album';
  await p.goto(`${base}/templates/${key}/preview?`+new URLSearchParams({design,device:'mobile',previewOptions:'design',imagesPreview:'on'}),{waitUntil:'networkidle'});
- const panel=p.locator('[data-preview-design-options]');assert.equal(await panel.locator('input[type=text],input[type=number],input[type=range]').count(),0);
+ await expect(p.getByRole('button',{name:'보기 옵션 열기',exact:true})).toHaveAttribute('aria-expanded','false');await p.getByRole('button',{name:'보기 옵션 열기',exact:true}).click();const panel=p.locator('[data-preview-design-options]');assert.equal(await panel.locator('input[type=text],input[type=number],input[type=range]').count(),0);
  assert.deepEqual(await p.evaluate(()=>[innerWidth,innerHeight]),[width,1000]);
  for(const field of await panel.locator('[data-preview-color-field]').all()){const gap=await field.evaluate(e=>e.querySelector('button').getBoundingClientRect().left-e.querySelector('span').getBoundingClientRect().right);assert.ok(gap<=9,`label/swatch gap ${gap}`);}
- const columns=await panel.locator('[data-preview-backgrounds],[data-preview-image-radii],[data-preview-font-groups]').evaluateAll(es=>es.map(e=>getComputedStyle(e).gridTemplateColumns.split(' ').length));assert.deepEqual(columns,width<640?[2,2,2]:[2,3,3]);
+ const columns=await panel.locator('[data-preview-backgrounds],[data-preview-image-radii],[data-preview-font-groups]').evaluateAll(es=>es.map(e=>getComputedStyle(e).gridTemplateColumns.split(' ').length));assert.deepEqual(columns,[2,2,2]);
  const label=dining?'본문 페이지 배경색':'페이지 배경색',trigger=p.getByRole('button',{name:label+' 선택',exact:true});await trigger.click();
  const picker=p.locator('[data-preview-color-picker]'),hex=picker.getByRole('textbox',{name:label+' 색상값',exact:true});await expect(hex).toHaveValue('#FFFFFF');
  const rect=await picker.boundingBox();assert.ok(rect.x>=0&&rect.x+rect.width<=width+1&&rect.y>=0&&rect.y+rect.height<=1001,JSON.stringify(rect));
@@ -21,7 +21,7 @@ async function controls(width,dining){const p=await page(width,1000);try{
  await expect(p.frameLocator('iframe').locator('.cafe-a-typography').first()).toHaveCSS('background-color','rgb(230, 243, 250)');
  await expect(trigger).toBeEnabled();if(!await picker.isVisible())await trigger.click();const spectrum=picker.getByRole('slider',{name:label+' 채도와 밝기',exact:true});await spectrum.focus();await spectrum.press('ArrowLeft');await p.waitForURL(u=>JSON.parse(u.searchParams.get('designPreview')||'{}').pageBackground!=='#E6F3FA');
  await hex.press('Escape');await expect(trigger).toBeFocused();
- await trigger.click();await picker.getByRole('button',{name:'템플릿 기본색 복원',exact:true}).click();await p.waitForURL(u=>!JSON.parse(u.searchParams.get('designPreview')||'{}').pageBackground);await picker.getByRole('button',{name:'컬러피커 닫기',exact:true}).click();
+ await trigger.click();assert.equal(await picker.getByRole('button',{name:'템플릿 기본색 복원',exact:true}).count(),0);await p.getByRole('button',{name:label+' 기본색 복원',exact:true}).click();await p.waitForURL(u=>!JSON.parse(u.searchParams.get('designPreview')||'{}').pageBackground);await expect(picker).toBeHidden();
  const radius=p.getByRole('combobox',{name:'상품 이미지 라운드',exact:true});await radius.selectOption('rounded');await p.waitForURL(u=>JSON.parse(u.searchParams.get('designPreview')||'{}').imageRadii?.item===16);await radius.selectOption('template');await p.waitForURL(u=>JSON.parse(u.searchParams.get('designPreview')||'{}').imageRadii?.item===undefined);
  assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
  if(width===390||width===1516){await panel.evaluate(e=>{e.scrollTop=0;});await p.screenshot({path:`${out}/${dining?'dining':'basic'}-${width}.png`});await trigger.click();await p.screenshot({path:`${out}/picker-${dining?'dining':'basic'}-${width}.png`});}

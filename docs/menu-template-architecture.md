@@ -1,5 +1,7 @@
 # Menu template responsibilities
 
+Catalog preview controls are composed by `MenuPreviewDeviceFrame` and `MenuPreviewOptionsPanel`. The frame owns temporary selection/navigation and display-only scaling; the panel owns the responsive light drawer and functional/design tabs. The drawer starts closed. The 960px breakpoint depends on the outer browser width, while iframe device dimensions remain independent. Closing the drawer unmounts the design controls/picker but preserves their values in the frame. Customer renderers and menu reading geometry are not modified by drawer state.
+
 This refactor moves existing declarations without changing formulas, tokens, content order, presentation routing or CSS. The file split preserved rendering. The user subsequently approved the top-row spacing correction described below.
 
 ## Presentation boundaries
