@@ -21,7 +21,7 @@ This refactor moves existing declarations without changing formulas, tokens, con
 
 Shared components may render the same price or name, but presentation policies retain separate scopes. Existing functions and constants were moved verbatim. Source-contract tests read the renderer plus the extracted modules instead of assuming every declaration lives in one file.
 
-`one-page/mobile/useMobileCategoryPriceLayout.ts` measures category-wide intrinsic label/price widths for the approved Basic mobile purchase rows. It is independent of PC/tablet packing and the Dining option engine. `MenuCartCountBadge` shares rendered-icon ink/contrast across service entry points; `shared/menu-image-radius.ts` carries thumbnail geometry into the common lightbox. Neutral designs reuse all three paths.
+`MenuAppearanceScope` applies optional Basic radius/chip overrides and the saved Korean face to store introductions without changing the native defaults. The same raw `page_settings.design.appearance` configuration is read by the Design editor, public renderer and catalog previews. Advertisement radius crosses the dialog portal explicitly. Album ratios share this scope for Basic and Dining; list/course/cover rules remain independent. The mobile price exception is a deterministic image-plus-three-options row class in CafeDesignA, without the removed category-width measurement hook. `MenuCartCountBadge` shares rendered-icon ink/contrast across service entry points; `shared/menu-image-radius.ts` carries thumbnail geometry into the common lightbox. Neutral designs reuse these paths.
 
 ## Catalog feature examples
 

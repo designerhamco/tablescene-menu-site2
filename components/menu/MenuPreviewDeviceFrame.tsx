@@ -8,6 +8,7 @@ import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
 import { supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
+import { ALBUM_IMAGE_RATIOS } from "@/lib/menu-appearance";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import { getTemplatePreviewOptionGroups } from "@/lib/template-preview-options";
 import { getDefaultDesignOptions, type DefaultDesignOptionKey, type DefaultDesignOptions } from "@/lib/default-design-options";
@@ -89,7 +90,9 @@ export default function MenuPreviewDeviceFrame(
   props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; supportsTabletOrientation?: boolean },
 ) {
   const { device, query } = props;
-  const supportsTabletOrientation = props.supportsTabletOrientation ?? props.templateKey?.startsWith("dining_") ?? false;
+  const designParam = (query as TemplatePreviewQuery).design;
+  const defaultDesign = props.templateKey ? getDefaultDesignReview(Array.isArray(designParam) ? designParam[0] : designParam, props.templateKey) : undefined;
+  const supportsTabletOrientation = props.supportsTabletOrientation ?? (props.templateKey?.startsWith("dining_") === true || defaultDesign?.itemLayout === "album");
   const orientation = supportsTabletOrientation ? props.orientation : "landscape";
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -124,8 +127,6 @@ export default function MenuPreviewDeviceFrame(
     order: orderPreview,
   });
   const supportsLayoutPreview = props.supportsLayoutPreview ?? supportsPcTabletLayoutMode(props.templateKey);
-  const designParam = (query as TemplatePreviewQuery).design;
-  const defaultDesign = props.templateKey ? getDefaultDesignReview(Array.isArray(designParam) ? designParam[0] : designParam, props.templateKey) : undefined;
   const [displayOptions, setDisplayOptions] = useOptimistic(props.previewDisplayOptions ?? getDefaultDesignOptions(query as TemplatePreviewQuery));
   const displayGroups = props.templateKey ? getTemplatePreviewOptionGroups(props.templateKey, defaultDesign) : [];
   const hasDisplayOptions = displayGroups.length > 0;
@@ -335,6 +336,11 @@ export default function MenuPreviewDeviceFrame(
                 {areDisplayOptionsOpen ? <ChevronUp className="ml-auto h-3.5 w-3.5" aria-hidden="true" /> : <ChevronDown className="ml-auto h-3.5 w-3.5" aria-hidden="true" />}
               </button>
               <div id="preview-display-options" data-preview-display-options hidden={!areDisplayOptionsOpen}>
+                {defaultDesign?.itemLayout === "album" ? <label className="mb-3 flex items-center gap-2 text-white/90">상품 이미지 비율
+                  <select aria-label="앨범형 상품 이미지 비율" value={ALBUM_IMAGE_RATIOS.includes((query as TemplatePreviewQuery).albumImageRatio as typeof ALBUM_IMAGE_RATIOS[number]) ? (query as TemplatePreviewQuery).albumImageRatio as string : "1:1"} disabled={isPending}
+                    onChange={event=>{const ratio=event.target.value;startTransition(()=>router.push(buildTemplatePreviewUrl(props.templateKey!,{...query,albumImageRatio:ratio},{device,orientation,callPreview:features.call,orderPreview:features.order}),{scroll:false}));}}
+                    className="rounded-md border border-white/20 bg-zinc-900 px-2 py-1.5 text-white">{ALBUM_IMAGE_RATIOS.map(ratio=><option key={ratio} value={ratio}>{ratio}{ratio==='1:1'?' · 기본':''}</option>)}</select>
+                </label> : null}
                 <div className="grid gap-x-5 gap-y-2 pb-1 min-[640px]:grid-cols-3">
                   {displayGroups.map(group => (
                     <fieldset key={group.label} className="min-w-0">

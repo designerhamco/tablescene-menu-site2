@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { menuAppearancePreview } from "@/lib/menu-appearance";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
@@ -74,6 +75,8 @@ type PageProps = {
     pageTest?: string | string[];
     prepayPreview?: string | string[];
     popupPreview?: string | string[];
+    appearanceQa?: string | string[];
+    albumImageRatio?: string | string[];
     logoPreview?: string | string[];
     coverImagesPreview?: string | string[];
     widgetsPreview?: string | string[];
@@ -1558,6 +1561,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   );
   const data = defaultDesign ? buildDefaultDesignPreview({ ...fixtureData, locale: localizedData.locale, enabledLocales: localizedData.enabledLocales,
     menuSite: { ...fixtureData.menuSite, template_key: templateKey } }, defaultDesign, getDefaultDesignOptions(resolvedSearchParams)) : applyTemplatePreviewOptions(localizedData, { ...resolvedSearchParams, widgetsPreview: getFirstParam(resolvedSearchParams.widgetsPreview) ?? (getTemplatePreviewOptions(localizedData, {}).widgetsPreview ? "on" : "off") });
+  data.menuSite.page_settings = menuAppearancePreview(data.menuSite.page_settings, resolvedSearchParams, defaultDesign?.itemLayout === "album") as typeof data.menuSite.page_settings;
   if (!isActualView && usesDevicePreviewFrame) {
     return <MenuPreviewDeviceFrame device={device} orientation={orientation} templateKey={templateKey} query={resolvedSearchParams}
       previewDisplayOptions={defaultDesign ? getDefaultDesignOptions(resolvedSearchParams) : getTemplatePreviewOptions(localizedData, resolvedSearchParams)} />;
