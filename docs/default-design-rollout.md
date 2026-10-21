@@ -1,5 +1,10 @@
 # Default design and switch rollout — 2026-10-19
 
+## 현재 상태 — 2026-10-22
+
+아래 날짜별 항목은 당시의 검토 범위를 보존한 이력이다. 기본/기존 디자인 적용, 카탈로그·신규 이용권·교체, 편집기 배경/색상, 호출/테이블, 실제 방문 주문내역/고객 취소는 PR #292~#299의 운영 배포를 완료했다. 이후 공통 규칙이 이전 문구보다 우선한다. 현재 고객 동선 검수와 실제 QA/실결제 잔여 범위는 `docs/runbooks/customer-journey-qa.md`와 `docs/task-queue.md` 상단을 따른다.
+
+
 ## Approved baseline and first review boundary
 
 Start from Production merge `a6d174c` (PR #252), including spacing restoration #251 and stable fill reading #252. `docs/basic-menu-scroll-policy.md` is authoritative for REAL MATCHA. Do not restore the earlier gap enlargement, vertical centering or pagination. Mobile remains the independent 20/24/48 reading contract.
