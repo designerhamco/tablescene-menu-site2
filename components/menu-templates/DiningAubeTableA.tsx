@@ -40,6 +40,7 @@ import {
   mergeTypographySettings,
 } from "@/lib/template-typography-presets";
 import { formatMenuPrice } from "@/types/menu";
+import { getMenuImageRadius } from "./shared/menu-image-radius";
 import { CafeMenuImageLightbox } from "./CafeDesignA";
 import { useDefaultAlbum, useDefaultDesign, useDefaultDesignLogoImage } from "./defaults/DefaultDesignScope";
 import type { CafeMenuImagePreview } from "./shared/cafe-template-types";
@@ -259,7 +260,7 @@ export default function DiningAubeTableA({
   const imageTrigger = useRef<HTMLElement | null>(null);
   const openImage = useCallback<OpenItemImage>((preview, trigger) => {
     imageTrigger.current = trigger;
-    setImagePreview(preview);
+    setImagePreview({ ...preview, borderRadius: getMenuImageRadius(trigger) });
   }, []);
   const closeImage = useCallback(() => {
     setImagePreview(null);

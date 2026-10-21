@@ -130,14 +130,14 @@ export function applyTemplatePreviewOptions(source: MenuPageData, query: Templat
   }
   if (enabled("widgetsPreview") === false) data.widgets = [];
   if (enabled("widgetsPreview") === true && data.pages[0]) {
-    const widgets = data.widgets?.length ? data.widgets : [{ id: "catalog-preview-full-widget", menuSiteId: data.menuSite.id, menuPageId: data.pages[0].id, sortOrder: 1000, visible: true }];
-    data.widgets = widgets.map(widget => ({ ...widget, type: "image_text", visible: true,
-      title: "title" in widget && widget.title || copy.widget,
-      description: "description" in widget && widget.description || copy.body,
-      imageUrl: "imageUrl" in widget && widget.imageUrl || image,
-      imagePath: "imagePath" in widget ? widget.imagePath : null,
-      settings: { ...("settings" in widget ? widget.settings : {}), schemaVersion: 1, placement: "settings" in widget ? widget.settings.placement : "flow", aspectRatio: "settings" in widget && "aspectRatio" in widget.settings ? widget.settings.aspectRatio ?? "3:1" : "3:1", objectFit: "cover", objectPosition: "center", textAlign: "left", altText: copy.widget },
-    }));
+    // Existing widgets are real examples: retain their type, fitting and anchors.
+    // Only an absent example needs a complete catalog-only fallback.
+    data.widgets = data.widgets?.length
+      ? data.widgets.map(widget => ({ ...widget, visible: true }))
+      : [{ id: "catalog-preview-full-widget", menuSiteId: data.menuSite.id, menuPageId: data.pages[0].id,
+        sortOrder: 1000, visible: true, type: "image_text", title: copy.widget, description: copy.body,
+        imageUrl: image, imagePath: null,
+        settings: { schemaVersion: 1, placement: "flow", aspectRatio: "3:1", objectFit: "cover", objectPosition: "center", textAlign: "left", altText: copy.widget } }];
   }
   data.menuSite.settings = settings;
   data.menuSite.page_settings = { ...(data.menuSite.page_settings && typeof data.menuSite.page_settings === "object" && !Array.isArray(data.menuSite.page_settings) ? data.menuSite.page_settings : {}), ...data.pageSettings };

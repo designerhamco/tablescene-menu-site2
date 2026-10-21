@@ -16,7 +16,8 @@ async function check(c,[device,width,height]){
   else await p.locator('[data-native-ready=true],[data-paged-ready=true],[data-mobile-brand-fit=ready]').filter({visible:true}).first().waitFor();
   await p.waitForTimeout(250);
   assert.deepEqual(await p.evaluate(()=>[innerWidth,innerHeight]),[width,height]);assert.equal(await p.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false);
-  assert.equal(await p.locator('[data-cafe-a-widget-block]').count(),0,'widgets default OFF without removing starter content');
+  const widgetCount=await p.locator('[data-cafe-a-widget-block]').filter({visible:true}).count();
+  assert.equal(widgetCount>0,c.key==='cafe_mocha_forest_a'&&!c.design,'only Mocha defaults its original widget ON');
   const geometry=await p.locator('[data-menu-order-add]').filter({visible:true}).evaluateAll(es=>es.filter(e=>!e.closest('[inert]')).map(e=>{
    const area=e.closest('.cafe-a-price-area,.aube-table-item-purchase,.aube-table-course-purchase');const r=e.getBoundingClientRect(),a=area?.getBoundingClientRect();return {area:!!area,inside:!!a&&r.left>=a.left-1&&r.right<=a.right+1&&r.top>=a.top-1&&r.bottom<=a.bottom+1};
   }));assert.ok(geometry.length>0);assert.ok(geometry.every(g=>g.area&&g.inside),'all add icons stay in their actual price area');

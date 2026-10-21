@@ -22,7 +22,7 @@ function fixture(): MenuPageData {
     ],
     items: ["one", "two", "course-item"].map((id, index) => ({ id, category_id: index === 2 ? "course" : "category", name: id, set_name: "SECONDARY", description: "Item description", price: 5000, priceNote: "ICE ONLY", image_url: "/native-item.jpg", badge: "BEST", badge_label: "BEST", recommended: true, is_best: true, is_sold_out: index === 1, visible: true, priceColumnValues: [{ id: `${id}-hot`, priceColumnId: "hot", price: 5000, visible: true }] })),
     priceOptions: [{ id: "option", menu_item_id: "one", label: "HOT", price: 5000, visible: true, sort_order: 0 }],
-    widgets: [{ id: "widget", visible: true }],
+    widgets: [{ id: "widget", visible: true, type: "image_text", title: "Native widget", description: "Native body", imageUrl: "/native-widget.jpg", settings: { aspectRatio: "3:1", objectFit: "contain", objectPosition: "bottom-right", textAlign: "right", placement: "bottom" } }],
     featuredSlides: [{ id: "cover", imageUrl: "/native-cover.jpg", featuredItemId: "one", sortOrder: 0 }],
     timeSales: [{ id: "sale", items: [{ id: "sale-item", menuItemId: "one", priceColumnId: "hot", salePrice: 4000, visible: true }] }],
     nextTimeSaleStartAt: null,
@@ -179,4 +179,24 @@ test("Basic preview completes whole-category examples without changing independe
   assert.ok(data.items.filter(item => item.category_id === "note-category").every(item => item.priceNote === "ICE ONLY"));
   assert.equal(data.items.find(item => item.id === "course-item")?.priceColumnValues.length, source.items.find(item => item.id === "course-item")?.priceColumnValues.length);
   assert.equal(source.items.find(item => item.id === "four")?.priceNote, null);
+});
+
+
+test("Mocha alone defaults widgets ON and explicit OFF wins", () => {
+  const source = fixture();
+  for (const key of ["cafe_design_a", "cafe_sunday_line_a", "cafe_van_gogh_a", "cafe_round_focus_a", "fast_food_loop_bagel_a", "restaurant_onue_a", "dining_aube_table_a", "dining_aube_table_b", "cafe_mocha_forest_a"]) {
+    source.menuSite.template_key = key;
+    assert.equal(getTemplatePreviewOptions(source, {}).widgetsPreview, key === "cafe_mocha_forest_a");
+    assert.equal(getTemplatePreviewOptions(source, { widgetsPreview: "off" }).widgetsPreview, false);
+  }
+});
+
+test("widget opt-in preserves type and every editor image/text setting", () => {
+  const source = fixture();
+  for (const type of ["image", "text", "image_text"] as const) {
+    source.widgets![0].type = type;
+    const original = structuredClone(source.widgets![0]);
+    assert.deepEqual(applyTemplatePreviewOptions(source, { widgetsPreview: "on" }).widgets![0], original);
+    assert.deepEqual(source.widgets![0], original);
+  }
 });

@@ -1,6 +1,7 @@
 "use client";
 import { useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
 
+import MenuCartCountBadge from "@/components/public-menu/order-call/MenuCartCountBadge";
 import { ShoppingCart } from "lucide-react";
 import { StaffCallIcon } from "@/components/public-menu/order-call/MenuActionIcons";
 import {
@@ -122,7 +123,7 @@ export function OnePageCallButton({ mobile = false }: { mobile?: boolean }) {
             </span>
           ) : null}
           {(actions.cartCount ?? 0) > 0 ? (
-            <span className="cafe-a-cart-count">{actions.cartCount}</span>
+            <MenuCartCountBadge className="cafe-a-cart-count" count={actions.cartCount!} />
           ) : null}
         </button>
       ) : null}

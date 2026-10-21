@@ -1,0 +1,14 @@
+.badge.badge {
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  min-width: 1.25rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  font: 500 .65rem/1 var(--menu-font-ko, "Pretendard"), sans-serif;
+}
+.badge::before { content: ""; position: absolute; inset: 0; background: currentColor; border-radius: inherit; }
+.badge > span { position: relative; }

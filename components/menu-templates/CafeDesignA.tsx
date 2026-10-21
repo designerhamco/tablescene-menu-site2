@@ -15,6 +15,8 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
+import { getMenuImageRadius } from "./shared/menu-image-radius";
+import { useMobileCategoryPriceLayout } from "./one-page/mobile/useMobileCategoryPriceLayout";
 import NativeBasicScroll from "./one-page/NativeBasicScroll";
 import { Clock3, RefreshCw, X, ZoomIn } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -1663,6 +1665,7 @@ function MenuItemRow({
         src: imageUrl,
         title: item.name,
         secondaryTitle: trimmedMetaText || null,
+        borderRadius: getMenuImageRadius(event.currentTarget),
       },
       event.currentTarget,
     );
@@ -1766,6 +1769,7 @@ function MenuItemRow({
                 <span aria-hidden="true" className="cafe-a-price-column-label-sizer">
                   <ScriptAwareText text={priceRailColumns?.[index]?.label ?? token.label} />
                 </span>
+                <span className="cafe-a-mobile-option-label"><ScriptAwareText text={priceRailColumns?.[index]?.label ?? token.label} /></span>
                 {token.price && token.salePrice && timeSale ? (
                   <TimeSalePriceBlock
                     timeSale={timeSale.promotion}
@@ -1960,6 +1964,7 @@ function CafeMenuImageLightbox({
         </button>
         <img
           src={preview.src}
+          style={{ borderRadius: preview.borderRadius ?? "0px" }}
           alt={`${preview.title} 이미지`}
           className="max-h-[78vh] max-w-full object-contain"
           decoding="async"
@@ -4017,6 +4022,10 @@ function MenuCategoryContentBlock({
     priceDisplayMode,
     nowMs: initialNowMs,
   });
+  const mobilePriceRef = useMobileCategoryPriceLayout({
+    enabled: useMenuCoverRenderDevice(data.previewDevice) === "mobile" && usesOnePageProportionPolicy(data.menuSite.template_key, data.pagePresentation),
+    signature: JSON.stringify([priceRailColumns, block.items.map(item => item.priceColumnValues)]),
+  });
   const balancedAttributes =
     balancedSourceOrder == null
       ? {}
@@ -4035,6 +4044,7 @@ function MenuCategoryContentBlock({
   return (
     <section
       key={groupKey}
+      ref={mobilePriceRef}
       className={`${getCategoryBlockClassName()} ${itemStackSpacing}`}
       data-cafe-a-category-block=""
       data-cafe-a-block-type="category"

@@ -1,5 +1,5 @@
 .widget {
-  --cafe-a-widget-ink: var(--cafe-a-ink, #191c1b);
+  --cafe-a-widget-ink: var(--mocha-panel-supporting, var(--menu-role-supporting-color, var(--cafe-a-ink, inherit)));
   --cafe-a-widget-muted: rgb(25 28 27 / 66%);
   --cafe-a-widget-border: rgb(25 28 27 / 68%);
   --cafe-a-widget-gap-scale: var(--fit-menu-gap-scale, var(--fit-gap-scale, 1));
@@ -96,7 +96,7 @@
 }
 
 .body {
-  color: #3f4945;
+  color: var(--cafe-a-widget-ink);
   font-family: var(--menu-role-supporting-font-family, inherit);
   font-size: clamp(0.8125rem, calc(var(--cafe-a-menu-description-size, 0.8125rem) * var(--menu-font-size-scale, 1) * var(--menu-role-supporting-size-scale, 1)), 1rem);
   font-weight: var(--menu-role-supporting-font-weight, 400);

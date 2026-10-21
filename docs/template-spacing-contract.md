@@ -1,5 +1,13 @@
 # Menu template spacing contract
 
+## Mobile option reading and shared preview parity — 2026-10-21
+
+Basic list products with category price options keep photo and copy at their ordinary full text width on mobile. A full-row purchase area follows both, with labels above prices and one add control at the right. Mobile category-header option labels are hidden. Intrinsic label and all category price widths select a common horizontal or vertical option layout for the entire category; remeasure real content, fonts and viewport changes. Single-price rows, PC/tablet rails, mobile type/internal-copy/item/section tokens, and Dining option layouts remain unchanged. Neutral Basic designs share this rule; Basic albums still exclude category price columns.
+
+Every circular cart count uses the actual rendered icon ink as its background and a contrasting number, including photo-cover state changes. Image lightboxes snapshot the clicked thumbnail frame/image corner radii rather than applying an independent larger radius. These shared rules cover native, neutral and album Basic/Dining presentations.
+
+Mocha alone defaults its original image-only character widget ON (3:1, contain, bottom-right, bottom placement); explicit OFF wins. Other catalog/default designs keep widgets OFF. Enabling an existing widget preserves its type, content and all editor fitting/alignment settings; only a missing catalog example receives a full image/text fallback. Widget title/body follow saved other-text ink and otherwise the actual native panel supporting ink. Mocha PC/tablet representative images keep 4:5, align to the rail bottom without inner bottom padding, and shrink both dimensions together when necessary. Mobile retains its separate natural flow.
+
 ## Strict Basic supporting-size and category examples — 2026-10-21
 
 Latest user clarification: both this size alignment and category-wide price examples apply to Basic only. Dining retains its existing type hierarchy, including the larger cover introduction.
@@ -32,7 +40,7 @@ Sold-out item name/price use neutral #797979, supporting copy #8b8b8b, with stat
 
 The shared 2/3-track measurement includes category title text after price-header reservation. One isolated ordinary 2-line name is insufficient. Three or more repeated wrapped product names affecting at least 30% of items can select two only when the actual wider candidate removes at least three line breaks and improves at least 35% of wrapped items. Two improved wrapped category headings can also select two. Existing severe overflow/cramped-name and end-balance checks remain. Typography, registered order, center-layout fixed two tracks and mobile remain independent; there is no fourth automatic track.
 
-Order background now retains the representative brand color, superseding the darkest-palette Order rule below. Foreground prefers the brightest menu color but falls back to readable dark/black ink for light brands (minimum 4.5 contrast). Call and solid Call-circle policies remain separate. Catalog widget options default OFF; explicit ON retains full examples without removing starter/customer widget content. Advertisement progression is five seconds with a compact active-dot ring, desktop arrows and common manual navigation; pause for hover, keyboard manipulation or background, and respect reduced motion.
+Order background now retains the representative brand color, superseding the darkest-palette Order rule below. Foreground prefers the brightest menu color but falls back to readable dark/black ink for light brands (minimum 4.5 contrast). Call and solid Call-circle policies remain separate. Catalog widget options default OFF except Mocha as refined above; explicit ON retains original widget configuration without removing starter/customer widget content. Advertisement progression is five seconds with a compact active-dot ring, desktop arrows and common manual navigation; pause for hover, keyboard manipulation or background, and respect reduced motion.
 
 ## Final type and action-color unification — 2026-10-20
 
@@ -42,7 +50,7 @@ The latest user decision supersedes the brand-color action policy above: **categ
 
 ## Preview completeness and interaction palette — 2026-10-20
 
-Explicit catalog options fill all missing eligible examples, while saved-menu/public customer data remains untouched. Category descriptions ON covers every category; ordinary images and supporting descriptions retain existing content and fill missing slots. Priced Dining courses still suppress item images and keep a single item track. Starter widgets are image+title+body except Mocha's approved default character image; explicitly enabling widgets in previews shows full examples in every supported template. Dining reuses the common widget component after page content, at category-level spacing.
+Explicit catalog options fill all missing eligible examples, while saved-menu/public customer data remains untouched. Category descriptions ON covers every category; ordinary images and supporting descriptions retain existing content and fill missing slots. Priced Dining courses still suppress item images and keep a single item track. Starter widgets are image+title+body except Mocha's approved default character image; explicitly enabling widgets retains the registered example and all its editor settings. Dining reuses the common widget component after page content, at category-level spacing.
 
 Basic tablet preview frames offer landscape without a rotation button; Dining retains rotation. This toolbar policy does not disable viewport-responsive portrait rendering. Top-row language controls occupy the description cell's top-left, with a reserved control row above supporting copy. Sunday no longer draws its between-category decorative rule; semantic category gaps remain.
 
