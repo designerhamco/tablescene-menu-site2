@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import MenuPlanChangePanel from "./MenuPlanChangePanel";
 import { useState, type FormEvent } from "react";
 
 export type SubscriptionManagementModalProps = {
@@ -509,6 +510,8 @@ export default function SubscriptionManagementModal({
                 : "구독을 해지하면 다음 결제일부터 결제가 중단됩니다. 이미 결제된 이용기간은 종료일까지 계속 이용할 수 있습니다. 이용기간 종료 후 메뉴판은 비공개 처리되며, 종료 후 90일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다."}
             </div>
 
+            {!restoredNotice ? <MenuPlanChangePanel subscriptionId={subscriptionId} /> : null}
+
             {isYearlyBilling && !restoredNotice ? (
               <div className="site-section mt-4 p-4 text-sm font-bold leading-relaxed text-zinc-600">
                 <p>
@@ -535,7 +538,7 @@ export default function SubscriptionManagementModal({
                 <p className="mt-1 text-xs font-bold text-zinc-400">{menuStatus}</p>
               </div>
               <div className="rounded-2xl bg-zinc-50 p-4">
-                <dt className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">다음 결제 예정 금액</dt>
+                <dt className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">현재 계약 금액</dt>
                 <dd className="mt-2 font-bold text-zinc-900">{amountLabel}</dd>
               </div>
               <div className="rounded-2xl bg-zinc-50 p-4">

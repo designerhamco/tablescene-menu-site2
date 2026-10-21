@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
+import { menuPlanChangeLedgerReady, menuPlanChangeRenewalsEnabled, processMenuPlanChangeRenewal } from "@/lib/server/menu-plan-change-service";
 
 import { getSubscriptionProduct, type SubscriptionProduct } from "@/lib/billing-products";
 import { buildPaymentFailedEmail } from "@/lib/notification-email-templates";
@@ -19,6 +21,7 @@ import {
   type SubscriptionLifecycleEntitlement,
 } from "@/lib/subscription-lifecycle-targets";
 import { getSubscriptionRenewalDisposition } from "@/lib/subscription-renewal-policy";
+import { resolvePlanChangeRenewalExecution } from "@/lib/menu-plan-change-cron-policy";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/types";
 
@@ -33,6 +36,7 @@ type ProcessSubscriptionsOptions = {
   dryRun: boolean;
   execute: boolean;
   trigger: "get" | "post";
+  planChangeExecute?: boolean;
 };
 
 type DueSubscription = {
@@ -857,14 +861,34 @@ async function processDueSubscription({
   subscription,
   dryRun,
   execute,
+  planChangeExecute,
   now,
 }: {
   adminSupabase: ReturnType<typeof createAdminClient>;
   subscription: DueSubscription;
   dryRun: boolean;
   execute: boolean;
+  planChangeExecute: boolean;
   now: Date;
 }): Promise<CronItem> {
+  if (menuPlanChangeLedgerReady()) {
+    try {
+      const change = await processMenuPlanChangeRenewal(adminSupabase, subscription.id, !planChangeExecute);
+      if (change) {
+        if (change.action === "charged") {
+          revalidatePath("/mypage");
+          revalidatePath(`/mypage/menus/${change.menuId}/edit`);
+          revalidatePath(`/mypage/menus/${change.menuId}/preview`);
+          if (change.slug) revalidatePath(`/menu/${change.slug}`);
+        }
+        return change;
+      }
+    } catch (error) {
+      console.error("[cron/process-subscriptions] reserved plan change requires review", { subscriptionId: subscription.id, message: error instanceof Error ? error.message : "unknown" });
+      // A reserved payment never falls back to charging the old contract amount.
+      return { subscriptionId: subscription.id, productKey: subscription.product_key, action: "failed", nextBillingAt: subscription.next_billing_at, message: "PLAN_CHANGE_RENEWAL_REQUIRES_REVIEW" };
+    }
+  }
   const product = getSubscriptionProduct(subscription.product_key);
   const periodStart = getPeriodStart(subscription, now);
   const periodEnd = addBillingCycle(periodStart, subscription.billing_cycle);
@@ -995,7 +1019,7 @@ async function processDueSubscription({
   }
 }
 
-async function processSubscriptions({ dryRun, execute, trigger }: ProcessSubscriptionsOptions) {
+async function processSubscriptions({ dryRun, execute, trigger, planChangeExecute = false }: ProcessSubscriptionsOptions) {
   const now = new Date();
   const adminSupabase = createAdminClient();
 
@@ -1020,7 +1044,7 @@ async function processSubscriptions({ dryRun, execute, trigger }: ProcessSubscri
   const items: CronItem[] = [];
 
   for (const subscription of dueSubscriptions) {
-    const item = await processDueSubscription({ adminSupabase, subscription, dryRun, execute, now });
+    const item = await processDueSubscription({ adminSupabase, subscription, dryRun, execute, planChangeExecute, now });
     items.push(item);
   }
 
@@ -1050,8 +1074,11 @@ async function processSubscriptions({ dryRun, execute, trigger }: ProcessSubscri
 
   const summary = {
     trigger,
-    dryRun,
-    execute,
+    dryRun: dryRun && !planChangeExecute,
+    execute: execute || planChangeExecute,
+    legacyDryRun: dryRun,
+    legacyExecute: execute,
+    planChangeExecute,
     executeEnabledForGet: isSubscriptionCronExecuteEnabled(),
     dueCount: dueSubscriptions.length,
     processed: items.length,
@@ -1098,6 +1125,7 @@ export async function GET(request: Request) {
     trigger: "get",
     execute,
     dryRun: !execute,
+    planChangeExecute: resolvePlanChangeRenewalExecution({trigger:"get",ledgerReady:menuPlanChangeLedgerReady(),enabled:menuPlanChangeRenewalsEnabled(),execute,dryRun:!execute}),
   });
 }
 
@@ -1114,5 +1142,6 @@ export async function POST(request: Request) {
     trigger: "post",
     execute,
     dryRun,
+    planChangeExecute: resolvePlanChangeRenewalExecution({trigger:"post",ledgerReady:menuPlanChangeLedgerReady(),enabled:menuPlanChangeRenewalsEnabled(),execute,dryRun}),
   });
 }
