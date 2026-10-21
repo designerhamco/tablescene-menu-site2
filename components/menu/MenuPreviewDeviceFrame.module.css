@@ -1,19 +1,8 @@
-.workspace { --preview-sidebar-space: 0px; }
-.toolbarRegion { left: var(--preview-sidebar-space); }
 .toolbar { container-type: inline-size; }
-.canvas { min-width: 0; }
 @container (max-width: 780px) {
   .toolbarContent { flex-wrap: wrap; }
   .deviceNav { flex-basis: 100%; }
 }
 @media (max-width: 959px) {
   .workspace[data-toolbar-open="false"] [data-preview-options-panel] { display: none; }
-}
-@media (min-width: 960px) {
-  .workspace[data-has-options="true"] { --preview-sidebar-space: 4rem; }
-  .workspace[data-has-options="true"][data-options-open="true"] { --preview-sidebar-space: 21.5rem; }
-  .workspace[data-has-options="true"] .stage { width: calc(100% - var(--preview-sidebar-space)); height: 100dvh; margin-left: var(--preview-sidebar-space); padding: var(--preview-top-clearance) 1rem 1rem; overflow: hidden; box-sizing: border-box; }
-  .workspace[data-has-options="true"] .canvas { display: flex; width: 100%; height: 100%; min-height: 0; align-items: center; justify-content: center; }
-  .scaledFrame { flex: none; }
-  .workspace[data-has-options="true"] [data-preview-frame-shell] { margin: 0; transform-origin: top left; }
 }
