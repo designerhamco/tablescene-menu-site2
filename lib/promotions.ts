@@ -1,3 +1,4 @@
+import { getMenuPlanSelection } from "./menu-plan-contract";
 import {
   getPaymentProductDefinition,
   type PaymentProductKey,
@@ -20,6 +21,7 @@ type PromotionValidationInput = {
   productKey: string | null | undefined;
   promotionCode?: unknown;
   promotion?: unknown;
+  menuDesignId?: string;
 };
 
 export const OPEN_PROMOTION_CODE = "OPEN";
@@ -44,17 +46,19 @@ export function isOpenPromotionProduct(productKey: string | null | undefined): p
   return Boolean(productKey && OPEN_PROMOTION_PRODUCT_KEYS.has(productKey as PaymentProductKey));
 }
 
-export function getOpenPromotionSnapshot(productKey: string | null | undefined, now = new Date()): AppliedPromotionSnapshot | null {
+export function getOpenPromotionSnapshot(productKey: string | null | undefined, now = new Date(), menuDesignId?: string): AppliedPromotionSnapshot | null {
   if (!isOpenDiscountPeriod(now) || !isOpenPromotionProduct(productKey)) return null;
 
   const product = getPaymentProductDefinition(productKey);
   if (!product) return null;
 
-  const earlyBirdAmount = getEarlyBirdMonthlyPrice(productKey);
+  const selection = menuDesignId ? getMenuPlanSelection(productKey, menuDesignId) : null;
+  if (menuDesignId && !selection) return null;
+  const earlyBirdAmount = selection?.earlyBirdAmount ?? getEarlyBirdMonthlyPrice(productKey);
   if (earlyBirdAmount === null) return null;
 
   const finalAmount = positiveInteger(earlyBirdAmount);
-  const originalAmount = Math.max(finalAmount, positiveInteger(product.regular_amount));
+  const originalAmount = Math.max(finalAmount, positiveInteger(selection?.regularAmount ?? product.regular_amount));
   const discountAmount = Math.max(0, originalAmount - finalAmount);
 
   return {
@@ -70,11 +74,13 @@ export function getOpenPromotionSnapshot(productKey: string | null | undefined, 
 export function getPromotionAwareChargeAmount(
   productKey: string | null | undefined,
   promotion: AppliedPromotionSnapshot | null,
+  menuDesignId?: string,
 ) {
   const product = getPaymentProductDefinition(productKey);
   if (!product) return null;
 
   if (promotion) return positiveInteger(promotion.finalAmount);
+  if (menuDesignId) return getMenuPlanSelection(productKey, menuDesignId)?.regularAmount ?? null;
   if (isOpenPromotionProduct(productKey)) {
     return positiveInteger(product.regular_amount);
   }
@@ -82,7 +88,7 @@ export function getPromotionAwareChargeAmount(
   return positiveInteger(product.amount);
 }
 
-export function getPromotionApplyResult(productKey: string | null | undefined, promotionCode: unknown, now = new Date()) {
+export function getPromotionApplyResult(productKey: string | null | undefined, promotionCode: unknown, now = new Date(), menuDesignId?: string) {
   const normalizedCode = normalizePromotionCode(promotionCode);
 
   if (!normalizedCode) {
@@ -93,7 +99,7 @@ export function getPromotionApplyResult(productKey: string | null | undefined, p
     return { ok: false as const, message: "사용할 수 없는 프로모션 코드입니다.", promotion: null };
   }
 
-  const promotion = getOpenPromotionSnapshot(productKey, now);
+  const promotion = getOpenPromotionSnapshot(productKey, now, menuDesignId);
   if (!promotion) {
     return { ok: false as const, message: "현재 적용 기간이 아닌 프로모션 코드입니다.", promotion: null };
   }
@@ -117,6 +123,7 @@ export function validatePromotionForOrder({
   productKey,
   promotionCode,
   promotion,
+  menuDesignId,
 }: PromotionValidationInput):
   | { ok: true; promotion: AppliedPromotionSnapshot | null }
   | { ok: false; message: string } {
@@ -126,7 +133,7 @@ export function validatePromotionForOrder({
     return { ok: true, promotion: null };
   }
 
-  const applyResult = getPromotionApplyResult(productKey, normalizedCode);
+  const applyResult = getPromotionApplyResult(productKey, normalizedCode, new Date(), menuDesignId);
   if (!applyResult.ok || !applyResult.promotion) {
     return { ok: false, message: applyResult.message };
   }

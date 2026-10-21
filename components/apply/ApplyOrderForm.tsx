@@ -1,10 +1,15 @@
 "use client";
 
+import { catalogDesigns, getCatalogDesign, getCatalogPricing } from "@/lib/catalog-designs";
+import { getMenuPlanSelection } from "@/lib/menu-plan-contract";
+
+
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type * as PortOneSdk from "@portone/browser-sdk/v2";
 
 import { Check } from "lucide-react";
+import Image from "next/image";
 import TemplateCatalogMedia from "@/components/templates/TemplateCatalogMedia";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import "./apply-checkout.css";
@@ -57,8 +62,8 @@ import {
   BASIC_TEMPLATE_CATEGORY_GROUPS,
   DISPLAY_TEMPLATE_CATEGORY_GROUPS,
   TEMPLATE_CATEGORIES,
-  getBasicTemplateCategoryGroupLabel,
   getBasicTemplateCategoryLabel,
+  getTemplateCategoryFromKey,
   getDisplayTemplateCategoryLabel,
   getTemplateCategoryKeysForBasicGroup,
   getTemplateCategoryKeysForDisplayGroup,
@@ -90,6 +95,7 @@ type ApplyOrderFormProps = {
   displayCheckoutQaEnabled?: boolean;
   initialBasicProductKey?: BasicProductKey;
   initialTemplateKey?: string;
+  initialMenuDesignId?: string;
   monthlyFreeTrialAvailable?: boolean;
   monthlyFreeTrialFirstBillingDate?: string;
   initialRecoverPaymentId?: string;
@@ -300,9 +306,9 @@ const agreementLabels: Record<AgreementKey, string> = {
 const agreementDetails: Record<AgreementKey, string[]> = {
   terms: [
     "[서비스 목적] 아티메뉴는 음식점, 카페, 다이닝 매장 등에서 사용할 수 있는 웹 메뉴판 생성 및 관리 서비스입니다. 아티메뉴 베이직과 다이닝은 템플릿 기반 메뉴판 생성 및 데이터 편집 기능을 제공합니다.",
-    "[템플릿별 월 구독] 선택한 디자인 템플릿 1개당 월 구독 1건이 적용됩니다. 다른 디자인을 함께 이용하려면 해당 템플릿을 별도로 구독해야 합니다.",
-    "[정기 결제 갱신] 월 정기 결제가 갱신되면 선택한 템플릿 메뉴판의 이용기간만 연장되며, 새 메뉴판이나 다른 템플릿 이용권이 추가되지 않습니다.",
-    "[30일 무료체험] 베이직·다이닝·디스플레이 월 구독 중 계정당 최초 1회에 한해 결제수단 등록 완료 시점부터 30일간 무료로 이용할 수 있습니다. 체험 종료 시 선택한 템플릿의 월 이용료가 처음 자동결제됩니다.",
+    "[메뉴판별 월 구독] 베이직·다이닝은 메뉴판 1개당 월 구독 1건이 적용됩니다. 기본 이용권은 같은 서비스의 기본 디자인끼리, 디자인 포함 이용권은 기본 디자인과 디자인 템플릿을 교체할 수 있습니다. 기존 구독은 기존 계약을 유지합니다.",
+    "[정기 결제 갱신] 월 정기 결제가 갱신되면 구독한 메뉴판의 이용기간이 연장되며, 디자인은 선택한 이용권 범위 안에서 교체할 수 있습니다. 새 메뉴판은 추가되지 않습니다.",
+    "[30일 무료체험] 베이직·다이닝·디스플레이 월 구독 중 계정당 최초 1회에 한해 결제수단 등록 완료 시점부터 30일간 무료로 이용할 수 있습니다. 체험 종료 시 선택한 요금제의 월 이용료가 처음 자동결제됩니다.",
     "[무료체험 해지] 무료체험 종료 전 언제든 해지를 예약할 수 있습니다. 중도 해지해도 30일 종료일까지 이용할 수 있으며, 종료 시점의 첫 결제는 실행되지 않습니다.",
     "[메뉴 데이터 이동] 별도로 구매한 다른 템플릿 메뉴판에는 기존 메뉴판의 메뉴 데이터를 가져올 수 있습니다. 템플릿별 디자인, 레이아웃, 위젯, 할인 설정은 새 템플릿에 맞게 별도로 설정해야 합니다.",
     "[서비스 안내] 아티메뉴 디스플레이는 매장 TV와 모니터에 띄우는 디스플레이 메뉴보드 서비스입니다. 아티메뉴 커스텀과 비주얼 스튜디오는 상담 또는 준비 중인 서비스로, 제공 범위와 이용 조건은 별도 안내합니다.",
@@ -328,7 +334,7 @@ const agreementDetails: Record<AgreementKey, string[]> = {
   contentPolicy: [
     "결제 완료 또는 30일 무료체험의 결제수단 등록 완료 즉시 선택한 요금제의 메뉴판이 생성되고, 메뉴판 편집·공개 설정·QR 및 공개 URL 이용이 시작됩니다.",
     "계정의 첫 메뉴판 생성이 완료되면 AI 웰컴 크레딧 6개가 계정당 1회 지급됩니다. 추가 메뉴판, 재구독, 결제 갱신으로는 추가 지급되지 않습니다.",
-    "현재 신규 판매 상품은 템플릿별 월 정기결제 상품이며, 이용자가 구독을 해지하기 전까지 매월 자동 결제됩니다.",
+    "현재 신규 베이직·다이닝 상품은 메뉴판별 월 정기결제 상품이며, 이용자가 구독을 해지하기 전까지 매월 자동 결제됩니다.",
     "구독을 해지하는 경우 다음 결제일부터 결제가 중단되며, 이미 결제된 이용기간 동안은 서비스를 계속 이용할 수 있습니다.",
     "서비스 제공이 개시된 이후에는 관련 법령상 허용되는 범위 내에서 단순 변심, 착오 구매, 미사용 등을 이유로 한 청약철회 및 환불이 제한될 수 있습니다.",
     "단, 중복 결제, 결제 오류, 회사의 귀책사유로 서비스가 정상적으로 제공되지 않은 경우 등 회사가 환불이 필요하다고 인정하거나 관련 법령상 환불이 필요한 경우에는 회사의 환불 정책 및 관계 법령에 따라 처리됩니다.",
@@ -595,10 +601,6 @@ function getMenuTemplateCategoriesByGroup(groupKey: MenuTemplateGroupKey) {
   return getTemplateCategoryKeysForBasicGroup(groupKey);
 }
 
-function getMenuTemplateGroupLabel(groupKey: MenuTemplateGroupKey) {
-  return getBasicTemplateCategoryGroupLabel(groupKey);
-}
-
 function getMenuTemplateGroupByTemplateCategory(categoryKey?: TemplateCategoryKey | null) {
   return BASIC_TEMPLATE_CATEGORY_GROUPS.find((group) =>
     group.categoryKeys.some((category) => category === categoryKey)
@@ -803,6 +805,7 @@ export default function ApplyOrderForm({
   displayCheckoutQaEnabled = false,
   initialBasicProductKey = businessBasicMonthlyProduct.product_key,
   initialTemplateKey = "",
+  initialMenuDesignId = "",
   monthlyFreeTrialAvailable = false,
   monthlyFreeTrialFirstBillingDate = "",
   initialRecoverPaymentId = "",
@@ -838,18 +841,31 @@ export default function ApplyOrderForm({
     ?? templates[0];
   const firstMenuTemplateGroup = getMenuTemplateGroupByTemplateCategory(firstTemplate?.template_category).key;
   const firstDisplayTemplateGroup = getDisplayTemplateGroupByTemplateCategory(firstTemplate?.template_category).key;
+  const [selectedMenuDesignId, setSelectedMenuDesignId] = useState(() => {
+    const requestedDesign = getMenuPlanSelection(initialBasicProduct.product_key, initialMenuDesignId, firstTemplate?.key);
+    if (requestedDesign) return requestedDesign.designId;
+    if (compatibleRequestedTemplate) return compatibleRequestedTemplate.key;
+    const service = initialBasicProduct.product_key === "business_basic_multi_monthly" ? "dining" : "basic";
+    return catalogDesigns.find(design => design.service === service && design.kind === "standard")?.id
+      ?? firstTemplate?.key
+      ?? "basic-first-column";
+  });
+  const selectedMenuDesign = getCatalogDesign(selectedMenuDesignId);
+  const selectedDesignKind = selectedMenuDesign?.kind ?? "designer";
   const [selectedBasicProductKey, setSelectedBasicProductKey] = useState<BasicProductKey>(initialBasicProduct.product_key);
   const [selectedDisplayProductKey, setSelectedDisplayProductKey] = useState<PaymentProductKey>(businessDisplayMonthlyProduct.product_key);
   const activeProduct = useMemo<PaidApplyProduct>(() => {
     if (isMenuService) {
-      return getBasicPaymentProduct(selectedBasicProductKey) ?? businessBasicMonthlyProduct;
+      const base = getBasicPaymentProduct(selectedBasicProductKey) ?? businessBasicMonthlyProduct;
+      const quote = getMenuPlanSelection(base.product_key, selectedMenuDesignId);
+      return quote ? {...base, amount: quote.regularAmount, regular_amount: quote.regularAmount, label: `${quote.service === "basic" ? "베이직" : "다이닝"} ${quote.access === "standard" ? "기본 디자인" : "디자인 포함"}`} : base;
     }
     if (isScreenService && displayCheckoutQaEnabled) {
       return displayPaymentProducts.find((product) => product.product_key === selectedDisplayProductKey)
         ?? businessDisplayMonthlyProduct;
     }
     return serviceProducts[serviceType];
-  }, [displayCheckoutQaEnabled, isMenuService, isScreenService, selectedBasicProductKey, selectedDisplayProductKey, serviceType]);
+  }, [displayCheckoutQaEnabled, isMenuService, isScreenService, selectedBasicProductKey, selectedDisplayProductKey, serviceType, selectedMenuDesignId]);
   const shouldStartFreeTrial =
     monthlyFreeTrialAvailable &&
     isBusinessFreeTrialProduct(activeProduct.product_key);
@@ -882,15 +898,15 @@ export default function ApplyOrderForm({
   const [appliedPromotion, setAppliedPromotion] = useState<AppliedPromotionSnapshot | null | undefined>(undefined);
   const canUsePromotionCode = Boolean(activeProduct.product_key && isOpenPromotionProduct(activeProduct.product_key));
   const defaultOpenPromotion = useMemo(
-    () => canUsePromotionCode ? getOpenPromotionSnapshot(activeProduct.product_key) : null,
-    [activeProduct.product_key, canUsePromotionCode],
+    () => canUsePromotionCode ? getOpenPromotionSnapshot(activeProduct.product_key, new Date(), isMenuService ? selectedMenuDesignId : undefined) : null,
+    [activeProduct.product_key, canUsePromotionCode, isMenuService, selectedMenuDesignId],
   );
   const activePromotion = canUsePromotionCode
     ? appliedPromotion === undefined
       ? defaultOpenPromotion
       : appliedPromotion
     : null;
-  const checkoutAmount = getPromotionAwareChargeAmount(activeProduct.product_key, activePromotion) ?? activeProduct.amount;
+  const checkoutAmount = getPromotionAwareChargeAmount(activeProduct.product_key, activePromotion, isMenuService ? selectedMenuDesignId : undefined) ?? activeProduct.amount;
   const [pendingPaymentCompletion, setPendingPaymentCompletion] = useState<PendingPaymentCompletion | null>(null);
   const [recoveryPaymentIdInput, setRecoveryPaymentIdInput] = useState(() => {
     return normalizeRecoverablePaymentId(initialRecoverPaymentId);
@@ -991,6 +1007,7 @@ export default function ApplyOrderForm({
 
   const payload = useMemo<DraftMenuOrderPayload>(
     () => ({
+      menuDesignId: isMenuService ? selectedMenuDesignId : undefined,
       product_key: activeProduct.product_key,
       plan_type: activeProduct.plan_type,
       payment_type: activeProduct.payment_type,
@@ -1043,6 +1060,7 @@ export default function ApplyOrderForm({
       agreements,
       activePromotion,
       checkoutAmount,
+      selectedMenuDesignId,
       businessVerificationState,
       currentPlanKey,
       form,
@@ -1281,6 +1299,9 @@ export default function ApplyOrderForm({
       setSelectedMenuTemplateGroup(getMenuTemplateGroupByTemplateCategory(nextTemplate.template_category).key);
       setSelectedCategory(nextTemplate.template_category);
     }
+    const nextService = product.product_key === "business_basic_multi_monthly" ? "dining" : "basic";
+    const nextDesign = catalogDesigns.find(d => d.service === nextService && d.kind === selectedDesignKind);
+    if (nextDesign) { setSelectedMenuDesignId(nextDesign.id); setForm(current => ({...current, template_key: nextDesign.templateKey as TemplateKey, template_category: getTemplateCategoryFromKey(nextDesign.templateKey) ?? current.template_category})); }
     setSelectedBasicProductKey(product.product_key);
     setUiState({ type: "idle", message: null });
     setPromotionCodeInput("OPEN");
@@ -1735,7 +1756,7 @@ export default function ApplyOrderForm({
   }
 
   function handleApplyPromotionCode() {
-    const result = getPromotionApplyResult(activeProduct.product_key, promotionCodeInput);
+    const result = getPromotionApplyResult(activeProduct.product_key, promotionCodeInput, new Date(), isMenuService ? selectedMenuDesignId : undefined);
 
     if (!result.ok || !result.promotion) {
       setAppliedPromotion(null);
@@ -1793,6 +1814,8 @@ export default function ApplyOrderForm({
       const purchaseAttemptContext = [
         userId,
         activeProduct.product_key,
+        selectedMenuDesignId,
+        checkoutAmount,
         businessVerificationState.result.businessProfileId,
         payload.desiredSlug,
       ].join(":");
@@ -2143,7 +2166,7 @@ export default function ApplyOrderForm({
             <div className="mb-6">
               <h2 className="type-subsection-title">템플릿 유형</h2>
               <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
-                사용할 디자인 유형을 선택해 주세요. 모든 상품은 템플릿 1개 기준 월 구독입니다.
+                사용할 디자인 유형을 선택해 주세요. 모든 상품은 메뉴판 1개 기준 월 구독입니다.
               </p>
               {monthlyFreeTrialAvailable ? (
                 <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-emerald-700">
@@ -2157,8 +2180,9 @@ export default function ApplyOrderForm({
                   isDiningProductCompatibleWithTemplate(product.product_key, template.key)
                 );
                 const isSelected = selectedBasicProductKey === product.product_key;
-                const promotion = getOpenPromotionSnapshot(product.product_key);
-                const displayedAmount = promotion?.finalAmount ?? product.amount;
+                const candidateDesign = catalogDesigns.find(d => d.service === (product.product_key === "business_basic_multi_monthly" ? "dining" : "basic") && d.kind === selectedDesignKind);
+                const promotion = getOpenPromotionSnapshot(product.product_key, new Date(), isMenuService ? candidateDesign?.id : undefined);
+                const displayedAmount = promotion?.finalAmount ?? getMenuPlanSelection(product.product_key, candidateDesign?.id)?.regularAmount ?? product.amount;
 
                 return (
                   <button
@@ -2197,7 +2221,7 @@ export default function ApplyOrderForm({
                       <p className={`mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500`}>
                         {promotion
                           ? `오픈 얼리버드 월 ${formatKrw(displayedAmount)} · 구독 유지 시 할인 가격 유지`
-                          : `정상가 월 ${formatKrw(product.regular_amount)}`}
+                          : `정상가 월 ${formatKrw(isMenuService ? getCatalogPricing(product.product_key === "business_basic_multi_monthly" ? "dining" : "basic", selectedDesignKind).regularMonthly : product.regular_amount)}`}
                       </p>
                       {monthlyFreeTrialAvailable && isBusinessFreeTrialProduct(product.product_key) ? (
                         <p className={`mt-2 break-keep text-xs font-bold leading-relaxed text-emerald-700`}>
@@ -2252,7 +2276,7 @@ export default function ApplyOrderForm({
         )}
 
         {isScreenService && displayCheckoutQaEnabled && (
-          <section className="order-3 site-checkout-section">
+                  <section className="order-3 site-checkout-section">
             <div className="mb-6">
               <h2 className="type-subsection-title">디스플레이 구독</h2>
               <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
@@ -2317,6 +2341,21 @@ export default function ApplyOrderForm({
           </section>
         )}
 
+        {isMenuService && (<section className="order-3 site-checkout-section">
+          <h2 className="type-subsection-title">디자인 선택</h2>
+          <div className="my-5 flex flex-wrap gap-2">{(["standard", "designer"] as const).map(kind => <button type="button" key={kind} className="site-button site-button-outline" aria-pressed={selectedDesignKind === kind} onClick={() => {
+            const design = catalogDesigns.find(d => d.service === (activeDiningTier === "multi" ? "dining" : "basic") && d.kind === kind);
+            if (!design) return; setSelectedMenuDesignId(design.id); setAppliedPromotion(undefined);
+            setForm(current => ({...current, template_key: design.templateKey as TemplateKey, template_category: getTemplateCategoryFromKey(design.templateKey) ?? current.template_category}));
+          }}>{kind === "standard" ? "기본 디자인" : "디자인 템플릿 포함 (+1,900원/월)"}</button>)}</div>
+          <p className="site-body-support mb-5 text-zinc-600">{selectedDesignKind === "standard" ? "같은 서비스의 기본 디자인끼리 교체할 수 있습니다." : "같은 서비스의 기본 디자인과 디자인 템플릿을 자유롭게 교체할 수 있습니다."}</p>
+          <div className="site-checkout-template-grid">{catalogDesigns.filter(d => d.service === (activeDiningTier === "multi" ? "dining" : "basic") && d.kind === selectedDesignKind).map(design => <button type="button" key={design.id} className="site-choice site-checkout-template" aria-pressed={selectedMenuDesignId === design.id} onClick={() => {
+            setSelectedMenuDesignId(design.id); setAppliedPromotion(undefined);
+            setForm(current => ({...current, template_key: design.templateKey as TemplateKey, template_category: getTemplateCategoryFromKey(design.templateKey) ?? current.template_category}));
+          }}><div className="relative aspect-[4/3] w-full"><Image src={design.image} alt="" fill sizes="(max-width: 640px) 100vw, 320px" className="object-cover" /></div><div className="site-checkout-template-copy"><h3 className="type-content-title">{design.name}</h3><p className="site-checkout-template-description">{design.description}</p><p className="site-checkout-template-status">{selectedMenuDesignId === design.id ? "선택한 디자인" : "이 디자인 선택"}</p></div></button>)}</div>
+        </section>)}
+
+        {!isMenuService && (
         <section className="order-3 site-checkout-section">
           <div className="mb-6">
             <h2 className="type-subsection-title">
@@ -2457,6 +2496,8 @@ export default function ApplyOrderForm({
         </section>
 
 
+
+        )}
 
         {isOrderService && (
           <section className="order-3 site-checkout-section">
@@ -2654,18 +2695,21 @@ export default function ApplyOrderForm({
       <aside className="site-checkout-sidebar">
         <section className="site-checkout-panel">
           <h2 className="type-subsection-title">주문 요약</h2>
-          {selectedTemplate ? (
+          {isMenuService && selectedMenuDesign ? <div className="site-checkout-selected-design">
+            <div className="relative aspect-[4/3]"><Image src={selectedMenuDesign.image} alt={selectedMenuDesign.name} fill sizes="280px" className="object-cover" /></div>
+            <div><p className="text-xs text-zinc-500">선택한 디자인</p><p className="mt-1 text-sm font-semibold">{selectedMenuDesign.name}</p></div>
+          </div> : selectedTemplate ? (
             <div className="site-checkout-selected-design">
               <div><TemplateCatalogMedia template={selectedTemplate} /></div>
               <div><p className="text-xs text-zinc-500">선택한 디자인</p><p className="mt-1 text-sm font-semibold">{selectedTemplate.name}</p></div>
             </div>
           ) : null}
           <dl className="site-checkout-summary mt-6 text-sm font-medium">
-            <SummaryRow label="상품명" value={activeProduct.name} />
+            <SummaryRow label="상품명" value={isMenuService ? activeProduct.label ?? activeProduct.name : activeProduct.name} />
             {isMenuService && (
               <SummaryRow
                 label="이용 방식"
-                value={activeProduct.is_subscription ? "템플릿별 월 자동결제" : "개인 1개월 단건 결제"}
+                value={activeProduct.is_subscription ? "메뉴판별 월 자동결제" : "개인 1개월 단건 결제"}
               />
             )}
             {isScreenService && displayCheckoutQaEnabled && (
@@ -2676,7 +2720,7 @@ export default function ApplyOrderForm({
             )}
             {isScreenService && <SummaryRow label="디스플레이 용도" value={form.screenPurpose || "-"} />}
             {isScreenService && <SummaryRow label="디스플레이 카테고리" value={selectedScreenTemplateCategory.label} />}
-            {isMenuService && <SummaryRow label="템플릿 그룹" value={getMenuTemplateGroupLabel(selectedMenuTemplateGroup)} />}
+            {isMenuService && <SummaryRow label="디자인 이용권" value={selectedDesignKind === "standard" ? "기본 디자인" : "기본·디자인 템플릿"} />}
             {(isMenuService || isScreenService) && <SummaryRow label="제공 메뉴판" value="1개" />}
             <SummaryRow label={isScreenService ? "메뉴보드 이름" : "메뉴판 이름"} value={payload.menuName || "-"} />
             <SummaryRow label="공개 메뉴판 주소" value={payload.desiredSlug ? getPublicMenuUrl(payload.desiredSlug) : "-"} />
@@ -2757,7 +2801,7 @@ export default function ApplyOrderForm({
                     ? `결제수단 등록 후 30일 동안 무료로 이용하며, ${monthlyFreeTrialFirstBillingDate} 전 해지하면 결제되지 않습니다.`
                     : "사업자 인증과 결제수단 등록 후 자동결제를 진행합니다."}
                 </p>
-                <p>다른 템플릿은 별도 월 구독이며, 표시 금액은 VAT 포함입니다.</p>
+                <p>{isMenuService ? "같은 서비스에서 선택한 이용권에 포함된 디자인을 교체할 수 있습니다. 표시 금액은 VAT 포함입니다." : "디스플레이 메뉴판마다 별도 월 구독이 적용되며, 표시 금액은 VAT 포함입니다."}</p>
                 <p>별도로 구독한 메뉴판에는 기존 메뉴 데이터를 가져올 수 있습니다.</p>
                 {activePromotion ? <p>{openDiscountPolicy.note}</p> : null}
               </div>

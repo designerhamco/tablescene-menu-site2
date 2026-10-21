@@ -296,7 +296,10 @@ export type Database = {
           current_period_end: string | null
           current_period_start: string | null
           id: string
+          initial_design_id: string | null
           last_paid_at: string | null
+          menu_design_access: string | null
+          menu_plan_version: string | null
           menu_site_id: string | null
           next_billing_at: string | null
           plan_type: string
@@ -322,7 +325,10 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          initial_design_id?: string | null
           last_paid_at?: string | null
+          menu_design_access?: string | null
+          menu_plan_version?: string | null
           menu_site_id?: string | null
           next_billing_at?: string | null
           plan_type?: string
@@ -348,7 +354,10 @@ export type Database = {
           current_period_end?: string | null
           current_period_start?: string | null
           id?: string
+          initial_design_id?: string | null
           last_paid_at?: string | null
+          menu_design_access?: string | null
+          menu_plan_version?: string | null
           menu_site_id?: string | null
           next_billing_at?: string | null
           plan_type?: string

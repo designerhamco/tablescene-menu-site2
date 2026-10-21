@@ -224,6 +224,7 @@ export const menuCreationProduct = personalTrialBasicProduct;
 export type MenuCreationProduct = typeof menuCreationProduct;
 
 export type MenuOrderPayload = {
+  menuDesignId?: string;
   product_key?: PaymentProductKey;
   plan_type?: PlanType;
   payment_type?: PaymentType;

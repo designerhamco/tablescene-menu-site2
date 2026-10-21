@@ -1,3 +1,4 @@
+import { getCatalogDesign } from "@/lib/catalog-designs";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -39,7 +40,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
   if (!product) notFound();
 
-  const purchaseHref = `/apply/basic?product=${encodeURIComponent(product.productKey)}`;
+  const purchaseHref = getCatalogDesign(product.standardDesignId)!.startHref;
   const templateTier = getDiningProductTier(product.productKey) ?? "single";
 
   return (
@@ -67,6 +68,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <p className="mt-2 text-sm font-semibold text-zinc-400">
                 정상가 월 {formatProductPrice(product.regularPrice)} · {product.billingLabel}
               </p>
+              <p className="mt-3 text-sm font-semibold text-zinc-400">디자인 포함 월 {formatProductPrice(product.designPrice)} · 정상가 {formatProductPrice(product.designRegularPrice)}</p>
               <Link
                 href={purchaseHref}
                 className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-white px-5 py-4 text-sm font-bold text-zinc-950 transition hover:bg-zinc-100"
@@ -98,14 +100,14 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             <section className="site-section p-7">
               <h2 className="type-content-title">포함 기능</h2>
               <ul className="mt-6 space-y-3 text-sm font-semibold leading-relaxed text-zinc-600">
-                <li>• 다이닝 메뉴판 1개 생성 및 관리</li>
-                <li>• 출시 대상 {getDiningTierLabel(templateTier)} 템플릿 중 디자인 1개 선택</li>
+                <li>• {product.productKey === "business_basic_single_monthly" ? "베이직" : "다이닝"} 메뉴판 1개 생성 및 관리</li>
+                <li>• {getDiningTierLabel(templateTier)} 기본 디자인 선택 및 교체</li>
                 <li>• 메뉴·가격·이미지·매장 정보 편집</li>
                 <li>• 공개 URL과 QR 코드 제공</li>
                 <li>• 모바일·태블릿·PC 반응형 메뉴판</li>
               </ul>
               <p className="mt-6 rounded-2xl bg-zinc-50 p-4 break-keep text-xs font-bold leading-relaxed text-zinc-500">
-                템플릿 1개당 월 구독 1건이 적용됩니다. 다른 디자인은 별도 구독이며, 새 메뉴판에는 기존 메뉴 데이터를 가져올 수 있습니다.
+                메뉴판 1개당 월 구독 1건이 적용됩니다. 같은 서비스 안에서 선택한 이용권에 포함된 디자인을 교체할 수 있습니다.
               </p>
             </section>
           </div>

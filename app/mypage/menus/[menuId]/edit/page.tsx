@@ -1,3 +1,6 @@
+import MenuDesignSwitcher from "@/components/mypage/menu-editor/MenuDesignSwitcher";
+import { getMenuPlanEntitlement } from "@/lib/server/menu-plan-design-service";
+import { createAdminClient as createDesignAdminClient } from "@/lib/supabase/admin";
 import { createHash } from "node:crypto";
 
 import Link from "next/link";
@@ -1219,6 +1222,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   }
 
   const site = menuSite as MenuSite;
+  const menuDesignPlan = requestedActiveTab === "design" && accessContext.isOwner ? await getMenuPlanEntitlement(createDesignAdminClient(), menuId, user.id) : null;
+  const savedMenuDesignId = site.settings && typeof site.settings === "object" && !Array.isArray(site.settings) && typeof site.settings.menu_design_id === "string" ? site.settings.menu_design_id : site.template_key ?? "";
   const isAubeTable = isAubeTableTemplate(site.template_key);
   const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: site.id });
   if (!accessState?.canEdit) {
@@ -2514,13 +2519,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 title="디자인"
               >
                 <div className="space-y-5">
+                  {menuDesignPlan ? <MenuDesignSwitcher key={savedMenuDesignId} menuId={site.id} current={savedMenuDesignId} service={menuDesignPlan.service} access={menuDesignPlan.access} /> : null}
                   <form id="design-settings-form" action={updateDesignSettingsAction} className="space-y-5">
                     <HiddenMenuId menuId={site.id} />
                     <div className="site-section p-5">
                       <div>
                         <h3 className="type-content-title text-zinc-950">현재 템플릿</h3>
                         <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-                          디자인 템플릿은 각각 별도의 월 구독 상품입니다. 이 메뉴판 안에서 다른 템플릿으로 바로 변경할 수 없습니다.
+                          {menuDesignPlan ? "현재 구독 이용권에 포함된 디자인을 위에서 선택해 교체할 수 있습니다." : "이 메뉴판은 기존 템플릿별 구독 계약을 유지합니다."}
                         </p>
                       </div>
                       <div className="mt-5 space-y-4">
@@ -2528,7 +2534,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           현재 템플릿 <strong className="ml-1 font-bold text-zinc-950">{getTemplateDisplayName(site.template_key, site.template_category)}</strong>
                         </p>
                         <p className="break-keep text-sm font-semibold leading-relaxed text-zinc-500">
-                          다른 디자인을 이용하려면 새 템플릿을 별도로 구독한 뒤, 새 메뉴판에서 기존 메뉴 데이터를 가져오세요.
+                          {menuDesignPlan ? "디자인을 바꾸어도 메뉴 데이터와 공개 주소는 그대로 유지됩니다." : "새 요금제는 기본 디자인 또는 디자인 포함 이용권을 선택해 시작할 수 있습니다."}
                         </p>
                         <div className="flex flex-wrap gap-2">
                           <Link

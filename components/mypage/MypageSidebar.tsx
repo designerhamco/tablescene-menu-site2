@@ -8,7 +8,8 @@ export type MypageNavigationKey =
   | "payments"
   | "inquiries"
   | "notifications"
-  | "account";
+  | "account"
+  | "favorites";
 
 function getNavigationClassName(isActive: boolean) {
   return isActive
@@ -121,6 +122,7 @@ export function MypageNavigation({
           </NavigationCount>
         ) : null}
       </Link>
+      <Link href="/mypage?tab=favorites" className={getNavigationClassName(active === "favorites")}><span>좋아요한 템플릿</span></Link>
       <Link href="/mypage?tab=account" className={getNavigationClassName(active === "account")}>
         <span>계정 정보</span>
       </Link>
