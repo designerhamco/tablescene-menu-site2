@@ -6,6 +6,8 @@ At actual browser widths of 960px and above, catalog options start **open** as a
 
 At narrower browser widths, options still start collapsed below the top toolbar with the approved two-column mobile controls. Explicit open/closed choices persist through tab/device navigation and browser resizing. Both layouts share temporary selections, keyboard tabs and the light color picker. The reset icon is beside each swatch; HEX remains inside the picker. Display and saved-menu preview surfaces retain their prior paths.
 
+The option surface uses white at 94% opacity with a 16px backdrop blur, dark opaque text and solid white form controls. Unsupported backdrop filtering or reduced-transparency preferences use opaque white. Apply transparency to the surface background only, never the entire panel or its text. Keep the dark top toolbar and the established overlay geometry/defaults unchanged.
+
 ## Compact design controls — 2026-10-21
 
 Catalog color controls keep the label and swatch adjacent. HEX editing lives inside the collision-aware picker; no separate default/HEX textbox appears in the main panel. Its spectrum supports pointer/touch and keyboard input. Mobile design controls use two columns for backgrounds, image shapes and related choices; the third typography group spans the row with Korean/English choices side by side. Option containers at least 640px wide retain three typography columns; narrow side drawers keep two. These controls do not change menu reading geometry.
