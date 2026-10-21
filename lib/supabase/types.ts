@@ -1943,6 +1943,84 @@ export type Database = {
           },
         ]
       }
+      menu_plan_changes: {
+        Row: {
+          applied_at: string | null
+          contract_version: string
+          effective_at: string
+          id: string
+          menu_site_id: string
+          payment_id: string | null
+          period_end: string | null
+          previous_contract: Json
+          pricebook_version: string
+          requested_at: string
+          state: string
+          subscription_id: string
+          target_access: string
+          target_amount: number
+          target_design_id: string
+          target_product_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string | null
+          contract_version: string
+          effective_at: string
+          id?: string
+          menu_site_id: string
+          payment_id?: string | null
+          period_end?: string | null
+          previous_contract: Json
+          pricebook_version: string
+          requested_at?: string
+          state?: string
+          subscription_id: string
+          target_access: string
+          target_amount: number
+          target_design_id: string
+          target_product_key: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          applied_at?: string | null
+          contract_version?: string
+          effective_at?: string
+          id?: string
+          menu_site_id?: string
+          payment_id?: string | null
+          period_end?: string | null
+          previous_contract?: Json
+          pricebook_version?: string
+          requested_at?: string
+          state?: string
+          subscription_id?: string
+          target_access?: string
+          target_amount?: number
+          target_design_id?: string
+          target_product_key?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "menu_plan_changes_menu_site_id_fkey"
+            columns: ["menu_site_id"]
+            isOneToOne: false
+            referencedRelation: "menu_sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "menu_plan_changes_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "business_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       menu_promotion_items: {
         Row: {
           created_at: string
@@ -3403,6 +3481,25 @@ export type Database = {
           membership_id: string
         }[]
       }
+      apply_paid_menu_plan_change: {
+        Args: {
+          p_amount: number
+          p_brand_color: string
+          p_category: string
+          p_change: string
+          p_menu_updated_at: string
+          p_page_settings: Json
+          p_payment: Json
+          p_payment_id: string
+          p_settings: Json
+          p_template: string
+        }
+        Returns: Json
+      }
+      cancel_menu_plan_change: {
+        Args: { p_change: string; p_subscription: string; p_user: string }
+        Returns: boolean
+      }
       cancel_pending_staff_call: {
         Args: {
           p_call_id: string
@@ -3413,6 +3510,18 @@ export type Database = {
           call_id: string
           call_status: string
         }[]
+      }
+      cancel_visit_customer_order: {
+        Args: {
+          p_menu_site_id: string
+          p_order_id: string
+          p_table_visit_session_id: string
+        }
+        Returns: Json
+      }
+      claim_menu_plan_change: {
+        Args: { p_subscription: string }
+        Returns: Json
       }
       consume_ai_account_credits: {
         Args: {
@@ -3571,6 +3680,10 @@ export type Database = {
           sort_order: number
         }[]
       }
+      list_visit_customer_orders: {
+        Args: { p_menu_site_id: string; p_table_visit_session_id: string }
+        Returns: Json
+      }
       replace_menu_call_items: {
         Args: { p_items: Json; p_menu_site_id: string }
         Returns: {
@@ -3591,6 +3704,45 @@ export type Database = {
           p_price: number
         }
         Returns: string
+      }
+      reserve_menu_plan_change: {
+        Args: {
+          p_access: string
+          p_amount: number
+          p_contract_version: string
+          p_design: string
+          p_expected_billing: string
+          p_pricebook_version: string
+          p_product: string
+          p_subscription: string
+          p_user: string
+        }
+        Returns: {
+          applied_at: string | null
+          contract_version: string
+          effective_at: string
+          id: string
+          menu_site_id: string
+          payment_id: string | null
+          period_end: string | null
+          previous_contract: Json
+          pricebook_version: string
+          requested_at: string
+          state: string
+          subscription_id: string
+          target_access: string
+          target_amount: number
+          target_design_id: string
+          target_product_key: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "menu_plan_changes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       save_menu_page_content_order: {
         Args: {

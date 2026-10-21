@@ -12,11 +12,17 @@ import ui from "./MenuInteractionUI.module.css";
 
 
 
-/** Preview-only UI until the visit-scoped history/cancellation API is connected. */
-export default function CustomerOrderHistory({ orders, onCancel, onExamples }: {
+/** Shared preview/live presentation; live state and cancellation remain server-authoritative. */
+export default function CustomerOrderHistory({ orders, onCancel, onExamples, previewOnly = true, loading = false, error = "", pendingId = null, hasMore = false, onRefresh }: {
   orders: CustomerOrderSnapshot[];
   onCancel: (id: string) => void;
-  onExamples: () => void;
+  onExamples?: () => void;
+  previewOnly?: boolean;
+  loading?: boolean;
+  error?: string;
+  pendingId?: string | null;
+  hasMore?: boolean;
+  onRefresh?: () => void;
 }) {
   const t = useMenuText();
   const locale = useMenuLocale();
@@ -24,11 +30,16 @@ export default function CustomerOrderHistory({ orders, onCancel, onExamples }: {
   const date = (value: string) => new Intl.DateTimeFormat(locale === "ko" ? "ko-KR" : locale, { timeZone: "Asia/Seoul", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
   const [confirmId, setConfirmId] = useState<string | null>(null);
   return <section aria-label={t("주문내역")} className={styles.history}>
-    <p className={styles.historyHint}>{t("미리보기 주문내역입니다. 실제 매장에는 전송되지 않습니다.")}</p>
-    {orders.length === 0 ? <div className={styles.empty}>
+    <div className="flex items-start justify-between gap-3">
+      <p className={styles.historyHint}>{t(previewOnly ? "미리보기 주문내역입니다. 실제 매장에는 전송되지 않습니다." : "현재 방문에서 주문한 내역입니다. 진행 상태가 자동으로 갱신됩니다.")}</p>
+      {!previewOnly ? <button type="button" className={`${ui.secondary} shrink-0 px-3 py-2 text-xs`} disabled={loading || Boolean(pendingId)} onClick={onRefresh}>{t("새로고침")}</button> : null}
+    </div>
+    {error ? <p className={`${styles.historyHint} mt-3`} role="alert">{t(error)}</p> : null}
+    {hasMore ? <p className={styles.historyHint}>{t("현재 방문의 최근 주문 100건을 표시합니다. 이전 내역은 직원에게 문의해 주세요.")}</p> : null}
+    {orders.length === 0 && loading ? <p className="py-6 text-sm" role="status">{t("주문내역을 불러오는 중…")}</p> : orders.length === 0 && error ? null : orders.length === 0 ? <div className={styles.empty}>
       <h3>{t("아직 주문 내역이 없어요")}</h3>
       <p>{t("주문하면 이곳에서 진행 상태와 결제 상태를 확인할 수 있어요.")}</p>
-      <button type="button" className={`${ui.secondary} mt-6 px-5 py-3 text-sm`} onClick={onExamples}>{t("예시 주문 보기")}</button>
+      {previewOnly ? <button type="button" className={`${ui.secondary} mt-6 px-5 py-3 text-sm`} onClick={onExamples}>{t("예시 주문 보기")}</button> : null}
     </div> : orders.map(order => {
       const cancellable = canCustomerCancelOrder(order.status, order.paymentStatus);
       const step = CUSTOMER_ORDER_STEPS.findIndex(status => status === order.status);
@@ -55,11 +66,11 @@ export default function CustomerOrderHistory({ orders, onCancel, onExamples }: {
         {order.status === "cancelled" ? <p className={styles.historyHint}>{t("주문이 취소되었습니다.")}</p>
           : cancellable ? confirmId === order.id ? <div className={styles.cancelConfirm}>
             <p role="status">{t("이 주문 전체를 취소할까요?")}</p>
-            <button className={`${ui.secondary} px-4 py-2 text-sm`} onClick={() => setConfirmId(null)}>{t("돌아가기")}</button>
-            <button className={`${ui.primary} px-4 py-2 text-sm`} onClick={() => { onCancel(order.id); setConfirmId(null); }}>{t("취소할게요")}</button>
+            <button type="button" disabled={Boolean(pendingId) || Boolean(error)} className={`${ui.secondary} px-4 py-2 text-sm`} onClick={() => setConfirmId(null)}>{t("돌아가기")}</button>
+            <button type="button" disabled={Boolean(pendingId) || Boolean(error)} className={`${ui.primary} px-4 py-2 text-sm`} onClick={() => { onCancel(order.id); setConfirmId(null); }}>{t("취소할게요")}</button>
           </div> : <div className={styles.cancelRow}>
             <p>{t("조리 준비 전에는 주문을 취소할 수 있어요.")}</p>
-            <button type="button" className={`${ui.secondary} px-4 py-2 text-sm`} onClick={() => setConfirmId(order.id)}>{t("주문 취소")}</button>
+            <button type="button" disabled={Boolean(pendingId) || Boolean(error)} className={`${ui.secondary} px-4 py-2 text-sm`} onClick={() => setConfirmId(order.id)}>{t("주문 취소")}</button>
           </div> : <p className={styles.historyHint}>{order.paymentStatus !== "unpaid" ? t("결제된 주문의 취소는 직원에게 문의해 주세요.") : t("조리 준비가 시작된 주문의 변경·취소는 직원에게 문의해 주세요.")}</p>}
       </article>;
     })}

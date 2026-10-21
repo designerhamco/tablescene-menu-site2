@@ -1,6 +1,15 @@
 import type { SupportedLocale } from "./locales";
 
 export const MENU_UI_COPY: Record<string, readonly [string, string, string]> = {
+  "새로고침": ["Refresh", "更新", "刷新"],
+  "결제 취소": ["Payment cancelled", "支払い取消", "支付已取消"],
+  "이미 접수되었거나 결제된 주문은 취소할 수 없습니다. 직원에게 문의해 주세요.": ["This order has been accepted or paid. Please ask staff.", "受付済みまたは支払い済みの注文は取り消せません。スタッフにご相談ください。", "订单已接单或已支付，无法取消，请联系员工。"],
+  "주문을 취소하지 못했습니다.": ["Unable to cancel the order.", "注文を取り消せませんでした。", "无法取消订单。"],
+  "테이블 방문 세션이 만료되었습니다.": ["Your table session has expired. Scan the table QR again.", "テーブルの利用セッションが終了しました。QRを再度読み取ってください。", "餐桌会话已过期，请重新扫描餐桌二维码。"],
+  "주문내역을 불러오지 못했습니다.": ["Unable to load orders.", "注文履歴を読み込めませんでした。", "无法加载订单记录。"],
+  "주문내역을 불러오는 중…": ["Loading orders…", "注文履歴を読み込み中…", "正在加载订单…"],
+  "현재 방문의 최근 주문 100건을 표시합니다. 이전 내역은 직원에게 문의해 주세요.": ["Showing the latest 100 orders from this visit. Ask staff about earlier orders.", "今回のご来店の最新100件を表示しています。以前の注文はスタッフにお尋ねください。", "显示本次到店最近100笔订单，更早记录请咨询员工。"],
+  "현재 방문에서 주문한 내역입니다. 진행 상태가 자동으로 갱신됩니다.": ["Orders from your current visit. Status updates automatically.", "今回のご来店の注文です。進行状況は自動更新されます。", "这是本次到店的订单，状态会自动更新。"],
   "이전 광고": ["Previous announcement", "前のお知らせ", "上一条广告"],
   "다음 광고": ["Next announcement", "次のお知らせ", "下一条广告"],
   "정성껏 준비한 메뉴를 만나보세요.": ["Discover our carefully prepared selection.", "丁寧に仕上げたメニューをお楽しみください。", "品尝我们精心准备的菜单。"],
