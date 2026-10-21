@@ -13,3 +13,18 @@
 .scope[data-menu-appearance-basic="true"] :global(.cafe-a-topline-description), .scope[data-menu-appearance-basic="true"] :global(.cafe-a-topline-description *) { font-family: var(--menu-font-ko), system-ui, sans-serif !important; }
 
 .scope[data-menu-appearance-basic="true"] :global(.cafe-a-store-description), .scope[data-menu-appearance-basic="true"] :global(.cafe-a-store-description *) { font-family: var(--menu-font-ko), system-ui, sans-serif !important; }
+.scope :global(.aube-table-cover-description), .scope :global(.aube-table-cover-description *) { font-family: var(--menu-font-ko), system-ui, sans-serif !important; }
+
+/* Optional saved surfaces. Missing values leave the native skin untouched. */
+.scope[data-design-page-background] :global(.cafe-a-typography) { background-color: var(--menu-design-page-bg) !important; --native-background: var(--menu-design-page-bg) !important; --scroll-background: var(--menu-design-page-bg) !important; --mocha-forest-ivory: var(--menu-design-page-bg) !important; --mocha-forest-green: var(--menu-design-page-bg) !important; }
+.scope[data-design-page-background] :global(.aube-table-root) { --aube-surface: var(--menu-design-page-bg) !important; }
+.scope[data-design-page-background] :global([data-native-shell="brand_panel_flow"] [data-native-column]) { background-color: var(--menu-design-page-bg); }
+.scope[data-design-aux-background] :global(.cafe-a-typography) { --mocha-forest-brown: var(--menu-design-aux-bg) !important; --round-focus-panel-bg: var(--menu-design-aux-bg) !important; }
+.scope[data-design-aux-background] :global([data-paged-brand]), .scope[data-design-aux-background] :global([data-basic-top-row]), .scope[data-design-aux-background] :global([data-native-brand]), .scope[data-design-aux-background] :global(.cafe-a-topline-info-header) { background: var(--menu-design-aux-bg) !important; box-sizing: border-box; }
+.scope[data-design-aux-background] :global([data-native-brand] .cafe-a-fixed-rail) { background: transparent !important; }
+.scope[data-design-aux-background] :global(.cafe-a-mobile-upper-box), .scope[data-design-aux-background] :global(.cafe-a-round-focus-mobile-brand-section), .scope[data-design-aux-background] :global(.cafe-a-mobile-header-copy), .scope[data-design-aux-background] :global(.cafe-a-panel-mobile-intro) { background: var(--menu-design-aux-bg) !important; }
+.scope[data-design-colored-panel] :global([data-basic-structure]:not([data-basic-structure="basic-top-row"]) [data-paged-brand]) { padding: var(--scroll-page-inset); }
+.scope[data-design-colored-panel] :global(.cafe-a-typography:not([data-cafe-a-skin="mocha_forest"]) [data-native-shell="brand_left_rail"] > [data-native-brand]), .scope[data-design-colored-panel] :global([data-native-shell="brand_center_column"] > [data-native-brand]) { padding: var(--native-gap); }
+.scope[data-design-sidebar-background] :global(.aube-table-root) { --aube-sidebar: var(--menu-design-sidebar-bg) !important; --aube-sidebar-hover: var(--menu-design-sidebar-bg) !important; --aube-sidebar-text: var(--menu-design-sidebar-ink) !important; }
+.scope[data-design-brand-ink] :global(.cafe-a-typography[data-template-key] .cafe-a-store-title), .scope[data-design-brand-ink] :global(.aube-table-root .aube-table-cover h1) { color: var(--menu-design-brand-ink) !important; }
+.scope[data-design-category-ink] :global(.cafe-a-typography[data-template-key] .cafe-a-category-title), .scope[data-design-category-ink] :global(.aube-table-root .aube-table-course-title h2) { color: var(--menu-design-category-ink) !important; }

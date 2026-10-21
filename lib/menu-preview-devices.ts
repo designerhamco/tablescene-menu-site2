@@ -130,6 +130,8 @@ export function buildMenuPreviewUrl(
 
 const TEMPLATE_PREVIEW_QUERY_KEYS = [
   "design",
+  "designPreview",
+  "previewOptions",
   "albumImageRatio",
   "appearanceQa",
   "logoPreview",
@@ -186,6 +188,7 @@ export function buildTemplatePreviewUrl(
   const searchParams = new URLSearchParams();
 
   for (const key of TEMPLATE_PREVIEW_QUERY_KEYS) {
+    if (key === "previewOptions" && options.actual) continue;
     const rawValue = query[key];
     const value = Array.isArray(rawValue) ? rawValue[0] : rawValue;
     if (value) searchParams.set(key, value);

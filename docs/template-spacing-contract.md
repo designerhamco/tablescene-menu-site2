@@ -1,5 +1,13 @@
 # Menu template spacing contract
 
+## Catalog functional/design options — 2026-10-21
+
+Catalog preview controls have separate Functional and Design tabs. Existing feature checkboxes and defaults remain unchanged. Design values are temporary, validated `designPreview` URL data; they never write to a customer menu. Device/orientation/layout/feature/detached navigation retains them, while changing tabs alone must not reload the menu iframe. Reset clears only the temporary design values. Display and saved-menu preview behavior stay separate.
+
+Typography keeps three groups: brand, category and other text. Other text applies to item names, supporting text and prices; store introductions and notices use the selected Korean face for both scripts. Selecting another group's fonts must not change the other groups. Category option labels share the category color and Korean/English font variables, retaining their smaller size and existing price geometry. Native palettes remain the default; explicit brand/category choices take precedence over legacy skin colors, and Loop Bagel respects role-specific font choices.
+
+Design backgrounds use the same saved `design.backgroundColor`, `auxiliaryBackgroundColor` and `sidebarBackgroundColor` fields read by the shared renderer; Dining cover color uses the existing separate cover setting. A distinct Basic auxiliary color adds internal panel padding inside the occupied representative slot, with the ordinary outer gutter measured from its colored edge. Neutral first/center panels release that padding when the auxiliary color is cleared or matches the page. Preserve existing native panel geometry, mobile reading gaps, image ratios and Dining page/sidebar navigation. Image/chip/album controls reuse `design.appearance` and its existing bounds/default behavior.
+
 ## Mobile option reading and shared preview parity — 2026-10-21
 
 Latest user revision: Basic mobile lists retain the original name-side price rails and category option headings. Only a product with a visible image and exactly three visible category price options uses a full-row, three-cell price strip below photo/copy, with one add control at the right. Each cell shows its option label above its price; shared grid rows keep prices aligned even when a label wraps. This replaces the tall vertical option list without shrinking type. All other rows keep their previous mobile layout; no width-based or category-wide switch remains. Hide a category's mobile option heading only when every applicable row uses that explicit stacked exception. Fonts/internal-copy/item/section tokens and PC/tablet/Dining pricing stay unchanged. Basic albums still exclude category price columns.
