@@ -1,8 +1,17 @@
 # 현재 방문의 주문내역·고객 취소 연결
 
-## 준비 상태
+## 적용 상태
 
-로컬 구현·검수 단계다. 새 SQL은 아직 운영에 적용하지 않았고 운영 대상 목록이나 결제 실행 설정도 변경하지 않았다. 기존 호출 SQL 승인과 별도로 `20261021151631_add_visit_order_history_and_cancellation.sql` 한 건의 운영 승인을 받은 후 적용·배포한다. generated Supabase types는 수동 변경하지 않으며, SQL 적용 후 공식 생성 도구로 갱신하기 전까지 새 두 RPC에만 좁은 계약 어댑터를 사용한다.
+2026-10-22 KST 사용자 승인 “이 SQL 한 건 적용 후 배포”에 따라 `20261021151631_add_visit_order_history_and_cancellation.sql` 원문 한 건을 `tablescene-prod`에 1회 적용했다. 기존 migration은 재실행하지 않았다. 공식 `npm run supabase:types`로 운영 스키마 타입을 생성하고 두 RPC의 임시 계약 어댑터를 제거했다. 타입 생성에는 앞서 승인·적용한 구독 전환 원장/RPC도 함께 반영된다. 운영 대상 목록·실제 결제 실행 설정은 변경하지 않았다. 코드 병합·Production 배포 검수는 이어서 진행한다.
+
+### 운영 적용 근거
+
+- 적용 전 두 함수 모두 부재, 원문 6,938문자와 SQL Editor 입력 전체 일치를 확인했다.
+- 적용 1회 성공: SQL Editor `44cc63f1-3bc7-4649-8f02-3418196fd696`의 `Success. No rows returned`.
+- 사후 조회 `a9a546a2-a7d3-44a9-b819-06f37ff552e0`: 두 함수 security invoker·빈 search_path, anon/authenticated 실행 불가·service_role 실행 가능, 방문 제한·만료 재검사·received/unpaid 조건, 주문/항목/옵션/테이블/방문 RLS 활성 상태 확인.
+- 전후 SHA-256 전체 행 지문과 건수 동일: 고객 주문 4, 주문 항목 4, 주문 옵션 2, 테이블 4, 방문 22, 호출 항목 4, 호출 이력 3, 구독 24, 구독 결제 주문 45, 결제 40, 구독 전환 예약 0.
+- Security Advisor 재실행 결과 오류 0, 기존 경고 23 유지. 이번 두 함수에 새 경고 없음.
+- 공식 타입 연결 후 타입·린트·임시 DB/실제 서버/API 79건 재통과. 기존 테스트 결과와 운영 쓰기 없이 비교했다.
 
 ## 고객 화면
 
