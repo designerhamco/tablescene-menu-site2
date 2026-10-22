@@ -17,7 +17,7 @@ for (const id of ["dining-sidebar", "dining-sidebar-album"] as const) {
       const data = buildDefaultDesignPreview(source, design);
       assert.ok(data.items.every(item=>item.set_name),"all neutral sidebar items have English secondary names");
       const copy = JSON.stringify({pages:data.pages.map(p=>({title:p.title,description:p.description})),categories:data.categories.map(c=>({name:c.name,description:c.description}))});
-      assert.doesNotMatch(copy,/메종 마레|오브 테이블|Maison Marais|Aube Table|Marais evening|马雷晚宴|マレ・イブニング/i);
+      assert.doesNotMatch(copy,/메종 마레|오브 테이블|Maison Marais|\bAube\b|Marais evening|马雷晚宴|マレ・イブニング/i);
       if (locale === "en") {
         assert.doesNotMatch(copy,/[가-힣]/,"translation must follow the approved shared menu sample");
         assert.equal(data.items[0].name,"Amuse-bouche");

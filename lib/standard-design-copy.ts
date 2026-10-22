@@ -42,6 +42,8 @@ export function getStandardDesignCopy(design: DefaultDesignReview) {
 export function neutralizeDiningSampleText(text: string) {
   return text.replace(/오브 테이블|메종 마레/g, "아티메뉴 다이닝")
     .replace(/AUBE TABLE|MAISON MARAIS/gi, "ArtiMenu Dining")
+    .replace(/Aube signature/gi, "Signature")
+    .replace(/AUBE 招牌套餐/gi, "招牌套餐").replace(/AUBE シグネチャー/gi, "シグネチャー")
     .replace(/Marais evening/gi, "Seasonal evening")
     .replace(/马雷晚宴/g, "季节晚宴").replace(/マレ・イブニング/g, "季節のディナー");
 }

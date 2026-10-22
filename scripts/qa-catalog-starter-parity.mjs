@@ -28,7 +28,7 @@ for(const design of service.catalogDesigns.filter(d=>d.kind==='standard'&&d.serv
  const query=Object.fromEntries(new URL(design.previewHref,'https://menu.test').searchParams);
  const preview=findData(await service.preview({params:Promise.resolve({templateKey:design.templateKey}),searchParams:Promise.resolve({...query,view:'actual',device:'pc',lang:locale})}));
  const text=JSON.stringify({pages:preview.pages.map(p=>({title:p.title,description:p.description})),categories:preview.categories.map(c=>({name:c.name,description:c.description}))});
- assert.doesNotMatch(text,/오브 테이블|메종 마레|Maison Marais|Aube Table|Marais evening/i,design.id+'/'+locale+' neutral identity');checks++;
+ assert.doesNotMatch(text,/오브 테이블|메종 마레|Maison Marais|\bAube\b|Marais evening/i,design.id+'/'+locale+' neutral identity');checks++;
  assert.equal(preview.categories[0].course_price,185000,design.id+' approved shared course');checks++;
  if(locale==='en'){assert.doesNotMatch(text,/[가-힣]/,design.id+' shared sample English dictionary');checks++;}
  languageCases++;
