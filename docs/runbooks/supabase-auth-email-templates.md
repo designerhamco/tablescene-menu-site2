@@ -117,3 +117,10 @@ Production 고객 데이터와 분리된 전용 QA 이메일 계정을 사용한
 - [Supabase Auth Email Templates](https://supabase.com/docs/guides/auth/auth-email-templates) — 지원 템플릿, `{{ .TokenHash }}` 기반 SSR 링크, Dashboard 편집 위치, 링크 추적·선열람 주의사항
 - [Supabase PKCE flow](https://supabase.com/docs/guides/auth/sessions/pkce-flow) — PKCE verifier의 브라우저 로컬 저장과 동일 브라우저 교환 제약
 - [Supabase verifyOtp](https://supabase.com/docs/reference/javascript/auth-verifyotp) — 서버에서 recovery TokenHash를 검증하는 공식 API
+
+
+## 2026-10-22 좁은 화면 보완 확인
+
+저장소 가입/재설정 HTML에 긴 가짜 인증 링크를 넣고, 기존 2026-09-01 가입 메일 HTML은 실제 인증 URL을 모두 대체 링크로 제거해 확인했다. 외부 요청을 차단한 로컬 HTML 브라우저에서 3종×320/390/430px, 실제 높이 844px의 9조합 모두 가로 넘침 0·제목/버튼 표시를 확인했다. 새 메일 전송·인증 링크 클릭·계정/비밀번호 변경은 없으며 임시 검수 서버와 기기 크기 변경은 정리했다.
+
+이는 모바일 너비 브라우저의 HTML 확인이며 실제 휴대폰 메일 앱 검수로 기록하지 않는다. 실제 기기 메일 앱이 연결돼 있지 않아 가입/재설정 두 메일의 앱별 시각 확인은 위 잔여 항목으로 유지한다. 비공개 증빙은 `/private/tmp/qa-email-mobile-browser-preflight.json`, `qa-email-received-430.jpg`이며 인증 URL/토큰은 저장소에 포함하지 않는다.
