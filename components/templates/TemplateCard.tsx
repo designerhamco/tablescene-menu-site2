@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
 
+import type { CatalogDesign } from "@/lib/catalog-designs";
 import type { TemplateCatalogItem } from "@/lib/templates";
 import { getTemplateTypeLabelByTemplateKey } from "@/lib/template-types";
 
@@ -23,7 +25,8 @@ function getThumbnailClassName(tone: TemplateCatalogItem["thumbnailTone"]) {
   return toneClasses[tone];
 }
 
-export function TemplateThumbnail({ template }: { template: TemplateCatalogItem }) {
+export function TemplateThumbnail({ template, design }: { template: TemplateCatalogItem; design?: CatalogDesign | null }) {
+  if (design?.kind === "standard") return <div data-template-artwork className="site-template-artwork"><Image src={design.image} alt={`기본 디자인 / ${design.name}`} width={1200} height={900} className="aspect-[4/3] w-full object-cover" /></div>;
   return <div data-template-artwork className="site-template-artwork"><TemplateArtwork template={template} /></div>;
 }
 

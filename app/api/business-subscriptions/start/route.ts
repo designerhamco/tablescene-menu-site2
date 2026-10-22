@@ -1299,7 +1299,8 @@ async function createBusinessMenuSite({
       order.template_key,
       order.restaurantCategory,
       order.template_category,
-      product.productKey
+      product.productKey,
+      { designId: order.menuDesignId }
     );
   } catch (error) {
     throw new BusinessSubscriptionRouteError(
@@ -2577,6 +2578,7 @@ export async function POST(request: Request) {
         restaurantCategory: (order as NormalizedBusinessOrder).restaurantCategory,
         templateCategory: (order as NormalizedBusinessOrder).template_category,
         productKey: product.productKey,
+        designId: (order as NormalizedBusinessOrder).menuDesignId,
       });
     }
 

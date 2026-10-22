@@ -7,7 +7,7 @@ import BusinessPlanConvertPanel from "@/components/mypage/BusinessPlanConvertPan
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { getPublicPortOneConfig } from "@/lib/portone";
 import { createClient } from "@/lib/supabase/server";
-import { getTemplateDisplayName } from "@/lib/templates";
+import { getMenuDesignDisplayName } from "@/lib/menu-design-identity";
 import type { Json } from "@/lib/supabase/types";
 
 type PageProps = {
@@ -213,7 +213,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
             </div>
             <dl className="mt-6 grid gap-4 md:grid-cols-4">
               <InfoItem label="현재 상태" value={getStatusLabel(typedMenuSite.status)} />
-              <InfoItem label="템플릿" value={typedMenuSite.template_key ? getTemplateDisplayName(typedMenuSite.template_key) : "-"} />
+              <InfoItem label="템플릿" value={typedMenuSite.template_key ? getMenuDesignDisplayName(typedMenuSite.template_key, null, typedMenuSite.settings) : "-"} />
               <InfoItem label="체험 만료일" value={formatDate(trialInfo.accessExpiresAt)} />
               <InfoItem label="보관 만료일" value={formatDate(trialInfo.dataRetentionUntil)} />
             </dl>

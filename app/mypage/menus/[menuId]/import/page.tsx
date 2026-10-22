@@ -16,7 +16,7 @@ import {
   MENU_CATALOG_MENU_SPECIFIC_FIELDS,
 } from "@/lib/menu-catalog";
 import { createClient } from "@/lib/supabase/server";
-import { getTemplateDisplayName } from "@/lib/templates";
+import { getMenuDesignDisplayName } from "@/lib/menu-design-identity";
 
 import { disconnectMenuSiteContentAction, importMenuSiteContentAction } from "./actions";
 
@@ -71,13 +71,13 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
   const [{ data: targetMenuSite }, { data: ownedMenuSites }] = await Promise.all([
     supabase
       .from("menu_sites")
-      .select("id, user_id, name, template_key, status")
+      .select("id, user_id, name, template_key, status, settings")
       .eq("id", menuId)
       .eq("user_id", user.id)
       .maybeSingle(),
     supabase
       .from("menu_sites")
-      .select("id, name, template_key, status, updated_at")
+      .select("id, name, template_key, status, updated_at, settings")
       .eq("user_id", user.id)
       .order("updated_at", { ascending: false }),
   ]);
@@ -142,7 +142,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
                 <p className="text-xs font-bold text-zinc-400">가져올 대상</p>
                 <h2 className="type-subsection-title mt-2">{targetMenuSite.name}</h2>
                 <p className="mt-2 text-sm font-semibold text-zinc-500">
-                  {getTemplateDisplayName(targetMenuSite.template_key)} · {getStatusLabel(targetMenuSite.status)}
+                  {getMenuDesignDisplayName(targetMenuSite.template_key, null, targetMenuSite.settings)} · {getStatusLabel(targetMenuSite.status)}
                 </p>
               </div>
               <span className={`w-fit rounded-full px-3 py-1 text-xs font-bold ${canImport ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
@@ -220,7 +220,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
                         <span>
                           <span className="block text-base font-bold">{menuSite.name}</span>
                           <span className="mt-1 block text-xs font-semibold text-zinc-500">
-                            {getTemplateDisplayName(menuSite.template_key)} · {getStatusLabel(menuSite.status)}
+                            {getMenuDesignDisplayName(menuSite.template_key, null, menuSite.settings)} · {getStatusLabel(menuSite.status)}
                           </span>
                         </span>
                       </label>

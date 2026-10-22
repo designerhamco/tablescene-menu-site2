@@ -9,6 +9,7 @@ type EnsurePurchasedMenuStarterInput = {
   restaurantCategory?: string | null;
   templateCategory?: string | null;
   productKey?: string | null;
+  designId?: string | null;
 };
 
 export async function ensurePurchasedMenuStarter(
@@ -19,6 +20,7 @@ export async function ensurePurchasedMenuStarter(
     restaurantCategory,
     templateCategory,
     productKey,
+    designId,
   }: EnsurePurchasedMenuStarterInput
 ) {
   const result = await createStarterMenuData(
@@ -27,7 +29,8 @@ export async function ensurePurchasedMenuStarter(
     templateKey,
     restaurantCategory,
     templateCategory,
-    productKey
+    productKey,
+    { designId }
   );
 
   if (result.created) return result;

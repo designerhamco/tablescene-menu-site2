@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { getMenuItemBadgeLabel, shouldShowBadge } from "@/lib/menu-badges";
 import { getPublicMenuUrl } from "@/lib/menu-url";
-import { getTemplateDisplayName } from "@/lib/templates";
+import { getMenuDesignDisplayName } from "@/lib/menu-design-identity";
 import { formatMenuPrice, formatPortionLabel, shouldShowMenuItemTraits } from "@/types/menu";
 
 import type { PublicMenuItem, PublicMenuItemTrait, PublicMenuTemplateProps } from "./types";
@@ -20,7 +20,7 @@ function getTraitsByItem(traits: PublicMenuItemTrait[], itemId: string) {
 
 export default function DesignA({ menuSite, pages, categories, items, traits, socialLinks }: PublicMenuTemplateProps) {
   const brandColor = menuSite.brand_color || "#18181b";
-  const templateDisplayName = getTemplateDisplayName(menuSite.template_key, menuSite.template_category);
+  const templateDisplayName = getMenuDesignDisplayName(menuSite.template_key, menuSite.template_category, menuSite.settings);
   const heroImage = menuSite.cover_image_url;
   const hasMenuContent = pages.some((page) =>
     getCategoriesByPage(categories, page.id).some((category) => getItemsByCategory(items, category.id).length > 0)

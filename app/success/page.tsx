@@ -5,7 +5,7 @@ import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { createClient } from "@/lib/supabase/server";
 import { getPublicMenuUrl } from "@/lib/menu-url";
-import { getTemplateDisplayName } from "@/lib/templates";
+import { getMenuDesignDisplayName } from "@/lib/menu-design-identity";
 import type { Database } from "@/lib/supabase/types";
 
 type PageProps = {
@@ -17,7 +17,7 @@ type PageProps = {
 
 type MenuSite = Pick<
   Database["public"]["Tables"]["menu_sites"]["Row"],
-  "id" | "name" | "slug" | "template_key" | "status" | "created_at"
+  "id" | "name" | "slug" | "template_key" | "status" | "created_at" | "settings"
 >;
 
 function formatDate(date: string) {
@@ -45,7 +45,7 @@ export default async function SuccessPage({ searchParams }: PageProps) {
   if (menuSiteId || slug) {
     let query = supabase
       .from("menu_sites")
-      .select("id, name, slug, template_key, status, created_at")
+      .select("id, name, slug, template_key, status, created_at, settings")
       .eq("user_id", user.id);
 
     query = menuSiteId ? query.eq("id", menuSiteId) : query.eq("slug", slug ?? "");
@@ -86,7 +86,7 @@ export default async function SuccessPage({ searchParams }: PageProps) {
                 </div>
                 <div className="flex justify-between gap-4 border-t border-zinc-200 pt-3">
                   <dt className="text-zinc-400">템플릿</dt>
-                  <dd className="font-bold text-zinc-800">{getTemplateDisplayName(menuSite.template_key)}</dd>
+                  <dd className="font-bold text-zinc-800">{getMenuDesignDisplayName(menuSite.template_key, null, menuSite.settings)}</dd>
                 </div>
                 <div className="flex justify-between gap-4 border-t border-zinc-200 pt-3">
                   <dt className="text-zinc-400">status</dt>

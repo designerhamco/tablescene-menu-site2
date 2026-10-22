@@ -1,4 +1,6 @@
 "use server";
+
+import { getSavedMenuDesign } from "@/lib/menu-design-identity";
 import { getNeutralDesignAppearance } from "@/lib/menu-design-mutation";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import { menuSurfaceSettingsFromForm, withMenuSurfaceSettings } from "@/lib/menu-design-surfaces";
@@ -3003,7 +3005,7 @@ export async function resetMenuCoverToPresetAction(formData: FormData) {
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  const preset = getStarterPreset(menuSite.template_key, menuSite.restaurant_category, menuSite.template_category);
+  const preset = getStarterPreset(menuSite.template_key, menuSite.restaurant_category, menuSite.template_category, getSavedMenuDesign(menuSite.template_key, menuSite.settings)?.id);
   const { data: visibleItems, error: visibleItemsError } = await supabase
     .from("menu_items")
     .select("id, name, image_url, recommended, sort_order, visible")
@@ -3076,7 +3078,7 @@ export async function restoreEmptyMenuManagementFromStarterPresetAction(formData
   if (!menuId) redirect("/mypage?error=missing-menu-id");
 
   const { supabase, menuSite } = await requireOwnedMenuSite(menuId);
-  const preset = getStarterPreset(menuSite.template_key, menuSite.restaurant_category, menuSite.template_category);
+  const preset = getStarterPreset(menuSite.template_key, menuSite.restaurant_category, menuSite.template_category, getSavedMenuDesign(menuSite.template_key, menuSite.settings)?.id);
   const presetCategoryCount = preset.pages.reduce((count, page) => count + page.categories.length, 0);
   const presetItemCount = preset.pages.reduce(
     (count, page) => count + page.categories.reduce((categoryCount, category) => categoryCount + category.items.length, 0),
@@ -3112,6 +3114,7 @@ export async function restoreEmptyMenuManagementFromStarterPresetAction(formData
       null,
       {
         force: false,
+        designId: getSavedMenuDesign(menuSite.template_key, menuSite.settings)?.id,
         applySiteDefaults: false,
         includeAuxiliaryContent: false,
       }
