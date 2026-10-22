@@ -396,3 +396,8 @@ export function applyStarterPreviewLocalization(data: MenuPageData, locale: Supp
 
   return localizedBase;
 }
+
+/** The same registered Dining wording supplies neutral starters' English secondary names. */
+export function translateDiningStarterText(templateKey: string, text: string, locale: "en" | "zh" | "ja") {
+  return translateText(text, templateKey === "dining_aube_table_b" ? MARAIS_COPY[locale] : AUBE_TABLE_COPY[locale]);
+}

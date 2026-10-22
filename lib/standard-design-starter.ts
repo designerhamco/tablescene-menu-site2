@@ -1,8 +1,9 @@
+import { translateDiningStarterText } from "./template-demo-data/starter-preview-localization";
 import type { StarterItem, StarterPreset } from "./menu-starter-presets";
 import { getDefaultDesignReview } from "./menu-design-policy";
 import { getDefaultDesignOptions } from "./default-design-options";
 import { getNeutralDesignAppearance } from "./menu-design-mutation";
-import { diningSampleNames, getStandardDesignCopy } from "./standard-design-copy";
+import { diningSampleNames, getStandardDesignCopy, neutralizeDiningSampleText } from "./standard-design-copy";
 import { translateMenuText } from "./menu-ui-copy";
 import { getSinglePageStarterTranslations } from "./template-demo-data/single-page-starter-translations";
 
@@ -30,14 +31,14 @@ export function buildStandardDesignStarter(source: StarterPreset, designId?: str
   preset.menu_cover_visible_pc = true; preset.menu_cover_visible_tablet = true; preset.menu_cover_visible_mobile = true;
   const neutralItem = (item: StarterItem, imageFree: boolean): StarterItem => ({ ...item,
     name: (!basic ? diningSampleNames[item.name]?.[0] : undefined) ?? item.name.replace(/리얼 맛차/g, "말차").replace(/REAL MATCHA/g, "MATCHA"),
-    set_name: (!basic ? diningSampleNames[item.name]?.[1] : undefined) ?? item.set_name?.replace(/REAL MATCHA/g, "MATCHA"),
+    set_name: (!basic ? diningSampleNames[item.name]?.[1] : undefined) ?? item.set_name?.replace(/REAL MATCHA/g, "MATCHA") ?? (!basic ? translateDiningStarterText(source.template_key ?? "", item.name, "en").toUpperCase() : undefined),
     image_url: imageFree ? null : "/placeholders/starter/default-menu-item.svg",
     ...(basic ? {price_options: [], price_column_values: []} : {}),
   });
   for (const page of preset.pages) {
-    page.description = page.description?.replace(/오브 테이블/g, "아티메뉴 다이닝");
+    page.description = page.description ? neutralizeDiningSampleText(page.description) : page.description;
     for (const category of page.categories) {
-      category.name = basic ? category.name.replace("MATCHA SIGNATURE", "SIGNATURE").replace("CLASSIC COFFEE", "COFFEE") : category.name.replace(/Aube signature/i, "Signature");
+      category.name = basic ? category.name.replace("MATCHA SIGNATURE", "SIGNATURE").replace("CLASSIC COFFEE", "COFFEE") : neutralizeDiningSampleText(category.name.replace(/Aube signature/i, "Signature"));
       category.description = basic ? category.name === "SIGNATURE" ? "좋은 재료로 완성한 시그니처 음료입니다." : category.name === "BAKERY" ? "커피와 함께 즐기기 좋은 디저트입니다." : "정성껏 준비한 메뉴를 만나보세요." : category.description || "정성껏 준비한 메뉴를 만나보세요.";
       category.description_visible = true;
       category.items = category.items.map(item => neutralItem(item, basic ? category.name === "BAKERY" : category.course_price != null || Boolean(category.course_price_label)));

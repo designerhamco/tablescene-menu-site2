@@ -30,6 +30,7 @@ import {
   type TimeSaleDisplayMode,
 } from "@/lib/menu-time-sales";
 import type { TimeSaleScheduleType } from "@/lib/menu-time-sale-schedule";
+import { MENU_WIDGET_SETTINGS_VERSION } from "@/lib/menu-widgets";
 import type {
   MenuWidgetAspectRatio,
   MenuWidgetObjectFit,
@@ -411,16 +412,10 @@ function isCafeAStarterTemplateKey(templateKey?: string | null) {
 }
 
 function shouldApplyLeanStoreDescription(preset: StarterPreset, serviceType: StarterServiceType) {
-  return (
-    Boolean(preset.design_id) ||
-    !shouldUseLeanStarterPreset(serviceType) ||
-    preset === cafeDesignAStarterPreset ||
-    preset === cafeMochaForestStarterPreset ||
-    preset === cafeSundayLineStarterPreset ||
-    preset === cafeRoundFocusStarterPreset ||
-    preset === cafeBrewChapterStarterPreset ||
-    preset === cafeNoirAStarterPreset
-  );
+  // Presets may be cloned to fill bilingual names or project a neutral design.
+  // Identify a registered starter by its stable key, never object identity.
+  return Boolean(preset.design_id) || !shouldUseLeanStarterPreset(serviceType)
+    || Boolean(preset.template_key && templateStarterPresets[preset.template_key]);
 }
 
 function cloneStarterPriceOptions(value: unknown): StarterPriceOption[] | undefined {
@@ -3014,12 +3009,12 @@ async function createSinglePageStarterTranslations(input: {
       menu_site_id: input.menuSiteId,
       locale,
       status: "completed",
-      restaurant_name: input.preset.design_id ? null : copy.site.restaurantName,
+      restaurant_name: null,
       restaurant_category: copy.site.restaurantCategory,
       brand_description: copy.site.brandDescription,
-      intro_title: input.preset.design_id ? null : copy.site.restaurantName,
+      intro_title: null,
       intro_description: copy.site.introDescription,
-      menu_cover_title: input.preset.design_id ? null : copy.site.restaurantName,
+      menu_cover_title: null,
       menu_cover_description: copy.site.menuCoverDescription,
       about_description: copy.site.aboutDescription,
       opening_hours: copy.site.footerNotices[0],
@@ -3592,6 +3587,27 @@ export async function createStarterMenuData(
     const pageId = pageIdByTitle.get(page.title);
     if (page.key && pageId) pageIdByStarterKey.set(page.key, pageId);
   });
+  // Catalog samples and purchased menus share the registered widget configuration.
+  // Existing menus return above; never refill or replace a customer's widgets.
+  if (getTemplateCapabilities(templateKey).menuWidgets.enabled && preset.widgets?.length) {
+    const widgetInserts: Database["public"]["Tables"]["menu_widgets"]["Insert"][] = preset.widgets.map((widget, index) => {
+      const pageId = widget.page_key ? pageIdByStarterKey.get(widget.page_key) : pages?.[0]?.id;
+      if (!pageId) throw new Error("기본 위젯을 연결할 메뉴 페이지를 찾을 수 없습니다.");
+      return {
+        menu_site_id: menuSiteId, menu_page_id: pageId, widget_type: widget.type,
+        title: widget.type === "image" ? null : widget.title ?? null,
+        description: widget.type === "image" ? null : widget.description ?? null,
+        image_url: widget.type === "text" ? null : widget.image_url ?? null,
+        image_path: widget.type === "text" ? null : widget.image_path ?? null,
+        sort_order: widget.sort_order ?? index,
+        visible: widget.visible ?? templateKey === "cafe_mocha_forest_a",
+        settings: { schemaVersion: MENU_WIDGET_SETTINGS_VERSION, ...widget.settings },
+      };
+    });
+    const { error: widgetsError } = await supabase.from("menu_widgets").insert(widgetInserts);
+    if (widgetsError) throw new Error(`기본 위젯 생성에 실패했습니다: ${widgetsError.message}`);
+  }
+
   const categoryInserts: AubeTableMenuCategoryInsert[] = preset.pages.flatMap((page) => {
     const pageId = pageIdByTitle.get(page.title);
     return page.categories.map((category, index) => ({

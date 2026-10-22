@@ -6,7 +6,7 @@ import {build} from 'esbuild';
 const {PGlite}=await import(process.env.PGLITE_TEST_MODULE||'/private/tmp/artimenu-order-db-test/node_modules/@electric-sql/pglite/dist/index.js');
 const db=new PGlite(), q=async(sql,args=[])=>(await db.query(sql,args)).rows;
 const copy=value=>JSON.parse(JSON.stringify(value));
-let checks=0;const check=(actual,expected)=>{assert.deepEqual(actual,expected);checks++;};
+let checks=0,transitions=0;const check=(actual,expected)=>{assert.deepEqual(actual,expected);checks++;};
 const rejected=async(fn,pattern)=>{await assert.rejects(fn,pattern);checks++;};
 try {
  await db.exec(`create role anon;create role authenticated;create role service_role;
@@ -40,7 +40,11 @@ try {
   return chain;
  }};
  globalThis.__designJourneyAdmin=admin;globalThis.__designJourneyUser={id:owner,app_metadata:{}};globalThis.__designJourneyInvalidations=[];
- const offers=[['business_basic_single_monthly','basic-first-column',4900,'standard'],['business_basic_single_monthly','cafe_mocha_forest_a',6800,'all'],['business_basic_multi_monthly','dining-full-page',6900,'standard'],['business_basic_multi_monthly','dining_aube_table_b',8800,'all']];
+ const offers=service.catalogDesigns.filter(design=>design.service!=='display').map(design=>{
+  const product=design.service==='basic'?'business_basic_single_monthly':'business_basic_multi_monthly';
+  const selection=service.getMenuPlanSelection(product,design.id,design.templateKey);
+  return [product,design.id,selection.earlyBirdAmount,selection.access];
+ });
  const fixtures=[];
  for(const [product,id,amount,access] of offers){
   const design=service.getCatalogDesign(id),selection=service.getMenuPlanSelection(product,id,design.templateKey);
@@ -68,11 +72,22 @@ try {
   await q('update menu_sites set page_settings=$1 where id=$2',[edited,f.menu]);
   // Replayed initialization must not replace customer edits.
   await service.initializePurchasedMenuDesign(admin,f.menu,f.id);check((await q('select page_settings from menu_sites where id=$1',[f.menu]))[0].page_settings,edited);
-  const target=f.service==='basic'?'basic-center-column':'dining-full-page-album';
+  const target=f.service==='basic'?(f.id==='basic-center-column'?'basic-first-column':'basic-center-column'):(f.id==='dining-full-page-album'?'dining-sidebar':'dining-full-page-album');
   await service.switchContractMenuDesign(admin,owner,f.menu,target);site=(await q('select * from menu_sites where id=$1',[f.menu]))[0];check(site.settings.menu_design_id,target);
   await service.switchContractMenuDesign(admin,owner,f.menu,f.id);site=(await q('select * from menu_sites where id=$1',[f.menu]))[0];check(site.page_settings,edited);
   check(site.name,'고객 매장');check(site.description,'고객 가게 설명');check(site.slug,'journey-'+f.menu);
   check(site.settings.advertisementPopup,{enabled:true,images:['/customer-ad.jpg']});check(site.settings.widgets,[{id:'customer-widget',imageUrl:'/customer-widget.jpg'}]);
+  // Every permitted catalog transition, then back: preserve merchant content and each design snapshot.
+  for(const candidate of service.catalogDesigns.filter(d=>d.service===f.service&&(f.access==='all'||d.kind==='standard')&&d.id!==f.id)){
+   transitions++;
+   await service.switchContractMenuDesign(admin,owner,f.menu,candidate.id);
+   const selected=(await q('select * from menu_sites where id=$1',[f.menu]))[0];
+   check(selected.settings.menu_design_id,candidate.id);check(selected.template_key,candidate.templateKey);
+   check(selected.name,'고객 매장');check(selected.description,'고객 가게 설명');
+   check(selected.settings.advertisementPopup,{enabled:true,images:['/customer-ad.jpg']});
+   await service.switchContractMenuDesign(admin,owner,f.menu,f.id);
+   check((await q('select page_settings from menu_sites where id=$1',[f.menu]))[0].page_settings,edited);
+  }
   await rejected(()=>service.switchContractMenuDesign(admin,stranger,f.menu,target),/이용할 수 없는/);
   await rejected(()=>service.switchContractMenuDesign(admin,owner,f.menu,f.service==='basic'?'dining-full-page':'basic-first-column'),/이용할 수 없는/);
   if(f.access==='standard')await rejected(()=>service.switchContractMenuDesign(admin,owner,f.menu,f.service==='basic'?'cafe_mocha_forest_a':'dining_aube_table_a'),/이용할 수 없는/);
@@ -97,5 +112,5 @@ try {
   await q(`update business_subscriptions set ${change} where id=$1`,[f.sub]);await rejected(()=>service.switchContractMenuDesign(admin,owner,f.menu,'basic-first-column'),/이용할 수 없는/);await q("update business_subscriptions set status='active',current_period_end=now()+interval '30 days',menu_design_access='standard' where id=$1",[f.sub]);
  }
  assert.ok(writes.every(keys=>keys.every(key=>['template_key','template_category','brand_color','settings','page_settings','updated_at'].includes(key))));checks++;
- console.log(JSON.stringify({passed:checks,actualDesignServices:true,actualDesignApi:true,approvedDatabaseGuard:true,checkoutQuotes:4,isolatedDatabase:true,productionWrites:0,realPayments:0}));
+ console.log(JSON.stringify({passed:checks,actualDesignServices:true,actualDesignApi:true,approvedDatabaseGuard:true,checkoutQuotes:offers.length,catalogTransitions:transitions,isolatedDatabase:true,productionWrites:0,realPayments:0}));
 }finally{await db.close();}

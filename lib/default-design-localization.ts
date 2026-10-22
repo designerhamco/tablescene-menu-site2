@@ -1,3 +1,4 @@
+import { neutralizeDiningSampleText } from "./standard-design-copy";
 import type { MenuPageData } from "./menu-page-data";
 import type { SupportedLocale } from "./locales";
 import { translateMenuText } from "./menu-ui-copy";
@@ -8,7 +9,7 @@ export function localizeDefaultDesignPreview(data: MenuPageData, source: MenuPag
   if (locale === "ko") return data;
   const t = (text: string) => translateMenuText(text, locale);
   const basic = data.menuSite.template_key === "cafe_design_a";
-  const translated = applyStarterPreviewLocalization(!basic ? { ...source, menuSite: { ...source.menuSite, template_key: "dining_aube_table_a" } } : source, locale);
+  const translated = applyStarterPreviewLocalization(source, locale);
   const items = new Map(translated.items.map(item => [item.id, item]));
   const categories = new Map(translated.categories.map(category => [category.id, category]));
   const pages = new Map(translated.pages.map(page => [page.id, page]));
@@ -24,9 +25,9 @@ export function localizeDefaultDesignPreview(data: MenuPageData, source: MenuPag
       settings: { ...settings, ...Object.fromEntries([1, 2, 3].map(n => [`footer_notice_${n}`, t(String(settings[`footer_notice_${n}`] ?? ""))])) },
     },
     pages: data.pages.map(page => ({ ...page, title: pages.get(page.id)?.title ?? page.title,
-      description: page.description ? pages.get(page.id)?.description ?? page.description : null })),
+      description: page.description ? neutralizeDiningSampleText(pages.get(page.id)?.description ?? page.description) : null })),
     categories: data.categories.map(category => ({ ...category,
-      name: categories.get(category.id)?.name ?? category.name,
+      name: neutralizeDiningSampleText(categories.get(category.id)?.name ?? category.name),
       description: category.description ? basic ? t(category.description) : categories.get(category.id)?.description ?? category.description : null,
       course_price_description: category.course_price_description ? categories.get(category.id)?.course_price_description ?? category.course_price_description : null,
       priceColumns: category.priceColumns.map(column => ({ ...column, label: t(column.label) })),
