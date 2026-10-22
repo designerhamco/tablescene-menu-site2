@@ -37,3 +37,11 @@ export function getStandardDesignCopy(design: DefaultDesignReview) {
     notices: ["영업시간 10:00–21:00", "알레르기가 있다면 주문 전 알려주세요.", "모든 가격은 부가세 포함입니다."],
   };
 }
+
+/** Neutral sample copy must not retain the identity of its shared Dining renderer. */
+export function neutralizeDiningSampleText(text: string) {
+  return text.replace(/오브 테이블|메종 마레/g, "아티메뉴 다이닝")
+    .replace(/AUBE TABLE|MAISON MARAIS/gi, "ArtiMenu Dining")
+    .replace(/Marais evening/gi, "Seasonal evening")
+    .replace(/马雷晚宴/g, "季节晚宴").replace(/マレ・イブニング/g, "季節のディナー");
+}
