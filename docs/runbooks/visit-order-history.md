@@ -58,3 +58,8 @@
 - 로컬 증빙: `/private/tmp/visit-history-production-before.json`, `visit-history-production-after.json`, `visit-history-production-smoke.json`, `visit-history-production-ready.jpg`, `/private/tmp/visit-history-preview-live/report.json`.
 - 검수 계정에는 현재 주문 운영 대상의 활성 사업자 메뉴가 없어 실제 고객 주문/취소 E2E는 실행하지 않았다. 서비스/API 통합은 임시 DB 79건, 실제 컴포넌트 화면은 모의 API 15건으로 구분해 기록한다. 실제 운영 대상 확대와 실결제 검수는 승인 범위가 다른 다음 단계다.
 - 사용자 3000 서버는 계속 실행 중이며 종료·초기화하지 않았다. 다음은 전체 고객 동선 검수와 운영 연결 가능 상태의 읽기 전용 감사다.
+
+
+## 후속 실제 운영 검수 — 2026-10-22
+
+이 문서의 초기 배포 단계에서 보류했던 실제 이력 검수는 이후 사용자 별도 승인으로 기존 QA 두 메뉴판에서 완료했다. 방문 2개·주문 4건(모두 미결제 취소)·호출 2건(모두 완료), 기존 데이터 보존 및 한시적 검수 권한 회수를 확인했다. 고객 호출 상태 갱신 수정도 PR #303으로 운영 반영했다. 정확한 범위/결과/증빙과 실결제 제외 항목은 `docs/runbooks/customer-journey-qa.md`의 실제 운영 QA 완료 기록을 따른다.
