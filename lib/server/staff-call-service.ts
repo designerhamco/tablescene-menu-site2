@@ -154,3 +154,21 @@ export async function cancelPendingStaffCall({
   }
   return { callId: row.call_id, status: row.call_status };
 }
+
+/** Read one call only within the already verified table visit. Never expose staff identities. */
+export async function readCustomerStaffCall({
+  menuSiteId, callId: callIdValue, tableSession,
+}: {menuSiteId: string; callId: unknown; tableSession: ResolvedTableVisitSession}) {
+  assertRuntimeAndSession(menuSiteId, tableSession);
+  await assertPublicBusinessAccess(menuSiteId);
+  const callId = normalizeCallId(callIdValue);
+  const {data, error} = await createAdminClient().from("menu_customer_calls")
+    .select("id,status")
+    .eq("id", callId)
+    .eq("menu_site_id", menuSiteId)
+    .eq("menu_table_id", tableSession.menuTableId)
+    .eq("table_visit_session_id", tableSession.id)
+    .maybeSingle();
+  if (error) throw new StaffCallSubmissionError("호출 상태를 불러오지 못했습니다.");
+  return data ? {callId: data.id, status: data.status} : null;
+}
