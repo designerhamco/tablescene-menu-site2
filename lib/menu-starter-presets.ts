@@ -1,3 +1,5 @@
+import { getDefaultDesignReview } from "./menu-design-policy";
+import { getStandardDesignSampleTemplateKey } from "./standard-design-copy";
 import { buildStandardDesignStarter, getStarterTranslationCopy } from "./standard-design-starter";
 import type { createClient } from "@/lib/supabase/server";
 import { BASIC_DEFAULT_LAYOUT_MODE, getDefaultPcTabletLayoutMode } from "@/lib/menu-layout-modes";
@@ -2911,7 +2913,10 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
 };
 
 export function getStarterPreset(templateKey?: string | null, restaurantCategory?: string | null, templateCategory?: string | null, designId?: string | null): StarterPreset {
-  return buildStandardDesignStarter(getRendererStarterPreset(templateKey, restaurantCategory, templateCategory), designId);
+  const native = getRendererStarterPreset(templateKey, restaurantCategory, templateCategory);
+  const design = getDefaultDesignReview(designId ?? undefined, native.template_key ?? "");
+  const sample = design ? getRendererStarterPreset(getStandardDesignSampleTemplateKey(design)) : native;
+  return buildStandardDesignStarter(sample, designId, native.template_key);
 }
 
 function getRendererStarterPreset(templateKey?: string | null, restaurantCategory?: string | null, templateCategory?: string | null): StarterPreset {

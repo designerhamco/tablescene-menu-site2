@@ -1,3 +1,4 @@
+import { getStandardDesignSampleTemplateKey } from "@/lib/standard-design-copy";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
@@ -1530,7 +1531,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
               applyBrewChapterCoverImageQaFixture(
                 applyCafeDenseContentQaFixture(
                   applyCafeAFooterStressData(
-                    buildPreviewData(defaultDesign?.layout === "dining-sidebar" ? "dining_aube_table_a" : templateKey, displayPreviewQaCase),
+                    buildPreviewData(defaultDesign ? getStandardDesignSampleTemplateKey(defaultDesign) : templateKey, displayPreviewQaCase),
                     resolvedSearchParams.footerStress
                   ),
                   resolvedSearchParams.contentQa

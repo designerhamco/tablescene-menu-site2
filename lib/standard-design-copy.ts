@@ -45,3 +45,8 @@ export function neutralizeDiningSampleText(text: string) {
     .replace(/Marais evening/gi, "Seasonal evening")
     .replace(/马雷晚宴/g, "季节晚宴").replace(/マレ・イブニング/g, "季節のディナー");
 }
+
+/** Both approved Dining basic layouts use the same menu examples, with different renderers. */
+export function getStandardDesignSampleTemplateKey(design: DefaultDesignReview): DefaultDesignReview["renderer"] {
+  return design.layout.startsWith("dining-") ? "dining_aube_table_a" : design.renderer;
+}

@@ -1,15 +1,16 @@
-import { neutralizeDiningSampleText } from "./standard-design-copy";
+import type { DefaultDesignReview } from "./menu-design-policy";
+import { getStandardDesignSampleTemplateKey, neutralizeDiningSampleText } from "./standard-design-copy";
 import type { MenuPageData } from "./menu-page-data";
 import type { SupportedLocale } from "./locales";
 import { translateMenuText } from "./menu-ui-copy";
 import { applyStarterPreviewLocalization } from "./template-demo-data/starter-preview-localization";
 
 /** Localize the neutral examples after creation, using stable source IDs. */
-export function localizeDefaultDesignPreview(data: MenuPageData, source: MenuPageData, locale: SupportedLocale): MenuPageData {
+export function localizeDefaultDesignPreview(data: MenuPageData, source: MenuPageData, locale: SupportedLocale, design: DefaultDesignReview): MenuPageData {
   if (locale === "ko") return data;
   const t = (text: string) => translateMenuText(text, locale);
   const basic = data.menuSite.template_key === "cafe_design_a";
-  const translated = applyStarterPreviewLocalization(source, locale);
+  const translated = applyStarterPreviewLocalization({ ...source, menuSite: { ...source.menuSite, template_key: getStandardDesignSampleTemplateKey(design) } }, locale);
   const items = new Map(translated.items.map(item => [item.id, item]));
   const categories = new Map(translated.categories.map(category => [category.id, category]));
   const pages = new Map(translated.pages.map(page => [page.id, page]));
