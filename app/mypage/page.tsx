@@ -1,3 +1,4 @@
+import { getTemplateByKey } from "@/lib/templates";
 import Link from "next/link";
 import FavoriteTemplates from "@/components/mypage/FavoriteTemplates";
 import { readTemplateFavorites } from "@/lib/template-favorites";
@@ -45,7 +46,7 @@ import { NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy
 import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/lib/payments";
 import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-policy";
 import { getRemainingDaysUntilKst, getServiceLifecycleBucket, resolveServiceLifecycle } from "@/lib/mypage-service-lifecycle";
-import { getTemplateByKey, getTemplateDisplayName } from "@/lib/templates";
+import { getMenuDesignDisplayName, getSavedMenuDesign } from "@/lib/menu-design-identity";
 import { isTemplateSupportedForService } from "@/lib/template-types";
 import { isTableManagementRuntimeEnabledForSite } from "@/lib/table-management-runtime";
 import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-runtime";
@@ -2352,7 +2353,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       slug,
       publicPath,
       template: getTemplateByKey(site.template_key),
-      templateLabel: site.template_key ? getTemplateDisplayName(site.template_key) : "-",
+      design: getSavedMenuDesign(site.template_key, site.settings),
+      templateLabel: site.template_key ? getMenuDesignDisplayName(site.template_key, null, site.settings) : "-",
       serviceBadge,
       badges,
       primaryMessage,
@@ -2432,7 +2434,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       title: site.name || "이름 없는 메뉴판",
       publicPath,
       template: getTemplateByKey(site.templateKey),
-      templateLabel: site.templateKey ? getTemplateDisplayName(site.templateKey) : "-",
+      design: getSavedMenuDesign(site.templateKey, {menu_design_id: site.designId}),
+      templateLabel: site.templateKey ? getMenuDesignDisplayName(site.templateKey, null, {menu_design_id: site.designId}) : "-",
       roleLabel: MENU_SITE_MEMBER_ROLE_LABELS[site.memberRole],
       statusLabel: getStatusLabel(site.status),
       updatedAt: site.updatedAt,
@@ -2515,7 +2518,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     return (
       <article key={card.key} className="site-card p-5">
         <div className="site-section mb-5 overflow-hidden">
-          <TemplateThumbnail template={card.template} />
+          <TemplateThumbnail template={card.template} design={card.design} />
         </div>
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div className="min-w-0">
@@ -2594,7 +2597,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     return (
       <article key={card.key} className="site-card p-5">
         <div className="site-section mb-5 overflow-hidden">
-          <TemplateThumbnail template={card.template} />
+          <TemplateThumbnail template={card.template} design={card.design} />
         </div>
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div className="min-w-0">

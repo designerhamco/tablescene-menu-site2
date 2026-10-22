@@ -1,3 +1,4 @@
+import { buildStandardDesignStarter, getStarterTranslationCopy } from "./standard-design-starter";
 import type { createClient } from "@/lib/supabase/server";
 import { BASIC_DEFAULT_LAYOUT_MODE, getDefaultPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import type { Database, Json, MenuSectionKey } from "@/lib/supabase/types";
@@ -227,6 +228,7 @@ export type ResolvedStarterFeaturedSlide = {
 
 export type StarterPreset = {
   key: StarterPresetKey;
+  design_id?: string;
   site: StarterSiteDefaults;
   template_key?: string;
   menu_cover_enabled?: boolean;
@@ -247,6 +249,7 @@ export type StarterPreset = {
 };
 
 type CreateStarterMenuDataOptions = {
+  designId?: string | null;
   force?: boolean;
   applySiteDefaults?: boolean;
   includeAuxiliaryContent?: boolean;
@@ -409,6 +412,7 @@ function isCafeAStarterTemplateKey(templateKey?: string | null) {
 
 function shouldApplyLeanStoreDescription(preset: StarterPreset, serviceType: StarterServiceType) {
   return (
+    Boolean(preset.design_id) ||
     !shouldUseLeanStarterPreset(serviceType) ||
     preset === cafeDesignAStarterPreset ||
     preset === cafeMochaForestStarterPreset ||
@@ -2911,7 +2915,11 @@ const starterPresets: Partial<Record<StarterPresetKey, StarterPreset>> & { cafe:
   },
 };
 
-export function getStarterPreset(templateKey?: string | null, restaurantCategory?: string | null, templateCategory?: string | null): StarterPreset {
+export function getStarterPreset(templateKey?: string | null, restaurantCategory?: string | null, templateCategory?: string | null, designId?: string | null): StarterPreset {
+  return buildStandardDesignStarter(getRendererStarterPreset(templateKey, restaurantCategory, templateCategory), designId);
+}
+
+function getRendererStarterPreset(templateKey?: string | null, restaurantCategory?: string | null, templateCategory?: string | null): StarterPreset {
   const normalizedTemplateKey = templateKey?.trim().toLowerCase() ?? "";
   const templatePreset = normalizedTemplateKey ? templateStarterPresets[normalizedTemplateKey === "cafe_real_matcha_paged_test" ? "cafe_design_a" : normalizedTemplateKey] : null;
   if (templatePreset) {
@@ -2991,7 +2999,7 @@ async function createSinglePageStarterTranslations(input: {
   itemIdByStarterKey: Map<string, string>;
   promotionIdByStarterKey: Map<string, string>;
 }) {
-  const translations = getSinglePageStarterTranslations(input.preset.template_key);
+  const translations = getStarterTranslationCopy(input.preset);
   if (!translations) return;
 
   const siteRows: MenuSiteTranslationInsert[] = [];
@@ -3006,12 +3014,12 @@ async function createSinglePageStarterTranslations(input: {
       menu_site_id: input.menuSiteId,
       locale,
       status: "completed",
-      restaurant_name: copy.site.restaurantName,
+      restaurant_name: input.preset.design_id ? null : copy.site.restaurantName,
       restaurant_category: copy.site.restaurantCategory,
       brand_description: copy.site.brandDescription,
-      intro_title: copy.site.restaurantName,
+      intro_title: input.preset.design_id ? null : copy.site.restaurantName,
       intro_description: copy.site.introDescription,
-      menu_cover_title: copy.site.restaurantName,
+      menu_cover_title: input.preset.design_id ? null : copy.site.restaurantName,
       menu_cover_description: copy.site.menuCoverDescription,
       about_description: copy.site.aboutDescription,
       opening_hours: copy.site.footerNotices[0],
@@ -3105,7 +3113,8 @@ async function applyStarterSiteDefaults(
     menu_cover_visible_pc: preset.menu_cover_visible_pc ?? starterPageSettings.menu_cover_visible_pc,
     menu_cover_visible_tablet: preset.menu_cover_visible_tablet ?? starterPageSettings.menu_cover_visible_tablet,
     menu_cover_visible_mobile: preset.menu_cover_visible_mobile ?? starterPageSettings.menu_cover_visible_mobile,
-    ...(isAubeTableTemplate(preset.template_key)
+    ...(preset.design_id ? { cover_image_visible: preset.template_key === "cafe_design_a", multi_page_cover_background_color: "#ffffff" } : {}),
+    ...(isAubeTableTemplate(preset.template_key) && !preset.design_id
       ? { multi_page_cover_background_color: getAubeTableDefaultCoverBackgroundColor(preset.template_key) }
       : {}),
   };
@@ -3529,7 +3538,7 @@ export async function createStarterMenuData(
     return createDisplayMenuAStarterData(supabase, menuSiteId, options);
   }
 
-  const preset = getStarterPreset(templateKey, restaurantCategory, templateCategory);
+  const preset = getStarterPreset(templateKey, restaurantCategory, templateCategory, options.designId);
   if (isCafeAStarterTemplateKey(templateKey) && preset.pages.length !== 1) {
     throw new Error("CafeA starter family 기본 메뉴는 메뉴 페이지 1개로만 생성되어야 합니다.");
   }
@@ -3675,7 +3684,7 @@ export async function createStarterMenuData(
         price_label: menuItem.price_label ?? null,
         price_note: menuItem.price_note ?? null,
         portion_label: menuItem.portion_label ?? null,
-        image_url: menuItem.image_url ?? (isCafeAStarterTemplateKey(templateKey) ? null : STARTER_PLACEHOLDERS.item),
+        image_url: preset.design_id ? menuItem.image_url ?? null : menuItem.image_url ?? (isCafeAStarterTemplateKey(templateKey) ? null : STARTER_PLACEHOLDERS.item),
         image_path: null,
         badge_label: menuItem.badge_label ?? (menuItem.recommended ? "추천" : null),
         recommended: menuItem.recommended ?? false,
@@ -3777,7 +3786,7 @@ export async function createStarterMenuData(
 
       const nextPageSettings = {
         ...getJsonRecord(siteSettings?.page_settings),
-        featured_item_enabled: Boolean(featuredItemId),
+        featured_item_enabled: Boolean(featuredItemId) && preset.design_id !== "basic-upper-left",
         featured_item_id: featuredItemId,
         ...(starterFeaturedSlides.length > 0 ? { featured_slides: starterFeaturedSlides as unknown as Json } : {}),
       } satisfies Record<string, Json>;

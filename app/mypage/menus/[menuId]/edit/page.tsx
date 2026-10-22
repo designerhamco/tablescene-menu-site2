@@ -1,3 +1,4 @@
+import { getSavedMenuDesign } from "@/lib/menu-design-identity";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import MenuSurfaceSettingsForm from "@/components/mypage/menu-editor/MenuSurfaceSettingsForm";
 import MenuDesignSwitcher from "@/components/mypage/menu-editor/MenuDesignSwitcher";
@@ -112,7 +113,7 @@ import {
   getCustomBadgeStyles,
   mergeBadgeStyles,
 } from "@/lib/template-badge-styles";
-import { getTemplateDisplayName } from "@/lib/templates";
+import { getMenuDesignDisplayName } from "@/lib/menu-design-identity";
 import { MAX_MENU_WIDGET_DESCRIPTION_LENGTH, MAX_MENU_WIDGET_TITLE_LENGTH, type MenuWidget } from "@/lib/menu-widgets";
 import {
   getCustomBackgroundColor,
@@ -829,7 +830,7 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
   const message =
     accessState?.message ??
     "서비스 이용 기간이 종료되었거나 결제 확인이 필요해 이 메뉴판을 편집할 수 없습니다. 보관 기간 안에 재구독하거나 결제를 정상화하면 기존 데이터를 다시 사용할 수 있습니다.";
-  const templateDisplayName = getTemplateDisplayName(site.template_key, site.template_category);
+  const templateDisplayName = getMenuDesignDisplayName(site.template_key, site.template_category, site.settings);
 
   return (
     <>
@@ -1591,7 +1592,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const canUseFeaturedSlides = canUseFeaturedItemCover && templateCapabilities.featuredItemCarousel === true;
   const featuredSlideMaxSlides = Math.max(1, Math.min(5, Math.trunc(templateCapabilities.featuredItemMaxSlides ?? 1)));
   const templateEditorLabels = getTemplateEditorLabels(site.template_key);
-  const menuManagementStarterPreset = getStarterPreset(site.template_key, site.restaurant_category, site.template_category);
+  const menuManagementStarterPreset = getStarterPreset(site.template_key, site.restaurant_category, site.template_category, getSavedMenuDesign(site.template_key, site.settings)?.id);
   const canConfigurePcTabletLayoutMode = supportsPcTabletLayoutMode(site.template_key);
   const pcTabletLayoutMode = getPcTabletLayoutModeFromPageSettings(site.page_settings, site.template_key);
   const customBadgeStyles = getCustomBadgeStyles(site.settings, site.page_settings);
@@ -1790,7 +1791,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       : bannerError
   );
   const globalBannerError = activeTab === "localization" ? bannerError : null;
-  const templateDisplayName = getTemplateDisplayName(site.template_key, site.template_category);
+  const templateDisplayName = getMenuDesignDisplayName(site.template_key, site.template_category, site.settings);
   const templateContentLimits = getTemplateContentLimits(site.template_key);
   const publicUrl = getPublicMenuUrl(site.slug);
   const qrDownloadUrl = `/api/qr?slug=${encodeURIComponent(site.slug)}`;
@@ -2533,7 +2534,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       </div>
                       <div className="mt-5 space-y-4">
                         <p className="rounded-lg bg-white px-4 py-3 text-sm font-semibold text-zinc-600">
-                          현재 템플릿 <strong className="ml-1 font-bold text-zinc-950">{getTemplateDisplayName(site.template_key, site.template_category)}</strong>
+                          현재 템플릿 <strong className="ml-1 font-bold text-zinc-950">{getMenuDesignDisplayName(site.template_key, site.template_category, site.settings)}</strong>
                         </p>
                         <p className="break-keep text-sm font-semibold leading-relaxed text-zinc-500">
                           {menuDesignPlan ? "디자인을 바꾸어도 메뉴 데이터와 공개 주소는 그대로 유지됩니다." : "새 요금제는 기본 디자인 또는 디자인 포함 이용권을 선택해 시작할 수 있습니다."}
