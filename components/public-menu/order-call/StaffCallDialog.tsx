@@ -20,7 +20,7 @@ import {
 type StaffCall = {
   callId: string;
   callNumber: number;
-  status: "pending" | "acknowledged";
+  status: "pending" | "acknowledged" | "completed" | "cancelled";
   duplicate: boolean;
   requestKey: string;
   requestLabel: string;
@@ -35,6 +35,8 @@ type ApiResult = {
 const STATUS_COPY = {
   pending: "직원에게 호출을 보냈습니다.",
   acknowledged: "직원이 호출을 확인했습니다.",
+  completed: "직원 요청이 처리되었습니다.",
+  cancelled: "직원 호출이 취소되었습니다.",
 } as const;
 
 export default function StaffCallDialog({
@@ -110,6 +112,60 @@ export default function StaffCallDialog({
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [onClose, open]);
+
+  const activeCallId = call && (call.status === "pending" || call.status === "acknowledged") ? call.callId : null;
+  useEffect(() => {
+    if (!open || previewOnly || !activeCallId || pending) return;
+    let disposed = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let controller: AbortController | undefined;
+    let terminal = false;
+    let failures = 0;
+    let sequence = 0;
+    async function read() {
+      if (disposed || document.visibilityState === "hidden" || terminal) return;
+      const requestSequence = ++sequence;
+      controller = new AbortController();
+      try {
+        const result = await fetch(`/api/public-menu/calls?${new URLSearchParams({menuSiteId, callId: activeCallId!})}`,
+          {cache: "no-store", credentials: "same-origin", signal: controller.signal});
+        const body = await result.json() as {ok?: boolean; call?: {callId: string; status: StaffCall["status"]}};
+        if (disposed || requestSequence !== sequence) return;
+        terminal = [401, 403, 404].includes(result.status);
+        if (terminal) {
+          setCall(null);
+          setMessage(t("호출 상태를 확인할 수 없습니다. 테이블 방문 상태를 확인해 주세요."));
+          return;
+        }
+        if (!result.ok || !body.ok || body.call?.callId !== activeCallId
+          || !Object.hasOwn(STATUS_COPY, body.call.status)) throw new Error("CALL_STATUS_READ_FAILED");
+        const status = body.call.status;
+        failures = 0;
+        setCall(current => current?.callId === activeCallId ? {...current, status} : current);
+      } catch (error) {
+        if (!disposed && requestSequence === sequence && !(error instanceof Error && error.name === "AbortError")) failures++;
+      } finally {
+        if (!disposed && requestSequence === sequence && !terminal) timer = setTimeout(read, Math.min(30000, 5000 * 2 ** failures));
+      }
+    }
+    function resume() {
+      clearTimeout(timer);
+      sequence++;
+      controller?.abort();
+      if (document.visibilityState !== "hidden") void read();
+    }
+    queueMicrotask(() => {if (!disposed) void read();});
+    document.addEventListener("visibilitychange", resume);
+    window.addEventListener("focus", resume);
+    return () => {
+      disposed = true;
+      clearTimeout(timer);
+      sequence++;
+      controller?.abort();
+      document.removeEventListener("visibilitychange", resume);
+      window.removeEventListener("focus", resume);
+    };
+  }, [activeCallId, menuSiteId, open, pending, previewOnly, t]);
 
   function closeDialog() {
     setMessage(null);
@@ -236,7 +292,11 @@ export default function StaffCallDialog({
                 {call.status === "pending" ? (
                   <button type="button" onClick={cancelCall} disabled={pending} className={`${styles.cancel} ${ui.secondary}`}>
                     {t("호출 취소")}</button>
-                ) : <p className={styles.help}>{t("직원이 확인한 뒤에는 손님이 취소할 수 없습니다.")}</p>}
+                ) : call.status === "acknowledged" ? <p className={styles.help}>{t("직원이 확인한 뒤에는 손님이 취소할 수 없습니다.")}</p> : (
+                  <button type="button" onClick={() => setCall(null)} className={`${styles.cancel} ${ui.secondary}`}>
+                    {t("다른 요청 선택")}
+                  </button>
+                )}
                 <p className={styles.help}>{t("처리 완료 또는 취소 후 2분 뒤 다시 호출할 수 있습니다.")}</p>
               </div>
             ) : (

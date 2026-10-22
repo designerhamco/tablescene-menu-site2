@@ -1,8 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { CallManagementInputError } from "@/lib/call-management";
+import { isUuid } from "@/lib/postpay-order-runtime";
+import { CallManagementInputError, normalizeCallId } from "@/lib/call-management";
 import {
   cancelPendingStaffCall,
+  readCustomerStaffCall,
   StaffCallSubmissionError,
   submitStaffCall,
 } from "@/lib/server/staff-call-service";
@@ -17,6 +19,7 @@ const MAX_BODY_BYTES = 2 * 1024;
 function response(body: Record<string, unknown>, status: number) {
   const result = NextResponse.json(body, { status });
   result.headers.set("Cache-Control", "no-store");
+  result.headers.set("Vary", "Cookie");
   return result;
 }
 
@@ -90,6 +93,24 @@ export async function PATCH(request: NextRequest) {
       tableSession,
     });
     return response({ ok: true, call }, 200);
+  } catch (error) {
+    const known = handleKnownError(error);
+    if (known) return known;
+    throw error;
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const menuSiteId = request.nextUrl.searchParams.get("menuSiteId");
+    if (!isUuid(menuSiteId)) return response({ok: false, message: "호출 정보를 다시 확인해 주세요."}, 400);
+    const callId = normalizeCallId(request.nextUrl.searchParams.get("callId"));
+    const tableSession = await resolveSession(request, menuSiteId);
+    if (!tableSession) return response({ok: false, message: "테이블 방문 세션이 만료되었습니다."}, 401);
+    const call = await readCustomerStaffCall({menuSiteId: tableSession.menuSiteId,
+      callId, tableSession});
+    if (!call) return response({ok: false, message: "호출을 찾을 수 없습니다."}, 404);
+    return response({ok: true, call}, 200);
   } catch (error) {
     const known = handleKnownError(error);
     if (known) return known;
