@@ -1,3 +1,4 @@
+import { getStandardDesignSampleTemplateKey } from "./standard-design-copy";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { DEFAULT_DESIGN_REVIEWS } from "./menu-design-policy";
@@ -12,12 +13,13 @@ for (const design of DEFAULT_DESIGN_REVIEWS) {
   test(`${design.id}: purchased starter is neutral, keeps stable links and merchant fields`, async () => {
     const native = structuredClone(getStarterPreset(design.renderer));
     const preset = getStarterPreset(design.renderer, null, null, design.id);
+    const sample = getStarterPreset(getStandardDesignSampleTemplateKey(design));
     assert.deepEqual(getStarterPreset(design.renderer), native);
     assert.equal(preset.design_id, design.id);
     assert.match(preset.site.cover_image_url, /^\/placeholders\/starter\//);
     assert.equal(preset.site.settings?.footer_notice_2, "알레르기가 있다면 주문 전 알려주세요.");
     assert.equal(preset.pages.length, native.pages.length);
-    assert.deepEqual(preset.pages.flatMap(p => p.categories.flatMap(c => c.items.map(i => i.key))), native.pages.flatMap(p => p.categories.flatMap(c => c.items.map(i => i.key))));
+    assert.deepEqual(preset.pages.flatMap(p => p.categories.flatMap(c => c.items.map(i => i.key))), sample.pages.flatMap(p => p.categories.flatMap(c => c.items.map(i => i.key))));
     const client = new StarterClient();
     const result = await createStarterMenuData(client as never, "new-menu", design.renderer, null, null, "business_basic_single_monthly", {designId: design.id});
     assert.equal(result.created, true);

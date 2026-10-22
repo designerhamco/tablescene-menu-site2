@@ -107,5 +107,5 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
     is_sold_out: options.soldOutPreview && item.id === soldOutItem?.id,
   }));
   if (!options.widgetsPreview) data.widgets = [];
-  return localizeDefaultDesignPreview(data, source, source.locale);
+  return localizeDefaultDesignPreview(data, source, source.locale, design);
 }

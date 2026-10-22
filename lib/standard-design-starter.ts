@@ -8,9 +8,9 @@ import { translateMenuText } from "./menu-ui-copy";
 import { getSinglePageStarterTranslations } from "./template-demo-data/single-page-starter-translations";
 
 /** Initial sample generation only. Design switching must preserve customer content. */
-export function buildStandardDesignStarter(source: StarterPreset, designId?: string | null): StarterPreset {
+export function buildStandardDesignStarter(source: StarterPreset, designId?: string | null, targetTemplateKey = source.template_key): StarterPreset {
   if (!designId) return source;
-  const design = getDefaultDesignReview(designId, source.template_key ?? "");
+  const design = getDefaultDesignReview(designId, targetTemplateKey ?? "");
   if (!design) {
     if (designId.startsWith("basic-") || designId.startsWith("dining-")) throw new Error("기본 디자인과 생성할 템플릿이 일치하지 않습니다.");
     return source;
@@ -20,6 +20,7 @@ export function buildStandardDesignStarter(source: StarterPreset, designId?: str
   const copy = getStandardDesignCopy(design);
   const options = getDefaultDesignOptions({ design: design.id });
   preset.design_id = design.id;
+  preset.template_key = design.renderer;
   preset.site = { ...preset.site, restaurant_name: copy.title, intro_title: copy.title,
     brand_description: copy.description, intro_description: copy.description,
     menu_cover_title: copy.title, menu_cover_description: copy.description,
