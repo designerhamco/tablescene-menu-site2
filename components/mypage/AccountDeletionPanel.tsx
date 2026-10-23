@@ -71,7 +71,7 @@ export default function AccountDeletionPanel({
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="inline-flex shrink-0 items-center justify-center rounded-full bg-red-600 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-red-700"
+            className="site-button site-button-danger inline-flex shrink-0 items-center justify-center text-xs"
           >
             회원탈퇴 신청
           </button>
@@ -94,15 +94,15 @@ export default function AccountDeletionPanel({
                   탈퇴 신청 즉시 계정 이용과 메뉴판 편집, 공개, QR, AI 기능 이용이 제한됩니다.
                 </p>
               </div>
-              <button type="button" onClick={() => setIsOpen(false)} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-bold text-zinc-500">
+              <button type="button" onClick={() => setIsOpen(false)} className="site-button site-button-ghost text-xs">
                 닫기
               </button>
             </div>
 
-            <div className="mt-6 space-y-4 rounded-2xl bg-zinc-50 p-5 text-sm font-bold leading-relaxed text-zinc-600">
+            <div className="site-notice mt-6 space-y-4 p-5">
               {hasActiveBusinessSubscription ? (
-                <p className="break-keep text-red-700">
-                  현재 이용 중인 유료서비스가 있습니다. 회원탈퇴를 진행하면 현재 이용 중인 메뉴판은 즉시 비공개 처리되며, 남은 이용기간 동안 서비스를 사용할 수 없습니다. 구독 자동갱신은 중단되며, 이미 결제된 금액의 환불은 환불 정책에 따라 처리됩니다.
+                <p className="break-keep">
+                  <strong>현재 이용 중인 유료서비스가 있습니다.</strong> 회원탈퇴를 진행하면 현재 이용 중인 메뉴판은 즉시 비공개 처리되며, 남은 이용기간 동안 서비스를 사용할 수 없습니다. 구독 자동갱신은 중단되며, 이미 결제된 금액의 환불은 환불 정책에 따라 처리됩니다.
                 </p>
               ) : null}
               {hasAnyMenuSite ? (
@@ -141,18 +141,18 @@ export default function AccountDeletionPanel({
             </label>
 
             {errorMessage ? (
-              <p className="mt-4 break-keep rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-700">{errorMessage}</p>
+              <p className="site-notice site-notice-error mt-4 break-keep p-4 text-sm font-bold">{errorMessage}</p>
             ) : null}
 
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button type="button" onClick={() => setIsOpen(false)} className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-bold text-zinc-700">
+              <button type="button" onClick={() => setIsOpen(false)} className="site-button site-button-ghost text-sm">
                 취소
               </button>
               <button
                 type="button"
                 onClick={submitDeletionRequest}
                 disabled={!canSubmit}
-                className="rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400"
+                className="site-button site-button-danger text-sm disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "처리 중..." : "회원탈퇴 신청"}
               </button>

@@ -5,7 +5,6 @@ import { MarketingShell } from "@/components/marketing/MarketingPages";
 import { createAnnouncementClient } from "@/lib/server/announcement-service";
 import {
   formatAnnouncementDate,
-  getAnnouncementCategory,
 } from "@/lib/announcements";
 import styles from "@/components/support/support.module.css";
 import AnnouncementContent from "@/components/support/AnnouncementContent";
@@ -36,9 +35,7 @@ export default async function AnnouncementDetail({
       <div className="site-container">
         <article className={styles.detail}>
           <header>
-            <p className="site-eyebrow">
-              {getAnnouncementCategory(data.category)}
-            </p>
+
             <h1 className="type-page-title">{data.title}</h1>
             <time dateTime={data.published_at ?? undefined}>
               {formatAnnouncementDate(data.published_at)}

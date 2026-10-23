@@ -241,7 +241,7 @@ export default function ImageUploadField({
               type="button"
               disabled={isLoading}
               onClick={() => inputRef.current?.click()}
-              className="inline-flex items-center justify-center gap-1.5 rounded-full bg-zinc-950 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
+              className="site-button site-button-primary inline-flex items-center justify-center gap-1.5 text-xs disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
@@ -257,7 +257,7 @@ export default function ImageUploadField({
                 type="button"
                 disabled={isLoading}
                 onClick={() => setIsConfirmingDelete(true)}
-                className="inline-flex items-center justify-center rounded-full border border-red-100 bg-white px-4 py-2 text-xs font-bold text-red-700 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:text-zinc-300"
+                className="site-button site-button-danger-ghost inline-flex items-center justify-center text-xs disabled:cursor-not-allowed"
               >
                 이미지 삭제
               </button>
@@ -281,7 +281,7 @@ export default function ImageUploadField({
                 type="button"
                 disabled={isLoading}
                 onClick={() => setIsConfirmingDelete(false)}
-                className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
+                className="site-button site-button-ghost text-sm"
               >
                 취소
               </button>
@@ -289,7 +289,7 @@ export default function ImageUploadField({
                 type="button"
                 disabled={isLoading}
                 onClick={deleteImage}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-zinc-300"
+                className="site-button site-button-danger inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>

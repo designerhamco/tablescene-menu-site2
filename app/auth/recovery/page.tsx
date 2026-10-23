@@ -43,7 +43,7 @@ export default async function PasswordRecoveryVerificationPage({
               </form>
             ) : (
               <div className="space-y-5">
-                <div className="rounded-md bg-amber-50 px-4 py-3 text-sm font-medium leading-relaxed text-amber-800">
+                <div className="site-notice site-notice-warning px-4 py-3 text-sm font-medium leading-relaxed">
                   비밀번호 재설정 링크가 만료되었거나 유효하지 않습니다. 다시 요청해주세요.
                 </div>
                 <Link

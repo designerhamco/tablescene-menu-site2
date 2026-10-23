@@ -67,9 +67,7 @@ export function StoreFitVisual({ className = "", showNeeds = true }: { className
               type="button"
               onClick={() => setActiveStore(store)}
               onMouseEnter={() => setActiveStore(store)}
-              className={`shrink-0 rounded-full px-4 py-2 text-sm font-bold transition-colors ${
-                isActive ? "bg-zinc-950 text-white" : "bg-white text-zinc-600 hover:bg-zinc-100"
-              }`}
+              className={`site-button ${isActive ? "site-button-primary" : "site-button-secondary"}`} aria-pressed={isActive}
             >
               {store.label}
             </button>

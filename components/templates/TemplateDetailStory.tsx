@@ -121,7 +121,7 @@ export default function TemplateDetailStory({ template }: { template: PublicTemp
         [info.display ? "화면에 표시" : "메뉴판 공유", info.display ? "매장의 TV나 모니터에 메뉴판을 열어 주세요." : "완성한 메뉴판 링크와 QR을 손님에게 공유하세요."],
       ].map(([title, text], index) => <li key={title}><span className={styles.stepNumber}>0{index + 1}</span><div><h3 className="type-content-title">{title}</h3><p className="type-body-sm">{text}</p></div></li>)}</ol>
       <div className={styles.usageNote}><Smartphone size={18} aria-hidden="true" /><p className="type-body-sm">이미지는 기능을 설명하기 위한 예시입니다. 실제 메뉴판은 입력한 콘텐츠와 기기에 따라 달라집니다.</p></div>
-      <Link href={info.previewHref} target="_blank" rel="noopener noreferrer" className="site-button site-button-secondary">실제 메뉴판 미리보기 <ArrowRight size={16} aria-hidden="true" /></Link>
+      <Link href={info.previewHref} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline">실제 메뉴판 미리보기 <ArrowRight size={16} aria-hidden="true" /></Link>
     </section>
   </div>;
 }

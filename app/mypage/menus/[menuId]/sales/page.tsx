@@ -178,12 +178,12 @@ export default async function SalesSummaryPage({
             <article className="site-section p-6">
               <h2 className="type-content-title">취소·미결제 현황</h2>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-2xl bg-rose-50 p-4 text-rose-950">
+                <div className="site-notice site-notice-error p-4">
                   <p className="text-xs font-bold text-rose-700">취소 주문</p>
                   <p className="mt-2 text-xl font-bold">{summary.orderStates.cancelledOrderCount.toLocaleString("ko-KR")}건</p>
                   <p className="mt-1 text-xs font-bold">주문금액 {formatAmount(summary.orderStates.cancelledOrderAmount)}</p>
                 </div>
-                <div className="rounded-2xl bg-amber-50 p-4 text-amber-950">
+                <div className="site-notice site-notice-warning p-4">
                   <p className="text-xs font-bold text-amber-700">현재 미결제</p>
                   <p className="mt-2 text-xl font-bold">{summary.orderStates.unpaidOrderCount.toLocaleString("ko-KR")}건</p>
                   <p className="mt-1 text-xs font-bold">주문금액 {formatAmount(summary.orderStates.unpaidOrderAmount)}</p>

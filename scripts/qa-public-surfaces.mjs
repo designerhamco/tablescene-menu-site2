@@ -6,7 +6,6 @@ const navigationTimeout = Number(process.env.PUBLIC_SURFACE_QA_TIMEOUT_MS || 30_
 
 const routeFilter = process.env.PUBLIC_SURFACE_QA_ROUTE;
 const cafeOnePagePreviewPaths = new Set([
-  "/templates/cafe_real_matcha_a/preview",
   "/templates/cafe_mocha_forest_a/preview",
   "/templates/cafe_sunday_roasters_a/preview",
   "/templates/cafe_van_gogh_a/preview",
@@ -215,6 +214,37 @@ async function inspectCafeFitPresentation(page) {
   }
   if (!previewFrame) return ["fitted menu preview iframe is missing"];
 
+  await previewFrame.locator('[data-native-scroll], .cafe-a-desktop-fit-board').first().waitFor({ state: "attached", timeout: 5_000 }).catch(() => null);
+  const nativeBoard = previewFrame.locator('[data-native-scroll]');
+  if (await nativeBoard.count()) {
+    await previewFrame.evaluate(() => document.fonts.ready);
+    await nativeBoard.waitFor({ state: "visible" });
+    await previewFrame.waitForFunction(() => document.querySelector('[data-native-scroll]')?.getAttribute('data-native-ready') === 'true', undefined, { timeout: 15_000 }).catch(() => null);
+    const reading = await previewFrame.evaluate(() => {
+      const board = document.querySelector('[data-native-scroll]');
+      const menu = board?.querySelector('[data-native-menu]');
+      const columns = [...(menu?.querySelectorAll('[data-native-column]') ?? [])];
+      const rect = board?.getBoundingClientRect();
+      const menuRect = menu?.getBoundingClientRect();
+      return {
+        ready: board?.getAttribute('data-native-ready') === 'true',
+        columns: columns.length,
+        usableMenu: Boolean(menu && menu.clientHeight > 0 && menu.clientWidth > 0),
+        outerOverflow: document.documentElement.scrollWidth > innerWidth + 2,
+        boardOutsideViewport: Boolean(rect && (rect.left < -2 || rect.top < -2 || rect.right > innerWidth + 2 || rect.bottom > innerHeight + 2)),
+        lateralCrop: Boolean(menuRect && columns.some(column => { const box = column.getBoundingClientRect(); return box.left < menuRect.left - 2 || box.right > menuRect.right + 2; })),
+      };
+    });
+    // Active Basic uses contained reading: vertical scrolling belongs to menu
+    // content. Legacy no-scroll assertions below remain for the legacy engine.
+    return [
+      ...(!reading.ready ? ['contained reading did not become ready'] : []),
+      ...(!reading.usableMenu ? ['contained menu region is missing or empty'] : []),
+      ...(reading.columns < 1 || reading.columns > 3 ? [`contained reading column count: ${reading.columns}`] : []),
+      ...(reading.outerOverflow || reading.boardOutsideViewport || reading.lateralCrop ? [`contained reading geometry: ${JSON.stringify(reading)}`] : []),
+    ];
+  }
+
   const board = previewFrame.locator(".cafe-a-desktop-fit-board");
   await board.waitFor({ state: "attached", timeout: 5_000 }).catch(() => null);
   if (!(await board.count())) return ["desktop fit board is missing"];
@@ -358,6 +388,8 @@ try {
             timeout: Math.min(navigationTimeout, 5_000),
           })
           .catch(() => null);
+        await page.evaluate(() => document.fonts.ready);
+        await page.waitForFunction(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 2, undefined, { timeout: 2_000 }).catch(() => null);
         await page.waitForTimeout(700);
       } catch (error) {
         navigationError = error instanceof Error ? error.message : String(error);

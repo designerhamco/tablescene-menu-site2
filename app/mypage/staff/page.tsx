@@ -174,18 +174,18 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
         </header>
 
         {menuSitesError ? (
-          <p className="rounded-md bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">
+          <p className="site-notice site-notice-error px-4 py-3 text-sm font-bold">
             메뉴판 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
           </p>
         ) : null}
 
         {resultNotice ? (
-          <p className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
+          <p className={`site-notice   px-4 py-3 text-sm font-bold ${
             resultNotice.tone === "success"
-              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              ? "site-notice-success"
               : resultNotice.tone === "warning"
-                ? "border-amber-200 bg-amber-50 text-amber-900"
-                : "border-rose-200 bg-rose-50 text-rose-800"
+                ? "site-notice-warning"
+                : "site-notice-error"
           }`}>
             {resultNotice.message}
           </p>
@@ -207,7 +207,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
           </div>
 
           {membershipResult.error || acceptedInvitationResult.error ? (
-            <p className="mt-5 rounded-md bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">
+            <p className="site-notice site-notice-error mt-5 px-4 py-3 text-sm font-bold">
               직원 목록을 불러오지 못했습니다.
             </p>
           ) : activeMemberships.length === 0 ? (
@@ -241,13 +241,13 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                             <option key={role} value={role}>{STAFF_INVITATION_ROLE_LABELS[role]}</option>
                           ))}
                         </select>
-                        <button type="submit" className="rounded-full border border-zinc-200 px-3 py-2 text-xs font-bold text-zinc-700 hover:bg-zinc-100">
+                        <button type="submit" className="site-button site-button-secondary text-xs">
                           프리셋 변경
                         </button>
                       </form>
                       <form action={revokeStaffMembershipAction} className="lg:text-right">
                         <input type="hidden" name="membershipId" value={membership.id} />
-                        <button type="submit" className="rounded-full border border-rose-200 px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-50">
+                        <button type="submit" className="site-button site-button-ghost text-xs">
                           접근 회수
                         </button>
                       </form>
@@ -265,7 +265,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                             역할 프리셋을 변경하면 개별 체크 설정은 새 프리셋 기본값으로 초기화됩니다.
                           </p>
                         </div>
-                        <button type="submit" className="rounded-full bg-zinc-950 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-zinc-800">
+                        <button type="submit" className="site-button site-button-primary text-xs">
                           개별 권한 저장
                         </button>
                       </div>
@@ -304,7 +304,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
           </div>
 
           {invitationResult.error ? (
-            <p className="mt-5 rounded-md bg-rose-50 px-4 py-3 text-sm font-bold text-rose-800">
+            <p className="site-notice site-notice-error mt-5 px-4 py-3 text-sm font-bold">
               초대 목록을 불러오지 못했습니다.
             </p>
           ) : pendingInvitationBatches.length === 0 ? (
@@ -328,14 +328,14 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                         <button
                           type="submit"
                           disabled={!invitationDeliveryEnabled}
-                          className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-bold text-zinc-700 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:text-zinc-300"
+                          className="site-button site-button-secondary text-xs disabled:cursor-not-allowed"
                         >
                           재전송
                         </button>
                       </form>
                       <form action={cancelStaffInvitationAction}>
                         <input type="hidden" name="inviteBatchId" value={invitation.inviteBatchId} />
-                        <button type="submit" className="rounded-full border border-rose-200 px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-50">
+                        <button type="submit" className="site-button site-button-ghost text-xs">
                           취소
                         </button>
                       </form>

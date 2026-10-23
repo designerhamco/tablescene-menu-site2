@@ -105,7 +105,7 @@ export default function UsageGuides({
     <section className={styles.usage} aria-labelledby="usage-heading">
       <div className="site-container">
         <div className={styles.sectionHeading}>
-          <p className="site-eyebrow">화면 연결 가이드</p>
+
           <h2 id="usage-heading" className="type-section-title">
             지금 쓰는 기기에서 시작하세요
           </h2>

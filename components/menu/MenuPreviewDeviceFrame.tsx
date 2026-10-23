@@ -354,7 +354,7 @@ export default function MenuPreviewDeviceFrame(
               title="새 창에서 메뉴판 보기"
               data-preview-detached-link=""
               tabIndex={showToolbar ? undefined : -1}
-              className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-zinc-950/45 px-2.5 text-[0.7rem] font-bold text-white transition-colors hover:bg-zinc-950/60"
+              className="site-button site-button-primary inline-flex shrink-0 items-center justify-center gap-1.5 text-[0.7rem]"
             >
               <ExternalLink
                 className="h-4 w-4"

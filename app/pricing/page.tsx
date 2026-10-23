@@ -4,6 +4,7 @@ import Link from "next/link";
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import { formatProductPrice, publicBasicProducts } from "@/lib/public-product-details";
+import { Badge } from "@/app/components/ui/badge";
 
 export const metadata: Metadata = {
   title: "요금제 및 상품 | ArtiMenu",
@@ -50,7 +51,7 @@ export default function PricingPage() {
             </div>
             <Link
               href="/apply"
-              className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-6 py-3 text-sm font-bold text-white transition hover:bg-zinc-800"
+              className="site-button site-button-primary inline-flex items-center justify-center text-sm"
             >
               상품 선택하기
             </Link>
@@ -67,7 +68,7 @@ export default function PricingPage() {
             <div className="grid gap-5 md:grid-cols-2">
               {publicBasicProducts.map((product) => (
                 <article key={product.slug} className="site-section flex min-h-[310px] flex-col p-7">
-                  <span className="w-fit rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">{product.billingLabel}</span>
+                  <Badge>{product.billingLabel}</Badge>
                   <h3 className="type-subsection-title mt-5">{product.shortName}</h3>
                   <p className="mt-4 flex-1 break-keep text-sm font-semibold leading-relaxed text-zinc-600">{product.summary}</p>
                   <p className="mt-6 text-2xl font-bold text-zinc-950">{formatProductPrice(product.price)}</p>
@@ -75,7 +76,7 @@ export default function PricingPage() {
                   <p className="mt-2 text-sm font-semibold text-zinc-600">디자인 포함 월 {formatProductPrice(product.designPrice)} · 정상가 {formatProductPrice(product.designRegularPrice)}</p>
                   <Link
                     href={`/products/${product.slug}`}
-                    className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"
+                    className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center text-sm"
                   >
                     상품 상세 및 신청
                   </Link>
@@ -95,14 +96,14 @@ export default function PricingPage() {
                   {"href" in plan ? (
                     <Link
                       href={plan.href}
-                      className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"
+                      className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center text-sm"
                     >
                       {plan.cta}
                     </Link>
                   ) : (
-                    <span className="mt-6 inline-flex w-full items-center justify-center rounded-full border border-zinc-200 bg-zinc-50 px-5 py-4 text-sm font-bold text-zinc-600">
+                    <Badge>
                       {plan.cta}
-                    </span>
+                    </Badge>
                   )}
                 </article>
               ))}

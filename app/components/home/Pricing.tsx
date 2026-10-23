@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router';
 import { ArrowRight, Lock } from 'lucide-react';
+import { Badge } from "@/app/components/ui/badge";
 
 const PLANS = [
   {
@@ -80,12 +81,12 @@ const PricingCard = ({ plan, index }: { plan: typeof PLANS[0], index: number }) 
         {/* Keywords Chips */}
         <div className="flex flex-wrap gap-2 mb-8">
           {plan.keywords.map((keyword, idx) => (
-            <span 
+            <Badge
               key={idx}
-              className="bg-zinc-100 text-zinc-900 px-3 py-1.5 rounded-md text-xs font-bold tracking-tight"
+
             >
               {keyword}
-            </span>
+            </Badge>
           ))}
         </div>
         

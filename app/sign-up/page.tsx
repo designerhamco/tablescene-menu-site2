@@ -46,7 +46,7 @@ export default async function SignUpPage({
           </div>
 
           {errorMessage ? (
-            <div className="mt-6 rounded-md bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+            <div className="site-notice site-notice-error mt-6 px-4 py-3 text-sm font-semibold">
               {errorMessage}
             </div>
           ) : null}

@@ -1,5 +1,6 @@
 import { flowCards } from "./data";
 import { Icon } from "./Icon";
+import { Badge } from "@/app/components/ui/badge";
 
 export function AllInOneFlow() {
   return (
@@ -29,9 +30,9 @@ export function AllInOneFlow() {
                 <h3 className="type-subsection-title mb-2 flex flex-col items-center justify-center gap-1 text-zinc-900 md:mb-3 md:flex-row md:gap-2">
                   {card.title}
                   {"badge" in card && card.badge && (
-                    <span className="rounded-full border border-black/5 bg-[#F8E731] px-1.5 py-0.5 text-xs font-bold leading-none text-black">
+                    <Badge>
                       {card.badge}
-                    </span>
+                    </Badge>
                   )}
                 </h3>
                 <p className="whitespace-pre-line text-sm leading-relaxed text-zinc-500 md:text-base">{card.desc}</p>
@@ -77,7 +78,7 @@ export function AllInOneFlow() {
                 <div className="flex min-w-[280px] flex-col items-center rounded-[2rem] border border-zinc-200 bg-white px-10 py-6 text-center text-zinc-900 shadow-xl md:items-start md:text-left lg:py-8">
                   <div className="mb-4 flex items-center gap-2 text-xl font-bold tracking-tight lg:text-2xl">
                     AI 마케팅 자동화
-                    <span className="rounded-full border border-black/5 bg-[#F8E731] px-2 py-0.5 text-xs font-bold leading-none text-black shadow-sm lg:text-xs">PRO AI</span>
+                    <Badge>PRO AI</Badge>
                   </div>
                   <div className="mt-auto flex items-center gap-2 text-sm font-bold text-zinc-400">COMING SOON</div>
                 </div>

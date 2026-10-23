@@ -71,7 +71,7 @@ export default async function SuccessPage({ searchParams }: PageProps) {
             </p>
 
           {errorMessage && (
-            <div className="mt-6 rounded-md bg-red-50 p-4 text-sm font-bold text-red-700">
+            <div className="site-notice site-notice-error mt-6 p-4 text-sm font-bold">
               메뉴판 정보를 불러오지 못했습니다: {errorMessage}
             </div>
           )}
@@ -99,7 +99,7 @@ export default async function SuccessPage({ searchParams }: PageProps) {
               </dl>
             </div>
           ) : (
-            <div className="mt-8 rounded-md bg-amber-50 p-5 text-sm font-bold leading-relaxed text-amber-700">
+            <div className="site-notice site-notice-warning mt-8 p-5 text-sm font-bold leading-relaxed">
               아직 연결된 메뉴판 정보를 찾지 못했습니다. 실제 결제 연동 전이라면 `/apply`의 payload 확인 모드에서 여기로 자동 이동하지 않습니다.
             </div>
           )}
@@ -107,20 +107,20 @@ export default async function SuccessPage({ searchParams }: PageProps) {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href={menuSite ? `/mypage/menus/${menuSite.id}/edit` : "/mypage"}
-              className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
+              className="site-button site-button-outline inline-flex items-center justify-center text-sm"
             >
               마이페이지에서 편집하기
             </Link>
             <Link
               href="/mypage"
-              className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
+              className="site-button site-button-outline inline-flex items-center justify-center text-sm"
             >
               마이페이지로 이동
             </Link>
             <button
               type="button"
               disabled
-              className="inline-flex cursor-not-allowed items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400"
+              className="site-button site-button-secondary inline-flex cursor-not-allowed items-center justify-center text-sm"
             >
               공개 페이지 준비중
             </button>

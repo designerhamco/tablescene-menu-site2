@@ -45,7 +45,7 @@ export default function TemplateShowcase({ service = 'all', presentation = 'cata
           <MarketingSectionCopy
             centered
             inverted={isDisplay}
-            eyebrow={isDisplay ? '대형 화면 전용 템플릿' : '디자이너 템플릿'}
+
             title={isDisplay ? <>매장 화면에 맞춘<br />디스플레이 디자인</> : <>매장의 분위기를 완성하는<br />아티메뉴 템플릿</>}
             body={isDisplay ? '멀리서도 메뉴와 가격이 선명한 화면 구성으로 시작할 수 있습니다.' : '매장 분위기에 맞는 디자인을 선택해 바로 시작할 수 있습니다.'}
             className="max-w-xl"

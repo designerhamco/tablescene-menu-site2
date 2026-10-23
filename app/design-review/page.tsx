@@ -12,7 +12,7 @@ export default function DesignReviewPage() {
     <div className="mt-14 divide-y divide-zinc-200 border-y border-zinc-200">
       {DEFAULT_DESIGN_REVIEWS.map(design => <section key={design.id} className="flex flex-wrap items-center justify-between gap-6 py-10">
         <div><h2 className="type-content-title">{design.label}</h2><p className="mt-2 text-zinc-500">{MENU_LAYOUTS[design.layout].label}</p></div>
-        <Link href={getDefaultDesignReviewUrl(design)} className="rounded-full bg-zinc-950 px-7 py-3 text-sm font-medium text-white">미리보기</Link>
+        <Link href={getDefaultDesignReviewUrl(design)} className="site-button site-button-outline text-sm">미리보기</Link>
       </section>)}
     </div>
     <p className="mt-7 text-sm leading-relaxed text-zinc-500">PC·태블릿·모바일을 전환하며 확인할 수 있습니다. 이미지 영역에는 교체 가능한 예시 이미지를 넣었습니다.</p>

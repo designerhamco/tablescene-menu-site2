@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 
 import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
 import SubscriptionManagementModal from "@/components/mypage/SubscriptionManagementModal";
+import { Badge } from "@/app/components/ui/badge";
 
 export type BillingHistoryEntry = {
   id: string;
@@ -147,13 +148,6 @@ function isInDateRange(value: string | null, from: string, to: string) {
   if (from && dateValue < from) return false;
   if (to && dateValue > to) return false;
   return true;
-}
-
-function getBadgeClassName(tone: BillingHistoryEntry["statusTone"]) {
-  if (tone === "success") return "bg-emerald-50 text-emerald-700 ring-emerald-100";
-  if (tone === "danger") return "bg-red-50 text-red-700 ring-red-100";
-  if (tone === "warning") return "bg-amber-50 text-amber-700 ring-amber-100";
-  return "bg-zinc-100 text-zinc-600 ring-zinc-200";
 }
 
 function FilterSelect({
@@ -383,7 +377,7 @@ function RestoreSubscriptionModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-bold text-white transition-colors hover:bg-zinc-800"
+        className="site-button site-button-primary inline-flex items-center justify-center text-xs"
       >
         구독 관리
       </button>
@@ -401,14 +395,14 @@ function RestoreSubscriptionModal({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 text-lg font-bold text-zinc-500 transition-colors hover:bg-zinc-100"
+                className="site-button site-button-secondary inline-flex w-10 shrink-0 items-center justify-center text-lg"
                 aria-label="복구 안내 닫기"
               >
                 ×
               </button>
             </div>
 
-            <div className="mt-5 rounded-md bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-900">
+            <div className="site-notice site-notice-warning mt-5 p-4 text-sm font-bold leading-relaxed">
               <p>{restore.retentionLabel}</p>
               <p className="mt-2">보관 기간 안에 재구독하면 기존 메뉴판을 다시 사용할 수 있습니다.</p>
               <p className="mt-2">
@@ -460,12 +454,12 @@ function RestoreSubscriptionModal({
               ))}
             </div>
 
-            <div className={`mt-5 rounded-2xl border p-4 text-sm font-bold leading-relaxed ${
+            <div className={`site-notice mt-5   p-4 text-sm font-bold leading-relaxed ${
               preflightState.status === "error" || preflightState.canRestore === false
-                ? "border-red-100 bg-red-50 text-red-700"
+                ? "site-notice-error"
                 : preflightState.status === "loading"
-                  ? "border-zinc-100 bg-zinc-50 text-zinc-600"
-                  : "border-emerald-100 bg-emerald-50 text-emerald-700"
+                  ? " bg-zinc-50 text-zinc-600"
+                  : "site-notice-success"
             }`}>
               <p>{preflightState.message ?? "복구할 구독 상품을 선택해주세요."}</p>
               {preflightState.nextBillingDescription ? (
@@ -477,11 +471,7 @@ function RestoreSubscriptionModal({
               type="button"
               disabled={!canStartRestore}
               onClick={startRestoreCheckout}
-              className={`mt-5 inline-flex w-full items-center justify-center rounded-full px-4 py-3 text-sm font-bold transition-colors ${
-                canStartRestore
-                  ? "bg-zinc-950 text-white hover:bg-zinc-800"
-                  : "border border-zinc-200 bg-zinc-100 text-zinc-400"
-              }`}
+              className="site-button site-button-primary mt-5 w-full"
             >
               {startState.status === "loading"
                 ? "재구독 결제 진행 중"
@@ -491,12 +481,12 @@ function RestoreSubscriptionModal({
             </button>
 
             {startState.message ? (
-              <div className={`mt-3 rounded-2xl border p-4 text-sm font-bold leading-relaxed ${
+              <div className={`site-notice mt-3   p-4 text-sm font-bold leading-relaxed ${
                 startState.status === "error"
-                  ? "border-red-100 bg-red-50 text-red-700"
+                  ? "site-notice-error"
                   : startState.status === "success"
-                    ? "border-emerald-100 bg-emerald-50 text-emerald-700"
-                    : "border-zinc-100 bg-zinc-50 text-zinc-600"
+                    ? "site-notice-success"
+                    : " bg-zinc-50 text-zinc-600"
               }`}>
                 {startState.message}
               </div>
@@ -512,7 +502,7 @@ function RestoreSubscriptionModal({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
+                className="site-button site-button-ghost inline-flex items-center justify-center text-sm"
               >
                 닫기
               </button>
@@ -641,7 +631,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
         </div>
       </div>
 
-      <div className="rounded-md bg-amber-50 p-5 text-sm font-medium leading-relaxed text-amber-900">
+      <div className="site-notice site-notice-warning p-5 text-sm font-medium leading-relaxed">
         <p>월결제와 연결제는 모두 정기결제 상품입니다. 해지 예약 시 다음 결제일부터 자동결제가 중단되며, 이미 결제된 이용 기간까지 계속 사용할 수 있습니다.</p>
         <p className="mt-2">
           연결제 중도해지/환불은 사용 기간을 월결제 기준 금액으로 재정산한 뒤, 잔여 환불 가능액에서 중도해지 수수료 10%를 공제하는 방식으로 안내합니다.
@@ -666,12 +656,12 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h4 className="type-content-title text-zinc-950">{entry.productName}</h4>
-                    <span className={`rounded-full px-4 py-1.5 text-sm font-bold ring-1 ${getBadgeClassName(entry.serviceStatusTone)}`}>
+                    <Badge>
                       {entry.serviceStatusLabel}
-                    </span>
-                    <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">
+                    </Badge>
+                    <Badge>
                       {entry.serviceTypeLabel}
-                    </span>
+                    </Badge>
                   </div>
 
                   <dl className="site-record-details mt-5 grid grid-cols-2 gap-x-5 gap-y-4 text-sm xl:grid-cols-4">
@@ -698,9 +688,9 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
                     <div>
                       <dt className="text-xs font-bold text-zinc-400">결제/환불 상태</dt>
                       <dd className="mt-1">
-                        <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ring-1 ${getBadgeClassName(entry.paymentStatusTone)}`}>
+                        <Badge>
                           {entry.paymentStatusLabel}
-                        </span>
+                        </Badge>
                       </dd>
                     </div>
                     <div>

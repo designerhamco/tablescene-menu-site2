@@ -4,6 +4,7 @@ import {
   type MenuWidgetContentBlockDraft,
 } from "@/lib/menu-widget-editor-draft";
 import type { MenuWidgetDraft } from "@/lib/menu-widgets";
+import { Badge } from "@/app/components/ui/badge";
 
 type MenuWidgetStructureRowProps = {
   block: MenuWidgetContentBlockDraft;
@@ -70,14 +71,12 @@ export default function MenuWidgetStructureRow({
         >
           <DragHandleIcon />
         </button>
-        <span
+        <Badge
           aria-hidden="true"
-          className={`inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-xs font-bold ${
-            selected ? "border-zinc-700 bg-zinc-800 text-zinc-100" : "border-zinc-200 bg-white text-zinc-500"
-          }`}
+
         >
           위젯
-        </span>
+        </Badge>
         <button type="button" onClick={onSelect} className="min-w-0 flex-1 text-left">
           <div className="flex min-w-0 items-center gap-1.5">
             <span className={`min-w-0 truncate text-xs font-bold ${selected ? "text-white" : "text-zinc-700"}`}>{displayName}</span>

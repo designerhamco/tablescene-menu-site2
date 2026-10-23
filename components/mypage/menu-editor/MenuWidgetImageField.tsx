@@ -143,7 +143,7 @@ export default function MenuWidgetImageField({
                 type="button"
                 onClick={() => void removeImage()}
                 disabled={isUploading || isRemoving}
-                className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600 transition hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
               >
                 이미지 제거
               </button>
@@ -153,7 +153,7 @@ export default function MenuWidgetImageField({
             <p className="mt-2 text-xs font-bold text-amber-600">새 이미지가 임시 업로드되었습니다. 최종 저장 전까지는 공개 메뉴판에 반영되지 않습니다.</p>
           )}
           {localError && (
-            <p className="mt-2 break-keep rounded-md bg-red-50 px-3 py-2 text-xs font-bold leading-relaxed text-red-700">{localError}</p>
+            <p className="site-notice site-notice-error mt-2 break-keep px-3 py-2 text-xs font-bold leading-relaxed">{localError}</p>
           )}
         </div>
       </div>

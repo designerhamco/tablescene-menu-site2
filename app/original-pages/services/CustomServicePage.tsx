@@ -436,7 +436,7 @@ const CustomServicePage = () => {
                 </li>
              </ul>
 
-             <Link to="/apply/custom" className="inline-flex px-10 py-4 bg-white text-zinc-900 font-bold rounded-full hover:bg-zinc-200 transition-colors text-lg">
+             <Link to="/apply/custom" className="site-button site-button-secondary inline-flex text-lg">
                 상담 신청하기
              </Link>
            </div>

@@ -250,7 +250,7 @@ export default function MenuPreviewGuide({ device = "tablet", variant = "device"
             />
             오늘 하루 보지 않기
           </label>
-          <button type="button" onClick={closeGuide} autoFocus className="rounded-xl bg-[#F8E731] px-8 py-3 text-sm font-bold text-zinc-950 transition-colors hover:bg-[#ffef55]">닫기</button>
+          <button type="button" onClick={closeGuide} autoFocus className="site-button site-button-ghost">닫기</button>
         </div>
       </div>
     </div>

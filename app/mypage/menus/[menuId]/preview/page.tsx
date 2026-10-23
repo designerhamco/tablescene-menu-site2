@@ -25,6 +25,7 @@ import { type MenuSiteAccessState } from "@/lib/server/menu-site-access-service"
 import { createClient } from "@/lib/supabase/server";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { sortMenuPages } from "@/types/menu";
+import { Badge } from "@/app/components/ui/badge";
 
 type PageProps = {
   params: Promise<{ menuId: string }>;
@@ -84,16 +85,16 @@ function LockedMenuPreview({ menuId, accessState }: { menuId: string; accessStat
           ← 메뉴판 목록으로
         </Link>
         <div className="site-card p-6 sm:p-8">
-          <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">미리보기 제한</span>
+          <Badge>미리보기 제한</Badge>
           <h1 className="type-subsection-title mt-6 text-zinc-950">이 메뉴판은 현재 미리보기할 수 없습니다.</h1>
           <p className="mt-4 break-keep text-base font-bold leading-relaxed text-zinc-600">{message}</p>
           <div className="mt-7 flex flex-wrap gap-3">
             {accessState?.canConvertToBusiness ? (
-              <Link href={`/mypage/menus/${menuId}/convert`} className="rounded-full bg-amber-700 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-amber-800">
-                사업자 플랜으로 전환하고 복구
+              <Link href={`/mypage/menus/${menuId}/convert`} className="site-button site-button-ghost text-sm">
+                구독을 시작하고 복구
               </Link>
             ) : null}
-            <Link href="/mypage?tab=payments&billingTab=deleted" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100">
+            <Link href="/mypage?tab=payments&billingTab=deleted" className="site-button site-button-outline text-sm">
               구독/결제 상태 확인
             </Link>
           </div>

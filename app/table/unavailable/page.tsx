@@ -15,7 +15,7 @@ export default function TableQrUnavailablePage() {
         <p className="mt-4 break-keep text-base font-medium leading-7 text-zinc-600">
           QR이 교체되었거나 테이블 또는 메뉴판 사용이 중지되었을 수 있습니다. 매장 직원에게 새 QR을 요청해 주세요.
         </p>
-        <Link href="/" className="mt-8 w-fit rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white hover:bg-zinc-800">
+        <Link href="/" className="site-button site-button-primary mt-8 w-fit text-sm">
           아티메뉴 홈
         </Link>
       </section>

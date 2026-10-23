@@ -59,7 +59,7 @@ export default function QrAddressActions({
             onClick={copyUrl}
             disabled={disabled}
             title={disabled ? disabledReason ?? undefined : undefined}
-            className="rounded-full border border-zinc-300 bg-white px-4 py-3 text-xs font-bold text-zinc-800 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-50 disabled:text-zinc-400"
+            className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
           >
             {copyStatus === "copied" ? "복사 완료" : copyStatus === "error" ? "다시 복사" : "주소 복사"}
           </button>

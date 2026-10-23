@@ -144,14 +144,13 @@ function StoryVisualFrame({ children }: { children: React.ReactNode }) {
 }
 
 function StorySection({
-  eyebrow,
+
   title,
   body,
   visual,
   reverse = false,
   endOfRegion = false,
 }: {
-  eyebrow: string;
   title: React.ReactNode;
   body: string;
   visual: React.ReactNode;
@@ -166,7 +165,7 @@ function StorySection({
     <section className={`site-gutter bg-transparent text-white ${spacingClass}`}>
       <div className="mx-auto grid max-w-[var(--site-content-width)] items-center gap-12 lg:grid-cols-2 lg:gap-20">
         <motion.div {...fadeUp} className={reverse ? "lg:order-2" : ""}>
-          <MarketingSectionCopy inverted eyebrow={eyebrow} title={title} body={body} className="max-w-xl" />
+          <MarketingSectionCopy inverted  title={title} body={body} className="max-w-xl" />
         </motion.div>
         <div className={reverse ? "lg:order-1" : ""}><StoryVisualFrame>{visual}</StoryVisualFrame></div>
       </div>
@@ -277,15 +276,15 @@ function CustomizationVisual() {
 }
 
 export function ProductHero() {
-  return <StorySection eyebrow="간편한 메뉴 제작" title={<>텍스트 입력만으로<br />완성되는 메뉴판</>} body="메뉴명·설명·가격 입력 즉시 선택한 템플릿에 반영됩니다." visual={<InputSyncVisual />} />;
+  return <StorySection  title={<>텍스트 입력만으로<br />완성되는 메뉴판</>} body="메뉴명·설명·가격 입력 즉시 선택한 템플릿에 반영됩니다." visual={<InputSyncVisual />} />;
 }
 
 export function AutoLayoutSection() {
-  return <StorySection reverse eyebrow="묶음형 or 채움형 배치" title={<>보기 좋은 배치를 위한<br />두 가지 방식</>} body="카테고리 구성에 맞춰 묶음형과 채움형을 전환할 수 있습니다." visual={<LayoutModeVisual />} />;
+  return <StorySection reverse  title={<>보기 좋은 배치를 위한<br />두 가지 방식</>} body="카테고리 구성에 맞춰 묶음형과 채움형을 전환할 수 있습니다." visual={<LayoutModeVisual />} />;
 }
 
 export function CustomizationSection() {
-  return <StorySection eyebrow="자유로운 커스터마이징" title={<>이미지도 내맘대로 변경.<br />글자, 색상도 내맘대로 변경.</>} body="이미지 노출과 교체부터 글자 모양, 배경색까지 자유롭게 설정할 수 있습니다." visual={<CustomizationVisual />} />;
+  return <StorySection  title={<>이미지도 내맘대로 변경.<br />글자, 색상도 내맘대로 변경.</>} body="이미지 노출과 교체부터 글자 모양, 배경색까지 자유롭게 설정할 수 있습니다." visual={<CustomizationVisual />} />;
 }
 
 function TimeSaleVisual() {
@@ -353,8 +352,8 @@ function WidgetVisual() {
 export function SalesAndLanguageSection() {
   return (
     <>
-      <StorySection reverse eyebrow="실시간 타임 세일" title={<>타임 세일로 만드는<br />구매의 순간</>} body="할인 메뉴와 남은 시간을 실시간으로 노출해 혜택을 강조합니다." visual={<TimeSaleVisual />} />
-      <StorySection eyebrow="콘텐츠 위젯" title={<>매장 소식을 강조하는<br />위젯</>} body="추천 메뉴와 신메뉴, 매장 소식을 원하는 위치에 배치할 수 있습니다." visual={<WidgetVisual />} />
+      <StorySection reverse  title={<>타임 세일로 만드는<br />구매의 순간</>} body="할인 메뉴와 남은 시간을 실시간으로 노출해 혜택을 강조합니다." visual={<TimeSaleVisual />} />
+      <StorySection  title={<>매장 소식을 강조하는<br />위젯</>} body="추천 메뉴와 신메뉴, 매장 소식을 원하는 위치에 배치할 수 있습니다." visual={<WidgetVisual />} />
     </>
   );
 }
@@ -443,7 +442,7 @@ export function MultiPageSection() {
   return (
     <StorySection
       reverse
-      eyebrow="스페셜 다이닝 플랜"
+
       title={<>여러 장의 메뉴를<br />한 권처럼</>}
       body="코스·와인·디저트를 페이지별로 나눠 다이닝의 흐름을 구성합니다."
       visual={<MultiPageVisual />}
@@ -496,7 +495,7 @@ export function AiFeaturesSection({ service = "dining", inverted = false }: { se
         <motion.div {...fadeUp} className="site-section-heading mb-14 max-w-3xl">
           <MarketingSectionCopy
             inverted={inverted}
-            eyebrow={isDisplay ? "AI 디스플레이 관리" : "AI 메뉴 관리"}
+
             title={isDisplay ? <>AI로 정리되는<br />매장 화면 콘텐츠</> : <>AI로 정리되는<br />반복 메뉴 작업</>}
           />
         </motion.div>
@@ -548,7 +547,7 @@ export function StoreScenesSection({ service = "dining", inverted = false }: { s
         <motion.div {...fadeUp} className="site-section-heading mb-14 max-w-4xl md:mb-20">
           <MarketingSectionCopy
             inverted={inverted}
-            eyebrow="매장 활용"
+
             title={isDisplay ? <>매장 화면에서 만나는<br />아티메뉴 디스플레이</> : <>매장에서 만나는<br />아티메뉴</>}
           />
         </motion.div>
@@ -636,7 +635,7 @@ export function DeviceEverywhereSection() {
   return (
     <StorySection
       endOfRegion
-      eyebrow="반응형 메뉴판"
+
       title={<>하나의 링크,<br />모든 디바이스에 최적화</>}
       body="PC·태블릿·모바일 화면에 맞춰 같은 메뉴판이 자동 최적화됩니다."
       visual={<DeviceSetVisual />}
@@ -654,7 +653,7 @@ export function ResourceCtaSection({ service = "dining" }: { service?: Marketing
           <div className="relative z-10 mx-auto max-w-2xl">
             <MarketingSectionCopy
               inverted
-              eyebrow={isDisplay ? "디스플레이 가이드" : "아티메뉴 가이드"}
+
               title={isDisplay ? <>매장 메뉴보드 시작을 위한<br />안내</> : <>아티메뉴 시작을 위한<br />안내</>}
               body={isDisplay ? "디스플레이 특징과 매장 화면 연결 방법을 한곳에서 확인할 수 있습니다." : "서비스 특징과 메뉴판 제작 방법을 한곳에서 확인할 수 있습니다."}
               className="max-w-xl"

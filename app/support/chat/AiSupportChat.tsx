@@ -120,7 +120,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
         ))}
         {pending ? <p className="type-label text-zinc-400">답변을 확인하고 있습니다…</p> : null}
         {error ? (
-          <div className="type-label rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800" role="alert">
+          <div className="site-notice site-notice-warning type-label px-4 py-3" role="alert">
             {error} <Link href="/mypage/inquiries" className="underline underline-offset-4">1:1 문의</Link>
           </div>
         ) : null}

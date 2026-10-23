@@ -246,7 +246,7 @@ function getBillingKeyFromIssueResponse(response: unknown) {
 }
 
 function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionResponse) {
-  const baseMessage = result.message ?? "사업자 플랜 전환 결제 처리에 실패했습니다.";
+  const baseMessage = result.message ?? "월 구독 전환 결제 처리에 실패했습니다.";
 
   if (process.env.NODE_ENV === "production") {
     return baseMessage;
@@ -361,7 +361,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
     } catch (error) {
       setVerificationState({
         type: "failed",
-        message: error instanceof Error ? error.message : "사업자 플랜 전환 중 알 수 없는 오류가 발생했습니다.",
+        message: error instanceof Error ? error.message : "월 구독 전환 중 알 수 없는 오류가 발생했습니다.",
       });
     } finally {
       setIsSubmitting(false);
@@ -371,9 +371,9 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <section className="site-section p-7">
-        <h2 className="type-subsection-title">사업자 플랜 선택</h2>
+        <h2 className="type-subsection-title">구독 상품 선택</h2>
         <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-          현재 메뉴판은 아티메뉴 체험 메뉴판입니다. 기존 메뉴판을 그대로 이어서 사용하려면 베이직·다이닝 사업자 플랜으로 전환할 수 있습니다.
+          현재 메뉴판은 아티메뉴 체험 메뉴판입니다. 기존 메뉴판을 그대로 이어서 사용하려면 베이직·다이닝 월 구독으로 전환할 수 있습니다.
           아티메뉴 디스플레이 플랜은 템플릿과 화면 구성이 달라 신규 신청으로 제공될 예정입니다.
         </p>
 
@@ -448,7 +448,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
             onClose={() => setActiveConsent(null)}
           />
         </div>
-        <div className={`mt-6 whitespace-pre-line rounded-2xl border p-4 text-sm font-bold leading-relaxed ${isVerified ? "border-emerald-100 bg-emerald-50 text-emerald-700" : verificationState.type === "failed" ? "border-red-100 bg-red-50 text-red-700" : "border-amber-100 bg-amber-50 text-amber-800"}`}>
+        <div className={`site-notice mt-6 whitespace-pre-line   p-4 text-sm font-bold leading-relaxed ${isVerified ? "site-notice-success" : verificationState.type === "failed" ? "site-notice-error" : "site-notice-warning"}`}>
           {isVerified
             ? "사업자 인증이 완료되었습니다. 빌링키를 발급한 뒤 기존 메뉴판을 이어서 사용할 수 있습니다."
             : verificationState.type === "checking"
@@ -459,7 +459,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
           type="button"
           onClick={startConversionBilling}
           disabled={!isVerified || !requiredConsentsAccepted || isSubmitting}
-          className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
+          className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center text-sm disabled:cursor-not-allowed"
         >
           {isSubmitting ? "정기결제 처리 중..." : isVerified && requiredConsentsAccepted ? "동의하고 유료 전환하기" : "사업자 인증 및 필수 동의 후 진행 가능"}
         </button>
@@ -473,7 +473,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
       <section className="site-section p-7 lg:col-span-2">
         <h2 className="type-subsection-title">사업자 인증</h2>
         <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
-          사업자 플랜 전환은 사업자 정보 확인 후 진행됩니다. 이번 단계에서는 인증만 진행하고, 자동결제 연결은 아직 호출하지 않습니다.
+          사업자 정보를 확인한 뒤 구독 신청을 진행할 수 있습니다. 기존 메뉴판과 입력한 내용은 유지됩니다.
         </p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -489,7 +489,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
             type="button"
             onClick={verifyBusiness}
             disabled={verificationState.type === "checking"}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+            className="site-button site-button-primary inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
           >
             {verificationState.type === "checking" ? <LoadingSpinner className="h-4 w-4" /> : null}
             {verificationState.type === "checking" ? "확인 중..." : "사업자 정보 확인"}

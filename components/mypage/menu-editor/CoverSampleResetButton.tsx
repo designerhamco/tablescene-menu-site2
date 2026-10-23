@@ -71,7 +71,7 @@ export default function CoverSampleResetButton({ formId, sampleDraft }: CoverSam
         }}
         disabled={disabled}
         title={disabled ? "이 템플릿의 커버 이미지 샘플 데이터를 찾을 수 없습니다." : undefined}
-        className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-white hover:text-zinc-950 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-400"
+        className="site-button site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
       >
         커버 샘플로 되돌리기
       </button>
@@ -94,14 +94,14 @@ export default function CoverSampleResetButton({ formId, sampleDraft }: CoverSam
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-600 transition-colors hover:bg-zinc-100"
+                className="site-button site-button-ghost inline-flex items-center justify-center text-sm"
               >
                 취소
               </button>
               <button
                 type="button"
                 onClick={applySampleDraft}
-                className="inline-flex w-full items-center justify-center rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-red-700 sm:w-auto"
+                className="site-button site-button-ghost inline-flex w-full items-center justify-center text-sm sm:w-auto"
               >
                 커버 샘플로 되돌리기
               </button>

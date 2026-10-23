@@ -15,6 +15,7 @@ import {
 
 import { initialCallItemActionState } from "./action-state";
 import { saveCallItemsAction } from "./actions";
+import { Badge } from "@/app/components/ui/badge";
 
 export default function CallItemManager({
   menuSiteId,
@@ -84,7 +85,7 @@ export default function CallItemManager({
           type="button"
           onClick={addItem}
           disabled={pending || draft.length >= MAX_STAFF_CALL_ITEMS}
-          className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-300 bg-white px-4 py-2.5 text-xs font-bold text-zinc-800 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
+          className="site-button site-button-outline inline-flex items-center justify-center gap-2 text-xs disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           항목 추가
@@ -98,7 +99,7 @@ export default function CallItemManager({
         <input type="hidden" name="itemsJson" value={serializedItems} />
         {draft.map((item, index) => (
           <div key={item.key} className="site-section grid gap-3 p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] sm:items-center">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-100 text-xs font-bold text-zinc-600">{index + 1}</span>
+            <Badge>{index + 1}</Badge>
             <label className="text-xs font-bold text-zinc-600">
               항목 이름
               <input
@@ -133,13 +134,13 @@ export default function CallItemManager({
         ))}
 
         {state.status !== "idle" && state.message ? (
-          <p className={`rounded-2xl border px-4 py-3 text-sm font-bold ${state.status === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-rose-200 bg-rose-50 text-rose-800"}`} role="status">
+          <p className={`site-notice   px-4 py-3 text-sm font-bold ${state.status === "success" ? "site-notice-success" : "site-notice-error"}`} role="status">
             {state.message}
           </p>
         ) : null}
 
         <div className="flex justify-end pt-2">
-          <button type="submit" disabled={pending} className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white hover:bg-zinc-800 disabled:cursor-wait disabled:opacity-60">
+          <button type="submit" disabled={pending} className="site-button site-button-primary text-sm disabled:cursor-wait disabled:opacity-60">
             {pending ? "저장 중" : "호출 항목 저장"}
           </button>
         </div>

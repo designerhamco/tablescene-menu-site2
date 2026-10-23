@@ -3,20 +3,17 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "./utils";
+import { getSiteChipTone, type SiteChipTone } from "@/lib/site-chip";
 
 const badgeVariants = cva(
-  "inline-flex min-h-5 items-center justify-center rounded-full border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none overflow-hidden",
+  "site-chip [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none",
   {
     variants: {
       variant: {
-        default:
-          "border-transparent bg-primary text-primary-foreground [a&]:hover:bg-primary/90",
-        secondary:
-          "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
-        destructive:
-          "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
-        outline:
-          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        default: "",
+        secondary: "",
+        destructive: "",
+        outline: "",
       },
     },
     defaultVariants: {
@@ -28,18 +25,27 @@ const badgeVariants = cva(
 function Badge({
   className,
   variant,
+  tone,
+  children,
   asChild = false,
   ...props
 }: React.ComponentProps<"span"> &
-  VariantProps<typeof badgeVariants> & { asChild?: boolean }) {
+  VariantProps<typeof badgeVariants> & { asChild?: boolean; tone?: SiteChipTone }) {
   const Comp = asChild ? Slot : "span";
+  function textOf(node: React.ReactNode): string {
+    if (typeof node === "string" || typeof node === "number") return String(node);
+    if (Array.isArray(node)) return node.map(textOf).join("");
+    if (React.isValidElement<{ children?: React.ReactNode }>(node)) return textOf(node.props.children);
+    return "";
+  }
+  const resolvedTone = tone ?? (variant === "outline" ? "role" : variant === "destructive" ? "error" : getSiteChipTone(textOf(children)));
 
   return (
     <Comp
       data-slot="badge"
-      className={cn(badgeVariants({ variant }), className)}
+      className={cn(badgeVariants({ variant }), `site-chip-${resolvedTone}`, className)}
       {...props}
-    />
+    >{children}</Comp>
   );
 }
 

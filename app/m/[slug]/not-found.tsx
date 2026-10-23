@@ -10,7 +10,7 @@ export default function PublicMenuNotFound() {
         </p>
         <Link
           href="/"
-          className="mt-7 inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
+          className="site-button site-button-primary mt-7 inline-flex items-center justify-center text-sm"
         >
           ArtiMenu로 이동
         </Link>

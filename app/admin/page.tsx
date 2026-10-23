@@ -9,6 +9,7 @@ import type { Database } from "@/lib/supabase/types";
 import { getInquiryCategoryLabel, type InquiryCategory } from "@/lib/inquiries";
 import { getPublicMenuUrl } from "@/lib/menu-url";
 import { getTemplateDisplayName } from "@/lib/templates";
+import { Badge } from "@/app/components/ui/badge";
 
 type SearchParams = Promise<{
   error?: string;
@@ -185,7 +186,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/mypage"
-                className="flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
+                className="site-button site-button-primary flex items-center justify-center text-sm"
               >
                 마이페이지로 이동
               </Link>
@@ -313,7 +314,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
             <Link href="/admin/announcements" className="site-button site-button-secondary">공지사항 관리</Link>
             <Link
               href="/mypage"
-              className="rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-white/80 transition-colors hover:bg-white hover:text-zinc-950"
+              className="site-button site-button-outline text-sm"
             >
               마이페이지
             </Link>
@@ -321,7 +322,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
         </header>
 
         {noticeMessage && (
-          <div className="mb-6 rounded-3xl border border-emerald-400/20 bg-emerald-400/10 p-5 text-sm font-bold text-emerald-100">
+          <div className="site-notice site-notice-success mb-6 p-5 text-sm">
             {noticeMessage}
           </div>
         )}
@@ -387,7 +388,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                         <td className="max-w-[180px] truncate py-4 pr-4 font-mono text-xs text-zinc-400">{site.user_id}</td>
                         <td className="py-4 pr-4 text-xs font-bold text-zinc-500">{getTemplateDisplayName(site.template_key)}</td>
                         <td className="py-4 pr-4">
-                          <span className={`rounded-full px-3 py-1 text-xs font-bold ${getStatusClassName(site.status)}`}>{site.status}</span>
+                          <Badge>{site.status}</Badge>
                         </td>
                         <td className="py-4 text-zinc-500">{formatDate(site.created_at)}</td>
                       </tr>
@@ -421,9 +422,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                   <Link
                     key={filter.value}
                     href={href}
-                    className={`rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
-                      isActive ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-950"
-                    }`}
+                    className={`site-button ${isActive ? "site-button-primary" : "site-button-secondary"}`}
                   >
                     {filter.label}
                   </Link>
@@ -475,9 +474,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                         이전
                       </Link>
                     ) : (
-                      <span className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
+                <button type="button" disabled className="site-button site-button-outline">
                         이전
-                      </span>
+                </button>
                     )}
                     <span className="text-sm font-bold text-zinc-500">
                       {activeInquiryPage}/{inquiryTotalPages}
@@ -490,9 +489,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                         다음
                       </Link>
                     ) : (
-                      <span className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
+                <button type="button" disabled className="site-button site-button-outline">
                         다음
-                      </span>
+                </button>
                     )}
                   </div>
                 </div>
@@ -507,9 +506,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                         <p className="mt-1 text-xs font-medium text-zinc-400">작성일 {formatDate(selectedInquiry.created_at)}</p>
                         <p className="mt-1 text-xs font-medium text-zinc-400">수정일 {formatDate(selectedInquiry.updated_at)}</p>
                       </div>
-                      <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-bold ${getStatusClassName(selectedInquiry.status)}`}>
+                      <Badge>
                         {getInquiryStatusLabel(selectedInquiry.status)}
-                      </span>
+                      </Badge>
                     </div>
 
                     <div className="mb-4 rounded-2xl bg-white p-5">
@@ -614,7 +613,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 }
 
 function AdminError({ message }: { message: string }) {
-  return <div className="mb-5 rounded-2xl border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">{message}</div>;
+  return <div className="site-notice site-notice-error mb-5 p-4 text-sm font-bold">{message}</div>;
 }
 
 function EmptyState({ title, description }: { title: string; description: string }) {

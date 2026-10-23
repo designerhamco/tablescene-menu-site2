@@ -169,7 +169,7 @@ export default function ServicePricingSection({ service }: { service: ServicePri
 
                   <Link
                     to={plan.href}
-                    className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-full bg-zinc-950 px-6 py-4 text-base font-bold text-white transition-colors hover:bg-zinc-800 md:py-5 md:text-lg"
+                    className="site-button site-button-primary mt-auto inline-flex w-full items-center justify-center gap-2 text-base md:py-5 md:text-lg"
                   >
                     {plan.label}로 만들기
                     <ArrowRight className="h-5 w-5" />

@@ -631,11 +631,7 @@
 .darkPage .heroImage {
   background: #252523;
 }
-.darkPage .heroHeading :global(.site-eyebrow),
-.darkShowcase :global(.site-eyebrow),
-.darkPage .usage :global(.site-eyebrow) {
-  color: #c7c9cc;
-}
+
 .darkShowcase :global([data-carousel-playback]) {
   background: #fff;
   color: #15181e;

@@ -9,6 +9,7 @@ import { getPublicPortOneConfig } from "@/lib/portone";
 import { createClient } from "@/lib/supabase/server";
 import { getMenuDesignDisplayName } from "@/lib/menu-design-identity";
 import type { Json } from "@/lib/supabase/types";
+import { Badge } from "@/app/components/ui/badge";
 
 type PageProps = {
   params: Promise<{ menuId: string }>;
@@ -191,9 +192,9 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <div className="mb-6 flex flex-col justify-between gap-4 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
-              <h1 className="type-page-title">사업자 플랜 전환</h1>
+              <h1 className="type-page-title">월 구독 전환</h1>
               <p className="mt-4 break-keep text-base font-bold leading-relaxed text-zinc-500">
-                새 메뉴판을 만들지 않고, 기존 개인 체험 메뉴판을 그대로 이어서 사업자 플랜으로 전환합니다.
+                새 메뉴판을 만들지 않고, 기존 개인 체험 메뉴판을 그대로 이어서 월 구독으로 전환합니다.
               </p>
             </div>
             <Link href="/mypage" className="site-button site-button-secondary">
@@ -207,9 +208,9 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
                 <h2 className="type-subsection-title">{typedMenuSite.name || "이름 없는 메뉴판"}</h2>
                 <p className="mt-2 break-all text-sm font-bold text-zinc-500">{publicUrl}</p>
               </div>
-              <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700 ring-1 ring-amber-100">
+              <Badge>
                 {isPendingDelete ? "복구 가능 기간 종료" : trialInfo.status === "expired" ? "체험 기간 종료" : "개인 체험"}
-              </span>
+              </Badge>
             </div>
             <dl className="mt-6 grid gap-4 md:grid-cols-4">
               <InfoItem label="현재 상태" value={getStatusLabel(typedMenuSite.status)} />
@@ -230,7 +231,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
               <p className="mx-auto mt-3 max-w-2xl break-keep text-sm font-bold leading-relaxed text-amber-800">
                 복구 가능 기간이 종료되었습니다. 데이터 복구 가능 여부는 고객지원으로 문의해주세요.
               </p>
-              <Link href="/mypage/inquiries" className="mt-6 inline-flex items-center justify-center rounded-full bg-amber-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-amber-800">
+              <Link href="/mypage/inquiries" className="site-button site-button-ghost mt-6 inline-flex items-center justify-center text-sm">
                 고객지원 문의
               </Link>
             </section>

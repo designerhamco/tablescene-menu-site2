@@ -234,7 +234,7 @@ export default function OperationalArrivalAlert({
           <button
             type="button"
             onClick={() => setNewCount(0)}
-            className="rounded-full border border-violet-200 bg-white px-4 py-2 text-xs font-bold text-violet-800 hover:bg-violet-100"
+            className="site-button site-button-outline text-xs text-violet-800"
           >
             확인
           </button>

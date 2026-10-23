@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Share2 } from "lucide-react";
-import { useState } from "react";
+import { ChevronLeft, ChevronRight, Heart, Share2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 import styles from "./template-detail.module.css";
+import useTemplateFavorites from "./useTemplateFavorites";
 
 const views = [
   { label: "전체 디자인", position: "center", detail: false },
@@ -23,6 +24,16 @@ export function TemplateDetailShare() {
     }
   }
   return <button type="button" className={`site-button site-button-ghost ${styles.share}`} onClick={share} aria-label="템플릿 링크 복사"><Share2 size={18} aria-hidden="true" /></button>;
+}
+
+export function TemplateDetailActions({ designId, name }: { designId: string; name: string }) {
+  const { favorites, toggle, busy, message } = useTemplateFavorites();
+  const liked = favorites.includes(designId);
+  useEffect(() => { if (message) toast.error(message); }, [message]);
+  return <div className={styles.headingActions} role="group" aria-label="템플릿 좋아요와 공유">
+    <button type="button" className="site-button site-button-ghost site-catalog-heart" aria-label={`${name} 좋아요${liked ? " 취소" : ""}`} aria-pressed={liked} disabled={busy} onClick={() => toggle(designId)}><Heart size={20} strokeWidth={1.7} fill={liked ? "currentColor" : "none"} aria-hidden="true" /></button>
+    <TemplateDetailShare />
+  </div>;
 }
 
 export default function TemplateDetailGallery({ image, name }: { image: string; name: string }) {

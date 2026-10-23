@@ -60,7 +60,7 @@ export default function CoverDraftToggleSection({
           onCheckedChange={setEnabled}
         />
         {hasDraftToggleChange && (
-          <p className="mt-3 break-keep rounded-lg border border-amber-100 bg-amber-50 p-3 text-xs font-bold leading-relaxed text-amber-700">
+          <p className="site-notice site-notice-warning mt-3 break-keep p-3 text-xs font-bold leading-relaxed">
             저장을 눌러야 미리보기와 공개 메뉴판에 반영됩니다.
           </p>
         )}

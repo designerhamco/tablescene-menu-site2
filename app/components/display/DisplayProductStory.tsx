@@ -121,14 +121,13 @@ function StoryVisualFrame({ children }: { children: React.ReactNode }) {
 }
 
 function DisplayDarkStorySection({
-  eyebrow,
+
   title,
   body,
   image,
   reverse = false,
   endOfRegion = false,
 }: {
-  eyebrow: string;
   title: React.ReactNode;
   body: string;
   image: string;
@@ -143,7 +142,7 @@ function DisplayDarkStorySection({
     <section className={`site-gutter bg-transparent text-white ${spacingClass}`}>
       <div className="mx-auto grid max-w-[var(--site-content-width)] items-center gap-12 lg:grid-cols-2 lg:gap-20">
         <motion.div {...fadeUp} className={reverse ? "lg:order-2" : ""}>
-          <MarketingSectionCopy inverted eyebrow={eyebrow} title={title} body={body} className="max-w-xl" />
+          <MarketingSectionCopy inverted  title={title} body={body} className="max-w-xl" />
         </motion.div>
         <div className={reverse ? "lg:order-1" : ""}>
           <StoryVisualFrame>
@@ -158,7 +157,7 @@ function DisplayDarkStorySection({
 export function DisplayPurposeSection() {
   return (
     <DisplayDarkStorySection
-      eyebrow="대형 화면 전용 메뉴판"
+
       title={<>손님이 여는 메뉴판이 아닌<br />매장이 보여주는 화면</>}
       body="카운터 뒤 TV와 매장 모니터에 계속 띄워두는 화면으로, 메뉴와 가격을 한눈에 전달합니다."
       image="https://images.unsplash.com/photo-1556742502-ec7c0e9f34b1?q=85&w=1600&auto=format&fit=crop"
@@ -170,7 +169,7 @@ export function ExistingScreenSection() {
   return (
     <DisplayDarkStorySection
       reverse
-      eyebrow="기존 화면 활용"
+
       title={<>가지고 있는 TV와 모니터의<br />디지털 메뉴보드 전환</>}
       body="스마트 TV 브라우저 또는 노트북·미니 PC·TV 스틱을 연결해 전용 링크를 전체화면으로 사용할 수 있습니다."
       image="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=85&w=1600&auto=format&fit=crop"
@@ -181,7 +180,7 @@ export function ExistingScreenSection() {
 export function ReadabilitySection() {
   return (
     <DisplayDarkStorySection
-      eyebrow="먼 거리 가독성"
+
       title={<>먼저 읽히는 메뉴명과 가격</>}
       body="큰 글씨와 넓은 간격, 명확한 카테고리로 몇 걸음 떨어진 거리에서도 핵심 정보가 선명합니다."
       image="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=85&w=1600&auto=format&fit=crop"
@@ -193,7 +192,7 @@ export function ScreenFitSection() {
   return (
     <DisplayDarkStorySection
       reverse
-      eyebrow="화면 맞춤 구성"
+
       title={<>메뉴 수와 화면에 맞춘<br />보기 좋은 비율</>}
       body="메뉴 개수와 화면 크기에 따라 여백·열 구성·글자 크기를 조정해 가독성을 유지합니다."
       image="https://images.unsplash.com/photo-1556157382-97eda2d62296?q=85&w=1600&auto=format&fit=crop"
@@ -204,7 +203,7 @@ export function ScreenFitSection() {
 export function LiveUpdateSection() {
   return (
     <DisplayDarkStorySection
-      eyebrow="빠른 콘텐츠 수정"
+
       title={<>가격과 품절 상태의<br />빠른 화면 반영</>}
       body="마이페이지에서 메뉴·가격·품절·시즌 안내를 수정하면 새 출력물이나 이미지 작업 없이 화면에 반영됩니다."
       image="https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?q=85&w=1600&auto=format&fit=crop"
@@ -217,7 +216,7 @@ export function DisplayLinkSection() {
     <DisplayDarkStorySection
       reverse
       endOfRegion
-      eyebrow="브라우저 기반 운영"
+
       title={<>링크 하나로 연결되는<br />매장 디스플레이</>}
       body="TV·모니터·노트북·태블릿의 브라우저에서 링크를 열고 전체화면으로 바로 운영할 수 있습니다."
       image="https://images.unsplash.com/photo-1542744094-24638eff58bb?q=85&w=1600&auto=format&fit=crop"

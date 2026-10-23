@@ -16,6 +16,7 @@
 .serviceLabel { color: var(--ui-text-muted); }
 .serviceLabel > span { margin-inline: .4rem; color: var(--ui-border-strong); }
 .share { width: 2.5rem; padding: 0; flex-shrink: 0; }
+.headingActions { display: flex; flex: none; align-items: center; gap: .25rem; }
 .templateDescription { margin-top: .75rem; color: var(--ui-text-muted); }
 .gallery { margin-block: 1.5rem; }
 .galleryImage { position: relative; overflow: hidden; aspect-ratio: 16 / 9; background: var(--ui-surface-muted); border-radius: var(--ui-radius-surface); }

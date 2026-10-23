@@ -136,7 +136,7 @@ export default async function ConsultingApplyPage({
             <input type="hidden" name="serviceType" value={serviceType} />
 
             {errorMessage ? (
-              <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+              <div className="site-notice site-notice-error mb-6 px-4 py-3 text-sm font-semibold">
                 {errorMessage}
               </div>
             ) : null}
@@ -203,7 +203,7 @@ export default async function ConsultingApplyPage({
             <div className="mt-8 flex justify-end">
               <button
                 type="submit"
-                className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-8 py-3 text-sm font-bold text-white transition hover:bg-zinc-800"
+                className="site-button site-button-primary inline-flex items-center justify-center text-sm"
               >
                 {copy.submitLabel}
               </button>

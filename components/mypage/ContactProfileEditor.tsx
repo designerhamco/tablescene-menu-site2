@@ -188,7 +188,7 @@ export default function ContactProfileEditor({
         <button
           type="button"
           onClick={openModal}
-          className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950"
+          className="site-button site-button-outline inline-flex items-center justify-center text-xs"
         >
           담당자 정보 수정
         </button>
@@ -215,7 +215,7 @@ export default function ContactProfileEditor({
                 type="button"
                 onClick={closeWithoutSaving}
                 disabled={isSubmitting}
-                className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-bold text-zinc-600 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="site-button site-button-ghost text-xs disabled:cursor-not-allowed disabled:opacity-60"
               >
                 닫기
               </button>
@@ -276,7 +276,7 @@ export default function ContactProfileEditor({
             </div>
 
             {error ? (
-              <div className="mt-4 break-keep rounded-lg bg-red-50 p-3 text-sm font-bold text-red-700">
+              <div className="site-notice site-notice-error mt-4 break-keep p-3 text-sm font-bold">
                 <p>{error}</p>
                 {debugInfo ? (
                   <p className="mt-2 break-all font-mono text-xs font-semibold text-red-500">
@@ -291,14 +291,14 @@ export default function ContactProfileEditor({
                 type="button"
                 onClick={closeWithoutSaving}
                 disabled={isSubmitting}
-                className="rounded-full border border-zinc-200 px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60"
+                className="site-button site-button-ghost text-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
                 취소
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-400"
+                className="site-button site-button-primary text-sm disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "저장 중..." : "저장"}
               </button>

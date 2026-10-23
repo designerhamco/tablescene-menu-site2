@@ -52,13 +52,13 @@ export default async function SignInPage({
             </div>
 
             {notice && (
-              <div className="mb-6 rounded-md bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">
+              <div className="site-notice site-notice-success mb-6 px-4 py-3 text-sm font-medium">
                 {notice}
               </div>
             )}
 
             {errorMessage && (
-              <div className="mb-6 rounded-md bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+              <div className="site-notice site-notice-error mb-6 px-4 py-3 text-sm font-medium">
                 {errorMessage}
               </div>
             )}

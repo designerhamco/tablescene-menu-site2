@@ -185,7 +185,7 @@ function Showcase({
     >
       <div className="site-container">
         <div className={styles.sectionHeading}>
-          <p className="site-eyebrow">디자인 쇼케이스</p>
+
           <h2 id="showcase-heading" className="type-section-title">
             같은 메뉴도,
             <br />
@@ -231,7 +231,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
       <section className={styles.hero}>
         <div className="site-container">
           <div className={styles.heroHeading}>
-            <p className="site-eyebrow">{copy.eyebrow}</p>
+
             <h1 className="type-page-title">{copy.title}</h1>
             <p className="site-body">{copy.body}</p>
             {service === "display" ? (
@@ -269,7 +269,6 @@ export function MarketingServicePage({ service }: { service: Service }) {
       >
         <div className="site-container">
           <div className={styles.sectionHeading}>
-            <p className="site-eyebrow">{copy.name}의 주요 기능</p>
             <h2 id="feature-heading" className="type-page-title">
               {copy.section}
             </h2>
@@ -364,7 +363,7 @@ export function MarketingHome() {
       <section className={styles.hero}>
         <div className="site-container">
           <div className={styles.heroHeading}>
-            <p className="site-eyebrow">매장의 메뉴에 새로운 가능성</p>
+
             <h1 className="type-display">
               메뉴를 보여주는 순간,
               <br />
@@ -392,7 +391,7 @@ export function MarketingHome() {
       <section className={styles.homeFeatures}>
         <div className="site-container">
           <div className={styles.sectionHeading}>
-            <p className="site-eyebrow">우리 매장만의 커스터마이징</p>
+
             <h2 className="type-section-title">
               메뉴판에도,
               <br />
@@ -406,7 +405,7 @@ export function MarketingHome() {
             {customization.map((feature) => (
               <article key={feature.kind}>
                 <div className={styles.cardCopy}>
-                  <p className="site-eyebrow">{feature.label}</p>
+
                   <h3 className="type-content-title">{feature.title}</h3>
                   <p className="site-body-sm">{feature.body}</p>
                 </div>
@@ -415,7 +414,7 @@ export function MarketingHome() {
             ))}
             <article className={styles.wideCard}>
               <div className={styles.cardCopy}>
-                <p className="site-eyebrow">어디서나 연결</p>
+
                 <h3 className="type-subsection-title">
                   지금 가진 기기로,
                   <br />
@@ -433,7 +432,7 @@ export function MarketingHome() {
       <section className={styles.capabilities}>
         <div className="site-container">
           <div className={styles.sectionHeading}>
-            <p className="site-eyebrow">디자인을 넘어 매장 운영까지</p>
+
             <h2 className="type-section-title">
               메뉴판이 할 수 있는 일,
               <br />
@@ -448,7 +447,7 @@ export function MarketingHome() {
               <article key={feature.kind}>
                 <MarketingVisual kind={feature.kind} />
                 <div className={styles.cardCopy}>
-                  <p className="site-eyebrow">{feature.label}</p>
+
                   <h3 className="type-content-title">{feature.title}</h3>
                   <p className="site-body-sm">{feature.body}</p>
                 </div>
@@ -460,7 +459,7 @@ export function MarketingHome() {
       <section className={styles.pricing} aria-labelledby="pricing-heading">
         <div className="site-container">
           <div className={styles.sectionHeading}>
-            <p className="site-eyebrow">매장에 맞는 시작</p>
+
             <h2 id="pricing-heading" className="type-section-title">
               고르고, 만들고,
               <br />
@@ -473,7 +472,7 @@ export function MarketingHome() {
           <div className={styles.priceGrid}>
             {(["basic", "dining", "display"] as const).map((service, i) => (
               <article key={service}>
-                <p className="site-eyebrow">{serviceCopy[service].eyebrow}</p>
+
                 <h3 className="type-subsection-title">
                   {serviceCopy[service].name}
                 </h3>

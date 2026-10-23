@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Palette } from "lucide-react";
 import { getTemplatePreviewOptionGroups } from "@/lib/template-preview-options";
 import type { DefaultDesignOptionKey, DefaultDesignOptions } from "@/lib/default-design-options";
 import type { PreviewDesign, PreviewDesignDefaults } from "@/lib/menu-preview-design";
@@ -32,8 +32,8 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
         event.preventDefault(); onToggle(); toggle.current?.focus();
       }
     }}>
-    <button ref={toggle} type="button" className={styles.toggle} aria-label={open ? "보기 옵션 닫기" : "보기 옵션 열기"} aria-expanded={open} aria-controls="preview-display-options" data-preview-options-toggle onClick={onToggle}>
-      <span className={styles.label}>보기 옵션</span><span className={styles.count}>{tab === "features" ? `${count}/${choices.length} 선택` : "디자인 미리보기"}</span><ChevronLeft className={styles.chevron} size={16} aria-hidden="true" />
+    <button ref={toggle} type="button" className={styles.toggle} title={open ? "보기 옵션 닫기" : "보기 옵션 열기"} aria-label={open ? "보기 옵션 닫기" : "보기 옵션 열기"} aria-expanded={open} aria-controls="preview-display-options" data-preview-options-toggle onClick={onToggle}>
+      <Palette className={styles.palette} size={22} aria-hidden="true" /><span className={styles.label}>보기 옵션</span><span className={styles.count}>{tab === "features" ? `${count}/${choices.length} 선택` : "디자인 미리보기"}</span><ChevronLeft className={styles.chevron} size={16} aria-hidden="true" />
     </button>
     <div id="preview-display-options" className={styles.body} hidden={!open}>
       <div role="tablist" aria-label="미리보기 옵션 종류" className={styles.tabs}>

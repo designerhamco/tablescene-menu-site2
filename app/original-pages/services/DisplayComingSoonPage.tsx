@@ -6,7 +6,7 @@ export default function DisplayComingSoonPage() {
       className="flex min-h-[75vh] flex-col justify-center bg-white pb-24 pt-36"
     >
       <div className="site-container w-full">
-        <p className="site-eyebrow">디스플레이 플랜 · 준비 중</p>
+
         <h1 className="type-page-title mt-5">
           매장의 큰 화면을 위한
           <br />

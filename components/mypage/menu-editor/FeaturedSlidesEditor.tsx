@@ -156,7 +156,7 @@ export default function FeaturedSlidesEditor({
                       type="button"
                       onClick={() => moveSlide(index, -1)}
                       disabled={index === 0}
-                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-600 disabled:cursor-not-allowed disabled:text-zinc-300"
+                      className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
                     >
                       위로
                     </button>
@@ -164,14 +164,14 @@ export default function FeaturedSlidesEditor({
                       type="button"
                       onClick={() => moveSlide(index, 1)}
                       disabled={index === slides.length - 1}
-                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-600 disabled:cursor-not-allowed disabled:text-zinc-300"
+                      className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
                     >
                       아래로
                     </button>
                     <button
                       type="button"
                       onClick={() => setSlides((current) => normalizeSlides(current.filter((item) => item.id !== slide.id)))}
-                      className="rounded-full border border-red-100 bg-white px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-50"
+                      className="site-button site-button-danger-ghost text-xs"
                     >
                       삭제
                     </button>
@@ -218,7 +218,7 @@ export default function FeaturedSlidesEditor({
               )
             }
             disabled={slides.length >= effectiveMaxSlides}
-            className="rounded-full bg-zinc-950 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
+            className="site-button site-button-primary text-xs disabled:cursor-not-allowed"
           >
             대표 이미지 추가
           </button>

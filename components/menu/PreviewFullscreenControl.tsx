@@ -59,7 +59,7 @@ export default function PreviewFullscreenControl() {
         onClick={toggleFullscreen}
         aria-label={isFullscreen ? "전체화면 종료" : "전체화면으로 보기"}
         title={isFullscreen ? "전체화면 종료" : "전체화면으로 보기"}
-        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-zinc-950/80 px-3.5 text-xs font-bold text-white shadow-lg backdrop-blur transition-colors hover:bg-zinc-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-950"
+        className="site-button site-button-primary inline-flex items-center justify-center gap-2 text-xs backdrop-blur focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-950"
       >
         {isFullscreen ? (
           <Minimize2 className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
