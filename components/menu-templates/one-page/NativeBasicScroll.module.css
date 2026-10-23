@@ -56,14 +56,29 @@
 .board .brand :global(.cafe-a-topline-featured-slot) { display: flex !important; flex-direction: column; height: 100%; }
 /* One shared scroll surface straddles the fixed central panel. Neither track
    is independently scrolled, and keyboard reading order remains contiguous. */
-.board[data-native-shell="brand_center_column"] { grid-template-columns: minmax(0, 1fr); padding-block: 0; }
-.board[data-native-shell="brand_center_column"] > .brand { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); top: 0; bottom: 0; width: calc((100% - 4 * var(--native-gap)) / 3); background: var(--round-focus-panel-bg); padding: var(--native-gap) clamp(.75rem, 1.8vmin, 1.5rem); }
-.board[data-native-shell="brand_center_column"] > .menuPanel { grid-column: 1; padding-block: var(--native-gap); }
-.cornerLanguage { position: absolute; top: 0; left: 0; z-index: 5; }
+.board[data-native-shell="brand_center_column"] {
+  --native-gap: clamp(2rem, 4.2vmin, 4.25rem);
+  grid-template-columns: minmax(0, 1fr);
+}
+.board[data-native-shell="brand_center_column"] > .brand {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  transform: translateX(-50%);
+  top: var(--native-gap);
+  bottom: var(--native-gap);
+  width: calc((100% - 2 * var(--native-gap)) * .24);
+  gap: 1.5rem;
+  background: var(--round-focus-panel-bg);
+  padding: 0;
+}
+.board[data-native-shell="brand_center_column"] > .menuPanel { grid-column: 1; }
+.cornerLanguage { position: relative; z-index: 5; flex: none; width: 100%; height: 2.75rem; }
+.cornerLanguage > :global([data-template-language-control]) { text-align: left; }
 .cornerLanguage :global([data-template-language-control] button[aria-haspopup="menu"]) { width: 2.75rem; height: 2.75rem; padding: 0; }
 .cornerLanguage :global([data-template-language-control] button > svg) { width: 1.5rem; height: 1.5rem; }
-.board[data-native-shell="brand_center_column"] .tracks { column-gap: calc((100% - 2 * var(--native-gap)) / 3 + 2 * var(--native-gap)); }
-.board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-fixed-rail) { background: transparent; padding: 0; }
+.board[data-native-shell="brand_center_column"] .tracks { column-gap: calc((100% - 2 * var(--native-gap)) * .24 + 2 * var(--native-gap)); }
+.board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-fixed-rail) { flex: 1 1 0; height: auto; background: transparent; padding: 0; }
 .board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-round-focus-lower-cluster) { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: .75rem; }
 .board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-round-focus-featured-stack) { flex: 1; min-height: 0; display: flex; }
 .board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-round-focus-footer-cluster) { flex: none; margin-top: auto; }
@@ -71,6 +86,9 @@
 .board[data-native-shell="brand_center_column"] .actions:not([data-call-only="true"]) button { flex: 1 1 0; padding-inline: .375rem; gap: .375rem; }
 @container (max-width: 12rem) {
   .board[data-native-shell="brand_center_column"] .actions:not([data-call-only="true"]) button { flex-direction: column; gap: .125rem; padding-inline: .25rem; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .board[data-native-shell="brand_center_column"] { --native-gap: clamp(1.25rem, 3vmin, 2rem); }
 }
 /* The native ONUE intro remains the first real flow block, with usable space
    below it. It is neither a replacement rail nor a fixed overlay. */
