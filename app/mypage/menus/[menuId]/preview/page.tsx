@@ -1,3 +1,4 @@
+import { buildSavedMenuPreview } from "@/lib/saved-menu-preview";
 import { buildInteractivePreviewConfig } from "@/lib/preview-order-config";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -16,28 +17,17 @@ import {
   normalizeMenuPreviewOrientation,
   shouldUseMenuPreviewDeviceFrame,
   type MenuPreviewQuery,
+  type TemplatePreviewQuery,
 } from "@/lib/menu-preview-devices";
 import { MenuSiteAccessError, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
 import { type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
 import { createClient } from "@/lib/supabase/server";
-import { normalizePcTabletLayoutMode } from "@/lib/menu-layout-modes";
+import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { sortMenuPages } from "@/types/menu";
 
 type PageProps = {
   params: Promise<{ menuId: string }>;
-  searchParams?: Promise<{
-    debugCafeA?: string | string[];
-    device?: string | string[];
-    embedded?: string | string[];
-    lang?: string | string[];
-    orientation?: string | string[];
-    payment?: string | string[];
-    page?: string | string[];
-    view?: string | string[];
-    callPreview?: string | string[];
-    orderPreview?: string | string[];
-    layoutMode?: string | string[];
-  }>;
+  searchParams?: Promise<TemplatePreviewQuery>;
 };
 
 export const metadata: Metadata = {
@@ -139,14 +129,8 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
   const isEmbedded = isActualView && getSearchParamValue(query.embedded) === "1";
   const requestedDevice = getSearchParamValue(query.device);
   const orientation = normalizeMenuPreviewOrientation(getSearchParamValue(query.orientation));
-  const previewQuery: MenuPreviewQuery = {
-    debugCafeA: getSearchParamValue(query.debugCafeA),
-    lang: getSearchParamValue(query.lang),
-    page: getSearchParamValue(query.page),
-    callPreview: getSearchParamValue(query.callPreview),
-    orderPreview: getSearchParamValue(query.orderPreview),
-    layoutMode: getSearchParamValue(query.layoutMode),
-  };
+  const previewQuery = Object.fromEntries(Object.entries(query).map(([key, value]) => [key, getSearchParamValue(value)])) as MenuPreviewQuery;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -167,15 +151,16 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
     throw error;
   }
 
-  const { accessContext, accessState, data } = preview;
+  const { accessContext, accessState, data: savedData } = preview;
   if (accessContext.isOwner && !accessState?.canOwnerPreview) {
     return <LockedMenuPreview menuId={menuId} accessState={accessState} />;
   }
 
-  if (!data || !accessState) {
+  if (!savedData || !accessState) {
     redirect("/mypage?error=menu-preview-not-allowed");
   }
 
+  const { data, design, options, designDefaults } = buildSavedMenuPreview(savedData, query);
   const usesDevicePreviewFrame = shouldUseMenuPreviewDeviceFrame(data.menuSite.template_key);
   const device = normalizeMenuPreviewDevice(requestedDevice, usesDevicePreviewFrame ? "tablet" : "pc");
 
@@ -185,10 +170,12 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
         device={device}
         orientation={orientation}
         menuId={menuId}
-        supportsTabletOrientation={data.menuSite.template_key?.startsWith("dining_")}
+        menuTemplateKey={data.menuSite.template_key ?? undefined}
+        menuDesignId={design?.id}
+        previewDisplayOptions={options}
+        previewDesignDefaults={designDefaults}
         query={previewQuery}
         supportsCallPreview={data.menuSite.template_key !== "display_menu_a"}
-        supportsLayoutPreview={data.menuSite.template_key === "cafe_real_matcha_paged_test" || data.menuSite.template_key === "cafe_design_a"}
       />
     );
   }
@@ -208,7 +195,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       <MenuPageRenderer
         mode="preview"
         previewDevice={isActualView ? getActualMenuPreviewDevice(requestedDevice) : undefined}
-        previewLayoutMode={(data.menuSite.template_key === "cafe_real_matcha_paged_test" || data.menuSite.template_key === "cafe_design_a") && getSearchParamValue(query.layoutMode) ? normalizePcTabletLayoutMode(getSearchParamValue(query.layoutMode)) : undefined}
+        previewLayoutMode={supportsPcTabletLayoutMode(data.menuSite.template_key) && getSearchParamValue(query.layoutMode) ? normalizePcTabletLayoutMode(getSearchParamValue(query.layoutMode), data.menuSite.template_key) : undefined}
         debugCafeA={debugCafeA}
         initialPreviewPageId={getDisplayPreviewInitialPageId(data, requestedPageIndex)}
         orderCallConfig={previewOrderCallConfig}

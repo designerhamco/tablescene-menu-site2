@@ -35,6 +35,8 @@ type MenuPreviewDeviceFrameProps =
       menuId: string;
       query: MenuPreviewQuery;
       templateKey?: never;
+      menuTemplateKey?: string;
+      menuDesignId?: string;
     }
   | {
       device: MenuPreviewDevice;
@@ -42,6 +44,8 @@ type MenuPreviewDeviceFrameProps =
       templateKey: string;
       query: TemplatePreviewQuery;
       menuId?: never;
+      menuTemplateKey?: never;
+      menuDesignId?: never;
     };
 
 const wideOptionsQuery = "(min-width: 960px)";
@@ -101,9 +105,10 @@ export default function MenuPreviewDeviceFrame(
   props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; previewDesignDefaults?: PreviewDesignDefaults; supportsTabletOrientation?: boolean },
 ) {
   const { device, query } = props;
-  const designParam = (query as TemplatePreviewQuery).design;
-  const defaultDesign = props.templateKey ? getDefaultDesignReview(Array.isArray(designParam) ? designParam[0] : designParam, props.templateKey) : undefined;
-  const supportsTabletOrientation = props.supportsTabletOrientation ?? (props.templateKey?.startsWith("dining_") === true || defaultDesign?.itemLayout === "album");
+  const templateKey = props.templateKey ?? props.menuTemplateKey;
+  const designParam = props.menuId ? props.menuDesignId : (query as TemplatePreviewQuery).design;
+  const defaultDesign = templateKey ? getDefaultDesignReview(Array.isArray(designParam) ? designParam[0] : designParam, templateKey) : undefined;
+  const supportsTabletOrientation = props.supportsTabletOrientation ?? (templateKey?.startsWith("dining_") === true || defaultDesign?.itemLayout === "album");
   const orientation = supportsTabletOrientation ? props.orientation : "landscape";
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -129,10 +134,10 @@ export default function MenuPreviewDeviceFrame(
     return () => observer.disconnect();
   }, []);
   const supportsCallPreview =
-    props.supportsCallPreview ?? props.templateKey !== "display_menu_a";
+    props.supportsCallPreview ?? templateKey !== "display_menu_a";
   const supportsOrderPreview =
     props.supportsCallPreview !== false &&
-    props.templateKey !== "display_menu_a";
+    templateKey !== "display_menu_a";
   const orderPreview =
     (Array.isArray(query.orderPreview)
       ? query.orderPreview[0]
@@ -145,15 +150,15 @@ export default function MenuPreviewDeviceFrame(
     call: callPreview,
     order: orderPreview,
   });
-  const supportsLayoutPreview = props.supportsLayoutPreview ?? supportsPcTabletLayoutMode(props.templateKey);
+  const supportsLayoutPreview = props.supportsLayoutPreview ?? supportsPcTabletLayoutMode(templateKey);
   const [displayOptions, setDisplayOptions] = useOptimistic(props.previewDisplayOptions ?? getDefaultDesignOptions(query as TemplatePreviewQuery));
-  const displayGroups = props.templateKey ? getTemplatePreviewOptionGroups(props.templateKey, defaultDesign) : [];
+  const displayGroups = templateKey ? getTemplatePreviewOptionGroups(templateKey, defaultDesign) : [];
   const hasDisplayOptions = displayGroups.length > 0;
   const changeDisplayOption = (key: DefaultDesignOptionKey, enabled: boolean) => {
-    if (!props.templateKey || !hasDisplayOptions) return;
+    if (!hasDisplayOptions) return;
     startTransition(() => {
       setDisplayOptions({ ...displayOptions, [key]: enabled });
-      router.push(buildTemplatePreviewUrl(props.templateKey!, { ...templateQuery, [key]: enabled ? "on" : "off" }, { device, orientation, callPreview: features.call, orderPreview: features.order }), { scroll: false });
+      router.push(buildPreviewUrl({ device, orientation }, { ...templateQuery, [key]: enabled ? "on" : "off" }), { scroll: false });
     });
   };
   const layoutMode = (Array.isArray(query.layoutMode) ? query.layoutMode[0] : query.layoutMode) === "orderedFit" ? "orderedFit" : "orderedBalancedFit";
@@ -170,11 +175,11 @@ export default function MenuPreviewDeviceFrame(
     callPreview?: boolean;
     orderPreview?: boolean;
     layoutMode?: string;
-  }) => {
+  }, nextQuery: TemplatePreviewQuery = templateQuery) => {
     if (typeof props.templateKey === "string") {
       return buildTemplatePreviewUrl(
         props.templateKey,
-        templateQuery as TemplatePreviewQuery,
+        nextQuery as TemplatePreviewQuery,
         {
           callPreview: features.call,
           orderPreview: features.order,
@@ -184,7 +189,7 @@ export default function MenuPreviewDeviceFrame(
     }
 
     if (typeof props.menuId === "string") {
-      return buildMenuPreviewUrl(props.menuId, query as MenuPreviewQuery, {
+      return buildMenuPreviewUrl(props.menuId, nextQuery as MenuPreviewQuery, {
         callPreview: features.call,
         orderPreview: features.order,
         ...options,
@@ -222,11 +227,11 @@ export default function MenuPreviewDeviceFrame(
   });
   const showToolbar = isToolbarOpen;
   const changeDesign = (next: PreviewDesign) => {
-    if (!props.templateKey) return;
+    if (!hasDisplayOptions) return;
     if (serializePreviewDesign(next) === serializePreviewDesign(designOptions)) return;
     startTransition(() => {
       setDesignOptions(next);
-      router.replace(buildTemplatePreviewUrl(props.templateKey!, { ...templateQuery, designPreview: serializePreviewDesign(next), appearanceQa: undefined, albumImageRatio: undefined }, {device, orientation, callPreview:features.call, orderPreview:features.order}), {scroll:false});
+      router.replace(buildPreviewUrl({ device, orientation }, { ...templateQuery, designPreview: serializePreviewDesign(next), appearanceQa: undefined, albumImageRatio: undefined }), {scroll:false});
     });
   };
   const changeOptionsTab = (tab: string) => {
@@ -377,8 +382,8 @@ export default function MenuPreviewDeviceFrame(
             )}
           </button>
         </header>
-        {hasDisplayOptions && props.templateKey ? <MenuPreviewOptionsPanel open={areDisplayOptionsOpen} onToggle={() => setDisplayOptionsOpenOverride(!areDisplayOptionsOpen)} tab={optionsTab} onTabChange={changeOptionsTab}
-          groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} pending={isPending} templateKey={props.templateKey} defaults={props.previewDesignDefaults} design={designOptions} onDesignChange={changeDesign} album={defaultDesign?.itemLayout === "album"} /> : null}
+        {hasDisplayOptions && templateKey ? <MenuPreviewOptionsPanel open={areDisplayOptionsOpen} onToggle={() => setDisplayOptionsOpenOverride(!areDisplayOptionsOpen)} tab={optionsTab} onTabChange={changeOptionsTab}
+          groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} pending={isPending} templateKey={templateKey} defaults={props.previewDesignDefaults} design={designOptions} onDesignChange={changeDesign} album={defaultDesign?.itemLayout === "album"} /> : null}
       </div>
 
       <section

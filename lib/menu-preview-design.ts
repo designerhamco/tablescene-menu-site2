@@ -1,3 +1,4 @@
+import { getDefaultDesignReview } from "./menu-design-policy";
 import { REPRESENTATIVE_ALIGNMENTS, type RepresentativeAlignment } from "./menu-design-surfaces";
 import type { MenuPageData } from "./menu-page-data";
 import { isKoreanFontValue, isEnglishFontValue, getSafeEnglishFontValueForTemplate, type KoreanFontValue, type EnglishFontValue } from "./font-options";
@@ -49,7 +50,8 @@ export function previewDesignDefaults(data: MenuPageData) {
   const key = data.menuSite.template_key;
   const typography = mergeTypographySettings(key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
   const backgrounds = getMenuDesignBackgrounds(key, data.menuSite.page_settings);
-  const neutral = data.menuSite.id.startsWith("default-design-preview-");
+  const savedDesignId = record(data.menuSite.settings).menu_design_id;
+  const neutral = data.menuSite.id.startsWith("default-design-preview-") || Boolean(getDefaultDesignReview(typeof savedDesignId === "string" ? savedDesignId : undefined, key ?? ""));
   const page = backgrounds.page ?? (key === "cafe_mocha_forest_a" ? MOCHA_FOREST_PANEL_COLORS.ivory : !neutral && key === "dining_aube_table_b" ? "#F7F2EA" : getResolvedBackgroundColor(key, data.menuSite.page_settings));
   return {
     fonts: Object.fromEntries(PREVIEW_FONT_GROUPS.map(group => {
@@ -66,7 +68,7 @@ export function previewDesignDefaults(data: MenuPageData) {
 }
 export type PreviewDesignDefaults = ReturnType<typeof previewDesignDefaults>;
 
-/** Catalog-only override adapter. No customer route, save action or database call. */
+/** In-memory preview overrides only. Never saves settings or changes the source data. */
 export function applyPreviewDesign(source: MenuPageData, value: unknown, album: boolean): MenuPageData {
   const overrides = readPreviewDesign(value);
   if (source.menuSite.template_key === "display_menu_a" || !Object.keys(overrides).length) return source;
