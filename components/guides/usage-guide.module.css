@@ -70,13 +70,20 @@
 .videoPlaceholder > span:first-of-type {
   color: var(--ui-text);
 }
+.description {
+  position: relative;
+  min-width: 0;
+  margin: 1.75rem 0 0;
+}
+.descriptionScroll {
+  min-width: 0;
+}
 .articleCopy {
   display: grid;
   gap: 1.25rem;
   min-width: 0;
-  margin: 1.75rem 0 0;
 }
-.articleCopy:focus-visible {
+.descriptionScroll:focus-visible {
   outline: 2px solid var(--ui-focus);
   outline-offset: 3px;
 }
@@ -113,11 +120,15 @@
 .browserControl svg {
   flex-shrink: 0;
 }
-.shortcuts {
+.instructionGroup {
   display: grid;
   gap: 1.25rem;
   padding-top: 1.25rem;
   border-top: 1px solid var(--ui-border);
+}
+.toolbarSteps {
+  display: grid;
+  gap: 0.75rem;
 }
 .shortcutRows {
   display: grid;
@@ -168,6 +179,9 @@
   flex-wrap: wrap;
   gap: 0.25rem;
 }
+.scrollHint {
+  display: none;
+}
 .mobileNote {
   margin: 4rem 0 0;
   text-align: center;
@@ -175,19 +189,44 @@
 @media (min-width: 768px) {
   .article {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     align-items: start;
     gap: 2rem;
   }
-  .articleCopy {
+  .description {
+    margin: 0;
+  }
+  .descriptionScroll {
     max-height: min(38rem, calc(100svh - var(--site-header-height) - 4rem));
     min-height: 0;
-    align-content: start;
-    margin: 0;
     padding-inline: 0.25rem 0.75rem;
     overflow-y: auto;
     overscroll-behavior-y: contain;
     scrollbar-gutter: stable;
+  }
+  .scrollHint {
+    position: absolute;
+    inset: auto 1rem 0 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    height: 4.5rem;
+    padding: 0 0.75rem 0.5rem;
+    background: linear-gradient(to bottom, rgb(255 255 255 / 0), var(--ui-surface) 75%);
+    color: var(--ui-text-muted);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity var(--ui-transition), visibility var(--ui-transition);
+  }
+  .scrollHint > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+  .description[data-scroll-more="true"] .scrollHint {
+    opacity: 1;
+    visibility: visible;
   }
   .articleCopy > h2,
   .articleCopy > p:first-of-type {
@@ -219,6 +258,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .scrollHint {
+    transition: none;
+  }
   :global(html):has(.page) {
     scroll-behavior: auto;
   }

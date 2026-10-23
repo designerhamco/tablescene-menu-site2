@@ -1,7 +1,7 @@
 "use client";
 
-import { Fragment, useState } from "react";
-import { ArrowUpRight, EllipsisVertical, Fullscreen, Minus, Plus, Video } from "lucide-react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import { ArrowUpRight, ChevronDown, EllipsisVertical, Fullscreen, Minus, Plus, Video } from "lucide-react";
 import {
   Tabs,
   TabsList,
@@ -94,8 +94,21 @@ function GuideInstructions({ section }: { section: GuideSection }) {
           </li>
         ))}
       </ol>
+      {section.toolbar && (
+        <div className={styles.instructionGroup}>
+          <h3 className="type-content-title">주소창·툴바 숨기기</h3>
+          {section.toolbar.map((entry) => (
+            <div className={styles.toolbarSteps} key={entry.device}>
+              <h4 className="type-label">{entry.device}</h4>
+              <ol className={styles.steps}>
+                {entry.steps.map((step) => <li className="type-body" key={step}>{step}</li>)}
+              </ol>
+            </div>
+          ))}
+        </div>
+      )}
       {section.shortcuts && (
-        <div className={styles.shortcuts}>
+        <div className={styles.instructionGroup}>
           <h3 className="type-content-title">단축키로 설정</h3>
           <dl className={styles.shortcutRows}>
             {section.shortcuts.map((shortcut) => (
@@ -123,6 +136,74 @@ function GuideInstructions({ section }: { section: GuideSection }) {
           </dl>
         </div>
       )}
+    </div>
+  );
+}
+
+function GuideDescription({ titleId, children }: { titleId: string; children: ReactNode }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [scrollState, setScrollState] = useState({ canScroll: false, hasMore: false });
+
+  useEffect(() => {
+    const scroll = scrollRef.current;
+    const content = contentRef.current;
+    if (!scroll || !content) return;
+
+    let active = true;
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const canScroll = window.matchMedia("(min-width: 768px)").matches &&
+        scroll.scrollHeight > scroll.clientHeight + 1;
+      const hasMore = canScroll && scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop > 2;
+      setScrollState(previous => previous.canScroll === canScroll && previous.hasMore === hasMore
+        ? previous : { canScroll, hasMore });
+    };
+    const schedule = () => {
+      if (active && !frame) frame = requestAnimationFrame(measure);
+    };
+    const observer = new ResizeObserver(schedule);
+    observer.observe(scroll);
+    observer.observe(content);
+    scroll.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    document.fonts.ready.then(schedule);
+    schedule();
+
+    return () => {
+      active = false;
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      scroll.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, []);
+
+  return (
+    <div className={styles.description} data-guide-description-wrapper data-scroll-more={scrollState.hasMore}>
+      <div
+        ref={scrollRef}
+        className={styles.descriptionScroll}
+        data-guide-description
+        role="region"
+        aria-labelledby={titleId}
+        aria-describedby={scrollState.hasMore ? `${titleId}-more` : undefined}
+        tabIndex={scrollState.canScroll ? 0 : -1}
+      >
+        <div ref={contentRef} className={styles.articleCopy}>{children}</div>
+      </div>
+      <div
+        id={`${titleId}-more`}
+        className={styles.scrollHint}
+        data-guide-scroll-hint
+        aria-hidden={!scrollState.hasMore}
+      >
+        <span className="type-label">
+          아래에 내용이 더 있어요
+          <ChevronDown size={16} aria-hidden="true" />
+        </span>
+      </div>
     </div>
   );
 }
@@ -155,13 +236,7 @@ function GuideArticle({
           video={GUIDE_VIDEOS[guideVideoKey(plan, device, browser, section.id)]}
         />
       </div>
-      <div
-        className={styles.articleCopy}
-        data-guide-description
-        role="region"
-        aria-labelledby={`${plan}-${section.id}-title`}
-        tabIndex={0}
-      >
+      <GuideDescription titleId={`${plan}-${section.id}-title`}>
         <h2
           id={`${plan}-${section.id}-title`}
           className="type-subsection-title"
@@ -190,7 +265,7 @@ function GuideArticle({
             ))}
           </div>
         )}
-      </div>
+      </GuideDescription>
     </article>
   );
 }
