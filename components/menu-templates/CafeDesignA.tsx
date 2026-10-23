@@ -3688,11 +3688,13 @@ function HeaderBlock({
   density,
   className = "",
   mobileReading = false,
+  templateSkin,
 }: {
   data: PublicMenuTemplateProps;
   density: MenuLayoutDensity;
   className?: string;
   mobileReading?: boolean;
+  templateSkin?: CafeDesignASkin;
 }) {
   const call = useOnePageCallActions();
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
@@ -3704,8 +3706,8 @@ function HeaderBlock({
   return (
     <header className={`w-full shrink-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-0 lg:border-b lg:border-[#191c1b] lg:px-[var(--board-padding)] lg:py-[var(--board-padding)] ${className}`}>
       {hasLanguageSwitcher || call.enabled ? (
-        <div className={`cafe-a-mobile-language-row ${isRoundFocusSkin(data.templateSkin) ? "cafe-a-corner-language-row" : ""}`} data-cafe-a-mobile-language-row="">
-          {call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} iconOnly menuAlign={isRoundFocusSkin(data.templateSkin) ? "left" : "right"} />} /> : <CafeLanguageHoverControl data={data} className="cursor-default" iconOnly={isRoundFocusSkin(data.templateSkin)} menuAlign={isRoundFocusSkin(data.templateSkin) ? "left" : "right"} />}
+        <div className={`cafe-a-mobile-language-row ${isRoundFocusSkin(templateSkin) ? "cafe-a-corner-language-row" : ""}`} data-cafe-a-mobile-language-row="">
+          {call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} iconOnly menuAlign={isRoundFocusSkin(templateSkin) ? "left" : "right"} />} /> : <CafeLanguageHoverControl data={data} className="cursor-default" iconOnly={isRoundFocusSkin(templateSkin)} menuAlign={isRoundFocusSkin(templateSkin) ? "left" : "right"} />}
         </div>
       ) : null}
       <div className="cafe-a-mobile-header-copy flex min-w-0 items-start gap-[clamp(16px,2vw,32px)]">
@@ -7618,7 +7620,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             </section>
           ) : isRoundFocus ? (
             <section className="cafe-a-round-focus-mobile-brand-section lg:hidden" data-cafe-a-round-focus-mobile-brand-section="">
-              <HeaderBlock data={data} density={density} mobileReading={onePageRhythmMode === "mobile"} />
+              <HeaderBlock data={data} density={density} mobileReading={onePageRhythmMode === "mobile"} templateSkin={data.templateSkin} />
               {shouldRenderMenuCoverSection && (
                 <div className="cafe-a-round-focus-mobile-featured-shell min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)]">
                   <CoverHero
@@ -7635,12 +7637,12 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             </section>
           ) : isMochaForest && onePageRhythmMode === "mobile" ? (
             <section className="cafe-a-mobile-upper-box" data-cafe-a-mobile-upper-box="">
-              <HeaderBlock data={data} density={density} mobileReading />
+              <HeaderBlock data={data} density={density} mobileReading templateSkin={data.templateSkin} />
               {shouldRenderMenuCoverSection && <div className="cafe-a-mobile-upper-featured"><CoverHero data={data} featuredSlides={featuredHeroSlides} capabilities={capabilities} density={density} customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} /></div>}
             </section>
           ) : (
             <>
-              <HeaderBlock data={data} density={density} className="lg:hidden" mobileReading={onePageRhythmMode === "mobile"} />
+              <HeaderBlock data={data} density={density} className="lg:hidden" mobileReading={onePageRhythmMode === "mobile"} templateSkin={data.templateSkin} />
               {isSundayLine ? <SundayLineMobileNotices data={data} capabilities={capabilities} density={density} mobileReading={onePageRhythmMode === "mobile"} /> : null}
             </>
           )}

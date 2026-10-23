@@ -2,7 +2,7 @@
 
 ## Center-column language and service actions — 2026-10-23
 
-ROSY ORANGE uses the shared globe-only language trigger at the page's upper-left, outside the center brand column. Reserve a 44px control row and 12px clearance above the desktop/tablet reading tracks so the menu headings cannot overlap it; open the language list inward from the left edge. Mobile uses the same globe-only trigger and left alignment while preserving its independent Call bar, body rhythm and bottom dock. The trigger follows rendered brand ink and the language list follows category ink, through logo/cover and palette changes.
+ROSY ORANGE uses the shared globe-only language trigger at the upper-left inside its center brand column, matching the neutral center-column list design. The control occupies the column corner without shifting the outer menu tracks, and the language list opens inward from that edge. Mobile uses the same globe-only trigger and left alignment while preserving its independent Call bar, body rhythm and bottom dock. The trigger follows rendered brand ink and the language list follows category ink, through logo/cover and palette changes.
 
 Every active center-column Basic presentation, including the neutral default, places enabled Call/Order actions side by side beneath the representative content. Equal button widths and a compact gap preserve the center rail; narrow rails may place each button's icon above its label without stacking the two buttons or reducing readable type. Call-only native circles retain their existing shape. Existing category-color action palettes, representative geometry, product type sizes and mobile action placement remain unchanged.
 
