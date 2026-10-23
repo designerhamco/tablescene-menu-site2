@@ -195,7 +195,7 @@ function Showcase({
             공간의 분위기에 맞는 디자인을 고르고 나만의 메뉴를 담아보세요.
           </p>
         </div>
-        <TabletTemplateCarousel showControls={false} compact />
+        <TabletTemplateCarousel showControls={false} compact continuous />
         <div className={styles.centerAction}>
           {service === "display" ? (
             <span className={styles.availability}>
@@ -238,7 +238,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
               <p className={styles.availability}>
                 서비스 소개 · 신규 신청 준비 중
               </p>
-            ) : (
+            ) : service === "dining" ? (
               <Link
                 href={`/apply?plan=${service}`}
                 className={`site-button ${dark ? "site-button-secondary" : "site-button-primary"}`}
@@ -246,7 +246,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
                 {copy.name} 디자인 선택
                 <ArrowRight size={16} aria-hidden="true" />
               </Link>
-            )}
+            ) : null}
           </div>
           <div
             className={`${styles.heroImage} ${dark ? styles.diningHeroImage : ""}`}
@@ -270,7 +270,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
         <div className="site-container">
           <div className={styles.sectionHeading}>
             <p className="site-eyebrow">{copy.name}의 주요 기능</p>
-            <h2 id="feature-heading" className="type-section-title">
+            <h2 id="feature-heading" className="type-page-title">
               {copy.section}
             </h2>
             <p className="site-body">
