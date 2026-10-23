@@ -11,7 +11,6 @@
 }
 .heading p,
 .planDescription,
-.preferences > p:last-child,
 .mobileNote {
   color: var(--ui-text-muted);
 }
@@ -35,37 +34,11 @@
   gap: 0.75rem;
   margin-top: 1.75rem;
 }
-.preferences {
-  max-width: 46rem;
-  margin: 3rem auto 0;
-  display: grid;
-  gap: 1rem;
-}
-.fields {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-}
-.fields label {
-  display: grid;
-  gap: 0.5rem;
-  min-width: 0;
-}
-.fields select {
-  width: 100%;
-}
-.jumpLinks {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-block: 1.25rem 3rem;
-}
 .articles {
   display: grid;
   gap: clamp(4rem, 7vw, 7rem);
   max-width: 70rem;
-  margin-inline: auto;
+  margin: 3rem auto 0;
 }
 .article {
   scroll-margin-top: 7rem;
@@ -132,16 +105,6 @@
 }
 @media (max-width: 639px) {
   .heading {
-    margin-bottom: 2rem;
-  }
-  .preferences {
-    margin-top: 2.5rem;
-  }
-  .fields {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .jumpLinks {
-    gap: 0.25rem;
     margin-bottom: 2rem;
   }
   .videoPlaceholder {

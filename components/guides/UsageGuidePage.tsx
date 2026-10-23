@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowDown, ArrowUpRight, Video } from "lucide-react";
+import { ArrowUpRight, Video } from "lucide-react";
 import {
   Tabs,
   TabsList,
@@ -10,12 +10,7 @@ import {
 } from "@/app/components/ui/tabs";
 import {
   GUIDE_PLANS,
-  GUIDE_DEVICES,
-  GUIDE_BROWSER_LABELS,
   GUIDE_VIDEOS,
-  getGuideDevice,
-  getGuideBrowser,
-  getGuideBrowsers,
   getGuideSections,
   guideVideoKey,
   type GuidePlan,
@@ -25,6 +20,9 @@ import {
   type GuideVideo,
 } from "@/lib/usage-guides";
 import styles from "./usage-guide.module.css";
+
+const GUIDE_DEVICE = "windows";
+const GUIDE_BROWSER = "chrome";
 
 function VideoFrame({ title, video }: { title: string; video?: GuideVideo }) {
   if (video)
@@ -127,10 +125,6 @@ export default function UsageGuidePage({
   initialPlan?: GuidePlan;
 }) {
   const [plan, setPlan] = useState<GuidePlan>(initialPlan);
-  const [device, setDevice] = useState<GuideDevice>("windows");
-  const [browser, setBrowser] = useState<GuideBrowser>("chrome");
-  const actualDevice = getGuideDevice(plan, device);
-  const actualBrowser = getGuideBrowser(actualDevice, browser);
 
   return (
     <div className={styles.page} data-usage-guide>
@@ -156,8 +150,8 @@ export default function UsageGuidePage({
           {GUIDE_PLANS.map((entry) => {
             const sections = getGuideSections(
               entry.id,
-              getGuideDevice(entry.id, device),
-              browser,
+              GUIDE_DEVICE,
+              GUIDE_BROWSER,
             );
             return (
               <TabsContent
@@ -185,94 +179,14 @@ export default function UsageGuidePage({
                     추가 가이드 · 준비 중
                   </button>
                 </div>
-                <div className={styles.preferences}>
-                  <p className="type-content-title">
-                    사용 중인 기기와 브라우저
-                  </p>
-                  <div className={styles.fields}>
-                    <label
-                      className="type-label"
-                      htmlFor={`${entry.id}-device`}
-                    >
-                      기기
-                      <select
-                        id={`${entry.id}-device`}
-                        className="site-field"
-                        value={actualDevice}
-                        onChange={(event) => {
-                          const next = event.target.value as GuideDevice;
-                          setDevice(next);
-                          setBrowser(getGuideBrowser(next, browser));
-                        }}
-                      >
-                        {GUIDE_DEVICES.filter(
-                          (item) =>
-                            entry.id !== "display" ||
-                            item.id === "windows" ||
-                            item.id === "mac",
-                        ).map((item) => (
-                          <option key={item.id} value={item.id}>
-                            {item.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                    <label
-                      className="type-label"
-                      htmlFor={`${entry.id}-browser`}
-                    >
-                      브라우저
-                      <select
-                        id={`${entry.id}-browser`}
-                        className="site-field"
-                        value={actualBrowser}
-                        onChange={(event) =>
-                          setBrowser(event.target.value as GuideBrowser)
-                        }
-                      >
-                        {getGuideBrowsers(actualDevice).map((id) => (
-                          <option value={id} key={id}>
-                            {GUIDE_BROWSER_LABELS[id]}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                  <p className="type-body-sm">
-                    삼성 노트북은 Windows PC, 갤럭시 탭은 Android 태블릿을
-                    선택하세요.
-                  </p>
-                </div>
-                <nav
-                  className={styles.jumpLinks}
-                  aria-label={`${entry.label} 가이드 바로가기`}
-                >
-                  {sections.map((section) => (
-                    <a
-                      key={section.id}
-                      href={`#${entry.id}-${section.id}`}
-                      className="site-button site-button-ghost type-label"
-                    >
-                      {section.id === "fullscreen"
-                        ? "전체 화면·주소창"
-                        : section.id === "zoom"
-                          ? "메뉴판 크기 조정"
-                          : "화면 연결"}
-                      <ArrowDown size={14} aria-hidden="true" />
-                    </a>
-                  ))}
-                </nav>
-                <div
-                  className={styles.articles}
-                  key={`${actualDevice}-${actualBrowser}`}
-                >
+                <div className={styles.articles}>
                   {sections.map((section) => (
                     <GuideArticle
                       key={section.id}
                       section={section}
                       plan={entry.id}
-                      device={actualDevice}
-                      browser={actualBrowser}
+                      device={GUIDE_DEVICE}
+                      browser={GUIDE_BROWSER}
                     />
                   ))}
                 </div>
