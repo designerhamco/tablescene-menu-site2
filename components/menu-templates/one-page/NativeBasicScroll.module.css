@@ -58,8 +58,8 @@
    is independently scrolled, and keyboard reading order remains contiguous. */
 .board[data-native-shell="brand_center_column"] { grid-template-columns: minmax(0, 1fr); padding-block: 0; }
 .board[data-native-shell="brand_center_column"] > .brand { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); top: 0; bottom: 0; width: calc((100% - 4 * var(--native-gap)) / 3); background: var(--round-focus-panel-bg); padding: var(--native-gap) clamp(.75rem, 1.8vmin, 1.5rem); }
-.board[data-native-shell="brand_center_column"] > .menuPanel { grid-column: 1; padding-block: calc(var(--native-gap) + 2.75rem + .75rem) var(--native-gap); }
-.cornerLanguage { position: absolute; top: var(--native-gap); left: var(--native-gap); z-index: 5; }
+.board[data-native-shell="brand_center_column"] > .menuPanel { grid-column: 1; padding-block: var(--native-gap); }
+.cornerLanguage { position: absolute; top: 0; left: 0; z-index: 5; }
 .cornerLanguage :global([data-template-language-control] button[aria-haspopup="menu"]) { width: 2.75rem; height: 2.75rem; padding: 0; }
 .cornerLanguage :global([data-template-language-control] button > svg) { width: 1.5rem; height: 1.5rem; }
 .board[data-native-shell="brand_center_column"] .tracks { column-gap: calc((100% - 2 * var(--native-gap)) / 3 + 2 * var(--native-gap)); }
