@@ -39,14 +39,15 @@ export const MENU_PREVIEW_PAYMENT_MODES = {
 
 export type MenuPreviewPaymentMode = keyof typeof MENU_PREVIEW_PAYMENT_MODES;
 
-export type MenuPreviewQuery = {
-  debugCafeA?: string;
-  lang?: string;
-  page?: string;
-  callPreview?: string;
-  orderPreview?: string;
-  layoutMode?: string;
-};
+const MENU_PREVIEW_QUERY_KEYS = [
+  "lang", "page", "debugCafeA", "callPreview", "orderPreview", "layoutMode",
+  "designPreview", "previewOptions", "albumImageRatio", "logoPreview", "popupPreview",
+  "coverImagesPreview", "widgetsPreview", "coverPreview", "featuredPreview", "imagesPreview",
+  "categoryDescriptionsPreview", "secondaryNamesPreview", "descriptionsPreview", "badgesPreview",
+  "priceOptionsPreview", "priceNotesPreview", "timeSalesPreview", "soldOutPreview",
+] as const;
+
+export type MenuPreviewQuery = Partial<Record<typeof MENU_PREVIEW_QUERY_KEYS[number], string>>;
 
 export type TemplatePreviewQuery = Record<string, string | string[] | undefined>;
 
@@ -98,7 +99,8 @@ export function buildMenuPreviewUrl(
 ) {
   const searchParams = new URLSearchParams();
 
-  for (const key of ["lang", "page", "debugCafeA", "callPreview", "orderPreview", "layoutMode"] as const) {
+  for (const key of MENU_PREVIEW_QUERY_KEYS) {
+    if (key === "previewOptions" && options.actual) continue;
     const value = query[key];
     if (value) searchParams.set(key, value);
   }
