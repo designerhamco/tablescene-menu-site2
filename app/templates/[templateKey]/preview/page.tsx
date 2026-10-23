@@ -7,6 +7,7 @@ import { applyPreviewDesign, previewDesignDefaults } from "@/lib/menu-preview-de
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
+import PreviewFullscreenControl from "@/components/menu/PreviewFullscreenControl";
 import previewDisplayStyles from "@/components/menu/template-preview-display.module.css";
 import defaultDesignStyles from "@/components/menu-templates/defaults/DefaultDesignPreview.module.css";
 import DefaultDesignScope from "@/components/menu-templates/defaults/DefaultDesignScope";
@@ -99,6 +100,7 @@ type PageProps = {
     orientation?: string | string[];
     view?: string | string[];
     embedded?: string | string[];
+    detached?: string | string[];
   }>;
 };
 
@@ -1520,6 +1522,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   );
   const orientation = normalizeMenuPreviewOrientation(getFirstParam(resolvedSearchParams.orientation));
   const isActualView = getFirstParam(resolvedSearchParams.view) === "actual";
+  const isDetachedView = isActualView && getFirstParam(resolvedSearchParams.detached) === "1";
   const inferRhythmDevice = process.env.NODE_ENV !== "production" && usesOnePageProportionPolicy(templateKey) && getFirstParam(resolvedSearchParams.rhythmQa) === "public";
 
   const fixtureData = applyPreviewFontSizeScale(
@@ -1605,7 +1608,9 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
       {templateKey === "display_menu_a" && !isActualView ? <MenuPreviewGuide variant="display" /> : null}
     </>
   );
-  return defaultDesign ? <DefaultDesignScope layout={defaultDesign.layout} itemLayout={defaultDesign.itemLayout}><div className={defaultDesignStyles.surface} data-default-design={defaultDesign.id} data-menu-item-layout={defaultDesign.itemLayout}>{preview}</div></DefaultDesignScope> : templateKey !== "display_menu_a" ? <div className={previewDisplayStyles.surface}
+  const renderedPreview = defaultDesign ? <DefaultDesignScope layout={defaultDesign.layout} itemLayout={defaultDesign.itemLayout}><div className={defaultDesignStyles.surface} data-default-design={defaultDesign.id} data-menu-item-layout={defaultDesign.itemLayout}>{preview}</div></DefaultDesignScope> : templateKey !== "display_menu_a" ? <div className={previewDisplayStyles.surface}
     data-preview-secondary={getTemplatePreviewOptionOverride(resolvedSearchParams, "secondaryNamesPreview") === true ? "on" : undefined}
     data-preview-category-description={getTemplatePreviewOptionOverride(resolvedSearchParams, "categoryDescriptionsPreview") === true ? "on" : undefined}>{preview}</div> : preview;
+
+  return <>{renderedPreview}{isDetachedView ? <PreviewFullscreenControl /> : null}</>;
 }

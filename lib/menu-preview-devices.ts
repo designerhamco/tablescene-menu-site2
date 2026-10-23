@@ -91,6 +91,7 @@ export function buildMenuPreviewUrl(
     orientation?: MenuPreviewOrientation;
     paymentMode?: MenuPreviewPaymentMode;
     embedded?: boolean;
+    detached?: boolean;
     actual?: boolean;
     callPreview?: boolean;
     orderPreview?: boolean;
@@ -124,6 +125,7 @@ export function buildMenuPreviewUrl(
   if (options.actual) searchParams.set("view", "actual");
 
   if (options.embedded) searchParams.set("embedded", "1");
+  if (options.detached) searchParams.set("detached", "1");
 
   const queryString = searchParams.toString();
   const pathname = `/mypage/menus/${encodeURIComponent(menuId)}/preview`;
@@ -181,6 +183,7 @@ export function buildTemplatePreviewUrl(
     device?: MenuPreviewDevice;
     orientation?: MenuPreviewOrientation;
     embedded?: boolean;
+    detached?: boolean;
     actual?: boolean;
     callPreview?: boolean;
     orderPreview?: boolean;
@@ -211,6 +214,7 @@ export function buildTemplatePreviewUrl(
   }
   if (options.actual) searchParams.set("view", "actual");
   if (options.embedded) searchParams.set("embedded", "1");
+  if (options.detached) searchParams.set("detached", "1");
 
   const queryString = searchParams.toString();
   const pathname = `/templates/${encodeURIComponent(getTemplatePreviewRouteKey(templateKey))}/preview`;
