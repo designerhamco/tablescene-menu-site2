@@ -302,8 +302,28 @@ const Navbar = () => {
           </div>
 
           <div className={`z-50 flex shrink-0 items-center ${styles.actions}`} data-site-header-actions>
+            {!authState.loading ? (
+              <Link
+                href={accountCtaHref}
+                className={`type-nav ${styles.accountLink}`}
+                data-site-header-account
+              >
+                {accountCtaLabel}
+              </Link>
+            ) : null}
+            {showStoreOperations ? (
+              <Link
+                href="/mypage/operations"
+                aria-current={pathname.startsWith('/mypage/operations') ? 'page' : undefined}
+                className={`type-nav ${styles.accountLink}`}
+                data-site-header-operations
+              >
+                매장 운영
+              </Link>
+            ) : null}
             {authState.isAuthenticated ? (
               <div className={styles.notificationGroup}>
+                <span className={styles.accountDivider} aria-hidden="true" />
                 <div ref={notificationLayerRef} className="relative">
                   <button
                     type="button"
@@ -354,27 +374,7 @@ const Navbar = () => {
                     </div>
                   ) : null}
                 </div>
-                <span className={styles.accountDivider} aria-hidden="true" />
               </div>
-            ) : null}
-            {!authState.loading ? (
-              <Link
-                href={accountCtaHref}
-                className={`type-nav ${styles.accountLink}`}
-                data-site-header-account
-              >
-                {accountCtaLabel}
-              </Link>
-            ) : null}
-            {showStoreOperations ? (
-              <Link
-                href="/mypage/operations"
-                aria-current={pathname.startsWith('/mypage/operations') ? 'page' : undefined}
-                className={`type-nav ${styles.accountLink}`}
-                data-site-header-operations
-              >
-                매장 운영
-              </Link>
             ) : null}
             <Link
               href="/apply"
