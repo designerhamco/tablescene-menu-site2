@@ -9,14 +9,15 @@ import type { MenuTableListItem } from "@/lib/menu-table-management";
 
 import { initialMenuTableActionState, type MenuTableActionState } from "./action-state";
 import { createMenuTableAction, mutateMenuTableAction } from "./actions";
+import { Badge } from "@/app/components/ui/badge";
 
 function ActionNotice({ state }: { state: MenuTableActionState }) {
   if (state.status === "idle" || !state.message) return null;
   return (
-    <p className={`rounded-2xl border px-4 py-3 text-sm font-bold ${
+    <p className={`site-notice   px-4 py-3 text-sm font-bold ${
       state.status === "success"
-        ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-        : "border-rose-200 bg-rose-50 text-rose-800"
+        ? "site-notice-success"
+        : "site-notice-error"
     }`}>
       {state.message}
     </p>
@@ -89,7 +90,7 @@ export default function MenuTableManager({
           <button
             type="submit"
             disabled={createPending}
-            className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-wait disabled:opacity-60"
+            className="site-button site-button-primary text-sm disabled:cursor-wait disabled:opacity-60"
           >
             {createPending ? "생성 중" : "테이블 만들기"}
           </button>
@@ -117,11 +118,9 @@ export default function MenuTableManager({
                   마지막 QR 교체 {formatKoreanDateTime(table.tokenRotatedAt)}
                 </p>
               </div>
-              <span className={`w-fit rounded-full px-3 py-1 text-xs font-bold ${
-                table.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-zinc-100 text-zinc-600"
-              }`}>
+              <Badge>
                 {table.status === "active" ? "사용 중" : "비활성"}
-              </span>
+              </Badge>
             </div>
 
             <QrAddressActions
@@ -148,7 +147,7 @@ export default function MenuTableManager({
                   <option value="disabled">비활성</option>
                 </select>
               </label>
-              <button name="intent" value="update" disabled={mutationPending} className="rounded-full border border-zinc-300 bg-white px-5 py-3 text-sm font-bold text-zinc-800 hover:bg-zinc-100 disabled:opacity-60">
+              <button name="intent" value="update" disabled={mutationPending} className="site-button site-button-outline text-sm disabled:opacity-60">
                 저장
               </button>
             </form>
@@ -157,14 +156,14 @@ export default function MenuTableManager({
               <form action={mutationAction}>
                 <input type="hidden" name="menuSiteId" value={menuSiteId} />
                 <input type="hidden" name="tableId" value={table.id} />
-                <button name="intent" value="rotate-token" disabled={mutationPending} title="기존에 인쇄한 QR과 방문 세션이 즉시 무효화됩니다." className="rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-bold text-amber-900 hover:bg-amber-100 disabled:opacity-60">
+                <button name="intent" value="rotate-token" disabled={mutationPending} title="기존에 인쇄한 QR과 방문 세션이 즉시 무효화됩니다." className="site-button site-button-ghost text-xs disabled:opacity-60">
                   QR 교체
                 </button>
               </form>
               <form action={mutationAction}>
                 <input type="hidden" name="menuSiteId" value={menuSiteId} />
                 <input type="hidden" name="tableId" value={table.id} />
-                <button name="intent" value="archive" disabled={mutationPending} className="rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-500 hover:bg-zinc-100 disabled:opacity-60">
+                <button name="intent" value="archive" disabled={mutationPending} className="site-button site-button-outline text-xs disabled:opacity-60">
                   테이블 보관
                 </button>
               </form>

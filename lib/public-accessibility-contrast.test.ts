@@ -28,7 +28,7 @@ test("auth consent and compact product previews avoid low-opacity essential copy
 
   assert.match(oauth, /text-xs font-bold text-zinc-600/);
   assert.match(signUp, /text-xs font-bold text-zinc-600/);
-  assert.match(consent, /text-xs font-bold text-zinc-600/);
+  assert.match(consent, /site-button-ghost/);
   assert.doesNotMatch(productStory, /text-black\/35|text-black\/40/);
 });
 

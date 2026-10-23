@@ -11,6 +11,7 @@ import {
   publicBasicProducts,
 } from "@/lib/public-product-details";
 import { getDiningProductTier, getDiningTierLabel } from "@/lib/dining-product-tiers";
+import { Badge } from "@/app/components/ui/badge";
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
@@ -54,9 +55,9 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
           <header className="mt-7 grid gap-8 site-section p-7 md:grid-cols-[1fr_320px] md:p-10">
             <div>
-              <span className="inline-flex rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">
+              <Badge>
                 베이직·다이닝
-              </span>
+              </Badge>
               <h1 className="type-page-title mt-5">{product.shortName}</h1>
               <p className="site-body mt-5 max-w-2xl text-zinc-600">
                 {product.summary}
@@ -71,7 +72,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <p className="mt-3 text-sm font-semibold text-zinc-400">디자인 포함 월 {formatProductPrice(product.designPrice)} · 정상가 {formatProductPrice(product.designRegularPrice)}</p>
               <Link
                 href={purchaseHref}
-                className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-white px-5 py-4 text-sm font-bold text-zinc-950 transition hover:bg-zinc-100"
+                className="site-button site-button-secondary mt-6 inline-flex w-full items-center justify-center text-sm"
               >
                 이 상품 신청하기
               </Link>

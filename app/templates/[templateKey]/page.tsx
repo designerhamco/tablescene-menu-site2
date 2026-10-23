@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowUpRight, Check, ChevronRight } from "lucide-react";
 
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
-import TemplateDetailGallery, { TemplateDetailShare } from "@/components/templates/TemplateDetailGallery";
+import TemplateDetailGallery, { TemplateDetailActions } from "@/components/templates/TemplateDetailGallery";
 import TemplateDetailStory from "@/components/templates/TemplateDetailStory";
 import TemplateDetailSidebar from "@/components/templates/TemplateDetailSidebar";
 import styles from "@/components/templates/template-detail.module.css";
@@ -37,7 +37,7 @@ export default async function TemplateDetailPage({ params }: Props) {
         <div className={styles.layout}>
           <TemplateDetailSidebar
             heading={<>
-              <div className={styles.sidebarHeading}><span className={`type-caption ${styles.serviceLabel}`}>{info.serviceLabel} <span> / </span> {template.categoryLabel}</span><TemplateDetailShare /></div>
+              <div className={styles.sidebarHeading}><span className={`type-caption ${styles.serviceLabel}`}>{info.serviceLabel} <span> / </span> {template.categoryLabel}</span><TemplateDetailActions designId={template.key} name={template.name} /></div>
               <h1 className="type-page-title">{template.name}</h1>
               <p className={`type-body-sm ${styles.templateDescription}`}>{template.description}</p>
             </>}

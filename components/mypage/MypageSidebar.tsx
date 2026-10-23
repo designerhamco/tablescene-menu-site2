@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { signOutAction } from "@/app/auth/actions";
 import { formatNotificationBadgeCount } from "@/lib/notification-display-policy";
+import { Badge } from "@/app/components/ui/badge";
 
 export type MypageNavigationKey =
   | "menus"
@@ -53,18 +54,16 @@ export function MypageAccountCard({
           <h2 className="type-content-title min-w-0 truncate" title={email}>{email}</h2>
           {roleLabel ? (
             <div className="mt-2 flex flex-wrap gap-2" aria-label="계정 역할">
-              <span
-                className={roleLabel === "사장"
-                  ? "rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800"
-                  : "rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700"}
+              <Badge
+
               >
                 {roleLabel}
-              </span>
+              </Badge>
             </div>
           ) : null}
         </div>
         <form action={signOutAction}>
-          <button type="submit" className="site-button site-button-secondary site-button-sm site-account-signout">
+          <button type="submit" className="site-button site-button-ghost site-button-sm site-account-signout">
             로그아웃
           </button>
         </form>

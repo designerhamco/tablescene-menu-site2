@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Tablet, Smartphone } from 'lucide-react';
+import { Badge } from "@/app/components/ui/badge";
 // import { SmartWaitingUI } from './preview-ui/SmartWaitingUI'; // Not used
 
 const TABS = ['PRO', 'DINING'];
@@ -98,22 +99,14 @@ const Portfolio = () => {
              <div className="bg-zinc-100 p-1 rounded-full border border-zinc-200 flex items-center">
                 <button
                     onClick={() => setDeviceMode('tablet')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${
-                        deviceMode === 'tablet' 
-                        ? 'bg-white text-black shadow-md' 
-                        : 'text-zinc-500 hover:text-zinc-700'
-                    }`}
+                    className={`site-button ${deviceMode === 'tablet' ? "site-button-primary" : "site-button-secondary"}`} aria-pressed={deviceMode === 'tablet'}
                 >
                     <Tablet className="w-4 h-4" />
                     PC・Tablet
                 </button>
                 <button
                     onClick={() => setDeviceMode('mobile')}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all ${
-                        deviceMode === 'mobile' 
-                        ? 'bg-white text-black shadow-md' 
-                        : 'text-zinc-500 hover:text-zinc-700'
-                    }`}
+                    className={`site-button ${deviceMode === 'mobile' ? "site-button-primary" : "site-button-secondary"}`} aria-pressed={deviceMode === 'mobile'}
                 >
                     <Smartphone className="w-4 h-4" />
                     Mobile
@@ -189,9 +182,9 @@ const Portfolio = () => {
                         {/* Label only if features exist */}
                         {currentFeatures.length > 0 && (
                             <div className="absolute bottom-6 left-0 right-0 text-center pointer-events-none z-20">
-                                <span className="inline-block px-3 py-1 rounded-full bg-black/40 backdrop-blur-md text-[10px] font-bold tracking-widest uppercase text-white/90 border border-white/10">
+                                <Badge>
                                     {currentFeature?.text}
-                                </span>
+                                </Badge>
                             </div>
                         )}
                     </motion.div>

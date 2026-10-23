@@ -370,7 +370,7 @@ export default function TypographySettingsForm({
                 <button
                   type="button"
                   onClick={() => setSelectedRoleSettings(createDefaultTypographyRoleSettings())}
-                  className="inline-flex shrink-0 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-bold text-zinc-600 transition hover:border-zinc-400 hover:bg-white hover:text-zinc-950"
+                  className="site-button site-button-outline inline-flex shrink-0 items-center justify-center text-xs"
                 >
                   글자 설정 초기화
                 </button>

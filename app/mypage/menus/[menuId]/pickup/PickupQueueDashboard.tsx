@@ -10,6 +10,7 @@ import {
   transitionPickupQueueAction,
   type PickupQueueActionState,
 } from "./actions";
+import { Badge } from "@/app/components/ui/badge";
 
 const initialPickupQueueActionState: PickupQueueActionState = {
   status: "idle",
@@ -88,7 +89,7 @@ export default function PickupQueueDashboard({
           </button>
         </form>
         {createState.message ? (
-          <p className={createState.status === "error" ? "mt-3 text-sm font-bold text-red-600" : "mt-3 text-sm font-bold text-emerald-700"} role="status">
+          <p className={createState.status === "error" ? "site-notice site-notice-error mt-3 p-3" : "site-notice site-notice-success mt-3 p-3"} role="status">
             {createState.message}
           </p>
         ) : null}
@@ -145,12 +146,10 @@ function QueueEntryRow({ menuSiteId, entry }: { menuSiteId: string; entry: Picku
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
           <span className="min-w-14 text-3xl font-bold tabular-nums">{entry.queueNumber}</span>
-          <span className={entry.status === "ready"
-            ? "rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-800"
-            : "rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600"}
+          <Badge
           >
             {STATUS_LABELS[entry.status]}
-          </span>
+          </Badge>
         </div>
         <form action={action} className="flex gap-2">
           <input type="hidden" name="menuSiteId" value={menuSiteId} />
@@ -176,7 +175,7 @@ function QueueEntryRow({ menuSiteId, entry }: { menuSiteId: string; entry: Picku
         </form>
       </div>
       {state.message ? (
-        <p className={state.status === "error" ? "mt-2 text-xs font-bold text-red-600" : "mt-2 text-xs font-bold text-emerald-700"} role="status">
+        <p className={state.status === "error" ? "site-notice site-notice-error mt-2 p-3" : "site-notice site-notice-success mt-2 p-3"} role="status">
           {state.message}
         </p>
       ) : null}

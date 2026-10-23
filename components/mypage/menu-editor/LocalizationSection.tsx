@@ -26,6 +26,7 @@ import type {
 import { AI_FEATURE_CREDIT_COSTS } from "@/lib/ai-credits";
 import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { getLocalizationSaveMode } from "@/lib/menu-localization-save-mode";
+import { Badge } from "@/app/components/ui/badge";
 
 type TranslationJob = {
   status: string;
@@ -182,7 +183,7 @@ function TranslationPendingMessage({ pending }: { pending?: boolean }) {
   if (!pending) return null;
 
   return (
-    <p className="mt-3 break-keep rounded-lg bg-amber-50 p-3 text-xs font-bold leading-relaxed text-amber-700">
+    <p className="site-notice site-notice-warning mt-3 break-keep p-3 text-xs font-bold leading-relaxed">
       AI가 메뉴판 전체를 번역하고 있습니다. 메뉴 수에 따라 1~3분 정도 걸릴 수 있으니 페이지를 닫거나 새로고침하지 말아주세요.
     </p>
   );
@@ -234,14 +235,6 @@ function getLocaleTranslationStateLabel(state: LocaleTranslationState) {
   if (state.status === "failed") return "실패";
   if (state.status === "skipped") return "최신 상태";
   return "번역 전";
-}
-
-function getLocaleTranslationStateTone(state: LocaleTranslationState) {
-  if (state.status === "running") return "border-amber-100 bg-amber-50 text-amber-700";
-  if (state.status === "success") return "border-emerald-100 bg-emerald-50 text-emerald-700";
-  if (state.status === "failed") return "border-red-100 bg-red-50 text-red-700";
-  if (state.status === "skipped") return "border-zinc-100 bg-zinc-50 text-zinc-500";
-  return "border-zinc-100 bg-white text-zinc-400";
 }
 
 const defaultTranslationTargetLabels: Record<TranslationTargetGroup, string> = {
@@ -358,7 +351,7 @@ function TranslationEditorGroup({
                     type="button"
                     disabled={Boolean(pendingPartialEntityKey) || isPartialUsageExceeded}
                     onClick={() => onPartialTranslate(group.fields)}
-                    className="inline-flex items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-bold text-zinc-700 transition-colors hover:border-zinc-400 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                    className="site-button site-button-outline inline-flex items-center justify-center gap-1.5 text-xs disabled:cursor-not-allowed"
                   >
                     {pendingPartialEntityKey === `${group.fields[0]?.entityType}:${group.entityId}` ? (
                       <>
@@ -1004,9 +997,9 @@ function LocalizationSectionContent({
                     <div key={locale} className="site-section p-2">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-bold text-zinc-700">{LOCALE_LABELS[locale]}</span>
-                        <span className={`rounded-full border px-2 py-0.5 text-xs font-bold ${getLocaleTranslationStateTone(state)}`}>
+                        <Badge>
                           {getLocaleTranslationStateLabel(state)}
-                        </span>
+                        </Badge>
                       </div>
                       <button
                         type="button"
@@ -1018,7 +1011,7 @@ function LocalizationSectionContent({
                             retryOfJobId: state.status === "failed" ? state.jobId ?? null : null,
                           })
                         }
-                        className="mt-2 inline-flex w-full items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                        className="site-button site-button-outline mt-2 inline-flex w-full items-center justify-center gap-1.5 text-xs disabled:cursor-not-allowed"
                       >
                         {isPending ? (
                           <>
@@ -1063,7 +1056,7 @@ function LocalizationSectionContent({
               <button
                 type="button"
                 onClick={() => applyRecoverableTranslationDraft(recoverableAutoTranslationJob)}
-                className="inline-flex shrink-0 items-center justify-center rounded-full bg-emerald-900 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-emerald-800"
+                className="site-button site-button-ghost inline-flex shrink-0 items-center justify-center text-sm"
               >
                 최근 자동 번역 결과 불러오기
               </button>
@@ -1095,11 +1088,7 @@ function LocalizationSectionContent({
                 key={locale}
                 type="button"
                 onClick={() => setActiveLocale(locale)}
-                className={`rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
-                  activeLocale === locale
-                    ? "border-zinc-950 bg-zinc-950 text-white"
-                    : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
-                }`}
+                className={`site-button ${activeLocale === locale ? "site-button-primary" : "site-button-secondary"}`} aria-pressed={activeLocale === locale}
               >
                 {locale === "ko" ? "한국어 원문" : LOCALE_LABELS[locale]}
               </button>
@@ -1190,7 +1179,7 @@ function LocalizationSectionContent({
                 type="button"
                 onClick={() => setOverwriteRequest(null)}
                 disabled={Boolean(pendingPartialEntityKey)}
-                className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-bold text-zinc-600 transition-colors hover:border-zinc-400 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                className="site-button site-button-ghost text-sm disabled:cursor-not-allowed"
               >
                 취소
               </button>
@@ -1198,7 +1187,7 @@ function LocalizationSectionContent({
                 type="button"
                 onClick={() => void runPartialTranslation(overwriteRequest)}
                 disabled={Boolean(pendingPartialEntityKey)}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                className="site-button site-button-primary inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed"
               >
                 {pendingPartialEntityKey ? (
                   <>

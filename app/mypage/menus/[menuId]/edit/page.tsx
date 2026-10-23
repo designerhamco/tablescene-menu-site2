@@ -139,6 +139,7 @@ import {
   mergeTypographySettings,
 } from "@/lib/template-typography-presets";
 import { formatMenuPrice, mergePageSettings, type FeaturedSlideSettings } from "@/types/menu";
+import { Badge } from "@/app/components/ui/badge";
 
 type MenuSite = Pick<
   Database["public"]["Tables"]["menu_sites"]["Row"],
@@ -842,8 +843,8 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
           </Link>
           <div className="site-card p-6 sm:p-8">
             <div className="flex flex-wrap gap-2">
-              <span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">{statusLabel}</span>
-              <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">{templateDisplayName}</span>
+              <Badge>{statusLabel}</Badge>
+              <Badge>{templateDisplayName}</Badge>
             </div>
             <h1 className="type-subsection-title mt-6 text-zinc-950">이 메뉴판은 현재 편집할 수 없습니다.</h1>
             <p className="mt-4 break-keep text-base font-bold leading-relaxed text-zinc-600">{message}</p>
@@ -852,20 +853,20 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               {accessState?.canOwnerPreview ? (
-                <Link href={`/mypage/menus/${site.id}/preview`} target="_blank" rel="noopener noreferrer" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100">
+                <Link href={`/mypage/menus/${site.id}/preview`} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline text-sm">
                   미리보기
                 </Link>
               ) : null}
               {accessState?.canConvertToBusiness ? (
-                <Link href={`/mypage/menus/${site.id}/convert`} className="rounded-full bg-amber-700 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-amber-800">
-                  사업자 플랜으로 전환하고 복구
+                <Link href={`/mypage/menus/${site.id}/convert`} className="site-button site-button-ghost text-sm">
+                  구독을 시작하고 복구
                 </Link>
               ) : (
-                <Link href="/mypage?tab=payments&billingTab=expired" className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800">
+                <Link href="/mypage?tab=payments&billingTab=expired" className="site-button site-button-primary text-sm">
                   구독/결제 상태 확인
                 </Link>
               )}
-              <Link href="/mypage?tab=inquiries" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100">
+              <Link href="/mypage?tab=inquiries" className="site-button site-button-outline text-sm">
                 고객지원 문의
               </Link>
             </div>
@@ -1108,7 +1109,7 @@ function HelpTooltip({ label, children }: { label: string; children: ReactNode }
       <button
         type="button"
         aria-label={label}
-        className="type-caption inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-400 transition-colors hover:border-zinc-400 hover:text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2"
+        className="site-button site-button-outline type-caption inline-flex w-5 items-center justify-center focus:outline-none"
       >
         ?
       </button>
@@ -1138,10 +1139,10 @@ function CustomEditorUnavailable({ siteName }: { siteName: string }) {
               <p>{siteName} 프로젝트는 상담 및 제작 진행 상황에 맞춰 별도로 안내됩니다.</p>
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/mypage" className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white hover:bg-zinc-800">
+              <Link href="/mypage" className="site-button site-button-primary text-sm">
                 메뉴판 목록으로
               </Link>
-              <Link href="/mypage/inquiries" className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 hover:bg-zinc-100">
+              <Link href="/mypage/inquiries" className="site-button site-button-outline text-sm">
                 상담 내역 확인하기
               </Link>
             </div>
@@ -1240,7 +1241,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const canViewPublic = Boolean(accessState?.canViewPublic);
   const canDownloadQr = Boolean(accessState?.canDownloadQr);
   const readOnlyMessage =
-    accessState?.message ?? "체험 기간이 종료되어 편집과 공개가 제한되었습니다. 사업자 플랜으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.";
+    accessState?.message ?? "체험 기간이 종료되어 편집과 공개가 제한되었습니다. 월 구독으로 전환하면 기존 메뉴판을 이어서 사용할 수 있습니다.";
   const [
     { data: menuPagesData },
     { data: categoriesData },
@@ -1797,11 +1798,6 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const qrDownloadUrl = `/api/qr?slug=${encodeURIComponent(site.slug)}`;
   const previewUrl = `/mypage/menus/${site.id}/preview`;
   const headerStatusLabel = accessState?.statusLabel ?? (isMenuSiteStatus(site.status) ? statusLabels[site.status] : "상태 확인 필요");
-  const headerStatusClassName = accessState?.canViewPublic
-    ? "bg-emerald-50 text-emerald-700"
-    : isReadOnly
-      ? "bg-amber-50 text-amber-700"
-      : "bg-zinc-100 text-zinc-600";
   const staffRoleLabel = accessContext.memberRole === "manager"
     ? "매니저"
     : accessContext.memberRole === "editor"
@@ -1839,17 +1835,17 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
           <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
             <div>
               <div className="mb-3 flex flex-wrap items-center gap-2">
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${headerStatusClassName}`}>
+                <Badge>
                   {headerStatusLabel}
-                </span>
-                <span className="rounded-full bg-zinc-950 px-3 py-1 text-xs font-bold text-white">{templateTypeLabel}</span>
+                </Badge>
+                <Badge>{templateTypeLabel}</Badge>
                 {staffRoleLabel ? (
-                  <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700">직원 · {staffRoleLabel}</span>
+                  <Badge>직원 · {staffRoleLabel}</Badge>
                 ) : null}
-                <span className="inline-flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">
+                <Badge>
                   {templateDisplayName}
                   <HelpTooltip label="템플릿 도움말">디자인 탭에서 같은 서비스의 다른 템플릿으로 변경할 수 있습니다.</HelpTooltip>
-                </span>
+                </Badge>
               </div>
               <h1 className="type-page-title">{site.name}</h1>
               <p className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-zinc-400">
@@ -1895,7 +1891,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <a
                         href={qrDownloadUrl}
                         download
-                        className="site-button site-button-secondary"
+                        className="site-button site-button-outline"
                       >
                         QR 다운로드
                       </a>
@@ -1906,7 +1902,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <button type="button" disabled title="공개 중인 활성 메뉴판에서만 사용할 수 있습니다." className="site-button site-button-secondary">
                       공개 페이지 보기
                     </button>
-                    <button type="button" disabled title="공개 중인 메뉴판에서만 QR을 다운로드할 수 있습니다." className="site-button site-button-secondary">
+                    <button type="button" disabled title="공개 중인 메뉴판에서만 QR을 다운로드할 수 있습니다." className="site-button site-button-outline">
                       QR 다운로드
                     </button>
                   </>
@@ -1917,32 +1913,32 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
           </div>
         </header>
 
-        {globalBannerError && <div className="mb-5 rounded-lg border border-red-100 bg-red-50 p-4 text-sm font-bold text-red-700">{globalBannerError}</div>}
+        {globalBannerError && <div className="site-notice site-notice-error mb-5 p-4 text-sm font-bold">{globalBannerError}</div>}
         {!accessContext.isOwner && (
-          <div className="mb-5 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm font-bold leading-relaxed text-blue-800">
+          <div className="site-notice site-notice-info mb-5 p-4 text-sm font-bold leading-relaxed">
             직원 권한으로 편집 중입니다. AI는 메뉴판 소유자의 크레딧을 사용하며, 충전과 결제 관리는 소유자만 할 수 있습니다.
           </div>
         )}
         {permissionTabNotice ? (
-          <div className="mb-5 rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800" role="status">
+          <div className="site-notice site-notice-warning mb-5 p-4 text-sm font-bold leading-relaxed" role="status">
             {permissionTabNotice} 권한이 있는 계정으로 전환하거나 사장에게 역할 변경을 요청해 주세요.
           </div>
         ) : null}
         {isReadOnly && (
-          <div className="mb-5 rounded-lg border border-amber-100 bg-amber-50 p-5">
+          <div className="site-notice site-notice-warning mb-5 p-5">
             <p className="break-keep text-sm font-bold leading-relaxed text-amber-800">{readOnlyMessage}</p>
             <div className="mt-4 flex flex-wrap gap-3">
               {accessState?.canConvertToBusiness ? (
                 <Link
                   href={`/mypage/menus/${site.id}/convert`}
-                  className="rounded-full bg-amber-700 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-amber-800"
+                  className="site-button site-button-ghost text-sm"
                 >
-                  사업자 플랜으로 전환하고 복구
+                  구독을 시작하고 복구
                 </Link>
               ) : (
                 <Link
                   href="/mypage/inquiries"
-                  className="rounded-full bg-amber-700 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-amber-800"
+                  className="site-button site-button-ghost text-sm"
                 >
                   고객지원 문의
                 </Link>
@@ -2372,7 +2368,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                               ))}
                             </Select>
                             {selectedFeaturedItemInactive && (
-                              <p className="mt-3 break-keep rounded-lg bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
+                              <p className="site-notice site-notice-warning mt-3 break-keep p-4 text-sm font-bold leading-relaxed">
                                 {selectedFeaturedItem
                                   ? `선택한 대표 추천 메뉴 “${selectedFeaturedItem.name}”이 숨김 처리되어 공개 메뉴판에는 표시되지 않습니다.`
                                   : "선택한 대표 추천 메뉴가 삭제되었거나 존재하지 않아 공개 메뉴판에는 표시되지 않습니다."}{" "}
@@ -2381,7 +2377,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                             )}
                           </div>
                           {!templateCapabilities.featuredItemHero && (
-                            <p className="break-keep rounded-lg bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
+                            <p className="site-notice site-notice-warning break-keep p-4 text-sm font-bold leading-relaxed">
                               현재 선택한 템플릿은 대표 추천 메뉴 영역을 사용하지 않습니다. 설정값은 저장되지만 공개 메뉴판에는 표시되지 않을 수 있습니다.
                             </p>
                           )}
@@ -2542,14 +2538,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         <div className="flex flex-wrap gap-2">
                           <Link
                             href="/apply"
-                            className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-zinc-800"
+                            className="site-button site-button-primary inline-flex items-center justify-center text-sm"
                           >
                             다른 템플릿 보기
                           </Link>
                           {accessContext.isOwner ? (
                             <Link
                               href={`/mypage/menus/${site.id}/import`}
-                              className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
+                              className="site-button site-button-outline inline-flex items-center justify-center text-sm"
                             >
                               메뉴 가져오기
                             </Link>
@@ -2626,11 +2622,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     initialBalance={aiCreditBalance}
                   />
                 ) : accessState?.canUseAi ? (
-                  <div className="mb-5 rounded-lg border border-blue-100 bg-blue-50 p-4 text-sm font-bold leading-relaxed text-blue-800">
+                  <div className="site-notice site-notice-info mb-5 p-4 text-sm font-bold leading-relaxed">
                     AI 번역은 소유자의 크레딧을 사용합니다. 크레딧 충전은 소유자에게 요청해주세요.
                   </div>
                 ) : (
-                  <div className="mb-5 rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
+                  <div className="site-notice site-notice-warning mb-5 p-4 text-sm font-bold leading-relaxed">
                     현재 메뉴판은 서비스 이용 기간이 종료되어 AI 기능을 사용할 수 없습니다.
                   </div>
                 )}
@@ -2687,20 +2683,20 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       </label>
                     </div>
                     {site.status === "archived" && (
-                      <p className="mt-3 break-keep rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
+                      <p className="site-notice site-notice-warning mt-3 break-keep p-4 text-sm font-bold leading-relaxed">
                         현재 보관된 메뉴판입니다. 공개 설정 탭에서는 비공개 상태로 표시됩니다.
                       </p>
                     )}
                     {isReadOnly && (
-                      <p className="mt-3 break-keep rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
-                        체험 기간이 종료되어 공개 상태를 변경할 수 없습니다. 사업자 플랜으로 전환 후 다시 이용해주세요.
+                      <p className="site-notice site-notice-warning mt-3 break-keep p-4 text-sm font-bold leading-relaxed">
+                        체험 기간이 종료되어 공개 상태를 변경할 수 없습니다. 월 구독으로 전환 후 다시 이용해주세요.
                       </p>
                     )}
                     <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
                       공개 상태 변경은 저장 후 반영됩니다.
                     </p>
                   </div>
-                  <div className="rounded-lg border border-emerald-100 bg-emerald-50 p-4 text-sm font-bold leading-relaxed text-emerald-700">
+                  <div className="site-notice site-notice-success p-4 text-sm font-bold leading-relaxed">
                     저장 전에는 미리보기와 공개 메뉴판에 반영되지 않습니다. 공개 페이지 보기와 미리보기는 저장된 데이터 기준으로 열립니다.
                   </div>
                   <div className="site-section p-5">
@@ -2728,7 +2724,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   <p className="break-keep text-sm font-bold text-amber-700">
                     QR 코드는 결제 시 지정한 공개 메뉴판 주소로 연결됩니다.
                   </p>
-                  <p className="break-keep rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-800">
+                  <p className="site-notice site-notice-warning break-keep p-4 text-sm font-bold leading-relaxed">
                     공개 전 메뉴명, 가격, 영업시간, 이벤트, 원산지, 알레르기 정보가 정확한지 확인해주세요. AI 기능을 통해 생성된 문구와 번역은 참고용 초안이며, 실제 매장 운영 정보와 일치하는지 직접 검토해야 합니다.
                   </p>
                   <div>

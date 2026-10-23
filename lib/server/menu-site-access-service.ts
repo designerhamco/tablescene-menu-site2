@@ -341,7 +341,7 @@ function buildAccessState(menuSite: MenuSiteRow, entitlements: ServiceEntitlemen
       isPendingDelete: false,
       statusLabel: hasPaymentIssue ? "결제 확인 필요" : isArchivedMenuSite ? "보관 중" : isPersonalTrial ? "체험 종료" : "서비스 기간 종료",
       message: MENU_SITE_INACTIVE_EDIT_MESSAGE,
-      ctaLabel: isPersonalTrial ? "사업자 플랜으로 전환하고 복구" : null,
+      ctaLabel: isPersonalTrial ? "구독을 시작하고 복구" : null,
       lifecycleState,
       reason: isArchivedMenuSite ? "archived_menu_site" : isPersonalTrial ? "personal_trial_expired" : "inactive_entitlement",
     };

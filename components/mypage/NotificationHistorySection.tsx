@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Badge } from "@/app/components/ui/badge";
 import { useRouter } from "next/navigation";
 
 import { formatNotificationDateTime, NOTIFICATION_FALLBACK_HREF } from "@/lib/notification-display-policy";
@@ -134,9 +135,7 @@ export default function NotificationHistorySection({ events }: NotificationHisto
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <h3 className="type-item-title break-keep text-zinc-950">{event.title ?? "알림"}</h3>
-                        <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isUnread ? "bg-red-50 text-red-600" : "bg-zinc-100 text-zinc-500"}`}>
-                          {isUnread ? "읽지 않음" : "읽음"}
-                        </span>
+                        <Badge tone={isUnread ? "pending" : "neutral"}>{isUnread ? "읽지 않음" : "읽음"}</Badge>
                       </div>
                       <p className="mt-2 whitespace-pre-wrap break-keep text-sm font-semibold leading-relaxed text-zinc-600">
                         {event.message ?? "알림 내용을 확인할 수 없습니다."}

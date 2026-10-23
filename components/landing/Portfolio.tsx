@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { portfolioContent } from "./data";
 import { Icon } from "./Icon";
+import { Badge } from "@/app/components/ui/badge";
 
 type Tab = keyof typeof portfolioContent;
 
@@ -50,9 +51,7 @@ export function Portfolio() {
                   key={mode}
                   type="button"
                   onClick={() => setDeviceMode(mode)}
-                  className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition-all ${
-                    deviceMode === mode ? "bg-white text-black shadow-md" : "text-zinc-500 hover:text-zinc-700"
-                  }`}
+                  className={`site-button ${deviceMode === mode ? "site-button-primary" : "site-button-secondary"}`} aria-pressed={deviceMode === mode}
                 >
                   <Icon name={mode === "tablet" ? "tablet" : "smartphone"} className="h-4 w-4" />
                   {mode === "tablet" ? "PC・Tablet" : "Mobile"}
@@ -79,9 +78,9 @@ export function Portfolio() {
             />
             <div className="absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-black/50 to-transparent" />
             <div className="absolute inset-x-0 bottom-6 z-20 text-center">
-              <span className="inline-block rounded-full border border-white/10 bg-black/40 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white/90 backdrop-blur-md">
+              <Badge>
                 {currentFeature.text}
-              </span>
+              </Badge>
             </div>
           </div>
 

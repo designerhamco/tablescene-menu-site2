@@ -160,7 +160,7 @@ export default function SupportCenter({
     <>
       <section className={styles.hero}>
         <div className="site-container">
-          <p className="site-eyebrow">아티메뉴 고객센터</p>
+
           <h1 className="type-page-title">필요한 도움을 찾아보세요</h1>
           <p className="site-body text-zinc-500">
             처음 시작하는 방법부터 매장 운영까지, 궁금한 내용을 안내합니다.

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BellRing, CheckCircle2, CreditCard, QrCode, ShoppingCart } from "lucide-react";
+import { Badge } from "@/app/components/ui/badge";
 
 const verifiedFeatures = [
   {
@@ -29,9 +30,9 @@ export default function OrderServiceReviewContent() {
     <div className="bg-zinc-50 text-zinc-950">
       <section className="site-gutter py-20 md:py-28">
         <div className="mx-auto max-w-[var(--site-content-width)]">
-          <span className="inline-flex rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600 shadow-sm">
+          <Badge>
             출시 준비 중 · 실제 주문/결제 미제공
-          </span>
+          </Badge>
           <h1 className="type-page-title mt-7 max-w-4xl">
             아티메뉴 오더
           </h1>
@@ -43,13 +44,13 @@ export default function OrderServiceReviewContent() {
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
               href="/templates/cafe_real_matcha_a/preview?orderCallQa=active"
-              className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-6 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"
+              className="site-button site-button-outline inline-flex items-center justify-center text-sm"
             >
               주문·호출 화면 미리보기
             </Link>
             <Link
               href="/pricing"
-              className="inline-flex items-center justify-center rounded-full border border-zinc-300 bg-white px-6 py-4 text-sm font-bold text-zinc-950 transition hover:bg-zinc-100"
+              className="site-button site-button-outline inline-flex items-center justify-center text-sm"
             >
               현재 판매 상품 보기
             </Link>

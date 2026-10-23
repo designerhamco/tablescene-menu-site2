@@ -323,11 +323,7 @@ export default function MenuWidgetDraftEditor({
                   key={align}
                   type="button"
                   onClick={() => patchSettings({ textAlign: align })}
-                  className={`rounded-full border px-4 py-2 text-xs font-bold transition ${
-                    draft.settings.textAlign === align
-                      ? "border-zinc-950 bg-zinc-950 text-white"
-                      : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
-                  }`}
+                  className={`site-button ${draft.settings.textAlign === align ? "site-button-primary" : "site-button-secondary"}`} aria-pressed={draft.settings.textAlign === align}
                 >
                   {TEXT_ALIGN_LABELS[align] ?? align}
                 </button>
@@ -337,7 +333,7 @@ export default function MenuWidgetDraftEditor({
         )}
 
         {(validationErrors.length > 0 || countExceeded) && (
-          <div className="rounded-lg bg-amber-50 px-4 py-3 text-xs font-bold leading-relaxed text-amber-700">
+          <div className="site-notice site-notice-warning px-4 py-3 text-xs font-bold leading-relaxed">
             {countExceeded && <p>한 페이지에는 위젯을 최대 {maxWidgetCount}개까지 등록할 수 있습니다.</p>}
             {validationErrors.map((error) => (
               <p key={`${error.field}:${error.code}`}>{error.message}</p>
@@ -351,7 +347,7 @@ export default function MenuWidgetDraftEditor({
               type="button"
               onClick={onCopy}
               disabled={widgetCount >= maxWidgetCount}
-              className="mr-auto rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+              className="site-button site-button-outline mr-auto text-sm disabled:cursor-not-allowed"
             >
               복사
             </button>
@@ -360,23 +356,23 @@ export default function MenuWidgetDraftEditor({
             isConfirmingDelete ? (
               <span className="flex flex-wrap items-center justify-end gap-2">
                 <span className="text-xs font-bold text-red-600">이 위젯을 삭제할까요?</span>
-                <button type="button" onClick={onConfirmDelete} className="rounded-full bg-red-600 px-4 py-2 text-xs font-bold text-white">삭제</button>
-                <button type="button" onClick={onCancelDelete} className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600">취소</button>
+                <button type="button" onClick={onConfirmDelete} className="site-button site-button-danger text-xs">삭제</button>
+                <button type="button" onClick={onCancelDelete} className="site-button site-button-ghost text-xs">취소</button>
               </span>
             ) : (
-              <button type="button" onClick={onRequestDelete} className="rounded-full border border-red-100 bg-white px-5 py-3 text-sm font-bold text-red-600">
+              <button type="button" onClick={onRequestDelete} className="site-button site-button-danger-ghost text-sm">
                 삭제
               </button>
             )
           ) : null}
-          <button type="button" onClick={onCancel} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+          <button type="button" onClick={onCancel} className="site-button site-button-ghost text-sm">
             취소
           </button>
           <button
             type="button"
             onClick={onSave}
             disabled={saveDisabled}
-            className="rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+            className="site-button site-button-primary text-sm disabled:cursor-not-allowed"
           >
             {saveLabel}
           </button>

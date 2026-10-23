@@ -135,7 +135,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
 
             <section className="site-section p-6 md:p-8">
               {error ? (
-                <div className="mb-6 rounded-md bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+                <div className="site-notice site-notice-error mb-6 px-4 py-3 text-sm font-bold">
                   {error}
                 </div>
               ) : null}
@@ -196,7 +196,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
                 </p>
                 <button
                   type="submit"
-                  className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"
+                  className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center text-sm"
                 >
                   견적 문의하기
                 </button>

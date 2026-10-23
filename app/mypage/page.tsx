@@ -55,6 +55,7 @@ import type { Json } from "@/lib/supabase/types";
 import { hasMenuSitePermission, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
 import { isYearlyRefundConfirmQaEnabled } from "@/lib/yearly-refund-confirm-qa";
 import { isRestoreSubscriptionQaEnabled } from "@/lib/restore-subscription-qa";
+import { Badge } from "@/app/components/ui/badge";
 
 type SearchParams = Promise<{
   tab?: string | string[];
@@ -514,20 +515,19 @@ function getMenuServiceBadge({
   if (isDisplayService) {
     return {
       label: "아티메뉴 디스플레이",
-      className: "bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-100",
+
     };
   }
 
   return {
     label: "베이직·다이닝",
-    className: "bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-100",
+
   };
 }
 
 type MenuCardBadge = {
   key: string;
   label: string;
-  className: string;
 };
 
 type RecoveryCta = {
@@ -544,7 +544,6 @@ type RetentionDdayInfo = {
 type ArchivedDisplayState = {
   key: string;
   label: string;
-  className: string;
   message: string;
   cta: RecoveryCta | null;
   ddayInfo: RetentionDdayInfo | null;
@@ -555,7 +554,7 @@ function getMenuVisibilityBadge(status: MenuSite["status"]): MenuCardBadge | nul
     return {
       key: "visibility:draft",
       label: "작성중",
-      className: "bg-zinc-100 text-zinc-600",
+
     };
   }
 
@@ -563,7 +562,7 @@ function getMenuVisibilityBadge(status: MenuSite["status"]): MenuCardBadge | nul
     return {
       key: "visibility:published",
       label: "공개중",
-      className: "bg-emerald-50 text-emerald-700",
+
     };
   }
 
@@ -571,7 +570,7 @@ function getMenuVisibilityBadge(status: MenuSite["status"]): MenuCardBadge | nul
     return {
       key: "visibility:private",
       label: "비공개",
-      className: "bg-zinc-100 text-zinc-600",
+
     };
   }
 
@@ -579,7 +578,7 @@ function getMenuVisibilityBadge(status: MenuSite["status"]): MenuCardBadge | nul
     return {
       key: "visibility:unknown",
       label: "상태 미확인",
-      className: "bg-zinc-100 text-zinc-600",
+
     };
   }
 
@@ -704,29 +703,6 @@ function getBillingPaymentStatusFromRefund(refundRequest: RefundRequestRecord | 
   }
 
   return null;
-}
-
-function getStateBadgeClassName(status: string | null | undefined) {
-  if (status === "active" || status === "paid" || status === "completed") return "bg-emerald-50 text-emerald-700 ring-emerald-100";
-  if (status === "failed" || status === "past_due" || status === "payment_failed") return "bg-red-50 text-red-700 ring-red-100";
-  if (
-    status === "cancel_scheduled"
-    || status === "cancel_ended"
-    || status === "admin_archived"
-    || status === "archived_fallback"
-    || status === "public_restricted"
-    || status === "expired"
-    || status === "archived"
-    || status === "pending_delete"
-    || status === "deleted"
-    || status === "cancelled"
-    || status === "canceled"
-    || status === "refunded"
-  ) {
-    return "bg-amber-50 text-amber-700 ring-amber-100";
-  }
-
-  return "bg-zinc-100 text-zinc-600 ring-zinc-200";
 }
 
 function getPaymentStatusTone(status: string | null | undefined): "success" | "warning" | "danger" | "neutral" {
@@ -1167,7 +1143,7 @@ function getArchivedDisplayState({
     return {
       key: "deleted",
       label: "종료됨",
-      className: "bg-zinc-100 text-zinc-600",
+
       message: "보관 기간이 종료되어 복구할 수 없습니다.",
       cta: null,
       ddayInfo: null,
@@ -1184,7 +1160,7 @@ function getArchivedDisplayState({
     return {
       key: "payment-needed",
       label: "결제 확인 필요",
-      className: "bg-red-50 text-red-700",
+
       message,
       cta: null,
       ddayInfo,
@@ -1201,7 +1177,7 @@ function getArchivedDisplayState({
     return {
       key: "cancel-ended",
       label: "해지 종료",
-      className: "bg-amber-50 text-amber-700",
+
       message,
       cta: null,
       ddayInfo,
@@ -1212,16 +1188,16 @@ function getArchivedDisplayState({
     const message = getRetentionDdayMessage(
       "무료 체험 기간이 종료되어 보관 중입니다.",
       ddayInfo,
-      "오늘까지 사업자 플랜으로 전환하면 기존 메뉴판을 유지할 수 있습니다.",
+      "오늘까지 월 구독으로 전환하면 기존 메뉴판을 유지할 수 있습니다.",
     );
 
     return {
       key: "trial-ended",
       label: "체험 종료",
-      className: "bg-amber-50 text-amber-700",
+
       message,
       cta: siteId
-        ? { label: "사업자 플랜으로 전환", href: `/mypage/menus/${siteId}/convert` }
+        ? { label: "월 구독으로 전환", href: `/mypage/menus/${siteId}/convert` }
         : null,
       ddayInfo,
     };
@@ -1231,7 +1207,7 @@ function getArchivedDisplayState({
     return {
       key: "admin-archived",
       label: "관리자 보관",
-      className: "bg-amber-50 text-amber-700",
+
       message: "관리자에 의해 보관 처리된 메뉴판입니다.",
       cta: null,
       ddayInfo: null,
@@ -1242,7 +1218,7 @@ function getArchivedDisplayState({
     return {
       key: "archived-fallback",
       label: "보관 중",
-      className: "bg-amber-50 text-amber-700",
+
       message: "현재 보관 상태입니다.",
       cta: null,
       ddayInfo,
@@ -2216,7 +2192,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const serviceTypeBadge: MenuCardBadge = {
       key: serviceBadge.label === "아티메뉴 디스플레이" ? "service:display" : "service:basic",
       label: serviceBadge.label,
-      className: serviceBadge.className,
+
     };
     const section: MenuTab = isAccessRestricted || hasPaymentIssue || isTrialExpired || hasInactiveEntitlement
       ? isRecoveryWindowOpen ? "holding" : "deleted"
@@ -2233,17 +2209,17 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     let accessBadge: MenuCardBadge | null = null;
 
     if (isCancelScheduledActive) {
-      accessBadge = { key: "subscription:cancel-scheduled", label: "해지 예약", className: "bg-amber-50 text-amber-700" };
+      accessBadge = { key: "subscription:cancel-scheduled", label: "해지 예약" };
     } else if (archivedDisplayState) {
       accessBadge = {
         key: `access:${archivedDisplayState.key}`,
         label: archivedDisplayState.label,
-        className: archivedDisplayState.className,
+
       };
-    } else if (isBusinessService && hasActiveEntitlement && !isAccessRestricted) {
-      accessBadge = { key: "plan:business", label: "사업자 플랜", className: "bg-emerald-50 text-emerald-700" };
+    } else if (activeBusinessSubscription && isActiveBusinessFreeTrial(activeBusinessSubscription)) {
+      accessBadge = { key: "subscription:free-trial", label: "무료체험 중" };
     } else if (isPersonalTrial && !isTrialExpired) {
-      accessBadge = { key: "plan:trial-active", label: "체험 중", className: "bg-emerald-50 text-emerald-700" };
+      accessBadge = { key: "plan:trial-active", label: "체험 중" };
     }
 
     const badges = getUniqueMenuCardBadges([
@@ -2470,7 +2446,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const activeNavigationKey: MypageNavigationKey = activeTab;
   function renderMenuCard(card: (typeof menuCardViewModels)[number]) {
     const primaryActionClassName = "site-button site-button-primary site-button-sm";
-    const secondaryActionClassName = "site-button site-button-secondary site-button-sm";
+    const secondaryActionClassName = "site-button site-button-outline site-button-sm";
     const disabledActionClassName = "site-button site-button-secondary site-button-sm cursor-not-allowed text-zinc-400";
 
     function renderActionButton({
@@ -2527,9 +2503,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
             {card.badges.map((badge) => (
-              <span key={badge.key} className={`rounded-full px-3 py-1 text-xs font-bold ${badge.className}`}>
+              <Badge key={badge.key} >
                 {badge.label}
-              </span>
+              </Badge>
             ))}
           </div>
         </div>
@@ -2550,7 +2526,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         </dl>
 
         {card.section === "deleted" ? (
-          <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 text-xs font-bold leading-relaxed text-zinc-500">
+          <p className="site-notice mt-5 px-4 py-3">
             복구 가능 기간이 종료되어 메뉴판 작업 버튼은 제공되지 않습니다.
           </p>
         ) : (
@@ -2591,7 +2567,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
   function renderStaffMenuCard(card: (typeof staffMenuCardViewModels)[number]) {
     const enabledPrimaryActionClassName = "site-button site-button-primary site-button-sm";
-    const enabledSecondaryActionClassName = "site-button site-button-secondary site-button-sm";
+    const enabledSecondaryActionClassName = "site-button site-button-outline site-button-sm";
     const disabledActionClassName = "site-button site-button-secondary site-button-sm cursor-not-allowed text-zinc-400";
 
     return (
@@ -2605,9 +2581,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <p className="mt-1 break-all text-sm font-bold text-zinc-500">{card.publicPath}</p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
-            <span className="rounded-full bg-sky-50 px-3 py-1 text-xs font-bold text-sky-700">직원 참여</span>
-            <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-700">{card.roleLabel}</span>
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">{card.statusLabel}</span>
+            <Badge>직원 참여</Badge>
+            <Badge tone="role">{card.roleLabel}</Badge>
+            <Badge>{card.statusLabel}</Badge>
           </div>
         </div>
 
@@ -2653,7 +2629,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             href={`/mypage/menus/${card.siteId}/preview`}
             target="_blank"
             rel="noopener noreferrer"
-              className="site-button site-button-secondary site-button-sm"
+              className="site-button site-button-outline site-button-sm"
           >
             미리보기
           </Link>
@@ -2938,7 +2914,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         const paymentDetailReceiptUrl = getPaymentReceiptUrl(latestPayment?.payment, latestPayment?.order);
                         const cancelAtPeriodEnd = Boolean(subscription?.cancel_at_period_end);
                         const periodEnd = subscription?.current_period_end ?? subscription?.next_billing_at ?? entitlement?.access_expires_at ?? null;
-                        const subscriptionBadgeTone = isActiveCancelScheduledSubscription(subscription) ? "cancel_scheduled" : status;
                         const subscriptionCardStatusLabel = isBusinessSubscription
                           ? getBusinessSubscriptionCardStatusLabel(subscription, status)
                           : isPersonalTrial
@@ -2955,9 +2930,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                               <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
                                   <h4 className="type-content-title">{getServiceName(planType, billingCycle)}</h4>
-                                  <span className={`rounded-full px-3 py-1 text-xs font-bold ring-1 ${getStateBadgeClassName(subscriptionBadgeTone)}`}>
+                                  <Badge>
                                     {subscriptionCardStatusLabel}
-                                  </span>
+                                  </Badge>
                                 </div>
                                 <dl className="mt-4 grid gap-x-5 gap-y-2 text-sm md:grid-cols-2 xl:grid-cols-3">
                                   <div>
@@ -2987,7 +2962,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                 </dl>
                                 {isPersonalTrial ? (
                                   <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-amber-700">
-                                    체험 종료 전 사업자 플랜으로 전환하면 현재 메뉴판을 이어서 사용할 수 있습니다.
+                                    체험 종료 전 월 구독으로 전환하면 현재 메뉴판을 이어서 사용할 수 있습니다.
                                   </p>
                                 ) : null}
                                 {isBusinessFreeTrial ? (
@@ -3038,7 +3013,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                   />
                                 ) : null}
                                 {menuSite?.id ? (
-                                  <Link href={`/mypage/menus/${menuSite.id}/edit`} className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900">
+                                  <Link href={`/mypage/menus/${menuSite.id}/edit`} className="site-button site-button-outline inline-flex items-center justify-center text-xs">
                                     연결 메뉴판 보기
                                   </Link>
                                 ) : null}
@@ -3051,7 +3026,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   ) : (
                     <article className="site-card site-card-empty p-7 sm:p-8">
                       <h4 className="type-content-title">현재 이용 중인 서비스가 없습니다</h4>
-                      <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">메뉴판을 만들거나 사업자 플랜을 시작하면 이곳에 표시됩니다.</p>
+                      <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">메뉴판을 만들면 이곳에 표시됩니다.</p>
                     </article>
                   )}
                 </section>
@@ -3111,17 +3086,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                           siteId: menuSite?.id ?? "",
                           ddayInfo: retentionDdayInfo,
                         });
-                        const statusForTone = archivedDisplayState?.key === "payment-needed"
-                          ? "payment_failed"
-                          : archivedDisplayState?.key === "cancel-ended"
-                            ? "cancel_ended"
-                            : archivedDisplayState?.key === "deleted"
-                              ? "deleted"
-                              : archivedDisplayState?.key === "admin-archived"
-                                ? "admin_archived"
-                                : archivedDisplayState?.key === "archived-fallback"
-                                  ? "archived_fallback"
-                                  : entitlement?.status ?? subscription?.status ?? menuSite?.status ?? null;
                         const statusLabel = archivedDisplayState?.label ?? getArchivedServiceStatusLabel({ key, entitlement, menuSite, subscription });
                         const dataRetentionUntil = entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null;
                         const expiresAt = entitlement?.access_expires_at ?? subscription?.current_period_end ?? subscription?.next_billing_at ?? null;
@@ -3145,9 +3109,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                               <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
                                   <h4 className="type-content-title">{menuSite?.name ?? "연결된 메뉴판 확인 필요"}</h4>
-                                  <span className={`rounded-full px-3 py-1 text-xs font-bold ring-1 ${getStateBadgeClassName(statusForTone)}`}>
+                                  <Badge>
                                     {statusLabel}
-                                  </span>
+                                  </Badge>
                                 </div>
                                 <dl className="mt-4 grid gap-x-5 gap-y-2 text-sm md:grid-cols-2 xl:grid-cols-3">
                                   <div>
@@ -3181,7 +3145,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     <dd className="mt-1 font-bold text-zinc-900">{typeof amount === "number" ? formatKrw(amount) : "-"}</dd>
                                   </div>
                                 </dl>
-                                <div className={`mt-4 rounded-xl border p-4 text-xs font-bold leading-relaxed ${isDeletedTab ? "border-zinc-100 bg-zinc-50 text-zinc-600" : "border-amber-100 bg-amber-50 text-amber-800"}`}>
+                                <div className={`site-notice mt-4   p-4 text-xs font-bold leading-relaxed ${isDeletedTab ? "site-notice-info" : "site-notice-warning"}`}>
                                   <p>{archivedDisplayState?.message ?? "이 메뉴판의 이용기간이 종료되어 비공개 처리되었습니다."}</p>
                                   {isDeletedTab ? (
                                     <p className="mt-2">결제 기록은 관련 법령 및 운영 정책에 따라 보관될 수 있습니다.</p>
@@ -3198,7 +3162,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                               </div>
                               <div className="flex shrink-0 flex-wrap gap-2 lg:flex-col">
                                 {!isDeletedTab && archivedDisplayState?.cta ? (
-                                  <Link href={archivedDisplayState.cta.href} className="inline-flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2.5 text-xs font-bold text-amber-800 transition-colors hover:bg-amber-100">
+                                  <Link href={archivedDisplayState.cta.href} className="site-button site-button-ghost inline-flex items-center justify-center text-xs">
                                     {archivedDisplayState.cta.label}
                                   </Link>
                                 ) : null}
@@ -3216,7 +3180,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                   />
                                 ) : null}
                                 {!isDeletedTab && menuSite?.id ? (
-                                  <Link href={`/mypage/menus/${menuSite.id}/preview`} className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900">
+                                  <Link href={`/mypage/menus/${menuSite.id}/preview`} className="site-button site-button-outline inline-flex items-center justify-center text-xs">
                                     연결 메뉴판 보기
                                   </Link>
                                 ) : null}
@@ -3315,9 +3279,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                 </p>
                                 {isPurchase ? (
                                   <div className="mt-2 flex flex-wrap gap-2 md:justify-end">
-                                    <span className={`rounded-full px-3 py-1 text-xs font-bold ring-1 ${getStateBadgeClassName(paymentStatus)}`}>
+                                    <Badge>
                                       {getPaymentStatusLabel(paymentStatus)}
-                                    </span>
+                                    </Badge>
                                   <PaymentDetailModal
                                     productName={transactionName}
                                     statusLabel={getPaymentStatusLabel(paymentStatus)}
@@ -3391,7 +3355,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 </div>
                 <Link
                   href="/forgot-password"
-                  className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100"
+                  className="site-button site-button-outline inline-flex items-center justify-center text-sm"
                 >
                   비밀번호 재설정
                 </Link>
@@ -3411,9 +3375,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">연결된 소셜 계정</dt>
                     <dd className="mt-2 flex flex-wrap gap-2">
                       {connectedAccounts.map((provider) => (
-                        <span key={provider} className="rounded-full bg-white px-3 py-1 text-xs font-bold text-zinc-700 ring-1 ring-zinc-200">
+                        <Badge key={provider} >
                           {getProviderLabel(provider)}
-                        </span>
+                        </Badge>
                       ))}
                     </dd>
                   </div>
@@ -3448,7 +3412,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     </div>
                     <Link
                       href="/mypage?tab=inquiries"
-                      className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-4 py-2.5 text-xs font-bold text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-950"
+                      className="site-button site-button-outline inline-flex items-center justify-center text-xs"
                     >
                       고객지원 문의
                     </Link>

@@ -148,6 +148,7 @@ import { buildDisplayMenuAPreviewData } from "@/lib/template-demo-data/display-m
 import type { TemplateCapabilities, TemplateMenuWidgetCapabilities } from "@/lib/template-capabilities";
 import { getEditorLabelsByTemplateType, type TemplateEditorLabels } from "@/lib/template-types";
 import { formatMenuPrice, formatPortionLabel, getMenuPageTitle, sortMenuPages } from "@/types/menu";
+import { Badge } from "@/app/components/ui/badge";
 
 type MenuPage = Pick<
   Database["public"]["Tables"]["menu_pages"]["Row"],
@@ -924,7 +925,7 @@ function HelpTooltip({ label, children }: { label: string; children: ReactNode }
       <button
         type="button"
         aria-label={label}
-        className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-200 bg-white text-xs font-bold text-zinc-400 transition-colors hover:border-zinc-400 hover:text-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-950 focus:ring-offset-2"
+        className="site-button site-button-outline inline-flex w-5 items-center justify-center text-xs focus:outline-none"
       >
         ?
       </button>
@@ -1584,7 +1585,7 @@ function DisplayMenuQualityNoticeBox({ notice }: { notice: DisplayMenuQualityNot
   const isStrong = notice.tone === "strong";
 
   return (
-    <div className={`rounded-lg border p-4 ${isStrong ? "border-amber-200 bg-amber-50 text-amber-900" : "border-sky-100 bg-sky-50 text-sky-900"}`}>
+    <div className={`site-notice   p-4 ${isStrong ? "site-notice-warning" : "site-notice-info"}`}>
       <p className="break-keep text-sm font-bold leading-relaxed">
         {isStrong ? DISPLAY_A_MENU_QUALITY_STRONG_TEXT : DISPLAY_A_MENU_QUALITY_NOTICE_TEXT}
       </p>
@@ -1609,7 +1610,7 @@ function DisplayMenuCategoryQualityNoticeBox({
   const isStrong = notice.tone === "strong";
 
   return (
-    <div className={`rounded-md border ${isStrong ? "border-amber-200 bg-amber-50 text-amber-900" : "border-sky-100 bg-sky-50 text-sky-900"} ${compact ? "px-2 py-1.5" : "p-4"}`}>
+    <div className={`site-notice   ${isStrong ? "site-notice-warning" : "site-notice-info"} ${compact ? "px-2 py-1.5" : "p-4"}`}>
       <p className={`${compact ? "text-xs" : "text-sm"} break-keep font-bold leading-relaxed`}>
         카테고리 표시 품질 안내
       </p>
@@ -1684,7 +1685,7 @@ function DraftDeleteConfirmButton({
       <button
         type="button"
         onClick={onRequestConfirm}
-        className="inline-flex items-center justify-center rounded-full border border-red-100 bg-red-50 px-5 py-3 text-sm font-bold text-red-700 transition-colors hover:bg-red-100"
+        className="site-button site-button-danger-ghost inline-flex items-center justify-center text-sm"
       >
         삭제
       </button>
@@ -1695,7 +1696,7 @@ function DraftDeleteConfirmButton({
             {description && <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-600">{description}</p>}
             {disabledReason && <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-600">{disabledReason}</p>}
             <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
-              <button type="button" onClick={onCancel} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+              <button type="button" onClick={onCancel} className="site-button site-button-ghost text-sm">
                 취소
               </button>
               <SubmitButton type="button" tone="danger" disabled={Boolean(disabledReason)} onClick={onConfirm}>
@@ -2302,9 +2303,9 @@ function MenuPageForm({
                             아티메뉴 디스플레이 요금에 포함된 기능입니다. 짧고 가벼운 영상을 사용하면 매장 화면에서 더 안정적으로 재생됩니다.
                           </p>
                         </div>
-                        <span className="inline-flex w-fit items-center rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-600">
+                        <Badge>
                           요금제 포함
-                        </span>
+                        </Badge>
                       </div>
                       <div className="mt-3 grid gap-2 text-xs font-bold leading-relaxed text-zinc-500 sm:grid-cols-2">
                         <p>MP4, 최대 {DISPLAY_VIDEO_UPLOAD_MAX_FILE_SIZE_MB}MB, 메뉴판당 최대 {DISPLAY_VIDEO_UPLOAD_MAX_ACTIVE_FILES}개</p>
@@ -2317,7 +2318,7 @@ function MenuPageForm({
                         </p>
                       )}
                       {canUseDisplayVideoUpload && (
-                        <div className="mt-4 rounded-lg border border-emerald-100 bg-emerald-50/70 p-4">
+                        <div className="site-notice site-notice-success mt-4 p-4">
                           <input
                             ref={displayVideoInputRef}
                             type="file"
@@ -2349,7 +2350,7 @@ function MenuPageForm({
                               type="button"
                               disabled={isDisplayVideoUploading || !canUploadDisplayVideoForPage}
                               onClick={() => displayVideoInputRef.current?.click()}
-                              className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-zinc-950 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
+                              className="site-button site-button-primary inline-flex shrink-0 items-center justify-center gap-1.5 text-xs disabled:cursor-not-allowed"
                             >
                               {isDisplayVideoUploading ? (
                                 <>
@@ -2402,7 +2403,7 @@ function MenuPageForm({
               {draftActionLabel ?? (page ? "수정 내용 반영" : `${labels.pageLabel} 추가`)}
             </SubmitButton>
             {onCancel && (
-              <button type="button" onClick={onCancel} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+              <button type="button" onClick={onCancel} className="site-button site-button-outline text-sm">
                 {cancelLabel}
               </button>
             )}
@@ -2411,7 +2412,7 @@ function MenuPageForm({
           <p className="break-keep text-right text-xs font-bold leading-relaxed text-zinc-400">
             변경 내용은 메뉴 관리 탭에 임시 반영됩니다.
           </p>
-          {draftFeedback && <p className="rounded-lg bg-emerald-50 px-4 py-3 text-right text-xs font-bold leading-relaxed text-emerald-700">{draftFeedback}</p>}
+          {draftFeedback && <p className="site-notice site-notice-success px-4 py-3 text-right text-xs font-bold leading-relaxed">{draftFeedback}</p>}
         </>
       ) : (
         <div className="flex flex-wrap items-center justify-end gap-3">
@@ -2760,7 +2761,7 @@ function MenuCategoryForm({
                 <button
                   type="button"
                   onClick={() => removeCategoryPriceOptionLabel(index)}
-                  className="rounded-full border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950"
+                  className="site-button site-button-outline text-sm"
                 >
                   삭제
                 </button>
@@ -2770,7 +2771,7 @@ function MenuCategoryForm({
               type="button"
               onClick={addCategoryPriceOptionLabel}
               disabled={categoryPriceOptionLabels.length >= maxPriceOptionColumns}
-              className="w-fit rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm font-bold text-zinc-700 transition hover:border-zinc-300 hover:bg-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+              className="site-button site-button-outline w-fit text-sm disabled:cursor-not-allowed"
             >
               옵션 열 추가
             </button>
@@ -2793,7 +2794,7 @@ function MenuCategoryForm({
               type="button"
               onClick={addCategoryPriceColumn}
               disabled={categoryPriceColumns.length >= effectiveMaxCategoryPriceColumns}
-              className="rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm font-bold text-zinc-700 transition hover:border-zinc-300 hover:bg-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+              className="site-button site-button-outline text-sm disabled:cursor-not-allowed"
             >
               컬럼 추가
             </button>
@@ -2817,7 +2818,7 @@ function MenuCategoryForm({
                       type="button"
                       onClick={() => moveCategoryPriceColumn(index, -1)}
                       disabled={index === 0}
-                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                      className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
                       aria-label={`${column.label || `컬럼 ${index + 1}`} 위로 이동`}
                     >
                       ↑
@@ -2826,7 +2827,7 @@ function MenuCategoryForm({
                       type="button"
                       onClick={() => moveCategoryPriceColumn(index, 1)}
                       disabled={index === categoryPriceColumns.length - 1}
-                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                      className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
                       aria-label={`${column.label || `컬럼 ${index + 1}`} 아래로 이동`}
                     >
                       ↓
@@ -2834,14 +2835,14 @@ function MenuCategoryForm({
                     <button
                       type="button"
                       onClick={() => updateCategoryPriceColumn(index, { visible: !column.visible })}
-                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950"
+                      className="site-button site-button-outline text-xs"
                     >
                       {column.visible ? "표시" : "숨김"}
                     </button>
                     <button
                       type="button"
                       onClick={() => removeCategoryPriceColumn(index)}
-                      className="rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950"
+                      className="site-button site-button-outline text-xs"
                     >
                       삭제
                     </button>
@@ -2902,7 +2903,7 @@ function MenuCategoryForm({
           </SubmitButton>
         )}
         {onCancel && (
-          <button type="button" onClick={onCancel} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+          <button type="button" onClick={onCancel} className="site-button site-button-outline text-sm">
             {cancelLabel}
           </button>
         )}
@@ -2914,7 +2915,7 @@ function MenuCategoryForm({
           <p className="break-keep text-right text-xs font-bold leading-relaxed text-zinc-400">
             변경 내용은 메뉴 관리 탭에 임시 반영됩니다.
           </p>
-          {draftFeedback && <p className="rounded-lg bg-emerald-50 px-4 py-3 text-right text-xs font-bold leading-relaxed text-emerald-700">{draftFeedback}</p>}
+          {draftFeedback && <p className="site-notice site-notice-success px-4 py-3 text-right text-xs font-bold leading-relaxed">{draftFeedback}</p>}
         </>
       )}
     </form>
@@ -3817,7 +3818,7 @@ function MenuItemForm({
                   type="button"
                   disabled={isGeneratingDescription || aiDescriptionUsageExceeded}
                   onClick={requestAiDescriptionGeneration}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1.5 text-xs font-bold text-zinc-700 transition-colors hover:border-zinc-400 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  className="site-button site-button-outline inline-flex items-center justify-center gap-1.5 text-xs disabled:cursor-not-allowed"
                 >
                   {isGeneratingDescription ? (
                     <>
@@ -4150,7 +4151,7 @@ function MenuItemForm({
           </div>
         )}
         {canManageCategoryPriceColumns && !hasCategoryPriceColumns && priceOptions.some((option) => option.visible) && (
-          <p className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-xs font-bold leading-relaxed text-amber-700">
+          <p className="site-notice site-notice-warning mt-4 px-4 py-3 text-xs font-bold leading-relaxed">
             기존 옵션별 가격 데이터가 있습니다. 새 가격 구조에서는 카테고리 옵션 컬럼 사용을 권장합니다.
           </p>
         )}
@@ -4166,9 +4167,9 @@ function MenuItemForm({
                   가격을 입력한 옵션만 공개 메뉴판에 표시됩니다.
                 </p>
               </div>
-              <span className="rounded-full bg-white px-2.5 py-1 text-xs font-bold text-zinc-500">
+              <Badge>
                 {currentCategoryPriceColumns.length}개 컬럼
-              </span>
+              </Badge>
             </div>
             <div className="site-section mt-4 overflow-hidden">
               <div className="hidden grid-cols-[minmax(4rem,0.65fr)_minmax(0,1fr)] gap-3 border-b border-zinc-100 bg-zinc-50 px-3 py-2 text-xs font-bold text-zinc-500 sm:grid">
@@ -4223,7 +4224,7 @@ function MenuItemForm({
               이 메뉴는 카테고리에 설정된 가격 옵션 열만 사용할 수 있습니다. 옵션명을 바꾸려면 카테고리의 “가격 옵션 열”을 수정해주세요.
             </p>
             {normalizedCategoryPriceOptionLabels.length === 0 ? (
-              <p className="mt-4 rounded-lg bg-amber-50 px-4 py-3 text-xs font-bold leading-relaxed text-amber-700">
+              <p className="site-notice site-notice-warning mt-4 px-4 py-3 text-xs font-bold leading-relaxed">
                 먼저 카테고리에서 가격 옵션 열을 추가해주세요. 예: HOT / ICE / LARGE
               </p>
             ) : (
@@ -4324,10 +4325,10 @@ function MenuItemForm({
         <section className="site-section p-4">
           <h4 className="type-label text-zinc-950">
             타임세일
-            {effectiveTimeSaleEnabled ? <span className="ml-2 rounded-full bg-zinc-950 px-2 py-0.5 text-xs font-bold text-white">사용 중</span> : null}
+            {effectiveTimeSaleEnabled ? <Badge>사용 중</Badge> : null}
           </h4>
           {isDirectPriceTextMode ? (
-            <div className="mt-4 space-y-3 rounded-lg bg-amber-50 px-4 py-3">
+            <div className="site-notice site-notice-warning mt-4 space-y-3 px-4 py-3">
               <p className="break-keep text-xs font-bold leading-relaxed text-amber-700">
                 직접 표시 문구는 할인 계산에 사용할 수 없어 타임세일을 적용할 수 없습니다.
               </p>
@@ -4872,7 +4873,7 @@ function MenuItemForm({
               {itemDraftActionLabel}
             </SubmitButton>
             {onCancel && (
-              <button type="button" onClick={onCancel} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+              <button type="button" onClick={onCancel} className="site-button site-button-outline text-sm">
                 {cancelLabel}
               </button>
             )}
@@ -4913,14 +4914,14 @@ function MenuItemForm({
               <button
                 type="button"
                 onClick={() => setDescriptionOverwritePending(false)}
-                className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-bold text-zinc-600 transition-colors hover:border-zinc-400"
+                className="site-button site-button-ghost text-sm"
               >
                 취소
               </button>
               <button
                 type="button"
                 onClick={() => void runAiDescriptionGeneration()}
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                className="site-button site-button-primary inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed"
                 disabled={isGeneratingDescription}
               >
                 {isGeneratingDescription ? (
@@ -5140,14 +5141,14 @@ function DraftPriceOptionsEditor({
                       <button
                         type="button"
                         onClick={() => completeEditingOption(option.id)}
-                        className="rounded-full border border-zinc-950 bg-zinc-950 px-4 py-3 text-sm font-bold text-white transition hover:bg-zinc-800"
+                        className="site-button site-button-primary text-sm"
                       >
                         수정 완료
                       </button>
                       <button
                         type="button"
                         onClick={cancelEditingOption}
-                        className="rounded-full border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-900"
+                        className="site-button site-button-ghost text-sm"
                       >
                         취소
                       </button>
@@ -5175,11 +5176,11 @@ function DraftPriceOptionsEditor({
                     <button
                       type="button"
                       onClick={() => startEditingOption(option)}
-                      className="rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm font-bold text-zinc-700 transition hover:border-zinc-300 hover:bg-white hover:text-zinc-950"
+                      className="site-button site-button-outline text-sm"
                     >
                       수정
                     </button>
-                    <button type="button" onClick={() => onRemove(option.id)} className="rounded-full border border-red-100 bg-red-50 px-4 py-2.5 text-sm font-bold text-red-700 transition hover:border-red-200 hover:bg-red-100">
+                    <button type="button" onClick={() => onRemove(option.id)} className="site-button site-button-danger-ghost text-sm">
                       삭제
                     </button>
                   </div>
@@ -8739,7 +8740,7 @@ export default function MenuManagementSection({
                     setIsMenuCleanupOpen(true);
                   }}
                   disabled={localAiMenuCleanupUsage.used >= localAiMenuCleanupUsage.limit}
-                  className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  className="site-button site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
                 >
                   AI 메뉴 정리 · 3크레딧
                 </button>
@@ -8759,7 +8760,7 @@ export default function MenuManagementSection({
             <div className="flex min-w-max items-center gap-2">
               <a
                 href={`/mypage/menus/${menuId}/edit?tab=cover`}
-                className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600 hover:border-zinc-400"
+                className="site-button site-button-outline text-xs"
               >
                 커버
               </a>
@@ -8791,7 +8792,7 @@ export default function MenuManagementSection({
                 type="button"
                 onClick={startCreatePage}
                 disabled={reachedPageLimit}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-zinc-200 bg-white text-base font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
+                className="site-button site-button-outline inline-flex w-9 items-center justify-center text-base disabled:cursor-not-allowed"
                 aria-label="메뉴 페이지 추가"
                 title={`메뉴 페이지는 최대 ${AUBE_TABLE_MAX_MENU_PAGES}개까지 추가할 수 있습니다.`}
               >
@@ -8860,7 +8861,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={startCreatePage}
                   disabled={reachedPageLimit}
-                  className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
                 >
                   + {labels.pageLabel}
                 </button>
@@ -8870,7 +8871,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={startCreateCategory}
                   disabled={reachedCategoryLimit}
-                  className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
                 >
                   + {labels.categoryLabel}
                 </button>
@@ -8881,7 +8882,7 @@ export default function MenuManagementSection({
                   onClick={startCreateWidget}
                   disabled={reachedWidgetLimit}
                   title={reachedWidgetLimit ? `한 페이지에는 위젯을 최대 ${maxMenuWidgetsPerPage}개까지 등록할 수 있습니다.` : undefined}
-                  className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
                 >
                   + 위젯
                 </button>
@@ -8891,14 +8892,14 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={() => startCreateItem()}
                   disabled={reachedItemLimit}
-                  className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
                 >
                   + {labels.itemLabel}
                 </button>
               )}
             </div>
             {hasActiveWidgetEditorChanges && (
-              <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs font-bold leading-relaxed text-amber-700">
+              <p className="site-notice site-notice-warning mt-3 px-3 py-2 text-xs font-bold leading-relaxed">
                 현재 위젯의 수정 내용을 반영하거나 취소한 뒤 순서를 변경해주세요.
               </p>
             )}
@@ -9152,7 +9153,7 @@ export default function MenuManagementSection({
                 disabled={!canMoveSelectedOrderUp}
                 aria-label="위로 이동"
                 title="위로 이동"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-sm font-bold leading-none text-zinc-500 transition hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
+                className="site-button site-button-outline inline-flex w-8 items-center justify-center text-sm leading-none disabled:cursor-not-allowed"
               >
                 ↑
               </button>
@@ -9162,7 +9163,7 @@ export default function MenuManagementSection({
                 disabled={!canMoveSelectedOrderDown}
                 aria-label="아래로 이동"
                 title="아래로 이동"
-                className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-zinc-200 bg-white text-sm font-bold leading-none text-zinc-500 transition hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-300"
+                className="site-button site-button-outline inline-flex w-8 items-center justify-center text-sm leading-none disabled:cursor-not-allowed"
               >
                 ↓
               </button>
@@ -9311,21 +9312,21 @@ export default function MenuManagementSection({
                     type="button"
                     onClick={() => copyWidgetDraft(selectedWidgetDraft.id)}
                     disabled={widgetCountForVisiblePage >= maxMenuWidgetsPerPage}
-                    className="mr-auto rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                    className="site-button site-button-outline mr-auto text-sm disabled:cursor-not-allowed"
                   >
                     복사
                   </button>
-                  <button type="button" onClick={() => startEditWidget(selectedWidgetDraft.id)} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+                  <button type="button" onClick={() => startEditWidget(selectedWidgetDraft.id)} className="site-button site-button-outline text-sm">
                     수정
                   </button>
                   {confirmingDeleteKey === `widget:${selectedWidgetDraft.id}` ? (
                     <span className="flex flex-wrap items-center justify-end gap-2">
                       <span className="text-xs font-bold text-red-600">이 위젯을 삭제할까요?</span>
-                      <button type="button" onClick={() => deleteWidgetDraft(selectedWidgetDraft.id)} className="rounded-full bg-red-600 px-4 py-2 text-xs font-bold text-white">삭제</button>
-                      <button type="button" onClick={() => setConfirmingDeleteKey("")} className="rounded-full border border-zinc-200 bg-white px-4 py-2 text-xs font-bold text-zinc-600">취소</button>
+                      <button type="button" onClick={() => deleteWidgetDraft(selectedWidgetDraft.id)} className="site-button site-button-danger text-xs">삭제</button>
+                      <button type="button" onClick={() => setConfirmingDeleteKey("")} className="site-button site-button-ghost text-xs">취소</button>
                     </span>
                   ) : (
-                    <button type="button" onClick={() => startConfirmDelete(`widget:${selectedWidgetDraft.id}`)} className="rounded-full border border-red-100 bg-white px-5 py-3 text-sm font-bold text-red-600">
+                    <button type="button" onClick={() => startConfirmDelete(`widget:${selectedWidgetDraft.id}`)} className="site-button site-button-danger-ghost text-sm">
                       삭제
                     </button>
                   )}
@@ -9480,7 +9481,7 @@ export default function MenuManagementSection({
                   }}
                 />
                 {itemDraftFeedback && (
-                  <p className="mt-3 rounded-lg bg-emerald-50 px-4 py-3 text-right text-xs font-bold leading-relaxed text-emerald-700">
+                  <p className="site-notice site-notice-success mt-3 px-4 py-3 text-right text-xs font-bold leading-relaxed">
                     {itemDraftFeedback}
                   </p>
                 )}
@@ -9527,7 +9528,7 @@ export default function MenuManagementSection({
                   onCopy={() => copyItemDraft(selectedEditingItem.id)}
                 />
                 {itemDraftFeedback && (
-                  <p className="mt-3 rounded-lg bg-emerald-50 px-4 py-3 text-right text-xs font-bold leading-relaxed text-emerald-700">
+                  <p className="site-notice site-notice-success mt-3 px-4 py-3 text-right text-xs font-bold leading-relaxed">
                     {itemDraftFeedback}
                   </p>
                 )}
@@ -9570,11 +9571,11 @@ export default function MenuManagementSection({
                         ? `한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`
                         : undefined
                     }
-                    className="mr-auto rounded-full border border-zinc-200 bg-zinc-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                    className="site-button site-button-primary mr-auto text-sm disabled:cursor-not-allowed"
                   >
                     + {labels.itemLabel} 추가
                   </button>
-                  <button type="button" onClick={() => startEditCategory(selectedCategory.id)} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+                  <button type="button" onClick={() => startEditCategory(selectedCategory.id)} className="site-button site-button-outline text-sm">
                     수정
                   </button>
                   <button
@@ -9588,7 +9589,7 @@ export default function MenuManagementSection({
                         ? `한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`
                         : undefined
                     }
-                    className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                    className="site-button site-button-outline text-sm disabled:cursor-not-allowed"
                   >
                     복사
                   </button>
@@ -9602,7 +9603,7 @@ export default function MenuManagementSection({
                   />
                 </div>
                 {categoryDraftFeedback && (
-                  <p className="mt-3 rounded-lg bg-emerald-50 px-4 py-3 text-right text-xs font-bold leading-relaxed text-emerald-700">
+                  <p className="site-notice site-notice-success mt-3 px-4 py-3 text-right text-xs font-bold leading-relaxed">
                     {categoryDraftFeedback}
                   </p>
                 )}
@@ -9722,7 +9723,7 @@ export default function MenuManagementSection({
                           ? `이 ${labels.pageLabel}에는 ${labels.categoryLabel}을 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.`
                           : undefined
                       }
-                      className="mr-auto rounded-full border border-zinc-200 bg-zinc-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                      className="site-button site-button-primary mr-auto text-sm disabled:cursor-not-allowed"
                     >
                       + {labels.categoryLabel} 추가
                     </button>
@@ -9732,19 +9733,19 @@ export default function MenuManagementSection({
                       type="button"
                       onClick={() => startCreateItem({ direct: true })}
                       disabled={reachedItemsPerSiteLimit}
-                      className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                      className="site-button site-button-outline text-sm disabled:cursor-not-allowed"
                     >
                       + 단독 메뉴
                     </button>
                   )}
-                  <button type="button" onClick={() => startEditPage(selectedPage.id)} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+                  <button type="button" onClick={() => startEditPage(selectedPage.id)} className="site-button site-button-outline text-sm">
                     수정
                   </button>
                   <button
                     type="button"
                     onClick={() => copyPageDraft(selectedPage.id)}
                     disabled={Boolean(selectedPageCopyDisabledReason)}
-                    className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                    className="site-button site-button-outline text-sm disabled:cursor-not-allowed"
                     title={selectedPageCopyDisabledReason || undefined}
                   >
                     복사
@@ -9765,7 +9766,7 @@ export default function MenuManagementSection({
                   </p>
                 )}
                 {pageDraftFeedback && (
-                  <p className="mt-3 rounded-lg bg-emerald-50 px-4 py-3 text-right text-xs font-bold leading-relaxed text-emerald-700">
+                  <p className="site-notice site-notice-success mt-3 px-4 py-3 text-right text-xs font-bold leading-relaxed">
                     {pageDraftFeedback}
                   </p>
                 )}
@@ -9811,7 +9812,7 @@ export default function MenuManagementSection({
               </div>
             ) : null}
             {timeSaleLimitExceeded ? (
-              <p className="mb-4 rounded-lg bg-amber-50 px-4 py-3 text-center text-xs font-bold leading-relaxed text-amber-700">
+              <p className="site-notice site-notice-warning mb-4 px-4 py-3 text-center text-xs font-bold leading-relaxed">
                 {timeSaleLimitMessage}
               </p>
             ) : null}
@@ -9821,7 +9822,7 @@ export default function MenuManagementSection({
                 onClick={() => setIsSampleResetConfirming(true)}
                 disabled={Boolean(sampleResetDisabledReason)}
                 title={sampleResetDisabledReason || undefined}
-                className="inline-flex items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:bg-white hover:text-zinc-950 disabled:cursor-not-allowed disabled:border-zinc-200 disabled:bg-zinc-100 disabled:text-zinc-400"
+                className="site-button site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
               >
                 샘플 메뉴로 되돌리기
               </button>
@@ -9908,7 +9909,7 @@ export default function MenuManagementSection({
                   </div>
                 </div>
               ) : isMenuCleanupRunning ? (
-                <div className="mt-6 rounded-lg border border-amber-100 bg-amber-50 p-4 text-sm font-bold text-amber-700">
+                <div className="site-notice site-notice-warning mt-6 p-4 text-sm font-bold">
                   <div className="flex items-center gap-2">
                     <LoadingSpinner className="h-4 w-4" />
                     AI가 메뉴 목록을 카테고리와 아이템으로 정리하고 있습니다.
@@ -9928,11 +9929,11 @@ export default function MenuManagementSection({
                     처음 메뉴판을 세팅하는 경우에는 ‘현재 메뉴를 AI 결과로 교체’를 추천합니다. 운영 중 신메뉴를 추가하는 경우에는 ‘현재 메뉴판에 추가’{canManagePages ? " 또는 ‘새 페이지에 추가’" : ""}를 사용할 수 있습니다.
                   </p>
                   {aiMenuCleanupTooManyCategories ? (
-                    <p className="mt-3 rounded-lg bg-red-50 px-4 py-3 text-xs font-bold leading-relaxed text-red-700">
+                    <p className="site-notice site-notice-error mt-3 px-4 py-3 text-xs font-bold leading-relaxed">
                       AI 정리 결과의 카테고리가 {MENU_LIMITS.maxCategoriesPerPage}개를 초과합니다. 입력 내용을 줄이거나 카테고리 수를 줄여 다시 정리해주세요.
                     </p>
                   ) : aiMenuCleanupCurrentPageBlocked ? (
-                    <p className="mt-3 rounded-lg bg-amber-50 px-4 py-3 text-xs font-bold leading-relaxed text-amber-700">
+                    <p className="site-notice site-notice-warning mt-3 px-4 py-3 text-xs font-bold leading-relaxed">
                       현재 메뉴판에는 카테고리를 최대 {MENU_LIMITS.maxCategoriesPerPage}개까지 등록할 수 있습니다. 현재 {aiMenuCleanupTargetPageCategoryCount}개가 등록되어 있고, AI 정리 결과 {aiMenuCleanupCategoryCount}개를 추가하면 총 {aiMenuCleanupCurrentPageTotal}개가 됩니다. {canManagePages ? "새 페이지에 추가하거나, 현재 메뉴를 AI 결과로 교체할 수 있습니다." : "현재 메뉴를 AI 결과로 교체할 수 있습니다."}
                     </p>
                   ) : null}
@@ -9964,7 +9965,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={closeMenuCleanupDialog}
                   disabled={isMenuCleanupRunning || Boolean(menuCleanupApplyMode)}
-                  className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  className="site-button site-button-ghost inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
                 >
                   취소
                 </button>
@@ -9974,7 +9975,7 @@ export default function MenuManagementSection({
                       type="button"
                       onClick={() => setMenuCleanupResult(null)}
                       disabled={Boolean(menuCleanupApplyMode)}
-                      className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                      className="site-button site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
                     >
                       다시 정리하기
                     </button>
@@ -9990,7 +9991,7 @@ export default function MenuManagementSection({
                       type="button"
                       onClick={applyAiMenuCleanupAppendResult}
                       disabled={!aiMenuCleanupResultFitsOnePage || aiMenuCleanupCurrentPageBlocked || Boolean(menuCleanupApplyMode)}
-                      className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                      className="site-button site-button-outline inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed"
                     >
                       {menuCleanupApplyMode === "append-current" ? (
                         <>
@@ -10005,7 +10006,7 @@ export default function MenuManagementSection({
                       type="button"
                       onClick={applyAiMenuCleanupNewPageResult}
                       disabled={!aiMenuCleanupResultFitsOnePage || aiMenuCleanupNewPageBlocked || Boolean(menuCleanupApplyMode)}
-                      className="inline-flex items-center justify-center gap-2 rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:border-zinc-400 hover:text-zinc-950 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                      className="site-button site-button-outline inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed"
                     >
                       {menuCleanupApplyMode === "append-new" ? (
                         <>
@@ -10044,7 +10045,7 @@ export default function MenuManagementSection({
                         type="button"
                         onClick={() => setIsMenuCleanupReplaceConfirming(false)}
                         disabled={Boolean(menuCleanupApplyMode)}
-                        className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                        className="site-button site-button-ghost inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
                       >
                         취소
                       </button>
@@ -10085,7 +10086,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={() => setIsSampleResetConfirming(false)}
                   disabled={isSampleResetApplying}
-                  className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  className="site-button site-button-ghost inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
                 >
                   취소
                 </button>
@@ -10203,7 +10204,7 @@ function MenuItemCard({
         <>
           <div className="mb-4 min-w-0 border-b border-zinc-100 pb-4">
             <h4 className="type-content-title mt-1 line-clamp-2 break-words">{labels.itemLabel} 수정</h4>
-            <button type="button" onClick={onCancel} className="mt-3 inline-flex rounded-full border border-zinc-200 bg-white px-4 py-2 text-sm font-bold text-zinc-700 lg:hidden">
+            <button type="button" onClick={onCancel} className="site-button site-button-outline mt-3 inline-flex text-sm lg:hidden">
               {isCopiedDraftItem ? "목록으로" : cancelLabel}
             </button>
           </div>
@@ -10282,7 +10283,7 @@ function MenuItemCard({
                 {badgeLabel}
               </span>
             )}
-            {!item.visible && <span className="shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-500">숨김</span>}
+            {!item.visible && <Badge>숨김</Badge>}
           </div>
           <p className="mt-1 break-words text-sm font-semibold text-zinc-600">
             {[portion, priceOptionText || price, item.recommended ? "추천" : null].filter(Boolean).join(" · ") || "표시 정보 없음"}
@@ -10290,7 +10291,7 @@ function MenuItemCard({
           {traitText && <p className="mt-2 break-words text-xs font-bold text-zinc-400">{traitText}</p>}
         </div>
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
-          <button type="button" onClick={onEdit} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+          <button type="button" onClick={onEdit} className="site-button site-button-outline text-sm">
             수정
           </button>
           <SubmitButton type="button" tone="light" onClick={() => onCopy()}>

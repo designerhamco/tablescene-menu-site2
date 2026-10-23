@@ -199,7 +199,7 @@ function EmptyState({ message, buttonLabel, onClick, disabled }: { message: stri
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className="mt-5 rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+        className="site-button site-button-primary mt-5 text-sm disabled:cursor-not-allowed"
       >
         {buttonLabel}
       </button>
@@ -239,7 +239,7 @@ function DraftDeleteConfirmButton({
       <button
         type="button"
         onClick={onRequestConfirm}
-        className="rounded-full border border-red-100 bg-red-50 px-5 py-3 text-sm font-bold text-red-700 hover:bg-red-100"
+        className="site-button site-button-danger-ghost text-sm"
       >
         삭제
       </button>
@@ -249,7 +249,7 @@ function DraftDeleteConfirmButton({
             <h4 className="type-content-title text-zinc-950">{title}</h4>
             <p className="site-dialog-description mt-3 break-keep font-semibold leading-relaxed">{description}</p>
             <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
-              <button type="button" onClick={onCancel} className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700">
+              <button type="button" onClick={onCancel} className="site-button site-button-ghost text-sm">
                 취소
               </button>
               <button
@@ -258,7 +258,7 @@ function DraftDeleteConfirmButton({
                   onConfirm();
                   onCancel();
                 }}
-                className="rounded-full bg-red-600 px-5 py-3 text-sm font-bold text-white hover:bg-red-700"
+                className="site-button site-button-danger text-sm"
               >
                 삭제 확정
               </button>
@@ -430,7 +430,7 @@ export default function AboutDraftSections({
                   type="button"
                   onClick={addSocial}
                   disabled={visibleSocialDrafts.length >= MENU_LIMITS.maxSocialLinksPerSite}
-                  className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  className="site-button site-button-outline text-sm disabled:cursor-not-allowed"
                 >
                   + SNS 추가
                 </button>
@@ -528,7 +528,7 @@ export default function AboutDraftSections({
                   type="button"
                   onClick={addChef}
                   disabled={visibleChefDrafts.length >= MENU_LIMITS.maxChefsPerSite}
-                  className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+                  className="site-button site-button-outline text-sm disabled:cursor-not-allowed"
                 >
                   + 셰프/인물 추가
                 </button>
@@ -751,7 +751,7 @@ export function EventDraftSections({ events, showEvents }: EventDraftSectionsPro
               type="button"
               onClick={addEvent}
               disabled={visibleEventDrafts.length >= MENU_LIMITS.maxEventsPerSite}
-              className="rounded-full border border-zinc-200 bg-white px-5 py-3 text-sm font-bold text-zinc-700 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+              className="site-button site-button-outline text-sm disabled:cursor-not-allowed"
             >
               + 이벤트 추가
             </button>

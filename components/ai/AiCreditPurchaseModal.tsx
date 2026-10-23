@@ -187,7 +187,7 @@ export default function AiCreditPurchaseModal({
             type="button"
             onClick={closeModal}
             disabled={Boolean(pendingProductKey)}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 text-lg font-bold text-zinc-500 transition-colors hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50"
+            className="site-button site-button-secondary inline-flex w-10 shrink-0 items-center justify-center text-lg disabled:cursor-not-allowed disabled:opacity-50"
             aria-label="AI 크레딧 충전 닫기"
           >
             ×
@@ -216,7 +216,7 @@ export default function AiCreditPurchaseModal({
           })}
         </div>
 
-        <div className="mt-5 rounded-md bg-amber-50 p-4">
+        <div className="site-notice site-notice-warning mt-5 p-4">
           <p className="break-keep text-sm font-bold leading-relaxed text-amber-800">
             AI 크레딧은 결제 완료 즉시 계정에 지급되는 디지털 소모성 상품입니다. 크레딧 지급 후에는 단순 변심에 따른 취소/환불이 불가합니다. 중복 결제 또는 크레딧 미지급이 발생한 경우 고객지원으로 문의해주세요.
           </p>
@@ -233,7 +233,7 @@ export default function AiCreditPurchaseModal({
         </div>
 
         {localError ? (
-          <p className="mt-5 break-keep rounded-md bg-red-50 p-4 text-sm font-bold leading-relaxed text-red-700">
+          <p className="site-notice site-notice-error mt-5 break-keep p-4 text-sm font-bold leading-relaxed">
             {localError}
           </p>
         ) : null}

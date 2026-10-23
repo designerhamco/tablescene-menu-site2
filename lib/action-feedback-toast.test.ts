@@ -27,7 +27,7 @@ test("매장 운영·직원 액션은 기존 인라인 안내와 토스트를 �
     const source = readSource(path);
     assert.match(source, /ActionFeedbackToast/);
     assert.match(source, /state\.message|createState\.message|mutationState\.message/);
-    assert.match(source, /emerald-/);
+    assert.match(source, /site-notice-success/);
   }
 });
 
@@ -45,6 +45,6 @@ test("리다이렉트 결과 안내도 상단 박스와 토스트를 함께 유�
   for (const path of redirectSurfaces) {
     const source = readSource(path);
     assert.match(source, /ActionFeedbackToast/);
-    assert.match(source, /bg-emerald/);
+    assert.match(source, /site-notice-success/);
   }
 });

@@ -12,6 +12,7 @@ import type { OrderDashboardPageData } from "@/lib/server/order-management-servi
 
 import { initialOrderManagementActionState } from "./action-state";
 import { mutateOrderAction } from "./actions";
+import { Badge } from "@/app/components/ui/badge";
 
 const STATUS_LABELS: Record<string, string> = CUSTOMER_ORDER_STATUS_LABELS;
 
@@ -124,13 +125,13 @@ export default function OrderDashboard({
             <p className="text-sm font-bold text-zinc-900">최근 주문 {orders.length.toLocaleString("ko-KR")}건</p>
             <p className="mt-1 text-xs font-bold text-zinc-500">15초마다 자동 갱신하며, 상태 변경은 서버가 현재 값을 다시 확인합니다.</p>
           </div>
-          <button type="button" onClick={() => router.refresh()} className="rounded-full border border-zinc-200 px-4 py-2 text-xs font-bold hover:bg-zinc-100">
+          <button type="button" onClick={() => router.refresh()} className="site-button site-button-secondary text-xs">
             지금 새로고침
           </button>
         </div>
 
         {state.status !== "idle" && state.message ? (
-          <p className={`rounded-2xl border px-4 py-3 text-sm font-bold ${state.status === "success" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-rose-200 bg-rose-50 text-rose-800"}`}>
+          <p className={`site-notice   px-4 py-3 text-sm font-bold ${state.status === "success" ? "site-notice-success" : "site-notice-error"}`}>
             {state.message}
           </p>
         ) : null}
@@ -145,11 +146,11 @@ export default function OrderDashboard({
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="type-subsection-title">#{order.orderNumber}</h2>
-                  <span className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-bold text-zinc-700">{order.tableLabel}</span>
-                  <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">{STATUS_LABELS[order.status] ?? order.status}</span>
-                  <span className={`rounded-full px-3 py-1 text-xs font-bold ${order.paymentStatus === "unpaid" ? "bg-amber-50 text-amber-800" : "bg-sky-50 text-sky-700"}`}>
+                  <Badge>{order.tableLabel}</Badge>
+                  <Badge>{STATUS_LABELS[order.status] ?? order.status}</Badge>
+                  <Badge>
                     {PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}
-                  </span>
+                  </Badge>
                 </div>
                 <p className="mt-2 text-xs font-bold text-zinc-400">{formatKoreanDateTime(order.createdAt)}</p>
               </div>
@@ -176,7 +177,7 @@ export default function OrderDashboard({
                 </div>
               ))}
               {order.requestText ? <p className="rounded-2xl bg-zinc-50 px-4 py-3 text-sm font-bold text-zinc-700">요청사항: {order.requestText}</p> : null}
-              {order.cancellationReason ? <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">취소 사유: {order.cancellationReason}</p> : null}
+              {order.cancellationReason ? <p className="site-notice site-notice-error px-4 py-3 text-sm font-bold">취소 사유: {order.cancellationReason}</p> : null}
             </div>
 
             <div className="mt-5 grid gap-3 lg:grid-cols-3">
@@ -186,7 +187,7 @@ export default function OrderDashboard({
                   <input type="hidden" name="orderId" value={order.id} />
                   <input type="hidden" name="nextStatus" value={order.nextStatus} />
                   <p className="text-xs font-bold text-emerald-900">다음 단계: {STATUS_LABELS[order.nextStatus]}</p>
-                  <button name="intent" value="transition" disabled={pending} className="mt-3 w-full rounded-full bg-emerald-800 px-4 py-2.5 text-xs font-bold text-white disabled:opacity-60">
+                  <button name="intent" value="transition" disabled={pending} className="site-button site-button-ghost mt-3 w-full text-xs disabled:opacity-60">
                     상태 변경
                   </button>
                 </form>
@@ -203,7 +204,7 @@ export default function OrderDashboard({
                       <option value="manual_cash">현금</option>
                     </select>
                   </label>
-                  <button name="intent" value="manual-payment" disabled={pending} className="mt-3 w-full rounded-full bg-sky-800 px-4 py-2.5 text-xs font-bold text-white disabled:opacity-60">
+                  <button name="intent" value="manual-payment" disabled={pending} className="site-button site-button-ghost mt-3 w-full text-xs disabled:opacity-60">
                     결제 완료 기록
                   </button>
                 </form>
@@ -217,7 +218,7 @@ export default function OrderDashboard({
                     미결제 주문 취소
                     <textarea name="reason" required maxLength={500} rows={2} placeholder="취소 사유" className="mt-2 w-full resize-none rounded-xl border border-rose-200 bg-white px-3 py-2 text-xs font-bold" />
                   </label>
-                  <button name="intent" value="cancel" disabled={pending} className="mt-3 w-full rounded-full bg-rose-800 px-4 py-2.5 text-xs font-bold text-white disabled:opacity-60">
+                  <button name="intent" value="cancel" disabled={pending} className="site-button site-button-ghost mt-3 w-full text-xs disabled:opacity-60">
                     주문 취소
                   </button>
                 </form>

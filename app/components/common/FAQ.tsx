@@ -394,7 +394,7 @@ const FAQ = ({
                     setSearchQuery(event.target.value);
                     setOpenIndex(null);
                   }}
-                  className="site-field w-full pl-11"
+                  className="site-field site-field-leading w-full"
                   placeholder="예: 무료체험, QR, 디자인"
                 />
               </div>

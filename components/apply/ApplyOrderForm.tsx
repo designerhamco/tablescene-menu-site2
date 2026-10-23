@@ -237,7 +237,7 @@ type PendingBusinessPurchaseAttempt = {
 const MENU_ADDRESS_HELPER_TEXT =
   "결제 후 변경할 수 없습니다. QR 코드와 공유 링크에 사용되므로 신중하게 입력해주세요. 영문 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다. 예: gangnam-cafe";
 const PERSONAL_TRIAL_LIMIT_MESSAGE =
-  "개인 1개월 체험은 계정당 1개만 이용할 수 있습니다. 기존 체험 메뉴판을 사업자 플랜으로 전환하거나 새 사업자 메뉴판을 신청해주세요.";
+  "개인 1개월 체험은 계정당 1개만 이용할 수 있습니다. 기존 체험 메뉴판을 월 구독으로 전환하거나 새 메뉴판을 신청해주세요.";
 const DISPLAY_PAYMENT_COMPLETION_STORAGE_KEY = "menulink:display-payment-completion:v1";
 const BUSINESS_PURCHASE_ATTEMPT_STORAGE_KEY = "menulink:business-purchase-attempt:v1";
 
@@ -358,7 +358,7 @@ const personalTrialAgreementDetails: Record<AgreementKey, string[]> = {
   ...agreementDetails,
   privacy: [
     "첫 달 체험 메뉴판 생성, 체험 기간 관리, 고객지원, 부정 이용 방지, 체험 종료 및 데이터 삭제 예정 안내를 위해 이름, 이메일, 휴대전화번호, 체험 신청일, 체험 시작일, 체험 종료일, 메뉴판 ID, 메뉴판 상태 등을 수집·이용합니다.",
-    "보유기간은 첫 달 체험 기간 및 종료 후 30일까지이며, 사업자 플랜으로 전환하는 경우 유료서비스 이용기간 동안 보관됩니다.",
+    "보유기간은 첫 달 체험 기간 및 종료 후 30일까지이며, 월 구독으로 전환하는 경우 유료서비스 이용기간 동안 보관됩니다.",
     "동의를 거부할 경우 첫 달 체험 신청 및 체험 메뉴판 제공이 제한될 수 있습니다.",
   ],
   contentPolicy: [
@@ -367,7 +367,7 @@ const personalTrialAgreementDetails: Record<AgreementKey, string[]> = {
     "첫 메뉴판 생성이 완료되면 계정당 최초 1회 AI 웰컴 크레딧 6개가 제공됩니다.",
     "체험 기간 종료 후 메뉴판은 비공개 처리될 수 있으며, 종료 후 30일 이내 사업자 월 구독으로 전환하면 기존 메뉴판 데이터를 계속 사용할 수 있습니다.",
     "30일이 경과하면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있으며, 삭제된 데이터는 복구되지 않을 수 있습니다.",
-    "첫 달 체험 후 사업자 플랜으로 전환하는 경우, 유료서비스 제공 및 결제 처리를 위해 사업자 정보 입력과 관련 동의가 필요합니다.",
+    "첫 달 체험 후 월 구독으로 전환하는 경우, 유료서비스 제공 및 결제 처리를 위해 사업자 정보 입력과 관련 동의가 필요합니다.",
   ],
 };
 
@@ -2575,7 +2575,7 @@ export default function ApplyOrderForm({
             <div className="md:col-span-2">
               <span className="site-checkout-label">구매자 유형 *</span>
               {isDisplayBusinessOnly ? (
-                <div className="mt-2 rounded-md bg-emerald-50 px-4 py-3">
+                <div className="site-notice site-notice-success mt-2 px-4 py-3">
                   <p className="text-sm font-bold text-emerald-900">사업자 전용</p>
                   <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-emerald-700">
                     디스플레이 메뉴보드는 사업자 정보 확인 후 결제할 수 있습니다. 개인 구매자로는 신청할 수 없습니다.
@@ -2660,7 +2660,7 @@ export default function ApplyOrderForm({
                       type="button"
                       onClick={handleBusinessVerificationCheck}
                       disabled={businessVerificationState.type === "checking"}
-                      className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-zinc-950 px-4 py-2.5 text-xs font-bold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="site-button site-button-primary inline-flex shrink-0 items-center justify-center gap-2 text-xs disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {businessVerificationState.type === "checking" ? <LoadingSpinner className="h-3.5 w-3.5" /> : null}
                       {businessVerificationState.type === "checking" ? "확인 중..." : "사업자 정보 확인"}
@@ -2753,7 +2753,7 @@ export default function ApplyOrderForm({
                     <button
                       type="button"
                       onClick={handleApplyPromotionCode}
-                      className="shrink-0 rounded-full bg-zinc-950 px-4 py-2 text-sm font-bold text-white transition hover:bg-zinc-800"
+                      className="site-button site-button-primary shrink-0 text-sm"
                     >
                       {isOpenPromotionApplied ? "적용됨" : "적용"}
                     </button>
@@ -2840,7 +2840,7 @@ export default function ApplyOrderForm({
           </div>
 
           {!isPortOneReady && (
-            <div className="mt-6 rounded-md bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
+            <div className="site-notice site-notice-warning mt-6 p-4 text-sm font-bold leading-relaxed">
               {isDevelopment && mockEnabled
                 ? "결제 설정 확인 전에도 신청 화면을 확인할 수 있습니다."
                 : "PortOne 공개 환경변수가 없어서 결제를 진행할 수 없습니다. 개발 mock은 PORTONE_MOCK_ENABLED=true일 때만 동작합니다."}
@@ -2848,7 +2848,7 @@ export default function ApplyOrderForm({
           )}
 
           {isSubscriptionProduct && !isBillingPortOneReady && (
-            <div className="mt-6 rounded-md bg-amber-50 p-4 text-sm font-bold leading-relaxed text-amber-700">
+            <div className="site-notice site-notice-warning mt-6 p-4 text-sm font-bold leading-relaxed">
               사업자 월/연 정기결제는 PortOne V2 빌링키 발급을 지원하는 채널의 channelKey가 필요합니다.
               `NEXT_PUBLIC_PORTONE_BILLING_CHANNEL_KEY`를 설정해주세요.
             </div>
@@ -2859,7 +2859,7 @@ export default function ApplyOrderForm({
           )}
 
           {canShowPaymentCompletionRecovery && (
-            <div className="mt-6 rounded-md bg-sky-50 p-4 text-sm font-bold leading-relaxed text-sky-800">
+            <div className="site-notice site-notice-info mt-6 p-4 text-sm font-bold leading-relaxed">
               <p>
                 이미 승인된 Display {activeProduct.billing_cycle === "yearly" ? "연결제" : "월결제"} 결제가 있다면 새 결제창 없이 생성 처리만 다시 시도할 수 있습니다.
               </p>
@@ -2898,7 +2898,7 @@ export default function ApplyOrderForm({
                   !normalizeRecoverablePaymentId(recoveryPaymentIdInput || pendingPaymentCompletion?.paymentId || "") ||
                   (isSubscriptionProduct && !recoverySubscriptionIdInput.trim())
                 }
-                className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-sky-950 px-4 py-3 text-xs font-bold text-white transition-colors hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-sky-200"
+                className="site-button site-button-ghost mt-3 inline-flex w-full items-center justify-center text-xs disabled:cursor-not-allowed"
               >
                 결제창 없이 후처리만 재시도
               </button>
@@ -2911,7 +2911,7 @@ export default function ApplyOrderForm({
           )}
 
           {businessPaymentActionMessage && (
-            <div className={`mt-6 rounded-2xl border p-4 text-sm font-bold leading-relaxed ${hasVerifiedBusinessProfile ? "border-emerald-100 bg-emerald-50 text-emerald-700" : businessVerificationState.type === "failed" ? "border-red-100 bg-red-50 text-red-700" : "border-amber-100 bg-amber-50 text-amber-800"}`}>
+            <div className={`site-notice mt-6   p-4 text-sm font-bold leading-relaxed ${hasVerifiedBusinessProfile ? "site-notice-success" : businessVerificationState.type === "failed" ? "site-notice-error" : "site-notice-warning"}`}>
               {businessPaymentActionMessage}
             </div>
           )}
@@ -2920,7 +2920,7 @@ export default function ApplyOrderForm({
             type="button"
             onClick={handlePayment}
             disabled={paymentButtonDisabled}
-            className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-4 text-sm font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
+            className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center text-sm disabled:cursor-not-allowed"
           >
             {activeProduct.product_key === personalTrialBasicProduct.product_key && paymentButtonLabel.includes("신청") ? "동의하고 첫 달 체험 시작하기" : isFormReady && !isLoading ? "동의하고 메뉴판 생성하기" : paymentButtonLabel}
           </button>
@@ -3168,7 +3168,7 @@ function TermsModal({ title, details, onClose }: { title: string; details: strin
         <div className="border-b border-zinc-100 p-6">
           <div className="flex items-start justify-between gap-4">
             <h3 className="type-subsection-title text-zinc-950">{title}</h3>
-            <button type="button" onClick={onClose} className="rounded-full border border-zinc-200 px-3 py-1.5 text-xs font-bold text-zinc-500">
+            <button type="button" onClick={onClose} className="site-button site-button-ghost text-xs">
               닫기
             </button>
           </div>
@@ -3182,7 +3182,7 @@ function TermsModal({ title, details, onClose }: { title: string; details: strin
           ))}
         </div>
         <div className="border-t border-zinc-100 p-6">
-          <button type="button" onClick={onClose} className="inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white">
+          <button type="button" onClick={onClose} className="site-button site-button-primary inline-flex w-full items-center justify-center text-sm">
             확인
           </button>
         </div>
@@ -3202,7 +3202,7 @@ function SummaryRow({ label, value, strong = false }: { label: string; value: st
 
 function BusinessVerificationSummaryRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-emerald-50 px-3 py-2">
+    <div className="site-notice site-notice-success px-3 py-2">
       <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-500">{label}</p>
       <p className="mt-1 break-keep text-xs font-bold text-emerald-900">{value}</p>
     </div>

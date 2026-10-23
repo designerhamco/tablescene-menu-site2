@@ -6,7 +6,7 @@ export default function DiningServicePage() {
       className="bg-white pb-24 pt-36"
     >
       <div className="site-container">
-        <p className="site-eyebrow">스페셜 다이닝 플랜</p>
+
         <h1 className="type-page-title mt-5">
           메뉴를 넘어
           <br />

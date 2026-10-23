@@ -2243,7 +2243,7 @@ export async function POST(request: Request) {
         return jsonStepError({
           step: "new_or_convert_precheck",
           debugCode: "ALREADY_BUSINESS_PLAN",
-          message: "이미 사업자 플랜으로 전환된 메뉴판입니다.",
+          message: "이미 월 구독으로 전환된 메뉴판입니다.",
           status: 409,
           userId: user.id,
           mode,
@@ -2679,7 +2679,7 @@ export async function POST(request: Request) {
       message: startsWithFreeTrial
         ? "결제수단 등록이 완료되어 30일 무료체험이 시작되었습니다."
         : mode === "convert"
-          ? "기존 메뉴판이 사업자 플랜으로 전환되었습니다."
+          ? "기존 메뉴판이 월 구독으로 전환되었습니다."
           : "아티메뉴 다이닝 메뉴판이 생성되었습니다.",
       mode,
       menuSiteId: menuSite.id,

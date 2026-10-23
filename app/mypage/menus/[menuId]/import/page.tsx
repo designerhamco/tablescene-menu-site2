@@ -19,6 +19,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getMenuDesignDisplayName } from "@/lib/menu-design-identity";
 
 import { disconnectMenuSiteContentAction, importMenuSiteContentAction } from "./actions";
+import { Badge } from "@/app/components/ui/badge";
 
 type PageProps = {
   params: Promise<{ menuId: string }>;
@@ -119,7 +120,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
             </div>
             <Link
               href={`/mypage/menus/${menuId}/edit`}
-              className="site-button site-button-secondary"
+              className="site-button site-button-outline"
             >
               편집 화면으로 돌아가기
             </Link>
@@ -145,12 +146,12 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
                   {getMenuDesignDisplayName(targetMenuSite.template_key, null, targetMenuSite.settings)} · {getStatusLabel(targetMenuSite.status)}
                 </p>
               </div>
-              <span className={`w-fit rounded-full px-3 py-1 text-xs font-bold ${canImport ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+              <Badge>
                 {canImport ? "가져오기 가능" : "작성중 메뉴판만 가능"}
-              </span>
+              </Badge>
             </div>
             {!canImport ? (
-              <p className="mt-5 rounded-2xl bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-800">
+              <p className="site-notice site-notice-warning mt-5 p-4 text-sm font-semibold leading-6">
                 공개 중인 메뉴판을 자동으로 덮어쓰지 않습니다. 새 작성중 메뉴판을 만든 뒤 이 기능을 이용해 주세요.
               </p>
             ) : null}
@@ -194,7 +195,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
                 </label>
                 <PendingSubmitButton
                   pendingLabel="연결을 해제하는 중..."
-                  className="mt-4 rounded-full border border-zinc-300 bg-white px-5 py-3 text-sm font-bold text-zinc-700"
+                  className="site-button site-button-outline mt-4 text-sm"
                 >
                   연결 해제
                 </PendingSubmitButton>
@@ -204,7 +205,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
             <section className="site-section p-8 text-center">
               <h2 className="type-subsection-title">가져올 다른 메뉴판이 없습니다</h2>
               <p className="mt-3 text-sm font-semibold text-zinc-500">같은 계정에 메뉴판이 두 개 이상 있을 때 사용할 수 있습니다.</p>
-              <Link href="/apply" className="mt-6 inline-flex rounded-full bg-zinc-950 px-6 py-3 text-sm font-bold text-white">
+              <Link href="/apply" className="site-button site-button-primary mt-6 inline-flex text-sm">
                 새 메뉴판 만들기
               </Link>
             </section>
@@ -267,7 +268,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
                 <PendingSubmitButton
                   pendingLabel="메뉴를 가져오는 중..."
                   disabled={!canImport}
-                  className="rounded-full bg-zinc-950 px-7 py-4 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
+                  className="site-button site-button-primary text-sm disabled:cursor-not-allowed"
                 >
                   메뉴 가져오기
                 </PendingSubmitButton>

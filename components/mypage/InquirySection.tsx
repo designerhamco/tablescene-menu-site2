@@ -4,6 +4,7 @@ import { createInquiryAction, deleteInquiryAction, updateInquiryAction } from "@
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import { getInquiryCategoryLabel, inquiryCategoryOptions, normalizeInquiryCategory, type InquiryCategory } from "@/lib/inquiries";
 import type { Database } from "@/lib/supabase/types";
+import { Badge } from "@/app/components/ui/badge";
 
 export type InquirySectionInquiry = Pick<
   Database["public"]["Tables"]["inquiries"]["Row"],
@@ -90,16 +91,6 @@ function getStatusLabel(status: InquirySectionInquiry["status"]) {
   };
 
   return labels[status];
-}
-
-function getStatusClassName(status: InquirySectionInquiry["status"]) {
-  const classes: Record<InquirySectionInquiry["status"], string> = {
-    open: "bg-zinc-100 text-zinc-600",
-    answered: "bg-emerald-50 text-emerald-700",
-    closed: "bg-amber-50 text-amber-700",
-  };
-
-  return classes[status];
 }
 
 function formatDate(date: string | null) {
@@ -317,13 +308,13 @@ export function InquirySection({
                 <details key={inquiry.id} className="group">
                   <summary className="grid cursor-pointer list-none gap-3 px-4 py-4 text-sm transition-colors hover:bg-zinc-50 focus:outline-none focus-visible:bg-zinc-50 md:grid-cols-[56px_112px_1fr_96px_144px_52px] md:items-center">
                     <p className="text-xs font-bold text-zinc-400">#{inquiryFrom + index + 1}</p>
-                    <span className="w-fit rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-bold text-zinc-600">
+                    <Badge>
                       {getInquiryCategoryLabel(inquiry.category)}
-                    </span>
+                    </Badge>
                     <h4 className="type-label line-clamp-1 break-keep text-zinc-900">{inquiry.title}</h4>
-                    <span className={`w-fit rounded-full px-2.5 py-1 text-xs font-bold ${getStatusClassName(inquiry.status)}`}>
+                    <Badge>
                       {getStatusLabel(inquiry.status)}
-                    </span>
+                    </Badge>
                     <p className="text-xs font-bold text-zinc-400">{formatDate(inquiry.created_at)}</p>
                     <div className="text-xs font-bold text-zinc-400 md:text-right">
                       <span className="group-open:hidden">열기</span>
@@ -343,7 +334,7 @@ export function InquirySection({
                     </div>
 
                     {inquiry.admin_reply ? (
-                      <div className="mt-3 rounded-md bg-emerald-50 p-4">
+                      <div className="site-notice site-notice-success mt-3 p-4">
                         <div className="mb-2 flex flex-col justify-between gap-1 md:flex-row md:items-center">
                           <p className="text-xs font-bold text-emerald-800">관리자 답변</p>
                           <p className="text-xs font-medium text-emerald-700/70">답변일 {formatDate(inquiry.replied_at)}</p>
@@ -454,9 +445,9 @@ export function InquirySection({
                   이전
                 </Link>
               ) : (
-                <span className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
+                <button type="button" disabled className="site-button site-button-outline">
                   이전
-                </span>
+                </button>
               )}
               <span className="text-sm font-bold text-zinc-500">
                 {activeInquiryPage}/{inquiryTotalPages}
@@ -466,9 +457,9 @@ export function InquirySection({
                   다음
                 </Link>
               ) : (
-                <span className="inline-flex min-h-11 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 px-5 py-3 text-sm font-bold text-zinc-400">
+                <button type="button" disabled className="site-button site-button-outline">
                   다음
-                </span>
+                </button>
               )}
             </div>
           </div>

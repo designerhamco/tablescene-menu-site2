@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 export const runtime = "nodejs";
 
 const PERSONAL_TRIAL_ALREADY_USED_MESSAGE =
-  "개인 1개월 체험은 계정당 1개만 이용할 수 있습니다. 기존 체험 메뉴판을 사업자 플랜으로 전환하거나 새 사업자 메뉴판을 신청해주세요.";
+  "개인 1개월 체험은 계정당 1개만 이용할 수 있습니다. 기존 체험 메뉴판을 월 구독으로 전환하거나 새 메뉴판을 신청해주세요.";
 
 export async function GET() {
   const supabase = await createClient();

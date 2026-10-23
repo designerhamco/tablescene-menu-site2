@@ -10,6 +10,7 @@ import {
   type BasicTemplateCategoryGroupKey,
   type TemplateKey,
 } from "@/lib/templates";
+import { Badge } from "@/app/components/ui/badge";
 
 const activeTemplateCatalog = getAvailableTemplatesForService("basic");
 const firstCategoryGroupWithTemplate = BASIC_TEMPLATE_CATEGORY_GROUPS.find((group) =>
@@ -93,13 +94,11 @@ export default function TemplateCatalogPicker() {
                 showServiceBadge={false}
                 className="border-0"
                 action={
-                  <span
-                    className={`flex h-6 w-6 items-center justify-center rounded-full border text-xs font-bold ${
-                      isSelected ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 text-transparent"
-                    }`}
+                  <Badge
+
                   >
                     ✓
-                  </span>
+                  </Badge>
                 }
               />
             </label>

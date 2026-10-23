@@ -57,7 +57,7 @@ export default async function AnnouncementAdmin({
         <div className={styles.admin}>
           <header className={styles.adminHeader}>
             <div>
-              <p className="site-eyebrow">고객센터 운영</p>
+
               <h1 className="type-page-title mt-3">공지사항 관리</h1>
             </div>
             <div className="flex flex-wrap gap-3">

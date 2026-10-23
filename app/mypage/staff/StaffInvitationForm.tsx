@@ -54,7 +54,7 @@ export default function StaffInvitationForm({
       </div>
 
       {!enabled ? (
-        <div className="rounded-md bg-amber-50 px-4 py-3 text-sm font-bold leading-relaxed text-amber-900">
+        <div className="site-notice site-notice-warning px-4 py-3 text-sm font-bold leading-relaxed">
           초대 수락 화면과 이메일 운영 환경을 검증한 뒤 발송 기능이 활성화됩니다. 지금은 실제 이메일을 보내지 않습니다.
         </div>
       ) : null}
@@ -123,10 +123,10 @@ export default function StaffInvitationForm({
       {state.message ? (
         <p
           aria-live="polite"
-          className={`rounded-2xl px-4 py-3 text-sm font-bold ${
+          className={`site-notice  px-4 py-3 text-sm font-bold ${
             state.status === "success"
-              ? "border border-emerald-200 bg-emerald-50 text-emerald-800"
-              : "border border-rose-200 bg-rose-50 text-rose-800"
+              ? "site-notice-success"
+              : "site-notice-error"
           }`}
         >
           {state.message}
@@ -136,7 +136,7 @@ export default function StaffInvitationForm({
       <button
         type="submit"
         disabled={unavailable || pending}
-        className="inline-flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-zinc-300 md:w-auto"
+        className="site-button site-button-primary inline-flex w-full items-center justify-center text-sm disabled:cursor-not-allowed md:w-auto"
       >
         {pending ? "초대 처리 중..." : "초대 이메일 보내기"}
       </button>

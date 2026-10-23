@@ -42,7 +42,52 @@
   --ui-action-hover: #24282f;
   --ui-action-pressed: #4b515b;
   --ui-action-soft-pressed: #e2e5e9;
+  --ui-notice-surface: #fff8d6;
+  --ui-chip-neutral: #45484e;
+  --ui-chip-new: #2563eb;
+  --ui-chip-best: #c64130;
+  --ui-chip-draft: #8b47c5;
+  --ui-chip-private: #626b7a;
+  --ui-chip-active: #198047;
+  --ui-chip-paid: #2851a5;
+  --ui-chip-pending: #bd5800;
+  --ui-chip-trial: #007a9c;
+  --ui-chip-ending: #ab4f6c;
+  --ui-chip-ended: #6f526a;
+  --ui-chip-error: #b42332;
 }
+
+.site-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: fit-content;
+  min-height: 1.5rem;
+  border: 0;
+  border-radius: .375rem;
+  background: var(--ui-chip-fill, var(--ui-chip-neutral));
+  padding: .25rem .5rem;
+  color: #fff;
+  font-size: .75rem;
+  font-weight: 600;
+  line-height: 1rem;
+  white-space: nowrap;
+  box-shadow: none;
+}
+.site-chip-new, .site-chip-basic { --ui-chip-fill: var(--ui-chip-new); }
+.site-chip-best { --ui-chip-fill: var(--ui-chip-best); }
+.site-chip-draft, .site-chip-dining { --ui-chip-fill: var(--ui-chip-draft); }
+.site-chip-private { --ui-chip-fill: var(--ui-chip-private); }
+.site-chip-active { --ui-chip-fill: var(--ui-chip-active); }
+.site-chip-paid { --ui-chip-fill: var(--ui-chip-paid); }
+.site-chip-pending { --ui-chip-fill: var(--ui-chip-pending); }
+.site-chip-trial { --ui-chip-fill: var(--ui-chip-trial); }
+.site-chip-ending { --ui-chip-fill: var(--ui-chip-ending); }
+.site-chip-ended { --ui-chip-fill: var(--ui-chip-ended); }
+.site-chip-error { --ui-chip-fill: var(--ui-chip-error); }
+.site-chip-display { --ui-chip-fill: #007e87; }
+.site-chip-role { border: 1px solid var(--ui-border); background: #fff; color: var(--ui-text-muted); padding-block: calc(.25rem - 1px); }
 
 /*
  * ArtiMenu site component contract.
@@ -149,6 +194,9 @@
   border-color: var(--ui-danger-hover);
   background: var(--ui-danger-hover);
 }
+
+.site-button-danger-ghost { background: transparent; color: var(--ui-danger); }
+.site-button-danger-ghost:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--ui-error-surface); }
 
 .site-button-outline-danger {
   border-color: #fecaca;
@@ -334,14 +382,17 @@
   color: var(--ui-text);
   box-shadow: none;
   font: inherit;
-  font-size: var(--font-size-200);
+  font-size: 1rem;
   line-height: 1.5;
+  padding: .375rem .875rem;
   transition:
     border-color var(--ui-transition),
     background-color var(--ui-transition),
     color var(--ui-transition),
     opacity var(--ui-transition);
 }
+
+.site-field.site-field-leading { padding-inline-start: 2.75rem; }
 
 textarea.site-field,
 :where(textarea):not(.menu-typography *):not(.menu-typography, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) {
@@ -356,9 +407,9 @@ textarea.site-field,
 }
 
 .site-field[type="search"] {
-  border-color: transparent;
-  border-radius: var(--ui-radius-control);
-  background: var(--ui-surface-soft);
+  border-color: var(--ui-border);
+  border-radius: var(--ui-radius-field);
+  background: var(--ui-surface);
 }
 .site-field[type="search"]:focus { background: var(--ui-surface); }
 
@@ -510,36 +561,34 @@ textarea.site-field,
 .site-notice {
   border: 0;
   border-radius: .375rem;
-  background: var(--ui-info-surface);
-  color: var(--ui-info-text);
+  background: var(--ui-notice-surface);
+  color: var(--ui-text);
   font-size: var(--font-size-200);
   font-weight: var(--font-weight-medium);
   line-height: 1.6;
 }
 
 .site-notice-success {
-  border-color: var(--ui-success-border);
-  background: var(--ui-success-surface);
-  color: var(--ui-success-text);
+  background: var(--ui-notice-surface);
+  color: var(--ui-text);
 }
 
 .site-notice-warning {
-  border-color: var(--ui-warning-border);
-  background: var(--ui-warning-surface);
-  color: var(--ui-warning-text);
+  background: var(--ui-notice-surface);
+  color: var(--ui-text);
 }
 
 .site-notice-error {
-  border-color: var(--ui-error-border);
-  background: var(--ui-error-surface);
-  color: var(--ui-error-text);
+  background: var(--ui-notice-surface);
+  color: var(--ui-text);
 }
 
 .site-notice-info {
-  border-color: var(--ui-info-border);
-  background: var(--ui-info-surface);
-  color: var(--ui-info-text);
+  background: var(--ui-notice-surface);
+  color: var(--ui-text);
 }
+
+.site-notice :is(strong, [data-notice-important]) { color: var(--ui-danger); }
 
 :where(.bg-emerald-50, .bg-emerald-100):not(.menu-typography *):not(.menu-typography, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) {
   background-color: var(--ui-success-surface) !important;

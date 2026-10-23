@@ -69,13 +69,13 @@ export default async function ApplyDisplayPage({
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/apply"
-                className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-6 py-3 text-sm font-bold text-white transition hover:bg-zinc-800"
+                className="site-button site-button-primary inline-flex items-center justify-center text-sm"
               >
                 상품 선택으로 돌아가기
               </Link>
               <Link
                 href="/services/display"
-                className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-6 py-3 text-sm font-bold text-zinc-700 transition hover:border-zinc-400 hover:text-zinc-950"
+                className="site-button site-button-outline inline-flex items-center justify-center text-sm"
               >
                 아티메뉴 디스플레이 소개 보기
               </Link>

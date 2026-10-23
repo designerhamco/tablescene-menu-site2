@@ -196,7 +196,7 @@ function EmptyState({
         type="button"
         onClick={onCreate}
         disabled={disabled}
-        className="mt-5 rounded-full bg-zinc-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400"
+        className="site-button site-button-primary mt-5 text-sm disabled:cursor-not-allowed"
       >
         {buttonLabel}
       </button>

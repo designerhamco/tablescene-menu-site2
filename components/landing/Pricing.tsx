@@ -2,6 +2,7 @@ import Image from "next/image";
 
 import { plans } from "./data";
 import { Icon } from "./Icon";
+import { Badge } from "@/app/components/ui/badge";
 
 export function Pricing() {
   return (
@@ -37,9 +38,9 @@ export function Pricing() {
                   <h3 className="type-subsection-title mb-6 flex items-center gap-3 text-zinc-900">{plan.tagline}</h3>
                   <div className="mb-8 flex flex-wrap gap-2">
                     {plan.keywords.map((keyword) => (
-                      <span key={keyword} className="rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-bold tracking-tight text-zinc-900">
+                      <Badge key={keyword} >
                         {keyword}
-                      </span>
+                      </Badge>
                     ))}
                   </div>
                   <p className="break-keep text-lg leading-relaxed text-zinc-500">{plan.narrative}</p>

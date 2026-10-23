@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Plus, Minus, ArrowRight } from 'lucide-react';
+import { Badge } from "@/app/components/ui/badge";
 
 const features = [
   {
@@ -109,9 +110,9 @@ const Features = () => {
                     </p>
                     <div className="flex gap-2">
                        {feature.tags.map(tag => (
-                         <span key={tag} className="text-xs font-bold px-3 py-1 rounded-full bg-white/5 text-white/70 border border-white/10">
+                         <Badge key={tag} >
                            {tag}
-                         </span>
+                         </Badge>
                        ))}
                     </div>
                   </motion.div>

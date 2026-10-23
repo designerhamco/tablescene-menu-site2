@@ -94,7 +94,7 @@ export default function ResetPasswordForm({
   if (state === "invalid") {
     return (
       <div className="space-y-5">
-        <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-medium leading-relaxed text-amber-800">
+        <div className="site-notice site-notice-warning px-4 py-3 text-sm font-medium leading-relaxed">
           비밀번호 재설정 링크가 만료되었거나 유효하지 않습니다. 다시 요청해주세요.
         </div>
         <Link href="/forgot-password" className="site-button site-button-primary site-button-lg w-full">
@@ -106,7 +106,7 @@ export default function ResetPasswordForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {errorMessage && <div className="rounded-2xl border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{errorMessage}</div>}
+      {errorMessage && <div className="site-notice site-notice-error px-4 py-3 text-sm font-medium">{errorMessage}</div>}
 
       <div>
         <label htmlFor="newPassword" className="mb-2 block text-sm font-bold">

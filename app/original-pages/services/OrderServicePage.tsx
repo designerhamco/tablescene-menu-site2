@@ -15,6 +15,7 @@ import {
 } from "../../components/ui/accordion";
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
 import { Link } from 'react-router';
+import { Badge } from "@/app/components/ui/badge";
 
 // --- Feature Accordion Component ---
 interface FeatureItem {
@@ -450,9 +451,9 @@ const OrderServicePage = () => {
         <section className="px-6 pb-24 pt-36 md:pb-32 md:pt-44">
           <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-[1.05fr_0.95fr] md:items-center">
             <div>
-              <span className="mb-5 inline-flex rounded-full border border-zinc-200 bg-zinc-50 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-zinc-500">
+              <Badge>
                 준비 중
-              </span>
+              </Badge>
               <h1 className="break-keep text-4xl font-black tracking-tight text-zinc-950 md:text-6xl">
                 아티메뉴 오더 1.0
               </h1>
@@ -463,13 +464,13 @@ const OrderServicePage = () => {
               <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                 <Link
                   to="/"
-                  className="inline-flex items-center justify-center rounded-full bg-zinc-950 px-6 py-4 text-sm font-bold text-white transition hover:bg-zinc-800"
+                  className="site-button site-button-primary inline-flex items-center justify-center text-sm"
                 >
                   아티메뉴 다이닝 보기
                 </Link>
                 <Link
                   to="/apply/custom"
-                  className="inline-flex items-center justify-center rounded-full border border-zinc-200 bg-white px-6 py-4 text-sm font-bold text-zinc-950 transition hover:bg-zinc-50"
+                  className="site-button site-button-outline inline-flex items-center justify-center text-sm"
                 >
                   문의하기
                 </Link>
@@ -761,21 +762,13 @@ const OrderServicePage = () => {
                  <div className="bg-zinc-100 p-1.5 rounded-full border border-zinc-200 flex items-center shadow-inner">
                     <button
                         onClick={() => setViewTab('service')}
-                        className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-base font-bold transition-all ${
-                            viewTab === 'service' 
-                            ? 'bg-white text-black shadow-md ring-1 ring-black/5' 
-                            : 'text-zinc-500 hover:text-zinc-700'
-                        }`}
+                        className={`site-button ${viewTab === 'service' ? "site-button-primary" : "site-button-secondary"}`} aria-pressed={viewTab === 'service'}
                     >
                         서비스 화면
                     </button>
                     <button
                         onClick={() => setViewTab('dashboard')}
-                        className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-base font-bold transition-all ${
-                            viewTab === 'dashboard' 
-                            ? 'bg-white text-black shadow-md ring-1 ring-black/5' 
-                            : 'text-zinc-500 hover:text-zinc-700'
-                        }`}
+                        className={`site-button ${viewTab === 'dashboard' ? "site-button-primary" : "site-button-secondary"}`} aria-pressed={viewTab === 'dashboard'}
                     >
                         대시보드 화면
                     </button>
@@ -860,9 +853,9 @@ const OrderServicePage = () => {
                                 
                                 {currentFeatures.length > 0 && (
                                     <div className="absolute bottom-6 left-0 right-0 text-center pointer-events-none z-20">
-                                        <span className="inline-block px-3 py-1 rounded-full bg-black/40 backdrop-blur-md text-[10px] font-bold tracking-widest uppercase text-white/90 border border-white/10">
+                                        <Badge>
                                             {currentFeature?.text}
-                                        </span>
+                                        </Badge>
                                     </div>
                                 )}
                             </motion.div>
@@ -1170,21 +1163,13 @@ const OrderServicePage = () => {
             <div className="flex flex-wrap justify-center gap-2 mb-12">
                <button
                    onClick={() => setDesignTab('template')}
-                   className={`px-6 py-3 rounded-full text-sm md:text-base font-bold transition-all duration-300 ${
-                       designTab === 'template' 
-                       ? 'bg-zinc-900 text-white shadow-lg scale-105' 
-                       : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900'
-                   }`}
+                   className={`site-button ${designTab === 'template' ? "site-button-primary" : "site-button-secondary"}`} aria-pressed={designTab === 'template'}
                >
                    템플릿 8종
                </button>
                <button
                    onClick={() => setDesignTab('custom')}
-                   className={`flex items-center gap-2 px-6 py-3 rounded-full text-sm md:text-base font-bold transition-all duration-300 ${
-                       designTab === 'custom' 
-                       ? 'bg-zinc-900 text-white shadow-lg scale-105' 
-                       : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900'
-                   }`}
+                   className={`site-button ${designTab === 'custom' ? "site-button-primary" : "site-button-secondary"}`} aria-pressed={designTab === 'custom'}
                >
                    디자인 커스터마이징
                    <span className={`text-[10px] px-1.5 py-0.5 rounded leading-none ${
@@ -1228,9 +1213,9 @@ const OrderServicePage = () => {
                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                  />
                  <div className="absolute bottom-4 left-4 z-20">
-                    <span className="px-3 py-1 bg-white/90 backdrop-blur rounded-full text-xs font-bold text-zinc-900 shadow-sm">
+                    <Badge>
                        {designTab === 'template' ? `Type 0${item.id}` : 'Custom'}
-                    </span>
+                    </Badge>
                  </div>
                </div>
                <h3 className="text-lg font-bold text-zinc-900 group-hover:text-black transition-colors">{item.name}</h3>
@@ -1254,7 +1239,7 @@ const OrderServicePage = () => {
            </div>
 
            <div className="shrink-0">
-              <Link to="/services/design-customizing" className="group inline-flex items-center gap-2 px-6 py-3 rounded-full bg-zinc-900 text-white font-bold hover:bg-zinc-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+              <Link to="/services/design-customizing" className="site-button site-button-primary group inline-flex items-center gap-2 hover:-translate-y-0.5">
                 자세히 보기
                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </Link>
@@ -1282,7 +1267,7 @@ const OrderServicePage = () => {
                       <div className="flex items-end justify-between">
                           <div>
                               <span className="text-zinc-500 font-medium text-lg block mb-2">월 이용료</span>
-                              <span className="bg-[#F8E731] text-black text-xs font-bold px-2 py-1 rounded-full">50% 할인</span>
+                              <Badge>50% 할인</Badge>
                           </div>
                           <div className="text-right">
                               <span className="text-zinc-400 line-through text-base block mb-1">118,000원</span>
@@ -1298,7 +1283,7 @@ const OrderServicePage = () => {
                             <div>
                                 <span className="text-zinc-500 font-medium text-lg block mb-2">초기 세팅비</span>
                                 <div className="flex items-center gap-2">
-                                  <span className="bg-[#F8E731] text-black text-xs font-bold px-2 py-1 rounded-full">50% 할인</span>
+                                  <Badge>50% 할인</Badge>
                                   <button 
                                     onClick={() => setIsSetupDetailOpen(!isSetupDetailOpen)}
                                     className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-800 transition-colors underline decoration-zinc-300 underline-offset-2"
@@ -1412,7 +1397,7 @@ const OrderServicePage = () => {
                   <div>
                     <div className="flex items-center justify-between mb-8">
                        <h3 className="text-2xl font-bold text-zinc-900">유료 부가 서비스</h3>
-                       <span className="text-sm px-3 py-1 bg-white border border-zinc-200 text-zinc-500 rounded-full font-medium">Optional</span>
+                       <Badge>Optional</Badge>
                     </div>
                     <div className="space-y-6">
                       <div className="flex items-start justify-between gap-4">
@@ -1738,7 +1723,7 @@ const OrderServicePage = () => {
         <div className="mt-16 text-center">
             <Link 
                 to="/services/order" 
-                className="inline-flex items-center justify-center gap-2 bg-[#F8E731] hover:bg-[#E5D520] text-black text-xl font-bold px-16 py-5 rounded-full transition-all hover:scale-105 shadow-lg shadow-yellow-400/20"
+                className="site-button site-button-ghost inline-flex items-center justify-center gap-2 text-xl"
             >
                 준비 중 <ArrowRight size={24}/>
             </Link>
