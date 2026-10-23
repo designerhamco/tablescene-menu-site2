@@ -1,5 +1,15 @@
 # Menu template spacing contract
 
+## Fixed title ratios and representative panels — 2026-10-24
+
+Latest user approval replaces width-filling PC/tablet title sizing. Every active Basic default list/album and designer presentation uses the actual category size × **1.6** for left/center/upper-left brands and × **1.3** for top-row headers. This is the maintained font size, not a minimum that can keep growing. Width and height only determine line wrapping; there is no 40px floor, width coverage target, automatic enlargement/shrink or two-line size comparison. Prefer the fewest whole-word lines; an oversized word alone may split safely by grapheme. Keep intact neighboring words on their own lines. Preserve the existing Darumadrop metric corrections and independent mobile fitter.
+
+Fixed left rails reserve their panel padding and scrollbar before dividing the remaining width among representative and menu content tracks. The representative photo/identity and each selected menu track receive the same usable width. The painted rail includes its internal padding; its outer edge owns the ordinary gutter. Measure every 1/2/3-track candidate at these real widths, then apply the selected geometry. Default albums use the same representative width as two logical reading tracks. Remove the former 24%/25% fixed-rail fraction. Top-row and center-column structural widths stay independent.
+
+Upper-left auxiliary color applies to the complete natural-height representative block, including identity, photo and linked featured content. Its padding is internal; following/right menu gaps start at the painted block edge. Native photo-overlay corner blocks preserve their image/identity composition inside the colored surface. Probes and visible blocks share identical padding/height. Clearing the optional color, or matching the page color, restores unpanelled geometry; native panel defaults remain intact. No border/shadow is added. Mobile geometry remains unchanged.
+
+The 2026-10-23 sizing rules below are superseded by this section. See `representative-panel-title-qa.md`.
+
 ## Shared fonts, title hierarchy and representative panels — 2026-10-23
 
 This latest approved policy supersedes the older PC/tablet 75%/65% title targets, 15% two-line gain/balance gate, fixed title-height budgets, PC-only .875 reduction and proportional shrinking of representative frames. It applies to all active Basic list/album default designs and designer skins, through the same preview/editor/public renderer.

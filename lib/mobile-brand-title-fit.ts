@@ -34,10 +34,10 @@ function lineText(plan: TextPlan, start: number, end: number) {
   return plan.units.slice(start, end).join(plan.separator).trim();
 }
 
-export function getMobileBrandMeasurementTexts(title: string): string[] {
+export function getMobileBrandMeasurementTexts(title: string, maxMeasuredUnits = MAX_MEASURED_UNITS): string[] {
   const texts = new Set([normalizeMobileBrandTitle(title)]);
   for (const plan of plansFor(title)) {
-    if (plan.units.length > MAX_MEASURED_UNITS) continue;
+    if (plan.units.length > maxMeasuredUnits) continue;
     for (let start = 0; start < plan.units.length; start++) {
       for (let end = start + 1; end <= plan.units.length; end++) {
         const text = lineText(plan, start, end);
@@ -49,9 +49,9 @@ export function getMobileBrandMeasurementTexts(title: string): string[] {
 }
 
 /** Minimax partitioning balances rendered widths, not character counts. */
-function balancedLines(plan: TextPlan, widths: ReadonlyMap<string, number>) {
+function balancedLines(plan: TextPlan, widths: ReadonlyMap<string, number>, maxMeasuredUnits = MAX_MEASURED_UNITS) {
   const count = plan.units.length;
-  if (count > MAX_MEASURED_UNITS) return [];
+  if (count > maxMeasuredUnits) return [];
   type Candidate = { lines: string[]; widest: number; sumSquares: number };
   const dp: (Candidate | undefined)[][] = Array.from({ length: count + 1 }, () => Array(count + 1));
   dp[0][0] = { lines: [], widest: 0, sumSquares: 0 };
@@ -72,8 +72,8 @@ function balancedLines(plan: TextPlan, widths: ReadonlyMap<string, number>) {
 }
 
 /** Word/grapheme partitions only; does not change the independent mobile policy. */
-export function getBalancedBrandLinePlans(title: string, widths: ReadonlyMap<string, number>) {
-  return plansFor(title).map((plan) => balancedLines(plan, widths));
+export function getBalancedBrandLinePlans(title: string, widths: ReadonlyMap<string, number>, maxMeasuredUnits = MAX_MEASURED_UNITS) {
+  return plansFor(title).map((plan) => balancedLines(plan, widths, maxMeasuredUnits));
 }
 
 export function selectMobileBrandTitleFit(

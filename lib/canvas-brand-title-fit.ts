@@ -1,4 +1,7 @@
-import { getBalancedBrandLinePlans, normalizeMobileBrandTitle, type MobileBrandTitleFit } from "./mobile-brand-title-fit";
+import { getBalancedBrandLinePlans, getMobileBrandMeasurementTexts, normalizeMobileBrandTitle, type MobileBrandTitleFit } from "./mobile-brand-title-fit";
+
+const CANVAS_MEASURED_UNITS = 64;
+export const getCanvasBrandMeasurementTexts = (title: string) => getMobileBrandMeasurementTexts(title, CANVAS_MEASURED_UNITS);
 
 export const CANVAS_BRAND_FRAME_HEIGHT_RATIO = 0.18;
 export const CANVAS_HEADER_BASE_RATIO = 0.08;
@@ -25,9 +28,11 @@ export function getCanvasBrandHeight(width: number, frameHeight: number, layout:
   return Math.min(frameHeight * frameRatio, layout === "horizontal-header" ? width * 0.28 : Infinity);
 }
 
-export function getCanvasBrandLimits(width: number, _layout: CanvasBrandSlotLayout, rootScale = 1, categorySize = 32 * rootScale) {
-  const minimum = Math.max(40 * rootScale, categorySize * 1.25);
-  return { minimum, maximum: Math.max(minimum, categorySize * 2.5, width * .32), preferred: Math.max(minimum, categorySize * 1.75), widthRatio: 1 };
+/** Fixed semantic size: available width selects line breaks, never font size. */
+export function getCanvasBrandLimits(_width: number, layout: CanvasBrandSlotLayout, rootScale = 1, categorySize = 32 * rootScale) {
+  void _width;
+  const fontSize = categorySize * (layout === "horizontal-header" ? 1.3 : 1.6);
+  return { fontSize, minimum: fontSize, maximum: fontSize };
 }
 
 /** Shared PC/tablet title hierarchy. Font names never select a policy. */
@@ -35,23 +40,28 @@ export function selectCanvasBrandTitleFit(title: string, widths: ReadonlyMap<str
   limits: ReturnType<typeof getCanvasBrandLimits>, measuredLineAdvance = 1.08, _ceilingScale = 1, opticalScale = 1): MobileBrandTitleFit {
   const text = normalizeMobileBrandTitle(title);
   void height; void measuredLineAdvance; void _ceilingScale;
-  const fallback = { lines: text ? [text] : [], fontSize: limits.minimum, naturalWrap: true };
+  const fontSize = limits.fontSize * Math.max(1, opticalScale);
+  const fallback = { lines: text ? [text] : [], fontSize, naturalWrap: true };
   if (!text || !Number.isFinite(width) || width <= 0) return fallback;
-  const maximum = limits.maximum * Math.max(1, opticalScale);
-  for (const plans of getBalancedBrandLinePlans(title, widths)) {
-    const candidates = plans.flatMap(plan => {
-      if (plan.widest * limits.minimum / 100 > width + .01) return [];
-      return [{lines: plan.lines, fontSize: Math.max(limits.minimum, Math.min(maximum, width * 100 / plan.widest)), naturalWrap: false}];
-    });
-    if (!candidates.length) continue;
-    const single = candidates.find(candidate => candidate.lines.length === 1);
-    const double = candidates.find(candidate => candidate.lines.length === 2);
-    // Preserve a comfortable one-line title. If it would fall below the
-    // semantic preferred size, use two whole-word lines when they are larger.
-    if (single) return double && single.fontSize < limits.preferred && double.fontSize > single.fontSize ? double : single;
-    // Word groups first, emergency grapheme breaks only when an intact word
-    // cannot fit at the title minimum. Never shrink below category hierarchy.
-    return candidates[0];
+  // Fewest whole-word lines first. Only a word that cannot fit at the fixed
+  // size needs grapheme-safe breaks. No width target, enlargement or shrink.
+  const [wordPlans, graphemePlans = []] = getBalancedBrandLinePlans(title, widths, CANVAS_MEASURED_UNITS);
+  const fits = (candidate: { widest: number }) => candidate.widest * fontSize / 100 <= width + .01;
+  const wordPlan = wordPlans.find(fits);
+  if (wordPlan) return { lines: wordPlan.lines, fontSize, naturalWrap: false };
+  const words = text.split(" ");
+  if (words.length > 1) {
+    const lines: string[] = [];
+    for (const word of words) {
+      const wordWidth = widths.get(word);
+      if (wordWidth && fits({ widest: wordWidth })) { lines.push(word); continue; }
+      const plan = getBalancedBrandLinePlans(word, widths, CANVAS_MEASURED_UNITS).flat().find(fits);
+      if (!plan) return fallback;
+      lines.push(...plan.lines);
+    }
+    return { lines, fontSize, naturalWrap: false };
   }
+  const plan = graphemePlans.find(fits);
+  if (plan) return { lines: plan.lines, fontSize, naturalWrap: false };
   return fallback;
 }

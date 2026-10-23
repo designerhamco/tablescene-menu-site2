@@ -1,4 +1,5 @@
 "use client";
+import { getRepresentativeRailGeometry } from "@/lib/representative-rail-geometry";
 import { getMenuDesignBackgrounds } from "@/lib/template-background-colors";
 
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
@@ -105,6 +106,8 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
   useLayoutEffect(() => {
     if (!area.current || !board.current || !measure.current) return;
     let frame = 0, disposed = false;
+    const rejectedRailColumns = new Set<number>();
+    let railFrameKey = "";
     const update = () => {
       frame = 0;
       if (disposed || !area.current || !measure.current || !board.current) return;
@@ -114,14 +117,23 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       const gap = parseFloat(getComputedStyle(viewport).columnGap) || 24;
       const brandWidth = center ? root.querySelector<HTMLElement>("[data-native-brand]")?.getBoundingClientRect().width ?? 0 : 0;
       const width = viewport.clientWidth - (center ? brandWidth + gap : 0);
+      const leftRail = shell === "brand_left_rail";
+      const boardStyle = getComputedStyle(root);
+      const brand = root.querySelector<HTMLElement>("[data-native-brand]");
+      const brandStyle = brand ? getComputedStyle(brand) : null;
+      const boardWidth = root.getBoundingClientRect().width - parseFloat(boardStyle.paddingLeft) - parseFloat(boardStyle.paddingRight);
+      const panelPadding = (parseFloat(brandStyle?.paddingLeft ?? "0") || 0) + (parseFloat(brandStyle?.paddingRight ?? "0") || 0);
+      const railGeometry = (count: number) => getRepresentativeRailGeometry(boardWidth, panelPadding, gap, count, viewport.offsetWidth - viewport.clientWidth);
+      const frameKey = `${boardWidth}|${root.clientHeight}`;
+      if (frameKey !== railFrameKey) { rejectedRailColumns.clear(); railFrameKey = frameKey; }
       const max = center ? 2 : Math.max(1, Math.min(3, Math.floor((width + gap) / (12 * rem + gap))));
       const size = (getOnePageItemNameCeilingRem(device) ?? 1.3) * rem;
       root.style.setProperty("--native-item-size", `${size}px`);
       const base = Math.min(1.08 * rem, .88 * rem + Math.min(innerWidth, innerHeight) * .002);
       root.style.setProperty("--fit-menu-gap-scale", String(getOrderedFitGapScale(size / base, width)));
       const panelInset = panel ? parseFloat(getComputedStyle(measure.current.children[units.length > 1 ? 1 : 0] ?? measure.current).paddingLeft) || 0 : 0;
-      const candidates = (center ? [2] : Array.from({ length: max }, (_, i) => i + 1)).map(count => {
-        const columnWidth = (width - (count - 1) * gap) / count;
+      const candidates = (center ? [2] : leftRail ? [1, 2, 3].filter(count => count === 1 || (!rejectedRailColumns.has(count) && railGeometry(count).trackWidth >= 12 * rem)) : Array.from({ length: max }, (_, i) => i + 1)).map(count => {
+        const columnWidth = leftRail ? railGeometry(count).trackWidth : (width - (count - 1) * gap) / count;
         measure.current!.style.width = `${columnWidth}px`;
         applyOnePageChipLayouts(measure.current!);
         const measured = units.map(unit => {
@@ -136,6 +148,20 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
         return { columnCount: count, columnWidth, itemSize: size, names: measureScrollableNames(measure.current!), layout: layoutScrollableMenu(measured, count, viewport.clientHeight - 2 * panelInset, grouped, { footerHeight: noticeMeasure.current?.getBoundingClientRect().height ?? 0 }) };
       });
       const selected = selectScrollableMenuCandidate(candidates, grouped);
+      if (leftRail) {
+        const geometry = railGeometry(selected.columnCount);
+        root.style.setProperty("--native-rail-width", `${geometry.railWidth}px`);
+        root.dataset.representativeContentWidth = String(geometry.trackWidth);
+      }
+      const title = brand?.querySelector<HTMLElement>("[data-canvas-brand-fit]");
+      if (leftRail && selected.columnCount > 1 && title?.dataset.canvasBrandFit === "ready" &&
+        Math.abs(Number(title.dataset.canvasBrandWidth) - railGeometry(selected.columnCount).trackWidth) < 1 &&
+        [...brand!.querySelectorAll(".cafe-a-fixed-rail-copy,.cafe-a-cover-hero")].some(node => node.getBoundingClientRect().bottom > brand!.getBoundingClientRect().bottom - parseFloat(brandStyle!.paddingBottom) + 1)) {
+        rejectedRailColumns.add(selected.columnCount);
+        setReady(false);
+        frame = requestAnimationFrame(update);
+        return;
+      }
       measure.current.style.width = `${selected.columnWidth}px`;
       applyOnePageChipLayouts(measure.current); // Leave probes at the chosen width, as in the shared Matcha reader.
       root.dataset.nativeNameMeasurements = String(selected.names?.filter(name => name.role !== "category").length ?? 0);
@@ -147,16 +173,18 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
     const schedule = () => { if (!disposed && !frame) frame = requestAnimationFrame(update); };
     const observer = new ResizeObserver(schedule);
     observer.observe(area.current);
+    for (const copy of board.current?.querySelectorAll("[data-native-brand] .cafe-a-fixed-rail-copy") ?? []) observer.observe(copy);
     // Candidate probes resize hidden rows themselves. Observing those outputs
     // feeds the next measurement back into the current decision. Real content
     // changes restart this effect; fonts, images and viewport remain live inputs.
     const measuredContent = measure.current;
     measuredContent.addEventListener("load", schedule, true);
-    document.fonts.addEventListener("loadingdone", schedule);
-    void document.fonts.ready.then(schedule);
+    const fontsChanged = () => { rejectedRailColumns.clear(); schedule(); };
+    document.fonts.addEventListener("loadingdone", fontsChanged);
+    void document.fonts.ready.then(fontsChanged);
     schedule();
-    return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); measuredContent.removeEventListener("load", schedule, true); document.fonts.removeEventListener("loadingdone", schedule); };
-  }, [units, device, grouped, center, panel, updateHint]);
+    return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); measuredContent.removeEventListener("load", schedule, true); document.fonts.removeEventListener("loadingdone", fontsChanged); };
+  }, [units, device, grouped, center, panel, shell, updateHint]);
   useLayoutEffect(() => {
     if (!area.current || !tracks.current) return;
     applyOnePageChipLayouts(tracks.current);
