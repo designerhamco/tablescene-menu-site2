@@ -4,6 +4,28 @@
   isolation: isolate;
 }
 
+.compact .viewport {
+  aspect-ratio: 3.4;
+}
+.compact .slide {
+  flex-basis: 25%;
+}
+.compact .panel {
+  width: 118%;
+  box-shadow: none;
+}
+.compact .screen {
+  aspect-ratio: 1;
+}
+.compact .previewMenu {
+  gap: 4cqw;
+}
+.playbackOnly {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5rem;
+}
+
 .viewport {
   overflow: hidden;
   aspect-ratio: 2.65;
@@ -56,22 +78,22 @@
   container-type: inline-size;
 }
 
-.screen[data-theme='ivory'] {
+.screen[data-theme="ivory"] {
   --preview-paper: #f2eee7;
   --preview-ink: #514134;
 }
 
-.screen[data-theme='cream'] {
+.screen[data-theme="cream"] {
   --preview-paper: #eee4d5;
   --preview-ink: #493b2e;
 }
 
-.screen[data-theme='dark'] {
+.screen[data-theme="dark"] {
   --preview-paper: #292829;
   --preview-ink: #eee6db;
 }
 
-.screen[data-theme='blue'] {
+.screen[data-theme="blue"] {
   --preview-paper: #eff1f4;
   --preview-ink: #283d64;
 }
@@ -100,7 +122,7 @@
 
 .previewTitle {
   margin-top: 4cqw;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: Georgia, "Times New Roman", serif;
   font-size: 5.6cqw;
   font-weight: 400;
   line-height: 1.08;
@@ -168,6 +190,12 @@
 }
 
 @media (max-width: 991px) {
+  .compact .viewport {
+    aspect-ratio: 2.4;
+  }
+  .compact .slide {
+    flex-basis: 36%;
+  }
   .viewport {
     aspect-ratio: 1.7;
     padding-bottom: 2rem;
@@ -183,6 +211,12 @@
 }
 
 @media (max-width: 639px) {
+  .compact .viewport {
+    aspect-ratio: 1.65;
+  }
+  .compact .slide {
+    flex-basis: 54%;
+  }
   .viewport {
     aspect-ratio: 1.35;
     padding-block: 0.75rem 1.5rem;

@@ -310,6 +310,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
+            <Link href="/admin/announcements" className="site-button site-button-secondary">공지사항 관리</Link>
             <Link
               href="/mypage"
               className="rounded-full border border-white/10 bg-white/5 px-5 py-3 text-sm font-bold text-white/80 transition-colors hover:bg-white hover:text-zinc-950"

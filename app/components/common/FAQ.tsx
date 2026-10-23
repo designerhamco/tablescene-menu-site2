@@ -278,7 +278,7 @@ export const DETAILED_FAQ_DATA: FAQCategory[] = [
   }
 ];
 
-const FAQItem = ({ item, isOpen, onToggle, inverted = false }: { item: FAQCategory["items"][number], isOpen: boolean, onToggle: () => void, inverted?: boolean }) => {
+export const FAQItem = ({ item, isOpen, onToggle, inverted = false }: { item: FAQCategory["items"][number], isOpen: boolean, onToggle: () => void, inverted?: boolean }) => {
   const answerId = useId();
   return (
     <div

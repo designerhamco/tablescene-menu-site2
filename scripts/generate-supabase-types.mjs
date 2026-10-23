@@ -9,7 +9,16 @@ const outputPath = resolve(__dirname, "../lib/supabase/types.ts");
 
 const generatedTypes = execFileSync(
   "supabase",
-  ["gen", "types", "typescript", "--project-id", PROJECT_REF, "--schema", "public"],
+  [
+    "gen",
+    "types",
+    "--lang",
+    "typescript",
+    "--project-id",
+    PROJECT_REF,
+    "--schema",
+    "public",
+  ],
   { encoding: "utf8", stdio: ["ignore", "pipe", "inherit"] },
 );
 
