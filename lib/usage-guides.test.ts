@@ -41,6 +41,9 @@ test("지원하지 않는 기기·브라우저 조합을 안내하지 않는다"
   assert.equal(getGuideDevice("display", "android"), "windows");
   assert.equal(getGuideDevice("display", "ipad"), "windows");
   assert.equal(normalizeGuidePlan("unknown"), "basic");
+  assert.equal(normalizeGuidePlan("dining"), "basic");
+  assert.equal(normalizeGuidePlan("basic"), "basic");
+  assert.equal(normalizeGuidePlan("display"), "display");
 });
 test("터치 기기에 PC F11이나 완전한 전체 화면을 약속하지 않는다", () => {
   for (const device of ["ipad", "android"] as const)
