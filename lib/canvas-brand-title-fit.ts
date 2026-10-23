@@ -1,6 +1,7 @@
 import { getBalancedBrandLinePlans, normalizeMobileBrandTitle, type MobileBrandTitleFit } from "./mobile-brand-title-fit";
 
 export const CANVAS_BRAND_TWO_LINE_GAIN = 1.15;
+export const CANVAS_BRAND_WORD_LINE_BALANCE = 1 / 3;
 export const CANVAS_BRAND_FRAME_HEIGHT_RATIO = 0.18;
 export const CANVAS_PC_HEADER_BRAND_CEILING_SCALE = 0.875;
 export const CANVAS_HEADER_BASE_RATIO = 0.08;
@@ -65,7 +66,13 @@ export function selectCanvasBrandTitleFit(title: string, widths: ReadonlyMap<str
     const double = candidates.find((candidate) => candidate.lines.length === 2);
     if (single && double) {
       const lineWidths = double.lines.map((line) => widths.get(line) ?? 0);
-      const balanced = Math.min(...lineWidths) / Math.max(...lineWidths) >= 0.5;
+      const balance = Math.min(...lineWidths) / Math.max(...lineWidths);
+      // Complete word groups may have unequal widths (e.g. CAFE / ARTIMENU).
+      // Keep substantial lines, never a one/two-character orphan, and require
+      // the same measured size gain inside the existing width/height budget.
+      const wholeWordLines = text.includes(" ") && double.lines.join(" ") === text
+        && double.lines.every(line => Array.from(line.replace(/\s/gu, "")).length >= 3);
+      const balanced = balance >= 0.5 || (wholeWordLines && balance >= CANVAS_BRAND_WORD_LINE_BALANCE);
       const singleCoverage = (widths.get(text) ?? 0) * single.fontSize / 100;
       const floorExceededTarget = singleCoverage > width * limits.widthRatio * 1.05;
       return balanced && (double.fontSize >= single.fontSize * CANVAS_BRAND_TWO_LINE_GAIN || floorExceededTarget) ? double : single;

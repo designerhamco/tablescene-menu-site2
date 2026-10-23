@@ -68,7 +68,7 @@ export function previewDesignDefaults(data: MenuPageData) {
       return [group, { ko: role.font_ko_key ?? typography.korean_font_key, en: role.font_en_key ?? typography.english_font_key,
         color: role.color ?? (group === "other" ? "#191C1B" : normalizeBackgroundColor(data.menuSite.brand_color) ?? "#191C1B") }];
     })) as Record<PreviewFontGroup, Required<PreviewFontChoice>>,
-    colors: { page, auxiliary: backgrounds.auxiliary ?? (key === "cafe_mocha_forest_a" ? MOCHA_FOREST_PANEL_COLORS.brown : page),
+    colors: { page, auxiliary: backgrounds.auxiliary ?? (key === "cafe_mocha_forest_a" ? MOCHA_FOREST_PANEL_COLORS.brown : key === "cafe_round_focus_a" ? page : null),
       cover: normalizeBackgroundColor(data.pageSettings.multi_page_cover_background_color) ?? "#FFFFFF",
       sidebar: backgrounds.sidebar ?? (neutral ? "#F4F5F3" : "#401E24"),
       coverDescription: normalizeBackgroundColor(record(record(data.menuSite.page_settings).design).coverDescriptionColor) ?? (neutral ? "#606561" : "#FFFFFF") },

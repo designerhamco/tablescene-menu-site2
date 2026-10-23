@@ -167,3 +167,27 @@ test("font optical correction expands width targets but respects a fixed header 
   const heightBound = selectCanvasBrandTitleFit("DODO", widths, 380, 44, limits, 1.08, 1, 1.1);
   assert.ok(heightBound.fontSize * (1.08 + 0.12) <= 44.01);
 });
+
+test("complete word lines tolerate unequal widths when they gain readable size", () => {
+  // Alata-shaped metrics: the short word is below the former 50% cutoff.
+  const widths = new Map([["CAFE ARTIMENU", 728.2], ["CAFE", 226], ["ARTIMENU", 477]]);
+  for (const [width, height] of [[267, 147.6], [327, 162]]) {
+    const fit = selectCanvasBrandTitleFit("CAFE ARTIMENU", widths, width, height, getCanvasBrandLimits(width, "brand-column"));
+    assert.deepEqual(fit.lines, ["CAFE", "ARTIMENU"]);
+    assert.ok(fit.fontSize >= width * .75 * 100 / 728.2 * 1.15);
+    assert.ok(fit.fontSize * 477 / 100 <= width * .75 + .01);
+    assert.ok(fit.fontSize * 2.28 <= height + .01);
+  }
+});
+
+test("word-line flexibility still rejects tiny orphans and insignificant gains", () => {
+  for (const [title, short, long, shortWidth, longWidth] of [
+    ["CAFE SUPERCALIFRAGILISTIC", "CAFE", "SUPERCALIFRAGILISTIC", 150, 700],
+    ["AN ARTIMENU", "AN", "ARTIMENU", 210, 477],
+  ] as const) {
+    const fit = selectCanvasBrandTitleFit(title, new Map([[title, shortWidth + longWidth + 25], [short, shortWidth], [long, longWidth]]), 327, 162, getCanvasBrandLimits(327, "brand-column"));
+    assert.deepEqual(fit.lines, [title]);
+  }
+  const fit = selectCanvasBrandTitleFit("CAFE ARTIMENU", new Map([["CAFE ARTIMENU", 728.2], ["CAFE", 226], ["ARTIMENU", 477]]), 327, 80, getCanvasBrandLimits(327, "brand-column"));
+  assert.deepEqual(fit.lines, ["CAFE ARTIMENU"], "height-limited two lines do not provide a 15% gain");
+});

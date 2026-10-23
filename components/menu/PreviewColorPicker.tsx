@@ -10,27 +10,30 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
   label: string;
   accessibleLabel?: string;
   value?: string;
-  defaultColor?: string;
+  defaultColor?: string | null;
   onChange: (value?: string) => void;
   disabled: boolean;
 }) {
   const id = useId(), current = value ?? defaultColor;
+  const [draftEmpty, setDraftEmpty] = useState(current === null);
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState(current);
-  const [hsv, setHsv] = useState(() => hexToHsv(current));
+  const [draft, setDraft] = useState(current ?? "");
+  const [hsv, setHsv] = useState(() => hexToHsv(current ?? "#FFFFFF"));
   const colorRef = useRef(hsv);
   const [invalid, setInvalid] = useState(false);
   const [restoreOnApply, setRestoreOnApply] = useState(false);
-  const startDraft = (color: string, restore = false) => {
-    const nextHsv = hexToHsv(color);
+  const startDraft = (color: string | null, restore = false) => {
+    const nextHsv = hexToHsv(color ?? "#FFFFFF");
+    setDraftEmpty(color === null);
     colorRef.current = nextHsv;
     setHsv(nextHsv);
-    setDraft(color);
+    setDraft(color ?? "");
     setInvalid(false);
     setRestoreOnApply(restore);
     setOpen(true);
   };
   const update = (next: HSV) => {
+    setDraftEmpty(false);
     colorRef.current = next;
     setHsv(next);
     const hex = hsvToHex(next);
@@ -39,6 +42,7 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
     setRestoreOnApply(false);
   };
   const validateHex = () => {
+    if (draftEmpty) return;
     if (!/^#[\da-f]{6}$/i.test(draft)) { setInvalid(true); return; }
     const hex = draft.toUpperCase();
     const nextHsv = hexToHsv(hex);
@@ -49,10 +53,11 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
     return hex;
   };
   const apply = () => {
+    if (draftEmpty) { setOpen(false); if (value !== undefined) onChange(undefined); return; }
     const hex = validateHex();
     if (!hex) return;
     setOpen(false);
-    if (restoreOnApply ? value !== undefined : hex !== current.toUpperCase()) onChange(restoreOnApply ? undefined : hex);
+    if (restoreOnApply ? value !== undefined : hex !== current?.toUpperCase()) onChange(restoreOnApply ? undefined : hex);
   };
   const point = (event: PointerEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -63,15 +68,16 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
     <Popover.Root open={open} onOpenChange={next => {
       if (next) startDraft(current); else setOpen(false);
     }}>
-      <Popover.Trigger asChild><button type="button" aria-label={`${accessibleLabel} 선택`} disabled={disabled} className={styles.swatch}><span style={{ backgroundColor: value ?? defaultColor }} /></button></Popover.Trigger>
+      <Popover.Trigger asChild><button type="button" aria-label={`${accessibleLabel} 선택`} title={current === null ? "색상 없음" : current} data-color-empty={current === null ? "true" : undefined} disabled={disabled} className={styles.swatch}><span className={current === null ? styles.noColor : undefined} style={{ backgroundColor: current ?? undefined }} /></button></Popover.Trigger>
       <Popover.Portal><Popover.Content className={styles.popover} align="start" sideOffset={6} collisionPadding={12} aria-label={`${accessibleLabel} 컬러피커`} data-preview-color-picker>
         <div className={styles.heading}><span>{accessibleLabel}</span><Popover.Close asChild><button type="button" aria-label="컬러피커 닫기" className={styles.close}><X size={16} aria-hidden="true" /></button></Popover.Close></div>
+        {draftEmpty ? <p className={styles.emptyStatus}><span className={styles.noColor} aria-hidden="true" />색상 없음</p> : null}
         <div className={styles.spectrum} style={{ backgroundColor: hsvToHex({ h: hsv.h, s: 1, v: 1 }) }} role="slider" tabIndex={0}
           aria-label={`${accessibleLabel} 채도와 밝기`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(hsv.s * 100)} aria-valuetext={`채도 ${Math.round(hsv.s * 100)}%, 밝기 ${Math.round(hsv.v * 100)}%`} aria-describedby={`${id}-hint`}
           onPointerDown={event => { event.currentTarget.focus(); event.currentTarget.setPointerCapture(event.pointerId); point(event); }}
           onPointerMove={event => { if (event.currentTarget.hasPointerCapture(event.pointerId)) point(event); }}
           onPointerUp={event => { if (event.currentTarget.hasPointerCapture(event.pointerId)) { point(event); event.currentTarget.releasePointerCapture(event.pointerId); } }}
-          onPointerCancel={() => { update(hexToHsv(current)); }}
+          onPointerCancel={() => { update(hexToHsv(current ?? "#FFFFFF")); }}
           onKeyDown={event => {
             if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) return;
             event.preventDefault();
@@ -87,8 +93,8 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
         <span id={`${id}-hint`} className={styles.hint}>좌우 방향키로 채도, 위아래 방향키로 밝기를 조절합니다.</span>
         <input className={styles.hue} aria-label={`${accessibleLabel} 색조`} type="range" min={0} max={359} value={Math.round(hsv.h)}
           onChange={event => update({ ...colorRef.current, h: Number(event.target.value) })} />
-        <label className={styles.hexRow}><span>HEX</span><input className={styles.hex} aria-label={`${accessibleLabel} 색상값`} value={draft} maxLength={7} autoComplete="off" spellCheck={false} aria-invalid={invalid} aria-describedby={invalid ? `${id}-error` : undefined}
-          onChange={event => { setDraft(event.target.value); setInvalid(false); setRestoreOnApply(false); }} onBlur={validateHex} onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); validateHex(); } }} /></label>
+        <label className={styles.hexRow}><span>HEX</span><input className={styles.hex} aria-label={`${accessibleLabel} 색상값`} value={draft} placeholder={draftEmpty ? "색상 없음" : undefined} maxLength={7} autoComplete="off" spellCheck={false} aria-invalid={invalid} aria-describedby={invalid ? `${id}-error` : undefined}
+          onChange={event => { setDraftEmpty(false); setDraft(event.target.value); setInvalid(false); setRestoreOnApply(false); }} onBlur={validateHex} onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); validateHex(); } }} /></label>
         {invalid ? <p id={`${id}-error`} className={styles.error}>#과 여섯 자리 색상값을 입력해주세요.</p> : null}
         <div className={styles.actions}>
           <Popover.Close asChild><button type="button" className="site-button site-button-outline site-button-sm">취소</button></Popover.Close>
