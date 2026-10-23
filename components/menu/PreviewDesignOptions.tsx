@@ -62,7 +62,7 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
         <fieldset><legend>기간할인 텍스트칩</legend><div className={styles.backgrounds}>
           <PreviewColorPicker label="배경색" accessibleLabel="기간할인 텍스트칩 배경색" value={value.chipColors?.saleBackground} defaultColor={defaults.chipColors.saleBackground} onChange={color => setChipColor("saleBackground", color)} disabled={disabled}/>
           <PreviewColorPicker label="글자색" accessibleLabel="기간할인 텍스트칩 글자색" value={value.chipColors?.saleText} defaultColor={chipColors.saleText ?? defaults.chipColors.saleText} onChange={color => setChipColor("saleText", color)} disabled={disabled}/>
-        </div></fieldset>
+        </div><p className={styles.hint}>배경색은 할인 안내와 남은 시간 문구에도 함께 적용됩니다.</p></fieldset>
       </div>
     </fieldset> : null}
     {!dining ? <fieldset data-preview-representative-alignment><legend className={styles.legend}>대표영역 정렬</legend>

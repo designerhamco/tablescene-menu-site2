@@ -1,5 +1,11 @@
 # Menu template spacing contract
 
+## Explicit preview color application and Order ink — 2026-10-23
+
+Every catalog color picker stages spectrum, hue, keyboard and HEX edits locally. Only Apply commits the chosen color to the preview. Cancel, Escape, the close control and outside dismissal discard pending edits. The default-color reset stages that default in the picker and also requires Apply. Invalid HEX never commits. Keep all URL/device/reset behavior and panel geometry unchanged.
+
+A time-sale-chip background override also colors the associated sale explanation, deadline and remaining-time copy. Chip foreground remains independent; discounted prices and state chips retain their existing color roles. Order fills use actual category ink and labels use the lightest rendered menu swatch, even for a deliberately bright category; only a swatch identical to the fill uses a readable fallback. Call-circle contrast behavior remains independent. This supersedes the older Order contrast-fallback policy below.
+
 ## Shared preview shapes and chip colors — 2026-10-23
 
 Catalog Design options expose one image-radius preset for advertisement, representative, widget and product images plus text chips. Catalog and editor use the same helper: square/soft/rounded/round maps images to 0/8/16/24 CSS px and chips to their existing square/soft/rounded/pill shapes. Logos are excluded from the control; Dining full-bleed covers remain square. Previously saved independent values, including logo values, stay intact until another shared preset is selected. Template default clears only the supported image/chip overrides. Existing JSON/form fields and album image ratios remain compatible. This supersedes the independent radius and chip-shape controls described below.

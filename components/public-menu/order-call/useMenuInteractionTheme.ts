@@ -19,7 +19,7 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
       const brand = getRenderedMenuBrandElement(root);
       const style = getComputedStyle(root);
       const dining = root.matches(".aube-table-root");
-      const category = [...root.querySelectorAll<HTMLElement>(".cafe-a-category-title,.aube-table-course-header h2")]
+      const category = [...root.querySelectorAll<HTMLElement>(".cafe-a-category-title,.aube-table-course-title h2,.aube-table-course-header h2")]
         .find(element => visible(element) && !element.closest("[inert]") && getComputedStyle(element).visibility !== "hidden");
       // A catalog Design override is inherited from MenuAppearanceScope. Read it
       // before the saved role so action colors update with the visible preview.
@@ -36,8 +36,8 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
         surfaces.push(getComputedStyle(panel).backgroundColor);
         if (panel === root) break;
       }
-      const declaredInks = ["--menu-role-category-color", "--aube-accent", "--aube-ink", "--cafe-a-ink", "--menu-role-item-name-color", "--menu-role-price-color"].map(key => style.getPropertyValue(key).trim()).filter(Boolean);
-      const inks = [...declaredInks, ...[...root.querySelectorAll<HTMLElement>(".cafe-a-category-title,[data-cafe-a-menu-name],.cafe-a-menu-price,.aube-table-course-title,.aube-table-item-heading h3,.aube-table-item-price")].filter(visible).slice(0, 12).map(e => getComputedStyle(e).color)];
+      const declaredInks = ["--menu-role-brand-color", "--menu-role-category-color", "--menu-role-supporting-color", "--aube-accent", "--aube-ink", "--cafe-a-ink", "--menu-role-item-name-color", "--menu-role-price-color"].map(key => style.getPropertyValue(key).trim()).filter(Boolean);
+      const inks = [...(brand ? [getComputedStyle(brand).color] : []), ...declaredInks, ...[...root.querySelectorAll<HTMLElement>(".cafe-a-category-title,[data-cafe-a-menu-name],.cafe-a-menu-price,.aube-table-course-title,.aube-table-item-heading h3,.aube-table-item-price")].filter(visible).slice(0, 12).map(e => getComputedStyle(e).color)];
       // Include the actual reading panels, not photo pixels or site chrome.
       for (const panel of root.querySelectorAll<HTMLElement>("[data-native-column],.aube-table-page,.cafe-a-fixed-rail")) {
         if (visible(panel)) surfaces.push(getComputedStyle(panel).backgroundColor);

@@ -58,10 +58,12 @@
 .scope :global([data-featured-product-copy]), .scope :global(.cafe-a-featured-title), .scope :global(.cafe-a-featured-description) { text-align: left !important; }
 .scope :global(.cafe-a-featured-badges) { justify-content: flex-start !important; }
 
-/* Preview color edits are scoped to chips, independently of prices, state chips and native artwork defaults. */
+/* Preview chip edits preserve price/state colors; sale copy shares its chip accent. */
 .scope[data-preview-chip-background] :global(.cafe-a-menu-badge:not(.cafe-a-time-sale-badge):not(.cafe-a-sold-out-chip)),
 .scope[data-preview-chip-background] :global(.cafe-a-featured-badge:not(.cafe-a-time-sale-badge):not(.cafe-a-sold-out-chip)) { background-color: var(--menu-preview-chip-bg) !important; border-color: var(--menu-preview-chip-bg) !important; }
 .scope[data-preview-chip-text] :global(.cafe-a-menu-badge:not(.cafe-a-time-sale-badge):not(.cafe-a-sold-out-chip)),
 .scope[data-preview-chip-text] :global(.cafe-a-featured-badge:not(.cafe-a-time-sale-badge):not(.cafe-a-sold-out-chip)) { color: var(--menu-preview-chip-text) !important; }
 .scope[data-preview-sale-chip-background] :global(.cafe-a-time-sale-badge) { background-color: var(--menu-preview-sale-chip-bg) !important; border-color: var(--menu-preview-sale-chip-bg) !important; }
 .scope[data-preview-sale-chip-text] :global(.cafe-a-time-sale-badge) { color: var(--menu-preview-sale-chip-text) !important; }
+
+.scope[data-preview-sale-chip-background] :global(.cafe-a-typography .cafe-a-time-sale-time-text) { color: var(--menu-preview-sale-chip-bg) !important; }
