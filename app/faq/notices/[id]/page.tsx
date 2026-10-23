@@ -8,6 +8,7 @@ import {
   getAnnouncementCategory,
 } from "@/lib/announcements";
 import styles from "@/components/support/support.module.css";
+import AnnouncementContent from "@/components/support/AnnouncementContent";
 
 export const metadata: Metadata = { title: "공지사항 | 아티메뉴 고객센터" };
 
@@ -43,7 +44,9 @@ export default async function AnnouncementDetail({
               {formatAnnouncementDate(data.published_at)}
             </time>
           </header>
-          <div className={`site-body ${styles.detailBody}`}>{data.body}</div>
+          <div className={styles.detailBody}>
+            <AnnouncementContent body={data.body} />
+          </div>
           <Link
             href="/faq?tab=notices"
             className="site-button site-button-secondary"

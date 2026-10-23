@@ -1,0 +1,45 @@
+.body {
+  min-width: 0;
+  color: var(--ui-text);
+  font-size: 1rem;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.body p {
+  margin: 0 0 0.85em;
+  min-height: 1.8em;
+  white-space: pre-wrap;
+}
+.body > :last-child {
+  margin-bottom: 0;
+}
+.body strong {
+  font-weight: 700;
+}
+.body em {
+  font-style: italic;
+}
+.body u {
+  text-underline-offset: 0.18em;
+}
+.body ul,
+.body ol {
+  margin: 0 0 1em;
+  padding-left: 1.5em;
+}
+.body ul {
+  list-style: disc;
+}
+.body ol {
+  list-style: decimal;
+}
+.body li > p {
+  margin-bottom: 0.35em;
+}
+.body img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin-block: 1.25rem;
+  border-radius: var(--ui-radius-field);
+}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import AnnouncementEditor from "./AnnouncementEditor";
 import {
   ANNOUNCEMENT_CATEGORIES,
   type Announcement,
@@ -19,6 +20,12 @@ export default function AnnouncementForm({
     AnnouncementFormState,
     FormData
   >(saveAnnouncementAction, {});
+  const [body, setBody] = useState(announcement?.body ?? "");
+  const [title, setTitle] = useState(announcement?.title ?? "");
+  const [category, setCategory] = useState(announcement?.category ?? "service");
+  const [status, setStatus] = useState(announcement?.status ?? "draft");
+  const [pinned, setPinned] = useState(announcement?.pinned ?? false);
+  const [uploading, setUploading] = useState(false);
   return (
     <form action={action} className={styles.adminForm}>
       <h2 className="type-subsection-title">
@@ -37,7 +44,8 @@ export default function AnnouncementForm({
           name="title"
           maxLength={160}
           required
-          defaultValue={announcement?.title ?? ""}
+          value={title}
+          onChange={(event) => setTitle(event.target.value)}
         />
       </label>
       <div>
@@ -46,7 +54,8 @@ export default function AnnouncementForm({
           <select
             className="site-field px-4"
             name="category"
-            defaultValue={announcement?.category ?? "service"}
+            value={category}
+            onChange={(event) => setCategory(event.target.value)}
           >
             {ANNOUNCEMENT_CATEGORIES.map((category) => (
               <option key={category.value} value={category.value}>
@@ -60,7 +69,8 @@ export default function AnnouncementForm({
           <select
             className="site-field px-4"
             name="status"
-            defaultValue={announcement?.status ?? "draft"}
+            value={status}
+            onChange={(event) => setStatus(event.target.value)}
           >
             <option value="draft">비공개 · 작성 중</option>
             <option value="published">게시</option>
@@ -71,23 +81,18 @@ export default function AnnouncementForm({
         <input
           type="checkbox"
           name="pinned"
-          defaultChecked={announcement?.pinned ?? false}
+          checked={pinned}
+          onChange={(event) => setPinned(event.target.checked)}
         />
         목록 상단에 고정
       </label>
-      <label>
-        본문
-        <textarea
-          className="site-field w-full p-4"
-          name="body"
-          maxLength={20000}
-          required
-          defaultValue={announcement?.body ?? ""}
-        />
-        <span className="type-caption text-zinc-500">
-          줄바꿈을 유지하는 일반 텍스트로 게시됩니다.
-        </span>
-      </label>
+      <input type="hidden" name="body" value={body} />
+      <AnnouncementEditor
+        initialBody={announcement?.body ?? ""}
+        disabled={pending || unavailable}
+        onChange={setBody}
+        onUploadingChange={setUploading}
+      />
       {state.error ? (
         <p role="alert" className={styles.feedback}>
           {state.error}
@@ -103,7 +108,7 @@ export default function AnnouncementForm({
         <button
           type="submit"
           className="site-button site-button-primary"
-          disabled={pending || unavailable}
+          disabled={pending || unavailable || uploading}
         >
           {pending ? "저장 중…" : "공지사항 저장"}
         </button>
