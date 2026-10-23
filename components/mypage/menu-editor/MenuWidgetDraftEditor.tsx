@@ -154,7 +154,7 @@ export default function MenuWidgetDraftEditor({
           <MenuWidgetTypePicker value={draft.type} onChange={changeType} />
         </FieldBlock>
 
-        <div className="site-section p-4">
+        <div className="site-section site-editor-subpanel p-4">
           <label className="flex items-center justify-between gap-3">
             <span>
               <span className="block text-sm font-bold text-zinc-950">메뉴판에 표시</span>
@@ -247,7 +247,7 @@ export default function MenuWidgetDraftEditor({
         )}
 
         {usesImage && (
-          <div className="site-section grid gap-4 p-4 md:grid-cols-2">
+          <div className="site-section site-editor-subpanel grid gap-4 p-4 md:grid-cols-2">
             <FieldBlock label="이미지 비율">
               <select
                 value={draft.settings.aspectRatio}
@@ -357,15 +357,15 @@ export default function MenuWidgetDraftEditor({
               <span className="flex flex-wrap items-center justify-end gap-2">
                 <span className="text-xs font-bold text-red-600">이 위젯을 삭제할까요?</span>
                 <button type="button" onClick={onConfirmDelete} className="site-button site-button-danger text-xs">삭제</button>
-                <button type="button" onClick={onCancelDelete} className="site-button site-button-ghost text-xs">취소</button>
+                <button type="button" onClick={onCancelDelete} className="site-button site-button-outline text-xs">취소</button>
               </span>
             ) : (
-              <button type="button" onClick={onRequestDelete} className="site-button site-button-danger-ghost text-sm">
+              <button type="button" onClick={onRequestDelete} className="site-button site-button-outline-danger text-sm">
                 삭제
               </button>
             )
           ) : null}
-          <button type="button" onClick={onCancel} className="site-button site-button-ghost text-sm">
+          <button type="button" onClick={onCancel} className="site-button site-button-outline text-sm">
             취소
           </button>
           <button

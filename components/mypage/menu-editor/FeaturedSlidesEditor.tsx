@@ -123,7 +123,7 @@ export default function FeaturedSlidesEditor({
   return (
     <div className="grid gap-4">
       <input ref={hiddenInputRef} type="hidden" name="featured_slides" value={JSON.stringify(slides)} readOnly />
-      <section className="site-section p-5" data-featured-image-editor="">
+      <section className="site-section site-editor-subpanel p-5" data-featured-image-editor="">
         <div>
           <h3 className="type-content-title text-zinc-950">대표 이미지</h3>
           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
@@ -136,7 +136,7 @@ export default function FeaturedSlidesEditor({
 
         <div className="mt-5 grid gap-4">
           {slides.length === 0 && (
-            <div className="site-section p-5 text-sm font-bold text-zinc-400">
+            <div className="site-section site-editor-subpanel p-5 text-sm font-bold text-zinc-400">
               아직 등록된 대표 이미지가 없습니다.
             </div>
           )}
@@ -145,7 +145,7 @@ export default function FeaturedSlidesEditor({
             const completionLabel = getCompletionLabel(slide);
 
             return (
-              <section key={slide.id} className="site-section p-4">
+              <section key={slide.id} className="site-section site-editor-subpanel p-4">
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h4 className="type-label text-zinc-950">대표 이미지 {index + 1}</h4>
@@ -171,7 +171,7 @@ export default function FeaturedSlidesEditor({
                     <button
                       type="button"
                       onClick={() => setSlides((current) => normalizeSlides(current.filter((item) => item.id !== slide.id)))}
-                      className="site-button site-button-danger-ghost text-xs"
+                      className="site-button site-button-outline-danger text-xs"
                     >
                       삭제
                     </button>
@@ -230,7 +230,7 @@ export default function FeaturedSlidesEditor({
         </div>
       </section>
 
-      <section className="site-section p-5" data-featured-product-editor="">
+      <section className="site-section site-editor-subpanel p-5" data-featured-product-editor="">
         <div>
           <h3 className="type-content-title text-zinc-950">대표 상품</h3>
           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
@@ -238,7 +238,7 @@ export default function FeaturedSlidesEditor({
           </p>
         </div>
 
-        <div className="site-section mt-5 p-4">
+        <div className="site-section site-editor-subpanel mt-5 p-4">
           <CafeAStarterFeaturedEnabledSwitch
             defaultChecked={defaultFeaturedItemEnabled}
             formId={formId}
@@ -251,7 +251,7 @@ export default function FeaturedSlidesEditor({
 
         <div className="mt-4 grid gap-4">
           {slides.length === 0 ? (
-            <div className="site-section p-5 text-sm font-bold text-zinc-400">
+            <div className="site-section site-editor-subpanel p-5 text-sm font-bold text-zinc-400">
               먼저 위의 대표 이미지 영역에서 이미지를 추가해주세요.
             </div>
           ) : slides.map((slide, index) => {

@@ -94,14 +94,14 @@ export default function CoverSampleResetButton({ formId, sampleDraft }: CoverSam
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="site-button site-button-ghost inline-flex items-center justify-center text-sm"
+                className="site-button site-button-outline inline-flex items-center justify-center text-sm"
               >
                 취소
               </button>
               <button
                 type="button"
                 onClick={applySampleDraft}
-                className="site-button site-button-ghost inline-flex w-full items-center justify-center text-sm sm:w-auto"
+                className="site-button site-button-outline inline-flex w-full items-center justify-center text-sm sm:w-auto"
               >
                 커버 샘플로 되돌리기
               </button>

@@ -21,6 +21,7 @@ import MenuWidgetDraftEditor from "@/components/mypage/menu-editor/MenuWidgetDra
 import MenuWidgetStructureRow from "@/components/mypage/menu-editor/MenuWidgetStructureRow";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import { useCafeAStarterResetCoordinator } from "@/components/mypage/menu-editor/CafeAStarterResetCoordinator";
+import HelpTooltip from "@/components/ui/HelpTooltip";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import type { StarterPreset } from "@/lib/menu-starter-presets";
 import {
@@ -919,26 +920,6 @@ function FieldLabel({ children, required = false }: { children: ReactNode; requi
   );
 }
 
-function HelpTooltip({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <span className="group/help relative inline-flex align-middle">
-      <button
-        type="button"
-        aria-label={label}
-        className="site-button site-button-outline inline-flex w-5 items-center justify-center text-xs focus:outline-none"
-      >
-        ?
-      </button>
-      <span
-        role="tooltip"
-        className="site-popover pointer-events-none absolute left-1/2 top-7 z-30 hidden w-72 -translate-x-1/2 p-3 text-left text-xs font-semibold leading-relaxed text-zinc-600 group-hover/help:block group-focus-within/help:block"
-      >
-        {children}
-      </span>
-    </span>
-  );
-}
-
 function PromotionPageHelpText() {
   return (
     <>
@@ -1685,7 +1666,7 @@ function DraftDeleteConfirmButton({
       <button
         type="button"
         onClick={onRequestConfirm}
-        className="site-button site-button-danger-ghost inline-flex items-center justify-center text-sm"
+        className="site-button site-button-outline-danger inline-flex items-center justify-center text-sm"
       >
         삭제
       </button>
@@ -1696,7 +1677,7 @@ function DraftDeleteConfirmButton({
             {description && <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-600">{description}</p>}
             {disabledReason && <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-600">{disabledReason}</p>}
             <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
-              <button type="button" onClick={onCancel} className="site-button site-button-ghost text-sm">
+              <button type="button" onClick={onCancel} className="site-button site-button-outline text-sm">
                 취소
               </button>
               <SubmitButton type="button" tone="danger" disabled={Boolean(disabledReason)} onClick={onConfirm}>
@@ -1923,7 +1904,7 @@ function MenuPageForm({
       id={formId}
       action={draftOnly ? undefined : page ? updateMenuPageAction : createMenuPageAction}
       onSubmit={draftOnly ? (event) => event.preventDefault() : undefined}
-      className="site-section mt-4 space-y-4 p-4"
+      className="site-section site-editor-subpanel mt-4 space-y-4 p-4"
     >
       <HiddenMenuId menuId={menuId} />
       {page && <input type="hidden" name="menuPageId" value={page.id} />}
@@ -1968,7 +1949,7 @@ function MenuPageForm({
         />
       )}
       {supportsAubeTablePageSettings && (
-        <section className="site-section p-4">
+        <section className="site-section site-editor-subpanel p-4">
           <h4 className="type-label text-zinc-950">메뉴 페이지 배치</h4>
           <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
             PC와 태블릿의 열 수와 텍스트 정렬을 선택합니다. 모바일에서는 항상 1열로 표시됩니다.
@@ -2028,7 +2009,7 @@ function MenuPageForm({
         onValueChange={(value) => setSortOrder(Number(value))}
       />
       {supportsDisplaySettings && (
-        <section className="site-section p-4">
+        <section className="site-section site-editor-subpanel p-4">
           <h4 className="type-label inline-flex items-center gap-2 text-zinc-950">
             <span>디스플레이 화면 설정</span>
             {displaySettings.pageType === "promotion" && (
@@ -2107,7 +2088,7 @@ function MenuPageForm({
               </div>
             )}
             {displaySettings.pageType === "menu" && displaySettings.menuLayoutType === "split_image_menu" && (
-              <div className="site-section grid gap-4 p-4 md:grid-cols-2">
+              <div className="site-section site-editor-subpanel grid gap-4 p-4 md:grid-cols-2">
                 <div className="md:col-span-2">
                   <FieldLabel required>이미지 위치</FieldLabel>
                   <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
@@ -2295,7 +2276,7 @@ function MenuPageForm({
                     <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
                       영상 URL 또는 MP4 파일을 등록하면 디스플레이에서 반복 재생됩니다.
                     </p>
-                    <div className="site-section mt-4 p-4">
+                    <div className="site-section site-editor-subpanel mt-4 p-4">
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                           <p className="text-sm font-bold text-zinc-950">{DISPLAY_VIDEO_UPLOAD_NAME}</p>
@@ -2671,7 +2652,7 @@ function MenuCategoryForm({
         onValueChange={(value) => setSortOrder(Number(value))}
       />
       {supportsCourseFields && (
-        <section className="site-section p-4">
+        <section className="site-section site-editor-subpanel p-4">
           <h4 className="type-label text-zinc-950">코스 가격</h4>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
             코스 가격과 가격에 대한 짧은 안내를 각각 설정할 수 있습니다.
@@ -2741,7 +2722,7 @@ function MenuCategoryForm({
         </section>
       )}
       {supportCategoryPriceOptionColumns && (
-        <section className="site-section p-4">
+        <section className="site-section site-editor-subpanel p-4">
           <h4 className="type-label text-zinc-950">가격 옵션 열</h4>
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
             아티메뉴 디스플레이는 TV 메뉴판 가독성을 위해 카테고리별 공통 가격 열을 사용합니다. 예: HOT / ICE / LARGE
@@ -2782,7 +2763,7 @@ function MenuCategoryForm({
         </section>
       )}
       {supportBasicPriceColumns && effectiveMaxCategoryPriceColumns > 0 && (
-        <section className="site-section p-4">
+        <section className="site-section site-editor-subpanel p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h4 className="type-label text-zinc-950">가격 옵션 컬럼</h4>
@@ -2801,7 +2782,7 @@ function MenuCategoryForm({
           </div>
           <div className="mt-4 grid gap-3">
             {categoryPriceColumns.map((column, index) => (
-              <div key={column.id ?? `new-price-column-${index}`} className="site-section p-3">
+              <div key={column.id ?? `new-price-column-${index}`} className="site-section site-editor-subpanel p-3">
                 <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
                   <ValidatedTextInput
                     name={`category_price_column_label_${index}`}
@@ -3725,7 +3706,7 @@ function MenuItemForm({
         </span>
       ))}
 
-      <section className="site-section p-4">
+      <section className="site-section site-editor-subpanel p-4">
         <h4 className="type-label text-zinc-950">기본 정보</h4>
         <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
           {labels.itemLabel}의 소속, 이름, 설명, 원산지 정보를 입력합니다.
@@ -3876,7 +3857,7 @@ function MenuItemForm({
         </div>
       </section>
 
-      <section className="site-section p-4">
+      <section className="site-section site-editor-subpanel p-4">
         <h4 className="type-label text-zinc-950">노출 설정</h4>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <ValidatedTextInput
@@ -3987,7 +3968,7 @@ function MenuItemForm({
         </div>
       </section>
 
-      <section className="site-section p-4">
+      <section className="site-section site-editor-subpanel p-4">
         <h4 className="type-label inline-flex items-center gap-2 text-zinc-950">
           가격 설정
           <HelpTooltip label="가격 설정 도움말">
@@ -3995,7 +3976,7 @@ function MenuItemForm({
           </HelpTooltip>
         </h4>
         {isSingleMode && canManageCategoryPriceColumns && (
-          <div className="site-section mt-4 p-4">
+          <div className="site-section site-editor-subpanel mt-4 p-4">
             <h5 className="type-label text-zinc-950">가격 입력 방식</h5>
             <div className="mt-3 grid gap-2 sm:grid-cols-2">
               {[
@@ -4033,7 +4014,7 @@ function MenuItemForm({
           </div>
         )}
         {supportsPriceDisplayMode && priceDisplayMode && onPriceDisplayModeChange && !isDirectPriceTextMode && (
-          <div className="site-section mt-4 p-4">
+          <div className="site-section site-editor-subpanel mt-4 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h5 className="type-label text-zinc-950">가격 표시 형식</h5>
@@ -4171,7 +4152,7 @@ function MenuItemForm({
                 {currentCategoryPriceColumns.length}개 컬럼
               </Badge>
             </div>
-            <div className="site-section mt-4 overflow-hidden">
+            <div className="site-section site-editor-subpanel mt-4 overflow-hidden">
               <div className="hidden grid-cols-[minmax(4rem,0.65fr)_minmax(0,1fr)] gap-3 border-b border-zinc-100 bg-zinc-50 px-3 py-2 text-xs font-bold text-zinc-500 sm:grid">
                 <span>옵션</span>
                 <span>가격</span>
@@ -4230,7 +4211,7 @@ function MenuItemForm({
             ) : (
               <div className="mt-4 grid gap-4">
                 {effectiveDraftPriceOptions.map((option, index) => (
-                  <div key={`${option.label}-${index}`} className="site-section p-4">
+                  <div key={`${option.label}-${index}`} className="site-section site-editor-subpanel p-4">
                     <h5 className="type-label text-zinc-950">{option.label}</h5>
                     <div className="mt-3 grid gap-3 md:grid-cols-2">
                       <ValidatedTextInput
@@ -4322,7 +4303,7 @@ function MenuItemForm({
       </section>
 
       {canManageTimeSales && (
-        <section className="site-section p-4">
+        <section className="site-section site-editor-subpanel p-4">
           <h4 className="type-label text-zinc-950">
             타임세일
             {effectiveTimeSaleEnabled ? <Badge>사용 중</Badge> : null}
@@ -4343,7 +4324,7 @@ function MenuItemForm({
             </div>
           ) : (
             <div className="mt-4 space-y-4">
-              <div className="site-section p-4">
+              <div className="site-section site-editor-subpanel p-4">
               <Checkbox
                 form={formId}
                 name="item_time_sale_enabled"
@@ -4434,7 +4415,7 @@ function MenuItemForm({
                   )}
                 </div>
                 {hasVisiblePriceColumnValue ? (
-                  <div className="site-section p-3">
+                  <div className="site-section site-editor-subpanel p-3">
                     <div className="grid grid-cols-[minmax(52px,0.7fr)_minmax(64px,0.8fr)_minmax(92px,1fr)] items-center gap-2 border-b border-zinc-200 pb-2 text-xs font-bold text-zinc-500">
                       <span>옵션</span>
                       <span>기존 가격</span>
@@ -4483,7 +4464,7 @@ function MenuItemForm({
                   </div>
                 ) : null}
                 <input type="hidden" form={formId} name="item_time_sale_schedule_type" value={timeSaleScheduleType} />
-                <div className="site-section p-4">
+                <div className="site-section site-editor-subpanel p-4">
                   <FieldLabel>할인 일정</FieldLabel>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     {[
@@ -4656,7 +4637,7 @@ function MenuItemForm({
                   </p>
                 ) : null}
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className="site-section p-4">
+                  <div className="site-section site-editor-subpanel p-4">
                     <Checkbox
                       form={formId}
                       name="item_time_sale_active"
@@ -4767,7 +4748,7 @@ function MenuItemForm({
       )}
 
       {canEditPortionLabel && (
-        <section className="site-section p-4">
+        <section className="site-section site-editor-subpanel p-4">
           <h4 className="type-label text-zinc-950">제공량</h4>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <ValidatedTextInput
@@ -4783,7 +4764,7 @@ function MenuItemForm({
                 updateDraftItem({ portionLabel: value });
               }}
             />
-            <div className="site-section p-4">
+            <div className="site-section site-editor-subpanel p-4">
               <Checkbox
                 form={formId}
                 name="item_portion_visible"
@@ -4802,9 +4783,9 @@ function MenuItemForm({
       )}
 
       {capabilities.itemTraits && (
-        <section className="site-section p-4">
+        <section className="site-section site-editor-subpanel p-4">
           <h4 className="type-label text-zinc-950">맛/특징 지표</h4>
-          <div className="site-section mt-4 p-4">
+          <div className="site-section site-editor-subpanel mt-4 p-4">
             <Checkbox
               form={formId}
               name="item_traits_visible"
@@ -4823,7 +4804,7 @@ function MenuItemForm({
       )}
 
       {capabilities.menuItemImages && (
-        <section className="site-section p-4">
+        <section className="site-section site-editor-subpanel p-4">
           <h4 className="type-label inline-flex items-center gap-2 text-zinc-950">
             이미지
             <HelpTooltip label="이미지 도움말">
@@ -4914,7 +4895,7 @@ function MenuItemForm({
               <button
                 type="button"
                 onClick={() => setDescriptionOverwritePending(false)}
-                className="site-button site-button-ghost text-sm"
+                className="site-button site-button-outline text-sm"
               >
                 취소
               </button>
@@ -5073,7 +5054,7 @@ function DraftPriceOptionsEditor({
         {error || limitMessage}
       </p>
 
-      <div className="site-section mt-4 p-4">
+      <div className="site-section site-editor-subpanel mt-4 p-4">
         <h5 className="type-label text-zinc-950">새 가격 옵션 추가</h5>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_120px_160px_auto] lg:items-end">
           <div>
@@ -5106,7 +5087,7 @@ function DraftPriceOptionsEditor({
 
             if (isEditing) {
               return (
-                <div key={option.id} className="site-section p-4">
+                <div key={option.id} className="site-section site-editor-subpanel p-4">
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_120px_160px_auto] lg:items-end">
                     <div>
                       <FieldLabel required>옵션명</FieldLabel>
@@ -5148,7 +5129,7 @@ function DraftPriceOptionsEditor({
                       <button
                         type="button"
                         onClick={cancelEditingOption}
-                        className="site-button site-button-ghost text-sm"
+                        className="site-button site-button-outline text-sm"
                       >
                         취소
                       </button>
@@ -5160,7 +5141,7 @@ function DraftPriceOptionsEditor({
             }
 
             return (
-              <div key={option.id} className="site-section p-4">
+              <div key={option.id} className="site-section site-editor-subpanel p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold text-zinc-950">
@@ -5180,7 +5161,7 @@ function DraftPriceOptionsEditor({
                     >
                       수정
                     </button>
-                    <button type="button" onClick={() => onRemove(option.id)} className="site-button site-button-danger-ghost text-sm">
+                    <button type="button" onClick={() => onRemove(option.id)} className="site-button site-button-outline-danger text-sm">
                       삭제
                     </button>
                   </div>
@@ -8714,7 +8695,7 @@ export default function MenuManagementSection({
       data-rendered-widget-row-count={renderedWidgetRowCount}
       data-rendered-content-block-count={renderedContentBlockCount}
     >
-      <section className="site-card p-5 sm:p-6">
+      <section className="site-card site-editor-panel p-5 sm:p-6">
         <div className="mb-6 border-b border-zinc-100 pb-5 sm:mb-8 sm:pb-6">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div className="min-w-0">
@@ -8803,7 +8784,7 @@ export default function MenuManagementSection({
         ) : null}
 
         <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
-          <aside className="site-section min-w-0 p-4 lg:sticky lg:top-24">
+          <aside className="site-editor-panel min-w-0 p-4 lg:sticky lg:top-24">
             <div className="mb-4 min-w-0">
               <h3 className="type-content-title mt-1 flex min-w-0 items-center gap-2 text-zinc-950">
                 <span className="min-w-0 truncate">메뉴판 구조</span>
@@ -8815,7 +8796,7 @@ export default function MenuManagementSection({
               </h3>
             </div>
             {canConfigurePcTabletLayoutMode && (
-              <section className="site-section mb-4 p-3">
+              <section className="site-section site-editor-subpanel mb-4 p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h4 className="type-label break-keep text-zinc-950">PC/태블릿 배치 방식</h4>
@@ -9170,7 +9151,7 @@ export default function MenuManagementSection({
             </div>
           </aside>
 
-          <section className="site-card site-card-compact min-w-0 p-4 lg:p-6">
+          <section className="site-card site-editor-panel site-card-compact min-w-0 p-4 lg:p-6">
             {canManagePages && isCreatingPage ? (
               <div>
                 <PanelHeader title={`새 ${labels.pageLabel} 추가`} description={`${labels.pageLabel}를 추가하면 왼쪽 구조 트리에 새 구역이 생깁니다.`} />
@@ -9284,7 +9265,7 @@ export default function MenuManagementSection({
                   title="위젯"
                   description="위젯은 카테고리와 같은 최상위 콘텐츠입니다. 수정 내용은 하단의 최종 저장 후 공개 메뉴판에 반영됩니다."
                 />
-                <div className="site-section grid gap-4 p-5 md:grid-cols-2">
+                <div className="site-section site-editor-subpanel grid gap-4 p-5 md:grid-cols-2">
                   <DetailValue label="위젯 유형">{selectedWidgetDraft.type === "image" ? "이미지" : selectedWidgetDraft.type === "text" ? "텍스트" : "이미지 + 텍스트"}</DetailValue>
                   <DetailValue label="메뉴판 표시">{selectedWidgetDraft.visible ? "표시함" : "표시 안 함"}</DetailValue>
                   <DetailValue label="배치 방식">{selectedWidgetDraft.settings.placement === "bottom" ? "마지막 열 하단 정렬" : "콘텐츠 이어붙이기"}</DetailValue>
@@ -9323,10 +9304,10 @@ export default function MenuManagementSection({
                     <span className="flex flex-wrap items-center justify-end gap-2">
                       <span className="text-xs font-bold text-red-600">이 위젯을 삭제할까요?</span>
                       <button type="button" onClick={() => deleteWidgetDraft(selectedWidgetDraft.id)} className="site-button site-button-danger text-xs">삭제</button>
-                      <button type="button" onClick={() => setConfirmingDeleteKey("")} className="site-button site-button-ghost text-xs">취소</button>
+                      <button type="button" onClick={() => setConfirmingDeleteKey("")} className="site-button site-button-outline text-xs">취소</button>
                     </span>
                   ) : (
-                    <button type="button" onClick={() => startConfirmDelete(`widget:${selectedWidgetDraft.id}`)} className="site-button site-button-danger-ghost text-sm">
+                    <button type="button" onClick={() => startConfirmDelete(`widget:${selectedWidgetDraft.id}`)} className="site-button site-button-outline-danger text-sm">
                       삭제
                     </button>
                   )}
@@ -9539,7 +9520,7 @@ export default function MenuManagementSection({
                   title={selectedCategory.name}
                   description={`${labels.categoryLabel} 정보를 확인하고, 이 그룹의 ${labels.itemPluralLabel}을 관리합니다.`}
                 />
-                <div className="site-section grid gap-4 p-5 md:grid-cols-2">
+                <div className="site-section site-editor-subpanel grid gap-4 p-5 md:grid-cols-2">
                   <DetailValue label={`${labels.categoryLabel} 이름`}>{selectedCategory.name}</DetailValue>
                   {canManagePages && selectedPage && <DetailValue label="연결 페이지 이름">{getMenuPageTitle(selectedPage)}</DetailValue>}
                   <DetailValue label="정렬 순서">{selectedCategory.sort_order}</DetailValue>
@@ -9679,7 +9660,7 @@ export default function MenuManagementSection({
                   }
                   description={`${labels.pageLabel} 정보를 확인합니다.`}
                 />
-                <div className="site-section grid gap-4 p-5 md:grid-cols-2">
+                <div className="site-section site-editor-subpanel grid gap-4 p-5 md:grid-cols-2">
                   <DetailValue label="페이지 이름">{selectedPage.title}</DetailValue>
                   {canConfigureDisplayPages && (
                     <>
@@ -9884,11 +9865,11 @@ export default function MenuManagementSection({
               </div>
 
               {menuCleanupResult ? (
-                <div className="site-section mt-6 p-4">
+                <div className="site-section site-editor-subpanel mt-6 p-4">
                   <h3 className="type-item-title text-zinc-950">정리 결과 미리보기</h3>
                   <div className="mt-4 space-y-4">
                     {menuCleanupResult.categories.map((category, categoryIndex) => (
-                      <div key={`${category.name}-${categoryIndex}`} className="site-section p-4">
+                      <div key={`${category.name}-${categoryIndex}`} className="site-section site-editor-subpanel p-4">
                         <p className="text-sm font-bold text-zinc-950">{category.name}</p>
                         {category.description ? <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">{category.description}</p> : null}
                         <div className="mt-3 space-y-2">
@@ -9923,7 +9904,7 @@ export default function MenuManagementSection({
               ) : null}
 
               {menuCleanupResult ? (
-                <div className="site-section mt-6 p-4">
+                <div className="site-section site-editor-subpanel mt-6 p-4">
                   <h3 className="type-item-title text-zinc-950">AI가 정리한 메뉴를 어떻게 적용할까요?</h3>
                   <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                     처음 메뉴판을 세팅하는 경우에는 ‘현재 메뉴를 AI 결과로 교체’를 추천합니다. 운영 중 신메뉴를 추가하는 경우에는 ‘현재 메뉴판에 추가’{canManagePages ? " 또는 ‘새 페이지에 추가’" : ""}를 사용할 수 있습니다.
@@ -9938,19 +9919,19 @@ export default function MenuManagementSection({
                     </p>
                   ) : null}
                   <div className="mt-4 grid gap-3 md:grid-cols-3">
-                    <div className="site-section p-4">
+                    <div className="site-section site-editor-subpanel p-4">
                       <p className="text-sm font-bold text-zinc-950">현재 메뉴를 AI 결과로 교체</p>
                       <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                         샘플 메뉴나 현재 메뉴 구조를 AI가 정리한 결과로 바꿉니다. 저장 전까지 공개 메뉴판에는 반영되지 않습니다.
                       </p>
                     </div>
-                    <div className="site-section p-4">
+                    <div className="site-section site-editor-subpanel p-4">
                       <p className="text-sm font-bold text-zinc-950">현재 메뉴판에 추가</p>
                       <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                         현재 메뉴판은 유지하고, AI가 정리한 카테고리와 아이템을 새 항목으로 추가합니다. 기존 카테고리와 자동으로 합치지 않습니다.
                       </p>
                     </div>
-                    {canManagePages && <div className="site-section p-4">
+                    {canManagePages && <div className="site-section site-editor-subpanel p-4">
                       <p className="text-sm font-bold text-zinc-950">새 페이지에 추가</p>
                       <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                         새 페이지를 만들고 AI가 정리한 카테고리와 아이템을 그 아래에 추가합니다. 현재 페이지의 카테고리 수와 합산하지 않습니다.
@@ -9965,7 +9946,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={closeMenuCleanupDialog}
                   disabled={isMenuCleanupRunning || Boolean(menuCleanupApplyMode)}
-                  className="site-button site-button-ghost inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
+                  className="site-button site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
                 >
                   취소
                 </button>
@@ -10045,7 +10026,7 @@ export default function MenuManagementSection({
                         type="button"
                         onClick={() => setIsMenuCleanupReplaceConfirming(false)}
                         disabled={Boolean(menuCleanupApplyMode)}
-                        className="site-button site-button-ghost inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
+                        className="site-button site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
                       >
                         취소
                       </button>
@@ -10086,7 +10067,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={() => setIsSampleResetConfirming(false)}
                   disabled={isSampleResetApplying}
-                  className="site-button site-button-ghost inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
+                  className="site-button site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
                 >
                   취소
                 </button>

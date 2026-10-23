@@ -502,7 +502,7 @@ function RestoreSubscriptionModal({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="site-button site-button-ghost inline-flex items-center justify-center text-sm"
+                className="site-button site-button-outline inline-flex items-center justify-center text-sm"
               >
                 닫기
               </button>

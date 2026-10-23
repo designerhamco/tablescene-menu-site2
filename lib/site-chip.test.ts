@@ -12,6 +12,11 @@ test("site chips distinguish draft/private/paid while sharing green for public a
   assert.equal(getSiteChipTone("무료체험 중"), "trial");
   assert.equal(getSiteChipTone("published"), getSiteChipTone("공개 중"));
   assert.equal(getSiteChipTone("draft"), getSiteChipTone("작성 중"));
+  assert.equal(getSiteChipTone("복구불가"), "error");
+  assert.equal(getSiteChipTone("처리확인 필요"), "error");
+  assert.equal(getSiteChipTone("결제 완료"), "settled");
+  assert.equal(getSiteChipTone("paid"), "settled");
+  assert.notEqual(getSiteChipTone("답변 완료"), "settled");
 });
 
 test("inactive and unpaid states are not misclassified as active or a failed payment", () => {

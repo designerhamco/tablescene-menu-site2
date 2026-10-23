@@ -1723,7 +1723,7 @@ const OrderServicePage = () => {
         <div className="mt-16 text-center">
             <Link 
                 to="/services/order" 
-                className="site-button site-button-ghost inline-flex items-center justify-center gap-2 text-xl"
+                className="site-button site-button-outline inline-flex items-center justify-center gap-2 text-xl"
             >
                 준비 중 <ArrowRight size={24}/>
             </Link>

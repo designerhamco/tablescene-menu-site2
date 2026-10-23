@@ -159,7 +159,7 @@ function FontPicker<Value extends string>({
   );
 
   return (
-    <section className="site-section p-4" aria-labelledby={labelId}>
+    <section className="site-section site-editor-subpanel p-4" aria-labelledby={labelId}>
       <input form={formId} type="hidden" name={name} value={value} />
       <div className="flex flex-col gap-3">
         <div>
@@ -342,7 +342,7 @@ export default function TypographySettingsForm({
             <input form={formId} type="hidden" name="korean_font_key" value={selectedFontValue} />
             <input form={formId} type="hidden" name="english_font_key" value={safeSelectedEnglishFontValue} />
             <input form={formId} type="hidden" name="font_size_scale_key" value={selectedFontSizeScale} />
-            <section className="site-section p-4">
+            <section className="site-section site-editor-subpanel p-4">
               {TYPOGRAPHY_ROLE_KEYS.map((role) => {
                 const setting = selectedRoleSettings[role];
                 const roleColor = setting.color;
@@ -375,7 +375,7 @@ export default function TypographySettingsForm({
                   글자 설정 초기화
                 </button>
               </div>
-              <div className="site-section mt-4 divide-y divide-zinc-100">
+              <div className="site-section site-editor-subpanel mt-4 divide-y divide-zinc-100">
                 {TYPOGRAPHY_CONTROL_GROUPS.map((group) => {
                   const description = isAubeTableTemplate && group.key === "categoryName"
                     ? "페이지명과 코스(카테고리)명에 함께 적용됩니다."

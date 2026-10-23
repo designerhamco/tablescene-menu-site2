@@ -103,7 +103,7 @@ export function ConsentAgreementBox<T extends string>({
             <div className="border-b border-zinc-100 p-6">
               <div className="flex items-start justify-between gap-4">
                 <h3 className="type-subsection-title break-keep">{activeItem.detailTitle}</h3>
-                <button type="button" onClick={onClose} className="site-button site-button-ghost text-xs">
+                <button type="button" onClick={onClose} className="site-button site-button-outline text-xs">
                   닫기
                 </button>
               </div>

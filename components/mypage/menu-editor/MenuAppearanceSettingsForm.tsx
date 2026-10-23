@@ -6,7 +6,7 @@ export default function MenuAppearanceSettingsForm({ initial, basic, album = fal
   const [value,setValue] = useState(initial);
   const inputClass = "h-10 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-900";
   const radiusKeys = IMAGE_RADIUS_KEYS.filter(key => basic || key !== "cover");
-  return <section className="site-section space-y-5 p-5" aria-label="이미지와 텍스트칩 모양">
+  return <section className="site-section site-editor-subpanel space-y-5 p-5" aria-label="이미지와 텍스트칩 모양">
     <input type="hidden" name="menu_appearance_present" value="1" form={formId}/>
     <div><h3 className="type-content-title text-zinc-950">이미지와 텍스트칩 모양</h3><p className="mt-2 text-sm leading-relaxed text-zinc-500">템플릿 기본값을 유지하거나 원하는 둥글기 단계를 선택하세요. 기존에 저장한 모양은 다른 단계를 선택할 때까지 유지됩니다.</p></div>
       {!basic ? <input type="hidden" form={formId} name="image_radius_cover" value={value.imageRadii.cover??""}/> : null}

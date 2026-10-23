@@ -187,7 +187,7 @@ export default function OrderDashboard({
                   <input type="hidden" name="orderId" value={order.id} />
                   <input type="hidden" name="nextStatus" value={order.nextStatus} />
                   <p className="text-xs font-bold text-emerald-900">다음 단계: {STATUS_LABELS[order.nextStatus]}</p>
-                  <button name="intent" value="transition" disabled={pending} className="site-button site-button-ghost mt-3 w-full text-xs disabled:opacity-60">
+                  <button name="intent" value="transition" disabled={pending} className="site-button site-button-outline mt-3 w-full text-xs disabled:opacity-60">
                     상태 변경
                   </button>
                 </form>
@@ -204,7 +204,7 @@ export default function OrderDashboard({
                       <option value="manual_cash">현금</option>
                     </select>
                   </label>
-                  <button name="intent" value="manual-payment" disabled={pending} className="site-button site-button-ghost mt-3 w-full text-xs disabled:opacity-60">
+                  <button name="intent" value="manual-payment" disabled={pending} className="site-button site-button-outline mt-3 w-full text-xs disabled:opacity-60">
                     결제 완료 기록
                   </button>
                 </form>
@@ -218,7 +218,7 @@ export default function OrderDashboard({
                     미결제 주문 취소
                     <textarea name="reason" required maxLength={500} rows={2} placeholder="취소 사유" className="mt-2 w-full resize-none rounded-xl border border-rose-200 bg-white px-3 py-2 text-xs font-bold" />
                   </label>
-                  <button name="intent" value="cancel" disabled={pending} className="site-button site-button-ghost mt-3 w-full text-xs disabled:opacity-60">
+                  <button name="intent" value="cancel" disabled={pending} className="site-button site-button-outline mt-3 w-full text-xs disabled:opacity-60">
                     주문 취소
                   </button>
                 </form>
