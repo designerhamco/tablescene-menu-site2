@@ -24,9 +24,9 @@ function renderNode(node: AnnouncementNode, key: number): ReactNode {
     case "hardBreak":
       return <br key={key} />;
     // The allowlist accepts only our immutable, raster announcement uploads.
-    // eslint-disable-next-line @next/next/no-img-element
     case "image":
       return (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           key={key}
           src={node.attrs?.src}
