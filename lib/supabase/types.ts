@@ -3396,6 +3396,42 @@ export type Database = {
           },
         ]
       }
+      support_announcements: {
+        Row: {
+          body: string
+          category: string
+          created_at: string
+          id: string
+          pinned: boolean
+          published_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          category?: string
+          created_at?: string
+          id?: string
+          pinned?: boolean
+          published_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          category?: string
+          created_at?: string
+          id?: string
+          pinned?: boolean
+          published_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       table_visit_sessions: {
         Row: {
           created_at: string

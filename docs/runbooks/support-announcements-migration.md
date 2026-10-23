@@ -2,7 +2,7 @@
 
 SQL: `supabase/migrations/20261023062509_support_announcements.sql`
 
-현재 상태: 로컬 구현 및 격리 PostgreSQL 검증. 운영 DB 미적용.
+현재 상태: 2026-10-23 사용자 승인 후 `tablescene-prod`에 해당 파일 한 건을 적용하고 사후 검증을 완료했다. 다시 적용하지 않는다.
 
 ## 적용 범위
 
@@ -54,3 +54,13 @@ node --import tsx --test lib/announcements.test.ts
 ## 되돌리기
 
 문제가 있으면 앱 배포를 이전 버전으로 되돌린다. 신규 테이블은 보존하고 데이터를 삭제하지 않는다. 테이블/정책 제거는 별도 승인 작업이다.
+
+## 2026-10-23 운영 적용 기록
+
+- 사용자 명시적 승인 후 연결 프로젝트 `tablescene-prod`(`kfbekbapwsyeanobyjsv`)에서 사전 조회했다. 신규 테이블과 함수가 없고 기존 관리자 테이블이 존재했다.
+- 해당 SQL 파일 한 건만 Management API를 통해 트랜잭션으로 실행했다. 누적 `db push`나 기존 데이터 이관/삭제는 실행하지 않았다.
+- RLS와 FORCE RLS 모두 true, 정책 4개, PK와 공개 목록 부분 인덱스, 일반 트리거 함수의 빈 search_path와 security invoker를 확인했다. anon은 SELECT만, authenticated는 SELECT/INSERT/UPDATE만 가지며 DELETE는 부여하지 않았다. 관리자 쓰기/전체 읽기는 기존 admin_users 정책으로 제한된다.
+- 기존 menu_sites/inquiries/orders/payments/admin_users 5개 표의 행 수는 사전/사후 동일했다. 공지사항 0행이며 운영 테스트 공지를 만들지 않았다.
+- anon 클라이언트의 게시 조건 Data API 조회가 오류 없이 0행을 반환했다. 보안 advisor의 기존 경고 22개 중 신규 공지사항 테이블/함수 관련 경고는 없었다. 기존 경고에 대한 별도 수정은 하지 않았다.
+- 운영 스키마 타입 재생성 결과 변경은 support_announcements 정의 36줄 추가뿐이었다. 정식 타입을 반영하고 추가 테이블용 임시 SupabaseClient 캐스트를 제거했다. 타입 생성 스크립트는 현재 CLI의 --lang typescript 옵션을 사용한다.
+- 적용 증빙은 `/tmp/artimenu-announcements-production-postcheck.json`, `/tmp/artimenu-announcements-advisors.json`에 로컬 보관했다.

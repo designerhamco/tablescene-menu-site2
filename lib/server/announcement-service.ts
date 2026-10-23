@@ -1,33 +1,14 @@
 import "server-only";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/types";
 import {
   ANNOUNCEMENT_CATEGORIES,
   ANNOUNCEMENT_PAGE_SIZE,
   escapeAnnouncementSearch,
-  type Announcement,
   type AnnouncementSummary,
 } from "@/lib/announcements";
 
-// Additive migration contract, isolated from the generated Production database types
-// until the migration is approved and those types are refreshed.
-type AnnouncementDatabase = Omit<Database, "public"> & {
-  public: Omit<Database["public"], "Tables"> & {
-    Tables: Database["public"]["Tables"] & {
-      support_announcements: {
-        Row: Announcement;
-        Insert: Pick<Announcement, "title" | "body" | "category"> &
-          Partial<Announcement>;
-        Update: Partial<Announcement>;
-        Relationships: [];
-      };
-    };
-  };
-};
-
 export async function createAnnouncementClient() {
-  return (await createClient()) as unknown as SupabaseClient<AnnouncementDatabase>;
+  return createClient();
 }
 
 export async function getPublishedAnnouncements({

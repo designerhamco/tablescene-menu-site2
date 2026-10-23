@@ -1,3 +1,5 @@
+import type { Database } from "@/lib/supabase/types";
+
 export const ANNOUNCEMENT_CATEGORIES = [
   { value: "service", label: "서비스 안내" },
   { value: "update", label: "업데이트" },
@@ -6,21 +8,15 @@ export const ANNOUNCEMENT_CATEGORIES = [
 
 export type AnnouncementCategory =
   (typeof ANNOUNCEMENT_CATEGORIES)[number]["value"];
-export type Announcement = {
-  id: string;
-  title: string;
-  body: string;
-  category: AnnouncementCategory;
-  status: "draft" | "published";
-  pinned: boolean;
-  published_at: string | null;
-  created_at: string;
-  updated_at: string;
-};
+export type Announcement =
+  Database["public"]["Tables"]["support_announcements"]["Row"];
 export type AnnouncementInput = Pick<
   Announcement,
-  "title" | "body" | "category" | "status" | "pinned"
->;
+  "title" | "body" | "pinned"
+> & {
+  category: AnnouncementCategory;
+  status: "draft" | "published";
+};
 export type AnnouncementSummary = Pick<
   Announcement,
   "id" | "title" | "category" | "pinned" | "published_at"
