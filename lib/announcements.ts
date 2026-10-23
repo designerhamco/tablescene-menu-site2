@@ -1,4 +1,5 @@
 import type { Database } from "@/lib/supabase/types";
+import { validateAnnouncementBody } from "@/lib/announcement-content";
 
 export const ANNOUNCEMENT_CATEGORIES = [
   { value: "service", label: "서비스 안내" },
@@ -37,8 +38,8 @@ export function validateAnnouncement(
   const body = typeof input.body === "string" ? input.body.trim() : "";
   if (!title || title.length > 160)
     return { ok: false, error: "제목은 1~160자로 입력해 주세요." };
-  if (!body || body.length > 20000)
-    return { ok: false, error: "본문은 1~20,000자로 입력해 주세요." };
+  const bodyResult = validateAnnouncementBody(body);
+  if (!bodyResult.ok) return bodyResult;
   const category = ANNOUNCEMENT_CATEGORIES.find(
     (category) => category.value === input.category,
   )?.value;
@@ -49,7 +50,13 @@ export function validateAnnouncement(
     return { ok: false, error: "상단 고정 값을 확인해 주세요." };
   return {
     ok: true,
-    data: { title, body, category, status: input.status, pinned: input.pinned },
+    data: {
+      title,
+      body: bodyResult.body,
+      category,
+      status: input.status,
+      pinned: input.pinned,
+    },
   };
 }
 
