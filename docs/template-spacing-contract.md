@@ -1,5 +1,11 @@
 # Menu template spacing contract
 
+## Absent auxiliary swatches and word-based brand wrapping — 2026-10-23
+
+An absent auxiliary surface displays the Adobe-style no-fill slash, distinct from explicit white. Opening or applying the unchanged absent picker never adds white. Reset stages the absent default and requires Apply; cancellation retains the committed color. Existing native panel defaults remain native. Other color roles keep their effective default swatches.
+
+PC/tablet text brands still compare measured one/two-line candidates after each font, content or viewport change, using the common slot-derived width/height limits. Ordinarily two lines need at least a 15% size gain (the existing reading-floor/over-coverage rescue remains). The former 50% shorter/longer line-width balance remains for character partitions. Complete word groups can use a one-third balance when each line has at least three non-space code points, allowing `CAFE / ARTIMENU` in Alata without isolating tiny word fragments. This is shared across skins and PC/tablet, without template/font-name branches or fixed font sizes. Keep 75% vertical-rail and 65% horizontal-header width targets, existing optical corrections, fixed height budgets and whole-text preservation. Mobile's separate fitter and Dining/Display are unchanged.
+
 ## Explicit preview color application and Order ink — 2026-10-23
 
 Every catalog color picker stages spectrum, hue, keyboard and HEX edits locally. Only Apply commits the chosen color to the preview. Cancel, Escape, the close control and outside dismissal discard pending edits. The default-color reset stages that default in the picker and also requires Apply. Invalid HEX never commits. Keep all URL/device/reset behavior and panel geometry unchanged.

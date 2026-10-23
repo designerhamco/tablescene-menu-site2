@@ -64,3 +64,13 @@ test("one shared radius changes every supported image and chip while preserving 
   }
   assert.deepEqual(original, snapshot);
 });
+
+test("a missing auxiliary swatch has a no-color marker while explicit white stays solid", async () => {
+ const {default:PreviewColorPicker}=await import("../components/menu/PreviewColorPicker");
+ const absent=renderToStaticMarkup(createElement(PreviewColorPicker,{label:"보조 배경색",defaultColor:null,disabled:false,onChange:()=>{}}));
+ assert.match(absent,/data-color-empty="true"/);
+ assert.match(absent,/title="색상 없음"/);
+ const white=renderToStaticMarkup(createElement(PreviewColorPicker,{label:"보조 배경색",defaultColor:null,value:"#FFFFFF",disabled:false,onChange:()=>{}}));
+ assert.doesNotMatch(white,/data-color-empty/);
+ assert.match(white,/background-color:#FFFFFF/);
+});

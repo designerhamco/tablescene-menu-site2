@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {applyPreviewDesign,readPreviewDesign,serializePreviewDesign} from "./menu-preview-design";
+import {applyPreviewDesign,readPreviewDesign,serializePreviewDesign,previewDesignDefaults} from "./menu-preview-design";
 import {buildTemplatePreviewUrl} from "./menu-preview-devices";
 import {readPreviewChipColors,resolvePreviewChipColors} from "./menu-preview-chip-colors";
 import {getMenuDesignBackgrounds} from "./template-background-colors";
@@ -43,4 +43,16 @@ test("preview chip colors validate independently, survive navigation and never m
  assert.equal(resolvePreviewChipColors({generalBackground:"#FFFFFF"}).generalText,"#191C1B");
  assert.equal(resolvePreviewChipColors({saleBackground:"#000000"}).saleText,"#FFF8EA");
  assert.equal(resolvePreviewChipColors({saleBackground:"#000000",saleText:"#ABCDEF"}).saleText,"#ABCDEF");
+});
+
+test("absent auxiliary color stays distinct from explicit white and native panels", () => {
+ const data=fixture();data.menuSite.id="preview";
+ assert.equal(previewDesignDefaults(data).colors.auxiliary,null);
+ assert.equal(previewDesignDefaults(applyPreviewDesign(data,{pageBackground:"#EED2D2"},false)).colors.auxiliary,null);
+ const white=applyPreviewDesign(data,{auxiliaryBackground:"#FFFFFF"},false);
+ assert.equal(previewDesignDefaults(white).colors.auxiliary,"#FFFFFF");
+ data.menuSite.template_key="cafe_mocha_forest_a";
+ assert.equal(previewDesignDefaults(data).colors.auxiliary,"#852322");
+ data.menuSite.template_key="cafe_round_focus_a";
+ assert.notEqual(previewDesignDefaults(data).colors.auxiliary,null);
 });
