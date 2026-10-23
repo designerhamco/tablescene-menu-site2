@@ -30,3 +30,22 @@ test("헤더와 퀵 메뉴의 원형 아이콘 버튼은 가로세로가 같은 
   assert.match(uiSystemSource, /\.site-button-icon \{[\s\S]*?height: var\(--ui-control-height-md\);[\s\S]*?aspect-ratio: 1;[\s\S]*?flex: none;/);
   assert.match(uiSystemSource, /\.site-button-icon\.site-button-sm \{[\s\S]*?height: var\(--ui-control-height-sm\);/);
 });
+
+test("데스크톱 헤더 액션은 MY 메뉴, 매장 운영, 구분선, 알림, 만들기 순서를 유지한다", () => {
+  const navbarSource = readSource("app/components/layout/Navbar.tsx");
+  const actionsStart = navbarSource.indexOf("data-site-header-actions");
+  const account = navbarSource.indexOf("data-site-header-account", actionsStart);
+  const operations = navbarSource.indexOf("data-site-header-operations", actionsStart);
+  const notification = navbarSource.indexOf("className={styles.notificationGroup}", actionsStart);
+  const divider = navbarSource.indexOf("className={styles.accountDivider}", notification);
+  const bell = navbarSource.indexOf('aria-label="알림"', notification);
+  const make = navbarSource.indexOf("styles.makeButton", actionsStart);
+
+  assert.ok(actionsStart >= 0);
+  assert.ok(account > actionsStart);
+  assert.ok(operations > account);
+  assert.ok(notification > operations);
+  assert.ok(divider > notification);
+  assert.ok(bell > divider);
+  assert.ok(make > bell);
+});
