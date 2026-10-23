@@ -58,14 +58,20 @@
    is independently scrolled, and keyboard reading order remains contiguous. */
 .board[data-native-shell="brand_center_column"] { grid-template-columns: minmax(0, 1fr); padding-block: 0; }
 .board[data-native-shell="brand_center_column"] > .brand { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); top: 0; bottom: 0; width: calc((100% - 4 * var(--native-gap)) / 3); background: var(--round-focus-panel-bg); padding: var(--native-gap) clamp(.75rem, 1.8vmin, 1.5rem); }
-.board[data-native-shell="brand_center_column"] > .menuPanel { grid-column: 1; padding-block: var(--native-gap); }
+.board[data-native-shell="brand_center_column"] > .menuPanel { grid-column: 1; padding-block: calc(var(--native-gap) + 2.75rem + .75rem) var(--native-gap); }
+.cornerLanguage { position: absolute; top: var(--native-gap); left: var(--native-gap); z-index: 5; }
+.cornerLanguage :global([data-template-language-control] button[aria-haspopup="menu"]) { width: 2.75rem; height: 2.75rem; padding: 0; }
+.cornerLanguage :global([data-template-language-control] button > svg) { width: 1.5rem; height: 1.5rem; }
 .board[data-native-shell="brand_center_column"] .tracks { column-gap: calc((100% - 2 * var(--native-gap)) / 3 + 2 * var(--native-gap)); }
 .board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-fixed-rail) { background: transparent; padding: 0; }
 .board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-round-focus-lower-cluster) { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: .75rem; }
 .board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-round-focus-featured-stack) { flex: 1; min-height: 0; display: flex; }
 .board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-round-focus-footer-cluster) { flex: none; margin-top: auto; }
-.board[data-native-shell="brand_center_column"] .actions { flex-direction: column; flex: none; }
-.board[data-native-shell="brand_center_column"] .actions button { flex: none; }
+.board[data-native-shell="brand_center_column"] .actions { flex-direction: row; flex: none; gap: .5rem; container-type: inline-size; }
+.board[data-native-shell="brand_center_column"] .actions:not([data-call-only="true"]) button { flex: 1 1 0; padding-inline: .375rem; gap: .375rem; }
+@container (max-width: 12rem) {
+  .board[data-native-shell="brand_center_column"] .actions:not([data-call-only="true"]) button { flex-direction: column; gap: .125rem; padding-inline: .25rem; }
+}
 /* The native ONUE intro remains the first real flow block, with usable space
    below it. It is neither a replacement rail nor a fixed overlay. */
 .board[data-native-shell="brand_panel_flow"] { grid-template-columns: minmax(0, 1fr); }

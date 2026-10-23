@@ -1026,6 +1026,10 @@ video {
   display: none;
 }
 
+.cafe-a-typography[data-cafe-a-skin="round_focus"][data-cafe-a-mobile-style="true"] header .cafe-a-mobile-language-row.cafe-a-corner-language-row {
+  justify-content: flex-start;
+}
+
 .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-sunday-language-dock,
 .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-sunday-language-dock [data-template-language-control] {
   text-align: right;

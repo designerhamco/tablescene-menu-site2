@@ -1,5 +1,11 @@
 # Menu template spacing contract
 
+## Center-column language and service actions — 2026-10-23
+
+ROSY ORANGE uses the shared globe-only language trigger at the page's upper-left, outside the center brand column. Reserve a 44px control row and 12px clearance above the desktop/tablet reading tracks so the menu headings cannot overlap it; open the language list inward from the left edge. Mobile uses the same globe-only trigger and left alignment while preserving its independent Call bar, body rhythm and bottom dock. The trigger follows rendered brand ink and the language list follows category ink, through logo/cover and palette changes.
+
+Every active center-column Basic presentation, including the neutral default, places enabled Call/Order actions side by side beneath the representative content. Equal button widths and a compact gap preserve the center rail; narrow rails may place each button's icon above its label without stacking the two buttons or reducing readable type. Call-only native circles retain their existing shape. Existing category-color action palettes, representative geometry, product type sizes and mobile action placement remain unchanged.
+
 ## Preview option overlay — 2026-10-21
 
 At actual browser widths of 960px and above, catalog options start **open** as a light left-edge overlay, including links that select the Design tab. Opening or closing covers/reveals the menu without reserving a side column, shifting the centered preview, or changing its size or display scale. The dark top device/service toolbar stays centered in the full browser width; the open drawer sits below it so both controls remain usable. Drawer state must preserve the iframe document, source size and menu scroll position. Tablet/mobile use their registered dimensions/orientation; PC uses the actual outer browser viewport. Only an actual browser resize or selected device/orientation changes source geometry. This supersedes the earlier collapsed/reserved-column/scaled-preview behavior.
