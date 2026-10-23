@@ -19,6 +19,7 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
 }) {
   const set = (patch: Partial<PreviewDesign>) => onChange({ ...value, ...patch });
   const font = (group: typeof PREVIEW_FONT_GROUPS[number], patch: PreviewFontChoice) => set({ fonts: { ...value.fonts, [group]: { ...value.fonts?.[group], ...patch } } });
+  const radiusKeys = IMAGE_RADIUS_KEYS.filter(key => !dining || key !== "cover");
   return <div className={styles.panel} data-preview-design-options>
     <div className={styles.intro}><p>미리보기에서만 적용됩니다.</p><button type="button" onClick={() => onChange({})} disabled={disabled || !Object.keys(value).length} className={styles.reset}>디자인 초기화</button></div>
     <fieldset><legend className={styles.legend}>배경색</legend><div className={styles.backgrounds} data-preview-backgrounds>
@@ -26,6 +27,7 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
       {dining ? <>
         <PreviewColorPicker label="커버 배경색" value={value.coverBackground} defaultColor={defaults.colors.cover} onChange={coverBackground => set({ coverBackground })} disabled={disabled} />
         {templateKey.endsWith("_b") ? <PreviewColorPicker label="좌측 메뉴열 배경색" value={value.sidebarBackground} defaultColor={defaults.colors.sidebar} onChange={sidebarBackground => set({ sidebarBackground })} disabled={disabled} /> : null}
+        <PreviewColorPicker label="커버 소개 글자색" value={value.coverDescriptionColor} defaultColor={defaults.colors.coverDescription} onChange={coverDescriptionColor => set({ coverDescriptionColor })} disabled={disabled} />
       </> : <PreviewColorPicker label="보조 배경색" value={value.auxiliaryBackground} defaultColor={defaults.colors.auxiliary} onChange={auxiliaryBackground => set({ auxiliaryBackground })} disabled={disabled} />}
     </div></fieldset>
     <div className={styles.fontGroups} data-preview-font-groups>{PREVIEW_FONT_GROUPS.map(group => {
@@ -43,16 +45,16 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
       </fieldset>;
     })}</div>
     <p className={styles.hint}>가게 설명과 안내사항은 한글·영문 모두 설정한 한글 서체를 따릅니다. 가격 옵션명은 카테고리명의 색상과 서체를 따릅니다.</p>
-    <fieldset><legend className={styles.legend}>이미지 라운드</legend><div className={styles.radiusGrid} data-preview-image-radii>{IMAGE_RADIUS_KEYS.map(key => {
-      const label = key === "cover" && dining ? "커버 이미지" : IMAGE_RADIUS_LABELS[key];
+    {album ? <fieldset className={styles.albumRatio}><legend className={styles.legend}>앨범형 상품 이미지</legend><label className={styles.option}>상품 이미지 비율<select aria-label="앨범형 상품 이미지 비율" value={value.albumImageRatio ?? defaults.appearance.albumImageRatio} onChange={event => set({ albumImageRatio: event.target.value as PreviewDesign["albumImageRatio"] })} disabled={disabled} className={styles.select}>{ALBUM_IMAGE_RATIOS.map(ratio => <option key={ratio} value={ratio}>{ratio}</option>)}</select></label></fieldset> : null}
+    <fieldset><legend className={styles.legend}>이미지 라운드</legend><div className={styles.radiusGrid} data-preview-image-radii>{radiusKeys.map(key => {
+      const label = IMAGE_RADIUS_LABELS[key];
       return <label key={key} className={styles.option}>{label}<ImageRadiusSelect label={label} radius={value.imageRadii?.[key]} disabled={disabled} className={styles.select}
         onChange={radius => set({ imageRadii: { ...value.imageRadii, [key]: radius } })} /></label>;
     })}</div></fieldset>
     <div className={styles.extras}>
-      {!dining ? <label className={styles.option}>대표영역 내용 정렬<select aria-label="대표영역 내용 정렬" value={value.representativeAlignment ?? "template"} disabled={disabled} className={styles.select} onChange={event => set({ representativeAlignment: event.target.value === "template" ? undefined : event.target.value as PreviewDesign["representativeAlignment"] })}><option value="template">템플릿 기본값</option>{REPRESENTATIVE_ALIGNMENTS.map(align => <option key={align} value={align}>{{ left: "왼쪽 정렬", center: "가운데 정렬", right: "오른쪽 정렬" }[align]}</option>)}</select></label> : <PreviewColorPicker label="커버 소개 글자색" value={value.coverDescriptionColor} defaultColor={defaults.colors.coverDescription} onChange={coverDescriptionColor => set({ coverDescriptionColor })} disabled={disabled} />}
+      {!dining ? <label className={styles.option}>대표영역 내용 정렬<select aria-label="대표영역 내용 정렬" value={value.representativeAlignment ?? "template"} disabled={disabled} className={styles.select} onChange={event => set({ representativeAlignment: event.target.value === "template" ? undefined : event.target.value as PreviewDesign["representativeAlignment"] })}><option value="template">템플릿 기본값</option>{REPRESENTATIVE_ALIGNMENTS.map(align => <option key={align} value={align}>{{ left: "왼쪽 정렬", center: "가운데 정렬", right: "오른쪽 정렬" }[align]}</option>)}</select></label> : null}
 
       <label className={styles.option}>텍스트칩 모양<select aria-label="텍스트칩 모양" value={value.chipShape ?? "template"} onChange={event => set({ chipShape: event.target.value as PreviewDesign["chipShape"] })} disabled={disabled} className={styles.select}>{CHIP_SHAPES.map(shape => <option key={shape} value={shape}>{CHIP_SHAPE_LABELS[shape]}</option>)}</select></label>
-      {album ? <label className={styles.option}>상품 이미지 비율<select aria-label="앨범형 상품 이미지 비율" value={value.albumImageRatio ?? defaults.appearance.albumImageRatio} onChange={event => set({ albumImageRatio: event.target.value as PreviewDesign["albumImageRatio"] })} disabled={disabled} className={styles.select}>{ALBUM_IMAGE_RATIOS.map(ratio => <option key={ratio} value={ratio}>{ratio}</option>)}</select></label> : null}
     </div>
   </div>;
 }
