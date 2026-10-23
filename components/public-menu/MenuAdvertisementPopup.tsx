@@ -10,7 +10,7 @@ import styles from "./MenuAdvertisementPopup.module.css";
 const SLIDE_DURATION_MS = 5000;
 const CIRCUMFERENCE = 2 * Math.PI * 5;
 
-export default function MenuAdvertisementPopup({ settings, imageRadius, paused = false }: { settings: MenuPopupSettings; imageRadius?: number; paused?: boolean }) {
+export default function MenuAdvertisementPopup({ settings, imageRadius }: { settings: MenuPopupSettings; imageRadius?: number }) {
   const t = useMenuText();
   const [open, setOpen] = useState(false), [active, setActive] = useState(0), [drag, setDrag] = useState(0);
   const [progress, setProgress] = useState(0), [reset, setReset] = useState(0);
@@ -28,7 +28,7 @@ export default function MenuAdvertisementPopup({ settings, imageRadius, paused =
     setActive((index + count) % count); setProgress(0); setReset(value => value + 1);
   }, [count]);
   useEffect(() => {
-    if (!open || paused || count < 2 || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (!open || count < 2 || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let frame = 0, elapsed = 0, last = performance.now(), painted = last;
     const tick = (now: number) => {
       if (!hovered.current && !keyboardFocus.current && !pointer.current && document.visibilityState === "visible") elapsed += Math.min(100, now - last);
@@ -39,7 +39,7 @@ export default function MenuAdvertisementPopup({ settings, imageRadius, paused =
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [open, paused, active, reset, count, go, signature]);
+  }, [open, active, reset, count, go, signature]);
   function close() { setOpen(false); }
   function endDrag(event: PointerEvent<HTMLDivElement>) {
     const start = pointer.current; pointer.current = null; setDrag(0);

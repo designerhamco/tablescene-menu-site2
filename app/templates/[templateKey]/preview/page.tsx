@@ -5,8 +5,6 @@ import { notFound } from "next/navigation";
 import { menuAppearancePreview } from "@/lib/menu-appearance";
 import { applyPreviewDesign, previewDesignDefaults } from "@/lib/menu-preview-design";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
-import TemplateFeatureDemoScene from "@/components/templates/TemplateFeatureDemoScene";
-import { isDetailFeatureId } from "@/lib/template-detail-features";
 import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import PreviewFullscreenControl from "@/components/menu/PreviewFullscreenControl";
@@ -56,7 +54,6 @@ type PageProps = {
   params: Promise<{ templateKey: string }>;
   searchParams?: Promise<{
     design?: string | string[];
-    demoFeature?: string | string[];
     designPreview?: string | string[];
     previewOptions?: string | string[];
     fontSizeScale?: string | string[];
@@ -1574,10 +1571,6 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   const designDefaults = previewDesignDefaults(data);
   data.menuSite.page_settings = menuAppearancePreview(data.menuSite.page_settings, resolvedSearchParams, defaultDesign?.itemLayout === "album") as typeof data.menuSite.page_settings;
   data = applyPreviewDesign(data, getFirstParam(resolvedSearchParams.designPreview), defaultDesign?.itemLayout === "album");
-  const demoFeature = getFirstParam(resolvedSearchParams.demoFeature);
-  if (isDetailFeatureId(demoFeature) && isActualView && getFirstParam(resolvedSearchParams.embedded) === "1") {
-    return <TemplateFeatureDemoScene source={data} feature={demoFeature} />;
-  }
   if (!isActualView && usesDevicePreviewFrame) {
     return <MenuPreviewDeviceFrame device={device} orientation={orientation} templateKey={templateKey} query={resolvedSearchParams}
       previewDesignDefaults={designDefaults} previewDisplayOptions={defaultDesign ? getDefaultDesignOptions(resolvedSearchParams) : getTemplatePreviewOptions(localizedData, resolvedSearchParams)} />;
