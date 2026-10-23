@@ -171,6 +171,7 @@ export default function MenuPreviewDeviceFrame(
     device?: MenuPreviewDevice;
     orientation?: MenuPreviewOrientation;
     embedded?: boolean;
+    detached?: boolean;
     actual?: boolean;
     callPreview?: boolean;
     orderPreview?: boolean;
@@ -224,6 +225,7 @@ export default function MenuPreviewDeviceFrame(
     orientation,
     actual: true,
     embedded: true,
+    detached: true,
   });
   const showToolbar = isToolbarOpen;
   const changeDesign = (next: PreviewDesign) => {

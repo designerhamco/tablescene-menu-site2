@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 
 import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
+import PreviewFullscreenControl from "@/components/menu/PreviewFullscreenControl";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
 import { getAuthorizedPreviewMenuPageData, type MenuPageData } from "@/lib/menu-page-data";
@@ -127,6 +128,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
   const requestedPageIndex = getPreviewPageIndex(query.page);
   const isActualView = getSearchParamValue(query.view) === "actual";
   const isEmbedded = isActualView && getSearchParamValue(query.embedded) === "1";
+  const isDetachedView = isActualView && getSearchParamValue(query.detached) === "1";
   const requestedDevice = getSearchParamValue(query.device);
   const orientation = normalizeMenuPreviewOrientation(getSearchParamValue(query.orientation));
   const previewQuery = Object.fromEntries(Object.entries(query).map(([key, value]) => [key, getSearchParamValue(value)])) as MenuPreviewQuery;
@@ -210,6 +212,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
           기기 프레임으로 돌아가기
         </Link>
       ) : null}
+      {isDetachedView ? <PreviewFullscreenControl /> : null}
     </>
   );
 }

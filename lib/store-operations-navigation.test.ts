@@ -6,14 +6,18 @@ function readSource(relativePath: string) {
   return readFileSync(new URL(`../${relativePath}`, import.meta.url), "utf8");
 }
 
-test("마이페이지에서 매장 운영과 직원 관리 진입점을 숨긴다", () => {
+test("매장 운영은 로그인 헤더에서 제공하고 마이페이지 중복 진입점과 직원 관리는 숨긴다", () => {
   const mypageSource = readSource("app/mypage/page.tsx");
   const sidebarSource = readSource("components/mypage/MypageSidebar.tsx");
+  const navbarSource = readSource("app/components/layout/Navbar.tsx");
 
   assert.doesNotMatch(mypageSource, /href="\/mypage\/operations"/);
   assert.doesNotMatch(sidebarSource, /href="\/mypage\/operations"/);
   assert.doesNotMatch(sidebarSource, /href="\/mypage\/staff"/);
   assert.doesNotMatch(sidebarSource, /<ExternalLink/);
+  assert.match(navbarSource, /href="\/mypage\/operations"/);
+  assert.match(navbarSource, /data-site-header-operations/);
+  assert.match(navbarSource, />\s*매장 운영\s*</);
 });
 
 test("매장 운영 내비게이션은 승인된 주문을 포함하고 매출은 숨긴다", () => {
