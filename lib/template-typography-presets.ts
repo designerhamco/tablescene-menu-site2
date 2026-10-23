@@ -386,6 +386,11 @@ export function normalizeTypographyRoleSettings(value: unknown, templateKey?: st
   return defaults;
 }
 
+/** Common font controls preserve each role's color, size and weight. */
+export function withCommonTypographyFonts(settings: TypographyRoleSettings): TypographyRoleSettings {
+  return Object.fromEntries(TYPOGRAPHY_ROLE_KEYS.map(role => [role, { ...settings[role], font_ko_key: null, font_en_key: null }])) as TypographyRoleSettings;
+}
+
 export function hasCustomTypographyRoleSettings(settings: TypographyRoleSettings): boolean {
   return TYPOGRAPHY_ROLE_KEYS.some((role) => {
     const setting = settings[role];
@@ -434,6 +439,9 @@ export function getCustomTypographySettings(settings: unknown, pageSettings?: un
     ...(designTypographyRoles && hasCustomTypographyRoleSettings(designTypographyRoles) ? { typography_roles: designTypographyRoles } : {}),
   } satisfies Partial<TypographySettings>;
 
+  if (designRecord?.commonFonts === true) {
+    mergedSettings.typography_roles = withCommonTypographyFonts(mergedSettings.typography_roles ?? createDefaultTypographyRoleSettings());
+  }
   return Object.keys(mergedSettings).length > 0 ? mergedSettings : null;
 }
 

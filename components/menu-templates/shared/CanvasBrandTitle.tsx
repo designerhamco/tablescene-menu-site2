@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getMobileBrandMeasurementTexts, type MobileBrandTitleFit } from "@/lib/mobile-brand-title-fit";
-import { CANVAS_HEADER_MAX_RATIO, CANVAS_PC_HEADER_BRAND_CEILING_SCALE, getCanvasHeaderGapScale, getCanvasHeaderRatio, getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit, type CanvasBrandSlotLayout } from "@/lib/canvas-brand-title-fit";
+import { CANVAS_HEADER_MAX_RATIO, getCanvasHeaderGapScale, getCanvasHeaderRatio, getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit, type CanvasBrandSlotLayout } from "@/lib/canvas-brand-title-fit";
 import type { OnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import ScriptAwareText from "./ScriptAwareText";
 
@@ -59,30 +59,37 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       const panelBudget = panelFrame ? Math.max(0, panelFrame.clientHeight - panelControlsHeight - panelBottomHeight - panelDescriptionHeight
         - (parseFloat(panelStyle?.paddingTop ?? "0") || 0) - (parseFloat(panelStyle?.paddingBottom ?? "0") || 0)
         - 2 * (parseFloat(panelStyle?.getPropertyValue("--panel-equal-gap") ?? "0") || 0) * (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) - (panelDescriptionHeight ? parseFloat(getComputedStyle(panelIdentity!).rowGap) || 0 : 0)) : Infinity;
-      return { width, height: boundedHeader ? availableHeight * CANVAS_HEADER_MAX_RATIO : Math.min(panelBudget, getCanvasBrandHeight(width, frameHeight, layout)), layout, boundedHeader, availableHeight, frameHeight, baseGap, sideHeight };
+      const remScale = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) / 16;
+      const categorySize = Math.max(0, ...[...board?.querySelectorAll<HTMLElement>(".cafe-a-category-title") ?? []].map(element => parseFloat(getComputedStyle(element).fontSize) || 0)) || 32 * remScale;
+      return { categorySize, width, height: boundedHeader ? availableHeight * CANVAS_HEADER_MAX_RATIO : Math.min(panelBudget, getCanvasBrandHeight(width, frameHeight, layout)), layout, boundedHeader, availableHeight, frameHeight, baseGap, sideHeight };
     };
     const measure = () => {
       frame = 0;
       if (disposed) return;
-      const { width, height, layout, boundedHeader, frameHeight, baseGap, sideHeight } = boxOf();
+      const { categorySize, width, height, layout, boundedHeader, frameHeight, baseGap, sideHeight } = boxOf();
       if (width <= 0) return;
       const remScale = (parseFloat(getComputedStyle(document.documentElement).fontSize) || 16) / 16;
       const widths = new Map([...measurements.children].map((element, index) => [texts[index], element.getBoundingClientRect().width]));
       const lineAdvance = Math.max(1.08, ...[...measurements.children].map((element) => element.getBoundingClientRect().height / 100));
-      const limits = getCanvasBrandLimits(width, layout, remScale);
-      // The quieter PC ceiling belongs only to horizontal headers. Vertical
-      // shells keep their own width policy and must never inherit that scale.
-      const appliedCeilingScale = device === "pc" && layout === "horizontal-header" ? CANVAS_PC_HEADER_BRAND_CEILING_SCALE : 1;
+      const limits = getCanvasBrandLimits(width, layout, remScale, categorySize);
+      // PC and tablet now share the same semantic hierarchy and width target.
+      const appliedCeilingScale = 1;
       const next = { ...selectCanvasBrandTitleFit(title, widths, width, height, limits, lineAdvance, appliedCeilingScale, opticalScale), inputKey };
       if (boundedHeader) {
-        const gapScale = window.innerWidth >= 1024
+        const gapScale = !board?.hasAttribute("data-representative-panel") && window.innerWidth >= 1024
           ? getCanvasHeaderGapScale(device, next.lines.length, next.naturalWrap) : 1;
         const availableHeight = frameHeight - baseGap * gapScale;
         const ratio = getCanvasHeaderRatio(availableHeight, next.fontSize, next.lines.length, lineAdvance, sideHeight);
-        const board = root.closest<HTMLElement>(".cafe-a-desktop-fit-board, [data-scroll-brand-board]");
-        // Reading headers may grow for actual side copy (including language
-        // space) without enlarging the title's independent 14% fit budget.
-        if (board?.hasAttribute("data-scroll-brand-board")) board.style.setProperty("--cafe-a-header-copy-height", `${Math.ceil(sideHeight)}px`);
+        // Reading headers grow for the actual title, supporting copy and
+        // panel padding instead of reducing the title to the initial row.
+        if (board?.hasAttribute("data-scroll-brand-board")) {
+          const header = container.closest("[data-cafe-a-topline-info-header], [data-basic-top-row]");
+          const paintedHeader = header?.closest("[data-native-header]") ?? header;
+          const headerStyle = paintedHeader ? getComputedStyle(paintedHeader) : null;
+          const padding = (parseFloat(headerStyle?.paddingTop ?? "0") || 0) + (parseFloat(headerStyle?.paddingBottom ?? "0") || 0);
+          const titleHeight = next.fontSize * (lineAdvance * next.lines.length + .12);
+          board.style.setProperty("--cafe-a-header-copy-height", `${Math.ceil(Math.max(sideHeight, titleHeight) + padding)}px`);
+        }
         board?.style.setProperty("--cafe-a-header-fr", `${ratio * 100}fr`);
         board?.style.setProperty("--cafe-a-body-fr", `${(1 - ratio) * 100}fr`);
         board?.style.setProperty("--cafe-a-header-gap-scale", String(gapScale));
@@ -99,16 +106,27 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       root.dataset.canvasBrandTarget = String(limits.widthRatio);
       root.dataset.canvasBrandMinimum = String(limits.minimum);
       root.dataset.canvasBrandMaximum = String(limits.maximum);
+      root.dataset.canvasBrandCategorySize = String(categorySize);
       root.dataset.canvasBrandCeilingScale = String(appliedCeilingScale);
       root.dataset.canvasBrandLineAdvance = String(lineAdvance);
-      previousBox = `${width}|${height}|${layout}|${sideHeight}`;
+      previousBox = `${width}|${height}|${layout}|${sideHeight}|${categorySize}`;
       setFit((current) => current && JSON.stringify(current) === JSON.stringify(next) ? current : next);
     };
     const schedule = () => { if (!disposed && !frame) frame = requestAnimationFrame(measure); };
-    const observer = new ResizeObserver(() => { const box = boxOf(); if (`${box.width}|${box.height}|${box.layout}|${box.sideHeight}` !== previousBox) schedule(); });
+    const observer = new ResizeObserver(() => { const box = boxOf(); if (`${box.width}|${box.height}|${box.layout}|${box.sideHeight}|${box.categorySize}` !== previousBox) schedule(); });
     observer.observe(container);
     const board = root.closest<HTMLElement>(".cafe-a-desktop-fit-board, [data-scroll-brand-board]");
     if (board) observer.observe(board);
+    // Contained menu headings can mount after the brand's first measurement.
+    // Watch only heading layout/mounts: sale countdown ticks are unrelated.
+    const watchCategories = () => { for (const heading of board?.querySelectorAll(".cafe-a-category-title") ?? []) observer.observe(heading); };
+    const categoryObserver = new MutationObserver(records => {
+      if (records.some(record => [...record.addedNodes, ...record.removedNodes].some(node => node instanceof Element && (node.matches(".cafe-a-category-title") || node.querySelector(".cafe-a-category-title"))))) {
+        watchCategories(); schedule();
+      }
+    });
+    watchCategories();
+    if (board) categoryObserver.observe(board, { childList: true, subtree: true });
     const panelFrame = layoutShell === "brand_panel_flow" ? root.closest(".cafe-a-panel-intro") : null;
     for (const element of panelFrame?.querySelectorAll(".cafe-a-panel-controls, .cafe-a-featured-copy, .cafe-a-store-description") ?? []) observer.observe(element);
     for (const element of board?.querySelectorAll(".cafe-a-topline-description, .cafe-a-topline-notice-text, [data-scroll-header-copy]") ?? []) observer.observe(element);
@@ -126,6 +144,7 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       cancelAnimationFrame(frame);
       observer.disconnect();
       copyObserver.disconnect();
+      categoryObserver.disconnect();
       window.removeEventListener("resize", schedule);
       document.fonts.removeEventListener("loadingdone", schedule);
       // A logo or another presentation must not inherit the text-only gap.

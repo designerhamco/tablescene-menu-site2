@@ -6,7 +6,7 @@ import { menuSurfaceDefaults, menuSurfaceSupport, readMenuSurfaceSettings, REPRE
 export default function MenuSurfaceSettingsForm({ pageSettings, settings, templateKey, formId, disabled = false }: { pageSettings: unknown; settings: unknown; templateKey: string; formId: string; disabled?: boolean }) {
   const [value, setValue] = useState(() => readMenuSurfaceSettings(pageSettings));
   const defaults = menuSurfaceDefaults(templateKey, settings), support = menuSurfaceSupport(templateKey);
-  const color = (key: Exclude<keyof MenuSurfaceSettings, "representativeAlignment">, label: string, fallback: string) => <div className="min-w-0" key={key}>
+  const color = (key: Exclude<keyof MenuSurfaceSettings, "representativeAlignment">, label: string, fallback: string | null) => <div className="min-w-0" key={key}>
     <input type="hidden" form={formId} name={`surface_${key}`} value={value[key] ?? ""} />
     <PreviewColorPicker label={label} value={value[key]} defaultColor={fallback} disabled={disabled} onChange={next => setValue(current => ({ ...current, [key]: next }))} />
   </div>;

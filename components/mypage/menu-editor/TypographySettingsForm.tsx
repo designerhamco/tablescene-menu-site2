@@ -30,6 +30,7 @@ import {
   getTypographyRoleFontLoadAssets,
   isDisplayTypographyTemplate,
   normalizeFontSizeScaleKeyForTemplate,
+  withCommonTypographyFonts,
   type FontSizeScaleKey,
   type TypographyRoleKey,
   type TypographyRoleSettings,
@@ -121,7 +122,7 @@ const TYPOGRAPHY_CONTROL_GROUPS = [
   {
     key: "otherText",
     label: "나머지 글자",
-    description: "브랜드 설명, 메뉴명, 설명, 가격, 특가 문구, 위젯, 푸터의 폰트와 색상을 함께 설정합니다.",
+    description: "브랜드 설명, 메뉴명, 설명, 가격, 특가 문구, 위젯, 푸터의 색상을 함께 설정합니다.",
     roles: ["itemName", "supporting", "price"],
     allowColor: true,
   },
@@ -292,7 +293,7 @@ export default function TypographySettingsForm({
     hasCustomEnglishFont ? getSafeEnglishFontValueForTemplate(templateKey, initialEnglishFont.value) : "",
   );
   const [selectedFontSizeScale, setSelectedFontSizeScale] = useState<FontSizeScaleKey>(initialDisplaySafeFontSizeScale);
-  const [selectedRoleSettings, setSelectedRoleSettings] = useState<TypographyRoleSettings>(initialRoleSettings);
+  const [selectedRoleSettings, setSelectedRoleSettings] = useState<TypographyRoleSettings>(showRoleTypographyControl ? withCommonTypographyFonts(initialRoleSettings) : initialRoleSettings);
   const safeSelectedEnglishFontValue = selectedEnglishFontValue
     ? getSafeEnglishFontValueForTemplate(templateKey, selectedEnglishFontValue)
     : "";
@@ -339,9 +340,12 @@ export default function TypographySettingsForm({
       <div className="space-y-5">
         {showRoleTypographyControl ? (
           <>
-            <input form={formId} type="hidden" name="korean_font_key" value={selectedFontValue} />
-            <input form={formId} type="hidden" name="english_font_key" value={safeSelectedEnglishFontValue} />
+            <input form={formId} type="hidden" name="common_fonts_present" value="1" />
             <input form={formId} type="hidden" name="font_size_scale_key" value={selectedFontSizeScale} />
+            <div className="grid gap-4 xl:grid-cols-2" data-editor-common-fonts>
+              <FontPicker label="공통 한글 서체" description="가게명·카테고리·메뉴에 공통 적용됩니다. 설명과 안내사항은 영문도 이 서체를 사용합니다." name="korean_font_key" options={KOREAN_FONT_OPTIONS} categoryOptions={KOREAN_FONT_CATEGORY_OPTIONS} value={selectedFontValue} defaultOption={defaultFont} formId={formId} onChange={setSelectedFontValue} />
+              <FontPicker label="공통 영문 서체" description="가게명·카테고리·메뉴의 영문과 숫자에 공통 적용됩니다." name="english_font_key" options={englishFontOptions} categoryOptions={ENGLISH_FONT_CATEGORY_OPTIONS} value={safeSelectedEnglishFontValue} defaultOption={safeDefaultEnglishFont} formId={formId} onChange={setSelectedEnglishFontValue} />
+            </div>
             <section className="site-section site-editor-subpanel p-4">
               {TYPOGRAPHY_ROLE_KEYS.map((role) => {
                 const setting = selectedRoleSettings[role];
@@ -360,8 +364,8 @@ export default function TypographySettingsForm({
                   <h4 className="type-label text-zinc-950">글자 설정</h4>
                   <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
                     {isAubeTableTemplate
-                      ? "가게명, 페이지·코스명, 나머지 글자의 폰트와 색상을 각각 조정합니다."
-                      : "가게명, 카테고리명, 나머지 글자의 폰트와 색상을 각각 조정합니다."}
+                      ? "서체는 공통으로 적용하고, 가게명·페이지·코스명과 나머지 글자의 색상은 따로 조정합니다."
+                      : "서체는 공통으로 적용하고, 가게명·카테고리명과 나머지 글자의 색상은 따로 조정합니다."}
                   </p>
                   <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
                     현재 템플릿 기본 폰트: 한글 <span className="text-zinc-700">{defaultFont.label}</span> · 영문/숫자 <span className="text-zinc-700">{safeDefaultEnglishFont.label}</span>
@@ -380,10 +384,9 @@ export default function TypographySettingsForm({
                   const description = isAubeTableTemplate && group.key === "categoryName"
                     ? "페이지명과 코스(카테고리)명에 함께 적용됩니다."
                     : group.description;
-                  const koreanFontValue = getGroupSettingValue(selectedRoleSettings, group.roles, "font_ko_key");
-                  const englishFontValue = getGroupSettingValue(selectedRoleSettings, group.roles, "font_en_key");
+
                   const colorValue = group.allowColor ? getGroupSettingValue(selectedRoleSettings, group.roles, "color") : "";
-                  const hasMixedValue = koreanFontValue === MIXED_SELECT_VALUE || englishFontValue === MIXED_SELECT_VALUE || colorValue === MIXED_SELECT_VALUE;
+                  const hasMixedValue = colorValue === MIXED_SELECT_VALUE;
                   const selectedColor = typeof colorValue === "string" && colorValue !== MIXED_SELECT_VALUE && colorValue ? colorValue : "#191C1B";
 
                   return (
@@ -391,7 +394,7 @@ export default function TypographySettingsForm({
                       key={group.key}
                       className={`grid gap-3 px-3 py-3 ${
                         group.allowColor
-                          ? "lg:grid-cols-[minmax(8rem,1fr)_minmax(10rem,1.05fr)_minmax(10rem,1.05fr)_minmax(8rem,0.8fr)]"
+                          ? "lg:grid-cols-[minmax(8rem,1fr)_minmax(8rem,0.8fr)]"
                           : "lg:grid-cols-[minmax(8rem,1fr)_minmax(10rem,1.05fr)_minmax(10rem,1.05fr)]"
                       } lg:items-center`}
                     >
@@ -401,36 +404,6 @@ export default function TypographySettingsForm({
                         {hasMixedValue ? (
                           <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">저장된 개별 설정이 있어 변경한 항목만 함께 맞춰집니다.</p>
                         ) : null}
-                      </div>
-                      <div>
-                        <label className="mb-1 block text-xs font-bold text-zinc-400" htmlFor={`typography-group-${group.key}-font-ko`}>한글 폰트</label>
-                        <select
-                          id={`typography-group-${group.key}-font-ko`}
-                          value={koreanFontValue}
-                          onChange={(event) => updateControlGroupSetting(group.roles, "font_ko_key", event.target.value)}
-                          className="h-10 w-full rounded-md border border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-700 outline-none transition focus:border-zinc-950"
-                        >
-                          {koreanFontValue === MIXED_SELECT_VALUE ? <option value={MIXED_SELECT_VALUE}>기존 개별 설정 유지</option> : null}
-                          <option value="">템플릿 기본값 · {defaultFont.label}</option>
-                          {KOREAN_FONT_OPTIONS.map((option) => (
-                            <option key={`ko-${group.key}-${option.value}`} value={option.value}>{option.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="mb-1 block text-xs font-bold text-zinc-400" htmlFor={`typography-group-${group.key}-font-en`}>영문/숫자 폰트</label>
-                        <select
-                          id={`typography-group-${group.key}-font-en`}
-                          value={englishFontValue}
-                          onChange={(event) => updateControlGroupSetting(group.roles, "font_en_key", event.target.value)}
-                          className="h-10 w-full rounded-md border border-zinc-200 bg-white px-3 text-xs font-bold text-zinc-700 outline-none transition focus:border-zinc-950"
-                        >
-                          {englishFontValue === MIXED_SELECT_VALUE ? <option value={MIXED_SELECT_VALUE}>기존 개별 설정 유지</option> : null}
-                          <option value="">템플릿 기본값 · {safeDefaultEnglishFont.label}</option>
-                          {englishFontOptions.map((option) => (
-                            <option key={`en-${group.key}-${option.value}`} value={option.value}>{option.label}</option>
-                          ))}
-                        </select>
                       </div>
                       {group.allowColor ? (
                         <div>
@@ -578,7 +551,7 @@ export default function TypographySettingsForm({
                 className="mt-2 break-keep text-xs font-semibold leading-relaxed text-[#66726f]"
                 style={getColorAwareMiniStyle("supporting")}
               >
-                <ScriptAwareText text={cafeAMiniPreviewDescriptionText} />
+                <span style={{ fontFamily: "var(--menu-font-ko)" }}>{cafeAMiniPreviewDescriptionText}</span>
               </p>
             </div>
             <div className="mt-5 grid grid-cols-[minmax(0,1fr)_2.75rem_2.75rem] items-end gap-3">

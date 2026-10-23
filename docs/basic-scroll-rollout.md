@@ -1,5 +1,9 @@
 # Basic contained-scroll rollout
 
+## Shared Basic design follow-up — 2026-10-23
+
+Common Korean/English font controls, category-relative PC/tablet title minimums, full-width remaining-height representative photos and full-bleed auxiliary rails/headers now follow the current `template-spacing-contract.md`. This supersedes older title coverage/height and proportional photo shrinking rules. Both default list/album layouts and all designer skins use the shared renderer path; mobile geometry remains independent. Evidence: `basic-shared-design-qa.md`.
+
 ## Verified release slice
 
 Formal REAL MATCHA alone is promoted from the approved hidden scroll test. Compatibility key `cafe_real_matcha_paged_test` remains valid. The original mobile renderer and multi-page branch stay intact. Grouped/fill settings now apply both to saved public menus and previews. Baseline tag: `baseline/basic-before-contained-scroll-20261019` (395be27e22360d5bb24e8ae13988dbe6e664f792).

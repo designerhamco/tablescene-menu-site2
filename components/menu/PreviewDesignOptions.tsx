@@ -37,18 +37,19 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
         <PreviewColorPicker label="커버 소개 글자색" value={value.coverDescriptionColor} defaultColor={defaults.colors.coverDescription} onChange={coverDescriptionColor => set({ coverDescriptionColor })} disabled={disabled} />
       </> : <PreviewColorPicker label="보조 배경색" value={value.auxiliaryBackground} defaultColor={defaults.colors.auxiliary} onChange={auxiliaryBackground => set({ auxiliaryBackground })} disabled={disabled} />}
     </div></fieldset>
+    <fieldset data-preview-common-fonts><legend className={styles.legend}>공통 서체</legend><div className={styles.backgrounds}>
+      <label className={styles.option}>한글 서체<select aria-label="공통 한글 서체" value={value.fontFamily?.ko ?? ""} disabled={disabled} className={styles.select} onChange={event => set({fontFamily:{...value.fontFamily,ko:event.target.value as PreviewFontChoice["ko"] || undefined}})}>
+        <option value="">기본값 · {getKoreanFontOption(defaults.fontFamily.ko)?.label}</option>{KOREAN_FONT_OPTIONS.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}
+      </select></label>
+      <label className={styles.option}>영문 서체<select aria-label="공통 영문 서체" value={value.fontFamily?.en ?? ""} disabled={disabled} className={styles.select} onChange={event => set({fontFamily:{...value.fontFamily,en:event.target.value as PreviewFontChoice["en"] || undefined}})}>
+        <option value="">기본값 · {getEnglishFontOption(defaults.fontFamily.en)?.label}</option>{getAvailableEnglishFontsForTemplate(templateKey).map(item=><option key={item.value} value={item.value}>{item.label}</option>)}
+      </select></label>
+    </div></fieldset>
     <div className={styles.fontGroups} data-preview-font-groups>{PREVIEW_FONT_GROUPS.map(group => {
       const choice = value.fonts?.[group] ?? {}, label = { brand: "가게명", category: "카테고리명", other: "나머지 문구" }[group];
       return <fieldset key={group} className={styles.fontGroup}><legend>{label}</legend>
         <PreviewColorPicker label="글자색" accessibleLabel={`${label} 글자색`} value={choice.color} defaultColor={defaults.fonts[group].color} onChange={color => font(group, { color })} disabled={disabled} />
-        <div className={styles.fonts}>
-          <label className={styles.option}>한글 서체<select aria-label={`${label} 한글 서체`} value={choice.ko ?? ""} onChange={event => font(group, { ko: event.target.value as PreviewFontChoice["ko"] || undefined })} disabled={disabled} className={styles.select}>
-            <option value="">기본값 · {getKoreanFontOption(defaults.fonts[group].ko)?.label}</option>{KOREAN_FONT_OPTIONS.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
-          </select></label>
-          <label className={styles.option}>영문 서체<select aria-label={`${label} 영문 서체`} value={choice.en ?? ""} onChange={event => font(group, { en: event.target.value as PreviewFontChoice["en"] || undefined })} disabled={disabled} className={styles.select}>
-            <option value="">기본값 · {getEnglishFontOption(defaults.fonts[group].en)?.label}</option>{getAvailableEnglishFontsForTemplate(templateKey).map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
-          </select></label>
-        </div>
+
       </fieldset>;
     })}</div>
     <p className={styles.hint}>가게 설명과 안내사항은 한글·영문 모두 설정한 한글 서체를 따릅니다. 가격 옵션명은 카테고리명의 색상과 서체를 따릅니다.</p>

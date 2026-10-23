@@ -94,11 +94,6 @@
    below it. It is neither a replacement rail nor a fixed overlay. */
 .board[data-native-shell="brand_panel_flow"] { grid-template-columns: minmax(0, 1fr); }
 .board[data-native-shell="brand_panel_flow"] .unit :global(.cafe-a-panel-intro) { width: 100%; }
-/* Keep Mocha's brown representative panel; measure gutters from its colored
-   edge rather than counting its internal padding as an outside gutter. */
-.root[data-cafe-a-skin="mocha_forest"] .board { padding: 0; column-gap: 0; }
-.root[data-cafe-a-skin="mocha_forest"] .brand { background: var(--mocha-forest-brown); padding: 0; }
-.root[data-cafe-a-skin="mocha_forest"] .menuPanel { padding: var(--native-gap); }
 @media (prefers-reduced-motion: reduce) { .fade { transition: none; } }
 
 .actions[data-call-only="true"] { justify-content: flex-end; }
@@ -118,11 +113,29 @@
 .board .header :global(.cafe-a-store-logo-wrap):has(img) { width: 100%; height: 100%; display: grid; place-items: center; }
 .board .header :global(.cafe-a-store-logo) { width: auto; height: auto; max-width: 75cqw !important; max-height: 100cqh !important; object-fit: contain; }
 
-/* Mocha's picture keeps its portrait crop and touches the rail's bottom edge.
-   A short viewport may reduce its width as well as its height, never its ratio. */
-.root[data-cafe-a-skin="mocha_forest"] .board .brand :global(.cafe-a-fixed-rail) { padding-bottom: 0; }
-.root[data-cafe-a-skin="mocha_forest"] .board .brand :global(.cafe-a-cover-hero) { container-type: size; position: relative; background: transparent; margin-bottom: 0; }
-.root[data-cafe-a-skin="mocha_forest"] .board .brand :global(.cafe-a-cover-frame) {
-  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
-  flex: none; width: min(100cqw, 80cqh); height: auto !important; aspect-ratio: 4 / 5;
-}
+
+/* Every fixed PC/tablet rail uses the same full-width, remaining-height image. */
+.board .brand :global(.cafe-a-cover-hero) { width: 100% !important; min-height: clamp(6rem, 16vh, 10rem) !important; aspect-ratio: auto !important; }
+.board .brand :global(.cafe-a-cover-frame) { position: relative !important; inset: auto !important; transform: none !important; flex: 1 1 auto !important; width: 100% !important; height: 100% !important; aspect-ratio: auto !important; }
+.board[data-representative-panel="true"][data-native-shell="brand_left_rail"] { padding: 0 var(--native-gap) 0 0; }
+.board[data-representative-panel="true"][data-native-shell="brand_left_rail"] > .brand { padding: var(--native-gap); background: var(--menu-design-aux-bg, var(--mocha-forest-brown)); box-sizing: border-box; }
+.board[data-representative-panel="true"][data-native-shell="brand_left_rail"] > .menuPanel { padding-block: var(--native-gap); box-sizing: border-box; }
+.board[data-native-shell="brand_left_rail"] .brand :global(.cafe-a-fixed-rail) { padding: 0 !important; }
+.board[data-representative-panel="true"][data-native-shell="brand_top_band"] { padding: 0 0 var(--native-gap); }
+.board[data-representative-panel="true"][data-native-shell="brand_top_band"] > .header { padding: var(--native-gap); background: var(--menu-design-aux-bg); box-sizing: border-box; }
+.board[data-representative-panel="true"][data-native-shell="brand_top_band"] .headerLanguage { top: var(--native-gap); left: var(--native-gap); }
+.board[data-representative-panel="true"][data-native-shell="brand_top_band"] > .brand { margin-left: var(--native-gap); }
+.board[data-representative-panel="true"][data-native-shell="brand_top_band"] > .menuPanel { margin-right: var(--native-gap); }
+.board[data-representative-panel="true"][data-native-shell="brand_top_band"]:has(.brand:empty) > .menuPanel { margin-inline: var(--native-gap); }
+
+/* Paint below existing checker decorations while keeping content clear. */
+.root[data-template-key="fast_food_loop_bagel_a"]:has(.board[data-representative-panel="true"]) { padding-block: 0 !important; }
+.root[data-template-key="fast_food_loop_bagel_a"] .board[data-representative-panel="true"][data-native-shell="brand_left_rail"] > .brand,
+.root[data-template-key="fast_food_loop_bagel_a"] .board[data-representative-panel="true"][data-native-shell="brand_left_rail"] > .menuPanel { padding-block: calc(var(--native-gap) + var(--loop-bagel-checker-square) * 2); }
+
+/* Flow panels keep their native overlay composition, but height is content
+   driven rather than locked to the source photograph's aspect ratio. */
+.board[data-native-shell="brand_panel_flow"] .unit :global(.cafe-a-panel-intro) { aspect-ratio: auto; }
+.board[data-native-shell="brand_panel_flow"] .unit :global(.cafe-a-panel-intro) :global(.cafe-a-cover-hero),
+.board[data-native-shell="brand_panel_flow"] .unit :global(.cafe-a-panel-intro) :global(.cafe-a-cover-frame) { position: relative !important; inset: auto !important; width: 100% !important; height: auto !important; aspect-ratio: auto !important; }
+.board[data-native-shell="brand_panel_flow"] .unit :global(.cafe-a-panel-intro) :global(.cafe-a-cover-frame) { min-height: clamp(10rem, 34vh, 24rem) !important; }

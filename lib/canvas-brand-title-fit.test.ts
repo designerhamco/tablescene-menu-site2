@@ -5,46 +5,17 @@ import { getCanvasHeaderGapScale, getCanvasHeaderRatio, getCanvasBrandHeight, ge
 import { getMobileBrandMeasurementTexts } from "./mobile-brand-title-fit";
 import { getFixedOnePageLayoutShell } from "./one-page-layout-shells";
 
-test("coverage is allocated by slot structure, not a template or fixed px size", () => {
-  const horizontalLimits = getCanvasBrandLimits(380, "horizontal-header");
-  assert.ok(Math.abs(horizontalLimits.minimum - 30.4) < 1e-8);
-  assert.equal(horizontalLimits.maximum, 83.6);
-  assert.equal(horizontalLimits.widthRatio, 0.65);
-  assert.deepEqual(getCanvasBrandLimits(281, "brand-column"), { minimum: 28.1, maximum: Infinity, widthRatio: 0.75 });
-  const widths = new Map([["VAN GOGH", 453.5], ["VAN", 170], ["GOGH", 235]]);
-  const height = getCanvasBrandHeight(380, 838, "horizontal-header");
-  assert.ok(Math.abs(height - 106.4) < 0.0001);
-  const fit = selectCanvasBrandTitleFit("VAN GOGH", widths, 380, height, getCanvasBrandLimits(380, "horizontal-header"));
-  assert.deepEqual(fit.lines, ["VAN GOGH"]);
-  assert.ok(Math.abs(fit.fontSize * 453.5 / 100 / 380 - 0.65) < 0.0001);
-});
-
-test("a horizontal title targets up to 65% while preserving the height bound", () => {
-  const widths = new Map([["SUNDAY ROASTERS", 896.9], ["SUNDAY", 350], ["ROASTERS", 500]]);
-  const limits = getCanvasBrandLimits(380, "horizontal-header");
-  const height = getCanvasBrandHeight(380, 838, "horizontal-header");
-  const fit = selectCanvasBrandTitleFit("SUNDAY ROASTERS", widths, 380, height, limits);
-  assert.deepEqual(fit.lines, ["SUNDAY", "ROASTERS"]);
-  assert.ok(fit.fontSize * 500 / 100 / 380 <= 0.65);
-  assert.ok(Math.abs(fit.fontSize * 2.28 - height) < 1e-8);
-  assert.deepEqual(selectCanvasBrandTitleFit("SUNDAY ROASTERS", widths, 380, height, limits), fit);
-});
-
-test("rail title uses 75% and the frame height can limit enlargement", () => {
-  const widths = new Map([["LOOP BAGEL", 598.3], ["LOOP", 270], ["BAGEL", 300]]);
-  const fit = selectCanvasBrandTitleFit("LOOP BAGEL", widths, 281, 134, getCanvasBrandLimits(281, "brand-column"));
-  assert.deepEqual(fit.lines, ["LOOP", "BAGEL"]);
-  assert.ok(Math.abs(fit.fontSize * 2.28 - 134) < 0.0001);
-  assert.ok(fit.fontSize * 300 / 100 <= 281 * 0.75);
-});
-
-test("PC and tablet rails use the same 75% one/two-line comparison", () => {
-  const widths = new Map([["LOOP BAGEL", 598.3], ["LOOP", 270], ["BAGEL", 300]]);
-  const limits = getCanvasBrandLimits(358, "brand-column");
-  const pc = selectCanvasBrandTitleFit("LOOP BAGEL", widths, 358, 131.24, limits);
-  const tablet = selectCanvasBrandTitleFit("LOOP BAGEL", widths, 358, 131.24, limits);
-  assert.deepEqual(pc, tablet);
-  assert.equal(limits.widthRatio, 0.75);
+test("PC and tablet layouts share semantic title limits and the full width target", () => {
+  for (const layout of ["brand-column", "horizontal-header"] as const) {
+    const limits = getCanvasBrandLimits(300, layout, 1, 36);
+    assert.equal(limits.minimum, 45);
+    assert.equal(limits.widthRatio, 1);
+    const fit = selectCanvasBrandTitleFit("CAFE ARTIMENU", new Map([["CAFE ARTIMENU", 728], ["CAFE", 226], ["ARTIMENU", 477]]), 300, 170, limits);
+    assert.deepEqual(fit.lines, ["CAFE", "ARTIMENU"]);
+    assert.ok(fit.fontSize >= 45);
+    assert.ok(fit.fontSize * 477 / 100 >= 300 * .7);
+    assert.ok(fit.fontSize * 477 / 100 <= 300 + .01);
+  }
 });
 
 test("all seven one-page templates keep their explicit layout family", () => {
@@ -76,45 +47,39 @@ test("doubling slot dimensions doubles font size without any device px cap", () 
   }
 });
 
-test("actual fallback-font line metrics, not just CSS leading, bound the height", () => {
-  const width = 380, height = getCanvasBrandHeight(width, 838, "horizontal-header");
-  const fit = selectCanvasBrandTitleFit("梵高", new Map([["梵高", 172], ["梵", 86], ["高", 86]]), width, height, getCanvasBrandLimits(width, "horizontal-header"), 1.24);
-  assert.deepEqual(fit.lines, ["梵高"]);
-  assert.ok(fit.fontSize * (1.24 + 0.12) <= height + 0.0001);
-  assert.ok(fit.fontSize <= getCanvasBrandLimits(width, "horizontal-header").maximum);
-  assert.ok(fit.fontSize < height / 1.2);
+test("header height does not shrink a measured title below its semantic size", () => {
+  const widths = new Map([["梵高", 172], ["梵", 86], ["高", 86]]);
+  const limits = getCanvasBrandLimits(380, "horizontal-header");
+  const short = selectCanvasBrandTitleFit("梵高", widths, 380, 20, limits, 1.24);
+  const tall = selectCanvasBrandTitleFit("梵高", widths, 380, 200, limits, 1.24);
+  assert.deepEqual(short, tall);
+  assert.ok(short.fontSize >= limits.minimum);
+  assert.ok(short.fontSize <= limits.maximum);
 });
 
-test("height bounds reject a two-line candidate when the relative floor cannot fit", () => {
+test("two whole-word lines receive space instead of being shrunk into a short rail budget", () => {
   const fit = selectCanvasBrandTitleFit("LOOP BAGEL", new Map([["LOOP BAGEL", 598.3], ["LOOP", 270], ["BAGEL", 300]]), 281, 50, getCanvasBrandLimits(281, "brand-column"));
-  assert.deepEqual(fit.lines, ["LOOP BAGEL"]);
-  assert.ok(fit.fontSize * 1.2 <= 50);
+  assert.deepEqual(fit.lines, ["LOOP", "BAGEL"]);
+  assert.ok(fit.fontSize >= 56);
+  assert.ok(fit.fontSize * 1.2 * 2 > 50);
 });
 
-test("unbalanced words do not wrap just to enlarge a short fragment", () => {
-  const fit = selectCanvasBrandTitleFit("A LONGWORD", new Map([["A LONGWORD", 620], ["A", 30], ["LONGWORD", 500]]), 300, 160, getCanvasBrandLimits(300, "brand-column"));
-  assert.deepEqual(fit.lines, ["A LONGWORD"]);
+test("long unbroken names use emergency grapheme lines at the title minimum", () => {
+  const title = "Incomprehensible";
+  const widths = new Map(getMobileBrandMeasurementTexts(title).map(text => [text, Array.from(text).length * 60]));
+  const limits = getCanvasBrandLimits(260,"brand-column",1,36);
+  const fit = selectCanvasBrandTitleFit(title,widths,260,150,limits);
+  assert.equal(fit.lines.join(""),title);
+  assert.ok(fit.lines.length >= 2);
+  assert.ok(fit.fontSize >= 45);
+  for(const line of fit.lines) assert.ok(widths.get(line)! * fit.fontSize / 100 <= 260 + .01);
 });
 
-test("a relative floor that overfills the single-line target favors balanced lines inside the same fixed row", () => {
-  const fit = selectCanvasBrandTitleFit("SUNDAY ROASTERS", new Map([["SUNDAY ROASTERS", 896], ["SUNDAY", 350], ["ROASTERS", 500]]), 450, 118, getCanvasBrandLimits(450, "horizontal-header"));
-  assert.deepEqual(fit.lines, ["SUNDAY", "ROASTERS"]);
-  assert.ok(fit.fontSize * 2.28 <= 118.01);
-});
-
-test("CJK and impossible-height fallbacks preserve every character", () => {
-  const title = "서울숲따뜻한커피";
-  const widths = new Map(getMobileBrandMeasurementTexts(title).map((text) => [text, Array.from(text).length * 100]));
-  const limits = getCanvasBrandLimits(250, "brand-column");
-  const fit = selectCanvasBrandTitleFit(title, widths, 250, 160, limits);
-  assert.equal(fit.lines.join(""), title);
-  assert.ok(fit.fontSize >= limits.minimum);
-  const impossible = selectCanvasBrandTitleFit(title, widths, 250, 1, limits);
-  assert.equal(impossible.fontSize, 25);
-  assert.equal(impossible.naturalWrap, true);
-  assert.deepEqual(impossible.lines, [title]);
-  const unknown = selectCanvasBrandTitleFit("UNMEASURED", new Map(), 250, 160, limits);
-  assert.equal(unknown.naturalWrap, true);
+test("height shortage never takes the title below category hierarchy", () => {
+  const limits = getCanvasBrandLimits(300,"horizontal-header",1,48);
+  const fit = selectCanvasBrandTitleFit("CAFE ARTIMENU",new Map([["CAFE ARTIMENU",728],["CAFE",226],["ARTIMENU",477]]),300,30,limits);
+  assert.ok(fit.fontSize >= 60);
+  assert.equal(fit.lines.join(" "),"CAFE ARTIMENU");
 });
 
 test("the common selector has no template-specific branch and mobile keeps its own fitter", () => {
@@ -145,49 +110,7 @@ test("only a confirmed one-line PC brand compacts the header gap", () => {
   assert.equal(getCanvasHeaderGapScale("pc", 1, true), 1);
 });
 
-test("PC ceiling remains a horizontal-header safeguard while preserving reading floors", () => {
-  const widths = new Map([["CAFE", 300]]);
-  const limits = getCanvasBrandLimits(380, "horizontal-header");
-  const tablet = selectCanvasBrandTitleFit("CAFE", widths, 380, 120, limits);
-  const pc = selectCanvasBrandTitleFit("CAFE", widths, 380, 120, limits, 1.08, 0.875);
-  assert.ok(Math.abs(pc.fontSize - tablet.fontSize * 0.875) < 0.0001);
-  assert.ok(pc.fontSize >= limits.minimum);
-  const railLimits = getCanvasBrandLimits(380, "brand-column");
-  const floor = selectCanvasBrandTitleFit("VERY LONG CAFE", new Map([["VERY LONG CAFE", 900]]), 380, 120, railLimits);
-  assert.ok(floor.fontSize >= limits.minimum);
-});
-
-test("font optical correction expands width targets but respects a fixed header height", () => {
-  const widths = new Map([["DODO", 220]]);
-  const limits = getCanvasBrandLimits(380, "horizontal-header");
-  const regular = selectCanvasBrandTitleFit("DODO", widths, 380, 120, limits);
-  const corrected = selectCanvasBrandTitleFit("DODO", widths, 380, 120, limits, 1.08, 1, 1.1);
-  assert.ok(corrected.fontSize > regular.fontSize);
-
-  const heightBound = selectCanvasBrandTitleFit("DODO", widths, 380, 44, limits, 1.08, 1, 1.1);
-  assert.ok(heightBound.fontSize * (1.08 + 0.12) <= 44.01);
-});
-
-test("complete word lines tolerate unequal widths when they gain readable size", () => {
-  // Alata-shaped metrics: the short word is below the former 50% cutoff.
-  const widths = new Map([["CAFE ARTIMENU", 728.2], ["CAFE", 226], ["ARTIMENU", 477]]);
-  for (const [width, height] of [[267, 147.6], [327, 162]]) {
-    const fit = selectCanvasBrandTitleFit("CAFE ARTIMENU", widths, width, height, getCanvasBrandLimits(width, "brand-column"));
-    assert.deepEqual(fit.lines, ["CAFE", "ARTIMENU"]);
-    assert.ok(fit.fontSize >= width * .75 * 100 / 728.2 * 1.15);
-    assert.ok(fit.fontSize * 477 / 100 <= width * .75 + .01);
-    assert.ok(fit.fontSize * 2.28 <= height + .01);
-  }
-});
-
-test("word-line flexibility still rejects tiny orphans and insignificant gains", () => {
-  for (const [title, short, long, shortWidth, longWidth] of [
-    ["CAFE SUPERCALIFRAGILISTIC", "CAFE", "SUPERCALIFRAGILISTIC", 150, 700],
-    ["AN ARTIMENU", "AN", "ARTIMENU", 210, 477],
-  ] as const) {
-    const fit = selectCanvasBrandTitleFit(title, new Map([[title, shortWidth + longWidth + 25], [short, shortWidth], [long, longWidth]]), 327, 162, getCanvasBrandLimits(327, "brand-column"));
-    assert.deepEqual(fit.lines, [title]);
-  }
-  const fit = selectCanvasBrandTitleFit("CAFE ARTIMENU", new Map([["CAFE ARTIMENU", 728.2], ["CAFE", 226], ["ARTIMENU", 477]]), 327, 80, getCanvasBrandLimits(327, "brand-column"));
-  assert.deepEqual(fit.lines, ["CAFE ARTIMENU"], "height-limited two lines do not provide a 15% gain");
+test("PC no longer has an additional horizontal size reduction",()=>{
+ const widths=new Map([["CAFE",300]]),limits=getCanvasBrandLimits(300,"horizontal-header");
+ assert.deepEqual(selectCanvasBrandTitleFit("CAFE",widths,300,120,limits,1.08,.875),selectCanvasBrandTitleFit("CAFE",widths,300,120,limits));
 });

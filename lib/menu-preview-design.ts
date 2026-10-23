@@ -3,7 +3,7 @@ import { REPRESENTATIVE_ALIGNMENTS, type RepresentativeAlignment } from "./menu-
 import type { MenuPageData } from "./menu-page-data";
 import { isKoreanFontValue, isEnglishFontValue, getSafeEnglishFontValueForTemplate, type KoreanFontValue, type EnglishFontValue } from "./font-options";
 import { ALBUM_IMAGE_RATIOS, CHIP_SHAPES, IMAGE_RADIUS_KEYS, MAX_IMAGE_RADIUS, readMenuAppearance, type MenuAppearance } from "./menu-appearance";
-import { getCustomTypographySettings, mergeTypographySettings, type TypographyRoleKey } from "./template-typography-presets";
+import { getCustomTypographySettings, mergeTypographySettings, withCommonTypographyFonts, type TypographyRoleKey } from "./template-typography-presets";
 import { getMenuDesignBackgrounds, getResolvedBackgroundColor, normalizeBackgroundColor } from "./template-background-colors";
 import { getCustomBadgeStyles, mergeBadgeStyles } from "./template-badge-styles";
 import { DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR, getReadableTextColorForTimeSaleBadge } from "./menu-time-sales";
@@ -20,6 +20,7 @@ export type PreviewDesign = {
   sidebarBackground?: string;
   coverDescriptionColor?: string;
   representativeAlignment?: RepresentativeAlignment;
+  fontFamily?: Omit<PreviewFontChoice, "color">;
   fonts?: Partial<Record<PreviewFontGroup, PreviewFontChoice>>;
   imageRadii?: MenuAppearance["imageRadii"];
   chipShape?: MenuAppearance["chipShape"];
@@ -36,11 +37,17 @@ export function readPreviewDesign(raw: unknown): PreviewDesign {
   }
   if (REPRESENTATIVE_ALIGNMENTS.includes(source.representativeAlignment as RepresentativeAlignment)) result.representativeAlignment = source.representativeAlignment as RepresentativeAlignment;
   const fonts = record(source.fonts);
+  const shared = record(source.fontFamily), family: Omit<PreviewFontChoice, "color"> = {};
+  for (const script of ["ko", "en"] as const) {
+    const candidate = shared[script] ?? record(fonts.other)[script] ?? record(fonts.brand)[script] ?? record(fonts.category)[script];
+    if (script === "ko" && isKoreanFontValue(candidate)) family.ko = candidate;
+    if (script === "en" && isEnglishFontValue(candidate)) family.en = candidate;
+  }
+  if (Object.keys(family).length) result.fontFamily = family;
   for (const group of PREVIEW_FONT_GROUPS) {
     const input = record(fonts[group]), choice: PreviewFontChoice = {};
     const color = normalizeBackgroundColor(input.color); if (color) choice.color = color;
-    if (isKoreanFontValue(input.ko)) choice.ko = input.ko;
-    if (isEnglishFontValue(input.en)) choice.en = input.en;
+
     if (Object.keys(choice).length) (result.fonts ??= {})[group] = choice;
   }
   const chipColors = readPreviewChipColors(source.chipColors);
@@ -62,6 +69,7 @@ export function previewDesignDefaults(data: MenuPageData) {
   const badge = mergeBadgeStyles(key, getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings)).default;
   const saleBackground = data.timeSales?.[0]?.badgeBackgroundColor ?? DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR;
   return {
+    fontFamily: { ko: typography.korean_font_key, en: typography.english_font_key },
     chipColors: { generalBackground: badge.background_color, generalText: badge.text_color, saleBackground, saleText: getReadableTextColorForTimeSaleBadge(saleBackground) },
     fonts: Object.fromEntries(PREVIEW_FONT_GROUPS.map(group => {
       const role = typography.typography_roles[group === "other" ? "supporting" : group];
@@ -90,18 +98,18 @@ export function applyPreviewDesign(source: MenuPageData, value: unknown, album: 
   if (overrides.sidebarBackground) design.sidebarBackgroundColor = overrides.sidebarBackground;
   if (overrides.coverBackground) { data.pageSettings.multi_page_cover_background_color = overrides.coverBackground; page.multi_page_cover_background_color = overrides.coverBackground; }
   const typography = mergeTypographySettings(data.menuSite.template_key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
-  const roles = typography.typography_roles;
+  const roles = overrides.fontFamily ? withCommonTypographyFonts(typography.typography_roles) : typography.typography_roles;
+  if (overrides.fontFamily) {
+    design.commonFonts = true;
+    if (overrides.fontFamily.ko) design.koreanFont = overrides.fontFamily.ko;
+    if (overrides.fontFamily.en) design.englishFont = getSafeEnglishFontValueForTemplate(data.menuSite.template_key, overrides.fontFamily.en);
+  }
   for (const group of PREVIEW_FONT_GROUPS) {
     const choice = overrides.fonts?.[group]; if (!choice) continue;
     const targets: TypographyRoleKey[] = group === "other" ? ["itemName", "supporting", "price"] : [group];
-    for (const target of targets) roles[target] = { ...roles[target], ...(choice.color ? { color: choice.color } : {}), ...(choice.ko ? { font_ko_key: choice.ko } : {}), ...(choice.en ? { font_en_key: getSafeEnglishFontValueForTemplate(data.menuSite.template_key, choice.en) } : {}) };
-    // Store introductions/notices use the chosen Korean face for every script.
-    if (group === "other" && choice.ko) {
-      for (const title of ["brand", "category"] as const) roles[title].font_ko_key ??= typography.korean_font_key;
-      design.koreanFont = choice.ko;
-    }
+    for (const target of targets) roles[target] = { ...roles[target], ...(choice.color ? { color: choice.color } : {}) };
   }
-  if (overrides.fonts) {
+  if (overrides.fonts || overrides.fontFamily) {
     design.typographyRoles = roles;
     // Copied neutral/native title colors are defaults, not explicit ink edits.
     design.previewTitleColorRoles = (["brand","category"] as const).filter(role=>overrides.fonts?.[role]?.color);

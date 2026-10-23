@@ -28,7 +28,7 @@ export function readMenuSurfaceSettings(pageSettings: unknown): MenuSurfaceSetti
 export function menuSurfaceDefaults(templateKey: string, settings: unknown = {}) {
   const raw = menuSurfaceRecord(settings), neutral = Boolean(getDefaultDesignReview(typeof raw.menu_design_id === "string" ? raw.menu_design_id : undefined, templateKey));
   const page = neutral ? "#FFFFFF" : templateKey === "cafe_mocha_forest_a" ? MOCHA_FOREST_PANEL_COLORS.ivory : templateKey === "dining_aube_table_b" ? "#F7F2EA" : getTemplateDefaultBackgroundColor(templateKey);
-  return { pageBackground: page, auxiliaryBackground: templateKey === "cafe_mocha_forest_a" && !neutral ? MOCHA_FOREST_PANEL_COLORS.brown : page,
+  return { pageBackground: page, auxiliaryBackground: templateKey === "cafe_mocha_forest_a" && !neutral ? MOCHA_FOREST_PANEL_COLORS.brown : templateKey === "cafe_round_focus_a" && !neutral ? page : null,
     coverBackground: neutral ? "#FFFFFF" : getAubeTableDefaultCoverBackgroundColor(templateKey), sidebarBackground: neutral ? "#F4F5F3" : "#401E24", coverDescriptionColor: neutral ? "#606561" : "#FFFFFF" };
 }
 /** Older forms do not clear optional surfaces. Only submitted controls can edit them. */
