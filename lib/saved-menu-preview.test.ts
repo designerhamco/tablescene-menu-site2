@@ -109,3 +109,17 @@ test("saved-menu panel uses the common tools while every device and detached lin
     assert.equal(url.searchParams.get("design"), null);
   }
 });
+
+
+test("saved Basic logo checkbox follows the explicit replacement setting while Dining uses its registered cover logo", () => {
+  const source = fixture();
+  for (const settings of [{}, {logo_replaces_name: false}]) {
+    source.menuSite.settings = settings;
+    assert.equal(buildSavedMenuPreview(source, {}).options.logoPreview, false);
+  }
+  source.menuSite.settings = {logo_replaces_name: true};
+  assert.equal(buildSavedMenuPreview(source, {}).options.logoPreview, true);
+  source.menuSite.settings = {};
+  source.menuSite.template_key = "dining_aube_table_a";
+  assert.equal(buildSavedMenuPreview(source, {}).options.logoPreview, true);
+});
