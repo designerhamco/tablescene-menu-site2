@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Bot } from "lucide-react";
+import { BookOpen, Bot } from "lucide-react";
+import Link from "next/link";
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import SupportCenter from "@/components/support/SupportCenter";
@@ -26,7 +27,11 @@ export default async function FAQPage({
         <SupportCenter
           initialTab={tab === "notices" ? "notices" : "faq"}
           supportActions={
-            <div className="mt-5 flex justify-center">
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
+              <Link href="/guides" className="site-button site-button-outline">
+                <BookOpen size={18} aria-hidden="true" />
+                사용가이드
+              </Link>
               <AiSupportChatOpenButton className="site-button site-button-secondary">
                 <Bot size={18} aria-hidden="true" />
                 AI 상담{!enabled ? " · 준비 중" : ""}
