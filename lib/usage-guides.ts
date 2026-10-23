@@ -16,6 +16,7 @@ export type GuideSection = {
   body: string;
   steps: readonly GuideStep[];
   shortcuts?: readonly GuideShortcut[];
+  toolbar?: readonly { device: string; steps: readonly string[] }[];
   note?: string;
   sources?: readonly { label: string; href: string }[];
 };
@@ -113,6 +114,23 @@ function chromeDesktopSections(): GuideSection[] {
         "컴퓨터의 Chrome에서 공개 메뉴판 주소를 엽니다.",
         ["오른쪽 위의 ", { control: "more" }, "를 클릭합니다."],
         ["‘확대/축소’ 옆의 ", { control: "fullscreen" }, "을 클릭합니다."],
+      ],
+      toolbar: [
+        {
+          device: "Windows·Linux",
+          steps: [
+            "전체 화면을 켠 뒤 마우스를 화면 상단에서 아래로 옮깁니다.",
+            "주소창과 탭 표시줄이 숨겨졌는지 확인합니다. 별도 툴바 설정은 필요하지 않습니다.",
+          ],
+        },
+        {
+          device: "Mac",
+          steps: [
+            "전체 화면에서 마우스를 화면 맨 위로 올려 Mac의 메뉴 막대를 표시합니다.",
+            "보기(View) → ‘전체화면에서 툴바 항상 표시’에 체크가 있다면 클릭해 해제합니다.",
+            "마우스를 화면 아래로 옮겨 주소창과 탭 표시줄이 숨겨졌는지 확인합니다. 이미 체크가 없다면 그대로 두세요.",
+          ],
+        },
       ],
       shortcuts: [
         { device: "Windows·Linux", commands: [{ label: "전체 화면", keys: ["F11"] }] },
