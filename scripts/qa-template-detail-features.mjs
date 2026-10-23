@@ -4,209 +4,164 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { chromium, expect } from "@playwright/test";
 import axe from "axe-core";
 import { catalogDesigns } from "../lib/catalog-designs.ts";
+import { DETAIL_FEATURES } from "../lib/template-detail-features.ts";
 
-const base = process.env.TEMPLATE_DETAIL_QA_BASE_URL || "http://127.0.0.1:3100";
-const output = process.env.TEMPLATE_DETAIL_QA_OUTPUT || "/tmp/artimenu-detail-feature-qa";
+const base = process.env.TEMPLATE_DETAIL_QA_BASE_URL || "http://127.0.0.1:3120";
+const output = process.env.TEMPLATE_DETAIL_QA_OUTPUT || "/tmp/artimenu-detail-accordion-qa";
 await mkdir(output, { recursive: true });
 const browser = await chromium.launch();
-const results = [];
-const errors = [];
-const writes = [];
-const features = ["cover", "images", "prices", "sale", "widgets", "ads", "call", "order"];
-
+const errors = [], writes = [], results = [];
+const route = `${base}/templates/cafe_real_matcha_a`;
 function observe(page) {
   page.on("pageerror", error => errors.push(error.message));
   page.on("request", request => { if (new URL(request.url()).pathname.startsWith("/api/public-menu/") && request.method() !== "GET") writes.push(request.url()); });
 }
-async function settled(page) {
-  await page.evaluate(() => document.fonts.ready);
+async function loaded(root) {
+  await expect(root).toHaveAttribute("data-image-ready", "true", { timeout: 20000 });
+  await expect.poll(() => root.locator("img").evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
 }
-async function command(page, step, playing = false) {
-  await page.evaluate(({ step, playing }) => window.postMessage({ type: "template-feature-command", step, playing }, location.origin), { step, playing });
-  await expect(page.locator("[data-scene-step]")).toHaveAttribute("data-scene-step", String(step));
+async function progress(root) {
+  return root.locator('[data-active="true"] [aria-hidden="true"] > span').evaluate(element => new DOMMatrix(getComputedStyle(element).transform).a);
 }
-async function scene(page, feature, preview = "/templates/cafe_real_matcha_a/preview") {
-  const url = new URL(preview, base);
-  for (const [key, value] of Object.entries({ view: "actual", embedded: "1", device: "tablet", demoFeature: feature })) url.searchParams.set(key, value);
-  assert.equal((await page.goto(url.href, { waitUntil: "networkidle" })).status(), 200);
-  await expect(page.locator("[data-scene-ready]")).toHaveAttribute("data-scene-ready", "true");
-  assert.deepEqual(await page.evaluate(() => [innerWidth, innerHeight]), [1180, 820]);
+async function firstOnly(root) {
+  await expect(root).toHaveAttribute("data-selected-item", "0");
+  assert.equal(await root.locator('[data-feature-trigger][aria-expanded="true"]').count(), 1);
+  assert.equal(await root.locator('[role="region"]:visible').count(), 1);
+  await expect(root.locator("[data-feature-trigger]").first()).toHaveAttribute("aria-expanded", "true");
 }
 
 try {
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
-  observe(page);
+  let page;
   for (const [width, height] of [[320, 844], [390, 844], [768, 1024], [820, 1180], [1024, 400], [1440, 900]]) {
-    await page.setViewportSize({ width, height });
-    await page.goto(`${base}/templates/cafe_real_matcha_a`, { waitUntil: "networkidle" });
-    await settled(page);
-    assert.deepEqual(await page.locator("[data-feature-section]").evaluateAll(sections => sections.map(section => section.dataset.featureSection)), features);
-    assert.equal(await page.locator("[data-template-story] table tbody tr").count(), 8);
-    await expect(page.getByRole("button", { name: "사용 방법", exact: true })).toBeDisabled();
-    assert.equal(await page.getByRole("link", { name: "사용 방법", exact: true }).count(), 0);
-    const geometry = await page.evaluate(() => {
-      const sidebar = document.querySelector("aside[aria-label='템플릿 정보 및 시작']").getBoundingClientRect();
-      const story = document.querySelector("[data-template-story]").getBoundingClientRect();
-      return { viewport: [innerWidth, innerHeight], overflow: document.documentElement.scrollWidth - innerWidth, sidebar: { x: sidebar.x, bottom: sidebar.bottom }, story: { y: story.y, right: story.right } };
+    console.log(`Checking ${width}×${height}`);
+    if (page) await page.close();
+    page = await browser.newPage({ viewport: { width, height }, reducedMotion: "reduce" });
+    observe(page);
+    assert.equal((await page.goto(route, { waitUntil: "domcontentloaded" })).status(), 200);
+    await page.evaluate(() => document.fonts.ready);
+    assert.deepEqual(await page.evaluate(() => [innerWidth, innerHeight]), [width, height]);
+    assert.equal(await page.locator("[data-feature-card]").count(), 8);
+    assert.equal(await page.locator("[data-feature-section]").count(), 8);
+    assert.equal(await page.locator("[data-template-story] table, [data-template-story] iframe").count(), 0);
+    const cards = await page.locator("[data-feature-card]").evaluateAll(cards => cards.map(card => {
+      const icon = card.querySelector("svg").getBoundingClientRect();
+      const title = card.querySelector("h3").getBoundingClientRect();
+      const text = card.querySelector("p").getBoundingClientRect();
+      return { vertical: icon.bottom <= title.top && title.bottom <= text.top, radius: getComputedStyle(card).borderRadius, background: getComputedStyle(card).backgroundColor };
+    }));
+    assert.ok(cards.every(card => card.vertical && card.radius === "16px" && card.background !== "rgb(255, 255, 255)"));
+    const guide = page.getByRole("link", { name: "사용 방법 (새 창)", exact: true });
+    await expect(guide).toHaveAttribute("href", "/guides?plan=basic");
+    await expect(guide).toHaveAttribute("target", "_blank");
+    assert.ok(await guide.evaluate(element => element.getBoundingClientRect().width < element.closest("section").getBoundingClientRect().width * .7));
+    const cover = page.locator('[data-feature-accordion="cover"]');
+    await cover.scrollIntoViewIfNeeded();
+    await loaded(cover);
+    await firstOnly(cover);
+    const positions = await cover.evaluate(element => {
+      const image = element.querySelector("figure").getBoundingClientRect();
+      const list = element.querySelector("ol").getBoundingClientRect();
+      return { image: { x: image.x, y: image.y, right: image.right, bottom: image.bottom }, list: { x: list.x, y: list.y }, overflow: document.documentElement.scrollWidth - innerWidth };
     });
-    assert.deepEqual(geometry.viewport, [width, height]);
-    assert.equal(geometry.overflow, 0);
-    assert.ok(width >= 768 ? geometry.story.right < geometry.sidebar.x : geometry.story.y >= geometry.sidebar.bottom);
-    const demo = page.locator('[data-feature-demo="cover"]');
-    await demo.scrollIntoViewIfNeeded();
-    await expect(demo).toHaveAttribute("data-demo-ready", "true", { timeout: 30000 });
-    await demo.getByRole("button", { name: "2단계: 대표 영역 켜기", exact: true }).click();
-    await expect(demo).toHaveAttribute("data-demo-step", "1");
-    const previewFrame = page.frameLocator('iframe[title="대표 영역 자동 시연 화면"]');
-    await expect(previewFrame.locator("[data-show-cover]")).toHaveAttribute("data-show-cover", "true");
-    assert.deepEqual(await previewFrame.locator("body").evaluate(() => [innerWidth, innerHeight]), [1180, 820]);
-    assert.ok(await demo.evaluate(element => {
-      const screen = element.querySelector("[data-demo-screen]").getBoundingClientRect();
-      const frame = element.querySelector("iframe").getBoundingClientRect();
-      return Math.abs(screen.width - frame.width) < 1 && Math.abs(screen.height - frame.height) < 1;
-    }), "The full tablet viewport fits inside its frame without cropping");
-    await page.screenshot({ path: `${output}/${width}-cover.png` });
-    if (width === 1440) {
-      await demo.getByRole("button", { name: "대표 영역 시연 처음부터 보기" }).click();
-      await expect(previewFrame.locator("[data-show-cover]")).toHaveAttribute("data-show-cover", "false");
-      await demo.getByRole("button", { name: "대표 영역 시연 재생", exact: true }).click();
-      await expect(demo).toHaveAttribute("data-demo-step", "1", { timeout: 10000 });
-      await demo.getByRole("button", { name: "대표 영역 시연 일시정지" }).click();
-      await page.waitForTimeout(5000);
-      await expect(demo).toHaveAttribute("data-demo-step", "1");
-      results.push({ case: "play-pause-and-restart" });
-    }
+    assert.equal(positions.overflow, 0);
+    assert.ok(width >= 1200 ? positions.image.right < positions.list.x : positions.list.y >= positions.image.bottom);
     const sidebar = page.getByRole("complementary", { name: "템플릿 정보 및 시작" });
     if (width >= 768) {
       await expect(sidebar).toHaveAttribute("data-docked", "true");
-      assert.ok(await sidebar.locator("[data-template-detail-actions]").evaluate(element => element.getBoundingClientRect().bottom <= innerHeight));
+      assert.ok(await sidebar.locator("[data-template-detail-actions]").evaluate(element => Math.abs(element.getBoundingClientRect().bottom - (innerHeight - 24)) < 2));
     } else await expect(sidebar).toHaveAttribute("data-docked", "false");
+    await page.screenshot({ path: `${output}/${width}-section.png` });
     await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
-    await expect.poll(() => page.locator("iframe").count()).toBe(0);
     await expect(sidebar).toHaveAttribute("data-docked", "false");
     await expect(sidebar.getByRole("region", { name: /디자인 갤러리/ })).toBeVisible();
+    console.log(`Checking accessibility ${width}×${height}`);
     await page.addScriptTag({ content: axe.source });
-    const violations = await page.evaluate(async () => (await window.axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa"] } })).violations.filter(item => ["critical", "serious"].includes(item.impact)).map(item => item.id));
+    const violations = await page.evaluate(async () => (await window.axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa"] } })).violations.filter(item => ["critical", "serious"].includes(item.impact)).map(item => ({ id: item.id, targets: item.nodes.map(node => node.target) })));
     assert.deepEqual(violations, []);
-    results.push({ case: "responsive-and-sidebar", ...geometry });
-  }
-  await page.setViewportSize({ width: 390, height: 844 });
-  for (const design of catalogDesigns) {
-    assert.equal((await page.goto(new URL(design.detailHref, base).href, { waitUntil: "networkidle" })).status(), 200);
-    await expect(page.getByRole("heading", { level: 1, name: design.name, exact: true })).toBeVisible();
-    assert.equal(await page.locator("[data-feature-section]").count(), 8);
-    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
-    if (design.itemLayout === "album") await expect(page.locator("#feature-images .type-body").first()).toContainText("1:1, 4:5, 5:4");
-    if (design.itemLayout === "album" && design.service === "basic") await expect(page.locator("#feature-prices")).toContainText("가격 옵션 열을 제공하지 않습니다");
-    if (design.service === "dining") await expect(page.locator("#feature-sale")).toContainText("선택한 디자인에서는 이 기능을 제공하지 않습니다");
-    results.push({ case: "catalog", design: design.id, viewport: [390, 844] });
+    results.push({ case: "responsive-cards-accordion-and-sidebar", viewport: [width, height], ...positions });
   }
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto(`${base}/templates/cafe_real_matcha_a`, { waitUntil: "networkidle" });
-  const orderDemo = page.locator('[data-feature-demo="order"]');
-  await orderDemo.scrollIntoViewIfNeeded();
-  await expect(orderDemo).toHaveAttribute("data-demo-ready", "true", { timeout: 30000 });
-  await orderDemo.getByRole("button", { name: "4단계: 주문 내역 확인", exact: true }).click();
-  await expect(page.frameLocator('iframe[title="주문 자동 시연 화면"]').locator("[data-history-order]")).toBeVisible({ timeout: 10000 });
-  await expect(orderDemo).toHaveAttribute("data-demo-ready", "true");
-  results.push({ case: "embedded-order-history" });
-  await page.setViewportSize({ width: 1180, height: 820 });
-  await scene(page, "cover");
-  await expect(page.locator("[data-show-cover]")).toHaveAttribute("data-show-cover", "false");
-  await command(page, 1);
-  await expect(page.locator("[data-show-cover]")).toHaveAttribute("data-show-cover", "true");
-  results.push({ case: "cover-toggle" });
-
-  await scene(page, "images");
-  assert.equal(await page.locator('button[aria-label$="이미지 크게 보기"]').count(), 0);
-  await command(page, 1);
-  await expect(page.locator('button[aria-label$="이미지 크게 보기"]:visible').first()).toBeVisible();
-  await command(page, 2, true);
-  await expect.poll(() => page.locator("[data-radius-item]").evaluate(element => getComputedStyle(element).getPropertyValue("--menu-image-radius-item"))).toBe("24px");
-  await command(page, 3);
-  await expect(page.getByRole("dialog")).toBeVisible();
-  await page.screenshot({ path: `${output}/images-expanded.png` });
-  results.push({ case: "image-toggle-radius-and-lightbox" });
-
-  await scene(page, "prices");
-  await command(page, 1);
-  await expect(page.locator("body")).toContainText("HOT");
-  await expect(page.locator("body")).toContainText("ICE");
-  await command(page, 2);
-  for (const label of ["SMALL", "TALL", "LARGE"]) await expect(page.locator("body")).toContainText(label);
-  await command(page, 3, true);
-  await expect(page.locator(".cafe-a-price-label:visible").first()).toContainText("ICE ONLY");
-  results.push({ case: "category-price-columns-and-typed-note" });
-
-  await scene(page, "sale");
-  assert.equal(await page.locator("[data-cafe-a-time-sale-digital-timer]").count(), 0);
-  await command(page, 2, true);
-  await expect(page.locator("body")).toContainText("오늘의 특가");
-  const timer = page.locator("[data-cafe-a-time-sale-digital-timer]:visible").first();
-  const previous = await timer.textContent();
-  await expect.poll(() => timer.textContent()).not.toBe(previous);
-  await page.screenshot({ path: `${output}/sale-countdown.png` });
-  results.push({ case: "sale-typed-badge-and-live-countdown" });
-
-  await scene(page, "widgets");
-  for (const step of [1, 2, 3]) {
-    await command(page, step);
-    if (step !== 2) await expect(page.locator('img[src$="cheese-platter.jpg"]:visible').first()).toBeVisible();
-    if (step !== 1) await expect(page.locator("body")).toContainText("매장에서 전하는 작은 소식");
+  for (const feature of DETAIL_FEATURES) {
+    const root = page.locator(`[data-feature-accordion="${feature.id}"]`);
+    await root.scrollIntoViewIfNeeded();
+    await firstOnly(root);
+    assert.equal(await root.locator(".site-button-primary").count(), 0);
+    for (let index = 0; index < feature.steps.length; index++) {
+      await root.locator("[data-feature-trigger]").nth(index).click();
+      await expect(root).toHaveAttribute("data-selected-item", String(index));
+      await expect(root.locator("[data-feature-image]")).toHaveAttribute("data-feature-image", feature.steps[index].image);
+      await loaded(root);
+      assert.equal(await root.locator('[data-feature-trigger][aria-expanded="true"]').count(), 1);
+      assert.equal(await root.locator('[role="region"]:visible').count(), 1);
+    }
+    results.push({ case: "manual-image-and-single-open-panel", feature: feature.id, steps: feature.steps.length });
   }
-  await page.screenshot({ path: `${output}/widget-image-text.png` });
-  results.push({ case: "three-widget-types" });
+  const cover = page.locator('[data-feature-accordion="cover"]');
+  await cover.scrollIntoViewIfNeeded();
+  const triggers = cover.locator("[data-feature-trigger]");
+  await triggers.first().focus();
+  await triggers.first().press("ArrowDown");
+  await expect(triggers.nth(1)).toBeFocused();
+  await triggers.nth(1).press("Home");
+  await expect(triggers.first()).toBeFocused();
+  await triggers.first().press("Enter");
+  await expect(cover).toHaveAttribute("data-selected-item", "0");
+  await expect(cover).toHaveAttribute("data-auto-playing", "false");
+  results.push({ case: "keyboard-and-reduced-motion" });
+  await page.getByRole("link", { name: "사용 방법 (새 창)", exact: true }).scrollIntoViewIfNeeded();
+  await page.locator('[aria-label="메뉴판 핵심 기능 8가지"]').evaluate(element => element.scrollIntoView({ behavior: "instant", block: "center" }));
+  await page.screenshot({ path: `${output}/overview-cards.png` });
+  const popupPromise = page.waitForEvent("popup");
+  await page.getByRole("link", { name: "사용 방법 (새 창)", exact: true }).click();
+  const popup = await popupPromise;
+  await popup.waitForLoadState("domcontentloaded");
+  await expect(popup).toHaveURL(`${base}/guides?plan=basic`);
+  await expect(popup.getByRole("tab", { name: "베이직", exact: true })).toHaveAttribute("aria-selected", "true");
+  await popup.close();
+  results.push({ case: "guide-opens-basic-in-new-window" });
 
-  await scene(page, "ads");
-  assert.equal(await page.locator("[data-menu-advertisement-popup]").count(), 0);
-  for (const step of [1, 2, 3]) {
-    await command(page, step);
-    await expect(page.locator("[data-popup-active]")).toHaveAttribute("data-popup-active", String(step - 1));
+  await page.close();
+  page = await browser.newPage({ viewport: { width: 390, height: 844 }, reducedMotion: "reduce" });
+  observe(page);
+  for (const design of catalogDesigns) {
+    assert.equal((await page.goto(new URL(design.detailHref, base).href, { waitUntil: "domcontentloaded" })).status(), 200);
+    await page.evaluate(() => document.fonts.ready);
+    assert.equal(await page.locator("[data-feature-card]").count(), 8);
+    for (const root of await page.locator("[data-feature-accordion]").all()) await firstOnly(root);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth), 0);
+    if (design.itemLayout === "album") await expect(page.locator("#feature-images")).toContainText("1:1, 4:5, 5:4");
+    results.push({ case: "catalog-initial-state", design: design.id, viewport: [390, 844] });
   }
-  await page.waitForTimeout(5500);
-  await expect(page.locator("[data-popup-active]")).toHaveAttribute("data-popup-active", "2");
-  results.push({ case: "three-advertisement-slides" });
-
-  await scene(page, "call");
-  await command(page, 1);
-  await expect(page.locator('[aria-label="직원 호출 항목"] button[aria-pressed="true"]')).toContainText("물");
-  await command(page, 3);
-  await expect(page.locator("[data-call-status]")).toContainText("직원에게 호출을 보냈습니다");
-  await page.screenshot({ path: `${output}/call-sent.png` });
-  results.push({ case: "simulated-staff-call" });
-
-  await scene(page, "order");
-  await command(page, 1);
-  await expect(page.locator('[data-menu-cart] [role="dialog"]')).toContainText("최종 주문 금액", { timeout: 10000 });
-  await command(page, 3);
-  await expect(page.locator("[data-history-order]")).toContainText("리얼 맛차", { timeout: 10000 });
-  await expect(page.locator("[data-history-order]")).toContainText("결제 전");
-  await page.screenshot({ path: `${output}/order-history.png` });
-  results.push({ case: "simulated-cart-postpay-and-order-history" });
-
-  // Default album and Dining use the same actual renderers inside the scaled tablet.
-  for (const preview of ["/templates/cafe_design_a/preview?design=basic-first-column-album", "/templates/dining_aube_table_a/preview"]) {
-    await scene(page, "images", preview);
-    await command(page, 3);
-    await expect(page.getByRole("dialog")).toBeVisible();
-    results.push({ case: "album-or-dining-lightbox", preview });
-    await scene(page, "order", preview);
-    await command(page, 3);
-    await expect(page.locator("[data-history-order]")).toBeVisible({ timeout: 10000 });
-    results.push({ case: "album-or-dining-postpay", preview });
-  }
-  await scene(page, "prices", "/templates/dining_aube_table_a/preview");
-  await command(page, 2);
-  await expect(page.locator(".aube-table-option-price:visible").first()).toContainText("SMALL");
-  results.push({ case: "dining-product-price-options" });
-  await scene(page, "widgets", "/templates/dining_aube_table_a/preview");
-  await command(page, 3);
-  await expect(page.locator('img[src$="cheese-platter.jpg"]:visible').first()).toBeVisible();
-  results.push({ case: "dining-widget" });
+  const auto = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "no-preference" });
+  observe(auto);
+  await auto.goto(route, { waitUntil: "domcontentloaded" });
+  const root = auto.locator('[data-feature-accordion="cover"]');
+  await root.scrollIntoViewIfNeeded();
+  await loaded(root);
+  await expect(root).toHaveAttribute("data-auto-playing", "true");
+  await auto.waitForTimeout(1000);
+  const running = await progress(root);
+  assert.ok(running > 0 && running < 1);
+  await root.getByRole("button", { name: "대표 영역 자동 전환 일시정지", exact: true }).click();
+  const paused = await progress(root);
+  await auto.waitForTimeout(1000);
+  assert.ok(Math.abs(await progress(root) - paused) < .02);
+  await root.getByRole("button", { name: "대표 영역 자동 전환 재생", exact: true }).click();
+  await expect(root).toHaveAttribute("data-selected-item", "1", { timeout: 8000 });
+  await expect(root.locator("[data-feature-image]")).toHaveAttribute("data-feature-image", DETAIL_FEATURES[0].steps[1].image);
+  await loaded(root);
+  await expect(root).toHaveAttribute("data-selected-item", "0", { timeout: 8000 });
+  await root.locator("[data-feature-trigger]").nth(1).click();
+  assert.ok(await progress(root) < .1);
+  await auto.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+  await expect(root).toHaveAttribute("data-auto-playing", "false");
+  const offscreen = await progress(root);
+  await auto.waitForTimeout(1000);
+  assert.ok(Math.abs(await progress(root) - offscreen) < .02);
+  results.push({ case: "progress-pause-resume-auto-next-wrap-manual-reset-and-offscreen" });
+  await auto.close();
   assert.deepEqual(errors, []);
   assert.deepEqual(writes, []);
   await writeFile(`${output}/results.json`, JSON.stringify({ results, errors, writes }, null, 2));
-  console.log(JSON.stringify({ checked: results.length, failed: 0, errors: errors.length, actualWrites: writes.length, output }));
-} finally {
-  await browser.close();
-}
+  console.log(JSON.stringify({ checked: results.length, failed: 0, errors: 0, actualWrites: 0, output }));
+} finally { await browser.close(); }
