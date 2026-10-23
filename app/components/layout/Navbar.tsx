@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { formatNotificationBadgeCount, formatNotificationDateTime, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
 import { createClient } from '@/lib/supabase/client';
 import { supportsGlassSiteHeader } from '@/lib/site-header-policy';
+import { isStoreOperationsAvailable } from '@/lib/product-focus-policy';
 import styles from './Navbar.module.css';
 
 type NavItem = {
@@ -226,6 +227,7 @@ const Navbar = () => {
   const menuButtonClass = 'text-current hover:opacity-70';
   const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
   const accountCtaLabel = authState.isAuthenticated ? '마이 메뉴' : '로그인·회원가입';
+  const showStoreOperations = authState.isAuthenticated && isStoreOperationsAvailable();
   const unreadBadgeLabel = formatNotificationBadgeCount(unreadCount);
 
   const markNotificationAsRead = async (notificationId: string) => {
@@ -364,6 +366,16 @@ const Navbar = () => {
                 {accountCtaLabel}
               </Link>
             ) : null}
+            {showStoreOperations ? (
+              <Link
+                href="/mypage/operations"
+                aria-current={pathname.startsWith('/mypage/operations') ? 'page' : undefined}
+                className={`type-nav ${styles.accountLink}`}
+                data-site-header-operations
+              >
+                매장 운영
+              </Link>
+            ) : null}
             <Link
               href="/apply"
               className={`site-button site-button-primary ${styles.makeButton}`}
@@ -408,22 +420,50 @@ const Navbar = () => {
             <div className="site-container flex h-full flex-col overflow-y-auto pb-8">
               <div className="flex-1 py-5">
                 <div className="mb-6 grid grid-cols-2 gap-2 border-b border-zinc-100 pb-6">
-                  <Link
-                    href="/apply"
-                    onClick={closeMobileMenu}
-                    className="site-button site-button-primary w-full"
-                  >
-                    만들기
-                  </Link>
-                  {!authState.loading ? (
-                    <Link
-                      href={accountCtaHref}
-                      onClick={closeMobileMenu}
-                      className="site-button site-button-secondary w-full"
-                    >
-                      {accountCtaLabel}
-                    </Link>
-                  ) : null}
+                  {showStoreOperations ? (
+                    <>
+                      <Link
+                        href={accountCtaHref}
+                        onClick={closeMobileMenu}
+                        className="site-button site-button-secondary w-full"
+                      >
+                        {accountCtaLabel}
+                      </Link>
+                      <Link
+                        href="/mypage/operations"
+                        onClick={closeMobileMenu}
+                        className="site-button site-button-secondary w-full"
+                      >
+                        매장 운영
+                      </Link>
+                      <Link
+                        href="/apply"
+                        onClick={closeMobileMenu}
+                        className="site-button site-button-primary col-span-2 w-full"
+                      >
+                        만들기
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/apply"
+                        onClick={closeMobileMenu}
+                        className="site-button site-button-primary w-full"
+                      >
+                        만들기
+                      </Link>
+                      {!authState.loading ? (
+                        <Link
+                          href={accountCtaHref}
+                          onClick={closeMobileMenu}
+                          className="site-button site-button-secondary w-full"
+                        >
+                          {accountCtaLabel}
+                        </Link>
+                      ) : null}
+                    </>
+                  )}
                 </div>
 
                 <nav aria-label="모바일 공식 사이트 메뉴" className="grid gap-1">

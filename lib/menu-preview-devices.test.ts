@@ -40,6 +40,10 @@ const menuPreviewSource = readFileSync(
   new URL("../app/mypage/menus/[menuId]/preview/page.tsx", import.meta.url),
   "utf8",
 );
+const fullscreenControlSource = readFileSync(
+  new URL("../components/menu/PreviewFullscreenControl.tsx", import.meta.url),
+  "utf8",
+);
 const displayTemplateSource = readFileSync(
   new URL("../components/menu-templates/DisplayMenuA.tsx", import.meta.url),
   "utf8",
@@ -218,6 +222,7 @@ test("device selector is open by default and collapses upward into a compact han
   assert.match(previewFrameSource, /data-preview-detached-link=""/);
   assert.match(previewFrameSource, /target="_blank"/);
   assert.match(previewFrameSource, /rel="noopener noreferrer"/);
+  assert.match(previewFrameSource, /detached: true/);
   assert.match(previewFrameSource, /className="h-full w-full border-0 bg-white"/);
   assert.doesNotMatch(previewFrameSource, /data-preview-zoom-controls/);
   assert.doesNotMatch(previewFrameSource, /PREVIEW_ZOOM_STORAGE_PREFIX/);
@@ -304,7 +309,7 @@ test("detached links retain the selected device and interactive feature toggles"
     }));
     const link = html.match(/<a[^>]*data-preview-detached-link=""[^>]*>/)?.[0] ?? "";
     const href = link.match(/href="([^"]*)"/)?.[1].replaceAll("&amp;", "&");
-    assert.equal(href, `/mypage/menus/menu-a/preview?lang=en&page=2&callPreview=on&device=${device}${device === "tablet" ? "&orientation=landscape" : ""}&view=actual&embedded=1`);
+    assert.equal(href, `/mypage/menus/menu-a/preview?lang=en&page=2&callPreview=on&device=${device}${device === "tablet" ? "&orientation=landscape" : ""}&view=actual&embedded=1&detached=1`);
     assert.match(html, new RegExp(`src="[^\"]*device=${device}`));
     const starterUrl = buildTemplatePreviewUrl("fast_food_loop_bagel_a", {
       device, orientation: "portrait", lang: "en", callPreview: "on",
@@ -315,6 +320,15 @@ test("detached links retain the selected device and interactive feature toggles"
   assert.equal(getActualMenuPreviewDevice(undefined), undefined);
   assert.equal(getActualMenuPreviewDevice("unknown"), undefined);
   for (const device of MENU_PREVIEW_DEVICE_ORDER) assert.equal(getActualMenuPreviewDevice(device), device);
+});
+
+test("detached actual previews expose a user-triggered fullscreen control", () => {
+  assert.match(fullscreenControlSource, /document\.documentElement\.requestFullscreen\(\)/);
+  assert.match(fullscreenControlSource, /document\.exitFullscreen\(\)/);
+  assert.match(fullscreenControlSource, /data-preview-fullscreen-control=""/);
+  assert.match(displayTemplatePreviewSource, /isDetachedView \? <PreviewFullscreenControl \/> : null/);
+  assert.match(menuPreviewSource, /isDetachedView \? <PreviewFullscreenControl \/> : null/);
+  assert.match(buildTemplatePreviewUrl("cafe_design_a", {}, { actual: true, embedded: true, detached: true }), /view=actual&embedded=1&detached=1$/);
 });
 
 test("layout comparisons survive device, feature and detached preview changes", () => {
