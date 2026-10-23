@@ -50,7 +50,7 @@ test("터치 기기에 PC F11이나 완전한 전체 화면을 약속하지 않�
       assert.ok(
         !sections
           .flatMap((section) => section.steps)
-          .some((step) => step.includes("F11")),
+          .some((step) => JSON.stringify(step).includes("F11")),
       );
     }
 });
