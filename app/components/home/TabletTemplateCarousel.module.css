@@ -5,7 +5,7 @@
 }
 
 .compact .viewport {
-  aspect-ratio: 3.4;
+  aspect-ratio: 4;
 }
 .compact .slide {
   flex-basis: 25%;
@@ -15,10 +15,11 @@
   box-shadow: none;
 }
 .compact .screen {
-  aspect-ratio: 1;
+  aspect-ratio: var(--showcase-screen-ratio);
 }
 .compact .previewMenu {
-  gap: 4cqw;
+  gap: 2.5cqw;
+  margin-top: 4cqw;
 }
 .playbackOnly {
   display: flex;

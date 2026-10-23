@@ -1,10 +1,19 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+} from "react";
 import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
+import AutoScroll from "embla-carousel-auto-scroll";
 import { ArrowLeft, ArrowRight, Pause, Play } from "lucide-react";
-import { useInView, useReducedMotion } from "motion/react";
+import { useInView } from "motion/react";
+import { getMenuPreviewFrame } from "@/lib/menu-preview-devices";
 import styles from "./TabletTemplateCarousel.module.css";
 
 // Temporary marketing screens. Replace these with the supplied screen images
@@ -49,22 +58,55 @@ const PREVIEW_SCREENS = [
 ] as const;
 
 const AUTO_ADVANCE_MS = 3200;
+const TABLET_FRAME = getMenuPreviewFrame("tablet", "landscape");
+const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+function subscribeReducedMotion(onChange: () => void) {
+  const query = window.matchMedia(REDUCED_MOTION_QUERY);
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
+
+const getReducedMotion = () => window.matchMedia(REDUCED_MOTION_QUERY).matches;
+const getServerReducedMotion = () => null;
 
 export default function TabletTemplateCarousel({
   showControls = true,
   compact = false,
+  continuous = false,
 }: {
   showControls?: boolean;
   compact?: boolean;
+  continuous?: boolean;
 }) {
   const root = useRef<HTMLDivElement>(null);
   const isInView = useInView(root, { amount: 0.2 });
-  const reducedMotion = useReducedMotion();
-  const [viewportRef, carousel] = useEmblaCarousel({
-    loop: true,
-    align: "center",
-    duration: 40,
-  });
+  // Keep server and initial client markup identical, then read OS preferences.
+  const reducedMotion = useSyncExternalStore<boolean | null>(
+    subscribeReducedMotion,
+    getReducedMotion,
+    getServerReducedMotion,
+  );
+  const plugins = useMemo(
+    () =>
+      continuous
+        ? [
+            AutoScroll({
+              speed: 0.6,
+              startDelay: 0,
+              playOnInit: false,
+              // React owns all pause/resume conditions, including after a drag.
+              stopOnInteraction: true,
+              stopOnFocusIn: false,
+            }),
+          ]
+        : [],
+    [continuous],
+  );
+  const [viewportRef, carousel] = useEmblaCarousel(
+    { loop: true, align: "center", duration: 40, dragFree: continuous },
+    plugins,
+  );
   const [selected, setSelected] = useState(0);
   const [paused, setPaused] = useState(false);
   const [motionOptIn, setMotionOptIn] = useState(false);
@@ -146,24 +188,46 @@ export default function TabletTemplateCarousel({
     documentVisible &&
     isInView;
   useEffect(() => {
-    if (!carousel || !autoPlaying) return;
+    if (!carousel || continuous || !autoPlaying) return;
     const timer = window.setInterval(
       () => carousel.scrollNext(Boolean(reducedMotion)),
       AUTO_ADVANCE_MS,
     );
     return () => window.clearInterval(timer);
-  }, [autoPlaying, carousel, reducedMotion, selected]);
+  }, [autoPlaying, carousel, continuous, reducedMotion, selected]);
+
+  useEffect(() => {
+    if (!carousel || !continuous) return;
+    const syncPlayback = () => {
+      const autoScroll = carousel.plugins().autoScroll;
+      if (autoPlaying) autoScroll?.play();
+      else autoScroll?.stop();
+    };
+    syncPlayback();
+    // Resizing reinitializes plugins; restore the current playback preference.
+    carousel.on("reInit", syncPlayback);
+    return () => {
+      carousel.off("reInit", syncPlayback);
+      carousel.plugins().autoScroll?.stop();
+    };
+  }, [autoPlaying, carousel, continuous]);
 
   return (
     <div
       ref={root}
       className={`${styles.carousel} ${compact ? styles.compact : ""}`}
+      style={
+        {
+          "--showcase-screen-ratio": `${TABLET_FRAME.width} / ${TABLET_FRAME.height}`,
+        } as CSSProperties
+      }
       role="region"
       aria-roledescription="캐러셀"
       aria-label="메뉴 디자인 화면 둘러보기"
       data-tablet-carousel
       data-selected-slide={selected}
       data-auto-playing={autoPlaying}
+      data-continuous={continuous}
       onFocusCapture={(event) => {
         // Keyboard navigation pauses playback; clicking the arrows does not.
         setFocused(
