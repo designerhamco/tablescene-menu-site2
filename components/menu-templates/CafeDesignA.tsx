@@ -3704,8 +3704,8 @@ function HeaderBlock({
   return (
     <header className={`w-full shrink-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-0 lg:border-b lg:border-[#191c1b] lg:px-[var(--board-padding)] lg:py-[var(--board-padding)] ${className}`}>
       {hasLanguageSwitcher || call.enabled ? (
-        <div className="cafe-a-mobile-language-row" data-cafe-a-mobile-language-row="">
-          {call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} iconOnly />} /> : <CafeLanguageHoverControl data={data} className="cursor-default" />}
+        <div className={`cafe-a-mobile-language-row ${isRoundFocusSkin(data.templateSkin) ? "cafe-a-corner-language-row" : ""}`} data-cafe-a-mobile-language-row="">
+          {call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} iconOnly menuAlign={isRoundFocusSkin(data.templateSkin) ? "left" : "right"} />} /> : <CafeLanguageHoverControl data={data} className="cursor-default" iconOnly={isRoundFocusSkin(data.templateSkin)} menuAlign={isRoundFocusSkin(data.templateSkin) ? "left" : "right"} />}
         </div>
       ) : null}
       <div className="cafe-a-mobile-header-copy flex min-w-0 items-start gap-[clamp(16px,2vw,32px)]">
@@ -3892,12 +3892,14 @@ function DesktopFixedRail({
   density,
   variant = "brand_left_rail",
   mochaColumnCount,
+  hideLanguageControl = false,
 }: {
   data: CafeDesignAProps;
   children: ReactNode;
   density: MenuLayoutDensity;
   variant?: OnePageLayoutShell;
   mochaColumnCount?: number;
+  hideLanguageControl?: boolean;
 }) {
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
   const site = data.menuSite;
@@ -3959,12 +3961,12 @@ function DesktopFixedRail({
                 </div>
               </div>
             ) : null}
-            <CafeLanguageHoverControl
+            {!hideLanguageControl ? <CafeLanguageHoverControl
               data={data}
               className="cafe-a-round-focus-language-control"
               menuPlacement="top"
               menuAlign="left"
-            />
+            /> : null}
           </div>
         </div>
       ) : (

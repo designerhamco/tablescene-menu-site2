@@ -168,8 +168,11 @@
 .frame[data-basic-structure="basic-center-column"] { --scroll-center-width: calc((100% - 2 * var(--scroll-page-inset)) * .24); }
 .frame[data-basic-structure="basic-center-column"] > .brand { left: 50%; transform: translateX(-50%); width: var(--scroll-center-width); bottom: var(--scroll-page-inset); }
 .frame[data-basic-structure="basic-center-column"] .columns { column-gap: calc(var(--scroll-center-slot) + 2 * var(--scroll-column-gap)); }
-.frame[data-basic-structure="basic-center-column"] .footer { flex: none; display: flex; flex-direction: column; gap: .625rem; padding-top: 0; }
-.frame[data-basic-structure="basic-center-column"] .footer button { width: 100%; flex: none; }
+.frame[data-basic-structure="basic-center-column"] .footer { flex: none; display: flex; flex-direction: row; gap: .5rem; padding-top: 0; container-type: inline-size; }
+.frame[data-basic-structure="basic-center-column"] .footer button { flex: 1 1 0; padding-inline: .375rem; gap: .375rem; }
+@container (max-width: 12rem) {
+  .frame[data-basic-structure="basic-center-column"] .footer button { flex-direction: column; gap: .125rem; padding-inline: .25rem; }
+}
 /* The corner occupies real space in the first scrolling column. */
 .frame[data-basic-structure="basic-upper-left"] .column > .brand {
   flex: none;
