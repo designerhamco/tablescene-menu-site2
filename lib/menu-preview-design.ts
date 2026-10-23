@@ -5,6 +5,9 @@ import { isKoreanFontValue, isEnglishFontValue, getSafeEnglishFontValueForTempla
 import { ALBUM_IMAGE_RATIOS, CHIP_SHAPES, IMAGE_RADIUS_KEYS, MAX_IMAGE_RADIUS, readMenuAppearance, type MenuAppearance } from "./menu-appearance";
 import { getCustomTypographySettings, mergeTypographySettings, type TypographyRoleKey } from "./template-typography-presets";
 import { getMenuDesignBackgrounds, getResolvedBackgroundColor, normalizeBackgroundColor } from "./template-background-colors";
+import { getCustomBadgeStyles, mergeBadgeStyles } from "./template-badge-styles";
+import { DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR, getReadableTextColorForTimeSaleBadge } from "./menu-time-sales";
+import { readPreviewChipColors, type PreviewChipColors } from "./menu-preview-chip-colors";
 import { MOCHA_FOREST_PANEL_COLORS } from "./mocha-forest-panels";
 
 export const PREVIEW_FONT_GROUPS = ["brand", "category", "other"] as const;
@@ -20,6 +23,7 @@ export type PreviewDesign = {
   fonts?: Partial<Record<PreviewFontGroup, PreviewFontChoice>>;
   imageRadii?: MenuAppearance["imageRadii"];
   chipShape?: MenuAppearance["chipShape"];
+  chipColors?: PreviewChipColors;
   albumImageRatio?: MenuAppearance["albumImageRatio"];
 };
 const record = (value: unknown): Record<string, unknown> => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
@@ -39,6 +43,8 @@ export function readPreviewDesign(raw: unknown): PreviewDesign {
     if (isEnglishFontValue(input.en)) choice.en = input.en;
     if (Object.keys(choice).length) (result.fonts ??= {})[group] = choice;
   }
+  const chipColors = readPreviewChipColors(source.chipColors);
+  if (Object.keys(chipColors).length) result.chipColors = chipColors;
   const radii = record(source.imageRadii);
   for (const key of IMAGE_RADIUS_KEYS) if (typeof radii[key] === "number" && Number.isInteger(radii[key]) && radii[key] >= 0 && radii[key] <= MAX_IMAGE_RADIUS) (result.imageRadii ??= {})[key] = radii[key];
   if (CHIP_SHAPES.includes(source.chipShape as MenuAppearance["chipShape"])) result.chipShape = source.chipShape as MenuAppearance["chipShape"];
@@ -53,7 +59,10 @@ export function previewDesignDefaults(data: MenuPageData) {
   const savedDesignId = record(data.menuSite.settings).menu_design_id;
   const neutral = data.menuSite.id.startsWith("default-design-preview-") || Boolean(getDefaultDesignReview(typeof savedDesignId === "string" ? savedDesignId : undefined, key ?? ""));
   const page = backgrounds.page ?? (key === "cafe_mocha_forest_a" ? MOCHA_FOREST_PANEL_COLORS.ivory : !neutral && key === "dining_aube_table_b" ? "#F7F2EA" : getResolvedBackgroundColor(key, data.menuSite.page_settings));
+  const badge = mergeBadgeStyles(key, getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings)).default;
+  const saleBackground = data.timeSales?.[0]?.badgeBackgroundColor ?? DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR;
   return {
+    chipColors: { generalBackground: badge.background_color, generalText: badge.text_color, saleBackground, saleText: getReadableTextColorForTimeSaleBadge(saleBackground) },
     fonts: Object.fromEntries(PREVIEW_FONT_GROUPS.map(group => {
       const role = typography.typography_roles[group === "other" ? "supporting" : group];
       return [group, { ko: role.font_ko_key ?? typography.korean_font_key, en: role.font_en_key ?? typography.english_font_key,
@@ -73,6 +82,7 @@ export function applyPreviewDesign(source: MenuPageData, value: unknown, album: 
   const overrides = readPreviewDesign(value);
   if (source.menuSite.template_key === "display_menu_a" || !Object.keys(overrides).length) return source;
   const data = structuredClone(source), page = record(data.menuSite.page_settings), design = record(page.design);
+  if (overrides.chipColors) design.previewChipColors = overrides.chipColors;
   if (overrides.representativeAlignment) design.representativeAlignment = overrides.representativeAlignment;
   if (overrides.coverDescriptionColor) design.coverDescriptionColor = overrides.coverDescriptionColor;
   if (overrides.pageBackground) design.backgroundColor = overrides.pageBackground;

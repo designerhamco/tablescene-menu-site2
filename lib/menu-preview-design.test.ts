@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {applyPreviewDesign,readPreviewDesign,serializePreviewDesign} from "./menu-preview-design";
 import {buildTemplatePreviewUrl} from "./menu-preview-devices";
+import {readPreviewChipColors,resolvePreviewChipColors} from "./menu-preview-chip-colors";
 import {getMenuDesignBackgrounds} from "./template-background-colors";
 import {getCustomTypographySettings,mergeTypographySettings,getTypographyTitleColorOverrides} from "./template-typography-presets";
 import type {MenuPageData} from "./menu-page-data";
@@ -23,3 +24,23 @@ test("absent overrides preserve identity and equal panel/page colors release col
 test("design values survive feature/device/detached links while option tabs stay outside the iframe URL",()=>{const design=serializePreviewDesign({fonts:{category:{en:'carme'}},imageRadii:{item:12},pageBackground:'#123456'});for(const actual of [false,true]){const url=new URL(buildTemplatePreviewUrl('cafe_design_a',{designPreview:design,previewOptions:'design',imagesPreview:'on'},{device:'tablet',orientation:'portrait',actual}),'https://example.test');assert.equal(url.searchParams.get('designPreview'),design);assert.equal(url.searchParams.get('previewOptions'),actual?null:'design');assert.equal(url.searchParams.get('imagesPreview'),'on');assert.equal(url.searchParams.get('orientation'),'portrait');}});
 test("native contrast defaults remain intact while explicit title color edits win",()=>{assert.deepEqual(getTypographyTitleColorOverrides('restaurant_onue_a',{design:{typographyRoles:{brand:{color:'#FFF9EE'},category:{color:'#713F36'}}}}),{});assert.deepEqual(getTypographyTitleColorOverrides('cafe_van_gogh_a',{design:{typographyRoles:{brand:{color:'#172A60'},category:{color:'#704020'}}}}),{brand:'#172A60',category:'#704020'});});
 test("font-only preview edits preserve automatic cover title contrast",()=>{const original=fixture();original.menuSite.settings={typography:{typography_roles:{brand:{color:'#191c1b'}}}};const result=applyPreviewDesign(original,{fonts:{other:{en:'carme'},category:{en:'mogra'}}},false);assert.deepEqual(getTypographyTitleColorOverrides('cafe_design_a',result.menuSite.page_settings),{});});
+
+
+test("preview chip colors validate independently, survive navigation and never mutate customer data", () => {
+ const chipColors={generalBackground:"#123456",generalText:"#ffffff",saleBackground:"#abcdef",saleText:"#191c1b"};
+ assert.deepEqual(readPreviewChipColors({...chipColors,unknown:"#000000"}),{generalBackground:"#123456",generalText:"#FFFFFF",saleBackground:"#ABCDEF",saleText:"#191C1B"});
+ assert.deepEqual(readPreviewChipColors({generalBackground:"url(evil)",saleText:"red",generalText:1}),{});
+ const original=fixture(),snapshot=structuredClone(original);
+ const result=applyPreviewDesign(original,{chipColors},false);
+ assert.deepEqual(original,snapshot);
+ assert.deepEqual(result.items,original.items);
+ assert.deepEqual((result.menuSite.page_settings as unknown as {design:{previewChipColors:unknown}}).design.previewChipColors,readPreviewChipColors(chipColors));
+ const encoded=serializePreviewDesign({chipColors});
+ for(const actual of [false,true]){
+  const link=new URL(buildTemplatePreviewUrl("cafe_design_a",{designPreview:encoded},{device:"mobile",actual}),"https://example.test");
+  assert.deepEqual(readPreviewDesign(link.searchParams.get("designPreview")).chipColors,readPreviewChipColors(chipColors));
+ }
+ assert.equal(resolvePreviewChipColors({generalBackground:"#FFFFFF"}).generalText,"#191C1B");
+ assert.equal(resolvePreviewChipColors({saleBackground:"#000000"}).saleText,"#FFF8EA");
+ assert.equal(resolvePreviewChipColors({saleBackground:"#000000",saleText:"#ABCDEF"}).saleText,"#ABCDEF");
+});

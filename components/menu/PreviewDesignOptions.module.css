@@ -4,7 +4,7 @@
 .reset { flex: none; border: 1px solid #c9cfd8; border-radius: .4rem; padding: .4rem .6rem; background: white; color: #2a333e; }
 .reset:disabled { opacity: .4; }
 .legend { margin-bottom: .6rem; font-weight: 600; }
-.backgrounds, .radiusGrid, .extras { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.backgrounds { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
 .albumRatio { border: 1px solid #dce0e6; border-radius: .5rem; padding: .65rem; background: #f8f9fb; }
 .albumRatio .option { max-width: 16rem; }
 .fontGroups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
@@ -20,8 +20,13 @@
 .select:disabled { opacity: .5; }
 .hint { color: #5d6672; line-height: 1.5; }
 @container (min-width: 640px) {
-  .fontGroups, .radiusGrid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .fontGroups { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .fontGroup:last-child { grid-column: auto; }
   .fontGroup:last-child .fonts { grid-template-columns: minmax(0, 1fr); }
   .fontGroup { padding: .75rem; }
 }
+
+.chipColors { display: grid; gap: .75rem; }
+.chipColors > fieldset { min-width: 0; }
+.chipColors > fieldset > legend { margin-bottom: .5rem; color: #5d6672; font-weight: 600; }
+.panel > fieldset > .hint { margin-top: .65rem; }

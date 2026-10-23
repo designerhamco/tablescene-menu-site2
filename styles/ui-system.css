@@ -189,6 +189,15 @@
   color: var(--ui-text);
 }
 
+/* Text/icon navigation keeps its ghost surface when unavailable. */
+.site-button-ghost:disabled,
+.site-button-ghost[aria-disabled="true"] {
+  border-color: transparent;
+  background: transparent;
+  color: var(--ui-text-muted);
+  opacity: .45;
+}
+
 .site-button-link { border-color: transparent; background: transparent; color: var(--ui-text); }
 .site-button-link:hover { color: var(--ui-text-muted); }
 

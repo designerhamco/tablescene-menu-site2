@@ -299,7 +299,7 @@ function MenuItemRow({
           <span className="brew-chapter-menu-badge menu-badge cafe-a-menu-badge" style={getBadgeStyleCss(badgeStyle)}><ScriptAwareText text={item.badge_label} /></span>
         ) : null}
         {showTimeSale && timeSale ? (
-          <span className="brew-chapter-menu-badge menu-badge cafe-a-menu-badge" style={getTimeSaleBadgeStyle(timeSale.promotion.badgeBackgroundColor)}>
+          <span className="brew-chapter-menu-badge menu-badge cafe-a-menu-badge cafe-a-time-sale-badge" style={getTimeSaleBadgeStyle(timeSale.promotion.badgeBackgroundColor)}>
             <ScriptAwareText text={timeSale.promotion.badgeText} />
           </span>
         ) : null}

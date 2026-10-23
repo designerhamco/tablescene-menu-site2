@@ -48,12 +48,20 @@
 .scope[data-representative-align] :global([data-representative-copy]),
 .scope[data-representative-align] :global([data-representative-copy] .cafe-a-store-description),
 .scope[data-representative-align] :global([data-representative-copy] [data-cafe-a-store-description]),
-.scope[data-representative-align] :global(.cafe-a-topline-description),
-.scope[data-representative-align] :global(.cafe-a-featured-caption) { text-align: var(--menu-representative-align) !important; }
+.scope[data-representative-align] :global(.cafe-a-topline-description) { text-align: var(--menu-representative-align) !important; }
 .scope[data-representative-align] :global(.cafe-a-store-logo-wrap) { display: flex; justify-content: var(--menu-representative-justify); width: 100%; }
 .scope[data-representative-align] :global(.cafe-a-store-logo) { margin-inline-start: var(--menu-representative-logo-start) !important; margin-inline-end: var(--menu-representative-logo-end) !important; object-position: var(--menu-representative-align) center !important; }
 .scope[data-cover-description-ink] :global(.aube-table-cover-description) { --menu-role-supporting-color: var(--menu-cover-description-ink); color: var(--menu-cover-description-ink) !important; }
 .scope[data-design-sidebar-background] :global(.aube-table-root[data-layout="sidebar"] .aube-table-mobile-page-tabs) { background: var(--menu-design-sidebar-bg); --aube-ink: var(--menu-design-sidebar-ink); --aube-subtle: color-mix(in srgb, var(--menu-design-sidebar-ink) 80%, transparent); --aube-accent: var(--menu-design-sidebar-ink); }
 
-.scope[data-representative-align] :global(.cafe-a-featured-copy > [data-representative-copy]) { flex: 1; min-width: 0; }
-.scope[data-representative-align] :global([data-representative-copy] .cafe-a-featured-badges) { justify-content: var(--menu-representative-justify); }
+.scope[data-representative-align] :global(.cafe-a-featured-copy > [data-featured-product-copy]) { flex: 1; min-width: 0; }
+.scope :global([data-featured-product-copy]), .scope :global(.cafe-a-featured-title), .scope :global(.cafe-a-featured-description) { text-align: left !important; }
+.scope :global(.cafe-a-featured-badges) { justify-content: flex-start !important; }
+
+/* Preview color edits are scoped to chips, independently of prices, state chips and native artwork defaults. */
+.scope[data-preview-chip-background] :global(.cafe-a-menu-badge:not(.cafe-a-time-sale-badge):not(.cafe-a-sold-out-chip)),
+.scope[data-preview-chip-background] :global(.cafe-a-featured-badge:not(.cafe-a-time-sale-badge):not(.cafe-a-sold-out-chip)) { background-color: var(--menu-preview-chip-bg) !important; border-color: var(--menu-preview-chip-bg) !important; }
+.scope[data-preview-chip-text] :global(.cafe-a-menu-badge:not(.cafe-a-time-sale-badge):not(.cafe-a-sold-out-chip)),
+.scope[data-preview-chip-text] :global(.cafe-a-featured-badge:not(.cafe-a-time-sale-badge):not(.cafe-a-sold-out-chip)) { color: var(--menu-preview-chip-text) !important; }
+.scope[data-preview-sale-chip-background] :global(.cafe-a-time-sale-badge) { background-color: var(--menu-preview-sale-chip-bg) !important; border-color: var(--menu-preview-sale-chip-bg) !important; }
+.scope[data-preview-sale-chip-text] :global(.cafe-a-time-sale-badge) { color: var(--menu-preview-sale-chip-text) !important; }

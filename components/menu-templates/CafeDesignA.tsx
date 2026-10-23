@@ -2240,7 +2240,7 @@ function CoverHero({
             data-cafe-a-sold-out={featuredItemSoldOut ? "true" : undefined}
             data-cafe-a-featured-description-only={!getMenuItemMetaText(featuredItem, data.locale).trim() && Boolean(featuredItem.description?.trim()) ? "true" : undefined}
           >
-            <div className="min-w-0" data-representative-copy>
+            <div className="min-w-0 cafe-a-featured-caption" data-featured-product-copy>
               {featuredItemSoldOut ? (
                 <div className="cafe-a-featured-badges mb-2 flex max-w-full flex-wrap gap-2">
                   <SoldOutBadge locale={data.locale} className={`cafe-a-featured-badge ${getMenuTitleSizeClassName(density)}`} />
