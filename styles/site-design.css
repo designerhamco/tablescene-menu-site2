@@ -122,6 +122,30 @@
 .site-tab:active { background: var(--ui-action-soft-pressed); }
 .site-tab:is([aria-selected="true"], [aria-pressed="true"], [data-state="active"]) { background: var(--ui-text); color: #fff; font-weight: 600; }
 .site-tab:disabled { cursor: not-allowed; opacity: .48; }
+.site-topic-tabs {
+  display: flex;
+  gap: 1.5rem;
+  overflow-x: auto;
+  border-bottom: 1px solid #dbdee3;
+  padding-inline: 0.25rem;
+}
+.site-topic-tab {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-height: 3rem;
+  border-bottom: 2px solid transparent;
+  font-size: 0.875rem;
+  color: #626873;
+}
+.site-topic-tab:is([aria-pressed="true"], [aria-current="true"]) {
+  border-bottom-color: #15181e;
+  color: #15181e;
+  font-weight: 600;
+}
+.site-topic-tab:disabled {
+  opacity: .48;
+}
 .site-tabs-demo { background: var(--ui-surface); }
 .site-template-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
 .site-template-card { min-width: 0; }

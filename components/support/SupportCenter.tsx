@@ -245,11 +245,12 @@ export default function SupportCenter({
             <h2 className="type-section-title sr-only">
               {tab === "faq" ? "자주 묻는 질문" : "공지사항"}
             </h2>
-            <div className={styles.filters} role="group" aria-label="주제 선택">
+            <div className="site-topic-tabs" role="group" aria-label="주제 선택">
               {[{ value: "all", label: "전체" }, ...categories].map((item) => (
                 <button
                   key={item.value}
                   type="button"
+                  className="site-topic-tab"
                   aria-pressed={category === item.value}
                   onClick={() => {
                     setCategory(item.value);

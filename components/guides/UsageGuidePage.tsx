@@ -162,10 +162,15 @@ export default function UsageGuidePage({
                 <p className={`type-body ${styles.planDescription}`}>
                   {entry.body}
                 </p>
-                <div className={styles.topics} aria-label="가이드 종류">
+                <div
+                  className={`site-topic-tabs ${styles.topics}`}
+                  role="group"
+                  aria-label="가이드 종류"
+                >
                   <a
                     href={`#${entry.id}-${entry.id === "display" ? "connection" : "fullscreen"}`}
-                    className="site-button site-button-primary"
+                    className="site-topic-tab"
+                    aria-current="true"
                   >
                     {entry.id === "display"
                       ? "화면 연결·브라우저 설정 가이드"
@@ -173,7 +178,7 @@ export default function UsageGuidePage({
                   </a>
                   <button
                     type="button"
-                    className="site-button site-button-outline"
+                    className="site-topic-tab"
                     disabled
                   >
                     추가 가이드 · 준비 중

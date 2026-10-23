@@ -50,25 +50,6 @@
   margin: 0 auto 3rem;
   width: fit-content;
 }
-.filters {
-  display: flex;
-  gap: 1.5rem;
-  overflow-x: auto;
-  border-bottom: 1px solid #dbdee3;
-  padding-inline: 0.25rem;
-}
-.filters button {
-  flex-shrink: 0;
-  min-height: 3rem;
-  border-bottom: 2px solid transparent;
-  font-size: 0.875rem;
-  color: #626873;
-}
-.filters button[aria-pressed="true"] {
-  border-bottom-color: #15181e;
-  color: #15181e;
-  font-weight: 600;
-}
 .resultCount {
   font-size: 0.875rem;
   color: #626873;
