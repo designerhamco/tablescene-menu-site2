@@ -50,7 +50,6 @@ export function resolveMenuInteractionTheme({ category, surfaces, inks = [] }: {
   const readableInk = (background: string, candidates: string[]) =>
     candidates.find(c => menuColorContrast(c, background) >= 4.5) ??
     [DARK, LIGHT, "#000000"].find(color => menuColorContrast(color, background) >= 4.5) ?? DARK;
-  const callForeground = accent;
   const orderBackground = accent;
   const orderForeground = readableInk(orderBackground, [lightest]);
   return {
@@ -58,11 +57,12 @@ export function resolveMenuInteractionTheme({ category, surfaces, inks = [] }: {
     "--menu-order-ink": orderForeground,
     "--menu-order-border": orderBackground,
     "--menu-call-bg": lightest,
-    "--menu-call-ink": callForeground,
-    "--menu-call-border": callForeground,
-    // Circular and rectangular Call share the same category ink/paper policy.
-    "--menu-call-circle-bg": lightest,
-    "--menu-call-circle-ink": accent,
+    "--menu-call-ink": accent,
+    "--menu-call-border": accent,
+    // Dining's circular Call uses the category fill, matching Order, while its
+    // label/icon use the lightest readable menu color.
+    "--menu-call-circle-bg": accent,
+    "--menu-call-circle-ink": orderForeground,
     "--menu-call-circle-border": accent,
   };
 }

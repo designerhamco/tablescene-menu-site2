@@ -22,7 +22,7 @@ export default function MenuAppearanceScope({ pageSettings, templateKey, childre
   return <div className={styles.scope} style={style} data-menu-appearance-basic={basic ? "true" : undefined} data-representative-align={alignment} data-cover-description-ink={isAubeTableTemplate(templateKey) && surfaces.coverDescriptionColor ? "custom" : undefined}
     data-design-brand-ink={supportsShapes && titleColors.brand ? "custom" : undefined} data-design-category-ink={supportsShapes && titleColors.category ? "custom" : undefined}
     data-design-page-background={supportsShapes && backgrounds.page ? "custom" : undefined} data-design-aux-background={basic && backgrounds.auxiliary ? "custom" : undefined} data-design-colored-panel={basic && backgrounds.coloredPanel ? "true" : undefined} data-design-sidebar-background={!basic && backgrounds.sidebar ? "custom" : undefined}
-    data-radius-cover={supportsShapes && appearance.imageRadii.cover != null ? "custom" : undefined} data-radius-item={supportsShapes && appearance.imageRadii.item != null ? "custom" : undefined}
+    data-radius-cover={basic && appearance.imageRadii.cover != null ? "custom" : undefined} data-radius-item={supportsShapes && appearance.imageRadii.item != null ? "custom" : undefined}
     data-radius-widget={supportsShapes && appearance.imageRadii.widget != null ? "custom" : undefined} data-radius-logo={supportsShapes && appearance.imageRadii.logo != null ? "custom" : undefined}
     data-chip-shape={supportsShapes && appearance.chipShape !== "template" ? appearance.chipShape : undefined} data-album-image-ratio={album ? appearance.albumImageRatio : undefined}>{children}</div>;
 }

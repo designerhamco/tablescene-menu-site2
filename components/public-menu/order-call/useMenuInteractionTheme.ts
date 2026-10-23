@@ -21,9 +21,13 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
       const dining = root.matches(".aube-table-root");
       const category = [...root.querySelectorAll<HTMLElement>(".cafe-a-category-title,.aube-table-course-header h2")]
         .find(element => visible(element) && !element.closest("[inert]") && getComputedStyle(element).visibility !== "hidden");
-      // Saved category ink is stable across cover, logo and page changes.
-      categoryColor = style.getPropertyValue("--menu-role-category-color").trim()
+      // A catalog Design override is inherited from MenuAppearanceScope. Read it
+      // before the saved role so action colors update with the visible preview.
+      // The saved role remains the stable fallback on cover/logo pages where no
+      // category heading is currently visible.
+      categoryColor = style.getPropertyValue("--menu-design-category-ink").trim()
         || (category && getComputedStyle(category).color)
+        || style.getPropertyValue("--menu-role-category-color").trim()
         || style.getPropertyValue("--aube-accent").trim() || categoryColor;
       const surfaces = [style.backgroundColor];
       // Representative columns may have their own paper color. Walk only the brand's

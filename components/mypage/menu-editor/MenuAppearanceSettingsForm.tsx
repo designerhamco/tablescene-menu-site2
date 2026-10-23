@@ -5,10 +5,12 @@ import ImageRadiusSelect from "@/components/menu/ImageRadiusSelect";
 export default function MenuAppearanceSettingsForm({ initial, basic, album = false, formId }: { initial: MenuAppearance; basic: boolean; album?: boolean; formId: string }) {
   const [value,setValue] = useState(initial);
   const inputClass = "h-10 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-900";
+  const radiusKeys = IMAGE_RADIUS_KEYS.filter(key => basic || key !== "cover");
   return <section className="site-section space-y-5 p-5" aria-label="이미지와 텍스트칩 모양">
     <input type="hidden" name="menu_appearance_present" value="1" form={formId}/>
     <div><h3 className="type-content-title text-zinc-950">이미지와 텍스트칩 모양</h3><p className="mt-2 text-sm leading-relaxed text-zinc-500">템플릿 기본값을 유지하거나 원하는 둥글기 단계를 선택하세요. 기존에 저장한 모양은 다른 단계를 선택할 때까지 유지됩니다.</p></div>
-      <div className="grid grid-cols-2 gap-3">{IMAGE_RADIUS_KEYS.map(key=>{const radius=value.imageRadii[key],label=key==='cover'&&!basic?'커버 이미지':IMAGE_RADIUS_LABELS[key];return <fieldset key={key} className="min-w-0 space-y-2 rounded-xl border border-zinc-200 p-3">
+      {!basic ? <input type="hidden" form={formId} name="image_radius_cover" value={value.imageRadii.cover??""}/> : null}
+      <div className="grid grid-cols-2 gap-3">{radiusKeys.map(key=>{const radius=value.imageRadii[key],label=IMAGE_RADIUS_LABELS[key];return <fieldset key={key} className="min-w-0 space-y-2 rounded-xl border border-zinc-200 p-3">
         <legend className="px-1 text-sm font-semibold">{label} 라운드</legend>
         <input type="hidden" form={formId} name={`image_radius_${key}`} value={radius??""}/>
         <ImageRadiusSelect label={label} radius={radius} className={`${inputClass} w-full min-w-0`} onChange={next=>setValue(v=>({...v,imageRadii:{...v.imageRadii,[key]:next}}))}/>
