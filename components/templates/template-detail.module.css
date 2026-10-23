@@ -42,37 +42,24 @@
 .actions { display: grid; gap: .5rem; margin-top: 1.25rem; }
 .actions a, .actions button { width: 100%; min-height: var(--ui-control-height-lg); }
 .billingNote { margin-top: .75rem; font-weight: var(--font-weight-regular); color: var(--site-text-muted); line-height: 1.65; }
-/* Left-column detail story; customer menu skins remain inside isolated previews. */
+/* Detail marketing content uses the existing site card, button and type tokens. */
 .story { min-width: 0; display: grid; gap: 4rem; }
 .heroImage { overflow: hidden; background: var(--ui-surface-muted); border-radius: var(--ui-radius-preview); }
 .heroImage img { width: 100%; height: auto; display: block; }
 .overviewCopy { margin-top: 2rem; }
 .description { margin-top: .875rem; color: var(--ui-text-muted); }
-.featureTable { width: 100%; margin-top: 2rem; border-collapse: collapse; text-align: left; font-size: var(--type-body-sm-size); }
-.featureTable th, .featureTable td { border-bottom: 1px solid var(--site-divider); padding: 1.125rem .75rem; vertical-align: top; }
-.featureTable thead th { background: var(--ui-surface-muted); color: var(--ui-text-muted); font-size: var(--type-caption-size); font-weight: var(--font-weight-medium); }
-.featureTable th:first-child { width: 8.5rem; }
-.featureTable tbody th { font-weight: var(--font-weight-semibold); white-space: nowrap; }
-.featureTable th a { display: inline-flex; align-items: center; gap: .625rem; min-height: 1.5rem; }
-.featureTable th a:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 4px; border-radius: .25rem; }
-.featureTable th svg { flex: none; }
-.featureTable td { color: var(--ui-text-muted); line-height: 1.65; }
-.supportNote { display: block; margin-top: .375rem; color: var(--site-text-muted); font-size: var(--type-caption-size); }
-.guideAction { display: grid; gap: .75rem; margin-top: 2rem; }
-.guideAction button { width: 100%; min-height: var(--ui-control-height-lg); }
-.guideAction p { text-align: center; color: var(--site-text-muted); }
+.featureGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 1.75rem 0 0; padding: 0; list-style: none; }
+.featureGrid li { min-width: 0; }
+.featureCard { display: flex; flex-direction: column; align-items: flex-start; gap: .75rem; height: 100%; padding: 1.25rem; color: var(--ui-text); text-align: left; }
+.featureCard svg { flex: none; }
+.featureCard p { color: var(--ui-text-muted); }
+.featureCard:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
+.guideAction { display: flex; justify-content: center; margin-top: 1.75rem; }
+.guideAction a { width: auto; }
 .storySection { min-width: 0; scroll-margin-top: calc(var(--site-header-height) + 1.5rem); }
-.sectionCopy { padding-top: 1.75rem; }
-.sectionNumber { display: flex; align-items: center; gap: .75rem; color: var(--site-text-muted); margin-bottom: .75rem; font-variant-numeric: tabular-nums; }
-.sectionNumber span { color: var(--ui-text-muted); }
-.featureNote { color: var(--site-text-muted); margin-top: .875rem; }
-.storyNote { display: flex; align-items: flex-start; gap: .5rem; padding-top: 1.5rem; border-top: 1px solid var(--site-divider); color: var(--site-text-muted); }
-.storyNote svg { flex: none; margin-top: .125rem; }
-@media (max-width: 479px) {
-  .featureTable th:first-child { width: 6.5rem; }
-  .featureTable th, .featureTable td { padding-inline: .5rem; }
-  .featureTable th a { gap: .375rem; }
-}
+.sectionCopy { max-width: 42rem; margin: 0 auto 1.75rem; text-align: center; }
+.featureNote { color: var(--site-text-muted); margin-top: 1rem; }
+@media (max-width: 479px) { .featureCard { padding: 1rem; } }
 @media (min-width: 768px) {
   .page { padding-block: 2rem 6rem; }
   .breadcrumb { margin-bottom: 2rem; }
@@ -95,4 +82,5 @@
   .layout { grid-template-columns: minmax(0, 1fr) 23rem; }
   .sidebar h1 { font-size: var(--font-size-800); }
   .story { gap: 5rem; }
+  .featureGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
 }
