@@ -51,7 +51,10 @@ export function resolveMenuInteractionTheme({ category, surfaces, inks = [] }: {
     candidates.find(c => menuColorContrast(c, background) >= 4.5) ??
     [DARK, LIGHT, "#000000"].find(color => menuColorContrast(color, background) >= 4.5) ?? DARK;
   const orderBackground = accent;
-  const orderForeground = readableInk(orderBackground, [lightest]);
+  // Order follows the requested lightest menu swatch, including intentionally
+  // bright category colors. Only an identical fill/label needs a fallback.
+  const orderForeground = lightest === orderBackground ? readableInk(orderBackground, [lightest]) : lightest;
+  const callCircleForeground = readableInk(accent, [lightest]);
   return {
     "--menu-order-bg": orderBackground,
     "--menu-order-ink": orderForeground,
@@ -62,7 +65,7 @@ export function resolveMenuInteractionTheme({ category, surfaces, inks = [] }: {
     // Dining's circular Call uses the category fill, matching Order, while its
     // label/icon use the lightest readable menu color.
     "--menu-call-circle-bg": accent,
-    "--menu-call-circle-ink": orderForeground,
+    "--menu-call-circle-ink": callCircleForeground,
     "--menu-call-circle-border": accent,
   };
 }

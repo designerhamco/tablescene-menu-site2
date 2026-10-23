@@ -23,3 +23,5 @@
 .restore:disabled { opacity: .35; cursor: default; }
 .restore:focus-visible { outline: 2px solid #586b80; }
 .hint { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+.actions { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .875rem; }
