@@ -26,7 +26,7 @@ test("사이트 페이지·섹션·그리드 간격은 반응형 공통 토큰�
 
 test("주요 공개·인증·고객지원 화면은 공통 페이지 간격을 사용한다", () => {
   for (const path of [
-    "../app/faq/page.tsx",
+    "../components/support/SupportCenter.tsx",
     "../app/apply/page.tsx",
     "../app/apply/_components/PaidApplyPage.tsx",
     "../app/terms/page.tsx",

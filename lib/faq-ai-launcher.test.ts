@@ -11,7 +11,7 @@ test("고객센터는 중복 FAQ 카드와 하단 검정 CTA를 제거한다", (
   assert.doesNotMatch(faqSource, /href="#frequently-asked"/);
   assert.doesNotMatch(faqSource, /답을 찾지 못했다면 AI 상담/);
   assert.doesNotMatch(faqSource, /AI 상담 시작/);
-  assert.match(faqSource, /title="자주 묻는 질문"/);
+  assert.match(faqSource, /<SupportCenter/);
 });
 
 test("고객센터 AI 상담 카드는 별도 페이지 대신 공통 상담창을 연다", () => {

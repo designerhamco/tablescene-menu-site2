@@ -19,8 +19,8 @@ type NavItem = {
 const NAV_ITEMS: readonly NavItem[] = [
   {
     label: '베이직',
-    path: '/',
-    activePaths: ['/', '/services/basic', '/services/menu', '/services/signature'],
+    path: '/services/basic',
+    activePaths: ['/services/basic', '/services/menu', '/services/signature'],
   },
   { label: '다이닝', path: '/services/dining', activePaths: ['/services/dining'] },
   { label: '디스플레이', path: '/services/display', activePaths: ['/services/display', '/services/screen', '/services/full-option', '/tablescene-pro'] },

@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from 'react-router';
 import { usePathname } from 'next/navigation';
 import Navbar from './components/layout/Navbar';
 import Home from './original-pages/Home';
+import { MarketingServicePage } from '@/components/marketing/MarketingPages';
 import DisplayServicePage from './original-pages/services/DisplayComingSoonPage';
 import DiningServicePage from './original-pages/services/DiningServicePage';
 import ComingSoonServicePage from './original-pages/services/ComingSoonServicePage';
@@ -47,17 +48,17 @@ export default function App() {
           {/* Next Link owns navigation; never match against BrowserRouter's stale pathname. */}
           <Routes location={pathname}>
             <Route path="/" element={<Home />} />
-            <Route path="/services/basic" element={<Home />} />
+            <Route path="/services/basic" element={<MarketingServicePage service="basic" />} />
             <Route path="/services/dining" element={<DiningServicePage />} />
             <Route path="/services/display" element={<DisplayServicePage />} />
             <Route path="/services/qr-order" element={<ComingSoonServicePage kind="qr-order" />} />
             <Route path="/services/smart-call" element={<ComingSoonServicePage kind="smart-call" />} />
-            <Route path="/services/menu" element={<Home />} />
+            <Route path="/services/menu" element={<MarketingServicePage service="basic" />} />
             <Route path="/services/screen" element={<DisplayServicePage />} />
             <Route path="/services/order" element={<OrderServiceReviewContent />} />
             <Route path="/services/custom" element={<CustomServicePage />} />
             <Route path="/custom" element={<ReloadNextRoute />} />
-            <Route path="/services/signature" element={<Home />} />
+            <Route path="/services/signature" element={<MarketingServicePage service="basic" />} />
             <Route path="/services/full-option" element={<DisplayServicePage />} />
             <Route path="/services/pro-v1" element={<OrderServiceReviewContent />} />
             <Route path="/tablescene-pro" element={<DisplayServicePage />} />
