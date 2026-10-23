@@ -19,15 +19,16 @@ type MenuPageRendererProps = MenuPageData & {
   pagePresentation?: "one" | "multi";
   orderCallConfig?: OrderCallEntryConfig;
   previewDevice?: MenuPreviewDevice;
+  previewMotionPaused?: boolean;
 };
 
-export default function MenuPageRenderer({ mode, ...data }: MenuPageRendererProps) {
+export default function MenuPageRenderer({ mode, previewMotionPaused = false, ...data }: MenuPageRendererProps) {
   const popup = readMenuPopupSettings(data.menuSite.settings);
   const basic = getTemplateCapabilities(data.menuSite.template_key).menuCover.coverMode === "section";
   const supportsShapes = basic || isAubeTableTemplate(data.menuSite.template_key);
   const appearance = readMenuAppearance(data.menuSite.page_settings);
   const settings = data.menuSite.settings as Record<string, unknown> | null;
   const design = getDefaultDesignReview(typeof settings?.menu_design_id === "string" ? settings.menu_design_id : undefined, data.menuSite.template_key ?? "");
-  const menu = <MenuLocaleScope locale={data.locale}><MenuAppearanceScope pageSettings={data.menuSite.page_settings} templateKey={data.menuSite.template_key}><MenuTemplateRenderer key={data.initialPreviewPageId ?? "default-preview-page"} mode={mode} {...data} />{data.menuSite.template_key !== "display_menu_a" && popup.enabled && popup.images.length > 0 ? <MenuAdvertisementPopup settings={popup} imageRadius={supportsShapes ? appearance.imageRadii.advertisement : undefined} /> : null}</MenuAppearanceScope></MenuLocaleScope>;
+  const menu = <MenuLocaleScope locale={data.locale}><MenuAppearanceScope pageSettings={data.menuSite.page_settings} templateKey={data.menuSite.template_key}><MenuTemplateRenderer key={data.initialPreviewPageId ?? "default-preview-page"} mode={mode} {...data} />{data.menuSite.template_key !== "display_menu_a" && popup.enabled && popup.images.length > 0 ? <MenuAdvertisementPopup settings={popup} imageRadius={supportsShapes ? appearance.imageRadii.advertisement : undefined} paused={previewMotionPaused} /> : null}</MenuAppearanceScope></MenuLocaleScope>;
   return design ? <DefaultDesignScope layout={design.layout} itemLayout={design.itemLayout}><div className={defaultDesignStyles.surface} data-default-design={design.id} data-menu-item-layout={design.itemLayout}>{menu}</div></DefaultDesignScope> : menu;
 }
