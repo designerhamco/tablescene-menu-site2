@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { MessageCircle } from "lucide-react";
+import { BookOpen, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -16,7 +16,8 @@ export default function AiSupportChatLauncher() {
   useEffect(() => {
     const openChat = () => setOpen(true);
     window.addEventListener(AI_SUPPORT_CHAT_OPEN_EVENT, openChat);
-    return () => window.removeEventListener(AI_SUPPORT_CHAT_OPEN_EVENT, openChat);
+    return () =>
+      window.removeEventListener(AI_SUPPORT_CHAT_OPEN_EVENT, openChat);
   }, []);
 
   useEffect(() => {
@@ -51,16 +52,25 @@ export default function AiSupportChatLauncher() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="site-button site-button-primary site-support-launcher type-label pointer-events-auto fixed bottom-5 z-40 inline-flex items-center gap-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-950 md:bottom-8"
-        aria-label="AI 상담 열기"
-        aria-expanded={open}
-      >
-        <MessageCircle className="h-4 w-4" aria-hidden="true" />
-        AI 상담
-      </button>
+      <div className="site-support-launcher pointer-events-none fixed bottom-5 z-40 flex items-center gap-2 md:bottom-8">
+        <Link
+          href="/guides"
+          className="site-button site-button-outline type-label pointer-events-auto"
+        >
+          <BookOpen className="h-4 w-4" aria-hidden="true" />
+          사용가이드
+        </Link>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="site-button site-button-primary type-label pointer-events-auto"
+          aria-label="AI 상담 열기"
+          aria-expanded={open}
+        >
+          <MessageCircle className="h-4 w-4" aria-hidden="true" />
+          AI 상담
+        </button>
+      </div>
 
       <AnimatePresence>
         {open ? (
@@ -86,7 +96,12 @@ export default function AiSupportChatLauncher() {
             >
               <header className="flex shrink-0 items-center justify-between border-b border-zinc-200 px-5 py-4 md:px-6">
                 <div>
-                  <h2 id="ai-support-dialog-title" className="type-content-title">AI 상담</h2>
+                  <h2
+                    id="ai-support-dialog-title"
+                    className="type-content-title"
+                  >
+                    AI 상담
+                  </h2>
                 </div>
                 <button
                   type="button"
@@ -99,7 +114,10 @@ export default function AiSupportChatLauncher() {
 
               <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-3 md:p-4">
                 {enabled === null ? (
-                  <div className="type-label grid min-h-64 place-items-center text-zinc-400" aria-live="polite">
+                  <div
+                    className="type-label grid min-h-64 place-items-center text-zinc-400"
+                    aria-live="polite"
+                  >
                     상담 가능 여부를 확인 중입니다…
                   </div>
                 ) : enabled ? (
@@ -108,7 +126,8 @@ export default function AiSupportChatLauncher() {
                   <div className="px-5 py-14 text-center md:px-8">
                     <p className="type-subsection-title">AI 상담 준비 중</p>
                     <p className="type-body-sm mx-auto mt-3 max-w-md text-zinc-500">
-                      안전성과 답변 품질을 확인한 다음 공개할 예정입니다. 지금은 1:1 문의로 도와드릴게요.
+                      안전성과 답변 품질을 확인한 다음 공개할 예정입니다. 지금은
+                      1:1 문의로 도와드릴게요.
                     </p>
                     <Link
                       href="/mypage/inquiries"
