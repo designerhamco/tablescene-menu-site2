@@ -1,3 +1,4 @@
+import { getTemplateCapabilities } from "./template-capabilities";
 import type { DefaultDesignOptionKey, DefaultDesignOptions } from "./default-design-options";
 import { getDefaultDesignReview } from "./menu-design-policy";
 import type { MenuPageData } from "./menu-page-data";
@@ -12,9 +13,10 @@ const record = (value: unknown): Record<string, unknown> => value && typeof valu
 export function buildSavedMenuPreview(source: MenuPageData, query: TemplatePreviewQuery) {
   const settings = record(source.menuSite.settings);
   const design = getDefaultDesignReview(typeof settings.menu_design_id === "string" ? settings.menu_design_id : undefined, source.menuSite.template_key ?? "");
+  const basic = getTemplateCapabilities(source.menuSite.template_key).menuCover.coverMode === "section";
   const options: DefaultDesignOptions = {
     ...getTemplatePreviewOptions(source, {}),
-    logoPreview: Boolean(source.menuSite.logo_url) && settings.logo_replaces_name !== false,
+    logoPreview: Boolean(source.menuSite.logo_url) && (!basic || settings.logo_replaces_name === true),
     popupPreview: readMenuPopupSettings(source.menuSite.settings).enabled,
     widgetsPreview: source.widgets?.some(widget => widget.visible !== false) ?? false,
   };
