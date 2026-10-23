@@ -63,7 +63,7 @@ export function MypageAccountCard({
           ) : null}
         </div>
         <form action={signOutAction}>
-          <button type="submit" className="site-button site-button-ghost site-button-sm site-account-signout">
+          <button type="submit" className="site-button site-button-outline site-button-sm site-account-signout">
             로그아웃
           </button>
         </form>

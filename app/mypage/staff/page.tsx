@@ -247,7 +247,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                       </form>
                       <form action={revokeStaffMembershipAction} className="lg:text-right">
                         <input type="hidden" name="membershipId" value={membership.id} />
-                        <button type="submit" className="site-button site-button-ghost text-xs">
+                        <button type="submit" className="site-button site-button-outline text-xs">
                           접근 회수
                         </button>
                       </form>
@@ -335,7 +335,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                       </form>
                       <form action={cancelStaffInvitationAction}>
                         <input type="hidden" name="inviteBatchId" value={invitation.inviteBatchId} />
-                        <button type="submit" className="site-button site-button-ghost text-xs">
+                        <button type="submit" className="site-button site-button-outline text-xs">
                           취소
                         </button>
                       </form>

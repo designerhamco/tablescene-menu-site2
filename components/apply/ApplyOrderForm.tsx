@@ -2898,7 +2898,7 @@ export default function ApplyOrderForm({
                   !normalizeRecoverablePaymentId(recoveryPaymentIdInput || pendingPaymentCompletion?.paymentId || "") ||
                   (isSubscriptionProduct && !recoverySubscriptionIdInput.trim())
                 }
-                className="site-button site-button-ghost mt-3 inline-flex w-full items-center justify-center text-xs disabled:cursor-not-allowed"
+                className="site-button site-button-outline mt-3 inline-flex w-full items-center justify-center text-xs disabled:cursor-not-allowed"
               >
                 결제창 없이 후처리만 재시도
               </button>
@@ -3168,7 +3168,7 @@ function TermsModal({ title, details, onClose }: { title: string; details: strin
         <div className="border-b border-zinc-100 p-6">
           <div className="flex items-start justify-between gap-4">
             <h3 className="type-subsection-title text-zinc-950">{title}</h3>
-            <button type="button" onClick={onClose} className="site-button site-button-ghost text-xs">
+            <button type="button" onClick={onClose} className="site-button site-button-outline text-xs">
               닫기
             </button>
           </div>

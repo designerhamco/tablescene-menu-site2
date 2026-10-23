@@ -200,7 +200,7 @@ export default function ImageUploadField({
   }
 
   return (
-    <div className="site-section p-4">
+    <div className="site-section site-editor-subpanel p-4">
       {deferredDeleteName && isMarkedForDeferredDelete && <input type="hidden" name={deferredDeleteName} value="on" />}
       {draftImageUrlInputName && draftImageUrl && <input type="hidden" name={draftImageUrlInputName} value={draftImageUrl} />}
       {draftImagePathInputName && draftImagePath && <input type="hidden" name={draftImagePathInputName} value={draftImagePath} />}
@@ -281,7 +281,7 @@ export default function ImageUploadField({
                 type="button"
                 disabled={isLoading}
                 onClick={() => setIsConfirmingDelete(false)}
-                className="site-button site-button-ghost text-sm"
+                className="site-button site-button-outline text-sm"
               >
                 취소
               </button>

@@ -184,7 +184,7 @@ function Select({ helperText, className, ...props }: SelectHTMLAttributes<HTMLSe
 
 function SectionCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="site-section p-5">
+    <section className="site-section site-editor-subpanel p-5">
       <h3 className="type-content-title text-zinc-950">{title}</h3>
       <div className="mt-5">{children}</div>
     </section>
@@ -193,7 +193,7 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
 
 function EmptyState({ message, buttonLabel, onClick, disabled }: { message: string; buttonLabel: string; onClick: () => void; disabled?: boolean }) {
   return (
-    <div className="site-section p-6 text-center">
+    <div className="site-section site-editor-subpanel p-6 text-center">
       <p className="break-keep text-sm font-bold text-zinc-400">{message}</p>
       <button
         type="button"
@@ -249,7 +249,7 @@ function DraftDeleteConfirmButton({
             <h4 className="type-content-title text-zinc-950">{title}</h4>
             <p className="site-dialog-description mt-3 break-keep font-semibold leading-relaxed">{description}</p>
             <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
-              <button type="button" onClick={onCancel} className="site-button site-button-ghost text-sm">
+              <button type="button" onClick={onCancel} className="site-button site-button-outline text-sm">
                 취소
               </button>
               <button
@@ -345,7 +345,7 @@ export default function AboutDraftSections({
             ) : (
               <div className="space-y-4">
                 {visibleSocialDrafts.map((link) => (
-                  <article key={link.draftId} className="site-section grid gap-4 p-5 md:grid-cols-2">
+                  <article key={link.draftId} className="site-section site-editor-subpanel grid gap-4 p-5 md:grid-cols-2">
                     <div>
                       <FieldLabel required>SNS 종류</FieldLabel>
                       <Select
@@ -455,7 +455,7 @@ export default function AboutDraftSections({
             ) : (
               <div className="space-y-4">
                 {visibleChefDrafts.map((chef) => (
-                  <article key={chef.draftId} className="site-section grid gap-4 p-5 md:grid-cols-2">
+                  <article key={chef.draftId} className="site-section site-editor-subpanel grid gap-4 p-5 md:grid-cols-2">
                     <div>
                       <FieldLabel required>이름</FieldLabel>
                       <TextInput
@@ -486,7 +486,7 @@ export default function AboutDraftSections({
                         onChange={(event) => updateChef(chef.draftId, { chef_description: event.target.value })}
                       />
                     </div>
-                    <div className="site-section p-4 text-sm font-bold leading-relaxed text-zinc-400">
+                    <div className="site-section site-editor-subpanel p-4 text-sm font-bold leading-relaxed text-zinc-400">
                       이미지: {chef.chef_image_url ? "기존 이미지 유지" : "없음"}
                       <br />
                       이미지 업로드 draft화는 후속 작업에서 처리합니다.
@@ -601,7 +601,7 @@ export function EventDraftSections({ events, showEvents }: EventDraftSectionsPro
               const hasEventPriceData = Boolean(event.event_regular_price_label.trim() || event.event_sale_price_label.trim());
 
               return (
-                <article key={event.draftId} className="site-section grid gap-4 p-5 md:grid-cols-2">
+                <article key={event.draftId} className="site-section site-editor-subpanel grid gap-4 p-5 md:grid-cols-2">
                   <div>
                     <FieldLabel required>이벤트 제목</FieldLabel>
                     <TextInput
@@ -639,7 +639,7 @@ export function EventDraftSections({ events, showEvents }: EventDraftSectionsPro
                       onChange={(inputEvent) => updateEvent(event.draftId, { event_period: inputEvent.target.value })}
                     />
                   </div>
-                  <div className="site-section p-4 text-sm font-bold leading-relaxed text-zinc-400">
+                  <div className="site-section site-editor-subpanel p-4 text-sm font-bold leading-relaxed text-zinc-400">
                     이미지: {event.event_image_url ? "기존 이미지 유지" : "없음"}
                     <br />
                     이미지 업로드 draft화는 후속 작업에서 처리합니다.

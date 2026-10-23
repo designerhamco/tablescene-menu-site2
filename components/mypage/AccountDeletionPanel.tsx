@@ -94,7 +94,7 @@ export default function AccountDeletionPanel({
                   탈퇴 신청 즉시 계정 이용과 메뉴판 편집, 공개, QR, AI 기능 이용이 제한됩니다.
                 </p>
               </div>
-              <button type="button" onClick={() => setIsOpen(false)} className="site-button site-button-ghost text-xs">
+              <button type="button" onClick={() => setIsOpen(false)} className="site-button site-button-outline text-xs">
                 닫기
               </button>
             </div>
@@ -145,7 +145,7 @@ export default function AccountDeletionPanel({
             ) : null}
 
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button type="button" onClick={() => setIsOpen(false)} className="site-button site-button-ghost text-sm">
+              <button type="button" onClick={() => setIsOpen(false)} className="site-button site-button-outline text-sm">
                 취소
               </button>
               <button

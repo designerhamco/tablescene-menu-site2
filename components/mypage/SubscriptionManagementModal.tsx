@@ -287,7 +287,7 @@ export default function SubscriptionManagementModal({
           setRefundReason("");
           setIsOpen(true);
         }}
-        className="site-button site-button-outline inline-flex items-center justify-center text-xs"
+        className="site-button site-button-primary inline-flex items-center justify-center text-xs"
       >
         구독 관리
       </button>
@@ -299,7 +299,7 @@ export default function SubscriptionManagementModal({
               <div>
                 <h2 className="type-subsection-title text-zinc-950">구독 관리</h2>
               </div>
-              <button type="button" onClick={closeModal} className="site-button site-button-ghost text-xs">
+              <button type="button" onClick={closeModal} className="site-button site-button-outline text-xs">
                 닫기
               </button>
             </div>
@@ -461,14 +461,14 @@ export default function SubscriptionManagementModal({
                   <button
                     type="button"
                     onClick={() => setIsViewingRefundGuide(false)}
-                    className="site-button site-button-ghost text-sm"
+                    className="site-button site-button-outline text-sm"
                   >
                     뒤로
                   </button>
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="site-button site-button-ghost text-sm"
+                    className="site-button site-button-outline text-sm"
                   >
                     닫기
                   </button>
@@ -591,7 +591,7 @@ export default function SubscriptionManagementModal({
                 </button>
               ) : null}
               {(status === "expired" || status === "failed") && !restoredNotice ? (
-                <a href="/mypage/inquiries" className="site-button site-button-ghost text-sm">
+                <a href="/mypage/inquiries" className="site-button site-button-outline text-sm">
                   고객지원 문의
                 </a>
               ) : null}
@@ -637,7 +637,7 @@ export default function SubscriptionManagementModal({
             </label>
             {error && <p className="site-notice site-notice-error mt-4 break-keep p-3 text-sm font-bold">{error}</p>}
             <div className="mt-6 flex flex-wrap justify-end gap-3">
-              <button type="button" onClick={() => setIsConfirmingCancel(false)} className="site-button site-button-ghost text-sm">
+              <button type="button" onClick={() => setIsConfirmingCancel(false)} className="site-button site-button-outline text-sm">
                 계속 이용하기
               </button>
               <button

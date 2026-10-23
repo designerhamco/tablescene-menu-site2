@@ -335,7 +335,7 @@ function TranslationEditorGroup({
   const isPartialUsageExceeded = partialUsage ? partialUsage.used >= partialUsage.limit : false;
 
   return (
-    <div className="site-section p-4">
+    <div className="site-section site-editor-subpanel p-4">
       <h4 className="type-label text-zinc-950">{title}</h4>
       <div className="mt-4 space-y-4">
         {groupedFields.map((group) => {
@@ -343,7 +343,7 @@ function TranslationEditorGroup({
           const canUsePartialTranslation =
             partialEntityType === "site" || partialEntityType === "category" || partialEntityType === "item";
           return (
-            <div key={group.entityId} className="site-section p-4">
+            <div key={group.entityId} className="site-section site-editor-subpanel p-4">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <p className="text-sm font-bold text-zinc-950">{group.groupLabel}</p>
                 {onPartialTranslate && canUsePartialTranslation ? (
@@ -440,7 +440,7 @@ function TranslationEditorItemGroups({
   if (fields.length === 0) return null;
 
   return (
-    <div className="site-section p-4">
+    <div className="site-section site-editor-subpanel p-4">
       <h4 className="type-label text-zinc-950">{title}</h4>
       <div className="mt-4 space-y-3">
         {categoryGroups.map((category) => {
@@ -908,7 +908,7 @@ function LocalizationSectionContent({
         <input type="hidden" name="localization_save_mode" value={localizationSaveMode} />
         <input type="hidden" name="translation_draft" value={JSON.stringify(translationDraftPayload)} />
         {appliedRecoveryJobId ? <input type="hidden" name="translation_recovery_job_id" value={appliedRecoveryJobId} /> : null}
-        <section className="site-section p-5">
+        <section className="site-section site-editor-subpanel p-5">
           <h3 className="type-content-title text-zinc-950">다국어 설정</h3>
           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
             공개 메뉴판에서 사용할 언어를 선택하고, AI로 번역 초안을 만들 수 있습니다.
@@ -994,7 +994,7 @@ function LocalizationSectionContent({
                   const isSingleDisabled = isGeneratingFullDraft || !isEnabled || localPartialUsage.used >= localPartialUsage.limit;
 
                   return (
-                    <div key={locale} className="site-section p-2">
+                    <div key={locale} className="site-section site-editor-subpanel p-2">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-bold text-zinc-700">{LOCALE_LABELS[locale]}</span>
                         <Badge>
@@ -1056,7 +1056,7 @@ function LocalizationSectionContent({
               <button
                 type="button"
                 onClick={() => applyRecoverableTranslationDraft(recoverableAutoTranslationJob)}
-                className="site-button site-button-ghost inline-flex shrink-0 items-center justify-center text-sm"
+                className="site-button site-button-outline inline-flex shrink-0 items-center justify-center text-sm"
               >
                 최근 자동 번역 결과 불러오기
               </button>
@@ -1064,7 +1064,7 @@ function LocalizationSectionContent({
           </section>
         ) : null}
 
-        <section className="site-section p-5">
+        <section className="site-section site-editor-subpanel p-5">
           <h3 className="type-content-title text-zinc-950">번역 확인 및 수정</h3>
           <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
             {localizationStructure === "basic"
@@ -1094,7 +1094,7 @@ function LocalizationSectionContent({
               </button>
             ))}
           </div>
-          <div className="site-section mt-5 overflow-hidden">
+          <div className="site-section site-editor-subpanel mt-5 overflow-hidden">
             <div className="flex flex-wrap border-b border-zinc-200 bg-zinc-50 p-1">
               {translationTargetGroups.map((group) => (
                 <button
@@ -1159,7 +1159,7 @@ function LocalizationSectionContent({
           </div>
         </section>
 
-        <div className="site-section flex flex-wrap items-center justify-center gap-3 px-4 py-4">
+        <div className="site-section site-editor-subpanel flex flex-wrap items-center justify-center gap-3 px-4 py-4">
           <LocalizationSaveButton disabled={!hasLocaleChanges && !hasTranslationChanges}>저장</LocalizationSaveButton>
           <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
             언어 설정과 번역 내용을 저장합니다. 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
@@ -1179,7 +1179,7 @@ function LocalizationSectionContent({
                 type="button"
                 onClick={() => setOverwriteRequest(null)}
                 disabled={Boolean(pendingPartialEntityKey)}
-                className="site-button site-button-ghost text-sm disabled:cursor-not-allowed"
+                className="site-button site-button-outline text-sm disabled:cursor-not-allowed"
               >
                 취소
               </button>

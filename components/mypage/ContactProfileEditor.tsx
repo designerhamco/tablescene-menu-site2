@@ -215,7 +215,7 @@ export default function ContactProfileEditor({
                 type="button"
                 onClick={closeWithoutSaving}
                 disabled={isSubmitting}
-                className="site-button site-button-ghost text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                className="site-button site-button-outline text-xs disabled:cursor-not-allowed disabled:opacity-60"
               >
                 닫기
               </button>
@@ -291,7 +291,7 @@ export default function ContactProfileEditor({
                 type="button"
                 onClick={closeWithoutSaving}
                 disabled={isSubmitting}
-                className="site-button site-button-ghost text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                className="site-button site-button-outline text-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
                 취소
               </button>

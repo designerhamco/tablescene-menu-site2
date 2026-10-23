@@ -2447,7 +2447,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   function renderMenuCard(card: (typeof menuCardViewModels)[number]) {
     const primaryActionClassName = "site-button site-button-primary site-button-sm";
     const secondaryActionClassName = "site-button site-button-outline site-button-sm";
-    const disabledActionClassName = "site-button site-button-secondary site-button-sm cursor-not-allowed text-zinc-400";
+    const disabledActionClassName = "site-button site-button-outline site-button-sm";
 
     function renderActionButton({
       label,
@@ -2568,7 +2568,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   function renderStaffMenuCard(card: (typeof staffMenuCardViewModels)[number]) {
     const enabledPrimaryActionClassName = "site-button site-button-primary site-button-sm";
     const enabledSecondaryActionClassName = "site-button site-button-outline site-button-sm";
-    const disabledActionClassName = "site-button site-button-secondary site-button-sm cursor-not-allowed text-zinc-400";
+    const disabledActionClassName = "site-button site-button-outline site-button-sm";
 
     return (
       <article key={card.key} className="site-card p-5">
@@ -3162,7 +3162,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                               </div>
                               <div className="flex shrink-0 flex-wrap gap-2 lg:flex-col">
                                 {!isDeletedTab && archivedDisplayState?.cta ? (
-                                  <Link href={archivedDisplayState.cta.href} className="site-button site-button-ghost inline-flex items-center justify-center text-xs">
+                                  <Link href={archivedDisplayState.cta.href} className="site-button site-button-outline inline-flex items-center justify-center text-xs">
                                     {archivedDisplayState.cta.label}
                                   </Link>
                                 ) : null}

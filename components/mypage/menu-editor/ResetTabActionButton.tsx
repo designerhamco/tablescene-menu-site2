@@ -107,7 +107,7 @@ export default function ResetTabActionButton({ menuId, kind }: ResetTabActionBut
                 type="button"
                 onClick={closeDialog}
                 disabled={isPending}
-                className="site-button site-button-ghost"
+                className="site-button site-button-outline"
               >
                 취소
               </button>

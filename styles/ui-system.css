@@ -81,6 +81,7 @@
 .site-chip-private { --ui-chip-fill: var(--ui-chip-private); }
 .site-chip-active { --ui-chip-fill: var(--ui-chip-active); }
 .site-chip-paid { --ui-chip-fill: var(--ui-chip-paid); }
+.site-chip-settled { background: var(--ui-surface-soft); color: var(--ui-text-muted); }
 .site-chip-pending { --ui-chip-fill: var(--ui-chip-pending); }
 .site-chip-trial { --ui-chip-fill: var(--ui-chip-trial); }
 .site-chip-ending { --ui-chip-fill: var(--ui-chip-ending); }
@@ -100,7 +101,9 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border: 1px solid transparent;
+  border: 1px solid var(--ui-border);
+  background: var(--ui-surface);
+  color: var(--ui-text);
   border-radius: var(--ui-radius-control);
   padding: 0.5rem 0.75rem;
   font-size: var(--font-size-200);
@@ -129,7 +132,10 @@
 .site-button:disabled,
 .site-button[aria-disabled="true"] {
   cursor: not-allowed;
-  opacity: 0.45;
+  border-color: var(--ui-border);
+  background: var(--ui-surface-muted);
+  color: #9fa3ab;
+  opacity: 1;
 }
 
 .site-button-primary {
@@ -144,6 +150,7 @@
 }
 
 .site-button-secondary {
+  border-color: transparent;
   background: var(--ui-surface-soft);
   color: var(--ui-text);
 }
@@ -172,6 +179,7 @@
 }
 
 .site-button-ghost {
+  border-color: transparent;
   background: transparent;
   color: var(--ui-text-muted);
 }
@@ -181,7 +189,7 @@
   color: var(--ui-text);
 }
 
-.site-button-link { background: transparent; color: var(--ui-text); }
+.site-button-link { border-color: transparent; background: transparent; color: var(--ui-text); }
 .site-button-link:hover { color: var(--ui-text-muted); }
 
 .site-button-danger {
@@ -195,7 +203,7 @@
   background: var(--ui-danger-hover);
 }
 
-.site-button-danger-ghost { background: transparent; color: var(--ui-danger); }
+.site-button-danger-ghost { border-color: transparent; background: transparent; color: var(--ui-danger); }
 .site-button-danger-ghost:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--ui-error-surface); }
 
 .site-button-outline-danger {
@@ -854,6 +862,9 @@ textarea.site-field,
 .site-button-ghost:active:not(:disabled):not([aria-disabled="true"]) {
   background: var(--ui-action-soft-pressed);
   color: var(--ui-text);
+}
+.site-button-outline:active:not(:disabled):not([aria-disabled="true"]) {
+  border-color: var(--ui-border-strong);
 }
 
 :where(button, a, [role="button"]):not(.site-choice):not(.menu-typography *):not(.menu-typography, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *)[class~="bg-black"]:active,

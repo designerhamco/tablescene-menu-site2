@@ -30,6 +30,23 @@
 .site-auth-form { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 .site-auth-header { margin-bottom: 2rem; text-align: center; }
 
+/* Editing needs distinct work areas rather than transparent content groups. */
+.site-editor-workspace { background: var(--ui-surface-muted); }
+.site-editor-panel, .site-editor-navigation {
+  border: 0;
+  border-radius: var(--ui-radius-surface);
+  background: var(--ui-surface);
+}
+.site-editor-subpanel {
+  border: 0;
+  border-radius: .75rem;
+  background: var(--ui-surface-muted);
+}
+.site-editor-template-label { display: inline-flex; min-width: 0; max-width: 100%; align-items: center; gap: .375rem; color: var(--ui-text-muted); font-size: .75rem; font-weight: 600; line-height: 1.5; }
+.site-editor-template-label > span { min-width: 0; overflow-wrap: anywhere; }
+.site-help-trigger { flex: none; width: 1.75rem; min-width: 1.75rem; height: 1.75rem; min-height: 1.75rem; border-radius: 50%; padding: 0; font-size: .75rem; line-height: 1; vertical-align: middle; }
+.site-help-content { max-width: calc(100vw - 2rem); padding: .875rem; color: var(--ui-text-muted); font-size: .75rem; font-weight: 500; line-height: 1.6; }
+
 /* Content uses deliberate grouping; controls keep their visible boundaries. */
 .site-support-actions { display: grid; gap: 1rem; max-width: 56rem; }
 .site-support-action {

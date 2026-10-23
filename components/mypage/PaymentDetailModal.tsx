@@ -68,7 +68,7 @@ export default function PaymentDetailModal({
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="site-button site-button-ghost text-xs"
+                className="site-button site-button-outline text-xs"
               >
                 닫기
               </button>

@@ -10,7 +10,7 @@ export default function MenuSurfaceSettingsForm({ pageSettings, settings, templa
     <input type="hidden" form={formId} name={`surface_${key}`} value={value[key] ?? ""} />
     <PreviewColorPicker label={label} value={value[key]} defaultColor={fallback} disabled={disabled} onChange={next => setValue(current => ({ ...current, [key]: next }))} />
   </div>;
-  return <section className="site-section space-y-5 p-5" aria-label="배경과 대표영역 설정">
+  return <section className="site-section site-editor-subpanel space-y-5 p-5" aria-label="배경과 대표영역 설정">
     <input type="hidden" form={formId} name="menu_surfaces_present" value="1" />
     <input type="hidden" form={formId} name="background_color" value={value.pageBackground ?? defaults.pageBackground} />
     <div><h3 className="type-content-title text-zinc-950">배경과 대표영역</h3><p className="mt-2 text-sm leading-relaxed text-zinc-500">색상 옆 되돌리기를 누르면 템플릿 기본값으로 돌아갑니다. 변경 후 저장하면 미리보기와 공개 메뉴판에 함께 적용됩니다.</p></div>
