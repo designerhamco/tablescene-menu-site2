@@ -4,6 +4,9 @@ import fs from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
 import MenuAppearanceSettingsForm from "../components/mypage/menu-editor/MenuAppearanceSettingsForm";
+import TypographySettingsForm from "../components/mypage/menu-editor/TypographySettingsForm";
+import { getDefaultTypographyPreset, normalizeTypographyRoleSettings } from "./template-typography-presets";
+import { getKoreanFontOption, getEnglishFontOption } from "./font-options";
 import PreviewDesignOptions from "../components/menu/PreviewDesignOptions";
 import { buildTemplatePreviewUrl } from "./menu-preview-devices";
 import { IMAGE_RADIUS_KEYS, IMAGE_RADIUS_PRESETS, imageRadiusPreset, unifiedAppearanceRadius, withUnifiedAppearanceRadius, menuAppearanceFromForm, menuAppearancePreview, menuAppearanceStyle, normalizeMenuAppearance, readMenuAppearance } from "./menu-appearance";
@@ -32,14 +35,14 @@ test("list editors retain a saved album ratio without presenting an inactive rat
 });
 
 test("Dining preview keeps its full-bleed cover square and places cover copy color before shape controls",()=>{
- const html=renderToStaticMarkup(createElement(PreviewDesignOptions,{value:{},defaults:{chipColors:{generalBackground:'#111111',generalText:'#FFFFFF',saleBackground:'#885533',saleText:'#FFFFFF'},fonts:{brand:{ko:'pretendard',en:'outfit',color:'#111111'},category:{ko:'pretendard',en:'outfit',color:'#222222'},other:{ko:'pretendard',en:'outfit',color:'#333333'}},colors:{page:'#FFFFFF',auxiliary:'#FFFFFF',cover:'#FFFFFF',sidebar:'#F4F5F3',coverDescription:'#606561'},appearance:normalizeMenuAppearance({})},templateKey:'dining_aube_table_a',album:false,dining:true,disabled:false,onChange:()=>{}}));
+ const html=renderToStaticMarkup(createElement(PreviewDesignOptions,{value:{},defaults:{fontFamily:{ko:"pretendard",en:"outfit"},chipColors:{generalBackground:'#111111',generalText:'#FFFFFF',saleBackground:'#885533',saleText:'#FFFFFF'},fonts:{brand:{ko:'pretendard',en:'outfit',color:'#111111'},category:{ko:'pretendard',en:'outfit',color:'#222222'},other:{ko:'pretendard',en:'outfit',color:'#333333'}},colors:{page:'#FFFFFF',auxiliary:'#FFFFFF',cover:'#FFFFFF',sidebar:'#F4F5F3',coverDescription:'#606561'},appearance:normalizeMenuAppearance({})},templateKey:'dining_aube_table_a',album:false,dining:true,disabled:false,onChange:()=>{}}));
  assert.ok(html.indexOf('커버 소개 글자색')>0);
  assert.ok(html.indexOf('커버 소개 글자색')<html.indexOf('이미지 라운드'));
  assert.ok(!html.includes('aria-label="커버 이미지 라운드"'));
 });
 
 test("album preview presents image ratio as its own section before image radii",()=>{
- const html=renderToStaticMarkup(createElement(PreviewDesignOptions,{value:{},defaults:{chipColors:{generalBackground:'#111111',generalText:'#FFFFFF',saleBackground:'#885533',saleText:'#FFFFFF'},fonts:{brand:{ko:'pretendard',en:'outfit',color:'#111111'},category:{ko:'pretendard',en:'outfit',color:'#222222'},other:{ko:'pretendard',en:'outfit',color:'#333333'}},colors:{page:'#FFFFFF',auxiliary:'#FFFFFF',cover:'#FFFFFF',sidebar:'#F4F5F3',coverDescription:'#606561'},appearance:normalizeMenuAppearance({})},templateKey:'cafe_design_a',album:true,dining:false,disabled:false,onChange:()=>{}}));
+ const html=renderToStaticMarkup(createElement(PreviewDesignOptions,{value:{},defaults:{fontFamily:{ko:"pretendard",en:"outfit"},chipColors:{generalBackground:'#111111',generalText:'#FFFFFF',saleBackground:'#885533',saleText:'#FFFFFF'},fonts:{brand:{ko:'pretendard',en:'outfit',color:'#111111'},category:{ko:'pretendard',en:'outfit',color:'#222222'},other:{ko:'pretendard',en:'outfit',color:'#333333'}},colors:{page:'#FFFFFF',auxiliary:'#FFFFFF',cover:'#FFFFFF',sidebar:'#F4F5F3',coverDescription:'#606561'},appearance:normalizeMenuAppearance({})},templateKey:'cafe_design_a',album:true,dining:false,disabled:false,onChange:()=>{}}));
  assert.ok(html.includes('앨범형 상품 이미지'));
  assert.ok(html.indexOf('앨범형 상품 이미지')<html.indexOf('이미지 라운드'));
  assert.ok(html.includes('aria-label="앨범형 상품 이미지 비율"'));
@@ -73,4 +76,24 @@ test("a missing auxiliary swatch has a no-color marker while explicit white stay
  const white=renderToStaticMarkup(createElement(PreviewColorPicker,{label:"보조 배경색",defaultColor:null,value:"#FFFFFF",disabled:false,onChange:()=>{}}));
  assert.doesNotMatch(white,/data-color-empty/);
  assert.match(white,/background-color:#FFFFFF/);
+});
+
+
+test("editor exposes two common font pickers and submits inherited role fonts", () => {
+ const defaults=getDefaultTypographyPreset("cafe_design_a");
+ const roles=normalizeTypographyRoleSettings({brand:{font_en_key:"mogra",color:"#123456"},category:{font_en_key:"carme",color:"#654321"}});
+ const html=renderToStaticMarkup(createElement(TypographySettingsForm,{formId:"design-settings-form",initialFont:getKoreanFontOption("pretendard")!,defaultFont:getKoreanFontOption("pretendard")!,initialEnglishFont:getEnglishFontOption("alata")!,defaultEnglishFont:getEnglishFontOption("outfit")!,hasCustomKoreanFont:true,hasCustomEnglishFont:true,initialFontSizeScale:defaults.font_size_scale_key,initialRoleSettings:roles,templateType:"menu",templateKey:"cafe_design_a"}));
+ assert.equal((html.match(/name="korean_font_key"/g)||[]).length,1);
+ assert.equal((html.match(/name="english_font_key"/g)||[]).length,1);
+ assert.match(html,/name="common_fonts_present" value="1"/);
+ assert.match(html,/name="english_font_key" value="alata"/);
+ assert.match(html,/name="typography_role_brand_font_en_key" value=""/);
+ assert.match(html,/name="typography_role_category_font_en_key" value=""/);
+ assert.match(html,/name="typography_role_brand_color" value="#123456"/);
+ assert.match(html,/공통 한글 서체/);assert.match(html,/공통 영문 서체/);
+ const source=fs.readFileSync("app/mypage/menus/actions.ts","utf8");
+ const save=source.slice(source.indexOf("export async function updateDesignSettingsAction"),source.indexOf("export async function resetMenuCoverToPresetAction"));
+ assert.ok(save.includes('designSettings.commonFonts = true'));
+ const reset=source.slice(source.indexOf("export async function resetDesignSettingsToTemplateDefaultAction"),source.indexOf("async function assertCategoryBelongsToMenuSite"));
+ assert.ok(reset.includes('delete designSettings.commonFonts'));
 });

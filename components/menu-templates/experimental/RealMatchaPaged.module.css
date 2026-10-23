@@ -186,13 +186,8 @@
 .mobile[data-basic-structure="basic-upper-left"] :global(.cafe-a-cover-hero) { height: auto !important; min-height: 0 !important; aspect-ratio: 4 / 3 !important; flex: none !important; }
 .mobile[data-basic-structure="basic-upper-left"] :global(.cafe-a-cover-frame) { height: 100% !important; min-height: 0 !important; }
 
-.portraitCoverSlot { flex: 1; min-height: 0; min-width: 0; container-type: size; display: grid; place-items: end center; }
-.portraitCoverSlot .cover { align-self: end !important; justify-self: center; flex: none !important; width: min(100cqw, 80cqh) !important; height: auto !important; aspect-ratio: 4 / 5 !important; }
-/* Only the first-column neutral tablet has the taller representative crop. */
-.frame[data-basic-structure="basic-first-column"][data-preview-device="tablet"] .portraitCoverSlot .cover {
-  width: min(100cqw, 66.666667cqh) !important;
-  aspect-ratio: 4 / 6 !important;
-}
+.portraitCoverSlot { display: flex; flex-direction: column; flex: 1 1 0; min-height: clamp(6rem, 16vh, 10rem); min-width: 0; }
+.portraitCoverSlot .cover { align-self: stretch !important; width: 100% !important; height: auto !important; aspect-ratio: auto !important; flex: 1 1 0 !important; }
 .mobile[data-portrait-cover="true"] :global(.cafe-a-cover-hero) { height: auto !important; min-height: 0 !important; aspect-ratio: 4 / 5 !important; flex: none !important; }
 
 /* A logo uses the existing top-row title cell without enlarging the header. */
@@ -220,3 +215,16 @@
 .albumGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); gap: calc(var(--cafe-a-item-rhythm-gap) * 1.5) var(--scroll-column-gap); margin-top: calc(var(--cafe-a-item-rhythm-gap) * 1.25); }
 .albumGrid > div { min-width: 0; }
 .albumSections > section { min-width: 0; }
+
+/* PC/tablet representative pictures fill their full rail width and remainder. */
+.frame .cover { min-height: clamp(6rem, 16vh, 10rem) !important; aspect-ratio: auto !important; }
+.frame .cover :global(.cafe-a-cover-frame) { width: 100% !important; aspect-ratio: auto !important; }
+.frame[data-basic-structure="basic-upper-left"] .cover { height: clamp(10rem, 34vh, 24rem) !important; }
+.frame[data-representative-panel="true"][data-basic-structure="basic-first-column"] { padding: 0 var(--scroll-page-inset) 0 0; }
+.frame[data-representative-panel="true"][data-basic-structure="basic-first-column"] > .brand { padding: var(--scroll-page-inset); box-sizing: border-box; }
+.frame[data-representative-panel="true"][data-basic-structure="basic-first-column"] > .menuPanel { padding-block: var(--scroll-page-inset); box-sizing: border-box; }
+.frame[data-representative-panel="true"][data-basic-structure="basic-top-row"] { padding: 0 0 var(--scroll-page-inset); }
+.frame[data-representative-panel="true"] > .topRow { padding: var(--scroll-page-inset); box-sizing: border-box; }
+.frame[data-representative-panel="true"][data-basic-structure="basic-top-row"] > .brand { margin-left: var(--scroll-page-inset); }
+.frame[data-representative-panel="true"][data-basic-structure="basic-top-row"] > .menuPanel { margin-right: var(--scroll-page-inset); }
+.frame[data-representative-panel="true"][data-basic-structure="basic-top-row"][data-show-cover="false"] > .menuPanel { margin-inline: var(--scroll-page-inset); }

@@ -1,9 +1,6 @@
 import { getBalancedBrandLinePlans, normalizeMobileBrandTitle, type MobileBrandTitleFit } from "./mobile-brand-title-fit";
 
-export const CANVAS_BRAND_TWO_LINE_GAIN = 1.15;
-export const CANVAS_BRAND_WORD_LINE_BALANCE = 1 / 3;
 export const CANVAS_BRAND_FRAME_HEIGHT_RATIO = 0.18;
-export const CANVAS_PC_HEADER_BRAND_CEILING_SCALE = 0.875;
 export const CANVAS_HEADER_BASE_RATIO = 0.08;
 export const CANVAS_HEADER_MAX_RATIO = 0.14;
 
@@ -22,64 +19,39 @@ export function getCanvasHeaderRatio(frameHeight: number, fontSize: number, line
 export type CanvasBrandSlotLayout = "horizontal-header" | "brand-column";
 
 export function getCanvasBrandHeight(width: number, frameHeight: number, layout: CanvasBrandSlotLayout) {
-  // A horizontal title must remain a compact band, not expand to the tall
-  // brand-rail budget merely because a two-word title can become two lines.
+  // Initial geometry hint only. Actual title/copy height can grow the header;
+  // this budget must never shrink a title below the category hierarchy.
   const frameRatio = layout === "horizontal-header" ? CANVAS_HEADER_MAX_RATIO : CANVAS_BRAND_FRAME_HEIGHT_RATIO;
   return Math.min(frameHeight * frameRatio, layout === "horizontal-header" ? width * 0.28 : Infinity);
 }
 
-export function getCanvasBrandLimits(width: number, layout: CanvasBrandSlotLayout, rootScale = 1) {
-  // All dimensions come from the slot, never a template or device's fixed px.
-  // A width-relative floor prevents extreme names becoming illegible solely
-  // to chase coverage; those names use the existing text-preserving fallback.
-  const horizontal = layout === "horizontal-header";
-  const minimum = Math.max(0, width) * (horizontal ? 0.08 : 0.1) * rootScale;
-  return { minimum, maximum: horizontal ? Math.max(minimum, width * 0.22 * rootScale) : Infinity, widthRatio: horizontal ? 0.65 : 0.75 };
+export function getCanvasBrandLimits(width: number, _layout: CanvasBrandSlotLayout, rootScale = 1, categorySize = 32 * rootScale) {
+  const minimum = Math.max(40 * rootScale, categorySize * 1.25);
+  return { minimum, maximum: Math.max(minimum, categorySize * 2.5, width * .32), preferred: Math.max(minimum, categorySize * 1.75), widthRatio: 1 };
 }
 
-/** Same inputs and scoring for every skin: no template IDs or per-template sizes. */
+/** Shared PC/tablet title hierarchy. Font names never select a policy. */
 export function selectCanvasBrandTitleFit(title: string, widths: ReadonlyMap<string, number>, width: number, height: number,
-  limits: ReturnType<typeof getCanvasBrandLimits>, measuredLineAdvance = 1.08, ceilingScale = 1, opticalScale = 1): MobileBrandTitleFit {
+  limits: ReturnType<typeof getCanvasBrandLimits>, measuredLineAdvance = 1.08, _ceilingScale = 1, opticalScale = 1): MobileBrandTitleFit {
   const text = normalizeMobileBrandTitle(title);
-  const lineAdvance = Math.max(1.08, measuredLineAdvance);
+  void height; void measuredLineAdvance; void _ceilingScale;
   const fallback = { lines: text ? [text] : [], fontSize: limits.minimum, naturalWrap: true };
-  if (!text || !Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) return fallback;
+  if (!text || !Number.isFinite(width) || width <= 0) return fallback;
+  const maximum = limits.maximum * Math.max(1, opticalScale);
   for (const plans of getBalancedBrandLinePlans(title, widths)) {
-    const candidates = plans.flatMap((plan) => {
-      const count = plan.lines.length;
-      // CJK fallback font metrics can expand the actual line box beyond 1.08.
-      // Use its measured advance plus the common 0.12em safe padding.
-      // Font-metric correction may expand the width target and nominal ceiling,
-      // but it must never expand the fixed slot height.
-      const safeOpticalScale = Math.max(1, opticalScale);
-      const safeCeilingScale = Math.min(1, Math.max(0, ceilingScale));
-      const size = Math.min(
-        limits.maximum * safeOpticalScale,
-        width * limits.widthRatio * safeOpticalScale * 100 / plan.widest,
-        height / (lineAdvance * count + 0.12),
-      ) * safeCeilingScale;
-      if (plan.widest * limits.minimum / 100 > width + 0.01 || (lineAdvance * count + 0.12) * limits.minimum > height + 0.01) return [];
-      return [{ lines: plan.lines, fontSize: Math.max(limits.minimum, size), naturalWrap: false }];
+    const candidates = plans.flatMap(plan => {
+      if (plan.widest * limits.minimum / 100 > width + .01) return [];
+      return [{lines: plan.lines, fontSize: Math.max(limits.minimum, Math.min(maximum, width * 100 / plan.widest)), naturalWrap: false}];
     });
     if (!candidates.length) continue;
-    const single = candidates.find((candidate) => candidate.lines.length === 1);
-    const double = candidates.find((candidate) => candidate.lines.length === 2);
-    if (single && double) {
-      const lineWidths = double.lines.map((line) => widths.get(line) ?? 0);
-      const balance = Math.min(...lineWidths) / Math.max(...lineWidths);
-      // Complete word groups may have unequal widths (e.g. CAFE / ARTIMENU).
-      // Keep substantial lines, never a one/two-character orphan, and require
-      // the same measured size gain inside the existing width/height budget.
-      const wholeWordLines = text.includes(" ") && double.lines.join(" ") === text
-        && double.lines.every(line => Array.from(line.replace(/\s/gu, "")).length >= 3);
-      const balanced = balance >= 0.5 || (wholeWordLines && balance >= CANVAS_BRAND_WORD_LINE_BALANCE);
-      const singleCoverage = (widths.get(text) ?? 0) * single.fontSize / 100;
-      const floorExceededTarget = singleCoverage > width * limits.widthRatio * 1.05;
-      return balanced && (double.fontSize >= single.fontSize * CANVAS_BRAND_TWO_LINE_GAIN || floorExceededTarget) ? double : single;
-    }
-    return single ?? double ?? candidates[0];
+    const single = candidates.find(candidate => candidate.lines.length === 1);
+    const double = candidates.find(candidate => candidate.lines.length === 2);
+    // Preserve a comfortable one-line title. If it would fall below the
+    // semantic preferred size, use two whole-word lines when they are larger.
+    if (single) return double && single.fontSize < limits.preferred && double.fontSize > single.fontSize ? double : single;
+    // Word groups first, emergency grapheme breaks only when an intact word
+    // cannot fit at the title minimum. Never shrink below category hierarchy.
+    return candidates[0];
   }
-  // Impossible minimum/box combination: preserve the whole text with natural
-  // wrapping instead of truncating or silently violating the minimum.
   return fallback;
 }

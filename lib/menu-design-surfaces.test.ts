@@ -55,3 +55,15 @@ test('Dining design round-trip restores cover and sidebar colors without replaci
  assert.equal(back.pageSettings.multi_page_cover_background_color,'#301122');assert.equal(back.pageSettings.multi_page_cover_background_opacity,62);
  assert.deepEqual(back.pageSettings.design,original.pageSettings.design);assert.equal(back.pageSettings.menu_cover_enabled,true);
 });
+
+
+test('editor auxiliary defaults distinguish no fill from explicit white and native colors',()=>{
+ assert.equal(menuSurfaceDefaults('cafe_design_a').auxiliaryBackground,null);
+ assert.equal(menuSurfaceDefaults('cafe_sunday_line_a').auxiliaryBackground,null);
+ const white=withMenuSurfaceSettings({}, {}, 'cafe_design_a', {auxiliaryBackground:'#FFFFFF'});
+ assert.equal(readMenuSurfaceSettings(white).auxiliaryBackground,'#FFFFFF');
+ const cleared=withMenuSurfaceSettings(white, {}, 'cafe_design_a', {});
+ assert.equal(readMenuSurfaceSettings(cleared).auxiliaryBackground,undefined);
+ assert.equal(getMenuDesignBackgrounds('cafe_design_a',cleared).coloredPanel,false);
+ assert.equal(getMenuDesignBackgrounds('cafe_mocha_forest_a',{}).coloredPanel,true);
+});

@@ -12,8 +12,8 @@ test("Loop Bagel keeps its font profile while using the shared one-page item cei
   assert.match(templateSource, /getOnePageItemNameCeilingRem\(menuCoverRenderDevice\)/);
   assert.doesNotMatch(templateSource, /fast_food_loop_bagel_a[^\n]*ceilingScale/);
   assert.doesNotMatch(canvasBrandSource, /isEdgeBrandColumn|widthRatio: 1|ceilingScale\?:/);
-  assert.match(canvasBrandSource, /const limits = getCanvasBrandLimits\(width, layout, remScale\)/);
-  assert.match(canvasBrandSource, /device === "pc" && layout === "horizontal-header" \? CANVAS_PC_HEADER_BRAND_CEILING_SCALE : 1/);
+  assert.match(canvasBrandSource, /const limits = getCanvasBrandLimits\(width, layout, remScale, categorySize\)/);
+  assert.match(canvasBrandSource, /const appliedCeilingScale = 1/);
 });
 
 test("Loop Bagel reduces non-heading type only on PC and tablet", () => {

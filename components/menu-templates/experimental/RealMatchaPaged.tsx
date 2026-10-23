@@ -1,4 +1,5 @@
 "use client";
+import { getMenuDesignBackgrounds } from "@/lib/template-background-colors";
 import { useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
 import {
   useEffect,
@@ -529,8 +530,8 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
           } as CSSProperties
         }
         data-menu-text-colors={getTypographyCustomColorRoles(typographySettings)}
-        data-scroll-brand-board={topRow ? "" : undefined}
-        data-basic-structure={structure}
+        data-scroll-brand-board
+        data-basic-structure={structure} data-representative-panel={getMenuDesignBackgrounds("cafe_design_a", data.menuSite.page_settings).coloredPanel ? "true" : undefined}
         data-default-reading={defaultStructure ? "true" : undefined}
         data-show-cover={showCover ? "true" : "false"}
         data-template-key="cafe_design_a"

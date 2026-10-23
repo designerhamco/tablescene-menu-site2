@@ -1822,6 +1822,7 @@ export async function updateTypographySettingsAction(formData: FormData) {
     designSettings.fontSizeScale = fontSizeScaleKey;
   }
   setDesignTypographyRoleSettings(designSettings, typographyRoleSettings, menuSite.template_key);
+  if (formData.get("common_fonts_present") === "1") designSettings.commonFonts = true;
 
   if (Object.keys(designSettings).length > 0) {
     pageSettings.design = designSettings;
@@ -2895,6 +2896,7 @@ export async function resetTypographySettingsAction(formData: FormData) {
   delete designSettings.koreanFont;
   delete designSettings.englishFont;
   delete designSettings.fontSizeScale;
+  delete designSettings.commonFonts;
   delete designSettings.typographyRoles;
   delete designSettings.typography_roles;
   if (Object.keys(designSettings).length > 0) {
@@ -2976,6 +2978,7 @@ export async function updateDesignSettingsAction(formData: FormData) {
     designSettings.fontSizeScale = fontSizeScaleKey;
   }
   setDesignTypographyRoleSettings(designSettings, typographyRoleSettings, menuSite.template_key);
+  if (formData.get("common_fonts_present") === "1") designSettings.commonFonts = true;
   delete designSettings.onePageLayoutShell;
   delete designSettings.one_page_layout_shell;
 
@@ -3145,6 +3148,7 @@ export async function resetDesignSettingsToTemplateDefaultAction(formData: FormD
   delete designSettings.koreanFont;
   delete designSettings.englishFont;
   delete designSettings.fontSizeScale;
+  delete designSettings.commonFonts;
   delete designSettings.typographyRoles;
   delete designSettings.typography_roles;
   delete designSettings.onePageLayoutShell;
