@@ -20,6 +20,10 @@ ROSY ORANGE derives its PC/tablet center-rail geometry from the neutral center-c
 
 Every active center-column Basic presentation, including the neutral default, places enabled Call/Order actions side by side beneath the representative content. Equal button widths and a compact gap preserve the center rail; narrow rails may place each button's icon above its label without stacking the two buttons or reducing readable type. Call-only native circles retain their existing shape. Existing category-color action palettes, representative geometry, product type sizes and mobile action placement remain unchanged.
 
+## Preview option tab contrast — 2026-10-23
+
+The Functional/Design tab selector inside the preview option panel uses the existing dark action surface and white text for the selected tab. Unselected tabs retain the light-gray rail and readable dark-gray text. Hover, pressed and keyboard-focus states use the existing action/focus tokens, with reduced-motion support. Keep these states local to the two preview option tabs; preserve panel geometry, menu rendering and other site tab designs.
+
 ## Preview option overlay — 2026-10-21
 
 At actual browser widths of 960px and above, catalog options start **open** as a light left-edge overlay, including links that select the Design tab. Opening or closing covers/reveals the menu without reserving a side column, shifting the centered preview, or changing its size or display scale. The dark top device/service toolbar stays centered in the full browser width; the open drawer sits below it so both controls remain usable. Drawer state must preserve the iframe document, source size and menu scroll position. Tablet/mobile use their registered dimensions/orientation; PC uses the actual outer browser viewport. Only an actual browser resize or selected device/orientation changes source geometry. This supersedes the earlier collapsed/reserved-column/scaled-preview behavior.
