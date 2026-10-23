@@ -2,6 +2,8 @@ import type { CSSProperties } from "react";
 export const IMAGE_RADIUS_KEYS = ["advertisement", "cover", "item", "widget", "logo"] as const;
 export type ImageRadiusKey = typeof IMAGE_RADIUS_KEYS[number];
 export const IMAGE_RADIUS_LABELS: Record<ImageRadiusKey, string> = { advertisement: "광고 이미지", cover: "대표 이미지", item: "상품 이미지", widget: "위젯 이미지", logo: "로고 이미지" };
+/** Logos keep their transparent artwork; full-bleed Dining covers keep their native frame. */
+export const UNIFIED_IMAGE_RADIUS_KEYS = ["advertisement", "cover", "item", "widget"] as const;
 export const MAX_IMAGE_RADIUS = 32;
 export const IMAGE_RADIUS_PRESETS = [
   { value: "template", label: "템플릿 기본값", radius: undefined },
@@ -20,6 +22,23 @@ export const CHIP_SHAPE_LABELS: Record<ChipShape,string> = { template: "템플�
 export const ALBUM_IMAGE_RATIOS = ["1:1", "4:5", "5:4"] as const;
 export type AlbumImageRatio = typeof ALBUM_IMAGE_RATIOS[number];
 export type MenuAppearance = { imageRadii: Partial<Record<ImageRadiusKey, number>>; chipShape: ChipShape; albumImageRatio: AlbumImageRatio };
+const unifiedChipShape = (radius?: number): ChipShape => radius === undefined ? "template" : radius === 0 ? "square" : radius <= 8 ? "soft" : radius <= 16 ? "rounded" : "pill";
+
+/** Preserve legacy independent choices until the user explicitly selects a shared preset. */
+export function unifiedAppearanceRadius(appearance: MenuAppearance, basic: boolean) {
+  const keys = UNIFIED_IMAGE_RADIUS_KEYS.filter(key => basic || key !== "cover");
+  const radius = appearance.imageRadii[keys[0]];
+  const mixed = keys.some(key => appearance.imageRadii[key] !== radius) || appearance.chipShape !== unifiedChipShape(radius);
+  return { radius, mixed };
+}
+export function withUnifiedAppearanceRadius(appearance: MenuAppearance, radius: number | undefined, basic: boolean): MenuAppearance {
+  const imageRadii = { ...appearance.imageRadii };
+  for (const key of UNIFIED_IMAGE_RADIUS_KEYS) {
+    if (!basic && key === "cover") continue;
+    if (radius === undefined) delete imageRadii[key]; else imageRadii[key] = radius;
+  }
+  return { ...appearance, imageRadii, chipShape: unifiedChipShape(radius) };
+}
 const object = (value: unknown): Record<string, unknown> => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 export function normalizeMenuAppearance(value: unknown): MenuAppearance {
   const raw = object(value), radii = object(raw.imageRadii);

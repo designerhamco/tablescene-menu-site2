@@ -24,7 +24,7 @@ export default function MenuSurfaceSettingsForm({ pageSettings, settings, templa
       <label className="block space-y-2 text-sm font-semibold">대표영역 내용 정렬<select form={formId} name="representative_alignment" value={value.representativeAlignment ?? "template"} disabled={disabled} className="block h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-zinc-900" onChange={event => setValue(current => ({ ...current, representativeAlignment: event.target.value === "template" ? undefined : event.target.value as MenuSurfaceSettings["representativeAlignment"] }))}>
         <option value="template">템플릿 기본값</option>{REPRESENTATIVE_ALIGNMENTS.map(align => <option key={align} value={align}>{{ left: "왼쪽 정렬", center: "가운데 정렬", right: "오른쪽 정렬" }[align]}</option>)}
       </select></label>
-      <p className="text-xs leading-relaxed text-zinc-500">보조 배경색은 대표영역에 적용됩니다. 페이지와 색상이 다르면 패널 안쪽 여백과 열 사이 간격을 함께 조정합니다. 정렬은 모든 기기에 적용됩니다.</p>
+      <p className="text-xs leading-relaxed text-zinc-500">보조 배경색은 대표영역에 적용됩니다. 페이지와 색상이 다르면 패널 안쪽 여백과 열 사이 간격을 함께 조정합니다. 가게명과 가게 설명의 정렬은 모든 기기에 적용되며, 대표 상품 정보는 항상 왼쪽 정렬을 유지합니다.</p>
     </> : <p className="text-xs leading-relaxed text-zinc-500">커버 이미지의 배경 불투명도는 커버 설정을 따릅니다.{support.sidebar ? " 좌측 메뉴열 색상은 모바일의 페이지 탭에도 적용됩니다." : ""}</p>}
   </section>;
 }

@@ -63,3 +63,7 @@
 `.menu-typography`, `.aube-table-root`의 루트와 하위 요소, `[data-template-artwork]` 내부는 사이트 UI 호환 선택자에서 제외한다.
 사이트 토큰은 `--ui-*`/`--site-*`를 사용한다. 메뉴의 기존 Tailwind 기본 토큰과 `--menu-*`/`--cafe-*`에는 새 값을 주입하지 않는다.
 `app/globals.css`의 메뉴 엔진 CSS는 이 작업의 변경 대상이 아니다.
+
+## Ghost navigation disabled state — 2026-10-23
+
+Ghost pagination/icon controls retain transparent background and border when disabled, with the original 45% opacity. They must not inherit the filled/outline button disabled surface. Active-page styling stays local to pagination. This restores the pre-audit pagination presentation without changing normal outlined buttons or their boundaries.
