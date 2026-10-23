@@ -21,6 +21,13 @@ test('Basic surface save round-trips colors/alignment and preserves content-rela
  const reset=withMenuSurfaceSettings(saved,{},'cafe_design_a',{});
  assert.deepEqual(readMenuSurfaceSettings(reset),{});assert.deepEqual((reset.design as Record<string,unknown>).appearance,original.design.appearance);
 });
+test('native and saved center panels switch geometry from their visible background',()=>{
+ assert.equal(getMenuDesignBackgrounds('cafe_round_focus_a',{}).coloredPanel,true);
+ assert.equal(getMenuDesignBackgrounds('cafe_round_focus_a',{design:{backgroundColor:'#FFFFFF',auxiliaryBackgroundColor:'#FFFFFF'}}).coloredPanel,false);
+ assert.equal(getMenuDesignBackgrounds('cafe_round_focus_a',{design:{backgroundColor:'#FFFFFF',auxiliaryBackgroundColor:'#F4E7CF'}}).coloredPanel,true);
+ assert.equal(getMenuDesignBackgrounds('cafe_design_a',{}).coloredPanel,false);
+ assert.equal(getMenuDesignBackgrounds('cafe_design_a',{design:{backgroundColor:'#FFFFFF',auxiliaryBackgroundColor:'#F4E7CF'}}).coloredPanel,true);
+});
 test('older forms preserve settings; invalid color/alignment fail before a write',()=>{
  assert.equal(menuSurfaceSettingsFromForm(form({}),'cafe_design_a'),undefined);
  for(const value of ['#fff','url(https://evil.test)','transparent'])assert.throws(()=>menuSurfaceSettingsFromForm(form({menu_surfaces_present:'1',surface_pageBackground:value}),'cafe_design_a'));

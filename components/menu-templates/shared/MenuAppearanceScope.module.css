@@ -23,8 +23,23 @@
 .scope[data-design-aux-background] :global([data-paged-brand]), .scope[data-design-aux-background] :global([data-basic-top-row]), .scope[data-design-aux-background] :global([data-native-brand]), .scope[data-design-aux-background] :global(.cafe-a-topline-info-header) { background: var(--menu-design-aux-bg) !important; box-sizing: border-box; }
 .scope[data-design-aux-background] :global([data-native-brand] .cafe-a-fixed-rail) { background: transparent !important; }
 .scope[data-design-aux-background] :global(.cafe-a-mobile-upper-box), .scope[data-design-aux-background] :global(.cafe-a-round-focus-mobile-brand-section), .scope[data-design-aux-background] :global(.cafe-a-mobile-header-copy), .scope[data-design-aux-background] :global(.cafe-a-panel-mobile-intro) { background: var(--menu-design-aux-bg) !important; }
-.scope[data-design-colored-panel] :global([data-basic-structure]:not([data-basic-structure="basic-top-row"]) [data-paged-brand]) { padding: var(--scroll-page-inset); }
-.scope[data-design-colored-panel] :global(.cafe-a-typography:not([data-cafe-a-skin="mocha_forest"]) [data-native-shell="brand_left_rail"] > [data-native-brand]), .scope[data-design-colored-panel] :global([data-native-shell="brand_center_column"] > [data-native-brand]) { padding: var(--native-gap); }
+.scope[data-design-colored-panel] :global([data-basic-structure]:not([data-basic-structure="basic-top-row"]):not([data-basic-structure="basic-center-column"]) [data-paged-brand]) { padding: var(--scroll-page-inset); }
+/* A colored center panel owns the full page-height stripe. Its content keeps
+   the shared vertical reading inset and a compact horizontal inset; menu
+   gutters continue to be measured from the colored outer edge. */
+.scope[data-design-colored-panel] :global([data-basic-structure="basic-center-column"] > [data-paged-brand]) {
+  top: 0;
+  bottom: 0;
+  padding: var(--scroll-page-inset) clamp(.75rem, 1.8vmin, 1.5rem);
+  box-sizing: border-box;
+}
+.scope[data-design-colored-panel] :global(.cafe-a-typography:not([data-cafe-a-skin="mocha_forest"]) [data-native-shell="brand_left_rail"] > [data-native-brand]) { padding: var(--native-gap); }
+.scope[data-design-colored-panel] :global([data-native-shell="brand_center_column"] > [data-native-brand]) {
+  top: 0;
+  bottom: 0;
+  padding: var(--native-gap) clamp(.75rem, 1.8vmin, 1.5rem);
+  box-sizing: border-box;
+}
 .scope[data-design-sidebar-background] :global(.aube-table-root) { --aube-sidebar: var(--menu-design-sidebar-bg) !important; --aube-sidebar-hover: var(--menu-design-sidebar-bg) !important; --aube-sidebar-text: var(--menu-design-sidebar-ink) !important; }
 .scope[data-design-brand-ink] :global(.cafe-a-typography[data-template-key] .cafe-a-store-title), .scope[data-design-brand-ink] :global(.aube-table-root .aube-table-cover h1) { color: var(--menu-design-brand-ink) !important; }
 .scope[data-design-category-ink] :global(.cafe-a-typography[data-template-key] .cafe-a-category-title), .scope[data-design-category-ink] :global(.aube-table-root .aube-table-course-title h2) { color: var(--menu-design-category-ink) !important; }

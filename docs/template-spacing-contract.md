@@ -1,5 +1,11 @@
 # Menu template spacing contract
 
+## Center-column background geometry — 2026-10-23
+
+Basic center-column presentations use two geometry modes derived from the visible auxiliary surface. A center surface that differs from the page, including ROSY ORANGE's native gradient when no override replaces it, spans the complete page height. Its content keeps the common top/bottom reading inset and a compact responsive inline inset. The left and right menu gutters are measured from the colored panel's outer edges, while the panel padding remains internal to its fixed 24% occupied slot.
+
+If the auxiliary surface is cleared or explicitly equals the page background, the presentation returns to the unpanelled center geometry: the representative rail uses the ordinary page top/bottom inset, releases the colored-panel inline padding, and the menu uses the standard center-slot spacing. This affects PC/tablet only; mobile retains its independent reading flow and spacing.
+
 ## Center-column language and service actions — 2026-10-23
 
 ROSY ORANGE derives its PC/tablet center-rail geometry from the neutral center-column list design. The rail uses the same page inset, 24% content-width slot, 1.5rem internal block gap, and 44px language trigger with a 24px globe. The globe sits in normal flow at the rail's upper-left, so the following store identity starts after the same 24px gap rather than overlapping the control. The menu tracks reserve that same center slot and surrounding page gutters. Mobile keeps its independent Call bar, body rhythm and bottom dock. The trigger follows rendered brand ink and the language list follows category ink, through logo/cover and palette changes.

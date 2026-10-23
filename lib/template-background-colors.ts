@@ -57,5 +57,13 @@ export function getMenuDesignBackgrounds(templateKey: string, pageSettings: unkn
   const auxiliary = normalizeBackgroundColor(design?.auxiliaryBackgroundColor);
   const sidebar = normalizeBackgroundColor(design?.sidebarBackgroundColor);
   const nativePage = templateKey === "cafe_mocha_forest_a" ? "#F4EDDC" : getTemplateDefaultBackgroundColor(templateKey);
-  return { page, auxiliary, sidebar, coloredPanel: Boolean(auxiliary && auxiliary !== (page ?? nativePage).toUpperCase()) };
+  const nativeColoredPanel = templateKey === "cafe_round_focus_a";
+  return {
+    page,
+    auxiliary,
+    sidebar,
+    coloredPanel: auxiliary
+      ? auxiliary !== (page ?? nativePage).toUpperCase()
+      : nativeColoredPanel,
+  };
 }
