@@ -12,10 +12,12 @@ import {
   GUIDE_PLANS,
   GUIDE_VIDEOS,
   getGuideSections,
+  normalizeGuidePlan,
   guideVideoKey,
   type GuideControl,
   type GuideStep,
   type GuidePlan,
+  type GuideTabPlan,
   type GuideDevice,
   type GuideBrowser,
   type GuideSection,
@@ -143,11 +145,23 @@ function GuideArticle({
       tabIndex={-1}
       aria-labelledby={`${plan}-${section.id}-title`}
     >
-      <VideoFrame
-        title={section.title}
-        video={GUIDE_VIDEOS[guideVideoKey(plan, device, browser, section.id)]}
-      />
-      <div className={styles.articleCopy}>
+      <div
+        className={styles.media}
+        data-guide-media
+        id={plan === "basic" ? `dining-${section.id}` : undefined}
+      >
+        <VideoFrame
+          title={section.title}
+          video={GUIDE_VIDEOS[guideVideoKey(plan, device, browser, section.id)]}
+        />
+      </div>
+      <div
+        className={styles.articleCopy}
+        data-guide-description
+        role="region"
+        aria-labelledby={`${plan}-${section.id}-title`}
+        tabIndex={0}
+      >
         <h2
           id={`${plan}-${section.id}-title`}
           className="type-subsection-title"
@@ -185,7 +199,9 @@ export default function UsageGuidePage({
 }: {
   initialPlan?: GuidePlan;
 }) {
-  const [plan, setPlan] = useState<GuidePlan>(initialPlan);
+  const [plan, setPlan] = useState<GuideTabPlan>(() =>
+    normalizeGuidePlan(initialPlan),
+  );
 
   return (
     <div className={styles.page} data-usage-guide>
@@ -203,7 +219,7 @@ export default function UsageGuidePage({
         </header>
         <Tabs
           value={plan}
-          onValueChange={(value) => setPlan(value as GuidePlan)}
+          onValueChange={(value) => setPlan(normalizeGuidePlan(value))}
           className={styles.tabs}
         >
           <TabsList aria-label="플랜별 사용가이드" className={styles.planTabs}>

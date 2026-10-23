@@ -1,4 +1,5 @@
 export type GuidePlan = "basic" | "dining" | "display";
+export type GuideTabPlan = "basic" | "display";
 export type GuideDevice = "windows" | "mac" | "ipad" | "android";
 export type GuideBrowser = "chrome" | "edge" | "safari" | "samsung";
 export type GuideSectionId = "connection" | "fullscreen" | "zoom";
@@ -22,11 +23,7 @@ export type GuideSection = {
 export const GUIDE_PLANS = [
   {
     id: "basic",
-    label: "베이직",
-  },
-  {
-    id: "dining",
-    label: "다이닝",
+    label: "베이직•다이닝",
   },
   {
     id: "display",
@@ -54,8 +51,8 @@ export const GUIDE_BROWSER_LABELS: Record<GuideBrowser, string> = {
 // Example key: basic:mac:safari:fullscreen. Missing footage renders a clear placeholder.
 export const GUIDE_VIDEOS: Readonly<Partial<Record<string, GuideVideo>>> = {};
 
-export function normalizeGuidePlan(value: string | undefined): GuidePlan {
-  return value === "dining" || value === "display" ? value : "basic";
+export function normalizeGuidePlan(value: string | undefined): GuideTabPlan {
+  return value === "display" ? "display" : "basic";
 }
 export function getGuideDevice(
   plan: GuidePlan,
