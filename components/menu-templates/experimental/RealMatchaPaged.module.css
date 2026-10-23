@@ -228,3 +228,6 @@
 .frame[data-representative-panel="true"][data-basic-structure="basic-top-row"] > .brand { margin-left: var(--scroll-page-inset); }
 .frame[data-representative-panel="true"][data-basic-structure="basic-top-row"] > .menuPanel { margin-right: var(--scroll-page-inset); }
 .frame[data-representative-panel="true"][data-basic-structure="basic-top-row"][data-show-cover="false"] > .menuPanel { margin-inline: var(--scroll-page-inset); }
+
+/* Shared usable width includes colored panel padding in the occupied rail. */
+.frame[data-basic-structure="basic-first-column"] { grid-template-columns: minmax(0, var(--scroll-rail-width, calc((100% - 2 * var(--scroll-column-gap)) / 3))) minmax(0, 1fr); }

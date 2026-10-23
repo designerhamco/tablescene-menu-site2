@@ -1,4 +1,5 @@
 "use client";
+import { getRepresentativeRailGeometry } from "@/lib/representative-rail-geometry";
 import { getMenuDesignBackgrounds } from "@/lib/template-background-colors";
 import { useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
 import {
@@ -111,6 +112,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   const topRow = structure === "basic-top-row";
   const centerColumn = structure === "basic-center-column";
   const upperLeft = structure === "basic-upper-left";
+  const leftColumn = structure === "basic-first-column";
   const layoutMode = data.mode === "preview" && data.previewLayoutMode
     ? data.previewLayoutMode
     : getPcTabletLayoutModeFromPageSettings(data.menuSite.page_settings, "cafe_design_a");
@@ -279,6 +281,8 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     if (mobile || album || !area.current || !measure.current) return;
     let disposed = false,
       raf = 0;
+    const rejectedRailColumns = new Set<number>();
+    let railFrameKey = "";
     const update = () => {
       if (disposed || !area.current || !measure.current) return;
       const bounds = area.current.getBoundingClientRect();
@@ -288,10 +292,18 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const brandWidth = brandArea.current?.getBoundingClientRect().width ?? 0;
       const width = centerColumn ? regionWidth - brandWidth - gap : regionWidth;
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      const root = area.current.closest<HTMLElement>("[data-scroll-template]")!;
+      const boardStyle = getComputedStyle(root);
+      const brandStyle = brandArea.current ? getComputedStyle(brandArea.current) : null;
+      const boardWidth = root.getBoundingClientRect().width - parseFloat(boardStyle.paddingLeft) - parseFloat(boardStyle.paddingRight);
+      const panelPadding = (parseFloat(brandStyle?.paddingLeft ?? "0") || 0) + (parseFloat(brandStyle?.paddingRight ?? "0") || 0);
+      const scrollbar = area.current.offsetWidth - area.current.clientWidth;
+      const railGeometry = (count: number) => getRepresentativeRailGeometry(boardWidth, panelPadding, gap, count, scrollbar);
+      const frameKey = `${boardWidth}|${root.clientHeight}`;
+      if (frameKey !== railFrameKey) { rejectedRailColumns.clear(); railFrameKey = frameKey; }
       // The menu region already excludes the fixed brand column and its gutter.
       // Automatic tracks stop at three. Overflow stays on the scroll surface.
       const maxColumns = Math.max(1, Math.min(centerColumn ? 2 : 3, Math.floor((width + gap) / (12 * rem + gap))));
-      const root = area.current.closest<HTMLElement>("[data-scroll-template]")!;
       if (upperLeft) {
         const boardStyle = getComputedStyle(root);
         const innerHeight = root.clientHeight - parseFloat(boardStyle.paddingTop) - parseFloat(boardStyle.paddingBottom);
@@ -302,7 +314,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const collect = (columnCount: number, reference = false) => {
         measure.current!.toggleAttribute("data-cafe-a-three-part-reference", reference);
         // Match fractional CSS grid widths; integer clientWidth can cross a text-wrap boundary.
-        const columnWidth = Math.min(columnCount === 1 ? 40 * rem : Infinity, (width - (columnCount - 1) * gap) / columnCount);
+        const columnWidth = leftColumn ? railGeometry(columnCount).trackWidth : Math.min(columnCount === 1 ? 40 * rem : Infinity, (width - (columnCount - 1) * gap) / columnCount);
         measure.current!.style.width = `${columnWidth}px`;
         applyOnePageChipLayouts(measure.current!);
         const measured = units.map(u => {
@@ -321,29 +333,42 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         measure.current!.removeAttribute("data-cafe-a-three-part-reference");
         return candidate;
       };
-      const setSize = (size: number) => {
+      const setSize = (size: number, readingWidth = width) => {
         root.style.setProperty("--scroll-item-size", `${size}px`);
         // The original shared gap mapper and 0.74 rhythm coefficient remain authoritative.
         const base = Math.min(1.08 * rem, 0.88 * rem + Math.min(innerWidth, innerHeight) * 0.002);
-        root.style.setProperty("--fit-menu-gap-scale", String(getOrderedFitGapScale(size / base, width)));
+        root.style.setProperty("--fit-menu-gap-scale", String(getOrderedFitGapScale(size / base, readingWidth)));
       };
       // Grouping changes partition boundaries, never the shared reading size.
-      const counts = centerColumn ? [2] : Array.from({ length: maxColumns }, (_, index) => index + 1);
+      const counts = centerColumn ? [2] : leftColumn ? [1, 2, 3].filter(count => count === 1 || (!rejectedRailColumns.has(count) && railGeometry(count).trackWidth >= 12 * rem)) : Array.from({ length: maxColumns }, (_, index) => index + 1);
       const candidates = counts.map(count => {
         const ceiling = (getOnePageItemNameCeilingRem(device) ?? 1.3) * rem;
         // Compare names at one shared reading size. Shrinking a cramped 3-track
         // candidate must not disguise its width/wrapping cost during selection.
-        setSize(ceiling);
+        setSize(ceiling, leftColumn ? railGeometry(count).menuWidth : width);
         const natural = collect(count);
         const names = measureScrollableNames(measure.current!);
         return { ...natural, itemSize: ceiling, names };
       });
       const selected = selectScrollableMenuCandidate(candidates, grouped) as typeof candidates[number];
-      setSize(selected.itemSize);
+      if (leftColumn) {
+        const geometry = railGeometry(selected.columnCount);
+        root.style.setProperty("--scroll-rail-width", `${geometry.railWidth}px`);
+        root.dataset.representativeContentWidth = String(geometry.trackWidth);
+      }
+      setSize(selected.itemSize, leftColumn ? railGeometry(selected.columnCount).menuWidth : width);
       collect(selected.columnCount); // Restore final-width chip/rhythm measurements after probes.
       measure.current!.style.width = `${selected.columnWidth}px`;
       const brandBounds = brandArea.current?.getBoundingClientRect();
       const brandOverflow = Boolean(brandBounds && [...(brandArea.current?.children ?? [])].some(node => node.getBoundingClientRect().bottom > brandBounds.bottom + 1));
+      const title = brandArea.current?.querySelector<HTMLElement>("[data-canvas-brand-fit]");
+      if (leftColumn && brandOverflow && selected.columnCount > 1 && title?.dataset.canvasBrandFit === "ready" &&
+        Math.abs(Number(title.dataset.canvasBrandWidth) - railGeometry(selected.columnCount).trackWidth) < 1) {
+        rejectedRailColumns.add(selected.columnCount);
+        setLayout(previous => ({ ...previous, ready: false }));
+        raf = requestAnimationFrame(update);
+        return;
+      }
       const next = { ...selected.layout, columnWidth: selected.columnWidth, capacity: selected.layout.height, ready: !brandOverflow, brandOverflow };
       const signature = JSON.stringify([next, units.map(u => u.id)]);
       if (signature !== layoutSignature.current) {
@@ -363,32 +388,54 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     measuredContent.addEventListener("load", schedule, true);
     if (brandArea.current)
       for (const node of brandArea.current.children) observer.observe(node);
-    document.fonts.ready.then(schedule);
-    document.fonts.addEventListener("loadingdone", schedule);
+    const fontsChanged = () => { rejectedRailColumns.clear(); schedule(); };
+    document.fonts.ready.then(fontsChanged);
+    document.fonts.addEventListener("loadingdone", fontsChanged);
     schedule();
     return () => {
       disposed = true;
       cancelAnimationFrame(raf);
       observer.disconnect();
       measuredContent.removeEventListener("load", schedule, true);
-      document.fonts.removeEventListener("loadingdone", schedule);
+      document.fonts.removeEventListener("loadingdone", fontsChanged);
     };
-  }, [mobile, album, units, layoutMode, showCall, showOrder, device, updateScrollHint, centerColumn, upperLeft, topRow]);
+  }, [mobile, album, units, layoutMode, showCall, showOrder, device, updateScrollHint, centerColumn, upperLeft, topRow, leftColumn]);
   // Album flow does not use list packing, but its fixed identity still needs
   // the same actual overflow guard before reporting a settled layout.
   useLayoutEffect(() => {
     if (!album || mobile || !area.current) return;
     const viewport = area.current;
-    let frame = 0, disposed = false;
+    let frame = 0, disposed = false, albumRailColumns = 2, railFrameKey = "";
     const check = () => {
       frame = 0;
       if (disposed) return;
       const panel = brandArea.current;
+      const root = viewport.closest<HTMLElement>("[data-scroll-brand-board]");
+      if (leftColumn && root && panel) {
+        const style = getComputedStyle(root), panelStyle = getComputedStyle(panel);
+        const frameKey = `${root.clientWidth}|${root.clientHeight}`;
+        if (frameKey !== railFrameKey) { albumRailColumns = 2; railFrameKey = frameKey; }
+        const geometry = getRepresentativeRailGeometry(
+          root.getBoundingClientRect().width - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight),
+          parseFloat(panelStyle.paddingLeft) + parseFloat(panelStyle.paddingRight),
+          parseFloat(style.columnGap), albumRailColumns, viewport.offsetWidth - viewport.clientWidth,
+        );
+        root.style.setProperty("--scroll-rail-width", `${geometry.railWidth}px`);
+        root.dataset.representativeContentWidth = String(geometry.trackWidth);
+      }
       const bounds = panel?.getBoundingClientRect();
       const header = viewport.closest("[data-scroll-brand-board]")?.querySelector<HTMLElement>("[data-basic-top-row]");
       const headerBounds = header?.getBoundingClientRect();
       const brandOverflow = Boolean(bounds && bounds.height > 0 && [...(panel?.children ?? [])].some(node => node.getBoundingClientRect().bottom > bounds.bottom + 1)) ||
         Boolean(headerBounds && [...(header?.children ?? [])].some(node => node.getBoundingClientRect().bottom > headerBounds.bottom + 1));
+      const title = panel?.querySelector<HTMLElement>("[data-canvas-brand-fit]");
+      if (leftColumn && brandOverflow && albumRailColumns > 1 && root && title?.dataset.canvasBrandFit === "ready" &&
+        Math.abs(Number(title.dataset.canvasBrandWidth) - Number(root.dataset.representativeContentWidth)) < 1) {
+        albumRailColumns = 1;
+        setLayout(previous => ({ ...previous, ready: false }));
+        frame = requestAnimationFrame(check);
+        return;
+      }
       setLayout(previous => previous.ready === !brandOverflow && previous.brandOverflow === brandOverflow ? previous : { ...previous, ready: !brandOverflow, brandOverflow });
       updateScrollHint();
     };
@@ -398,11 +445,12 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     if (brandArea.current) for (const node of brandArea.current.children) observer.observe(node);
     const header = viewport.closest("[data-scroll-brand-board]")?.querySelector("[data-basic-top-row]");
     if (header) observer.observe(header);
-    document.fonts.addEventListener("loadingdone", schedule);
-    void document.fonts.ready.then(schedule);
+    const fontsChanged = () => { albumRailColumns = 2; schedule(); };
+    document.fonts.addEventListener("loadingdone", fontsChanged);
+    void document.fonts.ready.then(fontsChanged);
     schedule();
-    return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); document.fonts.removeEventListener("loadingdone", schedule); };
-  }, [album, mobile, units, updateScrollHint]);
+    return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); document.fonts.removeEventListener("loadingdone", fontsChanged); };
+  }, [album, mobile, units, updateScrollHint, leftColumn]);
   // A logo replaces CanvasBrandTitle, but must retain its shared header budget.
   useLayoutEffect(() => {
     if (mobile || !topRow || !defaultStructure || !data.menuSite.logo_url) return;

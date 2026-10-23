@@ -24,7 +24,7 @@
 .board .brand :global(.cafe-a-fixed-rail-copy) { flex: none; }
 .menuPanel { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; min-width: 0; }
 .viewport { min-width: 0; min-height: 0; position: relative; }
-.menu { height: 100%; min-height: 0; min-width: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: thin; column-gap: var(--native-gap); }
+.menu { height: 100%; min-height: 0; min-width: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-gutter: stable; column-gap: var(--native-gap); }
 .menu:focus-visible { outline: 2px solid var(--menu-role-brand-color); outline-offset: -2px; }
 .tracks { display: grid; grid-template-columns: repeat(var(--native-columns), minmax(0, 1fr)); column-gap: var(--native-gap); min-height: 100%; }
 .board[data-layout-mode="orderedFit"] .tracks { padding-bottom: var(--native-gap); }
@@ -139,3 +139,9 @@
 .board[data-native-shell="brand_panel_flow"] .unit :global(.cafe-a-panel-intro) :global(.cafe-a-cover-hero),
 .board[data-native-shell="brand_panel_flow"] .unit :global(.cafe-a-panel-intro) :global(.cafe-a-cover-frame) { position: relative !important; inset: auto !important; width: 100% !important; height: auto !important; aspect-ratio: auto !important; }
 .board[data-native-shell="brand_panel_flow"] .unit :global(.cafe-a-panel-intro) :global(.cafe-a-cover-frame) { min-height: clamp(10rem, 34vh, 24rem) !important; }
+
+.board[data-native-shell="brand_left_rail"] { grid-template-columns: minmax(0, var(--native-rail-width, calc((100% - 2 * var(--native-gap)) / 3))) minmax(0, 1fr); }
+/* The optional corner surface includes native image/identity content; probes
+   and visible units share this geometry so following menu blocks stay clear. */
+.board[data-representative-panel="true"][data-native-shell="brand_panel_flow"] .unit :global(.cafe-a-panel-intro),
+.board[data-representative-panel="true"][data-native-shell="brand_panel_flow"] .unit :global(.cafe-a-panel-plain-intro) { background: var(--menu-design-aux-bg); padding: var(--panel-content-inset); box-sizing: border-box; }

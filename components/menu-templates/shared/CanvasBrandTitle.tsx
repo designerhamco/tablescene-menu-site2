@@ -1,8 +1,8 @@
 "use client";
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { getMobileBrandMeasurementTexts, type MobileBrandTitleFit } from "@/lib/mobile-brand-title-fit";
-import { CANVAS_HEADER_MAX_RATIO, getCanvasHeaderGapScale, getCanvasHeaderRatio, getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit, type CanvasBrandSlotLayout } from "@/lib/canvas-brand-title-fit";
+import { type MobileBrandTitleFit } from "@/lib/mobile-brand-title-fit";
+import { CANVAS_HEADER_MAX_RATIO, getCanvasBrandMeasurementTexts, getCanvasHeaderGapScale, getCanvasHeaderRatio, getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit, type CanvasBrandSlotLayout } from "@/lib/canvas-brand-title-fit";
 import type { OnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import ScriptAwareText from "./ScriptAwareText";
 
@@ -11,7 +11,7 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
 }) {
   const rootRef = useRef<HTMLHeadingElement>(null);
   const measurementRef = useRef<HTMLSpanElement>(null);
-  const texts = useMemo(() => getMobileBrandMeasurementTexts(title), [title]);
+  const texts = useMemo(() => getCanvasBrandMeasurementTexts(title), [title]);
   const inputKey = `${title}|${fontSignature}|${device}|${layoutShell}|${opticalScale}`;
   const [fit, setFit] = useState<(MobileBrandTitleFit & { inputKey: string }) | null>(null);
   const activeFit = fit?.inputKey === inputKey ? fit : null;
@@ -26,7 +26,7 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
     let previousBox = "";
     const boxOf = () => {
       const style = getComputedStyle(container);
-      const width = container.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
+      const width = container.getBoundingClientRect().width - (parseFloat(style.borderLeftWidth) || 0) - (parseFloat(style.borderRightWidth) || 0) - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
       const board = root.closest<HTMLElement>(".cafe-a-desktop-fit-board, [data-scroll-brand-board]");
       const boardStyle = board ? getComputedStyle(board) : null;
       const frameHeight = board?.clientHeight ? board.clientHeight - (parseFloat(boardStyle!.paddingTop) || 0) - (parseFloat(boardStyle!.paddingBottom) || 0) : window.innerHeight;
@@ -72,7 +72,7 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       const widths = new Map([...measurements.children].map((element, index) => [texts[index], element.getBoundingClientRect().width]));
       const lineAdvance = Math.max(1.08, ...[...measurements.children].map((element) => element.getBoundingClientRect().height / 100));
       const limits = getCanvasBrandLimits(width, layout, remScale, categorySize);
-      // PC and tablet now share the same semantic hierarchy and width target.
+      // Width controls line wrapping only; category size owns the fixed title size.
       const appliedCeilingScale = 1;
       const next = { ...selectCanvasBrandTitleFit(title, widths, width, height, limits, lineAdvance, appliedCeilingScale, opticalScale), inputKey };
       if (boundedHeader) {
@@ -103,7 +103,6 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       root.dataset.canvasBrandHeight = String(height);
       root.dataset.canvasBrandLayout = layout;
       root.dataset.canvasBrandShell = layoutShell;
-      root.dataset.canvasBrandTarget = String(limits.widthRatio);
       root.dataset.canvasBrandMinimum = String(limits.minimum);
       root.dataset.canvasBrandMaximum = String(limits.maximum);
       root.dataset.canvasBrandCategorySize = String(categorySize);
