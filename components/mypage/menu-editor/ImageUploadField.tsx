@@ -257,7 +257,7 @@ export default function ImageUploadField({
                 type="button"
                 disabled={isLoading}
                 onClick={() => setIsConfirmingDelete(true)}
-                className="site-button site-button-danger-ghost inline-flex items-center justify-center text-xs disabled:cursor-not-allowed"
+                className="site-button site-button-outline-danger inline-flex items-center justify-center text-xs disabled:cursor-not-allowed"
               >
                 이미지 삭제
               </button>

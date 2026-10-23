@@ -360,7 +360,7 @@ export default function MenuWidgetDraftEditor({
                 <button type="button" onClick={onCancelDelete} className="site-button site-button-outline text-xs">취소</button>
               </span>
             ) : (
-              <button type="button" onClick={onRequestDelete} className="site-button site-button-danger-ghost text-sm">
+              <button type="button" onClick={onRequestDelete} className="site-button site-button-outline-danger text-sm">
                 삭제
               </button>
             )

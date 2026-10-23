@@ -171,7 +171,7 @@ export default function FeaturedSlidesEditor({
                     <button
                       type="button"
                       onClick={() => setSlides((current) => normalizeSlides(current.filter((item) => item.id !== slide.id)))}
-                      className="site-button site-button-danger-ghost text-xs"
+                      className="site-button site-button-outline-danger text-xs"
                     >
                       삭제
                     </button>

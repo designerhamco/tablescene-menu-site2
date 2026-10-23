@@ -239,7 +239,7 @@ function DraftDeleteConfirmButton({
       <button
         type="button"
         onClick={onRequestConfirm}
-        className="site-button site-button-danger-ghost text-sm"
+        className="site-button site-button-outline-danger text-sm"
       >
         삭제
       </button>

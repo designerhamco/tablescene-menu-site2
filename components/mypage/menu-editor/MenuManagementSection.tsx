@@ -1666,7 +1666,7 @@ function DraftDeleteConfirmButton({
       <button
         type="button"
         onClick={onRequestConfirm}
-        className="site-button site-button-danger-ghost inline-flex items-center justify-center text-sm"
+        className="site-button site-button-outline-danger inline-flex items-center justify-center text-sm"
       >
         삭제
       </button>
@@ -5161,7 +5161,7 @@ function DraftPriceOptionsEditor({
                     >
                       수정
                     </button>
-                    <button type="button" onClick={() => onRemove(option.id)} className="site-button site-button-danger-ghost text-sm">
+                    <button type="button" onClick={() => onRemove(option.id)} className="site-button site-button-outline-danger text-sm">
                       삭제
                     </button>
                   </div>
@@ -9307,7 +9307,7 @@ export default function MenuManagementSection({
                       <button type="button" onClick={() => setConfirmingDeleteKey("")} className="site-button site-button-outline text-xs">취소</button>
                     </span>
                   ) : (
-                    <button type="button" onClick={() => startConfirmDelete(`widget:${selectedWidgetDraft.id}`)} className="site-button site-button-danger-ghost text-sm">
+                    <button type="button" onClick={() => startConfirmDelete(`widget:${selectedWidgetDraft.id}`)} className="site-button site-button-outline-danger text-sm">
                       삭제
                     </button>
                   )}
