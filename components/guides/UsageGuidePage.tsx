@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowUpRight, Video } from "lucide-react";
+import { Fragment, useState } from "react";
+import { ArrowUpRight, EllipsisVertical, Fullscreen, Minus, Plus, Video } from "lucide-react";
 import {
   Tabs,
   TabsList,
@@ -13,6 +13,8 @@ import {
   GUIDE_VIDEOS,
   getGuideSections,
   guideVideoKey,
+  type GuideControl,
+  type GuideStep,
   type GuidePlan,
   type GuideDevice,
   type GuideBrowser,
@@ -58,6 +60,71 @@ function VideoFrame({ title, video }: { title: string; video?: GuideVideo }) {
     </div>
   );
 }
+const GUIDE_CONTROLS = {
+  more: { label: "더보기", icon: EllipsisVertical },
+  fullscreen: { label: "전체 화면", icon: Fullscreen },
+  "zoom-in": { label: "확대", icon: Plus },
+  "zoom-out": { label: "축소", icon: Minus },
+} satisfies Record<GuideControl, { label: string; icon: typeof Plus }>;
+
+function InstructionStep({ step }: { step: GuideStep }) {
+  if (typeof step === "string") return step;
+  return step.map((part, index) => {
+    if (typeof part === "string") return <Fragment key={index}>{part}</Fragment>;
+    const { label, icon: Icon } = GUIDE_CONTROLS[part.control];
+    return (
+      <span className={styles.browserControl} key={index}>
+        <strong>{label}</strong>
+        <Icon size={18} strokeWidth={2} aria-hidden="true" />
+      </span>
+    );
+  });
+}
+
+function GuideInstructions({ section }: { section: GuideSection }) {
+  return (
+    <div className={styles.instructionBox}>
+      <h3 className="type-content-title">{section.id === "connection" ? "연결 순서" : "브라우저 메뉴로 설정"}</h3>
+      <ol className={styles.steps}>
+        {section.steps.map((step, index) => (
+          <li className="type-body" key={index}>
+            <InstructionStep step={step} />
+          </li>
+        ))}
+      </ol>
+      {section.shortcuts && (
+        <div className={styles.shortcuts}>
+          <h3 className="type-content-title">단축키로 설정</h3>
+          <dl className={styles.shortcutRows}>
+            {section.shortcuts.map((shortcut) => (
+              <div className={styles.shortcutRow} key={shortcut.device}>
+                <dt className="type-label">{shortcut.device}</dt>
+                <dd className={styles.shortcutCommands}>
+                  {shortcut.commands.map((command) => (
+                    <div className={styles.shortcutCommand} key={command.label}>
+                      <span className="type-body-sm">{command.label}</span>
+                      <span className={styles.keys}>
+                        {command.keys.map((key, index) => (
+                          <Fragment key={index}>
+                            {index > 0 && <span aria-hidden="true">+</span>}
+                            <kbd aria-label={key === "⌘" ? "Command" : undefined}>
+                              {key}
+                            </kbd>
+                          </Fragment>
+                        ))}
+                      </span>
+                    </div>
+                  ))}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function GuideArticle({
   section,
   plan,
@@ -88,13 +155,7 @@ function GuideArticle({
           {section.title}
         </h2>
         <p className="type-body">{section.body}</p>
-        <ol className={styles.steps}>
-          {section.steps.map((step) => (
-            <li className="type-body" key={step}>
-              {step}
-            </li>
-          ))}
-        </ol>
+        <GuideInstructions section={section} />
         {section.note && (
           <p className="site-notice type-body-sm">{section.note}</p>
         )}
@@ -131,9 +192,14 @@ export default function UsageGuidePage({
       <div className="site-container">
         <header className={styles.heading}>
           <h1 className="type-page-title">사용가이드</h1>
-          <p className="type-body-lg">
-            메뉴판을 여는 순간부터, 매장에 꼭 맞는 화면까지.
-          </p>
+          <aside className={`site-notice ${styles.recommendation}`}>
+            <p className="type-body-lg font-semibold">
+              아티메뉴 메뉴판은 Chrome(크롬) 사용을 권장합니다.
+            </p>
+            <p className="type-body-sm">
+              아래 브라우저 설정은 컴퓨터용 Chrome 기준입니다.
+            </p>
+          </aside>
         </header>
         <Tabs
           value={plan}
@@ -159,9 +225,6 @@ export default function UsageGuidePage({
                 value={entry.id}
                 className={styles.planContent}
               >
-                <p className={`type-body ${styles.planDescription}`}>
-                  {entry.body}
-                </p>
                 <div
                   className={`site-topic-tabs ${styles.topics}`}
                   role="group"

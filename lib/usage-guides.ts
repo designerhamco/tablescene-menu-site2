@@ -3,11 +3,18 @@ export type GuideDevice = "windows" | "mac" | "ipad" | "android";
 export type GuideBrowser = "chrome" | "edge" | "safari" | "samsung";
 export type GuideSectionId = "connection" | "fullscreen" | "zoom";
 export type GuideVideo = { src: string; captionsSrc: string; poster?: string };
+export type GuideControl = "more" | "fullscreen" | "zoom-in" | "zoom-out";
+export type GuideStep = string | readonly (string | { control: GuideControl })[];
+export type GuideShortcut = {
+  device: string;
+  commands: readonly { label: string; keys: readonly string[] }[];
+};
 export type GuideSection = {
   id: GuideSectionId;
   title: string;
   body: string;
-  steps: readonly string[];
+  steps: readonly GuideStep[];
+  shortcuts?: readonly GuideShortcut[];
   note?: string;
   sources?: readonly { label: string; href: string }[];
 };
@@ -16,17 +23,14 @@ export const GUIDE_PLANS = [
   {
     id: "basic",
     label: "베이직",
-    body: "한 화면에 담은 메뉴판을 매장 기기에서 더 편하게 보여주세요.",
   },
   {
     id: "dining",
     label: "다이닝",
-    body: "커버부터 각 메뉴 페이지까지, 다이닝 메뉴를 기기에 맞게 살펴보세요.",
   },
   {
     id: "display",
     label: "디스플레이",
-    body: "매장 모니터를 연결하고 큰 화면에 맞게 메뉴판을 표시하세요.",
   },
 ] as const;
 export const GUIDE_DEVICES = [
@@ -102,10 +106,60 @@ const ipadSource = {
 const versionNote =
   "메뉴 이름과 위치는 운영체제·브라우저 버전에 따라 다를 수 있습니다.";
 
+function chromeDesktopSections(): GuideSection[] {
+  return [
+    {
+      id: "fullscreen",
+      title: "전체 화면으로 메뉴판 보기",
+      body: "Chrome의 전체 화면 기능으로 메뉴판을 화면 가득 표시하세요.",
+      steps: [
+        "컴퓨터의 Chrome에서 공개 메뉴판 주소를 엽니다.",
+        ["오른쪽 위의 ", { control: "more" }, "를 클릭합니다."],
+        ["‘확대/축소’ 옆의 ", { control: "fullscreen" }, "을 클릭합니다."],
+      ],
+      shortcuts: [
+        { device: "Windows·Linux", commands: [{ label: "전체 화면", keys: ["F11"] }] },
+        { device: "Mac", commands: [{ label: "전체 화면", keys: ["⌘", "Ctrl", "F"] }] },
+      ],
+      note: "전체 화면을 끝내려면 같은 단축키를 다시 누르세요.",
+      sources: [chromeSource],
+    },
+    {
+      id: "zoom",
+      title: "메뉴판 크기 조정하기",
+      body: "브라우저 배율을 바꿔 메뉴판의 글자와 이미지를 함께 확대하거나 축소하세요.",
+      steps: [
+        "컴퓨터의 Chrome에서 공개 메뉴판 주소를 엽니다.",
+        ["오른쪽 위의 ", { control: "more" }, "를 클릭하고 ‘확대/축소’를 찾습니다."],
+        [{ control: "zoom-in" }, " 또는 ", { control: "zoom-out" }, "를 눌러 원하는 크기로 맞춥니다. 기본 크기는 100%입니다."],
+      ],
+      shortcuts: [
+        { device: "Windows·Linux", commands: [
+          { label: "확대", keys: ["Ctrl", "+"] },
+          { label: "축소", keys: ["Ctrl", "−"] },
+          { label: "기본 크기", keys: ["Ctrl", "0"] },
+        ] },
+        { device: "Mac", commands: [
+          { label: "확대", keys: ["⌘", "+"] },
+          { label: "축소", keys: ["⌘", "−"] },
+          { label: "기본 크기", keys: ["⌘", "0"] },
+        ] },
+      ],
+      note: "브라우저 배율은 지금 보는 기기의 표시 크기입니다. 저장된 메뉴 디자인은 바뀌지 않습니다.",
+      sources: [chromeSource, {
+        label: "Chrome 단축키 안내",
+        href: "https://support.google.com/chrome/answer/157179?hl=ko",
+      }],
+    },
+  ];
+}
+
 function browserSections(
   device: GuideDevice,
   browser: GuideBrowser,
 ): GuideSection[] {
+  if ((device === "windows" || device === "mac") && browser === "chrome")
+    return chromeDesktopSections();
   if (device === "ipad")
     return [
       {
@@ -250,7 +304,7 @@ export function getGuideSections(
   if (plan === "dining")
     sections[0] = {
       ...sections[0],
-      body: "다이닝 메뉴의 커버나 보고 싶은 페이지를 먼저 선택한 뒤, 기기에 맞는 방식으로 화면을 넓혀보세요.",
+      body: "다이닝 메뉴에서 표시할 페이지를 선택한 뒤 전체 화면을 켜세요.",
     };
   if (plan !== "display") return sections;
   return [
