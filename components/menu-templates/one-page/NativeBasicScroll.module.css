@@ -77,7 +77,7 @@
 .cornerLanguage > :global([data-template-language-control]) { text-align: left; }
 .cornerLanguage :global([data-template-language-control] button[aria-haspopup="menu"]) { width: 2.75rem; height: 2.75rem; padding: 0; }
 .cornerLanguage :global([data-template-language-control] button > svg) { width: 1.5rem; height: 1.5rem; }
-.board[data-native-shell="brand_center_column"] .tracks { column-gap: calc((100% - 2 * var(--native-gap)) * .24 + 2 * var(--native-gap)); }
+.board[data-native-shell="brand_center_column"] .tracks { column-gap: calc(24% + 2 * var(--native-gap)); }
 .board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-fixed-rail) { flex: 1 1 0; height: auto; background: transparent; padding: 0; }
 .board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-round-focus-lower-cluster) { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: .75rem; }
 .board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-round-focus-featured-stack) { flex: 1; min-height: 0; display: flex; }
