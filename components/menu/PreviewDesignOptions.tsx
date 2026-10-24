@@ -10,13 +10,14 @@ import ImageRadiusSelect from "./ImageRadiusSelect";
 import PreviewColorPicker from "./PreviewColorPicker";
 import styles from "./PreviewDesignOptions.module.css";
 
-export default function PreviewDesignOptions({ value, defaults, templateKey, album, dining, disabled, onChange }: {
+export default function PreviewDesignOptions({ value, defaults, templateKey, album, dining, disabled, alignmentDisabled = false, onChange }: {
   value: PreviewDesign;
   defaults: PreviewDesignDefaults;
   templateKey: string;
   album: boolean;
   dining: boolean;
   disabled: boolean;
+  alignmentDisabled?: boolean;
   onChange: (value: PreviewDesign) => void;
 }) {
   const set = (patch: Partial<PreviewDesign>) => onChange({ ...value, ...patch });
@@ -75,7 +76,8 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
       </div>
     </fieldset> : null}
     {!dining ? <fieldset data-preview-representative-alignment><legend className={styles.legend}>가게명·가게 설명 정렬</legend>
-      <label className={styles.option}><select aria-label="가게명·가게 설명 정렬" value={value.representativeAlignment ?? "template"} disabled={disabled} className={styles.select} onChange={event => set({ representativeAlignment: event.target.value === "template" ? undefined : event.target.value as PreviewDesign["representativeAlignment"] })}><option value="template">템플릿 기본값</option>{REPRESENTATIVE_ALIGNMENTS.map(align => <option key={align} value={align}>{{ left: "왼쪽 정렬", center: "가운데 정렬", right: "오른쪽 정렬" }[align]}</option>)}</select></label>
+      <label className={styles.option}><select aria-label="가게명·가게 설명 정렬" value={alignmentDisabled ? "template" : value.representativeAlignment ?? "template"} disabled={disabled || alignmentDisabled} className={styles.select} onChange={event => set({ representativeAlignment: event.target.value === "template" ? undefined : event.target.value as PreviewDesign["representativeAlignment"] })}><option value="template">템플릿 기본값</option>{REPRESENTATIVE_ALIGNMENTS.map(align => <option key={align} value={align}>{{ left: "왼쪽 정렬", center: "가운데 정렬", right: "오른쪽 정렬" }[align]}</option>)}</select></label>
+      {alignmentDisabled ? <p className={styles.hint}>상단행 고정형은 가게명 중앙·가게 설명 왼쪽 정렬을 유지합니다.</p> : null}
     </fieldset> : null}
     <fieldset data-preview-image-radii><legend className={styles.legend}>이미지·텍스트칩 라운드</legend>
       <label className={styles.option}><span>광고·{!dining ? "대표·" : ""}위젯·상품 이미지·텍스트칩</span><ImageRadiusSelect label="이미지·텍스트칩" radius={radius.radius} mixed={radius.mixed} disabled={disabled} className={styles.select}

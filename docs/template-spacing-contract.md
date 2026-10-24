@@ -1,5 +1,11 @@
 # Menu template spacing contract
 
+## Corner edge surfaces and fixed header alignment — 2026-10-24
+
+A distinct PC/tablet upper-left auxiliary background reaches the page top and left edges in both the neutral design and ONUE's native flow panel. The scroll surface owns the outer page insets; the first representative block extends into its top/left inset and owns internal content padding. Preserve the ordinary gutter after its painted right/bottom edges. Measurement subtracts scroll padding and includes the corner's actual negative top margin, so the painted block, following menu units, footer and hidden probes agree. Equal-to-page or absent auxiliary color releases this geometry. Mobile remains independent.
+
+PC/tablet top-row headers retain template-owned alignment: description left, brand/logo center, notices right. Catalog Design alignment is disabled for these devices and native/default list/album top-row variants. The editor shows the fixed state and preserves any stored mobile alignment through a hidden submitted value. Mobile previews keep the prior configurable alignment; old saved/preview alignment choices cannot override the desktop header cells.
+
 ## Text color ownership — 2026-10-24
 
 Preview and menu editor share six explicit color groups: brand; category plus price-option names; product name/selling price/price note; representative description plus notices actually inside the representative surface; menu descriptions including secondary names/product/category descriptions; and independent menu-area notices/widget text. Price notes (including ICE ONLY) follow product color, never category color; actual column/inline option names alone follow category color. Featured copy on the representative photo/placeholder fade keeps its local white palette (name/price white, description white at 82%), independent of product/menu-description overrides; chip colors and sold-out attenuation stay separate. Color grouping does not change any font, size, weight, layout or mobile rhythm. Time-sale chip/copy accents and sold-out state remain independent.

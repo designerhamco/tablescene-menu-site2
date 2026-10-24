@@ -8,7 +8,7 @@ import type { PreviewDesign, PreviewDesignDefaults } from "@/lib/menu-preview-de
 import PreviewDesignOptions from "./PreviewDesignOptions";
 import styles from "./MenuPreviewOptionsPanel.module.css";
 
-export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, pending, templateKey, defaults, design, onDesignChange, album }: {
+export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, pending, templateKey, defaults, design, onDesignChange, album, alignmentDisabled = false }: {
   open: boolean;
   onToggle: () => void;
   tab: string;
@@ -22,6 +22,7 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
   design: PreviewDesign;
   onDesignChange: (value: PreviewDesign) => void;
   album: boolean;
+  alignmentDisabled?: boolean;
 }) {
   const toggle = useRef<HTMLButtonElement>(null);
   const choices = groups.flatMap(group => group.choices);
@@ -53,7 +54,7 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
         </fieldset>)}</div>
       </div>
       <div id="preview-design-panel" role="tabpanel" aria-labelledby="preview-design-tab" hidden={tab !== "design"}>
-        {open && defaults ? <PreviewDesignOptions templateKey={templateKey} defaults={defaults} value={design} album={album} dining={templateKey.startsWith("dining_")} disabled={pending} onChange={onDesignChange} /> : null}
+        {open && defaults ? <PreviewDesignOptions templateKey={templateKey} defaults={defaults} value={design} album={album} dining={templateKey.startsWith("dining_")} disabled={pending} alignmentDisabled={alignmentDisabled} onChange={onDesignChange} /> : null}
       </div>
     </div>
   </aside>;

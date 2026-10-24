@@ -231,3 +231,16 @@
 
 /* Shared usable width includes colored panel padding in the occupied rail. */
 .frame[data-basic-structure="basic-first-column"] { grid-template-columns: minmax(0, var(--scroll-rail-width, calc((100% - 2 * var(--scroll-column-gap)) / 3))) minmax(0, 1fr); }
+
+/* Colored corners bleed to the page edges inside the scroll surface.
+   Ordinary columns retain their page inset; the corner owns its inner inset. */
+.frame[data-representative-panel="true"][data-basic-structure="basic-upper-left"] { padding: 0; }
+.frame[data-representative-panel="true"][data-basic-structure="basic-upper-left"] .menu { padding: var(--scroll-page-inset); box-sizing: border-box; }
+.frame[data-representative-panel="true"][data-basic-structure="basic-upper-left"] .column > .brand {
+  width: calc(var(--scroll-track-width, 100%) + var(--scroll-page-inset));
+  margin-top: calc(-1 * var(--scroll-page-inset));
+  margin-left: calc(-1 * var(--scroll-page-inset));
+}
+.frame[data-representative-panel="true"][data-basic-structure="basic-upper-left"] .menuPanel:has(.footer) { padding-bottom: var(--scroll-page-inset); box-sizing: border-box; }
+.frame[data-representative-panel="true"][data-basic-structure="basic-upper-left"] .menuPanel:has(.footer) .menu { padding-bottom: 0; }
+.frame[data-representative-panel="true"][data-basic-structure="basic-upper-left"] .footer { padding-inline: var(--scroll-page-inset); }

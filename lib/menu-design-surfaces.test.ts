@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {menuSurfaceSettingsFromForm,readMenuSurfaceSettings,withMenuSurfaceSettings,menuSurfaceDefaults} from './menu-design-surfaces';
+import {hasFixedHeaderAlignment,menuSurfaceSettingsFromForm,readMenuSurfaceSettings,withMenuSurfaceSettings,menuSurfaceDefaults} from './menu-design-surfaces';
 import {getMenuDesignBackgrounds} from './template-background-colors';
 import {buildMenuDesignMutation} from './menu-design-mutation';
 const form=(values:Record<string,string>)=>{const data=new FormData();for(const[key,value]of Object.entries(values))data.set(key,value);return data;};
@@ -66,4 +66,25 @@ test('editor auxiliary defaults distinguish no fill from explicit white and nati
  assert.equal(readMenuSurfaceSettings(cleared).auxiliaryBackground,undefined);
  assert.equal(getMenuDesignBackgrounds('cafe_design_a',cleared).coloredPanel,false);
  assert.equal(getMenuDesignBackgrounds('cafe_mocha_forest_a',{}).coloredPanel,true);
+});
+
+
+test('top-row alignment locking follows the saved design before the native shell',()=>{
+ assert.equal(hasFixedHeaderAlignment('cafe_design_a',{menu_design_id:'basic-top-row'}),true);
+ assert.equal(hasFixedHeaderAlignment('cafe_design_a',{menu_design_id:'basic-top-row-album'}),true);
+ assert.equal(hasFixedHeaderAlignment('cafe_sunday_line_a'),true);
+ assert.equal(hasFixedHeaderAlignment('cafe_van_gogh_a'),true);
+ assert.equal(hasFixedHeaderAlignment('cafe_design_a',{menu_design_id:'basic-first-column'}),false);
+ assert.equal(hasFixedHeaderAlignment('restaurant_onue_a'),false);
+ assert.equal(hasFixedHeaderAlignment('dining_aube_table_a'),false);
+});
+
+test('a fixed-header editor submits the stored mobile alignment while its desktop control is disabled',async()=>{
+ const {createElement}=await import('react');const {renderToStaticMarkup}=await import('react-dom/server');
+ const {default:MenuSurfaceSettingsForm}=await import('../components/mypage/menu-editor/MenuSurfaceSettingsForm');
+ const html=renderToStaticMarkup(createElement(MenuSurfaceSettingsForm,{pageSettings:{design:{representativeAlignment:'right'}},settings:{menu_design_id:'basic-top-row'},templateKey:'cafe_design_a',formId:'design'}));
+ assert.match(html,/<input[^>]*type="hidden"[^>]*name="representative_alignment"[^>]*value="right"/);
+ assert.match(html,/<select[^>]*name="representative_alignment"[^>]*disabled=""/);
+ const ordinary=renderToStaticMarkup(createElement(MenuSurfaceSettingsForm,{pageSettings:{},settings:{menu_design_id:'basic-first-column'},templateKey:'cafe_design_a',formId:'design'}));
+ assert.doesNotMatch(ordinary,/<select[^>]*name="representative_alignment"[^>]*\sdisabled=/);
 });

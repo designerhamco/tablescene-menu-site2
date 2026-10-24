@@ -1,5 +1,6 @@
 import { getTemplateCapabilities } from "./template-capabilities";
 import { getAubeTableDefaultCoverBackgroundColor, isAubeTableTemplate } from "./aube-table";
+import { getFixedOnePageLayoutShell } from "./one-page-layout-shells";
 import { getDefaultDesignReview } from "./menu-design-policy";
 import { MOCHA_FOREST_PANEL_COLORS } from "./mocha-forest-panels";
 import { getTemplateDefaultBackgroundColor, normalizeBackgroundColor } from "./template-background-colors";
@@ -13,6 +14,12 @@ export type MenuSurfaceSettings = {
 export const menuSurfaceRecord = (value: unknown): Record<string, unknown> => value && typeof value === "object" && !Array.isArray(value) ? { ...value as Record<string, unknown> } : {};
 export function menuSurfaceSupport(templateKey: string) {
   return { basic: getTemplateCapabilities(templateKey).menuCover.coverMode === "section", dining: isAubeTableTemplate(templateKey), sidebar: templateKey === "dining_aube_table_b" };
+}
+/** The three-cell desktop/tablet header has template-owned alignment. */
+export function hasFixedHeaderAlignment(templateKey: string, settings: unknown = {}) {
+  const designId = menuSurfaceRecord(settings).menu_design_id;
+  const design = getDefaultDesignReview(typeof designId === "string" ? designId : undefined, templateKey);
+  return design ? design.layout === "basic-top-row" : getFixedOnePageLayoutShell(templateKey) === "brand_top_band";
 }
 export function readMenuSurfaceSettings(pageSettings: unknown): MenuSurfaceSettings {
   const page = menuSurfaceRecord(pageSettings), design = menuSurfaceRecord(page.design), result: MenuSurfaceSettings = {};
