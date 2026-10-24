@@ -45,6 +45,7 @@ export type CafeDesignAPriceDisplayMode = PriceDisplayMode | null;
 
 export type CafeDesignAPriceToken = {
   label: string;
+  labelKind?: "option" | "note";
   price: string;
   priceColumnId?: string;
   originalPrice?: number | null;

@@ -9,14 +9,14 @@ import { menuColorContrast } from "@/lib/menu-interaction-theme";
 import { getTypographyTitleColorOverrides } from "@/lib/template-typography-presets";
 import { readPreviewChipColors, resolvePreviewChipColors } from "@/lib/menu-preview-chip-colors";
 import { menuSurfaceRecord, readMenuSurfaceSettings } from "@/lib/menu-design-surfaces";
-import { MENU_TEXT_COLOR_GROUPS, readMenuTextColors } from "@/lib/menu-text-colors";
+import { MENU_TEXT_COLOR_GROUPS, resolvedMenuTextColors } from "@/lib/menu-text-colors";
 import { useRegularPriceColors } from "./useRegularPriceColors";
 import styles from "./MenuAppearanceScope.module.css";
 export default function MenuAppearanceScope({ pageSettings, templateKey, children }: { pageSettings: unknown; templateKey: string; children: ReactNode }) {
   const album = useDefaultAlbum(), basic = getTemplateCapabilities(templateKey).menuCover.coverMode === "section";
   const supportsShapes = basic || isAubeTableTemplate(templateKey);
   const scopeRef = useRef<HTMLDivElement>(null);
-  const textColors = readMenuTextColors(pageSettings);
+  const textColors = resolvedMenuTextColors(pageSettings);
   useRegularPriceColors(scopeRef, JSON.stringify(pageSettings), basic);
   const textColorStyle = Object.fromEntries(MENU_TEXT_COLOR_GROUPS.filter(group => textColors[group]).map(group => [`--menu-text-${group}`, textColors[group]]));
   const appearance = readMenuAppearance(pageSettings);
@@ -35,7 +35,7 @@ export default function MenuAppearanceScope({ pageSettings, templateKey, childre
   const style = { ...textColorStyle, ...chipColorStyle, ...menuAppearanceStyle(appearance,supportsShapes,album), ...(alignment ? {"--menu-representative-align":alignment,"--menu-representative-justify":alignment === "left" ? "flex-start" : alignment === "right" ? "flex-end" : "center","--menu-representative-logo-start":alignment === "left" ? "0px" : "auto","--menu-representative-logo-end":alignment === "right" ? "0px" : "auto"}:{}), ...(isAubeTableTemplate(templateKey) && surfaces.coverDescriptionColor ? {"--menu-cover-description-ink":surfaces.coverDescriptionColor}:{}), ...(titleColors.brand ? {"--menu-design-brand-ink":titleColors.brand}:{}), ...(titleColors.category ? {"--menu-design-category-ink":titleColors.category}:{}), ...(backgrounds.page ? {"--menu-design-page-bg":backgrounds.page}:{}), ...(backgrounds.auxiliary ? {"--menu-design-aux-bg":backgrounds.auxiliary}:{}), ...(backgrounds.sidebar ? {"--menu-design-sidebar-bg":backgrounds.sidebar,"--menu-design-sidebar-ink":sidebarInk}:{}) } as CSSProperties;
   return <div ref={scopeRef} className={styles.scope}
     data-text-color-brand={supportsShapes && textColors.brand ? "custom" : undefined} data-text-color-category={supportsShapes && textColors.category ? "custom" : undefined}
-    data-text-color-product={supportsShapes && textColors.product ? "custom" : undefined} data-text-color-representative={supportsShapes && textColors.representative ? "custom" : undefined} data-text-color-supporting={supportsShapes && textColors.supporting ? "custom" : undefined} style={style} data-menu-appearance-basic={basic ? "true" : undefined} data-representative-align={alignment} data-cover-description-ink={isAubeTableTemplate(templateKey) && surfaces.coverDescriptionColor ? "custom" : undefined}
+    data-text-color-product={supportsShapes && textColors.product ? "custom" : undefined} data-text-color-representative={supportsShapes && textColors.representative ? "custom" : undefined} data-text-color-supporting={supportsShapes && textColors.supporting ? "custom" : undefined} data-text-color-information={supportsShapes && textColors.information ? "custom" : undefined} style={style} data-menu-appearance-basic={basic ? "true" : undefined} data-representative-align={alignment} data-cover-description-ink={isAubeTableTemplate(templateKey) && surfaces.coverDescriptionColor ? "custom" : undefined}
     data-preview-chip-background={previewChipColors.generalBackground ? "custom" : undefined} data-preview-chip-text={previewChipColors.generalText ? "custom" : undefined}
     data-preview-sale-chip-background={previewChipColors.saleBackground ? "custom" : undefined} data-preview-sale-chip-text={previewChipColors.saleText ? "custom" : undefined}
     data-design-brand-ink={supportsShapes && titleColors.brand ? "custom" : undefined} data-design-category-ink={supportsShapes && titleColors.category ? "custom" : undefined}

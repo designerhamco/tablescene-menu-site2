@@ -8,7 +8,7 @@ import { getMenuDesignBackgrounds, getResolvedBackgroundColor, normalizeBackgrou
 import { getCustomBadgeStyles, mergeBadgeStyles } from "./template-badge-styles";
 import { DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR, getReadableTextColorForTimeSaleBadge } from "./menu-time-sales";
 import { readPreviewChipColors, type PreviewChipColors } from "./menu-preview-chip-colors";
-import { normalizeMenuTextColors, readMenuTextColors, type MenuTextColors } from "./menu-text-colors";
+import { normalizeMenuTextColors, resolvedMenuTextColors, type MenuTextColors } from "./menu-text-colors";
 import { MOCHA_FOREST_PANEL_COLORS } from "./mocha-forest-panels";
 
 export const PREVIEW_FONT_GROUPS = ["brand", "category", "other"] as const;
@@ -16,6 +16,7 @@ export type PreviewFontGroup = typeof PREVIEW_FONT_GROUPS[number];
 export type PreviewFontChoice = { color?: string; ko?: KoreanFontValue; en?: EnglishFontValue };
 export type PreviewDesign = {
   textColors?: MenuTextColors;
+  textColorGroupsVersion?: 2;
   pageBackground?: string;
   auxiliaryBackground?: string;
   coverBackground?: string;
@@ -34,6 +35,7 @@ export function readPreviewDesign(raw: unknown): PreviewDesign {
   let source: Record<string, unknown>;
   try { source = record(typeof raw === "string" && raw.length <= 4000 ? JSON.parse(raw) : raw); } catch { return {}; }
   const result: PreviewDesign = {};
+  if (source.textColorGroupsVersion === 2) result.textColorGroupsVersion = 2;
   for (const key of ["pageBackground", "auxiliaryBackground", "coverBackground", "sidebarBackground", "coverDescriptionColor"] as const) {
     const color = normalizeBackgroundColor(source[key]); if (color) result[key] = color;
   }
@@ -73,13 +75,14 @@ export function previewDesignDefaults(data: MenuPageData) {
   const badge = mergeBadgeStyles(key, getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings)).default;
   const saleBackground = data.timeSales?.[0]?.badgeBackgroundColor ?? DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR;
   return {
-    textColors: readMenuTextColors(data.menuSite.page_settings),
+    textColors: resolvedMenuTextColors(data.menuSite.page_settings),
     textColorDefaults: {
       brand: typography.typography_roles.brand.color ?? normalizeBackgroundColor(data.menuSite.brand_color) ?? "#191C1B",
       category: typography.typography_roles.category.color ?? normalizeBackgroundColor(data.menuSite.brand_color) ?? "#191C1B",
       product: typography.typography_roles.itemName.color ?? typography.typography_roles.price.color ?? "#191C1B",
       representative: typography.typography_roles.supporting.color ?? "#191C1B",
       supporting: typography.typography_roles.supporting.color ?? "#191C1B",
+      information: typography.typography_roles.supporting.color ?? "#191C1B",
     },
     fontFamily: { ko: typography.korean_font_key, en: typography.english_font_key },
     chipColors: { generalBackground: badge.background_color, generalText: badge.text_color, saleBackground, saleText: getReadableTextColorForTimeSaleBadge(saleBackground) },
@@ -102,7 +105,11 @@ export function applyPreviewDesign(source: MenuPageData, value: unknown, album: 
   const overrides = readPreviewDesign(value);
   if (source.menuSite.template_key === "display_menu_a" || !Object.keys(overrides).length) return source;
   const data = structuredClone(source), page = record(data.menuSite.page_settings), design = record(page.design);
-  if (overrides.textColors) design.textColors = { ...readMenuTextColors(page), ...overrides.textColors };
+  if (overrides.textColors) {
+    // Resolve the previous combined group before entering the independent scheme.
+    design.textColors = { ...resolvedMenuTextColors(page), ...overrides.textColors };
+    if (overrides.textColorGroupsVersion === 2) design.textColorGroupsVersion = 2;
+  }
   if (overrides.chipColors) design.previewChipColors = overrides.chipColors;
   if (overrides.representativeAlignment) design.representativeAlignment = overrides.representativeAlignment;
   if (overrides.coverDescriptionColor) design.coverDescriptionColor = overrides.coverDescriptionColor;

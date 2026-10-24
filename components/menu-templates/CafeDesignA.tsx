@@ -1803,7 +1803,7 @@ function MenuItemRow({
                 {index > 0 && <span className={`cafe-a-price-separator font-bold ${priceMutedColorClassName}`}>/</span>}
                 <span className={`cafe-a-price-pair inline-flex whitespace-nowrap ${token.label ? "cafe-a-price-pair-with-note" : ""} ${showTimeSale && timeSalePrice && index === 0 ? "items-baseline gap-x-1" : "items-baseline"}`}>
                   {token.label && (
-                    <span className={`cafe-a-price-label whitespace-nowrap font-bold uppercase leading-none ${priceTextColorClassName}`}>
+                    <span data-cafe-a-price-label-kind={token.labelKind} className={`cafe-a-price-label whitespace-nowrap font-bold uppercase leading-none ${priceTextColorClassName}`}>
                       <ScriptAwareText text={token.label} />
                     </span>
                   )}

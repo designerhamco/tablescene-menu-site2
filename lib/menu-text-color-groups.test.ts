@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MENU_TEXT_COLOR_GROUPS, normalizeMenuTextColors, readMenuTextColors, setMenuTextColorsFromForm, getMutedMenuPriceColor } from "./menu-text-colors";
+import { MENU_TEXT_COLOR_GROUPS, resolvedMenuTextColors, normalizeMenuTextColors, readMenuTextColors, setMenuTextColorsFromForm, getMutedMenuPriceColor } from "./menu-text-colors";
 import { menuColorContrast } from "./menu-interaction-theme";
 import { applyPreviewDesign, readPreviewDesign, serializePreviewDesign, previewDesignDefaults } from "./menu-preview-design";
 import type { MenuPageData } from "./menu-page-data";
 
-test("only the five registered color groups accept validated opaque colors", () => {
+test("only the six registered color groups accept validated opaque colors", () => {
  assert.deepEqual(normalizeMenuTextColors({brand:"#abcdef",supporting:"url(evil)",product:42,unknown:"#ffffff"}),{brand:"#ABCDEF"});
  assert.deepEqual(normalizeMenuTextColors(null),{});
 });
@@ -21,7 +21,7 @@ test("independent colors round-trip through submitted saved Design JSON, preserv
  form.set("text_color_product","");setMenuTextColorsFromForm(design,form);
  assert.equal(readMenuTextColors({design}).product,undefined);assert.equal(readMenuTextColors({design}).supporting,colors.supporting);
  form.set("text_color_product","red");const snapshot=structuredClone(design);assert.throws(()=>setMenuTextColorsFromForm(design,form));assert.deepEqual(design,snapshot);
- const reset=new FormData();reset.set("text_colors_present","1");setMenuTextColorsFromForm(design,reset);assert.equal(design.textColors,undefined);assert.equal(design.typographyRoles,roles);
+ const reset=new FormData();reset.set("text_colors_present","1");for(const group of MENU_TEXT_COLOR_GROUPS)reset.set(`text_color_${group}`,"");setMenuTextColorsFromForm(design,reset);assert.equal(design.textColors,undefined);assert.equal(design.typographyRoles,roles);
 });
 test("preview edits preserve source, legacy colors, font roles and other groups across serialized navigation", () => {
  const source={menuSite:{template_key:"cafe_design_a",settings:{},page_settings:{design:{typographyRoles:{supporting:{color:"#123456"}},textColors:{representative:"#FFFFFF"}}}},pageSettings:{},items:[{name:"고객 상품"}]} as unknown as MenuPageData;
@@ -48,4 +48,43 @@ test("product color defaults follow name/price instead of the supporting descrip
  assert.equal(defaults.textColorDefaults.product,"#191C1B");
  assert.equal(defaults.textColorDefaults.representative,"#606561");
  assert.equal(defaults.textColorDefaults.supporting,"#606561");
+});
+
+
+test("price-note labels stay distinct from real options even when their displayed text is identical", async () => {
+ const {getItemPriceTokensForCategory}=await import("../components/menu-templates/shared/cafe-menu-pricing");
+ const item={id:"item",price:5,price_label:null,price_visible:true,priceNote:"HOT",priceColumnValues:[]} as unknown as import("../components/menu-templates/types").PublicMenuItem;
+ const category={priceColumns:[]} as unknown as import("../components/menu-templates/types").PublicMenuCategory;
+ const capabilities={priceOptions:true,maxPriceOptionsPerItem:3} as import("./template-capabilities").TemplateCapabilities;
+ const option={id:"option",menu_item_id:"item",label:"HOT",price:6,price_label:null,visible:true,sort_order:0};
+ const note=getItemPriceTokensForCategory(item,category,[],capabilities);
+ assert.equal(note.priceTokens[0].label,"HOT");assert.equal(note.priceTokens[0].labelKind,"note");
+ const actual=getItemPriceTokensForCategory(item,category,[option],capabilities);
+ assert.equal(actual.priceTokens[0].label,"HOT");assert.equal(actual.priceTokens[0].labelKind,"option");
+ const hidden=getItemPriceTokensForCategory(item,category,[{...option,visible:false}],capabilities);
+ assert.equal(hidden.priceTokens[0].labelKind,"note");
+ const columns=getItemPriceTokensForCategory({...item,priceColumnValues:[{id:"value",priceColumnId:"hot",price:7,priceLabel:null,visible:true}]},{...category,priceColumns:[{id:"hot",categoryId:"category",key:"hot",label:"HOT",sortOrder:0,visible:true}]},[],capabilities);
+ assert.equal(columns.usesPriceColumns,true);assert.equal(columns.priceTokens[0].labelKind,"option");
+ assert.equal(item.priceNote,"HOT");assert.deepEqual(item.priceColumnValues,[]);
+});
+
+
+test("notice and widget colors split independently while existing combined saved colors stay intact", () => {
+ const legacy={design:{textColors:{supporting:"#2255AA"}}};
+ assert.deepEqual(resolvedMenuTextColors(legacy),{supporting:"#2255AA",information:"#2255AA"});
+ const design:Record<string,unknown>={...legacy.design};
+ const form=new FormData();form.set("text_colors_present","1");form.set("text_color_supporting","#AA2255");form.set("text_color_information","");
+ setMenuTextColorsFromForm(design,form);
+ assert.equal(design.textColorGroupsVersion,2);
+ assert.deepEqual(resolvedMenuTextColors({design}),{supporting:"#AA2255"});
+ form.set("text_color_information","#246824");setMenuTextColorsFromForm(design,form);
+ assert.deepEqual(resolvedMenuTextColors({design}),{supporting:"#AA2255",information:"#246824"});
+ const olderForm=new FormData();olderForm.set("text_colors_present","1");olderForm.set("text_color_supporting","#123456");setMenuTextColorsFromForm(design,olderForm);
+ assert.equal(readMenuTextColors({design}).information,"#246824");
+ const source={menuSite:{template_key:"cafe_design_a",settings:{},page_settings:{}},pageSettings:{}} as unknown as MenuPageData;
+ const preview=applyPreviewDesign(source,readPreviewDesign(serializePreviewDesign({textColorGroupsVersion:2,textColors:{supporting:"#AA2255",information:"#246824"}})),false);
+ assert.deepEqual(resolvedMenuTextColors(preview.menuSite.page_settings),{supporting:"#AA2255",information:"#246824"});
+ assert.deepEqual(source.menuSite.page_settings,{});
+ const native=applyPreviewDesign(source,{textColorGroupsVersion:2,textColors:{supporting:"#AA2255"}},false);
+ assert.equal(resolvedMenuTextColors(native.menuSite.page_settings).information,undefined);
 });
