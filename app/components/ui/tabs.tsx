@@ -18,35 +18,52 @@ function Tabs({
   );
 }
 
+const TabsAppearance = React.createContext<"segmented" | "outline" | "underline">("segmented");
+
 function TabsList({
   className,
+  variant = "segmented",
+  size = "default",
+  children,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.List>) {
+}: React.ComponentProps<typeof TabsPrimitive.List> & {
+  variant?: "segmented" | "outline" | "underline";
+  size?: "default" | "lg";
+}) {
   return (
-    <TabsPrimitive.List
-      data-slot="tabs-list"
-      className={cn(
-        "site-tabs",
-        className,
-      )}
-      {...props}
-    />
+    <TabsAppearance.Provider value={variant}>
+      <TabsPrimitive.List
+        data-slot="tabs-list"
+        data-variant={variant}
+        className={cn(
+          variant === "underline" ? "site-topic-tabs" : "site-tabs",
+          variant === "outline" && "site-tabs-outline",
+          size === "lg" && (variant === "underline" ? "site-topic-tabs-lg" : "site-tabs-lg"),
+          className,
+        )}
+        {...props}
+      >{children}</TabsPrimitive.List>
+    </TabsAppearance.Provider>
   );
 }
 
 function TabsTrigger({
   className,
+  count,
+  children,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
+}: React.ComponentProps<typeof TabsPrimitive.Trigger> & { count?: number }) {
+  const variant = React.useContext(TabsAppearance);
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "site-tab gap-1.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        variant === "underline" ? "site-topic-tab" : "site-tab",
+        "gap-1.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
       {...props}
-    />
+    >{children}{count !== undefined ? <span className="site-tab-count">{count}<span className="sr-only">건</span></span> : null}</TabsPrimitive.Trigger>
   );
 }
 

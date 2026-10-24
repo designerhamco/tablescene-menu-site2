@@ -4,6 +4,10 @@
   --ui-control-height-md: 2.5rem;
   --ui-control-height-header: 2.75rem;
   --ui-control-height-lg: 3rem;
+  --ui-control-height-xl: 3.5rem;
+  --ui-control-height-hero: 4rem;
+  --ui-radius-control-rounded: .75rem;
+  --ui-radius-control-square: .375rem;
   --ui-tab-rail-height: 3.25rem;
   --ui-choice-size: 1.125rem;
   --ui-radius-control: 9999px;
@@ -234,7 +238,7 @@
 
 .site-button-lg {
   min-height: var(--ui-control-height-lg);
-  padding: 0.875rem 1.5rem;
+  padding: 0.75rem 1.5rem;
   font-size: var(--font-size-300);
 }
 
@@ -902,3 +906,43 @@ textarea.site-field,
   color: var(--ui-text) !important;
   transform: none !important;
 }
+
+/* Explicit size/shape variants. Existing default actions retain their contract. */
+.site-button-rounded { border-radius: var(--ui-radius-control-rounded); }
+.site-button-square { border-radius: var(--ui-radius-control-square); }
+.site-button-xl { min-height: var(--ui-control-height-xl); padding: .875rem 1.75rem; font-size: var(--font-size-300); }
+.site-button-hero { min-height: var(--ui-control-height-hero); padding: 1rem 2rem; font-size: var(--font-size-400); }
+.site-button-wide { width: min(100%, 28rem); }
+
+/* Large choices communicate navigation/selection through an icon, label and optional copy. */
+.site-choice-tile {
+  display: inline-flex; align-items: center; gap: .875rem; min-width: 0; min-height: 4rem;
+  border: 1px solid var(--ui-border); border-radius: var(--ui-radius-control-rounded);
+  padding: .875rem 1.25rem; background: var(--ui-surface); color: var(--ui-text); text-align: left;
+  box-shadow: none; cursor: pointer; transition: border-color var(--ui-transition), background-color var(--ui-transition), color var(--ui-transition);
+}
+.site-choice-tile:hover:not(:disabled) { border-color: var(--ui-border-strong); background: var(--ui-surface-muted); }
+.site-choice-tile:active:not(:disabled) { background: var(--ui-action-soft-pressed); }
+.site-choice-tile[data-selected="true"] { border-color: var(--ui-text); background: var(--ui-surface); box-shadow: inset 0 0 0 1px var(--ui-text); }
+.site-choice-tile[data-selected="true"]:hover:not(:disabled) { background: var(--ui-surface-muted); }
+.site-choice-tile[data-selected="true"]:active:not(:disabled) { background: var(--ui-action-soft-pressed); }
+.site-choice-tile:disabled { cursor: not-allowed; opacity: .45; background: var(--ui-surface-muted); }
+.site-choice-tile:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
+.site-choice-tile-icon { display: grid; flex: none; width: 2.5rem; height: 2.5rem; place-items: center; border-radius: .625rem; background: var(--ui-surface-soft); color: var(--ui-text); }
+.site-choice-tile-icon svg { width: 1.5rem; height: 1.5rem; stroke-width: 1.8; }
+.site-choice-tile[data-selected="true"] .site-choice-tile-icon { background: var(--site-accent); }
+.site-choice-tile-copy { display: grid; min-width: 0; gap: .375rem; }
+.site-choice-tile-label { font-size: var(--font-size-300); font-weight: var(--font-weight-semibold); line-height: 1.4; word-break: keep-all; }
+.site-choice-tile-description { color: var(--ui-text-muted); font-size: var(--font-size-200); font-weight: var(--font-weight-regular); line-height: 1.5; word-break: keep-all; }
+.site-choice-tile[data-presentation="feature"] { min-height: 7rem; gap: 1.25rem; padding: 1.5rem; }
+.site-choice-tile[data-presentation="feature"] .site-choice-tile-icon { width: 3.5rem; height: 3.5rem; border-radius: .875rem; }
+.site-choice-tile[data-presentation="feature"] .site-choice-tile-icon svg { width: 1.75rem; height: 1.75rem; }
+.site-choice-tile[data-presentation="feature"] .site-choice-tile-label { font-size: var(--font-size-400); font-weight: var(--font-weight-strong); }
+@media (max-width: 639px) {
+  .site-choice-tile[data-presentation="feature"] { flex-direction: column; justify-content: center; gap: .5rem; min-height: 6.25rem; padding: .75rem .5rem; text-align: center; }
+  .site-choice-tile[data-presentation="feature"] .site-choice-tile-icon { width: 2.5rem; height: 2.5rem; border-radius: .625rem; }
+  .site-choice-tile[data-presentation="feature"] .site-choice-tile-icon svg { width: 1.5rem; height: 1.5rem; }
+  .site-choice-tile[data-presentation="feature"] .site-choice-tile-label { font-size: var(--font-size-200); }
+  .site-choice-tile[data-presentation="feature"] .site-choice-tile-description { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .site-choice-tile { transition: none; } }
