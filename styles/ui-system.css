@@ -956,3 +956,9 @@ textarea.site-field,
 .site-choice-tile[data-size="compact"] .site-choice-tile-icon { width: 1.5rem; height: 1.5rem; border-radius: .375rem; }
 .site-choice-tile[data-size="compact"] .site-choice-tile-icon svg { width: 1.125rem; height: 1.125rem; }
 .site-choice-tile[data-size="compact"] .site-choice-tile-label { font-size: var(--font-size-200); }
+
+
+/* Native color emoji are decorative; the visible label remains the accessible name. */
+.site-emoji-icon { display: block; font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", emoji; font-size: 1.75rem; font-weight: 400; line-height: 1; }
+.site-choice-tile[data-icon-style="emoji"] .site-choice-tile-icon { background: transparent; }
+.site-choice-tile[data-size="compact"] .site-emoji-icon { font-size: 1.5rem; }

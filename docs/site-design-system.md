@@ -114,3 +114,15 @@ Ghost pagination/icon controls retain transparent background and border when dis
 - 판매 목록은 서비스 밑줄 탭, 디자인/기본 세그먼트, 업종 compact 선택, 썸네일 순이다. 기존 PC 사이드 목록/태블릿 select 분기를 제거하고 동일한 선택 컴포넌트를 쓴다. 템플릿과 가격·신청·필터의 데이터 의미는 유지한다.
 
 - 짧은 어두운 도움말은 HelpTooltip tone=dark로 제공한다. 차콜 바탕·흰 본문·노란 핵심 강조, 닫기·Escape·바깥 클릭·화면 충돌 처리를 공통 Popover에 연결한다. 기존 밝은 도움말의 기본값은 유지한다. 옅은 콘텐츠 묶음은 site-collection, 펼치기는 기존 Collapsible와 outline Button을 조합하며 허위 리뷰·가격·상태를 만들지 않는다.
+
+
+## 연결형 탭·말풍선·이모지 (2026-10-25)
+
+이 절은 위 표의 디자인/기본 선택 방식을 대체한다. 공통 컴포넌트의 기존 변형은 유지한다.
+
+- 서로 다른 관련 목록은 `Tabs variant="contained"`로 묶는다. `TabsList`·`TabsTrigger`·`TabsContent`가 같은 변형을 상속하고, 선택한 탭과 패널이 같은 옅은 표면으로 이어진다. 상단 모서리 12px, 최소 높이 48px, 두 탭은 각각 최대192px로 제한한다. 모바일은14px와 좌우16px를 사용한다. 전체 목록을 감싸는 별도 테두리 카드는 추가하지 않는다.
+- `/apply`의 디자인/기본 목록은 이 공통 연결형 탭과 패널을 사용한다. 상위 서비스의 밑줄 탭, 업종 필터, 가격·목록·URL·페이지 처리의 의미는 유지한다. 기존 outline 세그먼트는 이미지/목록처럼 동일 콘텐츠의 표시 방식에 사용한다.
+- 참고 원칙: [Carbon Tabs](https://www.carbondesignsystem.com/building-blocks/core/components/tabs/guidelines)의 contained 탭과 패널 연결. 외부 CSS나 크기를 복제하지 않는다.
+- `HelpTooltip tone="brand"`는 아티메뉴 노란색·검정 글자·작은 꼬리·닫기 버튼의 안내 말풍선이다. `trigger`, `side`, `align`으로 기준 요소와 방향을 지정한다. 기존 Radix Popover의 Escape·바깥 클릭·포커스 복귀·화면 충돌 처리를 유지한다. 다시 누르면 재진입한다. 짧은 hover/focus 힌트는 `TooltipContent tone="brand"`를 쓰고, 중요한 정보나 조작 버튼을 안에 숨기지 않는다. 기본 light/dark 도움말은 보존한다.
+- 업종 `ChoiceTile`은 `emoji` 속성과 공통 `site-emoji-icon`을 사용한다. ☕/🍽️/🍣/🍸/🥪와 전체🗂️를 사용하며 장식 이모지는 접근성 이름에서 제외한다. 이모지 뒤에는 별도 노란/회색 정사각형 바탕을 겹치지 않는다. 색 이모지 서체는 Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji 순이며 OS별 기본 그림을 따른다. 화면 구성의 목록/앨범, 닫기/화살표 등 동작 아이콘은 기존 기호를 유지한다.
+- 위 세 요소는 `/design-system`에서 실제 선택·도움말 열기/닫기 예시로 확인한다.
