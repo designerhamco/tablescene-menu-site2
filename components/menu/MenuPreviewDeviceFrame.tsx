@@ -11,6 +11,7 @@ import { supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import MenuPreviewOptionsPanel from "./MenuPreviewOptionsPanel";
 import styles from "./MenuPreviewDeviceFrame.module.css";
 import { readPreviewDesign, serializePreviewDesign, type PreviewDesign, type PreviewDesignDefaults } from "@/lib/menu-preview-design";
+import { hasFixedHeaderAlignment } from "@/lib/menu-design-surfaces";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import { getTemplatePreviewOptionGroups } from "@/lib/template-preview-options";
 import { getDefaultDesignOptions, type DefaultDesignOptionKey, type DefaultDesignOptions } from "@/lib/default-design-options";
@@ -385,7 +386,7 @@ export default function MenuPreviewDeviceFrame(
           </button>
         </header>
         {hasDisplayOptions && templateKey ? <MenuPreviewOptionsPanel open={areDisplayOptionsOpen} onToggle={() => setDisplayOptionsOpenOverride(!areDisplayOptionsOpen)} tab={optionsTab} onTabChange={changeOptionsTab}
-          groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} pending={isPending} templateKey={templateKey} defaults={props.previewDesignDefaults} design={designOptions} onDesignChange={changeDesign} album={defaultDesign?.itemLayout === "album"} /> : null}
+          groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} pending={isPending} templateKey={templateKey} defaults={props.previewDesignDefaults} design={designOptions} onDesignChange={changeDesign} alignmentDisabled={device !== "mobile" && hasFixedHeaderAlignment(templateKey, { menu_design_id: defaultDesign?.id })} album={defaultDesign?.itemLayout === "album"} /> : null}
       </div>
 
       <section

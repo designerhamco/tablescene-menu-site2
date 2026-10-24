@@ -287,8 +287,10 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       if (disposed || !area.current || !measure.current) return;
       const bounds = area.current.getBoundingClientRect();
       if (bounds.width <= 1 || bounds.height <= 1) return;
-      const regionWidth = Math.min(area.current.clientWidth, bounds.width - (area.current.offsetWidth - area.current.clientWidth));
-      const gap = parseFloat(getComputedStyle(area.current).columnGap) || 24;
+      const menuStyle = getComputedStyle(area.current);
+      const regionWidth = Math.min(area.current.clientWidth, bounds.width - (area.current.offsetWidth - area.current.clientWidth)) - parseFloat(menuStyle.paddingLeft) - parseFloat(menuStyle.paddingRight);
+      const capacity = bounds.height - parseFloat(menuStyle.paddingTop) - parseFloat(menuStyle.paddingBottom);
+      const gap = parseFloat(menuStyle.columnGap) || 24;
       const brandWidth = brandArea.current?.getBoundingClientRect().width ?? 0;
       const width = centerColumn ? regionWidth - brandWidth - gap : regionWidth;
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
@@ -326,10 +328,11 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             gapAfter: parseFloat(getComputedStyle(element).paddingBottom) || 0 };
         });
         root.style.setProperty("--scroll-track-width", `${columnWidth}px`);
-        const firstColumnInset = upperLeft ? (brandArea.current?.getBoundingClientRect().height ?? 0) + gap : 0;
+        const cornerStyle = upperLeft && brandArea.current ? getComputedStyle(brandArea.current) : null;
+        const firstColumnInset = upperLeft ? (brandArea.current?.getBoundingClientRect().height ?? 0) + (parseFloat(cornerStyle?.marginTop ?? "0") || 0) + (parseFloat(cornerStyle?.marginBottom ?? "0") || 0) : 0;
         root.style.setProperty("--scroll-first-inset", `${firstColumnInset}px`);
         const footerHeight = noticeMeasure.current?.getBoundingClientRect().height ?? 0;
-        const candidate = { columnCount, columnWidth, layout: layoutScrollableMenu(measured, columnCount, bounds.height, grouped, { footerHeight, firstColumnInset }) };
+        const candidate = { columnCount, columnWidth, layout: layoutScrollableMenu(measured, columnCount, capacity, grouped, { footerHeight, firstColumnInset }) };
         measure.current!.removeAttribute("data-cafe-a-three-part-reference");
         return candidate;
       };

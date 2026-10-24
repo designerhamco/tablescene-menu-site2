@@ -116,7 +116,10 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       const gap = parseFloat(getComputedStyle(viewport).columnGap) || 24;
       const brandWidth = center ? root.querySelector<HTMLElement>("[data-native-brand]")?.getBoundingClientRect().width ?? 0 : 0;
-      const width = viewport.clientWidth - (center ? brandWidth + gap : 0);
+      const viewportStyle = getComputedStyle(viewport);
+      const viewportPaddingTop = parseFloat(viewportStyle.paddingTop) || 0;
+      const viewportHeight = viewport.clientHeight - viewportPaddingTop - (parseFloat(viewportStyle.paddingBottom) || 0);
+      const width = viewport.clientWidth - (parseFloat(viewportStyle.paddingLeft) || 0) - (parseFloat(viewportStyle.paddingRight) || 0) - (center ? brandWidth + gap : 0);
       const leftRail = shell === "brand_left_rail";
       const boardStyle = getComputedStyle(root);
       const brand = root.querySelector<HTMLElement>("[data-native-brand]");
@@ -142,10 +145,10 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
           const gapAfter = parseFloat(getComputedStyle(el).paddingBottom) || 0;
           const trimNoticeBoundary = unit === units.at(-1) && Boolean(noticeMeasure.current?.getBoundingClientRect().height);
           return { id: unit.id, group: unit.group, kind: unit.kind,
-            height: el.getBoundingClientRect().height - (panel && unit.id === "native-intro" ? panelInset : 0) - (trimNoticeBoundary ? gapAfter : 0),
+            height: el.getBoundingClientRect().height - (panel && unit.id === "native-intro" ? panelInset + viewportPaddingTop : 0) - (trimNoticeBoundary ? gapAfter : 0),
             gapAfter: trimNoticeBoundary ? 0 : gapAfter };
         });
-        return { columnCount: count, columnWidth, itemSize: size, names: measureScrollableNames(measure.current!), layout: layoutScrollableMenu(measured, count, viewport.clientHeight - 2 * panelInset, grouped, { footerHeight: noticeMeasure.current?.getBoundingClientRect().height ?? 0 }) };
+        return { columnCount: count, columnWidth, itemSize: size, names: measureScrollableNames(measure.current!), layout: layoutScrollableMenu(measured, count, viewportHeight - 2 * panelInset, grouped, { footerHeight: noticeMeasure.current?.getBoundingClientRect().height ?? 0 }) };
       });
       const selected = selectScrollableMenuCandidate(candidates, grouped);
       if (leftRail) {

@@ -91,3 +91,10 @@
   --menu-role-price-color: #fff;
   --menu-role-supporting-color: rgb(255 255 255 / 82%);
 }
+
+/* Three header cells own their alignment on PC/tablet. Mobile identities
+   render outside these headers and keep the saved shared alignment. */
+.scope[data-representative-align] :global(:is([data-basic-top-row], .cafe-a-topline-info-header) .cafe-a-store-title) { text-align: center !important; }
+.scope[data-representative-align] :global(:is([data-basic-top-row], .cafe-a-topline-info-header) :is(.cafe-a-topline-description, .cafe-a-store-description, [data-cafe-a-store-description])) { text-align: left !important; }
+.scope[data-representative-align] :global(:is([data-basic-top-row], .cafe-a-topline-info-header) .cafe-a-store-logo-wrap) { justify-content: center !important; }
+.scope[data-representative-align] :global(:is([data-basic-top-row], .cafe-a-topline-info-header) .cafe-a-store-logo) { margin-inline: auto !important; object-position: center !important; }
