@@ -10,6 +10,8 @@ import type { MenuTableListItem } from "@/lib/menu-table-management";
 import { initialMenuTableActionState, type MenuTableActionState } from "./action-state";
 import { createMenuTableAction, mutateMenuTableAction } from "./actions";
 import { Badge } from "@/app/components/ui/badge";
+import { EmptyState } from "@/app/components/ui/empty-state";
+import { LayoutGrid } from "lucide-react";
 
 function ActionNotice({ state }: { state: MenuTableActionState }) {
   if (state.status === "idle" || !state.message) return null;
@@ -106,9 +108,7 @@ export default function MenuTableManager({
         </div>
 
         {tables.length === 0 ? (
-          <p className="rounded-3xl border border-dashed border-zinc-300 bg-white px-6 py-10 text-center text-sm font-bold text-zinc-500">
-            아직 등록된 테이블이 없습니다.
-          </p>
+          <EmptyState headingLevel={3} icon={<LayoutGrid />} title="아직 등록된 테이블이 없습니다." description="테이블을 추가하면 이곳에서 관리할 수 있습니다." />
         ) : tables.map((table) => (
           <article key={table.id} className="site-section p-5">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">

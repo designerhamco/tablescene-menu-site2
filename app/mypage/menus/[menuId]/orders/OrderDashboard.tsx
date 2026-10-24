@@ -13,6 +13,8 @@ import type { OrderDashboardPageData } from "@/lib/server/order-management-servi
 import { initialOrderManagementActionState } from "./action-state";
 import { mutateOrderAction } from "./actions";
 import { Badge } from "@/app/components/ui/badge";
+import { EmptyState } from "@/app/components/ui/empty-state";
+import { ShoppingBag } from "lucide-react";
 
 const STATUS_LABELS: Record<string, string> = CUSTOMER_ORDER_STATUS_LABELS;
 
@@ -137,9 +139,7 @@ export default function OrderDashboard({
         ) : null}
 
         {orders.length === 0 ? (
-          <p className="rounded-3xl border border-dashed border-zinc-300 bg-white px-6 py-12 text-center text-sm font-bold text-zinc-500">
-            아직 접수된 주문이 없습니다.
-          </p>
+          <EmptyState headingLevel={3} icon={<ShoppingBag />} title="아직 접수된 주문이 없습니다." description="새 주문이 접수되면 이곳에 표시됩니다." />
         ) : orders.map((order) => (
           <article key={order.id} className="site-section p-5 md:p-6">
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
