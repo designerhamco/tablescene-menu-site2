@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { catalogDesigns, filterCatalogDesigns, getCatalogDesign, getCatalogPricing } from './catalog-designs';
+import { catalogDesigns, filterCatalogDesigns, getCatalogDesign, getCatalogPricing, normalizeCatalogLayoutFilter } from './catalog-designs';
 import { canSelectMenuDesign, getMenuPlanSelection } from './menu-plan-contract';
 import { getOpenPromotionSnapshot, getPromotionAwareChargeAmount, validatePromotionForOrder } from './promotions';
 import { readTemplateFavorites, setTemplateFavorite, TEMPLATE_FAVORITES_KEY } from './template-favorites';
@@ -61,6 +61,20 @@ test('favorites are bounded public IDs, idempotent and independent from access',
   assert.deepEqual(setTemplateFavorite(ids,'basic-first-column',true),['basic-first-column','cafe_mocha_forest_a']);
   assert.deepEqual(setTemplateFavorite(ids,'basic-first-column',false),['cafe_mocha_forest_a']);
   assert.deepEqual(readTemplateFavorites({menu_design_access:'all'}),[]);
+});
+
+test('layout and industry filters intersect without adding unsupported designs',()=>{
+  for (const service of ['basic','dining'] as const) {
+    const industry = filterCatalogDesigns(service,'designer','cafe_bakery');
+    assert.deepEqual(filterCatalogDesigns(service,'designer','cafe_bakery','list'),industry.filter(design=>design.itemLayout==='list'));
+    assert.deepEqual(filterCatalogDesigns(service,'designer','cafe_bakery','album'),industry.filter(design=>design.itemLayout==='album'));
+    assert.deepEqual(filterCatalogDesigns(service,'designer','all','all'),filterCatalogDesigns(service,'designer'));
+    assert.equal(filterCatalogDesigns(service,'designer','japanese','list').length,0);
+  }
+  assert.equal(normalizeCatalogLayoutFilter('album'),'album');
+  assert.equal(normalizeCatalogLayoutFilter('list'),'list');
+  assert.equal(normalizeCatalogLayoutFilter('unknown'),'all');
+  assert.equal(normalizeCatalogLayoutFilter(['album']),'all');
 });
 
 test('switching restores each design appearance without replacing customer content',async()=>{

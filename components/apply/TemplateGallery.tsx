@@ -1,15 +1,20 @@
 "use client";
 
-import { Check, Coffee, Fish, Images, LayoutGrid, List, Sandwich, Utensils, Wine } from "lucide-react";
+import { Check, Coffee, Fish, LayoutGrid, Sandwich, Utensils, Wine } from "lucide-react";
 import { useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import {
   CATALOG_INDUSTRIES,
+  CATALOG_LAYOUT_FILTERS,
   filterCatalogDesigns,
   getCatalogPricing,
+  normalizeCatalogLayoutFilter,
   type CatalogKind,
+  type CatalogLayoutFilter,
   type CatalogService,
 } from "@/lib/catalog-designs";
 import CatalogDesignCard from "@/components/templates/CatalogDesignCard";
+import CatalogLayoutIcon from "@/components/templates/CatalogLayoutIcon";
+import CatalogLayoutSelect from "@/components/templates/CatalogLayoutSelect";
 import useTemplateFavorites from "@/components/templates/useTemplateFavorites";
 import TemplatePagination from "./TemplatePagination";
 
@@ -23,13 +28,8 @@ const KIND_TABS = [
   { key: "designer", label: "디자인 템플릿", description: "완성된 스타일에 우리 매장 메뉴를 넣어 시작하세요." },
   { key: "standard", label: "기본 템플릿", description: "기본 레이아웃에서 색상과 글꼴을 매장에 맞게 직접 설정하세요." },
 ] as const;
-const LAYOUT_FILTERS = [
-  { key: "all", label: "전체" },
-  { key: "list", label: "리스트형" },
-  { key: "album", label: "앨범형" },
-] as const;
 const FILTER_ICONS = {
-  all: LayoutGrid, list: List, album: Images, cafe_bakery: Coffee,
+  all: LayoutGrid, cafe_bakery: Coffee,
   restaurant_dining: Utensils, japanese: Fish, pub_bar: Wine, quick_meal: Sandwich,
 };
 
@@ -49,56 +49,75 @@ export default function TemplateGallery({
   initialProduct = "dining_single",
   initialKind = "designer",
   initialFilter = "all",
+  initialLayoutFilter = "all",
 }: {
   initialProduct?: "dining_single" | "dining_multi" | "display";
   initialKind?: CatalogKind;
   initialFilter?: string;
+  initialLayoutFilter?: string;
 }) {
   const [product, setProduct] = useState<CatalogService>(initialProduct === "dining_multi" ? "dining" : initialProduct === "display" ? "display" : "basic");
   const [kind, setKind] = useState<CatalogKind>(initialKind);
   const [filter, setFilter] = useState(initialProduct === "display" ? "all" : initialKind === "standard"
-    ? (LAYOUT_FILTERS.some(item => item.key === initialFilter) ? initialFilter : "all")
+    ? (CATALOG_LAYOUT_FILTERS.some(item => item.key === initialFilter) ? initialFilter : "all")
     : (CATALOG_INDUSTRIES.some(item => item.key === initialFilter) ? initialFilter : "all"));
+  const [layoutFilter, setLayoutFilter] = useState<CatalogLayoutFilter>(initialProduct !== "display" && initialKind === "designer"
+    ? normalizeCatalogLayoutFilter(initialLayoutFilter) : "all");
   const [page, setPage] = useState(1);
   const galleryStartRef = useRef<HTMLDivElement>(null);
   const tabsId = useId();
   const { favorites, toggle, busy, message } = useTemplateFavorites();
-  const visibleTemplates = useMemo(() => filterCatalogDesigns(product, kind, filter), [product, kind, filter]);
+  const visibleTemplates = useMemo(() => filterCatalogDesigns(product, kind, filter, layoutFilter), [product, kind, filter, layoutFilter]);
   const totalPages = Math.ceil(visibleTemplates.length / TEMPLATES_PER_PAGE);
   const currentPage = Math.min(page, Math.max(totalPages, 1));
   const paginatedTemplates = visibleTemplates.slice((currentPage - 1) * TEMPLATES_PER_PAGE, currentPage * TEMPLATES_PER_PAGE);
   const selectedKind = KIND_TABS.find(item => item.key === kind)!;
-  const filters = kind === "standard" ? LAYOUT_FILTERS : CATALOG_INDUSTRIES;
+  const filters = kind === "standard" ? CATALOG_LAYOUT_FILTERS : CATALOG_INDUSTRIES;
   const filterHeading = kind === "standard" ? "화면 구성" : "업종";
   const filterLabel = filters.find(item => item.key === filter)?.label ?? "전체";
+  const layoutLabel = CATALOG_LAYOUT_FILTERS.find(item => item.key === layoutFilter)!.label;
+  const hasLayoutFilter = product !== "display" && kind === "designer";
+  const emptyTitle = hasLayoutFilter && layoutFilter !== "all"
+    ? `${filter === "all" ? "" : `${filterLabel} · `}${layoutLabel} 템플릿 준비 중`
+    : `${filterLabel} 템플릿 준비 중`;
   const pricing = product === "display" ? null : getCatalogPricing(product, kind);
   const productTitle = product === "display" ? "아티메뉴 디스플레이" : `${product === "basic" ? "베이직" : "다이닝"} ${selectedKind.label}`;
   const money = (amount: number) => `${amount.toLocaleString("ko-KR")}원`;
 
-  function keepUrl(service: CatalogService, nextKind: CatalogKind, nextFilter: string) {
+  function keepUrl(service: CatalogService, nextKind: CatalogKind, nextFilter: string, nextLayout: CatalogLayoutFilter) {
     const url = new URL(location.href);
     url.searchParams.set("plan", service);
     url.searchParams.set("category", nextKind);
     url.searchParams.set("filter", nextFilter);
+    if (service !== "display" && nextKind === "designer" && nextLayout !== "all") url.searchParams.set("layout", nextLayout);
+    else url.searchParams.delete("layout");
     history.replaceState(null, "", url);
   }
   function selectProduct(service: CatalogService) {
-    setProduct(service); setFilter("all"); setPage(1); keepUrl(service, kind, "all");
+    setProduct(service); setFilter("all"); setLayoutFilter("all"); setPage(1); keepUrl(service, kind, "all", "all");
   }
   function selectKind(next: CatalogKind) {
-    setKind(next); setFilter("all"); setPage(1); keepUrl(product, next, "all");
+    setKind(next); setFilter("all"); setLayoutFilter("all"); setPage(1); keepUrl(product, next, "all", "all");
   }
   function selectFilter(next: string) {
-    setFilter(next); setPage(1); keepUrl(product, kind, next);
+    setFilter(next); setPage(1); keepUrl(product, kind, next, layoutFilter);
+  }
+  function selectLayout(next: CatalogLayoutFilter) {
+    setLayoutFilter(next); setPage(1); keepUrl(product, kind, filter, next);
   }
   function filterButtons(mobile: boolean) {
     return filters.map(item => {
-      const Icon = FILTER_ICONS[item.key];
+      let icon;
+      if (item.key === "list" || item.key === "album") icon = <CatalogLayoutIcon layout={item.key} />;
+      else {
+        const Icon = FILTER_ICONS[item.key];
+        icon = <Icon aria-hidden="true" />;
+      }
       return (
         <button key={item.key} type="button" aria-pressed={filter === item.key}
-          className={mobile ? "site-category-circle-button" : undefined}
+          className={mobile ? "site-category-circle-button" : kind === "standard" ? "site-catalog-layout-category" : undefined}
           onClick={() => selectFilter(item.key)}>
-          {mobile && <span className="site-category-circle"><Icon aria-hidden="true" /></span>}
+          {mobile ? <span className="site-category-circle">{icon}</span> : kind === "standard" ? icon : null}
           <span className={mobile ? "site-category-circle-label" : undefined}>{item.label}</span>
         </button>
       );
@@ -155,9 +174,12 @@ export default function TemplateGallery({
                 </div>
                 <div className="site-category-tablet">
                   <label className="type-label" htmlFor={`${tabsId}-filter`}>{filterHeading}</label>
-                  <select className="site-category-select" id={`${tabsId}-filter`} value={filter} onChange={event => selectFilter(event.target.value)}>
+                  {kind === "standard" ? (
+                    <CatalogLayoutSelect id={`${tabsId}-filter`} label="화면 구성" value={normalizeCatalogLayoutFilter(filter)}
+                      onValueChange={selectFilter} allLabel="전체" />
+                  ) : <select className="site-category-select" id={`${tabsId}-filter`} value={filter} onChange={event => selectFilter(event.target.value)}>
                     {filters.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}
-                  </select>
+                  </select>}
                 </div>
                 <div className="site-category-mobile">
                   <h2 className="type-item-title mb-3">{filterHeading}</h2>
@@ -166,16 +188,23 @@ export default function TemplateGallery({
               </aside>
             )}
             <div className="site-catalog-results">
-              <p className="site-catalog-count" aria-live="polite" aria-atomic="true">
-                {product === "display" ? "디스플레이" : `${selectedKind.label} · ${filterLabel}`} <span>{visibleTemplates.length}개</span>
-              </p>
+              <div className="site-catalog-results-toolbar">
+                <p className="site-catalog-count" aria-live="polite" aria-atomic="true">
+                  {product === "display" ? "디스플레이" : `${selectedKind.label} · ${filterLabel}${hasLayoutFilter && layoutFilter !== "all" ? ` · ${layoutLabel}` : ""}`} <span>{visibleTemplates.length}개</span>
+                </p>
+                {hasLayoutFilter && <div className="site-catalog-layout-filter">
+                  <CatalogLayoutSelect label="디자인 템플릿 화면 구성" value={layoutFilter} onValueChange={selectLayout} />
+                </div>}
+              </div>
               {message && <p role="status" className="type-body-sm mb-3 text-red-700">{message}</p>}
               {paginatedTemplates.length ? (
                 <div className="site-template-grid">{paginatedTemplates.map(design => <CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={busy} onToggle={toggle} />)}</div>
               ) : (
                 <section className="site-card site-card-empty flex min-h-72 flex-col items-center justify-center px-6 text-center">
-                  <h2 className="type-content-title">{filterLabel} 템플릿 준비 중</h2>
-                  <p className="mt-3 break-keep text-sm text-zinc-600">매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다.</p>
+                  <h2 className="type-content-title">{emptyTitle}</h2>
+                  <p className="mt-3 break-keep text-sm text-zinc-600">{hasLayoutFilter && layoutFilter !== "all"
+                    ? "선택한 화면 구성의 디자인을 준비하고 있습니다. 다른 화면 구성이나 업종을 선택해 주세요."
+                    : "매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다."}</p>
                 </section>
               )}
               <TemplatePagination currentPage={currentPage} totalPages={totalPages} onSelect={next => {
