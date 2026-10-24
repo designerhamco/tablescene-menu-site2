@@ -5,10 +5,13 @@
   --ui-control-height-header: 2.75rem;
   --ui-control-height-lg: 3rem;
   --ui-control-height-xl: 3.5rem;
-  --ui-control-height-hero: 4rem;
-  --ui-radius-control-rounded: .75rem;
+  --ui-radius-control-rounded: .5rem;
   --ui-radius-control-square: .375rem;
-  --ui-tab-rail-height: 3.25rem;
+  --ui-tab-rail-height: 3rem;
+  --ui-control-gap: .5rem;
+  --ui-control-padding-inline: 1rem;
+  --ui-control-padding-inline-lg: 1.25rem;
+  --ui-control-padding-inline-xl: 1.5rem;
   --ui-choice-size: 1.125rem;
   --ui-radius-control: 9999px;
   --ui-radius-field: 1rem;
@@ -104,12 +107,12 @@
   min-height: var(--ui-control-height-md);
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: var(--ui-control-gap);
   border: 1px solid var(--ui-border);
   background: var(--ui-surface);
   color: var(--ui-text);
   border-radius: var(--ui-radius-control);
-  padding: 0.5rem 0.75rem;
+  padding: .5rem var(--ui-control-padding-inline);
   font-size: var(--font-size-200);
   font-weight: var(--font-weight-semibold);
   line-height: 1.375;
@@ -238,7 +241,7 @@
 
 .site-button-lg {
   min-height: var(--ui-control-height-lg);
-  padding: 0.75rem 1.5rem;
+  padding: .5rem var(--ui-control-padding-inline-lg);
   font-size: var(--font-size-300);
 }
 
@@ -660,7 +663,7 @@ textarea.site-field,
   justify-content: space-between;
   gap: 0.75rem;
   border-radius: .5rem;
-  padding: 0.75rem 1rem;
+  padding: .5rem 1rem;
   color: var(--ui-text-muted);
   font-size: var(--font-size-200);
   font-weight: var(--font-weight-semibold);
@@ -910,15 +913,13 @@ textarea.site-field,
 /* Explicit size/shape variants. Existing default actions retain their contract. */
 .site-button-rounded { border-radius: var(--ui-radius-control-rounded); }
 .site-button-square { border-radius: var(--ui-radius-control-square); }
-.site-button-xl { min-height: var(--ui-control-height-xl); padding: .875rem 1.75rem; font-size: var(--font-size-300); }
-.site-button-hero { min-height: var(--ui-control-height-hero); padding: 1rem 2rem; font-size: var(--font-size-400); }
-.site-button-wide { width: min(100%, 28rem); }
+.site-button-xl { min-height: var(--ui-control-height-xl); padding: .75rem var(--ui-control-padding-inline-xl); font-size: var(--font-size-300); }
 
 /* Large choices communicate navigation/selection through an icon, label and optional copy. */
 .site-choice-tile {
-  display: inline-flex; align-items: center; gap: .875rem; min-width: 0; min-height: 4rem;
+  display: inline-flex; align-items: center; gap: .75rem; min-width: 0; min-height: 3rem;
   border: 1px solid var(--ui-border); border-radius: var(--ui-radius-control-rounded);
-  padding: .875rem 1.25rem; background: var(--ui-surface); color: var(--ui-text); text-align: left;
+  padding: .25rem 1rem; background: var(--ui-surface); color: var(--ui-text); text-align: left;
   box-shadow: none; cursor: pointer; transition: border-color var(--ui-transition), background-color var(--ui-transition), color var(--ui-transition);
 }
 .site-choice-tile:hover:not(:disabled) { border-color: var(--ui-border-strong); background: var(--ui-surface-muted); }
@@ -928,21 +929,28 @@ textarea.site-field,
 .site-choice-tile[data-selected="true"]:active:not(:disabled) { background: var(--ui-action-soft-pressed); }
 .site-choice-tile:disabled { cursor: not-allowed; opacity: .45; background: var(--ui-surface-muted); }
 .site-choice-tile:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
-.site-choice-tile-icon { display: grid; flex: none; width: 2.5rem; height: 2.5rem; place-items: center; border-radius: .625rem; background: var(--ui-surface-soft); color: var(--ui-text); }
+.site-choice-tile-icon { display: grid; flex: none; width: 2rem; height: 2rem; place-items: center; border-radius: .5rem; background: var(--ui-surface-soft); color: var(--ui-text); }
 .site-choice-tile-icon svg { width: 1.5rem; height: 1.5rem; stroke-width: 1.8; }
 .site-choice-tile[data-selected="true"] .site-choice-tile-icon { background: var(--site-accent); }
-.site-choice-tile-copy { display: grid; min-width: 0; gap: .375rem; }
+.site-choice-tile-copy { display: grid; min-width: 0; gap: .25rem; }
 .site-choice-tile-label { font-size: var(--font-size-300); font-weight: var(--font-weight-semibold); line-height: 1.4; word-break: keep-all; }
 .site-choice-tile-description { color: var(--ui-text-muted); font-size: var(--font-size-200); font-weight: var(--font-weight-regular); line-height: 1.5; word-break: keep-all; }
-.site-choice-tile[data-presentation="feature"] { min-height: 7rem; gap: 1.25rem; padding: 1.5rem; }
-.site-choice-tile[data-presentation="feature"] .site-choice-tile-icon { width: 3.5rem; height: 3.5rem; border-radius: .875rem; }
+.site-choice-tile[data-presentation="feature"] { min-height: 5rem; gap: .75rem; padding: 1rem; }
+.site-choice-tile[data-presentation="feature"] .site-choice-tile-icon { width: 2.5rem; height: 2.5rem; border-radius: .5rem; }
 .site-choice-tile[data-presentation="feature"] .site-choice-tile-icon svg { width: 1.75rem; height: 1.75rem; }
-.site-choice-tile[data-presentation="feature"] .site-choice-tile-label { font-size: var(--font-size-400); font-weight: var(--font-weight-strong); }
+.site-choice-tile[data-presentation="feature"] .site-choice-tile-label { font-size: var(--font-size-300); font-weight: var(--font-weight-strong); }
 @media (max-width: 639px) {
-  .site-choice-tile[data-presentation="feature"] { flex-direction: column; justify-content: center; gap: .5rem; min-height: 6.25rem; padding: .75rem .5rem; text-align: center; }
+  .site-choice-tile[data-presentation="feature"] { flex-direction: column; justify-content: center; gap: .5rem; min-height: 5rem; padding: .5rem; text-align: center; }
   .site-choice-tile[data-presentation="feature"] .site-choice-tile-icon { width: 2.5rem; height: 2.5rem; border-radius: .625rem; }
   .site-choice-tile[data-presentation="feature"] .site-choice-tile-icon svg { width: 1.5rem; height: 1.5rem; }
   .site-choice-tile[data-presentation="feature"] .site-choice-tile-label { font-size: var(--font-size-200); }
   .site-choice-tile[data-presentation="feature"] .site-choice-tile-description { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .site-choice-tile { transition: none; } }
+
+/* Short icon choices are compact filters, never full-width promotional cards. */
+.site-choice-group { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--ui-control-gap); max-width: 100%; }
+.site-choice-tile[data-size="compact"] { min-height: 2.75rem; gap: .5rem; padding: .25rem .75rem; }
+.site-choice-tile[data-size="compact"] .site-choice-tile-icon { width: 1.5rem; height: 1.5rem; border-radius: .375rem; }
+.site-choice-tile[data-size="compact"] .site-choice-tile-icon svg { width: 1.125rem; height: 1.125rem; }
+.site-choice-tile[data-size="compact"] .site-choice-tile-label { font-size: var(--font-size-200); }

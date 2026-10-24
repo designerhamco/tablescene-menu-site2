@@ -7,7 +7,7 @@ const accessServiceSource = readFileSync(new URL("./server/menu-site-access-serv
 
 test("복구 기간이 끝난 메뉴판은 고객 화면에서 종료됨으로 안내한다", () => {
   assert.match(mypageSource, /pending_delete: "종료됨"/);
-  assert.match(mypageSource, />\s*종료됨\s*</);
+  assert.match(mypageSource, /label: "종료됨"/);
   assert.match(mypageSource, /종료된 메뉴판이 없습니다/);
   assert.match(accessServiceSource, /statusLabel: "종료됨"/);
 });

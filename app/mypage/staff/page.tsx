@@ -236,18 +236,18 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                       </div>
                       <form action={updateStaffMembershipRoleAction} className="flex gap-2">
                         <input type="hidden" name="membershipId" value={membership.id} />
-                        <select name="role" defaultValue={membership.role} className="min-w-0 flex-1 rounded-full border border-zinc-200 bg-white px-3 py-2 text-xs font-bold text-zinc-700">
+                        <select name="role" defaultValue={membership.role} className="site-field min-w-0 flex-1 border-zinc-200 px-3 py-2 text-zinc-700">
                           {STAFF_INVITATION_ROLES.map((role) => (
                             <option key={role} value={role}>{STAFF_INVITATION_ROLE_LABELS[role]}</option>
                           ))}
                         </select>
-                        <button type="submit" className="site-button site-button-secondary text-xs">
+                        <button type="submit" className="site-button site-button-rounded site-button-secondary text-xs">
                           프리셋 변경
                         </button>
                       </form>
                       <form action={revokeStaffMembershipAction} className="lg:text-right">
                         <input type="hidden" name="membershipId" value={membership.id} />
-                        <button type="submit" className="site-button site-button-outline text-xs">
+                        <button type="submit" className="site-button site-button-rounded site-button-outline text-xs">
                           접근 회수
                         </button>
                       </form>
@@ -265,7 +265,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                             역할 프리셋을 변경하면 개별 체크 설정은 새 프리셋 기본값으로 초기화됩니다.
                           </p>
                         </div>
-                        <button type="submit" className="site-button site-button-primary text-xs">
+                        <button type="submit" className="site-button site-button-rounded site-button-primary text-xs">
                           개별 권한 저장
                         </button>
                       </div>
@@ -328,14 +328,14 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                         <button
                           type="submit"
                           disabled={!invitationDeliveryEnabled}
-                          className="site-button site-button-secondary text-xs disabled:cursor-not-allowed"
+                          className="site-button site-button-rounded site-button-secondary text-xs disabled:cursor-not-allowed"
                         >
                           재전송
                         </button>
                       </form>
                       <form action={cancelStaffInvitationAction}>
                         <input type="hidden" name="inviteBatchId" value={invitation.inviteBatchId} />
-                        <button type="submit" className="site-button site-button-outline text-xs">
+                        <button type="submit" className="site-button site-button-rounded site-button-outline text-xs">
                           취소
                         </button>
                       </form>

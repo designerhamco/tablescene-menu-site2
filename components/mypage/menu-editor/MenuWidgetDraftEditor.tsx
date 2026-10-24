@@ -228,7 +228,7 @@ export default function MenuWidgetDraftEditor({
                 maxLength={MAX_MENU_WIDGET_TITLE_LENGTH}
                 onChange={(event) => patchDraft({ title: event.currentTarget.value })}
                 placeholder="예: 오늘의 안내"
-                className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
+                className="site-field w-full border-zinc-200 px-4 py-3 text-zinc-900 transition"
               />
               <CharacterCounter value={draft.title} maxLength={MAX_MENU_WIDGET_TITLE_LENGTH} />
             </FieldBlock>
@@ -239,7 +239,7 @@ export default function MenuWidgetDraftEditor({
                 onChange={(event) => patchDraft({ description: event.currentTarget.value })}
                 placeholder="메뉴판에 함께 보여줄 문구를 입력해주세요."
                 rows={5}
-                className="w-full resize-y rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold leading-relaxed text-zinc-900 outline-none transition focus:border-zinc-950"
+                className="site-field w-full resize-y border-zinc-200 px-4 py-3 leading-relaxed text-zinc-900 transition"
               />
               <CharacterCounter value={draft.description} maxLength={MAX_MENU_WIDGET_DESCRIPTION_LENGTH} />
             </FieldBlock>
@@ -252,7 +252,7 @@ export default function MenuWidgetDraftEditor({
               <select
                 value={draft.settings.aspectRatio}
                 onChange={(event) => patchSettings({ aspectRatio: event.currentTarget.value as MenuWidgetDraft["settings"]["aspectRatio"] })}
-                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm font-bold text-zinc-800 outline-none focus:border-zinc-950"
+                className="site-field w-full border-zinc-200 px-3 py-2.5 text-zinc-800"
               >
                 {MENU_WIDGET_ASPECT_RATIOS.map((ratio) => (
                   <option key={ratio} value={ratio}>{ASPECT_RATIO_LABELS[ratio] ?? ratio}</option>
@@ -266,7 +266,7 @@ export default function MenuWidgetDraftEditor({
               <select
                 value={draft.settings.objectFit}
                 onChange={(event) => patchSettings({ objectFit: event.currentTarget.value as MenuWidgetDraft["settings"]["objectFit"] })}
-                className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm font-bold text-zinc-800 outline-none focus:border-zinc-950"
+                className="site-field w-full border-zinc-200 px-3 py-2.5 text-zinc-800"
               >
                 {MENU_WIDGET_OBJECT_FITS.map((fit) => (
                   <option key={fit} value={fit}>{OBJECT_FIT_LABELS[fit] ?? fit}</option>
@@ -308,7 +308,7 @@ export default function MenuWidgetDraftEditor({
                   maxLength={MAX_MENU_WIDGET_ALT_TEXT_LENGTH}
                   onChange={(event) => patchSettings({ altText: event.currentTarget.value })}
                   placeholder="이미지를 설명하는 짧은 문구"
-                  className="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
+                  className="site-field w-full border-zinc-200 px-4 py-3 text-zinc-900 transition"
                 />
               </FieldBlock>
             </div>
@@ -347,7 +347,7 @@ export default function MenuWidgetDraftEditor({
               type="button"
               onClick={onCopy}
               disabled={widgetCount >= maxWidgetCount}
-              className="site-button site-button-outline mr-auto text-sm disabled:cursor-not-allowed"
+              className="site-button site-button-rounded site-button-outline mr-auto text-sm disabled:cursor-not-allowed"
             >
               복사
             </button>
@@ -356,23 +356,23 @@ export default function MenuWidgetDraftEditor({
             isConfirmingDelete ? (
               <span className="flex flex-wrap items-center justify-end gap-2">
                 <span className="text-xs font-bold text-red-600">이 위젯을 삭제할까요?</span>
-                <button type="button" onClick={onConfirmDelete} className="site-button site-button-danger text-xs">삭제</button>
-                <button type="button" onClick={onCancelDelete} className="site-button site-button-outline text-xs">취소</button>
+                <button type="button" onClick={onConfirmDelete} className="site-button site-button-rounded site-button-danger text-xs">삭제</button>
+                <button type="button" onClick={onCancelDelete} className="site-button site-button-rounded site-button-outline text-xs">취소</button>
               </span>
             ) : (
-              <button type="button" onClick={onRequestDelete} className="site-button site-button-outline-danger text-sm">
+              <button type="button" onClick={onRequestDelete} className="site-button site-button-rounded site-button-outline-danger text-sm">
                 삭제
               </button>
             )
           ) : null}
-          <button type="button" onClick={onCancel} className="site-button site-button-outline text-sm">
+          <button type="button" onClick={onCancel} className="site-button site-button-rounded site-button-outline text-sm">
             취소
           </button>
           <button
             type="button"
             onClick={onSave}
             disabled={saveDisabled}
-            className="site-button site-button-primary text-sm disabled:cursor-not-allowed"
+            className="site-button site-button-rounded site-button-primary text-sm disabled:cursor-not-allowed"
           >
             {saveLabel}
           </button>

@@ -1,3 +1,5 @@
+import { EmptyState } from "@/app/components/ui/empty-state";
+import { MessageSquare } from "lucide-react";
 import Link from "next/link";
 
 import { createInquiryAction, deleteInquiryAction, updateInquiryAction } from "@/app/mypage/inquiries/actions";
@@ -109,14 +111,14 @@ function formatDate(date: string | null) {
 
 function getActionButtonClassName(tone: "primary" | "secondary" | "danger") {
   if (tone === "primary") {
-    return "site-button site-button-primary";
+    return "site-button site-button-rounded site-button-primary";
   }
 
   if (tone === "danger") {
-    return "site-button site-button-outline-danger";
+    return "site-button site-button-rounded site-button-outline-danger";
   }
 
-  return "site-button site-button-secondary";
+  return "site-button site-button-rounded site-button-secondary";
 }
 
 function createHref(basePath: string, params: Record<string, string | number | null | undefined>) {
@@ -286,9 +288,9 @@ export function InquirySection({
             </select>
           </div>
           <div className="flex gap-2">
-            <button type="submit" className="site-button site-button-primary flex-1 sm:flex-none">조회</button>
+            <button type="submit" className="site-button site-button-rounded site-button-primary flex-1 sm:flex-none">조회</button>
             {(inquiryQuery || inquiryStatus !== "all") ? (
-              <Link href={paginationBasePath} className="site-button site-button-secondary flex-1 sm:flex-none">초기화</Link>
+              <Link href={paginationBasePath} className="site-button site-button-rounded site-button-secondary flex-1 sm:flex-none">초기화</Link>
             ) : null}
           </div>
         </form>
@@ -445,7 +447,7 @@ export function InquirySection({
                   이전
                 </Link>
               ) : (
-                <button type="button" disabled className="site-button site-button-outline">
+                <button type="button" disabled className="site-button site-button-rounded site-button-outline">
                   이전
                 </button>
               )}
@@ -457,19 +459,16 @@ export function InquirySection({
                   다음
                 </Link>
               ) : (
-                <button type="button" disabled className="site-button site-button-outline">
+                <button type="button" disabled className="site-button site-button-rounded site-button-outline">
                   다음
                 </button>
               )}
             </div>
           </div>
         ) : (
-          <div className="site-empty-state p-10 text-center">
-            <h3 className="type-subsection-title">{inquiryQuery || inquiryStatus !== "all" ? "조건에 맞는 문의가 없습니다" : "아직 문의 내역이 없습니다"}</h3>
-            <p className="type-body-sm mx-auto mt-3 max-w-md break-keep text-zinc-500">
+          <EmptyState headingLevel={3} icon={<MessageSquare />} title={inquiryQuery || inquiryStatus !== "all" ? "조건에 맞는 문의가 없습니다" : "아직 문의 내역이 없습니다"} description={<>
               궁금한 점이 있다면 새 문의를 남겨주세요. 답변 상태와 내용을 이곳에서 확인할 수 있습니다.
-            </p>
-          </div>
+            </>} />
         )}
       </section>
     </section>

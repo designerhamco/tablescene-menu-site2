@@ -68,7 +68,7 @@ export default function StaffInvitationForm({
           required
           disabled={unavailable || pending}
           placeholder="staff@example.com"
-          className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-950 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:bg-zinc-100"
+          className="site-field w-full border-zinc-200 px-4 py-3 text-zinc-950 transition focus:ring-4 focus:ring-emerald-100"
         />
       </label>
 
@@ -79,7 +79,7 @@ export default function StaffInvitationForm({
           value={selectedRole}
           onChange={(event) => setSelectedRole(event.target.value as MenuSiteMemberRole)}
           disabled={unavailable || pending}
-          className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-950 outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100 disabled:bg-zinc-100"
+          className="site-field w-full border-zinc-200 px-4 py-3 text-zinc-950 transition focus:ring-4 focus:ring-emerald-100"
         >
           {STAFF_INVITATION_ROLES.map((role) => (
             <option key={role} value={role}>{STAFF_INVITATION_ROLE_LABELS[role]}</option>
@@ -136,7 +136,7 @@ export default function StaffInvitationForm({
       <button
         type="submit"
         disabled={unavailable || pending}
-        className="site-button site-button-primary inline-flex w-full items-center justify-center text-sm disabled:cursor-not-allowed md:w-auto"
+        className="site-button site-button-rounded site-button-primary inline-flex w-full items-center justify-center text-sm disabled:cursor-not-allowed md:w-auto"
       >
         {pending ? "초대 처리 중..." : "초대 이메일 보내기"}
       </button>

@@ -1,7 +1,7 @@
 "use client";
 
-import { BookOpen, Check, Coffee, Fish, LayoutGrid, Monitor, PanelsTopLeft, Sandwich, Tablet, Utensils, Wine } from "lucide-react";
-import { useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import { Check, Coffee, Fish, LayoutGrid, PanelsTopLeft, Sandwich, Utensils, Wine } from "lucide-react";
+import { useId, useMemo, useRef, useState } from "react";
 import {
   CATALOG_INDUSTRIES,
   CATALOG_LAYOUT_FILTERS,
@@ -14,7 +14,8 @@ import {
 } from "@/lib/catalog-designs";
 import { Button } from "@/app/components/ui/button";
 import { EmptyState } from "@/app/components/ui/empty-state";
-import { ChoiceTile } from "@/app/components/ui/choice-tile";
+import { ChoiceGroup, ChoiceTile } from "@/app/components/ui/choice-tile";
+import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import CatalogDesignCard from "@/components/templates/CatalogDesignCard";
 import CatalogLayoutIcon from "@/components/templates/CatalogLayoutIcon";
 import CatalogLayoutSelect from "@/components/templates/CatalogLayoutSelect";
@@ -23,9 +24,9 @@ import TemplatePagination from "./TemplatePagination";
 
 const TEMPLATES_PER_PAGE = 6;
 const PRODUCT_TABS = [
-  { key: "basic", label: "베이직", description: "한 화면에 담는 매장 메뉴", icon: Tablet },
-  { key: "dining", label: "다이닝", description: "커버와 여러 페이지로 전하는 메뉴", icon: BookOpen },
-  { key: "display", label: "디스플레이", description: "매장의 큰 화면을 위한 메뉴보드", icon: Monitor },
+  { key: "basic", label: "베이직" },
+  { key: "dining", label: "다이닝" },
+  { key: "display", label: "디스플레이" },
 ] as const;
 const KIND_TABS = [
   { key: "designer", label: "디자인 템플릿", description: "완성된 스타일에 우리 매장 메뉴를 넣어 시작하세요." },
@@ -35,18 +36,6 @@ const FILTER_ICONS = {
   all: LayoutGrid, cafe_bakery: Coffee,
   restaurant_dining: Utensils, japanese: Fish, pub_bar: Wine, quick_meal: Sandwich,
 };
-
-function navigateTabs(event: KeyboardEvent<HTMLDivElement>, current: number, count: number, select: (index: number) => void) {
-  const next = event.key === "ArrowRight" ? (current + 1) % count
-    : event.key === "ArrowLeft" ? (current + count - 1) % count
-    : event.key === "Home" ? 0 : event.key === "End" ? count - 1 : -1;
-  if (next < 0) return;
-  event.preventDefault();
-  select(next);
-  const tab = event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next];
-  tab?.focus();
-  tab?.scrollIntoView({ block: "nearest", inline: "nearest" });
-}
 
 export default function TemplateGallery({
   initialProduct = "dining_single",
@@ -111,48 +100,29 @@ export default function TemplateGallery({
   function clearFilters() {
     setFilter("all"); setLayoutFilter("all"); setPage(1); keepUrl(product, kind, "all", "all");
   }
-  function filterButtons(mobile: boolean) {
+  function filterButtons() {
     return filters.map(item => {
       let icon;
       if (item.key === "list" || item.key === "album") icon = <CatalogLayoutIcon layout={item.key} />;
-      else {
-        const Icon = FILTER_ICONS[item.key];
-        icon = <Icon aria-hidden="true" />;
-      }
-      if (mobile) return <ChoiceTile key={item.key} icon={icon} label={item.label} selected={filter === item.key} onClick={() => selectFilter(item.key)} />;
-      return (
-        <button key={item.key} type="button" aria-pressed={filter === item.key}
-          className={kind === "standard" ? "site-catalog-layout-category" : undefined}
-          onClick={() => selectFilter(item.key)}>
-          {kind === "standard" ? icon : null}
-          <span>{item.label}</span>
-        </button>
-      );
+      else { const Icon = FILTER_ICONS[item.key]; icon = <Icon aria-hidden="true" />; }
+      return <ChoiceTile key={item.key} size="compact" icon={icon} label={item.label} selected={filter === item.key} onClick={() => selectFilter(item.key)} />;
     });
   }
 
-  return <>
-    <div className="site-catalog-services" role="tablist" aria-label="서비스 및 페이지 유형 선택"
-      onKeyDown={event => navigateTabs(event, PRODUCT_TABS.findIndex(item => item.key === product), PRODUCT_TABS.length, index => selectProduct(PRODUCT_TABS[index].key))}>
-      {PRODUCT_TABS.map(({ key, label, description, icon: Icon }) => (
-        <ChoiceTile key={key} role="tab" icon={<Icon aria-hidden="true" />} label={label} description={description} presentation="feature" selected={product === key}
-          id={`${tabsId}-${key}`} aria-controls={`${tabsId}-service-panel`}
-          aria-selected={product === key} tabIndex={product === key ? 0 : -1}
-          onClick={() => selectProduct(key)} />
+  return <Tabs value={product} onValueChange={value => selectProduct(value as CatalogService)}>
+    <TabsList variant="underline" size="lg" className="site-catalog-services" aria-label="서비스 및 페이지 유형 선택">
+      {PRODUCT_TABS.map(({ key, label }) => (
+        <TabsTrigger key={key} value={key} id={`${tabsId}-${key}`} aria-controls={`${tabsId}-service-panel`}>{label}</TabsTrigger>
       ))}
-    </div>
+    </TabsList>
     <div role="tabpanel" id={`${tabsId}-service-panel`} aria-labelledby={`${tabsId}-${product}`}>
-      <div ref={galleryStartRef} className="site-catalog-selection scroll-mt-24">
+      <Tabs ref={galleryStartRef} value={kind} onValueChange={value => selectKind(value as CatalogKind)} className="site-catalog-selection scroll-mt-24">
         {product !== "display" && (
-          <div className="site-topic-tabs site-topic-tabs-lg" role="tablist" aria-label="템플릿 종류 선택"
-            onKeyDown={event => navigateTabs(event, KIND_TABS.findIndex(item => item.key === kind), KIND_TABS.length, index => selectKind(KIND_TABS[index].key))}>
+          <TabsList variant="outline" size="lg" distribution="equal" aria-label="템플릿 종류 선택">
             {KIND_TABS.map(({ key, label }) => (
-              <button key={key} role="tab" type="button" className="site-topic-tab"
-                id={`${tabsId}-${key}`} aria-controls={`${tabsId}-kind-panel`}
-                aria-selected={kind === key} tabIndex={kind === key ? 0 : -1}
-                onClick={() => selectKind(key)}>{label}</button>
+              <TabsTrigger key={key} value={key} id={`${tabsId}-${key}`} aria-controls={`${tabsId}-kind-panel`}>{label}</TabsTrigger>
             ))}
-          </div>
+          </TabsList>
         )}
         <div role={product !== "display" ? "tabpanel" : undefined}
           id={`${tabsId}-kind-panel`} aria-labelledby={product !== "display" ? `${tabsId}-${kind}` : undefined}>
@@ -173,23 +143,8 @@ export default function TemplateGallery({
           <div className="site-catalog-layout" data-with-filters={product !== "display"}>
             {product !== "display" && (
               <aside className="site-catalog-filters" aria-label={`템플릿 ${filterHeading} 필터`}>
-                <div className="site-category-desktop">
-                  <h2 className="type-item-title mb-3">{filterHeading}</h2>
-                  <div className="site-category-list" role="group" aria-label={`${filterHeading} 선택`}>{filterButtons(false)}</div>
-                </div>
-                <div className="site-category-tablet">
-                  <label className="type-label" htmlFor={`${tabsId}-filter`}>{filterHeading}</label>
-                  {kind === "standard" ? (
-                    <CatalogLayoutSelect id={`${tabsId}-filter`} label="화면 구성" value={normalizeCatalogLayoutFilter(filter)}
-                      onValueChange={selectFilter} allLabel="전체" />
-                  ) : <select className="site-category-select" id={`${tabsId}-filter`} value={filter} onChange={event => selectFilter(event.target.value)}>
-                    {filters.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}
-                  </select>}
-                </div>
-                <div className="site-category-mobile">
-                  <h2 className="type-item-title mb-3">{filterHeading}</h2>
-                  <div className="site-catalog-mobile-choices" role="group" aria-label={`모바일 ${filterHeading} 선택`}>{filterButtons(true)}</div>
-                </div>
+                <h2 className="type-label mb-3">{filterHeading}</h2>
+                <ChoiceGroup aria-label={`${filterHeading} 선택`}>{filterButtons()}</ChoiceGroup>
               </aside>
             )}
             <div className="site-catalog-results">
@@ -217,7 +172,7 @@ export default function TemplateGallery({
             </div>
           </div>
         </div>
-      </div>
+      </Tabs>
     </div>
-  </>;
+  </Tabs>;
 }

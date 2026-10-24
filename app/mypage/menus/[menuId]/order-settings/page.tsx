@@ -58,9 +58,9 @@ export default async function OrderSettingsPage({
         </div>
         <OrderCatalogSettings menuId={menuId} items={items} />
         <div className="mt-12 flex flex-wrap gap-4">
-          {data.runtime.tables ? <Link className="site-button site-button-secondary" href={"/mypage/menus/" + menuId + "/tables"}>테이블·QR 관리</Link> : null}
-          {data.runtime.calls ? <Link className="site-button site-button-secondary" href={"/mypage/menus/" + menuId + "/calls"}>호출관리</Link> : null}
-          {data.runtime.dashboard ? <Link className="site-button site-button-secondary" href={"/mypage/menus/" + menuId + "/orders"}>주문관리</Link> : null}
+          {data.runtime.tables ? <Link className="site-button site-button-rounded site-button-secondary" href={"/mypage/menus/" + menuId + "/tables"}>테이블·QR 관리</Link> : null}
+          {data.runtime.calls ? <Link className="site-button site-button-rounded site-button-secondary" href={"/mypage/menus/" + menuId + "/calls"}>호출관리</Link> : null}
+          {data.runtime.dashboard ? <Link className="site-button site-button-rounded site-button-secondary" href={"/mypage/menus/" + menuId + "/orders"}>주문관리</Link> : null}
 
         </div>
       </main>

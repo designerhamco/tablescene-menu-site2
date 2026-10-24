@@ -99,7 +99,7 @@ export default function AiCreditRechargePanel({
           <h4 className={`type-item-title ${compact ? " " : " "} text-zinc-950`}>
             {`보유 AI 크레딧 ${formatAiCredits(totalRemainingCredits)}`}
           </h4>
-          <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+          <p className="mt-2 break-keep text-xs font-normal leading-relaxed text-zinc-500">
             {accountSummaryOnly
               ? "AI 크레딧은 아티메뉴 AI 기능 이용을 위한 통합 단위입니다. 계정의 첫 메뉴판 생성이 완료되면 웰컴 크레딧 6개를 계정당 1회 제공합니다."
               : compact
@@ -118,7 +118,7 @@ export default function AiCreditRechargePanel({
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="site-button site-button-outline inline-flex items-center justify-center text-xs"
+          className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-xs"
         >
           {compact ? "충전하기" : "AI 크레딧 충전하기"}
         </button>
@@ -141,7 +141,7 @@ export default function AiCreditRechargePanel({
           <p className="mt-2">AI 결과물은 참고용 초안이므로 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.</p>
         </div>
       ) : null}
-      {message ? <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-700">{message}</p> : null}
+      {message ? <p className="mt-3 break-keep text-xs font-normal leading-relaxed text-zinc-700">{message}</p> : null}
       <AiCreditPurchaseModal
         open={isOpen}
         onClose={() => setIsOpen(false)}

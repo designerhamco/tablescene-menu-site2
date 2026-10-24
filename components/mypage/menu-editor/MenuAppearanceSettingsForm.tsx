@@ -4,7 +4,7 @@ import { ALBUM_IMAGE_RATIOS, IMAGE_RADIUS_KEYS, unifiedAppearanceRadius, withUni
 import ImageRadiusSelect from "@/components/menu/ImageRadiusSelect";
 export default function MenuAppearanceSettingsForm({ initial, basic, album = false, formId }: { initial: MenuAppearance; basic: boolean; album?: boolean; formId: string }) {
   const [value,setValue] = useState(initial);
-  const inputClass = "h-10 rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-900";
+  const inputClass = "site-field h-10 px-3";
   const radius = unifiedAppearanceRadius(value, basic);
   return <section className="site-section site-editor-subpanel space-y-5 p-5" aria-label="이미지와 텍스트칩 모양">
     <input type="hidden" name="menu_appearance_present" value="1" form={formId}/>

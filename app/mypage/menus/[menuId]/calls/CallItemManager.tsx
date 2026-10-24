@@ -78,14 +78,14 @@ export default function CallItemManager({
           ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
-        <button type="button" disabled={pending} onClick={() => setDraft(getServiceStaffCallItems(service))} className="site-button site-button-secondary text-xs">
+        <button type="button" disabled={pending} onClick={() => setDraft(getServiceStaffCallItems(service))} className="site-button site-button-rounded site-button-secondary text-xs">
           기본 항목 불러오기
         </button>
         <button
           type="button"
           onClick={addItem}
           disabled={pending || draft.length >= MAX_STAFF_CALL_ITEMS}
-          className="site-button site-button-outline inline-flex items-center justify-center gap-2 text-xs disabled:cursor-not-allowed disabled:opacity-50"
+          className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center gap-2 text-xs disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           항목 추가
@@ -107,7 +107,7 @@ export default function CallItemManager({
                 onChange={(event) => updateItem(index, { label: event.target.value })}
                 required
                 maxLength={MAX_STAFF_CALL_ITEM_LABEL_LENGTH}
-                className="mt-1.5 w-full rounded-xl border border-zinc-200 px-3 py-2.5 text-sm font-bold text-zinc-950 outline-none focus:border-zinc-500"
+                className="site-field mt-1.5 w-full border-zinc-200 px-3 py-2.5 text-zinc-950"
               />
             </label>
             <label className="flex items-center gap-2 text-xs font-bold text-zinc-700">
@@ -140,7 +140,7 @@ export default function CallItemManager({
         ) : null}
 
         <div className="flex justify-end pt-2">
-          <button type="submit" disabled={pending} className="site-button site-button-primary text-sm disabled:cursor-wait disabled:opacity-60">
+          <button type="submit" disabled={pending} className="site-button site-button-rounded site-button-primary text-sm disabled:cursor-wait disabled:opacity-60">
             {pending ? "저장 중" : "호출 항목 저장"}
           </button>
         </div>

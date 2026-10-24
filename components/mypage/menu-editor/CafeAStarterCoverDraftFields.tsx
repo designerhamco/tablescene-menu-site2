@@ -78,7 +78,7 @@ export function CafeAStarterCoverTextInput({
         maxLength={maxLength}
         placeholder={placeholder}
         onChange={(event) => setValue(event.target.value)}
-        className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 disabled:bg-zinc-100 disabled:text-zinc-400"
+        className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-900 transition invalid:border-red-200 invalid:focus:border-red-500 disabled:text-zinc-400"
       />
       {(helperText || maxLength) && (
         <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
@@ -130,7 +130,7 @@ export function CafeAStarterCoverTextArea({
         maxLength={maxLength}
         placeholder={placeholder}
         onChange={(event) => setValue(event.target.value)}
-        className="mt-2 min-h-24 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500"
+        className="site-field mt-2 min-h-24 w-full border-zinc-200 px-4 py-3 text-zinc-900 transition invalid:border-red-200 invalid:focus:border-red-500"
       />
       {(helperText || maxLength) && (
         <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">

@@ -37,7 +37,7 @@ export default function BackgroundColorSettingsForm({
               value={backgroundColor}
               onChange={(event) => setBackgroundColor(event.target.value.toUpperCase())}
               pattern="#[0-9A-Fa-f]{6}"
-              className="min-w-0 flex-1 px-3 text-sm font-bold uppercase text-zinc-900 outline-none"
+              className="site-field min-w-0 flex-1 px-3 uppercase text-zinc-900"
               aria-label="현재 선택된 배경색"
             />
           </div>

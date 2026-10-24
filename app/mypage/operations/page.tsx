@@ -105,7 +105,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
             </p>
             <Link
               href="/mypage?tab=menus"
-              className="site-button site-button-primary mt-6"
+              className="site-button site-button-rounded site-button-primary mt-6"
             >
               나의 메뉴판 확인
             </Link>

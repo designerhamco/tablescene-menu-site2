@@ -24,11 +24,13 @@ function TabsList({
   className,
   variant = "segmented",
   size = "default",
+  distribution = "content",
   children,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.List> & {
   variant?: "segmented" | "outline" | "underline";
   size?: "default" | "lg";
+  distribution?: "content" | "equal";
 }) {
   return (
     <TabsAppearance.Provider value={variant}>
@@ -38,6 +40,7 @@ function TabsList({
         className={cn(
           variant === "underline" ? "site-topic-tabs" : "site-tabs",
           variant === "outline" && "site-tabs-outline",
+          distribution === "equal" && variant !== "underline" && "site-tabs-even",
           size === "lg" && (variant === "underline" ? "site-topic-tabs-lg" : "site-tabs-lg"),
           className,
         )}

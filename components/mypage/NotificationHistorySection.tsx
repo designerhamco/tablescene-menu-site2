@@ -1,4 +1,7 @@
 "use client";
+import { EmptyState } from "@/app/components/ui/empty-state";
+import { Bell } from "lucide-react";
+
 
 import { useState } from "react";
 import { Badge } from "@/app/components/ui/badge";
@@ -137,7 +140,7 @@ export default function NotificationHistorySection({ events }: NotificationHisto
                         <h3 className="type-item-title break-keep text-zinc-950">{event.title ?? "알림"}</h3>
                         <Badge tone={isUnread ? "pending" : "neutral"}>{isUnread ? "읽지 않음" : "읽음"}</Badge>
                       </div>
-                      <p className="mt-2 whitespace-pre-wrap break-keep text-sm font-semibold leading-relaxed text-zinc-600">
+                      <p className="mt-2 whitespace-pre-wrap break-keep text-sm font-normal leading-relaxed text-zinc-600">
                         {event.message ?? "알림 내용을 확인할 수 없습니다."}
                       </p>
                     </div>
@@ -152,12 +155,9 @@ export default function NotificationHistorySection({ events }: NotificationHisto
           })}
         </div>
       ) : (
-        <article className="site-empty-state p-10 text-center">
-          <h3 className="type-subsection-title">새 알림이 없습니다.</h3>
-          <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
+        <EmptyState headingLevel={3} icon={<Bell />} title="새 알림이 없습니다." description={<>
             아티메뉴 이용 중 새 알림이 생기면 이곳에 표시됩니다.
-          </p>
-        </article>
+          </>} />
       )}
     </section>
   );

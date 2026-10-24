@@ -951,7 +951,7 @@ function TextInput({ helperText, className, ...props }: React.InputHTMLAttribute
           setCurrentLength(event.target.value.length);
           props.onChange?.(event);
         }}
-        className={`mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 disabled:bg-zinc-100 disabled:text-zinc-400 ${
+        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 disabled:bg-zinc-100 disabled:text-zinc-400 ${
           className ?? ""
         }`}
       />
@@ -977,7 +977,7 @@ function TextArea({ helperText, className, ...props }: React.TextareaHTMLAttribu
           setCurrentLength(event.target.value.length);
           props.onChange?.(event);
         }}
-        className={`mt-2 min-h-24 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
+        className={`site-field mt-2 min-h-24 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
@@ -1050,7 +1050,7 @@ function ValidatedTextInput({
           setValue(event.target.value);
           onValueChange?.(event.target.value);
         }}
-        className={`mt-2 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
+        className={`site-field mt-2 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
           hasError ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
         }`}
       />
@@ -1102,7 +1102,7 @@ function ValidatedTextArea({
           if (controlledValue === undefined) setUncontrolledValue(event.target.value);
           onValueChange?.(event.target.value);
         }}
-        className={`mt-2 min-h-24 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
+        className={`site-field mt-2 min-h-24 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
           isTooLong ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
         }`}
       />
@@ -1118,7 +1118,7 @@ function Select(props: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       {...props}
-      className={`mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950 ${
+      className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950 ${
         props.className ?? ""
       }`}
     />
@@ -1318,7 +1318,7 @@ function ColorInput({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         pattern="#[0-9A-Fa-f]{6}"
-        className="min-w-0 flex-1 px-2 text-xs font-bold uppercase text-zinc-900 outline-none"
+        className="site-field min-w-0 flex-1 px-2 uppercase text-zinc-900"
         aria-label={name}
       />
     </div>
@@ -1529,7 +1529,7 @@ function DraftNameInput({
       value={value}
       onChange={(event) => onChange(event.target.value)}
       placeholder={placeholder}
-      className={`w-full rounded-md border border-dashed border-zinc-300 bg-white text-zinc-900 outline-none focus:border-zinc-950 ${
+      className={`site-field w-full rounded-md border border-dashed border-zinc-300 bg-white text-zinc-900 outline-none focus:border-zinc-950 ${
         level === "page" ? "px-3 py-2 text-sm font-bold" : "px-3 py-2 text-xs font-bold"
       }`}
     />
@@ -1666,7 +1666,7 @@ function DraftDeleteConfirmButton({
       <button
         type="button"
         onClick={onRequestConfirm}
-        className="site-button site-button-outline-danger inline-flex items-center justify-center text-sm"
+        className="site-button site-button-rounded site-button-outline-danger inline-flex items-center justify-center text-sm"
       >
         삭제
       </button>
@@ -1677,7 +1677,7 @@ function DraftDeleteConfirmButton({
             {description && <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-600">{description}</p>}
             {disabledReason && <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-600">{disabledReason}</p>}
             <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
-              <button type="button" onClick={onCancel} className="site-button site-button-outline text-sm">
+              <button type="button" onClick={onCancel} className="site-button site-button-rounded site-button-outline text-sm">
                 취소
               </button>
               <SubmitButton type="button" tone="danger" disabled={Boolean(disabledReason)} onClick={onConfirm}>
@@ -1923,7 +1923,7 @@ function MenuPageForm({
               onDraftChange?.({ title: event.target.value });
             }
           }}
-          className={`mt-2 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
+          className={`site-field mt-2 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
             titleInvalid ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
           }`}
         />
@@ -2271,7 +2271,7 @@ function MenuPageForm({
                           videoLoop: true,
                         });
                       }}
-                      className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
+                      className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-900 transition"
                     />
                     <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
                       영상 URL 또는 MP4 파일을 등록하면 디스플레이에서 반복 재생됩니다.
@@ -2331,7 +2331,7 @@ function MenuPageForm({
                               type="button"
                               disabled={isDisplayVideoUploading || !canUploadDisplayVideoForPage}
                               onClick={() => displayVideoInputRef.current?.click()}
-                              className="site-button site-button-primary inline-flex shrink-0 items-center justify-center gap-1.5 text-xs disabled:cursor-not-allowed"
+                              className="site-button site-button-rounded site-button-primary inline-flex shrink-0 items-center justify-center gap-1.5 text-xs disabled:cursor-not-allowed"
                             >
                               {isDisplayVideoUploading ? (
                                 <>
@@ -2384,7 +2384,7 @@ function MenuPageForm({
               {draftActionLabel ?? (page ? "수정 내용 반영" : `${labels.pageLabel} 추가`)}
             </SubmitButton>
             {onCancel && (
-              <button type="button" onClick={onCancel} className="site-button site-button-outline text-sm">
+              <button type="button" onClick={onCancel} className="site-button site-button-rounded site-button-outline text-sm">
                 {cancelLabel}
               </button>
             )}
@@ -2614,7 +2614,7 @@ function MenuCategoryForm({
               onDraftChange?.({ name: event.target.value });
             }
           }}
-          className={`mt-2 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
+          className={`site-field mt-2 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
             nameInvalid ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
           }`}
         />
@@ -2742,7 +2742,7 @@ function MenuCategoryForm({
                 <button
                   type="button"
                   onClick={() => removeCategoryPriceOptionLabel(index)}
-                  className="site-button site-button-outline text-sm"
+                  className="site-button site-button-rounded site-button-outline text-sm"
                 >
                   삭제
                 </button>
@@ -2752,7 +2752,7 @@ function MenuCategoryForm({
               type="button"
               onClick={addCategoryPriceOptionLabel}
               disabled={categoryPriceOptionLabels.length >= maxPriceOptionColumns}
-              className="site-button site-button-outline w-fit text-sm disabled:cursor-not-allowed"
+              className="site-button site-button-rounded site-button-outline w-fit text-sm disabled:cursor-not-allowed"
             >
               옵션 열 추가
             </button>
@@ -2775,7 +2775,7 @@ function MenuCategoryForm({
               type="button"
               onClick={addCategoryPriceColumn}
               disabled={categoryPriceColumns.length >= effectiveMaxCategoryPriceColumns}
-              className="site-button site-button-outline text-sm disabled:cursor-not-allowed"
+              className="site-button site-button-rounded site-button-outline text-sm disabled:cursor-not-allowed"
             >
               컬럼 추가
             </button>
@@ -2799,7 +2799,7 @@ function MenuCategoryForm({
                       type="button"
                       onClick={() => moveCategoryPriceColumn(index, -1)}
                       disabled={index === 0}
-                      className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
+                      className="site-button site-button-rounded site-button-outline text-xs disabled:cursor-not-allowed"
                       aria-label={`${column.label || `컬럼 ${index + 1}`} 위로 이동`}
                     >
                       ↑
@@ -2808,7 +2808,7 @@ function MenuCategoryForm({
                       type="button"
                       onClick={() => moveCategoryPriceColumn(index, 1)}
                       disabled={index === categoryPriceColumns.length - 1}
-                      className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
+                      className="site-button site-button-rounded site-button-outline text-xs disabled:cursor-not-allowed"
                       aria-label={`${column.label || `컬럼 ${index + 1}`} 아래로 이동`}
                     >
                       ↓
@@ -2816,14 +2816,14 @@ function MenuCategoryForm({
                     <button
                       type="button"
                       onClick={() => updateCategoryPriceColumn(index, { visible: !column.visible })}
-                      className="site-button site-button-outline text-xs"
+                      className="site-button site-button-rounded site-button-outline text-xs"
                     >
                       {column.visible ? "표시" : "숨김"}
                     </button>
                     <button
                       type="button"
                       onClick={() => removeCategoryPriceColumn(index)}
-                      className="site-button site-button-outline text-xs"
+                      className="site-button site-button-rounded site-button-outline text-xs"
                     >
                       삭제
                     </button>
@@ -2884,7 +2884,7 @@ function MenuCategoryForm({
           </SubmitButton>
         )}
         {onCancel && (
-          <button type="button" onClick={onCancel} className="site-button site-button-outline text-sm">
+          <button type="button" onClick={onCancel} className="site-button site-button-rounded site-button-outline text-sm">
             {cancelLabel}
           </button>
         )}
@@ -3755,7 +3755,7 @@ function MenuItemForm({
                 if (item) updateDraftItem({ name: event.target.value });
                 if (!item) onDraftNameChange?.(event.target.value);
               }}
-              className={`mt-2 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
+              className={`site-field mt-2 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
                 nameInvalid ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
               }`}
             />
@@ -3782,7 +3782,7 @@ function MenuItemForm({
                 setSetNameValue(event.target.value);
                 updateDraftItem({ setName: event.target.value });
               }}
-              className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
+              className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-900 transition"
             />
             <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
               <span className="break-keep">
@@ -3799,7 +3799,7 @@ function MenuItemForm({
                   type="button"
                   disabled={isGeneratingDescription || aiDescriptionUsageExceeded}
                   onClick={requestAiDescriptionGeneration}
-                  className="site-button site-button-outline inline-flex items-center justify-center gap-1.5 text-xs disabled:cursor-not-allowed"
+                  className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center gap-1.5 text-xs disabled:cursor-not-allowed"
                 >
                   {isGeneratingDescription ? (
                     <>
@@ -3915,7 +3915,7 @@ function MenuItemForm({
                       setCustomBadgeLabel(event.target.value);
                       updateBadgeDraft(selectedBadgeLabel, event.target.value);
                     }}
-                    className={`mt-2 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
+                    className={`site-field mt-2 w-full rounded-lg border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
                       customBadgeTooLong ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
                     }`}
                   />
@@ -4177,7 +4177,7 @@ function MenuItemForm({
                         defaultValue={value.price}
                         placeholder="4500"
                         aria-label={`${columnLabel} 가격`}
-                        className="h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm font-bold text-zinc-900 outline-none transition focus:border-zinc-950"
+                        className="site-field h-10 w-full border-zinc-200 px-3 text-zinc-900 transition"
                         onChange={(event) => {
                           const price = event.target.value.replace(/[^0-9]/g, "");
                           updateDraftPriceColumnValue(value.priceColumnId, {
@@ -4453,7 +4453,7 @@ function MenuItemForm({
                                 },
                               });
                             }}
-                            className="min-h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-sm font-bold text-zinc-950 outline-none transition focus:border-zinc-950"
+                            className="site-field min-h-10 w-full border-zinc-200 px-3 text-zinc-950 transition"
                           />
                         </div>
                       ))}
@@ -4854,7 +4854,7 @@ function MenuItemForm({
               {itemDraftActionLabel}
             </SubmitButton>
             {onCancel && (
-              <button type="button" onClick={onCancel} className="site-button site-button-outline text-sm">
+              <button type="button" onClick={onCancel} className="site-button site-button-rounded site-button-outline text-sm">
                 {cancelLabel}
               </button>
             )}
@@ -4895,14 +4895,14 @@ function MenuItemForm({
               <button
                 type="button"
                 onClick={() => setDescriptionOverwritePending(false)}
-                className="site-button site-button-outline text-sm"
+                className="site-button site-button-rounded site-button-outline text-sm"
               >
                 취소
               </button>
               <button
                 type="button"
                 onClick={() => void runAiDescriptionGeneration()}
-                className="site-button site-button-primary inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed"
+                className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed"
                 disabled={isGeneratingDescription}
               >
                 {isGeneratingDescription ? (
@@ -5122,14 +5122,14 @@ function DraftPriceOptionsEditor({
                       <button
                         type="button"
                         onClick={() => completeEditingOption(option.id)}
-                        className="site-button site-button-primary text-sm"
+                        className="site-button site-button-rounded site-button-primary text-sm"
                       >
                         수정 완료
                       </button>
                       <button
                         type="button"
                         onClick={cancelEditingOption}
-                        className="site-button site-button-outline text-sm"
+                        className="site-button site-button-rounded site-button-outline text-sm"
                       >
                         취소
                       </button>
@@ -5157,11 +5157,11 @@ function DraftPriceOptionsEditor({
                     <button
                       type="button"
                       onClick={() => startEditingOption(option)}
-                      className="site-button site-button-outline text-sm"
+                      className="site-button site-button-rounded site-button-outline text-sm"
                     >
                       수정
                     </button>
-                    <button type="button" onClick={() => onRemove(option.id)} className="site-button site-button-outline-danger text-sm">
+                    <button type="button" onClick={() => onRemove(option.id)} className="site-button site-button-rounded site-button-outline-danger text-sm">
                       삭제
                     </button>
                   </div>
@@ -8721,7 +8721,7 @@ export default function MenuManagementSection({
                     setIsMenuCleanupOpen(true);
                   }}
                   disabled={localAiMenuCleanupUsage.used >= localAiMenuCleanupUsage.limit}
-                  className="site-button site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
+                  className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
                 >
                   AI 메뉴 정리 · 3크레딧
                 </button>
@@ -8741,7 +8741,7 @@ export default function MenuManagementSection({
             <div className="flex min-w-max items-center gap-2">
               <a
                 href={`/mypage/menus/${menuId}/edit?tab=cover`}
-                className="site-button site-button-outline text-xs"
+                className="site-button site-button-rounded site-button-outline text-xs"
               >
                 커버
               </a>
@@ -8773,7 +8773,7 @@ export default function MenuManagementSection({
                 type="button"
                 onClick={startCreatePage}
                 disabled={reachedPageLimit}
-                className="site-button site-button-outline inline-flex w-9 items-center justify-center text-base disabled:cursor-not-allowed"
+                className="site-button site-button-rounded site-button-outline inline-flex w-9 items-center justify-center text-base disabled:cursor-not-allowed"
                 aria-label="메뉴 페이지 추가"
                 title={`메뉴 페이지는 최대 ${AUBE_TABLE_MAX_MENU_PAGES}개까지 추가할 수 있습니다.`}
               >
@@ -8842,7 +8842,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={startCreatePage}
                   disabled={reachedPageLimit}
-                  className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
+                  className="site-button site-button-rounded site-button-outline text-xs disabled:cursor-not-allowed"
                 >
                   + {labels.pageLabel}
                 </button>
@@ -8852,7 +8852,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={startCreateCategory}
                   disabled={reachedCategoryLimit}
-                  className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
+                  className="site-button site-button-rounded site-button-outline text-xs disabled:cursor-not-allowed"
                 >
                   + {labels.categoryLabel}
                 </button>
@@ -8863,7 +8863,7 @@ export default function MenuManagementSection({
                   onClick={startCreateWidget}
                   disabled={reachedWidgetLimit}
                   title={reachedWidgetLimit ? `한 페이지에는 위젯을 최대 ${maxMenuWidgetsPerPage}개까지 등록할 수 있습니다.` : undefined}
-                  className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
+                  className="site-button site-button-rounded site-button-outline text-xs disabled:cursor-not-allowed"
                 >
                   + 위젯
                 </button>
@@ -8873,7 +8873,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={() => startCreateItem()}
                   disabled={reachedItemLimit}
-                  className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
+                  className="site-button site-button-rounded site-button-outline text-xs disabled:cursor-not-allowed"
                 >
                   + {labels.itemLabel}
                 </button>
@@ -9134,7 +9134,7 @@ export default function MenuManagementSection({
                 disabled={!canMoveSelectedOrderUp}
                 aria-label="위로 이동"
                 title="위로 이동"
-                className="site-button site-button-outline inline-flex w-8 items-center justify-center text-sm leading-none disabled:cursor-not-allowed"
+                className="site-button site-button-rounded site-button-outline inline-flex w-8 items-center justify-center text-sm leading-none disabled:cursor-not-allowed"
               >
                 ↑
               </button>
@@ -9144,7 +9144,7 @@ export default function MenuManagementSection({
                 disabled={!canMoveSelectedOrderDown}
                 aria-label="아래로 이동"
                 title="아래로 이동"
-                className="site-button site-button-outline inline-flex w-8 items-center justify-center text-sm leading-none disabled:cursor-not-allowed"
+                className="site-button site-button-rounded site-button-outline inline-flex w-8 items-center justify-center text-sm leading-none disabled:cursor-not-allowed"
               >
                 ↓
               </button>
@@ -9293,21 +9293,21 @@ export default function MenuManagementSection({
                     type="button"
                     onClick={() => copyWidgetDraft(selectedWidgetDraft.id)}
                     disabled={widgetCountForVisiblePage >= maxMenuWidgetsPerPage}
-                    className="site-button site-button-outline mr-auto text-sm disabled:cursor-not-allowed"
+                    className="site-button site-button-rounded site-button-outline mr-auto text-sm disabled:cursor-not-allowed"
                   >
                     복사
                   </button>
-                  <button type="button" onClick={() => startEditWidget(selectedWidgetDraft.id)} className="site-button site-button-outline text-sm">
+                  <button type="button" onClick={() => startEditWidget(selectedWidgetDraft.id)} className="site-button site-button-rounded site-button-outline text-sm">
                     수정
                   </button>
                   {confirmingDeleteKey === `widget:${selectedWidgetDraft.id}` ? (
                     <span className="flex flex-wrap items-center justify-end gap-2">
                       <span className="text-xs font-bold text-red-600">이 위젯을 삭제할까요?</span>
-                      <button type="button" onClick={() => deleteWidgetDraft(selectedWidgetDraft.id)} className="site-button site-button-danger text-xs">삭제</button>
-                      <button type="button" onClick={() => setConfirmingDeleteKey("")} className="site-button site-button-outline text-xs">취소</button>
+                      <button type="button" onClick={() => deleteWidgetDraft(selectedWidgetDraft.id)} className="site-button site-button-rounded site-button-danger text-xs">삭제</button>
+                      <button type="button" onClick={() => setConfirmingDeleteKey("")} className="site-button site-button-rounded site-button-outline text-xs">취소</button>
                     </span>
                   ) : (
-                    <button type="button" onClick={() => startConfirmDelete(`widget:${selectedWidgetDraft.id}`)} className="site-button site-button-outline-danger text-sm">
+                    <button type="button" onClick={() => startConfirmDelete(`widget:${selectedWidgetDraft.id}`)} className="site-button site-button-rounded site-button-outline-danger text-sm">
                       삭제
                     </button>
                   )}
@@ -9552,11 +9552,11 @@ export default function MenuManagementSection({
                         ? `한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`
                         : undefined
                     }
-                    className="site-button site-button-primary mr-auto text-sm disabled:cursor-not-allowed"
+                    className="site-button site-button-rounded site-button-primary mr-auto text-sm disabled:cursor-not-allowed"
                   >
                     + {labels.itemLabel} 추가
                   </button>
-                  <button type="button" onClick={() => startEditCategory(selectedCategory.id)} className="site-button site-button-outline text-sm">
+                  <button type="button" onClick={() => startEditCategory(selectedCategory.id)} className="site-button site-button-rounded site-button-outline text-sm">
                     수정
                   </button>
                   <button
@@ -9570,7 +9570,7 @@ export default function MenuManagementSection({
                         ? `한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`
                         : undefined
                     }
-                    className="site-button site-button-outline text-sm disabled:cursor-not-allowed"
+                    className="site-button site-button-rounded site-button-outline text-sm disabled:cursor-not-allowed"
                   >
                     복사
                   </button>
@@ -9704,7 +9704,7 @@ export default function MenuManagementSection({
                           ? `이 ${labels.pageLabel}에는 ${labels.categoryLabel}을 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.`
                           : undefined
                       }
-                      className="site-button site-button-primary mr-auto text-sm disabled:cursor-not-allowed"
+                      className="site-button site-button-rounded site-button-primary mr-auto text-sm disabled:cursor-not-allowed"
                     >
                       + {labels.categoryLabel} 추가
                     </button>
@@ -9714,19 +9714,19 @@ export default function MenuManagementSection({
                       type="button"
                       onClick={() => startCreateItem({ direct: true })}
                       disabled={reachedItemsPerSiteLimit}
-                      className="site-button site-button-outline text-sm disabled:cursor-not-allowed"
+                      className="site-button site-button-rounded site-button-outline text-sm disabled:cursor-not-allowed"
                     >
                       + 단독 메뉴
                     </button>
                   )}
-                  <button type="button" onClick={() => startEditPage(selectedPage.id)} className="site-button site-button-outline text-sm">
+                  <button type="button" onClick={() => startEditPage(selectedPage.id)} className="site-button site-button-rounded site-button-outline text-sm">
                     수정
                   </button>
                   <button
                     type="button"
                     onClick={() => copyPageDraft(selectedPage.id)}
                     disabled={Boolean(selectedPageCopyDisabledReason)}
-                    className="site-button site-button-outline text-sm disabled:cursor-not-allowed"
+                    className="site-button site-button-rounded site-button-outline text-sm disabled:cursor-not-allowed"
                     title={selectedPageCopyDisabledReason || undefined}
                   >
                     복사
@@ -9803,7 +9803,7 @@ export default function MenuManagementSection({
                 onClick={() => setIsSampleResetConfirming(true)}
                 disabled={Boolean(sampleResetDisabledReason)}
                 title={sampleResetDisabledReason || undefined}
-                className="site-button site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
+                className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
               >
                 샘플 메뉴로 되돌리기
               </button>
@@ -9856,7 +9856,7 @@ export default function MenuManagementSection({
                   disabled={isMenuCleanupRunning}
                   placeholder={`아메리카노 4,500원\n카페라떼 5,000원\n바닐라라떼 5,500원\n레몬에이드 6,000원\n바스크 치즈케이크 6,500원\n\n또는:\n커피: 아메리카노 4500, 라떼 5000\n디저트: 치즈케이크 6500, 티라미수 7000`}
                   onChange={(event) => setMenuCleanupText(event.target.value)}
-                  className="mt-2 min-h-48 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold leading-relaxed text-zinc-900 outline-none transition focus:border-zinc-950 disabled:bg-zinc-100 disabled:text-zinc-400"
+                  className="site-field mt-2 min-h-48 w-full border-zinc-200 px-4 py-3 leading-relaxed text-zinc-900 transition disabled:text-zinc-400"
                 />
                 <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
                   <span>입력 내용은 4,000자 이하로 정리해주세요.</span>
@@ -9946,7 +9946,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={closeMenuCleanupDialog}
                   disabled={isMenuCleanupRunning || Boolean(menuCleanupApplyMode)}
-                  className="site-button site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
+                  className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
                 >
                   취소
                 </button>
@@ -9956,7 +9956,7 @@ export default function MenuManagementSection({
                       type="button"
                       onClick={() => setMenuCleanupResult(null)}
                       disabled={Boolean(menuCleanupApplyMode)}
-                      className="site-button site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
+                      className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
                     >
                       다시 정리하기
                     </button>
@@ -9972,7 +9972,7 @@ export default function MenuManagementSection({
                       type="button"
                       onClick={applyAiMenuCleanupAppendResult}
                       disabled={!aiMenuCleanupResultFitsOnePage || aiMenuCleanupCurrentPageBlocked || Boolean(menuCleanupApplyMode)}
-                      className="site-button site-button-outline inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed"
+                      className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed"
                     >
                       {menuCleanupApplyMode === "append-current" ? (
                         <>
@@ -9987,7 +9987,7 @@ export default function MenuManagementSection({
                       type="button"
                       onClick={applyAiMenuCleanupNewPageResult}
                       disabled={!aiMenuCleanupResultFitsOnePage || aiMenuCleanupNewPageBlocked || Boolean(menuCleanupApplyMode)}
-                      className="site-button site-button-outline inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed"
+                      className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed"
                     >
                       {menuCleanupApplyMode === "append-new" ? (
                         <>
@@ -10026,7 +10026,7 @@ export default function MenuManagementSection({
                         type="button"
                         onClick={() => setIsMenuCleanupReplaceConfirming(false)}
                         disabled={Boolean(menuCleanupApplyMode)}
-                        className="site-button site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
+                        className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
                       >
                         취소
                       </button>
@@ -10067,7 +10067,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={() => setIsSampleResetConfirming(false)}
                   disabled={isSampleResetApplying}
-                  className="site-button site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
+                  className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-sm disabled:cursor-not-allowed"
                 >
                   취소
                 </button>
@@ -10185,7 +10185,7 @@ function MenuItemCard({
         <>
           <div className="mb-4 min-w-0 border-b border-zinc-100 pb-4">
             <h4 className="type-content-title mt-1 line-clamp-2 break-words">{labels.itemLabel} 수정</h4>
-            <button type="button" onClick={onCancel} className="site-button site-button-outline mt-3 inline-flex text-sm lg:hidden">
+            <button type="button" onClick={onCancel} className="site-button site-button-rounded site-button-outline mt-3 inline-flex text-sm lg:hidden">
               {isCopiedDraftItem ? "목록으로" : cancelLabel}
             </button>
           </div>
@@ -10272,7 +10272,7 @@ function MenuItemCard({
           {traitText && <p className="mt-2 break-words text-xs font-bold text-zinc-400">{traitText}</p>}
         </div>
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
-          <button type="button" onClick={onEdit} className="site-button site-button-outline text-sm">
+          <button type="button" onClick={onEdit} className="site-button site-button-rounded site-button-outline text-sm">
             수정
           </button>
           <SubmitButton type="button" tone="light" onClick={() => onCopy()}>

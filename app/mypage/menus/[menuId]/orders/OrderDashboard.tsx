@@ -125,7 +125,7 @@ export default function OrderDashboard({
             <p className="text-sm font-bold text-zinc-900">최근 주문 {orders.length.toLocaleString("ko-KR")}건</p>
             <p className="mt-1 text-xs font-bold text-zinc-500">15초마다 자동 갱신하며, 상태 변경은 서버가 현재 값을 다시 확인합니다.</p>
           </div>
-          <button type="button" onClick={() => router.refresh()} className="site-button site-button-secondary text-xs">
+          <button type="button" onClick={() => router.refresh()} className="site-button site-button-rounded site-button-secondary text-xs">
             지금 새로고침
           </button>
         </div>
@@ -187,7 +187,7 @@ export default function OrderDashboard({
                   <input type="hidden" name="orderId" value={order.id} />
                   <input type="hidden" name="nextStatus" value={order.nextStatus} />
                   <p className="text-xs font-bold text-emerald-900">다음 단계: {STATUS_LABELS[order.nextStatus]}</p>
-                  <button name="intent" value="transition" disabled={pending} className="site-button site-button-outline mt-3 w-full text-xs disabled:opacity-60">
+                  <button name="intent" value="transition" disabled={pending} className="site-button site-button-rounded site-button-outline mt-3 w-full text-xs disabled:opacity-60">
                     상태 변경
                   </button>
                 </form>
@@ -199,12 +199,12 @@ export default function OrderDashboard({
                   <input type="hidden" name="orderId" value={order.id} />
                   <label className="text-xs font-bold text-sky-900">
                     외부 결제 완료
-                    <select name="method" className="mt-2 w-full rounded-xl border border-sky-200 bg-white px-3 py-2 text-xs font-bold">
+                    <select name="method" className="site-field mt-2 w-full border-sky-200 px-3 py-2">
                       <option value="manual_card">기존 카드 단말기</option>
                       <option value="manual_cash">현금</option>
                     </select>
                   </label>
-                  <button name="intent" value="manual-payment" disabled={pending} className="site-button site-button-outline mt-3 w-full text-xs disabled:opacity-60">
+                  <button name="intent" value="manual-payment" disabled={pending} className="site-button site-button-rounded site-button-outline mt-3 w-full text-xs disabled:opacity-60">
                     결제 완료 기록
                   </button>
                 </form>
@@ -216,9 +216,9 @@ export default function OrderDashboard({
                   <input type="hidden" name="orderId" value={order.id} />
                   <label className="text-xs font-bold text-rose-900">
                     미결제 주문 취소
-                    <textarea name="reason" required maxLength={500} rows={2} placeholder="취소 사유" className="mt-2 w-full resize-none rounded-xl border border-rose-200 bg-white px-3 py-2 text-xs font-bold" />
+                    <textarea name="reason" required maxLength={500} rows={2} placeholder="취소 사유" className="site-field mt-2 w-full resize-none border-rose-200 px-3 py-2" />
                   </label>
-                  <button name="intent" value="cancel" disabled={pending} className="site-button site-button-outline mt-3 w-full text-xs disabled:opacity-60">
+                  <button name="intent" value="cancel" disabled={pending} className="site-button site-button-rounded site-button-outline mt-3 w-full text-xs disabled:opacity-60">
                     주문 취소
                   </button>
                 </form>

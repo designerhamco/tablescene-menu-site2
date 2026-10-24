@@ -1,16 +1,13 @@
 .page { padding-top: clamp(3rem, 6vw, 5rem); padding-bottom: 6rem; }
-.header { display: grid; gap: 1.25rem; padding-bottom: 1rem; }
-.section { display: grid; gap: 1.75rem; margin-top: 4rem; padding-top: 2.5rem; border-top: 1px solid var(--ui-border); }
-.heading { display: grid; gap: .75rem; }
-.typeSamples { display: grid; gap: 1.25rem; padding: clamp(1.25rem, 3vw, 2rem); border-radius: var(--ui-radius-control-rounded); background: var(--ui-surface-soft); }
-.buttonRow { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
-.choiceGrid, .actionGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; }
+.header { display: grid; gap: 1rem; padding-bottom: 1rem; }
+.section { display: grid; gap: 1.25rem; margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--ui-border); }
+.heading { display: grid; gap: .5rem; }
+.typeSamples { display: grid; gap: 1.25rem; padding: 1.5rem; border-radius: var(--ui-radius-control-rounded); background: var(--ui-surface-soft); }
+.buttonRow { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.actionGrid { display: flex; flex-wrap: wrap; gap: .5rem; }
 .segmentExample { gap: 1.25rem; }
-.segmentExample [data-slot="tabs-list"] { width: min(100%, 42rem); }
-.segmentExample [data-slot="tabs-trigger"] { flex: 1; }
 .galleryPanel { padding-top: 1.5rem; }
 .mediaGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
-.action { justify-content: space-between; }
+.action { gap: .75rem; }
 @media (max-width: 767px) { .mediaGrid { grid-template-columns: 1fr; } .actionGrid { grid-template-columns: 1fr; } }
 @media (min-width: 768px) and (max-width: 1023px) { .mediaGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 399px) { .buttonRow > :global(.site-button-hero) { width: 100%; font-size: var(--font-size-300); padding-inline: 1rem; } }
