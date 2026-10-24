@@ -2901,6 +2901,7 @@ export async function resetTypographySettingsAction(formData: FormData) {
   delete designSettings.fontSizeScale;
   delete designSettings.commonFonts;
   delete designSettings.textColors;
+  delete designSettings.textColorGroupsVersion;
   delete designSettings.typographyRoles;
   delete designSettings.typography_roles;
   if (Object.keys(designSettings).length > 0) {
@@ -3156,6 +3157,7 @@ export async function resetDesignSettingsToTemplateDefaultAction(formData: FormD
   delete designSettings.fontSizeScale;
   delete designSettings.commonFonts;
   delete designSettings.textColors;
+  delete designSettings.textColorGroupsVersion;
   delete designSettings.typographyRoles;
   delete designSettings.typography_roles;
   delete designSettings.onePageLayoutShell;

@@ -35,7 +35,7 @@ import {
   type TypographyRoleSettings,
 } from "@/lib/template-typography-presets";
 import PreviewColorPicker from "@/components/menu/PreviewColorPicker";
-import { MENU_TEXT_COLOR_GROUPS, MENU_TEXT_COLOR_LABELS, MENU_TEXT_COLOR_DESCRIPTIONS, readMenuTextColors, type MenuTextColors } from "@/lib/menu-text-colors";
+import { MENU_TEXT_COLOR_GROUPS, MENU_TEXT_COLOR_LABELS, MENU_TEXT_COLOR_DESCRIPTIONS, resolvedMenuTextColors, type MenuTextColors } from "@/lib/menu-text-colors";
 import type { TemplateType } from "@/lib/template-types";
 
 type TypographySettingsFormProps = {
@@ -244,7 +244,7 @@ export default function TypographySettingsForm({
   );
   const [selectedFontSizeScale, setSelectedFontSizeScale] = useState<FontSizeScaleKey>(initialDisplaySafeFontSizeScale);
   const [selectedRoleSettings, setSelectedRoleSettings] = useState<TypographyRoleSettings>(showRoleTypographyControl ? withCommonTypographyFonts(initialRoleSettings) : initialRoleSettings);
-  const [textColors, setTextColors] = useState<MenuTextColors>(() => readMenuTextColors(pageSettings));
+  const [textColors, setTextColors] = useState<MenuTextColors>(() => resolvedMenuTextColors(pageSettings));
   const safeSelectedEnglishFontValue = selectedEnglishFontValue
     ? getSafeEnglishFontValueForTemplate(templateKey, selectedEnglishFontValue)
     : "";

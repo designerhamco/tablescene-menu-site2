@@ -333,7 +333,7 @@ function MenuItemRow({
         <div className="brew-chapter-price-row cafe-a-menu-price cafe-a-menu-price-size-default text-[#191c1b]">
           {priceTokens.map((token) => (
             <span key={`${item.id}-${token.label}-${token.price}`}>
-              {token.label ? <span className="cafe-a-price-label"><ScriptAwareText text={token.label} /> </span> : null}
+              {token.label ? <span className="cafe-a-price-label" data-cafe-a-price-label-kind="option"><ScriptAwareText text={token.label} /> </span> : null}
               <ScriptAwareText text={token.price} />
             </span>
           ))}

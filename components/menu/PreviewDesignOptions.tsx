@@ -20,8 +20,13 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
   onChange: (value: PreviewDesign) => void;
 }) {
   const set = (patch: Partial<PreviewDesign>) => onChange({ ...value, ...patch });
-  const textColor = (group: MenuTextColorGroup, color?: string) => set({ textColors: { ...value.textColors, [group]: color } });
-  const colorDefault = (group: MenuTextColorGroup) => defaults.textColors[group]
+  const textColor = (group: MenuTextColorGroup, color?: string) => set({
+    textColorGroupsVersion: 2,
+    textColors: { ...value.textColors,
+      ...(value.textColorGroupsVersion !== 2 && value.textColors?.supporting && !value.textColors?.information ? { information: value.textColors.supporting } : {}),
+      [group]: color },
+  });
+  const colorDefault = (group: MenuTextColorGroup) => (group === "information" && value.textColorGroupsVersion !== 2 ? value.textColors?.supporting : undefined) ?? defaults.textColors[group]
     ?? value.fonts?.[group === "brand" || group === "category" ? group : "other"]?.color
     ?? (dining && group === "representative" ? value.coverDescriptionColor ?? defaults.colors.coverDescription : defaults.textColorDefaults[group]);
   const appearance = { ...defaults.appearance, imageRadii: { ...defaults.appearance.imageRadii, ...value.imageRadii }, chipShape: value.chipShape ?? defaults.appearance.chipShape };

@@ -62,6 +62,7 @@ function getItemPriceTokens(
 
     return optionTokens.map((token) => ({
       label: token.label,
+      labelKind: "option",
       price: token.price,
     }));
   }
@@ -74,6 +75,7 @@ function getItemPriceTokens(
   return [
     {
       label: priceNote,
+      labelKind: "note",
       price,
     },
   ];
@@ -135,6 +137,7 @@ export function getItemPriceColumnTokens(
     const price = value ? formatPriceColumnValue(value, priceDisplayMode) : "";
     return {
       label: column.label.trim(),
+      labelKind: "option",
       price,
       priceColumnId: column.id,
       originalPrice: value?.price ?? null,
