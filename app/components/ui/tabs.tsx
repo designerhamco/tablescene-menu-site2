@@ -5,43 +5,50 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 
 import { cn } from "./utils";
 
+type TabsVariant = "segmented" | "outline" | "underline" | "contained";
+const TabsAppearance = React.createContext<TabsVariant>("segmented");
+
 function Tabs({
   className,
+  variant = "segmented",
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Root>) {
+}: React.ComponentProps<typeof TabsPrimitive.Root> & { variant?: TabsVariant }) {
   return (
-    <TabsPrimitive.Root
-      data-slot="tabs"
-      className={cn("flex flex-col gap-2", className)}
-      {...props}
-    />
+    <TabsAppearance.Provider value={variant}>
+      <TabsPrimitive.Root
+        data-slot="tabs"
+        data-variant={variant}
+        className={cn("flex flex-col gap-2", variant === "contained" && "site-contained-tabs-root", className)}
+        {...props}
+      />
+    </TabsAppearance.Provider>
   );
 }
 
-const TabsAppearance = React.createContext<"segmented" | "outline" | "underline">("segmented");
-
 function TabsList({
   className,
-  variant = "segmented",
+  variant: variantProp,
   size = "default",
   distribution = "content",
   children,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.List> & {
-  variant?: "segmented" | "outline" | "underline";
+  variant?: TabsVariant;
   size?: "default" | "lg";
   distribution?: "content" | "equal";
 }) {
+  const inheritedVariant = React.useContext(TabsAppearance);
+  const variant = variantProp ?? inheritedVariant;
   return (
     <TabsAppearance.Provider value={variant}>
       <TabsPrimitive.List
         data-slot="tabs-list"
         data-variant={variant}
         className={cn(
-          variant === "underline" ? "site-topic-tabs" : "site-tabs",
+          variant === "contained" ? "site-contained-tabs" : variant === "underline" ? "site-topic-tabs" : "site-tabs",
           variant === "outline" && "site-tabs-outline",
-          distribution === "equal" && variant !== "underline" && "site-tabs-even",
-          size === "lg" && (variant === "underline" ? "site-topic-tabs-lg" : "site-tabs-lg"),
+          distribution === "equal" && (variant === "contained" ? "site-contained-tabs-even" : variant !== "underline" && "site-tabs-even"),
+          size === "lg" && variant !== "contained" && (variant === "underline" ? "site-topic-tabs-lg" : "site-tabs-lg"),
           className,
         )}
         {...props}
@@ -61,7 +68,7 @@ function TabsTrigger({
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        variant === "underline" ? "site-topic-tab" : "site-tab",
+        variant === "contained" ? "site-contained-tab" : variant === "underline" ? "site-topic-tab" : "site-tab",
         "gap-1.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
@@ -74,10 +81,11 @@ function TabsContent({
   className,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Content>) {
+  const variant = React.useContext(TabsAppearance);
   return (
     <TabsPrimitive.Content
       data-slot="tabs-content"
-      className={cn("flex-1 outline-none", className)}
+      className={cn("flex-1 outline-none", variant === "contained" && "site-contained-panel", className)}
       {...props}
     />
   );

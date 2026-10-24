@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Coffee, Fish, LayoutGrid, PanelsTopLeft, Sandwich, Utensils, Wine } from "lucide-react";
+import { Check, PanelsTopLeft } from "lucide-react";
 import { useId, useMemo, useRef, useState } from "react";
 import {
   CATALOG_INDUSTRIES,
@@ -32,9 +32,9 @@ const KIND_TABS = [
   { key: "designer", label: "디자인 템플릿", description: "완성된 스타일에 우리 매장 메뉴를 넣어 시작하세요." },
   { key: "standard", label: "기본 템플릿", description: "기본 레이아웃에서 색상과 글꼴을 매장에 맞게 직접 설정하세요." },
 ] as const;
-const FILTER_ICONS = {
-  all: LayoutGrid, cafe_bakery: Coffee,
-  restaurant_dining: Utensils, japanese: Fish, pub_bar: Wine, quick_meal: Sandwich,
+const INDUSTRY_EMOJI = {
+  all: "🗂️", cafe_bakery: "☕",
+  restaurant_dining: "🍽️", japanese: "🍣", pub_bar: "🍸", quick_meal: "🥪",
 };
 
 export default function TemplateGallery({
@@ -102,10 +102,10 @@ export default function TemplateGallery({
   }
   function filterButtons() {
     return filters.map(item => {
-      let icon;
-      if (item.key === "list" || item.key === "album") icon = <CatalogLayoutIcon layout={item.key} />;
-      else { const Icon = FILTER_ICONS[item.key]; icon = <Icon aria-hidden="true" />; }
-      return <ChoiceTile key={item.key} size="compact" icon={icon} label={item.label} selected={filter === item.key} onClick={() => selectFilter(item.key)} />;
+      const icon = item.key === "list" || item.key === "album"
+        ? { icon: <CatalogLayoutIcon layout={item.key} /> }
+        : kind === "designer" ? { emoji: INDUSTRY_EMOJI[item.key as keyof typeof INDUSTRY_EMOJI] } : { emoji: "🗂️" };
+      return <ChoiceTile key={item.key} size="compact" {...icon} label={item.label} selected={filter === item.key} onClick={() => selectFilter(item.key)} />;
     });
   }
 
@@ -116,15 +116,16 @@ export default function TemplateGallery({
       ))}
     </TabsList>
     <div role="tabpanel" id={`${tabsId}-service-panel`} aria-labelledby={`${tabsId}-${product}`}>
-      <Tabs ref={galleryStartRef} value={kind} onValueChange={value => selectKind(value as CatalogKind)} className="site-catalog-selection scroll-mt-24">
+      <Tabs ref={galleryStartRef} variant={product === "display" ? undefined : "contained"} value={kind} onValueChange={value => selectKind(value as CatalogKind)} className="site-catalog-selection scroll-mt-24">
         {product !== "display" && (
-          <TabsList variant="outline" size="lg" distribution="equal" aria-label="템플릿 종류 선택">
+          <TabsList distribution="equal" aria-label="템플릿 종류 선택">
             {KIND_TABS.map(({ key, label }) => (
               <TabsTrigger key={key} value={key} id={`${tabsId}-${key}`} aria-controls={`${tabsId}-kind-panel`}>{label}</TabsTrigger>
             ))}
           </TabsList>
         )}
-        <div role={product !== "display" ? "tabpanel" : undefined}
+        <div role={product !== "display" ? "tabpanel" : undefined} tabIndex={product !== "display" ? 0 : undefined}
+          className={product !== "display" ? "site-contained-panel" : undefined}
           id={`${tabsId}-kind-panel`} aria-labelledby={product !== "display" ? `${tabsId}-${kind}` : undefined}>
           <section className="site-catalog-plan" aria-label="템플릿 이용 안내">
             <p className="type-body site-catalog-kind-description">

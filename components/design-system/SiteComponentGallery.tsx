@@ -2,12 +2,13 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, BookOpen, ChevronDown, ChevronUp, Coffee, Monitor, PanelsTopLeft, Plus, Tablet } from "lucide-react";
+import { ArrowRight, BookOpen, ChevronDown, ChevronUp, Monitor, PanelsTopLeft, Plus, Tablet } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { ChoiceGroup, ChoiceTile } from "@/app/components/ui/choice-tile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/app/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import HelpTooltip from "@/components/ui/HelpTooltip";
 import CatalogDesignCard from "@/components/templates/CatalogDesignCard";
 import { catalogDesigns } from "@/lib/catalog-designs";
@@ -61,13 +62,19 @@ export default function SiteComponentGallery() {
         {choices.map(({key,label}) => <TabsTrigger key={key} value={key}>{label}</TabsTrigger>)}
       </TabsList>{choices.map(({key,description}) => <TabsContent key={key} value={key} className="type-body text-zinc-600">{description}</TabsContent>)}</Tabs>
     </Examples>
-    <Examples title="아이콘 선택 버튼" description="업종 같은 하위 필터는 짧은 아이콘 버튼으로 선택합니다. PC·태블릿·모바일에서 같은 규격을 사용합니다.">
-      <ChoiceGroup><ChoiceTile icon={<Coffee />} label="카페·베이커리" selected={industry} onClick={()=>setIndustry(current=>!current)} /><ChoiceTile icon={<BookOpen />} label="준비 중인 업종" disabled /></ChoiceGroup>
+    <Examples title="이모지 선택 버튼" description="업종에는 컬러 이모지와 짧은 이름을 사용합니다. Mac·iPhone은 애플 이모지, 다른 기기는 해당 기기의 기본 이모지로 표시됩니다.">
+      <ChoiceGroup><ChoiceTile emoji="☕" label="카페·베이커리" selected={industry} onClick={()=>setIndustry(current=>!current)} /><ChoiceTile emoji="🍽️" label="준비 중인 업종" disabled /></ChoiceGroup>
+    </Examples>
+    <Examples title="목록과 이어지는 탭" description="서로 다른 목록을 같은 자리에서 전환할 때 사용합니다. 선택한 탭과 아래 영역의 바탕색을 이어 주고, 업종 필터와 형태를 구분합니다.">
+      <Tabs variant="contained" defaultValue="designer"><TabsList distribution="equal" aria-label="연결형 템플릿 탭 예시">
+        <TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger>
+      </TabsList><TabsContent value="designer"><p className="type-item-title">완성된 디자인으로 시작</p><p className="type-body-sm mt-2 text-zinc-600">매장에 어울리는 스타일을 고르고 메뉴를 넣어 보세요.</p></TabsContent>
+      <TabsContent value="standard"><p className="type-item-title">직접 꾸미는 기본 레이아웃</p><p className="type-body-sm mt-2 text-zinc-600">색상과 서체를 매장에 맞게 직접 설정해 보세요.</p></TabsContent></Tabs>
     </Examples>
     <Examples title="보기 방식 세그먼트" description="서로 대비되는 두 가지 보기 방식에는 밝은 바탕과 또렷한 선택 테두리를 사용합니다.">
-      <Tabs defaultValue="designer" className={styles.segmentExample}><TabsList variant="outline" size="lg" distribution="equal" aria-label="디자인 탐색 방식">
-        <TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger>
-      </TabsList><TabsContent value="designer" className="type-body text-zinc-600">완성된 스타일에 우리 매장 메뉴를 넣어 시작합니다.</TabsContent><TabsContent value="standard" className="type-body text-zinc-600">기본 레이아웃에서 색상과 서체를 직접 설정합니다.</TabsContent></Tabs>
+      <Tabs defaultValue="designer" className={styles.segmentExample}><TabsList variant="outline" size="lg" distribution="equal" aria-label="콘텐츠 보기 방식 예시">
+        <TabsTrigger value="designer">이미지로 보기</TabsTrigger><TabsTrigger value="standard">목록으로 보기</TabsTrigger>
+      </TabsList><TabsContent value="designer" className="type-body text-zinc-600">썸네일을 중심으로 디자인을 살펴봅니다.</TabsContent><TabsContent value="standard" className="type-body text-zinc-600">이름과 설명을 중심으로 디자인을 살펴봅니다.</TabsContent></Tabs>
     </Examples>
     <Examples title="밑줄 탭과 이미지 카드" description="여러 콘텐츠를 탐색할 때는 굵은 밑줄로 선택을 표시하고, 썸네일과 제목·설명·이동 액션의 크기를 구분합니다.">
       <div className="site-collection"><Tabs defaultValue="all"><TabsList variant="underline" size="lg" aria-label="템플릿 라이브러리 서비스">
@@ -83,6 +90,13 @@ export default function SiteComponentGallery() {
         <EmptyState icon={<PanelsTopLeft />} title={label === "전체" ? "등록된 메뉴판이 없습니다" : `${label} 메뉴판이 없습니다`} description="매장에 어울리는 디자인을 선택하고 첫 메뉴판을 만들어 보세요."
           action={<Button variant="outline" shape="rounded" asChild><Link href="/apply"><Plus />메뉴판 만들기</Link></Button>} />
       </TabsContent>)}</Tabs>
+    </Examples>
+    <Examples title="노란 말풍선 안내" description="짧은 힌트는 마우스·키보드 포커스로, 추가 안내는 버튼을 눌러 확인합니다. 아티메뉴 노란색과 검정 글자로 표현합니다.">
+      <div className={styles.buttonRow}>
+        <Tooltip><TooltipTrigger asChild><Button variant="outline" shape="rounded">짧은 도움말 보기</Button></TooltipTrigger><TooltipContent tone="brand" sideOffset={8} collisionPadding={16}>마음에 드는 디자인을 먼저 살펴보세요.</TooltipContent></Tooltip>
+        <HelpTooltip label="템플릿 체험 안내" tone="brand" side="top" align="start" trigger={<Button variant="outline" shape="rounded">안내 말풍선 열기</Button>}><strong>미리보기에서 먼저 체험해 보세요.</strong><br />보기 옵션과 디자인 옵션을 바꿔보며<br />우리 매장에 어울리는 구성을 찾을 수 있어요.</HelpTooltip>
+      </div>
+      <p className="type-body-sm text-zinc-600">닫기·Escape·바깥 클릭으로 닫을 수 있고, 버튼을 누르면 다시 열립니다.</p>
     </Examples>
     <Examples title="차분한 콘텐츠와 도움말" description="콘텐츠 묶음은 옅은 바탕으로, 추가 설명은 필요한 순간에 열리는 도움말로 구분합니다.">
       <div className="site-collection">
