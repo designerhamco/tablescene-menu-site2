@@ -104,6 +104,8 @@
  */
 .site-button {
   display: inline-flex;
+  flex-shrink: 0;
+  max-width: 100%;
   min-height: var(--ui-control-height-md);
   align-items: center;
   justify-content: center;

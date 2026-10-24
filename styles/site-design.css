@@ -79,6 +79,8 @@
 .site-detail-section { border-top: 1px solid var(--site-divider); padding-top: 1.5rem; }
 .site-account-summary { padding-block: .5rem 1rem; }
 .site-account-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.site-account-heading > form { flex: none; }
+.site-account-signout { white-space: nowrap; }
 .site-account-heading h2 { font-size: .875rem; }
 .site-account-credits { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--site-divider); }
 .site-account-nav { display: flex; flex-wrap: wrap; gap: .25rem; border-block: 1px solid var(--site-divider); padding-block: .5rem; }
