@@ -1,13 +1,14 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { BookOpen, MessageCircle } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { AI_SUPPORT_CHAT_OPEN_EVENT } from "@/lib/ai-support-chat-launcher";
 
 import AiSupportChat from "./AiSupportChat";
+import styles from "./ai-support-launcher.module.css";
 
 export default function AiSupportChatLauncher() {
   const [open, setOpen] = useState(false);
@@ -63,11 +64,14 @@ export default function AiSupportChatLauncher() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="site-button site-button-primary type-label pointer-events-auto"
+          className={`site-button type-label pointer-events-auto ${styles.launcherButton}`}
+          data-ai-support-launcher
           aria-label="AI 상담 열기"
           aria-expanded={open}
         >
-          <MessageCircle className="h-4 w-4" aria-hidden="true" />
+          <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor" aria-hidden="true" focusable="false">
+            <path d="M8 1.4C9 5.7 10.3 7 14.6 8c-4.3 1-5.6 2.3-6.6 6.6C7 10.3 5.7 9 1.4 8 5.7 7 7 5.7 8 1.4Z" />
+          </svg>
           AI 상담
         </button>
       </div>
