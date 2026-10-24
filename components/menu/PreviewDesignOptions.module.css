@@ -1,6 +1,6 @@
 .panel { padding: 0 0 .25rem; container-type: inline-size; }
 .panel > * + * { margin-top: 1rem; }
-.intro { display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: #5d6672; }
+.intro { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; color: #5d6672; }
 .reset { flex: none; border: 1px solid #c9cfd8; border-radius: .4rem; padding: .4rem .6rem; background: white; color: #2a333e; }
 .reset:disabled { opacity: .4; }
 .legend { margin-bottom: .6rem; font-weight: 600; }

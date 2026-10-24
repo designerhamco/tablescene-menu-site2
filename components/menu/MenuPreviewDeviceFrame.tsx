@@ -3,9 +3,10 @@
 import { useEffect, useOptimistic, useRef, useState, useSyncExternalStore, useTransition, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink, Pencil } from "lucide-react";
 
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
+import PreviewFullscreenControl from "./PreviewFullscreenControl";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
 import { supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import MenuPreviewOptionsPanel from "./MenuPreviewOptionsPanel";
@@ -38,6 +39,7 @@ type MenuPreviewDeviceFrameProps =
       templateKey?: never;
       menuTemplateKey?: string;
       menuDesignId?: string;
+      editHref?: string;
     }
   | {
       device: MenuPreviewDevice;
@@ -47,6 +49,7 @@ type MenuPreviewDeviceFrameProps =
       menuId?: never;
       menuTemplateKey?: never;
       menuDesignId?: never;
+      editHref?: never;
     };
 
 const wideOptionsQuery = "(min-width: 960px)";
@@ -106,10 +109,11 @@ export default function MenuPreviewDeviceFrame(
   props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; previewDesignDefaults?: PreviewDesignDefaults; supportsTabletOrientation?: boolean },
 ) {
   const { device, query } = props;
+  const isTemplatePreview = typeof props.templateKey === "string";
   const templateKey = props.templateKey ?? props.menuTemplateKey;
   const designParam = props.menuId ? props.menuDesignId : (query as TemplatePreviewQuery).design;
   const defaultDesign = templateKey ? getDefaultDesignReview(Array.isArray(designParam) ? designParam[0] : designParam, templateKey) : undefined;
-  const supportsTabletOrientation = props.supportsTabletOrientation ?? (templateKey?.startsWith("dining_") === true || defaultDesign?.itemLayout === "album");
+  const supportsTabletOrientation = props.supportsTabletOrientation ?? (!isTemplatePreview || templateKey?.startsWith("dining_") === true || defaultDesign?.itemLayout === "album");
   const orientation = supportsTabletOrientation ? props.orientation : "landscape";
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -118,9 +122,9 @@ export default function MenuPreviewDeviceFrame(
   const [displayOptionsOpenOverride, setDisplayOptionsOpenOverride] = useState<boolean>();
   const areDisplayOptionsOpen = displayOptionsOpenOverride ?? wideOptions;
   const [optionsTab, setOptionsTab] = useState((query as TemplatePreviewQuery).previewOptions === "design" ? "design" : "features");
-  const initialDesign = readPreviewDesign((query as TemplatePreviewQuery).designPreview);
+  const initialDesign = readPreviewDesign(isTemplatePreview ? (query as TemplatePreviewQuery).designPreview : undefined);
   const legacyRatio = readPreviewDesign({albumImageRatio:(query as TemplatePreviewQuery).albumImageRatio}).albumImageRatio;
-  if (legacyRatio && !initialDesign.albumImageRatio) initialDesign.albumImageRatio = legacyRatio;
+  if (isTemplatePreview && legacyRatio && !initialDesign.albumImageRatio) initialDesign.albumImageRatio = legacyRatio;
   const [designOptions, setDesignOptions] = useOptimistic(initialDesign);
   const templateQuery = { ...query, previewOptions: optionsTab, designPreview: serializePreviewDesign(designOptions) };
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -135,9 +139,9 @@ export default function MenuPreviewDeviceFrame(
     return () => observer.disconnect();
   }, []);
   const supportsCallPreview =
-    props.supportsCallPreview ?? templateKey !== "display_menu_a";
+    isTemplatePreview && (props.supportsCallPreview ?? templateKey !== "display_menu_a");
   const supportsOrderPreview =
-    props.supportsCallPreview !== false &&
+    isTemplatePreview && props.supportsCallPreview !== false &&
     templateKey !== "display_menu_a";
   const orderPreview =
     (Array.isArray(query.orderPreview)
@@ -151,9 +155,9 @@ export default function MenuPreviewDeviceFrame(
     call: callPreview,
     order: orderPreview,
   });
-  const supportsLayoutPreview = props.supportsLayoutPreview ?? supportsPcTabletLayoutMode(templateKey);
+  const supportsLayoutPreview = isTemplatePreview && (props.supportsLayoutPreview ?? supportsPcTabletLayoutMode(templateKey));
   const [displayOptions, setDisplayOptions] = useOptimistic(props.previewDisplayOptions ?? getDefaultDesignOptions(query as TemplatePreviewQuery));
-  const displayGroups = templateKey ? getTemplatePreviewOptionGroups(templateKey, defaultDesign) : [];
+  const displayGroups = isTemplatePreview && templateKey ? getTemplatePreviewOptionGroups(templateKey, defaultDesign) : [];
   const hasDisplayOptions = displayGroups.length > 0;
   const changeDisplayOption = (key: DefaultDesignOptionKey, enabled: boolean) => {
     if (!hasDisplayOptions) return;
@@ -191,11 +195,7 @@ export default function MenuPreviewDeviceFrame(
     }
 
     if (typeof props.menuId === "string") {
-      return buildMenuPreviewUrl(props.menuId, nextQuery as MenuPreviewQuery, {
-        callPreview: features.call,
-        orderPreview: features.order,
-        ...options,
-      });
+      return buildMenuPreviewUrl(props.menuId, query as MenuPreviewQuery, options);
     }
 
     throw new Error("미리보기 대상을 확인할 수 없습니다.");
@@ -270,13 +270,13 @@ export default function MenuPreviewDeviceFrame(
           <div
             data-preview-device-toolbar-content=""
             aria-hidden={!showToolbar}
-            className={`${styles.toolbarContent} flex w-full items-center gap-1.5 pl-1 pr-10 transition-opacity duration-150 ${supportsLayoutPreview ? "max-[850px]:flex-wrap" : supportsCallPreview ? "max-[560px]:flex-wrap" : ""} ${
+            className={`${styles.toolbarContent} flex w-full items-center gap-1.5 pl-1 pr-10 transition-opacity duration-150 ${supportsLayoutPreview ? "max-[850px]:flex-wrap" : (supportsCallPreview || !isTemplatePreview) ? "max-[560px]:flex-wrap" : ""} ${
               showToolbar ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
           >
             <nav
               aria-label="미리보기 기기 선택"
-              className={`${styles.deviceNav} flex min-w-0 flex-1 items-center justify-center gap-0.5 ${supportsLayoutPreview ? "max-[850px]:basis-full" : supportsCallPreview ? "max-[560px]:basis-full" : ""}`}
+              className={`${styles.deviceNav} flex min-w-0 flex-1 items-center justify-center gap-0.5 ${supportsLayoutPreview ? "max-[850px]:basis-full" : (supportsCallPreview || !isTemplatePreview) ? "max-[560px]:basis-full" : ""}`}
             >
               {MENU_PREVIEW_DEVICE_ORDER.map((candidate) => {
                 const candidateFrame = MENU_PREVIEW_DEVICES[candidate];
@@ -347,6 +347,10 @@ export default function MenuPreviewDeviceFrame(
                 ))}
               </div>
             ) : null}
+            {props.editHref ? <Link href={props.editHref} aria-label="메뉴관리에서 수정하기" title="메뉴관리에서 수정하기" data-preview-edit-link="" tabIndex={showToolbar ? undefined : -1}
+              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-2 text-xs font-bold text-white transition-colors hover:bg-white/20 active:bg-white/25">
+              <Pencil className="h-4 w-4" aria-hidden="true" /><span className="hidden min-[430px]:inline">수정하기</span>
+            </Link> : null}
             <Link
               href={detachedUrl}
               target="_blank"
@@ -418,6 +422,7 @@ export default function MenuPreviewDeviceFrame(
         </div>
       </section>
 
+      {!isTemplatePreview ? <PreviewFullscreenControl /> : null}
       <MenuPreviewGuide device={device} />
     </main>
   );

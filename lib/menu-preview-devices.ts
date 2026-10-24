@@ -39,7 +39,10 @@ export const MENU_PREVIEW_PAYMENT_MODES = {
 
 export type MenuPreviewPaymentMode = keyof typeof MENU_PREVIEW_PAYMENT_MODES;
 
-const MENU_PREVIEW_QUERY_KEYS = [
+const SAVED_MENU_PREVIEW_QUERY_KEYS = ["lang", "page", "debugCafeA"] as const;
+
+// Accept legacy query shapes at callers, but never propagate catalog edits.
+export const MENU_PREVIEW_QUERY_KEYS = [
   "lang", "page", "debugCafeA", "callPreview", "orderPreview", "layoutMode",
   "designPreview", "previewOptions", "albumImageRatio", "logoPreview", "popupPreview",
   "coverImagesPreview", "widgetsPreview", "coverPreview", "featuredPreview", "imagesPreview",
@@ -100,27 +103,13 @@ export function buildMenuPreviewUrl(
 ) {
   const searchParams = new URLSearchParams();
 
-  for (const key of MENU_PREVIEW_QUERY_KEYS) {
-    if (key === "previewOptions" && options.actual) continue;
+  for (const key of SAVED_MENU_PREVIEW_QUERY_KEYS) {
     const value = query[key];
     if (value) searchParams.set(key, value);
   }
-
-  if (options.layoutMode) searchParams.set("layoutMode", options.layoutMode);
   if (options.device) searchParams.set("device", options.device);
-  if (options.orderPreview !== undefined) {
-    if (options.orderPreview) searchParams.set("orderPreview", "on");
-    else searchParams.delete("orderPreview");
-  }
-  if (options.callPreview !== undefined) {
-    if (options.callPreview) searchParams.set("callPreview", "on");
-    else searchParams.delete("callPreview");
-  }
   if (options.device === "tablet" && options.orientation) {
     searchParams.set("orientation", options.orientation);
-  }
-  if (options.device === "mobile" && options.paymentMode === "on") {
-    searchParams.set("payment", "on");
   }
   if (options.actual) searchParams.set("view", "actual");
 
