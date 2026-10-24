@@ -18,10 +18,10 @@ export default function MenuSurfaceSettingsForm({ pageSettings, settings, templa
       {color("pageBackground", support.dining ? "본문 페이지 배경색" : "페이지 배경색", defaults.pageBackground)}
       {support.basic ? color("auxiliaryBackground", "보조 배경색", defaults.auxiliaryBackground) : color("coverBackground", "커버 배경색", defaults.coverBackground)}
       {support.sidebar ? color("sidebarBackground", "좌측 메뉴열 배경색", defaults.sidebarBackground) : null}
-      {support.dining ? color("coverDescriptionColor", "커버 소개 글자색", defaults.coverDescriptionColor) : null}
+      {support.dining ? <input type="hidden" form={formId} name="surface_coverDescriptionColor" value={value.coverDescriptionColor ?? ""} /> : null}
     </div>
     {support.basic ? <>
-      <label className="block space-y-2 text-sm font-semibold">대표영역 내용 정렬<select form={formId} name="representative_alignment" value={value.representativeAlignment ?? "template"} disabled={disabled} className="block h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-zinc-900" onChange={event => setValue(current => ({ ...current, representativeAlignment: event.target.value === "template" ? undefined : event.target.value as MenuSurfaceSettings["representativeAlignment"] }))}>
+      <label className="block space-y-2 text-sm font-semibold">가게명·가게 설명 정렬<select form={formId} name="representative_alignment" value={value.representativeAlignment ?? "template"} disabled={disabled} className="block h-10 w-full rounded-lg border border-zinc-200 bg-white px-3 text-zinc-900" onChange={event => setValue(current => ({ ...current, representativeAlignment: event.target.value === "template" ? undefined : event.target.value as MenuSurfaceSettings["representativeAlignment"] }))}>
         <option value="template">템플릿 기본값</option>{REPRESENTATIVE_ALIGNMENTS.map(align => <option key={align} value={align}>{{ left: "왼쪽 정렬", center: "가운데 정렬", right: "오른쪽 정렬" }[align]}</option>)}
       </select></label>
       <p className="text-xs leading-relaxed text-zinc-500">보조 배경색은 대표영역에 적용됩니다. 페이지와 색상이 다르면 패널 안쪽 여백과 열 사이 간격을 함께 조정합니다. 가게명과 가게 설명의 정렬은 모든 기기에 적용되며, 대표 상품 정보는 항상 왼쪽 정렬을 유지합니다.</p>

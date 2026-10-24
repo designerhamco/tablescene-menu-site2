@@ -2,9 +2,10 @@
 
 import { ALBUM_IMAGE_RATIOS, unifiedAppearanceRadius, withUnifiedAppearanceRadius } from "@/lib/menu-appearance";
 import { KOREAN_FONT_OPTIONS, getAvailableEnglishFontsForTemplate, getEnglishFontOption, getKoreanFontOption } from "@/lib/font-options";
-import { PREVIEW_FONT_GROUPS, type PreviewDesign, type PreviewDesignDefaults, type PreviewFontChoice } from "@/lib/menu-preview-design";
+import { type PreviewDesign, type PreviewDesignDefaults, type PreviewFontChoice } from "@/lib/menu-preview-design";
 import { resolvePreviewChipColors, type PreviewChipColors } from "@/lib/menu-preview-chip-colors";
 import { REPRESENTATIVE_ALIGNMENTS } from "@/lib/menu-design-surfaces";
+import { MENU_TEXT_COLOR_GROUPS, MENU_TEXT_COLOR_LABELS, MENU_TEXT_COLOR_DESCRIPTIONS, type MenuTextColorGroup } from "@/lib/menu-text-colors";
 import ImageRadiusSelect from "./ImageRadiusSelect";
 import PreviewColorPicker from "./PreviewColorPicker";
 import styles from "./PreviewDesignOptions.module.css";
@@ -19,7 +20,10 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
   onChange: (value: PreviewDesign) => void;
 }) {
   const set = (patch: Partial<PreviewDesign>) => onChange({ ...value, ...patch });
-  const font = (group: typeof PREVIEW_FONT_GROUPS[number], patch: PreviewFontChoice) => set({ fonts: { ...value.fonts, [group]: { ...value.fonts?.[group], ...patch } } });
+  const textColor = (group: MenuTextColorGroup, color?: string) => set({ textColors: { ...value.textColors, [group]: color } });
+  const colorDefault = (group: MenuTextColorGroup) => defaults.textColors[group]
+    ?? value.fonts?.[group === "brand" || group === "category" ? group : "other"]?.color
+    ?? (dining && group === "representative" ? value.coverDescriptionColor ?? defaults.colors.coverDescription : defaults.textColorDefaults[group]);
   const appearance = { ...defaults.appearance, imageRadii: { ...defaults.appearance.imageRadii, ...value.imageRadii }, chipShape: value.chipShape ?? defaults.appearance.chipShape };
   const radius = unifiedAppearanceRadius(appearance, !dining);
   const chipColors = resolvePreviewChipColors(value.chipColors ?? {});
@@ -34,7 +38,6 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
       {dining ? <>
         <PreviewColorPicker label="커버 배경색" value={value.coverBackground} defaultColor={defaults.colors.cover} onChange={coverBackground => set({ coverBackground })} disabled={disabled} />
         {templateKey.endsWith("_b") ? <PreviewColorPicker label="좌측 메뉴열 배경색" value={value.sidebarBackground} defaultColor={defaults.colors.sidebar} onChange={sidebarBackground => set({ sidebarBackground })} disabled={disabled} /> : null}
-        <PreviewColorPicker label="커버 소개 글자색" value={value.coverDescriptionColor} defaultColor={defaults.colors.coverDescription} onChange={coverDescriptionColor => set({ coverDescriptionColor })} disabled={disabled} />
       </> : <PreviewColorPicker label="보조 배경색" value={value.auxiliaryBackground} defaultColor={defaults.colors.auxiliary} onChange={auxiliaryBackground => set({ auxiliaryBackground })} disabled={disabled} />}
     </div></fieldset>
     <fieldset data-preview-common-fonts><legend className={styles.legend}>공통 서체</legend><div className={styles.backgrounds}>
@@ -45,11 +48,11 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
         <option value="">기본값 · {getEnglishFontOption(defaults.fontFamily.en)?.label}</option>{getAvailableEnglishFontsForTemplate(templateKey).map(item=><option key={item.value} value={item.value}>{item.label}</option>)}
       </select></label>
     </div></fieldset>
-    <div className={styles.fontGroups} data-preview-font-groups>{PREVIEW_FONT_GROUPS.map(group => {
-      const choice = value.fonts?.[group] ?? {}, label = { brand: "가게명", category: "카테고리명", other: "나머지 문구" }[group];
+    <div className={styles.fontGroups} data-preview-font-groups>{MENU_TEXT_COLOR_GROUPS.map(group => {
+      const label = MENU_TEXT_COLOR_LABELS[group];
       return <fieldset key={group} className={styles.fontGroup}><legend>{label}</legend>
-        <PreviewColorPicker label="글자색" accessibleLabel={`${label} 글자색`} value={choice.color} defaultColor={defaults.fonts[group].color} onChange={color => font(group, { color })} disabled={disabled} />
-
+        <PreviewColorPicker label="글자색" accessibleLabel={`${label} 글자색`} value={value.textColors?.[group]} defaultColor={colorDefault(group)} onChange={color => textColor(group, color)} disabled={disabled} />
+        {group !== "brand" ? <p className={styles.hint}>{MENU_TEXT_COLOR_DESCRIPTIONS[group]}</p> : null}
       </fieldset>;
     })}</div>
     <p className={styles.hint}>가게 설명과 안내사항은 한글·영문 모두 설정한 한글 서체를 따릅니다. 가격 옵션명은 카테고리명의 색상과 서체를 따릅니다.</p>
@@ -66,17 +69,15 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
         </div><p className={styles.hint}>배경색은 할인 안내와 남은 시간 문구에도 함께 적용됩니다.</p></fieldset>
       </div>
     </fieldset> : null}
-    {!dining ? <fieldset data-preview-representative-alignment><legend className={styles.legend}>대표영역 정렬</legend>
-      <label className={styles.option}>가게명·가게 설명<select aria-label="대표영역 내용 정렬" value={value.representativeAlignment ?? "template"} disabled={disabled} className={styles.select} onChange={event => set({ representativeAlignment: event.target.value === "template" ? undefined : event.target.value as PreviewDesign["representativeAlignment"] })}><option value="template">템플릿 기본값</option>{REPRESENTATIVE_ALIGNMENTS.map(align => <option key={align} value={align}>{{ left: "왼쪽 정렬", center: "가운데 정렬", right: "오른쪽 정렬" }[align]}</option>)}</select></label>
-      <p className={styles.hint}>대표 상품 정보는 항상 왼쪽 정렬을 유지합니다.</p>
+    {!dining ? <fieldset data-preview-representative-alignment><legend className={styles.legend}>가게명·가게 설명 정렬</legend>
+      <label className={styles.option}><select aria-label="가게명·가게 설명 정렬" value={value.representativeAlignment ?? "template"} disabled={disabled} className={styles.select} onChange={event => set({ representativeAlignment: event.target.value === "template" ? undefined : event.target.value as PreviewDesign["representativeAlignment"] })}><option value="template">템플릿 기본값</option>{REPRESENTATIVE_ALIGNMENTS.map(align => <option key={align} value={align}>{{ left: "왼쪽 정렬", center: "가운데 정렬", right: "오른쪽 정렬" }[align]}</option>)}</select></label>
     </fieldset> : null}
-    <fieldset data-preview-image-radii><legend className={styles.legend}>이미지 라운드</legend>
-      <label className={styles.option}>이미지·텍스트칩<ImageRadiusSelect label="이미지·텍스트칩" radius={radius.radius} mixed={radius.mixed} disabled={disabled} className={styles.select}
+    <fieldset data-preview-image-radii><legend className={styles.legend}>이미지·텍스트칩 라운드</legend>
+      <label className={styles.option}><span>광고·{!dining ? "대표·" : ""}위젯·상품 이미지·텍스트칩</span><ImageRadiusSelect label="이미지·텍스트칩" radius={radius.radius} mixed={radius.mixed} disabled={disabled} className={styles.select}
         onChange={next => {
           const unified = withUnifiedAppearanceRadius(appearance, next, !dining);
           set({ imageRadii: next === undefined ? undefined : unified.imageRadii, chipShape: next === undefined ? undefined : unified.chipShape });
         }}/></label>
-      <p className={styles.hint}>광고·{!dining ? "대표·" : ""}위젯·상품 이미지와 텍스트칩에 함께 적용됩니다. 로고는 원래 모양을 유지합니다.</p>
     </fieldset>
   </div>;
 }
