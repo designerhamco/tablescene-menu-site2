@@ -2,6 +2,7 @@
 
 import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowUpRight, Laptop, Monitor, X } from "lucide-react";
+import { buttonVariants } from "@/app/components/ui/button";
 import styles from "./marketing.module.css";
 
 const guides = {
@@ -62,7 +63,7 @@ function GuideButton({
   const content = guides[guide];
   return (
     <Dialog.Root>
-      <Dialog.Trigger className="site-button site-button-secondary">
+      <Dialog.Trigger className={buttonVariants({ variant: "outline", size: "lg", shape: "rounded" })}>
         {label}
         <ArrowUpRight size={16} aria-hidden="true" />
       </Dialog.Trigger>

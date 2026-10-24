@@ -21,15 +21,15 @@
 
   --type-display-size: 2rem;
   --type-page-title-size: clamp(2rem, 4vw, 3rem);
-  --type-section-title-size: clamp(1.25rem, 2.4vw, 1.5rem);
+  --type-section-title-size: clamp(1.5rem, 2.4vw, 2rem);
   --type-subsection-title-size: clamp(1.25rem, 2.4vw, 1.5rem);
-  --type-content-title-size: clamp(.875rem, 1.4vw, 1rem);
+  --type-content-title-size: clamp(1rem, 1.4vw, 1.25rem);
   --type-item-title-size: var(--font-size-300);
-  --type-body-lg-size: clamp(.875rem, 1.4vw, 1rem);
+  --type-body-lg-size: clamp(1rem, 1.4vw, 1.125rem);
   --type-body-size: clamp(.875rem, 1.4vw, 1rem);
   --type-body-sm-size: .875rem;
   --type-label-size: var(--font-size-200);
-  --type-nav-size: .875rem;
+  --type-nav-size: clamp(.875rem, 1.2vw, 1rem);
   --type-caption-size: var(--font-size-100);
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Coffee, Fish, LayoutGrid, Sandwich, Utensils, Wine } from "lucide-react";
+import { BookOpen, Check, Coffee, Fish, LayoutGrid, Monitor, PanelsTopLeft, Sandwich, Tablet, Utensils, Wine } from "lucide-react";
 import { useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import {
   CATALOG_INDUSTRIES,
@@ -12,6 +12,9 @@ import {
   type CatalogLayoutFilter,
   type CatalogService,
 } from "@/lib/catalog-designs";
+import { Button } from "@/app/components/ui/button";
+import { EmptyState } from "@/app/components/ui/empty-state";
+import { ChoiceTile } from "@/app/components/ui/choice-tile";
 import CatalogDesignCard from "@/components/templates/CatalogDesignCard";
 import CatalogLayoutIcon from "@/components/templates/CatalogLayoutIcon";
 import CatalogLayoutSelect from "@/components/templates/CatalogLayoutSelect";
@@ -20,9 +23,9 @@ import TemplatePagination from "./TemplatePagination";
 
 const TEMPLATES_PER_PAGE = 6;
 const PRODUCT_TABS = [
-  { key: "basic", label: "베이직" },
-  { key: "dining", label: "다이닝" },
-  { key: "display", label: "디스플레이" },
+  { key: "basic", label: "베이직", description: "한 화면에 담는 매장 메뉴", icon: Tablet },
+  { key: "dining", label: "다이닝", description: "커버와 여러 페이지로 전하는 메뉴", icon: BookOpen },
+  { key: "display", label: "디스플레이", description: "매장의 큰 화면을 위한 메뉴보드", icon: Monitor },
 ] as const;
 const KIND_TABS = [
   { key: "designer", label: "디자인 템플릿", description: "완성된 스타일에 우리 매장 메뉴를 넣어 시작하세요." },
@@ -105,6 +108,9 @@ export default function TemplateGallery({
   function selectLayout(next: CatalogLayoutFilter) {
     setLayoutFilter(next); setPage(1); keepUrl(product, kind, filter, next);
   }
+  function clearFilters() {
+    setFilter("all"); setLayoutFilter("all"); setPage(1); keepUrl(product, kind, "all", "all");
+  }
   function filterButtons(mobile: boolean) {
     return filters.map(item => {
       let icon;
@@ -113,33 +119,32 @@ export default function TemplateGallery({
         const Icon = FILTER_ICONS[item.key];
         icon = <Icon aria-hidden="true" />;
       }
+      if (mobile) return <ChoiceTile key={item.key} icon={icon} label={item.label} selected={filter === item.key} onClick={() => selectFilter(item.key)} />;
       return (
         <button key={item.key} type="button" aria-pressed={filter === item.key}
-          className={mobile ? "site-category-circle-button" : kind === "standard" ? "site-catalog-layout-category" : undefined}
+          className={kind === "standard" ? "site-catalog-layout-category" : undefined}
           onClick={() => selectFilter(item.key)}>
-          {mobile ? <span className="site-category-circle">{icon}</span> : kind === "standard" ? icon : null}
-          <span className={mobile ? "site-category-circle-label" : undefined}>{item.label}</span>
+          {kind === "standard" ? icon : null}
+          <span>{item.label}</span>
         </button>
       );
     });
   }
 
   return <>
-    <div className="site-catalog-services">
-      <div className="site-tabs" role="tablist" aria-label="서비스 및 페이지 유형 선택"
-        onKeyDown={event => navigateTabs(event, PRODUCT_TABS.findIndex(item => item.key === product), PRODUCT_TABS.length, index => selectProduct(PRODUCT_TABS[index].key))}>
-        {PRODUCT_TABS.map(({ key, label }) => (
-          <button key={key} role="tab" type="button" className="site-tab"
-            id={`${tabsId}-${key}`} aria-controls={`${tabsId}-service-panel`}
-            aria-selected={product === key} tabIndex={product === key ? 0 : -1}
-            onClick={() => selectProduct(key)}>{label}</button>
-        ))}
-      </div>
+    <div className="site-catalog-services" role="tablist" aria-label="서비스 및 페이지 유형 선택"
+      onKeyDown={event => navigateTabs(event, PRODUCT_TABS.findIndex(item => item.key === product), PRODUCT_TABS.length, index => selectProduct(PRODUCT_TABS[index].key))}>
+      {PRODUCT_TABS.map(({ key, label, description, icon: Icon }) => (
+        <ChoiceTile key={key} role="tab" icon={<Icon aria-hidden="true" />} label={label} description={description} presentation="feature" selected={product === key}
+          id={`${tabsId}-${key}`} aria-controls={`${tabsId}-service-panel`}
+          aria-selected={product === key} tabIndex={product === key ? 0 : -1}
+          onClick={() => selectProduct(key)} />
+      ))}
     </div>
     <div role="tabpanel" id={`${tabsId}-service-panel`} aria-labelledby={`${tabsId}-${product}`}>
       <div ref={galleryStartRef} className="site-catalog-selection scroll-mt-24">
         {product !== "display" && (
-          <div className="site-topic-tabs" role="tablist" aria-label="템플릿 종류 선택"
+          <div className="site-topic-tabs site-topic-tabs-lg" role="tablist" aria-label="템플릿 종류 선택"
             onKeyDown={event => navigateTabs(event, KIND_TABS.findIndex(item => item.key === kind), KIND_TABS.length, index => selectKind(KIND_TABS[index].key))}>
             {KIND_TABS.map(({ key, label }) => (
               <button key={key} role="tab" type="button" className="site-topic-tab"
@@ -183,7 +188,7 @@ export default function TemplateGallery({
                 </div>
                 <div className="site-category-mobile">
                   <h2 className="type-item-title mb-3">{filterHeading}</h2>
-                  <div className="site-category-circles" role="group" aria-label={`모바일 ${filterHeading} 선택`}>{filterButtons(true)}</div>
+                  <div className="site-catalog-mobile-choices" role="group" aria-label={`모바일 ${filterHeading} 선택`}>{filterButtons(true)}</div>
                 </div>
               </aside>
             )}
@@ -200,12 +205,10 @@ export default function TemplateGallery({
               {paginatedTemplates.length ? (
                 <div className="site-template-grid">{paginatedTemplates.map(design => <CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={busy} onToggle={toggle} />)}</div>
               ) : (
-                <section className="site-card site-card-empty flex min-h-72 flex-col items-center justify-center px-6 text-center">
-                  <h2 className="type-content-title">{emptyTitle}</h2>
-                  <p className="mt-3 break-keep text-sm text-zinc-600">{hasLayoutFilter && layoutFilter !== "all"
-                    ? "선택한 화면 구성의 디자인을 준비하고 있습니다. 다른 화면 구성이나 업종을 선택해 주세요."
-                    : "매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다."}</p>
-                </section>
+                <EmptyState icon={<PanelsTopLeft />} title={emptyTitle} description={hasLayoutFilter && layoutFilter !== "all"
+                  ? "선택한 화면 구성의 디자인을 준비하고 있습니다. 다른 화면 구성이나 업종을 선택해 주세요."
+                  : "매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다."}
+                  action={product !== "display" ? <Button variant="outline" size="lg" shape="rounded" onClick={clearFilters}>전체 템플릿 보기</Button> : undefined} />
               )}
               <TemplatePagination currentPage={currentPage} totalPages={totalPages} onSelect={next => {
                 setPage(next);

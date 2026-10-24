@@ -53,7 +53,7 @@
 
 현재 컴포넌트의 단일 기준은 `docs/site-design-system.md`와 `styles/ui-system.css` / `styles/site-design.css`다. 기존 공통 Button/Input/Tabs 등을 재사용한다.
 
-- 텍스트 액션·탭은 pill, CTA 높이는 일반 40px / 헤더 44px / floating 48px이다.
+- 기본 실행은 40px pill, 헤더는 44px, floating은 48px을 유지한다. 2026-10-25 사용자 승인 변형은 역할에 따라 48/56/64px CTA, 12px/6px 사각 버튼, 아이콘 선택 카드, 큰 outline 세그먼트와 밑줄 탭을 사용한다. 상세 기준은 `docs/site-design-system.md`의 최신 확장을 따른다.
 - 주요 액션은 검정/흰색, 보조 CTA는 옅은 회색 무테, outline 액션은 흰색/회색 경계다. 위험·성공·정보·주의 의미 색상은 유지한다.
 - hover는 색상만 바꾸고, 기본 키보드 포커스는 파란색/어두운 표면에서는 흰색이다. disabled는 기능별 안내와 비활성 동작을 유지한다.
 - 일반 콘텐츠는 열린 섹션, 기능 카드만 16px 무테 표면, 판매 미리보기는 20px, 기존 히어로는 독립 32–48px 라운드다. 그림자는 떠 있는 레이어·글래스 헤더에 한정한다.

@@ -17,17 +17,25 @@ const buttonVariants = cva(
         ghost: "site-button-ghost",
         link: "site-button-link underline-offset-4 hover:underline",
       },
+      shape: {
+        pill: "",
+        rounded: "site-button-rounded",
+        square: "site-button-square",
+      },
       size: {
         default: "has-[>svg]:px-4",
         sm: "site-button-sm gap-1.5 has-[>svg]:px-3",
         compact: "site-button-compact",
         lg: "site-button-lg has-[>svg]:px-5",
+        xl: "site-button-xl has-[>svg]:px-6",
+        hero: "site-button-hero has-[>svg]:px-8",
         icon: "site-button-icon",
       },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
+      shape: "pill",
     },
   },
 );
@@ -36,6 +44,7 @@ function Button({
   className,
   variant,
   size,
+  shape,
   asChild = false,
   ...props
 }: React.ComponentProps<"button"> &
@@ -47,7 +56,7 @@ function Button({
   return (
     <Comp
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size, shape, className }))}
       {...props}
     />
   );
