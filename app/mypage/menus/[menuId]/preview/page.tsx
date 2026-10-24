@@ -17,6 +17,7 @@ import {
   normalizeMenuPreviewOrientation,
   shouldUseMenuPreviewDeviceFrame,
   type MenuPreviewQuery,
+  type TemplatePreviewQuery,
 } from "@/lib/menu-preview-devices";
 import { MenuSiteAccessError, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
 import { type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";

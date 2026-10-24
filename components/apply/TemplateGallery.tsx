@@ -1,50 +1,189 @@
-'use client';
-import { ChevronDown, Check } from 'lucide-react';
-import { useId, useMemo, useRef, useState } from 'react';
-import { CATALOG_INDUSTRIES, filterCatalogDesigns, getCatalogPricing, type CatalogKind, type CatalogService } from '@/lib/catalog-designs';
-import type { TemplateCatalogItem } from '@/lib/templates';
-import CatalogDesignCard from '@/components/templates/CatalogDesignCard';
-import useTemplateFavorites from '@/components/templates/useTemplateFavorites';
-import TemplatePagination from './TemplatePagination';
-const INDUSTRY_GROUPS=CATALOG_INDUSTRIES;
+"use client";
+
+import { Check, Coffee, Fish, Images, LayoutGrid, List, Sandwich, Utensils, Wine } from "lucide-react";
+import { useId, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  CATALOG_INDUSTRIES,
+  filterCatalogDesigns,
+  getCatalogPricing,
+  type CatalogKind,
+  type CatalogService,
+} from "@/lib/catalog-designs";
+import CatalogDesignCard from "@/components/templates/CatalogDesignCard";
+import useTemplateFavorites from "@/components/templates/useTemplateFavorites";
+import TemplatePagination from "./TemplatePagination";
+
 const TEMPLATES_PER_PAGE = 6;
-const PRODUCT_TABS=[{key:'basic',label:'베이직'},{key:'dining',label:'다이닝'},{key:'display',label:'디스플레이'}] as const;
-export default function TemplateGallery({initialProduct='dining_single',initialKind='standard',initialFilter='all'}:{diningTemplates:readonly TemplateCatalogItem[];displayTemplates:readonly TemplateCatalogItem[];displayCheckoutEnabled?:boolean;initialProduct?:'dining_single'|'dining_multi'|'display';initialKind?:CatalogKind;initialFilter?:string}) {
-  const [product,setProduct]=useState<CatalogService>(initialProduct==='dining_multi'?'dining':initialProduct==='display'?'display':'basic');
-  const [kind,setKind]=useState<CatalogKind>(initialKind);
-  const [filter,setFilter]=useState(initialKind==='standard'?(['all','list','album'].includes(initialFilter)?initialFilter:'all'):(CATALOG_INDUSTRIES.some(i=>i.key===initialFilter)?initialFilter:'all'));
-  const [open,setOpen]=useState<CatalogKind|null>(initialKind);
-  const [page,setPage]=useState(1);
-  const galleryStartRef=useRef<HTMLDivElement>(null),tabsId=useId();
-  const {favorites,toggle,busy,message}=useTemplateFavorites();
-  const visibleTemplates=useMemo(()=>filterCatalogDesigns(product,kind,filter),[product,kind,filter]);
-  const totalPages=Math.ceil(visibleTemplates.length/TEMPLATES_PER_PAGE),currentPage=Math.min(page,Math.max(totalPages,1));
-  const paginatedTemplates=visibleTemplates.slice((currentPage-1)*TEMPLATES_PER_PAGE,currentPage*TEMPLATES_PER_PAGE);
-  const kindLabel=kind==='standard'?'기본 디자인':'디자인 템플릿';
-  const pricing=product==='display'?null:getCatalogPricing(product,kind);
-  const money=(amount:number)=>`${amount.toLocaleString('ko-KR')}원`;
-  const productTitle=product==='display'?'아티메뉴 디스플레이':`${product==='basic'?'베이직':'다이닝'} ${kindLabel}`;
-  function keepUrl(service:CatalogService,nextKind:CatalogKind,nextFilter:string){const url=new URL(location.href);url.searchParams.set('plan',service);url.searchParams.set('category',nextKind);url.searchParams.set('filter',nextFilter);history.replaceState(null,'',url);}
-  function selectProduct(service:CatalogService){setProduct(service);setFilter('all');setPage(1);keepUrl(service,kind,'all');}
-  function selectKind(next:CatalogKind){setKind(next);setFilter('all');setOpen(open===next?null:next);setPage(1);keepUrl(product,next,'all');}
-  function selectFilter(next:string){setFilter(next);setPage(1);keepUrl(product,kind,next);}
-  const filterLabel=filter==='all'?'전체':kind==='standard'?(filter==='album'?'앨범형':'리스트형'):INDUSTRY_GROUPS.find(i=>i.key===filter)?.label??'전체';
+const PRODUCT_TABS = [
+  { key: "basic", label: "베이직" },
+  { key: "dining", label: "다이닝" },
+  { key: "display", label: "디스플레이" },
+] as const;
+const KIND_TABS = [
+  { key: "designer", label: "디자인 템플릿", description: "완성된 스타일에 우리 매장 메뉴를 넣어 시작하세요." },
+  { key: "standard", label: "기본 템플릿", description: "기본 레이아웃에서 색상과 글꼴을 매장에 맞게 직접 설정하세요." },
+] as const;
+const LAYOUT_FILTERS = [
+  { key: "all", label: "전체" },
+  { key: "list", label: "리스트형" },
+  { key: "album", label: "앨범형" },
+] as const;
+const FILTER_ICONS = {
+  all: LayoutGrid, list: List, album: Images, cafe_bakery: Coffee,
+  restaurant_dining: Utensils, japanese: Fish, pub_bar: Wine, quick_meal: Sandwich,
+};
+
+function navigateTabs(event: KeyboardEvent<HTMLDivElement>, current: number, count: number, select: (index: number) => void) {
+  const next = event.key === "ArrowRight" ? (current + 1) % count
+    : event.key === "ArrowLeft" ? (current + count - 1) % count
+    : event.key === "Home" ? 0 : event.key === "End" ? count - 1 : -1;
+  if (next < 0) return;
+  event.preventDefault();
+  select(next);
+  const tab = event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next];
+  tab?.focus();
+  tab?.scrollIntoView({ block: "nearest", inline: "nearest" });
+}
+
+export default function TemplateGallery({
+  initialProduct = "dining_single",
+  initialKind = "designer",
+  initialFilter = "all",
+}: {
+  initialProduct?: "dining_single" | "dining_multi" | "display";
+  initialKind?: CatalogKind;
+  initialFilter?: string;
+}) {
+  const [product, setProduct] = useState<CatalogService>(initialProduct === "dining_multi" ? "dining" : initialProduct === "display" ? "display" : "basic");
+  const [kind, setKind] = useState<CatalogKind>(initialKind);
+  const [filter, setFilter] = useState(initialProduct === "display" ? "all" : initialKind === "standard"
+    ? (LAYOUT_FILTERS.some(item => item.key === initialFilter) ? initialFilter : "all")
+    : (CATALOG_INDUSTRIES.some(item => item.key === initialFilter) ? initialFilter : "all"));
+  const [page, setPage] = useState(1);
+  const galleryStartRef = useRef<HTMLDivElement>(null);
+  const tabsId = useId();
+  const { favorites, toggle, busy, message } = useTemplateFavorites();
+  const visibleTemplates = useMemo(() => filterCatalogDesigns(product, kind, filter), [product, kind, filter]);
+  const totalPages = Math.ceil(visibleTemplates.length / TEMPLATES_PER_PAGE);
+  const currentPage = Math.min(page, Math.max(totalPages, 1));
+  const paginatedTemplates = visibleTemplates.slice((currentPage - 1) * TEMPLATES_PER_PAGE, currentPage * TEMPLATES_PER_PAGE);
+  const selectedKind = KIND_TABS.find(item => item.key === kind)!;
+  const filters = kind === "standard" ? LAYOUT_FILTERS : CATALOG_INDUSTRIES;
+  const filterHeading = kind === "standard" ? "화면 구성" : "업종";
+  const filterLabel = filters.find(item => item.key === filter)?.label ?? "전체";
+  const pricing = product === "display" ? null : getCatalogPricing(product, kind);
+  const productTitle = product === "display" ? "아티메뉴 디스플레이" : `${product === "basic" ? "베이직" : "다이닝"} ${selectedKind.label}`;
+  const money = (amount: number) => `${amount.toLocaleString("ko-KR")}원`;
+
+  function keepUrl(service: CatalogService, nextKind: CatalogKind, nextFilter: string) {
+    const url = new URL(location.href);
+    url.searchParams.set("plan", service);
+    url.searchParams.set("category", nextKind);
+    url.searchParams.set("filter", nextFilter);
+    history.replaceState(null, "", url);
+  }
+  function selectProduct(service: CatalogService) {
+    setProduct(service); setFilter("all"); setPage(1); keepUrl(service, kind, "all");
+  }
+  function selectKind(next: CatalogKind) {
+    setKind(next); setFilter("all"); setPage(1); keepUrl(product, next, "all");
+  }
+  function selectFilter(next: string) {
+    setFilter(next); setPage(1); keepUrl(product, kind, next);
+  }
+  function filterButtons(mobile: boolean) {
+    return filters.map(item => {
+      const Icon = FILTER_ICONS[item.key];
+      return (
+        <button key={item.key} type="button" aria-pressed={filter === item.key}
+          className={mobile ? "site-category-circle-button" : undefined}
+          onClick={() => selectFilter(item.key)}>
+          {mobile && <span className="site-category-circle"><Icon aria-hidden="true" /></span>}
+          <span className={mobile ? "site-category-circle-label" : undefined}>{item.label}</span>
+        </button>
+      );
+    });
+  }
+
   return <>
-    <div className="site-catalog-services"><div className="site-tabs" role="tablist" aria-label="서비스 및 페이지 유형 선택" onKeyDown={event=>{
-      const current=PRODUCT_TABS.findIndex(t=>t.key===product),next=event.key==='ArrowRight'?(current+1)%3:event.key==='ArrowLeft'?(current+2)%3:event.key==='Home'?0:event.key==='End'?2:-1;
-      if(next<0)return;event.preventDefault();selectProduct(PRODUCT_TABS[next].key);event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
-    }}>{PRODUCT_TABS.map(({key,label})=><button key={key} role="tab" type="button" className="site-tab" id={`${tabsId}-${key}`} aria-controls={`${tabsId}-panel`} aria-selected={product === key} tabIndex={product===key?0:-1} onClick={()=>selectProduct(key)}>{label}</button>)}</div></div>
-    <div role="tabpanel" id={`${tabsId}-panel`} aria-labelledby={`${tabsId}-${product}`}>
-      <section className="site-catalog-plan" aria-label="템플릿 이용 안내"><div><p className="site-body-title">{productTitle}</p><p className="site-body-support mt-1 text-zinc-600">{product==='display'?'현재 준비 중입니다.':kind==='standard'?'기본 레이아웃을 선택하고 색상과 글꼴을 매장에 맞게 직접 꾸며보세요.':'완성된 디자인으로 시작하고 같은 서비스의 기본 디자인과 디자인 템플릿을 자유롭게 바꿔보세요.'}</p></div><div><p className="text-lg font-bold">{pricing?`얼리버드 월 ${money(pricing.earlyBirdMonthly)} · 정상가 ${money(pricing.regularMonthly)}`:'준비 중'}</p>{pricing?<p className="site-brand-note mt-2 inline-flex items-center gap-1.5 text-xs font-medium"><Check className="h-4 w-4" aria-hidden="true" />메뉴판 1개당 월 구독 · {kind==='standard'?'기본 디자인끼리 교체 가능':'기본·디자인 템플릿 교체 가능'}</p>:null}</div></section>
-      <div ref={galleryStartRef} className="site-catalog-layout scroll-mt-24">
-        <aside className="site-catalog-filters" aria-label="템플릿 카테고리"><h2 className="type-item-title mb-4">카테고리</h2>
-          {product==='display'?<p className="type-body-sm text-zinc-600">디스플레이 · 준비 중</p>:<div className="site-catalog-accordion">{(['standard','designer'] as const).map(group=><div key={group} className="site-catalog-category-group"><button type="button" className="site-catalog-category-heading" aria-expanded={open===group} aria-controls={`${tabsId}-${group}-categories`} aria-current={kind===group?'true':undefined} onClick={()=>selectKind(group)}><span>{group==='standard'?'기본 디자인':'디자인 템플릿'}</span><ChevronDown size={16} aria-hidden="true" /></button><div id={`${tabsId}-${group}-categories`} hidden={open!==group} className="site-category-list" role="group" aria-label={group==='standard'?'기본 디자인 유형 선택':'디자인 템플릿 업종 선택'}>
-            {(group==='standard'?[{key:'all',label:'전체'},{key:'list',label:'리스트형'},{key:'album',label:'앨범형'}]:INDUSTRY_GROUPS).map(item=><button key={item.key} type="button" aria-pressed={kind===group&&filter===item.key} onClick={()=>selectFilter(item.key)}>{item.label}</button>)}
-          </div></div>)}</div>}
-        </aside>
-        <div className="site-catalog-results"><p className="site-catalog-count">{product==='display'?'디스플레이':`${kindLabel} · ${filterLabel}`} <span>{visibleTemplates.length}</span></p><p role="status" className="type-body-sm mb-3 text-red-700">{message}</p>
-          {paginatedTemplates.length?<div className="site-template-grid">{paginatedTemplates.map(design=><CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={busy} onToggle={toggle} />)}</div>:<section className="site-card site-card-empty flex min-h-72 flex-col items-center justify-center px-6 text-center"><h2 className="type-content-title">{filterLabel} 템플릿 준비 중</h2><p className="mt-3 break-keep text-sm text-zinc-600">매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다.</p></section>}
-          <TemplatePagination currentPage={currentPage} totalPages={totalPages} onSelect={next=>{setPage(next);requestAnimationFrame(()=>galleryStartRef.current?.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'}));}} />
+    <div className="site-catalog-services">
+      <div className="site-tabs" role="tablist" aria-label="서비스 및 페이지 유형 선택"
+        onKeyDown={event => navigateTabs(event, PRODUCT_TABS.findIndex(item => item.key === product), PRODUCT_TABS.length, index => selectProduct(PRODUCT_TABS[index].key))}>
+        {PRODUCT_TABS.map(({ key, label }) => (
+          <button key={key} role="tab" type="button" className="site-tab"
+            id={`${tabsId}-${key}`} aria-controls={`${tabsId}-service-panel`}
+            aria-selected={product === key} tabIndex={product === key ? 0 : -1}
+            onClick={() => selectProduct(key)}>{label}</button>
+        ))}
+      </div>
+    </div>
+    <div role="tabpanel" id={`${tabsId}-service-panel`} aria-labelledby={`${tabsId}-${product}`}>
+      <div ref={galleryStartRef} className="site-catalog-selection scroll-mt-24">
+        {product !== "display" && (
+          <div className="site-topic-tabs" role="tablist" aria-label="템플릿 종류 선택"
+            onKeyDown={event => navigateTabs(event, KIND_TABS.findIndex(item => item.key === kind), KIND_TABS.length, index => selectKind(KIND_TABS[index].key))}>
+            {KIND_TABS.map(({ key, label }) => (
+              <button key={key} role="tab" type="button" className="site-topic-tab"
+                id={`${tabsId}-${key}`} aria-controls={`${tabsId}-kind-panel`}
+                aria-selected={kind === key} tabIndex={kind === key ? 0 : -1}
+                onClick={() => selectKind(key)}>{label}</button>
+            ))}
+          </div>
+        )}
+        <div role={product !== "display" ? "tabpanel" : undefined}
+          id={`${tabsId}-kind-panel`} aria-labelledby={product !== "display" ? `${tabsId}-${kind}` : undefined}>
+          <section className="site-catalog-plan" aria-label="템플릿 이용 안내">
+            <p className="type-body site-catalog-kind-description">
+              {product === "display" ? "매장 모니터에 어울리는 디자인을 미리 확인하세요. 신규 신청은 준비 중입니다." : selectedKind.description}
+            </p>
+            <div className="site-catalog-price" aria-live="polite" aria-atomic="true">
+              <p className="type-caption text-zinc-600">{productTitle}</p>
+              <p className="type-content-title mt-1">
+                {pricing ? <>얼리버드 월 {money(pricing.earlyBirdMonthly)} <span className="site-catalog-regular-price">· 정상가 {money(pricing.regularMonthly)}</span></> : "신청 준비 중"}
+              </p>
+              {pricing && <p className="type-caption site-catalog-access mt-2"><Check size={16} aria-hidden="true" />
+                메뉴판 1개당 월 구독 · {kind === "standard" ? "기본 디자인끼리 교체 가능" : "기본·디자인 템플릿 교체 가능"}
+              </p>}
+            </div>
+          </section>
+          <div className="site-catalog-layout" data-with-filters={product !== "display"}>
+            {product !== "display" && (
+              <aside className="site-catalog-filters" aria-label={`템플릿 ${filterHeading} 필터`}>
+                <div className="site-category-desktop">
+                  <h2 className="type-item-title mb-3">{filterHeading}</h2>
+                  <div className="site-category-list" role="group" aria-label={`${filterHeading} 선택`}>{filterButtons(false)}</div>
+                </div>
+                <div className="site-category-tablet">
+                  <label className="type-label" htmlFor={`${tabsId}-filter`}>{filterHeading}</label>
+                  <select className="site-category-select" id={`${tabsId}-filter`} value={filter} onChange={event => selectFilter(event.target.value)}>
+                    {filters.map(item => <option key={item.key} value={item.key}>{item.label}</option>)}
+                  </select>
+                </div>
+                <div className="site-category-mobile">
+                  <h2 className="type-item-title mb-3">{filterHeading}</h2>
+                  <div className="site-category-circles" role="group" aria-label={`모바일 ${filterHeading} 선택`}>{filterButtons(true)}</div>
+                </div>
+              </aside>
+            )}
+            <div className="site-catalog-results">
+              <p className="site-catalog-count" aria-live="polite" aria-atomic="true">
+                {product === "display" ? "디스플레이" : `${selectedKind.label} · ${filterLabel}`} <span>{visibleTemplates.length}개</span>
+              </p>
+              {message && <p role="status" className="type-body-sm mb-3 text-red-700">{message}</p>}
+              {paginatedTemplates.length ? (
+                <div className="site-template-grid">{paginatedTemplates.map(design => <CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={busy} onToggle={toggle} />)}</div>
+              ) : (
+                <section className="site-card site-card-empty flex min-h-72 flex-col items-center justify-center px-6 text-center">
+                  <h2 className="type-content-title">{filterLabel} 템플릿 준비 중</h2>
+                  <p className="mt-3 break-keep text-sm text-zinc-600">매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다.</p>
+                </section>
+              )}
+              <TemplatePagination currentPage={currentPage} totalPages={totalPages} onSelect={next => {
+                setPage(next);
+                requestAnimationFrame(() => galleryStartRef.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }));
+              }} />
+            </div>
+          </div>
         </div>
       </div>
     </div>
