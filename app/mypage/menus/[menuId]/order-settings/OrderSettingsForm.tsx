@@ -80,7 +80,7 @@ export default function OrderSettingsForm({
         테스트 매장부터 사용할 수 있습니다.
       </p>
       <button
-        className="site-button site-button-primary mt-8"
+        className="site-button site-button-rounded site-button-primary mt-8"
         disabled={pending}
       >
         {pending ? "저장 중…" : "설정 저장"}

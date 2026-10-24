@@ -25,13 +25,13 @@ export default function MyPageError({
           <button
             type="button"
             onClick={() => unstable_retry()}
-            className="site-button site-button-primary inline-flex items-center justify-center text-sm"
+            className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center text-sm"
           >
             다시 시도
           </button>
           <Link
             href="/"
-            className="site-button site-button-outline inline-flex items-center justify-center text-sm"
+            className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-sm"
           >
             홈으로 이동
           </Link>

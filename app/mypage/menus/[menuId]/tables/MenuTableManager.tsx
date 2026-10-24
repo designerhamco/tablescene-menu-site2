@@ -84,13 +84,13 @@ export default function MenuTableManager({
               required
               maxLength={80}
               placeholder="예: 1번 테이블"
-              className="mt-2 w-full rounded-2xl border border-zinc-200 px-4 py-3 text-sm font-bold outline-none transition focus:border-zinc-500"
+              className="site-field mt-2 w-full border-zinc-200 px-4 py-3 transition"
             />
           </label>
           <button
             type="submit"
             disabled={createPending}
-            className="site-button site-button-primary text-sm disabled:cursor-wait disabled:opacity-60"
+            className="site-button site-button-rounded site-button-primary text-sm disabled:cursor-wait disabled:opacity-60"
           >
             {createPending ? "생성 중" : "테이블 만들기"}
           </button>
@@ -131,23 +131,23 @@ export default function MenuTableManager({
               publicBaseUrl={publicBaseUrl}
             />
 
-            <a className="site-button site-button-secondary mt-4" href={table.qrPath+"?mode=terminal"} target="_blank" rel="noopener noreferrer">매장 PC·태블릿에서 열기</a>
+            <a className="site-button site-button-rounded site-button-secondary mt-4" href={table.qrPath+"?mode=terminal"} target="_blank" rel="noopener noreferrer">매장 PC·태블릿에서 열기</a>
             <p className="mt-2 text-sm text-zinc-500">손님용 QR은 모바일 화면으로 열리고, 이 주소는 기기 크기에 맞춰 후불 주문만 사용합니다.</p>
             <form action={mutationAction} className="mt-5 grid gap-3 border-t border-zinc-100 pt-5 sm:grid-cols-[minmax(0,1fr)_160px_auto] sm:items-end">
               <input type="hidden" name="menuSiteId" value={menuSiteId} />
               <input type="hidden" name="tableId" value={table.id} />
               <label className="text-sm font-bold text-zinc-800">
                 이름
-                <input name="label" required maxLength={80} defaultValue={table.label} className="mt-2 w-full rounded-2xl border border-zinc-200 px-4 py-3 text-sm font-bold" />
+                <input name="label" required maxLength={80} defaultValue={table.label} className="site-field mt-2 w-full border-zinc-200 px-4 py-3" />
               </label>
               <label className="text-sm font-bold text-zinc-800">
                 상태
-                <select name="status" defaultValue={table.status} className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold">
+                <select name="status" defaultValue={table.status} className="site-field mt-2 w-full border-zinc-200 px-4 py-3">
                   <option value="active">사용 중</option>
                   <option value="disabled">비활성</option>
                 </select>
               </label>
-              <button name="intent" value="update" disabled={mutationPending} className="site-button site-button-outline text-sm disabled:opacity-60">
+              <button name="intent" value="update" disabled={mutationPending} className="site-button site-button-rounded site-button-outline text-sm disabled:opacity-60">
                 저장
               </button>
             </form>
@@ -156,14 +156,14 @@ export default function MenuTableManager({
               <form action={mutationAction}>
                 <input type="hidden" name="menuSiteId" value={menuSiteId} />
                 <input type="hidden" name="tableId" value={table.id} />
-                <button name="intent" value="rotate-token" disabled={mutationPending} title="기존에 인쇄한 QR과 방문 세션이 즉시 무효화됩니다." className="site-button site-button-outline text-xs disabled:opacity-60">
+                <button name="intent" value="rotate-token" disabled={mutationPending} title="기존에 인쇄한 QR과 방문 세션이 즉시 무효화됩니다." className="site-button site-button-rounded site-button-outline text-xs disabled:opacity-60">
                   QR 교체
                 </button>
               </form>
               <form action={mutationAction}>
                 <input type="hidden" name="menuSiteId" value={menuSiteId} />
                 <input type="hidden" name="tableId" value={table.id} />
-                <button name="intent" value="archive" disabled={mutationPending} className="site-button site-button-outline text-xs disabled:opacity-60">
+                <button name="intent" value="archive" disabled={mutationPending} className="site-button site-button-rounded site-button-outline text-xs disabled:opacity-60">
                   테이블 보관
                 </button>
               </form>

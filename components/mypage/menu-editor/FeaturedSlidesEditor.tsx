@@ -156,7 +156,7 @@ export default function FeaturedSlidesEditor({
                       type="button"
                       onClick={() => moveSlide(index, -1)}
                       disabled={index === 0}
-                      className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
+                      className="site-button site-button-rounded site-button-outline text-xs disabled:cursor-not-allowed"
                     >
                       위로
                     </button>
@@ -164,14 +164,14 @@ export default function FeaturedSlidesEditor({
                       type="button"
                       onClick={() => moveSlide(index, 1)}
                       disabled={index === slides.length - 1}
-                      className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
+                      className="site-button site-button-rounded site-button-outline text-xs disabled:cursor-not-allowed"
                     >
                       아래로
                     </button>
                     <button
                       type="button"
                       onClick={() => setSlides((current) => normalizeSlides(current.filter((item) => item.id !== slide.id)))}
-                      className="site-button site-button-outline-danger text-xs"
+                      className="site-button site-button-rounded site-button-outline-danger text-xs"
                     >
                       삭제
                     </button>
@@ -218,7 +218,7 @@ export default function FeaturedSlidesEditor({
               )
             }
             disabled={slides.length >= effectiveMaxSlides}
-            className="site-button site-button-primary text-xs disabled:cursor-not-allowed"
+            className="site-button site-button-rounded site-button-primary text-xs disabled:cursor-not-allowed"
           >
             대표 이미지 추가
           </button>
@@ -284,7 +284,7 @@ export default function FeaturedSlidesEditor({
                 id={`featured-slide-item-${slide.id}`}
                 value={slide.featuredItemId ?? ""}
                 onChange={(event) => updateSlide(slide.id, (current) => ({ ...current, featuredItemId: event.target.value || null }))}
-                className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
+                className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-900 transition"
               >
                 <option value="">상품 정보 없이 이미지로만 표시</option>
                 {selectedItemIsInvalid && slide.featuredItemId && (

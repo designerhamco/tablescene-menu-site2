@@ -52,7 +52,7 @@ export default function TemplateCatalogPicker() {
                 setSelectedCategoryGroup(category.key);
                 setSelectedTemplateKey(nextTemplate?.key ?? "");
               }}
-              className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
+              className={`site-choice site-tab shrink-0 border px-4 py-2 ${
                 isSelected
                   ? "border-zinc-950 bg-zinc-950 text-white"
                   : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-950"

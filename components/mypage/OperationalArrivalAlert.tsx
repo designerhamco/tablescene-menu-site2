@@ -207,7 +207,7 @@ export default function OperationalArrivalAlert({
       <section className="site-section flex flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div>
           <p className="text-sm font-bold text-zinc-900">새 {copy.noun} 알림·소리</p>
-          <p className="mt-1 max-w-2xl break-keep text-xs font-bold leading-relaxed text-zinc-500">
+          <p className="mt-1 max-w-2xl break-keep text-xs font-normal leading-relaxed text-zinc-500">
             새 {copy.noun}은 보고 있는 화면에 항상 표시합니다. 알림·소리를 켜면 이 화면을 열어둔 동안 브라우저 알림과 안내음을 함께 받을 수 있습니다.
           </p>
           {browserPermission === "denied" ? (
@@ -222,7 +222,7 @@ export default function OperationalArrivalAlert({
           onClick={toggleBrowserNotifications}
           disabled={permissionPending}
           aria-pressed={browserNotificationsEnabled}
-          className="rounded-full border border-zinc-200 bg-zinc-950 px-4 py-2 text-xs font-bold text-white hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+          className="site-button site-button-primary site-button-rounded"
         >
           {permissionPending ? "권한 확인 중" : browserNotificationsEnabled ? "알림·소리 끄기" : "알림·소리 켜기"}
         </button>
@@ -234,7 +234,7 @@ export default function OperationalArrivalAlert({
           <button
             type="button"
             onClick={() => setNewCount(0)}
-            className="site-button site-button-outline text-xs text-violet-800"
+            className="site-button site-button-rounded site-button-outline text-xs text-violet-800"
           >
             확인
           </button>

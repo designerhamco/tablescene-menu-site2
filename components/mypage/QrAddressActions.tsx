@@ -51,7 +51,7 @@ export default function QrAddressActions({
           id={`qr-address-${copyKey}`}
           readOnly
           value={publicUrl}
-          className="min-w-0 flex-1 rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 font-mono text-xs font-bold text-zinc-700 outline-none sm:text-sm"
+          className="site-field min-w-0 flex-1 border-zinc-200 px-4 py-3 font-mono text-zinc-700 sm:text-sm"
         />
         <div className="flex shrink-0 gap-2">
           <button
@@ -59,7 +59,7 @@ export default function QrAddressActions({
             onClick={copyUrl}
             disabled={disabled}
             title={disabled ? disabledReason ?? undefined : undefined}
-            className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
+            className="site-button site-button-rounded site-button-outline text-xs disabled:cursor-not-allowed"
           >
             {copyStatus === "copied" ? "복사 완료" : copyStatus === "error" ? "다시 복사" : "주소 복사"}
           </button>

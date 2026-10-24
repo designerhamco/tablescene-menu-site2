@@ -78,7 +78,7 @@ export default function PickupQueueDashboard({
             max={9999}
             required
             placeholder="대기번호 입력"
-            className="min-w-0 flex-1 rounded-2xl border border-zinc-200 px-4 py-3 text-base font-bold outline-none transition-colors focus:border-zinc-950"
+            className="site-field min-w-0 flex-1 border-zinc-200 px-4 py-3 transition-colors"
           />
           <button
             type="submit"

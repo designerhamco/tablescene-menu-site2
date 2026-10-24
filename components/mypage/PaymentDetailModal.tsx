@@ -46,7 +46,7 @@ export default function PaymentDetailModal({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="site-button site-button-outline inline-flex items-center justify-center text-xs"
+        className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-xs"
       >
         결제 상세
       </button>
@@ -68,7 +68,7 @@ export default function PaymentDetailModal({
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="site-button site-button-outline text-xs"
+                className="site-button site-button-rounded site-button-outline text-xs"
               >
                 닫기
               </button>
@@ -107,7 +107,7 @@ export default function PaymentDetailModal({
                   href={receiptUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="site-button site-button-outline inline-flex items-center justify-center text-xs"
+                  className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-xs"
                 >
                   영수증 보기
                 </a>

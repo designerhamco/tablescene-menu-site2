@@ -143,7 +143,7 @@ export default function MenuWidgetImageField({
                 type="button"
                 onClick={() => void removeImage()}
                 disabled={isUploading || isRemoving}
-                className="site-button site-button-outline text-xs disabled:cursor-not-allowed"
+                className="site-button site-button-rounded site-button-outline text-xs disabled:cursor-not-allowed"
               >
                 이미지 제거
               </button>

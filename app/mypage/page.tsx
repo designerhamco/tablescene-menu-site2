@@ -55,6 +55,9 @@ import type { Json } from "@/lib/supabase/types";
 import { hasMenuSitePermission, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
 import { isYearlyRefundConfirmQaEnabled } from "@/lib/yearly-refund-confirm-qa";
 import { isRestoreSubscriptionQaEnabled } from "@/lib/restore-subscription-qa";
+import { NavigationTabs } from "@/app/components/ui/navigation-tabs";
+import { EmptyState } from "@/app/components/ui/empty-state";
+import { PanelsTopLeft, Coins } from "lucide-react";
 import { Badge } from "@/app/components/ui/badge";
 
 type SearchParams = Promise<{
@@ -398,14 +401,6 @@ function getBillingTab(value: string | string[] | undefined): BillingTab {
 
   return "history";
 }
-
-function getBillingTabClassName(isActive: boolean) {
-  return isActive
-    ? "inline-flex flex-1 items-center justify-center rounded-full bg-zinc-950 px-4 py-2.5 text-sm font-bold text-white sm:flex-none"
-    : "inline-flex flex-1 items-center justify-center rounded-full bg-zinc-100 px-4 py-2.5 text-sm font-bold text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-900 sm:flex-none";
-}
-
-const disabledMenuTabClassName = "inline-flex flex-1 cursor-not-allowed items-center justify-center rounded-full bg-zinc-100 px-4 py-2.5 text-sm font-bold text-zinc-300 sm:flex-none";
 
 function getPrimaryProvider(appMetadata: unknown, identityProviders: string[]) {
   const metadata = getRecord(appMetadata);
@@ -2445,9 +2440,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const canShowOwnerCommerce = !isStaffOnlyAccount;
   const activeNavigationKey: MypageNavigationKey = activeTab;
   function renderMenuCard(card: (typeof menuCardViewModels)[number]) {
-    const primaryActionClassName = "site-button site-button-primary site-button-sm";
-    const secondaryActionClassName = "site-button site-button-outline site-button-sm";
-    const disabledActionClassName = "site-button site-button-outline site-button-sm";
+    const primaryActionClassName = "site-button site-button-primary site-button-rounded";
+    const secondaryActionClassName = "site-button site-button-outline site-button-rounded";
+    const disabledActionClassName = "site-button site-button-outline site-button-rounded";
 
     function renderActionButton({
       label,
@@ -2510,7 +2505,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           </div>
         </div>
 
-        <p className="mt-4 break-keep text-sm font-bold leading-relaxed text-zinc-700">{card.primaryMessage}</p>
+        <p className="mt-4 break-keep text-sm font-normal leading-relaxed text-zinc-700">{card.primaryMessage}</p>
 
         <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
           <div>
@@ -2530,7 +2525,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             복구 가능 기간이 종료되어 메뉴판 작업 버튼은 제공되지 않습니다.
           </p>
         ) : (
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="site-menu-card-actions mt-5">
             {renderActionButton({
               label: "편집하기",
               href: card.siteId ? `/mypage/menus/${card.siteId}/edit` : null,
@@ -2558,6 +2553,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               path={card.publicPath}
               disabled={!card.actions.canManageQr}
               disabledReason={card.actions.qrDisabledReason}
+              className={secondaryActionClassName}
             />
           </div>
         )}
@@ -2566,9 +2562,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   }
 
   function renderStaffMenuCard(card: (typeof staffMenuCardViewModels)[number]) {
-    const enabledPrimaryActionClassName = "site-button site-button-primary site-button-sm";
-    const enabledSecondaryActionClassName = "site-button site-button-outline site-button-sm";
-    const disabledActionClassName = "site-button site-button-outline site-button-sm";
+    const enabledPrimaryActionClassName = "site-button site-button-primary site-button-rounded";
+    const enabledSecondaryActionClassName = "site-button site-button-outline site-button-rounded";
+    const disabledActionClassName = "site-button site-button-outline site-button-rounded";
 
     return (
       <article key={card.key} className="site-card p-5">
@@ -2587,7 +2583,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           </div>
         </div>
 
-        <p className="mt-4 break-keep text-sm font-bold leading-relaxed text-zinc-700">
+        <p className="mt-4 break-keep text-sm font-normal leading-relaxed text-zinc-700">
           직원 권한으로 참여한 메뉴판입니다. 사용할 수 없는 기능은 숨기지 않고 비활성 상태로 안내합니다.
         </p>
 
@@ -2606,7 +2602,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           </div>
         </dl>
 
-        <div className="mt-5 flex flex-wrap gap-2">
+        <div className="site-menu-card-actions mt-5">
           {card.canEdit ? (
             <Link
               href={`/mypage/menus/${card.siteId}/edit`}
@@ -2629,7 +2625,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             href={`/mypage/menus/${card.siteId}/preview`}
             target="_blank"
             rel="noopener noreferrer"
-              className="site-button site-button-outline site-button-sm"
+              className="site-button site-button-outline site-button-rounded"
           >
             미리보기
           </Link>
@@ -2663,7 +2659,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           />
         </div>
         {!card.canViewPublic ? (
-          <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 text-xs font-bold leading-relaxed text-zinc-500">
+          <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 text-xs font-normal leading-relaxed text-zinc-500">
             현재 공개되지 않은 메뉴판입니다. 직원 미리보기에서는 공개 전 화면을 확인할 수 있습니다.
           </p>
         ) : null}
@@ -2692,7 +2688,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         message={mypageNotice}
         tone={messageCode === "staff-invitation-accepted" ? "success" : "warning"}
       />
-      <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
+      <main className="site-account-page site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <header className="mb-5 flex flex-col justify-between gap-5 border-b border-zinc-200 pb-6 md:mb-6 md:flex-row md:items-end md:pb-8">
             <div>
@@ -2726,7 +2722,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <section id="my-menus" className="scroll-mt-28">
               <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
-                  <h2 className="type-subsection-title">메뉴판 관리</h2>
+                  <h2 className="type-section-title">메뉴판 관리</h2>
                   <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
                     {isStaffOnlyAccount
                       ? "배정받은 메뉴판과 현재 역할에서 사용할 수 있는 기능을 확인합니다."
@@ -2736,32 +2732,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
               </div>
 
-              <nav className="site-card site-card-compact mb-5 flex gap-2 overflow-x-auto p-1.5 site-account-tabs" aria-label="내 메뉴판 탭">
-                <Link href="/mypage?tab=menus&menuTab=active" className={getBillingTabClassName(activeMenuTab === "active")}>
-                  이용 중
-                  <span className="ml-2 rounded-full bg-white/20 px-2 py-0.5 text-xs">{activeMenuCardCount.toLocaleString("ko-KR")}</span>
-                </Link>
-                {canShowOwnerCommerce ? (
-                  <Link href="/mypage?tab=menus&menuTab=holding" className={getBillingTabClassName(activeMenuTab === "holding")}>
-                    보관 중
-                    <span className="ml-2 rounded-full px-2 py-0.5 text-xs">{holdingMenuCards.length.toLocaleString("ko-KR")}</span>
-                  </Link>
-                ) : (
-                  <span aria-disabled="true" aria-label="보관 중 권한 없음: 보관 중인 메뉴판은 사장만 관리할 수 있습니다." title="보관 중인 메뉴판은 사장만 관리할 수 있습니다." className={disabledMenuTabClassName}>
-                    보관 중 <span className="type-caption ml-2">권한 없음</span>
-                  </span>
-                )}
-                {canShowOwnerCommerce ? (
-                  <Link href="/mypage?tab=menus&menuTab=deleted" className={getBillingTabClassName(activeMenuTab === "deleted")}>
-                    종료됨
-                    <span className="ml-2 rounded-full px-2 py-0.5 text-xs">{deletedMenuCards.length.toLocaleString("ko-KR")}</span>
-                  </Link>
-                ) : (
-                  <span aria-disabled="true" aria-label="종료됨 권한 없음: 종료된 메뉴판은 사장만 관리할 수 있습니다." title="종료된 메뉴판은 사장만 관리할 수 있습니다." className={disabledMenuTabClassName}>
-                    종료됨 <span className="type-caption ml-2">권한 없음</span>
-                  </span>
-                )}
-              </nav>
+              <NavigationTabs label="내 메뉴판 탭" className="mb-6" items={[
+                { label: "이용 중", href: "/mypage?tab=menus&menuTab=active", active: activeMenuTab === "active", count: activeMenuCardCount },
+                { label: "보관 중", href: "/mypage?tab=menus&menuTab=holding", active: activeMenuTab === "holding", count: holdingMenuCards.length, disabledReason: canShowOwnerCommerce ? undefined : "보관 중인 메뉴판은 사장만 관리할 수 있습니다." },
+                { label: "종료됨", href: "/mypage?tab=menus&menuTab=deleted", active: activeMenuTab === "deleted", count: deletedMenuCards.length, disabledReason: canShowOwnerCommerce ? undefined : "종료된 메뉴판은 사장만 관리할 수 있습니다." },
+              ]} />
 
           {mypageNotice ? (
             <div className="site-notice site-notice-success mb-5 p-5">
@@ -2794,7 +2769,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <h3 className="type-content-title">
                     {activeMenuTab === "active" ? "이용 중인 메뉴판" : activeMenuTab === "holding" ? "보관 중인 메뉴판" : "종료된 메뉴판"}
                   </h3>
-                  <p className="mt-1 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                  <p className="mt-1 break-keep text-sm font-normal leading-relaxed text-zinc-500">
                     {activeMenuTab === "active"
                       ? "현재 편집과 공개가 가능한 메뉴판입니다."
                       : activeMenuTab === "holding"
@@ -2813,27 +2788,19 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   {activeMenuTab === "active" ? staffMenuCardViewModels.map(renderStaffMenuCard) : null}
                 </div>
               ) : (
-                <div className="site-card site-card-empty p-7 sm:p-10">
-                  <h3 className="type-subsection-title">
-                    {activeMenuTab === "active" ? "현재 이용 중인 메뉴판이 없습니다" : activeMenuTab === "holding" ? "보관 중인 메뉴판이 없습니다" : "종료된 메뉴판이 없습니다"}
-                  </h3>
-                  <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
+                <EmptyState headingLevel={3} icon={<PanelsTopLeft />} title={activeMenuTab === "active" ? "현재 이용 중인 메뉴판이 없습니다" : activeMenuTab === "holding" ? "보관 중인 메뉴판이 없습니다" : "종료된 메뉴판이 없습니다"} description={<>
                     {activeMenuTab === "active"
                       ? "새 메뉴판을 추가 구매하거나 기존 메뉴판을 복구해 이용할 수 있습니다."
                       : activeMenuTab === "holding"
                         ? "복구 가능한 보관 기간 안의 메뉴판이 생기면 이곳에 표시됩니다."
                         : "복구 가능 기간이 지난 메뉴판이 생기면 이곳에 표시됩니다."}
-                  </p>
-                </div>
+                  </>} />
               )}
             </section>
           ) : (
-            <div className="site-card site-card-empty p-7 sm:p-10">
-              <h3 className="type-subsection-title">아직 만든 메뉴판이 없습니다</h3>
-              <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">
+            <EmptyState headingLevel={3} icon={<PanelsTopLeft />} title="아직 만든 메뉴판이 없습니다" description={<>
                 상품을 선택하고 신청을 완료하면 이곳에서 메뉴판을 편집하고 관리할 수 있습니다.
-              </p>
-            </div>
+              </>} />
           )}
             </section>
             ) : null}
@@ -2842,21 +2809,17 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               <section id="payment-history" className="scroll-mt-28">
                 <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                   <div>
-                    <h2 className="type-subsection-title">구독/결제 내역</h2>
+                    <h2 className="type-section-title">구독/결제 내역</h2>
                     <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
                       결제 기록과 AI 크레딧 충전·사용 내역을 확인할 수 있습니다. 구독 해지, 환불 요청, 재구독 복구는 구독/결제 내역에서 관리하고, 메뉴판 운영은 내 메뉴판 탭에서 확인해주세요.
                     </p>
                   </div>
                 </div>
 
-                <nav className="site-card site-card-compact mb-5 flex gap-2 overflow-x-auto p-1.5 site-account-tabs" aria-label="구독/결제 내역 탭">
-                  <Link href="/mypage?tab=payments&billingTab=history" className={getBillingTabClassName(activeBillingTab === "history")}>
-                    결제내역
-                  </Link>
-                  <Link href="/mypage?tab=payments&billingTab=ai-credits" className={getBillingTabClassName(activeBillingTab === "ai-credits")}>
-                    AI 충전/사용내역
-                  </Link>
-                </nav>
+                <NavigationTabs label="구독/결제 내역 탭" className="mb-6" items={[
+                  { label: "결제내역", href: "/mypage?tab=payments&billingTab=history", active: activeBillingTab === "history" },
+                  { label: "AI 충전/사용내역", href: "/mypage?tab=payments&billingTab=ai-credits", active: activeBillingTab === "ai-credits" },
+                ]} />
 
                 {paymentsErrors.length > 0 ? (
                   <div className="site-notice site-notice-warning mb-5 p-5">
@@ -2961,12 +2924,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                   </div>
                                 </dl>
                                 {isPersonalTrial ? (
-                                  <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-amber-700">
+                                  <p className="mt-3 break-keep text-xs font-normal leading-relaxed text-amber-700">
                                     체험 종료 전 월 구독으로 전환하면 현재 메뉴판을 이어서 사용할 수 있습니다.
                                   </p>
                                 ) : null}
                                 {isBusinessFreeTrial ? (
-                                  <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-emerald-700">
+                                  <p className="mt-3 break-keep text-xs font-normal leading-relaxed text-emerald-700">
                                     결제수단이 등록되어 있습니다. 체험 종료 전 해지하면 첫 결제 없이 종료일까지 이용할 수 있습니다.
                                   </p>
                                 ) : null}
@@ -3013,7 +2976,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                   />
                                 ) : null}
                                 {menuSite?.id ? (
-                                  <Link href={`/mypage/menus/${menuSite.id}/edit`} className="site-button site-button-outline inline-flex items-center justify-center text-xs">
+                                  <Link href={`/mypage/menus/${menuSite.id}/edit`} className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-xs">
                                     연결 메뉴판 보기
                                   </Link>
                                 ) : null}
@@ -3024,10 +2987,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       })}
                     </div>
                   ) : (
-                    <article className="site-card site-card-empty p-7 sm:p-8">
-                      <h4 className="type-content-title">현재 이용 중인 서비스가 없습니다</h4>
-                      <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">메뉴판을 만들면 이곳에 표시됩니다.</p>
-                    </article>
+                    <EmptyState headingLevel={4} icon={<PanelsTopLeft />} title="현재 이용 중인 서비스가 없습니다" description={<>메뉴판을 만들면 이곳에 표시됩니다.</>} />
                   )}
                 </section>
                   </>
@@ -3041,7 +3001,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       <h3 className="type-subsection-title">
                         {activeBillingTab === "holding" ? "보관 중인 메뉴판" : "종료된 메뉴판"}
                       </h3>
-                      <p className="mt-2 max-w-2xl break-keep text-sm font-bold leading-relaxed text-amber-700">
+                      <p className="mt-2 max-w-2xl break-keep text-sm font-normal leading-relaxed text-amber-700">
                         {activeBillingTab === "holding"
                           ? "이용이 종료되었지만 보관 기간 안에 있는 메뉴판입니다. 보관 만료 D-Day까지 복구할 수 있습니다."
                           : "보관 기간이 끝났거나 복구 가능한 보관 기준을 확인할 수 없는 메뉴판입니다."}
@@ -3162,7 +3122,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                               </div>
                               <div className="flex shrink-0 flex-wrap gap-2 lg:flex-col">
                                 {!isDeletedTab && archivedDisplayState?.cta ? (
-                                  <Link href={archivedDisplayState.cta.href} className="site-button site-button-outline inline-flex items-center justify-center text-xs">
+                                  <Link href={archivedDisplayState.cta.href} className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-xs">
                                     {archivedDisplayState.cta.label}
                                   </Link>
                                 ) : null}
@@ -3180,7 +3140,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                   />
                                 ) : null}
                                 {!isDeletedTab && menuSite?.id ? (
-                                  <Link href={`/mypage/menus/${menuSite.id}/preview`} className="site-button site-button-outline inline-flex items-center justify-center text-xs">
+                                  <Link href={`/mypage/menus/${menuSite.id}/preview`} className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-xs">
                                     연결 메뉴판 보기
                                   </Link>
                                 ) : null}
@@ -3191,16 +3151,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       })}
                     </div>
                   ) : (
-                    <article className="site-card site-card-empty p-7 sm:p-8">
-                      <h4 className="type-content-title">
-                        {activeBillingTab === "holding" ? "보관 중인 메뉴판이 없습니다" : "종료된 메뉴판이 없습니다"}
-                      </h4>
-                      <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                    <EmptyState headingLevel={4} icon={<PanelsTopLeft />} title={activeBillingTab === "holding" ? "보관 중인 메뉴판이 없습니다" : "종료된 메뉴판이 없습니다"} description={<>
                         {activeBillingTab === "holding"
                           ? "복구 가능한 보관 기간 안의 서비스가 생기면 이곳에 표시됩니다."
                           : "복구 가능 기간이 지난 서비스가 생기면 이곳에 표시됩니다."}
-                      </p>
-                    </article>
+                      </>} />
                   )}
                 </section>
                   </>
@@ -3222,7 +3177,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 ) : (
                   <article className="site-card site-card-compact p-4">
                     <h3 className="type-item-title text-zinc-950">보유 AI 크레딧 0개</h3>
-                    <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                    <p className="mt-2 break-keep text-sm font-normal leading-relaxed text-zinc-500">
                       충전한 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.
                     </p>
                   </article>
@@ -3231,7 +3186,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
                     <div>
                       <h3 className="type-subsection-title">AI 크레딧 충전/사용 내역</h3>
-                      <p className="mt-2 max-w-2xl break-keep text-xs font-bold leading-relaxed text-amber-700">
+                      <p className="mt-2 max-w-2xl break-keep text-xs font-normal leading-relaxed text-amber-700">
                         AI 크레딧은 계정 공용으로 충전되며, 지급 후 단순 변심에 따른 취소/환불이 제한됩니다. 중복 결제 또는 미지급 건은 고객지원으로 문의해주세요.
                       </p>
                     </div>
@@ -3303,10 +3258,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       })}
                     </div>
                   ) : (
-                    <article className="site-card site-card-empty p-7 sm:p-8">
-                      <h4 className="type-content-title">아직 AI 크레딧 내역이 없습니다</h4>
-                      <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">AI 크레딧을 지급받거나 충전·사용하면 이곳에 기록됩니다.</p>
-                    </article>
+                    <EmptyState headingLevel={4} icon={<Coins />} title="아직 AI 크레딧 내역이 없습니다" description={<>AI 크레딧을 지급받거나 충전·사용하면 이곳에 기록됩니다.</>} />
                   )}
                 </section>
                   </>
@@ -3348,14 +3300,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             <section id="account-info" className="scroll-mt-28">
               <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
-                  <h2 className="type-subsection-title">로그인 및 가입 정보</h2>
+                  <h2 className="type-section-title">로그인 및 가입 정보</h2>
                   <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
                     현재 계정의 로그인 방식과 연결된 인증 정보를 확인합니다.
                   </p>
                 </div>
                 <Link
                   href="/forgot-password"
-                  className="site-button site-button-outline inline-flex items-center justify-center text-sm"
+                  className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-sm"
                 >
                   비밀번호 재설정
                 </Link>
@@ -3406,13 +3358,13 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       <h3 className="type-content-title text-zinc-950">
                         {businessProfile?.business_name || "아직 인증된 사업자 정보가 없습니다."}
                       </h3>
-                      <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+                      <p className="mt-2 break-keep text-xs font-normal leading-relaxed text-zinc-500">
                         사업자 인증 정보는 결제 및 서비스 이용 기준 정보로 사용됩니다. 변경이 필요한 경우 고객지원으로 문의해주세요.
                       </p>
                     </div>
                     <Link
                       href="/mypage?tab=inquiries"
-                      className="site-button site-button-outline inline-flex items-center justify-center text-xs"
+                      className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-xs"
                     >
                       고객지원 문의
                     </Link>
@@ -3448,13 +3400,13 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       </div>
                     </dl>
                   ) : (
-                    <p className="mt-5 break-keep rounded-2xl bg-white p-4 text-sm font-bold leading-relaxed text-zinc-500">
+                    <p className="mt-5 break-keep rounded-2xl bg-white p-4 text-sm font-normal leading-relaxed text-zinc-500">
                       사업자 월결제/연결제를 이용하려면 /apply/basic에서 사업자 인증을 먼저 진행해주세요.
                     </p>
                   )}
 
                   {businessProfilesError && (
-                    <p className="mt-4 break-keep text-xs font-bold leading-relaxed text-amber-700">
+                    <p className="mt-4 break-keep text-xs font-normal leading-relaxed text-amber-700">
                       사업자 정보 테이블이 아직 적용되지 않았거나 조회 권한이 없습니다.
                     </p>
                   )}
@@ -3463,7 +3415,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                     <div>
                       <h3 className="type-content-title text-zinc-950">서비스 안내 및 문의 수신 정보</h3>
-                      <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+                      <p className="mt-2 break-keep text-xs font-normal leading-relaxed text-zinc-500">
                         문의 답변과 서비스 안내는 담당자 정보 기준으로 전달됩니다.
                       </p>
                     </div>

@@ -54,7 +54,7 @@ function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTML
           setCurrentLength(event.target.value.length);
           props.onChange?.(event);
         }}
-        className={`mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
+        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
@@ -80,7 +80,7 @@ function TextArea({ helperText, className, ...props }: TextareaHTMLAttributes<HT
           setCurrentLength(event.target.value.length);
           props.onChange?.(event);
         }}
-        className={`mt-2 min-h-24 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
+        className={`site-field mt-2 min-h-24 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
@@ -99,7 +99,7 @@ function Select({ helperText, className, ...props }: SelectHTMLAttributes<HTMLSe
     <>
       <select
         {...props}
-        className={`mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
+        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
@@ -196,7 +196,7 @@ function EmptyState({
         type="button"
         onClick={onCreate}
         disabled={disabled}
-        className="site-button site-button-primary mt-5 text-sm disabled:cursor-not-allowed"
+        className="site-button site-button-rounded site-button-primary mt-5 text-sm disabled:cursor-not-allowed"
       >
         {buttonLabel}
       </button>

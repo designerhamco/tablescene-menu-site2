@@ -287,7 +287,7 @@ export default function SubscriptionManagementModal({
           setRefundReason("");
           setIsOpen(true);
         }}
-        className="site-button site-button-primary inline-flex items-center justify-center text-xs"
+        className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center text-xs"
       >
         구독 관리
       </button>
@@ -299,7 +299,7 @@ export default function SubscriptionManagementModal({
               <div>
                 <h2 className="type-subsection-title text-zinc-950">구독 관리</h2>
               </div>
-              <button type="button" onClick={closeModal} className="site-button site-button-outline text-xs">
+              <button type="button" onClick={closeModal} className="site-button site-button-rounded site-button-outline text-xs">
                 닫기
               </button>
             </div>
@@ -344,7 +344,7 @@ export default function SubscriptionManagementModal({
                     <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
                       <div>
                         <h4 className="type-item-title text-zinc-950">최종 예상 환불금액</h4>
-                        <p className="mt-1 text-sm font-bold leading-relaxed text-zinc-500">{refundQuoteState.quote.customerNotice}</p>
+                        <p className="mt-1 text-sm font-normal leading-relaxed text-zinc-500">{refundQuoteState.quote.customerNotice}</p>
                       </div>
                       <p className="text-2xl font-bold text-zinc-950">
                         {formatKrwLabel(refundQuoteState.quote.estimatedRefundAmount)}
@@ -419,7 +419,7 @@ export default function SubscriptionManagementModal({
                         onChange={(event) => setRefundReason(event.target.value)}
                         maxLength={500}
                         placeholder="중도해지/환불 사유를 남겨주세요. 선택 사항입니다."
-                        className="mt-2 min-h-24 w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm font-bold text-zinc-900 outline-none focus:border-zinc-950"
+                        className="site-field mt-2 min-h-24 w-full border-zinc-200 px-4 py-3 text-zinc-900"
                       />
                     </label>
                   </div>
@@ -461,14 +461,14 @@ export default function SubscriptionManagementModal({
                   <button
                     type="button"
                     onClick={() => setIsViewingRefundGuide(false)}
-                    className="site-button site-button-outline text-sm"
+                    className="site-button site-button-rounded site-button-outline text-sm"
                   >
                     뒤로
                   </button>
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="site-button site-button-outline text-sm"
+                    className="site-button site-button-rounded site-button-outline text-sm"
                   >
                     닫기
                   </button>
@@ -482,7 +482,7 @@ export default function SubscriptionManagementModal({
                       refundConfirmState.status === "completed"
                     }
                     onClick={submitRefundConfirm}
-                    className="site-button site-button-primary text-sm disabled:cursor-not-allowed"
+                    className="site-button site-button-rounded site-button-primary text-sm disabled:cursor-not-allowed"
                   >
                     {refundConfirmState.status === "processing"
                       ? "환불 처리 중..."
@@ -575,7 +575,7 @@ export default function SubscriptionManagementModal({
                     setError(null);
                     setIsConfirmingCancel(true);
                   }}
-                  className="site-button site-button-primary text-sm"
+                  className="site-button site-button-rounded site-button-primary text-sm"
                 >
                   {isYearlyBilling ? "다음 연간 결제일부터 해지 예약" : "구독 해지 예약"}
                 </button>
@@ -585,13 +585,13 @@ export default function SubscriptionManagementModal({
                   type="button"
                   disabled={isSubmitting}
                   onClick={resumeCancellation}
-                  className="site-button site-button-primary text-sm disabled:cursor-not-allowed"
+                  className="site-button site-button-rounded site-button-primary text-sm disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? "처리 중..." : "구독 유지하기 / 해지 예약 취소"}
                 </button>
               ) : null}
               {(status === "expired" || status === "failed") && !restoredNotice ? (
-                <a href="/mypage/inquiries" className="site-button site-button-outline text-sm">
+                <a href="/mypage/inquiries" className="site-button site-button-rounded site-button-outline text-sm">
                   고객지원 문의
                 </a>
               ) : null}
@@ -603,7 +603,7 @@ export default function SubscriptionManagementModal({
                     setIsViewingRefundGuide(true);
                     void loadRefundQuote();
                   }}
-                  className="site-button site-button-secondary text-sm"
+                  className="site-button site-button-rounded site-button-secondary text-sm"
                 >
                   중도해지/환불 요청
                 </button>
@@ -619,10 +619,10 @@ export default function SubscriptionManagementModal({
         <div className="site-dialog-overlay fixed inset-0 z-[60] flex items-center justify-center px-4 py-8">
           <form role="dialog" aria-modal="true" aria-label="구독 해지 확인" onSubmit={submitCancellation} className="site-dialog site-dialog-panel w-full max-w-lg p-6">
             <h2 className="type-subsection-title text-zinc-950">정말 구독을 해지하시겠어요?</h2>
-            <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">
+            <p className="site-dialog-description mt-3 break-keep font-normal leading-relaxed">
               해지해도 이미 결제된 이용기간은 종료일까지 사용할 수 있습니다. {isYearlyBilling ? "다음 연간 결제일부터 결제는 중단됩니다." : "다음 결제일부터 결제는 중단됩니다."}
             </p>
-            <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">
+            <p className="site-dialog-description mt-3 break-keep font-normal leading-relaxed">
               이용기간 종료 후 메뉴판은 비공개 처리되며, 종료 후 90일 이내 다시 구독하면 기존 데이터를 계속 사용할 수 있습니다. 90일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다.
             </p>
             <label className="mt-5 block">
@@ -632,18 +632,18 @@ export default function SubscriptionManagementModal({
                 onChange={(event) => setReason(event.target.value)}
                 maxLength={500}
                 placeholder="해지 사유를 남겨주세요. 선택 사항입니다."
-                className="mt-2 min-h-28 w-full rounded-lg border border-zinc-200 px-4 py-3 text-sm font-bold text-zinc-900 outline-none focus:border-zinc-950"
+                className="site-field mt-2 min-h-28 w-full border-zinc-200 px-4 py-3 text-zinc-900"
               />
             </label>
             {error && <p className="site-notice site-notice-error mt-4 break-keep p-3 text-sm font-bold">{error}</p>}
             <div className="mt-6 flex flex-wrap justify-end gap-3">
-              <button type="button" onClick={() => setIsConfirmingCancel(false)} className="site-button site-button-outline text-sm">
+              <button type="button" onClick={() => setIsConfirmingCancel(false)} className="site-button site-button-rounded site-button-outline text-sm">
                 계속 이용하기
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="site-button site-button-primary text-sm disabled:cursor-not-allowed"
+                className="site-button site-button-rounded site-button-primary text-sm disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "처리 중..." : isYearlyBilling ? "다음 연간 결제일부터 해지하기" : "다음 결제일부터 해지하기"}
               </button>

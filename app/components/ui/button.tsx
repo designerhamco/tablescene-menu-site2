@@ -28,7 +28,6 @@ const buttonVariants = cva(
         compact: "site-button-compact",
         lg: "site-button-lg has-[>svg]:px-5",
         xl: "site-button-xl has-[>svg]:px-6",
-        hero: "site-button-hero has-[>svg]:px-8",
         icon: "site-button-icon",
       },
     },

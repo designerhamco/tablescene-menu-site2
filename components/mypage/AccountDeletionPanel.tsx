@@ -64,14 +64,14 @@ export default function AccountDeletionPanel({
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
           <div>
             <h3 className="type-content-title text-red-950">회원탈퇴</h3>
-            <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-700">
+            <p className="mt-2 break-keep text-xs font-normal leading-relaxed text-red-700">
               회원탈퇴 시 아티메뉴 서비스 이용이 중단되며, 메뉴판 데이터는 보관·삭제 정책에 따라 처리됩니다. 결제 및 정산, 분쟁 대응에 필요한 기록은 관계 법령에 따라 일정 기간 보관될 수 있습니다.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="site-button site-button-danger inline-flex shrink-0 items-center justify-center text-xs"
+            className="site-button site-button-rounded site-button-danger inline-flex shrink-0 items-center justify-center text-xs"
           >
             회원탈퇴 신청
           </button>
@@ -90,11 +90,11 @@ export default function AccountDeletionPanel({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="type-subsection-title">회원탈퇴를 신청하시겠어요?</h3>
-                <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">
+                <p className="site-dialog-description mt-3 break-keep font-normal leading-relaxed">
                   탈퇴 신청 즉시 계정 이용과 메뉴판 편집, 공개, QR, AI 기능 이용이 제한됩니다.
                 </p>
               </div>
-              <button type="button" onClick={() => setIsOpen(false)} className="site-button site-button-outline text-xs">
+              <button type="button" onClick={() => setIsOpen(false)} className="site-button site-button-rounded site-button-outline text-xs">
                 닫기
               </button>
             </div>
@@ -135,7 +135,7 @@ export default function AccountDeletionPanel({
                 value={confirmationText}
                 onChange={(event) => setConfirmationText(event.target.value)}
                 placeholder="회원탈퇴"
-                className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-950 outline-none transition focus:border-zinc-950"
+                className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-950 transition"
               />
               <span className="mt-2 block text-xs font-bold text-zinc-400">정확히 “회원탈퇴”를 입력해야 최종 신청할 수 있습니다.</span>
             </label>
@@ -145,14 +145,14 @@ export default function AccountDeletionPanel({
             ) : null}
 
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button type="button" onClick={() => setIsOpen(false)} className="site-button site-button-outline text-sm">
+              <button type="button" onClick={() => setIsOpen(false)} className="site-button site-button-rounded site-button-outline text-sm">
                 취소
               </button>
               <button
                 type="button"
                 onClick={submitDeletionRequest}
                 disabled={!canSubmit}
-                className="site-button site-button-danger text-sm disabled:cursor-not-allowed"
+                className="site-button site-button-rounded site-button-danger text-sm disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "처리 중..." : "회원탈퇴 신청"}
               </button>

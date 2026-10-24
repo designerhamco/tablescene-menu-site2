@@ -29,7 +29,7 @@
   --type-body-size: clamp(.875rem, 1.4vw, 1rem);
   --type-body-sm-size: .875rem;
   --type-label-size: var(--font-size-200);
-  --type-nav-size: clamp(.875rem, 1.2vw, 1rem);
+  --type-nav-size: .875rem;
   --type-caption-size: var(--font-size-100);
 }
 

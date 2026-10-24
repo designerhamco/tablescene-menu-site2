@@ -1,4 +1,7 @@
 "use client";
+import { EmptyState } from "@/app/components/ui/empty-state";
+import { CreditCard } from "lucide-react";
+
 
 import * as PortOne from "@portone/browser-sdk/v2";
 import { useEffect, useMemo, useState } from "react";
@@ -167,7 +170,7 @@ function FilterSelect({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800 outline-none transition-colors focus:border-zinc-500"
+        className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-800 transition-colors"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -377,7 +380,7 @@ function RestoreSubscriptionModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="site-button site-button-primary inline-flex items-center justify-center text-xs"
+        className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center text-xs"
       >
         구독 관리
       </button>
@@ -388,14 +391,14 @@ function RestoreSubscriptionModal({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="type-subsection-title break-keep text-zinc-950">재구독하고 복구</h3>
-                <p className="site-dialog-description mt-2 break-keep font-bold leading-relaxed">
+                <p className="site-dialog-description mt-2 break-keep font-normal leading-relaxed">
                   기존 메뉴판을 복구할 구독 상품을 선택해주세요.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="site-button site-button-secondary inline-flex w-10 shrink-0 items-center justify-center text-lg"
+                className="site-button site-button-rounded site-button-secondary inline-flex w-10 shrink-0 items-center justify-center text-lg"
                 aria-label="복구 안내 닫기"
               >
                 ×
@@ -432,7 +435,8 @@ function RestoreSubscriptionModal({
                   key={option.productKey}
                   type="button"
                   onClick={() => setSelectedProductKey(option.productKey)}
-                  className={`rounded-2xl border bg-white p-4 text-left transition-colors ${
+                  aria-pressed={selectedProductKey === option.productKey}
+                  className={`site-choice rounded-xl border bg-white p-4 text-left transition-colors ${
                     selectedProductKey === option.productKey
                       ? "border-zinc-950 ring-2 ring-zinc-950/10"
                       : "border-zinc-200 hover:border-zinc-400"
@@ -449,7 +453,7 @@ function RestoreSubscriptionModal({
                       {selectedProductKey === option.productKey ? "선택됨" : "현재가"}
                     </span>
                   </div>
-                  <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-500">{option.renewalDescription}</p>
+                  <p className="mt-3 break-keep text-xs font-normal leading-relaxed text-zinc-500">{option.renewalDescription}</p>
                 </button>
               ))}
             </div>
@@ -471,7 +475,7 @@ function RestoreSubscriptionModal({
               type="button"
               disabled={!canStartRestore}
               onClick={startRestoreCheckout}
-              className="site-button site-button-primary mt-5 w-full"
+              className="site-button site-button-rounded site-button-primary mt-5 w-full"
             >
               {startState.status === "loading"
                 ? "재구독 결제 진행 중"
@@ -502,7 +506,7 @@ function RestoreSubscriptionModal({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="site-button site-button-outline inline-flex items-center justify-center text-sm"
+                className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-sm"
               >
                 닫기
               </button>
@@ -553,7 +557,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
         <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
           <div>
             <h3 className="type-content-title text-zinc-950">결제내역 필터</h3>
-            <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+            <p className="mt-2 break-keep text-sm font-normal leading-relaxed text-zinc-500">
               결제일, 서비스 유형, 결제 방식, 서비스 상태, 결제/환불 상태, 메뉴판명 또는 주소로 결제 기록을 찾을 수 있습니다.
             </p>
           </div>
@@ -561,7 +565,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
             type="button"
             onClick={() => setFilters(initialFilters)}
             disabled={!hasActiveFilters}
-            className="site-button site-button-secondary site-button-sm shrink-0"
+            className="site-button site-button-rounded site-button-secondary site-button-sm shrink-0"
           >
             필터 초기화
           </button>
@@ -574,7 +578,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
               type="date"
               value={filters.from}
               onChange={(event) => setFilters((current) => ({ ...current, from: event.target.value }))}
-              className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800 outline-none transition-colors focus:border-zinc-500"
+              className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-800 transition-colors"
             />
           </label>
           <label className="block">
@@ -583,7 +587,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
               type="date"
               value={filters.to}
               onChange={(event) => setFilters((current) => ({ ...current, to: event.target.value }))}
-              className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800 outline-none transition-colors focus:border-zinc-500"
+              className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-800 transition-colors"
             />
           </label>
           <FilterSelect
@@ -624,7 +628,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
             <input
               value={filters.query}
               onChange={(event) => setFilters((current) => ({ ...current, query: event.target.value }))}
-              className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800 outline-none transition-colors focus:border-zinc-500"
+              className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-800 transition-colors"
               placeholder="예: 매장명, 메뉴판 주소, 결제번호로 검색"
             />
           </label>
@@ -753,10 +757,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
           ))}
         </div>
       ) : (
-        <article className="site-empty-state p-8 text-center">
-          <h4 className="type-content-title">조건에 맞는 결제내역이 없습니다</h4>
-          <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">필터를 초기화하거나 다른 조건으로 다시 확인해주세요.</p>
-        </article>
+        <EmptyState headingLevel={4} icon={<CreditCard />} title="조건에 맞는 결제내역이 없습니다" description={<>필터를 초기화하거나 다른 조건으로 다시 확인해주세요.</>} />
       )}
     </section>
   );

@@ -145,7 +145,7 @@ function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTML
     <>
       <input
         {...props}
-        className={`mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
+        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
@@ -159,7 +159,7 @@ function TextArea({ helperText, className, ...props }: TextareaHTMLAttributes<HT
     <>
       <textarea
         {...props}
-        className={`mt-2 min-h-24 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
+        className={`site-field mt-2 min-h-24 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
@@ -173,7 +173,7 @@ function Select({ helperText, className, ...props }: SelectHTMLAttributes<HTMLSe
     <>
       <select
         {...props}
-        className={`mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
+        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
@@ -199,7 +199,7 @@ function EmptyState({ message, buttonLabel, onClick, disabled }: { message: stri
         type="button"
         onClick={onClick}
         disabled={disabled}
-        className="site-button site-button-primary mt-5 text-sm disabled:cursor-not-allowed"
+        className="site-button site-button-rounded site-button-primary mt-5 text-sm disabled:cursor-not-allowed"
       >
         {buttonLabel}
       </button>
@@ -239,7 +239,7 @@ function DraftDeleteConfirmButton({
       <button
         type="button"
         onClick={onRequestConfirm}
-        className="site-button site-button-outline-danger text-sm"
+        className="site-button site-button-rounded site-button-outline-danger text-sm"
       >
         삭제
       </button>
@@ -249,7 +249,7 @@ function DraftDeleteConfirmButton({
             <h4 className="type-content-title text-zinc-950">{title}</h4>
             <p className="site-dialog-description mt-3 break-keep font-semibold leading-relaxed">{description}</p>
             <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
-              <button type="button" onClick={onCancel} className="site-button site-button-outline text-sm">
+              <button type="button" onClick={onCancel} className="site-button site-button-rounded site-button-outline text-sm">
                 취소
               </button>
               <button
@@ -258,7 +258,7 @@ function DraftDeleteConfirmButton({
                   onConfirm();
                   onCancel();
                 }}
-                className="site-button site-button-danger text-sm"
+                className="site-button site-button-rounded site-button-danger text-sm"
               >
                 삭제 확정
               </button>
@@ -430,7 +430,7 @@ export default function AboutDraftSections({
                   type="button"
                   onClick={addSocial}
                   disabled={visibleSocialDrafts.length >= MENU_LIMITS.maxSocialLinksPerSite}
-                  className="site-button site-button-outline text-sm disabled:cursor-not-allowed"
+                  className="site-button site-button-rounded site-button-outline text-sm disabled:cursor-not-allowed"
                 >
                   + SNS 추가
                 </button>
@@ -528,7 +528,7 @@ export default function AboutDraftSections({
                   type="button"
                   onClick={addChef}
                   disabled={visibleChefDrafts.length >= MENU_LIMITS.maxChefsPerSite}
-                  className="site-button site-button-outline text-sm disabled:cursor-not-allowed"
+                  className="site-button site-button-rounded site-button-outline text-sm disabled:cursor-not-allowed"
                 >
                   + 셰프/인물 추가
                 </button>
@@ -751,7 +751,7 @@ export function EventDraftSections({ events, showEvents }: EventDraftSectionsPro
               type="button"
               onClick={addEvent}
               disabled={visibleEventDrafts.length >= MENU_LIMITS.maxEventsPerSite}
-              className="site-button site-button-outline text-sm disabled:cursor-not-allowed"
+              className="site-button site-button-rounded site-button-outline text-sm disabled:cursor-not-allowed"
             >
               + 이벤트 추가
             </button>

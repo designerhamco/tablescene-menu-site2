@@ -19,11 +19,11 @@ export default async function ApplyPage({ searchParams }: { searchParams: Promis
       <OfficialSiteNavbar />
       <main className="site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="site-container">
-          <header className="site-page-heading pb-8 md:pb-10">
+          <header className="site-page-heading pb-6">
             <h1 className="type-page-title">
               매장에 맞는 디자인 선택
             </h1>
-            <p className="site-body mt-5 max-w-2xl text-zinc-500">
+            <p className="site-body mt-3 max-w-2xl text-zinc-500">
               완성된 디자인으로 시작하거나 직접 꾸며보세요. 메뉴판 1개당 요금제를 선택할 수 있습니다.
             </p>
           </header>

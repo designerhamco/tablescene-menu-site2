@@ -18,11 +18,11 @@ export default function MenuPopupSettingsForm({ menuId, settings, disabled }: { 
         <ImageUploadField label={`광고 이미지 ${index + 1}`} menuId={menuId} target="menu-popup-image-draft" recordId={String(index)} currentUrl={image.imageUrl}
           uploadSuccessMessage="광고 이미지가 임시 업로드되었습니다. 저장을 눌러 반영하세요."
           onDraftImageChange={draft => setImages(current => current.map(entry => entry.key === image.key ? { ...entry, imageUrl: draft.imageUrl ?? "", imagePath: draft.imagePath } : entry))} />
-        <button type="button" className="site-button site-button-secondary" onClick={() => setImages(current => current.filter(entry => entry.key !== image.key))}>이미지 {index + 1} 제외</button>
+        <button type="button" className="site-button site-button-rounded site-button-secondary" onClick={() => setImages(current => current.filter(entry => entry.key !== image.key))}>이미지 {index + 1} 제외</button>
       </div>)}
-      {images.length < MAX_MENU_POPUP_IMAGES ? <button type="button" className="site-button site-button-secondary" onClick={() => setImages(current => [...current, { imageUrl: "", imagePath: null, key: crypto.randomUUID() }])}>광고 이미지 추가 ({images.length}/3)</button> : null}
+      {images.length < MAX_MENU_POPUP_IMAGES ? <button type="button" className="site-button site-button-rounded site-button-secondary" onClick={() => setImages(current => [...current, { imageUrl: "", imagePath: null, key: crypto.randomUUID() }])}>광고 이미지 추가 ({images.length}/3)</button> : null}
       <p className="text-xs text-zinc-500">등록 순서대로 표시됩니다. 이미지는 저장 후 공개 메뉴판에 반영됩니다.</p>
-      <div className="flex justify-center"><DirtySubmitButton formId="menu-popup-settings-form" className="site-button site-button-primary">광고 저장</DirtySubmitButton></div>
+      <div className="flex justify-center"><DirtySubmitButton formId="menu-popup-settings-form" className="site-button site-button-rounded site-button-primary">광고 저장</DirtySubmitButton></div>
     </fieldset>
   </form>;
 }

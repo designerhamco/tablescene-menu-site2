@@ -88,11 +88,11 @@ function LockedMenuPreview({ menuId, accessState }: { menuId: string; accessStat
           <p className="mt-4 break-keep text-base font-bold leading-relaxed text-zinc-600">{message}</p>
           <div className="mt-7 flex flex-wrap gap-3">
             {accessState?.canConvertToBusiness ? (
-              <Link href={`/mypage/menus/${menuId}/convert`} className="site-button site-button-outline text-sm">
+              <Link href={`/mypage/menus/${menuId}/convert`} className="site-button site-button-rounded site-button-outline text-sm">
                 구독을 시작하고 복구
               </Link>
             ) : null}
-            <Link href="/mypage?tab=payments&billingTab=deleted" className="site-button site-button-outline text-sm">
+            <Link href="/mypage?tab=payments&billingTab=deleted" className="site-button site-button-rounded site-button-outline text-sm">
               구독/결제 상태 확인
             </Link>
           </div>
@@ -202,7 +202,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       {usesDevicePreviewFrame && !isEmbedded ? (
         <Link
           href={buildMenuPreviewUrl(menuId, previewQuery, { device, orientation })}
-          className="site-button site-button-primary fixed bottom-4 right-4 z-[1000] backdrop-blur"
+          className="site-button site-button-rounded site-button-primary fixed bottom-4 right-4 z-[1000] backdrop-blur"
         >
           기기 프레임으로 돌아가기
         </Link>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NavigationTabs } from "@/app/components/ui/navigation-tabs";
 
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
@@ -64,26 +65,9 @@ export default async function StoreOperationsShell({
           </header>
 
           {sites.length > 0 ? (
-            <nav
-              className="site-card mb-6 flex gap-2 overflow-x-auto p-1.5"
-              aria-label="운영할 메뉴판 선택"
-            >
-              {sites.map((site) => {
-                const isSelected = site.menuSiteId === selectedSite?.menuSiteId;
-                return (
-                  <Link
-                    key={site.menuSiteId}
-                    href={getSectionHref(site, activeSection)}
-                    aria-current={isSelected ? "page" : undefined}
-                    className={isSelected
-                      ? "inline-flex shrink-0 items-center justify-center rounded-full bg-zinc-950 px-5 py-2.5 text-sm font-bold text-white"
-                      : "inline-flex shrink-0 items-center justify-center rounded-full bg-zinc-100 px-5 py-2.5 text-sm font-bold text-zinc-500 transition-colors hover:bg-zinc-200 hover:text-zinc-950"}
-                  >
-                    {site.name || "이름 없는 메뉴판"}
-                  </Link>
-                );
-              })}
-            </nav>
+            <NavigationTabs label="운영할 메뉴판 선택" className="mb-6" items={sites.map(site => ({
+              label: site.name || "이름 없는 메뉴판", href: getSectionHref(site, activeSection), active: site.menuSiteId === selectedSite?.menuSiteId,
+            }))} />
           ) : null}
 
           <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-8">

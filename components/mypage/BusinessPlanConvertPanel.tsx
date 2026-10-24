@@ -372,7 +372,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <section className="site-section p-7">
         <h2 className="type-subsection-title">구독 상품 선택</h2>
-        <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+        <p className="mt-3 break-keep text-sm font-normal leading-relaxed text-zinc-500">
           현재 메뉴판은 아티메뉴 체험 메뉴판입니다. 기존 메뉴판을 그대로 이어서 사용하려면 베이직·다이닝 월 구독으로 전환할 수 있습니다.
           아티메뉴 디스플레이 플랜은 템플릿과 화면 구성이 달라 신규 신청으로 제공될 예정입니다.
         </p>
@@ -386,7 +386,8 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
                 key={product.product_key}
                 type="button"
                 onClick={() => setSelectedProductKey(product.product_key)}
-                className={`rounded-3xl border p-5 text-left transition ${
+                aria-pressed={selected}
+                className={`site-choice rounded-xl border p-5 text-left transition ${
                   selected ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400"
                 }`}
               >
@@ -434,7 +435,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
             <dd className="text-right text-zinc-900">{openDiscountPolicy.durationLabel}</dd>
           </div>
         </dl>
-        <p className="mt-4 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+        <p className="mt-4 break-keep text-xs font-normal leading-relaxed text-zinc-400">
           {openDiscountPolicy.note}
         </p>
         <div className="mt-6">
@@ -459,12 +460,12 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
           type="button"
           onClick={startConversionBilling}
           disabled={!isVerified || !requiredConsentsAccepted || isSubmitting}
-          className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center text-sm disabled:cursor-not-allowed"
+          className="site-button site-button-rounded site-button-primary mt-6 inline-flex w-full items-center justify-center text-sm disabled:cursor-not-allowed"
         >
           {isSubmitting ? "정기결제 처리 중..." : isVerified && requiredConsentsAccepted ? "동의하고 유료 전환하기" : "사업자 인증 및 필수 동의 후 진행 가능"}
         </button>
         {!isPortOneReady && (
-          <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-amber-700">
+          <p className="mt-3 break-keep text-xs font-normal leading-relaxed text-amber-700">
             사업자 월/연 정기결제는 PortOne V2 빌링키 발급을 지원하는 채널의 channelKey가 필요합니다.
           </p>
         )}
@@ -472,7 +473,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
 
       <section className="site-section p-7 lg:col-span-2">
         <h2 className="type-subsection-title">사업자 인증</h2>
-        <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+        <p className="mt-3 break-keep text-sm font-normal leading-relaxed text-zinc-500">
           사업자 정보를 확인한 뒤 구독 신청을 진행할 수 있습니다. 기존 메뉴판과 입력한 내용은 유지됩니다.
         </p>
 
@@ -489,7 +490,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
             type="button"
             onClick={verifyBusiness}
             disabled={verificationState.type === "checking"}
-            className="site-button site-button-primary inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+            className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed disabled:opacity-60"
           >
             {verificationState.type === "checking" ? <LoadingSpinner className="h-4 w-4" /> : null}
             {verificationState.type === "checking" ? "확인 중..." : "사업자 정보 확인"}
@@ -537,7 +538,7 @@ function Field({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-900 outline-none transition focus:border-zinc-950"
+        className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-900 transition"
       />
     </label>
   );

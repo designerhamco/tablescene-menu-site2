@@ -47,7 +47,7 @@ function ItemForm({
         <label className="block text-sm font-semibold">
           기본 가격 (원)
           <input
-            className="mt-2 block w-full rounded-xl border border-zinc-300 px-4 py-3 sm:max-w-xs"
+            className="site-field mt-2 block w-full border-zinc-300 px-4 py-3 sm:max-w-xs"
             type="number"
             min={0}
             max={10000000}
@@ -69,7 +69,7 @@ function ItemForm({
             <div className="mt-3 flex flex-wrap gap-3">
               <input
                 aria-label="옵션 그룹 이름"
-                className="min-w-0 flex-1 rounded-xl border border-zinc-300 px-4 py-3"
+                className="site-field min-w-0 flex-1 border-zinc-300 px-4 py-3"
                 maxLength={80}
                 placeholder="예: 온도"
                 value={group.name}
@@ -79,7 +79,7 @@ function ItemForm({
               />
               <button
                 type="button"
-                className="site-button site-button-secondary"
+                className="site-button site-button-rounded site-button-secondary"
                 onClick={() =>
                   setValue({
                     ...value,
@@ -125,7 +125,7 @@ function ItemForm({
               >
                 <input
                   aria-label="옵션 이름"
-                  className="min-w-0 flex-1 rounded-xl border border-zinc-300 px-4 py-3"
+                  className="site-field min-w-0 flex-1 border-zinc-300 px-4 py-3"
                   maxLength={80}
                   placeholder="예: ICE"
                   value={option.name}
@@ -142,7 +142,7 @@ function ItemForm({
                   추가금
                   <input
                     aria-label="옵션 추가금"
-                    className="w-28 rounded-xl border border-zinc-300 px-3 py-3"
+                    className="site-field w-28 border-zinc-300 px-3 py-3"
                     type="number"
                     min={0}
                     max={10000000}
@@ -162,7 +162,7 @@ function ItemForm({
                 </label>
                 <button
                   type="button"
-                  className="site-button site-button-secondary"
+                  className="site-button site-button-rounded site-button-secondary"
                   onClick={() =>
                     changeGroup(i, (g) => ({
                       ...g,
@@ -176,7 +176,7 @@ function ItemForm({
             ))}
             <button
               type="button"
-              className="site-button site-button-secondary"
+              className="site-button site-button-rounded site-button-secondary"
               disabled={group.values.length >= 20}
               onClick={() =>
                 changeGroup(i, (g) => ({
@@ -195,7 +195,7 @@ function ItemForm({
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
-            className="site-button site-button-secondary"
+            className="site-button site-button-rounded site-button-secondary"
             disabled={value.groups.length >= 10}
             onClick={() =>
               setValue({
@@ -219,7 +219,7 @@ function ItemForm({
           </button>
           <button
             type="button"
-            className="site-button site-button-primary"
+            className="site-button site-button-rounded site-button-primary"
             disabled={pending}
             onClick={() =>
               startTransition(async () => {

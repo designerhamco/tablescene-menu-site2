@@ -209,7 +209,7 @@ function Showcase({
                   ? "/apply?plan=dining"
                   : "/apply?plan=basic"
               }
-              className={buttonVariants({ variant: dark ? "secondary" : "outline", size: "xl", shape: "rounded", className: "site-button-wide" })}
+              className={buttonVariants({ variant: dark ? "secondary" : "outline", size: "xl", shape: "rounded" })}
             >
               더 많은 디자인 보기
               <ArrowRight size={16} aria-hidden="true" />
@@ -242,7 +242,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
             ) : service === "dining" ? (
               <Link
                 href={`/apply?plan=${service}`}
-                className={buttonVariants({ variant: dark ? "secondary" : "default", size: "hero", shape: "rounded" })}
+                className={buttonVariants({ variant: dark ? "secondary" : "default", size: "xl", shape: "rounded" })}
               >
                 {copy.name} 디자인 선택
                 <ArrowRight size={16} aria-hidden="true" />
@@ -304,7 +304,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
             </h2>
             <Link
               href={`/apply?plan=${service}`}
-              className={buttonVariants({ variant: dark ? "secondary" : "default", size: "hero", shape: "rounded" })}
+              className={buttonVariants({ variant: dark ? "secondary" : "default", size: "xl", shape: "rounded" })}
             >
               디자인 고르고 시작하기
               <ArrowRight size={16} aria-hidden="true" />
@@ -538,7 +538,7 @@ export function MarketingHome() {
             ))}
           </div>
           <div className={styles.centerAction}>
-            <Link href="/apply" className={buttonVariants({ size: "hero", shape: "rounded", className: "site-button-wide" })}>
+            <Link href="/apply" className={buttonVariants({ size: "xl", shape: "rounded" })}>
               나만의 메뉴판 시작하기
               <ArrowRight size={16} aria-hidden="true" />
             </Link>

@@ -197,7 +197,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
                 새 메뉴판을 만들지 않고, 기존 개인 체험 메뉴판을 그대로 이어서 월 구독으로 전환합니다.
               </p>
             </div>
-            <Link href="/mypage" className="site-button site-button-secondary">
+            <Link href="/mypage" className="site-button site-button-rounded site-button-secondary">
               마이페이지로 돌아가기
             </Link>
           </div>
@@ -231,7 +231,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
               <p className="mx-auto mt-3 max-w-2xl break-keep text-sm font-bold leading-relaxed text-amber-800">
                 복구 가능 기간이 종료되었습니다. 데이터 복구 가능 여부는 고객지원으로 문의해주세요.
               </p>
-              <Link href="/mypage/inquiries" className="site-button site-button-outline mt-6 inline-flex items-center justify-center text-sm">
+              <Link href="/mypage/inquiries" className="site-button site-button-rounded site-button-outline mt-6 inline-flex items-center justify-center text-sm">
                 고객지원 문의
               </Link>
             </section>

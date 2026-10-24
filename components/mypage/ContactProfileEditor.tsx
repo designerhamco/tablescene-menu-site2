@@ -188,7 +188,7 @@ export default function ContactProfileEditor({
         <button
           type="button"
           onClick={openModal}
-          className="site-button site-button-outline inline-flex items-center justify-center text-xs"
+          className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-xs"
         >
           담당자 정보 수정
         </button>
@@ -207,7 +207,7 @@ export default function ContactProfileEditor({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="type-subsection-title text-zinc-950">담당자 정보 수정</h2>
-                <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">
+                <p className="site-dialog-description mt-3 break-keep font-normal leading-relaxed">
                   문의 답변과 서비스 안내는 담당자 정보 기준으로 전달됩니다. 사업자 인증 정보 변경은 고객지원으로 문의해주세요.
                 </p>
               </div>
@@ -215,7 +215,7 @@ export default function ContactProfileEditor({
                 type="button"
                 onClick={closeWithoutSaving}
                 disabled={isSubmitting}
-                className="site-button site-button-outline text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                className="site-button site-button-rounded site-button-outline text-xs disabled:cursor-not-allowed disabled:opacity-60"
               >
                 닫기
               </button>
@@ -229,7 +229,7 @@ export default function ContactProfileEditor({
                   onChange={(event) => setNameValue(event.target.value)}
                   maxLength={20}
                   required
-                  className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-900 outline-none transition-colors focus:border-zinc-500"
+                  className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-900 transition-colors"
                   placeholder="예: 홍길동"
                   aria-invalid={Boolean(fieldStates.name.errorText)}
                   aria-describedby="contact-name-helper"
@@ -246,7 +246,7 @@ export default function ContactProfileEditor({
                   onChange={(event) => updatePhoneValue(event.target.value)}
                   maxLength={13}
                   inputMode="tel"
-                  className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-900 outline-none transition-colors focus:border-zinc-500"
+                  className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-900 transition-colors"
                   placeholder="010-1234-5678"
                   aria-invalid={Boolean(fieldStates.phone.errorText)}
                   aria-describedby="contact-phone-helper"
@@ -264,7 +264,7 @@ export default function ContactProfileEditor({
                   onChange={(event) => setEmailValue(event.target.value)}
                   maxLength={100}
                   required
-                  className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-900 outline-none transition-colors focus:border-zinc-500"
+                  className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-900 transition-colors"
                   placeholder="name@example.com"
                   aria-invalid={Boolean(fieldStates.email.errorText)}
                   aria-describedby="notification-email-helper"
@@ -291,14 +291,14 @@ export default function ContactProfileEditor({
                 type="button"
                 onClick={closeWithoutSaving}
                 disabled={isSubmitting}
-                className="site-button site-button-outline text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                className="site-button site-button-rounded site-button-outline text-sm disabled:cursor-not-allowed disabled:opacity-60"
               >
                 취소
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="site-button site-button-primary text-sm disabled:cursor-not-allowed"
+                className="site-button site-button-rounded site-button-primary text-sm disabled:cursor-not-allowed"
               >
                 {isSubmitting ? "저장 중..." : "저장"}
               </button>
