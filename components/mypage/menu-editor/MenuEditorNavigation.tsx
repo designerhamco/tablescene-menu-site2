@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { NavigationTabs } from "@/app/components/ui/navigation-tabs";
 
 import { MENU_EDITOR_TABS, type MenuEditorTabKey } from "@/lib/menu-editor";
 
@@ -17,39 +17,14 @@ type MenuEditorNavigationProps = {
 
 export default function MenuEditorNavigation({ menuId, activeTab, tabs = MENU_EDITOR_TABS }: MenuEditorNavigationProps) {
   return (
-    <nav className="site-card site-card-compact mb-6 site-editor-navigation p-2 sm:p-3">
-      <div className="flex gap-2 overflow-x-auto" aria-label="메뉴 편집 설정">
-        {tabs.map((item) => {
-          if (item.disabledReason) {
-            return (
-              <span
-                key={item.key}
-                aria-disabled="true"
-                aria-label={`${item.label} 권한 없음: ${item.disabledReason}`}
-                title={item.disabledReason}
-                className="shrink-0 cursor-not-allowed rounded-full bg-zinc-100 px-4 py-3 text-sm font-bold text-zinc-300"
-              >
-                {item.label}
-                <span className="ml-1.5 text-xs font-bold">권한 없음</span>
-              </span>
-            );
-          }
-
-          return (
-            <Link
-              key={item.key}
-              href={`/mypage/menus/${menuId}/edit?tab=${item.key}`}
-              aria-current={activeTab === item.key ? "page" : undefined}
-              className={`shrink-0 rounded-full px-4 py-3 text-sm font-bold transition-colors ${
-                activeTab === item.key ? "bg-zinc-950 text-white" : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-950"
-              }`}
-            >
-              {item.label}
-              {item.status === "todo" ? <span className="ml-1 text-xs opacity-70">준비 중</span> : null}
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+    <div className="site-card site-card-compact mb-6 site-editor-navigation px-4">
+      <NavigationTabs label="메뉴 편집 설정" items={tabs.map(item => ({
+        label: item.label,
+        href: `/mypage/menus/${menuId}/edit?tab=${item.key}`,
+        active: activeTab === item.key,
+        disabledReason: item.disabledReason,
+        statusLabel: item.status === "todo" ? "준비 중" : undefined,
+      }))} />
+    </div>
   );
 }
