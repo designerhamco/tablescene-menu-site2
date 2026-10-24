@@ -29,21 +29,24 @@ try {
    if(route.request().method()==='PATCH'){const {id,liked}=route.request().postDataJSON();favorites=favorites.filter(v=>v!==id);if(liked)favorites.unshift(id);}
    await route.fulfill({json:{authenticated:true,favorites}});
   });
-  assert.equal((await page.goto(`${base}/apply`,{waitUntil:'networkidle',timeout:90000})).status(),200);
+  assert.equal((await page.goto(`${base}/apply?category=standard`,{waitUntil:'networkidle',timeout:90000})).status(),200);
   await page.evaluate(()=>document.fonts.ready);
   await expect(page.locator('[data-catalog-design]')).toHaveCount(6);
   await expect(page.locator('.site-catalog-plan')).toContainText('4,900원');
-  const basic=page.getByRole('group',{name:'기본 디자인 유형 선택'});
-  await basic.getByRole('button',{name:'앨범형',exact:true}).click();await expect(page.locator('[data-catalog-design]')).toHaveCount(2);
+  const selectFilter = async (heading, label, value) => width >= 1024
+    ? page.getByRole('group',{name:`${heading} 선택`,exact:true}).getByRole('button',{name:label,exact:true}).click()
+    : width >= 768 ? page.getByLabel(heading,{exact:true}).selectOption(value)
+    : page.getByRole('group',{name:`모바일 ${heading} 선택`,exact:true}).getByRole('button',{name:label,exact:true}).click();
+  await selectFilter('화면 구성','앨범형','album');await expect(page.locator('[data-catalog-design]')).toHaveCount(2);
   const heart=page.locator('.site-catalog-heart').first();await expect(heart).toBeEnabled();await heart.click();await expect(heart).toHaveAttribute('aria-pressed','true');
   await page.reload({waitUntil:'networkidle'});await expect(page.locator('.site-catalog-heart').first()).toHaveAttribute('aria-pressed','true');
   await page.locator('.site-catalog-heart').first().click();await expect(page.locator('.site-catalog-heart').first()).toHaveAttribute('aria-pressed','false');
-  await page.getByRole('button',{name:'디자인 템플릿',exact:true}).click();await expect(page.locator('.site-catalog-plan')).toContainText('6,800원');
+  await page.getByRole('tab',{name:'디자인 템플릿',exact:true}).click();await expect(page.locator('.site-catalog-plan')).toContainText('6,800원');
   await expect(page.locator('[data-catalog-design]')).toHaveCount(6);
   await page.getByRole('button',{name:'다음 템플릿 페이지',exact:true}).click();await expect(page.locator('[data-catalog-design]')).toHaveCount(1);
-  await page.getByRole('group',{name:'디자인 템플릿 업종 선택'}).getByRole('button',{name:'일식',exact:true}).click();await expect(page.getByText('일식 템플릿 준비 중',{exact:true})).toBeVisible();
+  await selectFilter('업종','일식','japanese');await expect(page.getByText('일식 템플릿 준비 중',{exact:true})).toBeVisible();
   await page.getByRole('tab',{name:'다이닝',exact:true}).click();await expect(page.locator('.site-catalog-plan')).toContainText('8,800원');await expect(page.locator('[data-catalog-design]')).toHaveCount(2);
-  await page.getByRole('button',{name:'기본 디자인',exact:true}).click();await expect(page.locator('.site-catalog-plan')).toContainText('6,900원');await expect(page.locator('[data-catalog-design]')).toHaveCount(4);
+  await page.getByRole('tab',{name:'기본 템플릿',exact:true}).click();await expect(page.locator('.site-catalog-plan')).toContainText('6,900원');await expect(page.locator('[data-catalog-design]')).toHaveCount(4);
   await expect.poll(()=>page.locator('.site-catalog-image').evaluateAll(imgs=>imgs.every(img=>img.complete&&img.naturalWidth>0)),{timeout:15000}).toBe(true);
   await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth-innerWidth),{timeout:10000}).toBe(0);
   const geometry=await page.evaluate(()=>({viewport:{width:innerWidth,height:innerHeight},overflow:document.documentElement.scrollWidth-innerWidth,actions:[...document.querySelectorAll('[data-catalog-design]')].map(c=>({buttons:c.querySelectorAll('.site-template-actions a').length,heart:c.querySelector('.site-catalog-heart').getBoundingClientRect().width,img:c.querySelector('img').naturalWidth}))}));

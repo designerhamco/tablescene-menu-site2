@@ -24,11 +24,11 @@ const marketingSectionCopySource = readFileSync(
 
 test("만들기는 서비스 안에서 기본 디자인과 디자인 템플릿을 구분한다", () => {
   assert.match(applyPageSource, /TemplateGallery/);
-  for (const label of ["베이직", "다이닝", "디스플레이", "기본 디자인", "디자인 템플릿"]) assert.ok(templateGallerySource.includes(label));
+  for (const label of ["베이직", "다이닝", "디스플레이", "기본 템플릿", "디자인 템플릿"]) assert.ok(templateGallerySource.includes(label));
   assert.match(templateGallerySource, /filterCatalogDesigns/);
   assert.match(templateGallerySource, /메뉴판 1개당 월 구독/);
   assert.match(templateGallerySource, /const TEMPLATES_PER_PAGE = 6/);
-  assert.match(templateGallerySource, /aria-expanded/);
+  assert.match(templateGallerySource, /aria-label="템플릿 종류 선택"/);
   assert.match(templateGallerySource, /CatalogDesignCard/);
   assert.doesNotMatch(templateGallerySource, /템플릿 1개별 월 구독/);
 });

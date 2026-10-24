@@ -4,8 +4,6 @@ import Link from "next/link";
 import Footer from "@/app/components/layout/Footer";
 import TemplateGallery from "@/components/apply/TemplateGallery";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
-import { isDisplayCheckoutQaEnabled } from "@/lib/display-checkout-qa";
-import { getAvailableTemplatesForService } from "@/lib/templates";
 
 export const metadata: Metadata = {
   title: "메뉴판 만들기 | ArtiMenu",
@@ -15,31 +13,25 @@ export const metadata: Metadata = {
 export default async function ApplyPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const query = await searchParams;
   const initialProduct = query.plan === "dining" ? "dining_multi" : query.plan === "display" ? "display" : "dining_single";
-  const displayCheckoutEnabled = isDisplayCheckoutQaEnabled();
-  const diningTemplates = getAvailableTemplatesForService("basic");
-  const displayTemplates = getAvailableTemplatesForService("display");
 
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-page-spacing min-h-screen bg-white text-zinc-950">
+      <main className="site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="site-container">
-          <header className="site-page-heading max-w-3xl pb-12 md:pb-16">
+          <header className="site-page-heading pb-8 md:pb-10">
             <h1 className="type-page-title">
               매장에 맞는 디자인 선택
             </h1>
             <p className="site-body mt-5 max-w-2xl text-zinc-500">
-              템플릿을 미리 보고 원하는 디자인을 선택해 월 구독을 시작하세요. 기본 디자인으로 직접 꾸미거나 완성된 디자인 템플릿으로 시작해 보세요. 메뉴판 1개당 요금제를 선택할 수 있습니다.
+              완성된 디자인으로 시작하거나 직접 꾸며보세요. 메뉴판 1개당 요금제를 선택할 수 있습니다.
             </p>
           </header>
 
           <TemplateGallery
             initialProduct={initialProduct}
-            initialKind={query.category === "designer" ? "designer" : "standard"}
+            initialKind={query.category === "standard" ? "standard" : "designer"}
             initialFilter={typeof query.filter === "string" ? query.filter : "all"}
-            diningTemplates={diningTemplates}
-            displayTemplates={displayTemplates}
-            displayCheckoutEnabled={displayCheckoutEnabled}
           />
 
           <section className="site-dark-cta site-catalog-consultation mt-20 md:mt-28">

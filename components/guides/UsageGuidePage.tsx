@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
 import { ArrowUpRight, ChevronDown, EllipsisVertical, Fullscreen, Minus, Plus, Video } from "lucide-react";
 import {
   Tabs,
@@ -140,33 +140,37 @@ function GuideInstructions({ section }: { section: GuideSection }) {
   );
 }
 
-function GuideDescription({ titleId, children }: { titleId: string; children: ReactNode }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
+function GuideDescription({ titleId, mediaRef, children }: {
+  titleId: string;
+  mediaRef: RefObject<HTMLDivElement | null>;
+  children: ReactNode;
+}) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const [scrollState, setScrollState] = useState({ canScroll: false, hasMore: false });
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const [expanded, setExpanded] = useState(false);
+  const [preview, setPreview] = useState({ canExpand: false, height: 0 });
 
   useEffect(() => {
-    const scroll = scrollRef.current;
+    const media = mediaRef.current;
     const content = contentRef.current;
-    if (!scroll || !content) return;
+    if (!media || !content) return;
 
     let active = true;
     let frame = 0;
     const measure = () => {
       frame = 0;
-      const canScroll = window.matchMedia("(min-width: 768px)").matches &&
-        scroll.scrollHeight > scroll.clientHeight + 1;
-      const hasMore = canScroll && scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop > 2;
-      setScrollState(previous => previous.canScroll === canScroll && previous.hasMore === hasMore
-        ? previous : { canScroll, hasMore });
+      const height = media.getBoundingClientRect().height;
+      const canExpand = window.matchMedia("(min-width: 768px)").matches &&
+        content.scrollHeight > height + 1;
+      setPreview(previous => previous.canExpand === canExpand && previous.height === height
+        ? previous : { canExpand, height });
     };
     const schedule = () => {
       if (active && !frame) frame = requestAnimationFrame(measure);
     };
     const observer = new ResizeObserver(schedule);
-    observer.observe(scroll);
+    observer.observe(media);
     observer.observe(content);
-    scroll.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
     document.fonts.ready.then(schedule);
     schedule();
@@ -175,35 +179,60 @@ function GuideDescription({ titleId, children }: { titleId: string; children: Re
       active = false;
       cancelAnimationFrame(frame);
       observer.disconnect();
-      scroll.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
     };
-  }, []);
+  }, [mediaRef]);
+
+  const collapsed = preview.canExpand && !expanded;
+  function toggleDescription() {
+    setExpanded(!expanded);
+    if (expanded) requestAnimationFrame(() => {
+      const button = toggleRef.current;
+      const headerBottom = document.querySelector("[data-site-header]")?.getBoundingClientRect().bottom ?? 0;
+      if (button && button.getBoundingClientRect().top < headerBottom + 16) {
+        button.scrollIntoView({ block: "center", behavior: "instant" });
+      }
+    });
+  }
 
   return (
-    <div className={styles.description} data-guide-description-wrapper data-scroll-more={scrollState.hasMore}>
+    <div
+      className={styles.description}
+      data-guide-description-wrapper
+      data-can-expand={preview.canExpand}
+      data-expanded={expanded}
+      style={preview.height ? { "--guide-preview-height": `${preview.height}px` } as CSSProperties : undefined}
+    >
       <div
-        ref={scrollRef}
-        className={styles.descriptionScroll}
+        id={`${titleId}-description`}
+        className={styles.descriptionClip}
         data-guide-description
         role="region"
         aria-labelledby={titleId}
-        aria-describedby={scrollState.hasMore ? `${titleId}-more` : undefined}
-        tabIndex={scrollState.canScroll ? 0 : -1}
+        onFocusCapture={event => {
+          if (!collapsed) return;
+          const target = event.target;
+          setExpanded(true);
+          requestAnimationFrame(() => target.scrollIntoView({ block: "nearest", behavior: "instant" }));
+        }}
       >
         <div ref={contentRef} className={styles.articleCopy}>{children}</div>
+        {collapsed && <div className={styles.descriptionFade} aria-hidden="true" />}
       </div>
-      <div
-        id={`${titleId}-more`}
-        className={styles.scrollHint}
-        data-guide-scroll-hint
-        aria-hidden={!scrollState.hasMore}
-      >
-        <span className="type-label">
-          아래에 내용이 더 있어요
+      {preview.canExpand && (
+        <button
+          ref={toggleRef}
+          type="button"
+          className={`site-button site-button-outline ${styles.descriptionToggle}`}
+          data-guide-description-toggle
+          aria-expanded={expanded}
+          aria-controls={`${titleId}-description`}
+          onClick={toggleDescription}
+        >
+          {expanded ? "접기" : "더보기"}
           <ChevronDown size={16} aria-hidden="true" />
-        </span>
-      </div>
+        </button>
+      )}
     </div>
   );
 }
@@ -219,6 +248,7 @@ function GuideArticle({
   device: GuideDevice;
   browser: GuideBrowser;
 }) {
+  const mediaRef = useRef<HTMLDivElement>(null);
   return (
     <article
       id={`${plan}-${section.id}`}
@@ -227,6 +257,7 @@ function GuideArticle({
       aria-labelledby={`${plan}-${section.id}-title`}
     >
       <div
+        ref={mediaRef}
         className={styles.media}
         data-guide-media
         id={plan === "basic" ? `dining-${section.id}` : undefined}
@@ -236,7 +267,7 @@ function GuideArticle({
           video={GUIDE_VIDEOS[guideVideoKey(plan, device, browser, section.id)]}
         />
       </div>
-      <GuideDescription titleId={`${plan}-${section.id}-title`}>
+      <GuideDescription titleId={`${plan}-${section.id}-title`} mediaRef={mediaRef}>
         <h2
           id={`${plan}-${section.id}-title`}
           className="type-subsection-title"
