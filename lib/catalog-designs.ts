@@ -5,6 +5,15 @@ import { getTemplatePreviewRouteKey, templateCatalog, type TemplateCategoryKey }
 
 export type CatalogService = 'basic' | 'dining' | 'display';
 export type CatalogKind = 'standard' | 'designer';
+export const CATALOG_LAYOUT_FILTERS = [
+  {key:'all',label:'전체'},
+  {key:'list',label:'리스트형'},
+  {key:'album',label:'앨범형'},
+] as const;
+export type CatalogLayoutFilter = typeof CATALOG_LAYOUT_FILTERS[number]['key'];
+export function normalizeCatalogLayoutFilter(value: unknown): CatalogLayoutFilter {
+  return value === 'list' || value === 'album' ? value : 'all';
+}
 export type CatalogDesign = {
   id: string; name: string; description: string; service: CatalogService; kind: CatalogKind;
   templateKey: string; itemLayout: 'list' | 'album'; categories: TemplateCategoryKey[];
@@ -46,11 +55,11 @@ export function getCatalogDesign(id: unknown) {
   if(typeof id!=='string')return null;
   return catalogDesigns.find(d=>d.id===id||d.detailHref===`/templates/${id}`)??null;
 }
-export function filterCatalogDesigns(service:CatalogService,kind:CatalogKind,filter='all') {
+export function filterCatalogDesigns(service:CatalogService,kind:CatalogKind,filter='all',layout:CatalogLayoutFilter='all') {
   return catalogDesigns.filter(d=>d.service===service&&(service==='display'||d.kind===kind)).filter(d=>{
     if(filter==='all')return true;
     if(kind==='standard')return d.itemLayout===filter;
     const industry=CATALOG_INDUSTRIES.find(i=>i.key===filter);
     return industry?.categories.some(c=>d.categories.includes(c as TemplateCategoryKey))??false;
-  });
+  }).filter(design => layout === 'all' || design.itemLayout === layout);
 }

@@ -35,7 +35,9 @@ try {
   await expect(page.locator('.site-catalog-plan')).toContainText('4,900원');
   const selectFilter = async (heading, label, value) => width >= 1024
     ? page.getByRole('group',{name:`${heading} 선택`,exact:true}).getByRole('button',{name:label,exact:true}).click()
-    : width >= 768 ? page.getByLabel(heading,{exact:true}).selectOption(value)
+    : width >= 768 ? heading === '화면 구성'
+      ? (async()=>{await page.getByRole('combobox',{name:heading,exact:true}).click();await page.getByRole('option',{name:label,exact:true}).click();})()
+      : page.getByLabel(heading,{exact:true}).selectOption(value)
     : page.getByRole('group',{name:`모바일 ${heading} 선택`,exact:true}).getByRole('button',{name:label,exact:true}).click();
   await selectFilter('화면 구성','앨범형','album');await expect(page.locator('[data-catalog-design]')).toHaveCount(2);
   const heart=page.locator('.site-catalog-heart').first();await expect(heart).toBeEnabled();await heart.click();await expect(heart).toHaveAttribute('aria-pressed','true');

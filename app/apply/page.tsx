@@ -32,6 +32,7 @@ export default async function ApplyPage({ searchParams }: { searchParams: Promis
             initialProduct={initialProduct}
             initialKind={query.category === "standard" ? "standard" : "designer"}
             initialFilter={typeof query.filter === "string" ? query.filter : "all"}
+            initialLayoutFilter={typeof query.layout === "string" ? query.layout : "all"}
           />
 
           <section className="site-dark-cta site-catalog-consultation mt-20 md:mt-28">
