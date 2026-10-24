@@ -1,3 +1,4 @@
+import { readMenuTextColors } from "@/lib/menu-text-colors";
 import { getSavedMenuDesign } from "@/lib/menu-design-identity";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import MenuSurfaceSettingsForm from "@/components/mypage/menu-editor/MenuSurfaceSettingsForm";
@@ -2534,7 +2535,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         </div>
                       </div>
                     </div>
-                    {(menuCoverCapabilities.coverMode === "section" || isAubeTableTemplate(site.template_key)) ? <MenuSurfaceSettingsForm key={`surfaces-${JSON.stringify(site.page_settings)}`} pageSettings={site.page_settings} settings={site.settings} templateKey={site.template_key} formId="design-settings-form" disabled={isReadOnly} /> : (
+                    {(menuCoverCapabilities.coverMode === "section" || isAubeTableTemplate(site.template_key)) ? <MenuSurfaceSettingsForm key={`surfaces-${JSON.stringify(readMenuTextColors(site.page_settings))}`} pageSettings={site.page_settings} settings={site.settings} templateKey={site.template_key} formId="design-settings-form" disabled={isReadOnly} /> : (
                     <div className="site-section site-editor-subpanel p-5">
                       <div>
                         <h3 className="type-content-title text-zinc-950">배경색</h3>
@@ -2562,7 +2563,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         </div>
                       </div>
                       <TypographySettingsForm
-                        key={`typography-${customKoreanFont ? "custom" : "default"}-${resolvedKoreanFont.value}-${customEnglishFont ? "custom" : "default"}-${resolvedEnglishFont.value}-${typographySettings.font_size_scale_key}-${JSON.stringify(typographySettings.typography_roles)}`}
+                        key={`typography-${customKoreanFont ? "custom" : "default"}-${resolvedKoreanFont.value}-${customEnglishFont ? "custom" : "default"}-${resolvedEnglishFont.value}-${typographySettings.font_size_scale_key}-${JSON.stringify(typographySettings.typography_roles)}-${JSON.stringify(readMenuTextColors(site.page_settings))}`}
                         formId="design-settings-form"
                         initialFont={resolvedKoreanFont}
                         initialEnglishFont={resolvedEnglishFont}
@@ -2572,6 +2573,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         hasCustomEnglishFont={Boolean(customEnglishFont)}
                         initialFontSizeScale={typographySettings.font_size_scale_key}
                         initialRoleSettings={typographySettings.typography_roles}
+                        pageSettings={site.page_settings}
                         templateType={templateType}
                         templateKey={site.template_key}
                       />

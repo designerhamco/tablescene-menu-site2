@@ -32,9 +32,10 @@ import {
   normalizeFontSizeScaleKeyForTemplate,
   withCommonTypographyFonts,
   type FontSizeScaleKey,
-  type TypographyRoleKey,
   type TypographyRoleSettings,
 } from "@/lib/template-typography-presets";
+import PreviewColorPicker from "@/components/menu/PreviewColorPicker";
+import { MENU_TEXT_COLOR_GROUPS, MENU_TEXT_COLOR_LABELS, MENU_TEXT_COLOR_DESCRIPTIONS, readMenuTextColors, type MenuTextColors } from "@/lib/menu-text-colors";
 import type { TemplateType } from "@/lib/template-types";
 
 type TypographySettingsFormProps = {
@@ -47,14 +48,11 @@ type TypographySettingsFormProps = {
   hasCustomEnglishFont: boolean;
   initialFontSizeScale: FontSizeScaleKey;
   initialRoleSettings: TypographyRoleSettings;
+  pageSettings?: unknown;
   templateType: TemplateType;
   templateKey?: string | null;
 };
 
-type MixedSelectValue = "__mixed__";
-type GroupSelectValue<Value extends string> = Value | MixedSelectValue;
-
-const MIXED_SELECT_VALUE: MixedSelectValue = "__mixed__";
 const CAFE_A_SCRIPT_FONT_VAR_FALLBACKS = {
   brand: {
     ko: "var(--menu-role-brand-font-ko, var(--menu-font-ko))",
@@ -95,38 +93,6 @@ function getCafeAMiniPreviewScriptStyle(role: CafeAScriptFontRole, extraStyle: C
     ...extraStyle,
   } as CSSProperties;
 }
-
-type TypographyControlGroup = {
-  key: "storeName" | "categoryName" | "otherText";
-  label: string;
-  description: string;
-  roles: readonly TypographyRoleKey[];
-  allowColor: boolean;
-};
-
-const TYPOGRAPHY_CONTROL_GROUPS = [
-  {
-    key: "storeName",
-    label: "가게명 글자",
-    description: "로고 이미지가 없을 때 표시되는 가게명 텍스트에만 적용됩니다.",
-    roles: ["brand"],
-    allowColor: true,
-  },
-  {
-    key: "categoryName",
-    label: "카테고리명 글자",
-    description: "메뉴 그룹과 카테고리 제목에만 적용됩니다.",
-    roles: ["category"],
-    allowColor: true,
-  },
-  {
-    key: "otherText",
-    label: "나머지 글자",
-    description: "브랜드 설명, 메뉴명, 설명, 가격, 특가 문구, 위젯, 푸터의 색상을 함께 설정합니다.",
-    roles: ["itemName", "supporting", "price"],
-    allowColor: true,
-  },
-] as const satisfies readonly TypographyControlGroup[];
 
 type FontDropdownProps<Value extends string> = {
   label: string;
@@ -226,25 +192,8 @@ function FontPicker<Value extends string>({
   );
 }
 
-function getGroupSettingValue<Key extends keyof TypographyRoleSettings[TypographyRoleKey]>(
-  settings: TypographyRoleSettings,
-  roles: readonly TypographyRoleKey[],
-  key: Key,
-): GroupSelectValue<NonNullable<TypographyRoleSettings[TypographyRoleKey][Key]> | ""> {
-  const values = roles.map((role) => {
-    const value = settings[role][key];
-    return value == null ? "" : value;
-  });
-  const [firstValue] = values;
-  return values.every((value) => value === firstValue) ? firstValue : MIXED_SELECT_VALUE;
-}
-
 function getRoleSettingInputValue(value: string | null) {
   return value ?? "";
-}
-
-function normalizeDraftColor(value: string) {
-  return /^#[0-9a-fA-F]{6}$/.test(value) ? value.toUpperCase() : null;
 }
 
 export default function TypographySettingsForm({
@@ -259,6 +208,7 @@ export default function TypographySettingsForm({
   initialRoleSettings,
   templateType,
   templateKey,
+  pageSettings,
 }: TypographySettingsFormProps) {
   const isDisplayTypography = isDisplayTypographyTemplate(templateKey);
   const isAubeTableTemplate = isAubeTableTemplateKey(templateKey);
@@ -294,6 +244,7 @@ export default function TypographySettingsForm({
   );
   const [selectedFontSizeScale, setSelectedFontSizeScale] = useState<FontSizeScaleKey>(initialDisplaySafeFontSizeScale);
   const [selectedRoleSettings, setSelectedRoleSettings] = useState<TypographyRoleSettings>(showRoleTypographyControl ? withCommonTypographyFonts(initialRoleSettings) : initialRoleSettings);
+  const [textColors, setTextColors] = useState<MenuTextColors>(() => readMenuTextColors(pageSettings));
   const safeSelectedEnglishFontValue = selectedEnglishFontValue
     ? getSafeEnglishFontValueForTemplate(templateKey, selectedEnglishFontValue)
     : "";
@@ -317,22 +268,9 @@ export default function TypographySettingsForm({
     [previewEnglishFont, previewKoreanFont, selectedRoleSettings],
   );
   const getColorAwareMiniStyle = (role: CafeAScriptFontRole, extraStyle: CSSProperties = {}) => getCafeAMiniPreviewScriptStyle(role, {
-    ...extraStyle, ...(selectedRoleSettings[role].color ? { color: selectedRoleSettings[role].color! } : {}),
+    ...extraStyle, ...((textColors[role === "itemName" || role === "price" ? "product" : role] ?? selectedRoleSettings[role].color) ? { color: textColors[role === "itemName" || role === "price" ? "product" : role] ?? selectedRoleSettings[role].color! } : {}),
   });
   const isPriceList = templateType === "price_list";
-  function updateControlGroupSetting(roles: readonly TypographyRoleKey[], key: "font_ko_key" | "font_en_key" | "color", value: string) {
-    if (value === MIXED_SELECT_VALUE) return;
-    setSelectedRoleSettings((current) => ({
-      ...current,
-      ...roles.reduce((nextRoles, role) => {
-        nextRoles[role] = {
-          ...current[role],
-          [key]: key === "color" ? normalizeDraftColor(value) : (value ? value : null),
-        };
-        return nextRoles;
-      }, {} as Partial<TypographyRoleSettings>),
-    }));
-  }
 
   return (
     <div className="mt-5 space-y-5">
@@ -341,6 +279,8 @@ export default function TypographySettingsForm({
         {showRoleTypographyControl ? (
           <>
             <input form={formId} type="hidden" name="common_fonts_present" value="1" />
+            <input form={formId} type="hidden" name="text_colors_present" value="1" />
+            {MENU_TEXT_COLOR_GROUPS.map(group => <input key={group} form={formId} type="hidden" name={`text_color_${group}`} value={textColors[group] ?? ""} />)}
             <input form={formId} type="hidden" name="font_size_scale_key" value={selectedFontSizeScale} />
             <div className="grid gap-4 xl:grid-cols-2" data-editor-common-fonts>
               <FontPicker label="공통 한글 서체" description="가게명·카테고리·메뉴에 공통 적용됩니다. 설명과 안내사항은 영문도 이 서체를 사용합니다." name="korean_font_key" options={KOREAN_FONT_OPTIONS} categoryOptions={KOREAN_FONT_CATEGORY_OPTIONS} value={selectedFontValue} defaultOption={defaultFont} formId={formId} onChange={setSelectedFontValue} />
@@ -363,9 +303,7 @@ export default function TypographySettingsForm({
                 <div>
                   <h4 className="type-label text-zinc-950">글자 설정</h4>
                   <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
-                    {isAubeTableTemplate
-                      ? "서체는 공통으로 적용하고, 가게명·페이지·코스명과 나머지 글자의 색상은 따로 조정합니다."
-                      : "서체는 공통으로 적용하고, 가게명·카테고리명과 나머지 글자의 색상은 따로 조정합니다."}
+                    서체는 공통으로 적용하고, 글자색은 역할과 표시 영역에 따라 조정합니다.
                   </p>
                   <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
                     현재 템플릿 기본 폰트: 한글 <span className="text-zinc-700">{defaultFont.label}</span> · 영문/숫자 <span className="text-zinc-700">{safeDefaultEnglishFont.label}</span>
@@ -373,61 +311,19 @@ export default function TypographySettingsForm({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setSelectedRoleSettings(createDefaultTypographyRoleSettings())}
+                  onClick={() => { setSelectedRoleSettings(createDefaultTypographyRoleSettings()); setTextColors({}); }}
                   className="site-button site-button-outline inline-flex shrink-0 items-center justify-center text-xs"
                 >
                   글자 설정 초기화
                 </button>
               </div>
               <div className="site-section site-editor-subpanel mt-4 divide-y divide-zinc-100">
-                {TYPOGRAPHY_CONTROL_GROUPS.map((group) => {
-                  const description = isAubeTableTemplate && group.key === "categoryName"
-                    ? "페이지명과 코스(카테고리)명에 함께 적용됩니다."
-                    : group.description;
-
-                  const colorValue = group.allowColor ? getGroupSettingValue(selectedRoleSettings, group.roles, "color") : "";
-                  const hasMixedValue = colorValue === MIXED_SELECT_VALUE;
-                  const selectedColor = typeof colorValue === "string" && colorValue !== MIXED_SELECT_VALUE && colorValue ? colorValue : "#191C1B";
-
-                  return (
-                    <div
-                      key={group.key}
-                      className={`grid gap-3 px-3 py-3 ${
-                        group.allowColor
-                          ? "lg:grid-cols-[minmax(8rem,1fr)_minmax(8rem,0.8fr)]"
-                          : "lg:grid-cols-[minmax(8rem,1fr)_minmax(10rem,1.05fr)_minmax(10rem,1.05fr)]"
-                      } lg:items-center`}
-                    >
-                      <div>
-                        <p className="break-keep text-sm font-bold text-zinc-800">{group.label}</p>
-                        <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">{description}</p>
-                        {hasMixedValue ? (
-                          <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">저장된 개별 설정이 있어 변경한 항목만 함께 맞춰집니다.</p>
-                        ) : null}
-                      </div>
-                      {group.allowColor ? (
-                        <div>
-                          <label className="mb-1 block text-xs font-bold text-zinc-400" htmlFor={`typography-group-${group.key}-color`}>색상</label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              id={`typography-group-${group.key}-color`}
-                              type="color"
-                              value={selectedColor}
-                              onChange={(event) => updateControlGroupSetting(group.roles, "color", event.target.value)}
-                              className="h-10 w-12 shrink-0 cursor-pointer rounded-md border border-zinc-200 bg-white p-1"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => updateControlGroupSetting(group.roles, "color", "")}
-                              className="h-10 rounded-md border border-zinc-200 bg-zinc-50 px-3 text-xs font-bold text-zinc-500 transition hover:border-zinc-400 hover:bg-white hover:text-zinc-950"
-                            >
-                              기본 색상
-                            </button>
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-                  );
+                {MENU_TEXT_COLOR_GROUPS.map(group => {
+                  const role = group === "brand" || group === "category" ? group : group === "product" ? "itemName" : "supporting";
+                  return <div key={group} className="grid gap-3 px-3 py-3 lg:grid-cols-[minmax(8rem,1fr)_minmax(8rem,0.8fr)] lg:items-center">
+                    <div><p className="text-sm font-bold text-zinc-800">{MENU_TEXT_COLOR_LABELS[group]}</p><p className="mt-1 break-keep text-xs leading-relaxed text-zinc-500">{MENU_TEXT_COLOR_DESCRIPTIONS[group]}</p></div>
+                    <PreviewColorPicker label="글자색" accessibleLabel={`${MENU_TEXT_COLOR_LABELS[group]} 글자색`} value={textColors[group]} defaultColor={selectedRoleSettings[role].color ?? "#191C1B"} disabled={false} onChange={color => setTextColors(current => ({ ...current, [group]: color }))} />
+                  </div>;
                 })}
               </div>
             </section>
@@ -549,7 +445,7 @@ export default function TypographySettingsForm({
               </p>
               <p
                 className="mt-2 break-keep text-xs font-semibold leading-relaxed text-[#66726f]"
-                style={getColorAwareMiniStyle("supporting")}
+                style={getCafeAMiniPreviewScriptStyle("supporting", {color:textColors.representative ?? selectedRoleSettings.supporting.color ?? "#66726f"})}
               >
                 <span style={{ fontFamily: "var(--menu-font-ko)" }}>{cafeAMiniPreviewDescriptionText}</span>
               </p>

@@ -1,4 +1,5 @@
 "use server";
+import { setMenuTextColorsFromForm } from "@/lib/menu-text-colors";
 
 import { getSavedMenuDesign } from "@/lib/menu-design-identity";
 import { getNeutralDesignAppearance } from "@/lib/menu-design-mutation";
@@ -1823,6 +1824,8 @@ export async function updateTypographySettingsAction(formData: FormData) {
   }
   setDesignTypographyRoleSettings(designSettings, typographyRoleSettings, menuSite.template_key);
   if (formData.get("common_fonts_present") === "1") designSettings.commonFonts = true;
+  try { setMenuTextColorsFromForm(designSettings, formData); }
+  catch (error) { redirectToTabEditWithError(menuId, "design", error instanceof Error ? error.message : "글자색을 확인해주세요."); }
 
   if (Object.keys(designSettings).length > 0) {
     pageSettings.design = designSettings;
@@ -2897,6 +2900,7 @@ export async function resetTypographySettingsAction(formData: FormData) {
   delete designSettings.englishFont;
   delete designSettings.fontSizeScale;
   delete designSettings.commonFonts;
+  delete designSettings.textColors;
   delete designSettings.typographyRoles;
   delete designSettings.typography_roles;
   if (Object.keys(designSettings).length > 0) {
@@ -2979,6 +2983,8 @@ export async function updateDesignSettingsAction(formData: FormData) {
   }
   setDesignTypographyRoleSettings(designSettings, typographyRoleSettings, menuSite.template_key);
   if (formData.get("common_fonts_present") === "1") designSettings.commonFonts = true;
+  try { setMenuTextColorsFromForm(designSettings, formData); }
+  catch (error) { redirectToTabEditWithError(menuId, "design", error instanceof Error ? error.message : "글자색을 확인해주세요."); }
   delete designSettings.onePageLayoutShell;
   delete designSettings.one_page_layout_shell;
 
@@ -3149,6 +3155,7 @@ export async function resetDesignSettingsToTemplateDefaultAction(formData: FormD
   delete designSettings.englishFont;
   delete designSettings.fontSizeScale;
   delete designSettings.commonFonts;
+  delete designSettings.textColors;
   delete designSettings.typographyRoles;
   delete designSettings.typography_roles;
   delete designSettings.onePageLayoutShell;

@@ -10,7 +10,7 @@ import { buildCafeAWidgetLengthFixture, parseCafeAWidgetLengthFixtureOptions } f
 import { buildDefaultDesignPreview } from "@/lib/default-design-preview";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import { getDefaultDesignOptions } from "@/lib/default-design-options";
-import { applyPreviewDesign } from "@/lib/menu-preview-design";
+import { applyPreviewDesign, readPreviewDesign } from "@/lib/menu-preview-design";
 
 export const metadata = { title: "Basic shared design fixture", robots: { index: false, follow: false } };
 
@@ -21,7 +21,7 @@ export default async function BasicDesignFixture({ searchParams }: { searchParam
   const first = (key: string) => { const value = query[key]; return Array.isArray(value) ? value[0] : value; };
   if (first("editor") === "on") return <main className="mx-auto max-w-5xl p-6"><h1>공통 디자인 설정 검증</h1><form id="fixture-design" />
     <MenuSurfaceSettingsForm pageSettings={{}} settings={{}} templateKey="cafe_design_a" formId="fixture-design" />
-    <TypographySettingsForm formId="fixture-design" initialFont={getKoreanFontOption("pretendard")!} defaultFont={getKoreanFontOption("pretendard")!} initialEnglishFont={getEnglishFontOption("alata")!} defaultEnglishFont={getEnglishFontOption("outfit")!} hasCustomKoreanFont hasCustomEnglishFont initialFontSizeScale="m" initialRoleSettings={normalizeTypographyRoleSettings({ brand: { font_en_key: "mogra", color: "#123456" }, category: { font_en_key: "carme", color: "#654321" } })} templateType="menu" templateKey="cafe_design_a" />
+    <TypographySettingsForm formId="fixture-design" initialFont={getKoreanFontOption("pretendard")!} defaultFont={getKoreanFontOption("pretendard")!} initialEnglishFont={getEnglishFontOption("alata")!} defaultEnglishFont={getEnglishFontOption("outfit")!} hasCustomKoreanFont hasCustomEnglishFont initialFontSizeScale="m" pageSettings={{design:{textColors:readPreviewDesign(first("designPreview")).textColors}}} initialRoleSettings={normalizeTypographyRoleSettings({ brand: { font_en_key: "mogra", color: "#123456" }, category: { font_en_key: "carme", color: "#654321" } })} templateType="menu" templateKey="cafe_design_a" />
   </main>;
   const device = first("device") === "mobile" ? "mobile" : first("device") === "tablet" ? "tablet" : "pc";
   const design = getDefaultDesignReview(first("design") ?? "basic-first-column", "cafe_design_a");

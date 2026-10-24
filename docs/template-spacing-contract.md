@@ -1,5 +1,15 @@
 # Menu template spacing contract
 
+## Text color ownership — 2026-10-24
+
+Preview and menu editor share five explicit color groups: brand; category plus price-option names; product name/selling price/price note; representative description plus notices actually inside the representative surface; and menu descriptions including secondary names, category descriptions, widget text and menu-area notices. Featured product name/price and description keep their corresponding product/menu-description ownership. Color grouping does not change any font, size, weight, layout or mobile rhythm. Time-sale chip/copy accents and sold-out state remain independent.
+
+Optional `design.textColors` stores only edited groups. Missing/reset groups retain existing typography-role/native palettes; old `designPreview.fonts` URLs remain supported. Preview edits use the same saved Design renderer without writing customer data. Both editor save paths validate bounded registered color keys before the existing ownership-filtered update, preserve unrelated JSON, and both typography/design resets clear these explicit groups. There is no data migration.
+
+Original time-sale prices derive from the local rendered price hue at 60% concentration against the local panel background. Increase concentration only as needed to reach readable 4.5:1 contrast when the selected price hue permits it; never change the chosen price hue to a new accent. Preserve the strike-through, size and discounted-price role. Featured photo prices use the existing dark readability fade. Countdown ticks do not invalidate this color derivation.
+
+Preview labels are “이미지·텍스트칩 라운드” and “가게명·가게 설명 정렬”. The radius control keeps one concise scope line; duplicate labels and the former radius/alignment footer explanations are removed. Functionality and featured-product left alignment are unchanged.
+
 ## Fixed title ratios and representative panels — 2026-10-24
 
 Latest user approval replaces width-filling PC/tablet title sizing. Every active Basic default list/album and designer presentation uses the actual category size × **1.6** for left/center/upper-left brands and × **1.3** for top-row headers. This is the maintained font size, not a minimum that can keep growing. Width and height only determine line wrapping; there is no 40px floor, width coverage target, automatic enlargement/shrink or two-line size comparison. Prefer the fewest whole-word lines; an oversized word alone may split safely by grapheme. Keep intact neighboring words on their own lines. Preserve the existing Darumadrop metric corrections and independent mobile fitter.
