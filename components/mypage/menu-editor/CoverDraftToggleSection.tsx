@@ -67,7 +67,7 @@ export default function CoverDraftToggleSection({
       </div>
 
       {!enabled && (
-        <p className="md:col-span-2 break-keep rounded-lg border border-dashed border-zinc-200 bg-white p-5 text-sm font-bold leading-relaxed text-zinc-500">
+        <p className="site-editor-subpanel md:col-span-2 break-keep p-5 text-sm leading-relaxed text-zinc-500">
           {inactiveMessage}
         </p>
       )}

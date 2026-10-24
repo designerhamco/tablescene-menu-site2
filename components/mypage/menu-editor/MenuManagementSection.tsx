@@ -1421,7 +1421,7 @@ function BadgeColorFields({
 }
 
 function EmptyState({ children }: { children: ReactNode }) {
-  return <p className="rounded-lg border border-dashed border-zinc-200 p-6 text-center text-sm font-bold text-zinc-400">{children}</p>;
+  return <p className="site-editor-subpanel p-6 text-center text-sm text-zinc-500">{children}</p>;
 }
 
 function getCopyName(name: string, existingNames: string[] = []) {

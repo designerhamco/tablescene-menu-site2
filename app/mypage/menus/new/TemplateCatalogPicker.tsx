@@ -11,6 +11,8 @@ import {
   type TemplateKey,
 } from "@/lib/templates";
 import { Badge } from "@/app/components/ui/badge";
+import { EmptyState } from "@/app/components/ui/empty-state";
+import { PanelsTopLeft } from "lucide-react";
 
 const activeTemplateCatalog = getAvailableTemplatesForService("basic");
 const firstCategoryGroupWithTemplate = BASIC_TEMPLATE_CATEGORY_GROUPS.find((group) =>
@@ -104,12 +106,7 @@ export default function TemplateCatalogPicker() {
             </label>
           );
         }) : (
-          <div className="site-card site-card-empty px-5 py-12 lg:col-span-3">
-            <p className="text-base font-bold text-zinc-800">템플릿 준비 중입니다.</p>
-            <p className="mt-2 break-keep text-sm font-medium leading-relaxed text-zinc-500">
-              이 Basic 카테고리의 템플릿은 준비 중입니다.
-            </p>
-          </div>
+          <EmptyState headingLevel={3} className="lg:col-span-3" icon={<PanelsTopLeft />} title="템플릿 준비 중입니다." description="이 Basic 카테고리의 템플릿은 준비 중입니다." />
         )}
       </div>
     </fieldset>

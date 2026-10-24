@@ -70,8 +70,8 @@ export default async function StoreOperationsShell({
             }))} />
           ) : null}
 
-          <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-8">
-            <aside className="space-y-3 lg:sticky lg:top-28">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-8">
+            <aside className="min-w-0 space-y-3 lg:sticky lg:top-28">
               {user ? (
                 <MypageAccountCard
                   email={user.email ?? "이메일 정보 없음"}

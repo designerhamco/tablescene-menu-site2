@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Bell, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useMemo, useState } from "react";
 
@@ -14,6 +14,8 @@ import { initialCallManagementActionState } from "./action-state";
 import { mutateCallAction } from "./actions";
 import CallItemManager from "./CallItemManager";
 import { Badge } from "@/app/components/ui/badge";
+import { EmptyState } from "@/app/components/ui/empty-state";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "미처리",
@@ -80,7 +82,7 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
   }, [backgroundPollingEnabled, pending, router]);
 
   return (
-    <div className="space-y-5">
+    <Tabs value={activeTab} onValueChange={value => setActiveTab(value as "history" | "settings")} className="gap-4">
       <OperationalArrivalAlert
         menuSiteId={menuSiteId}
         kind="calls"
@@ -89,19 +91,15 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
       />
       <ActionFeedbackToast message={state.message} tone={state.status === "success" ? "success" : "error"} eventKey={state} />
 
-      <div className="flex gap-1 rounded-2xl border border-zinc-200 bg-zinc-100 p-1" role="tablist" aria-label="호출관리 화면">
-        <button type="button" role="tab" aria-selected={activeTab === "history"} onClick={() => setActiveTab("history")} className={`flex-1 rounded-xl px-4 py-3 text-sm font-bold transition ${activeTab === "history" ? "bg-white text-zinc-950" : "text-zinc-500 hover:text-zinc-800"}`}>
-          호출 내역{unresolvedCount > 0 ? ` · 미처리 ${unresolvedCount}` : ""}
-        </button>
-        <button type="button" role="tab" aria-selected={activeTab === "settings"} onClick={() => setActiveTab("settings")} className={`flex-1 rounded-xl px-4 py-3 text-sm font-bold transition ${activeTab === "settings" ? "bg-white text-zinc-950" : "text-zinc-500 hover:text-zinc-800"}`}>
-          호출 관리
-        </button>
-      </div>
+      <TabsList variant="outline" distribution="equal" aria-label="호출관리 화면">
+        <TabsTrigger value="history">호출 내역{unresolvedCount > 0 ? <span className="type-caption"> · 미처리 {unresolvedCount}</span> : null}</TabsTrigger>
+        <TabsTrigger value="settings">호출 관리</TabsTrigger>
+      </TabsList>
 
       {activeTab === "settings" ? (
-        <CallItemManager key={callItems.map((item) => `${item.key}:${item.label}:${item.sortOrder}:${item.active}`).join("|")} menuSiteId={menuSiteId} items={callItems} service={callService} />
+        <TabsContent value="settings"><CallItemManager key={callItems.map((item) => `${item.key}:${item.label}:${item.sortOrder}:${item.active}`).join("|")} menuSiteId={menuSiteId} items={callItems} service={callService} /></TabsContent>
       ) : (
-        <div className="space-y-4" role="tabpanel">
+        <TabsContent value="history" className="space-y-4">
           <section className="site-section p-4 md:p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
@@ -136,9 +134,9 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
           {state.status !== "idle" && state.message ? <p className={`site-notice   px-4 py-3 text-sm font-bold ${state.status === "success" ? "site-notice-success" : "site-notice-error"}`}>{state.message}</p> : null}
 
           {calls.length === 0 ? (
-            <p className="rounded-3xl border border-dashed border-zinc-300 bg-white px-6 py-12 text-center text-sm font-bold text-zinc-500">아직 접수된 직원 호출이 없습니다.</p>
+            <EmptyState headingLevel={3} icon={<Bell />} title="아직 접수된 직원 호출이 없습니다." description="호출이 접수되면 이곳에 표시됩니다." />
           ) : filteredCalls.length === 0 ? (
-            <p className="rounded-3xl border border-dashed border-zinc-300 bg-white px-6 py-12 text-center text-sm font-bold text-zinc-500">조건에 맞는 호출 내역이 없습니다.</p>
+            <EmptyState headingLevel={3} icon={<Bell />} title="조건에 맞는 호출 내역이 없습니다." description="검색·상태·날짜·처리자 조건을 확인해주세요." />
           ) : filteredCalls.map((call) => (
             <article key={call.id} className="site-section p-5 md:p-6">
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -165,8 +163,8 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
               </div>
             </article>
           ))}
-        </div>
+        </TabsContent>
       )}
-    </div>
+    </Tabs>
   );
 }

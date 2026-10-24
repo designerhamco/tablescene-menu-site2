@@ -70,7 +70,7 @@ export default function QrAddressActions({
             publicBaseUrl={publicBaseUrl}
             disabled={disabled}
             disabledReason={disabledReason}
-            className="rounded-full bg-zinc-950 px-4 py-3 text-xs font-bold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-200 disabled:text-zinc-500"
+            className="site-button site-button-rounded site-button-primary"
           />
         </div>
       </div>
