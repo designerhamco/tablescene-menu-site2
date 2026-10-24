@@ -10,7 +10,6 @@ import PreviewFullscreenControl from "@/components/menu/PreviewFullscreenControl
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
 import { getAuthorizedPreviewMenuPageData, type MenuPageData } from "@/lib/menu-page-data";
-import { buildOnePageCallPreviewConfig } from "@/lib/one-page-call-preview";
 import {
   buildMenuPreviewUrl,
   normalizeMenuPreviewDevice,
@@ -18,12 +17,10 @@ import {
   normalizeMenuPreviewOrientation,
   shouldUseMenuPreviewDeviceFrame,
   type MenuPreviewQuery,
-  type TemplatePreviewQuery,
 } from "@/lib/menu-preview-devices";
 import { MenuSiteAccessError, type MenuSiteMemberRole } from "@/lib/menu-site-permissions";
 import { type MenuSiteAccessState } from "@/lib/server/menu-site-access-service";
 import { createClient } from "@/lib/supabase/server";
-import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import { sortMenuPages } from "@/types/menu";
 import { Badge } from "@/app/components/ui/badge";
 
@@ -163,7 +160,9 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
     redirect("/mypage?error=menu-preview-not-allowed");
   }
 
-  const { data, design, options, designDefaults } = buildSavedMenuPreview(savedData, query);
+  const { data, design, features } = buildSavedMenuPreview(savedData);
+  const editHref = accessState.canEdit && accessState.canUseWriteActions && accessContext.permissions.has("menu.edit")
+    ? `/mypage/menus/${encodeURIComponent(menuId)}/edit` : undefined;
   const usesDevicePreviewFrame = shouldUseMenuPreviewDeviceFrame(data.menuSite.template_key);
   const device = normalizeMenuPreviewDevice(requestedDevice, usesDevicePreviewFrame ? "tablet" : "pc");
 
@@ -175,18 +174,13 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
         menuId={menuId}
         menuTemplateKey={data.menuSite.template_key ?? undefined}
         menuDesignId={design?.id}
-        previewDisplayOptions={options}
-        previewDesignDefaults={designDefaults}
+        editHref={editHref}
         query={previewQuery}
-        supportsCallPreview={data.menuSite.template_key !== "display_menu_a"}
       />
     );
   }
 
-  const previewOrderCallConfig = buildInteractivePreviewConfig(data, getSearchParamValue(query.callPreview) === "on", getSearchParamValue(query.orderPreview) === "on") ?? buildOnePageCallPreviewConfig({
-    enabled: getSearchParamValue(query.callPreview) === "on", templateKey: data.menuSite.template_key,
-    menuSiteId: data.menuSite.id, storeName: data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name,
-  });
+  const previewOrderCallConfig = buildInteractivePreviewConfig(data, features.call, features.order);
 
   return (
     <>
@@ -198,7 +192,6 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
       <MenuPageRenderer
         mode="preview"
         previewDevice={isActualView ? getActualMenuPreviewDevice(requestedDevice) : undefined}
-        previewLayoutMode={supportsPcTabletLayoutMode(data.menuSite.template_key) && getSearchParamValue(query.layoutMode) ? normalizePcTabletLayoutMode(getSearchParamValue(query.layoutMode), data.menuSite.template_key) : undefined}
         debugCafeA={debugCafeA}
         initialPreviewPageId={getDisplayPreviewInitialPageId(data, requestedPageIndex)}
         orderCallConfig={previewOrderCallConfig}

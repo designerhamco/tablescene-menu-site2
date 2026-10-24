@@ -270,10 +270,10 @@ test("preview URLs preserve landscape only for tablet frames", () => {
   );
 });
 
-test("preview URLs preserve PG opt-in only for mobile frames", () => {
+test("customer preview URLs ignore legacy PG experiments", () => {
   assert.equal(
     buildMenuPreviewUrl("menu-a", {}, { device: "mobile", paymentMode: "on" }),
-    "/mypage/menus/menu-a/preview?device=mobile&payment=on",
+    "/mypage/menus/menu-a/preview?device=mobile",
   );
   assert.equal(
     buildMenuPreviewUrl("menu-a", {}, { device: "mobile", paymentMode: "off" }),
@@ -301,7 +301,7 @@ test("template previews open in device frames without carrying recursive frame p
 });
 
 
-test("detached links retain the selected device and interactive feature toggles", () => {
+test("customer detached links retain the selected device and strip interactive experiments", () => {
   for (const device of MENU_PREVIEW_DEVICE_ORDER) {
     const html = renderFrame(createElement(MenuPreviewDeviceFrame, {
       device, orientation: "portrait", menuId: "menu-a",
@@ -309,7 +309,7 @@ test("detached links retain the selected device and interactive feature toggles"
     }));
     const link = html.match(/<a[^>]*data-preview-detached-link=""[^>]*>/)?.[0] ?? "";
     const href = link.match(/href="([^"]*)"/)?.[1].replaceAll("&amp;", "&");
-    assert.equal(href, `/mypage/menus/menu-a/preview?lang=en&page=2&callPreview=on&device=${device}${device === "tablet" ? "&orientation=landscape" : ""}&view=actual&embedded=1&detached=1`);
+    assert.equal(href, `/mypage/menus/menu-a/preview?lang=en&page=2&device=${device}${device === "tablet" ? "&orientation=portrait" : ""}&view=actual&embedded=1&detached=1`);
     assert.match(html, new RegExp(`src="[^\"]*device=${device}`));
     const starterUrl = buildTemplatePreviewUrl("fast_food_loop_bagel_a", {
       device, orientation: "portrait", lang: "en", callPreview: "on",
@@ -333,7 +333,7 @@ test("detached actual previews expose a user-triggered fullscreen control", () =
 
 test("layout comparisons survive device, feature and detached preview changes", () => {
   for (const device of ["pc", "tablet", "mobile"] as const) {
-    for (const build of [() => buildTemplatePreviewUrl("cafe_real_matcha_paged_test", {layoutMode: "orderedFit", pageTest: "widgets", callPreview: "on"}, {device, actual: true, embedded: true, orderPreview: true}), () => buildMenuPreviewUrl("qa", {layoutMode: "orderedFit", callPreview: "on"}, {device, actual: true, orderPreview: true})]) {
+    for (const build of [() => buildTemplatePreviewUrl("cafe_real_matcha_paged_test", {layoutMode: "orderedFit", pageTest: "widgets", callPreview: "on"}, {device, actual: true, embedded: true, orderPreview: true})]) {
       const params = new URL(build(), "https://example.com").searchParams;
       assert.equal(params.get("layoutMode"), "orderedFit");
       assert.equal(params.get("orderPreview"), "on");

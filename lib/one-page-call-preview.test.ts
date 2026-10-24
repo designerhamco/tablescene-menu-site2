@@ -24,7 +24,7 @@ test("호출 미리보기는 기기·회전·언어·새 창 URL을 따라가며
   const query = { callPreview: "on", lang: "en" };
   assert.match(buildTemplatePreviewUrl("cafe_design_a", query, { device: "tablet", orientation: "portrait", actual: true, embedded: true }), /callPreview=on.*device=tablet.*orientation=portrait.*view=actual.*embedded=1/);
   assert.doesNotMatch(buildTemplatePreviewUrl("cafe_design_a", query, { device: "mobile", callPreview: false }), /callPreview/);
-  assert.match(buildMenuPreviewUrl("menu", query, { device: "pc" }), /callPreview=on/);
+  assert.doesNotMatch(buildMenuPreviewUrl("menu", query, { device: "pc" }), /callPreview/);
   assert.doesNotMatch(buildMenuPreviewUrl("menu", query, { device: "pc", callPreview: false }), /callPreview/);
 });
 test("모바일 호출 바와 루프 상단 장식은 공통 호출 리듬을 따른다", () => {
