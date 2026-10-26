@@ -3,11 +3,22 @@ import test from "node:test";
 
 import {
   getStoreOperationAccess,
+  canConfigureStoreOperationsSite,
   hasAvailableStoreOperation,
   isCurrentPickupQueueOperationsSite,
   isCurrentSmartCallOperationsSite,
   isStoreOperationsTemplate,
 } from "./operations-dashboard";
+
+test("설정 준비는 미공개 메뉴의 사장에게만 열리며 운영 접수 권한을 부여하지 않는다", () => {
+  const draft = { isOwner: true, templateKey: "cafe_design_a", status: "draft" };
+  assert.equal(canConfigureStoreOperationsSite(draft), true);
+  assert.equal(canConfigureStoreOperationsSite({ ...draft, isOwner: false }), false);
+  assert.equal(canConfigureStoreOperationsSite({ ...draft, status: "archived" }), false);
+  assert.equal(canConfigureStoreOperationsSite({ ...draft, templateKey: "display_menu_a" }), false);
+  assert.equal(canConfigureStoreOperationsSite({ ...draft, templateKey: "unknown" }), false);
+  assert.deepEqual(getStoreOperationAccess({ accessRole: "owner", templateKey: draft.templateKey, orderDashboardEnabled: false, tableManagementEnabled: false, callManagementEnabled: false, pickupQueueEnabled: false }), { orders: false, calls: false, tables: false, sales: false, pickup: false });
+});
 
 test("베이직·다이닝은 운영 대상이며 디스플레이는 제외한다", () => {
   assert.equal(isStoreOperationsTemplate("cafe_design_a"), true);

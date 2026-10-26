@@ -5,10 +5,12 @@ import { signOutAction } from "@/app/auth/actions";
 import { formatNotificationBadgeCount } from "@/lib/notification-display-policy";
 import { Badge } from "@/app/components/ui/badge";
 import { MypageNavigationRail } from "@/components/mypage/MypageNavigationRail";
+import { isStaffManagementAvailable } from "@/lib/product-focus-policy";
 
 export type MypageNavigationKey =
   | "menus"
   | "payments"
+  | "staff"
   | "inquiries"
   | "notifications"
   | "account"
@@ -82,11 +84,11 @@ export function MypageAccountCard({
             </span>
           </Link>
           ) : null}
-          {staffAccountCount !== undefined ? (
-            <div className="site-account-metric" aria-label={`직원계정 ${staffAccountCount.toLocaleString("ko-KR")}명`}>
+          {staffAccountCount !== undefined && isStaffManagementAvailable() ? (
+            <Link href="/mypage/staff" className="site-account-metric site-account-metric-link" aria-label={`직원계정 ${staffAccountCount.toLocaleString("ko-KR")}명. 직원 관리 보기`}>
               <span className="site-account-metric-label">직원계정</span>
-              <span className="site-account-metric-value"><strong>{staffAccountCount.toLocaleString("ko-KR")}명</strong></span>
-            </div>
+              <span className="site-account-metric-value"><strong>{staffAccountCount.toLocaleString("ko-KR")}명</strong><ArrowUpRight aria-hidden="true" /></span>
+            </Link>
           ) : null}
         </div>
       ) : null}
@@ -123,6 +125,13 @@ export function MypageNavigation({
       ) : (
         <DisabledNavigationItem label="구독/결제 내역" reason="사장 계정만 구독과 결제 내역을 관리할 수 있습니다." />
       )}
+      {isStaffManagementAvailable() ? canShowOwnerCommerce ? (
+        <Link href="/mypage/staff" aria-current={active === "staff" ? "page" : undefined} className={getNavigationClassName(active === "staff")}>
+          <span>직원 관리</span>
+        </Link>
+      ) : (
+        <DisabledNavigationItem label="직원 관리" reason="사장 계정만 직원을 초대하고 권한을 관리할 수 있습니다." />
+      ) : null}
       <Link href="/mypage?tab=inquiries" aria-current={active === "inquiries" ? "page" : undefined} className={getNavigationClassName(active === "inquiries")}>
         <span>문의 내역</span>
       </Link>

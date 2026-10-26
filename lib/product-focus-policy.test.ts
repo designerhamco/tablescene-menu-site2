@@ -8,12 +8,12 @@ function readSource(relativePath: string) {
   return readFileSync(new URL(`../${relativePath}`, import.meta.url), "utf8");
 }
 
-test("베이직과 다이닝의 주문·호출 운영을 열고 직원 초대와 픽업은 유지한다", () => {
+test("베이직과 다이닝의 주문·호출 운영과 직원 관리를 열고 픽업은 닫아 둔다", () => {
   assert.deepEqual(DESIGN_MENU_FOCUS_POLICY, {
     representativeQr: true,
     smartCall: true,
     storeOperations: true,
-    staffManagement: false,
+    staffManagement: true,
     tableManagement: true,
     pickupQueue: false,
   });

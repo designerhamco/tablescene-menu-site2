@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
+import OperationFeatureNavigation from "@/components/mypage/OperationFeatureNavigation";
 import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import { isStoreOperationsAvailable } from "@/lib/product-focus-policy";
 import {
@@ -66,7 +67,8 @@ export default async function CallDashboardPage({
             테이블의 직원 호출을 접수 확인하고 완료합니다. 손님이 취소한 호출과 완료 이력도 함께 확인할 수 있습니다.
           </p>
         </header>
-        <CallDashboard menuSiteId={data.menuSite.id} calls={data.calls} callItems={data.callItems} callService={data.callService} />
+        <OperationFeatureNavigation menuId={menuId} feature="calls" settings={false} historyAvailable={selectedSite.operationAccess.calls} canConfigure />
+        <CallDashboard menuSiteId={data.menuSite.id} calls={data.calls} />
       </div>
     </StoreOperationsShell>
   );

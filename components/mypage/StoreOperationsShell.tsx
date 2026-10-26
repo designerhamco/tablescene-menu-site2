@@ -9,7 +9,7 @@ import type { StoreOperationKey } from "@/lib/operations-dashboard";
 import type { StoreOperationsSite } from "@/lib/server/store-operations-context";
 import { createClient } from "@/lib/supabase/server";
 
-export type StoreOperationsSection = "dashboard" | StoreOperationKey;
+export type StoreOperationsSection = "dashboard" | StoreOperationKey | "order-settings" | "call-settings";
 
 const operationNavigation: Array<{
   key: StoreOperationKey;
@@ -23,6 +23,16 @@ const operationNavigation: Array<{
 ];
 
 function getSectionHref(site: StoreOperationsSite, section: StoreOperationsSection) {
+  if (section === "order-settings" || section === "call-settings") {
+    const feature = section === "order-settings" ? "orders" : "calls";
+    if (site.canConfigure || (feature === "calls" && site.operationAccess.calls)) {
+      return `/mypage/menus/${site.menuSiteId}/${feature}/settings`;
+    }
+    return `/mypage/operations?site=${encodeURIComponent(site.menuSiteId)}`;
+  }
+  if ((section === "orders" || section === "calls") && !site.operationAccess[section] && site.canConfigure) {
+    return `/mypage/menus/${site.menuSiteId}/${section}/settings`;
+  }
   if (section === "dashboard" || !site.operationAccess[section]) {
     return `/mypage/operations?site=${encodeURIComponent(site.menuSiteId)}`;
   }
@@ -96,7 +106,9 @@ export default async function StoreOperationsShell({
                 <nav className="space-y-1 border-t border-zinc-100 pt-2" aria-label="매장 운영 메뉴">
                   {operationNavigation.map((item) => {
                     const enabled = Boolean(selectedSite?.operationAccess[item.key]);
-                    if (!selectedSite || !enabled) {
+                    const configurationAvailable = Boolean(selectedSite?.canConfigure && (item.key === "orders" || item.key === "calls"));
+                    const active = activeSection === item.key || (item.key === "orders" && activeSection === "order-settings") || (item.key === "calls" && activeSection === "call-settings");
+                    if (!selectedSite || (!enabled && !configurationAvailable)) {
                       const hasRolePermission = Boolean(selectedSite?.permissions.includes(item.permission));
                       const unavailableLabel = selectedSite && !hasRolePermission ? "권한 없음" : "이용 불가";
                       const unavailableReason = !selectedSite
@@ -121,11 +133,12 @@ export default async function StoreOperationsShell({
                     return (
                       <Link
                         key={item.key}
-                        href={`/mypage/menus/${selectedSite.menuSiteId}/${item.key}`}
-                        aria-current={activeSection === item.key ? "page" : undefined}
-                        className={getNavigationClassName(activeSection === item.key)}
+                        href={`/mypage/menus/${selectedSite.menuSiteId}/${item.key}${enabled ? "" : "/settings"}`}
+                        aria-current={active ? "page" : undefined}
+                        className={getNavigationClassName(active)}
                       >
                         <span>{item.label}</span>
+                        {!enabled ? <span className="text-support font-medium">설정</span> : null}
                       </Link>
                     );
                   })}

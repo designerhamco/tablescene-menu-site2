@@ -1,15 +1,17 @@
 "use client";
 import { useActionState } from "react";
-import type { MenuOrderSettings } from "@/lib/menu-order-settings";
+import type { MenuOrderSettings, MenuOrderSettingsSection } from "@/lib/menu-order-settings";
 import { updateOrderSettings, type OrderSettingsState } from "./actions";
 export default function OrderSettingsForm({
   menuId,
   settings,
   courses,
   runtime,
+  section,
 }: {
   menuId: string;
   settings: MenuOrderSettings;
+  section: MenuOrderSettingsSection;
   runtime: {calls:boolean;orders:boolean};
   courses: { id: string; name: string; course_price: number | null }[];
 }) {
@@ -18,25 +20,29 @@ export default function OrderSettingsForm({
     message: "",
   } as OrderSettingsState);
   return (
-    <form action={action} className="mt-10 max-w-2xl">
+    <form action={action} className="space-y-4">
       <input type="hidden" name="menuId" value={menuId} />
+      <input type="hidden" name="section" value={section} />
+      <h3 className="type-content-title">{section === "orders" ? "주문 사용 설정" : "호출 사용 설정"}</h3>
       <p className="site-notice mb-4" role="status">
-        {runtime.calls ? "직원 호출이 연결되어 있습니다. 테이블별 QR로 접속한 손님이 사용할 수 있습니다." : "호출 항목과 사용 여부를 미리 저장할 수 있습니다. 실제 호출은 운영 연결 후 테이블별 QR에서 사용할 수 있습니다."}
-        {runtime.orders ? " 후불 주문이 연결되어 있습니다." : " 후불 주문 설정은 저장되며, 실제 주문은 운영 연결 후 사용할 수 있습니다."}
+        {section === "calls"
+          ? runtime.calls ? "직원 호출이 연결되어 있습니다. 테이블별 QR로 접속한 손님이 사용할 수 있습니다." : "호출 항목과 사용 여부를 미리 저장할 수 있습니다. 실제 호출은 운영 연결 후 테이블별 QR에서 사용할 수 있습니다."
+          : runtime.orders ? "후불 주문이 연결되어 있습니다." : "후불 주문 설정은 미리 저장할 수 있습니다. 실제 주문은 운영 연결 후 사용할 수 있습니다."}
       </p>
-      {[
+      {(section === "calls" ? [
+        ["callEnabled", "직원 호출 사용", "테이블에서 직원을 호출합니다."],
+      ] : [
         [
           "orderEnabled",
           "후불 주문 사용",
           "상품 담기·장바구니·후불 주문을 사용합니다.",
         ],
-        ["callEnabled", "직원 호출 사용", "테이블에서 직원을 호출합니다."],
         [
           "mobilePrepayVisible",
           "모바일 선결제 버튼 표시",
           "고객용 QR 화면에 선결제를 준비 중으로 표시합니다. 아직 결제할 수 없습니다.",
         ],
-      ].map(([key, label, description]) => (
+      ]).map(([key, label, description]) => (
         <label
           key={key}
           className="flex items-start gap-4 border-b border-zinc-200 py-6"
@@ -55,7 +61,7 @@ export default function OrderSettingsForm({
           </span>
         </label>
       ))}
-      {courses.length ? (
+      {section === "orders" && courses.length ? (
         <fieldset className="border-b border-zinc-200 py-6">
           <legend className="type-label">코스 전체 주문</legend>
           <p className="mt-2 text-copy text-zinc-500">
@@ -75,15 +81,15 @@ export default function OrderSettingsForm({
           ))}
         </fieldset>
       ) : null}
-      <p className="mt-6 text-copy leading-relaxed text-zinc-500">
+      {section === "orders" ? <p className="mt-6 text-copy leading-relaxed text-zinc-500">
         매장 PC·태블릿은 후불 주문만 제공합니다. 실제 접수는 운영 연결이 완료된
         테스트 매장부터 사용할 수 있습니다.
-      </p>
+      </p> : null}
       <button
         className="site-button site-button-rounded site-button-primary mt-8"
         disabled={pending}
       >
-        {pending ? "저장 중…" : "설정 저장"}
+        {pending ? "저장 중…" : section === "orders" ? "주문 설정 저장" : "호출 설정 저장"}
       </button>
       {state.message ? (
         <p role="status" className="mt-4 text-copy">
