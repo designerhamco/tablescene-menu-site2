@@ -36,7 +36,7 @@ export default function ControlStateExamples() {
     <p className="type-body-sm text-zinc-600">상태 표는 실제 공통 스타일을 고정해 비교합니다. 비활성 버튼은 실행되지 않으며 hover·클릭 색상으로 바뀌지 않습니다. 고객지원 퀵 버튼은 56px의 둥근 정사각형이며 원형 도구와 구분합니다.</p>
     <div className={styles.ruleGrid}>{([
       ["underline", "콘텐츠 탐색", "밑줄 탭 · 4px 선택선"],
-      ["contained", "목록 종류 전환", "흰 탭과 패널 · 12px 모서리"],
+      ["contained", "목록 종류 전환", "파일형 윤곽 · 검정 선택면"],
       ["outline", "보기 방식 전환", "밝은 바탕 · 선택 테두리"],
     ] as const).map(([variant,title,description]) => <div key={variant} className="min-w-0">
       <h3 className="type-content-title mb-2">{title}</h3><p className="type-caption mb-4 text-zinc-600">{description}</p>
