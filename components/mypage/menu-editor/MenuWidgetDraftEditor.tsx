@@ -343,7 +343,7 @@ export default function MenuWidgetDraftEditor({
               type="button"
               onClick={onCopy}
               disabled={widgetCount >= maxWidgetCount}
-              className="site-button site-button-rounded site-button-outline mr-auto"
+              className="site-button site-button-outline mr-auto"
             >
               복사
             </button>
@@ -352,23 +352,23 @@ export default function MenuWidgetDraftEditor({
             isConfirmingDelete ? (
               <span className="flex flex-wrap items-center justify-end gap-2">
                 <span className="text-support font-medium text-red-600">이 위젯을 삭제할까요?</span>
-                <button type="button" onClick={onConfirmDelete} className="site-button site-button-rounded site-button-danger">삭제</button>
-                <button type="button" onClick={onCancelDelete} className="site-button site-button-rounded site-button-outline">취소</button>
+                <button type="button" onClick={onConfirmDelete} className="site-button site-button-danger">삭제</button>
+                <button type="button" onClick={onCancelDelete} className="site-button site-button-outline">취소</button>
               </span>
             ) : (
-              <button type="button" onClick={onRequestDelete} className="site-button site-button-rounded site-button-outline-danger">
+              <button type="button" onClick={onRequestDelete} className="site-button site-button-outline-danger">
                 삭제
               </button>
             )
           ) : null}
-          <button type="button" onClick={onCancel} className="site-button site-button-rounded site-button-outline">
+          <button type="button" onClick={onCancel} className="site-button site-button-outline">
             취소
           </button>
           <button
             type="button"
             onClick={onSave}
             disabled={saveDisabled}
-            className="site-button site-button-rounded site-button-primary"
+            className="site-button site-button-primary"
           >
             {saveLabel}
           </button>

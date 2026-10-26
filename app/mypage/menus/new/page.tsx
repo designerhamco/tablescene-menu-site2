@@ -63,13 +63,13 @@ export default async function NewMenuSitePage({
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
                   href="/apply/basic"
-                  className="site-button site-button-rounded site-button-primary"
+                  className="site-button site-button-primary"
                 >
                   메뉴판 추가 구매
                 </Link>
                 <Link
                   href="/mypage?tab=menus"
-                  className="site-button site-button-rounded site-button-secondary"
+                  className="site-button site-button-secondary"
                 >
                   기존 메뉴판 관리
                 </Link>

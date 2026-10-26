@@ -59,7 +59,7 @@ export default function QrAddressActions({
             onClick={copyUrl}
             disabled={disabled}
             title={disabled ? disabledReason ?? undefined : undefined}
-            className="site-button site-button-rounded site-button-outline"
+            className="site-button site-button-outline"
           >
             {copyStatus === "copied" ? "복사 완료" : copyStatus === "error" ? "다시 복사" : "주소 복사"}
           </button>
@@ -70,7 +70,7 @@ export default function QrAddressActions({
             publicBaseUrl={publicBaseUrl}
             disabled={disabled}
             disabledReason={disabledReason}
-            className="site-button site-button-rounded site-button-primary"
+            className="site-button site-button-primary"
           />
         </div>
       </div>

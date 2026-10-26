@@ -118,7 +118,7 @@ export default function AiCreditRechargePanel({
         <button
           type="button"
           onClick={() => setIsOpen(true)}
-          className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
+          className="site-button site-button-outline inline-flex items-center justify-center"
         >
           {compact ? "충전하기" : "AI 크레딧 충전하기"}
         </button>

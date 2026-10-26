@@ -92,7 +92,7 @@ export default function MenuTableManager({
           <button
             type="submit"
             disabled={createPending}
-            className="site-button site-button-rounded site-button-primary"
+            className="site-button site-button-primary"
           >
             {createPending ? "생성 중" : "테이블 만들기"}
           </button>
@@ -131,7 +131,7 @@ export default function MenuTableManager({
               publicBaseUrl={publicBaseUrl}
             />
 
-            <a className="site-button site-button-rounded site-button-secondary mt-4" href={table.qrPath+"?mode=terminal"} target="_blank" rel="noopener noreferrer">매장 PC·태블릿에서 열기</a>
+            <a className="site-button site-button-secondary mt-4" href={table.qrPath+"?mode=terminal"} target="_blank" rel="noopener noreferrer">매장 PC·태블릿에서 열기</a>
             <p className="mt-2 text-copy text-zinc-500">손님용 QR은 모바일 화면으로 열리고, 이 주소는 기기 크기에 맞춰 후불 주문만 사용합니다.</p>
             <form action={mutationAction} className="mt-5 grid gap-3 border-t border-zinc-100 pt-5 sm:grid-cols-[minmax(0,1fr)_160px_auto] sm:items-end">
               <input type="hidden" name="menuSiteId" value={menuSiteId} />
@@ -147,7 +147,7 @@ export default function MenuTableManager({
                   <option value="disabled">비활성</option>
                 </select>
               </label>
-              <button name="intent" value="update" disabled={mutationPending} className="site-button site-button-rounded site-button-outline">
+              <button name="intent" value="update" disabled={mutationPending} className="site-button site-button-outline">
                 저장
               </button>
             </form>
@@ -156,14 +156,14 @@ export default function MenuTableManager({
               <form action={mutationAction}>
                 <input type="hidden" name="menuSiteId" value={menuSiteId} />
                 <input type="hidden" name="tableId" value={table.id} />
-                <button name="intent" value="rotate-token" disabled={mutationPending} title="기존에 인쇄한 QR과 방문 세션이 즉시 무효화됩니다." className="site-button site-button-rounded site-button-outline">
+                <button name="intent" value="rotate-token" disabled={mutationPending} title="기존에 인쇄한 QR과 방문 세션이 즉시 무효화됩니다." className="site-button site-button-outline">
                   QR 교체
                 </button>
               </form>
               <form action={mutationAction}>
                 <input type="hidden" name="menuSiteId" value={menuSiteId} />
                 <input type="hidden" name="tableId" value={table.id} />
-                <button name="intent" value="archive" disabled={mutationPending} className="site-button site-button-rounded site-button-outline">
+                <button name="intent" value="archive" disabled={mutationPending} className="site-button site-button-outline">
                   테이블 보관
                 </button>
               </form>

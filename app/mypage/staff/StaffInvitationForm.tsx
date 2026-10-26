@@ -136,7 +136,7 @@ export default function StaffInvitationForm({
       <button
         type="submit"
         disabled={unavailable || pending}
-        className="site-button site-button-rounded site-button-primary inline-flex w-full items-center justify-center md:w-auto"
+        className="site-button site-button-primary inline-flex w-full items-center justify-center md:w-auto"
       >
         {pending ? "초대 처리 중..." : "초대 이메일 보내기"}
       </button>

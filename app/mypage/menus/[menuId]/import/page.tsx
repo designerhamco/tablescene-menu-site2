@@ -120,7 +120,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
             </div>
             <Link
               href={`/mypage/menus/${menuId}/edit`}
-              className="site-button site-button-rounded site-button-outline"
+              className="site-button site-button-outline"
             >
               편집 화면으로 돌아가기
             </Link>
@@ -195,7 +195,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
                 </label>
                 <PendingSubmitButton
                   pendingLabel="연결을 해제하는 중..."
-                  className="site-button site-button-rounded site-button-outline mt-4"
+                  className="site-button site-button-outline mt-4"
                 >
                   연결 해제
                 </PendingSubmitButton>
@@ -205,7 +205,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
             <section className="site-section p-8 text-center">
               <h2 className="type-subsection-title">가져올 다른 메뉴판이 없습니다</h2>
               <p className="mt-3 text-copy font-semibold text-zinc-500">같은 계정에 메뉴판이 두 개 이상 있을 때 사용할 수 있습니다.</p>
-              <Link href="/apply" className="site-button site-button-rounded site-button-primary mt-6 inline-flex">
+              <Link href="/apply" className="site-button site-button-primary mt-6 inline-flex">
                 새 메뉴판 만들기
               </Link>
             </section>
@@ -268,7 +268,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
                 <PendingSubmitButton
                   pendingLabel="메뉴를 가져오는 중..."
                   disabled={!canImport}
-                  className="site-button site-button-rounded site-button-primary"
+                  className="site-button site-button-primary"
                 >
                   메뉴 가져오기
                 </PendingSubmitButton>

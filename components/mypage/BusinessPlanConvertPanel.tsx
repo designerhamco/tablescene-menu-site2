@@ -460,7 +460,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
           type="button"
           onClick={startConversionBilling}
           disabled={!isVerified || !requiredConsentsAccepted || isSubmitting}
-          className="site-button site-button-rounded site-button-primary mt-6 inline-flex w-full items-center justify-center"
+          className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center"
         >
           {isSubmitting ? "정기결제 처리 중..." : isVerified && requiredConsentsAccepted ? "동의하고 유료 전환하기" : "사업자 인증 및 필수 동의 후 진행 가능"}
         </button>
@@ -490,7 +490,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
             type="button"
             onClick={verifyBusiness}
             disabled={verificationState.type === "checking"}
-            className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center"
+            className="site-button site-button-primary inline-flex items-center justify-center"
           >
             {verificationState.type === "checking" ? <LoadingSpinner className="h-4 w-4" /> : null}
             {verificationState.type === "checking" ? "확인 중..." : "사업자 정보 확인"}

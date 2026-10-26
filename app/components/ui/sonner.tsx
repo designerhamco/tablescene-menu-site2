@@ -15,8 +15,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
           toast: "site-toast",
           title: "type-body-sm font-bold",
           description: "type-caption text-zinc-500",
-          actionButton: "site-button site-button-primary site-button-sm",
-          cancelButton: "site-button site-button-secondary site-button-sm",
+          actionButton: "site-button site-button-primary ",
+          cancelButton: "site-button site-button-secondary ",
         },
       }}
       style={

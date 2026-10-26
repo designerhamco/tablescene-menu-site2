@@ -23,22 +23,17 @@ const buttonVariants = cva(
       },
       shape: {
         pill: "site-button-pill",
-        rounded: "site-button-rounded",
-        square: "site-button-square",
       },
       size: {
         default: "",
-        sm: "site-button-sm",
         compact: "site-button-compact",
         lg: "site-button-lg",
-        xl: "site-button-xl",
         icon: "site-button-icon",
       },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
-      shape: "rounded",
     },
   },
 );

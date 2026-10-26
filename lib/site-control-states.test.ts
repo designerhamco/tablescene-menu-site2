@@ -9,12 +9,16 @@ const tabCss = read("styles/site-design.css");
 
 test("ordinary action geometry is shared and icon / quick-menu shapes are explicit", () => {
   const button = read("app/components/ui/button.tsx");
-  assert.match(button, /shape: "rounded"/);
   assert.match(button, /pill: "site-button-pill"/);
+  assert.doesNotMatch(button, /\b(?:sm|xl):|shape: \{[\s\S]*?(?:rounded|square)/);
   assert.match(css, /\.site-button \{[^}]*min-height: var\(--ui-control-height-md\);[^}]*border-radius: var\(--ui-radius-control-rounded\);/);
+  assert.match(css, /--ui-control-height-compact: 2rem/);
   assert.match(css, /--ui-control-height-md: 2\.5rem/);
+  assert.match(css, /--ui-control-height-header: 2\.75rem/);
   assert.match(css, /--ui-control-height-lg: 3rem/);
-  assert.match(css, /--ui-control-height-xl: 3\.25rem/);
+  assert.doesNotMatch(css, /--ui-control-height-(?:sm|xl):/);
+  assert.match(css, /--ui-button-font-weight: 600/);
+  assert.match(css, /\.site-button \{[^}]*font-size: var\(--site-type-15\);[^}]*font-weight: var\(--ui-button-font-weight\);/);
   assert.match(css, /\.site-button\.site-button-icon \{ border-radius: 50%;/);
   const launcher = read("app/support/chat/AiSupportChatLauncher.tsx");
   assert.match(launcher, /site-button site-button-ai/);
@@ -34,12 +38,14 @@ test("shared state previews exercise the real guarded hover / pressed / focus se
   assert.match(gallery, /<Button variant=\{variant\}/);
   assert.match(gallery, /disabled=\{state === "disabled"\}/);
   assert.doesNotMatch(gallery, /backgroundColor:|borderRadius:/);
-  assert.match(css, /\.site-button-ghost:disabled,[\s\S]*?background: transparent;[\s\S]*?opacity: \.45;/);
+  assert.match(css, /\.site-button:disabled,[\s\S]*?border-color: transparent;[\s\S]*?background: var\(--ui-disabled-surface\);[\s\S]*?color: var\(--ui-disabled-text\);[\s\S]*?opacity: 1;/);
+  assert.match(css, /\.site-button-ghost:disabled,[\s\S]*?background: transparent;[\s\S]*?color: var\(--ui-disabled-text\);[\s\S]*?opacity: 1;/);
 });
 
 test("site pages cannot override shared action padding, shape, typography or disabled colors", () => {
   const failures: string[] = [];
-  const excluded = /^(?:components\/(?:menu-templates|public-menu)\/|app\/(?:original-pages|qa)\/)/;
+  const deprecated: string[] = [];
+  const excluded = /^(?:components\/(?:menu-templates|public-menu)\/|app\/qa\/)/;
   function walk(dir: string) {
     for (const entry of readdirSync(path.join(process.cwd(), dir), { withFileTypes: true })) {
       const file = `${dir}/${entry.name}`;
@@ -47,15 +53,27 @@ test("site pages cannot override shared action padding, shape, typography or dis
       if (entry.isDirectory()) walk(file);
       else if (file.endsWith(".tsx")) {
         const source = read(file);
-        for (const match of source.matchAll(/className="(site-button [^"]*)"/g)) {
-          const privateTokens = match[1].split(/\s+/).filter(token => /^(?:(?:sm|md|lg|xl):)?(?:p[xy]?-[\d.]+|gap-[\d.]+|rounded-\S+|text-(?:xs|sm|base|lg|\[\S+\]))$|^(?:disabled|focus-visible):/.test(token));
+        if (
+          /site-button-(?:sm|xl|rounded|square)\b/.test(source) ||
+          /\b(?:size="xl"|shape="(?:rounded|square)")/.test(source) ||
+          /\b(?:size:\s*["']xl["']|shape:\s*["'](?:rounded|square)["'])/.test(source)
+        ) deprecated.push(file);
+        for (const match of source.matchAll(/"([^"\n]*\bsite-button\b[^"\n]*)"|'([^'\n]*\bsite-button\b[^'\n]*)'|`([^`\n]*\bsite-button\b[^`\n]*)`/g)) {
+          const literal = match[1] ?? match[2] ?? match[3];
+          const privateTokens = literal.split(/\s+/).filter(token => /^(?:(?:sm|md|lg|xl):)?(?:p[xy]?-[\d.]+|gap-[\d.]+|rounded-\S+|text-(?:xs|sm|base|lg|\[[^\]]+\]))$|^(?:disabled|focus-visible):/.test(token));
           if (privateTokens.length) failures.push(`${file}: ${privateTokens.join(" ")}`);
+        }
+      } else if (file.endsWith(".css")) {
+        const source = read(file);
+        if (/--ui-(?:control-height-(?:sm|xl)|control-padding-inline-xl|radius-control-square)\b|\.site-button-(?:sm|xl|rounded|square)\b/.test(source)) {
+          deprecated.push(file);
         }
       }
     }
   }
-  walk("app"); walk("components");
+  walk("app"); walk("components"); walk("styles");
   assert.deepEqual(failures, []);
+  assert.deepEqual(deprecated, []);
 });
 
 test("content tabs, settings tabs and subordinate filters retain different shared roles", () => {

@@ -381,7 +381,7 @@ function RestoreSubscriptionModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center"
+        className="site-button site-button-primary inline-flex items-center justify-center"
       >
         구독 관리
       </button>
@@ -399,7 +399,7 @@ function RestoreSubscriptionModal({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="site-button site-button-rounded site-button-secondary inline-flex shrink-0 items-center justify-center site-button-icon"
+                className="site-button site-button-secondary inline-flex shrink-0 items-center justify-center site-button-icon"
                 aria-label="복구 안내 닫기"
               >
                 ×
@@ -476,7 +476,7 @@ function RestoreSubscriptionModal({
               type="button"
               disabled={!canStartRestore}
               onClick={startRestoreCheckout}
-              className="site-button site-button-rounded site-button-primary mt-5 w-full"
+              className="site-button site-button-primary mt-5 w-full"
             >
               {startState.status === "loading"
                 ? "재구독 결제 진행 중"
@@ -507,7 +507,7 @@ function RestoreSubscriptionModal({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
+                className="site-button site-button-outline inline-flex items-center justify-center"
               >
                 닫기
               </button>
@@ -566,7 +566,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
             type="button"
             onClick={() => setFilters(initialFilters)}
             disabled={!hasActiveFilters}
-            className="site-button site-button-rounded site-button-secondary site-button-sm shrink-0"
+            className="site-button site-button-secondary shrink-0"
           >
             필터 초기화
           </button>

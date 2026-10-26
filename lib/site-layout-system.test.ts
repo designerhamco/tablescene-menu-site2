@@ -104,8 +104,8 @@ test("메뉴 편집기 상단 바로가기는 모바일에서 한 열 전체 폭
   const editor = readSource("../app/mypage/menus/[menuId]/edit/page.tsx");
 
   assert.match(editor, /className="site-editor-header-actions"/);
-  assert.match(editor, /className="site-button site-button-rounded site-button-primary"/);
-  assert.match(editor, /className="site-button site-button-rounded site-button-secondary"/);
+  assert.match(editor, /className="site-button site-button-primary"/);
+  assert.match(editor, /className="site-button site-button-secondary"/);
   assert.match(uiSystemSource, /\.site-editor-header-actions \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\)[\s\S]*?width: 100%/);
   assert.match(uiSystemSource, /\.site-editor-header-actions > :is\(button, a\) \{[\s\S]*?width: 100%/);
   assert.match(uiSystemSource, /@media \(min-width: 640px\) \{[\s\S]*?\.site-editor-header-actions \{[\s\S]*?display: flex[\s\S]*?width: auto/);

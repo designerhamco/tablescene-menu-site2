@@ -1657,7 +1657,7 @@ function DraftDeleteConfirmButton({
       <button
         type="button"
         onClick={onRequestConfirm}
-        className="site-button site-button-rounded site-button-outline-danger inline-flex items-center justify-center"
+        className="site-button site-button-outline-danger inline-flex items-center justify-center"
       >
         삭제
       </button>
@@ -1668,7 +1668,7 @@ function DraftDeleteConfirmButton({
             {description && <p className="mt-2 break-keep text-copy font-medium leading-relaxed text-zinc-600">{description}</p>}
             {disabledReason && <p className="mt-2 break-keep text-support font-medium leading-relaxed text-red-600">{disabledReason}</p>}
             <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
-              <button type="button" onClick={onCancel} className="site-button site-button-rounded site-button-outline">
+              <button type="button" onClick={onCancel} className="site-button site-button-outline">
                 취소
               </button>
               <SubmitButton type="button" tone="danger" disabled={Boolean(disabledReason)} onClick={onConfirm}>
@@ -2314,7 +2314,7 @@ function MenuPageForm({
                               type="button"
                               disabled={isDisplayVideoUploading || !canUploadDisplayVideoForPage}
                               onClick={() => displayVideoInputRef.current?.click()}
-                              className="site-button site-button-rounded site-button-primary inline-flex shrink-0 items-center justify-center"
+                              className="site-button site-button-primary inline-flex shrink-0 items-center justify-center"
                             >
                               {isDisplayVideoUploading ? (
                                 <>
@@ -2367,7 +2367,7 @@ function MenuPageForm({
               {draftActionLabel ?? (page ? "수정 내용 반영" : `${labels.pageLabel} 추가`)}
             </SubmitButton>
             {onCancel && (
-              <button type="button" onClick={onCancel} className="site-button site-button-rounded site-button-outline">
+              <button type="button" onClick={onCancel} className="site-button site-button-outline">
                 {cancelLabel}
               </button>
             )}
@@ -2725,7 +2725,7 @@ function MenuCategoryForm({
                 <button
                   type="button"
                   onClick={() => removeCategoryPriceOptionLabel(index)}
-                  className="site-button site-button-rounded site-button-outline"
+                  className="site-button site-button-outline"
                 >
                   삭제
                 </button>
@@ -2735,7 +2735,7 @@ function MenuCategoryForm({
               type="button"
               onClick={addCategoryPriceOptionLabel}
               disabled={categoryPriceOptionLabels.length >= maxPriceOptionColumns}
-              className="site-button site-button-rounded site-button-outline w-fit"
+              className="site-button site-button-outline w-fit"
             >
               옵션 열 추가
             </button>
@@ -2758,7 +2758,7 @@ function MenuCategoryForm({
               type="button"
               onClick={addCategoryPriceColumn}
               disabled={categoryPriceColumns.length >= effectiveMaxCategoryPriceColumns}
-              className="site-button site-button-rounded site-button-outline"
+              className="site-button site-button-outline"
             >
               컬럼 추가
             </button>
@@ -2782,7 +2782,7 @@ function MenuCategoryForm({
                       type="button"
                       onClick={() => moveCategoryPriceColumn(index, -1)}
                       disabled={index === 0}
-                      className="site-button site-button-rounded site-button-outline"
+                      className="site-button site-button-outline"
                       aria-label={`${column.label || `컬럼 ${index + 1}`} 위로 이동`}
                     >
                       ↑
@@ -2791,7 +2791,7 @@ function MenuCategoryForm({
                       type="button"
                       onClick={() => moveCategoryPriceColumn(index, 1)}
                       disabled={index === categoryPriceColumns.length - 1}
-                      className="site-button site-button-rounded site-button-outline"
+                      className="site-button site-button-outline"
                       aria-label={`${column.label || `컬럼 ${index + 1}`} 아래로 이동`}
                     >
                       ↓
@@ -2799,14 +2799,14 @@ function MenuCategoryForm({
                     <button
                       type="button"
                       onClick={() => updateCategoryPriceColumn(index, { visible: !column.visible })}
-                      className="site-button site-button-rounded site-button-outline"
+                      className="site-button site-button-outline"
                     >
                       {column.visible ? "표시" : "숨김"}
                     </button>
                     <button
                       type="button"
                       onClick={() => removeCategoryPriceColumn(index)}
-                      className="site-button site-button-rounded site-button-outline"
+                      className="site-button site-button-outline"
                     >
                       삭제
                     </button>
@@ -2867,7 +2867,7 @@ function MenuCategoryForm({
           </SubmitButton>
         )}
         {onCancel && (
-          <button type="button" onClick={onCancel} className="site-button site-button-rounded site-button-outline">
+          <button type="button" onClick={onCancel} className="site-button site-button-outline">
             {cancelLabel}
           </button>
         )}
@@ -3782,7 +3782,7 @@ function MenuItemForm({
                   type="button"
                   disabled={isGeneratingDescription || aiDescriptionUsageExceeded}
                   onClick={requestAiDescriptionGeneration}
-                  className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
+                  className="site-button site-button-outline inline-flex items-center justify-center"
                 >
                   {isGeneratingDescription ? (
                     <>
@@ -4825,7 +4825,7 @@ function MenuItemForm({
               {itemDraftActionLabel}
             </SubmitButton>
             {onCancel && (
-              <button type="button" onClick={onCancel} className="site-button site-button-rounded site-button-outline">
+              <button type="button" onClick={onCancel} className="site-button site-button-outline">
                 {cancelLabel}
               </button>
             )}
@@ -4866,14 +4866,14 @@ function MenuItemForm({
               <button
                 type="button"
                 onClick={() => setDescriptionOverwritePending(false)}
-                className="site-button site-button-rounded site-button-outline"
+                className="site-button site-button-outline"
               >
                 취소
               </button>
               <button
                 type="button"
                 onClick={() => void runAiDescriptionGeneration()}
-                className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center"
+                className="site-button site-button-primary inline-flex items-center justify-center"
                 disabled={isGeneratingDescription}
               >
                 {isGeneratingDescription ? (
@@ -5093,14 +5093,14 @@ function DraftPriceOptionsEditor({
                       <button
                         type="button"
                         onClick={() => completeEditingOption(option.id)}
-                        className="site-button site-button-rounded site-button-primary"
+                        className="site-button site-button-primary"
                       >
                         수정 완료
                       </button>
                       <button
                         type="button"
                         onClick={cancelEditingOption}
-                        className="site-button site-button-rounded site-button-outline"
+                        className="site-button site-button-outline"
                       >
                         취소
                       </button>
@@ -5128,11 +5128,11 @@ function DraftPriceOptionsEditor({
                     <button
                       type="button"
                       onClick={() => startEditingOption(option)}
-                      className="site-button site-button-rounded site-button-outline"
+                      className="site-button site-button-outline"
                     >
                       수정
                     </button>
-                    <button type="button" onClick={() => onRemove(option.id)} className="site-button site-button-rounded site-button-outline-danger">
+                    <button type="button" onClick={() => onRemove(option.id)} className="site-button site-button-outline-danger">
                       삭제
                     </button>
                   </div>
@@ -8692,7 +8692,7 @@ export default function MenuManagementSection({
                     setIsMenuCleanupOpen(true);
                   }}
                   disabled={localAiMenuCleanupUsage.used >= localAiMenuCleanupUsage.limit}
-                  className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
+                  className="site-button site-button-outline inline-flex items-center justify-center"
                 >
                   AI 메뉴 정리 · 3크레딧
                 </button>
@@ -8712,7 +8712,7 @@ export default function MenuManagementSection({
             <div className="flex min-w-max items-center gap-2">
               <a
                 href={`/mypage/menus/${menuId}/edit?tab=cover`}
-                className="site-button site-button-rounded site-button-outline"
+                className="site-button site-button-outline"
               >
                 커버
               </a>
@@ -8744,7 +8744,7 @@ export default function MenuManagementSection({
                 type="button"
                 onClick={startCreatePage}
                 disabled={reachedPageLimit}
-                className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center site-button-icon"
+                className="site-button site-button-outline inline-flex items-center justify-center site-button-icon"
                 aria-label="메뉴 페이지 추가"
                 title={`메뉴 페이지는 최대 ${AUBE_TABLE_MAX_MENU_PAGES}개까지 추가할 수 있습니다.`}
               >
@@ -8809,7 +8809,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={startCreatePage}
                   disabled={reachedPageLimit}
-                  className="site-button site-button-rounded site-button-outline"
+                  className="site-button site-button-outline"
                 >
                   + {labels.pageLabel}
                 </button>
@@ -8819,7 +8819,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={startCreateCategory}
                   disabled={reachedCategoryLimit}
-                  className="site-button site-button-rounded site-button-outline"
+                  className="site-button site-button-outline"
                 >
                   + {labels.categoryLabel}
                 </button>
@@ -8830,7 +8830,7 @@ export default function MenuManagementSection({
                   onClick={startCreateWidget}
                   disabled={reachedWidgetLimit}
                   title={reachedWidgetLimit ? `한 페이지에는 위젯을 최대 ${maxMenuWidgetsPerPage}개까지 등록할 수 있습니다.` : undefined}
-                  className="site-button site-button-rounded site-button-outline"
+                  className="site-button site-button-outline"
                 >
                   + 위젯
                 </button>
@@ -8840,7 +8840,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={() => startCreateItem()}
                   disabled={reachedItemLimit}
-                  className="site-button site-button-rounded site-button-outline"
+                  className="site-button site-button-outline"
                 >
                   + {labels.itemLabel}
                 </button>
@@ -9101,7 +9101,7 @@ export default function MenuManagementSection({
                 disabled={!canMoveSelectedOrderUp}
                 aria-label="위로 이동"
                 title="위로 이동"
-                className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center site-button-icon"
+                className="site-button site-button-outline inline-flex items-center justify-center site-button-icon"
               >
                 ↑
               </button>
@@ -9111,7 +9111,7 @@ export default function MenuManagementSection({
                 disabled={!canMoveSelectedOrderDown}
                 aria-label="아래로 이동"
                 title="아래로 이동"
-                className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center site-button-icon"
+                className="site-button site-button-outline inline-flex items-center justify-center site-button-icon"
               >
                 ↓
               </button>
@@ -9260,21 +9260,21 @@ export default function MenuManagementSection({
                     type="button"
                     onClick={() => copyWidgetDraft(selectedWidgetDraft.id)}
                     disabled={widgetCountForVisiblePage >= maxMenuWidgetsPerPage}
-                    className="site-button site-button-rounded site-button-outline mr-auto"
+                    className="site-button site-button-outline mr-auto"
                   >
                     복사
                   </button>
-                  <button type="button" onClick={() => startEditWidget(selectedWidgetDraft.id)} className="site-button site-button-rounded site-button-outline">
+                  <button type="button" onClick={() => startEditWidget(selectedWidgetDraft.id)} className="site-button site-button-outline">
                     수정
                   </button>
                   {confirmingDeleteKey === `widget:${selectedWidgetDraft.id}` ? (
                     <span className="flex flex-wrap items-center justify-end gap-2">
                       <span className="text-support font-medium text-red-600">이 위젯을 삭제할까요?</span>
-                      <button type="button" onClick={() => deleteWidgetDraft(selectedWidgetDraft.id)} className="site-button site-button-rounded site-button-danger">삭제</button>
-                      <button type="button" onClick={() => setConfirmingDeleteKey("")} className="site-button site-button-rounded site-button-outline">취소</button>
+                      <button type="button" onClick={() => deleteWidgetDraft(selectedWidgetDraft.id)} className="site-button site-button-danger">삭제</button>
+                      <button type="button" onClick={() => setConfirmingDeleteKey("")} className="site-button site-button-outline">취소</button>
                     </span>
                   ) : (
-                    <button type="button" onClick={() => startConfirmDelete(`widget:${selectedWidgetDraft.id}`)} className="site-button site-button-rounded site-button-outline-danger">
+                    <button type="button" onClick={() => startConfirmDelete(`widget:${selectedWidgetDraft.id}`)} className="site-button site-button-outline-danger">
                       삭제
                     </button>
                   )}
@@ -9519,11 +9519,11 @@ export default function MenuManagementSection({
                         ? `한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`
                         : undefined
                     }
-                    className="site-button site-button-rounded site-button-primary mr-auto"
+                    className="site-button site-button-primary mr-auto"
                   >
                     + {labels.itemLabel} 추가
                   </button>
-                  <button type="button" onClick={() => startEditCategory(selectedCategory.id)} className="site-button site-button-rounded site-button-outline">
+                  <button type="button" onClick={() => startEditCategory(selectedCategory.id)} className="site-button site-button-outline">
                     수정
                   </button>
                   <button
@@ -9537,7 +9537,7 @@ export default function MenuManagementSection({
                         ? `한 메뉴판에는 ${labels.itemLabel}을 최대 ${MENU_LIMITS.maxItemsPerSite}개까지 등록할 수 있습니다.`
                         : undefined
                     }
-                    className="site-button site-button-rounded site-button-outline"
+                    className="site-button site-button-outline"
                   >
                     복사
                   </button>
@@ -9671,7 +9671,7 @@ export default function MenuManagementSection({
                           ? `이 ${labels.pageLabel}에는 ${labels.categoryLabel}을 최대 ${MENU_LIMITS.maxCategoriesPerPage}개까지 추가할 수 있습니다.`
                           : undefined
                       }
-                      className="site-button site-button-rounded site-button-primary mr-auto"
+                      className="site-button site-button-primary mr-auto"
                     >
                       + {labels.categoryLabel} 추가
                     </button>
@@ -9681,19 +9681,19 @@ export default function MenuManagementSection({
                       type="button"
                       onClick={() => startCreateItem({ direct: true })}
                       disabled={reachedItemsPerSiteLimit}
-                      className="site-button site-button-rounded site-button-outline"
+                      className="site-button site-button-outline"
                     >
                       + 단독 메뉴
                     </button>
                   )}
-                  <button type="button" onClick={() => startEditPage(selectedPage.id)} className="site-button site-button-rounded site-button-outline">
+                  <button type="button" onClick={() => startEditPage(selectedPage.id)} className="site-button site-button-outline">
                     수정
                   </button>
                   <button
                     type="button"
                     onClick={() => copyPageDraft(selectedPage.id)}
                     disabled={Boolean(selectedPageCopyDisabledReason)}
-                    className="site-button site-button-rounded site-button-outline"
+                    className="site-button site-button-outline"
                     title={selectedPageCopyDisabledReason || undefined}
                   >
                     복사
@@ -9770,7 +9770,7 @@ export default function MenuManagementSection({
                 onClick={() => setIsSampleResetConfirming(true)}
                 disabled={Boolean(sampleResetDisabledReason)}
                 title={sampleResetDisabledReason || undefined}
-                className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
+                className="site-button site-button-outline inline-flex items-center justify-center"
               >
                 샘플 메뉴로 되돌리기
               </button>
@@ -9913,7 +9913,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={closeMenuCleanupDialog}
                   disabled={isMenuCleanupRunning || Boolean(menuCleanupApplyMode)}
-                  className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
+                  className="site-button site-button-outline inline-flex items-center justify-center"
                 >
                   취소
                 </button>
@@ -9923,7 +9923,7 @@ export default function MenuManagementSection({
                       type="button"
                       onClick={() => setMenuCleanupResult(null)}
                       disabled={Boolean(menuCleanupApplyMode)}
-                      className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
+                      className="site-button site-button-outline inline-flex items-center justify-center"
                     >
                       다시 정리하기
                     </button>
@@ -9939,7 +9939,7 @@ export default function MenuManagementSection({
                       type="button"
                       onClick={applyAiMenuCleanupAppendResult}
                       disabled={!aiMenuCleanupResultFitsOnePage || aiMenuCleanupCurrentPageBlocked || Boolean(menuCleanupApplyMode)}
-                      className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
+                      className="site-button site-button-outline inline-flex items-center justify-center"
                     >
                       {menuCleanupApplyMode === "append-current" ? (
                         <>
@@ -9954,7 +9954,7 @@ export default function MenuManagementSection({
                       type="button"
                       onClick={applyAiMenuCleanupNewPageResult}
                       disabled={!aiMenuCleanupResultFitsOnePage || aiMenuCleanupNewPageBlocked || Boolean(menuCleanupApplyMode)}
-                      className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
+                      className="site-button site-button-outline inline-flex items-center justify-center"
                     >
                       {menuCleanupApplyMode === "append-new" ? (
                         <>
@@ -9993,7 +9993,7 @@ export default function MenuManagementSection({
                         type="button"
                         onClick={() => setIsMenuCleanupReplaceConfirming(false)}
                         disabled={Boolean(menuCleanupApplyMode)}
-                        className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
+                        className="site-button site-button-outline inline-flex items-center justify-center"
                       >
                         취소
                       </button>
@@ -10034,7 +10034,7 @@ export default function MenuManagementSection({
                   type="button"
                   onClick={() => setIsSampleResetConfirming(false)}
                   disabled={isSampleResetApplying}
-                  className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
+                  className="site-button site-button-outline inline-flex items-center justify-center"
                 >
                   취소
                 </button>
@@ -10152,7 +10152,7 @@ function MenuItemCard({
         <>
           <div className="mb-4 min-w-0 border-b border-zinc-100 pb-4">
             <h4 className="type-content-title mt-1 line-clamp-2 break-words">{labels.itemLabel} 수정</h4>
-            <button type="button" onClick={onCancel} className="site-button site-button-rounded site-button-outline mt-3 inline-flex lg:hidden">
+            <button type="button" onClick={onCancel} className="site-button site-button-outline mt-3 inline-flex lg:hidden">
               {isCopiedDraftItem ? "목록으로" : cancelLabel}
             </button>
           </div>
@@ -10239,7 +10239,7 @@ function MenuItemCard({
           {traitText && <p className="mt-2 break-words text-support font-medium text-zinc-600">{traitText}</p>}
         </div>
         <div className="flex shrink-0 flex-wrap items-center justify-end gap-3">
-          <button type="button" onClick={onEdit} className="site-button site-button-rounded site-button-outline">
+          <button type="button" onClick={onEdit} className="site-button site-button-outline">
             수정
           </button>
           <SubmitButton type="button" tone="light" onClick={() => onCopy()}>

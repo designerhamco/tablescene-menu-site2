@@ -78,14 +78,14 @@ export default function CallItemManager({
           ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
-        <button type="button" disabled={pending} onClick={() => setDraft(getServiceStaffCallItems(service))} className="site-button site-button-rounded site-button-secondary">
+        <button type="button" disabled={pending} onClick={() => setDraft(getServiceStaffCallItems(service))} className="site-button site-button-secondary">
           기본 항목 불러오기
         </button>
         <button
           type="button"
           onClick={addItem}
           disabled={pending || draft.length >= MAX_STAFF_CALL_ITEMS}
-          className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
+          className="site-button site-button-outline inline-flex items-center justify-center"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           항목 추가
@@ -140,7 +140,7 @@ export default function CallItemManager({
         ) : null}
 
         <div className="flex justify-end pt-2">
-          <button type="submit" disabled={pending} className="site-button site-button-rounded site-button-primary">
+          <button type="submit" disabled={pending} className="site-button site-button-primary">
             {pending ? "저장 중" : "호출 항목 저장"}
           </button>
         </div>

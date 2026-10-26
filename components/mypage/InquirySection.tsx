@@ -111,14 +111,14 @@ function formatDate(date: string | null) {
 
 function getActionButtonClassName(tone: "primary" | "secondary" | "danger") {
   if (tone === "primary") {
-    return "site-button site-button-rounded site-button-primary";
+    return "site-button site-button-primary";
   }
 
   if (tone === "danger") {
-    return "site-button site-button-rounded site-button-outline-danger";
+    return "site-button site-button-outline-danger";
   }
 
-  return "site-button site-button-rounded site-button-secondary";
+  return "site-button site-button-secondary";
 }
 
 function createHref(basePath: string, params: Record<string, string | number | null | undefined>) {
@@ -288,9 +288,9 @@ export function InquirySection({
             </select>
           </div>
           <div className="flex gap-2">
-            <button type="submit" className="site-button site-button-rounded site-button-primary flex-1 sm:flex-none">조회</button>
+            <button type="submit" className="site-button site-button-primary flex-1 sm:flex-none">조회</button>
             {(inquiryQuery || inquiryStatus !== "all") ? (
-              <Link href={paginationBasePath} className="site-button site-button-rounded site-button-secondary flex-1 sm:flex-none">초기화</Link>
+              <Link href={paginationBasePath} className="site-button site-button-secondary flex-1 sm:flex-none">초기화</Link>
             ) : null}
           </div>
         </form>
@@ -447,7 +447,7 @@ export function InquirySection({
                   이전
                 </Link>
               ) : (
-                <button type="button" disabled className="site-button site-button-rounded site-button-outline">
+                <button type="button" disabled className="site-button site-button-outline">
                   이전
                 </button>
               )}
@@ -459,7 +459,7 @@ export function InquirySection({
                   다음
                 </Link>
               ) : (
-                <button type="button" disabled className="site-button site-button-rounded site-button-outline">
+                <button type="button" disabled className="site-button site-button-outline">
                   다음
                 </button>
               )}

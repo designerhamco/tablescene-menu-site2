@@ -35,6 +35,13 @@ test("filled site chip tokens preserve at least AA contrast against white text",
     return .2126 * rgb[0] + .7152 * rgb[1] + .0722 * rgb[2];
   };
   const colors = [...css.matchAll(/--ui-chip-[a-z]+:\s*#([0-9a-f]{6})/g)];
-  assert.ok(colors.length >= 12);
+  assert.ok(colors.length >= 10);
   for (const [, color] of colors) assert.ok(1.05 / (luminance(color) + .05) >= 4.5, color);
+});
+
+test("non-status chips use one borderless dark neutral treatment", () => {
+  const css = readFileSync(new URL("../styles/ui-system.css", import.meta.url), "utf8");
+  assert.match(css, /\.site-chip \{[\s\S]*?border: 0;[\s\S]*?color: #fff;/);
+  assert.match(css, /\.site-chip-new,[\s\S]*?\.site-chip-role \{ --ui-chip-fill: var\(--ui-chip-neutral\); \}/);
+  assert.doesNotMatch(css, /\.site-chip-role \{[^}]*border:/);
 });

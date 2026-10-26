@@ -97,8 +97,8 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
           onChange={event => { setDraftEmpty(false); setDraft(event.target.value); setInvalid(false); setRestoreOnApply(false); }} onBlur={validateHex} onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); validateHex(); } }} /></label>
         {invalid ? <p id={`${id}-error`} className={styles.error}>#과 여섯 자리 색상값을 입력해주세요.</p> : null}
         <div className={styles.actions}>
-          <Popover.Close asChild><button type="button" className="site-button site-button-outline site-button-sm">취소</button></Popover.Close>
-          <button type="button" className="site-button site-button-primary site-button-sm" onClick={apply} disabled={disabled}>적용</button>
+          <Popover.Close asChild><button type="button" className="site-button site-button-outline">취소</button></Popover.Close>
+          <button type="button" className="site-button site-button-primary" onClick={apply} disabled={disabled}>적용</button>
         </div>
       </Popover.Content></Popover.Portal>
     </Popover.Root>

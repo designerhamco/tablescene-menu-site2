@@ -16,7 +16,7 @@ export default function QrDownloadButton({
   publicBaseUrl = null,
   disabled = false,
   disabledReason,
-  className = "site-button site-button-outline site-button-rounded",
+  className = "site-button site-button-outline ",
 }: {
   feedbackLabel: string;
   fileName: string;

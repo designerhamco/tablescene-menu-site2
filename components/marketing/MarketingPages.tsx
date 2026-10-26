@@ -209,7 +209,7 @@ function Showcase({
                   ? "/templates?plan=dining"
                   : "/templates?plan=basic"
               }
-              className={buttonVariants({ variant: dark ? "secondary" : "outline", size: "xl", shape: "rounded" })}
+              className={buttonVariants({ variant: dark ? "secondary" : "outline", size: "lg" })}
             >
               더 많은 디자인 보기
               <ArrowRight size={16} aria-hidden="true" />
@@ -242,7 +242,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
             ) : service === "dining" ? (
               <Link
                 href={`/templates?plan=${service}`}
-                className={buttonVariants({ variant: dark ? "secondary" : "default", size: "xl", shape: "rounded" })}
+                className={buttonVariants({ variant: dark ? "secondary" : "default", size: "lg" })}
               >
                 {copy.name} 디자인 선택
                 <ArrowRight size={16} aria-hidden="true" />
@@ -304,7 +304,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
             </h2>
             <Link
               href={`/templates?plan=${service}`}
-              className={buttonVariants({ variant: dark ? "secondary" : "default", size: "xl", shape: "rounded" })}
+              className={buttonVariants({ variant: dark ? "secondary" : "default", size: "lg" })}
             >
               디자인 고르고 시작하기
               <ArrowRight size={16} aria-hidden="true" />
@@ -517,7 +517,7 @@ export function MarketingHome() {
                 )}
                 <Link
                   href={`/services/${service}`}
-                  className={buttonVariants({ variant: "outline", size: "lg", shape: "square" })}
+                  className={buttonVariants({ variant: "outline", size: "lg" })}
                 >
                   플랜 알아보기
                   <ArrowRight size={16} aria-hidden="true" />
@@ -525,7 +525,7 @@ export function MarketingHome() {
                 {service !== "display" ? (
                   <Link
                     href="/apply"
-                    className={buttonVariants({ size: "lg", shape: "square" })}
+                    className={buttonVariants({ size: "lg" })}
                   >
                     이 플랜으로 시작
                   </Link>
@@ -538,7 +538,7 @@ export function MarketingHome() {
             ))}
           </div>
           <div className={styles.centerAction}>
-            <Link href="/apply" className={buttonVariants({ size: "xl", shape: "rounded" })}>
+            <Link href="/apply" className={buttonVariants({ size: "lg" })}>
               나만의 메뉴판 시작하기
               <ArrowRight size={16} aria-hidden="true" />
             </Link>

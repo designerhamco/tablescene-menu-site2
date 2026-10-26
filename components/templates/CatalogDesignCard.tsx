@@ -18,7 +18,7 @@ export default function CatalogDesignCard({design,liked,busy,onToggle}:{design:C
       <p className="site-template-category mt-1">{design.kind==='standard'?'기본 디자인':design.categoryLabel} · {design.service==='basic'?'베이직':design.service==='dining'?'다이닝':'디스플레이'}</p>
       <p className="site-template-description mt-2 line-clamp-2 whitespace-pre-line">{design.description}</p>
       <div className="site-template-actions">
-        <Link href={design.previewHref} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline site-button-rounded"><ZoomIn size={16} aria-hidden="true" />미리보기</Link>
+        <Link href={design.previewHref} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline"><ZoomIn size={16} aria-hidden="true" />미리보기</Link>
         <Link href={design.detailHref} className="site-template-detail-link">상세보기<ArrowRight size={16} aria-hidden="true" /></Link>
       </div>
     </div>

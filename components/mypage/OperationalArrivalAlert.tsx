@@ -222,7 +222,7 @@ export default function OperationalArrivalAlert({
           onClick={toggleBrowserNotifications}
           disabled={permissionPending}
           aria-pressed={browserNotificationsEnabled}
-          className="site-button site-button-primary site-button-rounded"
+          className="site-button site-button-primary"
         >
           {permissionPending ? "권한 확인 중" : browserNotificationsEnabled ? "알림·소리 끄기" : "알림·소리 켜기"}
         </button>
@@ -234,7 +234,7 @@ export default function OperationalArrivalAlert({
           <button
             type="button"
             onClick={() => setNewCount(0)}
-            className="site-button site-button-rounded site-button-outline"
+            className="site-button site-button-outline"
           >
             확인
           </button>
