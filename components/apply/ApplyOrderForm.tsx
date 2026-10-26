@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation";
 import type * as PortOneSdk from "@portone/browser-sdk/v2";
 
 import { Check } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import Image from "next/image";
 import TemplateCatalogMedia from "@/components/templates/TemplateCatalogMedia";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
@@ -2344,20 +2343,16 @@ export default function ApplyOrderForm({
 
         {isMenuService && (<section className="order-3 site-checkout-section">
           <h2 className="type-subsection-title">디자인 선택</h2>
-          <Tabs variant="flow" value={selectedDesignKind} className="mt-5" onValueChange={value => {
-            const kind = value as "standard" | "designer";
+          <div className="my-5 flex flex-wrap gap-2">{(["standard", "designer"] as const).map(kind => <button type="button" key={kind} className="site-button site-button-outline" aria-pressed={selectedDesignKind === kind} onClick={() => {
             const design = catalogDesigns.find(d => d.service === (activeDiningTier === "multi" ? "dining" : "basic") && d.kind === kind);
-            if (!design) return;
-            setSelectedMenuDesignId(design.id); setAppliedPromotion(undefined);
+            if (!design) return; setSelectedMenuDesignId(design.id); setAppliedPromotion(undefined);
             setForm(current => ({...current, template_key: design.templateKey as TemplateKey, template_category: getTemplateCategoryFromKey(design.templateKey) ?? current.template_category}));
-          }}><TabsList aria-label="신청 디자인 종류"><TabsTrigger value="standard">기본 디자인</TabsTrigger><TabsTrigger value="designer">디자인 템플릿 포함 (+1,900원/월)</TabsTrigger></TabsList>
-          <TabsContent value={selectedDesignKind}>
+          }}>{kind === "standard" ? "기본 디자인" : "디자인 템플릿 포함 (+1,900원/월)"}</button>)}</div>
           <p className="site-body-support mb-5 text-zinc-600">{selectedDesignKind === "standard" ? "같은 서비스의 기본 디자인끼리 교체할 수 있습니다." : "같은 서비스의 기본 디자인과 디자인 템플릿을 자유롭게 교체할 수 있습니다."}</p>
           <div className="site-checkout-template-grid">{catalogDesigns.filter(d => d.service === (activeDiningTier === "multi" ? "dining" : "basic") && d.kind === selectedDesignKind).map(design => <button type="button" key={design.id} className="site-choice site-checkout-template" aria-pressed={selectedMenuDesignId === design.id} onClick={() => {
             setSelectedMenuDesignId(design.id); setAppliedPromotion(undefined);
             setForm(current => ({...current, template_key: design.templateKey as TemplateKey, template_category: getTemplateCategoryFromKey(design.templateKey) ?? current.template_category}));
           }}><div className="site-checkout-template-media relative"><Image src={design.image} alt="" fill sizes="(max-width: 640px) 100vw, 320px" className="object-cover" /></div><div className="site-checkout-template-copy"><h3 className="type-content-title">{design.name}</h3><p className="site-checkout-template-description">{design.description}</p><p className="site-checkout-template-status">{selectedMenuDesignId === design.id ? "선택한 디자인" : "이 디자인 선택"}</p></div></button>)}</div>
-          </TabsContent></Tabs>
         </section>)}
 
         {!isMenuService && (

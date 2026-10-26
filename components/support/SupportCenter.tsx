@@ -149,8 +149,8 @@ export default function SupportCenter({
         aria-label="고객지원 안내"
       >
         <div className="site-container">
-          <Tabs variant="flow" value={tab} onValueChange={value => changeTab(value as "faq" | "notices")}>
-            <TabsList distribution="equal" aria-label="고객센터 메뉴">
+          <Tabs variant="contained" value={tab} onValueChange={value => changeTab(value as "faq" | "notices")}>
+            <TabsList aria-label="고객센터 메뉴">
               <TabsTrigger value="notices">공지사항</TabsTrigger>
               <TabsTrigger value="faq">FAQ</TabsTrigger>
             </TabsList>

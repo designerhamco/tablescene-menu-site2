@@ -1,5 +1,5 @@
 .footer { scroll-margin-top: calc(var(--site-header-height) + 1rem); padding-top: 1.5rem; background: var(--ui-surface); color: var(--ui-text); }
-.surface { overflow: hidden; border: 0; border-radius: 2rem; background: #f6f6f4; }
+.surface { overflow: hidden; border: 0; border-radius: 2rem; background: var(--ui-surface-soft); }
 .content { padding: 2rem 2rem 0; }
 .top { display: grid; min-width: 0; gap: 2.5rem; }
 .identity { display: grid; align-content: start; justify-items: start; gap: 1rem; }
@@ -24,7 +24,7 @@
 .legal { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; font-size: var(--type-footnote-size); color: var(--ui-text-muted); }
 .legal a { display: inline-flex; align-items: center; min-height: 2rem; }
 .footer a:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 4px; border-radius: .25rem; }
-.wordmark { height: .65em; margin-top: .15em; overflow: hidden; color: #dededb; font-size: clamp(4rem, 20.5vw, 20.5rem); font-weight: 700; line-height: .88; letter-spacing: -.07em; text-align: center; white-space: nowrap; user-select: none; }
+.wordmark { height: .65em; margin-top: .15em; overflow: hidden; color: var(--ui-wordmark); font-size: clamp(4rem, 20.5vw, 20.5rem); font-weight: 700; line-height: .88; letter-spacing: -.07em; text-align: center; white-space: nowrap; user-select: none; }
 @media (min-width: 1024px) {
   .content { padding: 3rem 3rem 0; }
   .top { grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); gap: 4rem; }

@@ -75,7 +75,7 @@ function TabsTrigger({
         className,
       )}
       {...props}
-    >{variant === "folder" || variant === "flow" ? <span className="site-shaped-tab-label">{children}{count !== undefined ? <span className="site-tab-count">{count}<span className="sr-only">건</span></span> : null}</span> : <>{children}{count !== undefined ? <span className="site-tab-count">{count}<span className="sr-only">건</span></span> : null}</>}</TabsPrimitive.Trigger>
+    >{variant === "contained" || variant === "folder" || variant === "flow" ? <span className="site-shaped-tab-label">{children}{count !== undefined ? <span className="site-tab-count">{count}<span className="sr-only">건</span></span> : null}</span> : <>{children}{count !== undefined ? <span className="site-tab-count">{count}<span className="sr-only">건</span></span> : null}</>}</TabsPrimitive.Trigger>
   );
 }
 

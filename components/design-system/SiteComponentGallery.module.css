@@ -14,7 +14,7 @@
 .tokenGrid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; }
 .token { display:grid; align-content:start; gap:.5rem; min-width:0; }
 .token code { overflow-wrap:anywhere; }
-.swatch { height:5rem; border:1px solid var(--ui-border); border-radius:.75rem; }
+.swatch { height:5rem; border:0; border-radius:.75rem; }
 .ruleGrid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; padding:1rem; background:var(--ui-surface-muted); border-radius:var(--ui-radius-panel); }
 .usageTable { position:relative; min-width:0; overflow-x:auto; }
 .usageTable table { width:100%; text-align:left; font-size: var(--type-body-sm-size); line-height:1.6; }
@@ -50,3 +50,5 @@
 .shapedRow > div { min-width: 0; }
 .shapedIcon { display: grid; width: 2.75rem; height: 2.75rem; flex: none; place-items: center; border-radius: 50%; background: var(--ui-surface-soft); }
 @media (max-width: 1199px) { .shapedGrid { grid-template-columns: minmax(0, 1fr); } }
+
+.swatch[data-white] { border: 1px solid var(--ui-border); }
