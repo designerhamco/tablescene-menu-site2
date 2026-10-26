@@ -46,6 +46,8 @@
   --type-body-lg-size: var(--site-type-16);
   --type-body-size: var(--site-type-15);
   --type-body-sm-size: var(--site-type-14);
+  --text-copy: var(--site-type-15);
+  --text-support: var(--site-type-14);
   --type-label-size: var(--site-type-14);
   --type-nav-size: var(--site-type-15);
   --type-caption-size: var(--site-type-13);
