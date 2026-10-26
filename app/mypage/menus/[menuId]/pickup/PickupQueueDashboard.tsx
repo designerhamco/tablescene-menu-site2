@@ -119,7 +119,7 @@ export default function PickupQueueDashboard({
           <ul className="divide-y divide-zinc-100">
             {completedEntries.map((entry) => (
               <li key={entry.id} className="flex items-center justify-between gap-4 px-5 py-4 md:px-6">
-                <span className="text-lg font-bold">{entry.queueNumber}</span>
+                <span className="type-content-title">{entry.queueNumber}</span>
                 <span className="text-support font-medium text-zinc-400">{STATUS_LABELS[entry.status]}</span>
               </li>
             ))}

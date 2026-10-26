@@ -18,19 +18,19 @@ const GoodsPackagePage = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-6 text-zinc-900">브랜드를 소장하고 싶게 만드는 힘</h2>
-            <p className="text-lg text-zinc-600 mb-8 leading-relaxed">
+            <h2 className="type-section-title mb-6 text-zinc-900">브랜드를 소장하고 싶게 만드는 힘</h2>
+            <p className="type-body-lg text-zinc-600 mb-8">
               고객이 매장을 떠난 후에도 브랜드를 기억할 수 있도록.<br />
               패키지 디자인부터 굿즈 제작까지, 브랜드의 가치를 상품에 담아냅니다.
             </p>
             <div className="space-y-8">
               <div>
-                <h3 className="text-xl font-bold mb-3 text-zinc-900">Package Design</h3>
-                <p className="text-zinc-600">테이크아웃 용기, 쇼핑백, 선물 포장 패키지 등</p>
+                <h3 className="type-content-title mb-3 text-zinc-900">Package Design</h3>
+                <p className="type-body text-zinc-600">테이크아웃 용기, 쇼핑백, 선물 포장 패키지 등</p>
               </div>
               <div>
-                <h3 className="text-xl font-bold mb-3 text-zinc-900">Merchandise</h3>
-                <p className="text-zinc-600">텀블러, 에코백, 의류, 문구류 등 브랜드 굿즈</p>
+                <h3 className="type-content-title mb-3 text-zinc-900">Merchandise</h3>
+                <p className="type-body text-zinc-600">텀블러, 에코백, 의류, 문구류 등 브랜드 굿즈</p>
               </div>
             </div>
           </motion.div>

@@ -346,7 +346,7 @@ export default function SubscriptionManagementModal({
                         <h4 className="type-item-title text-zinc-950">최종 예상 환불금액</h4>
                         <p className="mt-1 text-copy font-normal leading-relaxed text-zinc-600">{refundQuoteState.quote.customerNotice}</p>
                       </div>
-                      <p className="text-2xl font-bold text-zinc-950">
+                      <p className="type-metric text-zinc-950">
                         {formatKrwLabel(refundQuoteState.quote.estimatedRefundAmount)}
                       </p>
                     </div>

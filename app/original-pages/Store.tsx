@@ -65,10 +65,10 @@ const Store = () => {
               </div>
               <div className="flex justify-between items-start">
                 <div>
-                  <span className="text-xs text-zinc-500 font-bold uppercase tracking-wider">{product.category}</span>
-                  <h3 className="text-lg font-bold text-zinc-900 mt-1 group-hover:text-black transition-colors">{product.name}</h3>
+                  <span className="type-caption text-zinc-500 uppercase tracking-wider">{product.category}</span>
+                  <h3 className="type-card-title text-zinc-900 mt-1 group-hover:text-black transition-colors">{product.name}</h3>
                 </div>
-                <span className="text-lg font-semibold text-zinc-900">{product.price}</span>
+                <span className="type-item-title text-zinc-900">{product.price}</span>
               </div>
             </motion.div>
           ))}

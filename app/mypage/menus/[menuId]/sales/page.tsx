@@ -170,12 +170,12 @@ export default async function SalesSummaryPage({
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div className="site-notice site-notice-error p-4">
                   <p className="text-support font-medium text-rose-700">취소 주문</p>
-                  <p className="mt-2 text-xl font-bold">{summary.orderStates.cancelledOrderCount.toLocaleString("ko-KR")}건</p>
+                  <p className="type-metric mt-2">{summary.orderStates.cancelledOrderCount.toLocaleString("ko-KR")}건</p>
                   <p className="mt-1 text-support font-medium">주문금액 {formatAmount(summary.orderStates.cancelledOrderAmount)}</p>
                 </div>
                 <div className="site-notice site-notice-warning p-4">
                   <p className="text-support font-medium text-amber-700">현재 미결제</p>
-                  <p className="mt-2 text-xl font-bold">{summary.orderStates.unpaidOrderCount.toLocaleString("ko-KR")}건</p>
+                  <p className="type-metric mt-2">{summary.orderStates.unpaidOrderCount.toLocaleString("ko-KR")}건</p>
                   <p className="mt-1 text-support font-medium">주문금액 {formatAmount(summary.orderStates.unpaidOrderAmount)}</p>
                 </div>
               </div>

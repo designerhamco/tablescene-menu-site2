@@ -446,7 +446,7 @@ function RestoreSubscriptionModal({
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h4 className="type-item-title break-keep text-zinc-950">{option.label}</h4>
-                      <p className="mt-2 text-2xl font-bold tracking-tight text-zinc-950">{option.amountLabel}</p>
+                      <p className="type-price-compact mt-2 text-zinc-950">{option.amountLabel}</p>
                     </div>
                     <span className={`rounded-full px-3 py-1 text-support font-medium ${
                       selectedProductKey === option.productKey ? "bg-zinc-950 text-white" : "bg-zinc-100 text-zinc-600"
