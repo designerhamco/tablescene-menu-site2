@@ -984,19 +984,19 @@ textarea.site-field,
 .site-choice-tile[data-size="compact"] .site-emoji-icon { font-size: 1.5rem; }
 
 
-/* AI entry points share the mascot's yellow surface and readable dark ink. */
-:root { --site-ai-surface: #ffda45; --site-ai-surface-hover: #f4c92f; --site-ai-surface-pressed: #e7ba1f; --site-ai-foreground: #252218; }
+/* AI entry points and library examples share the same gradient states. */
+:root { --site-ai-gradient: linear-gradient(105deg, #7d35ff 0%, #4f5df7 52%, #0074df 100%); --site-ai-gradient-hover: linear-gradient(105deg, #7130ef 0%, #4552e8 52%, #0068cd 100%); --site-ai-gradient-pressed: linear-gradient(105deg, #6426df 0%, #3d47d5 52%, #005cb9 100%); --site-ai-foreground: #fff; --site-ai-icon: #6350c7; }
 .site-button-ai {
   border-color: transparent;
-  background: var(--site-ai-surface);
+  background: var(--site-ai-gradient);
   color: var(--site-ai-foreground);
-  box-shadow: 0 4px 18px rgb(177 129 0 / 16%);
+  box-shadow: 0 4px 18px rgb(63 132 255 / 22%);
 }
 .site-button-ai:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) {
-  background: var(--site-ai-surface-hover);
+  background: var(--site-ai-gradient-hover);
 }
 .site-button-ai:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) {
-  background: var(--site-ai-surface-pressed);
+  background: var(--site-ai-gradient-pressed);
 }
 .site-button-danger:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) {
   border-color: #991b1b; background: #991b1b;
