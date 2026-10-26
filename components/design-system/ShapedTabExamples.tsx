@@ -23,7 +23,7 @@ export default function ShapedTabExamples() {
         <Tabs variant="folder" defaultValue="designer"><TabsList size={size} aria-label="파일형 디자인 탭 예시"><TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger><TabsTrigger value="unavailable" disabled>준비 중</TabsTrigger></TabsList><TabsContent value="designer"><ExampleContent /></TabsContent><TabsContent value="standard"><ExampleContent standard /></TabsContent></Tabs>
       </div>
       <div className={styles.shapedExample}>
-        <div className={styles.heading}><h3 className="type-content-title">라운드 연결형 탭</h3><p className="type-body-sm text-zinc-600">흰 선택면과 오목한 연결 곡선으로 알림·요약 목록을 부드럽게 묶습니다.</p></div>
+        <div className={styles.heading}><h3 className="type-content-title">라운드 연결형 탭</h3><p className="type-body-sm text-zinc-600">파일형과 같은 사선 옆면·둥근 모서리에 흰 선택면과 짧은 밑줄을 사용합니다.</p></div>
         <Tabs variant="flow" defaultValue="designer"><TabsList size={size} aria-label="라운드 연결형 디자인 탭 예시"><TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger><TabsTrigger value="unavailable" disabled>준비 중</TabsTrigger></TabsList><TabsContent value="designer"><ExampleContent /></TabsContent><TabsContent value="standard"><ExampleContent standard /></TabsContent></Tabs>
       </div>
     </div>
