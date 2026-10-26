@@ -31,6 +31,37 @@
 .site-auth-form { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
 .site-auth-header { margin-bottom: 2rem; text-align: center; }
 
+/*
+ * Account, editor and store-operation screens are dense working surfaces.
+ * They keep the public-site type steps, but use a compact role hierarchy so
+ * headings, field copy and card metadata retain the same visual relationship
+ * on every management route.
+ */
+.site-management-scope {
+  --type-page-title-size: var(--site-type-28);
+  --type-section-title-size: var(--site-type-24);
+  --type-subsection-title-size: var(--site-type-20);
+  --type-content-title-size: var(--site-type-17);
+  --type-item-title-size: var(--site-type-16);
+  --type-body-lg-size: var(--site-type-16);
+  --type-body-size: var(--site-type-15);
+  --type-body-sm-size: var(--site-type-14);
+  --type-label-size: var(--site-type-14);
+  --type-nav-size: var(--site-type-15);
+  --type-caption-size: var(--site-type-13);
+  --type-control-size: var(--site-type-15);
+  --type-card-title-size: var(--site-type-16);
+  --type-card-body-size: var(--site-type-14);
+  --type-card-detail-size: var(--site-type-13);
+  --type-price-compact-size: var(--site-type-24);
+  --type-metric-size: var(--site-type-24);
+  --site-tab-font: var(--site-type-15);
+  --site-segment-font: var(--site-type-14);
+}
+.site-management-scope :where(p, li).text-copy { font-weight: var(--font-weight-regular); }
+.site-management-scope :where(.type-page-title, .type-section-title, .type-subsection-title) { font-weight: var(--font-weight-strong); }
+.site-management-scope :where(.type-content-title, .type-item-title, .type-label, .type-control) { font-weight: var(--font-weight-semibold); }
+
 /* Editing needs distinct work areas rather than transparent content groups. */
 .site-editor-workspace { background: var(--ui-surface-muted); }
 .site-editor-panel, .site-editor-navigation {

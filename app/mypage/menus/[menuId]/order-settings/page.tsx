@@ -38,7 +38,7 @@ export default async function OrderSettingsPage({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-container site-page-spacing">
+      <main className="site-management-scope site-container site-page-spacing">
         <Link
           className="text-copy text-zinc-500"
           href={"/mypage/menus/" + menuId + "/edit"}

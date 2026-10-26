@@ -2713,7 +2713,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         message={mypageNotice}
         tone={messageCode === "staff-invitation-accepted" ? "success" : "warning"}
       />
-      <main className="site-account-page site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
+      <main className="site-management-scope site-account-page site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <header className="mb-5 flex flex-col justify-between gap-5 border-b border-zinc-200 pb-6 md:mb-6 md:flex-row md:items-end md:pb-8">
             <div>

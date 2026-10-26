@@ -77,7 +77,7 @@ function LockedMenuPreview({ menuId, accessState }: { menuId: string; accessStat
   const message = accessState?.message ?? "보관 기간이 종료되어 미리보기를 사용할 수 없습니다. 복구 가능 기간이 종료되었습니다.";
 
   return (
-    <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
+    <main className="site-management-scope site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
       <section className="mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col justify-center">
         <Link href="/mypage?tab=menus&menuTab=deleted" className="mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950">
           ← 메뉴판 목록으로

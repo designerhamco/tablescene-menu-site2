@@ -244,7 +244,7 @@ function DraftDeleteConfirmButton({
         삭제
       </button>
       {isConfirming && (
-        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-5">
+        <div className="site-management-scope site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-5">
           <div role="dialog" aria-modal="true" aria-label={title} className="site-dialog site-dialog-panel w-full max-w-sm p-6">
             <h4 className="type-content-title text-zinc-950">{title}</h4>
             <p className="site-dialog-description mt-3 break-keep font-semibold leading-relaxed">{description}</p>

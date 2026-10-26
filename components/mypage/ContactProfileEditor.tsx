@@ -196,7 +196,7 @@ export default function ContactProfileEditor({
       </div>
 
       {isOpen ? (
-        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
+        <div className="site-management-scope site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
           <form
             onSubmit={submitContactProfile}
             role="dialog"

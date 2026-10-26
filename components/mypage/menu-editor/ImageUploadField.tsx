@@ -272,7 +272,7 @@ export default function ImageUploadField({
         </div>
       </div>
       {previewUrl && isConfirmingDelete && (
-        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-5">
+        <div className="site-management-scope site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-5">
           <div role="dialog" aria-modal="true" aria-label={deleteConfirmTitle} className="site-dialog site-dialog-panel w-full max-w-sm p-6">
             <h4 className="type-content-title text-zinc-950">{deleteConfirmTitle}</h4>
             <p className="site-dialog-description mt-3 break-keep font-semibold leading-relaxed">{deleteConfirmDescription}</p>

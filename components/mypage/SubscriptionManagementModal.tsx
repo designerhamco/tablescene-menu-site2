@@ -293,7 +293,7 @@ export default function SubscriptionManagementModal({
       </button>
 
       {isOpen && (
-        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
+        <div className="site-management-scope site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
           <section role="dialog" aria-modal="true" aria-label="구독 관리" className="site-dialog site-dialog-panel max-h-[90vh] w-full max-w-2xl overflow-y-auto p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -616,7 +616,7 @@ export default function SubscriptionManagementModal({
       )}
 
       {isConfirmingCancel && (
-        <div className="site-dialog-overlay fixed inset-0 z-[60] flex items-center justify-center px-4 py-8">
+        <div className="site-management-scope site-dialog-overlay fixed inset-0 z-[60] flex items-center justify-center px-4 py-8">
           <form role="dialog" aria-modal="true" aria-label="구독 해지 확인" onSubmit={submitCancellation} className="site-dialog site-dialog-panel w-full max-w-lg p-6">
             <h2 className="type-subsection-title text-zinc-950">정말 구독을 해지하시겠어요?</h2>
             <p className="site-dialog-description mt-3 break-keep font-normal leading-relaxed">

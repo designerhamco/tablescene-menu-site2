@@ -4,13 +4,14 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import postcss from "postcss";
-import { SITE_TYPE_ROLES, SITE_TYPE_STEPS, siteTypeSizeCss } from "./site-typography";
+import { SITE_MANAGEMENT_TYPE_ROLES, SITE_TYPE_ROLES, SITE_TYPE_STEPS, siteTypeSizeCss } from "./site-typography";
 
 const projectRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const appRoot = join(projectRoot, "app");
 const componentsRoot = join(projectRoot, "components");
 const typographySource = readFileSync(join(projectRoot, "styles/typography.css"), "utf8");
 const themeSource = readFileSync(join(projectRoot, "styles/theme.css"), "utf8");
+const siteDesignSource = readFileSync(join(projectRoot, "styles/site-design.css"), "utf8");
 
 const excludedSurfacePrefixes = [
   "%5F%5Fqa/",
@@ -95,6 +96,33 @@ test("현재 OriginalApp 라우트의 활성 페이지를 전역 타이포 계�
   }
   for (const route of ["/services/custom", "/services/design-customizing", "/services/qr-order", "/services/smart-call", "/branding/visual-studio", "/branding/food-visual-art", "/branding/goods-package", "/store"]) {
     assert.ok(routerSource.includes(`path=\"${route}\"`), `${route}의 활성 라우트 계약이 바뀌었습니다.`);
+  }
+});
+
+test("마이페이지와 편집·운영 화면은 동일한 관리 화면 타이포 범위를 사용한다", () => {
+  for (const role of SITE_MANAGEMENT_TYPE_ROLES) {
+    assert.ok(SITE_TYPE_STEPS.includes(role.size));
+    assert.match(siteDesignSource, new RegExp(`\\.site-management-scope[\\s\\S]*?--type-${role.key}-size: var\\(--site-type-${role.size}\\);`));
+  }
+
+  for (const file of collectTsxFiles(join(appRoot, "mypage"))) {
+    const source = readFileSync(file, "utf8");
+    for (const main of source.match(/<main\b[^>]*>/g) ?? []) {
+      assert.match(main, /site-management-scope/, `${relative(projectRoot, file)}의 관리 화면 루트에 공통 타이포 범위가 없습니다.`);
+    }
+    for (const overlay of source.match(/className="[^"]*site-dialog-overlay[^"]*"/g) ?? []) {
+      assert.match(overlay, /site-management-scope/, `${relative(projectRoot, file)}의 관리 대화창에 공통 타이포 범위가 없습니다.`);
+    }
+  }
+
+  for (const file of collectTsxFiles(join(componentsRoot, "mypage"))) {
+    const source = readFileSync(file, "utf8");
+    for (const main of source.match(/<main\b[^>]*>/g) ?? []) {
+      assert.match(main, /site-management-scope/, `${relative(projectRoot, file)}의 관리 화면 루트에 공통 타이포 범위가 없습니다.`);
+    }
+    for (const overlay of source.match(/className="[^"]*site-dialog-overlay[^"]*"/g) ?? []) {
+      assert.match(overlay, /site-management-scope/, `${relative(projectRoot, file)}의 관리 대화창에 공통 타이포 범위가 없습니다.`);
+    }
   }
 });
 

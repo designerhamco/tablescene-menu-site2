@@ -91,7 +91,7 @@ export default function ResetTabActionButton({ menuId, kind }: ResetTabActionBut
       </button>
 
       {open && (
-        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-5 py-8" role="presentation">
+        <div className="site-management-scope site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-5 py-8" role="presentation">
           <div
             role="dialog"
             aria-modal="true"

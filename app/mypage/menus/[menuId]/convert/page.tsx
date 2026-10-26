@@ -188,7 +188,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
+      <main className="site-management-scope site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <div className="mb-6 flex flex-col justify-between gap-4 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
