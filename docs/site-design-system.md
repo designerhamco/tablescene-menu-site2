@@ -188,3 +188,13 @@ Ghost pagination/icon controls retain transparent background and border when dis
 - `ContentList`/`ContentListItem`: 공지·게시글용 구분선 목록. 유형/제목/날짜의 3열이며 모바일은 유형·날짜 다음에 제목이 이어진다. 카드·박스를 각 행에 중복하지 않는다.
 - `ArticleNavigation`: 이전글/다음글의 제목·날짜, 글이 없을 때의 비활성 안내. 공지 상세에서는 공개된 현재 시점 이전 글만 시간+UUID 순으로 조회한다. 상단 고정은 상세 이동 순서를 바꾸지 않는다.
 - `SitePagination`: 고객센터와 템플릿 목록이 함께 사용하는 페이지 번호. 모바일은 최대 7개의 32px 항목, 640px 이상은 40px 항목이다. 현재 페이지는 옅은 원형·진한 숫자로 표시하고 양끝 이동/ellipsis/포커스/비활성 상태를 구분한다. 라이브러리에서도 같은 구현을 사용한다.
+
+
+## 형태가 있는 연결 탭과 공통 푸터 (2026-10-26)
+
+- `Tabs variant="folder"`: 둥근 사선 파일 윤곽과 검정 선택면. 디자인/문서처럼 성격이 뚜렷한 주요 목록을 콘텐츠 위에서 전환한다. SVG 마스크는 표면만 그리며 텍스트와 키보드 포커스는 마스킹하지 않는다.
+- `Tabs variant="flow"`: 옅은 회색 rail 안에서 흰 선택 탭이 오목한 곡선으로 아래 흰 패널과 이어진다. 카드 안의 알림·요약 목록에 적합하다. 선택 표시는 3px의 짧은 밑줄을 함께 쓴다.
+- 두 변형은 Root에 지정해 List/Trigger/Content까지 상속한다. 기존 `size="sm|md|lg"`의 40/48/56px 및 15/16/18px, `distribution="content|equal"`, disabled, 방향키/Home/End 계약을 재사용한다. 좁은 화면의 긴 탭 목록은 rail 안에서만 가로 스크롤한다.
+- 라이브러리의 `#shaped-tabs`에서 두 유형과 대·중·소를 실제로 전환하고 상태 표에서 기본/hover/pressed/focus/disabled를 비교한다. 업종 필터·보기 세그먼트와 용도를 구분한다.
+- 공통 Footer는 옅은 라운드 표면에 브랜드/서비스/이용 안내/고객지원, 사업자 정보, 약관을 묶고 아래에 큰 장식 워드마크를 배치한다. 실제 정보는 보통 본문·보조 크기를 유지하며 장식 글자만 의도적으로 일부 잘라 표시하고 `aria-hidden` 처리한다. 외부 사업자 확인 링크와 기존 사업자·연락 정보는 유지한다.
+- 스타일은 `app/components/layout/Footer.module.css` 한 곳에서 관리한다. 구 landing Footer도 동일 컴포넌트를 다시 내보내며 페이지별 푸터 디자인을 복제하지 않는다. `#site-footer`는 라이브러리 바로가기에서도 실제 푸터를 보여준다.
