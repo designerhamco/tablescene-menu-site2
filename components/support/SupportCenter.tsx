@@ -279,7 +279,7 @@ export default function SupportCenter({
                 if (event.key === "Enter" && event.nativeEvent.isComposing) event.preventDefault();
               }}
             />
-            <Button type="submit" size="icon" className={styles.searchButton} aria-label="검색">
+            <Button type="submit" variant="link" size="icon" className={styles.searchButton} aria-label="검색">
               <Search className="size-5" strokeWidth={2.5} aria-hidden="true" />
             </Button>
           </form>
