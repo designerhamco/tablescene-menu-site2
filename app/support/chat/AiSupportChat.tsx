@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { ArrowUp, ArrowUpRight, Coins, LoaderCircle, PanelsTopLeft, QrCode } from "lucide-react";
 import { FormEvent, useEffect, useId, useRef, useState } from "react";
-import SupportBotAvatar from "./SupportBotAvatar";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { SupportSparkleIcon } from "@/app/components/ui/support-chat-icon";
 import styles from "./ai-support-chat.module.css";
 
 type Message = { role: "user" | "assistant"; text: string };
@@ -86,21 +88,21 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
       >
         {messages.length === 0 ? (
           <div className={styles.welcome}>
-            <SupportBotAvatar size={96} className={styles.mascot} />
-            <h2 className={`type-content-title ${styles.welcomeTitle}`}>안녕하세요.<br />무엇을 도와드릴까요?</h2>
+            <h2 className="type-subsection-title">안녕하세요.<br />무엇을 도와드릴까요?</h2>
             <p className={`type-body-sm ${styles.subtitle}`}>아티메뉴 이용 방법을 물어보세요.</p>
             <p className={`type-caption ${styles.suggestionLabel}`}>이런 질문은 어떠세요?</p>
             <div className={styles.suggestions}>
               {SUGGESTIONS.map(({ icon: Icon, text }) => (
-                <button
+                <Button
                   key={text}
                   type="button"
+                  variant="outline"
                   onClick={() => void submitQuestion(text)}
                   disabled={pending || !overseasTransferConsent}
                   className={styles.suggestion}
                 >
                   <Icon size={16} aria-hidden="true" /><span>{text}</span><ArrowUpRight size={14} aria-hidden="true" />
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -108,7 +110,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
           <p key={`user-${index}`} className={`type-body-sm ${styles.userMessage}`}>{message.text}</p>
         ) : (
           <div key={`assistant-${index}`} className={styles.assistantMessage}>
-            <p className={`type-caption ${styles.speaker}`}><SupportBotAvatar size={36} className={styles.avatar} />아티메뉴 AI</p>
+            <p className={`type-caption ${styles.speaker}`}><SupportSparkleIcon width={18} height={18} />아티메뉴 AI</p>
             <p className={`type-body-sm ${styles.answer}`}>{message.text}</p>
           </div>
         ))}</div>}
@@ -148,7 +150,8 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
         </label>
         <div className={styles.composer}>
           <label htmlFor={inputId} className="sr-only">AI 상담 질문</label>
-          <input
+          <Input
+            fieldSize="md"
             id={inputId}
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
@@ -156,14 +159,15 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
             placeholder="궁금한 내용을 입력해 주세요"
             className={styles.input}
           />
-          <button
+          <Button
             type="submit"
+            variant="ai"
+            size="icon"
             disabled={pending || !question.trim() || !overseasTransferConsent}
-            className="site-button site-button-ai site-button-icon"
             aria-label="질문 보내기"
           >
             <ArrowUp size={20} aria-hidden="true" />
-          </button>
+          </Button>
         </div>
         <p className={`type-caption ${styles.privacyNote}`}>
           비밀번호, 인증번호, 카드정보 등 민감한 정보는 입력하지 마세요. 아티메뉴 계정과 DB에는 대화를 저장하지 않습니다.

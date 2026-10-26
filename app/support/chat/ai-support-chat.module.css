@@ -1,25 +1,18 @@
 .root { display: flex; min-width: 0; min-height: 0; flex-direction: column; overflow: hidden; background: var(--ui-surface); }
 .compact { height: 100%; }
-.viewport { min-width: 0; min-height: 25rem; padding: 1.75rem; background: linear-gradient(180deg, var(--ui-notice-surface), var(--ui-surface) 16rem); }
+.viewport { min-width: 0; min-height: 25rem; padding: 1.75rem; background: var(--ui-surface); }
 .compact .viewport { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 1.5rem; }
 .welcome { padding-bottom: 1rem; }
-.mascot { display: block; width: 6rem; height: 6rem; margin: 0 0 .75rem -.5rem; object-fit: contain; }
-.welcomeTitle { color: var(--ui-text); font-size: var(--font-size-600); line-height: 1.4; font-weight: 700; letter-spacing: -.04em; }
 .subtitle { margin-top: .625rem; color: var(--ui-text-muted); }
 .suggestionLabel { margin-top: 1.75rem; color: var(--ui-text-muted); }
 .suggestions { display: grid; gap: .5rem; margin-top: .75rem; }
-.suggestion { display: flex; min-height: 3rem; width: 100%; min-width: 0; align-items: center; gap: .75rem; border: 1px solid var(--ui-border); border-radius: var(--ui-radius-field); padding: .75rem; background: var(--ui-surface); color: var(--ui-text); text-align: left; font-size: var(--font-size-200); line-height: 1.6; transition: background-color var(--ui-transition), border-color var(--ui-transition); }
-.suggestion > svg { flex: none; width: 1rem; height: 1rem; color: var(--ui-text-muted); }
-.suggestion > span { min-width: 0; flex: 1; word-break: keep-all; overflow-wrap: anywhere; }
-.suggestion:hover:not(:disabled) { background: var(--ui-notice-surface); border-color: var(--ui-border-strong); }
-.suggestion:active:not(:disabled) { background: var(--ui-action-soft-pressed); }
-.suggestion:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
-.suggestion:disabled { opacity: .55; cursor: not-allowed; }
+.suggestions .suggestion { width: 100%; min-width: 0; justify-content: flex-start; text-align: left; }
+.suggestion > span { min-width: 0; flex: 1; white-space: normal; word-break: keep-all; overflow-wrap: anywhere; }
 .messages { display: grid; align-content: start; gap: 1.5rem; }
 .userMessage { justify-self: end; max-width: 90%; border-radius: 1rem 1rem 0 1rem; padding: .75rem 1rem; background: var(--ui-text); color: var(--ui-surface); white-space: pre-wrap; overflow-wrap: anywhere; }
 .assistantMessage { min-width: 0; }
 .speaker { display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem; font-weight: 600; }
-.avatar { flex: none; width: 2.25rem; height: 2.25rem; object-fit: contain; }
+.speaker > svg { flex: none; color: var(--site-ai-icon); }
 .answer { color: var(--ui-text); line-height: 1.85; white-space: pre-wrap; overflow-wrap: anywhere; }
 .pending { display: flex; align-items: center; gap: .5rem; margin-top: 1rem; color: var(--ui-text-muted); }
 .pending > svg { flex: none; }
@@ -31,16 +24,11 @@
 .consentTitle { display: block; color: var(--ui-text); font-weight: 600; }
 .consentBody { display: block; margin-top: .375rem; font-weight: 400; line-height: 1.7; }
 .consentDone { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; }
-.composer { display: flex; align-items: center; gap: .5rem; padding: .375rem; border: 1px solid var(--ui-border); border-radius: var(--ui-radius-field); background: var(--ui-surface); }
-.composer:focus-within { border-color: var(--ui-border-strong); }
-.root .composer .input { flex: 1; min-width: 0; min-height: var(--ui-field-height-md); border: 0; border-radius: .5rem; padding: .5rem .625rem; background: var(--ui-surface); color: var(--ui-text); font-size: 1rem; line-height: 1.5; }
-.input::placeholder { color: var(--ui-text-muted); font-size: var(--font-size-200); }
-.root .composer .input:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -2px; }
+.composer { display: flex; align-items: center; gap: var(--ui-control-gap); }
+.input { flex: 1; min-width: 0; }
 .privacyNote { margin-top: .625rem; color: var(--ui-text-muted); line-height: 1.6; }
 @media (max-width: 479px) {
   .compact .viewport { padding: 1.25rem; }
   .form { padding: .875rem 1rem; }
-  .mascot { width: 5rem; height: 5rem; }
 }
-@media (prefers-reduced-motion: reduce) { .suggestion { transition: none; } }
-@media (forced-colors: active) { .suggestion { border-color: ButtonText; } .userMessage { border: 1px solid CanvasText; } }
+@media (forced-colors: active) { .userMessage { border: 1px solid CanvasText; } }
