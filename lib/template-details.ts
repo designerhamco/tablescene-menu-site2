@@ -26,6 +26,6 @@ export function getTemplateDetailInfo(template:PublicTemplateDetail) {
     formatLabel:design?.kind==='standard'?'기본 디자인':display?'TV·모니터 메뉴판':multiPage?'멀티페이지 메뉴판':'원페이지 메뉴판',
     previewHref:design?.previewHref??`${getTemplateDetailHref(template.key)}/preview`,
     startHref:design?.startHref??(display?`/apply/display?template=${template.key}`:`/apply/basic?product=${productKey}&template=${template.key}`),
-    listHref:display?'/apply?plan=display':`/apply?plan=${multiPage?'dining':'basic'}&category=${design?.kind??'designer'}`,
+    listHref:display?'/templates?plan=display':`/templates?plan=${multiPage?'dining':'basic'}&category=${design?.kind??'designer'}`,
     image:design?.image??`/template-previews/${getTemplatePreviewRouteKey(template.key)}.jpg`};
 }

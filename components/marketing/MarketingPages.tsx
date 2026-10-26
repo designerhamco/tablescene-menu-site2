@@ -206,8 +206,8 @@ function Showcase({
             <Link
               href={
                 service === "dining"
-                  ? "/apply?plan=dining"
-                  : "/apply?plan=basic"
+                  ? "/templates?plan=dining"
+                  : "/templates?plan=basic"
               }
               className={buttonVariants({ variant: dark ? "secondary" : "outline", size: "xl", shape: "rounded" })}
             >
@@ -241,7 +241,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
               </p>
             ) : service === "dining" ? (
               <Link
-                href={`/apply?plan=${service}`}
+                href={`/templates?plan=${service}`}
                 className={buttonVariants({ variant: dark ? "secondary" : "default", size: "xl", shape: "rounded" })}
               >
                 {copy.name} 디자인 선택
@@ -303,7 +303,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
               우리 매장의 메뉴판을 만나보세요
             </h2>
             <Link
-              href={`/apply?plan=${service}`}
+              href={`/templates?plan=${service}`}
               className={buttonVariants({ variant: dark ? "secondary" : "default", size: "xl", shape: "rounded" })}
             >
               디자인 고르고 시작하기
@@ -524,7 +524,7 @@ export function MarketingHome() {
                 </Link>
                 {service !== "display" ? (
                   <Link
-                    href={`/apply?plan=${service}`}
+                    href="/apply"
                     className={buttonVariants({ size: "lg", shape: "square" })}
                   >
                     이 플랜으로 시작

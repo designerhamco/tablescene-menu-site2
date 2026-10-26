@@ -180,7 +180,6 @@
 .site-catalog-selection { margin-top: 1.5rem; }
 .site-catalog-plan { display: flex; flex-direction: column; gap: 1rem; padding-block: 1rem; border-bottom: 1px solid var(--site-divider); }
 .site-catalog-kind-description { color: var(--site-text-secondary); }
-.site-catalog-price { min-width: 0; }
 .site-catalog-regular-price { display: inline-block; font-size: var(--font-size-300); font-weight: 400; color: var(--site-text-secondary); }
 .site-catalog-access { display: flex; align-items: flex-start; gap: .375rem; color: var(--site-text-secondary); }
 .site-catalog-access svg { flex: none; }
@@ -223,7 +222,6 @@
 }
 @media (min-width: 1024px) {
   .site-catalog-plan { flex-direction: row; align-items: center; justify-content: space-between; gap: 2rem; }
-  .site-catalog-price { flex-shrink: 0; }
 
 }
 @media (min-width: 1280px) {

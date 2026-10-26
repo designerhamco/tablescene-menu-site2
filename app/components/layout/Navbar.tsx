@@ -27,9 +27,13 @@ const NAV_ITEMS: readonly NavItem[] = [
   },
   { label: '다이닝', path: '/services/dining', activePaths: ['/services/dining'] },
   { label: '디스플레이', path: '/services/display', activePaths: ['/services/display', '/services/screen', '/services/full-option', '/tablescene-pro'] },
-  { label: '디자인 템플릿', path: '/apply', activePaths: ['/apply'] },
+  { label: '디자인 템플릿', path: '/templates', activePaths: ['/templates'] },
   { label: '고객센터', path: '/faq', activePaths: ['/faq', '/support/chat'] },
 ];
+
+function isNavItemActive(item: NavItem, pathname: string) {
+  return (item.activePaths ?? [item.path]).some((path) => pathname === path || pathname.startsWith(`${path}/`));
+}
 
 function DisabledChip() {
   return (
@@ -254,7 +258,7 @@ const Navbar = () => {
 
           <div className={styles.primaryNav}>
             {NAV_ITEMS.map((item) => {
-              const isActive = (item.activePaths ?? [item.path]).includes(pathname);
+              const isActive = isNavItemActive(item, pathname);
 
               return (
                 <div
@@ -427,7 +431,7 @@ const Navbar = () => {
 
                 <nav aria-label="모바일 공식 사이트 메뉴" className="grid gap-1">
                   {NAV_ITEMS.map((item) => {
-                    const isActive = (item.activePaths ?? [item.path]).includes(pathname);
+                    const isActive = isNavItemActive(item, pathname);
 
                     return (
                       <Link

@@ -42,7 +42,7 @@ export default function SiteComponentGallery() {
     <Examples title="크기와 형태가 다른 버튼" description="일반 실행은 40px·모서리 8px로 통일합니다. 강조 실행은 48·56px, 둥근형은 퀵메뉴에 사용합니다.">
       <div className={styles.buttonRow}>
         <Button asChild><Link href="/apply">시작하기</Link></Button>
-        <Button size="lg" shape="rounded" variant="outline" asChild><Link href="/apply">디자인 살펴보기 <ArrowRight /></Link></Button>
+        <Button size="lg" shape="rounded" variant="outline" asChild><Link href="/templates">디자인 살펴보기 <ArrowRight /></Link></Button>
         <Button size="xl" shape="square" variant="outline" asChild><Link href="/guides">사용 방법 보기 <ArrowRight /></Link></Button>
         <Button size="xl" shape="rounded" asChild><Link href="/apply">우리 매장 메뉴판 만들기 <ArrowRight /></Link></Button>
       </div>
@@ -51,7 +51,7 @@ export default function SiteComponentGallery() {
         <Button variant="secondary" shape="rounded" onClick={()=>{setIndustry(false);setFavorites([]);}}>초기화</Button>
         <Button variant="outline" shape="rounded" disabled>준비 중</Button>
       </div>
-      <Button variant="outline" size="xl" shape="square" asChild><Link href="/apply">전체 디자인 보기 <ArrowRight /></Link></Button>
+      <Button variant="outline" size="xl" shape="square" asChild><Link href="/templates">전체 디자인 보기 <ArrowRight /></Link></Button>
     </Examples>
     <Examples title="서비스 탐색 탭" description="상위 서비스는 열린 밑줄 탭으로 이동합니다. 아이콘 필터나 보기 방식 세그먼트와 구분합니다.">
       <Tabs defaultValue="basic"><TabsList variant="underline" size="lg" aria-label="서비스 탐색 예시">
@@ -105,7 +105,7 @@ export default function SiteComponentGallery() {
       </Collapsible>
     </Examples>
     <Examples title="카테고리 이동 버튼" description="목록의 진입점은 문구에 맞는 사각 버튼과 이동 아이콘으로 표시합니다.">
-      <div className={styles.actionGrid}>{choices.map(({key,label})=><Button key={key} className={styles.action} variant="outline" shape="square" asChild><Link href={`/apply?plan=${key}`}>{label} 디자인 <Plus aria-hidden="true" /></Link></Button>)}</div>
+      <div className={styles.actionGrid}>{choices.map(({key,label})=><Button key={key} className={styles.action} variant="outline" shape="square" asChild><Link href={`/templates?plan=${key}`}>{label} 디자인 <Plus aria-hidden="true" /></Link></Button>)}</div>
     </Examples>
     </TabsContent></Tabs>
   </div>;

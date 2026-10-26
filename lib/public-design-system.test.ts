@@ -17,6 +17,7 @@ const faqSource = readSource("../components/support/SupportCenter.tsx");
 const faqComponentSource = readSource("../app/components/common/FAQ.tsx");
 const homeProductStorySource = readSource("../app/components/home/HomeProductStory.tsx");
 const applySource = readSource("../app/apply/page.tsx");
+const templatesSource = readSource("../app/templates/page.tsx");
 const templateGallerySource = readSource("../components/apply/TemplateGallery.tsx");
 const pricingSource = readSource("../app/pricing/page.tsx");
 const customSource = readSource("../app/custom/page.tsx");
@@ -102,6 +103,7 @@ test("공개 페이지의 검정 CTA는 홈과 같은 표면 규칙을 공유한
   assert.match(homeProductStorySource, /className="site-dark-cta/);
   assert.doesNotMatch(faqSource, /className="site-dark-cta/);
   assert.match(applySource, /className="site-dark-cta/);
+  assert.match(templatesSource, /className="site-dark-cta/);
 });
 
 test("만들기 템플릿 썸네일은 공통 갤러리 외곽선만 사용한다", () => {

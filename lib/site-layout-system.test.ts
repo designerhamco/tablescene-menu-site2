@@ -28,6 +28,7 @@ test("주요 공개·인증·고객지원 화면은 공통 페이지 간격을 �
   for (const path of [
     "../components/support/SupportCenter.tsx",
     "../app/apply/page.tsx",
+    "../app/templates/page.tsx",
     "../app/apply/_components/PaidApplyPage.tsx",
     "../app/terms/page.tsx",
     "../app/privacy/page.tsx",

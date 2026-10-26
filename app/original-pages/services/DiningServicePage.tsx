@@ -18,7 +18,7 @@ export default function DiningServicePage() {
         </p>
         <Link
           className="site-button site-button-primary mt-8"
-          href="/apply?plan=dining"
+          href="/templates?plan=dining"
         >
           다이닝 디자인 템플릿 보기
         </Link>
