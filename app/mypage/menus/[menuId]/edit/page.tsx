@@ -1830,7 +1830,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 </div>
               </div>
               <h1 className="type-page-title">{site.name}</h1>
-              <p className="mt-3 inline-flex items-center gap-2 text-copy font-medium text-zinc-400">
+              <p className="type-body-sm mt-3 inline-flex items-center gap-2 font-medium text-zinc-400">
                 {publicUrl}
                 <HelpTooltip label="공개 주소 도움말">손님이 공개 메뉴판을 볼 때 사용하는 주소입니다.</HelpTooltip>
               </p>

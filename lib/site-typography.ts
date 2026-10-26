@@ -36,32 +36,32 @@ export const SITE_TYPE_ROLES = [
   },
   {
     "key": "page-description",
-    "label": "기능 페이지 설명",
+    "label": "페이지 설명",
     "mobile": 16,
     "tablet": 16,
     "desktop": 17,
     "weight": 400,
     "lineHeight": 1.625,
     "className": "type-page-description",
-    "usage": "로그인·마이페이지·편집 화면의 기능 설명"
+    "usage": "모든 일반 페이지에서 H1 바로 아래에 오는 한두 문장"
   },
   {
     "key": "section-title",
     "label": "큰 구역 제목",
-    "mobile": 28,
-    "tablet": 32,
-    "desktop": 36,
+    "mobile": 24,
+    "tablet": 28,
+    "desktop": 28,
     "weight": 700,
     "lineHeight": 1.3125,
     "className": "type-section-title",
-    "usage": "첨부 화면의 플랜 소개 제목"
+    "usage": "페이지 안의 큰 콘텐츠 구획"
   },
   {
     "key": "subsection-title",
     "label": "서비스·구역 제목",
-    "mobile": 22,
-    "tablet": 24,
-    "desktop": 26,
+    "mobile": 20,
+    "tablet": 22,
+    "desktop": 24,
     "weight": 700,
     "lineHeight": 1.3,
     "className": "type-subsection-title",
@@ -91,14 +91,14 @@ export const SITE_TYPE_ROLES = [
   },
   {
     "key": "body-lg",
-    "label": "마케팅 도입 설명",
+    "label": "강조 본문",
     "mobile": 18,
     "tablet": 18,
     "desktop": 20,
     "weight": 400,
     "lineHeight": 1.625,
     "className": "type-body-lg",
-    "usage": "서비스·브랜드의 가치와 분위기를 전하는 도입문"
+    "usage": "섹션 안에서 기본 본문보다 강조할 짧은 문장"
   },
   {
     "key": "body",

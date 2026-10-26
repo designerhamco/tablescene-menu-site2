@@ -118,7 +118,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
               <h1 className="type-page-title max-w-3xl">
                 아티메뉴 커스텀 견적 문의
               </h1>
-              <p className="site-body mt-5 max-w-2xl text-zinc-500">
+              <p className="type-page-description mt-5 max-w-2xl text-zinc-500">
                 브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험을 주문제작 프로젝트로 상담합니다.
               </p>
             </div>

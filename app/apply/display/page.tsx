@@ -63,7 +63,7 @@ export default async function ApplyDisplayPage({
             <h1 className="type-page-title">
               아티메뉴 디스플레이는 준비 중입니다.
             </h1>
-            <p className="site-body mt-5 max-w-2xl text-zinc-500">
+            <p className="type-page-description mt-5 max-w-2xl text-zinc-500">
               아티메뉴 디스플레이 전용 템플릿 준비 후 신청할 수 있습니다. 현재는 결제, 템플릿 선택, 공개 주소 입력을 진행하지 않습니다.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">

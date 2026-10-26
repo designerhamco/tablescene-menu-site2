@@ -106,7 +106,7 @@ export default async function PaidApplyPage({
           <header className="site-page-heading mb-12 max-w-3xl md:mb-16">
             <div>
               <h1 className="type-page-title">{copy.title}</h1>
-              <p className="site-body mt-4 max-w-2xl text-zinc-500">
+              <p className="type-page-description mt-4 max-w-2xl text-zinc-500">
                 {copy.description}
               </p>
             </div>

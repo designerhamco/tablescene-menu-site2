@@ -21,7 +21,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
         <div className="site-container">
           <header className="site-page-heading pb-6">
             <h1 className="type-page-title">매장에 맞는 디자인 선택</h1>
-            <p className="site-body mt-3 max-w-2xl text-zinc-500">
+            <p className="type-page-description mt-3 max-w-2xl text-zinc-500">
               완성된 디자인으로 시작하거나 기본 레이아웃을 매장에 맞게 직접 꾸며보세요.
             </p>
           </header>

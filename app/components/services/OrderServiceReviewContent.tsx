@@ -36,7 +36,7 @@ export default function OrderServiceReviewContent() {
           <h1 className="type-page-title mt-7 max-w-4xl">
             아티메뉴 오더
           </h1>
-          <p className="mt-6 max-w-3xl break-keep text-lg font-semibold leading-relaxed text-zinc-600 md:text-xl">
+          <p className="type-page-description mt-6 max-w-3xl text-zinc-600">
             QR 메뉴판에서 상품을 담고 매장에 주문하는 흐름을 준비하고 있습니다. 현재는 기능과 화면을 검증하는 단계이며,
             고객의 실제 선결제와 음식점 정산은 제공하지 않습니다.
           </p>

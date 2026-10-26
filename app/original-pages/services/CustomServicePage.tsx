@@ -234,11 +234,11 @@ const CustomServicePage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="type-page-title text-zinc-900 mb-6 whitespace-pre-line">
+            <h1 className="type-page-title text-zinc-900 mb-6 whitespace-pre-line">
               브랜딩과 인터랙션을 담은<br/>
               <span className="text-zinc-500">프리미엄 웹 메뉴 경험</span>
-            </h2>
-            <p className="type-body-lg text-zinc-500 whitespace-pre-line">
+            </h1>
+            <p className="type-page-description text-zinc-500 whitespace-pre-line">
               템플릿으로 담기 어려운 브랜드 경험을 맞춤형으로 설계하고,<br className="hidden md:block"/>
               매장에 어울리는 웹 메뉴와 안내 화면을 제작합니다.
             </p>

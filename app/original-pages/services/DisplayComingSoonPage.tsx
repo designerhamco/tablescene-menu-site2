@@ -12,7 +12,7 @@ export default function DisplayComingSoonPage() {
           <br />
           아티메뉴 디스플레이
         </h1>
-        <p className="site-body mt-6 max-w-xl text-zinc-500">
+        <p className="type-page-description mt-6 max-w-xl text-zinc-500">
           더 안정적인 화면 구성과 운영을 위해 준비하고 있습니다. 현재 신규
           신청은 받지 않으며, 오픈 일정은 추후 안내하겠습니다.
         </p>

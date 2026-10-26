@@ -12,7 +12,7 @@ export default function DiningServicePage() {
           <br />
           매장의 이야기를 담는 다이닝
         </h1>
-        <p className="site-body mt-6 max-w-2xl text-zinc-500">
+        <p className="type-page-description mt-6 max-w-2xl text-zinc-500">
           사진과 코스, 상세 설명을 여러 페이지로 구성하세요. 매장 분위기를 담은
           디자인에 테이블 주문과 직원 호출을 더할 수 있습니다.
         </p>

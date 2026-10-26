@@ -253,7 +253,7 @@ export default function SupportCenter({
       <section className={styles.hero} aria-labelledby={`${uid}-title`}>
         <div className="site-container">
           <h1 id={`${uid}-title`} className="type-page-title">필요한 도움을 찾아보세요</h1>
-          <p className="site-body text-zinc-500">
+          <p className="type-page-description text-zinc-500">
             처음 시작하는 방법부터 매장 운영까지, 궁금한 내용을 안내합니다.
           </p>
           <form

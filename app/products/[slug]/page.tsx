@@ -59,7 +59,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                 베이직·다이닝
               </Badge>
               <h1 className="type-page-title mt-5">{product.shortName}</h1>
-              <p className="site-body mt-5 max-w-2xl text-zinc-600">
+              <p className="type-page-description mt-5 max-w-2xl text-zinc-600">
                 {product.summary}
               </p>
             </div>

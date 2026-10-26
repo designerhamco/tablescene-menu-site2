@@ -124,7 +124,7 @@ export default async function ConsultingApplyPage({
         <div className="mx-auto w-full max-w-4xl">
           <header className="mb-10 border-b border-zinc-200 pb-8">
             <h1 className="type-page-title">{copy.title}</h1>
-            <p className="site-body mt-4 max-w-2xl text-zinc-500">
+            <p className="type-page-description mt-4 max-w-2xl text-zinc-500">
               {copy.description}
             </p>
           </header>

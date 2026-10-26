@@ -66,7 +66,7 @@ export default async function SuccessPage({ searchParams }: PageProps) {
         <div className="mx-auto w-full max-w-3xl">
           <section className="site-section p-8">
             <h1 className="type-page-title">메뉴판이 생성되었습니다.</h1>
-            <p className="site-body mt-4 text-zinc-500">
+            <p className="type-page-description mt-4 text-zinc-500">
               결제 또는 무료체험 신청 처리가 완료되면 메뉴판은 작성중 상태로 생성됩니다. 마이페이지에서 내용을 수정한 뒤 공개 상태로 변경하세요.
             </p>
 
