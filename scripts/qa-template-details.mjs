@@ -24,7 +24,12 @@ const templates = [
 async function settle(page) {
   await page.evaluate(async () => {
     await document.fonts.ready;
-    await Promise.all([...document.images].map(image => image.decode().catch(() => {})));
+    const images = [...document.images];
+    images.forEach(image => { image.loading = "eager"; });
+    await Promise.race([
+      Promise.all(images.map(image => image.decode().catch(() => {}))),
+      new Promise(resolve => window.setTimeout(resolve, 10_000)),
+    ]);
   });
 }
 
@@ -158,14 +163,14 @@ try {
     const sidebar = page.getByRole("complementary", { name: "템플릿 정보 및 시작" });
     await expect(sidebar.getByRole("link", { name: "미리보기", exact: true })).toHaveAttribute("href", `/templates/${route}/preview`);
     if (tier === "display") {
-      await expect(sidebar.getByRole("button", { name: "디스플레이 신청 준비 중" })).toBeDisabled();
+      await expect(sidebar.getByRole("link", { name: "이 디자인으로 시작" })).toHaveAttribute("href", `/apply/display?template=${route}`);
     } else {
       const href = await sidebar.getByRole("link", { name: "이 디자인으로 시작" }).getAttribute("href");
       const url = new URL(href, base);
       assert.equal(url.pathname, "/apply/basic");
       assert.equal(url.searchParams.get("product"), `business_basic_${tier}_monthly`);
       assert.equal(url.searchParams.get("template"), route === "cafe_real_matcha_a" ? "cafe_design_a" : route === "cafe_sunday_roasters_a" ? "cafe_sunday_line_a" : route);
-      await expect(sidebar).toContainText(tier === "multi" ? "6,900원" : "4,900원");
+      await expect(sidebar).toContainText(tier === "multi" ? "8,800원" : "6,800원");
     }
     await page.setViewportSize({ width: 1024, height: 500 });
     await settle(page);
@@ -222,8 +227,8 @@ try {
   await expect(selectedImage).toHaveAttribute("aria-pressed", "true");
   results.push({ case: "gallery-restoration", selection: "preserved", hiddenFocus: "moves to information without scrolling" });
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto(`${base}/apply`, { waitUntil: "networkidle" });
-  await expect(page.getByRole("button", { name: "AI 상담 열기" })).toBeVisible();
+  await page.goto(`${base}/templates`, { waitUntil: "networkidle" });
+  await expect(page.getByRole("button", { name: "고객지원 열기" })).toBeVisible();
   await page.evaluate(() => window.scrollTo({ top: 600, behavior: "instant" }));
   await expect(page.getByRole("button", { name: "맨 위로 이동" })).toBeVisible();
   await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
@@ -237,8 +242,10 @@ try {
   await expect(page.getByRole("button", { name: "전체 디자인", exact: true })).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "전체 디자인", exact: true }).press("ArrowLeft");
   await expect(page.getByRole("button", { name: "오른쪽 디테일", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: "템플릿 링크 복사" }).click();
+  await page.getByRole("button", { name: "템플릿 공유하기" }).click();
+  await page.getByRole("button", { name: "링크 복사", exact: true }).click();
   assert.equal(await page.evaluate(() => navigator.clipboard.readText()), `${base}/templates/cafe_real_matcha_a`);
+  await page.keyboard.press("Escape");
   await page.getByRole("link", { name: "이 디자인으로 시작" }).click();
   await expect(page).toHaveURL(/\/sign-in\?next=/);
   const next = new URL(page.url()).searchParams.get("next");

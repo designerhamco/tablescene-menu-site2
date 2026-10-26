@@ -34,12 +34,15 @@ export default function TemplateDetailStory({ template }: { template: PublicTemp
         <Link href="/guides?plan=basic" target="_blank" rel="noopener noreferrer" className="site-button site-button-primary" aria-label="사용 방법 (새 창)">사용 방법 <ArrowUpRight size={16} aria-hidden="true" /></Link>
       </div>
     </section>
-    {DETAIL_FEATURES.map(feature => <section key={feature.id} id={`feature-${feature.id}`} className={styles.storySection} aria-labelledby={`feature-${feature.id}-title`} data-feature-section={feature.id}>
-      <header className={styles.sectionCopy}>
-        <h2 id={`feature-${feature.id}-title`} className="type-section-title">{feature.id === "prices" && info.multiPage ? "같은 상품의 여러 구성도, 가격 옵션으로" : feature.title}</h2>
-        <p className={`type-body ${styles.description}`}>{feature.id === "prices" && info.multiPage ? "잔과 보틀, 작은 사이즈와 큰 사이즈까지 상품별로 안내하세요." : feature.description}</p>
-      </header>
-      <TemplateFeatureAccordion feature={feature.id} label={feature.label} slides={getDetailFeatureSlides(feature, { album, multiPage: info.multiPage })} />
+    {DETAIL_FEATURES.map(feature => <section key={feature.id} id={`feature-${feature.id}`} className={styles.storySection} aria-labelledby={`feature-${feature.id}-title`} data-feature-section={feature.id} data-detail-surface="feature">
+      <TemplateFeatureAccordion
+        feature={feature.id}
+        headingId={`feature-${feature.id}-title`}
+        label={feature.label}
+        title={feature.id === "prices" && info.multiPage ? "같은 상품의 여러 구성도, 가격 옵션으로" : feature.title}
+        description={feature.id === "prices" && info.multiPage ? "잔과 보틀, 작은 사이즈와 큰 사이즈까지 상품별로 안내하세요." : feature.description}
+        slides={getDetailFeatureSlides(feature, { album, multiPage: info.multiPage })}
+      />
       {!supported[feature.id] && <p className={`type-body-sm ${styles.featureNote}`}>{info.display ? feature.id === "call" || feature.id === "order" ? "디스플레이에서는 호출·주문을 제공하지 않습니다. 베이직·다이닝의 공통 기능 안내입니다." : "베이직·다이닝의 공통 기능 안내입니다. 디스플레이의 구성은 실제 미리보기에서 확인해보세요." : feature.id === "prices" && album && !info.multiPage ? "베이직 앨범형에서는 가격 옵션 열을 제공하지 않습니다. 베이직 리스트형의 기능 안내입니다." : "선택한 디자인에서는 이 기능을 제공하지 않습니다. 베이직 메뉴판의 공통 기능 안내입니다."}</p>}
       {(feature.id === "call" || feature.id === "order") && supported[feature.id] ? <p className={`type-caption ${styles.featureNote}`}>이용 가능한 매장에서 테이블 설정 후 사용할 수 있습니다.</p> : null}
     </section>)}
