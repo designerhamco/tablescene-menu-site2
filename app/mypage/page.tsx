@@ -2702,7 +2702,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           </header>
 
         <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-8">
-          <aside className="site-account-sidebar min-w-0 space-y-3 lg:sticky lg:top-28">
+          <aside className="site-account-sidebar min-w-0">
             <MypageAccountCard
               email={user.email ?? "이메일 정보 없음"}
               roleLabel={accountRoleLabel}

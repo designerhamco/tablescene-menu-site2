@@ -78,24 +78,48 @@
 .site-supporting-note { border: 0; border-radius: .375rem; padding: .75rem 1rem; background: var(--ui-notice-surface); color: var(--ui-text); font-size: var(--type-body-sm-size); font-weight: var(--font-weight-medium); line-height: 1.6; }
 .site-empty-state { border-block: 1px solid var(--site-divider); background: var(--ui-surface-muted); }
 .site-detail-section { border-top: 1px solid var(--site-divider); padding-top: 1.5rem; }
-.site-account-summary { padding-block: .5rem 1rem; }
+.site-account-sidebar { display: contents; }
+.site-account-summary {
+  min-width: 0;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-surface);
+  padding: 1.25rem;
+}
 .site-account-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
 .site-account-heading > form { flex: none; }
 .site-account-signout { white-space: nowrap; }
 .site-account-heading h2 { font-size: var(--type-item-title-size); }
 .site-account-credits { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--site-divider); }
-.site-account-nav { display: flex; flex-wrap: wrap; gap: .25rem; border-block: 1px solid var(--site-divider); padding-block: .5rem; }
+.site-account-nav {
+  position: sticky;
+  top: var(--site-header-height);
+  z-index: 30;
+  display: flex;
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: nowrap;
+  gap: .25rem;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-panel);
+  background: var(--ui-surface);
+  padding: .5rem;
+  scrollbar-width: none;
+}
+.site-account-nav::-webkit-scrollbar { display: none; }
 .site-account-nav .site-nav-item { flex: 0 0 auto; gap: .75rem; white-space: nowrap; border-radius: var(--ui-radius-control-rounded); }
 @media (min-width: 640px) {
   .site-support-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (min-width: 1024px) {
   .site-record-layout { grid-template-columns: minmax(0, 1fr) 8rem; gap: 1.5rem; }
-  .site-account-sidebar { border-right: 1px solid var(--site-divider); padding-right: 1.5rem; }
+  .site-account-sidebar { position: sticky; top: 7rem; display: grid; gap: .75rem; }
   .site-account-heading { flex-direction: column; align-items: stretch; }
   .site-account-signout { width: 100%; }
   .site-account-credits { flex-direction: column; align-items: flex-start; gap: .5rem; }
-  .site-account-nav { flex-direction: column; overflow: visible; border: 0; }
+  .site-account-nav { position: static; flex-direction: column; overflow: visible; background: var(--ui-surface); }
   .site-account-nav .site-nav-item { border-radius: .5rem; }
 }
 :root { --site-support-launcher-edge: 1.25rem; }

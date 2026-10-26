@@ -3,8 +3,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const sidebarSource = readFileSync(new URL("../components/mypage/MypageSidebar.tsx", import.meta.url), "utf8");
+const navigationRailSource = readFileSync(new URL("../components/mypage/MypageNavigationRail.tsx", import.meta.url), "utf8");
 const billingPanelSource = readFileSync(new URL("../components/mypage/BillingHistoryPanel.tsx", import.meta.url), "utf8");
 const mypageSource = readFileSync(new URL("../app/mypage/page.tsx", import.meta.url), "utf8");
+const siteDesignSource = readFileSync(new URL("../styles/site-design.css", import.meta.url), "utf8");
 
 test("mypage account card keeps long email contained and presents AI balance without promotional emphasis", () => {
   assert.match(sidebarSource, /min-w-0 truncate/);
@@ -12,6 +14,17 @@ test("mypage account card keeps long email contained and presents AI balance wit
   assert.doesNotMatch(sidebarSource, /사용자 ID:/);
   assert.doesNotMatch(sidebarSource, /bg-emerald-50/);
   assert.doesNotMatch(sidebarSource, /설명 작성, 메뉴 정리, 번역에 사용할 수 있어요/);
+});
+
+test("mypage navigation uses separate surfaces and a sticky single-line rail before the desktop sidebar", () => {
+  assert.match(sidebarSource, /<MypageNavigationRail activeKey=\{active\}>/);
+  assert.match(navigationRailSource, /querySelector<HTMLElement>\('\[aria-current="page"\]'\)/);
+  assert.match(navigationRailSource, /nav\.scrollLeft \+= hiddenAtEnd/);
+  assert.match(siteDesignSource, /\.site-account-sidebar \{ display: contents; \}/);
+  assert.match(siteDesignSource, /\.site-account-summary \{[\s\S]*?border: 1px solid var\(--ui-border\)[\s\S]*?background: var\(--ui-surface\)/);
+  assert.match(siteDesignSource, /\.site-account-nav \{[\s\S]*?position: sticky[\s\S]*?flex-wrap: nowrap[\s\S]*?overflow-x: auto/);
+  assert.match(siteDesignSource, /@media \(min-width: 1024px\) \{[\s\S]*?\.site-account-sidebar \{ position: sticky; top: 7rem; display: grid/);
+  assert.match(siteDesignSource, /\.site-account-nav \{ position: static; flex-direction: column; overflow: visible/);
 });
 
 test("billing filters use the current product names and do not expose a legacy trial filter", () => {
