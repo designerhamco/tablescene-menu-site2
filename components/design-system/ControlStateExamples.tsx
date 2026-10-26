@@ -20,11 +20,11 @@ export default function ControlStateExamples() {
   const [previewDevice, setPreviewDevice] = useState("태블릿");
   return <section className={styles.section} aria-labelledby="control-states-title">
     <div className={styles.heading}><h2 className="type-section-title" id="control-states-title">버튼·탭 공통 기준과 상태</h2>
-      <p className="type-body text-zinc-600">일반 실행 40px·모서리 8px, 강조 48px, 주요 시작 56px. 버튼 간격은 8px이며 문구에 맞는 폭을 사용합니다.</p>
+      <p className="type-body text-zinc-600">일반 실행 40px·모서리 8px, 강조 48px, 주요 시작 52px. 버튼 간격은 8px이며 문구에 맞는 폭을 사용합니다.</p>
     </div>
     <div className={styles.buttonRow}>
       <Button onClick={() => setClicks(n => n + 1)}><Plus />동작 확인</Button>
-      <Button variant="outline" size="lg">강조 48px</Button><Button size="xl">주요 시작 56px</Button>
+      <Button variant="outline" size="lg">강조 48px</Button><Button size="xl">주요 시작 52px</Button>
       <Button variant="outline"><BookOpen />사용가이드</Button><Button variant="ai"><Sparkles />AI 상담</Button>
       <Button size="icon" variant="ghost" aria-label="추가 도구"><Plus /></Button>
     </div>

@@ -14,7 +14,7 @@ test("ordinary action geometry is shared and icon / quick-menu shapes are explic
   assert.match(css, /\.site-button \{[^}]*min-height: var\(--ui-control-height-md\);[^}]*border-radius: var\(--ui-radius-control-rounded\);/);
   assert.match(css, /--ui-control-height-md: 2\.5rem/);
   assert.match(css, /--ui-control-height-lg: 3rem/);
-  assert.match(css, /--ui-control-height-xl: 3\.5rem/);
+  assert.match(css, /--ui-control-height-xl: 3\.25rem/);
   assert.match(css, /\.site-button\.site-button-icon \{ border-radius: 50%;/);
   const launcher = read("app/support/chat/AiSupportChatLauncher.tsx");
   assert.match(launcher, /site-button site-button-ai/);
@@ -79,7 +79,7 @@ test("content and view controls share three sizes without promoting nested guide
   const tabs = read("app/components/ui/tabs.tsx");
   assert.match(tabs, /TabsSize = "sm" \| "md" \| "lg"/);
   assert.match(tabs, /size = "md"/);
-  for (const [size, height, font] of [["sm", "2.5rem", ".9375rem"], ["md", "3rem", "1rem"], ["lg", "3.5rem", "1.125rem"]]) {
+  for (const [size, height, font] of [["sm", "2.5rem", ".875rem"], ["md", "2.75rem", ".9375rem"], ["lg", "3rem", "1rem"]]) {
     const rule = tabCss.match(new RegExp(`\\.site-tab-size-${size} \\{([^}]+)\\}`))?.[1];
     assert.ok(rule, `missing ${size}`);
     assert.ok(rule.includes(`--site-tab-height: ${height}`));

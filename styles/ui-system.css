@@ -4,7 +4,7 @@
   --ui-control-height-md: 2.5rem;
   --ui-control-height-header: 2.75rem;
   --ui-control-height-lg: 3rem;
-  --ui-control-height-xl: 3.5rem;
+  --ui-control-height-xl: 3.25rem;
   --ui-radius-control-rounded: .5rem;
   --ui-radius-control-square: var(--ui-radius-control-rounded);
   --ui-tab-rail-height: 3rem;
@@ -1120,12 +1120,12 @@ select:not([multiple]):is(:not([size]), [size="1"]):not(:where(.menu-typography,
 }
 .site-field.site-field-search, input[data-field-size="search"] {
   min-height: var(--ui-field-height-search); border-radius: 1rem;
-  padding-block: .875rem; font-size: var(--type-body-lg-size); font-weight: 400;
+  padding-block: .75rem; font-size: var(--type-body-size); font-weight: 400;
 }
 textarea.site-field[data-field-size="lg"], textarea[data-field-size="lg"] { min-height: 10rem; padding-block: .875rem; }
 .site-field[readonly] { background-color: var(--ui-surface-muted); color: var(--ui-text-muted); }
 @media (min-width: 1024px) {
-  .site-field.site-field-search, input[data-field-size="search"] { min-height: 4rem; }
+  .site-field.site-field-search, input[data-field-size="search"] { min-height: var(--ui-field-height-search); }
 }
 /* Neutral cards leave emphasis to the title, price or selected border. */
 .site-plan-card { display: flex; flex-direction: column; gap: 1rem; min-width: 0;
