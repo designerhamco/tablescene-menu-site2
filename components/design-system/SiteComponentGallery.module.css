@@ -37,7 +37,7 @@
 .fieldExample { display: grid; align-content: start; gap: .5rem; min-width: 0; }
 .searchExample { position: relative; min-width: 0; }
 .searchExample > svg { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--ui-text-muted); pointer-events: none; }
-.searchExample input.site-field { width: 100%; padding-left: 3.25rem; }
+.searchExample input:global(.site-field) { width: 100%; padding-left: 3.25rem; }
 .planHeading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
 @media (max-width: 767px) { .fieldGrid { grid-template-columns: minmax(0,1fr); } }
 
