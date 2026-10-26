@@ -91,6 +91,10 @@ test("content tabs, settings tabs and subordinate filters retain different share
   for (const cls of ["site-tab", "site-topic-tab", "site-contained-tab"]) {
     assert.match(tabCss, new RegExp(`\\.${cls}:is\\(:focus-visible, \\[data-ui-state="focus"\\]\\)`));
   }
+  assert.match(tabCss, /\.site-contained-tab:is\(:focus-visible, \[data-ui-state="focus"\]\) \.site-shaped-tab-label/);
+  assert.match(tabCss, /--site-shadow-shaped-tab: 0 -\.25rem \.5rem rgb\(75 81 91 \/ 10%\)/);
+  assert.match(tabCss, /filter: drop-shadow\(var\(--site-shadow-shaped-tab\)\)/);
+  assert.match(read("public/images/ui/tab-folder-mask.svg"), /M0 56 14 24C18 14 21 8 27 4/);
 });
 
 test("content and view controls share three sizes without promoting nested guide or translation controls", () => {
