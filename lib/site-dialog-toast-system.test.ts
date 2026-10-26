@@ -50,8 +50,8 @@ test("공통 모달의 제목과 설명은 의미 기반 타이포를 사용한�
 
 test("토스트와 AI 상담 모달은 같은 사이트 표면 체계를 공유한다", () => {
   assert.match(toasterSource, /toast: "site-toast"/);
-  assert.match(aiLauncherSource, /site-dialog-overlay/);
-  assert.match(aiLauncherSource, /site-dialog site-dialog-sheet/);
+  assert.match(aiLauncherSource, /<DialogContent className=\{`site-dialog-sheet/);
+  assert.match(dialogSource, /<DialogOverlay \/>/);
 });
 
 test("계정·결제 모달도 공통 표면 체계를 사용한다", () => {

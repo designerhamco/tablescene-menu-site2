@@ -964,18 +964,19 @@ textarea.site-field,
 .site-choice-tile[data-size="compact"] .site-emoji-icon { font-size: 1.5rem; }
 
 
-/* AI assistance is the only gradient action; geometry still comes from site-button. */
+/* All AI entry points share the same gradient states. */
+:root { --site-ai-gradient: linear-gradient(105deg, #7d35ff 0%, #4f5df7 52%, #0074df 100%); --site-ai-gradient-hover: linear-gradient(105deg, #7130ef 0%, #4552e8 52%, #0068cd 100%); --site-ai-gradient-pressed: linear-gradient(105deg, #6426df 0%, #3d47d5 52%, #005cb9 100%); }
 .site-button-ai {
   border-color: transparent;
-  background: linear-gradient(105deg, #7d35ff 0%, #4f5df7 52%, #0074df 100%);
+  background: var(--site-ai-gradient);
   color: #fff;
   box-shadow: 0 4px 18px rgb(63 132 255 / 22%);
 }
 .site-button-ai:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) {
-  background: linear-gradient(105deg, #7130ef 0%, #4552e8 52%, #0068cd 100%);
+  background: var(--site-ai-gradient-hover);
 }
 .site-button-ai:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) {
-  background: linear-gradient(105deg, #6426df 0%, #3d47d5 52%, #005cb9 100%);
+  background: var(--site-ai-gradient-pressed);
 }
 .site-button-danger:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) {
   border-color: #991b1b; background: #991b1b;

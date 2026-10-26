@@ -1,150 +1,70 @@
 "use client";
 
-import { AnimatePresence, motion } from "motion/react";
-import { BookOpen } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-
+import { ArrowLeft } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
+import { SupportChatIcon } from "@/app/components/ui/support-chat-icon";
 import { AI_SUPPORT_CHAT_OPEN_EVENT } from "@/lib/ai-support-chat-launcher";
-
 import AiSupportChat from "./AiSupportChat";
+import SupportHome from "./SupportHome";
+import styles from "./support-home.module.css";
 
 export default function AiSupportChatLauncher() {
   const [open, setOpen] = useState(false);
+  const [view, setView] = useState<"home" | "chat">("home");
+  const [chatVisited, setChatVisited] = useState(false);
   const [enabled, setEnabled] = useState<boolean | null>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    const openChat = () => setOpen(true);
+    // An explicit AI action (e.g. the customer-center card) keeps its direct route.
+    const openChat = () => {
+      returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      setView("chat"); setChatVisited(true); setOpen(true);
+    };
     window.addEventListener(AI_SUPPORT_CHAT_OPEN_EVENT, openChat);
-    return () =>
-      window.removeEventListener(AI_SUPPORT_CHAT_OPEN_EVENT, openChat);
+    return () => window.removeEventListener(AI_SUPPORT_CHAT_OPEN_EVENT, openChat);
   }, []);
 
   useEffect(() => {
     if (!open || enabled !== null) return;
-    let active = true;
-    void fetch("/api/support/chat", { method: "GET", cache: "no-store" })
-      .then((response) => response.json())
-      .then((payload: { enabled?: unknown }) => {
-        if (active) setEnabled(payload.enabled === true);
-      })
-      .catch(() => {
-        if (active) setEnabled(false);
-      });
-    return () => {
-      active = false;
-    };
+    const controller = new AbortController();
+    void fetch("/api/support/chat", { method: "GET", cache: "no-store", signal: controller.signal })
+      .then(response => response.json())
+      .then((payload: { enabled?: unknown }) => { if (!controller.signal.aborted) setEnabled(payload.enabled === true); })
+      .catch(() => { if (!controller.signal.aborted) setEnabled(false); });
+    return () => controller.abort();
   }, [enabled, open]);
 
-  useEffect(() => {
-    if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("keydown", onKeyDown);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", onKeyDown);
-    };
-  }, [open]);
+  useEffect(() => { if (open) titleRef.current?.focus(); }, [open, view]);
 
-  return (
-    <>
-      <div className="site-support-launcher pointer-events-none fixed bottom-5 z-40 flex items-center gap-2 md:bottom-8">
-        <Link
-          href="/guides"
-          className="site-button site-button-outline site-button-pill pointer-events-auto"
-        >
-          <BookOpen className="h-4 w-4" aria-hidden="true" />
-          사용가이드
-        </Link>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="site-button site-button-ai site-button-pill pointer-events-auto"
-          data-ai-support-launcher
-          aria-label="AI 상담 열기"
-          aria-expanded={open}
-        >
-          <svg viewBox="0 0 16 16" className="h-4 w-4" fill="currentColor" aria-hidden="true" focusable="false">
-            <path d="M8 1.4C9 5.7 10.3 7 14.6 8c-4.3 1-5.6 2.3-6.6 6.6C7 10.3 5.7 9 1.4 8 5.7 7 7 5.7 8 1.4Z" />
-          </svg>
-          AI 상담
+  return <Dialog open={open} onOpenChange={setOpen}>
+    <div className="site-support-launcher fixed z-40">
+      <DialogTrigger asChild>
+        <button type="button" className={`site-button site-button-ai ${styles.launcherButton}`} data-ai-support-launcher aria-label="고객지원 열기" title="AI 상담·고객지원"
+          onClick={event => { returnFocusRef.current = event.currentTarget; setView("home"); setChatVisited(false); }}>
+          <SupportChatIcon />
         </button>
-      </div>
-
-      <AnimatePresence>
-        {open ? (
-          <motion.div
-            className="site-dialog-overlay fixed inset-0 z-50 md:p-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onMouseDown={(event) => {
-              if (event.currentTarget === event.target) setOpen(false);
-            }}
-          >
-            <motion.section
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="ai-support-dialog-title"
-              className="site-dialog site-dialog-sheet absolute inset-x-0 bottom-0 flex h-[92dvh] max-h-[92dvh] flex-col overflow-hidden border-x-0 border-b-0 text-zinc-950 md:inset-x-auto md:bottom-6 md:right-6 md:h-auto md:w-[min(680px,calc(100vw-48px))] md:border"
-              initial={{ opacity: 0, y: 36 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 24 }}
-              transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <header className="flex shrink-0 items-center justify-between border-b border-zinc-200 px-5 py-4 md:px-6">
-                <div>
-                  <h2
-                    id="ai-support-dialog-title"
-                    className="type-content-title"
-                  >
-                    AI 상담
-                  </h2>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  className="site-button site-button-ghost"
-                >
-                  닫기
-                </button>
-              </header>
-
-              <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-3 md:p-4">
-                {enabled === null ? (
-                  <div
-                    className="type-label grid min-h-64 place-items-center text-zinc-400"
-                    aria-live="polite"
-                  >
-                    상담 가능 여부를 확인 중입니다…
-                  </div>
-                ) : enabled ? (
-                  <AiSupportChat compact />
-                ) : (
-                  <div className="px-5 py-14 text-center md:px-8">
-                    <p className="type-subsection-title">AI 상담 준비 중</p>
-                    <p className="type-body-sm mx-auto mt-3 max-w-md text-zinc-500">
-                      안전성과 답변 품질을 확인한 다음 공개할 예정입니다. 지금은
-                      1:1 문의로 도와드릴게요.
-                    </p>
-                    <Link
-                      href="/mypage/inquiries"
-                      className="site-button site-button-primary type-label mt-6 inline-flex"
-                    >
-                      1:1 문의
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </motion.section>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
-    </>
-  );
+      </DialogTrigger>
+    </div>
+    <DialogContent className={`site-dialog-sheet ${styles.panel}`} aria-describedby={undefined}
+      onOpenAutoFocus={event => { event.preventDefault(); titleRef.current?.focus(); }}
+      onCloseAutoFocus={event => { if (returnFocusRef.current?.isConnected) { event.preventDefault(); returnFocusRef.current.focus(); } }}>
+      <header className={styles.header}>
+        {view === "chat" ? <button type="button" className="site-button site-button-ghost site-button-icon" aria-label="고객지원 홈으로" onClick={() => setView("home")}><ArrowLeft size={20} aria-hidden="true" /></button> : null}
+        <DialogTitle ref={titleRef} tabIndex={-1}>{view === "home" ? "도움이 필요하신가요?" : "AI 실시간 문의"}</DialogTitle>
+      </header>
+      {view === "home" ? <SupportHome enabled={enabled} onChat={() => { setView("chat"); setChatVisited(true); }} onNavigate={() => setOpen(false)} /> : null}
+      {chatVisited ? <div className={styles.chat} hidden={view !== "chat"}>
+        {enabled === null ? <div className={styles.unavailable} role="status">상담 가능 여부를 확인 중입니다…</div>
+          : enabled ? <AiSupportChat compact /> : <div className={styles.unavailable}>
+            <SupportChatIcon width={40} height={40} className="text-zinc-400" /><h3 className="type-content-title">AI 상담 준비 중</h3>
+            <p>AI 상담을 준비하고 있습니다. 궁금한 점은 1:1 문의로 남겨 주세요.</p>
+            <Link href="/mypage/inquiries" onClick={() => setOpen(false)} className="site-button site-button-primary">1:1 문의하기</Link>
+          </div>}
+      </div> : null}
+    </DialogContent>
+  </Dialog>;
 }

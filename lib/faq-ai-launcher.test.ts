@@ -27,8 +27,10 @@ test("AI 상담 모달은 모바일 밀도를 줄이고 언제든 1:1 문의로 
   assert.match(chatSource, /messageViewportRef/);
   assert.match(chatSource, /viewport\.scrollTo\(\{[\s\S]*?top: viewport\.scrollHeight/);
   assert.match(chatSource, /국외 이전 동의 완료/);
-  assert.match(launcherSource, /h-\[92dvh\][\s\S]*?flex-col overflow-hidden/);
-  assert.match(launcherSource, /flex min-h-0 flex-1 flex-col overflow-hidden/);
+  assert.match(launcherSource, /<Dialog open=\{open\} onOpenChange=\{setOpen\}/);
+  assert.match(launcherSource, /<DialogContent className=\{`site-dialog-sheet/);
+  assert.match(launcherSource, /onCloseAutoFocus/);
+  assert.match(launcherSource, /<SupportHome enabled=\{enabled\}/);
   assert.match(chatSource, /w-full text-zinc-600[\s\S]*sm:w-auto/);
   assert.match(chatSource, /1:1 문의로 이어서 도움받기/);
   assert.match(chatSource, /href="\/mypage\/inquiries"/);

@@ -98,6 +98,10 @@
   .site-account-nav { flex-direction: column; overflow: visible; border: 0; }
   .site-account-nav .site-nav-item { border-radius: .5rem; }
 }
+:root { --site-support-launcher-edge: 1.25rem; }
+.site-support-launcher { bottom: calc(var(--site-support-launcher-edge) + env(safe-area-inset-bottom, 0px)); }
+.site-scroll-top { bottom: calc(var(--site-support-launcher-edge) + 4.5rem + env(safe-area-inset-bottom, 0px)); }
+@media (min-width: 768px) { :root { --site-support-launcher-edge: 2rem; } }
 .site-scroll-top, .site-support-launcher { right: max(var(--site-gutter), calc((100vw - var(--site-content-width)) / 2)); }
 .site-brand-note { color: var(--site-text-secondary); }
 .site-tabs { display: flex; align-items: center; gap: .25rem; width: fit-content; max-width: 100%; min-height: var(--site-tab-height, 3rem); overflow-x: auto; padding: .25rem; border-radius: var(--ui-radius-control); background: var(--ui-surface-soft, #f5f5f5); scrollbar-width: none; }

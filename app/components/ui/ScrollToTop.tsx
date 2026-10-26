@@ -23,7 +23,7 @@ const ScrollToTop = () => {
             initial={{ opacity: 0, y: reduceMotion ? 0 : 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: reduceMotion ? 0 : 8 }}
-            className="site-scroll-top fixed bottom-24 z-30"
+            className="site-scroll-top fixed z-30"
           >
             <button
               type="button"

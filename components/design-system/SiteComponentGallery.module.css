@@ -30,3 +30,5 @@
 .inverseToolbar { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem; padding:.75rem; border-radius:.75rem; background:var(--ui-text); }
 
 @media (max-width: 1199px) { .selectionVariants { grid-template-columns: minmax(0, 1fr); } }
+
+.supportExample { width: min(100%, 27.5rem); min-width: 0; border: 1px solid var(--ui-border); border-radius: 1.25rem; overflow: hidden; }

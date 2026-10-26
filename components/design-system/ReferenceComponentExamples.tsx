@@ -8,6 +8,8 @@ import { MetricCard, FilterPanel, RecordCard, KeyValueList, AnnouncementBar } fr
 import { NotificationPanel } from "@/app/components/ui/notification-panel";
 import { ShareDialog } from "@/app/components/ui/share-dialog";
 import { ActivityOverview } from "@/app/components/ui/activity-overview";
+import SupportHome from "@/app/support/chat/SupportHome";
+import { AI_SUPPORT_CHAT_OPEN_EVENT } from "@/lib/ai-support-chat-launcher";
 import ProductOfferCard from "@/components/marketing/ProductOfferCard";
 import { publicBasicProducts } from "@/lib/public-product-details";
 import { Badge } from "@/app/components/ui/badge";
@@ -27,6 +29,7 @@ export default function ReferenceComponentExamples() {
   const [onlyUnread,setOnlyUnread]=useState(false);
   const visible=(applied.status==="all"||applied.status==="draft") && "아티메뉴 카페".includes(applied.query.trim());
   return <>
+    <Example title="고객지원 홈" description="도움이 필요할 때 문의 방법부터 고릅니다. AI 실시간 문의·1:1 문의·FAQ 아래에 서비스 가이드와 기존 FAQ를 표시합니다."><div className={styles.supportExample}><h3 className="type-content-title px-5 pt-5">도움이 필요하신가요?</h3><SupportHome enabled={false} onChat={() => window.dispatchEvent(new Event(AI_SUPPORT_CHAT_OPEN_EVENT))} /></div></Example>
     <Example title="알림 패널" description="분류 탭·날짜별 목록·읽지 않은 표시·하단 전체보기를 한 구조로 묶습니다. 아래 알림은 동작 확인용 예시입니다."><div className={styles.notificationExample}><NotificationPanel compact items={notices.map(item=>({...item,unread:item.unread&&!read.includes(item.id)}))} onActivate={item=>setRead(current=>[...current,item.id])} footer={<Link href="/mypage?tab=notifications">전체 알림 보기</Link>} /></div></Example>
     <Example title="현황 카드와 요약 목록" description="회색 작업 영역 안에서 흰 카드를 사용합니다. 라벨보다 숫자를 강조하고, 아이콘에만 작은 색상 포인트를 줍니다. 아래 수치는 예시입니다."><div className="site-dashboard"><AnnouncementBar label="안내">현황 카드에서 필요한 운영 화면으로 이동할 수 있습니다.</AnnouncementBar><div className="site-metric-grid mt-4"><MetricCard label="진행 중 주문" value="2건" detail="예시 데이터" icon={<ShoppingBag />} tone="blue" /><MetricCard label="대기 중 호출" value="0건" icon={<Bell />} tone="brand" /><MetricCard label="운영 테이블" value="12개" icon={<LayoutGrid />} tone="green" /><div className="site-card-surface p-5"><h3 className="type-label">이용 현황</h3><KeyValueList items={[{label:"공개 메뉴판",value:"1개"},{label:"작성 중",value:"1개"},{label:"결제 내역",value:"3건"}]} /></div></div></div></Example>
     <Example title="검색 필터와 상세 카드" description="조건 입력과 내역을 분리하고, 상세 정보·보조 안내·행동 버튼을 순서대로 배치합니다. 조회와 상세보기는 이 화면의 예시에만 적용됩니다.">
