@@ -6,6 +6,7 @@ const faqSource = readFileSync(new URL("../app/faq/page.tsx", import.meta.url), 
 const launcherSource = readFileSync(new URL("../app/support/chat/AiSupportChatLauncher.tsx", import.meta.url), "utf8");
 const openButtonSource = readFileSync(new URL("../app/support/chat/AiSupportChatOpenButton.tsx", import.meta.url), "utf8");
 const chatSource = readFileSync(new URL("../app/support/chat/AiSupportChat.tsx", import.meta.url), "utf8");
+const chatCss = readFileSync(new URL("../app/support/chat/ai-support-chat.module.css", import.meta.url), "utf8");
 
 test("고객센터는 중복 FAQ 카드와 하단 검정 CTA를 제거한다", () => {
   assert.doesNotMatch(faqSource, /href="#frequently-asked"/);
@@ -21,9 +22,9 @@ test("고객센터 AI 상담 카드는 별도 페이지 대신 공통 상담창�
   assert.match(launcherSource, /window\.addEventListener\(AI_SUPPORT_CHAT_OPEN_EVENT, openChat\)/);
 });
 
-test("AI 상담 모달은 모바일 밀도를 줄이고 언제든 1:1 문의로 전환한다", () => {
-  assert.match(chatSource, /compact \? "site-card-compact flex h-full flex-col"/);
-  assert.match(chatSource, /flex-1 overflow-y-auto/);
+test("AI 상담 모달은 내부 스크롤과 지원 홈 이동을 유지하고 중복 하단 링크를 제거한다", () => {
+  assert.match(chatCss, /\.compact \{ height: 100%; \}/);
+  assert.match(chatCss, /\.compact \.viewport \{[^}]*overflow-y: auto/);
   assert.match(chatSource, /messageViewportRef/);
   assert.match(chatSource, /viewport\.scrollTo\(\{[\s\S]*?top: viewport\.scrollHeight/);
   assert.match(chatSource, /국외 이전 동의 완료/);
@@ -31,7 +32,7 @@ test("AI 상담 모달은 모바일 밀도를 줄이고 언제든 1:1 문의로 
   assert.match(launcherSource, /<DialogContent className=\{`site-dialog-sheet/);
   assert.match(launcherSource, /onCloseAutoFocus/);
   assert.match(launcherSource, /<SupportHome enabled=\{enabled\}/);
-  assert.match(chatSource, /w-full text-zinc-600[\s\S]*sm:w-auto/);
-  assert.match(chatSource, /1:1 문의로 이어서 도움받기/);
+  assert.match(launcherSource, /aria-label="고객지원 홈으로"/);
+  assert.doesNotMatch(chatSource, /1:1 문의로 이어서 도움받기/);
   assert.match(chatSource, /href="\/mypage\/inquiries"/);
 });

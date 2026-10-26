@@ -12,7 +12,8 @@
 .channelLabel { display: grid; min-height: 2.8em; align-content: center; font-size: var(--type-body-sm-size); font-weight: 600; line-height: 1.4; word-break: keep-all; }
 .availability { margin-top: -.375rem; color: var(--ui-text-muted); font-size: var(--type-caption-size); line-height: 1.4; }
 .aiIcon, .emoji { display: grid; flex: none; width: 2.5rem; height: 2.5rem; place-items: center; }
-.aiIcon { border-radius: .75rem; background: var(--site-ai-gradient); color: #fff; }
+.aiIcon { border-radius: .75rem; background: var(--site-ai-surface); color: var(--site-ai-foreground); }
+.chatMark { flex: none; color: #b18100; }
 .emoji { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", emoji; font-size: 1.875rem; line-height: 1; }
 .section { margin-top: 1.75rem; }
 .section h3 { font-size: var(--type-body-size); }
@@ -31,7 +32,7 @@
 .faq { margin-top: .5rem; }
 .faq [data-slot="accordion-trigger"] { min-height: 3rem; font-size: var(--type-body-sm-size); font-weight: 500; line-height: 1.6; }
 .answer { color: var(--site-text-secondary); font-size: var(--type-body-sm-size); line-height: 1.7; }
-.chat { display: flex; min-height: 0; flex: 1; flex-direction: column; padding: .75rem; overflow: hidden; }
+.chat { display: flex; min-height: 0; flex: 1; flex-direction: column; overflow: hidden; }
 .chat[hidden] { display: none; }
 .unavailable { display: grid; flex: 1; align-content: center; justify-items: center; gap: 1rem; padding: 2rem 1.25rem; text-align: center; }
 .unavailable p { max-width: 20rem; font-size: var(--type-body-sm-size); line-height: 1.7; color: var(--site-text-secondary); }

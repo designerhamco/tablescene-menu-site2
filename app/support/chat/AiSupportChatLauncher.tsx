@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
-import { SupportChatIcon } from "@/app/components/ui/support-chat-icon";
+import { SupportChatIcon, SupportSparkleIcon } from "@/app/components/ui/support-chat-icon";
 import { AI_SUPPORT_CHAT_OPEN_EVENT } from "@/lib/ai-support-chat-launcher";
 import AiSupportChat from "./AiSupportChat";
 import SupportHome from "./SupportHome";
@@ -54,7 +54,8 @@ export default function AiSupportChatLauncher() {
       onCloseAutoFocus={event => { if (returnFocusRef.current?.isConnected) { event.preventDefault(); returnFocusRef.current.focus(); } }}>
       <header className={styles.header}>
         {view === "chat" ? <button type="button" className="site-button site-button-ghost site-button-icon" aria-label="고객지원 홈으로" onClick={() => setView("home")}><ArrowLeft size={20} aria-hidden="true" /></button> : null}
-        <DialogTitle ref={titleRef} tabIndex={-1}>{view === "home" ? "도움이 필요하신가요?" : "AI 실시간 문의"}</DialogTitle>
+        {view === "chat" ? <SupportSparkleIcon width={20} height={20} className={styles.chatMark} /> : null}
+        <DialogTitle ref={titleRef} tabIndex={-1}>{view === "home" ? "도움이 필요하신가요?" : "AI 상담"}</DialogTitle>
       </header>
       {view === "home" ? <SupportHome enabled={enabled} onChat={() => { setView("chat"); setChatVisited(true); }} onNavigate={() => setOpen(false)} /> : null}
       {chatVisited ? <div className={styles.chat} hidden={view !== "chat"}>

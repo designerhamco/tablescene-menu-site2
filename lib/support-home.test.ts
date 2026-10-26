@@ -31,7 +31,7 @@ test("support summaries reuse existing FAQ content and multiple previews do not 
   for (const match of html.matchAll(/aria-labelledby="([^"]+)"/g)) assert.ok(ids.includes(match[1]));
 });
 
-test("AI entry points share the gradient and the launcher keeps the existing runtime gate", () => {
+test("AI entry points share the AI variant and the launcher keeps the existing runtime gate", () => {
   const launcher = read("../app/support/chat/AiSupportChatLauncher.tsx");
   const center = read("../app/faq/page.tsx");
   assert.match(center, /AiSupportChatOpenButton className="site-button site-button-ai"/);

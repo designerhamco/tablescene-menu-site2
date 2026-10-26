@@ -984,19 +984,19 @@ textarea.site-field,
 .site-choice-tile[data-size="compact"] .site-emoji-icon { font-size: 1.5rem; }
 
 
-/* All AI entry points share the same gradient states. */
-:root { --site-ai-gradient: linear-gradient(105deg, #7d35ff 0%, #4f5df7 52%, #0074df 100%); --site-ai-gradient-hover: linear-gradient(105deg, #7130ef 0%, #4552e8 52%, #0068cd 100%); --site-ai-gradient-pressed: linear-gradient(105deg, #6426df 0%, #3d47d5 52%, #005cb9 100%); }
+/* AI entry points share the mascot's yellow surface and readable dark ink. */
+:root { --site-ai-surface: #ffda45; --site-ai-surface-hover: #f4c92f; --site-ai-surface-pressed: #e7ba1f; --site-ai-foreground: #252218; }
 .site-button-ai {
   border-color: transparent;
-  background: var(--site-ai-gradient);
-  color: #fff;
-  box-shadow: 0 4px 18px rgb(63 132 255 / 22%);
+  background: var(--site-ai-surface);
+  color: var(--site-ai-foreground);
+  box-shadow: 0 4px 18px rgb(177 129 0 / 16%);
 }
 .site-button-ai:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) {
-  background: var(--site-ai-gradient-hover);
+  background: var(--site-ai-surface-hover);
 }
 .site-button-ai:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) {
-  background: var(--site-ai-gradient-pressed);
+  background: var(--site-ai-surface-pressed);
 }
 .site-button-danger:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) {
   border-color: #991b1b; background: #991b1b;
@@ -1008,7 +1008,7 @@ textarea.site-field,
 .site-button-link { text-underline-offset: .2em; }
 .site-button-link:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { text-decoration: underline; }
 .site-button-link:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { color: var(--ui-action-pressed); }
-.site-button-ai:is(:disabled, [aria-disabled="true"]) { background: var(--ui-surface-muted); box-shadow: none; }
+.site-button-ai:is(:disabled, [aria-disabled="true"]) { background: var(--ui-surface-muted); color: var(--ui-text-muted); box-shadow: none; }
 .site-button-link:is(:disabled, [aria-disabled="true"]),
 .site-button-danger-ghost:is(:disabled, [aria-disabled="true"]) { border-color: transparent; background: transparent; color: #9fa3ab; text-decoration: none; }
 
