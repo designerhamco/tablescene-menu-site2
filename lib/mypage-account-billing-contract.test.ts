@@ -12,6 +12,8 @@ test("mypage account card gives business identity and owner metrics a readable h
   assert.match(sidebarSource, /businessName/);
   assert.match(sidebarSource, /site-account-business-name/);
   assert.match(sidebarSource, /site-account-email/);
+  assert.match(sidebarSource, /businessName \? \(/);
+  assert.match(sidebarSource, /<h2 className="type-content-title site-account-email" title=\{email\}>/);
   assert.match(sidebarSource, /AI 크레딧/);
   assert.match(sidebarSource, /직원계정/);
   assert.match(sidebarSource, /AI 충전\/사용내역/);
