@@ -464,13 +464,13 @@ const OrderServicePage = () => {
               <div className="mt-10 flex flex-col gap-3 sm:flex-row">
                 <Link
                   to="/"
-                  className="site-button site-button-primary inline-flex items-center justify-center text-sm"
+                  className="site-button site-button-primary inline-flex items-center justify-center"
                 >
                   아티메뉴 다이닝 보기
                 </Link>
                 <Link
                   to="/apply/custom"
-                  className="site-button site-button-outline inline-flex items-center justify-center text-sm"
+                  className="site-button site-button-outline inline-flex items-center justify-center"
                 >
                   문의하기
                 </Link>
@@ -1239,7 +1239,7 @@ const OrderServicePage = () => {
            </div>
 
            <div className="shrink-0">
-              <Link to="/services/design-customizing" className="site-button site-button-primary group inline-flex items-center gap-2 hover:-translate-y-0.5">
+              <Link to="/services/design-customizing" className="site-button site-button-primary group inline-flex items-center">
                 자세히 보기
                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </Link>
@@ -1723,7 +1723,7 @@ const OrderServicePage = () => {
         <div className="mt-16 text-center">
             <Link 
                 to="/services/order" 
-                className="site-button site-button-outline inline-flex items-center justify-center gap-2 text-xl"
+                className="site-button site-button-outline inline-flex items-center justify-center"
             >
                 준비 중 <ArrowRight size={24}/>
             </Link>

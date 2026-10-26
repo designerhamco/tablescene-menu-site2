@@ -28,7 +28,7 @@ test("헤더와 퀵 메뉴의 원형 아이콘 버튼은 가로세로가 같은 
   assert.match(scrollSource, /site-button-secondary site-button-icon/);
   assert.doesNotMatch(scrollSource, /height: 0/);
   assert.match(uiSystemSource, /\.site-button-icon \{[\s\S]*?height: var\(--ui-control-height-md\);[\s\S]*?aspect-ratio: 1;[\s\S]*?flex: none;/);
-  assert.match(uiSystemSource, /\.site-button-icon\.site-button-sm \{[\s\S]*?height: var\(--ui-control-height-sm\);/);
+  assert.match(uiSystemSource, /\.site-button-icon\.site-button-compact \{[\s\S]*?height: var\(--ui-control-height-compact\);/);
 });
 
 test("데스크톱 헤더 액션은 MY 메뉴, 매장 운영, 구분선, 알림, 만들기 순서를 유지한다", () => {

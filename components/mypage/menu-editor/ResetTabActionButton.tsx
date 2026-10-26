@@ -85,7 +85,7 @@ export default function ResetTabActionButton({ menuId, kind }: ResetTabActionBut
         }}
         disabled={disabled}
         title={disabled ? "샘플 복원 기능은 안전한 draft 저장 구조 적용 후 사용할 수 있습니다." : undefined}
-        className="site-button site-button-rounded site-button-secondary"
+        className="site-button site-button-secondary"
       >
         {copy.buttonLabel}
       </button>
@@ -107,7 +107,7 @@ export default function ResetTabActionButton({ menuId, kind }: ResetTabActionBut
                 type="button"
                 onClick={closeDialog}
                 disabled={isPending}
-                className="site-button site-button-rounded site-button-outline"
+                className="site-button site-button-outline"
               >
                 취소
               </button>
@@ -115,7 +115,7 @@ export default function ResetTabActionButton({ menuId, kind }: ResetTabActionBut
                 type="button"
                 onClick={handleReset}
                 disabled={isPending}
-                className="site-button site-button-rounded site-button-danger w-full sm:w-auto"
+                className="site-button site-button-danger w-full sm:w-auto"
               >
                 {isPending ? (
                   <>

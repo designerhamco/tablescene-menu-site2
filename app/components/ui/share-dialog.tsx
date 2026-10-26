@@ -21,7 +21,7 @@ export function ShareDialog({ title, url, trigger }: { title: string; url?: stri
     <DialogTrigger asChild>{trigger}</DialogTrigger><DialogContent className="site-share-dialog">
       <DialogHeader><DialogTitle>공유하기</DialogTitle><DialogDescription>{title}</DialogDescription></DialogHeader>
       <div className="site-share-options"><button type="button" onClick={copy} className="site-share-option"><span><LinkIcon size={28} /></span>링크 복사</button>{canShare ? <button type="button" onClick={share} className="site-share-option"><span data-tone="brand"><Share2 size={28} /></span>기기로 공유</button> : null}</div>
-      <div className="site-share-url"><label className="sr-only" htmlFor={urlId}>공유 링크</label><input id={urlId} readOnly value={shareUrl} className="site-field" /><button type="button" className="site-button site-button-rounded site-button-outline" onClick={copy}><Copy size={16} aria-hidden="true" />복사</button></div>
+      <div className="site-share-url"><label className="sr-only" htmlFor={urlId}>공유 링크</label><input id={urlId} readOnly value={shareUrl} className="site-field" /><button type="button" className="site-button site-button-outline" onClick={copy}><Copy size={16} aria-hidden="true" />복사</button></div>
     </DialogContent>
   </Dialog>;
 }

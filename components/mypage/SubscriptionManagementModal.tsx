@@ -287,7 +287,7 @@ export default function SubscriptionManagementModal({
           setRefundReason("");
           setIsOpen(true);
         }}
-        className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center"
+        className="site-button site-button-primary inline-flex items-center justify-center"
       >
         구독 관리
       </button>
@@ -299,7 +299,7 @@ export default function SubscriptionManagementModal({
               <div>
                 <h2 className="type-subsection-title text-zinc-950">구독 관리</h2>
               </div>
-              <button type="button" onClick={closeModal} className="site-button site-button-rounded site-button-outline">
+              <button type="button" onClick={closeModal} className="site-button site-button-outline">
                 닫기
               </button>
             </div>
@@ -461,14 +461,14 @@ export default function SubscriptionManagementModal({
                   <button
                     type="button"
                     onClick={() => setIsViewingRefundGuide(false)}
-                    className="site-button site-button-rounded site-button-outline"
+                    className="site-button site-button-outline"
                   >
                     뒤로
                   </button>
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="site-button site-button-rounded site-button-outline"
+                    className="site-button site-button-outline"
                   >
                     닫기
                   </button>
@@ -482,7 +482,7 @@ export default function SubscriptionManagementModal({
                       refundConfirmState.status === "completed"
                     }
                     onClick={submitRefundConfirm}
-                    className="site-button site-button-rounded site-button-primary"
+                    className="site-button site-button-primary"
                   >
                     {refundConfirmState.status === "processing"
                       ? "환불 처리 중..."
@@ -575,7 +575,7 @@ export default function SubscriptionManagementModal({
                     setError(null);
                     setIsConfirmingCancel(true);
                   }}
-                  className="site-button site-button-rounded site-button-primary"
+                  className="site-button site-button-primary"
                 >
                   {isYearlyBilling ? "다음 연간 결제일부터 해지 예약" : "구독 해지 예약"}
                 </button>
@@ -585,13 +585,13 @@ export default function SubscriptionManagementModal({
                   type="button"
                   disabled={isSubmitting}
                   onClick={resumeCancellation}
-                  className="site-button site-button-rounded site-button-primary"
+                  className="site-button site-button-primary"
                 >
                   {isSubmitting ? "처리 중..." : "구독 유지하기 / 해지 예약 취소"}
                 </button>
               ) : null}
               {(status === "expired" || status === "failed") && !restoredNotice ? (
-                <a href="/mypage/inquiries" className="site-button site-button-rounded site-button-outline">
+                <a href="/mypage/inquiries" className="site-button site-button-outline">
                   고객지원 문의
                 </a>
               ) : null}
@@ -603,7 +603,7 @@ export default function SubscriptionManagementModal({
                     setIsViewingRefundGuide(true);
                     void loadRefundQuote();
                   }}
-                  className="site-button site-button-rounded site-button-secondary"
+                  className="site-button site-button-secondary"
                 >
                   중도해지/환불 요청
                 </button>
@@ -637,13 +637,13 @@ export default function SubscriptionManagementModal({
             </label>
             {error && <p className="site-notice site-notice-error mt-4 break-keep p-3 text-copy font-medium">{error}</p>}
             <div className="mt-6 flex flex-wrap justify-end gap-3">
-              <button type="button" onClick={() => setIsConfirmingCancel(false)} className="site-button site-button-rounded site-button-outline">
+              <button type="button" onClick={() => setIsConfirmingCancel(false)} className="site-button site-button-outline">
                 계속 이용하기
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="site-button site-button-rounded site-button-primary"
+                className="site-button site-button-primary"
               >
                 {isSubmitting ? "처리 중..." : isYearlyBilling ? "다음 연간 결제일부터 해지하기" : "다음 결제일부터 해지하기"}
               </button>

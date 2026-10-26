@@ -22,10 +22,14 @@ const viewports = [
 ];
 
 const baseRoutes = [
-  "/mypage?tab=menus",
-  "/mypage?tab=payments",
+  "/mypage?tab=menus&menuTab=active",
+  "/mypage?tab=menus&menuTab=holding",
+  "/mypage?tab=menus&menuTab=deleted",
+  "/mypage?tab=payments&billingTab=history",
+  "/mypage?tab=payments&billingTab=ai-credits",
   "/mypage?tab=inquiries",
   "/mypage?tab=notifications",
+  "/mypage?tab=favorites",
   "/mypage?tab=account",
   "/mypage/operations",
   "/mypage/staff",
@@ -37,13 +41,31 @@ function getMenuRoutes(menuId) {
 
   return [
     `/mypage/menus/${menuId}/edit?tab=basic`,
-    `/mypage/menus/${menuId}/edit?tab=menu`,
-    `/mypage/menus/${menuId}/edit?tab=design`,
-    `/mypage/menus/${menuId}/edit?tab=localization`,
-    `/mypage/menus/${menuId}/edit?tab=publish`,
     `/mypage/menus/${menuId}/preview`,
     `/mypage/menus/${menuId}/qr`,
   ];
+}
+
+async function discoverMenuEditorRoutes(page, menuId) {
+  if (!menuId) return [];
+
+  const entryRoute = `/mypage/menus/${menuId}/edit?tab=basic`;
+  await page.goto(new URL(entryRoute, baseUrl).toString(), {
+    waitUntil: "domcontentloaded",
+    timeout: navigationTimeout,
+  });
+  await waitForSettledPage(page);
+
+  const editorRoutes = await page.locator('a[href*="/edit?tab="]').evaluateAll((links) =>
+    links
+      .map((link) => link.getAttribute("href"))
+      .filter((href) => typeof href === "string"),
+  );
+
+  return [...new Set(editorRoutes)].filter((route) => {
+    const url = new URL(route, baseUrl);
+    return url.pathname === `/mypage/menus/${menuId}/edit` && url.searchParams.has("tab");
+  });
 }
 
 function isSameOriginRequest(url) {
@@ -190,7 +212,10 @@ try {
     }
 
     const menuId = await discoverMenuId(page);
-    const routes = [...baseRoutes, ...getMenuRoutes(menuId)].filter((route) => !routeFilter || route === routeFilter);
+    const discoveredEditorRoutes = await discoverMenuEditorRoutes(page, menuId);
+    const routes = [...new Set([...baseRoutes, ...getMenuRoutes(menuId), ...discoveredEditorRoutes])].filter(
+      (route) => !routeFilter || route === routeFilter,
+    );
 
     for (const route of routes) {
       const consoleErrors = [];

@@ -14,9 +14,11 @@ test("사이트 버튼과 카드 시스템은 전역 스타일 진입점에 연�
   assert.match(globalsSource, /@import "\.\.\/styles\/ui-system\.css";/);
 
   for (const token of [
-    "--ui-control-height-sm",
+    "--ui-control-height-compact",
     "--ui-control-height-md",
+    "--ui-control-height-header",
     "--ui-control-height-lg",
+    "--ui-button-font-weight",
     "--ui-radius-control",
     "--ui-radius-card",
     "--ui-border",

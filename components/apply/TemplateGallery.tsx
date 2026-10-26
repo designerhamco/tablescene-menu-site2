@@ -151,7 +151,7 @@ export default function TemplateGallery({
                 <EmptyState icon={<PanelsTopLeft />} title={emptyTitle} description={hasLayoutFilter && layoutFilter !== "all"
                   ? "선택한 화면 구성의 디자인을 준비하고 있습니다. 다른 화면 구성이나 업종을 선택해 주세요."
                   : "매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다."}
-                  action={product !== "display" ? <Button variant="outline" size="lg" shape="rounded" onClick={clearFilters}>전체 템플릿 보기</Button> : undefined} />
+                  action={product !== "display" ? <Button variant="outline" size="lg" onClick={clearFilters}>전체 템플릿 보기</Button> : undefined} />
               )}
               <TemplatePagination currentPage={currentPage} totalPages={totalPages} onSelect={next => {
                 setPage(next);

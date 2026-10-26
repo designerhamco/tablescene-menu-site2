@@ -304,7 +304,7 @@ export default function TypographySettingsForm({
                 <button
                   type="button"
                   onClick={() => { setSelectedRoleSettings(createDefaultTypographyRoleSettings()); setTextColors({}); }}
-                  className="site-button site-button-rounded site-button-outline inline-flex shrink-0 items-center justify-center"
+                  className="site-button site-button-outline inline-flex shrink-0 items-center justify-center"
                 >
                   글자 설정 초기화
                 </button>

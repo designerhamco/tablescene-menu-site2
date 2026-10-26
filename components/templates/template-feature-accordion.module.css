@@ -22,7 +22,7 @@
 .item[data-active="true"] .track { background: rgb(255 255 255 / .18); }
 .progress { display: block; width: 100%; height: 100%; border-radius: inherit; background: #fff; transform: scaleX(0); transform-origin: left center; animation: featureProgress linear forwards; }
 .playback { grid-area: playback; display: flex; align-items: center; justify-content: flex-end; gap: .5rem; color: var(--ui-text-muted); }
-.playback button { width: var(--ui-control-height-sm); min-height: var(--ui-control-height-sm); padding: 0; }
+.playback button { width: var(--ui-control-height-md); min-height: var(--ui-control-height-md); padding: 0; }
 @keyframes featureProgress { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @container (min-width: 48rem) {
   .feature { grid-template-areas: "copy figure" "list figure" "playback figure"; grid-template-columns: minmax(18rem, .92fr) minmax(0, 1.08fr); grid-template-rows: auto 1fr auto; column-gap: clamp(1.5rem, 4cqi, 3rem); row-gap: 1.25rem; align-items: stretch; }

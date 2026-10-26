@@ -43,19 +43,19 @@ export default function SiteComponentGallery() {
       <p className="type-body-sm text-zinc-600">스타일 확인용 예시입니다. 선택과 좋아요는 이 화면에서만 유지됩니다.</p>
     </header>
     <Tabs variant="underline" defaultValue="components" className="mt-6 gap-0"><TabsList variant="underline" size="lg" aria-label="디자인 시스템 메뉴"><TabsTrigger value="foundations">기준·토큰</TabsTrigger><TabsTrigger value="components">컴포넌트 라이브러리</TabsTrigger></TabsList><TabsContent value="foundations"><DesignFoundations /></TabsContent><TabsContent value="components"><nav className="site-filter-group mt-6" aria-label="주요 컴포넌트 바로가기"><a href="#selection-hierarchy-title" className="site-filter">탭·세그먼트 기준</a><a href="#shaped-tabs" className="site-filter">추가 탭 시안</a><a href="#form-controls" className="site-filter">입력 요소</a><a href="#card-patterns" className="site-filter">카드</a><a href="#list-patterns" className="site-filter">게시글 목록</a><a href="#small-copy" className="site-filter">작은 안내·팝업</a><a href="#site-footer" className="site-filter">공통 푸터</a></nav><SelectionControlExamples /><FormAndCardExamples /><ListExamples /><ShapedTabExamples /><ControlStateExamples /><ReferenceComponentExamples />
-    <Examples title="크기와 형태가 다른 버튼" description="일반 실행은 40px·모서리 8px로 통일합니다. 강조 실행은 48·52px, 둥근형은 퀵메뉴에 사용합니다.">
+    <Examples title="역할로 구분하는 버튼" description="본문 실행은 40px·모서리 8px, 로그인·결제 같은 주요 완료 행동은 48px입니다. 헤더와 떠 있는 진입점만 pill을 사용합니다.">
       <div className={styles.buttonRow}>
         <Button asChild><Link href="/apply">시작하기</Link></Button>
-        <Button size="lg" shape="rounded" variant="outline" asChild><Link href="/templates">디자인 살펴보기 <ArrowRight /></Link></Button>
-        <Button size="xl" shape="square" variant="outline" asChild><Link href="/guides">사용 방법 보기 <ArrowRight /></Link></Button>
-        <Button size="xl" shape="rounded" asChild><Link href="/apply">우리 매장 메뉴판 만들기 <ArrowRight /></Link></Button>
+        <Button size="lg" variant="outline" asChild><Link href="/templates">디자인 살펴보기 <ArrowRight /></Link></Button>
+        <Button size="lg" variant="outline" asChild><Link href="/guides">사용 방법 보기 <ArrowRight /></Link></Button>
+        <Button size="lg" asChild><Link href="/apply">우리 매장 메뉴판 만들기 <ArrowRight /></Link></Button>
       </div>
       <div className={styles.buttonRow}>
-        <Button variant="outline" shape="rounded" onClick={()=>setIndustry(false)}>취소</Button>
-        <Button variant="secondary" shape="rounded" onClick={()=>{setIndustry(false);setFavorites([]);}}>초기화</Button>
-        <Button variant="outline" shape="rounded" disabled>준비 중</Button>
+        <Button variant="outline" onClick={()=>setIndustry(false)}>취소</Button>
+        <Button variant="secondary" onClick={()=>{setIndustry(false);setFavorites([]);}}>초기화</Button>
+        <Button variant="outline" disabled>준비 중</Button>
       </div>
-      <Button variant="outline" size="xl" shape="square" asChild><Link href="/templates">전체 디자인 보기 <ArrowRight /></Link></Button>
+      <Button variant="outline" size="lg" asChild><Link href="/templates">전체 디자인 보기 <ArrowRight /></Link></Button>
     </Examples>
     <Examples title="서비스 탐색 탭" description="상위 서비스는 열린 밑줄 탭으로 이동합니다. 아이콘 필터나 보기 방식 세그먼트와 구분합니다.">
       <Tabs defaultValue="basic"><TabsList variant="underline" size="lg" aria-label="서비스 탐색 예시">
@@ -88,13 +88,13 @@ export default function SiteComponentGallery() {
         {["전체","작성중","공개중","비공개"].map(label=><TabsTrigger key={label} value={label} count={0}>{label}</TabsTrigger>)}
       </TabsList>{["전체","작성중","공개중","비공개"].map(label=><TabsContent key={label} value={label}>
         <EmptyState icon={<PanelsTopLeft />} title={label === "전체" ? "등록된 메뉴판이 없습니다" : `${label} 메뉴판이 없습니다`} description="매장에 어울리는 디자인을 선택하고 첫 메뉴판을 만들어 보세요."
-          action={<Button variant="outline" shape="rounded" asChild><Link href="/apply"><Plus />메뉴판 만들기</Link></Button>} />
+          action={<Button variant="outline" asChild><Link href="/apply"><Plus />메뉴판 만들기</Link></Button>} />
       </TabsContent>)}</Tabs>
     </Examples>
     <Examples title="노란 말풍선 안내" description="짧은 힌트는 마우스·키보드 포커스로, 추가 안내는 버튼을 눌러 확인합니다. 아티메뉴 노란색과 검정 글자로 표현합니다.">
       <div className={styles.buttonRow}>
-        <Tooltip><TooltipTrigger asChild><Button variant="outline" shape="rounded">짧은 도움말 보기</Button></TooltipTrigger><TooltipContent tone="brand" sideOffset={8} collisionPadding={16}>마음에 드는 디자인을 먼저 살펴보세요.</TooltipContent></Tooltip>
-        <HelpTooltip label="템플릿 체험 안내" tone="brand" side="top" align="start" trigger={<Button variant="outline" shape="rounded">안내 말풍선 열기</Button>}><strong>미리보기에서 먼저 체험해 보세요.</strong><br />보기 옵션과 디자인 옵션을 바꿔보며<br />우리 매장에 어울리는 구성을 찾을 수 있어요.</HelpTooltip>
+        <Tooltip><TooltipTrigger asChild><Button variant="outline">짧은 도움말 보기</Button></TooltipTrigger><TooltipContent tone="brand" sideOffset={8} collisionPadding={16}>마음에 드는 디자인을 먼저 살펴보세요.</TooltipContent></Tooltip>
+        <HelpTooltip label="템플릿 체험 안내" tone="brand" side="top" align="start" trigger={<Button variant="outline">안내 말풍선 열기</Button>}><strong>미리보기에서 먼저 체험해 보세요.</strong><br />보기 옵션과 디자인 옵션을 바꿔보며<br />우리 매장에 어울리는 구성을 찾을 수 있어요.</HelpTooltip>
       </div>
       <p className="type-body-sm text-zinc-600">닫기·Escape·바깥 클릭으로 닫을 수 있고, 버튼을 누르면 다시 열립니다.</p>
     </Examples>
@@ -105,11 +105,11 @@ export default function SiteComponentGallery() {
       </div>
       <Collapsible open={expanded} onOpenChange={setExpanded}>
         <CollapsibleContent><p className="type-body mb-4 text-zinc-600">베이직은 한 화면 메뉴, 다이닝은 여러 페이지 메뉴, 디스플레이는 매장 화면을 위한 구성입니다.</p></CollapsibleContent>
-        <CollapsibleTrigger asChild><Button variant="outline" shape="rounded" className="w-full">{expanded ? "접기" : "더보기"}{expanded ? <ChevronUp /> : <ChevronDown />}</Button></CollapsibleTrigger>
+        <CollapsibleTrigger asChild><Button variant="outline" className="w-full">{expanded ? "접기" : "더보기"}{expanded ? <ChevronUp /> : <ChevronDown />}</Button></CollapsibleTrigger>
       </Collapsible>
     </Examples>
     <Examples title="카테고리 이동 버튼" description="목록의 진입점은 문구에 맞는 사각 버튼과 이동 아이콘으로 표시합니다.">
-      <div className={styles.actionGrid}>{choices.map(({key,label})=><Button key={key} className={styles.action} variant="outline" shape="square" asChild><Link href={`/templates?plan=${key}`}>{label} 디자인 <Plus aria-hidden="true" /></Link></Button>)}</div>
+      <div className={styles.actionGrid}>{choices.map(({key,label})=><Button key={key} className={styles.action} variant="outline" asChild><Link href={`/templates?plan=${key}`}>{label} 디자인 <Plus aria-hidden="true" /></Link></Button>)}</div>
     </Examples>
     </TabsContent></Tabs>
   </div>;

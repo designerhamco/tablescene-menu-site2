@@ -15,19 +15,26 @@ test("authenticated surface QA requires ignored credentials and never uses a ser
   );
 });
 
-test("authenticated surface QA covers account, editor, operations and responsive failure modes", () => {
+test("authenticated surface QA covers every mypage group, discovered editor tabs and responsive failure modes", () => {
   for (const route of [
-    "/mypage?tab=menus",
-    "/mypage?tab=payments",
+    "/mypage?tab=menus&menuTab=active",
+    "/mypage?tab=menus&menuTab=holding",
+    "/mypage?tab=menus&menuTab=deleted",
+    "/mypage?tab=payments&billingTab=history",
+    "/mypage?tab=payments&billingTab=ai-credits",
+    "/mypage?tab=inquiries",
+    "/mypage?tab=notifications",
+    "/mypage?tab=favorites",
+    "/mypage?tab=account",
     "/mypage/operations",
     "/mypage/staff",
-    "edit?tab=menu",
-    "edit?tab=localization",
     "/preview",
     "/qr",
   ]) {
     assert.ok(source.includes(route), `expected authenticated QA route: ${route}`);
   }
+  assert.match(source, /discoverMenuEditorRoutes/);
+  assert.match(source, /a\[href\*="\/edit\?tab="\]/);
   assert.match(source, /width: 390, height: 844/);
   assert.match(source, /clippedInteractiveElements/);
   assert.match(source, /horizontalOverflow/);

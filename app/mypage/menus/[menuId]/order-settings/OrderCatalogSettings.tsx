@@ -49,7 +49,7 @@ function ItemForm({
         <p className="text-copy text-zinc-500">
           상품명·기본 가격·사진은 메뉴 편집에서 변경합니다. 화면 표시용 가격 열과 주문 옵션은 별도이므로 옵션별 추가금을 확인해 주세요. 숨김·품절 상품은 담을 수 없습니다.
         </p>
-        <Link href={`/mypage/menus/${menuId}/edit?tab=menu`} className="site-button site-button-rounded site-button-outline">메뉴 편집으로 이동</Link>
+        <Link href={`/mypage/menus/${menuId}/edit?tab=menu`} className="site-button site-button-outline">메뉴 편집으로 이동</Link>
         {value.groups.map((group, i) => (
           <fieldset key={group.id} className="border-t border-zinc-200 pt-5">
             <legend className="type-label px-2">옵션 그룹 {i + 1}</legend>
@@ -66,7 +66,7 @@ function ItemForm({
               />
               <button
                 type="button"
-                className="site-button site-button-rounded site-button-secondary"
+                className="site-button site-button-secondary"
                 onClick={() =>
                   setValue({
                     ...value,
@@ -149,7 +149,7 @@ function ItemForm({
                 </label>
                 <button
                   type="button"
-                  className="site-button site-button-rounded site-button-secondary"
+                  className="site-button site-button-secondary"
                   onClick={() =>
                     changeGroup(i, (g) => ({
                       ...g,
@@ -163,7 +163,7 @@ function ItemForm({
             ))}
             <button
               type="button"
-              className="site-button site-button-rounded site-button-secondary"
+              className="site-button site-button-secondary"
               disabled={group.values.length >= 20}
               onClick={() =>
                 changeGroup(i, (g) => ({
@@ -182,7 +182,7 @@ function ItemForm({
         <div className="flex flex-wrap gap-3">
           <button
             type="button"
-            className="site-button site-button-rounded site-button-secondary"
+            className="site-button site-button-secondary"
             disabled={value.groups.length >= 10}
             onClick={() =>
               setValue({
@@ -206,7 +206,7 @@ function ItemForm({
           </button>
           <button
             type="button"
-            className="site-button site-button-rounded site-button-primary"
+            className="site-button site-button-primary"
             disabled={pending}
             onClick={() =>
               startTransition(async () => {
