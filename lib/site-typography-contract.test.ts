@@ -106,6 +106,7 @@ test("마이페이지와 편집·운영 화면은 동일한 관리 화면 타이
   }
   assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-copy: var\(--site-type-15\);/);
   assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-support: var\(--site-type-14\);/);
+  assert.match(siteDesignSource, /\.site-management-scope :where\(input, textarea, select\)[\s\S]*?font-size: var\(--type-body-size\);/);
 
   for (const file of collectTsxFiles(join(appRoot, "mypage"))) {
     const source = readFileSync(file, "utf8");
