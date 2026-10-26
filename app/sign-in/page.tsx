@@ -46,7 +46,7 @@ export default async function SignInPage({
           <div className="site-auth-form">
             <div className="site-auth-header">
               <h1 className="type-page-title">로그인</h1>
-              <p className="type-body-sm mt-3 text-zinc-500">
+              <p className="site-body mt-3 text-zinc-500">
                 아티메뉴 마이페이지에서 메뉴판 생성과 관리 기능을 준비합니다.
               </p>
             </div>
@@ -106,7 +106,7 @@ export default async function SignInPage({
 
             <OAuthButtons next={safeNext} buttonLabel="카카오로 로그인" />
 
-            <div className="mt-5 flex flex-col items-center justify-center gap-2 text-copy font-semibold text-zinc-500 sm:flex-row sm:gap-3">
+            <div className="type-body-sm mt-5 flex flex-col items-center justify-center gap-2 font-medium text-zinc-500 sm:flex-row sm:gap-3">
               <Link href="/forgot-password" className="hover:text-zinc-950 hover:underline">
                 비밀번호를 잊으셨나요?
               </Link>
@@ -116,7 +116,7 @@ export default async function SignInPage({
               </Link>
             </div>
 
-            <p className="mt-6 text-center text-copy font-medium text-zinc-500">
+            <p className="type-body-sm mt-6 text-center font-medium text-zinc-500">
               계정이 없나요?{" "}
               <Link
                 href={`/sign-up?next=${encodeURIComponent(safeNext)}`}

@@ -167,7 +167,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
               ← 마이페이지로 돌아가기
             </Link>
             <h1 className="type-page-title mt-5">직원 관리</h1>
-            <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-500">
+            <p className="site-body mt-3 text-zinc-500">
               사장으로 소유한 메뉴판에 직원을 초대하고 대기 중인 초대를 확인합니다.
             </p>
           </div>

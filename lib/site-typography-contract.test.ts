@@ -107,6 +107,8 @@ test("마이페이지와 편집·운영 화면은 동일한 관리 화면 타이
   assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-copy: var\(--site-type-15\);/);
   assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-support: var\(--site-type-14\);/);
   assert.match(siteDesignSource, /\.site-management-scope :where\(input, textarea, select\)[\s\S]*?font-size: var\(--type-body-size\);/);
+  assert.doesNotMatch(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-page-title-size:/);
+  assert.doesNotMatch(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-body-lg-size:/);
 
   for (const file of collectTsxFiles(join(appRoot, "mypage"))) {
     const source = readFileSync(file, "utf8");
@@ -127,6 +129,17 @@ test("마이페이지와 편집·운영 화면은 동일한 관리 화면 타이
       assert.match(overlay, /site-management-scope/, `${relative(projectRoot, file)}의 관리 대화창에 공통 타이포 범위가 없습니다.`);
     }
   }
+});
+
+test("인증 화면은 페이지 소개보다 계정 보조 링크를 작게 표시한다", () => {
+  for (const route of ["sign-in", "sign-up", "forgot-password", "find-account", "reset-password", "auth/recovery"]) {
+    const source = readFileSync(join(appRoot, route, "page.tsx"), "utf8");
+    assert.match(source, /<div className="site-auth-header">[\s\S]*?<h1 className="type-page-title"[\s\S]*?<p className="site-body /);
+  }
+
+  const signInSource = readFileSync(join(appRoot, "sign-in/page.tsx"), "utf8");
+  assert.match(signInSource, /className="type-body-sm[^"]*"[\s\S]*?비밀번호를 잊으셨나요\?/);
+  assert.match(signInSource, /className="type-body-sm[^"]*"[\s\S]*?계정이 없나요\?/);
 });
 
 test("활성 사이트 UI의 h1부터 h6까지 승인된 의미 기반 타이포 역할만 사용한다", () => {
