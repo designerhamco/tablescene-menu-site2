@@ -91,7 +91,7 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
       />
       <ActionFeedbackToast message={state.message} tone={state.status === "success" ? "success" : "error"} eventKey={state} />
 
-      <TabsList variant="outline" distribution="equal" aria-label="호출관리 화면">
+      <TabsList variant="underline" size="lg" aria-label="호출관리 화면">
         <TabsTrigger value="history">호출 내역{unresolvedCount > 0 ? <span className="type-caption"> · 미처리 {unresolvedCount}</span> : null}</TabsTrigger>
         <TabsTrigger value="settings">호출 관리</TabsTrigger>
       </TabsList>

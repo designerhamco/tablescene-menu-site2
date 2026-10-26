@@ -133,3 +133,10 @@ Ghost pagination/icon controls retain transparent background and border when dis
 - 연결형 탭의 선택 상태와 패널 바탕은 모두 흰색이다. 패널 네 방향을1px 공통 회색 선으로 둘러싼다. 탭 줄과 패널의 경계를1px 겹치고 선택 탭의 아래 선만 흰색으로 열어 연결한다. 비선택 탭과 탭 사이·남은 공간 아래에는 패널 윗선이 연속된다. 탭을 바꿔도 같은 경계를 유지한다.
 - 선택 밑줄 두께는 공통 `--site-tab-indicator-width: .25rem`(기본4px)을 사용한다. 기본/큰 underline Tabs, NavigationTabs, 이미지 카드 위의 탐색 탭이 같은 토큰을 상속한다. 비선택 밑줄도 같은 두께의 투명 경계를 확보해 선택 때 글자가 이동하지 않는다. 글자 크기·컨트롤 높이·가로 패딩은 유지한다.
 - `/design-system`의 연결형·서비스·이미지 카드·상태 탭과 `/apply`를 실제 PC·태블릿·모바일에서 확인한다. 고객 메뉴판의 서체·간격·렌더러는 변경하지 않는다.
+
+
+## 마이페이지 탭과 연결 모서리 (2026-10-26)
+
+- 호출 내역/설정 및 다국어의 언어/번역 대상 전환은 공통 underline/lg 탭이다. 페이지별 색·크기·밑줄 덮어쓰기 대신 Radix Tabs를 사용한다. URL 이동은 NavigationTabs를 사용하며 두 구현은 같은 site-topic-tabs/site-topic-tab 스타일을 공유한다.
+- NavigationTabs는 모바일에서 현재 링크가 rail 밖으로 가려지지 않도록 그 영역만 가로로 이동한다. 본문을 세로로 강제 이동하지 않는다.
+- 연결형 패널의 상단 오른쪽과 하단 두 모서리는12px다. 상단 왼쪽은 탭과 맞닿는 연결부로0을 유지한다.
