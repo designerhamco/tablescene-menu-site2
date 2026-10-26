@@ -2352,7 +2352,7 @@ export default function ApplyOrderForm({
           <div className="site-checkout-template-grid">{catalogDesigns.filter(d => d.service === (activeDiningTier === "multi" ? "dining" : "basic") && d.kind === selectedDesignKind).map(design => <button type="button" key={design.id} className="site-choice site-checkout-template" aria-pressed={selectedMenuDesignId === design.id} onClick={() => {
             setSelectedMenuDesignId(design.id); setAppliedPromotion(undefined);
             setForm(current => ({...current, template_key: design.templateKey as TemplateKey, template_category: getTemplateCategoryFromKey(design.templateKey) ?? current.template_category}));
-          }}><div className="relative aspect-[4/3] w-full"><Image src={design.image} alt="" fill sizes="(max-width: 640px) 100vw, 320px" className="object-cover" /></div><div className="site-checkout-template-copy"><h3 className="type-content-title">{design.name}</h3><p className="site-checkout-template-description">{design.description}</p><p className="site-checkout-template-status">{selectedMenuDesignId === design.id ? "선택한 디자인" : "이 디자인 선택"}</p></div></button>)}</div>
+          }}><div className="site-checkout-template-media relative"><Image src={design.image} alt="" fill sizes="(max-width: 640px) 100vw, 320px" className="object-cover" /></div><div className="site-checkout-template-copy"><h3 className="type-content-title">{design.name}</h3><p className="site-checkout-template-description">{design.description}</p><p className="site-checkout-template-status">{selectedMenuDesignId === design.id ? "선택한 디자인" : "이 디자인 선택"}</p></div></button>)}</div>
         </section>)}
 
         {!isMenuService && (
