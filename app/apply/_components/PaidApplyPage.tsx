@@ -101,7 +101,7 @@ export default async function PaidApplyPage({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-page-spacing-compact min-h-screen bg-white text-zinc-950">
+      <main className="site-checkout-page site-page-spacing-compact min-h-screen text-zinc-950">
         <div className="site-container">
           <header className="site-page-heading mb-12 max-w-3xl md:mb-16">
             <div>

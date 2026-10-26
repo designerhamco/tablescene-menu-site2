@@ -2801,8 +2801,8 @@ export default function ApplyOrderForm({
 
         <section className="site-checkout-panel">
           <h2 className="type-subsection-title mb-5">약관 동의</h2>
-          <div className="space-y-3">
-            <label className="flex items-start gap-3 rounded-2xl border border-zinc-200 bg-white p-4 text-sm font-bold leading-relaxed text-zinc-900">
+          <div className="site-checkout-agreements">
+            <label className="site-checkout-agreement-all flex items-start gap-3 text-sm font-bold leading-relaxed text-zinc-900">
               <input type="checkbox" checked={allAgreementsChecked} onChange={(event) => toggleAllAgreements(event.target.checked)} className="mt-1 h-4 w-4 accent-zinc-950" />
               <span>전체 동의</span>
             </label>
