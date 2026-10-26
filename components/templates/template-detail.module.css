@@ -42,7 +42,8 @@
 .actions a, .actions button { width: 100%; min-height: var(--ui-control-height-lg); }
 .billingNote { margin-top: .75rem; font-weight: var(--font-weight-regular); color: var(--site-text-muted); line-height: 1.65; }
 /* Detail marketing content uses the existing site card, button and type tokens. */
-.story { min-width: 0; display: grid; gap: 4rem; }
+.story { min-width: 0; display: grid; gap: 2rem; }
+.overview { margin-bottom: 2rem; }
 .heroImage { overflow: hidden; background: var(--ui-surface-muted); border-radius: var(--ui-radius-preview); }
 .heroImage img { width: 100%; height: auto; display: block; }
 .overviewCopy { margin-top: 2rem; }
@@ -55,9 +56,8 @@
 .featureCard:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
 .guideAction { display: flex; justify-content: center; margin-top: 1.75rem; }
 .guideAction a { width: auto; }
-.storySection { min-width: 0; scroll-margin-top: calc(var(--site-header-height) + 1.5rem); }
-.sectionCopy { max-width: 42rem; margin: 0 auto 1.75rem; text-align: center; }
-.featureNote { color: var(--site-text-muted); margin-top: 1rem; }
+.storySection { container-type: inline-size; min-width: 0; overflow: hidden; scroll-margin-top: calc(var(--site-header-height) + 1.5rem); border-radius: var(--ui-radius-box); background: var(--ui-surface-muted); padding: clamp(1rem, 2.5vw, 2rem); }
+.featureNote { color: var(--ui-text-muted); margin-top: 1.25rem; }
 @media (max-width: 479px) { .featureCard { padding: 1rem; } }
 @media (min-width: 768px) {
   .page { padding-block: 2rem 6rem; }
@@ -75,11 +75,12 @@
   .scrollFade { display: block; position: absolute; inset: -2rem 0 auto; height: 2rem; background: linear-gradient(to bottom, rgb(255 255 255 / 0), var(--ui-surface)); opacity: 0; pointer-events: none; }
   .sidebarFooter[data-scroll-more="true"] .scrollFade { opacity: 1; }
   .sidebar h1 { font-size: var(--font-size-700); }
-  .story { grid-column: 1; grid-row: 1; gap: 4.5rem; }
+  .story { grid-column: 1; grid-row: 1; gap: 2.5rem; }
+  .overview { margin-bottom: 2rem; }
 }
 @media (min-width: 1200px) {
   .layout { grid-template-columns: minmax(0, 1fr) 23rem; }
   .sidebar h1 { font-size: var(--font-size-800); }
-  .story { gap: 5rem; }
+  .overview { margin-bottom: 2.5rem; }
   .featureGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
 }

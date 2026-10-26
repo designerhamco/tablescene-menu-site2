@@ -25,9 +25,9 @@ async function progress(root) {
 }
 async function firstOnly(root) {
   await expect(root).toHaveAttribute("data-selected-item", "0");
-  assert.equal(await root.locator('[data-feature-trigger][aria-expanded="true"]').count(), 1);
-  assert.equal(await root.locator('[role="region"]:visible').count(), 1);
-  await expect(root.locator("[data-feature-trigger]").first()).toHaveAttribute("aria-expanded", "true");
+  assert.equal(await root.locator('[data-feature-trigger][aria-pressed="true"]').count(), 1);
+  await expect(root.locator("[data-feature-trigger]").first()).toHaveAttribute("aria-pressed", "true");
+  assert.equal(await root.locator("[data-feature-trigger] .type-body-sm:visible").count(), await root.locator("[data-feature-trigger]").count());
 }
 
 try {
@@ -42,6 +42,7 @@ try {
     assert.deepEqual(await page.evaluate(() => [innerWidth, innerHeight]), [width, height]);
     assert.equal(await page.locator("[data-feature-card]").count(), 8);
     assert.equal(await page.locator("[data-feature-section]").count(), 8);
+    assert.equal(await page.locator('[data-detail-surface="feature"]').count(), 8);
     assert.equal(await page.locator("[data-template-story] table, [data-template-story] iframe").count(), 0);
     const cards = await page.locator("[data-feature-card]").evaluateAll(cards => cards.map(card => {
       const icon = card.querySelector("svg").getBoundingClientRect();
@@ -49,7 +50,7 @@ try {
       const text = card.querySelector("p").getBoundingClientRect();
       return { vertical: icon.bottom <= title.top && title.bottom <= text.top, radius: getComputedStyle(card).borderRadius, background: getComputedStyle(card).backgroundColor };
     }));
-    assert.ok(cards.every(card => card.vertical && card.radius === "16px" && card.background !== "rgb(255, 255, 255)"));
+    assert.ok(cards.every(card => card.vertical && card.radius !== "0px" && card.background !== "rgba(0, 0, 0, 0)"));
     const guide = page.getByRole("link", { name: "사용 방법 (새 창)", exact: true });
     await expect(guide).toHaveAttribute("href", "/guides?plan=basic");
     await expect(guide).toHaveAttribute("target", "_blank");
@@ -61,10 +62,18 @@ try {
     const positions = await cover.evaluate(element => {
       const image = element.querySelector("figure").getBoundingClientRect();
       const list = element.querySelector("ol").getBoundingClientRect();
-      return { image: { x: image.x, y: image.y, right: image.right, bottom: image.bottom }, list: { x: list.x, y: list.y }, overflow: document.documentElement.scrollWidth - innerWidth };
+      const surface = element.closest('[data-detail-surface="feature"]');
+      return {
+        image: { x: image.x, y: image.y, right: image.right, bottom: image.bottom },
+        list: { x: list.x, y: list.y, right: list.right },
+        surface: { radius: getComputedStyle(surface).borderRadius, background: getComputedStyle(surface).backgroundColor },
+        overflow: document.documentElement.scrollWidth - innerWidth,
+      };
     });
     assert.equal(positions.overflow, 0);
-    assert.ok(width >= 1200 ? positions.image.right < positions.list.x : positions.list.y >= positions.image.bottom);
+    assert.notEqual(positions.surface.background, "rgb(255, 255, 255)");
+    assert.notEqual(positions.surface.radius, "0px");
+    assert.ok(width >= 1200 ? positions.list.right < positions.image.x : positions.list.y >= positions.image.bottom);
     const sidebar = page.getByRole("complementary", { name: "템플릿 정보 및 시작" });
     if (width >= 768) {
       await expect(sidebar).toHaveAttribute("data-docked", "true");
@@ -91,10 +100,9 @@ try {
       await expect(root).toHaveAttribute("data-selected-item", String(index));
       await expect(root.locator("[data-feature-image]")).toHaveAttribute("data-feature-image", feature.steps[index].image);
       await loaded(root);
-      assert.equal(await root.locator('[data-feature-trigger][aria-expanded="true"]').count(), 1);
-      assert.equal(await root.locator('[role="region"]:visible').count(), 1);
+      assert.equal(await root.locator('[data-feature-trigger][aria-pressed="true"]').count(), 1);
     }
-    results.push({ case: "manual-image-and-single-open-panel", feature: feature.id, steps: feature.steps.length });
+    results.push({ case: "manual-image-and-single-selected-row", feature: feature.id, steps: feature.steps.length });
   }
   const cover = page.locator('[data-feature-accordion="cover"]');
   await cover.scrollIntoViewIfNeeded();
@@ -116,7 +124,7 @@ try {
   const popup = await popupPromise;
   await popup.waitForLoadState("domcontentloaded");
   await expect(popup).toHaveURL(`${base}/guides?plan=basic`);
-  await expect(popup.getByRole("tab", { name: "베이직", exact: true })).toHaveAttribute("aria-selected", "true");
+  await expect(popup.getByRole("tab", { name: "베이직•다이닝", exact: true })).toHaveAttribute("aria-selected", "true");
   await popup.close();
   results.push({ case: "guide-opens-basic-in-new-window" });
 
