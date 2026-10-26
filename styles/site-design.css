@@ -5,6 +5,7 @@
   --site-text-secondary: #4b515b;
   --site-text-muted: #717680;
   --site-divider: #e2e5e9;
+  --site-tab-indicator-width: .25rem;
   --site-shadow-popover: 0 2px 10px rgb(75 81 91 / 10%), 0 0 2px rgb(75 81 91 / 20%);
   --space-1: .25rem;
   --space-2: .5rem;
@@ -136,7 +137,7 @@
   align-items: center;
   flex-shrink: 0;
   min-height: 3rem;
-  border-bottom: 2px solid transparent;
+  border-bottom: var(--site-tab-indicator-width) solid transparent;
   font-size: 0.875rem;
   color: #626873;
 }
@@ -275,7 +276,7 @@
 .site-tabs-lg { min-height: 3.5rem; padding: .25rem; gap: .25rem; }
 .site-tabs-lg .site-tab { min-height: 3rem; padding: .5rem 1.25rem; font-size: var(--font-size-300); line-height: 1.5; }
 .site-topic-tabs-lg { gap: 1.5rem; }
-.site-topic-tabs-lg .site-topic-tab { justify-content: center; min-height: 3rem; padding-inline: .25rem; border-bottom-width: 2px; font-size: var(--font-size-300); }
+.site-topic-tabs-lg .site-topic-tab { justify-content: center; min-height: 3rem; padding-inline: .25rem; font-size: var(--font-size-300); }
 .site-topic-tab:is([data-state="active"]) { border-bottom-color: var(--ui-text); color: var(--ui-text); font-weight: var(--font-weight-semibold); }
 .site-topic-tab:hover:not(:disabled):not([data-state="active"]):not([aria-selected="true"]):not([aria-current="page"]):not([aria-disabled="true"]) { color: var(--ui-text); border-bottom-color: var(--ui-border-strong); }
 .site-topic-tab:active:not(:disabled) { color: var(--ui-action-pressed); }
@@ -322,15 +323,15 @@
 
 /* Folder-shaped tabs connect directly to a related content surface. */
 .site-contained-tabs-root[data-slot="tabs"] { min-width: 0; gap: 0; }
-.site-contained-tabs { display: flex; align-items: stretch; gap: .5rem; width: 100%; max-width: 100%; min-height: 3rem; padding: 0; background: linear-gradient(var(--ui-border), var(--ui-border)) bottom / 100% 1px no-repeat; }
-.site-contained-tab { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; gap: .5rem; min-height: 3rem; padding: .75rem 1.5rem; border: 1px solid transparent; border-bottom: 0; border-radius: .75rem .75rem 0 0; background: var(--ui-surface-soft); color: var(--site-text-secondary); font-size: var(--font-size-300); font-weight: 500; line-height: 1.5; word-break: keep-all; cursor: pointer; transition: background-color var(--ui-transition), color var(--ui-transition); }
+.site-contained-tabs { position: relative; z-index: 1; display: flex; align-items: stretch; gap: .5rem; width: 100%; max-width: 100%; min-height: 3rem; margin-bottom: -1px; padding: 0; }
+.site-contained-tab { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; gap: .5rem; min-height: 3rem; padding: .5rem 1.5rem; border: 1px solid transparent; border-bottom-color: var(--ui-border); border-radius: .75rem .75rem 0 0; background: var(--ui-surface-soft); color: var(--site-text-secondary); font-size: var(--font-size-300); font-weight: 500; line-height: 1.5; word-break: keep-all; cursor: pointer; transition: background-color var(--ui-transition), color var(--ui-transition); }
 .site-contained-tab:hover:not(:disabled):not([data-state="active"]) { background: var(--ui-action-soft-pressed); color: var(--ui-text); }
 .site-contained-tab:active:not(:disabled) { color: var(--ui-text); }
-.site-contained-tab[data-state="active"] { border-color: var(--ui-border); background: var(--ui-surface-muted); color: var(--ui-text); font-weight: 600; }
+.site-contained-tab[data-state="active"] { border-color: var(--ui-border); border-bottom-color: var(--ui-surface); background: var(--ui-surface); color: var(--ui-text); font-weight: 600; }
 .site-contained-tab:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -4px; }
 .site-contained-tab:disabled { opacity: .45; cursor: not-allowed; }
 .site-contained-tabs-even > .site-contained-tab { flex: 0 1 12rem; min-width: 0; }
-.site-contained-panel { min-width: 0; padding: 1.5rem; border-radius: 0 0 .75rem .75rem; background: var(--ui-surface-muted); }
+.site-contained-panel { min-width: 0; padding: 1.5rem; border: 1px solid var(--ui-border); border-radius: 0 0 .75rem .75rem; background: var(--ui-surface); }
 .site-contained-panel:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -3px; }
 .site-tooltip-brand[data-slot="tooltip-content"] { max-width: min(18rem, calc(100vw - 2rem)); padding: .625rem .875rem; border-radius: .625rem; background: var(--site-accent); color: var(--ui-text); font-size: var(--font-size-200); font-weight: 500; line-height: 1.5; box-shadow: var(--site-shadow-popover); }
 .site-tooltip-arrow { fill: var(--site-accent); }

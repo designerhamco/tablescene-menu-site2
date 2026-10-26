@@ -37,7 +37,7 @@
 - 크기·타이포·콘텐츠 폭·카드 비율은 아티메뉴 기준을 유지한다. 일반 CTA/아이콘 40px, 헤더 CTA 44px, floating/큰 CTA 48px이다. 기능 없는 장식 애니메이션이나 새 컴포넌트 라이브러리는 추가하지 않는다.
 - `site-button-secondary`는 옅은 회색 pill, `site-button-outline`는 경계가 필요한 별도 액션이다. 흰 배경/외곽선으로 선언된 기존 액션은 outline 표현을 유지한다. 헤더 텍스트 링크는 배경 없이 색상만 바뀐다.
 - 일반 입력과 검색은 흰 배경/회색 경계/16px 라운드/기본 최소 40px 높이를 공유한다. 오류·읽기 전용·비활성 의미를 유지한다. 네이티브 checkbox/radio는 18px와 공통 검정 선택색을 쓰며 숨겨진 필드·switch는 크기 변경에서 제외한다.
-- FAQ 주제 선택·사용가이드 종류는 `site-topic-tabs`/`site-topic-tab` 밑줄 스타일을 공유한다. 활성 항목은 진한 글자·2px 밑줄, 비활성 준비 중 항목은 흐리게 표시한다. 템플릿 종류는 outline 세그먼트로, role=tab/aria-selected와 방향키/Home/End 탐색을 제공한다. 가이드의 기존 anchor 링크 동작은 유지한다.
+- FAQ 주제 선택·사용가이드 종류는 `site-topic-tabs`/`site-topic-tab` 밑줄 스타일을 공유한다. 활성 항목은 진한 글자·공통4px 밑줄, 비활성 준비 중 항목은 흐리게 표시한다. 템플릿 종류는 outline 세그먼트로, role=tab/aria-selected와 방향키/Home/End 탐색을 제공한다. 가이드의 기존 anchor 링크 동작은 유지한다.
 - `site-tabs`/`site-tab`는 48px rail과 40px 탭을 공유한다. 기본 rail은 옅은 회색, 제품 데모는 흰색이다. 선택 상태는 검정/흰색이다. Radix 탭과 공개 갤러리는 같은 클래스로 연결하며 기존 ARIA/키보드 동작을 보존한다.
 - 일반 본문·계정 섹션은 열린 구성을 유지한다. 메뉴 편집 화면은 옅은 회색 작업 바탕 위에 흰 탭/헤더/수정 패널을 놓고, 패널 안의 하위 설정은 옅은 회색 표면으로 구분한다. 테두리를 추가해 구획을 대신하지 않는다. 기능 카드만 `site-card-surface`, 선택 가능한 카드는 `site-card-interactive`를 사용한다. 기능 카드/레이어는 16px, 판매 목록 미리보기는 16px, 큰 히어로는 기존 독립 32–48px이다. 고객 메뉴판/미리보기 내부에는 카드 규칙을 전파하지 않는다.
 - 칩은 `Badge`와 `lib/site-chip.ts`를 사용한다. 기본 높이 24px/글자 12px/라운드 6px/무테/진한 배경·흰 글자다. 사장·직원 역할은 흰 배경/회색 경계를 사용한다. 결제 완료는 밝은 회색 배경/진한 회색 문구의 예외이며, 복구불가·처리확인 필요는 같은 붉은색이다. 이용 중·공개 중은 같은 초록이며 작성 중·비공개는 서로 구분한다. dropdown/select 항목은 최소 36px/8px 라운드/옅은 hover다.
@@ -120,9 +120,16 @@ Ghost pagination/icon controls retain transparent background and border when dis
 
 이 절은 위 표의 디자인/기본 선택 방식을 대체한다. 공통 컴포넌트의 기존 변형은 유지한다.
 
-- 서로 다른 관련 목록은 `Tabs variant="contained"`로 묶는다. `TabsList`·`TabsTrigger`·`TabsContent`가 같은 변형을 상속하고, 선택한 탭과 패널이 같은 옅은 표면으로 이어진다. 상단 모서리 12px, 최소 높이 48px, 두 탭은 각각 최대192px로 제한한다. 모바일은14px와 좌우16px를 사용한다. 전체 목록을 감싸는 별도 테두리 카드는 추가하지 않는다.
+- 서로 다른 관련 목록은 `Tabs variant="contained"`로 묶는다. `TabsList`·`TabsTrigger`·`TabsContent`가 같은 변형을 상속하고, 선택한 탭과 패널이 같은 흰 표면으로 이어지고 패널 전체의 회색 경계를 공유한다. 상단 모서리 12px, 최소 높이 48px, 두 탭은 각각 최대192px로 제한한다. 모바일은14px와 좌우16px를 사용한다. 전체 목록을 감싸는 별도 테두리 카드는 추가하지 않는다.
 - `/apply`의 디자인/기본 목록은 이 공통 연결형 탭과 패널을 사용한다. 상위 서비스의 밑줄 탭, 업종 필터, 가격·목록·URL·페이지 처리의 의미는 유지한다. 기존 outline 세그먼트는 이미지/목록처럼 동일 콘텐츠의 표시 방식에 사용한다.
 - 참고 원칙: [Carbon Tabs](https://www.carbondesignsystem.com/building-blocks/core/components/tabs/guidelines)의 contained 탭과 패널 연결. 외부 CSS나 크기를 복제하지 않는다.
 - `HelpTooltip tone="brand"`는 아티메뉴 노란색·검정 글자·작은 꼬리·닫기 버튼의 안내 말풍선이다. `trigger`, `side`, `align`으로 기준 요소와 방향을 지정한다. 기존 Radix Popover의 Escape·바깥 클릭·포커스 복귀·화면 충돌 처리를 유지한다. 다시 누르면 재진입한다. 짧은 hover/focus 힌트는 `TooltipContent tone="brand"`를 쓰고, 중요한 정보나 조작 버튼을 안에 숨기지 않는다. 기본 light/dark 도움말은 보존한다.
 - 업종 `ChoiceTile`은 `emoji` 속성과 공통 `site-emoji-icon`을 사용한다. ☕/🍽️/🍣/🍸/🥪와 전체🗂️를 사용하며 장식 이모지는 접근성 이름에서 제외한다. 이모지 뒤에는 별도 노란/회색 정사각형 바탕을 겹치지 않는다. 색 이모지 서체는 Apple Color Emoji, Segoe UI Emoji, Noto Color Emoji 순이며 OS별 기본 그림을 따른다. 화면 구성의 목록/앨범, 닫기/화살표 등 동작 아이콘은 기존 기호를 유지한다.
 - 위 세 요소는 `/design-system`에서 실제 선택·도움말 열기/닫기 예시로 확인한다.
+
+
+## 탭 경계·밑줄 검수 보정 (2026-10-26)
+
+- 연결형 탭의 선택 상태와 패널 바탕은 모두 흰색이다. 패널 네 방향을1px 공통 회색 선으로 둘러싼다. 탭 줄과 패널의 경계를1px 겹치고 선택 탭의 아래 선만 흰색으로 열어 연결한다. 비선택 탭과 탭 사이·남은 공간 아래에는 패널 윗선이 연속된다. 탭을 바꿔도 같은 경계를 유지한다.
+- 선택 밑줄 두께는 공통 `--site-tab-indicator-width: .25rem`(기본4px)을 사용한다. 기본/큰 underline Tabs, NavigationTabs, 이미지 카드 위의 탐색 탭이 같은 토큰을 상속한다. 비선택 밑줄도 같은 두께의 투명 경계를 확보해 선택 때 글자가 이동하지 않는다. 글자 크기·컨트롤 높이·가로 패딩은 유지한다.
+- `/design-system`의 연결형·서비스·이미지 카드·상태 탭과 `/apply`를 실제 PC·태블릿·모바일에서 확인한다. 고객 메뉴판의 서체·간격·렌더러는 변경하지 않는다.
