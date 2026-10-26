@@ -33,17 +33,15 @@
 
 /*
  * Account, editor and store-operation screens are dense working surfaces.
- * They keep the public-site type steps, but use a compact role hierarchy so
- * headings, field copy and card metadata retain the same visual relationship
- * on every management route.
+ * Page titles and their introductory copy keep the public-site hierarchy.
+ * Dense content below that header uses a compact role hierarchy so fields,
+ * cards and metadata retain the same visual relationship on every route.
  */
 .site-management-scope {
-  --type-page-title-size: var(--site-type-28);
   --type-section-title-size: var(--site-type-24);
   --type-subsection-title-size: var(--site-type-20);
   --type-content-title-size: var(--site-type-17);
   --type-item-title-size: var(--site-type-16);
-  --type-body-lg-size: var(--site-type-16);
   --type-body-size: var(--site-type-15);
   --type-body-sm-size: var(--site-type-14);
   --text-copy: var(--site-type-15);

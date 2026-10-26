@@ -2717,7 +2717,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           <header className="mb-5 flex flex-col justify-between gap-5 border-b border-zinc-200 pb-6 md:mb-6 md:flex-row md:items-end md:pb-8">
             <div>
               <h1 className="type-page-title">마이페이지</h1>
-              <p className="mt-4 break-keep text-copy font-medium leading-relaxed text-zinc-600">
+              <p className="type-page-description mt-4 text-zinc-600">
                 {isStaffOnlyAccount
                   ? "직원으로 참여한 메뉴판과 고객지원 정보를 한곳에서 확인합니다."
                   : "메뉴판 디자인과 공개 상태, 고객지원, 결제 정보를 한곳에서 확인합니다."}

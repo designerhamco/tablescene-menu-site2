@@ -91,7 +91,7 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Se
                 ← 마이페이지 문의 내역
               </Link>
               <h1 className="type-page-title">문의하기</h1>
-              <p className="type-body mt-4 break-keep text-zinc-500">
+              <p className="type-page-description mt-4 text-zinc-500">
                 메뉴판 운영, 결제, 기능 요청 등 아티메뉴 운영팀에 남길 내용을 작성해주세요.
               </p>
             </div>

@@ -14,7 +14,7 @@ export default function FindAccountPage() {
           <div className="site-auth-form">
             <div className="site-auth-header">
               <h1 className="type-page-title">로그인 이메일을 잊으셨나요?</h1>
-              <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-500">
+              <p className="type-page-description mt-3 text-zinc-500">
                 ArtiMenu는 이메일 주소로 로그인합니다. 가입 시 사용한 이메일을 확인해주세요.
               </p>
             </div>

@@ -1,7 +1,6 @@
 /** Approved from the home plan reference. Menu renderer foundations remain independent. */
 export const SITE_TYPE_STEPS = [13,14,15,16,17,18,20,22,24,26,28,32,36,44] as const;
 export const SITE_MANAGEMENT_TYPE_ROLES = [
-  { key: "page-title", label: "페이지 제목", size: 28, weight: 700, usage: "마이페이지·편집기·매장 운영의 화면 제목" },
   { key: "section-title", label: "큰 구역 제목", size: 24, weight: 700, usage: "메뉴판 관리·결제 내역 등 주 콘텐츠 구역" },
   { key: "subsection-title", label: "폼·패널 제목", size: 20, weight: 700, usage: "새 문의·운영 패널·편집 구역" },
   { key: "content-title", label: "콘텐츠 제목", size: 17, weight: 600, usage: "카드·내역·설정 묶음 제목" },
@@ -34,6 +33,17 @@ export const SITE_TYPE_ROLES = [
     "lineHeight": 1.3125,
     "className": "type-page-title",
     "usage": "로그인·마이페이지·신청 등 화면의 주제"
+  },
+  {
+    "key": "page-description",
+    "label": "기능 페이지 설명",
+    "mobile": 16,
+    "tablet": 16,
+    "desktop": 17,
+    "weight": 400,
+    "lineHeight": 1.625,
+    "className": "type-page-description",
+    "usage": "로그인·마이페이지·편집 화면의 기능 설명"
   },
   {
     "key": "section-title",
@@ -81,14 +91,14 @@ export const SITE_TYPE_ROLES = [
   },
   {
     "key": "body-lg",
-    "label": "소개 본문",
+    "label": "마케팅 도입 설명",
     "mobile": 18,
     "tablet": 18,
     "desktop": 20,
     "weight": 400,
     "lineHeight": 1.625,
     "className": "type-body-lg",
-    "usage": "큰 제목 아래 소개"
+    "usage": "서비스·브랜드의 가치와 분위기를 전하는 도입문"
   },
   {
     "key": "body",

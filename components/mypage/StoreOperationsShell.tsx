@@ -69,7 +69,7 @@ export default async function StoreOperationsShell({
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <header className="mb-5 border-b border-zinc-200 pb-6 md:mb-6 md:pb-8">
             <h1 className="type-page-title">매장 운영</h1>
-            <p className="type-body mt-4 break-keep text-zinc-600">
+            <p className="type-page-description mt-4 text-zinc-600">
               운영 중인 메뉴판의 주문, 호출과 테이블을 한곳에서 관리합니다.
             </p>
           </header>

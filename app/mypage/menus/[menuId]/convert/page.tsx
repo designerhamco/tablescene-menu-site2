@@ -193,7 +193,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
           <div className="mb-6 flex flex-col justify-between gap-4 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
               <h1 className="type-page-title">월 구독 전환</h1>
-              <p className="mt-4 break-keep text-copy font-medium leading-relaxed text-zinc-500">
+              <p className="type-page-description mt-4 text-zinc-500">
                 새 메뉴판을 만들지 않고, 기존 개인 체험 메뉴판을 그대로 이어서 월 구독으로 전환합니다.
               </p>
             </div>

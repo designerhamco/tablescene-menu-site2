@@ -35,6 +35,7 @@
   --site-type-44: 2.75rem;
   --type-display-size: var(--site-type-28);
   --type-page-title-size: var(--site-type-28);
+  --type-page-description-size: var(--site-type-16);
   --type-section-title-size: var(--site-type-28);
   --type-subsection-title-size: var(--site-type-22);
   --type-content-title-size: var(--site-type-18);
@@ -77,6 +78,14 @@
   font-weight: var(--font-weight-strong);
   line-height: 1.3125;
   letter-spacing: -0.03em;
+}
+
+.type-page-description {
+  word-break: keep-all;
+  font-size: var(--type-page-description-size);
+  font-weight: var(--font-weight-regular);
+  line-height: 1.625;
+  letter-spacing: -0.015em;
 }
 
 .type-section-title,
@@ -176,6 +185,7 @@
   :root {
     --type-display-size: var(--site-type-36);
     --type-page-title-size: var(--site-type-36);
+    --type-page-description-size: var(--site-type-17);
     --type-section-title-size: var(--site-type-36);
     --type-subsection-title-size: var(--site-type-26);
     --type-content-title-size: var(--site-type-20);

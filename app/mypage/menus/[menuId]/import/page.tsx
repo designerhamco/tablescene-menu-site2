@@ -114,7 +114,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
             <div>
               <p className="text-copy font-medium text-zinc-500">공통 메뉴</p>
               <h1 className="type-page-title mt-2">기존 메뉴판에서 가져오기</h1>
-              <p className="mt-4 max-w-2xl break-keep text-copy leading-7 text-zinc-600">
+              <p className="type-page-description mt-4 max-w-2xl text-zinc-600">
                 다른 메뉴판의 페이지·카테고리·메뉴를 가져옵니다. 연결 모드를 선택하면 메뉴 내용은 함께 관리하고 화면 배치는 각각 구성할 수 있습니다.
               </p>
             </div>

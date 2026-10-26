@@ -66,7 +66,7 @@ export default async function MenuQrManagementPage({
           <header className="mt-6 border-b border-zinc-200 pb-8">
             <p className="text-support font-medium uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
             <h1 className="type-page-title mt-2">QR 관리</h1>
-            <p className="mt-3 max-w-3xl break-keep text-copy font-medium leading-relaxed text-zinc-500 md:text-copy">
+            <p className="type-page-description mt-3 max-w-3xl text-zinc-500">
               이 메뉴판의 대표 QR을 확인하고 언제든 다시 다운로드할 수 있습니다.
             </p>
           </header>

@@ -18,7 +18,7 @@ export default function MyPageError({
     <main className="site-management-scope site-gutter min-h-screen bg-white py-16 text-zinc-950">
       <div className="mx-auto w-full max-w-3xl rounded-3xl border border-red-100 bg-white p-8 shadow-sm">
         <h1 className="type-page-title">마이페이지를 불러오지 못했습니다.</h1>
-        <p className="mt-4 break-keep text-copy font-semibold leading-relaxed text-zinc-500">
+        <p className="type-page-description mt-4 text-zinc-500">
           일시적인 오류일 수 있습니다. 다시 시도해도 문제가 계속되면 관리자에게 문의해주세요.
         </p>
         <div className="mt-7 flex flex-col gap-3 sm:flex-row">
