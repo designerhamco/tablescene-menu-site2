@@ -10,7 +10,7 @@
   margin-inline: auto;
   max-width: 42rem;
 }
-.hero a:not([class~="site-button"]) {
+.hero > div > p a {
   font-weight: 600;
   color: #15181e;
   text-decoration: underline;
@@ -24,14 +24,11 @@
   max-width: 38rem;
   margin: 2rem auto 1.25rem;
 }
-.search > svg {
+.search .searchButton {
   position: absolute;
-  left: 1.25rem;
+  right: 0.5rem;
   top: 50%;
   transform: translateY(-50%);
-  pointer-events: none;
-  flex-shrink: 0;
-  color: #626873;
 }
 .search input:global(.site-field) {
   width: 100%;
@@ -40,7 +37,25 @@
   background: var(--ui-surface);
   border: 1px solid var(--ui-border);
   color: #15181e;
-  padding-left: 3.25rem;
+  padding-left: 1.25rem;
+  padding-right: 3.75rem;
+}
+.searchResults {
+  margin-top: 3rem;
+  min-width: 0;
+  text-align: left;
+}
+.searchResultsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.searchResultsHeader h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .content {
   min-height: 40rem;
