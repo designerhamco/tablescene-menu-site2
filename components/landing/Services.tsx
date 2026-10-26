@@ -52,7 +52,7 @@ export function Services() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 transition-opacity group-hover:opacity-90" />
                 {disabled && (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
-                    <span className="text-3xl font-bold uppercase tracking-widest text-white/60 drop-shadow-lg">Coming Soon</span>
+                    <span className="type-subsection-title uppercase text-white/60 drop-shadow-lg">Coming Soon</span>
                   </div>
                 )}
                 <div className="absolute inset-x-0 bottom-0 p-8">

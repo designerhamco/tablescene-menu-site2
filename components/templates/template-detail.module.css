@@ -35,7 +35,7 @@
 .priceHeader { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; align-items: center; }
 .priceHeader > span:last-child { color: var(--site-text-muted); }
 .price { display: flex; align-items: baseline; gap: .625rem; flex-wrap: wrap; margin-top: .75rem; }
-.price > strong { font-size: var(--font-size-600); font-weight: var(--font-weight-strong); letter-spacing: -.035em; }
+.price > strong { font-size: var(--type-price-compact-size); font-weight: var(--font-weight-strong); letter-spacing: -.035em; }
 .price > strong > span { font-size: var(--type-caption-size); font-weight: var(--font-weight-regular); letter-spacing: 0; color: var(--ui-text-muted); }
 .price > del { color: var(--site-text-muted); }
 .actions { display: grid; gap: .5rem; margin-top: 1.25rem; }
@@ -74,13 +74,13 @@
   .sidebarFooter .actions { margin-top: 0; }
   .scrollFade { display: block; position: absolute; inset: -2rem 0 auto; height: 2rem; background: linear-gradient(to bottom, rgb(255 255 255 / 0), var(--ui-surface)); opacity: 0; pointer-events: none; }
   .sidebarFooter[data-scroll-more="true"] .scrollFade { opacity: 1; }
-  .sidebar h1 { font-size: var(--font-size-700); }
+  .sidebar h1 { font-size: var(--type-page-title-size); }
   .story { grid-column: 1; grid-row: 1; gap: 2.5rem; }
   .overview { margin-bottom: 2rem; }
 }
 @media (min-width: 1200px) {
   .layout { grid-template-columns: minmax(0, 1fr) 23rem; }
-  .sidebar h1 { font-size: var(--font-size-800); }
+  .sidebar h1 { font-size: var(--type-page-title-size); }
   .overview { margin-bottom: 2.5rem; }
   .featureGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
 }

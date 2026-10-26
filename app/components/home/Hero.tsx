@@ -198,7 +198,6 @@ const Hero = () => {
         </motion.div>
 
         {/* Layer 4: Final Text (Centered & Higher z-index) */}
-        {/* Adjusted size for Mobile: text-5xl (up from 4xl) */}
         <motion.div 
            style={{ opacity: contentOpacity, scale: contentScale, y: contentY }}
            className="absolute inset-0 z-30 flex flex-col items-center justify-center text-center px-6 pointer-events-none"

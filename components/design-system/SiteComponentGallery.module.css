@@ -23,7 +23,7 @@
 .notificationExample { width:min(100%,25rem); border:1px solid var(--ui-border); border-radius:var(--ui-radius-panel); overflow:hidden; }
 .filterExample { display:grid; grid-template-columns:10rem minmax(0,1fr) auto; gap:.75rem; align-items:end; }
 .recordHeading { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; }
-.sampleAvatar { display:grid; place-items:center; width:3rem; height:3rem; border-radius:50%; background:var(--ui-surface-soft); font-size:1.5rem; }
+.sampleAvatar { display:grid; place-items:center; width:3rem; height:3rem; border-radius:50%; background:var(--ui-surface-soft); font-size:var(--site-type-24); }
 .offerExample { max-width:28rem; }
 @media(max-width:767px) { .ruleGrid { grid-template-columns:1fr; } .tokenGrid { grid-template-columns:repeat(2,minmax(0,1fr)); } .filterExample { grid-template-columns:minmax(0,1fr); } }
 

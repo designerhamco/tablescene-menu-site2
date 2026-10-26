@@ -3,6 +3,8 @@ import { readdirSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
+import postcss from "postcss";
+import { SITE_TYPE_ROLES, SITE_TYPE_STEPS, siteTypeSizeCss } from "./site-typography";
 
 const projectRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const appRoot = join(projectRoot, "app");
@@ -14,7 +16,8 @@ const excludedSurfacePrefixes = [
   "%5F%5Fqa/",
   "original-pages/",
   "pickup/",
-  "templates/",
+  "templates/[templateKey]/preview/",
+  "templates/cafe_design_a/widget-lab/",
   "components/home/preview-ui/",
 ];
 
@@ -78,7 +81,7 @@ const approvedHeadingRole = /type-(?:display|page-title|section-title|subsection
 test("활성 사이트 UI의 h1부터 h6까지 승인된 의미 기반 타이포 역할만 사용한다", () => {
   for (const path of siteUiFiles) {
     const source = readFileSync(path, "utf8");
-    const headings = source.match(/<h[1-6]\b[^>]*>/g) ?? [];
+    const headings = source.match(/<(?:motion\.)?h[1-6]\b[^>]*>/g) ?? [];
 
     for (const heading of headings) {
       assert.match(
@@ -128,8 +131,8 @@ test("본문용 Tailwind 크기 유틸리티가 승인된 기초 토큰에 연�
 });
 
 test("사이트 본문 역할은 메뉴판 기초 크기와 독립적으로 가독성 하한을 유지한다", () => {
-  for (const [token, size] of [["body", "1rem"], ["body-lg", "1.125rem"], ["body-sm", ".875rem"], ["caption", ".8125rem"]]) {
-    assert.ok(typographySource.includes(`--type-${token}-size: ${size};`));
+  for (const [token, size] of [["body", 16], ["body-lg", 18], ["body-sm", 14], ["caption", 13]]) {
+    assert.ok(typographySource.includes(`--type-${token}-size: var(--site-type-${size});`));
   }
   for (const [token, size] of [["100", "0.75rem"], ["200", "0.875rem"], ["300", "1rem"]]) {
     assert.ok(typographySource.includes(`--font-size-${token}: ${size};`));
@@ -145,10 +148,27 @@ test("사이트 본문 역할은 메뉴판 기초 크기와 독립적으로 가�
 });
 
 
-test("compact card copy has a separate role from page and popup reading", () => {
-  for (const [name, value] of [["card-title", "1.125rem"], ["card-body", ".875rem"], ["card-detail", ".8125rem"], ["dialog-title", "1.125rem"], ["dialog-body", ".875rem"], ["footnote", ".8125rem"]]) {
-    assert.ok(typographySource.includes(`--type-${name}-size: ${value}`), `missing semantic role ${name}`);
+test("all semantic roles resolve to the reference steps at each breakpoint", () => {
+  const css = postcss.parse(typographySource);
+  for (const px of SITE_TYPE_STEPS) assert.ok(typographySource.includes(`--site-type-${px}: ${px / 16}rem;`));
+  for (const [width, device] of [[390, "mobile"], [820, "tablet"], [1440, "desktop"]] as const) {
+    const values = new Map<string, string>();
+    css.walkRules(":root", rule => {
+      const parent = rule.parent;
+      if (parent?.type === "atrule") {
+        const minimum = Number(parent.params.match(/min-width: (\d+)px/)?.[1]);
+        if (width < minimum) return;
+      }
+      rule.walkDecls(decl => { values.set(decl.prop, decl.value); });
+    });
+    for (const role of SITE_TYPE_ROLES) {
+      assert.ok(SITE_TYPE_STEPS.includes(role[device]));
+      assert.equal(values.get(`--type-${role.key}-size`), `var(--site-type-${role[device]})`, `${role.key} at ${width}`);
+    }
   }
+  assert.equal(siteTypeSizeCss(2), "var(--site-type-13)");
+  assert.equal(siteTypeSizeCss(999), "var(--site-type-44)");
+  assert.equal(siteTypeSizeCss(15.2), "var(--site-type-15)");
 });
 
 test("neutral text remains readable on every shared light surface", () => {
@@ -161,5 +181,37 @@ test("neutral text remains readable on every shared light surface", () => {
   };
   for (const ink of ["text", "text-muted", "text-subtle"]) for (const surface of ["surface", "surface-muted", "surface-soft"]) {
     assert.ok((color(surface) + .05) / (color(ink) + .05) >= 4.5, `${ink} on ${surface} must remain readable`);
+  }
+});
+
+
+test("UI CSS cannot introduce private or fluid font sizes outside the reference scale", () => {
+  const graphicClasses = new Set([...readFileSync(join(projectRoot, "components/marketing/MarketingVisual.tsx"), "utf8").matchAll(/styles\.([A-Za-z0-9_]+)/g)].map(match => match[1]));
+  const failures: string[] = [];
+  function walk(directory: string) {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const file = join(directory, entry.name);
+      const local = relative(projectRoot, file);
+      if (entry.isDirectory()) { if (!/menu-templates|public-menu|original-pages/.test(local)) walk(file); continue; }
+      if (!file.endsWith(".css") || ["app/globals.css", "styles/fonts.css", "styles/theme.css", "styles/tailwind.css"].includes(local)) continue;
+      postcss.parse(readFileSync(file, "utf8")).walkDecls("font-size", decl => {
+        const selector = decl.parent?.type === "rule" ? decl.parent.selector : "";
+        const graphic = (local === "components/marketing/marketing.module.css" && selector.split(",").every(part => [...part.matchAll(/\.([A-Za-z0-9_-]+)/g)].some(match => graphicClasses.has(match[1]))))
+          || (local === "app/components/home/TabletTemplateCarousel.module.css" && decl.value.includes("cqw"))
+          || (local === "app/components/layout/Footer.module.css" && selector === ".wordmark");
+        if (!graphic && !/^(var\(--(?:type-|site-type-|site-tab-|site-segment-)|inherit$|initial$|unset$)/.test(decl.value)) failures.push(`${local} ${selector}: ${decl.value}`);
+      });
+    }
+  }
+  for (const directory of ["app", "components", "styles"]) walk(join(projectRoot, directory));
+  assert.deepEqual(failures, []);
+});
+
+
+test("reading UI cannot use off-scale large utilities or private numeric type sizes", () => {
+  for (const path of siteUiFiles) {
+    const routePath = relative(projectRoot, path);
+    if (visualPreviewFiles.has(routePath)) continue;
+    assert.doesNotMatch(readFileSync(path, "utf8"), /\btext-(?:3xl|5xl|6xl|7xl|8xl|9xl)\b/, `${routePath} introduces an off-scale type utility`);
   }
 });

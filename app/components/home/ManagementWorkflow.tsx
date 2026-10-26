@@ -81,7 +81,7 @@ const ManagementWorkflow = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-4xl md:text-5xl font-bold mb-6 text-zinc-900 tracking-tight leading-tight"
+            className="type-section-title mb-6 text-zinc-900"
           >
             고객도, 사장님도<br />
             가장 편안한 흐름

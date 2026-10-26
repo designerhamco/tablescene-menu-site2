@@ -41,7 +41,7 @@ const PageHeader = ({ title, subtitle, bgImage }: PageHeaderProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 text-white"
+          className="type-page-title mb-6 text-white"
         >
           {title}
         </motion.h1>

@@ -432,7 +432,7 @@
   color: var(--ui-text);
   box-shadow: none;
   font: inherit;
-  font-size: 1rem;
+  font-size: var(--site-type-16);
   font-weight: 400;
   line-height: 1.5;
   padding: .5rem .875rem;
@@ -984,9 +984,9 @@ textarea.site-field,
 
 
 /* Native color emoji are decorative; the visible label remains the accessible name. */
-.site-emoji-icon { display: block; font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", emoji; font-size: 1.75rem; font-weight: 400; line-height: 1; }
+.site-emoji-icon { display: block; font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", emoji; font-size: var(--site-type-28); font-weight: 400; line-height: 1; }
 .site-choice-tile[data-icon-style="emoji"] .site-choice-tile-icon { background: transparent; }
-.site-choice-tile[data-size="compact"] .site-emoji-icon { font-size: 1.5rem; }
+.site-choice-tile[data-size="compact"] .site-emoji-icon { font-size: var(--site-type-24); }
 
 
 /* AI entry points and library examples share the same gradient states. */
@@ -1138,7 +1138,7 @@ textarea.site-field[data-field-size="lg"], textarea[data-field-size="lg"] { min-
 .site-plan-card:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
 .site-plan-card:active:not(:disabled), .site-plan-card[aria-pressed="true"]:active:not(:disabled) { background: var(--ui-surface-soft); }
 .site-plan-card:is(:disabled,[aria-disabled="true"]) { opacity: .45; cursor: not-allowed; }
-.site-plan-price { font-size: 2rem; font-weight: 700; line-height: 1.25; letter-spacing: -.025em; }
+.site-plan-price { font-size: var(--type-price-compact-size); font-weight: 700; line-height: 1.25; letter-spacing: -.025em; }
 .site-card-interactive:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
 .site-card-interactive:active { background: var(--ui-surface-soft); }
 .site-card-interactive:is(:disabled,[aria-disabled="true"]) { opacity: .45; cursor: not-allowed; }

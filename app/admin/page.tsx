@@ -346,7 +346,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           {metricCards.map((metric) => (
             <article key={metric.label} className="rounded-3xl border border-white/10 bg-white p-6 text-zinc-950 shadow-2xl shadow-black/10">
               <p className="mb-3 break-keep text-copy font-medium text-zinc-500">{metric.label}</p>
-              <p className="text-4xl font-bold tracking-tight">{metric.value.toLocaleString("ko-KR")}</p>
+              <p className="type-metric">{metric.value.toLocaleString("ko-KR")}</p>
               {metric.error && <p className="mt-3 break-keep text-support font-medium leading-relaxed text-red-600">{metric.error}</p>}
             </article>
           ))}
