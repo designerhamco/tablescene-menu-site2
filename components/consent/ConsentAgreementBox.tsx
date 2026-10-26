@@ -108,7 +108,7 @@ export function ConsentAgreementBox<T extends string>({
                 </button>
               </div>
             </div>
-            <div className="max-h-[56vh] overflow-y-auto p-6 text-copy font-semibold leading-relaxed text-zinc-600">
+            <div className="max-h-[56vh] overflow-y-auto p-6 text-copy font-normal leading-relaxed text-zinc-600">
               {activeItem.detail}
             </div>
             <div className="border-t border-zinc-100 p-6">

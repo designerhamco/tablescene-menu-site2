@@ -123,7 +123,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
       </div>
 
       <form onSubmit={handleSubmit} className={styles.form}>
-        <label className={`type-caption ${styles.consent}`}>
+        <label className={`type-footnote ${styles.consent}`}>
           <input
             type="checkbox"
             checked={overseasTransferConsent}
@@ -135,7 +135,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
           {overseasTransferConsent ? (
             <span className={`${styles.consentText} ${styles.consentDone}`}>
               <strong className={styles.consentTitle}>국외 이전 동의 완료</strong>
-              <Link href="/privacy" className="shrink-0 font-bold underline underline-offset-2">자세히 보기</Link>
+              <Link href="/privacy" className="shrink-0 font-medium underline underline-offset-2">자세히 보기</Link>
             </span>
           ) : (
             <span className={styles.consentText}>
@@ -143,7 +143,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
               <span className={styles.consentBody}>
                 질문과 생성 답변 및 처리에 필요한 기술 정보가 미국 등 국외의 OpenAI OpCo, LLC 및 하위처리자에게 암호화 전송되며,
                 답변 생성과 악용 방지를 위해 최대 30일 보관될 수 있습니다. 동의를 거부하면 AI 상담은 이용할 수 없지만
-                일반 서비스와 1:1 문의는 계속 이용할 수 있습니다. <Link href="/privacy" className="font-bold underline underline-offset-2">자세히 보기</Link>
+                일반 서비스와 1:1 문의는 계속 이용할 수 있습니다. <Link href="/privacy" className="font-medium underline underline-offset-2">자세히 보기</Link>
               </span>
             </span>
           )}
@@ -169,7 +169,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
             <ArrowUp size={20} aria-hidden="true" />
           </Button>
         </div>
-        <p className={`type-caption ${styles.privacyNote}`}>
+        <p className={`type-footnote ${styles.privacyNote}`}>
           비밀번호, 인증번호, 카드정보 등 민감한 정보는 입력하지 마세요. 아티메뉴 계정과 DB에는 대화를 저장하지 않습니다.
         </p>
       </form>

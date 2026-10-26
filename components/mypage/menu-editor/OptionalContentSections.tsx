@@ -39,7 +39,7 @@ function FieldHint({ children }: { children?: ReactNode }) {
     return null;
   }
 
-  return <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">{children}</p>;
+  return <p className="mt-2 break-keep type-footnote text-zinc-600">{children}</p>;
 }
 
 function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTMLInputElement> & { helperText?: ReactNode }) {
@@ -59,7 +59,7 @@ function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTML
         }`}
       />
       {(helperText || props.maxLength) && (
-        <div className="mt-2 flex items-start justify-between gap-3 text-support font-medium leading-relaxed text-zinc-600">
+        <div className="mt-2 flex items-start justify-between gap-3 type-footnote text-zinc-600">
           <span className="break-keep">{helperText}</span>
           {props.maxLength && <span className="shrink-0">{currentLength} / {props.maxLength}</span>}
         </div>
@@ -85,7 +85,7 @@ function TextArea({ helperText, className, ...props }: TextareaHTMLAttributes<HT
         }`}
       />
       {(helperText || props.maxLength) && (
-        <div className="mt-2 flex items-start justify-between gap-3 text-support font-medium leading-relaxed text-zinc-600">
+        <div className="mt-2 flex items-start justify-between gap-3 type-footnote text-zinc-600">
           <span className="break-keep">{helperText}</span>
           {props.maxLength && <span className="shrink-0">{currentLength} / {props.maxLength}</span>}
         </div>

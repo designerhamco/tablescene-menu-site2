@@ -2659,7 +2659,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           />
         </div>
         {!card.canViewPublic ? (
-          <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 text-support font-normal leading-relaxed text-zinc-600">
+          <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 type-footnote text-zinc-600">
             현재 공개되지 않은 메뉴판입니다. 직원 미리보기에서는 공개 전 화면을 확인할 수 있습니다.
           </p>
         ) : null}
@@ -3358,7 +3358,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       <h3 className="type-content-title text-zinc-950">
                         {businessProfile?.business_name || "아직 인증된 사업자 정보가 없습니다."}
                       </h3>
-                      <p className="mt-2 break-keep text-support font-normal leading-relaxed text-zinc-600">
+                      <p className="mt-2 break-keep type-footnote text-zinc-600">
                         사업자 인증 정보는 결제 및 서비스 이용 기준 정보로 사용됩니다. 변경이 필요한 경우 고객지원으로 문의해주세요.
                       </p>
                     </div>
@@ -3415,7 +3415,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                     <div>
                       <h3 className="type-content-title text-zinc-950">서비스 안내 및 문의 수신 정보</h3>
-                      <p className="mt-2 break-keep text-support font-normal leading-relaxed text-zinc-600">
+                      <p className="mt-2 break-keep type-footnote text-zinc-600">
                         문의 답변과 서비스 안내는 담당자 정보 기준으로 전달됩니다.
                       </p>
                     </div>

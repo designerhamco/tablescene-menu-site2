@@ -59,7 +59,7 @@ test("site pages cannot override shared action padding, shape, typography or dis
 });
 
 test("content tabs, settings tabs and subordinate filters retain different shared roles", () => {
-  assert.match(read("components/support/SupportCenter.tsx"), /<Tabs variant="contained"/);
+  assert.match(read("components/support/SupportCenter.tsx"), /<Tabs variant="flow"/);
   assert.match(read("components/support/SupportCenter.tsx"), /className="site-filter"/);
   const preview = read("components/menu/MenuPreviewOptionsPanel.tsx");
   assert.match(preview, /<Tabs variant="outline"/);
@@ -67,7 +67,7 @@ test("content tabs, settings tabs and subordinate filters retain different share
     assert.match(preview, new RegExp(`id="preview-${value}-tab" aria-controls="preview-${value}-panel"`));
     assert.match(preview, new RegExp(`id="preview-${value}-panel" aria-labelledby="preview-${value}-tab"`));
   }
-  assert.match(read("components/guides/UsageGuidePage.tsx"), /<TabsList variant="underline"/);
+  assert.match(read("components/guides/UsageGuidePage.tsx"), /<TabsList variant="folder"/);
   assert.match(tabCss, /--site-tab-indicator-width: \.25rem/);
   assert.match(tabCss, /\.site-contained-panel \{[^}]*border-radius: 0 \.75rem \.75rem \.75rem/);
   for (const cls of ["site-tab", "site-topic-tab", "site-contained-tab"]) {

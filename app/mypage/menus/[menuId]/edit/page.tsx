@@ -901,7 +901,7 @@ function FieldHint({ children }: { children?: ReactNode }) {
     return null;
   }
 
-  return <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-400">{children}</p>;
+  return <p className="mt-2 break-keep type-footnote text-zinc-600">{children}</p>;
 }
 
 function getJsonRecord(value: unknown): Record<string, Json> {
@@ -969,7 +969,7 @@ function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTML
         }`}
       />
       {(helperText || props.maxLength) && (
-        <div className="mt-2 flex items-start justify-between gap-3 text-support font-medium leading-relaxed text-zinc-400">
+        <div className="mt-2 flex items-start justify-between gap-3 type-footnote text-zinc-600">
           <span className="break-keep">{helperText}</span>
           {props.maxLength && fieldName && <LiveCharacterCounter fieldName={fieldName} initialLength={currentLength} maxLength={props.maxLength} />}
         </div>
@@ -992,7 +992,7 @@ function TextArea({ helperText, className, ...props }: TextareaHTMLAttributes<HT
         }`}
       />
       {(helperText || props.maxLength) && (
-        <div className="mt-2 flex items-start justify-between gap-3 text-support font-medium leading-relaxed text-zinc-400">
+        <div className="mt-2 flex items-start justify-between gap-3 type-footnote text-zinc-600">
           <span className="break-keep">{helperText}</span>
           {props.maxLength && fieldName && <LiveCharacterCounter fieldName={fieldName} initialLength={currentLength} maxLength={props.maxLength} />}
         </div>
@@ -2277,7 +2277,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           label="커버 이미지 표시"
                           defaultChecked={coverImageVisible}
                         />
-                        <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-400">
+                        <p className="mt-2 break-keep type-footnote text-zinc-600">
                           꺼도 등록된 커버 이미지는 삭제되지 않습니다. 다시 켜면 저장된 이미지를 그대로 사용할 수 있습니다.
                         </p>
                       </div>

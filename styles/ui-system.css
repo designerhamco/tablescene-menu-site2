@@ -577,7 +577,7 @@ textarea.site-field,
 }
 
 .site-dialog-title {
-  font-size: var(--type-subsection-title-size);
+  font-size: var(--type-dialog-title-size);
   font-weight: var(--font-weight-strong);
   line-height: 1.3;
   letter-spacing: -0.025em;
@@ -585,7 +585,7 @@ textarea.site-field,
 
 .site-dialog-description {
   color: var(--ui-text-muted);
-  font-size: var(--type-body-size);
+  font-size: var(--type-dialog-body-size);
   font-weight: var(--font-weight-regular);
   line-height: 1.6;
 }
@@ -1140,3 +1140,14 @@ textarea.site-field[data-field-size="lg"], textarea[data-field-size="lg"] { min-
 
 .site-filter-panel { --ui-field-height-md: var(--ui-field-height-sm); }
 .site-button.site-consent-detail { min-height: 1.5rem; padding: 0; font-size: var(--type-body-sm-size); color: var(--ui-text-muted); text-decoration: underline; text-underline-offset: .2em; }
+
+/* Popup reading is compact; page headings and editable menu typography stay independent. */
+.site-dialog, .site-dialog-panel {
+  --type-body-size: var(--type-dialog-body-size); --type-body-sm-size: var(--type-dialog-body-size);
+  --type-caption-size: var(--type-footnote-size); --type-label-size: .875rem; --type-control-size: .875rem;
+  --type-subsection-title-size: var(--type-dialog-title-size); --type-content-title-size: var(--type-dialog-title-size);
+  font-size: var(--type-dialog-body-size); line-height: 1.65;
+}
+.site-dialog :is(.type-body, .type-body-sm, .text-copy, .text-support) { font-weight: 400; }
+.site-dialog :is([data-slot="form-description"], [data-slot="form-message"]),
+[data-slot="form-description"], [data-slot="form-message"] { font-size: var(--type-footnote-size); font-weight: 400; line-height: 1.6; }

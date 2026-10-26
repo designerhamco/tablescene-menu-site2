@@ -81,7 +81,7 @@ export function CafeAStarterCoverTextInput({
         className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-900 transition invalid:border-red-200 invalid:focus:border-red-500 disabled:text-zinc-600"
       />
       {(helperText || maxLength) && (
-        <div className="mt-2 flex items-start justify-between gap-3 text-support font-medium leading-relaxed text-zinc-600">
+        <div className="mt-2 flex items-start justify-between gap-3 type-footnote text-zinc-600">
           <span className="break-keep">{helperText}</span>
           {maxLength && <LiveCharacterCounter fieldName={name} initialLength={value.length} maxLength={maxLength} />}
         </div>
@@ -133,7 +133,7 @@ export function CafeAStarterCoverTextArea({
         className="site-field mt-2 min-h-24 w-full border-zinc-200 px-4 py-3 text-zinc-900 transition invalid:border-red-200 invalid:focus:border-red-500"
       />
       {(helperText || maxLength) && (
-        <div className="mt-2 flex items-start justify-between gap-3 text-support font-medium leading-relaxed text-zinc-600">
+        <div className="mt-2 flex items-start justify-between gap-3 type-footnote text-zinc-600">
           <span className="break-keep">{helperText}</span>
           {maxLength && <LiveCharacterCounter fieldName={name} initialLength={value.length} maxLength={maxLength} />}
         </div>
