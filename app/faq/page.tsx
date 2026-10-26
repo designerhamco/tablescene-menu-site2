@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { BookOpen, Bot } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import Link from "next/link";
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import SupportCenter from "@/components/support/SupportCenter";
 import { isAiSupportChatEnabled } from "@/lib/ai-support-chat";
+import { SupportChatIcon } from "@/app/components/ui/support-chat-icon";
 import AiSupportChatOpenButton from "../support/chat/AiSupportChatOpenButton";
 
 export const metadata: Metadata = {
@@ -32,8 +33,8 @@ export default async function FAQPage({
                 <BookOpen size={18} aria-hidden="true" />
                 사용가이드
               </Link>
-              <AiSupportChatOpenButton className="site-button site-button-secondary">
-                <Bot size={18} aria-hidden="true" />
+              <AiSupportChatOpenButton className="site-button site-button-ai">
+                <SupportChatIcon width={18} height={18} />
                 AI 상담{!enabled ? " · 준비 중" : ""}
               </AiSupportChatOpenButton>
             </div>

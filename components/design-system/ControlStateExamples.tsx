@@ -25,7 +25,7 @@ export default function ControlStateExamples() {
     <div className={styles.buttonRow}>
       <Button onClick={() => setClicks(n => n + 1)}><Plus />동작 확인</Button>
       <Button variant="outline" size="lg">강조 48px</Button><Button size="xl">주요 시작 56px</Button>
-      <Button variant="outline" shape="pill"><BookOpen />사용가이드</Button><Button variant="ai" shape="pill"><Sparkles />AI 상담</Button>
+      <Button variant="outline"><BookOpen />사용가이드</Button><Button variant="ai"><Sparkles />AI 상담</Button>
       <Button size="icon" variant="ghost" aria-label="추가 도구"><Plus /></Button>
     </div>
     <p className="type-body-sm text-zinc-600" role="status">동작 확인 {clicks}회 · Tab으로 포커스하고 Enter·Space로 실행해 보세요.</p>
@@ -33,7 +33,7 @@ export default function ControlStateExamples() {
       <tbody>{actions.map(([variant,label]) => <tr key={variant}><th scope="row">{label}</th>{states.map(([state,stateLabel]) => <td key={state}>
         <Button variant={variant} shape={variant === "ai" ? "pill" : "rounded"} disabled={state === "disabled"} data-ui-state={state === "default" || state === "disabled" ? undefined : state} aria-label={`${label} ${stateLabel} 예시`}>{label}</Button>
       </td>)}</tr>)}</tbody></table></div>
-    <p className="type-body-sm text-zinc-600">상태 표는 실제 공통 스타일을 고정해 비교합니다. 비활성 버튼은 실행되지 않으며 hover·클릭 색상으로 바뀌지 않습니다. 둥근 퀵메뉴와 원형 아이콘은 별도 용도를 가집니다.</p>
+    <p className="type-body-sm text-zinc-600">상태 표는 실제 공통 스타일을 고정해 비교합니다. 비활성 버튼은 실행되지 않으며 hover·클릭 색상으로 바뀌지 않습니다. 고객지원 퀵 버튼은 56px의 둥근 정사각형이며 원형 도구와 구분합니다.</p>
     <div className={styles.ruleGrid}>{([
       ["underline", "콘텐츠 탐색", "밑줄 탭 · 4px 선택선"],
       ["contained", "목록 종류 전환", "흰 탭과 패널 · 12px 모서리"],

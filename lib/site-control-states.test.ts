@@ -17,9 +17,9 @@ test("ordinary action geometry is shared and icon / quick-menu shapes are explic
   assert.match(css, /--ui-control-height-xl: 3\.5rem/);
   assert.match(css, /\.site-button\.site-button-icon \{ border-radius: 50%;/);
   const launcher = read("app/support/chat/AiSupportChatLauncher.tsx");
-  assert.match(launcher, /site-button-outline site-button-pill/);
-  assert.match(launcher, /site-button-ai site-button-pill/);
-  assert.doesNotMatch(launcher, /launcherButton|hover:underline/);
+  assert.match(launcher, /site-button site-button-ai/);
+  assert.match(launcher, /SupportChatIcon/);
+  assert.doesNotMatch(launcher, /href="\/guides"|site-button-pill/);
 });
 
 test("shared state previews exercise the real guarded hover / pressed / focus selectors", () => {
