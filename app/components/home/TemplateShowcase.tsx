@@ -76,7 +76,7 @@ export default function TemplateShowcase({ service = 'all', presentation = 'cata
         </div>}
         {!isDiningShowcase && visibleTemplates.length === 0 ? <p className="type-body py-16 text-center">등록된 템플릿이 아직 없습니다.</p> : null}
         <div className="mt-12 flex justify-center">
-          <a href="/apply" className={`site-button ${isDisplay ? 'site-button-secondary' : 'site-button-primary'}`}>더 많은 디자인 보기</a>
+          <a href="/templates" className={`site-button ${isDisplay ? 'site-button-secondary' : 'site-button-primary'}`}>더 많은 디자인 보기</a>
         </div>
       </div>
     </section>

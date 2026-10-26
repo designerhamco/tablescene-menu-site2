@@ -1,12 +1,11 @@
 "use client";
 
-import { Check, PanelsTopLeft } from "lucide-react";
+import { PanelsTopLeft } from "lucide-react";
 import { useId, useMemo, useRef, useState } from "react";
 import {
   CATALOG_INDUSTRIES,
   CATALOG_LAYOUT_FILTERS,
   filterCatalogDesigns,
-  getCatalogPricing,
   normalizeCatalogLayoutFilter,
   type CatalogKind,
   type CatalogLayoutFilter,
@@ -72,9 +71,6 @@ export default function TemplateGallery({
   const emptyTitle = hasLayoutFilter && layoutFilter !== "all"
     ? `${filter === "all" ? "" : `${filterLabel} · `}${layoutLabel} 템플릿 준비 중`
     : `${filterLabel} 템플릿 준비 중`;
-  const pricing = product === "display" ? null : getCatalogPricing(product, kind);
-  const productTitle = product === "display" ? "아티메뉴 디스플레이" : `${product === "basic" ? "베이직" : "다이닝"} ${selectedKind.label}`;
-  const money = (amount: number) => `${amount.toLocaleString("ko-KR")}원`;
 
   function keepUrl(service: CatalogService, nextKind: CatalogKind, nextFilter: string, nextLayout: CatalogLayoutFilter) {
     const url = new URL(location.href);
@@ -131,15 +127,6 @@ export default function TemplateGallery({
             <p className="type-body site-catalog-kind-description">
               {product === "display" ? "매장 모니터에 어울리는 디자인을 미리 확인하세요. 신규 신청은 준비 중입니다." : selectedKind.description}
             </p>
-            <div className="site-catalog-price" aria-live="polite" aria-atomic="true">
-              <p className="type-caption text-zinc-600">{productTitle}</p>
-              <p className="type-content-title mt-1">
-                {pricing ? <>얼리버드 월 {money(pricing.earlyBirdMonthly)} <span className="site-catalog-regular-price">· 정상가 {money(pricing.regularMonthly)}</span></> : "신청 준비 중"}
-              </p>
-              {pricing && <p className="type-caption site-catalog-access mt-2"><Check size={16} aria-hidden="true" />
-                메뉴판 1개당 월 구독 · {kind === "standard" ? "기본 디자인끼리 교체 가능" : "기본·디자인 템플릿 교체 가능"}
-              </p>}
-            </div>
           </section>
           <div className="site-catalog-layout" data-with-filters={product !== "display"}>
             {product !== "display" && (

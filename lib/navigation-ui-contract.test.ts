@@ -49,3 +49,10 @@ test("데스크톱 헤더 액션은 MY 메뉴, 매장 운영, 구분선, 알림,
   assert.ok(bell > divider);
   assert.ok(make > bell);
 });
+
+test("디자인 템플릿과 만들기는 서로 다른 경로로 연결한다", () => {
+  const navbarSource = readSource("app/components/layout/Navbar.tsx");
+
+  assert.match(navbarSource, /label: '디자인 템플릿', path: '\/templates'/);
+  assert.match(navbarSource, /href="\/apply"[\s\S]*?>\s*만들기/);
+});
