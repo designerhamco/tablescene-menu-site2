@@ -3,6 +3,7 @@ import Link from "next/link";
 import { signOutAction } from "@/app/auth/actions";
 import { formatNotificationBadgeCount } from "@/lib/notification-display-policy";
 import { Badge } from "@/app/components/ui/badge";
+import { MypageNavigationRail } from "@/components/mypage/MypageNavigationRail";
 
 export type MypageNavigationKey =
   | "menus"
@@ -98,7 +99,7 @@ export function MypageNavigation({
   unreadNotificationCount?: number;
 }) {
   return (
-    <nav className="site-account-nav" aria-label="마이페이지 메뉴">
+    <MypageNavigationRail activeKey={active}>
       <Link href="/mypage?tab=menus" aria-current={active === "menus" ? "page" : undefined} className={getNavigationClassName(active === "menus")}>
         <span>내 메뉴판</span>
         <NavigationCount active={active === "menus"}>{totalMenuCount.toLocaleString("ko-KR")}</NavigationCount>
@@ -125,6 +126,6 @@ export function MypageNavigation({
       <Link href="/mypage?tab=account" aria-current={active === "account" ? "page" : undefined} className={getNavigationClassName(active === "account")}>
         <span>계정 정보</span>
       </Link>
-    </nav>
+    </MypageNavigationRail>
   );
 }
