@@ -47,7 +47,7 @@ export default function ControlStateExamples() {
     <div className={styles.usageTable}><table aria-label="탭 상태 기준"><thead><tr><th scope="col">종류</th>{states.map(([key,label]) => <th scope="col" key={key}>{label}</th>)}</tr></thead>
       <tbody>{(["underline", "contained", "outline", "segmented"] as const).map(variant => <tr key={variant}><th scope="row">{{underline:"밑줄",contained:"연결형",outline:"보기 전환",segmented:"세그먼트"}[variant]}</th>{states.map(([state,stateLabel]) => <td key={state}><Tabs variant={variant} defaultValue="selected"><TabsList aria-label={`${variant} ${stateLabel} 예시`}>
         <TabsTrigger value="selected" data-ui-state={state === "default" || state === "disabled" ? undefined : state} disabled={state === "disabled"}>선택</TabsTrigger>
-      </TabsList><TabsContent value="selected" className="sr-only">상태 예시</TabsContent></Tabs></td>)}</tr>)}</tbody></table></div>
+      </TabsList><TabsContent value="selected" className="sr-only" tabIndex={-1}>상태 예시</TabsContent></Tabs></td>)}</tr>)}</tbody></table></div>
     <div className={styles.inverseToolbar} role="group" aria-label="미리보기 도구 스타일 예시">{["태블릿","PC","모바일"].map(label => <button key={label} type="button" className="site-preview-control" aria-pressed={previewDevice === label} onClick={() => setPreviewDevice(label)}>{label}</button>)}<button type="button" className="site-preview-control" disabled>준비 중</button></div>
     <div className="site-filter-group" role="group" aria-label="하위 필터 예시"><button type="button" className="site-filter" aria-pressed>전체</button><button type="button" className="site-filter" aria-pressed={false}>카페</button><button type="button" className="site-filter" disabled>준비 중</button></div>
   </section>;

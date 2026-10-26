@@ -16,7 +16,7 @@
 .token code { overflow-wrap:anywhere; }
 .swatch { height:5rem; border:1px solid var(--ui-border); border-radius:.75rem; }
 .ruleGrid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; padding:1rem; background:var(--ui-surface-muted); border-radius:var(--ui-radius-panel); }
-.usageTable { overflow-x:auto; }
+.usageTable { position:relative; min-width:0; overflow-x:auto; }
 .usageTable table { width:100%; text-align:left; font-size:.875rem; line-height:1.6; }
 .usageTable :is(th,td) { padding:1rem; border-bottom:1px solid var(--ui-border); vertical-align:top; }
 .usageTable th { font-weight:600; background:var(--ui-surface-muted); }
