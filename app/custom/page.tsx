@@ -21,10 +21,10 @@ export default function CustomPage() {
             <h1 className="type-page-title mt-8 text-zinc-950">
               커스텀
             </h1>
-            <p className="site-body-title mt-6 max-w-2xl text-zinc-700">
+            <p className="type-page-description mt-6 max-w-2xl text-zinc-700">
               주문 제작형 메뉴판과 브랜드 맞춤형 메뉴 경험을 제공하는 프리미엄 서비스입니다.
             </p>
-            <p className="site-body mt-4 max-w-2xl text-zinc-500">
+            <p className="type-body-sm mt-4 max-w-2xl text-zinc-500">
               상세 페이지 준비 중입니다. 곧 자세한 내용을 안내드릴 예정입니다.
             </p>
             <div className="mt-10">

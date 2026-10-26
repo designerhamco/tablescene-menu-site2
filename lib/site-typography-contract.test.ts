@@ -26,6 +26,8 @@ const activeOriginalSurfaceFiles = new Set([
   "original-pages/branding/VisualStudioPage.tsx",
   "original-pages/services/ComingSoonServicePage.tsx",
   "original-pages/services/CustomServicePage.tsx",
+  "original-pages/services/DiningServicePage.tsx",
+  "original-pages/services/DisplayComingSoonPage.tsx",
 ]);
 
 const excludedMenuRenderPrefixes = ["m/", "menu/"];
@@ -146,14 +148,56 @@ test("인증 화면은 페이지 소개보다 계정 보조 링크를 작게 표
 test("디자인 시스템은 글자 역할 이름과 화면 예시를 같은 계약으로 설명한다", () => {
   const gallerySource = readFileSync(join(componentsRoot, "design-system/SiteComponentGallery.tsx"), "utf8");
   const foundationsSource = readFileSync(join(componentsRoot, "design-system/DesignFoundations.tsx"), "utf8");
-  const marketingLead = SITE_TYPE_ROLES.find((role) => role.key === "body-lg");
+  const emphasizedBody = SITE_TYPE_ROLES.find((role) => role.key === "body-lg");
   const pageDescription = SITE_TYPE_ROLES.find((role) => role.key === "page-description");
 
-  assert.equal(marketingLead?.label, "마케팅 도입 설명");
-  assert.equal(pageDescription?.label, "기능 페이지 설명");
+  assert.equal(emphasizedBody?.label, "강조 본문");
+  assert.equal(pageDescription?.label, "페이지 설명");
   assert.match(gallerySource, /<p className="type-page-description">디자인 기준과 실제 사이트/);
-  assert.match(foundationsSource, /type-body-lg[^>]*>서비스의 가치와 분위기를 소개하는 큰 도입 설명/);
-  assert.match(foundationsSource, /type-page-description[^>]*>로그인·마이페이지 같은 기능 화면의 설명/);
+  assert.match(foundationsSource, /type-page-description[^>]*>페이지 제목 바로 아래의 설명은 로그인·서비스·고객센터·신청 화면에서 모두 같은 역할과 크기/);
+  assert.match(foundationsSource, /type-body-lg[^>]*>기본 본문보다 한 단계 강조해야 하는 짧은 문장/);
+  assert.match(typographySource, /\.type-body,\s*\n\.site-body\s*\{/);
+  assert.doesNotMatch(typographySource, /\.type-body-lg,\s*\n\.site-body\s*\{/);
+});
+
+test("일반 페이지의 h1 바로 아래 설명은 화면 종류와 무관하게 같은 역할을 쓴다", () => {
+  const pageDescriptionFiles = [
+    "sign-in/page.tsx",
+    "templates/page.tsx",
+    "pricing/page.tsx",
+    "apply/page.tsx",
+    "apply/_components/PaidApplyPage.tsx",
+    "apply/_components/ConsultingApplyPage.tsx",
+    "apply/custom/page.tsx",
+    "apply/display/page.tsx",
+    "products/[slug]/page.tsx",
+    "support/chat/page.tsx",
+    "success/page.tsx",
+    "design-review/page.tsx",
+    "original-pages/services/CustomServicePage.tsx",
+    "original-pages/services/DiningServicePage.tsx",
+    "original-pages/services/DisplayComingSoonPage.tsx",
+  ];
+
+  for (const route of pageDescriptionFiles) {
+    const source = readFileSync(join(appRoot, route), "utf8");
+    assert.match(
+      source,
+      /<h1 className="type-page-title[^\"]*"[\s\S]{0,320}?<p className="type-page-description/,
+      `${route}의 페이지 제목 설명이 공통 역할을 사용하지 않습니다.`,
+    );
+  }
+
+  for (const component of [
+    "marketing/MarketingPages.tsx",
+    "support/SupportCenter.tsx",
+  ]) {
+    const source = readFileSync(join(componentsRoot, component), "utf8");
+    assert.match(source, /<h1[^>]*className="type-page-title"[\s\S]{0,220}?<p className="type-page-description/);
+  }
+
+  const detailSource = readFileSync(join(appRoot, "templates/[templateKey]/page.tsx"), "utf8");
+  assert.match(detailSource, /<h1 className="type-page-title"[\s\S]{0,180}?type-page-description/);
 });
 
 test("마이페이지와 매장 운영의 최상위 설명은 관리 영역 안에서도 기능 설명 크기를 유지한다", () => {

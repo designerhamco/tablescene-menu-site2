@@ -305,7 +305,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
             </Link>
             <p className="mb-4 text-support font-medium uppercase tracking-[0.3em] text-[#F8E731]">Admin Dashboard</p>
             <h1 className="type-page-title">운영자 관리자 페이지</h1>
-            <p className="mt-4 break-keep text-copy font-medium leading-relaxed text-white/60">
+            <p className="type-page-description mt-4 text-white/60">
               전체 메뉴판, 문의, 주문, 결제 현황을 Supabase 데이터로 확인합니다.
             </p>
           </div>

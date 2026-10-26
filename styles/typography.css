@@ -36,8 +36,8 @@
   --type-display-size: var(--site-type-28);
   --type-page-title-size: var(--site-type-28);
   --type-page-description-size: var(--site-type-16);
-  --type-section-title-size: var(--site-type-28);
-  --type-subsection-title-size: var(--site-type-22);
+  --type-section-title-size: var(--site-type-24);
+  --type-subsection-title-size: var(--site-type-20);
   --type-content-title-size: var(--site-type-18);
   --type-item-title-size: var(--site-type-18);
   --type-body-lg-size: var(--site-type-18);
@@ -122,8 +122,7 @@
   letter-spacing: -0.02em;
 }
 
-.type-body-lg,
-.site-body {
+.type-body-lg {
   word-break: keep-all;
   font-size: var(--type-body-lg-size);
   font-weight: var(--font-weight-regular);
@@ -131,7 +130,8 @@
   letter-spacing: -0.015em;
 }
 
-.type-body {
+.type-body,
+.site-body {
   word-break: keep-all;
   font-size: var(--type-body-size);
   font-weight: var(--font-weight-regular);
@@ -174,8 +174,8 @@
   :root {
     --type-display-size: var(--site-type-32);
     --type-page-title-size: var(--site-type-32);
-    --type-section-title-size: var(--site-type-32);
-    --type-subsection-title-size: var(--site-type-24);
+    --type-section-title-size: var(--site-type-28);
+    --type-subsection-title-size: var(--site-type-22);
     --type-price-size: var(--site-type-44);
     --type-price-compact-size: var(--site-type-32);
   }
@@ -186,8 +186,8 @@
     --type-display-size: var(--site-type-36);
     --type-page-title-size: var(--site-type-36);
     --type-page-description-size: var(--site-type-17);
-    --type-section-title-size: var(--site-type-36);
-    --type-subsection-title-size: var(--site-type-26);
+    --type-section-title-size: var(--site-type-28);
+    --type-subsection-title-size: var(--site-type-24);
     --type-content-title-size: var(--site-type-20);
     --type-body-lg-size: var(--site-type-20);
     --type-body-size: var(--site-type-17);

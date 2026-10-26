@@ -39,7 +39,7 @@ export default async function TemplateDetailPage({ params }: Props) {
             heading={<>
               <div className={styles.sidebarHeading}><span className={`type-caption ${styles.serviceLabel}`}>{info.serviceLabel} <span> / </span> {template.categoryLabel}</span><TemplateDetailActions designId={template.key} name={template.name} /></div>
               <h1 className="type-page-title">{template.name}</h1>
-              <p className={`type-body-sm ${styles.templateDescription}`}>{template.description}</p>
+              <p className={`type-page-description ${styles.templateDescription}`}>{template.description}</p>
             </>}
             gallery={<TemplateDetailGallery image={info.image} name={template.name} />}
             actions={<>

@@ -234,7 +234,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
           <div className={styles.heroHeading}>
 
             <h1 className="type-page-title">{copy.title}</h1>
-            <p className="site-body">{copy.body}</p>
+            <p className="type-page-description">{copy.body}</p>
             {service === "display" ? (
               <p className={styles.availability}>
                 서비스 소개 · 신규 신청 준비 중
@@ -270,10 +270,10 @@ export function MarketingServicePage({ service }: { service: Service }) {
       >
         <div className="site-container">
           <div className={styles.sectionHeading}>
-            <h2 id="feature-heading" className="type-page-title">
+            <h2 id="feature-heading" className="type-section-title">
               {copy.section}
             </h2>
-            <p className="site-body">
+            <p className="type-body">
               {service === "display"
                 ? "정식 공개를 준비 중인 디스플레이의 구성과 활용 방법을 소개합니다."
                 : "메뉴를 보여주는 일부터 매장을 운영하는 순간까지."}

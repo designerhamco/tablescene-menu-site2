@@ -40,7 +40,7 @@ export default function PricingPage() {
                 ← 마이페이지
               </Link>
               <h1 className="type-page-title">요금제 안내</h1>
-              <p className="site-body mt-4 max-w-2xl text-zinc-600">
+              <p className="type-page-description mt-4 max-w-2xl text-zinc-600">
                 요금제를 확인한 뒤 매장에 맞는 디자인을 선택해 시작하세요.
               </p>
               <p className="site-body-support mt-3 font-bold text-zinc-600">

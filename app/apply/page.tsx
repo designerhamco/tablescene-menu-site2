@@ -50,7 +50,7 @@ export default function ApplyPage() {
         <div className="site-container">
           <header className="site-page-heading max-w-3xl pb-8 md:pb-10">
             <h1 className="type-page-title">어떤 메뉴판을 만들까요?</h1>
-            <p className="site-body mt-3 max-w-2xl text-zinc-500">
+            <p className="type-page-description mt-3 max-w-2xl text-zinc-500">
               필요한 메뉴판 유형을 선택하면 디자인과 매장 정보를 확인하는 신청 단계로 이어집니다.
             </p>
           </header>
