@@ -8,9 +8,15 @@ const billingPanelSource = readFileSync(new URL("../components/mypage/BillingHis
 const mypageSource = readFileSync(new URL("../app/mypage/page.tsx", import.meta.url), "utf8");
 const siteDesignSource = readFileSync(new URL("../styles/site-design.css", import.meta.url), "utf8");
 
-test("mypage account card keeps long email contained and presents AI balance without promotional emphasis", () => {
-  assert.match(sidebarSource, /min-w-0 truncate/);
+test("mypage account card gives business identity and owner metrics a readable hierarchy", () => {
+  assert.match(sidebarSource, /businessName/);
+  assert.match(sidebarSource, /site-account-business-name/);
+  assert.match(sidebarSource, /site-account-email/);
+  assert.match(sidebarSource, /AI 크레딧/);
+  assert.match(sidebarSource, /직원계정/);
   assert.match(sidebarSource, /AI 충전\/사용내역/);
+  assert.match(mypageSource, /businessName=\{businessProfile\?\.business_name\}/);
+  assert.match(mypageSource, /active_staff_memberships/);
   assert.doesNotMatch(sidebarSource, /사용자 ID:/);
   assert.doesNotMatch(sidebarSource, /bg-emerald-50/);
   assert.doesNotMatch(sidebarSource, /설명 작성, 메뉴 정리, 번역에 사용할 수 있어요/);
@@ -24,7 +30,9 @@ test("mypage navigation uses separate surfaces and a sticky single-line rail bef
   assert.match(siteDesignSource, /\.site-account-summary \{[\s\S]*?border: 1px solid var\(--ui-border\)[\s\S]*?background: var\(--ui-surface\)/);
   assert.match(siteDesignSource, /\.site-account-nav \{[\s\S]*?position: sticky[\s\S]*?flex-wrap: nowrap[\s\S]*?overflow-x: auto/);
   assert.match(siteDesignSource, /@media \(min-width: 1024px\) \{[\s\S]*?\.site-account-sidebar \{ position: sticky; top: 7rem; display: grid/);
-  assert.match(siteDesignSource, /\.site-account-nav \{ position: static; flex-direction: column; overflow: visible/);
+  assert.match(siteDesignSource, /\.site-account-nav \{ position: static; flex-direction: column; gap: \.375rem; overflow: visible/);
+  assert.match(siteDesignSource, /\.site-account-layout \{ grid-template-columns: clamp\(17\.5rem, 20vw, 20rem\) minmax\(0, 1fr\); gap: 2rem; \}/);
+  assert.match(siteDesignSource, /\.site-account-nav \.site-nav-item \{ min-height: 3\.25rem;[\s\S]*?padding: \.75rem 1rem; \}/);
 });
 
 test("billing filters use the current product names and do not expose a legacy trial filter", () => {
