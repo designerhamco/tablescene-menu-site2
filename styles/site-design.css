@@ -405,6 +405,7 @@
 .site-empty-state-action { margin-top: .5rem; }
 
 /* Menu cards use a dedicated gallery layout instead of inheriting dense record rows. */
+.site-menu-card-list { display: grid; gap: 1rem; }
 .site-menu-card { display: flex; min-width: 0; flex-direction: column; overflow: hidden; padding: 0; }
 .site-menu-card-media {
   overflow: hidden;
@@ -418,6 +419,7 @@
 .site-menu-card-media .site-template-artwork > * { aspect-ratio: auto; border: 0; border-radius: 0; }
 .site-menu-card-media img { width: 100%; object-fit: cover; }
 .site-menu-card-body { display: flex; flex: 1; flex-direction: column; padding: 1.25rem; }
+.site-menu-card-details { min-width: 0; }
 .site-menu-card-header { display: grid; gap: .75rem; }
 .site-menu-card-path { margin-top: .25rem; color: var(--ui-text-muted); font-size: var(--type-card-detail-size); font-weight: var(--font-weight-regular); line-height: 1.45; overflow-wrap: anywhere; }
 .site-menu-card-badges { display: flex; flex-wrap: wrap; gap: .375rem; }
@@ -428,6 +430,31 @@
 .site-menu-card-meta dd { margin-top: .25rem; color: var(--ui-text); font-size: var(--type-card-body-size); font-weight: var(--font-weight-semibold); line-height: 1.5; word-break: keep-all; overflow-wrap: anywhere; }
 .site-menu-card-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; margin-top: auto; padding-top: 1rem; }
 .site-menu-card-actions .site-button { width: 100%; min-width: 0; white-space: normal; }
+@media (min-width: 768px) {
+  .site-menu-card {
+    display: grid;
+    grid-template-columns: clamp(13rem, 28vw, 17rem) minmax(0, 1fr);
+  }
+  .site-menu-card-media {
+    min-height: 14rem;
+    aspect-ratio: auto;
+    margin: .75rem 0 .75rem .75rem;
+  }
+  .site-menu-card-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(9.5rem, 18vw, 12rem);
+    align-items: stretch;
+    gap: 1.25rem;
+  }
+  .site-menu-card-actions {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    margin-top: 0;
+    border-left: 1px solid var(--ui-border);
+    padding-top: 0;
+    padding-left: 1.25rem;
+  }
+}
 .site-account-page .site-empty-state-spacious { margin-top: 1.5rem; }
 
 .site-tabs-even { width: min(100%, 32rem); }

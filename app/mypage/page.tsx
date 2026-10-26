@@ -2517,34 +2517,36 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           <TemplateThumbnail template={card.template} design={card.design} />
         </div>
         <div className="site-menu-card-body">
-          <div className="site-menu-card-header">
-            <div className="min-w-0">
-              <h3 className="type-content-title">{card.title}</h3>
-              <p className="site-menu-card-path">{card.publicPath}</p>
-            </div>
-            <div className="site-menu-card-badges">
-              {card.badges.map((badge) => (
-                <Badge key={badge.key} >
-                  {badge.label}
-                </Badge>
-              ))}
-            </div>
-          </div>
-
-          <p className="site-menu-card-status">{card.primaryMessage}</p>
-
-          <dl className="site-menu-card-meta">
-            <div>
-              <dt>템플릿</dt>
-              <dd>{card.templateLabel}</dd>
-            </div>
-            {card.metaItems.map((item) => (
-              <div key={item.label}>
-                <dt>{item.label}</dt>
-                <dd>{item.value}</dd>
+          <div className="site-menu-card-details">
+            <div className="site-menu-card-header">
+              <div className="min-w-0">
+                <h3 className="type-content-title">{card.title}</h3>
+                <p className="site-menu-card-path">{card.publicPath}</p>
               </div>
-            ))}
-          </dl>
+              <div className="site-menu-card-badges">
+                {card.badges.map((badge) => (
+                  <Badge key={badge.key}>
+                    {badge.label}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <p className="site-menu-card-status">{card.primaryMessage}</p>
+
+            <dl className="site-menu-card-meta">
+              <div>
+                <dt>템플릿</dt>
+                <dd>{card.templateLabel}</dd>
+              </div>
+              {card.metaItems.map((item) => (
+                <div key={item.label}>
+                  <dt>{item.label}</dt>
+                  <dd>{item.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
 
           {card.section === "deleted" ? (
             <p className="site-notice mt-5 px-4 py-3">
@@ -2599,27 +2601,29 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           <TemplateThumbnail template={card.template} design={card.design} />
         </div>
         <div className="site-menu-card-body">
-          <div className="site-menu-card-header">
-            <div className="min-w-0">
-              <h3 className="type-content-title">{card.title}</h3>
-              <p className="site-menu-card-path">{card.publicPath}</p>
+          <div className="site-menu-card-details">
+            <div className="site-menu-card-header">
+              <div className="min-w-0">
+                <h3 className="type-content-title">{card.title}</h3>
+                <p className="site-menu-card-path">{card.publicPath}</p>
+              </div>
+              <div className="site-menu-card-badges">
+                <Badge>직원 참여</Badge>
+                <Badge tone="role">{card.roleLabel}</Badge>
+                <Badge>{card.statusLabel}</Badge>
+              </div>
             </div>
-            <div className="site-menu-card-badges">
-              <Badge>직원 참여</Badge>
-              <Badge tone="role">{card.roleLabel}</Badge>
-              <Badge>{card.statusLabel}</Badge>
-            </div>
+
+            <p className="site-menu-card-status">
+              직원 권한으로 참여한 메뉴판입니다. 사용할 수 없는 기능은 숨기지 않고 비활성 상태로 안내합니다.
+            </p>
+
+            <dl className="site-menu-card-meta">
+              <div><dt>템플릿</dt><dd>{card.templateLabel}</dd></div>
+              <div><dt>최근 업데이트</dt><dd>{formatDate(card.updatedAt)}</dd></div>
+              <div><dt>사용 가능한 기능</dt><dd>{card.permissionSummary}</dd></div>
+            </dl>
           </div>
-
-          <p className="site-menu-card-status">
-            직원 권한으로 참여한 메뉴판입니다. 사용할 수 없는 기능은 숨기지 않고 비활성 상태로 안내합니다.
-          </p>
-
-          <dl className="site-menu-card-meta">
-            <div><dt>템플릿</dt><dd>{card.templateLabel}</dd></div>
-            <div><dt>최근 업데이트</dt><dd>{formatDate(card.updatedAt)}</dd></div>
-            <div><dt>사용 가능한 기능</dt><dd>{card.permissionSummary}</dd></div>
-          </dl>
 
           <div className="site-menu-card-actions">
           {card.canEdit ? (
@@ -2805,7 +2809,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               </div>
 
               {visibleMenuCardCount > 0 ? (
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="site-menu-card-list">
                   {visibleMenuCards.map(renderMenuCard)}
                   {activeMenuTab === "active" ? staffMenuCardViewModels.map(renderStaffMenuCard) : null}
                 </div>
