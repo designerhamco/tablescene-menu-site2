@@ -65,7 +65,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             </div>
             <div className="rounded-3xl bg-zinc-950 p-6 text-white">
               <p className="text-copy font-medium text-zinc-400">오픈 얼리버드 · 부가세 포함</p>
-              <p className="mt-2 text-3xl font-bold">{formatProductPrice(product.price)}</p>
+              <p className="mt-2 type-price-compact">{formatProductPrice(product.price)}</p>
               <p className="mt-2 text-copy font-semibold text-zinc-400">
                 정상가 월 {formatProductPrice(product.regularPrice)} · {product.billingLabel}
               </p>

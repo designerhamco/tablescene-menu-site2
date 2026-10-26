@@ -145,7 +145,7 @@ function QueueEntryRow({ menuSiteId, entry }: { menuSiteId: string; entry: Picku
       />
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-4">
-          <span className="min-w-14 text-3xl font-bold tabular-nums">{entry.queueNumber}</span>
+          <span className="min-w-14 type-metric">{entry.queueNumber}</span>
           <Badge
           >
             {STATUS_LABELS[entry.status]}

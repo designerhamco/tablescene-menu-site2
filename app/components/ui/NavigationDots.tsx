@@ -67,7 +67,7 @@ const NavigationDots = ({ sections }: { sections: Section[] }) => {
           >
             {/* Label - Tooltip style on hover */}
             <span 
-              className={`absolute right-full mr-4 px-2 py-1 text-[10px] font-medium text-white bg-black/80 rounded whitespace-nowrap
+              className={`absolute right-full mr-4 px-2 py-1 type-footnote text-white bg-black/80 rounded whitespace-nowrap
                 transition-all duration-300 transform origin-right
                 ${isActive || 'group-hover:opacity-100 group-hover:scale-100'}
                 ${isActive ? 'opacity-0' : 'opacity-0 scale-95 pointer-events-none'} 

@@ -150,7 +150,7 @@ export default function ServicePricingSection({ service }: { service: ServicePri
                     <h4 className="type-subsection-title mt-5">
                       {plan.title}
                     </h4>
-                    <p className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">
+                    <p className="mt-4 type-price">
                       {plan.price}
                     </p>
                     <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-500">

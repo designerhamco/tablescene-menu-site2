@@ -558,12 +558,12 @@
   align-items: baseline;
   gap: 0.3rem;
   margin-top: 1rem;
-  font-size: 2rem;
+  font-size: var(--type-price-compact-size);
   font-weight: 600;
   min-height: 3rem;
 }
 .planPrice strong {
-  font-size: 2.75rem;
+  font-size: var(--type-price-size);
   letter-spacing: -0.05em;
   line-height: 1.1;
 }
@@ -673,7 +673,7 @@
   display: flex;
   align-items: flex-start;
   gap: 1rem;
-  font-size: 1rem;
+  font-size: var(--site-type-16);
   line-height: 1.7;
 }
 .guideSteps li > span {
@@ -685,7 +685,7 @@
   border-radius: 50%;
   background: #15181e;
   color: #fff;
-  font-size: 0.75rem;
+  font-size: var(--site-type-13);
 }
 .guideNote {
   padding: 1rem;
@@ -770,3 +770,6 @@
     font-size: 2rem;
   }
 }
+
+/* The approved plan reference uses 16px for its short service description. */
+.priceGrid article > p:first-of-type { font-size: var(--site-type-16); }

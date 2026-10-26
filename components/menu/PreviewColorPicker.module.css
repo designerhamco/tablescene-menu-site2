@@ -9,7 +9,7 @@
 .hue::-webkit-slider-thumb { appearance: none; width: 1rem; height: 1rem; border: 2px solid white; border-radius: 50%; background: transparent; box-shadow: 0 0 0 1px #0007; }
 .hue::-moz-range-thumb { width: .8rem; height: .8rem; border: 2px solid white; border-radius: 50%; background: transparent; box-shadow: 0 0 0 1px #0007; }
 .hexRow { display: flex; align-items: center; gap: .5rem; }
-.hex.hex { width: 100%; min-width: 0; min-height: var(--ui-field-height-sm); height: auto; padding: .4rem .6rem; border: 1px solid #c9cfd8; border-radius: .35rem; background: #f9fafb; color: #222b34; font-family: ui-monospace, monospace; font-size: 1rem; }
+.hex.hex { width: 100%; min-width: 0; min-height: var(--ui-field-height-sm); height: auto; padding: .4rem .6rem; border: 1px solid #c9cfd8; border-radius: .35rem; background: #f9fafb; color: #222b34; font-family: ui-monospace, monospace; font-size: var(--site-type-16); }
 .hex[aria-invalid="true"] { border-color: #bf3d3d; }
 .error { margin-top: .35rem; color: #a22828; font-size: var(--type-caption-size); }
 .hint { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }

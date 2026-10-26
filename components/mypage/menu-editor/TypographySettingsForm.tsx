@@ -428,7 +428,7 @@ export default function TypographySettingsForm({
           <div className="mt-4 overflow-hidden rounded-md border border-[#DDE8E7] bg-[#F8FEFD] p-4 shadow-sm">
             <div>
               <p
-                className="break-keep text-3xl font-bold uppercase leading-none"
+                className="break-keep text-[length:var(--site-type-28)] font-bold uppercase leading-none"
                 style={getColorAwareMiniStyle("brand", {
                   color: "var(--menu-role-brand-color, #191c1b)",
                 })}

@@ -34,7 +34,7 @@
 .site-checkout-template[aria-pressed="true"] .site-checkout-template-status { color: var(--ui-text); font-weight: 600; }
 .site-checkout-sidebar { display: grid; min-width: 0; align-content: start; gap: 1.5rem; }
 .site-checkout .site-checkout-panel { min-width: 0; border: 1px solid var(--ui-border); border-radius: 1rem; background: #fff; padding: 1.5rem; box-shadow: none; }
-.site-checkout-panel > h2 { font-size: 1.125rem; }
+.site-checkout-panel > h2 { font-size: var(--site-type-18); }
 .site-checkout-selected-design { display: flex; align-items: center; gap: .75rem; margin-top: 1.25rem; }
 .site-checkout-selected-design > :first-child { width: 5rem; flex: none; overflow: hidden; border: 1px solid var(--site-divider); border-radius: .5rem; }
 .site-checkout-selected-design > :last-child { min-width: 0; }

@@ -1,9 +1,11 @@
 import { Fragment, type ReactNode } from "react";
 import {
   readAnnouncementDocument,
+  normalizeAnnouncementFontSize,
   type AnnouncementNode,
 } from "@/lib/announcement-content";
 import styles from "./announcement-content.module.css";
+import { siteTypeSizeCss } from "@/lib/site-typography";
 
 function renderNode(node: AnnouncementNode, key: number): ReactNode {
   const children = node.content?.map(renderNode);
@@ -15,7 +17,7 @@ function renderNode(node: AnnouncementNode, key: number): ReactNode {
         else if (mark.type === "italic") text = <em>{text}</em>;
         else if (mark.type === "underline") text = <u>{text}</u>;
         else if (mark.type === "textStyle")
-          text = <span style={{ fontSize: mark.attrs?.fontSize }}>{text}</span>;
+          text = <span style={{ fontSize: siteTypeSizeCss(parseFloat(normalizeAnnouncementFontSize(mark.attrs?.fontSize ?? "1rem")) * 16) }}>{text}</span>;
       }
       return <Fragment key={key}>{text}</Fragment>;
     }

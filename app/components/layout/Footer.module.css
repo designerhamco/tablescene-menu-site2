@@ -3,7 +3,7 @@
 .content { padding: 2rem 2rem 0; }
 .top { display: grid; min-width: 0; gap: 2.5rem; }
 .identity { display: grid; align-content: start; justify-items: start; gap: 1rem; }
-.brand { color: var(--ui-text); font-size: 2rem; font-weight: 700; line-height: 1.2; letter-spacing: -.06em; }
+.brand { color: var(--ui-text); font-size: var(--site-type-32); font-weight: 700; line-height: 1.2; letter-spacing: -.06em; }
 .navigation { display: grid; min-width: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
 .group { display: grid; min-width: 0; align-content: start; gap: .75rem; }
 .group ul { display: grid; gap: .125rem; }

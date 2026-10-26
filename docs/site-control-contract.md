@@ -1,3 +1,7 @@
+# 최종 폰트 기준 우선 적용
+
+글자 크기의 현재 기준은 [최종 사이트 폰트 기준](site-typography-final.md)이다. 이전 기록의 40–60px 제목이나 fluid 글자 크기보다 이 기준이 우선한다.
+
 # 사이트 버튼·탭 공통 기준
 
 공식 사이트와 마이페이지·운영·편집·관리자 화면은 `styles/ui-system.css`, `styles/site-design.css`와 `app/components/ui/button.tsx`, `tabs.tsx`, `navigation-tabs.tsx`를 사용한다. `/design-system`의 기준·토큰과 컴포넌트 라이브러리는 같은 구현을 표시한다.
