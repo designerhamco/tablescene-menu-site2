@@ -13,6 +13,7 @@ import HelpTooltip from "@/components/ui/HelpTooltip";
 import CatalogDesignCard from "@/components/templates/CatalogDesignCard";
 import { catalogDesigns } from "@/lib/catalog-designs";
 import DesignFoundations from "./DesignFoundations";
+import SelectionControlExamples from "./SelectionControlExamples";
 import ControlStateExamples from "./ControlStateExamples";
 import ReferenceComponentExamples from "./ReferenceComponentExamples";
 import styles from "./SiteComponentGallery.module.css";
@@ -37,7 +38,7 @@ export default function SiteComponentGallery() {
       <p className="site-body">디자인 기준과 실제 사이트에 사용하는 공통 컴포넌트를 한곳에서 확인합니다.</p>
       <p className="type-body-sm text-zinc-600">스타일 확인용 예시입니다. 선택과 좋아요는 이 화면에서만 유지됩니다.</p>
     </header>
-    <Tabs defaultValue="components" className="mt-6 gap-0"><TabsList variant="underline" size="lg" aria-label="디자인 시스템 메뉴"><TabsTrigger value="foundations">기준·토큰</TabsTrigger><TabsTrigger value="components">컴포넌트 라이브러리</TabsTrigger></TabsList><TabsContent value="foundations"><DesignFoundations /></TabsContent><TabsContent value="components"><ControlStateExamples /><ReferenceComponentExamples />
+    <Tabs defaultValue="components" className="mt-6 gap-0"><TabsList variant="underline" size="lg" aria-label="디자인 시스템 메뉴"><TabsTrigger value="foundations">기준·토큰</TabsTrigger><TabsTrigger value="components">컴포넌트 라이브러리</TabsTrigger></TabsList><TabsContent value="foundations"><DesignFoundations /></TabsContent><TabsContent value="components"><SelectionControlExamples /><ControlStateExamples /><ReferenceComponentExamples />
     <Examples title="크기와 형태가 다른 버튼" description="일반 실행은 40px·모서리 8px로 통일합니다. 강조 실행은 48·56px, 둥근형은 퀵메뉴에 사용합니다.">
       <div className={styles.buttonRow}>
         <Button asChild><Link href="/apply">시작하기</Link></Button>
@@ -67,19 +68,19 @@ export default function SiteComponentGallery() {
       <TabsContent value="standard"><p className="type-item-title">직접 꾸미는 기본 레이아웃</p><p className="type-body-sm mt-2 text-zinc-600">색상과 서체를 매장에 맞게 직접 설정해 보세요.</p></TabsContent></Tabs>
     </Examples>
     <Examples title="보기 방식 세그먼트" description="서로 대비되는 두 가지 보기 방식에는 밝은 바탕과 또렷한 선택 테두리를 사용합니다.">
-      <Tabs defaultValue="designer" className={styles.segmentExample}><TabsList variant="outline" size="lg" distribution="equal" aria-label="콘텐츠 보기 방식 예시">
+      <Tabs defaultValue="designer" className={styles.segmentExample}><TabsList variant="outline" size="md" distribution="equal" aria-label="콘텐츠 보기 방식 예시">
         <TabsTrigger value="designer">이미지로 보기</TabsTrigger><TabsTrigger value="standard">목록으로 보기</TabsTrigger>
       </TabsList><TabsContent value="designer" className="type-body text-zinc-600">썸네일을 중심으로 디자인을 살펴봅니다.</TabsContent><TabsContent value="standard" className="type-body text-zinc-600">이름과 설명을 중심으로 디자인을 살펴봅니다.</TabsContent></Tabs>
     </Examples>
     <Examples title="밑줄 탭과 이미지 카드" description="여러 콘텐츠를 탐색할 때는 굵은 밑줄로 선택을 표시하고, 썸네일과 제목·설명·이동 액션의 크기를 구분합니다.">
-      <div className="site-collection"><Tabs defaultValue="all"><TabsList variant="underline" size="lg" aria-label="템플릿 라이브러리 서비스">
+      <div className="site-collection"><Tabs defaultValue="all"><TabsList variant="underline" size="md" aria-label="템플릿 라이브러리 서비스">
         <TabsTrigger value="all">전체 디자인</TabsTrigger><TabsTrigger value="basic">베이직</TabsTrigger><TabsTrigger value="dining">다이닝</TabsTrigger>
       </TabsList>{["all","basic","dining"].map(key=><TabsContent key={key} value={key} className={styles.galleryPanel}>
         <div className={styles.mediaGrid}>{catalogDesigns.filter(d=>d.kind==="designer"&&(key==="all"||d.service===key)).slice(0,3).map(design=><CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={false} onToggle={id=>setFavorites(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id])} />)}</div>
       </TabsContent>)}</Tabs></div>
     </Examples>
     <Examples title="상태별 건수와 빈 목록" description="상태는 밑줄과 건수로 구분하고, 빈 목록에서는 다음 행동을 안내합니다.">
-      <Tabs defaultValue="전체"><TabsList variant="underline" size="lg" aria-label="메뉴판 상태 예시">
+      <Tabs defaultValue="전체"><TabsList variant="underline" size="md" aria-label="메뉴판 상태 예시">
         {["전체","작성중","공개중","비공개"].map(label=><TabsTrigger key={label} value={label} count={0}>{label}</TabsTrigger>)}
       </TabsList>{["전체","작성중","공개중","비공개"].map(label=><TabsContent key={label} value={label}>
         <EmptyState icon={<PanelsTopLeft />} title={label === "전체" ? "등록된 메뉴판이 없습니다" : `${label} 메뉴판이 없습니다`} description="매장에 어울리는 디자인을 선택하고 첫 메뉴판을 만들어 보세요."

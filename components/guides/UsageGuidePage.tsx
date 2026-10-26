@@ -348,14 +348,14 @@ export default function UsageGuidePage({
                 className={styles.planContent}
               >
                 <div
-                  className={`site-topic-tabs ${styles.topics}`}
+                  className={`site-filter-group ${styles.topics}`}
                   role="group"
                   aria-label="가이드 종류"
                 >
                   <a
                     href={`#${entry.id}-${entry.id === "display" ? "connection" : "fullscreen"}`}
-                    className="site-topic-tab"
-                    aria-current="true"
+                    className="site-filter"
+                    aria-current="location"
                   >
                     {entry.id === "display"
                       ? "화면 연결·브라우저 설정 가이드"
@@ -363,7 +363,7 @@ export default function UsageGuidePage({
                   </a>
                   <button
                     type="button"
-                    className="site-topic-tab"
+                    className="site-filter"
                     disabled
                   >
                     추가 가이드 · 준비 중

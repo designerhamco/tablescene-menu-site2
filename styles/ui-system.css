@@ -475,7 +475,7 @@ textarea.site-field,
 .site-field:disabled,
 :where(input, textarea, select):not(.menu-typography *):not(.menu-typography, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *):disabled {
   cursor: not-allowed;
-  background: var(--ui-surface-muted);
+  background-color: var(--ui-surface-muted);
   color: #71717a;
   opacity: 0.72;
 }
@@ -1000,7 +1000,7 @@ textarea.site-field,
   background: var(--ui-surface); color: var(--ui-text-muted); font-size: .8125rem; line-height: 1.5;
   cursor: pointer; transition: background-color var(--ui-transition), border-color var(--ui-transition), color var(--ui-transition);
 }
-.site-filter:is([aria-pressed="true"], [data-selected="true"]) { border-color: var(--ui-text); color: var(--ui-text); font-weight: 600; }
+.site-filter:is([aria-pressed="true"], [data-selected="true"], [aria-current="location"]) { border-color: var(--ui-text); color: var(--ui-text); font-weight: 600; }
 .site-filter:hover:not(:disabled):not([aria-disabled="true"]) { border-color: var(--ui-border-strong); background: var(--ui-surface-muted); }
 .site-filter:active:not(:disabled):not([aria-disabled="true"]) { background: var(--ui-action-soft-pressed); }
 .site-filter:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
@@ -1053,3 +1053,26 @@ textarea.site-field,
 .site-preview-control-icon { width: 2.25rem; min-width: 2.25rem; padding: 0; }
 .site-preview-choice { background: rgb(255 255 255 / 10%); }
 @media (prefers-reduced-motion: reduce) { .site-preview-control { transition: none; } }
+
+/* Site selects share one 20px / 2.25 stroke chevron and a 16px trailing inset.
+   Preserve native form/keyboard behavior; multi-select/listboxes have no arrow. */
+:root { --site-select-chevron-size: 1.25rem; --site-select-chevron-inset: 1rem; --site-select-trailing-space: 3rem; }
+select:not([multiple]):is(:not([size]), [size="1"]):not(:where(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *)) {
+  appearance: none;
+  min-width: 0;
+  max-width: 100%;
+  padding-inline-end: var(--site-select-trailing-space);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234b515b' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--site-select-chevron-inset) center;
+  background-size: var(--site-select-chevron-size);
+}
+.site-field.site-select-trigger { position: relative; min-width: 0; max-width: 100%; padding-inline: .875rem var(--site-select-trailing-space); }
+.site-select-trigger > [data-slot="select-value"] { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.site-select-trigger .site-select-chevron { position: absolute; inset-inline-end: var(--site-select-chevron-inset); top: calc(50% - .625rem); width: var(--site-select-chevron-size); height: var(--site-select-chevron-size); color: var(--site-text-secondary); transition: transform var(--ui-transition); }
+.site-select-trigger[data-state="open"] .site-select-chevron { transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .site-select-trigger .site-select-chevron { transition: none; } }
+@media (forced-colors: active) {
+  select:not([multiple]):is(:not([size]), [size="1"]):not(:where(.menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *)) { appearance: auto; background-image: none; }
+  .site-select-trigger .site-select-chevron { color: ButtonText; }
+}

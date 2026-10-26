@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
+import type { TabsSize } from "./tabs";
 import { cn } from "./utils";
 
 type NavigationTab = {
@@ -14,8 +15,8 @@ type NavigationTab = {
 };
 
 /** URL navigation stays links; selection tabs retain their separate Radix contract. */
-export function NavigationTabs({ label, items, className }: {
-  label: string; items: NavigationTab[]; className?: string;
+export function NavigationTabs({ label, items, className, size = "md" }: {
+  label: string; items: NavigationTab[]; className?: string; size?: TabsSize;
 }) {
   const navRef = useRef<HTMLElement>(null);
   const activeHref = items.find(item => item.active && !item.disabledReason)?.href;
@@ -45,7 +46,7 @@ export function NavigationTabs({ label, items, className }: {
     return () => { cancelled = true; observer.disconnect(); };
   }, [activeHref]);
 
-  return <nav ref={navRef} aria-label={label} className={cn("site-topic-tabs site-topic-tabs-lg", className)}>
+  return <nav ref={navRef} aria-label={label} data-size={size} className={cn("site-topic-tabs", `site-tab-size-${size}`, className)}>
     {items.map(item => {
       const content = <>{item.label}{item.count !== undefined && !item.disabledReason ? <span className="site-tab-count">{item.count.toLocaleString("ko-KR")}<span className="sr-only">개</span></span> : null}{item.statusLabel && !item.disabledReason ? <span className="type-caption ml-1">{item.statusLabel}</span> : null}</>;
       return item.disabledReason ? <span key={item.href} className="site-topic-tab" aria-disabled="true" title={item.disabledReason} aria-label={`${item.label} 권한 없음: ${item.disabledReason}`}>
