@@ -94,7 +94,20 @@ test("content tabs, settings tabs and subordinate filters retain different share
   assert.match(tabCss, /\.site-contained-tab:is\(:focus-visible, \[data-ui-state="focus"\]\) \.site-shaped-tab-label/);
   assert.match(tabCss, /--site-shadow-shaped-tab: 0 -\.25rem \.5rem rgb\(75 81 91 \/ 10%\)/);
   assert.match(tabCss, /filter: drop-shadow\(var\(--site-shadow-shaped-tab\)\)/);
+  assert.match(tabCss, /\.site-contained-tabs, \.site-folder-tabs \{[^}]*background: transparent/);
+  assert.match(tabCss, /\.site-flow-tabs-root\[data-slot="tabs"\] \{[^}]*background: transparent/);
   assert.match(read("public/images/ui/tab-folder-mask.svg"), /M0 56 14 24C18 14 21 8 27 4/);
+});
+
+test("industry filters use shared monochrome category icons instead of platform emoji", () => {
+  const tile = read("app/components/ui/choice-tile.tsx");
+  const gallery = read("components/apply/TemplateGallery.tsx");
+  const examples = read("components/design-system/SiteComponentGallery.tsx");
+  const icons = read("components/templates/CatalogIndustryIcon.tsx");
+  assert.doesNotMatch(tile, /emoji/);
+  assert.doesNotMatch(gallery, /INDUSTRY_EMOJI|[🗂️☕🍽️🍣🍸🥪]/u);
+  assert.doesNotMatch(examples, /이모지 선택 버튼|컬러 이모지|emoji=/);
+  for (const icon of ["LayoutGrid", "Coffee", "UtensilsCrossed", "Fish", "Wine", "Sandwich"]) assert.match(icons, new RegExp(`\\b${icon}\\b`));
 });
 
 test("content and view controls share three sizes without promoting nested guide or translation controls", () => {
