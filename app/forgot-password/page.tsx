@@ -50,7 +50,7 @@ export default async function ForgotPasswordPage({
           <div className="site-auth-form">
             <div className="site-auth-header">
               <h1 className="type-page-title">비밀번호 재설정</h1>
-              <p className="site-body mt-3 text-zinc-500">
+              <p className="type-page-description mt-3 text-zinc-500">
                 가입한 이메일을 입력하면 비밀번호를 다시 설정할 수 있는 링크를 보내드립니다.
               </p>
             </div>

@@ -25,7 +25,7 @@ export default async function PasswordRecoveryVerificationPage({
           <div className="site-auth-form">
             <div className="site-auth-header">
               <h1 className="type-page-title">비밀번호 재설정</h1>
-              <p className="site-body mt-3 text-zinc-500">
+              <p className="type-page-description mt-3 text-zinc-500">
                 본인 확인을 마치고 새 비밀번호를 설정합니다.
               </p>
             </div>

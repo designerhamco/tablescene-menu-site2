@@ -35,6 +35,17 @@ export const SITE_TYPE_ROLES = [
     "usage": "로그인·마이페이지·신청 등 화면의 주제"
   },
   {
+    "key": "page-description",
+    "label": "기능 페이지 설명",
+    "mobile": 16,
+    "tablet": 16,
+    "desktop": 17,
+    "weight": 400,
+    "lineHeight": 1.625,
+    "className": "type-page-description",
+    "usage": "로그인·마이페이지·편집 화면의 기능 설명"
+  },
+  {
     "key": "section-title",
     "label": "큰 구역 제목",
     "mobile": 28,
@@ -80,14 +91,14 @@ export const SITE_TYPE_ROLES = [
   },
   {
     "key": "body-lg",
-    "label": "소개 본문",
+    "label": "마케팅 도입 설명",
     "mobile": 18,
     "tablet": 18,
     "desktop": 20,
     "weight": 400,
     "lineHeight": 1.625,
     "className": "type-body-lg",
-    "usage": "큰 제목 아래 소개"
+    "usage": "서비스·브랜드의 가치와 분위기를 전하는 도입문"
   },
   {
     "key": "body",

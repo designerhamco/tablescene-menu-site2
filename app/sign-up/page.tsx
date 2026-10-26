@@ -40,7 +40,7 @@ export default async function SignUpPage({
         <section className="site-auth-content site-auth-content-wide">
           <div className="site-auth-header">
             <h1 className="type-page-title">아티메뉴 회원가입</h1>
-            <p className="site-body mt-4 text-zinc-500">
+            <p className="type-page-description mt-4 text-zinc-500">
               카카오 계정 또는 이메일로 간편하게 가입할 수 있습니다. 가입 후 마이페이지에서 메뉴판을 만들고 관리할 수 있습니다.
             </p>
           </div>

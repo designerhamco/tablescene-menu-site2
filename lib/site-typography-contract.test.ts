@@ -108,6 +108,7 @@ test("마이페이지와 편집·운영 화면은 동일한 관리 화면 타이
   assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-support: var\(--site-type-14\);/);
   assert.match(siteDesignSource, /\.site-management-scope :where\(input, textarea, select\)[\s\S]*?font-size: var\(--type-body-size\);/);
   assert.doesNotMatch(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-page-title-size:/);
+  assert.doesNotMatch(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-page-description-size:/);
   assert.doesNotMatch(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-body-lg-size:/);
 
   for (const file of collectTsxFiles(join(appRoot, "mypage"))) {
@@ -134,12 +135,25 @@ test("마이페이지와 편집·운영 화면은 동일한 관리 화면 타이
 test("인증 화면은 페이지 소개보다 계정 보조 링크를 작게 표시한다", () => {
   for (const route of ["sign-in", "sign-up", "forgot-password", "find-account", "reset-password", "auth/recovery"]) {
     const source = readFileSync(join(appRoot, route, "page.tsx"), "utf8");
-    assert.match(source, /<div className="site-auth-header">[\s\S]*?<h1 className="type-page-title"[\s\S]*?<p className="site-body /);
+    assert.match(source, /<div className="site-auth-header">[\s\S]*?<h1 className="type-page-title"[\s\S]*?<p className="type-page-description /);
   }
 
   const signInSource = readFileSync(join(appRoot, "sign-in/page.tsx"), "utf8");
   assert.match(signInSource, /className="type-body-sm[^"]*"[\s\S]*?비밀번호를 잊으셨나요\?/);
   assert.match(signInSource, /className="type-body-sm[^"]*"[\s\S]*?계정이 없나요\?/);
+});
+
+test("디자인 시스템은 글자 역할 이름과 화면 예시를 같은 계약으로 설명한다", () => {
+  const gallerySource = readFileSync(join(componentsRoot, "design-system/SiteComponentGallery.tsx"), "utf8");
+  const foundationsSource = readFileSync(join(componentsRoot, "design-system/DesignFoundations.tsx"), "utf8");
+  const marketingLead = SITE_TYPE_ROLES.find((role) => role.key === "body-lg");
+  const pageDescription = SITE_TYPE_ROLES.find((role) => role.key === "page-description");
+
+  assert.equal(marketingLead?.label, "마케팅 도입 설명");
+  assert.equal(pageDescription?.label, "기능 페이지 설명");
+  assert.match(gallerySource, /<p className="type-page-description">디자인 기준과 실제 사이트/);
+  assert.match(foundationsSource, /type-body-lg[^>]*>서비스의 가치와 분위기를 소개하는 큰 도입 설명/);
+  assert.match(foundationsSource, /type-page-description[^>]*>로그인·마이페이지 같은 기능 화면의 설명/);
 });
 
 test("활성 사이트 UI의 h1부터 h6까지 승인된 의미 기반 타이포 역할만 사용한다", () => {

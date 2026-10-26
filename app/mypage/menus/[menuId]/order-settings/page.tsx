@@ -46,7 +46,7 @@ export default async function OrderSettingsPage({
           메뉴판 관리로
         </Link>
         <h1 className="type-page-title mt-5">주문·호출 설정</h1>
-        <p className="site-body mt-4 text-zinc-500">{data.site.name}</p>
+        <p className="type-page-description mt-4 text-zinc-500">{data.site.name}</p>
         <OrderSettingsForm
           menuId={menuId}
           settings={data.settings}
