@@ -1156,7 +1156,7 @@ function LocalizationSectionContent({
       </form>
 
       {overwriteRequest ? (
-        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div className="site-management-scope site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4">
           <div role="dialog" aria-modal="true" aria-label="기존 번역 교체 확인" className="site-dialog site-dialog-panel w-full max-w-sm p-5">
             <h3 className="type-content-title text-zinc-950">기존 번역 내용을 AI 번역 결과로 바꿀까요?</h3>
             <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">

@@ -79,7 +79,7 @@ export default function AccountDeletionPanel({
       </section>
 
       {isOpen ? (
-        <div className="site-dialog-overlay fixed inset-0 z-[100] flex items-end justify-center p-0 md:items-center md:p-6" onClick={() => setIsOpen(false)}>
+        <div className="site-management-scope site-dialog-overlay fixed inset-0 z-[100] flex items-end justify-center p-0 md:items-center md:p-6" onClick={() => setIsOpen(false)}>
           <section
             role="dialog"
             aria-modal="true"

@@ -1662,7 +1662,7 @@ function DraftDeleteConfirmButton({
         삭제
       </button>
       {isConfirming && (
-        <div className="site-dialog-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
+        <div className="site-management-scope site-dialog-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
           <div role="dialog" aria-modal="true" aria-label={title} className="site-dialog site-dialog-panel w-full max-w-sm p-5">
             <p className="text-copy font-medium text-red-700">{title}</p>
             {description && <p className="mt-2 break-keep text-copy font-medium leading-relaxed text-zinc-600">{description}</p>}
@@ -4856,7 +4856,7 @@ function MenuItemForm({
       </div>
       {draftOnly && cancelHelperText && <p className="break-keep text-right text-support font-medium leading-relaxed text-zinc-600">{cancelHelperText}</p>}
       {descriptionOverwritePending ? (
-        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div className="site-management-scope site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4">
           <div role="dialog" aria-modal="true" aria-label="기존 설명 교체 확인" className="site-dialog site-dialog-panel w-full max-w-sm p-5">
             <h3 className="type-content-title text-zinc-950">기존 설명을 AI 설명으로 바꿀까요?</h3>
             <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">
@@ -9796,7 +9796,7 @@ export default function MenuManagementSection({
           </form>
         </div>
         {isMenuCleanupOpen && (
-          <div className="site-dialog-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
+          <div className="site-management-scope site-dialog-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
             <div
               role="dialog"
               aria-modal="true"
@@ -9980,7 +9980,7 @@ export default function MenuManagementSection({
                 )}
               </div>
               {isMenuCleanupReplaceConfirming ? (
-                <div className="site-dialog-overlay fixed inset-0 z-[90] flex items-center justify-center px-4">
+                <div className="site-management-scope site-dialog-overlay fixed inset-0 z-[90] flex items-center justify-center px-4">
                   <div role="dialog" aria-modal="true" aria-label="AI 메뉴 교체 확인" className="site-dialog site-dialog-panel w-full max-w-md p-6">
                     <h3 className="type-content-title break-keep text-zinc-950">현재 메뉴를 AI 결과로 교체할까요?</h3>
                     <div className="mt-3 space-y-2 break-keep text-copy font-medium leading-relaxed text-zinc-600">
@@ -10014,7 +10014,7 @@ export default function MenuManagementSection({
           </div>
         )}
         {isSampleResetConfirming && (
-          <div className="site-dialog-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
+          <div className="site-management-scope site-dialog-overlay fixed inset-0 z-[80] flex items-center justify-center p-4">
             <div
               role="dialog"
               aria-modal="true"

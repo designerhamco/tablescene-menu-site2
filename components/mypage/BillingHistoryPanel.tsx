@@ -387,7 +387,7 @@ function RestoreSubscriptionModal({
       </button>
 
       {open ? (
-        <div className="site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
+        <div className="site-management-scope site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4 py-6">
           <div role="dialog" aria-modal="true" aria-label="재구독하고 복구" className="site-dialog site-dialog-panel max-h-[90vh] w-full max-w-2xl overflow-y-auto p-6">
             <div className="flex items-start justify-between gap-4">
               <div>

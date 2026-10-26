@@ -838,7 +838,7 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950">
+      <main className="site-management-scope site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950">
         <section className="mx-auto flex min-h-[70vh] w-full max-w-3xl flex-col justify-center">
           <Link href="/mypage?tab=menus&menuTab=archived" className="mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950">
             ← 메뉴판 목록으로
@@ -1109,7 +1109,7 @@ function CustomEditorUnavailable({ siteName }: { siteName: string }) {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950">
+      <main className="site-management-scope site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950">
         <div className="mx-auto w-full max-w-3xl">
           <Link href="/mypage" className="mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950">
             ← 메뉴판 목록으로
@@ -1806,7 +1806,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950">
+      <main className="site-management-scope site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950">
         <MenuEditorScrollRestoration menuId={menuId} />
         <MenuEditorToastBridge message={bannerMessage} error={finalSaveError} />
         <div className={`mx-auto w-full ${editorShellMaxWidth}`}>
