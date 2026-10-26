@@ -23,12 +23,9 @@
   --site-type-14: 0.875rem;
   --site-type-15: 0.9375rem;
   --site-type-16: 1rem;
-  --site-type-17: 1.0625rem;
   --site-type-18: 1.125rem;
   --site-type-20: 1.25rem;
-  --site-type-22: 1.375rem;
   --site-type-24: 1.5rem;
-  --site-type-26: 1.625rem;
   --site-type-28: 1.75rem;
   --site-type-32: 2rem;
   --site-type-36: 2.25rem;
@@ -175,7 +172,7 @@
     --type-display-size: var(--site-type-32);
     --type-page-title-size: var(--site-type-32);
     --type-section-title-size: var(--site-type-28);
-    --type-subsection-title-size: var(--site-type-22);
+    --type-subsection-title-size: var(--site-type-20);
     --type-price-size: var(--site-type-44);
     --type-price-compact-size: var(--site-type-32);
   }
@@ -185,13 +182,10 @@
   :root {
     --type-display-size: var(--site-type-36);
     --type-page-title-size: var(--site-type-36);
-    --type-page-description-size: var(--site-type-17);
     --type-section-title-size: var(--site-type-28);
     --type-subsection-title-size: var(--site-type-24);
     --type-content-title-size: var(--site-type-20);
     --type-body-lg-size: var(--site-type-20);
-    --type-body-size: var(--site-type-17);
-    --type-body-sm-size: var(--site-type-15);
     --type-label-size: var(--site-type-16);
     --type-nav-size: var(--site-type-16);
     --type-control-size: var(--site-type-16);

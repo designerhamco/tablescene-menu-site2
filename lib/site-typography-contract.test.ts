@@ -4,7 +4,15 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import postcss from "postcss";
-import { SITE_MANAGEMENT_TYPE_ROLES, SITE_TYPE_ROLES, SITE_TYPE_STEPS, siteTypeSizeCss } from "./site-typography";
+import {
+  SITE_CONTROL_TYPE_STEPS,
+  SITE_EMPHASIS_TYPE_STEPS,
+  SITE_MANAGEMENT_TYPE_ROLES,
+  SITE_READING_TYPE_STEPS,
+  SITE_TYPE_ROLES,
+  SITE_TYPE_STEPS,
+  siteTypeSizeCss,
+} from "./site-typography";
 
 const projectRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const appRoot = join(projectRoot, "app");
@@ -106,7 +114,7 @@ test("마이페이지와 편집·운영 화면은 동일한 관리 화면 타이
     assert.ok(SITE_TYPE_STEPS.includes(role.size));
     assert.match(siteDesignSource, new RegExp(`\\.site-management-scope[\\s\\S]*?--type-${role.key}-size: var\\(--site-type-${role.size}\\);`));
   }
-  assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-copy: var\(--site-type-15\);/);
+  assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-copy: var\(--site-type-16\);/);
   assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-support: var\(--site-type-14\);/);
   assert.match(siteDesignSource, /\.site-management-scope :where\(input, textarea, select\)[\s\S]*?font-size: var\(--type-body-size\);/);
   assert.doesNotMatch(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-page-title-size:/);
@@ -243,6 +251,18 @@ test("사이트 UI는 900 굵기와 임의 숫자 글자 크기를 사용하지 
   }
 });
 
+test("새 라우트 페이지는 숫자형 유틸리티 대신 의미 기반 글자 역할을 사용한다", () => {
+  const rawTypeUtility = /\btext-(?:xs|sm|base|lg|xl|[2-9]xl)\b/;
+  for (const path of siteUiFiles) {
+    if (!path.startsWith(appRoot) || !path.endsWith("/page.tsx")) continue;
+    assert.doesNotMatch(
+      readFileSync(path, "utf8"),
+      rawTypeUtility,
+      `${relative(projectRoot, path)}가 의미 역할 대신 숫자형 글자 유틸리티를 사용합니다.`,
+    );
+  }
+});
+
 test("본문용 Tailwind 크기 유틸리티가 승인된 기초 토큰에 연결된다", () => {
   for (const [utility, token] of [
     ["xs", "100"],
@@ -276,6 +296,45 @@ test("사이트 본문 역할은 메뉴판 기초 크기와 독립적으로 가�
     const routePath = relative(projectRoot, path);
     if (visualPreviewFiles.has(routePath)) continue;
     assert.doesNotMatch(readFileSync(path, "utf8"), /\btext-(?:xs|sm)\b/, `${routePath}는 사이트 본문 역할 대신 작은 기초 유틸리티를 사용합니다.`);
+  }
+});
+
+test("읽기·컨트롤·강조 크기는 중복 없이 정해진 단계만 사용한다", () => {
+  assert.deepEqual(SITE_READING_TYPE_STEPS, [13,14,16,18,20]);
+  assert.deepEqual(SITE_CONTROL_TYPE_STEPS, [14,15,16]);
+  assert.deepEqual(SITE_EMPHASIS_TYPE_STEPS, [24,28,32,36,44]);
+  assert.deepEqual(SITE_TYPE_STEPS, [13,14,15,16,18,20,24,28,32,36,44]);
+
+  const roles = new Map<string, (typeof SITE_TYPE_ROLES)[number]>(SITE_TYPE_ROLES.map(role => [role.key, role]));
+  for (const key of ["page-description", "body"]) {
+    const role = roles.get(key);
+    assert.deepEqual([role?.mobile, role?.tablet, role?.desktop], [16,16,16]);
+  }
+  for (const key of ["body-sm", "card-body", "dialog-body"]) {
+    const role = roles.get(key);
+    assert.deepEqual([role?.mobile, role?.tablet, role?.desktop], [14,14,14]);
+  }
+  for (const key of ["label", "nav", "control"]) {
+    const role = roles.get(key);
+    assert.deepEqual([role?.mobile, role?.tablet, role?.desktop], [15,15,16]);
+  }
+  assert.deepEqual(
+    SITE_MANAGEMENT_TYPE_ROLES.map(role => [role.key, role.size]),
+    [
+      ["section-title", 24],
+      ["subsection-title", 20],
+      ["content-title", 18],
+      ["item-title", 16],
+      ["body", 16],
+      ["body-sm", 14],
+      ["label", 14],
+      ["caption", 13],
+      ["metric", 24],
+    ],
+  );
+  for (const removed of [17,22,26]) {
+    assert.doesNotMatch(typographySource, new RegExp(`--site-type-${removed}:`));
+    assert.doesNotMatch(siteDesignSource, new RegExp(`--site-type-${removed}\\)`));
   }
 });
 

@@ -10,14 +10,14 @@
 | --- | --- | --- | --- |
 | 디스플레이 | `type-display` | 28px | 36px (태블릿 32px) | 홈페이지·서비스 대표 문구 |
 | 페이지 제목 | `type-page-title` | 28px | 36px (태블릿 32px) | 일반 페이지 H1 |
-| 페이지 설명 | `type-page-description` | 16px | 17px | 모든 일반 페이지의 H1 바로 아래 설명 |
+| 페이지 설명 | `type-page-description` | 16px | 16px | 모든 일반 페이지의 H1 바로 아래 설명 |
 | 섹션 제목 | `type-section-title` | 24px | 28px | 큰 콘텐츠 구획 |
-| 하위 섹션 | `type-subsection-title` | 20px | 24px (태블릿 22px) | 폼 단계·카드군 제목 |
+| 하위 섹션 | `type-subsection-title` | 20px | 24px (태블릿 20px) | 폼 단계·카드군 제목 |
 | 콘텐츠 제목 | `type-content-title` | 18px | 20px | 카드·본문 제목 |
 | 항목 제목 | `type-item-title` | 18px | 18px | 목록·운영 카드 제목 |
 | 강조 본문 | `type-body-lg` | 18px | 20px | 섹션 안에서 기본 본문보다 강조할 짧은 문장 |
-| 기본 본문 | `type-body`, `text-copy` | 16px | 17px | 일반 설명·중요 안내 |
-| 보조 본문 | `type-body-sm`, `text-support` | 14px | 15px | 도움말·부가 설명 |
+| 기본 본문 | `type-body`, `text-copy` | 16px | 16px | 일반 설명·중요 안내 |
+| 보조 본문 | `type-body-sm`, `text-support` | 14px | 14px | 도움말·부가 설명 |
 | 레이블·탐색 | `type-label`, `type-nav` | 15px | 16px | 필드명·헤더 |
 | 캡션 | `type-caption`, `text-meta` | 13px | 13px | 날짜·짧은 메타 정보 |
 

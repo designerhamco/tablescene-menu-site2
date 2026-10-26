@@ -1,11 +1,14 @@
 /** Approved from the home plan reference. Menu renderer foundations remain independent. */
-export const SITE_TYPE_STEPS = [13,14,15,16,17,18,20,22,24,26,28,32,36,44] as const;
+export const SITE_READING_TYPE_STEPS = [13,14,16,18,20] as const;
+export const SITE_CONTROL_TYPE_STEPS = [14,15,16] as const;
+export const SITE_EMPHASIS_TYPE_STEPS = [24,28,32,36,44] as const;
+export const SITE_TYPE_STEPS = [13,14,15,16,18,20,24,28,32,36,44] as const;
 export const SITE_MANAGEMENT_TYPE_ROLES = [
   { key: "section-title", label: "큰 구역 제목", size: 24, weight: 700, usage: "메뉴판 관리·결제 내역 등 주 콘텐츠 구역" },
   { key: "subsection-title", label: "폼·패널 제목", size: 20, weight: 700, usage: "새 문의·운영 패널·편집 구역" },
-  { key: "content-title", label: "콘텐츠 제목", size: 17, weight: 600, usage: "카드·내역·설정 묶음 제목" },
+  { key: "content-title", label: "콘텐츠 제목", size: 18, weight: 600, usage: "카드·내역·설정 묶음 제목" },
   { key: "item-title", label: "항목 제목", size: 16, weight: 600, usage: "메뉴판·결제·주문 항목 이름" },
-  { key: "body", label: "일반 본문", size: 15, weight: 400, usage: "화면과 카드의 읽는 설명" },
+  { key: "body", label: "일반 본문", size: 16, weight: 400, usage: "화면과 카드의 읽는 설명" },
   { key: "body-sm", label: "보조 설명", size: 14, weight: 400, usage: "상태 설명·폼 도움말" },
   { key: "label", label: "라벨·조작 문구", size: 14, weight: 600, usage: "필드명·필터·작은 조작" },
   { key: "caption", label: "메타·작은 안내", size: 13, weight: 500, usage: "날짜·분류·보충 정보" },
@@ -39,7 +42,7 @@ export const SITE_TYPE_ROLES = [
     "label": "페이지 설명",
     "mobile": 16,
     "tablet": 16,
-    "desktop": 17,
+    "desktop": 16,
     "weight": 400,
     "lineHeight": 1.625,
     "className": "type-page-description",
@@ -60,7 +63,7 @@ export const SITE_TYPE_ROLES = [
     "key": "subsection-title",
     "label": "서비스·구역 제목",
     "mobile": 20,
-    "tablet": 22,
+    "tablet": 20,
     "desktop": 24,
     "weight": 700,
     "lineHeight": 1.3,
@@ -105,7 +108,7 @@ export const SITE_TYPE_ROLES = [
     "label": "일반 본문",
     "mobile": 16,
     "tablet": 16,
-    "desktop": 17,
+    "desktop": 16,
     "weight": 400,
     "lineHeight": 1.625,
     "className": "type-body",
@@ -116,7 +119,7 @@ export const SITE_TYPE_ROLES = [
     "label": "보조 설명",
     "mobile": 14,
     "tablet": 14,
-    "desktop": 15,
+    "desktop": 14,
     "weight": 400,
     "lineHeight": 1.625,
     "className": "type-body-sm",
