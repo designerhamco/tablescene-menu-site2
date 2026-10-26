@@ -46,12 +46,12 @@ export default async function ResetPasswordPage({
           <div className="site-auth-form">
             <div className="site-auth-header">
               <h1 className="type-subsection-title">새 비밀번호 설정</h1>
-              <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">새로운 비밀번호를 입력해주세요.</p>
+              <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-500">새로운 비밀번호를 입력해주세요.</p>
             </div>
 
             <ResetPasswordForm recoveryAuthorized={recoveryAuthorized} />
 
-            <div className="mt-6 text-center text-sm font-medium text-zinc-500">
+            <div className="mt-6 text-center text-copy font-medium text-zinc-500">
               <Link href="/sign-in" className="font-bold text-zinc-950 hover:underline">
                 로그인으로 돌아가기
               </Link>

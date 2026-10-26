@@ -27,7 +27,7 @@ type MenuSocialLink = Database["public"]["Tables"]["menu_social_links"]["Row"];
 
 function FieldLabel({ children, required = false }: { children: ReactNode; required?: boolean }) {
   return (
-    <label className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">
+    <label className="text-support font-medium uppercase text-zinc-600">
       {children}
       {required && <span className="ml-1 text-red-500">*</span>}
     </label>
@@ -39,7 +39,7 @@ function FieldHint({ children }: { children?: ReactNode }) {
     return null;
   }
 
-  return <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">{children}</p>;
+  return <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">{children}</p>;
 }
 
 function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTMLInputElement> & { helperText?: ReactNode }) {
@@ -54,12 +54,12 @@ function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTML
           setCurrentLength(event.target.value.length);
           props.onChange?.(event);
         }}
-        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
+        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
       {(helperText || props.maxLength) && (
-        <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
+        <div className="mt-2 flex items-start justify-between gap-3 text-support font-medium leading-relaxed text-zinc-600">
           <span className="break-keep">{helperText}</span>
           {props.maxLength && <span className="shrink-0">{currentLength} / {props.maxLength}</span>}
         </div>
@@ -80,12 +80,12 @@ function TextArea({ helperText, className, ...props }: TextareaHTMLAttributes<HT
           setCurrentLength(event.target.value.length);
           props.onChange?.(event);
         }}
-        className={`site-field mt-2 min-h-24 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
+        className={`site-field mt-2 min-h-24 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
       {(helperText || props.maxLength) && (
-        <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
+        <div className="mt-2 flex items-start justify-between gap-3 text-support font-medium leading-relaxed text-zinc-600">
           <span className="break-keep">{helperText}</span>
           {props.maxLength && <span className="shrink-0">{currentLength} / {props.maxLength}</span>}
         </div>
@@ -99,7 +99,7 @@ function Select({ helperText, className, ...props }: SelectHTMLAttributes<HTMLSe
     <>
       <select
         {...props}
-        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
+        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
@@ -190,8 +190,8 @@ function EmptyState({
 }) {
   return (
     <div className="site-section site-editor-subpanel p-8 text-center">
-      <p className="text-sm font-bold text-zinc-400">{message}</p>
-      {disabledMessage && <p className="mt-3 text-sm font-bold text-zinc-400">{disabledMessage}</p>}
+      <p className="text-copy font-medium text-zinc-600">{message}</p>
+      {disabledMessage && <p className="mt-3 text-copy font-medium text-zinc-600">{disabledMessage}</p>}
       <button
         type="button"
         onClick={onCreate}
@@ -215,8 +215,8 @@ function dateValue(value: string | null) {
 function Detail({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{label}</p>
-      <div className="mt-1 break-keep text-sm font-semibold leading-relaxed text-zinc-800">{value || "-"}</div>
+      <p className="text-support font-medium uppercase text-zinc-600">{label}</p>
+      <div className="mt-1 break-keep text-copy font-semibold leading-relaxed text-zinc-800">{value || "-"}</div>
     </div>
   );
 }
@@ -281,7 +281,7 @@ export function ChefsSection({ menuId, chefs }: { menuId: string; chefs: MenuChe
             <ChefForm menuId={menuId} count={chefs.length} onCancel={() => setIsCreating(false)} />
           ) : (
             <>
-              {reachedChefLimit && <p className="text-sm font-bold text-zinc-400">{chefLimitMessage}</p>}
+              {reachedChefLimit && <p className="text-copy font-medium text-zinc-600">{chefLimitMessage}</p>}
               <SubmitButton type="button" tone="light" onClick={() => setIsCreating(true)} disabled={reachedChefLimit}>
                 + 셰프/인물 추가
               </SubmitButton>
@@ -327,7 +327,7 @@ function ChefFields({ chef, count }: { chef?: MenuChef; count?: number }) {
         {chef ? (
           <ImageUploadField label="셰프/인물 이미지" menuId={chef.menu_site_id} target="menu-chef" recordId={chef.id} currentUrl={chef.chef_image_url} />
         ) : (
-          <div className="site-section site-editor-subpanel p-4 text-sm font-bold leading-relaxed text-zinc-400">
+          <div className="site-section site-editor-subpanel p-4 text-copy font-medium leading-relaxed text-zinc-600">
             셰프/인물 정보를 먼저 추가한 뒤 이미지를 등록할 수 있습니다.
           </div>
         )}
@@ -404,7 +404,7 @@ export function EventsSection({ menuId, events }: { menuId: string; events: Menu
             <EventForm menuId={menuId} count={events.length} onCancel={() => setIsCreating(false)} />
           ) : (
             <>
-              {reachedEventLimit && <p className="text-sm font-bold text-zinc-400">{eventLimitMessage}</p>}
+              {reachedEventLimit && <p className="text-copy font-medium text-zinc-600">{eventLimitMessage}</p>}
               <SubmitButton type="button" tone="light" onClick={() => setIsCreating(true)} disabled={reachedEventLimit}>
                 + 이벤트 추가
               </SubmitButton>
@@ -458,7 +458,7 @@ function EventFields({ event, count }: { event?: MenuEvent; count?: number }) {
         {event ? (
           <ImageUploadField label="이벤트 이미지" menuId={event.menu_site_id} target="menu-event" recordId={event.id} currentUrl={event.event_image_url} />
         ) : (
-          <div className="site-section site-editor-subpanel p-4 text-sm font-bold leading-relaxed text-zinc-400">
+          <div className="site-section site-editor-subpanel p-4 text-copy font-medium leading-relaxed text-zinc-600">
             이벤트를 먼저 추가한 뒤 이미지를 등록할 수 있습니다.
           </div>
         )}
@@ -533,7 +533,7 @@ export function SocialLinksSection({ menuId, socialLinks }: { menuId: string; so
     <SectionCard
       title="SNS"
     >
-      <p className="mb-5 break-keep text-sm font-semibold text-zinc-500">공개 메뉴판에서는 display_name을 클릭하면 URL로 이동합니다. SNS 링크는 최대 {MENU_LIMITS.maxSocialLinksPerSite}개까지 등록할 수 있습니다.</p>
+      <p className="mb-5 break-keep text-copy font-semibold text-zinc-600">공개 메뉴판에서는 display_name을 클릭하면 URL로 이동합니다. SNS 링크는 최대 {MENU_LIMITS.maxSocialLinksPerSite}개까지 등록할 수 있습니다.</p>
       {socialLinks.length === 0 && !isCreating ? (
         <EmptyState message="등록된 SNS 링크가 없습니다" buttonLabel="+ SNS 추가" onCreate={() => setIsCreating(true)} disabled={reachedSocialLinkLimit} disabledMessage={reachedSocialLinkLimit ? socialLinkLimitMessage : undefined} />
       ) : (
@@ -580,7 +580,7 @@ export function SocialLinksSection({ menuId, socialLinks }: { menuId: string; so
             <SocialLinkForm menuId={menuId} count={socialLinks.length} onCancel={() => setIsCreating(false)} />
           ) : (
             <>
-              {reachedSocialLinkLimit && <p className="text-sm font-bold text-zinc-400">{socialLinkLimitMessage}</p>}
+              {reachedSocialLinkLimit && <p className="text-copy font-medium text-zinc-600">{socialLinkLimitMessage}</p>}
               <SubmitButton type="button" tone="light" onClick={() => setIsCreating(true)} disabled={reachedSocialLinkLimit}>
                 + SNS 추가
               </SubmitButton>

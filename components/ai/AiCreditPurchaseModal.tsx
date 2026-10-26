@@ -206,9 +206,9 @@ export default function AiCreditPurchaseModal({
                 onClick={() => startPurchase(product.productKey)}
                 className="site-choice bg-zinc-50 p-5 text-left transition-colors hover:border-zinc-500 hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <span className="block text-base font-bold text-zinc-950">{product.name}</span>
+                <span className="block text-copy font-medium text-zinc-950">{product.name}</span>
                 <span className="mt-3 block text-2xl font-bold text-zinc-950">{product.amount.toLocaleString("ko-KR")}원</span>
-                <span className="mt-4 inline-flex rounded-full bg-zinc-950 px-3 py-1 text-xs font-bold text-white">
+                <span className="mt-4 inline-flex rounded-full bg-zinc-950 px-3 py-1 text-support font-medium text-white">
                   {isPending ? "결제 진행 중" : refundPolicyAgreed ? "선택하기" : "동의 후 선택"}
                 </span>
               </button>
@@ -217,10 +217,10 @@ export default function AiCreditPurchaseModal({
         </div>
 
         <div className="site-notice site-notice-warning mt-5 p-4">
-          <p className="break-keep text-sm font-bold leading-relaxed text-amber-800">
+          <p className="break-keep text-copy font-medium leading-relaxed text-amber-800">
             AI 크레딧은 결제 완료 즉시 계정에 지급되는 디지털 소모성 상품입니다. 크레딧 지급 후에는 단순 변심에 따른 취소/환불이 불가합니다. 중복 결제 또는 크레딧 미지급이 발생한 경우 고객지원으로 문의해주세요.
           </p>
-          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl bg-white/70 p-3 text-sm font-bold text-amber-950">
+          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-2xl bg-white/70 p-3 text-copy font-medium text-amber-950">
             <input
               type="checkbox"
               checked={refundPolicyAgreed}
@@ -233,12 +233,12 @@ export default function AiCreditPurchaseModal({
         </div>
 
         {localError ? (
-          <p className="site-notice site-notice-error mt-5 break-keep p-4 text-sm font-bold leading-relaxed">
+          <p className="site-notice site-notice-error mt-5 break-keep p-4 text-copy font-medium leading-relaxed">
             {localError}
           </p>
         ) : null}
 
-        <p className="mt-5 break-keep rounded-2xl bg-zinc-50 p-4 text-xs font-bold leading-relaxed text-zinc-500">
+        <p className="mt-5 break-keep rounded-2xl bg-zinc-50 p-4 text-support font-medium leading-relaxed text-zinc-500">
           AI 설명 작성 1크레딧 · 부분 자동 번역 1크레딧 · AI 메뉴 정리 3크레딧 · 전체 자동 번역 3크레딧. 충전한 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.
         </p>
       </div>

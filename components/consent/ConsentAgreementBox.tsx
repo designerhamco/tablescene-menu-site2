@@ -51,9 +51,9 @@ export function ConsentAgreementBox<T extends string>({
   return (
     <>
       <div className="site-consent-surface">
-        {title ? <p className="site-consent-title text-sm font-bold text-zinc-700">{title}</p> : null}
+        {title ? <p className="site-consent-title text-copy font-medium text-zinc-700">{title}</p> : null}
 
-        <label className="site-consent-all flex min-h-9 cursor-pointer items-center gap-3 text-sm font-bold text-zinc-900">
+        <label className="site-consent-all flex min-h-9 cursor-pointer items-center gap-3 text-copy font-medium text-zinc-900">
           <input
             type="checkbox"
             checked={allChecked}
@@ -68,7 +68,7 @@ export function ConsentAgreementBox<T extends string>({
 
           return (
             <div key={item.key} className="site-consent-row flex min-h-9 items-center justify-between gap-3">
-              <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-sm font-bold text-zinc-800">
+              <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-copy font-medium text-zinc-800">
                 <input
                   name={item.key}
                   type="checkbox"
@@ -82,7 +82,7 @@ export function ConsentAgreementBox<T extends string>({
               <button
                 type="button"
                 onClick={() => onOpen(key)}
-                className="site-button site-button-secondary shrink-0"
+                className="site-button site-button-link site-consent-detail shrink-0"
               >
                 보기
               </button>
@@ -108,7 +108,7 @@ export function ConsentAgreementBox<T extends string>({
                 </button>
               </div>
             </div>
-            <div className="max-h-[56vh] overflow-y-auto p-6 text-sm font-semibold leading-relaxed text-zinc-600">
+            <div className="max-h-[56vh] overflow-y-auto p-6 text-copy font-semibold leading-relaxed text-zinc-600">
               {activeItem.detail}
             </div>
             <div className="border-t border-zinc-100 p-6">

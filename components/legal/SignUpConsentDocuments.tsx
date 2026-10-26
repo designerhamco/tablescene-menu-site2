@@ -19,7 +19,7 @@ function renderLegalText(content: string) {
     const isListItem = /^(\d+\.|- )/.test(trimmedLine);
 
     return (
-      <p key={`${trimmedLine}-${index}`} className={`${isListItem ? "pl-3" : ""} break-keep text-sm font-semibold leading-7 text-zinc-600`}>
+      <p key={`${trimmedLine}-${index}`} className={`${isListItem ? "pl-3" : ""} break-keep text-copy font-semibold leading-7 text-zinc-600`}>
         {trimmedLine}
       </p>
     );

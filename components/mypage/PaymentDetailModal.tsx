@@ -22,8 +22,8 @@ const AI_CREDIT_REFUND_NOTICE =
 function DetailItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-zinc-50 p-4">
-      <dt className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{label}</dt>
-      <dd className="mt-2 break-keep text-sm font-bold text-zinc-900">{value || "-"}</dd>
+      <dt className="text-support font-medium uppercase text-zinc-600">{label}</dt>
+      <dd className="mt-2 break-keep text-copy font-medium text-zinc-900">{value || "-"}</dd>
     </div>
   );
 }
@@ -96,7 +96,7 @@ export default function PaymentDetailModal({
             </dl>
 
             {isAiCreditPurchase ? (
-              <div className="site-notice site-notice-warning mt-5 break-keep p-4 text-sm font-bold leading-relaxed">
+              <div className="site-notice site-notice-warning mt-5 break-keep p-4 text-copy font-medium leading-relaxed">
                 {AI_CREDIT_REFUND_NOTICE}
               </div>
             ) : null}

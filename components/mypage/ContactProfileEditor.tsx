@@ -84,7 +84,7 @@ function getFieldStates({
 
 function FieldHelper({ state }: { state: FieldState }) {
   return (
-    <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${state.errorText ? "text-red-600" : "text-zinc-400"}`}>
+    <p className={`mt-2 break-keep text-support font-medium leading-relaxed ${state.errorText ? "text-red-600" : "text-zinc-600"}`}>
       {state.errorText ?? state.helperText}
     </p>
   );
@@ -192,7 +192,7 @@ export default function ContactProfileEditor({
         >
           담당자 정보 수정
         </button>
-        {notice ? <p className="text-xs font-bold text-emerald-700">{notice}</p> : null}
+        {notice ? <p className="text-support font-medium text-emerald-700">{notice}</p> : null}
       </div>
 
       {isOpen ? (
@@ -223,7 +223,7 @@ export default function ContactProfileEditor({
 
             <div className="mt-6 space-y-4">
               <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">담당자명</span>
+                <span className="text-support font-medium uppercase text-zinc-600">담당자명</span>
                 <input
                   value={nameValue}
                   onChange={(event) => setNameValue(event.target.value)}
@@ -240,7 +240,7 @@ export default function ContactProfileEditor({
               </label>
 
               <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">담당자 연락처</span>
+                <span className="text-support font-medium uppercase text-zinc-600">담당자 연락처</span>
                 <input
                   value={phoneValue}
                   onChange={(event) => updatePhoneValue(event.target.value)}
@@ -257,7 +257,7 @@ export default function ContactProfileEditor({
               </label>
 
               <label className="block">
-                <span className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">문의/알림 수신 이메일</span>
+                <span className="text-support font-medium uppercase text-zinc-600">문의/알림 수신 이메일</span>
                 <input
                   type="email"
                   value={emailValue}
@@ -276,10 +276,10 @@ export default function ContactProfileEditor({
             </div>
 
             {error ? (
-              <div className="site-notice site-notice-error mt-4 break-keep p-3 text-sm font-bold">
+              <div className="site-notice site-notice-error mt-4 break-keep p-3 text-copy font-medium">
                 <p>{error}</p>
                 {debugInfo ? (
-                  <p className="mt-2 break-all font-mono text-xs font-semibold text-red-500">
+                  <p className="mt-2 break-all font-mono text-support font-semibold text-red-500">
                     개발 확인 정보: {debugInfo}
                   </p>
                 ) : null}

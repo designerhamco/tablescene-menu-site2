@@ -28,7 +28,7 @@ function ItemForm({
     <details className="border-b border-zinc-200 py-5">
       <summary className="cursor-pointer font-semibold">
         {item.name}{" "}
-        <span className="ml-2 text-sm font-normal text-zinc-500">
+        <span className="ml-2 text-copy font-normal text-zinc-500">
           {value.orderable ? "주문 가능" : "주문 꺼짐"}
           {!item.visible ? " · 메뉴 숨김" : item.soldOut ? " · 품절" : ""}
         </span>
@@ -44,7 +44,7 @@ function ItemForm({
           />{" "}
           이 상품 주문 사용
         </label>
-        <label className="block text-sm font-semibold">
+        <label className="block text-copy font-semibold">
           기본 가격 (원)
           <input
             className="site-field mt-2 block w-full border-zinc-300 px-4 py-3 sm:max-w-xs"
@@ -58,7 +58,7 @@ function ItemForm({
             }
           />
         </label>
-        <p className="text-sm text-zinc-500">
+        <p className="text-copy text-zinc-500">
           메뉴의 기본 가격도 함께 저장됩니다. 화면 표시용 HOT·ICE 가격 열과 주문
           옵션은 별도이며, 판매 금액에 맞춰 직접 설정해 주세요. 숨김·품절 상품은
           담을 수 없습니다.
@@ -90,7 +90,7 @@ function ItemForm({
                 그룹 삭제
               </button>
             </div>
-            <div className="my-4 flex gap-5 text-sm">
+            <div className="my-4 flex gap-5 text-copy">
               <label>
                 <input
                   type="checkbox"
@@ -138,7 +138,7 @@ function ItemForm({
                     }))
                   }
                 />
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-2 text-copy">
                   추가금
                   <input
                     aria-label="옵션 추가금"
@@ -240,7 +240,7 @@ function ItemForm({
           </button>
         </div>
         {message ? (
-          <p role="status" className="text-sm">
+          <p role="status" className="text-copy">
             {message}
           </p>
         ) : null}

@@ -63,7 +63,7 @@ const Shop = () => {
               </div>
               <div className="space-y-2 text-left px-2">
                 <h3 className="type-content-title text-zinc-900 transition-colors group-hover:text-primary">{product.name}</h3>
-                <p className="text-sm text-zinc-500 line-clamp-1 font-medium">{product.desc}</p>
+                <p className="text-copy text-zinc-500 line-clamp-1 font-medium">{product.desc}</p>
                 <p className="text-lg font-bold text-zinc-900 pt-2">{product.price}</p>
               </div>
             </motion.div>

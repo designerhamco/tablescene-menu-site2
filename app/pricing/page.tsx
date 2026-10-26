@@ -36,7 +36,7 @@ export default function PricingPage() {
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <header className="site-page-heading mb-10 flex flex-col items-center gap-6 border-b border-zinc-200 pb-8">
             <div>
-              <Link href="/mypage" className="mb-6 inline-block text-sm font-bold text-zinc-600 hover:text-zinc-950">
+              <Link href="/mypage" className="mb-6 inline-block text-copy font-medium text-zinc-600 hover:text-zinc-950">
                 ← 마이페이지
               </Link>
               <h1 className="type-page-title">요금제 안내</h1>
@@ -61,10 +61,10 @@ export default function PricingPage() {
           <section aria-labelledby="basic-products-heading">
             <div className="site-section-heading mb-5 flex flex-col items-center gap-2">
               <div>
-                <p className="text-sm font-bold text-zinc-600">현재 신청 가능</p>
+                <p className="text-copy font-medium text-zinc-600">현재 신청 가능</p>
                 <h2 id="basic-products-heading" className="type-subsection-title mt-1">베이직·다이닝 플랜</h2>
               </div>
-              <p className="break-keep text-sm font-bold text-zinc-600">상품별 이용기간·제공 시점·환불 기준을 상세 페이지에서 확인할 수 있습니다.</p>
+              <p className="break-keep text-copy font-medium text-zinc-600">상품별 이용기간·제공 시점·환불 기준을 상세 페이지에서 확인할 수 있습니다.</p>
             </div>
             <div className="grid gap-5 md:grid-cols-2">
               {publicBasicProducts.map((product) => (
@@ -79,7 +79,7 @@ export default function PricingPage() {
               {upcomingServices.map((plan) => (
                 <article key={plan.name} className="site-section flex min-h-[250px] flex-col p-7">
                   <h3 className="type-subsection-title">{plan.name}</h3>
-                  <p className="mt-4 flex-1 break-keep text-sm font-semibold leading-relaxed text-zinc-600">{plan.description}</p>
+                  <p className="mt-4 flex-1 break-keep text-copy font-semibold leading-relaxed text-zinc-600">{plan.description}</p>
                   <p className="mt-6 text-lg font-bold text-zinc-950">{plan.price}</p>
                   {"href" in plan ? (
                     <Link

@@ -40,13 +40,13 @@ export default async function SignUpPage({
         <section className="site-auth-content site-auth-content-wide">
           <div className="site-auth-header">
             <h1 className="type-subsection-title">아티메뉴 회원가입</h1>
-            <p className="mt-4 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+            <p className="mt-4 break-keep text-copy font-semibold leading-relaxed text-zinc-500">
               카카오 계정 또는 이메일로 간편하게 가입할 수 있습니다. 가입 후 마이페이지에서 메뉴판을 만들고 관리할 수 있습니다.
             </p>
           </div>
 
           {errorMessage ? (
-            <div className="site-notice site-notice-error mt-6 px-4 py-3 text-sm font-semibold">
+            <div className="site-notice site-notice-error mt-6 px-4 py-3 text-copy font-semibold">
               {errorMessage}
             </div>
           ) : null}
@@ -57,13 +57,13 @@ export default async function SignUpPage({
 
           <div className="my-7 flex items-center gap-3">
             <div className="h-px flex-1 bg-zinc-200" />
-            <span className="text-xs font-bold text-zinc-600">또는</span>
+            <span className="text-support font-medium text-zinc-600">또는</span>
             <div className="h-px flex-1 bg-zinc-200" />
           </div>
 
           <SignUpAgreementFields action={signUpAction} safeNext={safeNext} />
 
-          <p className="mt-6 text-center text-sm font-medium text-zinc-500">
+          <p className="mt-6 text-center text-copy font-medium text-zinc-500">
             이미 계정이 있나요?{" "}
             <Link
               href={`/sign-in?next=${encodeURIComponent(safeNext)}`}

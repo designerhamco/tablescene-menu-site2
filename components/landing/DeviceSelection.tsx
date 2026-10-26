@@ -67,10 +67,10 @@ export function DeviceSelection() {
                   <Icon name={device.icon} className="h-6 w-6 text-white/80" />
                 </div>
                 <h3 className="type-subsection-title mb-2 text-white">{device.title}</h3>
-                <p className="text-sm font-medium text-white/70 md:text-base">{device.desc}</p>
+                <p className="text-copy font-medium text-white/70 md:text-copy">{device.desc}</p>
               </div>
               {"badge" in device && device.badge && (
-                <div className="absolute bottom-8 left-8 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-black shadow-lg md:px-4 md:py-2 md:text-sm">
+                <div className="absolute bottom-8 left-8 rounded-full bg-white px-3 py-1.5 text-support font-medium text-black shadow-lg md:px-4 md:py-2 md:text-copy">
                   {device.badge}
                 </div>
               )}
@@ -84,7 +84,7 @@ export function DeviceSelection() {
                 className="group flex cursor-pointer flex-col justify-between rounded-[1.5rem] border border-zinc-100 bg-white p-4 transition-all hover:shadow-lg md:p-5"
               >
                 <div className="flex items-start justify-between">
-                  <span className="whitespace-pre-line text-sm font-bold leading-tight text-zinc-900 md:text-base">{title}</span>
+                  <span className="whitespace-pre-line text-copy font-medium leading-tight text-zinc-900 md:text-copy">{title}</span>
                   <Icon name="chevronRight" className="h-4 w-4 text-zinc-300 transition-colors group-hover:text-black md:h-5 md:w-5" />
                 </div>
                 <div className="flex flex-1 items-center justify-center py-2">
@@ -105,7 +105,7 @@ export function DeviceSelection() {
               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-zinc-400 group-hover:text-black md:h-12 md:w-12">
                 <Icon name="arrowRight" className="h-5 w-5 md:h-6 md:w-6" />
               </span>
-              <span className="text-sm font-bold text-zinc-900 group-hover:text-white md:text-base">관련제품 더보기</span>
+              <span className="text-copy font-medium text-zinc-900 group-hover:text-white md:text-copy">관련제품 더보기</span>
             </a>
           </div>
         </div>

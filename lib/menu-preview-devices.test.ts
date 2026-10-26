@@ -229,7 +229,7 @@ test("device selector is open by default and collapses upward into a compact han
 });
 
 test("hide-today checkbox is plain text control without a boxed container", () => {
-  assert.match(previewGuideSource, /<label className="inline-flex cursor-pointer items-center justify-center gap-2 px-2 py-3 text-sm font-bold text-white">/);
+  assert.match(previewGuideSource, /<label className="inline-flex cursor-pointer items-center justify-center gap-2 px-2 py-3 text-copy font-medium text-white">/);
   assert.doesNotMatch(previewGuideSource, /<label className="[^"]*(?:rounded-xl|border-white\/30|bg-zinc-950\/35)/);
 });
 

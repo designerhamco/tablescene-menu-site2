@@ -49,7 +49,7 @@ export default function OrderSettingsForm({
           />
           <span>
             <span className="block font-semibold">{label}</span>
-            <span className="mt-2 block text-sm leading-relaxed text-zinc-500">
+            <span className="mt-2 block text-copy leading-relaxed text-zinc-500">
               {description}
             </span>
           </span>
@@ -58,7 +58,7 @@ export default function OrderSettingsForm({
       {courses.length ? (
         <fieldset className="border-b border-zinc-200 py-6">
           <legend className="type-label">코스 전체 주문</legend>
-          <p className="mt-2 text-sm text-zinc-500">
+          <p className="mt-2 text-copy text-zinc-500">
             체크한 코스를 하나의 상품으로 담습니다. 코스 구성 요리는 별도
             상품으로 주문하지 않습니다.
           </p>
@@ -75,7 +75,7 @@ export default function OrderSettingsForm({
           ))}
         </fieldset>
       ) : null}
-      <p className="mt-6 text-sm leading-relaxed text-zinc-500">
+      <p className="mt-6 text-copy leading-relaxed text-zinc-500">
         매장 PC·태블릿은 후불 주문만 제공합니다. 실제 접수는 운영 연결이 완료된
         테스트 매장부터 사용할 수 있습니다.
       </p>
@@ -86,7 +86,7 @@ export default function OrderSettingsForm({
         {pending ? "저장 중…" : "설정 저장"}
       </button>
       {state.message ? (
-        <p role="status" className="mt-4 text-sm">
+        <p role="status" className="mt-4 text-copy">
           {state.message}
         </p>
       ) : null}

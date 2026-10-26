@@ -206,15 +206,15 @@ export default function OperationalArrivalAlert({
     <div className="space-y-3">
       <section className="site-section flex flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div>
-          <p className="text-sm font-bold text-zinc-900">새 {copy.noun} 알림·소리</p>
-          <p className="mt-1 max-w-2xl break-keep text-xs font-normal leading-relaxed text-zinc-500">
+          <p className="text-copy font-medium text-zinc-900">새 {copy.noun} 알림·소리</p>
+          <p className="mt-1 max-w-2xl break-keep text-support font-normal leading-relaxed text-zinc-600">
             새 {copy.noun}은 보고 있는 화면에 항상 표시합니다. 알림·소리를 켜면 이 화면을 열어둔 동안 브라우저 알림과 안내음을 함께 받을 수 있습니다.
           </p>
           {browserPermission === "denied" ? (
-            <p className="mt-1 text-xs font-bold text-rose-700">브라우저 알림은 차단되어 있지만 화면 알림과 안내음은 사용할 수 있습니다.</p>
+            <p className="mt-1 text-support font-medium text-rose-700">브라우저 알림은 차단되어 있지만 화면 알림과 안내음은 사용할 수 있습니다.</p>
           ) : null}
           {browserPermission === "unsupported" ? (
-            <p className="mt-1 text-xs font-bold text-zinc-500">이 브라우저에서는 시스템 알림을 지원하지 않아 화면 알림과 안내음만 제공합니다.</p>
+            <p className="mt-1 text-support font-medium text-zinc-600">이 브라우저에서는 시스템 알림을 지원하지 않아 화면 알림과 안내음만 제공합니다.</p>
           ) : null}
         </div>
         <button
@@ -230,7 +230,7 @@ export default function OperationalArrivalAlert({
 
       {newCount > 0 ? (
         <div role="status" aria-live="polite" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 text-violet-950">
-          <p className="text-sm font-bold">새 {copy.noun} {newCount.toLocaleString("ko-KR")}건이 접수되었습니다.</p>
+          <p className="text-copy font-medium">새 {copy.noun} {newCount.toLocaleString("ko-KR")}건이 접수되었습니다.</p>
           <button
             type="button"
             onClick={() => setNewCount(0)}

@@ -372,7 +372,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
       <section className="site-section p-7">
         <h2 className="type-subsection-title">구독 상품 선택</h2>
-        <p className="mt-3 break-keep text-sm font-normal leading-relaxed text-zinc-500">
+        <p className="mt-3 break-keep text-copy font-normal leading-relaxed text-zinc-600">
           현재 메뉴판은 아티메뉴 체험 메뉴판입니다. 기존 메뉴판을 그대로 이어서 사용하려면 베이직·다이닝 월 구독으로 전환할 수 있습니다.
           아티메뉴 디스플레이 플랜은 템플릿과 화면 구성이 달라 신규 신청으로 제공될 예정입니다.
         </p>
@@ -391,14 +391,14 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
                   selected ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400"
                 }`}
               >
-                <span className={`rounded-full px-3 py-1 text-xs font-bold ${selected ? "bg-white text-zinc-950" : "bg-zinc-100 text-zinc-600"}`}>
+                <span className={`rounded-full px-3 py-1 text-support font-medium ${selected ? "bg-white text-zinc-950" : "bg-zinc-100 text-zinc-600"}`}>
                   월 자동결제
                 </span>
                 <h3 className="type-content-title mt-4">{product.label}</h3>
-                <p className={`mt-2 text-sm font-bold leading-relaxed ${selected ? "text-white/70" : "text-zinc-500"}`}>
+                <p className={`mt-2 text-copy font-medium leading-relaxed ${selected ? "text-white/70" : "text-zinc-600"}`}>
                   사업자 인증 후 기존 메뉴판을 정식 플랜으로 전환합니다.
                 </p>
-                <p className="mt-4 text-sm font-bold">
+                <p className="mt-4 text-copy font-medium">
                   정상가 {formatKrw(product.regular_amount)} / 오픈 얼리버드 {formatKrw(getOpenPromotionSnapshot(product.product_key)?.finalAmount ?? product.amount)}
                 </p>
               </button>
@@ -409,33 +409,33 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
 
       <aside className="site-section p-7 lg:sticky lg:top-28 lg:self-start">
         <h2 className="type-subsection-title">전환 준비</h2>
-        <dl className="mt-6 space-y-4 text-sm font-bold">
+        <dl className="mt-6 space-y-4 text-copy font-medium">
           <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
-            <dt className="text-zinc-400">전환 대상</dt>
+            <dt className="text-zinc-600">전환 대상</dt>
             <dd className="text-right text-zinc-900">기존 메뉴판</dd>
           </div>
           <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
-            <dt className="text-zinc-400">메뉴판 ID</dt>
-            <dd className="break-all text-right text-xs text-zinc-600">{menuSiteId}</dd>
+            <dt className="text-zinc-600">메뉴판 ID</dt>
+            <dd className="break-all text-right text-support text-zinc-600">{menuSiteId}</dd>
           </div>
           <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
-            <dt className="text-zinc-400">선택 플랜</dt>
+            <dt className="text-zinc-600">선택 플랜</dt>
             <dd className="text-right text-zinc-900">{selectedProduct.label}</dd>
           </div>
           <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
-            <dt className="text-zinc-400">결제 방식</dt>
+            <dt className="text-zinc-600">결제 방식</dt>
             <dd className="text-right text-zinc-900">월 자동결제</dd>
           </div>
           <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
-            <dt className="text-zinc-400">오늘 결제 금액</dt>
+            <dt className="text-zinc-600">오늘 결제 금액</dt>
             <dd className="text-right text-zinc-900">{formatKrw(selectedAmount)}</dd>
           </div>
           <div className="flex justify-between gap-4 border-t border-zinc-100 pt-4">
-            <dt className="text-zinc-400">오픈 얼리버드 가입 기간</dt>
+            <dt className="text-zinc-600">오픈 얼리버드 가입 기간</dt>
             <dd className="text-right text-zinc-900">{openDiscountPolicy.durationLabel}</dd>
           </div>
         </dl>
-        <p className="mt-4 break-keep text-xs font-normal leading-relaxed text-zinc-400">
+        <p className="mt-4 break-keep text-support font-normal leading-relaxed text-zinc-600">
           {openDiscountPolicy.note}
         </p>
         <div className="mt-6">
@@ -449,7 +449,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
             onClose={() => setActiveConsent(null)}
           />
         </div>
-        <div className={`site-notice mt-6 whitespace-pre-line   p-4 text-sm font-bold leading-relaxed ${isVerified ? "site-notice-success" : verificationState.type === "failed" ? "site-notice-error" : "site-notice-warning"}`}>
+        <div className={`site-notice mt-6 whitespace-pre-line   p-4 text-copy font-medium leading-relaxed ${isVerified ? "site-notice-success" : verificationState.type === "failed" ? "site-notice-error" : "site-notice-warning"}`}>
           {isVerified
             ? "사업자 인증이 완료되었습니다. 빌링키를 발급한 뒤 기존 메뉴판을 이어서 사용할 수 있습니다."
             : verificationState.type === "checking"
@@ -465,7 +465,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
           {isSubmitting ? "정기결제 처리 중..." : isVerified && requiredConsentsAccepted ? "동의하고 유료 전환하기" : "사업자 인증 및 필수 동의 후 진행 가능"}
         </button>
         {!isPortOneReady && (
-          <p className="mt-3 break-keep text-xs font-normal leading-relaxed text-amber-700">
+          <p className="mt-3 break-keep text-support font-normal leading-relaxed text-amber-700">
             사업자 월/연 정기결제는 PortOne V2 빌링키 발급을 지원하는 채널의 channelKey가 필요합니다.
           </p>
         )}
@@ -473,7 +473,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
 
       <section className="site-section p-7 lg:col-span-2">
         <h2 className="type-subsection-title">사업자 인증</h2>
-        <p className="mt-3 break-keep text-sm font-normal leading-relaxed text-zinc-500">
+        <p className="mt-3 break-keep text-copy font-normal leading-relaxed text-zinc-600">
           사업자 정보를 확인한 뒤 구독 신청을 진행할 수 있습니다. 기존 메뉴판과 입력한 내용은 유지됩니다.
         </p>
 
@@ -495,7 +495,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
             {verificationState.type === "checking" ? <LoadingSpinner className="h-4 w-4" /> : null}
             {verificationState.type === "checking" ? "확인 중..." : "사업자 정보 확인"}
           </button>
-          <p className={`whitespace-pre-line break-keep text-sm font-bold ${verificationState.type === "verified" ? "text-emerald-700" : verificationState.type === "failed" ? "text-red-700" : "text-zinc-500"}`}>
+          <p className={`whitespace-pre-line break-keep text-copy font-medium ${verificationState.type === "verified" ? "text-emerald-700" : verificationState.type === "failed" ? "text-red-700" : "text-zinc-600"}`}>
             {verificationState.message}
           </p>
         </div>
@@ -530,7 +530,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">
+      <span className="text-support font-medium uppercase text-zinc-600">
         {label}
         {required ? <span className="ml-1 text-red-500">*</span> : null}
       </span>
@@ -547,8 +547,8 @@ function Field({
 function SummaryItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-white p-4">
-      <dt className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-500">{label}</dt>
-      <dd className="mt-2 break-keep text-sm font-bold text-emerald-900">{value}</dd>
+      <dt className="text-support font-medium uppercase text-emerald-500">{label}</dt>
+      <dd className="mt-2 break-keep text-copy font-medium text-emerald-900">{value}</dd>
     </div>
   );
 }

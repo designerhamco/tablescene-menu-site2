@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MarketingShell } from "@/components/marketing/MarketingPages";
-import { createAnnouncementClient } from "@/lib/server/announcement-service";
+import { createAnnouncementClient, getPublishedAnnouncementNeighbors } from "@/lib/server/announcement-service";
 import {
   formatAnnouncementDate,
 } from "@/lib/announcements";
 import styles from "@/components/support/support.module.css";
+import { ArticleNavigation } from "@/app/components/ui/content-list";
 import AnnouncementContent from "@/components/support/AnnouncementContent";
 
 export const metadata: Metadata = { title: "공지사항 | 아티메뉴 고객센터" };
@@ -30,6 +31,11 @@ export default async function AnnouncementDetail({
     .lte("published_at", new Date().toISOString())
     .maybeSingle();
   if (error || !data) notFound();
+  const neighbors = await getPublishedAnnouncementNeighbors(data.id, data.published_at);
+  const toNeighbor = (item: typeof neighbors.previous) => item ? {
+    href: `/faq/notices/${item.id}`, title: item.title,
+    date: formatAnnouncementDate(item.published_at), dateTime: item.published_at ?? undefined,
+  } : null;
   return (
     <MarketingShell>
       <div className="site-container">
@@ -44,12 +50,8 @@ export default async function AnnouncementDetail({
           <div className={styles.detailBody}>
             <AnnouncementContent body={data.body} />
           </div>
-          <Link
-            href="/faq?tab=notices"
-            className="site-button site-button-secondary"
-          >
-            공지사항 목록으로
-          </Link>
+          {!neighbors.unavailable ? <ArticleNavigation previous={toNeighbor(neighbors.previous)} next={toNeighbor(neighbors.next)} /> : null}
+          <div className="site-list-return"><Link href="/faq?tab=notices" className="site-button site-button-primary site-button-lg">공지사항 목록으로</Link></div>
         </article>
       </div>
     </MarketingShell>

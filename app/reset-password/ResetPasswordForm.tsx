@@ -94,7 +94,7 @@ export default function ResetPasswordForm({
   if (state === "invalid") {
     return (
       <div className="space-y-5">
-        <div className="site-notice site-notice-warning px-4 py-3 text-sm font-medium leading-relaxed">
+        <div className="site-notice site-notice-warning px-4 py-3 text-copy font-medium leading-relaxed">
           비밀번호 재설정 링크가 만료되었거나 유효하지 않습니다. 다시 요청해주세요.
         </div>
         <Link href="/forgot-password" className="site-button site-button-primary site-button-lg w-full">
@@ -106,10 +106,10 @@ export default function ResetPasswordForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {errorMessage && <div className="site-notice site-notice-error px-4 py-3 text-sm font-medium">{errorMessage}</div>}
+      {errorMessage && <div className="site-notice site-notice-error px-4 py-3 text-copy font-medium">{errorMessage}</div>}
 
       <div>
-        <label htmlFor="newPassword" className="mb-2 block text-sm font-bold">
+        <label htmlFor="newPassword" className="mb-2 block text-copy font-medium">
           새 비밀번호
         </label>
         <input
@@ -120,13 +120,13 @@ export default function ResetPasswordForm({
           autoComplete="new-password"
           value={newPassword}
           onChange={(event) => setNewPassword(event.target.value)}
-          className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-base outline-none transition-colors focus:border-zinc-950"
+          className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-copy outline-none transition-colors focus:border-zinc-950"
           placeholder="8자 이상 입력"
         />
       </div>
 
       <div>
-        <label htmlFor="confirmPassword" className="mb-2 block text-sm font-bold">
+        <label htmlFor="confirmPassword" className="mb-2 block text-copy font-medium">
           새 비밀번호 확인
         </label>
         <input
@@ -137,7 +137,7 @@ export default function ResetPasswordForm({
           autoComplete="new-password"
           value={confirmPassword}
           onChange={(event) => setConfirmPassword(event.target.value)}
-          className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-base outline-none transition-colors focus:border-zinc-950"
+          className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-copy outline-none transition-colors focus:border-zinc-950"
           placeholder="새 비밀번호를 한 번 더 입력"
         />
       </div>

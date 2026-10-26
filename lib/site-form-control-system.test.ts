@@ -6,10 +6,10 @@ const uiSource = readFileSync(new URL("../styles/ui-system.css", import.meta.url
 
 test("사이트 입력·선택·본문 입력은 공통 컨트롤 토큰을 사용한다", () => {
   assert.match(uiSource, /\.site-field,/);
-  assert.match(uiSource, /min-height: var\(--ui-control-height-md\)/);
+  assert.match(uiSource, /min-height: var\(--ui-field-height-md\)/);
   assert.match(uiSource, /border: 1px solid var\(--ui-border\)/);
   assert.match(uiSource, /border-radius: var\(--ui-radius-field\)/);
-  assert.match(uiSource, /font-size: var\(--font-size-200\)/);
+  assert.match(uiSource, /font-size: 1rem;/);
   assert.match(uiSource, /box-shadow: none/);
 });
 

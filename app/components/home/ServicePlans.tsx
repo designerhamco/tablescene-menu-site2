@@ -57,7 +57,7 @@ const ServicePlans = () => {
               }`}
             >
               {service.badge ? (
-                <span className="absolute right-0 top-0 rounded-bl-2xl rounded-tr-[1.4rem] bg-[#F8E731] px-5 py-3 text-sm font-bold text-black">
+                <span className="absolute right-0 top-0 rounded-bl-2xl rounded-tr-[1.4rem] bg-[#F8E731] px-5 py-3 text-copy font-medium text-black">
                   {service.badge}
                 </span>
               ) : null}
@@ -66,7 +66,7 @@ const ServicePlans = () => {
                 <h3 className="type-subsection-title mb-5 text-zinc-950">
                   {service.title}
                 </h3>
-                <p className="break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
+                <p className="break-keep text-copy font-medium leading-relaxed text-zinc-500 md:text-lg">
                   {service.description}
                 </p>
                 <p className="mt-5 text-lg font-bold text-zinc-950">
@@ -76,7 +76,7 @@ const ServicePlans = () => {
 
               <ul className="mt-9 space-y-4">
                 {service.details.map((detail) => (
-                  <li key={detail} className="flex items-center gap-3 text-sm font-medium text-zinc-700 md:text-base">
+                  <li key={detail} className="flex items-center gap-3 text-copy font-medium text-zinc-700 md:text-copy">
                     <CheckCircle2 className="h-4 w-4 shrink-0 text-zinc-950" strokeWidth={1.8} />
                     {detail}
                   </li>
@@ -91,7 +91,7 @@ const ServicePlans = () => {
                   {service.cta}
                 </Link>
               ) : (
-                <span className="mt-auto flex w-full items-center justify-center rounded-full bg-zinc-100 px-5 py-4 text-base font-bold text-zinc-400 ring-1 ring-zinc-200">
+                <span className="mt-auto flex w-full items-center justify-center rounded-full bg-zinc-100 px-5 py-4 text-copy font-medium text-zinc-400 ring-1 ring-zinc-200">
                   {service.cta}
                 </span>
               )}

@@ -1,7 +1,7 @@
 .body {
   min-width: 0;
   color: var(--ui-text);
-  font-size: 1rem;
+  font-size: var(--type-body-size);
   line-height: 1.8;
   overflow-wrap: anywhere;
 }

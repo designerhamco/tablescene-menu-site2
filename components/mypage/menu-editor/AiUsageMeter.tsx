@@ -43,19 +43,19 @@ export default function AiUsageMeter({ label, used, limit, compact = false }: Ai
   return (
     <div className={`rounded-lg border border-zinc-100 bg-zinc-50 ${compact ? "p-3" : "p-4"}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs font-bold uppercase tracking-[0.14em] text-zinc-400">{label}</p>
+        <p className="text-support font-medium uppercase text-zinc-600">{label}</p>
         <Badge>
           남은 AI 크레딧 {remaining}개
         </Badge>
       </div>
-      <p className={`mt-2 text-sm font-bold ${tone.text}`}>
+      <p className={`mt-2 text-copy font-medium ${tone.text}`}>
         사용 AI 크레딧 {safeUsed}개 / 총 {safeLimit}개
       </p>
       <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-zinc-200">
         <div className={`h-full rounded-full ${tone.bar}`} style={{ width: `${percent}%` }} />
       </div>
       {remaining <= 0 && (
-        <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-700">
+        <p className="mt-2 break-keep text-support font-medium leading-relaxed text-red-700">
           보유 AI 크레딧을 모두 사용했습니다.
         </p>
       )}

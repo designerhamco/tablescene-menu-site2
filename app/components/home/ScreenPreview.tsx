@@ -87,7 +87,7 @@ const ScreenPreview = () => {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab)}
-              className={`relative pb-3 text-sm md:text-base font-bold tracking-wide uppercase transition-colors whitespace-nowrap flex-shrink-0 ${
+              className={`relative pb-3 text-copy md:text-copy font-medium tracking-wide uppercase transition-colors whitespace-nowrap flex-shrink-0 ${
                 activeTab.id === tab.id ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'
               }`}
             >

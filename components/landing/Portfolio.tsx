@@ -35,7 +35,7 @@ export function Portfolio() {
                 key={tab}
                 type="button"
                 onClick={() => changeTab(tab)}
-                className={`rounded-full px-6 py-2 text-xs font-bold uppercase tracking-widest transition-all md:text-sm ${
+                className={`rounded-full px-6 py-2 text-support font-medium uppercase tracking-widest transition-all md:text-copy ${
                   activeTab === tab ? "scale-105 bg-black text-white shadow-lg" : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-700"
                 }`}
               >

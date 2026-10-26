@@ -43,7 +43,7 @@ export default function QrAddressActions({
 
   return (
     <div className="mt-4">
-      <label className="block text-xs font-bold text-zinc-500" htmlFor={`qr-address-${copyKey}`}>
+      <label className="block text-support font-medium text-zinc-600" htmlFor={`qr-address-${copyKey}`}>
         연결 주소
       </label>
       <div className="mt-2 flex flex-col gap-2 lg:flex-row">
@@ -51,7 +51,7 @@ export default function QrAddressActions({
           id={`qr-address-${copyKey}`}
           readOnly
           value={publicUrl}
-          className="site-field min-w-0 flex-1 border-zinc-200 px-4 py-3 font-mono text-zinc-700 sm:text-sm"
+          className="site-field min-w-0 flex-1 border-zinc-200 px-4 py-3 font-mono text-zinc-700 sm:text-copy"
         />
         <div className="flex shrink-0 gap-2">
           <button
@@ -75,7 +75,7 @@ export default function QrAddressActions({
         </div>
       </div>
       {disabled && disabledReason ? (
-        <p className="mt-2 text-xs font-bold text-amber-700">{disabledReason}</p>
+        <p className="mt-2 text-support font-medium text-amber-700">{disabledReason}</p>
       ) : null}
     </div>
   );

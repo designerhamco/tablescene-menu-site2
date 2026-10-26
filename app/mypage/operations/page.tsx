@@ -102,7 +102,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
           {permissionNotice ? <PermissionNotice message={permissionNotice} /> : null}
           <article className="site-card p-8 text-center md:p-12">
             <h2 className="type-subsection-title">운영 가능한 메뉴판이 없습니다</h2>
-            <p className="mx-auto mt-3 max-w-xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
+            <p className="mx-auto mt-3 max-w-xl break-keep text-copy font-medium leading-relaxed text-zinc-500">
               현재 공개 중이고 이용 기간이 유효하며 운영 기능이 활성화된 메뉴판만 표시됩니다.
             </p>
             <Link
@@ -179,12 +179,12 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
             {recentCalls.map((call) => (
               <li key={call.id} className="flex items-center justify-between gap-4 border-t border-zinc-100 px-4 py-4 first:border-t-0 sm:px-5">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-bold">호출 #{call.callNumber} · {call.tableLabel}</p>
-                  <p className="mt-1 text-xs font-bold text-zinc-400">
+                  <p className="truncate text-copy font-medium">호출 #{call.callNumber} · {call.tableLabel}</p>
+                  <p className="mt-1 text-support font-medium text-zinc-400">
                     {call.requestLabel} · {formatKoreanDateTime(call.createdAt)}
                   </p>
                 </div>
-                <p className="shrink-0 text-xs font-bold text-zinc-500">{CALL_STATUS_LABELS[call.status] ?? call.status}</p>
+                <p className="shrink-0 text-support font-medium text-zinc-500">{CALL_STATUS_LABELS[call.status] ?? call.status}</p>
               </li>
             ))}
           </DashboardList>
@@ -215,9 +215,9 @@ function DashboardList({
     <article className="site-card-surface overflow-hidden">
       <div className="flex items-center justify-between gap-3 border-b border-zinc-100 px-4 py-4 sm:px-5">
         <h3 className="type-content-title">{title}</h3>
-        {href ? <Link href={href} className="text-xs font-bold text-zinc-500 hover:text-zinc-950">전체보기</Link> : null}
+        {href ? <Link href={href} className="text-support font-medium text-zinc-500 hover:text-zinc-950">전체보기</Link> : null}
       </div>
-      {hasItems ? <ul>{children}</ul> : <p className="px-5 py-10 text-center text-sm font-bold text-zinc-400">{emptyLabel}</p>}
+      {hasItems ? <ul>{children}</ul> : <p className="px-5 py-10 text-center text-copy font-medium text-zinc-400">{emptyLabel}</p>}
     </article>
   );
 }

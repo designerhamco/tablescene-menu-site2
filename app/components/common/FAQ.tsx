@@ -309,7 +309,7 @@ export const FAQItem = ({ item, isOpen, onToggle, inverted = false }: { item: FA
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className={`pb-8 pt-2 pl-4 md:pl-8 pr-4 md:pr-12 leading-relaxed font-medium text-base ${inverted ? 'text-zinc-300' : 'text-zinc-600'}`}>
+            <div className={`pb-8 pt-2 pl-4 md:pl-8 pr-4 md:pr-12 leading-relaxed font-medium text-copy ${inverted ? 'text-zinc-300' : 'text-zinc-600'}`}>
               <div className="flex gap-3">
                  <span className={`font-bold shrink-0 ${inverted ? 'text-white' : 'text-zinc-900'}`}>A.</span>
                  <div>{item.answer}</div>

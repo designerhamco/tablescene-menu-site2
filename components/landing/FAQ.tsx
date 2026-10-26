@@ -53,7 +53,7 @@ export function FAQ() {
                   </span>
                 </button>
                 {isOpen && (
-                  <div className="overflow-hidden pb-8 pl-4 pr-4 pt-2 text-base font-medium leading-relaxed text-zinc-600 md:pl-8 md:pr-12">
+                  <div className="overflow-hidden pb-8 pl-4 pr-4 pt-2 text-copy font-medium leading-relaxed text-zinc-600 md:pl-8 md:pr-12">
                     <div className="flex gap-3">
                       <span className="shrink-0 font-bold text-zinc-900">A.</span>
                       <p>{answer}</p>

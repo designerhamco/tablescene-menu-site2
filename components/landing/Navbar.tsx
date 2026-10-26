@@ -81,7 +81,7 @@ export function Navbar() {
             <span className={`text-xl font-bold tracking-tighter transition-colors duration-300 md:text-2xl ${darkNav ? "text-black" : "text-white"}`}>
               ArtiMenu
             </span>
-            <span className={`ml-0.5 mt-0.5 text-xs font-medium uppercase tracking-[0.3em] opacity-60 transition-colors duration-300 md:text-xs ${darkNav ? "text-black" : "text-white"}`}>
+            <span className={`ml-0.5 mt-0.5 text-support font-medium uppercase tracking-[0.3em] opacity-60 transition-colors duration-300 md:text-support ${darkNav ? "text-black" : "text-white"}`}>
               Studio
             </span>
           </span>
@@ -97,7 +97,7 @@ export function Navbar() {
               href={item.href}
               onMouseEnter={() => setActiveMenu(item)}
               onFocus={() => setActiveMenu(item)}
-              className={`py-2 text-base font-bold tracking-tight transition-colors duration-200 ${
+              className={`py-2 text-copy font-medium tracking-tight transition-colors duration-200 ${
                 activeMenu?.title === item.title
                   ? "text-black"
                   : darkNav
@@ -139,9 +139,9 @@ export function Navbar() {
             <div className="flex flex-col justify-between rounded-2xl bg-zinc-950 p-7 text-white">
               <div>
                 <h2 className="type-section-title mb-4">{activeMenu.title}</h2>
-                <p className="break-keep text-sm font-medium leading-relaxed text-white/70">{activeMenu.summary}</p>
+                <p className="break-keep text-copy font-medium leading-relaxed text-white/70">{activeMenu.summary}</p>
               </div>
-              <a href={activeMenu.href} className="mt-10 inline-flex items-center gap-2 text-sm font-bold text-white">
+              <a href={activeMenu.href} className="mt-10 inline-flex items-center gap-2 text-copy font-medium text-white">
                 자세히 보기
                 <Icon name="arrowRight" className="h-4 w-4" />
               </a>
@@ -159,7 +159,7 @@ export function Navbar() {
                   </span>
                   <span>
                     <span className="mb-2 block text-lg font-bold tracking-tight text-zinc-950">{link.title}</span>
-                    <span className="break-keep text-sm font-medium leading-relaxed text-zinc-500">{link.desc}</span>
+                    <span className="break-keep text-copy font-medium leading-relaxed text-zinc-500">{link.desc}</span>
                   </span>
                 </a>
               ))}
@@ -187,7 +187,7 @@ export function Navbar() {
                       key={link.title}
                       href={link.href}
                       onClick={() => setIsOpen(false)}
-                      className="rounded-lg px-3 py-2 text-sm font-semibold text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
+                      className="rounded-lg px-3 py-2 text-copy font-semibold text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
                     >
                       {link.title}
                     </a>

@@ -79,7 +79,7 @@ test("content and view controls share three sizes without promoting nested guide
   const tabs = read("app/components/ui/tabs.tsx");
   assert.match(tabs, /TabsSize = "sm" \| "md" \| "lg"/);
   assert.match(tabs, /size = "md"/);
-  for (const [size, height, font] of [["sm", "2.5rem", ".875rem"], ["md", "3rem", "1rem"], ["lg", "3.5rem", "1.125rem"]]) {
+  for (const [size, height, font] of [["sm", "2.5rem", ".9375rem"], ["md", "3rem", "1rem"], ["lg", "3.5rem", "1.125rem"]]) {
     const rule = tabCss.match(new RegExp(`\\.site-tab-size-${size} \\{([^}]+)\\}`))?.[1];
     assert.ok(rule, `missing ${size}`);
     assert.ok(rule.includes(`--site-tab-height: ${height}`));

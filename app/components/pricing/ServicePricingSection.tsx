@@ -121,13 +121,13 @@ export default function ServicePricingSection({ service }: { service: ServicePri
             {data.title}
           </h2>
           {data.description ? (
-            <p className="mt-5 break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
+            <p className="mt-5 break-keep text-copy font-medium leading-relaxed text-zinc-500 md:text-lg">
               {data.description}
             </p>
           ) : null}
         </div>
 
-        <div className="site-section mb-8 px-5 py-4 text-center text-sm font-bold leading-relaxed text-zinc-500">
+        <div className="site-section mb-8 px-5 py-4 text-center text-copy font-medium leading-relaxed text-zinc-500">
           <p>※ 모든 금액은 부가세 포함가입니다.</p>
           <p>※ 첫 구독은 계정당 최초 1회 30일 무료이며, 오픈 얼리버드는 2026년 12월 31일까지 가입할 수 있습니다.</p>
           <p>※ 얼리버드 가격은 구독을 유지하는 동안 계속 적용되며, 해지 후 재구독 시 정상가가 적용됩니다.</p>
@@ -140,27 +140,27 @@ export default function ServicePricingSection({ service }: { service: ServicePri
                 key={plan.label}
                 className="site-section relative overflow-hidden p-7 text-zinc-950 md:p-9"
               >
-                <div className="absolute right-0 top-0 rounded-bl-[1.4rem] bg-[#F8E731] px-7 py-4 text-sm font-bold text-zinc-950 md:text-base">
+                <div className="absolute right-0 top-0 rounded-bl-[1.4rem] bg-[#F8E731] px-7 py-4 text-copy font-medium text-zinc-950 md:text-copy">
                   {plan.badge}
                 </div>
 
                 <div className="flex min-h-[360px] flex-col pt-6 md:min-h-[390px]">
                   <div>
-                    <p className="text-base font-bold text-zinc-500">{plan.label}</p>
+                    <p className="text-copy font-medium text-zinc-500">{plan.label}</p>
                     <h4 className="type-subsection-title mt-5">
                       {plan.title}
                     </h4>
                     <p className="mt-4 text-3xl font-bold tracking-tight md:text-4xl">
                       {plan.price}
                     </p>
-                    <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+                    <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-500">
                       {plan.subcopy}
                     </p>
                   </div>
 
                   <ul className="mt-9 space-y-4">
                     {[plan.helper, plan.savings, plan.aiUsage].map((item) => (
-                      <li key={item} className="flex items-start gap-3 break-keep text-base font-semibold leading-relaxed text-zinc-600">
+                      <li key={item} className="flex items-start gap-3 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
                         <Check className="mt-1 h-5 w-5 shrink-0 text-zinc-950" />
                         <span>{item}</span>
                       </li>
@@ -182,7 +182,7 @@ export default function ServicePricingSection({ service }: { service: ServicePri
 
         <div className="mt-8 grid gap-3 border-t border-zinc-200 pt-7 sm:grid-cols-2 lg:grid-cols-4">
           {data.features.map((feature) => (
-            <div key={feature} className="flex items-start gap-2 break-keep text-sm font-semibold leading-relaxed text-zinc-600">
+            <div key={feature} className="flex items-start gap-2 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
               <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#F8E731]" />
               <span>{feature}</span>
             </div>

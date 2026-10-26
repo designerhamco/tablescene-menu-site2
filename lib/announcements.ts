@@ -82,3 +82,12 @@ export function escapeAnnouncementSearch(value: string) {
     .trim()
     .slice(0, 100);
 }
+
+/** Raw PostgREST filters accept only a UUID and a validated database timestamp. */
+export function getAnnouncementNeighborFilter(id: string, publishedAt: string | null, direction: "previous" | "next") {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
+    || !publishedAt || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$/.test(publishedAt)
+    || !Number.isFinite(Date.parse(publishedAt))) return null;
+  const comparison = direction === "previous" ? "lt" : "gt";
+  return `published_at.${comparison}.${publishedAt},and(published_at.eq.${publishedAt},id.${comparison}.${id})`;
+}

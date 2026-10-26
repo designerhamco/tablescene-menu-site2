@@ -115,12 +115,12 @@ const AllInOneFlow = () => {
                 <h3 className="type-subsection-title mb-5 text-zinc-950">
                   {activeFeature.title}
                 </h3>
-                <p className="break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
+                <p className="break-keep text-copy font-medium leading-relaxed text-zinc-500 md:text-lg">
                   {activeFeature.description}
                 </p>
               </motion.div>
 
-              <div className="mt-12 grid grid-cols-6 gap-2 text-center text-sm font-bold md:max-w-md md:text-base">
+              <div className="mt-12 grid grid-cols-6 gap-2 text-center text-copy font-medium md:max-w-md md:text-copy">
                 {features.map((feature, index) => (
                   <span
                     key={feature.id}

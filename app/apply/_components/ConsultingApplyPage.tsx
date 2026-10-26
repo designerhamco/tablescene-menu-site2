@@ -48,7 +48,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-semibold text-zinc-800">
+      <span className="text-copy font-semibold text-zinc-800">
         {label}
         {required ? " *" : ""}
       </span>
@@ -57,7 +57,7 @@ function Field({
         type={type}
         required={required}
         placeholder={placeholder}
-        className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-950 outline-none transition focus:border-zinc-950"
+        className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-copy text-zinc-950 outline-none transition focus:border-zinc-950"
       />
     </label>
   );
@@ -78,14 +78,14 @@ function SelectField({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-semibold text-zinc-800">
+      <span className="text-copy font-semibold text-zinc-800">
         {label}
         {required ? " *" : ""}
       </span>
       <select
         name={name}
         required={required}
-        className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-950 outline-none transition focus:border-zinc-950"
+        className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-copy text-zinc-950 outline-none transition focus:border-zinc-950"
         defaultValue=""
       >
         <option value="">{label === "업종" ? "업종을 선택해주세요" : "선택해주세요"}</option>
@@ -95,7 +95,7 @@ function SelectField({
           </option>
         ))}
       </select>
-      {helperText ? <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-400">{helperText}</p> : null}
+      {helperText ? <p className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-400">{helperText}</p> : null}
     </label>
   );
 }
@@ -136,7 +136,7 @@ export default async function ConsultingApplyPage({
             <input type="hidden" name="serviceType" value={serviceType} />
 
             {errorMessage ? (
-              <div className="site-notice site-notice-error mb-6 px-4 py-3 text-sm font-semibold">
+              <div className="site-notice site-notice-error mb-6 px-4 py-3 text-copy font-semibold">
                 {errorMessage}
               </div>
             ) : null}
@@ -190,13 +190,13 @@ export default async function ConsultingApplyPage({
             </div>
 
             <label className="mt-5 block">
-              <span className="text-sm font-semibold text-zinc-800">문의 내용 *</span>
+              <span className="text-copy font-semibold text-zinc-800">문의 내용 *</span>
               <textarea
                 name="message"
                 required
                 rows={6}
                 placeholder="도입 배경, 필요한 기능, 궁금한 내용을 적어주세요."
-                className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-950 outline-none transition focus:border-zinc-950"
+                className="mt-2 w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-copy text-zinc-950 outline-none transition focus:border-zinc-950"
               />
             </label>
 

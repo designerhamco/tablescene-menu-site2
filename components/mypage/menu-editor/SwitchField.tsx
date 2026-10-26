@@ -38,18 +38,18 @@ export default function SwitchField({
   return (
     <label
       htmlFor={id}
-      className={`flex items-start justify-between gap-4 rounded-lg border border-zinc-100 bg-white p-4 text-sm transition-colors ${
+      className={`flex items-start justify-between gap-4 rounded-lg border border-zinc-100 bg-white p-4 text-copy transition-colors ${
         disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer"
       }`}
     >
       <span className="min-w-0">
         <span className="block break-keep font-bold leading-relaxed text-zinc-700">{label}</span>
-        {description && <span className="mt-1 block break-keep text-xs font-semibold leading-relaxed text-zinc-400">{description}</span>}
-        <span className={`mt-2 block text-xs font-bold ${effectiveChecked ? "text-emerald-700" : "text-zinc-400"}`}>
+        {description && <span className="mt-1 block break-keep text-support font-semibold leading-relaxed text-zinc-600">{description}</span>}
+        <span className={`mt-2 block text-support font-medium ${effectiveChecked ? "text-emerald-700" : "text-zinc-600"}`}>
           {effectiveChecked ? onText : offText}
         </span>
         {showBlockedMessage && (
-          <span className="mt-2 block break-keep text-xs font-bold leading-relaxed text-amber-700" aria-live="polite">
+          <span className="mt-2 block break-keep text-support font-medium leading-relaxed text-amber-700" aria-live="polite">
             {blockedMessage}
           </span>
         )}

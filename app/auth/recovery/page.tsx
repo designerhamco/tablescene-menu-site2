@@ -25,7 +25,7 @@ export default async function PasswordRecoveryVerificationPage({
           <div className="site-auth-form">
             <div className="site-auth-header">
               <h1 className="type-subsection-title">비밀번호 재설정</h1>
-              <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
+              <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-500">
                 본인 확인을 마치고 새 비밀번호를 설정합니다.
               </p>
             </div>
@@ -43,7 +43,7 @@ export default async function PasswordRecoveryVerificationPage({
               </form>
             ) : (
               <div className="space-y-5">
-                <div className="site-notice site-notice-warning px-4 py-3 text-sm font-medium leading-relaxed">
+                <div className="site-notice site-notice-warning px-4 py-3 text-copy font-medium leading-relaxed">
                   비밀번호 재설정 링크가 만료되었거나 유효하지 않습니다. 다시 요청해주세요.
                 </div>
                 <Link

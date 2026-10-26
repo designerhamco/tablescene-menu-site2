@@ -33,7 +33,7 @@ const PageHeader = ({ title, subtitle, bgImage }: PageHeaderProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="block text-zinc-200 text-sm md:text-base font-bold tracking-[0.2em] uppercase mb-4"
+          className="block text-zinc-200 text-copy md:text-copy font-medium tracking-[0.2em] uppercase mb-4"
         >
           {subtitle}
         </motion.span>

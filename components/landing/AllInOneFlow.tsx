@@ -35,7 +35,7 @@ export function AllInOneFlow() {
                     </Badge>
                   )}
                 </h3>
-                <p className="whitespace-pre-line text-sm leading-relaxed text-zinc-500 md:text-base">{card.desc}</p>
+                <p className="whitespace-pre-line text-copy leading-relaxed text-zinc-500 md:text-copy">{card.desc}</p>
                 <div className="absolute bottom-0 left-1/2 z-20 hidden h-3 w-3 -translate-x-1/2 translate-y-1/2 rounded-full border-4 border-white bg-zinc-900 lg:block" />
               </div>
             ))}
@@ -62,7 +62,7 @@ export function AllInOneFlow() {
               <div className="relative w-full lg:w-auto">
                 <div className="absolute inset-0 rounded-full bg-zinc-900 opacity-10 blur-[40px]" />
                 <div className="relative flex min-w-[280px] flex-col items-center rounded-[2rem] border border-zinc-700/50 bg-zinc-900 px-10 py-6 text-center text-white shadow-2xl md:items-start md:text-left lg:py-8">
-                  <div className="mb-2 text-xs font-bold text-zinc-400">아티메뉴 웹메뉴판</div>
+                  <div className="mb-2 text-support font-medium text-zinc-400">아티메뉴 웹메뉴판</div>
                   <div className="mb-4 text-xl font-bold tracking-tight lg:text-2xl">PRO 1.0</div>
                   <div className="flex w-full items-center justify-center gap-4 text-zinc-400 md:w-auto">
                     <Icon name="monitor" className="h-5 w-5" />
@@ -80,7 +80,7 @@ export function AllInOneFlow() {
                     AI 마케팅 자동화
                     <Badge>PRO AI</Badge>
                   </div>
-                  <div className="mt-auto flex items-center gap-2 text-sm font-bold text-zinc-400">COMING SOON</div>
+                  <div className="mt-auto flex items-center gap-2 text-copy font-medium text-zinc-400">COMING SOON</div>
                 </div>
               </div>
             </div>

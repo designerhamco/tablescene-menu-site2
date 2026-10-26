@@ -8,24 +8,23 @@
 
 | 역할 | 공통 클래스 | 모바일 | 데스크톱 | 용도 |
 | --- | --- | --- | --- |
-| 디스플레이 | `type-display` | 44px | 최대 84px | 홈페이지 최상단 히어로 전용 |
-| 페이지 제목 | `type-page-title` | 32px | 최대 48px | 일반 페이지의 H1 |
-| 섹션 제목 | `type-section-title` | 30px | 최대 48px | 큰 콘텐츠 구획의 H2 |
-| 하위 섹션 제목 | `type-subsection-title` | 24px | 최대 30px | 카드군·폼 단계 제목 |
-| 본문 제목 | `type-content-title` | 18px | 최대 22px | 카드·본문 블록의 제목 |
-| 항목 제목 | `type-item-title` | 16px | 16px | 밀도 높은 목록·운영 카드의 제목 |
-| 강조 본문 | `type-body-lg` | 16px | 최대 18px | 페이지 도입문·중요 설명 |
-| 기본 본문 | `type-body` | 16px | 16px | 일반 설명과 폼 안내 |
-| 보조 본문 | `type-body-sm` | 14px | 최대 15px | 메타 정보와 부가 설명 |
-| 레이블 | `type-label` | 14px | 14px | 탭·필드명·상태 |
-| 내비게이션 | `type-nav` | 16px | 16px | 헤더와 주요 이동 버튼 |
-| 캡션 | `type-caption` | 12px | 12px | 법적 표기와 최소 보조 정보 |
+| 디스플레이 | `type-display` | 36px | 60px (태블릿 48px) | 홈페이지 히어로 전용 |
+| 페이지 제목 | `type-page-title` | 30px | 최대 40px | 일반 페이지 H1 |
+| 섹션 제목 | `type-section-title` | 26px | 최대 36px | 큰 콘텐츠 구획 |
+| 하위 섹션 | `type-subsection-title` | 22px | 최대 26px | 폼 단계·카드군 제목 |
+| 콘텐츠 제목 | `type-content-title` | 18px | 최대 20px | 카드·본문 제목 |
+| 항목 제목 | `type-item-title` | 18px | 18px | 목록·운영 카드 제목 |
+| 소개 본문 | `type-body-lg` | 18px | 20px | 페이지 도입문 |
+| 기본 본문 | `type-body`, `text-copy` | 16px | 17px | 일반 설명·중요 안내 |
+| 보조 본문 | `type-body-sm`, `text-support` | 14px | 15px | 도움말·부가 설명 |
+| 레이블·탐색 | `type-label`, `type-nav` | 15px | 16px | 필드명·헤더 |
+| 캡션 | `type-caption`, `text-meta` | 13px | 14px | 날짜·짧은 메타 정보 |
 
 - 토큰과 클래스의 단일 기준: `styles/typography.css`
 - 마케팅 설명 섹션의 공통 구현: `app/components/home/MarketingSectionCopy.tsx`
 - 제목은 역할에 맞는 클래스를 반드시 사용하고, 개별 페이지에서 임의의 `text-*`, `font-black` 조합으로 다시 정의하지 않는다.
 - 본문은 중요도에 따라 세 단계 중 하나를 선택하며 모든 본문을 한 크기로 강제하지 않는다.
-- 기존 컴포넌트의 `text-xs`부터 `text-7xl`까지 이름 기반 크기는 `styles/theme.css`에서 승인된 `--font-size-*` 기초 토큰에 연결한다.
+- 메뉴판과 공유하는 `text-xs`부터 `text-7xl`까지 기초 크기는 변경하지 않는다. 사이트 본문은 `text-copy`/`text-support`/`text-meta` 의미 유틸리티를 사용한다. 기초 크기는 `styles/theme.css`에서 승인된 `--font-size-*` 기초 토큰에 연결한다.
 - 일반 사이트 UI의 최상위 굵기는 700이다. `font-black`과 `font-extrabold`, 숫자를 직접 넣은 글자 크기는 사용하지 않는다.
 - 라우트 파일뿐 아니라 `components`의 모달·폼·MY/메뉴판 사이드바·편집기 등 실제 화면을 구성하는 중첩 UI에도 같은 계약을 적용한다.
 - 홈페이지 안의 기기·메뉴판 예시처럼 실제 제품 화면을 축소해 보여주는 시각 프리뷰는 프레임 비율 유지를 위해 별도 크기 규칙을 사용할 수 있다.

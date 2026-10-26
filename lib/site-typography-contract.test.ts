@@ -126,3 +126,20 @@ test("본문용 Tailwind 크기 유틸리티가 승인된 기초 토큰에 연�
     assert.match(themeSource, new RegExp(`--text-${utility}: var\\(--font-size-${token}\\);`));
   }
 });
+
+test("사이트 본문 역할은 메뉴판 기초 크기와 독립적으로 가독성 하한을 유지한다", () => {
+  for (const [token, size] of [["body", "1rem"], ["body-lg", "1.125rem"], ["body-sm", ".875rem"], ["caption", ".8125rem"]]) {
+    assert.ok(typographySource.includes(`--type-${token}-size: ${size};`));
+  }
+  for (const [token, size] of [["100", "0.75rem"], ["200", "0.875rem"], ["300", "1rem"]]) {
+    assert.ok(typographySource.includes(`--font-size-${token}: ${size};`));
+  }
+  for (const [utility, token] of [["copy", "body"], ["support", "body-sm"], ["meta", "caption"]]) {
+    assert.ok(themeSource.includes(`--text-${utility}: var(--type-${token}-size);`));
+  }
+  for (const path of siteUiFiles) {
+    const routePath = relative(projectRoot, path);
+    if (visualPreviewFiles.has(routePath)) continue;
+    assert.doesNotMatch(readFileSync(path, "utf8"), /\btext-(?:xs|sm)\b/, `${routePath}는 사이트 본문 역할 대신 작은 기초 유틸리티를 사용합니다.`);
+  }
+});

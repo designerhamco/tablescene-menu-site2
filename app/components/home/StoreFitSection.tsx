@@ -46,7 +46,7 @@ function SectionTitle() {
       <h2 className="type-section-title text-zinc-950">
         메뉴판을 자주 바꾸는 매장이라면
       </h2>
-      <p className="mt-5 break-keep text-base font-medium leading-relaxed text-zinc-500 md:text-lg">
+      <p className="mt-5 break-keep text-copy font-medium leading-relaxed text-zinc-500 md:text-lg">
         메뉴와 가격표를 쉽게 만들고, 사장님이 직접 관리하고 싶은 매장에 잘 맞습니다.
       </p>
     </motion.div>
@@ -93,7 +93,7 @@ export function StoreFitVisual({ className = "", showNeeds = true }: { className
           <div className="absolute inset-x-0 bottom-0 p-5 md:p-8">
             <div className="grid gap-3 md:grid-cols-4">
               {storeNeeds.map((need) => (
-                <div key={need} className="flex items-start gap-2 text-sm font-bold leading-relaxed text-white md:text-base">
+                <div key={need} className="flex items-start gap-2 text-copy font-medium leading-relaxed text-white md:text-copy">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#F8E731]" />
                   {need}
                 </div>

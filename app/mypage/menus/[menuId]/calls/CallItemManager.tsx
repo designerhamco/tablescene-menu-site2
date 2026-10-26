@@ -70,11 +70,11 @@ export default function CallItemManager({
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <h2 className="type-subsection-title">호출 항목 설정</h2>
-          <p className="mt-2 max-w-2xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
+          <p className="mt-2 max-w-2xl break-keep text-copy font-medium leading-relaxed text-zinc-500">
             손님이 한 번에 선택할 요청 항목을 최대 {MAX_STAFF_CALL_ITEMS}개까지 정합니다. 기본 항목을 불러와도 저장하기 전에는 반영되지 않습니다. 이전 호출 이력의 항목명은 그대로 보존됩니다.
           </p>
           {draft.length > MAX_STAFF_CALL_ITEMS ? (
-            <p className="mt-2 text-xs font-bold text-amber-700">기존 항목을 {MAX_STAFF_CALL_ITEMS}개 이하로 줄인 뒤 저장해 주세요.</p>
+            <p className="mt-2 text-support font-medium text-amber-700">기존 항목을 {MAX_STAFF_CALL_ITEMS}개 이하로 줄인 뒤 저장해 주세요.</p>
           ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
@@ -100,7 +100,7 @@ export default function CallItemManager({
         {draft.map((item, index) => (
           <div key={item.key} className="site-section grid gap-3 p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] sm:items-center">
             <Badge>{index + 1}</Badge>
-            <label className="text-xs font-bold text-zinc-600">
+            <label className="text-support font-medium text-zinc-600">
               항목 이름
               <input
                 value={item.label}
@@ -110,7 +110,7 @@ export default function CallItemManager({
                 className="site-field mt-1.5 w-full border-zinc-200 px-3 py-2.5 text-zinc-950"
               />
             </label>
-            <label className="flex items-center gap-2 text-xs font-bold text-zinc-700">
+            <label className="flex items-center gap-2 text-support font-medium text-zinc-700">
               <input
                 type="checkbox"
                 checked={item.active}
@@ -134,7 +134,7 @@ export default function CallItemManager({
         ))}
 
         {state.status !== "idle" && state.message ? (
-          <p className={`site-notice   px-4 py-3 text-sm font-bold ${state.status === "success" ? "site-notice-success" : "site-notice-error"}`} role="status">
+          <p className={`site-notice   px-4 py-3 text-copy font-medium ${state.status === "success" ? "site-notice-success" : "site-notice-error"}`} role="status">
             {state.message}
           </p>
         ) : null}

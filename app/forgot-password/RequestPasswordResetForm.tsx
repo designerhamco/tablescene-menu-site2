@@ -22,7 +22,7 @@ export default function RequestPasswordResetForm() {
   return (
     <form action={requestPasswordResetAction} className="space-y-5">
       <div>
-        <label htmlFor="email" className="mb-2 block text-sm font-bold">
+        <label htmlFor="email" className="mb-2 block text-copy font-medium">
           이메일 주소
         </label>
         <input
@@ -31,7 +31,7 @@ export default function RequestPasswordResetForm() {
           type="email"
           required
           autoComplete="email"
-          className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-base outline-none transition-colors focus:border-zinc-950"
+          className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-copy outline-none transition-colors focus:border-zinc-950"
           placeholder="owner@example.com"
         />
       </div>

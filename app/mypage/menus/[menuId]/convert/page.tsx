@@ -193,7 +193,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
           <div className="mb-6 flex flex-col justify-between gap-4 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
               <h1 className="type-page-title">월 구독 전환</h1>
-              <p className="mt-4 break-keep text-base font-bold leading-relaxed text-zinc-500">
+              <p className="mt-4 break-keep text-copy font-medium leading-relaxed text-zinc-500">
                 새 메뉴판을 만들지 않고, 기존 개인 체험 메뉴판을 그대로 이어서 월 구독으로 전환합니다.
               </p>
             </div>
@@ -206,7 +206,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
             <div className="flex flex-col justify-between gap-5 md:flex-row md:items-start">
               <div>
                 <h2 className="type-subsection-title">{typedMenuSite.name || "이름 없는 메뉴판"}</h2>
-                <p className="mt-2 break-all text-sm font-bold text-zinc-500">{publicUrl}</p>
+                <p className="mt-2 break-all text-copy font-medium text-zinc-500">{publicUrl}</p>
               </div>
               <Badge>
                 {isPendingDelete ? "복구 가능 기간 종료" : trialInfo.status === "expired" ? "체험 기간 종료" : "개인 체험"}
@@ -228,7 +228,7 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
           {isPendingDelete ? (
             <section className="rounded-md bg-amber-50 p-8 text-center">
               <h2 className="type-subsection-title text-amber-900">고객지원 문의가 필요합니다</h2>
-              <p className="mx-auto mt-3 max-w-2xl break-keep text-sm font-bold leading-relaxed text-amber-800">
+              <p className="mx-auto mt-3 max-w-2xl break-keep text-copy font-medium leading-relaxed text-amber-800">
                 복구 가능 기간이 종료되었습니다. 데이터 복구 가능 여부는 고객지원으로 문의해주세요.
               </p>
               <Link href="/mypage/inquiries" className="site-button site-button-rounded site-button-outline mt-6 inline-flex items-center justify-center">
@@ -252,8 +252,8 @@ export default async function ConvertPersonalTrialPage({ params }: PageProps) {
 function InfoItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-zinc-50 p-4">
-      <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">{label}</dt>
-      <dd className="mt-2 break-keep text-sm font-bold text-zinc-900">{value}</dd>
+      <dt className="text-support font-medium uppercase tracking-[0.18em] text-zinc-400">{label}</dt>
+      <dd className="mt-2 break-keep text-copy font-medium text-zinc-900">{value}</dd>
     </div>
   );
 }

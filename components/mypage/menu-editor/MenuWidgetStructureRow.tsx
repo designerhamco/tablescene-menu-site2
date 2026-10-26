@@ -44,7 +44,7 @@ export default function MenuWidgetStructureRow({
         onDrop();
       }}
       className={`w-full min-w-0 rounded-md px-2 py-1.5 text-left transition ${
-        selected ? "bg-zinc-950 text-white" : "text-zinc-500 hover:bg-zinc-100"
+        selected ? "bg-zinc-950 text-white" : "text-zinc-600 hover:bg-zinc-100"
       }`}
     >
       <div className="flex min-w-0 items-center gap-2">
@@ -65,7 +65,7 @@ export default function MenuWidgetStructureRow({
               ? "cursor-not-allowed text-zinc-200"
               : selected
                 ? "cursor-grab text-zinc-300 hover:text-white active:cursor-grabbing"
-                : "cursor-grab text-zinc-300 hover:text-zinc-500 active:cursor-grabbing"
+                : "cursor-grab text-zinc-300 hover:text-zinc-600 active:cursor-grabbing"
           }`}
           aria-label="위젯 순서 이동"
         >
@@ -79,14 +79,14 @@ export default function MenuWidgetStructureRow({
         </Badge>
         <button type="button" onClick={onSelect} className="min-w-0 flex-1 text-left">
           <div className="flex min-w-0 items-center gap-1.5">
-            <span className={`min-w-0 truncate text-xs font-bold ${selected ? "text-white" : "text-zinc-700"}`}>{displayName}</span>
+            <span className={`min-w-0 truncate text-support font-medium ${selected ? "text-white" : "text-zinc-700"}`}>{displayName}</span>
             {hidden && (
-              <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${selected ? "bg-zinc-800 text-zinc-300" : "bg-zinc-100 text-zinc-400"}`}>
+              <span className={`shrink-0 rounded-full px-2 py-0.5 text-support font-medium ${selected ? "bg-zinc-800 text-zinc-300" : "bg-zinc-100 text-zinc-600"}`}>
                 숨김
               </span>
             )}
           </div>
-          <p className={`mt-0.5 truncate text-xs font-bold ${selected ? "text-zinc-300" : "text-zinc-400"}`}>{typeLabel}</p>
+          <p className={`mt-0.5 truncate text-support font-medium ${selected ? "text-zinc-300" : "text-zinc-600"}`}>{typeLabel}</p>
         </button>
       </div>
     </div>

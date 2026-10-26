@@ -32,8 +32,8 @@ export default function MenuWidgetTypePicker({ value, onChange, disabled = false
             aria-pressed={selected}
             className="site-choice site-choice-control"
           >
-            <span className="block text-sm font-bold">{option.label}</span>
-            <span className={`mt-1 block break-keep text-xs font-bold leading-relaxed ${selected ? "text-zinc-200" : "text-zinc-400"}`}>
+            <span className="block text-copy font-medium">{option.label}</span>
+            <span className={`mt-1 block break-keep text-support font-medium leading-relaxed ${selected ? "text-zinc-200" : "text-zinc-600"}`}>
               {option.description}
             </span>
           </button>

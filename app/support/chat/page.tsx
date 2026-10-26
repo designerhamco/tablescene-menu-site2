@@ -27,7 +27,7 @@ export default function AiSupportChatPage() {
                 아티메뉴 이용 방법을 빠르게 확인하고, 사람의 확인이 필요하면 1:1 문의로 이어집니다.
               </p>
             </div>
-            <Link href="/mypage/inquiries" className="text-sm font-bold text-zinc-600 underline decoration-zinc-300 underline-offset-4 hover:text-zinc-950">
+            <Link href="/mypage/inquiries" className="text-copy font-medium text-zinc-600 underline decoration-zinc-300 underline-offset-4 hover:text-zinc-950">
               1:1 문의
             </Link>
           </header>

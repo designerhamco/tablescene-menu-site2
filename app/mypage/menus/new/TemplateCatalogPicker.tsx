@@ -34,8 +34,8 @@ export default function TemplateCatalogPicker() {
   return (
     <fieldset className="space-y-5">
       <div className="flex flex-col gap-2">
-        <legend className="text-sm font-bold">템플릿 선택</legend>
-        <p className="break-keep text-sm font-medium leading-relaxed text-zinc-500">
+        <legend className="text-copy font-medium">템플릿 선택</legend>
+        <p className="break-keep text-copy font-medium leading-relaxed text-zinc-500">
           Basic 카테고리를 먼저 선택한 뒤 해당 카테고리 안의 디자인을 고릅니다.
         </p>
       </div>
