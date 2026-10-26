@@ -1084,7 +1084,7 @@ function LocalizationSectionContent({
             자동 번역 초안은 비어 있는 번역 칸에만 채워지며, 이미 입력한 번역은 유지됩니다.
           </p>
           <Tabs value={activeLocale} onValueChange={value => setActiveLocale(value as SupportedLocale)} className="mt-5 gap-5">
-            <TabsList variant="underline" size="lg" aria-label="번역 언어 선택">
+            <TabsList variant="underline" size="md" aria-label="번역 언어 선택">
               {(["ko", ...TRANSLATABLE_LOCALES] as SupportedLocale[]).map((locale) => (
                 <TabsTrigger key={locale} value={locale}>
                   {locale === "ko" ? "한국어 원문" : LOCALE_LABELS[locale]}
@@ -1093,7 +1093,7 @@ function LocalizationSectionContent({
             </TabsList>
             <TabsContent value={activeLocale}>
               <Tabs value={activeTargetGroup} onValueChange={value => setActiveTargetGroup(value as TranslationTargetGroup)} className="site-section site-editor-subpanel gap-0 overflow-hidden">
-                <TabsList variant="underline" size="lg" aria-label="번역 항목 선택">
+                <TabsList variant="underline" size="sm" aria-label="번역 항목 선택">
                   {translationTargetGroups.map((group) => (
                     <TabsTrigger key={group} value={group}>{translationTargetLabels[group]}</TabsTrigger>
                   ))}

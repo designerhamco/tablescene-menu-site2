@@ -74,3 +74,37 @@ test("content tabs, settings tabs and subordinate filters retain different share
     assert.match(tabCss, new RegExp(`\\.${cls}:is\\(:focus-visible, \\[data-ui-state="focus"\\]\\)`));
   }
 });
+
+test("content and view controls share three sizes without promoting nested guide or translation controls", () => {
+  const tabs = read("app/components/ui/tabs.tsx");
+  assert.match(tabs, /TabsSize = "sm" \| "md" \| "lg"/);
+  assert.match(tabs, /size = "md"/);
+  for (const [size, height, font] of [["sm", "2.5rem", ".875rem"], ["md", "3rem", "1rem"], ["lg", "3.5rem", "1.125rem"]]) {
+    const rule = tabCss.match(new RegExp(`\\.site-tab-size-${size} \\{([^}]+)\\}`))?.[1];
+    assert.ok(rule, `missing ${size}`);
+    assert.ok(rule.includes(`--site-tab-height: ${height}`));
+    assert.ok(rule.includes(`--site-tab-font: ${font}`));
+  }
+  const nav = read("app/components/ui/navigation-tabs.tsx");
+  assert.match(nav, /size\?: TabsSize/);
+  assert.doesNotMatch(nav, /site-topic-tabs-lg/);
+  assert.match(read("app/components/home/TemplateShowcase.tsx"), /site-filter-group mb-8/);
+  assert.match(read("app/components/home/HomeProductStory.tsx"), /site-tabs-outline site-tab-size-sm/);
+  const guide = read("components/guides/UsageGuidePage.tsx");
+  assert.match(guide, /size="lg" aria-label="플랜별 사용가이드"/);
+  assert.match(guide, /site-filter-group \$\{styles.topics\}/);
+  assert.match(guide, /aria-current="location"/);
+  assert.doesNotMatch(guide, /className="site-topic-tab"/);
+  assert.match(read("components/mypage/menu-editor/LocalizationSection.tsx"), /size="sm" aria-label="번역 항목 선택"/);
+});
+
+test("native and custom selects reserve a common chevron gutter without affecting listboxes or menu renderers", () => {
+  const select = read("app/components/ui/select.tsx");
+  assert.match(select, /className="site-select-chevron" size=\{20\} strokeWidth=\{2\.25\}/);
+  assert.match(css, /--site-select-chevron-size: 1\.25rem; --site-select-chevron-inset: 1rem; --site-select-trailing-space: 3rem/);
+  assert.match(css, /stroke-width='2\.25'/);
+  assert.match(css, /select:not\(\[multiple\]\):is\(:not\(\[size\]\), \[size="1"\]\):not\(:where\(\.menu-typography/);
+  assert.match(css, /appearance: auto; background-image: none/);
+  assert.match(css, /\[data-state="open"\] \.site-select-chevron \{ transform: rotate\(180deg\)/);
+  assert.match(css, /\.site-field:disabled,[\s\S]*?background-color: var\(--ui-surface-muted\)/);
+});

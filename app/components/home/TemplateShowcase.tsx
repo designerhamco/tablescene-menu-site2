@@ -52,8 +52,8 @@ export default function TemplateShowcase({ service = 'all', presentation = 'cata
           />
         </div>
         {!isFeatured ? (
-          <div className="site-tabs mb-8" role="group" aria-label="템플릿 업종 선택">
-            {categories.map((item) => <button key={item.key} type="button" className="site-tab" aria-pressed={category === item.key} onClick={() => setCategory(item.key)}>{item.label}</button>)}
+          <div className="site-filter-group mb-8" role="group" aria-label="템플릿 업종 선택">
+            {categories.map((item) => <button key={item.key} type="button" className={`site-filter${isDisplay ? " site-filter-inverse" : ""}`} aria-pressed={category === item.key} onClick={() => setCategory(item.key)}>{item.label}</button>)}
           </div>
         ) : null}
         {isDiningShowcase ? <TabletTemplateCarousel /> : <div className="site-template-grid">
