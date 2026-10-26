@@ -6,9 +6,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import styles from "./SiteComponentGallery.module.css";
 
 const sizes = [
-  ["lg", "대 · 페이지의 주요 분류", "탭 56px / 18px · 세그먼트 56px / 18px"],
-  ["md", "중 · 섹션 안의 분류", "탭 48px / 16px · 세그먼트 48px / 15–16px"],
-  ["sm", "소 · 도구 안의 세부 선택", "탭 40px / 15px · 세그먼트 40px / 15px"],
+  ["lg", "대 · 페이지의 주요 분류", "탭 48px / 16px · 세그먼트 48px / 16px"],
+  ["md", "중 · 섹션 안의 분류", "탭 44px / 15px · 세그먼트 44px / 15px"],
+  ["sm", "소 · 도구 안의 세부 선택", "탭 40px / 14px · 세그먼트 40px / 14px"],
 ] as const;
 const options = [
   ["all", "전체 상태"], ["draft", "작성 중"], ["published", "공개 중"],

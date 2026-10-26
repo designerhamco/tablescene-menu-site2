@@ -96,7 +96,7 @@ for (const width of [375, 768, 992, 1280, 1440, 2560]) {
     }
     await page.goto(base + '/apply', { waitUntil: 'domcontentloaded' });
     const tabs = page.getByRole('tablist', { name: '서비스 및 페이지 유형 선택' });
-    await expect(tabs).toHaveCSS('min-height', '52px');
+    await expect(tabs).toHaveCSS('min-height', '48px');
     await expect(tabs.getByRole('tab', { selected: true })).toHaveText('다이닝 원페이지');
     await tabs.getByRole('tab', { selected: true }).focus();
     await page.keyboard.press('ArrowRight');

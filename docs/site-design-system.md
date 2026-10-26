@@ -29,11 +29,11 @@
 
 - 서체는 기존 Pretendard를 유지한다. 현재 공통 역할 수치는 `docs/site-typography-final.md`와 `lib/site-typography.ts`를 단일 기준으로 사용한다. 페이지 제목은28/32/36px, 도입 설명은18/18/20px이며, 내부 섹션·콘텐츠·보조 문구는 각 의미 역할을 따른다. 사이트 헤더 탐색과 주요 탭은 별도 컨트롤 역할을 유지한다.
 - 2026-10-25 공개 화면 참고: [크몽](https://kmong.com/)은 PC 홍보 제목 40px/주요 섹션 28–36px/일반 섹션 24px, [잡코리아](https://www.jobkorea.co.kr/)는 주 탐색 18px/정보 섹션 18px/설명 모달 제목 24px, [사람인](https://www.saramin.co.kr/)은 주 탐색 16px/추천 보조 14px를 사용했다. 관찰한 역할별 대비를 아티메뉴 토큰에 맞췄으며, 각 사이트의 CSS/이미지/문구를 복사하지 않는다. 페이지/계정/마케팅의 정보 밀도가 다르므로 모든 제목을 같은 크기로 강제하지 않는다.
-- `Button`: 색상 역할(primary/outline/secondary/danger)은 그대로 유지하며 `shape=pill|rounded|square`로 최대 라운드/8px/8px를 선택한다. 최소 높이는 기존 40px와 `lg=48px`, `xl=56px`. 긴 문구가 줄바꿈되면 높이는 늘어날 수 있다. 작은 모서리는 목록/도구 진입, 8px는 일반 사각 실행/보기 CTA, pill은 퀵메뉴처럼 명시된 용도에만 사용한다. 흰 버튼은 회색 경계와 hover/active 경계를 유지한다.
+- `Button`: 색상 역할(primary/outline/secondary/danger)은 그대로 유지하며 `shape=pill|rounded|square`로 최대 라운드/8px/8px를 선택한다. 최소 높이는 기존 40px와 `lg=48px`, `xl=52px`. 긴 문구가 줄바꿈되면 높이는 늘어날 수 있다. 작은 모서리는 목록/도구 진입, 8px는 일반 사각 실행/보기 CTA, pill은 퀵메뉴처럼 명시된 용도에만 사용한다. 흰 버튼은 회색 경계와 hover/active 경계를 유지한다.
 - `ChoiceTile`: 기존 `site-choice` 경계 안의 아이콘+이름 선택 버튼. `inline`은 업종/짧은 필터, `feature`는 충분한 설명이 필요한 폼 선택이다. 선택한 흰 카드에 진한 경계와 노란 아이콘 바탕을 사용하며 내용 카드에 테두리를 확산하지 않는다. feature 설명은 좁은 모바일에서 시각적으로 접고 접근 가능한 설명 연결은 유지한다. 일반 선택은 aria-pressed, 탭 호출자는 기존 aria-selected/방향키 계약을 보유한다.
 - `TabsList`: `segmented` 기본값과 `outline` 밝은 선택+진한 경계, `underline` 열린 밑줄 변형. `size=lg`는 큰 탐색용으로 쓰며 모든 변형은 Radix 키보드 동작을 공유한다. `TabsTrigger count`는 별도 칩 없이 건수를 표시한다. 선택/hover/active/disabled와 포커스를 구분하고 모션 감소를 존중한다.
 - `EmptyState`: 넓은 옅은 바탕에 아이콘·제목·설명·명시적인 다음 행동을 배치한다. 템플릿 필터의 빈 결과에는 실제 필터를 초기화하는 액션을 연결한다. 장식 테두리·그림자나 허위 상태 수치를 추가하지 않는다.
-- 실제 적용: `/apply` 서비스는 밑줄 탐색 탭, 업종은 공통 compact 아이콘 선택, 종류는 흰 패널과 연결되는 contained 탭이다. 썸네일이 선택 UI보다 우선하며 카드 미리보기는 40px 사각 실행이다. 홈·서비스의 주요 시작 CTA는 최대 56px, 요금 카드와 사용법 진입은 48px를 사용한다. 문구 기반 폭을 기본으로 하며 과거의 64px hero와 448px 강제 너비는 제거했다.
+- 실제 적용: `/apply` 서비스는 밑줄 탐색 탭, 업종은 공통 compact 아이콘 선택, 종류는 흰 패널과 연결되는 contained 탭이다. 썸네일이 선택 UI보다 우선하며 카드 미리보기는 40px 사각 실행이다. 홈·서비스의 주요 시작 CTA는 최대 52px, 요금 카드와 사용법 진입은 48px를 사용한다. 문구 기반 폭을 기본으로 하며 과거의 64px hero와 448px 강제 너비는 제거했다.
 - 고객 메뉴판의 서체·색상·fit·간격·장식에는 새 변형을 전파하지 않는다. 새 값은 `--ui-*`와 명시적 `site-*` 클래스에만 둔다.
 
 ## 컴포넌트 표현 기준 (2026-10-18)
@@ -109,7 +109,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 | 상태·여러 콘텐츠 탐색 | underline Tabs / NavigationTabs | 밑줄과 글자 굵기로 선택. 로컬 전환과 URL 이동의 의미 구분 |
 | 일반 실행 | Button default | 40px/14px, 좌우16px, 내용 길이에 맞는 폭 |
 | 강조 실행 | Button lg | 48px/16px, 좌우20px |
-| 주요 시작 CTA | Button xl | 56px/16px, 좌우24px. 64px hero와 강제448px 폭 변형 제거 |
+| 주요 시작 CTA | Button xl | 52px/16px, 좌우24px. 64px hero와 강제448px 폭 변형 제거 |
 
 - 반복 액션/아이콘 선택 간격은8px, 별도 읽기 그룹 간격은16/24px를 기본으로 사용한다. 공통 값은 --ui-control-*에 둔다.
 - 메뉴판 관리·템플릿 카드의 편집/미리보기/QR 등 일반 실행은40px의 문구 기반 폭이다. 폼 제출처럼 용도가 명확한 곳만 명시적으로 전체 폭을 허용한다.
@@ -179,7 +179,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 - `styles/typography.css`가 단일 폰트 기준이다. Pretendard 400 본문 / 500 보조 강조 / 600 항목·탐색 / 700 주요 제목을 구분한다. 일반 페이지 제목은 모바일28px·태블릿32px·PC36px이다.
 - 본문은 모바일·태블릿 16px / 1024px 이상 17px, 소개는 18/20px, 보조 설명은 14/15px, 날짜·메타는 13/14px이다. `text-copy`/`text-support`/`text-meta`는 크기·줄높이만 정하므로 필요한 굵기·색상을 합성할 수 있다. `cn`의 Tailwind 병합도 이 역할을 인식한다.
 - PC 글자를 키우기 위해 html/rem 또는 기초 `--font-size-*`, 기존 `text-xs`/`text-sm` 값을 바꾸지 않는다. 실제 메뉴판의 독립 폰트·핏·축소 미리보기에는 영향을 주지 않는다.
-- 폼 컨트롤은 필터 `sm` 40px, 계정 `md` 44px, 신청 `lg` 48px, 큰 질문 검색 56px/PC 64px이다. Input/Textarea는 `fieldSize`, SelectTrigger는 `size`를 사용하며 네이티브 입력은 `data-field-size` 또는 `site-field-*`로 동일 규격을 사용한다. 네이티브 input의 `size`는 문자 수 속성으로 보존한다.
+- 폼 컨트롤은 필터 `sm` 40px, 계정 `md` 44px, 신청 `lg` 48px, 큰 질문 검색 56px이다. Input/Textarea는 `fieldSize`, SelectTrigger는 `size`를 사용하며 네이티브 입력은 `data-field-size` 또는 `site-field-*`로 동일 규격을 사용한다. 네이티브 input의 `size`는 문자 수 속성으로 보존한다.
 - 값 입력은 16px 이상/400 굵기, 필드명 15–16px/600, 안내 14–15px/400–500이다. 입력 모서리는 12px, 동일 행의 input/select는 같은 높이를 사용한다. 검색용 큰 입력을 일반 로그인/신청 화면에 적용하지 않는다.
 - 입력은 기본/hover/포커스/오류/읽기 전용/비활성을 구분한다. 포커스는 기존 2px 파란 경계를 유지하고, 오류는 `aria-invalid`와 설명 연결을 함께 사용한다. checkbox/radio/color/range/file/hidden은 텍스트 입력 높이에서 제외한다.
 - 정보 카드는 흰 표면·옅은 회색 경계·12px 모서리, 하위 묶음만 옅은 회색 바탕을 쓴다. 선택/요금 카드는 `site-plan-card`로 재사용한다. 선택 시 흰 바탕·진한 경계와 명시적 선택 표시, 제목 18–20px·요금 32px·설명 14–15px로 구분한다. 본문 전체를 굵게 만들지 않는다.
@@ -198,7 +198,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 
 - `Tabs variant="folder"`: 둥근 사선 파일 윤곽과 검정 선택면. 디자인/문서처럼 성격이 뚜렷한 주요 목록을 콘텐츠 위에서 전환한다. SVG 마스크는 표면만 그리며 텍스트와 키보드 포커스는 마스킹하지 않는다.
 - `Tabs variant="flow"`: 옅은 회색 rail 안에서 흰 선택 탭이 파일형과 같은 사선 옆면·둥근 모서리로 아래 흰 패널과 이어진다. 오목한 연결 곡선은 사용하지 않는다. 선택 표시는 3px의 짧은 밑줄을 함께 쓴다.
-- 두 변형은 Root에 지정해 List/Trigger/Content까지 상속한다. 기존 `size="sm|md|lg"`의 40/48/56px 및 15/16/18px, `distribution="content|equal"`, disabled, 방향키/Home/End 계약을 재사용한다. 좁은 화면의 긴 탭 목록은 rail 안에서만 가로 스크롤한다.
+- 두 변형은 Root에 지정해 List/Trigger/Content까지 상속한다. `size="sm|md|lg"`의 40/44/48px 및 14/15/16px, `distribution="content|equal"`, disabled, 방향키/Home/End 계약을 재사용한다. 좁은 화면의 긴 탭 목록은 rail 안에서만 가로 스크롤한다.
 - 라이브러리의 `#shaped-tabs`에서 두 유형과 대·중·소를 실제로 전환하고 상태 표에서 기본/hover/pressed/focus/disabled를 비교한다. 업종 필터·보기 세그먼트와 용도를 구분한다.
 - 공통 Footer는 옅은 라운드 표면에 브랜드/서비스/이용 안내/고객지원, 사업자 정보, 약관을 묶고 같은 회색 표면의 맨 아래에 배경보다 조금 진한 연회색 장식 워드마크를 배치한다. 워드마크의 하단은 표면의 둥근 경계 안에서 잘리며, 박스 바깥에는 표시하지 않는다. 실제 정보는 보통 본문·보조 크기를 유지하며 장식 글자만 의도적으로 일부 잘라 표시하고 `aria-hidden` 처리한다. 외부 사업자 확인 링크와 기존 사업자·연락 정보는 유지한다.
 - 스타일은 `app/components/layout/Footer.module.css` 한 곳에서 관리한다. 구 landing Footer도 동일 컴포넌트를 다시 내보내며 페이지별 푸터 디자인을 복제하지 않는다. `#site-footer`는 라이브러리 바로가기에서도 실제 푸터를 보여준다.
@@ -218,7 +218,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 - 중립 배경·구분 면·푸터는 `--ui-surface`/`--ui-surface-muted`/`--ui-surface-soft`를 공유한다. 기본·보조·메타 글자색과 상태색은 같은 의미 토큰을 사용한다. 회색·유색 면에는 외곽 테두리를 추가하지 않는다.
 - 페이지 h1은 `type-page-title`(28/32/36px)이다. 로그인·베이직·다이닝·디스플레이·고객센터·신청·템플릿 목록과 상세를 포함해 H1 바로 아래 문구는 모두 `type-page-description`(16/16/17px)을 사용한다.
 - `type-body-lg`(18/18/20px)는 페이지별 도입 설명을 다르게 만드는 역할이 아니다. 섹션 안에서 기본 본문보다 강조할 짧은 문장에만 사용한다. 관리 화면의 조밀한 단계는 내부 섹션·카드·폼·메타에만 적용한다.
-- 베이직·다이닝·디스플레이 같은 탭 문구는 본문이 아니라 컨트롤 라벨이다. `TabsList`의 lg/md/sm이 18/16/15px을 제공하며 같은 크기의 탭은 페이지와 무관하게 같은 글자 크기를 사용한다.
+- 베이직·다이닝·디스플레이 같은 탭 문구는 본문이 아니라 컨트롤 라벨이다. `TabsList`의 lg/md/sm이 16/15/14px을 제공하며 같은 크기의 탭은 페이지와 무관하게 같은 글자 크기를 사용한다.
 - 인증 화면에서 비밀번호 찾기·회원가입·로그인 복귀 같은 계정 보조 이동은 `type-body-sm`(14/14/15px)을 사용한다. 보조 이동이 기능 설명보다 크게 보이지 않게 한다.
 - 작은 카드의 이름·설명·메타는 `type-card-title` 18px / `type-card-body` 14px / `type-card-detail` 13px이다. 템플릿·신청 카드와 현황·내역·요금 카드에 사용하며, 가격·통계 수치의 강조는 독립적이다.
 - 팝업 제목·본문·작은 안내는 18/14/13px이다. 작은 하단 안내·폼 도움말은 PC·모바일 모두 `type-footnote` 13px·400·줄높이1.6이다. 입력값은 기존 16px을 유지한다.
