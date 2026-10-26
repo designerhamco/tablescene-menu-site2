@@ -78,14 +78,14 @@ export default function CallItemManager({
           ) : null}
         </div>
         <div className="flex flex-wrap gap-2">
-        <button type="button" disabled={pending} onClick={() => setDraft(getServiceStaffCallItems(service))} className="site-button site-button-rounded site-button-secondary text-xs">
+        <button type="button" disabled={pending} onClick={() => setDraft(getServiceStaffCallItems(service))} className="site-button site-button-rounded site-button-secondary">
           기본 항목 불러오기
         </button>
         <button
           type="button"
           onClick={addItem}
           disabled={pending || draft.length >= MAX_STAFF_CALL_ITEMS}
-          className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center gap-2 text-xs disabled:cursor-not-allowed disabled:opacity-50"
+          className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           항목 추가
@@ -120,13 +120,13 @@ export default function CallItemManager({
               사용
             </label>
             <div className="flex items-center justify-end gap-1">
-              <button type="button" onClick={() => moveItem(index, -1)} disabled={index === 0} className="rounded-full p-2 text-zinc-600 hover:bg-zinc-100 disabled:opacity-30" aria-label={`${item.label} 위로 이동`}>
+              <button type="button" onClick={() => moveItem(index, -1)} disabled={index === 0} className="site-button site-button-ghost site-button-icon" aria-label={`${item.label} 위로 이동`}>
                 <ArrowUp className="h-4 w-4" aria-hidden="true" />
               </button>
-              <button type="button" onClick={() => moveItem(index, 1)} disabled={index === draft.length - 1} className="rounded-full p-2 text-zinc-600 hover:bg-zinc-100 disabled:opacity-30" aria-label={`${item.label} 아래로 이동`}>
+              <button type="button" onClick={() => moveItem(index, 1)} disabled={index === draft.length - 1} className="site-button site-button-ghost site-button-icon" aria-label={`${item.label} 아래로 이동`}>
                 <ArrowDown className="h-4 w-4" aria-hidden="true" />
               </button>
-              <button type="button" onClick={() => removeItem(index)} disabled={draft.length <= 1} className="rounded-full p-2 text-rose-600 hover:bg-rose-50 disabled:opacity-30" aria-label={`${item.label} 제거`}>
+              <button type="button" onClick={() => removeItem(index)} disabled={draft.length <= 1} className="site-button site-button-danger-ghost site-button-icon" aria-label={`${item.label} 제거`}>
                 <Trash2 className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
@@ -140,7 +140,7 @@ export default function CallItemManager({
         ) : null}
 
         <div className="flex justify-end pt-2">
-          <button type="submit" disabled={pending} className="site-button site-button-rounded site-button-primary text-sm disabled:cursor-wait disabled:opacity-60">
+          <button type="submit" disabled={pending} className="site-button site-button-rounded site-button-primary">
             {pending ? "저장 중" : "호출 항목 저장"}
           </button>
         </div>

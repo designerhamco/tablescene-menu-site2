@@ -241,7 +241,7 @@ export default function ImageUploadField({
               type="button"
               disabled={isLoading}
               onClick={() => inputRef.current?.click()}
-              className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center gap-1.5 text-xs disabled:cursor-not-allowed"
+              className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center"
             >
               {isLoading ? (
                 <>
@@ -257,7 +257,7 @@ export default function ImageUploadField({
                 type="button"
                 disabled={isLoading}
                 onClick={() => setIsConfirmingDelete(true)}
-                className="site-button site-button-rounded site-button-outline-danger inline-flex items-center justify-center text-xs disabled:cursor-not-allowed"
+                className="site-button site-button-rounded site-button-outline-danger inline-flex items-center justify-center"
               >
                 이미지 삭제
               </button>
@@ -281,7 +281,7 @@ export default function ImageUploadField({
                 type="button"
                 disabled={isLoading}
                 onClick={() => setIsConfirmingDelete(false)}
-                className="site-button site-button-rounded site-button-outline text-sm"
+                className="site-button site-button-rounded site-button-outline"
               >
                 취소
               </button>
@@ -289,7 +289,7 @@ export default function ImageUploadField({
                 type="button"
                 disabled={isLoading}
                 onClick={deleteImage}
-                className="site-button site-button-rounded site-button-danger inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed"
+                className="site-button site-button-rounded site-button-danger inline-flex items-center justify-center"
               >
                 {isLoading ? (
                   <>

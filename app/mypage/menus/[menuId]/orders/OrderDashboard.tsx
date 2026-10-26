@@ -128,7 +128,7 @@ export default function OrderDashboard({
             <p className="text-sm font-bold text-zinc-900">최근 주문 {orders.length.toLocaleString("ko-KR")}건</p>
             <p className="mt-1 text-xs font-bold text-zinc-500">15초마다 자동 갱신하며, 상태 변경은 서버가 현재 값을 다시 확인합니다.</p>
           </div>
-          <button type="button" onClick={() => router.refresh()} className="site-button site-button-rounded site-button-secondary text-xs">
+          <button type="button" onClick={() => router.refresh()} className="site-button site-button-rounded site-button-secondary">
             지금 새로고침
           </button>
         </div>
@@ -157,7 +157,7 @@ export default function OrderDashboard({
               </div>
               <div className="text-left md:text-right">
                 <p className="text-2xl font-bold">{formatAmount(order.totalAmount)}</p>
-                <button type="button" onClick={() => setPrintOrderId(order.id)} className="mt-2 text-xs font-bold text-zinc-500 underline underline-offset-4">
+                <button type="button" onClick={() => setPrintOrderId(order.id)} className="site-button site-button-link mt-2">
                   브라우저 영수증 인쇄
                 </button>
               </div>
@@ -188,7 +188,7 @@ export default function OrderDashboard({
                   <input type="hidden" name="orderId" value={order.id} />
                   <input type="hidden" name="nextStatus" value={order.nextStatus} />
                   <p className="text-xs font-bold text-emerald-900">다음 단계: {STATUS_LABELS[order.nextStatus]}</p>
-                  <button name="intent" value="transition" disabled={pending} className="site-button site-button-rounded site-button-outline mt-3 w-full text-xs disabled:opacity-60">
+                  <button name="intent" value="transition" disabled={pending} className="site-button site-button-rounded site-button-outline mt-3 w-full">
                     상태 변경
                   </button>
                 </form>
@@ -205,7 +205,7 @@ export default function OrderDashboard({
                       <option value="manual_cash">현금</option>
                     </select>
                   </label>
-                  <button name="intent" value="manual-payment" disabled={pending} className="site-button site-button-rounded site-button-outline mt-3 w-full text-xs disabled:opacity-60">
+                  <button name="intent" value="manual-payment" disabled={pending} className="site-button site-button-rounded site-button-outline mt-3 w-full">
                     결제 완료 기록
                   </button>
                 </form>
@@ -219,7 +219,7 @@ export default function OrderDashboard({
                     미결제 주문 취소
                     <textarea name="reason" required maxLength={500} rows={2} placeholder="취소 사유" className="site-field mt-2 w-full resize-none border-rose-200 px-3 py-2" />
                   </label>
-                  <button name="intent" value="cancel" disabled={pending} className="site-button site-button-rounded site-button-outline mt-3 w-full text-xs disabled:opacity-60">
+                  <button name="intent" value="cancel" disabled={pending} className="site-button site-button-rounded site-button-outline mt-3 w-full">
                     주문 취소
                   </button>
                 </form>

@@ -73,7 +73,7 @@ function CallPreviewToggle({
   order?: boolean;
 }) {
   return (
-    <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-white/10 px-2 text-xs font-bold">
+    <label className="site-preview-control site-preview-choice">
       <input
         type="checkbox"
         aria-label={order ? "주문 기능 미리보기" : "호출 기능 미리보기"}
@@ -293,11 +293,7 @@ export default function MenuPreviewDeviceFrame(
                     scroll={false}
                     tabIndex={showToolbar ? undefined : -1}
                     aria-current={isSelected ? "page" : undefined}
-                    className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl px-2 py-2 text-xs font-bold transition-colors ${
-                      isSelected
-                        ? "bg-white text-zinc-950"
-                        : "bg-zinc-950/45 text-white hover:bg-zinc-950/60"
-                    }`}
+                    className="site-preview-control"
                   >
                     <PreviewDeviceIcon device={candidate} />
                     {candidateFrame.label}
@@ -316,7 +312,7 @@ export default function MenuPreviewDeviceFrame(
                 })}
                 scroll={false}
                 tabIndex={showToolbar ? undefined : -1}
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-white/10 text-white transition-colors hover:bg-white/20"
+                className="site-preview-control site-preview-control-icon"
               >
                 <PreviewOrientationIcon />
               </Link>
@@ -341,14 +337,14 @@ export default function MenuPreviewDeviceFrame(
                 {([['orderedBalancedFit', '묶음형'], ['orderedFit', '채움형']] as const).map(([mode, label]) => (
                   <Link key={mode} href={buildPreviewUrl({device, orientation, layoutMode: mode})} scroll={false} tabIndex={showToolbar ? undefined : -1}
                     aria-current={layoutMode === mode ? "true" : undefined} data-preview-layout-mode={mode}
-                    className={`rounded-lg px-2 py-2 text-xs font-bold ${layoutMode === mode ? "bg-white text-zinc-950" : "text-white/75 hover:bg-white/10"}`}>
+                    className="site-preview-control">
                     {label}
                   </Link>
                 ))}
               </div>
             ) : null}
             {props.editHref ? <Link href={props.editHref} aria-label="메뉴관리에서 수정하기" title="메뉴관리에서 수정하기" data-preview-edit-link="" tabIndex={showToolbar ? undefined : -1}
-              className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl border border-white/30 bg-white/10 px-2 text-xs font-bold text-white transition-colors hover:bg-white/20 active:bg-white/25">
+              className="site-preview-control">
               <Pencil className="h-4 w-4" aria-hidden="true" /><span className="hidden min-[430px]:inline">수정하기</span>
             </Link> : null}
             <Link
@@ -359,7 +355,7 @@ export default function MenuPreviewDeviceFrame(
               title="새 창에서 메뉴판 보기"
               data-preview-detached-link=""
               tabIndex={showToolbar ? undefined : -1}
-              className="site-button site-button-primary inline-flex shrink-0 items-center justify-center gap-1.5 text-[0.7rem]"
+              className="site-preview-control"
             >
               <ExternalLink
                 className="h-4 w-4"

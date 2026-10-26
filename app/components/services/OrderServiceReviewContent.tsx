@@ -44,13 +44,13 @@ export default function OrderServiceReviewContent() {
           <div className="mt-10 flex flex-wrap gap-3">
             <Link
               href="/templates/cafe_real_matcha_a/preview?orderCallQa=active"
-              className="site-button site-button-outline inline-flex items-center justify-center text-sm"
+              className="site-button site-button-outline inline-flex items-center justify-center"
             >
               주문·호출 화면 미리보기
             </Link>
             <Link
               href="/pricing"
-              className="site-button site-button-outline inline-flex items-center justify-center text-sm"
+              className="site-button site-button-outline inline-flex items-center justify-center"
             >
               현재 판매 상품 보기
             </Link>

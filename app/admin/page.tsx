@@ -186,7 +186,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/mypage"
-                className="site-button site-button-primary flex items-center justify-center text-sm"
+                className="site-button site-button-primary flex items-center justify-center"
               >
                 마이페이지로 이동
               </Link>
@@ -314,7 +314,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
             <Link href="/admin/announcements" className="site-button site-button-secondary">공지사항 관리</Link>
             <Link
               href="/mypage"
-              className="site-button site-button-outline text-sm"
+              className="site-button site-button-outline"
             >
               마이페이지
             </Link>

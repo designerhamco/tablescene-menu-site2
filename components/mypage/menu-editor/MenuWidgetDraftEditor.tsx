@@ -284,11 +284,7 @@ export default function MenuWidgetDraftEditor({
                         type="button"
                         aria-pressed={selected}
                         onClick={() => patchSettings({ objectPosition: position })}
-                        className={`min-h-11 rounded-lg border px-2 py-2 text-xs font-bold transition ${
-                          selected
-                            ? "border-zinc-950 bg-zinc-950 text-white"
-                            : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
-                        }`}
+                        className="site-choice site-choice-control"
                       >
                         {OBJECT_POSITION_LABELS[position] ?? position}
                       </button>
@@ -347,7 +343,7 @@ export default function MenuWidgetDraftEditor({
               type="button"
               onClick={onCopy}
               disabled={widgetCount >= maxWidgetCount}
-              className="site-button site-button-rounded site-button-outline mr-auto text-sm disabled:cursor-not-allowed"
+              className="site-button site-button-rounded site-button-outline mr-auto"
             >
               복사
             </button>
@@ -356,23 +352,23 @@ export default function MenuWidgetDraftEditor({
             isConfirmingDelete ? (
               <span className="flex flex-wrap items-center justify-end gap-2">
                 <span className="text-xs font-bold text-red-600">이 위젯을 삭제할까요?</span>
-                <button type="button" onClick={onConfirmDelete} className="site-button site-button-rounded site-button-danger text-xs">삭제</button>
-                <button type="button" onClick={onCancelDelete} className="site-button site-button-rounded site-button-outline text-xs">취소</button>
+                <button type="button" onClick={onConfirmDelete} className="site-button site-button-rounded site-button-danger">삭제</button>
+                <button type="button" onClick={onCancelDelete} className="site-button site-button-rounded site-button-outline">취소</button>
               </span>
             ) : (
-              <button type="button" onClick={onRequestDelete} className="site-button site-button-rounded site-button-outline-danger text-sm">
+              <button type="button" onClick={onRequestDelete} className="site-button site-button-rounded site-button-outline-danger">
                 삭제
               </button>
             )
           ) : null}
-          <button type="button" onClick={onCancel} className="site-button site-button-rounded site-button-outline text-sm">
+          <button type="button" onClick={onCancel} className="site-button site-button-rounded site-button-outline">
             취소
           </button>
           <button
             type="button"
             onClick={onSave}
             disabled={saveDisabled}
-            className="site-button site-button-rounded site-button-primary text-sm disabled:cursor-not-allowed"
+            className="site-button site-button-rounded site-button-primary"
           >
             {saveLabel}
           </button>

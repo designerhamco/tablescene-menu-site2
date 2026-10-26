@@ -15,7 +15,6 @@
 .sidebarHeading { display: flex; align-items: center; justify-content: space-between; margin-bottom: .5rem; }
 .serviceLabel { color: var(--ui-text-muted); }
 .serviceLabel > span { margin-inline: .4rem; color: var(--ui-border-strong); }
-.share { width: 2.5rem; padding: 0; flex-shrink: 0; }
 .headingActions { display: flex; flex: none; align-items: center; gap: .25rem; }
 .templateDescription { margin-top: .75rem; color: var(--ui-text-muted); }
 .gallery { margin-block: 1.5rem; }

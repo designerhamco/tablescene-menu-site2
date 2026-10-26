@@ -136,7 +136,7 @@ function LocalizationSaveButton({ disabled = false, children = "저장" }: { dis
     <button
       type="submit"
       disabled={disabled || isPending}
-      className="site-button site-button-rounded site-button-primary shrink-0 disabled:bg-zinc-100 disabled:text-zinc-400"
+      className="site-button site-button-rounded site-button-primary shrink-0"
     >
       {isPending ? (
         <>
@@ -166,7 +166,7 @@ function TranslationSubmitButton({
       type="button"
       onClick={onClick}
       disabled={disabled || pending}
-      className="site-button site-button-rounded site-button-primary shrink-0 disabled:bg-zinc-100 disabled:text-zinc-400"
+      className="site-button site-button-rounded site-button-primary shrink-0"
     >
       {pending ? (
         <>
@@ -352,7 +352,7 @@ function TranslationEditorGroup({
                     type="button"
                     disabled={Boolean(pendingPartialEntityKey) || isPartialUsageExceeded}
                     onClick={() => onPartialTranslate(group.fields)}
-                    className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center gap-1.5 text-xs disabled:cursor-not-allowed"
+                    className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
                   >
                     {pendingPartialEntityKey === `${group.fields[0]?.entityType}:${group.entityId}` ? (
                       <>
@@ -1012,7 +1012,7 @@ function LocalizationSectionContent({
                             retryOfJobId: state.status === "failed" ? state.jobId ?? null : null,
                           })
                         }
-                        className="site-button site-button-rounded site-button-outline mt-2 inline-flex w-full items-center justify-center gap-1.5 text-xs disabled:cursor-not-allowed"
+                        className="site-button site-button-rounded site-button-outline mt-2 inline-flex w-full items-center justify-center"
                       >
                         {isPending ? (
                           <>
@@ -1057,7 +1057,7 @@ function LocalizationSectionContent({
               <button
                 type="button"
                 onClick={() => applyRecoverableTranslationDraft(recoverableAutoTranslationJob)}
-                className="site-button site-button-rounded site-button-outline inline-flex shrink-0 items-center justify-center text-sm"
+                className="site-button site-button-rounded site-button-outline inline-flex shrink-0 items-center justify-center"
               >
                 최근 자동 번역 결과 불러오기
               </button>
@@ -1167,7 +1167,7 @@ function LocalizationSectionContent({
                 type="button"
                 onClick={() => setOverwriteRequest(null)}
                 disabled={Boolean(pendingPartialEntityKey)}
-                className="site-button site-button-rounded site-button-outline text-sm disabled:cursor-not-allowed"
+                className="site-button site-button-rounded site-button-outline"
               >
                 취소
               </button>
@@ -1175,7 +1175,7 @@ function LocalizationSectionContent({
                 type="button"
                 onClick={() => void runPartialTranslation(overwriteRequest)}
                 disabled={Boolean(pendingPartialEntityKey)}
-                className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center gap-2 text-sm disabled:cursor-not-allowed"
+                className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center"
               >
                 {pendingPartialEntityKey ? (
                   <>

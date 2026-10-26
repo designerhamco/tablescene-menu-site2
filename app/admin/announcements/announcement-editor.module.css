@@ -29,40 +29,6 @@
   margin-right: 0.25rem;
   font-size: 0.875rem;
 }
-.toolbar button,
-.imageTools button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  min-width: 2.75rem;
-  min-height: 2.75rem;
-  padding: 0.5rem;
-  border-radius: 0.5rem;
-  color: var(--ui-text);
-  font-size: 0.875rem;
-}
-.toolbar button:hover:not(:disabled),
-.imageTools button:hover:not(:disabled) {
-  background: var(--ui-surface);
-}
-.toolbar button[aria-pressed="true"] {
-  background: var(--ui-text);
-  color: var(--ui-surface);
-}
-.toolbar button:focus-visible,
-.imageTools button:focus-visible {
-  outline: 2px solid var(--ui-focus);
-  outline-offset: 2px;
-}
-.toolbar button:disabled,
-.imageTools button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-.toolbar .attach {
-  padding-inline: 0.75rem;
-}
 .surface {
   min-height: 22rem;
 }
@@ -99,9 +65,6 @@
 }
 .imageTools input {
   width: 100%;
-}
-.imageTools button {
-  border: 1px solid var(--ui-border);
 }
 .feedback {
   color: #9f2828;

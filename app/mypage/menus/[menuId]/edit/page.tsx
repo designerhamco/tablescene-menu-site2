@@ -855,20 +855,20 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               {accessState?.canOwnerPreview ? (
-                <Link href={`/mypage/menus/${site.id}/preview`} target="_blank" rel="noopener noreferrer" className="site-button site-button-rounded site-button-outline text-sm">
+                <Link href={`/mypage/menus/${site.id}/preview`} target="_blank" rel="noopener noreferrer" className="site-button site-button-rounded site-button-outline">
                   미리보기
                 </Link>
               ) : null}
               {accessState?.canConvertToBusiness ? (
-                <Link href={`/mypage/menus/${site.id}/convert`} className="site-button site-button-rounded site-button-outline text-sm">
+                <Link href={`/mypage/menus/${site.id}/convert`} className="site-button site-button-rounded site-button-outline">
                   구독을 시작하고 복구
                 </Link>
               ) : (
-                <Link href="/mypage?tab=payments&billingTab=expired" className="site-button site-button-rounded site-button-primary text-sm">
+                <Link href="/mypage?tab=payments&billingTab=expired" className="site-button site-button-rounded site-button-primary">
                   구독/결제 상태 확인
                 </Link>
               )}
-              <Link href="/mypage?tab=inquiries" className="site-button site-button-rounded site-button-outline text-sm">
+              <Link href="/mypage?tab=inquiries" className="site-button site-button-rounded site-button-outline">
                 고객지원 문의
               </Link>
             </div>
@@ -1121,10 +1121,10 @@ function CustomEditorUnavailable({ siteName }: { siteName: string }) {
               <p>{siteName} 프로젝트는 상담 및 제작 진행 상황에 맞춰 별도로 안내됩니다.</p>
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/mypage" className="site-button site-button-rounded site-button-primary text-sm">
+              <Link href="/mypage" className="site-button site-button-rounded site-button-primary">
                 메뉴판 목록으로
               </Link>
-              <Link href="/mypage/inquiries" className="site-button site-button-rounded site-button-outline text-sm">
+              <Link href="/mypage/inquiries" className="site-button site-button-rounded site-button-outline">
                 상담 내역 확인하기
               </Link>
             </div>
@@ -1913,14 +1913,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
               {accessState?.canConvertToBusiness ? (
                 <Link
                   href={`/mypage/menus/${site.id}/convert`}
-                  className="site-button site-button-rounded site-button-outline text-sm"
+                  className="site-button site-button-rounded site-button-outline"
                 >
                   구독을 시작하고 복구
                 </Link>
               ) : (
                 <Link
                   href="/mypage/inquiries"
-                  className="site-button site-button-rounded site-button-outline text-sm"
+                  className="site-button site-button-rounded site-button-outline"
                 >
                   고객지원 문의
                 </Link>
@@ -2520,14 +2520,14 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         <div className="flex flex-wrap gap-2">
                           <Link
                             href="/apply"
-                            className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center text-sm"
+                            className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center"
                           >
                             다른 템플릿 보기
                           </Link>
                           {accessContext.isOwner ? (
                             <Link
                               href={`/mypage/menus/${site.id}/import`}
-                              className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-sm"
+                              className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
                             >
                               메뉴 가져오기
                             </Link>

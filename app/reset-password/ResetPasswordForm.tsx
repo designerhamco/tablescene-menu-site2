@@ -145,7 +145,7 @@ export default function ResetPasswordForm({
       <button
         type="submit"
         disabled={state === "submitting"}
-        className="site-button site-button-primary site-button-lg w-full disabled:bg-zinc-300"
+        className="site-button site-button-primary site-button-lg w-full"
       >
         {state === "submitting" ? "변경 확인 중..." : "비밀번호 변경하기"}
       </button>

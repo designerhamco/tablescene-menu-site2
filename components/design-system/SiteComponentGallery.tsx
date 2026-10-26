@@ -13,6 +13,7 @@ import HelpTooltip from "@/components/ui/HelpTooltip";
 import CatalogDesignCard from "@/components/templates/CatalogDesignCard";
 import { catalogDesigns } from "@/lib/catalog-designs";
 import DesignFoundations from "./DesignFoundations";
+import ControlStateExamples from "./ControlStateExamples";
 import ReferenceComponentExamples from "./ReferenceComponentExamples";
 import styles from "./SiteComponentGallery.module.css";
 
@@ -36,8 +37,8 @@ export default function SiteComponentGallery() {
       <p className="site-body">디자인 기준과 실제 사이트에 사용하는 공통 컴포넌트를 한곳에서 확인합니다.</p>
       <p className="type-body-sm text-zinc-600">스타일 확인용 예시입니다. 선택과 좋아요는 이 화면에서만 유지됩니다.</p>
     </header>
-    <Tabs defaultValue="components" className="mt-6 gap-0"><TabsList variant="underline" size="lg" aria-label="디자인 시스템 메뉴"><TabsTrigger value="foundations">기준·토큰</TabsTrigger><TabsTrigger value="components">컴포넌트 라이브러리</TabsTrigger></TabsList><TabsContent value="foundations"><DesignFoundations /></TabsContent><TabsContent value="components"><ReferenceComponentExamples />
-    <Examples title="크기와 형태가 다른 버튼" description="일반 실행은 40px, 강조 실행은 48·56px로 나누고, 둥근형·라운드 사각형·작은 모서리를 선택합니다.">
+    <Tabs defaultValue="components" className="mt-6 gap-0"><TabsList variant="underline" size="lg" aria-label="디자인 시스템 메뉴"><TabsTrigger value="foundations">기준·토큰</TabsTrigger><TabsTrigger value="components">컴포넌트 라이브러리</TabsTrigger></TabsList><TabsContent value="foundations"><DesignFoundations /></TabsContent><TabsContent value="components"><ControlStateExamples /><ReferenceComponentExamples />
+    <Examples title="크기와 형태가 다른 버튼" description="일반 실행은 40px·모서리 8px로 통일합니다. 강조 실행은 48·56px, 둥근형은 퀵메뉴에 사용합니다.">
       <div className={styles.buttonRow}>
         <Button asChild><Link href="/apply">시작하기</Link></Button>
         <Button size="lg" shape="rounded" variant="outline" asChild><Link href="/apply">디자인 살펴보기 <ArrowRight /></Link></Button>

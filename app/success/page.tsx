@@ -107,20 +107,20 @@ export default async function SuccessPage({ searchParams }: PageProps) {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href={menuSite ? `/mypage/menus/${menuSite.id}/edit` : "/mypage"}
-              className="site-button site-button-outline inline-flex items-center justify-center text-sm"
+              className="site-button site-button-outline inline-flex items-center justify-center"
             >
               마이페이지에서 편집하기
             </Link>
             <Link
               href="/mypage"
-              className="site-button site-button-outline inline-flex items-center justify-center text-sm"
+              className="site-button site-button-outline inline-flex items-center justify-center"
             >
               마이페이지로 이동
             </Link>
             <button
               type="button"
               disabled
-              className="site-button site-button-secondary inline-flex cursor-not-allowed items-center justify-center text-sm"
+              className="site-button site-button-secondary inline-flex cursor-not-allowed items-center justify-center"
             >
               공개 페이지 준비중
             </button>

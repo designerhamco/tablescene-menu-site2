@@ -86,7 +86,7 @@ const ServicePlans = () => {
               {service.available ? (
                 <Link
                   to={service.href}
-                  className="site-button site-button-primary mt-auto flex w-full items-center justify-center text-base"
+                  className="site-button site-button-primary mt-auto flex w-full items-center justify-center"
                 >
                   {service.cta}
                 </Link>

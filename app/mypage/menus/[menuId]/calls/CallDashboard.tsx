@@ -107,7 +107,7 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
                 <p className="text-sm font-bold text-zinc-900">처리할 호출 {unresolvedCount.toLocaleString("ko-KR")}건 · 최근 이력 {calls.length.toLocaleString("ko-KR")}건</p>
                 <p className="mt-1 text-xs font-bold text-zinc-500">최신 호출부터 표시하며 15초마다 자동으로 갱신합니다.</p>
               </div>
-              <button type="button" onClick={() => router.refresh()} className="site-button site-button-rounded site-button-secondary text-xs">지금 새로고침</button>
+              <button type="button" onClick={() => router.refresh()} className="site-button site-button-rounded site-button-secondary">지금 새로고침</button>
             </div>
 
             <div className="mt-4 grid gap-2 md:grid-cols-[minmax(12rem,1fr)_auto_auto_auto]">
@@ -158,7 +158,7 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
                     <input type="hidden" name="menuSiteId" value={menuSiteId} />
                     <input type="hidden" name="callId" value={call.id} />
                     <input type="hidden" name="nextStatus" value={call.nextStatus} />
-                    <button disabled={pending} className="site-button site-button-rounded site-button-primary min-w-32">{call.nextStatus === "completed" ? "처리 완료" : "호출 확인"}</button>
+                    <button disabled={pending} className="site-button site-button-rounded site-button-primary">{call.nextStatus === "completed" ? "처리 완료" : "호출 확인"}</button>
                   </form>
                 ) : null}
               </div>

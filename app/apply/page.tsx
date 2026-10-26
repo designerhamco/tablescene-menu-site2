@@ -42,7 +42,7 @@ export default async function ApplyPage({ searchParams }: { searchParams: Promis
                 템플릿 범위를 넘어선 별도 브랜딩과 기능이 필요하다면 커스텀 제작을 상담해 주세요.
               </p>
             </div>
-            <Link href="/apply/custom" className="site-button site-button-secondary site-consultation-button mt-8">
+            <Link href="/apply/custom" className="site-button site-button-secondary site-button-lg mt-8">
               커스텀 상담
             </Link>
           </section>

@@ -72,7 +72,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               <p className="mt-3 text-sm font-semibold text-zinc-400">디자인 포함 월 {formatProductPrice(product.designPrice)} · 정상가 {formatProductPrice(product.designRegularPrice)}</p>
               <Link
                 href={purchaseHref}
-                className="site-button site-button-secondary mt-6 inline-flex w-full items-center justify-center text-sm"
+                className="site-button site-button-secondary mt-6 inline-flex w-full items-center justify-center"
               >
                 이 상품 신청하기
               </Link>

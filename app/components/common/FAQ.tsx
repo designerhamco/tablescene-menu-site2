@@ -408,11 +408,7 @@ const FAQ = ({
                 <button
                   key={idx}
                   onClick={() => handleTabChange(idx)}
-                  className={`type-label rounded-full px-5 py-2.5 transition-all duration-300 ${
-                    activeTab === idx
-                      ? homeDark ? 'bg-white text-zinc-950' : 'bg-zinc-900 text-white'
-                      : homeDark ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 hover:text-white' : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-950'
-                  }`}
+                  className={`site-filter ${homeDark ? "site-filter-inverse" : ""}`} aria-pressed={activeTab === idx}
                 >
                   {category.category}
                 </button>

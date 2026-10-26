@@ -30,11 +30,7 @@ export default function MenuWidgetTypePicker({ value, onChange, disabled = false
             disabled={disabled}
             onClick={() => onChange(option.value)}
             aria-pressed={selected}
-            className={`rounded-lg border px-3 py-3 text-left transition ${
-              selected
-                ? "border-zinc-950 bg-zinc-950 text-white"
-                : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
-            } disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-400`}
+            className="site-choice site-choice-control"
           >
             <span className="block text-sm font-bold">{option.label}</span>
             <span className={`mt-1 block break-keep text-xs font-bold leading-relaxed ${selected ? "text-zinc-200" : "text-zinc-400"}`}>

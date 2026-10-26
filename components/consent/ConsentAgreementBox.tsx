@@ -82,7 +82,7 @@ export function ConsentAgreementBox<T extends string>({
               <button
                 type="button"
                 onClick={() => onOpen(key)}
-                className="site-button site-button-secondary shrink-0 text-xs"
+                className="site-button site-button-secondary shrink-0"
               >
                 보기
               </button>
@@ -103,7 +103,7 @@ export function ConsentAgreementBox<T extends string>({
             <div className="border-b border-zinc-100 p-6">
               <div className="flex items-start justify-between gap-4">
                 <h3 className="type-subsection-title break-keep">{activeItem.detailTitle}</h3>
-                <button type="button" onClick={onClose} className="site-button site-button-outline text-xs">
+                <button type="button" onClick={onClose} className="site-button site-button-outline">
                   닫기
                 </button>
               </div>
@@ -112,7 +112,7 @@ export function ConsentAgreementBox<T extends string>({
               {activeItem.detail}
             </div>
             <div className="border-t border-zinc-100 p-6">
-              <button type="button" onClick={onClose} className="site-button site-button-primary inline-flex w-full items-center justify-center text-sm">
+              <button type="button" onClick={onClose} className="site-button site-button-primary inline-flex w-full items-center justify-center">
                 확인
               </button>
             </div>

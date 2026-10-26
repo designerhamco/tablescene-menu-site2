@@ -156,7 +156,7 @@ export default function FeaturedSlidesEditor({
                       type="button"
                       onClick={() => moveSlide(index, -1)}
                       disabled={index === 0}
-                      className="site-button site-button-rounded site-button-outline text-xs disabled:cursor-not-allowed"
+                      className="site-button site-button-rounded site-button-outline"
                     >
                       위로
                     </button>
@@ -164,14 +164,14 @@ export default function FeaturedSlidesEditor({
                       type="button"
                       onClick={() => moveSlide(index, 1)}
                       disabled={index === slides.length - 1}
-                      className="site-button site-button-rounded site-button-outline text-xs disabled:cursor-not-allowed"
+                      className="site-button site-button-rounded site-button-outline"
                     >
                       아래로
                     </button>
                     <button
                       type="button"
                       onClick={() => setSlides((current) => normalizeSlides(current.filter((item) => item.id !== slide.id)))}
-                      className="site-button site-button-rounded site-button-outline-danger text-xs"
+                      className="site-button site-button-rounded site-button-outline-danger"
                     >
                       삭제
                     </button>
@@ -218,7 +218,7 @@ export default function FeaturedSlidesEditor({
               )
             }
             disabled={slides.length >= effectiveMaxSlides}
-            className="site-button site-button-rounded site-button-primary text-xs disabled:cursor-not-allowed"
+            className="site-button site-button-rounded site-button-primary"
           >
             대표 이미지 추가
           </button>

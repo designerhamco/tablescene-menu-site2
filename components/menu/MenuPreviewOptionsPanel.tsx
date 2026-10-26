@@ -6,6 +6,7 @@ import { getTemplatePreviewOptionGroups } from "@/lib/template-preview-options";
 import type { DefaultDesignOptionKey, DefaultDesignOptions } from "@/lib/default-design-options";
 import type { PreviewDesign, PreviewDesignDefaults } from "@/lib/menu-preview-design";
 import PreviewDesignOptions from "./PreviewDesignOptions";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import styles from "./MenuPreviewOptionsPanel.module.css";
 
 export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, pending, templateKey, defaults, design, onDesignChange, album, alignmentDisabled = false }: {
@@ -40,25 +41,22 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
       <p className={styles.experienceNote} data-preview-experience-note>
         보기·디자인 옵션을 바꿔 템플릿을 체험해 보세요.<br />변경 내용은 미리보기에만 적용되며 저장되지 않습니다.
       </p>
-      <div role="tablist" aria-label="미리보기 옵션 종류" className={styles.tabs}>
-        {([["features", "기능 옵션"], ["design", "디자인 옵션"]] as const).map(([value, label]) => <button key={value} type="button" role="tab" id={`preview-${value}-tab`} aria-controls={`preview-${value}-panel`} aria-selected={tab === value} tabIndex={tab === value ? 0 : -1} className={styles.tab}
-          onClick={() => onTabChange(value)} onKeyDown={event => {
-            if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
-            event.preventDefault();
-            const next = event.key === "Home" ? "features" : event.key === "End" ? "design" : value === "features" ? "design" : "features";
-            onTabChange(next); document.getElementById(`preview-${next}-tab`)?.focus();
-          }}>{label}</button>)}
-      </div>
-      <div id="preview-features-panel" role="tabpanel" aria-labelledby="preview-features-tab" data-preview-display-options hidden={tab !== "features"}>
+      <Tabs variant="outline" value={tab} onValueChange={onTabChange}>
+        <TabsList distribution="equal" aria-label="미리보기 옵션 종류" className="mb-4 w-full">
+          <TabsTrigger value="features" id="preview-features-tab" aria-controls="preview-features-panel">기능 옵션</TabsTrigger>
+          <TabsTrigger value="design" id="preview-design-tab" aria-controls="preview-design-panel">디자인 옵션</TabsTrigger>
+        </TabsList>
+        <TabsContent value="features" id="preview-features-panel" aria-labelledby="preview-features-tab" data-preview-display-options>
         <div className={styles.groups}>{groups.map(group => <fieldset key={group.label} className={styles.group}>
           <legend>{group.label}</legend><div className={styles.choices}>{group.choices.map(([key, label]) => <label key={key} className={styles.choice}>
             <input type="checkbox" aria-label={`${label} 보기`} checked={values[key]} disabled={pending || ((key === "featuredPreview" || key === "coverImagesPreview") && !values.coverPreview)} onChange={event => onFeatureChange(key, event.target.checked)} />{label}
           </label>)}</div>
         </fieldset>)}</div>
-      </div>
-      <div id="preview-design-panel" role="tabpanel" aria-labelledby="preview-design-tab" hidden={tab !== "design"}>
+        </TabsContent>
+        <TabsContent value="design" id="preview-design-panel" aria-labelledby="preview-design-tab">
         {open && defaults ? <PreviewDesignOptions templateKey={templateKey} defaults={defaults} value={design} album={album} dining={templateKey.startsWith("dining_")} disabled={pending} alignmentDisabled={alignmentDisabled} onChange={onDesignChange} /> : null}
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   </aside>;
 }

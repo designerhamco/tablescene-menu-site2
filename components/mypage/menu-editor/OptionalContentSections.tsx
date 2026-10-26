@@ -149,7 +149,7 @@ function SubmitButton({
       type="submit"
       disabled={disabled || isPending}
       {...props}
-      className={`site-button disabled:bg-zinc-100 disabled:text-zinc-400 ${className} ${customClassName ?? ""}`}
+      className={`site-button ${className} ${customClassName ?? ""}`}
     >
       {isPending ? (
         <>
@@ -196,7 +196,7 @@ function EmptyState({
         type="button"
         onClick={onCreate}
         disabled={disabled}
-        className="site-button site-button-rounded site-button-primary mt-5 text-sm disabled:cursor-not-allowed"
+        className="site-button site-button-rounded site-button-primary mt-5"
       >
         {buttonLabel}
       </button>

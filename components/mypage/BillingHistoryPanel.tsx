@@ -381,7 +381,7 @@ function RestoreSubscriptionModal({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center text-xs"
+        className="site-button site-button-rounded site-button-primary inline-flex items-center justify-center"
       >
         구독 관리
       </button>
@@ -399,7 +399,7 @@ function RestoreSubscriptionModal({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="site-button site-button-rounded site-button-secondary inline-flex w-10 shrink-0 items-center justify-center text-lg"
+                className="site-button site-button-rounded site-button-secondary inline-flex shrink-0 items-center justify-center site-button-icon"
                 aria-label="복구 안내 닫기"
               >
                 ×
@@ -507,7 +507,7 @@ function RestoreSubscriptionModal({
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-sm"
+                className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
               >
                 닫기
               </button>

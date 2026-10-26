@@ -2390,11 +2390,7 @@ export default function ApplyOrderForm({
                       }));
                       if (nextTemplate) setSelectedCategory(nextTemplate.template_category);
                     }}
-                    className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
-                      selectedDisplayTemplateGroup === filter.key
-                        ? "border-zinc-950 bg-zinc-950 text-white"
-                        : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
-                    }`}
+                    className="site-filter" aria-pressed={selectedDisplayTemplateGroup === filter.key}
                   >
                     {filter.label}
                   </button>
@@ -2414,9 +2410,7 @@ export default function ApplyOrderForm({
                         template_key: nextTemplate?.key ?? "",
                       }));
                     }}
-                    className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
-                      selectedMenuTemplateGroup === filter.key ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
-                    }`}
+                    className="site-filter" aria-pressed={selectedMenuTemplateGroup === filter.key}
                   >
                     {filter.label}
                   </button>
@@ -2436,9 +2430,7 @@ export default function ApplyOrderForm({
                           }));
                         }
                       }}
-                      className={`shrink-0 rounded-full border px-4 py-2 text-sm font-bold transition-colors ${
-                        selectedCategory === filter.key ? "border-zinc-950 bg-zinc-950 text-white" : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400"
-                      }`}
+                      className="site-filter" aria-pressed={selectedCategory === filter.key}
                     >
                       {filter.label}
                     </button>
@@ -2592,9 +2584,7 @@ export default function ApplyOrderForm({
                       key={buyerType}
                       type="button"
                       onClick={() => updateField("buyerType", buyerType)}
-                      className={`rounded-xl px-4 py-3 text-sm font-bold transition-colors ${
-                        form.buyerType === buyerType ? "bg-zinc-950 text-white" : "text-zinc-500 hover:bg-white"
-                      }`}
+                      className="site-filter" aria-pressed={form.buyerType === buyerType}
                     >
                       {buyerType === "individual" ? "개인" : "사업자"}
                     </button>
@@ -2660,7 +2650,7 @@ export default function ApplyOrderForm({
                       type="button"
                       onClick={handleBusinessVerificationCheck}
                       disabled={businessVerificationState.type === "checking"}
-                      className="site-button site-button-primary inline-flex shrink-0 items-center justify-center gap-2 text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                      className="site-button site-button-primary inline-flex shrink-0 items-center justify-center"
                     >
                       {businessVerificationState.type === "checking" ? <LoadingSpinner className="h-3.5 w-3.5" /> : null}
                       {businessVerificationState.type === "checking" ? "확인 중..." : "사업자 정보 확인"}
@@ -2753,7 +2743,7 @@ export default function ApplyOrderForm({
                     <button
                       type="button"
                       onClick={handleApplyPromotionCode}
-                      className="site-button site-button-primary shrink-0 text-sm"
+                      className="site-button site-button-primary shrink-0"
                     >
                       {isOpenPromotionApplied ? "적용됨" : "적용"}
                     </button>
@@ -2823,12 +2813,12 @@ export default function ApplyOrderForm({
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <span>{activeAgreementLabels[key]}</span>
-                      {key === "terms" ? <a href="/terms" target="_blank" className="text-xs font-bold text-zinc-400 underline underline-offset-4 transition-colors hover:text-zinc-800">링크</a> : null}
-                      {key === "privacy" ? <a href="/privacy" target="_blank" className="text-xs font-bold text-zinc-400 underline underline-offset-4 transition-colors hover:text-zinc-800">링크</a> : null}
+                      {key === "terms" ? <a href="/terms" target="_blank" className="site-button site-button-link">링크</a> : null}
+                      {key === "privacy" ? <a href="/privacy" target="_blank" className="site-button site-button-link">링크</a> : null}
                       <button
                         type="button"
                         onClick={() => setActiveAgreement(key)}
-                        className="text-xs font-bold text-zinc-400 underline underline-offset-4 transition-colors hover:text-zinc-800"
+                        className="site-button site-button-link"
                       >
                         자세히보기
                       </button>
@@ -2898,7 +2888,7 @@ export default function ApplyOrderForm({
                   !normalizeRecoverablePaymentId(recoveryPaymentIdInput || pendingPaymentCompletion?.paymentId || "") ||
                   (isSubscriptionProduct && !recoverySubscriptionIdInput.trim())
                 }
-                className="site-button site-button-outline mt-3 inline-flex w-full items-center justify-center text-xs disabled:cursor-not-allowed"
+                className="site-button site-button-outline mt-3 inline-flex w-full items-center justify-center"
               >
                 결제창 없이 후처리만 재시도
               </button>
@@ -2920,7 +2910,7 @@ export default function ApplyOrderForm({
             type="button"
             onClick={handlePayment}
             disabled={paymentButtonDisabled}
-            className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center text-sm disabled:cursor-not-allowed"
+            className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center"
           >
             {activeProduct.product_key === personalTrialBasicProduct.product_key && paymentButtonLabel.includes("신청") ? "동의하고 첫 달 체험 시작하기" : isFormReady && !isLoading ? "동의하고 메뉴판 생성하기" : paymentButtonLabel}
           </button>
@@ -3168,7 +3158,7 @@ function TermsModal({ title, details, onClose }: { title: string; details: strin
         <div className="border-b border-zinc-100 p-6">
           <div className="flex items-start justify-between gap-4">
             <h3 className="type-subsection-title text-zinc-950">{title}</h3>
-            <button type="button" onClick={onClose} className="site-button site-button-outline text-xs">
+            <button type="button" onClick={onClose} className="site-button site-button-outline">
               닫기
             </button>
           </div>
@@ -3182,7 +3172,7 @@ function TermsModal({ title, details, onClose }: { title: string; details: strin
           ))}
         </div>
         <div className="border-t border-zinc-100 p-6">
-          <button type="button" onClick={onClose} className="site-button site-button-primary inline-flex w-full items-center justify-center text-sm">
+          <button type="button" onClick={onClose} className="site-button site-button-primary inline-flex w-full items-center justify-center">
             확인
           </button>
         </div>

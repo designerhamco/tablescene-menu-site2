@@ -430,8 +430,8 @@ function MultiPageVisual() {
       <div className="flex items-center justify-between">
         <p className="text-[9px] font-bold text-zinc-400 md:text-[10px]">페이지 전환으로 이어지는 메뉴 구성</p>
         <div className="flex gap-2">
-          <button type="button" onClick={() => goToPage(-1)} aria-label="이전 메뉴 페이지" className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-950 shadow-sm transition-colors hover:bg-zinc-100"><ChevronLeft className="h-4 w-4" /></button>
-          <button type="button" onClick={() => goToPage(1)} aria-label="다음 메뉴 페이지" className="flex h-9 w-9 items-center justify-center rounded-full bg-zinc-950 text-white shadow-sm transition-colors hover:bg-zinc-800"><ChevronRight className="h-4 w-4" /></button>
+          <button type="button" onClick={() => goToPage(-1)} aria-label="이전 메뉴 페이지" className="site-button site-button-outline site-button-icon"><ChevronLeft className="h-4 w-4" /></button>
+          <button type="button" onClick={() => goToPage(1)} aria-label="다음 메뉴 페이지" className="site-button site-button-primary site-button-icon"><ChevronRight className="h-4 w-4" /></button>
         </div>
       </div>
     </div>

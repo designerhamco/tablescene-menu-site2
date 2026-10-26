@@ -328,7 +328,7 @@ export default function UsageGuidePage({
           onValueChange={(value) => setPlan(normalizeGuidePlan(value))}
           className={styles.tabs}
         >
-          <TabsList aria-label="플랜별 사용가이드" className={styles.planTabs}>
+          <TabsList variant="underline" size="lg" aria-label="플랜별 사용가이드" className={styles.planTabs}>
             {GUIDE_PLANS.map((entry) => (
               <TabsTrigger key={entry.id} value={entry.id}>
                 {entry.label}
