@@ -63,6 +63,17 @@
 .site-management-scope :where(p, li).text-copy { font-weight: var(--font-weight-regular); }
 .site-management-scope :where(.type-page-title, .type-section-title, .type-subsection-title) { font-weight: var(--font-weight-strong); }
 .site-management-scope :where(.type-content-title, .type-item-title, .type-label, .type-control) { font-weight: var(--font-weight-semibold); }
+.site-management-scope :where(input, textarea, select):not(:where(
+    [type="checkbox"],
+    [type="radio"],
+    [type="file"],
+    [type="color"],
+    [type="range"],
+    [type="hidden"]
+  )):not(.menu-typography *):not(.menu-typography, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) {
+  font-size: var(--type-body-size);
+  font-weight: var(--font-weight-regular);
+}
 
 /* Editing needs distinct work areas rather than transparent content groups. */
 .site-editor-workspace { background: var(--ui-surface-muted); }
