@@ -14,6 +14,7 @@
     "lint": "eslint",
     "test": "node --import ./scripts/register-test-css.mjs --import tsx --test lib/*.test.ts",
     "qa:site-design-system": "node scripts/qa-site-design-system.mjs",
+    "qa:site-type-scale": "node scripts/qa-site-type-scale.mjs",
     "qa:public-surfaces": "node scripts/qa-public-surfaces.mjs",
     "qa:one-page-contract": "ADAPTIVE_QA_FULL=1 ADAPTIVE_QA_QUIET=1 node scripts/qa-one-page-adaptive.mjs",
     "qa:template-preview-locales": "ADAPTIVE_QA_FULL=1 ADAPTIVE_QA_QUIET=1 node scripts/qa-one-page-adaptive.mjs",

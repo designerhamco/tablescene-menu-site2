@@ -40,11 +40,11 @@
 .site-management-scope {
   --type-section-title-size: var(--site-type-24);
   --type-subsection-title-size: var(--site-type-20);
-  --type-content-title-size: var(--site-type-17);
+  --type-content-title-size: var(--site-type-18);
   --type-item-title-size: var(--site-type-16);
-  --type-body-size: var(--site-type-15);
+  --type-body-size: var(--site-type-16);
   --type-body-sm-size: var(--site-type-14);
-  --text-copy: var(--site-type-15);
+  --text-copy: var(--site-type-16);
   --text-support: var(--site-type-14);
   --type-label-size: var(--site-type-14);
   --type-nav-size: var(--site-type-15);
@@ -583,7 +583,7 @@
 .site-progress-ring circle { fill: none; stroke-width: 9; }
 .site-progress-track { stroke: var(--ui-surface-soft); }
 .site-progress-value { stroke: var(--ui-success-text); stroke-linecap: round; transform: rotate(-90deg); transform-origin: center; }
-.site-progress-ring text { fill: var(--ui-success-text); font-size: var(--site-type-22); font-weight: 700; }
+.site-progress-ring text { fill: var(--ui-success-text); font-size: var(--site-type-24); font-weight: 700; }
 .site-date-strip button:focus-visible, .site-activity-bars button:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
 @media(min-width:768px) { .site-activity-grid { grid-template-columns: minmax(0,2fr) minmax(0,1fr); } }
 .site-record-action-form { flex: 1 1 13rem; min-width: 0; }

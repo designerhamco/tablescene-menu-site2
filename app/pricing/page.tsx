@@ -80,7 +80,7 @@ export default function PricingPage() {
                 <article key={plan.name} className="site-section flex min-h-[250px] flex-col p-7">
                   <h3 className="type-subsection-title">{plan.name}</h3>
                   <p className="mt-4 flex-1 break-keep text-copy font-semibold leading-relaxed text-zinc-600">{plan.description}</p>
-                  <p className="mt-6 text-lg font-bold text-zinc-950">{plan.price}</p>
+                  <p className="type-item-title mt-6 text-zinc-950">{plan.price}</p>
                   {"href" in plan ? (
                     <Link
                       href={plan.href}
