@@ -15,6 +15,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/app/compo
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import HelpTooltip from "@/components/ui/HelpTooltip";
 import CatalogDesignCard from "@/components/templates/CatalogDesignCard";
+import CatalogIndustryIcon from "@/components/templates/CatalogIndustryIcon";
 import { catalogDesigns } from "@/lib/catalog-designs";
 import DesignFoundations from "./DesignFoundations";
 import SelectionControlExamples from "./SelectionControlExamples";
@@ -62,8 +63,8 @@ export default function SiteComponentGallery() {
         {choices.map(({key,label}) => <TabsTrigger key={key} value={key}>{label}</TabsTrigger>)}
       </TabsList>{choices.map(({key,description}) => <TabsContent key={key} value={key} className="type-body text-zinc-600">{description}</TabsContent>)}</Tabs>
     </Examples>
-    <Examples title="이모지 선택 버튼" description="업종에는 컬러 이모지와 짧은 이름을 사용합니다. Mac·iPhone은 애플 이모지, 다른 기기는 해당 기기의 기본 이모지로 표시됩니다.">
-      <ChoiceGroup><ChoiceTile emoji="☕" label="카페·베이커리" selected={industry} onClick={()=>setIndustry(current=>!current)} /><ChoiceTile emoji="🍽️" label="준비 중인 업종" disabled /></ChoiceGroup>
+    <Examples title="업종 선택 버튼" description="업종에는 카테고리를 바로 이해할 수 있는 단색 아이콘과 짧은 이름을 사용합니다.">
+      <ChoiceGroup><ChoiceTile size="compact" icon={<CatalogIndustryIcon industry="cafe_bakery" />} label="카페·베이커리" selected={industry} onClick={()=>setIndustry(current=>!current)} /><ChoiceTile size="compact" icon={<CatalogIndustryIcon industry="restaurant_dining" />} label="준비 중인 업종" disabled /></ChoiceGroup>
     </Examples>
     <Examples title="목록과 이어지는 탭" description="서로 다른 목록을 같은 자리에서 전환할 때 사용합니다. 선택한 탭과 아래 영역의 바탕색을 이어 주고, 업종 필터와 형태를 구분합니다.">
       <Tabs variant="contained" defaultValue="designer"><TabsList distribution="equal" aria-label="연결형 템플릿 탭 예시">

@@ -8,6 +8,7 @@ import {
   filterCatalogDesigns,
   normalizeCatalogLayoutFilter,
   type CatalogKind,
+  type CatalogIndustry,
   type CatalogLayoutFilter,
   type CatalogService,
 } from "@/lib/catalog-designs";
@@ -16,6 +17,7 @@ import { EmptyState } from "@/app/components/ui/empty-state";
 import { ChoiceGroup, ChoiceTile } from "@/app/components/ui/choice-tile";
 import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import CatalogDesignCard from "@/components/templates/CatalogDesignCard";
+import CatalogIndustryIcon from "@/components/templates/CatalogIndustryIcon";
 import CatalogLayoutIcon from "@/components/templates/CatalogLayoutIcon";
 import CatalogLayoutSelect from "@/components/templates/CatalogLayoutSelect";
 import useTemplateFavorites from "@/components/templates/useTemplateFavorites";
@@ -31,11 +33,6 @@ const KIND_TABS = [
   { key: "designer", label: "디자인 템플릿", description: "완성된 스타일에 우리 매장 메뉴를 넣어 시작하세요." },
   { key: "standard", label: "기본 템플릿", description: "기본 레이아웃에서 색상과 글꼴을 매장에 맞게 직접 설정하세요." },
 ] as const;
-const INDUSTRY_EMOJI = {
-  all: "🗂️", cafe_bakery: "☕",
-  restaurant_dining: "🍽️", japanese: "🍣", pub_bar: "🍸", quick_meal: "🥪",
-};
-
 export default function TemplateGallery({
   initialProduct = "dining_single",
   initialKind = "designer",
@@ -100,7 +97,7 @@ export default function TemplateGallery({
     return filters.map(item => {
       const icon = item.key === "list" || item.key === "album"
         ? { icon: <CatalogLayoutIcon layout={item.key} /> }
-        : kind === "designer" ? { emoji: INDUSTRY_EMOJI[item.key as keyof typeof INDUSTRY_EMOJI] } : { emoji: "🗂️" };
+        : { icon: <CatalogIndustryIcon industry={item.key as CatalogIndustry} /> };
       return <ChoiceTile key={item.key} size="compact" {...icon} label={item.label} selected={filter === item.key} onClick={() => selectFilter(item.key)} />;
     });
   }
