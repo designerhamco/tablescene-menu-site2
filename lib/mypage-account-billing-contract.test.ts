@@ -38,12 +38,17 @@ test("mypage navigation uses separate surfaces and a sticky single-line rail bef
 });
 
 test("mypage menu cards use the shared gallery layout on PC and tablet", () => {
+  assert.match(mypageSource, /className="site-menu-card-list"/);
   assert.match(mypageSource, /className="site-card site-menu-card"/);
   assert.match(mypageSource, /className="site-menu-card-media"/);
+  assert.match(mypageSource, /className="site-menu-card-details"/);
   assert.match(mypageSource, /className="site-menu-card-meta"/);
   assert.match(siteDesignSource, /\.site-menu-card-media \{[\s\S]*?aspect-ratio: 16 \/ 9/);
   assert.match(siteDesignSource, /\.site-menu-card-meta \{[\s\S]*?background: var\(--ui-surface-muted\)/);
   assert.match(siteDesignSource, /\.site-menu-card-actions \{[\s\S]*?grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/);
+  assert.match(siteDesignSource, /@media \(min-width: 768px\) \{[\s\S]*?\.site-menu-card \{[\s\S]*?grid-template-columns: clamp\(13rem, 28vw, 17rem\) minmax\(0, 1fr\)/);
+  assert.match(siteDesignSource, /@media \(min-width: 768px\) \{[\s\S]*?\.site-menu-card-actions \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\)/);
+  assert.doesNotMatch(mypageSource, /className="grid gap-4 md:grid-cols-2"/);
   assert.doesNotMatch(mypageSource, /<article key=\{card\.key\} className="site-card p-5">/);
 });
 
