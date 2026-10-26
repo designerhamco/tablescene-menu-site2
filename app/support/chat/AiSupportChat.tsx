@@ -1,18 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { ArrowUp, ArrowUpRight, Coins, LoaderCircle, PanelsTopLeft, QrCode } from "lucide-react";
+import { FormEvent, useEffect, useId, useRef, useState } from "react";
+import SupportBotAvatar from "./SupportBotAvatar";
+import styles from "./ai-support-chat.module.css";
 
 type Message = { role: "user" | "assistant"; text: string };
 
 const SUGGESTIONS = [
-  "단일페이지와 멀티페이지의 차이가 궁금해요",
-  "대표 QR은 어떻게 사용하나요?",
-  "AI 크레딧은 언제, 얼마나 사용되나요?",
-  "디스플레이에서 할인과 동영상을 사용할 수 있나요?",
+  { icon: PanelsTopLeft, text: "단일페이지와 멀티페이지의 차이가 궁금해요" },
+  { icon: QrCode, text: "대표 QR은 어떻게 사용하나요?" },
+  { icon: Coins, text: "AI 크레딧은 언제, 얼마나 사용되나요?" },
 ] as const;
 
 export default function AiSupportChat({ compact = false }: { compact?: boolean }) {
+  const inputId = useId();
   const messageViewportRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState("");
@@ -73,61 +76,52 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
   };
 
   return (
-    <section className={`site-card min-h-0 overflow-hidden ${compact ? "site-card-compact flex h-full flex-col" : ""}`}>
-      {!compact ? (
-        <div className="border-b border-zinc-100 px-5 py-5 md:px-7">
-          <h2 className="type-content-title">상담 범위</h2>
-          <p className="type-body-sm mt-1 text-zinc-500">
-            요금제, 메뉴판 제작, 다국어, 대표 QR과 디스플레이 이용 방법을 안내합니다.
-          </p>
-        </div>
-      ) : null}
-
+    <section className={`${styles.root} ${compact ? styles.compact : ""}`} data-ai-support-chat>
       <div
         ref={messageViewportRef}
-        className={`${compact ? "min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-5 sm:py-5 md:max-h-[46dvh]" : "min-h-[420px] px-5 py-6 md:px-7"} space-y-4 bg-zinc-50`}
+        className={styles.viewport}
+        role="log"
+        aria-label="AI 상담 대화"
         aria-live="polite"
       >
         {messages.length === 0 ? (
-          <div className={`mx-auto flex max-w-xl flex-col items-center text-center ${compact ? "py-6 sm:py-9" : "py-12"}`}>
-            <p className="type-subsection-title">무엇을 도와드릴까요?</p>
-            <p className="type-body-sm mt-3 text-zinc-500">
-              아래 질문을 선택하거나 궁금한 내용을 직접 입력해 주세요.
-            </p>
-            <div className={`flex w-full flex-wrap justify-center gap-2 ${compact ? "mt-5" : "mt-7"}`}>
-              {SUGGESTIONS.map((suggestion) => (
+          <div className={styles.welcome}>
+            <SupportBotAvatar size={96} className={styles.mascot} />
+            <h2 className={styles.welcomeTitle}>안녕하세요.<br />무엇을 도와드릴까요?</h2>
+            <p className={`type-body-sm ${styles.subtitle}`}>아티메뉴 이용 방법을 물어보세요.</p>
+            <p className={`type-caption ${styles.suggestionLabel}`}>이런 질문은 어떠세요?</p>
+            <div className={styles.suggestions}>
+              {SUGGESTIONS.map(({ icon: Icon, text }) => (
                 <button
-                  key={suggestion}
+                  key={text}
                   type="button"
-                  onClick={() => void submitQuestion(suggestion)}
+                  onClick={() => void submitQuestion(text)}
                   disabled={pending || !overseasTransferConsent}
-                  className="site-button site-button-secondary site-button-sm w-full text-zinc-600 sm:w-auto"
+                  className={styles.suggestion}
                 >
-                  {suggestion}
+                  <Icon size={16} aria-hidden="true" /><span>{text}</span><ArrowUpRight size={14} aria-hidden="true" />
                 </button>
               ))}
             </div>
           </div>
-        ) : messages.map((message, index) => (
-          <div key={`${message.role}-${index}`} className={message.role === "user" ? "flex justify-end" : "flex justify-start"}>
-            <p className={message.role === "user"
-              ? "type-body-sm max-w-[92%] whitespace-pre-wrap rounded-3xl bg-zinc-950 px-4 py-3 text-white sm:max-w-[85%] sm:px-5 sm:py-3.5"
-              : "type-body-sm max-w-[92%] whitespace-pre-wrap rounded-3xl border border-zinc-200 bg-white px-4 py-3 text-zinc-700 sm:max-w-[85%] sm:px-5 sm:py-3.5"}
-            >
-              {message.text}
-            </p>
+        ) : <div className={styles.messages}>{messages.map((message, index) => message.role === "user" ? (
+          <p key={`user-${index}`} className={`type-body-sm ${styles.userMessage}`}>{message.text}</p>
+        ) : (
+          <div key={`assistant-${index}`} className={styles.assistantMessage}>
+            <p className={`type-caption ${styles.speaker}`}><SupportBotAvatar size={36} className={styles.avatar} />아티메뉴 AI</p>
+            <p className={`type-body-sm ${styles.answer}`}>{message.text}</p>
           </div>
-        ))}
-        {pending ? <p className="type-label text-zinc-400">답변을 확인하고 있습니다…</p> : null}
+        ))}</div>}
+        {pending ? <p className={`type-label ${styles.pending}`} role="status"><LoaderCircle size={16} aria-hidden="true" />답변을 확인하고 있습니다…</p> : null}
         {error ? (
-          <div className="site-notice site-notice-warning type-label px-4 py-3" role="alert">
+          <div className={`site-notice site-notice-warning type-label px-4 py-3 ${styles.error}`} role="alert">
             {error} <Link href="/mypage/inquiries" className="underline underline-offset-4">1:1 문의</Link>
           </div>
         ) : null}
       </div>
 
-      <form onSubmit={handleSubmit} className={`shrink-0 border-t border-zinc-100 bg-white ${compact ? "p-3 sm:p-4" : "p-4 md:p-5"}`}>
-        <label className={`flex cursor-pointer gap-3 rounded-2xl bg-zinc-50 ${overseasTransferConsent ? "items-center" : "items-start"} ${compact ? "mb-3 px-3 py-3" : "mb-4 px-4 py-3.5"}`}>
+      <form onSubmit={handleSubmit} className={styles.form}>
+        <label className={`type-caption ${styles.consent}`}>
           <input
             type="checkbox"
             checked={overseasTransferConsent}
@@ -135,17 +129,16 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
               setOverseasTransferConsent(event.target.checked);
               if (event.target.checked) setError("");
             }}
-            className="mt-0.5 h-4 w-4 shrink-0 accent-zinc-950"
           />
           {overseasTransferConsent ? (
-            <span className="type-caption flex min-w-0 flex-1 items-center justify-between gap-3 text-zinc-700">
-              <strong className="font-bold text-zinc-900">국외 이전 동의 완료</strong>
+            <span className={`${styles.consentText} ${styles.consentDone}`}>
+              <strong className={styles.consentTitle}>국외 이전 동의 완료</strong>
               <Link href="/privacy" className="shrink-0 font-bold underline underline-offset-2">자세히 보기</Link>
             </span>
           ) : (
-            <span className="type-caption text-zinc-600">
-              <strong className="font-bold text-zinc-900">[필수] AI 상담을 위한 개인정보 국외 이전에 동의합니다.</strong>
-              <span className="mt-1 block">
+            <span className={styles.consentText}>
+              <strong className={styles.consentTitle}>[필수] AI 상담을 위한 개인정보 국외 이전에 동의합니다.</strong>
+              <span className={styles.consentBody}>
                 질문과 생성 답변 및 처리에 필요한 기술 정보가 미국 등 국외의 OpenAI OpCo, LLC 및 하위처리자에게 암호화 전송되며,
                 답변 생성과 악용 방지를 위해 최대 30일 보관될 수 있습니다. 동의를 거부하면 AI 상담은 이용할 수 없지만
                 일반 서비스와 1:1 문의는 계속 이용할 수 있습니다. <Link href="/privacy" className="font-bold underline underline-offset-2">자세히 보기</Link>
@@ -153,29 +146,27 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
             </span>
           )}
         </label>
-        <div className="flex gap-2">
-          <label htmlFor="ai-support-question" className="sr-only">AI 상담 질문</label>
+        <div className={styles.composer}>
+          <label htmlFor={inputId} className="sr-only">AI 상담 질문</label>
           <input
-            id="ai-support-question"
+            id={inputId}
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
             maxLength={500}
-            placeholder="질문을 입력해 주세요"
-            className="type-body-sm min-w-0 flex-1 rounded-2xl border border-zinc-200 px-4 py-3 outline-none transition-colors focus:border-zinc-950"
+            placeholder="궁금한 내용을 입력해 주세요"
+            className={styles.input}
           />
           <button
             type="submit"
             disabled={pending || !question.trim() || !overseasTransferConsent}
-            className="site-button site-button-primary"
+            className="site-button site-button-ai site-button-icon"
+            aria-label="질문 보내기"
           >
-            보내기
+            <ArrowUp size={20} aria-hidden="true" />
           </button>
         </div>
-        <p className="type-caption mt-3 px-1 text-zinc-400">
+        <p className={`type-caption ${styles.privacyNote}`}>
           비밀번호, 인증번호, 카드정보 등 민감한 정보는 입력하지 마세요. 아티메뉴 계정과 DB에는 대화를 저장하지 않습니다.
-        </p>
-        <p className="type-caption mt-2 px-1 text-zinc-500">
-          답변만으로 해결되지 않나요? <Link href="/mypage/inquiries" className="font-bold text-zinc-950 underline underline-offset-2">1:1 문의로 이어서 도움받기</Link>
         </p>
       </form>
     </section>
