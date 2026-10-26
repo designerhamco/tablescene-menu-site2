@@ -56,12 +56,14 @@ export function MypageAccountCard({
   return (
     <section className="site-account-summary">
       <div className="site-account-identity">
-        <h2 className="type-content-title site-account-business-name" title={businessName || email}>
-          {businessName || email}
-        </h2>
         {businessName ? (
-          <p className="site-account-email" title={email}>{email}</p>
-        ) : null}
+          <>
+            <h2 className="type-content-title site-account-business-name" title={businessName}>{businessName}</h2>
+            <p className="site-account-email" title={email}>{email}</p>
+          </>
+        ) : (
+          <h2 className="type-content-title site-account-email" title={email}>{email}</h2>
+        )}
         {roleLabel ? (
           <div className="site-account-role" aria-label="계정 역할">
             <Badge>{roleLabel}</Badge>
