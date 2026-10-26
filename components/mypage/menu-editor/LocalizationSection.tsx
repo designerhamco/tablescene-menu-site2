@@ -939,7 +939,7 @@ function LocalizationSectionContent({
               </label>
             ))}
           </div>
-          <p className="mt-4 break-keep text-support font-medium leading-relaxed text-zinc-600">
+          <p className="mt-4 break-keep type-footnote text-zinc-600">
             언어를 꺼도 기존 번역 데이터는 삭제되지 않습니다. 다시 켜면 저장된 번역을 재사용할 수 있습니다.
           </p>
           </div>
@@ -956,13 +956,13 @@ function LocalizationSectionContent({
                 <AiUsageMeter label="전체 자동 번역" used={localFullUsage.used} limit={localFullUsage.limit} />
                 <AiUsageMeter label="부분 자동 번역" used={localPartialUsage.used} limit={localPartialUsage.limit} />
               </div>
-              <p className="mt-3 break-keep text-support font-medium leading-relaxed text-zinc-600">
+              <p className="mt-3 break-keep type-footnote text-zinc-600">
                 전체 자동 번역 초안이 실제로 생성되거나 항목별 AI 번역이 성공했을 때 계정 AI 크레딧이 차감됩니다.
               </p>
-              <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+              <p className="mt-2 break-keep type-footnote text-zinc-600">
                 AI가 생성한 번역은 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.
               </p>
-              <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+              <p className="mt-2 break-keep type-footnote text-zinc-600">
                 주민등록번호, 카드번호, 계좌번호, 민감정보, 제3자의 개인정보는 AI 입력창에 입력하지 마세요.
               </p>
               {!hasTargetLocales && (
@@ -1074,17 +1074,17 @@ function LocalizationSectionContent({
               ? "기본 정보, 메뉴 그룹, 메뉴 목록의 번역을 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 디스플레이 미리보기와 공개 화면에 반영됩니다."
               : "자동 번역 초안을 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 공개 메뉴판에 반영됩니다."}
           </p>
-          <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+          <p className="mt-2 break-keep type-footnote text-zinc-600">
             항목별 AI 번역은 각 항목 옆의 AI 번역 버튼으로 사용할 수 있으며, 부분 자동 번역은 1크레딧이 차감됩니다.
           </p>
-          <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+          <p className="mt-2 break-keep type-footnote text-zinc-600">
             전체 자동 번역은 {AI_FEATURE_CREDIT_COSTS.full_translation}크레딧, 부분 자동 번역은 {AI_FEATURE_CREDIT_COSTS.partial_translation}크레딧이 필요합니다. AI 크레딧이 부족하면 번역을 실행할 수 없습니다.
           </p>
           <p className="mt-2 break-keep text-support font-medium leading-relaxed text-amber-700">
             자동 번역 초안은 비어 있는 번역 칸에만 채워지며, 이미 입력한 번역은 유지됩니다.
           </p>
-          <Tabs value={activeLocale} onValueChange={value => setActiveLocale(value as SupportedLocale)} className="mt-5 gap-5">
-            <TabsList variant="underline" size="md" aria-label="번역 언어 선택">
+          <Tabs variant="folder" value={activeLocale} onValueChange={value => setActiveLocale(value as SupportedLocale)} className="mt-5">
+            <TabsList variant="folder" size="md" aria-label="번역 언어 선택">
               {(["ko", ...TRANSLATABLE_LOCALES] as SupportedLocale[]).map((locale) => (
                 <TabsTrigger key={locale} value={locale}>
                   {locale === "ko" ? "한국어 원문" : LOCALE_LABELS[locale]}
@@ -1092,8 +1092,8 @@ function LocalizationSectionContent({
               ))}
             </TabsList>
             <TabsContent value={activeLocale}>
-              <Tabs value={activeTargetGroup} onValueChange={value => setActiveTargetGroup(value as TranslationTargetGroup)} className="site-section site-editor-subpanel gap-0 overflow-hidden">
-                <TabsList variant="underline" size="sm" aria-label="번역 항목 선택">
+              <Tabs variant="flow" value={activeTargetGroup} onValueChange={value => setActiveTargetGroup(value as TranslationTargetGroup)} className="gap-0">
+                <TabsList variant="flow" size="sm" aria-label="번역 항목 선택">
                   {translationTargetGroups.map((group) => (
                     <TabsTrigger key={group} value={group}>{translationTargetLabels[group]}</TabsTrigger>
                   ))}

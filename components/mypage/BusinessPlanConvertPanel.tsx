@@ -435,7 +435,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
             <dd className="text-right text-zinc-900">{openDiscountPolicy.durationLabel}</dd>
           </div>
         </dl>
-        <p className="mt-4 break-keep text-support font-normal leading-relaxed text-zinc-600">
+        <p className="mt-4 break-keep type-footnote text-zinc-600">
           {openDiscountPolicy.note}
         </p>
         <div className="mt-6">
@@ -465,7 +465,7 @@ function getBusinessSubscriptionErrorMessage(result: BusinessSubscriptionRespons
           {isSubmitting ? "정기결제 처리 중..." : isVerified && requiredConsentsAccepted ? "동의하고 유료 전환하기" : "사업자 인증 및 필수 동의 후 진행 가능"}
         </button>
         {!isPortOneReady && (
-          <p className="mt-3 break-keep text-support font-normal leading-relaxed text-amber-700">
+          <p className="mt-3 break-keep type-footnote text-amber-700">
             사업자 월/연 정기결제는 PortOne V2 빌링키 발급을 지원하는 채널의 channelKey가 필요합니다.
           </p>
         )}

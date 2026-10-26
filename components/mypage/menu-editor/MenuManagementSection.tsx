@@ -956,7 +956,7 @@ function TextInput({ helperText, className, ...props }: React.InputHTMLAttribute
         }`}
       />
       {(helperText || props.maxLength) && (
-        <div className="mt-2 flex items-start justify-between gap-3 text-support font-medium leading-relaxed text-zinc-600">
+        <div className="mt-2 flex items-start justify-between gap-3 type-footnote text-zinc-600">
           <span className="break-keep">{helperText}</span>
           {props.maxLength && <span className="shrink-0">{currentLength} / {props.maxLength}</span>}
         </div>
@@ -982,7 +982,7 @@ function TextArea({ helperText, className, ...props }: React.TextareaHTMLAttribu
         }`}
       />
       {(helperText || props.maxLength) && (
-        <div className="mt-2 flex items-start justify-between gap-3 text-support font-medium leading-relaxed text-zinc-600">
+        <div className="mt-2 flex items-start justify-between gap-3 type-footnote text-zinc-600">
           <span className="break-keep">{helperText}</span>
           {props.maxLength && <span className="shrink-0">{currentLength} / {props.maxLength}</span>}
         </div>
@@ -1054,7 +1054,7 @@ function ValidatedTextInput({
           hasError ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
         }`}
       />
-      <div className="mt-2 flex items-center justify-between gap-3 text-support font-medium">
+      <div className="mt-2 flex items-center justify-between gap-3 type-footnote">
         <span className={hasError ? "text-red-600" : "text-zinc-600"}>
           {errorText ?? (isMissing ? `${label}은 필수 입력입니다.` : isTooLong ? `최대 ${maxLength}자까지 입력 가능합니다.` : helperText ?? "")}
         </span>
@@ -1106,7 +1106,7 @@ function ValidatedTextArea({
           isTooLong ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
         }`}
       />
-      <div className="mt-2 flex items-center justify-between gap-3 text-support font-medium">
+      <div className="mt-2 flex items-center justify-between gap-3 type-footnote">
         <span className={isTooLong ? "text-red-600" : "text-zinc-600"}>{isTooLong ? `최대 ${maxLength}자까지 입력 가능합니다.` : helperText ?? ""}</span>
         <span className={isTooLong ? "text-red-600" : "text-zinc-600"}>{value.length} / {maxLength}</span>
       </div>
@@ -1330,7 +1330,7 @@ function BadgeColorInlineSettings({
   onColorChange?: (patch: Pick<ItemBasicDraft, "badgeStyleKey" | "badgeBackgroundColor" | "badgeTextColor">) => void;
 }) {
   if (!selectedBadgeLabel && !forceStyleKey) {
-    return <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">배지를 선택하면 색상을 조정할 수 있습니다.</p>;
+    return <p className="mt-2 break-keep type-footnote text-zinc-600">배지를 선택하면 색상을 조정할 수 있습니다.</p>;
   }
 
   const styleKey = forceStyleKey ?? getBadgeStyleKey(selectedBadgeLabel);
@@ -2637,7 +2637,7 @@ function MenuCategoryForm({
       {supportsCourseFields && (
         <section className="site-section site-editor-subpanel p-4">
           <h4 className="type-label text-zinc-950">코스 가격</h4>
-          <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+          <p className="mt-2 break-keep type-footnote text-zinc-600">
             코스 가격과 가격에 대한 짧은 안내를 각각 설정할 수 있습니다.
           </p>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -2707,7 +2707,7 @@ function MenuCategoryForm({
       {supportCategoryPriceOptionColumns && (
         <section className="site-section site-editor-subpanel p-4">
           <h4 className="type-label text-zinc-950">가격 옵션 열</h4>
-          <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+          <p className="mt-2 break-keep type-footnote text-zinc-600">
             아티메뉴 디스플레이는 TV 메뉴판 가독성을 위해 카테고리별 공통 가격 열을 사용합니다. 예: HOT / ICE / LARGE
           </p>
           <div className="mt-4 grid gap-3">
@@ -2750,7 +2750,7 @@ function MenuCategoryForm({
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <h4 className="type-label text-zinc-950">가격 옵션 컬럼</h4>
-              <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+              <p className="mt-2 break-keep type-footnote text-zinc-600">
                 이 카테고리 안의 메뉴에 공통으로 사용할 가격 옵션입니다. 예: HOT, ICE, LARGE
               </p>
             </div>
@@ -3767,7 +3767,7 @@ function MenuItemForm({
               }}
               className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-900 transition"
             />
-            <div className="mt-2 flex items-start justify-between gap-3 text-support font-medium leading-relaxed text-zinc-600">
+            <div className="mt-2 flex items-start justify-between gap-3 type-footnote text-zinc-600">
               <span className="break-keep">
                 한국어 메뉴명 아래에 작게 함께 표시됩니다. 언어 전환 화면에서는 원래 한글 메뉴명이 보조 줄로 표시됩니다.
               </span>
@@ -3810,7 +3810,7 @@ function MenuItemForm({
               <div className="mt-3 max-w-sm">
                 <AiUsageMeter label="AI 설명 작성" used={aiDescriptionUsage.used} limit={aiDescriptionUsage.limit} compact />
               </div>
-              <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+              <p className="mt-2 break-keep type-footnote text-zinc-600">
                 AI가 생성한 문구는 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.
               </p>
             </div>
@@ -3832,7 +3832,7 @@ function MenuItemForm({
                   updateDraftItem({ originInfo: event.target.value });
                 }}
               />
-              <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+              <p className="mt-2 break-keep type-footnote text-zinc-600">
                 원산지 및 알레르기 정보는 실제 제공 상품 기준으로 직접 확인 후 입력해주세요.
               </p>
             </div>
@@ -3902,7 +3902,7 @@ function MenuItemForm({
                       customBadgeTooLong ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
                     }`}
                   />
-                  <div className="mt-2 flex items-start justify-between gap-3 text-support font-medium leading-relaxed text-zinc-600">
+                  <div className="mt-2 flex items-start justify-between gap-3 type-footnote text-zinc-600">
                     <span className={`break-keep ${customBadgeTooLong ? "text-red-600" : ""}`}>
                       {customBadgeTooLong ? `배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.` : "배지는 메뉴판에 작게 표시되는 문구입니다."}
                     </span>
@@ -4433,7 +4433,7 @@ function MenuItemForm({
                         </div>
                       ))}
                     </div>
-                    <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+                    <p className="mt-2 break-keep type-footnote text-zinc-600">
                       가격이 입력된 옵션만 타임세일을 적용할 수 있습니다. 빈 할인가 항목은 타임세일에서 제외됩니다.
                     </p>
                   </div>
@@ -4581,7 +4581,7 @@ function MenuItemForm({
                       <option value="message">원하는 문구 · 매일 오전 8시부터 10시까지</option>
                       <option value="message_and_countdown">문구 + 카운트다운 · 오늘만 특별 할인가 · 00:42:18 남음</option>
                     </Select>
-                    <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+                    <p className="mt-2 break-keep type-footnote text-zinc-600">
                       문구 표시는 마감 시각을 차분하게 보여주고, 카운트다운은 남은 시간을 1초 단위로 보여줍니다.
                     </p>
                   </div>
@@ -4702,7 +4702,7 @@ function MenuItemForm({
                         {timeSaleBadgeText || DEFAULT_TIME_SALE_BADGE_TEXT}
                       </span>
                     </div>
-                    <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+                    <p className="mt-2 break-keep type-footnote text-zinc-600">
                       원하는 색을 직접 고를 수 있습니다. 텍스트색은 배경 명도에 맞춰 자동으로 조정됩니다.
                     </p>
                   </div>
@@ -9809,7 +9809,7 @@ export default function MenuManagementSection({
               <p className="site-dialog-description mt-3 break-keep font-bold leading-relaxed">
                 메뉴 이름, 가격, 설명을 자유롭게 붙여넣으면 AI가 카테고리와 메뉴 아이템으로 정리합니다.
               </p>
-              <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+              <p className="mt-2 break-keep type-footnote text-zinc-600">
                 AI 결과물은 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인하고, 주민등록번호, 카드번호, 계좌번호, 민감정보, 제3자의 개인정보는 입력하지 마세요.
               </p>
               <div className="mt-4 max-w-sm">
@@ -9825,7 +9825,7 @@ export default function MenuManagementSection({
                   onChange={(event) => setMenuCleanupText(event.target.value)}
                   className="site-field mt-2 min-h-48 w-full border-zinc-200 px-4 py-3 leading-relaxed text-zinc-900 transition disabled:text-zinc-600"
                 />
-                <div className="mt-2 flex items-start justify-between gap-3 text-support font-medium leading-relaxed text-zinc-600">
+                <div className="mt-2 flex items-start justify-between gap-3 type-footnote text-zinc-600">
                   <span>입력 내용은 4,000자 이하로 정리해주세요.</span>
                   <span className="shrink-0">{menuCleanupText.length} / 4000</span>
                 </div>
@@ -9873,7 +9873,7 @@ export default function MenuManagementSection({
               {menuCleanupResult ? (
                 <div className="site-section site-editor-subpanel mt-6 p-4">
                   <h3 className="type-item-title text-zinc-950">AI가 정리한 메뉴를 어떻게 적용할까요?</h3>
-                  <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+                  <p className="mt-2 break-keep type-footnote text-zinc-600">
                     처음 메뉴판을 세팅하는 경우에는 ‘현재 메뉴를 AI 결과로 교체’를 추천합니다. 운영 중 신메뉴를 추가하는 경우에는 ‘현재 메뉴판에 추가’{canManagePages ? " 또는 ‘새 페이지에 추가’" : ""}를 사용할 수 있습니다.
                   </p>
                   {aiMenuCleanupTooManyCategories ? (
@@ -9888,19 +9888,19 @@ export default function MenuManagementSection({
                   <div className="mt-4 grid gap-3 md:grid-cols-3">
                     <div className="site-section site-editor-subpanel p-4">
                       <p className="text-copy font-medium text-zinc-950">현재 메뉴를 AI 결과로 교체</p>
-                      <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+                      <p className="mt-2 break-keep type-footnote text-zinc-600">
                         샘플 메뉴나 현재 메뉴 구조를 AI가 정리한 결과로 바꿉니다. 저장 전까지 공개 메뉴판에는 반영되지 않습니다.
                       </p>
                     </div>
                     <div className="site-section site-editor-subpanel p-4">
                       <p className="text-copy font-medium text-zinc-950">현재 메뉴판에 추가</p>
-                      <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+                      <p className="mt-2 break-keep type-footnote text-zinc-600">
                         현재 메뉴판은 유지하고, AI가 정리한 카테고리와 아이템을 새 항목으로 추가합니다. 기존 카테고리와 자동으로 합치지 않습니다.
                       </p>
                     </div>
                     {canManagePages && <div className="site-section site-editor-subpanel p-4">
                       <p className="text-copy font-medium text-zinc-950">새 페이지에 추가</p>
-                      <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
+                      <p className="mt-2 break-keep type-footnote text-zinc-600">
                         새 페이지를 만들고 AI가 정리한 카테고리와 아이템을 그 아래에 추가합니다. 현재 페이지의 카테고리 수와 합산하지 않습니다.
                       </p>
                     </div>}
@@ -10334,7 +10334,7 @@ function MenuItemTraitSlots({
                       </option>
                     ))}
                   </Select>
-                  <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">값이 높을수록 특징이 강하게 표시됩니다.</p>
+                  <p className="mt-2 break-keep type-footnote text-zinc-600">값이 높을수록 특징이 강하게 표시됩니다.</p>
                 </div>
               </div>
             </div>

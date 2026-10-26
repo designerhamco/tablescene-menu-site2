@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import type * as PortOneSdk from "@portone/browser-sdk/v2";
 
 import { Check } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import Image from "next/image";
 import TemplateCatalogMedia from "@/components/templates/TemplateCatalogMedia";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
@@ -2343,16 +2344,20 @@ export default function ApplyOrderForm({
 
         {isMenuService && (<section className="order-3 site-checkout-section">
           <h2 className="type-subsection-title">디자인 선택</h2>
-          <div className="my-5 flex flex-wrap gap-2">{(["standard", "designer"] as const).map(kind => <button type="button" key={kind} className="site-button site-button-outline" aria-pressed={selectedDesignKind === kind} onClick={() => {
+          <Tabs variant="flow" value={selectedDesignKind} className="mt-5" onValueChange={value => {
+            const kind = value as "standard" | "designer";
             const design = catalogDesigns.find(d => d.service === (activeDiningTier === "multi" ? "dining" : "basic") && d.kind === kind);
-            if (!design) return; setSelectedMenuDesignId(design.id); setAppliedPromotion(undefined);
+            if (!design) return;
+            setSelectedMenuDesignId(design.id); setAppliedPromotion(undefined);
             setForm(current => ({...current, template_key: design.templateKey as TemplateKey, template_category: getTemplateCategoryFromKey(design.templateKey) ?? current.template_category}));
-          }}>{kind === "standard" ? "기본 디자인" : "디자인 템플릿 포함 (+1,900원/월)"}</button>)}</div>
+          }}><TabsList aria-label="신청 디자인 종류"><TabsTrigger value="standard">기본 디자인</TabsTrigger><TabsTrigger value="designer">디자인 템플릿 포함 (+1,900원/월)</TabsTrigger></TabsList>
+          <TabsContent value={selectedDesignKind}>
           <p className="site-body-support mb-5 text-zinc-600">{selectedDesignKind === "standard" ? "같은 서비스의 기본 디자인끼리 교체할 수 있습니다." : "같은 서비스의 기본 디자인과 디자인 템플릿을 자유롭게 교체할 수 있습니다."}</p>
           <div className="site-checkout-template-grid">{catalogDesigns.filter(d => d.service === (activeDiningTier === "multi" ? "dining" : "basic") && d.kind === selectedDesignKind).map(design => <button type="button" key={design.id} className="site-choice site-checkout-template" aria-pressed={selectedMenuDesignId === design.id} onClick={() => {
             setSelectedMenuDesignId(design.id); setAppliedPromotion(undefined);
             setForm(current => ({...current, template_key: design.templateKey as TemplateKey, template_category: getTemplateCategoryFromKey(design.templateKey) ?? current.template_category}));
           }}><div className="site-checkout-template-media relative"><Image src={design.image} alt="" fill sizes="(max-width: 640px) 100vw, 320px" className="object-cover" /></div><div className="site-checkout-template-copy"><h3 className="type-content-title">{design.name}</h3><p className="site-checkout-template-description">{design.description}</p><p className="site-checkout-template-status">{selectedMenuDesignId === design.id ? "선택한 디자인" : "이 디자인 선택"}</p></div></button>)}</div>
+          </TabsContent></Tabs>
         </section>)}
 
         {!isMenuService && (
@@ -2783,7 +2788,7 @@ export default function ApplyOrderForm({
             {activeProduct.is_subscription ? <SummaryRow label={shouldStartFreeTrial ? "첫 결제 예정 금액" : "다음 결제 예정 금액"} value={formatKrw(checkoutAmount)} /> : null}
           </dl>
           {(isMenuService || isScreenService) && (
-            <details className="mt-5 border-t border-zinc-200 pt-4 text-support font-semibold leading-relaxed text-zinc-600">
+            <details className="mt-5 border-t border-zinc-200 pt-4 type-footnote text-zinc-600">
               <summary className="cursor-pointer font-bold text-zinc-700">결제 안내</summary>
               <div className="mt-3 space-y-2 break-keep">
                 <p>
@@ -2980,7 +2985,7 @@ function Field({
         }`}
       />
       {message && (
-        <p className={`mt-2 flex min-h-[18px] items-center gap-1.5 break-keep text-support font-medium leading-relaxed ${messageClassName}`}>
+        <p className={`mt-2 flex min-h-[18px] items-center gap-1.5 break-keep type-footnote ${messageClassName}`}>
           {helperIcon}
           <span>{message}</span>
         </p>
@@ -3034,7 +3039,7 @@ function SelectField({
           </option>
         ))}
       </select>
-      {message && <p className={`mt-2 break-keep text-support font-medium leading-relaxed ${errorText ? "text-red-600" : "text-zinc-600"}`}>{message}</p>}
+      {message && <p className={`mt-2 break-keep type-footnote ${errorText ? "text-red-600" : "text-zinc-600"}`}>{message}</p>}
     </label>
   );
 }
@@ -3064,7 +3069,7 @@ function TextareaField({
         rows={5}
         className="mt-2 w-full resize-y rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold leading-relaxed text-zinc-900 outline-none transition focus:border-zinc-950"
       />
-      {helperText && <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">{helperText}</p>}
+      {helperText && <p className="mt-2 break-keep type-footnote text-zinc-600">{helperText}</p>}
     </label>
   );
 }
@@ -3136,7 +3141,7 @@ function PhoneInput({
           }`}
         />
       </div>
-      <p className={`mt-2 break-keep text-support font-medium leading-relaxed ${errorText ? "text-red-600" : showSuccess ? "text-emerald-700" : "text-zinc-600"}`}>
+      <p className={`mt-2 break-keep type-footnote ${errorText ? "text-red-600" : showSuccess ? "text-emerald-700" : "text-zinc-600"}`}>
         {message}
       </p>
     </div>

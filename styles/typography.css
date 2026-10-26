@@ -32,6 +32,9 @@
   --type-nav-size: .9375rem;
   --type-caption-size: .8125rem;
   --type-control-size: .9375rem;
+  --type-footnote-size: .8125rem;
+  --type-dialog-title-size: 1.125rem;
+  --type-dialog-body-size: .875rem;
 }
 
 /*
@@ -152,3 +155,6 @@
     --type-control-size: 1rem;
   }
 }
+
+/* Small assistance has one size on every site page, independent of page copy. */
+.type-footnote, .site-footnote { font-size: var(--type-footnote-size); font-weight: 400; line-height: 1.6; letter-spacing: normal; overflow-wrap: anywhere; }

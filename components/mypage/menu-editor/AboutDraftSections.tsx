@@ -137,7 +137,7 @@ function FieldLabel({ children, required = false }: { children: ReactNode; requi
 
 function FieldHint({ children }: { children?: ReactNode }) {
   if (!children) return null;
-  return <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">{children}</p>;
+  return <p className="mt-2 break-keep type-footnote text-zinc-600">{children}</p>;
 }
 
 function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTMLInputElement> & { helperText?: ReactNode }) {

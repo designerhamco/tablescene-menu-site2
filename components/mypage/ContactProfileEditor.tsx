@@ -84,7 +84,7 @@ function getFieldStates({
 
 function FieldHelper({ state }: { state: FieldState }) {
   return (
-    <p className={`mt-2 break-keep text-support font-medium leading-relaxed ${state.errorText ? "text-red-600" : "text-zinc-600"}`}>
+    <p className={`mt-2 break-keep type-footnote ${state.errorText ? "text-red-600" : "text-zinc-600"}`}>
       {state.errorText ?? state.helperText}
     </p>
   );
