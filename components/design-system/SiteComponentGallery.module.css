@@ -42,3 +42,11 @@
 @media (max-width: 767px) { .fieldGrid { grid-template-columns: minmax(0,1fr); } }
 
 .page :is(section[id],h2[id]) { scroll-margin-top: calc(var(--site-header-height) + 1.5rem); }
+
+.shapedGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; min-width: 0; }
+.shapedExample { display: grid; min-width: 0; align-content: start; gap: 1.25rem; }
+.shapedContent { display: grid; gap: 1.25rem; }
+.shapedRow { display: flex; align-items: flex-start; gap: 1rem; border-bottom: 1px solid var(--ui-border); padding-bottom: 1.25rem; }
+.shapedRow > div { min-width: 0; }
+.shapedIcon { display: grid; width: 2.75rem; height: 2.75rem; flex: none; place-items: center; border-radius: 50%; background: var(--ui-surface-soft); }
+@media (max-width: 1199px) { .shapedGrid { grid-template-columns: minmax(0, 1fr); } }
