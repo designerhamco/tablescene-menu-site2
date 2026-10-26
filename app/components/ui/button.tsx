@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "./utils";
 
 const buttonVariants = cva(
-  "site-button whitespace-nowrap disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 aria-invalid:border-destructive",
+  "site-button whitespace-nowrap [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
@@ -15,26 +15,30 @@ const buttonVariants = cva(
         outline: "site-button-outline",
         secondary: "site-button-secondary",
         ghost: "site-button-ghost",
-        link: "site-button-link underline-offset-4 hover:underline",
+        ai: "site-button-ai",
+        kakao: "site-button-kakao",
+        "outline-danger": "site-button-outline-danger",
+        "danger-ghost": "site-button-danger-ghost",
+        link: "site-button-link",
       },
       shape: {
-        pill: "",
+        pill: "site-button-pill",
         rounded: "site-button-rounded",
         square: "site-button-square",
       },
       size: {
-        default: "has-[>svg]:px-4",
-        sm: "site-button-sm gap-1.5 has-[>svg]:px-3",
+        default: "",
+        sm: "site-button-sm",
         compact: "site-button-compact",
-        lg: "site-button-lg has-[>svg]:px-5",
-        xl: "site-button-xl has-[>svg]:px-6",
+        lg: "site-button-lg",
+        xl: "site-button-xl",
         icon: "site-button-icon",
       },
     },
     defaultVariants: {
       variant: "default",
       size: "default",
-      shape: "pill",
+      shape: "rounded",
     },
   },
 );

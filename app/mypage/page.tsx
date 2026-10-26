@@ -2976,7 +2976,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                   />
                                 ) : null}
                                 {menuSite?.id ? (
-                                  <Link href={`/mypage/menus/${menuSite.id}/edit`} className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-xs">
+                                  <Link href={`/mypage/menus/${menuSite.id}/edit`} className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center">
                                     연결 메뉴판 보기
                                   </Link>
                                 ) : null}
@@ -3122,7 +3122,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                               </div>
                               <div className="flex shrink-0 flex-wrap gap-2 lg:flex-col">
                                 {!isDeletedTab && archivedDisplayState?.cta ? (
-                                  <Link href={archivedDisplayState.cta.href} className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-xs">
+                                  <Link href={archivedDisplayState.cta.href} className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center">
                                     {archivedDisplayState.cta.label}
                                   </Link>
                                 ) : null}
@@ -3140,7 +3140,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                   />
                                 ) : null}
                                 {!isDeletedTab && menuSite?.id ? (
-                                  <Link href={`/mypage/menus/${menuSite.id}/preview`} className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-xs">
+                                  <Link href={`/mypage/menus/${menuSite.id}/preview`} className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center">
                                     연결 메뉴판 보기
                                   </Link>
                                 ) : null}
@@ -3307,7 +3307,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 </div>
                 <Link
                   href="/forgot-password"
-                  className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-sm"
+                  className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
                 >
                   비밀번호 재설정
                 </Link>
@@ -3364,7 +3364,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     </div>
                     <Link
                       href="/mypage?tab=inquiries"
-                      className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-xs"
+                      className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
                     >
                       고객지원 문의
                     </Link>

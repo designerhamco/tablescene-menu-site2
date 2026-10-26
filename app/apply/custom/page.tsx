@@ -196,7 +196,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
                 </p>
                 <button
                   type="submit"
-                  className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center text-sm"
+                  className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center"
                 >
                   견적 문의하기
                 </button>

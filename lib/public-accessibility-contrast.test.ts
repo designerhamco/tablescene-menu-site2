@@ -16,7 +16,10 @@ test("public product and support surfaces keep secondary copy at accessible cont
   assert.match(gallery, /<TabsList variant="underline"[^>]*aria-label="서비스 및 페이지 유형 선택"/);
   assert.match(gallery, /<Tabs value=\{product\}/);
   assert.doesNotMatch(pricing, /text-zinc-400/);
-  assert.match(faq, /bg-zinc-100 text-zinc-600 hover:bg-zinc-200 hover:text-zinc-950/);
+  assert.match(faq, /site-filter/);
+  const controls = readSource("../styles/ui-system.css");
+  assert.match(controls, /--ui-text-muted: #4b515b/);
+  assert.match(controls, /\.site-filter \{[^}]*color: var\(--ui-text-muted\)/);
   assert.match(footer, /type-caption uppercase tracking-wide text-zinc-600/);
 });
 

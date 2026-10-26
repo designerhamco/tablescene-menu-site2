@@ -101,7 +101,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
                   type="button"
                   onClick={() => void submitQuestion(suggestion)}
                   disabled={pending || !overseasTransferConsent}
-                  className="site-button site-button-secondary site-button-sm w-full text-zinc-600 disabled:text-zinc-300 sm:w-auto"
+                  className="site-button site-button-secondary site-button-sm w-full text-zinc-600 sm:w-auto"
                 >
                   {suggestion}
                 </button>
@@ -166,7 +166,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
           <button
             type="submit"
             disabled={pending || !question.trim() || !overseasTransferConsent}
-            className="site-button site-button-primary disabled:bg-zinc-300"
+            className="site-button site-button-primary"
           >
             보내기
           </button>

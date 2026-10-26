@@ -68,9 +68,9 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
     <Popover.Root open={open} onOpenChange={next => {
       if (next) startDraft(current); else setOpen(false);
     }}>
-      <Popover.Trigger asChild><button type="button" aria-label={`${accessibleLabel} 선택`} title={current === null ? "색상 없음" : current} data-color-empty={current === null ? "true" : undefined} disabled={disabled} className={styles.swatch}><span className={current === null ? styles.noColor : undefined} style={{ backgroundColor: current ?? undefined }} /></button></Popover.Trigger>
+      <Popover.Trigger asChild><button type="button" aria-label={`${accessibleLabel} 선택`} title={current === null ? "색상 없음" : current} data-color-empty={current === null ? "true" : undefined} disabled={disabled} className="site-color-swatch"><span className={current === null ? styles.noColor : undefined} style={{ backgroundColor: current ?? undefined }} /></button></Popover.Trigger>
       <Popover.Portal><Popover.Content className={styles.popover} align="start" sideOffset={6} collisionPadding={12} aria-label={`${accessibleLabel} 컬러피커`} data-preview-color-picker>
-        <div className={styles.heading}><span>{accessibleLabel}</span><Popover.Close asChild><button type="button" aria-label="컬러피커 닫기" className={styles.close}><X size={16} aria-hidden="true" /></button></Popover.Close></div>
+        <div className={styles.heading}><span>{accessibleLabel}</span><Popover.Close asChild><button type="button" aria-label="컬러피커 닫기" className="site-button site-button-ghost site-button-icon site-button-compact"><X size={16} aria-hidden="true" /></button></Popover.Close></div>
         {draftEmpty ? <p className={styles.emptyStatus}><span className={styles.noColor} aria-hidden="true" />색상 없음</p> : null}
         <div className={styles.spectrum} style={{ backgroundColor: hsvToHex({ h: hsv.h, s: 1, v: 1 }) }} role="slider" tabIndex={0}
           aria-label={`${accessibleLabel} 채도와 밝기`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(hsv.s * 100)} aria-valuetext={`채도 ${Math.round(hsv.s * 100)}%, 밝기 ${Math.round(hsv.v * 100)}%`} aria-describedby={`${id}-hint`}
@@ -102,7 +102,7 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
         </div>
       </Popover.Content></Popover.Portal>
     </Popover.Root>
-    <button type="button" className={styles.restore} aria-label={`${accessibleLabel} 기본색 복원`} title="템플릿 기본색 복원" disabled={disabled || !value}
+    <button type="button" className="site-button site-button-ghost site-button-icon site-button-compact" aria-label={`${accessibleLabel} 기본색 복원`} title="템플릿 기본색 복원" disabled={disabled || !value}
       onPointerDown={event => event.preventDefault()} onClick={() => startDraft(defaultColor, true)}><RotateCcw size={15} strokeWidth={1.7} aria-hidden="true" /></button>
   </div>;
 }

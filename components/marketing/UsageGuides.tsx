@@ -63,7 +63,7 @@ function GuideButton({
   const content = guides[guide];
   return (
     <Dialog.Root>
-      <Dialog.Trigger className={buttonVariants({ variant: "outline", size: "lg", shape: "rounded" })}>
+      <Dialog.Trigger className={buttonVariants({ variant: "outline", shape: "rounded" })}>
         {label}
         <ArrowUpRight size={16} aria-hidden="true" />
       </Dialog.Trigger>

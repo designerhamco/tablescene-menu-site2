@@ -49,7 +49,7 @@ export default async function StaffInvitationReviewPage({ searchParams }: { sear
             <p className="mt-5 break-keep text-sm font-semibold leading-relaxed text-zinc-600">
               초대 정보가 없거나 브라우저에서 만료되었습니다. 받은 이메일의 초대 링크를 다시 열어 주세요.
             </p>
-            <Link href="/" className="site-button site-button-secondary mt-7 inline-flex w-full items-center justify-center text-sm">
+            <Link href="/" className="site-button site-button-secondary mt-7 inline-flex w-full items-center justify-center">
               홈으로 이동
             </Link>
           </>
@@ -59,10 +59,10 @@ export default async function StaffInvitationReviewPage({ searchParams }: { sear
               초대받은 이메일 계정으로 로그인하거나 새 계정을 만든 뒤 이 화면으로 돌아오세요.
             </p>
             <div className="mt-7 grid gap-3 sm:grid-cols-2">
-              <Link href={`/sign-in?next=${encodeURIComponent(returnPath)}`} className="site-button site-button-primary inline-flex items-center justify-center text-sm">
+              <Link href={`/sign-in?next=${encodeURIComponent(returnPath)}`} className="site-button site-button-primary inline-flex items-center justify-center">
                 로그인
               </Link>
-              <Link href={`/sign-up?next=${encodeURIComponent(returnPath)}`} className="site-button site-button-secondary inline-flex items-center justify-center text-sm">
+              <Link href={`/sign-up?next=${encodeURIComponent(returnPath)}`} className="site-button site-button-secondary inline-flex items-center justify-center">
                 회원가입
               </Link>
             </div>
@@ -72,7 +72,7 @@ export default async function StaffInvitationReviewPage({ searchParams }: { sear
             <p className="mt-5 break-keep text-sm font-semibold leading-relaxed text-zinc-600">
               이메일 확인을 마친 활성 계정만 초대를 수락할 수 있습니다.
             </p>
-            <Link href={`/sign-in?next=${encodeURIComponent(returnPath)}`} className="site-button site-button-secondary mt-7 inline-flex w-full items-center justify-center text-sm">
+            <Link href={`/sign-in?next=${encodeURIComponent(returnPath)}`} className="site-button site-button-secondary mt-7 inline-flex w-full items-center justify-center">
               다른 계정으로 로그인
             </Link>
           </>

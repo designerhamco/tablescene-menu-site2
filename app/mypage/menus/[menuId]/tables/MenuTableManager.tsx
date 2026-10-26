@@ -92,7 +92,7 @@ export default function MenuTableManager({
           <button
             type="submit"
             disabled={createPending}
-            className="site-button site-button-rounded site-button-primary text-sm disabled:cursor-wait disabled:opacity-60"
+            className="site-button site-button-rounded site-button-primary"
           >
             {createPending ? "생성 중" : "테이블 만들기"}
           </button>
@@ -147,7 +147,7 @@ export default function MenuTableManager({
                   <option value="disabled">비활성</option>
                 </select>
               </label>
-              <button name="intent" value="update" disabled={mutationPending} className="site-button site-button-rounded site-button-outline text-sm disabled:opacity-60">
+              <button name="intent" value="update" disabled={mutationPending} className="site-button site-button-rounded site-button-outline">
                 저장
               </button>
             </form>
@@ -156,14 +156,14 @@ export default function MenuTableManager({
               <form action={mutationAction}>
                 <input type="hidden" name="menuSiteId" value={menuSiteId} />
                 <input type="hidden" name="tableId" value={table.id} />
-                <button name="intent" value="rotate-token" disabled={mutationPending} title="기존에 인쇄한 QR과 방문 세션이 즉시 무효화됩니다." className="site-button site-button-rounded site-button-outline text-xs disabled:opacity-60">
+                <button name="intent" value="rotate-token" disabled={mutationPending} title="기존에 인쇄한 QR과 방문 세션이 즉시 무효화됩니다." className="site-button site-button-rounded site-button-outline">
                   QR 교체
                 </button>
               </form>
               <form action={mutationAction}>
                 <input type="hidden" name="menuSiteId" value={menuSiteId} />
                 <input type="hidden" name="tableId" value={table.id} />
-                <button name="intent" value="archive" disabled={mutationPending} className="site-button site-button-rounded site-button-outline text-xs disabled:opacity-60">
+                <button name="intent" value="archive" disabled={mutationPending} className="site-button site-button-rounded site-button-outline">
                   테이블 보관
                 </button>
               </form>

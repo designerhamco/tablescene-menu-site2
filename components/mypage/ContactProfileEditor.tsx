@@ -188,7 +188,7 @@ export default function ContactProfileEditor({
         <button
           type="button"
           onClick={openModal}
-          className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center text-xs"
+          className="site-button site-button-rounded site-button-outline inline-flex items-center justify-center"
         >
           담당자 정보 수정
         </button>
@@ -215,7 +215,7 @@ export default function ContactProfileEditor({
                 type="button"
                 onClick={closeWithoutSaving}
                 disabled={isSubmitting}
-                className="site-button site-button-rounded site-button-outline text-xs disabled:cursor-not-allowed disabled:opacity-60"
+                className="site-button site-button-rounded site-button-outline"
               >
                 닫기
               </button>
@@ -291,14 +291,14 @@ export default function ContactProfileEditor({
                 type="button"
                 onClick={closeWithoutSaving}
                 disabled={isSubmitting}
-                className="site-button site-button-rounded site-button-outline text-sm disabled:cursor-not-allowed disabled:opacity-60"
+                className="site-button site-button-rounded site-button-outline"
               >
                 취소
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="site-button site-button-rounded site-button-primary text-sm disabled:cursor-not-allowed"
+                className="site-button site-button-rounded site-button-primary"
               >
                 {isSubmitting ? "저장 중..." : "저장"}
               </button>

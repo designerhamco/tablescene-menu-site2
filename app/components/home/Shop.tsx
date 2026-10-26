@@ -72,7 +72,7 @@ const Shop = () => {
 
         {/* View All Button Moved to Bottom Center */}
         <div className="flex justify-center">
-           <Link to="/store" className="site-button site-button-outline group flex items-center gap-3 text-sm tracking-widest uppercase">
+           <Link to="/store" className="site-button site-button-outline group flex items-center tracking-widest uppercase">
             전체 상품 보기
             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
           </Link>

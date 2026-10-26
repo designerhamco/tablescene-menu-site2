@@ -203,7 +203,7 @@ export default async function ConsultingApplyPage({
             <div className="mt-8 flex justify-end">
               <button
                 type="submit"
-                className="site-button site-button-primary inline-flex items-center justify-center text-sm"
+                className="site-button site-button-primary inline-flex items-center justify-center"
               >
                 {copy.submitLabel}
               </button>

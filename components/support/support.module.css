@@ -10,7 +10,7 @@
   margin-inline: auto;
   max-width: 42rem;
 }
-.hero a {
+.hero a:not([class~="site-button"]) {
   font-weight: 600;
   color: #15181e;
   text-decoration: underline;
@@ -45,10 +45,6 @@
 }
 .content {
   min-height: 40rem;
-}
-.content :global(.site-tabs) {
-  margin: 0 auto 3rem;
-  width: fit-content;
 }
 .resultCount {
   font-size: 0.875rem;

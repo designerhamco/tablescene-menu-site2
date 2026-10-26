@@ -8,7 +8,6 @@ import { useEffect, useState } from "react";
 import { AI_SUPPORT_CHAT_OPEN_EVENT } from "@/lib/ai-support-chat-launcher";
 
 import AiSupportChat from "./AiSupportChat";
-import styles from "./ai-support-launcher.module.css";
 
 export default function AiSupportChatLauncher() {
   const [open, setOpen] = useState(false);
@@ -56,7 +55,7 @@ export default function AiSupportChatLauncher() {
       <div className="site-support-launcher pointer-events-none fixed bottom-5 z-40 flex items-center gap-2 md:bottom-8">
         <Link
           href="/guides"
-          className="site-button site-button-outline type-label pointer-events-auto"
+          className="site-button site-button-outline site-button-pill pointer-events-auto"
         >
           <BookOpen className="h-4 w-4" aria-hidden="true" />
           사용가이드
@@ -64,7 +63,7 @@ export default function AiSupportChatLauncher() {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className={`site-button type-label pointer-events-auto ${styles.launcherButton}`}
+          className="site-button site-button-ai site-button-pill pointer-events-auto"
           data-ai-support-launcher
           aria-label="AI 상담 열기"
           aria-expanded={open}
@@ -110,7 +109,7 @@ export default function AiSupportChatLauncher() {
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="type-label px-1 py-2 text-zinc-500 transition-colors hover:text-zinc-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-zinc-950"
+                  className="site-button site-button-ghost"
                 >
                   닫기
                 </button>

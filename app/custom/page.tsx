@@ -30,7 +30,7 @@ export default function CustomPage() {
             <div className="mt-10">
               <a
                 href="mailto:admin@dndcommerce.co.kr"
-                className="site-button site-button-primary inline-flex text-sm"
+                className="site-button site-button-primary inline-flex"
               >
                 문의하기
               </a>

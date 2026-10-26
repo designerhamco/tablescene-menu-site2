@@ -241,13 +241,13 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                             <option key={role} value={role}>{STAFF_INVITATION_ROLE_LABELS[role]}</option>
                           ))}
                         </select>
-                        <button type="submit" className="site-button site-button-rounded site-button-secondary text-xs">
+                        <button type="submit" className="site-button site-button-rounded site-button-secondary">
                           프리셋 변경
                         </button>
                       </form>
                       <form action={revokeStaffMembershipAction} className="lg:text-right">
                         <input type="hidden" name="membershipId" value={membership.id} />
-                        <button type="submit" className="site-button site-button-rounded site-button-outline text-xs">
+                        <button type="submit" className="site-button site-button-rounded site-button-outline">
                           접근 회수
                         </button>
                       </form>
@@ -265,7 +265,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                             역할 프리셋을 변경하면 개별 체크 설정은 새 프리셋 기본값으로 초기화됩니다.
                           </p>
                         </div>
-                        <button type="submit" className="site-button site-button-rounded site-button-primary text-xs">
+                        <button type="submit" className="site-button site-button-rounded site-button-primary">
                           개별 권한 저장
                         </button>
                       </div>
@@ -328,14 +328,14 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                         <button
                           type="submit"
                           disabled={!invitationDeliveryEnabled}
-                          className="site-button site-button-rounded site-button-secondary text-xs disabled:cursor-not-allowed"
+                          className="site-button site-button-rounded site-button-secondary"
                         >
                           재전송
                         </button>
                       </form>
                       <form action={cancelStaffInvitationAction}>
                         <input type="hidden" name="inviteBatchId" value={invitation.inviteBatchId} />
-                        <button type="submit" className="site-button site-button-rounded site-button-outline text-xs">
+                        <button type="submit" className="site-button site-button-rounded site-button-outline">
                           취소
                         </button>
                       </form>

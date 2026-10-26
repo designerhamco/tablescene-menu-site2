@@ -234,7 +234,7 @@ export default function OperationalArrivalAlert({
           <button
             type="button"
             onClick={() => setNewCount(0)}
-            className="site-button site-button-rounded site-button-outline text-xs text-violet-800"
+            className="site-button site-button-rounded site-button-outline"
           >
             확인
           </button>

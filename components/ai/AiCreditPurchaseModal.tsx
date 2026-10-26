@@ -187,7 +187,7 @@ export default function AiCreditPurchaseModal({
             type="button"
             onClick={closeModal}
             disabled={Boolean(pendingProductKey)}
-            className="site-button site-button-secondary inline-flex w-10 shrink-0 items-center justify-center text-lg disabled:cursor-not-allowed disabled:opacity-50"
+            className="site-button site-button-secondary inline-flex shrink-0 items-center justify-center site-button-icon"
             aria-label="AI 크레딧 충전 닫기"
           >
             ×

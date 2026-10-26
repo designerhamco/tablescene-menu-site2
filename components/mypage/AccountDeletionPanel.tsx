@@ -71,7 +71,7 @@ export default function AccountDeletionPanel({
           <button
             type="button"
             onClick={() => setIsOpen(true)}
-            className="site-button site-button-rounded site-button-danger inline-flex shrink-0 items-center justify-center text-xs"
+            className="site-button site-button-rounded site-button-danger inline-flex shrink-0 items-center justify-center"
           >
             회원탈퇴 신청
           </button>
@@ -94,7 +94,7 @@ export default function AccountDeletionPanel({
                   탈퇴 신청 즉시 계정 이용과 메뉴판 편집, 공개, QR, AI 기능 이용이 제한됩니다.
                 </p>
               </div>
-              <button type="button" onClick={() => setIsOpen(false)} className="site-button site-button-rounded site-button-outline text-xs">
+              <button type="button" onClick={() => setIsOpen(false)} className="site-button site-button-rounded site-button-outline">
                 닫기
               </button>
             </div>
@@ -145,14 +145,14 @@ export default function AccountDeletionPanel({
             ) : null}
 
             <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button type="button" onClick={() => setIsOpen(false)} className="site-button site-button-rounded site-button-outline text-sm">
+              <button type="button" onClick={() => setIsOpen(false)} className="site-button site-button-rounded site-button-outline">
                 취소
               </button>
               <button
                 type="button"
                 onClick={submitDeletionRequest}
                 disabled={!canSubmit}
-                className="site-button site-button-rounded site-button-danger text-sm disabled:cursor-not-allowed"
+                className="site-button site-button-rounded site-button-danger"
               >
                 {isSubmitting ? "처리 중..." : "회원탈퇴 신청"}
               </button>

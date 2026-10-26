@@ -11,6 +11,7 @@ import {
   getAnnouncementCategory,
   type AnnouncementSummary,
 } from "@/lib/announcements";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import styles from "./support.module.css";
 
 type AnnouncementList = {
@@ -195,62 +196,21 @@ export default function SupportCenter({
         aria-label="고객지원 안내"
       >
         <div className="site-container">
-          <div className="site-tabs" role="tablist" aria-label="고객센터 메뉴">
-            {(
-              [
-                { value: "notices", label: "공지사항" },
-                { value: "faq", label: "FAQ" },
-              ] as const
-            ).map((item) => (
-              <button
-                key={item.value}
-                id={`${uid}-${item.value}`}
-                type="button"
-                role="tab"
-                aria-selected={tab === item.value}
-                aria-controls={`${uid}-panel`}
-                tabIndex={tab === item.value ? 0 : -1}
-                className="site-tab"
-                onClick={() => changeTab(item.value)}
-                onKeyDown={(event) => {
-                  if (
-                    ["ArrowLeft", "ArrowRight", "Home", "End"].includes(
-                      event.key,
-                    )
-                  ) {
-                    event.preventDefault();
-                    const next =
-                      event.key === "Home"
-                        ? "notices"
-                        : event.key === "End"
-                          ? "faq"
-                          : tab === "faq"
-                            ? "notices"
-                            : "faq";
-                    changeTab(next);
-                    document.getElementById(`${uid}-${next}`)?.focus();
-                  }
-                }}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-          <div
-            role="tabpanel"
-            id={`${uid}-panel`}
-            aria-labelledby={`${uid}-${tab}`}
-            tabIndex={0}
-          >
+          <Tabs variant="contained" value={tab} onValueChange={value => changeTab(value as "faq" | "notices")}>
+            <TabsList distribution="equal" aria-label="고객센터 메뉴">
+              <TabsTrigger value="notices">공지사항</TabsTrigger>
+              <TabsTrigger value="faq">FAQ</TabsTrigger>
+            </TabsList>
+            <TabsContent value={tab}>
             <h2 className="type-section-title sr-only">
               {tab === "faq" ? "자주 묻는 질문" : "공지사항"}
             </h2>
-            <div className="site-topic-tabs" role="group" aria-label="주제 선택">
+            <div className="site-filter-group" role="group" aria-label="주제 선택">
               {[{ value: "all", label: "전체" }, ...categories].map((item) => (
                 <button
                   key={item.value}
                   type="button"
-                  className="site-topic-tab"
+                  className="site-filter"
                   aria-pressed={category === item.value}
                   onClick={() => {
                     setCategory(item.value);
@@ -369,7 +329,8 @@ export default function SupportCenter({
                 )}
               </div>
             )}
-          </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </section>
     </>

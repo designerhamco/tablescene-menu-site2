@@ -27,9 +27,7 @@ export function FAQ() {
               key={category.category}
               type="button"
               onClick={() => handleTabChange(idx)}
-              className={`rounded-full px-5 py-2.5 text-sm font-bold transition-all duration-300 md:text-base ${
-                activeTab === idx ? "scale-105 bg-zinc-900 text-white shadow-lg" : "bg-zinc-100 text-zinc-500 hover:bg-zinc-200 hover:text-zinc-900"
-              }`}
+              className="site-filter" aria-pressed={activeTab === idx}
             >
               {category.category}
             </button>

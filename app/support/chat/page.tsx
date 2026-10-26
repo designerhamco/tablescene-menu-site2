@@ -39,7 +39,7 @@ export default function AiSupportChatPage() {
               <p className="site-body-support mx-auto mt-3 max-w-lg text-zinc-500">
                 안전성과 답변 품질을 확인한 뒤 열 예정입니다. 지금은 1:1 문의를 남겨 주세요.
               </p>
-              <Link href="/mypage/inquiries" className="site-button site-button-primary mt-6 inline-flex text-sm">
+              <Link href="/mypage/inquiries" className="site-button site-button-primary mt-6 inline-flex">
                 1:1 문의
               </Link>
             </section>

@@ -145,11 +145,7 @@ function FontPicker<Value extends string>({
                 key={category.key}
                 type="button"
                 onClick={() => setSelectedCategory(category.key)}
-                className={`rounded-full border px-3 py-1.5 text-xs font-bold transition ${
-                  selected
-                    ? "border-zinc-950 bg-zinc-950 text-white"
-                    : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:border-zinc-400 hover:bg-white hover:text-zinc-950"
-                }`}
+                className="site-filter" aria-pressed={selected}
               >
                 {category.label}
               </button>
@@ -160,9 +156,7 @@ function FontPicker<Value extends string>({
           <button
             type="button"
             onClick={() => onChange("")}
-            className={`mb-2 flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm font-bold transition ${
-              value === "" ? "bg-zinc-950 text-white" : "bg-white text-zinc-700 hover:bg-zinc-100"
-            }`}
+            className="site-choice site-choice-control site-choice-row" aria-pressed={value === ""}
           >
             <span>템플릿 기본값 · {defaultOption.label}</span>
             {value === "" ? <span className="text-xs font-bold opacity-70">선택됨</span> : null}
@@ -176,9 +170,7 @@ function FontPicker<Value extends string>({
                 key={option.value}
                 type="button"
                 onClick={() => onChange(option.value)}
-                className={`flex min-w-0 items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm font-bold transition ${
-                  selected ? "bg-zinc-950 text-white" : "bg-white text-zinc-700 hover:bg-zinc-100"
-                }`}
+                className="site-choice site-choice-control site-choice-row" aria-pressed={selected}
               >
                 <span className="min-w-0 truncate">{option.label}</span>
                 {selected ? <span className="shrink-0 text-xs font-bold opacity-70">선택됨</span> : null}
@@ -312,7 +304,7 @@ export default function TypographySettingsForm({
                 <button
                   type="button"
                   onClick={() => { setSelectedRoleSettings(createDefaultTypographyRoleSettings()); setTextColors({}); }}
-                  className="site-button site-button-rounded site-button-outline inline-flex shrink-0 items-center justify-center text-xs"
+                  className="site-button site-button-rounded site-button-outline inline-flex shrink-0 items-center justify-center"
                 >
                   글자 설정 초기화
                 </button>

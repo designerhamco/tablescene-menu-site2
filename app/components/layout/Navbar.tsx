@@ -337,7 +337,7 @@ const Navbar = () => {
             ) : null}
             <Link
               href="/apply"
-              className={`site-button site-button-primary ${styles.makeButton}`}
+              className={`site-button site-button-primary site-button-header`}
             >
               만들기
             </Link>

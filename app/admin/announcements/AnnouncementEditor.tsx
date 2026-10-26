@@ -264,6 +264,7 @@ export default function AnnouncementEditor({
           {tools.map(({ label, icon: Icon, active, run }) => (
             <button
               key={label}
+              className="site-button site-button-ghost site-button-icon site-tool-button"
               type="button"
               aria-label={label}
               title={label}
@@ -277,6 +278,7 @@ export default function AnnouncementEditor({
           ))}
           <button
             type="button"
+            className="site-button site-button-ghost site-button-icon"
             aria-label="글자 서식 지우기"
             title="글자 서식 지우기"
             disabled={locked}
@@ -297,6 +299,7 @@ export default function AnnouncementEditor({
           </button>
           <button
             type="button"
+            className="site-button site-button-ghost site-button-icon"
             aria-label="실행 취소"
             title="실행 취소"
             disabled={locked || !state?.canUndo}
@@ -306,6 +309,7 @@ export default function AnnouncementEditor({
           </button>
           <button
             type="button"
+            className="site-button site-button-ghost site-button-icon"
             aria-label="다시 실행"
             title="다시 실행"
             disabled={locked || !state?.canRedo}
@@ -315,7 +319,7 @@ export default function AnnouncementEditor({
           </button>
           <button
             type="button"
-            className={styles.attach}
+            className="site-button site-button-outline"
             disabled={
               locked || (state?.images ?? 0) >= ANNOUNCEMENT_IMAGE_LIMIT
             }
@@ -365,6 +369,7 @@ export default function AnnouncementEditor({
             <button
               type="button"
               disabled={locked}
+              className="site-button site-button-outline-danger"
               onClick={() => editor?.chain().focus().deleteSelection().run()}
             >
               <Trash2 size={16} aria-hidden="true" /> 본문에서 제거

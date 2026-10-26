@@ -52,7 +52,7 @@ export default function PricingPage() {
             </div>
             <Link
               href="/apply"
-              className="site-button site-button-primary inline-flex items-center justify-center text-sm"
+              className="site-button site-button-primary inline-flex items-center justify-center"
             >
               상품 선택하기
             </Link>
@@ -84,7 +84,7 @@ export default function PricingPage() {
                   {"href" in plan ? (
                     <Link
                       href={plan.href}
-                      className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center text-sm"
+                      className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center"
                     >
                       {plan.cta}
                     </Link>

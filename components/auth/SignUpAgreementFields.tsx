@@ -148,7 +148,7 @@ export default function SignUpAgreementFields({ action, safeNext }: SignUpAgreem
         <button
           type="submit"
           disabled={!canSubmit}
-          className="site-button site-button-primary site-button-lg w-full disabled:bg-zinc-200 disabled:text-zinc-500"
+          className="site-button site-button-primary site-button-lg w-full"
         >
           이메일로 가입하기
         </button>

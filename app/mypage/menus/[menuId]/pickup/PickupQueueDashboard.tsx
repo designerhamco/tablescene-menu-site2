@@ -83,7 +83,7 @@ export default function PickupQueueDashboard({
           <button
             type="submit"
             disabled={createPending}
-            className="rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-bold text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
+            className="site-button site-button-primary"
           >
             {createPending ? "등록 중" : "등록"}
           </button>
@@ -159,7 +159,7 @@ function QueueEntryRow({ menuSiteId, entry }: { menuSiteId: string; entry: Picku
             name="nextStatus"
             value="cancelled"
             disabled={pending}
-            className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-bold text-zinc-500 disabled:opacity-40"
+            className="site-button site-button-outline"
           >
             취소
           </button>
@@ -168,7 +168,7 @@ function QueueEntryRow({ menuSiteId, entry }: { menuSiteId: string; entry: Picku
             name="nextStatus"
             value={nextStatus}
             disabled={pending}
-            className="rounded-xl bg-zinc-950 px-4 py-2 text-xs font-bold text-white disabled:bg-zinc-300"
+            className="site-button site-button-primary"
           >
             {pending ? "처리 중" : nextLabel}
           </button>

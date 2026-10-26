@@ -69,13 +69,13 @@ export default async function ApplyDisplayPage({
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/apply"
-                className="site-button site-button-primary inline-flex items-center justify-center text-sm"
+                className="site-button site-button-primary inline-flex items-center justify-center"
               >
                 상품 선택으로 돌아가기
               </Link>
               <Link
                 href="/services/display"
-                className="site-button site-button-outline inline-flex items-center justify-center text-sm"
+                className="site-button site-button-outline inline-flex items-center justify-center"
               >
                 아티메뉴 디스플레이 소개 보기
               </Link>

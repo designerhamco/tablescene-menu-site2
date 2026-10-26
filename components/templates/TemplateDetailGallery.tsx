@@ -16,7 +16,7 @@ const views = [
 ];
 
 export function TemplateDetailShare() {
-  return <ShareDialog title="마음에 드는 아티메뉴 디자인을 공유해 보세요." trigger={<button type="button" className={`site-button site-button-ghost ${styles.share}`} aria-label="템플릿 공유하기"><Share2 size={18} aria-hidden="true" /></button>} />;
+  return <ShareDialog title="마음에 드는 아티메뉴 디자인을 공유해 보세요." trigger={<button type="button" className="site-button site-button-ghost site-button-icon" aria-label="템플릿 공유하기"><Share2 size={18} aria-hidden="true" /></button>} />;
 }
 
 export function TemplateDetailActions({ designId, name }: { designId: string; name: string }) {

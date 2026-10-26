@@ -11,7 +11,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="site-button site-button-primary site-button-lg w-full disabled:cursor-wait disabled:bg-zinc-500"
+      className="site-button site-button-primary site-button-lg w-full"
     >
       {pending ? "재설정 메일 보내는 중..." : "재설정 메일 보내기"}
     </button>
