@@ -13,10 +13,8 @@ import type { CallDashboardPageData } from "@/lib/server/call-management-service
 
 import { initialCallManagementActionState } from "./action-state";
 import { mutateCallAction } from "./actions";
-import CallItemManager from "./CallItemManager";
 import { Badge } from "@/app/components/ui/badge";
 import { EmptyState } from "@/app/components/ui/empty-state";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "미처리",
@@ -36,15 +34,12 @@ function getKoreanDateKey(value: string) {
   }).format(date);
 }
 
-export default function CallDashboard({ menuSiteId, calls, callItems, callService = "basic" }: {
+export default function CallDashboard({ menuSiteId, calls }: {
   menuSiteId: string;
   calls: CallDashboardPageData["calls"];
-  callItems: CallDashboardPageData["callItems"];
-  callService?: CallDashboardPageData["callService"];
 }) {
   const router = useRouter();
   const [state, action, pending] = useActionState(mutateCallAction, initialCallManagementActionState);
-  const [activeTab, setActiveTab] = useState<"history" | "settings">("history");
   const [backgroundPollingEnabled, setBackgroundPollingEnabled] = useState(false);
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -83,7 +78,7 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
   }, [backgroundPollingEnabled, pending, router]);
 
   return (
-    <Tabs variant="underline" value={activeTab} onValueChange={value => setActiveTab(value as "history" | "settings")} className="gap-4">
+    <div className="space-y-4">
       <OperationalArrivalAlert
         menuSiteId={menuSiteId}
         kind="calls"
@@ -92,15 +87,6 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
       />
       <ActionFeedbackToast message={state.message} tone={state.status === "success" ? "success" : "error"} eventKey={state} />
 
-      <TabsList variant="underline" size="md" aria-label="호출관리 화면">
-        <TabsTrigger value="history">호출 내역{unresolvedCount > 0 ? <span className="type-caption"> · 미처리 {unresolvedCount}</span> : null}</TabsTrigger>
-        <TabsTrigger value="settings">호출 관리</TabsTrigger>
-      </TabsList>
-
-      {activeTab === "settings" ? (
-        <TabsContent value="settings"><CallItemManager key={callItems.map((item) => `${item.key}:${item.label}:${item.sortOrder}:${item.active}`).join("|")} menuSiteId={menuSiteId} items={callItems} service={callService} /></TabsContent>
-      ) : (
-        <TabsContent value="history" className="space-y-4">
           <FilterPanel>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
@@ -164,8 +150,6 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
               </div>
             </RecordCard>
           ))}
-        </TabsContent>
-      )}
-    </Tabs>
+    </div>
   );
 }

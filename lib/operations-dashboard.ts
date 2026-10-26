@@ -93,6 +93,11 @@ export function hasAvailableStoreOperation(access: StoreOperationAccess) {
   return Object.values(access).some(Boolean);
 }
 
+/** Configuration can precede publication; it never grants live operation access. */
+export function canConfigureStoreOperationsSite(site: { isOwner: boolean; templateKey: string; status: string }) {
+  return site.isOwner && site.status !== "archived" && isStoreOperationsTemplate(site.templateKey);
+}
+
 export function isCurrentSmartCallOperationsSite({
   accessRole,
   templateKey,

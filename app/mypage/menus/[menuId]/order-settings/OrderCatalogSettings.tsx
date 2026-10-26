@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import type { OrderCatalogSettingsItem } from "@/lib/server/menu-order-catalog-settings-service";
 import type { OrderOptionGroupInput } from "@/lib/menu-order-configuration";
 import { updateOrderItemConfiguration } from "./actions";
@@ -44,25 +45,11 @@ function ItemForm({
           />{" "}
           이 상품 주문 사용
         </label>
-        <label className="block text-copy font-semibold">
-          기본 가격 (원)
-          <input
-            className="site-field mt-2 block w-full border-zinc-300 px-4 py-3 sm:max-w-xs"
-            type="number"
-            min={0}
-            max={10000000}
-            step={1}
-            value={value.price}
-            onChange={(e) =>
-              setValue({ ...value, price: Number(e.target.value) })
-            }
-          />
-        </label>
+        <p className="text-copy font-semibold">기본 가격 {item.priceConfigured ? `${item.price.toLocaleString("ko-KR")}원` : "미설정"}</p>
         <p className="text-copy text-zinc-500">
-          메뉴의 기본 가격도 함께 저장됩니다. 화면 표시용 HOT·ICE 가격 열과 주문
-          옵션은 별도이며, 판매 금액에 맞춰 직접 설정해 주세요. 숨김·품절 상품은
-          담을 수 없습니다.
+          상품명·기본 가격·사진은 메뉴 편집에서 변경합니다. 화면 표시용 가격 열과 주문 옵션은 별도이므로 옵션별 추가금을 확인해 주세요. 숨김·품절 상품은 담을 수 없습니다.
         </p>
+        <Link href={`/mypage/menus/${menuId}/edit?tab=menu`} className="site-button site-button-rounded site-button-outline">메뉴 편집으로 이동</Link>
         {value.groups.map((group, i) => (
           <fieldset key={group.id} className="border-t border-zinc-200 pt-5">
             <legend className="type-label px-2">옵션 그룹 {i + 1}</legend>

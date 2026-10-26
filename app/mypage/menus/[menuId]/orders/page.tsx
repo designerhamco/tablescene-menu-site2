@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
+import OperationFeatureNavigation from "@/components/mypage/OperationFeatureNavigation";
 import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import { isStoreOperationsAvailable } from "@/lib/product-focus-policy";
 import {
@@ -68,6 +69,7 @@ export default async function OrderDashboardPage({
           </p>
         </header>
 
+        <OperationFeatureNavigation menuId={menuId} feature="orders" settings={false} historyAvailable={selectedSite.operationAccess.orders} canConfigure={selectedSite.isOwner} />
         <OrderDashboard menuSiteId={data.menuSite.id} menuSiteName={data.menuSite.name} orders={data.orders} permissions={data.permissions} />
       </div>
     </StoreOperationsShell>

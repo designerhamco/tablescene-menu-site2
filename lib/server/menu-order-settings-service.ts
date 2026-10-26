@@ -12,6 +12,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import {
   readMenuOrderSettings,
+  mergeMenuOrderSettingsSection,
+  type MenuOrderSettingsSection,
   type MenuOrderSettings,
 } from "@/lib/menu-order-settings";
 import type { Json } from "@/lib/supabase/types";
@@ -52,7 +54,8 @@ export async function loadMenuOrderSettings(menuId: string) {
 }
 export async function saveMenuOrderSettings(
   menuId: string,
-  next: MenuOrderSettings,
+  input: MenuOrderSettings,
+  section: MenuOrderSettingsSection,
 ) {
   const permission = await requireMenuSitePermission(menuId, "menu.edit");
   if (!permission.isOwner)
@@ -66,16 +69,17 @@ export async function saveMenuOrderSettings(
     "menu.edit",
     "menu_order_settings",
   );
-  const { site, courses } = await loadMenuOrderSettings(menuId);
+  const { site, courses, settings } = await loadMenuOrderSettings(menuId);
+  const next = mergeMenuOrderSettingsSection(settings, input, section);
   if (
-    next.orderableCourseIds.some(
+    section === "orders" && next.orderableCourseIds.some(
       (id) => !courses.some((course) => course.id === id),
     )
   )
     throw new Error("코스 주문 설정을 다시 확인해 주세요.");
   if (site.template_key === "display_menu_a")
     throw new Error("디스플레이는 주문 기능을 지원하지 않습니다.");
-  if (next.orderEnabled && !next.postpayEnabled)
+  if (section === "orders" && next.orderEnabled && !next.postpayEnabled)
     throw new Error(
       "현재는 후불 주문을 사용해야 합니다. 선결제는 준비 중입니다.",
     );

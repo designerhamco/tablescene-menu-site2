@@ -14,19 +14,23 @@ export async function updateOrderSettings(
     const id = String(form.get("menuId") ?? "");
     if (!/^[0-9a-f-]{36}$/i.test(id))
       throw new Error("올바른 메뉴판 정보가 필요합니다.");
+    const section = form.get("section");
+    if (section !== "orders" && section !== "calls") throw new Error("변경할 설정을 확인해 주세요.");
     await saveMenuOrderSettings(id, {
       orderEnabled: form.get("orderEnabled") === "on",
       callEnabled: form.get("callEnabled") === "on",
       mobilePrepayVisible: form.get("mobilePrepayVisible") === "on",
       postpayEnabled: true,
       orderableCourseIds: form.getAll("orderableCourseId").map(String),
-    });
+    }, section);
     revalidatePath("/menu", "layout");
     revalidatePath("/mypage/menus/" + id + "/order-settings");
+    revalidatePath(`/mypage/menus/${id}/orders/settings`);
+    revalidatePath(`/mypage/menus/${id}/calls/settings`);
     return {
       status: "success",
       message:
-        "주문·호출 설정을 저장했습니다. 선결제는 준비 중이며 후불 주문만 사용할 수 있습니다.",
+        section === "calls" ? "호출 설정을 저장했습니다." : "주문 설정을 저장했습니다. 현재는 후불 주문만 사용할 수 있습니다.",
     };
   } catch (e) {
     return {
@@ -48,6 +52,8 @@ export async function updateOrderItemConfiguration(
       configuration,
     );
     revalidatePath("/mypage/menus/" + menuId + "/order-settings");
+    revalidatePath(`/mypage/menus/${menuId}/orders/settings`);
+    revalidatePath(`/mypage/menus/${menuId}/edit`);
     revalidatePath("/menu", "layout");
     return { message: "주문 상품과 옵션을 저장했습니다.", updatedAt };
   } catch (e) {

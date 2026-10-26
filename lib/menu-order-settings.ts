@@ -13,6 +13,18 @@ export const DEFAULT_MENU_ORDER_SETTINGS: MenuOrderSettings = {
   orderableCourseIds: [],
 };
 export const MENU_PREPAY_READY = false;
+export type MenuOrderSettingsSection = "orders" | "calls";
+
+export function mergeMenuOrderSettingsSection(
+  current: MenuOrderSettings,
+  next: MenuOrderSettings,
+  section: MenuOrderSettingsSection,
+): MenuOrderSettings {
+  return section === "calls"
+    ? { ...current, callEnabled: next.callEnabled }
+    : { ...current, orderEnabled: next.orderEnabled, postpayEnabled: true,
+        mobilePrepayVisible: next.mobilePrepayVisible, orderableCourseIds: next.orderableCourseIds };
+}
 export function readMenuOrderSettings(settings: unknown): MenuOrderSettings {
   const root =
     settings && typeof settings === "object" && !Array.isArray(settings)

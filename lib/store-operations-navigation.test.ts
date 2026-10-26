@@ -6,14 +6,15 @@ function readSource(relativePath: string) {
   return readFileSync(new URL(`../${relativePath}`, import.meta.url), "utf8");
 }
 
-test("매장 운영은 로그인 헤더에서 제공하고 마이페이지 중복 진입점과 직원 관리는 숨긴다", () => {
+test("매장 운영은 로그인 헤더에서 제공하고 직원 관리는 마이페이지에 연결한다", () => {
   const mypageSource = readSource("app/mypage/page.tsx");
   const sidebarSource = readSource("components/mypage/MypageSidebar.tsx");
   const navbarSource = readSource("app/components/layout/Navbar.tsx");
 
   assert.doesNotMatch(mypageSource, /href="\/mypage\/operations"/);
   assert.doesNotMatch(sidebarSource, /href="\/mypage\/operations"/);
-  assert.doesNotMatch(sidebarSource, /href="\/mypage\/staff"/);
+  assert.match(sidebarSource, /href="\/mypage\/staff"/);
+  assert.match(sidebarSource, /DisabledNavigationItem label="직원 관리"/);
   assert.doesNotMatch(sidebarSource, /<ExternalLink/);
   assert.match(navbarSource, /href="\/mypage\/operations"/);
   assert.match(navbarSource, /data-site-header-operations/);
