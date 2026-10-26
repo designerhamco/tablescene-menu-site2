@@ -331,7 +331,7 @@
 .site-contained-tab:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -4px; }
 .site-contained-tab:disabled { opacity: .45; cursor: not-allowed; }
 .site-contained-tabs-even > .site-contained-tab { flex: 0 1 12rem; min-width: 0; }
-.site-contained-panel { min-width: 0; padding: 1.5rem; border: 1px solid var(--ui-border); border-radius: 0 0 .75rem .75rem; background: var(--ui-surface); }
+.site-contained-panel { min-width: 0; padding: 1.5rem; border: 1px solid var(--ui-border); border-radius: 0 .75rem .75rem .75rem; background: var(--ui-surface); }
 .site-contained-panel:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -3px; }
 .site-tooltip-brand[data-slot="tooltip-content"] { max-width: min(18rem, calc(100vw - 2rem)); padding: .625rem .875rem; border-radius: .625rem; background: var(--site-accent); color: var(--ui-text); font-size: var(--font-size-200); font-weight: 500; line-height: 1.5; box-shadow: var(--site-shadow-popover); }
 .site-tooltip-arrow { fill: var(--site-accent); }

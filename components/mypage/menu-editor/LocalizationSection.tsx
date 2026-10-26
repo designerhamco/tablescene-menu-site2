@@ -27,6 +27,7 @@ import { AI_FEATURE_CREDIT_COSTS } from "@/lib/ai-credits";
 import { getSafeTranslationErrorMessage } from "@/lib/menu-translation-errors";
 import { getLocalizationSaveMode } from "@/lib/menu-localization-save-mode";
 import { Badge } from "@/app/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 
 type TranslationJob = {
   status: string;
@@ -1082,81 +1083,68 @@ function LocalizationSectionContent({
           <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
             자동 번역 초안은 비어 있는 번역 칸에만 채워지며, 이미 입력한 번역은 유지됩니다.
           </p>
-          <div className="mt-5 flex flex-wrap gap-2">
-            {(["ko", ...TRANSLATABLE_LOCALES] as SupportedLocale[]).map((locale) => (
-              <button
-                key={locale}
-                type="button"
-                onClick={() => setActiveLocale(locale)}
-                className={`site-button ${activeLocale === locale ? "site-button-primary" : "site-button-secondary"}`} aria-pressed={activeLocale === locale}
-              >
-                {locale === "ko" ? "한국어 원문" : LOCALE_LABELS[locale]}
-              </button>
-            ))}
-          </div>
-          <div className="site-section site-editor-subpanel mt-5 overflow-hidden">
-            <div className="flex flex-wrap border-b border-zinc-200 bg-zinc-50 p-1">
-              {translationTargetGroups.map((group) => (
-                <button
-                  key={group}
-                  type="button"
-                  onClick={() => setActiveTargetGroup(group)}
-                  className={`rounded-md px-4 py-2 text-sm font-bold transition-colors ${
-                    activeTargetGroup === group
-                      ? "bg-white text-zinc-950"
-                      : "text-zinc-500 hover:bg-white/70 hover:text-zinc-800"
-                  }`}
-                >
-                  {translationTargetLabels[group]}
-                </button>
+          <Tabs value={activeLocale} onValueChange={value => setActiveLocale(value as SupportedLocale)} className="mt-5 gap-5">
+            <TabsList variant="underline" size="lg" aria-label="번역 언어 선택">
+              {(["ko", ...TRANSLATABLE_LOCALES] as SupportedLocale[]).map((locale) => (
+                <TabsTrigger key={locale} value={locale}>
+                  {locale === "ko" ? "한국어 원문" : LOCALE_LABELS[locale]}
+                </TabsTrigger>
               ))}
-            </div>
-
-            <div className="p-4">
-              {activeLocale === "ko" ? (
-                <div className="space-y-4">
-                  <p className="break-keep rounded-lg bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-500">
-                    {localizationStructure === "basic"
-                      ? "한국어 원문은 기본 정보와 메뉴 관리 탭에서 수정해주세요. 이 탭에서는 자동 번역 결과를 확인하고 필요한 문구만 직접 수정할 수 있습니다."
-                      : localizationStructure === "display"
-                      ? "한국어 원문은 기본 정보와 메뉴 관리 탭의 메뉴 그룹, 메뉴 목록에서 수정해주세요. 이 탭에서는 번역 기준 원문만 확인할 수 있습니다."
-                      : "한국어 원문은 기본 정보, 커버 이미지, 메뉴 관리 탭에서 수정해주세요. 이 탭에서는 번역 기준 원문만 확인할 수 있습니다."}
-                  </p>
-                  {activeTargetGroup === "items" ? <ReadOnlyItemGroups fields={activeTargetFields} /> : <ReadOnlyTranslationFields fields={activeTargetFields} />}
-                </div>
-              ) : editableTranslationFields.length === 0 ? (
-                <p className="break-keep rounded-lg bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-500">
-                  번역할 수 있는 문구가 없습니다. 한국어 메뉴 정보를 먼저 저장해주세요.
-                </p>
-              ) : (
-                <div className="space-y-5">
-                  {activeTargetGroup === "items" ? (
-                    <TranslationEditorItemGroups
-                      fields={activeTargetFields}
-                      activeLocale={activeLocale}
-                      draftValues={draftValues}
-                      onDraftChange={updateDraft}
-                      partialUsage={localPartialUsage}
-                      pendingPartialEntityKey={pendingPartialEntityKey}
-                      onPartialTranslate={requestPartialTranslation}
-                      title={translationTargetLabels.items ?? "메뉴 아이템"}
-                    />
+            </TabsList>
+            <TabsContent value={activeLocale}>
+              <Tabs value={activeTargetGroup} onValueChange={value => setActiveTargetGroup(value as TranslationTargetGroup)} className="site-section site-editor-subpanel gap-0 overflow-hidden">
+                <TabsList variant="underline" size="lg" aria-label="번역 항목 선택">
+                  {translationTargetGroups.map((group) => (
+                    <TabsTrigger key={group} value={group}>{translationTargetLabels[group]}</TabsTrigger>
+                  ))}
+                </TabsList>
+                <TabsContent value={activeTargetGroup} className="p-4">
+                  {activeLocale === "ko" ? (
+                    <div className="space-y-4">
+                      <p className="break-keep rounded-lg bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-500">
+                        {localizationStructure === "basic"
+                          ? "한국어 원문은 기본 정보와 메뉴 관리 탭에서 수정해주세요. 이 탭에서는 자동 번역 결과를 확인하고 필요한 문구만 직접 수정할 수 있습니다."
+                          : localizationStructure === "display"
+                          ? "한국어 원문은 기본 정보와 메뉴 관리 탭의 메뉴 그룹, 메뉴 목록에서 수정해주세요. 이 탭에서는 번역 기준 원문만 확인할 수 있습니다."
+                          : "한국어 원문은 기본 정보, 커버 이미지, 메뉴 관리 탭에서 수정해주세요. 이 탭에서는 번역 기준 원문만 확인할 수 있습니다."}
+                      </p>
+                      {activeTargetGroup === "items" ? <ReadOnlyItemGroups fields={activeTargetFields} /> : <ReadOnlyTranslationFields fields={activeTargetFields} />}
+                    </div>
+                  ) : editableTranslationFields.length === 0 ? (
+                    <p className="break-keep rounded-lg bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-500">
+                      번역할 수 있는 문구가 없습니다. 한국어 메뉴 정보를 먼저 저장해주세요.
+                    </p>
                   ) : (
-                    <TranslationEditorGroup
-                      title={translationTargetLabels[activeTargetGroup] ?? activeTargetGroup}
-                      fields={activeTargetFields}
-                      activeLocale={activeLocale}
-                      draftValues={draftValues}
-                      onDraftChange={updateDraft}
-                      partialUsage={activeTargetGroup === "site" || activeTargetGroup === "categories" ? localPartialUsage : undefined}
-                      pendingPartialEntityKey={pendingPartialEntityKey}
-                      onPartialTranslate={activeTargetGroup === "site" || activeTargetGroup === "categories" ? requestPartialTranslation : undefined}
-                    />
+                    <div className="space-y-5">
+                      {activeTargetGroup === "items" ? (
+                        <TranslationEditorItemGroups
+                          fields={activeTargetFields}
+                          activeLocale={activeLocale}
+                          draftValues={draftValues}
+                          onDraftChange={updateDraft}
+                          partialUsage={localPartialUsage}
+                          pendingPartialEntityKey={pendingPartialEntityKey}
+                          onPartialTranslate={requestPartialTranslation}
+                          title={translationTargetLabels.items ?? "메뉴 아이템"}
+                        />
+                      ) : (
+                        <TranslationEditorGroup
+                          title={translationTargetLabels[activeTargetGroup] ?? activeTargetGroup}
+                          fields={activeTargetFields}
+                          activeLocale={activeLocale}
+                          draftValues={draftValues}
+                          onDraftChange={updateDraft}
+                          partialUsage={activeTargetGroup === "site" || activeTargetGroup === "categories" ? localPartialUsage : undefined}
+                          pendingPartialEntityKey={pendingPartialEntityKey}
+                          onPartialTranslate={activeTargetGroup === "site" || activeTargetGroup === "categories" ? requestPartialTranslation : undefined}
+                        />
+                      )}
+                    </div>
                   )}
-                </div>
-              )}
-            </div>
-          </div>
+                </TabsContent>
+              </Tabs>
+            </TabsContent>
+          </Tabs>
         </section>
 
         <div className="site-section site-editor-subpanel flex flex-wrap items-center justify-center gap-3 px-4 py-4">
