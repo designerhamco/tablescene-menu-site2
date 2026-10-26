@@ -156,6 +156,16 @@ test("디자인 시스템은 글자 역할 이름과 화면 예시를 같은 계
   assert.match(foundationsSource, /type-page-description[^>]*>로그인·마이페이지 같은 기능 화면의 설명/);
 });
 
+test("마이페이지와 매장 운영의 최상위 설명은 관리 영역 안에서도 기능 설명 크기를 유지한다", () => {
+  const mypageSource = readFileSync(join(appRoot, "mypage/page.tsx"), "utf8");
+  const staffSource = readFileSync(join(appRoot, "mypage/staff/page.tsx"), "utf8");
+  const operationsShellSource = readFileSync(join(componentsRoot, "mypage/StoreOperationsShell.tsx"), "utf8");
+
+  assert.match(mypageSource, /<h1 className="type-page-title"[\s\S]*?<p className="type-page-description/);
+  assert.match(staffSource, /<h1 className="type-page-title[^\"]*"[\s\S]*?<p className="type-page-description/);
+  assert.match(operationsShellSource, /<h1 className="type-page-title"[\s\S]*?<p className="type-page-description/);
+});
+
 test("활성 사이트 UI의 h1부터 h6까지 승인된 의미 기반 타이포 역할만 사용한다", () => {
   for (const path of siteUiFiles) {
     const source = readFileSync(path, "utf8");

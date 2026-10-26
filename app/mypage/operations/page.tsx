@@ -103,7 +103,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
           <article className="site-card p-8 text-center md:p-12">
             <h2 className="type-subsection-title">운영 가능한 메뉴판이 없습니다</h2>
             <p className="mx-auto mt-3 max-w-xl break-keep text-copy font-medium leading-relaxed text-zinc-500">
-              현재 공개 중이고 이용 기간이 유효하며 운영 기능이 활성화된 메뉴판만 표시됩니다.
+              사장 계정의 베이직·다이닝 메뉴판에서 주문·호출 설정을 준비할 수 있습니다. 직원은 운영 중이며 권한이 부여된 메뉴판을 확인할 수 있습니다.
             </p>
             <Link
               href="/mypage?tab=menus"
@@ -141,6 +141,12 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
             현재 주문과 호출, 테이블 현황을 빠르게 확인합니다.
           </p>
         </header>
+
+        {selectedSite.canConfigure && (!access.orders || !access.calls) ? (
+          <AnnouncementBar label="운영 설정">
+            주문관리·호출관리에서 사용 여부와 항목을 미리 설정할 수 있습니다. 실제 접수는 메뉴판 공개와 운영 연결이 완료된 기능에서 시작됩니다.
+          </AnnouncementBar>
+        ) : null}
 
         <section className="site-metric-grid" aria-label="매장 운영 요약">
           <MetricCard icon={<ShoppingBag />} tone="blue"

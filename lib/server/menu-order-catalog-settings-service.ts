@@ -15,6 +15,7 @@ export type OrderCatalogSettingsItem = MenuItemOrderConfiguration & {
   name: string;
   visible: boolean;
   soldOut: boolean;
+  priceConfigured: boolean;
 };
 async function requireOwner(menuId: string) {
   const context = await requireMenuSitePermission(menuId, "menu.read");
@@ -57,6 +58,7 @@ export async function loadMenuOrderCatalogSettings(
     name: item.name,
     updatedAt: item.updated_at!,
     price: item.price ?? 0,
+    priceConfigured: item.price !== null,
     orderable: item.orderable,
     visible: item.visible !== false,
     soldOut: Boolean(item.is_sold_out),
@@ -88,6 +90,14 @@ export async function saveMenuItemOrderConfiguration(
     "menu.edit",
     "menu_order_settings",
   );
+  const currentItem = await supabase.from("menu_items")
+    .select("price,updated_at").eq("id", configuration.id).eq("menu_site_id", menuId).single();
+  if (currentItem.error || !currentItem.data)
+    throw new Error("상품 정보를 불러오지 못했습니다.");
+  if (currentItem.data.updated_at !== configuration.updatedAt)
+    throw new Error("다른 창에서 상품이 변경됐습니다. 새로고침 후 다시 저장해 주세요.");
+  if (currentItem.data.price === null)
+    throw new Error("메뉴 편집에서 상품의 기본 가격을 먼저 입력해 주세요.");
   const { data, error } = await supabase.rpc(
     "replace_menu_item_order_options",
     {
@@ -96,7 +106,7 @@ export async function saveMenuItemOrderConfiguration(
       p_actor_user_id: context.actorUserId,
       p_expected_updated_at: configuration.updatedAt,
       p_orderable: configuration.orderable,
-      p_price: configuration.price,
+      p_price: currentItem.data.price,
       p_groups: configuration.groups as unknown as Json,
     },
   );

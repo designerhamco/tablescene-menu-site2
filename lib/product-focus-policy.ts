@@ -2,7 +2,7 @@ export const DESIGN_MENU_FOCUS_POLICY = Object.freeze({
   representativeQr: true,
   smartCall: true,
   storeOperations: true,
-  staffManagement: false,
+  staffManagement: true,
   tableManagement: true,
   pickupQueue: false,
 });

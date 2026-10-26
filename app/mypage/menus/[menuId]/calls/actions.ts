@@ -48,6 +48,7 @@ export async function saveCallItemsAction(
     await saveStaffCallItems({ menuSiteId, items });
     revalidatePath(`/mypage/menus/${menuSiteId}/calls`);
     revalidatePath(`/mypage/menus/${menuSiteId}/order-settings`);
+    revalidatePath(`/mypage/menus/${menuSiteId}/calls/settings`);
     revalidatePath("/menu", "layout");
     return { status: "success", message: "호출 항목을 저장했습니다." };
   } catch (error) {

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
+import { MypageAccountCard, MypageNavigation } from "@/components/mypage/MypageSidebar";
 import { isDeletedAccountStatus } from "@/lib/account-status";
 import { isStaffManagementAvailable } from "@/lib/product-focus-policy";
 import {
@@ -155,8 +156,13 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-management-scope site-gutter min-h-screen bg-white py-10 text-zinc-950 md:py-16">
-        <div className="mx-auto w-full max-w-[var(--site-content-width)] space-y-8">
+      <main className="site-management-scope site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
+        <div className="site-account-layout mx-auto w-full max-w-[var(--site-content-width)]">
+          <aside className="site-account-sidebar min-w-0">
+            <MypageAccountCard email={user.email ?? "이메일 정보 없음"} roleLabel="사장" canShowOwnerCommerce staffAccountCount={new Set(activeMemberships.map(member => member.user_id)).size} />
+            <MypageNavigation active="staff" totalMenuCount={menuSites.length} canShowOwnerCommerce />
+          </aside>
+          <section className="min-w-0 space-y-8">
         <ActionFeedbackToast
           message={resultNotice?.message}
           tone={resultNotice?.tone ?? "success"}
@@ -168,7 +174,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
             </Link>
             <h1 className="type-page-title mt-5">직원 관리</h1>
             <p className="type-page-description mt-3 text-zinc-500">
-              사장으로 소유한 메뉴판에 직원을 초대하고 대기 중인 초대를 확인합니다.
+              메뉴판별로 직원을 초대하고 역할과 개별 권한을 관리합니다.
             </p>
           </div>
         </header>
@@ -300,7 +306,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
         <section className="site-section p-6 md:p-8">
           <div>
             <h2 className="type-content-title">대기 중인 초대</h2>
-            <p className="mt-2 text-copy font-medium text-zinc-500">재전송과 취소는 다음 안전한 작업 범위에서 연결됩니다.</p>
+            <p className="mt-2 text-copy font-medium text-zinc-500">아직 수락하지 않은 초대를 확인하고 재전송하거나 취소할 수 있습니다.</p>
           </div>
 
           {invitationResult.error ? (
@@ -346,6 +352,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
             </div>
           )}
         </section>
+          </section>
         </div>
       </main>
       <Footer />

@@ -4,6 +4,7 @@ import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-run
 import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
 import {
   getStoreOperationAccess,
+  canConfigureStoreOperationsSite,
   isCurrentPickupQueueOperationsSite,
   isCurrentSmartCallOperationsSite,
   isStoreOperationsTemplate,
@@ -19,6 +20,7 @@ import { isPickupQueueRuntimeEnabledForSite, isPickupQueueTemplate } from "@/lib
 
 export type StoreOperationsSite = AccessibleMenuSiteListItem & {
   operationAccess: StoreOperationAccess;
+  canConfigure: boolean;
 };
 
 export type StoreOperationsContext = {
@@ -44,9 +46,9 @@ export async function getStoreOperationsContext(
     const callManagementEnabled = isCallRuntimeEnabledForSite(site.menuSiteId);
     const pickupQueueEnabled = isPickupQueueRuntimeEnabledForSite(site.menuSiteId);
 
-    if (
-      !lifecycle || lifecycle.planType !== "business_basic"
-      || (!isCurrentSmartCallOperationsSite({
+    const canConfigure = canConfigureStoreOperationsSite(site);
+    const liveEligible = Boolean(lifecycle && lifecycle.planType === "business_basic"
+      && (isCurrentSmartCallOperationsSite({
         accessRole: site.accessRole,
         templateKey: site.templateKey,
         menuSiteStatus: site.status,
@@ -58,7 +60,7 @@ export async function getStoreOperationsContext(
         callManagementEnabled,
         pickupQueueEnabled,
         permissions: site.permissions,
-      }) && !isCurrentPickupQueueOperationsSite({
+      }) || isCurrentPickupQueueOperationsSite({
         accessRole: site.accessRole,
         templateKey: site.templateKey,
         menuSiteStatus: site.status,
@@ -70,14 +72,15 @@ export async function getStoreOperationsContext(
         callManagementEnabled,
         pickupQueueEnabled,
         permissions: site.permissions,
-      }))
-    ) {
+      })));
+    if (!liveEligible && !canConfigure) {
       return [];
     }
 
     return [{
       ...site,
-      operationAccess: getStoreOperationAccess({
+      canConfigure,
+      operationAccess: liveEligible ? getStoreOperationAccess({
         accessRole: site.accessRole,
         templateKey: site.templateKey,
         orderDashboardEnabled,
@@ -85,7 +88,7 @@ export async function getStoreOperationsContext(
         callManagementEnabled,
         pickupQueueEnabled,
         permissions: site.permissions,
-      }),
+      }) : { orders: false, calls: false, tables: false, sales: false, pickup: false },
     }];
   });
 
