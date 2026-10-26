@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Bell, LayoutGrid, ShoppingBag, Ticket } from "lucide-react";
+import { AnnouncementBar, MetricCard } from "@/app/components/ui/data-display";
 import { redirect } from "next/navigation";
 
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
@@ -131,7 +133,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
 
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="dashboard">
-      <div className="space-y-6">
+      <div className="site-dashboard space-y-6">
         {permissionNotice ? <PermissionNotice message={permissionNotice} /> : null}
         <header>
           <h2 className="type-subsection-title">{selectedSite.name} 운영 현황</h2>
@@ -140,26 +142,26 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
           </p>
         </header>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="매장 운영 요약">
-          <SummaryCard
+        <section className="site-metric-grid" aria-label="매장 운영 요약">
+          <MetricCard icon={<ShoppingBag />} tone="blue"
             label="진행 중 주문"
             value={orderData ? `${openOrders.length.toLocaleString("ko-KR")}건` : access.orders ? "확인 불가" : "이용 불가"}
             detail={orderData ? `최근 주문 ${orderData.orders.length.toLocaleString("ko-KR")}건` : "주문 기능 활성화 시 표시됩니다."}
             href={access.orders ? `/mypage/menus/${selectedSite.menuSiteId}/orders` : null}
           />
-          <SummaryCard
+          <MetricCard icon={<Bell />} tone="brand"
             label="대기 중 호출"
             value={callData ? `${pendingCalls.length.toLocaleString("ko-KR")}건` : access.calls ? "확인 불가" : "이용 불가"}
             detail={callData ? `호출 이력 ${callData.calls.length.toLocaleString("ko-KR")}건` : "호출 기능 활성화 시 표시됩니다."}
             href={access.calls ? `/mypage/menus/${selectedSite.menuSiteId}/calls` : null}
           />
-          <SummaryCard
+          <MetricCard icon={<LayoutGrid />} tone="green"
             label="운영 테이블"
             value={tableData ? `${activeTables.length.toLocaleString("ko-KR")}개` : access.tables ? "확인 불가" : "이용 불가"}
             detail={tableData ? `등록 테이블 ${tableData.tables.length.toLocaleString("ko-KR")}개` : "테이블 기능 활성화 시 표시됩니다."}
             href={access.tables ? `/mypage/menus/${selectedSite.menuSiteId}/tables` : null}
           />
-          <SummaryCard
+          <MetricCard icon={<Ticket />} tone="neutral"
             label="활성 대기번호"
             value={pickupData ? `${activePickup.length.toLocaleString("ko-KR")}건` : access.pickup ? "확인 불가" : "이용 불가"}
             detail={pickupData ? `오늘 등록 ${pickupData.entries.length.toLocaleString("ko-KR")}건` : "Display 대기번호 활성화 시 표시됩니다."}
@@ -193,29 +195,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
 }
 
 function PermissionNotice({ message }: { message: string }) {
-  return (
-    <p className="site-notice site-notice-warning" role="status">
-      {message}
-    </p>
-  );
-}
-
-function SummaryCard({ label, value, detail, href }: { label: string; value: string; detail: string; href: string | null }) {
-  const content = (
-    <>
-      <p className="type-caption text-zinc-400">{label}</p>
-      <p className="type-content-title mt-3 tabular-nums">{value}</p>
-      <p className="type-caption mt-2 break-keep text-zinc-500">{detail}</p>
-    </>
-  );
-
-  return href ? (
-    <Link href={href} className="site-card site-card-interactive p-5">
-      {content}
-    </Link>
-  ) : (
-    <article className="site-card p-5">{content}</article>
-  );
+  return <AnnouncementBar label="권한 안내">{message}</AnnouncementBar>;
 }
 
 function DashboardList({
@@ -232,7 +212,7 @@ function DashboardList({
   children: React.ReactNode;
 }) {
   return (
-    <article className="site-card overflow-hidden">
+    <article className="site-card-surface overflow-hidden">
       <div className="flex items-center justify-between gap-3 border-b border-zinc-100 px-4 py-4 sm:px-5">
         <h3 className="type-content-title">{title}</h3>
         {href ? <Link href={href} className="text-xs font-bold text-zinc-500 hover:text-zinc-950">전체보기</Link> : null}

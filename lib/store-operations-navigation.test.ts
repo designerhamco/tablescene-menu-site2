@@ -57,7 +57,7 @@ test("매장 운영 화면은 공통 여백·카드·피드백 시스템을 사�
   assert.match(shellSource, /getNavigationClassName\(activeSection === "dashboard"\)/);
   assert.doesNotMatch(shellSource, /shadow-sm/);
 
-  assert.match(dashboardSource, /site-card site-card-interactive/);
-  assert.match(dashboardSource, /site-notice site-notice-warning/);
+  assert.match(dashboardSource, /<MetricCard/);
+  assert.match(dashboardSource, /<AnnouncementBar label="권한 안내"/);
   assert.doesNotMatch(dashboardSource, /shadow-sm/);
 });

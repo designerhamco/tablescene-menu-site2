@@ -1,5 +1,6 @@
 "use client";
 
+import { RecordCard } from "@/app/components/ui/data-display";
 import { useRouter } from "next/navigation";
 import { CUSTOMER_ORDER_STATUS_LABELS } from "@/lib/customer-order-history";
 import { useActionState, useEffect, useState } from "react";
@@ -141,7 +142,7 @@ export default function OrderDashboard({
         {orders.length === 0 ? (
           <EmptyState headingLevel={3} icon={<ShoppingBag />} title="아직 접수된 주문이 없습니다." description="새 주문이 접수되면 이곳에 표시됩니다." />
         ) : orders.map((order) => (
-          <article key={order.id} className="site-section p-5 md:p-6">
+          <RecordCard key={order.id}>
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
@@ -180,9 +181,9 @@ export default function OrderDashboard({
               {order.cancellationReason ? <p className="site-notice site-notice-error px-4 py-3 text-sm font-bold">취소 사유: {order.cancellationReason}</p> : null}
             </div>
 
-            <div className="mt-5 grid gap-3 lg:grid-cols-3">
+            {(permissions.canManage && order.nextStatus || permissions.canMarkManualPayment && order.canMarkManualPayment || permissions.canCancelUnpaid && order.canCancelUnpaid) ? <div className="site-record-card-actions">
               {permissions.canManage && order.nextStatus ? (
-                <form action={action} className="rounded-md bg-emerald-50 p-4">
+                <form action={action} className="site-record-action-form">
                   <input type="hidden" name="menuSiteId" value={menuSiteId} />
                   <input type="hidden" name="orderId" value={order.id} />
                   <input type="hidden" name="nextStatus" value={order.nextStatus} />
@@ -194,7 +195,7 @@ export default function OrderDashboard({
               ) : null}
 
               {permissions.canMarkManualPayment && order.canMarkManualPayment ? (
-                <form action={action} className="rounded-md bg-sky-50 p-4">
+                <form action={action} className="site-record-action-form">
                   <input type="hidden" name="menuSiteId" value={menuSiteId} />
                   <input type="hidden" name="orderId" value={order.id} />
                   <label className="text-xs font-bold text-sky-900">
@@ -211,7 +212,7 @@ export default function OrderDashboard({
               ) : null}
 
               {permissions.canCancelUnpaid && order.canCancelUnpaid ? (
-                <form action={action} className="rounded-md bg-rose-50 p-4">
+                <form action={action} className="site-record-action-form">
                   <input type="hidden" name="menuSiteId" value={menuSiteId} />
                   <input type="hidden" name="orderId" value={order.id} />
                   <label className="text-xs font-bold text-rose-900">
@@ -223,8 +224,8 @@ export default function OrderDashboard({
                   </button>
                 </form>
               ) : null}
-            </div>
-          </article>
+            </div> : null}
+          </RecordCard>
         ))}
       </div>
     </>

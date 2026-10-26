@@ -12,6 +12,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/too
 import HelpTooltip from "@/components/ui/HelpTooltip";
 import CatalogDesignCard from "@/components/templates/CatalogDesignCard";
 import { catalogDesigns } from "@/lib/catalog-designs";
+import DesignFoundations from "./DesignFoundations";
+import ReferenceComponentExamples from "./ReferenceComponentExamples";
 import styles from "./SiteComponentGallery.module.css";
 
 function Examples({ title, description, children }: { title: string; description: string; children: ReactNode }) {
@@ -30,19 +32,11 @@ export default function SiteComponentGallery() {
     { key: "display", label: "디스플레이", description: "매장의 큰 화면을 위한 메뉴보드", Icon: Monitor },
   ];
   return <div className={`site-container ${styles.page}`}>
-    <header className={styles.header}><h1 className="type-page-title">컴포넌트 라이브러리</h1>
-      <p className="site-body">용도에 맞춰 형태와 크기를 선택하는 아티메뉴의 공통 요소입니다.</p>
+    <header className={styles.header}><h1 className="type-page-title">디자인 시스템</h1>
+      <p className="site-body">디자인 기준과 실제 사이트에 사용하는 공통 컴포넌트를 한곳에서 확인합니다.</p>
       <p className="type-body-sm text-zinc-600">스타일 확인용 예시입니다. 선택과 좋아요는 이 화면에서만 유지됩니다.</p>
     </header>
-    <Examples title="크기와 굵기로 구분하는 글자" description="페이지 제목부터 보조 정보까지, 같은 서체 안에서 역할과 크기를 명확하게 구분합니다.">
-      <div className={styles.typeSamples}>
-        <p className="type-page-title">매장의 첫인상을 만드는 메뉴판</p>
-        <p className="type-section-title">매장에 어울리는 디자인을 찾아보세요</p>
-        <p className="type-content-title">디자인 이름과 주요 콘텐츠 제목</p>
-        <p className="site-body">소개 문장은 여유 있는 크기로, 상세 정보는 차분하게 읽힙니다.</p>
-        <p className="type-body-sm text-zinc-600">보조 설명과 상태 안내는 14px를 사용합니다.</p>
-      </div>
-    </Examples>
+    <Tabs defaultValue="components" className="mt-6 gap-0"><TabsList variant="underline" size="lg" aria-label="디자인 시스템 메뉴"><TabsTrigger value="foundations">기준·토큰</TabsTrigger><TabsTrigger value="components">컴포넌트 라이브러리</TabsTrigger></TabsList><TabsContent value="foundations"><DesignFoundations /></TabsContent><TabsContent value="components"><ReferenceComponentExamples />
     <Examples title="크기와 형태가 다른 버튼" description="일반 실행은 40px, 강조 실행은 48·56px로 나누고, 둥근형·라운드 사각형·작은 모서리를 선택합니다.">
       <div className={styles.buttonRow}>
         <Button asChild><Link href="/apply">시작하기</Link></Button>
@@ -111,5 +105,6 @@ export default function SiteComponentGallery() {
     <Examples title="카테고리 이동 버튼" description="목록의 진입점은 문구에 맞는 사각 버튼과 이동 아이콘으로 표시합니다.">
       <div className={styles.actionGrid}>{choices.map(({key,label})=><Button key={key} className={styles.action} variant="outline" shape="square" asChild><Link href={`/apply?plan=${key}`}>{label} 디자인 <Plus aria-hidden="true" /></Link></Button>)}</div>
     </Examples>
+    </TabsContent></Tabs>
   </div>;
 }

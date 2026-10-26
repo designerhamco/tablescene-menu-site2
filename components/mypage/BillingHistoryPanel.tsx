@@ -1,4 +1,5 @@
 "use client";
+import { FilterPanel } from "@/app/components/ui/data-display";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { CreditCard } from "lucide-react";
 
@@ -553,7 +554,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
 
   return (
     <section className="space-y-5">
-      <div className="site-filter-panel">
+      <FilterPanel>
         <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
           <div>
             <h3 className="type-content-title text-zinc-950">결제내역 필터</h3>
@@ -633,7 +634,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
             />
           </label>
         </div>
-      </div>
+      </FilterPanel>
 
       <div className="site-notice site-notice-warning p-5 text-sm font-medium leading-relaxed">
         <p>월결제와 연결제는 모두 정기결제 상품입니다. 해지 예약 시 다음 결제일부터 자동결제가 중단되며, 이미 결제된 이용 기간까지 계속 사용할 수 있습니다.</p>
@@ -653,9 +654,9 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
       </div>
 
       {filteredEntries.length > 0 ? (
-        <div className="site-record-list">
+        <div className="site-record-list site-record-list-cards">
           {filteredEntries.map((entry) => (
-            <article key={entry.id} className="site-record">
+            <article key={entry.id} className="site-record-card site-record-card-main">
               <div className="site-record-layout">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
