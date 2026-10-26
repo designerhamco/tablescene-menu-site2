@@ -104,6 +104,8 @@ test("마이페이지와 편집·운영 화면은 동일한 관리 화면 타이
     assert.ok(SITE_TYPE_STEPS.includes(role.size));
     assert.match(siteDesignSource, new RegExp(`\\.site-management-scope[\\s\\S]*?--type-${role.key}-size: var\\(--site-type-${role.size}\\);`));
   }
+  assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-copy: var\(--site-type-15\);/);
+  assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-support: var\(--site-type-14\);/);
 
   for (const file of collectTsxFiles(join(appRoot, "mypage"))) {
     const source = readFileSync(file, "utf8");
