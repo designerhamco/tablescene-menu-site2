@@ -50,10 +50,10 @@ export function ConsentAgreementBox<T extends string>({
 
   return (
     <>
-      <div className="site-section py-2.5">
-        {title ? <p className="mb-1 px-1 text-sm font-bold text-zinc-700">{title}</p> : null}
+      <div className="site-consent-surface">
+        {title ? <p className="site-consent-title text-sm font-bold text-zinc-700">{title}</p> : null}
 
-        <label className="flex min-h-9 cursor-pointer items-center gap-3 px-1 py-2 text-sm font-bold text-zinc-900">
+        <label className="site-consent-all flex min-h-9 cursor-pointer items-center gap-3 text-sm font-bold text-zinc-900">
           <input
             type="checkbox"
             checked={allChecked}
@@ -67,7 +67,7 @@ export function ConsentAgreementBox<T extends string>({
           const key = item.key as T;
 
           return (
-            <div key={item.key} className="flex min-h-9 items-center justify-between gap-3 border-t border-zinc-100 px-1 py-2">
+            <div key={item.key} className="site-consent-row flex min-h-9 items-center justify-between gap-3">
               <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-sm font-bold text-zinc-800">
                 <input
                   name={item.key}

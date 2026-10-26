@@ -1,8 +1,15 @@
 /* Application-form chrome only; customer menu renderers are independent. */
+.site-checkout-page { background: var(--ui-surface-muted); }
 .site-checkout { display: grid; gap: 2.5rem; max-width: 80rem; margin-inline: auto; align-items: start; }
-.site-checkout-main { display: flex; min-width: 0; flex-direction: column; gap: 2.5rem; }
-.site-checkout .site-checkout-section { min-width: 0; border: 0; border-bottom: 1px solid var(--site-divider); border-radius: 0; padding: 0 0 2.5rem; background: transparent; box-shadow: none; }
-.site-checkout .site-checkout-section:last-child { border-bottom: 0; padding-bottom: 0; }
+.site-checkout-main { display: flex; min-width: 0; flex-direction: column; gap: 1.5rem; }
+.site-checkout .site-checkout-section {
+  min-width: 0;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-surface);
+  padding: 1.25rem;
+  background: var(--ui-surface);
+  box-shadow: none;
+}
 .site-checkout-section > .mb-6 > p { font-size: .875rem; line-height: 1.6; }
 .site-checkout .site-checkout-label { color: var(--site-text-secondary); font-size: .8125rem; font-weight: 500; line-height: 1.5; letter-spacing: normal; }
 .site-checkout-main :where(label, input, select, textarea) { min-width: 0; }
@@ -38,7 +45,9 @@
 .site-checkout-summary-row[data-strong="true"] dd { color: var(--ui-text); font-size: 1.25rem; font-weight: 700; }
 .site-checkout-summary-row dt { color: var(--site-text-secondary); }
 .site-checkout-summary-row dd { min-width: 0; overflow-wrap: anywhere; font-weight: 500; }
-.site-checkout .site-checkout-agreement { border: 0; padding-block: .875rem; }
+.site-checkout-agreements { overflow: hidden; border: 1px solid var(--ui-border); border-radius: .75rem; background: var(--ui-surface-muted); }
+.site-checkout-agreement-all { min-height: 3.25rem; padding: 1rem; background: var(--ui-surface); }
+.site-checkout .site-checkout-agreement { border-top: 1px solid var(--ui-border); padding: .875rem 1rem; }
 .site-checkout-agreement .flex-1 { min-width: 0; }
 .site-checkout-agreement :is(span, button, a) { font-weight: 400; }
 .site-checkout .site-checkout-verification { border: 1px solid var(--site-divider); border-radius: .75rem; }
@@ -52,8 +61,8 @@
 }
 @media (min-width: 768px) {
   .site-checkout { gap: 3rem; }
-  .site-checkout-main { gap: 3rem; }
-  .site-checkout .site-checkout-section { padding-bottom: 3rem; }
+  .site-checkout-main { gap: 1.5rem; }
+  .site-checkout .site-checkout-section { padding: 1.75rem; }
 }
 @media (min-width: 1280px) {
   .site-checkout { grid-template-columns: minmax(0, 1fr) 22rem; }
