@@ -17,7 +17,7 @@
 .swatch { height:5rem; border:1px solid var(--ui-border); border-radius:.75rem; }
 .ruleGrid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; padding:1rem; background:var(--ui-surface-muted); border-radius:var(--ui-radius-panel); }
 .usageTable { position:relative; min-width:0; overflow-x:auto; }
-.usageTable table { width:100%; text-align:left; font-size:.875rem; line-height:1.6; }
+.usageTable table { width:100%; text-align:left; font-size: var(--type-body-sm-size); line-height:1.6; }
 .usageTable :is(th,td) { padding:1rem; border-bottom:1px solid var(--ui-border); vertical-align:top; }
 .usageTable th { font-weight:600; background:var(--ui-surface-muted); }
 .notificationExample { width:min(100%,25rem); border:1px solid var(--ui-border); border-radius:var(--ui-radius-panel); overflow:hidden; }
@@ -32,3 +32,13 @@
 @media (max-width: 1199px) { .selectionVariants { grid-template-columns: minmax(0, 1fr); } }
 
 .supportExample { width: min(100%, 27.5rem); min-width: 0; border: 1px solid var(--ui-border); border-radius: 1.25rem; overflow: hidden; }
+
+.fieldGrid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1.5rem; }
+.fieldExample { display: grid; align-content: start; gap: .5rem; min-width: 0; }
+.searchExample { position: relative; min-width: 0; }
+.searchExample > svg { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--ui-text-muted); pointer-events: none; }
+.searchExample input { width: 100%; padding-left: 3.25rem; }
+.planHeading { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+@media (max-width: 767px) { .fieldGrid { grid-template-columns: minmax(0,1fr); } }
+
+.page :is(section[id],h2[id]) { scroll-margin-top: calc(var(--site-header-height) + 1.5rem); }

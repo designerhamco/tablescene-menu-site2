@@ -116,7 +116,7 @@ function getDraftTranslationStatus({ hasDraftChanges, hasSavedTranslations }: { 
   return {
     label: "번역 초안 없음",
     message: "아직 생성된 자동 번역 초안이 없습니다.",
-    tone: "text-zinc-500 bg-zinc-50 border-zinc-100",
+    tone: "text-zinc-600 bg-zinc-50 border-zinc-100",
   };
 }
 
@@ -184,7 +184,7 @@ function TranslationPendingMessage({ pending }: { pending?: boolean }) {
   if (!pending) return null;
 
   return (
-    <p className="site-notice site-notice-warning mt-3 break-keep p-3 text-xs font-bold leading-relaxed">
+    <p className="site-notice site-notice-warning mt-3 break-keep p-3 text-support font-medium leading-relaxed">
       AI가 메뉴판 전체를 번역하고 있습니다. 메뉴 수에 따라 1~3분 정도 걸릴 수 있으니 페이지를 닫거나 새로고침하지 말아주세요.
     </p>
   );
@@ -346,7 +346,7 @@ function TranslationEditorGroup({
           return (
             <div key={group.entityId} className="site-section site-editor-subpanel p-4">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <p className="text-sm font-bold text-zinc-950">{group.groupLabel}</p>
+                <p className="text-copy font-medium text-zinc-950">{group.groupLabel}</p>
                 {onPartialTranslate && canUsePartialTranslation ? (
                   <button
                     type="button"
@@ -375,20 +375,20 @@ function TranslationEditorGroup({
                   return (
                     <div key={key} className="grid gap-3 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{field.label}</p>
-                        <p className="mt-2 whitespace-pre-wrap break-keep text-sm font-bold leading-relaxed text-zinc-800">{field.sourceText}</p>
+                        <p className="text-support font-medium uppercase text-zinc-600">{field.label}</p>
+                        <p className="mt-2 whitespace-pre-wrap break-keep text-copy font-medium leading-relaxed text-zinc-800">{field.sourceText}</p>
                       </div>
                       <label>
-                        <span className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{LOCALE_LABELS[activeLocale]}</span>
+                        <span className="text-support font-medium uppercase text-zinc-600">{LOCALE_LABELS[activeLocale]}</span>
                         <Input
                           value={value}
                           onChange={(event) => onDraftChange(field, event.target.value)}
                           maxLength={maxLength}
                           rows={field.multiline ? 3 : undefined}
-                          className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-semibold leading-relaxed text-zinc-900 outline-none transition focus:border-zinc-950"
+                          className="mt-2 w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-copy font-semibold leading-relaxed text-zinc-900 outline-none transition focus:border-zinc-950"
                         />
                         {maxLength ? (
-                          <span className="mt-1 block text-right text-xs font-bold text-zinc-400">
+                          <span className="mt-1 block text-right text-support font-medium text-zinc-600">
                             {value.length} / {maxLength}
                           </span>
                         ) : null}
@@ -465,8 +465,8 @@ function TranslationEditorItemGroups({
                 }
                 className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
               >
-                <span className="break-words text-sm font-bold text-zinc-950">{category.categoryLabel} ({itemCount})</span>
-                <span className="text-sm font-bold text-zinc-400">{isOpen ? "▾" : "▸"}</span>
+                <span className="break-words text-copy font-medium text-zinc-950">{category.categoryLabel} ({itemCount})</span>
+                <span className="text-copy font-medium text-zinc-600">{isOpen ? "▾" : "▸"}</span>
               </button>
               {isOpen ? (
                 <div className="space-y-4 border-t border-zinc-100 p-4">
@@ -496,7 +496,7 @@ function TranslationEditorItemGroups({
 function ReadOnlyTranslationFields({ fields }: { fields: EditableTranslationField[] }) {
   if (fields.length === 0) {
     return (
-      <p className="break-keep rounded-lg bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-500">
+      <p className="break-keep rounded-lg bg-zinc-50 p-4 text-copy font-medium leading-relaxed text-zinc-600">
         이 영역에 표시할 원문이 없습니다.
       </p>
     );
@@ -509,12 +509,12 @@ function ReadOnlyTranslationFields({ fields }: { fields: EditableTranslationFiel
 
         return (
           <label key={getFieldKey(field)} className="block rounded-lg border border-zinc-100 bg-white p-4">
-            <span className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{field.groupLabel} · {field.label}</span>
+            <span className="text-support font-medium uppercase text-zinc-600">{field.groupLabel} · {field.label}</span>
             <Input
               value={field.sourceText}
               readOnly
               rows={field.multiline ? 3 : undefined}
-              className="mt-2 w-full cursor-default resize-none rounded-lg border border-zinc-200 bg-zinc-100 px-3 py-2 text-sm font-semibold leading-relaxed text-zinc-700 outline-none"
+              className="mt-2 w-full cursor-default resize-none rounded-lg border border-zinc-200 bg-zinc-100 px-3 py-2 text-copy font-semibold leading-relaxed text-zinc-700 outline-none"
             />
           </label>
         );
@@ -556,8 +556,8 @@ function ReadOnlyItemGroups({ fields }: { fields: EditableTranslationField[] }) 
               }
               className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
             >
-              <span className="break-words text-sm font-bold text-zinc-950">{categoryLabel} ({itemCount})</span>
-              <span className="text-sm font-bold text-zinc-400">{isOpen ? "▾" : "▸"}</span>
+              <span className="break-words text-copy font-medium text-zinc-950">{categoryLabel} ({itemCount})</span>
+              <span className="text-copy font-medium text-zinc-600">{isOpen ? "▾" : "▸"}</span>
             </button>
             {isOpen ? <div className="border-t border-zinc-100 p-4"><ReadOnlyTranslationFields fields={categoryFields} /></div> : null}
           </div>
@@ -911,22 +911,22 @@ function LocalizationSectionContent({
         {appliedRecoveryJobId ? <input type="hidden" name="translation_recovery_job_id" value={appliedRecoveryJobId} /> : null}
         <section className="site-section site-editor-subpanel p-5">
           <h3 className="type-content-title text-zinc-950">다국어 설정</h3>
-          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+          <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
             공개 메뉴판에서 사용할 언어를 선택하고, AI로 번역 초안을 만들 수 있습니다.
           </p>
           <div className="mt-5">
             <h4 className="type-label text-zinc-950">사용할 언어</h4>
-            <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+            <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
               한국어는 기본 언어로 항상 사용됩니다. 선택한 언어는 하단 저장 후 공개 메뉴판의 언어 선택에 반영됩니다.
             </p>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <label className="flex items-center justify-between gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4 text-sm font-bold text-zinc-500">
+            <label className="flex items-center justify-between gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4 text-copy font-medium text-zinc-600">
               <span>{LOCALE_LABELS.ko}</span>
-              <span className="text-xs text-emerald-700">항상 사용</span>
+              <span className="text-support text-emerald-700">항상 사용</span>
               <input type="checkbox" checked disabled className="h-4 w-4 accent-zinc-950" />
             </label>
             {TRANSLATABLE_LOCALES.map((locale) => (
-              <label key={locale} className="flex items-center justify-between gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4 text-sm font-bold text-zinc-700">
+              <label key={locale} className="flex items-center justify-between gap-4 rounded-lg border border-zinc-100 bg-zinc-50 p-4 text-copy font-medium text-zinc-700">
                 <span>{LOCALE_LABELS[locale]}</span>
                 <input
                   type="checkbox"
@@ -939,7 +939,7 @@ function LocalizationSectionContent({
               </label>
             ))}
           </div>
-          <p className="mt-4 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+          <p className="mt-4 break-keep text-support font-medium leading-relaxed text-zinc-600">
             언어를 꺼도 기존 번역 데이터는 삭제되지 않습니다. 다시 켜면 저장된 번역을 재사용할 수 있습니다.
           </p>
           </div>
@@ -948,7 +948,7 @@ function LocalizationSectionContent({
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
             <div>
               <h3 className="type-content-title text-zinc-950">AI 번역 크레딧</h3>
-              <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+              <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
                 선택한 외국어의 번역 초안을 생성합니다. 메뉴 수에 따라 보통 1~3분 정도 걸릴 수 있습니다.
                 생성된 번역은 아래 “번역 확인 및 수정” 영역에서 확인하고 저장 후 공개 메뉴판에 반영됩니다.
               </p>
@@ -956,27 +956,27 @@ function LocalizationSectionContent({
                 <AiUsageMeter label="전체 자동 번역" used={localFullUsage.used} limit={localFullUsage.limit} />
                 <AiUsageMeter label="부분 자동 번역" used={localPartialUsage.used} limit={localPartialUsage.limit} />
               </div>
-              <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+              <p className="mt-3 break-keep text-support font-medium leading-relaxed text-zinc-600">
                 전체 자동 번역 초안이 실제로 생성되거나 항목별 AI 번역이 성공했을 때 계정 AI 크레딧이 차감됩니다.
               </p>
-              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+              <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
                 AI가 생성한 번역은 참고용 초안입니다. 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.
               </p>
-              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+              <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
                 주민등록번호, 카드번호, 계좌번호, 민감정보, 제3자의 개인정보는 AI 입력창에 입력하지 마세요.
               </p>
               {!hasTargetLocales && (
-                <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-amber-700">자동 번역을 실행하려면 영어, 중국어, 일본어 중 하나 이상을 사용 설정해주세요.</p>
+                <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-amber-700">자동 번역을 실행하려면 영어, 중국어, 일본어 중 하나 이상을 사용 설정해주세요.</p>
               )}
               {localFullUsage.used >= localFullUsage.limit ? (
-                <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-red-700">
+                <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-red-700">
                   AI 크레딧이 부족합니다. 전체 자동 번역은 {AI_FEATURE_CREDIT_COSTS.full_translation}크레딧이 필요합니다. 현재 보유 AI 크레딧: {Math.max(0, localFullUsage.limit - localFullUsage.used)}개
                 </p>
               ) : null}
-              <p className={`mt-4 inline-flex rounded-full border px-3 py-1 text-xs font-bold ${translationStatus.tone}`}>
+              <p className={`mt-4 inline-flex rounded-full border px-3 py-1 text-support font-medium ${translationStatus.tone}`}>
                 {translationStatus.label}
               </p>
-              <p className="mt-3 break-keep text-sm font-bold text-zinc-500">{translationStatus.message}</p>
+              <p className="mt-3 break-keep text-copy font-medium text-zinc-600">{translationStatus.message}</p>
             </div>
             <div className="flex shrink-0 flex-col items-stretch gap-3 md:min-w-[18rem] md:items-end">
               <div className="flex flex-wrap items-center justify-end gap-2">
@@ -997,7 +997,7 @@ function LocalizationSectionContent({
                   return (
                     <div key={locale} className="site-section site-editor-subpanel p-2">
                       <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-bold text-zinc-700">{LOCALE_LABELS[locale]}</span>
+                        <span className="text-support font-medium text-zinc-700">{LOCALE_LABELS[locale]}</span>
                         <Badge>
                           {getLocaleTranslationStateLabel(state)}
                         </Badge>
@@ -1026,7 +1026,7 @@ function LocalizationSectionContent({
                         )}
                       </button>
                       {state.status === "failed" && state.message ? (
-                        <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-red-600">{state.message}</p>
+                        <p className="mt-2 break-keep text-support font-medium leading-relaxed text-red-600">{state.message}</p>
                       ) : null}
                     </div>
                   );
@@ -1043,11 +1043,11 @@ function LocalizationSectionContent({
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
               <div>
                 <h3 className="type-item-title text-emerald-900">최근 자동 번역 결과가 있습니다.</h3>
-                <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-emerald-800">
+                <p className="mt-2 break-keep text-copy font-medium leading-relaxed text-emerald-800">
                   {recoveryLocaleLabels ? `${recoveryLocaleLabels} 자동 번역 결과` : "최근 자동 번역 결과"}를 다시 불러올 수 있습니다.
                   기존에 입력한 번역은 덮어쓰지 않고 비어 있는 칸만 채웁니다.
                 </p>
-                <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-emerald-700">
+                <p className="mt-2 break-keep text-support font-medium leading-relaxed text-emerald-700">
                   적용 가능 {recoverableAutoTranslationJob.applicableRowCount}개
                   {recoverableAutoTranslationJob.staleRowCount > 0
                     ? ` · 원문이 변경되어 제외될 결과 ${recoverableAutoTranslationJob.staleRowCount}개`
@@ -1067,20 +1067,20 @@ function LocalizationSectionContent({
 
         <section className="site-section site-editor-subpanel p-5">
           <h3 className="type-content-title text-zinc-950">번역 확인 및 수정</h3>
-          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+          <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
             {localizationStructure === "basic"
               ? "기본 정보, 메뉴 그룹, 메뉴 목록의 번역을 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 공개 메뉴판의 언어 선택에 반영됩니다."
               : localizationStructure === "display"
               ? "기본 정보, 메뉴 그룹, 메뉴 목록의 번역을 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 디스플레이 미리보기와 공개 화면에 반영됩니다."
               : "자동 번역 초안을 확인하고 필요한 문구만 직접 수정할 수 있습니다. 저장 후 공개 메뉴판에 반영됩니다."}
           </p>
-          <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+          <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
             항목별 AI 번역은 각 항목 옆의 AI 번역 버튼으로 사용할 수 있으며, 부분 자동 번역은 1크레딧이 차감됩니다.
           </p>
-          <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+          <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
             전체 자동 번역은 {AI_FEATURE_CREDIT_COSTS.full_translation}크레딧, 부분 자동 번역은 {AI_FEATURE_CREDIT_COSTS.partial_translation}크레딧이 필요합니다. AI 크레딧이 부족하면 번역을 실행할 수 없습니다.
           </p>
-          <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-amber-700">
+          <p className="mt-2 break-keep text-support font-medium leading-relaxed text-amber-700">
             자동 번역 초안은 비어 있는 번역 칸에만 채워지며, 이미 입력한 번역은 유지됩니다.
           </p>
           <Tabs value={activeLocale} onValueChange={value => setActiveLocale(value as SupportedLocale)} className="mt-5 gap-5">
@@ -1101,7 +1101,7 @@ function LocalizationSectionContent({
                 <TabsContent value={activeTargetGroup} className="p-4">
                   {activeLocale === "ko" ? (
                     <div className="space-y-4">
-                      <p className="break-keep rounded-lg bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-500">
+                      <p className="break-keep rounded-lg bg-zinc-50 p-4 text-copy font-medium leading-relaxed text-zinc-600">
                         {localizationStructure === "basic"
                           ? "한국어 원문은 기본 정보와 메뉴 관리 탭에서 수정해주세요. 이 탭에서는 자동 번역 결과를 확인하고 필요한 문구만 직접 수정할 수 있습니다."
                           : localizationStructure === "display"
@@ -1111,7 +1111,7 @@ function LocalizationSectionContent({
                       {activeTargetGroup === "items" ? <ReadOnlyItemGroups fields={activeTargetFields} /> : <ReadOnlyTranslationFields fields={activeTargetFields} />}
                     </div>
                   ) : editableTranslationFields.length === 0 ? (
-                    <p className="break-keep rounded-lg bg-zinc-50 p-4 text-sm font-bold leading-relaxed text-zinc-500">
+                    <p className="break-keep rounded-lg bg-zinc-50 p-4 text-copy font-medium leading-relaxed text-zinc-600">
                       번역할 수 있는 문구가 없습니다. 한국어 메뉴 정보를 먼저 저장해주세요.
                     </p>
                   ) : (
@@ -1149,7 +1149,7 @@ function LocalizationSectionContent({
 
         <div className="site-section site-editor-subpanel flex flex-wrap items-center justify-center gap-3 px-4 py-4">
           <LocalizationSaveButton disabled={!hasLocaleChanges && !hasTranslationChanges}>저장</LocalizationSaveButton>
-          <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+          <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-600">
             언어 설정과 번역 내용을 저장합니다. 저장 후 미리보기와 공개 메뉴판에 반영됩니다.
           </p>
         </div>

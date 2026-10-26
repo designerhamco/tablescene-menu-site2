@@ -71,7 +71,7 @@ export default async function SuccessPage({ searchParams }: PageProps) {
             </p>
 
           {errorMessage && (
-            <div className="site-notice site-notice-error mt-6 p-4 text-sm font-bold">
+            <div className="site-notice site-notice-error mt-6 p-4 text-copy font-medium">
               메뉴판 정보를 불러오지 못했습니다: {errorMessage}
             </div>
           )}
@@ -79,7 +79,7 @@ export default async function SuccessPage({ searchParams }: PageProps) {
           {menuSite ? (
             <div className="site-section mt-8 p-5">
               <h2 className="type-subsection-title">{menuSite.name}</h2>
-              <dl className="mt-5 space-y-3 text-sm font-medium">
+              <dl className="mt-5 space-y-3 text-copy font-medium">
                 <div className="flex justify-between gap-4 border-t border-zinc-200 pt-3">
                   <dt className="text-zinc-400">공개 메뉴판 주소</dt>
                   <dd className="font-bold text-zinc-800">{getPublicMenuUrl(menuSite.slug)}</dd>
@@ -99,7 +99,7 @@ export default async function SuccessPage({ searchParams }: PageProps) {
               </dl>
             </div>
           ) : (
-            <div className="site-notice site-notice-warning mt-8 p-5 text-sm font-bold leading-relaxed">
+            <div className="site-notice site-notice-warning mt-8 p-5 text-copy font-medium leading-relaxed">
               아직 연결된 메뉴판 정보를 찾지 못했습니다. 실제 결제 연동 전이라면 `/apply`의 payload 확인 모드에서 여기로 자동 이동하지 않습니다.
             </div>
           )}

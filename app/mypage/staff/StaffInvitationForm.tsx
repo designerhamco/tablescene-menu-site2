@@ -48,19 +48,19 @@ export default function StaffInvitationForm({
       />
       <div>
         <h2 className="type-content-title text-zinc-950">직원 초대</h2>
-        <p className="mt-2 break-keep text-sm font-medium leading-relaxed text-zinc-500">
+        <p className="mt-2 break-keep text-copy font-medium leading-relaxed text-zinc-500">
           한 번의 이메일로 여러 메뉴판에 같은 역할을 부여할 수 있습니다. 초대는 7일 동안 유효합니다.
         </p>
       </div>
 
       {!enabled ? (
-        <div className="site-notice site-notice-warning px-4 py-3 text-sm font-bold leading-relaxed">
+        <div className="site-notice site-notice-warning px-4 py-3 text-copy font-medium leading-relaxed">
           초대 수락 화면과 이메일 운영 환경을 검증한 뒤 발송 기능이 활성화됩니다. 지금은 실제 이메일을 보내지 않습니다.
         </div>
       ) : null}
 
       <label className="block space-y-2">
-        <span className="text-sm font-bold text-zinc-800">직원 이메일</span>
+        <span className="text-copy font-medium text-zinc-800">직원 이메일</span>
         <input
           type="email"
           name="email"
@@ -73,7 +73,7 @@ export default function StaffInvitationForm({
       </label>
 
       <label className="block space-y-2">
-        <span className="text-sm font-bold text-zinc-800">역할</span>
+        <span className="text-copy font-medium text-zinc-800">역할</span>
         <select
           name="role"
           value={selectedRole}
@@ -85,13 +85,13 @@ export default function StaffInvitationForm({
             <option key={role} value={role}>{STAFF_INVITATION_ROLE_LABELS[role]}</option>
           ))}
         </select>
-        <span className="block rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-semibold leading-relaxed text-zinc-600">
+        <span className="block rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-copy font-semibold leading-relaxed text-zinc-600">
           {STAFF_INVITATION_ROLE_DESCRIPTIONS[selectedRole]}
         </span>
       </label>
 
       <fieldset disabled={unavailable || pending} className="space-y-3">
-        <legend className="text-sm font-bold text-zinc-800">초대할 메뉴판</legend>
+        <legend className="text-copy font-medium text-zinc-800">초대할 메뉴판</legend>
         {menuSites.length > 0 ? (
           <div className="grid gap-3 md:grid-cols-2">
             {menuSites.map((menuSite, index) => (
@@ -107,14 +107,14 @@ export default function StaffInvitationForm({
                   className="mt-1 size-4 accent-emerald-600"
                 />
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-bold text-zinc-900">{menuSite.name}</span>
-                  <span className="mt-1 block truncate text-xs font-semibold text-zinc-500">/menu/{menuSite.slug}</span>
+                  <span className="block truncate text-copy font-medium text-zinc-900">{menuSite.name}</span>
+                  <span className="mt-1 block truncate text-support font-semibold text-zinc-500">/menu/{menuSite.slug}</span>
                 </span>
               </label>
             ))}
           </div>
         ) : (
-          <p className="rounded-2xl bg-zinc-100 px-4 py-4 text-sm font-bold text-zinc-600">
+          <p className="rounded-2xl bg-zinc-100 px-4 py-4 text-copy font-medium text-zinc-600">
             직원을 초대할 활성 메뉴판이 없습니다.
           </p>
         )}
@@ -123,7 +123,7 @@ export default function StaffInvitationForm({
       {state.message ? (
         <p
           aria-live="polite"
-          className={`site-notice  px-4 py-3 text-sm font-bold ${
+          className={`site-notice  px-4 py-3 text-copy font-medium ${
             state.status === "success"
               ? "site-notice-success"
               : "site-notice-error"

@@ -50,7 +50,7 @@ export default function PreviewFullscreenControl() {
       data-preview-fullscreen-control=""
     >
       {errorMessage ? (
-        <p className="rounded-lg bg-zinc-950/90 px-3 py-2 text-xs font-bold text-white shadow-lg backdrop-blur" role="status">
+        <p className="rounded-lg bg-zinc-950/90 px-3 py-2 text-support font-medium text-white shadow-lg backdrop-blur" role="status">
           {errorMessage}
         </p>
       ) : null}

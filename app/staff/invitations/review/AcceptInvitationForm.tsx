@@ -24,7 +24,7 @@ export default function AcceptInvitationForm() {
         eventKey={state}
       />
       {state.message ? (
-        <p aria-live="polite" className="site-notice site-notice-error mb-4 px-4 py-3 text-sm font-bold leading-relaxed">
+        <p aria-live="polite" className="site-notice site-notice-error mb-4 px-4 py-3 text-copy font-medium leading-relaxed">
           {state.message}
         </p>
       ) : null}

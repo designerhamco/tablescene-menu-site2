@@ -19,7 +19,7 @@ function getNavigationClassName(isActive: boolean) {
 }
 
 function NavigationCount({ active, children }: { active: boolean; children: React.ReactNode }) {
-  return <span className={`text-xs ${active ? "text-white/60" : "text-zinc-400"}`}>{children}</span>;
+  return <span className={`text-support ${active ? "text-white/60" : "text-zinc-600"}`}>{children}</span>;
 }
 
 function DisabledNavigationItem({ label, reason }: { label: string; reason: string }) {
@@ -31,7 +31,7 @@ function DisabledNavigationItem({ label, reason }: { label: string; reason: stri
       className="site-nav-item site-nav-item-disabled"
     >
       <span>{label}</span>
-      <span className="text-xs font-bold">권한 없음</span>
+      <span className="text-support font-medium">권한 없음</span>
     </span>
   );
 }
@@ -71,12 +71,12 @@ export function MypageAccountCard({
       {canShowOwnerCommerce && accountAiCreditRemaining !== undefined ? (
         <div className="site-account-credits">
           <div>
-            <p className="text-xs font-bold text-zinc-400">AI 도우미 크레딧</p>
-            <p className="mt-1 text-sm font-bold text-zinc-950">잔여 {accountAiCreditRemaining.toLocaleString("ko-KR")}개</p>
+            <p className="text-support font-medium text-zinc-600">AI 도우미 크레딧</p>
+            <p className="mt-1 text-copy font-medium text-zinc-950">잔여 {accountAiCreditRemaining.toLocaleString("ko-KR")}개</p>
           </div>
           <Link
             href="/mypage?tab=payments&billingTab=ai-credits"
-            className="inline-flex text-xs font-bold text-zinc-500 underline decoration-zinc-300 underline-offset-4 transition-colors hover:text-zinc-950"
+            className="inline-flex text-support font-medium text-zinc-600 underline decoration-zinc-300 underline-offset-4 transition-colors hover:text-zinc-950"
           >
             AI 충전/사용내역
           </Link>

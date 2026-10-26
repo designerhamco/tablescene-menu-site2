@@ -2122,10 +2122,10 @@ export default function ApplyOrderForm({
                 errorText={visibleSlugState.type === "unavailable" || visibleSlugState.type === "error" ? visibleSlugState.message : null}
                 successText={visibleSlugState.type === "available" ? visibleSlugState.message : undefined}
               />
-              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+              <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
                 생성될 주소: {isSlugValid ? getPublicMenuUrl(payload.desiredSlug) : getPublicMenuUrl("your-menu")}
               </p>
-              <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-amber-700">
+              <p className="mt-1 break-keep text-support font-medium leading-relaxed text-amber-700">
                 주소 확인 후 결제를 완료하면 이 공개 주소는 고객 화면에서 변경할 수 없습니다.
               </p>
             </div>
@@ -2165,11 +2165,11 @@ export default function ApplyOrderForm({
           <section className="order-2 site-checkout-section">
             <div className="mb-6">
               <h2 className="type-subsection-title">템플릿 유형</h2>
-              <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
+              <p className="mt-2 break-keep text-copy font-medium leading-relaxed text-zinc-600">
                 사용할 디자인 유형을 선택해 주세요. 모든 상품은 메뉴판 1개 기준 월 구독입니다.
               </p>
               {monthlyFreeTrialAvailable ? (
-                <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-emerald-700">
+                <p className="mt-2 break-keep text-copy font-medium leading-relaxed text-emerald-700">
                   첫 구독은 결제수단 등록 후 30일 무료입니다. 첫 결제일은 {monthlyFreeTrialFirstBillingDate}입니다.
                 </p>
               ) : null}
@@ -2193,9 +2193,9 @@ export default function ApplyOrderForm({
                       if (hasAvailableTemplate) selectBasicProduct(product);
                     }}
                     aria-pressed={isSelected}
-                    className={`site-choice site-checkout-plan flex min-h-[220px] flex-col p-5 text-left transition ${
+                    className={`site-choice site-plan-card site-checkout-plan ${
                       !hasAvailableTemplate
-                        ? "cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-400 opacity-70"
+                        ? "cursor-not-allowed border-zinc-200 bg-zinc-100 text-zinc-600 opacity-70"
                         : isSelected
                         ? "border-zinc-950 bg-white text-zinc-950"
                         : "border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400"
@@ -2205,31 +2205,31 @@ export default function ApplyOrderForm({
                       <div>
                         <h3 className="type-content-title break-keep">{product.label}</h3>
                       </div>
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isSelected ? "bg-zinc-950 text-white" : "bg-zinc-100 text-zinc-500"}`}>
+                      <span className={`rounded-full px-2.5 py-1 text-support font-medium ${isSelected ? "bg-zinc-950 text-white" : "bg-zinc-100 text-zinc-600"}`}>
                         {!hasAvailableTemplate ? "템플릿 준비중" : isSelected ? "선택됨" : "월 자동결제"}
                       </span>
                     </div>
                     <div className="mt-5">
                       {promotion ? (
-                        <p className={`text-xs font-bold line-through text-zinc-500`}>
+                        <p className={`text-support font-medium line-through text-zinc-600`}>
                           정상가 월 {formatKrw(promotion.originalAmount)}
                         </p>
                       ) : null}
-                      <p className="mt-1 text-2xl font-bold">
+                      <p className="site-plan-price">
                         {`${formatKrw(displayedAmount)} / 월`}
                       </p>
-                      <p className={`mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500`}>
+                      <p className={`mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600`}>
                         {promotion
                           ? `오픈 얼리버드 월 ${formatKrw(displayedAmount)} · 구독 유지 시 할인 가격 유지`
                           : `정상가 월 ${formatKrw(isMenuService ? getCatalogPricing(product.product_key === "business_basic_multi_monthly" ? "dining" : "basic", selectedDesignKind).regularMonthly : product.regular_amount)}`}
                       </p>
                       {monthlyFreeTrialAvailable && isBusinessFreeTrialProduct(product.product_key) ? (
-                        <p className={`mt-2 break-keep text-xs font-bold leading-relaxed text-emerald-700`}>
+                        <p className={`mt-2 break-keep text-support font-medium leading-relaxed text-emerald-700`}>
                           첫 30일 0원 · 계정당 최초 1회 · {monthlyFreeTrialFirstBillingDate} 첫 결제
                         </p>
                       ) : null}
                     </div>
-                    <ul className={`mt-5 space-y-1.5 text-sm font-bold leading-relaxed text-zinc-600`}>
+                    <ul className="space-y-2 text-support font-normal text-zinc-600">
                       {bullets.map((bullet) => (
                         <li key={bullet}>• {bullet}</li>
                       ))}
@@ -2245,7 +2245,7 @@ export default function ApplyOrderForm({
           <section className="order-2 site-checkout-section">
             <div className="mb-6">
               <h2 className="type-subsection-title">디스플레이 용도</h2>
-              <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
+              <p className="mt-2 break-keep text-copy font-medium leading-relaxed text-zinc-600">
                 화면을 설치할 매장 유형을 선택해 주세요.
               </p>
             </div>
@@ -2260,7 +2260,7 @@ export default function ApplyOrderForm({
                       key={option}
                       type="button"
                       onClick={() => updateField("screenPurpose", option)}
-                      className={`site-choice px-4 py-3 text-left text-sm font-bold transition-colors ${
+                      className={`site-choice px-4 py-3 text-left text-copy font-medium transition-colors ${
                         isSelected
                           ? "border-zinc-950 bg-zinc-950 text-white"
                           : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400 hover:text-zinc-950"
@@ -2279,7 +2279,7 @@ export default function ApplyOrderForm({
                   <section className="order-3 site-checkout-section">
             <div className="mb-6">
               <h2 className="type-subsection-title">디스플레이 구독</h2>
-              <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
+              <p className="mt-2 break-keep text-copy font-medium leading-relaxed text-zinc-600">
                 선택한 디스플레이 디자인 1개를 월 단위로 구독합니다.
               </p>
             </div>
@@ -2295,7 +2295,7 @@ export default function ApplyOrderForm({
                     type="button"
                     onClick={() => selectDisplayProduct(product)}
                     aria-pressed={isSelected}
-                    className={`site-choice site-checkout-plan flex min-h-[210px] flex-col p-5 text-left transition ${
+                    className={`site-choice site-plan-card site-checkout-plan ${
                       isSelected
                         ? "border-zinc-950 bg-white text-zinc-950"
                         : "border-zinc-200 bg-white text-zinc-950 hover:border-zinc-400"
@@ -2305,31 +2305,31 @@ export default function ApplyOrderForm({
                       <div>
                         <h3 className="type-content-title break-keep">{product.label}</h3>
                       </div>
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isSelected ? "bg-zinc-950 text-white" : "bg-zinc-100 text-zinc-500"}`}>
+                      <span className={`rounded-full px-2.5 py-1 text-support font-medium ${isSelected ? "bg-zinc-950 text-white" : "bg-zinc-100 text-zinc-600"}`}>
                         {isSelected ? "선택됨" : "월 자동결제"}
                       </span>
                     </div>
                     <div className="mt-5">
                       {promotion ? (
-                        <p className={`text-xs font-bold line-through text-zinc-500`}>
+                        <p className={`text-support font-medium line-through text-zinc-600`}>
                           정상가 월 {formatKrw(promotion.originalAmount)}
                         </p>
                       ) : null}
-                      <p className="mt-1 text-2xl font-bold">
+                      <p className="site-plan-price">
                         {formatKrw(displayedAmount)} / 월
                       </p>
-                      <p className={`mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-500`}>
+                      <p className={`mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600`}>
                         {promotion
                           ? `오픈 얼리버드 · 구독 유지 시 할인 가격 유지`
                           : "매월 자동결제 · 빌링키 필요"}
                       </p>
                       {monthlyFreeTrialAvailable && isBusinessFreeTrialProduct(product.product_key) ? (
-                        <p className={`mt-2 break-keep text-xs font-bold leading-relaxed text-emerald-700`}>
+                        <p className={`mt-2 break-keep text-support font-medium leading-relaxed text-emerald-700`}>
                           첫 30일 0원 · 계정당 최초 1회 · {monthlyFreeTrialFirstBillingDate} 첫 결제
                         </p>
                       ) : null}
                     </div>
-                    <ul className={`mt-5 space-y-1.5 text-sm font-bold leading-relaxed text-zinc-600`}>
+                    <ul className="space-y-2 text-support font-normal text-zinc-600">
                       {bullets.map((bullet) => (
                         <li key={bullet}>• {bullet}</li>
                       ))}
@@ -2362,12 +2362,12 @@ export default function ApplyOrderForm({
               {isScreenService ? "디스플레이 템플릿" : "템플릿"}
             </h2>
             {isMenuService && (
-              <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
+              <p className="mt-2 break-keep text-copy font-medium leading-relaxed text-zinc-600">
                 {activeDiningTier ? `${getDiningTierLabel(activeDiningTier)}에서 사용할 디자인을 선택해 주세요.` : "상품에 맞는 템플릿을 선택해 주세요."}
               </p>
             )}
             {isScreenService && (
-              <p className="mt-2 break-keep text-base font-medium leading-relaxed text-zinc-500">
+              <p className="mt-2 break-keep text-copy font-medium leading-relaxed text-zinc-600">
                 매장 화면에 사용할 디자인을 선택해 주세요.
               </p>
             )}
@@ -2475,10 +2475,10 @@ export default function ApplyOrderForm({
             </div>
           ) : (
             <div className="site-section px-5 py-8 text-center">
-              <p className="text-base font-bold text-zinc-800">
+              <p className="text-copy font-medium text-zinc-800">
                 템플릿 준비 중입니다.
               </p>
-              <p className="mt-2 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+              <p className="mt-2 break-keep text-copy font-medium leading-relaxed text-zinc-600">
                 {isScreenService
                   ? "이 Display 카테고리의 템플릿은 준비 중입니다."
                   : "이 Basic 카테고리의 템플릿은 준비 중입니다."}
@@ -2494,7 +2494,7 @@ export default function ApplyOrderForm({
         {isOrderService && (
           <section className="order-3 site-checkout-section">
             <h2 className="type-subsection-title">오더 도입 정보</h2>
-            <p className="mt-3 break-keep text-sm font-bold leading-relaxed text-zinc-500">
+            <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-600">
               입력해주신 정보는 아티메뉴 오더 1.0 도입 준비와 초기 세팅 안내에 활용됩니다.
             </p>
             <div className="mt-6 grid gap-5 md:grid-cols-2">
@@ -2553,7 +2553,7 @@ export default function ApplyOrderForm({
         <section className="order-4 site-checkout-section">
           <h2 className="type-subsection-title mb-6">구매자 및 담당자</h2>
           <div className="mb-6 border-l-2 border-zinc-300 pl-4">
-            <p className="break-keep text-sm font-medium leading-relaxed text-zinc-500">
+            <p className="break-keep text-copy font-medium leading-relaxed text-zinc-600">
               {isDisplayBusinessOnly
                 ? "사업자 정보를 확인한 뒤 정기 결제를 진행합니다."
                 : isScreenService
@@ -2568,13 +2568,13 @@ export default function ApplyOrderForm({
               <span className="site-checkout-label">구매자 유형 *</span>
               {isDisplayBusinessOnly ? (
                 <div className="site-notice site-notice-success mt-2 px-4 py-3">
-                  <p className="text-sm font-bold text-emerald-900">사업자 전용</p>
-                  <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-emerald-700">
+                  <p className="text-copy font-medium text-emerald-900">사업자 전용</p>
+                  <p className="mt-1 break-keep text-support font-medium leading-relaxed text-emerald-700">
                     디스플레이 메뉴보드는 사업자 정보 확인 후 결제할 수 있습니다. 개인 구매자로는 신청할 수 없습니다.
                   </p>
                 </div>
               ) : isMenuService ? (
-                <div className="site-section mt-2 px-4 py-3 text-sm font-bold text-zinc-700">
+                <div className="site-section mt-2 px-4 py-3 text-copy font-medium text-zinc-700">
                   {activeProductRequiresBusinessVerification ? "사업자 정식 이용" : "개인 체험 이용"}
                 </div>
               ) : (
@@ -2592,7 +2592,7 @@ export default function ApplyOrderForm({
                 </div>
               )}
               {payload.buyerType === "individual" && currentPlanAllowsIndividual && !currentPlanRequiresBusinessInfo && (
-                <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
                   {isScreenService ? "아티메뉴 디스플레이는 현재 준비 중입니다." : "개인 체험은 계정당 1회만 이용할 수 있습니다."}
                 </p>
               )}
@@ -2638,7 +2638,7 @@ export default function ApplyOrderForm({
                   onChange={(value) => updateField("businessPhone", value)}
                   errorText={form.businessPhone.trim() ? businessPhoneError : null}
                 />
-                <div className="site-checkout-verification md:col-span-2 rounded-md bg-zinc-50 p-4 text-sm font-medium leading-relaxed text-zinc-700">
+                <div className="site-checkout-verification md:col-span-2 rounded-md bg-zinc-50 p-4 text-copy font-medium leading-relaxed text-zinc-700">
                   <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                       <p className="font-semibold text-zinc-950">사업자 정보 확인</p>
@@ -2657,7 +2657,7 @@ export default function ApplyOrderForm({
                     </button>
                   </div>
                   {businessVerificationState.type === "verified" && (
-                    <div className="mt-4 grid gap-2 rounded-2xl border border-emerald-100 bg-white p-4 text-xs font-bold text-emerald-800 md:grid-cols-2">
+                    <div className="mt-4 grid gap-2 rounded-2xl border border-emerald-100 bg-white p-4 text-support font-medium text-emerald-800 md:grid-cols-2">
                       <BusinessVerificationSummaryRow label="상호명" value={businessVerificationState.result.businessName || form.businessName || "-"} />
                       <BusinessVerificationSummaryRow label="대표자명" value={businessVerificationState.result.representativeName || form.representativeName || "-"} />
                       <BusinessVerificationSummaryRow label="사업자등록번호" value={businessVerificationState.result.businessRegistrationNumberMasked ?? "-"} />
@@ -2666,7 +2666,7 @@ export default function ApplyOrderForm({
                       <BusinessVerificationSummaryRow label="인증일" value={businessVerificationState.result.verifiedAt ? new Date(businessVerificationState.result.verifiedAt).toLocaleDateString("ko-KR") : "-"} />
                     </div>
                   )}
-                  <details className="mt-3 text-xs font-bold text-amber-900">
+                  <details className="mt-3 text-support font-medium text-amber-900">
                     <summary className="cursor-pointer select-none">결제·증빙 안내</summary>
                     <p className="mt-2 break-keep font-medium leading-relaxed text-amber-800">
                       {shouldStartFreeTrial
@@ -2687,14 +2687,14 @@ export default function ApplyOrderForm({
           <h2 className="type-subsection-title">주문 요약</h2>
           {isMenuService && selectedMenuDesign ? <div className="site-checkout-selected-design">
             <div className="relative aspect-[4/3]"><Image src={selectedMenuDesign.image} alt={selectedMenuDesign.name} fill sizes="280px" className="object-cover" /></div>
-            <div><p className="text-xs text-zinc-500">선택한 디자인</p><p className="mt-1 text-sm font-semibold">{selectedMenuDesign.name}</p></div>
+            <div><p className="text-support text-zinc-600">선택한 디자인</p><p className="mt-1 text-copy font-semibold">{selectedMenuDesign.name}</p></div>
           </div> : selectedTemplate ? (
             <div className="site-checkout-selected-design">
               <div><TemplateCatalogMedia template={selectedTemplate} /></div>
-              <div><p className="text-xs text-zinc-500">선택한 디자인</p><p className="mt-1 text-sm font-semibold">{selectedTemplate.name}</p></div>
+              <div><p className="text-support text-zinc-600">선택한 디자인</p><p className="mt-1 text-copy font-semibold">{selectedTemplate.name}</p></div>
             </div>
           ) : null}
-          <dl className="site-checkout-summary mt-6 text-sm font-medium">
+          <dl className="site-checkout-summary mt-6 text-copy font-medium">
             <SummaryRow label="상품명" value={isMenuService ? activeProduct.label ?? activeProduct.name : activeProduct.name} />
             {isMenuService && (
               <SummaryRow
@@ -2717,10 +2717,10 @@ export default function ApplyOrderForm({
             <SummaryRow label="구매자 유형" value={payload.buyerType === "business" ? "사업자" : "개인"} />
             {canUsePromotionCode ? (
               <div className="border-t border-zinc-100 pt-4">
-                <dt className="text-zinc-400">프로모션 코드</dt>
+                <dt className="text-zinc-600">프로모션 코드</dt>
                 <dd className="mt-2">
                   <div className="flex gap-2">
-                    <input
+                    <input data-field-size="lg"
                       type="text"
                       value={promotionCodeInput}
                       onChange={(event) => {
@@ -2738,7 +2738,7 @@ export default function ApplyOrderForm({
                       }}
                       placeholder="프로모션 코드를 입력하세요"
                       aria-label="프로모션 코드"
-                      className="min-w-0 flex-1 rounded-full border border-zinc-200 bg-white px-3 py-2 text-sm font-bold text-zinc-900 outline-none transition focus:border-zinc-900"
+                      className="min-w-0 flex-1 rounded-full border border-zinc-200 bg-white px-3 py-2 text-copy font-medium text-zinc-900 outline-none transition focus:border-zinc-900"
                     />
                     <button
                       type="button"
@@ -2749,12 +2749,12 @@ export default function ApplyOrderForm({
                     </button>
                   </div>
                   {promotionState.message ? (
-                    <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${promotionState.type === "success" ? "text-emerald-700" : "text-red-600"}`}>
+                    <p className={`mt-2 break-keep text-support font-medium leading-relaxed ${promotionState.type === "success" ? "text-emerald-700" : "text-red-600"}`}>
                       {promotionState.message}
                     </p>
                   ) : null}
                   {activePromotion ? (
-                    <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                    <p className="mt-1 break-keep text-support font-medium leading-relaxed text-zinc-600">
                       현재 오픈 얼리버드 가격으로 결제됩니다.
                     </p>
                   ) : null}
@@ -2783,7 +2783,7 @@ export default function ApplyOrderForm({
             {activeProduct.is_subscription ? <SummaryRow label={shouldStartFreeTrial ? "첫 결제 예정 금액" : "다음 결제 예정 금액"} value={formatKrw(checkoutAmount)} /> : null}
           </dl>
           {(isMenuService || isScreenService) && (
-            <details className="mt-5 border-t border-zinc-200 pt-4 text-xs font-semibold leading-relaxed text-zinc-500">
+            <details className="mt-5 border-t border-zinc-200 pt-4 text-support font-semibold leading-relaxed text-zinc-600">
               <summary className="cursor-pointer font-bold text-zinc-700">결제 안내</summary>
               <div className="mt-3 space-y-2 break-keep">
                 <p>
@@ -2802,25 +2802,23 @@ export default function ApplyOrderForm({
         <section className="site-checkout-panel">
           <h2 className="type-subsection-title mb-5">약관 동의</h2>
           <div className="site-checkout-agreements">
-            <label className="site-checkout-agreement-all flex items-start gap-3 text-sm font-bold leading-relaxed text-zinc-900">
+            <label className="site-checkout-agreement-all flex items-start gap-3 text-copy font-medium leading-relaxed text-zinc-900">
               <input type="checkbox" checked={allAgreementsChecked} onChange={(event) => toggleAllAgreements(event.target.checked)} className="mt-1 h-4 w-4 accent-zinc-950" />
               <span>전체 동의</span>
             </label>
             {(Object.keys(agreementLabels) as AgreementKey[]).map((key) => (
               <div key={key} className="site-checkout-agreement">
-                <div className="flex items-start gap-3 text-sm font-bold leading-relaxed text-zinc-600">
+                <div className="flex items-start gap-3 text-copy font-medium leading-relaxed text-zinc-600">
                   <input type="checkbox" aria-label={activeAgreementLabels[key]} checked={agreements[key]} onChange={() => toggleAgreement(key)} className="mt-1 h-4 w-4 accent-zinc-950" />
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                       <span>{activeAgreementLabels[key]}</span>
-                      {key === "terms" ? <a href="/terms" target="_blank" className="site-button site-button-link">링크</a> : null}
-                      {key === "privacy" ? <a href="/privacy" target="_blank" className="site-button site-button-link">링크</a> : null}
                       <button
                         type="button"
                         onClick={() => setActiveAgreement(key)}
-                        className="site-button site-button-link"
+                        className="site-button site-button-link site-consent-detail"
                       >
-                        자세히보기
+                        자세히 보기
                       </button>
                     </div>
                   </div>
@@ -2830,7 +2828,7 @@ export default function ApplyOrderForm({
           </div>
 
           {!isPortOneReady && (
-            <div className="site-notice site-notice-warning mt-6 p-4 text-sm font-bold leading-relaxed">
+            <div className="site-notice site-notice-warning mt-6 p-4 text-copy font-medium leading-relaxed">
               {isDevelopment && mockEnabled
                 ? "결제 설정 확인 전에도 신청 화면을 확인할 수 있습니다."
                 : "PortOne 공개 환경변수가 없어서 결제를 진행할 수 없습니다. 개발 mock은 PORTONE_MOCK_ENABLED=true일 때만 동작합니다."}
@@ -2838,45 +2836,45 @@ export default function ApplyOrderForm({
           )}
 
           {isSubscriptionProduct && !isBillingPortOneReady && (
-            <div className="site-notice site-notice-warning mt-6 p-4 text-sm font-bold leading-relaxed">
+            <div className="site-notice site-notice-warning mt-6 p-4 text-copy font-medium leading-relaxed">
               사업자 월/연 정기결제는 PortOne V2 빌링키 발급을 지원하는 채널의 channelKey가 필요합니다.
               `NEXT_PUBLIC_PORTONE_BILLING_CHANNEL_KEY`를 설정해주세요.
             </div>
           )}
 
           {uiState.message && (
-            <div className={`mt-6 whitespace-pre-line rounded-2xl border p-4 text-sm font-bold leading-relaxed ${getUiStateClassName(uiState.type)}`}>{uiState.message}</div>
+            <div className={`mt-6 whitespace-pre-line rounded-2xl border p-4 text-copy font-medium leading-relaxed ${getUiStateClassName(uiState.type)}`}>{uiState.message}</div>
           )}
 
           {canShowPaymentCompletionRecovery && (
-            <div className="site-notice site-notice-info mt-6 p-4 text-sm font-bold leading-relaxed">
+            <div className="site-notice site-notice-info mt-6 p-4 text-copy font-medium leading-relaxed">
               <p>
                 이미 승인된 Display {activeProduct.billing_cycle === "yearly" ? "연결제" : "월결제"} 결제가 있다면 새 결제창 없이 생성 처리만 다시 시도할 수 있습니다.
               </p>
               {pendingPaymentCompletion && (
-                <p className="mt-2 text-xs text-sky-700">
+                <p className="mt-2 text-support text-sky-700">
                   마지막 승인 결제: {pendingPaymentCompletion.paymentId}
                 </p>
               )}
               <label className="mt-3 block">
-                <span className="text-xs font-bold uppercase tracking-[0.18em] text-sky-500">paymentId</span>
-                <input
+                <span className="text-support font-medium uppercase text-sky-500">paymentId</span>
+                <input data-field-size="lg"
                   type="text"
                   value={recoveryPaymentIdInput}
                   onChange={(event) => setRecoveryPaymentIdInput(event.target.value)}
                   placeholder="승인된 paymentId"
-                  className="mt-2 w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-xs font-semibold text-zinc-900 outline-none transition focus:border-sky-600"
+                  className="mt-2 w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-support font-semibold text-zinc-900 outline-none transition focus:border-sky-600"
                 />
               </label>
               {isSubscriptionProduct && (
                 <label className="mt-3 block">
-                  <span className="text-xs font-bold uppercase tracking-[0.18em] text-sky-500">failed subscriptionId</span>
-                  <input
+                  <span className="text-support font-medium uppercase text-sky-500">failed subscriptionId</span>
+                  <input data-field-size="lg"
                     type="text"
                     value={recoverySubscriptionIdInput}
                     onChange={(event) => setRecoverySubscriptionIdInput(event.target.value)}
                     placeholder="실패 구독 기록 ID"
-                    className="mt-2 w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-xs font-semibold text-zinc-900 outline-none transition focus:border-sky-600"
+                    className="mt-2 w-full rounded-2xl border border-sky-200 bg-white px-4 py-3 text-support font-semibold text-zinc-900 outline-none transition focus:border-sky-600"
                   />
                 </label>
               )}
@@ -2892,7 +2890,7 @@ export default function ApplyOrderForm({
               >
                 결제창 없이 후처리만 재시도
               </button>
-              <p className="mt-2 text-xs text-sky-700">
+              <p className="mt-2 text-support text-sky-700">
                 {isSubscriptionProduct
                   ? "현재 신청 정보로 `/api/business-subscriptions/start`의 복구 모드만 호출합니다."
                   : "현재 신청 정보 또는 이 탭에 임시 저장된 주문 정보로 `/api/payment/complete`만 호출합니다."}
@@ -2901,7 +2899,7 @@ export default function ApplyOrderForm({
           )}
 
           {businessPaymentActionMessage && (
-            <div className={`site-notice mt-6   p-4 text-sm font-bold leading-relaxed ${hasVerifiedBusinessProfile ? "site-notice-success" : businessVerificationState.type === "failed" ? "site-notice-error" : "site-notice-warning"}`}>
+            <div className={`site-notice mt-6   p-4 text-copy font-medium leading-relaxed ${hasVerifiedBusinessProfile ? "site-notice-success" : businessVerificationState.type === "failed" ? "site-notice-error" : "site-notice-warning"}`}>
               {businessPaymentActionMessage}
             </div>
           )}
@@ -2960,7 +2958,7 @@ function Field({
   className?: string;
 }) {
   const message = errorText ?? (value.trim() && successText ? successText : helperText);
-  const messageClassName = errorText ? "text-red-600" : value.trim() && successText ? "text-emerald-700" : "text-zinc-400";
+  const messageClassName = errorText ? "text-red-600" : value.trim() && successText ? "text-emerald-700" : "text-zinc-600";
 
   return (
     <label className={className}>
@@ -2968,7 +2966,7 @@ function Field({
         {label}
         {isRequired && <span className="text-red-500"> *</span>}
       </span>
-      <input
+      <input data-field-size="lg"
         type={type}
         inputMode={inputMode}
         min={min}
@@ -2977,12 +2975,12 @@ function Field({
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         aria-invalid={Boolean(errorText)}
-        className={`mt-2 w-full rounded-2xl border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
+        className={`mt-2 w-full rounded-2xl border bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition ${
           errorText ? "border-red-200 focus:border-red-500" : value.trim() && successText ? "border-emerald-200 focus:border-emerald-600" : "border-zinc-200 focus:border-zinc-950"
         }`}
       />
       {message && (
-        <p className={`mt-2 flex min-h-[18px] items-center gap-1.5 break-keep text-xs font-bold leading-relaxed ${messageClassName}`}>
+        <p className={`mt-2 flex min-h-[18px] items-center gap-1.5 break-keep text-support font-medium leading-relaxed ${messageClassName}`}>
           {helperIcon}
           <span>{message}</span>
         </p>
@@ -3020,12 +3018,12 @@ function SelectField({
         {label}
         {isRequired && <span className="text-red-500"> *</span>}
       </span>
-      <select
+      <select data-field-size="lg"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         required={isRequired}
         aria-invalid={Boolean(errorText)}
-        className={`mt-2 w-full rounded-2xl border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
+        className={`mt-2 w-full rounded-2xl border bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition ${
           errorText ? "border-red-200 focus:border-red-500" : "border-zinc-200 focus:border-zinc-950"
         }`}
       >
@@ -3036,7 +3034,7 @@ function SelectField({
           </option>
         ))}
       </select>
-      {message && <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${errorText ? "text-red-600" : "text-zinc-400"}`}>{message}</p>}
+      {message && <p className={`mt-2 break-keep text-support font-medium leading-relaxed ${errorText ? "text-red-600" : "text-zinc-600"}`}>{message}</p>}
     </label>
   );
 }
@@ -3059,14 +3057,14 @@ function TextareaField({
   return (
     <label className={className}>
       <span className="site-checkout-label">{label}</span>
-      <textarea
+      <textarea data-field-size="lg"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         rows={5}
-        className="mt-2 w-full resize-y rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold leading-relaxed text-zinc-900 outline-none transition focus:border-zinc-950"
+        className="mt-2 w-full resize-y rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold leading-relaxed text-zinc-900 outline-none transition focus:border-zinc-950"
       />
-      {helperText && <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">{helperText}</p>}
+      {helperText && <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">{helperText}</p>}
     </label>
   );
 }
@@ -3101,11 +3099,11 @@ function PhoneInput({
         {isRequired && <span className="text-red-500"> *</span>}
       </span>
       <div className="site-checkout-phone mt-2 grid grid-cols-[80px_minmax(0,1fr)_minmax(0,1fr)] gap-2">
-        <select
+        <select data-field-size="lg"
           value={prefix}
           aria-label={`${label} 앞자리`}
           onChange={(event) => updatePhone(event.target.value, middle, last)}
-          className="w-full rounded-2xl border border-zinc-200 bg-white px-3 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
+          className="w-full rounded-2xl border border-zinc-200 bg-white px-3 py-3 text-copy font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
         >
           {phonePrefixes.map((phonePrefix) => (
             <option key={phonePrefix} value={phonePrefix}>
@@ -3113,7 +3111,7 @@ function PhoneInput({
             </option>
           ))}
         </select>
-        <input
+        <input data-field-size="lg"
           value={middle}
           aria-label={`${label} 중간 번호`}
           onChange={(event) => updatePhone(prefix, getDigits(event.target.value, 4), last)}
@@ -3121,11 +3119,11 @@ function PhoneInput({
           maxLength={4}
           placeholder="1234"
           aria-invalid={Boolean(errorText)}
-          className={`w-full rounded-2xl border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
+          className={`w-full rounded-2xl border bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition ${
             errorText ? "border-red-200 focus:border-red-500" : showSuccess ? "border-emerald-200 focus:border-emerald-600" : "border-zinc-200 focus:border-zinc-950"
           }`}
         />
-        <input
+        <input data-field-size="lg"
           value={last}
           aria-label={`${label} 끝 번호`}
           onChange={(event) => updatePhone(prefix, middle, getDigits(event.target.value, 4))}
@@ -3133,12 +3131,12 @@ function PhoneInput({
           maxLength={4}
           placeholder="5678"
           aria-invalid={Boolean(errorText)}
-          className={`w-full rounded-2xl border bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition ${
+          className={`w-full rounded-2xl border bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition ${
             errorText ? "border-red-200 focus:border-red-500" : showSuccess ? "border-emerald-200 focus:border-emerald-600" : "border-zinc-200 focus:border-zinc-950"
           }`}
         />
       </div>
-      <p className={`mt-2 break-keep text-xs font-bold leading-relaxed ${errorText ? "text-red-600" : showSuccess ? "text-emerald-700" : "text-zinc-400"}`}>
+      <p className={`mt-2 break-keep text-support font-medium leading-relaxed ${errorText ? "text-red-600" : showSuccess ? "text-emerald-700" : "text-zinc-600"}`}>
         {message}
       </p>
     </div>
@@ -3163,10 +3161,10 @@ function TermsModal({ title, details, onClose }: { title: string; details: strin
             </button>
           </div>
         </div>
-        <div className="max-h-[56vh] space-y-4 overflow-y-auto p-6 text-sm font-semibold leading-relaxed text-zinc-600">
+        <div className="max-h-[56vh] space-y-4 overflow-y-auto p-6 text-copy font-semibold leading-relaxed text-zinc-600">
           {details.map((detail, index) => (
             <section key={detail} className="rounded-2xl bg-zinc-50 p-4">
-              <h4 className="type-label mb-2 uppercase text-zinc-400">항목 {index + 1}</h4>
+              <h4 className="type-label mb-2 uppercase text-zinc-600">항목 {index + 1}</h4>
               <p>{detail}</p>
             </section>
           ))}
@@ -3184,7 +3182,7 @@ function TermsModal({ title, details, onClose }: { title: string; details: strin
 function SummaryRow({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
   return (
     <div className="site-checkout-summary-row" data-strong={strong}>
-      <dt className="text-zinc-400">{label}</dt>
+      <dt className="text-zinc-600">{label}</dt>
       <dd className={`text-right ${strong ? "text-xl font-bold text-zinc-950" : "font-bold text-zinc-800"}`}>{value}</dd>
     </div>
   );
@@ -3193,8 +3191,8 @@ function SummaryRow({ label, value, strong = false }: { label: string; value: st
 function BusinessVerificationSummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="site-notice site-notice-success px-3 py-2">
-      <p className="text-xs font-bold uppercase tracking-[0.14em] text-emerald-500">{label}</p>
-      <p className="mt-1 break-keep text-xs font-bold text-emerald-900">{value}</p>
+      <p className="text-support font-medium uppercase text-emerald-500">{label}</p>
+      <p className="mt-1 break-keep text-support font-medium text-emerald-900">{value}</p>
     </div>
   );
 }

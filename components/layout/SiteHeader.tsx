@@ -107,7 +107,7 @@ function BrandLogo({ isSolid }: { isSolid: boolean }) {
       </span>
       <span className="flex flex-col leading-none">
         <span className={`text-xl font-bold tracking-tight transition-colors ${logoTextClass}`}>ArtiMenu</span>
-        <span className={`mt-0.5 text-xs font-semibold uppercase tracking-[0.28em] transition-colors ${logoSubTextClass}`}>Studio</span>
+        <span className={`mt-0.5 text-support font-semibold uppercase tracking-[0.28em] transition-colors ${logoSubTextClass}`}>Studio</span>
       </span>
     </Link>
   );
@@ -152,7 +152,7 @@ export default function SiteHeader({ variant = "solid" }: { variant?: SiteHeader
             <Link
               key={item.href}
               href={item.href}
-              className="text-sm font-bold text-current opacity-80 transition-opacity hover:opacity-100"
+              className="text-copy font-medium text-current opacity-80 transition-opacity hover:opacity-100"
             >
               {item.label}
             </Link>
@@ -204,12 +204,12 @@ export default function SiteHeader({ variant = "solid" }: { variant?: SiteHeader
         <div className="border-t border-zinc-100 bg-white px-5 py-5 shadow-lg lg:hidden">
           <nav aria-label="모바일 공식 사이트 메뉴" className="mx-auto flex max-w-7xl flex-col gap-2">
             {authState.loading ? (
-              <p className="rounded-2xl bg-zinc-50 px-4 py-3 text-sm font-bold text-zinc-400">계정 확인 중</p>
+              <p className="rounded-2xl bg-zinc-50 px-4 py-3 text-copy font-medium text-zinc-400">계정 확인 중</p>
             ) : authState.email ? (
               <Link
                 href="/mypage"
                 onClick={() => setIsMenuOpen(false)}
-                className="flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-bold text-white"
+                className="flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-copy font-medium text-white"
               >
                 마이페이지
                 <User size={18} strokeWidth={2} aria-hidden="true" />
@@ -219,7 +219,7 @@ export default function SiteHeader({ variant = "solid" }: { variant?: SiteHeader
                 <Link
                   href="/sign-in"
                   onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-bold text-white"
+                  className="flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-copy font-medium text-white"
                 >
                   로그인
                   <LogIn size={18} strokeWidth={2} aria-hidden="true" />
@@ -227,7 +227,7 @@ export default function SiteHeader({ variant = "solid" }: { variant?: SiteHeader
                 <Link
                   href="/sign-up"
                   onClick={() => setIsMenuOpen(false)}
-                  className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
+                  className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-copy font-medium text-zinc-800"
                 >
                   회원가입
                   <UserPlus size={18} strokeWidth={2} aria-hidden="true" />
@@ -241,7 +241,7 @@ export default function SiteHeader({ variant = "solid" }: { variant?: SiteHeader
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsMenuOpen(false)}
-                  className="block rounded-2xl px-4 py-3 text-base font-bold text-zinc-800 transition-colors hover:bg-zinc-50"
+                  className="block rounded-2xl px-4 py-3 text-copy font-medium text-zinc-800 transition-colors hover:bg-zinc-50"
                 >
                   {item.label}
                 </Link>

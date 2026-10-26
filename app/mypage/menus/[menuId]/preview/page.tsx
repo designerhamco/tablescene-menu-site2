@@ -79,13 +79,13 @@ function LockedMenuPreview({ menuId, accessState }: { menuId: string; accessStat
   return (
     <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
       <section className="mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col justify-center">
-        <Link href="/mypage?tab=menus&menuTab=deleted" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
+        <Link href="/mypage?tab=menus&menuTab=deleted" className="mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950">
           ← 메뉴판 목록으로
         </Link>
         <div className="site-card p-6 sm:p-8">
           <Badge>미리보기 제한</Badge>
           <h1 className="type-subsection-title mt-6 text-zinc-950">이 메뉴판은 현재 미리보기할 수 없습니다.</h1>
-          <p className="mt-4 break-keep text-base font-bold leading-relaxed text-zinc-600">{message}</p>
+          <p className="mt-4 break-keep text-copy font-medium leading-relaxed text-zinc-600">{message}</p>
           <div className="mt-7 flex flex-wrap gap-3">
             {accessState?.canConvertToBusiness ? (
               <Link href={`/mypage/menus/${menuId}/convert`} className="site-button site-button-rounded site-button-outline">

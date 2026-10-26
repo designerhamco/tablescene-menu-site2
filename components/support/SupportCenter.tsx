@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { DETAILED_FAQ_DATA, FAQItem } from "@/app/components/common/FAQ";
 import {
   ANNOUNCEMENT_CATEGORIES,
@@ -13,61 +13,14 @@ import {
 } from "@/lib/announcements";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import styles from "./support.module.css";
+import { SitePagination } from "@/app/components/ui/site-pagination";
+import { ContentList, ContentListItem } from "@/app/components/ui/content-list";
 
 type AnnouncementList = {
   items: AnnouncementSummary[];
   count: number;
   unavailable: boolean;
 };
-
-function Pagination({
-  page,
-  total,
-  onChange,
-}: {
-  page: number;
-  total: number;
-  onChange: (page: number) => void;
-}) {
-  if (total <= 1) return null;
-  const start = Math.max(1, Math.min(page - 2, total - 4));
-  return (
-    <nav className={styles.pagination} aria-label="목록 페이지">
-      <button
-        type="button"
-        className="site-button site-button-ghost site-button-icon"
-        aria-label="이전 페이지"
-        disabled={page <= 1}
-        onClick={() => onChange(page - 1)}
-      >
-        <ChevronLeft size={18} />
-      </button>
-      {Array.from({ length: Math.min(5, total) }, (_, i) => start + i).map(
-        (value) => (
-          <button
-            type="button"
-            key={value}
-            className="site-button site-button-ghost site-button-icon"
-            aria-label={`${value}페이지`}
-            aria-current={page === value ? "page" : undefined}
-            onClick={() => onChange(value)}
-          >
-            {value}
-          </button>
-        ),
-      )}
-      <button
-        type="button"
-        className="site-button site-button-ghost site-button-icon"
-        aria-label="다음 페이지"
-        disabled={page >= total}
-        onClick={() => onChange(page + 1)}
-      >
-        <ChevronRight size={18} />
-      </button>
-    </nav>
-  );
-}
 
 export default function SupportCenter({
   supportActions,
@@ -171,8 +124,8 @@ export default function SupportCenter({
               고객센터 검색
             </label>
             <Search size={20} aria-hidden="true" />
-            <input
-              className="site-field"
+            <input data-field-size="search"
+              className="site-field site-field-search"
               id={`${uid}-search`}
               type="search"
               placeholder="예: 메뉴판 만들기, QR, 결제"
@@ -254,10 +207,10 @@ export default function SupportCenter({
                     </p>
                   </div>
                 )}
-                <Pagination
-                  page={page}
-                  total={faqPages}
-                  onChange={(value) => {
+                <SitePagination
+                  currentPage={page}
+                  totalPages={faqPages}
+                  onSelect={(value) => {
                     setPage(value);
                     setOpenQuestion(null);
                   }}
@@ -288,31 +241,13 @@ export default function SupportCenter({
                     <p className={styles.resultCount} role="status">
                       전체 {notices.count}개
                     </p>
-                    <div className={styles.rows}>
-                      {notices.items.map((notice) => (
-                        <Link
-                          key={notice.id}
-                          href={`/faq/notices/${notice.id}`}
-                          className={styles.noticeRow}
-                        >
-                          <span className={styles.category}>
-                            {notice.pinned
-                              ? "중요 안내"
-                              : getAnnouncementCategory(notice.category)}
-                          </span>
-                          <strong className="type-item-title">
-                            {notice.title}
-                          </strong>
-                          <time dateTime={notice.published_at ?? undefined}>
-                            {formatAnnouncementDate(notice.published_at)}
-                          </time>
-                        </Link>
-                      ))}
-                    </div>
-                    <Pagination
-                      page={page}
-                      total={Math.ceil(notices.count / ANNOUNCEMENT_PAGE_SIZE)}
-                      onChange={setPage}
+                    <ContentList label="공지사항 목록">
+                      {notices.items.map(notice => <ContentListItem key={notice.id} href={`/faq/notices/${notice.id}`} title={notice.title} label={notice.pinned ? "중요 안내" : getAnnouncementCategory(notice.category)} date={formatAnnouncementDate(notice.published_at)} dateTime={notice.published_at ?? undefined} />)}
+                    </ContentList>
+                    <SitePagination
+                      currentPage={page}
+                      totalPages={Math.ceil(notices.count / ANNOUNCEMENT_PAGE_SIZE)}
+                      onSelect={setPage}
                     />
                   </>
                 ) : (

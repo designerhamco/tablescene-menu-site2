@@ -840,7 +840,7 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
       <OfficialSiteNavbar />
       <main className="site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950">
         <section className="mx-auto flex min-h-[70vh] w-full max-w-3xl flex-col justify-center">
-          <Link href="/mypage?tab=menus&menuTab=archived" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
+          <Link href="/mypage?tab=menus&menuTab=archived" className="mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950">
             ← 메뉴판 목록으로
           </Link>
           <div className="site-card site-editor-panel p-6 sm:p-8">
@@ -849,7 +849,7 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
               <Badge>{templateDisplayName}</Badge>
             </div>
             <h1 className="type-subsection-title mt-6 text-zinc-950">이 메뉴판은 현재 편집할 수 없습니다.</h1>
-            <p className="mt-4 break-keep text-base font-bold leading-relaxed text-zinc-600">{message}</p>
+            <p className="mt-4 break-keep text-copy font-medium leading-relaxed text-zinc-600">{message}</p>
             <p className="site-notice site-notice-warning mt-4 p-4">
               보관/만료 상태에서는 편집, 저장, 이미지 업로드, 샘플 되돌리기, 공개 설정 변경이 제한됩니다. 미리보기로 기존 메뉴판 상태는 확인할 수 있습니다.
             </p>
@@ -889,7 +889,7 @@ const menuSiteSelect = baseMenuSiteSelect
 
 function FieldLabel({ children, required = false }: { children: ReactNode; required?: boolean }) {
   return (
-    <label className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">
+    <label className="text-support font-medium uppercase tracking-[0.16em] text-zinc-400">
       {children}
       {required && <span className="ml-1 text-red-500">*</span>}
     </label>
@@ -901,7 +901,7 @@ function FieldHint({ children }: { children?: ReactNode }) {
     return null;
   }
 
-  return <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">{children}</p>;
+  return <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-400">{children}</p>;
 }
 
 function getJsonRecord(value: unknown): Record<string, Json> {
@@ -964,12 +964,12 @@ function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTML
     <>
       <input
         {...props}
-        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 disabled:bg-zinc-100 disabled:text-zinc-400 ${
+        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 disabled:bg-zinc-100 disabled:text-zinc-400 ${
           className ?? ""
         }`}
       />
       {(helperText || props.maxLength) && (
-        <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
+        <div className="mt-2 flex items-start justify-between gap-3 text-support font-medium leading-relaxed text-zinc-400">
           <span className="break-keep">{helperText}</span>
           {props.maxLength && fieldName && <LiveCharacterCounter fieldName={fieldName} initialLength={currentLength} maxLength={props.maxLength} />}
         </div>
@@ -987,12 +987,12 @@ function TextArea({ helperText, className, ...props }: TextareaHTMLAttributes<HT
     <>
       <textarea
         {...props}
-        className={`site-field mt-2 min-h-24 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
+        className={`site-field mt-2 min-h-24 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
       {(helperText || props.maxLength) && (
-        <div className="mt-2 flex items-start justify-between gap-3 text-xs font-bold leading-relaxed text-zinc-400">
+        <div className="mt-2 flex items-start justify-between gap-3 text-support font-medium leading-relaxed text-zinc-400">
           <span className="break-keep">{helperText}</span>
           {props.maxLength && fieldName && <LiveCharacterCounter fieldName={fieldName} initialLength={currentLength} maxLength={props.maxLength} />}
         </div>
@@ -1006,7 +1006,7 @@ function Select({ helperText, className, ...props }: SelectHTMLAttributes<HTMLSe
     <>
       <select
         {...props}
-        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
+        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
@@ -1072,12 +1072,12 @@ function FinalSaveFeedback({ message, error }: { message?: string | null; error?
   return (
     <>
       {message && (
-        <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-emerald-700">
+        <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-emerald-700">
           {message}
         </p>
       )}
       {error && (
-        <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-red-600">
+        <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-red-600">
           {error}
         </p>
       )}
@@ -1111,12 +1111,12 @@ function CustomEditorUnavailable({ siteName }: { siteName: string }) {
       <OfficialSiteNavbar />
       <main className="site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950">
         <div className="mx-auto w-full max-w-3xl">
-          <Link href="/mypage" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
+          <Link href="/mypage" className="mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950">
             ← 메뉴판 목록으로
           </Link>
           <section className="site-card site-editor-panel p-6 sm:p-8">
             <h1 className="type-subsection-title text-zinc-950">아티메뉴 커스텀은 맞춤 제작형 서비스입니다.</h1>
-            <div className="mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+            <div className="mt-5 space-y-3 break-keep text-copy font-semibold leading-relaxed text-zinc-500">
               <p>담당자 상담을 통해 제작이 진행되며, 일반 편집 페이지에서는 수정할 수 없습니다.</p>
               <p>{siteName} 프로젝트는 상담 및 제작 진행 상황에 맞춰 별도로 안내됩니다.</p>
             </div>
@@ -1145,7 +1145,7 @@ function SchedulePlaceholder() {
     <SectionCard title="일정표 관리">
       <div className="site-section site-editor-subpanel p-6">
         <h3 className="type-content-title text-zinc-950">일정표형 템플릿은 준비 중입니다.</h3>
-        <div className="mt-3 space-y-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+        <div className="mt-3 space-y-2 break-keep text-copy font-semibold leading-relaxed text-zinc-500">
           <p>이번 1차 작업에서는 템플릿 유형, 관리자 라벨, 탭 구성만 준비합니다.</p>
           <p>schedule_items 테이블, 일정 CRUD, 공개 일정표 렌더링은 2차 개발에서 추가할 예정입니다.</p>
         </div>
@@ -1811,7 +1811,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         <MenuEditorToastBridge message={bannerMessage} error={finalSaveError} />
         <div className={`mx-auto w-full ${editorShellMaxWidth}`}>
         <header className="site-card site-editor-panel mb-6 p-5 sm:p-6">
-          <Link href="/mypage" className="mb-5 inline-block text-sm font-bold text-zinc-400 hover:text-zinc-950">
+          <Link href="/mypage" className="mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950">
             ← 메뉴판 목록으로
           </Link>
           <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
@@ -1830,7 +1830,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 </div>
               </div>
               <h1 className="type-page-title">{site.name}</h1>
-              <p className="mt-3 inline-flex items-center gap-2 text-sm font-bold text-zinc-400">
+              <p className="mt-3 inline-flex items-center gap-2 text-copy font-medium text-zinc-400">
                 {publicUrl}
                 <HelpTooltip label="공개 주소 도움말">손님이 공개 메뉴판을 볼 때 사용하는 주소입니다.</HelpTooltip>
               </p>
@@ -1890,25 +1890,25 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   </>
                 )}
               </div>
-              <p className="text-center text-xs font-bold text-zinc-400 sm:text-right">변경사항은 저장 후 반영됩니다.</p>
+              <p className="text-center text-support font-medium text-zinc-400 sm:text-right">변경사항은 저장 후 반영됩니다.</p>
             </div>
           </div>
         </header>
 
-        {globalBannerError && <div className="site-notice site-notice-error mb-5 p-4 text-sm font-bold">{globalBannerError}</div>}
+        {globalBannerError && <div className="site-notice site-notice-error mb-5 p-4 text-copy font-medium">{globalBannerError}</div>}
         {!accessContext.isOwner && (
-          <div className="site-notice site-notice-info mb-5 p-4 text-sm font-bold leading-relaxed">
+          <div className="site-notice site-notice-info mb-5 p-4 text-copy font-medium leading-relaxed">
             직원 권한으로 편집 중입니다. AI는 메뉴판 소유자의 크레딧을 사용하며, 충전과 결제 관리는 소유자만 할 수 있습니다.
           </div>
         )}
         {permissionTabNotice ? (
-          <div className="site-notice site-notice-warning mb-5 p-4 text-sm font-bold leading-relaxed" role="status">
+          <div className="site-notice site-notice-warning mb-5 p-4 text-copy font-medium leading-relaxed" role="status">
             {permissionTabNotice} 권한이 있는 계정으로 전환하거나 사장에게 역할 변경을 요청해 주세요.
           </div>
         ) : null}
         {isReadOnly && (
           <div className="site-notice site-notice-warning mb-5 p-5">
-            <p className="break-keep text-sm font-bold leading-relaxed text-amber-800">{readOnlyMessage}</p>
+            <p className="break-keep text-copy font-medium leading-relaxed text-amber-800">{readOnlyMessage}</p>
             <div className="mt-4 flex flex-wrap gap-3">
               {accessState?.canConvertToBusiness ? (
                 <Link
@@ -2011,9 +2011,9 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                   {(supportsBrandLogo || supportsFooterStoreInfo) && (
                     <div className="site-section site-editor-subpanel space-y-5 p-5 md:col-span-2">
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">Store Display</p>
+                        <p className="text-support font-medium uppercase tracking-[0.16em] text-zinc-400">Store Display</p>
                         <h3 className="type-content-title mt-1 text-zinc-950">매장 표시 정보</h3>
-                        <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                        <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-500">
                           템플릿이 지원하는 경우 공개 메뉴판의 매장명, 하단 매장 안내 정보에 반영됩니다.
                         </p>
                       </div>
@@ -2106,7 +2106,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <FinalActionRow>
                       <SubmitButton tone="final" dirtyFormId="basic-info-form" disabled={isReadOnly}>저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
-                      <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                      <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
                       </p>
                     </FinalActionRow>
@@ -2140,7 +2140,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <FinalActionRow>
                       <SubmitButton tone="final" dirtyFormId="page-settings-form" disabled={isReadOnly}>저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
-                      <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                      <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
                       </p>
                     </FinalActionRow>
@@ -2181,7 +2181,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <FinalActionRow>
                       <SubmitButton tone="final" dirtyFormId="intro-form" disabled={isReadOnly}>저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
-                      <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                      <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
                       </p>
                     </FinalActionRow>
@@ -2197,7 +2197,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                 <form id="menu-cover-form" action={updateMenuCoverAction} className="grid gap-5 md:grid-cols-2">
                   <HiddenMenuId menuId={site.id} />
                   <div className="site-section site-editor-subpanel md:col-span-2 p-5">
-                    <p className="break-keep text-sm font-bold leading-relaxed text-zinc-600">
+                    <p className="break-keep text-copy font-medium leading-relaxed text-zinc-600">
                       {coverDescription ||
                         (usesStoreIdentityForCover
                         ? "이 템플릿은 상단 제목과 설명에 기본 정보의 매장명과 매장 설명을 사용합니다. 이 탭에서는 메뉴판에 표시되는 커버 이미지와 추천 메뉴를 설정합니다."
@@ -2258,7 +2258,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                             className="h-12 w-16 cursor-pointer rounded-lg border border-zinc-200 bg-white p-1"
                             aria-label="커버 배경색 선택"
                           />
-                          <p className="break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                          <p className="break-keep text-support font-medium leading-relaxed text-zinc-400">
                             이미지가 없으면 커버 전체에 표시되고, 이미지가 있으면 이미지 위에 겹쳐집니다.
                           </p>
                         </div>
@@ -2277,7 +2277,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           label="커버 이미지 표시"
                           defaultChecked={coverImageVisible}
                         />
-                        <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                        <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-400">
                           꺼도 등록된 커버 이미지는 삭제되지 않습니다. 다시 켜면 저장된 이미지를 그대로 사용할 수 있습니다.
                         </p>
                       </div>
@@ -2315,7 +2315,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <div className="site-section site-editor-subpanel md:col-span-2 p-5">
                         <div className="mb-4">
                           <h3 className="type-content-title text-zinc-950">대표 추천 메뉴</h3>
-                          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                          <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-500">
                             대표 추천 메뉴는 일부 템플릿에서 커버 이미지 영역의 메뉴 정보로 표시됩니다. 커버 이미지는 별도로 등록한 이미지만 사용합니다.
                           </p>
                         </div>
@@ -2350,7 +2350,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                               ))}
                             </Select>
                             {selectedFeaturedItemInactive && (
-                              <p className="site-notice site-notice-warning mt-3 break-keep p-4 text-sm font-bold leading-relaxed">
+                              <p className="site-notice site-notice-warning mt-3 break-keep p-4 text-copy font-medium leading-relaxed">
                                 {selectedFeaturedItem
                                   ? `선택한 대표 추천 메뉴 “${selectedFeaturedItem.name}”이 숨김 처리되어 공개 메뉴판에는 표시되지 않습니다.`
                                   : "선택한 대표 추천 메뉴가 삭제되었거나 존재하지 않아 공개 메뉴판에는 표시되지 않습니다."}{" "}
@@ -2359,7 +2359,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                             )}
                           </div>
                           {!templateCapabilities.featuredItemHero && (
-                            <p className="site-notice site-notice-warning break-keep p-4 text-sm font-bold leading-relaxed">
+                            <p className="site-notice site-notice-warning break-keep p-4 text-copy font-medium leading-relaxed">
                               현재 선택한 템플릿은 대표 추천 메뉴 영역을 사용하지 않습니다. 설정값은 저장되지만 공개 메뉴판에는 표시되지 않을 수 있습니다.
                             </p>
                           )}
@@ -2372,7 +2372,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <CoverSampleResetButton formId="menu-cover-form" sampleDraft={coverSampleDraft} />
                       <SubmitButton tone="final" dirtyFormId="menu-cover-form" disabled={isReadOnly}>저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
-                      <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                      <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 새 커버 이미지는 저장 전까지 공개 메뉴판에 반영되지 않습니다.
                       </p>
                     </FinalActionRow>
@@ -2405,7 +2405,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       현재 메뉴판은 서비스 이용 기간이 종료되어 AI 기능을 사용할 수 없습니다.
                     </div>
                   )}
-                  <div className="site-card site-editor-panel site-card-compact p-4 text-xs font-bold leading-relaxed text-zinc-500">
+                  <div className="site-card site-editor-panel site-card-compact p-4 text-support font-medium leading-relaxed text-zinc-500">
                     메뉴명, 가격, 원산지, 알레르기, 이벤트 정보는 실제 매장 운영 기준과 일치하는지 반드시 확인해주세요. 잘못 입력된 정보로 인한 소비자 분쟁은 메뉴판 운영자에게 책임이 있습니다.
                   </div>
                   <MenuManagementSection
@@ -2464,7 +2464,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <FinalActionRow>
                         <SubmitButton tone="final" dirtyFormId="about-form" disabled={isReadOnly}>저장</SubmitButton>
                         <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
-                        <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                        <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                           변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 상단의 미리보기에서 반영 내용을 확인할 수 있습니다.
                         </p>
                       </FinalActionRow>
@@ -2486,7 +2486,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <FinalActionRow>
                         <SubmitButton tone="final" dirtyFormId="events-form" disabled={isReadOnly}>저장</SubmitButton>
                         <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
-                        <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                        <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                           이벤트 변경사항은 저장 후 미리보기와 공개 메뉴판에 반영됩니다. 이벤트 이미지는 후속 draft 단계 전까지 기존 업로드 정책을 따릅니다.
                         </p>
                     </FinalActionRow>
@@ -2506,15 +2506,15 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <div className="site-section site-editor-subpanel p-5">
                       <div>
                         <h3 className="type-content-title text-zinc-950">현재 템플릿</h3>
-                        <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                        <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-500">
                           {menuDesignPlan ? "현재 구독 이용권에 포함된 디자인을 위에서 선택해 교체할 수 있습니다." : "이 메뉴판은 기존 템플릿별 구독 계약을 유지합니다."}
                         </p>
                       </div>
                       <div className="mt-5 space-y-4">
-                        <p className="rounded-lg bg-white px-4 py-3 text-sm font-semibold text-zinc-600">
+                        <p className="rounded-lg bg-white px-4 py-3 text-copy font-semibold text-zinc-600">
                           현재 템플릿 <strong className="ml-1 font-bold text-zinc-950">{getMenuDesignDisplayName(site.template_key, site.template_category, site.settings)}</strong>
                         </p>
-                        <p className="break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                        <p className="break-keep text-copy font-semibold leading-relaxed text-zinc-500">
                           {menuDesignPlan ? "디자인을 바꾸어도 메뉴 데이터와 공개 주소는 그대로 유지됩니다." : "새 요금제는 기본 디자인 또는 디자인 포함 이용권을 선택해 시작할 수 있습니다."}
                         </p>
                         <div className="flex flex-wrap gap-2">
@@ -2539,7 +2539,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     <div className="site-section site-editor-subpanel p-5">
                       <div>
                         <h3 className="type-content-title text-zinc-950">배경색</h3>
-                        <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                        <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-500">
                           메뉴판 전체 배경색을 매장 분위기에 맞게 변경할 수 있습니다. 마음에 들지 않으면 언제든 템플릿 기본 색상으로 되돌릴 수 있습니다.
                         </p>
                       </div>
@@ -2556,7 +2556,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <div>
                         <div>
                           <h3 className="type-content-title text-zinc-950">폰트 설정</h3>
-                          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                          <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-500">
                             템플릿에 어울리는 기본 폰트가 적용되어 있습니다. 원하는 경우 준비된 한글 폰트 목록에서 선택해 메뉴판 분위기를 바꿀 수 있습니다.
                             마음에 들지 않으면 언제든 템플릿 기본 폰트로 되돌릴 수 있습니다.
                           </p>
@@ -2583,7 +2583,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <ResetTabActionButton menuId={site.id} kind="design" />
                       <SubmitButton tone="final" dirtyFormId="design-settings-form" disabled={isReadOnly}>저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
-                      <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                      <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         미리보기에는 저장된 디자인 설정만 표시됩니다.
                       </p>
                     </FinalActionRow>
@@ -2605,11 +2605,11 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                     initialBalance={aiCreditBalance}
                   />
                 ) : accessState?.canUseAi ? (
-                  <div className="site-notice site-notice-info mb-5 p-4 text-sm font-bold leading-relaxed">
+                  <div className="site-notice site-notice-info mb-5 p-4 text-copy font-medium leading-relaxed">
                     AI 번역은 소유자의 크레딧을 사용합니다. 크레딧 충전은 소유자에게 요청해주세요.
                   </div>
                 ) : (
-                  <div className="site-notice site-notice-warning mb-5 p-4 text-sm font-bold leading-relaxed">
+                  <div className="site-notice site-notice-warning mb-5 p-4 text-copy font-medium leading-relaxed">
                     현재 메뉴판은 서비스 이용 기간이 종료되어 AI 기능을 사용할 수 없습니다.
                   </div>
                 )}
@@ -2642,8 +2642,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           className="mt-1 h-4 w-4 shrink-0 accent-zinc-950"
                         />
                         <span>
-                          <span className="block text-base font-bold text-zinc-950">비공개</span>
-                          <span className="mt-2 block break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                          <span className="block text-copy font-medium text-zinc-950">비공개</span>
+                          <span className="mt-2 block break-keep text-copy font-semibold leading-relaxed text-zinc-500">
                             공개 URL로 접속해도 손님에게 메뉴판이 보이지 않습니다.
                           </span>
                         </span>
@@ -2658,35 +2658,35 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                           className="mt-1 h-4 w-4 shrink-0 accent-zinc-950"
                         />
                         <span>
-                          <span className="block text-base font-bold text-zinc-950">공개</span>
-                          <span className="mt-2 block break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                          <span className="block text-copy font-medium text-zinc-950">공개</span>
+                          <span className="mt-2 block break-keep text-copy font-semibold leading-relaxed text-zinc-500">
                             공개 URL과 QR 코드로 손님이 메뉴판을 볼 수 있습니다.
                           </span>
                         </span>
                       </label>
                     </div>
                     {site.status === "archived" && (
-                      <p className="site-notice site-notice-warning mt-3 break-keep p-4 text-sm font-bold leading-relaxed">
+                      <p className="site-notice site-notice-warning mt-3 break-keep p-4 text-copy font-medium leading-relaxed">
                         현재 보관된 메뉴판입니다. 공개 설정 탭에서는 비공개 상태로 표시됩니다.
                       </p>
                     )}
                     {isReadOnly && (
-                      <p className="site-notice site-notice-warning mt-3 break-keep p-4 text-sm font-bold leading-relaxed">
+                      <p className="site-notice site-notice-warning mt-3 break-keep p-4 text-copy font-medium leading-relaxed">
                         체험 기간이 종료되어 공개 상태를 변경할 수 없습니다. 월 구독으로 전환 후 다시 이용해주세요.
                       </p>
                     )}
-                    <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                    <p className="mt-3 break-keep text-support font-medium leading-relaxed text-zinc-400">
                       공개 상태 변경은 저장 후 반영됩니다.
                     </p>
                   </div>
-                  <div className="site-notice site-notice-success p-4 text-sm font-bold leading-relaxed">
+                  <div className="site-notice site-notice-success p-4 text-copy font-medium leading-relaxed">
                     저장 전에는 미리보기와 공개 메뉴판에 반영되지 않습니다. 공개 페이지 보기와 미리보기는 저장된 데이터 기준으로 열립니다.
                   </div>
                   <div className="site-section site-editor-subpanel p-5">
                     <h3 className="type-item-title">공개 전 필수 체크리스트</h3>
                     <div className="mt-4 grid gap-3 md:grid-cols-2">
                       {checklist.map((item) => (
-                        <p key={item.label} className={`text-sm font-bold ${item.ok ? "text-emerald-700" : "text-zinc-400"}`}>
+                        <p key={item.label} className={`text-copy font-medium ${item.ok ? "text-emerald-700" : "text-zinc-400"}`}>
                           {item.ok ? "완료" : "필요"} · {item.label}
                         </p>
                       ))}
@@ -2697,24 +2697,24 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       <h3 className="type-item-title">선택 콘텐츠</h3>
                       <div className="mt-4 grid gap-3 md:grid-cols-2">
                         {optionalChecklist.map((item) => (
-                          <p key={item.label} className={`text-sm font-bold ${item.ok ? "text-emerald-700" : "text-zinc-400"}`}>
+                          <p key={item.label} className={`text-copy font-medium ${item.ok ? "text-emerald-700" : "text-zinc-400"}`}>
                             {item.ok ? "사용 중" : "미사용"} · {item.label}
                           </p>
                         ))}
                       </div>
                     </div>
                   )}
-                  <p className="break-keep text-sm font-bold text-amber-700">
+                  <p className="break-keep text-copy font-medium text-amber-700">
                     QR 코드는 결제 시 지정한 공개 메뉴판 주소로 연결됩니다.
                   </p>
-                  <p className="site-notice site-notice-warning break-keep p-4 text-sm font-bold leading-relaxed">
+                  <p className="site-notice site-notice-warning break-keep p-4 text-copy font-medium leading-relaxed">
                     공개 전 메뉴명, 가격, 영업시간, 이벤트, 원산지, 알레르기 정보가 정확한지 확인해주세요. AI 기능을 통해 생성된 문구와 번역은 참고용 초안이며, 실제 매장 운영 정보와 일치하는지 직접 검토해야 합니다.
                   </p>
                   <div>
                     <FinalActionRow>
                       <SubmitButton tone="final" dirtyFormId="publish-settings-form" disabled={isReadOnly}>저장</SubmitButton>
                       <FinalSaveFeedback message={bannerMessage} error={finalSaveError} />
-                      <p className="basis-full break-keep text-center text-xs font-bold leading-relaxed text-zinc-400">
+                      <p className="basis-full break-keep text-center text-support font-medium leading-relaxed text-zinc-400">
                         공개 상태 변경은 저장 후 DB와 미리보기, 공개 메뉴판에 반영됩니다.
                       </p>
                     </FinalActionRow>

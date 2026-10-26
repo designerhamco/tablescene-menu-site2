@@ -40,7 +40,7 @@ export default async function OrderSettingsPage({
       <OfficialSiteNavbar />
       <main className="site-container site-page-spacing">
         <Link
-          className="text-sm text-zinc-500"
+          className="text-copy text-zinc-500"
           href={"/mypage/menus/" + menuId + "/edit"}
         >
           메뉴판 관리로

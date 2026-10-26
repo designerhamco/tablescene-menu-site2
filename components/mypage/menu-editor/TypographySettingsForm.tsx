@@ -131,8 +131,8 @@ function FontPicker<Value extends string>({
       <div className="flex flex-col gap-3">
         <div>
           <h4 id={labelId} className="type-label text-zinc-950">{label}</h4>
-          <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">{description}</p>
-          <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+          <p className="mt-1 break-keep text-support font-medium leading-relaxed text-zinc-600">{description}</p>
+          <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
             현재 적용: <span className="text-zinc-700">{value ? selectedOption.label : `템플릿 기본값 · ${defaultOption.label}`}</span>
           </p>
         </div>
@@ -159,7 +159,7 @@ function FontPicker<Value extends string>({
             className="site-choice site-choice-control site-choice-row" aria-pressed={value === ""}
           >
             <span>템플릿 기본값 · {defaultOption.label}</span>
-            {value === "" ? <span className="text-xs font-bold opacity-70">선택됨</span> : null}
+            {value === "" ? <span className="text-support font-medium opacity-70">선택됨</span> : null}
           </button>
           <div className="grid gap-2 sm:grid-cols-2">
             {filteredOptions.map((option) => {
@@ -173,7 +173,7 @@ function FontPicker<Value extends string>({
                 className="site-choice site-choice-control site-choice-row" aria-pressed={selected}
               >
                 <span className="min-w-0 truncate">{option.label}</span>
-                {selected ? <span className="shrink-0 text-xs font-bold opacity-70">선택됨</span> : null}
+                {selected ? <span className="shrink-0 text-support font-medium opacity-70">선택됨</span> : null}
               </button>
               );
             })}
@@ -294,10 +294,10 @@ export default function TypographySettingsForm({
               <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
                 <div>
                   <h4 className="type-label text-zinc-950">글자 설정</h4>
-                  <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+                  <p className="mt-1 break-keep text-support font-medium leading-relaxed text-zinc-600">
                     서체는 공통으로 적용하고, 글자색은 역할과 표시 영역에 따라 조정합니다.
                   </p>
-                  <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                  <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
                     현재 템플릿 기본 폰트: 한글 <span className="text-zinc-700">{defaultFont.label}</span> · 영문/숫자 <span className="text-zinc-700">{safeDefaultEnglishFont.label}</span>
                   </p>
                 </div>
@@ -313,7 +313,7 @@ export default function TypographySettingsForm({
                 {MENU_TEXT_COLOR_GROUPS.map(group => {
                   const role = group === "brand" || group === "category" ? group : group === "product" ? "itemName" : "supporting";
                   return <div key={group} className="grid gap-3 px-3 py-3 lg:grid-cols-[minmax(8rem,1fr)_minmax(8rem,0.8fr)] lg:items-center">
-                    <div><p className="text-sm font-bold text-zinc-800">{MENU_TEXT_COLOR_LABELS[group]}</p><p className="mt-1 break-keep text-xs leading-relaxed text-zinc-500">{MENU_TEXT_COLOR_DESCRIPTIONS[group]}</p></div>
+                    <div><p className="text-copy font-medium text-zinc-800">{MENU_TEXT_COLOR_LABELS[group]}</p><p className="mt-1 break-keep text-support leading-relaxed text-zinc-600">{MENU_TEXT_COLOR_DESCRIPTIONS[group]}</p></div>
                     <PreviewColorPicker label="글자색" accessibleLabel={`${MENU_TEXT_COLOR_LABELS[group]} 글자색`} value={textColors[group]} defaultColor={selectedRoleSettings[role].color ?? "#191C1B"} disabled={false} onChange={color => setTextColors(current => ({ ...current, [group]: color }))} />
                   </div>;
                 })}
@@ -346,27 +346,27 @@ export default function TypographySettingsForm({
                 onChange={setSelectedEnglishFontValue}
               />
             </div>
-            <p className="break-keep text-xs font-bold leading-relaxed text-zinc-400">
+            <p className="break-keep text-support font-medium leading-relaxed text-zinc-600">
               고객에게는 폰트 이름만 표시됩니다. 웹폰트 주소와 CSS font-family 값은 코드에서 관리합니다.
             </p>
 
             <div>
               <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">글자 크기</p>
-                  <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                  <p className="text-support font-medium uppercase text-zinc-600">글자 크기</p>
+                  <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
                     {showFontSizeControl
                       ? "메뉴판에 표시되는 메뉴명, 설명, 가격의 전체 크기를 조정합니다."
                       : "이 템플릿은 화면 크기와 메뉴 수에 맞춰 글자 크기와 간격이 자동으로 조정됩니다."}
                   </p>
                   {showFontSizeControl ? (
                     <>
-                      <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                      <p className="mt-1 break-keep text-support font-medium leading-relaxed text-zinc-600">
                         {isDisplayTypography
                           ? "디스플레이 화면에서는 선택한 크기에 맞춰 글자와 간격이 자동으로 조정됩니다."
                           : "기본 크기는 대부분의 매장에 적합합니다. 글자를 크게 하면 멀리서 보기 좋지만 한 화면에 보이는 메뉴 수는 줄어들 수 있습니다."}
                       </p>
-                      <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+                      <p className="mt-1 break-keep text-support font-medium leading-relaxed text-zinc-600">
                         화면 크기와 메뉴 수에 따라 글자 크기는 자동으로 보정됩니다.
                       </p>
                     </>
@@ -393,8 +393,8 @@ export default function TypographySettingsForm({
                         onChange={() => setSelectedFontSizeScale(option.key)}
                         className="sr-only"
                       />
-                      <span className="break-keep text-sm font-bold leading-tight">{option.label}</span>
-                      <span className={`menu-font-en text-xs font-bold ${selectedFontSizeScale === option.key ? "text-white/70" : "text-zinc-400"}`}>
+                      <span className="break-keep text-copy font-medium leading-tight">{option.label}</span>
+                      <span className={`menu-font-en text-support font-medium ${selectedFontSizeScale === option.key ? "text-white/70" : "text-zinc-600"}`}>
                         {option.description}
                       </span>
                     </label>
@@ -417,11 +417,11 @@ export default function TypographySettingsForm({
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
               <h4 className="type-label text-zinc-950">미니 프리뷰</h4>
-              <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+              <p className="mt-1 break-keep text-support font-medium leading-relaxed text-zinc-600">
                 저장 전 선택값이 이 작은 메뉴보드 조각에만 즉시 반영됩니다.
               </p>
             </div>
-            <p className="menu-font-en text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">
+            <p className="menu-font-en text-support font-medium uppercase text-zinc-600">
               Font Preview
             </p>
           </div>
@@ -436,7 +436,7 @@ export default function TypographySettingsForm({
                 <ScriptAwareText text={cafeAMiniPreviewBrandText} />
               </p>
               <p
-                className="mt-2 break-keep text-xs font-semibold leading-relaxed text-[#66726f]"
+                className="mt-2 break-keep text-support font-semibold leading-relaxed text-[#66726f]"
                 style={getCafeAMiniPreviewScriptStyle("supporting", {color:textColors.representative ?? selectedRoleSettings.supporting.color ?? "#66726f"})}
               >
                 <span style={{ fontFamily: "var(--menu-font-ko)" }}>{cafeAMiniPreviewDescriptionText}</span>
@@ -454,7 +454,7 @@ export default function TypographySettingsForm({
               {["HOT", "ICE"].map((label) => (
                 <span
                   key={label}
-                  className="text-center text-xs font-bold uppercase"
+                  className="text-center text-support font-medium uppercase"
                   style={getColorAwareMiniStyle("category", {
                     color: "var(--menu-role-category-color, #191c1b)",
                   })}
@@ -486,7 +486,7 @@ export default function TypographySettingsForm({
                       </p>
                     </div>
                     <p
-                      className="mt-1 break-keep text-xs font-normal leading-snug text-[#3F4945]"
+                      className="mt-1 break-keep text-support font-normal leading-snug text-[#3F4945]"
                       style={getColorAwareMiniStyle("supporting")}
                     >
                       <ScriptAwareText text={item.desc} />
@@ -505,7 +505,7 @@ export default function TypographySettingsForm({
                     <ScriptAwareText text={item.ice} />
                   </span>
                   <span
-                    className="rounded-[3px] bg-[#191C1B] px-1.5 py-0.5 text-xs font-bold uppercase text-white"
+                    className="rounded-[3px] bg-[#191C1B] px-1.5 py-0.5 text-support font-medium uppercase text-white"
                     style={getCafeAMiniPreviewScriptStyle("supporting")}
                   >
                     <ScriptAwareText text={item.badge} />

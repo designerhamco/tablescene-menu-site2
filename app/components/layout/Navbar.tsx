@@ -465,7 +465,7 @@ const Navbar = () => {
 
               <div className="mt-auto py-8">
                 <div className="border-t border-zinc-100 pt-6">
-                  <div className="mb-5 flex items-center gap-4 text-xs font-bold text-zinc-500">
+                  <div className="mb-5 flex items-center gap-4 text-support font-medium text-zinc-500">
                     <Link
                       href="/mypage/inquiries"
                       onClick={closeMobileMenu}
@@ -481,8 +481,8 @@ const Navbar = () => {
                       채팅상담
                     </Link>
                   </div>
-                  <div className="flex flex-col gap-1 text-xs font-medium tracking-tight text-zinc-400">
-                    <p className="mb-1 text-sm font-bold text-zinc-900">ArtiMenu Studio</p>
+                  <div className="flex flex-col gap-1 text-support font-medium tracking-tight text-zinc-400">
+                    <p className="mb-1 text-copy font-medium text-zinc-900">ArtiMenu Studio</p>
                     <p>admin@dndcommerce.co.kr</p>
                     <p className="mt-1 opacity-60">© 2026 ArtiMenu. All rights reserved.</p>
                   </div>

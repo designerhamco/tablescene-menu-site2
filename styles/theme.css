@@ -4,6 +4,15 @@
   --font-sans: 'Pretendard', 'Noto Sans KR', system-ui, sans-serif;
 
   /* Named utilities are aliases of the approved site typography scale. */
+  /* Site copy aliases opt in without changing menu-renderer utilities. */
+  --text-copy: var(--type-body-size);
+  --text-copy--line-height: 1.6;
+  --text-support: var(--type-body-sm-size);
+  --text-support--line-height: 1.6;
+  --text-meta: var(--type-caption-size);
+  --text-meta--line-height: 1.5;
+  --text-control: var(--type-control-size);
+  --text-control--line-height: 1.5;
   --text-xs: var(--font-size-100);
   --text-sm: var(--font-size-200);
   --text-base: var(--font-size-300);

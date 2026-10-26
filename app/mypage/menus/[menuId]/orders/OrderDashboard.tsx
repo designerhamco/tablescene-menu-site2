@@ -41,26 +41,26 @@ function OrderReceipt({
   return (
     <section className="mx-auto max-w-[80mm] bg-white p-6 font-mono text-black">
       <h1 className="type-content-title text-center">{menuSiteName}</h1>
-      <p className="mt-1 text-center text-sm">주문 #{order.orderNumber} · {order.tableLabel}</p>
-      <p className="mt-1 text-center text-xs">{formatKoreanDateTime(order.createdAt)}</p>
+      <p className="mt-1 text-center text-copy">주문 #{order.orderNumber} · {order.tableLabel}</p>
+      <p className="mt-1 text-center text-support">{formatKoreanDateTime(order.createdAt)}</p>
       <div className="my-4 border-t border-dashed border-black" />
       {order.items.map((item) => (
-        <div key={item.id} className="mb-3 text-sm">
+        <div key={item.id} className="mb-3 text-copy">
           <div className="flex justify-between gap-3">
             <span>{item.name} × {item.quantity}</span>
             <span>{formatAmount(item.lineTotal)}</span>
           </div>
           {item.options.map((option) => (
-            <p key={`${item.id}-${option.groupName}-${option.valueName}`} className="text-xs">
+            <p key={`${item.id}-${option.groupName}-${option.valueName}`} className="text-support">
               + {option.groupName}: {option.valueName}
             </p>
           ))}
         </div>
       ))}
       <div className="my-4 border-t border-dashed border-black" />
-      <p className="flex justify-between text-base font-bold"><span>합계</span><span>{formatAmount(order.totalAmount)}</span></p>
-      <p className="mt-3 text-xs">주문: {STATUS_LABELS[order.status] ?? order.status} / 결제: {PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}</p>
-      {order.requestText ? <p className="mt-2 text-xs">요청: {order.requestText}</p> : null}
+      <p className="flex justify-between text-copy font-medium"><span>합계</span><span>{formatAmount(order.totalAmount)}</span></p>
+      <p className="mt-3 text-support">주문: {STATUS_LABELS[order.status] ?? order.status} / 결제: {PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}</p>
+      {order.requestText ? <p className="mt-2 text-support">요청: {order.requestText}</p> : null}
     </section>
   );
 }
@@ -125,8 +125,8 @@ export default function OrderDashboard({
         />
         <div className="site-section flex flex-wrap items-center justify-between gap-3 p-5">
           <div>
-            <p className="text-sm font-bold text-zinc-900">최근 주문 {orders.length.toLocaleString("ko-KR")}건</p>
-            <p className="mt-1 text-xs font-bold text-zinc-500">15초마다 자동 갱신하며, 상태 변경은 서버가 현재 값을 다시 확인합니다.</p>
+            <p className="text-copy font-medium text-zinc-900">최근 주문 {orders.length.toLocaleString("ko-KR")}건</p>
+            <p className="mt-1 text-support font-medium text-zinc-500">15초마다 자동 갱신하며, 상태 변경은 서버가 현재 값을 다시 확인합니다.</p>
           </div>
           <button type="button" onClick={() => router.refresh()} className="site-button site-button-rounded site-button-secondary">
             지금 새로고침
@@ -134,7 +134,7 @@ export default function OrderDashboard({
         </div>
 
         {state.status !== "idle" && state.message ? (
-          <p className={`site-notice   px-4 py-3 text-sm font-bold ${state.status === "success" ? "site-notice-success" : "site-notice-error"}`}>
+          <p className={`site-notice   px-4 py-3 text-copy font-medium ${state.status === "success" ? "site-notice-success" : "site-notice-error"}`}>
             {state.message}
           </p>
         ) : null}
@@ -153,7 +153,7 @@ export default function OrderDashboard({
                     {PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}
                   </Badge>
                 </div>
-                <p className="mt-2 text-xs font-bold text-zinc-400">{formatKoreanDateTime(order.createdAt)}</p>
+                <p className="mt-2 text-support font-medium text-zinc-400">{formatKoreanDateTime(order.createdAt)}</p>
               </div>
               <div className="text-left md:text-right">
                 <p className="text-2xl font-bold">{formatAmount(order.totalAmount)}</p>
@@ -165,11 +165,11 @@ export default function OrderDashboard({
 
             <div className="mt-5 space-y-3 border-y border-zinc-100 py-5">
               {order.items.map((item) => (
-                <div key={item.id} className="flex justify-between gap-4 text-sm">
+                <div key={item.id} className="flex justify-between gap-4 text-copy">
                   <div>
                     <p className="font-bold">{item.name} × {item.quantity}</p>
                     {item.options.map((option) => (
-                      <p key={`${item.id}-${option.groupName}-${option.valueName}`} className="mt-1 text-xs font-bold text-zinc-500">
+                      <p key={`${item.id}-${option.groupName}-${option.valueName}`} className="mt-1 text-support font-medium text-zinc-500">
                         {option.groupName}: {option.valueName}{option.priceDelta > 0 ? ` (+${formatAmount(option.priceDelta)})` : ""}
                       </p>
                     ))}
@@ -177,8 +177,8 @@ export default function OrderDashboard({
                   <p className="font-bold">{formatAmount(item.lineTotal)}</p>
                 </div>
               ))}
-              {order.requestText ? <p className="rounded-2xl bg-zinc-50 px-4 py-3 text-sm font-bold text-zinc-700">요청사항: {order.requestText}</p> : null}
-              {order.cancellationReason ? <p className="site-notice site-notice-error px-4 py-3 text-sm font-bold">취소 사유: {order.cancellationReason}</p> : null}
+              {order.requestText ? <p className="rounded-2xl bg-zinc-50 px-4 py-3 text-copy font-medium text-zinc-700">요청사항: {order.requestText}</p> : null}
+              {order.cancellationReason ? <p className="site-notice site-notice-error px-4 py-3 text-copy font-medium">취소 사유: {order.cancellationReason}</p> : null}
             </div>
 
             {(permissions.canManage && order.nextStatus || permissions.canMarkManualPayment && order.canMarkManualPayment || permissions.canCancelUnpaid && order.canCancelUnpaid) ? <div className="site-record-card-actions">
@@ -187,7 +187,7 @@ export default function OrderDashboard({
                   <input type="hidden" name="menuSiteId" value={menuSiteId} />
                   <input type="hidden" name="orderId" value={order.id} />
                   <input type="hidden" name="nextStatus" value={order.nextStatus} />
-                  <p className="text-xs font-bold text-emerald-900">다음 단계: {STATUS_LABELS[order.nextStatus]}</p>
+                  <p className="text-support font-medium text-emerald-900">다음 단계: {STATUS_LABELS[order.nextStatus]}</p>
                   <button name="intent" value="transition" disabled={pending} className="site-button site-button-rounded site-button-outline mt-3 w-full">
                     상태 변경
                   </button>
@@ -198,7 +198,7 @@ export default function OrderDashboard({
                 <form action={action} className="site-record-action-form">
                   <input type="hidden" name="menuSiteId" value={menuSiteId} />
                   <input type="hidden" name="orderId" value={order.id} />
-                  <label className="text-xs font-bold text-sky-900">
+                  <label className="text-support font-medium text-sky-900">
                     외부 결제 완료
                     <select name="method" className="site-field mt-2 w-full border-sky-200 px-3 py-2">
                       <option value="manual_card">기존 카드 단말기</option>
@@ -215,7 +215,7 @@ export default function OrderDashboard({
                 <form action={action} className="site-record-action-form">
                   <input type="hidden" name="menuSiteId" value={menuSiteId} />
                   <input type="hidden" name="orderId" value={order.id} />
-                  <label className="text-xs font-bold text-rose-900">
+                  <label className="text-support font-medium text-rose-900">
                     미결제 주문 취소
                     <textarea name="reason" required maxLength={500} rows={2} placeholder="취소 사유" className="site-field mt-2 w-full resize-none border-rose-200 px-3 py-2" />
                   </label>

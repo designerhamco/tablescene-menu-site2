@@ -59,7 +59,7 @@ export function Services() {
                   <h3 className="type-subsection-title mb-3 flex items-center gap-3 text-white">
                     {service.title}
                     {isAi && (
-                      <span className="rounded-full border border-white/20 bg-gradient-to-r from-blue-500 to-violet-600 px-2 py-0.5 text-xs font-bold leading-none text-white shadow-lg md:text-xs">
+                      <span className="rounded-full border border-white/20 bg-gradient-to-r from-blue-500 to-violet-600 px-2 py-0.5 text-support font-medium leading-none text-white shadow-lg md:text-support">
                         AI
                       </span>
                     )}
@@ -69,7 +69,7 @@ export function Services() {
                       </span>
                     )}
                   </h3>
-                  <p className="text-sm font-medium leading-relaxed text-zinc-300 opacity-90 transition-transform duration-300 group-hover:translate-y-0 md:text-base">
+                  <p className="text-copy font-medium leading-relaxed text-zinc-300 opacity-90 transition-transform duration-300 group-hover:translate-y-0 md:text-copy">
                     {service.description}
                   </p>
                 </div>

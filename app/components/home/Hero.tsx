@@ -190,7 +190,7 @@ const Hero = () => {
             <h1 className="type-display mb-5 text-white drop-shadow-lg">
               모든 매장을 위한<br />디지털 메뉴판 플랫폼
             </h1>
-            <p className="mx-auto max-w-xl text-base font-medium text-white/90 drop-shadow-md md:mx-0 md:text-lg">
+            <p className="mx-auto max-w-xl text-copy font-medium text-white/90 drop-shadow-md md:mx-0 md:text-lg">
               메뉴와 가격표를 하나의 링크로 관리하세요.<br/>
               카페/베이커리, 음식점/다이닝, 뷰티/웰니스, 클래스/공방, 병원/클리닉까지 쉽게 만들고 바로 수정할 수 있습니다.
             </p>
@@ -206,7 +206,7 @@ const Hero = () => {
           <h2 className="type-section-title mb-5 text-zinc-900">
             메뉴판 수정,<br/> 이제 다시 만들지 말고<br className="md:hidden"/> 직접 바꾸세요.
           </h2>
-           <p className="text-zinc-600 text-base md:text-lg max-w-lg mx-auto font-medium leading-relaxed">
+           <p className="text-zinc-600 text-copy md:text-lg max-w-lg mx-auto font-medium leading-relaxed">
              가격이 바뀌어도, 메뉴가 추가되어도<br/>
              사장님이 직접 수정하고 바로 공개할 수 있어요.
              <br className="hidden md:block"/>

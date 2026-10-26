@@ -44,7 +44,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-bold text-zinc-800">
+      <span className="text-copy font-medium text-zinc-800">
         {label}
         {required ? <span className="text-red-500"> *</span> : null}
       </span>
@@ -53,7 +53,7 @@ function Field({
         type={type}
         required={required}
         placeholder={placeholder}
-        className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-950 outline-none transition focus:border-zinc-950"
+        className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold text-zinc-950 outline-none transition focus:border-zinc-950"
       />
     </label>
   );
@@ -74,7 +74,7 @@ function SelectField({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-bold text-zinc-800">
+      <span className="text-copy font-medium text-zinc-800">
         {label}
         {required ? <span className="text-red-500"> *</span> : null}
       </span>
@@ -82,7 +82,7 @@ function SelectField({
         name={name}
         required={required}
         defaultValue=""
-        className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-950 outline-none transition focus:border-zinc-950"
+        className="mt-2 w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold text-zinc-950 outline-none transition focus:border-zinc-950"
       >
         <option value="">{label === "업종" ? "업종을 선택해주세요" : "선택해주세요"}</option>
         {options.map((option) => (
@@ -91,7 +91,7 @@ function SelectField({
           </option>
         ))}
       </select>
-      {helperText ? <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">{helperText}</p> : null}
+      {helperText ? <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-400">{helperText}</p> : null}
     </label>
   );
 }
@@ -135,7 +135,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
 
             <section className="site-section p-6 md:p-8">
               {error ? (
-                <div className="site-notice site-notice-error mb-6 px-4 py-3 text-sm font-bold">
+                <div className="site-notice site-notice-error mb-6 px-4 py-3 text-copy font-medium">
                   {error}
                 </div>
               ) : null}
@@ -163,10 +163,10 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
               </div>
 
               <fieldset className="mt-6">
-                <legend className="text-sm font-bold text-zinc-800">필요한 기능</legend>
+                <legend className="text-copy font-medium text-zinc-800">필요한 기능</legend>
                 <div className="mt-3 grid gap-2 sm:grid-cols-2">
                   {featureOptions.map((feature) => (
-                    <label key={feature} className="flex items-center gap-3 rounded-2xl border border-zinc-100 bg-zinc-50 px-4 py-3 text-sm font-bold text-zinc-700">
+                    <label key={feature} className="flex items-center gap-3 rounded-2xl border border-zinc-100 bg-zinc-50 px-4 py-3 text-copy font-medium text-zinc-700">
                       <input type="checkbox" name="neededFeatures" value={feature} className="h-4 w-4 accent-zinc-950" />
                       <span>{feature}</span>
                     </label>
@@ -175,7 +175,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
               </fieldset>
 
               <label className="mt-6 block">
-                <span className="text-sm font-bold text-zinc-800">
+                <span className="text-copy font-medium text-zinc-800">
                   문의 내용 <span className="text-red-500">*</span>
                 </span>
                 <textarea
@@ -183,7 +183,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
                   required
                   rows={7}
                   placeholder="브랜드 방향, 필요한 화면, 메뉴 구성, 인터랙션 아이디어, 제작 범위 등을 자유롭게 남겨주세요."
-                  className="mt-2 w-full resize-y rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold leading-relaxed text-zinc-950 outline-none transition focus:border-zinc-950"
+                  className="mt-2 w-full resize-y rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold leading-relaxed text-zinc-950 outline-none transition focus:border-zinc-950"
                 />
               </label>
             </section>
@@ -191,7 +191,7 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
             <aside className="space-y-6 lg:sticky lg:top-8 lg:self-start">
               <section className="site-section p-6">
                 <h2 className="type-subsection-title">상담 신청하기</h2>
-                <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+                <p className="mt-3 break-keep text-copy font-semibold leading-relaxed text-zinc-500">
                   결제 버튼은 제공하지 않습니다. 접수된 내용은 문의 내역으로 저장되고, 프로젝트 상담 후 별도 견적을 안내합니다.
                 </p>
                 <button

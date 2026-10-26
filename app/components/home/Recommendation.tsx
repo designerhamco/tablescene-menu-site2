@@ -61,7 +61,7 @@ const Recommendation = () => {
                 <h3 className="type-subsection-title mb-6 whitespace-pre-line text-zinc-900 transition-colors duration-300 group-hover:text-primary">
                   {item.solution}
                 </h3>
-                <p className="text-zinc-500 font-medium leading-relaxed whitespace-pre-line text-sm md:text-base">
+                <p className="text-zinc-500 font-medium leading-relaxed whitespace-pre-line text-copy md:text-copy">
                   {item.desc}
                 </p>
               </div>

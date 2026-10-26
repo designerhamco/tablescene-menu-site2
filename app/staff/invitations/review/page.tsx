@@ -41,12 +41,12 @@ export default async function StaffInvitationReviewPage({ searchParams }: { sear
   return (
     <main className="site-gutter flex min-h-screen items-center justify-center bg-white py-12 text-zinc-950">
       <section className="site-section w-full max-w-lg p-7 md:p-10">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">ArtiMenu staff</p>
+        <p className="text-support font-medium uppercase tracking-[0.18em] text-emerald-700">ArtiMenu staff</p>
         <h1 className="type-subsection-title mt-4">직원 초대 확인</h1>
 
         {!hasInvitationIntent ? (
           <>
-            <p className="mt-5 break-keep text-sm font-semibold leading-relaxed text-zinc-600">
+            <p className="mt-5 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
               초대 정보가 없거나 브라우저에서 만료되었습니다. 받은 이메일의 초대 링크를 다시 열어 주세요.
             </p>
             <Link href="/" className="site-button site-button-secondary mt-7 inline-flex w-full items-center justify-center">
@@ -55,7 +55,7 @@ export default async function StaffInvitationReviewPage({ searchParams }: { sear
           </>
         ) : !user ? (
           <>
-            <p className="mt-5 break-keep text-sm font-semibold leading-relaxed text-zinc-600">
+            <p className="mt-5 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
               초대받은 이메일 계정으로 로그인하거나 새 계정을 만든 뒤 이 화면으로 돌아오세요.
             </p>
             <div className="mt-7 grid gap-3 sm:grid-cols-2">
@@ -69,7 +69,7 @@ export default async function StaffInvitationReviewPage({ searchParams }: { sear
           </>
         ) : !canAccept ? (
           <>
-            <p className="mt-5 break-keep text-sm font-semibold leading-relaxed text-zinc-600">
+            <p className="mt-5 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
               이메일 확인을 마친 활성 계정만 초대를 수락할 수 있습니다.
             </p>
             <Link href={`/sign-in?next=${encodeURIComponent(returnPath)}`} className="site-button site-button-secondary mt-7 inline-flex w-full items-center justify-center">
@@ -79,10 +79,10 @@ export default async function StaffInvitationReviewPage({ searchParams }: { sear
         ) : (
           <>
             <div className="site-notice site-notice-success mt-5 px-4 py-4">
-              <p className="text-xs font-bold uppercase tracking-[0.12em] text-emerald-700">로그인 계정</p>
-              <p className="mt-2 break-all text-sm font-bold text-emerald-950">{user.email}</p>
+              <p className="text-support font-medium uppercase tracking-[0.12em] text-emerald-700">로그인 계정</p>
+              <p className="mt-2 break-all text-copy font-medium text-emerald-950">{user.email}</p>
             </div>
-            <p className="mt-5 break-keep text-sm font-semibold leading-relaxed text-zinc-600">
+            <p className="mt-5 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
               수락하면 초대된 메뉴판이 마이페이지에 표시됩니다. 저장된 초대 이메일과 현재 계정 이메일이 정확히 일치해야 합니다.
             </p>
             <AcceptInvitationForm />

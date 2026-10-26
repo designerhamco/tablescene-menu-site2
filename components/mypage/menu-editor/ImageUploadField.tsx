@@ -42,7 +42,7 @@ function getStateClassName(type: UploadState["type"]) {
     return "border-red-100 bg-red-50 text-red-700";
   }
 
-  return "border-zinc-100 bg-zinc-50 text-zinc-500";
+  return "border-zinc-100 bg-zinc-50 text-zinc-600";
 }
 
 export default function ImageUploadField({
@@ -211,18 +211,18 @@ export default function ImageUploadField({
             // eslint-disable-next-line @next/next/no-img-element
             <img src={previewUrl} alt="" className={`h-full w-full ${isLogoUpload ? "object-contain p-3" : "object-cover"}`} />
           ) : (
-            <span className="text-xs font-bold text-zinc-400">이미지 없음</span>
+            <span className="text-support font-medium text-zinc-600">이미지 없음</span>
           )}
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">{label}</p>
-          {description && <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-500">{description}</p>}
-          <div className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-400">{fileGuidance ?? uploadPolicy.label}</div>
+          <p className="text-support font-medium uppercase text-zinc-600">{label}</p>
+          {description && <p className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-600">{description}</p>}
+          <div className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-600">{fileGuidance ?? uploadPolicy.label}</div>
           {optimizationGuidance ? (
-            <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-400">{optimizationGuidance}</p>
+            <p className="mt-1 break-keep text-support font-semibold leading-relaxed text-zinc-600">{optimizationGuidance}</p>
           ) : null}
-          <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
+          <p className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-600">
             본인이 촬영했거나 사용 권한이 있는 이미지만 업로드해주세요. 타인의 사진, 로고, 캐릭터, 상표를 무단으로 사용할 경우 서비스 이용이 제한될 수 있습니다.
           </p>
 
@@ -265,7 +265,7 @@ export default function ImageUploadField({
           </div>
 
           {state.message && (
-            <div className={`mt-4 rounded-lg border p-3 text-xs font-bold leading-relaxed ${getStateClassName(state.type)}`}>
+            <div className={`mt-4 rounded-lg border p-3 text-support font-medium leading-relaxed ${getStateClassName(state.type)}`}>
               {state.message}
             </div>
           )}

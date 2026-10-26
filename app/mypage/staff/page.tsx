@@ -163,24 +163,24 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
         />
         <header className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div>
-            <Link href="/mypage?tab=menus" className="text-sm font-bold text-emerald-700 hover:text-emerald-900">
+            <Link href="/mypage?tab=menus" className="text-copy font-medium text-emerald-700 hover:text-emerald-900">
               ← 마이페이지로 돌아가기
             </Link>
             <h1 className="type-page-title mt-5">직원 관리</h1>
-            <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
+            <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-500">
               사장으로 소유한 메뉴판에 직원을 초대하고 대기 중인 초대를 확인합니다.
             </p>
           </div>
         </header>
 
         {menuSitesError ? (
-          <p className="site-notice site-notice-error px-4 py-3 text-sm font-bold">
+          <p className="site-notice site-notice-error px-4 py-3 text-copy font-medium">
             메뉴판 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
           </p>
         ) : null}
 
         {resultNotice ? (
-          <p className={`site-notice   px-4 py-3 text-sm font-bold ${
+          <p className={`site-notice   px-4 py-3 text-copy font-medium ${
             resultNotice.tone === "success"
               ? "site-notice-success"
               : resultNotice.tone === "warning"
@@ -203,15 +203,15 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
         <section className="site-section p-6 md:p-8">
           <div>
             <h2 className="type-content-title">활동 중인 직원</h2>
-            <p className="mt-2 text-sm font-medium text-zinc-500">메뉴판별 역할 프리셋을 변경하거나 접근을 즉시 회수할 수 있습니다.</p>
+            <p className="mt-2 text-copy font-medium text-zinc-500">메뉴판별 역할 프리셋을 변경하거나 접근을 즉시 회수할 수 있습니다.</p>
           </div>
 
           {membershipResult.error || acceptedInvitationResult.error ? (
-            <p className="site-notice site-notice-error mt-5 px-4 py-3 text-sm font-bold">
+            <p className="site-notice site-notice-error mt-5 px-4 py-3 text-copy font-medium">
               직원 목록을 불러오지 못했습니다.
             </p>
           ) : activeMemberships.length === 0 ? (
-            <p className="mt-5 rounded-2xl bg-zinc-100 px-4 py-5 text-sm font-bold text-zinc-600">활동 중인 직원이 없습니다.</p>
+            <p className="mt-5 rounded-2xl bg-zinc-100 px-4 py-5 text-copy font-medium text-zinc-600">활동 중인 직원이 없습니다.</p>
           ) : (
             <div className="site-section mt-5 divide-y divide-zinc-100 overflow-hidden">
               {activeMemberships.map((membership) => {
@@ -224,12 +224,12 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                   <div key={membership.id} className="px-4 py-5">
                     <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_auto] lg:items-center">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-bold text-zinc-900">{email ?? `직원 ${membership.user_id.slice(0, 8)}`}</p>
-                        <p className="mt-1 truncate text-xs font-semibold text-zinc-500">
+                        <p className="truncate text-copy font-medium text-zinc-900">{email ?? `직원 ${membership.user_id.slice(0, 8)}`}</p>
+                        <p className="mt-1 truncate text-support font-semibold text-zinc-500">
                           {menuSiteNameById.get(membership.menu_site_id) ?? "메뉴판"}
                         </p>
                         {isStaffInvitationRole(membership.role) ? (
-                          <p className="mt-2 text-xs font-semibold leading-relaxed text-zinc-500">
+                          <p className="mt-2 text-support font-semibold leading-relaxed text-zinc-500">
                             {STAFF_INVITATION_ROLE_DESCRIPTIONS[membership.role]}
                           </p>
                         ) : null}
@@ -257,11 +257,11 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                       <input type="hidden" name="membershipId" value={membership.id} />
                       <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                         <div>
-                          <p className="text-sm font-bold text-zinc-900">직원별 권한</p>
-                          <p className="mt-1 text-xs font-semibold text-zinc-500">
+                          <p className="text-copy font-medium text-zinc-900">직원별 권한</p>
+                          <p className="mt-1 text-support font-semibold text-zinc-500">
                             역할 프리셋을 기준으로 이 직원에게 필요한 기능만 켜거나 끕니다.
                           </p>
-                          <p className="mt-1 text-xs font-semibold text-amber-700">
+                          <p className="mt-1 text-support font-semibold text-amber-700">
                             역할 프리셋을 변경하면 개별 체크 설정은 새 프리셋 기본값으로 초기화됩니다.
                           </p>
                         </div>
@@ -273,7 +273,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                         {MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS.map((permission) => (
                           <label
                             key={permission}
-                            className="flex cursor-pointer items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-3 py-3 text-xs font-bold text-zinc-700"
+                            className="flex cursor-pointer items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-3 py-3 text-support font-medium text-zinc-700"
                           >
                             <input
                               type="checkbox"
@@ -286,7 +286,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                           </label>
                         ))}
                       </div>
-                      <p className="mt-3 text-xs font-semibold leading-relaxed text-zinc-500">
+                      <p className="mt-3 text-support font-semibold leading-relaxed text-zinc-500">
                         결제·구독, 직원 관리, 메뉴판 보관·삭제는 사장만 사용할 수 있습니다.
                       </p>
                     </form>
@@ -300,28 +300,28 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
         <section className="site-section p-6 md:p-8">
           <div>
             <h2 className="type-content-title">대기 중인 초대</h2>
-            <p className="mt-2 text-sm font-medium text-zinc-500">재전송과 취소는 다음 안전한 작업 범위에서 연결됩니다.</p>
+            <p className="mt-2 text-copy font-medium text-zinc-500">재전송과 취소는 다음 안전한 작업 범위에서 연결됩니다.</p>
           </div>
 
           {invitationResult.error ? (
-            <p className="site-notice site-notice-error mt-5 px-4 py-3 text-sm font-bold">
+            <p className="site-notice site-notice-error mt-5 px-4 py-3 text-copy font-medium">
               초대 목록을 불러오지 못했습니다.
             </p>
           ) : pendingInvitationBatches.length === 0 ? (
-            <p className="mt-5 rounded-2xl bg-zinc-100 px-4 py-5 text-sm font-bold text-zinc-600">대기 중인 초대가 없습니다.</p>
+            <p className="mt-5 rounded-2xl bg-zinc-100 px-4 py-5 text-copy font-medium text-zinc-600">대기 중인 초대가 없습니다.</p>
           ) : (
             <div className="site-section mt-5 divide-y divide-zinc-100 overflow-hidden">
               {pendingInvitationBatches.map((invitation) => (
                 <div key={invitation.inviteBatchId} className="grid gap-4 px-4 py-4 md:grid-cols-[1.2fr_1fr_auto] md:items-center">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-bold text-zinc-900">{invitation.email}</p>
-                    <p className="mt-1 text-xs font-semibold leading-relaxed text-zinc-500">
+                    <p className="truncate text-copy font-medium text-zinc-900">{invitation.email}</p>
+                    <p className="mt-1 text-support font-semibold leading-relaxed text-zinc-500">
                       {invitation.menuSiteNames.join(" · ")}
                     </p>
                   </div>
-                  <p className="text-xs font-bold text-zinc-600">역할: {getRoleLabel(invitation.role)}</p>
+                  <p className="text-support font-medium text-zinc-600">역할: {getRoleLabel(invitation.role)}</p>
                   <div className="space-y-2 md:text-right">
-                    <p className="text-xs font-bold text-zinc-500">{formatExpiry(invitation.expiresAt)} 만료</p>
+                    <p className="text-support font-medium text-zinc-500">{formatExpiry(invitation.expiresAt)} 만료</p>
                     <div className="flex gap-2 md:justify-end">
                       <form action={resendStaffInvitationAction}>
                         <input type="hidden" name="inviteBatchId" value={invitation.inviteBatchId} />

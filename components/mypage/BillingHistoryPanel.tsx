@@ -167,7 +167,7 @@ function FilterSelect({
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-bold text-zinc-400">{label}</span>
+      <span className="text-support font-medium text-zinc-600">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -406,7 +406,7 @@ function RestoreSubscriptionModal({
               </button>
             </div>
 
-            <div className="site-notice site-notice-warning mt-5 p-4 text-sm font-bold leading-relaxed">
+            <div className="site-notice site-notice-warning mt-5 p-4 text-copy font-medium leading-relaxed">
               <p>{restore.retentionLabel}</p>
               <p className="mt-2">보관 기간 안에 재구독하면 기존 메뉴판을 다시 사용할 수 있습니다.</p>
               <p className="mt-2">
@@ -415,17 +415,17 @@ function RestoreSubscriptionModal({
               <p className="mt-2">재구독으로 AI 웰컴 크레딧은 추가되지 않으며 기존 보유 잔액은 유지됩니다.</p>
             </div>
 
-            <dl className="mt-5 grid gap-3 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-sm md:grid-cols-2">
+            <dl className="mt-5 grid gap-3 rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-copy md:grid-cols-2">
               <div>
-                <dt className="text-xs font-bold text-zinc-400">복구 대상</dt>
+                <dt className="text-support font-medium text-zinc-600">복구 대상</dt>
                 <dd className="mt-1 break-keep font-bold text-zinc-900">{restore.menuName}</dd>
               </div>
               <div>
-                <dt className="text-xs font-bold text-zinc-400">서비스</dt>
+                <dt className="text-support font-medium text-zinc-600">서비스</dt>
                 <dd className="mt-1 font-bold text-zinc-900">{restore.serviceTypeLabel}</dd>
               </div>
               <div className="md:col-span-2">
-                <dt className="text-xs font-bold text-zinc-400">공개 주소</dt>
+                <dt className="text-support font-medium text-zinc-600">공개 주소</dt>
                 <dd className="mt-1 break-all font-bold text-zinc-900">{restore.menuPath}</dd>
               </div>
             </dl>
@@ -448,18 +448,18 @@ function RestoreSubscriptionModal({
                       <h4 className="type-item-title break-keep text-zinc-950">{option.label}</h4>
                       <p className="mt-2 text-2xl font-bold tracking-tight text-zinc-950">{option.amountLabel}</p>
                     </div>
-                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${
-                      selectedProductKey === option.productKey ? "bg-zinc-950 text-white" : "bg-zinc-100 text-zinc-500"
+                    <span className={`rounded-full px-3 py-1 text-support font-medium ${
+                      selectedProductKey === option.productKey ? "bg-zinc-950 text-white" : "bg-zinc-100 text-zinc-600"
                     }`}>
                       {selectedProductKey === option.productKey ? "선택됨" : "현재가"}
                     </span>
                   </div>
-                  <p className="mt-3 break-keep text-xs font-normal leading-relaxed text-zinc-500">{option.renewalDescription}</p>
+                  <p className="mt-3 break-keep text-support font-normal leading-relaxed text-zinc-600">{option.renewalDescription}</p>
                 </button>
               ))}
             </div>
 
-            <div className={`site-notice mt-5   p-4 text-sm font-bold leading-relaxed ${
+            <div className={`site-notice mt-5   p-4 text-copy font-medium leading-relaxed ${
               preflightState.status === "error" || preflightState.canRestore === false
                 ? "site-notice-error"
                 : preflightState.status === "loading"
@@ -486,7 +486,7 @@ function RestoreSubscriptionModal({
             </button>
 
             {startState.message ? (
-              <div className={`site-notice mt-3   p-4 text-sm font-bold leading-relaxed ${
+              <div className={`site-notice mt-3   p-4 text-copy font-medium leading-relaxed ${
                 startState.status === "error"
                   ? "site-notice-error"
                   : startState.status === "success"
@@ -497,7 +497,7 @@ function RestoreSubscriptionModal({
               </div>
             ) : null}
 
-            <div className="site-section mt-5 p-4 text-xs font-bold leading-relaxed text-zinc-500">
+            <div className="site-section mt-5 p-4 text-support font-medium leading-relaxed text-zinc-600">
               {restoreCheckoutEnabled
                 ? "QA 환경에서만 복구 전용 결제 흐름이 활성화됩니다. 결제 완료 후 보관 중인 메뉴판이 다시 이용 가능한 상태로 전환됩니다."
                 : "이번 단계에서는 실제 결제를 실행하지 않습니다. 다음 단계에서 복구 전용 결제 흐름이 연결되면 결제 완료 후 보관 중인 메뉴판이 다시 이용 가능한 상태로 전환됩니다."}
@@ -558,7 +558,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
         <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
           <div>
             <h3 className="type-content-title text-zinc-950">결제내역 필터</h3>
-            <p className="mt-2 break-keep text-sm font-normal leading-relaxed text-zinc-500">
+            <p className="mt-2 break-keep text-copy font-normal leading-relaxed text-zinc-600">
               결제일, 서비스 유형, 결제 방식, 서비스 상태, 결제/환불 상태, 메뉴판명 또는 주소로 결제 기록을 찾을 수 있습니다.
             </p>
           </div>
@@ -574,7 +574,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
 
         <div className="mt-5 grid grid-cols-1 gap-3 min-[375px]:grid-cols-2 xl:grid-cols-4">
           <label className="block">
-            <span className="text-xs font-bold text-zinc-400">결제 시작일</span>
+            <span className="text-support font-medium text-zinc-600">결제 시작일</span>
             <input
               type="date"
               value={filters.from}
@@ -583,7 +583,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
             />
           </label>
           <label className="block">
-            <span className="text-xs font-bold text-zinc-400">결제 종료일</span>
+            <span className="text-support font-medium text-zinc-600">결제 종료일</span>
             <input
               type="date"
               value={filters.to}
@@ -625,7 +625,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
             options={paymentStatusFilterOptions}
           />
           <label className="block min-[375px]:col-span-2">
-            <span className="text-xs font-bold text-zinc-400">매장명 / 메뉴판 주소 / 결제번호 검색</span>
+            <span className="text-support font-medium text-zinc-600">매장명 / 메뉴판 주소 / 결제번호 검색</span>
             <input
               value={filters.query}
               onChange={(event) => setFilters((current) => ({ ...current, query: event.target.value }))}
@@ -636,7 +636,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
         </div>
       </FilterPanel>
 
-      <div className="site-notice site-notice-warning p-5 text-sm font-medium leading-relaxed">
+      <div className="site-notice site-notice-warning p-5 text-copy font-medium leading-relaxed">
         <p>월결제와 연결제는 모두 정기결제 상품입니다. 해지 예약 시 다음 결제일부터 자동결제가 중단되며, 이미 결제된 이용 기간까지 계속 사용할 수 있습니다.</p>
         <p className="mt-2">
           연결제 중도해지/환불은 사용 기간을 월결제 기준 금액으로 재정산한 뒤, 잔여 환불 가능액에서 중도해지 수수료 10%를 공제하는 방식으로 안내합니다.
@@ -648,7 +648,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
 
       <div className="flex items-center justify-between gap-3">
         <h3 className="type-subsection-title">결제내역</h3>
-        <p className="text-xs font-bold text-zinc-400">
+        <p className="text-support font-medium text-zinc-600">
           {filteredEntries.length.toLocaleString("ko-KR")} / {entries.length.toLocaleString("ko-KR")}건
         </p>
       </div>
@@ -669,29 +669,29 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
                     </Badge>
                   </div>
 
-                  <dl className="site-record-details mt-5 grid grid-cols-2 gap-x-5 gap-y-4 text-sm xl:grid-cols-4">
+                  <dl className="site-record-details mt-5 grid grid-cols-2 gap-x-5 gap-y-4 text-copy xl:grid-cols-4">
                     <div>
-                      <dt className="text-xs font-bold text-zinc-400">결제일</dt>
+                      <dt className="text-support font-medium text-zinc-600">결제일</dt>
                       <dd className="mt-1 font-bold text-zinc-900">{entry.paidAtLabel}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-bold text-zinc-400">메뉴판</dt>
+                      <dt className="text-support font-medium text-zinc-600">메뉴판</dt>
                       <dd className="mt-1 break-keep font-bold text-zinc-900">{entry.menuName ?? "연결 메뉴판 없음"}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-bold text-zinc-400">공개 주소</dt>
+                      <dt className="text-support font-medium text-zinc-600">공개 주소</dt>
                       <dd className="mt-1 break-all font-bold text-zinc-900">{entry.menuPath}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-bold text-zinc-400">결제 방식</dt>
+                      <dt className="text-support font-medium text-zinc-600">결제 방식</dt>
                       <dd className="mt-1 font-bold text-zinc-900">{entry.billingMethodLabel}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-bold text-zinc-400">결제금액</dt>
+                      <dt className="text-support font-medium text-zinc-600">결제금액</dt>
                       <dd className="mt-1 font-bold text-zinc-900">{entry.originalAmountLabel}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-bold text-zinc-400">결제/환불 상태</dt>
+                      <dt className="text-support font-medium text-zinc-600">결제/환불 상태</dt>
                       <dd className="mt-1">
                         <Badge>
                           {entry.paymentStatusLabel}
@@ -699,33 +699,33 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-bold text-zinc-400">{entry.renewalLabel}</dt>
+                      <dt className="text-support font-medium text-zinc-600">{entry.renewalLabel}</dt>
                       <dd className="mt-1 font-bold text-zinc-900">{entry.renewalDateLabel}</dd>
                     </div>
                     <div>
-                      <dt className="text-xs font-bold text-zinc-400">정기결제</dt>
+                      <dt className="text-support font-medium text-zinc-600">정기결제</dt>
                       <dd className="mt-1 font-bold text-zinc-900">{entry.billingMethod === "trial" ? "이전 체험 상품" : entry.billingMethod === "one_time" ? "1회 결제" : "정기결제"}</dd>
                     </div>
                     {entry.refundAmountLabel ? (
                       <div>
-                        <dt className="text-xs font-bold text-zinc-400">환불금액</dt>
+                        <dt className="text-support font-medium text-zinc-600">환불금액</dt>
                         <dd className="mt-1 font-bold text-zinc-900">{entry.refundAmountLabel}</dd>
                       </div>
                     ) : null}
                     <div>
-                      <dt className="text-xs font-bold text-zinc-400">결제수단</dt>
+                      <dt className="text-support font-medium text-zinc-600">결제수단</dt>
                       <dd className="mt-1 break-keep font-bold text-zinc-900">{entry.paymentMethodLabel}</dd>
                     </div>
                   </dl>
 
                   {entry.supportMessage ? (
-                    <div className="site-supporting-note mt-5 text-xs font-medium leading-relaxed text-zinc-600">
+                    <div className="site-supporting-note mt-5 text-support font-medium leading-relaxed text-zinc-600">
                       {entry.supportMessage}
                     </div>
                   ) : null}
 
                   {entry.billingMethod === "yearly" ? (
-                    <div className="site-supporting-note mt-3 text-xs font-medium leading-relaxed text-zinc-500">
+                    <div className="site-supporting-note mt-3 text-support font-medium leading-relaxed text-zinc-600">
                       연결제는 매년 자동결제되는 연 정기결제 상품입니다. 중도해지/환불 요청 시 사용 기간은 월결제 기준 금액으로 재정산되며, 잔여 환불 가능액에서 중도해지 수수료 10%가 공제됩니다.
                     </div>
                   ) : null}

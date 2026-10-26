@@ -15,7 +15,7 @@ test("paid application keeps decision groups on visible surfaces", () => {
   assert.match(form, /site-checkout-agreements/);
   assert.match(styles, /\.site-checkout-page \{ background: var\(--ui-surface-muted\); \}/);
   assert.match(styles, /\.site-checkout \.site-checkout-section \{[\s\S]*?border: 1px solid var\(--ui-border\);[\s\S]*?background: var\(--ui-surface\);/);
-  assert.match(styles, /\.site-checkout-agreements \{[\s\S]*?border: 1px solid var\(--ui-border\);[\s\S]*?background: var\(--ui-surface-muted\);/);
+  assert.match(styles, /\.site-checkout-agreements \{[^}]*border: 1px solid var\(--ui-border\);[^}]*background: var\(--ui-surface\);/);
   assert.doesNotMatch(styles, /\.site-checkout \.site-checkout-section \{[^}]*background: transparent/);
 });
 
@@ -26,7 +26,7 @@ test("shared consent groups retain a bounded supporting plane", () => {
   assert.match(consent, /site-consent-surface/);
   assert.match(consent, /site-consent-all/);
   assert.match(consent, /site-consent-row/);
-  assert.match(styles, /\.site-consent-surface \{[\s\S]*?border: 1px solid var\(--ui-border\);[\s\S]*?background: var\(--ui-surface-muted\);/);
+  assert.match(styles, /\.site-consent-surface \{[^}]*border: 1px solid var\(--ui-border\);[^}]*background: var\(--ui-surface\);/);
 });
 
 test("semantic site sections remain visible without adding shadows", () => {

@@ -28,7 +28,7 @@
 .thumbnail { position: relative; width: 3.25rem; height: 2.5rem; overflow: hidden; border: 1px solid var(--ui-border); border-radius: .5rem; background: var(--ui-surface-muted); cursor: pointer; }
 .thumbnail[aria-pressed="true"] { border: 2px solid var(--ui-text); }
 .thumbnail:focus-visible, .breadcrumb a:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
-.included { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem .5rem; padding: 0; list-style: none; font-size: var(--type-caption-size); }
+.included { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem .5rem; padding: 0; list-style: none; font-size: var(--type-body-sm-size); }
 .included li { display: flex; align-items: center; gap: .4rem; }
 .included svg { flex-shrink: 0; }
 .purchase { margin-top: 1.5rem; border-top: 1px solid var(--site-divider); padding-top: 1.25rem; }

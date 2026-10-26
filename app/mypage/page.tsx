@@ -2494,7 +2494,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div className="min-w-0">
             <h3 className="type-content-title">{card.title}</h3>
-            <p className="mt-1 break-all text-sm font-bold text-zinc-500">{card.publicPath}</p>
+            <p className="mt-1 break-all text-copy font-medium text-zinc-600">{card.publicPath}</p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
             {card.badges.map((badge) => (
@@ -2505,16 +2505,16 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           </div>
         </div>
 
-        <p className="mt-4 break-keep text-sm font-normal leading-relaxed text-zinc-700">{card.primaryMessage}</p>
+        <p className="mt-4 break-keep text-copy font-normal leading-relaxed text-zinc-700">{card.primaryMessage}</p>
 
-        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+        <dl className="mt-4 grid gap-3 text-copy sm:grid-cols-3">
           <div>
-            <dt className="text-xs font-bold text-zinc-400">템플릿</dt>
+            <dt className="text-support font-medium text-zinc-600">템플릿</dt>
             <dd className="mt-1 font-bold text-zinc-900">{card.templateLabel}</dd>
           </div>
           {card.metaItems.map((item) => (
             <div key={item.label}>
-              <dt className="text-xs font-bold text-zinc-400">{item.label}</dt>
+              <dt className="text-support font-medium text-zinc-600">{item.label}</dt>
               <dd className="mt-1 break-keep font-bold text-zinc-900">{item.value}</dd>
             </div>
           ))}
@@ -2574,7 +2574,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
           <div className="min-w-0">
             <h3 className="type-content-title">{card.title}</h3>
-            <p className="mt-1 break-all text-sm font-bold text-zinc-500">{card.publicPath}</p>
+            <p className="mt-1 break-all text-copy font-medium text-zinc-600">{card.publicPath}</p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
             <Badge>직원 참여</Badge>
@@ -2583,21 +2583,21 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           </div>
         </div>
 
-        <p className="mt-4 break-keep text-sm font-normal leading-relaxed text-zinc-700">
+        <p className="mt-4 break-keep text-copy font-normal leading-relaxed text-zinc-700">
           직원 권한으로 참여한 메뉴판입니다. 사용할 수 없는 기능은 숨기지 않고 비활성 상태로 안내합니다.
         </p>
 
-        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+        <dl className="mt-4 grid gap-3 text-copy sm:grid-cols-3">
           <div>
-            <dt className="text-xs font-bold text-zinc-400">템플릿</dt>
+            <dt className="text-support font-medium text-zinc-600">템플릿</dt>
             <dd className="mt-1 font-bold text-zinc-900">{card.templateLabel}</dd>
           </div>
           <div>
-            <dt className="text-xs font-bold text-zinc-400">최근 업데이트</dt>
+            <dt className="text-support font-medium text-zinc-600">최근 업데이트</dt>
             <dd className="mt-1 font-bold text-zinc-900">{formatDate(card.updatedAt)}</dd>
           </div>
           <div>
-            <dt className="text-xs font-bold text-zinc-400">사용 가능한 기능</dt>
+            <dt className="text-support font-medium text-zinc-600">사용 가능한 기능</dt>
             <dd className="mt-1 break-keep font-bold text-zinc-900">{card.permissionSummary}</dd>
           </div>
         </dl>
@@ -2659,7 +2659,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           />
         </div>
         {!card.canViewPublic ? (
-          <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 text-xs font-normal leading-relaxed text-zinc-500">
+          <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 text-support font-normal leading-relaxed text-zinc-600">
             현재 공개되지 않은 메뉴판입니다. 직원 미리보기에서는 공개 전 화면을 확인할 수 있습니다.
           </p>
         ) : null}
@@ -2693,7 +2693,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           <header className="mb-5 flex flex-col justify-between gap-5 border-b border-zinc-200 pb-6 md:mb-6 md:flex-row md:items-end md:pb-8">
             <div>
               <h1 className="type-page-title">마이페이지</h1>
-              <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
+              <p className="mt-4 break-keep text-copy font-medium leading-relaxed text-zinc-600">
                 {isStaffOnlyAccount
                   ? "직원으로 참여한 메뉴판과 고객지원 정보를 한곳에서 확인합니다."
                   : "메뉴판 디자인과 공개 상태, 고객지원, 결제 정보를 한곳에서 확인합니다."}
@@ -2723,7 +2723,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
                   <h2 className="type-section-title">메뉴판 관리</h2>
-                  <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
+                  <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-600">
                     {isStaffOnlyAccount
                       ? "배정받은 메뉴판과 현재 역할에서 사용할 수 있는 기능을 확인합니다."
                       : "생성한 메뉴판을 편집하고 공개 상태를 확인할 수 있습니다."}
@@ -2769,7 +2769,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <h3 className="type-content-title">
                     {activeMenuTab === "active" ? "이용 중인 메뉴판" : activeMenuTab === "holding" ? "보관 중인 메뉴판" : "종료된 메뉴판"}
                   </h3>
-                  <p className="mt-1 break-keep text-sm font-normal leading-relaxed text-zinc-500">
+                  <p className="mt-1 break-keep text-copy font-normal leading-relaxed text-zinc-600">
                     {activeMenuTab === "active"
                       ? "현재 편집과 공개가 가능한 메뉴판입니다."
                       : activeMenuTab === "holding"
@@ -2777,7 +2777,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         : "보관 기간이 끝났거나 복구 가능한 보관 기준을 확인할 수 없는 메뉴판입니다."}
                   </p>
                 </div>
-                <span className="text-xs font-bold text-zinc-400">
+                <span className="text-support font-medium text-zinc-600">
                   {visibleMenuCardCount.toLocaleString("ko-KR")}개 · 전체 {totalMenuCardCount.toLocaleString("ko-KR")}개
                 </span>
               </div>
@@ -2810,7 +2810,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                   <div>
                     <h2 className="type-section-title">구독/결제 내역</h2>
-                    <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
+                    <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-600">
                       결제 기록과 AI 크레딧 충전·사용 내역을 확인할 수 있습니다. 구독 해지, 환불 요청, 재구독 복구는 구독/결제 내역에서 관리하고, 메뉴판 운영은 내 메뉴판 탭에서 확인해주세요.
                     </p>
                   </div>
@@ -2850,7 +2850,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       <h3 className="type-subsection-title">이용 중인 서비스</h3>
                     </div>
                     {activeServiceItems.length > 4 ? (
-                      <p className="text-xs font-bold text-zinc-400">최근 4개 우선 표시 · 전체 {activeServiceItems.length.toLocaleString("ko-KR")}개</p>
+                      <p className="text-support font-medium text-zinc-600">최근 4개 우선 표시 · 전체 {activeServiceItems.length.toLocaleString("ko-KR")}개</p>
                     ) : null}
                   </div>
 
@@ -2897,44 +2897,44 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     {subscriptionCardStatusLabel}
                                   </Badge>
                                 </div>
-                                <dl className="mt-4 grid gap-x-5 gap-y-2 text-sm md:grid-cols-2 xl:grid-cols-3">
+                                <dl className="mt-4 grid gap-x-5 gap-y-2 text-copy md:grid-cols-2 xl:grid-cols-3">
                                   <div>
-                                    <dt className="text-xs font-bold text-zinc-400">메뉴판</dt>
+                                    <dt className="text-support font-medium text-zinc-600">메뉴판</dt>
                                     <dd className="mt-1 break-keep font-bold text-zinc-900">{menuSite?.name ?? "연결된 메뉴판 확인 필요"}</dd>
                                   </div>
                                   <div>
-                                    <dt className="text-xs font-bold text-zinc-400">공개 주소</dt>
+                                    <dt className="text-support font-medium text-zinc-600">공개 주소</dt>
                                     <dd className="mt-1 break-all font-bold text-zinc-900">{publicMenuPath}</dd>
                                   </div>
                                   <div>
-                                    <dt className="text-xs font-bold text-zinc-400">결제 주기 / 금액</dt>
+                                    <dt className="text-support font-medium text-zinc-600">결제 주기 / 금액</dt>
                                     <dd className="mt-1 font-bold text-zinc-900">{isPersonalTrial ? "이전 체험 상품" : getBillingCycleLabel(billingCycle)} · {typeof amount === "number" ? formatKrw(amount) : "-"}</dd>
                                   </div>
                                   <div>
-                                    <dt className="text-xs font-bold text-zinc-400">{isPersonalTrial ? "체험 만료일" : cancelAtPeriodEnd ? "이용 종료 예정일" : isBusinessFreeTrial ? "첫 결제 예정일" : "다음 결제 예정일"}</dt>
+                                    <dt className="text-support font-medium text-zinc-600">{isPersonalTrial ? "체험 만료일" : cancelAtPeriodEnd ? "이용 종료 예정일" : isBusinessFreeTrial ? "첫 결제 예정일" : "다음 결제 예정일"}</dt>
                                     <dd className="mt-1 font-bold text-zinc-900">{formatDate(isPersonalTrial ? entitlement?.access_expires_at ?? null : cancelAtPeriodEnd ? periodEnd : subscription?.next_billing_at ?? null)}</dd>
                                   </div>
                                   <div>
-                                    <dt className="text-xs font-bold text-zinc-400">최근 결제일</dt>
+                                    <dt className="text-support font-medium text-zinc-600">최근 결제일</dt>
                                     <dd className="mt-1 font-bold text-zinc-900">{isBusinessFreeTrial ? "첫 결제 전" : formatDate(latestPayment?.payment.created_at ?? subscription?.last_paid_at ?? null)}</dd>
                                   </div>
                                   <div>
-                                    <dt className="text-xs font-bold text-zinc-400">결제수단 / PG</dt>
+                                    <dt className="text-support font-medium text-zinc-600">결제수단 / PG</dt>
                                     <dd className="mt-1 font-bold text-zinc-900">{paymentDetailPgLabel}</dd>
                                   </div>
                                 </dl>
                                 {isPersonalTrial ? (
-                                  <p className="mt-3 break-keep text-xs font-normal leading-relaxed text-amber-700">
+                                  <p className="mt-3 break-keep text-support font-normal leading-relaxed text-amber-700">
                                     체험 종료 전 월 구독으로 전환하면 현재 메뉴판을 이어서 사용할 수 있습니다.
                                   </p>
                                 ) : null}
                                 {isBusinessFreeTrial ? (
-                                  <p className="mt-3 break-keep text-xs font-normal leading-relaxed text-emerald-700">
+                                  <p className="mt-3 break-keep text-support font-normal leading-relaxed text-emerald-700">
                                     결제수단이 등록되어 있습니다. 체험 종료 전 해지하면 첫 결제 없이 종료일까지 이용할 수 있습니다.
                                   </p>
                                 ) : null}
                                 {isBusinessSubscription ? (
-                                  <div className="site-section mt-3 p-3 text-xs font-bold leading-relaxed text-zinc-500">
+                                  <div className="site-section mt-3 p-3 text-support font-medium leading-relaxed text-zinc-600">
                                     구독을 해지하면 다음 결제일부터 결제가 중단됩니다. 이미 결제된 이용기간은 종료일까지 계속 이용할 수 있으며, 이용기간 종료 후 메뉴판은 비공개 처리되고 90일 보관 기간이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다.
                                   </div>
                                 ) : null}
@@ -3001,14 +3001,14 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       <h3 className="type-subsection-title">
                         {activeBillingTab === "holding" ? "보관 중인 메뉴판" : "종료된 메뉴판"}
                       </h3>
-                      <p className="mt-2 max-w-2xl break-keep text-sm font-normal leading-relaxed text-amber-700">
+                      <p className="mt-2 max-w-2xl break-keep text-copy font-normal leading-relaxed text-amber-700">
                         {activeBillingTab === "holding"
                           ? "이용이 종료되었지만 보관 기간 안에 있는 메뉴판입니다. 보관 만료 D-Day까지 복구할 수 있습니다."
                           : "보관 기간이 끝났거나 복구 가능한 보관 기준을 확인할 수 없는 메뉴판입니다."}
                       </p>
                     </div>
                     {(activeBillingTab === "holding" ? holdingServiceItems : deletedServiceItems).length > 6 ? (
-                      <p className="text-xs font-bold text-zinc-400">최근 6개 우선 표시 · 전체 {(activeBillingTab === "holding" ? holdingServiceItems : deletedServiceItems).length.toLocaleString("ko-KR")}개</p>
+                      <p className="text-support font-medium text-zinc-600">최근 6개 우선 표시 · 전체 {(activeBillingTab === "holding" ? holdingServiceItems : deletedServiceItems).length.toLocaleString("ko-KR")}개</p>
                     ) : null}
                   </div>
 
@@ -3073,39 +3073,39 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     {statusLabel}
                                   </Badge>
                                 </div>
-                                <dl className="mt-4 grid gap-x-5 gap-y-2 text-sm md:grid-cols-2 xl:grid-cols-3">
+                                <dl className="mt-4 grid gap-x-5 gap-y-2 text-copy md:grid-cols-2 xl:grid-cols-3">
                                   <div>
-                                    <dt className="text-xs font-bold text-zinc-400">과거 상품</dt>
+                                    <dt className="text-support font-medium text-zinc-600">과거 상품</dt>
                                     <dd className="mt-1 break-keep font-bold text-zinc-900">{paymentDetailProductName}</dd>
                                   </div>
                                   <div>
-                                    <dt className="text-xs font-bold text-zinc-400">공개 주소</dt>
+                                    <dt className="text-support font-medium text-zinc-600">공개 주소</dt>
                                     <dd className="mt-1 break-all font-bold text-zinc-900">{publicMenuPath}</dd>
                                   </div>
                                   <div>
-                                    <dt className="text-xs font-bold text-zinc-400">결제일</dt>
+                                    <dt className="text-support font-medium text-zinc-600">결제일</dt>
                                     <dd className="mt-1 font-bold text-zinc-900">{formatDate(latestPayment?.payment.created_at ?? subscription?.last_paid_at ?? null)}</dd>
                                   </div>
                                   <div>
-                                    <dt className="text-xs font-bold text-zinc-400">만료일</dt>
+                                    <dt className="text-support font-medium text-zinc-600">만료일</dt>
                                     <dd className="mt-1 font-bold text-zinc-900">{formatDate(expiresAt)}</dd>
                                   </div>
                                   <div>
-                                    <dt className="text-xs font-bold text-zinc-400">보관 만료</dt>
+                                    <dt className="text-support font-medium text-zinc-600">보관 만료</dt>
                                     <dd className="mt-1 break-keep font-bold text-zinc-900">
                                       {retentionDisplayLabel}
                                     </dd>
                                   </div>
                                   <div>
-                                    <dt className="text-xs font-bold text-zinc-400">결제수단 / PG</dt>
+                                    <dt className="text-support font-medium text-zinc-600">결제수단 / PG</dt>
                                     <dd className="mt-1 font-bold text-zinc-900">{paymentDetailPgLabel}</dd>
                                   </div>
                                   <div>
-                                    <dt className="text-xs font-bold text-zinc-400">금액</dt>
+                                    <dt className="text-support font-medium text-zinc-600">금액</dt>
                                     <dd className="mt-1 font-bold text-zinc-900">{typeof amount === "number" ? formatKrw(amount) : "-"}</dd>
                                   </div>
                                 </dl>
-                                <div className={`site-notice mt-4   p-4 text-xs font-bold leading-relaxed ${isDeletedTab ? "site-notice-info" : "site-notice-warning"}`}>
+                                <div className={`site-notice mt-4   p-4 text-support font-medium leading-relaxed ${isDeletedTab ? "site-notice-info" : "site-notice-warning"}`}>
                                   <p>{archivedDisplayState?.message ?? "이 메뉴판의 이용기간이 종료되어 비공개 처리되었습니다."}</p>
                                   {isDeletedTab ? (
                                     <p className="mt-2">결제 기록은 관련 법령 및 운영 정책에 따라 보관될 수 있습니다.</p>
@@ -3177,7 +3177,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 ) : (
                   <article className="site-card site-card-compact p-4">
                     <h3 className="type-item-title text-zinc-950">보유 AI 크레딧 0개</h3>
-                    <p className="mt-2 break-keep text-sm font-normal leading-relaxed text-zinc-500">
+                    <p className="mt-2 break-keep text-copy font-normal leading-relaxed text-zinc-600">
                       충전한 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.
                     </p>
                   </article>
@@ -3186,12 +3186,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
                     <div>
                       <h3 className="type-subsection-title">AI 크레딧 충전/사용 내역</h3>
-                      <p className="mt-2 max-w-2xl break-keep text-xs font-normal leading-relaxed text-amber-700">
+                      <p className="mt-2 max-w-2xl break-keep text-support font-normal leading-relaxed text-amber-700">
                         AI 크레딧은 계정 공용으로 충전되며, 지급 후 단순 변심에 따른 취소/환불이 제한됩니다. 중복 결제 또는 미지급 건은 고객지원으로 문의해주세요.
                       </p>
                     </div>
                     {aiCreditTransactions.length > displayedAiCreditTransactions.length ? (
-                      <p className="text-xs font-bold text-zinc-400">최근 {displayedAiCreditTransactions.length.toLocaleString("ko-KR")}건 표시</p>
+                      <p className="text-support font-medium text-zinc-600">최근 {displayedAiCreditTransactions.length.toLocaleString("ko-KR")}건 표시</p>
                     ) : null}
                   </div>
 
@@ -3218,18 +3218,18 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                               <div className="min-w-0">
                                 <h4 className="type-item-title text-zinc-950">{transactionName}</h4>
-                                <p className="mt-1 text-xs font-bold text-zinc-500">
+                                <p className="mt-1 text-support font-medium text-zinc-600">
                                   {formatDateTime(transaction.created_at)}
                                   {menuSite?.name ? ` · ${menuSite.name}` : " · 계정 공용"}
                                 </p>
                                 {isPurchase && paymentId ? (
-                                  <p className="type-caption mt-1 font-mono text-zinc-400">결제번호 {maskPaymentId(paymentId)}</p>
+                                  <p className="type-caption mt-1 font-mono text-zinc-600">결제번호 {maskPaymentId(paymentId)}</p>
                                 ) : null}
                               </div>
                               <div className="text-left md:text-right">
-                                {isPurchase ? <p className="text-sm font-bold text-zinc-950">{product ? formatKrw(product.amount) : "-"}</p> : null}
-                                <p className={`text-sm font-bold ${creditAmount < 0 ? "text-zinc-700" : "text-emerald-700"}`}>{creditAmountLabel}</p>
-                                <p className="mt-1 text-xs font-bold text-zinc-400">
+                                {isPurchase ? <p className="text-copy font-medium text-zinc-950">{product ? formatKrw(product.amount) : "-"}</p> : null}
+                                <p className={`text-copy font-medium ${creditAmount < 0 ? "text-zinc-700" : "text-emerald-700"}`}>{creditAmountLabel}</p>
+                                <p className="mt-1 text-support font-medium text-zinc-600">
                                   사용 후 잔여 {typeof transaction.balance_after === "number" ? `${transaction.balance_after.toLocaleString("ko-KR")}개` : "-"}
                                 </p>
                                 {isPurchase ? (
@@ -3301,7 +3301,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
                   <h2 className="type-section-title">로그인 및 가입 정보</h2>
-                  <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
+                  <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-600">
                     현재 계정의 로그인 방식과 연결된 인증 정보를 확인합니다.
                   </p>
                 </div>
@@ -3316,15 +3316,15 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               <article className="site-card p-5 sm:p-6">
                 <dl className="grid gap-5 md:grid-cols-2">
                   <div className="rounded-2xl bg-zinc-50 p-4">
-                    <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">로그인 이메일</dt>
-                    <dd className="mt-2 break-all text-sm font-bold text-zinc-900">{user.email ?? "이메일 정보 없음"}</dd>
+                    <dt className="text-support font-medium uppercase text-zinc-600">로그인 이메일</dt>
+                    <dd className="mt-2 break-all text-copy font-medium text-zinc-900">{user.email ?? "이메일 정보 없음"}</dd>
                   </div>
                   <div className="rounded-2xl bg-zinc-50 p-4">
-                    <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">가입 방식</dt>
-                    <dd className="mt-2 text-sm font-bold text-zinc-900">{getProviderLabel(primaryProvider)}</dd>
+                    <dt className="text-support font-medium uppercase text-zinc-600">가입 방식</dt>
+                    <dd className="mt-2 text-copy font-medium text-zinc-900">{getProviderLabel(primaryProvider)}</dd>
                   </div>
                   <div className="rounded-2xl bg-zinc-50 p-4">
-                    <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">연결된 소셜 계정</dt>
+                    <dt className="text-support font-medium uppercase text-zinc-600">연결된 소셜 계정</dt>
                     <dd className="mt-2 flex flex-wrap gap-2">
                       {connectedAccounts.map((provider) => (
                         <Badge key={provider} >
@@ -3334,22 +3334,22 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     </dd>
                   </div>
                   <div className="rounded-2xl bg-zinc-50 p-4">
-                    <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">가입일</dt>
-                    <dd className="mt-2 text-sm font-bold text-zinc-900">{formatDate(user.created_at ?? null)}</dd>
+                    <dt className="text-support font-medium uppercase text-zinc-600">가입일</dt>
+                    <dd className="mt-2 text-copy font-medium text-zinc-900">{formatDate(user.created_at ?? null)}</dd>
                   </div>
                   <div className="rounded-2xl bg-zinc-50 p-4">
-                    <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">최근 로그인일</dt>
-                    <dd className="mt-2 text-sm font-bold text-zinc-900">{formatDate(user.last_sign_in_at ?? null)}</dd>
+                    <dt className="text-support font-medium uppercase text-zinc-600">최근 로그인일</dt>
+                    <dd className="mt-2 text-copy font-medium text-zinc-900">{formatDate(user.last_sign_in_at ?? null)}</dd>
                   </div>
                   <div className="rounded-2xl bg-zinc-50 p-4">
-                    <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">이름 또는 매장명</dt>
-                    <dd className="mt-2 break-keep text-sm font-bold text-zinc-900">
+                    <dt className="text-support font-medium uppercase text-zinc-600">이름 또는 매장명</dt>
+                    <dd className="mt-2 break-keep text-copy font-medium text-zinc-900">
                       {displayName || "아직 등록된 업체 정보가 없습니다."}
                     </dd>
                   </div>
                   <div className="rounded-2xl bg-zinc-50 p-4 md:col-span-2">
-                    <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">사용자 ID</dt>
-                    <dd className="mt-2 break-all font-mono text-xs font-bold text-zinc-600">{user.id}</dd>
+                    <dt className="text-support font-medium uppercase text-zinc-600">사용자 ID</dt>
+                    <dd className="mt-2 break-all font-mono text-support font-medium text-zinc-600">{user.id}</dd>
                   </div>
                 </dl>
                 <section className="site-section mt-6 p-5">
@@ -3358,7 +3358,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       <h3 className="type-content-title text-zinc-950">
                         {businessProfile?.business_name || "아직 인증된 사업자 정보가 없습니다."}
                       </h3>
-                      <p className="mt-2 break-keep text-xs font-normal leading-relaxed text-zinc-500">
+                      <p className="mt-2 break-keep text-support font-normal leading-relaxed text-zinc-600">
                         사업자 인증 정보는 결제 및 서비스 이용 기준 정보로 사용됩니다. 변경이 필요한 경우 고객지원으로 문의해주세요.
                       </p>
                     </div>
@@ -3373,40 +3373,40 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   {businessProfile ? (
                     <dl className="mt-5 grid gap-3 md:grid-cols-2">
                       <div className="rounded-2xl bg-white p-4">
-                        <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">대표자명</dt>
-                        <dd className="mt-2 text-sm font-bold text-zinc-900">{businessProfile.representative_name ?? "-"}</dd>
+                        <dt className="text-support font-medium uppercase text-zinc-600">대표자명</dt>
+                        <dd className="mt-2 text-copy font-medium text-zinc-900">{businessProfile.representative_name ?? "-"}</dd>
                       </div>
                       <div className="rounded-2xl bg-white p-4">
-                        <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">사업자등록번호</dt>
-                        <dd className="mt-2 text-sm font-bold text-zinc-900">
+                        <dt className="text-support font-medium uppercase text-zinc-600">사업자등록번호</dt>
+                        <dd className="mt-2 text-copy font-medium text-zinc-900">
                           {businessProfile.business_registration_number ? maskBusinessRegistrationNumber(businessProfile.business_registration_number) : "-"}
                         </dd>
                       </div>
                       <div className="rounded-2xl bg-white p-4">
-                        <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">사업자 상태</dt>
-                        <dd className="mt-2 text-sm font-bold text-zinc-900">{businessProfile.business_status ?? "-"}</dd>
+                        <dt className="text-support font-medium uppercase text-zinc-600">사업자 상태</dt>
+                        <dd className="mt-2 text-copy font-medium text-zinc-900">{businessProfile.business_status ?? "-"}</dd>
                       </div>
                       <div className="rounded-2xl bg-white p-4">
-                        <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">과세 유형</dt>
-                        <dd className="mt-2 text-sm font-bold text-zinc-900">{businessProfile.tax_type ?? "-"}</dd>
+                        <dt className="text-support font-medium uppercase text-zinc-600">과세 유형</dt>
+                        <dd className="mt-2 text-copy font-medium text-zinc-900">{businessProfile.tax_type ?? "-"}</dd>
                       </div>
                       <div className="rounded-2xl bg-white p-4">
-                        <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">인증 상태</dt>
-                        <dd className="mt-2 text-sm font-bold text-zinc-900">{businessProfile.verification_status === "verified" ? "인증 완료" : businessProfile.verification_status ?? "-"}</dd>
+                        <dt className="text-support font-medium uppercase text-zinc-600">인증 상태</dt>
+                        <dd className="mt-2 text-copy font-medium text-zinc-900">{businessProfile.verification_status === "verified" ? "인증 완료" : businessProfile.verification_status ?? "-"}</dd>
                       </div>
                       <div className="rounded-2xl bg-white p-4">
-                        <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">인증일</dt>
-                        <dd className="mt-2 text-sm font-bold text-zinc-900">{formatDate(businessProfile.last_verified_at ?? businessProfile.verified_at)}</dd>
+                        <dt className="text-support font-medium uppercase text-zinc-600">인증일</dt>
+                        <dd className="mt-2 text-copy font-medium text-zinc-900">{formatDate(businessProfile.last_verified_at ?? businessProfile.verified_at)}</dd>
                       </div>
                     </dl>
                   ) : (
-                    <p className="mt-5 break-keep rounded-2xl bg-white p-4 text-sm font-normal leading-relaxed text-zinc-500">
+                    <p className="mt-5 break-keep rounded-2xl bg-white p-4 text-copy font-normal leading-relaxed text-zinc-600">
                       사업자 월결제/연결제를 이용하려면 /apply/basic에서 사업자 인증을 먼저 진행해주세요.
                     </p>
                   )}
 
                   {businessProfilesError && (
-                    <p className="mt-4 break-keep text-xs font-normal leading-relaxed text-amber-700">
+                    <p className="mt-4 break-keep text-support font-normal leading-relaxed text-amber-700">
                       사업자 정보 테이블이 아직 적용되지 않았거나 조회 권한이 없습니다.
                     </p>
                   )}
@@ -3415,7 +3415,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                     <div>
                       <h3 className="type-content-title text-zinc-950">서비스 안내 및 문의 수신 정보</h3>
-                      <p className="mt-2 break-keep text-xs font-normal leading-relaxed text-zinc-500">
+                      <p className="mt-2 break-keep text-support font-normal leading-relaxed text-zinc-600">
                         문의 답변과 서비스 안내는 담당자 정보 기준으로 전달됩니다.
                       </p>
                     </div>
@@ -3427,24 +3427,24 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   </div>
                   <dl className="mt-5 grid gap-3 md:grid-cols-3">
                     <div className="rounded-2xl bg-zinc-50 p-4">
-                      <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">담당자명</dt>
-                      <dd className="mt-2 break-keep text-sm font-bold text-zinc-900">{contactName || "등록된 담당자명 없음"}</dd>
+                      <dt className="text-support font-medium uppercase text-zinc-600">담당자명</dt>
+                      <dd className="mt-2 break-keep text-copy font-medium text-zinc-900">{contactName || "등록된 담당자명 없음"}</dd>
                     </div>
                     <div className="rounded-2xl bg-zinc-50 p-4">
-                      <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">담당자 연락처</dt>
-                      <dd className="mt-2 text-sm font-bold text-zinc-900">{contactPhone || "등록된 연락처 없음"}</dd>
+                      <dt className="text-support font-medium uppercase text-zinc-600">담당자 연락처</dt>
+                      <dd className="mt-2 text-copy font-medium text-zinc-900">{contactPhone || "등록된 연락처 없음"}</dd>
                     </div>
                     <div className="rounded-2xl bg-zinc-50 p-4">
-                      <dt className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">문의/알림 수신 이메일</dt>
-                      <dd className="mt-2 break-all text-sm font-bold text-zinc-900">{notificationEmail || "이메일 정보 없음"}</dd>
+                      <dt className="text-support font-medium uppercase text-zinc-600">문의/알림 수신 이메일</dt>
+                      <dd className="mt-2 break-all text-copy font-medium text-zinc-900">{notificationEmail || "이메일 정보 없음"}</dd>
                     </div>
                   </dl>
                   {contactProfileError && !isMissingOptionalMypageRelation(contactProfileError) ? (
-                    <p className="mt-4 break-keep text-xs font-semibold leading-relaxed text-amber-700">
+                    <p className="mt-4 break-keep text-support font-semibold leading-relaxed text-amber-700">
                       담당자 정보 조회에 실패했습니다. 저장된 정보가 보이지 않으면 잠시 후 다시 시도해주세요.
                     </p>
                   ) : (
-                    <p className="mt-4 break-keep text-xs font-semibold leading-relaxed text-zinc-400">
+                    <p className="mt-4 break-keep text-support font-semibold leading-relaxed text-zinc-600">
                       사업자 인증 정보는 읽기 전용이며, 담당자 정보만 직접 등록하거나 수정할 수 있습니다.
                     </p>
                   )}

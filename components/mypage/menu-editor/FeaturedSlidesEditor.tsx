@@ -126,9 +126,9 @@ export default function FeaturedSlidesEditor({
       <section className="site-section site-editor-subpanel p-5" data-featured-image-editor="">
         <div>
           <h3 className="type-content-title text-zinc-950">대표 이미지</h3>
-          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+          <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
             메뉴판 대표 영역에 보여줄 이미지를 최대 {effectiveMaxSlides}개까지 등록하고 순서를 정할 수 있습니다.
-            <span className="mt-1 block text-xs text-zinc-400">
+            <span className="mt-1 block text-support text-zinc-600">
               디자인과 기기에 따라 이미지가 중앙 기준으로 일부 잘릴 수 있습니다. 등록 후 미리보기에서 표시 영역을 확인해 주세요.
             </span>
           </p>
@@ -136,7 +136,7 @@ export default function FeaturedSlidesEditor({
 
         <div className="mt-5 grid gap-4">
           {slides.length === 0 && (
-            <div className="site-section site-editor-subpanel p-5 text-sm font-bold text-zinc-400">
+            <div className="site-section site-editor-subpanel p-5 text-copy font-medium text-zinc-600">
               아직 등록된 대표 이미지가 없습니다.
             </div>
           )}
@@ -149,7 +149,7 @@ export default function FeaturedSlidesEditor({
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h4 className="type-label text-zinc-950">대표 이미지 {index + 1}</h4>
-                    {completionLabel && <p className="mt-1 break-keep text-xs font-bold text-amber-700">{completionLabel}</p>}
+                    {completionLabel && <p className="mt-1 break-keep text-support font-medium text-amber-700">{completionLabel}</p>}
                   </div>
                   <div className="flex flex-wrap justify-end gap-2">
                     <button
@@ -202,7 +202,7 @@ export default function FeaturedSlidesEditor({
         </div>
 
         <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-          <p className="break-keep text-xs font-bold text-zinc-400">
+          <p className="break-keep text-support font-medium text-zinc-600">
             {slides.length}/{effectiveMaxSlides}개 사용 중
           </p>
           <button
@@ -223,7 +223,7 @@ export default function FeaturedSlidesEditor({
             대표 이미지 추가
           </button>
           {slides.length >= effectiveMaxSlides && (
-            <p className="basis-full break-keep text-right text-xs font-bold text-amber-700">
+            <p className="basis-full break-keep text-right text-support font-medium text-amber-700">
               대표 이미지는 최대 {effectiveMaxSlides}개까지 등록할 수 있습니다.
             </p>
           )}
@@ -233,7 +233,7 @@ export default function FeaturedSlidesEditor({
       <section className="site-section site-editor-subpanel p-5" data-featured-product-editor="">
         <div>
           <h3 className="type-content-title text-zinc-950">대표 상품</h3>
-          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+          <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
             등록한 각 대표 이미지 위에 상품명·설명·배지·가격을 함께 보여줄지 선택합니다.
           </p>
         </div>
@@ -244,14 +244,14 @@ export default function FeaturedSlidesEditor({
             formId={formId}
             label="대표 상품 정보 표시"
           />
-          <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+          <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
             끄면 대표 이미지만 표시됩니다. 등록한 이미지와 상품 연결 정보는 삭제되지 않습니다.
           </p>
         </div>
 
         <div className="mt-4 grid gap-4">
           {slides.length === 0 ? (
-            <div className="site-section site-editor-subpanel p-5 text-sm font-bold text-zinc-400">
+            <div className="site-section site-editor-subpanel p-5 text-copy font-medium text-zinc-600">
               먼저 위의 대표 이미지 영역에서 이미지를 추가해주세요.
             </div>
           ) : slides.map((slide, index) => {
@@ -265,19 +265,19 @@ export default function FeaturedSlidesEditor({
               <div className="mb-3">
                 <div>
                   <h4 className="type-label text-zinc-950">대표 이미지 {index + 1}의 상품</h4>
-                  {completionLabel && <p className="mt-1 break-keep text-xs font-bold text-amber-700">이미지를 등록한 뒤 공개 메뉴판에 표시됩니다.</p>}
+                  {completionLabel && <p className="mt-1 break-keep text-support font-medium text-amber-700">이미지를 등록한 뒤 공개 메뉴판에 표시됩니다.</p>}
                   {selectedItemIsInvalid && (
-                    <p className="mt-1 break-keep text-xs font-bold text-red-600">
+                    <p className="mt-1 break-keep text-support font-medium text-red-600">
                       선택된 대표 상품이 삭제되었거나 숨김 처리되었습니다. 다른 상품을 선택해주세요.
                     </p>
                   )}
                   {selectedItemIsDuplicate && (
-                    <p className="mt-1 break-keep text-xs font-bold text-red-600">같은 대표 상품은 한 번만 선택할 수 있습니다.</p>
+                    <p className="mt-1 break-keep text-support font-medium text-red-600">같은 대표 상품은 한 번만 선택할 수 있습니다.</p>
                   )}
                 </div>
               </div>
 
-              <label className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400" htmlFor={`featured-slide-item-${slide.id}`}>
+              <label className="text-support font-medium uppercase text-zinc-600" htmlFor={`featured-slide-item-${slide.id}`}>
                 연결할 대표 상품
               </label>
               <select
@@ -298,7 +298,7 @@ export default function FeaturedSlidesEditor({
                   </option>
                 ))}
               </select>
-              <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+              <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">
                 선택하지 않으면 해당 순서에는 이미지만 표시됩니다. 같은 상품은 한 번만 연결할 수 있습니다.
               </p>
               </section>

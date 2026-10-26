@@ -55,7 +55,7 @@ const PricingCard = ({ plan, index }: { plan: typeof PLANS[0], index: number }) 
       {plan.disabled && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-zinc-900/40 backdrop-blur-[1px] cursor-not-allowed">
              <span className="text-xl md:text-2xl font-bold tracking-widest text-white drop-shadow-lg">COMING SOON</span>
-             <span className="text-sm text-zinc-200 font-medium mt-1 drop-shadow-md">서비스 준비중입니다</span>
+             <span className="text-copy text-zinc-200 font-medium mt-1 drop-shadow-md">서비스 준비중입니다</span>
         </div>
       )}
 
@@ -70,7 +70,7 @@ const PricingCard = ({ plan, index }: { plan: typeof PLANS[0], index: number }) 
 
       {/* Left: Content */}
       <div className={`w-full md:w-1/2 p-8 md:p-12 flex flex-col items-start justify-center relative z-20 pointer-events-none md:pointer-events-auto ${plan.disabled ? 'opacity-40 grayscale' : ''}`}>
-        <span className="mb-3 block text-sm font-bold text-zinc-500">
+        <span className="mb-3 block text-copy font-medium text-zinc-500">
           {plan.name}
         </span>
         

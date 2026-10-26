@@ -559,7 +559,7 @@ export function StoreScenesSection({ service = "dining", inverted = false }: { s
                 <img src={scene.image} alt="" className="h-full w-full object-cover" />
               </div>
               <h3 className={`type-content-title mt-6 ${inverted ? "text-white" : "text-zinc-950"}`}>{scene.title}</h3>
-              <p className={`mt-3 break-keep text-sm font-medium leading-relaxed md:text-base ${inverted ? "text-zinc-400" : "text-zinc-500"}`}>{scene.body}</p>
+              <p className={`mt-3 break-keep text-copy font-normal ${inverted ? "text-zinc-400" : "text-zinc-500"}`}>{scene.body}</p>
             </motion.article>
           ))}
         </div>

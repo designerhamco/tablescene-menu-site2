@@ -18,7 +18,7 @@
 }
 
 .heading { display: grid; gap: 1rem; text-align: center; }
-.subtitle { max-width: 52rem; margin: 0 auto; color: var(--ui-text-muted); font-size: 1rem; font-weight: 500; line-height: 1.65; word-break: keep-all; text-wrap: balance; }
+.subtitle { max-width: 52rem; margin: 0 auto; color: var(--ui-text-muted); font-size: var(--type-body-lg-size); font-weight: 500; line-height: 1.65; word-break: keep-all; text-wrap: balance; }
 
 .titleLine {
   display: block;
@@ -65,7 +65,6 @@
 }
 
 @media (min-width: 640px) {
-  .subtitle { font-size: 1.125rem; }
   .hero {
     padding-top: 8.25rem;
   }

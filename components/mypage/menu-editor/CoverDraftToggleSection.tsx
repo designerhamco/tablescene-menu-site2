@@ -60,14 +60,14 @@ export default function CoverDraftToggleSection({
           onCheckedChange={setEnabled}
         />
         {hasDraftToggleChange && (
-          <p className="site-notice site-notice-warning mt-3 break-keep p-3 text-xs font-bold leading-relaxed">
+          <p className="site-notice site-notice-warning mt-3 break-keep p-3 text-support font-medium leading-relaxed">
             저장을 눌러야 미리보기와 공개 메뉴판에 반영됩니다.
           </p>
         )}
       </div>
 
       {!enabled && (
-        <p className="site-editor-subpanel md:col-span-2 break-keep p-5 text-sm leading-relaxed text-zinc-500">
+        <p className="site-editor-subpanel md:col-span-2 break-keep p-5 text-copy leading-relaxed text-zinc-600">
           {inactiveMessage}
         </p>
       )}

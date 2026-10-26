@@ -36,8 +36,7 @@
 .search input:global(.site-field) {
   width: 100%;
   min-width: 0;
-  min-height: 3.5rem;
-  font-size: 1rem;
+
   background: var(--ui-surface);
   border: 1px solid var(--ui-border);
   color: #15181e;
@@ -47,7 +46,7 @@
   min-height: 40rem;
 }
 .resultCount {
-  font-size: 0.875rem;
+  font-size: var(--type-body-sm-size);
   color: #626873;
   margin-block: 1.5rem 0.5rem;
 }
@@ -70,47 +69,15 @@
   padding-block: 1.5rem;
 }
 .faqRow button > span {
-  font-size: 1rem;
+  font-size: var(--type-body-size);
   line-height: 1.6;
 }
 .category {
   color: #626873;
-  font-size: 0.875rem;
+  font-size: var(--type-body-sm-size);
   padding: 1.5rem 0.75rem;
 }
-.noticeRow {
-  display: grid;
-  grid-template-columns: 10rem minmax(0, 1fr) auto;
-  gap: 1.5rem;
-  align-items: center;
-  border-bottom: 1px solid #e6e7e9;
-  padding-right: 0.75rem;
-}
-.noticeRow:hover {
-  background: #f8f9fb;
-}
-.noticeRow:last-child {
-  border-bottom: 0;
-}
-.noticeRow strong {
-  overflow-wrap: anywhere;
-  padding-block: 1rem;
-}
-.noticeRow time {
-  color: #626873;
-  font-size: 0.8rem;
-}
-.pagination {
-  display: flex;
-  justify-content: center;
-  gap: 0.4rem;
-  margin-top: 3rem;
-}
-.pagination [aria-current="page"] {
-  border-radius: 0.5rem;
-  color: #fff;
-  background: #15181e;
-}
+
 .empty {
   display: flex;
   flex-direction: column;
@@ -137,7 +104,7 @@
 }
 .detail time {
   color: #626873;
-  font-size: 0.875rem;
+  font-size: var(--type-body-sm-size);
 }
 .detailBody {
   padding-block: 2.5rem;
@@ -180,7 +147,7 @@
 }
 .adminList > a span {
   color: #626873;
-  font-size: 0.8rem;
+  font-size: var(--type-caption-size);
 }
 .adminForm {
   display: grid;
@@ -190,7 +157,7 @@
 .adminForm label {
   display: grid;
   gap: 0.6rem;
-  font-size: 0.875rem;
+  font-size: var(--type-body-sm-size);
 }
 .adminForm textarea {
   min-height: 22rem;
@@ -215,7 +182,7 @@
   padding: 1rem;
   background: #f8f9fb;
   border-left: 3px solid #626873;
-  font-size: 0.875rem;
+  font-size: var(--type-body-sm-size);
   line-height: 1.6;
 }
 @media (max-width: 767px) {
@@ -224,29 +191,13 @@
   }
   .category {
     padding: 1rem 0.75rem 0;
-    font-size: 0.75rem;
+    font-size: var(--type-caption-size);
   }
   .faqRow button {
     padding-top: 0.5rem;
     padding-inline: 0.75rem;
   }
-  .noticeRow {
-    grid-template-columns: 1fr auto;
-    gap: 0 0.75rem;
-    padding: 0.75rem;
-  }
-  .noticeRow .category {
-    padding: 0;
-  }
-  .noticeRow strong {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    padding-block: 0.5rem;
-  }
-  .noticeRow time {
-    grid-column: 2;
-    grid-row: 1;
-  }
+
   .adminGrid {
     grid-template-columns: 1fr;
   }

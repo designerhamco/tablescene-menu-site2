@@ -1,4 +1,4 @@
-.panel { pointer-events: auto; width: min(53rem, calc(100% - 1.5rem)); margin-top: .75rem; overflow: hidden; border: 1px solid #2029361a; border-radius: .75rem; background: white; color: #20242a; box-shadow: 0 12px 36px #14203014, 0 2px 8px #1420300a; font-size: .75rem; }
+.panel { pointer-events: auto; width: min(53rem, calc(100% - 1.5rem)); margin-top: .75rem; overflow: hidden; border: 1px solid #2029361a; border-radius: .75rem; background: white; color: #20242a; box-shadow: 0 12px 36px #14203014, 0 2px 8px #1420300a; font-size: var(--type-caption-size); }
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .panel { background: rgb(255 255 255 / 94%); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
 }
@@ -12,15 +12,15 @@
 .panel[data-options-open="false"] { width: 44px; }
 .panel[data-options-open="false"] .toggle { justify-content: center; width: 44px; min-height: 44px; padding: 0; }
 .panel[data-options-open="false"] :is(.label, .count, .chevron) { display: none; }
-.count { color: #5b6572; font-size: .7rem; font-weight: 400; }
+.count { color: #5b6572; font-size: var(--type-caption-size); font-weight: 400; }
 .chevron { flex: none; margin-left: auto; transform: rotate(-90deg); }
 .panel[data-options-open="true"] .chevron { transform: rotate(90deg); }
 .body { max-height: min(60dvh, 34rem); overflow-y: auto; overscroll-behavior: contain; padding: 0 .9rem 1rem; scrollbar-width: thin; scrollbar-color: #c6cbd2 transparent; container-type: inline-size; }
-.experienceNote { margin: 0 0 .85rem; color: var(--ui-text-muted, #5b6572); font-size: .75rem; font-weight: 400; line-height: 1.6; word-break: keep-all; }
+.experienceNote { margin: 0 0 .85rem; color: var(--ui-text-muted, #5b6572); font-size: var(--type-caption-size); font-weight: 400; line-height: 1.6; word-break: keep-all; }
 .toggle:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -3px; }
 .groups { display: grid; gap: 1rem; }
 .group { min-width: 0; }
-.group legend { margin-bottom: .35rem; color: #424d5a; font-size: .7rem; font-weight: 600; }
+.group legend { margin-bottom: .35rem; color: #424d5a; font-size: var(--type-caption-size); font-weight: 600; }
 .choices { display: flex; flex-wrap: wrap; gap: .15rem .9rem; }
 .choice { display: inline-flex; align-items: center; gap: .4rem; min-height: 2rem; cursor: pointer; font-weight: 500; }
 .choice:has(:disabled) { opacity: .45; cursor: default; }

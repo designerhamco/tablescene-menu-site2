@@ -41,8 +41,8 @@ export default function CoverDeviceVisibilityFields({
   return (
     <section className="md:col-span-2 rounded-lg border border-zinc-100 bg-zinc-50 p-5">
       <input type="hidden" name="menu_cover_device_visibility_present" value="true" />
-      <p className="text-sm font-bold text-zinc-800">기기별 표시</p>
-      <p className="mt-1 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
+      <p className="text-copy font-medium text-zinc-800">기기별 표시</p>
+      <p className="mt-1 break-keep text-support font-semibold leading-relaxed text-zinc-600">
         대표 영역을 표시할 기기를 선택합니다. 숨겨도 이미지와 대표 상품 설정은 삭제되지 않습니다.
       </p>
       <div className="mt-4 grid gap-3 md:grid-cols-3">

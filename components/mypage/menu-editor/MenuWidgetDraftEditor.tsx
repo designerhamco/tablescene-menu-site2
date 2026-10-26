@@ -142,9 +142,9 @@ export default function MenuWidgetDraftEditor({
   return (
     <div>
       <div className="mb-5">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-zinc-400">Widget Detail</p>
+        <p className="text-support font-medium uppercase text-zinc-600">Widget Detail</p>
         <h3 className="type-subsection-title mt-2 text-zinc-950">{heading}</h3>
-        <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+        <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
           위젯은 카테고리와 같은 최상위 콘텐츠입니다. 여기서 반영한 뒤 하단의 최종 저장을 눌러야 공개 메뉴판에 반영됩니다.
         </p>
       </div>
@@ -157,8 +157,8 @@ export default function MenuWidgetDraftEditor({
         <div className="site-section site-editor-subpanel p-4">
           <label className="flex items-center justify-between gap-3">
             <span>
-              <span className="block text-sm font-bold text-zinc-950">메뉴판에 표시</span>
-              <span className="mt-1 block text-xs font-bold text-zinc-400">{draft.visible ? "표시함" : "표시 안 함"}</span>
+              <span className="block text-copy font-medium text-zinc-950">메뉴판에 표시</span>
+              <span className="mt-1 block text-support font-medium text-zinc-600">{draft.visible ? "표시함" : "표시 안 함"}</span>
             </span>
             <input
               type="checkbox"
@@ -194,8 +194,8 @@ export default function MenuWidgetDraftEditor({
                       className="mt-0.5 h-4 w-4 shrink-0 border-zinc-300 text-zinc-950 focus:ring-zinc-950"
                     />
                     <span>
-                      <span className="block text-sm font-bold">{option.label}</span>
-                      <span className={`mt-1.5 block break-keep text-xs font-semibold leading-relaxed ${selected ? "text-zinc-300" : "text-zinc-500"}`}>
+                      <span className="block text-copy font-medium">{option.label}</span>
+                      <span className={`mt-1.5 block break-keep text-support font-semibold leading-relaxed ${selected ? "text-zinc-300" : "text-zinc-600"}`}>
                         {option.description}
                       </span>
                     </span>
@@ -258,7 +258,7 @@ export default function MenuWidgetDraftEditor({
                   <option key={ratio} value={ratio}>{ASPECT_RATIO_LABELS[ratio] ?? ratio}</option>
                 ))}
               </select>
-              <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
+              <p className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-600">
                 선택한 비율이 PC·태블릿·모바일에 동일하게 적용됩니다.
               </p>
             </FieldBlock>
@@ -291,7 +291,7 @@ export default function MenuWidgetDraftEditor({
                     );
                   })}
                 </div>
-                <p className="mt-2 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
+                <p className="mt-2 break-keep text-support font-semibold leading-relaxed text-zinc-600">
                   채우기에서는 잘리는 영역의 기준을, 전체 보이기에서는 남는 여백의 위치를 정합니다.
                 </p>
               </FieldBlock>
@@ -329,7 +329,7 @@ export default function MenuWidgetDraftEditor({
         )}
 
         {(validationErrors.length > 0 || countExceeded) && (
-          <div className="site-notice site-notice-warning px-4 py-3 text-xs font-bold leading-relaxed">
+          <div className="site-notice site-notice-warning px-4 py-3 text-support font-medium leading-relaxed">
             {countExceeded && <p>한 페이지에는 위젯을 최대 {maxWidgetCount}개까지 등록할 수 있습니다.</p>}
             {validationErrors.map((error) => (
               <p key={`${error.field}:${error.code}`}>{error.message}</p>
@@ -351,7 +351,7 @@ export default function MenuWidgetDraftEditor({
           {mode === "edit" && onRequestDelete && onConfirmDelete ? (
             isConfirmingDelete ? (
               <span className="flex flex-wrap items-center justify-end gap-2">
-                <span className="text-xs font-bold text-red-600">이 위젯을 삭제할까요?</span>
+                <span className="text-support font-medium text-red-600">이 위젯을 삭제할까요?</span>
                 <button type="button" onClick={onConfirmDelete} className="site-button site-button-rounded site-button-danger">삭제</button>
                 <button type="button" onClick={onCancelDelete} className="site-button site-button-rounded site-button-outline">취소</button>
               </span>
@@ -381,7 +381,7 @@ export default function MenuWidgetDraftEditor({
 function FieldBlock({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="block">
-      <span className="mb-2 block text-xs font-bold text-zinc-500">{label}</span>
+      <span className="mb-2 block text-support font-medium text-zinc-600">{label}</span>
       {children}
     </div>
   );
@@ -391,7 +391,7 @@ function CharacterCounter({ value, maxLength }: { value: string; maxLength: numb
   const isTooLong = value.length > maxLength;
 
   return (
-    <p className={`mt-1.5 text-right text-xs font-bold ${isTooLong ? "text-red-600" : "text-zinc-400"}`}>
+    <p className={`mt-1.5 text-right text-support font-medium ${isTooLong ? "text-red-600" : "text-zinc-600"}`}>
       {value.length} / {maxLength}
     </p>
   );

@@ -67,7 +67,7 @@ export default function OAuthButtons({
       {showDivider ? (
         <div className="flex items-center gap-3">
           <div className="h-px flex-1 bg-zinc-200" />
-          <span className="text-xs font-bold text-zinc-600">
+          <span className="text-support font-medium text-zinc-600">
             또는
           </span>
           <div className="h-px flex-1 bg-zinc-200" />
@@ -84,7 +84,7 @@ export default function OAuthButtons({
       </button>
 
       {errorMessage && (
-        <p className="mt-3 break-keep text-center text-sm font-semibold text-red-600">
+        <p className="mt-3 break-keep text-center text-copy font-semibold text-red-600">
           {errorMessage}
         </p>
       )}

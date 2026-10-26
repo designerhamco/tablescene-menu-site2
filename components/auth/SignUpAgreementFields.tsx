@@ -78,13 +78,13 @@ export default function SignUpAgreementFields({ action, safeNext }: SignUpAgreem
 
         <div>
           <h2 className="type-content-title">이메일로 계정 만들기</h2>
-          <p className="mt-2 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+          <p className="mt-2 break-keep text-copy font-semibold leading-relaxed text-zinc-500">
             카카오 계정이 없거나 이메일 가입을 원하는 경우 사용할 수 있습니다.
           </p>
         </div>
 
         <div>
-          <label htmlFor="displayName" className="mb-2 block text-sm font-bold">
+          <label htmlFor="displayName" className="mb-2 block text-copy font-medium">
             이름 또는 매장명
           </label>
           <input
@@ -95,13 +95,13 @@ export default function SignUpAgreementFields({ action, safeNext }: SignUpAgreem
             autoComplete="name"
             value={displayName}
             onChange={(event) => setDisplayName(event.target.value)}
-            className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-base outline-none transition-colors focus:border-zinc-950"
+            className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-copy outline-none transition-colors focus:border-zinc-950"
             placeholder="강남 비스트로"
           />
         </div>
 
         <div>
-          <label htmlFor="email" className="mb-2 block text-sm font-bold">
+          <label htmlFor="email" className="mb-2 block text-copy font-medium">
             이메일 주소
           </label>
           <input
@@ -112,13 +112,13 @@ export default function SignUpAgreementFields({ action, safeNext }: SignUpAgreem
             autoComplete="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-base outline-none transition-colors focus:border-zinc-950"
+            className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-copy outline-none transition-colors focus:border-zinc-950"
             placeholder="owner@example.com"
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="mb-2 block text-sm font-bold">
+          <label htmlFor="password" className="mb-2 block text-copy font-medium">
             비밀번호
           </label>
           <input
@@ -130,7 +130,7 @@ export default function SignUpAgreementFields({ action, safeNext }: SignUpAgreem
             autoComplete="new-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-base outline-none transition-colors focus:border-zinc-950"
+            className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-copy outline-none transition-colors focus:border-zinc-950"
             placeholder="6자 이상"
           />
         </div>

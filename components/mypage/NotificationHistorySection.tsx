@@ -92,7 +92,7 @@ export default function NotificationHistorySection({ events }: NotificationHisto
       <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <h2 className="type-section-title">알림 내역</h2>
-          <p className="mt-3 break-keep text-sm font-medium leading-relaxed text-zinc-500">
+          <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-600">
             아티메뉴 이용 중 발생한 알림과 중요한 안내를 확인할 수 있습니다.
           </p>
         </div>

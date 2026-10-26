@@ -4,6 +4,7 @@ import {
   ANNOUNCEMENT_CATEGORIES,
   ANNOUNCEMENT_PAGE_SIZE,
   escapeAnnouncementSearch,
+  getAnnouncementNeighborFilter,
   type AnnouncementSummary,
 } from "@/lib/announcements";
 
@@ -43,4 +44,26 @@ export async function getPublishedAnnouncements({
     return { items: [] as AnnouncementSummary[], count: 0, unavailable: true };
   }
   return { items: data ?? [], count: count ?? 0, unavailable: false };
+}
+
+
+/** Adjacent public posts follow chronological (timestamp, UUID) order, independent of pinning. */
+export async function getPublishedAnnouncementNeighbors(id: string, publishedAt: string | null) {
+  const previousFilter = getAnnouncementNeighborFilter(id, publishedAt, "previous");
+  const nextFilter = getAnnouncementNeighborFilter(id, publishedAt, "next");
+  if (!previousFilter || !nextFilter) return { previous: null, next: null, unavailable: true };
+  const supabase = await createAnnouncementClient();
+  const now = new Date().toISOString();
+  const query = (filter: string, ascending: boolean) => supabase
+    .from("support_announcements")
+    .select("id,title,published_at")
+    .eq("status", "published")
+    .lte("published_at", now)
+    .or(filter)
+    .order("published_at", { ascending })
+    .order("id", { ascending })
+    .limit(1)
+    .maybeSingle();
+  const [previous, next] = await Promise.all([query(previousFilter, false), query(nextFilter, true)]);
+  return { previous: previous.error ? null : previous.data, next: next.error ? null : next.data, unavailable: Boolean(previous.error || next.error) };
 }

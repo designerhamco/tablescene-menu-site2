@@ -61,9 +61,9 @@ export default function OrderServiceReviewContent() {
       <section className="site-gutter border-y border-zinc-200 bg-white py-16">
         <div className="mx-auto max-w-[var(--site-content-width)]">
           <div className="max-w-3xl">
-            <p className="text-sm font-bold text-zinc-500">준비된 범위</p>
+            <p className="text-copy font-medium text-zinc-500">준비된 범위</p>
             <h2 className="type-section-title mt-2">검증 중인 주문 운영 기능</h2>
-            <p className="mt-4 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+            <p className="mt-4 break-keep text-copy font-semibold leading-relaxed text-zinc-500">
               아래 항목은 개발·QA 중인 기능입니다. 매장별 설정, 실제 계정 권한과 운영 데이터에 대한 최종 검증이 끝난 뒤 정식 제공 범위를 확정합니다.
             </p>
           </div>
@@ -72,7 +72,7 @@ export default function OrderServiceReviewContent() {
               <article key={title} className="rounded-3xl border border-zinc-200 bg-zinc-50 p-7">
                 <Icon className="h-6 w-6" aria-hidden="true" />
                 <h3 className="type-content-title mt-5">{title}</h3>
-                <p className="mt-3 break-keep text-sm font-semibold leading-relaxed text-zinc-600">{description}</p>
+                <p className="mt-3 break-keep text-copy font-semibold leading-relaxed text-zinc-600">{description}</p>
               </article>
             ))}
           </div>
@@ -82,10 +82,10 @@ export default function OrderServiceReviewContent() {
       <section className="site-gutter py-16 md:py-20">
         <div className="mx-auto grid max-w-[var(--site-content-width)] gap-8 rounded-[2rem] bg-zinc-950 p-8 text-white md:grid-cols-[1fr_1.2fr] md:p-12">
           <div>
-            <p className="text-sm font-bold text-zinc-400">정식 제공 전 필수 단계</p>
+            <p className="text-copy font-medium text-zinc-400">정식 제공 전 필수 단계</p>
             <h2 className="type-section-title mt-3">결제·정산은 계약 후 별도 출시합니다</h2>
           </div>
-          <ul className="space-y-4 text-sm font-semibold leading-relaxed text-zinc-300">
+          <ul className="space-y-4 text-copy font-semibold leading-relaxed text-zinc-300">
             {[
               "PG사 전자결제 계약과 중개 플랫폼 심사",
               "KG이니시스 신버전 AML 지급대행 특약 및 음식점 온보딩 기준 확정",

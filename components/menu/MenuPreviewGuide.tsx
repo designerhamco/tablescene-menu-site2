@@ -42,7 +42,7 @@ function GuideDeviceSelector({ device }: { device: MenuPreviewDevice }) {
         return (
           <div
             key={candidate}
-            className={`flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-bold ${
+            className={`flex items-center gap-2 rounded-xl px-3 py-2 text-copy font-medium ${
               isSelected ? "bg-white text-zinc-950" : "text-white/75"
             }`}
           >
@@ -82,7 +82,7 @@ function BrowserZoomGuide() {
           <MoreVertical className="h-4 w-4" />
         </div>
       </div>
-      <div className="space-y-1 p-3 text-xs font-semibold text-zinc-600">
+      <div className="space-y-1 p-3 text-support font-semibold text-zinc-600">
         <div className="rounded-lg px-3 py-2">새 탭</div>
         <div className="rounded-lg px-3 py-2">다운로드</div>
         <div className="rounded-lg border-2 border-[#42E6C4] bg-[#42E6C4]/10 px-3 py-2 text-zinc-950 ring-2 ring-[#42E6C4]/15">
@@ -112,7 +112,7 @@ function GuideCallout({
   className?: string;
 }) {
   return (
-    <div className={`relative rounded-[1.5rem] border border-zinc-200 bg-white px-6 py-5 text-center text-base font-bold leading-relaxed tracking-[-0.025em] text-zinc-950 shadow-[0_14px_45px_rgba(0,0,0,0.18)] ${className}`}>
+    <div className={`relative rounded-[1.5rem] border border-zinc-200 bg-white px-6 py-5 text-center text-copy font-medium leading-relaxed tracking-[-0.025em] text-zinc-950 shadow-[0_14px_45px_rgba(0,0,0,0.18)] ${className}`}>
       <span
         aria-hidden="true"
         className={pointer === "top"
@@ -190,7 +190,7 @@ export default function MenuPreviewGuide({ device = "tablet", variant = "device"
             </div>
             <GuideCallout pointer="top" className="absolute left-1/2 top-[7.75rem] w-[27rem] -translate-x-1/2">
               태블릿·PC·모바일 버튼을 눌러<br />기기별 메뉴판을 확인할 수 있어요.
-              <span className="mt-2 block text-sm font-semibold text-zinc-500">
+              <span className="mt-2 block text-copy font-semibold text-zinc-500">
                 실제 배치는 기기에 따라 달라질 수 있으니,<br />사용할 기기에서 최종 확인해 주세요.
               </span>
             </GuideCallout>
@@ -204,7 +204,7 @@ export default function MenuPreviewGuide({ device = "tablet", variant = "device"
           <GuideCallout pointer="right">
             브라우저의 더보기(···)에서<br />확대·축소로 비율을 조절해 보세요.
             {!isDisplayGuide ? (
-              <span className="mt-2 block text-sm font-semibold text-zinc-500">
+              <span className="mt-2 block text-copy font-semibold text-zinc-500">
                 * ‘새 창에서 보기’로 연 화면에서 확대·축소해 주세요.
               </span>
             ) : null}
@@ -220,7 +220,7 @@ export default function MenuPreviewGuide({ device = "tablet", variant = "device"
             </div>
             <GuideCallout pointer="top" className="mx-auto mt-5 max-w-md">
               태블릿·PC·모바일 버튼을 눌러<br className="hidden sm:block" /> 기기별 메뉴판을 확인할 수 있어요.
-              <span className="mt-2 block text-sm font-semibold text-zinc-500">
+              <span className="mt-2 block text-copy font-semibold text-zinc-500">
                 실제 배치는 기기에 따라 달라질 수 있으니,<br className="hidden sm:block" /> 사용할 기기에서 최종 확인해 주세요.
               </span>
             </GuideCallout>
@@ -232,7 +232,7 @@ export default function MenuPreviewGuide({ device = "tablet", variant = "device"
         <GuideCallout pointer="top" className="mx-auto mt-5 max-w-md">
           브라우저의 더보기(···)에서<br className="hidden sm:block" /> 확대·축소로 비율을 조절해 보세요.
           {!isDisplayGuide ? (
-            <span className="mt-2 block text-sm font-semibold text-zinc-500">
+            <span className="mt-2 block text-copy font-semibold text-zinc-500">
               * ‘새 창에서 보기’로 연 화면에서 확대·축소해 주세요.
             </span>
           ) : null}
@@ -241,7 +241,7 @@ export default function MenuPreviewGuide({ device = "tablet", variant = "device"
 
       <div className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-zinc-950/85 via-zinc-950/65 to-transparent px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-12">
         <div className="flex w-full max-w-md flex-col gap-2 sm:flex-row sm:items-center sm:justify-center">
-          <label className="inline-flex cursor-pointer items-center justify-center gap-2 px-2 py-3 text-sm font-bold text-white">
+          <label className="inline-flex cursor-pointer items-center justify-center gap-2 px-2 py-3 text-copy font-medium text-white">
             <input
               type="checkbox"
               checked={hideTodayChecked}

@@ -52,13 +52,13 @@ export default async function SignInPage({
             </div>
 
             {notice && (
-              <div className="site-notice site-notice-success mb-6 px-4 py-3 text-sm font-medium">
+              <div className="site-notice site-notice-success mb-6 px-4 py-3 text-copy font-medium">
                 {notice}
               </div>
             )}
 
             {errorMessage && (
-              <div className="site-notice site-notice-error mb-6 px-4 py-3 text-sm font-medium">
+              <div className="site-notice site-notice-error mb-6 px-4 py-3 text-copy font-medium">
                 {errorMessage}
               </div>
             )}
@@ -70,13 +70,13 @@ export default async function SignInPage({
                 <label htmlFor="email" className="type-label mb-2 block">
                   이메일
                 </label>
-                <input
+                <input data-field-size="md"
                   id="email"
                   name="email"
                   type="email"
                   required
                   autoComplete="email"
-                  className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-base outline-none transition-colors focus:border-zinc-950"
+                  className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-copy outline-none transition-colors focus:border-zinc-950"
                   placeholder="owner@example.com"
                 />
               </div>
@@ -85,13 +85,13 @@ export default async function SignInPage({
                 <label htmlFor="password" className="type-label mb-2 block">
                   비밀번호
                 </label>
-                <input
+                <input data-field-size="md"
                   id="password"
                   name="password"
                   type="password"
                   required
                   autoComplete="current-password"
-                  className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-base outline-none transition-colors focus:border-zinc-950"
+                  className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-copy outline-none transition-colors focus:border-zinc-950"
                   placeholder="비밀번호"
                 />
               </div>
@@ -106,7 +106,7 @@ export default async function SignInPage({
 
             <OAuthButtons next={safeNext} buttonLabel="카카오로 로그인" />
 
-            <div className="mt-5 flex flex-col items-center justify-center gap-2 text-sm font-semibold text-zinc-500 sm:flex-row sm:gap-3">
+            <div className="mt-5 flex flex-col items-center justify-center gap-2 text-copy font-semibold text-zinc-500 sm:flex-row sm:gap-3">
               <Link href="/forgot-password" className="hover:text-zinc-950 hover:underline">
                 비밀번호를 잊으셨나요?
               </Link>
@@ -116,7 +116,7 @@ export default async function SignInPage({
               </Link>
             </div>
 
-            <p className="mt-6 text-center text-sm font-medium text-zinc-500">
+            <p className="mt-6 text-center text-copy font-medium text-zinc-500">
               계정이 없나요?{" "}
               <Link
                 href={`/sign-up?next=${encodeURIComponent(safeNext)}`}

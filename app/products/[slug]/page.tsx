@@ -49,7 +49,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       <OfficialSiteNavbar />
       <main className="site-gutter min-h-screen bg-white py-14 text-zinc-950 md:py-20">
         <article className="mx-auto max-w-5xl">
-          <Link href="/pricing" className="text-sm font-bold text-zinc-500 transition hover:text-zinc-950">
+          <Link href="/pricing" className="text-copy font-medium text-zinc-500 transition hover:text-zinc-950">
             ← 요금제 안내
           </Link>
 
@@ -64,12 +64,12 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               </p>
             </div>
             <div className="rounded-3xl bg-zinc-950 p-6 text-white">
-              <p className="text-sm font-bold text-zinc-400">오픈 얼리버드 · 부가세 포함</p>
+              <p className="text-copy font-medium text-zinc-400">오픈 얼리버드 · 부가세 포함</p>
               <p className="mt-2 text-3xl font-bold">{formatProductPrice(product.price)}</p>
-              <p className="mt-2 text-sm font-semibold text-zinc-400">
+              <p className="mt-2 text-copy font-semibold text-zinc-400">
                 정상가 월 {formatProductPrice(product.regularPrice)} · {product.billingLabel}
               </p>
-              <p className="mt-3 text-sm font-semibold text-zinc-400">디자인 포함 월 {formatProductPrice(product.designPrice)} · 정상가 {formatProductPrice(product.designRegularPrice)}</p>
+              <p className="mt-3 text-copy font-semibold text-zinc-400">디자인 포함 월 {formatProductPrice(product.designPrice)} · 정상가 {formatProductPrice(product.designRegularPrice)}</p>
               <Link
                 href={purchaseHref}
                 className="site-button site-button-secondary mt-6 inline-flex w-full items-center justify-center"
@@ -82,7 +82,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           <div className="mt-8 grid gap-6 md:grid-cols-2">
             <section className="site-section p-7">
               <h2 className="type-content-title">상품·제공 정보</h2>
-              <dl className="mt-6 space-y-5 text-sm">
+              <dl className="mt-6 space-y-5 text-copy">
                 {[
                   ["서비스 형태", "온라인 디지털 메뉴판 서비스(실물 배송 없음)"],
                   ["이용기간", product.servicePeriod],
@@ -100,14 +100,14 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
             <section className="site-section p-7">
               <h2 className="type-content-title">포함 기능</h2>
-              <ul className="mt-6 space-y-3 text-sm font-semibold leading-relaxed text-zinc-600">
+              <ul className="mt-6 space-y-3 text-copy font-semibold leading-relaxed text-zinc-600">
                 <li>• {product.productKey === "business_basic_single_monthly" ? "베이직" : "다이닝"} 메뉴판 1개 생성 및 관리</li>
                 <li>• {getDiningTierLabel(templateTier)} 기본 디자인 선택 및 교체</li>
                 <li>• 메뉴·가격·이미지·매장 정보 편집</li>
                 <li>• 공개 URL과 QR 코드 제공</li>
                 <li>• 모바일·태블릿·PC 반응형 메뉴판</li>
               </ul>
-              <p className="mt-6 rounded-2xl bg-zinc-50 p-4 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+              <p className="mt-6 rounded-2xl bg-zinc-50 p-4 break-keep text-support font-medium leading-relaxed text-zinc-500">
                 메뉴판 1개당 월 구독 1건이 적용됩니다. 같은 서비스 안에서 선택한 이용권에 포함된 디자인을 교체할 수 있습니다.
               </p>
             </section>
@@ -115,12 +115,12 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
 
           <section className="site-section mt-6 p-7 md:p-9">
             <h2 className="type-content-title">구독 해지·청약철회·환불 안내</h2>
-            <ul className="mt-5 space-y-3 break-keep text-sm font-semibold leading-relaxed text-zinc-600">
+            <ul className="mt-5 space-y-3 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
               {product.cancellation.map((item) => (
                 <li key={item}>• {item}</li>
               ))}
             </ul>
-            <p className="mt-5 text-xs font-bold leading-relaxed text-zinc-500">
+            <p className="mt-5 text-support font-medium leading-relaxed text-zinc-500">
               자세한 기준은 <Link href="/terms" className="underline underline-offset-2">이용약관</Link>을 확인해주세요. 환불 문의: admin@dndcommerce.co.kr / 010-3646-0642
             </p>
           </section>

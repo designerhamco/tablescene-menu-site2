@@ -168,7 +168,7 @@ export function InquirySection({
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <h2 className="type-section-title">문의 및 답변</h2>
-            <p className="type-body-sm mt-3 break-keep text-zinc-500">
+            <p className="type-body-sm mt-3 break-keep text-zinc-600">
               고객지원 문의와 답변 내역을 확인하고 새 문의를 남길 수 있습니다.
             </p>
           </div>
@@ -258,7 +258,7 @@ export function InquirySection({
           <div>
             <h3 className="type-subsection-title">내 문의 목록</h3>
           </div>
-          <p className="type-label text-zinc-400">
+          <p className="type-label text-zinc-600">
             {activeInquiryPage}/{inquiryTotalPages} 페이지 · 총 {inquiryTotalCount.toLocaleString("ko-KR")}개
           </p>
         </div>
@@ -269,7 +269,7 @@ export function InquirySection({
           ))}
           <div>
             <label htmlFor="inquiry-query" className="type-label mb-2 block text-zinc-700">제목 검색</label>
-            <input
+            <input data-field-size="sm"
               id="inquiry-query"
               name="inquiryQuery"
               type="search"
@@ -280,7 +280,7 @@ export function InquirySection({
           </div>
           <div>
             <label htmlFor="inquiry-status" className="type-label mb-2 block text-zinc-700">답변 상태</label>
-            <select id="inquiry-status" name="inquiryStatus" defaultValue={inquiryStatus} className="site-field w-full">
+            <select data-field-size="sm" id="inquiry-status" name="inquiryStatus" defaultValue={inquiryStatus} className="site-field w-full">
               <option value="all">전체</option>
               <option value="open">접수됨</option>
               <option value="answered">답변 완료</option>
@@ -297,7 +297,7 @@ export function InquirySection({
 
         {inquiries.length > 0 ? (
           <div className="site-record-list overflow-hidden">
-            <div className="type-caption hidden grid-cols-[56px_112px_1fr_96px_144px_52px] gap-3 border-b border-zinc-100 bg-zinc-50 px-4 py-3 font-bold text-zinc-400 md:grid">
+            <div className="type-caption hidden grid-cols-[56px_112px_1fr_96px_144px_52px] gap-3 border-b border-zinc-100 bg-zinc-50 px-4 py-3 font-bold text-zinc-600 md:grid">
               <p>번호</p>
               <p>유형</p>
               <p>제목</p>
@@ -308,8 +308,8 @@ export function InquirySection({
             <div className="divide-y divide-zinc-100">
               {inquiries.map((inquiry, index) => (
                 <details key={inquiry.id} className="group">
-                  <summary className="grid cursor-pointer list-none gap-3 px-4 py-4 text-sm transition-colors hover:bg-zinc-50 focus:outline-none focus-visible:bg-zinc-50 md:grid-cols-[56px_112px_1fr_96px_144px_52px] md:items-center">
-                    <p className="text-xs font-bold text-zinc-400">#{inquiryFrom + index + 1}</p>
+                  <summary className="grid cursor-pointer list-none gap-3 px-4 py-4 text-copy transition-colors hover:bg-zinc-50 focus:outline-none focus-visible:bg-zinc-50 md:grid-cols-[56px_112px_1fr_96px_144px_52px] md:items-center">
+                    <p className="text-support font-medium text-zinc-600">#{inquiryFrom + index + 1}</p>
                     <Badge>
                       {getInquiryCategoryLabel(inquiry.category)}
                     </Badge>
@@ -317,15 +317,15 @@ export function InquirySection({
                     <Badge>
                       {getStatusLabel(inquiry.status)}
                     </Badge>
-                    <p className="text-xs font-bold text-zinc-400">{formatDate(inquiry.created_at)}</p>
-                    <div className="text-xs font-bold text-zinc-400 md:text-right">
+                    <p className="text-support font-medium text-zinc-600">{formatDate(inquiry.created_at)}</p>
+                    <div className="text-support font-medium text-zinc-600 md:text-right">
                       <span className="group-open:hidden">열기</span>
                       <span className="hidden group-open:inline">닫기</span>
                     </div>
                   </summary>
 
                   <div className="border-t border-zinc-100 bg-zinc-50 p-4 md:p-5">
-                    <div className="mb-3 grid gap-2 text-xs font-bold text-zinc-400 md:grid-cols-3">
+                    <div className="mb-3 grid gap-2 text-support font-medium text-zinc-600 md:grid-cols-3">
                       <p>유형 {getInquiryCategoryLabel(inquiry.category)}</p>
                       <p>작성일 {formatDate(inquiry.created_at)}</p>
                       <p>수정일 {formatDate(inquiry.updated_at)}</p>
@@ -338,8 +338,8 @@ export function InquirySection({
                     {inquiry.admin_reply ? (
                       <div className="site-notice site-notice-success mt-3 p-4">
                         <div className="mb-2 flex flex-col justify-between gap-1 md:flex-row md:items-center">
-                          <p className="text-xs font-bold text-emerald-800">관리자 답변</p>
-                          <p className="text-xs font-medium text-emerald-700/70">답변일 {formatDate(inquiry.replied_at)}</p>
+                          <p className="text-support font-medium text-emerald-800">관리자 답변</p>
+                          <p className="text-support font-medium text-emerald-700/70">답변일 {formatDate(inquiry.replied_at)}</p>
                         </div>
                         <p className="type-body-sm whitespace-pre-wrap break-keep text-emerald-900">
                           {inquiry.admin_reply}
@@ -347,8 +347,8 @@ export function InquirySection({
                       </div>
                     ) : (
                       <div className="site-supporting-note mt-3">
-                        <p className="text-xs font-bold text-zinc-500">관리자 답변</p>
-                        <p className="type-body-sm mt-2 break-keep text-zinc-500">
+                        <p className="text-support font-medium text-zinc-600">관리자 답변</p>
+                        <p className="type-body-sm mt-2 break-keep text-zinc-600">
                           아직 답변이 등록되지 않았습니다.
                         </p>
                       </div>
@@ -358,7 +358,7 @@ export function InquirySection({
                       <div className="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-center">
                         <div>
                           <p className="type-label text-zinc-900">문의 관리</p>
-                          <p className="type-caption mt-1 text-zinc-400">수정하거나 더 이상 필요 없는 문의를 삭제할 수 있습니다.</p>
+                          <p className="type-caption mt-1 text-zinc-600">수정하거나 더 이상 필요 없는 문의를 삭제할 수 있습니다.</p>
                         </div>
                         <form action={deleteInquiryAction}>
                           <input type="hidden" name="returnTo" value={returnToPath} />
@@ -451,7 +451,7 @@ export function InquirySection({
                   이전
                 </button>
               )}
-              <span className="text-sm font-bold text-zinc-500">
+              <span className="text-copy font-medium text-zinc-600">
                 {activeInquiryPage}/{inquiryTotalPages}
               </span>
               {activeInquiryPage < inquiryTotalPages ? (

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { motion } from 'motion/react';
 import { Smartphone, ChefHat, Bell, Utensils, User, Store, MessageSquare, BadgePercent } from 'lucide-react';
 
@@ -135,7 +135,7 @@ const ManagementWorkflow = () => {
   );
 };
 
-const TimelineItem = ({ step, index, isEven }: { step: any, index: number, isEven: boolean }) => {
+const TimelineItem = ({ step, index, isEven }: { step: (typeof FLOW_STEPS)[number], index: number, isEven: boolean }) => {
   const stepNumber = index + 1;
   const formattedStep = stepNumber < 10 ? `0${stepNumber}` : stepNumber;
   
@@ -163,14 +163,14 @@ const TimelineItem = ({ step, index, isEven }: { step: any, index: number, isEve
              {formattedStep}
            </span>
            <div className="w-1 h-1 rounded-full bg-zinc-200" />
-           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-zinc-100 text-zinc-500 text-xs font-bold uppercase tracking-wider shadow-sm">
+           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-zinc-100 text-zinc-500 text-support font-medium uppercase tracking-wider shadow-sm">
              <step.roleIcon size={12} />
              {step.roleLabel}
            </div>
         </div>
         
         <h3 className="type-subsection-title mb-4 text-zinc-900">{step.title}</h3>
-        <p className="text-base md:text-lg text-zinc-500 leading-relaxed font-medium">
+        <p className="text-copy md:text-lg text-zinc-500 leading-relaxed font-medium">
           {step.description}
         </p>
       </motion.div>

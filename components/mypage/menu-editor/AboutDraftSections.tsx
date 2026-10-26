@@ -128,7 +128,7 @@ function eventToDraft(event: MenuEvent): EventDraft {
 
 function FieldLabel({ children, required = false }: { children: ReactNode; required?: boolean }) {
   return (
-    <label className="text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">
+    <label className="text-support font-medium uppercase text-zinc-600">
       {children}
       {required && <span className="ml-1 text-red-500">*</span>}
     </label>
@@ -137,7 +137,7 @@ function FieldLabel({ children, required = false }: { children: ReactNode; requi
 
 function FieldHint({ children }: { children?: ReactNode }) {
   if (!children) return null;
-  return <p className="mt-2 break-keep text-xs font-bold leading-relaxed text-zinc-400">{children}</p>;
+  return <p className="mt-2 break-keep text-support font-medium leading-relaxed text-zinc-600">{children}</p>;
 }
 
 function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTMLInputElement> & { helperText?: ReactNode }) {
@@ -145,7 +145,7 @@ function TextInput({ helperText, className, ...props }: InputHTMLAttributes<HTML
     <>
       <input
         {...props}
-        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
+        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
@@ -159,7 +159,7 @@ function TextArea({ helperText, className, ...props }: TextareaHTMLAttributes<HT
     <>
       <textarea
         {...props}
-        className={`site-field mt-2 min-h-24 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
+        className={`site-field mt-2 min-h-24 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
@@ -173,7 +173,7 @@ function Select({ helperText, className, ...props }: SelectHTMLAttributes<HTMLSe
     <>
       <select
         {...props}
-        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
+        className={`site-field mt-2 w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition invalid:border-red-200 focus:border-zinc-950 invalid:focus:border-red-500 ${
           className ?? ""
         }`}
       />
@@ -194,7 +194,7 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
 function EmptyState({ message, buttonLabel, onClick, disabled }: { message: string; buttonLabel: string; onClick: () => void; disabled?: boolean }) {
   return (
     <div className="site-section site-editor-subpanel p-6 text-center">
-      <p className="break-keep text-sm font-bold text-zinc-400">{message}</p>
+      <p className="break-keep text-copy font-medium text-zinc-600">{message}</p>
       <button
         type="button"
         onClick={onClick}
@@ -332,7 +332,7 @@ export default function AboutDraftSections({
           <input type="hidden" name="include_social_links" value="on" />
           <input type="hidden" name="about_social_links_draft" value={JSON.stringify(socialDrafts)} />
           <SectionCard title="SNS 링크">
-            <p className="mb-5 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+            <p className="mb-5 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
               SNS 링크는 소개 탭의 저장을 눌렀을 때 반영됩니다. 최대 {MENU_LIMITS.maxSocialLinksPerSite}개까지 등록할 수 있습니다.
             </p>
             {visibleSocialDrafts.length === 0 ? (
@@ -486,7 +486,7 @@ export default function AboutDraftSections({
                         onChange={(event) => updateChef(chef.draftId, { chef_description: event.target.value })}
                       />
                     </div>
-                    <div className="site-section site-editor-subpanel p-4 text-sm font-bold leading-relaxed text-zinc-400">
+                    <div className="site-section site-editor-subpanel p-4 text-copy font-medium leading-relaxed text-zinc-600">
                       이미지: {chef.chef_image_url ? "기존 이미지 유지" : "없음"}
                       <br />
                       이미지 업로드 draft화는 후속 작업에서 처리합니다.
@@ -585,7 +585,7 @@ export function EventDraftSections({ events, showEvents }: EventDraftSectionsPro
       <input type="hidden" name="include_events" value="on" />
       <input type="hidden" name="events_draft" value={JSON.stringify(eventDrafts)} />
       <SectionCard title="이벤트 목록 관리">
-        <p className="mb-5 break-keep text-sm font-semibold leading-relaxed text-zinc-500">
+        <p className="mb-5 break-keep text-copy font-semibold leading-relaxed text-zinc-600">
           이벤트 추가, 수정, 삭제는 이벤트 탭의 저장을 눌렀을 때 반영됩니다. 최대 {MENU_LIMITS.maxEventsPerSite}개까지 등록할 수 있습니다.
         </p>
         {visibleEventDrafts.length === 0 ? (
@@ -639,7 +639,7 @@ export function EventDraftSections({ events, showEvents }: EventDraftSectionsPro
                       onChange={(inputEvent) => updateEvent(event.draftId, { event_period: inputEvent.target.value })}
                     />
                   </div>
-                  <div className="site-section site-editor-subpanel p-4 text-sm font-bold leading-relaxed text-zinc-400">
+                  <div className="site-section site-editor-subpanel p-4 text-copy font-medium leading-relaxed text-zinc-600">
                     이미지: {event.event_image_url ? "기존 이미지 유지" : "없음"}
                     <br />
                     이미지 업로드 draft화는 후속 작업에서 처리합니다.

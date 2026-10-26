@@ -16,7 +16,7 @@ import { LayoutGrid } from "lucide-react";
 function ActionNotice({ state }: { state: MenuTableActionState }) {
   if (state.status === "idle" || !state.message) return null;
   return (
-    <p className={`site-notice   px-4 py-3 text-sm font-bold ${
+    <p className={`site-notice   px-4 py-3 text-copy font-medium ${
       state.status === "success"
         ? "site-notice-success"
         : "site-notice-error"
@@ -57,9 +57,9 @@ export default function MenuTableManager({
       <ActionNotice state={mutationState} />
 
       <section className="site-section p-6">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">대표 메뉴 QR</p>
+        <p className="text-support font-medium uppercase tracking-[0.16em] text-emerald-700">대표 메뉴 QR</p>
         <h2 className="type-subsection-title mt-2">테이블 정보 없이 메뉴판 공유</h2>
-        <p className="mt-2 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
+        <p className="mt-2 max-w-3xl break-keep text-copy font-medium leading-relaxed text-zinc-500">
           매장 입구·포스터·SNS에 사용하는 대표 QR입니다. 메뉴는 볼 수 있지만 테이블 번호가 없어 스마트호출은 사용할 수 없습니다.
         </p>
         <QrAddressActions
@@ -72,14 +72,14 @@ export default function MenuTableManager({
       </section>
 
       <section className="site-section p-6">
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-700">테이블별 QR</p>
+        <p className="text-support font-medium uppercase tracking-[0.16em] text-emerald-700">테이블별 QR</p>
         <h2 className="type-subsection-title mt-2">새 테이블 추가</h2>
-        <p className="mt-2 max-w-3xl break-keep text-sm font-medium leading-relaxed text-zinc-500">
+        <p className="mt-2 max-w-3xl break-keep text-copy font-medium leading-relaxed text-zinc-500">
           각 좌석에는 서로 다른 QR이 필요합니다. 테이블 이름을 바꿔도 QR은 유지되며, QR 교체를 선택한 경우에만 기존 인쇄물이 무효화됩니다.
         </p>
         <form action={createAction} className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end">
           <input type="hidden" name="menuSiteId" value={menuSiteId} />
-          <label className="flex-1 text-sm font-bold text-zinc-800">
+          <label className="flex-1 text-copy font-medium text-zinc-800">
             테이블 이름
             <input
               name="label"
@@ -102,7 +102,7 @@ export default function MenuTableManager({
       <section className="space-y-4">
         <div>
           <h2 className="type-subsection-title">운영 테이블</h2>
-          <p className="mt-2 text-sm font-medium text-zinc-500">
+          <p className="mt-2 text-copy font-medium text-zinc-500">
             사용 중·비활성 테이블 {tables.length.toLocaleString("ko-KR")}개 · 각 QR은 언제든 다시 다운로드할 수 있습니다.
           </p>
         </div>
@@ -114,7 +114,7 @@ export default function MenuTableManager({
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
               <div>
                 <h3 className="type-content-title">{table.label}</h3>
-                <p className="mt-1 text-xs font-bold text-zinc-400">
+                <p className="mt-1 text-support font-medium text-zinc-400">
                   마지막 QR 교체 {formatKoreanDateTime(table.tokenRotatedAt)}
                 </p>
               </div>
@@ -132,15 +132,15 @@ export default function MenuTableManager({
             />
 
             <a className="site-button site-button-rounded site-button-secondary mt-4" href={table.qrPath+"?mode=terminal"} target="_blank" rel="noopener noreferrer">매장 PC·태블릿에서 열기</a>
-            <p className="mt-2 text-sm text-zinc-500">손님용 QR은 모바일 화면으로 열리고, 이 주소는 기기 크기에 맞춰 후불 주문만 사용합니다.</p>
+            <p className="mt-2 text-copy text-zinc-500">손님용 QR은 모바일 화면으로 열리고, 이 주소는 기기 크기에 맞춰 후불 주문만 사용합니다.</p>
             <form action={mutationAction} className="mt-5 grid gap-3 border-t border-zinc-100 pt-5 sm:grid-cols-[minmax(0,1fr)_160px_auto] sm:items-end">
               <input type="hidden" name="menuSiteId" value={menuSiteId} />
               <input type="hidden" name="tableId" value={table.id} />
-              <label className="text-sm font-bold text-zinc-800">
+              <label className="text-copy font-medium text-zinc-800">
                 이름
                 <input name="label" required maxLength={80} defaultValue={table.label} className="site-field mt-2 w-full border-zinc-200 px-4 py-3" />
               </label>
-              <label className="text-sm font-bold text-zinc-800">
+              <label className="text-copy font-medium text-zinc-800">
                 상태
                 <select name="status" defaultValue={table.status} className="site-field mt-2 w-full border-zinc-200 px-4 py-3">
                   <option value="active">사용 중</option>

@@ -104,8 +104,8 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
           <FilterPanel>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-bold text-zinc-900">처리할 호출 {unresolvedCount.toLocaleString("ko-KR")}건 · 최근 이력 {calls.length.toLocaleString("ko-KR")}건</p>
-                <p className="mt-1 text-xs font-bold text-zinc-500">최신 호출부터 표시하며 15초마다 자동으로 갱신합니다.</p>
+                <p className="text-copy font-medium text-zinc-900">처리할 호출 {unresolvedCount.toLocaleString("ko-KR")}건 · 최근 이력 {calls.length.toLocaleString("ko-KR")}건</p>
+                <p className="mt-1 text-support font-medium text-zinc-500">최신 호출부터 표시하며 15초마다 자동으로 갱신합니다.</p>
               </div>
               <button type="button" onClick={() => router.refresh()} className="site-button site-button-rounded site-button-secondary">지금 새로고침</button>
             </div>
@@ -132,7 +132,7 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
             </div>
           </FilterPanel>
 
-          {state.status !== "idle" && state.message ? <p className={`site-notice   px-4 py-3 text-sm font-bold ${state.status === "success" ? "site-notice-success" : "site-notice-error"}`}>{state.message}</p> : null}
+          {state.status !== "idle" && state.message ? <p className={`site-notice   px-4 py-3 text-copy font-medium ${state.status === "success" ? "site-notice-success" : "site-notice-error"}`}>{state.message}</p> : null}
 
           {calls.length === 0 ? (
             <EmptyState headingLevel={3} icon={<Bell />} title="아직 접수된 직원 호출이 없습니다." description="호출이 접수되면 이곳에 표시됩니다." />
@@ -147,8 +147,8 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
                     <Badge>{call.tableLabel}</Badge>
                     <Badge>{STATUS_LABELS[call.status] ?? call.status}</Badge>
                   </div>
-                  <p className="mt-2 text-xs font-bold text-zinc-400">호출 #{call.callNumber} · 접수 {formatKoreanDateTime(call.createdAt)}</p>
-                  <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs font-semibold text-zinc-600">
+                  <p className="mt-2 text-support font-medium text-zinc-400">호출 #{call.callNumber} · 접수 {formatKoreanDateTime(call.createdAt)}</p>
+                  <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-support font-semibold text-zinc-600">
                     {call.acknowledgedAt ? <span>확인 {call.acknowledgedByLabel ?? "직원"} · {formatKoreanDateTime(call.acknowledgedAt)}</span> : null}
                     {call.completedAt ? <span>완료 {call.completedByLabel ?? "직원"} · {formatKoreanDateTime(call.completedAt)}</span> : null}
                   </div>

@@ -73,7 +73,7 @@
   background: #f1f2f4;
   color: #4b515b;
   padding: 0.7rem 1.1rem;
-  font-size: 0.875rem;
+  font-size: var(--type-body-sm-size);
   line-height: 1.5;
   text-align: center;
 }
@@ -109,7 +109,7 @@
   color: #b4b8c1;
 }
 .featureNumber {
-  font-size: 0.875rem;
+  font-size: var(--type-body-sm-size);
   color: #a6aab1;
 }
 .visual {
@@ -568,11 +568,11 @@
   line-height: 1.1;
 }
 .planPrice small {
-  font-size: 0.875rem;
+  font-size: var(--type-body-sm-size);
   font-weight: 400;
 }
 .priceNote {
-  font-size: 0.75rem;
+  font-size: var(--type-body-sm-size);
   color: #626873;
   margin-bottom: auto;
   padding-bottom: 1rem;
@@ -586,7 +586,7 @@
   border-radius: 2rem;
   background: #e5e7eb;
   color: #616772;
-  font-size: 0.875rem;
+  font-size: var(--type-body-sm-size);
 }
 .guideGrid {
   display: grid;
@@ -692,7 +692,7 @@
   background: #f8f9fb;
   border-radius: 0.4rem;
   color: #4b515b;
-  font-size: 0.875rem;
+  font-size: var(--type-body-sm-size);
   line-height: 1.7;
 }
 .mobileBreak {

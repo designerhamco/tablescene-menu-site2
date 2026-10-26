@@ -105,7 +105,7 @@ const Features = () => {
                       <div className="absolute inset-0 bg-black/10" />
                     </div>
 
-                    <p className="text-zinc-400 text-base md:text-lg leading-relaxed mb-6 font-medium">
+                    <p className="text-zinc-400 text-copy md:text-lg leading-relaxed mb-6 font-medium">
                       {feature.description}
                     </p>
                     <div className="flex gap-2">

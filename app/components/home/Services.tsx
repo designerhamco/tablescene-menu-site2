@@ -93,7 +93,7 @@ const ServiceOverview = () => {
                 <h3 className="type-content-title mb-3 text-zinc-950 md:mb-4">
                   {item.title}
                 </h3>
-                <p className="break-keep whitespace-pre-line text-sm font-medium leading-relaxed text-zinc-500 md:text-base">
+                <p className="break-keep whitespace-pre-line text-copy font-medium leading-relaxed text-zinc-500 md:text-copy">
                   {item.description}
                 </p>
               </motion.div>

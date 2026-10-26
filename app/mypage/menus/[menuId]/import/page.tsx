@@ -112,9 +112,9 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
         <div className="mx-auto w-full max-w-5xl">
           <div className="mb-8 flex flex-col justify-between gap-5 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
-              <p className="text-sm font-bold text-zinc-500">공통 메뉴</p>
+              <p className="text-copy font-medium text-zinc-500">공통 메뉴</p>
               <h1 className="type-page-title mt-2">기존 메뉴판에서 가져오기</h1>
-              <p className="mt-4 max-w-2xl break-keep text-base leading-7 text-zinc-600">
+              <p className="mt-4 max-w-2xl break-keep text-copy leading-7 text-zinc-600">
                 다른 메뉴판의 페이지·카테고리·메뉴를 가져옵니다. 연결 모드를 선택하면 메뉴 내용은 함께 관리하고 화면 배치는 각각 구성할 수 있습니다.
               </p>
             </div>
@@ -140,9 +140,9 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
           <section className="site-card mb-6 p-5 sm:p-7">
             <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
               <div>
-                <p className="text-xs font-bold text-zinc-400">가져올 대상</p>
+                <p className="text-support font-medium text-zinc-400">가져올 대상</p>
                 <h2 className="type-subsection-title mt-2">{targetMenuSite.name}</h2>
-                <p className="mt-2 text-sm font-semibold text-zinc-500">
+                <p className="mt-2 text-copy font-semibold text-zinc-500">
                   {getMenuDesignDisplayName(targetMenuSite.template_key, null, targetMenuSite.settings)} · {getStatusLabel(targetMenuSite.status)}
                 </p>
               </div>
@@ -151,7 +151,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
               </Badge>
             </div>
             {!canImport ? (
-              <p className="site-notice site-notice-warning mt-5 p-4 text-sm font-semibold leading-6">
+              <p className="site-notice site-notice-warning mt-5 p-4 text-copy font-semibold leading-6">
                 공개 중인 메뉴판을 자동으로 덮어쓰지 않습니다. 새 작성중 메뉴판을 만든 뒤 이 기능을 이용해 주세요.
               </p>
             ) : null}
@@ -160,13 +160,13 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
           <div className="mb-6 grid gap-5 md:grid-cols-2">
             <section className="site-section p-7">
               <h2 className="type-content-title">연결 시 함께 변경</h2>
-              <ul className="mt-5 space-y-3 text-sm font-semibold text-zinc-600">
+              <ul className="mt-5 space-y-3 text-copy font-semibold text-zinc-600">
                 {MENU_CATALOG_LINKED_SHARED_FIELDS.map((field) => <li key={field}>✓ {field}</li>)}
               </ul>
             </section>
             <section className="site-section p-7">
               <h2 className="type-content-title">메뉴판별로 개별 관리</h2>
-              <ul className="mt-5 space-y-3 text-sm font-semibold text-zinc-600">
+              <ul className="mt-5 space-y-3 text-copy font-semibold text-zinc-600">
                 {MENU_CATALOG_MENU_SPECIFIC_FIELDS.map((field) => <li key={field}>• {field}</li>)}
               </ul>
             </section>
@@ -174,16 +174,16 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
 
           {activeLink ? (
             <section className="site-notice site-notice-success p-5 sm:p-7">
-              <p className="text-sm font-bold text-emerald-700">연결된 공통 메뉴</p>
+              <p className="text-copy font-medium text-emerald-700">연결된 공통 메뉴</p>
               <h2 className="type-subsection-title mt-2 text-emerald-950">{linkedSource?.name ?? "원본 메뉴판"}</h2>
-              <p className="mt-3 break-keep text-sm font-semibold leading-6 text-emerald-900">
+              <p className="mt-3 break-keep text-copy font-semibold leading-6 text-emerald-900">
                 카테고리명과 메뉴명·설명·가격·이미지·배지·품절·번역이 연결되어 있습니다. 페이지 배치와 디자인은 현재 메뉴판에서 별도로 관리합니다.
               </p>
-              <p className="mt-2 break-keep text-xs font-semibold leading-5 text-emerald-800">
+              <p className="mt-2 break-keep text-support font-semibold leading-5 text-emerald-800">
                 연결된 메뉴판에서 공통 정보를 편집할 수 있는 직원은 다른 연결 메뉴판의 같은 정보에도 영향을 줄 수 있습니다. 메뉴 추가·삭제는 메뉴판마다 별도입니다.
               </p>
               <form action={disconnectAction} className="mt-6 rounded-2xl bg-white p-5">
-                <label className="block text-sm font-bold text-zinc-800">
+                <label className="block text-copy font-medium text-zinc-800">
                   연결을 끊으려면 <span className="rounded bg-zinc-100 px-2 py-1">{MENU_CATALOG_DISCONNECT_CONFIRMATION}</span> 입력
                   <input
                     type="text"
@@ -204,7 +204,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
           ) : sourceMenuSites.length === 0 ? (
             <section className="site-section p-8 text-center">
               <h2 className="type-subsection-title">가져올 다른 메뉴판이 없습니다</h2>
-              <p className="mt-3 text-sm font-semibold text-zinc-500">같은 계정에 메뉴판이 두 개 이상 있을 때 사용할 수 있습니다.</p>
+              <p className="mt-3 text-copy font-semibold text-zinc-500">같은 계정에 메뉴판이 두 개 이상 있을 때 사용할 수 있습니다.</p>
               <Link href="/apply" className="site-button site-button-rounded site-button-primary mt-6 inline-flex">
                 새 메뉴판 만들기
               </Link>
@@ -219,8 +219,8 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
                       <label key={menuSite.id} className="flex cursor-pointer items-start gap-3 rounded-2xl border border-zinc-200 p-5 transition hover:border-zinc-400">
                         <input type="radio" name="sourceMenuSiteId" value={menuSite.id} required defaultChecked={index === 0} className="mt-1 size-4 accent-zinc-950" />
                         <span>
-                          <span className="block text-base font-bold">{menuSite.name}</span>
-                          <span className="mt-1 block text-xs font-semibold text-zinc-500">
+                          <span className="block text-copy font-medium">{menuSite.name}</span>
+                          <span className="mt-1 block text-support font-semibold text-zinc-500">
                             {getMenuDesignDisplayName(menuSite.template_key, null, menuSite.settings)} · {getStatusLabel(menuSite.status)}
                           </span>
                         </span>
@@ -238,8 +238,8 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
                       <label key={mode} className="flex cursor-pointer items-start gap-3 rounded-2xl border border-zinc-200 p-5 transition hover:border-zinc-400">
                         <input type="radio" name="mode" value={mode} required defaultChecked={index === 0} className="mt-1 size-4 accent-zinc-950" />
                         <span>
-                          <span className="block text-base font-bold">{getMenuCatalogImportModeLabel(mode)}</span>
-                          <span className="mt-2 block break-keep text-sm leading-6 text-zinc-500">{getMenuCatalogImportModeDescription(mode)}</span>
+                          <span className="block text-copy font-medium">{getMenuCatalogImportModeLabel(mode)}</span>
+                          <span className="mt-2 block break-keep text-copy leading-6 text-zinc-500">{getMenuCatalogImportModeDescription(mode)}</span>
                         </span>
                       </label>
                     ))}
@@ -249,10 +249,10 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
 
               <section className="rounded-md bg-amber-50 p-7">
                 <h2 className="type-content-title text-amber-950">3. 대상 내용 교체 확인</h2>
-                <p className="mt-3 break-keep text-sm font-semibold leading-6 text-amber-900">
+                <p className="mt-3 break-keep text-copy font-semibold leading-6 text-amber-900">
                   대상 메뉴판의 현재 페이지·카테고리·메뉴·타임세일·위젯은 제거되고 원본 메뉴 내용으로 교체됩니다. 원본 메뉴판은 삭제하거나 변경하지 않습니다.
                 </p>
-                <label className="mt-5 block text-sm font-bold text-amber-950">
+                <label className="mt-5 block text-copy font-medium text-amber-950">
                   계속하려면 <span className="rounded bg-white px-2 py-1">{MENU_CATALOG_CONFIRMATION}</span> 입력
                   <input
                     type="text"

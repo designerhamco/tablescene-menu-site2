@@ -102,7 +102,7 @@ export function MobileAuthLinks({ onNavigate }: { onNavigate?: () => void }) {
   const authState = useAuthState();
 
   if (authState.loading) {
-    return <p className="rounded-2xl bg-zinc-50 px-4 py-3 text-sm font-bold text-zinc-400">계정 확인 중</p>;
+    return <p className="rounded-2xl bg-zinc-50 px-4 py-3 text-copy font-medium text-zinc-400">계정 확인 중</p>;
   }
 
   if (authState.email) {
@@ -110,7 +110,7 @@ export function MobileAuthLinks({ onNavigate }: { onNavigate?: () => void }) {
       <a
         href="/mypage"
         onClick={onNavigate}
-      className="flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-bold text-white"
+      className="flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-copy font-medium text-white"
     >
       마이페이지
       <User size={18} strokeWidth={2} aria-hidden="true" />
@@ -123,7 +123,7 @@ export function MobileAuthLinks({ onNavigate }: { onNavigate?: () => void }) {
       <a
         href="/sign-in"
         onClick={onNavigate}
-        className="flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-bold text-white"
+        className="flex items-center justify-between rounded-2xl bg-zinc-950 px-4 py-3 text-copy font-medium text-white"
       >
         로그인
         <LogIn size={18} strokeWidth={2} aria-hidden="true" />
@@ -131,7 +131,7 @@ export function MobileAuthLinks({ onNavigate }: { onNavigate?: () => void }) {
       <a
         href="/sign-up"
         onClick={onNavigate}
-        className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-bold text-zinc-800"
+        className="flex items-center justify-between rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-copy font-medium text-zinc-800"
       >
         회원가입
         <UserPlus size={18} strokeWidth={2} aria-hidden="true" />

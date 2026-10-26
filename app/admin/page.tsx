@@ -170,13 +170,13 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
         <main className="site-gutter min-h-screen bg-zinc-950 py-16 text-white">
           <div className="mx-auto flex min-h-[calc(100vh-12rem)] w-full max-w-2xl flex-col justify-center">
             <section className="rounded-3xl border border-white/10 bg-white p-8 text-zinc-950 shadow-2xl">
-            <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-zinc-400">Admin Access</p>
+            <p className="mb-4 text-support font-medium uppercase tracking-[0.3em] text-zinc-400">Admin Access</p>
             <h1 className="type-subsection-title">관리자 권한이 필요합니다</h1>
-            <p className="mt-4 break-keep text-base font-medium leading-relaxed text-zinc-500">
+            <p className="mt-4 break-keep text-copy font-medium leading-relaxed text-zinc-500">
               로그인은 되어 있지만 현재 계정이 `admin_users` 테이블에 등록되어 있지 않아 관리자 페이지를 열 수 없습니다.
             </p>
 
-            <div className="mt-8 rounded-2xl bg-zinc-50 p-5 text-sm font-medium text-zinc-600">
+            <div className="mt-8 rounded-2xl bg-zinc-50 p-5 text-copy font-medium text-zinc-600">
               <p className="mb-2 font-bold text-zinc-950">현재 로그인 계정</p>
               <p>Email: {user.email}</p>
               <p className="break-all">User ID: {user.id}</p>
@@ -300,12 +300,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
       <div className="mx-auto w-full max-w-7xl">
         <header className="mb-12 flex flex-col justify-between gap-6 border-b border-white/10 pb-8 md:flex-row md:items-end">
           <div>
-            <Link href="/" className="mb-6 inline-block text-sm font-bold text-white/50 hover:text-white">
+            <Link href="/" className="mb-6 inline-block text-copy font-medium text-white/50 hover:text-white">
               ArtiMenu
             </Link>
-            <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-[#F8E731]">Admin Dashboard</p>
+            <p className="mb-4 text-support font-medium uppercase tracking-[0.3em] text-[#F8E731]">Admin Dashboard</p>
             <h1 className="type-page-title">운영자 관리자 페이지</h1>
-            <p className="mt-4 break-keep text-base font-medium leading-relaxed text-white/60">
+            <p className="mt-4 break-keep text-copy font-medium leading-relaxed text-white/60">
               전체 메뉴판, 문의, 주문, 결제 현황을 Supabase 데이터로 확인합니다.
             </p>
           </div>
@@ -322,21 +322,21 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
         </header>
 
         {noticeMessage && (
-          <div className="site-notice site-notice-success mb-6 p-5 text-sm">
+          <div className="site-notice site-notice-success mb-6 p-5 text-copy">
             {noticeMessage}
           </div>
         )}
 
         {errorMessage && (
-          <div className="mb-6 rounded-3xl border border-red-400/20 bg-red-400/10 p-5 text-sm font-bold text-red-100">
+          <div className="mb-6 rounded-3xl border border-red-400/20 bg-red-400/10 p-5 text-copy font-medium text-red-100">
             {errorMessage}
           </div>
         )}
 
         <section className="mb-8 rounded-3xl border border-white/10 bg-white/5 p-8">
-          <p className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-white/40">Signed In Admin</p>
+          <p className="mb-2 text-support font-medium uppercase tracking-[0.24em] text-white/40">Signed In Admin</p>
           <h2 className="type-subsection-title">{user.email}</h2>
-          <div className="mt-4 grid gap-2 text-sm font-medium text-white/50 md:grid-cols-2">
+          <div className="mt-4 grid gap-2 text-copy font-medium text-white/50 md:grid-cols-2">
             <p className="break-all">User ID: {user.id}</p>
             <p>Admin memo: {adminUser.memo ?? "none"}</p>
           </div>
@@ -345,9 +345,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
         <section className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {metricCards.map((metric) => (
             <article key={metric.label} className="rounded-3xl border border-white/10 bg-white p-6 text-zinc-950 shadow-2xl shadow-black/10">
-              <p className="mb-3 break-keep text-sm font-bold text-zinc-500">{metric.label}</p>
+              <p className="mb-3 break-keep text-copy font-medium text-zinc-500">{metric.label}</p>
               <p className="text-4xl font-bold tracking-tight">{metric.value.toLocaleString("ko-KR")}</p>
-              {metric.error && <p className="mt-3 break-keep text-xs font-bold leading-relaxed text-red-600">{metric.error}</p>}
+              {metric.error && <p className="mt-3 break-keep text-support font-medium leading-relaxed text-red-600">{metric.error}</p>}
             </article>
           ))}
         </section>
@@ -356,7 +356,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
           <article className="rounded-3xl border border-white/10 bg-white p-7 text-zinc-950 shadow-2xl shadow-black/10">
             <div className="mb-6 flex items-end justify-between gap-4">
               <div>
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Recent Menu Sites</p>
+                <p className="mb-3 text-support font-medium uppercase tracking-[0.24em] text-zinc-400">Recent Menu Sites</p>
                 <h2 className="type-subsection-title">최근 메뉴판</h2>
               </div>
             </div>
@@ -365,8 +365,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
             {recentMenus.length > 0 ? (
               <div className="overflow-x-auto">
-                <table className="w-full min-w-[720px] text-left text-sm">
-                  <thead className="border-b border-zinc-100 text-xs uppercase tracking-[0.16em] text-zinc-400">
+                <table className="w-full min-w-[720px] text-left text-copy">
+                  <thead className="border-b border-zinc-100 text-support uppercase tracking-[0.16em] text-zinc-400">
                     <tr>
                       <th className="py-3 pr-4">name</th>
                       <th className="py-3 pr-4">메뉴판 주소</th>
@@ -385,8 +385,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                             {getPublicMenuUrl(site.slug)}
                           </Link>
                         </td>
-                        <td className="max-w-[180px] truncate py-4 pr-4 font-mono text-xs text-zinc-400">{site.user_id}</td>
-                        <td className="py-4 pr-4 text-xs font-bold text-zinc-500">{getTemplateDisplayName(site.template_key)}</td>
+                        <td className="max-w-[180px] truncate py-4 pr-4 font-mono text-support text-zinc-400">{site.user_id}</td>
+                        <td className="py-4 pr-4 text-support font-medium text-zinc-500">{getTemplateDisplayName(site.template_key)}</td>
                         <td className="py-4 pr-4">
                           <Badge>{site.status}</Badge>
                         </td>
@@ -403,9 +403,9 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
           <article className="rounded-3xl border border-white/10 bg-white p-7 text-zinc-950 shadow-2xl shadow-black/10">
             <div className="mb-6">
-              <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Inquiry Board</p>
+              <p className="mb-3 text-support font-medium uppercase tracking-[0.24em] text-zinc-400">Inquiry Board</p>
               <h2 className="type-subsection-title">문의 게시판</h2>
-              <p className="mt-2 text-sm font-medium text-zinc-500">
+              <p className="mt-2 text-copy font-medium text-zinc-500">
                 {activeInquiryPage}/{inquiryTotalPages} 페이지 · 총 {inquiryTotalCount.toLocaleString("ko-KR")}개
               </p>
             </div>
@@ -447,7 +447,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                           className={`block p-4 transition-colors ${isSelected ? "bg-zinc-950 text-white" : "bg-white hover:bg-zinc-50"}`}
                         >
                           <div className="mb-2 flex items-center justify-between gap-3">
-                            <p className={`text-xs font-bold ${isSelected ? "text-white/60" : "text-zinc-400"}`}>#{inquiryFrom + index + 1}</p>
+                            <p className={`text-support font-medium ${isSelected ? "text-white/60" : "text-zinc-400"}`}>#{inquiryFrom + index + 1}</p>
                             <span className={`type-caption rounded-full px-2.5 py-1 ${isSelected ? "bg-white/15 text-white" : getStatusClassName(inquiry.status)}`}>
                               {getInquiryStatusLabel(inquiry.status)}
                             </span>
@@ -456,10 +456,10 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                             {getInquiryCategoryLabel(inquiry.category)}
                           </p>
                           <h3 className="type-item-title line-clamp-1">{inquiry.title}</h3>
-                          <p className={`mt-2 line-clamp-1 break-all text-xs font-medium ${isSelected ? "text-white/55" : "text-zinc-400"}`}>
+                          <p className={`mt-2 line-clamp-1 break-all text-support font-medium ${isSelected ? "text-white/55" : "text-zinc-400"}`}>
                             {inquiry.user_id}
                           </p>
-                          <p className={`mt-1 text-xs font-medium ${isSelected ? "text-white/55" : "text-zinc-400"}`}>{formatDate(inquiry.created_at)}</p>
+                          <p className={`mt-1 text-support font-medium ${isSelected ? "text-white/55" : "text-zinc-400"}`}>{formatDate(inquiry.created_at)}</p>
                         </Link>
                       );
                     })}
@@ -478,7 +478,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                         이전
                 </button>
                     )}
-                    <span className="text-sm font-bold text-zinc-500">
+                    <span className="text-copy font-medium text-zinc-500">
                       {activeInquiryPage}/{inquiryTotalPages}
                     </span>
                     {activeInquiryPage < inquiryTotalPages ? (
@@ -501,10 +501,10 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                     <div className="mb-4 flex flex-col justify-between gap-3 md:flex-row md:items-start">
                       <div>
                         <h3 className="type-content-title">{selectedInquiry.title}</h3>
-                        <p className="mt-2 break-all text-xs font-medium text-zinc-400">user_id: {selectedInquiry.user_id}</p>
-                        <p className="mt-1 text-xs font-medium text-zinc-400">유형 {getInquiryCategoryLabel(selectedInquiry.category)}</p>
-                        <p className="mt-1 text-xs font-medium text-zinc-400">작성일 {formatDate(selectedInquiry.created_at)}</p>
-                        <p className="mt-1 text-xs font-medium text-zinc-400">수정일 {formatDate(selectedInquiry.updated_at)}</p>
+                        <p className="mt-2 break-all text-support font-medium text-zinc-400">user_id: {selectedInquiry.user_id}</p>
+                        <p className="mt-1 text-support font-medium text-zinc-400">유형 {getInquiryCategoryLabel(selectedInquiry.category)}</p>
+                        <p className="mt-1 text-support font-medium text-zinc-400">작성일 {formatDate(selectedInquiry.created_at)}</p>
+                        <p className="mt-1 text-support font-medium text-zinc-400">수정일 {formatDate(selectedInquiry.updated_at)}</p>
                       </div>
                       <Badge>
                         {getInquiryStatusLabel(selectedInquiry.status)}
@@ -512,12 +512,12 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                     </div>
 
                     <div className="mb-4 rounded-2xl bg-white p-5">
-                      <p className="whitespace-pre-wrap break-keep text-sm font-medium leading-relaxed text-zinc-600">{selectedInquiry.message}</p>
+                      <p className="whitespace-pre-wrap break-keep text-copy font-medium leading-relaxed text-zinc-600">{selectedInquiry.message}</p>
                     </div>
 
                     <form action={updateInquiryStatusAction} className="mb-4 rounded-2xl border border-zinc-200 bg-white p-4">
                       <input type="hidden" name="inquiryId" value={selectedInquiry.id} />
-                      <label htmlFor={`inquiry-status-${selectedInquiry.id}`} className="mb-2 block text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">
+                      <label htmlFor={`inquiry-status-${selectedInquiry.id}`} className="mb-2 block text-support font-medium uppercase tracking-[0.16em] text-zinc-400">
                         status
                       </label>
                       <div className="flex flex-col gap-3 sm:flex-row">
@@ -525,7 +525,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                           id={`inquiry-status-${selectedInquiry.id}`}
                           name="status"
                           defaultValue={selectedInquiry.status}
-                          className="min-h-11 flex-1 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
+                          className="min-h-11 flex-1 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
                         >
                           <option value="open">접수됨</option>
                           <option value="answered">답변 완료</option>
@@ -539,7 +539,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
                     <form action={replyInquiryAction} className="space-y-3">
                       <input type="hidden" name="inquiryId" value={selectedInquiry.id} />
-                      <label htmlFor={`admin-reply-${selectedInquiry.id}`} className="block text-xs font-bold uppercase tracking-[0.16em] text-zinc-400">
+                      <label htmlFor={`admin-reply-${selectedInquiry.id}`} className="block text-support font-medium uppercase tracking-[0.16em] text-zinc-400">
                         admin reply
                       </label>
                       <textarea
@@ -547,10 +547,10 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
                         name="admin_reply"
                         defaultValue={selectedInquiry.admin_reply ?? ""}
                         rows={6}
-                        className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
+                        className="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-copy font-semibold text-zinc-900 outline-none transition focus:border-zinc-950"
                         placeholder="관리자 답변을 입력하세요."
                       />
-                      {selectedInquiry.replied_at && <p className="text-xs font-medium text-zinc-400">마지막 답변일 {formatDate(selectedInquiry.replied_at)}</p>}
+                      {selectedInquiry.replied_at && <p className="text-support font-medium text-zinc-400">마지막 답변일 {formatDate(selectedInquiry.replied_at)}</p>}
                       <button
                         type="submit"
                         className={getAdminActionButtonClassName("primary")}
@@ -583,24 +583,24 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
         <section className="grid gap-6 lg:grid-cols-2">
           <article className="rounded-3xl border border-white/10 bg-white p-7 text-zinc-950 shadow-2xl shadow-black/10">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Orders</p>
+            <p className="mb-3 text-support font-medium uppercase tracking-[0.24em] text-zinc-400">Orders</p>
             <h2 className="type-subsection-title mb-5">최근 주문</h2>
             {recentOrdersResult.error ? (
               <AdminError message={recentOrdersResult.error.message} />
             ) : recentOrders.length > 0 ? (
-              <pre className="overflow-x-auto rounded-2xl bg-zinc-50 p-4 text-xs text-zinc-600">{JSON.stringify(recentOrders, null, 2)}</pre>
+              <pre className="overflow-x-auto rounded-2xl bg-zinc-50 p-4 text-support text-zinc-600">{JSON.stringify(recentOrders, null, 2)}</pre>
             ) : (
               <EmptyState title="주문 데이터가 없습니다" description="orders 테이블에 데이터가 생기면 이곳에 표시됩니다." />
             )}
           </article>
 
           <article className="rounded-3xl border border-white/10 bg-white p-7 text-zinc-950 shadow-2xl shadow-black/10">
-            <p className="mb-3 text-xs font-bold uppercase tracking-[0.24em] text-zinc-400">Payments</p>
+            <p className="mb-3 text-support font-medium uppercase tracking-[0.24em] text-zinc-400">Payments</p>
             <h2 className="type-subsection-title mb-5">최근 결제</h2>
             {recentPaymentsResult.error ? (
               <AdminError message={recentPaymentsResult.error.message} />
             ) : recentPayments.length > 0 ? (
-              <pre className="overflow-x-auto rounded-2xl bg-zinc-50 p-4 text-xs text-zinc-600">{JSON.stringify(recentPayments, null, 2)}</pre>
+              <pre className="overflow-x-auto rounded-2xl bg-zinc-50 p-4 text-support text-zinc-600">{JSON.stringify(recentPayments, null, 2)}</pre>
             ) : (
               <EmptyState title="결제 데이터가 없습니다" description="payments 테이블에 데이터가 생기면 이곳에 표시됩니다." />
             )}
@@ -613,14 +613,14 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 }
 
 function AdminError({ message }: { message: string }) {
-  return <div className="site-notice site-notice-error mb-5 p-4 text-sm font-bold">{message}</div>;
+  return <div className="site-notice site-notice-error mb-5 p-4 text-copy font-medium">{message}</div>;
 }
 
 function EmptyState({ title, description }: { title: string; description: string }) {
   return (
     <div className="rounded-3xl border border-dashed border-zinc-200 bg-zinc-50 p-8 text-center">
       <h3 className="type-content-title">{title}</h3>
-      <p className="mx-auto mt-3 max-w-md break-keep text-sm font-medium leading-relaxed text-zinc-500">{description}</p>
+      <p className="mx-auto mt-3 max-w-md break-keep text-copy font-medium leading-relaxed text-zinc-500">{description}</p>
     </div>
   );
 }

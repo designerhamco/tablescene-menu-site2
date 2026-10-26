@@ -118,12 +118,12 @@ export default function MenuWidgetImageField({
             // eslint-disable-next-line @next/next/no-img-element
             <img src={imageUrl} alt="" className="h-full w-full object-cover" />
           ) : (
-            <span className="px-4 text-center text-xs font-bold text-zinc-400">이미지 없음</span>
+            <span className="px-4 text-center text-support font-medium text-zinc-600">이미지 없음</span>
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <label className="block text-xs font-bold text-zinc-500">위젯 이미지</label>
-          <p className="mt-1 break-keep text-xs font-bold leading-relaxed text-zinc-400">
+          <label className="block text-support font-medium text-zinc-600">위젯 이미지</label>
+          <p className="mt-1 break-keep text-support font-medium leading-relaxed text-zinc-600">
             JPG, PNG, WebP 이미지를 업로드할 수 있습니다. 실제 공개 반영은 하단의 최종 저장 후 진행됩니다.
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -136,7 +136,7 @@ export default function MenuWidgetImageField({
                 const file = event.currentTarget.files?.[0];
                 if (file) void uploadImage(file);
               }}
-              className="block max-w-full text-xs font-bold text-zinc-500 file:mr-3 file:rounded-full file:border-0 file:bg-zinc-950 file:px-4 file:py-2 file:text-xs file:font-bold file:text-white disabled:cursor-not-allowed disabled:opacity-60"
+              className="block max-w-full text-support font-medium text-zinc-600 file:mr-3 file:rounded-full file:border-0 file:bg-zinc-950 file:px-4 file:py-2 file:text-support file:font-bold file:text-white disabled:cursor-not-allowed disabled:opacity-60"
             />
             {hasImage && (
               <button
@@ -150,10 +150,10 @@ export default function MenuWidgetImageField({
             )}
           </div>
           {currentImageIsUnsaved && (
-            <p className="mt-2 text-xs font-bold text-amber-600">새 이미지가 임시 업로드되었습니다. 최종 저장 전까지는 공개 메뉴판에 반영되지 않습니다.</p>
+            <p className="mt-2 text-support font-medium text-amber-600">새 이미지가 임시 업로드되었습니다. 최종 저장 전까지는 공개 메뉴판에 반영되지 않습니다.</p>
           )}
           {localError && (
-            <p className="site-notice site-notice-error mt-2 break-keep px-3 py-2 text-xs font-bold leading-relaxed">{localError}</p>
+            <p className="site-notice site-notice-error mt-2 break-keep px-3 py-2 text-support font-medium leading-relaxed">{localError}</p>
           )}
         </div>
       </div>

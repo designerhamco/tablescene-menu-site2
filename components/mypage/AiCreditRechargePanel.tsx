@@ -99,7 +99,7 @@ export default function AiCreditRechargePanel({
           <h4 className={`type-item-title ${compact ? " " : " "} text-zinc-950`}>
             {`보유 AI 크레딧 ${formatAiCredits(totalRemainingCredits)}`}
           </h4>
-          <p className="mt-2 break-keep text-xs font-normal leading-relaxed text-zinc-500">
+          <p className="mt-2 break-keep text-support font-normal leading-relaxed text-zinc-600">
             {accountSummaryOnly
               ? "AI 크레딧은 아티메뉴 AI 기능 이용을 위한 통합 단위입니다. 계정의 첫 메뉴판 생성이 완료되면 웰컴 크레딧 6개를 계정당 1회 제공합니다."
               : compact
@@ -125,7 +125,7 @@ export default function AiCreditRechargePanel({
       </div>
 
       {!compact && !accountSummaryOnly ? (
-        <div className="mt-3 space-y-1 break-keep text-xs font-bold leading-relaxed text-zinc-500">
+        <div className="mt-3 space-y-1 break-keep text-support font-medium leading-relaxed text-zinc-600">
           <p>AI 크레딧은 아티메뉴 AI 기능 이용을 위한 통합 단위입니다. 보유 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.</p>
           <p>계정의 첫 메뉴판 생성 완료 시 웰컴 크레딧 6개를 계정당 1회 제공합니다.</p>
           <p>AI 설명 작성 1크레딧 · 부분 자동 번역 1크레딧 · AI 메뉴 정리 3크레딧 · 전체 자동 번역 3크레딧</p>
@@ -135,13 +135,13 @@ export default function AiCreditRechargePanel({
         </div>
       ) : null}
       {accountSummaryOnly ? (
-        <div className="site-section mt-4 p-4 text-xs font-bold leading-relaxed text-zinc-500">
+        <div className="site-section mt-4 p-4 text-support font-medium leading-relaxed text-zinc-600">
           <p>차감 기준: AI 설명 작성 1크레딧 · 부분 자동 번역 1크레딧 · AI 메뉴 정리 3크레딧 · 전체 자동 번역 3크레딧</p>
           <p className="mt-2">AI 웰컴 크레딧은 현금성 가치가 없으며 환불, 현금 교환 또는 양도 대상이 아닙니다.</p>
           <p className="mt-2">AI 결과물은 참고용 초안이므로 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.</p>
         </div>
       ) : null}
-      {message ? <p className="mt-3 break-keep text-xs font-normal leading-relaxed text-zinc-700">{message}</p> : null}
+      {message ? <p className="mt-3 break-keep text-support font-normal leading-relaxed text-zinc-700">{message}</p> : null}
       <AiCreditPurchaseModal
         open={isOpen}
         onClose={() => setIsOpen(false)}
