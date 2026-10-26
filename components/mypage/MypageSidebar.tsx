@@ -56,14 +56,11 @@ export function MypageAccountCard({
   return (
     <section className="site-account-summary">
       <div className="site-account-identity">
-        {businessName ? (
-          <>
-            <h2 className="type-content-title site-account-business-name" title={businessName}>{businessName}</h2>
-            <p className="site-account-email" title={email}>{email}</p>
-          </>
-        ) : (
-          <h2 className="type-content-title site-account-email" title={email}>{email}</h2>
-        )}
+        <p className="site-account-eyebrow">계정</p>
+        <h2 className="type-content-title site-account-business-name" title={businessName || "내 계정"}>
+          {businessName || "내 계정"}
+        </h2>
+        <p className="site-account-email" title={email}>{email}</p>
         {roleLabel ? (
           <div className="site-account-role" aria-label="계정 역할">
             <Badge>{roleLabel}</Badge>
@@ -94,7 +91,7 @@ export function MypageAccountCard({
         </div>
       ) : null}
       <form action={signOutAction} className="site-account-signout-form">
-        <button type="submit" className="site-button site-button-rounded site-button-outline site-account-signout">
+        <button type="submit" className="site-button site-button-compact site-button-rounded site-button-outline site-account-signout">
           로그아웃
         </button>
       </form>

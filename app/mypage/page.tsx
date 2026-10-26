@@ -2512,76 +2512,78 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     }
 
     return (
-      <article key={card.key} className="site-card p-5">
-        <div className="site-section mb-5 overflow-hidden">
+      <article key={card.key} className="site-card site-menu-card">
+        <div className="site-menu-card-media">
           <TemplateThumbnail template={card.template} design={card.design} />
         </div>
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-          <div className="min-w-0">
-            <h3 className="type-content-title">{card.title}</h3>
-            <p className="mt-1 break-all text-copy font-medium text-zinc-600">{card.publicPath}</p>
-          </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
-            {card.badges.map((badge) => (
-              <Badge key={badge.key} >
-                {badge.label}
-              </Badge>
-            ))}
-          </div>
-        </div>
-
-        <p className="mt-4 break-keep text-copy font-normal leading-relaxed text-zinc-700">{card.primaryMessage}</p>
-
-        <dl className="mt-4 grid gap-3 text-copy sm:grid-cols-3">
-          <div>
-            <dt className="text-support font-medium text-zinc-600">템플릿</dt>
-            <dd className="mt-1 font-bold text-zinc-900">{card.templateLabel}</dd>
-          </div>
-          {card.metaItems.map((item) => (
-            <div key={item.label}>
-              <dt className="text-support font-medium text-zinc-600">{item.label}</dt>
-              <dd className="mt-1 break-keep font-bold text-zinc-900">{item.value}</dd>
+        <div className="site-menu-card-body">
+          <div className="site-menu-card-header">
+            <div className="min-w-0">
+              <h3 className="type-content-title">{card.title}</h3>
+              <p className="site-menu-card-path">{card.publicPath}</p>
             </div>
-          ))}
-        </dl>
-
-        {card.section === "deleted" ? (
-          <p className="site-notice mt-5 px-4 py-3">
-            복구 가능 기간이 종료되어 메뉴판 작업 버튼은 제공되지 않습니다.
-          </p>
-        ) : (
-          <div className="site-menu-card-actions mt-5">
-            {renderActionButton({
-              label: "편집하기",
-              href: card.siteId ? `/mypage/menus/${card.siteId}/edit` : null,
-              enabled: card.actions.canEdit,
-              disabledReason: card.actions.editDisabledReason,
-              primary: true,
-            })}
-            {renderActionButton({
-              label: "미리보기",
-              href: card.siteId ? `/mypage/menus/${card.siteId}/preview` : null,
-              enabled: card.actions.canOwnerPreview,
-              disabledReason: card.actions.previewDisabledReason,
-              newWindow: true,
-            })}
-            {renderActionButton({
-              label: "공개 메뉴판 보기",
-              href: card.publicPath,
-              enabled: card.actions.canViewPublic,
-              disabledReason: card.actions.publicDisabledReason,
-              newWindow: true,
-            })}
-            <QrDownloadButton
-              feedbackLabel={card.title}
-              fileName={`arti-menu-${card.slug || "menu"}-qr.png`}
-              path={card.publicPath}
-              disabled={!card.actions.canManageQr}
-              disabledReason={card.actions.qrDisabledReason}
-              className={secondaryActionClassName}
-            />
+            <div className="site-menu-card-badges">
+              {card.badges.map((badge) => (
+                <Badge key={badge.key} >
+                  {badge.label}
+                </Badge>
+              ))}
+            </div>
           </div>
-        )}
+
+          <p className="site-menu-card-status">{card.primaryMessage}</p>
+
+          <dl className="site-menu-card-meta">
+            <div>
+              <dt>템플릿</dt>
+              <dd>{card.templateLabel}</dd>
+            </div>
+            {card.metaItems.map((item) => (
+              <div key={item.label}>
+                <dt>{item.label}</dt>
+                <dd>{item.value}</dd>
+              </div>
+            ))}
+          </dl>
+
+          {card.section === "deleted" ? (
+            <p className="site-notice mt-5 px-4 py-3">
+              복구 가능 기간이 종료되어 메뉴판 작업 버튼은 제공되지 않습니다.
+            </p>
+          ) : (
+            <div className="site-menu-card-actions">
+              {renderActionButton({
+                label: "편집하기",
+                href: card.siteId ? `/mypage/menus/${card.siteId}/edit` : null,
+                enabled: card.actions.canEdit,
+                disabledReason: card.actions.editDisabledReason,
+                primary: true,
+              })}
+              {renderActionButton({
+                label: "미리보기",
+                href: card.siteId ? `/mypage/menus/${card.siteId}/preview` : null,
+                enabled: card.actions.canOwnerPreview,
+                disabledReason: card.actions.previewDisabledReason,
+                newWindow: true,
+              })}
+              {renderActionButton({
+                label: "공개 메뉴판 보기",
+                href: card.publicPath,
+                enabled: card.actions.canViewPublic,
+                disabledReason: card.actions.publicDisabledReason,
+                newWindow: true,
+              })}
+              <QrDownloadButton
+                feedbackLabel={card.title}
+                fileName={`arti-menu-${card.slug || "menu"}-qr.png`}
+                path={card.publicPath}
+                disabled={!card.actions.canManageQr}
+                disabledReason={card.actions.qrDisabledReason}
+                className={secondaryActionClassName}
+              />
+            </div>
+          )}
+        </div>
       </article>
     );
   }
@@ -2592,42 +2594,34 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     const disabledActionClassName = "site-button site-button-outline site-button-rounded";
 
     return (
-      <article key={card.key} className="site-card p-5">
-        <div className="site-section mb-5 overflow-hidden">
+      <article key={card.key} className="site-card site-menu-card">
+        <div className="site-menu-card-media">
           <TemplateThumbnail template={card.template} design={card.design} />
         </div>
-        <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-          <div className="min-w-0">
-            <h3 className="type-content-title">{card.title}</h3>
-            <p className="mt-1 break-all text-copy font-medium text-zinc-600">{card.publicPath}</p>
+        <div className="site-menu-card-body">
+          <div className="site-menu-card-header">
+            <div className="min-w-0">
+              <h3 className="type-content-title">{card.title}</h3>
+              <p className="site-menu-card-path">{card.publicPath}</p>
+            </div>
+            <div className="site-menu-card-badges">
+              <Badge>직원 참여</Badge>
+              <Badge tone="role">{card.roleLabel}</Badge>
+              <Badge>{card.statusLabel}</Badge>
+            </div>
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
-            <Badge>직원 참여</Badge>
-            <Badge tone="role">{card.roleLabel}</Badge>
-            <Badge>{card.statusLabel}</Badge>
-          </div>
-        </div>
 
-        <p className="mt-4 break-keep text-copy font-normal leading-relaxed text-zinc-700">
-          직원 권한으로 참여한 메뉴판입니다. 사용할 수 없는 기능은 숨기지 않고 비활성 상태로 안내합니다.
-        </p>
+          <p className="site-menu-card-status">
+            직원 권한으로 참여한 메뉴판입니다. 사용할 수 없는 기능은 숨기지 않고 비활성 상태로 안내합니다.
+          </p>
 
-        <dl className="mt-4 grid gap-3 text-copy sm:grid-cols-3">
-          <div>
-            <dt className="text-support font-medium text-zinc-600">템플릿</dt>
-            <dd className="mt-1 font-bold text-zinc-900">{card.templateLabel}</dd>
-          </div>
-          <div>
-            <dt className="text-support font-medium text-zinc-600">최근 업데이트</dt>
-            <dd className="mt-1 font-bold text-zinc-900">{formatDate(card.updatedAt)}</dd>
-          </div>
-          <div>
-            <dt className="text-support font-medium text-zinc-600">사용 가능한 기능</dt>
-            <dd className="mt-1 break-keep font-bold text-zinc-900">{card.permissionSummary}</dd>
-          </div>
-        </dl>
+          <dl className="site-menu-card-meta">
+            <div><dt>템플릿</dt><dd>{card.templateLabel}</dd></div>
+            <div><dt>최근 업데이트</dt><dd>{formatDate(card.updatedAt)}</dd></div>
+            <div><dt>사용 가능한 기능</dt><dd>{card.permissionSummary}</dd></div>
+          </dl>
 
-        <div className="site-menu-card-actions mt-5">
+          <div className="site-menu-card-actions">
           {card.canEdit ? (
             <Link
               href={`/mypage/menus/${card.siteId}/edit`}
@@ -2682,12 +2676,13 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             disabledReason={card.qrDisabledReason}
             className={card.canManageQr ? enabledSecondaryActionClassName : disabledActionClassName}
           />
+          </div>
+          {!card.canViewPublic ? (
+            <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 type-footnote text-zinc-600">
+              현재 공개되지 않은 메뉴판입니다. 직원 미리보기에서는 공개 전 화면을 확인할 수 있습니다.
+            </p>
+          ) : null}
         </div>
-        {!card.canViewPublic ? (
-          <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 type-footnote text-zinc-600">
-            현재 공개되지 않은 메뉴판입니다. 직원 미리보기에서는 공개 전 화면을 확인할 수 있습니다.
-          </p>
-        ) : null}
       </article>
     );
   }
