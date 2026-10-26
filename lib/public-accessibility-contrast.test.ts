@@ -13,8 +13,8 @@ test("public product and support surfaces keep secondary copy at accessible cont
   const footer = readSource("../app/components/layout/Footer.tsx");
 
   assert.doesNotMatch(gallery, /border-transparent text-zinc-400/);
-  assert.match(gallery, /<TabsList variant="folder"[^>]*aria-label="서비스 및 페이지 유형 선택"/);
-  assert.match(gallery, /<Tabs variant="folder" value=\{product\}/);
+  assert.match(gallery, /<TabsList variant="underline"[^>]*aria-label="서비스 및 페이지 유형 선택"/);
+  assert.match(gallery, /<Tabs variant="underline" value=\{product\}/);
   assert.doesNotMatch(pricing, /text-zinc-400/);
   assert.match(faq, /site-filter/);
   const controls = readSource("../styles/ui-system.css");

@@ -59,7 +59,7 @@ test("site pages cannot override shared action padding, shape, typography or dis
 });
 
 test("content tabs, settings tabs and subordinate filters retain different shared roles", () => {
-  assert.match(read("components/support/SupportCenter.tsx"), /<Tabs variant="flow"/);
+  assert.match(read("components/support/SupportCenter.tsx"), /<Tabs variant="contained"/);
   assert.match(read("components/support/SupportCenter.tsx"), /className="site-filter"/);
   const preview = read("components/menu/MenuPreviewOptionsPanel.tsx");
   assert.match(preview, /<Tabs variant="outline"/);
@@ -67,7 +67,7 @@ test("content tabs, settings tabs and subordinate filters retain different share
     assert.match(preview, new RegExp(`id="preview-${value}-tab" aria-controls="preview-${value}-panel"`));
     assert.match(preview, new RegExp(`id="preview-${value}-panel" aria-labelledby="preview-${value}-tab"`));
   }
-  assert.match(read("components/guides/UsageGuidePage.tsx"), /<TabsList variant="folder"/);
+  assert.match(read("components/guides/UsageGuidePage.tsx"), /<TabsList variant="underline"/);
   assert.match(tabCss, /--site-tab-indicator-width: \.25rem/);
   assert.match(tabCss, /\.site-contained-panel \{[^}]*border-radius: 0 \.75rem \.75rem \.75rem/);
   for (const cls of ["site-tab", "site-topic-tab", "site-contained-tab"]) {
@@ -107,4 +107,19 @@ test("native and custom selects reserve a common chevron gutter without affectin
   assert.match(css, /appearance: auto; background-image: none/);
   assert.match(css, /\[data-state="open"\] \.site-select-chevron \{ transform: rotate\(180deg\)/);
   assert.match(css, /\.site-field:disabled,[\s\S]*?background-color: var\(--ui-surface-muted\)/);
+});
+
+
+test("shaped area tabs cannot replace service navigation or notification tabs", () => {
+  const catalog = read("components/apply/TemplateGallery.tsx");
+  assert.match(catalog, /<TabsList variant="underline"[^>]*aria-label="서비스 및 페이지 유형 선택"/);
+  assert.match(catalog, /variant=\{product === "display" \? undefined : "contained"\}/);
+  assert.doesNotMatch(catalog, /distribution="equal"/);
+  const notification = read("app/components/ui/notification-panel.tsx");
+  assert.match(notification, /<Tabs variant="underline"/);
+  assert.doesNotMatch(notification, /variant="(?:folder|flow|contained)"/);
+  assert.match(read("app/components/ui/navigation-tabs.tsx"), /className=\{cn\("site-topic-tabs"/);
+  for (const route of ["sign-in", "sign-up", "forgot-password", "reset-password", "find-account", "auth/recovery"]) {
+    assert.match(read(`app/${route}/page.tsx`), /<h1 className="type-page-title"/);
+  }
 });

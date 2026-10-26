@@ -45,7 +45,7 @@ export default async function SignInPage({
         <div className="site-auth-content">
           <div className="site-auth-form">
             <div className="site-auth-header">
-              <h1 className="type-subsection-title">로그인</h1>
+              <h1 className="type-page-title">로그인</h1>
               <p className="type-body-sm mt-3 text-zinc-500">
                 아티메뉴 마이페이지에서 메뉴판 생성과 관리 기능을 준비합니다.
               </p>

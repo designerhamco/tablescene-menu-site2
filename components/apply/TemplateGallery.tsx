@@ -105,23 +105,23 @@ export default function TemplateGallery({
     });
   }
 
-  return <Tabs variant="folder" value={product} onValueChange={value => selectProduct(value as CatalogService)}>
-    <TabsList variant="folder" size="lg" className="site-catalog-services" aria-label="서비스 및 페이지 유형 선택">
+  return <Tabs variant="underline" value={product} onValueChange={value => selectProduct(value as CatalogService)}>
+    <TabsList variant="underline" size="lg" className="site-catalog-services" aria-label="서비스 및 페이지 유형 선택">
       {PRODUCT_TABS.map(({ key, label }) => (
         <TabsTrigger key={key} value={key} id={`${tabsId}-${key}`} aria-controls={`${tabsId}-service-panel`}>{label}</TabsTrigger>
       ))}
     </TabsList>
     <div role="tabpanel" id={`${tabsId}-service-panel`} aria-labelledby={`${tabsId}-${product}`}>
-      <Tabs ref={galleryStartRef} variant={product === "display" ? undefined : "flow"} value={kind} onValueChange={value => selectKind(value as CatalogKind)} className="site-catalog-selection scroll-mt-24">
+      <Tabs ref={galleryStartRef} variant={product === "display" ? undefined : "contained"} value={kind} onValueChange={value => selectKind(value as CatalogKind)} className="site-catalog-selection scroll-mt-24">
         {product !== "display" && (
-          <TabsList distribution="equal" aria-label="템플릿 종류 선택">
+          <TabsList aria-label="템플릿 종류 선택">
             {KIND_TABS.map(({ key, label }) => (
               <TabsTrigger key={key} value={key} id={`${tabsId}-${key}`} aria-controls={`${tabsId}-kind-panel`}>{label}</TabsTrigger>
             ))}
           </TabsList>
         )}
         <div role={product !== "display" ? "tabpanel" : undefined} tabIndex={product !== "display" ? 0 : undefined}
-          className={product !== "display" ? "site-flow-panel" : undefined}
+          className={product !== "display" ? "site-contained-panel" : undefined}
           id={`${tabsId}-kind-panel`} aria-labelledby={product !== "display" ? `${tabsId}-${kind}` : undefined}>
           <section className="site-catalog-plan" aria-label="템플릿 이용 안내">
             <p className="type-body site-catalog-kind-description">

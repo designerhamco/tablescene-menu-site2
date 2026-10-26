@@ -73,7 +73,7 @@ const siteUiFiles = [
   ...collectTsxFiles(appRoot).filter(isSiteUiFile),
   ...collectTsxFiles(componentsRoot).filter(isSiteUiComponent),
 ];
-const approvedHeadingRole = /type-(?:display|page-title|section-title|subsection-title|content-title|item-title|label)/;
+const approvedHeadingRole = /type-(?:display|page-title|section-title|subsection-title|content-title|item-title|card-title|label)/;
 
 test("활성 사이트 UI의 h1부터 h6까지 승인된 의미 기반 타이포 역할만 사용한다", () => {
   for (const path of siteUiFiles) {
@@ -141,5 +141,25 @@ test("사이트 본문 역할은 메뉴판 기초 크기와 독립적으로 가�
     const routePath = relative(projectRoot, path);
     if (visualPreviewFiles.has(routePath)) continue;
     assert.doesNotMatch(readFileSync(path, "utf8"), /\btext-(?:xs|sm)\b/, `${routePath}는 사이트 본문 역할 대신 작은 기초 유틸리티를 사용합니다.`);
+  }
+});
+
+
+test("compact card copy has a separate role from page and popup reading", () => {
+  for (const [name, value] of [["card-title", "1.125rem"], ["card-body", ".875rem"], ["card-detail", ".8125rem"], ["dialog-title", "1.125rem"], ["dialog-body", ".875rem"], ["footnote", ".8125rem"]]) {
+    assert.ok(typographySource.includes(`--type-${name}-size: ${value}`), `missing semantic role ${name}`);
+  }
+});
+
+test("neutral text remains readable on every shared light surface", () => {
+  const controls = readFileSync(join(projectRoot, "styles/ui-system.css"), "utf8");
+  const color = (name: string) => {
+    const hex = controls.match(new RegExp(`--ui-${name}: (#[0-9a-f]{6})`))?.[1];
+    assert.ok(hex, `missing neutral color ${name}`);
+    const rgb = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(c => c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4);
+    return rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722;
+  };
+  for (const ink of ["text", "text-muted", "text-subtle"]) for (const surface of ["surface", "surface-muted", "surface-soft"]) {
+    assert.ok((color(surface) + .05) / (color(ink) + .05) >= 4.5, `${ink} on ${surface} must remain readable`);
   }
 });

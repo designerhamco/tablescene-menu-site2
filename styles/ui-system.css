@@ -28,11 +28,16 @@
   --ui-border: #dbdee3;
   --ui-border-strong: #9fa3ab;
   --ui-surface: #ffffff;
-  --ui-surface-muted: #f8f9fb;
-  --ui-surface-soft: #f0f0f0;
-  --ui-surface-hover: #e8e8e8;
+  --ui-surface-muted: #f7f8fa;
+  --ui-surface-soft: #f0f1f3;
+  --ui-surface-hover: #e6e8ec;
   --ui-text: #15181e;
   --ui-text-muted: #4b515b;
+  --ui-text-subtle: #686e78;
+  --ui-disabled-text: #8b919c;
+  --ui-wordmark: #d9dce1;
+  --ui-brand-soft: #fff8d6;
+  --ui-brand-ink: #6b5800;
   --ui-focus: #0b63ce;
   --ui-danger: #c41010;
   --ui-danger-hover: #b91c1c;
@@ -55,16 +60,16 @@
   --ui-action-soft-pressed: #e2e5e9;
   --ui-notice-surface: #fff8d6;
   --ui-chip-neutral: #45484e;
-  --ui-chip-new: #2563eb;
-  --ui-chip-best: #c64130;
-  --ui-chip-draft: #8b47c5;
+  --ui-chip-new: #2851a5;
+  --ui-chip-best: #45484e;
+  --ui-chip-draft: #626b7a;
   --ui-chip-private: #626b7a;
   --ui-chip-active: #198047;
   --ui-chip-paid: #2851a5;
   --ui-chip-pending: #bd5800;
-  --ui-chip-trial: #007a9c;
-  --ui-chip-ending: #ab4f6c;
-  --ui-chip-ended: #6f526a;
+  --ui-chip-trial: #2851a5;
+  --ui-chip-ending: #bd5800;
+  --ui-chip-ended: #626b7a;
   --ui-chip-error: #b42332;
 }
 
@@ -86,9 +91,10 @@
   white-space: nowrap;
   box-shadow: none;
 }
-.site-chip-new, .site-chip-basic { --ui-chip-fill: var(--ui-chip-new); }
+.site-chip-new { --ui-chip-fill: var(--ui-chip-new); }
+.site-chip-basic, .site-chip-dining, .site-chip-display { --ui-chip-fill: var(--ui-chip-neutral); }
 .site-chip-best { --ui-chip-fill: var(--ui-chip-best); }
-.site-chip-draft, .site-chip-dining { --ui-chip-fill: var(--ui-chip-draft); }
+.site-chip-draft { --ui-chip-fill: var(--ui-chip-draft); }
 .site-chip-private { --ui-chip-fill: var(--ui-chip-private); }
 .site-chip-active { --ui-chip-fill: var(--ui-chip-active); }
 .site-chip-paid { --ui-chip-fill: var(--ui-chip-paid); }
@@ -98,7 +104,6 @@
 .site-chip-ending { --ui-chip-fill: var(--ui-chip-ending); }
 .site-chip-ended { --ui-chip-fill: var(--ui-chip-ended); }
 .site-chip-error { --ui-chip-fill: var(--ui-chip-error); }
-.site-chip-display { --ui-chip-fill: #007e87; }
 .site-chip-role { border: 1px solid var(--ui-border); background: #fff; color: var(--ui-text-muted); padding-block: calc(.25rem - 1px); }
 
 /*
@@ -713,12 +718,12 @@ textarea.site-field,
 
 .site-nav-item-disabled {
   cursor: not-allowed;
-  color: #d4d4d8;
+  color: var(--ui-disabled-text);
 }
 
 .site-nav-item-disabled:hover {
   background: transparent;
-  color: #d4d4d8;
+  color: var(--ui-disabled-text);
 }
 
 /*
