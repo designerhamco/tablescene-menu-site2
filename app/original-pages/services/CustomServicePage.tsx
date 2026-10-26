@@ -1,8 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Bell, Check, ArrowRight, ArrowLeft, ChevronLeft, ChevronRight,
-  Minus, Plus, Info, PenTool, Palette, Layers, Star, ArrowUpRight, ArrowDown
+  Check, ArrowRight, ChevronLeft, ChevronRight, PenTool
 } from 'lucide-react';
 import { Link } from 'react-router';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';
@@ -34,7 +33,7 @@ const AgencyDetailSection = ({ title, subtitle, items }: AgencyDetailSectionProp
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                className="text-3xl md:text-[48px] font-bold leading-[1.1] text-zinc-900 mb-6 md:mb-8 tracking-tight"
+                className="type-section-title text-zinc-900 mb-6 md:mb-8"
               >
                 {title}
               </motion.h2>
@@ -45,7 +44,7 @@ const AgencyDetailSection = ({ title, subtitle, items }: AgencyDetailSectionProp
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.1 }}
-                  className="text-lg md:text-xl text-zinc-500 leading-relaxed max-w-sm"
+                  className="type-body-lg text-zinc-500 max-w-sm"
                 >
                   {subtitle}
                 </motion.p>
@@ -69,10 +68,10 @@ const AgencyDetailSection = ({ title, subtitle, items }: AgencyDetailSectionProp
                      <div className="p-8 md:p-12 pb-0 md:pb-0 flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
                         <div className="md:w-1/2">
                            {/* Simple Number */}
-                           <span className="block text-zinc-400 font-bold text-lg mb-2">0{idx + 1}</span>
-                           <h3 className="text-2xl md:text-3xl font-bold text-zinc-900 tracking-tight">{item.title}</h3>
+                           <span className="type-label block text-zinc-400 mb-2">0{idx + 1}</span>
+                           <h3 className="type-subsection-title text-zinc-900">{item.title}</h3>
                         </div>
-                        <p className="md:w-1/2 text-base md:text-lg text-zinc-500 leading-relaxed pt-2">
+                        <p className="type-body md:w-1/2 text-zinc-500 pt-2">
                            {item.desc}
                         </p>
                      </div>
@@ -136,9 +135,6 @@ const PORTFOLIO_ITEMS = [
 ];
 
 const CustomServicePage = () => {
-  const scrollRefFlow1 = useRef<HTMLDivElement>(null);
-  const scrollRefFlow2 = useRef<HTMLDivElement>(null);
-  
   // Carousel State
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -238,11 +234,11 @@ const CustomServicePage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl md:text-5xl font-bold text-zinc-900 mb-6 leading-tight whitespace-pre-line">
+            <h2 className="type-page-title text-zinc-900 mb-6 whitespace-pre-line">
               브랜딩과 인터랙션을 담은<br/>
               <span className="text-zinc-500">프리미엄 웹 메뉴 경험</span>
             </h2>
-            <p className="text-zinc-500 text-lg md:text-xl leading-relaxed whitespace-pre-line">
+            <p className="type-body-lg text-zinc-500 whitespace-pre-line">
               템플릿으로 담기 어려운 브랜드 경험을 맞춤형으로 설계하고,<br className="hidden md:block"/>
               매장에 어울리는 웹 메뉴와 안내 화면을 제작합니다.
             </p>
@@ -256,10 +252,9 @@ const CustomServicePage = () => {
           onTouchMove={onTouchMove}
           onTouchEnd={onTouchEnd}
           style={{
-            // @ts-ignore
             '--carousel-spacing': '340px',
             '--carousel-step': '220px',
-          }}
+          } as React.CSSProperties}
         >
           {/* Responsive CSS Overrides for Mobile */}
           <style>{`
@@ -311,8 +306,8 @@ const CustomServicePage = () => {
                         className="absolute bottom-0 left-0 right-0 p-8 pt-12 bg-gradient-to-t from-black/80 via-black/40 to-transparent text-center"
                         animate={{ opacity: props.isCenter ? 1 : 0 }}
                      >
-                       <h3 className="text-white text-2xl font-bold mb-1">{item.title}</h3>
-                       <p className="text-zinc-300 text-sm">{item.desc}</p>
+                       <h3 className="type-content-title text-white mb-1">{item.title}</h3>
+                       <p className="type-card-body text-zinc-300">{item.desc}</p>
                      </motion.div>
                    </motion.div>
                  );
@@ -347,8 +342,8 @@ const CustomServicePage = () => {
       <section className="pt-16 pb-32 md:pt-24 md:pb-40 bg-zinc-50 border-t border-zinc-100 overflow-hidden">
         <div className="site-container">
             <div className="mb-12 md:mb-24 text-center">
-                <h3 className="text-3xl md:text-[48px] font-bold text-zinc-900 mb-4 md:mb-8 tracking-tight">커스터마이징 프로세스</h3>
-                <p className="text-zinc-500 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
+                <h3 className="type-section-title text-zinc-900 mb-4 md:mb-8">커스터마이징 프로세스</h3>
+                <p className="type-body-lg text-zinc-500 max-w-3xl mx-auto">
                   복잡한 과정 없이, 전문가와 함께하는 체계적인 4단계 프로세스로<br className="hidden md:block"/> 
                   완벽한 메뉴판을 제작해 드립니다.
                 </p>
@@ -373,12 +368,12 @@ const CustomServicePage = () => {
                       className="flex flex-col items-center text-center relative z-10"
                     >
                           {/* Number - Simple Trendy Chip Style */}
-                          <div className="inline-flex items-center justify-center bg-zinc-200/50 text-zinc-600 rounded-full px-4 py-1 text-xs md:text-sm font-bold mb-5 tracking-wide">
+                          <div className="type-caption inline-flex items-center justify-center bg-zinc-200/50 text-zinc-600 rounded-full px-4 py-1 mb-5">
                             {item.num}
                           </div>
                           
-                          <h4 className="text-lg md:text-2xl font-bold text-zinc-900 mb-3 tracking-tight">{item.title}</h4>
-                          <p className="text-zinc-500 text-sm md:text-lg leading-relaxed whitespace-pre-line">
+                          <h4 className="type-content-title text-zinc-900 mb-3">{item.title}</h4>
+                          <p className="type-body-sm text-zinc-500 whitespace-pre-line">
                             {item.desc}
                           </p>
 
@@ -408,8 +403,8 @@ const CustomServicePage = () => {
         <div className="max-w-4xl mx-auto px-6 text-center">
            <div className="mb-12">
              <PenTool className="w-16 h-16 text-[#F4E54C] mx-auto mb-6" />
-             <h2 className="text-3xl md:text-5xl font-bold mb-6">Standard Custom</h2>
-             <p className="text-zinc-400 text-lg max-w-2xl mx-auto">
+             <h2 className="type-section-title mb-6">Standard Custom</h2>
+             <p className="type-body-lg text-zinc-400 max-w-2xl mx-auto">
                합리적인 비용으로 우리 가게만의 아이덴티티를 담아보세요.<br/>
                기본 템플릿 기반 수정부터 전체 커스터마이징까지 가능합니다.
              </p>
@@ -417,11 +412,11 @@ const CustomServicePage = () => {
            
            <div className="flex flex-col items-center gap-8">
              <div className="flex items-baseline gap-2">
-                <span className="text-4xl md:text-6xl font-bold">99,000</span>
-                <span className="text-xl md:text-2xl text-zinc-500">원 ~</span>
+                <span className="type-price">99,000</span>
+                <span className="type-body text-zinc-500">원 ~</span>
              </div>
              
-             <ul className="flex flex-wrap justify-center gap-4 md:gap-8 text-zinc-300 text-sm md:text-base mb-8">
+             <ul className="type-body-sm flex flex-wrap justify-center gap-4 md:gap-8 text-zinc-300 mb-8">
                 <li className="flex items-center gap-2">
                    <Check className="w-5 h-5 text-[#F4E54C]" />
                    <span>메인 컬러 & 폰트</span>
@@ -436,7 +431,7 @@ const CustomServicePage = () => {
                 </li>
              </ul>
 
-             <Link to="/apply/custom" className="site-button site-button-secondary inline-flex text-lg">
+             <Link to="/apply/custom" className="site-button site-button-secondary type-control inline-flex">
                 상담 신청하기
              </Link>
            </div>

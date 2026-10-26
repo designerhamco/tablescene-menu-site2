@@ -14,12 +14,18 @@ const themeSource = readFileSync(join(projectRoot, "styles/theme.css"), "utf8");
 
 const excludedSurfacePrefixes = [
   "%5F%5Fqa/",
-  "original-pages/",
   "pickup/",
   "templates/[templateKey]/preview/",
   "templates/cafe_design_a/widget-lab/",
   "components/home/preview-ui/",
 ];
+const activeOriginalSurfaceFiles = new Set([
+  "original-pages/Store.tsx",
+  "original-pages/branding/GoodsPackagePage.tsx",
+  "original-pages/branding/VisualStudioPage.tsx",
+  "original-pages/services/ComingSoonServicePage.tsx",
+  "original-pages/services/CustomServicePage.tsx",
+]);
 
 const excludedMenuRenderPrefixes = ["m/", "menu/"];
 const excludedComponentPrefixes = [
@@ -54,6 +60,10 @@ function collectTsxFiles(directory: string): string[] {
 function isSiteUiFile(path: string) {
   const routePath = relative(appRoot, path);
 
+  if (routePath.startsWith("original-pages/")) {
+    return activeOriginalSurfaceFiles.has(routePath);
+  }
+
   if (excludedSurfacePrefixes.some((prefix) => routePath.startsWith(prefix))) {
     return false;
   }
@@ -77,6 +87,16 @@ const siteUiFiles = [
   ...collectTsxFiles(componentsRoot).filter(isSiteUiComponent),
 ];
 const approvedHeadingRole = /type-(?:display|page-title|section-title|subsection-title|content-title|item-title|card-title|label)/;
+
+test("현재 OriginalApp 라우트의 활성 페이지를 전역 타이포 계약에 포함한다", () => {
+  const routerSource = readFileSync(join(appRoot, "OriginalApp.tsx"), "utf8");
+  for (const path of activeOriginalSurfaceFiles) {
+    assert.ok(siteUiFiles.includes(join(appRoot, path)), `${path}가 사이트 타이포 검사에서 빠졌습니다.`);
+  }
+  for (const route of ["/services/custom", "/services/design-customizing", "/services/qr-order", "/services/smart-call", "/branding/visual-studio", "/branding/food-visual-art", "/branding/goods-package", "/store"]) {
+    assert.ok(routerSource.includes(`path=\"${route}\"`), `${route}의 활성 라우트 계약이 바뀌었습니다.`);
+  }
+});
 
 test("활성 사이트 UI의 h1부터 h6까지 승인된 의미 기반 타이포 역할만 사용한다", () => {
   for (const path of siteUiFiles) {

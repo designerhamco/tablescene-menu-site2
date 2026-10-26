@@ -156,7 +156,7 @@ export default function OrderDashboard({
                 <p className="mt-2 text-support font-medium text-zinc-400">{formatKoreanDateTime(order.createdAt)}</p>
               </div>
               <div className="text-left md:text-right">
-                <p className="text-2xl font-bold">{formatAmount(order.totalAmount)}</p>
+                <p className="type-metric">{formatAmount(order.totalAmount)}</p>
                 <button type="button" onClick={() => setPrintOrderId(order.id)} className="site-button site-button-link mt-2">
                   브라우저 영수증 인쇄
                 </button>

@@ -13,8 +13,8 @@ const VisualStudioPage = () => {
       
       <div className="site-container py-24">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6 text-zinc-900">시각으로 맛을 전하다</h2>
-          <p className="text-lg text-zinc-600 max-w-2xl mx-auto">
+          <h2 className="type-section-title mb-6 text-zinc-900">시각으로 맛을 전하다</h2>
+          <p className="type-body-lg text-zinc-600 max-w-2xl mx-auto">
             단순한 메뉴 사진이 아닌, 브랜드의 철학과 맛의 깊이를 담아냅니다.<br />
             전문 푸드 스타일리스트와 포토그래퍼가 함께합니다.
           </p>

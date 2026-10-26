@@ -213,7 +213,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
             <form action={action} className={`space-y-6 ${canImport ? "" : "pointer-events-none opacity-50"}`}>
               <section className="site-card p-5 sm:p-7">
                 <fieldset>
-                  <legend className="text-2xl font-bold">1. 원본 메뉴판 선택</legend>
+                  <legend className="type-subsection-title">1. 원본 메뉴판 선택</legend>
                   <div className="mt-5 grid gap-3 md:grid-cols-2">
                     {sourceMenuSites.map((menuSite, index) => (
                       <label key={menuSite.id} className="flex cursor-pointer items-start gap-3 rounded-2xl border border-zinc-200 p-5 transition hover:border-zinc-400">
@@ -232,7 +232,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
 
               <section className="site-card p-5 sm:p-7">
                 <fieldset>
-                  <legend className="text-2xl font-bold">2. 연결 방식 선택</legend>
+                  <legend className="type-subsection-title">2. 연결 방식 선택</legend>
                   <div className="mt-5 grid gap-3 md:grid-cols-2">
                     {MENU_CATALOG_IMPORT_MODES.map((mode, index) => (
                       <label key={mode} className="flex cursor-pointer items-start gap-3 rounded-2xl border border-zinc-200 p-5 transition hover:border-zinc-400">

@@ -3183,7 +3183,7 @@ function SummaryRow({ label, value, strong = false }: { label: string; value: st
   return (
     <div className="site-checkout-summary-row" data-strong={strong}>
       <dt className="text-zinc-600">{label}</dt>
-      <dd className={`text-right ${strong ? "text-xl font-bold text-zinc-950" : "font-bold text-zinc-800"}`}>{value}</dd>
+      <dd className={`text-right ${strong ? "type-content-title text-zinc-950" : "type-label text-zinc-800"}`}>{value}</dd>
     </div>
   );
 }
