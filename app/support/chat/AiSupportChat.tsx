@@ -87,7 +87,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
         {messages.length === 0 ? (
           <div className={styles.welcome}>
             <SupportBotAvatar size={96} className={styles.mascot} />
-            <h2 className={styles.welcomeTitle}>안녕하세요.<br />무엇을 도와드릴까요?</h2>
+            <h2 className={`type-content-title ${styles.welcomeTitle}`}>안녕하세요.<br />무엇을 도와드릴까요?</h2>
             <p className={`type-body-sm ${styles.subtitle}`}>아티메뉴 이용 방법을 물어보세요.</p>
             <p className={`type-caption ${styles.suggestionLabel}`}>이런 질문은 어떠세요?</p>
             <div className={styles.suggestions}>
