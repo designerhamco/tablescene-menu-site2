@@ -4,10 +4,12 @@ import { ArrowUpRight, Bell, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { formatNotificationBadgeCount, formatNotificationDateTime, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
+import { formatNotificationBadgeCount, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
 import { createClient } from '@/lib/supabase/client';
 import { supportsGlassSiteHeader } from '@/lib/site-header-policy';
 import { isStoreOperationsAvailable } from '@/lib/product-focus-policy';
+import { NotificationPanel } from '@/app/components/ui/notification-panel';
+import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/popover';
 import styles from './Navbar.module.css';
 
 type NavItem = {
@@ -69,7 +71,6 @@ const Navbar = () => {
     userId: null,
     loading: true,
   });
-  const notificationLayerRef = useRef<HTMLDivElement | null>(null);
   const scrolledRef = useRef(false);
   const pathname = usePathname();
 
@@ -206,22 +207,6 @@ const Navbar = () => {
     };
   }, [authState.userId]);
 
-  useEffect(() => {
-    if (!isNotificationOpen) {
-      return;
-    }
-
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!notificationLayerRef.current?.contains(event.target as Node)) {
-        setIsNotificationOpen(false);
-      }
-    };
-
-    window.addEventListener('pointerdown', handlePointerDown);
-
-    return () => window.removeEventListener('pointerdown', handlePointerDown);
-  }, [isNotificationOpen]);
-
   const isFloating = supportsGlassSiteHeader(pathname) && isTabletOrDesktop && isScrolled && !isOpen;
   const navTextClass = styles.navLink;
   const menuButtonClass = 'text-current hover:opacity-70';
@@ -324,12 +309,12 @@ const Navbar = () => {
             {authState.isAuthenticated ? (
               <div className={styles.notificationGroup}>
                 <span className={styles.accountDivider} aria-hidden="true" />
-                <div ref={notificationLayerRef} className="relative">
+                <Popover open={isNotificationOpen} onOpenChange={setIsNotificationOpen}>
+                  <PopoverTrigger asChild>
                   <button
                     type="button"
                     aria-label="알림"
                     aria-expanded={isNotificationOpen}
-                    onClick={() => setIsNotificationOpen((current) => !current)}
                     className={`relative inline-flex size-10 min-h-10 min-w-10 shrink-0 items-center justify-center p-0 transition-colors ${styles.notificationButton}`}
                   >
                     <HeaderBellIcon />
@@ -340,40 +325,14 @@ const Navbar = () => {
                     ) : null}
                   </button>
 
-                  {isNotificationOpen ? (
-                    <div className="site-popover absolute right-0 top-12 w-[360px] overflow-hidden text-zinc-950" data-site-notification-popover>
-                      <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3">
-                        <p className="text-sm font-bold">알림</p>
-                        {unreadCount > 0 ? <p className="text-xs font-bold text-zinc-400">읽지 않음 {unreadBadgeLabel}</p> : null}
-                      </div>
-                      <div className="max-h-[420px] overflow-y-auto">
-                        {notificationsLoading ? (
-                          <p className="px-4 py-8 text-center text-sm font-bold text-zinc-400">알림을 불러오는 중입니다.</p>
-                        ) : notificationEvents.length > 0 ? (
-                          <div className="divide-y divide-zinc-100">
-                            {notificationEvents.map((event) => (
-                              <NotificationItem
-                                key={event.id}
-                                event={event}
-                                onRead={markNotificationAsRead}
-                                onNavigate={() => setIsNotificationOpen(false)}
-                              />
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="px-4 py-8 text-center text-sm font-bold text-zinc-400">새 알림이 없습니다.</p>
-                        )}
-                      </div>
-                      <Link
-                        href={NOTIFICATION_FALLBACK_HREF}
-                        onClick={() => setIsNotificationOpen(false)}
-                        className="block border-t border-zinc-100 px-4 py-3 text-center text-sm font-bold text-zinc-900 transition-colors hover:bg-zinc-50"
-                      >
-                        전체 알림 보기
-                      </Link>
-                    </div>
-                  ) : null}
-                </div>
+                  </PopoverTrigger>
+                  <PopoverContent align="end" sideOffset={12} collisionPadding={16} className="site-notification-popover" aria-label="알림" data-site-notification-popover>
+                    <NotificationPanel compact loading={notificationsLoading}
+                      items={notificationEvents.map(event=>({id:event.id,title:event.title ?? '알림',message:event.message ?? '알림 내용을 확인할 수 없습니다.',createdAt:event.created_at,unread:!event.read_at,href:getNotificationHref(event.metadata)}))}
+                      onActivate={item=>{void markNotificationAsRead(item.id).finally(()=>{setIsNotificationOpen(false);window.location.assign(item.href);});}}
+                      footer={<><p className="site-notification-limit">최근 알림을 최대 10개까지 표시합니다.</p><Link href={NOTIFICATION_FALLBACK_HREF} onClick={()=>setIsNotificationOpen(false)}>전체 알림 보기</Link></>} />
+                  </PopoverContent>
+                </Popover>
               </div>
             ) : null}
             <Link
@@ -552,62 +511,4 @@ function getNotificationHref(metadata: unknown) {
   }
 
   return trimmed;
-}
-
-function formatNotificationTime(value: string | null) {
-  if (!value) {
-    return '방금 전';
-  }
-
-  const date = new Date(value);
-
-  if (!Number.isFinite(date.getTime())) {
-    return '방금 전';
-  }
-
-  const diffMs = Date.now() - date.getTime();
-  const diffMinutes = Math.max(0, Math.floor(diffMs / 60000));
-
-  if (diffMinutes < 1) return '방금 전';
-  if (diffMinutes < 60) return `${diffMinutes}분 전`;
-
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) return `${diffHours}시간 전`;
-
-  return formatNotificationDateTime(date);
-}
-
-function NotificationItem({
-  event,
-  onRead,
-  onNavigate,
-}: {
-  event: NotificationEvent;
-  onRead: (notificationId: string) => Promise<void>;
-  onNavigate: () => void;
-}) {
-  const href = getNotificationHref(event.metadata);
-
-  return (
-    <a
-      href={href}
-      onClick={(clickEvent) => {
-        clickEvent.preventDefault();
-        onRead(event.id).finally(() => {
-          onNavigate();
-          window.location.assign(href);
-        });
-      }}
-      className="flex gap-3 px-4 py-3 text-left transition-colors hover:bg-zinc-50"
-    >
-      <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${event.read_at ? 'bg-zinc-200' : 'bg-red-500'}`} aria-hidden="true" />
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-bold text-zinc-900">{event.title ?? '알림'}</span>
-        <span className="mt-1 line-clamp-2 break-keep text-xs font-semibold leading-relaxed text-zinc-500">
-          {event.message ?? '알림 내용을 확인할 수 없습니다.'}
-        </span>
-        <span className="type-caption mt-2 block text-zinc-400">{formatNotificationTime(event.created_at)}</span>
-      </span>
-    </a>
-  );
 }

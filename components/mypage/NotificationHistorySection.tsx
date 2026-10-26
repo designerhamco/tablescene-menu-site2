@@ -1,13 +1,11 @@
 "use client";
-import { EmptyState } from "@/app/components/ui/empty-state";
-import { Bell } from "lucide-react";
+import { NotificationPanel } from "@/app/components/ui/notification-panel";
 
 
 import { useState } from "react";
-import { Badge } from "@/app/components/ui/badge";
 import { useRouter } from "next/navigation";
 
-import { formatNotificationDateTime, NOTIFICATION_FALLBACK_HREF } from "@/lib/notification-display-policy";
+import { NOTIFICATION_FALLBACK_HREF } from "@/lib/notification-display-policy";
 import type { Json } from "@/lib/supabase/types";
 
 export type MypageNotificationEvent = {
@@ -100,65 +98,15 @@ export default function NotificationHistorySection({ events }: NotificationHisto
         </div>
       </div>
 
-      {items.length > 0 ? (
-        <div className="site-record-list overflow-hidden">
-          {items.map((event, index) => {
-            const eventId = event.id ?? `${event.title}-${event.created_at}-${index}`;
-            const href = getNotificationHref(event.metadata);
-            const isUnread = !event.read_at;
-
-            return (
-              <a
-                key={eventId}
-                href={href}
-                onClick={(clickEvent) => {
-                  clickEvent.preventDefault();
-
-                  if (event.id) {
-                    markAsRead(event.id).finally(() => {
-                      if (href !== NOTIFICATION_FALLBACK_HREF) {
-                        window.location.assign(href);
-                        return;
-                      }
-
-                      router.refresh();
-                    });
-                    return;
-                  }
-
-                  if (href !== NOTIFICATION_FALLBACK_HREF) {
-                    window.location.assign(href);
-                  }
-                }}
-                className={`block p-5 text-left transition-colors hover:bg-zinc-50 ${index > 0 ? "border-t border-zinc-100" : ""}`}
-              >
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                  <div className="flex min-w-0 gap-3">
-                    <span className={`mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full ${isUnread ? "bg-red-500" : "bg-zinc-200"}`} aria-hidden="true" />
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="type-item-title break-keep text-zinc-950">{event.title ?? "알림"}</h3>
-                        <Badge tone={isUnread ? "pending" : "neutral"}>{isUnread ? "읽지 않음" : "읽음"}</Badge>
-                      </div>
-                      <p className="mt-2 whitespace-pre-wrap break-keep text-sm font-normal leading-relaxed text-zinc-600">
-                        {event.message ?? "알림 내용을 확인할 수 없습니다."}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="shrink-0 text-left md:text-right">
-                    <p className="text-xs font-bold text-zinc-400">{formatNotificationDateTime(event.created_at)}</p>
-                    <p className="mt-2 text-xs font-bold text-zinc-400">{getDeliveryLabel(event)}</p>
-                  </div>
-                </div>
-              </a>
-            );
-          })}
-        </div>
-      ) : (
-        <EmptyState headingLevel={3} icon={<Bell />} title="새 알림이 없습니다." description={<>
-            아티메뉴 이용 중 새 알림이 생기면 이곳에 표시됩니다.
-          </>} />
-      )}
+      <NotificationPanel items={items.map((event,index)=>({
+        id:event.id ?? `${event.title}-${event.created_at}-${index}`, title:event.title ?? "알림",
+        message:event.message ?? "알림 내용을 확인할 수 없습니다.",createdAt:event.created_at,unread:!event.read_at,
+        href:getNotificationHref(event.metadata),detail:getDeliveryLabel(event),
+      }))} onActivate={item=>{
+        const event=items.find((event,index)=>(event.id ?? `${event.title}-${event.created_at}-${index}`)===item.id);
+        const navigate=()=>{if(item.href!==NOTIFICATION_FALLBACK_HREF) window.location.assign(item.href);else router.refresh();};
+        if(event?.id) void markAsRead(event.id).finally(navigate); else if(item.href!==NOTIFICATION_FALLBACK_HREF) window.location.assign(item.href);
+      }} />
     </section>
   );
 }

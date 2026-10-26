@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import styles from "./template-detail.module.css";
 import useTemplateFavorites from "./useTemplateFavorites";
+import { ShareDialog } from "@/app/components/ui/share-dialog";
 
 const views = [
   { label: "전체 디자인", position: "center", detail: false },
@@ -15,15 +16,7 @@ const views = [
 ];
 
 export function TemplateDetailShare() {
-  async function share() {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      toast.success("템플릿 링크를 복사했습니다.");
-    } catch {
-      toast.error("링크를 복사하지 못했습니다. 주소창의 링크를 복사해 주세요.");
-    }
-  }
-  return <button type="button" className={`site-button site-button-ghost ${styles.share}`} onClick={share} aria-label="템플릿 링크 복사"><Share2 size={18} aria-hidden="true" /></button>;
+  return <ShareDialog title="마음에 드는 아티메뉴 디자인을 공유해 보세요." trigger={<button type="button" className={`site-button site-button-ghost ${styles.share}`} aria-label="템플릿 공유하기"><Share2 size={18} aria-hidden="true" /></button>} />;
 }
 
 export function TemplateDetailActions({ designId, name }: { designId: string; name: string }) {

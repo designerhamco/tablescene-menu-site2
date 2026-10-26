@@ -3,7 +3,8 @@ import Link from "next/link";
 
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
-import { formatProductPrice, publicBasicProducts } from "@/lib/public-product-details";
+import { publicBasicProducts } from "@/lib/public-product-details";
+import ProductOfferCard from "@/components/marketing/ProductOfferCard";
 import { Badge } from "@/app/components/ui/badge";
 
 export const metadata: Metadata = {
@@ -67,20 +68,7 @@ export default function PricingPage() {
             </div>
             <div className="grid gap-5 md:grid-cols-2">
               {publicBasicProducts.map((product) => (
-                <article key={product.slug} className="site-section flex min-h-[310px] flex-col p-7">
-                  <Badge>{product.billingLabel}</Badge>
-                  <h3 className="type-subsection-title mt-5">{product.shortName}</h3>
-                  <p className="mt-4 flex-1 break-keep text-sm font-semibold leading-relaxed text-zinc-600">{product.summary}</p>
-                  <p className="mt-6 text-2xl font-bold text-zinc-950">{formatProductPrice(product.price)}</p>
-                  <p className="mt-1 text-xs font-bold text-zinc-600">정상가 월 {formatProductPrice(product.regularPrice)} · 부가세 포함</p>
-                  <p className="mt-2 text-sm font-semibold text-zinc-600">디자인 포함 월 {formatProductPrice(product.designPrice)} · 정상가 {formatProductPrice(product.designRegularPrice)}</p>
-                  <Link
-                    href={`/products/${product.slug}`}
-                    className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center text-sm"
-                  >
-                    상품 상세 및 신청
-                  </Link>
-                </article>
+                <ProductOfferCard key={product.slug} product={product} />
               ))}
             </div>
           </section>

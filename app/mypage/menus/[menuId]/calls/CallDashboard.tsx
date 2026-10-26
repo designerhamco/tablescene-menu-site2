@@ -1,5 +1,6 @@
 "use client";
 
+import { FilterPanel, RecordCard } from "@/app/components/ui/data-display";
 import { Bell, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useMemo, useState } from "react";
@@ -100,7 +101,7 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
         <TabsContent value="settings"><CallItemManager key={callItems.map((item) => `${item.key}:${item.label}:${item.sortOrder}:${item.active}`).join("|")} menuSiteId={menuSiteId} items={callItems} service={callService} /></TabsContent>
       ) : (
         <TabsContent value="history" className="space-y-4">
-          <section className="site-section p-4 md:p-5">
+          <FilterPanel>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-sm font-bold text-zinc-900">처리할 호출 {unresolvedCount.toLocaleString("ko-KR")}건 · 최근 이력 {calls.length.toLocaleString("ko-KR")}건</p>
@@ -129,7 +130,7 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
                 {handlerOptions.map((handler) => <option key={handler} value={handler}>{handler}</option>)}
               </select>
             </div>
-          </section>
+          </FilterPanel>
 
           {state.status !== "idle" && state.message ? <p className={`site-notice   px-4 py-3 text-sm font-bold ${state.status === "success" ? "site-notice-success" : "site-notice-error"}`}>{state.message}</p> : null}
 
@@ -138,7 +139,7 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
           ) : filteredCalls.length === 0 ? (
             <EmptyState headingLevel={3} icon={<Bell />} title="조건에 맞는 호출 내역이 없습니다." description="검색·상태·날짜·처리자 조건을 확인해주세요." />
           ) : filteredCalls.map((call) => (
-            <article key={call.id} className="site-section p-5 md:p-6">
+            <RecordCard key={call.id}>
               <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
@@ -161,7 +162,7 @@ export default function CallDashboard({ menuSiteId, calls, callItems, callServic
                   </form>
                 ) : null}
               </div>
-            </article>
+            </RecordCard>
           ))}
         </TabsContent>
       )}

@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CreditCard, ShoppingBag } from "lucide-react";
+import { MetricCard } from "@/app/components/ui/data-display";
+import { ActivityOverview } from "@/app/components/ui/activity-overview";
 import { notFound, redirect } from "next/navigation";
 
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
@@ -72,7 +75,7 @@ export default async function SalesSummaryPage({
 
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="sales">
-      <div className="space-y-8">
+      <div className="site-dashboard space-y-6">
         <header>
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
           <h2 className="type-subsection-title mt-2">매출요약</h2>
@@ -81,28 +84,15 @@ export default async function SalesSummaryPage({
           </p>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <article className="site-section p-6">
-            <p className="text-xs font-bold text-zinc-400">오늘 주문</p>
-            <p className="mt-3 text-3xl font-bold">{summary.today.orderCount.toLocaleString("ko-KR")}건</p>
-          </article>
-          <article className="rounded-md bg-emerald-50 p-6 shadow-sm">
-            <p className="text-xs font-bold text-emerald-700">오늘 결제 완료액</p>
-            <p className="mt-3 text-3xl font-bold text-emerald-950">{formatAmount(summary.today.collectedAmount)}</p>
-            <p className="mt-2 text-xs font-bold text-emerald-700">{summary.today.paidOrderCount.toLocaleString("ko-KR")}건</p>
-          </article>
-          <article className="site-section p-6">
-            <p className="text-xs font-bold text-zinc-400">{summary.month}월 주문</p>
-            <p className="mt-3 text-3xl font-bold">{summary.monthTotals.orderCount.toLocaleString("ko-KR")}건</p>
-          </article>
-          <article className="rounded-md bg-sky-50 p-6 shadow-sm">
-            <p className="text-xs font-bold text-sky-700">{summary.month}월 결제 완료액</p>
-            <p className="mt-3 text-3xl font-bold text-sky-950">{formatAmount(summary.monthTotals.collectedAmount)}</p>
-            <p className="mt-2 text-xs font-bold text-sky-700">{summary.monthTotals.paidOrderCount.toLocaleString("ko-KR")}건</p>
-          </article>
+        <section className="site-metric-grid" aria-label="매출 요약">
+          <MetricCard label="오늘 주문" value={`${summary.today.orderCount.toLocaleString("ko-KR")}건`} icon={<ShoppingBag />} tone="blue" />
+          <MetricCard label="오늘 결제 완료액" value={formatAmount(summary.today.collectedAmount)} detail={`${summary.today.paidOrderCount.toLocaleString("ko-KR")}건`} icon={<CreditCard />} tone="green" />
+          <MetricCard label={`${summary.month}월 주문`} value={`${summary.monthTotals.orderCount.toLocaleString("ko-KR")}건`} icon={<ShoppingBag />} tone="brand" />
+          <MetricCard label={`${summary.month}월 결제 완료액`} value={formatAmount(summary.monthTotals.collectedAmount)} detail={`${summary.monthTotals.paidOrderCount.toLocaleString("ko-KR")}건`} icon={<CreditCard />} tone="green" />
         </section>
+        <ActivityOverview days={visibleDays} label={`${summary.year}년 ${summary.month}월`} />
 
-        <section className="site-section overflow-hidden">
+        <section className="site-card-surface overflow-hidden">
           <div className="flex flex-col justify-between gap-3 border-b border-zinc-100 px-6 py-5 sm:flex-row sm:items-center">
             <div>
               <h2 className="type-content-title">{summary.year}년 {summary.month}월 일별 현황</h2>
@@ -137,7 +127,7 @@ export default async function SalesSummaryPage({
         </section>
 
         <section className="grid gap-5 lg:grid-cols-2">
-          <article className="site-section p-6">
+          <article className="site-card-surface p-6">
             <h2 className="type-content-title">메뉴별 판매량 Top 10</h2>
             <p className="mt-1 text-xs font-bold text-zinc-500">이번 달 결제 완료 주문의 주문 당시 메뉴명 snapshot 기준입니다.</p>
             {summary.topItems.length === 0 ? (
@@ -158,7 +148,7 @@ export default async function SalesSummaryPage({
           </article>
 
           <div className="space-y-5">
-            <article className="site-section p-6">
+            <article className="site-card-surface p-6">
               <h2 className="type-content-title">결제수단별 완료액</h2>
               <div className="mt-5 space-y-3">
                 {summary.paymentMethods.length === 0 ? (
@@ -175,7 +165,7 @@ export default async function SalesSummaryPage({
               </div>
             </article>
 
-            <article className="site-section p-6">
+            <article className="site-card-surface p-6">
               <h2 className="type-content-title">취소·미결제 현황</h2>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div className="site-notice site-notice-error p-4">

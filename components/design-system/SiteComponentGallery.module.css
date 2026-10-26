@@ -11,3 +11,18 @@
 .action { gap: .75rem; }
 @media (max-width: 767px) { .mediaGrid { grid-template-columns: 1fr; } .actionGrid { grid-template-columns: 1fr; } }
 @media (min-width: 768px) and (max-width: 1023px) { .mediaGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tokenGrid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; }
+.token { display:grid; align-content:start; gap:.5rem; min-width:0; }
+.token code { overflow-wrap:anywhere; }
+.swatch { height:5rem; border:1px solid var(--ui-border); border-radius:.75rem; }
+.ruleGrid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; padding:1rem; background:var(--ui-surface-muted); border-radius:var(--ui-radius-panel); }
+.usageTable { overflow-x:auto; }
+.usageTable table { width:100%; text-align:left; font-size:.875rem; line-height:1.6; }
+.usageTable :is(th,td) { padding:1rem; border-bottom:1px solid var(--ui-border); vertical-align:top; }
+.usageTable th { font-weight:600; background:var(--ui-surface-muted); }
+.notificationExample { width:min(100%,25rem); border:1px solid var(--ui-border); border-radius:var(--ui-radius-panel); overflow:hidden; }
+.filterExample { display:grid; grid-template-columns:10rem minmax(0,1fr) auto; gap:.75rem; align-items:end; }
+.recordHeading { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; }
+.sampleAvatar { display:grid; place-items:center; width:3rem; height:3rem; border-radius:50%; background:var(--ui-surface-soft); font-size:1.5rem; }
+.offerExample { max-width:28rem; }
+@media(max-width:767px) { .ruleGrid { grid-template-columns:1fr; } .tokenGrid { grid-template-columns:repeat(2,minmax(0,1fr)); } .filterExample { grid-template-columns:minmax(0,1fr); } }
