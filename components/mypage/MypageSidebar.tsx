@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowUpRight } from "lucide-react";
 
 import { signOutAction } from "@/app/auth/actions";
 import { formatNotificationBadgeCount } from "@/lib/notification-display-policy";
@@ -38,51 +39,63 @@ function DisabledNavigationItem({ label, reason }: { label: string; reason: stri
 }
 
 export function MypageAccountCard({
+  businessName,
   email,
   roleLabel,
   canShowOwnerCommerce,
   accountAiCreditRemaining,
+  staffAccountCount,
 }: {
+  businessName?: string | null;
   email: string;
   roleLabel?: "사장" | "직원" | null;
   canShowOwnerCommerce: boolean;
   accountAiCreditRemaining?: number;
+  staffAccountCount?: number;
 }) {
   return (
     <section className="site-account-summary">
-      <div className="site-account-heading">
-        <div className="min-w-0">
-          <h2 className="type-content-title min-w-0 truncate" title={email}>{email}</h2>
-          {roleLabel ? (
-            <div className="mt-2 flex flex-wrap gap-2" aria-label="계정 역할">
-              <Badge
-
-              >
-                {roleLabel}
-              </Badge>
+      <div className="site-account-identity">
+        <h2 className="type-content-title site-account-business-name" title={businessName || email}>
+          {businessName || email}
+        </h2>
+        {businessName ? (
+          <p className="site-account-email" title={email}>{email}</p>
+        ) : null}
+        {roleLabel ? (
+          <div className="site-account-role" aria-label="계정 역할">
+            <Badge>{roleLabel}</Badge>
+          </div>
+        ) : null}
+      </div>
+      {canShowOwnerCommerce && (accountAiCreditRemaining !== undefined || staffAccountCount !== undefined) ? (
+        <div className="site-account-metrics">
+          {accountAiCreditRemaining !== undefined ? (
+          <Link
+            href="/mypage?tab=payments&billingTab=ai-credits"
+            className="site-account-metric site-account-metric-link"
+            aria-label={`AI 크레딧 ${accountAiCreditRemaining.toLocaleString("ko-KR")}개. AI 충전/사용내역 보기`}
+          >
+            <span className="site-account-metric-label">AI 크레딧</span>
+            <span className="site-account-metric-value">
+              <strong>{accountAiCreditRemaining.toLocaleString("ko-KR")}개</strong>
+              <ArrowUpRight aria-hidden="true" />
+            </span>
+          </Link>
+          ) : null}
+          {staffAccountCount !== undefined ? (
+            <div className="site-account-metric" aria-label={`직원계정 ${staffAccountCount.toLocaleString("ko-KR")}명`}>
+              <span className="site-account-metric-label">직원계정</span>
+              <span className="site-account-metric-value"><strong>{staffAccountCount.toLocaleString("ko-KR")}명</strong></span>
             </div>
           ) : null}
         </div>
-        <form action={signOutAction}>
-          <button type="submit" className="site-button site-button-rounded site-button-outline site-account-signout">
-            로그아웃
-          </button>
-        </form>
-      </div>
-      {canShowOwnerCommerce && accountAiCreditRemaining !== undefined ? (
-        <div className="site-account-credits">
-          <div>
-            <p className="text-support font-medium text-zinc-600">AI 도우미 크레딧</p>
-            <p className="mt-1 text-copy font-medium text-zinc-950">잔여 {accountAiCreditRemaining.toLocaleString("ko-KR")}개</p>
-          </div>
-          <Link
-            href="/mypage?tab=payments&billingTab=ai-credits"
-            className="inline-flex text-support font-medium text-zinc-600 underline decoration-zinc-300 underline-offset-4 transition-colors hover:text-zinc-950"
-          >
-            AI 충전/사용내역
-          </Link>
-        </div>
       ) : null}
+      <form action={signOutAction} className="site-account-signout-form">
+        <button type="submit" className="site-button site-button-rounded site-button-outline site-account-signout">
+          로그아웃
+        </button>
+      </form>
     </section>
   );
 }

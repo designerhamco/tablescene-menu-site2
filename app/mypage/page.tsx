@@ -2438,6 +2438,31 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
   const totalMenuCardCount = sites.length + staffMenuCardViewModels.length;
   const hasAnyMenuCards = totalMenuCardCount > 0;
   const canShowOwnerCommerce = !isStaffOnlyAccount;
+  let accountStaffCount: number | undefined;
+
+  if (canShowOwnerCommerce) {
+    accountStaffCount = 0;
+
+    if (menuSiteIds.length > 0) {
+      const adminSupabase = createAdminClient();
+      const activeStaffMembershipsResult = await runMypageQuery(
+        "active_staff_memberships",
+        adminSupabase
+          .from("menu_site_members")
+          .select("user_id")
+          .in("menu_site_id", menuSiteIds)
+          .eq("status", "active")
+      );
+
+      if (!activeStaffMembershipsResult?.error) {
+        accountStaffCount = new Set(
+          (activeStaffMembershipsResult?.data ?? [])
+            .map((membership) => getSafeString(membership.user_id))
+            .filter(Boolean)
+        ).size;
+      }
+    }
+  }
   const activeNavigationKey: MypageNavigationKey = activeTab;
   function renderMenuCard(card: (typeof menuCardViewModels)[number]) {
     const primaryActionClassName = "site-button site-button-primary site-button-rounded";
@@ -2701,13 +2726,15 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             </div>
           </header>
 
-        <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-8">
+        <div className="site-account-layout">
           <aside className="site-account-sidebar min-w-0">
             <MypageAccountCard
+              businessName={businessProfile?.business_name}
               email={user.email ?? "이메일 정보 없음"}
               roleLabel={accountRoleLabel}
               canShowOwnerCommerce={canShowOwnerCommerce}
               accountAiCreditRemaining={canShowOwnerCommerce ? accountAiCreditRemaining : undefined}
+              staffAccountCount={accountStaffCount}
             />
             <MypageNavigation
               active={activeNavigationKey}
