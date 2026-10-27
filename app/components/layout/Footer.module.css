@@ -5,6 +5,7 @@
 .identity { display: grid; align-content: start; justify-items: start; gap: 1rem; }
 .brand { color: var(--ui-text); font-size: var(--site-type-32); font-weight: 700; line-height: 1.2; letter-spacing: -.06em; }
 .navigation { display: grid; min-width: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
+.mobileSections { display: none; }
 .group { display: grid; min-width: 0; align-content: start; gap: .75rem; }
 .group ul { display: grid; gap: .125rem; }
 .group li { min-width: 0; }
@@ -34,8 +35,29 @@
 @media (max-width: 639px) {
   .surface { border-radius: 1.5rem; }
   .content { padding: 1.5rem 1.25rem 0; }
-  .navigation { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
-  .contact { grid-column: 1 / -1; }
+  .top { gap: 1.5rem; }
+  .desktopNavigation, .desktopBusiness { display: none; }
+  .mobileSections { display: grid; border-top: 1px solid var(--ui-border); }
+  .disclosure { border-bottom: 1px solid var(--ui-border); }
+  .disclosure summary {
+    display: flex;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--ui-text);
+    font-size: var(--type-label-size);
+    font-weight: 600;
+    line-height: 1.4;
+    cursor: pointer;
+    list-style: none;
+  }
+  .disclosure summary::-webkit-details-marker { display: none; }
+  .disclosure summary svg { width: 1.125rem; height: 1.125rem; flex: none; color: var(--ui-text-muted); transition: transform var(--ui-transition); }
+  .disclosure[open] summary svg { transform: rotate(180deg); }
+  .disclosure summary:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; border-radius: .25rem; }
+  .disclosureContent { gap: .25rem; padding: 0 0 1rem; }
+  .disclosureBusiness { margin: 0; padding: 0 0 1rem; }
   .group li a, .legal a { min-height: 2.75rem; }
   .group ul { gap: 0; }
   .business dl { display: grid; gap: .5rem; }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { ChevronRight } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 export function MypageNavigationRail({
   activeKey,
@@ -10,6 +11,15 @@ export function MypageNavigationRail({
   children: ReactNode;
 }) {
   const navRef = useRef<HTMLElement>(null);
+  const [hasMoreAtEnd, setHasMoreAtEnd] = useState(false);
+
+  const updateOverflowHint = useCallback(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const remaining = nav.scrollWidth - nav.clientWidth - nav.scrollLeft;
+    setHasMoreAtEnd(remaining > 2);
+  }, []);
 
   useEffect(() => {
     const nav = navRef.current;
@@ -17,7 +27,11 @@ export function MypageNavigationRail({
     if (!nav || !active) return;
 
     const revealActive = () => {
-      if (nav.clientWidth === 0 || nav.scrollWidth <= nav.clientWidth) return;
+      if (nav.clientWidth === 0) return;
+      if (nav.scrollWidth <= nav.clientWidth) {
+        updateOverflowHint();
+        return;
+      }
       const rail = nav.getBoundingClientRect();
       const item = active.getBoundingClientRect();
       const inset = Number.parseFloat(getComputedStyle(nav).paddingInlineStart) || 0;
@@ -29,9 +43,12 @@ export function MypageNavigationRail({
       } else if (hiddenAtEnd > 0) {
         nav.scrollLeft += hiddenAtEnd;
       }
+
+      updateOverflowHint();
     };
 
     revealActive();
+    nav.addEventListener("scroll", updateOverflowHint, { passive: true });
     const observer = new ResizeObserver(revealActive);
     observer.observe(nav);
     observer.observe(active);
@@ -42,13 +59,32 @@ export function MypageNavigationRail({
 
     return () => {
       cancelled = true;
+      nav.removeEventListener("scroll", updateOverflowHint);
       observer.disconnect();
     };
-  }, [activeKey]);
+  }, [activeKey, updateOverflowHint]);
+
+  const revealMore = () => {
+    const nav = navRef.current;
+    if (!nav) return;
+
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    nav.scrollBy({
+      left: Math.max(160, nav.clientWidth * 0.65),
+      behavior: reduceMotion ? "auto" : "smooth",
+    });
+  };
 
   return (
-    <nav ref={navRef} className="site-account-nav" aria-label="마이페이지 메뉴">
-      {children}
-    </nav>
+    <div className="site-account-nav-shell" data-has-more={hasMoreAtEnd ? "true" : "false"}>
+      <nav ref={navRef} className="site-account-nav" aria-label="마이페이지 메뉴">
+        {children}
+      </nav>
+      {hasMoreAtEnd ? (
+        <button type="button" className="site-account-nav-more" onClick={revealMore} aria-label="다음 마이페이지 메뉴 보기">
+          <ChevronRight aria-hidden="true" />
+        </button>
+      ) : null}
+    </div>
   );
 }
