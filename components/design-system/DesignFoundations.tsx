@@ -35,7 +35,7 @@ export default function DesignFoundations() {
     <section className={styles.section}><h2 className="type-section-title">탭·세그먼트 사용 기준</h2><div className={styles.usageTable}><table><thead><tr><th>역할</th><th>형태</th><th>적용</th></tr></thead><tbody>
       <tr><td>상위 탐색·상태 분류</td><td>기존 밑줄형</td><td>베이직·다이닝·디스플레이, 가이드, 마이페이지·편집·운영</td></tr>
       <tr><td>알림·요금 카드 분류</td><td>기존 밑줄형</td><td>알림창과 요금 패널의 원래 구조 유지</td></tr>
-      <tr><td>아래 목록 영역과 연결</td><td>파일형 연결 탭</td><td>디자인 / 기본 템플릿, 공지 / FAQ. 왼쪽에 문구 폭만큼 모아서 표시</td></tr>
+      <tr><td>관련 목록 종류 전환</td><td>작은 선택 그룹</td><td>디자인 / 기본 템플릿, 공지 / FAQ. 왼쪽에 문구 폭만큼 모아서 표시</td></tr>
       <tr><td>보기·설정 방식 전환</td><td>Outline 세그먼트</td><td>이미지 / 목록, 기능 / 디자인</td></tr>
       <tr><td>목록 조건</td><td>작은 필터</td><td>업종·주제·서체 분류</td></tr>
     </tbody></table></div><p className="type-body-sm text-zinc-600">탭 문구는 본문이 아니라 컨트롤 라벨입니다. 상위 서비스 탭은 lg 16px, 일반 탭은 md 15px, 조밀한 하위 탭은 sm 14px을 사용합니다.</p><p className="type-footnote text-zinc-600">추가 형태 예시는 선택 가능한 시안입니다. 라이브러리에 추가했다고 다른 역할의 탭으로 일괄 적용하지 않습니다. 고객이 제작하는 메뉴판의 서체·색·배치는 별도 규칙입니다.</p></section>

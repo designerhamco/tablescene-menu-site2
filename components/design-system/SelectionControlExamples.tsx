@@ -24,7 +24,7 @@ export default function SelectionControlExamples() {
         <p className="type-body text-zinc-600">모양은 용도로, 크기는 정보의 단계로 선택합니다. 주요 분류 아래에 같은 크기의 분류를 반복하지 않습니다.</p></div>
       <div className={styles.usageTable}><table aria-label="선택 요소 사용 기준"><thead><tr><th>용도</th><th>형태</th><th>사용 예</th></tr></thead><tbody>
         <tr><td>다른 콘텐츠 묶음으로 전환</td><td>밑줄형 탭</td><td>베이직·다이닝·디스플레이, 가이드·마이페이지·알림</td></tr>
-        <tr><td>경계가 있는 목록과 직접 연결</td><td>파일형 연결 탭</td><td>디자인 / 기본 템플릿, 공지사항 / FAQ. 문구 폭으로 왼쪽 정렬</td></tr>
+        <tr><td>관련 목록 종류 전환</td><td>작은 선택 그룹</td><td>디자인 / 기본 템플릿, 공지사항 / FAQ. 문구 폭으로 왼쪽 정렬</td></tr>
         <tr><td>같은 콘텐츠의 보기·설정 방식 변경</td><td>세그먼트</td><td>이미지 / 목록 보기, 기능 / 디자인 옵션</td></tr>
         <tr><td>현재 목록의 조건·본문 바로가기</td><td>작은 필터·링크</td><td>업종, 고객센터 주제, 가이드 본문 바로가기</td></tr>
       </tbody></table></div>

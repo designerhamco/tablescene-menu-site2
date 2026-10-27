@@ -87,14 +87,16 @@ test("content tabs, settings tabs and subordinate filters retain different share
   }
   assert.match(read("components/guides/UsageGuidePage.tsx"), /<TabsList variant="underline"/);
   assert.match(tabCss, /--site-tab-indicator-width: \.25rem/);
-  assert.match(tabCss, /\.site-contained-panel \{[^}]*border-radius: 0 \.75rem \.75rem \.75rem/);
+  assert.match(tabCss, /\.site-contained-tabs \{[^}]*width: fit-content;[^}]*padding: \.25rem;[^}]*border: 1px solid var\(--ui-border\);[^}]*border-radius: \.75rem;/);
+  assert.match(tabCss, /\.site-contained-tab:is\(\[data-state="active"\], \[aria-current="page"\]\) \{[^}]*background: var\(--ui-text\);[^}]*color: #fff;/);
+  assert.match(tabCss, /\.site-contained-panel \{[^}]*padding: 1\.5rem 0 0;[^}]*border: 0;[^}]*background: transparent;/);
+  assert.doesNotMatch(tabCss, /\.site-contained-tab::before/);
   for (const cls of ["site-tab", "site-topic-tab", "site-contained-tab"]) {
     assert.match(tabCss, new RegExp(`\\.${cls}:is\\(:focus-visible, \\[data-ui-state="focus"\\]\\)`));
   }
-  assert.match(tabCss, /\.site-contained-tab:is\(:focus-visible, \[data-ui-state="focus"\]\) \.site-shaped-tab-label/);
   assert.match(tabCss, /--site-shadow-shaped-tab: 0 -\.25rem \.5rem rgb\(75 81 91 \/ 10%\)/);
   assert.match(tabCss, /filter: drop-shadow\(var\(--site-shadow-shaped-tab\)\)/);
-  assert.match(tabCss, /\.site-contained-tabs, \.site-folder-tabs \{[^}]*background: transparent/);
+  assert.match(tabCss, /\.site-folder-tabs \{[^}]*background: transparent/);
   assert.match(tabCss, /\.site-flow-tabs-root\[data-slot="tabs"\] \{[^}]*background: transparent/);
   assert.match(read("public/images/ui/tab-folder-mask.svg"), /M0 56 14 24C18 14 21 8 27 4/);
 });
