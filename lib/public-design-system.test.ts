@@ -51,6 +51,18 @@ test("공통 헤더와 푸터는 페이지와 같은 사이트 컨테이너 여�
   assert.match(faqSource, /<div className="site-container">/);
 });
 
+test("모바일 푸터는 핵심 정보만 먼저 보이고 상세 묶음은 기본 접힘으로 제공한다", () => {
+  const footerStyles = readSource("../app/components/layout/Footer.module.css");
+
+  assert.match(footerSource, /className=\{styles\.mobileSections\}/);
+  assert.match(footerSource, /<details key=\{group\.title\} className=\{styles\.disclosure\}>/);
+  assert.match(footerSource, /<summary><span>사업자 정보<\/span><ChevronDown/);
+  assert.doesNotMatch(footerSource, /<details[^>]*\sopen/);
+  assert.match(footerStyles, /\.mobileSections \{ display: none; \}/);
+  assert.match(footerStyles, /@media \(max-width: 639px\) \{[\s\S]*?\.desktopNavigation, \.desktopBusiness \{ display: none; \}/);
+  assert.match(footerStyles, /\.disclosure\[open\] summary svg \{ transform: rotate\(180deg\); \}/);
+});
+
 test("넓은 화면의 페이지 여백은 헤더와 같은 최대 폭 기준을 계산한다", () => {
   assert.match(globalsSource, /\.site-gutter\s*\{[\s\S]*padding-inline:\s*max\(/);
   assert.match(globalsSource, /calc\(\(100vw - var\(--site-content-max\)\) \/ 2 \+ var\(--site-gutter\)\)/);

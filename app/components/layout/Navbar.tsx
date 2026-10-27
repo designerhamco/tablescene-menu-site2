@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { ArrowUpRight, Bell, Menu, X } from 'lucide-react';
+import { Bell, ChevronRight, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -372,37 +372,37 @@ const Navbar = () => {
       </nav>
 
       <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-[60] bg-white" />
+          <Dialog.Overlay className={styles.drawerOverlay} />
           <Dialog.Content className={styles.drawer}>
             <Dialog.Title className="sr-only">아티메뉴 전체 메뉴</Dialog.Title>
             <Dialog.Description className="sr-only">서비스와 계정 메뉴를 선택하세요.</Dialog.Description>
-            <div className={`site-container flex items-center justify-between ${styles.drawerHeader}`}>
+            <div className={`flex items-center justify-between ${styles.drawerHeader}`}>
               <Link href="/" onClick={closeMobileMenu} className={styles.wordmark}>ArtiMenu</Link>
               <Dialog.Close className="site-button site-button-icon site-button-ghost" aria-label="메뉴 닫기"><X size={24} /></Dialog.Close>
             </div>
-            <div className="site-container flex h-full flex-col overflow-y-auto pb-8">
-              <div className="flex-1 py-5">
-                <div className="mb-6 grid grid-cols-2 gap-2 border-b border-zinc-100 pb-6">
+            <div className={styles.drawerBody}>
+              <div className={styles.drawerMain}>
+                <div className={styles.drawerActions}>
                   {showStoreOperations ? (
                     <>
                       <Link
                         href={accountCtaHref}
                         onClick={closeMobileMenu}
-                        className="site-button site-button-secondary w-full"
+                        className={`site-button site-button-secondary ${styles.drawerAction}`}
                       >
                         {accountCtaLabel}
                       </Link>
                       <Link
                         href="/mypage/operations"
                         onClick={closeMobileMenu}
-                        className="site-button site-button-secondary w-full"
+                        className={`site-button site-button-secondary ${styles.drawerAction}`}
                       >
                         매장 운영
                       </Link>
                       <Link
                         href="/apply"
                         onClick={closeMobileMenu}
-                        className="site-button site-button-primary col-span-2 w-full"
+                        className={`site-button site-button-primary ${styles.drawerAction} ${styles.drawerActionWide}`}
                       >
                         만들기
                       </Link>
@@ -412,7 +412,7 @@ const Navbar = () => {
                       <Link
                         href="/apply"
                         onClick={closeMobileMenu}
-                        className="site-button site-button-primary w-full"
+                        className={`site-button site-button-primary ${styles.drawerAction} ${styles.drawerActionWide}`}
                       >
                         만들기
                       </Link>
@@ -420,7 +420,7 @@ const Navbar = () => {
                         <Link
                           href={accountCtaHref}
                           onClick={closeMobileMenu}
-                          className="site-button site-button-secondary w-full"
+                          className={`site-button site-button-secondary ${styles.drawerAction} ${styles.drawerActionWide}`}
                         >
                           {accountCtaLabel}
                         </Link>
@@ -429,7 +429,7 @@ const Navbar = () => {
                   )}
                 </div>
 
-                <nav aria-label="모바일 공식 사이트 메뉴" className="grid gap-1">
+                <nav aria-label="모바일 공식 사이트 메뉴" className={styles.drawerNavigation}>
                   {NAV_ITEMS.map((item) => {
                     const isActive = isNavItemActive(item, pathname);
 
@@ -448,14 +448,13 @@ const Navbar = () => {
 
                           closeMobileMenu();
                         }}
-                        className={`group flex min-h-16 items-center justify-between gap-3 border-b border-zinc-100 py-4 text-xl font-bold leading-tight tracking-tight transition-colors ${
-                          item.disabled ? 'pointer-events-none cursor-not-allowed text-zinc-400' : isActive ? 'text-zinc-950' : 'text-zinc-600 active:text-zinc-950'
-                        }`}
+                        data-active={isActive ? 'true' : undefined}
+                        className={`${styles.drawerNavLink} ${item.disabled ? styles.drawerNavLinkDisabled : ''}`}
                       >
                         <span>{item.label}</span>
-                        <span className="flex shrink-0 items-center gap-2">
+                        <span className={styles.drawerNavMeta}>
                           {item.disabled ? <DisabledChip /> : null}
-                          {!item.disabled ? <ArrowUpRight className="h-4 w-4 text-zinc-300 transition-colors group-active:text-zinc-950" aria-hidden="true" /> : null}
+                          {!item.disabled ? <ChevronRight aria-hidden="true" /> : null}
                         </span>
                       </Link>
                     );
@@ -463,28 +462,26 @@ const Navbar = () => {
                 </nav>
               </div>
 
-              <div className="mt-auto py-8">
-                <div className="border-t border-zinc-100 pt-6">
-                  <div className="mb-5 flex items-center gap-4 text-support font-medium text-zinc-500">
+              <div className={styles.drawerFooter}>
+                <div className={styles.drawerSupport}>
+                  <div className={styles.drawerSupportLinks}>
                     <Link
                       href="/mypage/inquiries"
                       onClick={closeMobileMenu}
-                      className="underline decoration-zinc-300 underline-offset-4 transition-colors active:text-zinc-950"
                     >
                       1:1 문의
                     </Link>
                     <Link
                       href="/support/chat"
                       onClick={closeMobileMenu}
-                      className="underline decoration-zinc-300 underline-offset-4 transition-colors active:text-zinc-950"
                     >
                       채팅상담
                     </Link>
                   </div>
-                  <div className="flex flex-col gap-1 text-support font-medium tracking-tight text-zinc-400">
-                    <p className="mb-1 text-copy font-medium text-zinc-900">ArtiMenu Studio</p>
+                  <div className={styles.drawerIdentity}>
+                    <p>ArtiMenu Studio</p>
                     <p>admin@dndcommerce.co.kr</p>
-                    <p className="mt-1 opacity-60">© 2026 ArtiMenu. All rights reserved.</p>
+                    <p>© 2026 ArtiMenu. All rights reserved.</p>
                   </div>
                 </div>
               </div>

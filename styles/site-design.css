@@ -181,10 +181,14 @@
 .site-account-metric-link:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
 .site-account-signout-form { padding-top: 0; }
 .site-account-signout { width: 100%; white-space: nowrap; }
-.site-account-nav {
+.site-account-nav-shell {
   position: sticky;
   top: var(--site-header-height);
   z-index: 30;
+  min-width: 0;
+}
+.site-account-nav {
+  position: relative;
   display: flex;
   min-width: 0;
   max-width: 100%;
@@ -200,6 +204,35 @@
 }
 .site-account-nav::-webkit-scrollbar { display: none; }
 .site-account-nav .site-nav-item { flex: 0 0 auto; gap: .75rem; white-space: nowrap; border-radius: var(--ui-radius-control-rounded); }
+.site-account-nav-shell[data-has-more="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 1px 1px 1px auto;
+  z-index: 1;
+  width: 4.75rem;
+  border-radius: 0 calc(var(--ui-radius-panel) - 1px) calc(var(--ui-radius-panel) - 1px) 0;
+  background: linear-gradient(90deg, rgb(255 255 255 / 0%), var(--ui-surface) 54%);
+  pointer-events: none;
+}
+.site-account-nav-more {
+  position: absolute;
+  top: 50%;
+  right: .625rem;
+  z-index: 2;
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  box-shadow: 0 2px 10px rgb(21 24 30 / 14%);
+  transform: translateY(-50%);
+}
+.site-account-nav-more svg { width: 1rem; height: 1rem; stroke-width: 2; }
+.site-account-nav-more:hover { background: var(--ui-surface-hover); }
+.site-account-nav-more:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
 @media (min-width: 640px) {
   .site-support-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -208,7 +241,9 @@
   .site-account-layout { grid-template-columns: clamp(17.5rem, 20vw, 20rem) minmax(0, 1fr); gap: 2rem; }
   .site-account-sidebar { position: sticky; top: 7rem; display: grid; gap: 1.25rem; }
   .site-account-summary { gap: 1rem; padding: 1.25rem; }
-  .site-account-nav { position: static; flex-direction: column; gap: .375rem; overflow: visible; background: var(--ui-surface); padding: .75rem; }
+  .site-account-nav-shell { position: static; }
+  .site-account-nav { flex-direction: column; gap: .375rem; overflow: visible; background: var(--ui-surface); padding: .75rem; }
+  .site-account-nav-shell::after, .site-account-nav-more { display: none; }
   .site-account-nav .site-nav-item { min-height: 3.25rem; border-radius: .5rem; padding: .75rem 1rem; }
 }
 :root { --site-support-launcher-edge: 1.25rem; }

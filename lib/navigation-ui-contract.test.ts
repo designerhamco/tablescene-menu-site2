@@ -6,16 +6,19 @@ function readSource(relativePath: string) {
   return readFileSync(new URL(`../${relativePath}`, import.meta.url), "utf8");
 }
 
-test("모바일 전체 메뉴는 공통 좌우 여백과 균형 잡힌 상단 액션을 사용한다", () => {
+test("모바일 전체 메뉴는 디자인 시스템의 시트, 액션 표면과 단순한 내부 탐색을 사용한다", () => {
   const navbarSource = readSource("app/components/layout/Navbar.tsx");
+  const navbarStyles = readSource("app/components/layout/Navbar.module.css");
 
-  assert.match(navbarSource, /site-container flex h-full flex-col/);
-  assert.match(navbarSource, /mb-6 grid grid-cols-2 gap-2/);
-  assert.doesNotMatch(navbarSource, /authState\.isAuthenticated \? 'col-span-2'/);
-  assert.match(navbarSource, /site-button site-button-primary w-full/);
-  assert.match(navbarSource, /site-button site-button-secondary w-full/);
-  assert.match(navbarSource, /min-h-16 items-center justify-between/);
-  assert.match(navbarSource, /<ArrowUpRight/);
+  assert.match(navbarSource, /className=\{styles\.drawerOverlay\}/);
+  assert.match(navbarSource, /className=\{styles\.drawerActions\}/);
+  assert.match(navbarSource, /className=\{styles\.drawerNavigation\}/);
+  assert.match(navbarSource, /className=\{styles\.drawerSupport\}/);
+  assert.match(navbarSource, /<ChevronRight/);
+  assert.doesNotMatch(navbarSource, /<ArrowUpRight/);
+  assert.match(navbarStyles, /\.drawer \{[\s\S]*?width: min\(100%, 28rem\)/);
+  assert.match(navbarStyles, /\.drawerActions \{[\s\S]*?background: var\(--ui-surface-soft\)/);
+  assert.match(navbarStyles, /\.drawerNavLink\[data-active="true"\]/);
 });
 
 test("헤더와 퀵 메뉴의 원형 아이콘 버튼은 가로세로가 같은 규격을 보장한다", () => {
