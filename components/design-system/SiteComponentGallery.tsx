@@ -66,8 +66,8 @@ export default function SiteComponentGallery() {
     <Examples title="업종 선택 버튼" description="업종에는 카테고리를 바로 이해할 수 있는 단색 아이콘과 짧은 이름을 사용합니다.">
       <ChoiceGroup><ChoiceTile size="compact" icon={<CatalogIndustryIcon industry="cafe_bakery" />} label="카페·베이커리" selected={industry} onClick={()=>setIndustry(current=>!current)} /><ChoiceTile size="compact" icon={<CatalogIndustryIcon industry="restaurant_dining" />} label="준비 중인 업종" disabled /></ChoiceGroup>
     </Examples>
-    <Examples title="목록과 이어지는 탭" description="서로 다른 목록을 같은 자리에서 전환할 때 사용합니다. 선택한 탭과 아래 영역의 바탕색을 이어 주고, 업종 필터와 형태를 구분합니다.">
-      <Tabs variant="contained" defaultValue="designer"><TabsList distribution="equal" aria-label="연결형 템플릿 탭 예시">
+    <Examples title="목록 종류 선택 탭" description="서로 다른 목록을 같은 자리에서 전환할 때 사용합니다. 작은 선택 그룹과 열린 콘텐츠 여백으로 구분해 아래 목록을 무거운 박스로 감싸지 않습니다.">
+      <Tabs variant="contained" defaultValue="designer"><TabsList distribution="equal" aria-label="목록 종류 탭 예시">
         <TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger>
       </TabsList><TabsContent value="designer"><p className="type-item-title">완성된 디자인으로 시작</p><p className="type-body-sm mt-2 text-zinc-600">매장에 어울리는 스타일을 고르고 메뉴를 넣어 보세요.</p></TabsContent>
       <TabsContent value="standard"><p className="type-item-title">직접 꾸미는 기본 레이아웃</p><p className="type-body-sm mt-2 text-zinc-600">색상과 서체를 매장에 맞게 직접 설정해 보세요.</p></TabsContent></Tabs>

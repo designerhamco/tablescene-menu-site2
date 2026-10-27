@@ -15,7 +15,7 @@ function ExampleContent({ standard = false }: { standard?: boolean }) {
 export default function ShapedTabExamples() {
   const [size, setSize] = useState<TabsSize>("md");
   return <section className={styles.section} id="shaped-tabs" aria-labelledby="shaped-tabs-title">
-    <div className={styles.heading}><h2 className="type-section-title" id="shaped-tabs-title">형태로 연결하는 탭</h2><p className="type-body text-zinc-600">아래 영역과 연결되는 탭의 윤곽을 비교하는 추가 시안입니다. 상위 서비스 탐색·알림창은 기존 밑줄형을 유지하며, 실제 디자인/기본 템플릿 영역은 왼쪽에 모인 연결형을 사용합니다.</p></div>
+    <div className={styles.heading}><h2 className="type-section-title" id="shaped-tabs-title">형태로 연결하는 탭</h2><p className="type-body text-zinc-600">아래 영역과 연결되는 탭의 윤곽을 비교하는 추가 시안입니다. 실제 디자인/기본 템플릿 영역은 별도의 작은 목록 종류 선택 그룹을 사용하며, 이 두 형태는 선택 가능한 추가 시안으로만 남깁니다.</p></div>
     <div className="site-filter-group" role="group" aria-label="탭 예시 크기">{([["lg", "대 · 48px"], ["md", "중 · 44px"], ["sm", "소 · 40px"]] as const).map(([value, label]) => <button key={value} type="button" className="site-filter" aria-pressed={size === value} onClick={() => setSize(value)}>{label}</button>)}</div>
     <div className={styles.shapedGrid}>
       <div className={styles.shapedExample}>
