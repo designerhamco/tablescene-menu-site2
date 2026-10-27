@@ -133,6 +133,19 @@ test("content and view controls share three sizes without promoting nested guide
   assert.match(read("components/mypage/menu-editor/LocalizationSection.tsx"), /size="sm" aria-label="번역 항목 선택"/);
 });
 
+test("underline tab rails stop at their tab boundary without changing full-width navigation", () => {
+  const rail = tabCss.match(/\.site-topic-tabs \{([^}]+)\}/)?.[1];
+  const tab = tabCss.match(/\.site-topic-tab \{([^}]+)\}/)?.[1];
+  assert.ok(rail, "missing underline tab rail");
+  assert.ok(tab, "missing underline tab");
+  assert.match(rail, /padding-inline: 0;/);
+  assert.match(tab, /padding-inline: \.25rem;/);
+  assert.match(tabCss, /\.site-catalog-services \{[^}]*width: fit-content;/);
+  assert.match(read("components/guides/usage-guide.module.css"), /\.planTabs \{[^}]*width: fit-content;[^}]*max-width: 100%;/);
+  assert.match(tabCss, /\.site-notification-tabs\.site-topic-tabs \{[^}]*width: 100%;/);
+  assert.match(tabCss, /\.site-offer-tabs\.site-topic-tabs \{[^}]*width: 100%;/);
+});
+
 test("native and custom selects reserve a common chevron gutter without affecting listboxes or menu renderers", () => {
   const select = read("app/components/ui/select.tsx");
   assert.match(select, /className="site-select-chevron" size=\{20\} strokeWidth=\{2\.25\}/);
