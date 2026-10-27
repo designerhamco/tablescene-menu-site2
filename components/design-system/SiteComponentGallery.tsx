@@ -43,7 +43,7 @@ export default function SiteComponentGallery() {
       <p className="type-page-description">디자인 기준과 실제 사이트에 사용하는 공통 컴포넌트를 한곳에서 확인합니다.</p>
       <p className="type-body-sm text-zinc-600">스타일 확인용 예시입니다. 선택과 좋아요는 이 화면에서만 유지됩니다.</p>
     </header>
-    <Tabs variant="underline" defaultValue="components" className="mt-6 gap-0"><TabsList variant="underline" size="lg" aria-label="디자인 시스템 메뉴"><TabsTrigger value="foundations">기준·토큰</TabsTrigger><TabsTrigger value="components">컴포넌트 라이브러리</TabsTrigger></TabsList><TabsContent value="foundations"><DesignFoundations /></TabsContent><TabsContent value="components"><nav className="site-filter-group mt-6" aria-label="주요 컴포넌트 바로가기"><a href="#selection-hierarchy-title" className="site-filter">탭·세그먼트 기준</a><a href="#shaped-tabs" className="site-filter">추가 탭 시안</a><a href="#form-controls" className="site-filter">입력 요소</a><a href="#card-patterns" className="site-filter">카드</a><a href="#list-patterns" className="site-filter">게시글 목록</a><a href="#small-copy" className="site-filter">작은 안내·팝업</a><a href="#site-footer" className="site-filter">공통 푸터</a></nav><SelectionControlExamples /><FormAndCardExamples /><ListExamples /><ShapedTabExamples /><ControlStateExamples /><ReferenceComponentExamples />
+    <Tabs variant="underline" defaultValue="components" className="mt-6 gap-0"><TabsList variant="underline" size="lg" aria-label="디자인 시스템 메뉴"><TabsTrigger value="foundations">기준·토큰</TabsTrigger><TabsTrigger value="components">컴포넌트 라이브러리</TabsTrigger></TabsList><TabsContent value="foundations"><DesignFoundations /></TabsContent><TabsContent value="components"><nav className="site-filter-group mt-6" aria-label="주요 컴포넌트 바로가기"><a href="#selection-hierarchy-title" className="site-filter">탭·세그먼트 기준</a><a href="#shaped-tabs" className="site-filter">영역형 탭</a><a href="#form-controls" className="site-filter">입력 요소</a><a href="#card-patterns" className="site-filter">카드</a><a href="#list-patterns" className="site-filter">게시글 목록</a><a href="#small-copy" className="site-filter">작은 안내·팝업</a><a href="#site-footer" className="site-filter">공통 푸터</a></nav><SelectionControlExamples /><FormAndCardExamples /><ListExamples /><ShapedTabExamples /><ControlStateExamples /><ReferenceComponentExamples />
     <Examples title="역할로 구분하는 버튼" description="본문 실행은 40px·모서리 8px, 로그인·결제 같은 주요 완료 행동은 48px입니다. 헤더와 떠 있는 진입점만 pill을 사용합니다.">
       <div className={styles.buttonRow}>
         <Button asChild><Link href="/apply">시작하기</Link></Button>
@@ -66,8 +66,8 @@ export default function SiteComponentGallery() {
     <Examples title="업종 선택 버튼" description="업종에는 카테고리를 바로 이해할 수 있는 단색 아이콘과 짧은 이름을 사용합니다.">
       <ChoiceGroup><ChoiceTile size="compact" icon={<CatalogIndustryIcon industry="cafe_bakery" />} label="카페·베이커리" selected={industry} onClick={()=>setIndustry(current=>!current)} /><ChoiceTile size="compact" icon={<CatalogIndustryIcon industry="restaurant_dining" />} label="준비 중인 업종" disabled /></ChoiceGroup>
     </Examples>
-    <Examples title="목록 종류 선택 탭" description="서로 다른 목록을 같은 자리에서 전환할 때 사용합니다. 작은 선택 그룹과 열린 콘텐츠 여백으로 구분해 아래 목록을 무거운 박스로 감싸지 않습니다.">
-      <Tabs variant="contained" defaultValue="designer"><TabsList distribution="equal" aria-label="목록 종류 탭 예시">
+    <Examples title="목록과 이어지는 탭" description="서로 다른 목록을 같은 자리에서 전환할 때 사용합니다. 선택한 탭과 아래 영역의 바탕색을 이어 주고, 업종 필터와 형태를 구분합니다.">
+      <Tabs variant="contained" defaultValue="designer"><TabsList distribution="equal" aria-label="연결형 템플릿 탭 예시">
         <TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger>
       </TabsList><TabsContent value="designer"><p className="type-item-title">완성된 디자인으로 시작</p><p className="type-body-sm mt-2 text-zinc-600">매장에 어울리는 스타일을 고르고 메뉴를 넣어 보세요.</p></TabsContent>
       <TabsContent value="standard"><p className="type-item-title">직접 꾸미는 기본 레이아웃</p><p className="type-body-sm mt-2 text-zinc-600">색상과 서체를 매장에 맞게 직접 설정해 보세요.</p></TabsContent></Tabs>

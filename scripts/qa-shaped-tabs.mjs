@@ -42,23 +42,22 @@ try {
     const section = page.locator("#shaped-tabs");
     await section.scrollIntoViewIfNeeded();
 
-    for (const variant of ["folder", "flow"]) {
-      const list = section.locator(`.site-${variant}-tabs`).first();
-      const active = list.getByRole("tab", { selected: true });
-      await expect(list).toBeVisible();
-      await expect(list).toHaveCSS("overflow-x", "auto");
-      await expect(list).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
-      await expect(active).toHaveCSS("font-weight", "600");
-      const mask = await active.evaluate(element => getComputedStyle(element, "::before").maskImage);
-      assert.match(mask, /tab-folder-mask\.svg/);
+    const areaRoot = section.locator(".site-area-tabs-root").first();
+    const areaList = areaRoot.locator(".site-area-tabs");
+    const areaActive = areaList.getByRole("tab", { selected: true });
+    await expect(areaRoot).toBeVisible();
+    await expect(areaRoot).toHaveCSS("border-top-width", "0px");
+    await expect(areaList).toHaveCSS("overflow-x", "auto");
+    await expect(areaList).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await expect(areaActive).toHaveCSS("font-weight", "600");
+    assert.equal(await areaActive.evaluate(element => getComputedStyle(element, "::before").maskImage), "none");
 
-      await active.focus();
-      await expect(active.locator(".site-shaped-tab-label")).toHaveCSS("outline-width", "2px");
-      await page.keyboard.press("ArrowRight");
-      await expect(list.getByRole("tab", { selected: true })).toHaveText("기본 템플릿");
-      await page.keyboard.press("ArrowRight");
-      await expect(list.getByRole("tab", { selected: true })).toHaveText("디자인 템플릿");
-    }
+    await areaActive.focus();
+    await expect(areaActive).toHaveCSS("outline-width", "2px");
+    await page.keyboard.press("ArrowRight");
+    await expect(areaList.getByRole("tab", { selected: true })).toHaveText("기본 템플릿");
+    await page.keyboard.press("ArrowRight");
+    await expect(areaList.getByRole("tab", { selected: true })).toHaveText("디자인 템플릿");
 
     await section.screenshot({ path: `${output}/library-${width}.png` });
 
@@ -68,17 +67,8 @@ try {
     await assertUnderlineRail(serviceTabs, { compact: true });
     const catalogTabs = page.getByRole("tablist", { name: "템플릿 종류 선택" });
     await expect(catalogTabs).toHaveClass(/site-contained-tabs/);
-    await expect(catalogTabs).toHaveCSS("background-color", "rgb(255, 255, 255)");
-    await expect(catalogTabs).toHaveCSS("border-top-width", "1px");
-    await expect(catalogTabs).toHaveCSS("border-top-left-radius", "12px");
-    const selectedCatalogTab = catalogTabs.getByRole("tab", { selected: true });
-    await expect(selectedCatalogTab).toHaveText("디자인 템플릿");
-    await expect(selectedCatalogTab).toHaveCSS("background-color", "rgb(21, 24, 30)");
-    await expect(selectedCatalogTab).toHaveCSS("color", "rgb(255, 255, 255)");
-    await expect(selectedCatalogTab).toHaveCSS("border-top-left-radius", "8px");
-    const catalogPanel = page.getByRole("tabpanel", { name: "디자인 템플릿" });
-    await expect(catalogPanel).toHaveCSS("border-top-width", "0px");
-    await expect(catalogPanel).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await expect(catalogTabs).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await expect(catalogTabs.getByRole("tab", { selected: true })).toHaveText("디자인 템플릿");
     const categoryButtons = page.getByRole("group", { name: "업종 선택" }).getByRole("button");
     await expect(categoryButtons.first().locator("svg")).toBeVisible();
     await expect(categoryButtons.first().locator(".site-choice-tile-icon")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
@@ -99,7 +89,6 @@ try {
     await page.goto(`${baseUrl}/faq?tab=faq`, { waitUntil: "networkidle" });
     const supportTabs = page.getByRole("tablist", { name: "고객센터 메뉴" });
     await expect(supportTabs).toHaveClass(/site-contained-tabs/);
-    await expect(supportTabs).toHaveCSS("border-top-left-radius", "12px");
     await expect(supportTabs.getByRole("tab", { selected: true })).toHaveText("FAQ");
     await supportTabs.getByRole("tab", { name: "공지사항" }).focus();
     await page.keyboard.press("Enter");

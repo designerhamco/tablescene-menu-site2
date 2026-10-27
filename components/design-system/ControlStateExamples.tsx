@@ -36,8 +36,8 @@ export default function ControlStateExamples() {
     <p className="type-body-sm text-zinc-600">상태 표는 실제 공통 스타일을 고정해 비교합니다. 비활성 버튼은 무테의 가장 옅은 회색 표면과 흐린 문구를 사용하며 hover·클릭 색상으로 바뀌지 않습니다. 고객지원 퀵 버튼은 56px의 둥근 정사각형이며 원형 도구와 구분합니다.</p>
     <div className={styles.ruleGrid}>{([
       ["underline", "콘텐츠 탐색", "밑줄 탭 · 4px 선택선"],
-      ["contained", "목록 종류 전환", "흰색 선택 그룹 · 검정 선택면"],
-      ["outline", "보기 방식 전환", "밝은 바탕 · 선택 테두리"],
+      ["contained", "목록 종류 전환", "파일형 윤곽 · 검정 선택면"],
+      ["area", "영역 안 전환", "회색 무테 영역 · 검정 선택면"],
     ] as const).map(([variant,title,description]) => <div key={variant} className="min-w-0">
       <h3 className="type-content-title mb-2">{title}</h3><p className="type-caption mb-4 text-zinc-600">{description}</p>
       <Tabs variant={variant} defaultValue="first"><TabsList aria-label={`${title} 동작 예시`}>
@@ -45,7 +45,7 @@ export default function ControlStateExamples() {
       </TabsList><TabsContent value="first" className="type-body-sm">첫 번째 내용</TabsContent><TabsContent value="second" className="type-body-sm">두 번째 내용</TabsContent></Tabs>
     </div>)}</div>
     <div className={styles.usageTable}><table aria-label="탭 상태 기준"><thead><tr><th scope="col">종류</th>{states.map(([key,label]) => <th scope="col" key={key}>{label}</th>)}</tr></thead>
-      <tbody>{(["underline", "contained", "folder", "flow", "outline", "segmented"] as const).map(variant => <tr key={variant}><th scope="row">{{underline:"밑줄",contained:"목록 종류",folder:"파일형",flow:"라운드 연결형",outline:"보기 전환",segmented:"세그먼트"}[variant]}</th>{states.map(([state,stateLabel]) => <td key={state}><Tabs variant={variant} defaultValue="selected"><TabsList aria-label={`${variant} ${stateLabel} 예시`}>
+      <tbody>{(["underline", "contained", "area", "outline", "segmented"] as const).map(variant => <tr key={variant}><th scope="row">{{underline:"밑줄",contained:"연결형",area:"영역형",outline:"보기 전환",segmented:"세그먼트"}[variant]}</th>{states.map(([state,stateLabel]) => <td key={state}><Tabs variant={variant} defaultValue="selected"><TabsList aria-label={`${variant} ${stateLabel} 예시`}>
         <TabsTrigger value="selected" data-ui-state={state === "default" || state === "disabled" ? undefined : state} disabled={state === "disabled"}>선택</TabsTrigger>
       </TabsList><TabsContent value="selected" className="sr-only" tabIndex={-1}>상태 예시</TabsContent></Tabs></td>)}</tr>)}</tbody></table></div>
     <div className={styles.inverseToolbar} role="group" aria-label="미리보기 도구 스타일 예시">{["태블릿","PC","모바일"].map(label => <button key={label} type="button" className="site-preview-control" aria-pressed={previewDevice === label} onClick={() => setPreviewDevice(label)}>{label}</button>)}<button type="button" className="site-preview-control" disabled>준비 중</button></div>
