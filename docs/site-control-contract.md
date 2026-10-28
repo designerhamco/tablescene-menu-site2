@@ -37,10 +37,10 @@ secondary는 경계 없는 중간 회색 표면이고, disabled는 그보다 더
 
 | 역할 | 공통 구현 | 적용 예 |
 | --- | --- | --- |
-| 페이지 전체 주요 보기 | primary / page | 베이직/다이닝/디스플레이, 고객센터 공지사항/FAQ 같은 2–3개 큰 화면 전환 |
+| 페이지 전체 주요 보기 | primary / page | 베이직/다이닝/디스플레이, 편집 설정 같은 주요 화면 전환 |
 | 페이지·설정 화면 이동 | NavigationTabs purpose="page" | 마이페이지 결제 화면, 운영, 편집 설정 화면 |
 | 상태·보기 값 변경 | state / outline, NavigationTabs purpose="state" | 이용 중/보관 중/종료됨, 이미지/목록 보기, 언어 값 |
-| 콘텐츠 구획 | secondary / underline | 가이드, 디자인 시스템, 독립 레이어 콘텐츠 분류 |
+| 콘텐츠 구획 | secondary / underline | 고객센터 공지/FAQ, 가이드, 디자인 시스템, 독립 레이어 콘텐츠 분류 |
 | 하나의 기능·목록 영역 안에서 내용 전환 | embedded / area | 디자인/기본 템플릿, 미리보기 옵션, 번역 항목, 설정 묶음 |
 | 알림·호출·요금 패널 분류 | secondary / underline | 해당 레이어 안의 최상위 밑줄·목록 구조 유지 |
 | 현재 화면 표현 방식 전환 | state / outline | 이미지/목록 보기 |

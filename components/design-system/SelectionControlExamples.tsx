@@ -46,7 +46,7 @@ export default function SelectionControlExamples() {
         <Tabs hierarchy="state" defaultValue="active"><TabsList size="md" aria-label="상태값 변경 예시"><TabsTrigger value="active">이용 중</TabsTrigger><TabsTrigger value="holding">보관 중</TabsTrigger><TabsTrigger value="ended">종료됨</TabsTrigger></TabsList><TabsContent value="active" className="type-caption">이용 중인 메뉴판</TabsContent><TabsContent value="holding" className="type-caption">보관 중인 메뉴판</TabsContent><TabsContent value="ended" className="type-caption">종료된 메뉴판</TabsContent></Tabs>
       </div>
       <div className={styles.usageTable}><table aria-label="탭 위계 적용 기준"><thead><tr><th>위계</th><th>공통 구현</th><th>대표 사용처</th><th>사용 제한</th></tr></thead><tbody>
-        <tr><td>1 · 최상위</td><td>primary / page 사각 연결형</td><td>베이직·다이닝·디스플레이, 고객센터 공지사항·FAQ처럼 페이지 전체 보기 전환</td><td>주요 화면 이동, 현재 화면은 선택 면으로 표시</td></tr>
+        <tr><td>1 · 최상위</td><td>primary / page 사각 연결형</td><td>베이직·다이닝·디스플레이, 편집 설정처럼 주요 화면 전환</td><td>주요 화면 이동, 현재 화면은 선택 면으로 표시</td></tr>
         <tr><td>상태·보기 값</td><td>state / outline 둥근 세그먼트</td><td>이용 중·보관 중·종료됨, 이미지/목록 보기, 언어 값</td><td>페이지·주요 화면 이동에 사용하지 않음</td></tr>
         <tr><td>2 · 주요 분류</td><td>secondary / underline</td><td>가이드·디자인 시스템 콘텐츠 분류</td><td>상위 세그먼트보다 크게 사용하지 않음</td></tr>
         <tr><td>3 · 보조 분류</td><td>site-filter / 본문 링크</td><td>업종·주제·상태 조건·본문 바로가기</td><td>실제 패널 전환에는 사용하지 않음</td></tr>

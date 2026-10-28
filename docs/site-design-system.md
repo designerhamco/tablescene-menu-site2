@@ -215,7 +215,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 ## 실제 적용 역할 (2026-10-26)
 
 - 베이직·다이닝·디스플레이처럼 페이지 전체를 바꾸는 서비스 선택은 primary outline이다. 가이드, 마이페이지·편집·운영, 번역 언어, 알림·호출·요금 패널의 주요 분류는 secondary 밑줄형(`underline`, `NavigationTabs`)을 사용한다.
-- 파일 윤곽·산 모양 선택면·아래 연결 경계를 쓰던 `contained`는 폐기했다. 디자인/기본 템플릿은 같은 목록 영역을 바꾸는 embedded area, 공지/FAQ는 독립된 주요 화면을 바꾸는 primary를 사용한다.
+- 파일 윤곽·산 모양 선택면·아래 연결 경계를 쓰던 `contained`는 폐기했다. 디자인/기본 템플릿은 같은 목록 영역을 바꾸는 embedded area, 공지/FAQ는 사용자 지정의 secondary 밑줄 탭과 작은 주제 필터를 사용한다.
 - `area`는 하나의 기능·작업·목록 영역 안에서 내용만 전환한다. 상위 밑줄 탐색, 알림창, outline 보기·설정 세그먼트와 작은 필터는 각자의 역할을 유지한다.
 - 중립 배경·구분 면·푸터는 `--ui-surface`/`--ui-surface-muted`/`--ui-surface-soft`를 공유한다. 기본·보조·메타 글자색과 상태색은 같은 의미 토큰을 사용한다. 회색·유색 면에는 외곽 테두리를 추가하지 않는다.
 - 페이지 h1은 `type-page-title`(28/32/36px)이다. 로그인·베이직·다이닝·디스플레이·고객센터·신청·템플릿 목록과 상세를 포함해 H1 바로 아래 문구는 모두 `type-page-description`(16px)을 사용한다.

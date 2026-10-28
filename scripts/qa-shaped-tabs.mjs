@@ -163,9 +163,10 @@ try {
 
     await page.goto(`${baseUrl}/faq?tab=faq`, { waitUntil: "networkidle" });
     const supportTabs = page.getByRole("tablist", { name: "고객센터 메뉴" });
-    await expect(supportTabs).toHaveAttribute("data-hierarchy", "primary");
-    await expect(supportTabs).toHaveClass(/site-page-tabs/);
-    await expect(supportTabs.getByRole("tab", { selected: true })).toHaveCSS("background-color", "rgb(21, 24, 30)");
+    await expect(supportTabs).toHaveAttribute("data-hierarchy", "secondary");
+    await expect(supportTabs).toHaveClass(/site-topic-tabs/);
+    await assertUnderlineRail(supportTabs);
+    await expect(supportTabs.getByRole("tab", { selected: true })).toHaveCSS("border-bottom-color", "rgb(21, 24, 30)");
     await expect(supportTabs.getByRole("tab", { selected: true })).toHaveText("FAQ");
     await supportTabs.getByRole("tab", { name: "공지사항" }).focus();
     await page.keyboard.press("Enter");

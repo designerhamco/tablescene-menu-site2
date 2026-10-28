@@ -129,7 +129,7 @@ export default function SupportCenter({
         }))
       : ANNOUNCEMENT_CATEGORIES;
   const content = (
-    <Tabs hierarchy="primary" value={tab} onValueChange={value => changeTab(value as "faq" | "notices")}>
+    <Tabs hierarchy="secondary" value={tab} onValueChange={value => changeTab(value as "faq" | "notices")}>
       <TabsList size="lg" aria-label="고객센터 메뉴">
         <TabsTrigger value="notices">공지사항</TabsTrigger>
         <TabsTrigger value="faq">FAQ</TabsTrigger>

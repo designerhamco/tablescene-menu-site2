@@ -77,7 +77,7 @@ test("site pages cannot override shared action padding, shape, typography or dis
 });
 
 test("tab hierarchy maps page, section, filter and embedded scopes to distinct shared roles", () => {
-  assert.match(read("components/support/SupportCenter.tsx"), /<Tabs hierarchy="primary"/);
+  assert.match(read("components/support/SupportCenter.tsx"), /<Tabs hierarchy="secondary"/);
   assert.match(read("components/support/SupportCenter.tsx"), /className="site-filter"/);
   const preview = read("components/menu/MenuPreviewOptionsPanel.tsx");
   assert.match(preview, /<Tabs hierarchy="embedded"/);
