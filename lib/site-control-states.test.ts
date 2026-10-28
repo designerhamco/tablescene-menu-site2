@@ -76,16 +76,16 @@ test("site pages cannot override shared action padding, shape, typography or dis
   assert.deepEqual(deprecated, []);
 });
 
-test("content tabs, settings tabs and subordinate filters retain different shared roles", () => {
-  assert.match(read("components/support/SupportCenter.tsx"), /<Tabs variant="contained"/);
+test("tab hierarchy maps page, section, filter and embedded scopes to distinct shared roles", () => {
+  assert.match(read("components/support/SupportCenter.tsx"), /<Tabs hierarchy="primary"/);
   assert.match(read("components/support/SupportCenter.tsx"), /className="site-filter"/);
   const preview = read("components/menu/MenuPreviewOptionsPanel.tsx");
-  assert.match(preview, /<Tabs variant="outline"/);
+  assert.match(preview, /<Tabs hierarchy="embedded"/);
   for (const value of ["features", "design"]) {
     assert.match(preview, new RegExp(`id="preview-${value}-tab" aria-controls="preview-${value}-panel"`));
     assert.match(preview, new RegExp(`id="preview-${value}-panel" aria-labelledby="preview-${value}-tab"`));
   }
-  assert.match(read("components/guides/UsageGuidePage.tsx"), /<TabsList variant="underline"/);
+  assert.match(read("components/guides/UsageGuidePage.tsx"), /hierarchy="secondary"/);
   assert.match(tabCss, /--site-tab-indicator-width: \.25rem/);
   assert.match(tabCss, /\.site-contained-panel \{[^}]*border-radius: 0 \.75rem \.75rem \.75rem/);
   for (const cls of ["site-tab", "site-topic-tab", "site-contained-tab", "site-area-tab"]) {
@@ -100,8 +100,17 @@ test("content tabs, settings tabs and subordinate filters retain different share
   assert.doesNotMatch(tabCss, /site-(?:folder|flow)-(?:tabs|tab|panel)/);
   const tabsSource = read("app/components/ui/tabs.tsx");
   assert.match(tabsSource, /TabsVariant = "segmented" \| "outline" \| "underline" \| "contained" \| "area"/);
+  assert.match(tabsSource, /TabsHierarchy = "primary" \| "secondary" \| "embedded"/);
+  assert.match(tabsSource, /primary: "outline"/);
+  assert.match(tabsSource, /secondary: "underline"/);
+  assert.match(tabsSource, /embedded: "area"/);
   assert.doesNotMatch(tabsSource, /"folder"|"flow"/);
-  assert.match(read("components/design-system/ShapedTabExamples.tsx"), /<Tabs variant="area"/);
+  assert.match(read("components/design-system/ShapedTabExamples.tsx"), /<Tabs hierarchy="embedded"/);
+  const hierarchyExample = read("components/design-system/SelectionControlExamples.tsx");
+  const primary = hierarchyExample.indexOf('hierarchy="primary"');
+  const secondary = hierarchyExample.indexOf('hierarchy="secondary"');
+  const embedded = hierarchyExample.indexOf('hierarchy="embedded"');
+  assert.ok(primary >= 0 && primary < secondary && secondary < embedded);
   assert.match(read("public/images/ui/tab-folder-mask.svg"), /M0 56 14 24C18 14 21 8 27 4/);
 });
 
@@ -137,6 +146,7 @@ test("content and view controls share three sizes without promoting nested guide
   assert.match(guide, /aria-current="location"/);
   assert.doesNotMatch(guide, /className="site-topic-tab"/);
   assert.match(read("components/mypage/menu-editor/LocalizationSection.tsx"), /size="sm" aria-label="번역 항목 선택"/);
+  assert.match(read("components/mypage/menu-editor/LocalizationSection.tsx"), /hierarchy="secondary"[\s\S]*?hierarchy="embedded"/);
 });
 
 test("underline tab rails stop at their tab boundary without changing full-width navigation", () => {
@@ -164,15 +174,16 @@ test("native and custom selects reserve a common chevron gutter without affectin
 });
 
 
-test("shaped area tabs cannot replace service navigation or notification tabs", () => {
+test("tab hierarchy keeps service navigation, connected catalog lists and notification tabs in their scopes", () => {
   const catalog = read("components/apply/TemplateGallery.tsx");
-  assert.match(catalog, /<TabsList variant="underline"[^>]*aria-label="서비스 및 페이지 유형 선택"/);
+  assert.match(catalog, /<Tabs hierarchy="secondary"[^>]*value=\{product\}/);
+  assert.match(catalog, /hierarchy=\{product === "display" \? undefined : "embedded"\}/);
   assert.match(catalog, /variant=\{product === "display" \? undefined : "contained"\}/);
   assert.doesNotMatch(catalog, /distribution="equal"/);
   const notification = read("app/components/ui/notification-panel.tsx");
-  assert.match(notification, /<Tabs variant="underline"/);
+  assert.match(notification, /<Tabs hierarchy="secondary"/);
   assert.doesNotMatch(notification, /variant="(?:folder|flow|contained)"/);
-  assert.match(read("app/components/ui/navigation-tabs.tsx"), /className=\{cn\("site-topic-tabs"/);
+  assert.match(read("app/components/ui/navigation-tabs.tsx"), /data-hierarchy="secondary"/);
   for (const route of ["sign-in", "sign-up", "forgot-password", "reset-password", "find-account", "auth/recovery"]) {
     assert.match(read(`app/${route}/page.tsx`), /<h1 className="type-page-title"/);
   }

@@ -39,6 +39,23 @@ try {
     for (const label of ["디자인 시스템 메뉴", "서비스 탐색 예시", "템플릿 라이브러리 서비스", "메뉴판 상태 예시"]) {
       await assertUnderlineRail(page.getByRole("tablist", { name: label }));
     }
+    const hierarchySection = page.locator("#selection-hierarchy-title").locator("xpath=../..");
+    const hierarchy = page.getByRole("list", { name: "상위에서 하위로 이어지는 탭 위계" });
+    const hierarchyTabs = hierarchy.locator('[data-slot="tabs"]');
+    await expect(hierarchyTabs.nth(0)).toHaveAttribute("data-hierarchy", "primary");
+    await expect(hierarchyTabs.nth(0).locator('[data-slot="tabs-list"]')).toHaveClass(/site-tabs-outline/);
+    await expect(hierarchyTabs.nth(1)).toHaveAttribute("data-hierarchy", "secondary");
+    await expect(hierarchyTabs.nth(1).locator('[data-slot="tabs-list"]')).toHaveClass(/site-topic-tabs/);
+    await expect(hierarchyTabs.nth(2)).toHaveAttribute("data-hierarchy", "embedded");
+    await expect(hierarchyTabs.nth(2)).toHaveCSS("border-top-width", "0px");
+    if (width >= 768) {
+      const levelLefts = await hierarchy.locator("li").evaluateAll(elements => elements.map(element => element.getBoundingClientRect().left));
+      assert.ok(levelLefts.every((left, index) => index === 0 || left > levelLefts[index - 1]), `hierarchy does not step inward at ${width}px`);
+    }
+    const designSystemOverflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    assert.equal(designSystemOverflow, 0, `design system page overflow at ${width}px`);
+    await hierarchySection.screenshot({ path: `${output}/hierarchy-${width}.png` });
+
     const section = page.locator("#shaped-tabs");
     await section.scrollIntoViewIfNeeded();
 
@@ -63,9 +80,11 @@ try {
 
     await page.goto(`${baseUrl}/templates`, { waitUntil: "networkidle" });
     const serviceTabs = page.getByRole("tablist", { name: "서비스 및 페이지 유형 선택" });
+    await expect(serviceTabs).toHaveAttribute("data-hierarchy", "secondary");
     await expect(serviceTabs).toHaveClass(/site-topic-tabs/);
     await assertUnderlineRail(serviceTabs, { compact: true });
     const catalogTabs = page.getByRole("tablist", { name: "템플릿 종류 선택" });
+    await expect(catalogTabs).toHaveAttribute("data-hierarchy", "embedded");
     await expect(catalogTabs).toHaveClass(/site-contained-tabs/);
     await expect(catalogTabs).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
     await expect(catalogTabs.getByRole("tab", { selected: true })).toHaveText("디자인 템플릿");
@@ -88,16 +107,19 @@ try {
 
     await page.goto(`${baseUrl}/faq?tab=faq`, { waitUntil: "networkidle" });
     const supportTabs = page.getByRole("tablist", { name: "고객센터 메뉴" });
-    await expect(supportTabs).toHaveClass(/site-contained-tabs/);
+    await expect(supportTabs).toHaveAttribute("data-hierarchy", "primary");
+    await expect(supportTabs).toHaveClass(/site-tabs-outline/);
+    await expect(supportTabs.getByRole("tab", { selected: true })).toHaveCSS("background-color", "rgb(255, 255, 255)");
     await expect(supportTabs.getByRole("tab", { selected: true })).toHaveText("FAQ");
     await supportTabs.getByRole("tab", { name: "공지사항" }).focus();
     await page.keyboard.press("Enter");
     await expect(supportTabs.getByRole("tab", { selected: true })).toHaveText("공지사항");
     const supportOverflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     assert.equal(supportOverflow, 0, `support page overflow at ${width}px`);
+    await page.screenshot({ path: `${output}/support-${width}.png`, fullPage: true });
 
     assert.deepEqual(errors, [], `browser errors at ${width}px`);
-    results.push({ width, catalogOverflow, guideOverflow, supportOverflow });
+    results.push({ width, designSystemOverflow, catalogOverflow, guideOverflow, supportOverflow });
     await page.close();
   }
 } finally {

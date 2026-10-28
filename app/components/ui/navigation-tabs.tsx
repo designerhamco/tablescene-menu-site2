@@ -47,7 +47,7 @@ export function NavigationTabs({ label, items, className, size = "md" }: {
     return () => { cancelled = true; observer.disconnect(); };
   }, [activeHref]);
 
-  return <nav ref={navRef} aria-label={label} data-size={size} className={cn("site-topic-tabs", `site-tab-size-${size}`, className)}>
+  return <nav ref={navRef} aria-label={label} data-hierarchy="secondary" data-size={size} className={cn("site-topic-tabs", `site-tab-size-${size}`, className)}>
     {items.map(item => {
       const content = <>{item.label}{item.count !== undefined && !item.disabledReason ? <span className="site-tab-count">{item.count.toLocaleString("ko-KR")}<span className="sr-only">개</span></span> : null}{item.statusLabel && !item.disabledReason ? <span className="type-caption ml-1">{item.statusLabel}</span> : null}</>;
       return item.disabledReason ? <span key={item.href} className="site-topic-tab" aria-disabled="true" title={item.disabledReason} aria-label={`${item.label} ${item.disabledLabel ?? "권한 없음"}: ${item.disabledReason}`}>
