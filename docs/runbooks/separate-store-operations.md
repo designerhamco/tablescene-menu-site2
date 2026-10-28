@@ -2,7 +2,7 @@
 
 ## 현재 상태
 
-구현·격리 검증·로컬 실계정 검수 후 사용자가 “SQL 적용·현재 메뉴판 연결 후 배포”를 승인했다. 승인 SQL 한 건과 261022test 한 곳의 운영 대상 추가를 완료했으며 코드 병합·배포 검수를 진행한다. 다른 알림 채팅의 #404 변경은 최신 기준으로 포함했고 해당 파일은 수정하지 않았다.
+구현·격리 검증·로컬 실계정 검수 후 사용자가 “SQL 적용·현재 메뉴판 연결 후 배포”를 승인했다. 승인 SQL 한 건·261022test 한 곳의 운영 대상 추가·PR #405 병합·Production 배포·실계정 운영 검수까지 완료했다. 다른 알림 채팅의 #404 변경은 최신 기준으로 포함했고 해당 파일은 수정하지 않았다.
 
 ## 화면과 권한
 
@@ -48,3 +48,12 @@
 - 261022test의 UUID만 TABLE_MANAGEMENT_ALLOWED_SITE_IDS / POSTPAY_ORDER_ALLOWED_SITE_IDS / ORDER_DASHBOARD_ALLOWED_SITE_IDS / CALL_ALLOWED_SITE_IDS에 추가하고 각 편집 저장 완료를 확인했다. 기존 값은 지우거나 재구성하지 않고 끝에 승인 UUID만 추가했다. 전역 ENABLED 값과 다른 환경·변수는 변경하지 않았다.
 - Vercel 본인 인증은 사용자가 직접 완료했다. 전체 목록을 다시 Reveal하는 사후 확인은 자동 승인 검토에서 거절되어 반복하지 않았다. 나머지 편집은 기존 전체 값을 출력하지 않고 승인 UUID만 추가·검사하는 방식으로 완료했다.
 - 비공개 증빙: `/private/tmp/separate-operations-db-before-apply.json`, `separate-operations-sql-apply.json`, `separate-operations-db-after-apply.json`, `/private/tmp/artimenu-store-operations-env-saved.png`.
+
+## 배포·실제 운영 검수 완료
+
+- PR #405, 운영 커밋 `e8d5b9cefbc1e87d4dcb4faff96b1c607b4f2f16`. Vercel Production 배포 `7388644608` / `H2UrDA7PsUkZ8bzzo6fduSqW9HNU` success, 2026-10-28 14:47:46 UTC. 실제 도메인의 사장 계정으로 네 관리 메뉴·테이블 생성 폼·주문 내역 0건과 독립 설정을 확인했다.
+- 주문 설정은 “후불 주문이 연결되어 있습니다”, OFF 유지, 활성 테이블 0개로 ON 비활성, 주문 상품·옵션 UI 없음. 기존 QA 다이닝의 같은 테이블 QR 주소·교체일·단말 링크가 새 QR 화면에 표시되며 QR PNG 다운로드 성공 토스트를 확인했다. 교체/생성/설정 저장은 실행하지 않았다.
+- 실제 Production 기본 DOM 1512×706 가로 넘침 없음. 기존 QA QR 목록 390×844에서도 가로 넘침 없음. 공개 메뉴 200, 비로그인 QR API 401/private-no-store, 다른 Origin 주문 POST 403. 실제 접수·테이블·호출·결제 생성 0건.
+- 고객/운영 7개 표 RLS 계속 활성. 승인 파일 적용 전후 9개 표 1,294행 지문 일치, 저장된 주문·호출 설정 불변.
+- 사용자 로컬 3000을 같은 운영 코드와 승인 메뉴판의 기능 연결로 맞추고 실계정에서 새 테이블 폼·네 메뉴를 확인했다. 기존 알림 채팅의 완료된 변경을 보존했다. 임시 3001 서버는 종료했다. 환경 설정은 ignored `.env.development.local`에만 저장한다.
+- 실제 운영 화면 증빙 `/private/tmp/artimenu-separated-operations-production.png`, 제공자 결과 `/private/tmp/separate-operations-production-deployment.json`. 실제 테이블 등록/ON은 사장님이 선택한다. 새로운 QA 주문·호출 이력이나 PG 결제는 만들지 않았다.
