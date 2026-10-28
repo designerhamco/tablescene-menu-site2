@@ -58,7 +58,7 @@ export default function SiteComponentGallery() {
       </div>
       <Button variant="outline" size="lg" asChild><Link href="/templates">전체 디자인 보기 <ArrowRight /></Link></Button>
     </Examples>
-    <Examples title="페이지의 큰 보기 전환" description="베이직·다이닝·디스플레이처럼 페이지 전체 목록을 바꾸는 선택은 최상위 outline 세그먼트를 사용합니다.">
+    <Examples title="페이지의 큰 보기 전환" description="베이직·다이닝·디스플레이처럼 페이지 전체 목록을 바꾸는 선택은 사각 연결형 페이지 탭을 사용합니다.">
       <Tabs hierarchy="primary" defaultValue="basic"><TabsList size="lg" aria-label="서비스 탐색 예시">
         {choices.map(({key,label}) => <TabsTrigger key={key} value={key}>{label}</TabsTrigger>)}
       </TabsList>{choices.map(({key,description}) => <TabsContent key={key} value={key} className="type-body text-zinc-600">{description}</TabsContent>)}</Tabs>
@@ -73,19 +73,19 @@ export default function SiteComponentGallery() {
       <TabsContent value="standard"><p className="type-item-title">직접 꾸미는 기본 레이아웃</p><p className="type-body-sm mt-2 text-zinc-600">색상과 서체를 매장에 맞게 직접 설정해 보세요.</p></TabsContent></Tabs>
     </Examples>
     <Examples title="보기 방식 세그먼트" description="서로 대비되는 두 가지 보기 방식에는 밝은 바탕과 또렷한 선택 테두리를 사용합니다.">
-      <Tabs hierarchy="primary" defaultValue="designer" className={styles.segmentExample}><TabsList size="md" distribution="equal" aria-label="콘텐츠 보기 방식 예시">
+      <Tabs hierarchy="state" defaultValue="designer" className={styles.segmentExample}><TabsList size="md" distribution="equal" aria-label="콘텐츠 보기 방식 예시">
         <TabsTrigger value="designer">이미지로 보기</TabsTrigger><TabsTrigger value="standard">목록으로 보기</TabsTrigger>
       </TabsList><TabsContent value="designer" className="type-body text-zinc-600">썸네일을 중심으로 디자인을 살펴봅니다.</TabsContent><TabsContent value="standard" className="type-body text-zinc-600">이름과 설명을 중심으로 디자인을 살펴봅니다.</TabsContent></Tabs>
     </Examples>
-    <Examples title="최상위 보기와 이미지 카드" description="서비스 단위로 전체 목록이 바뀌면 outline 세그먼트를 사용하고, 썸네일과 제목·설명·이동 액션의 크기를 구분합니다.">
+    <Examples title="최상위 보기와 이미지 카드" description="서비스 단위로 전체 목록이 바뀌면 사각 연결형 페이지 탭을 사용하고, 썸네일과 제목·설명·이동 액션의 크기를 구분합니다.">
       <div className="site-collection"><Tabs hierarchy="primary" defaultValue="all"><TabsList size="md" aria-label="템플릿 라이브러리 서비스">
         <TabsTrigger value="all">전체 디자인</TabsTrigger><TabsTrigger value="basic">베이직</TabsTrigger><TabsTrigger value="dining">다이닝</TabsTrigger>
       </TabsList>{["all","basic","dining"].map(key=><TabsContent key={key} value={key} className={styles.galleryPanel}>
         <div className={styles.mediaGrid}>{catalogDesigns.filter(d=>d.kind==="designer"&&(key==="all"||d.service===key)).slice(0,3).map(design=><CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={false} onToggle={id=>setFavorites(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id])} />)}</div>
       </TabsContent>)}</Tabs></div>
     </Examples>
-    <Examples title="상태별 건수와 빈 목록" description="상태는 밑줄과 건수로 구분하고, 빈 목록에서는 다음 행동을 안내합니다.">
-      <Tabs hierarchy="secondary" defaultValue="전체"><TabsList size="md" aria-label="메뉴판 상태 예시">
+    <Examples title="상태별 건수와 빈 목록" description="상태는 둥근 outline 세그먼트와 건수로 구분하고, 빈 목록에서는 다음 행동을 안내합니다.">
+      <Tabs hierarchy="state" defaultValue="전체"><TabsList size="md" aria-label="메뉴판 상태 예시">
         {["전체","작성중","공개중","비공개"].map(label=><TabsTrigger key={label} value={label} count={0}>{label}</TabsTrigger>)}
       </TabsList>{["전체","작성중","공개중","비공개"].map(label=><TabsContent key={label} value={label}>
         <EmptyState icon={<PanelsTopLeft />} title={label === "전체" ? "등록된 메뉴판이 없습니다" : `${label} 메뉴판이 없습니다`} description="매장에 어울리는 디자인을 선택하고 첫 메뉴판을 만들어 보세요."
