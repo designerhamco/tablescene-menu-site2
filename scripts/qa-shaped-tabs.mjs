@@ -95,9 +95,12 @@ try {
     const designSystemOverflow = await noOverflow(page);
     await section.screenshot({ path: `${output}/library-${width}.png` });
     const notificationTabs = page.getByRole('tablist', { name: '알림 분류' });
-    await expect(notificationTabs).toHaveAttribute('data-purpose', 'state');
+    await expect(notificationTabs).toHaveAttribute('data-purpose', 'category');
+    await expect(notificationTabs).toHaveClass(/site-topic-tabs/);
+    await expect(notificationTabs).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     await notificationTabs.getByRole('tab', { name: /읽지 않음/ }).click();
     await expect(notificationTabs.getByRole('tab', { selected: true })).toContainText('읽지 않음');
+    await expect(notificationTabs.getByRole('tab', { selected: true })).toHaveCSS('border-bottom-color', 'rgb(21, 24, 30)');
 
     await page.goto(`${baseUrl}/templates`, { waitUntil: "networkidle" });
     const serviceTabs = page.getByRole("tablist", { name: "서비스 및 페이지 유형 선택" });

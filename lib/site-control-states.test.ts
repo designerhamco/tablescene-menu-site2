@@ -155,7 +155,7 @@ test("underline tab rails stop at their tab boundary without changing full-width
   assert.match(tab, /padding-inline: \.25rem;/);
   assert.match(tabCss, /\.site-catalog-services \{[^}]*width: fit-content;/);
   assert.match(read("components/guides/usage-guide.module.css"), /\.planTabs \{[^}]*width: fit-content;[^}]*max-width: 100%;/);
-  assert.match(tabCss, /\.site-notification-tabs\.site-tabs \{[^}]*width: 100%;/);
+  assert.match(tabCss, /\.site-notification-tabs\.site-topic-tabs \{[^}]*width: 100%;/);
   assert.match(tabCss, /\.site-offer-tabs\.site-area-tabs \{[^}]*width: 100%;/);
 });
 
@@ -179,8 +179,10 @@ test("tab hierarchy keeps service navigation, embedded catalog lists and notific
   assert.match(catalog, /className=\{product !== "display" \? "site-area-panel" : undefined\}/);
   assert.doesNotMatch(catalog, /distribution="equal"/);
   const notification = read("app/components/ui/notification-panel.tsx");
-  assert.match(notification, /<Tabs purpose="state"/);
+  assert.match(notification, /<Tabs purpose="category"/);
   assert.doesNotMatch(notification, /variant="(?:folder|flow|contained)"/);
+  assert.match(read("app/components/layout/Navbar.tsx"), /<NotificationPanel compact/);
+  assert.match(read("components/mypage/NotificationHistorySection.tsx"), /<NotificationPanel items=/);
   assert.match(read("app/components/ui/navigation-tabs.tsx"), /data-purpose=\{purpose\}/);
   assert.match(read("app/mypage/page.tsx"), /label="내 메뉴판 탭" purpose="state"/);
   for (const route of ["sign-in", "sign-up", "forgot-password", "reset-password", "find-account", "auth/recovery"]) {

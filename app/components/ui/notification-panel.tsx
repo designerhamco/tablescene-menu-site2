@@ -22,7 +22,7 @@ export function NotificationPanel({ items, loading = false, footer, compact = fa
 }) {
   const unread=items.filter(item=>item.unread);
   return <div className="site-notification-panel" data-compact={compact || undefined}>
-    <Tabs purpose="state" defaultValue="all" className="gap-0">
+    <Tabs purpose="category" defaultValue="all" className="gap-0">
       <TabsList size="md" distribution="equal" className="site-notification-tabs" aria-label="알림 분류">
         <TabsTrigger value="all">전체 알림</TabsTrigger><TabsTrigger value="unread" count={unread.length}>읽지 않음</TabsTrigger>
       </TabsList>

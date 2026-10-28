@@ -157,7 +157,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 
 | 공통 요소 | 표현과 동작 | 실제 사용처 |
 | --- | --- | --- |
-| NotificationPanel | 전체/읽지 않음 state 세그먼트, 한국 시간 날짜별 목록, 아이콘·읽지 않은 표시, 하단 전체보기 | 헤더 알림, 마이페이지 알림 내역 |
+| NotificationPanel | 전체/읽지 않음 category 밑줄형, 한국 시간 날짜별 목록, 아이콘·읽지 않은 표시, 하단 전체보기 | 헤더 알림, 마이페이지 알림 내역 |
 | MetricCard | 회색 작업 영역 위 흰 무테 12px 카드, 40px 아이콘 바탕, 14px 라벨과24–32px 숫자 | 운영 현황, 매출 요약 |
 | FilterPanel / site-filter-panel | 흰 표면·12px·1px 경계, 기존40px 입력과 버튼, 구분된 추가 필터 행 | 결제 내역, 문의 검색, 호출 필터 |
 | RecordCard / site-record-card | 내역 하나의 경계, 본문·별도 정보 열·옅은 행동 영역, 모바일 자연 줄바꿈 | 주문, 호출, 결제 내역 |
@@ -224,5 +224,5 @@ Ghost pagination/icon controls retain transparent background and border when dis
 - 인증 화면에서 비밀번호 찾기·회원가입·로그인 복귀 같은 계정 보조 이동은 `type-body-sm`(14px)을 사용한다. 보조 이동이 기능 설명보다 크게 보이지 않게 한다.
 - 작은 카드의 이름·설명·메타는 `type-card-title` 18px / `type-card-body` 14px / `type-card-detail` 13px이다. 템플릿·신청 카드와 현황·내역·요금 카드에 사용하며, 가격·통계 수치의 강조는 독립적이다.
 - 팝업 제목·본문·작은 안내는 18/14/13px이다. 작은 하단 안내·폼 도움말은 PC·모바일 모두 `type-footnote` 13px·400·줄높이1.6이다. 입력값은 기존 16px을 유지한다.
-- 알림창은 state 분류와 기존 목록 구조를 사용하고 제목/본문14px·메타13px만 적용한다. AI 상담의 대화·동의·보안 안내, 계정·신청·편집의 도움말 및 결제/문의 하단 안내도 같은 문맥별 기준이다.
+- 알림창은 category 밑줄 분류와 기존 목록 구조를 사용하고 제목/본문14px·메타13px만 적용한다. AI 상담의 대화·동의·보안 안내, 계정·신청·편집의 도움말 및 결제/문의 하단 안내도 같은 문맥별 기준이다.
 - 고객이 편집하는 메뉴판의 글자·색·레이아웃은 이 변경 대상에서 제외한다. 자세한 현재 기준은 [사이트 컨트롤 계약](site-control-contract.md)을 따른다.
