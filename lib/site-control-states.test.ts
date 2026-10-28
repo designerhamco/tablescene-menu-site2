@@ -93,12 +93,12 @@ test("tab hierarchy maps page, section, filter and embedded scopes to distinct s
   assert.match(tabCss, /\.site-area-tabs-root\[data-slot="tabs"\] \{[^}]*border: 0;[^}]*background: transparent/);
   assert.match(tabCss, /\.site-area-tabs::after \{[^}]*height: 1px;[^}]*background: var\(--ui-text\)/);
   assert.match(tabCss, /\.site-area-tab:is\(\[data-state="active"\],[^}]*border-color: var\(--ui-text\);[^}]*background: var\(--ui-surface\)/);
-  assert.match(tabCss, /\.site-area-panel \{[^}]*border: 0;[^}]*background: var\(--ui-surface\)/);
+  assert.match(tabCss, /\.site-area-panel \{[^}]*border: 1px solid var\(--ui-border\);[^}]*border-top: 0;[^}]*background: var\(--ui-surface\)/);
   assert.doesNotMatch(tabCss, /site-(?:folder|flow|contained)-(?:tabs|tab|panel)|site-shaped-tab-label|site-shadow-shaped-tab|tab-folder-mask/);
   const tabsSource = read("app/components/ui/tabs.tsx");
-  assert.match(tabsSource, /TabsVariant = "segmented" \| "outline" \| "underline" \| "area"/);
-  assert.match(tabsSource, /TabsHierarchy = "primary" \| "secondary" \| "embedded"/);
-  assert.match(tabsSource, /primary: "outline"/);
+  assert.match(tabsSource, /TabsVariant = "segmented" \| "outline" \| "underline" \| "area" \| "page"/);
+  assert.match(tabsSource, /TabsHierarchy = "primary" \| "secondary" \| "embedded" \| "state"/);
+  assert.match(tabsSource, /primary: "page"/);
   assert.match(tabsSource, /secondary: "underline"/);
   assert.match(tabsSource, /embedded: "area"/);
   assert.doesNotMatch(tabsSource, /"folder"|"flow"|"contained"|site-shaped-tab-label/);
@@ -143,7 +143,7 @@ test("content and view controls share three sizes without promoting nested guide
   assert.match(guide, /aria-current="location"/);
   assert.doesNotMatch(guide, /className="site-topic-tab"/);
   assert.match(read("components/mypage/menu-editor/LocalizationSection.tsx"), /size="sm" aria-label="번역 항목 선택"/);
-  assert.match(read("components/mypage/menu-editor/LocalizationSection.tsx"), /hierarchy="secondary"[\s\S]*?hierarchy="embedded"/);
+  assert.match(read("components/mypage/menu-editor/LocalizationSection.tsx"), /hierarchy="state"[\s\S]*?hierarchy="embedded"/);
 });
 
 test("underline tab rails stop at their tab boundary without changing full-width navigation", () => {
@@ -181,7 +181,8 @@ test("tab hierarchy keeps service navigation, embedded catalog lists and notific
   const notification = read("app/components/ui/notification-panel.tsx");
   assert.match(notification, /<Tabs hierarchy="secondary"/);
   assert.doesNotMatch(notification, /variant="(?:folder|flow|contained)"/);
-  assert.match(read("app/components/ui/navigation-tabs.tsx"), /data-hierarchy="secondary"/);
+  assert.match(read("app/components/ui/navigation-tabs.tsx"), /purpose === "state" \? "state" : "primary"/);
+  assert.match(read("app/mypage/page.tsx"), /label="내 메뉴판 탭" purpose="state"/);
   for (const route of ["sign-in", "sign-up", "forgot-password", "reset-password", "find-account", "auth/recovery"]) {
     assert.match(read(`app/${route}/page.tsx`), /<h1 className="type-page-title"/);
   }

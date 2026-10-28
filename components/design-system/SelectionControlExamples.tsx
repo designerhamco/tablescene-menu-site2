@@ -24,11 +24,11 @@ export default function SelectionControlExamples() {
         <p className="type-body text-zinc-600">위에서 아래로 범위가 좁아집니다. 한 화면에서 같은 위계의 모양을 섞거나, 상위보다 하위 탭을 더 크게 만들지 않습니다.</p></div>
       <ol className={styles.hierarchyMap} aria-label="상위에서 하위로 이어지는 탭 위계">
         <li className={styles.hierarchyLevel} data-level="1">
-          <div className={styles.hierarchyDescription}><span className={styles.hierarchyIndex}>1 · 최상위</span><h3 className="type-content-title">페이지의 큰 보기 전환</h3><p className="type-body-sm text-zinc-600">두세 개의 주요 화면 중 하나를 고릅니다. 한 페이지에 한 번만 사용합니다.</p></div>
+          <div className={styles.hierarchyDescription}><span className={styles.hierarchyIndex}>1 · 최상위</span><h3 className="type-content-title">페이지의 큰 보기 전환</h3><p className="type-body-sm text-zinc-600">페이지나 주요 화면을 바꿀 때 사각 연결형 탭을 사용합니다. 선택 면은 검정, 비선택 면은 흰색입니다.</p></div>
           <Tabs hierarchy="primary" defaultValue="first"><TabsList size="lg" aria-label="최상위 보기 전환 예시"><TabsTrigger value="first">선택 1</TabsTrigger><TabsTrigger value="second">선택 2</TabsTrigger><TabsTrigger value="unavailable" disabled>준비 중</TabsTrigger></TabsList><TabsContent value="first" className="type-caption">첫 번째 주요 화면</TabsContent><TabsContent value="second" className="type-caption">두 번째 주요 화면</TabsContent></Tabs>
         </li>
         <li className={styles.hierarchyLevel} data-level="2">
-          <div className={styles.hierarchyDescription}><span className={styles.hierarchyIndex}>2 · 주요 분류</span><h3 className="type-content-title">페이지 안 콘텐츠 묶음</h3><p className="type-body-sm text-zinc-600">서비스·상태·언어처럼 페이지의 주요 내용을 나눕니다.</p></div>
+          <div className={styles.hierarchyDescription}><span className={styles.hierarchyIndex}>2 · 주요 분류</span><h3 className="type-content-title">페이지 안 콘텐츠 묶음</h3><p className="type-body-sm text-zinc-600">페이지의 주요 콘텐츠 구획을 나눕니다. 상태·보기 값은 별도의 둥근 세그먼트를 사용합니다.</p></div>
           <Tabs hierarchy="secondary" defaultValue="first"><TabsList size="md" aria-label="주요 콘텐츠 분류 예시"><TabsTrigger value="first">첫 번째</TabsTrigger><TabsTrigger value="second">두 번째</TabsTrigger><TabsTrigger value="unavailable" disabled>준비 중</TabsTrigger></TabsList><TabsContent value="first" className="type-caption">첫 번째 콘텐츠 묶음</TabsContent><TabsContent value="second" className="type-caption">두 번째 콘텐츠 묶음</TabsContent></Tabs>
         </li>
         <li className={styles.hierarchyLevel} data-level="3">
@@ -40,9 +40,15 @@ export default function SelectionControlExamples() {
           <Tabs hierarchy="embedded" defaultValue="first"><TabsList size="sm" aria-label="영역 내부 세부 전환 예시"><TabsTrigger value="first">첫 번째</TabsTrigger><TabsTrigger value="second">두 번째</TabsTrigger><TabsTrigger value="unavailable" disabled>준비 중</TabsTrigger></TabsList><TabsContent value="first" className="type-caption">첫 번째 세부 내용</TabsContent><TabsContent value="second" className="type-caption">두 번째 세부 내용</TabsContent></Tabs>
         </li>
       </ol>
+      <div className="min-w-0">
+        <h3 className="type-content-title mb-2">상태값 변경 · 둥근 세그먼트</h3>
+        <p className="type-body-sm mb-4 text-zinc-600">페이지를 유지하면서 이용 상태·보기 방식·선택 언어 같은 값을 바꿉니다. URL에 값이 기록되더라도 목록의 상태 조건만 바뀌면 이 형태를 사용합니다.</p>
+        <Tabs hierarchy="state" defaultValue="active"><TabsList size="md" aria-label="상태값 변경 예시"><TabsTrigger value="active">이용 중</TabsTrigger><TabsTrigger value="holding">보관 중</TabsTrigger><TabsTrigger value="ended">종료됨</TabsTrigger></TabsList><TabsContent value="active" className="type-caption">이용 중인 메뉴판</TabsContent><TabsContent value="holding" className="type-caption">보관 중인 메뉴판</TabsContent><TabsContent value="ended" className="type-caption">종료된 메뉴판</TabsContent></Tabs>
+      </div>
       <div className={styles.usageTable}><table aria-label="탭 위계 적용 기준"><thead><tr><th>위계</th><th>공통 구현</th><th>대표 사용처</th><th>사용 제한</th></tr></thead><tbody>
-        <tr><td>1 · 최상위</td><td>primary / outline 세그먼트</td><td>베이직·다이닝·디스플레이, 고객센터 공지사항·FAQ처럼 페이지 전체 보기 전환</td><td>한 페이지에 한 번, 2–3개 항목</td></tr>
-        <tr><td>2 · 주요 분류</td><td>secondary / underline</td><td>마이페이지·가이드·언어·상태 분류</td><td>상위 세그먼트보다 크게 사용하지 않음</td></tr>
+        <tr><td>1 · 최상위</td><td>primary / page 사각 연결형</td><td>베이직·다이닝·디스플레이, 고객센터 공지사항·FAQ처럼 페이지 전체 보기 전환</td><td>주요 화면 이동, 현재 화면은 선택 면으로 표시</td></tr>
+        <tr><td>상태·보기 값</td><td>state / outline 둥근 세그먼트</td><td>이용 중·보관 중·종료됨, 이미지/목록 보기, 언어 값</td><td>페이지·주요 화면 이동에 사용하지 않음</td></tr>
+        <tr><td>2 · 주요 분류</td><td>secondary / underline</td><td>가이드·디자인 시스템 콘텐츠 분류</td><td>상위 세그먼트보다 크게 사용하지 않음</td></tr>
         <tr><td>3 · 보조 분류</td><td>site-filter / 본문 링크</td><td>업종·주제·상태 조건·본문 바로가기</td><td>실제 패널 전환에는 사용하지 않음</td></tr>
         <tr><td>4 · 영역 내부</td><td>embedded / area</td><td>템플릿 종류, 미리보기 옵션, 번역 항목, 설정 묶음</td><td>흰 콘텐츠 면에 연결. 파일형·사선 윤곽은 사용하지 않음</td></tr>
       </tbody></table></div>

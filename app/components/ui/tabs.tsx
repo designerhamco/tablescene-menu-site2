@@ -6,11 +6,12 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "./utils";
 
 export type TabsSize = "sm" | "md" | "lg";
-export type TabsVariant = "segmented" | "outline" | "underline" | "area";
-export type TabsHierarchy = "primary" | "secondary" | "embedded";
+export type TabsVariant = "segmented" | "outline" | "underline" | "area" | "page";
+export type TabsHierarchy = "primary" | "secondary" | "embedded" | "state";
 
 const hierarchyVariant: Record<TabsHierarchy, TabsVariant> = {
-  primary: "outline",
+  primary: "page",
+  state: "outline",
   secondary: "underline",
   embedded: "area",
 };
@@ -64,6 +65,7 @@ function TabsList({
         className={cn(
           variant === "area" ? "site-area-tabs" : variant === "underline" ? "site-topic-tabs" : "site-tabs",
           variant === "outline" && "site-tabs-outline",
+          variant === "page" && "site-page-tabs",
           distribution === "equal" && (variant === "area" ? "site-area-tabs-even" : variant !== "underline" && "site-tabs-even"),
           `site-tab-size-${size === "default" ? "md" : size}`,
           className,

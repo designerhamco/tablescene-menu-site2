@@ -1083,7 +1083,7 @@ function LocalizationSectionContent({
           <p className="mt-2 break-keep text-support font-medium leading-relaxed text-amber-700">
             자동 번역 초안은 비어 있는 번역 칸에만 채워지며, 이미 입력한 번역은 유지됩니다.
           </p>
-          <Tabs hierarchy="secondary" value={activeLocale} onValueChange={value => setActiveLocale(value as SupportedLocale)} className="mt-5">
+          <Tabs hierarchy="state" value={activeLocale} onValueChange={value => setActiveLocale(value as SupportedLocale)} className="mt-5">
             <TabsList size="md" aria-label="번역 언어 선택">
               {(["ko", ...TRANSLATABLE_LOCALES] as SupportedLocale[]).map((locale) => (
                 <TabsTrigger key={locale} value={locale}>

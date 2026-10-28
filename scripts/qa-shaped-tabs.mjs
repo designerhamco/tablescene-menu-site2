@@ -36,19 +36,28 @@ try {
 
     await page.goto(`${baseUrl}/design-system#shaped-tabs`, { waitUntil: "domcontentloaded" });
     await page.evaluate(() => document.fonts.ready);
-    for (const label of ["디자인 시스템 메뉴", "메뉴판 상태 예시"]) {
+    for (const label of ["디자인 시스템 메뉴"]) {
       await assertUnderlineRail(page.getByRole("tablist", { name: label }));
     }
     for (const label of ["서비스 탐색 예시", "템플릿 라이브러리 서비스"]) {
       const primaryList = page.getByRole("tablist", { name: label });
       await expect(primaryList).toHaveAttribute("data-hierarchy", "primary");
-      await expect(primaryList).toHaveClass(/site-tabs-outline/);
+      await expect(primaryList).toHaveClass(/site-page-tabs/);
     }
+    const stateTabs = page.getByRole("tablist", { name: "상태값 변경 예시" });
+    await expect(stateTabs).toHaveAttribute("data-hierarchy", "state");
+    await expect(stateTabs).toHaveClass(/site-tabs-outline/);
+    await expect(stateTabs.getByRole("tab", { selected: true })).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(stateTabs.getByRole("tab", { selected: true })).toHaveCSS("border-top-width", "2px");
+    const pageTabs = page.getByRole("tablist", { name: "서비스 탐색 예시" });
+    await expect(pageTabs).toHaveCSS("border-top-left-radius", "8px");
+    await expect(pageTabs.getByRole("tab", { selected: true })).toHaveCSS("border-top-left-radius", "0px");
+    await expect(pageTabs.getByRole("tab", { selected: true })).toHaveCSS("background-color", "rgb(21, 24, 30)");
     const hierarchySection = page.locator("#selection-hierarchy-title").locator("xpath=../..");
     const hierarchy = page.getByRole("list", { name: "상위에서 하위로 이어지는 탭 위계" });
     const hierarchyTabs = hierarchy.locator('[data-slot="tabs"]');
     await expect(hierarchyTabs.nth(0)).toHaveAttribute("data-hierarchy", "primary");
-    await expect(hierarchyTabs.nth(0).locator('[data-slot="tabs-list"]')).toHaveClass(/site-tabs-outline/);
+    await expect(hierarchyTabs.nth(0).locator('[data-slot="tabs-list"]')).toHaveClass(/site-page-tabs/);
     await expect(hierarchyTabs.nth(1)).toHaveAttribute("data-hierarchy", "secondary");
     await expect(hierarchyTabs.nth(1).locator('[data-slot="tabs-list"]')).toHaveClass(/site-topic-tabs/);
     await expect(hierarchyTabs.nth(2)).toHaveAttribute("data-hierarchy", "embedded");
@@ -80,6 +89,9 @@ try {
     await expect(areaActive).toHaveCSS("border-bottom-left-radius", "0px");
     await expect(areaList).toHaveCSS("column-gap", "0px");
     await expect(areaRoot.locator(".site-area-panel").first()).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(areaRoot.locator(".site-area-panel").first()).toHaveCSS("border-left-width", "1px");
+    await expect(areaRoot.locator(".site-area-panel").first()).toHaveCSS("border-right-width", "1px");
+    await expect(areaRoot.locator(".site-area-panel").first()).toHaveCSS("border-bottom-width", "1px");
     assert.equal(await areaActive.evaluate(element => getComputedStyle(element, "::before").maskImage), "none");
 
     await areaActive.focus();
@@ -94,8 +106,8 @@ try {
     await page.goto(`${baseUrl}/templates`, { waitUntil: "networkidle" });
     const serviceTabs = page.getByRole("tablist", { name: "서비스 및 페이지 유형 선택" });
     await expect(serviceTabs).toHaveAttribute("data-hierarchy", "primary");
-    await expect(serviceTabs).toHaveClass(/site-tabs-outline/);
-    await expect(serviceTabs.getByRole("tab", { selected: true })).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(serviceTabs).toHaveClass(/site-page-tabs/);
+    await expect(serviceTabs.getByRole("tab", { selected: true })).toHaveCSS("background-color", "rgb(21, 24, 30)");
     const catalogTabs = page.getByRole("tablist", { name: "템플릿 종류 선택" });
     await expect(catalogTabs).toHaveAttribute("data-hierarchy", "embedded");
     await expect(catalogTabs).toHaveClass(/site-area-tabs/);
@@ -152,8 +164,8 @@ try {
     await page.goto(`${baseUrl}/faq?tab=faq`, { waitUntil: "networkidle" });
     const supportTabs = page.getByRole("tablist", { name: "고객센터 메뉴" });
     await expect(supportTabs).toHaveAttribute("data-hierarchy", "primary");
-    await expect(supportTabs).toHaveClass(/site-tabs-outline/);
-    await expect(supportTabs.getByRole("tab", { selected: true })).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(supportTabs).toHaveClass(/site-page-tabs/);
+    await expect(supportTabs.getByRole("tab", { selected: true })).toHaveCSS("background-color", "rgb(21, 24, 30)");
     await expect(supportTabs.getByRole("tab", { selected: true })).toHaveText("FAQ");
     await supportTabs.getByRole("tab", { name: "공지사항" }).focus();
     await page.keyboard.press("Enter");
