@@ -11,6 +11,7 @@ import {
   type TemplateKey,
 } from "@/lib/templates";
 import { Badge } from "@/app/components/ui/badge";
+import { CategoryFilter } from "@/app/components/ui/category-filter";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { PanelsTopLeft } from "lucide-react";
 
@@ -40,32 +41,15 @@ export default function TemplateCatalogPicker() {
         </p>
       </div>
 
-      <div className="scrollbar-hide -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
-        {BASIC_TEMPLATE_CATEGORY_GROUPS.map((category) => {
-          const isSelected = selectedCategoryGroup === category.key;
-
-          return (
-            <button
-              key={category.key}
-              type="button"
-              onClick={() => {
-                const categoryKeys = getTemplateCategoryKeysForBasicGroup(category.key);
-                const nextTemplate = activeTemplateCatalog.find((template) => categoryKeys.includes(template.template_category));
-                setSelectedCategoryGroup(category.key);
-                setSelectedTemplateKey(nextTemplate?.key ?? "");
-              }}
-              className={`site-choice site-tab shrink-0 border px-4 py-2 ${
-                isSelected
-                  ? "border-zinc-950 bg-zinc-950 text-white"
-                  : "border-zinc-200 bg-white text-zinc-600 hover:border-zinc-950"
-              }`}
-              aria-pressed={isSelected}
-            >
-              {category.label}
-            </button>
-          );
-        })}
-      </div>
+      <CategoryFilter label="새 메뉴판 템플릿 주제" value={selectedCategoryGroup}
+        options={BASIC_TEMPLATE_CATEGORY_GROUPS.map(category => ({ value: category.key, label: category.label }))}
+        onValueChange={value => {
+          const next = value as BasicTemplateCategoryGroupKey;
+          const categoryKeys = getTemplateCategoryKeysForBasicGroup(next);
+          const template = activeTemplateCatalog.find(item => categoryKeys.includes(item.template_category));
+          setSelectedCategoryGroup(next);
+          setSelectedTemplateKey(template?.key ?? "");
+        }} />
 
       <div className="grid gap-4 lg:grid-cols-3">
         {filteredTemplates.length > 0 ? filteredTemplates.map((template) => {

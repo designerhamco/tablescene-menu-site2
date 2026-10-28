@@ -2842,7 +2842,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   </div>
                 </div>
 
-                <NavigationTabs label="구독/결제 내역 탭" className="mb-6" items={[
+                <NavigationTabs purpose="section" label="구독/결제 내역 탭" className="mb-6" items={[
                   { label: "결제내역", href: "/mypage?tab=payments&billingTab=history", active: activeBillingTab === "history" },
                   { label: "AI 충전/사용내역", href: "/mypage?tab=payments&billingTab=ai-credits", active: activeBillingTab === "ai-credits" },
                 ]} />

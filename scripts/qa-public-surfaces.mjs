@@ -79,7 +79,8 @@ async function inspectPage(page) {
       return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
     });
 
-    const accessibility = await window.axe.run(document, {
+    // The clipped, aria-hidden footer wordmark is decoration, not readable page copy.
+    const accessibility = await window.axe.run({ exclude: ['footer [aria-hidden="true"][class*="wordmark"]'] }, {
       runOnly: {
         type: "tag",
         values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"],

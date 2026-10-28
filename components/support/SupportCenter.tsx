@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/ta
 import styles from "./support.module.css";
 import { SitePagination } from "@/app/components/ui/site-pagination";
 import { ContentList, ContentListItem } from "@/app/components/ui/content-list";
+import { CategoryFilter } from "@/app/components/ui/category-filter";
 import { Button } from "@/app/components/ui/button";
 
 type AnnouncementList = {
@@ -129,8 +130,8 @@ export default function SupportCenter({
         }))
       : ANNOUNCEMENT_CATEGORIES;
   const content = (
-    <Tabs hierarchy="secondary" value={tab} onValueChange={value => changeTab(value as "faq" | "notices")}>
-      <TabsList size="lg" aria-label="고객센터 메뉴">
+    <Tabs purpose="page" value={tab} onValueChange={value => changeTab(value as "faq" | "notices")}>
+      <TabsList size="lg" className="mx-auto" aria-label="고객센터 메뉴">
         <TabsTrigger value="notices">공지사항</TabsTrigger>
         <TabsTrigger value="faq">FAQ</TabsTrigger>
       </TabsList>
@@ -138,23 +139,16 @@ export default function SupportCenter({
         <h2 className="type-section-title sr-only">
           {tab === "faq" ? "자주 묻는 질문" : "공지사항"}
         </h2>
-        <div className="site-filter-group" role="group" aria-label="주제 선택">
-          {[{ value: "all", label: "전체" }, ...categories].map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              className="site-filter"
-              aria-pressed={category === item.value}
-              onClick={() => {
-                setCategory(item.value);
-                setPage(1);
-                setOpenQuestion(null);
-              }}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
+        <CategoryFilter
+          label="주제 선택"
+          value={category}
+          options={[{ value: "all", label: "전체" }, ...categories]}
+          onValueChange={value => {
+            setCategory(value);
+            setPage(1);
+            setOpenQuestion(null);
+          }}
+        />
         {tab === "faq" ? (
           <>
             <p className={styles.resultCount} role="status">

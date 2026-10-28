@@ -230,7 +230,7 @@ function LayoutModeVisual() {
 
   return (
     <div className="flex h-full flex-col bg-[#eee8dc] p-5 text-zinc-950 md:p-8">
-      <div className="site-tabs site-tabs-outline site-tab-size-sm mx-auto" role="group" aria-label="메뉴 배치 데모">
+      <div className="site-tabs site-tabs-outline site-tab-size-sm mx-auto" role="group" data-purpose="state" aria-label="메뉴 배치 데모">
         {[{ key: "group", label: "묶음형 자동 배치" }, { key: "fill", label: "채움형 배치" }].map((item) => (
           <button key={item.key} type="button" aria-pressed={mode === item.key} onClick={() => setMode(item.key as "group" | "fill")} className="site-tab">{item.label}</button>
         ))}

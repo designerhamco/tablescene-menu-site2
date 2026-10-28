@@ -18,7 +18,7 @@ type MenuEditorNavigationProps = {
 export default function MenuEditorNavigation({ menuId, activeTab, tabs = MENU_EDITOR_TABS }: MenuEditorNavigationProps) {
   return (
     <div className="site-card site-card-compact mb-6 site-editor-navigation px-4">
-      <NavigationTabs label="메뉴 편집 설정" items={tabs.map(item => ({
+      <NavigationTabs label="메뉴 편집 설정" purpose="page" items={tabs.map(item => ({
         label: item.label,
         href: `/mypage/menus/${menuId}/edit?tab=${item.key}`,
         active: activeTab === item.key,
