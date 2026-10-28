@@ -53,6 +53,11 @@ try {
     await expect(pageTabs).toHaveCSS("border-top-left-radius", "8px");
     await expect(pageTabs.getByRole("tab", { selected: true })).toHaveCSS("border-top-left-radius", "0px");
     await expect(pageTabs.getByRole("tab", { selected: true })).toHaveCSS("background-color", "rgb(21, 24, 30)");
+    if (width >= 768) {
+      await expect(pageTabs.getByRole("tab").first()).toHaveCSS("flex-grow", "0");
+      const geometry = await pageTabs.evaluate(element => ({ width: element.getBoundingClientRect().width, parentWidth: element.parentElement.getBoundingClientRect().width }));
+      assert.ok(geometry.width < geometry.parentWidth * .8, `page tabs unnecessarily fill the content width at ${width}px`);
+    }
     const hierarchySection = page.locator("#selection-hierarchy-title").locator("xpath=../..");
     const hierarchy = page.getByRole("list", { name: "상위에서 하위로 이어지는 탭 위계" });
     const hierarchyTabs = hierarchy.locator('[data-slot="tabs"]');
@@ -89,9 +94,9 @@ try {
     await expect(areaActive).toHaveCSS("border-bottom-left-radius", "0px");
     await expect(areaList).toHaveCSS("column-gap", "0px");
     await expect(areaRoot.locator(".site-area-panel").first()).toHaveCSS("background-color", "rgb(255, 255, 255)");
-    await expect(areaRoot.locator(".site-area-panel").first()).toHaveCSS("border-left-width", "1px");
-    await expect(areaRoot.locator(".site-area-panel").first()).toHaveCSS("border-right-width", "1px");
-    await expect(areaRoot.locator(".site-area-panel").first()).toHaveCSS("border-bottom-width", "1px");
+    await expect(areaRoot.locator(".site-area-panel").first()).toHaveCSS("border-left-width", "0px");
+    await expect(areaRoot.locator(".site-area-panel").first()).toHaveCSS("border-right-width", "0px");
+    await expect(areaRoot.locator(".site-area-panel").first()).toHaveCSS("border-bottom-width", "0px");
     assert.equal(await areaActive.evaluate(element => getComputedStyle(element, "::before").maskImage), "none");
 
     await areaActive.focus();
