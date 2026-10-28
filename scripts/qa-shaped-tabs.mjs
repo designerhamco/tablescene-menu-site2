@@ -69,9 +69,13 @@ try {
     const areaActive = areaList.getByRole("tab", { selected: true });
     await expect(areaRoot).toBeVisible();
     await expect(areaRoot).toHaveCSS("border-top-width", "0px");
+    await expect(areaRoot).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
     await expect(areaList).toHaveCSS("overflow-x", "auto");
     await expect(areaList).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
     await expect(areaActive).toHaveCSS("font-weight", "600");
+    await expect(areaActive).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(areaActive).toHaveCSS("border-top-width", "1px");
+    await expect(areaRoot.locator(".site-area-panel").first()).toHaveCSS("background-color", "rgb(255, 255, 255)");
     assert.equal(await areaActive.evaluate(element => getComputedStyle(element, "::before").maskImage), "none");
 
     await areaActive.focus();
@@ -95,9 +99,19 @@ try {
     const catalogArea = catalogTabs.locator("xpath=..");
     await expect(catalogArea).toHaveClass(/site-area-tabs-root/);
     await expect(catalogArea).toHaveCSS("border-top-width", "0px");
+    await expect(catalogArea).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await expect(catalogArea.locator(".site-area-panel")).toHaveCSS("background-color", "rgb(255, 255, 255)");
     assert.equal(await page.locator(".site-contained-tabs").count(), 0);
     assert.equal(await catalogTabs.getByRole("tab", { selected: true }).evaluate(element => getComputedStyle(element, "::before").maskImage), "none");
     await expect(catalogTabs.getByRole("tab", { selected: true })).toHaveText("디자인 템플릿");
+    await expect(catalogTabs.getByRole("tab", { selected: true })).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    const catalogGeometry = await catalogArea.evaluate(element => {
+      const root = element.getBoundingClientRect();
+      const list = element.querySelector('[data-slot="tabs-list"]')?.getBoundingClientRect();
+      return list ? { left: list.left - root.left, right: root.right - list.right } : null;
+    });
+    assert.ok(catalogGeometry, "catalog area tabs must have a tab list");
+    assert.ok(Math.abs(catalogGeometry.left) < .6 && Math.abs(catalogGeometry.right) < .6, `catalog tab rule escapes its area at ${width}px`);
     const categoryButtons = page.getByRole("group", { name: "업종 선택" }).getByRole("button");
     await expect(categoryButtons.first().locator("svg")).toBeVisible();
     await expect(categoryButtons.first().locator(".site-choice-tile-icon")).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
@@ -109,6 +123,22 @@ try {
     const catalogOverflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     assert.equal(catalogOverflow, 0, `template page overflow at ${width}px`);
     await page.screenshot({ path: `${output}/templates-${width}.png`, fullPage: true });
+
+    await page.goto(`${baseUrl}/templates/cafe_real_matcha_a/preview?device=pc`, { waitUntil: "networkidle" });
+    const previewGuide = page.getByRole("dialog", { name: "메뉴판 미리보기 사용 안내" });
+    if (await previewGuide.isVisible()) await previewGuide.getByRole("button", { name: "닫기" }).click();
+    const optionsToggle = page.locator("[data-preview-options-toggle]");
+    await expect(optionsToggle).toBeVisible();
+    if (await optionsToggle.getAttribute("aria-expanded") !== "true") await optionsToggle.click();
+    await expect(optionsToggle).toHaveAttribute("aria-expanded", "true");
+    const previewTabs = page.getByRole("tablist", { name: "미리보기 옵션 종류" });
+    const previewArea = previewTabs.locator("xpath=..");
+    await expect(previewTabs).toHaveAttribute("data-hierarchy", "embedded");
+    await expect(previewTabs).toHaveClass(/site-area-tabs/);
+    await expect(previewArea).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await expect(previewArea.locator(".site-area-panel").first()).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(previewTabs.getByRole("tab", { selected: true })).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await page.screenshot({ path: `${output}/preview-options-${width}.png`, fullPage: false });
 
     await page.goto(`${baseUrl}/guides`, { waitUntil: "networkidle" });
     await assertUnderlineRail(page.getByRole("tablist", { name: "플랜별 사용가이드" }), { compact: true });
