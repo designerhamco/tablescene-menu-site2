@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import MenuPlanChangePanel from "./MenuPlanChangePanel";
+import MenuPlanChangeModal from "./MenuPlanChangeModal";
 import { useState, type FormEvent } from "react";
 
 export type SubscriptionManagementModalProps = {
@@ -20,6 +20,7 @@ export type SubscriptionManagementModalProps = {
   pgLabel: string;
   serviceEntitlementLabel: string;
   canManage: boolean;
+  canChangePlan?: boolean;
   defaultOpen?: boolean;
   billingMethod?: "monthly" | "yearly" | "unknown";
   refundConfirmEnabled?: boolean;
@@ -120,6 +121,7 @@ export default function SubscriptionManagementModal({
   pgLabel,
   serviceEntitlementLabel,
   canManage,
+  canChangePlan = false,
   defaultOpen = false,
   billingMethod = "unknown",
   refundConfirmEnabled = false,
@@ -291,6 +293,10 @@ export default function SubscriptionManagementModal({
       >
         구독 관리
       </button>
+
+      {canChangePlan && canManage && status === "active" && !cancelAtPeriodEnd && !restoredNotice ? (
+        <MenuPlanChangeModal subscriptionId={subscriptionId} menuName={menuName} />
+      ) : null}
 
       {isOpen && (
         <div className="site-management-scope site-dialog-overlay fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
@@ -509,8 +515,6 @@ export default function SubscriptionManagementModal({
                 ? "연결제는 매년 자동결제되는 연 정기결제 상품입니다. 해지 예약 시 다음 연간 결제일부터 자동결제가 중단되며, 이미 결제된 이용 기간까지 계속 사용할 수 있습니다."
                 : "구독을 해지하면 다음 결제일부터 결제가 중단됩니다. 이미 결제된 이용기간은 종료일까지 계속 이용할 수 있습니다. 이용기간 종료 후 메뉴판은 비공개 처리되며, 종료 후 90일이 지나면 메뉴판 데이터와 업로드 이미지가 삭제될 수 있습니다."}
             </div>
-
-            {!restoredNotice ? <MenuPlanChangePanel subscriptionId={subscriptionId} /> : null}
 
             {isYearlyBilling && !restoredNotice ? (
               <div className="site-section mt-4 p-4 text-copy font-medium leading-relaxed text-zinc-600">

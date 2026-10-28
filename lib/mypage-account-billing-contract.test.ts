@@ -73,3 +73,24 @@ test("AI history loads and renders credit usage as well as purchases", () => {
   assert.match(mypageSource, /AI 크레딧 충전\/사용 내역/);
   assert.match(mypageSource, /사용 후 잔여/);
 });
+
+
+test("직원 관리에서도 사장 계정 요약의 회사명과 두 지표를 유지한다", () => {
+  const source = readFileSync(new URL("../app/mypage/staff/page.tsx", import.meta.url), "utf8");
+  assert.match(source, /getAiCreditBalanceForUser\(user.id\)/);
+  assert.match(source, /businessName=\{businessProfileResult.data\?\.business_name\}/);
+  assert.match(source, /accountAiCreditRemaining=\{accountAiCreditRemaining\}/);
+  assert.match(source, /staffAccountCount=\{new Set\(activeMemberships/);
+});
+
+test("구독 변경은 서버의 실제 자격 확인 후 관리 버튼 다음의 독립 창으로 연다", () => {
+  const management = readFileSync(new URL("../components/mypage/SubscriptionManagementModal.tsx", import.meta.url), "utf8");
+  const modal = readFileSync(new URL("../components/mypage/MenuPlanChangeModal.tsx", import.meta.url), "utf8");
+  assert.match(mypageSource, /getMenuPlanChangeDetail\(admin, subscription.id!, user.id\)/);
+  assert.match(mypageSource, /detail\?\.eligible && detail.pending\?\.state !== "processing"/);
+  assert.match(management, /canChangePlan && canManage && status === "active" && !cancelAtPeriodEnd && !restoredNotice/);
+  assert.doesNotMatch(management, /<MenuPlanChangePanel/);
+  assert.match(modal, /<DialogTrigger asChild>/);
+  assert.match(modal, /<DialogTitle>구독 변경<\/DialogTitle>/);
+  assert.match(modal, /<MenuPlanChangePanel subscriptionId=\{subscriptionId\}/);
+});

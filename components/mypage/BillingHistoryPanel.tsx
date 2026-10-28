@@ -76,6 +76,7 @@ export type BillingHistoryEntry = {
     pgLabel: string;
     serviceEntitlementLabel: string;
     canManage: boolean;
+    canChangePlan?: boolean;
     defaultOpen: boolean;
     billingMethod: "monthly" | "yearly" | "unknown";
     refundConfirmEnabled?: boolean;

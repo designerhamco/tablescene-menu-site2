@@ -8,7 +8,7 @@ const date=(value:string)=>new Intl.DateTimeFormat('ko-KR',{year:'numeric',month
 export default function MenuPlanChangePanel({subscriptionId}:{subscriptionId:string}) {
   const [detail,setDetail]=useState<Detail|null>(null),[access,setAccess]=useState<'standard'|'all'>('standard'),[design,setDesign]=useState(''),[confirmed,setConfirmed]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
   const endpoint=`/api/business-subscriptions/${encodeURIComponent(subscriptionId)}/plan-change`;
-  useEffect(()=>{const controller=new AbortController();fetch(endpoint,{cache:'no-store',signal:controller.signal}).then(async response=>{const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.message||'이용권 정보를 불러오지 못했습니다.');if(!result.enabled)return;setDetail(result.detail);setAccess(result.detail.pending?.access??'standard');setDesign(result.detail.pending?.designId??result.detail.options.find((d:Detail['options'][number])=>d.kind==='standard')?.id??'');}).catch(e=>{if(e.name!=='AbortError')setError(e.message);});return()=>controller.abort();},[endpoint]);
+  useEffect(()=>{const controller=new AbortController();fetch(endpoint,{cache:'no-store',signal:controller.signal}).then(async response=>{const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.message||'이용권 정보를 불러오지 못했습니다.');if(!result.enabled)throw new Error(result.detail?.reason||'현재 구독 변경을 이용할 수 없습니다.');setDetail(result.detail);setAccess(result.detail.pending?.access??'standard');setDesign(result.detail.pending?.designId??result.detail.options.find((d:Detail['options'][number])=>d.kind==='standard')?.id??'');}).catch(e=>{if(e.name!=='AbortError')setError(e.message);});return()=>controller.abort();},[endpoint]);
   const choices=detail?.options.filter(d=>access==='all'||d.kind==='standard')??[],quote=detail?.quotes.find(q=>q.access===access);
   async function save(cancel=false){
     if(!detail||!quote&&!cancel)return;setBusy(true);setError('');setNotice('');
@@ -26,7 +26,7 @@ export default function MenuPlanChangePanel({subscriptionId}:{subscriptionId:str
       setDetail(result.detail);setConfirmed(false);setNotice(cancel?'변경 예약을 취소했습니다. 현재 계약이 유지됩니다.':'변경을 예약했습니다. 지금은 결제되지 않습니다.');
     }catch(e){setError(e instanceof Error?e.message:'변경을 저장하지 못했습니다.');}finally{setBusy(false);}
   }
-  if(!detail&&!error)return null;
+  if(!detail&&!error)return <p role="status" className="py-4 text-copy text-zinc-600">구독 변경 정보를 불러오고 있습니다.</p>;
   if(!detail)return <p role="alert" className="mt-4 text-copy text-red-700">{error}</p>;
   const pending=detail.pending,processing=pending?.state==='processing';
   return <section className="site-section mt-5 space-y-4 p-4" aria-label="이용권 변경">
