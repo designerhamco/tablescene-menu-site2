@@ -11,16 +11,17 @@ import type { StoreOperationKey } from "@/lib/operations-dashboard";
 import type { StoreOperationsSite } from "@/lib/server/store-operations-context";
 import { createClient } from "@/lib/supabase/server";
 
-export type StoreOperationsSection = "dashboard" | StoreOperationKey | "order-settings" | "call-settings";
+export type StoreOperationsSection = "dashboard" | StoreOperationKey | "order-settings" | "call-settings" | "qr";
 
 const operationNavigation: Array<{
-  key: StoreOperationKey;
+  key: StoreOperationKey | "qr";
   label: string;
   permission: MenuSitePermission;
 }> = [
-  { key: "tables", label: "테이블·QR관리", permission: "table.manage" },
-  { key: "orders", label: "주문관리", permission: "order.read" },
-  { key: "calls", label: "호출관리", permission: "call.manage" },
+  { key: "tables", label: "테이블 관리", permission: "table.manage" },
+  { key: "calls", label: "호출 관리", permission: "call.manage" },
+  { key: "orders", label: "주문 관리", permission: "order.read" },
+  { key: "qr", label: "QR 관리", permission: "qr.manage" },
   { key: "pickup", label: "대기번호", permission: "pickup.manage" },
 ];
 
@@ -35,7 +36,8 @@ function getSectionHref(site: StoreOperationsSite, section: StoreOperationsSecti
   if ((section === "orders" || section === "calls") && !site.operationAccess[section] && site.canConfigure) {
     return `/mypage/menus/${site.menuSiteId}/${section}/settings`;
   }
-  if (section === "tables" && site.canManageQr) {
+  if (section === "qr") return site.canManageQr ? `/mypage/menus/${site.menuSiteId}/qr` : `/mypage/operations?site=${encodeURIComponent(site.menuSiteId)}`;
+  if (section === "tables" && site.tableSetupAvailable && site.permissions.includes("table.manage")) {
     return `/mypage/menus/${site.menuSiteId}/tables`;
   }
   if (section === "dashboard" || !site.operationAccess[section]) {
@@ -107,7 +109,7 @@ export default async function StoreOperationsShell({
 
                 <nav className="space-y-1 border-t border-zinc-100 pt-2" aria-label="매장 운영 메뉴">
                   {operationNavigation.map((item) => {
-                    const enabled = Boolean(selectedSite?.operationAccess[item.key] || (item.key === "tables" && selectedSite?.canManageQr));
+                    const enabled = Boolean(selectedSite && (item.key === "qr" ? selectedSite.canManageQr : item.key === "tables" ? selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage") : selectedSite.operationAccess[item.key]));
                     const configurationAvailable = Boolean(selectedSite?.canConfigure && (item.key === "orders" || item.key === "calls"));
                     const active = activeSection === item.key || (item.key === "orders" && activeSection === "order-settings") || (item.key === "calls" && activeSection === "call-settings");
                     if (!selectedSite || (!enabled && !configurationAvailable)) {

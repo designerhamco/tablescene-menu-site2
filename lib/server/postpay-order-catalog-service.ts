@@ -1,6 +1,5 @@
 import "server-only";
 
-import { readMenuOrderSettings } from "@/lib/menu-order-settings";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import { isMenuTimeSaleActive } from "@/lib/menu-time-sale-display";
 import { createHash } from "node:crypto";
@@ -35,7 +34,6 @@ export async function getPostpayOrderCatalog(
       .eq("menu_site_id", menuSiteId)
       .eq("visible", true)
       .eq("price_visible", true)
-      .eq("orderable", true)
       .eq("is_sold_out", false)
       .order("sort_order")
       .limit(500),
@@ -93,11 +91,11 @@ export async function getPostpayOrderCatalog(
   const catalog: PostpayOrderCatalogItem[] = (itemsResult.data ?? [])
     .filter(
       (item) =>
-        !item.category_id ||
-        !publicData ||
-        publicData.categories.some(
-          (category) =>
-            category.id === item.category_id && category.visible !== false,
+        Number.isFinite(item.price) && item.price >= 0 && (
+          !item.category_id || Boolean(publicData?.categories.some(
+            (category) => category.id === item.category_id && category.visible !== false
+              && !(category.course_price != null && category.course_price > 0),
+          ))
         ),
     )
     .map((item) => ({
@@ -122,10 +120,8 @@ export async function getPostpayOrderCatalog(
       imageUrl: item.image_url ?? undefined,
       optionGroups: groupsByItem.get(item.id) ?? [],
     }));
-  const preferences = readMenuOrderSettings(publicData?.menuSite.settings);
   for (const course of publicData?.categories ?? []) {
     if (
-      preferences.orderableCourseIds.includes(course.id) &&
       course.visible !== false &&
       course.course_price_visible !== false &&
       course.course_price != null &&

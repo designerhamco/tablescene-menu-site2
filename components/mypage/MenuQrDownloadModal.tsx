@@ -89,7 +89,7 @@ export default function MenuQrDownloadModal({
                           <p className="type-body-sm break-words font-semibold">{table.label}</p>
                           {table.status === "disabled" ? <p className="type-footnote mt-1 text-zinc-500">비활성 테이블</p> : null}
                         </div>
-                        <QrDownloadButton feedbackLabel={table.label} fileName={`arti-menu-${data.menuSite.slug}-${table.label}-qr.png`} path={table.qrPath} publicBaseUrl={data.publicBaseUrl} disabled={table.status !== "active"} disabledReason="비활성 테이블은 테이블/QR 관리에서 활성화한 뒤 다운로드할 수 있습니다." className="site-button site-button-outline shrink-0" />
+                        <QrDownloadButton feedbackLabel={table.label} fileName={`arti-menu-${data.menuSite.slug}-${table.label}-qr.png`} path={table.qrPath} publicBaseUrl={data.publicBaseUrl} disabled={table.status !== "active"} disabledReason="비활성 테이블은 테이블 관리에서 활성화한 뒤 다운로드할 수 있습니다." className="site-button site-button-outline shrink-0" />
                       </li>
                     ))}
                   </ul>
@@ -101,10 +101,10 @@ export default function MenuQrDownloadModal({
           ) : null}
         </div>
         <div className="border-t border-zinc-100 pt-4">
-          <Link href={`/mypage/menus/${menuSiteId}/tables`} className="site-button site-button-outline w-full" onClick={() => setOpen(false)}>
-            테이블/QR 관리로 이동<ArrowUpRight className="size-4" aria-hidden="true" />
+          <Link href={`/mypage/menus/${menuSiteId}/${data?.canManageTables && data.tables.length === 0 ? "tables" : "qr"}`} className="site-button site-button-outline w-full" onClick={() => setOpen(false)}>
+            {data?.canManageTables && data.tables.length === 0 ? "테이블 등록·관리로 이동" : "QR 관리로 이동"}<ArrowUpRight className="size-4" aria-hidden="true" />
           </Link>
-          <p className="type-footnote mt-2 text-center text-zinc-500">테이블 등록·수정과 QR 교체는 관리 화면에서 할 수 있습니다.</p>
+          <p className="type-footnote mt-2 text-center text-zinc-500">테이블 설정은 테이블 관리에서, QR 다운로드와 교체는 QR 관리에서 할 수 있습니다.</p>
         </div>
       </DialogContent>
     </Dialog>

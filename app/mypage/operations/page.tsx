@@ -31,7 +31,7 @@ type SearchParams = Promise<{
 const OPERATION_FEATURE_LABELS = {
   orders: "주문관리",
   calls: "호출관리",
-  tables: "테이블·QR관리",
+  tables: "테이블 관리",
   sales: "매출요약",
   pickup: "대기번호",
 } as const;
@@ -164,7 +164,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
           <MetricCard icon={<LayoutGrid />} tone="green"
             label="운영 테이블"
             value={tableData ? `${activeTables.length.toLocaleString("ko-KR")}개` : access.tables ? "확인 불가" : "이용 불가"}
-            detail={tableData ? `등록 테이블 ${tableData.tables.length.toLocaleString("ko-KR")}개` : selectedSite.canManageQr ? "대표 QR은 테이블·QR 관리에서 확인할 수 있습니다." : "테이블 기능 활성화 시 표시됩니다."}
+            detail={tableData ? `등록 테이블 ${tableData.tables.length.toLocaleString("ko-KR")}개` : selectedSite.canManageQr ? "대표 QR은 QR 관리에서 확인할 수 있습니다." : "테이블 기능 활성화 시 표시됩니다."}
             href={access.tables || selectedSite.canManageQr ? `/mypage/menus/${selectedSite.menuSiteId}/tables` : null}
           />
           <MetricCard icon={<Ticket />} tone="neutral"

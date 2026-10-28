@@ -39,6 +39,7 @@ const operationPageSources = [
   "pickup",
   "sales",
   "tables",
+  "qr",
 ].map((section) => readSource(`../app/mypage/menus/[menuId]/${section}/page.tsx`));
 const storeOperationsShellSource = readSource("../components/mypage/StoreOperationsShell.tsx");
 

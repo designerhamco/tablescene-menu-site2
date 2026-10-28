@@ -32,16 +32,8 @@ export async function loadMenuOrderSettings(menuId: string) {
     .eq("user_id", context.actorUserId)
     .single();
   if (error || !data) throw new Error("메뉴판 설정을 불러오지 못했습니다.");
-  const { data: courses, error: coursesError } = await createAdminClient()
-    .from("menu_categories")
-    .select("id,name,course_price,course_price_visible,visible")
-    .eq("menu_site_id", menuId)
-    .gt("course_price", 0)
-    .order("sort_order");
-  if (coursesError) throw new Error("코스 정보를 불러오지 못했습니다.");
   return {
     site: data,
-    courses: courses ?? [],
     settings: readMenuOrderSettings(data.settings),
     callService: getDiningTemplateTier(data.template_key) === "multi" ? "dining" as const : "basic" as const,
     runtime: {
@@ -69,14 +61,8 @@ export async function saveMenuOrderSettings(
     "menu.edit",
     "menu_order_settings",
   );
-  const { site, courses, settings } = await loadMenuOrderSettings(menuId);
+  const { site, settings } = await loadMenuOrderSettings(menuId);
   const next = mergeMenuOrderSettingsSection(settings, input, section);
-  if (
-    section === "orders" && next.orderableCourseIds.some(
-      (id) => !courses.some((course) => course.id === id),
-    )
-  )
-    throw new Error("코스 주문 설정을 다시 확인해 주세요.");
   if (site.template_key === "display_menu_a")
     throw new Error("디스플레이는 주문 기능을 지원하지 않습니다.");
   if (section === "orders" && next.orderEnabled && !next.postpayEnabled)
@@ -90,7 +76,7 @@ export async function saveMenuOrderSettings(
     const { data: table, error: tableError } = await createAdminClient().from("menu_tables")
       .select("id").eq("menu_site_id", menuId).eq("status", "active").limit(1).maybeSingle();
     if (tableError) throw new Error("테이블 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.");
-    if (!table) throw new Error("활성 테이블을 먼저 준비해 주세요. 테이블·QR 관리에서 등록·활성화할 수 있습니다.");
+    if (!table) throw new Error("활성 테이블을 먼저 준비해 주세요. 테이블 관리에서 등록·활성화할 수 있습니다.");
   }
   const root =
     site.settings &&

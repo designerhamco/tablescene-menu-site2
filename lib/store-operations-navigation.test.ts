@@ -26,8 +26,8 @@ test("매장 운영 내비게이션은 승인된 주문을 포함하고 매출�
   const navigationBlock = shellSource.match(/const operationNavigation[\s\S]*?\n];/)?.[0];
 
   assert.ok(navigationBlock);
-  assert.match(navigationBlock, /key: "orders", label: "주문관리", permission: "order.read"/);
-  assert.match(shellSource, /selectedSite\?\.operationAccess\[item.key\]/);
+  assert.match(navigationBlock, /key: "orders", label: "주문 관리", permission: "order.read"/);
+  assert.match(shellSource, /selectedSite\.operationAccess\[item.key\]/);
   assert.doesNotMatch(navigationBlock, /key: "sales"/);
   assert.match(navigationBlock, /key: "calls"/);
   assert.match(navigationBlock, /key: "tables"/);

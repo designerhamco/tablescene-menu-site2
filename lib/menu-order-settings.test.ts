@@ -10,7 +10,7 @@ test("호출 저장은 폼에 없거나 변조된 주문·코스·결제 값을 
 });
 
 test("주문 저장은 다른 창에서 바뀐 호출 사용 여부를 보존한다", () => {
-  const current = { ...DEFAULT_MENU_ORDER_SETTINGS, callEnabled: true };
+  const current = { ...DEFAULT_MENU_ORDER_SETTINGS, callEnabled: true, orderableCourseIds: ["legacy-course"] };
   const result = mergeMenuOrderSettingsSection(current, { ...DEFAULT_MENU_ORDER_SETTINGS, orderEnabled: true, orderableCourseIds: ["course-2"] }, "orders");
-  assert.deepEqual(result, { ...current, orderEnabled: true, orderableCourseIds: ["course-2"] });
+  assert.deepEqual(result, { ...current, orderEnabled: true });
 });

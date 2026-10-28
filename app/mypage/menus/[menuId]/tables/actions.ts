@@ -13,7 +13,7 @@ import {
 import { initialMenuTableActionState, type MenuTableActionState } from "./action-state";
 
 function revalidateTableOperations(menuSiteId: string) {
-  for (const section of ["tables", "orders", "calls", "orders/settings", "calls/settings"]) {
+  for (const section of ["tables", "qr", "orders", "calls", "orders/settings", "calls/settings"]) {
     revalidatePath(`/mypage/menus/${menuSiteId}/${section}`);
   }
   revalidatePath("/mypage/operations");
@@ -48,7 +48,7 @@ export async function createMenuTableAction(
     revalidateTableOperations(menuSiteId);
     return {
       status: "success",
-      message: `${result.table.label} 테이블을 만들었습니다. QR은 아래 목록에서 언제든 다시 받을 수 있습니다.`,
+      message: `${result.table.label} 테이블을 만들었습니다. QR 관리에서 테이블별 QR을 다운로드할 수 있습니다.`,
       tableId: result.table.id,
       qrPath: result.qrPath,
     };

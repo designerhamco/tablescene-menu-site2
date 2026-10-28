@@ -2,9 +2,7 @@
 
 import { useActionState } from "react";
 
-import QrAddressActions from "@/components/mypage/QrAddressActions";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
-import { formatKoreanDateTime } from "@/lib/korean-date-time";
 import type { MenuTableListItem } from "@/lib/menu-table-management";
 
 import { initialMenuTableActionState, type MenuTableActionState } from "./action-state";
@@ -28,14 +26,10 @@ function ActionNotice({ state }: { state: MenuTableActionState }) {
 
 export default function MenuTableManager({
   menuSiteId,
-  menuSlug,
-  publicBaseUrl,
   tables,
 }: {
   menuSiteId: string;
-  menuSlug: string;
-  publicBaseUrl: string | null;
-  tables: MenuTableListItem[];
+  tables: Pick<MenuTableListItem, "id" | "label" | "status">[];
 }) {
   const [createState, createAction, createPending] = useActionState(createMenuTableAction, initialMenuTableActionState);
   const [mutationState, mutationAction, mutationPending] = useActionState(mutateMenuTableAction, initialMenuTableActionState);
@@ -56,10 +50,10 @@ export default function MenuTableManager({
       <ActionNotice state={mutationState} />
 
       <section className="site-section p-6">
-        <p className="text-support font-medium uppercase tracking-[0.16em] text-emerald-700">테이블별 QR</p>
+        <p className="text-support font-medium uppercase tracking-[0.16em] text-emerald-700">테이블 설정</p>
         <h2 className="type-subsection-title mt-2">새 테이블 추가</h2>
         <p className="mt-2 max-w-3xl break-keep text-copy font-medium leading-relaxed text-zinc-500">
-          각 좌석에는 서로 다른 QR이 필요합니다. 테이블 이름을 바꿔도 QR은 유지되며, QR 교체를 선택한 경우에만 기존 인쇄물이 무효화됩니다.
+          테이블을 추가하고 사용 상태를 관리합니다. 테이블 이름을 바꿔도 QR은 유지됩니다. 주문과 호출은 각 관리 메뉴에서 별도로 켜고 끌 수 있습니다.
         </p>
         <form action={createAction} className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end">
           <input type="hidden" name="menuSiteId" value={menuSiteId} />
@@ -87,7 +81,7 @@ export default function MenuTableManager({
         <div>
           <h2 className="type-subsection-title">운영 테이블</h2>
           <p className="mt-2 text-copy font-medium text-zinc-500">
-            사용 중·비활성 테이블 {tables.length.toLocaleString("ko-KR")}개 · 각 QR은 언제든 다시 다운로드할 수 있습니다.
+            사용 중·비활성 테이블 {tables.length.toLocaleString("ko-KR")}개
           </p>
         </div>
 
@@ -98,25 +92,12 @@ export default function MenuTableManager({
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
               <div>
                 <h3 className="type-content-title">{table.label}</h3>
-                <p className="mt-1 text-support font-medium text-zinc-400">
-                  마지막 QR 교체 {formatKoreanDateTime(table.tokenRotatedAt)}
-                </p>
               </div>
               <Badge>
                 {table.status === "active" ? "사용 중" : "비활성"}
               </Badge>
             </div>
 
-            <QrAddressActions
-              copyKey={table.id}
-              feedbackLabel={table.label}
-              fileName={`arti-menu-${menuSlug}-${table.label.replace(/[^0-9A-Za-z가-힣_-]+/g, "-")}-qr.png`}
-              path={table.qrPath}
-              publicBaseUrl={publicBaseUrl}
-            />
-
-            <a className="site-button site-button-secondary mt-4" href={table.qrPath+"?mode=terminal"} target="_blank" rel="noopener noreferrer">매장 PC·태블릿에서 열기</a>
-            <p className="mt-2 text-copy text-zinc-500">손님용 QR은 모바일 화면으로 열리고, 이 주소는 기기 크기에 맞춰 후불 주문만 사용합니다.</p>
             <form action={mutationAction} className="mt-5 grid gap-3 border-t border-zinc-100 pt-5 sm:grid-cols-[minmax(0,1fr)_160px_auto] sm:items-end">
               <input type="hidden" name="menuSiteId" value={menuSiteId} />
               <input type="hidden" name="tableId" value={table.id} />
@@ -137,13 +118,6 @@ export default function MenuTableManager({
             </form>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              <form action={mutationAction}>
-                <input type="hidden" name="menuSiteId" value={menuSiteId} />
-                <input type="hidden" name="tableId" value={table.id} />
-                <button name="intent" value="rotate-token" disabled={mutationPending} title="기존에 인쇄한 QR과 방문 세션이 즉시 무효화됩니다." className="site-button site-button-outline">
-                  QR 교체
-                </button>
-              </form>
               <form action={mutationAction}>
                 <input type="hidden" name="menuSiteId" value={menuSiteId} />
                 <input type="hidden" name="tableId" value={table.id} />

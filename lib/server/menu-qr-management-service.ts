@@ -34,7 +34,7 @@ export async function getMenuQrManagementPageData(menuSiteId: string): Promise<M
   const accessContext = await requireMenuSitePermission(menuSiteId, "menu.read");
   const hasQrPermission = hasMenuSitePermission(accessContext, "qr.manage");
   const hasTablePermission = hasMenuSitePermission(accessContext, "table.manage");
-  if (!hasQrPermission && !hasTablePermission) {
+  if (!hasQrPermission) {
     throw new MenuSiteAccessError("MENU_SITE_PERMISSION_DENIED", "QR 관리 권한이 없습니다.", 403);
   }
 
