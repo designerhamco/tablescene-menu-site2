@@ -36,8 +36,13 @@ try {
 
     await page.goto(`${baseUrl}/design-system#shaped-tabs`, { waitUntil: "domcontentloaded" });
     await page.evaluate(() => document.fonts.ready);
-    for (const label of ["디자인 시스템 메뉴", "서비스 탐색 예시", "템플릿 라이브러리 서비스", "메뉴판 상태 예시"]) {
+    for (const label of ["디자인 시스템 메뉴", "메뉴판 상태 예시"]) {
       await assertUnderlineRail(page.getByRole("tablist", { name: label }));
+    }
+    for (const label of ["서비스 탐색 예시", "템플릿 라이브러리 서비스"]) {
+      const primaryList = page.getByRole("tablist", { name: label });
+      await expect(primaryList).toHaveAttribute("data-hierarchy", "primary");
+      await expect(primaryList).toHaveClass(/site-tabs-outline/);
     }
     const hierarchySection = page.locator("#selection-hierarchy-title").locator("xpath=../..");
     const hierarchy = page.getByRole("list", { name: "상위에서 하위로 이어지는 탭 위계" });
@@ -80,9 +85,9 @@ try {
 
     await page.goto(`${baseUrl}/templates`, { waitUntil: "networkidle" });
     const serviceTabs = page.getByRole("tablist", { name: "서비스 및 페이지 유형 선택" });
-    await expect(serviceTabs).toHaveAttribute("data-hierarchy", "secondary");
-    await expect(serviceTabs).toHaveClass(/site-topic-tabs/);
-    await assertUnderlineRail(serviceTabs, { compact: true });
+    await expect(serviceTabs).toHaveAttribute("data-hierarchy", "primary");
+    await expect(serviceTabs).toHaveClass(/site-tabs-outline/);
+    await expect(serviceTabs.getByRole("tab", { selected: true })).toHaveCSS("background-color", "rgb(255, 255, 255)");
     const catalogTabs = page.getByRole("tablist", { name: "템플릿 종류 선택" });
     await expect(catalogTabs).toHaveAttribute("data-hierarchy", "embedded");
     await expect(catalogTabs).toHaveClass(/site-area-tabs/);

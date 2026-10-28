@@ -4,7 +4,7 @@
 
 - 라이브러리의 파일형(`folder`)과 라운드 연결형(`flow`) 추가 시안은 폐기한다. 두 시안은 같은 역할에 서로 다른 윤곽을 제공해 선택 기준을 흐리고, 사선·연결선·패널 외곽이 사이트의 단순한 면 구성과 맞지 않았다.
 - 공식 영역형은 `Tabs hierarchy="embedded"` 하나다. 현재 공통 API가 이를 `area` 표현으로 연결한다. 옅은 회색 무테 영역 안에서 선택 탭만 검정 면으로 표시하고, 탭 내용도 같은 영역 안에 둔다. 회색 면에는 외곽선·구분선·그림자를 넣지 않는다.
-- area는 하나의 기능·작업·목록 영역 안에서 내용만 전환하는 4단계 embedded 표현이다. 페이지 전체 보기 전환은 primary/outline, 주요 분류는 secondary/underline, 필터·본문 이동은 site-filter/링크를 사용한다. 실제 템플릿 종류도 embedded area이며 고객센터 공지사항/FAQ는 primary다.
+- area는 하나의 기능·작업·목록 영역 안에서 내용만 전환하는 4단계 embedded 표현이다. 페이지 전체 보기 전환은 primary/outline, 주요 분류는 secondary/underline, 필터·본문 이동은 site-filter/링크를 사용한다. 실제 템플릿 페이지의 베이직/다이닝/디스플레이와 고객센터 공지사항/FAQ는 primary, 디자인/기본 템플릿은 embedded area다.
 - sm/md/lg 40/44/48px와 14/15/16px 글자, 내용 폭, disabled, 방향키/Home/End 계약을 공통으로 사용한다. 좁은 화면의 긴 목록은 영역 안에서만 가로 스크롤한다.
 
 ## 검증

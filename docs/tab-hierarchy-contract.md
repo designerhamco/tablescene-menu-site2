@@ -6,8 +6,8 @@
 
 | 위계 | 의미 | 공통 API | 기본 표현 | 대표 사용처 |
 | --- | --- | --- | --- | --- |
-| 1 · 최상위 | 페이지 전체의 주요 보기 2–3개 전환 | `Tabs hierarchy="primary"` | 밝은 outline 세그먼트 | 고객센터의 공지사항/FAQ |
-| 2 · 주요 분류 | 페이지 안의 서비스·상태·언어·가이드 묶음 | `Tabs hierarchy="secondary"`, `NavigationTabs` | 4px 밑줄 | 베이직/다이닝/디스플레이, 마이페이지, 가이드, 번역 언어 |
+| 1 · 최상위 | 페이지 전체의 주요 보기 2–3개 전환 | `Tabs hierarchy="primary"` | 밝은 outline 세그먼트 | 베이직/다이닝/디스플레이, 고객센터의 공지사항/FAQ |
+| 2 · 주요 분류 | 페이지 안의 상태·언어·가이드 묶음 | `Tabs hierarchy="secondary"`, `NavigationTabs` | 4px 밑줄 | 마이페이지, 가이드, 번역 언어, 상태 분류 |
 | 3 · 보조 분류 | 현재 목록의 조건 또는 본문 위치 이동 | `site-filter`, 본문 링크 | 작은 필터·링크 | 업종, FAQ 주제, 가이드 바로가기 |
 | 4 · 영역 내부 | 하나의 설정·도구·목록 영역 안의 상세 내용 전환 | `Tabs hierarchy="embedded"` | 무테 회색 영역형 | 템플릿 종류, 미리보기 기능/디자인, 번역 항목 |
 
@@ -34,7 +34,7 @@
 ## 현재 적용
 
 - 고객센터 공지사항/FAQ는 primary로 올렸다. 주제는 3단계 필터를 유지한다.
-- 템플릿의 베이직/다이닝/디스플레이는 secondary, 디자인/기본 템플릿은 embedded area다.
+- 템플릿의 베이직/다이닝/디스플레이는 primary, 디자인/기본 템플릿은 embedded area다.
 - 편집기 번역 언어는 secondary, 그 아래 번역 항목은 embedded area다.
 - 미리보기 기능/디자인 옵션은 embedded area다.
 - 마이페이지·운영·편집 상단 이동은 `NavigationTabs` secondary다.
