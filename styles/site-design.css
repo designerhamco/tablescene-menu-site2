@@ -557,7 +557,8 @@
 .site-announcement-copy { flex: 1; min-width: 0; }
 .site-announcement > svg { flex: none; }
 .site-notification-panel { --type-body-size: var(--type-dialog-body-size); --type-body-sm-size: var(--type-dialog-body-size); --type-caption-size: var(--type-footnote-size); min-width: 0; overflow: hidden; border-radius: var(--ui-radius-panel); background: var(--ui-surface); color: var(--ui-text); }
-.site-notification-tabs.site-tabs { width: 100%; }
+.site-notification-tabs.site-topic-tabs { width: 100%; gap: 0; padding-inline: 0; }
+.site-notification-tabs > .site-topic-tab { flex: 1; justify-content: center; }
 .site-notification-feed { padding: .5rem 0 1rem; }
 .site-notification-panel[data-compact] .site-notification-feed { min-height: 16rem; max-height: min(28rem,55dvh); overflow-y: auto; overscroll-behavior: contain; }
 .site-notification-date { padding: 1rem 1.25rem .5rem; font-size: var(--type-footnote-size); font-weight: 600; }

@@ -28,9 +28,9 @@ export default function SelectionControlExamples() {
       <div className={styles.usageTable}><table aria-label="탭 역할 적용 기준"><thead><tr><th>역할</th><th>표현</th><th>공통 구현</th><th>대표 사용처</th></tr></thead><tbody>
         <tr><td>주요 화면 전환</td><td>서로 분리된 둥근 버튼 · 검정 선택 면</td><td>Tabs purpose=&quot;page&quot; / NavigationTabs purpose=&quot;page&quot;</td><td>서비스별 목록, FAQ/공지사항, 편집 설정 화면</td></tr>
         <tr><td>독립 콘텐츠 영역 전환</td><td>흰 콘텐츠에 연결된 상단 8px 영역 탭</td><td>Tabs purpose=&quot;section&quot; / NavigationTabs purpose=&quot;section&quot;</td><td>디자인/기본 템플릿, 결제내역/AI 사용내역, 미리보기 기능/디자인</td></tr>
-        <tr><td>목록 주제 분류</td><td>밑줄형 · 별도 콘텐츠 박스 없음</td><td>CategoryFilter / Tabs purpose=&quot;category&quot;</td><td>고객센터 전체/이용 환경/메뉴판 생성·관리</td></tr>
+        <tr><td>목록 분류</td><td>밑줄형 · 별도 콘텐츠 박스 없음</td><td>CategoryFilter / Tabs purpose=&quot;category&quot;</td><td>고객센터 주제, 전체/읽지 않은 알림</td></tr>
         <tr><td>목록 조건 선택</td><td>작은 필터 버튼 · 아이콘 선택</td><td>site-filter / ChoiceTile</td><td>템플릿 업종, 화면 구성, 본문 바로가기</td></tr>
-        <tr><td>현재 화면의 상태·보기 값 변경</td><td>회색 레일 안의 둥근 세그먼트 · 흰 선택 면</td><td>Tabs purpose=&quot;state&quot; / NavigationTabs purpose=&quot;state&quot;</td><td>이용 중/보관 중/종료됨, 전체/읽지 않은 알림, 언어, 이미지/목록 보기</td></tr>
+        <tr><td>현재 화면의 상태·보기 값 변경</td><td>회색 레일 안의 둥근 세그먼트 · 흰 선택 면</td><td>Tabs purpose=&quot;state&quot; / NavigationTabs purpose=&quot;state&quot;</td><td>이용 중/보관 중/종료됨, 언어, 이미지/목록 보기</td></tr>
       </tbody></table></div>
       <div className={styles.hierarchyMap}>
         <section className={styles.hierarchyLevel} aria-label="템플릿 페이지 포함 관계 예시">
