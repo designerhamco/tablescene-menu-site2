@@ -6,7 +6,7 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "./utils";
 
 export type TabsSize = "sm" | "md" | "lg";
-export type TabsVariant = "segmented" | "outline" | "underline" | "contained" | "area";
+export type TabsVariant = "segmented" | "outline" | "underline" | "area";
 export type TabsHierarchy = "primary" | "secondary" | "embedded";
 
 const hierarchyVariant: Record<TabsHierarchy, TabsVariant> = {
@@ -31,7 +31,7 @@ function Tabs({
           data-slot="tabs"
           data-variant={appearance}
           data-hierarchy={hierarchy}
-          className={cn("flex min-w-0 max-w-full flex-col gap-2", appearance === "contained" && "site-contained-tabs-root", appearance === "area" && "site-area-tabs-root", className)}
+          className={cn("flex min-w-0 max-w-full flex-col gap-2", appearance === "area" && "site-area-tabs-root", className)}
           {...props}
         />
       </TabsAppearance.Provider>
@@ -62,9 +62,9 @@ function TabsList({
         data-hierarchy={hierarchy}
         data-size={size === "default" ? "md" : size}
         className={cn(
-          variant === "area" ? "site-area-tabs" : variant === "contained" ? "site-contained-tabs" : variant === "underline" ? "site-topic-tabs" : "site-tabs",
+          variant === "area" ? "site-area-tabs" : variant === "underline" ? "site-topic-tabs" : "site-tabs",
           variant === "outline" && "site-tabs-outline",
-          distribution === "equal" && (variant === "area" ? "site-area-tabs-even" : variant === "contained" ? "site-contained-tabs-even" : variant !== "underline" && "site-tabs-even"),
+          distribution === "equal" && (variant === "area" ? "site-area-tabs-even" : variant !== "underline" && "site-tabs-even"),
           `site-tab-size-${size === "default" ? "md" : size}`,
           className,
         )}
@@ -87,12 +87,12 @@ function TabsTrigger({
       data-slot="tabs-trigger"
       data-hierarchy={hierarchy}
       className={cn(
-        variant === "area" ? "site-area-tab" : variant === "contained" ? "site-contained-tab" : variant === "underline" ? "site-topic-tab" : "site-tab",
+        variant === "area" ? "site-area-tab" : variant === "underline" ? "site-topic-tab" : "site-tab",
         "gap-1.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
         className,
       )}
       {...props}
-    >{variant === "contained" || variant === "area" ? <span className="site-shaped-tab-label">{children}{count !== undefined ? <span className="site-tab-count">{count}<span className="sr-only">건</span></span> : null}</span> : <>{children}{count !== undefined ? <span className="site-tab-count">{count}<span className="sr-only">건</span></span> : null}</>}</TabsPrimitive.Trigger>
+    >{children}{count !== undefined ? <span className="site-tab-count">{count}<span className="sr-only">건</span></span> : null}</TabsPrimitive.Trigger>
   );
 }
 
@@ -106,7 +106,7 @@ function TabsContent({
     <TabsPrimitive.Content
       data-slot="tabs-content"
       data-hierarchy={hierarchy}
-      className={cn("flex-1 outline-none", variant === "contained" && "site-contained-panel", variant === "area" && "site-area-panel", className)}
+      className={cn("flex-1 outline-none", variant === "area" && "site-area-panel", className)}
       {...props}
     />
   );

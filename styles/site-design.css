@@ -7,7 +7,6 @@
   --site-divider: var(--ui-border);
   --site-tab-indicator-width: .25rem;
   --site-shadow-popover: 0 2px 10px rgb(75 81 91 / 10%), 0 0 2px rgb(75 81 91 / 20%);
-  --site-shadow-shaped-tab: 0 -.25rem .5rem rgb(75 81 91 / 10%);
   --space-1: .25rem;
   --space-2: .5rem;
   --space-3: .75rem;
@@ -330,6 +329,7 @@
 .site-catalog-services { justify-content: center; width: fit-content; max-width: 100%; margin-inline: auto; }
 .site-catalog-selection { margin-top: 1.5rem; }
 .site-catalog-plan { display: flex; flex-direction: column; gap: 1rem; padding-block: 1rem; border-bottom: 1px solid var(--site-divider); }
+.site-catalog-selection.site-area-tabs-root .site-catalog-plan { border-bottom: 0; }
 .site-catalog-kind-description { color: var(--site-text-secondary); }
 .site-catalog-regular-price { display: inline-block; font-size: var(--site-type-16); font-weight: 400; color: var(--site-text-secondary); }
 .site-catalog-access { display: flex; align-items: flex-start; gap: .375rem; color: var(--site-text-secondary); }
@@ -510,15 +510,8 @@
 .site-help-arrow { fill: var(--site-bubble-background); }
 
 
-/* Connected list panels retain their compact panel corners and content width. */
-.site-contained-tabs-even > .site-contained-tab { flex: 0 0 auto; min-width: max-content; }
-.site-contained-panel { min-width: 0; padding: 1.5rem; border: 1px solid var(--ui-border); border-top: 0; border-radius: 0 .75rem .75rem .75rem; background: var(--ui-surface); }
-.site-contained-panel:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -3px; }
 .site-tooltip-brand[data-slot="tooltip-content"] { max-width: min(18rem, calc(100vw - 2rem)); padding: .625rem .875rem; border-radius: .625rem; background: var(--site-accent); color: var(--ui-text); font-size: var(--type-body-sm-size); font-weight: 500; line-height: 1.5; box-shadow: var(--site-shadow-popover); }
 .site-tooltip-arrow { fill: var(--site-accent); }
-@media (max-width: 639px) {
-  .site-contained-panel { padding: 1rem; }
-}
 
 /* Explicit data and feedback patterns; shared by the gallery and live surfaces. */
 :root { --ui-radius-panel: .75rem; --ui-panel-padding: clamp(1rem, 2vw, 1.5rem); }
@@ -664,26 +657,6 @@
   .site-content-list-date { grid-column: 2; grid-row: 1; }
 }
 
-/* Connected list tabs keep their existing file silhouette on live pages. */
-.site-contained-tabs-root[data-slot="tabs"] { min-width: 0; gap: 0; }
-.site-contained-tabs { position: relative; isolation: isolate; display: flex; align-items: stretch; width: 100%; min-height: var(--site-tab-height, 3rem); max-width: 100%; overflow-x: auto; scrollbar-width: none; }
-.site-contained-tabs::-webkit-scrollbar { display: none; }
-.site-contained-tab { position: relative; z-index: 0; display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; gap: .375rem; min-width: 0; min-height: calc(var(--site-tab-height, 3rem) - .375rem); padding: .25rem calc(var(--site-tab-padding, 1rem) + .875rem); border: 0; background: transparent; color: var(--site-text-secondary); font-size: var(--site-tab-font, 1rem); font-weight: 500; letter-spacing: -.012em; line-height: 1.5; white-space: nowrap; cursor: pointer; transition: color var(--ui-transition); }
-.site-shaped-tab-label { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: .375rem; }
-.site-contained-tabs { gap: 0; padding-top: .25rem; border-bottom: 1px solid var(--ui-border-strong); background: transparent; }
-.site-contained-tab::before { position: absolute; inset: 0; content: ""; pointer-events: none; mask: url("/images/ui/tab-folder-mask.svg") center / 100% 100% no-repeat; background: var(--ui-surface-muted); transition: background-color var(--ui-transition), filter var(--ui-transition); }
-.site-contained-tab:is([data-state="active"], [aria-current="page"]) { z-index: 1; color: #fff; font-weight: 600; }
-.site-contained-tab:is([data-state="active"], [aria-current="page"])::before { background: var(--ui-text); filter: drop-shadow(var(--site-shadow-shaped-tab)); }
-.site-contained-tab:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"])::before { background: var(--ui-surface-hover); }
-.site-contained-tab:is([data-state="active"], [aria-current="page"]):is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"])::before { background: var(--ui-action-hover); }
-.site-contained-tab:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"])::before { background: var(--ui-action-soft-pressed); }
-.site-contained-tab:is([data-state="active"], [aria-current="page"]):is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"])::before { background: var(--ui-action-pressed); }
-.site-contained-tab .site-tab-count { margin-left: 0; color: inherit; }
-.site-contained-tab:is(:focus-visible, [data-ui-state="focus"]) { outline: none; }
-.site-contained-tab:is(:focus-visible, [data-ui-state="focus"]) .site-shaped-tab-label { border-radius: .25rem; outline: 2px solid var(--ui-focus); outline-offset: .25rem; }
-.site-contained-tab:is([data-state="active"], [aria-current="page"]):is(:focus-visible, [data-ui-state="focus"]) .site-shaped-tab-label { outline-color: #fff; }
-.site-contained-tab:is(:disabled, [aria-disabled="true"]) { opacity: .45; cursor: not-allowed; }
-
 /* Area tabs keep selection and content in one borderless muted surface. */
 .site-area-tabs-root[data-slot="tabs"] { min-width: 0; gap: 0; padding: .5rem; border: 0; border-radius: var(--ui-radius-panel); background: var(--ui-surface-muted); }
 .site-area-tabs { display: inline-flex; width: fit-content; max-width: 100%; min-height: var(--site-tab-height, 2.75rem); align-self: flex-start; align-items: center; gap: .25rem; overflow-x: auto; padding: 0; background: transparent; scrollbar-width: none; }
@@ -701,7 +674,7 @@
 .site-area-panel { min-width: 0; margin-top: .25rem; padding: 1.25rem 1rem 1rem; border: 0; border-radius: 0; background: transparent; }
 .site-area-panel:focus-visible { border-radius: .5rem; outline: 2px solid var(--ui-focus); outline-offset: -2px; }
 @media (max-width: 639px) { .site-area-tabs-root[data-slot="tabs"] { padding: .375rem; } .site-area-panel { padding: 1rem .75rem .75rem; } }
-@media (prefers-reduced-motion: reduce) { .site-contained-tab, .site-contained-tab::before, .site-area-tab { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .site-area-tab { transition: none; } }
 
 .site-supporting-note, .site-offer-footnote, .site-notification-limit { font-size: var(--type-footnote-size); font-weight: 400; line-height: 1.6; }
 .site-supporting-note p, .site-offer-footnote p { font-size: inherit; font-weight: inherit; }

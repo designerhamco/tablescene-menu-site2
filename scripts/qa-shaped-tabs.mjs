@@ -85,8 +85,13 @@ try {
     await assertUnderlineRail(serviceTabs, { compact: true });
     const catalogTabs = page.getByRole("tablist", { name: "템플릿 종류 선택" });
     await expect(catalogTabs).toHaveAttribute("data-hierarchy", "embedded");
-    await expect(catalogTabs).toHaveClass(/site-contained-tabs/);
+    await expect(catalogTabs).toHaveClass(/site-area-tabs/);
     await expect(catalogTabs).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    const catalogArea = catalogTabs.locator("xpath=..");
+    await expect(catalogArea).toHaveClass(/site-area-tabs-root/);
+    await expect(catalogArea).toHaveCSS("border-top-width", "0px");
+    assert.equal(await page.locator(".site-contained-tabs").count(), 0);
+    assert.equal(await catalogTabs.getByRole("tab", { selected: true }).evaluate(element => getComputedStyle(element, "::before").maskImage), "none");
     await expect(catalogTabs.getByRole("tab", { selected: true })).toHaveText("디자인 템플릿");
     const categoryButtons = page.getByRole("group", { name: "업종 선택" }).getByRole("button");
     await expect(categoryButtons.first().locator("svg")).toBeVisible();
