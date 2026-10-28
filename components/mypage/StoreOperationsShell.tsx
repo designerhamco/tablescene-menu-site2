@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { NavigationTabs } from "@/app/components/ui/navigation-tabs";
+import OperationSiteSelector from "@/components/mypage/OperationSiteSelector";
+import OperationTableSetupNotice from "@/components/mypage/OperationTableSetupNotice";
+import { isStoreOperationsTemplate } from "@/lib/operations-dashboard";
 
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
@@ -16,9 +18,9 @@ const operationNavigation: Array<{
   label: string;
   permission: MenuSitePermission;
 }> = [
+  { key: "tables", label: "테이블·QR관리", permission: "table.manage" },
   { key: "orders", label: "주문관리", permission: "order.read" },
   { key: "calls", label: "호출관리", permission: "call.manage" },
-  { key: "tables", label: "테이블·QR관리", permission: "table.manage" },
   { key: "pickup", label: "대기번호", permission: "pickup.manage" },
 ];
 
@@ -77,14 +79,11 @@ export default async function StoreOperationsShell({
             </p>
           </header>
 
-          {sites.length > 0 ? (
-            <NavigationTabs label="운영할 메뉴판 선택" purpose="state" className="mb-6" items={sites.map(site => ({
-              label: site.name || "이름 없는 메뉴판", href: getSectionHref(site, activeSection), active: site.menuSiteId === selectedSite?.menuSiteId,
-            }))} />
-          ) : null}
-
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-8">
             <aside className="min-w-0 space-y-3 lg:sticky lg:top-28">
+              {selectedSite ? <OperationSiteSelector selectedId={selectedSite.menuSiteId} items={sites.map(site => ({
+                id: site.menuSiteId, label: site.name || "이름 없는 메뉴판", href: getSectionHref(site, activeSection),
+              }))} /> : null}
               {user ? (
                 <MypageAccountCard
                   email={user.email ?? "이메일 정보 없음"}
@@ -149,7 +148,13 @@ export default async function StoreOperationsShell({
               </div>
             </aside>
 
-            <section className="min-w-0">{children}</section>
+            <section className="min-w-0">
+              {selectedSite && activeSection !== "tables" && isStoreOperationsTemplate(selectedSite.templateKey) ? (
+                <OperationTableSetupNotice menuId={selectedSite.menuSiteId} tableSetupAvailable={selectedSite.tableSetupAvailable}
+                  activeTablesReady={selectedSite.activeTablesReady} canManageTables={selectedSite.permissions.includes("table.manage")} />
+              ) : null}
+              {children}
+            </section>
           </div>
         </div>
       </main>

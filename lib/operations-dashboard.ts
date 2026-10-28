@@ -93,6 +93,16 @@ export function hasAvailableStoreOperation(access: StoreOperationAccess) {
   return Object.values(access).some(Boolean);
 }
 
+export function isCurrentStoreOperationsMenu(site: {
+  status: string;
+  lifecycleState: string | null | undefined;
+  canPreview: boolean;
+}) {
+  return (site.status === "draft" || site.status === "published")
+    && site.lifecycleState === "active"
+    && site.canPreview;
+}
+
 /** Configuration can precede publication; it never grants live operation access. */
 export function canConfigureStoreOperationsSite(site: { isOwner: boolean; templateKey: string; status: string }) {
   return site.isOwner && site.status !== "archived" && isStoreOperationsTemplate(site.templateKey);

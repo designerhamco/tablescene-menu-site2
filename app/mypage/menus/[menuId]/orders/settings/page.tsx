@@ -19,7 +19,7 @@ export default async function OrderSettingsPage({ params }: { params: Promise<{ 
     <div className="space-y-8">
       <header><p className="type-label text-zinc-500">{site.name}</p><h2 className="type-subsection-title mt-2">주문관리</h2></header>
       <OperationFeatureNavigation menuId={menuId} feature="orders" settings historyAvailable={site.operationAccess.orders} canConfigure />
-      <section className="site-section p-5 md:p-6"><OrderSettingsForm menuId={menuId} section="orders" settings={data.settings} courses={data.courses} runtime={data.runtime} /></section>
+      <section className="site-section p-5 md:p-6"><OrderSettingsForm menuId={menuId} section="orders" settings={data.settings} courses={data.courses} runtime={data.runtime} activeTablesReady={site.activeTablesReady} /></section>
       <OrderCatalogSettings menuId={menuId} items={items} />
     </div>
   </StoreOperationsShell>;

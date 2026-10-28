@@ -135,10 +135,11 @@ test("대표 QR만 허용된 메뉴판도 같은 관리 메뉴를 사용하지�
   const operations = await import("./operations-dashboard");
   const service = serverModule<typeof import("./server/store-operations-context")>("lib/server/store-operations-context.ts", {
     "server-only": {},
+    "@/lib/supabase/admin": { createAdminClient: () => { throw new Error("No table read for QR-only access"); } },
     "@/lib/operations-dashboard": operations,
     "@/lib/server/menu-site-access-service": {
       getAccessibleMenuSiteList: async () => [{ menuSiteId: menuId, templateKey: "display_menu_a", accessRole: "viewer", isOwner: false, status: "published", permissions: ["menu.read", "qr.manage"] }],
-      getMenuSiteAccessStateForMenuSite: async () => ({ canPreview: true, planType: "business_display" }),
+      getMenuSiteAccessStateForMenuSite: async () => ({ lifecycleState: "active", canPreview: true, planType: "business_display" }),
     },
     "@/lib/order-dashboard-runtime": { isOrderDashboardRuntimeEnabledForSite: () => false },
     "@/lib/call-runtime": { isCallRuntimeEnabledForSite: () => false },

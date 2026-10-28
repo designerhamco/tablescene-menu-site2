@@ -8,6 +8,7 @@ import {
   isCurrentPickupQueueOperationsSite,
   isCurrentSmartCallOperationsSite,
   isStoreOperationsTemplate,
+  isCurrentStoreOperationsMenu,
   type StoreOperationAccess,
 } from "@/lib/operations-dashboard";
 import {
@@ -15,6 +16,7 @@ import {
   getMenuSiteAccessStateForMenuSite,
   type AccessibleMenuSiteListItem,
 } from "@/lib/server/menu-site-access-service";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isTableManagementRuntimeEnabledForSite } from "@/lib/table-management-runtime";
 import { isPickupQueueRuntimeEnabledForSite, isPickupQueueTemplate } from "@/lib/pickup-queue-runtime";
 
@@ -22,6 +24,8 @@ export type StoreOperationsSite = AccessibleMenuSiteListItem & {
   operationAccess: StoreOperationAccess;
   canConfigure: boolean;
   canManageQr: boolean;
+  tableSetupAvailable: boolean;
+  activeTablesReady: boolean | null;
 };
 
 export type StoreOperationsContext = {
@@ -42,6 +46,7 @@ export async function getStoreOperationsContext(
 
   const sites = candidates.flatMap((site, index): StoreOperationsSite[] => {
     const lifecycle = lifecycleStates[index];
+    if (!lifecycle || !isCurrentStoreOperationsMenu({ status: site.status, lifecycleState: lifecycle.lifecycleState, canPreview: lifecycle.canPreview })) return [];
     const orderDashboardEnabled = isOrderDashboardRuntimeEnabledForSite(site.menuSiteId);
     const tableManagementEnabled = isTableManagementRuntimeEnabledForSite(site.menuSiteId);
     const callManagementEnabled = isCallRuntimeEnabledForSite(site.menuSiteId);
@@ -83,6 +88,10 @@ export async function getStoreOperationsContext(
       ...site,
       canConfigure,
       canManageQr,
+      tableSetupAvailable: isStoreOperationsTemplate(site.templateKey) && tableManagementEnabled
+        && lifecycle.planType === "business_basic" && lifecycle.canEdit && lifecycle.canUseWriteActions
+        && (site.isOwner || site.permissions.some(permission => ["table.manage", "order.read", "call.manage"].includes(permission))),
+      activeTablesReady: false,
       operationAccess: liveEligible ? getStoreOperationAccess({
         accessRole: site.accessRole,
         templateKey: site.templateKey,
@@ -94,6 +103,16 @@ export async function getStoreOperationsContext(
       }) : { orders: false, calls: false, tables: false, sales: false, pickup: false },
     }];
   });
+
+  // Only authenticated, currently usable sites and existing runtime targets reach this query.
+  // Return readiness only; staff without table.manage never receive table identifiers or QR paths.
+  const tableSites = sites.filter(site => site.tableSetupAvailable);
+  await Promise.all(tableSites.map(async site => {
+    const { data, error } = await createAdminClient().from("menu_tables")
+      .select("menu_site_id").eq("menu_site_id", site.menuSiteId).eq("status", "active").limit(1).maybeSingle();
+    if (error) console.warn("[store-operations] table readiness unavailable");
+    site.activeTablesReady = error ? null : Boolean(data);
+  }));
 
   return {
     sites,
