@@ -36,7 +36,7 @@ export default function SelectionControlExamples() {
           <div className="site-filter-group" role="group" aria-label="보조 필터 예시"><button type="button" className="site-filter" aria-pressed>전체</button><button type="button" className="site-filter" aria-pressed={false}>카페</button><button type="button" className="site-filter" disabled>준비 중</button></div>
         </li>
         <li className={styles.hierarchyLevel} data-level="4">
-          <div className={styles.hierarchyDescription}><span className={styles.hierarchyIndex}>4 · 영역 내부</span><h3 className="type-content-title">한 기능 영역의 상세 내용</h3><p className="type-body-sm text-zinc-600">설정·도구 안의 내용만 바꿉니다. 회색 면에서는 외곽선을 추가하지 않습니다.</p></div>
+          <div className={styles.hierarchyDescription}><span className={styles.hierarchyIndex}>4 · 영역 내부</span><h3 className="type-content-title">한 기능 영역의 상세 내용</h3><p className="type-body-sm text-zinc-600">설정·도구 안의 내용만 바꿉니다. 작은 탭을 흰 콘텐츠 면의 상단 경계에 연결합니다.</p></div>
           <Tabs hierarchy="embedded" defaultValue="first"><TabsList size="sm" aria-label="영역 내부 세부 전환 예시"><TabsTrigger value="first">첫 번째</TabsTrigger><TabsTrigger value="second">두 번째</TabsTrigger><TabsTrigger value="unavailable" disabled>준비 중</TabsTrigger></TabsList><TabsContent value="first" className="type-caption">첫 번째 세부 내용</TabsContent><TabsContent value="second" className="type-caption">두 번째 세부 내용</TabsContent></Tabs>
         </li>
       </ol>
@@ -44,7 +44,7 @@ export default function SelectionControlExamples() {
         <tr><td>1 · 최상위</td><td>primary / outline 세그먼트</td><td>베이직·다이닝·디스플레이, 고객센터 공지사항·FAQ처럼 페이지 전체 보기 전환</td><td>한 페이지에 한 번, 2–3개 항목</td></tr>
         <tr><td>2 · 주요 분류</td><td>secondary / underline</td><td>마이페이지·가이드·언어·상태 분류</td><td>상위 세그먼트보다 크게 사용하지 않음</td></tr>
         <tr><td>3 · 보조 분류</td><td>site-filter / 본문 링크</td><td>업종·주제·상태 조건·본문 바로가기</td><td>실제 패널 전환에는 사용하지 않음</td></tr>
-        <tr><td>4 · 영역 내부</td><td>embedded / area</td><td>템플릿 종류, 미리보기 옵션, 번역 항목, 설정 묶음</td><td>회색 면은 무테. 파일형·사선 윤곽을 새로 만들지 않음</td></tr>
+        <tr><td>4 · 영역 내부</td><td>embedded / area</td><td>템플릿 종류, 미리보기 옵션, 번역 항목, 설정 묶음</td><td>흰 콘텐츠 면에 연결. 파일형·사선 윤곽은 사용하지 않음</td></tr>
       </tbody></table></div>
       <div className={styles.usageTable}><table aria-label="탭 크기 기준"><thead><tr><th>밀도</th><th>높이 / 글자</th><th>적용</th></tr></thead><tbody>{sizes.map(([size, metrics, use]) => <tr key={size}><td>{size}</td><td>{metrics}</td><td>{use}</td></tr>)}</tbody></table></div>
       <p className="type-body-sm text-zinc-600">모양은 위계로 먼저 결정하고, 크기는 화면 밀도로 고릅니다. 공개 페이지는 대, 마이페이지·편집기는 중, 영역 안의 세부 전환은 소가 기본입니다. 방향키·Home·End로 이동하며 준비 중 항목은 건너뜁니다.</p>
