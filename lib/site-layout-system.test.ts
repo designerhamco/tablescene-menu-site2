@@ -66,7 +66,7 @@ test("활성 메뉴판 관리 화면은 공통 여백과 무그림자 표면을 
     "../app/mypage/menus/[menuId]/convert/page.tsx",
     "../app/mypage/menus/[menuId]/import/page.tsx",
     "../app/mypage/menus/[menuId]/preview/page.tsx",
-    "../app/mypage/menus/[menuId]/qr/page.tsx",
+    "../components/mypage/StoreOperationsShell.tsx",
   ]) {
     const source = readSource(path);
     assert.match(source, /site-card|site-page-spacing-compact/);

@@ -13,6 +13,7 @@ import MarketingConsentSettings from "@/components/mypage/MarketingConsentSettin
 import BillingHistoryPanel, { type BillingHistoryEntry } from "@/components/mypage/BillingHistoryPanel";
 import NotificationHistorySection, { type MypageNotificationEvent } from "@/components/mypage/NotificationHistorySection";
 import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
+import MenuQrDownloadModal from "@/components/mypage/MenuQrDownloadModal";
 import { MypageAccountCard, MypageNavigation, type MypageNavigationKey } from "@/components/mypage/MypageSidebar";
 import SubscriptionManagementModal from "@/components/mypage/SubscriptionManagementModal";
 import { TemplateThumbnail } from "@/components/templates/TemplateCard";
@@ -2592,12 +2593,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 disabledReason: card.actions.publicDisabledReason,
                 newWindow: true,
               })}
-              {renderActionButton({
-                label: "QR 관리",
-                href: card.siteId ? `/mypage/menus/${card.siteId}/qr` : null,
-                enabled: card.actions.canManageQr || card.actions.canManageTables,
-                disabledReason: card.actions.qrDisabledReason,
-              })}
+              <MenuQrDownloadModal
+                menuSiteId={card.siteId ?? ""}
+                menuName={card.title}
+                disabled={!card.siteId || !(card.actions.canManageQr || card.actions.canManageTables)}
+                disabledReason={card.actions.qrDisabledReason}
+              />
             </div>
           )}
         </div>
@@ -2687,11 +2688,13 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               공개 메뉴판 보기
             </button>
           )}
-          {card.canManageQr ? (
-            <Link href={`/mypage/menus/${card.siteId}/qr`} className={enabledSecondaryActionClassName}>QR 관리</Link>
-          ) : (
-            <button type="button" disabled title={card.qrDisabledReason ?? undefined} className={disabledActionClassName}>QR 관리</button>
-          )}
+          <MenuQrDownloadModal
+            menuSiteId={card.siteId}
+            menuName={card.title}
+            disabled={!(card.canManageQr || card.canManageTables)}
+            disabledReason={card.qrDisabledReason}
+            className={enabledSecondaryActionClassName}
+          />
           </div>
           {!card.canViewPublic ? (
             <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 type-footnote text-zinc-600">

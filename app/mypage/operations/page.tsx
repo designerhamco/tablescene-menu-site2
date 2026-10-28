@@ -164,8 +164,8 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
           <MetricCard icon={<LayoutGrid />} tone="green"
             label="운영 테이블"
             value={tableData ? `${activeTables.length.toLocaleString("ko-KR")}개` : access.tables ? "확인 불가" : "이용 불가"}
-            detail={tableData ? `등록 테이블 ${tableData.tables.length.toLocaleString("ko-KR")}개` : "테이블 기능 활성화 시 표시됩니다."}
-            href={access.tables ? `/mypage/menus/${selectedSite.menuSiteId}/tables` : null}
+            detail={tableData ? `등록 테이블 ${tableData.tables.length.toLocaleString("ko-KR")}개` : selectedSite.canManageQr ? "대표 QR은 테이블·QR 관리에서 확인할 수 있습니다." : "테이블 기능 활성화 시 표시됩니다."}
+            href={access.tables || selectedSite.canManageQr ? `/mypage/menus/${selectedSite.menuSiteId}/tables` : null}
           />
           <MetricCard icon={<Ticket />} tone="neutral"
             label="활성 대기번호"
