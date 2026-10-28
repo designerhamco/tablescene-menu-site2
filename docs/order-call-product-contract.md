@@ -17,7 +17,7 @@ Current scope reviewed with the approved Basic/Dining rollout; historical sectio
 - 매장 운영은 테이블 관리 → 호출 관리 → 주문 관리 → QR 관리로 나눈다. 테이블 설정과 QR 다운로드/교체는 같은 테이블 행을 공유하며 대표 QR만 별도로 관리하는 페이지는 두지 않는다.
 - 사장님의 주문 ON/OFF가 전체 판매 가능 메뉴에 적용된다. 상품별 orderable 및 코스별 orderableCourseIds는 저장된 과거 값으로 보존하지만 현재 주문 목록/접수의 자격 판정에는 사용하지 않는다. 품절·숨김·숨겨진 가격·비공개 카테고리/페이지·유효하지 않은 가격은 계속 제외한다. 유효한 코스 가격이 있는 카테고리는 코스 전체로 주문하고 구성품은 개별 주문하지 않는다.
 - 테이블 활성화와 주문/호출 사용 설정은 독립적이다. 활성 테이블을 준비해야 ON 저장이 가능하고, OFF 저장·기존 내역 조회는 유지한다. QR 화면/API는 qr.manage, 테이블 설정/QR 교체는 기존 table.manage까지 요구한다. 직원 권한은 추가하지 않는다.
-- 실제 SQL 적용과 261022test 한 곳의 운영 대상 추가는 별도 승인 대기다. 준비·검증·적용 순서는 docs/runbooks/separate-store-operations.md를 따른다. 아래 과거 상품별 opt-in 설명은 이 정책으로 대체한다.
+- 사용자의 “SQL 적용·현재 메뉴판 연결 후 배포” 승인 후 해당 SQL 한 건과 261022test 한 곳의 운영 대상 추가를 완료했다. 준비·검증·적용 순서는 docs/runbooks/separate-store-operations.md를 따른다. 아래 과거 상품별 opt-in 설명은 이 정책으로 대체한다.
 
 ## 과거 계약과 구현 기록
 

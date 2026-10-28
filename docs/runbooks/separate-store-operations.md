@@ -2,7 +2,7 @@
 
 ## 현재 상태
 
-구현·격리 검증·로컬 실계정 검수를 완료했다. **운영 SQL과 운영 허용 대상 추가는 미실행·승인 대기**다. 승인 전에는 새 코드와 DB의 주문 판정을 다르게 배포하지 않는다. 다른 알림 채팅의 #404 변경은 최신 기준으로 포함했고 해당 파일은 수정하지 않았다.
+구현·격리 검증·로컬 실계정 검수 후 사용자가 “SQL 적용·현재 메뉴판 연결 후 배포”를 승인했다. 승인 SQL 한 건과 261022test 한 곳의 운영 대상 추가를 완료했으며 코드 병합·배포 검수를 진행한다. 다른 알림 채팅의 #404 변경은 최신 기준으로 포함했고 해당 파일은 수정하지 않았다.
 
 ## 화면과 권한
 
@@ -40,3 +40,11 @@
 - 실패 시 동작을 멈추고 기존 함수 원문(`/private/tmp/separate-operations-original-function.sql`)과 이전 코드·허용 목록으로 복구한다. 고객 데이터를 삭제/되돌려 쓰지 않는다.
 
 운영 SQL 승인은 docs/project-state.md의 Production 적용 경계, 대상 추가 승인은 docs/order-call-product-contract.md의 현재 운영 경계를 따른다.
+
+## 승인 후 운영 적용 기록
+
+- 승인 문구: “SQL 적용·현재 메뉴판 연결 후 배포”. tablescene-prod에서 원문/ACL을 다시 확인한 뒤 승인 파일 한 건만 공식 CLI로 1회 적용했다. 과거 migration/db push는 실행하지 않았다.
+- 사후 함수 본문이 승인 파일과 정확히 일치한다. postgres owner·postgres/service_role 전용 execute·SECURITY INVOKER·빈 search_path 불변. 기존 9개 표 1,294행 전체 지문과 현재 메뉴판 설정이 전후 동일하다. 실제 주문·호출·테이블·결제 기록을 생성하지 않았다.
+- 261022test의 UUID만 TABLE_MANAGEMENT_ALLOWED_SITE_IDS / POSTPAY_ORDER_ALLOWED_SITE_IDS / ORDER_DASHBOARD_ALLOWED_SITE_IDS / CALL_ALLOWED_SITE_IDS에 추가하고 각 편집 저장 완료를 확인했다. 기존 값은 지우거나 재구성하지 않고 끝에 승인 UUID만 추가했다. 전역 ENABLED 값과 다른 환경·변수는 변경하지 않았다.
+- Vercel 본인 인증은 사용자가 직접 완료했다. 전체 목록을 다시 Reveal하는 사후 확인은 자동 승인 검토에서 거절되어 반복하지 않았다. 나머지 편집은 기존 전체 값을 출력하지 않고 승인 UUID만 추가·검사하는 방식으로 완료했다.
+- 비공개 증빙: `/private/tmp/separate-operations-db-before-apply.json`, `separate-operations-sql-apply.json`, `separate-operations-db-after-apply.json`, `/private/tmp/artimenu-store-operations-env-saved.png`.
