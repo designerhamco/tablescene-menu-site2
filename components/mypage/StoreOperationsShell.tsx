@@ -75,7 +75,7 @@ export default async function StoreOperationsShell({
           </header>
 
           {sites.length > 0 ? (
-            <NavigationTabs label="운영할 메뉴판 선택" className="mb-6" items={sites.map(site => ({
+            <NavigationTabs label="운영할 메뉴판 선택" purpose="state" className="mb-6" items={sites.map(site => ({
               label: site.name || "이름 없는 메뉴판", href: getSectionHref(site, activeSection), active: site.menuSiteId === selectedSite?.menuSiteId,
             }))} />
           ) : null}

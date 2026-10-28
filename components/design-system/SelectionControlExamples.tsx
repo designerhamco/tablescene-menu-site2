@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
+import { CategoryFilter } from "@/app/components/ui/category-filter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 import styles from "./SiteComponentGallery.module.css";
 
@@ -16,44 +17,50 @@ const options = [
 ] as const;
 
 export default function SelectionControlExamples() {
+  const [industry, setIndustry] = useState("all");
+  const [topic, setTopic] = useState("all");
   const [nativeValue, setNativeValue] = useState("all");
   const [customValue, setCustomValue] = useState("all");
   return <>
     <section className={styles.section} aria-labelledby="selection-hierarchy-title">
-      <div className={styles.heading}><h2 className="type-section-title" id="selection-hierarchy-title">탭 위계</h2>
-        <p className="type-body text-zinc-600">위에서 아래로 범위가 좁아집니다. 한 화면에서 같은 위계의 모양을 섞거나, 상위보다 하위 탭을 더 크게 만들지 않습니다.</p></div>
-      <ol className={styles.hierarchyMap} aria-label="상위에서 하위로 이어지는 탭 위계">
-        <li className={styles.hierarchyLevel} data-level="1">
-          <div className={styles.hierarchyDescription}><span className={styles.hierarchyIndex}>1 · 최상위</span><h3 className="type-content-title">페이지의 큰 보기 전환</h3><p className="type-body-sm text-zinc-600">페이지나 주요 화면을 바꿀 때 사각 연결형 탭을 사용합니다. 선택 면은 검정, 비선택 면은 흰색입니다.</p></div>
-          <Tabs hierarchy="primary" defaultValue="first"><TabsList size="lg" aria-label="최상위 보기 전환 예시"><TabsTrigger value="first">선택 1</TabsTrigger><TabsTrigger value="second">선택 2</TabsTrigger><TabsTrigger value="unavailable" disabled>준비 중</TabsTrigger></TabsList><TabsContent value="first" className="type-caption">첫 번째 주요 화면</TabsContent><TabsContent value="second" className="type-caption">두 번째 주요 화면</TabsContent></Tabs>
-        </li>
-        <li className={styles.hierarchyLevel} data-level="2">
-          <div className={styles.hierarchyDescription}><span className={styles.hierarchyIndex}>2 · 주요 분류</span><h3 className="type-content-title">페이지 안 콘텐츠 묶음</h3><p className="type-body-sm text-zinc-600">페이지의 주요 콘텐츠 구획을 나눕니다. 상태·보기 값은 별도의 둥근 세그먼트를 사용합니다.</p></div>
-          <Tabs hierarchy="secondary" defaultValue="first"><TabsList size="md" aria-label="주요 콘텐츠 분류 예시"><TabsTrigger value="first">첫 번째</TabsTrigger><TabsTrigger value="second">두 번째</TabsTrigger><TabsTrigger value="unavailable" disabled>준비 중</TabsTrigger></TabsList><TabsContent value="first" className="type-caption">첫 번째 콘텐츠 묶음</TabsContent><TabsContent value="second" className="type-caption">두 번째 콘텐츠 묶음</TabsContent></Tabs>
-        </li>
-        <li className={styles.hierarchyLevel} data-level="3">
-          <div className={styles.hierarchyDescription}><span className={styles.hierarchyIndex}>3 · 보조 분류</span><h3 className="type-content-title">현재 목록의 조건·본문 이동</h3><p className="type-body-sm text-zinc-600">패널을 바꾸지 않는 필터와 바로가기는 탭처럼 키우지 않습니다.</p></div>
-          <div className="site-filter-group" role="group" aria-label="보조 필터 예시"><button type="button" className="site-filter" aria-pressed>전체</button><button type="button" className="site-filter" aria-pressed={false}>카페</button><button type="button" className="site-filter" disabled>준비 중</button></div>
-        </li>
-        <li className={styles.hierarchyLevel} data-level="4">
-          <div className={styles.hierarchyDescription}><span className={styles.hierarchyIndex}>4 · 영역 내부</span><h3 className="type-content-title">한 기능 영역의 상세 내용</h3><p className="type-body-sm text-zinc-600">설정·도구 안의 내용만 바꿉니다. 작은 탭을 흰 콘텐츠 면의 상단 경계에 연결합니다.</p></div>
-          <Tabs hierarchy="embedded" defaultValue="first"><TabsList size="sm" aria-label="영역 내부 세부 전환 예시"><TabsTrigger value="first">첫 번째</TabsTrigger><TabsTrigger value="second">두 번째</TabsTrigger><TabsTrigger value="unavailable" disabled>준비 중</TabsTrigger></TabsList><TabsContent value="first" className="type-caption">첫 번째 세부 내용</TabsContent><TabsContent value="second" className="type-caption">두 번째 세부 내용</TabsContent></Tabs>
-        </li>
-      </ol>
-      <div className="min-w-0">
-        <h3 className="type-content-title mb-2">상태값 변경 · 둥근 세그먼트</h3>
-        <p className="type-body-sm mb-4 text-zinc-600">페이지를 유지하면서 이용 상태·보기 방식·선택 언어 같은 값을 바꿉니다. URL에 값이 기록되더라도 목록의 상태 조건만 바뀌면 이 형태를 사용합니다.</p>
-        <Tabs hierarchy="state" defaultValue="active"><TabsList size="md" aria-label="상태값 변경 예시"><TabsTrigger value="active">이용 중</TabsTrigger><TabsTrigger value="holding">보관 중</TabsTrigger><TabsTrigger value="ended">종료됨</TabsTrigger></TabsList><TabsContent value="active" className="type-caption">이용 중인 메뉴판</TabsContent><TabsContent value="holding" className="type-caption">보관 중인 메뉴판</TabsContent><TabsContent value="ended" className="type-caption">종료된 메뉴판</TabsContent></Tabs>
-      </div>
-      <div className={styles.usageTable}><table aria-label="탭 위계 적용 기준"><thead><tr><th>위계</th><th>공통 구현</th><th>대표 사용처</th><th>사용 제한</th></tr></thead><tbody>
-        <tr><td>1 · 최상위</td><td>primary / page 사각 연결형</td><td>베이직·다이닝·디스플레이, 편집 설정처럼 주요 화면 전환</td><td>주요 화면 이동, 현재 화면은 선택 면으로 표시</td></tr>
-        <tr><td>상태·보기 값</td><td>state / outline 둥근 세그먼트</td><td>이용 중·보관 중·종료됨, 이미지/목록 보기, 언어 값</td><td>페이지·주요 화면 이동에 사용하지 않음</td></tr>
-        <tr><td>2 · 주요 분류</td><td>secondary / underline</td><td>가이드·디자인 시스템 콘텐츠 분류</td><td>상위 세그먼트보다 크게 사용하지 않음</td></tr>
-        <tr><td>3 · 보조 분류</td><td>site-filter / 본문 링크</td><td>업종·주제·상태 조건·본문 바로가기</td><td>실제 패널 전환에는 사용하지 않음</td></tr>
-        <tr><td>4 · 영역 내부</td><td>embedded / area</td><td>템플릿 종류, 미리보기 옵션, 번역 항목, 설정 묶음</td><td>흰 콘텐츠 면에 연결. 파일형·사선 윤곽은 사용하지 않음</td></tr>
+      <div className={styles.heading}><h2 className="type-section-title" id="selection-hierarchy-title">탭 역할과 포함 관계</h2>
+        <p className="type-body text-zinc-600">먼저 무엇을 바꾸는지 판단합니다. 주요 화면, 독립 콘텐츠 영역, 목록 주제, 필터, 상태값을 구분하고 실제로 포함된 내용에 따라 위계를 구성합니다. 영역형을 특정 단계에 고정하지 않습니다.</p></div>
+      <div className={styles.usageTable}><table aria-label="탭 역할 적용 기준"><thead><tr><th>역할</th><th>표현</th><th>공통 구현</th><th>대표 사용처</th></tr></thead><tbody>
+        <tr><td>주요 화면 전환</td><td>서로 분리된 둥근 버튼 · 검정 선택 면</td><td>Tabs purpose=&quot;page&quot; / NavigationTabs purpose=&quot;page&quot;</td><td>서비스별 목록, FAQ/공지사항, 편집 설정 화면</td></tr>
+        <tr><td>독립 콘텐츠 영역 전환</td><td>흰 콘텐츠에 연결된 상단 8px 영역 탭</td><td>Tabs purpose=&quot;section&quot; / NavigationTabs purpose=&quot;section&quot;</td><td>디자인/기본 템플릿, 결제내역/AI 사용내역, 미리보기 기능/디자인</td></tr>
+        <tr><td>목록 주제 분류</td><td>밑줄형 · 별도 콘텐츠 박스 없음</td><td>CategoryFilter / Tabs purpose=&quot;category&quot;</td><td>고객센터 전체/이용 환경/메뉴판 생성·관리</td></tr>
+        <tr><td>목록 조건 선택</td><td>작은 필터 버튼 · 아이콘 선택</td><td>site-filter / ChoiceTile</td><td>템플릿 업종, 화면 구성, 본문 바로가기</td></tr>
+        <tr><td>현재 화면의 상태·보기 값 변경</td><td>회색 레일 안의 둥근 세그먼트 · 흰 선택 면</td><td>Tabs purpose=&quot;state&quot; / NavigationTabs purpose=&quot;state&quot;</td><td>이용 중/보관 중/종료됨, 전체/읽지 않은 알림, 언어, 이미지/목록 보기</td></tr>
       </tbody></table></div>
+      <div className={styles.hierarchyMap}>
+        <section className={styles.hierarchyLevel} aria-label="템플릿 페이지 포함 관계 예시">
+          <div className={styles.heading}><h3 className="type-content-title">디자인 템플릿 구조</h3><p className="type-body-sm text-zinc-600">주요 화면 전환 → 독립 콘텐츠 영역 전환 → 영역 안의 업종 필터 → 결과</p></div>
+          <Tabs purpose="page" defaultValue="basic"><TabsList size="lg" aria-label="템플릿 구조 주요 화면"><TabsTrigger value="basic">베이직</TabsTrigger><TabsTrigger value="dining">다이닝</TabsTrigger><TabsTrigger value="display" disabled>준비 중</TabsTrigger></TabsList>
+            {["basic", "dining"].map(service => <TabsContent key={service} value={service} className="pt-4">
+              <Tabs purpose="section" defaultValue="designer"><TabsList size="sm" aria-label="템플릿 구조 영역 선택"><TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger></TabsList>
+                {["designer", "standard"].map(kind => <TabsContent key={kind} value={kind}>
+                  <div className="site-filter-group" role="group" aria-label="템플릿 구조 업종 필터">{[["all", "전체"], ["cafe", "카페"], ["dining", "레스토랑"]].map(([value, label]) => <button key={value} type="button" className="site-filter" aria-pressed={industry === value} onClick={() => setIndustry(value)}>{label}</button>)}</div>
+                  <p className="type-body-sm mt-5" role="status">{service === "basic" ? "베이직" : "다이닝"} · {kind === "designer" ? "디자인 템플릿" : "기본 템플릿"} · {industry === "all" ? "전체 업종" : industry === "cafe" ? "카페" : "레스토랑"} 결과</p>
+                </TabsContent>)}
+              </Tabs>
+            </TabsContent>)}
+          </Tabs>
+        </section>
+        <section className={styles.hierarchyLevel} aria-label="고객센터 페이지 포함 관계 예시">
+          <div className={styles.heading}><h3 className="type-content-title">고객센터 구조</h3><p className="type-body-sm text-zinc-600">주요 화면 전환 → 밑줄 주제 분류 → 결과. 주제 분류만 필요하므로 영역형 탭을 추가하지 않습니다.</p></div>
+          <Tabs purpose="page" defaultValue="faq"><TabsList size="lg" aria-label="고객센터 구조 주요 화면"><TabsTrigger value="faq">FAQ</TabsTrigger><TabsTrigger value="notices">공지사항</TabsTrigger></TabsList>
+            {["faq", "notices"].map(view => <TabsContent key={view} value={view} className="pt-4">
+              <CategoryFilter label="고객센터 구조 주제 분류" value={topic} onValueChange={setTopic} options={[{value:"all",label:"전체"},{value:"usage",label:"이용 환경"},{value:"menu",label:"메뉴판 생성·관리"}]} />
+              <p className="type-body-sm mt-5" role="status">{view === "faq" ? "FAQ" : "공지사항"} · {topic === "all" ? "전체" : topic === "usage" ? "이용 환경" : "메뉴판 생성·관리"} 목록</p>
+            </TabsContent>)}
+          </Tabs>
+        </section>
+      </div>
+      <div className="min-w-0"><h3 className="type-content-title mb-2">상태값 변경</h3><p className="type-body-sm mb-4 text-zinc-600">최상위 버튼은 각각 떨어져 있고 검정 선택 면을 사용합니다. 상태 세그먼트는 회색 레일 안에 묶이고 흰 선택 면을 사용해 역할을 구별합니다. URL에 상태가 기록되더라도 현재 화면의 값만 바뀌면 상태 전환입니다.</p>
+        <Tabs purpose="state" defaultValue="active"><TabsList size="md" aria-label="상태값 변경 예시"><TabsTrigger value="active">이용 중</TabsTrigger><TabsTrigger value="holding">보관 중</TabsTrigger><TabsTrigger value="ended">종료됨</TabsTrigger></TabsList><TabsContent value="active" className="type-caption">이용 중인 메뉴판</TabsContent><TabsContent value="holding" className="type-caption">보관 중인 메뉴판</TabsContent><TabsContent value="ended" className="type-caption">종료된 메뉴판</TabsContent></Tabs>
+      </div>
       <div className={styles.usageTable}><table aria-label="탭 크기 기준"><thead><tr><th>밀도</th><th>높이 / 글자</th><th>적용</th></tr></thead><tbody>{sizes.map(([size, metrics, use]) => <tr key={size}><td>{size}</td><td>{metrics}</td><td>{use}</td></tr>)}</tbody></table></div>
-      <p className="type-body-sm text-zinc-600">모양은 위계로 먼저 결정하고, 크기는 화면 밀도로 고릅니다. 공개 페이지는 대, 마이페이지·편집기는 중, 영역 안의 세부 전환은 소가 기본입니다. 방향키·Home·End로 이동하며 준비 중 항목은 건너뜁니다.</p>
+      <p className="type-body-sm text-zinc-600">모양은 역할, 크기는 화면 밀도로 고릅니다. 영역 콘텐츠는 화이트 배경이며 둘레 테두리를 두지 않습니다. 실제 탭 패널은 방향키·Home·End로 이동하고, 주제 필터·링크는 본래 버튼·링크 키보드 동작을 유지합니다.</p>
     </section>
     <section className={styles.section} aria-labelledby="select-contract-title">
       <div className={styles.heading}><h2 className="type-section-title" id="select-contract-title">셀렉트박스</h2><p className="type-body text-zinc-600">화살표는 20px·선 굵기 2.25, 오른쪽 여백은 16px입니다. 문구가 화살표에 겹치지 않도록 48px 공간을 확보합니다.</p></div>

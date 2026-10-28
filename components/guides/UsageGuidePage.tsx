@@ -324,7 +324,7 @@ export default function UsageGuidePage({
           </aside>
         </header>
         <Tabs
-          hierarchy="secondary"
+          purpose="page"
           value={plan}
           onValueChange={(value) => setPlan(normalizeGuidePlan(value))}
           className={styles.tabs}

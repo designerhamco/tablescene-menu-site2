@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import type { TabsSize } from "./tabs";
+import type { TabsPurpose, TabsSize } from "./tabs";
 import { cn } from "./utils";
 
 type NavigationTab = {
@@ -17,7 +17,7 @@ type NavigationTab = {
 
 /** URL navigation stays links; selection tabs retain their separate Radix contract. */
 export function NavigationTabs({ label, items, className, size = "md", purpose = "page" }: {
-  label: string; items: NavigationTab[]; className?: string; size?: TabsSize; purpose?: "page" | "state";
+  label: string; items: NavigationTab[]; className?: string; size?: TabsSize; purpose?: TabsPurpose;
 }) {
   const navRef = useRef<HTMLElement>(null);
   const activeHref = items.find(item => item.active && !item.disabledReason)?.href;
@@ -47,12 +47,13 @@ export function NavigationTabs({ label, items, className, size = "md", purpose =
     return () => { cancelled = true; observer.disconnect(); };
   }, [activeHref]);
 
-  return <nav ref={navRef} aria-label={label} data-hierarchy={purpose === "state" ? "state" : "primary"} data-size={size} className={cn("site-tabs", purpose === "state" ? "site-tabs-outline" : "site-page-tabs", `site-tab-size-${size}`, className)}>
+  const itemClass = purpose === "section" ? "site-area-tab" : purpose === "category" ? "site-topic-tab" : "site-tab";
+  return <nav ref={navRef} aria-label={label} data-purpose={purpose} data-size={size} className={cn(purpose === "section" ? "site-area-tabs" : purpose === "category" ? "site-topic-tabs" : "site-tabs", purpose === "state" && "site-tabs-outline", purpose === "page" && "site-page-tabs", `site-tab-size-${size}`, className)}>
     {items.map(item => {
       const content = <>{item.label}{item.count !== undefined && !item.disabledReason ? <span className="site-tab-count">{item.count.toLocaleString("ko-KR")}<span className="sr-only">개</span></span> : null}{item.statusLabel && !item.disabledReason ? <span className="type-caption ml-1">{item.statusLabel}</span> : null}</>;
-      return item.disabledReason ? <span key={item.href} className="site-tab" aria-disabled="true" title={item.disabledReason} aria-label={`${item.label} ${item.disabledLabel ?? "권한 없음"}: ${item.disabledReason}`}>
+      return item.disabledReason ? <span key={item.href} className={itemClass} aria-disabled="true" title={item.disabledReason} aria-label={`${item.label} ${item.disabledLabel ?? "권한 없음"}: ${item.disabledReason}`}>
         {content}<span className="type-caption ml-2">{item.disabledLabel ?? "권한 없음"}</span>
-      </span> : <Link key={item.href} href={item.href} aria-current={item.active ? "page" : undefined} className="site-tab">{content}</Link>;
+      </span> : <Link key={item.href} href={item.href} aria-current={item.active ? "page" : undefined} className={itemClass}>{content}</Link>;
     })}
   </nav>;
 }

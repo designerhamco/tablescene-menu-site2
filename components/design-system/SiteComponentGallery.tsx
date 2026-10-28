@@ -43,7 +43,7 @@ export default function SiteComponentGallery() {
       <p className="type-page-description">디자인 기준과 실제 사이트에 사용하는 공통 컴포넌트를 한곳에서 확인합니다.</p>
       <p className="type-body-sm text-zinc-600">스타일 확인용 예시입니다. 선택과 좋아요는 이 화면에서만 유지됩니다.</p>
     </header>
-    <Tabs hierarchy="secondary" defaultValue="components" className="mt-6 gap-0"><TabsList size="lg" aria-label="디자인 시스템 메뉴"><TabsTrigger value="foundations">기준·토큰</TabsTrigger><TabsTrigger value="components">컴포넌트 라이브러리</TabsTrigger></TabsList><TabsContent value="foundations"><DesignFoundations /></TabsContent><TabsContent value="components"><nav className="site-filter-group mt-6" aria-label="주요 컴포넌트 바로가기"><a href="#selection-hierarchy-title" className="site-filter">탭 위계</a><a href="#shaped-tabs" className="site-filter">영역형 탭</a><a href="#form-controls" className="site-filter">입력 요소</a><a href="#card-patterns" className="site-filter">카드</a><a href="#list-patterns" className="site-filter">게시글 목록</a><a href="#small-copy" className="site-filter">작은 안내·팝업</a><a href="#site-footer" className="site-filter">공통 푸터</a></nav><SelectionControlExamples /><FormAndCardExamples /><ListExamples /><ShapedTabExamples /><ControlStateExamples /><ReferenceComponentExamples />
+    <Tabs purpose="page" defaultValue="components" className="mt-6 gap-0"><TabsList size="lg" aria-label="디자인 시스템 메뉴"><TabsTrigger value="foundations">기준·토큰</TabsTrigger><TabsTrigger value="components">컴포넌트 라이브러리</TabsTrigger></TabsList><TabsContent value="foundations"><DesignFoundations /></TabsContent><TabsContent value="components"><nav className="site-filter-group mt-6" aria-label="주요 컴포넌트 바로가기"><a href="#selection-hierarchy-title" className="site-filter">탭 위계</a><a href="#shaped-tabs" className="site-filter">영역형 탭</a><a href="#form-controls" className="site-filter">입력 요소</a><a href="#card-patterns" className="site-filter">카드</a><a href="#list-patterns" className="site-filter">게시글 목록</a><a href="#small-copy" className="site-filter">작은 안내·팝업</a><a href="#site-footer" className="site-filter">공통 푸터</a></nav><SelectionControlExamples /><FormAndCardExamples /><ListExamples /><ShapedTabExamples /><ControlStateExamples /><ReferenceComponentExamples />
     <Examples title="역할로 구분하는 버튼" description="본문 실행은 40px·모서리 8px, 로그인·결제 같은 주요 완료 행동은 48px입니다. 헤더와 떠 있는 진입점만 pill을 사용합니다.">
       <div className={styles.buttonRow}>
         <Button asChild><Link href="/apply">시작하기</Link></Button>
@@ -58,8 +58,8 @@ export default function SiteComponentGallery() {
       </div>
       <Button variant="outline" size="lg" asChild><Link href="/templates">전체 디자인 보기 <ArrowRight /></Link></Button>
     </Examples>
-    <Examples title="페이지의 큰 보기 전환" description="베이직·다이닝·디스플레이처럼 페이지 전체 목록을 바꾸는 선택은 사각 연결형 페이지 탭을 사용합니다.">
-      <Tabs hierarchy="primary" defaultValue="basic"><TabsList size="lg" aria-label="서비스 탐색 예시">
+    <Examples title="주요 화면 전환" description="베이직·다이닝·디스플레이처럼 페이지 전체 목록을 바꾸는 선택은 분리된 둥근 주요 화면 탭을 사용합니다.">
+      <Tabs purpose="page" defaultValue="basic"><TabsList size="lg" aria-label="서비스 탐색 예시">
         {choices.map(({key,label}) => <TabsTrigger key={key} value={key}>{label}</TabsTrigger>)}
       </TabsList>{choices.map(({key,description}) => <TabsContent key={key} value={key} className="type-body text-zinc-600">{description}</TabsContent>)}</Tabs>
     </Examples>
@@ -67,25 +67,25 @@ export default function SiteComponentGallery() {
       <ChoiceGroup><ChoiceTile size="compact" icon={<CatalogIndustryIcon industry="cafe_bakery" />} label="카페·베이커리" selected={industry} onClick={()=>setIndustry(current=>!current)} /><ChoiceTile size="compact" icon={<CatalogIndustryIcon industry="restaurant_dining" />} label="준비 중인 업종" disabled /></ChoiceGroup>
     </Examples>
     <Examples title="영역 안의 목록 전환" description="디자인·기본 템플릿처럼 하나의 목록 영역 안에서 하위 종류를 바꿉니다. 작은 탭을 흰 콘텐츠 면의 상단 경계에 연결합니다.">
-      <Tabs hierarchy="embedded" defaultValue="designer"><TabsList size="sm" aria-label="영역 내부 템플릿 탭 예시">
+      <Tabs purpose="section" defaultValue="designer"><TabsList size="sm" aria-label="영역 내부 템플릿 탭 예시">
         <TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger>
       </TabsList><TabsContent value="designer"><p className="type-item-title">완성된 디자인으로 시작</p><p className="type-body-sm mt-2 text-zinc-600">매장에 어울리는 스타일을 고르고 메뉴를 넣어 보세요.</p></TabsContent>
       <TabsContent value="standard"><p className="type-item-title">직접 꾸미는 기본 레이아웃</p><p className="type-body-sm mt-2 text-zinc-600">색상과 서체를 매장에 맞게 직접 설정해 보세요.</p></TabsContent></Tabs>
     </Examples>
     <Examples title="보기 방식 세그먼트" description="서로 대비되는 두 가지 보기 방식에는 밝은 바탕과 또렷한 선택 테두리를 사용합니다.">
-      <Tabs hierarchy="state" defaultValue="designer" className={styles.segmentExample}><TabsList size="md" distribution="equal" aria-label="콘텐츠 보기 방식 예시">
+      <Tabs purpose="state" defaultValue="designer" className={styles.segmentExample}><TabsList size="md" distribution="equal" aria-label="콘텐츠 보기 방식 예시">
         <TabsTrigger value="designer">이미지로 보기</TabsTrigger><TabsTrigger value="standard">목록으로 보기</TabsTrigger>
       </TabsList><TabsContent value="designer" className="type-body text-zinc-600">썸네일을 중심으로 디자인을 살펴봅니다.</TabsContent><TabsContent value="standard" className="type-body text-zinc-600">이름과 설명을 중심으로 디자인을 살펴봅니다.</TabsContent></Tabs>
     </Examples>
-    <Examples title="최상위 보기와 이미지 카드" description="서비스 단위로 전체 목록이 바뀌면 사각 연결형 페이지 탭을 사용하고, 썸네일과 제목·설명·이동 액션의 크기를 구분합니다.">
-      <div className="site-collection"><Tabs hierarchy="primary" defaultValue="all"><TabsList size="md" aria-label="템플릿 라이브러리 서비스">
+    <Examples title="최상위 보기와 이미지 카드" description="서비스 단위로 전체 목록이 바뀌면 분리된 둥근 주요 화면 탭을 사용하고, 썸네일과 제목·설명·이동 액션의 크기를 구분합니다.">
+      <div className="site-collection"><Tabs purpose="page" defaultValue="all"><TabsList size="md" aria-label="템플릿 라이브러리 서비스">
         <TabsTrigger value="all">전체 디자인</TabsTrigger><TabsTrigger value="basic">베이직</TabsTrigger><TabsTrigger value="dining">다이닝</TabsTrigger>
       </TabsList>{["all","basic","dining"].map(key=><TabsContent key={key} value={key} className={styles.galleryPanel}>
         <div className={styles.mediaGrid}>{catalogDesigns.filter(d=>d.kind==="designer"&&(key==="all"||d.service===key)).slice(0,3).map(design=><CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={false} onToggle={id=>setFavorites(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id])} />)}</div>
       </TabsContent>)}</Tabs></div>
     </Examples>
-    <Examples title="상태별 건수와 빈 목록" description="상태는 둥근 outline 세그먼트와 건수로 구분하고, 빈 목록에서는 다음 행동을 안내합니다.">
-      <Tabs hierarchy="state" defaultValue="전체"><TabsList size="md" aria-label="메뉴판 상태 예시">
+    <Examples title="상태별 건수와 빈 목록" description="상태는 회색 레일 안의 둥근 세그먼트와 건수로 구분하고, 빈 목록에서는 다음 행동을 안내합니다.">
+      <Tabs purpose="state" defaultValue="전체"><TabsList size="md" aria-label="메뉴판 상태 예시">
         {["전체","작성중","공개중","비공개"].map(label=><TabsTrigger key={label} value={label} count={0}>{label}</TabsTrigger>)}
       </TabsList>{["전체","작성중","공개중","비공개"].map(label=><TabsContent key={label} value={label}>
         <EmptyState icon={<PanelsTopLeft />} title={label === "전체" ? "등록된 메뉴판이 없습니다" : `${label} 메뉴판이 없습니다`} description="매장에 어울리는 디자인을 선택하고 첫 메뉴판을 만들어 보세요."

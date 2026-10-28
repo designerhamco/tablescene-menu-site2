@@ -41,7 +41,7 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
       <p className={styles.experienceNote} data-preview-experience-note>
         보기·디자인 옵션을 바꿔 템플릿을 체험해 보세요.<br />변경 내용은 미리보기에만 적용되며 저장되지 않습니다.
       </p>
-      <Tabs hierarchy="embedded" value={tab} onValueChange={onTabChange}>
+      <Tabs purpose="section" value={tab} onValueChange={onTabChange}>
         <TabsList size="sm" distribution="equal" aria-label="미리보기 옵션 종류" className="w-full">
           <TabsTrigger value="features" id="preview-features-tab" aria-controls="preview-features-panel">기능 옵션</TabsTrigger>
           <TabsTrigger value="design" id="preview-design-tab" aria-controls="preview-design-panel">디자인 옵션</TabsTrigger>

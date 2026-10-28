@@ -22,9 +22,6 @@
 .usageTable th { font-weight:600; background:var(--ui-surface-muted); }
 .hierarchyMap { display:grid; gap:1rem; margin:0; padding:1.25rem; list-style:none; border:0; border-radius:var(--ui-radius-panel); background:var(--ui-surface-soft); }
 .hierarchyLevel { display:grid; min-width:0; gap:1rem; padding:1.25rem; border:0; border-radius:var(--ui-radius-panel); background:var(--ui-surface); }
-.hierarchyLevel[data-level="2"] { margin-inline-start:2rem; }
-.hierarchyLevel[data-level="3"] { margin-inline-start:4rem; }
-.hierarchyLevel[data-level="4"] { margin-inline-start:6rem; }
 .hierarchyDescription { display:grid; gap:.375rem; }
 .hierarchyIndex { color:var(--ui-text-muted); font-size:var(--type-caption-size); font-weight:600; }
 .notificationExample { width:min(100%,25rem); border:1px solid var(--ui-border); border-radius:var(--ui-radius-panel); overflow:hidden; }
