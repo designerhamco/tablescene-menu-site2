@@ -75,6 +75,10 @@ try {
     await expect(areaActive).toHaveCSS("font-weight", "600");
     await expect(areaActive).toHaveCSS("background-color", "rgb(255, 255, 255)");
     await expect(areaActive).toHaveCSS("border-top-width", "1px");
+    await expect(areaActive).toHaveCSS("border-top-left-radius", "8px");
+    await expect(areaActive).toHaveCSS("border-top-right-radius", "8px");
+    await expect(areaActive).toHaveCSS("border-bottom-left-radius", "0px");
+    await expect(areaList).toHaveCSS("column-gap", "0px");
     await expect(areaRoot.locator(".site-area-panel").first()).toHaveCSS("background-color", "rgb(255, 255, 255)");
     assert.equal(await areaActive.evaluate(element => getComputedStyle(element, "::before").maskImage), "none");
 
