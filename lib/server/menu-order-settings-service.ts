@@ -83,6 +83,15 @@ export async function saveMenuOrderSettings(
     throw new Error(
       "현재는 후불 주문을 사용해야 합니다. 선결제는 준비 중입니다.",
     );
+  const enabled = section === "orders" ? next.orderEnabled : next.callEnabled;
+  if (enabled) {
+    if (!isTableManagementRuntimeEnabledForSite(menuId))
+      throw new Error("테이블 기능 연결 후 테이블을 등록·활성화해 주세요.");
+    const { data: table, error: tableError } = await createAdminClient().from("menu_tables")
+      .select("id").eq("menu_site_id", menuId).eq("status", "active").limit(1).maybeSingle();
+    if (tableError) throw new Error("테이블 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    if (!table) throw new Error("활성 테이블을 먼저 준비해 주세요. 테이블·QR 관리에서 등록·활성화할 수 있습니다.");
+  }
   const root =
     site.settings &&
     typeof site.settings === "object" &&

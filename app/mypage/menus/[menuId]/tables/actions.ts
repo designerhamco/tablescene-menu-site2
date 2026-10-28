@@ -12,6 +12,13 @@ import {
 } from "@/lib/server/menu-table-management-service";
 import { initialMenuTableActionState, type MenuTableActionState } from "./action-state";
 
+function revalidateTableOperations(menuSiteId: string) {
+  for (const section of ["tables", "orders", "calls", "orders/settings", "calls/settings"]) {
+    revalidatePath(`/mypage/menus/${menuSiteId}/${section}`);
+  }
+  revalidatePath("/mypage/operations");
+}
+
 function getFormString(formData: FormData, key: string) {
   const value = formData.get(key);
   return typeof value === "string" ? value : "";
@@ -38,7 +45,7 @@ export async function createMenuTableAction(
       menuSiteId,
       label: getFormString(formData, "label"),
     });
-    revalidatePath(`/mypage/menus/${menuSiteId}/tables`);
+    revalidateTableOperations(menuSiteId);
     return {
       status: "success",
       message: `${result.table.label} 테이블을 만들었습니다. QR은 아래 목록에서 언제든 다시 받을 수 있습니다.`,
@@ -61,7 +68,7 @@ export async function mutateMenuTableAction(
   try {
     if (intent === "rotate-token") {
       const result = await rotateMenuTableToken({ menuSiteId, tableId });
-      revalidatePath(`/mypage/menus/${menuSiteId}/tables`);
+      revalidateTableOperations(menuSiteId);
       return {
         status: "success",
         message: `${result.table.label}의 QR을 교체했습니다. 이전 QR과 방문 세션은 더 이상 유효하지 않습니다.`,
@@ -72,7 +79,7 @@ export async function mutateMenuTableAction(
 
     if (intent === "archive") {
       await archiveMenuTable({ menuSiteId, tableId });
-      revalidatePath(`/mypage/menus/${menuSiteId}/tables`);
+      revalidateTableOperations(menuSiteId);
       return {
         ...initialMenuTableActionState,
         status: "success",
@@ -87,7 +94,7 @@ export async function mutateMenuTableAction(
         label: getFormString(formData, "label"),
         status: getFormString(formData, "status"),
       });
-      revalidatePath(`/mypage/menus/${menuSiteId}/tables`);
+      revalidateTableOperations(menuSiteId);
       return {
         ...initialMenuTableActionState,
         status: "success",

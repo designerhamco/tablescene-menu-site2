@@ -1,5 +1,5 @@
 "use client";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import type { MenuOrderSettings, MenuOrderSettingsSection } from "@/lib/menu-order-settings";
 import { updateOrderSettings, type OrderSettingsState } from "./actions";
 export default function OrderSettingsForm({
@@ -8,13 +8,17 @@ export default function OrderSettingsForm({
   courses,
   runtime,
   section,
+  activeTablesReady,
 }: {
   menuId: string;
   settings: MenuOrderSettings;
   section: MenuOrderSettingsSection;
+  activeTablesReady: boolean | null;
   runtime: {calls:boolean;orders:boolean};
   courses: { id: string; name: string; course_price: number | null }[];
 }) {
+  const featureKey = section === "orders" ? "orderEnabled" : "callEnabled";
+  const [featureEnabled, setFeatureEnabled] = useState(settings[featureKey]);
   const [state, action, pending] = useActionState(updateOrderSettings, {
     status: "idle",
     message: "",
@@ -26,9 +30,12 @@ export default function OrderSettingsForm({
       <h3 className="type-content-title">{section === "orders" ? "주문 사용 설정" : "호출 사용 설정"}</h3>
       <p className="site-notice mb-4" role="status">
         {section === "calls"
-          ? runtime.calls ? "직원 호출이 연결되어 있습니다. 테이블별 QR로 접속한 손님이 사용할 수 있습니다." : "호출 항목과 사용 여부를 미리 저장할 수 있습니다. 실제 호출은 운영 연결 후 테이블별 QR에서 사용할 수 있습니다."
-          : runtime.orders ? "후불 주문이 연결되어 있습니다." : "후불 주문 설정은 미리 저장할 수 있습니다. 실제 주문은 운영 연결 후 사용할 수 있습니다."}
+          ? runtime.calls ? "직원 호출이 연결되어 있습니다. 테이블별 QR로 접속한 손님이 사용할 수 있습니다." : "호출 항목은 미리 준비할 수 있습니다. 사용 ON은 활성 테이블이 있을 때 설정하며 실제 호출은 운영 연결 후 사용할 수 있습니다."
+          : runtime.orders ? "후불 주문이 연결되어 있습니다." : "주문 옵션은 미리 준비할 수 있습니다. 사용 ON은 활성 테이블이 있을 때 설정하며 실제 주문은 운영 연결 후 사용할 수 있습니다."}
       </p>
+      {!activeTablesReady ? <p id="table-setup-required" className="type-body-sm text-zinc-600">
+        {activeTablesReady === null ? "테이블 상태를 확인한 뒤 기능을 켤 수 있습니다." : "활성 테이블을 준비한 뒤 기능을 켤 수 있습니다."} 이미 켜진 기능을 OFF로 바꾸는 것은 가능합니다.
+      </p> : null}
       {(section === "calls" ? [
         ["callEnabled", "직원 호출 사용", "테이블에서 직원을 호출합니다."],
       ] : [
@@ -51,7 +58,12 @@ export default function OrderSettingsForm({
             className="mt-1 h-5 w-5 accent-black"
             type="checkbox"
             name={key}
-            defaultChecked={Boolean(settings[key as keyof MenuOrderSettings])}
+            {...(key === featureKey ? {
+              checked: featureEnabled,
+              onChange: (event: React.ChangeEvent<HTMLInputElement>) => setFeatureEnabled(event.target.checked),
+              disabled: !activeTablesReady && !featureEnabled,
+              "aria-describedby": !activeTablesReady ? "table-setup-required" : undefined,
+            } : { defaultChecked: Boolean(settings[key as keyof MenuOrderSettings]) })}
           />
           <span>
             <span className="block font-semibold">{label}</span>

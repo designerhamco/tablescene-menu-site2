@@ -54,7 +54,7 @@ test("매장 운영 화면은 공통 여백·카드·피드백 시스템을 사�
   const dashboardSource = readSource("app/mypage/operations/page.tsx");
 
   assert.match(shellSource, /site-gutter site-page-spacing-compact/);
-  assert.match(shellSource, /<NavigationTabs label="운영할 메뉴판 선택"/);
+  assert.match(shellSource, /<OperationSiteSelector/);
   assert.match(shellSource, /getNavigationClassName\(activeSection === "dashboard"\)/);
   assert.doesNotMatch(shellSource, /shadow-sm/);
 
