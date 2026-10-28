@@ -93,7 +93,7 @@ test("tab hierarchy maps page, section, filter and embedded scopes to distinct s
   assert.match(tabCss, /\.site-area-tabs-root\[data-slot="tabs"\] \{[^}]*border: 0;[^}]*background: transparent/);
   assert.match(tabCss, /\.site-area-tabs::after \{[^}]*height: 1px;[^}]*background: var\(--ui-text\)/);
   assert.match(tabCss, /\.site-area-tab:is\(\[data-state="active"\],[^}]*border-color: var\(--ui-text\);[^}]*background: var\(--ui-surface\)/);
-  assert.match(tabCss, /\.site-area-panel \{[^}]*border: 1px solid var\(--ui-border\);[^}]*border-top: 0;[^}]*background: var\(--ui-surface\)/);
+  assert.match(tabCss, /\.site-area-panel \{[^}]*border: 0;[^}]*background: var\(--ui-surface\)/);
   assert.doesNotMatch(tabCss, /site-(?:folder|flow|contained)-(?:tabs|tab|panel)|site-shaped-tab-label|site-shadow-shaped-tab|tab-folder-mask/);
   const tabsSource = read("app/components/ui/tabs.tsx");
   assert.match(tabsSource, /TabsVariant = "segmented" \| "outline" \| "underline" \| "area" \| "page"/);
