@@ -1,5 +1,7 @@
 # 연결형 탭·말풍선·이모지 검수 — 2026-10-25
 
+> 역사 기록: 이 문서의 `contained` 파일형 탭은 2026-10-28 폐기했다. 현재 탭 위계와 구현 기준은 `docs/tab-hierarchy-contract.md`를 따른다.
+
 ## 범위
 
 사이트 공통 Tabs의 contained 변형을 추가하고 `/apply` 디자인/기본 목록에 연결했다. HelpTooltip/Tooltip에는 노란 brand 변형, ChoiceTile에는 시스템 이모지 옵션을 추가했다. `/design-system`은 실제 동작하는 예시를 제공한다. 실제 고객 메뉴 렌더러와 저장 데이터·결제·권한 동작은 변경하지 않는다.

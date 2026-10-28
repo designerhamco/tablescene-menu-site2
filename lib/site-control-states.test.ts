@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
 
@@ -87,31 +87,26 @@ test("tab hierarchy maps page, section, filter and embedded scopes to distinct s
   }
   assert.match(read("components/guides/UsageGuidePage.tsx"), /hierarchy="secondary"/);
   assert.match(tabCss, /--site-tab-indicator-width: \.25rem/);
-  assert.match(tabCss, /\.site-contained-panel \{[^}]*border-radius: 0 \.75rem \.75rem \.75rem/);
-  for (const cls of ["site-tab", "site-topic-tab", "site-contained-tab", "site-area-tab"]) {
+  for (const cls of ["site-tab", "site-topic-tab", "site-area-tab"]) {
     assert.match(tabCss, new RegExp(`\\.${cls}:is\\(:focus-visible, \\[data-ui-state="focus"\\]\\)`));
   }
-  assert.match(tabCss, /\.site-contained-tab:is\(:focus-visible, \[data-ui-state="focus"\]\) \.site-shaped-tab-label/);
-  assert.match(tabCss, /--site-shadow-shaped-tab: 0 -\.25rem \.5rem rgb\(75 81 91 \/ 10%\)/);
-  assert.match(tabCss, /filter: drop-shadow\(var\(--site-shadow-shaped-tab\)\)/);
-  assert.match(tabCss, /\.site-contained-tabs \{[^}]*background: transparent/);
   assert.match(tabCss, /\.site-area-tabs-root\[data-slot="tabs"\] \{[^}]*border: 0;[^}]*background: var\(--ui-surface-muted\)/);
   assert.match(tabCss, /\.site-area-panel \{[^}]*border: 0;[^}]*background: transparent/);
-  assert.doesNotMatch(tabCss, /site-(?:folder|flow)-(?:tabs|tab|panel)/);
+  assert.doesNotMatch(tabCss, /site-(?:folder|flow|contained)-(?:tabs|tab|panel)|site-shaped-tab-label|site-shadow-shaped-tab|tab-folder-mask/);
   const tabsSource = read("app/components/ui/tabs.tsx");
-  assert.match(tabsSource, /TabsVariant = "segmented" \| "outline" \| "underline" \| "contained" \| "area"/);
+  assert.match(tabsSource, /TabsVariant = "segmented" \| "outline" \| "underline" \| "area"/);
   assert.match(tabsSource, /TabsHierarchy = "primary" \| "secondary" \| "embedded"/);
   assert.match(tabsSource, /primary: "outline"/);
   assert.match(tabsSource, /secondary: "underline"/);
   assert.match(tabsSource, /embedded: "area"/);
-  assert.doesNotMatch(tabsSource, /"folder"|"flow"/);
+  assert.doesNotMatch(tabsSource, /"folder"|"flow"|"contained"|site-shaped-tab-label/);
   assert.match(read("components/design-system/ShapedTabExamples.tsx"), /<Tabs hierarchy="embedded"/);
   const hierarchyExample = read("components/design-system/SelectionControlExamples.tsx");
   const primary = hierarchyExample.indexOf('hierarchy="primary"');
   const secondary = hierarchyExample.indexOf('hierarchy="secondary"');
   const embedded = hierarchyExample.indexOf('hierarchy="embedded"');
   assert.ok(primary >= 0 && primary < secondary && secondary < embedded);
-  assert.match(read("public/images/ui/tab-folder-mask.svg"), /M0 56 14 24C18 14 21 8 27 4/);
+  assert.equal(existsSync(path.join(process.cwd(), "public/images/ui/tab-folder-mask.svg")), false);
 });
 
 test("industry filters use shared monochrome category icons instead of platform emoji", () => {
@@ -174,11 +169,12 @@ test("native and custom selects reserve a common chevron gutter without affectin
 });
 
 
-test("tab hierarchy keeps service navigation, connected catalog lists and notification tabs in their scopes", () => {
+test("tab hierarchy keeps service navigation, embedded catalog lists and notification tabs in their scopes", () => {
   const catalog = read("components/apply/TemplateGallery.tsx");
   assert.match(catalog, /<Tabs hierarchy="secondary"[^>]*value=\{product\}/);
   assert.match(catalog, /hierarchy=\{product === "display" \? undefined : "embedded"\}/);
-  assert.match(catalog, /variant=\{product === "display" \? undefined : "contained"\}/);
+  assert.doesNotMatch(catalog, /variant=\{product === "display" \? undefined : "contained"\}/);
+  assert.match(catalog, /className=\{product !== "display" \? "site-area-panel" : undefined\}/);
   assert.doesNotMatch(catalog, /distribution="equal"/);
   const notification = read("app/components/ui/notification-panel.tsx");
   assert.match(notification, /<Tabs hierarchy="secondary"/);
