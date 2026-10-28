@@ -82,7 +82,6 @@
   .drawer { width: 100%; box-shadow: none; }
 }
 @media (min-width: 1280px) {
-  .notificationGroup { display: flex; }
   .actions > :global(.site-button) { display: inline-flex; }
   .accountLink { display: inline-flex; align-items: center; min-height: 2.75rem; white-space: nowrap; }
   .accountDivider { display: block; width: 1px; height: 1.25rem; background: #d1d5db; }
@@ -99,6 +98,7 @@
 }
 /* Phones retain the plain, attached header at every scroll position. */
 @media (min-width: 768px) {
+  .notificationGroup { display: flex; }
   .shell[data-floating="true"] {
     top: .75rem;
     height: 3.5rem;

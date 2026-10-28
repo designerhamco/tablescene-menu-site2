@@ -10,7 +10,7 @@
 | /guides | 서비스별 전체 문서는 page. 해당 문서 목차는 작은 링크. 본문 앵커 유지 |
 | /mypage?tab=menus | 이용 중/보관 중/종료됨은 state. 메뉴 카드 편집·미리보기는 실행/이동 버튼이며 탭 아님 |
 | /mypage?tab=payments | 결제내역/AI 충전·사용내역은 section. 상태·날짜는 조회 폼. 금전 동작 변경 없음 |
-| 마이페이지·헤더 알림 | 전체/읽지 않음은 category 밑줄형 목록 분류. 사용자 최종 요청에 따라 기존 스타일 복원. 공통 NotificationPanel의 피드·날짜·읽지 않은 표시·활성화 동작 유지 |
+| 마이페이지·헤더 알림, /notifications | 전체/읽지 않음은 category 밑줄형 목록 분류. 모바일 벨은 마이페이지 셸 없는 /notifications로 이동, 768px 이상은 알림 레이어. 공통 NotificationPanel의 피드·날짜·읽지 않은 표시·활성화 동작 유지 |
 | 마이페이지 문의, /mypage/inquiries | 검색·문의 상태는 조회 폼/Select. 문의 작성·페이지네이션은 각 기능 유지 |
 | 마이페이지 좋아요·계정, /mypage/staff | 기존 목록·폼·사이트 내비게이션. 탭 없는 곳에 새 탭 추가하지 않음 |
 | /mypage/menus/[id]/edit 전체 설정 | 기본 정보/커버/메뉴판/디자인/광고/다국어/공개 설정은 page 링크. 언어는 state, 그 안 번역 대상은 section |
