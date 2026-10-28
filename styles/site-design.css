@@ -273,7 +273,7 @@
 }
 .site-tab:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { background: var(--ui-surface-hover); color: var(--ui-text); }
 .site-tab:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { background: var(--ui-action-soft-pressed); }
-.site-tab:is([aria-selected="true"], [aria-pressed="true"], [data-state="active"]) { background: var(--ui-text); color: #fff; font-weight: 600; }
+.site-tab:is([aria-selected="true"], [aria-pressed="true"], [data-state="active"], [aria-current="page"]) { background: var(--ui-text); color: #fff; font-weight: 600; }
 .site-tab:is(:disabled, [aria-disabled="true"]) { cursor: not-allowed; opacity: .45; }
 .site-tab:is(:focus-visible, [data-ui-state="focus"]) { outline: 2px solid var(--ui-focus); outline-offset: -3px; }
 .site-topic-tabs {
