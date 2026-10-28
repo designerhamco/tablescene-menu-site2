@@ -1,4 +1,4 @@
-import { chromium } from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 import axe from "axe-core";
 
 const baseUrl = process.env.AUTHENTICATED_SURFACE_QA_BASE_URL || "http://127.0.0.1:3000";
@@ -18,10 +18,12 @@ if (!email || !password) {
 
 const viewports = [
   { key: "desktop", width: 1440, height: 900 },
+  { key: "tablet", width: 820, height: 1180 },
   { key: "mobile", width: 390, height: 844 },
 ];
 
 const baseRoutes = [
+  "/notifications",
   "/mypage?tab=menus&menuTab=active",
   "/mypage?tab=menus&menuTab=holding",
   "/mypage?tab=menus&menuTab=deleted",
@@ -93,6 +95,37 @@ async function waitForSettledPage(page) {
     })
     .catch(() => null);
   await page.waitForTimeout(500);
+}
+
+async function verifyNotificationEntry(page, viewport) {
+  const inbox = page.locator('[data-notification-inbox]');
+  await expect(inbox.getByRole('heading', { name: '알림', exact: true })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: '마이페이지 메뉴' })).toHaveCount(0);
+  await expect(inbox.getByRole('tablist', { name: '알림 분류' })).toHaveClass(/site-topic-tabs/);
+  await inbox.getByRole('tab', { name: /읽지 않음/ }).click();
+  await expect(inbox.getByRole('tab', { selected: true })).toContainText('읽지 않음');
+
+  if (viewport.width < 768) {
+    await page.goto(new URL('/mypage?tab=menus', baseUrl).toString());
+    const bell = page.locator('[data-site-notification-link]');
+    await expect(bell).toBeVisible();
+    await expect(bell).toHaveAttribute('href', '/notifications');
+    await bell.click();
+    await expect(page).toHaveURL(new URL('/notifications', baseUrl).toString());
+    await expect(inbox.getByRole('heading', { name: '알림', exact: true })).toBeVisible();
+    await inbox.getByRole('button', { name: '이전 화면으로 돌아가기' }).click();
+    await expect(page).toHaveURL(new URL('/mypage?tab=menus', baseUrl).toString());
+    await page.goto(new URL('/notifications', baseUrl).toString());
+    await expect(inbox).toBeVisible();
+  } else {
+    await expect(page.locator('[data-site-notification-link]')).toBeHidden();
+    await page.locator('[data-site-notification-trigger]').click();
+    const layer = page.locator('[data-site-notification-popover]');
+    await expect(layer).toBeVisible();
+    await expect(layer.getByRole('tablist', { name: '알림 분류' })).toHaveClass(/site-topic-tabs/);
+    await page.keyboard.press('Escape');
+    await expect(layer).toBeHidden();
+  }
 }
 
 async function signIn(page) {
@@ -242,6 +275,7 @@ try {
         const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: navigationTimeout });
         responseStatus = response?.status() ?? null;
         await waitForSettledPage(page);
+        if (route === '/notifications') await verifyNotificationEntry(page, viewport);
       } catch (error) {
         navigationError = error instanceof Error ? error.message : String(error);
       }

@@ -17,6 +17,7 @@ test("authenticated surface QA requires ignored credentials and never uses a ser
 
 test("authenticated surface QA covers every mypage group, discovered editor tabs and responsive failure modes", () => {
   for (const route of [
+    "/notifications",
     "/mypage?tab=menus&menuTab=active",
     "/mypage?tab=menus&menuTab=holding",
     "/mypage?tab=menus&menuTab=deleted",

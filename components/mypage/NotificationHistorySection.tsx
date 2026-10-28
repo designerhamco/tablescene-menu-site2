@@ -22,24 +22,26 @@ export type MypageNotificationEvent = {
 
 type NotificationHistorySectionProps = {
   events: MypageNotificationEvent[];
+  showIntro?: boolean;
+  fallbackHref?: string;
 };
 
-function getNotificationHref(metadata: Json | null) {
+function getNotificationHref(metadata: Json | null, fallbackHref: string) {
   if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) {
-    return NOTIFICATION_FALLBACK_HREF;
+    return fallbackHref;
   }
 
   const record = metadata as Record<string, Json | undefined>;
   const value = record.href ?? record.action_url;
 
   if (typeof value !== "string") {
-    return NOTIFICATION_FALLBACK_HREF;
+    return fallbackHref;
   }
 
   const trimmed = value.trim();
 
   if (!trimmed || !trimmed.startsWith("/") || trimmed.startsWith("//")) {
-    return NOTIFICATION_FALLBACK_HREF;
+    return fallbackHref;
   }
 
   return trimmed;
@@ -56,7 +58,7 @@ function getDeliveryLabel(event: MypageNotificationEvent) {
   return "인앱 알림";
 }
 
-export default function NotificationHistorySection({ events }: NotificationHistorySectionProps) {
+export default function NotificationHistorySection({ events, showIntro = true, fallbackHref = NOTIFICATION_FALLBACK_HREF }: NotificationHistorySectionProps) {
   const [items, setItems] = useState(events);
   const router = useRouter();
 
@@ -89,23 +91,23 @@ export default function NotificationHistorySection({ events }: NotificationHisto
 
   return (
     <section id="notification-history" className="scroll-mt-28">
-      <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+      {showIntro ? <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
           <h2 className="type-section-title">알림 내역</h2>
           <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-600">
             아티메뉴 이용 중 발생한 알림과 중요한 안내를 확인할 수 있습니다.
           </p>
         </div>
-      </div>
+      </div> : null}
 
       <NotificationPanel items={items.map((event,index)=>({
         id:event.id ?? `${event.title}-${event.created_at}-${index}`, title:event.title ?? "알림",
         message:event.message ?? "알림 내용을 확인할 수 없습니다.",createdAt:event.created_at,unread:!event.read_at,
-        href:getNotificationHref(event.metadata),detail:getDeliveryLabel(event),
+        href:getNotificationHref(event.metadata, fallbackHref),detail:getDeliveryLabel(event),
       }))} onActivate={item=>{
         const event=items.find((event,index)=>(event.id ?? `${event.title}-${event.created_at}-${index}`)===item.id);
-        const navigate=()=>{if(item.href!==NOTIFICATION_FALLBACK_HREF) window.location.assign(item.href);else router.refresh();};
-        if(event?.id) void markAsRead(event.id).finally(navigate); else if(item.href!==NOTIFICATION_FALLBACK_HREF) window.location.assign(item.href);
+        const navigate=()=>{if(item.href!==fallbackHref) window.location.assign(item.href);else router.refresh();};
+        if(event?.id) void markAsRead(event.id).finally(navigate); else if(item.href!==fallbackHref) window.location.assign(item.href);
       }} />
     </section>
   );

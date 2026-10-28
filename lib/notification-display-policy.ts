@@ -1,5 +1,6 @@
 export const NOTIFICATION_VISIBLE_CHANNELS = ["in_app", "email"] as const;
 export const NOTIFICATION_FALLBACK_HREF = "/mypage?tab=notifications";
+export const NOTIFICATION_INBOX_HREF = "/notifications";
 const NOTIFICATION_TIME_ZONE = "Asia/Seoul";
 
 export function formatNotificationBadgeCount(count: number) {
