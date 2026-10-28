@@ -39,7 +39,6 @@ export default function MenuTableManager({
 }) {
   const [createState, createAction, createPending] = useActionState(createMenuTableAction, initialMenuTableActionState);
   const [mutationState, mutationAction, mutationPending] = useActionState(mutateMenuTableAction, initialMenuTableActionState);
-  const representativePath = `/menu/${encodeURIComponent(menuSlug)}?mode=customer`;
 
   return (
     <div className="space-y-6">
@@ -55,21 +54,6 @@ export default function MenuTableManager({
       />
       <ActionNotice state={createState} />
       <ActionNotice state={mutationState} />
-
-      <section className="site-section p-6">
-        <p className="text-support font-medium uppercase tracking-[0.16em] text-emerald-700">대표 메뉴 QR</p>
-        <h2 className="type-subsection-title mt-2">테이블 정보 없이 메뉴판 공유</h2>
-        <p className="mt-2 max-w-3xl break-keep text-copy font-medium leading-relaxed text-zinc-500">
-          매장 입구·포스터·SNS에 사용하는 대표 QR입니다. 메뉴는 볼 수 있지만 테이블 번호가 없어 스마트호출은 사용할 수 없습니다.
-        </p>
-        <QrAddressActions
-          copyKey="representative"
-          feedbackLabel="대표 메뉴"
-          fileName={`arti-menu-${menuSlug}-qr.png`}
-          path={representativePath}
-          publicBaseUrl={publicBaseUrl}
-        />
-      </section>
 
       <section className="site-section p-6">
         <p className="text-support font-medium uppercase tracking-[0.16em] text-emerald-700">테이블별 QR</p>

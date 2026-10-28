@@ -33,6 +33,9 @@ function getSectionHref(site: StoreOperationsSite, section: StoreOperationsSecti
   if ((section === "orders" || section === "calls") && !site.operationAccess[section] && site.canConfigure) {
     return `/mypage/menus/${site.menuSiteId}/${section}/settings`;
   }
+  if (section === "tables" && site.canManageQr) {
+    return `/mypage/menus/${site.menuSiteId}/tables`;
+  }
   if (section === "dashboard" || !site.operationAccess[section]) {
     return `/mypage/operations?site=${encodeURIComponent(site.menuSiteId)}`;
   }
@@ -105,7 +108,7 @@ export default async function StoreOperationsShell({
 
                 <nav className="space-y-1 border-t border-zinc-100 pt-2" aria-label="매장 운영 메뉴">
                   {operationNavigation.map((item) => {
-                    const enabled = Boolean(selectedSite?.operationAccess[item.key]);
+                    const enabled = Boolean(selectedSite?.operationAccess[item.key] || (item.key === "tables" && selectedSite?.canManageQr));
                     const configurationAvailable = Boolean(selectedSite?.canConfigure && (item.key === "orders" || item.key === "calls"));
                     const active = activeSection === item.key || (item.key === "orders" && activeSection === "order-settings") || (item.key === "calls" && activeSection === "call-settings");
                     if (!selectedSite || (!enabled && !configurationAvailable)) {

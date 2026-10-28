@@ -21,6 +21,7 @@ import { isPickupQueueRuntimeEnabledForSite, isPickupQueueTemplate } from "@/lib
 export type StoreOperationsSite = AccessibleMenuSiteListItem & {
   operationAccess: StoreOperationAccess;
   canConfigure: boolean;
+  canManageQr: boolean;
 };
 
 export type StoreOperationsContext = {
@@ -33,7 +34,7 @@ export async function getStoreOperationsContext(
 ): Promise<StoreOperationsContext> {
   const accessibleMenuSites = await getAccessibleMenuSiteList();
   const candidates = accessibleMenuSites.filter(
-    (site) => isStoreOperationsTemplate(site.templateKey) || isPickupQueueTemplate(site.templateKey),
+    (site) => isStoreOperationsTemplate(site.templateKey) || isPickupQueueTemplate(site.templateKey) || site.permissions.includes("qr.manage"),
   );
   const lifecycleStates = await Promise.all(
     candidates.map((site) => getMenuSiteAccessStateForMenuSite({ menuSiteId: site.menuSiteId })),
@@ -47,6 +48,7 @@ export async function getStoreOperationsContext(
     const pickupQueueEnabled = isPickupQueueRuntimeEnabledForSite(site.menuSiteId);
 
     const canConfigure = canConfigureStoreOperationsSite(site);
+    const canManageQr = Boolean(lifecycle?.canPreview && site.permissions.includes("qr.manage"));
     const liveEligible = Boolean(lifecycle && lifecycle.planType === "business_basic"
       && (isCurrentSmartCallOperationsSite({
         accessRole: site.accessRole,
@@ -73,13 +75,14 @@ export async function getStoreOperationsContext(
         pickupQueueEnabled,
         permissions: site.permissions,
       })));
-    if (!liveEligible && !canConfigure) {
+    if (!liveEligible && !canConfigure && !canManageQr) {
       return [];
     }
 
     return [{
       ...site,
       canConfigure,
+      canManageQr,
       operationAccess: liveEligible ? getStoreOperationAccess({
         accessRole: site.accessRole,
         templateKey: site.templateKey,

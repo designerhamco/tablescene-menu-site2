@@ -28,7 +28,6 @@ const mypageInquirySource = readSource("../app/mypage/inquiries/page.tsx");
 const mypageStaffSource = readSource("../app/mypage/staff/page.tsx");
 const mypageNewMenuSource = readSource("../app/mypage/menus/new/page.tsx");
 const mypageEditSource = readSource("../app/mypage/menus/[menuId]/edit/page.tsx");
-const mypageQrSource = readSource("../app/mypage/menus/[menuId]/qr/page.tsx");
 const mypageImportSource = readSource("../app/mypage/menus/[menuId]/import/page.tsx");
 const mypageConvertSource = readSource("../app/mypage/menus/[menuId]/convert/page.tsx");
 const mypagePreviewSource = readSource("../app/mypage/menus/[menuId]/preview/page.tsx");
@@ -85,7 +84,6 @@ test("마이페이지와 주요 서브페이지는 같은 사이트 여백 계�
     mypageStaffSource,
     mypageNewMenuSource,
     mypageEditSource,
-    mypageQrSource,
     mypageImportSource,
     mypageConvertSource,
     mypagePreviewSource,
