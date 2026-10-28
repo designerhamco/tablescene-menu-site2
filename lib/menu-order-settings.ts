@@ -23,7 +23,7 @@ export function mergeMenuOrderSettingsSection(
   return section === "calls"
     ? { ...current, callEnabled: next.callEnabled }
     : { ...current, orderEnabled: next.orderEnabled, postpayEnabled: true,
-        mobilePrepayVisible: next.mobilePrepayVisible, orderableCourseIds: next.orderableCourseIds };
+        mobilePrepayVisible: next.mobilePrepayVisible };
 }
 export function readMenuOrderSettings(settings: unknown): MenuOrderSettings {
   const root =

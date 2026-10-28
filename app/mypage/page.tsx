@@ -2596,7 +2596,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               <MenuQrDownloadModal
                 menuSiteId={card.siteId ?? ""}
                 menuName={card.title}
-                disabled={!card.siteId || !(card.actions.canManageQr || card.actions.canManageTables)}
+                disabled={!card.siteId || !card.actions.canManageQr}
                 disabledReason={card.actions.qrDisabledReason}
               />
             </div>
@@ -2691,7 +2691,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           <MenuQrDownloadModal
             menuSiteId={card.siteId}
             menuName={card.title}
-            disabled={!(card.canManageQr || card.canManageTables)}
+            disabled={!card.canManageQr}
             disabledReason={card.qrDisabledReason}
             className={enabledSecondaryActionClassName}
           />

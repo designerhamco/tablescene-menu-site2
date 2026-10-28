@@ -21,6 +21,7 @@ try {
  for(const name of ['20260806105623_add_table_qr_session_foundation.sql','20260901072048_add_persistent_table_qr_public_id.sql','20260806124512_add_postpay_order_foundation.sql','20261018085245_add_menu_order_configuration.sql'])await db.exec(await migration(name));
  const daily=await migration('20260713130607_add_time_sale_daily_windows.sql');const active=daily.slice(daily.indexOf('create or replace function public.is_menu_promotion_active_now'));await db.exec(active.slice(0,active.indexOf('$;')+3));
  await db.exec(await migration('20261018090357_add_course_postpay_orders.sql'));
+ await db.exec(await migration('20261028141514_simplify_menu_item_orderability.sql'));
  const owner=crypto.randomUUID(), basic=crypto.randomUUID(), dining=crypto.randomUUID(),other=crypto.randomUUID(),table=crypto.randomUUID(),otherTable=crypto.randomUUID(),item=crypto.randomUUID(),group=crypto.randomUUID(),option=crypto.randomUUID(),course=crypto.randomUUID();
  const settings={table_order:{orderEnabled:true,postpayEnabled:true,orderableCourseIds:[course]}};
  await q('insert into auth.users values($1)',[owner]);

@@ -71,12 +71,10 @@ test("QR 권한만으로 테이블 목록을 조회하거나 runtime을 확대�
   }
 });
 
-test("테이블 전용 직원의 기존 관리는 유지하되 대표 QR 권한은 부여하지 않는다", async () => {
+test("테이블 전용 직원은 테이블 관리만 사용하며 QR API는 별도 권한을 요구한다", async () => {
   const f = fixture({ qr: false });
-  const data = await f.service.getMenuQrManagementPageData(menuId);
-  assert.equal(data.canManageTables, true);
-  assert.equal(data.canDownloadRepresentativeQr, false);
-  assert.match(data.representativeQrDisabledReason!, /권한/);
+  await assert.rejects(f.service.getMenuQrManagementPageData(menuId), (error: unknown) => error instanceof MenuSiteAccessError && error.status === 403);
+  assert.deepEqual(f.tableReads, []);
 });
 
 test("미로그인·관리 권한 없음·잘못된 ID는 조회 전에 거부한다", async () => {
@@ -122,13 +120,16 @@ test("내 메뉴판은 다운로드 전용 Dialog를 열고 기존 QR URL은 통
   assert.match(modal, /<DialogContent/);
   assert.match(modal, /등록된 테이블이 없습니다/);
   assert.match(modal, /다시 시도/);
-  assert.match(modal, /테이블\/QR 관리로 이동/);
+  assert.match(modal, /QR 관리로 이동/);
+  assert.match(modal, /테이블 등록·관리로 이동/);
   assert.doesNotMatch(modal, /createMenuTable|mutateMenuTable/);
-  assert.match(legacy, /redirect\(`\/mypage\/menus\/\$\{encodeURIComponent\(menuId\)\}\/tables`\)/);
-  assert.doesNotMatch(legacy, /return \(/);
-  const canonical = readSource("app/mypage/menus/[menuId]/tables/page.tsx");
-  assert.match(canonical, /<RepresentativeQrCard/);
-  assert.match(canonical, /data.canManageTables \? \(/);
+  assert.match(legacy, /<RepresentativeQrCard/);
+  assert.match(legacy, /<MenuTableQrManager/);
+  assert.match(legacy, /activeSection="qr"/);
+  const tables = readSource("app/mypage/menus/[menuId]/tables/page.tsx");
+  assert.match(tables, /<MenuTableManager/);
+  assert.doesNotMatch(tables, /<RepresentativeQrCard|<MenuTableQrManager/);
+
 });
 
 test("대표 QR만 허용된 메뉴판도 같은 관리 메뉴를 사용하지만 주문·호출·테이블 운영 권한은 확대하지 않는다", async () => {

@@ -1,0 +1,61 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+const {PGlite}=await import(process.env.PGLITE_TEST_MODULE||'/private/tmp/artimenu-order-db-test/node_modules/@electric-sql/pglite/dist/index.js');
+const db=new PGlite(), q=async(sql,args=[])=>(await db.query(sql,args)).rows;
+let checks=0;const check=(a,b)=>{assert.deepEqual(a,b);checks++;}, reject=async(fn,pattern)=>{await assert.rejects(fn,pattern);checks++;};
+const migration=name=>fs.readFile(new URL('../supabase/migrations/'+name,import.meta.url),'utf8');
+try {
+ await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create table auth.users(id uuid primary key);
+ create table menu_sites(id uuid primary key,user_id uuid,template_key text,status text default 'published',settings jsonb default '{}');
+ create table menu_pages(id uuid primary key,menu_site_id uuid,visible boolean default true);
+ create table menu_categories(id uuid primary key,menu_site_id uuid,menu_page_id uuid,name text,course_price integer,course_price_visible boolean default true,visible boolean default true);
+ create table menu_items(id uuid primary key,menu_site_id uuid references menu_sites(id),name text,price integer,price_label text,visible boolean default true,price_visible boolean default true,is_sold_out boolean default false,category_id uuid,menu_page_id uuid,sort_order integer default 0,updated_at timestamptz default now());
+ create function public.set_updated_at() returns trigger language plpgsql as $$begin new.updated_at=clock_timestamp();return new;end$$;
+ create table menu_promotions(id uuid primary key,menu_site_id uuid,type text,active boolean,starts_at timestamptz,ends_at timestamptz,schedule_type text,daily_start_time time,daily_end_time time,timezone text);
+ create table menu_promotion_items(id uuid primary key,promotion_id uuid,menu_item_id uuid,price_column_id uuid,visible boolean,sale_price integer);`);
+ for(const name of ['20260806105623_add_table_qr_session_foundation.sql','20260901072048_add_persistent_table_qr_public_id.sql','20260806124512_add_postpay_order_foundation.sql','20261018085245_add_menu_order_configuration.sql'])await db.exec(await migration(name));
+ const daily=await migration('20260713130607_add_time_sale_daily_windows.sql');const active=daily.slice(daily.indexOf('create or replace function public.is_menu_promotion_active_now'));await db.exec(active.slice(0,active.indexOf('$;')+3));
+ await db.exec(await migration('20261018090357_add_course_postpay_orders.sql'));
+
+ const site=crypto.randomUUID(),other=crypto.randomUUID(),owner=crypto.randomUUID(),table=crypto.randomUUID(),session=crypto.randomUUID(),item=crypto.randomUUID(),category=crypto.randomUUID(),page=crypto.randomUUID(),course=crypto.randomUUID(),component=crypto.randomUUID();
+ await q('insert into auth.users values($1)',[owner]);
+ await q("insert into menu_sites(id,user_id,template_key,settings) values($1,$2,'cafe_design_a',$3),($4,$2,'cafe_design_a',$3)",[site,owner,{table_order:{orderEnabled:true,postpayEnabled:true}},other]);
+ await q("insert into menu_pages values($1,$2,true)",[page,site]);
+ await q("insert into menu_categories(id,menu_site_id,menu_page_id,name,course_price) values($1,$2,$3,'일반',null),($4,$2,$3,'시그니처',185000)",[category,site,page,course]);
+ await q("insert into menu_items(id,menu_site_id,name,price,category_id,menu_page_id) values($1,$2,'라떼',5000,$3,$4),($5,$2,'코스 구성품',1000,$6,$4)",[item,site,category,page,component,course]);
+ await q("insert into menu_tables(id,menu_site_id,label,token_hash) values($1,$2,'1번 테이블',$3)",[table,site,'a'.repeat(64)]);
+ await q("insert into table_visit_sessions(id,menu_site_id,menu_table_id,token_hash,user_agent_hash,expires_at) values($1,$2,$3,$4,$5,now()+interval '1 hour')",[session,site,table,'b'.repeat(64),'c'.repeat(64)]);
+ const line=(id=item)=>({menuItemId:id,quantity:1,optionValueIds:[]});
+ const submit=async(lines=[line()],key=crypto.randomUUID(),siteId=site)=>(await q('select * from submit_postpay_order_v2($1,$2,$3,null,$4::jsonb)',[siteId,session,key,JSON.stringify(lines)]))[0];
+ await reject(()=>submit(),/not orderable/);
+ const before=await q('select * from menu_items order by id');
+ const securityBefore=await q("select proowner,proacl,prosecdef,proconfig from pg_proc where oid='public.submit_postpay_order_v2(uuid,uuid,uuid,text,jsonb)'::regprocedure");
+ await db.exec(await migration('20261028141514_simplify_menu_item_orderability.sql'));
+ check(await q('select * from menu_items order by id'),before);
+ check(await q("select proowner,proacl,prosecdef,proconfig from pg_proc where oid='public.submit_postpay_order_v2(uuid,uuid,uuid,text,jsonb)'::regprocedure"),securityBefore);
+ for(const role of ['anon','authenticated'])check((await q("select has_function_privilege($1,'public.submit_postpay_order_v2(uuid,uuid,uuid,text,jsonb)','EXECUTE') allowed",[role]))[0].allowed,false);
+ check((await q("select has_function_privilege('service_role','public.submit_postpay_order_v2(uuid,uuid,uuid,text,jsonb)','EXECUTE') allowed"))[0].allowed,true);
+ const key=crypto.randomUUID(),original=await submit([{...line(),price:1}],key);
+ check(original.total_amount,5000);check(original.is_duplicate,false);check((await submit([line()],key)).is_duplicate,true);
+ const courseOrder=await submit([{menuCategoryId:course,quantity:2,optionValueIds:[]}]);check(courseOrder.total_amount,370000);
+ await reject(()=>submit([line(component)]),/not orderable/);
+ for(const [name,value,reset]of [['is_sold_out',true,false],['visible',false,true],['price_visible',false,true],['price',null,5000],['price',-1,5000]]){
+   await q(`update menu_items set ${name}=$1 where id=$2`,[value,item]);await reject(()=>submit(),/not orderable/);await q(`update menu_items set ${name}=$1 where id=$2`,[reset,item]);
+ }
+ await q('update menu_categories set visible=false where id=$1',[category]);await reject(()=>submit(),/not orderable/);await q('update menu_categories set visible=true where id=$1',[category]);
+ await q('update menu_pages set visible=false where id=$1',[page]);await reject(()=>submit(),/not orderable/);await reject(()=>submit([{menuCategoryId:course,quantity:1}]),/not orderable/);await q('update menu_pages set visible=true where id=$1',[page]);
+ await q('update menu_categories set course_price_visible=false where id=$1',[course]);await reject(()=>submit([{menuCategoryId:course,quantity:1}]),/not orderable/);await q('update menu_categories set course_price_visible=true where id=$1',[course]);
+ await reject(()=>submit([line()],crypto.randomUUID(),other),/not available|not found|session|inactive/i);
+ const group=crypto.randomUUID(),value=crypto.randomUUID();
+ await q("insert into menu_order_option_groups(id,menu_site_id,menu_item_id,name,is_required,min_selections,max_selections) values($1,$2,$3,'온도',true,1,1)",[group,site,item]);
+ await q("insert into menu_order_option_values(id,menu_site_id,option_group_id,name,price_delta) values($1,$2,$3,'ICE',500)",[value,site,group]);
+ await reject(()=>submit(),/selection limits/i);check((await submit([{...line(),optionValueIds:[value]}])).total_amount,5500);
+ await reject(()=>submit([{...line(),optionValueIds:[value,value]}]),/Duplicate/);
+ await reject(()=>submit([{menuCategoryId:course,quantity:1,optionValueIds:[value]}]),/Course options/);
+ await q("update menu_sites set settings='{}' where id=$1",[site]);await reject(()=>submit(),/not available|enabled|inactive|not active/i);
+ await q('update menu_sites set settings=$1 where id=$2',[{table_order:{orderEnabled:true,postpayEnabled:true}},site]);
+ await q("update menu_tables set status='disabled' where id=$1",[table]);await reject(()=>submit(),/session|inactive/i);
+ check((await q('select item_name_snapshot,base_price_snapshot from menu_customer_order_items where order_id=$1',[original.order_id]))[0],{item_name_snapshot:'라떼',base_price_snapshot:5000});
+ check((await q('select count(*)::integer n from menu_items where orderable=false'))[0].n,2);
+ console.log(JSON.stringify({passed:checks,isolatedDatabase:true,productionWrites:0,legacyFieldsPreserved:true,serverPrices:true,courseBundleOnly:true,permissionsUnchanged:true}));
+} finally { await db.close(); }

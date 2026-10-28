@@ -5,7 +5,6 @@ import { updateOrderSettings, type OrderSettingsState } from "./actions";
 export default function OrderSettingsForm({
   menuId,
   settings,
-  courses,
   runtime,
   section,
   activeTablesReady,
@@ -15,7 +14,6 @@ export default function OrderSettingsForm({
   section: MenuOrderSettingsSection;
   activeTablesReady: boolean | null;
   runtime: {calls:boolean;orders:boolean};
-  courses: { id: string; name: string; course_price: number | null }[];
 }) {
   const featureKey = section === "orders" ? "orderEnabled" : "callEnabled";
   const [featureEnabled, setFeatureEnabled] = useState(settings[featureKey]);
@@ -31,7 +29,7 @@ export default function OrderSettingsForm({
       <p className="site-notice mb-4" role="status">
         {section === "calls"
           ? runtime.calls ? "직원 호출이 연결되어 있습니다. 테이블별 QR로 접속한 손님이 사용할 수 있습니다." : "호출 항목은 미리 준비할 수 있습니다. 사용 ON은 활성 테이블이 있을 때 설정하며 실제 호출은 운영 연결 후 사용할 수 있습니다."
-          : runtime.orders ? "후불 주문이 연결되어 있습니다." : "주문 옵션은 미리 준비할 수 있습니다. 사용 ON은 활성 테이블이 있을 때 설정하며 실제 주문은 운영 연결 후 사용할 수 있습니다."}
+          : runtime.orders ? "후불 주문이 연결되어 있습니다." : "주문은 메뉴판에 공개된 상품과 가격을 사용합니다. 사용 ON은 활성 테이블이 있을 때 설정하며 실제 주문은 운영 연결 후 사용할 수 있습니다."}
       </p>
       {!activeTablesReady ? <p id="table-setup-required" className="type-body-sm text-zinc-600">
         {activeTablesReady === null ? "테이블 상태를 확인한 뒤 기능을 켤 수 있습니다." : "활성 테이블을 준비한 뒤 기능을 켤 수 있습니다."} 이미 켜진 기능을 OFF로 바꾸는 것은 가능합니다.
@@ -42,7 +40,7 @@ export default function OrderSettingsForm({
         [
           "orderEnabled",
           "후불 주문 사용",
-          "상품 담기·장바구니·후불 주문을 사용합니다.",
+          "공개된 판매 가능 상품을 담고 후불로 주문합니다. 품절·숨김 상품은 제외되며 코스는 전체 단위로 주문합니다.",
         ],
         [
           "mobilePrepayVisible",
@@ -73,26 +71,6 @@ export default function OrderSettingsForm({
           </span>
         </label>
       ))}
-      {section === "orders" && courses.length ? (
-        <fieldset className="border-b border-zinc-200 py-6">
-          <legend className="type-label">코스 전체 주문</legend>
-          <p className="mt-2 text-copy text-zinc-500">
-            체크한 코스를 하나의 상품으로 담습니다. 코스 구성 요리는 별도
-            상품으로 주문하지 않습니다.
-          </p>
-          {courses.map((course) => (
-            <label key={course.id} className="mt-4 flex items-center gap-3">
-              <input
-                type="checkbox"
-                name="orderableCourseId"
-                value={course.id}
-                defaultChecked={settings.orderableCourseIds.includes(course.id)}
-              />
-              {course.name} · {course.course_price?.toLocaleString("ko-KR")}원
-            </label>
-          ))}
-        </fieldset>
-      ) : null}
       {section === "orders" ? <p className="mt-6 text-copy leading-relaxed text-zinc-500">
         매장 PC·태블릿은 후불 주문만 제공합니다. 실제 접수는 운영 연결이 완료된
         테스트 매장부터 사용할 수 있습니다.

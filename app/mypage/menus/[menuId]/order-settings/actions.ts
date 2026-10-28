@@ -1,6 +1,5 @@
 "use server";
 import { revalidatePath } from "next/cache";
-import { saveMenuItemOrderConfiguration } from "@/lib/server/menu-order-catalog-settings-service";
 import { saveMenuOrderSettings } from "@/lib/server/menu-order-settings-service";
 export type OrderSettingsState = {
   status: "idle" | "success" | "error";
@@ -21,7 +20,7 @@ export async function updateOrderSettings(
       callEnabled: form.get("callEnabled") === "on",
       mobilePrepayVisible: form.get("mobilePrepayVisible") === "on",
       postpayEnabled: true,
-      orderableCourseIds: form.getAll("orderableCourseId").map(String),
+      orderableCourseIds: [], // Legacy IDs are preserved by the server merge; no per-course opt-in.
     }, section);
     revalidatePath("/menu", "layout");
     revalidatePath("/mypage/menus/" + id + "/order-settings");
@@ -35,29 +34,6 @@ export async function updateOrderSettings(
   } catch (e) {
     return {
       status: "error",
-      message: e instanceof Error ? e.message : "설정을 저장하지 못했습니다.",
-    };
-  }
-}
-
-export async function updateOrderItemConfiguration(
-  menuId: string,
-  configuration: unknown,
-): Promise<{ message: string; updatedAt?: string }> {
-  try {
-    if (!/^[0-9a-f-]{36}$/i.test(menuId))
-      throw new Error("메뉴판 정보를 확인해 주세요.");
-    const updatedAt = await saveMenuItemOrderConfiguration(
-      menuId,
-      configuration,
-    );
-    revalidatePath("/mypage/menus/" + menuId + "/order-settings");
-    revalidatePath(`/mypage/menus/${menuId}/orders/settings`);
-    revalidatePath(`/mypage/menus/${menuId}/edit`);
-    revalidatePath("/menu", "layout");
-    return { message: "주문 상품과 옵션을 저장했습니다.", updatedAt };
-  } catch (e) {
-    return {
       message: e instanceof Error ? e.message : "설정을 저장하지 못했습니다.",
     };
   }
