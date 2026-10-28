@@ -13,7 +13,6 @@ import MarketingConsentSettings from "@/components/mypage/MarketingConsentSettin
 import BillingHistoryPanel, { type BillingHistoryEntry } from "@/components/mypage/BillingHistoryPanel";
 import NotificationHistorySection, { type MypageNotificationEvent } from "@/components/mypage/NotificationHistorySection";
 import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
-import QrDownloadButton from "@/components/mypage/QrDownloadButton";
 import { MypageAccountCard, MypageNavigation, type MypageNavigationKey } from "@/components/mypage/MypageSidebar";
 import SubscriptionManagementModal from "@/components/mypage/SubscriptionManagementModal";
 import { TemplateThumbnail } from "@/components/templates/TemplateCard";
@@ -32,6 +31,7 @@ import { isDeletedAccountStatus } from "@/lib/account-status";
 import { maskBusinessRegistrationNumber } from "@/lib/business-verification";
 import { getPublicMenuPath } from "@/lib/menu-url";
 import { getPublicPortOneConfig } from "@/lib/portone";
+import { getMenuPlanChangeDetail, menuPlanChangesEnabled } from "@/lib/server/menu-plan-change-service";
 import { getAiCreditBalanceForUser } from "@/lib/server/ai-credits-service";
 import {
   getAccessibleMenuSiteList,
@@ -1930,6 +1930,22 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     }
   }
   const displayedAiCreditTransactions = aiCreditTransactions.slice(0, 20);
+  const changeableSubscriptionIds = new Set<string>();
+  if (activeTab === "payments" && menuPlanChangesEnabled()) {
+    const candidates = businessSubscriptions.filter((subscription) =>
+      subscription.id && subscription.status === "active" && !subscription.cancel_at_period_end
+    );
+    const admin = createAdminClient();
+    await Promise.all(candidates.map(async (subscription) => {
+      try {
+        const detail = await runMypageQuery("plan_change_eligibility", getMenuPlanChangeDetail(admin, subscription.id!, user.id));
+        if (detail?.eligible && detail.pending?.state !== "processing") changeableSubscriptionIds.add(subscription.id!);
+      } catch {
+        // A failed eligibility lookup must not expose an unavailable change action.
+      }
+    }));
+  }
+
   const billingHistoryEntries: BillingHistoryEntry[] = paymentHistory
     .filter(({ productKey }) => !getSafeString(productKey).startsWith("ai_credit"))
     .map(({ payment, order, productKey, menuSite }) => {
@@ -2081,6 +2097,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               pgLabel: "NHN KCP 카드 정기결제",
               serviceEntitlementLabel: getEntitlementStatusLabel(entitlement?.status),
               canManage: Boolean(typeof matchingSubscription.cancel_at_period_end === "boolean"),
+              canChangePlan: serviceStatus.bucket === "active" && changeableSubscriptionIds.has(matchingSubscription.id),
               defaultOpen: shouldAutoOpenSubscriptionModal && requestedSubscriptionId === matchingSubscription.id,
               billingMethod: billingMethod === "yearly" ? "yearly" : billingMethod === "monthly" ? "monthly" : "unknown",
               refundConfirmEnabled: yearlyRefundConfirmEnabled,
@@ -2575,14 +2592,12 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 disabledReason: card.actions.publicDisabledReason,
                 newWindow: true,
               })}
-              <QrDownloadButton
-                feedbackLabel={card.title}
-                fileName={`arti-menu-${card.slug || "menu"}-qr.png`}
-                path={card.publicPath}
-                disabled={!card.actions.canManageQr}
-                disabledReason={card.actions.qrDisabledReason}
-                className={secondaryActionClassName}
-              />
+              {renderActionButton({
+                label: "QR 관리",
+                href: card.siteId ? `/mypage/menus/${card.siteId}/qr` : null,
+                enabled: card.actions.canManageQr || card.actions.canManageTables,
+                disabledReason: card.actions.qrDisabledReason,
+              })}
             </div>
           )}
         </div>
@@ -2672,14 +2687,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               공개 메뉴판 보기
             </button>
           )}
-          <QrDownloadButton
-            feedbackLabel={card.title}
-            fileName={`arti-menu-${card.publicPath.split("/").filter(Boolean).at(-1) || "menu"}-qr.png`}
-            path={card.publicPath}
-            disabled={!card.canManageQr}
-            disabledReason={card.qrDisabledReason}
-            className={card.canManageQr ? enabledSecondaryActionClassName : disabledActionClassName}
-          />
+          {card.canManageQr ? (
+            <Link href={`/mypage/menus/${card.siteId}/qr`} className={enabledSecondaryActionClassName}>QR 관리</Link>
+          ) : (
+            <button type="button" disabled title={card.qrDisabledReason ?? undefined} className={disabledActionClassName}>QR 관리</button>
+          )}
           </div>
           {!card.canViewPublic ? (
             <p className="mt-5 rounded-2xl bg-zinc-50 px-4 py-3 type-footnote text-zinc-600">
@@ -2983,6 +2995,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                     pgLabel="NHN KCP 카드 정기결제"
                                     serviceEntitlementLabel={getEntitlementStatusLabel(entitlement?.status)}
                                     canManage={Boolean(typeof subscription.cancel_at_period_end === "boolean")}
+                                    canChangePlan={changeableSubscriptionIds.has(subscription.id)}
                                     defaultOpen={shouldAutoOpenSubscriptionModal && requestedSubscriptionId === subscription.id}
                                     billingMethod={billingCycle === "yearly" ? "yearly" : billingCycle === "monthly" ? "monthly" : "unknown"}
                                     refundConfirmEnabled={yearlyRefundConfirmEnabled}

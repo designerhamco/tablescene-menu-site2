@@ -52,6 +52,10 @@ export default async function MenuQrManagementPage({
     throw error;
   }
 
+  if (data.canManageTables) {
+    redirect(`/mypage/menus/${menuId}/tables`);
+  }
+
   const publicBaseUrl = getConfiguredPublicBaseUrl();
   const representativePath = `/menu/${encodeURIComponent(data.menuSite.slug)}?mode=customer`;
 

@@ -6,16 +6,14 @@ function readSource(relativePath: string) {
   return readFileSync(new URL(`../${relativePath}`, import.meta.url), "utf8");
 }
 
-test("마이페이지 메뉴판 카드는 대표 QR을 즉시 다운로드한다", () => {
+test("마이페이지 메뉴판 카드는 다운로드 대신 권한을 유지하는 QR 관리 진입점을 제공한다", () => {
   const source = readSource("app/mypage/page.tsx");
-  const buttonSource = readSource("components/mypage/QrDownloadButton.tsx");
-
-  assert.match(source, /<QrDownloadButton/);
-  assert.doesNotMatch(source, /label: "QR 관리"/);
-  assert.doesNotMatch(source, /\/mypage\/menus\/\$\{card\.siteId\}\/qr/);
-  assert.match(buttonSource, /toDataURL/);
-  assert.match(buttonSource, /link\.download = fileName/);
-  assert.match(buttonSource, /QR 다운로드/);
+  const pageSource = readSource("app/mypage/menus/[menuId]/qr/page.tsx");
+  assert.doesNotMatch(source, /<QrDownloadButton/);
+  assert.match(source, /label: "QR 관리"/);
+  assert.match(source, /\/mypage\/menus\/\$\{card\.siteId\}\/qr/);
+  assert.match(source, /enabled: card.actions.canManageQr \|\| card.actions.canManageTables/);
+  assert.match(pageSource, /if \(data.canManageTables\) \{\s*redirect\(`\/mypage\/menus\/\$\{menuId\}\/tables`\)/);
 });
 
 test("QR 관리 화면은 메뉴판별 대표 QR만 제공한다", () => {
