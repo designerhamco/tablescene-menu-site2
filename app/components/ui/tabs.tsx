@@ -7,22 +7,35 @@ import { cn } from "./utils";
 
 export type TabsSize = "sm" | "md" | "lg";
 export type TabsVariant = "segmented" | "outline" | "underline" | "contained" | "area";
+export type TabsHierarchy = "primary" | "secondary" | "embedded";
+
+const hierarchyVariant: Record<TabsHierarchy, TabsVariant> = {
+  primary: "outline",
+  secondary: "underline",
+  embedded: "area",
+};
 const TabsAppearance = React.createContext<TabsVariant>("segmented");
+const TabsHierarchyContext = React.createContext<TabsHierarchy | undefined>(undefined);
 
 function Tabs({
   className,
-  variant = "segmented",
+  variant,
+  hierarchy,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Root> & { variant?: TabsVariant }) {
+}: React.ComponentProps<typeof TabsPrimitive.Root> & { variant?: TabsVariant; hierarchy?: TabsHierarchy }) {
+  const appearance = variant ?? (hierarchy ? hierarchyVariant[hierarchy] : "segmented");
   return (
-    <TabsAppearance.Provider value={variant}>
-      <TabsPrimitive.Root
-        data-slot="tabs"
-        data-variant={variant}
-        className={cn("flex min-w-0 max-w-full flex-col gap-2", variant === "contained" && "site-contained-tabs-root", variant === "area" && "site-area-tabs-root", className)}
-        {...props}
-      />
-    </TabsAppearance.Provider>
+    <TabsHierarchyContext.Provider value={hierarchy}>
+      <TabsAppearance.Provider value={appearance}>
+        <TabsPrimitive.Root
+          data-slot="tabs"
+          data-variant={appearance}
+          data-hierarchy={hierarchy}
+          className={cn("flex min-w-0 max-w-full flex-col gap-2", appearance === "contained" && "site-contained-tabs-root", appearance === "area" && "site-area-tabs-root", className)}
+          {...props}
+        />
+      </TabsAppearance.Provider>
+    </TabsHierarchyContext.Provider>
   );
 }
 
@@ -39,12 +52,14 @@ function TabsList({
   distribution?: "content" | "equal";
 }) {
   const inheritedVariant = React.useContext(TabsAppearance);
+  const hierarchy = React.useContext(TabsHierarchyContext);
   const variant = variantProp ?? inheritedVariant;
   return (
     <TabsAppearance.Provider value={variant}>
       <TabsPrimitive.List
         data-slot="tabs-list"
         data-variant={variant}
+        data-hierarchy={hierarchy}
         data-size={size === "default" ? "md" : size}
         className={cn(
           variant === "area" ? "site-area-tabs" : variant === "contained" ? "site-contained-tabs" : variant === "underline" ? "site-topic-tabs" : "site-tabs",
@@ -66,9 +81,11 @@ function TabsTrigger({
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Trigger> & { count?: number }) {
   const variant = React.useContext(TabsAppearance);
+  const hierarchy = React.useContext(TabsHierarchyContext);
   return (
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
+      data-hierarchy={hierarchy}
       className={cn(
         variant === "area" ? "site-area-tab" : variant === "contained" ? "site-contained-tab" : variant === "underline" ? "site-topic-tab" : "site-tab",
         "gap-1.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -84,9 +101,11 @@ function TabsContent({
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Content>) {
   const variant = React.useContext(TabsAppearance);
+  const hierarchy = React.useContext(TabsHierarchyContext);
   return (
     <TabsPrimitive.Content
       data-slot="tabs-content"
+      data-hierarchy={hierarchy}
       className={cn("flex-1 outline-none", variant === "contained" && "site-contained-panel", variant === "area" && "site-area-panel", className)}
       {...props}
     />
