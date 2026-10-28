@@ -41,8 +41,8 @@ export default function SelectionControlExamples() {
         </li>
       </ol>
       <div className={styles.usageTable}><table aria-label="탭 위계 적용 기준"><thead><tr><th>위계</th><th>공통 구현</th><th>대표 사용처</th><th>사용 제한</th></tr></thead><tbody>
-        <tr><td>1 · 최상위</td><td>primary / outline 세그먼트</td><td>고객센터 공지사항·FAQ처럼 페이지 전체 보기 전환</td><td>한 페이지에 한 번, 2–3개 항목</td></tr>
-        <tr><td>2 · 주요 분류</td><td>secondary / underline</td><td>베이직·다이닝·디스플레이, 마이페이지·가이드·언어</td><td>상위 세그먼트보다 크게 사용하지 않음</td></tr>
+        <tr><td>1 · 최상위</td><td>primary / outline 세그먼트</td><td>베이직·다이닝·디스플레이, 고객센터 공지사항·FAQ처럼 페이지 전체 보기 전환</td><td>한 페이지에 한 번, 2–3개 항목</td></tr>
+        <tr><td>2 · 주요 분류</td><td>secondary / underline</td><td>마이페이지·가이드·언어·상태 분류</td><td>상위 세그먼트보다 크게 사용하지 않음</td></tr>
         <tr><td>3 · 보조 분류</td><td>site-filter / 본문 링크</td><td>업종·주제·상태 조건·본문 바로가기</td><td>실제 패널 전환에는 사용하지 않음</td></tr>
         <tr><td>4 · 영역 내부</td><td>embedded / area</td><td>템플릿 종류, 미리보기 옵션, 번역 항목, 설정 묶음</td><td>회색 면은 무테. 파일형·사선 윤곽을 새로 만들지 않음</td></tr>
       </tbody></table></div>

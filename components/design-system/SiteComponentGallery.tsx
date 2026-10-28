@@ -58,8 +58,8 @@ export default function SiteComponentGallery() {
       </div>
       <Button variant="outline" size="lg" asChild><Link href="/templates">전체 디자인 보기 <ArrowRight /></Link></Button>
     </Examples>
-    <Examples title="서비스 탐색 탭" description="상위 서비스는 열린 밑줄 탭으로 이동합니다. 아이콘 필터나 보기 방식 세그먼트와 구분합니다.">
-      <Tabs hierarchy="secondary" defaultValue="basic"><TabsList size="lg" aria-label="서비스 탐색 예시">
+    <Examples title="페이지의 큰 보기 전환" description="베이직·다이닝·디스플레이처럼 페이지 전체 목록을 바꾸는 선택은 최상위 outline 세그먼트를 사용합니다.">
+      <Tabs hierarchy="primary" defaultValue="basic"><TabsList size="lg" aria-label="서비스 탐색 예시">
         {choices.map(({key,label}) => <TabsTrigger key={key} value={key}>{label}</TabsTrigger>)}
       </TabsList>{choices.map(({key,description}) => <TabsContent key={key} value={key} className="type-body text-zinc-600">{description}</TabsContent>)}</Tabs>
     </Examples>
@@ -77,8 +77,8 @@ export default function SiteComponentGallery() {
         <TabsTrigger value="designer">이미지로 보기</TabsTrigger><TabsTrigger value="standard">목록으로 보기</TabsTrigger>
       </TabsList><TabsContent value="designer" className="type-body text-zinc-600">썸네일을 중심으로 디자인을 살펴봅니다.</TabsContent><TabsContent value="standard" className="type-body text-zinc-600">이름과 설명을 중심으로 디자인을 살펴봅니다.</TabsContent></Tabs>
     </Examples>
-    <Examples title="밑줄 탭과 이미지 카드" description="여러 콘텐츠를 탐색할 때는 굵은 밑줄로 선택을 표시하고, 썸네일과 제목·설명·이동 액션의 크기를 구분합니다.">
-      <div className="site-collection"><Tabs hierarchy="secondary" defaultValue="all"><TabsList size="md" aria-label="템플릿 라이브러리 서비스">
+    <Examples title="최상위 보기와 이미지 카드" description="서비스 단위로 전체 목록이 바뀌면 outline 세그먼트를 사용하고, 썸네일과 제목·설명·이동 액션의 크기를 구분합니다.">
+      <div className="site-collection"><Tabs hierarchy="primary" defaultValue="all"><TabsList size="md" aria-label="템플릿 라이브러리 서비스">
         <TabsTrigger value="all">전체 디자인</TabsTrigger><TabsTrigger value="basic">베이직</TabsTrigger><TabsTrigger value="dining">다이닝</TabsTrigger>
       </TabsList>{["all","basic","dining"].map(key=><TabsContent key={key} value={key} className={styles.galleryPanel}>
         <div className={styles.mediaGrid}>{catalogDesigns.filter(d=>d.kind==="designer"&&(key==="all"||d.service===key)).slice(0,3).map(design=><CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={false} onToggle={id=>setFavorites(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id])} />)}</div>
