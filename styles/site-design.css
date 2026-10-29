@@ -668,6 +668,7 @@
 /* Area tabs sit on the content boundary. The selected white tab joins the white panel below. */
 .site-area-tabs-root[data-slot="tabs"] { min-width: 0; gap: 0; padding: 0; border: 0; border-radius: 0; background: transparent; }
 .site-area-tabs { position: relative; display: flex; width: 100%; max-width: 100%; min-height: var(--site-tab-height, 2.75rem); align-self: stretch; align-items: flex-end; gap: 0; overflow-x: auto; padding: 0; background: transparent; scrollbar-width: none; }
+.site-area-tabs.site-tab-size-md { --site-tab-font: var(--site-type-16); }
 .site-area-tabs::after { content: ""; position: absolute; z-index: 0; right: 0; bottom: 0; left: 0; height: 1px; background: var(--ui-text); pointer-events: none; }
 .site-area-tabs::-webkit-scrollbar { display: none; }
 .site-area-tab { position: relative; z-index: 1; display: inline-flex; min-width: 9rem; min-height: calc(var(--site-tab-height, 2.75rem) - 1px); flex: 0 0 auto; align-items: center; justify-content: center; gap: .375rem; margin-bottom: 1px; padding: .25rem var(--site-tab-padding, 1rem); border: 1px solid transparent; border-bottom: 0; border-radius: var(--ui-radius-control-rounded) var(--ui-radius-control-rounded) 0 0; background: var(--ui-surface-soft); color: var(--site-text-secondary); font-size: var(--site-tab-font, .9375rem); font-weight: 500; letter-spacing: -.012em; line-height: 1.5; white-space: nowrap; cursor: pointer; transition: background-color var(--ui-transition), color var(--ui-transition), border-color var(--ui-transition); }
