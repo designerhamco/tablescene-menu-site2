@@ -9,8 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import styles from "./SiteComponentGallery.module.css";
 
 const sizes = [
-  ["대", "48px / 16px", "공개 페이지의 넓은 주요 전환"],
-  ["중", "44px / 15px", "마이페이지·편집기의 일반 분류"],
+  ["대", "48px / 주요 20px · 기타 16px", "공개 페이지의 넓은 주요 전환"],
+  ["중", "44px / 주요·영역 16px · 기타 15px", "마이페이지·편집기의 일반 분류"],
   ["소", "40px / 14px", "영역 안의 세부 전환·필터"],
 ] as const;
 const options = [
@@ -28,7 +28,7 @@ export default function SelectionControlExamples() {
       <div className={styles.heading}><h2 className="type-section-title" id="selection-hierarchy-title">탭 역할과 포함 관계</h2>
         <p className="type-body text-zinc-600">먼저 무엇을 바꾸는지 판단합니다. 주요 화면, 독립 콘텐츠 영역, 목록 주제, 필터, 상태값을 구분하고 실제로 포함된 내용에 따라 위계를 구성합니다. 영역형을 특정 단계에 고정하지 않습니다.</p></div>
       <div className={styles.usageTable}><table aria-label="탭 역할 적용 기준"><thead><tr><th>역할</th><th>표현</th><th>공통 구현</th><th>대표 사용처</th></tr></thead><tbody>
-        <tr><td>주요 화면 전환</td><td>서로 분리된 둥근 버튼 · 검정 선택 면</td><td>Tabs purpose=&quot;page&quot; / NavigationTabs purpose=&quot;page&quot;</td><td>서비스별 목록, 가이드 플랜, 편집 설정 화면</td></tr>
+        <tr><td>주요 화면 전환</td><td>텍스트 탭 · 선택 문구 너비의 검정 밑줄</td><td>Tabs purpose=&quot;page&quot; / NavigationTabs purpose=&quot;page&quot;</td><td>서비스별 목록, 가이드 플랜, 편집 설정 화면</td></tr>
         <tr><td>독립 콘텐츠 영역 전환</td><td>흰 콘텐츠에 연결된 상단 8px 영역 탭</td><td>Tabs purpose=&quot;section&quot; / NavigationTabs purpose=&quot;section&quot;</td><td>디자인/기본 템플릿, 결제내역/AI 사용내역, 미리보기 기능/디자인</td></tr>
         <tr><td>목록 분류</td><td>밑줄형 · 별도 콘텐츠 박스 없음</td><td>CategoryFilter / Tabs purpose=&quot;category&quot;</td><td>고객센터 주제, 전체/읽지 않은 알림</td></tr>
         <tr><td>목록 조건 선택</td><td>작은 필터 버튼 · 아이콘 선택</td><td>site-filter / ChoiceTile</td><td>템플릿 업종, 화면 구성, 본문 바로가기</td></tr>
@@ -55,7 +55,7 @@ export default function SelectionControlExamples() {
           <div className="mt-6"><h4 className="type-content-title">공지사항</h4><p className="type-body-sm mt-2 text-zinc-600">최신 공지를 최대 3개 표시하고, 전체 목록에서는 10개씩 페이지를 나눕니다.</p><Link href="/faq/notices" className="site-button site-button-link">공지사항 전체보기<ArrowRight size={18} aria-hidden="true" /></Link></div>
         </section>
       </div>
-      <div className="min-w-0"><h3 className="type-content-title mb-2">상태값 변경</h3><p className="type-body-sm mb-4 text-zinc-600">최상위 버튼은 각각 떨어져 있고 검정 선택 면을 사용합니다. 상태 세그먼트는 회색 레일 안에 묶이고 흰 선택 면을 사용해 역할을 구별합니다. URL에 상태가 기록되더라도 현재 화면의 값만 바뀌면 상태 전환입니다.</p>
+      <div className="min-w-0"><h3 className="type-content-title mb-2">상태값 변경</h3><p className="type-body-sm mb-4 text-zinc-600">최상위 탭은 검정 글자와 문구 너비의 밑줄로 선택을 표시합니다. 상태 세그먼트는 회색 레일 안에 묶이고 흰 선택 면을 사용해 역할을 구별합니다. URL에 상태가 기록되더라도 현재 화면의 값만 바뀌면 상태 전환입니다.</p>
         <Tabs purpose="state" defaultValue="active"><TabsList size="md" aria-label="상태값 변경 예시"><TabsTrigger value="active">이용 중</TabsTrigger><TabsTrigger value="holding">보관 중</TabsTrigger><TabsTrigger value="ended">종료됨</TabsTrigger></TabsList><TabsContent value="active" className="type-caption">이용 중인 메뉴판</TabsContent><TabsContent value="holding" className="type-caption">보관 중인 메뉴판</TabsContent><TabsContent value="ended" className="type-caption">종료된 메뉴판</TabsContent></Tabs>
       </div>
       <div className={styles.usageTable}><table aria-label="탭 크기 기준"><thead><tr><th>밀도</th><th>높이 / 글자</th><th>적용</th></tr></thead><tbody>{sizes.map(([size, metrics, use]) => <tr key={size}><td>{size}</td><td>{metrics}</td><td>{use}</td></tr>)}</tbody></table></div>
