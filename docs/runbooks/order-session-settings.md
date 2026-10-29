@@ -93,7 +93,7 @@
 - 최신 운영 기준을 반영한 수정 후 `npm test` 906건·`npx tsc --noEmit`·별도 디렉터리 Production 빌드를 통과했다. `npm run lint`는 오류 0건이며 기존 `qa-customer-call-status.mjs` 미사용 import 경고 1건을 유지했다.
 - 증빙: `/private/tmp/order-real-qa-before.json`, `order-real-qa-after.json`, `order-real-qa-live.json`, `order-real-qa-verification.json`, `/private/tmp/order-real-qa/`의 개인·공용 장바구니/접수/취소 화면. 이 검수는 실제 운영 브라우저의 개인/공용 모드이며 실물 휴대폰의 카메라 스캔·리더기·알림톡·1시간 경과를 재검증한 것은 아니다.
 
-## 공용 연결 자동 갱신·장바구니 2분 후속 변경 — 운영 적용 준비
+## 공용 연결 자동 갱신·장바구니 2분 후속 변경 — 운영 SQL 적용 완료
 
 - 사용자 요청: 사용 중 공용 연결 자동 갱신, 마지막 조작 후 2분 미사용 시 미주문 장바구니만 초기화, 30초 전 안내, 계속 이용하면 다시 2분. 이미 접수된 주문은 유지한다.
 - 새 SQL은 `supabase/migrations/20261029014156_allow_terminal_connection_renewal.sql` 한 건이다. 공용 연결의 만료 상한을 최초 등록일 기준에서 서버가 기록한 마지막 사용일 기준 30일로 바꾼다. 개인 방문의 등록 후 24시간 상한은 유지한다. 기존 행·등록일·현재 만료일·주문·연락처·권한·RLS·함수를 변경하지 않는다. 최초 SQL을 재실행하거나 `db push`로 일괄 적용하지 않는다.
@@ -102,4 +102,6 @@
 - 장바구니는 터치·키 입력·스크롤 기준으로 시간을 다시 계산한다. 경고에서 계속 이용하면 새 2분을 시작한다. 서버 접수 내역은 읽거나 삭제하지 않으며, 전송 중·응답 미확인 요청의 장바구니 보호도 유지한다. KO/EN/JA/ZH 경고와 운영 설정 안내를 함께 변경했다.
 - 최신 운영 기준을 반영한 단위 검수 912건, 실제 SQL/서버/API의 격리 검수 174건, 타입 검사·별도 디렉터리 Production 빌드 통과. 격리 검수는 최초 등록 후 45일이 지난 활성 공용 연결의 갱신, 쿠키 갱신, 주문·연결 식별자 보존, 동시 갱신·해제, 만료·중지·다른 기기·다른 출처·개인 방문의 갱신 거절, 일반 GET의 비연장, 개인 만료 상한과 기존 행/RLS/ACL 보존을 포함한다.
 - 브라우저에서는 임시 로컬 미리보기 화면으로 실제 시간을 기다려 검수했다. 수량 변경 후 약 94초에 30초 전 안내, 계속 이용 후 87초에는 안내 없음·99초에는 안내 표시, 이후 미주문 상품 2개 초기화와 앞선 접수 주문 1건 유지를 확인했다. 실제 DOM 1280×720, 가로 넘침·런타임 오류 0건. 운영 주문·결제·알림톡은 실행하지 않았고 임시 경로와 검수 서버는 제거했다. 화면 증빙은 `/private/tmp/terminal-renewal-ui/`에 있다.
-- 새 SQL의 운영 적용·배포는 별도 승인 이후 진행한다. 적용 전 읽기 전용 확인에서 연결 28건, 고객 주문 12건과 관련 기록 지문을 확보했고 강제 RLS·service_role 전용 테이블 권한을 확인했다. 기존 보안 진단 경고 22건·오류 0건을 기록했다. 증빙: `/private/tmp/terminal-renewal-before.json`, `terminal-renewal-advisors-before.json`, `terminal-renewal-final-unit.log`, `terminal-renewal-final-db.log`, `terminal-renewal-final-build.log`. 만료 상한 밖으로 연장된 연결이 생긴 뒤 최초 제약으로 되돌리는 작업은 별도 검토하며, 기록 삭제로 복구하지 않는다.
+- 2026-10-29 KST 별도 승인 답변 **“SQL 적용과 배포 진행”** 후 새 SQL 원문 한 건을 운영 DB에 1회 적용했다. SHA-256은 `07854ae4df63b1183d14c39752ed8fa0a0ac8bf46a87990ce7e9d2e9fdf29d2d`이다. 최초 SQL 재실행·일괄 `db push`는 하지 않았다.
+- 적용 직전과 직후 9개 표 222행의 건수·전체 행 지문이 동일하다. 연결 28건·고객 주문 12건·주문 상품 12건·옵션 5건·기존 주문 46건·결제 41건·메뉴판 47건·이용권 25건·테이블 6건을 보존했다. 만료 CHECK 한 건만 변경되었으며 다른 제약·강제 RLS·ACL·정책 지문은 동일하다. Security Advisor는 기존 경고 22건·오류 0건이며 진단 내용도 동일하다. 이번 적용에서 실주문·결제·발송은 실행하지 않았다.
+- SQL 적용 증빙: `/private/tmp/terminal-renewal-preapply.json`, `terminal-renewal-apply.json`, `terminal-renewal-after.json`, `terminal-renewal-verification.json`, `terminal-renewal-advisors-before.json`, `terminal-renewal-advisors-after.json`. 검수 증빙: `terminal-renewal-final-unit.log`, `terminal-renewal-final-db.log`, `terminal-renewal-final-build.log`. 운영 배포와 사후 확인은 SQL 적용 후 진행한다. 만료 상한 밖으로 연장된 연결이 생긴 뒤 최초 제약으로 되돌리는 작업은 별도 검토하며, 기록 삭제로 복구하지 않는다.
