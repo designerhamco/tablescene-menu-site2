@@ -251,17 +251,15 @@ export default function TableMenuInteractions({
                 cartScope={config.cartScope || "preview"}
                 catalog={config.orderCatalog ?? []}
                 previewOnly={config.previewOnly}
+                channel={config.channel ?? (devicePresentation === "mobile" ? "customer" : "terminal")}
+                orderExpiresAt={config.orderExpiresAt}
+                customerPhone={config.customerPhone}
                 typographyStyle={typographyStyle}
                 interactionStyle={interactionStyle}
                 tableLabel={actions.table}
                 iconVariant={presentation === "aube" ? "document" : "cart"}
                 device={devicePresentation}
-                checkoutModes={
-                  devicePresentation === "mobile" &&
-                  config.checkoutModes?.includes("prepay")
-                    ? ["postpay", "prepay"]
-                    : ["postpay"]
-                }
+                checkoutModes={config.channel === "terminal" ? ["postpay"] : config.checkoutModes}
                 selectedMenuItemId={selected}
                 onCountChange={setCount}
                 onItemAdded={(name) => {

@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
+  // Keep verification builds separate from the user's running development server.
+  distDir: process.env.ARTIMENU_BUILD_DIR || ".next",
   allowedDevOrigins: ["localhost", "127.0.0.1"],
   productionBrowserSourceMaps: false,
   enablePrerenderSourceMaps: false,

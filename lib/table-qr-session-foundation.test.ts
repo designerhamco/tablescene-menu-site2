@@ -40,15 +40,15 @@ test("table and visit-session tokens are random, URL-safe, and hash-only", () =>
   assert.throws(() => hashTableAccessToken("short"), /Invalid table access token/);
 });
 
-test("approved table, QR path, and 12-hour session constants stay aligned", () => {
+test("approved table, QR path, and 24-hour history constants stay aligned", () => {
   const now = new Date("2026-08-06T00:00:00.000Z");
   const token = createTableAccessToken();
 
   assert.equal(MENU_TABLE_LIMIT, 100);
-  assert.equal(TABLE_VISIT_SESSION_MAX_AGE_SECONDS, 43_200);
+  assert.equal(TABLE_VISIT_SESSION_MAX_AGE_SECONDS, 86_400);
   assert.equal(
     createTableVisitSessionExpiry(now).toISOString(),
-    "2026-08-06T12:00:00.000Z",
+    "2026-08-07T00:00:00.000Z",
   );
   assert.equal(buildTableQrPath(token), `/table/${token}`);
   const publicId = "bdb5d7b6-5447-4bdd-8e37-0b57ff221727";

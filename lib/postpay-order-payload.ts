@@ -22,6 +22,8 @@ export type PostpayOrderInput = {
   clientRequestId: string;
   requestText: string | null;
   lines: PostpayOrderLineInput[];
+  notificationPhone?: string | null;
+  repeatOrderId?: string | null;
 };
 
 export class InvalidPostpayOrderPayloadError extends Error {
@@ -41,6 +43,8 @@ export function parsePostpayOrderPayload(value: unknown): PostpayOrderInput {
   }
 
   const body = value as Record<string, unknown>;
+  if (body.repeatOrderId != null && !isUuid(body.repeatOrderId)) throw new InvalidPostpayOrderPayloadError();
+  if (body.notificationPhone != null && (typeof body.notificationPhone !== "string" || body.notificationPhone.length > 30)) throw new InvalidPostpayOrderPayloadError("휴대폰 번호를 확인해 주세요.");
   if (!isUuid(body.menuSiteId) || !isUuid(body.clientRequestId) || !Array.isArray(body.lines)) {
     throw new InvalidPostpayOrderPayloadError();
   }
@@ -91,5 +95,7 @@ export function parsePostpayOrderPayload(value: unknown): PostpayOrderInput {
     clientRequestId: body.clientRequestId,
     requestText: requestText || null,
     lines,
+    ...(body.notificationPhone !== undefined ? { notificationPhone: body.notificationPhone as string | null } : {}),
+    ...(body.repeatOrderId !== undefined ? { repeatOrderId: body.repeatOrderId as string | null } : {}),
   };
 }

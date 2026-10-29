@@ -17,14 +17,14 @@ const {
 const NOW = new Date("2026-08-06T00:00:00.000Z");
 const USER_AGENT = "ArtiMenu QA Browser/1.0";
 
-test("visit-session material is hash-only and expires after at most 12 hours", () => {
+test("history credential is hash-only and lasts 24 hours independently of ordering", () => {
   const material = createTableVisitSessionMaterial({ userAgent: USER_AGENT, now: NOW });
 
   assert.match(material.rawToken, /^[A-Za-z0-9_-]{43}$/);
   assert.match(material.tokenHash, /^[0-9a-f]{64}$/);
   assert.match(material.userAgentHash, /^[0-9a-f]{64}$/);
   assert.notEqual(material.rawToken, material.tokenHash);
-  assert.equal(material.expiresAt.toISOString(), "2026-08-06T12:00:00.000Z");
+  assert.equal(material.expiresAt.toISOString(), "2026-08-07T00:00:00.000Z");
 });
 
 test("session validation binds menu site, user agent, expiry, and revocation", () => {

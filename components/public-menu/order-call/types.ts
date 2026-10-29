@@ -46,6 +46,9 @@ export type OrderCallEntryConfig = {
   checkoutModes?: OrderCheckoutMode[];
   previewOnly?: boolean;
   callItems?: StaffCallItem[];
+  channel?: "customer" | "terminal";
+  orderExpiresAt?: string | null;
+  customerPhone?: "required" | "optional" | "hidden";
 };
 
 export type OrderCallEntryVisibility = {
@@ -143,7 +146,7 @@ export function buildPublicOrderCallEntryConfig({
   capabilityState: PublicOrderCallCapabilityState;
   menuSiteId: string;
   storeName: string;
-  tableSession: { id: string; tableLabel: string } | null;
+  tableSession: { id: string; tableLabel: string; channel?: "customer" | "terminal"; orderExpiresAt?: string | null } | null;
   cartScope: string | undefined;
   orderCatalog: PostpayOrderCatalogItem[];
   callItems?: StaffCallItem[];
@@ -163,5 +166,7 @@ export function buildPublicOrderCallEntryConfig({
     cartScope,
     orderCatalog,
     callItems,
+    channel: tableSession.channel ?? "customer",
+    orderExpiresAt: tableSession.orderExpiresAt,
   };
 }
