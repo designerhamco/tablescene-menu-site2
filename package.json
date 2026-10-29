@@ -22,7 +22,11 @@
     "qa:template-preview-locales:legacy": "node scripts/qa-template-preview-locales.mjs",
     "qa:authenticated-surfaces": "node --env-file-if-exists=.env.qa.local scripts/qa-authenticated-surfaces.mjs",
     "supabase:types": "node scripts/generate-supabase-types.mjs",
-    "seed:display-qa": "node --env-file=.env.local scripts/seed-display-qa-menu-site.mjs"
+    "seed:display-qa": "node --env-file=.env.local scripts/seed-display-qa-menu-site.mjs",
+    "check:site-ui": "node --import ./scripts/register-test-css.mjs --import tsx --test lib/site-typography-contract.test.ts lib/site-layout-system.test.ts lib/menu-preview-fit.test.ts",
+    "prebuild": "npm run check:site-ui",
+    "prebuild:turbo": "npm run check:site-ui",
+    "prebuild:debug-memory": "npm run check:site-ui"
   },
   "dependencies": {
     "@portone/browser-sdk": "^0.1.5",

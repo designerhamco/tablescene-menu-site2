@@ -126,12 +126,12 @@ export default function MenuPreviewDeviceFrame(
   const templateQuery = { ...query, previewOptions: optionsTab, designPreview: serializePreviewDesign(designOptions) };
   const toolbarRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0, viewportWidth: 0 });
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const observer = new ResizeObserver(([entry]) => {
-      setCanvasSize({ width: entry.contentRect.width, height: entry.contentRect.height });
+      setCanvasSize({ width: entry.contentRect.width, height: entry.contentRect.height, viewportWidth: window.innerWidth });
     });
     observer.observe(canvas);
     return () => observer.disconnect();

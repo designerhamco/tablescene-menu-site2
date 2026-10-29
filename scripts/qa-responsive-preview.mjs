@@ -24,6 +24,20 @@ try {
     assert.ok(Math.abs(metric.title.font - (width<768?28:width<1024?32:36)*ratio)<.05);
     assert.ok(Math.abs(metric.description.font-16*ratio)<.05);
     assert.equal(metric.overflow,false);
+    const fresh = await page.evaluate(()=>{
+      const probe=document.createElement('section');
+      probe.className='site-gutter site-page-spacing';
+      probe.style.position='absolute'; probe.style.top='-10000px';
+      probe.innerHTML='<h2 class="type-page-title">새 페이지 제목</h2><p class="type-page-description">새 페이지 설명</p><button class="site-button">공통 버튼</button>';
+      document.body.append(probe);
+      const font=selector=>parseFloat(getComputedStyle(probe.querySelector(selector)).fontSize);
+      const result={title:font('h2'),description:font('p'),control:font('button'),spacing:parseFloat(getComputedStyle(probe).paddingTop)};
+      probe.remove();return result;
+    });
+    assert.ok(Math.abs(fresh.title-metric.title.font)<.05,'a new semantic title inherits the same global size');
+    assert.ok(Math.abs(fresh.description-metric.description.font)<.05);
+    assert.ok(Math.abs(fresh.control-15*ratio)<.05);
+    assert.ok(fresh.spacing>0);
     assert.ok(metric.main.height<1100,'auth page must not absorb unlimited viewport height');
     if(width===3440) await page.screenshot({path:`${output}/login-wide.png`});
     report.login.push(metric);
@@ -47,12 +61,26 @@ try {
     const result=await page.evaluate(()=>{
       const box=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom};};
       const iframe=document.querySelector('iframe');
-      return {width:innerWidth,height:innerHeight,frame:box('[data-preview-frame-shell]'),canvas:box('[data-preview-canvas]'),toolbar:box('[data-preview-device-toolbar]'),source:{width:iframe.clientWidth,height:iframe.clientHeight},overflow:document.documentElement.scrollWidth>innerWidth};
+      return {width:innerWidth,height:innerHeight,controlFont:parseFloat(getComputedStyle(document.querySelector('[data-preview-device-toolbar] a')).fontSize),frame:box('[data-preview-frame-shell]'),canvas:box('[data-preview-canvas]'),toolbar:box('[data-preview-device-toolbar]'),source:{width:iframe.clientWidth,height:iframe.clientHeight},overflow:document.documentElement.scrollWidth>innerWidth};
     });
     assert.equal(result.overflow,false);
     assert.ok(Math.abs(result.frame.x+result.frame.width/2-result.canvas.x-result.canvas.width/2)<2);
     assert.ok(Math.abs(result.frame.y+result.frame.height/2-result.canvas.y-result.canvas.height/2)<2);
     assert.ok(result.frame.x>=0&&result.frame.y>=result.toolbar.bottom-1&&result.frame.right<=width+1&&result.frame.bottom<=height+1);
+    if(width>=768) {
+      assert.ok(result.frame.width<=result.canvas.width*.9+1);
+      assert.ok(result.frame.height<=result.canvas.height*.84+1);
+      assert.ok(result.frame.width/(result.source.width+20)<=1.25+.001);
+      assert.ok(result.toolbar.width<=576+1);
+      assert.ok(result.toolbar.height<=56);
+    }
+    assert.ok(result.controlFont<=15.75+.05);
+    const clippedControls=await page.locator('[data-preview-device-toolbar] a').evaluateAll(links=>links.filter(a=>{
+      const r=a.getBoundingClientRect(),h=a.closest('header').getBoundingClientRect();
+      const t=a.closest('header').querySelector('button').getBoundingClientRect();
+      return r.left<h.left||r.right>h.right||r.top<h.top||r.bottom>h.bottom||(r.left<t.right&&r.right>t.left&&r.top<t.bottom&&r.bottom>t.top);
+    }).map(a=>a.textContent));
+    assert.deepEqual(clippedControls,[],'toolbar controls remain readable and do not overlap the close handle');
     assert.deepEqual(result.source,device==='pc'?{width:1440,height:900}:device==='tablet'?{width:1180,height:820}:{width:390,height:844});
     assert.equal(await page.locator('[data-preview-fullscreen-control], [data-preview-edit-link]').count(),0);
     assert.equal(await page.locator('[data-preview-device-toolbar] [data-preview-call-toggle]').count(),0);
@@ -87,6 +115,17 @@ try {
   await detached.waitForFunction(()=>!document.fullscreenElement);
   await detached.close();
   console.log('detached fullscreen enter/exit passed');
+
+  await page.goto(`${base}/design-system`,{waitUntil:'domcontentloaded'});
+  const componentRules=page.locator('#wide-screen-components table');
+  await componentRules.waitFor({state:'visible'});
+  const componentText=await componentRules.innerText();
+  await page.waitForTimeout(500);
+  await page.getByRole('tab',{name:'기준·토큰',exact:true}).click();
+  const foundationRules=page.locator('#wide-screen-foundations table');
+  await foundationRules.waitFor({state:'visible'});
+  assert.equal(await foundationRules.innerText(),componentText);
+  console.log('shared wide rules in foundations and component library passed');
 
   for(const width of [390,820,1440,3440]) {
     await page.setViewportSize({width,height:900});
