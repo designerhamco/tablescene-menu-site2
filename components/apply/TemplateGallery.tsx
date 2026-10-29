@@ -111,7 +111,7 @@ export default function TemplateGallery({
     <div role="tabpanel" id={`${tabsId}-service-panel`} aria-labelledby={`${tabsId}-${product}`}>
       <Tabs ref={galleryStartRef} purpose="section" value={kind} onValueChange={value => selectKind(value as CatalogKind)} className="site-catalog-selection scroll-mt-24">
         {product !== "display" && (
-          <TabsList size="sm" aria-label="템플릿 종류 선택">
+          <TabsList size="md" aria-label="템플릿 종류 선택">
             {KIND_TABS.map(({ key, label }) => (
               <TabsTrigger key={key} value={key} id={`${tabsId}-${key}`} aria-controls={`${tabsId}-kind-panel`}>{label}</TabsTrigger>
             ))}
