@@ -208,3 +208,20 @@ export function newSiteSystemViolations(violations: SiteSystemViolation[], basel
     return occurrence > (baseline[item.file]?.[item.rule]?.filter(value => value === item.fingerprint).length ?? 0);
   });
 }
+
+/** Migrated/deleted legacy fragments must lose their allowance, so they cannot quietly return later. */
+export function staleSiteSystemAllowances(violations: SiteSystemViolation[], baseline: SiteSystemBaseline) {
+  const remaining = new Map<string, number>();
+  for (const item of violations) {
+    const key = `${item.file}:${item.rule}:${item.fingerprint}`;
+    remaining.set(key, (remaining.get(key) ?? 0) + 1);
+  }
+  const stale: string[] = [];
+  for (const [file, rules] of Object.entries(baseline)) for (const [rule, fingerprints] of Object.entries(rules)) for (const fingerprint of fingerprints) {
+    const key = `${file}:${rule}:${fingerprint}`;
+    const count = remaining.get(key) ?? 0;
+    if (count) remaining.set(key, count - 1);
+    else stale.push(key);
+  }
+  return stale;
+}

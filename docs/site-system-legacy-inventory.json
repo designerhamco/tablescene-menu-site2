@@ -429,11 +429,6 @@
       "78f263ec03d40202"
     ]
   },
-  "app/apply/page.tsx": {
-    "page-shell": [
-      "78f263ec03d40202"
-    ]
-  },
   "app/branding/goods-package/page.tsx": {
     "page-shell": [
       "78f263ec03d40202"
@@ -445,11 +440,6 @@
     ]
   },
   "app/design-system/page.tsx": {
-    "page-shell": [
-      "78f263ec03d40202"
-    ]
-  },
-  "app/faq/notices/page.tsx": {
     "page-shell": [
       "78f263ec03d40202"
     ]
@@ -580,11 +570,6 @@
     ]
   },
   "app/support/chat/page.tsx": {
-    "page-shell": [
-      "78f263ec03d40202"
-    ]
-  },
-  "app/templates/page.tsx": {
     "page-shell": [
       "78f263ec03d40202"
     ]

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { auditSiteSystem, collectSiteSystemFiles, isSiteSystemFile, newSiteSystemViolations, type SiteSystemBaseline } from "./site-system-audit";
+import { auditSiteSystem, collectSiteSystemFiles, isSiteSystemFile, newSiteSystemViolations, staleSiteSystemAllowances, type SiteSystemBaseline } from "./site-system-audit";
 
 const shell = "components/layout/SitePage.tsx";
 const header = "components/layout/SitePageHeader.tsx";
@@ -66,6 +66,7 @@ test("current site contains no new heading, shell, token or control exceptions",
   const baseline = JSON.parse(readFileSync("docs/site-system-legacy-inventory.json", "utf8")) as SiteSystemBaseline;
   const failures = newSiteSystemViolations(auditSiteSystem(collectSiteSystemFiles(process.cwd())), baseline);
   assert.deepEqual(failures.map(item => `${item.file}:${item.line} ${item.rule} ${item.detail}`), []);
+  assert.deepEqual(staleSiteSystemAllowances(auditSiteSystem(collectSiteSystemFiles(process.cwd())), baseline), []);
 });
 
 
@@ -78,4 +79,12 @@ test("all production build modes run the same design-system gate", () => {
   const { scripts } = JSON.parse(readFileSync("package.json", "utf8"));
   for (const hook of ["prebuild", "prebuild:turbo", "prebuild:debug-memory"]) assert.equal(scripts[hook], "npm run check:site-ui");
   for (const contract of ["check:site-system", "site-system-contract.test.ts", "site-typography-contract.test.ts", "site-control-states.test.ts", "public-accessibility-contrast.test.ts"]) assert.ok(scripts["check:site-ui"].includes(contract));
+});
+
+
+test("migrated legacy exceptions must be removed instead of leaving a reusable bypass", () => {
+  const old = audit([["components/OldView.tsx", '<h1>기존</h1>']]);
+  const baseline: SiteSystemBaseline = { "components/OldView.tsx": { "shared-heading": [old[0].fingerprint] } };
+  assert.deepEqual(staleSiteSystemAllowances(old, baseline), []);
+  assert.equal(staleSiteSystemAllowances([], baseline).length, 1);
 });
