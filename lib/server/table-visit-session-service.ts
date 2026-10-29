@@ -1,5 +1,4 @@
 import "server-only";
-import { orderSessionRpc } from "@/lib/server/order-session-rpc";
 import { CUSTOMER_ORDER_SECONDS, type OrderChannel } from "@/lib/order-session-policy";
 
 import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
@@ -163,7 +162,7 @@ export async function resolveTableVisitSession({
 
   if (tableError || !table) return null;
 
-  const access = await orderSessionRpc("resolve_order_visit_access", {p_menu_site_id: expectedMenuSiteId, p_session_id: session.id});
+  const access = await supabase.rpc("resolve_order_visit_access", {p_menu_site_id: expectedMenuSiteId, p_session_id: session.id});
   if (access.error || !access.data || typeof access.data !== "object") return null;
   const orderAccess = access.data as {channel?: unknown; orderExpiresAt?: unknown};
   if (orderAccess.channel !== "customer" && orderAccess.channel !== "terminal") return null;
@@ -255,7 +254,7 @@ export async function issueTableVisitSession({
 }
 
 export async function extendTableOrderAccess(visit: ResolvedTableVisitSession, rescan = false): Promise<ResolvedTableVisitSession> {
-  const {data, error} = await orderSessionRpc("extend_table_order_access", {
+  const {data, error} = await createAdminClient().rpc("extend_table_order_access", {
     p_menu_site_id: visit.menuSiteId, p_session_id: visit.id, p_rescan: rescan,
   });
   if (error || typeof data !== "string") throw new TableVisitSessionError("주문 이용 시간이 만료되었습니다. 테이블 QR을 다시 스캔해 주세요.");

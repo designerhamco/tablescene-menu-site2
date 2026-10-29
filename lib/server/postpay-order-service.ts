@@ -1,6 +1,5 @@
 import "server-only";
 import { normalizeOrderPhone } from "@/lib/order-session-policy";
-import { orderSessionRpc } from "@/lib/server/order-session-rpc";
 import { getAllowedCheckoutModes } from "@/lib/menu-order-settings";
 import { readMenuOrderSettings } from "@/lib/menu-order-settings";
 
@@ -107,17 +106,17 @@ export async function submitPostpayOrder({
   try { phone = channel === "terminal" || settings.customerPhone === "hidden" ? null : normalizeOrderPhone(input.notificationPhone); }
   catch { throw new PostpayOrderSubmissionError("휴대폰 번호를 확인해 주세요.", "INVALID_PHONE"); }
   if (channel === "customer" && settings.customerPhone === "required" && !phone) throw new PostpayOrderSubmissionError("휴대폰 번호를 입력해 주세요.", "INVALID_PHONE");
-  const { data, error } = await orderSessionRpc(
+  const { data, error } = await supabase.rpc(
     "submit_postpay_order_v3",
     {
       p_menu_site_id: input.menuSiteId,
       p_table_visit_session_id: tableSession.id,
       p_client_request_id: input.clientRequestId,
       // Supabase generated RPC arguments omit SQL parameter nullability.
-      p_request_text: input.requestText,
+      p_request_text: input.requestText as string,
       p_lines: input.lines,
-      p_notification_phone: phone,
-      p_repeat_order_id: input.repeatOrderId ?? null,
+      p_notification_phone: phone as string,
+      p_repeat_order_id: (input.repeatOrderId ?? null) as string,
     },
   );
 

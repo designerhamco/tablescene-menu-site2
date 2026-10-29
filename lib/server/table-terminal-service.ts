@@ -5,7 +5,6 @@ import { isTableManagementRuntimeEnabledForSite } from "@/lib/table-management-r
 import { normalizeMenuTableId } from "@/lib/menu-table-management";
 import { createTableVisitSessionMaterial, hashTableAccessToken } from "@/lib/table-qr-session-tokens";
 import { getPublicMenuPath } from "@/lib/menu-url";
-import {orderSessionRpc} from "@/lib/server/order-session-rpc";
 
 export async function registerTableTerminal(menuSiteIdValue: string, tableIdValue: string, userAgent: string, previousToken?:string) {
   const menuSiteId=normalizeMenuTableId(menuSiteIdValue),tableId=normalizeMenuTableId(tableIdValue);
@@ -20,7 +19,8 @@ export async function registerTableTerminal(menuSiteIdValue: string, tableIdValu
   ]);
   if (error || !table || !site?.slug || site.status!=="published") throw new Error("사용 중인 테이블과 공개 메뉴판이 필요합니다.");
   const material=createTableVisitSessionMaterial({userAgent,channel:"terminal"});
-  const inserted=await orderSessionRpc("register_table_terminal_visit",{p_menu_site_id:menuSiteId,p_table_id:table.id,p_token_hash:material.tokenHash,p_user_agent_hash:material.userAgentHash,p_previous_token_hash:previousToken?hashTableAccessToken(previousToken):null});
+  // Generated RPC arguments omit SQL parameter nullability; preserve SQL NULL.
+  const inserted=await db.rpc("register_table_terminal_visit",{p_menu_site_id:menuSiteId,p_table_id:table.id,p_token_hash:material.tokenHash,p_user_agent_hash:material.userAgentHash,p_previous_token_hash:(previousToken?hashTableAccessToken(previousToken):null) as string});
   if (inserted.error) throw new Error("공용 단말을 연결하지 못했습니다. 잠시 후 다시 시도해 주세요.");
   return {token:material.rawToken,expiresAt:material.expiresAt.toISOString(),path:getPublicMenuPath(site.slug)+"?mode=terminal"};
 }

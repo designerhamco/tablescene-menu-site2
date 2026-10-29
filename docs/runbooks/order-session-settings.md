@@ -2,7 +2,7 @@
 
 ## 적용 상태와 범위
 
-2026-10-29: 구현 및 로컬 검수 완료. 운영 SQL 적용·타입 재생성·운영 배포는 아직 실행하지 않았다. NICE AppPOS, 온라인 결제 승인, 카카오 연결 및 알림톡 발송은 포함하지 않는다.
+2026-10-29: 사용자 승인 후 아래 SQL 한 건의 운영 적용·공식 타입 재생성·임시 RPC 계약 어댑터 제거를 완료했다. 코드 배포와 운영 사후 검수는 진행 중이다. NICE AppPOS, 온라인 결제 승인, 카카오 연결 및 알림톡 발송은 포함하지 않는다. **이 SQL은 다시 실행하지 않는다.**
 
 이번 변경은 **주문 권한**, **미주문 장바구니**, **단말 연결**의 수명을 구분한다. 계산이 끝나 테이블 이용을 종료하는 업무 처리는 이 타이머들과 별개다. 실제 결제 결과에 따른 테이블 이용 종료·다음 손님 내역 초기화는 NICE 연동 단계에서 연결해야 한다. 현재 공용 단말 연결을 결제 완료에 따라 자동 종료하거나, 장바구니 초기화를 계산 완료로 처리하지 않는다. 기존 직원의 외부 결제 완료 기록 기능도 그대로 유지한다.
 
@@ -58,3 +58,13 @@
 - `npx tsc --noEmit`, `npm run lint`, `ARTIMENU_BUILD_DIR=.next-order-session-build npm run build`. 별도 빌드 디렉터리를 사용하여 기존 개발 서버의 `.next`를 덮어쓰지 않는다.
 
 통합 검수는 실제 NICE/카카오/PG 연동 또는 여러 DB 연결의 동시 부하 검증을 대신하지 않는다. 실제 운영 SQL·실주문·결제·발송은 이 검수에서 실행하지 않았다.
+
+## 승인 후 운영 SQL 적용 — 2026-10-29 KST
+
+- 승인 문구: “준비한 SQL 한 건 적용하고 배포까지 진행해줘. 배포 후 정상 동작하는지도 확인해줘.”
+- 연결된 운영 프로젝트와 신규 함수/컬럼/트리거/인덱스 부재를 사전 확인했다. `supabase db query --linked --file supabase/migrations/20261029001153_add_order_session_settings.sql`로 승인 원문 한 건만 1회 실행했다. 일괄 migration/db push는 사용하지 않았다.
+- 적용 파일 SHA-256: `0a52a992e2c4507eaad24ba5723bbeb3237275eec09a2d8f7fc5ac6d6c90f3de`. 사후 신규 함수 6개 본문이 승인 원문과 일치하고 모두 security invoker/빈 search_path/service_role 전용 실행이다. 신규 컬럼 4개·트리거·인덱스를 확인했다.
+- 16개 표 1,493행의 기존 컬럼 지문과 건수 동일. 신규 컬럼을 제외한 이전 데이터 전체, 주문 V2 본문/owner/ACL, 관련 7개 표의 RLS/강제 RLS/ACL 모두 유지했다. 주문·호출 설정과 운영 대상 목록을 변경하지 않았다.
+- Security Advisor 오류 0개, 기존 경고 22개 유지, 신규 진단 없음. 실제 주문·방문·결제·발송을 만들지 않았다.
+- `npm run supabase:types`로 운영 스키마를 재생성했다. 신규 계약 53줄만 추가됐으며 임시 `order-session-rpc.ts`를 제거하고 생성 타입의 직접 RPC 호출로 교체했다. SQL NULL은 생성기가 누락하는 인자 nullability에 한해 좁은 단언으로 보존한다.
+- 증빙: `/private/tmp/order-session-production-before.json`, `order-session-production-apply.json`, `order-session-production-after.json`, `order-session-production-verification.json`, `order-session-advisors-before.json`, `order-session-advisors-after.json`. 원문 고객 데이터/환경변수 값을 보고서에 출력하지 않았다.

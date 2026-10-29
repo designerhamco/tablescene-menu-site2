@@ -998,7 +998,9 @@ export type Database = {
           id: string
           menu_site_id: string
           menu_table_id: string
+          notification_phone: string | null
           order_number: number
+          order_signature: Json | null
           payment_completed_at: string | null
           payment_completed_by: string | null
           payment_method: string | null
@@ -1024,7 +1026,9 @@ export type Database = {
           id?: string
           menu_site_id: string
           menu_table_id: string
+          notification_phone?: string | null
           order_number?: never
+          order_signature?: Json | null
           payment_completed_at?: string | null
           payment_completed_by?: string | null
           payment_method?: string | null
@@ -1050,7 +1054,9 @@ export type Database = {
           id?: string
           menu_site_id?: string
           menu_table_id?: string
+          notification_phone?: string | null
           order_number?: never
+          order_signature?: Json | null
           payment_completed_at?: string | null
           payment_completed_by?: string | null
           payment_method?: string | null
@@ -3434,34 +3440,40 @@ export type Database = {
       }
       table_visit_sessions: {
         Row: {
+          access_channel: string
           created_at: string
           expires_at: string
           id: string
           last_seen_at: string
           menu_site_id: string
           menu_table_id: string
+          order_expires_at: string | null
           revoked_at: string | null
           token_hash: string
           user_agent_hash: string
         }
         Insert: {
+          access_channel?: string
           created_at?: string
           expires_at: string
           id?: string
           last_seen_at?: string
           menu_site_id: string
           menu_table_id: string
+          order_expires_at?: string | null
           revoked_at?: string | null
           token_hash: string
           user_agent_hash: string
         }
         Update: {
+          access_channel?: string
           created_at?: string
           expires_at?: string
           id?: string
           last_seen_at?: string
           menu_site_id?: string
           menu_table_id?: string
+          order_expires_at?: string | null
           revoked_at?: string | null
           token_hash?: string
           user_agent_hash?: string
@@ -3619,6 +3631,14 @@ export type Database = {
           skipped_reason: string
         }[]
       }
+      extend_table_order_access: {
+        Args: {
+          p_menu_site_id: string
+          p_rescan: boolean
+          p_session_id: string
+        }
+        Returns: string
+      }
       grant_ai_account_credits: {
         Args: {
           p_context_menu_site_id: string
@@ -3720,6 +3740,16 @@ export type Database = {
         Args: { p_menu_site_id: string; p_table_visit_session_id: string }
         Returns: Json
       }
+      register_table_terminal_visit: {
+        Args: {
+          p_menu_site_id: string
+          p_previous_token_hash: string
+          p_table_id: string
+          p_token_hash: string
+          p_user_agent_hash: string
+        }
+        Returns: string
+      }
       replace_menu_call_items: {
         Args: { p_items: Json; p_menu_site_id: string }
         Returns: {
@@ -3780,6 +3810,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      resolve_order_visit_access: {
+        Args: { p_menu_site_id: string; p_session_id: string }
+        Returns: Json
+      }
       save_menu_page_content_order: {
         Args: {
           p_blocks: Json
@@ -3811,6 +3845,25 @@ export type Database = {
           p_client_request_id: string
           p_lines: Json
           p_menu_site_id: string
+          p_request_text: string
+          p_table_visit_session_id: string
+        }
+        Returns: {
+          is_duplicate: boolean
+          order_id: string
+          order_number: number
+          order_status: string
+          payment_status: string
+          total_amount: number
+        }[]
+      }
+      submit_postpay_order_v3: {
+        Args: {
+          p_client_request_id: string
+          p_lines: Json
+          p_menu_site_id: string
+          p_notification_phone: string
+          p_repeat_order_id: string
           p_request_text: string
           p_table_visit_session_id: string
         }
