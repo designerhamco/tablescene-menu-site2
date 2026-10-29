@@ -40,11 +40,6 @@
   padding-left: 1.25rem;
   padding-right: 3.75rem;
 }
-.searchResults {
-  margin-top: 3rem;
-  min-width: 0;
-  text-align: left;
-}
 .searchResultsHeader {
   display: flex;
   align-items: center;
@@ -217,3 +212,10 @@
     grid-template-columns: 1fr;
   }
 }
+
+.listTitle { margin-bottom: 1.5rem; }
+.latestNotices { margin-top: var(--site-section-space); }
+.sectionHeader { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+.sectionHeader h2 { min-width: 0; }
+.sectionHeader > a { flex-shrink: 0; }
+.noticeState { border-radius: var(--ui-radius-surface); background: var(--ui-surface-muted); color: var(--ui-text-muted); padding: 2rem 1rem; font-size: var(--type-body-sm-size); line-height: 1.6; }

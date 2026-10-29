@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import { DETAILED_FAQ_DATA, FAQItem } from "@/app/components/common/FAQ";
 import {
   ANNOUNCEMENT_CATEGORIES,
@@ -11,7 +11,6 @@ import {
   getAnnouncementCategory,
   type AnnouncementSummary,
 } from "@/lib/announcements";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import styles from "./support.module.css";
 import { SitePagination } from "@/app/components/ui/site-pagination";
 import { ContentList, ContentListItem } from "@/app/components/ui/content-list";
@@ -26,12 +25,13 @@ type AnnouncementList = {
 
 export default function SupportCenter({
   supportActions,
-  initialTab = "faq",
+  view = "faq",
+  latestNotices,
 }: {
-  supportActions: React.ReactNode;
-  initialTab?: "faq" | "notices";
+  supportActions?: React.ReactNode;
+  view?: "faq" | "notices";
+  latestNotices?: React.ReactNode;
 }) {
-  const [tab, setTab] = useState<"faq" | "notices">(initialTab);
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -42,7 +42,7 @@ export default function SupportCenter({
     count: 0,
     unavailable: false,
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(view === "notices");
   const [retry, setRetry] = useState(0);
   const uid = useId();
   const questions = useMemo(
@@ -70,7 +70,7 @@ export default function SupportCenter({
   );
 
   useEffect(() => {
-    if (tab !== "notices") return;
+    if (view !== "notices") return;
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       setLoading(true);
@@ -97,14 +97,14 @@ export default function SupportCenter({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [tab, submittedQuery, category, page, retry]);
+  }, [view, submittedQuery, category, page, retry]);
 
   function submitSearch(value: string) {
     setSubmittedQuery(value.trim());
     setCategory("all");
     setPage(1);
     setOpenQuestion(null);
-    if (tab === "notices") setLoading(true);
+    if (view === "notices") setLoading(true);
     setRetry((value) => value + 1);
   }
 
@@ -114,159 +114,146 @@ export default function SupportCenter({
     document.getElementById(`${uid}-search`)?.focus();
   }
 
-  function changeTab(value: "faq" | "notices") {
-    setTab(value);
-    if (value === "notices") setLoading(true);
-    setCategory("all");
-    setPage(1);
-    setOpenQuestion(null);
-  }
-
   const categories =
-    tab === "faq"
+    view === "faq"
       ? DETAILED_FAQ_DATA.map((group) => ({
           value: group.category,
           label: group.category,
         }))
       : ANNOUNCEMENT_CATEGORIES;
   const content = (
-    <Tabs purpose="page" value={tab} onValueChange={value => changeTab(value as "faq" | "notices")}>
-      <TabsList size="lg" className="mx-auto" aria-label="고객센터 메뉴">
-        <TabsTrigger value="notices">공지사항</TabsTrigger>
-        <TabsTrigger value="faq">FAQ</TabsTrigger>
-      </TabsList>
-      <TabsContent value={tab} className="pt-6">
-        <h2 className="type-section-title sr-only">
-          {tab === "faq" ? "자주 묻는 질문" : "공지사항"}
-        </h2>
-        <CategoryFilter
-          label="주제 선택"
-          value={category}
-          options={[{ value: "all", label: "전체" }, ...categories]}
-          onValueChange={value => {
-            setCategory(value);
-            setPage(1);
-            setOpenQuestion(null);
-          }}
-        />
-        {tab === "faq" ? (
-          <>
-            <p className={styles.resultCount} role="status">
-              {submittedQuery ? "검색 결과" : "전체"} {filtered.length}개
-            </p>
-            {shownQuestions.length ? (
-              <div className={styles.rows}>
-                {shownQuestions.map((item) => (
-                  <div key={item.question} className={styles.faqRow}>
-                    <span className={styles.category}>{item.category}</span>
-                    <FAQItem
-                      item={item}
-                      isOpen={openQuestion === item.question}
-                      onToggle={() =>
-                        setOpenQuestion(
-                          openQuestion === item.question
-                            ? null
-                            : item.question,
-                        )
-                      }
-                    />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className={styles.empty}>
-                <h3 className="type-content-title">검색 결과가 없습니다</h3>
-                <p className="site-body-sm">
-                  다른 검색어를 입력하거나 1:1 문의를 이용해 주세요.
-                </p>
-              </div>
-            )}
-            <SitePagination
-              currentPage={page}
-              totalPages={faqPages}
-              onSelect={(value) => {
-                setPage(value);
-                setOpenQuestion(null);
-              }}
-            />
-          </>
-        ) : (
-          <div aria-busy={loading}>
-            {loading ? (
-              <p className={styles.empty} role="status">
-                공지사항을 불러오는 중입니다.
+    <section aria-label={view === "faq" ? "자주 묻는 질문" : "공지사항 목록"}>
+      <h2 className={view === "faq" ? `type-section-title ${styles.listTitle}` : "sr-only"}>
+        {view === "faq" ? "자주 묻는 질문" : "공지사항"}
+      </h2>
+      <CategoryFilter
+        label="주제 선택"
+        value={category}
+        options={[{ value: "all", label: "전체" }, ...categories]}
+        onValueChange={value => {
+          setCategory(value);
+          setPage(1);
+          setOpenQuestion(null);
+        }}
+      />
+      {view === "faq" ? (
+        <>
+          <p className={styles.resultCount} role="status">
+            {submittedQuery ? "검색 결과" : "전체"} {filtered.length}개
+          </p>
+          {shownQuestions.length ? (
+            <div className={styles.rows}>
+              {shownQuestions.map((item) => (
+                <div key={item.question} className={styles.faqRow}>
+                  <span className={styles.category}>{item.category}</span>
+                  <FAQItem
+                    item={item}
+                    isOpen={openQuestion === item.question}
+                    onToggle={() =>
+                      setOpenQuestion(
+                        openQuestion === item.question
+                          ? null
+                          : item.question,
+                      )
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={styles.empty}>
+              <h3 className="type-content-title">검색 결과가 없습니다</h3>
+              <p className="site-body-sm">
+                다른 검색어를 입력하거나 1:1 문의를 이용해 주세요.
               </p>
-            ) : notices.unavailable ? (
-              <div className={styles.empty} role="status">
-                <h3 className="type-content-title">
-                  공지사항을 불러오지 못했습니다
-                </h3>
-                <p className="site-body-sm">잠시 후 다시 시도해 주세요.</p>
-                <button
-                  className="site-button site-button-secondary"
-                  type="button"
-                  onClick={() => setRetry((value) => value + 1)}
-                >
-                  다시 시도
-                </button>
-              </div>
-            ) : notices.items.length ? (
-              <>
-                <p className={styles.resultCount} role="status">
-                  {submittedQuery ? "검색 결과" : "전체"} {notices.count}개
-                </p>
-                <ContentList label="공지사항 목록">
-                  {notices.items.map(notice => <ContentListItem key={notice.id} href={`/faq/notices/${notice.id}`} title={notice.title} label={notice.pinned ? "중요 안내" : getAnnouncementCategory(notice.category)} date={formatAnnouncementDate(notice.published_at)} dateTime={notice.published_at ?? undefined} />)}
-                </ContentList>
-                <SitePagination
-                  currentPage={page}
-                  totalPages={Math.ceil(notices.count / ANNOUNCEMENT_PAGE_SIZE)}
-                  onSelect={setPage}
-                />
-              </>
-            ) : (
-              <div className={styles.empty}>
-                <h3 className="type-content-title">
-                  {submittedQuery || category !== "all"
-                    ? "조건에 맞는 공지사항이 없습니다"
-                    : "등록된 공지사항이 없습니다"}
-                </h3>
-                <p className="site-body-sm">
-                  새로운 소식이 있으면 이곳에서 안내하겠습니다.
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-      </TabsContent>
-    </Tabs>
+            </div>
+          )}
+          <SitePagination
+            currentPage={page}
+            totalPages={faqPages}
+            onSelect={(value) => {
+              setPage(value);
+              setOpenQuestion(null);
+            }}
+          />
+        </>
+      ) : (
+        <div aria-busy={loading}>
+          {loading ? (
+            <p className={styles.empty} role="status">
+              공지사항을 불러오는 중입니다.
+            </p>
+          ) : notices.unavailable ? (
+            <div className={styles.empty} role="status">
+              <h3 className="type-content-title">
+                공지사항을 불러오지 못했습니다
+              </h3>
+              <p className="site-body-sm">잠시 후 다시 시도해 주세요.</p>
+              <button
+                className="site-button site-button-secondary"
+                type="button"
+                onClick={() => setRetry((value) => value + 1)}
+              >
+                다시 시도
+              </button>
+            </div>
+          ) : notices.items.length ? (
+            <>
+              <p className={styles.resultCount} role="status">
+                {submittedQuery ? "검색 결과" : "전체"} {notices.count}개
+              </p>
+              <ContentList label="공지사항 목록">
+                {notices.items.map(notice => <ContentListItem key={notice.id} href={`/faq/notices/${notice.id}`} title={notice.title} label={notice.pinned ? "중요 안내" : getAnnouncementCategory(notice.category)} date={formatAnnouncementDate(notice.published_at)} dateTime={notice.published_at ?? undefined} />)}
+              </ContentList>
+              <SitePagination
+                currentPage={page}
+                totalPages={Math.ceil(notices.count / ANNOUNCEMENT_PAGE_SIZE)}
+                onSelect={setPage}
+              />
+            </>
+          ) : (
+            <div className={styles.empty}>
+              <h3 className="type-content-title">
+                {submittedQuery || category !== "all"
+                  ? "조건에 맞는 공지사항이 없습니다"
+                  : "등록된 공지사항이 없습니다"}
+              </h3>
+              <p className="site-body-sm">
+                새로운 소식이 있으면 이곳에서 안내하겠습니다.
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
   );
 
   return (
     <>
       <section className={styles.hero} aria-labelledby={`${uid}-title`}>
         <div className="site-container">
-          <h1 id={`${uid}-title`} className="type-page-title">필요한 도움을 찾아보세요</h1>
+          {view === "notices" && <Link href="/faq" className="site-button site-button-link"><ArrowLeft size={18} aria-hidden="true" />고객센터로 돌아가기</Link>}
+          <h1 id={`${uid}-title`} className="type-page-title">{view === "faq" ? "필요한 도움을 찾아보세요" : "공지사항"}</h1>
           <p className="type-page-description text-zinc-500">
-            처음 시작하는 방법부터 매장 운영까지, 궁금한 내용을 안내합니다.
+            {view === "faq" ? "처음 시작하는 방법부터 매장 운영까지, 궁금한 내용을 안내합니다." : "아티메뉴의 서비스 소식과 업데이트를 확인하세요."}
           </p>
           <form
             role="search"
-            aria-label="고객센터 검색"
+            aria-label={view === "faq" ? "고객센터 검색" : "공지사항 검색"}
             className={styles.search}
             onSubmit={(event) => {
               event.preventDefault();
               submitSearch(query);
             }}
           >
-            <label className="sr-only" htmlFor={`${uid}-search`}>고객센터 검색</label>
+            <label className="sr-only" htmlFor={`${uid}-search`}>{view === "faq" ? "고객센터 검색" : "공지사항 검색"}</label>
             <input
               data-field-size="search"
               className="site-field site-field-search"
               id={`${uid}-search`}
               type="search"
               enterKeyHint="search"
-              placeholder="예: 메뉴판 만들기, QR, 결제"
+              placeholder={view === "faq" ? "예: 메뉴판 만들기, QR, 결제" : "공지 제목과 내용 검색"}
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={(event) => {
@@ -282,22 +269,20 @@ export default function SupportCenter({
             <Link href="/mypage/inquiries">1:1 문의하기</Link>
           </p>
           {supportActions}
-          {submittedQuery && (
-            <section className={styles.searchResults} aria-label="고객센터 검색 결과">
-              <div className={styles.searchResultsHeader}>
-                <h2 className="type-subsection-title">“{submittedQuery}” 검색 결과</h2>
-                <Button type="button" variant="outline" onClick={clearSearch}>검색 해제</Button>
-              </div>
-              {content}
-            </section>
-          )}
         </div>
       </section>
-      {!submittedQuery && (
-        <section className={`site-page-spacing ${styles.content}`} aria-label="고객지원 안내">
-          <div className="site-container">{content}</div>
-        </section>
-      )}
+      <section className={`site-page-spacing ${styles.content}`} aria-label="고객지원 안내">
+        <div className="site-container">
+          {submittedQuery && (
+            <div className={styles.searchResultsHeader}>
+              <h2 className="type-subsection-title">“{submittedQuery}” 검색 결과</h2>
+              <Button type="button" variant="outline" onClick={clearSearch}>검색 해제</Button>
+            </div>
+          )}
+          {content}
+          {latestNotices ? <div className={styles.latestNotices}>{latestNotices}</div> : null}
+        </div>
+      </section>
     </>
   );
 }
