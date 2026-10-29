@@ -1,50 +1,24 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { DETAILED_FAQ_DATA, FAQItem } from "@/app/components/common/FAQ";
-import {
-  ANNOUNCEMENT_CATEGORIES,
-  ANNOUNCEMENT_PAGE_SIZE,
-  formatAnnouncementDate,
-  getAnnouncementCategory,
-  type AnnouncementSummary,
-} from "@/lib/announcements";
 import styles from "./support.module.css";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import { SitePagination } from "@/app/components/ui/site-pagination";
-import { ContentList, ContentListItem } from "@/app/components/ui/content-list";
+import { ContentList } from "@/app/components/ui/content-list";
 import { CategoryFilter } from "@/app/components/ui/category-filter";
 import { Button } from "@/app/components/ui/button";
 
 const FAQ_PAGE_SIZE = 5;
 
-type AnnouncementList = {
-  items: AnnouncementSummary[];
-  count: number;
-  unavailable: boolean;
-};
-
-export default function SupportCenter({
-  supportActions,
-  view = "faq",
-}: {
-  supportActions?: React.ReactNode;
-  view?: "faq" | "notices";
-}) {
+export default function SupportCenter({ supportActions }: { supportActions?: React.ReactNode }) {
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [page, setPage] = useState(1);
   const [openQuestion, setOpenQuestion] = useState<string | null>(null);
-  const [notices, setNotices] = useState<AnnouncementList>({
-    items: [],
-    count: 0,
-    unavailable: false,
-  });
-  const [loading, setLoading] = useState(view === "notices");
-  const [retry, setRetry] = useState(0);
   const uid = useId();
   const questions = useMemo(
     () =>
@@ -70,43 +44,11 @@ export default function SupportCenter({
     page * FAQ_PAGE_SIZE,
   );
 
-  useEffect(() => {
-    if (view !== "notices") return;
-    const controller = new AbortController();
-    const timer = window.setTimeout(async () => {
-      setLoading(true);
-      try {
-        const params = new URLSearchParams({
-          q: submittedQuery,
-          category,
-          page: String(page),
-        });
-        const response = await fetch(`/api/support/announcements?${params}`, {
-          signal: controller.signal,
-        });
-        if (!response.ok) throw new Error("unavailable");
-        const result: AnnouncementList = await response.json();
-        if (!controller.signal.aborted) setNotices(result);
-      } catch {
-        if (!controller.signal.aborted)
-          setNotices({ items: [], count: 0, unavailable: true });
-      } finally {
-        if (!controller.signal.aborted) setLoading(false);
-      }
-    }, 0);
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [view, submittedQuery, category, page, retry]);
-
   function submitSearch(value: string) {
     setSubmittedQuery(value.trim());
     setCategory("all");
     setPage(1);
     setOpenQuestion(null);
-    if (view === "notices") setLoading(true);
-    setRetry((value) => value + 1);
   }
 
   function clearSearch() {
@@ -115,17 +57,11 @@ export default function SupportCenter({
     document.getElementById(`${uid}-search`)?.focus();
   }
 
-  const categories =
-    view === "faq"
-      ? DETAILED_FAQ_DATA.map((group) => ({
-          value: group.category,
-          label: group.category,
-        }))
-      : ANNOUNCEMENT_CATEGORIES;
+  const categories = DETAILED_FAQ_DATA.map(group => ({ value: group.category, label: group.category }));
   const content = (
-    <section aria-label={view === "faq" ? "자주 묻는 질문" : "공지사항 목록"}>
+    <section aria-label="자주 묻는 질문">
       <h2 className="type-section-title sr-only">
-        {view === "faq" ? "질문 목록" : "공지사항 목록"}
+        질문 목록
       </h2>
       <CategoryFilter
         label="주제 선택"
@@ -137,8 +73,7 @@ export default function SupportCenter({
           setOpenQuestion(null);
         }}
       />
-      {view === "faq" ? (
-        <>
+      <>
           <p className={styles.resultCount} role="status">
             {submittedQuery ? "검색 결과" : "전체"} {filtered.length}개
           </p>
@@ -178,54 +113,7 @@ export default function SupportCenter({
             }}
           />
         </>
-      ) : (
-        <div aria-busy={loading}>
-          {loading ? (
-            <p className={styles.empty} role="status">
-              공지사항을 불러오는 중입니다.
-            </p>
-          ) : notices.unavailable ? (
-            <div className={styles.empty} role="status">
-              <h3 className="type-content-title">
-                공지사항을 불러오지 못했습니다
-              </h3>
-              <p className="site-body-sm">잠시 후 다시 시도해 주세요.</p>
-              <button
-                className="site-button site-button-secondary"
-                type="button"
-                onClick={() => setRetry((value) => value + 1)}
-              >
-                다시 시도
-              </button>
-            </div>
-          ) : notices.items.length ? (
-            <>
-              <p className={styles.resultCount} role="status">
-                {submittedQuery ? "검색 결과" : "전체"} {notices.count}개
-              </p>
-              <ContentList label="공지사항 목록">
-                {notices.items.map(notice => <ContentListItem key={notice.id} href={`/faq/notices/${notice.id}`} title={notice.title} label={notice.pinned ? "중요 안내" : getAnnouncementCategory(notice.category)} date={formatAnnouncementDate(notice.published_at)} dateTime={notice.published_at ?? undefined} />)}
-              </ContentList>
-              <SitePagination
-                currentPage={page}
-                totalPages={Math.ceil(notices.count / ANNOUNCEMENT_PAGE_SIZE)}
-                onSelect={setPage}
-              />
-            </>
-          ) : (
-            <div className={styles.empty}>
-              <h3 className="type-content-title">
-                {submittedQuery || category !== "all"
-                  ? "조건에 맞는 공지사항이 없습니다"
-                  : "등록된 공지사항이 없습니다"}
-              </h3>
-              <p className="site-body-sm">
-                새로운 소식이 있으면 이곳에서 안내하겠습니다.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
+
     </section>
   );
 
@@ -233,24 +121,24 @@ export default function SupportCenter({
     <>
       <section className={`site-page-spacing-compact ${styles.hero}`} aria-labelledby={`${uid}-title`}>
         <div className="site-container">
-          <SitePageHeader id={`${uid}-title`} title={view === "faq" ? "자주 묻는 질문" : "공지사항"} description={view === "faq" ? "메뉴판 만들기부터 매장 운영까지, 궁금한 내용을 찾아보세요." : "아티메뉴의 서비스 소식과 업데이트를 확인하세요."} />
+          <SitePageHeader id={`${uid}-title`} title="자주 묻는 질문" description="메뉴판 만들기부터 매장 운영까지, 궁금한 내용을 찾아보세요." />
           <form
             role="search"
-            aria-label={view === "faq" ? "고객센터 검색" : "공지사항 검색"}
+            aria-label="고객센터 검색"
             className={styles.search}
             onSubmit={(event) => {
               event.preventDefault();
               submitSearch(query);
             }}
           >
-            <label className="sr-only" htmlFor={`${uid}-search`}>{view === "faq" ? "고객센터 검색" : "공지사항 검색"}</label>
+            <label className="sr-only" htmlFor={`${uid}-search`}>고객센터 검색</label>
             <input
               data-field-size="search"
               className="site-field site-field-search"
               id={`${uid}-search`}
               type="search"
               enterKeyHint="search"
-              placeholder={view === "faq" ? "예: 메뉴판 만들기, QR, 결제" : "공지 제목과 내용 검색"}
+              placeholder="예: 메뉴판 만들기, QR, 결제"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={(event) => {

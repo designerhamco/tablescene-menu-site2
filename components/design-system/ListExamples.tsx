@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { BoardList } from "@/app/components/ui/board-list";
 import { ArticleNavigation, ContentList, ContentListItem } from "@/app/components/ui/content-list";
 import { SitePagination } from "@/app/components/ui/site-pagination";
 import { Button } from "@/app/components/ui/button";
@@ -15,9 +16,10 @@ export default function ListExamples() {
       <div className={styles.buttonRow}><Button className="site-button-header" shape="pill" asChild><Link href="/apply">헤더 · 만들기</Link></Button><Button asChild><Link href="/guides">본문 · 가이드 보기</Link></Button><Button variant="outline">폼 · 취소</Button></div>
     </section>
     <section className={styles.section}>
-      <div className={styles.heading}><h2 id="list-patterns" className="type-section-title">게시글 목록과 페이지 번호</h2><p className="type-body text-zinc-600">FAQ와 공지 목록은 같은 옅은 회색 구분선과 행 여백을 사용하고 제목·유형·날짜를 정렬합니다. 좁은 화면에서는 제목을 다음 줄로 옮기며, 선택한 페이지는 옅은 원형 배경으로 표시합니다.</p></div>
-      <p className="type-body-sm text-zinc-600">고객센터는 FAQ 5개, 공지 전체 목록 10개씩 페이지를 나누며, FAQ 아래 최신 공지는 최대 3개를 표시합니다.</p>
+      <div className={styles.heading}><h2 id="list-patterns" className="type-section-title">게시글 목록과 페이지 번호</h2><p className="type-body text-zinc-600">FAQ와 공지 게시판은 공통 글자·옅은 구분선·포커스 규칙을 사용합니다. 공지 게시판은 번호·제목·등록일을 정렬하고 모바일에서는 번호를 숨깁니다. 선택한 페이지는 검정 사각형으로 표시합니다.</p></div>
+      <p className="type-body-sm text-zinc-600">FAQ는 5개, 공지는 독립 게시판에서 10개씩 페이지를 나눕니다. 공지 유형 선택과 작은 검색창은 목록 위 오른쪽에 배치합니다.</p>
       <ContentList label="게시글 목록 예시"><ContentListItem href="/faq/notices" label="서비스 안내" title="아티메뉴를 처음 사용하는 사장님을 위한 안내" date="2026. 10. 26." dateTime="2026-10-26" /><ContentListItem href="/faq/notices" label="업데이트" title="매장에 맞는 메뉴판 디자인을 더 쉽게 찾는 방법" date="2026. 10. 23." dateTime="2026-10-23" /></ContentList>
+      <BoardList label="공지 게시판 예시" entries={[{id:"intro",number:"공지",href:"/faq/notices",title:"아티메뉴 서비스 이용 안내",date:"2026. 10. 26.",dateTime:"2026-10-26"},{id:"update",number:1,href:"/faq/notices",title:"새로운 디자인과 업데이트를 확인하세요",date:"2026. 10. 23.",dateTime:"2026-10-23"}]} />
       <SitePagination currentPage={page} totalPages={10} onSelect={setPage} label="게시글 페이지 예시" />
       <p className="type-body-sm text-zinc-600" role="status">현재 {page}페이지 · 예시에서는 페이지 선택만 변경됩니다.</p>
     </section>
