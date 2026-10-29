@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import {NextRequest} from 'next/server.js';
 import {hashTableAccessToken,TABLE_VISIT_SESSION_COOKIE} from '../lib/table-qr-session-tokens.ts';
 
-export async function verifyOrderSessions({q,basic,table,other,item,option,services,ua,session,settings}) {
+export async function verifyOrderSessions({q,basic,table,otherTable,other,item,option,services,ua,session,settings}) {
   let count=0;const check=(a,b)=>{assert.deepEqual(a,b);count++;};
   const reject=async(fn,pattern)=>{await assert.rejects(fn,pattern);count++;};
   const prefs={table_order:{...settings.table_order,customerPhone:'required',customerCheckout:'both',terminalOrderEnabled:true}};
@@ -58,6 +58,62 @@ export async function verifyOrderSessions({q,basic,table,other,item,option,servi
   check((await q('select notification_phone from menu_customer_orders where id=$1',[terminalOrder.orderId]))[0].notification_phone,null);
   const reused=await services.visits.issueTableVisitSession({tableToken:qr,existingSessionToken:terminal.token,userAgent:ua});
   check(reused.channel,'terminal');check(reused.id,terminal.id);
+  // Rolling connection renewal retains the same visit, cookie token, and received orders.
+  const keepalive={menuSiteId:basic,intent:'terminal-keepalive'};
+  const unchangedOrders=await q('select * from menu_customer_orders order by id');
+  const terminalIdentity=(await q('select id,menu_site_id,menu_table_id,token_hash,user_agent_hash,created_at from table_visit_sessions where id=$1',[terminal.id]))[0];
+  const freshExpiry=(await q('select expires_at from table_visit_sessions where id=$1',[terminal.id]))[0].expires_at;
+  let heartbeat=await services.orderSession.POST(request(terminal,'order-session','POST',keepalive));
+  check(heartbeat.status,200);check((await heartbeat.json()).channel,'terminal');
+  check((await q('select expires_at from table_visit_sessions where id=$1',[terminal.id]))[0].expires_at,freshExpiry);
+  // The initial registration is older than 30 days, but recent use can keep it alive.
+  await q("update table_visit_sessions set created_at=now()-interval '45 days',last_seen_at=now(),expires_at=now()+interval '1 hour' where id=$1",[terminal.id]);
+  const priorCreated=(await q('select created_at from table_visit_sessions where id=$1',[terminal.id]))[0].created_at;
+  const beforeRead=(await q('select expires_at from table_visit_sessions where id=$1',[terminal.id]))[0].expires_at;
+  check((await services.orderSession.GET(request(terminal,'order-session?menuSiteId='+basic))).status,200);
+  check((await q('select expires_at from table_visit_sessions where id=$1',[terminal.id]))[0].expires_at,beforeRead);
+  heartbeat=await services.orderSession.POST(request(terminal,'order-session','POST',keepalive));
+  check(heartbeat.status,200);const refreshed=await heartbeat.json();
+  check(Date.parse(refreshed.expiresAt)>Date.now()+29*86400000,true);
+  const cookie=heartbeat.headers.get('set-cookie');
+  check(cookie.includes(TABLE_VISIT_SESSION_COOKIE+'='+terminal.token),true);
+  for(const flag of ['HttpOnly','Secure','SameSite=lax','Path=/'])check(cookie.includes(flag),true);
+  check(heartbeat.headers.get('cache-control'),'no-store');check(heartbeat.headers.get('vary'),'Cookie');
+  const renewedRow=(await q('select * from table_visit_sessions where id=$1',[terminal.id]))[0];
+  check(renewedRow.created_at,priorCreated);check(renewedRow.id,terminalIdentity.id);
+  for(const key of ['menu_site_id','menu_table_id','token_hash','user_agent_hash'])check(renewedRow[key],terminalIdentity[key]);
+  check(await q('select * from menu_customer_orders order by id'),unchangedOrders);
+  check((await services.api.GET(request(terminal,'orders?menuSiteId='+basic))).status,200);
+  check((await services.orderSession.POST(request(a,'order-session','POST',keepalive))).status,401);
+  check((await services.orderSession.POST(request(terminal,'order-session','POST',keepalive,'https://evil.test'))).status,403);
+  check((await services.orderSession.POST(request(null,'order-session','POST',keepalive))).status,401);
+  const wrongUa=request(terminal,'order-session','POST',keepalive);wrongUa.headers.set('user-agent','wrong-browser');
+  check((await services.orderSession.POST(wrongUa)).status,401);
+  const priorAccess=globalThis.__visitAccess;globalThis.__visitAccess={canViewPublic:false,planType:'business_basic'};
+  const blocked=await services.orderSession.POST(request(terminal,'order-session','POST',keepalive));
+  check(blocked.status,409);check(blocked.headers.has('set-cookie'),false);globalThis.__visitAccess=priorAccess;
+  // A competing refresh wins without shortening the newer expiry or changing the visit.
+  await q("update table_visit_sessions set expires_at=now()+interval '1 hour',last_seen_at=now() where id=$1",[terminal.id]);
+  globalThis.__visitBeforeUpdate=async()=>q("update table_visit_sessions set expires_at=clock_timestamp()+interval '30 days',last_seen_at=clock_timestamp() where id=$1",[terminal.id]);
+  const competing=await services.orderSession.POST(request(terminal,'order-session','POST',keepalive));
+  check(competing.status,200);
+  check(Date.parse((await competing.json()).expiresAt)>Date.now()+29*86400000,true);
+  // An expiry refresh cannot undo a concurrent unlink.
+  await q("update table_visit_sessions set expires_at=now()+interval '1 hour',last_seen_at=now() where id=$1",[terminal.id]);
+  globalThis.__visitBeforeUpdate=async()=>q('update table_visit_sessions set revoked_at=clock_timestamp() where id=$1',[terminal.id]);
+  const raced=await services.orderSession.POST(request(terminal,'order-session','POST',keepalive));
+  check(raced.status,401);check(raced.headers.has('set-cookie'),false);
+  await q('update table_visit_sessions set revoked_at=null where id=$1',[terminal.id]);
+  // Inactive tables and expired bindings cannot be revived; personal visits keep the 24h cap.
+  const inactiveTerminal=await services.terminal.registerTableTerminal(basic,otherTable,ua);
+  await q("update menu_tables set status='disabled' where id=$1",[otherTable]);
+  check((await services.orderSession.POST(request({token:inactiveTerminal.token},'order-session','POST',keepalive))).status,401);
+  await q("update menu_tables set status='active' where id=$1",[otherTable]);
+  check((await services.orderSession.POST(request({token:inactiveTerminal.token},'order-session','POST',keepalive))).status,401);
+  await q("update table_visit_sessions set expires_at=now()-interval '1 minute',last_seen_at=now()-interval '2 minutes' where id=$1",[terminal.id]);
+  check((await services.orderSession.POST(request(terminal,'order-session','POST',keepalive))).status,401);
+  await reject(()=>q("update table_visit_sessions set expires_at=created_at+interval '25 hours' where id=$1",[a.id]),/table_visit_sessions_expiry_check/);
+  await q("update table_visit_sessions set expires_at=now()+interval '1 day',last_seen_at=now() where id=$1",[terminal.id]);
   // The real registration action signs out this browser before handing it to a guest.
   const cookies=new Map();globalThis.__visitCookies={get:name=>cookies.has(name)?{value:cookies.get(name)}:undefined,set:(name,value)=>cookies.set(name,value),delete:name=>cookies.delete(name)};
   globalThis.__visitUa=ua;globalThis.__visitSignOut=[];

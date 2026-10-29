@@ -13,7 +13,7 @@ export const MENU_UI_COPY: Record<string, readonly [string, string, string]> = {
   "장바구니를 비웠습니다": ["Cart cleared", "カートを空にしました", "购物车已清空"],
   "장바구니 자동 초기화 안내": ["Cart will be cleared", "カートの自動リセット", "购物车自动清空提醒"],
   "오랫동안 조작하지 않아 미주문 상품을 비웠습니다. 이미 접수된 주문은 유지됩니다.": ["Unsubmitted items were cleared after inactivity. Submitted orders are unchanged.", "操作がなかったため未注文の商品を削除しました。送信済みの注文は保持されます。", "长时间未操作，未提交商品已清空。已提交订单不受影响。"],
-  "1분 뒤 미주문 상품을 비웁니다. 계속 이용하시겠습니까?": ["Unsubmitted items will be cleared in one minute. Keep using the cart?", "1分後に未注文の商品を削除します。利用を続けますか？", "未提交商品将在1分钟后清空，是否继续使用？"],
+  "30초 뒤 미주문 상품을 비웁니다. 계속 이용하시겠습니까?": ["Unsubmitted items will be cleared in 30 seconds. Keep using the cart?", "30秒後に未注文の商品を削除します。利用を続けますか？", "未提交商品将在30秒后清空，是否继续使用？"],
   "계속 이용하기": ["Continue", "利用を続ける", "继续使用"],
   "동일한 주문 확인": ["Confirm repeat order", "同じ注文の確認", "确认重复下单"],
   "동일한 메뉴와 수량으로 주문하셨습니다. 다시 주문하시겠습니까?": ["You already ordered these items and quantities. Order them again?", "同じメニューと数量で注文済みです。もう一度注文しますか？", "您已订购相同商品和数量，是否再次下单？"],
