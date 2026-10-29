@@ -1,0 +1,628 @@
+{
+  "app/admin/announcements/AnnouncementEditor.tsx": {
+    "control-appearance": [
+      "9e92d649cd13ab0f"
+    ]
+  },
+  "app/admin/announcements/AnnouncementForm.tsx": {
+    "control-appearance": [
+      "e5a7a752a7f7b7a8",
+      "614a8812f6626109",
+      "614a8812f6626109"
+    ]
+  },
+  "app/admin/announcements/page.tsx": {
+    "shared-heading": [
+      "e7ed58a255c0a7d8"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/admin/page.tsx": {
+    "shared-heading": [
+      "97f97b72f7682c9d",
+      "fda998200295f68e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/apply/display/page.tsx": {
+    "shared-heading": [
+      "fda998200295f68e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/auth/recovery/page.tsx": {
+    "shared-heading": [
+      "fda998200295f68e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/components/display/DisplayProductStory.tsx": {
+    "shared-heading": [
+      "65b15623235a7665"
+    ]
+  },
+  "app/components/home/Hero.tsx": {
+    "shared-heading": [
+      "c196ae8772210b0b"
+    ]
+  },
+  "app/components/home/HomeProductStory.tsx": {
+    "shared-heading": [
+      "fdd101dc67fdc273"
+    ]
+  },
+  "app/components/services/OrderServiceReviewContent.tsx": {
+    "shared-heading": [
+      "d44b9033fa2b1884"
+    ]
+  },
+  "app/custom/page.tsx": {
+    "shared-heading": [
+      "6015117cec5846a1"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/design-review/page.tsx": {
+    "shared-heading": [
+      "e7ed58a255c0a7d8"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/faq/notices/[id]/page.tsx": {
+    "shared-heading": [
+      "fda998200295f68e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/find-account/page.tsx": {
+    "shared-heading": [
+      "fda998200295f68e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/forgot-password/page.tsx": {
+    "shared-heading": [
+      "fda998200295f68e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/error.tsx": {
+    "shared-heading": [
+      "fda998200295f68e"
+    ]
+  },
+  "app/mypage/inquiries/page.tsx": {
+    "shared-heading": [
+      "fda998200295f68e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/menus/[menuId]/calls/CallDashboard.tsx": {
+    "control-appearance": [
+      "3d17c36d4cdecf61",
+      "3d17c36d4cdecf61",
+      "c2fc116cd629dbbb"
+    ]
+  },
+  "app/mypage/menus/[menuId]/calls/CallItemManager.tsx": {
+    "control-appearance": [
+      "90cbf9fe4f30681b"
+    ]
+  },
+  "app/mypage/menus/[menuId]/convert/page.tsx": {
+    "shared-heading": [
+      "fda998200295f68e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/menus/[menuId]/edit/page.tsx": {
+    "shared-heading": [
+      "fdf99c4736e43d74",
+      "bd28f4a1a0cc3467",
+      "fda998200295f68e"
+    ],
+    "control-appearance": [
+      "a5258594a3b776f1",
+      "b8ad26e1c5085630",
+      "9ffe93d7faaa014e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/menus/[menuId]/import/page.tsx": {
+    "shared-heading": [
+      "e57f4a0bdb261a9a"
+    ],
+    "control-appearance": [
+      "05e023e3e751b3cf",
+      "58375bc000d2346f"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/menus/[menuId]/orders/OrderDashboard.tsx": {
+    "shared-heading": [
+      "51cb4692c2dbd20a"
+    ],
+    "control-appearance": [
+      "eb6f09cff2661265",
+      "074b42b050029072"
+    ]
+  },
+  "app/mypage/menus/[menuId]/pickup/PickupQueueDashboard.tsx": {
+    "control-appearance": [
+      "180da78f268d8042"
+    ]
+  },
+  "app/mypage/menus/[menuId]/preview/page.tsx": {
+    "shared-heading": [
+      "fdf99c4736e43d74"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/menus/[menuId]/tables/MenuTableManager.tsx": {
+    "control-appearance": [
+      "2b81fb3de40a75da",
+      "f6a89983f316081a",
+      "f6a89983f316081a"
+    ]
+  },
+  "app/mypage/menus/new/page.tsx": {
+    "shared-heading": [
+      "fda998200295f68e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/staff/StaffInvitationForm.tsx": {
+    "control-appearance": [
+      "72ed710a062469f1",
+      "72ed710a062469f1"
+    ]
+  },
+  "app/mypage/staff/page.tsx": {
+    "heading-spacing": [
+      "bced5faae68340a1"
+    ],
+    "control-appearance": [
+      "8fd46d42370e2e2a"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/notifications/page.tsx": {
+    "shared-heading": [
+      "fda998200295f68e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/products/[slug]/page.tsx": {
+    "shared-heading": [
+      "294ea1ca469d3aa7"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/reset-password/page.tsx": {
+    "shared-heading": [
+      "fda998200295f68e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/sign-in/page.tsx": {
+    "shared-heading": [
+      "fda998200295f68e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/sign-up/page.tsx": {
+    "shared-heading": [
+      "fda998200295f68e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/staff/invitations/review/page.tsx": {
+    "shared-heading": [
+      "0e6d355d98d62b92"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/success/page.tsx": {
+    "shared-heading": [
+      "fda998200295f68e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/templates/[templateKey]/page.tsx": {
+    "shared-heading": [
+      "fda998200295f68e"
+    ],
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "components/landing/Hero.tsx": {
+    "shared-heading": [
+      "89385749b2031b95"
+    ]
+  },
+  "components/marketing/MarketingPages.tsx": {
+    "shared-heading": [
+      "5cd3b1a3584fa8de"
+    ]
+  },
+  "components/menu/MenuPreviewGuide.tsx": {
+    "shared-heading": [
+      "43238e7ff9892b47"
+    ]
+  },
+  "components/mypage/AccountDeletionPanel.tsx": {
+    "control-appearance": [
+      "75aaf3b5a9f46608"
+    ]
+  },
+  "components/mypage/BillingHistoryPanel.tsx": {
+    "control-appearance": [
+      "af18335bc11d92c4",
+      "af18335bc11d92c4",
+      "af18335bc11d92c4",
+      "af18335bc11d92c4"
+    ]
+  },
+  "components/mypage/BusinessPlanConvertPanel.tsx": {
+    "control-appearance": [
+      "6e28b62cfc4bf8d9"
+    ]
+  },
+  "components/mypage/ContactProfileEditor.tsx": {
+    "control-appearance": [
+      "76ed7ea05189c93f",
+      "76ed7ea05189c93f",
+      "76ed7ea05189c93f"
+    ]
+  },
+  "components/mypage/InquirySection.tsx": {
+    "control-appearance": [
+      "e5a7a752a7f7b7a8",
+      "e5a7a752a7f7b7a8",
+      "44f9466790c80d7d",
+      "e5a7a752a7f7b7a8",
+      "e5a7a752a7f7b7a8",
+      "44f9466790c80d7d"
+    ]
+  },
+  "components/mypage/MenuPlanChangePanel.tsx": {
+    "control-appearance": [
+      "a0025f958c4f6f98",
+      "a0025f958c4f6f98"
+    ]
+  },
+  "components/mypage/QrAddressActions.tsx": {
+    "control-appearance": [
+      "b5b1f1f783045ef8"
+    ]
+  },
+  "components/mypage/SubscriptionManagementModal.tsx": {
+    "control-appearance": [
+      "39fa4d3131095e0c",
+      "016517dc8923cf4c"
+    ]
+  },
+  "components/mypage/menu-editor/AboutDraftSections.tsx": {
+    "control-appearance": [
+      "9ffe93d7faaa014e",
+      "b8ad26e1c5085630",
+      "9ffe93d7faaa014e"
+    ]
+  },
+  "components/mypage/menu-editor/BackgroundColorSettingsForm.tsx": {
+    "control-appearance": [
+      "eee2deb60e57b60b"
+    ]
+  },
+  "components/mypage/menu-editor/CafeAStarterCoverDraftFields.tsx": {
+    "control-appearance": [
+      "c163bbed2104836f",
+      "628cf0c582208fc2"
+    ]
+  },
+  "components/mypage/menu-editor/FeaturedSlidesEditor.tsx": {
+    "control-appearance": [
+      "6e28b62cfc4bf8d9"
+    ]
+  },
+  "components/mypage/menu-editor/LocalizationSection.tsx": {
+    "control-appearance": [
+      "25dafd5dcf506a36",
+      "791de344b4c2d9a9"
+    ]
+  },
+  "components/mypage/menu-editor/MenuManagementSection.tsx": {
+    "control-appearance": [
+      "f2c0783d8309f7a9",
+      "b8ad26e1c5085630",
+      "20ef25fbefe488fe",
+      "ae131d05863b143c",
+      "dde17df553c74f4a",
+      "1c51653ee9fe0d28",
+      "07d7dcecc053ed36",
+      "e6383026f30a0ee4",
+      "6e28b62cfc4bf8d9",
+      "25b6c75578872b11",
+      "25b6c75578872b11",
+      "6e28b62cfc4bf8d9",
+      "eff78415e2579c2c",
+      "a2e498882fe0db37",
+      "5fc16f6f674adbbe",
+      "f004f94d388a65f6"
+    ]
+  },
+  "components/mypage/menu-editor/MenuSurfaceSettingsForm.tsx": {
+    "control-appearance": [
+      "29b99cafce8acf6c"
+    ]
+  },
+  "components/mypage/menu-editor/MenuWidgetDraftEditor.tsx": {
+    "control-appearance": [
+      "a32ebf2403455af7",
+      "dc338e44f6f2eafc",
+      "52b2d4f3f900d5e7",
+      "52b2d4f3f900d5e7",
+      "a32ebf2403455af7"
+    ]
+  },
+  "components/mypage/menu-editor/OptionalContentSections.tsx": {
+    "control-appearance": [
+      "9ffe93d7faaa014e",
+      "b8ad26e1c5085630",
+      "9ffe93d7faaa014e"
+    ]
+  },
+  "app/apply/basic/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/apply/custom/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/branding/goods-package/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/branding/visual-studio/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/design-system/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/faq/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/guides/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/menus/[menuId]/calls/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/menus/[menuId]/calls/settings/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/menus/[menuId]/orders/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/menus/[menuId]/orders/settings/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/menus/[menuId]/pickup/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/menus/[menuId]/qr/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/menus/[menuId]/sales/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/menus/[menuId]/tables/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/operations/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/mypage/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/pricing/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/privacy/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/services/basic/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/services/custom/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/services/design-customizing/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/services/dining/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/services/display/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/services/order/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/services/pro-v1/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/services/qr-order/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/services/smart-call/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/store/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/support/chat/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/terms/page.tsx": {
+    "page-shell": [
+      "78f263ec03d40202"
+    ]
+  },
+  "app/support/chat/ai-support-chat.module.css": {
+    "shared-token": [
+      "6c5cf5794b7c39ef",
+      "717c3607bbd39f37",
+      "cc0441ffeb6daefe",
+      "d3e6d74dd5df1b23"
+    ]
+  },
+  "app/support/chat/support-home.module.css": {
+    "control-css": [
+      "c6c9b28472f71125",
+      "b06cac7ca33fc61b",
+      "73b681eedf128d76",
+      "2023b11e82dfd352"
+    ]
+  },
+  "components/apply/apply-checkout.css": {
+    "shared-token": [
+      "c38978c39848c46b",
+      "36e7325724642657",
+      "fc0aeeca53cb69e4"
+    ]
+  },
+  "components/design-system/SiteComponentGallery.module.css": {
+    "heading-css": [
+      "1d754f5596461591"
+    ],
+    "control-css": [
+      "80fdbfd26e947411"
+    ]
+  },
+  "components/marketing/marketing.module.css": {
+    "heading-css": [
+      "7929ee399fc57f85",
+      "b71f64547d2165fb"
+    ]
+  },
+  "components/support/support.module.css": {
+    "control-css": [
+      "ac75f89f9c24df1a",
+      "eb3ef734551b4d56",
+      "90e814f3169d24e5",
+      "37558a0d4a4847f7",
+      "4c4ce61d11bcb2a0"
+    ]
+  }
+}

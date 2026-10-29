@@ -1,5 +1,6 @@
 "use client";
 
+import SiteSystemRules from "./SiteSystemRules";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import FormAndCardExamples from "./FormAndCardExamples";
 import ListExamples from "./ListExamples";
@@ -42,7 +43,7 @@ export default function SiteComponentGallery() {
   ];
   return <div className={`site-container ${styles.page}`}>
     <SitePageHeader title="디자인 시스템" description="디자인 기준과 실제 사이트에 사용하는 공통 컴포넌트를 한곳에서 확인합니다."><p className="type-body-sm">스타일 확인용 예시입니다. 선택과 좋아요는 이 화면에서만 유지됩니다.</p></SitePageHeader>
-    <Tabs purpose="page" defaultValue="components" className="gap-0"><TabsList size="lg" aria-label="디자인 시스템 메뉴"><TabsTrigger value="foundations">기준·토큰</TabsTrigger><TabsTrigger value="components">컴포넌트 라이브러리</TabsTrigger></TabsList><TabsContent value="foundations"><DesignFoundations /></TabsContent><TabsContent value="components"><nav className="site-filter-group mt-6" aria-label="주요 컴포넌트 바로가기"><a href="#wide-screen-components" className="site-filter">와이드 기준</a><a href="#wide-screen-components-mockups" className="site-filter">목업 크기</a><a href="#selection-hierarchy-title" className="site-filter">탭 위계</a><a href="#shaped-tabs" className="site-filter">영역형 탭</a><a href="#form-controls" className="site-filter">입력 요소</a><a href="#card-patterns" className="site-filter">카드</a><a href="#list-patterns" className="site-filter">게시글 목록</a><a href="#small-copy" className="site-filter">작은 안내·팝업</a><a href="#site-footer" className="site-filter">공통 푸터</a></nav><WideScreenRules id="wide-screen-components" /><SelectionControlExamples /><FormAndCardExamples /><ListExamples /><ShapedTabExamples /><ControlStateExamples /><ReferenceComponentExamples />
+    <Tabs purpose="page" defaultValue="components" className="gap-0"><TabsList size="lg" aria-label="디자인 시스템 메뉴"><TabsTrigger value="foundations">기준·토큰</TabsTrigger><TabsTrigger value="components">컴포넌트 라이브러리</TabsTrigger></TabsList><TabsContent value="foundations"><DesignFoundations /></TabsContent><TabsContent value="components"><nav className="site-filter-group mt-6" aria-label="주요 컴포넌트 바로가기"><a href="#wide-screen-components" className="site-filter">와이드 기준</a><a href="#wide-screen-components-mockups" className="site-filter">목업 크기</a><a href="#selection-hierarchy-title" className="site-filter">탭 위계</a><a href="#shaped-tabs" className="site-filter">영역형 탭</a><a href="#form-controls" className="site-filter">입력 요소</a><a href="#card-patterns" className="site-filter">카드</a><a href="#list-patterns" className="site-filter">게시글 목록</a><a href="#small-copy" className="site-filter">작은 안내·팝업</a><a href="#site-footer" className="site-filter">공통 푸터</a></nav><WideScreenRules id="wide-screen-components" /><SiteSystemRules /><SelectionControlExamples /><FormAndCardExamples /><ListExamples /><ShapedTabExamples /><ControlStateExamples /><ReferenceComponentExamples />
     <Examples title="역할로 구분하는 버튼" description="본문 실행은 40px·모서리 8px, 로그인·결제 같은 주요 완료 행동은 48px입니다. 헤더와 떠 있는 진입점만 pill을 사용합니다.">
       <div className={styles.buttonRow}>
         <Button asChild><Link href="/apply">시작하기</Link></Button>

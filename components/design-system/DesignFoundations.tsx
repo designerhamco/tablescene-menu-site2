@@ -1,3 +1,4 @@
+import SiteSystemRules from "./SiteSystemRules";
 import WideScreenRules from "./WideScreenRules";
 import styles from "./SiteComponentGallery.module.css";
 import {
@@ -17,6 +18,7 @@ const colors = [
 ];
 export default function DesignFoundations() {
   return <div>
+    <SiteSystemRules />
     <section className={styles.section}><div className={styles.heading}><h2 className="type-section-title">색상과 표면</h2><p className="type-body text-zinc-600">기본 화면은 같은 계열의 흰색·회색과 진한 글자로 구성합니다. 노랑은 브랜드·안내에, 파랑·초록·주황·빨강은 정보·성공·주의·오류 의미가 있을 때 사용합니다. AI 실행은 기존 공통 그라데이션을 유지합니다.</p></div>
       <div className={styles.tokenGrid}>{colors.map(([label, token]) => <div className={styles.token} key={token}><span className={styles.swatch} data-white={token === "--ui-surface" || undefined} style={{ backgroundColor: `var(${token})` }} /><strong className="type-label">{label}</strong><code className="type-caption text-zinc-600">{token}</code></div>)}</div>
       <p className="type-footnote text-zinc-600">외곽 테두리는 흰 표면에만 사용합니다. 회색·유색 박스는 면색과 여백으로 구분합니다. 상품 종류마다 서로 다른 색을 배정하지 않습니다.</p>

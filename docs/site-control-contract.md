@@ -103,3 +103,6 @@ secondary는 경계 없는 중간 회색 표면이고, disabled는 그보다 더
 
 
 일반 페이지 제목과 영역 탭 여백, 고객지원 경로의 현재 기준은 [페이지 간격 계약](site-page-layout-contract.md)을 따른다.
+
+
+새 페이지 기본 틀·자동 검사·레거시 이전 원칙은 [자동 적용과 회귀 방지](site-system-enforcement.md)를 따른다. 공지사항은 큰 FAQ 검색 영역 대신 공통 BoardList와 목록 상단의 작은 검색 도구를 사용한다.

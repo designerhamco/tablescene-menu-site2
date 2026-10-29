@@ -193,7 +193,7 @@ test("일반 페이지의 h1 바로 아래 설명은 화면 종류와 무관하�
     const source = readFileSync(join(appRoot, route), "utf8");
     assert.match(
       source,
-      /<SitePageHeader\b|<h1 className="type-page-title[^\"]*"[\s\S]{0,320}?<p className="type-page-description/,
+      /<SitePage(?:Header)?\b|<h1 className="type-page-title[^\"]*"[\s\S]{0,320}?<p className="type-page-description/,
       `${route}의 페이지 제목 설명이 공통 역할을 사용하지 않습니다.`,
     );
   }
@@ -203,7 +203,7 @@ test("일반 페이지의 h1 바로 아래 설명은 화면 종류와 무관하�
     "support/SupportCenter.tsx",
   ]) {
     const source = readFileSync(join(componentsRoot, component), "utf8");
-    assert.match(source, /<SitePageHeader\b|<h1[^>]*className="type-page-title"[\s\S]{0,220}?<p className="type-page-description/);
+    assert.match(source, /<SitePage(?:Header)?\b|<h1[^>]*className="type-page-title"[\s\S]{0,220}?<p className="type-page-description/);
   }
 
   const detailSource = readFileSync(join(appRoot, "templates/[templateKey]/page.tsx"), "utf8");
@@ -215,9 +215,9 @@ test("마이페이지와 매장 운영의 최상위 설명은 관리 영역 안�
   const staffSource = readFileSync(join(appRoot, "mypage/staff/page.tsx"), "utf8");
   const operationsShellSource = readFileSync(join(componentsRoot, "mypage/StoreOperationsShell.tsx"), "utf8");
 
-  assert.match(mypageSource, /<SitePageHeader\b|<h1 className="type-page-title"[\s\S]*?<p className="type-page-description/);
-  assert.match(staffSource, /<SitePageHeader\b|<h1 className="type-page-title[^\"]*"[\s\S]*?<p className="type-page-description/);
-  assert.match(operationsShellSource, /<SitePageHeader\b|<h1 className="type-page-title"[\s\S]*?<p className="type-page-description/);
+  assert.match(mypageSource, /<SitePage(?:Header)?\b|<h1 className="type-page-title"[\s\S]*?<p className="type-page-description/);
+  assert.match(staffSource, /<SitePage(?:Header)?\b|<h1 className="type-page-title[^\"]*"[\s\S]*?<p className="type-page-description/);
+  assert.match(operationsShellSource, /<SitePage(?:Header)?\b|<h1 className="type-page-title"[\s\S]*?<p className="type-page-description/);
 });
 
 test("활성 사이트 UI의 h1부터 h6까지 승인된 의미 기반 타이포 역할만 사용한다", () => {

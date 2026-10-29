@@ -33,7 +33,7 @@ test("만들기와 디자인 템플릿 목록은 서로 다른 진입 화면을 
 });
 
 test("일반 페이지 타이틀과 본문은 홈과 같은 디자인 시스템 규칙을 쓴다", () => {
-  assert.match(applyPageSource, /SitePageHeader|type-page-title/);
+  assert.match(applyPageSource, /SitePage(?:Header)?|type-page-title/);
   assert.match(applyPageSource, /site-body/);
   assert.match(marketingSectionCopySource, /type-section-title/);
   assert.match(globalStylesSource, /styles\/typography\.css/);
