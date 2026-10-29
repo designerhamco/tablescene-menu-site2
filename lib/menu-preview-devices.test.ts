@@ -151,14 +151,29 @@ test("catalog and saved previews expose the same common toolbar for each device"
     const common = { device, orientation: "landscape" as const, query: {} };
     const labels = (html: string) => {
       const header = html.match(/<header[\s\S]*?<\/header>/)?.[0] ?? "";
-      assert.doesNotMatch(header, /data-preview-call-toggle|data-preview-order-toggle|수정하기|전체화면/);
-      return [...header.matchAll(/<a([^>]*)>([\s\S]*?)<\/a>/g)].map(([, attributes, inner]) =>
+      assert.doesNotMatch(header, /수정하기|전체화면/);
+      return [...header.matchAll(/<a([^>]*)>([\s\S]*?)<\/a>/g)].filter(([, attributes]) => !attributes.includes("data-preview-layout-mode")).map(([, attributes, inner]) =>
         attributes.match(/aria-label="([^"]*)"/)?.[1] ?? inner.replace(/<[^>]*>/g, "").trim());
     };
     const saved = labels(renderFrame(createElement(MenuPreviewDeviceFrame, { ...common, menuId: "saved-menu" })));
     const catalog = labels(renderFrame(createElement(MenuPreviewDeviceFrame, { ...common, templateKey: "cafe_design_a" })));
     assert.deepEqual(saved, catalog);
     assert.equal(saved.length, device === "tablet" ? 5 : 4);
+  }
+});
+
+test("catalog Call, Order and layout experiments remain in the top toolbar independently of the options tab", () => {
+  for (const device of MENU_PREVIEW_DEVICE_ORDER) for (const previewOptions of ["features", "design"]) {
+    const html = renderFrame(createElement(MenuPreviewDeviceFrame, { device, orientation: "landscape", templateKey: "cafe_design_a", query: { previewOptions } }));
+    const header = html.match(/<header[\s\S]*?<\/header>/)?.[0] ?? "";
+    assert.match(header, /data-preview-call-toggle/);
+    assert.match(header, /data-preview-order-toggle/);
+    if (device === "mobile") assert.doesNotMatch(header, /data-preview-layout-mode/);
+    else {
+      assert.match(header, /data-preview-layout-mode="orderedBalancedFit"/);
+      assert.match(header, /data-preview-layout-mode="orderedFit"/);
+    }
+    assert.doesNotMatch(html.replace(header, ""), /data-preview-call-toggle|data-preview-order-toggle|data-preview-layout-mode/);
   }
 });
 

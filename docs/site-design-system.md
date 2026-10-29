@@ -231,4 +231,4 @@ Ghost pagination/icon controls retain transparent background and border when dis
 
 폰트의 기본 역할과 최대 12.5% 와이드 보정, 인증 폼 폭·높이와 간격은 [폰트 계약](site-typography-final.md)의 최신 절을 따른다. 고객 메뉴판 렌더러와 root rem은 이 보정의 대상이 아니다.
 
-와이드 기준은 기준·토큰과 컴포넌트 라이브러리의 공통 `WideScreenRules` 표에서 확인한다. 새 페이지는 의미 기반 글자 역할과 공통 레이아웃 클래스를 사용해 자동 상속하며, 지역별 글자 배율·공통 기초 토큰 재정의는 계약 검사에서 차단한다. 미리보기는 목업의 확대 상한·주변 여백과 480–576px의 작은 보조 도구를 별도로 적용한다. 상세 수치는 `docs/site-typography-final.md`의 최신 절과 `lib/menu-preview-fit.ts`를 따른다.
+와이드 기준은 기준·토큰과 컴포넌트 라이브러리의 공통 `WideScreenRules` 표에서 확인한다. 새 페이지는 의미 기반 글자 역할과 공통 레이아웃 클래스를 사용해 자동 상속하며, 지역별 글자 배율·공통 기초 토큰 재정의는 계약 검사에서 차단한다. 미리보기는 PC·태블릿별 목업 상한과 작은 보조 도구를 적용한다. 주문·호출·묶음형·채움형은 상단에 유지하며 보기 옵션 패널은 표시·디자인만 다룬다. 상세 수치는 `docs/site-typography-final.md`의 최신 절과 `lib/menu-preview-fit.ts`를 따른다.
