@@ -45,7 +45,7 @@ try {
   }
 
   let dismissedGuide = false;
-  for (const [width,height] of [[320,740],[390,844],[430,932],[820,1180],[1440,900],[2560,1440],[3440,1440]]) for(const device of ['tablet','pc','mobile']) {
+  for (const [width,height] of [[320,740],[390,844],[430,932],[667,375],[820,1180],[1440,900],[2560,1440],[3440,1440]]) for(const device of ['tablet','pc','mobile']) {
     await page.setViewportSize({width,height});
     await page.goto(`${base}/templates/cafe_design_a/preview?device=${device}&previewOptions=design`,{waitUntil:'domcontentloaded'});
     const guide=page.getByRole('dialog',{name:'메뉴판 미리보기 사용 안내'});
@@ -81,6 +81,7 @@ try {
       }
     } else if(device==='tablet') {
       assert.ok(result.frame.width<=result.canvas.width*.8+1);
+      assert.ok(result.frame.height<=result.canvas.height*.8+1);
     }
     assert.ok(result.controlFont<=15.75+.05);
     const clippedControls=await page.locator('[data-preview-device-toolbar] a, [data-preview-device-toolbar] .site-preview-choice').evaluateAll(links=>links.filter(a=>{
@@ -120,7 +121,7 @@ try {
     console.log(`preview ${width} ${device} passed`);
   }
 
-  for (const width of [320,390,430,820,1440,2560,3440]) {
+  for (const width of [320,390,430,667,820,1440,2560,3440]) {
     const pc=report.previews.find(p=>p.width===width&&p.device==='pc');
     const tablet=report.previews.find(p=>p.width===width&&p.device==='tablet');
     assert.ok(pc.frame.width>tablet.frame.width*1.15,'tablet must remain visibly smaller than PC in the same workspace');

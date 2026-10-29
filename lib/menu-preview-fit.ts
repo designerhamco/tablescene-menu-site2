@@ -6,7 +6,7 @@ export const MENU_PREVIEW_PRESENTATION = {
   desktop: { widthRatio: .9, heightRatio: .84, maxScale: 1.25 },
   tablet: { widthRatio: .74, heightRatio: .7, maxScale: 1 },
   compact: { widthRatio: 1, heightRatio: 1, maxScale: 1 },
-  compactTablet: { widthRatio: .8, heightRatio: 1, maxScale: 1 },
+  compactTablet: { widthRatio: .8, heightRatio: .8, maxScale: 1 },
 } as const;
 
 export function getMenuPreviewPresentation(viewportWidth?: number, device?: MenuPreviewDevice) {
