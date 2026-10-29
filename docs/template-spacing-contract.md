@@ -1,5 +1,13 @@
 # Menu template spacing contract
 
+## Preview workspace fit — 2026-10-29 (current)
+
+The latest user request supersedes the 2026-10-21 overlay/no-scale shell policy below. Catalog and saved-menu previews share device selection, tablet rotation where supported, open-in-new-window and toolbar collapse. No editor return or fullscreen control appears in framed PC/tablet/mobile views. Both detached actual views retain the same user-triggered fullscreen control. Catalog-only Call/Order/layout/design/visibility experiments belong in the left options panel; saved settings remain authoritative.
+
+All framed devices use a centered workspace with height/width fit of the complete mockup, including the bezel. Scaling can exceed 1 on larger screens. Intrinsic iframe dimensions remain PC 1440×900, tablet 1180×820 or 820×1180, mobile 390×844. Only the outer shell is visually transformed; no renderer typography, fit, content, saved state or geometry policy changes. At widths >=960px the open catalog sidebar reserves a column; the mockup centers in the remaining canvas. Closing/opening the drawer changes shell scale/position while preserving iframe document, source viewport and scroll. Narrow viewports keep an overlay panel. Both preview purposes use the same responsive top toolbar width. Font/color fields use one column in the narrow options panel.
+
+
+
 ## Corner edge surfaces and fixed header alignment — 2026-10-24
 
 A distinct PC/tablet upper-left auxiliary background reaches the page top and left edges in both the neutral design and ONUE's native flow panel. The scroll surface owns the outer page insets; the first representative block extends into its top/left inset and owns internal content padding. Preserve the ordinary gutter after its painted right/bottom edges. Measurement subtracts scroll padding and includes the corner's actual negative top margin, so the painted block, following menu units, footer and hidden probes agree. Equal-to-page or absent auxiliary color releases this geometry. Mobile remains independent.

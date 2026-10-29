@@ -39,6 +39,17 @@ body {
   :root { --site-header-height: 4.5rem; }
 }
 
+/* Bounded wide-screen spacing, independent of customer menu rem geometry. */
+@media (min-width: 1600px) {
+  :root {
+    --site-gutter: clamp(2.5rem, 2.5vw, 3rem);
+    --site-page-space: clamp(6rem, 6vw, 6.75rem);
+    --site-page-space-compact: clamp(4rem, 4vw, 4.5rem);
+    --site-section-space: clamp(5rem, 5vw, 5.625rem);
+    --site-grid-gap: clamp(1.5rem, 1.5vw, 1.6875rem);
+  }
+}
+
 /*
  * Official-site layout contract.
  * Full-bleed backgrounds live outside this wrapper; readable content always

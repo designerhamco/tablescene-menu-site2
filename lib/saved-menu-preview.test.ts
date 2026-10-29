@@ -56,13 +56,13 @@ test("saved service previews follow explicit registered settings and template ca
 test("customer preview removes editing tools and legacy overrides from all device and detached links", () => {
   const query = { lang: "en", page: "2", imagesPreview: "off", previewOptions: "design", callPreview: "on", orderPreview: "on", layoutMode: "orderedFit", designPreview: serializePreviewDesign({ pageBackground: "#123456", chipColors:{generalBackground:"#123456"} }) };
   const html = renderToStaticMarkup(createElement(AppRouterContext.Provider, { value: { push() {}, replace() {} } as never }, createElement(MenuPreviewDeviceFrame, {
-    menuId: "saved-menu", menuTemplateKey: "cafe_design_a", menuDesignId: "basic-first-column", device: "tablet", orientation: "portrait", query, editHref: "/mypage/menus/saved-menu/edit",
+    menuId: "saved-menu", menuTemplateKey: "cafe_design_a", menuDesignId: "basic-first-column", device: "tablet", orientation: "portrait", query,
   })));
   assert.doesNotMatch(html, /data-preview-options-panel|기능 옵션|디자인 옵션|data-preview-call-toggle|data-preview-order-toggle|data-preview-layout-mode/);
   assert.doesNotMatch(html, /imagesPreview=|designPreview=|callPreview=|orderPreview=|layoutMode=|previewOptions=|\/templates\//);
-  assert.match(html, /data-preview-edit-link/);
+  assert.doesNotMatch(html, /data-preview-edit-link|수정하기/);
   assert.match(html, /data-preview-tablet-orientation-toggle/);
-  assert.match(html, /data-preview-fullscreen-control/);
+  assert.doesNotMatch(html, /data-preview-fullscreen-control/);
   assert.match(html, /view=actual&amp;embedded=1/);
   for (const device of ["pc", "tablet", "mobile"] as const) {
     const url = new URL(buildMenuPreviewUrl("saved-menu", query, { device, actual: true, embedded: true, detached: true, callPreview:true, orderPreview:true, layoutMode:"orderedFit" }), "https://example.test");
@@ -73,7 +73,7 @@ test("customer preview removes editing tools and legacy overrides from all devic
   }
 });
 
-test("customer preview omits the edit link unless its authorized caller provides one", () => {
+test("customer preview omits the edit link and keeps shared viewing controls", () => {
   const html=renderToStaticMarkup(createElement(AppRouterContext.Provider,{value:{push(){}} as never},createElement(MenuPreviewDeviceFrame,{menuId:"saved-menu",device:"pc",orientation:"landscape",query:{}})));
   assert.doesNotMatch(html,/data-preview-edit-link|수정하기/);
 });

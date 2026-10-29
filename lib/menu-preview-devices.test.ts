@@ -130,7 +130,7 @@ test("preview selector renders labeled PC, tablet, and mobile device icons", () 
   assert.match(html, /aria-expanded="true"/);
   assert.doesNotMatch(html, /메뉴판 확대·축소/);
   assert.doesNotMatch(html, /data-preview-zoom-controls/);
-  assert.doesNotMatch(html, /tabindex="0"/);
+  assert.match(html, /tabindex="0"/);
 });
 
 test("scrollable tablet and mobile preview frames are keyboard focusable", () => {
@@ -143,6 +143,22 @@ test("scrollable tablet and mobile preview frames are keyboard focusable", () =>
     }));
 
     assert.match(html, /tabindex="0"/);
+  }
+});
+
+test("catalog and saved previews expose the same common toolbar for each device", () => {
+  for (const device of MENU_PREVIEW_DEVICE_ORDER) {
+    const common = { device, orientation: "landscape" as const, query: {} };
+    const labels = (html: string) => {
+      const header = html.match(/<header[\s\S]*?<\/header>/)?.[0] ?? "";
+      assert.doesNotMatch(header, /data-preview-call-toggle|data-preview-order-toggle|수정하기|전체화면/);
+      return [...header.matchAll(/<a([^>]*)>([\s\S]*?)<\/a>/g)].map(([, attributes, inner]) =>
+        attributes.match(/aria-label="([^"]*)"/)?.[1] ?? inner.replace(/<[^>]*>/g, "").trim());
+    };
+    const saved = labels(renderFrame(createElement(MenuPreviewDeviceFrame, { ...common, menuId: "saved-menu" })));
+    const catalog = labels(renderFrame(createElement(MenuPreviewDeviceFrame, { ...common, templateKey: "cafe_design_a" })));
+    assert.deepEqual(saved, catalog);
+    assert.equal(saved.length, device === "tablet" ? 5 : 4);
   }
 });
 
@@ -199,7 +215,6 @@ test("device selector is open by default and collapses upward into a compact han
   assert.match(previewFrameSource, /data-preview-device-toolbar-content=""/);
   assert.match(previewFrameSource, /pointer-events-none opacity-0/);
   assert.match(previewFrameSource, /tabIndex=\{showToolbar \? undefined : -1\}/);
-  assert.match(previewFrameSource.replace(/\s+/g, " "), /showToolbar \? supportsLayoutPreview \? "w-\[min\(53rem,calc\(100vw-1\.5rem\)\)\]" : supportsOrderPreview \? "w-\[min\(43rem,calc\(100vw-1\.5rem\)\)\]" : "w-\[min\(27rem,calc\(100vw-1\.5rem\)\)\]" : "w-20 max-w-20"/);
   assert.match(previewFrameSource, /width: showToolbar \? undefined : "5rem"/);
   assert.match(previewFrameSource, /translateY\(calc\(-100% \+ 1\.75rem\)\)/);
   assert.match(previewFrameSource, /transition-\[width,transform\] duration-300 ease-out/);
@@ -224,6 +239,7 @@ test("device selector is open by default and collapses upward into a compact han
   assert.match(previewFrameSource, /rel="noopener noreferrer"/);
   assert.match(previewFrameSource, /detached: true/);
   assert.match(previewFrameSource, /className="h-full w-full border-0 bg-white"/);
+  assert.doesNotMatch(previewFrameSource, /PreviewFullscreenControl|data-preview-edit-link|수정하기/);
   assert.doesNotMatch(previewFrameSource, /data-preview-zoom-controls/);
   assert.doesNotMatch(previewFrameSource, /PREVIEW_ZOOM_STORAGE_PREFIX/);
 });

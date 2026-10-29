@@ -3,10 +3,10 @@
 import { useEffect, useOptimistic, useRef, useState, useSyncExternalStore, useTransition, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronUp, ExternalLink, Pencil } from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
-import PreviewFullscreenControl from "./PreviewFullscreenControl";
+import { fitMenuPreviewFrame } from "@/lib/menu-preview-fit";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
 import { supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import MenuPreviewOptionsPanel from "./MenuPreviewOptionsPanel";
@@ -39,7 +39,6 @@ type MenuPreviewDeviceFrameProps =
       templateKey?: never;
       menuTemplateKey?: string;
       menuDesignId?: string;
-      editHref?: string;
     }
   | {
       device: MenuPreviewDevice;
@@ -49,7 +48,6 @@ type MenuPreviewDeviceFrameProps =
       menuId?: never;
       menuTemplateKey?: never;
       menuDesignId?: never;
-      editHref?: never;
     };
 
 const wideOptionsQuery = "(min-width: 960px)";
@@ -73,7 +71,7 @@ function CallPreviewToggle({
   order?: boolean;
 }) {
   return (
-    <label className="site-preview-control site-preview-choice">
+    <label className={styles.featureChoice}>
       <input
         type="checkbox"
         aria-label={order ? "주문 기능 미리보기" : "호출 기능 미리보기"}
@@ -106,15 +104,14 @@ function PreviewOrientationIcon() {
 }
 
 export default function MenuPreviewDeviceFrame(
-  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; previewDesignDefaults?: PreviewDesignDefaults; supportsTabletOrientation?: boolean },
+  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; previewDesignDefaults?: PreviewDesignDefaults },
 ) {
   const { device, query } = props;
   const isTemplatePreview = typeof props.templateKey === "string";
   const templateKey = props.templateKey ?? props.menuTemplateKey;
   const designParam = props.menuId ? props.menuDesignId : (query as TemplatePreviewQuery).design;
   const defaultDesign = templateKey ? getDefaultDesignReview(Array.isArray(designParam) ? designParam[0] : designParam, templateKey) : undefined;
-  const supportsTabletOrientation = props.supportsTabletOrientation ?? (!isTemplatePreview || templateKey?.startsWith("dining_") === true || defaultDesign?.itemLayout === "album");
-  const orientation = supportsTabletOrientation ? props.orientation : "landscape";
+  const orientation = props.orientation;
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isToolbarOpen, setIsToolbarOpen] = useState(true);
@@ -127,7 +124,18 @@ export default function MenuPreviewDeviceFrame(
   if (isTemplatePreview && legacyRatio && !initialDesign.albumImageRatio) initialDesign.albumImageRatio = legacyRatio;
   const [designOptions, setDesignOptions] = useOptimistic(initialDesign);
   const templateQuery = { ...query, previewOptions: optionsTab, designPreview: serializePreviewDesign(designOptions) };
-  const toolbarRef = useRef<HTMLDivElement>(null);
+  const toolbarRef = useRef<HTMLElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const observer = new ResizeObserver(([entry]) => {
+      setCanvasSize({ width: entry.contentRect.width, height: entry.contentRect.height });
+    });
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, []);
   const [toolbarHeight, setToolbarHeight] = useState(128);
   useEffect(() => {
     const toolbar = toolbarRef.current;
@@ -168,6 +176,7 @@ export default function MenuPreviewDeviceFrame(
   };
   const layoutMode = (Array.isArray(query.layoutMode) ? query.layoutMode[0] : query.layoutMode) === "orderedFit" ? "orderedFit" : "orderedBalancedFit";
   const frame = getMenuPreviewFrame(device, orientation);
+  const fittedFrame = fitMenuPreviewFrame(canvasSize, frame);
   const orientationLabel =
     device === "tablet" ? MENU_PREVIEW_ORIENTATIONS[orientation] : null;
   const nextTabletOrientation: MenuPreviewOrientation =
@@ -245,20 +254,12 @@ export default function MenuPreviewDeviceFrame(
 
   return (
     <main className={`${styles.workspace} h-screen overflow-hidden bg-zinc-100 text-zinc-950`} data-has-options={hasDisplayOptions ? "true" : "false"} data-options-open={areDisplayOptionsOpen ? "true" : "false"} data-toolbar-open={showToolbar ? "true" : "false"}
-      style={{ "--preview-options-top": `${showToolbar ? toolbarHeight + 24 : 12}px` } as CSSProperties}>
-      <div ref={toolbarRef} className="pointer-events-none fixed inset-x-0 top-0 z-[80] flex flex-col items-center">
-        <header
+      style={{ "--preview-options-top": `${showToolbar ? toolbarHeight + 24 : 44}px` } as CSSProperties}>
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-[80] flex flex-col items-center">
+        <header ref={toolbarRef}
           data-preview-device-toolbar=""
           data-toolbar-open={showToolbar ? "true" : "false"}
-          className={`${styles.toolbar} pointer-events-auto relative min-w-0 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/90 p-2 text-white backdrop-blur-[2px] transition-[width,transform] duration-300 ease-out ${
-            showToolbar
-              ? supportsLayoutPreview
-                ? "w-[min(53rem,calc(100vw-1.5rem))]"
-                : supportsOrderPreview
-                ? "w-[min(43rem,calc(100vw-1.5rem))]"
-                : "w-[min(27rem,calc(100vw-1.5rem))]"
-              : "w-20 max-w-20"
-          }`}
+          className={`${styles.toolbar} pointer-events-auto relative min-w-0 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/90 p-2 text-white backdrop-blur-[2px] transition-[width,transform] duration-300 ease-out`}
           style={{
             transform: showToolbar
               ? "translateY(0.5rem)"
@@ -270,13 +271,13 @@ export default function MenuPreviewDeviceFrame(
           <div
             data-preview-device-toolbar-content=""
             aria-hidden={!showToolbar}
-            className={`${styles.toolbarContent} flex w-full items-center gap-1.5 pl-1 pr-10 transition-opacity duration-150 ${supportsLayoutPreview ? "max-[850px]:flex-wrap" : (supportsCallPreview || !isTemplatePreview) ? "max-[560px]:flex-wrap" : ""} ${
+            className={`${styles.toolbarContent} flex w-full items-center gap-1.5 pl-1 pr-10 transition-opacity duration-150 ${
               showToolbar ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
           >
             <nav
               aria-label="미리보기 기기 선택"
-              className={`${styles.deviceNav} flex min-w-0 flex-1 items-center justify-center gap-0.5 ${supportsLayoutPreview ? "max-[850px]:basis-full" : (supportsCallPreview || !isTemplatePreview) ? "max-[560px]:basis-full" : ""}`}
+              className={`${styles.deviceNav} flex min-w-0 flex-1 items-center justify-center gap-0.5`}
             >
               {MENU_PREVIEW_DEVICE_ORDER.map((candidate) => {
                 const candidateFrame = MENU_PREVIEW_DEVICES[candidate];
@@ -301,7 +302,7 @@ export default function MenuPreviewDeviceFrame(
                 );
               })}
             </nav>
-            {device === "tablet" && supportsTabletOrientation ? (
+            {device === "tablet" ? (
               <Link
                 aria-label={`태블릿을 ${MENU_PREVIEW_ORIENTATIONS[nextTabletOrientation]}로 회전`}
                 title={`태블릿을 ${MENU_PREVIEW_ORIENTATIONS[nextTabletOrientation]}로 회전`}
@@ -317,36 +318,6 @@ export default function MenuPreviewDeviceFrame(
                 <PreviewOrientationIcon />
               </Link>
             ) : null}
-            {supportsCallPreview ? (
-              <CallPreviewToggle
-                checked={features.call}
-                disabled={!showToolbar || isPending}
-                onChange={(enabled) => changeFeature("call", enabled)}
-              />
-            ) : null}
-            {supportsOrderPreview ? (
-              <CallPreviewToggle
-                order
-                checked={features.order}
-                disabled={!showToolbar || isPending}
-                onChange={(enabled) => changeFeature("order", enabled)}
-              />
-            ) : null}
-            {supportsLayoutPreview && device !== "mobile" ? (
-              <div className="flex shrink-0 gap-0.5 rounded-xl bg-white/10 p-0.5" role="group" aria-label="메뉴 배치 방식">
-                {([['orderedBalancedFit', '묶음형'], ['orderedFit', '채움형']] as const).map(([mode, label]) => (
-                  <Link key={mode} href={buildPreviewUrl({device, orientation, layoutMode: mode})} scroll={false} tabIndex={showToolbar ? undefined : -1}
-                    aria-current={layoutMode === mode ? "true" : undefined} data-preview-layout-mode={mode}
-                    className="site-preview-control">
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            ) : null}
-            {props.editHref ? <Link href={props.editHref} aria-label="메뉴관리에서 수정하기" title="메뉴관리에서 수정하기" data-preview-edit-link="" tabIndex={showToolbar ? undefined : -1}
-              className="site-preview-control">
-              <Pencil className="h-4 w-4" aria-hidden="true" /><span className="hidden min-[430px]:inline">수정하기</span>
-            </Link> : null}
             <Link
               href={detachedUrl}
               target="_blank"
@@ -386,39 +357,53 @@ export default function MenuPreviewDeviceFrame(
           </button>
         </header>
         {hasDisplayOptions && templateKey ? <MenuPreviewOptionsPanel open={areDisplayOptionsOpen} onToggle={() => setDisplayOptionsOpenOverride(!areDisplayOptionsOpen)} tab={optionsTab} onTabChange={changeOptionsTab}
+          extraFeatures={<fieldset className={styles.featureGroup}><legend>서비스·배치 체험</legend>
+            {supportsCallPreview ? (
+              <CallPreviewToggle
+                checked={features.call}
+                disabled={isPending}
+                onChange={(enabled) => changeFeature("call", enabled)}
+              />
+            ) : null}
+            {supportsOrderPreview ? (
+              <CallPreviewToggle
+                order
+                checked={features.order}
+                disabled={isPending}
+                onChange={(enabled) => changeFeature("order", enabled)}
+              />
+            ) : null}
+            {supportsLayoutPreview && device !== "mobile" ? (
+              <div className={styles.layoutChoices} role="group" aria-label="메뉴 배치 방식">
+                {([['orderedBalancedFit', '묶음형'], ['orderedFit', '채움형']] as const).map(([mode, label]) => (
+                  <Link key={mode} href={buildPreviewUrl({device, orientation, layoutMode: mode})} scroll={false}
+                    aria-current={layoutMode === mode ? "true" : undefined} data-preview-layout-mode={mode}
+                    className="site-filter-button">
+                    {label}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </fieldset>}
           groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} pending={isPending} templateKey={templateKey} defaults={props.previewDesignDefaults} design={designOptions} onDesignChange={changeDesign} alignmentDisabled={device !== "mobile" && hasFixedHeaderAlignment(templateKey, { menu_design_id: defaultDesign?.id })} album={defaultDesign?.itemLayout === "album"} /> : null}
       </div>
 
-      <section
-        className={
-          device === "pc" ? "h-screen w-screen overflow-hidden" : "h-screen overflow-auto px-4 py-16"
-        }
-        style={device !== "pc" && hasDisplayOptions && showToolbar ? { paddingTop: toolbarHeight + 24 } : undefined}
-        tabIndex={device === "pc" ? undefined : 0}
+      <section className={styles.stage} data-preview-stage=""
+        tabIndex={0}
         aria-label={`${frame.label}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
       >
-        <div
-          data-preview-frame-shell=""
-          className={
-            device === "pc"
-              ? "h-screen w-screen overflow-hidden bg-white"
-              : "mx-auto overflow-hidden rounded-[28px] border-[10px] border-zinc-900 bg-white shadow-2xl"
-          }
-          style={
-            device === "pc" ? undefined : { width: frame.width + 20, height: frame.height + 20 }
-          }
-        >
-          <iframe
-            key={embeddedUrl}
-            src={embeddedUrl}
-            title={`${frame.label}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
-            className="h-full w-full border-0 bg-white"
-            referrerPolicy="no-referrer"
-          />
+        <div ref={canvasRef} className={styles.canvas} data-preview-canvas="">
+          <div className={styles.scaledFrame} style={{ width: fittedFrame.displayWidth, height: fittedFrame.displayHeight }}>
+            <div data-preview-frame-shell="" className={styles.frame}
+              style={{ width: fittedFrame.width, height: fittedFrame.height, transform: `scale(${fittedFrame.scale})`, visibility: fittedFrame.scale ? "visible" : "hidden" }}>
+              <iframe key={embeddedUrl} src={embeddedUrl}
+                title={`${frame.label}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
+                className="h-full w-full border-0 bg-white" referrerPolicy="no-referrer" />
+            </div>
+          </div>
         </div>
       </section>
 
-      {!isTemplatePreview ? <PreviewFullscreenControl /> : null}
       <MenuPreviewGuide device={device} />
     </main>
   );
