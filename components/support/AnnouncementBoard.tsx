@@ -58,6 +58,6 @@ export default function AnnouncementBoard() {
       </form>
     </div>
     <BoardList label="공지사항 목록" entries={result.items.map((item, index) => ({ id: item.id, number: item.pinned ? "공지" : result.count - (page - 1) * ANNOUNCEMENT_PAGE_SIZE - index, title: item.title, href: `/faq/notices/${item.id}`, date: formatAnnouncementDate(item.published_at), dateTime: item.published_at ?? undefined }))} status={status} />
-    {!loading && !result.unavailable ? <SitePagination currentPage={page} totalPages={Math.ceil(result.count / ANNOUNCEMENT_PAGE_SIZE)} onSelect={value => { setLoading(true); setPage(value); }} /> : null}
+    {!loading && !result.unavailable ? <SitePagination showSingle currentPage={page} totalPages={Math.ceil(result.count / ANNOUNCEMENT_PAGE_SIZE)} onSelect={value => { setLoading(true); setPage(value); }} /> : null}
   </section>;
 }
