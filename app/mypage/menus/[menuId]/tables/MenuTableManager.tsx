@@ -118,6 +118,11 @@ export default function MenuTableManager({
             </form>
 
             <div className="mt-4 flex flex-wrap gap-2">
+              <form action={mutationAction} onSubmit={event => {if (!window.confirm(`${table.label}의 공용 단말로 이 브라우저를 연결하시겠습니까? 공용 단말에서는 후불 주문만 제공하고 전화번호를 받지 않습니다. 연결 후 이 브라우저의 관리자 계정은 로그아웃됩니다.`)) event.preventDefault();}}>
+                <input type="hidden" name="menuSiteId" value={menuSiteId} />
+                <input type="hidden" name="tableId" value={table.id} />
+                <button name="intent" value="register-terminal" disabled={mutationPending || table.status !== "active"} className="site-button site-button-outline">이 기기를 공용 단말로 연결</button>
+              </form>
               <form action={mutationAction}>
                 <input type="hidden" name="menuSiteId" value={menuSiteId} />
                 <input type="hidden" name="tableId" value={table.id} />
@@ -129,6 +134,11 @@ export default function MenuTableManager({
           </article>
         ))}
       </section>
+      <form action={mutationAction} className="space-y-3">
+        <input type="hidden" name="menuSiteId" value={menuSiteId} />
+        <p className="type-body-sm text-zinc-500">연결 후 이 브라우저의 관리자 계정은 로그아웃됩니다. 공용 단말 연결은 30일간 유지되며 손님 교체나 계산 완료와는 별개입니다. 연결을 해제해도 이미 접수된 주문은 삭제되지 않습니다.</p>
+        <button name="intent" value="unregister-terminal" disabled={mutationPending} className="site-button site-button-outline">이 브라우저의 단말 연결 해제</button>
+      </form>
     </div>
   );
 }

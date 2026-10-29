@@ -1,4 +1,5 @@
 import { usesCustomerMenuPresentation } from "@/lib/menu-customer-presentation";
+import { getAllowedCheckoutModes } from "@/lib/menu-order-settings";
 import { readMenuOrderSettings } from "@/lib/menu-order-settings";
 import type { Metadata } from "next";
 import { cookies, headers } from "next/headers";
@@ -170,8 +171,15 @@ export default async function PublicMenuPage({ params, searchParams }: PageProps
     callItems,
   });
 
-  const customerMode = usesCustomerMenuPresentation(getSearchParamValue(query.mode), data.menuSite.template_key);
-  if (orderCallConfig) orderCallConfig.checkoutModes = customerMode && readMenuOrderSettings(data.menuSite.settings).mobilePrepayVisible ? ["postpay", "prepay"] : ["postpay"];
+  const customerMode = tableSession ? tableSession.channel !== "terminal" : usesCustomerMenuPresentation(getSearchParamValue(query.mode), data.menuSite.template_key);
+  if (orderCallConfig) {
+    const preferences = readMenuOrderSettings(data.menuSite.settings);
+    const allowed = getAllowedCheckoutModes(preferences, orderCallConfig.channel ?? "customer");
+    orderCallConfig.checkoutModes = [...(allowed.postpay ? ["postpay" as const] : []), ...(allowed.prepayVisible ? ["prepay" as const] : [])];
+    orderCallConfig.orderEnabled = orderCallConfig.orderEnabled && (allowed.postpay || allowed.prepayVisible);
+    orderCallConfig.orderingOpen = orderCallConfig.orderEnabled;
+    orderCallConfig.customerPhone = orderCallConfig.channel === "terminal" ? "hidden" : preferences.customerPhone;
+  }
   return (
     <MenuPageRenderer
       mode="public"

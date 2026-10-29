@@ -1,7 +1,8 @@
 import { createHash, randomBytes } from "node:crypto";
 
 export const MENU_TABLE_LIMIT = 100;
-export const TABLE_VISIT_SESSION_MAX_AGE_SECONDS = 12 * 60 * 60;
+export const TABLE_VISIT_SESSION_MAX_AGE_SECONDS = 24 * 60 * 60;
+export const TABLE_TERMINAL_SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 export const TABLE_VISIT_SESSION_COOKIE = "menulink_table_visit";
 export const TABLE_VISIT_SESSION_TOUCH_INTERVAL_SECONDS = 5 * 60;
 export const TABLE_VISIT_SESSION_COOKIE_SECURITY = {
@@ -55,8 +56,8 @@ export function hashTableAccessToken(token: string) {
   return createHash("sha256").update(token, "utf8").digest("hex");
 }
 
-export function createTableVisitSessionExpiry(now: Date = new Date()) {
-  return new Date(now.getTime() + TABLE_VISIT_SESSION_MAX_AGE_SECONDS * 1000);
+export function createTableVisitSessionExpiry(now: Date = new Date(), channel: "customer" | "terminal" = "customer") {
+  return new Date(now.getTime() + (channel === "terminal" ? TABLE_TERMINAL_SESSION_MAX_AGE_SECONDS : TABLE_VISIT_SESSION_MAX_AGE_SECONDS) * 1000);
 }
 
 export function normalizeTableVisitUserAgent(value: string | null | undefined) {
@@ -77,16 +78,18 @@ export function createTableVisitSessionMaterial({
   userAgent,
   now = new Date(),
   token = createTableAccessToken(),
+  channel = "customer",
 }: {
   userAgent: string;
   now?: Date;
   token?: string;
+  channel?: "customer" | "terminal";
 }) {
   return {
     rawToken: token,
     tokenHash: hashTableAccessToken(token),
     userAgentHash: hashTableVisitUserAgent(userAgent),
-    expiresAt: createTableVisitSessionExpiry(now),
+    expiresAt: createTableVisitSessionExpiry(now, channel),
   };
 }
 
@@ -116,10 +119,10 @@ export function shouldTouchTableVisitSession(lastSeenAt: string, now = new Date(
     || now.getTime() - lastSeen >= TABLE_VISIT_SESSION_TOUCH_INTERVAL_SECONDS * 1000;
 }
 
-export function getTableVisitSessionCookieMaxAge(expiresAt: string, now = new Date()) {
+export function getTableVisitSessionCookieMaxAge(expiresAt: string, now = new Date(), channel: "customer" | "terminal" = "customer") {
   const remainingSeconds = Math.floor((Date.parse(expiresAt) - now.getTime()) / 1000);
   if (!Number.isFinite(remainingSeconds)) return 0;
-  return Math.max(0, Math.min(TABLE_VISIT_SESSION_MAX_AGE_SECONDS, remainingSeconds));
+  return Math.max(0, Math.min(channel === "terminal" ? TABLE_TERMINAL_SESSION_MAX_AGE_SECONDS : TABLE_VISIT_SESSION_MAX_AGE_SECONDS, remainingSeconds));
 }
 
 export function isReusableTableVisitSessionToken(value: string | null | undefined): value is string {

@@ -33,12 +33,12 @@ export async function GET(
       existingSessionToken: request.cookies.get(TABLE_VISIT_SESSION_COOKIE)?.value,
       userAgent: request.headers.get("user-agent"),
     });
-    const mode = request.nextUrl.searchParams.get("mode") === "terminal" ? "terminal" : "customer";
+    const mode = session.channel === "terminal" ? "terminal" : "customer";
     const response = NextResponse.redirect(new URL(getPublicMenuPath(session.slug) + "?mode=" + mode, request.url), 303);
     response.cookies.set(TABLE_VISIT_SESSION_COOKIE, session.rawSessionToken, {
       ...TABLE_VISIT_SESSION_COOKIE_SECURITY,
       expires: new Date(session.expiresAt),
-      maxAge: getTableVisitSessionCookieMaxAge(session.expiresAt),
+      maxAge: getTableVisitSessionCookieMaxAge(session.expiresAt, new Date(), session.channel),
     });
     response.headers.set("Cache-Control", "no-store");
     response.headers.set("Referrer-Policy", "no-referrer");

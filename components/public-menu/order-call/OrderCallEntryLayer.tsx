@@ -184,6 +184,9 @@ export default function OrderCallEntryLayer({
         ) : null}
         {canOpenCart ? (
           <PostpayOrderCartDrawer
+          channel={config.channel}
+          orderExpiresAt={config.orderExpiresAt}
+          customerPhone={config.customerPhone}
           open={cartOpen}
           onClose={() => setCartOpen(false)}
           menuSiteId={config.menuSiteId!}

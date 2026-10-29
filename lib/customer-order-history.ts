@@ -6,6 +6,7 @@ export const CUSTOMER_ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   ready: "서빙 준비", served: "서빙 완료", cancelled: "주문 취소",
 };
 export type CustomerOrderSnapshot = {
+  cartSignature?: string;
   id: string;
   orderNumber: number;
   tableLabel: string;

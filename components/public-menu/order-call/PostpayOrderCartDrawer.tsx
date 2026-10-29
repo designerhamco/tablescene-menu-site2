@@ -38,6 +38,9 @@ import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import styles from "./PostpayOrderCartDrawer.module.css";
 import ui from "./MenuInteractionUI.module.css";
 import { MenuOrderIcon, type MenuOrderIconVariant } from "./MenuActionIcons";
+import {normalizeOrderPhone,orderCartSignature,TERMINAL_CART_IDLE_MS,TERMINAL_CART_WARNING_MS,type OrderChannel} from "@/lib/order-session-policy";
+import {useCustomerOrderAccess} from "./useCustomerOrderAccess";
+import OrderPolicyDialog from "./OrderPolicyDialog";
 
 type StoredCartLine = {
   menuItemId: string;
@@ -53,6 +56,9 @@ type CartLine = StoredCartLine & {
 };
 
 type PostpayOrderCartDrawerProps = {
+  channel?: OrderChannel;
+  orderExpiresAt?: string | null;
+  customerPhone?: "required" | "optional" | "hidden";
   iconVariant?: MenuOrderIconVariant;
   open: boolean;
   onClose: () => void;
@@ -118,6 +124,9 @@ function getCheckoutModeLabel(mode: OrderCheckoutMode) {
 }
 
 export default function PostpayOrderCartDrawer({
+  channel = "customer",
+  orderExpiresAt,
+  customerPhone = "required",
   iconVariant = "cart",
   open,
   onClose,
@@ -221,10 +230,38 @@ export default function PostpayOrderCartDrawer({
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [pendingRequestId, setPendingRequestId] = useState<string | null>(null);
+  const [phone,setPhone]=useState("");
+  const [repeatOrderId,setRepeatOrderId]=useState<string|null>(null);
+  const [idleWarning,setIdleWarning]=useState(false),[cartCleared,setCartCleared]=useState(false);
+  const access=useCustomerOrderAccess(menuSiteId,channel==="customer",orderExpiresAt,previewOnly);
+  const activityKey=`${storageKey}:activity`;
+  const lastActivity=useRef(0);
+  function touchCart(){lastActivity.current=Date.now();try{(previewOnly?window.sessionStorage:window.localStorage).setItem(activityKey,String(lastActivity.current));}catch{}setIdleWarning(false);}
+  useEffect(()=>{
+    let value="";if(channel==="customer")try{value=window.sessionStorage.getItem(`${storageKey}:phone`)??"";}catch{}
+    const frame=requestAnimationFrame(()=>setPhone(value));return()=>cancelAnimationFrame(frame);
+  },[storageKey,channel]);
+  useEffect(()=>{
+    if(channel!=="terminal"||hydratedScope!==storageKey||!cart.length)return;
+    const storage=previewOnly?window.sessionStorage:window.localStorage;
+    try{const stored=Number(storage.getItem(activityKey));lastActivity.current=stored>0?Math.min(stored,Date.now()):Date.now();storage.setItem(activityKey,String(lastActivity.current));}catch{lastActivity.current=Date.now();}
+    function interact(){if(!idleWarning){lastActivity.current=Date.now();try{storage.setItem(activityKey,String(lastActivity.current));}catch{}}}
+    function tick(){if(submitting||pendingRequestId)return;const idle=Date.now()-lastActivity.current;
+      if(idle>=TERMINAL_CART_IDLE_MS){setCart([]);setActiveItem(null);setIdleWarning(false);setCartCleared(true);setPendingRequestId(null);try{storage.setItem(storageKey,"[]");storage.removeItem(activityKey);}catch{}onCountChange(0);}
+      else if(idle>=TERMINAL_CART_IDLE_MS-TERMINAL_CART_WARNING_MS)setIdleWarning(true);
+    }
+    const timer=setInterval(tick,1000);tick();
+    for(const name of ["pointerdown","keydown","scroll"])document.addEventListener(name,interact,{passive:true,capture:true});
+    document.addEventListener("visibilitychange",tick);
+    return()=>{clearInterval(timer);for(const name of ["pointerdown","keydown","scroll"])document.removeEventListener(name,interact,true);document.removeEventListener("visibilitychange",tick);};
+    // UI callbacks are intentionally excluded; idle duration follows the stored draft.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  },[channel,cart.length,hydratedScope,storageKey,activityKey,previewOnly,submitting,pendingRequestId,idleWarning]);
 
   useEffect(() => {
     let cancelled = false;
     let nextCart: CartLine[] = [];
+    let nextRequestId: string | null = null;
     {
       try {
         const parsed = JSON.parse(
@@ -235,11 +272,14 @@ export default function PostpayOrderCartDrawer({
         nextCart = Array.isArray(parsed)
           ? parsed.flatMap((line) => hydrateCartLine(line, catalog) ?? [])
           : [];
+        const pending=JSON.parse((previewOnly?window.sessionStorage:window.localStorage).getItem(`${storageKey}:pending`)??"null");
+        if(pending&&typeof pending.id==="string"&&/^[0-9a-f-]{36}$/i.test(pending.id)&&pending.signature===orderCartSignature(nextCart))nextRequestId=pending.id;
       } catch {}
     }
     queueMicrotask(() => {
       if (cancelled) return;
       setCart(nextCart);
+      setPendingRequestId(nextRequestId);
       setHydratedScope(storageKey);
     });
     return () => {
@@ -266,6 +306,14 @@ export default function PostpayOrderCartDrawer({
     }
     onCountChange(cart.reduce((sum, line) => sum + line.quantity, 0));
   }, [cart, hydratedScope, onCountChange, previewOnly, storageKey]);
+
+  useEffect(()=>{
+    if(hydratedScope!==storageKey)return;
+    try{const storage=previewOnly?window.sessionStorage:window.localStorage;
+      if(pendingRequestId)storage.setItem(`${storageKey}:pending`,JSON.stringify({id:pendingRequestId,signature:orderCartSignature(cart)}));
+      else storage.removeItem(`${storageKey}:pending`);
+    }catch{}
+  },[pendingRequestId,cart,hydratedScope,storageKey,previewOnly]);
 
   useEffect(() => {
     if (!open) {
@@ -316,6 +364,8 @@ export default function PostpayOrderCartDrawer({
   }, [activeItem, selectedOptionIds]);
 
   function resetPendingRequest() {
+    touchCart();
+    setRepeatOrderId(null);
     setPendingRequestId(null);
     setMessage("");
   }
@@ -417,10 +467,21 @@ export default function PostpayOrderCartDrawer({
     setMessage("");
   }
 
-  async function submitOrder() {
+  async function submitOrder(confirmedRepeatId: string | null = null) {
     if (cart.length < 1 || submitting) return;
+    if(!availableCheckoutModes.includes("postpay")){setMessage(t("선결제는 준비 중입니다."));return;}
+    if(access.expired){setMessage(t("주문 이용 시간이 만료되었습니다. 테이블 QR을 다시 스캔해 주세요."));return;}
+    let notificationPhone:string|null=null;
+    if(channel==="customer"&&customerPhone!=="hidden"){
+      try{notificationPhone=normalizeOrderPhone(phone);}catch{setMessage(t("휴대폰 번호를 확인해 주세요."));return;}
+      if(customerPhone==="required"&&!notificationPhone){setMessage(t("휴대폰 번호를 입력해 주세요."));return;}
+    }
+    const signature=orderCartSignature(cart);
     if (previewOnly) {
+      const previous=history.find(order=>order.status!=="cancelled");
+      if(previous?.cartSignature===signature&&confirmedRepeatId!==previous.id){setRepeatOrderId(previous.id);return;}
       const order: CustomerOrderSnapshot = {
+        cartSignature:signature,
         id: crypto.randomUUID(), orderNumber: Math.max(0, ...history.map(order => order.orderNumber)) + 1,
         tableLabel, createdAt: new Date().toISOString(), status: "received", paymentStatus: "unpaid", totalAmount,
         lines: cart.map(line => ({ name: line.name, quantity: line.quantity, options: line.optionNames, unitPrice: line.unitPrice })),
@@ -431,6 +492,7 @@ export default function PostpayOrderCartDrawer({
       setActiveTab("history");
       setHistorySurface(true);
       setMessage(t("미리보기 주문이 접수되었습니다. 실제 매장에는 전송되지 않습니다."));
+      if(channel==="customer")try{window.sessionStorage.setItem(`${storageKey}:phone`,phone);}catch{}
       return;
     }
     const requestId = pendingRequestId ?? crypto.randomUUID();
@@ -445,6 +507,8 @@ export default function PostpayOrderCartDrawer({
           menuSiteId,
           clientRequestId: requestId,
           requestText: "",
+          notificationPhone,
+          repeatOrderId:confirmedRepeatId,
           lines: cart.map(
             ({ menuItemId, quantity: lineQuantity, optionValueIds }) => ({
               ...(menuItemId.startsWith("course:")
@@ -459,16 +523,23 @@ export default function PostpayOrderCartDrawer({
       const body = (await result.json()) as {
         ok?: boolean;
         message?: string;
+        code?: string;
+        repeatOrderId?: string;
         order?: { orderNumber?: number };
       };
-      if (!result.ok || !body.ok)
+      if(body.code==="ORDER_REPEAT_CONFIRM"&&body.repeatOrderId){setPendingRequestId(null);setRepeatOrderId(body.repeatOrderId);return;}
+      if(body.code==="ORDER_ACCESS_EXPIRED")access.expire();
+      if (!result.ok || !body.ok) {
+        if (result.status < 500) setPendingRequestId(null);
         throw new Error(body.message || t("주문을 전송하지 못했습니다."));
+      }
       setCart([]);
       setPendingRequestId(null);
       setActiveTab("history");
       setHistorySurface(true);
       liveHistory.refresh();
       setMessage(t("주문 {0}번이 접수되었습니다.", body.order?.orderNumber ?? ""));
+      if(channel==="customer")try{window.sessionStorage.setItem(`${storageKey}:phone`,phone);}catch{}
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : t("주문을 전송하지 못했습니다."),
@@ -497,6 +568,8 @@ export default function PostpayOrderCartDrawer({
         ?.focus(),
     );
     const onKey = (event: KeyboardEvent) => {
+      // Native policy dialogs own focus and Escape while they are in the top layer.
+      if (document.querySelector("dialog[open]")) return;
       if (event.key === "Escape") {
         event.preventDefault();
         onClose();
@@ -532,10 +605,27 @@ export default function PostpayOrderCartDrawer({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, activeItem?.id]);
 
-  if (!open) return null;
+  const policyDialogs=<>
+    <OrderPolicyDialog open={access.warning||access.showExpired} title={t(access.expired?"주문 이용 시간 만료":"주문 이용 시간 연장")} style={interactionStyle} onDismiss={access.dismiss}>
+      <p>{t(access.expired?"추가 주문을 하시려면 테이블 QR을 다시 스캔해 주세요. 기존 주문내역은 계속 확인할 수 있습니다.":"주문 이용 시간이 곧 만료됩니다. 1시간 연장하시겠습니까?")}</p>
+      {access.error?<p role="status">{t(access.error)}</p>:null}
+      {!access.expired?<button type="button" className={`${ui.primary} w-full px-4 py-3`} disabled={access.renewing} onClick={access.renew}>{t(access.renewing?"연장 중…":"1시간 연장")}</button>:null}
+      <button type="button" className={`${ui.secondary} w-full px-4 py-3`} onClick={access.dismiss}>{t("메뉴판 계속 보기")}</button>
+    </OrderPolicyDialog>
+    <OrderPolicyDialog open={idleWarning||cartCleared} title={t(cartCleared?"장바구니를 비웠습니다":"장바구니 자동 초기화 안내")} style={interactionStyle} onDismiss={()=>{if(cartCleared)setCartCleared(false);else touchCart();}}>
+      <p>{t(cartCleared?"오랫동안 조작하지 않아 미주문 상품을 비웠습니다. 이미 접수된 주문은 유지됩니다.":"1분 뒤 미주문 상품을 비웁니다. 계속 이용하시겠습니까?")}</p>
+      <button type="button" className={`${ui.primary} w-full px-4 py-3`} onClick={()=>{if(cartCleared)setCartCleared(false);else touchCart();}}>{t(cartCleared?"확인":"계속 이용하기")}</button>
+    </OrderPolicyDialog>
+    <OrderPolicyDialog open={Boolean(repeatOrderId)} title={t("동일한 주문 확인")} style={interactionStyle} onDismiss={()=>setRepeatOrderId(null)}>
+      <p>{t("동일한 메뉴와 수량으로 주문하셨습니다. 다시 주문하시겠습니까?")}</p>
+      <button type="button" className={`${ui.primary} w-full px-4 py-3`} onClick={()=>{const id=repeatOrderId;setRepeatOrderId(null);void submitOrder(id);}}>{t("다시 주문하기")}</button>
+      <button type="button" className={`${ui.secondary} w-full px-4 py-3`} onClick={()=>setRepeatOrderId(null)}>{t("돌아가기")}</button>
+    </OrderPolicyDialog>
+  </>;
+  if (!open) return policyDialogs;
 
   if (activeItem) {
-    return createPortal(
+    return <>{policyDialogs}{createPortal(
       <div
         ref={dialogRef}
         style={{ ...typographyStyle, ...interactionStyle }}
@@ -658,10 +748,10 @@ export default function PostpayOrderCartDrawer({
         </section>
       </div>,
       document.body,
-    );
+    )}</>;
   }
 
-  return createPortal(
+  return <>{policyDialogs}{createPortal(
     <div
       className={styles.backdrop}
       style={interactionStyle}
@@ -814,24 +904,38 @@ export default function PostpayOrderCartDrawer({
                     </div>
                   ) : (
                     <div className="mt-3 flex items-center justify-between border-y border-zinc-200 py-3 text-sm font-normal">
-                      <span>{t("매장에서 결제")}</span>
-                      <span className="text-zinc-500">{t("후불 결제")}</span>
+                      <span>{t(availableCheckoutModes.includes("postpay")?"매장에서 결제":"선결제 · 준비 중")}</span>
+                      <span className="text-zinc-500">{t(availableCheckoutModes.includes("postpay")?"후불 결제":"실제 결제는 아직 제공하지 않습니다.")}</span>
                     </div>
                   )}
                   <p className="mt-2 text-xs font-medium leading-relaxed text-zinc-500">
-                    {selectedCheckoutMode === "prepay"
+                    {!availableCheckoutModes.includes("postpay")
+                      ? t("선결제는 준비 중입니다.") : selectedCheckoutMode === "prepay"
                       ? t("휴대폰에서 바로 결제한 뒤 주문을 전송합니다.")
                       : t("지금 주문하고 매장에서 나중에 결제합니다.")}
                   </p>
                 </section>
+                {channel==="customer"&&customerPhone!=="hidden"?<label className="block space-y-2 text-sm font-medium">
+                  <span>{t("휴대폰 번호")} {customerPhone==="required"?t("필수"):t("선택")}</span>
+                  <input type="tel" inputMode="tel" autoComplete="tel" maxLength={30} value={phone} aria-required={customerPhone==="required"}
+                    className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-base" placeholder="010-0000-0000"
+                    onChange={event=>{
+                      // Keep an uncertain submission's request ID when the contact is edited.
+                      setPhone(event.target.value);touchCart();setRepeatOrderId(null);setMessage("");
+                    }}/>
+                  <span className="block text-xs font-normal leading-relaxed text-zinc-500">{t("주문 확인을 위한 연락처입니다. 번호는 주문마다 수정할 수 있습니다. 알림톡 발송은 준비 중입니다.")}</span>
+                </label>:null}
+                {access.expired?<p role="status" className="rounded-xl bg-zinc-100 p-4 text-sm">{t("주문 이용 시간이 만료되었습니다. 테이블 QR을 다시 스캔해 주세요.")}</p>:null}
                 <button
                   type="button"
                   className={`${ui.primary} w-full px-5 py-3.5 text-sm disabled:opacity-50`}
-                  disabled={submitting}
-                  onClick={submitOrder}
+                  disabled={submitting||access.expired||!availableCheckoutModes.includes("postpay")}
+                  onClick={()=>void submitOrder()}
                 >
                   {submitting
                     ? t("주문 전송 중…")
+                    : !availableCheckoutModes.includes("postpay")
+                      ? t("선결제 · 준비 중")
                     : selectedCheckoutMode === "prepay"
                       ? t("{0} 결제하기", formatPrice(totalAmount))
                       : t("후불로 주문하기")}
@@ -866,5 +970,5 @@ export default function PostpayOrderCartDrawer({
       </div>
     </div>,
     document.body,
-  );
+  )}</>;
 }

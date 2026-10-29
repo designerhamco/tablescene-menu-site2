@@ -1,0 +1,83 @@
+import assert from 'node:assert/strict';
+import {NextRequest} from 'next/server.js';
+import {hashTableAccessToken,TABLE_VISIT_SESSION_COOKIE} from '../lib/table-qr-session-tokens.ts';
+
+export async function verifyOrderSessions({q,basic,table,other,item,option,services,ua,session,settings}) {
+  let count=0;const check=(a,b)=>{assert.deepEqual(a,b);count++;};
+  const reject=async(fn,pattern)=>{await assert.rejects(fn,pattern);count++;};
+  const prefs={table_order:{...settings.table_order,customerPhone:'required',customerCheckout:'both',terminalOrderEnabled:true}};
+  await q('update menu_sites set settings=$1 where id=$2',[prefs,basic]);
+  const a=await session(),b=await session(),lines=[{menuItemId:item,quantity:1,optionValueIds:[option]}];
+  const submit=async(s,{id=crypto.randomUUID(),phone='01000000000',repeat=null,cart=lines}={})=>(await q('select * from submit_postpay_order_v3($1,$2,$3,null,$4::jsonb,$5,$6)',[basic,s.id,id,JSON.stringify(cart),phone,repeat]))[0];
+  const request=(s,path,method='GET',body,origin='https://menu.test')=>new NextRequest('https://menu.test/api/public-menu/'+path,{method,headers:{origin,'user-agent':ua,'content-type':'application/json',...(s?{cookie:TABLE_VISIT_SESSION_COOKIE+'='+s.token}:{})},...(method==='GET'?{}:{body:JSON.stringify(body)})});
+  const id=crypto.randomUUID(),first=await submit(a,{id});
+  check((await q('select notification_phone from menu_customer_orders where id=$1',[first.order_id]))[0].notification_phone,'01000000000');
+  await reject(()=>submit(a),/ORDER_REPEAT_CONFIRM/);
+  const second=await submit(a,{repeat:first.order_id,phone:'01011111111'});
+  check(second.is_duplicate,false);check(second.order_id!==first.order_id,true);
+  await reject(()=>submit(a,{repeat:first.order_id}),/ORDER_REPEAT_CONFIRM/);
+  const otherOrder=await submit(b);
+  const history=await services.api.GET(request(a,'orders?menuSiteId='+basic));
+  const snapshot=await history.json();check(history.status,200);
+  check(snapshot.orders.map(o=>o.id),[second.order_id,first.order_id]);
+  check(snapshot.orders.some(o=>o.id===otherOrder.order_id),false);
+  check(JSON.stringify(snapshot).includes('01000000000'),false);
+  check((await q('select notification_phone from menu_customer_orders where id=$1',[first.order_id]))[0].notification_phone,'01000000000');
+  check((await submit(a,{cart:[{...lines[0],quantity:2}]})).is_duplicate,false);
+  await q("update table_visit_sessions set order_expires_at=now()-interval '1 minute' where id=$1",[a.id]);
+  await reject(()=>submit(a,{cart:[{...lines[0],quantity:3}]}),/ORDER_ACCESS_EXPIRED/);
+  await reject(()=>q('select * from submit_postpay_order_v2($1,$2,$3,null,$4::jsonb)',[basic,a.id,crypto.randomUUID(),JSON.stringify(lines)]),/ORDER_ACCESS_EXPIRED/);
+  check((await submit(a,{id})).is_duplicate,true);
+  check((await services.api.GET(request(a,'orders?menuSiteId='+basic))).status,200);
+  const expired=await services.api.POST(request(a,'orders','POST',{menuSiteId:basic,clientRequestId:crypto.randomUUID(),notificationPhone:'01000000000',lines,channel:'terminal'}));
+  check(expired.status,409);check((await expired.json()).code,'ORDER_ACCESS_EXPIRED');
+  check((await services.orderSession.POST(request(a,'order-session','POST',{menuSiteId:basic}))).status,409);
+  check((await services.orderSession.POST(request(b,'order-session','POST',{menuSiteId:basic},'https://evil.test'))).status,403);
+  check((await services.orderSession.POST(request(null,'order-session','POST',{menuSiteId:basic}))).status,401);
+  check((await services.orderSession.GET(request(a,'order-session?menuSiteId='+basic))).status,200);
+  const qr=(await q('select qr_public_id from menu_tables where id=$1',[table]))[0].qr_public_id;
+  const resumed=await services.visits.issueTableVisitSession({tableToken:qr,existingSessionToken:a.token,userAgent:ua});
+  check(resumed.id,a.id);check(resumed.rawSessionToken,a.token);check(Date.parse(resumed.orderExpiresAt)>Date.now(),true);
+  check((await services.api.GET(request(a,'orders?menuSiteId='+basic))).status,200);
+  check((await services.orderSession.POST(request(a,'order-session','POST',{menuSiteId:basic}))).status,200);
+  globalThis.__visitAccess={...globalThis.__visitAccess,canUseWriteActions:true};
+  const priorPermissions=globalThis.__visitPermissions;globalThis.__visitPermissions=new Set();
+  await reject(()=>services.terminal.registerTableTerminal(basic,table,ua),/PERMISSION_DENIED/);
+  globalThis.__visitPermissions=priorPermissions;
+  const registered=await services.terminal.registerTableTerminal(basic,table,ua);
+  const terminalRow=(await q('select * from table_visit_sessions where token_hash=$1',[hashTableAccessToken(registered.token)]))[0];
+  const terminal={id:terminalRow.id,token:registered.token};
+  check(terminalRow.access_channel,'terminal');check(terminalRow.order_expires_at,null);
+  const resolved=await services.visits.resolveTableVisitSession({expectedMenuSiteId:basic,sessionToken:terminal.token,userAgent:ua});
+  check(resolved.channel,'terminal');check(resolved.orderExpiresAt,null);
+  check(await services.visits.resolveTableVisitSession({expectedMenuSiteId:other,sessionToken:terminal.token,userAgent:ua}),null);
+  check(await services.visits.resolveTableVisitSession({expectedMenuSiteId:basic,sessionToken:terminal.token,userAgent:'different-browser'}),null);
+  await reject(()=>submit(terminal),/do not collect phone/);
+  const terminalPost=await services.api.POST(request(terminal,'orders','POST',{menuSiteId:basic,clientRequestId:crypto.randomUUID(),notificationPhone:'01011111111',lines}));
+  check(terminalPost.status,201);const terminalOrder=(await terminalPost.json()).order;
+  check((await q('select notification_phone from menu_customer_orders where id=$1',[terminalOrder.orderId]))[0].notification_phone,null);
+  const reused=await services.visits.issueTableVisitSession({tableToken:qr,existingSessionToken:terminal.token,userAgent:ua});
+  check(reused.channel,'terminal');check(reused.id,terminal.id);
+  // The real registration action signs out this browser before handing it to a guest.
+  const cookies=new Map();globalThis.__visitCookies={get:name=>cookies.has(name)?{value:cookies.get(name)}:undefined,set:(name,value)=>cookies.set(name,value),delete:name=>cookies.delete(name)};
+  globalThis.__visitUa=ua;globalThis.__visitSignOut=[];
+  const form=new FormData();form.set('menuSiteId',basic);form.set('tableId',table);form.set('intent','register-terminal');
+  await reject(()=>services.tableActions.mutateMenuTableAction({},form),/QA_REDIRECT:.*mode=terminal/);
+  check(globalThis.__visitSignOut,[{scope:'local'}]);
+  check((await services.visits.resolveTableVisitSession({expectedMenuSiteId:basic,sessionToken:cookies.get(TABLE_VISIT_SESSION_COOKIE),userAgent:ua})).channel,'terminal');
+  cookies.clear();globalThis.__visitSignOutError=new Error('Temporary auth failure');
+  const failed=await services.tableActions.mutateMenuTableAction({},form);
+  check(failed.status,'error');check(failed.message.includes('로그아웃'),true);check(cookies.size,0);globalThis.__visitSignOutError=null;
+  await q('update menu_sites set settings=$1 where id=$2',[{table_order:{...prefs.table_order,customerCheckout:'prepay',terminalOrderEnabled:false}},basic]);
+  await reject(()=>submit(a,{cart:[{...lines[0],quantity:3}]}),/CHECKOUT_UNAVAILABLE/);
+  await reject(()=>submit(terminal,{phone:null,cart:[{...lines[0],quantity:3}]}),/CHECKOUT_UNAVAILABLE/);
+  await q('update menu_sites set settings=$1 where id=$2',[prefs,basic]);
+  await q('set role service_role');
+  try{check((await submit(a,{cart:[{...lines[0],quantity:4}]})).is_duplicate,false);}finally{await q('reset role');}
+  await services.terminal.unregisterTableTerminal(basic,terminal.token);
+  check(await services.visits.resolveTableVisitSession({expectedMenuSiteId:basic,sessionToken:terminal.token,userAgent:ua}),null);
+  for(const fn of ['resolve_order_visit_access(uuid,uuid)','extend_table_order_access(uuid,uuid,boolean)','register_table_terminal_visit(uuid,uuid,text,text,text)','submit_postpay_order_v3(uuid,uuid,uuid,text,jsonb,text,uuid)']){
+    for(const role of ['anon','authenticated'])check((await q("select has_function_privilege($1,$2,'EXECUTE') allowed",[role,'public.'+fn]))[0].allowed,false);
+  }
+  return count;
+}

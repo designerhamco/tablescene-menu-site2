@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
       return response({ ok: false, message: "주문 정보를 다시 확인해 주세요." }, 400);
     }
     if (error instanceof PostpayOrderSubmissionError) {
-      return response({ ok: false, message: error.message }, 409);
+      return response({ ok: false, message: error.message, code: error.code, repeatOrderId: error.repeatOrderId }, 409);
     }
     throw error;
   }

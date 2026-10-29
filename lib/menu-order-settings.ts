@@ -4,6 +4,9 @@ export type MenuOrderSettings = {
   mobilePrepayVisible: boolean;
   postpayEnabled: boolean;
   orderableCourseIds: string[];
+  customerCheckout?: "off" | "postpay" | "prepay" | "both";
+  terminalOrderEnabled?: boolean;
+  customerPhone?: "required" | "optional" | "hidden";
 };
 export const DEFAULT_MENU_ORDER_SETTINGS: MenuOrderSettings = {
   orderEnabled: false,
@@ -23,7 +26,11 @@ export function mergeMenuOrderSettingsSection(
   return section === "calls"
     ? { ...current, callEnabled: next.callEnabled }
     : { ...current, orderEnabled: next.orderEnabled, postpayEnabled: true,
-        mobilePrepayVisible: next.mobilePrepayVisible };
+        mobilePrepayVisible: next.mobilePrepayVisible,
+        ...(next.customerCheckout !== undefined ? { customerCheckout: next.customerCheckout } : {}),
+        ...(next.terminalOrderEnabled !== undefined ? { terminalOrderEnabled: next.terminalOrderEnabled } : {}),
+        ...(next.customerPhone !== undefined ? { customerPhone: next.customerPhone } : {}),
+      };
 }
 export function readMenuOrderSettings(settings: unknown): MenuOrderSettings {
   const root =
@@ -51,6 +58,12 @@ export function readMenuOrderSettings(settings: unknown): MenuOrderSettings {
     mobilePrepayVisible: value.mobilePrepayVisible === true,
     postpayEnabled: value.postpayEnabled !== false,
     orderableCourseIds: [...new Set(ids)],
+    customerCheckout: ["off", "postpay", "prepay", "both"].includes(String(value.customerCheckout))
+      ? value.customerCheckout as MenuOrderSettings["customerCheckout"]
+      : value.mobilePrepayVisible === true ? "both" : "postpay",
+    terminalOrderEnabled: value.terminalOrderEnabled !== false,
+    customerPhone: ["required", "optional", "hidden"].includes(String(value.customerPhone))
+      ? value.customerPhone as MenuOrderSettings["customerPhone"] : "required",
   };
 }
 export function getAllowedCheckoutModes(
@@ -58,11 +71,14 @@ export function getAllowedCheckoutModes(
   channel: "customer" | "terminal",
 ) {
   return {
-    postpay: settings.orderEnabled && settings.postpayEnabled,
+    postpay: settings.orderEnabled && settings.postpayEnabled && (channel === "terminal"
+      ? settings.terminalOrderEnabled !== false
+      : !["off", "prepay"].includes(settings.customerCheckout ?? "postpay")),
     prepayVisible:
       channel === "customer" &&
       settings.orderEnabled &&
-      settings.mobilePrepayVisible,
+      (settings.customerCheckout === "prepay" || settings.customerCheckout === "both"
+        || (!settings.customerCheckout && settings.mobilePrepayVisible)),
     prepayAvailable: false as const,
   };
 }
