@@ -1,7 +1,6 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
-import Link from "next/link";
 import { Search } from "lucide-react";
 import { DETAILED_FAQ_DATA, FAQItem } from "@/app/components/common/FAQ";
 import styles from "./support.module.css";
@@ -150,8 +149,7 @@ export default function SupportCenter({ supportActions }: { supportActions?: Rea
             </Button>
           </form>
           <p className="site-body-sm text-zinc-500">
-            더 자세한 도움이 필요하신가요?{" "}
-            <Link href="/mypage/inquiries">1:1 문의하기</Link>
+            더 자세한 도움이 필요하신가요?
           </p>
           {supportActions}
         </div>
