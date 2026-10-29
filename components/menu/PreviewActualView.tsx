@@ -14,8 +14,10 @@ export default function PreviewActualView({ href, tabIndex }: { href: string; ta
   const [open, setOpen] = useState(false);
   const [notice, setNotice] = useState(true);
 
-  const close = () => {
-    if (document.fullscreenElement === screenRef.current) void document.exitFullscreen();
+  const close = async () => {
+    if (document.fullscreenElement === screenRef.current) {
+      try { await document.exitFullscreen(); } catch { /* Native exit may already be in progress. */ }
+    }
     dialogRef.current?.close();
   };
 
@@ -49,8 +51,13 @@ export default function PreviewActualView({ href, tabIndex }: { href: string; ta
       <span className="hidden min-[430px]:inline">실제 화면 보기</span>
     </a>
     <dialog ref={dialogRef} aria-label="메뉴판 실제 화면" className={styles.dialog}
-      onCancel={(event) => { event.preventDefault(); close(); }}
-      onClose={() => { setOpen(false); wasFullscreen.current = false; linkRef.current?.focus(); }}>
+      onCancel={(event) => { event.preventDefault(); void close(); }}
+      onClose={() => {
+        setOpen(false);
+        wasFullscreen.current = false;
+        // The browser releases the fullscreen/modal top layer after the close event.
+        requestAnimationFrame(() => linkRef.current?.focus());
+      }}>
       <div ref={screenRef} className={styles.screen} data-preview-actual-screen="">
         {open ? <iframe src={href} title="목업 없는 메뉴판 실제 화면" allowFullScreen className={styles.menu} /> : null}
         {open ? <>

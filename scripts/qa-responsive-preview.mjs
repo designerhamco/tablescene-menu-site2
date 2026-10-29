@@ -176,7 +176,7 @@ try {
     await page.waitForFunction(()=>!document.fullscreenElement);
     assert.equal(new URL(page.url()).searchParams.get('device'),'pc');
     assert.equal(await page.locator('[data-preview-frame-shell] iframe').evaluate(e=>e.contentWindow.__actualReturnMarker),'preserved');
-    assert.equal(await page.getByRole('link',{name:'실제 화면 보기',exact:true}).evaluate(e=>e===document.activeElement),true);
+    await page.waitForFunction(()=>document.activeElement?.matches('[data-preview-detached-link]'));
     report.actualViews.push({width,height,...metrics});
   }
   // Unsupported mobile browsers still receive the real menu and a guide, never another mockup.
