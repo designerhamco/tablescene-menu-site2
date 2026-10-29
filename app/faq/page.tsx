@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import LatestAnnouncements from "@/components/support/LatestAnnouncements";
+import { getPublishedAnnouncements } from "@/lib/server/announcement-service";
 import { BookOpen } from "lucide-react";
 import Link from "next/link";
 import Footer from "@/app/components/layout/Footer";
@@ -14,19 +18,25 @@ export const metadata: Metadata = {
     "공지사항과 자주 묻는 질문을 검색하고, 아티메뉴 이용에 필요한 도움을 찾아보세요.",
 };
 
+async function RecentNotices() {
+  const result = await getPublishedAnnouncements({ latest: true });
+  return <LatestAnnouncements items={result.items} unavailable={result.unavailable} />;
+}
+
 export default async function FAQPage({
   searchParams,
 }: {
   searchParams: Promise<{ tab?: string }>;
 }) {
   const { tab } = await searchParams;
+  if (tab === "notices") redirect("/faq/notices");
   const enabled = isAiSupportChatEnabled();
   return (
     <>
       <OfficialSiteNavbar />
       <main className="min-h-screen bg-white text-zinc-950">
         <SupportCenter
-          initialTab={tab === "notices" ? "notices" : "faq"}
+          latestNotices={<Suspense fallback={<LatestAnnouncements loading />}><RecentNotices /></Suspense>}
           supportActions={
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               <Link href="/guides" className="site-button site-button-outline">

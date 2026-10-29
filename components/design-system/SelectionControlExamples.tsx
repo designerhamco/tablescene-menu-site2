@@ -26,7 +26,7 @@ export default function SelectionControlExamples() {
       <div className={styles.heading}><h2 className="type-section-title" id="selection-hierarchy-title">탭 역할과 포함 관계</h2>
         <p className="type-body text-zinc-600">먼저 무엇을 바꾸는지 판단합니다. 주요 화면, 독립 콘텐츠 영역, 목록 주제, 필터, 상태값을 구분하고 실제로 포함된 내용에 따라 위계를 구성합니다. 영역형을 특정 단계에 고정하지 않습니다.</p></div>
       <div className={styles.usageTable}><table aria-label="탭 역할 적용 기준"><thead><tr><th>역할</th><th>표현</th><th>공통 구현</th><th>대표 사용처</th></tr></thead><tbody>
-        <tr><td>주요 화면 전환</td><td>서로 분리된 둥근 버튼 · 검정 선택 면</td><td>Tabs purpose=&quot;page&quot; / NavigationTabs purpose=&quot;page&quot;</td><td>서비스별 목록, FAQ/공지사항, 편집 설정 화면</td></tr>
+        <tr><td>주요 화면 전환</td><td>서로 분리된 둥근 버튼 · 검정 선택 면</td><td>Tabs purpose=&quot;page&quot; / NavigationTabs purpose=&quot;page&quot;</td><td>서비스별 목록, 가이드 플랜, 편집 설정 화면</td></tr>
         <tr><td>독립 콘텐츠 영역 전환</td><td>흰 콘텐츠에 연결된 상단 8px 영역 탭</td><td>Tabs purpose=&quot;section&quot; / NavigationTabs purpose=&quot;section&quot;</td><td>디자인/기본 템플릿, 결제내역/AI 사용내역, 미리보기 기능/디자인</td></tr>
         <tr><td>목록 분류</td><td>밑줄형 · 별도 콘텐츠 박스 없음</td><td>CategoryFilter / Tabs purpose=&quot;category&quot;</td><td>고객센터 주제, 전체/읽지 않은 알림</td></tr>
         <tr><td>목록 조건 선택</td><td>작은 필터 버튼 · 아이콘 선택</td><td>site-filter / ChoiceTile</td><td>템플릿 업종, 화면 구성, 본문 바로가기</td></tr>

@@ -23,6 +23,7 @@ export type AnnouncementSummary = Pick<
   "id" | "title" | "category" | "pinned" | "published_at"
 >;
 export const ANNOUNCEMENT_PAGE_SIZE = 10;
+export const ANNOUNCEMENT_PREVIEW_SIZE = 3;
 
 export function getAnnouncementCategory(value: string) {
   return (

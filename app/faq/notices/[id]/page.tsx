@@ -51,7 +51,7 @@ export default async function AnnouncementDetail({
             <AnnouncementContent body={data.body} />
           </div>
           {!neighbors.unavailable ? <ArticleNavigation previous={toNeighbor(neighbors.previous)} next={toNeighbor(neighbors.next)} /> : null}
-          <div className="site-list-return"><Link href="/faq?tab=notices" className="site-button site-button-primary site-button-lg">공지사항 목록으로</Link></div>
+          <div className="site-list-return"><Link href="/faq/notices" className="site-button site-button-primary site-button-lg">공지사항 목록으로</Link></div>
         </article>
       </div>
     </MarketingShell>

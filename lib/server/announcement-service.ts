@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   ANNOUNCEMENT_CATEGORIES,
   ANNOUNCEMENT_PAGE_SIZE,
+  ANNOUNCEMENT_PREVIEW_SIZE,
   escapeAnnouncementSearch,
   getAnnouncementNeighborFilter,
   type AnnouncementSummary,
@@ -16,7 +17,8 @@ export async function getPublishedAnnouncements({
   page = 1,
   query = "",
   category = "all",
-}: { page?: number; query?: string; category?: string } = {}) {
+  latest = false,
+}: { page?: number; query?: string; category?: string; latest?: boolean } = {}) {
   const supabase = await createAnnouncementClient();
   let request = supabase
     .from("support_announcements")
@@ -31,13 +33,14 @@ export async function getPublishedAnnouncements({
   const search = escapeAnnouncementSearch(query);
   if (search)
     request = request.or(`title.ilike.%${search}%,body.ilike.%${search}%`);
+  // The preview is chronological; pinning only affects the full notice list.
+  if (!latest) request = request.order("pinned", { ascending: false });
   const { data, error, count } = await request
-    .order("pinned", { ascending: false })
     .order("published_at", { ascending: false })
     .order("id", { ascending: false })
     .range(
-      (page - 1) * ANNOUNCEMENT_PAGE_SIZE,
-      page * ANNOUNCEMENT_PAGE_SIZE - 1,
+      latest ? 0 : (page - 1) * ANNOUNCEMENT_PAGE_SIZE,
+      latest ? ANNOUNCEMENT_PREVIEW_SIZE - 1 : page * ANNOUNCEMENT_PAGE_SIZE - 1,
     );
   if (error) {
     console.error("[announcements] public list unavailable", error.code);

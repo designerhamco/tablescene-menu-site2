@@ -77,7 +77,7 @@ test("site pages cannot override shared action padding, shape, typography or dis
 });
 
 test("tab purpose maps main views, independent sections, categories and states to shared roles", () => {
-  assert.match(read("components/support/SupportCenter.tsx"), /<Tabs purpose="page"/);
+  assert.doesNotMatch(read("components/support/SupportCenter.tsx"), /<Tabs|고객센터 메뉴/);
   assert.match(read("components/support/SupportCenter.tsx"), /<CategoryFilter/);
   const preview = read("components/menu/MenuPreviewOptionsPanel.tsx");
   assert.match(preview, /<Tabs purpose="section"/);
