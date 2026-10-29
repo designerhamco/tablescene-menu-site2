@@ -58,7 +58,7 @@ export default function SiteComponentGallery() {
       </div>
       <Button variant="outline" size="lg" asChild><Link href="/templates">전체 디자인 보기 <ArrowRight /></Link></Button>
     </Examples>
-    <Examples title="주요 화면 전환" description="베이직·다이닝·디스플레이처럼 페이지 전체 목록을 바꾸는 선택은 분리된 둥근 주요 화면 탭을 사용합니다.">
+    <Examples title="주요 화면 전환" description="베이직·다이닝·디스플레이처럼 페이지 전체 목록을 바꾸는 선택은 텍스트와 짧은 밑줄로 선택을 표시하는 주요 화면 탭을 사용합니다.">
       <Tabs purpose="page" defaultValue="basic"><TabsList size="lg" aria-label="서비스 탐색 예시">
         {choices.map(({key,label}) => <TabsTrigger key={key} value={key}>{label}</TabsTrigger>)}
       </TabsList>{choices.map(({key,description}) => <TabsContent key={key} value={key} className="type-body text-zinc-600">{description}</TabsContent>)}</Tabs>
@@ -77,7 +77,7 @@ export default function SiteComponentGallery() {
         <TabsTrigger value="designer">이미지로 보기</TabsTrigger><TabsTrigger value="standard">목록으로 보기</TabsTrigger>
       </TabsList><TabsContent value="designer" className="type-body text-zinc-600">썸네일을 중심으로 디자인을 살펴봅니다.</TabsContent><TabsContent value="standard" className="type-body text-zinc-600">이름과 설명을 중심으로 디자인을 살펴봅니다.</TabsContent></Tabs>
     </Examples>
-    <Examples title="최상위 보기와 이미지 카드" description="서비스 단위로 전체 목록이 바뀌면 분리된 둥근 주요 화면 탭을 사용하고, 썸네일과 제목·설명·이동 액션의 크기를 구분합니다.">
+    <Examples title="최상위 보기와 이미지 카드" description="서비스 단위로 전체 목록이 바뀌면 텍스트와 짧은 밑줄로 선택을 표시하는 주요 화면 탭을 사용하고, 썸네일과 제목·설명·이동 액션의 크기를 구분합니다.">
       <div className="site-collection"><Tabs purpose="page" defaultValue="all"><TabsList size="md" aria-label="템플릿 라이브러리 서비스">
         <TabsTrigger value="all">전체 디자인</TabsTrigger><TabsTrigger value="basic">베이직</TabsTrigger><TabsTrigger value="dining">다이닝</TabsTrigger>
       </TabsList>{["all","basic","dining"].map(key=><TabsContent key={key} value={key} className={styles.galleryPanel}>
