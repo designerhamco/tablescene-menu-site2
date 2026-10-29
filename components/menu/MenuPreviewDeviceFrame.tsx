@@ -236,6 +236,7 @@ export default function MenuPreviewDeviceFrame(
   const detachedUrl = buildPreviewUrl({
     actual: true,
     embedded: true,
+    detached: true,
   });
   const showToolbar = isToolbarOpen;
   const changeDesign = (next: PreviewDesign) => {

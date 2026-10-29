@@ -341,7 +341,7 @@ test("actual-screen links infer the current viewport and strip saved interactive
     }));
     const link = html.match(/<a[^>]*data-preview-detached-link=""[^>]*>/)?.[0] ?? "";
     const href = link.match(/href="([^"]*)"/)?.[1].replaceAll("&amp;", "&");
-    assert.equal(href, `/mypage/menus/menu-a/preview?lang=en&page=2&view=actual&embedded=1`);
+    assert.equal(href, `/mypage/menus/menu-a/preview?lang=en&page=2&view=actual&embedded=1&detached=1`);
     assert.match(html, new RegExp(`src="[^\"]*device=${device}`));
     const starterUrl = buildTemplatePreviewUrl("fast_food_loop_bagel_a", {
       device, orientation: "portrait", lang: "en", callPreview: "on",
@@ -356,7 +356,7 @@ test("actual-screen links infer the current viewport and strip saved interactive
 
 test("detached actual previews expose a user-triggered fullscreen control", () => {
   assert.match(fullscreenControlSource, /document\.documentElement\.requestFullscreen\(\)/);
-  assert.match(fullscreenControlSource, /document\.exitFullscreen\(\)/);
+  assert.match(fullscreenControlSource, /event\.key === "Escape" && document\.fullscreenElement/);
   assert.match(fullscreenControlSource, /data-preview-fullscreen-control=""/);
   assert.match(displayTemplatePreviewSource, /isDetachedView \? <PreviewFullscreenControl \/> : null/);
   assert.match(menuPreviewSource, /isDetachedView \? <PreviewFullscreenControl \/> : null/);
@@ -385,4 +385,14 @@ test("tablet rotation belongs only to Dining in both preview sources", () => {
       assert.match(html, new RegExp(`orientation=${dining ? "portrait" : "landscape"}`));
     }
   }
+});
+
+
+test("actual view opens a normal browser tab before optional fullscreen, with no close control", () => {
+  assert.match(actualViewSource, /target="_blank"/);
+  assert.doesNotMatch(actualViewSource, /requestFullscreen|onClick|<dialog|실제 화면 닫기/);
+  assert.match(fullscreenControlSource, /전체화면 보기/);
+  assert.match(fullscreenControlSource, /ESC/);
+  assert.match(fullscreenControlSource, /href="\/guides"/);
+  assert.doesNotMatch(fullscreenControlSource, /Minimize2|전체화면 종료|onClick=\{.*close/);
 });

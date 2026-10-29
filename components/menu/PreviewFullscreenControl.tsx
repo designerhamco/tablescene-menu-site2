@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
-import { Maximize2, Minimize2 } from "lucide-react";
+import { useEffect, useState, useSyncExternalStore } from "react";
+import { Maximize2 } from "lucide-react";
 
 function subscribeFullscreen(onChange: () => void) {
   document.addEventListener("fullscreenchange", onChange);
@@ -23,15 +23,21 @@ export default function PreviewFullscreenControl() {
     getServerFullscreenSnapshot,
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  useEffect(() => {
+    const exitOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && document.fullscreenElement) {
+        void document.exitFullscreen().catch(() => { /* The browser may already be exiting. */ });
+      }
+    };
+    document.addEventListener("keydown", exitOnEscape);
+    return () => document.removeEventListener("keydown", exitOnEscape);
+  }, []);
 
-  const toggleFullscreen = async () => {
+  const enterFullscreen = async () => {
     setErrorMessage(null);
 
     try {
-      if (document.fullscreenElement) {
-        await document.exitFullscreen();
-        return;
-      }
+      if (document.fullscreenElement) return;
 
       if (!document.fullscreenEnabled || !document.documentElement.requestFullscreen) {
         setErrorMessage("이 브라우저에서는 전체화면을 사용할 수 없습니다.");
@@ -46,7 +52,7 @@ export default function PreviewFullscreenControl() {
 
   return (
     <div
-      className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))] z-[1600] flex max-w-[calc(100vw-2rem)] flex-col items-start gap-2"
+      className="fixed bottom-[max(6rem,env(safe-area-inset-bottom))] left-[max(1rem,env(safe-area-inset-left))] z-[1600] flex max-w-[min(24rem,calc(100vw-2rem))] flex-col items-start gap-2 rounded-xl bg-white/95 p-3 text-zinc-950 shadow-lg backdrop-blur sm:bottom-[max(1rem,env(safe-area-inset-bottom))]"
       data-preview-fullscreen-control=""
     >
       {errorMessage ? (
@@ -54,22 +60,21 @@ export default function PreviewFullscreenControl() {
           {errorMessage}
         </p>
       ) : null}
-      <button
+      <div className="flex flex-wrap items-center gap-2">
+      {!isFullscreen ? <button
         type="button"
-        onClick={toggleFullscreen}
-        aria-label={isFullscreen ? "전체화면 종료" : "전체화면으로 보기"}
-        title={isFullscreen ? "전체화면 종료" : "전체화면으로 보기"}
+        onClick={enterFullscreen}
+        aria-label="전체화면 보기"
+        title="전체화면 보기"
         className="site-button site-button-primary inline-flex items-center justify-center backdrop-blur"
       >
-        {isFullscreen ? (
-          <Minimize2 className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-        ) : (
-          <Maximize2 className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-        )}
-        <span className={isFullscreen ? "sr-only" : "hidden sm:inline"}>
-          {isFullscreen ? "전체화면 종료" : "전체화면"}
-        </span>
-      </button>
+        <Maximize2 className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+        <span>전체화면 보기</span>
+      </button> : null}
+      <a href="/guides" target="_blank" rel="noopener noreferrer" className="site-button site-button-outline">이용 가이드</a>
+      </div>
+      <p className="type-body-sm">전체화면에서 나가려면 <strong>ESC</strong>를 눌러주세요.</p>
+      <p className="type-body-sm">주소창이 가려지지 않으면 이용 가이드를 참고해 주세요.</p>
     </div>
   );
 }

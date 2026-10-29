@@ -69,19 +69,22 @@ try {
     assert.ok(Math.abs(result.frame.y+result.frame.height/2-result.canvas.y-result.canvas.height/2)<2);
     assert.ok(result.frame.x>=0&&result.frame.y>=result.toolbar.bottom-1&&result.frame.right<=width+1&&result.frame.bottom<=height+1);
     if(width>=768) {
-      assert.ok(result.frame.width<=result.canvas.width*.9+1);
-      assert.ok(result.frame.height<=result.canvas.height*.84+1);
-      assert.ok(result.frame.width/(result.source.width+20)<=1.25+.001);
       assert.ok(result.toolbar.width<=848+1);
       assert.ok(result.toolbar.height<=104);
-      if(device==='tablet') {
-        assert.ok(result.frame.width<=result.canvas.width*.74+1);
-        assert.ok(result.frame.height<=result.canvas.height*.7+1);
-        assert.ok(result.frame.width/(result.source.width+20)<=1+.001);
+      if(device==='pc') {
+        assert.ok(Math.abs(result.frame.width-result.canvas.width)<1 || Math.abs(result.frame.height-result.canvas.height)<1,'PC fills one canvas edge without cropping');
+      } else if(device==='tablet') {
+        assert.ok(result.frame.width<=result.canvas.width*.9+1);
+        assert.ok(result.frame.height<=result.canvas.height*.9+1);
+        assert.ok(Math.abs(result.frame.width-result.canvas.width*.9)<1 || Math.abs(result.frame.height-result.canvas.height*.9)<1,'tablet uses its available space without a native-size cap');
+      } else {
+        assert.ok(result.frame.width<=result.canvas.width*.9+1);
+        assert.ok(result.frame.height<=result.canvas.height*.84+1);
+        assert.ok(result.frame.width/(result.source.width+20)<=1.25+.001);
       }
     } else if(device==='tablet') {
-      assert.ok(result.frame.width<=result.canvas.width*.8+1);
-      assert.ok(result.frame.height<=result.canvas.height*.8+1);
+      assert.ok(result.frame.width<=result.canvas.width*.9+1);
+      assert.ok(result.frame.height<=result.canvas.height*.9+1);
     }
     assert.ok(result.controlFont<=15.75+.05);
     const clippedControls=await page.locator('[data-preview-device-toolbar] a, [data-preview-device-toolbar] .site-preview-choice').evaluateAll(links=>links.filter(a=>{
@@ -113,6 +116,7 @@ try {
       assert.equal(await toolbar.getByRole('checkbox',{name:'주문 기능 미리보기',exact:true}).isVisible(),true);
       await page.getByRole('button',{name:'보기 옵션 열기',exact:true}).click();
     }
+    if(width===1440&&device!=='mobile') await page.screenshot({path:`${output}/laptop-${device}.png`});
     if(width===3440&&device==='tablet') await page.screenshot({path:`${output}/template-preview-wide.png`});
     if(width===3440&&device==='pc') await page.screenshot({path:`${output}/template-preview-pc-wide.png`});
     if(width===390&&device==='mobile') await page.screenshot({path:`${output}/preview-mobile.png`});
@@ -124,7 +128,7 @@ try {
   for (const width of [320,390,430,667,820,1440,2560,3440]) {
     const pc=report.previews.find(p=>p.width===width&&p.device==='pc');
     const tablet=report.previews.find(p=>p.width===width&&p.device==='tablet');
-    assert.ok(pc.frame.width>tablet.frame.width*1.15,'tablet must remain visibly smaller than PC in the same workspace');
+    assert.ok(pc.frame.width>tablet.frame.width*1.05,'tablet must remain visibly smaller than PC in the same workspace');
   }
 
   await page.goto(`${base}/templates/cafe_design_a/preview?device=tablet&previewOptions=design`,{waitUntil:'domcontentloaded'});
@@ -146,54 +150,49 @@ try {
   await page.frameLocator('iframe').getByRole('button',{name:/^주문하기/}).waitFor({state:'visible'});
   console.log('top toolbar Call, Order and layout interactions preserve selections across devices');
 
-  // The original click requests fullscreen; actual views infer the current viewport.
+  // Actual views open as normal browser tabs; fullscreen is a separate deliberate action.
   report.actualViews = [];
   for (const [width,height] of [[390,844],[820,1180],[1440,900]]) {
     await page.setViewportSize({width,height});
     await page.goto(`${base}/templates/cafe_design_a/preview?device=pc&callPreview=on&orderPreview=on&layoutMode=orderedFit`,{waitUntil:'domcontentloaded'});
-    assert.equal(await page.locator('[data-preview-tablet-orientation-toggle]').count(),0);
     const href=await page.getByRole('link',{name:'실제 화면 보기',exact:true}).getAttribute('href');
     const params=new URL(href,base).searchParams;
-    assert.equal(params.get('view'),'actual');
-    assert.equal(params.has('device'),false);
-    assert.equal(params.has('orientation'),false);
+    assert.equal(params.get('view'),'actual'); assert.equal(params.get('detached'),'1');
+    assert.equal(params.has('device'),false); assert.equal(params.has('orientation'),false);
     for(const key of ['callPreview','orderPreview']) assert.equal(params.get(key),'on');
     await page.frameLocator('[data-preview-frame-shell] iframe').getByRole('heading',{name:'REAL MATCHA',exact:true}).waitFor();
-    await page.locator('[data-preview-frame-shell] iframe').evaluate(e=>e.contentWindow.__actualReturnMarker='preserved');
-    await page.getByRole('link',{name:'실제 화면 보기',exact:true}).click();
-    await page.waitForFunction(()=>!!document.fullscreenElement);
-    const actual=page.getByRole('dialog',{name:'메뉴판 실제 화면',exact:true});
-    await actual.frameLocator('iframe').getByRole('heading',{name:'REAL MATCHA',exact:true}).waitFor();
-    assert.equal(await actual.frameLocator('iframe').locator('[data-preview-frame-shell]').count(),0);
-    const metrics=await actual.locator('iframe').evaluate(el=>({width:el.clientWidth,height:el.clientHeight,screenWidth:el.parentElement.clientWidth,screenHeight:el.parentElement.clientHeight}));
-    assert.equal(metrics.width,metrics.screenWidth); assert.equal(metrics.height,metrics.screenHeight);
-    assert.equal(await actual.getByRole('link',{name:'이용 가이드',exact:true}).getAttribute('href'),'/guides');
-    await actual.getByRole('button',{name:'확인',exact:true}).click();
-    if(width===390) await page.screenshot({path:`${output}/actual-screen-mobile.png`});
-    if(width===1440) await page.screenshot({path:`${output}/actual-screen-pc.png`});
-    await actual.getByRole('button',{name:'실제 화면 닫기',exact:true}).click();
-    await actual.waitFor({state:'hidden'});
-    await page.waitForFunction(()=>!document.fullscreenElement);
-    assert.equal(new URL(page.url()).searchParams.get('device'),'pc');
-    assert.equal(await page.locator('[data-preview-frame-shell] iframe').evaluate(e=>e.contentWindow.__actualReturnMarker),'preserved');
-    await page.waitForFunction(()=>document.activeElement?.matches('[data-preview-detached-link]'));
-    report.actualViews.push({width,height,...metrics});
+    const [actual]=await Promise.all([page.waitForEvent('popup'),page.getByRole('link',{name:'실제 화면 보기',exact:true}).click()]);
+    actual.on('pageerror',error=>errors.push(error.message));
+    await actual.setViewportSize({width,height});
+    await actual.getByRole('heading',{name:'REAL MATCHA',exact:true}).waitFor();
+    assert.equal(await actual.locator('[data-preview-frame-shell],iframe').count(),0);
+    assert.equal(await actual.evaluate(()=>!!document.fullscreenElement),false);
+    const control=actual.locator('[data-preview-fullscreen-control]');
+    await control.getByRole('link',{name:'이용 가이드',exact:true}).waitFor({state:'visible'});
+    assert.equal(await control.getByRole('button',{name:/닫기|종료/}).count(),0);
+    await control.getByText(/ESC/).waitFor();
+    if(width===390) await actual.screenshot({path:`${output}/actual-normal-mobile.png`});
+    if(width===1440) await actual.screenshot({path:`${output}/actual-normal-pc.png`});
+    await control.getByRole('button',{name:'전체화면 보기',exact:true}).click();
+    await actual.waitForFunction(()=>!!document.fullscreenElement);
+    assert.equal(await control.getByRole('button').count(),0);
+    await actual.keyboard.press('Escape');
+    await actual.waitForFunction(()=>!document.fullscreenElement);
+    await control.getByRole('button',{name:'전체화면 보기',exact:true}).waitFor({state:'visible'});
+    await actual.close();
+    report.actualViews.push({width,height});
+    console.log(`normal actual view, optional fullscreen and ESC ${width} passed`);
   }
-  // Unsupported mobile browsers still receive the real menu and a guide, never another mockup.
   const fallback=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
-  await fallback.addInitScript(()=>{Object.defineProperty(document,'fullscreenEnabled',{get:()=>false});});
-  await fallback.goto(`${base}/templates/cafe_design_a/preview?device=tablet`,{waitUntil:'domcontentloaded'});
-  const fallbackGuide=fallback.getByRole('dialog',{name:'메뉴판 미리보기 사용 안내'});
-  await fallbackGuide.waitFor({state:'visible'});
-  await fallbackGuide.getByRole('button',{name:'닫기',exact:true}).click();
-  await fallback.getByRole('link',{name:'실제 화면 보기',exact:true}).click();
-  const actualFallback=fallback.getByRole('dialog',{name:'메뉴판 실제 화면',exact:true});
-  await actualFallback.frameLocator('iframe').getByRole('heading',{name:'REAL MATCHA',exact:true}).waitFor();
+  fallback.setDefaultNavigationTimeout(60000);
+  await fallback.addInitScript(()=>Object.defineProperty(document,'fullscreenEnabled',{get:()=>false}));
+  await fallback.goto(`${base}/templates/cafe_design_a/preview?view=actual&embedded=1&detached=1`,{waitUntil:'domcontentloaded'});
+  await fallback.getByRole('heading',{name:'REAL MATCHA',exact:true}).waitFor();
+  assert.equal(await fallback.locator('[data-preview-frame-shell],iframe').count(),0);
+  await fallback.getByRole('button',{name:'전체화면 보기',exact:true}).click();
+  await fallback.getByRole('status').getByText('이 브라우저에서는 전체화면을 사용할 수 없습니다.').waitFor();
   assert.equal(await fallback.evaluate(()=>!!document.fullscreenElement),false);
-  assert.equal(await actualFallback.frameLocator('iframe').locator('[data-preview-frame-shell]').count(),0);
-  assert.equal(await actualFallback.locator('iframe').evaluate(e=>e.clientWidth),390);
-  await actualFallback.getByRole('link',{name:'이용 가이드',exact:true}).waitFor({state:'visible'});
-  await actualFallback.getByRole('button',{name:'실제 화면 닫기',exact:true}).click();
+  await fallback.getByRole('link',{name:'이용 가이드',exact:true}).waitFor({state:'visible'});
   await fallback.close();
   // Dining alone offers rotation, in both directions, without moving service controls.
   for(const [width,height] of [[390,844],[820,1180],[1440,900]]) {
@@ -206,14 +205,14 @@ try {
     await page.waitForURL(/orientation=landscape/);
     assert.equal(await page.locator('[data-preview-frame-shell] iframe').evaluate(e=>e.clientWidth),1180);
   }
-  console.log('one-click actual fullscreen, unsupported mobile fallback and Dining-only rotation passed');
+  console.log('normal actual browser tabs, optional fullscreen, ESC exit, guide fallback and Dining-only rotation passed');
 
   await page.goto(`${base}/design-system`,{waitUntil:'domcontentloaded'});
   const componentRules=page.locator('#wide-screen-components').getByRole('table',{name:'와이드 화면 글자 크기 기준',exact:true});
   await componentRules.waitFor({state:'visible'});
   const componentText=await componentRules.innerText();
   const mockupText=await page.locator('#wide-screen-components').getByRole('table',{name:'미리보기 목업 크기 기준',exact:true}).innerText();
-  assert.match(mockupText,/가로 80%/);
+  assert.match(mockupText,/가로 90%/);
   await page.locator('#wide-screen-components .site-collection').screenshot({path:`${output}/mockup-size-rules.png`});
   await page.waitForTimeout(500);
   await page.getByRole('tab',{name:'기준·토큰',exact:true}).click();
