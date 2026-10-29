@@ -10,6 +10,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Official-site responsive UI
 
+- Preserve scope in visual refinements: changing size, spacing, typography or responsive scale does not authorize moving, hiding, removing or regrouping existing functions/buttons. Keep their current positions and entry points unless the user explicitly requests a relocation. Record and verify the requested change without reorganizing unrelated controls.
 - New or edited site pages must follow `docs/site-typography-final.md` and `docs/site-design-system.md`. Use shared semantic `type-*` roles, `site-button`/Button components and `site-gutter`, `site-page-spacing`/compact, `site-section-spacing`, `site-card-grid` layout classes. These inherit the global wide-screen correction automatically. Do not add private viewport font scales or change html font-size.
 - The shared site type policy is CSS viewport 1600–2600px, bounded at +12.5%. `styles/typography.css` is global through `app/layout.tsx` and `app/globals.css`; `lib/site-typography.ts` supplies the policy/role data used by both design-system views. Update the shared contract and tests together instead of overriding individual pages.
 - Preview presentation has its own limits in `lib/menu-preview-fit.ts`. Both catalog and saved previews share the same shell; keep breathing room and the scale ceiling. Its toolbar is compact auxiliary UI, not a wide page navigation bar. Keep customer menu intrinsic viewport, fonts and fit separate.

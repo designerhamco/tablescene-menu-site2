@@ -45,7 +45,7 @@ try {
   }
 
   let dismissedGuide = false;
-  for (const [width,height] of [[390,844],[820,1180],[1440,900],[2560,1440],[3440,1440]]) for(const device of ['tablet','pc','mobile']) {
+  for (const [width,height] of [[320,740],[390,844],[430,932],[667,375],[820,1180],[1440,900],[2560,1440],[3440,1440]]) for(const device of ['tablet','pc','mobile']) {
     await page.setViewportSize({width,height});
     await page.goto(`${base}/templates/cafe_design_a/preview?device=${device}&previewOptions=design`,{waitUntil:'domcontentloaded'});
     const guide=page.getByRole('dialog',{name:'메뉴판 미리보기 사용 안내'});
@@ -57,6 +57,7 @@ try {
       dismissedGuide = true;
     }
     await page.locator('[data-preview-frame-shell]').waitFor({state:'visible'});
+    await page.frameLocator('iframe').getByRole('heading',{name:'REAL MATCHA',exact:true}).waitFor({state:'visible'});
     await page.waitForTimeout(400);
     const result=await page.evaluate(()=>{
       const box=selector=>{const r=document.querySelector(selector).getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom};};
@@ -78,6 +79,9 @@ try {
         assert.ok(result.frame.height<=result.canvas.height*.7+1);
         assert.ok(result.frame.width/(result.source.width+20)<=1+.001);
       }
+    } else if(device==='tablet') {
+      assert.ok(result.frame.width<=result.canvas.width*.8+1);
+      assert.ok(result.frame.height<=result.canvas.height*.8+1);
     }
     assert.ok(result.controlFont<=15.75+.05);
     const clippedControls=await page.locator('[data-preview-device-toolbar] a, [data-preview-device-toolbar] .site-preview-choice').evaluateAll(links=>links.filter(a=>{
@@ -112,11 +116,12 @@ try {
     if(width===3440&&device==='tablet') await page.screenshot({path:`${output}/template-preview-wide.png`});
     if(width===3440&&device==='pc') await page.screenshot({path:`${output}/template-preview-pc-wide.png`});
     if(width===390&&device==='mobile') await page.screenshot({path:`${output}/preview-mobile.png`});
+    if(width===390&&device!=='mobile') await page.screenshot({path:`${output}/phone-view-${device}.png`});
     report.previews.push({device,...result});
     console.log(`preview ${width} ${device} passed`);
   }
 
-  for (const width of [820,1440,2560,3440]) {
+  for (const width of [320,390,430,667,820,1440,2560,3440]) {
     const pc=report.previews.find(p=>p.width===width&&p.device==='pc');
     const tablet=report.previews.find(p=>p.width===width&&p.device==='tablet');
     assert.ok(pc.frame.width>tablet.frame.width*1.15,'tablet must remain visibly smaller than PC in the same workspace');
@@ -144,7 +149,7 @@ try {
   // New-window view alone exposes fullscreen, through an explicit user action.
   const href=await page.locator('[data-preview-detached-link]').getAttribute('href');
   const detached=await browser.newPage({viewport:{width:1920,height:1080}});
-  await detached.goto(new URL(href,base).href,{waitUntil:'domcontentloaded'});
+  await detached.goto(new URL(href,base).href,{waitUntil:'domcontentloaded',timeout:60000});
   await detached.waitForTimeout(1500);
   await detached.getByRole('button',{name:'전체화면으로 보기',exact:true}).click();
   await detached.waitForFunction(()=>Boolean(document.fullscreenElement));
@@ -154,14 +159,18 @@ try {
   console.log('detached fullscreen enter/exit passed');
 
   await page.goto(`${base}/design-system`,{waitUntil:'domcontentloaded'});
-  const componentRules=page.locator('#wide-screen-components table');
+  const componentRules=page.locator('#wide-screen-components').getByRole('table',{name:'와이드 화면 글자 크기 기준',exact:true});
   await componentRules.waitFor({state:'visible'});
   const componentText=await componentRules.innerText();
+  const mockupText=await page.locator('#wide-screen-components').getByRole('table',{name:'미리보기 목업 크기 기준',exact:true}).innerText();
+  assert.match(mockupText,/가로 80%/);
+  await page.locator('#wide-screen-components .site-collection').screenshot({path:`${output}/mockup-size-rules.png`});
   await page.waitForTimeout(500);
   await page.getByRole('tab',{name:'기준·토큰',exact:true}).click();
-  const foundationRules=page.locator('#wide-screen-foundations table');
+  const foundationRules=page.locator('#wide-screen-foundations').getByRole('table',{name:'와이드 화면 글자 크기 기준',exact:true});
   await foundationRules.waitFor({state:'visible'});
   assert.equal(await foundationRules.innerText(),componentText);
+  assert.equal(await page.locator('#wide-screen-foundations').getByRole('table',{name:'미리보기 목업 크기 기준',exact:true}).innerText(),mockupText);
   console.log('shared wide rules in foundations and component library passed');
 
   for(const width of [390,820,1440,3440]) {

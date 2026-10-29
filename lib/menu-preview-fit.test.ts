@@ -54,3 +54,15 @@ test("compact previews keep the usable phone width instead of adding desktop pad
   assert.ok(result.displayWidth > 330);
   assert.ok(result.scale <= 1);
 });
+
+test("phone viewports distinguish tablet from PC while preserving the mobile reading width", () => {
+  for (const [viewportWidth,height] of [[320,600],[390,700],[430,800],[667,200],[767,600]]) {
+    const available={width:viewportWidth-24,height,viewportWidth};
+    const pc=fitMenuPreviewFrame({...available,device:"pc"},getMenuPreviewFrame("pc","landscape"));
+    const tablet=fitMenuPreviewFrame({...available,device:"tablet"},getMenuPreviewFrame("tablet","landscape"));
+    assert.ok(tablet.displayWidth<=pc.displayWidth*.8+1e-6);
+    const portrait=fitMenuPreviewFrame({...available,device:"tablet"},getMenuPreviewFrame("tablet","portrait"));
+    assert.ok(portrait.displayWidth<=available.width*.8+1e-6);
+    assert.ok(portrait.displayHeight<=available.height*.8+1e-6);
+  }
+});
