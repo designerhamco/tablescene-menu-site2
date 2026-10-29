@@ -2,7 +2,7 @@
 
 ## 적용 상태와 범위
 
-2026-10-29: 사용자 승인 후 아래 SQL 한 건의 운영 적용·공식 타입 재생성·임시 RPC 계약 어댑터 제거를 완료했다. 코드 배포와 운영 사후 검수는 진행 중이다. NICE AppPOS, 온라인 결제 승인, 카카오 연결 및 알림톡 발송은 포함하지 않는다. **이 SQL은 다시 실행하지 않는다.**
+2026-10-29: 사용자 승인 후 아래 SQL 한 건의 운영 적용·공식 타입 재생성·임시 RPC 계약 어댑터 제거·PR #407 병합·Production 배포·실계정 사후 검수를 완료했다. NICE AppPOS, 온라인 결제 승인, 카카오 연결 및 알림톡 발송은 포함하지 않는다. **이 SQL은 다시 실행하지 않는다.**
 
 이번 변경은 **주문 권한**, **미주문 장바구니**, **단말 연결**의 수명을 구분한다. 계산이 끝나 테이블 이용을 종료하는 업무 처리는 이 타이머들과 별개다. 실제 결제 결과에 따른 테이블 이용 종료·다음 손님 내역 초기화는 NICE 연동 단계에서 연결해야 한다. 현재 공용 단말 연결을 결제 완료에 따라 자동 종료하거나, 장바구니 초기화를 계산 완료로 처리하지 않는다. 기존 직원의 외부 결제 완료 기록 기능도 그대로 유지한다.
 
@@ -68,3 +68,14 @@
 - Security Advisor 오류 0개, 기존 경고 22개 유지, 신규 진단 없음. 실제 주문·방문·결제·발송을 만들지 않았다.
 - `npm run supabase:types`로 운영 스키마를 재생성했다. 신규 계약 53줄만 추가됐으며 임시 `order-session-rpc.ts`를 제거하고 생성 타입의 직접 RPC 호출로 교체했다. SQL NULL은 생성기가 누락하는 인자 nullability에 한해 좁은 단언으로 보존한다.
 - 증빙: `/private/tmp/order-session-production-before.json`, `order-session-production-apply.json`, `order-session-production-after.json`, `order-session-production-verification.json`, `order-session-advisors-before.json`, `order-session-advisors-after.json`. 원문 고객 데이터/환경변수 값을 보고서에 출력하지 않았다.
+
+## Production 배포·사후 검수 완료 — 2026-10-29 KST
+
+- PR #407 병합 커밋 `9d63ffec820d85ba6b39529e474913464c1fd8bb`. 배포 소스가 로컬 검증 소스 `d4e80431eee045ae78d58670b86eea7bc7dbe5f7`와 동일함을 확인했다.
+- [Vercel Production 배포](https://vercel.com/designerhamcos-projects/tablescene-menu-site2/5dcVmYefxE5F4mdgwuZRFzMV3kkt) `Ready`, `tablescene-next`/`9d63ffe`/Production 확인, 빌드 52초. GitHub 배포 `7400911189`/`success`, 실제 운영 도메인 `tablescene-menu-site2.vercel.app` 연결 확인.
+- 실제 사장 계정의 주문 설정에서 개인/공용 구분, 전화번호 필수·선택·숨김 선택지, 1시간/24시간 정책, 공용 장바구니 10분 안내와 알림톡 비활성 준비 화면을 확인했다. 선결제만 선택 시 후불 주문 불가 안내도 표시되며, 저장하지 않고 원래 선택으로 복원했다.
+- 실제 DOM PC 1512×762·모바일 390×844, 가로 넘침 없음. 테이블 관리의 새 테이블 폼·공용 단말 안내·연결 해제 UI 표시를 확인했다. 검수 탭의 런타임 오류 0건. 모바일 크기 재정의는 검수 후 해제했다.
+- 운영 HTTP 점검 11건: 공개 메뉴·템플릿 200, 새 세션 GET/POST 및 주문 조회/제출/취소의 방문 쿠키 없는 요청 401, 다른 Origin의 세션 연장/주문 제출 403, 사설 응답의 no-store/Vary Cookie, 잘못된 QR 303, 임시 QA 경로 404. 검수 요청으로 방문 쿠키가 발급되지 않는 것도 확인했다.
+- 운영 service_role에서 새 방문 조회 RPC 실행과 존재하지 않는 방문의 거절, private helper 스키마 접근을 읽기 전용으로 확인했다. 배포와 검수 이후에도 16개 표 1,493행의 기존 데이터 지문·건수, 설정 및 V2/RLS/ACL이 사전 상태와 동일하다.
+- 현재 `261022test`는 활성 테이블이 없어 주문 OFF 상태를 유지했다. 운영의 실제 주문·방문·공용 단말 등록·결제·알림톡 발송은 만들지 않았다. 실제 주문과 만료·재스캔·재주문·공용 등록 동작은 격리 DB/API 135건과 모의 API 화면 17개 시나리오로 검증한 범위이며, 이번 운영 사후 검수가 실제 매장 거래 E2E를 의미하지 않는다.
+- 증빙: `/private/tmp/order-session-production-smoke.json`, `order-session-production-rpc-read.json`, `order-session-production-deployment-status.json`, `order-session-production-final.json`, `order-session-production-settings-detail.jpg`, `order-session-production-mobile.jpg`.
