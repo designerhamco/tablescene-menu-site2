@@ -69,19 +69,22 @@ try {
     assert.ok(Math.abs(result.frame.y+result.frame.height/2-result.canvas.y-result.canvas.height/2)<2);
     assert.ok(result.frame.x>=0&&result.frame.y>=result.toolbar.bottom-1&&result.frame.right<=width+1&&result.frame.bottom<=height+1);
     if(width>=768) {
-      assert.ok(result.frame.width<=result.canvas.width*.9+1);
-      assert.ok(result.frame.height<=result.canvas.height*.84+1);
-      assert.ok(result.frame.width/(result.source.width+20)<=1.25+.001);
       assert.ok(result.toolbar.width<=848+1);
       assert.ok(result.toolbar.height<=104);
-      if(device==='tablet') {
-        assert.ok(result.frame.width<=result.canvas.width*.74+1);
-        assert.ok(result.frame.height<=result.canvas.height*.7+1);
-        assert.ok(result.frame.width/(result.source.width+20)<=1+.001);
+      if(device==='pc') {
+        assert.ok(Math.abs(result.frame.width-result.canvas.width)<1 || Math.abs(result.frame.height-result.canvas.height)<1,'PC fills one canvas edge without cropping');
+      } else if(device==='tablet') {
+        assert.ok(result.frame.width<=result.canvas.width*.9+1);
+        assert.ok(result.frame.height<=result.canvas.height*.9+1);
+        assert.ok(Math.abs(result.frame.width-result.canvas.width*.9)<1 || Math.abs(result.frame.height-result.canvas.height*.9)<1,'tablet uses its available space without a native-size cap');
+      } else {
+        assert.ok(result.frame.width<=result.canvas.width*.9+1);
+        assert.ok(result.frame.height<=result.canvas.height*.84+1);
+        assert.ok(result.frame.width/(result.source.width+20)<=1.25+.001);
       }
     } else if(device==='tablet') {
-      assert.ok(result.frame.width<=result.canvas.width*.8+1);
-      assert.ok(result.frame.height<=result.canvas.height*.8+1);
+      assert.ok(result.frame.width<=result.canvas.width*.9+1);
+      assert.ok(result.frame.height<=result.canvas.height*.9+1);
     }
     assert.ok(result.controlFont<=15.75+.05);
     const clippedControls=await page.locator('[data-preview-device-toolbar] a, [data-preview-device-toolbar] .site-preview-choice').evaluateAll(links=>links.filter(a=>{
@@ -113,6 +116,7 @@ try {
       assert.equal(await toolbar.getByRole('checkbox',{name:'주문 기능 미리보기',exact:true}).isVisible(),true);
       await page.getByRole('button',{name:'보기 옵션 열기',exact:true}).click();
     }
+    if(width===1440&&device!=='mobile') await page.screenshot({path:`${output}/laptop-${device}.png`});
     if(width===3440&&device==='tablet') await page.screenshot({path:`${output}/template-preview-wide.png`});
     if(width===3440&&device==='pc') await page.screenshot({path:`${output}/template-preview-pc-wide.png`});
     if(width===390&&device==='mobile') await page.screenshot({path:`${output}/preview-mobile.png`});
@@ -124,7 +128,7 @@ try {
   for (const width of [320,390,430,667,820,1440,2560,3440]) {
     const pc=report.previews.find(p=>p.width===width&&p.device==='pc');
     const tablet=report.previews.find(p=>p.width===width&&p.device==='tablet');
-    assert.ok(pc.frame.width>tablet.frame.width*1.15,'tablet must remain visibly smaller than PC in the same workspace');
+    assert.ok(pc.frame.width>tablet.frame.width*1.05,'tablet must remain visibly smaller than PC in the same workspace');
   }
 
   await page.goto(`${base}/templates/cafe_design_a/preview?device=tablet&previewOptions=design`,{waitUntil:'domcontentloaded'});
@@ -213,7 +217,7 @@ try {
   await componentRules.waitFor({state:'visible'});
   const componentText=await componentRules.innerText();
   const mockupText=await page.locator('#wide-screen-components').getByRole('table',{name:'미리보기 목업 크기 기준',exact:true}).innerText();
-  assert.match(mockupText,/가로 80%/);
+  assert.match(mockupText,/가로 90%/);
   await page.locator('#wide-screen-components .site-collection').screenshot({path:`${output}/mockup-size-rules.png`});
   await page.waitForTimeout(500);
   await page.getByRole('tab',{name:'기준·토큰',exact:true}).click();
