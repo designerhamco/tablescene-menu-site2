@@ -136,3 +136,18 @@
 @media (prefers-reduced-motion: reduce) {
   .shell, .panel, .navLink, .drawerNavLink { transition: none; }
 }
+
+.supportMenu { display: flex; height: 100%; align-items: center; }
+.supportTrigger { display: inline-flex; min-height: 2.75rem; align-items: center; gap: .375rem; padding: .5rem 0; border: 0; background: transparent; color: var(--ui-text); font-family: inherit; font-size: var(--type-nav-size); font-weight: 600; cursor: pointer; }
+.supportTrigger:hover { color: var(--ui-text-muted); }
+.supportTrigger[data-state="open"] svg { transform: rotate(180deg); }
+.supportTrigger:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 4px; border-radius: .25rem; }
+.supportDropdown { width: 13rem; padding: .5rem; border: 1px solid var(--ui-border); border-radius: .75rem; background: var(--ui-surface); color: var(--ui-text); box-shadow: var(--site-shadow-popover); }
+.supportDropdown nav { display: grid; gap: .125rem; }
+.supportLink { display: flex; min-height: 2.75rem; align-items: center; border-radius: .5rem; padding: .625rem .75rem; font-size: var(--type-body-sm-size); font-weight: 500; }
+.supportLink:hover, .supportLink[aria-current="page"] { background: var(--ui-surface-soft); color: var(--ui-text); }
+.supportLink:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -2px; }
+.drawerSupportNavigation { display: grid; margin-top: .75rem; padding: 1rem; border-radius: .75rem; background: var(--ui-surface-muted); }
+.drawerSupportNavigation h3 { margin-bottom: .5rem; color: var(--ui-text-subtle); }
+.drawerSupportLink { display: flex; min-height: 2.75rem; align-items: center; justify-content: space-between; gap: 1rem; padding-block: .5rem; color: var(--ui-text); font-size: var(--type-body-size); font-weight: 500; }
+.drawerSupportLink:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }

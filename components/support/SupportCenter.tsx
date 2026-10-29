@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { DETAILED_FAQ_DATA, FAQItem } from "@/app/components/common/FAQ";
 import {
   ANNOUNCEMENT_CATEGORIES,
@@ -12,6 +12,7 @@ import {
   type AnnouncementSummary,
 } from "@/lib/announcements";
 import styles from "./support.module.css";
+import SitePageHeader from "@/components/layout/SitePageHeader";
 import { SitePagination } from "@/app/components/ui/site-pagination";
 import { ContentList, ContentListItem } from "@/app/components/ui/content-list";
 import { CategoryFilter } from "@/app/components/ui/category-filter";
@@ -28,11 +29,9 @@ type AnnouncementList = {
 export default function SupportCenter({
   supportActions,
   view = "faq",
-  latestNotices,
 }: {
   supportActions?: React.ReactNode;
   view?: "faq" | "notices";
-  latestNotices?: React.ReactNode;
 }) {
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
@@ -125,8 +124,8 @@ export default function SupportCenter({
       : ANNOUNCEMENT_CATEGORIES;
   const content = (
     <section aria-label={view === "faq" ? "자주 묻는 질문" : "공지사항 목록"}>
-      <h2 className={view === "faq" ? `type-section-title ${styles.listTitle}` : "sr-only"}>
-        {view === "faq" ? "자주 묻는 질문" : "공지사항"}
+      <h2 className="type-section-title sr-only">
+        {view === "faq" ? "질문 목록" : "공지사항 목록"}
       </h2>
       <CategoryFilter
         label="주제 선택"
@@ -232,13 +231,9 @@ export default function SupportCenter({
 
   return (
     <>
-      <section className={styles.hero} aria-labelledby={`${uid}-title`}>
+      <section className={`site-page-spacing-compact ${styles.hero}`} aria-labelledby={`${uid}-title`}>
         <div className="site-container">
-          {view === "notices" && <Link href="/faq" className="site-button site-button-link"><ArrowLeft size={18} aria-hidden="true" />고객센터로 돌아가기</Link>}
-          <h1 id={`${uid}-title`} className="type-page-title">{view === "faq" ? "필요한 도움을 찾아보세요" : "공지사항"}</h1>
-          <p className="type-page-description text-zinc-500">
-            {view === "faq" ? "처음 시작하는 방법부터 매장 운영까지, 궁금한 내용을 안내합니다." : "아티메뉴의 서비스 소식과 업데이트를 확인하세요."}
-          </p>
+          <SitePageHeader id={`${uid}-title`} title={view === "faq" ? "자주 묻는 질문" : "공지사항"} description={view === "faq" ? "메뉴판 만들기부터 매장 운영까지, 궁금한 내용을 찾아보세요." : "아티메뉴의 서비스 소식과 업데이트를 확인하세요."} />
           <form
             role="search"
             aria-label={view === "faq" ? "고객센터 검색" : "공지사항 검색"}
@@ -273,7 +268,7 @@ export default function SupportCenter({
           {supportActions}
         </div>
       </section>
-      <section className={`site-page-spacing ${styles.content}`} aria-label="고객지원 안내">
+      <section className={styles.content} aria-label="고객지원 안내">
         <div className="site-container">
           {submittedQuery && (
             <div className={styles.searchResultsHeader}>
@@ -282,7 +277,6 @@ export default function SupportCenter({
             </div>
           )}
           {content}
-          {latestNotices ? <div className={styles.latestNotices}>{latestNotices}</div> : null}
         </div>
       </section>
     </>

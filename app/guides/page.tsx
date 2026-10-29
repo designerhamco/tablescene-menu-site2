@@ -5,7 +5,7 @@ import UsageGuidePage from "@/components/guides/UsageGuidePage";
 import { normalizeGuidePlan } from "@/lib/usage-guides";
 
 export const metadata: Metadata = {
-  title: "사용가이드 | 아티메뉴",
+  title: "이용가이드 | 아티메뉴",
   description:
     "베이직·다이닝·디스플레이의 화면 연결, 브라우저 전체 화면과 메뉴판 크기 조정 방법을 확인하세요.",
 };

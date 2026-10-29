@@ -1,3 +1,4 @@
+import SitePageHeader from "@/components/layout/SitePageHeader";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -48,12 +49,7 @@ export default function ApplyPage() {
       <OfficialSiteNavbar />
       <main className="site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="site-container">
-          <header className="site-page-heading max-w-3xl pb-8 md:pb-10">
-            <h1 className="type-page-title">어떤 메뉴판을 만들까요?</h1>
-            <p className="type-page-description mt-3 max-w-2xl text-zinc-500">
-              필요한 메뉴판 유형을 선택하면 디자인과 매장 정보를 확인하는 신청 단계로 이어집니다.
-            </p>
-          </header>
+          <SitePageHeader title="어떤 메뉴판을 만들까요?" description="필요한 메뉴판 유형을 선택하면 디자인과 매장 정보를 확인하는 신청 단계로 이어집니다." />
 
           <section className="site-card-grid grid gap-5 md:grid-cols-2" aria-label="메뉴판 만들기 유형 선택">
             {applyOptions.map((option) => (

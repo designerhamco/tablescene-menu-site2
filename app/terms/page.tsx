@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import SitePageHeader from "@/components/layout/SitePageHeader";
 
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
@@ -43,9 +44,9 @@ export default function TermsPage() {
     <>
       <OfficialSiteNavbar />
       <main className="site-gutter site-page-spacing min-h-screen bg-white text-zinc-950">
+        <SitePageHeader title="아티메뉴 이용약관" description="아티메뉴 서비스 이용약관입니다." />
         <article className="site-card mx-auto w-full max-w-4xl p-7 md:p-10">
-          <h1 className="type-page-title text-center">아티메뉴 이용약관</h1>
-          <div className="mt-10">{renderPolicyContent(termsContent)}</div>
+          <div>{renderPolicyContent(termsContent)}</div>
         </article>
       </main>
       <Footer />

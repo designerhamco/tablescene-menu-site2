@@ -24,6 +24,7 @@ import {
   type GuideVideo,
 } from "@/lib/usage-guides";
 import styles from "./usage-guide.module.css";
+import SitePageHeader from "@/components/layout/SitePageHeader";
 
 const GUIDE_DEVICE = "windows";
 const GUIDE_BROWSER = "chrome";
@@ -312,9 +313,8 @@ export default function UsageGuidePage({
   return (
     <div className={styles.page} data-usage-guide>
       <div className="site-container">
-        <header className={styles.heading}>
-          <h1 className="type-page-title">사용가이드</h1>
-          <aside className={`site-notice ${styles.recommendation}`}>
+        <SitePageHeader title="이용가이드" description="메뉴판 연결부터 브라우저 설정까지, 필요한 이용 방법을 확인하세요." />
+        <aside className={`site-notice ${styles.recommendation}`}>
             <p className="type-body-lg font-semibold">
               아티메뉴 메뉴판은 Chrome(크롬) 사용을 권장합니다.
             </p>
@@ -322,7 +322,6 @@ export default function UsageGuidePage({
               아래 브라우저 설정은 컴퓨터용 Chrome 기준입니다.
             </p>
           </aside>
-        </header>
         <Tabs
           purpose="page"
           value={plan}

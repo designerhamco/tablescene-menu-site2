@@ -773,3 +773,8 @@
 
 /* The approved plan reference uses 16px for its short service description. */
 .priceGrid article > p:first-of-type { font-size: var(--site-type-16); }
+
+/* Service-page introductions follow the normal page rhythm; the home hero stays independent. */
+.hero.serviceHero { padding-top: var(--site-page-heading-top); }
+.serviceIntroAction { display: flex; justify-content: center; margin-bottom: var(--site-page-intro-content-gap); }
+.darkPage .serviceHero :global(.site-page-intro) > p { color: #a6aab1; }

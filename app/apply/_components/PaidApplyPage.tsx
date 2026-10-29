@@ -1,3 +1,4 @@
+import SitePageHeader from "@/components/layout/SitePageHeader";
 import Footer from "@/app/components/layout/Footer";
 import ApplyOrderForm from "@/components/apply/ApplyOrderForm";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
@@ -103,14 +104,7 @@ export default async function PaidApplyPage({
       <OfficialSiteNavbar />
       <main className="site-checkout-page site-page-spacing-compact min-h-screen text-zinc-950">
         <div className="site-container">
-          <header className="site-page-heading mb-12 max-w-3xl md:mb-16">
-            <div>
-              <h1 className="type-page-title">{copy.title}</h1>
-              <p className="type-page-description mt-4 max-w-2xl text-zinc-500">
-                {copy.description}
-              </p>
-            </div>
-          </header>
+          <SitePageHeader title={copy.title} description={copy.description} />
 
           <ApplyOrderForm
             templates={templates}

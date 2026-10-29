@@ -1,4 +1,5 @@
 import Image from "next/image";
+import SitePageHeader from "@/components/layout/SitePageHeader";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { buttonVariants } from "@/app/components/ui/button";
@@ -229,12 +230,10 @@ export function MarketingServicePage({ service }: { service: Service }) {
       className={`${styles.page} ${dark ? styles.darkPage : ""}`}
       data-service-page={service}
     >
-      <section className={styles.hero}>
+      <section className={`${styles.hero} ${styles.serviceHero}`}>
         <div className="site-container">
-          <div className={styles.heroHeading}>
-
-            <h1 className="type-page-title">{copy.title}</h1>
-            <p className="type-page-description">{copy.body}</p>
+          <SitePageHeader title={copy.title} description={copy.body} />
+          {service !== "basic" ? <div className={styles.serviceIntroAction}>
             {service === "display" ? (
               <p className={styles.availability}>
                 서비스 소개 · 신규 신청 준비 중
@@ -248,7 +247,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
                 <ArrowRight size={16} aria-hidden="true" />
               </Link>
             ) : null}
-          </div>
+          </div> : null}
           <div
             className={`${styles.heroImage} ${dark ? styles.diningHeroImage : ""}`}
           >

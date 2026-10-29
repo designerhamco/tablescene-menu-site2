@@ -1,3 +1,4 @@
+import SitePageHeader from "@/components/layout/SitePageHeader";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -32,31 +33,14 @@ export default function PricingPage() {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-white py-16 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
-          <header className="site-page-heading mb-10 flex flex-col items-center gap-6 border-b border-zinc-200 pb-8">
-            <div>
-              <Link href="/mypage" className="mb-6 inline-block text-copy font-medium text-zinc-600 hover:text-zinc-950">
-                ← 마이페이지
-              </Link>
-              <h1 className="type-page-title">요금제 안내</h1>
-              <p className="type-page-description mt-4 max-w-2xl text-zinc-600">
-                요금제를 확인한 뒤 매장에 맞는 디자인을 선택해 시작하세요.
-              </p>
-              <p className="site-body-support mt-3 font-bold text-zinc-600">
-                ※ 모든 금액은 부가세 포함가입니다. ※ 오픈 얼리버드는 2026년 10월 1일부터 12월 31일까지 가입할 수 있으며, 구독 유지 중 할인 가격이 유지됩니다.
-              </p>
-              <p className="site-body-support mt-2 font-bold text-zinc-600">
-                메뉴판마다 기본 디자인 또는 디자인 포함 이용권을 선택합니다. 같은 서비스 안에서 이용권에 포함된 디자인끼리 교체할 수 있습니다.
-              </p>
-            </div>
-            <Link
-              href="/apply"
-              className="site-button site-button-primary inline-flex items-center justify-center"
-            >
-              상품 선택하기
-            </Link>
-          </header>
+          <SitePageHeader title="요금제 안내" description="요금제를 확인한 뒤 매장에 맞는 디자인을 선택해 시작하세요." />
+          <div className="site-notice mb-8 p-5">
+            <p className="type-body-sm">모든 금액은 부가세 포함입니다. 오픈 얼리버드는 2026년 10월 1일부터 12월 31일까지 가입할 수 있으며, 구독 유지 중 할인 가격이 유지됩니다.</p>
+            <p className="type-body-sm mt-2">메뉴판마다 기본 디자인 또는 디자인 포함 이용권을 선택합니다. 같은 서비스 안에서 이용권에 포함된 디자인끼리 교체할 수 있습니다.</p>
+            <div className="mt-4 flex flex-wrap gap-3"><Link href="/apply" className="site-button site-button-primary">상품 선택하기</Link><Link href="/mypage" className="site-button site-button-link">마이페이지</Link></div>
+          </div>
 
           <section aria-labelledby="basic-products-heading">
             <div className="site-section-heading mb-5 flex flex-col items-center gap-2">

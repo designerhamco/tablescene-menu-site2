@@ -27,7 +27,7 @@ async function assertPageTabs(list) {
   await expect(active).toHaveCSS("flex-grow", "0");
   const inactive = list.locator('[role="tab"][aria-selected="false"]:not(:disabled):not([aria-disabled="true"])').first();
   await expect(inactive).toHaveCSS("font-weight", "500");
-  await expect(inactive).toHaveCSS("color", "rgb(114, 114, 114)");
+  await expect(inactive).toHaveCSS("color", "rgb(150, 150, 150)");
 }
 async function assertArea(root) {
   await expect(root).toHaveAttribute("data-purpose", "section");
@@ -77,7 +77,10 @@ try {
     await expect(templatePattern.getByRole("status")).toContainText("기본 템플릿 · 레스토랑 결과");
     const supportPattern = page.getByRole("region", { name: "고객센터 페이지 포함 관계 예시" });
     await expect(supportPattern.getByRole("tablist")).toHaveCount(0);
-    await expect(supportPattern.getByRole("link", { name: "공지사항 전체보기" })).toHaveAttribute("href", "/faq/notices");
+    await supportPattern.getByRole("button", { name: "고객센터 메뉴" }).press("ArrowDown");
+    const supportLinks = page.getByRole("navigation", { name: "고객센터 하위 메뉴" });
+    await expect(supportLinks.getByRole("link", { name: "공지사항", exact: true })).toHaveAttribute("href", "/faq/notices");
+    await supportLinks.getByRole("link", { name: "자주 묻는 질문", exact: true }).press("Escape");
     const patternCategory = supportPattern.getByRole("group", { name: "고객센터 구조 주제 분류" });
     await assertCategory(patternCategory);
     await patternCategory.getByRole("button", { name: "이용 환경", exact: true }).click();
@@ -144,7 +147,7 @@ try {
     await assertCategory(categories);
     await expect(page.getByRole('region', { name: '자주 묻는 질문', exact: true }).getByRole('status')).toHaveText(/전체 \d+개/);
     await page.screenshot({ path: `${output}/support-${width}.png`, fullPage: true });
-    await page.getByRole('link', { name: '공지사항 전체보기' }).click();
+    await page.goto(`${baseUrl}/faq/notices`, { waitUntil: 'networkidle' });
     await expect(page).toHaveURL(/\/faq\/notices$/);
     await expect(categories.getByRole('button', { name: '전체', exact: true })).toHaveAttribute('aria-pressed', 'true');
     const supportOverflow = await noOverflow(page);
