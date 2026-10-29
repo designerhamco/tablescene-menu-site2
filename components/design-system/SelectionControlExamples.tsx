@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import { CategoryFilter } from "@/app/components/ui/category-filter";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
@@ -47,13 +49,10 @@ export default function SelectionControlExamples() {
           </Tabs>
         </section>
         <section className={styles.hierarchyLevel} aria-label="고객센터 페이지 포함 관계 예시">
-          <div className={styles.heading}><h3 className="type-content-title">고객센터 구조</h3><p className="type-body-sm text-zinc-600">주요 화면 전환 → 밑줄 주제 분류 → 결과. 주제 분류만 필요하므로 영역형 탭을 추가하지 않습니다.</p></div>
-          <Tabs purpose="page" defaultValue="faq"><TabsList size="lg" aria-label="고객센터 구조 주요 화면"><TabsTrigger value="faq">FAQ</TabsTrigger><TabsTrigger value="notices">공지사항</TabsTrigger></TabsList>
-            {["faq", "notices"].map(view => <TabsContent key={view} value={view} className="pt-4">
-              <CategoryFilter label="고객센터 구조 주제 분류" value={topic} onValueChange={setTopic} options={[{value:"all",label:"전체"},{value:"usage",label:"이용 환경"},{value:"menu",label:"메뉴판 생성·관리"}]} />
-              <p className="type-body-sm mt-5" role="status">{view === "faq" ? "FAQ" : "공지사항"} · {topic === "all" ? "전체" : topic === "usage" ? "이용 환경" : "메뉴판 생성·관리"} 목록</p>
-            </TabsContent>)}
-          </Tabs>
+          <div className={styles.heading}><h3 className="type-content-title">고객센터 구조</h3><p className="type-body-sm text-zinc-600">밑줄 주제 분류 → FAQ 목록(5개씩) → 최신 공지 최대 3개와 전체보기</p></div>
+          <CategoryFilter label="고객센터 구조 주제 분류" value={topic} onValueChange={setTopic} options={[{value:"all",label:"전체"},{value:"usage",label:"이용 환경"},{value:"menu",label:"메뉴판 생성·관리"}]} />
+          <p className="type-body-sm mt-5" role="status">FAQ · {topic === "all" ? "전체" : topic === "usage" ? "이용 환경" : "메뉴판 생성·관리"} 목록</p>
+          <div className="mt-6"><h4 className="type-content-title">공지사항</h4><p className="type-body-sm mt-2 text-zinc-600">최신 공지를 최대 3개 표시하고, 전체 목록에서는 10개씩 페이지를 나눕니다.</p><Link href="/faq/notices" className="site-button site-button-link">공지사항 전체보기<ArrowRight size={18} aria-hidden="true" /></Link></div>
         </section>
       </div>
       <div className="min-w-0"><h3 className="type-content-title mb-2">상태값 변경</h3><p className="type-body-sm mb-4 text-zinc-600">최상위 버튼은 각각 떨어져 있고 검정 선택 면을 사용합니다. 상태 세그먼트는 회색 레일 안에 묶이고 흰 선택 면을 사용해 역할을 구별합니다. URL에 상태가 기록되더라도 현재 화면의 값만 바뀌면 상태 전환입니다.</p>
