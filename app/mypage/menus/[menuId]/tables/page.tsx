@@ -20,7 +20,12 @@ export const revalidate = 0;
 export default async function MenuTableManagementPage({ params }: { params: Promise<{ menuId: string }> }) {
   if (!isStoreOperationsAvailable()) redirect("/mypage?tab=menus");
   const { menuId } = await params;
-  const operationsContext = await getStoreOperationsContext(menuId);
+  const operationsContext = await getStoreOperationsContext(menuId).catch((error: unknown) => {
+    if (error instanceof MenuSiteAccessError && error.code === "AUTH_REQUIRED") {
+      redirect(`/sign-in?next=${encodeURIComponent(`/mypage/menus/${menuId}/tables`)}`);
+    }
+    throw error;
+  });
   const selectedSite = operationsContext.sites.find((site) => site.menuSiteId === menuId) ?? null;
   if (!selectedSite || !selectedSite.permissions.includes("table.manage")) redirect("/mypage/operations");
   let data = null;
