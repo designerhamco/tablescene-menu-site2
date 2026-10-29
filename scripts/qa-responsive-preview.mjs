@@ -146,17 +146,67 @@ try {
   await page.frameLocator('iframe').getByRole('button',{name:/^주문하기/}).waitFor({state:'visible'});
   console.log('top toolbar Call, Order and layout interactions preserve selections across devices');
 
-  // New-window view alone exposes fullscreen, through an explicit user action.
-  const href=await page.locator('[data-preview-detached-link]').getAttribute('href');
-  const detached=await browser.newPage({viewport:{width:1920,height:1080}});
-  await detached.goto(new URL(href,base).href,{waitUntil:'domcontentloaded',timeout:60000});
-  await detached.waitForTimeout(1500);
-  await detached.getByRole('button',{name:'전체화면으로 보기',exact:true}).click();
-  await detached.waitForFunction(()=>Boolean(document.fullscreenElement));
-  await detached.getByRole('button',{name:'전체화면 종료',exact:true}).click();
-  await detached.waitForFunction(()=>!document.fullscreenElement);
-  await detached.close();
-  console.log('detached fullscreen enter/exit passed');
+  // The original click requests fullscreen; actual views infer the current viewport.
+  report.actualViews = [];
+  for (const [width,height] of [[390,844],[820,1180],[1440,900]]) {
+    await page.setViewportSize({width,height});
+    await page.goto(`${base}/templates/cafe_design_a/preview?device=pc&callPreview=on&orderPreview=on&layoutMode=orderedFit`,{waitUntil:'domcontentloaded'});
+    assert.equal(await page.locator('[data-preview-tablet-orientation-toggle]').count(),0);
+    const href=await page.getByRole('link',{name:'실제 화면 보기',exact:true}).getAttribute('href');
+    const params=new URL(href,base).searchParams;
+    assert.equal(params.get('view'),'actual');
+    assert.equal(params.has('device'),false);
+    assert.equal(params.has('orientation'),false);
+    for(const key of ['callPreview','orderPreview']) assert.equal(params.get(key),'on');
+    await page.frameLocator('[data-preview-frame-shell] iframe').getByRole('heading',{name:'REAL MATCHA',exact:true}).waitFor();
+    await page.locator('[data-preview-frame-shell] iframe').evaluate(e=>e.contentWindow.__actualReturnMarker='preserved');
+    await page.getByRole('link',{name:'실제 화면 보기',exact:true}).click();
+    await page.waitForFunction(()=>!!document.fullscreenElement);
+    const actual=page.getByRole('dialog',{name:'메뉴판 실제 화면',exact:true});
+    await actual.frameLocator('iframe').getByRole('heading',{name:'REAL MATCHA',exact:true}).waitFor();
+    assert.equal(await actual.frameLocator('iframe').locator('[data-preview-frame-shell]').count(),0);
+    const metrics=await actual.locator('iframe').evaluate(el=>({width:el.clientWidth,height:el.clientHeight,screenWidth:el.parentElement.clientWidth,screenHeight:el.parentElement.clientHeight}));
+    assert.equal(metrics.width,metrics.screenWidth); assert.equal(metrics.height,metrics.screenHeight);
+    assert.equal(await actual.getByRole('link',{name:'이용 가이드',exact:true}).getAttribute('href'),'/guides');
+    await actual.getByRole('button',{name:'확인',exact:true}).click();
+    if(width===390) await page.screenshot({path:`${output}/actual-screen-mobile.png`});
+    if(width===1440) await page.screenshot({path:`${output}/actual-screen-pc.png`});
+    await actual.getByRole('button',{name:'실제 화면 닫기',exact:true}).click();
+    await actual.waitFor({state:'hidden'});
+    await page.waitForFunction(()=>!document.fullscreenElement);
+    assert.equal(new URL(page.url()).searchParams.get('device'),'pc');
+    assert.equal(await page.locator('[data-preview-frame-shell] iframe').evaluate(e=>e.contentWindow.__actualReturnMarker),'preserved');
+    assert.equal(await page.getByRole('link',{name:'실제 화면 보기',exact:true}).evaluate(e=>e===document.activeElement),true);
+    report.actualViews.push({width,height,...metrics});
+  }
+  // Unsupported mobile browsers still receive the real menu and a guide, never another mockup.
+  const fallback=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  await fallback.addInitScript(()=>{Object.defineProperty(document,'fullscreenEnabled',{get:()=>false});});
+  await fallback.goto(`${base}/templates/cafe_design_a/preview?device=tablet`,{waitUntil:'domcontentloaded'});
+  const fallbackGuide=fallback.getByRole('dialog',{name:'메뉴판 미리보기 사용 안내'});
+  await fallbackGuide.waitFor({state:'visible'});
+  await fallbackGuide.getByRole('button',{name:'닫기',exact:true}).click();
+  await fallback.getByRole('link',{name:'실제 화면 보기',exact:true}).click();
+  const actualFallback=fallback.getByRole('dialog',{name:'메뉴판 실제 화면',exact:true});
+  await actualFallback.frameLocator('iframe').getByRole('heading',{name:'REAL MATCHA',exact:true}).waitFor();
+  assert.equal(await fallback.evaluate(()=>!!document.fullscreenElement),false);
+  assert.equal(await actualFallback.frameLocator('iframe').locator('[data-preview-frame-shell]').count(),0);
+  assert.equal(await actualFallback.locator('iframe').evaluate(e=>e.clientWidth),390);
+  await actualFallback.getByRole('link',{name:'이용 가이드',exact:true}).waitFor({state:'visible'});
+  await actualFallback.getByRole('button',{name:'실제 화면 닫기',exact:true}).click();
+  await fallback.close();
+  // Dining alone offers rotation, in both directions, without moving service controls.
+  for(const [width,height] of [[390,844],[820,1180],[1440,900]]) {
+    await page.setViewportSize({width,height});
+    await page.goto(`${base}/templates/dining_aube_table_a/preview?device=tablet`,{waitUntil:'domcontentloaded'});
+    await page.getByRole('link',{name:'태블릿을 세로로 회전',exact:true}).click();
+    await page.waitForURL(/orientation=portrait/);
+    assert.equal(await page.locator('[data-preview-frame-shell] iframe').evaluate(e=>e.clientWidth),820);
+    await page.getByRole('link',{name:'태블릿을 가로로 회전',exact:true}).click();
+    await page.waitForURL(/orientation=landscape/);
+    assert.equal(await page.locator('[data-preview-frame-shell] iframe').evaluate(e=>e.clientWidth),1180);
+  }
+  console.log('one-click actual fullscreen, unsupported mobile fallback and Dining-only rotation passed');
 
   await page.goto(`${base}/design-system`,{waitUntil:'domcontentloaded'});
   const componentRules=page.locator('#wide-screen-components').getByRole('table',{name:'와이드 화면 글자 크기 기준',exact:true});

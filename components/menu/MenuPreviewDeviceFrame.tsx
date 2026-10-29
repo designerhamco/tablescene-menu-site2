@@ -3,7 +3,9 @@
 import { useEffect, useOptimistic, useRef, useState, useSyncExternalStore, useTransition, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import PreviewActualView from "./PreviewActualView";
+import { isAubeTableTemplate } from "@/lib/aube-table";
 
 import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import { fitMenuPreviewFrame } from "@/lib/menu-preview-fit";
@@ -111,7 +113,8 @@ export default function MenuPreviewDeviceFrame(
   const templateKey = props.templateKey ?? props.menuTemplateKey;
   const designParam = props.menuId ? props.menuDesignId : (query as TemplatePreviewQuery).design;
   const defaultDesign = templateKey ? getDefaultDesignReview(Array.isArray(designParam) ? designParam[0] : designParam, templateKey) : undefined;
-  const orientation = props.orientation;
+  const supportsTabletOrientation = isAubeTableTemplate(templateKey);
+  const orientation = supportsTabletOrientation ? props.orientation : "landscape";
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isToolbarOpen, setIsToolbarOpen] = useState(true);
@@ -231,11 +234,8 @@ export default function MenuPreviewDeviceFrame(
     orientation,
   });
   const detachedUrl = buildPreviewUrl({
-    device,
-    orientation,
     actual: true,
     embedded: true,
-    detached: true,
   });
   const showToolbar = isToolbarOpen;
   const changeDesign = (next: PreviewDesign) => {
@@ -303,7 +303,7 @@ export default function MenuPreviewDeviceFrame(
                 );
               })}
             </nav>
-            {device === "tablet" ? (
+            {device === "tablet" && supportsTabletOrientation ? (
               <Link
                 aria-label={`태블릿을 ${MENU_PREVIEW_ORIENTATIONS[nextTabletOrientation]}로 회전`}
                 title={`태블릿을 ${MENU_PREVIEW_ORIENTATIONS[nextTabletOrientation]}로 회전`}
@@ -337,23 +337,7 @@ export default function MenuPreviewDeviceFrame(
                 ))}
               </div>
             ) : null}
-            <Link
-              href={detachedUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="새 창에서 메뉴판 보기"
-              title="새 창에서 메뉴판 보기"
-              data-preview-detached-link=""
-              tabIndex={showToolbar ? undefined : -1}
-              className="site-preview-control"
-            >
-              <ExternalLink
-                className="h-4 w-4"
-                strokeWidth={1.9}
-                aria-hidden="true"
-              />
-              <span className="hidden min-[430px]:inline">새 창에서 보기</span>
-            </Link>
+            <PreviewActualView href={detachedUrl} tabIndex={showToolbar ? undefined : -1} />
           </div>
           <button
             type="button"

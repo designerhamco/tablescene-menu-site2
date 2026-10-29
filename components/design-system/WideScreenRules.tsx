@@ -35,8 +35,9 @@ export default function WideScreenRules({ id }: { id: string }) {
           <th scope="row">{frame.label}</th><td>{presentation(wide)}</td><td>{presentation(compact)}</td><td>{frame.width}×{frame.height}px</td>
         </tr>)}</tbody>
       </table></div>
-      <p className="type-body-sm mt-3 text-zinc-600">모바일에서 볼 때도 태블릿은 가용 가로·세로의 80% 안에서 구분합니다. 태블릿 세로 전환은 내부 820×1180px을 사용합니다. 내부 메뉴의 글자·배치·기기 해상도는 유지하며 목업의 바깥 표시 크기만 조정합니다. 상단 버튼은 기본 높이 36px·문구 14px, 모바일 터치 높이는 44px입니다.</p>
+      <p className="type-body-sm mt-3 text-zinc-600">모바일에서 볼 때도 태블릿은 가용 가로·세로의 80% 안에서 구분합니다. 태블릿 세로 전환은 다이닝에서만 제공하며 내부 820×1180px을 사용합니다. 베이직은 가로를 유지합니다. 내부 메뉴의 글자·배치·기기 해상도는 유지하며 목업의 바깥 표시 크기만 조정합니다. 상단 버튼은 기본 높이 36px·문구 14px, 모바일 터치 높이는 44px입니다.</p>
       <p className="type-body-sm mt-3 text-zinc-600">크기·여백·폰트 조정만으로 기존 기능이나 버튼을 이동·숨김·제거·재분류하지 않습니다. 위치 변경은 사용자 요청이 있을 때만 합니다. 주문·호출·묶음형·채움형은 상단에 유지합니다.</p>
+      <p className="type-body-sm mt-3 text-zinc-600">두 미리보기의 ‘실제 화면 보기’는 목업·기기 강제 지정 없이 현재 화면으로 열고, 같은 클릭으로 전체화면을 요청합니다. 미지원·권한 거절 시 실제 화면과 이용 가이드를 제공합니다. 새 탭 로딩 후 자동 전체화면을 보장하지 않습니다.</p>
       <p className="type-footnote mt-2 text-zinc-600">일반 콘텐츠는 공통 최대 폭과 간격 상한을 사용합니다. 로그인은 과도한 세로 공백을 제한합니다. 글자·여백·목업을 같은 배율로 일괄 확대하지 않습니다.</p>
       <a className="site-button site-button-outline mt-4" href="/templates/cafe_real_matcha_a/preview?device=tablet" target="_blank" rel="noopener noreferrer">실제 미리보기 확인</a>
     </div>
