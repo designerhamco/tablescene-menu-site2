@@ -40,6 +40,7 @@ const menuPreviewSource = readFileSync(
   new URL("../app/mypage/menus/[menuId]/preview/page.tsx", import.meta.url),
   "utf8",
 );
+const actualViewSource = readFileSync(new URL("../components/menu/PreviewActualView.tsx", import.meta.url), "utf8");
 const fullscreenControlSource = readFileSync(
   new URL("../components/menu/PreviewFullscreenControl.tsx", import.meta.url),
   "utf8",
@@ -122,7 +123,7 @@ test("preview selector renders labeled PC, tablet, and mobile device icons", () 
   assert.ok(html.indexOf("태블릿") < html.indexOf(">PC<"));
   assert.ok(html.indexOf(">PC<") < html.indexOf("모바일"));
   assert.doesNotMatch(html, /메뉴판 목록/);
-  assert.match(html, /새 창에서 메뉴판 보기/);
+  assert.match(html, /실제 화면 보기/);
   assert.match(html, /target="_blank"/);
   assert.match(html, /view=actual&amp;embedded=1/);
   assert.doesNotMatch(html, /1440 × 900/);
@@ -158,7 +159,7 @@ test("catalog and saved previews expose the same common toolbar for each device"
     const saved = labels(renderFrame(createElement(MenuPreviewDeviceFrame, { ...common, menuId: "saved-menu" })));
     const catalog = labels(renderFrame(createElement(MenuPreviewDeviceFrame, { ...common, templateKey: "cafe_design_a" })));
     assert.deepEqual(saved, catalog);
-    assert.equal(saved.length, device === "tablet" ? 5 : 4);
+    assert.equal(saved.length, 4);
   }
 });
 
@@ -183,7 +184,7 @@ test("first preview guide uses anchored coachmarks and applies hide-today only t
   assert.match(previewGuideSource, /<BrowserZoomGuide \/>/);
   assert.match(previewGuideSource, /태블릿·PC·모바일 버튼을 눌러/);
   assert.match(previewGuideSource, /브라우저의 더보기\(···\)에서/);
-  assert.match(previewGuideSource, /\* ‘새 창에서 보기’로 연 화면에서 확대·축소해 주세요/);
+  assert.match(previewGuideSource, /‘실제 화면 보기’는 목업 없이 열립니다/);
   assert.match(previewGuideSource, /실제 배치는 기기에 따라 달라질 수 있으니/);
   assert.match(previewGuideSource, /사용할 기기에서 최종 확인해 주세요/);
   assert.match(previewGuideSource, /device = "tablet"/);
@@ -249,10 +250,10 @@ test("device selector is open by default and collapses upward into a compact han
   assert.doesNotMatch(previewFrameSource, /backdrop-blur-xl/);
   assert.doesNotMatch(previewFrameSource, /border-l border-white\/20 pl-2/);
   assert.equal((previewFrameSource.match(/bg-zinc-950\/90/g) ?? []).length, 1);
-  assert.match(previewFrameSource, /data-preview-detached-link=""/);
-  assert.match(previewFrameSource, /target="_blank"/);
-  assert.match(previewFrameSource, /rel="noopener noreferrer"/);
-  assert.match(previewFrameSource, /detached: true/);
+  assert.match(actualViewSource, /data-preview-detached-link=""/);
+  assert.match(actualViewSource, /target="_blank"/);
+  assert.match(actualViewSource, /rel="noopener noreferrer"/);
+  assert.match(previewFrameSource, /<PreviewActualView href=\{detachedUrl\}/);
   assert.match(previewFrameSource, /className="h-full w-full border-0 bg-white"/);
   assert.doesNotMatch(previewFrameSource, /PreviewFullscreenControl|data-preview-edit-link|수정하기/);
   assert.doesNotMatch(previewFrameSource, /data-preview-zoom-controls/);
@@ -332,7 +333,7 @@ test("template previews open in device frames without carrying recursive frame p
 });
 
 
-test("customer detached links retain the selected device and strip interactive experiments", () => {
+test("actual-screen links infer the current viewport and strip saved interactive experiments", () => {
   for (const device of MENU_PREVIEW_DEVICE_ORDER) {
     const html = renderFrame(createElement(MenuPreviewDeviceFrame, {
       device, orientation: "portrait", menuId: "menu-a",
@@ -340,7 +341,7 @@ test("customer detached links retain the selected device and strip interactive e
     }));
     const link = html.match(/<a[^>]*data-preview-detached-link=""[^>]*>/)?.[0] ?? "";
     const href = link.match(/href="([^"]*)"/)?.[1].replaceAll("&amp;", "&");
-    assert.equal(href, `/mypage/menus/menu-a/preview?lang=en&page=2&device=${device}${device === "tablet" ? "&orientation=portrait" : ""}&view=actual&embedded=1&detached=1`);
+    assert.equal(href, `/mypage/menus/menu-a/preview?lang=en&page=2&view=actual&embedded=1`);
     assert.match(html, new RegExp(`src="[^\"]*device=${device}`));
     const starterUrl = buildTemplatePreviewUrl("fast_food_loop_bagel_a", {
       device, orientation: "portrait", lang: "en", callPreview: "on",
@@ -372,4 +373,16 @@ test("layout comparisons survive device, feature and detached preview changes", 
     }
   }
   assert.match(buildTemplatePreviewUrl("cafe_real_matcha_paged_test", {layoutMode: "orderedFit"}, {layoutMode: "orderedBalancedFit"}), /layoutMode=orderedBalancedFit/);
+});
+
+
+test("tablet rotation belongs only to Dining in both preview sources", () => {
+  for (const templateKey of ["cafe_design_a", "cafe_real_matcha_paged_test", "dining_aube_table_a", "dining_aube_table_b"]) {
+    const dining = templateKey.startsWith("dining_");
+    for (const props of [{ templateKey }, { menuId: "saved-menu", menuTemplateKey: templateKey }]) {
+      const html = renderFrame(createElement(MenuPreviewDeviceFrame, { ...props, device: "tablet", orientation: "portrait", query: {} }));
+      assert.equal(html.includes('data-preview-tablet-orientation-toggle'), dining);
+      assert.match(html, new RegExp(`orientation=${dining ? "portrait" : "landscape"}`));
+    }
+  }
 });

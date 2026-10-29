@@ -205,7 +205,7 @@ export default function MenuPreviewGuide({ device = "tablet", variant = "device"
             브라우저의 더보기(···)에서<br />확대·축소로 비율을 조절해 보세요.
             {!isDisplayGuide ? (
               <span className="mt-2 block text-copy font-semibold text-zinc-500">
-                * ‘새 창에서 보기’로 연 화면에서 확대·축소해 주세요.
+                * ‘실제 화면 보기’는 목업 없이 열립니다. 주소창이 남으면 이용 가이드를 참고해 주세요.
               </span>
             ) : null}
           </GuideCallout>
@@ -233,7 +233,7 @@ export default function MenuPreviewGuide({ device = "tablet", variant = "device"
           브라우저의 더보기(···)에서<br className="hidden sm:block" /> 확대·축소로 비율을 조절해 보세요.
           {!isDisplayGuide ? (
             <span className="mt-2 block text-copy font-semibold text-zinc-500">
-              * ‘새 창에서 보기’로 연 화면에서 확대·축소해 주세요.
+              * ‘실제 화면 보기’는 목업 없이 열립니다. 주소창이 남으면 이용 가이드를 참고해 주세요.
             </span>
           ) : null}
         </GuideCallout>

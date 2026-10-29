@@ -61,7 +61,7 @@ test("customer preview removes editing tools and legacy overrides from all devic
   assert.doesNotMatch(html, /data-preview-options-panel|기능 옵션|디자인 옵션|data-preview-call-toggle|data-preview-order-toggle|data-preview-layout-mode/);
   assert.doesNotMatch(html, /imagesPreview=|designPreview=|callPreview=|orderPreview=|layoutMode=|previewOptions=|\/templates\//);
   assert.doesNotMatch(html, /data-preview-edit-link|수정하기/);
-  assert.match(html, /data-preview-tablet-orientation-toggle/);
+  assert.doesNotMatch(html, /data-preview-tablet-orientation-toggle/);
   assert.doesNotMatch(html, /data-preview-fullscreen-control/);
   assert.match(html, /view=actual&amp;embedded=1/);
   for (const device of ["pc", "tablet", "mobile"] as const) {
