@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
@@ -28,6 +29,7 @@ export default async function FAQPage({
         <SupportCenter
           supportActions={
             <div className="mt-5 flex flex-wrap justify-center gap-2">
+              <Link href="/mypage/inquiries" className="site-button site-button-outline">1:1 문의</Link>
               <AiSupportChatOpenButton className="site-button site-button-ai">
                 <SupportChatIcon width={18} height={18} />
                 AI 상담{!enabled ? " · 준비 중" : ""}
