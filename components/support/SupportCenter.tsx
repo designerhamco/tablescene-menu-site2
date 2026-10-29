@@ -17,6 +17,8 @@ import { ContentList, ContentListItem } from "@/app/components/ui/content-list";
 import { CategoryFilter } from "@/app/components/ui/category-filter";
 import { Button } from "@/app/components/ui/button";
 
+const FAQ_PAGE_SIZE = 5;
+
 type AnnouncementList = {
   items: AnnouncementSummary[];
   count: number;
@@ -62,11 +64,11 @@ export default function SupportCenter({
   );
   const faqPages = Math.max(
     1,
-    Math.ceil(filtered.length / ANNOUNCEMENT_PAGE_SIZE),
+    Math.ceil(filtered.length / FAQ_PAGE_SIZE),
   );
   const shownQuestions = filtered.slice(
-    (page - 1) * ANNOUNCEMENT_PAGE_SIZE,
-    page * ANNOUNCEMENT_PAGE_SIZE,
+    (page - 1) * FAQ_PAGE_SIZE,
+    page * FAQ_PAGE_SIZE,
   );
 
   useEffect(() => {
@@ -142,9 +144,9 @@ export default function SupportCenter({
             {submittedQuery ? "검색 결과" : "전체"} {filtered.length}개
           </p>
           {shownQuestions.length ? (
-            <div className={styles.rows}>
+            <ContentList label="자주 묻는 질문 목록">
               {shownQuestions.map((item) => (
-                <div key={item.question} className={styles.faqRow}>
+                <li key={item.question} className={styles.faqRow}>
                   <span className={styles.category}>{item.category}</span>
                   <FAQItem
                     item={item}
@@ -157,9 +159,9 @@ export default function SupportCenter({
                       )
                     }
                   />
-                </div>
+                </li>
               ))}
-            </div>
+            </ContentList>
           ) : (
             <div className={styles.empty}>
               <h3 className="type-content-title">검색 결과가 없습니다</h3>

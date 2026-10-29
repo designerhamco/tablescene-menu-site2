@@ -11,6 +11,8 @@ const items: AnnouncementSummary[] = Array.from({ length: 4 }, (_, index) => ({ 
 test("FAQ 아래 최신 공지 3개와 전체보기는 공통 목록과 실제 공지 경로를 사용한다", () => {
   const html = renderToStaticMarkup(createElement(SupportCenter, { latestNotices: createElement(LatestAnnouncements, { items }) }));
   assert.doesNotMatch(html, /role="tablist"|고객센터 메뉴/);
+  assert.equal((html.match(/aria-expanded="false"/g) ?? []).length, 5);
+  assert.ok(html.includes('aria-label="자주 묻는 질문 목록"'));
   assert.equal((html.match(/class="site-content-list-row"/g) ?? []).length, 3);
   assert.ok(html.indexOf("자주 묻는 질문") < html.indexOf("최신 공지사항"));
   const allLink = html.match(/<a[^>]*aria-label="공지사항 전체보기"[^>]*>/)?.[0];

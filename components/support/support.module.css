@@ -60,17 +60,10 @@
   color: #626873;
   margin-block: 1.5rem 0.5rem;
 }
-.rows {
-  border-bottom: 1px solid #dbdee3;
-}
 .faqRow {
   display: grid;
   grid-template-columns: 10rem 1fr;
   align-items: baseline;
-  border-bottom: 1px solid #e6e7e9;
-}
-.faqRow:last-child {
-  border-bottom: 0;
 }
 .faqRow > div {
   min-width: 0;
@@ -83,9 +76,9 @@
   line-height: 1.6;
 }
 .category {
-  color: #626873;
+  color: var(--ui-text-muted);
   font-size: var(--type-body-sm-size);
-  padding: 1.5rem 0.75rem;
+  padding: 1.5rem 1rem;
 }
 
 .empty {
