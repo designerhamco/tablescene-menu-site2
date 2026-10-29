@@ -8,6 +8,13 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
+## Official-site responsive UI
+
+- New or edited site pages must follow `docs/site-typography-final.md` and `docs/site-design-system.md`. Use shared semantic `type-*` roles, `site-button`/Button components and `site-gutter`, `site-page-spacing`/compact, `site-section-spacing`, `site-card-grid` layout classes. These inherit the global wide-screen correction automatically. Do not add private viewport font scales or change html font-size.
+- The shared site type policy is CSS viewport 1600–2600px, bounded at +12.5%. `styles/typography.css` is global through `app/layout.tsx` and `app/globals.css`; `lib/site-typography.ts` supplies the policy/role data used by both design-system views. Update the shared contract and tests together instead of overriding individual pages.
+- Preview presentation has its own limits in `lib/menu-preview-fit.ts`. Both catalog and saved previews share the same shell; keep breathing room and the scale ceiling. Its toolbar is compact auxiliary UI, not a wide page navigation bar. Keep customer menu intrinsic viewport, fonts and fit separate.
+- The typography contract tests discover new site route/component files and reject private numeric font sizes. Standard/turbo/debug builds automatically run `check:site-ui` before compiling. Run these and the responsive browser check for affected widths; update the existing shared rules rather than introducing local exceptions.
+
 ## Menu layout boundaries
 
 - Approved 2026-10-21 (Basic only): store, product/featured and category descriptions, notices 1/2/3, widget body and language supporting copy share the board's reading-supporting size, reference × .94 × .72 with the existing .75rem floor and saved supporting scale. Description-only items no longer receive a 5% description boost; secondary-only emphasis is unchanged. Mobile supporting copy stays 14px with existing gaps. Every Basic starter's demonstrated category price options/notes cover every item in that category; preserve real customer content and Basic album price-option exclusions. Dining, including its larger cover introduction, stays unchanged. This supersedes the description-only boost exception below for active Basic.

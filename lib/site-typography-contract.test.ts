@@ -11,6 +11,8 @@ import {
   SITE_READING_TYPE_STEPS,
   SITE_TYPE_ROLES,
   SITE_TYPE_STEPS,
+  SITE_WIDE_TYPE_POLICY,
+  getSiteWideTypeScale,
   siteTypeSizeCss,
 } from "./site-typography";
 
@@ -362,6 +364,31 @@ test("all semantic roles resolve to the reference steps at each breakpoint", () 
   assert.equal(siteTypeSizeCss(15.2), "var(--site-type-15)");
 });
 
+test("global wide tokens match the policy displayed in both library views", () => {
+  const layout = readFileSync(join(projectRoot,"app/layout.tsx"),"utf8");
+  const globals = readFileSync(join(projectRoot,"app/globals.css"),"utf8");
+  assert.match(layout,/import "\.\/globals\.css"/);
+  assert.match(globals,/@import "\.\.\/styles\/typography\.css"/);
+  const wide = new Map<string,string>();
+  postcss.parse(typographySource).walkAtRules("media", rule => {
+    if (rule.params !== `(min-width: ${SITE_WIDE_TYPE_POLICY.startWidth}px)`) return;
+    rule.walkDecls(decl => { if (decl.prop.startsWith("--site-type-")) wide.set(decl.prop,decl.value); });
+  });
+  assert.equal(wide.size,SITE_TYPE_STEPS.length);
+  for (const base of SITE_TYPE_STEPS) {
+    const match = wide.get(`--site-type-${base}`)?.match(/^clamp\(([\d.]+)rem, calc\(([\d.]+)rem \+ ([\d.]+)vw\), ([\d.]+)rem\)$/);
+    assert.ok(match);
+    const [,minimum,fixed,fluid,maximum] = match.map(Number);
+    for (const width of [1600,1920,2560,2600,3440,7680]) {
+      const actual = Math.min(maximum*16, Math.max(minimum*16,fixed*16+fluid*width/100));
+      assert.ok(Math.abs(actual-base*getSiteWideTypeScale(width))<.0001,`${base}px at ${width}`);
+    }
+  }
+  for (const path of ["DesignFoundations.tsx","SiteComponentGallery.tsx"]) {
+    assert.match(readFileSync(join(componentsRoot,"design-system",path),"utf8"),/<WideScreenRules /);
+  }
+});
+
 test("neutral text remains readable on every shared light surface", () => {
   const controls = readFileSync(join(projectRoot, "styles/ui-system.css"), "utf8");
   const color = (name: string) => {
@@ -385,7 +412,9 @@ test("UI CSS cannot introduce private or fluid font sizes outside the reference 
       const local = relative(projectRoot, file);
       if (entry.isDirectory()) { if (!/menu-templates|public-menu|original-pages/.test(local)) walk(file); continue; }
       if (!file.endsWith(".css") || ["app/globals.css", "styles/fonts.css", "styles/theme.css", "styles/tailwind.css"].includes(local)) continue;
-      postcss.parse(readFileSync(file, "utf8")).walkDecls("font-size", decl => {
+      const sheet = postcss.parse(readFileSync(file, "utf8"));
+      if (local !== "styles/typography.css") sheet.walkDecls(/^--site-type-\d+$/, decl => { failures.push(`${local} overrides shared ${decl.prop}`); });
+      sheet.walkDecls("font-size", decl => {
         const selector = decl.parent?.type === "rule" ? decl.parent.selector : "";
         const graphic = (local === "components/marketing/marketing.module.css" && selector.split(",").every(part => [...part.matchAll(/\.([A-Za-z0-9_-]+)/g)].some(match => graphicClasses.has(match[1]))))
           || (local === "app/components/home/TabletTemplateCarousel.module.css" && decl.value.includes("cqw"))

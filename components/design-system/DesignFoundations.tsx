@@ -1,3 +1,4 @@
+import WideScreenRules from "./WideScreenRules";
 import styles from "./SiteComponentGallery.module.css";
 import {
   SITE_CONTROL_TYPE_STEPS,
@@ -32,6 +33,7 @@ export default function DesignFoundations() {
         <div className={styles.typeSamples}><p className="type-page-title">마이페이지</p><p className="type-page-description text-zinc-600">메뉴판 디자인과 공개 상태, 고객지원, 결제 정보를 한곳에서 확인합니다.</p><p className="type-section-title">메뉴판 관리</p><p className="type-subsection-title">이용 중인 서비스</p><p className="type-content-title">QA 베이직 페이지형 주문</p><p className="type-body text-zinc-600">생성한 메뉴판을 편집하고 공개 상태를 확인할 수 있습니다.</p><p className="type-body-sm text-zinc-600">최근 업데이트와 이용 상태를 같은 크기와 굵기로 안내합니다.</p><p className="type-caption text-zinc-600">업데이트 2026.10.26</p></div>
       </div>
     </section>
+    <WideScreenRules id="wide-screen-foundations" />
     <section className={styles.section}><h2 className="type-section-title">탭·세그먼트 사용 기준</h2><div className={styles.usageTable}><table><thead><tr><th>역할</th><th>형태</th><th>적용</th></tr></thead><tbody>
       <tr><td>페이지의 큰 보기 전환</td><td>Outline 세그먼트</td><td>베이직·다이닝·디스플레이, 고객센터 공지사항·FAQ</td></tr>
       <tr><td>페이지 안 주요 분류</td><td>기존 밑줄형</td><td>가이드, 마이페이지·편집·운영, 상태·언어 분류</td></tr>

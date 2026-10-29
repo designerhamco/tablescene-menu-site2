@@ -1,4 +1,9 @@
 /** Approved from the home plan reference. Menu renderer foundations remain independent. */
+export const SITE_WIDE_TYPE_POLICY = { startWidth: 1600, endWidth: 2600, maxScale: 1.125 } as const;
+export function getSiteWideTypeScale(viewportWidth: number) {
+  const { startWidth, endWidth, maxScale } = SITE_WIDE_TYPE_POLICY;
+  return 1 + Math.max(0, Math.min(1, (viewportWidth - startWidth) / (endWidth - startWidth))) * (maxScale - 1);
+}
 export const SITE_READING_TYPE_STEPS = [13,14,16,18,20] as const;
 export const SITE_CONTROL_TYPE_STEPS = [14,15,16] as const;
 export const SITE_EMPHASIS_TYPE_STEPS = [24,28,32,36,44] as const;
