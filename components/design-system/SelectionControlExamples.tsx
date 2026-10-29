@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import styles from "./SiteComponentGallery.module.css";
 
 const sizes = [
-  ["대", "48px / 주요 20px · 기타 16px", "공개 페이지의 넓은 주요 전환"],
+  ["대", "48px / 주요 18px · 기타 16px", "공개 페이지의 넓은 주요 전환"],
   ["중", "44px / 주요·영역 16px · 기타 15px", "마이페이지·편집기의 일반 분류"],
   ["소", "40px / 14px", "영역 안의 세부 전환·필터"],
 ] as const;
@@ -55,7 +55,7 @@ export default function SelectionControlExamples() {
           <div className="mt-6"><h4 className="type-content-title">공지사항</h4><p className="type-body-sm mt-2 text-zinc-600">최신 공지를 최대 3개 표시하고, 전체 목록에서는 10개씩 페이지를 나눕니다.</p><Link href="/faq/notices" className="site-button site-button-link">공지사항 전체보기<ArrowRight size={18} aria-hidden="true" /></Link></div>
         </section>
       </div>
-      <div className="min-w-0"><h3 className="type-content-title mb-2">상태값 변경</h3><p className="type-body-sm mb-4 text-zinc-600">최상위 탭은 검정 글자와 문구 너비의 밑줄로 선택을 표시합니다. 상태 세그먼트는 회색 레일 안에 묶이고 흰 선택 면을 사용해 역할을 구별합니다. URL에 상태가 기록되더라도 현재 화면의 값만 바뀌면 상태 전환입니다.</p>
+      <div className="min-w-0"><h3 className="type-content-title mb-2">상태값 변경</h3><p className="type-body-sm mb-4 text-zinc-600">최상위 탭은 선택한 문구만 두껍게 표시하고 검정 밑줄을 사용합니다. 비선택 문구는 더 가벼운 굵기와 중성 회색으로 구분합니다. 상태 세그먼트는 회색 레일 안에 묶이고 흰 선택 면을 사용해 역할을 구별합니다. URL에 상태가 기록되더라도 현재 화면의 값만 바뀌면 상태 전환입니다.</p>
         <Tabs purpose="state" defaultValue="active"><TabsList size="md" aria-label="상태값 변경 예시"><TabsTrigger value="active">이용 중</TabsTrigger><TabsTrigger value="holding">보관 중</TabsTrigger><TabsTrigger value="ended">종료됨</TabsTrigger></TabsList><TabsContent value="active" className="type-caption">이용 중인 메뉴판</TabsContent><TabsContent value="holding" className="type-caption">보관 중인 메뉴판</TabsContent><TabsContent value="ended" className="type-caption">종료된 메뉴판</TabsContent></Tabs>
       </div>
       <div className={styles.usageTable}><table aria-label="탭 크기 기준"><thead><tr><th>밀도</th><th>높이 / 글자</th><th>적용</th></tr></thead><tbody>{sizes.map(([size, metrics, use]) => <tr key={size}><td>{size}</td><td>{metrics}</td><td>{use}</td></tr>)}</tbody></table></div>

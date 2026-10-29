@@ -415,8 +415,8 @@
 /* Role-specific tab variants; they share the existing tab semantics and ink. */
 /* Main views use text with a label-width underline; state values keep their muted rail. */
 .site-page-tabs { width: fit-content; gap: var(--site-tab-gap, 1.5rem); padding: 0; border: 0; border-radius: 0; background: transparent; }
-.site-page-tabs > .site-tab { flex: 0 0 auto; min-height: var(--site-tab-height, 2.75rem); padding: .25rem 0 .5rem; border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; color: var(--ui-text-subtle); font-size: var(--site-tab-font); font-weight: 600; }
-.site-page-tabs > .site-tab:is([aria-selected="true"], [data-state="active"], [aria-current="page"]) { border-bottom-color: var(--ui-text); background: transparent; color: var(--ui-text); }
+.site-page-tabs > .site-tab { flex: 0 0 auto; min-height: var(--site-tab-height, 2.75rem); padding: .25rem 0 .5rem; border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; color: var(--ui-tab-inactive-text); font-size: var(--site-tab-font); font-weight: 500; }
+.site-page-tabs > .site-tab:is([aria-selected="true"], [data-state="active"], [aria-current="page"]) { border-bottom-color: var(--ui-text); background: transparent; color: var(--ui-text); font-weight: 600; }
 .site-page-tabs > .site-tab:is(:hover, [data-ui-state="hover"], :active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { background: transparent; color: var(--ui-text); }
 .site-page-tabs > .site-tab:is(:disabled, [aria-disabled="true"]) { border-bottom-color: transparent; color: var(--ui-disabled-text); opacity: 1; }
 .site-tabs-outline { background: var(--ui-surface-soft); }
@@ -430,7 +430,7 @@
 .site-tab-size-md { --site-tab-height: 2.75rem; --site-tab-font: .9375rem; --site-segment-font: .9375rem; --site-tab-padding: .875rem; --site-tab-gap: 1.25rem; }
 .site-tab-size-lg { --site-tab-height: 3rem; --site-tab-font: 1rem; --site-segment-font: 1rem; --site-tab-padding: 1rem; --site-tab-gap: 1.5rem; }
 .site-page-tabs.site-tab-size-md { --site-tab-font: var(--site-type-16); }
-.site-page-tabs.site-tab-size-lg { --site-tab-font: var(--site-type-20); }
+.site-page-tabs.site-tab-size-lg { --site-tab-font: var(--site-type-18); }
 .site-topic-tab:is([data-state="active"]) { border-bottom-color: var(--ui-text); color: var(--ui-text); font-weight: var(--font-weight-semibold); }
 .site-topic-tab:is(:hover, [data-ui-state="hover"]):not(:disabled):not([data-state="active"]):not([aria-selected="true"]):not([aria-pressed="true"]):not([aria-current="page"]):not([aria-disabled="true"]) { color: var(--ui-text); border-bottom-color: var(--ui-border-strong); }
 .site-topic-tab:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { color: var(--ui-action-pressed); }

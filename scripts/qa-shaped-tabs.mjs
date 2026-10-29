@@ -22,9 +22,12 @@ async function assertPageTabs(list) {
   await expect(active).toHaveCSS("border-bottom-width", "3px");
   await expect(active).toHaveCSS("border-bottom-color", "rgb(21, 24, 30)");
   await expect(active).toHaveCSS("color", "rgb(21, 24, 30)");
-  await expect(active).toHaveCSS("font-size", "20px");
+  await expect(active).toHaveCSS("font-size", "18px");
   await expect(active).toHaveCSS("font-weight", "600");
   await expect(active).toHaveCSS("flex-grow", "0");
+  const inactive = list.locator('[role="tab"][aria-selected="false"]:not(:disabled):not([aria-disabled="true"])').first();
+  await expect(inactive).toHaveCSS("font-weight", "500");
+  await expect(inactive).toHaveCSS("color", "rgb(114, 114, 114)");
 }
 async function assertArea(root) {
   await expect(root).toHaveAttribute("data-purpose", "section");

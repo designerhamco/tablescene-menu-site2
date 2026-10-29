@@ -1,6 +1,6 @@
 /** Approved from the home plan reference. Menu renderer foundations remain independent. */
 export const SITE_READING_TYPE_STEPS = [13,14,16,18,20] as const;
-export const SITE_CONTROL_TYPE_STEPS = [14,15,16] as const;
+export const SITE_CONTROL_TYPE_STEPS = [14,15,16,18] as const;
 export const SITE_EMPHASIS_TYPE_STEPS = [24,28,32,36,44] as const;
 export const SITE_TYPE_STEPS = [13,14,15,16,18,20,24,28,32,36,44] as const;
 export const SITE_MANAGEMENT_TYPE_ROLES = [

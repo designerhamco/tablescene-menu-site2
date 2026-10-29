@@ -33,11 +33,11 @@ secondary는 경계 없는 중간 회색 표면이고, disabled는 그보다 더
 
 ## 탭과 선택
 
-[최종 역할 계약](tab-hierarchy-contract.md)을 따른다. 고정 단계와 URL 변경 여부로 모양을 정하지 않는다.
+[최종 역할 계약](tab-hierarchy-contract.md)을 따른다. 고정 단계와 URL 변경 여부로 모양을 정하지 않는다. 주요 화면은 lg18px·md16px, 선택600·비선택500과 공통 중성 회색을 사용한다. 고객센터는 FAQ 주제 분류 아래 최신 공지3건을 표시하며 FAQ/공지 전환 탭은 사용하지 않는다.
 
 | 역할 | 공통 구현 | 표현·적용 |
 | --- | --- | --- |
-| 주요 화면 전환 | Tabs/NavigationTabs purpose="page" | 분리된 둥근 버튼·검정 선택 면. 서비스, FAQ/공지, 편집 설정 |
+| 주요 화면 전환 | Tabs/NavigationTabs purpose="page" | 배경 없는 텍스트·문구 너비의 검정 밑줄. 서비스, 가이드, 편집 설정 |
 | 독립 콘텐츠 전환 | Tabs/NavigationTabs purpose="section" | 화이트 콘텐츠에 붙는 영역형. 템플릿 종류, 결제/AI 내역, 미리보기, 요금 상품 유형 |
 | 목록 분류 | CategoryFilter, Tabs purpose="category" | 별도 영역 없는 밑줄. 고객센터·새 메뉴판 주제, 전체/읽지 않은 알림 |
 | 목록 조건·본문 이동 | site-filter, ChoiceTile, 링크 | 작은 필터·아이콘. 업종·구성·문서 위치 |
