@@ -1,8 +1,9 @@
 // These durations govern ordering and unsubmitted drafts, never settlement or menu viewing.
 export const CUSTOMER_ORDER_SECONDS = 60 * 60;
 export const CUSTOMER_ORDER_WARNING_SECONDS = 5 * 60;
-export const TERMINAL_CART_IDLE_MS = 10 * 60 * 1000;
-export const TERMINAL_CART_WARNING_MS = 60 * 1000;
+export const TERMINAL_CART_IDLE_MS = 2 * 60 * 1000;
+export const TERMINAL_CART_WARNING_MS = 30 * 1000;
+export const TERMINAL_KEEPALIVE_INTERVAL_MS = 5 * 60 * 1000;
 export type OrderChannel = "customer" | "terminal";
 
 export function normalizeOrderPhone(value: unknown) {

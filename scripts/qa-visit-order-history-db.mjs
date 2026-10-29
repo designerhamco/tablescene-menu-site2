@@ -41,6 +41,12 @@ try {
  const before=await q('select * from menu_customer_orders order by id');
  await db.exec(await migration('20261021151631_add_visit_order_history_and_cancellation.sql'));
  check(await q('select * from menu_customer_orders order by id'),before);
+ const existingVisits=await q('select * from table_visit_sessions order by id');
+ const visitSecurity=await q("select relacl,relrowsecurity,relforcerowsecurity from pg_class where oid='public.table_visit_sessions'::regclass");
+ await db.exec(await migration('20261029014156_allow_terminal_connection_renewal.sql'));
+ check(await q('select * from table_visit_sessions order by id'),existingVisits);
+ check(await q('select * from menu_customer_orders order by id'),before);
+ check(await q("select relacl,relrowsecurity,relforcerowsecurity from pg_class where oid='public.table_visit_sessions'::regclass"),visitSecurity);
  const history=async(s=visit,site=basic)=>(await q('select public.list_visit_customer_orders($1,$2) value',[site,s.id]))[0].value;
  const cancel=async(id,s=visit,site=basic)=>(await q('select public.cancel_visit_customer_order($1,$2,$3) value',[site,s.id,id]))[0].value;
  let data=await history();check(data.orders.map(o=>o.id),[courseOrder.order_id,original.order_id]);check(data.hasMore,false);
@@ -75,7 +81,7 @@ try {
  const execute=async()=>{try{const where=filters.length?' where '+filters.join(' and '):'';let sql;
  if(patch){if(globalThis.__visitBeforeUpdate){const hook=globalThis.__visitBeforeUpdate;globalThis.__visitBeforeUpdate=null;await hook();}const keys=Object.keys(patch);sql=`update ${tableName} set ${keys.map((k,i)=>ident(k)+'=$'+(args.length+i+1)).join(',')}${where} returning ${fields}`;args.push(...keys.map(k=>patch[k]));}else sql=`select ${fields} from ${tableName}${where}${sort.length?' order by '+sort.join(','):''}${limit}`;
  return {data:clean(await q(sql,args)),error:null};}catch(e){return {data:null,error:{message:e.message,details:e.detail,code:e.code}}}};
- const chain={select(value){fields=value.split(',').map(k=>ident(k.trim())).join(',');return chain;},update(value){patch=value;return chain;},eq:(k,v)=>add(k,'=',v),neq:(k,v)=>add(k,'<>',v),gt:(k,v)=>add(k,'>',v),in:(k,v)=>add(k,'= any',v),is(k,v){assert.equal(v,null);filters.push(`${ident(k)} is null`);return chain;},order(k,{ascending=true}={}){sort.push(ident(k)+(ascending?' asc':' desc'));return chain;},limit(n){limit=' limit '+Number(n);return chain;},async maybeSingle(){const r=await execute();return {...r,data:r.data?.[0]??null};},single(){return chain.maybeSingle();},then(ok,bad){return execute().then(ok,bad);}};return chain;},
+ const chain={select(value){fields=value.split(',').map(k=>ident(k.trim())).join(',');return chain;},update(value){patch=value;return chain;},eq:(k,v)=>add(k,'=',v),neq:(k,v)=>add(k,'<>',v),gt:(k,v)=>add(k,'>',v),lt:(k,v)=>add(k,'<',v),lte:(k,v)=>add(k,'<=',v),in:(k,v)=>add(k,'= any',v),is(k,v){assert.equal(v,null);filters.push(`${ident(k)} is null`);return chain;},order(k,{ascending=true}={}){sort.push(ident(k)+(ascending?' asc':' desc'));return chain;},limit(n){limit=' limit '+Number(n);return chain;},async maybeSingle(){const r=await execute();return {...r,data:r.data?.[0]??null};},single(){return chain.maybeSingle();},then(ok,bad){return execute().then(ok,bad);}};return chain;},
  async rpc(name,args){try{const keys=rpcParams[name];assert.ok(keys);const params=keys.map(k=>k==='p_lines'?JSON.stringify(args[k]):args[k]);const query=`select ${name.startsWith('submit_postpay_order_v')?'* from ':''}public.${name}(${keys.map((k,i)=>'$'+(i+1)+(k==='p_lines'?'::jsonb':'')).join(',')})${name.startsWith('submit_postpay_order_v')?'':' value'}`;const rows=await q(query,params);return {data:clean(name.startsWith('submit_postpay_order_v')?rows:rows[0].value),error:null};}catch(e){return {data:null,error:{message:e.message,details:e.detail,code:e.code}}}}
  };
  process.env.POSTPAY_ORDER_ENABLED='true';process.env.POSTPAY_ORDER_ALLOWED_SITE_IDS=[basic,dining,other].join(',');process.env.TABLE_MANAGEMENT_ENABLED='true';process.env.TABLE_MANAGEMENT_ALLOWED_SITE_IDS=[basic,dining,other].join(',');process.env.ORDER_DASHBOARD_ENABLED='true';process.env.ORDER_DASHBOARD_ALLOWED_SITE_IDS=basic;

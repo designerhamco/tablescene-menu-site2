@@ -136,7 +136,7 @@ export default function MenuTableManager({
       </section>
       <form action={mutationAction} className="space-y-3">
         <input type="hidden" name="menuSiteId" value={menuSiteId} />
-        <p className="type-body-sm text-zinc-500">연결 후 이 브라우저의 관리자 계정은 로그아웃됩니다. 공용 단말 연결은 30일간 유지되며 손님 교체나 계산 완료와는 별개입니다. 연결을 해제해도 이미 접수된 주문은 삭제되지 않습니다.</p>
+        <p className="type-body-sm text-zinc-500">연결 후 이 브라우저의 관리자 계정은 로그아웃됩니다. 공용 단말은 사용 중 연결이 자동으로 갱신됩니다. 장기간 사용하지 않아 연결이 만료되면 다시 연결해 주세요. 손님 교체나 계산 완료는 별도로 처리하며, 연결을 해제해도 이미 접수된 주문은 삭제되지 않습니다.</p>
         <button name="intent" value="unregister-terminal" disabled={mutationPending} className="site-button site-button-outline">이 브라우저의 단말 연결 해제</button>
       </form>
     </div>

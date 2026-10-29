@@ -11,11 +11,14 @@ export default function Harness({params}:{params:Record<string,string>}){const c
 const browser=await chromium.launch(),results=[],errors=[],unexpected=[];
 async function setup({channel='customer',width=390,height=844,params=''}={}){
   const page=await browser.newPage({viewport:{width,height}});await page.clock.install();page.on('pageerror',e=>errors.push(e.message));
-  const state={expiry:Date.now()+3600000,posts:[],orders:[],receipts:new Map(),renewals:0,repeat:false,loseNextResponse:false,sessionReads:0};
+  const state={expiry:Date.now()+3600000,posts:[],orders:[],receipts:new Map(),renewals:0,terminalRenewals:0,repeat:false,loseNextResponse:false,sessionReads:0};
   await page.route('**/api/**',async r=>{
     const url=new URL(r.request().url()),method=r.request().method();
     if(url.pathname==='/api/public-menu/order-session'){
       state.sessionReads++;const now=await page.evaluate(()=>Date.now());
+      if(method==='POST'&&r.request().postDataJSON().intent==='terminal-keepalive'){
+        state.terminalRenewals++;return r.fulfill({json:{ok:true,channel:'terminal',expiresAt:new Date(now+30*86400000).toISOString(),serverNow:new Date(now).toISOString()}});
+      }
       if(method==='POST'){state.renewals++;state.expiry=now+3600000;}
       return r.fulfill({json:{ok:true,channel,orderExpiresAt:new Date(state.expiry).toISOString(),serverNow:new Date(now).toISOString()}});
     }
@@ -85,10 +88,19 @@ try{
     await page.screenshot({path:out+'/personal-expired.png'});results.push({case:'renew-and-expire-preserve-cart'});await page.close();
   }
   {
-    const {page,state}=await setup({channel:'terminal',width:820,height:1180});await add(page);
-    await page.clock.fastForward(9*60000+1500);const notice=page.getByRole('dialog',{name:'장바구니 자동 초기화 안내',exact:true});await expect(notice).toBeVisible();await notice.getByRole('button',{name:'계속 이용하기',exact:true}).click();await expect(notice).not.toBeVisible();
-    await page.clock.fastForward(10*60000+1500);const cleared=page.getByRole('dialog',{name:'장바구니를 비웠습니다',exact:true});await expect(cleared).toBeVisible();await cleared.getByRole('button',{name:'확인',exact:true}).click();await expect(page.getByText('장바구니가 비어 있어요',{exact:true})).toBeVisible();assert.equal(state.posts.length,0);assert.equal(state.sessionReads,0);
-    results.push({case:'terminal-idle-warning-continue-clear'});await page.close();
+    const {page,state}=await setup({channel:'terminal',width:820,height:1180});const first=await add(page);
+    await first.getByRole('button',{name:'후불로 주문하기',exact:true}).click();await expect(first.locator('[data-history-order]')).toHaveCount(1);
+    await first.getByRole('button',{name:'메뉴판으로 돌아가기',exact:true}).click();await add(page);
+    const notice=page.getByRole('dialog',{name:'장바구니 자동 초기화 안내',exact:true});
+    await page.clock.fastForward(89000);await expect(notice).not.toBeVisible();
+    await page.clock.fastForward(2000);await expect(notice).toBeVisible();await expect(notice.getByText('30초 뒤 미주문 상품을 비웁니다. 계속 이용하시겠습니까?',{exact:true})).toBeVisible();
+    await page.screenshot({path:out+'/terminal-cart-warning.png'});
+    await notice.getByRole('button',{name:'계속 이용하기',exact:true}).click();await expect(notice).not.toBeVisible();
+    await page.clock.fastForward(89000);await expect(notice).not.toBeVisible();
+    await page.clock.fastForward(2000);await expect(notice).toBeVisible();
+    await page.clock.fastForward(30000);const cleared=page.getByRole('dialog',{name:'장바구니를 비웠습니다',exact:true});await expect(cleared).toBeVisible();await cleared.getByRole('button',{name:'확인',exact:true}).click();await expect(page.getByText('장바구니가 비어 있어요',{exact:true})).toBeVisible();
+    await page.getByRole('button',{name:'주문내역 보기',exact:true}).click();await expect(page.locator('[data-history-order]')).toHaveCount(1);assert.equal(state.posts.length,1);assert.equal(state.orders.length,1);assert.ok(state.terminalRenewals>=1);
+    results.push({case:'terminal-two-minute-idle-thirty-second-warning-continue-preserves-received'});await page.close();
   }
   {
     const {page,state}=await setup({params:'orders=off'});await page.clock.fastForward(25*3600000);await expect(page.locator('dialog[open]')).toHaveCount(0);await expect(page.getByRole('heading',{name:'메뉴판',exact:true})).toBeVisible();assert.equal(state.sessionReads,0);results.push({case:'call-only-no-order-timeout'});await page.close();

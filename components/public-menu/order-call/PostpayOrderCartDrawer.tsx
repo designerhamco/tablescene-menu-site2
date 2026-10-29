@@ -40,6 +40,7 @@ import ui from "./MenuInteractionUI.module.css";
 import { MenuOrderIcon, type MenuOrderIconVariant } from "./MenuActionIcons";
 import {normalizeOrderPhone,orderCartSignature,TERMINAL_CART_IDLE_MS,TERMINAL_CART_WARNING_MS,type OrderChannel} from "@/lib/order-session-policy";
 import {useCustomerOrderAccess} from "./useCustomerOrderAccess";
+import {useTerminalConnection} from "./useTerminalConnection";
 import OrderPolicyDialog from "./OrderPolicyDialog";
 
 type StoredCartLine = {
@@ -234,6 +235,7 @@ export default function PostpayOrderCartDrawer({
   const [repeatOrderId,setRepeatOrderId]=useState<string|null>(null);
   const [idleWarning,setIdleWarning]=useState(false),[cartCleared,setCartCleared]=useState(false);
   const access=useCustomerOrderAccess(menuSiteId,channel==="customer",orderExpiresAt,previewOnly);
+  useTerminalConnection(menuSiteId,channel==="terminal",previewOnly);
   const activityKey=`${storageKey}:activity`;
   const lastActivity=useRef(0);
   function touchCart(){lastActivity.current=Date.now();try{(previewOnly?window.sessionStorage:window.localStorage).setItem(activityKey,String(lastActivity.current));}catch{}setIdleWarning(false);}
@@ -613,7 +615,7 @@ export default function PostpayOrderCartDrawer({
       <button type="button" className={`${ui.secondary} w-full px-4 py-3`} onClick={access.dismiss}>{t("메뉴판 계속 보기")}</button>
     </OrderPolicyDialog>
     <OrderPolicyDialog open={idleWarning||cartCleared} title={t(cartCleared?"장바구니를 비웠습니다":"장바구니 자동 초기화 안내")} style={interactionStyle} onDismiss={()=>{if(cartCleared)setCartCleared(false);else touchCart();}}>
-      <p>{t(cartCleared?"오랫동안 조작하지 않아 미주문 상품을 비웠습니다. 이미 접수된 주문은 유지됩니다.":"1분 뒤 미주문 상품을 비웁니다. 계속 이용하시겠습니까?")}</p>
+      <p>{t(cartCleared?"오랫동안 조작하지 않아 미주문 상품을 비웠습니다. 이미 접수된 주문은 유지됩니다.":"30초 뒤 미주문 상품을 비웁니다. 계속 이용하시겠습니까?")}</p>
       <button type="button" className={`${ui.primary} w-full px-4 py-3`} onClick={()=>{if(cartCleared)setCartCleared(false);else touchCart();}}>{t(cartCleared?"확인":"계속 이용하기")}</button>
     </OrderPolicyDialog>
     <OrderPolicyDialog open={Boolean(repeatOrderId)} title={t("동일한 주문 확인")} style={interactionStyle} onDismiss={()=>setRepeatOrderId(null)}>

@@ -90,7 +90,7 @@ export default function OrderSettingsForm({
           <legend className="type-content-title">매장 공용 단말</legend>
           <label className="flex items-start gap-3"><input className="mt-1 h-5 w-5 accent-black" type="checkbox" name="terminalOrderEnabled" defaultChecked={settings.terminalOrderEnabled!==false}/><span>공용 단말 후결제 사용</span></label>
           <p className="type-body-sm text-zinc-500">전화번호를 받지 않습니다. 테이블 관리에서 이 브라우저를 공용 단말로 연결할 수 있습니다.</p>
-          <p className="type-body-sm text-zinc-500">장바구니가 있는 상태로 10분간 조작하지 않으면 미주문 상품만 비웁니다. 1분 전에 안내하며 이미 접수된 주문은 유지합니다.</p>
+          <p className="type-body-sm text-zinc-500">장바구니가 있는 상태로 마지막 조작 후 2분간 사용하지 않으면 미주문 상품만 비웁니다. 30초 전에 안내하며 ‘계속 이용하기’를 누르면 다시 2분 동안 이용할 수 있습니다. 이미 접수된 주문은 유지합니다.</p>
         </fieldset>
         <section className="space-y-3 rounded-xl bg-zinc-100 p-5" aria-label="알림톡 설정 준비">
           <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="type-content-title">조리 완료 알림톡</h3><span className="type-body-sm text-zinc-500">연동 준비 중</span></div>

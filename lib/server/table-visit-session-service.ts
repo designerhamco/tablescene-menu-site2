@@ -17,6 +17,8 @@ import {
   isValidTableQrIdentifier,
   isValidTableQrPublicId,
   shouldTouchTableVisitSession,
+  createTableVisitSessionExpiry,
+  TABLE_TERMINAL_SESSION_MAX_AGE_SECONDS,
 } from "@/lib/table-qr-session-tokens";
 
 const TABLE_QR_TARGET_SELECT = "id, menu_site_id, label, status";
@@ -173,6 +175,7 @@ export async function resolveTableVisitSession({
       .update({ last_seen_at: now.toISOString() })
       .eq("id", session.id)
       .is("revoked_at", null)
+      .lt("last_seen_at", now.toISOString())
       .gt("expires_at", now.toISOString());
   }
 
@@ -259,4 +262,32 @@ export async function extendTableOrderAccess(visit: ResolvedTableVisitSession, r
   });
   if (error || typeof data !== "string") throw new TableVisitSessionError("주문 이용 시간이 만료되었습니다. 테이블 QR을 다시 스캔해 주세요.");
   return {...visit, orderExpiresAt: data};
+}
+
+/** Only a validated, still-live terminal can roll its existing connection forward. */
+export async function renewTableTerminalConnection(visit: ResolvedTableVisitSession, now = new Date()): Promise<ResolvedTableVisitSession | null> {
+  const expiresAt = Date.parse(visit.expiresAt);
+  if (visit.channel !== "terminal" || !Number.isFinite(expiresAt) || expiresAt <= now.getTime()) return null;
+  const access = await getMenuSiteAccessStateForMenuSite({ menuSiteId: visit.menuSiteId });
+  if (!access?.canViewPublic || access.planType !== "business_basic") throw new TableVisitSessionError("공용 단말을 사용할 수 없습니다.");
+
+  // Active clients check in every five minutes; write at most once per day.
+  const renewAfter = (TABLE_TERMINAL_SESSION_MAX_AGE_SECONDS - 24 * 60 * 60) * 1000;
+  if (expiresAt - now.getTime() > renewAfter) return visit;
+  const renewedExpiry = createTableVisitSessionExpiry(now, "terminal").toISOString();
+  const { data, error } = await createAdminClient()
+    .from("table_visit_sessions")
+    .update({ expires_at: renewedExpiry, last_seen_at: now.toISOString() })
+    .eq("id", visit.id)
+    .eq("menu_site_id", visit.menuSiteId)
+    .eq("menu_table_id", visit.menuTableId)
+    .eq("access_channel", "terminal")
+    .eq("expires_at", visit.expiresAt)
+    .is("revoked_at", null)
+    .gt("expires_at", now.toISOString())
+    .lte("last_seen_at", now.toISOString())
+    .select("id, expires_at")
+    .maybeSingle();
+  if (error) throw new TableVisitSessionError("공용 단말 연결을 갱신하지 못했습니다.");
+  return data ? { ...visit, expiresAt: data.expires_at } : null;
 }
