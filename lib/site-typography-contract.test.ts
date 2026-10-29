@@ -301,7 +301,7 @@ test("사이트 본문 역할은 메뉴판 기초 크기와 독립적으로 가�
 
 test("읽기·컨트롤·강조 크기는 중복 없이 정해진 단계만 사용한다", () => {
   assert.deepEqual(SITE_READING_TYPE_STEPS, [13,14,16,18,20]);
-  assert.deepEqual(SITE_CONTROL_TYPE_STEPS, [14,15,16]);
+  assert.deepEqual(SITE_CONTROL_TYPE_STEPS, [14,15,16,18]);
   assert.deepEqual(SITE_EMPHASIS_TYPE_STEPS, [24,28,32,36,44]);
   assert.deepEqual(SITE_TYPE_STEPS, [13,14,15,16,18,20,24,28,32,36,44]);
 
