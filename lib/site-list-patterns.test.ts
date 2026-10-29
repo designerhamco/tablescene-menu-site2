@@ -4,17 +4,16 @@ import test from "node:test";
 import { getSitePageItems } from "./site-pagination";
 import { getAnnouncementNeighborFilter } from "./announcements";
 
-test("page windows keep current and both ends with a bounded mobile width", () => {
-  assert.deepEqual(getSitePageItems(1, 3, 1), [1, 2, 3]);
-  assert.deepEqual(getSitePageItems(5, 10, 1), [1, "start-ellipsis", 5, "end-ellipsis", 10]);
-  assert.deepEqual(getSitePageItems(100, 10, 1), [1, "start-ellipsis", 10]);
-  assert.deepEqual(getSitePageItems(1, 0, 1), []);
-  for (let total = 1; total < 150; total++) for (let current = 1; current <= total; current++) {
-    const items = getSitePageItems(current, total, 1);
-    assert.ok(items.length <= 5);
+test("page windows remain consecutive, bounded and include the selected page", () => {
+  assert.deepEqual(getSitePageItems(1, 3, 3), [1, 2, 3]);
+  assert.deepEqual(getSitePageItems(5, 10, 3), [4, 5, 6]);
+  assert.deepEqual(getSitePageItems(100, 10, 3), [8, 9, 10]);
+  assert.deepEqual(getSitePageItems(1, 0, 3), []);
+  for (const count of [3, 7]) for (let total = 1; total < 150; total++) for (let current = 1; current <= total; current++) {
+    const items = getSitePageItems(current, total, count);
+    assert.ok(items.length <= count);
     assert.ok(items.includes(current));
-    assert.ok(items.includes(1) && items.includes(total));
-    assert.equal(new Set(items).size, items.length);
+    assert.ok(items.every((item, index) => item >= 1 && item <= total && (index === 0 || item === items[index - 1] + 1)));
   }
 });
 

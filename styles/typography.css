@@ -55,6 +55,24 @@
   --type-metric-size: var(--site-type-24);
 }
 
+/* Site chrome grows gently after laptop widths; customer artwork tokens and
+ * the root rem remain unchanged. At 1600px: base; at 2600px+: base × 1.125. */
+@media (min-width: 1600px) {
+  :root {
+    --site-type-13: clamp(0.8125rem, calc(0.65rem + 0.1625vw), 0.9140625rem);
+    --site-type-14: clamp(0.875rem, calc(0.7rem + 0.175vw), 0.984375rem);
+    --site-type-15: clamp(0.9375rem, calc(0.75rem + 0.1875vw), 1.0546875rem);
+    --site-type-16: clamp(1rem, calc(0.8rem + 0.2vw), 1.125rem);
+    --site-type-18: clamp(1.125rem, calc(0.9rem + 0.225vw), 1.265625rem);
+    --site-type-20: clamp(1.25rem, calc(1rem + 0.25vw), 1.40625rem);
+    --site-type-24: clamp(1.5rem, calc(1.2rem + 0.3vw), 1.6875rem);
+    --site-type-28: clamp(1.75rem, calc(1.4rem + 0.35vw), 1.96875rem);
+    --site-type-32: clamp(2rem, calc(1.6rem + 0.4vw), 2.25rem);
+    --site-type-36: clamp(2.25rem, calc(1.8rem + 0.45vw), 2.53125rem);
+    --site-type-44: clamp(2.75rem, calc(2.2rem + 0.55vw), 3.09375rem);
+  }
+}
+
 /*
  * ArtiMenu site typography contract.
  * Customer-facing menu templates use their own editable typography tokens and

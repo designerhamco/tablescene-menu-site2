@@ -162,8 +162,6 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
   }
 
   const { data, design, features } = buildSavedMenuPreview(savedData);
-  const editHref = accessState.canEdit && accessState.canUseWriteActions && accessContext.permissions.has("menu.edit")
-    ? `/mypage/menus/${encodeURIComponent(menuId)}/edit` : undefined;
   const usesDevicePreviewFrame = shouldUseMenuPreviewDeviceFrame(data.menuSite.template_key);
   const device = normalizeMenuPreviewDevice(requestedDevice, usesDevicePreviewFrame ? "tablet" : "pc");
 
@@ -175,7 +173,6 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
         menuId={menuId}
         menuTemplateKey={data.menuSite.template_key ?? undefined}
         menuDesignId={design?.id}
-        editHref={editHref}
         query={previewQuery}
       />
     );
