@@ -19,8 +19,8 @@ test("사이트 페이지·섹션·그리드 간격은 반응형 공통 토큰�
     assert.match(globalsSource, new RegExp(`${token}: clamp\\(`));
   }
 
-  assert.match(globalsSource, /\.site-page-spacing \{[\s\S]*?padding-block: var\(--site-page-space\)/);
-  assert.match(globalsSource, /\.site-page-spacing-compact \{[\s\S]*?padding-block: var\(--site-page-space-compact\)/);
+  assert.match(globalsSource, /\.site-page-spacing \{[\s\S]*?padding-block: var\(--site-page-heading-top\) var\(--site-page-space\)/);
+  assert.match(globalsSource, /\.site-page-spacing-compact \{[\s\S]*?padding-block: var\(--site-page-heading-top\) var\(--site-page-space-compact\)/);
   assert.match(globalsSource, /\.site-card-grid \{[\s\S]*?gap: var\(--site-grid-gap\)/);
 });
 

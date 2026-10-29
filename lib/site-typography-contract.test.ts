@@ -163,7 +163,7 @@ test("디자인 시스템은 글자 역할 이름과 화면 예시를 같은 계
 
   assert.equal(emphasizedBody?.label, "강조 본문");
   assert.equal(pageDescription?.label, "페이지 설명");
-  assert.match(gallerySource, /<p className="type-page-description">디자인 기준과 실제 사이트/);
+  assert.match(gallerySource, /<SitePageHeader[^>]*description="디자인 기준과 실제 사이트/);
   assert.match(foundationsSource, /type-page-description[^>]*>페이지 제목 바로 아래의 설명은 로그인·서비스·고객센터·신청 화면에서 모두 같은 역할과 크기/);
   assert.match(foundationsSource, /type-body-lg[^>]*>기본 본문보다 한 단계 강조해야 하는 짧은 문장/);
   assert.match(typographySource, /\.type-body,\s*\n\.site-body\s*\{/);
@@ -193,7 +193,7 @@ test("일반 페이지의 h1 바로 아래 설명은 화면 종류와 무관하�
     const source = readFileSync(join(appRoot, route), "utf8");
     assert.match(
       source,
-      /<h1 className="type-page-title[^\"]*"[\s\S]{0,320}?<p className="type-page-description/,
+      /<SitePageHeader\b|<h1 className="type-page-title[^\"]*"[\s\S]{0,320}?<p className="type-page-description/,
       `${route}의 페이지 제목 설명이 공통 역할을 사용하지 않습니다.`,
     );
   }
@@ -203,7 +203,7 @@ test("일반 페이지의 h1 바로 아래 설명은 화면 종류와 무관하�
     "support/SupportCenter.tsx",
   ]) {
     const source = readFileSync(join(componentsRoot, component), "utf8");
-    assert.match(source, /<h1[^>]*className="type-page-title"[\s\S]{0,220}?<p className="type-page-description/);
+    assert.match(source, /<SitePageHeader\b|<h1[^>]*className="type-page-title"[\s\S]{0,220}?<p className="type-page-description/);
   }
 
   const detailSource = readFileSync(join(appRoot, "templates/[templateKey]/page.tsx"), "utf8");
@@ -215,9 +215,9 @@ test("마이페이지와 매장 운영의 최상위 설명은 관리 영역 안�
   const staffSource = readFileSync(join(appRoot, "mypage/staff/page.tsx"), "utf8");
   const operationsShellSource = readFileSync(join(componentsRoot, "mypage/StoreOperationsShell.tsx"), "utf8");
 
-  assert.match(mypageSource, /<h1 className="type-page-title"[\s\S]*?<p className="type-page-description/);
-  assert.match(staffSource, /<h1 className="type-page-title[^\"]*"[\s\S]*?<p className="type-page-description/);
-  assert.match(operationsShellSource, /<h1 className="type-page-title"[\s\S]*?<p className="type-page-description/);
+  assert.match(mypageSource, /<SitePageHeader\b|<h1 className="type-page-title"[\s\S]*?<p className="type-page-description/);
+  assert.match(staffSource, /<SitePageHeader\b|<h1 className="type-page-title[^\"]*"[\s\S]*?<p className="type-page-description/);
+  assert.match(operationsShellSource, /<SitePageHeader\b|<h1 className="type-page-title"[\s\S]*?<p className="type-page-description/);
 });
 
 test("활성 사이트 UI의 h1부터 h6까지 승인된 의미 기반 타이포 역할만 사용한다", () => {

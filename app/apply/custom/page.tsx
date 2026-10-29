@@ -1,3 +1,4 @@
+import SitePageHeader from "@/components/layout/SitePageHeader";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
@@ -111,24 +112,10 @@ export default async function ApplyCustomPage({ searchParams }: PageProps) {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter bg-white py-16 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
-          <header className="grid gap-8 border-b border-zinc-200 pb-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-end">
-            <div>
-              <h1 className="type-page-title max-w-3xl">
-                아티메뉴 커스텀 견적 문의
-              </h1>
-              <p className="type-page-description mt-5 max-w-2xl text-zinc-500">
-                브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험을 주문제작 프로젝트로 상담합니다.
-              </p>
-            </div>
-            <div className="site-section p-6">
-              <p className="site-body-title">상담형 · 견적 문의형</p>
-              <p className="site-body-support mt-3 text-zinc-500">
-                결제 없이 프로젝트 범위와 예산을 먼저 확인합니다. 접수 후 담당자가 맞춤 제작 범위와 일정, 견적을 안내합니다.
-              </p>
-            </div>
-          </header>
+          <SitePageHeader title="아티메뉴 커스텀 견적 문의" description="브랜딩과 인터랙션을 담은 프리미엄 웹 메뉴 경험을 주문제작 프로젝트로 상담합니다." />
+          <div className="site-section p-6"><p className="type-content-title">상담형 · 견적 문의형</p><p className="type-body-sm mt-3 text-zinc-500">결제 없이 프로젝트 범위와 예산을 먼저 확인합니다. 접수 후 담당자가 맞춤 제작 범위와 일정, 견적을 안내합니다.</p></div>
 
           <form action={createConsultingApplyAction} className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
             <input type="hidden" name="serviceType" value="custom" />

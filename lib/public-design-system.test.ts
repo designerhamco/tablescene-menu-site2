@@ -124,7 +124,7 @@ test("만들기 템플릿 썸네일은 공통 갤러리 외곽선만 사용한�
 
 test("주요 공개 페이지는 표준 페이지 타이틀을 사용한다", () => {
   for (const source of [termsSource, privacySource, faqSource, pricingSource, customSource]) {
-    assert.match(source, /(?:site|type)-page-title/);
+    assert.match(source, /SitePageHeader|(?:site|type)-page-title/);
   }
 
   assert.doesNotMatch(termsSource, /text-5xl/);

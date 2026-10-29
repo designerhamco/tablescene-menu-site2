@@ -4,7 +4,7 @@ import styles from "./Footer.module.css";
 
 const groups = [
   { title: "서비스", links: [["베이직", "/services/basic"], ["다이닝", "/services/dining"], ["디스플레이", "/services/display"], ["디자인 템플릿", "/templates"]] },
-  { title: "이용 안내", links: [["사용가이드", "/guides"], ["고객센터", "/faq"], ["마이 메뉴", "/mypage"]] },
+  { title: "이용 안내", links: [["자주 묻는 질문", "/faq"], ["공지사항", "/faq/notices"], ["이용가이드", "/guides"], ["마이 메뉴", "/mypage"]] },
 ] as const;
 
 function FooterLinkList({ links }: { links: (typeof groups)[number]["links"] }) {

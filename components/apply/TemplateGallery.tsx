@@ -102,7 +102,7 @@ export default function TemplateGallery({
     });
   }
 
-  return <Tabs purpose="page" value={product} onValueChange={value => selectProduct(value as CatalogService)}>
+  return <Tabs purpose="page" value={product} className="site-catalog" onValueChange={value => selectProduct(value as CatalogService)}>
     <TabsList size="lg" className="site-catalog-services" aria-label="서비스 및 페이지 유형 선택">
       {PRODUCT_TABS.map(({ key, label }) => (
         <TabsTrigger key={key} value={key} id={`${tabsId}-${key}`} aria-controls={`${tabsId}-service-panel`}>{label}</TabsTrigger>

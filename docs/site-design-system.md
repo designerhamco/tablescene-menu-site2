@@ -200,7 +200,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 
 - `Tabs purpose="section"`: 선택 탭과 콘텐츠는 흰색으로 이어지고, 비선택 탭은 옅은 회색 무테 면으로 구분한다. 탭 아래에는 콘텐츠 폭을 넘지 않는 곧은 기준선을 사용하며 사선·산 모양 mask·그림자는 사용하지 않는다.
 - 영역형은 하나의 기능·작업·목록 영역 안에서 내용만 바꿀 때 사용한다. 주요 화면에는 분리된 둥근 page, 목록 주제에는 밑줄 category, 상태·보기 값에는 회색 레일의 state를 사용한다.
-- Root에 지정한 변형을 List/Trigger/Content가 상속한다. `size="sm|md|lg"`의 40/44/48px 및 14/15/16px, `distribution="content|equal"`, disabled, 방향키/Home/End 계약을 재사용한다. 좁은 화면의 긴 탭 목록은 영역 안에서만 가로 스크롤한다.
+- Root에 지정한 변형을 List/Trigger/Content가 상속한다. `size="sm|md|lg"`의 영역형44/52/56px 및 14/16/16px, `distribution="content|equal"`, disabled, 방향키/Home/End 계약을 재사용한다. 좁은 화면의 긴 탭 목록은 영역 안에서만 가로 스크롤한다.
 - 라이브러리의 `#shaped-tabs`에서 영역형과 대·중·소를 실제로 전환하고 상태 표에서 기본/hover/pressed/focus/disabled를 비교한다. 폐기한 파일형·라운드 연결형을 새 화면에 사용하지 않는다.
 - 공통 Footer는 옅은 라운드 표면에 브랜드/서비스/이용 안내/고객지원, 사업자 정보, 약관을 묶고 같은 회색 표면의 맨 아래에 배경보다 조금 진한 연회색 장식 워드마크를 배치한다. 워드마크의 하단은 표면의 둥근 경계 안에서 잘리며, 박스 바깥에는 표시하지 않는다. 실제 정보는 보통 본문·보조 크기를 유지하며 장식 글자만 의도적으로 일부 잘라 표시하고 `aria-hidden` 처리한다. 외부 사업자 확인 링크와 기존 사업자·연락 정보는 유지한다.
 - 스타일은 `app/components/layout/Footer.module.css` 한 곳에서 관리한다. 구 landing Footer도 동일 컴포넌트를 다시 내보내며 페이지별 푸터 디자인을 복제하지 않는다. `#site-footer`는 라이브러리 바로가기에서도 실제 푸터를 보여준다.
@@ -215,7 +215,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 ## 실제 적용 역할 (2026-10-29)
 
 - 주요 화면 전환은 purpose="page"의 텍스트와 문구 너비 선택 밑줄이다. 독립 콘텐츠는 section, 목록 주제는 category 밑줄, 상태·보기 값은 회색 레일 state를 사용한다. URL 이동도 NavigationTabs에 역할을 명시한다.
-- contained 파일형·산 모양은 폐기했다. 디자인/기본 템플릿은 section 영역형, FAQ 주제는 category 밑줄이며 최신 공지3건을 FAQ 아래에 표시한다.
+- contained 파일형·산 모양은 폐기했다. 디자인/기본 템플릿은 section 영역형, FAQ 주제는 category 밑줄이며 공지와 이용가이드는 헤더 하위 메뉴로 연결하는 독립 페이지다.
 - 영역형은 탭과 아래 콘텐츠 묶음을 하나의 영역으로 전환할 때 사용한다. 화이트 콘텐츠에는 둘레 테두리를 두지 않는다. 고객센터에는 필요 없는 하위 필터·영역을 만들지 않는다.
 - 중립 배경·구분 면·푸터는 `--ui-surface`/`--ui-surface-muted`/`--ui-surface-soft`를 공유한다. 기본·보조·메타 글자색과 상태색은 같은 의미 토큰을 사용한다. 회색·유색 면에는 외곽 테두리를 추가하지 않는다.
 - 페이지 h1은 `type-page-title`(28/32/36px)이다. 로그인·베이직·다이닝·디스플레이·고객센터·신청·템플릿 목록과 상세를 포함해 H1 바로 아래 문구는 모두 `type-page-description`(16px)을 사용한다.
@@ -232,3 +232,5 @@ Ghost pagination/icon controls retain transparent background and border when dis
 폰트의 기본 역할과 최대 12.5% 와이드 보정, 인증 폼 폭·높이와 간격은 [폰트 계약](site-typography-final.md)의 최신 절을 따른다. 고객 메뉴판 렌더러와 root rem은 이 보정의 대상이 아니다.
 
 와이드 기준은 기준·토큰과 컴포넌트 라이브러리의 공통 `WideScreenRules` 표에서 확인한다. 새 페이지는 의미 기반 글자 역할과 공통 레이아웃 클래스를 사용해 자동 상속하며, 지역별 글자 배율·공통 기초 토큰 재정의는 계약 검사에서 차단한다. 미리보기는 PC·태블릿별 목업 상한과 작은 보조 도구를 적용한다. 주문·호출·묶음형·채움형은 상단에 유지하며 보기 옵션 패널은 표시·디자인만 다룬다. 상세 수치는 `docs/site-typography-final.md`의 최신 절과 `lib/menu-preview-fit.ts`를 따른다.
+
+일반 페이지 제목과 영역 탭 여백, 고객지원 경로의 현재 기준은 [페이지 간격 계약](site-page-layout-contract.md)을 따른다.

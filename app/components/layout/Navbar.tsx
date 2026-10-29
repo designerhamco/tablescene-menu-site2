@@ -11,6 +11,8 @@ import { isStoreOperationsAvailable } from '@/lib/product-focus-policy';
 import { NotificationPanel } from '@/app/components/ui/notification-panel';
 import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/popover';
 import styles from './Navbar.module.css';
+import SupportNavigation from '@/components/layout/SupportNavigation';
+import { SITE_SUPPORT_LINKS, isSupportLinkActive } from '@/lib/site-support-navigation';
 
 type NavItem = {
   label: string;
@@ -28,7 +30,7 @@ const NAV_ITEMS: readonly NavItem[] = [
   { label: '다이닝', path: '/services/dining', activePaths: ['/services/dining'] },
   { label: '디스플레이', path: '/services/display', activePaths: ['/services/display', '/services/screen', '/services/full-option', '/tablescene-pro'] },
   { label: '디자인 템플릿', path: '/templates', activePaths: ['/templates'] },
-  { label: '고객센터', path: '/faq', activePaths: ['/faq', '/support/chat'] },
+  { label: '고객센터', path: '/faq', activePaths: ['/faq', '/guides', '/support/chat'] },
 ];
 
 function isNavItemActive(item: NavItem, pathname: string) {
@@ -265,7 +267,7 @@ const Navbar = () => {
                   key={item.path}
                   className="relative flex h-full items-center"
                 >
-                  <Link
+                  {item.path === "/faq" ? <SupportNavigation pathname={pathname} /> : <Link
                     href={item.path}
                     aria-current={isActive ? 'page' : undefined}
                     aria-disabled={item.disabled ? true : undefined}
@@ -283,7 +285,7 @@ const Navbar = () => {
                   >
                     <span>{item.label}</span>
                     {item.disabled ? <DisabledChip /> : null}
-                  </Link>
+                  </Link>}
 
                 </div>
               );
@@ -433,6 +435,7 @@ const Navbar = () => {
 
                 <nav aria-label="모바일 공식 사이트 메뉴" className={styles.drawerNavigation}>
                   {NAV_ITEMS.map((item) => {
+                    if (item.path === "/faq") return <div key={item.path} className={styles.drawerSupportNavigation}><h3 className="type-label">고객센터</h3>{SITE_SUPPORT_LINKS.map(link => <Link key={link.href} href={link.href} onClick={closeMobileMenu} aria-current={isSupportLinkActive(link.href, pathname) ? "page" : undefined} className={styles.drawerSupportLink}>{link.label}<ChevronRight size={18} aria-hidden="true" /></Link>)}</div>;
                     const isActive = isNavItemActive(item, pathname);
 
                     return (

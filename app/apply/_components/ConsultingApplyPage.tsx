@@ -1,3 +1,4 @@
+import SitePageHeader from "@/components/layout/SitePageHeader";
 import { redirect } from "next/navigation";
 
 import Footer from "@/app/components/layout/Footer";
@@ -120,14 +121,9 @@ export default async function ConsultingApplyPage({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-white py-16 text-zinc-950">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-4xl">
-          <header className="mb-10 border-b border-zinc-200 pb-8">
-            <h1 className="type-page-title">{copy.title}</h1>
-            <p className="type-page-description mt-4 max-w-2xl text-zinc-500">
-              {copy.description}
-            </p>
-          </header>
+          <SitePageHeader title={copy.title} description={copy.description} />
 
           <form
             action={createConsultingApplyAction}

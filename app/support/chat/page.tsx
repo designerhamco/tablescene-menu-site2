@@ -1,3 +1,4 @@
+import SitePageHeader from "@/components/layout/SitePageHeader";
 import type { Metadata } from "next";
 import Link from "next/link";
 
@@ -18,19 +19,9 @@ export default function AiSupportChatPage() {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-gutter min-h-screen bg-white py-12 text-zinc-950 md:py-16">
+      <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-4xl">
-          <header className="mb-8 flex flex-col gap-5 border-b border-zinc-200 pb-8 md:flex-row md:items-end md:justify-between">
-            <div>
-              <h1 className="type-page-title">AI 상담</h1>
-              <p className="type-page-description mt-4 text-zinc-500">
-                아티메뉴 이용 방법을 빠르게 확인하고, 사람의 확인이 필요하면 1:1 문의로 이어집니다.
-              </p>
-            </div>
-            <Link href="/mypage/inquiries" className="text-copy font-medium text-zinc-600 underline decoration-zinc-300 underline-offset-4 hover:text-zinc-950">
-              1:1 문의
-            </Link>
-          </header>
+          <SitePageHeader title="AI 상담" description="아티메뉴 이용 방법을 빠르게 확인하고, 사람의 확인이 필요하면 1:1 문의로 이어집니다."><Link href="/mypage/inquiries" className="site-button site-button-link">1:1 문의</Link></SitePageHeader>
           {enabled ? (
             <AiSupportChat />
           ) : (

@@ -1,3 +1,4 @@
+import SitePageHeader from "@/components/layout/SitePageHeader";
 import Link from "next/link";
 import OperationSiteSelector from "@/components/mypage/OperationSiteSelector";
 import OperationTableSetupNotice from "@/components/mypage/OperationTableSetupNotice";
@@ -74,12 +75,7 @@ export default async function StoreOperationsShell({
       <OfficialSiteNavbar />
       <main className="site-management-scope site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
-          <header className="mb-5 border-b border-zinc-200 pb-6 md:mb-6 md:pb-8">
-            <h1 className="type-page-title">매장 운영</h1>
-            <p className="type-page-description mt-4 text-zinc-600">
-              운영 중인 메뉴판의 주문, 호출과 테이블을 한곳에서 관리합니다.
-            </p>
-          </header>
+          <SitePageHeader title="매장 운영" align="start" description="운영 중인 메뉴판의 주문, 호출과 테이블을 한곳에서 관리합니다." />
 
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-8">
             <aside className="min-w-0 space-y-3 lg:sticky lg:top-28">

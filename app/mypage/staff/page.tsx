@@ -1,3 +1,4 @@
+import SitePageHeader from "@/components/layout/SitePageHeader";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -186,17 +187,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
           message={resultNotice?.message}
           tone={resultNotice?.tone ?? "success"}
         />
-        <header className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-          <div>
-            <Link href="/mypage?tab=menus" className="text-copy font-medium text-emerald-700 hover:text-emerald-900">
-              ← 마이페이지로 돌아가기
-            </Link>
-            <h1 className="type-page-title mt-5">직원 관리</h1>
-            <p className="type-page-description mt-3 text-zinc-500">
-              메뉴판별로 직원을 초대하고 역할과 개별 권한을 관리합니다.
-            </p>
-          </div>
-        </header>
+        <SitePageHeader title="직원 관리" align="start" description="메뉴판별로 직원을 초대하고 역할과 개별 권한을 관리합니다."><Link href="/mypage?tab=menus" className="site-button site-button-link">마이페이지로 돌아가기</Link></SitePageHeader>
 
         {menuSitesError ? (
           <p className="site-notice site-notice-error px-4 py-3 text-copy font-medium">
