@@ -68,7 +68,8 @@ try {
     await templatePattern.getByRole("tab", { name: "기본 템플릿", exact: true }).click();
     await expect(templatePattern.getByRole("status")).toContainText("기본 템플릿 · 레스토랑 결과");
     const supportPattern = page.getByRole("region", { name: "고객센터 페이지 포함 관계 예시" });
-    await assertPageTabs(supportPattern.getByRole("tablist", { name: "고객센터 구조 주요 화면" }), width);
+    await expect(supportPattern.getByRole("tablist")).toHaveCount(0);
+    await expect(supportPattern.getByRole("link", { name: "공지사항 전체보기" })).toHaveAttribute("href", "/faq/notices");
     const patternCategory = supportPattern.getByRole("group", { name: "고객센터 구조 주제 분류" });
     await assertCategory(patternCategory);
     await patternCategory.getByRole("button", { name: "이용 환경", exact: true }).click();

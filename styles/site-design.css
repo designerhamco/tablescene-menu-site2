@@ -628,17 +628,17 @@
 .site-notification-limit { padding: .75rem 1rem 0; color: var(--ui-text-muted); font-size: var(--type-caption-size); line-height: 1.5; text-align: center; }
 
 
-/* Editorial lists: separators and aligned title/date, without a box per row. */
-.site-content-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ui-text); border-bottom: 1px solid var(--ui-text); }
+/* FAQ and editorial lists share quiet separators and reading space, without a box per row. */
+.site-content-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--ui-border); border-bottom: 1px solid var(--ui-border); }
 .site-content-list > li + li { border-top: 1px solid var(--ui-border); }
-.site-content-list-row, .site-article-row { display: grid; grid-template-columns: 7.5rem minmax(0,1fr) auto; align-items: center; gap: 1.5rem; padding: 1.25rem 1rem; min-width: 0; }
+.site-content-list-row, .site-article-row { display: grid; grid-template-columns: 8.5rem minmax(0,1fr) auto; align-items: center; gap: 1.5rem; padding: 1.5rem 1rem; min-width: 0; min-height: 5rem; }
 .site-content-list-row:hover, a.site-article-row:hover { background: var(--ui-surface-muted); }
 .site-content-list-row:active, a.site-article-row:active { background: var(--ui-surface-soft); }
 .site-content-list-row:focus-visible, a.site-article-row:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -3px; }
 .site-content-list-label { color: var(--ui-text-muted); font-size: var(--type-body-sm-size); }
 .site-content-list-title { min-width: 0; overflow-wrap: anywhere; word-break: keep-all; font-size: var(--type-body-size); font-weight: 500; line-height: 1.6; }
 .site-content-list-date { color: var(--site-text-muted); font-size: var(--type-caption-size); line-height: 1.5; white-space: nowrap; }
-.site-article-navigation { border-top: 1px solid var(--ui-text); border-bottom: 1px solid var(--ui-text); }
+.site-article-navigation { border-top: 1px solid var(--ui-border); border-bottom: 1px solid var(--ui-border); }
 .site-article-row + .site-article-row { border-top: 1px solid var(--ui-border); }
 .site-article-direction { display: inline-flex; align-items: center; gap: .625rem; font-size: var(--type-label-size); font-weight: 600; }
 .site-article-row[aria-disabled="true"] .site-content-list-title { color: var(--site-text-muted); font-weight: 400; }
