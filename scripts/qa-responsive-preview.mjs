@@ -71,11 +71,16 @@ try {
       assert.ok(result.frame.width<=result.canvas.width*.9+1);
       assert.ok(result.frame.height<=result.canvas.height*.84+1);
       assert.ok(result.frame.width/(result.source.width+20)<=1.25+.001);
-      assert.ok(result.toolbar.width<=576+1);
-      assert.ok(result.toolbar.height<=56);
+      assert.ok(result.toolbar.width<=848+1);
+      assert.ok(result.toolbar.height<=104);
+      if(device==='tablet') {
+        assert.ok(result.frame.width<=result.canvas.width*.74+1);
+        assert.ok(result.frame.height<=result.canvas.height*.7+1);
+        assert.ok(result.frame.width/(result.source.width+20)<=1+.001);
+      }
     }
     assert.ok(result.controlFont<=15.75+.05);
-    const clippedControls=await page.locator('[data-preview-device-toolbar] a').evaluateAll(links=>links.filter(a=>{
+    const clippedControls=await page.locator('[data-preview-device-toolbar] a, [data-preview-device-toolbar] .site-preview-choice').evaluateAll(links=>links.filter(a=>{
       const r=a.getBoundingClientRect(),h=a.closest('header').getBoundingClientRect();
       const t=a.closest('header').querySelector('button').getBoundingClientRect();
       return r.left<h.left||r.right>h.right||r.top<h.top||r.bottom>h.bottom||(r.left<t.right&&r.right>t.left&&r.top<t.bottom&&r.bottom>t.top);
@@ -83,7 +88,11 @@ try {
     assert.deepEqual(clippedControls,[],'toolbar controls remain readable and do not overlap the close handle');
     assert.deepEqual(result.source,device==='pc'?{width:1440,height:900}:device==='tablet'?{width:1180,height:820}:{width:390,height:844});
     assert.equal(await page.locator('[data-preview-fullscreen-control], [data-preview-edit-link]').count(),0);
-    assert.equal(await page.locator('[data-preview-device-toolbar] [data-preview-call-toggle]').count(),0);
+    const toolbar=page.locator('[data-preview-device-toolbar]');
+    await toolbar.getByRole('checkbox',{name:'호출 기능 미리보기',exact:true}).waitFor({state:'visible'});
+    await toolbar.getByRole('checkbox',{name:'주문 기능 미리보기',exact:true}).waitFor({state:'visible'});
+    assert.equal(await toolbar.locator('[data-preview-layout-mode]').count(),device==='mobile'?0:2);
+    assert.equal(await page.locator('[data-preview-options-panel] [data-preview-call-toggle], [data-preview-options-panel] [data-preview-order-toggle], [data-preview-options-panel] [data-preview-layout-mode]').count(),0);
     if(width>=960){
       const labelProblems=await page.locator('[data-preview-options-panel] label').evaluateAll(labels=>labels.flatMap(label=>{
         const text=[...label.childNodes].find(node=>node.nodeType===Node.TEXT_NODE&&node.textContent.trim());
@@ -96,13 +105,41 @@ try {
       await iframe.locator('body').evaluate(e=>{window.__qaPreviewDocument='preserve';e.scrollTop=20;});
       await page.getByRole('button',{name:'보기 옵션 닫기',exact:true}).click();
       assert.equal(await iframe.locator('body').evaluate(()=>window.__qaPreviewDocument),'preserve');
+      assert.equal(await toolbar.getByRole('checkbox',{name:'호출 기능 미리보기',exact:true}).isVisible(),true);
+      assert.equal(await toolbar.getByRole('checkbox',{name:'주문 기능 미리보기',exact:true}).isVisible(),true);
       await page.getByRole('button',{name:'보기 옵션 열기',exact:true}).click();
     }
     if(width===3440&&device==='tablet') await page.screenshot({path:`${output}/template-preview-wide.png`});
+    if(width===3440&&device==='pc') await page.screenshot({path:`${output}/template-preview-pc-wide.png`});
     if(width===390&&device==='mobile') await page.screenshot({path:`${output}/preview-mobile.png`});
     report.previews.push({device,...result});
     console.log(`preview ${width} ${device} passed`);
   }
+
+  for (const width of [820,1440,2560,3440]) {
+    const pc=report.previews.find(p=>p.width===width&&p.device==='pc');
+    const tablet=report.previews.find(p=>p.width===width&&p.device==='tablet');
+    assert.ok(pc.frame.width>tablet.frame.width*1.15,'tablet must remain visibly smaller than PC in the same workspace');
+  }
+
+  await page.goto(`${base}/templates/cafe_design_a/preview?device=tablet&previewOptions=design`,{waitUntil:'domcontentloaded'});
+  const serviceToolbar=page.locator('[data-preview-device-toolbar]');
+  await serviceToolbar.getByRole('checkbox',{name:'호출 기능 미리보기',exact:true}).check();
+  await page.waitForURL(/callPreview=on/);
+  await serviceToolbar.getByRole('checkbox',{name:'주문 기능 미리보기',exact:true}).check();
+  await page.waitForURL(/orderPreview=on/);
+  await serviceToolbar.getByRole('link',{name:'채움형',exact:true}).click();
+  await page.waitForURL(/layoutMode=orderedFit/);
+  assert.equal(await serviceToolbar.getByRole('checkbox',{name:'호출 기능 미리보기',exact:true}).isChecked(),true);
+  assert.equal(await serviceToolbar.getByRole('checkbox',{name:'주문 기능 미리보기',exact:true}).isChecked(),true);
+  assert.equal(await serviceToolbar.getByRole('link',{name:'채움형',exact:true}).getAttribute('aria-current'),'true');
+  assert.equal(new URL(page.url()).searchParams.get('previewOptions'),'design');
+  await serviceToolbar.getByRole('link',{name:'PC',exact:true}).click();
+  await page.waitForURL(/device=pc/);
+  for (const [key,value] of [['callPreview','on'],['orderPreview','on'],['layoutMode','orderedFit']]) assert.equal(new URL(page.url()).searchParams.get(key),value);
+  await page.frameLocator('iframe').getByRole('button',{name:'직원 호출하기',exact:true}).waitFor({state:'visible'});
+  await page.frameLocator('iframe').getByRole('button',{name:/^주문하기/}).waitFor({state:'visible'});
+  console.log('top toolbar Call, Order and layout interactions preserve selections across devices');
 
   // New-window view alone exposes fullscreen, through an explicit user action.
   const href=await page.locator('[data-preview-detached-link]').getAttribute('href');

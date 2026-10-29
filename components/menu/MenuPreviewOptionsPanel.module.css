@@ -36,5 +36,3 @@
   .panel[data-options-open="false"] .chevron { margin: 0; }
   .body { flex: 1; min-height: 0; max-height: none; }
 }
-
-.extraFeatures { display: grid; gap: 1rem; margin-top: 1rem; }

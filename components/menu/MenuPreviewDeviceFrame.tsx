@@ -71,7 +71,7 @@ function CallPreviewToggle({
   order?: boolean;
 }) {
   return (
-    <label className={styles.featureChoice}>
+    <label className="site-preview-control site-preview-choice">
       <input
         type="checkbox"
         aria-label={order ? "주문 기능 미리보기" : "호출 기능 미리보기"}
@@ -176,7 +176,7 @@ export default function MenuPreviewDeviceFrame(
   };
   const layoutMode = (Array.isArray(query.layoutMode) ? query.layoutMode[0] : query.layoutMode) === "orderedFit" ? "orderedFit" : "orderedBalancedFit";
   const frame = getMenuPreviewFrame(device, orientation);
-  const fittedFrame = fitMenuPreviewFrame(canvasSize, frame);
+  const fittedFrame = fitMenuPreviewFrame({ ...canvasSize, device }, frame);
   const orientationLabel =
     device === "tablet" ? MENU_PREVIEW_ORIENTATIONS[orientation] : null;
   const nextTabletOrientation: MenuPreviewOrientation =
@@ -258,6 +258,7 @@ export default function MenuPreviewDeviceFrame(
       <div className="pointer-events-none fixed inset-x-0 top-0 z-[80] flex flex-col items-center">
         <header ref={toolbarRef}
           data-preview-device-toolbar=""
+          data-preview-service-controls={supportsLayoutPreview && device !== "mobile" ? "layout" : supportsCallPreview || supportsOrderPreview ? "services" : undefined}
           data-toolbar-open={showToolbar ? "true" : "false"}
           className={`${styles.toolbar} pointer-events-auto relative min-w-0 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/90 p-2 text-white backdrop-blur-[2px] transition-[width,transform] duration-300 ease-out`}
           style={{
@@ -318,6 +319,24 @@ export default function MenuPreviewDeviceFrame(
                 <PreviewOrientationIcon />
               </Link>
             ) : null}
+            {supportsCallPreview ? (
+              <CallPreviewToggle checked={features.call} disabled={!showToolbar || isPending}
+                onChange={(enabled) => changeFeature("call", enabled)} />
+            ) : null}
+            {supportsOrderPreview ? (
+              <CallPreviewToggle order checked={features.order} disabled={!showToolbar || isPending}
+                onChange={(enabled) => changeFeature("order", enabled)} />
+            ) : null}
+            {supportsLayoutPreview && device !== "mobile" ? (
+              <div className={styles.layoutChoices} role="group" aria-label="메뉴 배치 방식">
+                {([['orderedBalancedFit', '묶음형'], ['orderedFit', '채움형']] as const).map(([mode, label]) => (
+                  <Link key={mode} href={buildPreviewUrl({device, orientation, layoutMode: mode})} scroll={false}
+                    tabIndex={showToolbar ? undefined : -1}
+                    aria-current={layoutMode === mode ? "true" : undefined} data-preview-layout-mode={mode}
+                    className="site-preview-control">{label}</Link>
+                ))}
+              </div>
+            ) : null}
             <Link
               href={detachedUrl}
               target="_blank"
@@ -357,34 +376,6 @@ export default function MenuPreviewDeviceFrame(
           </button>
         </header>
         {hasDisplayOptions && templateKey ? <MenuPreviewOptionsPanel open={areDisplayOptionsOpen} onToggle={() => setDisplayOptionsOpenOverride(!areDisplayOptionsOpen)} tab={optionsTab} onTabChange={changeOptionsTab}
-          extraFeatures={<fieldset className={styles.featureGroup}><legend>서비스·배치 체험</legend>
-            {supportsCallPreview ? (
-              <CallPreviewToggle
-                checked={features.call}
-                disabled={isPending}
-                onChange={(enabled) => changeFeature("call", enabled)}
-              />
-            ) : null}
-            {supportsOrderPreview ? (
-              <CallPreviewToggle
-                order
-                checked={features.order}
-                disabled={isPending}
-                onChange={(enabled) => changeFeature("order", enabled)}
-              />
-            ) : null}
-            {supportsLayoutPreview && device !== "mobile" ? (
-              <div className={styles.layoutChoices} role="group" aria-label="메뉴 배치 방식">
-                {([['orderedBalancedFit', '묶음형'], ['orderedFit', '채움형']] as const).map(([mode, label]) => (
-                  <Link key={mode} href={buildPreviewUrl({device, orientation, layoutMode: mode})} scroll={false}
-                    aria-current={layoutMode === mode ? "true" : undefined} data-preview-layout-mode={mode}
-                    className="site-filter-button">
-                    {label}
-                  </Link>
-                ))}
-              </div>
-            ) : null}
-          </fieldset>}
           groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} pending={isPending} templateKey={templateKey} defaults={props.previewDesignDefaults} design={designOptions} onDesignChange={changeDesign} alignmentDisabled={device !== "mobile" && hasFixedHeaderAlignment(templateKey, { menu_design_id: defaultDesign?.id })} album={defaultDesign?.itemLayout === "album"} /> : null}
       </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type ReactNode } from "react";
+import { useRef } from "react";
 import { ChevronLeft, Palette } from "lucide-react";
 import { getTemplatePreviewOptionGroups } from "@/lib/template-preview-options";
 import type { DefaultDesignOptionKey, DefaultDesignOptions } from "@/lib/default-design-options";
@@ -9,7 +9,7 @@ import PreviewDesignOptions from "./PreviewDesignOptions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import styles from "./MenuPreviewOptionsPanel.module.css";
 
-export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, pending, templateKey, defaults, design, onDesignChange, album, alignmentDisabled = false, extraFeatures }: {
+export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, pending, templateKey, defaults, design, onDesignChange, album, alignmentDisabled = false }: {
   open: boolean;
   onToggle: () => void;
   tab: string;
@@ -24,7 +24,6 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
   onDesignChange: (value: PreviewDesign) => void;
   album: boolean;
   alignmentDisabled?: boolean;
-  extraFeatures?: ReactNode;
 }) {
   const toggle = useRef<HTMLButtonElement>(null);
   const choices = groups.flatMap(group => group.choices);
@@ -53,7 +52,6 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
             <input type="checkbox" aria-label={`${label} 보기`} checked={values[key]} disabled={pending || ((key === "featuredPreview" || key === "coverImagesPreview") && !values.coverPreview)} onChange={event => onFeatureChange(key, event.target.checked)} />{label}
           </label>)}</div>
         </fieldset>)}</div>
-        {extraFeatures ? <div className={styles.extraFeatures}>{extraFeatures}</div> : null}
         </TabsContent>
         <TabsContent value="design" id="preview-design-panel" aria-labelledby="preview-design-tab">
         {open && defaults ? <PreviewDesignOptions templateKey={templateKey} defaults={defaults} value={design} album={album} dining={templateKey.startsWith("dining_")} disabled={pending} alignmentDisabled={alignmentDisabled} onChange={onDesignChange} /> : null}
