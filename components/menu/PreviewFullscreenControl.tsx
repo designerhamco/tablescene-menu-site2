@@ -72,13 +72,26 @@ export default function PreviewFullscreenControl() {
       onCancel={(event) => { event.preventDefault(); setGuideOpen(false); }}>
       <div className={styles.content}>
         <h2 ref={titleRef} tabIndex={-1} className="type-content-title outline-none" id="actual-preview-guide-title">실제 화면 보기 안내</h2>
-        <p className="type-body" id="actual-preview-guide-description">브라우저 오른쪽 상단의 더보기(⋮) 버튼을 누른 뒤, 확대·축소로 메뉴판의 표시 비율을 시험해 보세요.</p>
-        <div className={styles.browser}><BrowserZoomGuide /></div>
-        <p className="type-body-sm">전체화면에서 나가려면 <strong>ESC</strong>를 눌러주세요. 주소창이 가려지지 않으면 이용 가이드를 참고해 주세요.</p>
-        {errorMessage ? <p className="type-body-sm text-red-700" role="status">{errorMessage}</p> : null}
+        <p className="type-body-sm text-zinc-600" id="actual-preview-guide-description">메뉴판 크기를 조절하거나, 주소창 없이 화면 가득 볼 수 있습니다.</p>
+        <div className={styles.sections}>
+          <section className={styles.section} aria-labelledby="actual-preview-zoom-title">
+            <h3 className="type-item-title" id="actual-preview-zoom-title">브라우저 확대·축소</h3>
+            <p className="type-body-sm">브라우저 오른쪽 상단의 더보기(⋮) 버튼을 누른 뒤, 확대·축소로 메뉴판 크기를 조절해 보세요.</p>
+            <div className={styles.browser}><BrowserZoomGuide /></div>
+          </section>
+          <section className={styles.section} aria-labelledby="actual-preview-fullscreen-title">
+            <h3 className="type-item-title" id="actual-preview-fullscreen-title">전체화면 보기</h3>
+            <p className="type-body-sm">아래 버튼을 누르면 주소창을 숨기고 메뉴판만 화면 가득 보여줍니다.</p>
+            <button type="button" onClick={enterFullscreen} className="site-button site-button-primary">전체화면 보기</button>
+            <p className="type-body-sm">일반 화면으로 돌아오려면 <strong>ESC</strong>를 눌러주세요.</p>
+            <div className={styles.help}>
+              <p className="type-body-sm text-zinc-600">주소창이 가려지지 않으면 이용 가이드를 참고해 주세요.</p>
+              <a href="/guides" target="_blank" rel="noopener noreferrer" className="site-button site-button-outline">이용 가이드</a>
+            </div>
+            {errorMessage ? <p className="type-body-sm text-red-700" role="status">{errorMessage}</p> : null}
+          </section>
+        </div>
         <div className={styles.actions}>
-          <button type="button" onClick={enterFullscreen} className="site-button site-button-primary">전체화면 보기</button>
-          <a href="/guides" target="_blank" rel="noopener noreferrer" className="site-button site-button-outline">이용 가이드</a>
           <button type="button" onClick={() => setGuideOpen(false)} className="site-button site-button-outline">닫기</button>
         </div>
       </div>

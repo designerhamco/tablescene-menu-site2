@@ -37,7 +37,7 @@ export default function WideScreenRules({ id }: { id: string }) {
       </table></div>
       <p className="type-body-sm mt-3 text-zinc-600">PC는 목업 테두리·라운드·그림자를 없애고 현재 화면을 채웁니다. 모바일에서 PC를 선택하면 PC 구성을 축소해 전체를 보여줍니다. 태블릿·모바일 목업은 페이지 정중앙에 놓고, 와이드에서는 원본의1.25배로 제한합니다. 태블릿 세로 전환은 다이닝에서만 제공합니다. 보기 옵션·상단 도구를 열고 닫아도 목업 위치와 크기는 그대로입니다.</p>
       <p className="type-body-sm mt-3 text-zinc-600">크기·여백·폰트 조정만으로 기존 기능이나 버튼을 이동·숨김·제거·재분류하지 않습니다. 위치 변경은 사용자 요청이 있을 때만 합니다. 주문·호출·묶음형·채움형은 상단에 유지합니다.</p>
-      <p className="type-body-sm mt-3 text-zinc-600">미리보기 첫 진입 안내는 없습니다. ‘실제 화면 보기’의 중앙 안내에서 브라우저 오른쪽 위 더보기(⋮) → 확대·축소를 설명하고 전체화면·이용 가이드·닫기를 제공합니다. 전체화면에서는 안내와 도구가 모두 숨겨집니다. 닫은 안내는 아래 중앙의 도구로 다시 열 수 있습니다. 모바일 확대·축소 제한은 추가하지 않습니다.</p>
+      <p className="type-body-sm mt-3 text-zinc-600">미리보기 첫 진입 안내는 없습니다. ‘실제 화면 보기’는 PC 모드에서만 표시합니다. 중앙 안내는 확대·축소와 전체화면을 별도 영역으로 나누며, 브라우저 오른쪽 위 더보기(⋮) → 확대·축소를 설명하고 전체화면·이용 가이드·닫기를 제공합니다. 전체화면에서는 안내와 도구가 모두 숨겨집니다. 닫은 안내는 아래 중앙의 도구로 다시 열 수 있습니다. 모바일 확대·축소 제한은 추가하지 않습니다.</p>
       <p className="type-footnote mt-2 text-zinc-600">일반 콘텐츠는 공통 최대 폭과 간격 상한을 사용합니다. 로그인은 과도한 세로 공백을 제한합니다. 글자·여백·목업을 같은 배율로 일괄 확대하지 않습니다.</p>
       <a className="site-button site-button-outline mt-4" href="/templates/cafe_real_matcha_a/preview?device=tablet" target="_blank" rel="noopener noreferrer">실제 미리보기 확인</a>
     </div>

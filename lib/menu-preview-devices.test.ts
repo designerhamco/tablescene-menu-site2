@@ -134,6 +134,15 @@ test("preview selector renders labeled PC, tablet, and mobile device icons", () 
   assert.match(html, /tabindex="0"/);
 });
 
+test("actual-screen entry belongs only to PC in catalog and saved previews", () => {
+  for (const device of MENU_PREVIEW_DEVICE_ORDER) {
+    for (const props of [{ templateKey: "cafe_design_a" }, { menuId: "saved-menu", menuTemplateKey: "cafe_design_a" }]) {
+      const html = renderFrame(createElement(MenuPreviewDeviceFrame, { ...props, device, orientation: "landscape", query: {} }));
+      assert.equal(html.includes('data-preview-detached-link'), device === "pc");
+    }
+  }
+});
+
 test("scrollable tablet and mobile preview frames are keyboard focusable", () => {
   for (const device of ["tablet", "mobile"] as const) {
     const html = renderFrame(createElement(MenuPreviewDeviceFrame, {
@@ -159,7 +168,7 @@ test("catalog and saved previews expose the same common toolbar for each device"
     const saved = labels(renderFrame(createElement(MenuPreviewDeviceFrame, { ...common, menuId: "saved-menu" })));
     const catalog = labels(renderFrame(createElement(MenuPreviewDeviceFrame, { ...common, templateKey: "cafe_design_a" })));
     assert.deepEqual(saved, catalog);
-    assert.equal(saved.length, 4);
+    assert.equal(saved.length, device === "pc" ? 4 : 3);
   }
 });
 
@@ -319,6 +328,10 @@ test("actual-screen links infer the current viewport and strip saved interactive
       query: { lang: "en", page: "2", callPreview: "on" },
     }));
     const link = html.match(/<a[^>]*data-preview-detached-link=""[^>]*>/)?.[0] ?? "";
+    if (device !== "pc") {
+      assert.equal(link, "");
+      continue;
+    }
     const href = link.match(/href="([^"]*)"/)?.[1].replaceAll("&amp;", "&");
     assert.equal(href, `/mypage/menus/menu-a/preview?lang=en&page=2&view=actual&embedded=1&detached=1`);
     assert.match(html, new RegExp(`src="[^\"]*device=${device}`));

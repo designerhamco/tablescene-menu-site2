@@ -111,6 +111,9 @@ async function inspectPage(page) {
 async function inspectPreviewGuide(page) {
   const failures = [];
   if (await page.getByRole("dialog", { name: "메뉴판 미리보기 사용 안내" }).count()) failures.push("preview still launches the removed opening guide");
+  if (await page.locator("[data-preview-detached-link]").count()) failures.push("tablet preview exposes the PC-only actual-screen entry");
+  await page.getByRole("link", { name: "PC", exact: true }).click();
+  await page.locator("[data-preview-detached-link]").waitFor({ state: "visible" });
   const href = await page.locator("[data-preview-detached-link]").getAttribute("href");
   const actual = await page.context().newPage();
   try {

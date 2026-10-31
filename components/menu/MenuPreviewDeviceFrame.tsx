@@ -337,7 +337,7 @@ export default function MenuPreviewDeviceFrame(
                 ))}
               </div>
             ) : null}
-            <PreviewActualView href={detachedUrl} tabIndex={showToolbar ? undefined : -1} />
+            {device === "pc" ? <PreviewActualView href={detachedUrl} tabIndex={showToolbar ? undefined : -1} /> : null}
           </div>
           <button
             type="button"

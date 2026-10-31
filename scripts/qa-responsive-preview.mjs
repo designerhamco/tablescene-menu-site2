@@ -60,6 +60,7 @@ try {
     assert.ok(Math.abs(result.frame.x+result.frame.width/2-width/2)<1);
     assert.ok(Math.abs(result.frame.y+result.frame.height/2-height/2)<1);
     assert.equal(await page.locator('[data-preview-actual-guide], [data-preview-guide-variant]').count(),0,'no startup guide in the preview workspace');
+    assert.equal(await page.getByRole('link',{name:'실제 화면 보기',exact:true}).count(),device==='pc'?1:0,'actual-screen entry belongs only to PC');
     if(device==='pc') {
       assert.equal(result.border,0);assert.equal(result.radius,0);assert.equal(result.shadow,'none');
       if(width>=768) {
@@ -98,7 +99,7 @@ try {
   report.actualViews=[];
   for(const [width,height] of [[320,740],[390,844],[820,1180],[1440,900]]) {
     await page.setViewportSize({width,height});
-    await page.goto(`${base}/templates/cafe_design_a/preview?device=tablet`,{waitUntil:'domcontentloaded'});
+    await page.goto(`${base}/templates/cafe_design_a/preview?device=pc`,{waitUntil:'domcontentloaded'});
     const [actual]=await Promise.all([page.waitForEvent('popup'),page.getByRole('link',{name:'실제 화면 보기',exact:true}).click()]);
     actual.on('pageerror',error=>errors.push(error.message));
     await actual.setViewportSize({width,height});
