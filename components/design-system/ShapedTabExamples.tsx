@@ -1,5 +1,6 @@
 import { PanelsTopLeft, Rows3 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
+import HintBubble from "@/components/ui/HintBubble";
 import styles from "./SiteComponentGallery.module.css";
 
 function ExampleContent({ standard = false }: { standard?: boolean }) {
@@ -12,6 +13,7 @@ function ExampleContent({ standard = false }: { standard?: boolean }) {
 export default function ShapedTabExamples() {
   return <section className={styles.section} id="shaped-tabs" aria-labelledby="shaped-tabs-title">
     <div className={styles.heading}><h2 className="type-section-title" id="shaped-tabs-title">영역 안에서 전환하는 탭</h2><p className="type-body text-zinc-600">하나의 작업·목록 영역 안에서 내용을 바꿀 때 사용하는 공식 영역형 탭입니다. 상위 서비스 탐색과 실제 페이지의 기존 탭은 각자의 역할과 디자인을 유지합니다.</p></div>
+    <div><HintBubble>처음이라면 여기부터</HintBubble><p className="type-body-sm mt-4 text-zinc-600">상시 안내 말풍선은 공통 브랜드 색과 작은 안내 글자를 사용합니다. 추가 조작 없이 읽을 수 있으며 설명할 버튼과 연결합니다.</p></div>
     <div className={styles.shapedExample}>
       <div className={styles.heading}><h3 className="type-content-title">영역형 탭</h3><p className="type-body-sm text-zinc-600">사각형 버튼을 하나의 줄로 연결하고 바깥 네 모서리만 8px로 둥글립니다. 선택은 검정 바탕과 흰 글자, 비선택은 흰 바탕과 중성 회색 글자로 구분합니다.</p></div>
       <Tabs purpose="section" defaultValue="designer"><TabsList size="sm" aria-label="영역형 디자인 탭 예시"><TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger><TabsTrigger value="unavailable" disabled>준비 중</TabsTrigger></TabsList><TabsContent value="designer"><ExampleContent /></TabsContent><TabsContent value="standard"><ExampleContent standard /></TabsContent></Tabs>
