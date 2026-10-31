@@ -178,23 +178,12 @@ test("catalog Call, Order and layout experiments remain in the top toolbar indep
   }
 });
 
-test("first preview guide uses anchored coachmarks and applies hide-today only through checkbox plus close", () => {
-  assert.match(previewFrameSource, /<MenuPreviewGuide device=\{device\} \/>/);
-  assert.match(previewGuideSource, /GuideDeviceSelector/);
-  assert.match(previewGuideSource, /<BrowserZoomGuide \/>/);
-  assert.match(previewGuideSource, /태블릿·PC·모바일 버튼을 눌러/);
-  assert.match(previewGuideSource, /브라우저의 더보기\(···\)에서/);
-  assert.match(previewGuideSource, /‘실제 화면 보기’는 목업 없이 열립니다/);
-  assert.match(previewGuideSource, /실제 배치는 기기에 따라 달라질 수 있으니/);
-  assert.match(previewGuideSource, /사용할 기기에서 최종 확인해 주세요/);
-  assert.match(previewGuideSource, /device = "tablet"/);
-  assert.match(previewGuideSource, /type="checkbox"/);
-  assert.match(previewGuideSource, /checked=\{hideTodayChecked\}/);
-  assert.match(previewGuideSource, /if \(hideTodayChecked\) \{[\s\S]*localStorage\.setItem\(PREVIEW_GUIDE_DATE_KEY/);
-  assert.match(previewGuideSource, /오늘 하루 보지 않기/);
-  assert.match(previewGuideSource, />닫기</);
-  assert.doesNotMatch(previewGuideSource, /미리보기 시작/);
-  assert.match(previewGuideSource, /aria-modal="true"/);
+test("framed and Display previews no longer launch an introductory guide", () => {
+  for (const source of [previewFrameSource, displayTemplatePreviewSource, menuPreviewSource]) assert.doesNotMatch(source, /<MenuPreviewGuide/);
+  assert.match(fullscreenControlSource, /<BrowserZoomGuide/);
+  assert.match(fullscreenControlSource, /브라우저 오른쪽 상단의 더보기/);
+  assert.match(fullscreenControlSource, /setGuideOpen\(false\)/);
+  assert.match(fullscreenControlSource, /if \(isFullscreen\) return null/);
 });
 
 test("browser guide uses a filled round profile and restores the address pill without guest text", () => {
@@ -211,13 +200,8 @@ test("browser guide uses a filled round profile and restores the address pill wi
   assert.doesNotMatch(previewGuideSource, /게스트/);
 });
 
-test("display preview shows only the browser zoom guide and reveals pagination near the bottom", () => {
-  assert.match(
-    displayTemplatePreviewSource,
-    /templateKey === "display_menu_a" && !isActualView \? <MenuPreviewGuide variant="display" \/>/,
-  );
-  assert.match(previewGuideSource, /data-preview-guide-variant=\{variant\}/);
-  assert.match(previewGuideSource, /!isDisplayGuide \? \([\s\S]*<GuideDeviceSelector/);
+test("Display preview preserves its bottom-edge pagination without an opening guide", () => {
+  assert.doesNotMatch(displayTemplatePreviewSource, /<MenuPreviewGuide/);
   assert.match(displayTemplateSource, /clientY >= window\.innerHeight \* 0\.82/);
   assert.match(displayTemplateSource, /data-display-preview-pagination=""/);
   assert.match(displayTemplateSource, /onPointerLeave=\{displayControls\.hide\}/);
@@ -258,11 +242,6 @@ test("device selector is open by default and collapses upward into a compact han
   assert.doesNotMatch(previewFrameSource, /PreviewFullscreenControl|data-preview-edit-link|수정하기/);
   assert.doesNotMatch(previewFrameSource, /data-preview-zoom-controls/);
   assert.doesNotMatch(previewFrameSource, /PREVIEW_ZOOM_STORAGE_PREFIX/);
-});
-
-test("hide-today checkbox is plain text control without a boxed container", () => {
-  assert.match(previewGuideSource, /<label className="inline-flex cursor-pointer items-center justify-center gap-2 px-2 py-3 text-copy font-medium text-white">/);
-  assert.doesNotMatch(previewGuideSource, /<label className="[^"]*(?:rounded-xl|border-white\/30|bg-zinc-950\/35)/);
 });
 
 test("framed preview URLs preserve only supported preview parameters", () => {
@@ -388,11 +367,12 @@ test("tablet rotation belongs only to Dining in both preview sources", () => {
 });
 
 
-test("actual view opens a normal browser tab before optional fullscreen, with no close control", () => {
+test("actual view opens a normal browser tab with a dismissible guide hidden during fullscreen", () => {
   assert.match(actualViewSource, /target="_blank"/);
   assert.doesNotMatch(actualViewSource, /requestFullscreen|onClick|<dialog|실제 화면 닫기/);
   assert.match(fullscreenControlSource, /전체화면 보기/);
   assert.match(fullscreenControlSource, /ESC/);
   assert.match(fullscreenControlSource, /href="\/guides"/);
-  assert.doesNotMatch(fullscreenControlSource, /Minimize2|전체화면 종료|onClick=\{.*close/);
+  assert.doesNotMatch(fullscreenControlSource, /Minimize2|전체화면 종료/);
+  assert.match(fullscreenControlSource, />닫기</);
 });

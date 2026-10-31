@@ -52,15 +52,11 @@ test("공개 화면 회귀 QA는 HTTP·콘솔·페이지·overflow·이미지 �
   assert.match(source, /if \(failed\.length > 0\) process\.exitCode = 1/);
 });
 
-test("공개 화면 회귀 QA는 메뉴판 미리보기 도움말의 최초 노출과 두 종료 방식을 검사한다", () => {
-  assert.match(source, /getByRole\("dialog", \{ name: "메뉴판 미리보기 사용 안내" \}\)/);
-  assert.match(source, /getByRole\("button", \{ name: "닫기", exact: true \}\)/);
-  assert.match(source, /getByRole\("checkbox", \{ name: "오늘 하루 보지 않기" \}\)/);
-  assert.match(source, /await hideTodayCheckbox\.check\(\);/);
-  assert.match(source, /await closeButton\.click\(\);/);
-  assert.match(source, /preview guide reopens during the dismissed browser session/);
-  assert.match(source, /preview guide reopens after checking hide for today and closing/);
-  assert.match(source, /route === "\/templates\/cafe_sunday_roasters_a\/preview"/);
+test("공개 QA는 실제 화면에만 확대 안내를 표시하고 Display 탐색을 유지한다", () => {
+  assert.match(source, /preview still launches the removed opening guide/);
+  assert.match(source, /name: "실제 화면 보기 안내"/);
+  assert.match(source, /브라우저 오른쪽 상단의 더보기/);
+  assert.match(source, /actual-screen guide remains visible after close/);
   assert.match(source, /inspectDisplayPreviewControls/);
   assert.match(source, /data-display-preview-controls-visible/);
   assert.match(source, /page\.mouse\.move\(viewport\.width \/ 2, viewport\.height - 4\)/);
