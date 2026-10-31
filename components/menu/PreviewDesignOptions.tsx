@@ -5,7 +5,7 @@ import { KOREAN_FONT_OPTIONS, getAvailableEnglishFontsForTemplate, getEnglishFon
 import { type PreviewDesign, type PreviewDesignDefaults, type PreviewFontChoice } from "@/lib/menu-preview-design";
 import { resolvePreviewChipColors, type PreviewChipColors } from "@/lib/menu-preview-chip-colors";
 import { REPRESENTATIVE_ALIGNMENTS } from "@/lib/menu-design-surfaces";
-import { MENU_TEXT_COLOR_GROUPS, MENU_TEXT_COLOR_LABELS, MENU_TEXT_COLOR_DESCRIPTIONS, type MenuTextColorGroup } from "@/lib/menu-text-colors";
+import { MENU_TEXT_COLOR_GROUPS, MENU_TEXT_COLOR_LABELS, type MenuTextColorGroup } from "@/lib/menu-text-colors";
 import ImageRadiusSelect from "./ImageRadiusSelect";
 import PreviewColorPicker from "./PreviewColorPicker";
 import styles from "./PreviewDesignOptions.module.css";
@@ -39,7 +39,7 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
   };
   return <div className={styles.panel} data-preview-design-options>
     <div className={styles.intro}><button type="button" onClick={() => onChange({})} disabled={disabled || !Object.keys(value).length} className="site-button site-button-outline site-button-compact">디자인 초기화</button></div>
-    <fieldset><legend className={styles.legend}>배경색</legend><div className={styles.backgrounds} data-preview-backgrounds>
+    <fieldset><legend className={styles.legend}>배경색</legend><div className={styles.colorGrid} data-preview-backgrounds>
       <PreviewColorPicker label={dining ? "본문 페이지 배경색" : "페이지 배경색"} value={value.pageBackground} defaultColor={defaults.colors.page} onChange={pageBackground => set({ pageBackground })} disabled={disabled} />
       {dining ? <>
         <PreviewColorPicker label="커버 배경색" value={value.coverBackground} defaultColor={defaults.colors.cover} onChange={coverBackground => set({ coverBackground })} disabled={disabled} />
@@ -54,22 +54,18 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
         <option value="">기본값 · {getEnglishFontOption(defaults.fontFamily.en)?.label}</option>{getAvailableEnglishFontsForTemplate(templateKey).map(item=><option key={item.value} value={item.value}>{item.label}</option>)}
       </select></label>
     </div></fieldset>
-    <div className={styles.fontGroups} data-preview-font-groups>{MENU_TEXT_COLOR_GROUPS.map(group => {
+    <fieldset><legend className={styles.legend}>글자색</legend><div className={styles.colorGrid} data-preview-font-groups>{MENU_TEXT_COLOR_GROUPS.map(group => {
       const label = MENU_TEXT_COLOR_LABELS[group];
-      return <fieldset key={group} className={styles.fontGroup}><legend>{label}</legend>
-        <PreviewColorPicker label="글자색" accessibleLabel={`${label} 글자색`} value={value.textColors?.[group]} defaultColor={colorDefault(group)} onChange={color => textColor(group, color)} disabled={disabled} />
-        {group !== "brand" ? <p className={styles.hint}>{MENU_TEXT_COLOR_DESCRIPTIONS[group]}</p> : null}
-      </fieldset>;
-    })}</div>
-    <p className={styles.hint}>가게 설명과 안내사항은 한글·영문 모두 설정한 한글 서체를 따릅니다. 가격 옵션명은 카테고리명의 색상과 서체를 따릅니다.</p>
+      return <PreviewColorPicker key={group} label={label} accessibleLabel={`${label} 글자색`} value={value.textColors?.[group]} defaultColor={colorDefault(group)} onChange={color => textColor(group, color)} disabled={disabled} />;
+    })}</div></fieldset>
     {album ? <fieldset className={styles.albumRatio}><legend className={styles.legend}>앨범형 상품 이미지</legend><label className={styles.option}>상품 이미지 비율<select aria-label="앨범형 상품 이미지 비율" value={value.albumImageRatio ?? defaults.appearance.albumImageRatio} onChange={event => set({ albumImageRatio: event.target.value as PreviewDesign["albumImageRatio"] })} disabled={disabled} className={styles.select}>{ALBUM_IMAGE_RATIOS.map(ratio => <option key={ratio} value={ratio}>{ratio}</option>)}</select></label></fieldset> : null}
     {!dining ? <fieldset data-preview-chip-colors><legend className={styles.legend}>텍스트칩 색상</legend>
       <div className={styles.chipColors}>
-        <fieldset><legend>일반 텍스트칩</legend><div className={styles.backgrounds}>
+        <fieldset><legend>일반 텍스트칩</legend><div className={styles.colorGrid}>
           <PreviewColorPicker label="배경색" accessibleLabel="일반 텍스트칩 배경색" value={value.chipColors?.generalBackground} defaultColor={defaults.chipColors.generalBackground} onChange={color => setChipColor("generalBackground", color)} disabled={disabled}/>
           <PreviewColorPicker label="글자색" accessibleLabel="일반 텍스트칩 글자색" value={value.chipColors?.generalText} defaultColor={chipColors.generalText ?? defaults.chipColors.generalText} onChange={color => setChipColor("generalText", color)} disabled={disabled}/>
         </div></fieldset>
-        <fieldset><legend>기간할인 텍스트칩</legend><div className={styles.backgrounds}>
+        <fieldset><legend>기간할인 텍스트칩</legend><div className={styles.colorGrid}>
           <PreviewColorPicker label="배경색" accessibleLabel="기간할인 텍스트칩 배경색" value={value.chipColors?.saleBackground} defaultColor={defaults.chipColors.saleBackground} onChange={color => setChipColor("saleBackground", color)} disabled={disabled}/>
           <PreviewColorPicker label="글자색" accessibleLabel="기간할인 텍스트칩 글자색" value={value.chipColors?.saleText} defaultColor={chipColors.saleText ?? defaults.chipColors.saleText} onChange={color => setChipColor("saleText", color)} disabled={disabled}/>
         </div><p className={styles.hint}>배경색은 할인 안내와 남은 시간 문구에도 함께 적용됩니다.</p></fieldset>
