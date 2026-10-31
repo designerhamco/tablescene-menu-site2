@@ -91,8 +91,10 @@ test("tab purpose maps main views, independent sections, categories and states t
     assert.match(tabCss, new RegExp(`\\.${cls}:is\\(:focus-visible, \\[data-ui-state="focus"\\]\\)`));
   }
   assert.match(tabCss, /\.site-area-tabs-root\[data-slot="tabs"\] \{[^}]*border: 0;[^}]*background: transparent/);
-  assert.match(tabCss, /\.site-area-tabs::after \{[^}]*height: 1px;[^}]*background: var\(--ui-text\)/);
-  assert.match(tabCss, /\.site-area-tab:is\(\[data-state="active"\],[^}]*border-color: var\(--ui-text\);[^}]*background: var\(--ui-surface\)/);
+  assert.doesNotMatch(tabCss, /\.site-area-tabs::after/);
+  assert.match(tabCss, /\.site-area-tab \+ \.site-area-tab \{ margin-inline-start: -1px;/);
+  assert.match(tabCss, /\.site-page-tabs > \.site-tab::after \{[^}]*bottom: \.25rem;[^}]*height: 3px;/);
+  assert.match(tabCss, /\.site-area-tab:is\(\[data-state="active"\],[^}]*border-color: var\(--ui-text\);[^}]*background: var\(--ui-text\);[^}]*color: var\(--ui-surface\)/);
   assert.match(tabCss, /\.site-area-panel \{[^}]*border: 0;[^}]*background: var\(--ui-surface\)/);
   assert.doesNotMatch(tabCss, /site-(?:folder|flow|contained)-(?:tabs|tab|panel)|site-shaped-tab-label|site-shadow-shaped-tab|tab-folder-mask/);
   const tabsSource = read("app/components/ui/tabs.tsx");
@@ -176,8 +178,9 @@ test("tab hierarchy keeps service navigation, embedded catalog lists and notific
   assert.match(catalog, /<Tabs purpose="page"[^>]*value=\{product\}/);
   assert.match(catalog, /ref=\{galleryStartRef\} purpose="section"/);
   assert.doesNotMatch(catalog, /variant=\{product === "display" \? undefined : "contained"\}/);
-  assert.match(catalog, /className=\{product !== "display" \? "site-area-panel" : undefined\}/);
-  assert.doesNotMatch(catalog, /distribution="equal"/);
+  assert.match(catalog, /className="site-catalog-panel"/);
+  assert.match(catalog, /distribution="equal" aria-label="템플릿 종류 선택"/);
+  assert.match(catalog, /site-catalog-surface[\s\S]*site-catalog-filters[\s\S]*<TemplatePagination/);
   const notification = read("app/components/ui/notification-panel.tsx");
   assert.match(notification, /<Tabs purpose="category"/);
   assert.doesNotMatch(notification, /variant="(?:folder|flow|contained)"/);
