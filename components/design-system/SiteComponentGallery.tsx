@@ -66,7 +66,7 @@ export default function SiteComponentGallery() {
     <Examples title="업종 선택 버튼" description="업종에는 카테고리를 바로 이해할 수 있는 단색 아이콘과 짧은 이름을 사용합니다.">
       <ChoiceGroup><ChoiceTile size="compact" icon={<CatalogIndustryIcon industry="cafe_bakery" />} label="카페·베이커리" selected={industry} onClick={()=>setIndustry(current=>!current)} /><ChoiceTile size="compact" icon={<CatalogIndustryIcon industry="restaurant_dining" />} label="준비 중인 업종" disabled /></ChoiceGroup>
     </Examples>
-    <Examples title="영역 안의 목록 전환" description="디자인·기본 템플릿처럼 하나의 목록 영역 안에서 하위 종류를 바꿉니다. 작은 탭을 흰 콘텐츠 면의 상단 경계에 연결합니다.">
+    <Examples title="영역 안의 목록 전환" description="디자인·기본 템플릿처럼 하나의 목록 영역 안에서 하위 종류를 바꿉니다. 연결형 사각 탭의 검정 선택 면으로 현재 영역을 표시합니다.">
       <Tabs purpose="section" defaultValue="designer"><TabsList size="sm" aria-label="영역 내부 템플릿 탭 예시">
         <TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger>
       </TabsList><TabsContent value="designer"><p className="type-item-title">완성된 디자인으로 시작</p><p className="type-body-sm mt-2 text-zinc-600">매장에 어울리는 스타일을 고르고 메뉴를 넣어 보세요.</p></TabsContent>
