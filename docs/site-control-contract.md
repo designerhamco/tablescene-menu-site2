@@ -38,14 +38,14 @@ secondary는 경계 없는 중간 회색 표면이고, disabled는 그보다 더
 | 역할 | 공통 구현 | 표현·적용 |
 | --- | --- | --- |
 | 주요 화면 전환 | Tabs/NavigationTabs purpose="page" | 배경 없는 텍스트·문구 너비의 검정 밑줄. 서비스, 가이드, 편집 설정 |
-| 독립 콘텐츠 전환 | Tabs/NavigationTabs purpose="section" | 화이트 콘텐츠에 붙는 영역형. 템플릿 종류, 결제/AI 내역, 미리보기, 요금 상품 유형 |
+| 독립 콘텐츠 전환 | Tabs/NavigationTabs purpose="section" | 연결형 사각 버튼·검정 선택 면. 템플릿 종류, 결제/AI 내역, 미리보기, 요금 상품 유형 |
 | 목록 분류 | CategoryFilter, Tabs purpose="category" | 별도 영역 없는 밑줄. 고객센터·새 메뉴판 주제, 전체/읽지 않은 알림 |
 | 목록 조건·본문 이동 | site-filter, ChoiceTile, 링크 | 작은 필터·아이콘. 업종·구성·문서 위치 |
 | 상태·보기 값 | Tabs/NavigationTabs purpose="state" | 회색 레일의 둥근 흰 선택 면. 이용 상태·언어·보기 방식 |
 
 템플릿은 page → section → 필터 → 결과, 고객센터는 page → category → 결과다. 영역형은 특정 단계에 고정하지 않는다. 최상위 버튼은 PC·태블릿 내용 폭+좌우 각각24px, 모바일 기존 폭·영역 내 스크롤을 사용한다. 크기는 lg48px/16px, md44px/15px, sm40px/14px다. 선택600·비선택500의 공통 토큰을 쓰고 페이지 CSS로 덮어쓰지 않는다.
 
-영역형은 수직 옆면·상단8px·하단0이며 윤곽과1px 기준선만 남기고 콘텐츠 둘레 테두리는 두지 않는다. 제품 Tabs는 purpose를 반드시 선언한다. 저수준 variant는 라이브러리 상태 비교표에서만 쓴다. 패널은 Radix 선택·ARIA·방향키·Home/End, 링크는 URL 이동, CategoryFilter는 버튼/aria-pressed·기존 목록 필터링 동작을 유지한다.
+영역형은 연결된 사각 버튼이며 바깥 네 모서리만8px다. 검정 바탕·흰 글자 선택 면, 흰 비선택 면과1px 공통 경계를 사용한다. 콘텐츠로 이어지는 긴 기준선이나 둘레 테두리는 넣지 않는다. 최상위 탭의3px 밑줄은 클릭 영역 하단에서4px 위로 올리며 기존 클릭 높이를 유지한다. 제품 Tabs는 purpose를 반드시 선언한다. 저수준 variant는 라이브러리 상태 비교표에서만 쓴다. 패널은 Radix 선택·ARIA·방향키·Home/End, 링크는 URL 이동, CategoryFilter는 버튼/aria-pressed·기존 목록 필터링 동작을 유지한다.
 
 스위치·체크박스·날짜·페이지 번호·캐러셀·드래그·아코디언·썸네일은 각 기능을 유지한다. 헤더·사이드바·마이페이지 메뉴 레일은 사이트 내비게이션이다. 고객 메뉴판·공개 주문/호출·수령 제품은 사이트 탭과 분리한다.
 

@@ -111,49 +111,51 @@ export default function TemplateGallery({
     <div role="tabpanel" id={`${tabsId}-service-panel`} aria-labelledby={`${tabsId}-${product}`}>
       <Tabs ref={galleryStartRef} purpose="section" value={kind} onValueChange={value => selectKind(value as CatalogKind)} className="site-catalog-selection scroll-mt-24">
         {product !== "display" && (
-          <TabsList size="md" aria-label="템플릿 종류 선택">
+          <TabsList size="md" distribution="equal" aria-label="템플릿 종류 선택">
             {KIND_TABS.map(({ key, label }) => (
               <TabsTrigger key={key} value={key} id={`${tabsId}-${key}`} aria-controls={`${tabsId}-kind-panel`}>{label}</TabsTrigger>
             ))}
           </TabsList>
         )}
         <div role={product !== "display" ? "tabpanel" : undefined} tabIndex={product !== "display" ? 0 : undefined}
-          className={product !== "display" ? "site-area-panel" : undefined}
+          className="site-catalog-panel"
           id={`${tabsId}-kind-panel`} aria-labelledby={product !== "display" ? `${tabsId}-${kind}` : undefined}>
           <section className="site-catalog-plan" aria-label="템플릿 이용 안내">
             <p className="type-body site-catalog-kind-description">
               {product === "display" ? "매장 모니터에 어울리는 디자인을 미리 확인하세요. 신규 신청은 준비 중입니다." : selectedKind.description}
             </p>
           </section>
-          <div className="site-catalog-layout" data-with-filters={product !== "display"}>
-            {product !== "display" && (
-              <aside className="site-catalog-filters" aria-label={`템플릿 ${filterHeading} 필터`}>
-                <h2 className="type-label mb-3">{filterHeading}</h2>
-                <ChoiceGroup aria-label={`${filterHeading} 선택`}>{filterButtons()}</ChoiceGroup>
-              </aside>
-            )}
-            <div className="site-catalog-results">
-              <div className="site-catalog-results-toolbar">
-                <p className="site-catalog-count" aria-live="polite" aria-atomic="true">
-                  {product === "display" ? "디스플레이" : `${selectedKind.label} · ${filterLabel}${hasLayoutFilter && layoutFilter !== "all" ? ` · ${layoutLabel}` : ""}`} <span>{visibleTemplates.length}개</span>
-                </p>
-                {hasLayoutFilter && <div className="site-catalog-layout-filter">
-                  <CatalogLayoutSelect label="디자인 템플릿 화면 구성" value={layoutFilter} onValueChange={selectLayout} />
-                </div>}
-              </div>
-              {message && <p role="status" className="type-body-sm mb-3 text-red-700">{message}</p>}
-              {paginatedTemplates.length ? (
-                <div className="site-template-grid">{paginatedTemplates.map(design => <CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={busy} onToggle={toggle} />)}</div>
-              ) : (
-                <EmptyState icon={<PanelsTopLeft />} title={emptyTitle} description={hasLayoutFilter && layoutFilter !== "all"
-                  ? "선택한 화면 구성의 디자인을 준비하고 있습니다. 다른 화면 구성이나 업종을 선택해 주세요."
-                  : "매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다."}
-                  action={product !== "display" ? <Button variant="outline" size="lg" onClick={clearFilters}>전체 템플릿 보기</Button> : undefined} />
+          <div className="site-catalog-surface">
+            <div className="site-catalog-layout" data-with-filters={product !== "display"}>
+              {product !== "display" && (
+                <aside className="site-catalog-filters" aria-label={`템플릿 ${filterHeading} 필터`}>
+                  <h2 className="type-label mb-3">{filterHeading}</h2>
+                  <ChoiceGroup aria-label={`${filterHeading} 선택`}>{filterButtons()}</ChoiceGroup>
+                </aside>
               )}
-              <TemplatePagination currentPage={currentPage} totalPages={totalPages} onSelect={next => {
-                setPage(next);
-                requestAnimationFrame(() => galleryStartRef.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }));
-              }} />
+              <div className="site-catalog-results">
+                <div className="site-catalog-results-toolbar">
+                  <p className="site-catalog-count" aria-live="polite" aria-atomic="true">
+                    {product === "display" ? "디스플레이" : `${selectedKind.label} · ${filterLabel}${hasLayoutFilter && layoutFilter !== "all" ? ` · ${layoutLabel}` : ""}`} <span>{visibleTemplates.length}개</span>
+                  </p>
+                  {hasLayoutFilter && <div className="site-catalog-layout-filter">
+                    <CatalogLayoutSelect label="디자인 템플릿 화면 구성" value={layoutFilter} onValueChange={selectLayout} />
+                  </div>}
+                </div>
+                {message && <p role="status" className="type-body-sm mb-3 text-red-700">{message}</p>}
+                {paginatedTemplates.length ? (
+                  <div className="site-template-grid">{paginatedTemplates.map(design => <CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={busy} onToggle={toggle} />)}</div>
+                ) : (
+                  <EmptyState icon={<PanelsTopLeft />} title={emptyTitle} description={hasLayoutFilter && layoutFilter !== "all"
+                    ? "선택한 화면 구성의 디자인을 준비하고 있습니다. 다른 화면 구성이나 업종을 선택해 주세요."
+                    : "매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다."}
+                    action={product !== "display" ? <Button variant="outline" size="lg" onClick={clearFilters}>전체 템플릿 보기</Button> : undefined} />
+                )}
+                <TemplatePagination currentPage={currentPage} totalPages={totalPages} onSelect={next => {
+                  setPage(next);
+                  requestAnimationFrame(() => galleryStartRef.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }));
+                }} />
+              </div>
             </div>
           </div>
         </div>

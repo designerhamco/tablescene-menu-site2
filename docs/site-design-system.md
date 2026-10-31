@@ -107,7 +107,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 | --- | --- | --- |
 | 상위 서비스 탐색 | underline Tabs | 텍스트와 밑줄로 전환. 업종 선택의 테두리·아이콘 바탕을 반복하지 않음 |
 | 업종 같은 하위 필터 | ChoiceTile inline + ChoiceGroup | 아이콘+짧은 이름, PC/태블릿/모바일 공통. 설명형 대형 카드나 화면 폭의3등분으로 늘리지 않음 |
-| 디자인/기본 같은 두 보기 방식 | TabsList outline + equal | 옅은 rail·흰 선택·검정 경계. 공통 equal 폭 상한32rem |
+| 디자인/기본 같은 독립 영역 | Tabs purpose="section" + equal | 연결된 사각 버튼·검정 선택 면. equal 폭 상한36rem |
 | 상태·여러 콘텐츠 탐색 | underline Tabs / NavigationTabs | 밑줄과 글자 굵기로 선택. 로컬 전환과 URL 이동의 의미 구분 |
 | 밀집 도구 | Button compact | 32px/15px·600, 표·편집기 안의 짧은 도구 |
 | 일반 실행 | Button default | 40px/15px·600, 좌우16px, 내용 길이에 맞는 폭 |
@@ -135,7 +135,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 
 ## 탭 경계·밑줄 검수 보정 (2026-10-26)
 
-- 현재 section 영역형는 선택 탭과 콘텐츠를 흰색으로 연결하고 비선택 탭만 옅은 회색으로 구분한다. 선택 탭은 위쪽 모서리만 8px이며, 콘텐츠의 좌우·하단은 테두리 없이 화이트 배경만 사용한다. 선택 탭의 위·옆 경계와 전체 하단 기준선은 1px이며 사선이나 mask를 사용하지 않는다.
+- 현재 section 영역형은 연결된 사각 버튼으로 독립 콘텐츠를 전환한다. 검정 선택 면·흰 글자와 흰 비선택 면·보조 글자색을 사용하며 바깥 모서리만8px다. 콘텐츠는 둘레 테두리 없이 구분하고, 템플릿 결과는 밝은 회색 공통 표면으로 묶는다. 긴 기준선·사선·mask는 사용하지 않는다.
 - 선택 밑줄 두께는 공통 `--site-tab-indicator-width: .25rem`(기본4px)을 사용한다. 기본/큰 underline Tabs, NavigationTabs, 이미지 카드 위의 탐색 탭이 같은 토큰을 상속한다. 비선택 밑줄도 같은 두께의 투명 경계를 확보해 선택 때 글자가 이동하지 않는다. 글자 크기·컨트롤 높이·가로 간격은 공통 대/중/소 계약을 따른다.
 - underline rail은 목록 바깥 좌우 여백을 만들지 않는다. 첫 탭의 시작과 rail의 시작을 맞추고, 문구 여백은 각 탭 내부에서만 확보한다. 가운데 모아 쓰는 서비스·가이드 탭은 탭 묶음 너비까지만 rail을 표시하며, 마이페이지 탐색과 알림·요금처럼 행 전체가 탐색 영역인 경우에만 전체 너비를 유지한다.
 - `/design-system`의 영역형·서비스·이미지 카드·상태 탭과 `/apply`를 실제 PC·태블릿·모바일에서 확인한다. 고객 메뉴판의 서체·간격·렌더러는 변경하지 않는다.
@@ -198,7 +198,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 
 ## 영역형 탭과 공통 푸터 (2026-10-27)
 
-- `Tabs purpose="section"`: 선택 탭과 콘텐츠는 흰색으로 이어지고, 비선택 탭은 옅은 회색 무테 면으로 구분한다. 탭 아래에는 콘텐츠 폭을 넘지 않는 곧은 기준선을 사용하며 사선·산 모양 mask·그림자는 사용하지 않는다.
+- `Tabs purpose="section"` (2026-10-31 최종): 연결형 사각 버튼을 사용한다. 선택은 검정 바탕·흰 글자, 비선택은 흰 바탕·보조 글자색이다. 인접1px 경계는 한 줄로 보이며 바깥 네 모서리만8px다. 긴 기준선·사선·산 모양 mask·그림자는 사용하지 않는다. 템플릿의 두 종류는 equal 분배로 중앙에 배치한다.
 - 영역형은 하나의 기능·작업·목록 영역 안에서 내용만 바꿀 때 사용한다. 주요 화면에는 분리된 둥근 page, 목록 주제에는 밑줄 category, 상태·보기 값에는 회색 레일의 state를 사용한다.
 - Root에 지정한 변형을 List/Trigger/Content가 상속한다. `size="sm|md|lg"`의 영역형44/52/56px 및 14/16/16px, `distribution="content|equal"`, disabled, 방향키/Home/End 계약을 재사용한다. 좁은 화면의 긴 탭 목록은 영역 안에서만 가로 스크롤한다.
 - 라이브러리의 `#shaped-tabs`에서 영역형과 대·중·소를 실제로 전환하고 상태 표에서 기본/hover/pressed/focus/disabled를 비교한다. 폐기한 파일형·라운드 연결형을 새 화면에 사용하지 않는다.
@@ -216,7 +216,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 
 - 주요 화면 전환은 purpose="page"의 텍스트와 문구 너비 선택 밑줄이다. 독립 콘텐츠는 section, 목록 주제는 category 밑줄, 상태·보기 값은 회색 레일 state를 사용한다. URL 이동도 NavigationTabs에 역할을 명시한다.
 - contained 파일형·산 모양은 폐기했다. 디자인/기본 템플릿은 section 영역형, FAQ 주제는 category 밑줄이며 공지와 이용가이드는 헤더 하위 메뉴로 연결하는 독립 페이지다.
-- 영역형은 탭과 아래 콘텐츠 묶음을 하나의 영역으로 전환할 때 사용한다. 화이트 콘텐츠에는 둘레 테두리를 두지 않는다. 고객센터에는 필요 없는 하위 필터·영역을 만들지 않는다.
+- 영역형은 탭과 아래 콘텐츠 묶음을 하나의 영역으로 전환할 때 사용한다. 콘텐츠에는 둘레 테두리를 두지 않는다. 템플릿은 카테고리 필터부터 페이지네이션까지 --ui-surface-muted의 밝은 회색 결과 표면으로 묶는다. 고객센터에는 필요 없는 하위 필터·영역을 만들지 않는다.
 - 중립 배경·구분 면·푸터는 `--ui-surface`/`--ui-surface-muted`/`--ui-surface-soft`를 공유한다. 기본·보조·메타 글자색과 상태색은 같은 의미 토큰을 사용한다. 회색·유색 면에는 외곽 테두리를 추가하지 않는다.
 - 페이지 h1은 `type-page-title`(28/32/36px)이다. 로그인·베이직·다이닝·디스플레이·고객센터·신청·템플릿 목록과 상세를 포함해 H1 바로 아래 문구는 모두 `type-page-description`(16px)을 사용한다.
 - `type-body-lg`(18/18/20px)는 페이지별 도입 설명을 다르게 만드는 역할이 아니다. 섹션 안에서 기본 본문보다 강조할 짧은 문장에만 사용한다. 관리 화면의 조밀한 단계는 내부 섹션·카드·폼·메타에만 적용한다.
@@ -247,3 +247,5 @@ Ghost pagination/icon controls retain transparent background and border when dis
 ### 실제 화면 보기와 회전
 
 카탈로그와 저장 메뉴판은 같은 `PreviewActualView` 링크로 일반 브라우저 새 탭을 연다. 미리보기 첫 진입 안내는 제거하고 실제 화면 페이지의 중앙 대화상자로 옮긴다. 기존 브라우저 그림과 오른쪽 위 더보기(⋮) → 확대·축소 안내, 전체화면·이용 가이드·닫기 버튼을 제공한다. 닫으면 아래 중앙의 작은 전체화면/안내 다시 열기 도구만 남는다. 전체화면에 들어가면 안내와 도구 모두 숨기고 ESC 종료 뒤에도 안내를 자동으로 다시 띄우지 않는다. 요청이 실패하면 정상 화면에서 오류와 가이드를 표시한다. 저장 내용·주문/호출·배치 도구 위치는 유지한다.
+
+최상위 page 탭의3px 선택선은 클릭 영역 하단에서4px 위에 놓는다. 기존 클릭 높이·글자색·크기·굵기·키보드 동작은 유지하며 페이지별 간격 보정은 추가하지 않는다.
