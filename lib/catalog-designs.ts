@@ -28,6 +28,10 @@ export const CATALOG_INDUSTRIES = [
   {key:'quick_meal',label:'패스트푸드분식',categories:['fast_food']},
 ] as const;
 export type CatalogIndustry = typeof CATALOG_INDUSTRIES[number]['key'];
+export function getCatalogIndustryLabel(categories: readonly TemplateCategoryKey[], fallback: string) {
+  return CATALOG_INDUSTRIES.filter(industry=>industry.key!=='all'&&industry.categories.some(category=>categories.includes(category)))
+    .map(industry=>industry.label).join(' · ') || fallback;
+}
 export function getCatalogPricing(service: 'basic'|'dining', kind: CatalogKind) {
   const access=kind==='standard'?'standard':'all';
   return {regularMonthly:getMenuPlanMonthlyPrice(service,access,'regular'),earlyBirdMonthly:getMenuPlanMonthlyPrice(service,access,'earlyBird')};
@@ -47,7 +51,7 @@ const standards: CatalogDesign[]=DEFAULT_DESIGN_REVIEWS.map(design=>{
 const designers: CatalogDesign[]=templateCatalog.filter(t=>t.status==='available').map(t=>{
   const service=t.service==='display'?'display':getDiningTemplateTier(t.key)==='multi'?'dining':'basic';
   const route=getTemplatePreviewRouteKey(t.key);
-  return {id:t.key,name:t.name,description:t.description,service,kind:'designer',templateKey:t.key,itemLayout:'list',categories:[...t.categories],categoryLabel:t.categoryLabel,
+  return {id:t.key,name:t.name,description:t.description,service,kind:'designer',templateKey:t.key,itemLayout:'list',categories:[...t.categories],categoryLabel:getCatalogIndustryLabel(t.categories,t.categoryLabel),
     image:`/template-previews/${route}.jpg`,previewHref:`/templates/${route}/preview`,detailHref:`/templates/${route}`,startHref:getCatalogStartHref(service,t.key,t.key)};
 });
 export const catalogDesigns: readonly CatalogDesign[]=[...standards,...designers];

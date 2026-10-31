@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { catalogDesigns, filterCatalogDesigns, getCatalogDesign, getCatalogPricing, normalizeCatalogLayoutFilter } from './catalog-designs';
+import { CATALOG_INDUSTRIES, catalogDesigns, filterCatalogDesigns, getCatalogDesign, getCatalogIndustryLabel, getCatalogPricing, normalizeCatalogLayoutFilter } from './catalog-designs';
 import { canSelectMenuDesign, getMenuPlanSelection } from './menu-plan-contract';
 import { getOpenPromotionSnapshot, getPromotionAwareChargeAmount, validatePromotionForOrder } from './promotions';
 import { readTemplateFavorites, setTemplateFavorite, TEMPLATE_FAVORITES_KEY } from './template-favorites';
@@ -114,4 +114,22 @@ test('public base-price purchase links select the same standard contract and des
     assert.equal(product.designRegularPrice, all.regularAmount);
     assert.equal(new URL(design.startHref, 'https://example.test').searchParams.get('design'), product.standardDesignId);
   }
+});
+
+
+test('designer card industry labels agree with every matching catalog filter',()=>{
+  for(const service of ['basic','dining'] as const) {
+    for(const industry of CATALOG_INDUSTRIES.filter(item=>item.key!=='all')) {
+      for(const design of filterCatalogDesigns(service,'designer',industry.key)) {
+        assert.ok(design.categoryLabel.split(' · ').includes(industry.label), `${design.id}: ${industry.label}`);
+      }
+    }
+  }
+  assert.equal(getCatalogDesign('cafe_mocha_forest_a')!.categoryLabel,'카페베이커리');
+  assert.equal(getCatalogDesign('restaurant_onue_a')!.categoryLabel,'레스토랑다이닝');
+  assert.equal(getCatalogDesign('cafe_round_focus_a')!.categoryLabel,'바주점');
+  assert.equal(getCatalogDesign('fast_food_loop_bagel_a')!.categoryLabel,'패스트푸드분식');
+  assert.equal(getCatalogIndustryLabel(['dessert','bakery'],'legacy'),'카페베이커리');
+  assert.equal(getCatalogIndustryLabel(['cafe','japanese'],'legacy'),'카페베이커리 · 일식');
+  assert.equal(getCatalogIndustryLabel(['display'],'디스플레이'),'디스플레이');
 });

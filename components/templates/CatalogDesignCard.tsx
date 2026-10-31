@@ -1,7 +1,7 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Heart, ZoomIn } from 'lucide-react';
+import { Heart } from 'lucide-react';
 import type { CatalogDesign } from '@/lib/catalog-designs';
 export default function CatalogDesignCard({design,liked,busy,onToggle}:{design:CatalogDesign;liked:boolean;busy:boolean;onToggle:(id:string)=>void}) {
   return <article className="site-template-card site-template-selection-card" data-catalog-design={design.id}>
@@ -17,10 +17,6 @@ export default function CatalogDesignCard({design,liked,busy,onToggle}:{design:C
       </div>
       <p className="site-template-category mt-1">{design.kind==='standard'?'기본 디자인':design.categoryLabel} · {design.service==='basic'?'베이직':design.service==='dining'?'다이닝':'디스플레이'}</p>
       <p className="site-template-description mt-2 line-clamp-2 whitespace-pre-line">{design.description}</p>
-      <div className="site-template-actions">
-        <Link href={design.previewHref} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline"><ZoomIn size={16} aria-hidden="true" />미리보기</Link>
-        <Link href={design.detailHref} className="site-template-detail-link">상세보기<ArrowRight size={16} aria-hidden="true" /></Link>
-      </div>
     </div>
   </article>;
 }

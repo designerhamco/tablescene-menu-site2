@@ -22,6 +22,7 @@ import CatalogLayoutIcon from "@/components/templates/CatalogLayoutIcon";
 import CatalogLayoutSelect from "@/components/templates/CatalogLayoutSelect";
 import useTemplateFavorites from "@/components/templates/useTemplateFavorites";
 import TemplatePagination from "./TemplatePagination";
+import HintBubble from "@/components/ui/HintBubble";
 
 const TEMPLATES_PER_PAGE = 6;
 const PRODUCT_TABS = [
@@ -111,11 +112,14 @@ export default function TemplateGallery({
     <div role="tabpanel" id={`${tabsId}-service-panel`} aria-labelledby={`${tabsId}-${product}`}>
       <Tabs ref={galleryStartRef} purpose="section" value={kind} onValueChange={value => selectKind(value as CatalogKind)} className="site-catalog-selection scroll-mt-24">
         {product !== "display" && (
-          <TabsList size="md" distribution="equal" aria-label="템플릿 종류 선택">
-            {KIND_TABS.map(({ key, label }) => (
-              <TabsTrigger key={key} value={key} id={`${tabsId}-${key}`} aria-controls={`${tabsId}-kind-panel`}>{label}</TabsTrigger>
-            ))}
-          </TabsList>
+          <div className="site-catalog-kind-controls">
+            <div className="site-catalog-kind-hint"><HintBubble id={`${tabsId}-designer-hint`}>처음이라면 여기부터</HintBubble></div>
+            <TabsList size="md" distribution="equal" aria-label="템플릿 종류 선택">
+              {KIND_TABS.map(({ key, label }) => (
+                <TabsTrigger key={key} value={key} id={`${tabsId}-${key}`} aria-controls={`${tabsId}-kind-panel`} aria-describedby={key === "designer" ? `${tabsId}-designer-hint` : undefined}>{label}</TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
         )}
         <div role={product !== "display" ? "tabpanel" : undefined} tabIndex={product !== "display" ? 0 : undefined}
           className="site-catalog-panel"
