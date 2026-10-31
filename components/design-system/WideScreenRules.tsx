@@ -28,16 +28,16 @@ export default function WideScreenRules({ id }: { id: string }) {
     <p className="type-body-sm mt-4 text-zinc-600">새 페이지와 수정 화면은 공통 제목·본문 역할, 버튼 컴포넌트, 페이지·구역 간격을 사용하면 같은 보정을 자동으로 받습니다. 화면마다 별도 확대 배율을 넣지 않습니다. 표는 PC의 기본 rem 기준이며 모바일·태블릿은 각 기기의 기본 크기와 브라우저 글자 확대를 유지합니다.</p>
     <div className="site-collection mt-5">
       <h3 className="type-content-title" id={`${id}-mockups`}>미리보기 목업 크기 기준</h3>
-      <p className="type-body-sm mt-2 text-zinc-600">미리보기를 여는 브라우저 너비와 상단에서 선택한 기기를 나눠 적용합니다. 아래 비율은 도구·보기 옵션을 제외한 가용 공간 기준입니다. 가로·세로 한도에 모두 들어가도록 비율을 유지해 중앙 정렬합니다.</p>
+      <p className="type-body-sm mt-2 text-zinc-600">미리보기를 여는 브라우저 너비와 상단에서 선택한 기기를 나눠 적용합니다. 옵션 창과 상단 도구는 고정 레이어이며 화면 영역을 밀지 않습니다. 태블릿·모바일 목업은 페이지 전체의 중앙에서 대칭 여백 안을 채우며 최대1.25배를 넘지 않습니다.</p>
       <div className={`${styles.usageTable} mt-4`}><table aria-label="미리보기 목업 크기 기준">
         <thead><tr><th>선택한 기기</th><th>브라우저 {MENU_PREVIEW_PRESENTATION.compactBreakpoint}px 이상</th><th>브라우저 {MENU_PREVIEW_PRESENTATION.compactBreakpoint}px 미만</th><th>내부 기기 해상도</th></tr></thead>
         <tbody>{previewRows.map(({device,frame,wide,compact}) => <tr key={device}>
-          <th scope="row">{frame.label}</th><td>{presentation(wide)}</td><td>{presentation(compact)}</td><td>{frame.width}×{frame.height}px</td>
+          <th scope="row">{frame.label}</th><td>{device === "pc" ? "테두리 없이 화면 전체 · 실제 뷰포트" : presentation(wide)}</td><td>{device === "pc" ? "1440×900 PC 구성 축소 · 테두리 없음" : presentation(compact)}</td><td>{device === "pc" ? "현재 뷰포트 / 모바일1440×900" : `${frame.width}×${frame.height}px`}</td>
         </tr>)}</tbody>
       </table></div>
-      <p className="type-body-sm mt-3 text-zinc-600">PC는 기존 바깥 여백·도구를 제외한 가용 공간 안에서 비율을 유지해 최대 크기로 표시합니다. 태블릿은 같은 공간의 가로·세로 90% 안에서 표시하며 큰 화면에서 1배로 제한하지 않습니다. 모바일 목업의 기존 크기는 유지합니다. 태블릿 세로 전환은 다이닝에서만 제공하며 내부 820×1180px을 사용합니다. 베이직은 가로를 유지합니다. 내부 메뉴의 글자·배치·기기 해상도는 유지하며 목업의 바깥 표시 크기만 조정합니다. 상단 버튼은 기본 높이 36px·문구 14px, 모바일 터치 높이는 44px입니다.</p>
+      <p className="type-body-sm mt-3 text-zinc-600">PC는 목업 테두리·라운드·그림자를 없애고 현재 화면을 채웁니다. 모바일에서 PC를 선택하면 PC 구성을 축소해 전체를 보여줍니다. 태블릿·모바일 목업은 페이지 정중앙에 놓고, 와이드에서는 원본의1.25배로 제한합니다. 태블릿 세로 전환은 다이닝에서만 제공합니다. 보기 옵션·상단 도구를 열고 닫아도 목업 위치와 크기는 그대로입니다.</p>
       <p className="type-body-sm mt-3 text-zinc-600">크기·여백·폰트 조정만으로 기존 기능이나 버튼을 이동·숨김·제거·재분류하지 않습니다. 위치 변경은 사용자 요청이 있을 때만 합니다. 주문·호출·묶음형·채움형은 상단에 유지합니다.</p>
-      <p className="type-body-sm mt-3 text-zinc-600">두 미리보기의 ‘실제 화면 보기’는 목업·기기 강제 지정 없이 일반 브라우저의 새 탭으로 엽니다. 브라우저 확대·축소를 먼저 시험할 수 있고, 그 화면의 ‘전체화면 보기’를 눌러 전환합니다. 닫기·종료 버튼 없이 ESC 안내와 이용 가이드를 제공합니다. 모바일 확대·축소 제한은 추가하지 않습니다.</p>
+      <p className="type-body-sm mt-3 text-zinc-600">미리보기 첫 진입 안내는 없습니다. ‘실제 화면 보기’의 중앙 안내에서 브라우저 오른쪽 위 더보기(⋮) → 확대·축소를 설명하고 전체화면·이용 가이드·닫기를 제공합니다. 전체화면에서는 안내와 도구가 모두 숨겨집니다. 닫은 안내는 아래 중앙의 도구로 다시 열 수 있습니다. 모바일 확대·축소 제한은 추가하지 않습니다.</p>
       <p className="type-footnote mt-2 text-zinc-600">일반 콘텐츠는 공통 최대 폭과 간격 상한을 사용합니다. 로그인은 과도한 세로 공백을 제한합니다. 글자·여백·목업을 같은 배율로 일괄 확대하지 않습니다.</p>
       <a className="site-button site-button-outline mt-4" href="/templates/cafe_real_matcha_a/preview?device=tablet" target="_blank" rel="noopener noreferrer">실제 미리보기 확인</a>
     </div>

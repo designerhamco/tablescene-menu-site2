@@ -7,7 +7,6 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import PreviewActualView from "./PreviewActualView";
 import { isAubeTableTemplate } from "@/lib/aube-table";
 
-import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import { fitMenuPreviewFrame } from "@/lib/menu-preview-fit";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
 import { supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
@@ -254,7 +253,7 @@ export default function MenuPreviewDeviceFrame(
   };
 
   return (
-    <main className={`${styles.workspace} h-screen overflow-hidden bg-zinc-100 text-zinc-950`} data-has-options={hasDisplayOptions ? "true" : "false"} data-options-open={areDisplayOptionsOpen ? "true" : "false"} data-toolbar-open={showToolbar ? "true" : "false"}
+    <main className={`${styles.workspace} h-screen overflow-hidden bg-zinc-100 text-zinc-950`} data-preview-device={device} data-has-options={hasDisplayOptions ? "true" : "false"} data-options-open={areDisplayOptionsOpen ? "true" : "false"} data-toolbar-open={showToolbar ? "true" : "false"}
       style={{ "--preview-options-top": `${showToolbar ? toolbarHeight + 24 : 44}px` } as CSSProperties}>
       <div className="pointer-events-none fixed inset-x-0 top-0 z-[80] flex flex-col items-center">
         <header ref={toolbarRef}
@@ -380,7 +379,6 @@ export default function MenuPreviewDeviceFrame(
         </div>
       </section>
 
-      <MenuPreviewGuide device={device} />
     </main>
   );
 }

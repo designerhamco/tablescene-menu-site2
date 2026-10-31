@@ -6,7 +6,6 @@ import { menuAppearancePreview } from "@/lib/menu-appearance";
 import { applyPreviewDesign, previewDesignDefaults } from "@/lib/menu-preview-design";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
-import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import PreviewFullscreenControl from "@/components/menu/PreviewFullscreenControl";
 import previewDisplayStyles from "@/components/menu/template-preview-display.module.css";
 import defaultDesignStyles from "@/components/menu-templates/defaults/DefaultDesignPreview.module.css";
@@ -1605,7 +1604,6 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
         orderCallConfig={orderCallConfig}
         {...data}
       />
-      {templateKey === "display_menu_a" && !isActualView ? <MenuPreviewGuide variant="display" /> : null}
     </>
   );
   const renderedPreview = defaultDesign ? <DefaultDesignScope layout={defaultDesign.layout} itemLayout={defaultDesign.itemLayout}><div className={defaultDesignStyles.surface} data-default-design={defaultDesign.id} data-menu-item-layout={defaultDesign.itemLayout}>{preview}</div></DefaultDesignScope> : templateKey !== "display_menu_a" ? <div className={previewDisplayStyles.surface}

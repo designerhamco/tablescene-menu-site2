@@ -110,36 +110,17 @@ async function inspectPage(page) {
 
 async function inspectPreviewGuide(page) {
   const failures = [];
-  const dialog = page.getByRole("dialog", { name: "메뉴판 미리보기 사용 안내" });
-  const closeButton = page.getByRole("button", { name: "닫기", exact: true });
-  const hideTodayCheckbox = page.getByRole("checkbox", { name: "오늘 하루 보지 않기" });
-
-  await dialog.waitFor({ state: "visible", timeout: 2_000 }).catch(() => null);
-  if (!(await dialog.isVisible())) failures.push("preview guide dialog is not visible on the first visit");
-  if (!(await closeButton.isVisible())) failures.push("preview guide close button is not visible");
-  if (!(await hideTodayCheckbox.isVisible())) failures.push("preview guide hide-today checkbox is not visible");
-  if (failures.length > 0) return failures;
-
-  await closeButton.click();
-  if (await dialog.isVisible()) failures.push("preview guide remains visible after closing the guide");
-
-  await page.reload({ waitUntil: "domcontentloaded", timeout: navigationTimeout });
-  await page.waitForTimeout(100);
-  if (await dialog.isVisible()) failures.push("preview guide reopens during the dismissed browser session");
-
-  await page.evaluate(() => window.sessionStorage.clear());
-  await page.reload({ waitUntil: "domcontentloaded", timeout: navigationTimeout });
-  await dialog.waitFor({ state: "visible", timeout: 2_000 }).catch(() => null);
-  if (!(await dialog.isVisible())) failures.push("preview guide does not reopen after session dismissal is cleared");
-
-  if (failures.length === 0) {
-    await hideTodayCheckbox.check();
-    await closeButton.click();
-    await page.reload({ waitUntil: "domcontentloaded", timeout: navigationTimeout });
-    await page.waitForTimeout(100);
-    if (await dialog.isVisible()) failures.push("preview guide reopens after checking hide for today and closing");
-  }
-
+  if (await page.getByRole("dialog", { name: "메뉴판 미리보기 사용 안내" }).count()) failures.push("preview still launches the removed opening guide");
+  const href = await page.locator("[data-preview-detached-link]").getAttribute("href");
+  const actual = await page.context().newPage();
+  try {
+    await actual.goto(new URL(href, page.url()).href, { waitUntil: "domcontentloaded", timeout: navigationTimeout });
+    const dialog = actual.getByRole("dialog", { name: "실제 화면 보기 안내" });
+    await dialog.waitFor({ state: "visible" });
+    await dialog.getByText(/브라우저 오른쪽 상단의 더보기/).waitFor();
+    await dialog.getByRole("button", { name: "닫기", exact: true }).click();
+    if (await dialog.isVisible()) failures.push("actual-screen guide remains visible after close");
+  } finally { await actual.close(); }
   return failures;
 }
 
@@ -149,18 +130,10 @@ async function inspectDisplayPreviewControls(page) {
   const controls = page.locator("[data-display-preview-controls-visible]");
   const pagination = page.locator("[data-display-preview-pagination]");
 
-  await dialog.waitFor({ state: "visible", timeout: 2_000 }).catch(() => null);
-  if (!(await dialog.isVisible())) failures.push("display preview guide is not visible on the first visit");
-  if (await dialog.getAttribute("data-preview-guide-variant") !== "display") {
-    failures.push("display preview guide does not use the display-only variant");
-  }
-  if (await page.getByText("태블릿·PC·모바일 버튼을 눌러").isVisible()) {
-    failures.push("display preview guide includes the device selector explanation");
-  }
+  if (await dialog.count()) failures.push("Display preview still launches an opening guide");
   if (!(await pagination.count())) failures.push("display preview pagination is missing");
   if (failures.length > 0) return failures;
 
-  await page.getByRole("button", { name: "닫기", exact: true }).click();
   const viewport = page.viewportSize();
   if (!viewport) return ["display preview viewport is unavailable"];
 

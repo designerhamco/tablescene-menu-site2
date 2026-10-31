@@ -5,7 +5,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
-import MenuPreviewGuide from "@/components/menu/MenuPreviewGuide";
 import PreviewFullscreenControl from "@/components/menu/PreviewFullscreenControl";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
@@ -195,7 +194,6 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
         orderCallConfig={previewOrderCallConfig}
         {...data}
       />
-      {!usesDevicePreviewFrame && !isActualView ? <MenuPreviewGuide variant="display" /> : null}
       {usesDevicePreviewFrame && !isEmbedded ? (
         <Link
           href={buildMenuPreviewUrl(menuId, previewQuery, { device, orientation })}
