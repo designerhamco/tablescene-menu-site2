@@ -27,7 +27,8 @@ async function swatches(){return Promise.all(labels.map(label=>page.getByRole('b
 try{
  const native=['cafe_design_a','cafe_mocha_forest_a','cafe_sunday_roasters_a','cafe_van_gogh_a','cafe_round_focus_a','restaurant_onue_a','fast_food_loop_bagel_a','dining_aube_table_a','dining_aube_table_b'];
  const cases=native.map(key=>({key})).concat([{key:'cafe_design_a',design:'basic-top-row'},{key:'cafe_design_a',design:'basic-first-column-album'},{key:'dining_aube_table_b',design:'dining-sidebar-album'}]);
- for(const item of cases)for(const device of ['pc','tablet','mobile']){
+ const selectedCases=process.env.QA_TEMPLATE_KEYS?cases.filter(item=>process.env.QA_TEMPLATE_KEYS.split(',').includes(item.key)):cases;
+ for(const item of selectedCases)for(const device of ['pc','tablet','mobile']){
    const query=new URLSearchParams({device,previewOptions:'design',...(item.design?{design:item.design}:{})});
    await page.goto(`${base}/templates/${item.key}/preview?${query}`,{waitUntil:'domcontentloaded'});await ready();
    await expect(async()=>{

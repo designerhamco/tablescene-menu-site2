@@ -96,7 +96,7 @@ export function readPreviewRenderedDesign(doc: Document): PreviewRenderedDesign 
     const style = win.getComputedStyle(dining);
     const token = (...names: string[]) => names.map(name => previewCssColorHex(style.getPropertyValue(name).trim())).find(Boolean);
     nativeTextColors.brand = token("--menu-role-brand-color", "--aube-accent");
-    nativeTextColors.category = token("--menu-role-category-color", "--aube-accent");
+    nativeTextColors.category = token("--menu-role-category-color", "--aube-ink");
     nativeTextColors.product = token("--menu-role-item-name-color", "--aube-ink");
     nativeTextColors.supporting = token("--aube-item-copy");
   }
