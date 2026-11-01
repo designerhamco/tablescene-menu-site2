@@ -207,7 +207,7 @@ function getRowBudgetConfig(rowCqh: number, fontSizeScale: number, fitPhase = 0)
     titleRowStyle: { columnGap: `calc(var(--display-row) * ${titleGapScale * gapScale})`, rowGap: `calc(var(--display-row) * ${titleRowGapScale * gapScale})` },
     menuTitleStyle: { fontSize: `calc(var(--display-row) * ${menuTitleScale * fontScale})`, lineHeight: 1.14 },
     badgeStyle: showBadge
-      ? { fontSize: `calc(var(--display-row) * ${badgeFontScale * fontScale * phaseBadgeScale})`, padding: `calc(var(--display-row) * ${0.07 * gapScale * phaseBadgeScale}) calc(var(--display-row) * ${0.155 * gapScale * phaseBadgeScale})`, borderRadius: "3px" }
+      ? { fontSize: `calc(var(--display-row) * ${badgeFontScale * fontScale * phaseBadgeScale})`, padding: `calc(var(--display-row) * ${0.07 * gapScale * phaseBadgeScale}) calc(var(--display-row) * ${0.155 * gapScale * phaseBadgeScale})`, borderRadius: "var(--menu-chip-radius, 0px)" }
       : { display: "none" },
     metaStyle: showMeta ? { fontSize: `calc(var(--display-row) * ${metaFontScale * fontScale * phaseMetaScale})`, lineHeight: 1.2 } : { display: "none" },
     timeSaleLabelStyle: {
@@ -928,7 +928,7 @@ function MenuItemRow({
               </h4>
               {densityConfig.showBadge && (isSoldOut || showTimeSale || badge) && (
                 <span
-                  className={`menu-badge cafe-a-menu-badge inline-flex shrink-0 rounded-[2px] font-black uppercase leading-none tracking-normal ${isSoldOut ? "cafe-a-sold-out-chip" : ""}`}
+                  className={`menu-badge cafe-a-menu-badge inline-flex shrink-0 rounded-none font-black uppercase leading-none tracking-normal ${isSoldOut ? "cafe-a-sold-out-chip" : ""}`}
                   style={{
                     ...densityConfig.badgeStyle,
                     ...(!isSoldOut && showTimeSale && timeSale

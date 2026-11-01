@@ -1,3 +1,4 @@
+import { getTemplateMenuAppearance } from "./menu-appearance";
 import { getDefaultDesignReview } from "./menu-design-policy";
 import { getStandardDesignSampleTemplateKey } from "./standard-design-copy";
 import { buildStandardDesignStarter, getStarterTranslationCopy } from "./standard-design-starter";
@@ -299,6 +300,13 @@ const STARTER_PLACEHOLDERS = {
   event: "/placeholders/starter/event.svg",
 } as const;
 
+export function getStarterLogoUrl(preset: StarterPreset) {
+  return Object.prototype.hasOwnProperty.call(preset.site, "logo_url") ? preset.site.logo_url ?? null : STARTER_PLACEHOLDERS.logo;
+}
+export function getStarterItemImage(preset: StarterPreset, menuItem: StarterItem) {
+  return menuItem.image_url ?? (preset.design_id || getTemplateCapabilities(preset.template_key).menuCover.coverMode === "section" ? null : STARTER_PLACEHOLDERS.item);
+}
+
 const BREW_CHAPTER_COVER_IMAGE = "/menu-templates/cafe_design_a/nutty-cream-featured.jpg";
 const AUBE_TABLE_COVER_IMAGE = "/menu-templates/dining_aube_table_a/aube-table-cover.png";
 const BREW_CHAPTER_SIGNATURE_ITEM_IMAGE = "/menu-templates/cafe_design_a/malcha_present.jpg";
@@ -528,15 +536,12 @@ export function resolveStarterFeaturedSlides<T extends { id: string; name: strin
   preset: StarterPreset,
   items: T[]
 ): ResolvedStarterFeaturedSlide[] {
-  const itemByName = new Map(items.filter((item) => item.visible !== false).map((item) => [item.name, item.id]));
-
-  return getStarterFeaturedSlides(preset).map((slide, index) => ({
-    id: slide.id,
-    image_url: slide.image_url,
-    image_path: slide.image_path ?? null,
-    featured_item_id: slide.featured_item_name ? itemByName.get(slide.featured_item_name) ?? null : null,
-    sort_order: index,
+  const itemByName = new Map(items.filter(item => item.visible !== false).map(item => [item.name, item.id]));
+  const itemByKey = new Map(preset.pages.flatMap(page => page.categories.flatMap(category => category.items)).flatMap(item => {
+    const id = itemByName.get(item.name);
+    return item.key && id ? [[item.key, id] as const] : [];
   }));
+  return resolveStarterFeaturedSlidesByKey(preset, itemByKey, itemByName);
 }
 
 function resolveStarterFeaturedSlidesByKey(
@@ -3098,17 +3103,14 @@ async function createSinglePageStarterTranslations(input: {
   }
 }
 
-async function applyStarterSiteDefaults(
-  supabase: SupabaseClient,
-  menuSiteId: string,
-  preset: StarterPreset,
-  serviceType: StarterServiceType
-) {
+/** Catalog and newly provisioned menus use the same initial display settings. */
+export function getStarterPageSettings(preset: StarterPreset, serviceType: StarterServiceType = "menu") {
   const useLeanPreset = shouldUseLeanStarterPreset(serviceType);
   const starterPageSettings = useLeanPreset ? MENU_SCREEN_STARTER_PAGE_SETTINGS : STARTER_PAGE_SETTINGS;
-  const resolvedStarterPageSettings = {
+  return {
     ...starterPageSettings,
-    design: { ...starterPageSettings.design, pcTabletLayoutMode: getDefaultPcTabletLayoutMode(preset.template_key) },
+    design: { ...starterPageSettings.design, pcTabletLayoutMode: getDefaultPcTabletLayoutMode(preset.template_key), appearance: getTemplateMenuAppearance(preset.template_key, preset.design_id) },
+    multi_page_cover_background_opacity: preset.design_id ? 90 : 75,
     menu_cover_enabled: preset.menu_cover_enabled ?? starterPageSettings.menu_cover_enabled,
     menu_cover_visible_pc: preset.menu_cover_visible_pc ?? starterPageSettings.menu_cover_visible_pc,
     menu_cover_visible_tablet: preset.menu_cover_visible_tablet ?? starterPageSettings.menu_cover_visible_tablet,
@@ -3118,6 +3120,16 @@ async function applyStarterSiteDefaults(
       ? { multi_page_cover_background_color: getAubeTableDefaultCoverBackgroundColor(preset.template_key) }
       : {}),
   };
+}
+
+async function applyStarterSiteDefaults(
+  supabase: SupabaseClient,
+  menuSiteId: string,
+  preset: StarterPreset,
+  serviceType: StarterServiceType
+) {
+  const useLeanPreset = shouldUseLeanStarterPreset(serviceType);
+  const resolvedStarterPageSettings = getStarterPageSettings(preset, serviceType);
   const presetSettings = getJsonRecord((preset.site.settings ?? null) as Json | null);
   const siteSelect =
     "restaurant_name, restaurant_category, restaurant_type, restaurant_address, restaurant_phone, intro_title, intro_description, brand_description, menu_cover_label, menu_cover_title, menu_cover_description, about_description, opening_hours, map_url, logo_url, logo_path, cover_image_url, cover_image_path, page_settings, settings";
@@ -3148,9 +3160,8 @@ async function applyStarterSiteDefaults(
   if (getSinglePageStarterTranslations(preset.template_key)) {
     nextSettings.enabled_locales = ["ko", ...SINGLE_PAGE_STARTER_TRANSLATION_LOCALES];
   }
-  const hasPresetLogoUrl = Object.prototype.hasOwnProperty.call(preset.site, "logo_url");
   const hasPresetLogoPath = Object.prototype.hasOwnProperty.call(preset.site, "logo_path");
-  const presetLogoUrl = hasPresetLogoUrl ? (preset.site.logo_url ?? null) : STARTER_PLACEHOLDERS.logo;
+  const presetLogoUrl = getStarterLogoUrl(preset);
   const presetLogoPath = hasPresetLogoPath ? (preset.site.logo_path ?? null) : null;
 
   const payload: MenuSiteUpdate = {
@@ -3705,7 +3716,7 @@ export async function createStarterMenuData(
         price_label: menuItem.price_label ?? null,
         price_note: menuItem.price_note ?? null,
         portion_label: menuItem.portion_label ?? null,
-        image_url: preset.design_id ? menuItem.image_url ?? null : menuItem.image_url ?? (isCafeAStarterTemplateKey(templateKey) ? null : STARTER_PLACEHOLDERS.item),
+        image_url: getStarterItemImage(preset, menuItem),
         image_path: null,
         badge_label: menuItem.badge_label ?? (menuItem.recommended ? "추천" : null),
         recommended: menuItem.recommended ?? false,

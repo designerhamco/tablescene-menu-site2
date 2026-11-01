@@ -1,3 +1,4 @@
+import { getStarterTranslationCopy } from "../standard-design-starter";
 import { translateMenuText } from "@/lib/menu-ui-copy";
 import type { MenuPageData } from "@/lib/menu-page-data";
 import type { SupportedLocale } from "@/lib/locales";
@@ -284,10 +285,12 @@ function applyTextMap(data: MenuPageData, locale: PreviewTextLocale, copy: Recor
 }
 
 function applySinglePageCopy(data: MenuPageData, locale: SinglePageStarterTranslationLocale): MenuPageData {
-  const translations = getSinglePageStarterTranslations(data.menuSite.template_key);
+  const sourceSettings = data.menuSite.settings;
+  const designId = sourceSettings && typeof sourceSettings === "object" && !Array.isArray(sourceSettings) && typeof sourceSettings.menu_design_id === "string" ? sourceSettings.menu_design_id : undefined;
+  const preset = getStarterPreset(data.menuSite.template_key, data.menuSite.restaurant_category, data.menuSite.template_category, designId);
+  const translations = getStarterTranslationCopy(preset);
   if (!translations) return data;
   const copy = translations[locale];
-  const preset = getStarterPreset(data.menuSite.template_key, data.menuSite.restaurant_category, data.menuSite.template_category);
   const categoryCopyById = new Map<string, { name: string; description?: string }>();
   const itemCopyById = new Map<string, { name: string; description: string }>();
   const promotionCopyById = new Map<string, { badgeText: string; timeDisplayText?: string }>();

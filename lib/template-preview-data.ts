@@ -5,10 +5,13 @@ import { getTemplateCapabilities } from "./template-capabilities";
 import { getTemplatePreviewOptionGroups, getTemplatePreviewOptionOverride } from "./template-preview-options";
 import { getStarterPreset } from "./menu-starter-presets";
 import { applyStarterPreviewLocalization } from "./template-demo-data/starter-preview-localization";
+import { getDefaultDesignReview } from "./menu-design-policy";
 
 /** Catalog preview only. Never imported by saved-menu/public customer routes. */
 export function applyTemplatePreviewOptions(source: MenuPageData, query: TemplatePreviewQuery): MenuPageData {
-  const groups = getTemplatePreviewOptionGroups(source.menuSite.template_key ?? "");
+  const savedSettings = source.menuSite.settings;
+  const designId = savedSettings && typeof savedSettings === "object" && !Array.isArray(savedSettings) && typeof savedSettings.menu_design_id === "string" ? savedSettings.menu_design_id : undefined;
+  const groups = getTemplatePreviewOptionGroups(source.menuSite.template_key ?? "", getDefaultDesignReview(designId, source.menuSite.template_key ?? ""));
   const overrides = new Map(groups.flatMap(group => group.choices).flatMap(([key]) => {
     const enabled = getTemplatePreviewOptionOverride(query, key);
     return enabled === undefined ? [] : [[key, enabled] as const];
@@ -59,7 +62,7 @@ export function applyTemplatePreviewOptions(source: MenuPageData, query: Templat
   if (enabled("secondaryNamesPreview") === true) {
     const englishNames = new Map(applyStarterPreviewLocalization(source, "en").items.map(item => [item.id, item.name]));
     const originalNames = new Map<string, string>();
-    const preset = getStarterPreset(source.menuSite.template_key, source.menuSite.restaurant_category, source.menuSite.template_category);
+    const preset = getStarterPreset(source.menuSite.template_key, source.menuSite.restaurant_category, source.menuSite.template_category, designId);
     preset.pages.forEach((page, pageIndex) => {
       page.categories.forEach((category, categoryIndex) => category.items.forEach((item, itemIndex) => originalNames.set(`${source.menuSite.id}-item-${pageIndex}-${categoryIndex}-${itemIndex}`, item.name)));
       page.direct_items?.forEach((item, itemIndex) => originalNames.set(`${source.menuSite.id}-direct-item-${pageIndex}-${itemIndex}`, item.name));
