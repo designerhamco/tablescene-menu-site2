@@ -64,7 +64,7 @@ test("launch template typography defaults and Display-only size control stay exp
       cafe_design_a: "oswald",
       cafe_mocha_forest_a: "carme",
       cafe_sunday_line_a: "federo",
-      cafe_van_gogh_a: "special-elite",
+      cafe_van_gogh_a: "belleza",
       cafe_round_focus_a: "aboreto",
       fast_food_loop_bagel_a: "mogra",
       cafe_brew_chapter_a: "alata",

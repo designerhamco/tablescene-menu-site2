@@ -546,7 +546,7 @@ export const TEMPLATE_DEFAULT_ENGLISH_FONTS: Record<string, EnglishFontValue> = 
   cafe_design_a: "alata",
   cafe_mocha_forest_a: "alata",
   cafe_sunday_line_a: "alata",
-  cafe_van_gogh_a: "special-elite",
+  cafe_van_gogh_a: "belleza",
   cafe_round_focus_a: "aboreto",
   fast_food_loop_bagel_a: "bagel-fat-one",
   cafe_brew_chapter_a: "alata",

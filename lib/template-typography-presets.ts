@@ -150,7 +150,7 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
   },
   cafe_van_gogh_a: {
     korean_font_key: "pretendard",
-    english_font_key: "special-elite",
+    english_font_key: getDefaultEnglishFontForTemplate("cafe_van_gogh_a").value,
     font_size_scale_key: "m",
     typography_roles: {
       brand: { ...createDefaultTypographyRoleSettings().brand, color: "#000000" },

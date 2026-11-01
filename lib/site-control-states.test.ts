@@ -7,6 +7,15 @@ const read = (file: string) => readFileSync(path.join(process.cwd(), file), "utf
 const css = read("styles/ui-system.css");
 const tabCss = read("styles/site-design.css");
 
+test("support actions stay centered at content width instead of inheriting a card grid", () => {
+  const row = [...tabCss.matchAll(/\.site-support-actions\s*\{([^}]+)\}/g)].map(match => match[1]).join("\n");
+  assert.match(row, /display:\s*flex/);
+  assert.match(row, /justify-content:\s*center/);
+  assert.match(row, /flex-wrap:\s*wrap/);
+  assert.doesNotMatch(row, /grid-template-columns|display:\s*grid/);
+  assert.match(read("app/faq/page.tsx"), /className="site-support-actions"/);
+});
+
 test("ordinary action geometry is shared and icon / quick-menu shapes are explicit", () => {
   const button = read("app/components/ui/button.tsx");
   assert.match(button, /pill: "site-button-pill"/);

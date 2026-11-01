@@ -135,7 +135,7 @@ test("반고흐는 분리선 없이 기기별 기준에 같은 카테고리 간�
     globalStylesSource,
     /data-template-key="cafe_van_gogh_a"[\s\S]*data-cafe-a-visual-next-block-type="category"[\s\S]*margin-bottom: var\(--cafe-a-category-no-divider-gap\);/,
   );
-  assert.match(
+  assert.doesNotMatch(
     globalStylesSource,
     /data-template-key="cafe_van_gogh_a"[^}]*cafe-a-topline-title[^}]*\{[^}]*line-height: 1\.1;[^}]*padding-block: 0\.08em 0\.02em;/,
   );
