@@ -1,5 +1,9 @@
 # Menu template spacing contract
 
+## Call button scope — 2026-11-01 (current)
+
+Basic uses the existing horizontal rectangular Call button with its bright menu surface and category-colored ink/border, whether Order is enabled or disabled. Only Dining uses a circular Call button. This supersedes earlier one-page circle and Call-only circle descriptions below. Dining resolves its category color from the same saved/design/native category palette on the cover and every menu page; a missing cover heading must not switch the action to a different accent.
+
 ## Preview workspace and actual-screen guide — 2026-10-31 (current)
 
 Catalog and saved previews share the same presentation. Tablet/mobile mockups center against the entire browser page, with symmetric gutters only. The top toolbar and left options panel are fixed overlays: opening, closing or collapsing them never moves/resizes the canvas or reloads its iframe. Mockups fill the available canvas while preserving aspect ratio, capped at 1.25× on wide screens (landscape tablet including bezel up to1500×1050; phone up to512.5×1080). Tablet rotation is Dining-only; Basic stays landscape even with stale portrait URLs.
@@ -137,7 +141,7 @@ The user confirmed the neutral designs and approved rollout to the six existing 
 
 REAL MATCHA retains its approved `RealMatchaPaged` presentation. The other six use `one-page/NativeBasicScroll`: their original `CafeDesignA` identity, header, featured carousel, product/pricing, panels, fonts, colors, decorations and image lightbox remain the visual source. They are not routed through a recolored Matcha shell. Left rails and three-cell top headers stay fixed; the central color rail remains fixed between two synchronized reading tracks; ONUE's native photo is the first flow block with menu space beneath it. ONUE keeps its dark gutters and white reading panels. Mocha keeps its full-height brown rail. Top-row and central notice anchors remain native.
 
-Grouped/fill use the same readable device size and gap mapper, actual name-width comparison, at most three automatic menu tracks, registered order, headings shown once, and scrollable overflow. Widgets and final notices use the native category boundary; fill adds a final page inset. Fixed service actions sit outside the scrolling menu (under the representative panel for the center layout). Call alone keeps a circle. Fade is present only while real content remains below. Display and multi-page engines remain separate; Dining preserves page navigation and adds a themed thin separator before standalone items only when categories precede them.
+Grouped/fill use the same readable device size and gap mapper, actual name-width comparison, at most three automatic menu tracks, registered order, headings shown once, and scrollable overflow. Widgets and final notices use the native category boundary; fill adds a final page inset. Fixed service actions sit outside the scrolling menu (under the representative panel for the center layout). Basic Call keeps its horizontal rectangular button, including Call-only mode; circular Call is exclusive to Dining (corrected 2026-11-01). Fade is present only while real content remains below. Display and multi-page engines remain separate; Dining preserves page navigation and adds a themed thin separator before standalone items only when categories precede them.
 
 `qa-native-basic-scroll.mjs` measures actual viewports, order, width, names/prices, fixed rails/actions, final notices, fade, the existing mobile rhythm and preview advertisement/order/call interactions. Optional `NATIVE_QA_BASELINE` compares captured original role fonts, colors and weights (and mobile sizes).
 

@@ -25,9 +25,13 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
       // before the saved role so action colors update with the visible preview.
       // The saved role remains the stable fallback on cover/logo pages where no
       // category heading is currently visible.
+      const savedCategory = style.getPropertyValue("--menu-role-category-color").trim();
+      // Dining course headings fall back to --aube-ink, not --aube-accent.
+      // Resolve that same category palette even on a cover with no heading.
       categoryColor = style.getPropertyValue("--menu-design-category-ink").trim()
-        || (category && getComputedStyle(category).color)
-        || style.getPropertyValue("--menu-role-category-color").trim()
+        || (dining
+          ? savedCategory || style.getPropertyValue("--aube-ink").trim()
+          : (category && getComputedStyle(category).color) || savedCategory)
         || style.getPropertyValue("--aube-accent").trim() || categoryColor;
       const surfaces = [style.backgroundColor];
       // Representative columns may have their own paper color. Walk only the brand's
