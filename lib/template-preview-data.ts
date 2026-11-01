@@ -34,7 +34,11 @@ export function applyTemplatePreviewOptions(source: MenuPageData, query: Templat
 
   if (enabled("popupPreview") !== undefined) settings.advertisementPopup = { enabled: enabled("popupPreview")!, images: [1, 2, 3].map(number => ({ imageUrl: `/placeholders/starter/default-popup-${number}.svg`, imagePath: null })) };
   if (enabled("logoPreview") !== undefined) {
-    data.menuSite.logo_url = enabled("logoPreview") ? source.menuSite.logo_url || "/placeholders/starter/default-logo.svg" : null;
+    // The legacy starter asset is a TS badge, not this template's brand.
+    // Use the same neutral logo example as standard previews, preserving real logos.
+    const logo = source.menuSite.logo_url;
+    const previewLogo = logo && logo !== "/placeholders/starter/logo.svg" ? logo : "/placeholders/starter/default-logo.svg";
+    data.menuSite.logo_url = enabled("logoPreview") ? previewLogo : null;
     settings.logo_replaces_name = enabled("logoPreview")!;
   }
   if (enabled("coverPreview") !== undefined) Object.assign(data.pageSettings, {
