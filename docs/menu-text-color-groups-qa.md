@@ -6,10 +6,10 @@ The catalog preview and menu editor now expose the same six optional color group
 | --- | --- |
 | 가게명 | Store text identity |
 | 카테고리명 | Category headings and price-option names, including inline option labels |
-| 상품 기본정보 | Product/featured name, selling price and price explanation |
-| 대표영역 설명 | Store description and notices physically inside the representative surface |
-| 메뉴영역 설명 | Secondary names and product/category descriptions |
-| 안내사항·위젯텍스트 | Menu-area notices and widget title/body |
+| 메뉴 기본정보 | Product/featured name, selling price and price explanation |
+| 가게 설명·안내 | Store description and notices physically inside the representative surface |
+| 메뉴 설명 | Secondary names and product/category descriptions |
+| 하단 안내·위젯 | Menu-area notices and widget title/body |
 
 Missing groups preserve the original native/legacy role colors. Representative image/placeholder featured names and prices retain white, descriptions white at 82%; chips and sold-out attenuation remain independent. Price notes such as ICE ONLY follow product ink, while real option labels follow category ink. Legacy five-group settings preserve their combined notice/widget color until edited; new six-group edits use `textColorGroupsVersion: 2` so an absent/reset information color stays native. New color changes do not rewrite font roles, sizes, weights, spacing, customer content or image geometry. Old three-group preview URLs remain supported. The form validator rejects invalid colors before persistence, preserves unrelated Design JSON and supports older forms without the new controls. Both typography/design reset paths clear the new explicit overrides. There is no customer-data migration or schema change.
 
