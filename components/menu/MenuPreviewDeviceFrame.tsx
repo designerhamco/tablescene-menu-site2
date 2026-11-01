@@ -10,7 +10,7 @@ import { isAubeTableTemplate } from "@/lib/aube-table";
 
 import { fitMenuPreviewFrame } from "@/lib/menu-preview-fit";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
-import { supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
+import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
 import MenuPreviewOptionsPanel from "./MenuPreviewOptionsPanel";
 import styles from "./MenuPreviewDeviceFrame.module.css";
 import { readPreviewDesign, serializePreviewDesign, type PreviewDesign, type PreviewDesignDefaults } from "@/lib/menu-preview-design";
@@ -178,7 +178,7 @@ export default function MenuPreviewDeviceFrame(
       router.push(buildPreviewUrl({ device, orientation }, { ...templateQuery, [key]: enabled ? "on" : "off" }), { scroll: false });
     });
   };
-  const layoutMode = (Array.isArray(query.layoutMode) ? query.layoutMode[0] : query.layoutMode) === "orderedFit" ? "orderedFit" : "orderedBalancedFit";
+  const layoutMode = normalizePcTabletLayoutMode(Array.isArray(query.layoutMode) ? query.layoutMode[0] : query.layoutMode, templateKey);
   const frame = getMenuPreviewFrame(device, orientation);
   const fittedFrame = fitMenuPreviewFrame({ ...canvasSize, device }, frame);
   const orientationLabel =

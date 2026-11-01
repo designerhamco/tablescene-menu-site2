@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { getStarterPreset, resolveStarterFeaturedSlides } from "./menu-starter-presets";
+import { getStarterPageSettings, getStarterPreset, resolveStarterFeaturedSlides } from "./menu-starter-presets";
 import { getFixedOnePageLayoutShell } from "./one-page-layout-shells";
 import { getOnePageTotalColumnCount } from "./one-page-fit-policy";
 import { PANEL_INTRO_KEY, PANEL_FEATURED_IMAGE, PANEL_MOBILE_FEATURED_IMAGE, resolvePanelTextInk, withPanelIntro } from "./one-page-panel-flow";
@@ -37,11 +37,14 @@ test("intro is a measured unsaved barrier ahead of every category order candidat
  for(const candidate of getFallbackCategoryOrders(blocks, "conventional")) assert.equal(candidate[0].order, 0);
 });
 
-test("panel-flow defaults to fill in preview and editor while an explicit choice survives", async () => {
+test("panel-flow shares the grouped default across preview, renderer and starter while explicit fill survives", async () => {
  const { getDefaultPcTabletLayoutMode, getPcTabletLayoutModeFromPageSettings, normalizePcTabletLayoutMode } = await import("./menu-layout-modes");
- assert.equal(getDefaultPcTabletLayoutMode("restaurant_onue_a"), "orderedFit");
- assert.equal(getPcTabletLayoutModeFromPageSettings({}, "restaurant_onue_a"), "orderedFit");
- assert.equal(normalizePcTabletLayoutMode(undefined, "restaurant_onue_a"), "orderedFit");
+ assert.equal(getDefaultPcTabletLayoutMode("restaurant_onue_a"), "orderedBalancedFit");
+ assert.equal(getPcTabletLayoutModeFromPageSettings({}, "restaurant_onue_a"), "orderedBalancedFit");
+ assert.equal(normalizePcTabletLayoutMode(undefined, "restaurant_onue_a"), "orderedBalancedFit");
+ assert.equal(normalizePcTabletLayoutMode("invalid", "restaurant_onue_a"), "orderedBalancedFit");
+ assert.equal(getPcTabletLayoutModeFromPageSettings(getStarterPageSettings(getStarterPreset("restaurant_onue_a")), "restaurant_onue_a"), "orderedBalancedFit");
+ assert.equal(getPcTabletLayoutModeFromPageSettings({design:{pcTabletLayoutMode:"orderedFit"}}, "restaurant_onue_a"), "orderedFit");
  assert.equal(getPcTabletLayoutModeFromPageSettings({design:{pcTabletLayoutMode:"orderedBalancedFit"}}, "restaurant_onue_a"), "orderedBalancedFit");
  assert.equal(getDefaultPcTabletLayoutMode("cafe_design_a"), "orderedBalancedFit");
 });

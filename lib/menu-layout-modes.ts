@@ -1,5 +1,3 @@
-import { getFixedOnePageLayoutShell } from "./one-page-layout-shells";
-
 export const BASIC_LAYOUT_MODE_ORDER = ["orderedBalancedFit", "orderedFit"] as const;
 export const PC_TABLET_LAYOUT_MODES = BASIC_LAYOUT_MODE_ORDER;
 
@@ -22,9 +20,8 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
-export function getDefaultPcTabletLayoutMode(templateKey?: string | null): PcTabletLayoutMode {
-  return getFixedOnePageLayoutShell(templateKey) === "brand_panel_flow" ? "orderedFit" : DEFAULT_PC_TABLET_LAYOUT_MODE;
-}
+/** Keep the template argument for callers; every Basic shell shares one default. */
+export const getDefaultPcTabletLayoutMode: (templateKey?: string | null) => PcTabletLayoutMode = () => DEFAULT_PC_TABLET_LAYOUT_MODE;
 
 export function normalizePcTabletLayoutMode(value: unknown, templateKey?: string | null): PcTabletLayoutMode {
   if (typeof value !== "string") return getDefaultPcTabletLayoutMode(templateKey);
