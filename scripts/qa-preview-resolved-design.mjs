@@ -7,7 +7,7 @@ const browser=await chromium.launch();
 const page=await browser.newPage({viewport:{width:1440,height:1000}});
 page.setDefaultTimeout(20000);page.setDefaultNavigationTimeout(90000);
 const errors=[];page.on('pageerror',error=>errors.push(error.message));
-const labels=['가게명','카테고리명','상품 기본정보','대표영역 설명','메뉴영역 설명','안내사항·위젯텍스트'];
+const labels=['가게명','카테고리명','메뉴 기본정보','가게 설명·안내','메뉴 설명','하단 안내·위젯'];
 const groups=['brand','category','product','representative','supporting','information'];
 const results=[];
 async function ready(){

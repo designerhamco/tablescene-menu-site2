@@ -14,7 +14,7 @@ async function controls(width,dining){const p=await page(width,1000);try{
  const panel=p.locator('[data-preview-design-options]');await panel.waitFor();
  assert.deepEqual(await p.evaluate(()=>[innerWidth,innerHeight]),[width,1000]);
  const textColors=panel.locator('[data-preview-font-groups]');
- assert.deepEqual(await textColors.locator(':scope > [data-preview-color-field] > span').allTextContents(),['가게명','카테고리명','상품 기본정보','대표영역 설명','메뉴영역 설명','안내사항·위젯텍스트']);
+ assert.deepEqual(await textColors.locator(':scope > [data-preview-color-field] > span').allTextContents(),['가게명','카테고리명','메뉴 기본정보','가게 설명·안내','메뉴 설명','하단 안내·위젯']);
  assert.equal(await textColors.locator('fieldset,p').count(),0);
  assert.doesNotMatch(await textColors.innerText(),/글자색|카테고리명·가격 옵션명|상품명·판매가격·가격설명/);
  const grids=panel.locator('[data-preview-backgrounds],[data-preview-font-groups],[data-preview-chip-colors] fieldset > div');

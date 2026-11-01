@@ -6,7 +6,7 @@ export const MENU_TEXT_COLOR_GROUPS = ["brand", "category", "product", "represen
 export type MenuTextColorGroup = typeof MENU_TEXT_COLOR_GROUPS[number];
 export type MenuTextColors = Partial<Record<MenuTextColorGroup, string>>;
 export const MENU_TEXT_COLOR_LABELS: Record<MenuTextColorGroup, string> = {
-  brand: "가게명", category: "카테고리명", product: "상품 기본정보", representative: "대표영역 설명", supporting: "메뉴영역 설명", information: "안내사항·위젯텍스트",
+  brand: "가게명", category: "카테고리명", product: "메뉴 기본정보", representative: "가게 설명·안내", supporting: "메뉴 설명", information: "하단 안내·위젯",
 };
 export const MENU_TEXT_COLOR_DESCRIPTIONS: Record<MenuTextColorGroup, string> = {
   brand: "가게명",

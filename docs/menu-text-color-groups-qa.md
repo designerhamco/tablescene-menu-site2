@@ -6,10 +6,10 @@ The catalog preview and menu editor now expose the same six optional color group
 | --- | --- |
 | 가게명 | Store text identity |
 | 카테고리명 | Category headings, category descriptions, category-owned lines/ornaments and price-option names, including inline option labels |
-| 상품 기본정보 | Product/featured name, selling price and price explanation |
-| 대표영역 설명 | Store description and notices physically inside the representative surface |
-| 메뉴영역 설명 | Secondary names and product descriptions |
-| 안내사항·위젯텍스트 | Menu-area notices and widget title/body |
+| 메뉴 기본정보 | Product/featured name, selling price and price explanation |
+| 가게 설명·안내 | Store description and notices physically inside the representative surface |
+| 메뉴 설명 | Secondary names and product descriptions |
+| 하단 안내·위젯 | Menu-area notices and widget title/body |
 
 Missing groups preserve the original native/legacy role colors. Representative image/placeholder featured names and prices retain white, descriptions white at 82%; chips and sold-out attenuation remain independent. Price notes such as ICE ONLY follow product ink, while real option labels follow category ink. Legacy five-group settings preserve their combined notice/widget color until edited; new six-group edits use `textColorGroupsVersion: 2` so an absent/reset information color stays native. New color changes do not rewrite font roles, sizes, weights, spacing, customer content or image geometry. Old three-group preview URLs remain supported. The form validator rejects invalid colors before persistence, preserves unrelated Design JSON and supports older forms without the new controls. Both typography/design reset paths clear the new explicit overrides. There is no customer-data migration or schema change.
 
@@ -54,3 +54,7 @@ The rendered-design sampler excludes category descriptions when reading the menu
 Validation: `npm test` (979 passing), TypeScript, changed-file ESLint, `check:site-ui` and Production build passed. `scripts/qa-category-ink.mjs` exercises all 19 active Basic/Dining designer/default/list/album designs with descriptions explicitly enabled, using actual DOM viewports after fonts/layout settle. It compares category descriptions and painted rules to actual heading ink, checks category/supporting independence, native picker defaults and unchanged description typography, and includes legacy/reset/category-only plus narrow/wide Korean/English cases. Display's four visible category rules were separately checked against their heading ink at 1920×1080. Browser traffic rejects API writes.
 
 Final Production-build matrix: 152/152 passed, zero page errors, zero API writes and no horizontal overflow. Actual viewports were PC 1440×900, tablet 1180×820 and mobile 390×844, plus seven native Basic designs at 320×844 Korean / 430×932 English. Paired category/supporting comparisons preserve product-description ink, description font size/line height and the supporting picker's native color. Legacy category colors, category-only edits and reset/native palettes also passed. Evidence: `/private/tmp/category-ink-complete/report.json` and REAL MATCHA screenshots in the same folder.
+
+## Current viewing-option names — 2026-11-01
+
+Keep the released labels: 가게명 / 카테고리명 / 메뉴 기본정보 / 가게 설명·안내 / 메뉴 설명 / 하단 안내·위젯. The category rule adds category descriptions and ornaments to 카테고리명; 메뉴 설명 owns secondary names and product descriptions. Internal six-group keys and saved JSON remain unchanged. Catalog and editor share `MENU_TEXT_COLOR_LABELS`; browser checks and this ownership table use those same current names.
