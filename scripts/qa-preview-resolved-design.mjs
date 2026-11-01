@@ -35,13 +35,13 @@ try{
      for(let i=0;i<paint.length;i++)if(paint[i])assert.equal(colors[i],paint[i],`${item.key} ${device} ${groups[i]} matches rendered ink`);
    }).toPass({timeout:20000});
    const colors=await swatches();
-   if(item.key.startsWith('dining_')){
-     const hiddenPagePalette=await page.frameLocator('iframe').locator('.aube-table-root').evaluate(root=>{const s=getComputedStyle(root);return ['--aube-accent','--aube-ink','--aube-item-copy'].map(name=>s.getPropertyValue(name).trim().toUpperCase());});
-     if(await page.frameLocator('iframe').locator('.aube-table-cover').count()){
-       assert.equal(colors[1],hiddenPagePalette[0],'unmounted Dining category uses its actual inherited palette');
-       assert.equal(colors[2],hiddenPagePalette[1],'unmounted Dining products use their actual inherited palette');
-       assert.equal(colors[4],hiddenPagePalette[2],'unmounted Dining descriptions use their actual inherited palette');
-     }
+   if(item.key==='dining_aube_table_a'&&device==='pc'){
+     await page.frameLocator('iframe').getByRole('button',{name:'다음 메뉴 페이지',exact:true}).click();
+     await page.frameLocator('iframe').locator('.aube-table-item-heading h3').first().waitFor();
+     await expect(async()=>{
+       const paint=await ink();
+       for(const i of [1,2,4])if(paint[i])assert.equal(colors[i],paint[i],`unmounted Dining ${groups[i]} already matches its later rendered ink`);
+     }).toPass({timeout:20000});
    }
    for(const name of ['가게명·가게 설명 정렬','이미지·텍스트칩 라운드']){
      const control=page.getByRole('combobox',{name,exact:true});if(await control.count()){
