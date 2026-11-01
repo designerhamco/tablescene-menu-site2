@@ -10,10 +10,10 @@ export const MENU_TEXT_COLOR_LABELS: Record<MenuTextColorGroup, string> = {
 };
 export const MENU_TEXT_COLOR_DESCRIPTIONS: Record<MenuTextColorGroup, string> = {
   brand: "가게명",
-  category: "카테고리명·가격 옵션명",
+  category: "카테고리명·카테고리설명·카테고리 장식·가격 옵션명",
   product: "상품명·판매가격·가격설명",
   representative: "가게설명·대표영역 안내사항",
-  supporting: "보조언어명·상품설명·카테고리설명",
+  supporting: "보조언어명·상품설명",
   information: "메뉴영역 안내사항·위젯텍스트",
 };
 export function normalizeMenuTextColors(value: unknown): MenuTextColors {

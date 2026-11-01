@@ -1,7 +1,6 @@
 .category {
   --cafe-a-category-preview-ink: var(--cafe-a-ink, #191c1b);
   --cafe-a-category-preview-muted: rgb(25 28 27 / 66%);
-  --cafe-a-category-preview-divider: rgb(25 28 27 / 68%);
   break-inside: avoid;
   color: var(--cafe-a-category-preview-ink);
   min-width: 0;
@@ -24,7 +23,7 @@
 }
 
 .title {
-  color: var(--cafe-a-category-preview-ink);
+  color: var(--menu-text-category, var(--menu-design-category-ink, var(--cafe-a-category-heading-color, var(--menu-role-category-color, var(--cafe-a-category-preview-ink)))));
   font-size: clamp(1.45rem, 4.4vw, 2rem);
   font-weight: 900;
   letter-spacing: 0;
@@ -34,7 +33,7 @@
 }
 
 .description {
-  color: var(--cafe-a-category-preview-muted);
+  color: var(--menu-text-category, var(--menu-design-category-ink, var(--cafe-a-category-heading-color, var(--menu-role-category-color, var(--cafe-a-category-preview-ink)))));
   font-size: 0.78rem;
   font-weight: 700;
   line-height: 1.42;
@@ -94,7 +93,8 @@
 }
 
 .divider {
-  border-top: 1px solid var(--cafe-a-category-preview-divider);
+  color: var(--menu-text-category, var(--menu-design-category-ink, var(--cafe-a-category-heading-color, var(--menu-role-category-color, var(--cafe-a-category-preview-ink)))));
+  border-top: 1px solid currentColor;
   margin-bottom: 0.84rem;
 }
 
