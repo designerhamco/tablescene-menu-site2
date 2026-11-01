@@ -25,6 +25,8 @@
   --ui-radius-tooltip: 1.75rem;
   --ui-tooltip-padding-block: 1.25rem;
   --ui-tooltip-padding-inline: 1.5rem;
+  --ui-tooltip-padding-block-compact: .625rem;
+  --ui-tooltip-padding-inline-compact: .875rem;
   --ui-border: #dbdee3;
   --ui-border-strong: #9fa3ab;
   --ui-surface: #ffffff;

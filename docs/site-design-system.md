@@ -139,6 +139,8 @@ Ghost pagination/icon controls retain transparent background and border when dis
 - `--ui-radius-tooltip` 28px, 상하·좌우 여백은 `--ui-tooltip-padding-block` 20px / `--ui-tooltip-padding-inline` 24px, 최대 너비20rem와 화면 가장자리16px를 사용한다. 외곽 테두리 없이 `--site-shadow-tooltip` 그림자와 24×14px의 둥근 꼬리를 사용한다.
 - 선택적 `heading`은 `--site-type-16` 16px·700, 본문은 `--type-body-sm-size` 14px·400, 제목과 본문 간격8px다. 제목이 없는 기존 필드 도움말도 동일한 표면과 꼬리를 사용한다.
 - `TooltipContent` 기본 톤은 dark, `HelpTooltip` 기본 톤은 light다. Radix의 방향·충돌 처리와 포커스 동작을 보존한다. 클릭형 dark/brand의 닫기 버튼과 Escape·바깥 클릭·재진입도 유지한다. `/design-system`의 기준·토큰과 컴포넌트 라이브러리에 함께 문서화한다.
+- 꼬리는 가운데 고정이 아니다. 기본 `side="top"`, `align="start"`로 왼쪽 아래에 배치하며, 둥근 모서리 안쪽28px는 꼬리를 놓지 않는다. `side`, `align="start|center|end"`, `alignOffset`으로 문맥에 맞게 조정한다. 화면 가장자리에서는 Radix가 말풍선과 꼬리를 함께 이동·반전하여 실제 안내 대상을 계속 가리킨다.
+- 항상 보이는 `HintBubble`도 동일한 `site-tooltip-surface`와 `TooltipBubbleArrow`를 사용한다. 툴팁/클릭형과 구분하는 것은 노출 방식이며 별도 사각형·삼각형 스타일을 만들지 않는다. 한 줄 안내에는 compact 여백(상하10px/좌우14px)과13px 안내 글자를 사용하고 기본 톤은 dark다. `tone`과 `tailAlign="start|center|end"`으로 색과 꼬리 위치를 고른다. 템플릿 종류 탭의 안내는 첫 번째 탭 위에서 계속 보이고 `aria-describedby` 연결을 유지한다.
 
 
 ## 탭 경계·밑줄 검수 보정 (2026-10-26)
