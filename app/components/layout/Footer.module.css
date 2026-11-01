@@ -32,12 +32,12 @@
   .navigation { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(12rem, 1.4fr); }
   .business { margin-top: 3rem; }
 }
-@media (max-width: 639px) {
+@media (max-width: 767px) {
   .surface { border-radius: 1.5rem; }
-  .content { padding: 1.5rem 1.25rem 0; }
+  .content { padding: var(--site-space-content) var(--site-space-group) 0; }
   .top { gap: 1.5rem; }
   .desktopNavigation, .desktopBusiness { display: none; }
-  .mobileSections { display: grid; border-top: 1px solid var(--ui-border); }
+  .mobileSections { display: grid; margin-top: var(--site-space-content); border-top: 1px solid var(--ui-border); }
   .disclosure { border-bottom: 1px solid var(--ui-border); }
   .disclosure summary {
     display: flex;
@@ -56,15 +56,15 @@
   .disclosure summary svg { width: 1.125rem; height: 1.125rem; flex: none; color: var(--ui-text-muted); transition: transform var(--ui-transition); }
   .disclosure[open] summary svg { transform: rotate(180deg); }
   .disclosure summary:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; border-radius: .25rem; }
-  .disclosureContent { gap: .25rem; padding: 0 0 1rem; }
-  .disclosureBusiness { margin: 0; padding: 0 0 1rem; }
+  .disclosureContent { gap: var(--site-space-copy); padding: var(--site-space-copy) 0 var(--site-space-group); }
+  .disclosureBusiness { margin: 0; padding: var(--site-space-copy) 0 var(--site-space-group); }
   .group li a, .legal a { min-height: 2.75rem; }
   .group ul { gap: 0; }
-  .business dl { display: grid; gap: .5rem; }
+  .business dl { display: grid; gap: var(--site-space-title-copy); }
   .business dl > div { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; }
   .business .address { display: flex; }
   .business dd a { margin-left: 0; }
-  .bottom { align-items: flex-start; gap: .5rem; }
+  .bottom { align-items: flex-start; gap: var(--site-space-block); margin-top: var(--site-space-group); }
   .bottom p { order: 1; width: 100%; }
   .legal { gap: .25rem 1.25rem; }
   .wordmark { font-size: 20vw; margin-top: .25em; }

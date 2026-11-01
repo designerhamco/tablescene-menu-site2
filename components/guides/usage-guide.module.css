@@ -237,3 +237,13 @@
     scroll-behavior: auto;
   }
 }
+
+@media (max-width: 767px) {
+  .planContent { margin-top: var(--site-space-group); }
+  .articles { margin-top: var(--site-space-content); gap: var(--site-space-section); }
+  .description { margin-top: var(--site-space-group); }
+  .articleCopy { gap: var(--site-space-title-copy); }
+  .instructionBox { gap: var(--site-space-group); padding: var(--site-surface-inset); }
+  .instructionGroup { gap: var(--site-space-group); padding-top: var(--site-space-group); }
+  .mobileNote { margin-top: var(--site-space-section); }
+}

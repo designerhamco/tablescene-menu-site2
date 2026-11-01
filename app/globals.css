@@ -4,6 +4,7 @@
 @import "../styles/typography.css";
 @import "../styles/ui-system.css";
 @import "../styles/site-design.css";
+@import "../styles/site-spacing.css";
 
 * {
   box-sizing: border-box;
@@ -34,8 +35,12 @@ body {
   --site-section-space: clamp(3rem, 6vw, 5rem);
   --site-grid-gap: clamp(1rem, 2vw, 1.5rem);
   --site-page-heading-top: var(--site-page-space-compact);
-  --site-page-title-description-gap: .75rem;
-  --site-page-intro-content-gap: 2rem;
+  --site-page-title-description-gap: var(--site-space-title-copy);
+  --site-page-intro-content-gap: var(--site-space-content);
+}
+
+@media (max-width: 767px) {
+  :root { --site-section-space: var(--site-space-section); }
 }
 
 @media (min-width: 768px) {

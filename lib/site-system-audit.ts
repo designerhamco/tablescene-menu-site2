@@ -7,7 +7,7 @@ import postcss from "postcss";
 type FileMap = Map<string, string>;
 export type SiteSystemViolation = { file: string; rule: string; line: number; detail: string; fingerprint: string };
 export type SiteSystemBaseline = Record<string, Record<string, string[]>>;
-const owners = new Set(["app/globals.css", "styles/ui-system.css", "styles/site-design.css", "styles/typography.css", "styles/theme.css"]);
+const owners = new Set(["app/globals.css", "styles/ui-system.css", "styles/site-design.css", "styles/site-spacing.css", "styles/typography.css", "styles/theme.css"]);
 const infrastructure = new Set(["components/layout/SitePage.tsx", "components/layout/SitePageHeader.tsx"]);
 const sharedControls = new Set(["Tabs", "TabsList", "TabsTrigger", "NavigationTabs", "Button", "Input", "Textarea", "SelectTrigger", "CategoryFilter"]);
 const headingNames = new Set(["SitePage", "SitePageHeader"]);
@@ -184,7 +184,7 @@ export function auditSiteSystem(files: FileMap): SiteSystemViolation[] {
     if (!file.endsWith(".css") || owners.has(file)) continue;
     const sheet = postcss.parse(source, { from: file });
     sheet.walkDecls(decl => {
-      if (/^--(?:ui-|type-|site-(?:type-|page-|tab-|area-tab-|section-space|grid-gap|gutter))/.test(decl.prop)) add(file, "shared-token", `Shared tokens belong in the canonical styles, not ${decl.prop}.`, `${decl.parent?.toString().split("{")[0]}|${decl.toString()}`, decl.source?.start?.line);
+      if (/^--(?:ui-|type-|site-(?:type-|page-|tab-|area-tab-|section-space|grid-gap|gutter|space-|surface-inset))/.test(decl.prop)) add(file, "shared-token", `Shared tokens belong in the canonical styles, not ${decl.prop}.`, `${decl.parent?.toString().split("{")[0]}|${decl.toString()}`, decl.source?.start?.line);
       const selector = decl.parent?.type === "rule" ? decl.parent.selector : "";
       const target = selectorTargets(selector);
       const names = [...target.matchAll(/\.([\w-]+)/g)].map(match => match[1]);

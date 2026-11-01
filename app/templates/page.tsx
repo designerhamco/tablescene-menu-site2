@@ -23,7 +23,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
       initialLayoutFilter={typeof query.layout === "string" ? query.layout : "all"}
     />
 
-    <section className="site-dark-cta site-catalog-consultation mt-20 md:mt-28">
+    <section className="site-dark-cta site-catalog-consultation">
       <div className="mx-auto max-w-2xl">
         <h2 className="type-section-title">브랜드 맞춤 제작</h2>
         <p className="site-body mt-5 text-zinc-400">

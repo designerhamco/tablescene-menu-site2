@@ -32,3 +32,8 @@ export default function Page() {
 - 새 임시 app 라우트에 공통 틀 없는 h1을 추가해 실제 check:site-system이 page-shell/shared-heading 오류와 종료코드1로 차단하는 것을 확인하고 즉시 제거했다. 검사기의 별칭·합성 페이지·반응형/임의 utility·인라인/CSS Module·정확한 기존 발생 횟수 회귀 테스트를 포함한다.
 - 최신 모바일 목업 변경 통합 후 단위·계약930개, 빌드 전 계약93개, TypeScript와 변경 파일 ESLint 통과. 별도 출력 경로의 Production 빌드 통과.
 - 공지 실제 데이터1건으로 320×780, 390×844, 820×1000, 1280×720을 확인했다. 모든 폭에서 가로 넘침0px. 제목/설명12px, 제목 그룹/첫 콘텐츠는 모바일32px·태블릿/PC40px. 320px은 유형 선택 한 행과 검색 한 행으로 구성하고 번호 열 너비0으로 로딩/빈 목록의 표 폭도 보존한다. 검색0건·기존 공지 복원도 확인했다.
+
+
+## 모바일 간격의 자동 적용
+
+`styles/site-spacing.css`가 본문 간격의 공통 소유자다. `lib/site-spacing.ts`의 역할 표를 디자인 기준과 컴포넌트 페이지가 함께 표시하고 `check:site-ui`에서 CSS 값과 표의 일치, SitePage 연결, stack의 중복 margin 제거, 푸터 연결을 검사한다. CSS 자동 감사는 페이지/컴포넌트에서 `--site-space-*`, `--site-surface-inset`을 덮어쓰는 것도 차단한다. 새 페이지는 SitePage와 의미별 stack을 사용하고 기존 공통 카드·푸터를 상속한다. 정적 검사만으로 실제 모든 간격을 증명하지는 않으므로 새 구성도 모바일 줄바꿈·overflow를 브라우저에서 확인한다.

@@ -37,6 +37,7 @@ test("tab and field appearance uses shared APIs even through aliased controls an
   assert.ok(audit([["components/NewView.tsx", 'import {Input} from "@/app/components/ui/input"; export default function View(){return <Input style={{borderRadius:48}}/>}']]).some(item => item.rule === "control-appearance"));
   assert.ok(audit([["components/view.css", '.outer .site-area-tab { padding: 0; }']]).some(item => item.rule === "control-css"));
   assert.ok(audit([["components/view.css", '.outer { --ui-tab-inactive-text: black; }']]).some(item => item.rule === "shared-token"));
+  assert.ok(audit([["components/view.css", '.outer { --site-space-group: 1px; }']]).some(item => item.rule === "shared-token"));
 });
 
 test("CSS checks target the control itself and do not treat an ancestor's body copy as a control", () => {

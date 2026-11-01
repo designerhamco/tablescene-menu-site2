@@ -210,3 +210,9 @@
 .sectionHeader h2 { min-width: 0; }
 .sectionHeader > a { flex-shrink: 0; }
 .noticeState { border-radius: var(--ui-radius-surface); background: var(--ui-surface-muted); color: var(--ui-text-muted); padding: 2rem 1rem; font-size: var(--type-body-sm-size); line-height: 1.6; }
+
+@media (max-width: 767px) {
+  .search { margin-bottom: var(--site-space-group); }
+  .searchResultsHeader, .sectionHeader, .listTitle { margin-bottom: var(--site-space-group); }
+  .resultCount { margin-block: var(--site-space-group) var(--site-space-copy); }
+}
