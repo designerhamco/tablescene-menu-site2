@@ -1,6 +1,7 @@
 "use client";
 
-import { ALBUM_IMAGE_RATIOS, unifiedAppearanceRadius, withUnifiedAppearanceRadius } from "@/lib/menu-appearance";
+import { ALBUM_IMAGE_RATIOS, withUnifiedAppearanceRadius } from "@/lib/menu-appearance";
+import type { PreviewRenderedDesign } from "@/lib/menu-preview-rendered-design";
 import { KOREAN_FONT_OPTIONS, getAvailableEnglishFontsForTemplate, getEnglishFontOption, getKoreanFontOption } from "@/lib/font-options";
 import { type PreviewDesign, type PreviewDesignDefaults, type PreviewFontChoice } from "@/lib/menu-preview-design";
 import { resolvePreviewChipColors, type PreviewChipColors } from "@/lib/menu-preview-chip-colors";
@@ -10,9 +11,10 @@ import ImageRadiusSelect from "./ImageRadiusSelect";
 import PreviewColorPicker from "./PreviewColorPicker";
 import styles from "./PreviewDesignOptions.module.css";
 
-export default function PreviewDesignOptions({ value, defaults, templateKey, album, dining, disabled, alignmentDisabled = false, onChange }: {
+export default function PreviewDesignOptions({ value, defaults, renderedDesign, templateKey, album, dining, disabled, alignmentDisabled = false, onChange }: {
   value: PreviewDesign;
   defaults: PreviewDesignDefaults;
+  renderedDesign?: PreviewRenderedDesign;
   templateKey: string;
   album: boolean;
   dining: boolean;
@@ -28,10 +30,10 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
       [group]: color },
   });
   const colorDefault = (group: MenuTextColorGroup) => (group === "information" && value.textColorGroupsVersion !== 2 ? value.textColors?.supporting : undefined) ?? defaults.textColors[group]
+    ?? renderedDesign?.nativeTextColors[group]
     ?? value.fonts?.[group === "brand" || group === "category" ? group : "other"]?.color
     ?? (dining && group === "representative" ? value.coverDescriptionColor ?? defaults.colors.coverDescription : defaults.textColorDefaults[group]);
   const appearance = { ...defaults.appearance, imageRadii: { ...defaults.appearance.imageRadii, ...value.imageRadii }, chipShape: value.chipShape ?? defaults.appearance.chipShape };
-  const radius = unifiedAppearanceRadius(appearance, !dining);
   const chipColors = resolvePreviewChipColors(value.chipColors ?? {});
   const setChipColor = (key: keyof PreviewChipColors, color?: string) => {
     const next = { ...value.chipColors, [key]: color };
@@ -56,7 +58,7 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
     </div></fieldset>
     <fieldset><legend className={styles.legend}>글자색</legend><div className={styles.colorGrid} data-preview-font-groups>{MENU_TEXT_COLOR_GROUPS.map(group => {
       const label = MENU_TEXT_COLOR_LABELS[group];
-      return <PreviewColorPicker key={group} label={label} accessibleLabel={`${label} 글자색`} value={value.textColors?.[group]} defaultColor={colorDefault(group)} onChange={color => textColor(group, color)} disabled={disabled} />;
+      return <PreviewColorPicker key={group} label={label} accessibleLabel={`${label} 글자색`} value={value.textColors?.[group]} defaultColor={colorDefault(group)} onChange={color => textColor(group, color)} disabled={disabled} loading={!renderedDesign} />;
     })}</div></fieldset>
     {album ? <fieldset className={styles.albumRatio}><legend className={styles.legend}>앨범형 상품 이미지</legend><label className={styles.option}>상품 이미지 비율<select aria-label="앨범형 상품 이미지 비율" value={value.albumImageRatio ?? defaults.appearance.albumImageRatio} onChange={event => set({ albumImageRatio: event.target.value as PreviewDesign["albumImageRatio"] })} disabled={disabled} className={styles.select}>{ALBUM_IMAGE_RATIOS.map(ratio => <option key={ratio} value={ratio}>{ratio}</option>)}</select></label></fieldset> : null}
     {!dining ? <fieldset data-preview-chip-colors><legend className={styles.legend}>텍스트칩 색상</legend>
@@ -72,11 +74,14 @@ export default function PreviewDesignOptions({ value, defaults, templateKey, alb
       </div>
     </fieldset> : null}
     {!dining ? <fieldset data-preview-representative-alignment><legend className={styles.legend}>가게명·가게 설명 정렬</legend>
-      <label className={styles.option}><select aria-label="가게명·가게 설명 정렬" value={alignmentDisabled ? "template" : value.representativeAlignment ?? "template"} disabled={disabled || alignmentDisabled} className={styles.select} onChange={event => set({ representativeAlignment: event.target.value === "template" ? undefined : event.target.value as PreviewDesign["representativeAlignment"] })}><option value="template">템플릿 기본값</option>{REPRESENTATIVE_ALIGNMENTS.map(align => <option key={align} value={align}>{{ left: "왼쪽 정렬", center: "가운데 정렬", right: "오른쪽 정렬" }[align]}</option>)}</select></label>
+      <label className={styles.option}><select aria-label="가게명·가게 설명 정렬" value={renderedDesign?.alignment.value ?? "current"} disabled={disabled || alignmentDisabled || !renderedDesign} className={styles.select} onChange={event => { if (REPRESENTATIVE_ALIGNMENTS.includes(event.target.value as PreviewDesign["representativeAlignment"] & string)) set({ representativeAlignment: event.target.value as PreviewDesign["representativeAlignment"] }); }}>
+        {REPRESENTATIVE_ALIGNMENTS.map(align => <option key={align} value={align}>{{ left: "왼쪽 정렬", center: "가운데 정렬", right: "오른쪽 정렬" }[align]}</option>)}
+        {(!renderedDesign || renderedDesign.alignment.value === "current") ? <option value="current">{renderedDesign?.alignment.label ?? "설정 확인 중"}</option> : null}
+      </select></label>
       {alignmentDisabled ? <p className={styles.hint}>상단행 고정형은 가게명 중앙·가게 설명 왼쪽 정렬을 유지합니다.</p> : null}
     </fieldset> : null}
     <fieldset data-preview-image-radii><legend className={styles.legend}>이미지·텍스트칩 라운드</legend>
-      <label className={styles.option}><span>광고·{!dining ? "대표·" : ""}위젯·상품 이미지·텍스트칩</span><ImageRadiusSelect label="이미지·텍스트칩" radius={radius.radius} mixed={radius.mixed} disabled={disabled} className={styles.select}
+      <label className={styles.option}><span>광고·{!dining ? "대표·" : ""}위젯·상품 이미지·텍스트칩</span><ImageRadiusSelect label="이미지·텍스트칩" selection={renderedDesign?.radius ?? {value:"current",label:"설정 확인 중"}} showTemplateOption={false} disabled={disabled || !renderedDesign} className={styles.select}
         onChange={next => {
           const unified = withUnifiedAppearanceRadius(appearance, next, !dining);
           set({ imageRadii: next === undefined ? undefined : unified.imageRadii, chipShape: next === undefined ? undefined : unified.chipShape });

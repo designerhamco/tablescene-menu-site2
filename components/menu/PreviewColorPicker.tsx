@@ -6,13 +6,14 @@ import { RotateCcw, X } from "lucide-react";
 import { hexToHsv, hsvToHex, type HSV } from "@/lib/color-picker";
 import styles from "./PreviewColorPicker.module.css";
 
-export default function PreviewColorPicker({ label, accessibleLabel = label, value, defaultColor = "#FFFFFF", onChange, disabled }: {
+export default function PreviewColorPicker({ label, accessibleLabel = label, value, defaultColor = "#FFFFFF", onChange, disabled, loading = false }: {
   label: string;
   accessibleLabel?: string;
   value?: string;
   defaultColor?: string | null;
   onChange: (value?: string) => void;
   disabled: boolean;
+  loading?: boolean;
 }) {
   const id = useId(), current = value ?? defaultColor;
   const [draftEmpty, setDraftEmpty] = useState(current === null);
@@ -63,12 +64,12 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
     const rect = event.currentTarget.getBoundingClientRect();
     update({ ...colorRef.current, s: Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)), v: 1 - Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height)) });
   };
-  return <div className={styles.field} data-preview-color-field>
+  return <div className={styles.field} data-preview-color-field aria-busy={loading || undefined}>
     <span className={styles.fieldLabel}>{label}</span>
     <Popover.Root open={open} onOpenChange={next => {
       if (next) startDraft(current); else setOpen(false);
     }}>
-      <Popover.Trigger asChild><button type="button" aria-label={`${accessibleLabel} 선택`} title={current === null ? "색상 없음" : current} data-color-empty={current === null ? "true" : undefined} disabled={disabled} className="site-color-swatch"><span className={current === null ? styles.noColor : undefined} style={{ backgroundColor: current ?? undefined }} /></button></Popover.Trigger>
+      <Popover.Trigger asChild><button type="button" aria-label={`${accessibleLabel} 선택`} title={loading ? "템플릿 색상 확인 중" : current === null ? "색상 없음" : current} data-color-empty={current === null ? "true" : undefined} disabled={disabled || loading} className="site-color-swatch"><span className={loading ? styles.loadingColor : current === null ? styles.noColor : undefined} style={{ backgroundColor: loading ? undefined : current ?? undefined }} /></button></Popover.Trigger>
       <Popover.Portal><Popover.Content className={styles.popover} align="start" sideOffset={6} collisionPadding={12} aria-label={`${accessibleLabel} 컬러피커`} data-preview-color-picker>
         <div className={styles.heading}><span>{accessibleLabel}</span><Popover.Close asChild><button type="button" aria-label="컬러피커 닫기" className="site-button site-button-ghost site-button-icon site-button-compact"><X size={16} aria-hidden="true" /></button></Popover.Close></div>
         {draftEmpty ? <p className={styles.emptyStatus}><span className={styles.noColor} aria-hidden="true" />색상 없음</p> : null}
@@ -102,7 +103,7 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
         </div>
       </Popover.Content></Popover.Portal>
     </Popover.Root>
-    <button type="button" className="site-button site-button-ghost site-button-icon site-button-compact" aria-label={`${accessibleLabel} 기본색 복원`} title="템플릿 기본색 복원" disabled={disabled || !value}
+    <button type="button" className="site-button site-button-ghost site-button-icon site-button-compact" aria-label={`${accessibleLabel} 기본색 복원`} title="템플릿 기본색 복원" disabled={disabled || loading || !value}
       onPointerDown={event => event.preventDefault()} onClick={() => startDraft(defaultColor, true)}><RotateCcw size={15} strokeWidth={1.7} aria-hidden="true" /></button>
   </div>;
 }
