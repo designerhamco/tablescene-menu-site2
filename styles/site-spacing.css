@@ -1,0 +1,39 @@
+/* Official-site spacing only. Customer menu engines keep their own geometry. */
+:root {
+  --site-space-copy: .5rem;
+  --site-space-title-copy: .75rem;
+  --site-space-block: 1rem;
+  --site-space-group: 1.5rem;
+  --site-space-content: 2rem;
+  --site-space-card: 3rem;
+  --site-space-section: 4rem;
+  --site-surface-inset: 1.25rem;
+}
+
+.site-support-actions { margin-top: 1.25rem; }
+
+/* Opt-in body composition. SitePage owns the title and first-content boundary. */
+.site-stack-copy, .site-stack-block, .site-stack-group, .site-stack-content, .site-stack-section {
+  display: grid;
+  min-width: 0;
+}
+.site-stack-copy { gap: var(--site-space-copy); }
+.site-stack-block { gap: var(--site-space-block); }
+.site-stack-group { gap: var(--site-space-group); }
+.site-stack-content { gap: var(--site-space-content); }
+.site-stack-section { gap: var(--site-section-space); }
+.site-stack-copy > *, .site-stack-block > *, .site-stack-group > *, .site-stack-content > *, .site-stack-section > * { margin-block: 0; }
+
+@media (max-width: 767px) {
+  .site-support-actions { margin-top: var(--site-space-block); }
+  .site-catalog-plan { padding-block: var(--site-space-group); }
+  .site-catalog-surface { padding: var(--site-surface-inset); }
+  .site-catalog-layout { gap: var(--site-space-content); }
+  .site-catalog-results-toolbar { gap: var(--site-space-copy); margin-bottom: var(--site-space-group); }
+  .site-catalog-results .site-template-grid { row-gap: var(--site-space-card); }
+  .site-catalog-results .site-template-card > :last-child { padding-top: var(--site-space-block); }
+  .site-catalog-results .site-template-category { margin-top: var(--site-space-copy); }
+  .site-catalog-results .site-template-description { margin-top: var(--site-space-copy); }
+  .site-pagination { margin-top: var(--site-space-content); }
+  .site-catalog-consultation { margin-top: var(--site-space-section); }
+}

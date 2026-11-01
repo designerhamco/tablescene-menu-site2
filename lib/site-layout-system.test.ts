@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { SITE_MOBILE_MAX_WIDTH, SITE_MOBILE_SPACING } from "./site-spacing";
 
 const globalsSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 const uiSystemSource = readFileSync(new URL("../styles/ui-system.css", import.meta.url), "utf8");
@@ -109,4 +110,33 @@ test("메뉴 편집기 상단 바로가기는 모바일에서 한 열 전체 폭
   assert.match(uiSystemSource, /\.site-editor-header-actions \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\)[\s\S]*?width: 100%/);
   assert.match(uiSystemSource, /\.site-editor-header-actions > :is\(button, a\) \{[\s\S]*?width: 100%/);
   assert.match(uiSystemSource, /@media \(min-width: 640px\) \{[\s\S]*?\.site-editor-header-actions \{[\s\S]*?display: flex[\s\S]*?width: auto/);
+});
+
+
+test("mobile spacing documentation and live CSS use the same canonical roles", () => {
+  const source = readSource("../styles/site-spacing.css");
+  for (const item of SITE_MOBILE_SPACING) {
+    const declaration = source.match(new RegExp(`${item.token}:\\s*([.\\d]+)rem;`));
+    assert.ok(declaration, item.token);
+    assert.equal(Number(declaration[1]), item.rem, item.token);
+    assert.equal(item.rem * 16 % 4, 0, `${item.token} follows the 4px scale`);
+  }
+  assert.match(source, new RegExp(`@media \\(max-width: ${SITE_MOBILE_MAX_WIDTH}px\\)`));
+  assert.match(globalsSource, /@import "..\/styles\/site-spacing.css"/);
+  assert.match(globalsSource, /--site-page-title-description-gap: var\(--site-space-title-copy\)/);
+  assert.match(globalsSource, /--site-page-intro-content-gap: var\(--site-space-content\)/);
+  assert.match(readSource("../components/design-system/SiteSpacingRules.tsx"), /SITE_MOBILE_SPACING.map/);
+  assert.match(readSource("../components/design-system/SiteSystemRules.tsx"), /<SiteSpacingRules/);
+});
+
+test("shared mobile stacks own sibling gaps without duplicate child margins", () => {
+  const source = readSource("../styles/site-spacing.css");
+  for (const role of ["copy", "block", "group", "content"]) {
+    assert.ok(source.includes(`.site-stack-${role} { gap: var(--site-space-${role}); }`));
+  }
+  assert.match(source, /site-stack-section > \* \{ margin-block: 0; \}/);
+  const footer = readSource("../app/components/layout/Footer.module.css");
+  assert.match(footer, /\.mobileSections \{ display: grid; margin-top: var\(--site-space-content\)/);
+  assert.match(footer, /padding: var\(--site-space-content\) var\(--site-space-group\) 0/);
+  assert.doesNotMatch(footer, /@media \(max-width: 639px\)/);
 });

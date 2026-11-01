@@ -59,7 +59,7 @@ test("모바일 푸터는 핵심 정보만 먼저 보이고 상세 묶음은 기
   assert.match(footerSource, /<summary><span>사업자 정보<\/span><ChevronDown/);
   assert.doesNotMatch(footerSource, /<details[^>]*\sopen/);
   assert.match(footerStyles, /\.mobileSections \{ display: none; \}/);
-  assert.match(footerStyles, /@media \(max-width: 639px\) \{[\s\S]*?\.desktopNavigation, \.desktopBusiness \{ display: none; \}/);
+  assert.match(footerStyles, /@media \(max-width: 767px\) \{[\s\S]*?\.desktopNavigation, \.desktopBusiness \{ display: none; \}/);
   assert.match(footerStyles, /\.disclosure\[open\] summary svg \{ transform: rotate\(180deg\); \}/);
 });
 
