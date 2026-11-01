@@ -84,3 +84,7 @@ Four album reviews extend the six default list designs through an explicit `item
 ## 2026-10-21 저장 배경·대표영역 설정
 
 `menu-design-surfaces.ts`가 메뉴관리 배경/정렬의 검증·기본값·비파괴 JSON 적용을 맡는다. `MenuSurfaceSettingsForm`은 기존 컬러피커를 쓰고, 권한 확인된 디자인 서버 액션이 저장한다. `MenuAppearanceScope`는 저장 배경·대표영역 정렬·다이닝 커버 소개색과 모바일 내비게이션 대비를 렌더러에 연결한다. 베이직 패널 geometry는 기존 contained 구조를 재사용하며 메뉴 가격·안내 앵커·독립 모바일 읽기 규칙은 바꾸지 않는다. 다이닝 커버 배경은 기존 최상위 키 하나를 재사용하고 디자인 스냅샷에서 복원한다. 검수는 `docs/menu-editor-color-plan.md`를 따른다.
+
+## Category ink ownership — 2026-11-01
+
+Category color owns category names, category descriptions and category-related ornaments on every device. `MenuAppearanceScope.module.css` links saved/preview/legacy overrides and excludes category descriptions from supporting ink. The shared Basic global rule links native heading/description/divider ink; `CategoryTitle` and BREW CHAPTER mark descriptions with `data-cafe-a-category-description`. New standalone ornaments use `data-menu-category-decoration` and `currentColor` for painted borders/gradients/SVG geometry. Dining course headings/descriptions/rules and Display category rules keep their native geometry while sharing their category ink. Description typography and unrelated colors remain separate. See `template-spacing-contract.md` for the required contract.

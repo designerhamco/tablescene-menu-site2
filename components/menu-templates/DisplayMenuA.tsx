@@ -116,7 +116,6 @@ const DISPLAY_TEXT_COLOR = "#17211F";
 const DISPLAY_MUTED_TEXT_COLOR = "#5F6F6B";
 const DISPLAY_COOL_ACCENT_COLOR = "#007C89";
 const DISPLAY_COOL_ACCENT_SOFT_COLOR = "#D7F4F3";
-const DISPLAY_COOL_ACCENT_BORDER_COLOR = "#88DAD7";
 const DISPLAY_KOREAN_TEXT_FONT_STYLE: CSSProperties = {
   fontFamily: "var(--menu-font-ko), var(--menu-font-en), system-ui, sans-serif",
 };
@@ -1079,7 +1078,7 @@ function CategoryBlock({
             </div>
           ) : null}
         </div>
-        <div className="cafe-a-category-rule border-b border-[var(--display-accent-border-color)]" style={densityConfig.categoryRuleStyle} />
+        <div className="cafe-a-category-rule border-b border-[var(--display-accent-color)]" style={densityConfig.categoryRuleStyle} />
       </div>
       <div
         className="cafe-a-category-items grid grid-cols-1"
@@ -1638,7 +1637,6 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
     "--display-muted-text-color": DISPLAY_MUTED_TEXT_COLOR,
     "--display-accent-color": DISPLAY_COOL_ACCENT_COLOR,
     "--display-accent-soft-color": DISPLAY_COOL_ACCENT_SOFT_COLOR,
-    "--display-accent-border-color": DISPLAY_COOL_ACCENT_BORDER_COLOR,
   } as CSSProperties;
   const fontSizeScale = getFontSizeMultiplier(typographySettings.font_size_scale_key, props.menuSite.template_key);
   const timeSaleNowMs = useDisplayTimeSaleNowMs(props.timeSales, props.initialNowMs);

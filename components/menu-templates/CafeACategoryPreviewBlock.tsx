@@ -37,7 +37,7 @@ export default function CafeACategoryPreviewBlock({
       <div className={styles.heading} data-cafe-a-category-heading>
         <h3 className={styles.title}>{block.category.name}</h3>
       </div>
-      {block.category.description ? <p className={styles.description}>{block.category.description}</p> : null}
+      {block.category.description ? <p className={styles.description} data-cafe-a-category-description="">{block.category.description}</p> : null}
       <div className={styles.items}>
         {block.category.items.map((item) => (
           <div key={item.id} className={styles.item} data-cafe-a-menu-item>
