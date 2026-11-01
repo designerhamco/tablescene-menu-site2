@@ -7,7 +7,7 @@ const browser=await chromium.launch();
 const page=await browser.newPage({viewport:{width:1440,height:1000}});
 page.setDefaultTimeout(20000);page.setDefaultNavigationTimeout(90000);
 const errors=[];page.on('pageerror',error=>errors.push(error.message));
-const labels=['가게명','카테고리명','상품 기본정보','대표영역 설명','메뉴영역 설명','안내사항·위젯텍스트'];
+const labels=['가게명','카테고리명','메뉴 기본정보','가게 설명·안내','메뉴 설명','하단 안내·위젯'];
 const groups=['brand','category','product','representative','supporting','information'];
 const results=[];
 async function ready(){
@@ -20,7 +20,7 @@ async function ready(){
   await expect(page.getByRole('combobox',{name:'이미지·텍스트칩 라운드',exact:true})).toBeEnabled({timeout:20000});
 }
 async function ink(){return page.frameLocator('iframe').locator('body').evaluate(body=>{
-  const selectors=[['.cafe-a-store-title','.aube-table-cover h1'],['.cafe-a-category-title','.aube-table-course-header h2','.aube-table-course-title h2'],['.cafe-a-menu-title','.aube-table-item-heading h3'],['.cafe-a-store-description','.cafe-a-topline-description','.aube-table-cover-description'],['.cafe-a-menu-description:not(.cafe-a-store-description):not([data-cafe-a-store-description]):not(.cafe-a-time-sale-time-text)','.aube-table-item-description'],['[data-cafe-a-footer-info] .cafe-a-description-text','[data-native-notices]','.cafe-a-topline-notice-text']];
+  const selectors=[['.cafe-a-store-title','.aube-table-cover h1'],['.cafe-a-category-title','.aube-table-course-header h2','.aube-table-course-title h2'],['.cafe-a-menu-title','.aube-table-item-heading h3'],['.cafe-a-store-description','.cafe-a-topline-description','.aube-table-cover-description'],['.cafe-a-menu-description:not([data-cafe-a-category-description]):not(.cafe-a-store-description):not([data-cafe-a-store-description]):not(.cafe-a-time-sale-time-text)','.aube-table-item-description'],['[data-cafe-a-footer-info] .cafe-a-description-text','[data-native-notices]','.cafe-a-topline-notice-text']];
   return selectors.map(list=>{for(const selector of list){const node=[...body.querySelectorAll(selector)].find(e=>e.getBoundingClientRect().width&&e.getBoundingClientRect().height&&getComputedStyle(e).visibility==='visible'&&!e.closest('[aria-hidden="true"],[data-cafe-a-reference-copy]'));if(node){const raw=getComputedStyle(node).color.match(/[\d.]+/g);return raw?'#'+raw.slice(0,3).map(n=>Math.round(Number(n)).toString(16).padStart(2,'0')).join('').toUpperCase():null;}}return null;});
 });}
 async function swatches(){return Promise.all(labels.map(label=>page.getByRole('button',{name:`${label} 글자색 선택`,exact:true}).getAttribute('title')));}

@@ -5,10 +5,10 @@ The catalog preview and menu editor now expose the same six optional color group
 | Control | Ownership |
 | --- | --- |
 | 가게명 | Store text identity |
-| 카테고리명 | Category headings and price-option names, including inline option labels |
+| 카테고리명 | Category headings, category descriptions, category-owned lines/ornaments and price-option names, including inline option labels |
 | 메뉴 기본정보 | Product/featured name, selling price and price explanation |
 | 가게 설명·안내 | Store description and notices physically inside the representative surface |
-| 메뉴 설명 | Secondary names and product/category descriptions |
+| 메뉴 설명 | Secondary names and product descriptions |
 | 하단 안내·위젯 | Menu-area notices and widget title/body |
 
 Missing groups preserve the original native/legacy role colors. Representative image/placeholder featured names and prices retain white, descriptions white at 82%; chips and sold-out attenuation remain independent. Price notes such as ICE ONLY follow product ink, while real option labels follow category ink. Legacy five-group settings preserve their combined notice/widget color until edited; new six-group edits use `textColorGroupsVersion: 2` so an absent/reset information color stays native. New color changes do not rewrite font roles, sizes, weights, spacing, customer content or image geometry. Old three-group preview URLs remain supported. The form validator rejects invalid colors before persistence, preserves unrelated Design JSON and supports older forms without the new controls. Both typography/design reset paths clear the new explicit overrides. There is no customer-data migration or schema change.
@@ -44,3 +44,17 @@ Sample-only DOM records were saved outside the worktree under `/private/tmp/menu
 - The new information picker was exercised through its HEX field and Apply button: the iframe URL stayed unchanged during staging, then only menu notices/widget copy received the selected color. Native descriptions and white featured copy stayed intact. Dining A/B cover colors remained correct. No customer record was saved during verification.
 
 Sample evidence is under `/private/tmp/price-note-color-matrix.json` and `/private/tmp/price-color-independence.json` for this session.
+
+## Category ownership — 2026-11-01
+
+Category descriptions move from menu-area supporting ink to the actual category-heading ink. Category-owned lines and ornaments above/below/beside a heading share that exact ink through `currentColor`, including REAL MATCHA's underline, retained category dividers, Dining course rules and Display category rules. Basic description hooks also cover retained shared preview/multi-page primitives. Existing supporting overrides no longer recolor category descriptions. Description fonts, sizes, line heights, spacing and unrelated colors remain independent.
+
+The rendered-design sampler excludes category descriptions when reading the menu-description picker default. New standalone category ornaments use `data-menu-category-decoration`; future template authors must preserve this ownership as specified in AGENTS.md and the shared spacing contract. No new saved field or customer-data migration is required.
+
+Validation: `npm test` (979 passing), TypeScript, changed-file ESLint, `check:site-ui` and Production build passed. `scripts/qa-category-ink.mjs` exercises all 19 active Basic/Dining designer/default/list/album designs with descriptions explicitly enabled, using actual DOM viewports after fonts/layout settle. It compares category descriptions and painted rules to actual heading ink, checks category/supporting independence, native picker defaults and unchanged description typography, and includes legacy/reset/category-only plus narrow/wide Korean/English cases. Display's four visible category rules were separately checked against their heading ink at 1920×1080. Browser traffic rejects API writes.
+
+Final Production-build matrix: 152/152 passed, zero page errors, zero API writes and no horizontal overflow. Actual viewports were PC 1440×900, tablet 1180×820 and mobile 390×844, plus seven native Basic designs at 320×844 Korean / 430×932 English. Paired category/supporting comparisons preserve product-description ink, description font size/line height and the supporting picker's native color. Legacy category colors, category-only edits and reset/native palettes also passed. Evidence: `/private/tmp/category-ink-complete/report.json` and REAL MATCHA screenshots in the same folder.
+
+## Current viewing-option names — 2026-11-01
+
+Keep the released labels: 가게명 / 카테고리명 / 메뉴 기본정보 / 가게 설명·안내 / 메뉴 설명 / 하단 안내·위젯. The category rule adds category descriptions and ornaments to 카테고리명; 메뉴 설명 owns secondary names and product descriptions. Internal six-group keys and saved JSON remain unchanged. Catalog and editor share `MENU_TEXT_COLOR_LABELS`; browser checks and this ownership table use those same current names.

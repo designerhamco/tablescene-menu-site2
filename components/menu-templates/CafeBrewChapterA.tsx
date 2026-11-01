@@ -426,7 +426,7 @@ function MenuUnit({
             <header className="brew-chapter-selected-category-heading">
               <h2 className="brew-chapter-page-heading cafe-a-category-title break-words font-black uppercase"><ScriptAwareText text={activeCategory.name} /></h2>
               {activeCategory.description_visible !== false && activeCategory.description ? (
-                <p className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap cafe-a-menu-description-size-default break-keep text-[#3f4945]"><ScriptAwareText text={activeCategory.description} /></p>
+                <p data-cafe-a-category-description="" className="cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap cafe-a-menu-description-size-default break-keep text-[#3f4945]"><ScriptAwareText text={activeCategory.description} /></p>
               ) : null}
             </header>
             <SharedPriceColumnHeader category={activeCategory} />

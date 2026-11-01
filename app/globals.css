@@ -3333,7 +3333,7 @@ video {
 }
 
 .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-menu-category-top-divider {
-  background-image: radial-gradient(circle, rgb(36 54 156 / 42%) 0 1px, transparent 1.2px);
+  background-image: radial-gradient(circle, currentColor 0 1px, transparent 1.2px);
   background-position: left center;
   background-repeat: repeat-x;
   background-size: clamp(0.34rem, 0.6vmin, 0.46rem) 2px;
@@ -5951,7 +5951,7 @@ video {
 .cafe-a-typography[data-menu-text-colors~="itemName"] :is(.cafe-a-menu-title, .cafe-a-featured-title, .aube-table-item-heading h3) {
   color: var(--menu-role-item-name-color) !important;
 }
-.cafe-a-typography[data-menu-text-colors~="supporting"] :is(.cafe-a-menu-meta:not([data-cafe-a-reference-copy]), .cafe-a-menu-description, .cafe-a-description-text, .cafe-a-price-note, .cafe-a-time-sale-time-text, [data-cafe-a-widget-title], [data-cafe-a-widget-body], .aube-table-page-description, .aube-table-course-description, .aube-table-course-price-description, .aube-table-item-secondary, .aube-table-item-description, .aube-table-cover-description) {
+.cafe-a-typography[data-menu-text-colors~="supporting"] :is(.cafe-a-menu-meta:not([data-cafe-a-reference-copy]), .cafe-a-menu-description, .cafe-a-description-text, .cafe-a-price-note, .cafe-a-time-sale-time-text, [data-cafe-a-widget-title], [data-cafe-a-widget-body], .aube-table-page-description, .aube-table-course-description, .aube-table-course-price-description, .aube-table-item-secondary, .aube-table-item-description, .aube-table-cover-description):not([data-cafe-a-category-description]):not(.aube-table-course-description) {
   color: var(--menu-role-supporting-color) !important;
 }
 .cafe-a-typography[data-menu-text-colors~="price"] :is(.cafe-a-menu-price, .cafe-a-featured-price, .cafe-a-price-label, .cafe-a-time-sale-price, .aube-table-item-price, .aube-table-course-price) {
@@ -6008,4 +6008,13 @@ video {
   --cafe-a-script-en-font: var(--menu-role-category-font-en, var(--menu-font-en)) !important;
   font-family: var(--menu-role-category-font-family, inherit) !important;
   color: var(--cafe-a-category-heading-color, var(--menu-role-category-color, #191c1b)) !important;
+}
+
+/* Category descriptions retain supporting typography, but category-owned ink.
+   Heading borders/pseudo-elements and opt-in ornaments share that same ink. */
+.cafe-a-typography[data-template-key] :is(.cafe-a-category-heading, [data-cafe-a-category-description], [data-cafe-a-category-divider], [data-menu-category-decoration]) {
+  color: var(--menu-text-category, var(--menu-design-category-ink, var(--cafe-a-category-heading-color, var(--menu-role-category-color, #191c1b)))) !important;
+}
+.cafe-a-typography :is([data-cafe-a-category-divider], [data-menu-category-decoration]) {
+  border-color: currentColor;
 }
