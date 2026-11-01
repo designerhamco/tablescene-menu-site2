@@ -2,7 +2,7 @@ import { getDefaultDesignReview } from "./menu-design-policy";
 import { REPRESENTATIVE_ALIGNMENTS, type RepresentativeAlignment } from "./menu-design-surfaces";
 import type { MenuPageData } from "./menu-page-data";
 import { isKoreanFontValue, isEnglishFontValue, getSafeEnglishFontValueForTemplate, type KoreanFontValue, type EnglishFontValue } from "./font-options";
-import { ALBUM_IMAGE_RATIOS, CHIP_SHAPES, IMAGE_RADIUS_KEYS, MAX_IMAGE_RADIUS, readMenuAppearance, type MenuAppearance } from "./menu-appearance";
+import { ALBUM_IMAGE_RATIOS, CHIP_SHAPES, IMAGE_RADIUS_KEYS, MAX_IMAGE_RADIUS, readMenuAppearance, resolveMenuAppearance, type MenuAppearance } from "./menu-appearance";
 import { getCustomTypographySettings, mergeTypographySettings, withCommonTypographyFonts, type TypographyRoleKey } from "./template-typography-presets";
 import { getMenuDesignBackgrounds, getResolvedBackgroundColor, normalizeBackgroundColor } from "./template-background-colors";
 import { getCustomBadgeStyles, mergeBadgeStyles } from "./template-badge-styles";
@@ -95,7 +95,7 @@ export function previewDesignDefaults(data: MenuPageData) {
       cover: normalizeBackgroundColor(data.pageSettings.multi_page_cover_background_color) ?? "#FFFFFF",
       sidebar: backgrounds.sidebar ?? (neutral ? "#F4F5F3" : "#401E24"),
       coverDescription: normalizeBackgroundColor(record(record(data.menuSite.page_settings).design).coverDescriptionColor) ?? (neutral ? "#606561" : "#FFFFFF") },
-    appearance: readMenuAppearance(data.menuSite.page_settings),
+    appearance: resolveMenuAppearance(data.menuSite.page_settings, key, typeof savedDesignId === "string" ? savedDesignId : undefined),
   };
 }
 export type PreviewDesignDefaults = ReturnType<typeof previewDesignDefaults>;

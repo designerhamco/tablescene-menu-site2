@@ -3391,11 +3391,7 @@ video {
   .cafe-a-time-sale-badge
 ) {
   align-items: center;
-  background-image:
-    repeating-linear-gradient(-11deg, rgb(0 0 0 / 8%) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(7deg, rgb(255 255 255 / 18%) 0 1px, transparent 1px 4px);
   border: 0;
-  clip-path: polygon(1% 9%, 8% 2%, 51% 0, 98% 5%, 100% 88%, 95% 100%, 48% 97%, 2% 100%, 0 18%);
   justify-content: center;
   min-block-size: 1.5em;
   text-align: center;

@@ -1,3 +1,4 @@
+import { getTemplateMenuAppearance } from "../menu-appearance";
 import type { MenuPageData } from "@/lib/menu-page-data";
 import { DEFAULT_ENABLED_LOCALES, DEFAULT_LOCALE } from "@/lib/locales";
 import {
@@ -813,7 +814,7 @@ function buildDisplayMenuAQaFixture(qaCase: DisplayMenuAQaCase) {
 }
 
 export function buildDisplayMenuAPreviewData(qaCase: DisplayMenuAQaCase | null = null): MenuPageData {
-  const pageSettings = getDefaultPageSettings();
+  const pageSettings = { ...getDefaultPageSettings(), design: { appearance: getTemplateMenuAppearance("display_menu_a") } };
   const fixture = qaCase ? buildDisplayMenuAQaFixture(qaCase) : null;
   const categories = fixture?.categories ?? [...fullCategories, ...splitCategories];
   const items = fixture?.items ?? starterItems;

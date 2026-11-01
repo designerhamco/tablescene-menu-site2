@@ -1,4 +1,4 @@
-import { IMAGE_RADIUS_PRESETS } from "./menu-appearance";
+import { IMAGE_RADIUS_PRESETS, MENU_SHAPE_PRESETS } from "./menu-appearance";
 import { MENU_TEXT_COLOR_GROUPS, type MenuTextColors, type MenuTextColorGroup } from "./menu-text-colors";
 
 export type PreviewDesignSelection = { value: string; label?: string };
@@ -27,7 +27,7 @@ export function previewRadiusSelection(images: (number|string)[], chips: (number
     return value.trim() ? [value.trim()] : [];
   }))].sort((a,b) => typeof a === "number" && typeof b === "number" ? a-b : String(a).localeCompare(String(b)));
   const imageValues = unique(images), chipValues = unique(chips);
-  const chipRadius = [0, 2, 4, 9999];
+  const chipRadius = Object.values(MENU_SHAPE_PRESETS).map(preset => preset.chipRadius);
   const presets = IMAGE_RADIUS_PRESETS.filter(preset => preset.radius !== undefined);
   // A shared choice describes both image and chip shapes, not a guessed image size.
   const index = presets.findIndex((preset, i) => imageValues.length === 1 && imageValues[0] === preset.radius && chipValues.length <= 1 && (!chipValues.length || chipValues[0] === chipRadius[i]));
@@ -119,5 +119,11 @@ export function readPreviewRenderedDesign(doc: Document): PreviewRenderedDesign 
   const radii = (selector: string) => [...root.querySelectorAll(selector)].filter(visible).map(element => win.getComputedStyle(element).borderTopLeftRadius);
   const images = radii(".ad-viewer-frame, .cafe-a-cover-frame, .cafe-a-cover-hero, .cafe-a-menu-item-image-slot, [data-cafe-a-widget-media], .aube-table-image-trigger");
   const chips = radii(".cafe-a-menu-badge, .cafe-a-featured-badge, .cafe-a-menu-chip, .cafe-a-sold-out-chip, .aube-table-sold-out");
-  return { nativeTextColors, alignment, radius: previewRadiusSelection(images, chips) };
+  // Registered defaults and saved overrides also describe currently unmounted
+  // Dining pages. Do not infer the preset from an unrelated full-bleed cover.
+  const style = win.getComputedStyle(root);
+  const resolvedImages = ["advertisement", ...(root.hasAttribute("data-radius-cover") ? ["cover"] : []), "item", "widget"]
+    .map(key => style.getPropertyValue(`--menu-image-radius-${key}`).trim()).filter(Boolean);
+  const resolvedChip = style.getPropertyValue("--menu-chip-radius").trim();
+  return { nativeTextColors, alignment, radius: previewRadiusSelection(resolvedImages.length ? resolvedImages : images, resolvedChip ? [resolvedChip] : chips) };
 }

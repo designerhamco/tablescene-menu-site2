@@ -2,6 +2,7 @@ import type { StarterPreset } from "@/lib/menu-starter-presets";
 
 export const ONUE_STARTER: StarterPreset = {
   "key": "restaurant",
+  sample_items_visible: true,
   "template_key": "restaurant_onue_a",
   "site": {
     "restaurant_name": "ONUE TABLE",

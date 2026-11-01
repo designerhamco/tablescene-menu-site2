@@ -1,3 +1,5 @@
+import { buildStarterPreviewData } from "./template-starter-preview";
+import type { TemplateKey } from "./templates";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createElement } from "react";
@@ -38,7 +40,7 @@ test("unmodified designer previews retain the exact native data and ignore unrel
   assert.equal(options.imagesPreview, true);
   assert.equal(options.soldOutPreview, true);
   assert.equal(options.popupPreview, false);
-  assert.equal(options.widgetsPreview, false);
+  assert.equal(options.widgetsPreview, true);
   assert.equal(getTemplatePreviewOptions(source, { widgetsPreview: "on" }).widgetsPreview, true);
   assert.equal(source.widgets?.length, 1, "the preview default never removes stored starter content");
 });
@@ -183,9 +185,8 @@ test("Basic preview completes whole-category examples without changing independe
 
 
 test("Mocha alone defaults widgets ON and explicit OFF wins", () => {
-  const source = fixture();
   for (const key of ["cafe_design_a", "cafe_sunday_line_a", "cafe_van_gogh_a", "cafe_round_focus_a", "fast_food_loop_bagel_a", "restaurant_onue_a", "dining_aube_table_a", "dining_aube_table_b", "cafe_mocha_forest_a"]) {
-    source.menuSite.template_key = key;
+    const source = buildStarterPreviewData(key as TemplateKey);
     assert.equal(getTemplatePreviewOptions(source, {}).widgetsPreview, key === "cafe_mocha_forest_a");
     assert.equal(getTemplatePreviewOptions(source, { widgetsPreview: "off" }).widgetsPreview, false);
   }

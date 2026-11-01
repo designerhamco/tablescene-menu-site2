@@ -50,7 +50,7 @@ import PendingSubmitButton from "@/components/mypage/menu-editor/PendingSubmitBu
 import ResetTabActionButton from "@/components/mypage/menu-editor/ResetTabActionButton";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import MenuAppearanceSettingsForm from "@/components/mypage/menu-editor/MenuAppearanceSettingsForm";
-import { readMenuAppearance } from "@/lib/menu-appearance";
+import { resolveMenuAppearance } from "@/lib/menu-appearance";
 import TypographySettingsForm from "@/components/mypage/menu-editor/TypographySettingsForm";
 import AboutDraftSections, { EventDraftSections } from "@/components/mypage/menu-editor/AboutDraftSections";
 import { MENU_FIELD_LIMITS } from "@/lib/menu-limits";
@@ -2577,7 +2577,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         templateKey={site.template_key}
                       />
                     </div>
-                    {(menuCoverCapabilities.coverMode === "section" || isAubeTableTemplate(site.template_key)) ? <MenuAppearanceSettingsForm key={JSON.stringify(readMenuAppearance(site.page_settings))} initial={readMenuAppearance(site.page_settings)} basic={menuCoverCapabilities.coverMode === "section"} album={getDefaultDesignReview(typeof (site.settings as Record<string, unknown> | null)?.menu_design_id === "string" ? (site.settings as Record<string, string>).menu_design_id : undefined, site.template_key)?.itemLayout === "album"} formId="design-settings-form" /> : null}
+                    {(menuCoverCapabilities.coverMode === "section" || isAubeTableTemplate(site.template_key)) ? <MenuAppearanceSettingsForm key={JSON.stringify(resolveMenuAppearance(site.page_settings, site.template_key, typeof (site.settings as Record<string, unknown> | null)?.menu_design_id === "string" ? (site.settings as Record<string, string>).menu_design_id : undefined))} initial={resolveMenuAppearance(site.page_settings, site.template_key, typeof (site.settings as Record<string, unknown> | null)?.menu_design_id === "string" ? (site.settings as Record<string, string>).menu_design_id : undefined)} basic={menuCoverCapabilities.coverMode === "section"} album={getDefaultDesignReview(typeof (site.settings as Record<string, unknown> | null)?.menu_design_id === "string" ? (site.settings as Record<string, string>).menu_design_id : undefined, site.template_key)?.itemLayout === "album"} formId="design-settings-form" /> : null}
                     <FinalActionRow>
                       <ResetTabActionButton menuId={site.id} kind="design" />
                       <SubmitButton tone="final" dirtyFormId="design-settings-form" disabled={isReadOnly}>저장</SubmitButton>

@@ -1,5 +1,11 @@
 # Menu template spacing contract
 
+## Template shape defaults — 2026-11-01
+
+`lib/menu-appearance.ts` owns initial image/chip corners for catalog, provisioning, saved/public renderers, editor and reset. Presets are fixed CSS px across PC/tablet/mobile: square0/0, soft8/2, rounded16/4, round24/pill9999. Mocha Forest and both Dining designs use soft; Loop Bagel uses rounded; the other six native designs (including Display) and all ten neutral designs use square. Representative/product/widget/advertisement frames share that preset. Full-bleed Dining covers and Display promotional images stay square; logo artwork remains untouched. Van Gogh chips use ordinary rectangular silhouettes without scribble clipping or hatch textures; other artwork is preserved. Explicit saved field values take precedence; do not migrate or overwrite customer data. This supersedes native skin-specific corner values and previous mixed-default readouts. Keep font sizes, fit geometry, spacing, chip colors and toolbar positions unchanged.
+
+Catalog data comes from the same registered preset and initial page settings as actual provisioning, including stable-key featured-product links. Neutral samples must not be rebuilt independently in the preview route. Validate all20 catalog choices with the real creation function against an in-memory client; compare displayed content, settings, fonts/colors and shape defaults. Merchant-entered identity/contact data remains authoritative. Explicit catalog demo toggles are temporary and do not become purchase settings.
+
 ## Call button scope — 2026-11-01 (current)
 
 Basic uses the existing horizontal rectangular Call button with its bright menu surface and category-colored ink/border, whether Order is enabled or disabled. Only Dining uses a circular Call button. This supersedes earlier one-page circle and Call-only circle descriptions below. Dining resolves its category color from the same saved/design/native category palette on the cover and every menu page; a missing cover heading must not switch the action to a different accent.
