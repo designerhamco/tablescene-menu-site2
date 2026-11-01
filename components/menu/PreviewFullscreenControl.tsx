@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { Maximize2 } from "lucide-react";
+import { Maximize2, X } from "lucide-react";
 import BrowserZoomGuide from "./MenuPreviewGuide";
 import styles from "./PreviewFullscreenControl.module.css";
 
@@ -67,12 +67,16 @@ export default function PreviewFullscreenControl() {
       </button>
       <button type="button" onClick={() => setGuideOpen(true)} className="site-button site-button-outline">화면 보기 안내</button>
     </div>
-    <dialog ref={dialogRef} aria-labelledby="actual-preview-guide-title" aria-describedby="actual-preview-guide-description"
+    <dialog ref={dialogRef} aria-labelledby="actual-preview-guide-title"
       className={styles.dialog} data-preview-actual-guide=""
       onCancel={(event) => { event.preventDefault(); setGuideOpen(false); }}>
       <div className={styles.content}>
-        <h2 ref={titleRef} tabIndex={-1} className="type-content-title outline-none" id="actual-preview-guide-title">실제 화면 보기 안내</h2>
-        <p className="type-body-sm text-zinc-600" id="actual-preview-guide-description">메뉴판 크기를 조절하거나, 주소창 없이 화면 가득 볼 수 있습니다.</p>
+        <div className={styles.header}>
+          <h2 ref={titleRef} tabIndex={-1} className="type-content-title outline-none" id="actual-preview-guide-title">실제 화면 보기 안내</h2>
+          <button type="button" onClick={() => setGuideOpen(false)} className="site-button site-button-ghost site-button-icon" aria-label="안내 닫기">
+            <X aria-hidden="true" />
+          </button>
+        </div>
         <div className={styles.sections}>
           <section className={styles.section} aria-labelledby="actual-preview-zoom-title">
             <h3 className="type-item-title" id="actual-preview-zoom-title">브라우저 확대·축소</h3>

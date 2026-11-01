@@ -121,6 +121,11 @@ async function inspectPreviewGuide(page) {
     const dialog = actual.getByRole("dialog", { name: "실제 화면 보기 안내" });
     await dialog.waitFor({ state: "visible" });
     await dialog.getByText(/브라우저 오른쪽 상단의 더보기/).waitFor();
+    if (await dialog.getByText("메뉴판 크기를 조절하거나, 주소창 없이 화면 가득 볼 수 있습니다.", { exact: true }).count()) failures.push("actual-screen guide still shows the removed description");
+    await dialog.getByRole("button", { name: "안내 닫기", exact: true }).click();
+    await dialog.waitFor({ state: "hidden" });
+    await actual.getByRole("button", { name: "화면 보기 안내", exact: true }).click();
+    await dialog.waitFor({ state: "visible" });
     await dialog.getByRole("button", { name: "닫기", exact: true }).click();
     if (await dialog.isVisible()) failures.push("actual-screen guide remains visible after close");
   } finally { await actual.close(); }
