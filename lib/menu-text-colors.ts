@@ -2,7 +2,7 @@ import { normalizeBackgroundColor } from "./template-background-colors";
 import { menuSurfaceRecord } from "./menu-design-surfaces";
 import { menuColorContrast } from "./menu-interaction-theme";
 
-export const MENU_TEXT_COLOR_GROUPS = ["brand", "category", "product", "representative", "supporting", "information"] as const;
+export const MENU_TEXT_COLOR_GROUPS = ["brand", "representative", "category", "product", "supporting", "information"] as const;
 export type MenuTextColorGroup = typeof MENU_TEXT_COLOR_GROUPS[number];
 export type MenuTextColors = Partial<Record<MenuTextColorGroup, string>>;
 export const MENU_TEXT_COLOR_LABELS: Record<MenuTextColorGroup, string> = {
