@@ -93,7 +93,10 @@ try{
     await first.getByRole('button',{name:'메뉴판으로 돌아가기',exact:true}).click();await add(page);
     const notice=page.getByRole('dialog',{name:'장바구니 자동 초기화 안내',exact:true});
     await page.clock.fastForward(89000);await expect(notice).not.toBeVisible();
-    await page.clock.fastForward(2000);await expect(notice).toBeVisible();await expect(notice.getByText('30초 뒤 미주문 상품을 비웁니다. 계속 이용하시겠습니까?',{exact:true})).toBeVisible();
+    await page.clock.fastForward(2000);await expect(notice).toBeVisible();await expect(notice.getByText('미주문 상품이 곧 비워집니다. 계속 이용하시겠습니까?',{exact:true})).toBeVisible();
+    const countdown=notice.getByRole('timer',{name:'초기화까지 남은 시간'});
+    await expect(countdown).toContainText('00:29');
+    await page.clock.fastForward(5000);await expect(countdown).toContainText('00:24');
     await page.screenshot({path:out+'/terminal-cart-warning.png'});
     await notice.getByRole('button',{name:'계속 이용하기',exact:true}).click();await expect(notice).not.toBeVisible();
     await page.clock.fastForward(89000);await expect(notice).not.toBeVisible();
