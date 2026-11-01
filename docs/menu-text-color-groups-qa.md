@@ -5,9 +5,9 @@ The catalog preview and menu editor now expose the same six optional color group
 | Control | Ownership |
 | --- | --- |
 | 가게명 | Store text identity |
+| 가게 설명·안내 | Store description and notices physically inside the representative surface |
 | 카테고리명 | Category headings, category descriptions, category-owned lines/ornaments and price-option names, including inline option labels |
 | 메뉴 기본정보 | Product/featured name, selling price and price explanation |
-| 가게 설명·안내 | Store description and notices physically inside the representative surface |
 | 메뉴 설명 | Secondary names and product descriptions |
 | 하단 안내·위젯 | Menu-area notices and widget title/body |
 
