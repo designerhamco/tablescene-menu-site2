@@ -92,16 +92,22 @@ export default function SiteComponentGallery() {
           action={<Button variant="outline" asChild><Link href="/apply"><Plus />메뉴판 만들기</Link></Button>} />
       </TabsContent>)}</Tabs>
     </Examples>
-    <Examples title="노란 말풍선 안내" description="짧은 힌트는 마우스·키보드 포커스로, 추가 안내는 버튼을 눌러 확인합니다. 아티메뉴 노란색과 검정 글자로 표현합니다.">
+    <Examples title="말풍선 툴팁" description="넉넉한 둥근 모서리와 부드러운 꼬리를 공유합니다. 제목은 진하게, 본문은 차분하게 구분하며 밝은형과 어두운형을 제공합니다.">
       <div className={styles.buttonRow}>
-        <Tooltip><TooltipTrigger asChild><Button variant="outline">짧은 도움말 보기</Button></TooltipTrigger><TooltipContent tone="brand" sideOffset={8} collisionPadding={16}>마음에 드는 디자인을 먼저 살펴보세요.</TooltipContent></Tooltip>
-        <HelpTooltip label="템플릿 체험 안내" tone="brand" side="top" align="start" trigger={<Button variant="outline">안내 말풍선 열기</Button>}><strong>미리보기에서 먼저 체험해 보세요.</strong><br />보기 옵션과 디자인 옵션을 바꿔보며<br />우리 매장에 어울리는 구성을 찾을 수 있어요.</HelpTooltip>
+        <Tooltip><TooltipTrigger asChild><Button variant="outline">밝은 툴팁</Button></TooltipTrigger><TooltipContent tone="light" heading="디자인 미리보기">보기 옵션과 디자인 옵션을 바꾸며 우리 매장에 어울리는 구성을 찾아보세요.</TooltipContent></Tooltip>
+        <Tooltip><TooltipTrigger asChild><Button variant="outline">어두운 툴팁</Button></TooltipTrigger><TooltipContent tone="dark" heading="디자인 미리보기">보기 옵션과 디자인 옵션을 바꾸며 우리 매장에 어울리는 구성을 찾아보세요.</TooltipContent></Tooltip>
       </div>
-      <p className="type-body-sm text-zinc-600">닫기·Escape·바깥 클릭으로 닫을 수 있고, 버튼을 누르면 다시 열립니다.</p>
+      <p className="type-body-sm text-zinc-600">짧은 힌트는 마우스를 올리거나 키보드로 포커스하면 표시합니다. 중요한 정보나 실행 버튼은 툴팁 안에 숨기지 않습니다.</p>
+      <div className={styles.buttonRow}>
+        <HelpTooltip label="밝은 도움말 예시" heading="디자인 미리보기" side="top" trigger={<Button variant="outline">밝은 도움말 열기</Button>}>보기 옵션과 디자인 옵션을 바꾸며 우리 매장에 어울리는 구성을 찾아보세요.</HelpTooltip>
+        <HelpTooltip label="어두운 도움말 예시" tone="dark" heading="디자인 미리보기" side="top" trigger={<Button variant="outline">어두운 도움말 열기</Button>}>보기 옵션과 디자인 옵션을 바꾸며 우리 매장에 어울리는 구성을 찾아보세요.</HelpTooltip>
+        <HelpTooltip label="브랜드 도움말 예시" tone="brand" heading="먼저 체험해 보세요" side="top" trigger={<Button variant="outline">브랜드 도움말 열기</Button>}>강조가 필요한 안내에만 노란색을 사용하고, 말풍선의 형태는 동일하게 유지합니다.</HelpTooltip>
+      </div>
+      <p className="type-body-sm text-zinc-600">버튼으로 여는 도움말도 같은 스타일을 사용합니다. Escape·바깥 클릭으로 닫고 다시 열 수 있으며, 어두운형·브랜드형에는 닫기 버튼을 제공합니다.</p>
     </Examples>
     <Examples title="차분한 콘텐츠와 도움말" description="콘텐츠 묶음은 옅은 바탕으로, 추가 설명은 필요한 순간에 열리는 도움말로 구분합니다.">
       <div className="site-collection">
-        <div className={styles.buttonRow}><h3 className="type-content-title">우리 매장에 맞는 디자인 선택</h3><HelpTooltip label="디자인 선택 도움말" tone="dark"><strong>디자인을 먼저 살펴보고</strong><br />우리 매장에 맞는 구성을 선택하세요.</HelpTooltip></div>
+        <div className={styles.buttonRow}><h3 className="type-content-title">우리 매장에 맞는 디자인 선택</h3><HelpTooltip label="디자인 선택 도움말" tone="dark" heading="디자인을 먼저 살펴보세요">미리보기에서 우리 매장에 맞는 구성을 선택할 수 있습니다.</HelpTooltip></div>
         <p className="type-body mt-3 text-zinc-600">사진과 설명을 확인한 뒤 미리보기에서 실제 메뉴판 구성을 볼 수 있습니다.</p>
       </div>
       <Collapsible open={expanded} onOpenChange={setExpanded}>

@@ -22,6 +22,9 @@
   --ui-radius-card-compact: .75rem;
   --ui-radius-surface: .75rem;
   --ui-radius-preview: 1.25rem;
+  --ui-radius-tooltip: 1.75rem;
+  --ui-tooltip-padding-block: 1.25rem;
+  --ui-tooltip-padding-inline: 1.5rem;
   --ui-border: #dbdee3;
   --ui-border-strong: #9fa3ab;
   --ui-surface: #ffffff;
