@@ -234,6 +234,7 @@ export default function PostpayOrderCartDrawer({
   const [phone,setPhone]=useState("");
   const [repeatOrderId,setRepeatOrderId]=useState<string|null>(null);
   const [idleWarning,setIdleWarning]=useState(false),[cartCleared,setCartCleared]=useState(false);
+  const [idleRemainingSeconds,setIdleRemainingSeconds]=useState(TERMINAL_CART_WARNING_MS/1000);
   const access=useCustomerOrderAccess(menuSiteId,channel==="customer",orderExpiresAt,previewOnly);
   useTerminalConnection(menuSiteId,channel==="terminal",previewOnly);
   const activityKey=`${storageKey}:activity`;
@@ -250,7 +251,10 @@ export default function PostpayOrderCartDrawer({
     function interact(){if(!idleWarning){lastActivity.current=Date.now();try{storage.setItem(activityKey,String(lastActivity.current));}catch{}}}
     function tick(){if(submitting||pendingRequestId)return;const idle=Date.now()-lastActivity.current;
       if(idle>=TERMINAL_CART_IDLE_MS){setCart([]);setActiveItem(null);setIdleWarning(false);setCartCleared(true);setPendingRequestId(null);try{storage.setItem(storageKey,"[]");storage.removeItem(activityKey);}catch{}onCountChange(0);}
-      else if(idle>=TERMINAL_CART_IDLE_MS-TERMINAL_CART_WARNING_MS)setIdleWarning(true);
+      else if(idle>=TERMINAL_CART_IDLE_MS-TERMINAL_CART_WARNING_MS){
+        setIdleRemainingSeconds(Math.max(0,Math.ceil((TERMINAL_CART_IDLE_MS-idle)/1000)));
+        setIdleWarning(true);
+      }
     }
     const timer=setInterval(tick,1000);tick();
     for(const name of ["pointerdown","keydown","scroll"])document.addEventListener(name,interact,{passive:true,capture:true});
@@ -615,7 +619,11 @@ export default function PostpayOrderCartDrawer({
       <button type="button" className={`${ui.secondary} w-full px-4 py-3`} onClick={access.dismiss}>{t("메뉴판 계속 보기")}</button>
     </OrderPolicyDialog>
     <OrderPolicyDialog open={idleWarning||cartCleared} title={t(cartCleared?"장바구니를 비웠습니다":"장바구니 자동 초기화 안내")} style={interactionStyle} onDismiss={()=>{if(cartCleared)setCartCleared(false);else touchCart();}}>
-      <p>{t(cartCleared?"오랫동안 조작하지 않아 미주문 상품을 비웠습니다. 이미 접수된 주문은 유지됩니다.":"30초 뒤 미주문 상품을 비웁니다. 계속 이용하시겠습니까?")}</p>
+      <p>{t(cartCleared?"오랫동안 조작하지 않아 미주문 상품을 비웠습니다. 이미 접수된 주문은 유지됩니다.":"미주문 상품이 곧 비워집니다. 계속 이용하시겠습니까?")}</p>
+      {!cartCleared?<div role="timer" aria-label={t("초기화까지 남은 시간")} aria-live="off" className="text-center">
+        <p className="text-xs text-zinc-500">{t("초기화까지 남은 시간")}</p>
+        <p className="mt-1 text-4xl font-semibold leading-none tabular-nums tracking-tight">{String(Math.floor(idleRemainingSeconds/60)).padStart(2,"0")}:{String(idleRemainingSeconds%60).padStart(2,"0")}</p>
+      </div>:null}
       <button type="button" className={`${ui.primary} w-full px-4 py-3`} onClick={()=>{if(cartCleared)setCartCleared(false);else touchCart();}}>{t(cartCleared?"확인":"계속 이용하기")}</button>
     </OrderPolicyDialog>
     <OrderPolicyDialog open={Boolean(repeatOrderId)} title={t("동일한 주문 확인")} style={interactionStyle} onDismiss={()=>setRepeatOrderId(null)}>
