@@ -91,7 +91,7 @@
 .site-help-trigger { flex: none; width: 1.75rem; min-width: 1.75rem; height: 1.75rem; min-height: 1.75rem; border-radius: 50%; padding: 0; font-size: var(--type-caption-size); line-height: 1; vertical-align: middle; }
 
 /* Content uses deliberate grouping; controls keep their visible boundaries. */
-.site-support-actions { display: grid; gap: 1rem; max-width: 56rem; }
+.site-support-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--ui-control-gap); }
 .site-support-action {
   display: flex;
   align-items: center;
@@ -232,9 +232,6 @@
 .site-account-nav-more svg { width: 1rem; height: 1rem; stroke-width: 2; }
 .site-account-nav-more:hover { background: var(--ui-surface-hover); }
 .site-account-nav-more:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
-@media (min-width: 640px) {
-  .site-support-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
 @media (min-width: 1024px) {
   .site-record-layout { grid-template-columns: minmax(0, 1fr) 8rem; gap: 1.5rem; }
   .site-account-layout { grid-template-columns: clamp(17.5rem, 20vw, 20rem) minmax(0, 1fr); gap: 2rem; }

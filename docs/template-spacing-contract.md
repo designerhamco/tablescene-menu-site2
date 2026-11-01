@@ -1,5 +1,9 @@
 # Menu template spacing contract
 
+## Van Gogh default font — 2026-11-01
+
+The registered English default is Belleza; Korean remains Pretendard. Typography presets and initial starter settings read the common font registry, and catalog previews project the same starter. Remove the former Special Elite-specific title padding/line-height adjustment. Preserve customer-saved explicit faces, all existing role sizes/colors, corners and menu ordering. Verify canvas fit after fonts settle on PC/tablet and mobile reading at narrow/wide widths.
+
 ## Template shape defaults — 2026-11-01
 
 `lib/menu-appearance.ts` owns initial image/chip corners for catalog, provisioning, saved/public renderers, editor and reset. Presets are fixed CSS px across PC/tablet/mobile: square0/0, soft8/2, rounded16/4, round24/pill9999. Mocha Forest and both Dining designs use soft; Loop Bagel uses rounded; the other six native designs (including Display) and all ten neutral designs use square. Representative/product/widget/advertisement frames share that preset. Full-bleed Dining covers and Display promotional images stay square; logo artwork remains untouched. Van Gogh chips use ordinary rectangular silhouettes without scribble clipping or hatch textures; other artwork is preserved. Explicit saved field values take precedence; do not migrate or overwrite customer data. This supersedes native skin-specific corner values and previous mixed-default readouts. Keep font sizes, fit geometry, spacing, chip colors and toolbar positions unchanged.

@@ -344,7 +344,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(vanGogh.featured_slides?.length, 0);
   assert.ok(vanGogh.widgets?.every(widget => widget.type === "image_text"));
   const vanGoghTypography = mergeTypographySettings("cafe_van_gogh_a");
-  assert.equal(vanGoghTypography.english_font_key, "special-elite");
+  assert.equal(vanGoghTypography.english_font_key, "belleza");
   for (const role of ["brand", "category", "itemName", "supporting", "price"] as const) {
     assert.equal(vanGoghTypography.typography_roles[role].color, "#000000");
   }
