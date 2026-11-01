@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import PreviewActualView from "./PreviewActualView";
+import { usePreviewRenderedDesign } from "./usePreviewRenderedDesign";
 import { isAubeTableTemplate } from "@/lib/aube-table";
 
 import { fitMenuPreviewFrame } from "@/lib/menu-preview-fit";
@@ -128,6 +129,7 @@ export default function MenuPreviewDeviceFrame(
   const templateQuery = { ...query, previewOptions: optionsTab, designPreview: serializePreviewDesign(designOptions) };
   const toolbarRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0, viewportWidth: 0 });
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -232,6 +234,7 @@ export default function MenuPreviewDeviceFrame(
     device,
     orientation,
   });
+  const renderedDesign = usePreviewRenderedDesign(iframeRef, embeddedUrl, hasDisplayOptions && areDisplayOptionsOpen && optionsTab === "design");
   const detachedUrl = buildPreviewUrl({
     actual: true,
     embedded: true,
@@ -360,7 +363,7 @@ export default function MenuPreviewDeviceFrame(
           </button>
         </header>
         {hasDisplayOptions && templateKey ? <MenuPreviewOptionsPanel open={areDisplayOptionsOpen} onToggle={() => setDisplayOptionsOpenOverride(!areDisplayOptionsOpen)} tab={optionsTab} onTabChange={changeOptionsTab}
-          groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} pending={isPending} templateKey={templateKey} defaults={props.previewDesignDefaults} design={designOptions} onDesignChange={changeDesign} alignmentDisabled={device !== "mobile" && hasFixedHeaderAlignment(templateKey, { menu_design_id: defaultDesign?.id })} album={defaultDesign?.itemLayout === "album"} /> : null}
+          groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} pending={isPending} templateKey={templateKey} defaults={props.previewDesignDefaults} renderedDesign={renderedDesign} design={designOptions} onDesignChange={changeDesign} alignmentDisabled={device !== "mobile" && hasFixedHeaderAlignment(templateKey, { menu_design_id: defaultDesign?.id })} album={defaultDesign?.itemLayout === "album"} /> : null}
       </div>
 
       <section className={styles.stage} data-preview-stage=""
@@ -371,7 +374,7 @@ export default function MenuPreviewDeviceFrame(
           <div className={styles.scaledFrame} style={{ width: fittedFrame.displayWidth, height: fittedFrame.displayHeight }}>
             <div data-preview-frame-shell="" className={styles.frame}
               style={{ width: fittedFrame.width, height: fittedFrame.height, transform: `scale(${fittedFrame.scale})`, visibility: fittedFrame.scale ? "visible" : "hidden" }}>
-              <iframe key={embeddedUrl} src={embeddedUrl}
+              <iframe ref={iframeRef} key={embeddedUrl} src={embeddedUrl}
                 title={`${frame.label}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
                 className="h-full w-full border-0 bg-white" referrerPolicy="no-referrer" />
             </div>

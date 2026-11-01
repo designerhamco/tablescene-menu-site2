@@ -5,11 +5,12 @@ import { ChevronLeft, Palette } from "lucide-react";
 import { getTemplatePreviewOptionGroups } from "@/lib/template-preview-options";
 import type { DefaultDesignOptionKey, DefaultDesignOptions } from "@/lib/default-design-options";
 import type { PreviewDesign, PreviewDesignDefaults } from "@/lib/menu-preview-design";
+import type { PreviewRenderedDesign } from "@/lib/menu-preview-rendered-design";
 import PreviewDesignOptions from "./PreviewDesignOptions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import styles from "./MenuPreviewOptionsPanel.module.css";
 
-export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, pending, templateKey, defaults, design, onDesignChange, album, alignmentDisabled = false }: {
+export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, pending, templateKey, defaults, renderedDesign, design, onDesignChange, album, alignmentDisabled = false }: {
   open: boolean;
   onToggle: () => void;
   tab: string;
@@ -20,6 +21,7 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
   pending: boolean;
   templateKey: string;
   defaults?: PreviewDesignDefaults;
+  renderedDesign?: PreviewRenderedDesign;
   design: PreviewDesign;
   onDesignChange: (value: PreviewDesign) => void;
   album: boolean;
@@ -54,7 +56,7 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
         </fieldset>)}</div>
         </TabsContent>
         <TabsContent value="design" id="preview-design-panel" aria-labelledby="preview-design-tab">
-        {open && defaults ? <PreviewDesignOptions templateKey={templateKey} defaults={defaults} value={design} album={album} dining={templateKey.startsWith("dining_")} disabled={pending} alignmentDisabled={alignmentDisabled} onChange={onDesignChange} /> : null}
+        {open && defaults ? <PreviewDesignOptions templateKey={templateKey} defaults={defaults} renderedDesign={renderedDesign} value={design} album={album} dining={templateKey.startsWith("dining_")} disabled={pending} alignmentDisabled={alignmentDisabled} onChange={onDesignChange} /> : null}
         </TabsContent>
       </Tabs>
     </div>
