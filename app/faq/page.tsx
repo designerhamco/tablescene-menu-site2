@@ -28,7 +28,7 @@ export default async function FAQPage({
       <main className="min-h-screen bg-white text-zinc-950">
         <SupportCenter
           supportActions={
-            <div className="site-support-actions flex flex-wrap justify-center gap-2">
+            <div className="site-support-actions">
               <Link href="/mypage/inquiries" className="site-button site-button-outline">1:1 문의</Link>
               <AiSupportChatOpenButton className="site-button site-button-ai">
                 <SupportChatIcon width={18} height={18} />

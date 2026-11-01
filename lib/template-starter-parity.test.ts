@@ -2,7 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { TemplateKey } from "./templates";
 import { catalogDesigns } from "./catalog-designs";
-import { createStarterMenuData } from "./menu-starter-presets";
+import { createStarterMenuData, getStarterPreset } from "./menu-starter-presets";
+import { getDefaultEnglishFontForTemplate, getDefaultKoreanFontForTemplate } from "./font-options";
 import { buildStarterPreviewData } from "./template-starter-preview";
 import { StarterClient } from "./test-support/starter-provisioning-client";
 import { mergePageSettings } from "../types/menu";
@@ -61,4 +62,18 @@ test("registered corners keep explicit merchant choices and full-bleed exclusion
   assert.equal(getTemplateMenuAppearance("dining_aube_table_a").imageRadii.cover, undefined);
   assert.equal(getTemplateMenuAppearance("cafe_van_gogh_a").chipShape, "square");
   assert.deepEqual(Object.values(MENU_SHAPE_PRESETS).map(preset => [preset.imageRadius, preset.chipRadius]), [[0,0],[8,2],[16,4],[24,9999]]);
+});
+
+test("Van Gogh persists Belleza in its starter and preview while preserving Korean and saved faces", () => {
+  const key = "cafe_van_gogh_a";
+  assert.equal(getDefaultEnglishFontForTemplate(key).value, "belleza");
+  assert.equal(getDefaultKoreanFontForTemplate(key).value, "pretendard");
+  const starter = getStarterPreset(key);
+  const preview = buildStarterPreviewData(key);
+  const expected = { korean_font_key: "pretendard", english_font_key: "belleza", font_size_scale_key: "m" };
+  assert.deepEqual(starter.site.settings?.typography, expected);
+  const resolved = mergeTypographySettings(key, getCustomTypographySettings(preview.menuSite.settings, preview.menuSite.page_settings));
+  assert.equal(resolved.korean_font_key, expected.korean_font_key);
+  assert.equal(resolved.english_font_key, expected.english_font_key);
+  assert.equal(mergeTypographySettings(key, { english_font_key: "special-elite" }).english_font_key, "special-elite");
 });

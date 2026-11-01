@@ -1,4 +1,5 @@
 import { getTemplateMenuAppearance } from "./menu-appearance";
+import { getDefaultEnglishFontForTemplate, getDefaultKoreanFontForTemplate } from "./font-options";
 import { getDefaultDesignReview } from "./menu-design-policy";
 import { getStandardDesignSampleTemplateKey } from "./standard-design-copy";
 import { buildStandardDesignStarter, getStarterTranslationCopy } from "./standard-design-starter";
@@ -1412,6 +1413,11 @@ cafeVanGoghStarterPreset.site = {
     footer_notice_1: "Wi-Fi · VANGOGH_GUEST",
     footer_notice_2: "Instagram · @vangogh.cafe",
     footer_notice_3: "모든 음료는 디카페인 원두로 변경 가능합니다.",
+    typography: {
+      korean_font_key: getDefaultKoreanFontForTemplate("cafe_van_gogh_a").value,
+      english_font_key: getDefaultEnglishFontForTemplate("cafe_van_gogh_a").value,
+      font_size_scale_key: "m",
+    },
   },
 };
 cafeVanGoghStarterPreset.menu_cover_enabled = false;
