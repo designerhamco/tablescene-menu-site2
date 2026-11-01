@@ -43,6 +43,8 @@ export default function DesignFoundations() {
         <tr><td>안쪽 여백</td><td>상하20px / 좌우24px</td><td><code>--ui-tooltip-padding-block / inline</code></td></tr>
         <tr><td>제목 / 본문</td><td>16px·700 / 보조 본문14px·400</td><td><code>--site-type-16 / --type-body-sm-size</code></td></tr>
         <tr><td>표면·그림자</td><td>흰색 / 차콜, 부드러운 그림자</td><td><code>site-tooltip-surface / --site-shadow-tooltip</code></td></tr>
+        <tr><td>꼬리 위치</td><td>기본 왼쪽 아래, 대상·화면 여유에 따라 자동 조정</td><td><code>side / align / alignOffset</code></td></tr>
+        <tr><td>상시 한 줄 안내</td><td>같은 말풍선 형태, 상하10px / 좌우14px</td><td><code>{'HintBubble / data-density="compact"'}</code></td></tr>
         <tr><td>짧은 힌트</td><td>마우스·키보드 포커스</td><td><code>TooltipContent</code></td></tr>
         <tr><td>추가 설명</td><td>클릭·터치로 열기, Escape·바깥 클릭으로 닫기</td><td><code>HelpTooltip</code></td></tr>
       </tbody></table></div><p className="type-footnote text-zinc-600">화면 가장자리에서는 방향과 위치를 자동 조정합니다. 노란 브랜드형도 같은 형태를 사용하며 필요한 강조 안내에만 적용합니다. 알림·선택 목록 같은 일반 팝오버와 고객 메뉴판의 스타일은 별도입니다.</p>

@@ -92,7 +92,7 @@ export default function SiteComponentGallery() {
           action={<Button variant="outline" asChild><Link href="/apply"><Plus />메뉴판 만들기</Link></Button>} />
       </TabsContent>)}</Tabs>
     </Examples>
-    <Examples title="말풍선 툴팁" description="넉넉한 둥근 모서리와 부드러운 꼬리를 공유합니다. 제목은 진하게, 본문은 차분하게 구분하며 밝은형과 어두운형을 제공합니다.">
+    <Examples title="말풍선 툴팁" description="기본은 왼쪽 아래에 꼬리가 있는 말풍선입니다. 실제 대상과 화면 여유에 따라 왼쪽·가운데·오른쪽과 위·아래 방향을 조절하며, 항상 보이는 안내도 같은 형태를 공유합니다.">
       <div className={styles.buttonRow}>
         <Tooltip><TooltipTrigger asChild><Button variant="outline">밝은 툴팁</Button></TooltipTrigger><TooltipContent tone="light" heading="디자인 미리보기">보기 옵션과 디자인 옵션을 바꾸며 우리 매장에 어울리는 구성을 찾아보세요.</TooltipContent></Tooltip>
         <Tooltip><TooltipTrigger asChild><Button variant="outline">어두운 툴팁</Button></TooltipTrigger><TooltipContent tone="dark" heading="디자인 미리보기">보기 옵션과 디자인 옵션을 바꾸며 우리 매장에 어울리는 구성을 찾아보세요.</TooltipContent></Tooltip>
@@ -104,6 +104,9 @@ export default function SiteComponentGallery() {
         <HelpTooltip label="브랜드 도움말 예시" tone="brand" heading="먼저 체험해 보세요" side="top" trigger={<Button variant="outline">브랜드 도움말 열기</Button>}>강조가 필요한 안내에만 노란색을 사용하고, 말풍선의 형태는 동일하게 유지합니다.</HelpTooltip>
       </div>
       <p className="type-body-sm text-zinc-600">버튼으로 여는 도움말도 같은 스타일을 사용합니다. Escape·바깥 클릭으로 닫고 다시 열 수 있으며, 어두운형·브랜드형에는 닫기 버튼을 제공합니다.</p>
+      <div className={styles.buttonRow}>
+        {(["start", "center", "end"] as const).map((align, index) => <HelpTooltip key={align} label={`${["왼쪽", "가운데", "오른쪽"][index]} 꼬리 예시`} heading="상황에 맞는 꼬리 위치" align={align} trigger={<Button variant="outline">{["왼쪽", "가운데", "오른쪽"][index]} 꼬리</Button>}>꼬리는 안내 대상을 가리키고, 화면 가장자리에서는 위치가 자동 조정됩니다.</HelpTooltip>)}
+      </div>
     </Examples>
     <Examples title="차분한 콘텐츠와 도움말" description="콘텐츠 묶음은 옅은 바탕으로, 추가 설명은 필요한 순간에 열리는 도움말로 구분합니다.">
       <div className="site-collection">

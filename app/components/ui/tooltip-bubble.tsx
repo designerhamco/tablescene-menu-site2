@@ -1,5 +1,8 @@
 import * as React from "react";
 
+// Keep the tail clear of the shared 28px rounded corners.
+const TOOLTIP_ARROW_PADDING = 28;
+
 type TooltipBubbleBodyProps = {
   heading?: React.ReactNode;
   children: React.ReactNode;
@@ -21,4 +24,4 @@ const TooltipBubbleArrow = React.forwardRef<SVGSVGElement, React.ComponentPropsW
   },
 );
 
-export { TooltipBubbleBody, TooltipBubbleArrow };
+export { TooltipBubbleBody, TooltipBubbleArrow, TOOLTIP_ARROW_PADDING };
