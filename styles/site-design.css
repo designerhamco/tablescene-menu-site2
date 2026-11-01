@@ -7,6 +7,7 @@
   --site-divider: var(--ui-border);
   --site-tab-indicator-width: .25rem;
   --site-shadow-popover: 0 2px 10px rgb(75 81 91 / 10%), 0 0 2px rgb(75 81 91 / 20%);
+  --site-shadow-tooltip: 0 8px 24px rgb(21 24 30 / 14%), 0 2px 6px rgb(21 24 30 / 6%);
   --space-1: .25rem;
   --space-2: .5rem;
   --space-3: .75rem;
@@ -88,7 +89,6 @@
 .site-editor-template-label { display: inline-flex; min-width: 0; max-width: 100%; align-items: center; gap: .375rem; color: var(--ui-text-muted); font-size: var(--type-caption-size); font-weight: 600; line-height: 1.5; }
 .site-editor-template-label > span { min-width: 0; overflow-wrap: anywhere; }
 .site-help-trigger { flex: none; width: 1.75rem; min-width: 1.75rem; height: 1.75rem; min-height: 1.75rem; border-radius: 50%; padding: 0; font-size: var(--type-caption-size); line-height: 1; vertical-align: middle; }
-.site-help-content { max-width: calc(100vw - 2rem); padding: .875rem; color: var(--ui-text-muted); font-size: var(--type-caption-size); font-weight: 500; line-height: 1.6; }
 
 /* Content uses deliberate grouping; controls keep their visible boundaries. */
 .site-support-actions { display: grid; gap: 1rem; max-width: 56rem; }
@@ -526,21 +526,18 @@
 .site-tabs-even { width: min(100%, 32rem); }
 .site-tabs-even > .site-tab { flex: 1 0 0; min-width: 0; }
 
-/* Explanatory bubbles share geometry and Radix collision/dismissal behavior. */
-.site-help-content:is(.site-help-content-dark, .site-help-content-brand)[data-slot="popover-content"] { border: 0; border-radius: var(--site-bubble-radius, var(--ui-radius-control-rounded)); background: var(--site-bubble-background); padding: 1rem 2.75rem 1rem 1rem; color: var(--site-bubble-foreground); font-size: var(--type-body-sm-size); font-weight: 400; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; box-shadow: var(--site-bubble-shadow, none); }
-.site-help-content-dark { --site-bubble-background: var(--ui-action-hover); --site-bubble-foreground: #fff; --site-bubble-hover: rgb(255 255 255 / 12%); --ui-focus: #fff; }
-.site-help-content-brand { --site-bubble-background: var(--site-accent); --site-bubble-foreground: var(--ui-text); --site-bubble-hover: rgb(21 24 30 / 8%); --site-bubble-radius: .75rem; --site-bubble-shadow: var(--site-shadow-popover); }
-.site-help-content-dark strong { color: var(--site-accent); font-weight: 600; }
-.site-help-content-brand strong { color: inherit; font-weight: 700; }
+/* Hover hints and click help use one borderless speech-bubble surface. */
+.site-tooltip-surface[data-slot] { --site-bubble-background: var(--ui-surface); --site-bubble-foreground: var(--ui-text); --site-bubble-muted: var(--ui-text-muted); --site-bubble-hover: rgb(21 24 30 / 8%); width: max-content; max-width: min(20rem, calc(100vw - 2rem)); border: 0; border-radius: var(--ui-radius-tooltip); background: var(--site-bubble-background); padding: var(--ui-tooltip-padding-block) var(--ui-tooltip-padding-inline); color: var(--site-bubble-muted); font-size: var(--type-body-sm-size); font-weight: 400; line-height: 1.6; text-align: start; word-break: keep-all; overflow-wrap: anywhere; box-shadow: var(--site-shadow-tooltip); }
+.site-tooltip-surface[data-tooltip-tone="dark"] { --site-bubble-background: var(--ui-text); --site-bubble-foreground: var(--ui-surface); --site-bubble-muted: var(--ui-border); --site-bubble-hover: rgb(255 255 255 / 12%); --ui-focus: var(--ui-surface); }
+.site-tooltip-surface[data-tooltip-tone="brand"] { --site-bubble-background: var(--site-accent); --site-bubble-muted: var(--ui-text); }
+.site-tooltip-title { margin: 0 0 .5rem; color: var(--site-bubble-foreground); font-size: var(--site-type-16); font-weight: 700; line-height: 1.5; }
+.site-tooltip-body strong { color: var(--site-bubble-foreground); font-weight: 600; }
+.site-help-content[data-dismissible] { padding-right: 3rem; }
 .site-help-close { position: absolute; top: .5rem; right: .5rem; display: grid; width: 2rem; height: 2rem; place-items: center; border: 0; border-radius: .375rem; background: transparent; color: inherit; cursor: pointer; }
 .site-help-close:hover { background: var(--site-bubble-hover); }
 .site-help-close:active { background: var(--site-bubble-hover); }
 .site-help-close:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 1px; }
-.site-help-arrow { fill: var(--site-bubble-background); }
-
-
-.site-tooltip-brand[data-slot="tooltip-content"] { max-width: min(18rem, calc(100vw - 2rem)); padding: .625rem .875rem; border-radius: .625rem; background: var(--site-accent); color: var(--ui-text); font-size: var(--type-body-sm-size); font-weight: 500; line-height: 1.5; box-shadow: var(--site-shadow-popover); }
-.site-tooltip-arrow { fill: var(--site-accent); }
+.site-tooltip-arrow { display: block; fill: var(--site-bubble-background); }
 
 /* Explicit data and feedback patterns; shared by the gallery and live surfaces. */
 :root { --ui-radius-panel: .75rem; --ui-panel-padding: clamp(1rem, 2vw, 1.5rem); }

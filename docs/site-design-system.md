@@ -120,7 +120,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 - 공식 헤더 탐색은 최신 타이포 토큰의 15–16px를 사용한다. 큰 세그먼트의 모양과 대비는 유지하며 본문·이미지보다 시선을 독점하지 않도록 공통 높이/폭을 사용한다.
 - 판매 목록은 서비스 주요 화면 버튼, 디자인/기본 영역형 탭, 업종 compact 선택, 썸네일 순이다. 기존 PC 사이드 목록/태블릿 select 분기를 제거하고 동일한 선택 컴포넌트를 쓴다. 템플릿과 가격·신청·필터의 데이터 의미는 유지한다.
 
-- 짧은 어두운 도움말은 HelpTooltip tone=dark로 제공한다. 차콜 바탕·흰 본문·노란 핵심 강조, 닫기·Escape·바깥 클릭·화면 충돌 처리를 공통 Popover에 연결한다. 기존 밝은 도움말의 기본값은 유지한다. 옅은 콘텐츠 묶음은 site-collection, 펼치기는 기존 Collapsible와 outline Button을 조합하며 허위 리뷰·가격·상태를 만들지 않는다.
+- 짧은 어두운 도움말은 HelpTooltip tone=dark로 제공한다. 현재 말풍선 형태·색상은 아래 툴팁 공통 기준을 따른다. 닫기·Escape·바깥 클릭·화면 충돌 처리를 공통 Popover에 연결한다. 옅은 콘텐츠 묶음은 site-collection, 펼치기는 기존 Collapsible와 outline Button을 조합하며 허위 리뷰·가격·상태를 만들지 않는다.
 
 
 ## 폐기된 연결형 탭 기록·말풍선·업종 아이콘 (2026-10-25)
@@ -128,9 +128,17 @@ Ghost pagination/icon controls retain transparent background and border when dis
 이 절은 위 표의 디자인/기본 선택 방식을 대체한다. 공통 컴포넌트의 기존 변형은 유지한다.
 
 - 역사 기록: 이 절에서 정의했던 `Tabs variant="contained"`와 파일형·산 모양 윤곽은 2026-10-28 폐기했다. 관련 목록도 현재는 section 영역형로 묶으며 상위 서비스 전환, 업종 필터, 가격·목록·URL·페이지 처리의 의미는 유지한다.
-- `HelpTooltip tone="brand"`는 아티메뉴 노란색·검정 글자·작은 꼬리·닫기 버튼의 안내 말풍선이다. `trigger`, `side`, `align`으로 기준 요소와 방향을 지정한다. 기존 Radix Popover의 Escape·바깥 클릭·포커스 복귀·화면 충돌 처리를 유지한다. 다시 누르면 재진입한다. 짧은 hover/focus 힌트는 `TooltipContent tone="brand"`를 쓰고, 중요한 정보나 조작 버튼을 안에 숨기지 않는다. 기본 light/dark 도움말은 보존한다.
+- `HelpTooltip tone="brand"`는 아티메뉴 노란색·검정 글자의 안내 말풍선이다. `trigger`, `side`, `align`으로 기준 요소와 방향을 지정한다. 기존 Radix Popover의 Escape·바깥 클릭·포커스 복귀·화면 충돌 처리를 유지한다. 다시 누르면 재진입한다. 짧은 hover/focus 힌트는 `TooltipContent`를 쓰고, 중요한 정보나 조작 버튼을 안에 숨기지 않는다. 모든 톤의 형태는 아래 공통 기준을 따른다.
 - 업종 `ChoiceTile`은 Lucide의 단색 선 아이콘을 사용한다. 전체/카페·베이커리/레스토랑·다이닝/일식/바·주점/패스트푸드·분식은 각각 그리드/커피/커틀러리/생선/와인/샌드위치로 구분한다. 아이콘은 장식 요소로 숨기고 버튼의 보이는 이름을 접근성 이름으로 사용한다. OS별 모양이 달라지는 컬러 이모지는 사용하지 않는다.
 - 위 세 요소는 `/design-system`에서 실제 선택·도움말 열기/닫기 예시로 확인한다.
+
+## 툴팁 공통 말풍선 (2026-11-01)
+
+- hover/focus `TooltipContent`와 클릭·터치 `HelpTooltip`은 `site-tooltip-surface`, `TooltipBubbleBody`, `TooltipBubbleArrow`를 공유한다. 일반 Popover·드롭다운·고객 메뉴판에는 이 형태를 일괄 적용하지 않는다.
+- 밝은형은 흰 표면·진한 제목·회색 본문, 어두운형은 차콜 표면·흰 제목·밝은 회색 본문이다. 어두운형의 핵심 문구도 흰색으로 강조한다. `tone="brand"` API는 강조 안내용 노란색으로 유지하되 동일한 형태를 쓴다.
+- `--ui-radius-tooltip` 28px, 상하·좌우 여백은 `--ui-tooltip-padding-block` 20px / `--ui-tooltip-padding-inline` 24px, 최대 너비20rem와 화면 가장자리16px를 사용한다. 외곽 테두리 없이 `--site-shadow-tooltip` 그림자와 24×14px의 둥근 꼬리를 사용한다.
+- 선택적 `heading`은 `--site-type-16` 16px·700, 본문은 `--type-body-sm-size` 14px·400, 제목과 본문 간격8px다. 제목이 없는 기존 필드 도움말도 동일한 표면과 꼬리를 사용한다.
+- `TooltipContent` 기본 톤은 dark, `HelpTooltip` 기본 톤은 light다. Radix의 방향·충돌 처리와 포커스 동작을 보존한다. 클릭형 dark/brand의 닫기 버튼과 Escape·바깥 클릭·재진입도 유지한다. `/design-system`의 기준·토큰과 컴포넌트 라이브러리에 함께 문서화한다.
 
 
 ## 탭 경계·밑줄 검수 보정 (2026-10-26)

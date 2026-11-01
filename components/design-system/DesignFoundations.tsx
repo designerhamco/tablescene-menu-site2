@@ -37,6 +37,16 @@ export default function DesignFoundations() {
     </section>
     <section className={styles.section} aria-labelledby="site-page-rhythm-title"><div className={styles.heading}><h2 id="site-page-rhythm-title" className="type-section-title">일반 페이지 제목과 간격</h2><p className="type-body text-zinc-600">일반 목록·신청·도움말 페이지는 SitePageHeader를 공유합니다. 공개 페이지는 가운데, 관리 화면은 시작 정렬이며 같은 폭에서 제목의 시작 높이와 설명 간격은 같습니다.</p></div><div className={styles.usageTable}><table aria-label="페이지 제목 간격 기준"><thead><tr><th>구간</th><th>공통 기준</th><th>토큰</th></tr></thead><tbody><tr><td>헤더 아래에서 제목 시작</td><td>공통 페이지 상단 여백, 기본40–64px</td><td>--site-page-heading-top</td></tr><tr><td>제목 → 설명</td><td>12px</td><td>--site-page-title-description-gap</td></tr><tr><td>제목 영역 → 첫 콘텐츠</td><td>모바일32px / 태블릿·PC40px</td><td>--site-page-intro-content-gap</td></tr><tr><td>일반 영역 탭</td><td>높이52px / 상하12px / 좌우24px</td><td>site-area-tabs size=md</td></tr></tbody></table></div><p className="type-footnote text-zinc-600">설명이 여러 줄이 되면 첫 콘텐츠가 자연스럽게 내려갑니다. 홍보 히어로·인증 폼·상세 정보 화면은 별도 구성 역할을 유지하며 고객 메뉴판은 이 규칙과 분리합니다.</p></section>
     <WideScreenRules id="wide-screen-foundations" />
+    <section className={styles.section}><div className={styles.heading}><h2 className="type-section-title">툴팁·도움말 기준</h2><p className="type-body text-zinc-600">밝은형과 어두운형은 같은 말풍선 형태를 사용합니다. 제목은 진하게, 본문은 보조 색상으로 구분하며 외곽 테두리 없이 작은 꼬리와 그림자로 표현합니다.</p></div>
+      <div className={styles.usageTable}><table aria-label="툴팁 공통 기준"><thead><tr><th>항목</th><th>공통 기준</th><th>토큰·컴포넌트</th></tr></thead><tbody>
+        <tr><td>모서리</td><td>28px</td><td><code>--ui-radius-tooltip</code></td></tr>
+        <tr><td>안쪽 여백</td><td>상하20px / 좌우24px</td><td><code>--ui-tooltip-padding-block / inline</code></td></tr>
+        <tr><td>제목 / 본문</td><td>16px·700 / 보조 본문14px·400</td><td><code>--site-type-16 / --type-body-sm-size</code></td></tr>
+        <tr><td>표면·그림자</td><td>흰색 / 차콜, 부드러운 그림자</td><td><code>site-tooltip-surface / --site-shadow-tooltip</code></td></tr>
+        <tr><td>짧은 힌트</td><td>마우스·키보드 포커스</td><td><code>TooltipContent</code></td></tr>
+        <tr><td>추가 설명</td><td>클릭·터치로 열기, Escape·바깥 클릭으로 닫기</td><td><code>HelpTooltip</code></td></tr>
+      </tbody></table></div><p className="type-footnote text-zinc-600">화면 가장자리에서는 방향과 위치를 자동 조정합니다. 노란 브랜드형도 같은 형태를 사용하며 필요한 강조 안내에만 적용합니다. 알림·선택 목록 같은 일반 팝오버와 고객 메뉴판의 스타일은 별도입니다.</p>
+    </section>
     <section className={styles.section}><h2 className="type-section-title">탭·세그먼트 사용 기준</h2><div className={styles.usageTable}><table><thead><tr><th>역할</th><th>형태</th><th>적용</th></tr></thead><tbody>
       <tr><td>주요 화면 전환</td><td>텍스트와 문구 너비의 선택 밑줄</td><td>서비스별 목록, 가이드, 편집·운영 설정</td></tr>
       <tr><td>독립 콘텐츠 영역 전환</td><td>화이트 콘텐츠에 연결된 영역형 탭</td><td>디자인 / 기본 템플릿, 결제 / AI 내역, 미리보기 기능 / 디자인</td></tr>
