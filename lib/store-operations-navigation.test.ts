@@ -18,6 +18,14 @@ test("매장 운영은 로그인 헤더에서 제공하고 직원 관리는 마�
   assert.doesNotMatch(sidebarSource, /<ExternalLink/);
   assert.match(navbarSource, /href="\/mypage\/operations"/);
   assert.match(navbarSource, /data-site-header-operations/);
+  const mobileMenuSource = readSource("components/layout/MobileSiteMenu.tsx");
+  const operationsLinks = `${navbarSource}\n${mobileMenuSource}`.match(/<Link\s+href="\/mypage\/operations"[\s\S]*?<\/Link>/g) ?? [];
+  assert.equal(operationsLinks.length, 2);
+  for (const link of operationsLinks) {
+    assert.match(link, /target="_blank"/);
+    assert.match(link, /rel="noopener noreferrer"/);
+    assert.match(link, /<NewWindowIndicator \/>/);
+  }
   assert.match(navbarSource, />\s*매장 운영\s*</);
 });
 

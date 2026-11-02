@@ -56,7 +56,8 @@ try{
    assert.equal(await menu.getByRole('link',{name:'만들기',exact:true}).getAttribute('href'),'/apply');
    assert.equal(await menu.getByRole('link',{name:'알림',exact:true}).getAttribute('href'),'/notifications');
    if(role){await menu.getByText('검증 매장',{exact:true}).waitFor();assert.equal(await menu.getByText(role,{exact:true}).count(),1);await menu.getByText('qa@example.com',{exact:true}).waitFor();
-    for(const label of ['마이 메뉴','매장 운영'])assert.ok(await menu.getByRole('link',{name:label,exact:true}).isVisible());
+    assert.ok(await menu.getByRole('link',{name:'마이 메뉴',exact:true}).isVisible());
+    const operations=menu.getByRole('link',{name:'매장 운영 (새 창으로 열기)',exact:true});assert.ok(await operations.isVisible());assert.equal(await operations.getAttribute('target'),'_blank');assert.equal(await operations.getAttribute('rel'),'noopener noreferrer');
     assert.ok(await menu.getByRole('button',{name:'로그아웃',exact:true}).isVisible());assert.equal(await menu.getByRole('link',{name:'알림',exact:true}).getAttribute('href'),'/notifications');
    }else{for(const label of ['로그인','회원가입'])assert.ok(await menu.getByRole('link',{name:label,exact:true}).isVisible());assert.equal(await menu.getByRole('button',{name:'로그아웃',exact:true}).count(),0);}
    const inside=await menu.evaluate(e=>[...e.querySelectorAll('a,button')].filter(el=>el.getBoundingClientRect().width>0).every(el=>{const r=el.getBoundingClientRect(),b=e.getBoundingClientRect();return r.left>=b.left-1&&r.right<=b.right+1;}));assert.ok(inside,'controls fit drawer width');

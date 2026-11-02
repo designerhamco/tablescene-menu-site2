@@ -11,6 +11,7 @@ import { isStoreOperationsAvailable } from '@/lib/product-focus-policy';
 import { NotificationPanel } from '@/app/components/ui/notification-panel';
 import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/popover';
 import styles from './Navbar.module.css';
+import { NewWindowIndicator } from '@/app/components/ui/new-window-indicator';
 import SupportNavigation from '@/components/layout/SupportNavigation';
 import { SITE_NAV_ITEMS as NAV_ITEMS, isSiteNavItemActive as isNavItemActive, type NavigationAccount } from '@/lib/site-navigation';
 import MobileSiteMenu from '@/components/layout/MobileSiteMenu';
@@ -310,11 +311,13 @@ const Navbar = () => {
             {showStoreOperations ? (
               <Link
                 href="/mypage/operations"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-current={pathname.startsWith('/mypage/operations') ? 'page' : undefined}
-                className={`type-nav ${styles.accountLink}`}
+                className={`type-nav gap-1 ${styles.accountLink}`}
                 data-site-header-operations
               >
-                매장 운영
+                매장 운영 <NewWindowIndicator />
               </Link>
             ) : null}
             {authState.isAuthenticated ? (

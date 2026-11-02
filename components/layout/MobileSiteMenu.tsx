@@ -7,6 +7,7 @@ import { Badge } from "@/app/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/app/components/ui/collapsible";
 import { LoadingState } from "@/app/components/ui/loading-state";
 import { signOutAction } from "@/app/auth/actions";
+import { NewWindowIndicator } from "@/app/components/ui/new-window-indicator";
 import { SITE_NAV_ITEMS, isSiteNavItemActive, type NavigationAccount } from "@/lib/site-navigation";
 import { SITE_SUPPORT_LINKS, isSupportLinkActive } from "@/lib/site-support-navigation";
 import { NOTIFICATION_INBOX_HREF, formatNotificationBadgeCount } from "@/lib/notification-display-policy";
@@ -38,7 +39,7 @@ export default function MobileSiteMenu({ pathname, authenticated, loading, accou
           {accountLoading ? <LoadingState label="계정 정보를 확인 중입니다." inline /> : null}
           <div className={styles.drawerAccountActions}>
             <Link href="/mypage" onClick={close} className="site-button site-button-outline">마이 메뉴</Link>
-            {showOperations ? <Link href="/mypage/operations" onClick={close} className="site-button site-button-outline">매장 운영</Link> : null}
+            {showOperations ? <Link href="/mypage/operations" target="_blank" rel="noopener noreferrer" onClick={close} className="site-button site-button-outline">매장 운영 <NewWindowIndicator /></Link> : null}
           </div>
         </> : <div className={styles.drawerGuest}><p className="type-body-sm">로그인하고 매장 메뉴판을 관리하세요.</p><div className={styles.drawerGuestLinks}><Link href="/sign-in" onClick={close}>로그인</Link><span aria-hidden="true">/</span><Link href="/sign-up" onClick={close}>회원가입</Link></div></div>}
       </section>
