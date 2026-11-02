@@ -133,41 +133,41 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
 
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="dashboard">
-      <div className="site-dashboard space-y-6">
+      <div className="site-stack-group">
         {permissionNotice ? <PermissionNotice message={permissionNotice} /> : null}
         <header>
-          <h2 className="type-subsection-title">{selectedSite.name} 운영 현황</h2>
-          <p className="type-body-sm mt-3 break-keep text-zinc-500">
+          <h2 className="type-section-title">{selectedSite.name} 운영 현황</h2>
+          <p className="mt-3 break-keep text-copy font-normal leading-relaxed text-zinc-600">
             현재 주문과 호출, 테이블 현황을 빠르게 확인합니다.
           </p>
         </header>
 
         {selectedSite.canConfigure && (!access.orders || !access.calls) ? (
-          <AnnouncementBar label="운영 설정">
+          <AnnouncementBar label="운영 설정" surface="muted">
             주문관리·호출관리에서 사용 여부와 항목을 미리 설정할 수 있습니다. 실제 접수는 메뉴판 공개와 운영 연결이 완료된 기능에서 시작됩니다.
           </AnnouncementBar>
         ) : null}
 
         <section className="site-metric-grid" aria-label="매장 운영 요약">
-          <MetricCard icon={<ShoppingBag />} tone="blue"
+          <MetricCard icon={<ShoppingBag />} tone="blue" surface="muted"
             label="진행 중 주문"
             value={orderData ? `${openOrders.length.toLocaleString("ko-KR")}건` : access.orders ? "확인 불가" : "이용 불가"}
             detail={orderData ? `최근 주문 ${orderData.orders.length.toLocaleString("ko-KR")}건` : "주문 기능 활성화 시 표시됩니다."}
             href={access.orders ? `/mypage/menus/${selectedSite.menuSiteId}/orders` : null}
           />
-          <MetricCard icon={<Bell />} tone="brand"
+          <MetricCard icon={<Bell />} tone="brand" surface="muted"
             label="대기 중 호출"
             value={callData ? `${pendingCalls.length.toLocaleString("ko-KR")}건` : access.calls ? "확인 불가" : "이용 불가"}
             detail={callData ? `호출 이력 ${callData.calls.length.toLocaleString("ko-KR")}건` : "호출 기능 활성화 시 표시됩니다."}
             href={access.calls ? `/mypage/menus/${selectedSite.menuSiteId}/calls` : null}
           />
-          <MetricCard icon={<LayoutGrid />} tone="green"
+          <MetricCard icon={<LayoutGrid />} tone="green" surface="muted"
             label="운영 테이블"
             value={tableData ? `${activeTables.length.toLocaleString("ko-KR")}개` : access.tables ? "확인 불가" : "이용 불가"}
             detail={tableData ? `등록 테이블 ${tableData.tables.length.toLocaleString("ko-KR")}개` : selectedSite.canManageQr ? "대표 QR은 QR 관리에서 확인할 수 있습니다." : "테이블 기능 활성화 시 표시됩니다."}
             href={access.tables || selectedSite.canManageQr ? `/mypage/menus/${selectedSite.menuSiteId}/tables` : null}
           />
-          <MetricCard icon={<Ticket />} tone="neutral"
+          <MetricCard icon={<Ticket />} tone="neutral" surface="muted"
             label="활성 대기번호"
             value={pickupData ? `${activePickup.length.toLocaleString("ko-KR")}건` : access.pickup ? "확인 불가" : "이용 불가"}
             detail={pickupData ? `오늘 등록 ${pickupData.entries.length.toLocaleString("ko-KR")}건` : "Display 대기번호 활성화 시 표시됩니다."}
@@ -218,7 +218,7 @@ function DashboardList({
   children: React.ReactNode;
 }) {
   return (
-    <article className="site-card-surface overflow-hidden">
+    <article className="site-card overflow-hidden">
       <div className="flex items-center justify-between gap-3 border-b border-zinc-100 px-4 py-4 sm:px-5">
         <h3 className="type-content-title">{title}</h3>
         {href ? <Link href={href} className="text-support font-medium text-zinc-500 hover:text-zinc-950">전체보기</Link> : null}
