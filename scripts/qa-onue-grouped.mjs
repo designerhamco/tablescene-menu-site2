@@ -6,21 +6,23 @@ const output = process.env.ORDER_QA_OUTPUT || '/private/tmp/onue-grouped';
 await fs.mkdir(output, {recursive:true});
 const browser = await chromium.launch(), results = [], failures = [], errors = [], writes = [];
 const modes = ['', 'orderedBalancedFit', 'orderedFit'];
-async function create(width, height) {
+async function create(width, height, slowFonts = false) {
   const page = await browser.newPage({viewport:{width,height}, reducedMotion:'reduce'});
   page.setDefaultTimeout(20000);
   page.on('pageerror', error => errors.push(error.message));
   await page.route('**/api/**', route => route.request().method() === 'GET' ? route.continue() : (writes.push(route.request().url()), route.abort()));
+  if (slowFonts) await page.route(/\.(woff2?|ttf|otf)(\?|$)/, async route => { await new Promise(resolve=>setTimeout(resolve,600)); await route.continue(); });
   return page;
 }
 async function run(c) {
-  const page = await create(c.width, c.height);
+  const page = await create(c.width, c.height, c.slowFonts);
   try {
     const query = new URLSearchParams({device:c.device,view:'actual',embedded:'1',lang:c.lang || 'ko',callPreview:c.call ? 'on':'off', ...c.options});
     if (c.mode) query.set('layoutMode',c.mode);
     await page.goto(`${base}/templates/${c.key || 'restaurant_onue_a'}/preview?${query}`,{waitUntil:'networkidle'});
     await page.evaluate(() => document.fonts.ready);
     await page.locator(c.device === 'mobile' ? '[data-mobile-brand-fit=ready]' : '[data-native-ready=true]').filter({visible:true}).first().waitFor();
+    await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
     const metrics = await page.evaluate(() => {
       const visible = e => !e.closest('[inert],[aria-hidden=true]') && e.getBoundingClientRect().width > 0;
       const board = document.querySelector('[data-native-scroll]');
@@ -81,6 +83,7 @@ try {
   for (const options of [{coverPreview:'off'},{logoPreview:'on'},{featuredPreview:'on'}]) for (const [device,width,height] of viewports) jobs.push(()=>run({device,width,height,options}));
   for (const [device,width,height] of [['pc',1440,900],['tablet',768,1024],['mobile',390,844]]) jobs.push(()=>run({device,width,height,options:{designPreview:JSON.stringify({auxiliaryBackground:'#33483A'})}}));
   for (const options of [undefined,{logoPreview:'on'},{featuredPreview:'on'}]) jobs.push(()=>run({device:'pc',width:1280,height:600,options}));
+  for (const options of [undefined,{featuredPreview:'on'}]) jobs.push(()=>run({device:'tablet',width:768,height:1024,options,slowFonts:true}));
   for (const width of [320,390,430]) for (const call of [false,true]) jobs.push(()=>run({device:'mobile',width,height:844,call}));
   for (const key of ['cafe_mocha_forest_a','cafe_sunday_line_a','cafe_van_gogh_a','cafe_round_focus_a','fast_food_loop_bagel_a']) jobs.push(()=>run({key,device:'tablet',width:1180,height:820}));
   for (let i=0;i<jobs.length;i+=3) await Promise.all(jobs.slice(i,i+3).map(job=>job()));
