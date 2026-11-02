@@ -73,12 +73,12 @@ export default async function StoreOperationsShell({
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-management-scope site-gutter site-page-spacing-compact min-h-screen bg-zinc-50 text-zinc-950">
+      <main className="site-management-scope site-account-page site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <SitePageHeader title="매장 운영" align="start" description="운영 중인 메뉴판의 주문, 호출과 테이블을 한곳에서 관리합니다." />
 
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_minmax(0,1fr)] lg:items-start lg:gap-8">
-            <aside className="min-w-0 space-y-3 lg:sticky lg:top-28">
+          <div className="site-account-layout">
+            <aside className="site-account-sidebar min-w-0">
               {selectedSite ? <OperationSiteSelector selectedId={selectedSite.menuSiteId} items={sites.map(site => ({
                 id: site.menuSiteId, label: site.name || "이름 없는 메뉴판", href: getSectionHref(site, activeSection),
               }))} /> : null}
@@ -89,7 +89,7 @@ export default async function StoreOperationsShell({
                   canShowOwnerCommerce={false}
                 />
               ) : null}
-              <div className="site-card p-3">
+              <div className="site-account-nav site-nav-stack">
                 {selectedSite ? (
                   <Link
                     href={`/mypage/operations?site=${encodeURIComponent(selectedSite.menuSiteId)}`}
