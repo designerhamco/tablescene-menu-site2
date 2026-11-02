@@ -5325,7 +5325,9 @@ video {
 /* Mirror the language row below the identity on canvas devices. A linked
    featured item can use a taller bottom row; phones keep their own composition. */
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] :is(.cafe-a-desktop-fit-board, [data-native-scroll]) .cafe-a-panel-intro .cafe-a-cover-frame {
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto minmax(var(--panel-equal-gap), 1fr) auto minmax(var(--panel-equal-gap), 1fr) minmax(var(--panel-controls-row-size), auto);
+  align-content: center;
 }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro .cafe-a-cover-frame > .absolute:has(button[aria-current]) { right: auto; left: var(--panel-hero-inset); }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-intro .cafe-a-cover-frame {

@@ -28,8 +28,13 @@ async function run(c) {
       const identity = intro?.querySelector('.cafe-a-panel-identity');
       const controls = intro?.querySelector('.cafe-a-panel-controls');
       const featured = intro?.querySelector('.cafe-a-featured-copy');
+      const frame = intro?.querySelector('.cafe-a-cover-frame');
+      const probe = document.querySelector('[data-native-measure="native-intro"] .cafe-a-cover-frame');
       const rect = e => e?.getBoundingClientRect();
       const r = rect(intro), i = rect(identity), control = rect(controls), f = rect(featured);
+      const photo = rect(frame), measuredPhoto = rect(probe);
+      const size = r => r ? {width:r.width,height:r.height} : null;
+      const photoGeometry = {frame:size(photo),probe:size(measuredPhoto),auxiliaryCustom:!!intro?.closest('[data-design-aux-background=custom]'),overlayInside:!photo || [i,control,f].filter(Boolean).every(r=>r.left>=photo.left-1 && r.right<=photo.right+1 && r.top>=photo.top-1 && r.bottom<=photo.bottom+1)};
       const expected = [...document.querySelectorAll('[data-native-measure]')].map(e => ({id:e.dataset.nativeMeasure,kind:e.dataset.kind,title:e.querySelector('.cafe-a-category-title')?.textContent}));
       const groupById = new Map(); let group;
       for (const block of expected) { if (block.kind === 'heading') group = block.id; else if (block.kind === 'widget') group = undefined; if (group) groupById.set(block.id, group); }
@@ -39,15 +44,26 @@ async function run(c) {
         if (group) {if (!groups.has(group)) groups.set(group,new Set()); groups.get(group).add(index);}
         return id;
       }));
-      return {viewport:[innerWidth,innerHeight],mode:board?.dataset.layoutMode,expected:expected.map(b=>b.id),shown,groups:[...groups].map(([id,columns])=>({id,columns:[...columns]})),items:[...document.querySelectorAll('[data-cafe-a-menu-item]')].filter(visible).length,overflow:document.documentElement.scrollWidth > innerWidth + 1,centerDelta:r&&i ? (i.top+i.bottom-r.top-r.bottom)/2 : null,identityClear:!i||!control||i.top>=control.bottom-1,featuredClear:!i||!f||i.bottom<=f.top-1,photo:!!intro,logo:!!identity?.querySelector('img'),mains:expected.find(b=>b.title?.includes('PASTA'))?.id};
+      return {viewport:[innerWidth,innerHeight],mode:board?.dataset.layoutMode,expected:expected.map(b=>b.id),shown,groups:[...groups].map(([id,columns])=>({id,columns:[...columns]})),items:[...document.querySelectorAll('[data-cafe-a-menu-item]')].filter(visible).length,overflow:document.documentElement.scrollWidth > innerWidth + 1,centerDelta:r&&i ? (i.top+i.bottom-r.top-r.bottom)/2 : null,identityClear:!i||!control||i.top>=control.bottom-1,featuredClear:!i||!f||i.bottom<=f.top-1,photo:!!intro,photoGeometry,logo:!!identity?.querySelector('img'),mains:expected.find(b=>b.title?.includes('PASTA'))?.id};
     });
     assert.deepEqual(metrics.viewport,[c.width,c.height]);assert.equal(metrics.overflow,false);
     if (!c.key) assert.equal(metrics.items,20);
+    if (!c.key && c.options?.coverPreview !== 'off') {
+      const {frame,probe,overlayInside}=metrics.photoGeometry;
+      if (c.options?.designPreview) assert.equal(metrics.photoGeometry.auxiliaryCustom,true,'colored representative surface is actually applied');
+      assert.ok(frame,'ONUE representative photo is rendered');
+      assert.ok(Math.abs(frame.height-frame.width/(c.device==='mobile'?1:4/3))<0.1,`ONUE device ratio: ${frame.width} x ${frame.height}`);
+      assert.equal(overlayInside,true,'identity, controls and featured copy stay inside the fixed photo');
+      if (c.device !== 'mobile') {
+        assert.ok(probe,'ONUE measurement probe is rendered');
+        assert.ok(Math.abs(probe.width-frame.width)<1 && Math.abs(probe.height-frame.height)<1,'probe and visible photo agree within subpixel grid rounding');
+      }
+    }
     if (c.device !== 'mobile') {
       const mode = c.mode || 'orderedBalancedFit'; assert.equal(metrics.mode,mode);
       assert.deepEqual(metrics.shown,metrics.expected,'headings and products remain in registered order, exactly once');
       if (mode === 'orderedBalancedFit') for (const group of metrics.groups) assert.equal(group.columns.length,1,`category stays in one track: ${group.id}`);
-      assert.equal(metrics.identityClear,true);assert.equal(metrics.featuredClear,true);
+      assert.equal(metrics.identityClear,true,'identity clears language controls');assert.equal(metrics.featuredClear,true,'identity clears featured copy');
       if (metrics.photo && !c.options?.featuredPreview) assert.ok(Math.abs(metrics.centerDelta)<1,`identity center error ${metrics.centerDelta}px`);
       const menu=page.locator('[data-native-menu]');await menu.evaluate(e=>e.scrollTo({top:e.scrollHeight,behavior:'instant'}));
       assert.ok(await menu.evaluate(e=>e.scrollHeight-e.clientHeight-e.scrollTop<2),'all menu content remains reachable');
@@ -59,9 +75,12 @@ async function run(c) {
 }
 try {
   const jobs=[];
-  for (const [device,width,height] of [['pc',1280,720],['pc',1440,900],['pc',1920,1080],['tablet',1180,820],['tablet',820,1180],['tablet',768,1024]]) for (const mode of modes) jobs.push(()=>run({device,width,height,mode}));
+  const viewports=[['pc',1280,720],['pc',1440,900],['pc',1920,1080],['tablet',1180,820],['tablet',820,1180],['tablet',768,1024]];
+  for (const [device,width,height] of viewports) for (const mode of modes) jobs.push(()=>run({device,width,height,mode}));
   for (const lang of ['en','zh','ja']) jobs.push(()=>run({device:'tablet',width:1180,height:820,lang}));
-  for (const options of [{coverPreview:'off'},{logoPreview:'on'},{featuredPreview:'on'}]) for (const [device,width,height] of [['pc',1440,900],['tablet',1180,820]]) jobs.push(()=>run({device,width,height,options}));
+  for (const options of [{coverPreview:'off'},{logoPreview:'on'},{featuredPreview:'on'}]) for (const [device,width,height] of viewports) jobs.push(()=>run({device,width,height,options}));
+  for (const [device,width,height] of [['pc',1440,900],['tablet',768,1024],['mobile',390,844]]) jobs.push(()=>run({device,width,height,options:{designPreview:JSON.stringify({auxiliaryBackground:'#33483A'})}}));
+  for (const options of [undefined,{logoPreview:'on'},{featuredPreview:'on'}]) jobs.push(()=>run({device:'pc',width:1280,height:600,options}));
   for (const width of [320,390,430]) for (const call of [false,true]) jobs.push(()=>run({device:'mobile',width,height:844,call}));
   for (const key of ['cafe_mocha_forest_a','cafe_sunday_line_a','cafe_van_gogh_a','cafe_round_focus_a','fast_food_loop_bagel_a']) jobs.push(()=>run({key,device:'tablet',width:1180,height:820}));
   for (let i=0;i<jobs.length;i+=3) await Promise.all(jobs.slice(i,i+3).map(job=>job()));
