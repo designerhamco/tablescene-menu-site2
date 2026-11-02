@@ -38,6 +38,17 @@ import styles from "./NativeBasicScroll.module.css";
 
 type Unit = { id: string; group: string; kind: "heading" | "item" | "widget"; node: ReactNode; };
 
+function hasSafePhotoCopy(intro: Element | null | undefined) {
+  const photo = intro?.querySelector(".cafe-a-cover-frame")?.getBoundingClientRect();
+  const identity = intro?.querySelector(".cafe-a-panel-identity")?.getBoundingClientRect();
+  const controls = intro?.querySelector(".cafe-a-panel-controls")?.getBoundingClientRect();
+  const featured = intro?.querySelector(".cafe-a-featured-copy")?.getBoundingClientRect();
+  return !photo || [identity, controls, featured].every(rect => !rect ||
+    (rect.left >= photo.left - 1 && rect.right <= photo.right + 1 && rect.top >= photo.top - 1 && rect.bottom <= photo.bottom + 1)) &&
+    (!identity || !controls || identity.top >= controls.bottom - 1) &&
+    (!identity || !featured || identity.bottom <= featured.top - 1);
+}
+
 /** Native skin primitives own appearance. This component only replaces canvas
  * compression with measured, ordered reading tracks and a fixed service dock. */
 export default function NativeBasicScroll({ data, device }: { data: CafeDesignAProps; device: MenuPreviewDevice }) {
@@ -96,6 +107,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
   const measure = useRef<HTMLDivElement>(null);
   const tracks = useRef<HTMLDivElement>(null);
   const noticeMeasure = useRef<HTMLDivElement>(null);
+  const requestMeasure = useRef<(() => void) | null>(null);
   const [layout, setLayout] = useState<ScrollableMenuLayout>(() => layoutScrollableMenu([], center ? 2 : 1, 600));
   const [ready, setReady] = useState(false);
   const [more, setMore] = useState(false);
@@ -107,6 +119,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
     if (!area.current || !board.current || !measure.current) return;
     let frame = 0, disposed = false;
     const rejectedRailColumns = new Set<number>();
+    const rejectedPhotoColumns = new Set<number>();
     let railFrameKey = "";
     const update = () => {
       frame = 0;
@@ -128,7 +141,12 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       const panelPadding = (parseFloat(brandStyle?.paddingLeft ?? "0") || 0) + (parseFloat(brandStyle?.paddingRight ?? "0") || 0);
       const railGeometry = (count: number) => getRepresentativeRailGeometry(boardWidth, panelPadding, gap, count, viewport.offsetWidth - viewport.clientWidth);
       const frameKey = `${boardWidth}|${root.clientHeight}`;
-      if (frameKey !== railFrameKey) { rejectedRailColumns.clear(); railFrameKey = frameKey; }
+      if (frameKey !== railFrameKey) { rejectedRailColumns.clear(); rejectedPhotoColumns.clear(); railFrameKey = frameKey; }
+      // Committed brand lines are authoritative if the async hidden brand
+      // fitter has not yet caught up with a candidate width.
+      if (panel && !hasSafePhotoCopy(tracks.current?.querySelector('[data-native-unit="native-intro"] .cafe-a-panel-intro'))) {
+        rejectedPhotoColumns.add(Number(root.style.getPropertyValue("--native-columns")));
+      }
       const max = center ? 2 : Math.max(1, Math.min(3, Math.floor((width + gap) / (12 * rem + gap))));
       const size = (getOnePageItemNameCeilingRem(device) ?? 1.3) * rem;
       root.style.setProperty("--native-item-size", `${size}px`);
@@ -149,16 +167,9 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
             gapAfter: trimNoticeBoundary ? 0 : gapAfter };
         });
         const intro = panel ? measure.current!.querySelector(".cafe-a-panel-intro") : null;
-        const photo = intro?.querySelector(".cafe-a-cover-frame")?.getBoundingClientRect();
-        const identity = intro?.querySelector(".cafe-a-panel-identity")?.getBoundingClientRect();
-        const controls = intro?.querySelector(".cafe-a-panel-controls")?.getBoundingClientRect();
-        const featured = intro?.querySelector(".cafe-a-featured-copy")?.getBoundingClientRect();
         // A fixed photo must not buy another menu track by overlapping its copy.
         // Prefer a wider measured candidate instead of changing ratio or type.
-        const representativeSafe = !photo || [identity, controls, featured].every(rect => !rect ||
-          (rect.left >= photo.left - 1 && rect.right <= photo.right + 1 && rect.top >= photo.top - 1 && rect.bottom <= photo.bottom + 1)) &&
-          (!identity || !controls || identity.top >= controls.bottom - 1) &&
-          (!identity || !featured || identity.bottom <= featured.top - 1);
+        const representativeSafe = !rejectedPhotoColumns.has(count) && hasSafePhotoCopy(intro);
         return { columnCount: count, columnWidth, itemSize: size, representativeSafe, names: measureScrollableNames(measure.current!), layout: layoutScrollableMenu(measured, count, viewportHeight - 2 * panelInset, grouped, { footerHeight: noticeMeasure.current?.getBoundingClientRect().height ?? 0 }) };
       });
       const photoSafeCandidates = candidates.filter(candidate => candidate.representativeSafe);
@@ -186,6 +197,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       updateHint();
     };
     const schedule = () => { if (!disposed && !frame) frame = requestAnimationFrame(update); };
+    requestMeasure.current = schedule;
     const observer = new ResizeObserver(schedule);
     observer.observe(area.current);
     for (const copy of board.current?.querySelectorAll("[data-native-brand] .cafe-a-fixed-rail-copy") ?? []) observer.observe(copy);
@@ -194,12 +206,20 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
     // changes restart this effect; fonts, images and viewport remain live inputs.
     const measuredContent = measure.current;
     measuredContent.addEventListener("load", schedule, true);
-    const fontsChanged = () => { rejectedRailColumns.clear(); schedule(); };
+    const fontsChanged = () => { rejectedRailColumns.clear(); rejectedPhotoColumns.clear(); schedule(); };
     document.fonts.addEventListener("loadingdone", fontsChanged);
     void document.fonts.ready.then(fontsChanged);
     schedule();
-    return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); measuredContent.removeEventListener("load", schedule, true); document.fonts.removeEventListener("loadingdone", fontsChanged); };
+    return () => { disposed = true; requestMeasure.current = null; cancelAnimationFrame(frame); observer.disconnect(); measuredContent.removeEventListener("load", schedule, true); document.fonts.removeEventListener("loadingdone", fontsChanged); };
   }, [units, device, grouped, center, panel, shell, updateHint]);
+  useLayoutEffect(() => {
+    if (!panel) return;
+    // Observe committed copy after brand lines/carousel content settle. Hidden
+    // candidate probes resize themselves and must stay outside this observer.
+    const observer = new ResizeObserver(() => requestMeasure.current?.());
+    for (const copy of tracks.current?.querySelectorAll('[data-native-unit="native-intro"] :is(.cafe-a-panel-identity,.cafe-a-featured-copy)') ?? []) observer.observe(copy);
+    return () => observer.disconnect();
+  }, [layout, units, panel]);
   useLayoutEffect(() => {
     if (!area.current || !tracks.current) return;
     applyOnePageChipLayouts(tracks.current);
