@@ -1,4 +1,5 @@
 import "server-only";
+import { hasPaidTableOperationsAccess } from "@/lib/server/table-operations-eligibility-service";
 
 import {
   assertStaffCallTransition,
@@ -91,8 +92,8 @@ function normalizedId(value: unknown) {
   }
 }
 
-function assertDashboardEnabled(menuSiteId: string) {
-  if (!isCallRuntimeEnabledForSite(menuSiteId)) {
+async function assertDashboardEnabled(menuSiteId: string) {
+  if (!isCallRuntimeEnabledForSite(menuSiteId) || !await hasPaidTableOperationsAccess(menuSiteId)) {
     throw new CallManagementError(
       "DASHBOARD_UNAVAILABLE",
       "호출관리는 상품 및 운영 활성화 전까지 안전하게 잠겨 두었습니다.",
@@ -113,8 +114,8 @@ function failUpdate(error: DatabaseError | null): never {
 
 export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallDashboardPageData> {
   const menuSiteId = normalizedId(menuSiteIdValue);
-  assertDashboardEnabled(menuSiteId);
   await requireMenuSitePermission(menuSiteId, "call.manage");
+  await assertDashboardEnabled(menuSiteId);
   const supabase = createAdminClient();
 
   const [siteResult, callsResult, tablesResult, callItems, acceptedInvitationsResult] = await Promise.all([
@@ -197,12 +198,12 @@ export async function transitionStaffCall({
 }) {
   const menuSiteId = normalizedId(menuSiteIdValue);
   const callId = normalizedId(callIdValue);
-  assertDashboardEnabled(menuSiteId);
   if (nextStatus !== "acknowledged" && nextStatus !== "completed") {
     throw new CallManagementError("INVALID_INPUT", "올바른 다음 호출 상태가 필요합니다.", 400);
   }
   const surface = nextStatus === "acknowledged" ? "call_acknowledgement" : "call_completion";
   const { context, supabase } = await requireMenuSiteWriteAccess(menuSiteId, "call.manage", surface);
+  await assertDashboardEnabled(menuSiteId);
   const menuSiteResult = await supabase
     .from("menu_sites")
     .select("template_key")

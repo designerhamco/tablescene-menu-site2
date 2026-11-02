@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 const {
-  getTableManagementAllowedSiteIds,
   isTableManagementRuntimeEnabled,
   isTableManagementRuntimeEnabledForSite,
 } = await import(
@@ -16,13 +15,10 @@ test("table management requires explicit runtime enablement", () => {
   assert.equal(isTableManagementRuntimeEnabled("TRUE"), true);
 });
 
-test("table management requires an explicit per-site allowlist", () => {
-  const allowedId = "11111111-1111-4111-8111-111111111111";
-  const deniedId = "22222222-2222-4222-8222-222222222222";
-  const allowedSiteIds = getTableManagementAllowedSiteIds(`${allowedId},invalid,${allowedId.toUpperCase()}`);
-
-  assert.deepEqual([...allowedSiteIds], [allowedId]);
-  assert.equal(isTableManagementRuntimeEnabledForSite(allowedId, { enabled: true, allowedSiteIds }), true);
-  assert.equal(isTableManagementRuntimeEnabledForSite(deniedId, { enabled: true, allowedSiteIds }), false);
-  assert.equal(isTableManagementRuntimeEnabledForSite(allowedId, { enabled: false, allowedSiteIds }), false);
+test("table runtime admits newly purchased site IDs without manual onboarding", () => {
+  for (const id of ["11111111-1111-4111-8111-111111111111", "cd9afa8f-b862-48b3-848a-dec617279c6c"]) {
+    assert.equal(isTableManagementRuntimeEnabledForSite(id, { enabled: true }), true);
+    assert.equal(isTableManagementRuntimeEnabledForSite(id, { enabled: false }), false);
+  }
+  assert.equal(isTableManagementRuntimeEnabledForSite("invalid", { enabled: true }), false);
 });

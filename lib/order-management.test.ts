@@ -32,7 +32,7 @@ test("manual payment accepts only external card terminal or cash", () => {
   assert.throws(() => orderManagement.normalizeManualPaymentMethod("pg"), /\uCE74\uB4DC \uB2E8\uB9D0\uAE30/);
 });
 
-test("order dashboard runtime is default-off and site allowlisted", async () => {
+test("order dashboard runtime is default-off without manual site onboarding", async () => {
   const runtime = await import(
     new URL("./order-dashboard-runtime.ts", import.meta.url).href
   ) as typeof import("./order-dashboard-runtime");
@@ -40,10 +40,8 @@ test("order dashboard runtime is default-off and site allowlisted", async () => 
   assert.equal(runtime.isOrderDashboardRuntimeEnabled(undefined), false);
   assert.equal(runtime.isOrderDashboardRuntimeEnabledForSite(siteId, {
     enabled: true,
-    allowedSiteIds: new Set([siteId]),
   }), true);
   assert.equal(runtime.isOrderDashboardRuntimeEnabledForSite(siteId, {
     enabled: false,
-    allowedSiteIds: new Set([siteId]),
   }), false);
 });

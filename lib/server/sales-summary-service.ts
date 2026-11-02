@@ -1,4 +1,5 @@
 import "server-only";
+import { hasPaidTableOperationsAccess } from "@/lib/server/table-operations-eligibility-service";
 
 import { normalizeOrderManagementId, OrderManagementInputError } from "@/lib/order-management";
 import { isOrderDashboardRuntimeEnabledForSite } from "@/lib/order-dashboard-runtime";
@@ -112,7 +113,8 @@ export async function getSalesSummaryDashboard(
   now = new Date(),
 ): Promise<SalesSummaryPageData> {
   const menuSiteId = normalizeMenuSiteId(menuSiteIdValue);
-  if (!isOrderDashboardRuntimeEnabledForSite(menuSiteId)) {
+  await requireMenuSitePermission(menuSiteId, "sales.read");
+  if (!isOrderDashboardRuntimeEnabledForSite(menuSiteId) || !await hasPaidTableOperationsAccess(menuSiteId)) {
     throw new SalesSummaryError(
       "DASHBOARD_UNAVAILABLE",
       "매출 요약은 주문관리 상품과 운영 활성화 전까지 안전하게 잠겨 있습니다.",
@@ -120,7 +122,6 @@ export async function getSalesSummaryDashboard(
     );
   }
 
-  await requireMenuSitePermission(menuSiteId, "sales.read");
   const supabase = createAdminClient();
   const menuSiteResult = await supabase
     .from("menu_sites")

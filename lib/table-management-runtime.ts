@@ -6,27 +6,15 @@ export function isTableManagementRuntimeEnabled(value = process.env.TABLE_MANAGE
   return DESIGN_MENU_FOCUS_POLICY.tableManagement && value?.trim().toLowerCase() === "true";
 }
 
-export function getTableManagementAllowedSiteIds(value = process.env.TABLE_MANAGEMENT_ALLOWED_SITE_IDS) {
-  return new Set(
-    (value ?? "")
-      .split(",")
-      .map((siteId) => siteId.trim().toLowerCase())
-      .filter((siteId) => UUID_PATTERN.test(siteId)),
-  );
-}
-
 export function isTableManagementRuntimeEnabledForSite(
   menuSiteId: string,
   {
     enabled = isTableManagementRuntimeEnabled(),
-    allowedSiteIds = getTableManagementAllowedSiteIds(),
   }: {
     enabled?: boolean;
-    allowedSiteIds?: ReadonlySet<string>;
   } = {},
 ) {
   return DESIGN_MENU_FOCUS_POLICY.tableManagement
     && enabled
-    && UUID_PATTERN.test(menuSiteId)
-    && allowedSiteIds.has(menuSiteId.toLowerCase());
+    && UUID_PATTERN.test(menuSiteId);
 }

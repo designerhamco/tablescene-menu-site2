@@ -59,8 +59,8 @@ export default async function MenuTableManagementPage({ params }: { params: Prom
           <MenuTableManager menuSiteId={data.menuSite.id} tables={data.tables.map(({ id, label, status }) => ({ id, label, status }))} />
         ) : (
           <section className="site-section p-5 sm:p-6">
-            <h3 className="type-subsection-title">테이블 기능 연결 대기</h3>
-            <p className="type-body-sm mt-3 text-zinc-500">이 메뉴판의 테이블 기능이 아직 연결되지 않았습니다. 연결이 완료되면 이곳에서 테이블을 등록할 수 있습니다.</p>
+            <h3 className="type-subsection-title">테이블 관리를 사용할 수 없습니다</h3>
+            <p className="type-body-sm mt-3 text-zinc-500">테이블 관리는 유효한 베이직·다이닝 이용권에서 사용할 수 있습니다. 이용권이 유효한데도 이 안내가 보이면 잠시 후 다시 시도해 주세요.</p>
           </section>
         )}
       </div>

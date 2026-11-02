@@ -84,12 +84,12 @@ try {
  const chain={select(value){fields=value.split(',').map(k=>ident(k.trim())).join(',');return chain;},update(value){patch=value;return chain;},eq:(k,v)=>add(k,'=',v),neq:(k,v)=>add(k,'<>',v),gt:(k,v)=>add(k,'>',v),lt:(k,v)=>add(k,'<',v),lte:(k,v)=>add(k,'<=',v),in:(k,v)=>add(k,'= any',v),is(k,v){assert.equal(v,null);filters.push(`${ident(k)} is null`);return chain;},order(k,{ascending=true}={}){sort.push(ident(k)+(ascending?' asc':' desc'));return chain;},limit(n){limit=' limit '+Number(n);return chain;},async maybeSingle(){const r=await execute();return {...r,data:r.data?.[0]??null};},single(){return chain.maybeSingle();},then(ok,bad){return execute().then(ok,bad);}};return chain;},
  async rpc(name,args){try{const keys=rpcParams[name];assert.ok(keys);const params=keys.map(k=>k==='p_lines'?JSON.stringify(args[k]):args[k]);const query=`select ${name.startsWith('submit_postpay_order_v')?'* from ':''}public.${name}(${keys.map((k,i)=>'$'+(i+1)+(k==='p_lines'?'::jsonb':'')).join(',')})${name.startsWith('submit_postpay_order_v')?'':' value'}`;const rows=await q(query,params);return {data:clean(name.startsWith('submit_postpay_order_v')?rows:rows[0].value),error:null};}catch(e){return {data:null,error:{message:e.message,details:e.detail,code:e.code}}}}
  };
- process.env.POSTPAY_ORDER_ENABLED='true';process.env.POSTPAY_ORDER_ALLOWED_SITE_IDS=[basic,dining,other].join(',');process.env.TABLE_MANAGEMENT_ENABLED='true';process.env.TABLE_MANAGEMENT_ALLOWED_SITE_IDS=[basic,dining,other].join(',');process.env.ORDER_DASHBOARD_ENABLED='true';process.env.ORDER_DASHBOARD_ALLOWED_SITE_IDS=basic;
- globalThis.__visitAccess={canViewPublic:true,planType:'business_basic'};globalThis.__visitOwner=owner;globalThis.__visitPermissions=getPermissionsForAccessRole('owner');
+ process.env.POSTPAY_ORDER_ENABLED='true';delete process.env.POSTPAY_ORDER_ALLOWED_SITE_IDS;process.env.TABLE_MANAGEMENT_ENABLED='true';delete process.env.TABLE_MANAGEMENT_ALLOWED_SITE_IDS;process.env.ORDER_DASHBOARD_ENABLED='true';delete process.env.ORDER_DASHBOARD_ALLOWED_SITE_IDS;
+ globalThis.__visitAccess={canViewPublic:true,planType:'business_basic',canEdit:true,canUseWriteActions:true};globalThis.__visitOwner=owner;globalThis.__visitPermissions=getPermissionsForAccessRole('owner');
  const services=await import(pathToFileURL(bundle).href), serviceVisit={id:visit.id,menuSiteId:basic,menuTableId:table,tableLabel:'창가 테이블',expiresAt:new Date(Date.now()+3600000).toISOString()};
  check((await services.history.listCustomerVisitOrders({menuSiteId:basic,tableSession:serviceVisit})).orders.length,2);
- process.env.POSTPAY_ORDER_ALLOWED_SITE_IDS=dining;await reject(()=>services.history.listCustomerVisitOrders({menuSiteId:basic,tableSession:serviceVisit}),/이용할 수 없습니다/);process.env.POSTPAY_ORDER_ALLOWED_SITE_IDS=[basic,dining,other].join(',');
- globalThis.__visitAccess={canViewPublic:true,planType:'personal_trial'};await reject(()=>services.history.listCustomerVisitOrders({menuSiteId:basic,tableSession:serviceVisit}),/이용할 수 없습니다/);globalThis.__visitAccess={canViewPublic:true,planType:'business_basic'};
+ process.env.POSTPAY_ORDER_ENABLED='false';await reject(()=>services.history.listCustomerVisitOrders({menuSiteId:basic,tableSession:serviceVisit}),/이용할 수 없습니다/);process.env.POSTPAY_ORDER_ENABLED='true';
+ globalThis.__visitAccess={canViewPublic:true,planType:'personal_trial'};await reject(()=>services.history.listCustomerVisitOrders({menuSiteId:basic,tableSession:serviceVisit}),/이용할 수 없습니다/);globalThis.__visitAccess={canViewPublic:true,planType:'business_basic',canEdit:true,canUseWriteActions:true};
  await reject(()=>services.history.listCustomerVisitOrders({menuSiteId:other,tableSession:serviceVisit}),/이용할 수 없습니다/);
  const request=(method,s=visit,body,origin='https://menu.test')=>new NextRequest('https://menu.test/api/public-menu/orders'+(method==='GET'?'?menuSiteId='+basic:''),{method,headers:{origin,'user-agent':ua,'content-type':'application/json',...(s?{cookie:TABLE_VISIT_SESSION_COOKIE+'='+s.token}:{})},...(method!=='GET'?{body:typeof body==='string'?body:JSON.stringify(body)}:{})});
  check((await services.api.GET(request('GET',null))).status,401);
@@ -101,6 +101,10 @@ try {
  check((await services.api.PATCH(request('PATCH',visit,'{bad'))).status,400);check((await services.api.PATCH(request('PATCH',visit,'x'.repeat(2049)))).status,413);
  check((await services.api.PATCH(request('PATCH',visit,{menuSiteId:basic,orderId:foreign.order_id}))).status,404);
  // Staff acceptance wins before customer cancel; customer-first cancellation rejects late staff acceptance/payment.
+ for(const access of [{canViewPublic:true,planType:'personal_trial',canEdit:true,canUseWriteActions:true},{canViewPublic:false,planType:'business_basic',canEdit:false,canUseWriteActions:false}]){
+ globalThis.__visitAccess=access;await reject(()=>services.staff.transitionOrderStatus({menuSiteId:basic,orderId:courseOrder.order_id,nextStatus:'accepted'}),/잠겨/);
+ }
+ globalThis.__visitAccess={canViewPublic:true,planType:'business_basic',canEdit:true,canUseWriteActions:true};
  await services.staff.transitionOrderStatus({menuSiteId:basic,orderId:courseOrder.order_id,nextStatus:'accepted'});
  check((await services.api.PATCH(request('PATCH',visit,{menuSiteId:basic,orderId:courseOrder.order_id}))).status,409);
  for(const nextStatus of ['cooking','ready','served'])await services.staff.transitionOrderStatus({menuSiteId:basic,orderId:courseOrder.order_id,nextStatus});

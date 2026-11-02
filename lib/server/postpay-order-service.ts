@@ -1,4 +1,5 @@
 import "server-only";
+import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { normalizeOrderPhone } from "@/lib/order-session-policy";
 import { getAllowedCheckoutModes } from "@/lib/menu-order-settings";
 import { readMenuOrderSettings } from "@/lib/menu-order-settings";
@@ -97,7 +98,7 @@ export async function submitPostpayOrder({
     siteError ||
     !settings.orderEnabled ||
     !settings.postpayEnabled ||
-    site?.template_key === "display_menu_a"
+    !getDiningTemplateFeatures(site?.template_key).order
   )
     throw new PostpayOrderSubmissionError("현재 후불 주문을 받을 수 없습니다.");
   const channel = tableSession.channel ?? "customer";

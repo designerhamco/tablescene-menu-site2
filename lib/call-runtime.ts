@@ -6,27 +6,15 @@ export function isCallRuntimeEnabled(value = process.env.CALL_ENABLED) {
   return DESIGN_MENU_FOCUS_POLICY.smartCall && value?.trim().toLowerCase() === "true";
 }
 
-export function getCallAllowedSiteIds(value = process.env.CALL_ALLOWED_SITE_IDS) {
-  return new Set(
-    (value ?? "")
-      .split(",")
-      .map((siteId) => siteId.trim().toLowerCase())
-      .filter((siteId) => UUID_PATTERN.test(siteId)),
-  );
-}
-
 export function isCallRuntimeEnabledForSite(
   menuSiteId: string,
   {
     enabled = isCallRuntimeEnabled(),
-    allowedSiteIds = getCallAllowedSiteIds(),
   }: {
     enabled?: boolean;
-    allowedSiteIds?: ReadonlySet<string>;
   } = {},
 ) {
   return DESIGN_MENU_FOCUS_POLICY.smartCall
     && enabled
-    && UUID_PATTERN.test(menuSiteId)
-    && allowedSiteIds.has(menuSiteId.toLowerCase());
+    && UUID_PATTERN.test(menuSiteId);
 }
