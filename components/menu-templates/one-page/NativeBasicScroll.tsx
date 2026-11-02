@@ -148,9 +148,21 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
             height: el.getBoundingClientRect().height - (panel && unit.id === "native-intro" ? panelInset + viewportPaddingTop : 0) - (trimNoticeBoundary ? gapAfter : 0),
             gapAfter: trimNoticeBoundary ? 0 : gapAfter };
         });
-        return { columnCount: count, columnWidth, itemSize: size, names: measureScrollableNames(measure.current!), layout: layoutScrollableMenu(measured, count, viewportHeight - 2 * panelInset, grouped, { footerHeight: noticeMeasure.current?.getBoundingClientRect().height ?? 0 }) };
+        const intro = panel ? measure.current!.querySelector(".cafe-a-panel-intro") : null;
+        const photo = intro?.querySelector(".cafe-a-cover-frame")?.getBoundingClientRect();
+        const identity = intro?.querySelector(".cafe-a-panel-identity")?.getBoundingClientRect();
+        const controls = intro?.querySelector(".cafe-a-panel-controls")?.getBoundingClientRect();
+        const featured = intro?.querySelector(".cafe-a-featured-copy")?.getBoundingClientRect();
+        // A fixed photo must not buy another menu track by overlapping its copy.
+        // Prefer a wider measured candidate instead of changing ratio or type.
+        const representativeSafe = !photo || [identity, controls, featured].every(rect => !rect ||
+          (rect.left >= photo.left - 1 && rect.right <= photo.right + 1 && rect.top >= photo.top - 1 && rect.bottom <= photo.bottom + 1)) &&
+          (!identity || !controls || identity.top >= controls.bottom - 1) &&
+          (!identity || !featured || identity.bottom <= featured.top - 1);
+        return { columnCount: count, columnWidth, itemSize: size, representativeSafe, names: measureScrollableNames(measure.current!), layout: layoutScrollableMenu(measured, count, viewportHeight - 2 * panelInset, grouped, { footerHeight: noticeMeasure.current?.getBoundingClientRect().height ?? 0 }) };
       });
-      const selected = selectScrollableMenuCandidate(candidates, grouped);
+      const photoSafeCandidates = candidates.filter(candidate => candidate.representativeSafe);
+      const selected = selectScrollableMenuCandidate(photoSafeCandidates.length ? photoSafeCandidates : candidates, grouped);
       if (leftRail) {
         const geometry = railGeometry(selected.columnCount);
         root.style.setProperty("--native-rail-width", `${geometry.railWidth}px`);
