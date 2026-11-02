@@ -28,6 +28,7 @@ export async function updateOrderSettings(
       customerPhone: preferences.customerPhone,
     }, section);
     revalidatePath("/menu", "layout");
+    revalidatePath("/mypage/operations");
     revalidatePath("/mypage/menus/" + id + "/order-settings");
     revalidatePath(`/mypage/menus/${id}/orders/settings`);
     revalidatePath(`/mypage/menus/${id}/calls/settings`);

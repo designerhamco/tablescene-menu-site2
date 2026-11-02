@@ -8,7 +8,7 @@ export default function OperationTableSetupNotice({ menuId, tableSetupAvailable,
 }) {
   if (activeTablesReady) return null;
   return (
-    <aside className="site-section mb-6 p-5 sm:p-6" aria-label="테이블 설정 안내">
+    <aside className="site-section p-5 sm:p-6" aria-label="테이블 설정 안내">
       <h2 className="type-content-title">{activeTablesReady === null ? "테이블 상태를 확인해 주세요" : "먼저 테이블을 준비해 주세요"}</h2>
       <p className="type-body-sm mt-3 max-w-3xl break-keep text-zinc-600">
         {!tableSetupAvailable

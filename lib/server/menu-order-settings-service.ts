@@ -53,6 +53,32 @@ export async function saveMenuOrderSettings(
   input: MenuOrderSettings,
   section: MenuOrderSettingsSection,
 ) {
+  return writeMenuOrderSettings(menuId, section, (settings) => mergeMenuOrderSettingsSection(settings, input, section));
+}
+
+export async function setMenuOrderFeatureEnabled(
+  menuId: string,
+  section: MenuOrderSettingsSection,
+  enabled: boolean,
+  expectedEnabled: boolean,
+) {
+  if ((section !== "orders" && section !== "calls") || typeof enabled !== "boolean" || typeof expectedEnabled !== "boolean")
+    throw new Error("변경할 사용 설정을 확인해 주세요.");
+  return writeMenuOrderSettings(menuId, section, (settings) => {
+    const key = section === "orders" ? "orderEnabled" : "callEnabled";
+    if (settings[key] !== expectedEnabled)
+      throw new Error("다른 화면에서 사용 설정이 변경되었습니다. 새로고침된 상태를 확인해 주세요.");
+    // Read and change one flag in the same write flow. Do not replay checkout/phone
+    // preferences supplied by a stale dashboard over newer detailed settings.
+    return { ...settings, [key]: enabled };
+  });
+}
+
+async function writeMenuOrderSettings(
+  menuId: string,
+  section: MenuOrderSettingsSection,
+  resolveNext: (settings: MenuOrderSettings) => MenuOrderSettings,
+) {
   const permission = await requireMenuSitePermission(menuId, "menu.edit");
   if (!permission.isOwner)
     throw new MenuSiteAccessError(
@@ -66,7 +92,7 @@ export async function saveMenuOrderSettings(
     "menu_order_settings",
   );
   const { site, settings, runtime } = await loadMenuOrderSettings(menuId);
-  const next = mergeMenuOrderSettingsSection(settings, input, section);
+  const next = resolveNext(settings);
   if (site.template_key === "display_menu_a")
     throw new Error("디스플레이는 주문 기능을 지원하지 않습니다.");
   if (section === "orders" && next.orderEnabled && !next.postpayEnabled)

@@ -19,7 +19,7 @@ function serverModule<T>(path: string, dependencies: Record<string, unknown>): T
 }
 const menuId = "11111111-1111-4111-8111-111111111111";
 
-function settingsFixture({ activeTable = true, runtime = true, tableError = false, owner = true, currentOrder = false, currentCall = false, eligible = true } = {}) {
+function settingsFixture({ activeTable = true, runtime = true, tableError = false, owner = true, currentOrder = false, currentCall = false, eligible = true, conflict = false, currentPreferences = {} as Record<string, unknown> } = {}) {
   const writes: unknown[] = [];
   const tableReads: [string, unknown][] = [];
   const db = { from(name: string) {
@@ -27,13 +27,13 @@ function settingsFixture({ activeTable = true, runtime = true, tableError = fals
       select() { return this; },
       eq(key: string, value: unknown) { if (name === "menu_tables") tableReads.push([key, value]); return this; },
       gt() { return this; }, limit(value: number) { assert.equal(value, 1); return this; },
-      async single() { return { data: { id: menuId, settings: { table_order: { orderEnabled: currentOrder, callEnabled: currentCall } }, updated_at: "v1", template_key: "cafe_design_a" }, error: null }; },
+      async single() { return { data: { id: menuId, settings: { appearance: { theme: "preserve" }, table_order: { orderEnabled: currentOrder, callEnabled: currentCall, ...currentPreferences } }, updated_at: "v1", template_key: "cafe_design_a" }, error: null }; },
       async order() { return { data: [], error: null }; },
       async maybeSingle() { return { data: activeTable ? { id: "active-table" } : null, error: tableError ? { code: "failed" } : null }; },
     };
     return query;
   } };
-  const update = { eq() { return this; }, is() { return this; }, select() { return this; }, async maybeSingle() { return { data: { id: menuId }, error: null }; } };
+  const update = { eq() { return this; }, is() { return this; }, select() { return this; }, async maybeSingle() { return { data: conflict ? null : { id: menuId }, error: null }; } };
   const service = serverModule<typeof import("./server/menu-order-settings-service")>("lib/server/menu-order-settings-service.ts", {
     "server-only": {},
     "@/lib/table-operations-eligibility": { isPaidTableOperationsEligible },
@@ -164,4 +164,38 @@ test("무료 이용권은 설정 활성화 불가이며 유료 메뉴도 주문�
   assert.deepEqual((await trial.service.loadMenuOrderSettings(menuId)).runtime, { calls: false, orders: false, tables: false, dashboard: false });
   await assert.rejects(trial.service.saveMenuOrderSettings(menuId, { ...DEFAULT_MENU_ORDER_SETTINGS, orderEnabled: true }, "orders"));
   assert.equal(trial.writes.length, 0);
+});
+
+test("대시보드 ON/OFF는 최신 전화번호·결제 방식·다른 기능·루트 설정을 보존한다", async () => {
+  const preferences = { customerCheckout: "both", terminalOrderEnabled: false, customerPhone: "optional", mobilePrepayVisible: true };
+  for (const section of ["orders", "calls"] as const) {
+    const f = settingsFixture({ currentOrder: section === "calls", currentCall: section === "orders", currentPreferences: preferences });
+    const saved = await f.service.setMenuOrderFeatureEnabled(menuId, section, true, false);
+    assert.equal(saved.orderEnabled, true);
+    assert.equal(saved.callEnabled, true);
+    for (const [key, value] of Object.entries(preferences)) assert.equal(saved[key as keyof typeof saved], value);
+    const write = f.writes[0] as { settings: { appearance: unknown; table_order: unknown } };
+    assert.deepEqual(write.settings.appearance, { theme: "preserve" });
+    assert.deepEqual(write.settings.table_order, saved);
+  }
+});
+
+test("빠른 설정도 테이블·권한·최신 상태·동시 수정 검증을 우회하지 못한다", async () => {
+  for (const section of ["orders", "calls"] as const) {
+    for (const options of [{ activeTable: false }, { tableError: true }, { runtime: false }, { eligible: false }, { owner: false }]) {
+      const f = settingsFixture(options);
+      await assert.rejects(f.service.setMenuOrderFeatureEnabled(menuId, section, true, false));
+      assert.equal(f.writes.length, 0);
+    }
+    const stale = settingsFixture({ currentOrder: true, currentCall: true });
+    await assert.rejects(stale.service.setMenuOrderFeatureEnabled(menuId, section, false, false), /다른 화면/);
+    assert.equal(stale.writes.length, 0);
+    const concurrent = settingsFixture({ conflict: true });
+    await assert.rejects(concurrent.service.setMenuOrderFeatureEnabled(menuId, section, true, false), /설정이 변경/);
+    const off = settingsFixture({ activeTable: false, tableError: true, runtime: false, currentOrder: true, currentCall: true });
+    const saved = await off.service.setMenuOrderFeatureEnabled(menuId, section, false, true);
+    assert.equal(saved[section === "orders" ? "orderEnabled" : "callEnabled"], false);
+    assert.equal(saved[section === "orders" ? "callEnabled" : "orderEnabled"], true);
+    assert.deepEqual(off.tableReads, []);
+  }
 });
