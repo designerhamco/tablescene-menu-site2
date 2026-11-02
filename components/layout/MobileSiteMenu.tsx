@@ -23,7 +23,7 @@ export default function MobileSiteMenu({ pathname, authenticated, loading, accou
     <div className={styles.drawerHeader}>
       <Link href="/" onClick={close} className={styles.wordmark}>ArtiMenu</Link>
       <div className={styles.drawerHeaderActions}>
-        <Link href={NOTIFICATION_INBOX_HREF} onClick={close} className="site-button site-button-icon site-button-ghost" aria-label={unreadCount ? `알림, 읽지 않음 ${formatNotificationBadgeCount(unreadCount)}개` : "알림"}><Bell size={23} strokeWidth={2.1} aria-hidden="true" />{unreadCount ? <span className={styles.drawerUnread} aria-hidden="true" /> : null}</Link>
+        {authenticated && !loading ? <Link href={NOTIFICATION_INBOX_HREF} onClick={close} className="site-button site-button-icon site-button-ghost" aria-label={unreadCount ? `알림, 읽지 않음 ${formatNotificationBadgeCount(unreadCount)}개` : "알림"}><Bell size={23} strokeWidth={2.1} aria-hidden="true" />{unreadCount ? <span className={styles.drawerUnread} aria-hidden="true" /> : null}</Link> : null}
         <Link href="/apply" onClick={close} className="site-button site-button-primary site-button-header">만들기</Link>
         {closeButton}
       </div>
@@ -31,17 +31,18 @@ export default function MobileSiteMenu({ pathname, authenticated, loading, accou
     <div className={styles.drawerBody}>
       <section className={styles.drawerAccount} aria-label="계정 정보">
         {loading ? <LoadingState label="계정 확인 중입니다." inline /> : authenticated ? <>
-          <Link href="/mypage?tab=account" onClick={close} className={styles.drawerAccountLink}>
+          <div className={styles.drawerAccountHeading}><Link href="/mypage?tab=account" onClick={close} className={styles.drawerAccountLink}>
             <span className="type-content-title">{account?.name || "내 계정"}</span>
             {account?.role ? <Badge>{account.role}</Badge> : null}
             <span className={styles.drawerEmail}>{account?.email}</span>
           </Link>
+          {signOutControl ?? <form action={signOutAction}><button type="submit" className="site-button site-button-link">로그아웃</button></form>}</div>
           {accountLoading ? <LoadingState label="계정 정보를 확인 중입니다." inline /> : null}
-          <div className={styles.drawerAccountActions}>
-            <Link href="/mypage" onClick={close} className="site-button site-button-outline">마이 메뉴</Link>
-            {showOperations ? <Link href="/mypage/operations" target="_blank" rel="noopener noreferrer" onClick={close} className="site-button site-button-outline">매장 운영 <NewWindowIndicator /></Link> : null}
+          <div className={styles.drawerAccountLinks}>
+            <Link href="/mypage" onClick={close}>마이 메뉴</Link>
+            {showOperations ? <><span aria-hidden="true">/</span><Link href="/mypage/operations" target="_blank" rel="noopener noreferrer" onClick={close}>매장 운영 <NewWindowIndicator /></Link></> : null}
           </div>
-        </> : <div className={styles.drawerGuest}><p className="type-body-sm">로그인하고 매장 메뉴판을 관리하세요.</p><div className={styles.drawerGuestLinks}><Link href="/sign-in" onClick={close}>로그인</Link><span aria-hidden="true">/</span><Link href="/sign-up" onClick={close}>회원가입</Link></div></div>}
+        </> : <div className={styles.drawerGuest}><p className="type-body-sm">로그인하고 매장 메뉴판을 관리하세요.</p><div className={styles.drawerAccountLinks}><Link href="/sign-in" onClick={close}>로그인</Link><span aria-hidden="true">/</span><Link href="/sign-up" onClick={close}>회원가입</Link></div></div>}
       </section>
       <nav aria-label="모바일 공식 사이트 메뉴" className={styles.drawerNavigation}>
         {SITE_NAV_ITEMS.map(item => item.path === "/faq" ? <Collapsible key={item.path} open={supportOpen} onOpenChange={setSupportOpen}>
@@ -51,7 +52,6 @@ export default function MobileSiteMenu({ pathname, authenticated, loading, accou
       </nav>
       <div className={styles.drawerFooter}>
         <div className={styles.drawerSupportLinks}><Link href="/mypage/inquiries" onClick={close}>1:1 문의</Link><Link href="/support/chat" onClick={close}>채팅상담</Link></div>
-        {authenticated ? signOutControl ?? <form action={signOutAction}><button type="submit" className="site-button site-button-ghost">로그아웃</button></form> : null}
       </div>
     </div>
   </>;

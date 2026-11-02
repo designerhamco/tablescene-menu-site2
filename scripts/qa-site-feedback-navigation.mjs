@@ -5,6 +5,7 @@ const base=process.env.ORDER_QA_BASE || 'http://localhost:3017';
 const out=process.env.ORDER_QA_OUTPUT || '/private/tmp/site-feedback';
 await fs.mkdir(out,{recursive:true});
 const browser=await chromium.launch(), results=[], failures=[], errors=[], writes=[];
+let accountLinkStyle;
 const env=await fs.readFile('.env.local','utf8').catch(()=> '');
 const supabaseUrl=process.env.NEXT_PUBLIC_SUPABASE_URL || env.match(/^NEXT_PUBLIC_SUPABASE_URL=["']?([^\s"']+)/m)?.[1];
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -54,17 +55,28 @@ try{
    const sizes=await main.locator(':scope > a, :scope > div > button').evaluateAll(es=>es.map(e=>({font:getComputedStyle(e).fontSize,weight:getComputedStyle(e).fontWeight,height:e.getBoundingClientRect().height})));
    assert.equal(sizes.length,5);assert.equal(new Set(sizes.map(s=>s.font)).size,1);assert.ok(sizes.every(s=>s.height>=44));
    assert.equal(await menu.getByRole('link',{name:'만들기',exact:true}).getAttribute('href'),'/apply');
-   assert.equal(await menu.getByRole('link',{name:'알림',exact:true}).getAttribute('href'),'/notifications');
+   const bounds=await menu.boundingBox();assert.ok(Math.abs(bounds.x)<1&&Math.abs(bounds.width-w)<1,'menu fills viewport from its right edge');
+   assert.equal(await menu.evaluate(e=>getComputedStyle(e).animationName),'none','reduced motion disables slide');
    if(role){await menu.getByText('검증 매장',{exact:true}).waitFor();assert.equal(await menu.getByText(role,{exact:true}).count(),1);await menu.getByText('qa@example.com',{exact:true}).waitFor();
     assert.ok(await menu.getByRole('link',{name:'마이 메뉴',exact:true}).isVisible());
     const operations=menu.getByRole('link',{name:'매장 운영 (새 창으로 열기)',exact:true});assert.ok(await operations.isVisible());assert.equal(await operations.getAttribute('target'),'_blank');assert.equal(await operations.getAttribute('rel'),'noopener noreferrer');
-    assert.ok(await menu.getByRole('button',{name:'로그아웃',exact:true}).isVisible());assert.equal(await menu.getByRole('link',{name:'알림',exact:true}).getAttribute('href'),'/notifications');
-   }else{for(const label of ['로그인','회원가입'])assert.ok(await menu.getByRole('link',{name:label,exact:true}).isVisible());assert.equal(await menu.getByRole('button',{name:'로그아웃',exact:true}).count(),0);}
+    assert.ok(await menu.getByRole('region',{name:'계정 정보'}).getByRole('button',{name:'로그아웃',exact:true}).isVisible());assert.equal(await menu.getByRole('link',{name:'알림',exact:true}).getAttribute('href'),'/notifications');
+   }else{for(const label of ['로그인','회원가입'])assert.ok(await menu.getByRole('link',{name:label,exact:true}).isVisible());assert.equal(await menu.getByRole('button',{name:'로그아웃',exact:true}).count(),0);assert.equal(await menu.getByRole('link',{name:/^알림/}).count(),0,'guests do not see notifications');}
+   const linkStyle=await menu.getByRole('link',{name:role?'마이 메뉴':'로그인',exact:true}).evaluate(e=>{const s=getComputedStyle(e);return {font:s.fontSize,weight:s.fontWeight,border:s.borderWidth,background:s.backgroundColor,height:e.getBoundingClientRect().height};});
+   assert.equal(linkStyle.border,'0px');assert.equal(linkStyle.background,'rgba(0, 0, 0, 0)');if(accountLinkStyle)assert.deepEqual(linkStyle,accountLinkStyle,'account links share the guest text style');else accountLinkStyle=linkStyle;
+   assert.equal(await menu.locator('[class*=drawerFooter]').getByRole('button',{name:'로그아웃',exact:true}).count(),0);
    const inside=await menu.evaluate(e=>[...e.querySelectorAll('a,button')].filter(el=>el.getBoundingClientRect().width>0).every(el=>{const r=el.getBoundingClientRect(),b=e.getBoundingClientRect();return r.left>=b.left-1&&r.right<=b.right+1;}));assert.ok(inside,'controls fit drawer width');
    for(let i=0;i<14;i++){await p.keyboard.press('Tab');assert.ok(await menu.evaluate(e=>e.contains(document.activeElement)),'focus remains in modal');}
-   await p.mouse.move(w-2,2);await main.evaluate(e=>e.closest('[role=dialog]').querySelector('[class*=drawerBody]').scrollTo({top:0,behavior:'instant'}));
+   await p.mouse.click(w-2,2);await main.evaluate(e=>e.closest('[role=dialog]').querySelector('[class*=drawerBody]').scrollTo({top:0,behavior:'instant'}));
    if(w===390)await p.screenshot({path:`${out}/menu-${role==='사장'?'owner':role==='직원'?'staff':'guest'}.png`});
    await p.keyboard.press('Escape');await menu.waitFor({state:'hidden'});assert.ok(await trigger.evaluate(e=>e===document.activeElement),'Escape restores trigger focus');await overflow(p);
+  }finally{await p.close();}
+ });
+ await run('menu slides from and back to the right',async()=>{
+  const p=await create(390,844);try{await p.emulateMedia({reducedMotion:'no-preference'});await p.goto(`${base}/guides`,{waitUntil:'networkidle'});const trigger=p.getByRole('button',{name:'메뉴 열기',exact:true});await trigger.click();const menu=p.getByRole('dialog',{name:'아티메뉴 전체 메뉴',exact:true});
+   const sample=async()=>menu.evaluate(e=>{const a=e.getAnimations().find(a=>a.animationName?.includes('drawerSlide'));if(!a)throw new Error('slide animation missing');const duration=a.effect.getTiming().duration;a.pause();const positions=[0,duration/2,duration-1].map(time=>{a.currentTime=time;return e.getBoundingClientRect().x;});a.currentTime=0;a.play();return {duration,positions};});
+   const opening=await sample();assert.equal(opening.duration,300);assert.ok(Math.abs(opening.positions[0]-390)<1&&opening.positions[1]>0&&opening.positions[1]<390&&opening.positions[2]<1);
+   await menu.getByRole('button',{name:'메뉴 닫기',exact:true}).click();const closing=await sample();assert.equal(closing.duration,240);assert.ok(closing.positions[0]<1&&closing.positions[1]>0&&closing.positions[1]<390&&closing.positions[2]>385);await menu.waitFor({state:'hidden'});assert.ok(await trigger.evaluate(e=>e===document.activeElement));await overflow(p);
   }finally{await p.close();}
  });
  for(const [w,h] of [[320,780],[820,1000],[1440,900]])await run(`notice loading ${w}`,async()=>{
