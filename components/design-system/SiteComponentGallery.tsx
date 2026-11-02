@@ -16,6 +16,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/ta
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/app/components/ui/collapsible";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import HelpTooltip from "@/components/ui/HelpTooltip";
+import InfoTooltip from "@/components/ui/InfoTooltip";
+import { LoadingState, ProgressBar } from "@/app/components/ui/loading-state";
+import MobileNavigationExamples from "./MobileNavigationExamples";
 import CatalogDesignCard from "@/components/templates/CatalogDesignCard";
 import CatalogIndustryIcon from "@/components/templates/CatalogIndustryIcon";
 import { catalogDesigns } from "@/lib/catalog-designs";
@@ -43,7 +46,7 @@ export default function SiteComponentGallery() {
   ];
   return <div className={`site-container ${styles.page}`}>
     <SitePageHeader title="디자인 시스템" description="디자인 기준과 실제 사이트에 사용하는 공통 컴포넌트를 한곳에서 확인합니다."><p className="type-body-sm">스타일 확인용 예시입니다. 선택과 좋아요는 이 화면에서만 유지됩니다.</p></SitePageHeader>
-    <Tabs purpose="page" defaultValue="components" className="gap-0"><TabsList size="lg" aria-label="디자인 시스템 메뉴"><TabsTrigger value="foundations">기준·토큰</TabsTrigger><TabsTrigger value="components">컴포넌트 라이브러리</TabsTrigger></TabsList><TabsContent value="foundations"><DesignFoundations /></TabsContent><TabsContent value="components"><nav className="site-filter-group mt-6" aria-label="주요 컴포넌트 바로가기"><a href="#wide-screen-components" className="site-filter">와이드 기준</a><a href="#wide-screen-components-mockups" className="site-filter">목업 크기</a><a href="#mobile-spacing" className="site-filter">모바일 간격</a><a href="#selection-hierarchy-title" className="site-filter">탭 위계</a><a href="#shaped-tabs" className="site-filter">영역형 탭</a><a href="#form-controls" className="site-filter">입력 요소</a><a href="#card-patterns" className="site-filter">카드</a><a href="#list-patterns" className="site-filter">게시글 목록</a><a href="#small-copy" className="site-filter">작은 안내·팝업</a><a href="#site-footer" className="site-filter">공통 푸터</a></nav><WideScreenRules id="wide-screen-components" /><SiteSystemRules /><SelectionControlExamples /><FormAndCardExamples /><ListExamples /><ShapedTabExamples /><ControlStateExamples /><ReferenceComponentExamples />
+    <Tabs purpose="page" defaultValue="components" className="gap-0"><TabsList size="lg" aria-label="디자인 시스템 메뉴"><TabsTrigger value="foundations">기준·토큰</TabsTrigger><TabsTrigger value="components">컴포넌트 라이브러리</TabsTrigger></TabsList><TabsContent value="foundations"><DesignFoundations /></TabsContent><TabsContent value="components"><nav className="site-filter-group mt-6" aria-label="주요 컴포넌트 바로가기"><a href="#wide-screen-components" className="site-filter">와이드 기준</a><a href="#wide-screen-components-mockups" className="site-filter">목업 크기</a><a href="#mobile-spacing" className="site-filter">모바일 간격</a><a href="#selection-hierarchy-title" className="site-filter">탭 위계</a><a href="#shaped-tabs" className="site-filter">영역형 탭</a><a href="#form-controls" className="site-filter">입력 요소</a><a href="#card-patterns" className="site-filter">카드</a><a href="#list-patterns" className="site-filter">게시글 목록</a><a href="#loading-feedback" className="site-filter">로딩·진행</a><a href="#mobile-navigation" className="site-filter">모바일 메뉴</a><a href="#small-copy" className="site-filter">작은 안내·팝업</a><a href="#site-footer" className="site-filter">공통 푸터</a></nav><WideScreenRules id="wide-screen-components" /><SiteSystemRules /><SelectionControlExamples /><FormAndCardExamples /><ListExamples /><ShapedTabExamples /><ControlStateExamples /><ReferenceComponentExamples />
     <Examples title="역할로 구분하는 버튼" description="본문 실행은 40px·모서리 8px, 로그인·결제 같은 주요 완료 행동은 48px입니다. 헤더와 떠 있는 진입점만 pill을 사용합니다.">
       <div className={styles.buttonRow}>
         <Button asChild><Link href="/apply">시작하기</Link></Button>
@@ -92,11 +95,16 @@ export default function SiteComponentGallery() {
           action={<Button variant="outline" asChild><Link href="/apply"><Plus />메뉴판 만들기</Link></Button>} />
       </TabsContent>)}</Tabs>
     </Examples>
+    <div id="loading-feedback"><Examples title="로딩·진행 표시" description="기다리는 동안 상태 문구와 시각적 표시를 함께 제공합니다. 진행률을 알 수 없는 조회에는 불확정 표시를, 실제 진행률을 아는 작업에만 퍼센트를 사용합니다.">
+      <div className="site-collection site-stack-block"><LoadingState label="공지사항을 불러오는 중입니다." /><LoadingState label="계정 정보를 확인 중입니다." inline /><LoadingState label="목록을 불러오는 중입니다." indicator="bar" /><ProgressBar label="파일 업로드 진행률 예시" value={65} /><p className="type-caption">65%는 컴포넌트 확인용 예시입니다. 모션 감소 설정에서는 반복 애니메이션이 멈추고 상태 문구가 남습니다.</p></div>
+    </Examples></div>
+    <div id="mobile-navigation"><Examples title="모바일 전체 메뉴" description="서비스는 같은 크기의 메뉴명으로 나열하고, 고객센터의 하위 링크만 펼쳐 봅니다. 계정·역할·매장 운영·알림·만들기·로그아웃은 계정 상태에 맞춰 표시합니다."><MobileNavigationExamples /></Examples></div>
     <Examples title="말풍선 툴팁" description="기본은 왼쪽 아래에 꼬리가 있는 말풍선입니다. 실제 대상과 화면 여유에 따라 왼쪽·가운데·오른쪽과 위·아래 방향을 조절하며, 항상 보이는 안내도 같은 형태를 공유합니다.">
       <div className={styles.buttonRow}>
         <Tooltip><TooltipTrigger asChild><Button variant="outline">밝은 툴팁</Button></TooltipTrigger><TooltipContent tone="light" heading="디자인 미리보기">보기 옵션과 디자인 옵션을 바꾸며 우리 매장에 어울리는 구성을 찾아보세요.</TooltipContent></Tooltip>
         <Tooltip><TooltipTrigger asChild><Button variant="outline">어두운 툴팁</Button></TooltipTrigger><TooltipContent tone="dark" heading="디자인 미리보기">보기 옵션과 디자인 옵션을 바꾸며 우리 매장에 어울리는 구성을 찾아보세요.</TooltipContent></Tooltip>
       </div>
+      <div className={styles.buttonRow}><span className="type-label">권장 브라우저</span><InfoTooltip label="권장 브라우저 안내">아티메뉴 메뉴판은 Chrome(크롬) 사용을 권장합니다. 브라우저 설정은 컴퓨터용 Chrome 기준입니다.</InfoTooltip></div>
       <p className="type-body-sm text-zinc-600">짧은 힌트는 마우스를 올리거나 키보드로 포커스하면 표시합니다. 중요한 정보나 실행 버튼은 툴팁 안에 숨기지 않습니다.</p>
       <div className={styles.buttonRow}>
         <HelpTooltip label="밝은 도움말 예시" heading="디자인 미리보기" side="top" trigger={<Button variant="outline">밝은 도움말 열기</Button>}>보기 옵션과 디자인 옵션을 바꾸며 우리 매장에 어울리는 구성을 찾아보세요.</HelpTooltip>

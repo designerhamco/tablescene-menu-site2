@@ -25,6 +25,7 @@ import {
 } from "@/lib/usage-guides";
 import styles from "./usage-guide.module.css";
 import SitePageHeader from "@/components/layout/SitePageHeader";
+import InfoTooltip from "@/components/ui/InfoTooltip";
 
 const GUIDE_DEVICE = "windows";
 const GUIDE_BROWSER = "chrome";
@@ -314,14 +315,6 @@ export default function UsageGuidePage({
     <div className={styles.page} data-usage-guide>
       <div className="site-container">
         <SitePageHeader title="이용가이드" description="메뉴판 연결부터 브라우저 설정까지, 필요한 이용 방법을 확인하세요." />
-        <aside className={`site-notice ${styles.recommendation}`}>
-            <p className="type-body-lg font-semibold">
-              아티메뉴 메뉴판은 Chrome(크롬) 사용을 권장합니다.
-            </p>
-            <p className="type-body-sm">
-              아래 브라우저 설정은 컴퓨터용 Chrome 기준입니다.
-            </p>
-          </aside>
         <Tabs
           purpose="page"
           value={plan}
@@ -352,6 +345,7 @@ export default function UsageGuidePage({
                   role="group"
                   aria-label="가이드 종류"
                 >
+                  <InfoTooltip label="권장 브라우저 안내">아티메뉴 메뉴판은 Chrome(크롬) 사용을 권장합니다. 아래 브라우저 설정은 컴퓨터용 Chrome 기준입니다.</InfoTooltip>
                   <a
                     href={`#${entry.id}-${entry.id === "display" ? "connection" : "fullscreen"}`}
                     className="site-filter"

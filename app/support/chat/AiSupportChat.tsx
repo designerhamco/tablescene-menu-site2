@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUp, ArrowUpRight, Coins, LoaderCircle, PanelsTopLeft, QrCode } from "lucide-react";
+import { ArrowUp, ArrowUpRight, Coins, PanelsTopLeft, QrCode } from "lucide-react";
+import { LoadingState } from "@/app/components/ui/loading-state";
 import { FormEvent, useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
@@ -114,7 +115,7 @@ export default function AiSupportChat({ compact = false }: { compact?: boolean }
             <p className={`type-body-sm ${styles.answer}`}>{message.text}</p>
           </div>
         ))}</div>}
-        {pending ? <p className={`type-label ${styles.pending}`} role="status"><LoaderCircle size={16} aria-hidden="true" />답변을 확인하고 있습니다…</p> : null}
+        {pending ? <LoadingState label="답변을 확인하고 있습니다…" inline /> : null}
         {error ? (
           <div className={`site-notice site-notice-warning type-label px-4 py-3 ${styles.error}`} role="alert">
             {error} <Link href="/mypage/inquiries" className="underline underline-offset-4">1:1 문의</Link>

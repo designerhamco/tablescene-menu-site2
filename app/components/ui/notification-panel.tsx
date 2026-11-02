@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingState } from "@/app/components/ui/loading-state";
 import type { ReactNode } from "react";
 import { Bell } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
@@ -21,13 +22,13 @@ export function NotificationPanel({ items, loading = false, footer, compact = fa
   onActivate?: (item: NotificationRow) => void;
 }) {
   const unread=items.filter(item=>item.unread);
-  return <div className="site-notification-panel" data-compact={compact || undefined}>
+  return <div className="site-notification-panel" aria-busy={loading} data-compact={compact || undefined}>
     <Tabs purpose="category" defaultValue="all" className="gap-0">
       <TabsList size="md" distribution="equal" className="site-notification-tabs" aria-label="알림 분류">
         <TabsTrigger value="all">전체 알림</TabsTrigger><TabsTrigger value="unread" count={unread.length}>읽지 않음</TabsTrigger>
       </TabsList>
       {[{key:"all",rows:items},{key:"unread",rows:unread}].map(({key,rows})=><TabsContent key={key} value={key} className="site-notification-feed">
-        {loading ? <p className="site-notification-empty" role="status">알림을 불러오는 중입니다.</p> : rows.length ? rows.map((item,index)=><div key={item.id}>
+        {loading ? <LoadingState label="알림을 불러오는 중입니다." /> : rows.length ? rows.map((item,index)=><div key={item.id}>
           {index === 0 || dateLabel(rows[index-1].createdAt) !== dateLabel(item.createdAt) ? <h3 className="type-label site-notification-date">{dateLabel(item.createdAt)}</h3> : null}
           <a href={item.href} className="site-notification-item" data-unread={item.unread || undefined} onClick={onActivate ? event=>{event.preventDefault();onActivate(item);} : undefined}>
             <span className="site-notification-symbol" aria-hidden="true"><Bell size={20} />{item.unread ? <i /> : null}</span>
