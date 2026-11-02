@@ -104,7 +104,7 @@ export async function getStoreOperationsContext(
     }];
   });
 
-  // Only authenticated, currently usable sites and existing runtime targets reach this query.
+  // Only authenticated, paid supported sites with enabled table runtime reach this query.
   // Return readiness only; staff without table.manage never receive table identifiers or QR paths.
   const tableSites = sites.filter(site => site.tableSetupAvailable);
   await Promise.all(tableSites.map(async site => {

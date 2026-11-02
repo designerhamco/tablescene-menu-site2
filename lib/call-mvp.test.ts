@@ -46,22 +46,20 @@ test("Call MVP functions use an empty search path and execute only through servi
   assert.match(sql, /grant execute on function public\.cancel_pending_staff_call[\s\S]*to service_role/);
 });
 
-test("Call runtime still requires enablement and a matching site allowlist", () => {
+test("Call runtime requires enablement and a valid site ID without pilot onboarding", () => {
   const siteId = "11111111-1111-4111-8111-111111111111";
   assert.equal(callRuntime.isCallRuntimeEnabled(undefined), false);
   assert.equal(callRuntime.isCallRuntimeEnabled("TRUE"), true);
   assert.equal(callRuntime.isCallRuntimeEnabledForSite(siteId, {
     enabled: true,
-    allowedSiteIds: new Set([siteId]),
   }), true);
   assert.equal(callRuntime.isCallRuntimeEnabledForSite(siteId, {
     enabled: false,
-    allowedSiteIds: new Set([siteId]),
   }), false);
   assert.equal(callRuntime.isCallRuntimeEnabledForSite(siteId, {
     enabled: true,
-    allowedSiteIds: new Set(),
-  }), false);
+  }), true);
+  assert.equal(callRuntime.isCallRuntimeEnabledForSite("invalid", { enabled: true }), false);
 });
 
 test("staff calls move only pending to acknowledged to completed", () => {

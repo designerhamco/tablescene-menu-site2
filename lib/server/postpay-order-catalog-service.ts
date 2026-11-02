@@ -1,4 +1,5 @@
 import "server-only";
+import { hasPaidTableOperationsAccess } from "@/lib/server/table-operations-eligibility-service";
 
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import { isMenuTimeSaleActive } from "@/lib/menu-time-sale-display";
@@ -22,7 +23,7 @@ export async function getPostpayOrderCatalog(
     "categories" | "timeSales" | "menuSite" | "initialNowMs"
   >,
 ): Promise<PostpayOrderCatalogItem[]> {
-  if (!isPostpayOrderRuntimeEnabledForSite(menuSiteId)) return [];
+  if (!isPostpayOrderRuntimeEnabledForSite(menuSiteId) || !await hasPaidTableOperationsAccess(menuSiteId)) return [];
 
   const supabase = createAdminClient();
   const [itemsResult, groupsResult, valuesResult] = await Promise.all([

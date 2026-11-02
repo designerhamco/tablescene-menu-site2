@@ -2360,9 +2360,9 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
           && planType === "business_basic"
           && isTemplateSupportedForService(site.template_key, "basic")
           && canUseMenuActions,
-        canManageOrders: Boolean(siteId) && isOrderDashboardRuntimeEnabledForSite(siteId),
-        canViewSales: Boolean(siteId) && isOrderDashboardRuntimeEnabledForSite(siteId),
-        canManageCalls: Boolean(siteId) && isCallRuntimeEnabledForSite(siteId),
+        canManageOrders: Boolean(siteId) && planType === "business_basic" && canUseMenuActions && isTemplateSupportedForService(site.template_key, "basic") && isOrderDashboardRuntimeEnabledForSite(siteId),
+        canViewSales: Boolean(siteId) && planType === "business_basic" && canUseMenuActions && isTemplateSupportedForService(site.template_key, "basic") && isOrderDashboardRuntimeEnabledForSite(siteId),
+        canManageCalls: Boolean(siteId) && planType === "business_basic" && canUseMenuActions && isTemplateSupportedForService(site.template_key, "basic") && isCallRuntimeEnabledForSite(siteId),
         canOwnerPreview,
         canViewPublic: canOpenPublicPage,
         canManageQr: Boolean(siteId) && canOpenPublicPage,

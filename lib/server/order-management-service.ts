@@ -1,4 +1,5 @@
 import "server-only";
+import { hasPaidTableOperationsAccess } from "@/lib/server/table-operations-eligibility-service";
 
 import {
   assertOrderStatusTransition,
@@ -166,8 +167,8 @@ function normalizedPaymentMethod(value: unknown) {
   }
 }
 
-function assertDashboardEnabled(menuSiteId: string) {
-  if (!isOrderDashboardRuntimeEnabledForSite(menuSiteId)) {
+async function assertDashboardEnabled(menuSiteId: string) {
+  if (!isOrderDashboardRuntimeEnabledForSite(menuSiteId) || !await hasPaidTableOperationsAccess(menuSiteId)) {
     throw new OrderManagementError(
       "DASHBOARD_UNAVAILABLE",
       "주문관리는 상품 및 운영 활성화 전까지 안전하게 잠겨 두었습니다.",
@@ -218,8 +219,8 @@ function assertUpdated<T>(data: T | null) {
 
 export async function listOrderDashboard(menuSiteIdValue: unknown): Promise<OrderDashboardPageData> {
   const menuSiteId = normalizedId(menuSiteIdValue);
-  assertDashboardEnabled(menuSiteId);
   const context = await requireMenuSitePermission(menuSiteId, "order.read");
+  await assertDashboardEnabled(menuSiteId);
   const supabase = createAdminClient();
   const menuSiteResult = await supabase
     .from("menu_sites")
@@ -337,12 +338,12 @@ export async function transitionOrderStatus({
 }) {
   const menuSiteId = normalizedId(menuSiteIdValue);
   const orderId = normalizedId(orderIdValue);
-  assertDashboardEnabled(menuSiteId);
   const { context, supabase } = await requireMenuSiteWriteAccess(
     menuSiteId,
     "order.manage",
     "order_status_management",
   );
+  await assertDashboardEnabled(menuSiteId);
   const current = await loadOrderForMutation(menuSiteId, orderId);
   let normalizedNext: OrderStatus;
   try {
@@ -387,12 +388,12 @@ export async function cancelUnpaidOrder({
   const menuSiteId = normalizedId(menuSiteIdValue);
   const orderId = normalizedId(orderIdValue);
   const cancellationReason = normalizedCancellationReason(reason);
-  assertDashboardEnabled(menuSiteId);
   const { context, supabase } = await requireMenuSiteWriteAccess(
     menuSiteId,
     "order.cancel_unpaid",
     "order_unpaid_cancellation",
   );
+  await assertDashboardEnabled(menuSiteId);
   const current = await loadOrderForMutation(menuSiteId, orderId);
   if (!canCancelUnpaidOrder(current.status, current.payment_status)) {
     throw new OrderManagementError("ORDER_CONFLICT", "미결제·미제공 주문만 취소할 수 있습니다.", 409);
@@ -428,12 +429,12 @@ export async function markOrderManualPayment({
   const menuSiteId = normalizedId(menuSiteIdValue);
   const orderId = normalizedId(orderIdValue);
   const paymentMethod = normalizedPaymentMethod(method);
-  assertDashboardEnabled(menuSiteId);
   const { context, supabase } = await requireMenuSiteWriteAccess(
     menuSiteId,
     "payment.manual",
     "order_manual_payment",
   );
+  await assertDashboardEnabled(menuSiteId);
   const current = await loadOrderForMutation(menuSiteId, orderId);
   if (!canMarkManualPayment(current.status, current.payment_status)) {
     throw new OrderManagementError("ORDER_CONFLICT", "취소되지 않은 미결제 주문만 수동 결제 완료로 표시할 수 있습니다.", 409);

@@ -4,6 +4,7 @@ import test from "node:test";
 import ts from "typescript";
 import * as operationPolicy from "./operations-dashboard";
 import { readMenuOrderSettings, mergeMenuOrderSettingsSection, DEFAULT_MENU_ORDER_SETTINGS } from "./menu-order-settings";
+import { isPaidTableOperationsEligible } from "./table-operations-eligibility";
 import { MenuSiteAccessError } from "./menu-site-permissions";
 
 function source(path: string) { return readFileSync(new URL(`../${path}`, import.meta.url), "utf8"); }
@@ -18,7 +19,7 @@ function serverModule<T>(path: string, dependencies: Record<string, unknown>): T
 }
 const menuId = "11111111-1111-4111-8111-111111111111";
 
-function settingsFixture({ activeTable = true, runtime = true, tableError = false, owner = true, currentOrder = false, currentCall = false } = {}) {
+function settingsFixture({ activeTable = true, runtime = true, tableError = false, owner = true, currentOrder = false, currentCall = false, eligible = true } = {}) {
   const writes: unknown[] = [];
   const tableReads: [string, unknown][] = [];
   const db = { from(name: string) {
@@ -35,12 +36,14 @@ function settingsFixture({ activeTable = true, runtime = true, tableError = fals
   const update = { eq() { return this; }, is() { return this; }, select() { return this; }, async maybeSingle() { return { data: { id: menuId }, error: null }; } };
   const service = serverModule<typeof import("./server/menu-order-settings-service")>("lib/server/menu-order-settings-service.ts", {
     "server-only": {},
+    "@/lib/table-operations-eligibility": { isPaidTableOperationsEligible },
     "@/lib/dining-product-tiers": { getDiningTemplateTier: () => "single" },
     "@/lib/call-runtime": { isCallRuntimeEnabledForSite: () => runtime },
     "@/lib/table-management-runtime": { isTableManagementRuntimeEnabledForSite: () => runtime },
     "@/lib/order-dashboard-runtime": { isOrderDashboardRuntimeEnabledForSite: () => runtime },
     "@/lib/postpay-order-runtime": { isPostpayOrderRuntimeEnabledForSite: () => runtime },
     "./menu-site-access-service": {
+      getMenuSiteAccessStateForMenuSite: async () => ({ planType: eligible ? "business_basic" : "personal_trial", canEdit: true, canUseWriteActions: true }),
       requireMenuSitePermission: async () => ({ isOwner: owner, actorUserId: "owner" }),
       requireMenuSiteWriteAccess: async () => ({ context: { actorUserId: "owner" }, supabase: { from() { return { update(value: unknown) { writes.push(value); return update; } }; } } }),
     },
@@ -148,4 +151,17 @@ test("운영 메뉴판 선택은 왼쪽 셀렉트이며 테이블·QR 관리를 
   assert.match(selector, /router.push\(item.href\)/);
   const form = source("app/mypage/menus/[menuId]/order-settings/OrderSettingsForm.tsx");
   assert.match(form, /disabled: !activeTablesReady && !featureEnabled/);
+});
+
+test("무료 이용권은 설정 활성화 불가이며 유료 메뉴도 주문·호출을 자동으로 켜지 않는다", async () => {
+  const paid = settingsFixture();
+  const loaded = await paid.service.loadMenuOrderSettings(menuId);
+  assert.equal(loaded.runtime.tables, true);
+  assert.equal(loaded.settings.orderEnabled, false);
+  assert.equal(loaded.settings.callEnabled, false);
+  assert.equal(paid.writes.length, 0);
+  const trial = settingsFixture({ eligible: false });
+  assert.deepEqual((await trial.service.loadMenuOrderSettings(menuId)).runtime, { calls: false, orders: false, tables: false, dashboard: false });
+  await assert.rejects(trial.service.saveMenuOrderSettings(menuId, { ...DEFAULT_MENU_ORDER_SETTINGS, orderEnabled: true }, "orders"));
+  assert.equal(trial.writes.length, 0);
 });

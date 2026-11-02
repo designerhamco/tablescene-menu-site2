@@ -6,7 +6,6 @@ const runtimeModule = await import(
 ) as typeof import("./postpay-order-runtime");
 
 const {
-  getPostpayOrderAllowedSiteIds,
   isPostpayOrderRuntimeEnabled,
   isPostpayOrderRuntimeEnabledForSite,
   isUuid,
@@ -20,12 +19,11 @@ test("postpay runtime requires explicit enablement", () => {
   assert.equal(isPostpayOrderRuntimeEnabled(" TRUE "), true);
 });
 
-test("postpay runtime requires an explicit UUID site allowlist", () => {
-  const allowed = getPostpayOrderAllowedSiteIds(` invalid, ${SITE_ID.toUpperCase()} `);
-  assert.deepEqual([...allowed], [SITE_ID]);
-  assert.equal(isPostpayOrderRuntimeEnabledForSite(SITE_ID, { enabled: true, allowedSiteIds: allowed }), true);
-  assert.equal(isPostpayOrderRuntimeEnabledForSite(SITE_ID, { enabled: false, allowedSiteIds: allowed }), false);
-  assert.equal(isPostpayOrderRuntimeEnabledForSite("22222222-2222-4222-8222-222222222222", { enabled: true, allowedSiteIds: allowed }), false);
+test("postpay runtime uses a global switch and valid ID, not a pilot allowlist", () => {
+  assert.equal(isPostpayOrderRuntimeEnabledForSite(SITE_ID, { enabled: true }), true);
+  assert.equal(isPostpayOrderRuntimeEnabledForSite(SITE_ID, { enabled: false }), false);
+  assert.equal(isPostpayOrderRuntimeEnabledForSite("22222222-2222-4222-8222-222222222222", { enabled: true }), true);
+  assert.equal(isPostpayOrderRuntimeEnabledForSite("invalid", { enabled: true }), false);
 });
 
 test("UUID validation rejects malformed identifiers", () => {

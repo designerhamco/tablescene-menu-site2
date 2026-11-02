@@ -9,7 +9,8 @@ function fixture({ enabled = true, failed = false } = {}) {
   const rows = [item("ordinary", "ordinary"), item("component", "course"), item("hidden", "hidden"), item("orphan", "missing"), item("standalone", null), item("no-price", null, NaN)];
   const output = ts.transpileModule(readFileSync(new URL("./server/postpay-order-catalog-service.ts", import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
   const dependencies: Record<string, unknown> = {
-    "server-only": {}, "node:crypto": {},
+    "server-only": {},
+    "@/lib/server/table-operations-eligibility-service": { hasPaidTableOperationsAccess: async () => true }, "node:crypto": {},
     "@/lib/menu-time-sale-display": { isMenuTimeSaleActive: () => true },
     "@/lib/postpay-order-runtime": { isPostpayOrderRuntimeEnabledForSite: () => enabled },
     "@/lib/supabase/admin": { createAdminClient: () => ({ from(name: string) {
