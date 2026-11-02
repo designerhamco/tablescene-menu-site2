@@ -147,9 +147,9 @@ export default async function StoreOperationsShell({
             </aside>
 
             <section className="min-w-0">
-              {selectedSite && activeSection !== "tables" && isStoreOperationsTemplate(selectedSite.templateKey) ? (
-                <OperationTableSetupNotice menuId={selectedSite.menuSiteId} tableSetupAvailable={selectedSite.tableSetupAvailable}
-                  activeTablesReady={selectedSite.activeTablesReady} canManageTables={selectedSite.permissions.includes("table.manage")} />
+              {selectedSite && selectedSite.activeTablesReady !== true && activeSection !== "tables" && activeSection !== "dashboard" && isStoreOperationsTemplate(selectedSite.templateKey) ? (
+                <div className="mb-6"><OperationTableSetupNotice menuId={selectedSite.menuSiteId} tableSetupAvailable={selectedSite.tableSetupAvailable}
+                  activeTablesReady={selectedSite.activeTablesReady} canManageTables={selectedSite.permissions.includes("table.manage")} /></div>
               ) : null}
               {children}
             </section>

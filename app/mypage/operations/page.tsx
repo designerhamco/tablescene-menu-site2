@@ -5,6 +5,10 @@ import { AnnouncementBar, MetricCard } from "@/app/components/ui/data-display";
 import { redirect } from "next/navigation";
 
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
+import OperationFeatureToggle from "@/components/mypage/OperationFeatureToggle";
+import OperationTableSetupNotice from "@/components/mypage/OperationTableSetupNotice";
+import { isStoreOperationsTemplate } from "@/lib/operations-dashboard";
+import { loadMenuOrderSettings } from "@/lib/server/menu-order-settings-service";
 import { formatKoreanDateTime } from "@/lib/korean-date-time";
 import { isStoreOperationsAvailable } from "@/lib/product-focus-policy";
 import { listCallDashboard } from "@/lib/server/call-management-service";
@@ -118,11 +122,13 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
   }
 
   const access = selectedSite.operationAccess;
-  const [orderData, callData, tableData, pickupData] = await Promise.all([
+  const canReadTables = selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage");
+  const [orderData, callData, tableData, pickupData, settingsData] = await Promise.all([
     loadOptionalDashboard(access.orders, "orders", () => listOrderDashboard(selectedSite.menuSiteId)),
     loadOptionalDashboard(access.calls, "calls", () => listCallDashboard(selectedSite.menuSiteId)),
-    loadOptionalDashboard(access.tables, "tables", () => listMenuTables(selectedSite.menuSiteId)),
+    loadOptionalDashboard(canReadTables, "tables", () => listMenuTables(selectedSite.menuSiteId)),
     loadOptionalDashboard(access.pickup, "pickup", () => listPickupQueueDashboard(selectedSite.menuSiteId)),
+    loadOptionalDashboard(selectedSite.canConfigure, "settings", () => loadMenuOrderSettings(selectedSite.menuSiteId)),
   ]);
 
   const openOrders = orderData?.orders.filter((order) => !["served", "cancelled"].includes(order.status)) ?? [];
@@ -138,15 +144,13 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
         <header>
           <h2 className="type-section-title">{selectedSite.name} 운영 현황</h2>
           <p className="mt-3 break-keep text-copy font-normal leading-relaxed text-zinc-600">
-            현재 주문과 호출, 테이블 현황을 빠르게 확인합니다.
+            {selectedSite.canConfigure ? "주문·호출 사용 여부를 바로 변경하고, 현재 운영 현황을 확인합니다." : "현재 주문과 호출, 테이블 현황을 빠르게 확인합니다."}
           </p>
         </header>
 
-        {selectedSite.canConfigure && (!access.orders || !access.calls) ? (
-          <AnnouncementBar label="운영 설정" surface="muted">
-            주문관리·호출관리에서 사용 여부와 항목을 미리 설정할 수 있습니다. 실제 접수는 메뉴판 공개와 운영 연결이 완료된 기능에서 시작됩니다.
-          </AnnouncementBar>
-        ) : null}
+        {selectedSite.canConfigure ? <p className="type-body-sm text-zinc-600">
+          스위치를 변경하면 즉시 저장됩니다. 실제 접수는 활성 테이블과 공개된 메뉴판에서만 가능합니다. 이미 접수된 주문·호출 내역은 유지됩니다.
+        </p> : null}
 
         <section className="site-metric-grid" aria-label="매장 운영 요약">
           <MetricCard icon={<ShoppingBag />} tone="blue" surface="muted"
@@ -154,16 +158,22 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
             value={orderData ? `${openOrders.length.toLocaleString("ko-KR")}건` : access.orders ? "확인 불가" : "이용 불가"}
             detail={orderData ? `최근 주문 ${orderData.orders.length.toLocaleString("ko-KR")}건` : "주문 기능 활성화 시 표시됩니다."}
             href={access.orders ? `/mypage/menus/${selectedSite.menuSiteId}/orders` : null}
+            footer={selectedSite.canConfigure ? settingsData ? <OperationFeatureToggle menuId={selectedSite.menuSiteId} feature="orders"
+              enabled={settingsData.settings.orderEnabled} canEnable={settingsData.runtime.orders} activeTablesReady={selectedSite.activeTablesReady} />
+              : <p className="type-body-sm text-red-700" role="alert">사용 설정을 불러오지 못했습니다. 새로고침해 주세요.</p> : null}
           />
           <MetricCard icon={<Bell />} tone="brand" surface="muted"
             label="대기 중 호출"
             value={callData ? `${pendingCalls.length.toLocaleString("ko-KR")}건` : access.calls ? "확인 불가" : "이용 불가"}
             detail={callData ? `호출 이력 ${callData.calls.length.toLocaleString("ko-KR")}건` : "호출 기능 활성화 시 표시됩니다."}
             href={access.calls ? `/mypage/menus/${selectedSite.menuSiteId}/calls` : null}
+            footer={selectedSite.canConfigure ? settingsData ? <OperationFeatureToggle menuId={selectedSite.menuSiteId} feature="calls"
+              enabled={settingsData.settings.callEnabled} canEnable={settingsData.runtime.calls} activeTablesReady={selectedSite.activeTablesReady} />
+              : <p className="type-body-sm text-red-700" role="alert">사용 설정을 불러오지 못했습니다. 새로고침해 주세요.</p> : null}
           />
           <MetricCard icon={<LayoutGrid />} tone="green" surface="muted"
             label="운영 테이블"
-            value={tableData ? `${activeTables.length.toLocaleString("ko-KR")}개` : access.tables ? "확인 불가" : "이용 불가"}
+            value={tableData ? `${activeTables.length.toLocaleString("ko-KR")}개` : canReadTables ? "확인 불가" : "이용 불가"}
             detail={tableData ? `등록 테이블 ${tableData.tables.length.toLocaleString("ko-KR")}개` : selectedSite.canManageQr ? "대표 QR은 QR 관리에서 확인할 수 있습니다." : "테이블 기능 활성화 시 표시됩니다."}
             href={access.tables || selectedSite.canManageQr ? `/mypage/menus/${selectedSite.menuSiteId}/tables` : null}
           />
@@ -172,8 +182,13 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
             value={pickupData ? `${activePickup.length.toLocaleString("ko-KR")}건` : access.pickup ? "확인 불가" : "이용 불가"}
             detail={pickupData ? `오늘 등록 ${pickupData.entries.length.toLocaleString("ko-KR")}건` : "Display 대기번호 활성화 시 표시됩니다."}
             href={access.pickup ? `/mypage/menus/${selectedSite.menuSiteId}/pickup` : null}
+            footer={<p className="type-body-sm text-zinc-600">사용 설정 보류</p>}
           />
         </section>
+
+        {isStoreOperationsTemplate(selectedSite.templateKey) ? <OperationTableSetupNotice menuId={selectedSite.menuSiteId}
+          tableSetupAvailable={selectedSite.tableSetupAvailable} activeTablesReady={selectedSite.activeTablesReady}
+          canManageTables={selectedSite.permissions.includes("table.manage")} /> : null}
 
         <section>
           <DashboardList

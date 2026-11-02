@@ -546,6 +546,8 @@
 .site-metric-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 1rem; }
 .site-metric-card { display: flex; min-width: 0; flex-direction: column; padding: 1.25rem; border: 0; border-radius: var(--ui-radius-panel); background: var(--ui-surface); color: var(--ui-text); }
 .site-metric-card[data-surface="muted"] { background: var(--ui-surface-muted); }
+.site-metric-content { display: flex; min-width: 0; flex: 1; flex-direction: column; }
+.site-metric-controls { margin-top: auto; padding-top: var(--site-space-block); }
 .site-metric-heading { display: flex; align-items: center; gap: .75rem; }
 .site-metric-label { flex: 1; color: var(--ui-text-muted); font-size: var(--type-card-body-size); font-weight: 500; }
 .site-metric-icon { display: grid; width: 2.5rem; height: 2.5rem; flex: none; place-items: center; border-radius: .75rem; background: var(--ui-surface-soft); color: var(--ui-text); }
