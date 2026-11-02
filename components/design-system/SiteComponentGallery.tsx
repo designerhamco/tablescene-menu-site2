@@ -10,6 +10,7 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen, ChevronDown, ChevronUp, Monitor, PanelsTopLeft, Plus, Tablet } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
+import { NewWindowIndicator } from "@/app/components/ui/new-window-indicator";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { ChoiceGroup, ChoiceTile } from "@/app/components/ui/choice-tile";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
@@ -57,6 +58,9 @@ export default function SiteComponentGallery() {
         <Button variant="outline" disabled>준비 중</Button>
       </div>
       <Button variant="outline" size="lg" asChild><Link href="/templates">전체 디자인 보기 <ArrowRight /></Link></Button>
+    </Examples>
+    <Examples title="새 창 링크" description="별도 작업 화면을 여는 링크는 문구 뒤에 대각선 화살표를 표시하고, 보조기기에도 새 창으로 열린다는 안내를 전달합니다.">
+      <div className={styles.buttonRow}><Button variant="outline" asChild><Link href="/mypage/operations" target="_blank" rel="noopener noreferrer">매장 운영 <NewWindowIndicator /></Link></Button></div>
     </Examples>
     <Examples title="주요 화면 전환" description="베이직·다이닝·디스플레이처럼 페이지 전체 목록을 바꾸는 선택은 텍스트와 짧은 밑줄로 선택을 표시하는 주요 화면 탭을 사용합니다.">
       <Tabs purpose="page" defaultValue="basic"><TabsList size="lg" aria-label="서비스 탐색 예시">
