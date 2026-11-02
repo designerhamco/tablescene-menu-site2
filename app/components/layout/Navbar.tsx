@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Bell, ChevronRight, Menu, X } from 'lucide-react';
+import { Bell, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -13,30 +13,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/pop
 import styles from './Navbar.module.css';
 import { NewWindowIndicator } from '@/app/components/ui/new-window-indicator';
 import SupportNavigation from '@/components/layout/SupportNavigation';
-import { SITE_SUPPORT_LINKS, isSupportLinkActive } from '@/lib/site-support-navigation';
-
-type NavItem = {
-  label: string;
-  path: string;
-  activePaths?: readonly string[];
-  disabled?: boolean;
-};
-
-const NAV_ITEMS: readonly NavItem[] = [
-  {
-    label: '베이직',
-    path: '/services/basic',
-    activePaths: ['/services/basic', '/services/menu', '/services/signature'],
-  },
-  { label: '다이닝', path: '/services/dining', activePaths: ['/services/dining'] },
-  { label: '디스플레이', path: '/services/display', activePaths: ['/services/display', '/services/screen', '/services/full-option', '/tablescene-pro'] },
-  { label: '디자인 템플릿', path: '/templates', activePaths: ['/templates'] },
-  { label: '고객센터', path: '/faq', activePaths: ['/faq', '/guides', '/support/chat'] },
-];
-
-function isNavItemActive(item: NavItem, pathname: string) {
-  return (item.activePaths ?? [item.path]).some((path) => pathname === path || pathname.startsWith(`${path}/`));
-}
+import { SITE_NAV_ITEMS as NAV_ITEMS, isSiteNavItemActive as isNavItemActive, type NavigationAccount } from '@/lib/site-navigation';
+import MobileSiteMenu from '@/components/layout/MobileSiteMenu';
 
 function DisabledChip() {
   return (
@@ -53,6 +31,8 @@ function HeaderBellIcon() {
 type AuthState = {
   isAuthenticated: boolean;
   userId: string | null;
+  email: string | null;
+  name: string | null;
   loading: boolean;
 };
 
@@ -76,8 +56,11 @@ const Navbar = () => {
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
     userId: null,
+    email: null,
+    name: null,
     loading: true,
   });
+  const [navigationAccount, setNavigationAccount] = useState<{ userId: string; account: NavigationAccount | null } | null>(null);
   const scrolledRef = useRef(false);
   const pathname = usePathname();
 
@@ -130,6 +113,8 @@ const Navbar = () => {
       setAuthState((currentState) =>
         currentState.isAuthenticated === nextState.isAuthenticated
           && currentState.userId === nextState.userId
+          && currentState.email === nextState.email
+          && currentState.name === nextState.name
           && currentState.loading === nextState.loading
           ? currentState
           : nextState,
@@ -140,6 +125,8 @@ const Navbar = () => {
       updateAuthState({
         isAuthenticated: Boolean(data.user),
         userId: data.user?.id ?? null,
+        email: data.user?.email ?? null,
+        name: typeof data.user?.user_metadata?.display_name === "string" ? data.user.user_metadata.display_name : null,
         loading: false,
       });
     });
@@ -150,6 +137,8 @@ const Navbar = () => {
       updateAuthState({
         isAuthenticated: Boolean(session?.user),
         userId: session?.user.id ?? null,
+        email: session?.user.email ?? null,
+        name: typeof session?.user.user_metadata?.display_name === "string" ? session.user.user_metadata.display_name : null,
         loading: false,
       });
     });
@@ -213,6 +202,22 @@ const Navbar = () => {
       isMounted = false;
     };
   }, [authState.userId]);
+
+  useEffect(() => {
+    if (!isOpen || !authState.userId) return;
+    const userId = authState.userId;
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch('/api/account/navigation', { signal: controller.signal, cache: 'no-store' });
+        const result = response.ok ? await response.json() as { account: NavigationAccount | null } : { account: null };
+        if (!controller.signal.aborted) setNavigationAccount({ userId, account: result.account });
+      } catch {
+        if (!controller.signal.aborted) setNavigationAccount({ userId, account: null });
+      }
+    }, 0);
+    return () => { controller.abort(); window.clearTimeout(timer); };
+  }, [isOpen, authState.userId]);
 
   const isFloating = supportsGlassSiteHeader(pathname) && isTabletOrDesktop && isScrolled && !isOpen;
   const navTextClass = styles.navLink;
@@ -383,119 +388,11 @@ const Navbar = () => {
           <Dialog.Content className={styles.drawer}>
             <Dialog.Title className="sr-only">아티메뉴 전체 메뉴</Dialog.Title>
             <Dialog.Description className="sr-only">서비스와 계정 메뉴를 선택하세요.</Dialog.Description>
-            <div className={`flex items-center justify-between ${styles.drawerHeader}`}>
-              <Link href="/" onClick={closeMobileMenu} className={styles.wordmark}>ArtiMenu</Link>
-              <Dialog.Close className="site-button site-button-icon site-button-ghost" aria-label="메뉴 닫기"><X size={24} /></Dialog.Close>
-            </div>
-            <div className={styles.drawerBody}>
-              <div className={styles.drawerMain}>
-                <div className={styles.drawerActions}>
-                  {showStoreOperations ? (
-                    <>
-                      <Link
-                        href={accountCtaHref}
-                        onClick={closeMobileMenu}
-                        className={`site-button site-button-secondary ${styles.drawerAction}`}
-                      >
-                        {accountCtaLabel}
-                      </Link>
-                      <Link
-                        href="/mypage/operations"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={closeMobileMenu}
-                        className={`site-button site-button-secondary ${styles.drawerAction}`}
-                      >
-                        매장 운영 <NewWindowIndicator />
-                      </Link>
-                      <Link
-                        href="/apply"
-                        onClick={closeMobileMenu}
-                        className={`site-button site-button-primary ${styles.drawerAction} ${styles.drawerActionWide}`}
-                      >
-                        만들기
-                      </Link>
-                    </>
-                  ) : (
-                    <>
-                      <Link
-                        href="/apply"
-                        onClick={closeMobileMenu}
-                        className={`site-button site-button-primary ${styles.drawerAction} ${styles.drawerActionWide}`}
-                      >
-                        만들기
-                      </Link>
-                      {!authState.loading ? (
-                        <Link
-                          href={accountCtaHref}
-                          onClick={closeMobileMenu}
-                          className={`site-button site-button-secondary ${styles.drawerAction} ${styles.drawerActionWide}`}
-                        >
-                          {accountCtaLabel}
-                        </Link>
-                      ) : null}
-                    </>
-                  )}
-                </div>
-
-                <nav aria-label="모바일 공식 사이트 메뉴" className={styles.drawerNavigation}>
-                  {NAV_ITEMS.map((item) => {
-                    if (item.path === "/faq") return <div key={item.path} className={styles.drawerSupportNavigation}><h3 className="type-label">고객센터</h3>{SITE_SUPPORT_LINKS.map(link => <Link key={link.href} href={link.href} onClick={closeMobileMenu} aria-current={isSupportLinkActive(link.href, pathname) ? "page" : undefined} className={styles.drawerSupportLink}>{link.label}<ChevronRight size={18} aria-hidden="true" /></Link>)}</div>;
-                    const isActive = isNavItemActive(item, pathname);
-
-                    return (
-                      <Link
-                        key={item.path}
-                        href={item.path}
-                        aria-current={isActive ? 'page' : undefined}
-                        aria-disabled={item.disabled ? true : undefined}
-                        tabIndex={item.disabled ? -1 : undefined}
-                        onClick={(event) => {
-                          if (item.disabled) {
-                            event.preventDefault();
-                            return;
-                          }
-
-                          closeMobileMenu();
-                        }}
-                        data-active={isActive ? 'true' : undefined}
-                        className={`${styles.drawerNavLink} ${item.disabled ? styles.drawerNavLinkDisabled : ''}`}
-                      >
-                        <span>{item.label}</span>
-                        <span className={styles.drawerNavMeta}>
-                          {item.disabled ? <DisabledChip /> : null}
-                          {!item.disabled ? <ChevronRight aria-hidden="true" /> : null}
-                        </span>
-                      </Link>
-                    );
-                  })}
-                </nav>
-              </div>
-
-              <div className={styles.drawerFooter}>
-                <div className={styles.drawerSupport}>
-                  <div className={styles.drawerSupportLinks}>
-                    <Link
-                      href="/mypage/inquiries"
-                      onClick={closeMobileMenu}
-                    >
-                      1:1 문의
-                    </Link>
-                    <Link
-                      href="/support/chat"
-                      onClick={closeMobileMenu}
-                    >
-                      채팅상담
-                    </Link>
-                  </div>
-                  <div className={styles.drawerIdentity}>
-                    <p>ArtiMenu Studio</p>
-                    <p>admin@dndcommerce.co.kr</p>
-                    <p>© 2026 ArtiMenu. All rights reserved.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <MobileSiteMenu pathname={pathname} authenticated={authState.isAuthenticated} loading={authState.loading}
+              account={navigationAccount?.userId === authState.userId && navigationAccount.account ? navigationAccount.account : { name: authState.name, email: authState.email ?? '', role: null }}
+              accountLoading={Boolean(authState.userId && navigationAccount?.userId !== authState.userId)}
+              showOperations={showStoreOperations} unreadCount={unreadCount} close={closeMobileMenu}
+              closeButton={<Dialog.Close className="site-button site-button-icon site-button-ghost" aria-label="메뉴 닫기"><X size={24} aria-hidden="true" /></Dialog.Close>} />
           </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>

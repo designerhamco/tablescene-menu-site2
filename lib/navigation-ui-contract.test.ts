@@ -6,19 +6,17 @@ function readSource(relativePath: string) {
   return readFileSync(new URL(`../${relativePath}`, import.meta.url), "utf8");
 }
 
-test("모바일 전체 메뉴는 디자인 시스템의 시트, 액션 표면과 단순한 내부 탐색을 사용한다", () => {
+test("모바일 전체 메뉴는 공통 Dialog와 같은 단계의 고객센터 펼침 탐색을 사용한다", () => {
   const navbarSource = readSource("app/components/layout/Navbar.tsx");
-  const navbarStyles = readSource("app/components/layout/Navbar.module.css");
-
-  assert.match(navbarSource, /className=\{styles\.drawerOverlay\}/);
-  assert.match(navbarSource, /className=\{styles\.drawerActions\}/);
-  assert.match(navbarSource, /className=\{styles\.drawerNavigation\}/);
-  assert.match(navbarSource, /className=\{styles\.drawerSupport\}/);
-  assert.match(navbarSource, /<ChevronRight/);
-  assert.doesNotMatch(navbarSource, /<ArrowUpRight/);
-  assert.match(navbarStyles, /\.drawer \{[\s\S]*?width: min\(100%, 28rem\)/);
-  assert.match(navbarStyles, /\.drawerActions \{[\s\S]*?background: var\(--ui-surface-soft\)/);
-  assert.match(navbarStyles, /\.drawerNavLink\[data-active="true"\]/);
+  const menuSource = readSource("components/layout/MobileSiteMenu.tsx");
+  assert.match(navbarSource, /<Dialog.Content/);
+  assert.match(navbarSource, /<MobileSiteMenu/);
+  assert.match(menuSource, /<CollapsibleTrigger asChild>/);
+  assert.match(menuSource, /aria-controls=\{supportId\}/);
+  assert.match(menuSource, /SITE_SUPPORT_LINKS.map/);
+  for (const label of ["로그인", "회원가입", "마이 메뉴", "매장 운영", "로그아웃", "만들기"]) assert.ok(menuSource.includes(label));
+  assert.match(menuSource, /<Badge>\{account.role\}/);
+  assert.match(menuSource, /action=\{signOutAction\}/);
 });
 
 test("헤더와 퀵 메뉴의 원형 아이콘 버튼은 가로세로가 같은 규격을 보장한다", () => {
@@ -56,6 +54,6 @@ test("데스크톱 헤더 액션은 MY 메뉴, 매장 운영, 구분선, 알림,
 test("디자인 템플릿과 만들기는 서로 다른 경로로 연결한다", () => {
   const navbarSource = readSource("app/components/layout/Navbar.tsx");
 
-  assert.match(navbarSource, /label: '디자인 템플릿', path: '\/templates'/);
+  assert.match(readSource("lib/site-navigation.ts"), /label: "디자인 템플릿", path: "\/templates"/);
   assert.match(navbarSource, /href="\/apply"[\s\S]*?>\s*만들기/);
 });

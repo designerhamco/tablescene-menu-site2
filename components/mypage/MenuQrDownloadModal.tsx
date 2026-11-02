@@ -1,8 +1,9 @@
 "use client";
 
+import { LoadingState } from "@/app/components/ui/loading-state";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, LoaderCircle, QrCode } from "lucide-react";
+import { ArrowUpRight, QrCode } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
 import type { MenuQrDownloadData } from "@/lib/menu-qr-downloads";
 import QrDownloadButton from "./QrDownloadButton";
@@ -60,7 +61,7 @@ export default function MenuQrDownloadModal({
         </div>
         <div aria-live="polite" aria-busy={loading}>
           {loading ? (
-            <p className="flex items-center justify-center gap-2 py-10 type-body-sm text-zinc-500"><LoaderCircle className="size-5 animate-spin" aria-hidden="true" />QR 목록을 불러오는 중입니다.</p>
+            <LoadingState label="QR 목록을 불러오는 중입니다." />
           ) : error ? (
             <div className="site-notice site-notice-error p-4">
               <p role="alert" className="type-body-sm">{error}</p>

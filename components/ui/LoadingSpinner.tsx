@@ -6,7 +6,7 @@ export default function LoadingSpinner({ className = "h-4 w-4" }: LoadingSpinner
   return (
     <span
       aria-hidden="true"
-      className={`inline-block shrink-0 animate-spin rounded-full border-2 border-current border-r-transparent ${className}`}
+      className={`site-loading-spinner inline-block shrink-0 animate-spin rounded-full border-2 border-current border-r-transparent ${className}`}
     />
   );
 }

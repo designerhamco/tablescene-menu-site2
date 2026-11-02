@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingState } from "@/app/components/ui/loading-state";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -59,7 +60,7 @@ export default function AiSupportChatLauncher() {
       </header>
       {view === "home" ? <SupportHome enabled={enabled} onChat={() => { setView("chat"); setChatVisited(true); }} onNavigate={() => setOpen(false)} /> : null}
       {chatVisited ? <div className={styles.chat} hidden={view !== "chat"}>
-        {enabled === null ? <div className={styles.unavailable} role="status">상담 가능 여부를 확인 중입니다…</div>
+        {enabled === null ? <LoadingState label="상담 가능 여부를 확인 중입니다…" />
           : enabled ? <AiSupportChat compact /> : <div className={styles.unavailable}>
             <SupportChatIcon width={40} height={40} className="text-zinc-400" /><h3 className="type-content-title">AI 상담 준비 중</h3>
             <p>AI 상담을 준비하고 있습니다. 궁금한 점은 1:1 문의로 남겨 주세요.</p>

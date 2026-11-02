@@ -72,9 +72,11 @@ async function inspect(page, width, height) {
     }));
     if ([1024, 1366].includes(width)) await page.screenshot({ path: `${output}/${width}x${height}-expanded.png` });
     const initialArea = await actions.boundingBox();
-    const trigger = Math.max(1, geometry.sidebar.y - geometry.headerBottom - geometry.gap, initialArea.y + initialArea.height - height + geometry.gap);
+    const actionTrigger = initialArea.y + initialArea.height - height + geometry.gap;
+    const trigger = Math.max(1, geometry.sidebar.y - geometry.headerBottom - geometry.gap, actionTrigger);
     geometry.dockAt = trigger;
     await page.evaluate(top => window.scrollTo({ top, behavior: "instant" }), Math.max(0, trigger - 2));
+    await expect.poll(async () => Math.abs(await page.evaluate(() => window.scrollY) - Math.max(0, trigger - 2))).toBeLessThan(1);
     await expect(sidebar).toHaveAttribute("data-docked", "false");
     await expect(gallery).toBeVisible();
     const before = await actions.boundingBox();
@@ -85,8 +87,10 @@ async function inspect(page, width, height) {
     assert.equal(pinnedActions.length, 2);
     assert.ok(pinnedActions.every(button => button.inViewport && button.unobscured), "Both actions are visible and clickable after reaching the dock");
     assert.ok(Math.abs(pinnedActions[1].bottom - (height - geometry.gap)) < 2, "Actions dock at the viewport bottom");
-    if (initialArea.y + initialArea.height > height - geometry.gap) {
-      assert.ok(Math.abs(before.y + before.height - pinnedActions[1].bottom) < 4, "Actions do not jump when the gallery collapses");
+    // Continuity applies when the action boundary governs docking. On taller
+    // viewports the header boundary can govern, with actions already above it.
+    if (trigger === actionTrigger) {
+      assert.ok(Math.abs(before.y + before.height - pinnedActions[1].bottom) < 4, `Actions do not jump when the gallery collapses (${width}×${height}, before ${before.y + before.height}, docked ${pinnedActions[1].bottom})`);
     }
     assert.equal(await page.evaluate(() => document.documentElement.scrollHeight), geometry.pageHeight, "Docking preserves document geometry");
     const overflows = await info.evaluate(element => element.scrollHeight > element.clientHeight + 1);
@@ -142,7 +146,8 @@ try {
     await settle(page);
     const geometry = await inspect(page, width, height);
     await page.addScriptTag({ content: axe.source });
-    const violations = await page.evaluate(async () => (await window.axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa"] } })).violations.filter(item => ["critical", "serious"].includes(item.impact)).map(item => ({ id: item.id, nodes: item.nodes.map(node => node.target) })));
+    // The clipped, pale footer wordmark is an existing aria-hidden decoration.
+    const violations = await page.evaluate(async () => (await window.axe.run({ exclude: ['footer [aria-hidden="true"][class*="wordmark"]'] }, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21aa"] } })).violations.filter(item => ["critical", "serious"].includes(item.impact)).map(item => ({ id: item.id, nodes: item.nodes.map(node => node.target) })));
     assert.deepEqual(violations, []);
     assert.deepEqual(errors, []);
     if ([390, 820, 1440].includes(width)) {
@@ -163,7 +168,8 @@ try {
     const sidebar = page.getByRole("complementary", { name: "템플릿 정보 및 시작" });
     await expect(sidebar.getByRole("link", { name: "미리보기", exact: true })).toHaveAttribute("href", `/templates/${route}/preview`);
     if (tier === "display") {
-      await expect(sidebar.getByRole("link", { name: "이 디자인으로 시작" })).toHaveAttribute("href", `/apply/display?template=${route}`);
+      await expect(sidebar.getByRole("button", { name: "디스플레이 신청 준비 중", exact: true })).toBeDisabled();
+      await expect(sidebar.getByRole("link", { name: "이 디자인으로 시작" })).toHaveCount(0);
     } else {
       const href = await sidebar.getByRole("link", { name: "이 디자인으로 시작" }).getAttribute("href");
       const url = new URL(href, base);

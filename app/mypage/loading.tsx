@@ -1,4 +1,5 @@
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
+import { LoadingState } from "@/app/components/ui/loading-state";
 
 export default function MyPageLoading() {
   return (
@@ -6,6 +7,7 @@ export default function MyPageLoading() {
       <OfficialSiteNavbar />
       <main className="site-management-scope site-gutter min-h-screen bg-white py-16 text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
+          <LoadingState label="마이 메뉴를 불러오는 중입니다." indicator="bar" />
           <header className="mb-12 border-b border-zinc-200 pb-8">
             <div className="h-12 w-56 rounded-2xl bg-zinc-200" />
             <div className="mt-5 h-5 w-full max-w-lg rounded-full bg-zinc-100" />

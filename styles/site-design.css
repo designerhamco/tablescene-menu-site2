@@ -746,3 +746,17 @@
   .site-board-search { grid-template-columns: minmax(0, 1fr) 2.5rem; }
   .site-board-search > select { grid-column: 1 / -1; }
 }
+
+/* Shared asynchronous feedback. Never animate a fabricated completion value. */
+.site-loading-state { display:flex; min-width:0; flex-direction:column; align-items:center; justify-content:center; gap:var(--site-space-block); padding-block:var(--site-space-content); color:var(--ui-text-muted); font-size:var(--type-body-sm-size); line-height:1.5; text-align:center; }
+.site-loading-state[data-inline] { display:inline-flex; flex-direction:row; justify-content:flex-start; gap:var(--site-space-copy); padding:0; text-align:start; }
+.site-loading-state-spinner { width:var(--ui-loading-spinner-size); height:var(--ui-loading-spinner-size); color:var(--ui-text); }
+.site-loading-state[data-inline] .site-loading-state-spinner { width:1rem; height:1rem; }
+.site-progress-bar, .site-loading-bar { display:block; width:100%; max-width:20rem; height:var(--ui-progress-track-height); overflow:hidden; border-radius:var(--ui-radius-control); background:var(--ui-surface-soft); }
+.site-progress-bar > span, .site-loading-bar > span { display:block; height:100%; border-radius:inherit; background:var(--ui-text); }
+.site-progress-bar > span { width:var(--site-progress-value); }
+.site-progress-bar[data-indeterminate] > span, .site-loading-bar > span { width:35%; animation:site-progress-pending var(--ui-feedback-motion-duration) ease-in-out infinite; }
+@keyframes site-progress-pending { from { transform:translateX(-110%); } to { transform:translateX(300%); } }
+@media(prefers-reduced-motion:reduce) { .site-loading-spinner, .site-loading-bar > span, .site-progress-bar[data-indeterminate] > span { animation:none !important; } .site-loading-bar > span, .site-progress-bar[data-indeterminate] > span { width:35%; margin-inline:auto; } }
+
+.site-help-anchor { display:inline-flex; flex:none; align-items:center; vertical-align:middle; }

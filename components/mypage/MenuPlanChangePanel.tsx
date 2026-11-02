@@ -1,4 +1,5 @@
 'use client';
+import { LoadingState } from "@/app/components/ui/loading-state";
 import {useEffect,useState} from 'react';
 import type {MenuPlanChangeQuote} from '@/lib/menu-plan-change-policy';
 type Pending={id:string;state:'pending'|'processing';canCancel:boolean;access:'standard'|'all';designId:string;amount:number;effectiveAt:string};
@@ -26,7 +27,7 @@ export default function MenuPlanChangePanel({subscriptionId}:{subscriptionId:str
       setDetail(result.detail);setConfirmed(false);setNotice(cancel?'변경 예약을 취소했습니다. 현재 계약이 유지됩니다.':'변경을 예약했습니다. 지금은 결제되지 않습니다.');
     }catch(e){setError(e instanceof Error?e.message:'변경을 저장하지 못했습니다.');}finally{setBusy(false);}
   }
-  if(!detail&&!error)return <p role="status" className="py-4 text-copy text-zinc-600">구독 변경 정보를 불러오고 있습니다.</p>;
+  if(!detail&&!error)return <LoadingState label="구독 변경 정보를 불러오고 있습니다." />;
   if(!detail)return <p role="alert" className="mt-4 text-copy text-red-700">{error}</p>;
   const pending=detail.pending,processing=pending?.state==='processing';
   return <section className="site-section mt-5 space-y-4 p-4" aria-label="이용권 변경">

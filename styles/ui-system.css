@@ -1,4 +1,7 @@
 :root {
+  --ui-loading-spinner-size: 1.5rem;
+  --ui-progress-track-height: .25rem;
+  --ui-feedback-motion-duration: 1.2s;
   --ui-control-height-compact: 2rem;
   --ui-control-height-md: 2.5rem;
   --ui-control-height-header: 2.75rem;

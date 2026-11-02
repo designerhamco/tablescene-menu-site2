@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { LoadingState } from "@/app/components/ui/loading-state";
 
 export default function OperationSiteSelector({ selectedId, items }: {
   selectedId: string;
@@ -19,6 +20,7 @@ export default function OperationSiteSelector({ selectedId, items }: {
         }}>
         {items.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
       </select>
+      {pending ? <LoadingState label="운영할 메뉴판을 불러오는 중입니다." inline /> : null}
     </div>
   );
 }

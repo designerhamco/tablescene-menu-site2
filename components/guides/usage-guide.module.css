@@ -93,18 +93,6 @@
   text-align: center;
   text-wrap: balance;
 }
-.recommendation {
-  margin-bottom: var(--site-page-intro-content-gap);
-  display: grid;
-  gap: 0.5rem;
-  width: 100%;
-
-  padding: 1.25rem 1.5rem;
-  text-wrap: balance;
-}
-.recommendation > p:last-child {
-  color: var(--ui-text-muted);
-}
 .instructionBox {
   display: grid;
   gap: 1.25rem;

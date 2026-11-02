@@ -66,6 +66,11 @@ export const DETAIL_FEATURES = [
 ] as const;
 
 export type DetailFeatureId = typeof DETAIL_FEATURES[number]["id"];
+export const DETAIL_FEATURE_GROUPS = [
+  { id: "menu", label: "메뉴 표현", features: ["cover", "images", "prices"] },
+  { id: "promotion", label: "콘텐츠·프로모션", features: ["sale", "widgets", "ads"] },
+  { id: "service", label: "매장 서비스", features: ["call", "order"] },
+] as const satisfies readonly { id: string; label: string; features: readonly DetailFeatureId[] }[];
 export function getDetailFeatureSlides(feature: typeof DETAIL_FEATURES[number], { album, multiPage }: { album: boolean; multiPage: boolean }): readonly DetailFeatureSlide[] {
   if (feature.id === "prices" && multiPage) return [
     { title: "상품마다 기본 가격 설정", description: "상품별 가격을 입력해 메뉴와 함께 안내하세요.", image: photos.dining },

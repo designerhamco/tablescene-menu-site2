@@ -1,5 +1,6 @@
 "use client";
 
+import { LoadingState } from "@/app/components/ui/loading-state";
 import { useEffect, useId, useState } from "react";
 import { Search } from "lucide-react";
 import { ANNOUNCEMENT_CATEGORIES, ANNOUNCEMENT_PAGE_SIZE, formatAnnouncementDate, type AnnouncementSummary } from "@/lib/announcements";
@@ -39,7 +40,7 @@ export default function AnnouncementBoard() {
     return () => { active = false; controller.abort(); window.clearTimeout(timer); };
   }, [submittedQuery, category, page, retry]);
 
-  const status = loading ? <p role="status">공지사항을 불러오는 중입니다.</p>
+  const status = loading ? <LoadingState label="공지사항을 불러오는 중입니다." />
     : result.unavailable ? <div role="status"><p>공지사항을 불러오지 못했습니다.</p><Button variant="outline" onClick={() => { setLoading(true); setRetry(value => value + 1); }}>다시 시도</Button></div>
     : result.items.length === 0 ? <p role="status">{submittedQuery || category !== "all" ? "조건에 맞는 공지사항이 없습니다." : "등록된 공지사항이 없습니다."}</p> : undefined;
 
