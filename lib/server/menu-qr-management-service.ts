@@ -12,18 +12,9 @@ import {
 import { listMenuTables } from "@/lib/server/menu-table-management-service";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isTableManagementRuntimeEnabledForSite } from "@/lib/table-management-runtime";
+import { getConfiguredPublicMenuOrigin } from "@/lib/menu-url";
 
 export type MenuQrManagementPageData = Omit<MenuQrDownloadData, "tables"> & { tables: MenuTableListItem[] };
-
-function getConfiguredPublicBaseUrl() {
-  const configuredUrl = process.env.NEXT_PUBLIC_PUBLIC_MENU_BASE_URL?.trim()
-    || process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  try {
-    return configuredUrl ? new URL(configuredUrl).origin : null;
-  } catch {
-    return null;
-  }
-}
 
 export async function getMenuQrManagementPageData(menuSiteId: string): Promise<MenuQrManagementPageData> {
   try {
@@ -81,7 +72,7 @@ export async function getMenuQrManagementPageData(menuSiteId: string): Promise<M
       : !hasTablePermission
         ? "테이블별 QR은 테이블 관리 권한이 필요합니다."
         : "테이블별 QR은 테이블 기능이 활성화된 메뉴판에서 사용할 수 있습니다.",
-    publicBaseUrl: getConfiguredPublicBaseUrl(),
+    publicBaseUrl: getConfiguredPublicMenuOrigin(),
     tables: tableData?.tables ?? [],
   };
 }

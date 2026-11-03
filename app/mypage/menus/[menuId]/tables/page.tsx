@@ -9,6 +9,10 @@ import { MenuTableManagementError } from "@/lib/server/menu-table-management-ser
 import { getStoreOperationsContext } from "@/lib/server/store-operations-context";
 import MenuTableManager from "./MenuTableManager";
 import { ContentPanel } from "@/app/components/ui/content-panel";
+import { cookies, headers } from "next/headers";
+import { getCurrentTableTerminalId } from "@/lib/server/table-terminal-service";
+import { TABLE_VISIT_SESSION_COOKIE } from "@/lib/table-qr-session-tokens";
+import { getConfiguredPublicMenuOrigin } from "@/lib/menu-url";
 
 export const metadata: Metadata = {
   title: "테이블 관리 | 아티메뉴",
@@ -29,6 +33,8 @@ export default async function MenuTableManagementPage({ params }: { params: Prom
   const selectedSite = operationsContext.sites.find((site) => site.menuSiteId === menuId) ?? null;
   if (!selectedSite || !selectedSite.permissions.includes("table.manage")) redirect("/mypage/operations");
   let data = null;
+  let connectedTableId: string | null = null;
+  let connectionStatusAvailable = true;
   try {
     if (selectedSite.tableSetupAvailable) data = await listMenuTables(menuId, { includeArchived: true });
   } catch (error) {
@@ -46,6 +52,15 @@ export default async function MenuTableManagementPage({ params }: { params: Prom
     throw error;
   }
 
+  if (data) {
+    const [cookieStore, requestHeaders] = await Promise.all([cookies(), headers()]);
+    try {
+      connectedTableId = await getCurrentTableTerminalId(menuId, cookieStore.get(TABLE_VISIT_SESSION_COOKIE)?.value, requestHeaders.get("user-agent") ?? "");
+    } catch {
+      connectionStatusAvailable = false;
+    }
+  }
+
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="tables">
       <div className="site-stack-content">
@@ -55,7 +70,10 @@ export default async function MenuTableManagementPage({ params }: { params: Prom
           <p className="type-body-sm site-copy-muted">테이블을 등록·활성화한 뒤 주문과 호출 사용 여부를 각각 설정해 주세요.</p>
         </header>
         {data ? (
-          <MenuTableManager menuSiteId={data.menuSite.id} tables={data.tables.map(({ id, label, status }) => ({ id, label, status }))} archivedTables={data.archivedTables} />
+          <MenuTableManager menuSiteId={data.menuSite.id}
+            tables={data.tables.map(({ id, label, status, qrPath }) => ({ id, label, status, qrPath: selectedSite.canManageQr ? qrPath : undefined }))}
+            archivedTables={data.archivedTables} connectedTableId={connectedTableId} connectionStatusAvailable={connectionStatusAvailable}
+            publicBaseUrl={getConfiguredPublicMenuOrigin()} menuPublished={data.menuSite.status === "published"} />
         ) : (
           <ContentPanel>
             <div className="site-stack-title">

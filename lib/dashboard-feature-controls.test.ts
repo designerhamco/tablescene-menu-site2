@@ -63,11 +63,11 @@ test("요약 카드 링크 안에 스위치 버튼을 중첩하지 않는다", (
   assert.ok(html.indexOf("</a>") < html.indexOf("<button"));
 });
 
-test("대시보드는 테이블 준비 안내 → 기능 카드 → 단말 안내 → 최근 호출 순서를 유지한다", () => {
+test("대시보드는 테이블 준비 안내 → 기능 카드 → 최근 호출 순서이며 태블릿 연결은 테이블 관리에 둔다", () => {
   const page = readFileSync(new URL("../app/mypage/operations/page.tsx", import.meta.url), "utf8");
   assert.ok(page.indexOf("<OperationTableSetupNotice") < page.indexOf('aria-label="매장 운영 요약"'));
-  assert.ok(page.indexOf('aria-label="매장 운영 요약"') < page.indexOf("<OperationTerminalPanel"));
-  assert.ok(page.indexOf("<OperationTerminalPanel") < page.indexOf('title="최근 호출"'));
+  assert.ok(page.indexOf('aria-label="매장 운영 요약"') < page.indexOf('title="최근 호출"'));
+  assert.doesNotMatch(page, /OperationTerminalPanel|unregister-terminal/);
   const shell = readFileSync(new URL("../components/mypage/StoreOperationsShell.tsx", import.meta.url), "utf8");
   assert.match(shell, /activeSection !== "dashboard"/);
 });
