@@ -3327,7 +3327,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             ) : null}
 
             {activeTab === "notifications" ? (
-              <NotificationHistorySection events={notificationEvents} />
+              <NotificationHistorySection events={notificationEvents} userId={user.id} unreadCount={unreadNotificationCount} />
             ) : null}
 
             {activeTab === "account" ? (
