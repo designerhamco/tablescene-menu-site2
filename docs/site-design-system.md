@@ -139,6 +139,12 @@
 
 Ghost pagination/icon controls retain transparent background and border when disabled, with the original 45% opacity. They must not inherit the filled/outline button disabled surface. Active-page styling stays local to pagination. This restores the pre-audit pagination presentation without changing normal outlined buttons or their boundaries.
 
+## 매장 운영 모바일 탐색 (2026-11-03)
+
+- 모바일 767px 이하의 매장 운영 메뉴는 마이메뉴와 같은 `MypageNavigationRail`을 사용한다. 한 줄 가로 스와이프, 선택 메뉴 자동 표시, 오른쪽의 추가 메뉴 표시와 키보드 접근을 공유한다. 메뉴 이름·순서·권한·설정 이동 경로는 그대로 유지한다.
+- `StoreOperationsNavigation`은 모바일에서 메뉴판 선택과 운영 메뉴를 한 묶음으로 헤더 바로 아래에 고정한다. 계정 요약은 묶음 위에서 자연스럽게 스크롤된다. 선택 라벨과 셀렉트는 한 줄이며 공통 필드 높이·글자 크기·포커스 스타일을 유지한다. 불러오는 동안에도 한 줄 높이를 유지하고 상태 문구는 보조기기에 전달한다.
+- 태블릿·PC의 세로 운영 메뉴와 메뉴판 선택 → 계정 요약 → 메뉴 순서는 유지한다. 마이메뉴의 기존 모바일·태블릿 탐색 및 PC 사이드바도 변경하지 않는다.
+
 ## 마이페이지 공통 스타일 연결 (2026-10-25)
 
 - 공식 헤더는 `--type-nav-size`를 사용한다. 2026-10-26 가독성 기준에 따라 모바일/태블릿 15px, PC 16px이며 큰 탭 규격과 독립적이다.

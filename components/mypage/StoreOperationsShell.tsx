@@ -1,6 +1,7 @@
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import Link from "next/link";
 import OperationSiteSelector from "@/components/mypage/OperationSiteSelector";
+import StoreOperationsNavigation from "@/components/mypage/StoreOperationsNavigation";
 import OperationTableSetupNotice from "@/components/mypage/OperationTableSetupNotice";
 import { isStoreOperationsTemplate } from "@/lib/operations-dashboard";
 
@@ -78,73 +79,74 @@ export default async function StoreOperationsShell({
           <SitePageHeader title="매장 운영" align="start" description="운영 중인 메뉴판의 주문, 호출과 테이블을 한곳에서 관리합니다." />
 
           <div className="site-account-layout">
-            <aside className="site-account-sidebar min-w-0">
-              {selectedSite ? <OperationSiteSelector selectedId={selectedSite.menuSiteId} items={sites.map(site => ({
+            <StoreOperationsNavigation
+              activeKey={`${selectedSite?.menuSiteId ?? "none"}:${activeSection}`}
+              selector={selectedSite ? <OperationSiteSelector selectedId={selectedSite.menuSiteId} items={sites.map(site => ({
                 id: site.menuSiteId, label: site.name || "이름 없는 메뉴판", href: getSectionHref(site, activeSection),
               }))} /> : null}
-              {user ? (
+              account={user ? (
                 <MypageAccountCard
                   email={user.email ?? "이메일 정보 없음"}
                   roleLabel={sites.some((site) => site.isOwner) ? "사장" : sites.length > 0 ? "직원" : null}
                   canShowOwnerCommerce={false}
                 />
               ) : null}
-              <div className="site-account-nav site-nav-stack">
-                {selectedSite ? (
-                  <Link
-                    href={`/mypage/operations?site=${encodeURIComponent(selectedSite.menuSiteId)}`}
-                    className={getNavigationClassName(activeSection === "dashboard")}
-                  >
-                    <span className="block truncate">운영 대시보드</span>
-                  </Link>
-                ) : (
-                  <div className="site-nav-item site-nav-item-disabled mb-2">
-                    <span className="block">운영 대시보드</span>
-                  </div>
-                )}
+            >
+              {selectedSite ? (
+                <Link
+                  href={`/mypage/operations?site=${encodeURIComponent(selectedSite.menuSiteId)}`}
+                  aria-current={activeSection === "dashboard" ? "page" : undefined}
+                  className={getNavigationClassName(activeSection === "dashboard")}
+                >
+                  <span className="block truncate">운영 대시보드</span>
+                </Link>
+              ) : (
+                <div className="site-nav-item site-nav-item-disabled">
+                  <span className="block">운영 대시보드</span>
+                </div>
+              )}
 
-                <nav className="space-y-1 border-t border-zinc-100 pt-2" aria-label="매장 운영 메뉴">
-                  {operationNavigation.map((item) => {
-                    const enabled = Boolean(selectedSite && (item.key === "qr" ? selectedSite.canManageQr : item.key === "tables" ? selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage") : selectedSite.operationAccess[item.key]));
-                    const configurationAvailable = Boolean(selectedSite?.canConfigure && (item.key === "orders" || item.key === "calls"));
-                    const active = activeSection === item.key || (item.key === "orders" && activeSection === "order-settings") || (item.key === "calls" && activeSection === "call-settings");
-                    if (!selectedSite || (!enabled && !configurationAvailable)) {
-                      const hasRolePermission = Boolean(selectedSite?.permissions.includes(item.permission));
-                      const unavailableLabel = selectedSite && !hasRolePermission ? "권한 없음" : "이용 불가";
-                      const unavailableReason = !selectedSite
-                        ? "먼저 운영할 메뉴판을 선택해 주세요."
-                        : !hasRolePermission
-                          ? `현재 직원 역할에는 ${item.label} 접근 권한이 없습니다.`
-                          : `${item.label} 기능이 현재 메뉴판에서 활성화되지 않았습니다.`;
-                      return (
-                        <span
-                          key={item.key}
-                          aria-disabled="true"
-                          aria-label={`${item.label} ${unavailableLabel}: ${unavailableReason}`}
-                          title={unavailableReason}
-                          className="site-nav-item site-nav-item-disabled"
-                        >
-                          <span>{item.label}</span>
-                          <span className="text-support font-medium">{unavailableLabel}</span>
-                        </span>
-                      );
-                    }
-
+              <div className="site-operations-feature-navigation">
+                {operationNavigation.map((item) => {
+                  const enabled = Boolean(selectedSite && (item.key === "qr" ? selectedSite.canManageQr : item.key === "tables" ? selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage") : selectedSite.operationAccess[item.key]));
+                  const configurationAvailable = Boolean(selectedSite?.canConfigure && (item.key === "orders" || item.key === "calls"));
+                  const active = activeSection === item.key || (item.key === "orders" && activeSection === "order-settings") || (item.key === "calls" && activeSection === "call-settings");
+                  if (!selectedSite || (!enabled && !configurationAvailable)) {
+                    const hasRolePermission = Boolean(selectedSite?.permissions.includes(item.permission));
+                    const unavailableLabel = selectedSite && !hasRolePermission ? "권한 없음" : "이용 불가";
+                    const unavailableReason = !selectedSite
+                      ? "먼저 운영할 메뉴판을 선택해 주세요."
+                      : !hasRolePermission
+                        ? `현재 직원 역할에는 ${item.label} 접근 권한이 없습니다.`
+                        : `${item.label} 기능이 현재 메뉴판에서 활성화되지 않았습니다.`;
                     return (
-                      <Link
+                      <span
                         key={item.key}
-                        href={`/mypage/menus/${selectedSite.menuSiteId}/${item.key}${enabled ? "" : "/settings"}`}
-                        aria-current={active ? "page" : undefined}
-                        className={getNavigationClassName(active)}
+                        aria-disabled="true"
+                        aria-label={`${item.label} ${unavailableLabel}: ${unavailableReason}`}
+                        title={unavailableReason}
+                        className="site-nav-item site-nav-item-disabled"
                       >
                         <span>{item.label}</span>
-                        {!enabled ? <span className="text-support font-medium">설정</span> : null}
-                      </Link>
+                        <span className="text-support font-medium">{unavailableLabel}</span>
+                      </span>
                     );
-                  })}
-                </nav>
+                  }
+
+                  return (
+                    <Link
+                      key={item.key}
+                      href={`/mypage/menus/${selectedSite.menuSiteId}/${item.key}${enabled ? "" : "/settings"}`}
+                      aria-current={active ? "page" : undefined}
+                      className={getNavigationClassName(active)}
+                    >
+                      <span>{item.label}</span>
+                      {!enabled ? <span className="text-support font-medium">설정</span> : null}
+                    </Link>
+                  );
+                })}
               </div>
-            </aside>
+            </StoreOperationsNavigation>
 
             <section className="min-w-0">
               {selectedSite && selectedSite.activeTablesReady !== true && activeSection !== "tables" && activeSection !== "dashboard" && isStoreOperationsTemplate(selectedSite.templateKey) ? (
