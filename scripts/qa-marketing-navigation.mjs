@@ -29,16 +29,16 @@ try {
     await expectService(page, "dining");
     const header = page.locator("[data-site-header]");
     await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));
-    await expect(header).toHaveAttribute("data-floating", String(viewport.width >= 768));
+    await expect(header).toHaveAttribute("data-scrolled", "true");
     if (viewport.width < 768) {
       await page.getByRole("button", { name: "메뉴 열기", exact: true }).click();
-      await expect(header).toHaveAttribute("data-floating", "false");
+      await expect(header).toHaveAttribute("data-scrolled", "true");
       await expect(page.getByRole("navigation", { name: "모바일 공식 사이트 메뉴" })).toBeVisible();
       await page.getByRole("button", { name: "메뉴 닫기", exact: true }).click();
-      await expect(header).toHaveAttribute("data-floating", String(viewport.width >= 768));
+      await expect(header).toHaveAttribute("data-scrolled", "true");
     }
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-    await expect(header).toHaveAttribute("data-floating", "false");
+    await expect(header).toHaveAttribute("data-scrolled", "false");
     for (let round = 0; round < 3; round += 1) {
       await selectService(page, "display", mobile);
       await selectService(page, "dining", mobile);
@@ -57,7 +57,7 @@ try {
     await expect(page).toHaveURL(new URL("/apply", baseUrl).href);
     await selectService(page, "dining", mobile);
     assert.deepEqual(errors, []);
-    results.push({ check: "navigation", viewport, repeatedRoundTrips: 3, history: true, reload: true, directDisplayEntry: true, floatingHeader: true, templateEntry: true });
+    results.push({ check: "navigation", viewport, repeatedRoundTrips: 3, history: true, reload: true, directDisplayEntry: true, stableScrollHeader: true, templateEntry: true });
     await page.close();
   }
 
