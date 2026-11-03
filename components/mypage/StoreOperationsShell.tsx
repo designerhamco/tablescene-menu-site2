@@ -13,7 +13,7 @@ import type { StoreOperationKey } from "@/lib/operations-dashboard";
 import type { StoreOperationsSite } from "@/lib/server/store-operations-context";
 import { createClient } from "@/lib/supabase/server";
 
-export type StoreOperationsSection = "dashboard" | StoreOperationKey | "order-settings" | "order-devices" | "call-settings" | "call-items" | "qr";
+export type StoreOperationsSection = "dashboard" | StoreOperationKey | "order-settings" | "order-devices" | "order-payments" | "call-settings" | "call-items" | "qr";
 
 const operationNavigation: Array<{
   key: StoreOperationKey | "qr";
@@ -29,6 +29,9 @@ const operationNavigation: Array<{
 ];
 
 function getSectionHref(site: StoreOperationsSite, section: StoreOperationsSection) {
+  if (section === "order-payments") {
+    return site.isOwner ? `/mypage/menus/${site.menuSiteId}/orders/settings?tab=payments` : `/mypage/menus/${site.menuSiteId}/orders/settings`;
+  }
   if (section === "order-devices") {
     return site.canConfigure || (site.tableSetupAvailable && site.permissions.includes("table.manage")) ? `/mypage/menus/${site.menuSiteId}/orders/settings?tab=devices` : `/mypage/operations?site=${encodeURIComponent(site.menuSiteId)}`;
   }
@@ -118,7 +121,7 @@ export default async function StoreOperationsShell({
                 {operationNavigation.map((item) => {
                   const enabled = Boolean(selectedSite && (item.key === "qr" ? selectedSite.canManageQr : item.key === "tables" ? selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage") : selectedSite.operationAccess[item.key]));
                   const configurationAvailable = Boolean((selectedSite?.canConfigure || (selectedSite?.tableSetupAvailable && selectedSite.permissions.includes("table.manage"))) && (item.key === "orders" || item.key === "calls"));
-                  const active = activeSection === item.key || (item.key === "orders" && (activeSection === "order-settings" || activeSection === "order-devices")) || (item.key === "calls" && (activeSection === "call-settings" || activeSection === "call-items"));
+                  const active = activeSection === item.key || (item.key === "orders" && (activeSection === "order-settings" || activeSection === "order-devices" || activeSection === "order-payments")) || (item.key === "calls" && (activeSection === "call-settings" || activeSection === "call-items"));
                   if (!selectedSite || (!enabled && !configurationAvailable)) {
                     const hasRolePermission = Boolean(selectedSite?.permissions.includes(item.permission));
                     const unavailableLabel = selectedSite && !hasRolePermission ? "권한 없음" : "이용 불가";
@@ -157,7 +160,7 @@ export default async function StoreOperationsShell({
             </StoreOperationsNavigation>
 
             <section className="min-w-0">
-              {selectedSite && selectedSite.activeTablesReady !== true && activeSection !== "tables" && activeSection !== "dashboard" && isStoreOperationsTemplate(selectedSite.templateKey) ? (
+              {selectedSite && selectedSite.activeTablesReady !== true && activeSection !== "tables" && activeSection !== "dashboard" && activeSection !== "order-payments" && isStoreOperationsTemplate(selectedSite.templateKey) ? (
                 <div className="mb-6"><OperationTableSetupNotice menuId={selectedSite.menuSiteId} tableSetupAvailable={selectedSite.tableSetupAvailable}
                   activeTablesReady={selectedSite.activeTablesReady} canManageTables={selectedSite.permissions.includes("table.manage")} /></div>
               ) : null}
