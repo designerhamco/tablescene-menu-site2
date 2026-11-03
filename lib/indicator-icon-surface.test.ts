@@ -31,12 +31,19 @@ test("indicator surfaces follow the actual component surface, including a white 
   }
 });
 
-test("colored indicators drop only their extra paint and preserve existing slots and white-surface fills", () => {
+test("colored indicators remove the entire tile slot while white indicators retain their fills and dimensions", () => {
   const colored = declarations('.site-indicator-icon[data-icon-surface="colored"]');
   assert.equal(colored.background, "transparent");
   assert.equal(colored.border, "0");
   assert.equal(colored["box-shadow"], "none");
-  for (const property of ["color", "width", "height", "display", "padding", "margin"]) assert.equal(colored[property], undefined);
+  assert.equal(colored.color, undefined);
+  assert.equal(colored.width, "max-content");
+  assert.equal(colored.height, "max-content");
+  assert.equal(colored.padding, "0");
+  assert.equal(colored.margin, "0");
+  assert.equal(colored["min-width"], "0");
+  assert.equal(colored["min-height"], "0");
+  assert.equal(colored["border-radius"], "0");
   assert.equal(declarations(".site-empty-state-icon").width, "3rem");
   assert.equal(declarations(".site-metric-icon").width, "2.5rem");
   assert.equal(declarations(".site-metric-icon[data-tone=green]").background, "var(--ui-success-surface)");
@@ -44,6 +51,7 @@ test("colored indicators drop only their extra paint and preserve existing slots
   assert.equal(declarations(".site-notification-item[data-unread] .site-notification-symbol").background, "var(--ui-brand-soft)");
   assert.equal(declarations(".site-notification-symbol > i").background, "var(--ui-danger)");
   assert.equal(declarations(".site-notification-item:hover .site-indicator-icon").background, "transparent");
+  assert.equal(declarations(".site-notification-item:hover .site-indicator-icon").width, undefined);
   assert.match(read("app/components/ui/notification-panel.tsx"), /site-notification-symbol site-indicator-icon" data-icon-surface="white"/);
 });
 

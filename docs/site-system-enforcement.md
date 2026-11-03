@@ -1,5 +1,7 @@
 # 공통 디자인 시스템의 자동 적용과 회귀 방지
 
+작업 박스는 [본문 구성 계약](site-content-layout-contract.md)의 `ContentPanel`·의미별 stack/form/action 구성을 사용한다. 검사는 미등록 type 역할, ContentPanel 내부 수치형 여백·글자 덮어쓰기, 의미 구성 클래스/아이콘 래퍼의 지역 CSS geometry 덮어쓰기와 panel 토큰 재정의도 차단한다. 기존 임의 본문 여백 전체를 자동 보증하지 않으므로 실제 반응형 치수 검수를 함께 수행한다.
+
 2026-10-29 사용자 요청. 새 일반 페이지는 `SitePage`를 직접 또는 합성 컴포넌트를 통해 렌더링한다.
 
 ```tsx

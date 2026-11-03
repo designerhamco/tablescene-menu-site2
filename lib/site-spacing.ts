@@ -10,3 +10,14 @@ export const SITE_MOBILE_SPACING = [
   { token: "--site-surface-inset", rem: 1.25, label: "표면 안쪽", usage: "목록 배경·설명 박스의 내부 여백" },
 ] as const;
 export const SITE_MOBILE_MAX_WIDTH = 767;
+
+/** Base px values are documentation data; CSS resolves rem and owns the layout. */
+export const SITE_CONTENT_COMPOSITION = [
+  { role: "작업 박스 안쪽", mobile: 20, wide: 24, owner: "ContentPanel", usage: "흰 작업 박스·회색 보조 영역" },
+  { role: "조밀한 안내 안쪽", mobile: 16, wide: 16, owner: 'ContentPanel density="compact"', usage: "짧은 안내와 상태 피드백" },
+  { role: "박스 안의 콘텐츠 묶음", mobile: 24, wide: 24, owner: "ContentPanel / site-stack-group", usage: "제목 그룹 → 폼 → 별도 행동 묶음" },
+  { role: "제목과 설명", mobile: 12, wide: 12, owner: "site-stack-title", usage: "페이지 내부 섹션·박스 제목과 설명" },
+  { role: "필드·작은 블록 사이", mobile: 16, wide: 16, owner: "site-form-row / site-stack-block", usage: "연결된 입력 필드·폼과 도움말" },
+  { role: "라벨과 입력·관련 문구", mobile: 8, wide: 8, owner: "site-field-stack / site-stack-copy", usage: "라벨 → 입력, 이름 → 날짜, 연결된 짧은 문구" },
+  { role: "버튼 사이", mobile: 8, wide: 8, owner: "site-action-row", usage: "문구 너비, 시작 정렬, 좁으면 순서대로 줄바꿈" },
+] as const;

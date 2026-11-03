@@ -3,6 +3,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import ts from "typescript";
 import postcss from "postcss";
+import { SITE_TYPE_ROLES } from "./site-typography";
 
 type FileMap = Map<string, string>;
 export type SiteSystemViolation = { file: string; rule: string; line: number; detail: string; fingerprint: string };
@@ -16,6 +17,9 @@ const verticalUtility = /^(?:!?-?(?:p[ytb]|m[ytb]|p|m|space-y|gap-y|translate-y|
 const verticalProperty = /^(?:margin(?:-(?:top|bottom|block(?:-start|-end)?))?|padding(?:-(?:top|bottom|block(?:-start|-end)?))?|row-gap|gap|top|bottom|translate|transform)$/;
 const appearanceProperty = /^(?:padding(?:-.+)?|font(?:-.+)?|line-height|color|background(?:-.+)?|border(?:-.+)?|(?:min-|max-)?height|box-shadow|opacity)$/;
 const protectedSelector = /(?:\.site-(?:area-tab(?:s|s-root)?|page-tabs|topic-tab(?:s)?|tab(?:s)?|button|field|chip|indicator-icon)\b|\[data-slot=["']?tabs(?:-list|-trigger)?["']?\])/;
+const compositionSelector = /\.site-(?:content-panel|stack-title|field-stack|form-row|action-row|content-divider|content-heading-row|notice-layout)\b/;
+const compositionUtility = /^(?:-?(?:p[trblxyse]?|m[trblxyse]?|gap(?:-[xy])?|space-[xy])-|font-|leading-|tracking-)/;
+const typeRoles = new Set<string>(SITE_TYPE_ROLES.map(role => role.className));
 
 function utilityValue(token: string) {
   let depth = 0, start = 0;
@@ -62,7 +66,7 @@ export function collectSiteSystemFiles(root: string): FileMap {
 /** Pure source audit. Baseline matching is separate so fixtures and newly added files cannot inherit old exemptions. */
 export function auditSiteSystem(files: FileMap): SiteSystemViolation[] {
   const violations: SiteSystemViolation[] = [];
-  const selectors = new Map<string, Map<string, "page" | "header" | "control">>();
+  const selectors = new Map<string, Map<string, "page" | "header" | "control" | "composition">>();
   const trees = new Map<string, ts.SourceFile>();
   const imports = new Map<string, Map<string, { file: string; name: string }>>();
   const rendered = new Map<string, Set<string>>();
@@ -103,7 +107,7 @@ export function auditSiteSystem(files: FileMap): SiteSystemViolation[] {
     if (ts.isObjectLiteralExpression(node)) return node.properties.flatMap(prop => prop.name && (ts.isStringLiteral(prop.name) || ts.isIdentifier(prop.name)) ? [prop.name.text] : []);
     return [];
   };
-  function protectClasses(file: string, attr: ts.JsxAttribute, kind: "page" | "header" | "control", bindings: Map<string, { file: string; name: string }>) {
+  function protectClasses(file: string, attr: ts.JsxAttribute, kind: "page" | "header" | "control" | "composition", bindings: Map<string, { file: string; name: string }>) {
     const globalClasses = strings(attr).flatMap(value => value.split(/\s+/)).filter(value => /^[a-zA-Z][\w-]*$/.test(value));
     for (const name of globalClasses) {
       const map = selectors.get("*") ?? new Map(); map.set(name, kind); selectors.set("*", map);
@@ -133,6 +137,29 @@ export function auditSiteSystem(files: FileMap): SiteSystemViolation[] {
         if (name === "Tabs" && attrs.some(attr => attr.name.getText(tree) === "variant") && !designPreview && !file.startsWith("app/components/ui/")) add(file, "tab-purpose", "Choose a semantic tab purpose instead of a private visual variant.", node.getText(tree), line);
         if (attrs.some(attr => attr.name.getText(tree) === "role" && /^(?:tab|tablist)$/.test(strings(attr)[0] ?? "")) && !file.startsWith("app/components/ui/") && !designPreview) add(file, "tab-purpose", "Use Tabs/NavigationTabs instead of a private tab implementation.", node.getText(tree), line);
         const classes = attrs.find(attr => attr.name.getText(tree) === "className");
+        if (classes && !file.startsWith("app/components/ui/")) {
+          const unknownRoles = strings(classes).flatMap(value => value.split(/\s+/)).filter(value => /^type-/.test(value) && !typeRoles.has(value));
+          if (unknownRoles.length) add(file, "type-role", `Use a registered typography role, not ${unknownRoles.join(" ")}.`, classes.getText(tree), line);
+        }
+        let panel: ts.Node | undefined = node;
+        let composed = false;
+        while (panel) {
+          const opening = ts.isJsxElement(panel) ? panel.openingElement : ts.isJsxOpeningElement(panel) || ts.isJsxSelfClosingElement(panel) ? panel : undefined;
+          if (opening) {
+            const tag = opening.tagName.getText(tree);
+            if ((bindings.get(tag)?.name ?? tag) === "ContentPanel") { composed = true; break; }
+          }
+          panel = panel.parent;
+        }
+        const semanticComposition = classes && strings(classes).some(value => /\bsite-(?:content-panel|stack-title|field-stack|form-row|action-row|content-divider|content-heading-row|notice-layout)\b/.test(value));
+        if (!file.startsWith("app/components/ui/") && (composed || semanticComposition)) {
+          if (classes) {
+            const overrides = strings(classes).flatMap(value => value.split(/\s+/)).filter(value => compositionUtility.test(utilityValue(value)) || /^\[(?:margin|padding|gap|font|line-height|letter-spacing):/.test(utilityValue(value)));
+            if (overrides.length || name === "ContentPanel") add(file, "content-composition", "Use ContentPanel and semantic stacks for padding, gaps, alignment and typography; do not override them with className.", classes.getText(tree), line);
+            protectClasses(file, classes, "composition", bindings);
+          }
+          for (const attr of attrs) if (attr.name.getText(tree) === "style" && (name === "ContentPanel" || /(?:margin|padding|gap|font|lineHeight|letterSpacing|border|background|boxShadow)/i.test(attr.getText(tree)))) add(file, "content-composition", "Content composition belongs to the shared layout contract, not inline overrides.", attr.getText(tree), line);
+        }
         const control = sharedControls.has(name) || (classes && strings(classes).some(value => /\bsite-(?:button|field|chip|tabs?|area-tabs?|topic-tabs?|page-tabs)\b/.test(value)));
         if (control && !file.startsWith("app/components/ui/") && !file.startsWith("components/design-system/")) {
           for (const attr of attrs) {
@@ -184,11 +211,13 @@ export function auditSiteSystem(files: FileMap): SiteSystemViolation[] {
     if (!file.endsWith(".css") || owners.has(file)) continue;
     const sheet = postcss.parse(source, { from: file });
     sheet.walkDecls(decl => {
-      if (/^--(?:ui-|type-|site-(?:type-|page-|tab-|area-tab-|section-space|grid-gap|gutter|space-|surface-inset))/.test(decl.prop)) add(file, "shared-token", `Shared tokens belong in the canonical styles, not ${decl.prop}.`, `${decl.parent?.toString().split("{")[0]}|${decl.toString()}`, decl.source?.start?.line);
+      if (/^--(?:ui-|type-|site-(?:type-|page-|tab-|area-tab-|section-space|grid-gap|gutter|space-|surface-inset|panel-inset))/.test(decl.prop)) add(file, "shared-token", `Shared tokens belong in the canonical styles, not ${decl.prop}.`, `${decl.parent?.toString().split("{")[0]}|${decl.toString()}`, decl.source?.start?.line);
       const selector = decl.parent?.type === "rule" ? decl.parent.selector : "";
       const target = selectorTargets(selector);
       const names = [...target.matchAll(/\.([\w-]+)/g)].map(match => match[1]);
       const kinds = names.flatMap(name => [selectors.get(file)?.get(name), selectors.get("*")?.get(name)]).filter(Boolean);
+      if ((compositionSelector.test(target) || kinds.includes("composition")) && /^(?:margin.*|padding.*|gap|row-gap|column-gap|align-.*|justify-.*|border.*|background.*|box-shadow|font.*|line-height)$/.test(decl.prop)) add(file, "content-composition-css", "Do not override semantic content composition in page CSS.", `${selector}|${decl.toString()}`, decl.source?.start?.line);
+      if (/\.site-indicator-icon\b/.test(target) && /^(?:(?:min-|max-)?(?:width|height)|padding.*|margin.*|display|flex.*)$/.test(decl.prop)) add(file, "control-css", "Indicator tile geometry belongs to the shared immediate-surface rule.", `${selector}|${decl.toString()}`, decl.source?.start?.line);
       if ((protectedSelector.test(target) || kinds.includes("control")) && appearanceProperty.test(decl.prop)) add(file, "control-css", `Do not restyle shared controls in page CSS: ${selector} / ${decl.prop}.`, `${selector}|${decl.toString()}`, decl.source?.start?.line);
       if ((kinds.includes("page") || kinds.includes("header") || /\.site-page-(?:intro|spacing)/.test(target)) && verticalProperty.test(decl.prop)) {
         const value = decl.value.trim();

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { SITE_MOBILE_MAX_WIDTH, SITE_MOBILE_SPACING } from "./site-spacing";
+import { SITE_CONTENT_COMPOSITION, SITE_MOBILE_MAX_WIDTH, SITE_MOBILE_SPACING } from "./site-spacing";
 
 const globalsSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 const uiSystemSource = readFileSync(new URL("../styles/ui-system.css", import.meta.url), "utf8");
@@ -139,4 +139,29 @@ test("shared mobile stacks own sibling gaps without duplicate child margins", ()
   assert.match(footer, /\.mobileSections \{ display: grid; margin-top: var\(--site-space-content\)/);
   assert.match(footer, /padding: var\(--site-space-content\) var\(--site-space-group\) 0/);
   assert.doesNotMatch(footer, /@media \(max-width: 639px\)/);
+});
+
+test("content layout examples and documented spacing match the canonical token chain", () => {
+  const source = readSource("../styles/site-spacing.css");
+  const resolvePx = (token: string): number => {
+    const value = source.match(new RegExp(`${token}:\\s*([^;]+);`))?.[1];
+    assert.ok(value, token);
+    const reference = value.match(/^var\((--[\w-]+)\)$/)?.[1];
+    return reference ? resolvePx(reference) : Number.parseFloat(value) * 16;
+  };
+  const tokens = [
+    ["--site-panel-inset", "--site-panel-inset-wide"],
+    ["--site-panel-inset-compact", "--site-panel-inset-compact"],
+    ["--site-space-group", "--site-space-group"],
+    ["--site-space-title-copy", "--site-space-title-copy"],
+    ["--site-space-block", "--site-space-block"],
+    ["--site-space-copy", "--site-space-copy"],
+    ["--site-space-copy", "--site-space-copy"],
+  ];
+  assert.equal(SITE_CONTENT_COMPOSITION.length, tokens.length);
+  SITE_CONTENT_COMPOSITION.forEach((item, index) => {
+    assert.equal(item.mobile, resolvePx(tokens[index][0]), item.role);
+    assert.equal(item.wide, resolvePx(tokens[index][1]), item.role);
+  });
+  assert.match(readSource("../components/design-system/SiteSpacingRules.tsx"), /SITE_CONTENT_COMPOSITION.map/);
 });

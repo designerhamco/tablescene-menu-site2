@@ -2,6 +2,12 @@ export const MENU_TABLE_MUTABLE_STATUSES = ["active", "disabled"] as const;
 
 export type MenuTableMutableStatus = (typeof MENU_TABLE_MUTABLE_STATUSES)[number];
 
+export type ArchivedMenuTableListItem = {
+  id: string;
+  label: string;
+  archivedAt: string;
+};
+
 export type MenuTableListItem = {
   id: string;
   label: string;

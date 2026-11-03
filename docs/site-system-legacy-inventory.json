@@ -186,13 +186,6 @@
       "78f263ec03d40202"
     ]
   },
-  "app/mypage/menus/[menuId]/tables/MenuTableManager.tsx": {
-    "control-appearance": [
-      "2b81fb3de40a75da",
-      "f6a89983f316081a",
-      "f6a89983f316081a"
-    ]
-  },
   "app/mypage/menus/new/page.tsx": {
     "shared-heading": [
       "fda998200295f68e"

@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
 import OperationFeatureToggle from "@/components/mypage/OperationFeatureToggle";
 import OperationTableSetupNotice from "@/components/mypage/OperationTableSetupNotice";
+import OperationTerminalPanel from "@/components/mypage/OperationTerminalPanel";
 import { isStoreOperationsTemplate } from "@/lib/operations-dashboard";
 import { loadMenuOrderSettings } from "@/lib/server/menu-order-settings-service";
 import { formatKoreanDateTime } from "@/lib/korean-date-time";
@@ -141,12 +142,16 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="dashboard">
       <div className="site-stack-group">
         {permissionNotice ? <PermissionNotice message={permissionNotice} /> : null}
-        <header>
+        <header className="site-stack-title">
           <h2 className="type-section-title">{selectedSite.name} 운영 현황</h2>
-          <p className="mt-3 break-keep text-copy font-normal leading-relaxed text-zinc-600">
+          <p className="type-body site-copy-muted">
             {selectedSite.canConfigure ? "주문·호출 사용 여부를 바로 변경하고, 현재 운영 현황을 확인합니다." : "현재 주문과 호출, 테이블 현황을 빠르게 확인합니다."}
           </p>
         </header>
+
+        {isStoreOperationsTemplate(selectedSite.templateKey) ? <OperationTableSetupNotice menuId={selectedSite.menuSiteId}
+          tableSetupAvailable={selectedSite.tableSetupAvailable} activeTablesReady={selectedSite.activeTablesReady}
+          canManageTables={selectedSite.permissions.includes("table.manage")} /> : null}
 
         {selectedSite.canConfigure ? <p className="type-body-sm text-zinc-600">
           스위치를 변경하면 즉시 저장됩니다. 실제 접수는 활성 테이블과 공개된 메뉴판에서만 가능합니다. 이미 접수된 주문·호출 내역은 유지됩니다.
@@ -186,9 +191,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
           />
         </section>
 
-        {isStoreOperationsTemplate(selectedSite.templateKey) ? <OperationTableSetupNotice menuId={selectedSite.menuSiteId}
-          tableSetupAvailable={selectedSite.tableSetupAvailable} activeTablesReady={selectedSite.activeTablesReady}
-          canManageTables={selectedSite.permissions.includes("table.manage")} /> : null}
+        {selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage") ? <OperationTerminalPanel key={selectedSite.menuSiteId} menuSiteId={selectedSite.menuSiteId} /> : null}
 
         <section>
           <DashboardList
