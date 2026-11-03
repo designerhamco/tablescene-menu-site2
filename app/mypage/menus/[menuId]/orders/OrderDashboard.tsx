@@ -1,9 +1,10 @@
 "use client";
 
 import { RecordCard } from "@/app/components/ui/data-display";
+import { RefreshButton } from "@/app/components/ui/refresh-button";
 import { useRouter } from "next/navigation";
 import { CUSTOMER_ORDER_STATUS_LABELS } from "@/lib/customer-order-history";
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 
 import OperationalArrivalAlert from "@/components/mypage/OperationalArrivalAlert";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
@@ -77,6 +78,7 @@ export default function OrderDashboard({
   permissions: OrderDashboardPageData["permissions"];
 }) {
   const router = useRouter();
+  const [refreshing, refresh] = useTransition();
   const [state, action, pending] = useActionState(mutateOrderAction, initialOrderManagementActionState);
   const [printOrderId, setPrintOrderId] = useState<string | null>(null);
   const [backgroundPollingEnabled, setBackgroundPollingEnabled] = useState(false);
@@ -128,9 +130,7 @@ export default function OrderDashboard({
             <p className="text-copy font-medium text-zinc-900">최근 주문 {orders.length.toLocaleString("ko-KR")}건</p>
             <p className="mt-1 text-support font-medium text-zinc-500">15초마다 자동 갱신하며, 상태 변경은 서버가 현재 값을 다시 확인합니다.</p>
           </div>
-          <button type="button" onClick={() => router.refresh()} className="site-button site-button-secondary">
-            지금 새로고침
-          </button>
+          <RefreshButton loading={refreshing} onClick={() => refresh(() => router.refresh())} />
         </div>
 
         {state.status !== "idle" && state.message ? (

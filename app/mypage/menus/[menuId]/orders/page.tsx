@@ -69,7 +69,7 @@ export default async function OrderDashboardPage({
           </p>
         </header>
 
-        <OperationFeatureNavigation menuId={menuId} feature="orders" settings={false} historyAvailable={selectedSite.operationAccess.orders} canConfigure={selectedSite.isOwner} />
+        <OperationFeatureNavigation menuId={menuId} feature="orders" settings={false} historyAvailable={selectedSite.operationAccess.orders} canConfigure={selectedSite.isOwner} canManageDevices={selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage")} />
         <OrderDashboard menuSiteId={data.menuSite.id} menuSiteName={data.menuSite.name} orders={data.orders} permissions={data.permissions} />
       </div>
     </StoreOperationsShell>

@@ -54,6 +54,13 @@ export async function getStoreOperationsContext(
 
     const canConfigure = canConfigureStoreOperationsSite(site);
     const canManageQr = Boolean(lifecycle?.canPreview && site.permissions.includes("qr.manage"));
+    // Reception requires publication; management of existing orders/calls does not.
+    const historyEligible = isStoreOperationsTemplate(site.templateKey) && lifecycle.planType === "business_basic"
+      && lifecycle.canEdit && lifecycle.canUseWriteActions && (
+        (orderDashboardEnabled && (site.permissions.includes("order.read") || site.permissions.includes("sales.read")))
+        || (callManagementEnabled && site.permissions.includes("call.manage"))
+        || (tableManagementEnabled && site.permissions.includes("table.manage"))
+      );
     const liveEligible = Boolean(lifecycle && lifecycle.planType === "business_basic"
       && (isCurrentSmartCallOperationsSite({
         accessRole: site.accessRole,
@@ -80,7 +87,7 @@ export async function getStoreOperationsContext(
         pickupQueueEnabled,
         permissions: site.permissions,
       })));
-    if (!liveEligible && !canConfigure && !canManageQr) {
+    if (!liveEligible && !historyEligible && !canConfigure && !canManageQr) {
       return [];
     }
 
@@ -92,7 +99,7 @@ export async function getStoreOperationsContext(
         && lifecycle.planType === "business_basic" && lifecycle.canEdit && lifecycle.canUseWriteActions
         && (site.isOwner || site.permissions.some(permission => ["table.manage", "order.read", "call.manage"].includes(permission))),
       activeTablesReady: false,
-      operationAccess: liveEligible ? getStoreOperationAccess({
+      operationAccess: liveEligible || historyEligible ? getStoreOperationAccess({
         accessRole: site.accessRole,
         templateKey: site.templateKey,
         orderDashboardEnabled,

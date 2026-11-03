@@ -73,6 +73,6 @@ export async function getMenuQrManagementPageData(menuSiteId: string): Promise<M
         ? "테이블별 QR은 테이블 관리 권한이 필요합니다."
         : "테이블별 QR은 테이블 기능이 활성화된 메뉴판에서 사용할 수 있습니다.",
     publicBaseUrl: getConfiguredPublicMenuOrigin(),
-    tables: tableData?.tables ?? [],
+    tables: tableData?.tables.filter(table => table.kind !== "kiosk") ?? [],
   };
 }

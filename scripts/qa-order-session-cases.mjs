@@ -130,7 +130,7 @@ export async function verifyOrderSessions({q,basic,table,otherTable,other,item,o
   await q('update menu_sites set settings=$1 where id=$2',[prefs,basic]);
   await q('set role service_role');
   try{check((await submit(a,{cart:[{...lines[0],quantity:4}]})).is_duplicate,false);}finally{await q('reset role');}
-  await services.terminal.unregisterTableTerminal(basic,terminal.token);
+  await services.terminal.unregisterTableTerminal(basic,table,terminal.token,ua);
   check(await services.visits.resolveTableVisitSession({expectedMenuSiteId:basic,sessionToken:terminal.token,userAgent:ua}),null);
   for(const fn of ['resolve_order_visit_access(uuid,uuid)','extend_table_order_access(uuid,uuid,boolean)','register_table_terminal_visit(uuid,uuid,text,text,text)','submit_postpay_order_v3(uuid,uuid,uuid,text,jsonb,text,uuid)']){
     for(const role of ['anon','authenticated'])check((await q("select has_function_privilege($1,$2,'EXECUTE') allowed",[role,'public.'+fn]))[0].allowed,false);

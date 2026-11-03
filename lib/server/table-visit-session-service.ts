@@ -1,4 +1,5 @@
 import "server-only";
+import { orderPointKind, readOrderPointPolicy, isOrderPointChannelAllowed, type OrderPointKind, type OrderPointPolicy } from "@/lib/order-point-policy";
 import { CUSTOMER_ORDER_SECONDS, type OrderChannel } from "@/lib/order-session-policy";
 
 import { getMenuSiteAccessStateForMenuSite } from "@/lib/server/menu-site-access-service";
@@ -21,7 +22,7 @@ import {
   TABLE_TERMINAL_SESSION_MAX_AGE_SECONDS,
 } from "@/lib/table-qr-session-tokens";
 
-const TABLE_QR_TARGET_SELECT = "id, menu_site_id, label, status";
+const TABLE_QR_TARGET_SELECT = "*";
 const TABLE_VISIT_SESSION_SELECT = "id, menu_site_id, menu_table_id, user_agent_hash, expires_at, last_seen_at, revoked_at";
 
 type TableQrTarget = {
@@ -29,6 +30,7 @@ type TableQrTarget = {
   menuTableId: string;
   tableLabel: string;
   slug: string;
+  kind: OrderPointKind;
 };
 
 export type ResolvedTableVisitSession = {
@@ -38,6 +40,10 @@ export type ResolvedTableVisitSession = {
   tableLabel: string;
   expiresAt: string;
   channel?: OrderChannel;
+  pointKind?: OrderPointKind;
+  policy?: OrderPointPolicy;
+  orderAllowed?: boolean;
+  callAllowed?: boolean;
   orderExpiresAt?: string | null;
 };
 
@@ -105,6 +111,7 @@ async function getActiveTableQrTarget(tableToken: string): Promise<TableQrTarget
     menuTableId: table.id,
     tableLabel: table.label,
     slug: menuSite.slug,
+    kind: orderPointKind(table.point_kind),
   };
 }
 
@@ -156,7 +163,7 @@ export async function resolveTableVisitSession({
 
   const { data: table, error: tableError } = await supabase
     .from("menu_tables")
-    .select("id, label, status")
+    .select("*")
     .eq("menu_site_id", expectedMenuSiteId)
     .eq("id", session.menu_table_id)
     .eq("status", "active")
@@ -168,6 +175,8 @@ export async function resolveTableVisitSession({
   if (access.error || !access.data || typeof access.data !== "object") return null;
   const orderAccess = access.data as {channel?: unknown; orderExpiresAt?: unknown};
   if (orderAccess.channel !== "customer" && orderAccess.channel !== "terminal") return null;
+  const pointKind = orderPointKind(table.point_kind), policy = readOrderPointPolicy(table);
+  if (pointKind === "kiosk" && orderAccess.channel !== "terminal") return null;
 
   if (shouldTouchTableVisitSession(session.last_seen_at, now)) {
     await supabase
@@ -183,9 +192,12 @@ export async function resolveTableVisitSession({
     id: session.id,
     menuSiteId: expectedMenuSiteId,
     menuTableId: table.id,
-    tableLabel: table.label,
+    tableLabel: pointKind === "kiosk" && !table.label.startsWith("키오스크") ? `키오스크 · ${table.label}` : table.label,
     expiresAt: session.expires_at,
     channel: orderAccess.channel,
+    pointKind, policy,
+    orderAllowed: isOrderPointChannelAllowed(pointKind, policy, orderAccess.channel, "orders"),
+    callAllowed: isOrderPointChannelAllowed(pointKind, policy, orderAccess.channel, "calls"),
     orderExpiresAt: typeof orderAccess.orderExpiresAt === "string" ? orderAccess.orderExpiresAt : null,
   };
 }
@@ -223,6 +235,7 @@ export async function issueTableVisitSession({
     }
   }
 
+  if (target.kind === "kiosk") throw new TableVisitSessionError("키오스크는 관리자 화면에서 현재 기기를 연결한 뒤 사용해 주세요.");
   const supabase = createAdminClient();
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const material = createTableVisitSessionMaterial({ userAgent: normalizedUserAgent, now });

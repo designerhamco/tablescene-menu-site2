@@ -86,7 +86,7 @@ async function visitForHistory(request: NextRequest, menuSiteId: unknown) {
 export async function GET(request: NextRequest) {
   try {
     const menuSiteId = request.nextUrl.searchParams.get("menuSiteId"), tableSession = await visitForHistory(request, menuSiteId);
-    const history = await listCustomerVisitOrders({menuSiteId, tableSession});
+    const history = await listCustomerVisitOrders({menuSiteId, tableSession, receiptId: request.nextUrl.searchParams.get("receiptId")});
     return response({ok: true, ...history}, 200);
   } catch (error) { const known = historyError(error); if (known) return known; throw error; }
 }

@@ -28,9 +28,12 @@ test("매장 운영·직원 액션은 기존 인라인 안내와 토스트를 �
     assert.match(source, /ActionFeedbackToast/);
     assert.match(source, /state\.message|createState\.message|mutationState\.message/);
     if (path.endsWith("MenuTableManager.tsx")) {
-      assert.match(source, /<ContentPanel as="div" surface="notice" density="compact" role="status"><p className="type-body-sm">\{state\.message\}/);
+      assert.match(source, /<ActionFeedbackToast message=\{createState\.message\}/);
       assert.match(source, /tone=\{createState\.status === "success" \? "success" : "error"\}/);
       assert.match(source, /tone=\{mutationState\.status === "success" \? "success" : "error"\}/);
+    } else if (path.endsWith("CallItemManager.tsx")) {
+      assert.match(source, /ContentPanel as="aside" surface="notice"/);
+      assert.match(source, /role="status"/);
     } else {
       assert.match(source, /site-notice-success/);
     }

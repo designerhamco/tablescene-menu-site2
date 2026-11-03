@@ -29,6 +29,7 @@ export type SalesMonthSummary = {
   startIso: string;
   endIso: string;
   today: SalesSummaryDay;
+  receivedOrderPayments: { orderCount: number; paidOrderCount: number };
   monthTotals: {
     orderCount: number;
     paidOrderCount: number;
@@ -117,7 +118,8 @@ export function buildSalesMonthSummary({
   for (const order of paidOrders) {
     const date = getKstDateKey(order.occurredAt);
     const bucket = date ? dayByKey.get(date) : null;
-    if (!bucket || !Number.isSafeInteger(order.totalAmount) || order.totalAmount < 0) continue;
+    if (!bucket || order.status === "cancelled" || !["manual_paid", "paid"].includes(order.paymentStatus)
+      || !Number.isSafeInteger(order.totalAmount) || order.totalAmount < 0) continue;
     validPaidOrders.push(order);
     bucket.paidOrderCount += 1;
     bucket.collectedAmount += order.totalAmount;
@@ -171,6 +173,12 @@ export function buildSalesMonthSummary({
     startIso: window.startIso,
     endIso: window.endIso,
     today,
+    receivedOrderPayments: {
+      orderCount: createdOrders.filter(order => { const date = getKstDateKey(order.occurredAt); return date !== null && dayByKey.has(date); }).length,
+      paidOrderCount: createdOrders.filter(order => { const date = getKstDateKey(order.occurredAt); return date !== null && dayByKey.has(date)
+        && order.status !== "cancelled" && ["manual_paid", "paid"].includes(order.paymentStatus)
+        && Number.isSafeInteger(order.totalAmount) && order.totalAmount >= 0; }).length,
+    },
     monthTotals: days.reduce(
       (totals, item) => ({
         orderCount: totals.orderCount + item.orderCount,

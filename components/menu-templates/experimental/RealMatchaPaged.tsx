@@ -545,8 +545,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   const storeDescription = (data.menuSite.brand_description || data.menuSite.description)
     ? <p data-representative-copy className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null;
   const showCover = data.pageSettings.menu_cover_enabled && featuredSlides.length > 0 && isMenuCoverVisibleOnDevice(data.pageSettings, device);
-  const actionFooter = showCall || showOrder ? (
+  const actionFooter = showCall || showOrder || call.terminalConnected ? (
             <footer className={styles.footer} data-scroll-actions aria-label={t("메뉴 이용")}>
+              {call.terminalConnected ? <span className={styles.tableLabel} data-terminal-table-label title={call.tableLabel}>{call.tableLabel}</span> : null}
               {showCall ? (
                 <button type="button" className={styles.callButton} onClick={call.openCall} aria-label={t("직원 호출하기")} data-scroll-call>
                   <StaffCallIcon aria-hidden="true" strokeWidth={1.8} /><ScriptAwareText text={t("호출하기")} />

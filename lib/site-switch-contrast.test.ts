@@ -66,6 +66,17 @@ test("shared switch preserves role, checked, disabled and external form associat
   }
 });
 
+test("switch loading preserves its confirmed position and geometry while blocking duplicate input", () => {
+  for (const checked of [false, true]) {
+    const html = renderToStaticMarkup(createElement(Switch, { checked, loading: true, "aria-label": "공개 설정" }));
+    assert.ok(html.includes(`aria-checked="${checked}"`));
+    assert.match(html, /data-loading="true"/); assert.match(html, /aria-busy="true"/);
+    assert.match(html, /<button[^>]*disabled=""/); assert.match(html, /site-switch-spinner/);
+  }
+  const row = /\.site-switch\[data-loading\] \.site-switch-thumb \{([^}]+)\}/.exec(css)?.[1] ?? "";
+  assert.doesNotMatch(row, /width:|height:|padding:|margin:|transform:/);
+});
+
 test("editor switch uses common control and keeps blocked initial values out of the form", () => {
   for (const canTurnOn of [false, true]) {
     const html = renderToStaticMarkup(createElement(SwitchField, {

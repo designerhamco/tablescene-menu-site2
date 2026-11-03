@@ -43,7 +43,7 @@ export default function PublicMenuExperienceShell({
 
   if (
     orderCallConfig &&
-    (orderCallConfig.orderEnabled || orderCallConfig.callEnabled)
+    (orderCallConfig.orderEnabled || orderCallConfig.callEnabled || orderCallConfig.hasValidTableSession)
   ) {
     return (
       <TableMenuInteractions

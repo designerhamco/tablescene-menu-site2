@@ -5,11 +5,12 @@ import { Switch } from "@/app/components/ui/switch";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import styles from "./SiteComponentGallery.module.css";
 
-function SwitchExample({ surface, label, initialChecked, disabled = false }: {
+function SwitchExample({ surface, label, initialChecked, disabled = false, loading = false }: {
   surface: "light" | "dark";
   label: string;
   initialChecked: boolean;
   disabled?: boolean;
+  loading?: boolean;
 }) {
   const id = useId();
   const [checked, setChecked] = useState(initialChecked);
@@ -17,7 +18,7 @@ function SwitchExample({ surface, label, initialChecked, disabled = false }: {
     <span className="type-label">{label}</span>
     <span className={styles.switchValue}>
       <span className="type-label" aria-hidden="true">{checked ? "ON" : "OFF"}</span>
-      <Switch id={id} surface={surface} checked={checked} onCheckedChange={setChecked} disabled={disabled} aria-label={label} />
+      <Switch id={id} surface={surface} checked={checked} onCheckedChange={setChecked} disabled={disabled} loading={loading} aria-label={label} />
     </span>
   </label>;
 }
@@ -39,6 +40,8 @@ export default function SwitchExamples() {
         <SwitchExample surface={surface} label={`${title} 사용 설정 2`} initialChecked />
         <SwitchExample surface={surface} label={`${title} 변경 불가 1`} initialChecked={false} disabled />
         <SwitchExample surface={surface} label={`${title} 변경 불가 2`} initialChecked disabled />
+        <SwitchExample surface={surface} label={`${title} 저장 중 OFF`} initialChecked={false} loading />
+        <SwitchExample surface={surface} label={`${title} 저장 중 ON`} initialChecked loading />
         <p className="type-body-sm">‘변경 불가’는 현재 상태를 보여주며 조작할 수 없습니다.</p>
       </article>)}
     </div>

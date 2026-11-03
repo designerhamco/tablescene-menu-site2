@@ -22,6 +22,7 @@ type OnePageCallActions = {
   orderEnabled?: boolean;
   cartCount?: number;
   openCart?: () => void;
+  terminalConnected?: boolean;
 };
 const OnePageCallContext = createContext<OnePageCallActions>({
   enabled: false,
@@ -92,6 +93,7 @@ export function OnePageCallButton({ mobile = false }: { mobile?: boolean }) {
     : "cafe-a-desktop-call-button";
   return (
     <div className="cafe-a-table-actions" data-one-page-table-actions="">
+      {!mobile && actions.terminalConnected ? <span className="cafe-a-call-table-label" data-terminal-table-label title={actions.tableLabel}>{actions.tableLabel}</span> : null}
       {actions.callEnabled !== false && (!mobile || !actions.orderEnabled) ? (
         <button
           type="button"
@@ -143,7 +145,7 @@ export function OnePageMobileCallBar({
   return (
     <div className="cafe-a-mobile-call-bar" data-one-page-call-bar="">
       <div className="cafe-a-call-language-slot">{languageControl}</div>
-      <span className="cafe-a-call-table-label" data-one-page-table-label="">
+      <span className="cafe-a-call-table-label" data-one-page-table-label="" data-terminal-table-label={call.terminalConnected ? "" : undefined} title={call.tableLabel}>
         {call.tableLabel}
       </span>
       {showActions ? <OnePageCallButton mobile /> : <span aria-hidden="true" />}

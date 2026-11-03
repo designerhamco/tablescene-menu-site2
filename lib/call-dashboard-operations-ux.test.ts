@@ -36,21 +36,24 @@ test("호출 이력은 접수·확인·완료 시각과 담당자를 함께 표�
   assert.match(service, /invitation\.email_normalized/);
 });
 
-test("운영 미연결 사장은 설정만 열고 주문 직원에게 사장 전용 설정 링크를 제공하지 않는다", () => {
+test("운영 미연결 사장은 설정을 준비하고 주문 직원도 자신의 알림 설정에 접근한다", () => {
   const offline = renderToStaticMarkup(createElement(OperationFeatureNavigation, { menuId: "menu-1", feature: "orders", settings: true, historyAvailable: false, canConfigure: true }));
   assert.match(offline, /연결 전/);
   assert.doesNotMatch(offline, /href="\/mypage\/menus\/menu-1\/orders"/);
   assert.match(offline, /href="\/mypage\/menus\/menu-1\/orders\/settings"/);
   const staff = renderToStaticMarkup(createElement(OperationFeatureNavigation, { menuId: "menu-1", feature: "orders", historyAvailable: true, canConfigure: false }));
-  assert.doesNotMatch(staff, /href="\/mypage\/menus\/menu-1\/orders\/settings"/);
+  assert.match(staff, /href="\/mypage\/menus\/menu-1\/orders\/settings"/);
 });
 
 test("새 호출은 화면에 항상 알리고 선택 시 브라우저 알림과 소리를 함께 사용한다", () => {
   const component = readSource("components/mypage/OperationalArrivalAlert.tsx");
   const policy = readSource("lib/dashboard-arrival-alerts.ts");
 
-  assert.match(component, /AudioContext/);
-  assert.match(component, /알림·소리 켜기/);
-  assert.match(component, /보고 있는 화면에 항상 표시합니다/);
+  assert.match(component, /playOperationalSound\(readOperationalSound\(menuSiteId, kind\)\)/);
+  assert.match(readSource("lib/operational-sound.ts"), /AudioContext/);
+  assert.doesNotMatch(component, /알림·소리 켜기|toggleBrowserNotifications|requestPermission/);
+  const settings = readSource("components/mypage/OperationalSoundSettings.tsx");
+  assert.match(settings, /새 \{noun\} 알림·소리 받기/);
+  assert.match(settings, /내역 화면에 항상 표시합니다/);
   assert.doesNotMatch(policy, /!pageHasAttention/);
 });

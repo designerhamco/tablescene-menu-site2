@@ -176,6 +176,8 @@
   background: var(--ui-switch-disabled-track);
 }
 .site-switch:disabled .site-switch-thumb { background: var(--ui-switch-disabled-thumb); }
+.site-switch[data-loading] .site-switch-thumb { display: grid; place-items: center; color: var(--ui-switch-disabled-track); }
+.site-switch-spinner { width: calc(var(--ui-switch-thumb-size) * .6); height: calc(var(--ui-switch-thumb-size) * .6); }
 
 @media (prefers-reduced-motion: reduce) {
   .site-switch-track, .site-switch-thumb { transition: none; }
@@ -188,6 +190,7 @@
   .site-switch[data-state="checked"] .site-switch-thumb { background: HighlightText; }
   .site-switch:disabled .site-switch-track { border-color: GrayText; background: Canvas; }
   .site-switch:disabled .site-switch-thumb { background: GrayText; }
+  .site-switch[data-loading] .site-switch-spinner { color: Canvas; }
   .site-switch:focus-visible .site-switch-track { outline-color: Highlight; }
 }
 
@@ -683,6 +686,12 @@ textarea.site-field,
   border-radius: var(--ui-radius-surface);
 }
 
+.site-dialog[data-scrollable] {
+  max-height: calc(100dvh - var(--site-space-content));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .site-dialog-sheet {
   border-radius: var(--ui-radius-surface) var(--ui-radius-surface) 0 0;
 }
@@ -693,6 +702,7 @@ textarea.site-field,
   line-height: 1.4;
   letter-spacing: -0.03em;
 }
+.site-dialog [data-slot="dialog-header"][data-close-button] { padding-inline-end: var(--ui-control-height-md); }
 
 .site-dialog-description {
   color: var(--ui-text-muted);

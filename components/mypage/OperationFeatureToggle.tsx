@@ -1,30 +1,41 @@
 "use client";
 
-import { useId, useState, useTransition } from "react";
+import { useId, useRef, useState, useTransition } from "react";
 import { Switch } from "@/app/components/ui/switch";
 import { updateOperationFeature, type OperationFeatureUpdateResult } from "@/app/mypage/operations/actions";
 import type { MenuOrderSettingsSection } from "@/lib/menu-order-settings";
+import type { ReactNode } from "react";
+import OperationActionFeedback from "./OperationActionFeedback";
 
-export default function OperationFeatureToggle({ menuId, feature, enabled, canEnable, activeTablesReady }: {
+export default function OperationFeatureToggle({ menuId, feature, enabled, canEnable, activeTablesReady, published = true, action, blockedReason, reasonVisible = true, showStateLabel = true }: {
   menuId: string;
   feature: MenuOrderSettingsSection;
   enabled: boolean;
   canEnable: boolean;
   activeTablesReady: boolean | null;
+  published?: boolean;
+  action?: ReactNode;
+  blockedReason?: string | null;
+  reasonVisible?: boolean;
+  showStateLabel?: boolean;
 }) {
   const id = useId();
   const [pending, startTransition] = useTransition();
   const [notice, setNotice] = useState<OperationFeatureUpdateResult | null>(null);
-  const disabled = pending || (!enabled && (!canEnable || activeTablesReady !== true));
-  const reason = !enabled && activeTablesReady !== true
-    ? activeTablesReady === null ? "테이블 상태 확인 필요" : "활성 테이블 등록 후 ON 가능"
-    : !canEnable ? "현재 기능 연결을 확인해 주세요." : null;
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const displayedEnabled = published && activeTablesReady === true && canEnable && enabled;
+  const disabled = pending || !published || activeTablesReady !== true || !canEnable;
+  const reason = blockedReason ?? (!published ? "메뉴판 공개 후 ON 가능" : !enabled && activeTablesReady !== true
+    ? activeTablesReady === null ? "테이블 상태 확인 필요" : "테이블 또는 키오스크 활성화 후 ON 가능"
+    : !canEnable ? "현재 기능 연결을 확인해 주세요." : null);
 
   return <div className="site-stack-copy">
-    <label htmlFor={id} className="flex min-h-11 items-center justify-between gap-3">
-      <span className="type-label" aria-live="polite">{pending ? "저장 중…" : enabled ? "ON" : "OFF"}</span>
-      <Switch id={id} checked={enabled} disabled={disabled} aria-busy={pending}
-        aria-label={`${feature === "orders" ? "주문" : "호출"} 기능 사용`}
+    <div className="site-action-row" data-distribution={action ? "between" : "end"}>
+    {action}
+    <label htmlFor={id} className="site-action-row">
+      <span className={showStateLabel ? "type-caption" : "sr-only"} aria-live="polite">{pending ? "저장 중…" : activeTablesReady === null ? "확인 필요" : displayedEnabled ? "ON" : "OFF"}</span>
+      <Switch ref={triggerRef} id={id} checked={displayedEnabled} loading={pending} disabled={disabled} aria-busy={pending}
+        aria-label={`전체 ${feature === "orders" ? "주문" : "호출"} 기능 사용`}
         aria-describedby={reason ? `${id}-reason` : undefined}
         onCheckedChange={(nextEnabled) => startTransition(async () => {
           setNotice(null);
@@ -35,8 +46,9 @@ export default function OperationFeatureToggle({ menuId, feature, enabled, canEn
           }
         })} />
     </label>
-    {reason ? <p id={`${id}-reason`} className="type-body-sm text-zinc-600">{reason}</p> : null}
-    {notice ? <p role={notice.status === "error" ? "alert" : "status"}
-      className={`type-body-sm ${notice.status === "error" ? "text-red-700" : "text-emerald-700"}`}>{notice.message}</p> : null}
+    </div>
+    {reason ? <p id={`${id}-reason`} className={reasonVisible ? "type-body-sm site-copy-muted" : "sr-only"}>{reason}</p> : null}
+    <OperationActionFeedback result={pending ? null : notice} title={`${feature === "orders" ? "주문" : "호출"} 설정 저장 실패`}
+      onClose={() => setNotice(null)} triggerRef={triggerRef} />
   </div>;
 }

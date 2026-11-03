@@ -2,8 +2,9 @@
 
 import { FilterPanel, RecordCard } from "@/app/components/ui/data-display";
 import { Bell, Search } from "lucide-react";
+import { RefreshButton } from "@/app/components/ui/refresh-button";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
 
 import OperationalArrivalAlert from "@/components/mypage/OperationalArrivalAlert";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
@@ -39,6 +40,7 @@ export default function CallDashboard({ menuSiteId, calls }: {
   calls: CallDashboardPageData["calls"];
 }) {
   const router = useRouter();
+  const [refreshing, refresh] = useTransition();
   const [state, action, pending] = useActionState(mutateCallAction, initialCallManagementActionState);
   const [backgroundPollingEnabled, setBackgroundPollingEnabled] = useState(false);
   const [query, setQuery] = useState("");
@@ -93,7 +95,7 @@ export default function CallDashboard({ menuSiteId, calls }: {
                 <p className="text-copy font-medium text-zinc-900">처리할 호출 {unresolvedCount.toLocaleString("ko-KR")}건 · 최근 이력 {calls.length.toLocaleString("ko-KR")}건</p>
                 <p className="mt-1 text-support font-medium text-zinc-500">최신 호출부터 표시하며 15초마다 자동으로 갱신합니다.</p>
               </div>
-              <button type="button" onClick={() => router.refresh()} className="site-button site-button-secondary">지금 새로고침</button>
+              <RefreshButton loading={refreshing} onClick={() => refresh(() => router.refresh())} />
             </div>
 
             <div className="mt-4 grid gap-2 md:grid-cols-[minmax(12rem,1fr)_auto_auto_auto]">

@@ -84,3 +84,23 @@ test("sales data access reauthorizes before using the server-only client", async
   assert.match(functionBody, /\.eq\("menu_site_id", menuSiteId\)/);
   assert.match(functionBody, /\.in\("payment_status", \["manual_paid", "paid"\]\)/);
 });
+
+test("취소·환불·미결제는 완료액과 메뉴 판매량에 합산하지 않는다", () => {
+  const common = { occurredAt: "2026-08-07T00:00:00Z", totalAmount: 10000, status: "served", paymentStatus: "paid", paymentMethod: "pg" };
+  const summary = salesSummary.buildSalesMonthSummary({ now: new Date("2026-08-07T02:00:00Z"), createdOrders: [],
+    paidOrders: [{ ...common, id: "paid" }, { ...common, id: "cancelled", status: "cancelled" }, { ...common, id: "refund", paymentStatus: "refunded" }, { ...common, id: "unpaid", paymentStatus: "unpaid" }],
+    paidOrderItems: [{ orderId: "paid", name: "라떼", quantity: 1, lineTotal: 10000 }, { orderId: "refund", name: "제외", quantity: 10, lineTotal: 100000 }],
+  });
+  assert.equal(summary.today.collectedAmount, 10000); assert.equal(summary.monthTotals.paidOrderCount, 1);
+  assert.deepEqual(summary.topItems, [{ name: "라떼", quantity: 1, collectedAmount: 10000 }]);
+});
+
+test("이월 주문 결제는 이번 달 완료액에 포함하되 당월 접수 주문의 완료 비율과 섞지 않는다", () => {
+  const common = { totalAmount: 10000, status: "served", paymentStatus: "paid", paymentMethod: "pg" };
+  const summary = salesSummary.buildSalesMonthSummary({ now: new Date("2026-08-07T02:00:00Z"),
+    createdOrders: [{ ...common, id: "new", occurredAt: "2026-08-07T00:00:00Z", paymentStatus: "unpaid" }],
+    paidOrders: [{ ...common, id: "previous-month", occurredAt: "2026-08-07T00:00:00Z" }],
+  });
+  assert.equal(summary.monthTotals.collectedAmount, 10000);
+  assert.deepEqual(summary.receivedOrderPayments, { orderCount: 1, paidOrderCount: 0 });
+});

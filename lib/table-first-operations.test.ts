@@ -19,7 +19,7 @@ function serverModule<T>(path: string, dependencies: Record<string, unknown>): T
 }
 const menuId = "11111111-1111-4111-8111-111111111111";
 
-function settingsFixture({ activeTable = true, runtime = true, tableError = false, owner = true, currentOrder = false, currentCall = false, eligible = true, conflict = false, currentPreferences = {} as Record<string, unknown> } = {}) {
+function settingsFixture({ activeTable = true, runtime = true, tableError = false, owner = true, currentOrder = false, currentCall = false, eligible = true, conflict = false, published = true, currentPreferences = {} as Record<string, unknown> } = {}) {
   const writes: unknown[] = [];
   const tableReads: [string, unknown][] = [];
   const db = { from(name: string) {
@@ -27,7 +27,7 @@ function settingsFixture({ activeTable = true, runtime = true, tableError = fals
       select() { return this; },
       eq(key: string, value: unknown) { if (name === "menu_tables") tableReads.push([key, value]); return this; },
       gt() { return this; }, limit(value: number) { assert.equal(value, 1); return this; },
-      async single() { return { data: { id: menuId, settings: { appearance: { theme: "preserve" }, table_order: { orderEnabled: currentOrder, callEnabled: currentCall, ...currentPreferences } }, updated_at: "v1", template_key: "cafe_design_a" }, error: null }; },
+      async single() { return { data: { id: menuId, status: published ? "published" : "draft", settings: { appearance: { theme: "preserve" }, table_order: { orderEnabled: currentOrder, callEnabled: currentCall, ...currentPreferences } }, updated_at: "v1", template_key: "cafe_design_a" }, error: null }; },
       async order() { return { data: [], error: null }; },
       async maybeSingle() { return { data: activeTable ? { id: "active-table" } : null, error: tableError ? { code: "failed" } : null }; },
     };
@@ -75,6 +75,18 @@ test("활성 테이블이 있으면 주문·호출을 독립 저장하며 테이
   const savedCall = await call.service.saveMenuOrderSettings(menuId, { ...DEFAULT_MENU_ORDER_SETTINGS, callEnabled: true }, "calls");
   assert.equal(savedCall.orderEnabled, true);
   assert.equal(savedCall.callEnabled, true);
+});
+
+test("비공개 메뉴는 테이블이 있어도 ON 저장을 거부하고 OFF 저장은 두 기능을 모두 끈다", async () => {
+  for (const section of ["orders", "calls"] as const) {
+    const blocked = settingsFixture({ published: false });
+    await assert.rejects(blocked.service.setMenuOrderFeatureEnabled(menuId, section, true, false), /메뉴판을 공개/);
+    assert.equal(blocked.writes.length, 0);
+    const off = settingsFixture({ published: false, currentOrder: true, currentCall: true });
+    const saved = await off.service.setMenuOrderFeatureEnabled(menuId, section, false, true);
+    assert.equal(saved.orderEnabled, false);
+    assert.equal(saved.callEnabled, false);
+  }
 });
 
 test("테이블이 없어지거나 runtime이 꺼져도 OFF 저장과 다른 기능의 기존 설정은 유지한다", async () => {
@@ -141,6 +153,14 @@ test("활성 테이블 0개·조회 실패·runtime 미연결을 구분하며 �
   }
 });
 
+test("비공개 메뉴판도 기존 주문·호출의 관리 권한과 기간 검증을 유지한다", async () => {
+  const f = contextFixture();
+  const data = await f.service.getStoreOperationsContext("draft");
+  assert.equal(data.selectedSite?.status, "draft");
+  assert.equal(data.selectedSite?.operationAccess.orders, true);
+  assert.equal(data.selectedSite?.operationAccess.calls, true);
+});
+
 test("운영 메뉴판 선택은 왼쪽 셀렉트이며 테이블·QR 관리를 먼저 제공한다", () => {
   const shell = source("components/mypage/StoreOperationsShell.tsx");
   assert.doesNotMatch(shell, /<NavigationTabs/);
@@ -150,7 +170,7 @@ test("운영 메뉴판 선택은 왼쪽 셀렉트이며 테이블·QR 관리를 
   assert.match(selector, /<select/);
   assert.match(selector, /router.push\(item.href\)/);
   const form = source("app/mypage/menus/[menuId]/order-settings/OrderSettingsForm.tsx");
-  assert.match(form, /disabled: !activeTablesReady && !featureEnabled/);
+  assert.match(form, /disabled: pending \|\| !published \|\| activeTablesReady !== true/);
 });
 
 test("무료 이용권은 설정 활성화 불가이며 유료 메뉴도 주문·호출을 자동으로 켜지 않는다", async () => {

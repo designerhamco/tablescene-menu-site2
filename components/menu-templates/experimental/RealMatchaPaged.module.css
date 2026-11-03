@@ -117,6 +117,8 @@
 }
 .frame[data-scroll-more="true"] .fade { opacity: 1; }
 .footer { display: flex; gap: 0.75rem; justify-content: center; align-items: stretch; padding-top: var(--scroll-action-clearance); }
+.footer:has(.tableLabel) { flex-wrap: wrap; row-gap: .5rem; }
+.tableLabel { flex-basis: 100%; min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; color: var(--paged-brand); font-family: var(--menu-font-ko), sans-serif; font-size: var(--cafe-a-reading-supporting-size); line-height: 1.5; }
 .footer button {
   display: flex;
   align-items: center;

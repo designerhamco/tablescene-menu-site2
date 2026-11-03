@@ -126,7 +126,7 @@ export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallD
       .eq("menu_site_id", menuSiteId)
       .order("created_at", { ascending: false })
       .limit(100),
-    supabase.from("menu_tables").select("id, label").eq("menu_site_id", menuSiteId),
+    supabase.from("menu_tables").select("*").eq("menu_site_id", menuSiteId),
     listStaffCallItems({ menuSiteId, includeInactive: true }),
     supabase
       .from("menu_site_invitations")
@@ -149,7 +149,7 @@ export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallD
   if (tablesResult.error) failRead(tablesResult.error);
   if (acceptedInvitationsResult.error) failRead(acceptedInvitationsResult.error);
 
-  const tableLabelById = new Map((tablesResult.data ?? []).map((table) => [table.id, table.label]));
+  const tableLabelById = new Map((tablesResult.data ?? []).map((table) => [table.id, table.point_kind === "kiosk" && !table.label.startsWith("키오스크") ? `키오스크 · ${table.label}` : table.label]));
   const actorLabelById = new Map<string, string>();
   actorLabelById.set(siteResult.data.user_id, "사장");
   for (const invitation of acceptedInvitationsResult.data ?? []) {

@@ -1,4 +1,6 @@
 "use server";
+
+import { setMenuPublicationStatus } from "@/lib/server/menu-publication-service";
 import { setMenuTextColorsFromForm } from "@/lib/menu-text-colors";
 
 import { getSavedMenuDesign } from "@/lib/menu-design-identity";
@@ -31,7 +33,6 @@ import {
 import { AI_FEATURE_CREDIT_COSTS } from "@/lib/ai-credits";
 import { getAiCreditBalanceForMenuSite, spendAiCredits } from "@/lib/server/ai-credits-service";
 import {
-  MENU_SITE_INACTIVE_PUBLISH_MESSAGE,
   requireMenuSiteWriteAccess,
 } from "@/lib/server/menu-site-access-service";
 import { MenuSiteAccessError, type MenuSitePermission } from "@/lib/menu-site-permissions";
@@ -65,7 +66,6 @@ import {
   normalizeAubeTableCoverBackgroundOpacity,
   normalizeAubeTableLayoutColumns,
   normalizeAubeTableTextAlignment,
-  validateAubeTablePublishStructure,
 } from "@/lib/aube-table";
 import { getTemplateContentLimits } from "@/lib/template-content-limits";
 import { normalizePcTabletLayoutMode, supportsPcTabletLayoutMode } from "@/lib/menu-layout-modes";
@@ -125,7 +125,7 @@ import {
 import { saveMenuWidgetsForFinalDraft, type MenuWidgetFinalSaveError } from "@/lib/server/menu-widget-final-save-service";
 import { cleanupSavedMenuWidgetImages } from "@/lib/server/menu-widget-image-cleanup-service";
 import { createClient } from "@/lib/supabase/server";
-import type { Database, Json, MenuSectionKey, MenuSiteStatus } from "@/lib/supabase/types";
+import type { Database, Json, MenuSectionKey } from "@/lib/supabase/types";
 import { BADGE_STYLE_KEYS, isHexColor, type BadgeStyleKey, type BadgeStyles } from "@/lib/template-badge-styles";
 import { normalizeBackgroundColor } from "@/lib/template-background-colors";
 import { getBasicPricingCapabilities, getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
@@ -4077,91 +4077,19 @@ export async function updateEventsAction(formData: FormData) {
 export async function updatePublishSettingsAction(formData: FormData) {
   const menuId = getString(formData, "menuId");
   if (!menuId) redirect("/mypage?error=missing-menu-id");
-
-  const { supabase, menuSite } = await requireOwnedMenuSite(menuId, {
-    inactiveMessage: MENU_SITE_INACTIVE_PUBLISH_MESSAGE,
-    permission: "menu.publish",
-  });
   const status = getString(formData, "status");
-
-  if (status !== "draft" && status !== "published") {
-    redirectToTabEditWithError(menuId, "publish", "공개 상태를 선택해주세요.");
+  if (status !== "draft" && status !== "published") redirectToTabEditWithError(menuId, "publish", "공개 상태를 선택해 주세요.");
+  let slug: string | null;
+  try {
+    ({ slug } = await setMenuPublicationStatus(menuId, status));
+  } catch (error) {
+    if (error instanceof MenuSiteAccessError && error.code === "AUTH_REQUIRED") redirect(`/sign-in?next=/mypage/menus/${menuId}/edit?tab=publish`);
+    redirectToTabEditWithError(menuId, "publish", error instanceof Error ? error.message : "공개 설정을 저장하지 못했습니다.");
   }
-
-  const nextStatus: MenuSiteStatus = status;
-
-  if (nextStatus === "published") {
-    if (!menuSite.restaurant_name) {
-      redirectToTabEditWithError(menuId, "publish", "공개하려면 실제 매장명을 먼저 입력해주세요.");
-    }
-    if (!menuSite.slug) {
-      redirectToTabEditWithError(menuId, "publish", "공개하려면 공개 메뉴판 주소를 먼저 설정해주세요.");
-    }
-
-    const isAubeTable = isAubeTableTemplate(menuSite.template_key);
-    const [
-      { count: pageCount, error: pageCountError },
-      { count: categoryCount, error: categoryCountError },
-      { count: itemCount, error: itemCountError },
-    ] = await Promise.all([
-      supabase.from("menu_pages").select("id", { count: "exact", head: true }).eq("menu_site_id", menuId),
-      supabase.from("menu_categories").select("id", { count: "exact", head: true }).eq("menu_site_id", menuId),
-      supabase.from("menu_items").select("id", { count: "exact", head: true }).eq("menu_site_id", menuId),
-    ]);
-
-    if (pageCountError || categoryCountError || itemCountError) {
-      redirectToTabEditWithError(menuId, "publish", "공개 전 필수 데이터 확인 중 오류가 발생했습니다.");
-    }
-    if ((pageCount ?? 0) < 1) {
-      redirectToTabEditWithError(menuId, "publish", "공개하려면 페이지를 1개 이상 등록해주세요.");
-    }
-    if (!isAubeTable && (categoryCount ?? 0) < 1) {
-      redirectToTabEditWithError(menuId, "publish", "공개하려면 카테고리를 1개 이상 등록해주세요.");
-    }
-    if ((itemCount ?? 0) < 1) {
-      redirectToTabEditWithError(menuId, "publish", "공개하려면 메뉴 아이템을 1개 이상 등록해주세요.");
-    }
-
-    if (isAubeTable) {
-      const [{ data: pages, error: pagesError }, { data: categories, error: categoriesError }, { data: items, error: itemsError }] =
-        await Promise.all([
-          supabase.from("menu_pages").select("id, title, visible, sort_order").eq("menu_site_id", menuId),
-          supabase.from("menu_categories").select("id, menu_page_id, name, visible").eq("menu_site_id", menuId),
-          supabase
-            .from("menu_items")
-            .select("id, category_id, menu_page_id, visible" as never)
-            .eq("menu_site_id", menuId),
-        ]);
-      if (pagesError || categoriesError || itemsError) {
-        redirectToTabEditWithError(menuId, "publish", "오브 테이블 메뉴 구조를 확인하지 못했습니다.");
-      }
-      const structureError = validateAubeTablePublishStructure({
-        pages: (pages ?? []).map((page) => ({ ...page, title: page.title, visible: page.visible })),
-        categories: categories ?? [],
-        items: (items ?? []) as unknown as Array<{
-          id: string;
-          category_id: string | null;
-          menu_page_id: string | null;
-          visible: boolean;
-        }>,
-      });
-      if (structureError) {
-        redirectToTabEditWithError(menuId, "publish", structureError);
-      }
-    }
-  }
-
-  const publishedAt = nextStatus === "published" ? menuSite.published_at ?? new Date().toISOString() : menuSite.published_at;
-
-  const { error } = await supabase
-    .from("menu_sites")
-    .update({ status: nextStatus, published_at: publishedAt, updated_at: new Date().toISOString() })
-    .eq("id", menuId);
-
-  if (error) redirectToTabEditWithError(menuId, "publish", `공개 설정 저장에 실패했습니다: ${error.message}`);
-
-  revalidateMenuPaths(menuId, menuSite.slug);
-  redirectToTabEdit(menuId, "publish", "공개 설정이 저장되었습니다.");
+  revalidateMenuPaths(menuId, slug);
+  revalidatePath("/mypage/operations");
+  for (const section of ["orders", "calls", "orders/settings", "calls/settings", "tables"]) revalidatePath(`/mypage/menus/${menuId}/${section}`);
+  redirectToTabEdit(menuId, "publish", status === "draft" ? "비공개로 변경하고 주문·호출을 OFF로 저장했습니다. 기존 접수 내역은 유지됩니다." : "공개 설정이 저장되었습니다. 주문·호출은 매장 운영에서 직접 켜 주세요.");
 }
 
 export async function createMenuPageAction(formData: FormData) {

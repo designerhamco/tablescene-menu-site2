@@ -92,6 +92,7 @@ export async function submitStaffCall({
 }): Promise<SubmittedStaffCall> {
   assertRuntimeAndSession(menuSiteId, tableSession);
   await assertPublicBusinessAccess(menuSiteId);
+  if (tableSession.callAllowed === false) throw new StaffCallSubmissionError("이 사용 방식에서는 호출을 이용할 수 없습니다.");
   if (typeof callItemKey !== "string" || !/^[a-z0-9_]{1,64}$/.test(callItemKey)) {
     throw new StaffCallSubmissionError("호출 항목을 다시 선택해 주세요.");
   }

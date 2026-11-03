@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { CreditCard, ShoppingBag } from "lucide-react";
-import { MetricCard } from "@/app/components/ui/data-display";
-import { ActivityOverview } from "@/app/components/ui/activity-overview";
+import StoreSalesSummary from "@/components/mypage/StoreSalesSummary";
 import { notFound, redirect } from "next/navigation";
 
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
@@ -15,23 +12,12 @@ import {
 import { getStoreOperationsContext } from "@/lib/server/store-operations-context";
 
 export const metadata: Metadata = {
-  title: "매출 요약 | 아티메뉴",
+  title: "매출 관리 | 아티메뉴",
   robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
-
-function formatAmount(value: number) {
-  return `${value.toLocaleString("ko-KR")}원`;
-}
-
-const PAYMENT_METHOD_LABELS = {
-  manual_card: "외부 카드 단말기",
-  manual_cash: "현금",
-  pg: "PG",
-  other: "기타",
-} as const;
 
 export default async function SalesSummaryPage({
   params,
@@ -70,123 +56,10 @@ export default async function SalesSummaryPage({
     redirect("/mypage/operations");
   }
 
-  const { summary } = data;
-  const visibleDays = summary.days.slice(0, summary.today.date.endsWith("-01") ? 1 : Number(summary.today.date.slice(-2))).reverse();
-
-  return (
-    <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="sales">
-      <div className="site-dashboard space-y-6">
-        <header>
-          <p className="text-support font-medium uppercase tracking-[0.18em] text-emerald-700">{data.menuSite.name}</p>
-          <h2 className="type-subsection-title mt-2">매출요약</h2>
-          <p className="mt-3 max-w-3xl break-keep text-copy font-medium leading-relaxed text-zinc-500">
-            한국 시간 기준으로 주문 접수 수와 외부 결제 완료 금액을 확인합니다. 정산·PG 매출 보고서가 아닌 매장 운영용 요약입니다.
-          </p>
-        </header>
-
-        <section className="site-metric-grid" aria-label="매출 요약">
-          <MetricCard label="오늘 주문" value={`${summary.today.orderCount.toLocaleString("ko-KR")}건`} icon={<ShoppingBag />} tone="blue" />
-          <MetricCard label="오늘 결제 완료액" value={formatAmount(summary.today.collectedAmount)} detail={`${summary.today.paidOrderCount.toLocaleString("ko-KR")}건`} icon={<CreditCard />} tone="green" />
-          <MetricCard label={`${summary.month}월 주문`} value={`${summary.monthTotals.orderCount.toLocaleString("ko-KR")}건`} icon={<ShoppingBag />} tone="brand" />
-          <MetricCard label={`${summary.month}월 결제 완료액`} value={formatAmount(summary.monthTotals.collectedAmount)} detail={`${summary.monthTotals.paidOrderCount.toLocaleString("ko-KR")}건`} icon={<CreditCard />} tone="green" />
-        </section>
-        <ActivityOverview days={visibleDays} label={`${summary.year}년 ${summary.month}월`} />
-
-        <section className="site-card-surface overflow-hidden">
-          <div className="flex flex-col justify-between gap-3 border-b border-zinc-100 px-6 py-5 sm:flex-row sm:items-center">
-            <div>
-              <h2 className="type-content-title">{summary.year}년 {summary.month}월 일별 현황</h2>
-              <p className="mt-1 text-support font-medium text-zinc-500">결제 완료 시각과 주문 접수 시각을 각각 한국 시간 날짜로 집계합니다.</p>
-            </div>
-            <Link href={`/mypage/menus/${data.menuSite.id}/orders`} className="text-support font-medium text-emerald-700 underline underline-offset-4">
-              주문관리 보기
-            </Link>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[620px] text-left text-copy">
-              <thead className="bg-zinc-50 text-support font-medium text-zinc-500">
-                <tr>
-                  <th className="px-6 py-3">날짜</th>
-                  <th className="px-6 py-3 text-right">주문</th>
-                  <th className="px-6 py-3 text-right">결제 완료</th>
-                  <th className="px-6 py-3 text-right">결제 완료액</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleDays.map((day) => (
-                  <tr key={day.date} className="border-t border-zinc-100">
-                    <td className="px-6 py-4 font-bold">{day.date}</td>
-                    <td className="px-6 py-4 text-right font-bold">{day.orderCount.toLocaleString("ko-KR")}건</td>
-                    <td className="px-6 py-4 text-right font-bold">{day.paidOrderCount.toLocaleString("ko-KR")}건</td>
-                    <td className="px-6 py-4 text-right font-bold">{formatAmount(day.collectedAmount)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="grid gap-5 lg:grid-cols-2">
-          <article className="site-card-surface p-6">
-            <h2 className="type-content-title">메뉴별 판매량 Top 10</h2>
-            <p className="mt-1 text-support font-medium text-zinc-500">이번 달 결제 완료 주문의 주문 당시 메뉴명 snapshot 기준입니다.</p>
-            {summary.topItems.length === 0 ? (
-              <p className="mt-6 rounded-2xl bg-zinc-50 px-4 py-8 text-center text-copy font-medium text-zinc-500">결제 완료된 메뉴가 없습니다.</p>
-            ) : (
-              <ol className="mt-5 space-y-3">
-                {summary.topItems.map((item, index) => (
-                  <li key={item.name} className="flex items-center justify-between gap-4 rounded-2xl bg-zinc-50 px-4 py-3">
-                    <div className="min-w-0">
-                      <p className="truncate font-bold">{index + 1}. {item.name}</p>
-                      <p className="mt-1 text-support font-medium text-zinc-500">{item.quantity.toLocaleString("ko-KR")}개</p>
-                    </div>
-                    <p className="shrink-0 font-bold">{formatAmount(item.collectedAmount)}</p>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </article>
-
-          <div className="space-y-5">
-            <article className="site-card-surface p-6">
-              <h2 className="type-content-title">결제수단별 완료액</h2>
-              <div className="mt-5 space-y-3">
-                {summary.paymentMethods.length === 0 ? (
-                  <p className="rounded-2xl bg-zinc-50 px-4 py-8 text-center text-copy font-medium text-zinc-500">결제 완료 내역이 없습니다.</p>
-                ) : summary.paymentMethods.map((method) => (
-                  <div key={method.method} className="flex items-center justify-between gap-4 rounded-2xl bg-zinc-50 px-4 py-3">
-                    <div>
-                      <p className="font-bold">{PAYMENT_METHOD_LABELS[method.method]}</p>
-                      <p className="mt-1 text-support font-medium text-zinc-500">{method.orderCount.toLocaleString("ko-KR")}건</p>
-                    </div>
-                    <p className="font-bold">{formatAmount(method.collectedAmount)}</p>
-                  </div>
-                ))}
-              </div>
-            </article>
-
-            <article className="site-card-surface p-6">
-              <h2 className="type-content-title">취소·미결제 현황</h2>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <div className="site-notice site-notice-error p-4">
-                  <p className="text-support font-medium text-rose-700">취소 주문</p>
-                  <p className="type-metric mt-2">{summary.orderStates.cancelledOrderCount.toLocaleString("ko-KR")}건</p>
-                  <p className="mt-1 text-support font-medium">주문금액 {formatAmount(summary.orderStates.cancelledOrderAmount)}</p>
-                </div>
-                <div className="site-notice site-notice-warning p-4">
-                  <p className="text-support font-medium text-amber-700">현재 미결제</p>
-                  <p className="type-metric mt-2">{summary.orderStates.unpaidOrderCount.toLocaleString("ko-KR")}건</p>
-                  <p className="mt-1 text-support font-medium">주문금액 {formatAmount(summary.orderStates.unpaidOrderAmount)}</p>
-                </div>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <p className="rounded-2xl bg-zinc-100 px-4 py-3 text-support font-medium leading-relaxed text-zinc-600">
-          결제 완료액과 메뉴별 판매량은 현재 상태가 외부 결제 완료 또는 PG 결제 완료인 주문만 포함합니다. 취소·환불 상태는 제외하며 세금계산서, PG 정산, 수수료를 반영하지 않습니다.
-        </p>
-      </div>
-    </StoreOperationsShell>
-  );
+  return <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="sales">
+    <div className="site-stack-content">
+      <header className="site-stack-title"><p className="type-label site-copy-muted">{data.menuSite.name}</p><h2 className="type-subsection-title">매출 관리</h2><p className="type-body-sm site-copy-muted">접수 주문과 실제 결제 완료액을 구분해 확인합니다. 결제 취소·환불 내역은 완료액에서 제외됩니다.</p></header>
+      <StoreSalesSummary summary={data.summary} menuId={menuId} ordersAvailable={selectedSite.operationAccess.orders} />
+    </div>
+  </StoreOperationsShell>;
 }

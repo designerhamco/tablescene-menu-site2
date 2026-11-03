@@ -2691,6 +2691,11 @@ export type Database = {
       }
       menu_tables: {
         Row: {
+          point_kind: string
+          terminal_order_enabled: boolean
+          terminal_call_enabled: boolean
+          customer_order_enabled: boolean
+          customer_call_enabled: boolean
           archived_at: string | null
           created_at: string
           created_by: string | null
@@ -2706,6 +2711,11 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          point_kind?: string
+          terminal_order_enabled?: boolean
+          terminal_call_enabled?: boolean
+          customer_order_enabled?: boolean
+          customer_call_enabled?: boolean
           archived_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -2721,6 +2731,11 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          point_kind?: string
+          terminal_order_enabled?: boolean
+          terminal_call_enabled?: boolean
+          customer_order_enabled?: boolean
+          customer_call_enabled?: boolean
           archived_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -3481,6 +3496,7 @@ export type Database = {
         Row: {
           access_channel: string
           created_at: string
+          device_info: Json
           expires_at: string
           id: string
           last_seen_at: string
@@ -3494,6 +3510,7 @@ export type Database = {
         Insert: {
           access_channel?: string
           created_at?: string
+          device_info?: Json
           expires_at: string
           id?: string
           last_seen_at?: string
@@ -3507,6 +3524,7 @@ export type Database = {
         Update: {
           access_channel?: string
           created_at?: string
+          device_info?: Json
           expires_at?: string
           id?: string
           last_seen_at?: string
@@ -3559,6 +3577,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      preview_order_point_deletion: {
+        Args: { p_menu_site_id: string; p_table_id: string }
+        Returns: Json
+      }
+      delete_order_point: {
+        Args: { p_menu_site_id: string; p_table_id: string; p_actor_user_id: string; p_expected_fingerprint: string; p_confirmation_label: string; p_with_history: boolean }
+        Returns: Json
+      }
       prune_notification_content: {
         Args: { p_batch_limit?: number; p_execute?: boolean }
         Returns: Json
@@ -3785,6 +3811,17 @@ export type Database = {
       }
       register_table_terminal_visit: {
         Args: {
+          p_menu_site_id: string
+          p_previous_token_hash: string
+          p_table_id: string
+          p_token_hash: string
+          p_user_agent_hash: string
+        }
+        Returns: string
+      }
+      register_table_terminal_visit_with_device: {
+        Args: {
+          p_device_info: Json
           p_menu_site_id: string
           p_previous_token_hash: string
           p_table_id: string

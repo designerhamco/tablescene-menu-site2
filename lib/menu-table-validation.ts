@@ -1,3 +1,5 @@
+import { orderPointKind, readOrderPointPolicy, type OrderPointKind, type OrderPointPolicy } from "./order-point-policy";
+
 export const MENU_TABLE_MUTABLE_STATUSES = ["active", "disabled"] as const;
 
 export type MenuTableMutableStatus = (typeof MENU_TABLE_MUTABLE_STATUSES)[number];
@@ -6,12 +8,16 @@ export type ArchivedMenuTableListItem = {
   id: string;
   label: string;
   archivedAt: string;
+  kind?: OrderPointKind;
 };
 
 export type MenuTableListItem = {
   id: string;
   label: string;
   qrPath: string;
+  kind?: OrderPointKind;
+  policy?: OrderPointPolicy;
+  policyAvailable?: boolean;
   displayOrder: number;
   status: MenuTableMutableStatus;
   tokenRotatedAt: string;
@@ -64,6 +70,11 @@ export function toMenuTableListItem(row: {
   token_rotated_at: string;
   created_at: string;
   updated_at: string;
+  point_kind?: string;
+  terminal_order_enabled?: boolean;
+  terminal_call_enabled?: boolean;
+  customer_order_enabled?: boolean;
+  customer_call_enabled?: boolean;
 }): MenuTableListItem {
   const qrPublicId = normalizeMenuTableId(row.qr_public_id);
 
@@ -71,6 +82,9 @@ export function toMenuTableListItem(row: {
     id: normalizeMenuTableId(row.id),
     label: normalizeMenuTableLabel(row.label),
     qrPath: `/table/${qrPublicId}`,
+    kind: orderPointKind(row.point_kind),
+    policy: readOrderPointPolicy(row),
+    policyAvailable: typeof row.point_kind === "string",
     displayOrder: row.display_order,
     status: normalizeMenuTableStatus(row.status),
     tokenRotatedAt: row.token_rotated_at,

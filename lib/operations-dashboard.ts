@@ -84,7 +84,7 @@ export function getStoreOperationAccess({
     orders: smartCallTemplate && orderDashboardEnabled && hasOperationPermission(accessRole, permissions, "order.read"),
     calls: smartCallTemplate && callManagementEnabled && hasOperationPermission(accessRole, permissions, "call.manage"),
     tables: smartCallTemplate && tableManagementEnabled && hasOperationPermission(accessRole, permissions, "table.manage"),
-    sales: false,
+    sales: smartCallTemplate && orderDashboardEnabled && hasOperationPermission(accessRole, permissions, "sales.read"),
     pickup: pickupQueueTemplate && pickupQueueEnabled && hasOperationPermission(accessRole, permissions, "pickup.manage"),
   };
 }

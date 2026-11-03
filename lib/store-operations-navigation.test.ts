@@ -29,31 +29,30 @@ test("매장 운영은 로그인 헤더에서 제공하고 직원 관리는 마�
   assert.match(navbarSource, />\s*매장 운영\s*</);
 });
 
-test("매장 운영 내비게이션은 승인된 주문을 포함하고 매출은 숨긴다", () => {
+test("매장 운영 내비게이션은 주문과 권한에 따른 매출 관리를 제공한다", () => {
   const shellSource = readSource("components/mypage/StoreOperationsShell.tsx");
   const navigationBlock = shellSource.match(/const operationNavigation[\s\S]*?\n];/)?.[0];
 
   assert.ok(navigationBlock);
   assert.match(navigationBlock, /key: "orders", label: "주문 관리", permission: "order.read"/);
   assert.match(shellSource, /selectedSite\.operationAccess\[item.key\]/);
-  assert.doesNotMatch(navigationBlock, /key: "sales"/);
+  assert.match(navigationBlock, /key: "sales", label: "매출 관리", permission: "sales.read"/);
   assert.match(navigationBlock, /key: "calls"/);
   assert.match(navigationBlock, /key: "tables"/);
   assert.match(navigationBlock, /key: "pickup"/);
 });
 
-test("매장 운영 대시보드는 권한이 열린 주문 요약만 불러오고 매출은 숨긴다", () => {
+test("매장 운영 대시보드는 권한에 따라 주문·호출 최근 내역과 매출을 불러온다", () => {
   const dashboardSource = readSource("app/mypage/operations/page.tsx");
 
   assert.match(dashboardSource, /loadOptionalDashboard\(access.orders, "orders", \(\) => listOrderDashboard/);
   assert.match(dashboardSource, /label="진행 중 주문"/);
-  assert.doesNotMatch(dashboardSource, /getSalesSummaryDashboard/);
-  assert.doesNotMatch(dashboardSource, />오늘 결제 완료액</);
-  assert.doesNotMatch(dashboardSource, /title="최근 주문"/);
+  assert.match(dashboardSource, /loadOptionalDashboard\(access.sales, "sales", \(\) => getSalesSummaryDashboard/);
+  assert.match(dashboardSource, /title="최근 주문 내역"/);
   assert.match(dashboardSource, /label="대기 중 호출"/);
   assert.match(dashboardSource, /label="운영 테이블"/);
   assert.match(dashboardSource, /label="활성 대기번호"/);
-  assert.match(dashboardSource, /title="최근 호출"/);
+  assert.match(dashboardSource, /title="최근 호출 내역"/);
   assert.match(dashboardSource, /if \(!isStoreOperationsAvailable\(\)\) redirect\("\/mypage\?tab=menus"\)/);
 });
 

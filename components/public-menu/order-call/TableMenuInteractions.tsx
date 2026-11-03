@@ -1,4 +1,6 @@
 "use client";
+import { useTerminalConnection } from "./useTerminalConnection";
+import { useLiveOrderPointAccess } from "./useLiveOrderPointAccess";
 import { useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
 import { OnePageCallProvider } from "@/components/menu-templates/one-page/OnePageCallControls";
 import {
@@ -54,15 +56,17 @@ type Actions = {
   locales: SupportedLocale[];
   presentation: "cafe" | "aube";
   device: MenuPreviewDevice;
+  terminalConnected: boolean;
 };
 const Context = createContext<Actions | null>(null);
-export function TableMenuActionButtons({ appearance = "circle", headerOnly = false, hideCall = false }: { appearance?: "circle" | "inline"; headerOnly?: boolean; hideCall?: boolean }) {
+export function TableMenuActionButtons({ appearance = "circle", headerOnly = false, hideCall = false, showTableLabel = true }: { appearance?: "circle" | "inline"; headerOnly?: boolean; hideCall?: boolean; showTableLabel?: boolean }) {
   const t = useMenuText();
   const a = useContext(Context);
-  if (!a || ((!a.call || hideCall) && !a.order)) return null;
+  if (!a || ((!a.call || hideCall) && !a.order && !(showTableLabel && a.terminalConnected))) return null;
   const inline = appearance === "inline";
   return (
     <div className={styles.actions} data-table-menu-actions data-appearance={appearance}>
+      {showTableLabel && a.terminalConnected ? <span className={styles.table} data-terminal-table-label title={a.table}>{a.table}</span> : null}
       {a.call && !hideCall && (!headerOnly || !a.order) ? (
         <button
           type="button"
@@ -105,8 +109,8 @@ export function TableMenuHeader({ actions = true }: { actions?: boolean }) {
         triggerVariant={a.presentation}
         menuAlign="left"
       />
-      <span className={styles.table}>{a.table}</span>
-      {actions ? <TableMenuActionButtons headerOnly /> : <span />}
+      <span className={styles.table} data-terminal-table-label={a.terminalConnected ? "" : undefined} title={a.table}>{a.table}</span>
+      {actions ? <TableMenuActionButtons headerOnly showTableLabel={false} /> : <span />}
     </header>
   );
 }
@@ -116,8 +120,9 @@ export function DiningMenuToolbar({ children }: { children: ReactNode }) {
   const actions = useContext(Context);
   if (!actions || actions.device === "mobile") return <>{children}</>;
   return <div className={styles.diningToolbar} data-dining-menu-toolbar role="group" aria-label={t("메뉴판 도구")}>
+    {actions.terminalConnected ? <span className={styles.table} data-terminal-table-label title={actions.table}>{actions.table}</span> : null}
     <MenuLanguageSwitcher currentLocale={actions.locale} enabledLocales={actions.locales} compact triggerVariant="aube" menuAlign="right" />
-    <TableMenuActionButtons hideCall />
+    <TableMenuActionButtons hideCall showTableLabel={false} />
   </div>;
 }
 function TableMenuMobileDock() {
@@ -161,7 +166,10 @@ export default function TableMenuInteractions({
   const [selected, setSelected] = useState<string | null>(null);
   const [count, setCount] = useState(0);
   const [toast, setToast] = useState("");
-  const visibility = getOrderCallEntryVisibility(config);
+  const live = useLiveOrderPointAccess(config);
+  const visibility = getOrderCallEntryVisibility({ ...config, orderEnabled: config.orderEnabled && live.order, callEnabled: config.callEnabled && live.call, hasValidTableSession: config.hasValidTableSession && live.valid });
+  const terminalConnected = live.valid && config.mode === "active" && config.hasValidTableSession && config.channel === "terminal" && Boolean(config.tableLabel?.trim());
+  useTerminalConnection(config.menuSiteId ?? "", terminalConnected, Boolean(config.previewOnly));
   const order =
     visibility.showCart &&
     config.mode === "active" &&
@@ -189,12 +197,14 @@ export default function TableMenuInteractions({
     locales,
     presentation,
     device: devicePresentation,
+    terminalConnected,
   };
   return (
     <Context.Provider value={actions}>
       <OnePageCallProvider
         value={{
-          enabled: call || order,
+          enabled: call || order || terminalConnected,
+          terminalConnected,
           callEnabled: call,
           orderEnabled: order,
           cartCount: count,
@@ -251,6 +261,7 @@ export default function TableMenuInteractions({
                 cartScope={config.cartScope || "preview"}
                 catalog={config.orderCatalog ?? []}
                 previewOnly={config.previewOnly}
+                pointKind={config.pointKind}
                 channel={config.channel ?? (devicePresentation === "mobile" ? "customer" : "terminal")}
                 orderExpiresAt={config.orderExpiresAt}
                 customerPhone={config.customerPhone}

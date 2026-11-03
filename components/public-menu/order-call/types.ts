@@ -46,6 +46,7 @@ export type OrderCallEntryConfig = {
   checkoutModes?: OrderCheckoutMode[];
   previewOnly?: boolean;
   callItems?: StaffCallItem[];
+  pointKind?: "table" | "kiosk";
   channel?: "customer" | "terminal";
   orderExpiresAt?: string | null;
   customerPhone?: "required" | "optional" | "hidden";
@@ -146,7 +147,7 @@ export function buildPublicOrderCallEntryConfig({
   capabilityState: PublicOrderCallCapabilityState;
   menuSiteId: string;
   storeName: string;
-  tableSession: { id: string; tableLabel: string; channel?: "customer" | "terminal"; orderExpiresAt?: string | null } | null;
+  tableSession: { id: string; tableLabel: string; pointKind?: "table" | "kiosk"; orderAllowed?: boolean; callAllowed?: boolean; channel?: "customer" | "terminal"; orderExpiresAt?: string | null } | null;
   cartScope: string | undefined;
   orderCatalog: PostpayOrderCatalogItem[];
   callItems?: StaffCallItem[];
@@ -155,10 +156,10 @@ export function buildPublicOrderCallEntryConfig({
 
   return {
     mode: "active",
-    orderEnabled: capabilityState.orderEnabled,
-    callEnabled: capabilityState.callEnabled,
+    orderEnabled: capabilityState.orderEnabled && tableSession.orderAllowed !== false,
+    callEnabled: capabilityState.callEnabled && tableSession.callAllowed !== false,
     hasValidTableSession: true,
-    orderingOpen: capabilityState.orderEnabled,
+    orderingOpen: capabilityState.orderEnabled && tableSession.orderAllowed !== false,
     languageSlotEnabled: true,
     storeName,
     tableLabel: tableSession.tableLabel,
@@ -166,6 +167,7 @@ export function buildPublicOrderCallEntryConfig({
     cartScope,
     orderCatalog,
     callItems,
+    pointKind: tableSession.pointKind,
     channel: tableSession.channel ?? "customer",
     orderExpiresAt: tableSession.orderExpiresAt,
   };

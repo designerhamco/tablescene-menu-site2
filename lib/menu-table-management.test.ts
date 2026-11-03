@@ -33,14 +33,8 @@ test("table list DTO omits token hashes and archived rows cannot be mapped", () 
   });
 
   assert.deepEqual(Object.keys(item).sort(), [
-    "createdAt",
-    "displayOrder",
-    "id",
-    "label",
-    "qrPath",
-    "status",
-    "tokenRotatedAt",
-    "updatedAt",
+    "createdAt", "displayOrder", "id", "kind", "label", "policy", "policyAvailable",
+    "qrPath", "status", "tokenRotatedAt", "updatedAt",
   ]);
   assert.equal(item.qrPath, "/table/bdb5d7b6-5447-4bdd-8e37-0b57ff221727");
   assert.throws(() => toMenuTableListItem({ ...item, qr_public_id: "bdb5d7b6-5447-4bdd-8e37-0b57ff221727", display_order: 0, status: "archived", token_rotated_at: item.tokenRotatedAt, created_at: item.createdAt, updated_at: item.updatedAt }), /올바른 테이블 상태/);

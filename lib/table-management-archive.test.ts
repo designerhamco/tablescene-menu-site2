@@ -1,7 +1,9 @@
+import { parseOrderPointDeletionSummary } from "./order-point-deletion";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import ts from "typescript";
+import * as pointPolicy from "./order-point-policy";
 import * as validation from "./menu-table-validation";
 
 const siteId = "11111111-1111-4111-8111-111111111111";
@@ -30,7 +32,8 @@ function fixture({ error = null as null | { code: string; message?: string }, mi
     return query;
   } };
   const dependencies: Record<string, unknown> = {
-    "server-only": {},
+    "server-only": {}, "@/lib/order-point-deletion": { parseOrderPointDeletionSummary },
+    "@/lib/order-point-policy": pointPolicy,
     "@/lib/menu-table-management": { ...validation, createMenuTableTokenMaterial() { throw new Error("Tokens must not rotate on restore"); } },
     "@/lib/dining-product-tiers": { getDiningTemplateFeatures: () => ({ smartCall: true }) },
     "@/lib/table-management-runtime": { isTableManagementRuntimeEnabledForSite: () => true },
@@ -55,7 +58,7 @@ test("보관 테이블은 관리 화면에서만 명시적으로 조회하며 QR
   assert.deepEqual(current.archivedTables, []);
   const all = await f.service.listMenuTables(siteId, { includeArchived: true });
   assert.equal(all.tables.length, 1);
-  assert.deepEqual(all.archivedTables, [{ id: "44444444-4444-4444-8444-444444444444", label: "창가", archivedAt: "2026-11-02T00:00:00Z" }]);
+  assert.deepEqual(all.archivedTables, [{ id: "44444444-4444-4444-8444-444444444444", label: "창가", archivedAt: "2026-11-02T00:00:00Z", kind: "table" }]);
 });
 
 test("복원은 대상 매장·보관 상태로 제한하고 비활성으로 복원하며 QR과 종료된 방문 세션을 변경하지 않는다", async () => {
