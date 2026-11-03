@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 
 import { formatNotificationBadgeCount, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_INBOX_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
 import { createClient } from '@/lib/supabase/client';
-import { supportsGlassSiteHeader } from '@/lib/site-header-policy';
 import { isStoreOperationsAvailable } from '@/lib/product-focus-policy';
 import { NotificationPanel } from '@/app/components/ui/notification-panel';
 import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/popover';
@@ -48,7 +47,6 @@ type NotificationEvent = {
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isTabletOrDesktop, setIsTabletOrDesktop] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [notificationEvents, setNotificationEvents] = useState<NotificationEvent[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -76,7 +74,6 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleResize = () => {
-      setIsTabletOrDesktop(window.innerWidth >= 768);
       if (window.innerWidth >= 1280) {
         setIsOpen(false);
       }
@@ -219,7 +216,6 @@ const Navbar = () => {
     return () => { controller.abort(); window.clearTimeout(timer); };
   }, [isOpen, authState.userId]);
 
-  const isFloating = supportsGlassSiteHeader(pathname) && isTabletOrDesktop && isScrolled && !isOpen;
   const navTextClass = styles.navLink;
   const menuButtonClass = 'text-current hover:opacity-70';
   const accountCtaHref = authState.isAuthenticated ? '/mypage' : '/sign-in';
@@ -258,7 +254,7 @@ const Navbar = () => {
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
-      <nav aria-label="공식 사이트 메뉴" data-site-header data-floating={isFloating} className={styles.shell}>
+      <nav aria-label="공식 사이트 메뉴" data-site-header data-scrolled={isScrolled} className={styles.shell}>
         <div className={`site-container relative flex h-full items-center justify-between ${styles.panel}`}>
           <Link href="/" className={`group z-50 flex shrink-0 items-center ${styles.brand}`}>
             <span className={styles.wordmark}>ArtiMenu</span>
