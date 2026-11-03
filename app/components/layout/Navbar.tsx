@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { formatNotificationBadgeCount, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_INBOX_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
 import { createClient } from '@/lib/supabase/client';
 import { getSiteHeaderSurface } from '@/lib/site-header-policy';
+import { applyNotificationsReadAll, getNotificationsReadAll, NOTIFICATIONS_READ_ALL_EVENT, requestNotificationsReadAll } from '@/lib/notification-read-state';
 import { isStoreOperationsAvailable } from '@/lib/product-focus-policy';
 import { NotificationPanel } from '@/app/components/ui/notification-panel';
 import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/popover';
@@ -159,8 +160,10 @@ const Navbar = () => {
     const supabase = createClient();
     let isMounted = true;
 
-    async function loadNotifications() {
-      setNotificationsLoading(true);
+    let loadVersion = 0;
+    async function loadNotifications(showLoading = true) {
+      const version = ++loadVersion;
+      if (showLoading) setNotificationsLoading(true);
 
       const [eventsResult, countResult] = await Promise.all([
         supabase
@@ -180,7 +183,7 @@ const Navbar = () => {
           .is('read_at' as never, null),
       ]);
 
-      if (!isMounted) {
+      if (!isMounted || version !== loadVersion) {
         return;
       }
 
@@ -194,10 +197,18 @@ const Navbar = () => {
       setNotificationsLoading(false);
     }
 
-    loadNotifications();
-
+    const handleReadAll = (event: Event) => {
+      const result = getNotificationsReadAll(event);
+      if (!result || result.userId !== authState.userId) return;
+      setNotificationEvents(events => applyNotificationsReadAll(events, result.readAt));
+      setUnreadCount(0);
+      void loadNotifications(false);
+    };
+    void loadNotifications();
+    window.addEventListener(NOTIFICATIONS_READ_ALL_EVENT, handleReadAll);
     return () => {
       isMounted = false;
+      window.removeEventListener(NOTIFICATIONS_READ_ALL_EVENT, handleReadAll);
     };
   }, [authState.userId]);
 
@@ -339,7 +350,7 @@ const Navbar = () => {
 
                   </PopoverTrigger>
                   <PopoverContent align="end" sideOffset={12} collisionPadding={16} className="site-notification-popover" aria-label="알림" data-site-notification-popover>
-                    <NotificationPanel compact loading={notificationsLoading}
+                    <NotificationPanel compact loading={notificationsLoading} unreadCount={unreadCount} onReadAll={requestNotificationsReadAll}
                       items={notificationEvents.map(event=>({id:event.id,title:event.title ?? '알림',message:event.message ?? '알림 내용을 확인할 수 없습니다.',createdAt:event.created_at,unread:!event.read_at,href:getNotificationHref(event.metadata)}))}
                       onActivate={item=>{void markNotificationAsRead(item.id).finally(()=>{setIsNotificationOpen(false);window.location.assign(item.href);});}}
                       footer={<><p className="site-notification-limit">최근 알림을 최대 10개까지 표시합니다.</p><Link href={NOTIFICATION_FALLBACK_HREF} onClick={()=>setIsNotificationOpen(false)}>전체 알림 보기</Link></>} />
