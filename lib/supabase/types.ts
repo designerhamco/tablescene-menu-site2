@@ -2979,6 +2979,45 @@ export type Database = {
           },
         ]
       }
+      notification_delivery_keys: {
+        Row: {
+          channel: string
+          created_at: string
+          event_type: string
+          id: string
+          menu_site_id: string | null
+          period_key: string | null
+          sent_at: string | null
+          status: string
+          subscription_id: string | null
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          created_at: string
+          event_type: string
+          id: string
+          menu_site_id?: string | null
+          period_key?: string | null
+          sent_at?: string | null
+          status: string
+          subscription_id?: string | null
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          menu_site_id?: string | null
+          period_key?: string | null
+          sent_at?: string | null
+          status?: string
+          subscription_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_events: {
         Row: {
           channel: string
@@ -3520,6 +3559,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      prune_notification_content: {
+        Args: { p_batch_limit?: number; p_execute?: boolean }
+        Returns: Json
+      }
       accept_menu_site_invitation: {
         Args: { p_token_hash: string }
         Returns: {
