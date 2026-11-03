@@ -1,18 +1,8 @@
 import "server-only";
-import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Database, Json } from "@/lib/supabase/types";
 import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import { parsePaymentTerminalDraft, PaymentTerminalPreparationError, type PaymentTerminalPreparation } from "@/lib/payment-terminal-preparation";
 import { requireMenuSitePermission, requireMenuSiteWriteAccess } from "./menu-site-access-service";
-
-// Migration-owned RPC contract until the approved migration is applied and types regenerated.
-// No edits to generated Production database types, or casts to `any`.
-type PreparationDatabase = Database & { public: Database["public"] & { Functions: Database["public"]["Functions"] & {
-  list_payment_terminal_preparations: { Args: { p_menu_site_id: string; p_actor_user_id: string }; Returns: Json };
-  save_payment_terminal_preparation: { Args: { p_menu_site_id: string; p_actor_user_id: string; p_configuration: Json; p_expected_revision: number }; Returns: Json };
-} } };
-const storage = () => createAdminClient() as unknown as SupabaseClient<PreparationDatabase>;
 
 function preparation(value: unknown): PaymentTerminalPreparation {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new PaymentTerminalPreparationError("준비 정보를 읽지 못했습니다.");
@@ -30,7 +20,7 @@ async function owner(menuSiteId: string) {
 
 export async function loadPaymentTerminalPreparations(menuSiteId: string): Promise<{ available: boolean; preparations: PaymentTerminalPreparation[] }> {
   const context = await owner(menuSiteId);
-  const { data, error } = await storage().rpc("list_payment_terminal_preparations", { p_menu_site_id: menuSiteId, p_actor_user_id: context.actorUserId });
+  const { data, error } = await createAdminClient().rpc("list_payment_terminal_preparations", { p_menu_site_id: menuSiteId, p_actor_user_id: context.actorUserId });
   if (error?.code === "PGRST202" || error?.code === "42883") return { available: false, preparations: [] };
   if (error || !Array.isArray(data)) throw new PaymentTerminalPreparationError("결제 연결 준비 정보를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.");
   return { available: true, preparations: data.map(preparation) };
@@ -41,7 +31,7 @@ export async function savePaymentTerminalPreparation(menuSiteId: string, input: 
   await requireMenuSiteWriteAccess(menuSiteId, "menu.edit", "menu_order_settings");
   const draft = parsePaymentTerminalDraft(input);
   if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0) throw new PaymentTerminalPreparationError("저장 상태를 확인한 뒤 다시 시도해 주세요.");
-  const { data, error } = await storage().rpc("save_payment_terminal_preparation", {
+  const { data, error } = await createAdminClient().rpc("save_payment_terminal_preparation", {
     p_menu_site_id: menuSiteId, p_actor_user_id: context.actorUserId,
     p_configuration: draft, p_expected_revision: expectedRevision,
   });

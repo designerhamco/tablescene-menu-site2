@@ -2691,60 +2691,60 @@ export type Database = {
       }
       menu_tables: {
         Row: {
-          point_kind: string
-          terminal_order_enabled: boolean
-          terminal_call_enabled: boolean
-          customer_order_enabled: boolean
-          customer_call_enabled: boolean
           archived_at: string | null
           created_at: string
           created_by: string | null
+          customer_call_enabled: boolean
+          customer_order_enabled: boolean
           display_order: number
           id: string
           label: string
           menu_site_id: string
+          point_kind: string
           qr_public_id: string
           status: string
+          terminal_call_enabled: boolean
+          terminal_order_enabled: boolean
           token_hash: string
           token_rotated_at: string
           updated_at: string
           updated_by: string | null
         }
         Insert: {
-          point_kind?: string
-          terminal_order_enabled?: boolean
-          terminal_call_enabled?: boolean
-          customer_order_enabled?: boolean
-          customer_call_enabled?: boolean
           archived_at?: string | null
           created_at?: string
           created_by?: string | null
+          customer_call_enabled?: boolean
+          customer_order_enabled?: boolean
           display_order?: number
           id?: string
           label: string
           menu_site_id: string
+          point_kind?: string
           qr_public_id?: string
           status?: string
+          terminal_call_enabled?: boolean
+          terminal_order_enabled?: boolean
           token_hash: string
           token_rotated_at?: string
           updated_at?: string
           updated_by?: string | null
         }
         Update: {
-          point_kind?: string
-          terminal_order_enabled?: boolean
-          terminal_call_enabled?: boolean
-          customer_order_enabled?: boolean
-          customer_call_enabled?: boolean
           archived_at?: string | null
           created_at?: string
           created_by?: string | null
+          customer_call_enabled?: boolean
+          customer_order_enabled?: boolean
           display_order?: number
           id?: string
           label?: string
           menu_site_id?: string
+          point_kind?: string
           qr_public_id?: string
           status?: string
+          terminal_call_enabled?: boolean
+          terminal_order_enabled?: boolean
           token_hash?: string
           token_rotated_at?: string
           updated_at?: string
@@ -3577,18 +3577,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      preview_order_point_deletion: {
-        Args: { p_menu_site_id: string; p_table_id: string }
-        Returns: Json
-      }
-      delete_order_point: {
-        Args: { p_menu_site_id: string; p_table_id: string; p_actor_user_id: string; p_expected_fingerprint: string; p_confirmation_label: string; p_with_history: boolean }
-        Returns: Json
-      }
-      prune_notification_content: {
-        Args: { p_batch_limit?: number; p_execute?: boolean }
-        Returns: Json
-      }
       accept_menu_site_invitation: {
         Args: { p_token_hash: string }
         Returns: {
@@ -3687,6 +3675,17 @@ export type Database = {
           total_remaining_credits: number
           total_used_credits: number
         }[]
+      }
+      delete_order_point: {
+        Args: {
+          p_actor_user_id: string
+          p_confirmation_label: string
+          p_expected_fingerprint: string
+          p_menu_site_id: string
+          p_table_id: string
+          p_with_history: boolean
+        }
+        Returns: Json
       }
       disconnect_menu_site_content: {
         Args: { p_target_menu_site_id: string }
@@ -3805,8 +3804,20 @@ export type Database = {
           sort_order: number
         }[]
       }
+      list_payment_terminal_preparations: {
+        Args: { p_actor_user_id: string; p_menu_site_id: string }
+        Returns: Json
+      }
       list_visit_customer_orders: {
         Args: { p_menu_site_id: string; p_table_visit_session_id: string }
+        Returns: Json
+      }
+      preview_order_point_deletion: {
+        Args: { p_menu_site_id: string; p_table_id: string }
+        Returns: Json
+      }
+      prune_notification_content: {
+        Args: { p_batch_limit?: number; p_execute?: boolean }
         Returns: Json
       }
       register_table_terminal_visit: {
@@ -3900,6 +3911,15 @@ export type Database = {
           p_menu_page_id: string
           p_menu_site_id: string
           p_user_id: string
+        }
+        Returns: Json
+      }
+      save_payment_terminal_preparation: {
+        Args: {
+          p_actor_user_id: string
+          p_configuration: Json
+          p_expected_revision: number
+          p_menu_site_id: string
         }
         Returns: Json
       }
