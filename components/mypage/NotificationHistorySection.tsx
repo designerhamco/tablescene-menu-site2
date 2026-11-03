@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { applyNotificationsReadAll, getNotificationsReadAll, NOTIFICATIONS_READ_ALL_EVENT, requestNotificationsReadAll } from "@/lib/notification-read-state";
 import { useRouter } from "next/navigation";
 
-import { NOTIFICATION_FALLBACK_HREF } from "@/lib/notification-display-policy";
+import { NOTIFICATION_DISPLAY_NOTICE, NOTIFICATION_FALLBACK_HREF } from "@/lib/notification-display-policy";
 import type { Json } from "@/lib/supabase/types";
 
 export type MypageNotificationEvent = {
@@ -126,7 +126,7 @@ export default function NotificationHistorySection({ events, userId, unreadCount
         id:event.id ?? `${event.title}-${event.created_at}-${index}`, title:event.title ?? "알림",
         message:event.message ?? "알림 내용을 확인할 수 없습니다.",createdAt:event.created_at,unread:!event.read_at,
         href:getNotificationHref(event.metadata, fallbackHref),detail:getDeliveryLabel(event),
-      }))} unreadCount={remainingUnread} onReadAll={requestNotificationsReadAll} onActivate={item=>{
+      }))} footer={<p className="site-notification-limit">{NOTIFICATION_DISPLAY_NOTICE}</p>} unreadCount={remainingUnread} onReadAll={requestNotificationsReadAll} onActivate={item=>{
         const event=items.find((event,index)=>(event.id ?? `${event.title}-${event.created_at}-${index}`)===item.id);
         const navigate=()=>{if(item.href!==fallbackHref) window.location.assign(item.href);else router.refresh();};
         if(event?.id) void markAsRead(event.id).finally(navigate); else if(item.href!==fallbackHref) window.location.assign(item.href);

@@ -1,3 +1,5 @@
+import { getNotificationDisplaySince } from "./notification-display-policy";
+
 export const NOTIFICATIONS_READ_ALL_EVENT = "artimenu:notifications-read-all";
 export type NotificationsReadAll = { readAt: string; userId: string };
 
@@ -14,7 +16,8 @@ export function getNotificationsReadAll(event: Event) {
 
 export function applyNotificationsReadAll<T extends { read_at: string | null; created_at: string | null }>(items: T[], readAt: string): T[] {
   const cutoff = Date.parse(readAt);
-  return items.map(item => !item.read_at && item.created_at && Date.parse(item.created_at) <= cutoff
+  const since = Date.parse(getNotificationDisplaySince(readAt));
+  return items.map(item => !item.read_at && item.created_at && Date.parse(item.created_at) >= since && Date.parse(item.created_at) <= cutoff
     ? { ...item, read_at: readAt } : item);
 }
 
