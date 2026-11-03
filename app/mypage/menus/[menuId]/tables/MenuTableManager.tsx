@@ -47,7 +47,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
               </label>
               <button type="submit" disabled={createPending || (kiosk && !pointSettingsAvailable)} className="site-button site-button-primary">{createPending ? "생성 중" : `${noun} 만들기`}</button>
             </form>
-            {createPending ? <LoadingState inline label={`${noun}를 만들고 있습니다. 잠시만 기다려 주세요.`} /> : null}
+            {createPending ? <LoadingState inline label={`${noun}${kiosk ? "를" : "을"} 만들고 있습니다. 잠시만 기다려 주세요.`} /> : null}
             {kiosk && !pointSettingsAvailable ? <p className="type-body-sm site-copy-muted">키오스크 설정 업데이트를 준비 중입니다. 기존 테이블은 계속 사용할 수 있습니다.</p> : null}
           </ContentPanel>
           <section className="site-stack-group" aria-labelledby={`${usageId}-${view}-title`}>
@@ -55,7 +55,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
               <h2 className="type-subsection-title" id={`${usageId}-${view}-title`}>운영 {noun} · {points.length.toLocaleString("ko-KR")}개</h2>
               <p className="type-body-sm site-copy-muted">{noun}의 이름·상태를 수정하거나 보관할 수 있습니다. 주문·호출 설정과 기기 연결은 각 관리 메뉴에서, 메뉴판 주소·QR은 QR 관리에서 변경해 주세요.</p>
             </div>
-            {!points.length ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title={`아직 등록된 ${noun}가 없습니다.`} description={`${noun}를 추가하면 이곳에서 관리할 수 있습니다.`} /> : points.map(point => <ContentPanel as="article" key={point.id} aria-label={point.label}>
+            {!points.length ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title={`아직 등록된 ${noun}${kiosk ? "가" : "이"} 없습니다.`} description={`${noun}${kiosk ? "를" : "을"} 추가하면 이곳에서 관리할 수 있습니다.`} /> : points.map(point => <ContentPanel as="article" key={point.id} aria-label={point.label}>
               <div className="site-content-heading-row"><h3 className="type-content-title break-words">{point.label}</h3><Badge tone={point.status === "active" ? "active" : "neutral"}>{point.status === "active" ? "사용 중" : "비활성"}</Badge></div>
               <form action={mutationAction} className="site-form-row site-content-divider">
                 <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={point.id} />
@@ -74,8 +74,8 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
             {mutationPending ? <LoadingState inline label={`${noun} 작업을 처리하고 있습니다.`} /> : null}
           </section>
           <section className="site-stack-block" aria-label={`보관된 ${noun}`}>
-            <div className="site-stack-title"><h2 className="type-subsection-title">보관된 {noun} · {archived.length.toLocaleString("ko-KR")}개</h2><p className="type-body-sm site-copy-muted">더 이상 쓰지 않는 {noun}를 보관해 두세요. 잠깐 사용을 쉬는 경우에는 비활성으로 두면 됩니다. 복원 후 사용 중으로 바꾸면 다시 사용할 수 있습니다.</p></div>
-            {!archived.length ? <p className="type-body-sm site-copy-muted">보관된 {noun}가 없습니다.</p> : archived.map(point => <ContentPanel as="article" key={point.id}>
+            <div className="site-stack-title"><h2 className="type-subsection-title">보관된 {noun} · {archived.length.toLocaleString("ko-KR")}개</h2><p className="type-body-sm site-copy-muted">더 이상 쓰지 않는 {noun}{kiosk ? "를" : "을"} 보관해 두세요. 잠깐 사용을 쉬는 경우에는 비활성으로 두면 됩니다. 복원 후 사용 중으로 바꾸면 다시 사용할 수 있습니다.</p></div>
+            {!archived.length ? <p className="type-body-sm site-copy-muted">보관된 {noun}{kiosk ? "가" : "이"} 없습니다.</p> : archived.map(point => <ContentPanel as="article" key={point.id}>
               <div className="site-content-heading-row"><div className="site-stack-copy min-w-0"><h3 className="type-content-title break-words">{point.label}</h3><p className="type-caption site-copy-subtle">보관일 {formatKoreanDateTime(point.archivedAt)}</p></div><Badge>보관됨</Badge></div>
               <form action={mutationAction} className="site-form-row" aria-busy={mutationPending}><input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={point.id} /><label className="type-label site-field-stack">복원할 이름<input name="label" required maxLength={80} defaultValue={point.label} className="site-field w-full" /></label><button name="intent" value="restore" disabled={mutationPending} className="site-button site-button-outline">{noun} 복원</button></form>
               <div className="site-action-row">{canDelete ? <><DeleteOrderPoint menuSiteId={menuSiteId} point={point} disabled={mutationPending} /><DeleteOrderPoint menuSiteId={menuSiteId} point={point} withHistory disabled={mutationPending} /></> : null}</div>
