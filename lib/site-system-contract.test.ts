@@ -48,6 +48,23 @@ test("CSS checks target the control itself and do not treat an ancestor's body c
   assert.deepEqual(result, []);
 });
 
+test("content panels and semantic composition reject private spacing and unregistered type roles", () => {
+  const view = (content: string) => `import {ContentPanel as Panel} from '@/app/components/ui/content-panel'; export default function View(){return <Panel>${content}</Panel>}`;
+  assert.deepEqual(audit([["components/NewView.tsx", view('<div className="site-stack-title"><h2 className="type-content-title">제목</h2><p className="type-body-sm">설명</p></div>')]]), []);
+  for (const content of ['<p className="mt-3 type-body-sm">설명</p>', '<div className="md:gap-5"/>', '<div style={{padding:20}}/>', '<p className="font-medium leading-relaxed">본문</p>']) {
+    assert.ok(audit([["components/NewView.tsx", view(content)]]).some(item => item.rule === "content-composition"), content);
+  }
+  assert.ok(audit([["components/NewView.tsx", '<div className="site-field-stack gap-3"/>']]).some(item => item.rule === "content-composition"));
+  assert.ok(audit([["components/NewView.tsx", '<p className="type-meta">날짜</p>']]).some(item => item.rule === "type-role"));
+  for (const css of ['.page .site-content-panel {padding:20px}', '.page {--site-panel-inset:20px}', '.page .site-indicator-icon {width:40px}']) {
+    assert.ok(audit([["components/view.css", css]]).length > 0, css);
+  }
+  assert.ok(audit([
+    ["components/NewView.tsx", `import {ContentPanel as Panel} from '@/app/components/ui/content-panel'; import css from './view.module.css'; export default function View(){return <Panel><div className={css.inner}/></Panel>}`],
+    ["components/view.module.css", '.inner { gap: 20px; }'],
+  ]).some(item => item.rule === "content-composition-css"));
+});
+
 test("legacy inventory cannot excuse a copied violation in a new file or additional occurrences", () => {
   const old = audit([["components/OldView.tsx", '<h1 className="type-page-title">기존</h1>']]);
   const baseline: SiteSystemBaseline = { "components/OldView.tsx": { "shared-heading": [old[0].fingerprint] } };

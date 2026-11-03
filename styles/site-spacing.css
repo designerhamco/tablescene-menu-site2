@@ -8,21 +8,66 @@
   --site-space-card: 3rem;
   --site-space-section: 4rem;
   --site-surface-inset: 1.25rem;
+  --site-panel-inset: var(--site-surface-inset);
+  --site-panel-inset-wide: var(--site-space-group);
+  --site-panel-inset-compact: var(--site-space-block);
 }
 
 .site-support-actions { margin-top: 1.25rem; }
 
 /* Opt-in body composition. SitePage owns the title and first-content boundary. */
-.site-stack-copy, .site-stack-block, .site-stack-group, .site-stack-content, .site-stack-section {
+.site-stack-copy, .site-stack-title, .site-stack-block, .site-stack-group, .site-stack-content, .site-stack-section {
   display: grid;
   min-width: 0;
 }
 .site-stack-copy { gap: var(--site-space-copy); }
+.site-stack-title { gap: var(--site-space-title-copy); }
 .site-stack-block { gap: var(--site-space-block); }
 .site-stack-group { gap: var(--site-space-group); }
 .site-stack-content { gap: var(--site-space-content); }
 .site-stack-section { gap: var(--site-section-space); }
 .site-stack-copy > *, .site-stack-block > *, .site-stack-group > *, .site-stack-content > *, .site-stack-section > * { margin-block: 0; }
+.site-stack-title > * { margin-block: 0; }
+
+/* Shared content composition, on every device. Keep control geometry separate. */
+.site-content-panel {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: var(--site-space-group);
+  padding: var(--site-panel-inset);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-surface);
+  background: var(--ui-surface);
+  color: var(--ui-text);
+  box-shadow: none;
+}
+.site-content-panel > * { min-width: 0; margin-block: 0; }
+.site-content-panel[data-surface="muted"] { border: 0; background: var(--ui-surface-muted); }
+.site-content-panel[data-surface="notice"] { border: 0; border-radius: .375rem; background: var(--ui-notice-surface); }
+.site-content-panel[data-density="compact"] { padding: var(--site-panel-inset-compact); gap: var(--site-space-block); }
+.site-field-stack { display: grid; min-width: 0; align-content: start; gap: var(--site-space-copy); }
+.site-field-stack > * { min-width: 0; margin-block: 0; }
+.site-form-row { display: flex; min-width: 0; flex-direction: column; align-items: stretch; gap: var(--site-space-block); }
+.site-form-row > .site-field-stack { flex: 1; }
+.site-action-row { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: var(--site-space-copy); }
+.site-action-row > * { min-width: 0; margin-block: 0; }
+.site-content-divider { border-top: 1px solid var(--ui-border); padding-top: var(--site-space-block); }
+.site-content-heading-row { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: var(--site-space-title-copy); }
+.site-notice-layout { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: var(--site-space-title-copy); }
+.site-copy-muted { color: var(--ui-text-muted); }
+.site-copy-subtle { color: var(--ui-text-subtle); }
+.site-copy-list { margin: 0; padding-inline-start: var(--site-surface-inset); }
+.site-copy-list > li { padding-inline-start: 0; }
+
+@media (min-width: 640px) {
+  .site-form-row { flex-direction: row; align-items: flex-end; }
+  .site-form-row > [data-field-width="short"] { flex: 0 1 10rem; }
+  .site-content-heading-row { flex-direction: row; align-items: flex-start; }
+}
+@media (min-width: 768px) {
+  .site-content-panel { padding: var(--site-panel-inset-wide); }
+}
 
 @media (max-width: 767px) {
   .site-support-actions { margin-top: var(--site-space-block); }

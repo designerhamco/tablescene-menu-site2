@@ -592,7 +592,7 @@
 
 /* Indicator icons follow the immediate surface, not the page canvas.
  * White surfaces keep their role-specific fills above. Colored surfaces keep
- * the same slot, glyph and ink, without stacking another decorative tile. */
+ * only the glyph's own dimensions and ink, with no invisible tile slot. */
 .site-indicator-icon[data-icon-surface="colored"],
 .site-notification-item:hover .site-indicator-icon {
   background: transparent;
@@ -600,6 +600,20 @@
   border-radius: 0;
   box-shadow: none;
 }
+.site-indicator-icon[data-icon-surface="colored"] {
+  display: inline-flex;
+  width: max-content;
+  height: max-content;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.site-indicator-icon[data-icon-surface="colored"] > svg { display: block; }
 .site-notification-copy { display: grid; min-width: 0; flex: 1; gap: .375rem; }
 .site-notification-title { font-size: var(--type-body-size); font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
 .site-notification-message { white-space: pre-wrap; color: var(--ui-text-muted); font-size: var(--type-body-size); line-height: 1.6; overflow-wrap: anywhere; }

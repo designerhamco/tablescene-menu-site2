@@ -21,6 +21,7 @@ function loadPage(section: "tables" | "qr", context: () => Promise<unknown>) {
     },
     "next/link": {},
     "@/components/mypage/StoreOperationsShell": {},
+    "@/app/components/ui/content-panel": {},
     "@/components/mypage/RepresentativeQrCard": {},
     "@/lib/menu-site-permissions": { MenuSiteAccessError },
     "@/lib/product-focus-policy": { isStoreOperationsAvailable: () => true },

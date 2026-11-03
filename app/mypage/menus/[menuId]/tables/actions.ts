@@ -13,6 +13,7 @@ import {
   createMenuTable,
   MenuTableManagementError,
   rotateMenuTableToken,
+  restoreMenuTable,
   updateMenuTable,
 } from "@/lib/server/menu-table-management-service";
 import { initialMenuTableActionState, type MenuTableActionState } from "./action-state";
@@ -53,7 +54,7 @@ export async function createMenuTableAction(
     revalidateTableOperations(menuSiteId);
     return {
       status: "success",
-      message: `${result.table.label} 테이블을 만들었습니다. QR 관리에서 테이블별 QR을 다운로드할 수 있습니다.`,
+      message: `${result.table.label} 테이블을 만들었습니다.`,
       tableId: result.table.id,
       qrPath: result.qrPath,
     };
@@ -93,6 +94,11 @@ export async function mutateMenuTableAction(
   }
 
   try {
+    if (intent === "restore") {
+      const table = await restoreMenuTable({ menuSiteId, tableId, label: getFormString(formData, "label") });
+      revalidateTableOperations(menuSiteId);
+      return { ...initialMenuTableActionState, status: "success", message: `${table.label} 테이블을 비활성 상태로 복원했습니다. 사용할 때 상태를 사용 중으로 바꿔 주세요.`, tableId: table.id };
+    }
     if (intent === "rotate-token") {
       const result = await rotateMenuTableToken({ menuSiteId, tableId });
       revalidateTableOperations(menuSiteId);

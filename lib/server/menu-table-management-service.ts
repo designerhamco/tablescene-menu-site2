@@ -4,6 +4,7 @@ import {
   createMenuTableTokenMaterial,
   MenuTableInputError,
   type MenuTableListItem,
+  type ArchivedMenuTableListItem,
   type MenuTableMutableStatus,
   normalizeMenuTableId,
   normalizeMenuTableLabel,
@@ -37,6 +38,7 @@ export type MenuTableManagementPageData = {
     status: string;
   };
   tables: MenuTableListItem[];
+  archivedTables: ArchivedMenuTableListItem[];
 };
 
 export type MenuTableTokenDelivery = {
@@ -117,7 +119,7 @@ async function requireMenuTableWriteAccess(menuSiteId: string) {
   return requireMenuSiteWriteAccess(menuSiteId, "table.manage", "menu_table_management");
 }
 
-export async function listMenuTables(menuSiteId: string): Promise<MenuTableManagementPageData> {
+export async function listMenuTables(menuSiteId: string, { includeArchived = false }: { includeArchived?: boolean } = {}): Promise<MenuTableManagementPageData> {
   const normalizedMenuSiteId = (() => {
     try {
       return normalizeMenuTableId(menuSiteId);
@@ -128,9 +130,9 @@ export async function listMenuTables(menuSiteId: string): Promise<MenuTableManag
   const { supabase, menuSite } = await requireMenuTableReadAccess(normalizedMenuSiteId);
   const tablesResult = await supabase
       .from("menu_tables")
-      .select(MENU_TABLE_SELECT)
+      .select(`${MENU_TABLE_SELECT}, archived_at`)
       .eq("menu_site_id", normalizedMenuSiteId)
-      .in("status", ["active", "disabled"])
+      .in("status", includeArchived ? ["active", "disabled", "archived"] : ["active", "disabled"])
       .order("display_order", { ascending: true })
       .order("created_at", { ascending: true });
 
@@ -145,8 +147,33 @@ export async function listMenuTables(menuSiteId: string): Promise<MenuTableManag
       slug: menuSite.slug,
       status: menuSite.status,
     },
-    tables: (tablesResult.data ?? []).map(toMenuTableListItem),
+    tables: (tablesResult.data ?? []).filter(row => row.status !== "archived").map(toMenuTableListItem),
+    archivedTables: (tablesResult.data ?? []).filter(row => row.status === "archived").map(row => ({
+      id: normalizeMenuTableId(row.id), label: normalizeMenuTableLabel(row.label), archivedAt: row.archived_at!,
+    })),
   };
+}
+
+export async function restoreMenuTable({ menuSiteId, tableId, label }: { menuSiteId: string; tableId: string; label: string }) {
+  let normalizedMenuSiteId: string;
+  let normalizedTableId: string;
+  let normalizedLabel: string;
+  try {
+    normalizedMenuSiteId = normalizeMenuTableId(menuSiteId);
+    normalizedTableId = normalizeMenuTableId(tableId);
+    normalizedLabel = normalizeMenuTableLabel(label);
+  } catch (error) {
+    return inputError(error);
+  }
+  const { context, supabase } = await requireMenuTableWriteAccess(normalizedMenuSiteId);
+  // Restore as disabled so old QR codes cannot immediately accept new visits.
+  const { data, error } = await supabase.from("menu_tables")
+    .update({ label: normalizedLabel, status: "disabled", archived_at: null, updated_by: context.actorUserId })
+    .eq("menu_site_id", normalizedMenuSiteId).eq("id", normalizedTableId).eq("status", "archived")
+    .select(MENU_TABLE_SELECT).maybeSingle();
+  if (error) mapDatabaseError(error, "TABLE_UPDATE_FAILED");
+  if (!data) throw new MenuTableManagementError("TABLE_NOT_FOUND", "보관된 테이블을 찾을 수 없습니다. 목록을 새로고침해 주세요.", 404);
+  return toMenuTableListItem(data);
 }
 
 export async function createMenuTable({

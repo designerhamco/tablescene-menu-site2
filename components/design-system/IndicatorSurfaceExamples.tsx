@@ -7,7 +7,7 @@ export default function IndicatorSurfaceExamples() {
   return <section className={styles.section} aria-labelledby="indicator-surface-title">
     <div className={styles.heading}>
       <h2 id="indicator-surface-title" className="type-section-title">표시 아이콘과 주변 배경</h2>
-      <p className="type-body text-zinc-600">아이콘 바로 뒤 영역을 기준으로 판단합니다. 흰색에서는 구분을 위한 옅은 바탕을 사용할 수 있고, 회색·유색에서는 별도 바탕 없이 아이콘만 표시합니다.</p>
+      <p className="type-body text-zinc-600">아이콘 바로 뒤 영역을 기준으로 판단합니다. 흰색에서는 구분을 위한 옅은 바탕을 사용할 수 있고, 회색·유색에서는 바탕 박스의 크기·안쪽 여백까지 없애 아이콘 자체만 표시합니다.</p>
     </div>
     <div className={styles.indicatorGrid}>
       {([
