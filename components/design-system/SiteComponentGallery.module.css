@@ -54,3 +54,12 @@
 .shapedIcon { display: grid; width: 2.75rem; height: 2.75rem; flex: none; place-items: center; border-radius: 50%; background: var(--ui-surface); }
 
 .swatch[data-white] { border: 1px solid var(--ui-border); }
+
+.switchGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--site-space-group); }
+.switchSurface { display: grid; min-width: 0; align-content: start; gap: var(--site-space-copy); padding: var(--site-surface-inset); border-radius: var(--ui-radius-panel); background: var(--ui-surface); color: var(--ui-text); }
+.switchSurface[data-switch-example="white"] { border: 1px solid var(--ui-border); }
+.switchSurface[data-switch-example="muted"] { background: var(--ui-surface-muted); }
+.switchSurface[data-switch-example="dark"] { background: var(--ui-text); color: var(--ui-surface); }
+.switchRow { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: var(--site-space-copy); }
+.switchValue { display: inline-flex; flex: none; align-items: center; gap: var(--site-space-copy); }
+@media (max-width: 1023px) { .switchGrid { grid-template-columns: minmax(0, 1fr); } }

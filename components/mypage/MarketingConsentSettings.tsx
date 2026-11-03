@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
+import { Switch } from "@/app/components/ui/switch";
 
 type MarketingConsentSettingsProps = {
   initialAccepted: boolean;
@@ -36,6 +37,7 @@ export default function MarketingConsentSettings({
   withdrawnAt,
 }: MarketingConsentSettingsProps) {
   const router = useRouter();
+  const switchId = useId();
   const [accepted, setAccepted] = useState(initialAccepted);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -92,23 +94,16 @@ export default function MarketingConsentSettings({
           {message ? <p className="mt-3 text-support font-medium text-emerald-700">{message}</p> : null}
           {error ? <p className="mt-3 text-support font-medium text-red-700">{error}</p> : null}
         </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={accepted}
-          disabled={isSaving}
-          onClick={() => void updateConsent(!accepted)}
-          className="flex w-full items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-4 text-left transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto md:min-w-52"
+        <label
+          htmlFor={switchId}
+          className={`flex w-full items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-4 text-left transition-colors md:w-auto md:min-w-52 ${isSaving ? "cursor-not-allowed" : "cursor-pointer hover:bg-zinc-50"}`}
         >
           <span className="min-w-0">
             <span className="block text-copy font-medium text-zinc-900">{accepted ? "수신 동의 중" : "수신 동의 안 함"}</span>
-            <span className="mt-1 block text-support font-medium text-zinc-600">{isSaving ? "저장 중..." : "클릭해서 변경"}</span>
+            <span id={`${switchId}-description`} className="mt-1 block text-support font-medium text-zinc-600">{isSaving ? "저장 중..." : "클릭해서 변경"}</span>
           </span>
-          <span className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors ${accepted ? "bg-zinc-950" : "bg-zinc-200"}`}>
-            <span className={`absolute left-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform ${accepted ? "translate-x-5" : ""}`} />
-          </span>
-          <span className="sr-only">광고성 정보 수신 동의 변경</span>
-        </button>
+          <Switch id={switchId} surface="light" checked={accepted} disabled={isSaving} aria-label="광고성 정보 수신 동의" aria-describedby={`${switchId}-description`} aria-busy={isSaving} onCheckedChange={nextAccepted => void updateConsent(nextAccepted)} />
+        </label>
       </div>
     </section>
   );

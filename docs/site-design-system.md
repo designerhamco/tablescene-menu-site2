@@ -4,6 +4,25 @@
 
 # ArtiMenu 공식 사이트 디자인 시스템
 
+## ON/OFF 스위치 (2026-11-03)
+
+운영 대시보드·편집기 `SwitchField`·계정 수신 설정은 `app/components/ui/switch.tsx`의 같은 `Switch`를 사용한다. 색상·치수·상태는 `styles/ui-system.css`의 `--ui-switch-*` 토큰이 소유한다. 미정의 Tailwind 색상 이름이나 호출부의 배경·투명도로 상태를 구현하지 않는다. 실제 공통 컴포넌트의 배경별 ON/OFF·비활성 예시는 `/design-system#switch-contract-title`에 둔다.
+
+| 배경 | 공통 API | OFF / ON | 비활성 |
+| --- | --- | --- | --- |
+| 흰색·밝은 회색 (`--ui-surface`, muted, soft) | 기본 또는 `surface="light"` | 중간 회색 / 차콜 경로 + 흰 손잡이 | 불투명한 옅은 회색 경로 + 회색 윤곽·손잡이 |
+| 어두운 배경 (`--ui-text` 등) | `surface="dark"` 또는 `.dark` 문맥 상속 | 중간 밝기 회색 / 흰 경로 + 차콜 손잡이 | 불투명한 어두운 회색 경로 + 밝은 윤곽·손잡이 |
+
+- 밝은 배경 세 종류는 검증된 한 팔레트를 공유한다. 어두운 배경은 명시적으로 반전 팔레트를 고른다. 배경색 자동 추정이나 화면 크기로 모드를 고르지 않는다. 중첩된 흰 영역에서는 `surface="light"`로 재설정할 수 있다. 임의의 유색 표면은 실제 인접 색과 대비를 다시 확인한다.
+- 경로 48×28px, 손잡이 20px, 실제 조작 영역 48×44px. 카드 안 위치·진입점은 유지한다. 상태는 손잡이 위치와 인접 상태 문구로 구분한다. 색에만 의존하지 않는다.
+- 식별에 필요한 경로/윤곽 대 바깥 배경, 손잡이 대 경로, 포커스 대 바깥 배경은 3:1 이상을 검증한다. 글자 대비는 기존 공통 타이포 기준을 따른다. 기능적 스위치 윤곽은 회색 카드에 장식 테두리를 추가하지 않는 원칙과 구분한다.
+- disabled는 별도 불투명 색상을 쓰며 부모·컴포넌트 전체에 opacity를 적용하지 않는다. OFF와 비활성은 다른 상태다. 비활성에서도 현재 ON/OFF 위치를 보존하고 변경 불가 이유를 인접 문구로 안내한다. hover는 disabled에 적용하지 않는다.
+- WCAG 1.4.11은 비활성 컨트롤을 대비 의무에서 제외한다. 아티메뉴는 상태를 읽을 수 있도록 비활성에도 식별 대비 3:1 이상을 자체 기준으로 적용한다.
+- `role="switch"`, `aria-checked`, native disabled와 고정된 접근성 이름을 유지한다. ON/OFF 상태 문구를 접근성 이름에 섞지 않는다. Tab 포커스, Space/Enter 전환, 동작 감소·강제 색상 환경을 지원한다. 실제 업무 설정은 기존 저장·권한·가드 로직을 유지한다.
+- 편집기 폼의 name/form/체크값 제출과 켜기 제한을 보존한다. 체크되지 않은 값과 비활성 값은 기존 체크박스처럼 제출되지 않는다.
+
+근거: [KRDS 토글 스위치](https://www.krds.go.kr/html/site/component/component_06_07.html)의 인접 대비·일관된 레이블, [KRDS 색상](https://www.krds.go.kr/html/site/style/style_02.html)의 불투명 비활성 색상, [W3C Switch Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/switch/), [WCAG 비텍스트 대비](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html). 배경별 팔레트와 비활성 대비 수치는 이 근거를 적용한 아티메뉴의 제품 규칙이다.
+
 탭과 선택은 [최종 역할 계약](tab-hierarchy-contract.md)을 따른다. 주요 화면(page), 독립 콘텐츠(section), 목록 주제(category), 작은 필터, 상태·보기 값(state)을 구분한다. 고정 단계와 URL 유무로 모양을 정하지 않는다. 전체 사용처는 [점검표](tab-role-audit.md)를 따른다.
 
 2026-10-18 사용자 제공 컴포넌트 참고 문서를 기존 사이트 시스템에 재매핑했다. 원문/CSS 복사나 별도 Mobbin 스타일시트 없이 `--ui-*`와 기존 의미 클래스를 수정한다.
