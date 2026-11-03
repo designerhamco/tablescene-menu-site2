@@ -11,7 +11,7 @@ export default function SiteSystemRules() {
       <tr><td>버튼과 입력</td><td>Button · Input · Select의 variant와 size</td><td>개별 외형 재정의와 폐기된 크기·모양</td></tr>
       <tr><td>고객지원 액션 행</td><td>site-support-actions · 내용 너비 · 가운데 정렬 · 좁으면 줄바꿈</td><td>버튼 묶음을 카드용 균등 분할 그리드로 확장</td></tr>
       <tr><td>새 창 링크</td><td>NewWindowIndicator · 대각선 화살표 · 새 창 안내</td><td>같은 창 링크에 새 창 표시를 붙이거나 새 창 안내를 생략</td></tr>
-      <tr><td>글자·색상·표면</td><td>의미 기반 type-*와 공통 토큰</td><td>임의 글자 크기와 지역별 공통 토큰 재정의</td></tr>
+      <tr><td>글자·색상·표면</td><td>의미 기반 type-* · 공통 굵기·행간·자간 토큰</td><td>임의 글자 크기와 지역별 공통 토큰 재정의</td></tr>
     </tbody></table></div>
     <p className="type-body-sm text-zinc-600">검사는 새 경로·컴포넌트·CSS를 자동으로 찾고 모든 Production 빌드 전에 실행합니다. 기존 특수 화면의 고정 기록은 새 페이지나 추가 예외에 재사용할 수 없습니다. 고객 메뉴판은 별도 시스템을 유지합니다.</p>
   </section></>;

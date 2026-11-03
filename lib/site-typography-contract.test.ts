@@ -364,6 +364,50 @@ test("all semantic roles resolve to the reference steps at each breakpoint", () 
   assert.equal(siteTypeSizeCss(15.2), "var(--site-type-15)");
 });
 
+test("공통 역할의 굵기·행간·자간은 라이브러리 표와 실제 CSS가 일치한다", () => {
+  const roots = new Map<string, string>();
+  const declarations = new Map<string, Map<string, string>>();
+  const controls = readFileSync(join(projectRoot, "styles/ui-system.css"), "utf8");
+  for (const source of [typographySource, controls]) postcss.parse(source).walkRules(rule => {
+    if (rule.selector === ":root") rule.walkDecls(decl => { roots.set(decl.prop, decl.value); });
+    for (const selector of rule.selectors ?? []) {
+      const values = declarations.get(selector) ?? new Map<string, string>();
+      for (const node of rule.nodes ?? []) if (node.type === "decl") values.set(node.prop, node.value);
+      declarations.set(selector, values);
+    }
+  });
+  const resolved = (value: string | undefined): string | undefined => {
+    const token = value?.match(/^var\((--[\w-]+)\)$/)?.[1];
+    return token ? resolved(roots.get(token)) : value;
+  };
+  for (const role of SITE_TYPE_ROLES) {
+    const values = declarations.get(`.${role.className}`);
+    assert.equal(Number(resolved(values?.get("font-weight"))), role.weight, `${role.key} weight`);
+    assert.equal(Number(resolved(values?.get("line-height"))), role.lineHeight, `${role.key} leading`);
+    const tracking = resolved(values?.get("letter-spacing"));
+    assert.ok(tracking?.endsWith("em"), `${role.key} tracking is font-relative`);
+    assert.equal(parseFloat(tracking), parseFloat(role.letterSpacing), `${role.key} tracking`);
+  }
+  assert.equal(SITE_TYPE_ROLES.find(role => role.key === "price")?.weight, 700);
+});
+
+test("사이트 행간·자간은 명시적인 사이트 역할에만 적용하고 메뉴판 기초와 body를 바꾸지 않는다", () => {
+  postcss.parse(typographySource).walkRules(rule => {
+    if (rule.selector === ":root") return;
+    if (!rule.nodes.some(node => node.type === "decl" && ["font-weight", "line-height", "letter-spacing"].includes(node.prop))) return;
+    for (const selector of rule.selectors ?? []) assert.match(selector, /^\.(?:type-|site-|text-)/);
+  });
+  assert.doesNotMatch(typographySource, /--menu-|\.(?:menu-typography|aube-table-root|cafe-a-)/);
+  const menuDirs = [join(componentsRoot, "menu-templates"), join(componentsRoot, "public-menu")];
+  for (const dir of menuDirs) for (const file of collectTsxFiles(dir)) {
+    const source = readFileSync(file, "utf8");
+    const attributes = source.match(/className=(?:"[^"]*"|'[^']*'|\{`[^`]*`\})/g) ?? [];
+    for (const attribute of attributes) for (const role of SITE_TYPE_ROLES) {
+      assert.doesNotMatch(attribute, new RegExp(`\\b${role.className}\\b`), `${relative(projectRoot, file)} uses site role ${role.className}`);
+    }
+  }
+});
+
 test("global wide tokens match the policy displayed in both library views", () => {
   const layout = readFileSync(join(projectRoot,"app/layout.tsx"),"utf8");
   const globals = readFileSync(join(projectRoot,"app/globals.css"),"utf8");

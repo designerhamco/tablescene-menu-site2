@@ -243,8 +243,8 @@
   padding: .5rem var(--ui-control-padding-inline);
   font-size: var(--site-type-15);
   font-weight: var(--ui-button-font-weight);
-  line-height: 1.375;
-  letter-spacing: -0.01em;
+  line-height: var(--site-leading-control);
+  letter-spacing: var(--site-tracking-copy);
   text-align: center;
   cursor: pointer;
   box-shadow: none;
@@ -687,15 +687,16 @@ textarea.site-field,
 .site-dialog-title {
   font-size: var(--type-dialog-title-size);
   font-weight: var(--font-weight-strong);
-  line-height: 1.3;
-  letter-spacing: -0.025em;
+  line-height: 1.4;
+  letter-spacing: -0.03em;
 }
 
 .site-dialog-description {
   color: var(--ui-text-muted);
   font-size: var(--type-dialog-body-size);
   font-weight: var(--font-weight-regular);
-  line-height: 1.6;
+  line-height: var(--site-leading-support);
+  letter-spacing: var(--site-tracking-copy);
 }
 
 .site-toast {
@@ -1245,7 +1246,7 @@ textarea.site-field[data-field-size="lg"], textarea[data-field-size="lg"] { min-
   --type-body-size: var(--type-dialog-body-size); --type-body-sm-size: var(--type-dialog-body-size);
   --type-caption-size: var(--type-footnote-size); --type-label-size: .875rem; --type-control-size: .875rem;
   --type-subsection-title-size: var(--type-dialog-title-size); --type-content-title-size: var(--type-dialog-title-size);
-  font-size: var(--type-dialog-body-size); line-height: 1.65;
+  font-size: var(--type-dialog-body-size); line-height: var(--site-leading-support); letter-spacing: var(--site-tracking-copy);
 }
 .site-dialog :is(.type-body, .type-body-sm, .text-copy, .text-support) { font-weight: 400; }
 .site-dialog :is([data-slot="form-description"], [data-slot="form-message"]),
