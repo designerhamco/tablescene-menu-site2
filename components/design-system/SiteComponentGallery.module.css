@@ -55,6 +55,14 @@
 
 .swatch[data-white] { border: 1px solid var(--ui-border); }
 
+.indicatorGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--site-space-group); }
+.indicatorSurface { display: grid; min-width: 0; align-content: start; gap: var(--site-space-copy); padding: var(--site-surface-inset); border-radius: var(--ui-radius-panel); background: var(--ui-surface); color: var(--ui-text); }
+.indicatorSurface[data-indicator-example="white"] { border: 1px solid var(--ui-border); }
+.indicatorSurface[data-indicator-example="muted"] { background: var(--ui-surface-muted); }
+.indicatorSurface[data-indicator-example="brand"] { background: var(--ui-brand-soft); }
+.indicatorNested { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--site-space-group); }
+@media (max-width: 767px) { .indicatorGrid, .indicatorNested { grid-template-columns: minmax(0, 1fr); } }
+
 .switchGrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--site-space-group); }
 .switchSurface { display: grid; min-width: 0; align-content: start; gap: var(--site-space-copy); padding: var(--site-surface-inset); border-radius: var(--ui-radius-panel); background: var(--ui-surface); color: var(--ui-text); }
 .switchSurface[data-switch-example="white"] { border: 1px solid var(--ui-border); }
