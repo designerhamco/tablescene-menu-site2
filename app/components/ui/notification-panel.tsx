@@ -2,7 +2,7 @@
 
 import { LoadingState } from "@/app/components/ui/loading-state";
 import { useRef, useState, type ReactNode } from "react";
-import { Bell, CheckCheck } from "lucide-react";
+import { Bell } from "lucide-react";
 import { Button } from "./button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { EmptyState } from "./empty-state";
@@ -39,11 +39,12 @@ export function NotificationPanel({ items, loading = false, footer, compact = fa
   };
   return <div className="site-notification-panel" aria-busy={loading} data-compact={compact || undefined}>
     <Tabs purpose="category" defaultValue="all" className="gap-0">
-      <div className="site-action-row site-notification-toolbar"><div className="site-notification-tab-controls"><TabsList size="md" distribution="equal" className="site-notification-tabs" aria-label="알림 분류">
+      <TabsList size="md" distribution="equal" className="site-notification-tabs" aria-label="알림 분류">
         <TabsTrigger value="all">전체 알림</TabsTrigger><TabsTrigger value="unread" count={totalUnread}>읽지 않음</TabsTrigger>
-      </TabsList></div>{onReadAll ? <Button type="button" variant="outline" size="compact" disabled={loading || readingAll || totalUnread === 0} aria-busy={readingAll} onClick={() => { void handleReadAll(); }}><CheckCheck aria-hidden="true" />{readingAll ? "처리 중…" : "모두 읽기"}</Button> : null}</div>
+      </TabsList>
       <span className="sr-only" role="status">{readDone ? "모든 알림을 읽음으로 표시했습니다." : ""}</span>
       {readError ? <p className="site-notice site-notice-error" role="alert">알림을 읽음 처리하지 못했습니다. 다시 시도해 주세요.</p> : null}
+      <div className="site-notification-body" data-read-all={Boolean(onReadAll) || undefined}>
       {[{key:"all",rows:items},{key:"unread",rows:unread}].map(({key,rows})=><TabsContent key={key} value={key} className="site-notification-feed">
         {loading ? <LoadingState label="알림을 불러오는 중입니다." /> : rows.length ? rows.map((item,index)=><div key={item.id}>
           {index === 0 || dateLabel(rows[index-1].createdAt) !== dateLabel(item.createdAt) ? <h3 className="type-label site-notification-date">{dateLabel(item.createdAt)}</h3> : null}
@@ -55,6 +56,8 @@ export function NotificationPanel({ items, loading = false, footer, compact = fa
           </a>
         </div>) : <EmptyState headingLevel={3} icon={<Bell />} title={key === "unread" ? "읽지 않은 알림이 없습니다" : "새 알림이 없습니다"} description="새로운 소식이 생기면 이곳에 표시됩니다." />}
       </TabsContent>)}
+      {onReadAll ? <div className="site-notification-read-all-dock"><Button type="button" variant="outline" size="compact" className="site-button-notification-read-all" disabled={loading || readingAll || totalUnread === 0} aria-busy={readingAll} onClick={() => { void handleReadAll(); }}>{readingAll ? "처리 중…" : "모두 읽기"}</Button></div> : null}
+      </div>
     </Tabs>{footer ? <div className="site-notification-footer">{footer}</div> : null}
   </div>;
 }
