@@ -12,29 +12,36 @@ import type { StoreOperationKey } from "@/lib/operations-dashboard";
 import type { StoreOperationsSite } from "@/lib/server/store-operations-context";
 import { createClient } from "@/lib/supabase/server";
 
-export type StoreOperationsSection = "dashboard" | StoreOperationKey | "order-settings" | "call-settings" | "qr";
+export type StoreOperationsSection = "dashboard" | StoreOperationKey | "order-settings" | "order-devices" | "call-settings" | "call-items" | "qr";
 
 const operationNavigation: Array<{
   key: StoreOperationKey | "qr";
   label: string;
   permission: MenuSitePermission;
 }> = [
-  { key: "tables", label: "테이블 관리", permission: "table.manage" },
+  { key: "tables", label: "테이블·키오스크 관리", permission: "table.manage" },
   { key: "calls", label: "호출 관리", permission: "call.manage" },
   { key: "orders", label: "주문 관리", permission: "order.read" },
+  { key: "sales", label: "매출 관리", permission: "sales.read" },
   { key: "qr", label: "QR 관리", permission: "qr.manage" },
   { key: "pickup", label: "대기번호", permission: "pickup.manage" },
 ];
 
 function getSectionHref(site: StoreOperationsSite, section: StoreOperationsSection) {
+  if (section === "order-devices") {
+    return site.canConfigure || (site.tableSetupAvailable && site.permissions.includes("table.manage")) ? `/mypage/menus/${site.menuSiteId}/orders/settings?tab=devices` : `/mypage/operations?site=${encodeURIComponent(site.menuSiteId)}`;
+  }
+  if (section === "call-items") {
+    return site.permissions.includes("call.manage") ? `/mypage/menus/${site.menuSiteId}/calls/settings?tab=items` : `/mypage/menus/${site.menuSiteId}/calls/settings`;
+  }
   if (section === "order-settings" || section === "call-settings") {
     const feature = section === "order-settings" ? "orders" : "calls";
-    if (site.canConfigure || (feature === "calls" && site.operationAccess.calls)) {
+    if (site.canConfigure || (site.tableSetupAvailable && site.permissions.includes("table.manage")) || site.operationAccess[feature]) {
       return `/mypage/menus/${site.menuSiteId}/${feature}/settings`;
     }
     return `/mypage/operations?site=${encodeURIComponent(site.menuSiteId)}`;
   }
-  if ((section === "orders" || section === "calls") && !site.operationAccess[section] && site.canConfigure) {
+  if ((section === "orders" || section === "calls") && !site.operationAccess[section] && (site.canConfigure || (site.tableSetupAvailable && site.permissions.includes("table.manage")))) {
     return `/mypage/menus/${site.menuSiteId}/${section}/settings`;
   }
   if (section === "qr") return site.canManageQr ? `/mypage/menus/${site.menuSiteId}/qr` : `/mypage/operations?site=${encodeURIComponent(site.menuSiteId)}`;
@@ -106,8 +113,8 @@ export default async function StoreOperationsShell({
                 <nav className="space-y-1 border-t border-zinc-100 pt-2" aria-label="매장 운영 메뉴">
                   {operationNavigation.map((item) => {
                     const enabled = Boolean(selectedSite && (item.key === "qr" ? selectedSite.canManageQr : item.key === "tables" ? selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage") : selectedSite.operationAccess[item.key]));
-                    const configurationAvailable = Boolean(selectedSite?.canConfigure && (item.key === "orders" || item.key === "calls"));
-                    const active = activeSection === item.key || (item.key === "orders" && activeSection === "order-settings") || (item.key === "calls" && activeSection === "call-settings");
+                    const configurationAvailable = Boolean((selectedSite?.canConfigure || (selectedSite?.tableSetupAvailable && selectedSite.permissions.includes("table.manage"))) && (item.key === "orders" || item.key === "calls"));
+                    const active = activeSection === item.key || (item.key === "orders" && (activeSection === "order-settings" || activeSection === "order-devices")) || (item.key === "calls" && (activeSection === "call-settings" || activeSection === "call-items"));
                     if (!selectedSite || (!enabled && !configurationAvailable)) {
                       const hasRolePermission = Boolean(selectedSite?.permissions.includes(item.permission));
                       const unavailableLabel = selectedSite && !hasRolePermission ? "권한 없음" : "이용 불가";

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getTableTerminalMenuPath, registerTableTerminal, TableTerminalConnectionError, unregisterTableTerminal } from "@/lib/server/table-terminal-service";
+import { getTableTerminalMenuPath, registerTableTerminal, revokeTableTerminalConnection, TableTerminalConnectionError, unregisterTableTerminal } from "@/lib/server/table-terminal-service";
 import { TABLE_VISIT_SESSION_COOKIE, TABLE_VISIT_SESSION_COOKIE_SECURITY, getTableVisitSessionCookieMaxAge, isValidTableAccessToken } from "@/lib/table-qr-session-tokens";
 
 import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
@@ -15,7 +15,11 @@ import {
   rotateMenuTableToken,
   restoreMenuTable,
   updateMenuTable,
+  setOrderPointFeature,
+  previewOrderPointDeletion,
+  deleteOrderPoint,
 } from "@/lib/server/menu-table-management-service";
+import type { OrderPointChannel, OrderPointFeature } from "@/lib/order-point-policy";
 import { initialMenuTableActionState, type MenuTableActionState } from "./action-state";
 
 function revalidateTableOperations(menuSiteId: string) {
@@ -23,6 +27,7 @@ function revalidateTableOperations(menuSiteId: string) {
     revalidatePath(`/mypage/menus/${menuSiteId}/${section}`);
   }
   revalidatePath("/mypage/operations");
+  revalidatePath("/menu", "layout");
 }
 
 function getFormString(formData: FormData, key: string) {
@@ -50,11 +55,12 @@ export async function createMenuTableAction(
     const result = await createMenuTable({
       menuSiteId,
       label: getFormString(formData, "label"),
+      kind: getFormString(formData, "kind") === "kiosk" ? "kiosk" : "table",
     });
     revalidateTableOperations(menuSiteId);
     return {
       status: "success",
-      message: `${result.table.label} 테이블을 만들었습니다.`,
+      message: `${result.table.label}을 만들었습니다.`,
       tableId: result.table.id,
       qrPath: result.qrPath,
     };
@@ -75,7 +81,9 @@ export async function mutateMenuTableAction(
     let path: string;
     try {
       const previous=(await cookies()).get(TABLE_VISIT_SESSION_COOKIE)?.value;
-      const result=await registerTableTerminal(menuSiteId,tableId,(await headers()).get("user-agent") ?? "",isValidTableAccessToken(previous)?previous:undefined);
+      let deviceInfo: unknown;
+      try { const raw = getFormString(formData, "deviceInfo"); if (raw.length <= 2048) deviceInfo = JSON.parse(raw); } catch {}
+      const result=await registerTableTerminal(menuSiteId,tableId,(await headers()).get("user-agent") ?? "",isValidTableAccessToken(previous)?previous:undefined,deviceInfo);
       const { error } = await (await createClient()).auth.signOut({ scope: "local" });
       if (error) throw new TableTerminalConnectionError("관리자 로그아웃을 완료하지 못했습니다. 태블릿 연결을 다시 시도해 주세요.");
       (await cookies()).set(TABLE_VISIT_SESSION_COOKIE,result.token,{...TABLE_VISIT_SESSION_COOKIE_SECURITY,expires:new Date(result.expiresAt),maxAge:getTableVisitSessionCookieMaxAge(result.expiresAt,new Date(),"terminal")});
@@ -99,15 +107,27 @@ export async function mutateMenuTableAction(
       await unregisterTableTerminal(menuSiteId, tableId, token, (await headers()).get("user-agent") ?? "");
       cookieStore.delete(TABLE_VISIT_SESSION_COOKIE);
       revalidateTableOperations(menuSiteId);
-      return {...initialMenuTableActionState,status:"success",message:"현재 태블릿의 테이블 연결을 해제했습니다. 기존 주문 기록은 유지됩니다."};
+      return {...initialMenuTableActionState,status:"success",message:"현재 기기의 연결을 해제했습니다. 기존 주문 기록은 유지됩니다."};
     } catch(error) {return actionError(error);}
+  }
+  if (intent === "revoke-terminal-connection") {
+    try {
+      const cookieStore = await cookies();
+      const result = await revokeTableTerminalConnection(menuSiteId, tableId, getFormString(formData, "connectionId"), cookieStore.get(TABLE_VISIT_SESSION_COOKIE)?.value, (await headers()).get("user-agent") ?? "");
+      if (result.current) cookieStore.delete(TABLE_VISIT_SESSION_COOKIE);
+      revalidateTableOperations(menuSiteId);
+      return { ...initialMenuTableActionState, status: "success", message: "선택한 기기의 연결을 해제했습니다. 기존 주문 기록은 유지됩니다." };
+    } catch (error) {
+      revalidateTableOperations(menuSiteId);
+      return actionError(error);
+    }
   }
 
   try {
     if (intent === "restore") {
       const table = await restoreMenuTable({ menuSiteId, tableId, label: getFormString(formData, "label") });
       revalidateTableOperations(menuSiteId);
-      return { ...initialMenuTableActionState, status: "success", message: `${table.label} 테이블을 비활성 상태로 복원했습니다. 사용할 때 상태를 사용 중으로 바꿔 주세요.`, tableId: table.id };
+      return { ...initialMenuTableActionState, status: "success", message: `${table.label}을 비활성 상태로 복원했습니다. 사용할 때 상태를 사용 중으로 바꿔 주세요.`, tableId: table.id };
     }
     if (intent === "rotate-token") {
       const result = await rotateMenuTableToken({ menuSiteId, tableId });
@@ -154,4 +174,30 @@ export async function mutateMenuTableAction(
   } catch (error) {
     return actionError(error);
   }
+}
+
+export async function updateOrderPointFeature(input: {
+  menuSiteId: string; tableId: string; channel: OrderPointChannel; feature: OrderPointFeature;
+  enabled: boolean; expectedEnabled: boolean;
+}): Promise<{ status: "success" | "error"; message: string }> {
+  try {
+    await setOrderPointFeature(input);
+    revalidateTableOperations(input.menuSiteId);
+    return { status: "success", message: `${input.channel === "terminal" ? "매장 기기" : "손님 휴대폰·QR"}의 ${input.feature === "orders" ? "주문" : "호출"} 허용을 ${input.enabled ? "ON" : "OFF"}으로 저장했습니다.` };
+  } catch (error) {
+    if (input && typeof input.menuSiteId === "string" && /^[0-9a-f-]{36}$/i.test(input.menuSiteId)) revalidateTableOperations(input.menuSiteId);
+    return { status: "error", message: error instanceof Error ? error.message : "설정을 저장하지 못했습니다." };
+  }
+}
+
+export async function previewOrderPointDeletionAction(input: { menuSiteId: string; tableId: string }) {
+  try { return { status: "success" as const, summary: await previewOrderPointDeletion(input) }; }
+  catch (error) { return { status: "error" as const, message: actionError(error).message }; }
+}
+export async function deleteOrderPointAction(input: { menuSiteId: string; tableId: string; fingerprint: string; confirmationLabel: string; withHistory: boolean }) {
+  try {
+    await deleteOrderPoint(input); revalidateTableOperations(input.menuSiteId);
+    revalidatePath(`/mypage/menus/${input.menuSiteId}/sales`);
+    return { status: "success" as const, message: input.withHistory ? "등록과 관련 주문·호출 데이터를 영구 삭제했습니다." : "사용 이력이 없는 등록을 삭제했습니다." };
+  } catch (error) { return { status: "error" as const, message: actionError(error).message }; }
 }

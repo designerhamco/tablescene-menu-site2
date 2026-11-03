@@ -124,11 +124,6 @@
       "c2fc116cd629dbbb"
     ]
   },
-  "app/mypage/menus/[menuId]/calls/CallItemManager.tsx": {
-    "control-appearance": [
-      "90cbf9fe4f30681b"
-    ]
-  },
   "app/mypage/menus/[menuId]/convert/page.tsx": {
     "shared-heading": [
       "fda998200295f68e"

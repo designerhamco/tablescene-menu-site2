@@ -1,4 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getAllowedCheckoutModes, readMenuOrderSettings } from "@/lib/menu-order-settings";
+import { isPostpayOrderRuntimeEnabledForSite } from "@/lib/postpay-order-runtime";
+import { isCallRuntimeEnabledForSite } from "@/lib/call-runtime";
+import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
 import { isUuid } from "@/lib/postpay-order-runtime";
 import { TABLE_VISIT_SESSION_COOKIE, TABLE_VISIT_SESSION_COOKIE_SECURITY, getTableVisitSessionCookieMaxAge } from "@/lib/table-qr-session-tokens";
 import { resolveTableVisitSession, extendTableOrderAccess, renewTableTerminalConnection } from "@/lib/server/table-visit-session-service";
@@ -13,8 +18,15 @@ async function visit(request: NextRequest, id: unknown) {
 }
 export async function GET(request: NextRequest) {
   const session = await visit(request, request.nextUrl.searchParams.get("menuSiteId"));
-  return session ? response({ok:true,channel:session.channel,orderExpiresAt:session.orderExpiresAt,serverNow:new Date().toISOString()})
-    : response({ok:false,message:"방문 확인 시간이 만료되었습니다. 테이블 QR을 다시 스캔해 주세요."},401);
+  if (!session) return response({ok:false,message:"기기 연결 또는 방문 확인 시간이 만료되었습니다. 다시 연결하거나 테이블 QR을 스캔해 주세요."},401);
+  const { data: site, error } = await createAdminClient().from("menu_sites").select("status,settings,template_key").eq("id",session.menuSiteId).maybeSingle();
+  if (error || !site) return response({ok:false},503);
+  const settings = readMenuOrderSettings(site.settings);
+  const checkout = getAllowedCheckoutModes(settings,session.channel ?? "customer");
+  return response({ok:true, channel:session.channel, tableLabel:session.tableLabel, pointKind:session.pointKind,
+    orderAllowed:site.status === "published" && isPostpayOrderRuntimeEnabledForSite(session.menuSiteId) && getDiningTemplateFeatures(site.template_key).order && settings.orderEnabled && (checkout.postpay || checkout.prepayVisible) && session.orderAllowed !== false,
+    callAllowed:site.status === "published" && isCallRuntimeEnabledForSite(session.menuSiteId) && getDiningTemplateFeatures(site.template_key).smartCall && settings.callEnabled && session.callAllowed !== false,
+    orderExpiresAt:session.orderExpiresAt,serverNow:new Date().toISOString()});
 }
 export async function POST(request: NextRequest) {
   if (request.headers.get("origin") !== new URL(request.url).origin) return response({ok:false},403);

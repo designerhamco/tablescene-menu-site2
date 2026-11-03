@@ -7,8 +7,16 @@ import { redirect } from "next/navigation";
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
 import OperationFeatureToggle from "@/components/mypage/OperationFeatureToggle";
 import OperationTableSetupNotice from "@/components/mypage/OperationTableSetupNotice";
+import { ContentPanel } from "@/app/components/ui/content-panel";
+import { Badge } from "@/app/components/ui/badge";
+import { CUSTOMER_ORDER_STATUS_LABELS } from "@/lib/customer-order-history";
+import { getSalesSummaryDashboard } from "@/lib/server/sales-summary-service";
+import { StoreSalesMetrics } from "@/components/mypage/StoreSalesSummary";
+import OperationsDashboardRefresh from "@/components/mypage/OperationsDashboardRefresh";
+import OperationStatusCards from "@/components/mypage/OperationStatusCards";
+import { getConfiguredPublicMenuOrigin, getPublicMenuPath } from "@/lib/menu-url";
 import { isStoreOperationsTemplate } from "@/lib/operations-dashboard";
-import { loadMenuOrderSettings } from "@/lib/server/menu-order-settings-service";
+import { loadMenuOrderSettings, loadOperationReceptionSummary } from "@/lib/server/menu-order-settings-service";
 import { formatKoreanDateTime } from "@/lib/korean-date-time";
 import { isStoreOperationsAvailable } from "@/lib/product-focus-policy";
 import { listCallDashboard } from "@/lib/server/call-management-service";
@@ -36,7 +44,7 @@ const OPERATION_FEATURE_LABELS = {
   orders: "주문관리",
   calls: "호출관리",
   tables: "테이블 관리",
-  sales: "매출요약",
+  sales: "매출 관리",
   pickup: "대기번호",
 } as const;
 
@@ -123,17 +131,20 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
 
   const access = selectedSite.operationAccess;
   const canReadTables = selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage");
-  const [orderData, callData, tableData, pickupData, settingsData] = await Promise.all([
+  const [orderData, callData, tableData, pickupData, settingsData, receptionSummary, salesData] = await Promise.all([
     loadOptionalDashboard(access.orders, "orders", () => listOrderDashboard(selectedSite.menuSiteId)),
     loadOptionalDashboard(access.calls, "calls", () => listCallDashboard(selectedSite.menuSiteId)),
     loadOptionalDashboard(canReadTables, "tables", () => listMenuTables(selectedSite.menuSiteId)),
     loadOptionalDashboard(access.pickup, "pickup", () => listPickupQueueDashboard(selectedSite.menuSiteId)),
     loadOptionalDashboard(selectedSite.canConfigure, "settings", () => loadMenuOrderSettings(selectedSite.menuSiteId)),
+    loadOptionalDashboard(!selectedSite.canConfigure && (access.orders || access.calls), "reception", () => loadOperationReceptionSummary(selectedSite.menuSiteId)),
+    loadOptionalDashboard(access.sales, "sales", () => getSalesSummaryDashboard(selectedSite.menuSiteId, new Date(), { includeItems: false })),
   ]);
 
   const openOrders = orderData?.orders.filter((order) => !["served", "cancelled"].includes(order.status)) ?? [];
   const pendingCalls = callData?.calls.filter((call) => call.status === "pending") ?? [];
   const activeTables = tableData?.tables.filter((table) => table.status === "active") ?? [];
+  const recentOrders = orderData?.orders.slice(0, 5) ?? [];
   const recentCalls = callData?.calls.slice(0, 5) ?? [];
   const activePickup = pickupData?.entries.filter((entry) => entry.status === "waiting" || entry.status === "ready") ?? [];
 
@@ -144,7 +155,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
         <header className="site-stack-title">
           <h2 className="type-section-title">{selectedSite.name} 운영 현황</h2>
           <p className="type-body site-copy-muted">
-            {selectedSite.canConfigure ? "주문·호출 사용 여부를 바로 변경하고, 현재 운영 현황을 확인합니다." : "현재 주문과 호출, 테이블 현황을 빠르게 확인합니다."}
+            {selectedSite.canConfigure ? "전체 주문·전체 호출 사용 여부를 바로 변경하고, 현재 운영 현황을 확인합니다." : "현재 주문과 호출, 테이블 현황을 빠르게 확인합니다."}
           </p>
         </header>
 
@@ -153,9 +164,20 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
           canManageTables={selectedSite.permissions.includes("table.manage")} /> : null}
 
         {selectedSite.canConfigure ? <p className="type-body-sm text-zinc-600">
-          스위치를 변경하면 즉시 저장됩니다. 실제 접수는 활성 테이블과 공개된 메뉴판에서만 가능합니다. 이미 접수된 주문·호출 내역은 유지됩니다.
+          메뉴판 공개와 사용 중인 테이블 또는 키오스크를 준비한 뒤 전체 주문·전체 호출을 켜 주세요. 개별 허용 설정과 기기 연결은 각 주문·호출 설정에서 변경합니다. 메뉴판 주소·QR은 QR 관리에서 확인합니다. 비공개로 바꾸면 두 기능도 OFF로 저장되며, 기존 접수 내역은 유지됩니다.
         </p> : null}
 
+        {isStoreOperationsTemplate(selectedSite.templateKey) ? <OperationStatusCards key={`operation-status:${selectedSite.menuSiteId}`}
+          menuId={selectedSite.menuSiteId} published={selectedSite.status === "published"}
+          publicUrl={selectedSite.slug ? `${getConfiguredPublicMenuOrigin() ?? ""}${getPublicMenuPath(selectedSite.slug)}` : null}
+          canPublish={selectedSite.permissions.includes("menu.publish")} canConfigure={selectedSite.canConfigure}
+          permissions={{ orders: selectedSite.permissions.includes("order.read"), calls: selectedSite.permissions.includes("call.manage"), tables: canReadTables, edit: selectedSite.permissions.includes("menu.edit") }}
+          historyAccess={access} settings={settingsData?.settings ?? receptionSummary}
+          runtime={settingsData?.runtime ?? { orders: receptionSummary?.runtime.orders ?? false, calls: receptionSummary?.runtime.calls ?? false, tables: selectedSite.tableSetupAvailable }}
+          activeTablesReady={selectedSite.activeTablesReady}
+          tableCounts={tableData ? { registered: tableData.tables.filter(table => table.kind !== "kiosk").length, active: activeTables.filter(table => table.kind !== "kiosk").length, disabled: tableData.tables.filter(table => table.kind !== "kiosk" && table.status === "disabled").length } : null}
+          kioskCounts={tableData ? { registered: tableData.tables.filter(table => table.kind === "kiosk").length, active: activeTables.filter(table => table.kind === "kiosk").length } : null}
+          openOrders={orderData ? openOrders.length : null} pendingCalls={callData ? pendingCalls.length : null} /> : (
         <section className="site-metric-grid" aria-label="매장 운영 요약">
           <MetricCard icon={<ShoppingBag />} tone="blue" surface="muted"
             label="진행 중 주문"
@@ -188,28 +210,27 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
             href={access.pickup ? `/mypage/menus/${selectedSite.menuSiteId}/pickup` : null}
             footer={<p className="type-body-sm text-zinc-600">사용 설정 보류</p>}
           />
-        </section>
+        </section>)}
 
-        <section>
-          <DashboardList
-            title="최근 호출"
-            emptyLabel={callData ? "접수된 호출이 없습니다." : access.calls ? "호출 정보를 불러오지 못했습니다." : "호출 기능을 이용하지 않는 메뉴판입니다."}
-            href={access.calls ? `/mypage/menus/${selectedSite.menuSiteId}/calls` : null}
-            hasItems={recentCalls.length > 0}
-          >
-            {recentCalls.map((call) => (
-              <li key={call.id} className="flex items-center justify-between gap-4 border-t border-zinc-100 px-4 py-4 first:border-t-0 sm:px-5">
-                <div className="min-w-0">
-                  <p className="truncate text-copy font-medium">호출 #{call.callNumber} · {call.tableLabel}</p>
-                  <p className="mt-1 text-support font-medium text-zinc-400">
-                    {call.requestLabel} · {formatKoreanDateTime(call.createdAt)}
-                  </p>
-                </div>
-                <p className="shrink-0 text-support font-medium text-zinc-500">{CALL_STATUS_LABELS[call.status] ?? call.status}</p>
-              </li>
-            ))}
+        <OperationsDashboardRefresh />
+        {access.sales ? <section className="site-stack-group" aria-label="대시보드 매출 요약">
+          <div className="site-content-heading-row"><h3 className="type-subsection-title">매출 요약</h3><Link href={`/mypage/menus/${selectedSite.menuSiteId}/sales`} className="site-button site-button-outline">매출 관리</Link></div>
+          {salesData ? <><StoreSalesMetrics summary={salesData.summary} /><p className="type-footnote site-copy-muted">결제 완료 처리한 금액입니다. 취소·환불·미결제는 제외하며 한국 시간을 기준으로 집계합니다.</p></> : <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">매출 정보를 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.</p></ContentPanel>}
+        </section> : null}
+        <div className="site-card-grid xl:grid-cols-2">
+          <DashboardList title="최근 주문 내역" emptyLabel={orderData ? "접수된 주문이 없습니다." : access.orders ? "주문 정보를 불러오지 못했습니다." : "현재 주문 내역을 확인할 수 없습니다."} href={access.orders ? `/mypage/menus/${selectedSite.menuSiteId}/orders` : null} hasItems={recentOrders.length > 0}>
+            {recentOrders.map(order => <li key={order.id} className="site-content-heading-row site-content-divider">
+              <div className="site-stack-copy min-w-0"><p className="type-label break-words">주문 #{order.orderNumber} · {order.tableLabel}</p><p className="type-body-sm">{order.totalAmount.toLocaleString("ko-KR")}원</p><p className="type-caption site-copy-muted">{formatKoreanDateTime(order.createdAt)}</p></div><Badge>{CUSTOMER_ORDER_STATUS_LABELS[order.status as keyof typeof CUSTOMER_ORDER_STATUS_LABELS] ?? order.status}</Badge>
+            </li>)}
           </DashboardList>
-        </section>
+          <DashboardList title="최근 호출 내역" emptyLabel={callData ? "접수된 호출이 없습니다." : access.calls ? "호출 정보를 불러오지 못했습니다." : "현재 호출 내역을 확인할 수 없습니다."} href={access.calls ? `/mypage/menus/${selectedSite.menuSiteId}/calls` : null} hasItems={recentCalls.length > 0}>
+            {recentCalls.map(call => <li key={call.id} className="site-content-heading-row site-content-divider">
+              <div className="site-stack-copy min-w-0"><p className="type-label break-words">호출 #{call.callNumber} · {call.tableLabel}</p><p className="type-body-sm break-words">{call.requestLabel}</p><p className="type-caption site-copy-muted">{formatKoreanDateTime(call.createdAt)}</p></div><Badge>{CALL_STATUS_LABELS[call.status] ?? call.status}</Badge>
+            </li>)}
+          </DashboardList>
+        </div>
+
+
       </div>
     </StoreOperationsShell>
   );
@@ -232,13 +253,8 @@ function DashboardList({
   hasItems: boolean;
   children: React.ReactNode;
 }) {
-  return (
-    <article className="site-card overflow-hidden">
-      <div className="flex items-center justify-between gap-3 border-b border-zinc-100 px-4 py-4 sm:px-5">
-        <h3 className="type-content-title">{title}</h3>
-        {href ? <Link href={href} className="text-support font-medium text-zinc-500 hover:text-zinc-950">전체보기</Link> : null}
-      </div>
-      {hasItems ? <ul>{children}</ul> : <p className="px-5 py-10 text-center text-copy font-medium text-zinc-400">{emptyLabel}</p>}
-    </article>
-  );
+  return <ContentPanel as="article">
+    <div className="site-content-heading-row"><h3 className="type-content-title">{title}</h3>{href ? <Link href={href} className="site-button site-button-outline">전체 보기</Link> : null}</div>
+    {hasItems ? <ul className="site-stack-block">{children}</ul> : <p className="type-body-sm site-copy-muted">{emptyLabel}</p>}
+  </ContentPanel>;
 }

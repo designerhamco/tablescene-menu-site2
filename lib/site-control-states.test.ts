@@ -2,10 +2,22 @@ import assert from "node:assert/strict";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import test from "node:test";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { DialogHeader } from "../app/components/ui/dialog";
 
 const read = (file: string) => readFileSync(path.join(process.cwd(), file), "utf8");
 const css = read("styles/ui-system.css");
 const tabCss = read("styles/site-design.css");
+
+test("dialog headers can reserve the common close-button area without changing existing header defaults", () => {
+  const normal = renderToStaticMarkup(createElement(DialogHeader, null, "제목"));
+  const reserved = renderToStaticMarkup(createElement(DialogHeader, { reserveCloseButton: true }, "긴 오류 제목"));
+  assert.doesNotMatch(normal, /data-close-button/);
+  assert.match(reserved, /data-close-button="true"/);
+  assert.doesNotMatch(reserved, /reserveCloseButton/);
+  assert.match(css, /\[data-slot="dialog-header"\]\[data-close-button\] \{ padding-inline-end: var\(--ui-control-height-md\); \}/);
+});
 
 test("support actions stay centered at content width instead of inheriting a card grid", () => {
   const row = [...tabCss.matchAll(/\.site-support-actions\s*\{([^}]+)\}/g)].map(match => match[1]).join("\n");

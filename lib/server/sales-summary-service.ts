@@ -111,13 +111,14 @@ async function loadPaidOrderItems({
 export async function getSalesSummaryDashboard(
   menuSiteIdValue: unknown,
   now = new Date(),
+  options: { includeItems?: boolean } = {},
 ): Promise<SalesSummaryPageData> {
   const menuSiteId = normalizeMenuSiteId(menuSiteIdValue);
   await requireMenuSitePermission(menuSiteId, "sales.read");
   if (!isOrderDashboardRuntimeEnabledForSite(menuSiteId) || !await hasPaidTableOperationsAccess(menuSiteId)) {
     throw new SalesSummaryError(
       "DASHBOARD_UNAVAILABLE",
-      "매출 요약은 주문관리 상품과 운영 활성화 전까지 안전하게 잠겨 있습니다.",
+      "매출 관리는 이용 가능한 주문 관리 서비스에서 사용할 수 있습니다.",
       403,
     );
   }
@@ -162,7 +163,7 @@ export async function getSalesSummaryDashboard(
     }),
   ]);
 
-  const paidItemRows = await loadPaidOrderItems({
+  const paidItemRows = options.includeItems === false ? [] : await loadPaidOrderItems({
     menuSiteId,
     orderIds: paidRows.map((order) => order.id),
   });

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import ts from "typescript";
+import { detectTerminalDevice } from "./terminal-device-info";
 import { MenuSiteAccessError } from "./menu-site-permissions";
 
 const menuId = "11111111-1111-4111-8111-111111111111";
@@ -28,7 +29,10 @@ function loadPage(section: "tables" | "qr", context: () => Promise<unknown>) {
     "@/lib/product-focus-policy": { isStoreOperationsAvailable: () => true },
     "@/lib/table-qr-session-tokens": {},
     "@/lib/menu-url": {},
+    "@/lib/server/menu-order-settings-service": {},
     "@/lib/server/table-terminal-service": {},
+    "@/lib/server/order-point-device-settings": { async loadOrderPointDeviceSettings() { privateReads++; throw new Error("Unexpected device read"); } },
+    "@/lib/terminal-device-info": { detectTerminalDevice },
     "@/lib/server/store-operations-context": { getStoreOperationsContext: context },
     "@/lib/server/menu-table-management-service": {
       MenuTableManagementError: class extends Error {},

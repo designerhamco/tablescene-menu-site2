@@ -244,7 +244,7 @@ export async function listOrderDashboard(menuSiteIdValue: unknown): Promise<Orde
   const [tablesResult, itemsResult] = await Promise.all([
     tableIds.length === 0
       ? Promise.resolve({ data: [], error: null })
-      : supabase.from("menu_tables").select("id, label").eq("menu_site_id", menuSiteId).in("id", tableIds),
+      : supabase.from("menu_tables").select("*").eq("menu_site_id", menuSiteId).in("id", tableIds),
     orderIds.length === 0
       ? Promise.resolve({ data: [], error: null })
       : supabase
@@ -269,7 +269,7 @@ export async function listOrderDashboard(menuSiteIdValue: unknown): Promise<Orde
   if (optionsResult.error) mapReadError(optionsResult.error);
   const options = (optionsResult.data ?? []) as OptionRow[];
 
-  const tableLabelById = new Map((tablesResult.data ?? []).map((table) => [table.id, table.label]));
+  const tableLabelById = new Map((tablesResult.data ?? []).map((table) => [table.id, table.point_kind === "kiosk" && !table.label.startsWith("키오스크") ? `키오스크 · ${table.label}` : table.label]));
   const optionsByItemId = new Map<string, OptionRow[]>();
   for (const option of options) {
     const bucket = optionsByItemId.get(option.order_item_id) ?? [];

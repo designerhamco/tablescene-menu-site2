@@ -10,8 +10,10 @@ import { isUuid } from "./postpay-order-runtime";
 const id = "11111111-1111-4111-8111-111111111111";
 function fixture(failed = false) {
   const calls: unknown[][] = [];
+  const publicationCalls: unknown[][] = [];
   const paths: unknown[][] = [];
   const dependencies: Record<string, unknown> = {
+    "@/lib/server/menu-publication-service": { setMenuPublicationStatus: async (...args: unknown[]) => { publicationCalls.push(args); if (failed) throw new Error("다른 화면에서 공개 상태가 변경되었습니다."); return { slug: "test-store" }; } },
     "next/cache": { revalidatePath: (...args: unknown[]) => paths.push(args) },
     "@/lib/postpay-order-runtime": { isUuid },
     "@/lib/server/menu-order-settings-service": { setMenuOrderFeatureEnabled: async (...args: unknown[]) => {
@@ -26,8 +28,24 @@ function fixture(failed = false) {
   new Function("require", "module", "exports", code)((name: string) => {
     assert.ok(name in dependencies, name); return dependencies[name];
   }, loaded, loaded.exports);
-  return { action: (loaded.exports as typeof import("../app/mypage/operations/actions")).updateOperationFeature, calls, paths };
+  const actions = loaded.exports as typeof import("../app/mypage/operations/actions");
+  return { action: actions.updateOperationFeature, publication: actions.updateOperationPublication, publicationCalls, calls, paths };
 }
+
+test("공개 스위치도 서버 권한·필수 데이터·현재 상태 검증을 거쳐 결과를 확인한 뒤 갱신한다", async () => {
+  const f = fixture();
+  assert.equal((await f.publication({ menuId: id, published: false, expectedPublished: true })).status, "success");
+  assert.deepEqual(f.publicationCalls, [[id, "draft", true]]);
+  assert.ok(f.paths.some(path => path[0] === `/mypage/menus/${id}/edit`));
+  assert.ok(f.paths.some(path => path[0] === `/mypage/menus/${id}/orders/settings`));
+  assert.ok(f.paths.some(path => path[0] === "/mypage/operations"));
+  const failed = fixture(true);
+  assert.equal((await failed.publication({ menuId: id, published: false, expectedPublished: true })).status, "error");
+  assert.deepEqual(failed.paths, [["/mypage/operations"]]);
+  const invalid = fixture();
+  assert.equal((await invalid.publication({ menuId: "invalid", published: true, expectedPublished: false })).status, "error");
+  assert.deepEqual(invalid.publicationCalls, []);
+});
 
 test("빠른 설정은 두 기능의 단일 변경만 전달하고 대시보드·상세 설정·메뉴판을 갱신한다", async () => {
   for (const feature of ["orders", "calls"] as const) {
@@ -63,10 +81,11 @@ test("요약 카드 링크 안에 스위치 버튼을 중첩하지 않는다", (
   assert.ok(html.indexOf("</a>") < html.indexOf("<button"));
 });
 
-test("대시보드는 테이블 준비 안내 → 기능 카드 → 최근 호출 순서이며 태블릿 연결은 테이블 관리에 둔다", () => {
+test("대시보드는 전체 현황과 준비 안내를 보여주고 기기 연결 관리는 각 기능 설정에 모은다", () => {
   const page = readFileSync(new URL("../app/mypage/operations/page.tsx", import.meta.url), "utf8");
   assert.ok(page.indexOf("<OperationTableSetupNotice") < page.indexOf('aria-label="매장 운영 요약"'));
-  assert.ok(page.indexOf('aria-label="매장 운영 요약"') < page.indexOf('title="최근 호출"'));
+  assert.doesNotMatch(page, /CurrentTabletConnectionPanel|getCurrentTableTerminalId/);
+  assert.ok(page.indexOf('aria-label="매장 운영 요약"') < page.indexOf('title="최근 호출 내역"'));
   assert.doesNotMatch(page, /OperationTerminalPanel|unregister-terminal/);
   const shell = readFileSync(new URL("../components/mypage/StoreOperationsShell.tsx", import.meta.url), "utf8");
   assert.match(shell, /activeSection !== "dashboard"/);

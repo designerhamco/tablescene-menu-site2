@@ -71,6 +71,7 @@ export async function submitPostpayOrder({
   tableSession: ResolvedTableVisitSession;
 }): Promise<SubmittedPostpayOrder> {
   if (
+    tableSession.orderAllowed === false ||
     input.menuSiteId !== tableSession.menuSiteId ||
     !isPostpayOrderRuntimeEnabledForSite(input.menuSiteId)
   ) {
@@ -122,6 +123,7 @@ export async function submitPostpayOrder({
   );
 
   if (error) {
+    if (error.message.includes("not orderable")) throw new PostpayOrderSubmissionError("품절되었거나 판매 정보가 변경된 메뉴가 있습니다. 메뉴판을 새로고침한 뒤 다시 주문해 주세요.", "ITEM_UNAVAILABLE");
     if (error.message.includes("ORDER_ACCESS_EXPIRED")) throw new PostpayOrderSubmissionError("주문 이용 시간이 만료되었습니다. 테이블 QR을 다시 스캔해 주세요.", "ORDER_ACCESS_EXPIRED");
     if (error.message.includes("ORDER_REPEAT_CONFIRM")) throw new PostpayOrderSubmissionError("동일한 메뉴와 수량으로 주문하셨습니다. 다시 주문하시겠습니까?", "ORDER_REPEAT_CONFIRM", error.details);
     throw new PostpayOrderSubmissionError();

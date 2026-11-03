@@ -19,6 +19,19 @@ import {
   type MenuOrderSettings,
 } from "@/lib/menu-order-settings";
 import type { Json } from "@/lib/supabase/types";
+
+export async function loadOperationReceptionSummary(menuId: string) {
+  const context = await requireMenuSitePermission(menuId, "menu.read");
+  const canReadOrders = context.permissions.has("order.read");
+  const canReadCalls = context.permissions.has("call.manage");
+  if (!canReadOrders && !canReadCalls) throw new Error("운영 현황을 확인할 권한이 없습니다.");
+  const { data, error } = await createAdminClient().from("menu_sites").select("settings").eq("id", menuId).maybeSingle();
+  if (error || !data) throw new Error("사용 설정을 불러오지 못했습니다.");
+  const settings = readMenuOrderSettings(data.settings);
+  return { orderEnabled: canReadOrders ? settings.orderEnabled : null, callEnabled: canReadCalls ? settings.callEnabled : null,
+    terminalOrderEnabled: canReadOrders ? settings.terminalOrderEnabled : undefined, customerCheckout: canReadOrders ? settings.customerCheckout : undefined,
+    runtime: { orders: isPostpayOrderRuntimeEnabledForSite(menuId) && isTableManagementRuntimeEnabledForSite(menuId), calls: isCallRuntimeEnabledForSite(menuId) && isTableManagementRuntimeEnabledForSite(menuId) } };
+}
 export async function loadMenuOrderSettings(menuId: string) {
   const context = await requireMenuSitePermission(menuId, "menu.read");
   if (!context.isOwner)
@@ -29,7 +42,7 @@ export async function loadMenuOrderSettings(menuId: string) {
     );
   const { data, error } = await createAdminClient()
     .from("menu_sites")
-    .select("id,name,settings,updated_at,template_key")
+    .select("id,name,status,settings,updated_at,template_key")
     .eq("id", menuId)
     .eq("user_id", context.actorUserId)
     .single();
@@ -100,6 +113,11 @@ async function writeMenuOrderSettings(
       "현재는 후불 주문을 사용해야 합니다. 선결제는 준비 중입니다.",
     );
   const enabled = section === "orders" ? next.orderEnabled : next.callEnabled;
+  if (site.status !== "published") {
+    if (enabled) throw new Error("메뉴판을 공개한 뒤 주문·호출 기능을 켤 수 있습니다.");
+    next.orderEnabled = false;
+    next.callEnabled = false;
+  }
   if (enabled) {
     if (!runtime.tables)
       throw new Error("테이블 기능 연결 후 테이블을 등록·활성화해 주세요.");
@@ -107,7 +125,7 @@ async function writeMenuOrderSettings(
     const { data: table, error: tableError } = await createAdminClient().from("menu_tables")
       .select("id").eq("menu_site_id", menuId).eq("status", "active").limit(1).maybeSingle();
     if (tableError) throw new Error("테이블 상태를 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.");
-    if (!table) throw new Error("활성 테이블을 먼저 준비해 주세요. 테이블 관리에서 등록·활성화할 수 있습니다.");
+    if (!table) throw new Error("활성 테이블 또는 키오스크를 먼저 준비해 주세요. 테이블·키오스크 관리에서 등록·활성화할 수 있습니다.");
   }
   const root =
     site.settings &&
@@ -120,6 +138,7 @@ async function writeMenuOrderSettings(
     .update({ settings: { ...root, table_order: next } as Json })
     .eq("id", menuId)
     .eq("user_id", context.actorUserId);
+  if (enabled) query = query.eq("status", "published");
   query = site.updated_at
     ? query.eq("updated_at", site.updated_at)
     : query.is("updated_at", null);

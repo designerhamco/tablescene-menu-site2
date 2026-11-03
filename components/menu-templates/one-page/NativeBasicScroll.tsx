@@ -260,7 +260,8 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
     return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); copyObserver.disconnect(); logo.removeEventListener("load", schedule); document.fonts.removeEventListener("loadingdone", schedule); root.style.removeProperty("--cafe-a-header-copy-height"); };
   }, [top, data.menuSite.logo_url]);
   const noticeNode = !top && !center && notices.length ? <div className={`${styles.notices} cafe-a-menu-description cafe-a-description-text`} data-native-notices>{notices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>)}</div> : null;
-  const dock = showCall || showOrder ? <footer className={styles.actions} data-native-actions data-call-only={showCall && !showOrder ? "true" : undefined} aria-label={t("메뉴 이용")}>
+  const dock = showCall || showOrder || call.terminalConnected ? <footer className={styles.actions} data-native-actions data-call-only={showCall && !showOrder ? "true" : undefined} aria-label={t("메뉴 이용")}>
+    {call.terminalConnected ? <span className={styles.tableLabel} data-terminal-table-label title={call.tableLabel}>{call.tableLabel}</span> : null}
     {showCall ? <button type="button" className={styles.call} onClick={call.openCall} aria-label={t("직원 호출하기")}><StaffCallIcon strokeWidth={1.8} /><ScriptAwareText text={t("호출하기")} /></button> : null}
     {showOrder ? <button type="button" className={styles.order} onClick={call.openCart} aria-label={t("주문하기, 장바구니 {0}개", call.cartCount ?? 0)}><ShoppingCart strokeWidth={1.8} /><ScriptAwareText text={t("주문하기")} />{(call.cartCount ?? 0) > 0 ? <span>({call.cartCount})</span> : null}</button> : null}
   </footer> : null;

@@ -6,8 +6,8 @@ const POLL_MS = 5000;
 type State = {scope: string; orders: CustomerOrderSnapshot[]; hasMore: boolean; loading: boolean; error: string; pendingId: string | null};
 const empty: State = {scope: "", orders: [], hasMore: false, loading: false, error: "", pendingId: null};
 /** Poll only while the live history is visible. Preview storage never makes these requests. */
-export function useCustomerOrderHistory(menuSiteId: string, cartScope: string, enabled: boolean) {
-  const scope = `${menuSiteId}:${cartScope}`;
+export function useCustomerOrderHistory(menuSiteId: string, cartScope: string, enabled: boolean, receiptId?: string | null) {
+  const scope = `${menuSiteId}:${cartScope}:${receiptId ?? ""}`;
   const [state, setState] = useState<State>(empty);
   const [revision, setRevision] = useState(0);
   const pending = useRef(false);
@@ -24,7 +24,7 @@ export function useCustomerOrderHistory(menuSiteId: string, cartScope: string, e
       controller?.abort(); controller = new AbortController();
       setState(current => ({...(current.scope === scope ? current : empty), scope, loading: true}));
       try {
-        const res = await fetch(`/api/public-menu/orders?${new URLSearchParams({menuSiteId})}`, {cache: "no-store", signal: controller.signal, credentials: "same-origin"});
+        const res = await fetch(`/api/public-menu/orders?${new URLSearchParams({menuSiteId, ...(receiptId ? {receiptId} : {})})}`, {cache: "no-store", signal: controller.signal, credentials: "same-origin"});
         const body = await res.json();
         terminal = res.status === 401 || res.status === 403;
         if (!res.ok || !body.ok) throw new Error(res.status === 401 ? "테이블 방문 세션이 만료되었습니다." : "주문내역을 불러오지 못했습니다.");
@@ -40,7 +40,7 @@ export function useCustomerOrderHistory(menuSiteId: string, cartScope: string, e
     queueMicrotask(() => {if (!disposed) void read();});
     document.addEventListener("visibilitychange", resume); window.addEventListener("focus", resume);
     return () => {disposed = true; clearTimeout(timer); controller?.abort(); document.removeEventListener("visibilitychange", resume); window.removeEventListener("focus", resume);};
-  }, [enabled, menuSiteId, scope, revision]);
+  }, [enabled, menuSiteId, scope, revision, receiptId]);
   async function cancel(id: string): Promise<string> {
     if (pending.current || !enabled) return "";
     pending.current = true;

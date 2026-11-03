@@ -4,6 +4,7 @@ import test from "node:test";
 import ts from "typescript";
 import { MenuSiteAccessError } from "./menu-site-permissions";
 import { parseMenuItemOrderConfiguration } from "./menu-order-configuration";
+import { DEFAULT_MENU_ORDER_SETTINGS } from "./menu-order-settings";
 import { isStoreOperationsTemplate } from "./operations-dashboard";
 
 // Execute the real server modules with isolated auth/database adapters. No network or customer writes.
@@ -72,8 +73,9 @@ test("다른 창의 상품 변경, 미설정 가격, 직원 권한은 옵션 저
   await assert.rejects(raced.service.saveMenuItemOrderConfiguration(menuId, configuration), /다른 창/);
 });
 
-function settingsPage({ owner = true, live = false, authError = null as Error | null } = {}) {
+function settingsPage({ owner = true, live = false, authError = null as Error | null, pointFailure = false, tablesReady = true, devicePermission = false, orderReadPermission = false } = {}) {
   const ownerReads: string[] = [];
+  const pointReads: string[] = [];
   const requiredPermissions: string[] = [];
   const service = serverModule<typeof import("./server/operation-settings-page")>("lib/server/operation-settings-page.ts", {
     "server-only": {},
@@ -82,10 +84,17 @@ function settingsPage({ owner = true, live = false, authError = null as Error | 
     "@/lib/product-focus-policy": { isStoreOperationsAvailable: () => true },
     "@/lib/operations-dashboard": { isStoreOperationsTemplate },
     "./menu-site-access-service": { requireMenuSitePermission: async (_id: string, permission: string) => { requiredPermissions.push(permission); if (authError) throw authError; return { isOwner: owner }; } },
-    "./menu-order-settings-service": { loadMenuOrderSettings: async (id: string) => { ownerReads.push(id); return { settings: {} }; } },
-    "./store-operations-context": { getStoreOperationsContext: async () => ({ sites: [{ menuSiteId: menuId, isOwner: owner, templateKey: "cafe_design_a", operationAccess: { orders: live, calls: live } }] }) },
+    "@/lib/menu-order-settings": { DEFAULT_MENU_ORDER_SETTINGS },
+    "./menu-order-settings-service": { loadOperationReceptionSummary: async () => ({ callEnabled: true, orderEnabled: null, runtime: { calls: true, orders: false } }), loadMenuOrderSettings: async (id: string) => { ownerReads.push(id); return { settings: {} }; } },
+    "./order-point-device-settings": { loadOrderPointDeviceSettings: async () => null },
+    "./menu-table-management-service": { listMenuTables: async (id: string) => {
+      pointReads.push(id);
+      if (pointFailure) throw new Error("Database unavailable");
+      return { tables: [{ id: itemId, label: "1번 테이블", status: "active", kind: "table", policyAvailable: true, policy: { terminalOrderEnabled: false }, qrPath: "/private-qr-url", access_token_hash: "must-not-leak" }] };
+    } },
+    "./store-operations-context": { getStoreOperationsContext: async () => ({ sites: [{ menuSiteId: menuId, isOwner: owner, permissions: devicePermission ? ["menu.read", "table.manage"] : orderReadPermission ? ["menu.read", "order.read"] : [], tableSetupAvailable: tablesReady, templateKey: "cafe_design_a", operationAccess: { orders: live, calls: live } }] }) },
   });
-  return { service, ownerReads, requiredPermissions };
+  return { service, ownerReads, pointReads, requiredPermissions };
 }
 
 test("사장은 운영 연결 전에도 주문·호출을 준비하고 call.manage 직원은 기존 호출 항목만 관리한다", async () => {
@@ -96,8 +105,30 @@ test("사장은 운영 연결 전에도 주문·호출을 준비하고 call.mana
   assert.equal((await staff.service.loadOperationSettingsPage(menuId, "calls")).data, null);
   assert.deepEqual(staff.requiredPermissions, ["call.manage"]);
   assert.deepEqual(staff.ownerReads, []);
+  assert.deepEqual(staff.pointReads, []);
   await assert.rejects(staff.service.loadOperationSettingsPage(menuId, "orders"), /permission-denied/);
   assert.deepEqual(staff.ownerReads, []);
+});
+
+test("두 기능 설정은 같은 등록 정보를 읽되 QR 주소·원본 자격 정보는 전달하지 않는다", async () => {
+  const owner = settingsPage();
+  const orders = await owner.service.loadOperationSettingsPage(menuId, "orders");
+  const calls = await owner.service.loadOperationSettingsPage(menuId, "calls");
+  assert.deepEqual(orders.points, calls.points);
+  assert.equal(orders.points?.[0].id, itemId);
+  assert.deepEqual(orders.points?.[0].policy, { terminalOrderEnabled: false });
+  assert.deepEqual(owner.pointReads, [menuId, menuId]);
+  assert.doesNotMatch(JSON.stringify(orders.points), /qrPath|access_token|must-not-leak/);
+});
+
+test("개별 설정 조회 실패·테이블 관리 제한은 빈 목록이나 기본 허용 상태로 표시하지 않는다", async () => {
+  for (const options of [{ pointFailure: true }, { tablesReady: false }]) {
+    const f = settingsPage(options);
+    const page = await f.service.loadOperationSettingsPage(menuId, "orders");
+    assert.ok(page.data);
+    assert.equal(page.points, null);
+    if (options.tablesReady === false) assert.deepEqual(f.pointReads, []);
+  }
 });
 
 test("비연결 직원과 미로그인·권한 없는 직접 URL은 설정 조회 전에 차단한다", async () => {
@@ -108,4 +139,43 @@ test("비연결 직원과 미로그인·권한 없는 직접 URL은 설정 조�
     await assert.rejects(fixture.service.loadOperationSettingsPage(menuId, "orders"), code === "AUTH_REQUIRED" ? /redirect:\/sign-in\?next=/ : /permission-denied/);
     assert.deepEqual(fixture.ownerReads, []);
   }
+});
+
+test("테이블 관리 권한이 있는 직원은 이동한 기기 연결을 유지하되 사장 전용 설정은 읽지 않는다", async () => {
+  const staff = settingsPage({ owner: false, live: false, devicePermission: true });
+  for (const feature of ["orders", "calls"] as const) {
+    const page = await staff.service.loadOperationSettingsPage(menuId, feature);
+    assert.equal(page.data, null); assert.equal(page.canManageDevices, true); assert.equal(page.points?.[0].id, itemId);
+    assert.equal(page.pointSettings.orderEnabled, null); assert.equal(page.pointSettings.callEnabled, true);
+  }
+  assert.deepEqual(staff.ownerReads, []); assert.deepEqual(staff.pointReads, [menuId, menuId]);
+});
+
+
+test("호출 항목 탭은 전체 설정과 기기 목록을 읽지 않는다", async () => {
+  const owner = settingsPage();
+  const result = await owner.service.loadOperationSettingsPage(menuId, "calls", { includeConfiguration: false });
+  assert.equal(result.data, null);
+  assert.equal(result.points, null);
+  assert.equal(result.deviceSetup, null);
+  assert.deepEqual(owner.ownerReads, []);
+  assert.deepEqual(owner.pointReads, []);
+});
+
+test("주문 내역 직원은 자기 브라우저 알림 설정에 접근하되 사장 설정은 읽지 않는다", async () => {
+  const staff = settingsPage({ owner: false, live: true, orderReadPermission: true });
+  const page = await staff.service.loadOperationSettingsPage(menuId, "orders");
+  assert.equal(page.data, null);
+  assert.equal(page.points, null);
+  assert.equal(page.canManageDevices, false);
+  assert.deepEqual(staff.ownerReads, []);
+  assert.deepEqual(staff.pointReads, []);
+});
+
+
+test("일반 주문 설정은 기기별 목록·연결을 조회하지 않는다", async () => {
+  const owner = settingsPage();
+  const page = await owner.service.loadOperationSettingsPage(menuId, "orders", { includeDevices: false });
+  assert.ok(page.data); assert.equal(page.points, null); assert.equal(page.deviceSetup, null);
+  assert.deepEqual(owner.pointReads, []);
 });

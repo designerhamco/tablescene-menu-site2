@@ -15,6 +15,8 @@ import {
 
 import { initialCallItemActionState } from "./action-state";
 import { saveCallItemsAction } from "./actions";
+import { ContentPanel } from "@/app/components/ui/content-panel";
+import { Switch } from "@/app/components/ui/switch";
 import { Badge } from "@/app/components/ui/badge";
 
 export default function CallItemManager({
@@ -61,23 +63,23 @@ export default function CallItemManager({
   const serializedItems = JSON.stringify(draft.map((item, sortOrder) => ({ ...item, sortOrder })));
 
   return (
-    <section className="site-section p-5 md:p-6">
+    <ContentPanel>
       <ActionFeedbackToast
         message={state.message}
         tone={state.status === "success" ? "success" : "error"}
         eventKey={state}
       />
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-        <div>
-          <h2 className="type-subsection-title">호출 항목 설정</h2>
-          <p className="mt-2 max-w-2xl break-keep text-copy font-medium leading-relaxed text-zinc-500">
+      <div className="site-content-heading-row">
+        <div className="site-stack-title">
+          <h3 className="type-subsection-title">호출 항목 설정</h3>
+          <p className="type-body-sm site-copy-muted">
             손님이 한 번에 선택할 요청 항목을 최대 {MAX_STAFF_CALL_ITEMS}개까지 정합니다. 기본 항목을 불러와도 저장하기 전에는 반영되지 않습니다. 이전 호출 이력의 항목명은 그대로 보존됩니다.
           </p>
           {draft.length > MAX_STAFF_CALL_ITEMS ? (
-            <p className="mt-2 text-support font-medium text-amber-700">기존 항목을 {MAX_STAFF_CALL_ITEMS}개 이하로 줄인 뒤 저장해 주세요.</p>
+            <p className="type-body-sm site-copy-muted">기존 항목을 {MAX_STAFF_CALL_ITEMS}개 이하로 줄인 뒤 저장해 주세요.</p>
           ) : null}
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="site-action-row">
         <button type="button" disabled={pending} onClick={() => setDraft(getServiceStaffCallItems(service))} className="site-button site-button-secondary">
           기본 항목 불러오기
         </button>
@@ -85,7 +87,7 @@ export default function CallItemManager({
           type="button"
           onClick={addItem}
           disabled={pending || draft.length >= MAX_STAFF_CALL_ITEMS}
-          className="site-button site-button-outline inline-flex items-center justify-center"
+          className="site-button site-button-outline"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
           항목 추가
@@ -93,33 +95,31 @@ export default function CallItemManager({
         </div>
       </div>
 
-      <form action={action} className="mt-5 space-y-3">
-        <fieldset disabled={pending} className="space-y-3">
+      <form action={action} className="site-stack-block">
+        <fieldset disabled={pending} className="site-stack-block">
         <input type="hidden" name="menuSiteId" value={menuSiteId} />
         <input type="hidden" name="itemsJson" value={serializedItems} />
         {draft.map((item, index) => (
-          <div key={item.key} className="site-section grid gap-3 p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto_auto] sm:items-center">
+          <ContentPanel key={item.key} surface="muted"><div className="site-form-row">
             <Badge>{index + 1}</Badge>
-            <label className="text-support font-medium text-zinc-600">
+            <label className="site-field-stack type-label">
               항목 이름
               <input
                 value={item.label}
                 onChange={(event) => updateItem(index, { label: event.target.value })}
                 required
                 maxLength={MAX_STAFF_CALL_ITEM_LABEL_LENGTH}
-                className="site-field mt-1.5 w-full border-zinc-200 px-3 py-2.5 text-zinc-950"
+                className="site-field w-full"
               />
             </label>
-            <label className="flex items-center gap-2 text-support font-medium text-zinc-700">
-              <input
-                type="checkbox"
+            <label className="site-action-row type-label">
+              <Switch
                 checked={item.active}
-                onChange={(event) => updateItem(index, { active: event.target.checked })}
-                className="h-4 w-4 accent-zinc-950"
+                onCheckedChange={active => updateItem(index, { active })}
               />
               사용
             </label>
-            <div className="flex items-center justify-end gap-1">
+            <div className="site-action-row">
               <button type="button" onClick={() => moveItem(index, -1)} disabled={index === 0} className="site-button site-button-ghost site-button-icon" aria-label={`${item.label} 위로 이동`}>
                 <ArrowUp className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -130,22 +130,18 @@ export default function CallItemManager({
                 <Trash2 className="h-4 w-4" aria-hidden="true" />
               </button>
             </div>
-          </div>
+          </div></ContentPanel>
         ))}
 
-        {state.status !== "idle" && state.message ? (
-          <p className={`site-notice   px-4 py-3 text-copy font-medium ${state.status === "success" ? "site-notice-success" : "site-notice-error"}`} role="status">
-            {state.message}
-          </p>
-        ) : null}
+        {state.status !== "idle" && state.message ? <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm" role="status">{state.message}</p></ContentPanel> : null}
 
-        <div className="flex justify-end pt-2">
+        <div className="site-action-row">
           <button type="submit" disabled={pending} className="site-button site-button-primary">
             {pending ? "저장 중" : "호출 항목 저장"}
           </button>
         </div>
         </fieldset>
       </form>
-    </section>
+    </ContentPanel>
   );
 }

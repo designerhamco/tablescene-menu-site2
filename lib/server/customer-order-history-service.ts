@@ -36,11 +36,12 @@ function rpcError(error: {message?: string; code?: string}, mutation: boolean): 
   if (error.message?.includes("ORDER_VISIT_NOT_CANCELLABLE")) throw new CustomerOrderHistoryError("CONFLICT", "이미 접수되었거나 결제된 주문은 취소할 수 없습니다. 직원에게 문의해 주세요.", 409);
   throw new CustomerOrderHistoryError(mutation ? "UPDATE_FAILED" : "READ_FAILED", mutation ? "주문을 취소하지 못했습니다." : "주문내역을 불러오지 못했습니다.", 503);
 }
-export async function listCustomerVisitOrders({menuSiteId: value, tableSession}: {menuSiteId: unknown; tableSession: Visit}) {
+export async function listCustomerVisitOrders({menuSiteId: value, tableSession, receiptId}: {menuSiteId: unknown; tableSession: Visit; receiptId?: unknown}) {
   const menuSiteId = normalizedId(value), db = await requireVisitAccess(menuSiteId, tableSession);
+  if (tableSession.pointKind === "kiosk" && !isUuid(receiptId)) return { orders: [], hasMore: false };
   const {data,error} = await db.rpc("list_visit_customer_orders", {p_menu_site_id: menuSiteId, p_table_visit_session_id: tableSession.id});
   if (error) rpcError(error, false);
-  try { return parseCustomerOrderHistory(data); } catch { throw new CustomerOrderHistoryError("READ_FAILED", "주문내역을 불러오지 못했습니다.", 503); }
+  try { const history = parseCustomerOrderHistory(data); return tableSession.pointKind === "kiosk" ? { orders: history.orders.filter(order => order.id === receiptId), hasMore: false } : history; } catch { throw new CustomerOrderHistoryError("READ_FAILED", "주문내역을 불러오지 못했습니다.", 503); }
 }
 export async function cancelCustomerVisitOrder({menuSiteId: value, orderId: orderValue, tableSession}: {menuSiteId: unknown; orderId: unknown; tableSession: Visit}) {
   const menuSiteId = normalizedId(value), orderId = normalizedId(orderValue), db = await requireVisitAccess(menuSiteId, tableSession);

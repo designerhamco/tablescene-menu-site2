@@ -47,6 +47,8 @@ export default function FormAndCardExamples() {
       <div className={styles.heading}><h2 className="type-section-title">작은 안내와 팝업 글자</h2><p className="type-body text-zinc-600">페이지 본문과 구분해 작은 안내는 13px, 팝업 본문은 14px, 팝업 제목은 18px로 사용합니다.</p></div>
       <p className="type-footnote text-zinc-600">입력한 정보는 문의 답변에 사용됩니다. 자세한 내용은 개인정보 처리방침을 확인해 주세요.</p>
       <Dialog><DialogTrigger asChild><Button variant="outline">팝업 글자 확인</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>안내를 확인해 주세요</DialogTitle><DialogDescription>팝업 본문은 페이지 본문보다 작은 공통 읽기 크기를 사용합니다.</DialogDescription></DialogHeader><p className="type-body">설명과 선택에 필요한 내용을 간결하게 표시합니다.</p><p className="type-footnote text-zinc-600">작은 안내는 13px·보통 굵기로 통일합니다.</p></DialogContent></Dialog>
+      <Dialog><DialogTrigger asChild><Button variant="outline">긴 확인창 스크롤</Button></DialogTrigger><DialogContent scrollable><DialogHeader reserveCloseButton><DialogTitle>전체 내용을 확인해 주세요</DialogTitle><DialogDescription>짧은 화면에서도 제목과 확인 내용을 스크롤해 읽을 수 있습니다.</DialogDescription></DialogHeader><div className="site-stack-block">{Array.from({ length: 8 }, (_, index) => <p key={index} className="type-body">{index + 1}. 중요한 내용은 공통 본문 크기로 유지합니다. 긴 안내와 선택 항목은 창 안에서 스크롤하며 확인합니다.</p>)}</div></DialogContent></Dialog>
+
     </section>
   </>;
 }

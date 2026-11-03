@@ -45,7 +45,7 @@ test("owner and manager access requires runtime availability", () => {
     pickupQueueEnabled: false,
   });
 
-  assert.deepEqual(ownerAccess, { orders: true, calls: true, tables: true, sales: false, pickup: false });
+  assert.deepEqual(ownerAccess, { orders: true, calls: true, tables: true, sales: true, pickup: false });
   assert.deepEqual(managerAccess, ownerAccess);
   assert.equal(hasAvailableStoreOperation(ownerAccess), true);
 });
@@ -153,4 +153,12 @@ test("Display 메뉴판의 대기번호 운영도 닫는다", () => {
     sales: false,
     pickup: false,
   });
+});
+
+test("매출 조회는 sales.read와 주문 런타임이 필요하며 주문 조회 권한과 분리된다", () => {
+  const input = { accessRole: "manager" as const, templateKey: "cafe_design_a", orderDashboardEnabled: true, tableManagementEnabled: true, callManagementEnabled: true, pickupQueueEnabled: false };
+  const salesOnly = getStoreOperationAccess({ ...input, permissions: ["menu.read", "sales.read"] });
+  assert.equal(salesOnly.sales, true); assert.equal(salesOnly.orders, false);
+  assert.equal(getStoreOperationAccess({ ...input, permissions: ["menu.read", "order.read"] }).sales, false);
+  assert.equal(getStoreOperationAccess({ ...input, orderDashboardEnabled: false }).sales, false);
 });

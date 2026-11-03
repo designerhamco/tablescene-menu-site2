@@ -1,3 +1,4 @@
+import { loadOrderPointDeviceSettings } from "@/lib/server/order-point-device-settings";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
@@ -9,11 +10,6 @@ import { MenuTableManagementError } from "@/lib/server/menu-table-management-ser
 import { getStoreOperationsContext } from "@/lib/server/store-operations-context";
 import MenuTableManager from "./MenuTableManager";
 import { ContentPanel } from "@/app/components/ui/content-panel";
-import { cookies, headers } from "next/headers";
-import { getCurrentTableTerminalId } from "@/lib/server/table-terminal-service";
-import { TABLE_VISIT_SESSION_COOKIE } from "@/lib/table-qr-session-tokens";
-import { getConfiguredPublicMenuOrigin } from "@/lib/menu-url";
-
 export const metadata: Metadata = {
   title: "테이블 관리 | 아티메뉴",
   robots: { index: false, follow: false },
@@ -33,8 +29,6 @@ export default async function MenuTableManagementPage({ params }: { params: Prom
   const selectedSite = operationsContext.sites.find((site) => site.menuSiteId === menuId) ?? null;
   if (!selectedSite || !selectedSite.permissions.includes("table.manage")) redirect("/mypage/operations");
   let data = null;
-  let connectedTableId: string | null = null;
-  let connectionStatusAvailable = true;
   try {
     if (selectedSite.tableSetupAvailable) data = await listMenuTables(menuId, { includeArchived: true });
   } catch (error) {
@@ -52,28 +46,19 @@ export default async function MenuTableManagementPage({ params }: { params: Prom
     throw error;
   }
 
-  if (data) {
-    const [cookieStore, requestHeaders] = await Promise.all([cookies(), headers()]);
-    try {
-      connectedTableId = await getCurrentTableTerminalId(menuId, cookieStore.get(TABLE_VISIT_SESSION_COOKIE)?.value, requestHeaders.get("user-agent") ?? "");
-    } catch {
-      connectionStatusAvailable = false;
-    }
-  }
-
+  const deviceState = data?.tables.length ? await loadOrderPointDeviceSettings(menuId) : null;
+  const connectionState = { available: deviceState?.connectionsAvailable ?? true, connections: deviceState?.connections.map(({ tableId, device }) => ({ tableId, device })) ?? [] };
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="tables">
       <div className="site-stack-content">
         <header className="site-stack-title">
           <p className="type-label text-zinc-500">{selectedSite.name}</p>
-          <h2 className="type-subsection-title">테이블 관리</h2>
-          <p className="type-body-sm site-copy-muted">테이블을 등록·활성화한 뒤 주문과 호출 사용 여부를 각각 설정해 주세요.</p>
+          <h2 className="type-subsection-title">테이블·키오스크 관리</h2>
+          <p className="type-body-sm site-copy-muted">테이블과 키오스크를 등록하고, 이름·상태와 보관 목록을 관리합니다.</p>
         </header>
         {data ? (
-          <MenuTableManager menuSiteId={data.menuSite.id}
-            tables={data.tables.map(({ id, label, status, qrPath }) => ({ id, label, status, qrPath: selectedSite.canManageQr ? qrPath : undefined }))}
-            archivedTables={data.archivedTables} connectedTableId={connectedTableId} connectionStatusAvailable={connectionStatusAvailable}
-            publicBaseUrl={getConfiguredPublicMenuOrigin()} menuPublished={data.menuSite.status === "published"} />
+          <MenuTableManager key={menuId} menuSiteId={data.menuSite.id} tables={data.tables.map(({ id, label, status, kind }) => ({ id, label, status, kind }))}
+            archivedTables={data.archivedTables} pointSettingsAvailable={data.pointSettingsAvailable} canDelete={selectedSite.isOwner} connectionState={connectionState} />
         ) : (
           <ContentPanel>
             <div className="site-stack-title">

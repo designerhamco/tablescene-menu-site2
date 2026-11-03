@@ -114,3 +114,15 @@ ON/OFF 스위치는 [디자인 시스템의 스위치 계약](site-design-system
 
 
 새 페이지 기본 틀·자동 검사·레거시 이전 원칙은 [자동 적용과 회귀 방지](site-system-enforcement.md)를 따른다. 공지사항은 큰 FAQ 검색 영역 대신 공통 BoardList와 목록 상단의 작은 검색 도구를 사용한다.
+
+
+## 새로고침·알림 제어 (2026-11-03)
+
+- `app/components/ui/refresh-button.tsx`의 RefreshButton을 목록/대시보드/기기 조회에 재사용한다. Button outline + icon 크기, RefreshCw, 기본 ‘새로고침’/맥락별 label, Tooltip, aria-busy를 공유한다. loading은 중복 클릭을 막고 motion-safe 회전을 사용한다. 타일 여백 제거 규칙은 표시 아이콘에만 적용되며 이 조작 버튼의 클릭/포커스 영역은 유지한다.
+- 공통 Slider의 aria-label/aria-labelledby/aria-describedby는 실제 조작 thumb에도 전달한다. 페이지별 슬라이더 크기나 숫자 글자 규칙을 추가하지 않는다.
+- AlertDialogAction은 Button의 semantic variant를 받을 수 있다. 되돌릴 수 없는 등록 삭제 확인은 destructive variant를 쓰고, 취소·Escape·초점 복원을 유지한다. 운영 이력이 있는 등록은 서버에서도 삭제하지 않는다.
+
+
+### 긴 확인창 (2026-11-03)
+
+공통 DialogContent의 `scrollable`은 화면 높이에서 공유 `--site-space-content` 여백을 뺀 범위 안에서 읽고 스크롤하게 한다. 긴 삭제 범위·경고·확인 입력을 페이지별 고정 높이나 별도 글자 축소로 맞추지 않는다. DialogHeader의 `reserveCloseButton`으로 닫기 버튼과 제목의 영역을 분리하며 포커스 제한·Escape·원래 버튼 복귀를 유지한다.

@@ -5,10 +5,13 @@ import ts from "typescript";
 import * as tokens from "./table-qr-session-tokens";
 import { normalizeMenuTableId } from "./menu-table-validation";
 import { getPublicMenuPath } from "./menu-url";
+import * as deviceInfo from "./terminal-device-info";
+import { isPaidTableOperationsEligible } from "./table-operations-eligibility";
 
 const menuId = "11111111-1111-4111-8111-111111111111";
 const tableId = "22222222-2222-4222-8222-222222222222";
 const otherTableId = "33333333-3333-4333-8333-333333333333";
+const connectionId = "44444444-4444-4444-8444-444444444444";
 const token = "a".repeat(43), userAgent = "Test tablet browser";
 function moduleWith<T>(path: string, dependencies: Record<string, unknown>): T {
   const code = ts.transpileModule(readFileSync(new URL(`../${path}`, import.meta.url), "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
@@ -16,17 +19,21 @@ function moduleWith<T>(path: string, dependencies: Record<string, unknown>): T {
   new Function("require", "module", "exports", code)((name: string) => { assert.ok(name in dependencies, name); return dependencies[name]; }, loaded, loaded.exports);
   return loaded.exports as T;
 }
-function serviceFixture({ channel = "terminal", expired = false, revoked = false, denied = false, published = true, fail = false } = {}) {
-  const row: Record<string, unknown> = { id: "session", menu_site_id: menuId, menu_table_id: tableId, token_hash: tokens.hashTableAccessToken(token), user_agent_hash: tokens.hashTableVisitUserAgent(userAgent), access_channel: channel, revoked_at: revoked ? "2020-01-01" : null, expires_at: expired ? "2020-01-01" : "2099-01-01" };
+function serviceFixture({ channel = "terminal", expired = false, revoked = false, denied = false, published = true, fail = false, eligible = true, missingMetadata = false, missingRpc = false } = {}) {
+  const row: Record<string, unknown> = { id: connectionId, menu_site_id: menuId, menu_table_id: tableId, token_hash: tokens.hashTableAccessToken(token), user_agent_hash: tokens.hashTableVisitUserAgent(userAgent), access_channel: channel, revoked_at: revoked ? "2020-01-01" : null, expires_at: expired ? "2020-01-01" : "2099-01-01", created_at: "2026-11-01", device_info: { kind: "태블릿", os: "iPadOS 27.0.1", model: "iPad Pro 11", browser: "Safari" } };
   const filters: [string, string, unknown][] = [], writes: unknown[] = [], permissions: unknown[] = [];
   let reads = 0;
+  const registrations: Array<[string, Record<string, unknown>]> = [];
   const db = { from(name: string) {
-    if (name === "menu_sites") return { select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: { slug: "store", status: published ? "published" : "draft" }, error: null }; } };
+    if (name === "menu_sites") return { select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: { slug: "store", status: published ? "published" : "draft", template_key: "cafe_design_a" }, error: null }; } };
+    if (name === "menu_tables") return { select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: { id: tableId, status: "active" }, error: null }; } };
     assert.equal(name, "table_visit_sessions"); reads++;
     const scoped: [string, string, unknown][] = [];
     let mutation: unknown;
+    let columns = "";
     const query = {
-      select() { return this; },
+      select(value: string) { columns = value; return this; },
+      order() { return this; }, limit() { return this; },
       update(value: unknown) { mutation = value; return this; },
       eq(key: string, value: unknown) { scoped.push(["eq", key, value]); filters.push(["eq", key, value]); return this; },
       is(key: string, value: unknown) { scoped.push(["eq", key, value]); filters.push(["eq", key, value]); return this; },
@@ -34,24 +41,45 @@ function serviceFixture({ channel = "terminal", expired = false, revoked = false
       async maybeSingle() {
         const match = scoped.every(([op, key, value]) => op === "gt" ? String(row[key]) > String(value) : row[key] === value);
         if (mutation && match && !fail) writes.push(mutation);
-        return { data: match ? { id: row.id, menu_table_id: row.menu_table_id } : null, error: fail ? { message: "query failed" } : null };
+        return { data: match ? row : null, error: fail ? { message: "query failed" } : null };
+      },
+      then(resolve: (value: unknown) => unknown) {
+        const match = scoped.every(([op, key, value]) => op === "gt" ? String(row[key]) > String(value) : row[key] === value);
+        const error = fail ? { code: "08006", message: "query failed" } : missingMetadata && columns.includes("device_info") ? { code: "42703", message: "device_info missing" } : null;
+        const data = match ? [{ ...row, ...(missingMetadata ? { device_info: undefined } : {}) }] : [];
+        return Promise.resolve(resolve({ data, error, count: data.length }));
       },
     };
     return query;
+  }, async rpc(name: string, args: Record<string, unknown>) {
+    registrations.push([name, args]);
+    return { data: connectionId, error: fail ? { code: "42501" } : missingRpc && name.endsWith("with_device") ? { code: "PGRST202" } : null };
   } };
   const service = moduleWith<typeof import("./server/table-terminal-service")>("lib/server/table-terminal-service.ts", {
     "server-only": {}, "@/lib/supabase/admin": { createAdminClient: () => db },
     "@/lib/server/menu-site-access-service": {
       requireMenuSitePermission: async (...args: unknown[]) => { permissions.push(args); if (denied) throw new Error("permission denied"); },
       requireMenuSiteWriteAccess: async (...args: unknown[]) => { permissions.push(args); if (denied) throw new Error("permission denied"); },
-      getMenuSiteAccessStateForMenuSite: async () => ({ canUseWriteActions: true, canViewPublic: true, planType: "business_basic" }),
+      getMenuSiteAccessStateForMenuSite: async () => ({ canEdit: eligible, canUseWriteActions: eligible, canViewPublic: true, planType: "business_basic" }),
     },
     "@/lib/table-management-runtime": { isTableManagementRuntimeEnabledForSite: () => true },
     "@/lib/menu-table-management": { normalizeMenuTableId }, "@/lib/table-qr-session-tokens": tokens,
     "@/lib/menu-url": { getPublicMenuPath },
+    "@/lib/terminal-device-info": deviceInfo, "@/lib/table-operations-eligibility": { isPaidTableOperationsEligible },
   });
-  return { service, filters, writes, permissions, reads: () => reads };
+  return { service, filters, writes, permissions, registrations, reads: () => reads };
 }
+
+test("새 연결은 정리한 기기 정보를 등록하며 SQL 미적용 때만 기존 등록 RPC로 호환한다", async () => {
+  const f = serviceFixture();
+  const registered = await f.service.registerTableTerminal(menuId, tableId, userAgent, token, { kind: "태블릿", os: "iPadOS 27", model: "iPad Pro 11", browser: "Safari", credential: "drop" });
+  assert.match(registered.path, /mode=terminal/); assert.equal(f.registrations.length, 1);
+  assert.deepEqual(f.registrations[0][1].p_device_info, { kind: "태블릿", os: "iPadOS 27", model: "iPad Pro 11", browser: "Safari" });
+  assert.equal(f.registrations[0][1].p_previous_token_hash, tokens.hashTableAccessToken(token));
+  const legacy = serviceFixture({ missingRpc: true }); await legacy.service.registerTableTerminal(menuId, tableId, userAgent);
+  assert.deepEqual(legacy.registrations.map(row => row[0]), ["register_table_terminal_visit_with_device", "register_table_terminal_visit"]);
+  const failed = serviceFixture({ fail: true }); await assert.rejects(failed.service.registerTableTerminal(menuId, tableId, userAgent)); assert.equal(failed.registrations.length, 1);
+});
 
 test("현재 태블릿 상태 조회는 유효한 동일 매장·기기 terminal 연결만 반환하며 세션을 갱신하지 않는다", async () => {
   const f = serviceFixture();
@@ -80,6 +108,29 @@ test("연결 해제는 현재 기기의 선택한 테이블만 대상으로 하�
   }
 });
 
+test("기기 목록은 매장 terminal만 반환하고 인증값을 노출하지 않으며 이전 연결도 보존한다", async () => {
+  const f = serviceFixture();
+  const list = await f.service.listTableTerminalConnections(menuId, token, userAgent);
+  assert.equal(list.length, 1); assert.equal(list[0].current, true); assert.equal(list[0].device?.model, "iPad Pro 11");
+  assert.doesNotMatch(JSON.stringify(list), /token_hash|user_agent_hash|expires_at/);
+  assert.equal((await f.service.listTableTerminalConnections(menuId, undefined, userAgent))[0].current, false);
+  assert.equal((await serviceFixture({ missingMetadata: true }).service.listTableTerminalConnections(menuId, token, userAgent))[0].device, null);
+  for (const options of [{ channel: "customer" }, { expired: true }, { revoked: true }]) assert.deepEqual(await serviceFixture(options).service.listTableTerminalConnections(menuId, token, userAgent), []);
+  for (const options of [{ denied: true }, { eligible: false }, { fail: true }]) await assert.rejects(serviceFixture(options).service.listTableTerminalConnections(menuId, token, userAgent));
+  assert.deepEqual(f.writes, []);
+});
+
+test("다른 기기의 연결 해제는 지정 매장·테이블·terminal 한 건만 바꾸고 현재 기기 여부를 구분한다", async () => {
+  const f = serviceFixture();
+  assert.deepEqual(await f.service.revokeTableTerminalConnection(menuId, tableId, connectionId, undefined, "PC browser"), { current: false });
+  assert.equal(f.writes.length, 1);
+  const current = serviceFixture({ published: false });
+  assert.deepEqual(await current.service.revokeTableTerminalConnection(menuId, tableId, connectionId, token, userAgent), { current: true });
+  for (const [options, target, selected] of [[{}, otherTableId, connectionId], [{}, tableId, otherTableId], [{ channel: "customer" }, tableId, connectionId], [{ expired: true }, tableId, connectionId], [{ revoked: true }, tableId, connectionId], [{ denied: true }, tableId, connectionId], [{ eligible: false }, tableId, connectionId]] as const) {
+    const bad = serviceFixture(options); await assert.rejects(bad.service.revokeTableTerminalConnection(menuId, target, selected, token, userAgent)); assert.deepEqual(bad.writes, []);
+  }
+});
+
 test("메뉴판 열기는 선택한 테이블 연결과 공개 상태를 다시 확인한다", async () => {
   const f = serviceFixture();
   assert.equal(await f.service.getTableTerminalMenuPath(menuId, tableId, token, userAgent), "/menu/store?mode=terminal");
@@ -88,7 +139,7 @@ test("메뉴판 열기는 선택한 테이블 연결과 공개 상태를 다시 
   assert.deepEqual(f.writes, []);
 });
 
-function actionFixture({ rejected = false, logoutFailed = false } = {}) {
+function actionFixture({ rejected = false, logoutFailed = false, revokedCurrent = false } = {}) {
   let signOuts = 0, deleted = 0, set = 0;
   class ConnectionError extends Error {}
   class AccessError extends Error {}
@@ -96,7 +147,7 @@ function actionFixture({ rejected = false, logoutFailed = false } = {}) {
     "next/cache": { revalidatePath() {} }, "next/headers": { cookies: async () => ({ get: () => ({ value: token }), set: () => { set++; }, delete: () => { deleted++; } }), headers: async () => ({ get: () => userAgent }) },
     "next/navigation": { redirect(path: string) { throw { redirect: path }; } },
     "@/lib/supabase/server": { createClient: async () => ({ auth: { signOut: async () => { signOuts++; return { error: logoutFailed ? new Error("logout failed") : null }; } } }) },
-    "@/lib/server/table-terminal-service": { TableTerminalConnectionError: ConnectionError, registerTableTerminal: async () => ({ token, expiresAt: "2099-01-01", path: "/unused" }), getTableTerminalMenuPath: async () => { if (rejected) throw new ConnectionError("먼저 연결해 주세요."); return "/menu/store?mode=terminal"; }, unregisterTableTerminal: async () => { if (rejected) throw new ConnectionError("연결되지 않은 테이블"); } },
+    "@/lib/server/table-terminal-service": { TableTerminalConnectionError: ConnectionError, registerTableTerminal: async () => ({ token, expiresAt: "2099-01-01", path: "/unused" }), getTableTerminalMenuPath: async () => { if (rejected) throw new ConnectionError("먼저 연결해 주세요."); return "/menu/store?mode=terminal"; }, unregisterTableTerminal: async () => { if (rejected) throw new ConnectionError("연결되지 않은 테이블"); }, revokeTableTerminalConnection: async () => { if (rejected) throw new ConnectionError("해제 실패"); return { current: revokedCurrent }; } },
     "@/lib/table-qr-session-tokens": tokens, "@/lib/menu-site-permissions": { MenuSiteAccessError: AccessError },
     "@/lib/server/menu-table-management-service": { MenuTableManagementError: AccessError }, "./action-state": { initialMenuTableActionState: { status: "idle", message: "", tableId: null, qrPath: null } },
   };
@@ -131,4 +182,12 @@ test("연결 해제가 거부되면 현재 기기의 연결 쿠키를 지우지 
   const success = actionFixture();
   assert.equal((await success.submit("unregister-terminal")).status, "success");
   assert.equal(success.counts().deleted, 1);
+});
+
+test("다른 기기를 해제하는 관리자는 자신의 쿠키·관리자 로그인 상태를 유지한다", async () => {
+  for (const revokedCurrent of [false, true]) {
+    const f = actionFixture({ revokedCurrent }); assert.equal((await f.submit("revoke-terminal-connection")).status, "success");
+    assert.deepEqual(f.counts(), { signOuts: 0, deleted: revokedCurrent ? 1 : 0, set: 0 });
+  }
+  const failed = actionFixture({ rejected: true }); assert.equal((await failed.submit("revoke-terminal-connection")).status, "error"); assert.equal(failed.counts().deleted, 0);
 });

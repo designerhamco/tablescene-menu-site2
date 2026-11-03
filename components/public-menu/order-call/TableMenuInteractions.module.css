@@ -28,6 +28,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.table[data-terminal-table-label] { min-width: 0; max-width: 12rem; }
 .actions {
   display: flex;
   gap: 0.625rem;
@@ -161,6 +162,7 @@
   color: var(--menu-call-ink, #191c1b);
   box-shadow: none;
 }
+.diningToolbar .table { max-width: min(12rem, 28vw); }
 /* Photo-cover tools invert locally; dropdowns and the branded Call stay separate. */
 .shell :global(.aube-table-root[data-cover-image-active="true"]) .diningToolbar {
   background: transparent;

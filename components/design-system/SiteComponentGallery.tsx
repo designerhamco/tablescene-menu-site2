@@ -10,6 +10,7 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, BookOpen, ChevronDown, ChevronUp, Monitor, PanelsTopLeft, Plus, Tablet } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
+import { RefreshButton } from "@/app/components/ui/refresh-button";
 import { NewWindowIndicator } from "@/app/components/ui/new-window-indicator";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { ChoiceGroup, ChoiceTile } from "@/app/components/ui/choice-tile";
@@ -63,6 +64,9 @@ export default function SiteComponentGallery() {
         <Button variant="outline" disabled>준비 중</Button>
       </div>
       <Button variant="outline" size="lg" asChild><Link href="/templates">전체 디자인 보기 <ArrowRight /></Link></Button>
+    </Examples>
+    <Examples title="새로고침" description="목록·대시보드·기기 상태 갱신에는 공통 새로고침 아이콘 버튼을 사용합니다. 접근성 이름과 툴팁을 제공하고 진행 중에는 같은 자리에서 회전하며 중복 실행을 막습니다.">
+      <div className={styles.buttonRow}><RefreshButton /><RefreshButton loading /><RefreshButton disabled /><RefreshButton label="연결 상태 새로고침" /></div>
     </Examples>
     <Examples title="새 창 링크" description="별도 작업 화면을 여는 링크는 문구 뒤에 대각선 화살표를 표시하고, 보조기기에도 새 창으로 열린다는 안내를 전달합니다.">
       <div className={styles.buttonRow}><Button variant="outline" asChild><Link href="/mypage/operations" target="_blank" rel="noopener noreferrer">매장 운영 <NewWindowIndicator /></Link></Button></div>

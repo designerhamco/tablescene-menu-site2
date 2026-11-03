@@ -40,7 +40,6 @@ import ui from "./MenuInteractionUI.module.css";
 import { MenuOrderIcon, type MenuOrderIconVariant } from "./MenuActionIcons";
 import {normalizeOrderPhone,orderCartSignature,TERMINAL_CART_IDLE_MS,TERMINAL_CART_WARNING_MS,type OrderChannel} from "@/lib/order-session-policy";
 import {useCustomerOrderAccess} from "./useCustomerOrderAccess";
-import {useTerminalConnection} from "./useTerminalConnection";
 import OrderPolicyDialog from "./OrderPolicyDialog";
 
 type StoredCartLine = {
@@ -57,6 +56,7 @@ type CartLine = StoredCartLine & {
 };
 
 type PostpayOrderCartDrawerProps = {
+  pointKind?: "table" | "kiosk";
   channel?: OrderChannel;
   orderExpiresAt?: string | null;
   customerPhone?: "required" | "optional" | "hidden";
@@ -125,12 +125,13 @@ function getCheckoutModeLabel(mode: OrderCheckoutMode) {
 }
 
 export default function PostpayOrderCartDrawer({
+  pointKind = "table",
   channel = "customer",
   orderExpiresAt,
   customerPhone = "required",
   iconVariant = "cart",
   open,
-  onClose,
+  onClose: closeDrawer,
   menuSiteId,
   cartScope,
   catalog,
@@ -152,10 +153,21 @@ export default function PostpayOrderCartDrawer({
   const tabId = useId();
   const [activeTab, setActiveTab] = useState<"cart" | "history">("cart");
   const [historySurface, setHistorySurface] = useState(false);
+  const [receiptId, setReceiptId] = useState<string | null>(null);
   const [historyState, setHistoryState] = useState<{ scope: string; orders: CustomerOrderSnapshot[] }>({ scope: "", orders: [] });
   const historyKey = `artimenu-preview-order-history:${menuSiteId}:${cartScope}`;
-  const liveHistory = useCustomerOrderHistory(menuSiteId, cartScope, open && !previewOnly && historySurface && activeTab === "history");
+  const liveHistory = useCustomerOrderHistory(menuSiteId, cartScope, open && !previewOnly && historySurface && activeTab === "history", pointKind === "kiosk" ? receiptId : undefined);
   const history = previewOnly ? (historyState.scope === historyKey ? historyState.orders : []) : liveHistory.orders;
+  useEffect(() => {
+    if (pointKind !== "kiosk" || !open || !receiptId) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const reset = () => { clearTimeout(timer); timer = setTimeout(() => {
+      setReceiptId(null); setHistorySurface(false); setActiveTab("cart"); closeDrawer();
+    }, TERMINAL_CART_IDLE_MS); };
+    reset(); window.addEventListener("pointerdown", reset); window.addEventListener("keydown", reset);
+    return () => { clearTimeout(timer); window.removeEventListener("pointerdown", reset); window.removeEventListener("keydown", reset); };
+  }, [pointKind, open, receiptId, closeDrawer]);
+
   useEffect(() => {
     if (!previewOnly) return;
     let cancelled = false;
@@ -236,7 +248,6 @@ export default function PostpayOrderCartDrawer({
   const [idleWarning,setIdleWarning]=useState(false),[cartCleared,setCartCleared]=useState(false);
   const [idleRemainingSeconds,setIdleRemainingSeconds]=useState(TERMINAL_CART_WARNING_MS/1000);
   const access=useCustomerOrderAccess(menuSiteId,channel==="customer",orderExpiresAt,previewOnly);
-  useTerminalConnection(menuSiteId,channel==="terminal",previewOnly);
   const activityKey=`${storageKey}:activity`;
   const lastActivity=useRef(0);
   function touchCart(){lastActivity.current=Date.now();try{(previewOnly?window.sessionStorage:window.localStorage).setItem(activityKey,String(lastActivity.current));}catch{}setIdleWarning(false);}
@@ -473,6 +484,13 @@ export default function PostpayOrderCartDrawer({
     setMessage("");
   }
 
+  function onClose() {
+    if (pointKind === "kiosk" && cart.length === 0 && !submitting) {
+      setReceiptId(null); setHistorySurface(false); setActiveTab("cart"); setMessage("");
+    }
+    closeDrawer();
+  }
+
   async function submitOrder(confirmedRepeatId: string | null = null) {
     if (cart.length < 1 || submitting) return;
     if(!availableCheckoutModes.includes("postpay")){setMessage(t("선결제는 준비 중입니다."));return;}
@@ -531,7 +549,7 @@ export default function PostpayOrderCartDrawer({
         message?: string;
         code?: string;
         repeatOrderId?: string;
-        order?: { orderNumber?: number };
+        order?: { orderId?: string; orderNumber?: number };
       };
       if(body.code==="ORDER_REPEAT_CONFIRM"&&body.repeatOrderId){setPendingRequestId(null);setRepeatOrderId(body.repeatOrderId);return;}
       if(body.code==="ORDER_ACCESS_EXPIRED")access.expire();
@@ -539,6 +557,7 @@ export default function PostpayOrderCartDrawer({
         if (result.status < 500) setPendingRequestId(null);
         throw new Error(body.message || t("주문을 전송하지 못했습니다."));
       }
+      if (pointKind === "kiosk") setReceiptId(body.order?.orderId ?? null);
       setCart([]);
       setPendingRequestId(null);
       setActiveTab("history");
@@ -801,6 +820,7 @@ export default function PostpayOrderCartDrawer({
           aria-labelledby={(cart.length > 0 || historySurface) ? `${tabId}-${activeTab}` : undefined}>
 
           <div className="space-y-6">
+            {pointKind === "kiosk" && activeTab === "history" && !cart.length ? <button type="button" className={styles.historyLink} onClick={onClose}>처음으로 · 새 주문 시작</button> : null}
             {activeTab === "history" ? <CustomerOrderHistory orders={history} onCancel={cancelOrder} onExamples={previewOnly ? showHistoryExamples : undefined}
               previewOnly={previewOnly} loading={!previewOnly && liveHistory.loading} error={previewOnly ? "" : liveHistory.error}
               pendingId={liveHistory.pendingId} hasMore={!previewOnly && liveHistory.hasMore} onRefresh={liveHistory.refresh} /> : cart.length ? (
