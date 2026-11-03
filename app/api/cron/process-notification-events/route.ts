@@ -1,3 +1,4 @@
+import { findNotificationDeliveryKey } from "@/lib/server/notification-delivery-key";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { sendNotificationEmail } from "@/lib/email-notifications";
@@ -274,21 +275,10 @@ async function getRecipientEmail(adminSupabase: ReturnType<typeof createAdminCli
 }
 
 async function findExistingEvent(adminSupabase: ReturnType<typeof createAdminClient>, candidate: NoticeCandidate) {
-  const { data, error } = await adminSupabase
-    .from("notification_events" as never)
-    .select("id")
-    .eq("user_id" as never, candidate.userId as never)
-    .eq("menu_site_id" as never, candidate.menuSiteId as never)
-    .eq("event_type" as never, candidate.eventType as never)
-    .eq("channel" as never, "email" as never)
-    .contains("metadata" as never, { period_key: candidate.periodKey } as never)
-    .maybeSingle();
-
-  if (error && error.code !== "PGRST116") {
-    throw new Error(`중복 알림 확인 실패: ${error.message}`);
-  }
-
-  return Boolean(data);
+  return Boolean(await findNotificationDeliveryKey(adminSupabase, {
+    userId: candidate.userId, menuSiteId: candidate.menuSiteId,
+    eventType: candidate.eventType, channel: "email", periodKey: candidate.periodKey,
+  }));
 }
 
 async function createNotificationEvent(adminSupabase: ReturnType<typeof createAdminClient>, candidate: NoticeCandidate) {

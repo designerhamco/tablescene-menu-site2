@@ -1,3 +1,4 @@
+import { findNotificationDeliveryKey } from "@/lib/server/notification-delivery-key";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { menuPlanChangeLedgerReady, menuPlanChangeRenewalsEnabled, processMenuPlanChangeRenewal } from "@/lib/server/menu-plan-change-service";
@@ -262,20 +263,10 @@ async function createDataRetentionStartedNotification({
   if (!subscription.menu_site_id) return;
 
   const periodKey = getDataRetentionStartedPeriodKey(subscription.id, dataRetentionUntil);
-  const { data: existingEvent, error: existingEventError } = await adminSupabase
-    .from("notification_events" as never)
-    .select("id")
-    .eq("user_id" as never, subscription.user_id as never)
-    .eq("menu_site_id" as never, subscription.menu_site_id as never)
-    .eq("event_type" as never, "data_retention_started" as never)
-    .eq("channel" as never, "email" as never)
-    .contains("metadata" as never, { period_key: periodKey } as never)
-    .maybeSingle();
-
-  if (existingEventError && existingEventError.code !== "PGRST116") {
-    throw new Error(`DATA_RETENTION_STARTED_DUPLICATE_CHECK_FAILED: ${existingEventError.message}`);
-  }
-
+  const existingEvent = await findNotificationDeliveryKey(adminSupabase, {
+    userId: subscription.user_id, menuSiteId: subscription.menu_site_id,
+    eventType: "data_retention_started", channel: "email", periodKey,
+  });
   if (existingEvent) return;
 
   const menuSite = await getMenuSiteForNotice(adminSupabase, subscription.menu_site_id);
@@ -329,20 +320,10 @@ async function createPaymentFailedNotification({
 }) {
   const billingPeriod = periodStart.toISOString().slice(0, 10);
   const periodKey = getPaymentFailedPeriodKey(subscription.id, billingPeriod);
-  const { data: existingEvent, error: existingEventError } = await adminSupabase
-    .from("notification_events" as never)
-    .select("id")
-    .eq("user_id" as never, subscription.user_id as never)
-    .eq("subscription_id" as never, subscription.id as never)
-    .eq("event_type" as never, "payment_failed" as never)
-    .eq("channel" as never, "email" as never)
-    .contains("metadata" as never, { period_key: periodKey } as never)
-    .maybeSingle();
-
-  if (existingEventError && existingEventError.code !== "PGRST116") {
-    throw new Error(`PAYMENT_FAILED_DUPLICATE_CHECK_FAILED: ${existingEventError.message}`);
-  }
-
+  const existingEvent = await findNotificationDeliveryKey(adminSupabase, {
+    userId: subscription.user_id, subscriptionId: subscription.id,
+    eventType: "payment_failed", channel: "email", periodKey,
+  });
   if (existingEvent) return;
 
   const email = buildPaymentFailedEmail();

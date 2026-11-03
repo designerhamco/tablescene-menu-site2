@@ -1,3 +1,4 @@
+import { findNotificationDeliveryKey } from "@/lib/server/notification-delivery-key";
 import { NextResponse, type NextRequest } from "next/server";
 
 import {
@@ -94,20 +95,10 @@ async function createDataRetentionStartedNotification({
   if (!entitlement.user_id || !entitlement.menu_site_id) return;
 
   const periodKey = getDataRetentionStartedPeriodKey(entitlement.id, retentionUntil);
-  const { data: existingEvent, error: existingEventError } = await adminSupabase
-    .from("notification_events" as never)
-    .select("id")
-    .eq("user_id" as never, entitlement.user_id as never)
-    .eq("menu_site_id" as never, entitlement.menu_site_id as never)
-    .eq("event_type" as never, "data_retention_started" as never)
-    .eq("channel" as never, "email" as never)
-    .contains("metadata" as never, { period_key: periodKey } as never)
-    .maybeSingle();
-
-  if (existingEventError && existingEventError.code !== "PGRST116") {
-    throw new Error(`보관 시작 알림 중복 확인 실패: ${existingEventError.message}`);
-  }
-
+  const existingEvent = await findNotificationDeliveryKey(adminSupabase, {
+    userId: entitlement.user_id, menuSiteId: entitlement.menu_site_id,
+    eventType: "data_retention_started", channel: "email", periodKey,
+  });
   if (existingEvent) return;
 
   const menuSite = await getMenuSiteForRetentionStart(adminSupabase, entitlement.menu_site_id);

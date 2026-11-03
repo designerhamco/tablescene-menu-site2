@@ -1,4 +1,5 @@
 import "server-only";
+import { findNotificationDeliveryKey } from "@/lib/server/notification-delivery-key";
 
 import type { Json } from "@/lib/supabase/types";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -24,21 +25,13 @@ export async function createInAppNotificationOnce(input: CreateInAppNotification
     ...(input.inquiryId ? { inquiry_id: input.inquiryId } : {}),
   };
 
-  const { data: existingEvent, error: existingError } = await adminSupabase
-    .from("notification_events" as never)
-    .select("id")
-    .eq("user_id" as never, input.userId as never)
-    .eq("event_type" as never, input.eventType as never)
-    .eq("channel" as never, "in_app" as never)
-    .contains("metadata" as never, { period_key: input.periodKey } as never)
-    .maybeSingle();
-
-  if (existingError && existingError.code !== "PGRST116") {
-    return { ok: false as const, skipped: false, error: existingError.message };
-  }
-
-  if (existingEvent) {
-    return { ok: true as const, skipped: true, id: (existingEvent as { id: string }).id };
+  try {
+    const existing = await findNotificationDeliveryKey(adminSupabase, {
+      userId: input.userId, eventType: input.eventType, channel: "in_app", periodKey: input.periodKey,
+    });
+    if (existing) return { ok: true as const, skipped: true, id: existing.id };
+  } catch (error) {
+    return { ok: false as const, skipped: false, error: error instanceof Error ? error.message : "Notification lookup failed" };
   }
 
   const { data, error } = await adminSupabase
@@ -56,6 +49,14 @@ export async function createInAppNotificationOnce(input: CreateInAppNotification
     .select("id")
     .single();
 
+  if (error?.code === "23505") {
+    try {
+      const existing = await findNotificationDeliveryKey(adminSupabase, {
+        userId: input.userId, eventType: input.eventType, channel: "in_app", periodKey: input.periodKey,
+      });
+      if (existing) return { ok: true as const, skipped: true, id: existing.id };
+    } catch { /* Preserve the original insert error if the follow-up lookup fails. */ }
+  }
   if (error) {
     return { ok: false as const, skipped: false, error: error.message };
   }
