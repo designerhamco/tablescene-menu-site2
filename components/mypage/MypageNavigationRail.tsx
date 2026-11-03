@@ -6,9 +6,13 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 export function MypageNavigationRail({
   activeKey,
   children,
+  navLabel = "마이페이지 메뉴",
+  moreLabel = "다음 마이페이지 메뉴 보기",
 }: {
   activeKey: string;
   children: ReactNode;
+  navLabel?: string;
+  moreLabel?: string;
 }) {
   const navRef = useRef<HTMLElement>(null);
   const [hasMoreAtEnd, setHasMoreAtEnd] = useState(false);
@@ -24,21 +28,24 @@ export function MypageNavigationRail({
   useEffect(() => {
     const nav = navRef.current;
     const active = nav?.querySelector<HTMLElement>('[aria-current="page"]');
-    if (!nav || !active) return;
+    if (!nav) return;
 
-    const revealActive = () => {
+    const revealItem = (item: HTMLElement) => {
       if (nav.clientWidth === 0) return;
       if (nav.scrollWidth <= nav.clientWidth) {
         updateOverflowHint();
         return;
       }
       const rail = nav.getBoundingClientRect();
-      const item = active.getBoundingClientRect();
-      const inset = Number.parseFloat(getComputedStyle(nav).paddingInlineStart) || 0;
-      const hiddenAtStart = item.left - rail.left - inset;
-      const hiddenAtEnd = item.right - rail.right + inset;
+      const itemRect = item.getBoundingClientRect();
+      const style = getComputedStyle(nav);
+      const inset = Number.parseFloat(style.paddingInlineStart) || 0;
+      const items = nav.querySelectorAll<HTMLElement>(".site-nav-item");
+      const endInset = item === items[items.length - 1] ? inset : Number.parseFloat(style.scrollPaddingInlineEnd) || inset;
+      const hiddenAtStart = itemRect.left - rail.left - inset;
+      const hiddenAtEnd = itemRect.right - rail.right + endInset;
 
-      if (hiddenAtStart < 0 || item.width > rail.width - inset * 2) {
+      if (hiddenAtStart < 0 || itemRect.width > rail.width - inset * 2) {
         nav.scrollLeft += hiddenAtStart;
       } else if (hiddenAtEnd > 0) {
         nav.scrollLeft += hiddenAtEnd;
@@ -47,11 +54,21 @@ export function MypageNavigationRail({
       updateOverflowHint();
     };
 
+    const revealActive = () => {
+      if (active) revealItem(active);
+      else updateOverflowHint();
+    };
+    const revealFocused = (event: FocusEvent) => {
+      const item = event.target instanceof HTMLElement ? event.target.closest<HTMLElement>(".site-nav-item") : null;
+      if (item && nav.contains(item)) revealItem(item);
+    };
+
     revealActive();
     nav.addEventListener("scroll", updateOverflowHint, { passive: true });
+    nav.addEventListener("focusin", revealFocused);
     const observer = new ResizeObserver(revealActive);
     observer.observe(nav);
-    observer.observe(active);
+    if (active) observer.observe(active);
     let cancelled = false;
     void document.fonts.ready.then(() => {
       if (!cancelled) revealActive();
@@ -60,6 +77,7 @@ export function MypageNavigationRail({
     return () => {
       cancelled = true;
       nav.removeEventListener("scroll", updateOverflowHint);
+      nav.removeEventListener("focusin", revealFocused);
       observer.disconnect();
     };
   }, [activeKey, updateOverflowHint]);
@@ -77,11 +95,11 @@ export function MypageNavigationRail({
 
   return (
     <div className="site-account-nav-shell" data-has-more={hasMoreAtEnd ? "true" : "false"}>
-      <nav ref={navRef} className="site-account-nav" aria-label="마이페이지 메뉴">
+      <nav ref={navRef} className="site-account-nav" aria-label={navLabel}>
         {children}
       </nav>
       {hasMoreAtEnd ? (
-        <button type="button" className="site-account-nav-more" onClick={revealMore} aria-label="다음 마이페이지 메뉴 보기">
+        <button type="button" className="site-account-nav-more" onClick={revealMore} aria-label={moreLabel}>
           <ChevronRight aria-hidden="true" />
         </button>
       ) : null}

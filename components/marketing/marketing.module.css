@@ -620,7 +620,7 @@
   margin-bottom: 2rem;
 }
 .darkPage {
-  background: #101113;
+  background: var(--site-dining-background);
   color: #fff;
 }
 .darkPage .heroHeading > p:not(:first-child),

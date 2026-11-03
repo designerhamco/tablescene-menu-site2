@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 
 import Navbar from "@/app/components/layout/Navbar";
+import { getSiteHeaderSurface } from "@/lib/site-header-policy";
 import ScrollToTopButton from "@/app/components/ui/ScrollToTop";
 
 export default function OfficialSiteNavbar({ showQuickMenu = true }: { showQuickMenu?: boolean }) {
@@ -17,7 +18,7 @@ export default function OfficialSiteNavbar({ showQuickMenu = true }: { showQuick
     <>
       <Navbar />
       {shouldShowQuickMenu ? <ScrollToTopButton /> : null}
-      <div className="site-header-spacer" aria-hidden="true" />
+      <div className="site-header-spacer" data-header-surface={getSiteHeaderSurface(pathname)} aria-hidden="true" />
     </>
   );
 }

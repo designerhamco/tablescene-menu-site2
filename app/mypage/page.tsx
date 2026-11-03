@@ -44,7 +44,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAiCreditPack, type AiCreditBalance } from "@/lib/ai-credits";
 import { getSubscriptionProduct } from "@/lib/billing-products";
 import { getDiningTemplateTier } from "@/lib/dining-product-tiers";
-import { NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy";
+import { getNotificationDisplaySince, NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy";
 import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/lib/payments";
 import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-policy";
 import { getRemainingDaysUntilKst, getServiceLifecycleBucket, resolveServiceLifecycle } from "@/lib/mypage-service-lifecycle";
@@ -1416,6 +1416,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
   try {
     const adminSupabase = createAdminClient();
+    const displaySince = getNotificationDisplaySince();
     const unreadNotificationsResult = await runMypageQuery(
       "notification_events_unread_count",
       adminSupabase
@@ -1424,6 +1425,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         .eq("user_id" as never, user.id as never)
         .in("channel" as never, NOTIFICATION_VISIBLE_CHANNELS as unknown as string[])
         .neq("status" as never, "skipped" as never)
+        .gte("created_at" as never, displaySince as never)
         .is("read_at" as never, null)
     );
 
@@ -1445,6 +1447,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         .eq("user_id" as never, user.id as never)
         .in("channel" as never, NOTIFICATION_VISIBLE_CHANNELS as unknown as string[])
         .neq("status" as never, "skipped" as never)
+        .gte("created_at" as never, displaySince as never)
         .order("created_at" as never, { ascending: false } as never)
         .limit(50)
     ) : null;
@@ -3327,7 +3330,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             ) : null}
 
             {activeTab === "notifications" ? (
-              <NotificationHistorySection events={notificationEvents} />
+              <NotificationHistorySection events={notificationEvents} userId={user.id} unreadCount={unreadNotificationCount} />
             ) : null}
 
             {activeTab === "account" ? (

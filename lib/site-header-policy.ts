@@ -1,10 +1,4 @@
-// Only dining/display introductions (including their aliases) use glass.
-const GLASS_HEADER_PATHS = new Set([
-  "/services/dining", "/", "/services/basic", "/services/menu", "/services/signature",
-  "/services/display", "/services/screen", "/services/full-option",
-  "/tablescene-pro",
-]);
-
-export function supportsGlassSiteHeader(pathname: string) {
-  return GLASS_HEADER_PATHS.has(pathname.replace(/\/$/, "") || "/");
+/** The Dining introduction alone continues its dark canvas behind the header. */
+export function getSiteHeaderSurface(pathname: string): "dark" | "default" {
+  return pathname.replace(/\/$/, "") === "/services/dining" ? "dark" : "default";
 }

@@ -2994,6 +2994,45 @@ export type Database = {
           },
         ]
       }
+      notification_delivery_keys: {
+        Row: {
+          channel: string
+          created_at: string
+          event_type: string
+          id: string
+          menu_site_id: string | null
+          period_key: string | null
+          sent_at: string | null
+          status: string
+          subscription_id: string | null
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          created_at: string
+          event_type: string
+          id: string
+          menu_site_id?: string | null
+          period_key?: string | null
+          sent_at?: string | null
+          status: string
+          subscription_id?: string | null
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          created_at?: string
+          event_type?: string
+          id?: string
+          menu_site_id?: string | null
+          period_key?: string | null
+          sent_at?: string | null
+          status?: string
+          subscription_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_events: {
         Row: {
           channel: string
@@ -3544,6 +3583,10 @@ export type Database = {
       }
       delete_order_point: {
         Args: { p_menu_site_id: string; p_table_id: string; p_actor_user_id: string; p_expected_fingerprint: string; p_confirmation_label: string; p_with_history: boolean }
+        Returns: Json
+      }
+      prune_notification_content: {
+        Args: { p_batch_limit?: number; p_execute?: boolean }
         Returns: Json
       }
       accept_menu_site_invitation: {

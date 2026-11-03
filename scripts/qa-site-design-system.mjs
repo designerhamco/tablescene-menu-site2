@@ -73,10 +73,11 @@ for (const width of [375, 768, 992, 1280, 1440, 2560]) {
     await page.evaluate(() => scrollTo({ top: 400, behavior: 'instant' }));
     await page.waitForTimeout(300);
     const header = page.locator('[data-site-header]');
-    await expect(header).toHaveAttribute('data-floating', String(width >= 768));
-    if (width >= 768) {
-        await expect(header.getByRole('link', { name: 'ArtiMenu', exact: true })).toBeHidden();
-        await expect(header.getByRole('link', { name: '만들기', exact: true })).toBeHidden();
+    await expect(header).toHaveAttribute('data-scrolled', 'true');
+    await expect(header).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(header.getByRole('link', { name: 'ArtiMenu', exact: true })).toBeVisible();
+    if (width >= 1280) {
+        await expect(header.getByRole('link', { name: '만들기', exact: true })).toBeVisible();
         await expect(header.getByRole('link', { name: '아티메뉴 다이닝', exact: true })).toBeVisible();
     }
     await expect(page.getByRole('button', { name: '맨 위로 이동', exact: true })).toBeVisible();
@@ -114,7 +115,7 @@ for (const width of [375, 768, 992, 1280, 1440, 2560]) {
         await page.goto(base + path, { waitUntil: 'domcontentloaded' });
         await page.evaluate(() => scrollTo({ top: 400, behavior: 'instant' }));
         await page.waitForTimeout(100);
-        await expect(page.locator('[data-site-header]')).toHaveAttribute('data-floating', 'false');
+        await expect(page.locator('[data-site-header]')).toHaveAttribute('data-scrolled', 'true');
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
         assert.equal(overflow, 0, `${path} ${width}`);
     }

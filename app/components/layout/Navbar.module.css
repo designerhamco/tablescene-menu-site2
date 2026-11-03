@@ -3,14 +3,20 @@
   inset: 0 0 auto;
   z-index: 50;
   height: var(--site-header-height);
-  background: #fff;
+  background: transparent;
   color: var(--ui-text);
-  transition: top 240ms ease, height 240ms ease, background-color 240ms ease;
+  --site-header-link-hover: var(--ui-text-muted);
+  transition: background-color 240ms ease, color 240ms ease;
 }
+.shell[data-scrolled="true"] { background: var(--ui-surface); }
+.shell[data-header-surface="dark"][data-scrolled="false"] {
+  color: #fff;
+  --site-header-link-hover: rgb(255 255 255 / 75%);
+}
+.shell[data-header-surface="dark"][data-scrolled="false"] .accountDivider { background: rgb(255 255 255 / 30%); }
 .panel {
-  background: #fff;
+  background: transparent;
   border-radius: 0;
-  transition: max-width 240ms ease, border-radius 240ms ease, background-color 240ms ease, box-shadow 240ms ease;
 }
 .wordmark { font-size: var(--site-type-28); font-weight: 700; line-height: 1; letter-spacing: -.055em; }
 .primaryNav { display: none; }
@@ -18,16 +24,16 @@
 .actions > :global(.site-button) { display: none; }
 .accountLink, .accountDivider { display: none; }
 .notificationGroup { display: none; align-items: center; gap: .5rem; }
-.accountLink, .notificationButton { color: var(--ui-text); transition: color 180ms ease; }
-.accountLink:hover, .notificationButton:hover { color: var(--ui-text-muted); }
+.accountLink, .notificationButton { color: inherit; transition: color 180ms ease; }
+.accountLink:hover, .notificationButton:hover { color: var(--site-header-link-hover); }
 .notificationButton { border: 0; background: transparent; }
 .accountLink:focus-visible, .notificationButton:focus-visible {
   outline: 2px solid var(--ui-focus);
   outline-offset: 4px;
   border-radius: .25rem;
 }
-.navLink { color: var(--ui-text); transition: color 180ms ease; }
-.navLink:hover { color: var(--ui-text-muted); }
+.navLink { color: inherit; transition: color 180ms ease; }
+.navLink:hover { color: var(--site-header-link-hover); }
 .drawerOverlay {
   position: fixed;
   inset: 0;
@@ -92,42 +98,8 @@
     transform: translate(-50%, -50%);
   }
 }
-/* Phones retain the plain, attached header at every scroll position. */
 @media (min-width: 768px) {
   .notificationGroup { display: flex; }
-  .shell[data-floating="true"] {
-    top: .75rem;
-    height: 3.5rem;
-    padding-inline: var(--site-gutter);
-    background: transparent;
-    pointer-events: none;
-  }
-  .shell[data-floating="true"] .panel {
-    max-width: 44rem;
-    justify-content: center;
-    padding-inline: 1.5rem;
-    border-radius: 1rem;
-    background: rgb(255 255 255 / 96%);
-    box-shadow: 0 4px 20px rgb(21 24 30 / 8%), inset 0 0 0 1px rgb(255 255 255 / 65%);
-    pointer-events: auto;
-  }
-  .shell[data-floating="true"] :is(.brand, .actions) { display: none; }
-  .shell[data-floating="true"] .primaryNav {
-    position: static;
-    display: flex;
-    height: 100%;
-    align-items: center;
-    justify-content: center;
-    gap: clamp(1rem, 3vw, 2rem);
-    transform: none;
-  }
-  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .shell[data-floating="true"] .panel {
-      background: rgb(255 255 255 / 80%);
-      -webkit-backdrop-filter: blur(20px) saturate(150%);
-      backdrop-filter: blur(20px) saturate(150%);
-    }
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .shell, .panel, .navLink, .drawerNavLink { transition: none; }
@@ -135,8 +107,8 @@
 }
 
 .supportMenu { display: flex; height: 100%; align-items: center; }
-.supportTrigger { display: inline-flex; min-height: 2.75rem; align-items: center; gap: .375rem; padding: .5rem 0; border: 0; background: transparent; color: var(--ui-text); font-family: inherit; font-size: var(--type-nav-size); font-weight: var(--font-weight-medium); cursor: pointer;  letter-spacing:var(--site-tracking-copy); }
-.supportTrigger:hover { color: var(--ui-text-muted); }
+.supportTrigger { display: inline-flex; min-height: 2.75rem; align-items: center; gap: .375rem; padding: .5rem 0; border: 0; background: transparent; color: inherit; font-family: inherit; font-size: var(--type-nav-size); font-weight: var(--font-weight-medium); cursor: pointer;  letter-spacing:var(--site-tracking-copy); }
+.supportTrigger:hover { color: var(--site-header-link-hover); }
 .supportTrigger[data-state="open"] svg { transform: rotate(180deg); }
 .supportTrigger:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 4px; border-radius: .25rem; }
 .supportDropdown { width: 13rem; padding: .5rem; border: 1px solid var(--ui-border); border-radius: .75rem; background: var(--ui-surface); color: var(--ui-text); box-shadow: var(--site-shadow-popover); }
