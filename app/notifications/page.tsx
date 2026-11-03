@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import NotificationHistorySection from "@/components/mypage/NotificationHistorySection";
 import NotificationBackButton from "@/components/notifications/NotificationBackButton";
-import { NOTIFICATION_INBOX_HREF, NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy";
+import { getNotificationDisplaySince, NOTIFICATION_INBOX_HREF, NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -16,17 +16,19 @@ export default async function NotificationsPage() {
   const { data: { user }, error: userError } = await supabase.auth.getUser();
   if (userError || !user) redirect(`/sign-in?next=${encodeURIComponent(NOTIFICATION_INBOX_HREF)}`);
 
+  const displaySince = getNotificationDisplaySince();
   const [eventsResult, countResult] = await Promise.all([supabase
     .from("notification_events")
     .select("id, title, message, status, channel, sent_at, read_at, created_at, metadata")
     .eq("user_id", user.id)
     .in("channel", [...NOTIFICATION_VISIBLE_CHANNELS])
     .neq("status", "skipped")
+    .gte("created_at", displaySince)
     .order("created_at", { ascending: false })
     .limit(50),
     supabase.from("notification_events").select("id", { count: "exact", head: true })
       .eq("user_id", user.id).in("channel", [...NOTIFICATION_VISIBLE_CHANNELS])
-      .neq("status", "skipped").is("read_at", null),
+      .neq("status", "skipped").gte("created_at", displaySince).is("read_at", null),
   ]);
   const { data, error } = eventsResult;
 

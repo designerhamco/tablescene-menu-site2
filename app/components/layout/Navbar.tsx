@@ -4,7 +4,7 @@ import { Bell, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { formatNotificationBadgeCount, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_INBOX_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
+import { formatNotificationBadgeCount, getNotificationDisplaySince, NOTIFICATION_COMPACT_NOTICE, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_INBOX_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
 import { createClient } from '@/lib/supabase/client';
 import { getSiteHeaderSurface } from '@/lib/site-header-policy';
 import { applyNotificationsReadAll, getNotificationsReadAll, NOTIFICATIONS_READ_ALL_EVENT, requestNotificationsReadAll } from '@/lib/notification-read-state';
@@ -163,6 +163,7 @@ const Navbar = () => {
     let loadVersion = 0;
     async function loadNotifications(showLoading = true) {
       const version = ++loadVersion;
+      const displaySince = getNotificationDisplaySince();
       if (showLoading) setNotificationsLoading(true);
 
       const [eventsResult, countResult] = await Promise.all([
@@ -172,6 +173,7 @@ const Navbar = () => {
           .eq('user_id' as never, authState.userId as never)
           .in('channel' as never, NOTIFICATION_VISIBLE_CHANNELS as unknown as string[])
           .neq('status' as never, 'skipped' as never)
+          .gte('created_at' as never, displaySince as never)
           .order('created_at' as never, { ascending: false } as never)
           .limit(10),
         supabase
@@ -180,6 +182,7 @@ const Navbar = () => {
           .eq('user_id' as never, authState.userId as never)
           .in('channel' as never, NOTIFICATION_VISIBLE_CHANNELS as unknown as string[])
           .neq('status' as never, 'skipped' as never)
+          .gte('created_at' as never, displaySince as never)
           .is('read_at' as never, null),
       ]);
 
@@ -353,7 +356,7 @@ const Navbar = () => {
                     <NotificationPanel compact loading={notificationsLoading} unreadCount={unreadCount} onReadAll={requestNotificationsReadAll}
                       items={notificationEvents.map(event=>({id:event.id,title:event.title ?? '알림',message:event.message ?? '알림 내용을 확인할 수 없습니다.',createdAt:event.created_at,unread:!event.read_at,href:getNotificationHref(event.metadata)}))}
                       onActivate={item=>{void markNotificationAsRead(item.id).finally(()=>{setIsNotificationOpen(false);window.location.assign(item.href);});}}
-                      footer={<><p className="site-notification-limit">최근 알림을 최대 10개까지 표시합니다.</p><Link href={NOTIFICATION_FALLBACK_HREF} onClick={()=>setIsNotificationOpen(false)}>전체 알림 보기</Link></>} />
+                      footer={<><p className="site-notification-limit">{NOTIFICATION_COMPACT_NOTICE}</p><Link href={NOTIFICATION_FALLBACK_HREF} onClick={()=>setIsNotificationOpen(false)}>전체 알림 보기</Link></>} />
                   </PopoverContent>
                 </Popover>
               </div>
