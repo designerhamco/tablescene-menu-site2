@@ -7,7 +7,6 @@ import { redirect } from "next/navigation";
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
 import OperationFeatureToggle from "@/components/mypage/OperationFeatureToggle";
 import OperationTableSetupNotice from "@/components/mypage/OperationTableSetupNotice";
-import OperationTerminalPanel from "@/components/mypage/OperationTerminalPanel";
 import { isStoreOperationsTemplate } from "@/lib/operations-dashboard";
 import { loadMenuOrderSettings } from "@/lib/server/menu-order-settings-service";
 import { formatKoreanDateTime } from "@/lib/korean-date-time";
@@ -190,8 +189,6 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
             footer={<p className="type-body-sm text-zinc-600">사용 설정 보류</p>}
           />
         </section>
-
-        {selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage") ? <OperationTerminalPanel key={selectedSite.menuSiteId} menuSiteId={selectedSite.menuSiteId} /> : null}
 
         <section>
           <DashboardList

@@ -385,7 +385,7 @@ test("공통 역할의 굵기·행간·자간은 라이브러리 표와 실제 C
     assert.equal(Number(resolved(values?.get("font-weight"))), role.weight, `${role.key} weight`);
     assert.equal(Number(resolved(values?.get("line-height"))), role.lineHeight, `${role.key} leading`);
     const tracking = resolved(values?.get("letter-spacing"));
-    assert.ok(tracking?.endsWith("em"), `${role.key} tracking is font-relative`);
+    assert.ok(typeof tracking === "string" && tracking.endsWith("em"), `${role.key} tracking is font-relative`);
     assert.equal(parseFloat(tracking), parseFloat(role.letterSpacing), `${role.key} tracking`);
   }
   assert.equal(SITE_TYPE_ROLES.find(role => role.key === "price")?.weight, 700);

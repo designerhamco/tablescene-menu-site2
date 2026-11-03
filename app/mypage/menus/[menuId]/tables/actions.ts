@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { registerTableTerminal, unregisterTableTerminal } from "@/lib/server/table-terminal-service";
+import { getTableTerminalMenuPath, registerTableTerminal, TableTerminalConnectionError, unregisterTableTerminal } from "@/lib/server/table-terminal-service";
 import { TABLE_VISIT_SESSION_COOKIE, TABLE_VISIT_SESSION_COOKIE_SECURITY, getTableVisitSessionCookieMaxAge, isValidTableAccessToken } from "@/lib/table-qr-session-tokens";
 
 import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
@@ -31,7 +31,7 @@ function getFormString(formData: FormData, key: string) {
 }
 
 function actionError(error: unknown): MenuTableActionState {
-  if (error instanceof MenuTableManagementError || error instanceof MenuSiteAccessError) {
+  if (error instanceof MenuTableManagementError || error instanceof MenuSiteAccessError || error instanceof TableTerminalConnectionError) {
     return { ...initialMenuTableActionState, status: "error", message: error.message };
   }
   return {
@@ -76,20 +76,30 @@ export async function mutateMenuTableAction(
     try {
       const previous=(await cookies()).get(TABLE_VISIT_SESSION_COOKIE)?.value;
       const result=await registerTableTerminal(menuSiteId,tableId,(await headers()).get("user-agent") ?? "",isValidTableAccessToken(previous)?previous:undefined);
-      // Do not hand a customer a browser that is still signed into store management.
-      const {error:signOutError}=await (await createClient()).auth.signOut({scope:"local"});
-      if(signOutError)throw new Error("관리자 로그아웃을 완료하지 못했습니다. 공용 단말 연결을 다시 시도해 주세요.");
+      const { error } = await (await createClient()).auth.signOut({ scope: "local" });
+      if (error) throw new TableTerminalConnectionError("관리자 로그아웃을 완료하지 못했습니다. 태블릿 연결을 다시 시도해 주세요.");
       (await cookies()).set(TABLE_VISIT_SESSION_COOKIE,result.token,{...TABLE_VISIT_SESSION_COOKIE_SECURITY,expires:new Date(result.expiresAt),maxAge:getTableVisitSessionCookieMaxAge(result.expiresAt,new Date(),"terminal")});
-      path=result.path;
+      path = result.path;
     } catch(error) { return {...initialMenuTableActionState,status:"error",message:error instanceof Error ? error.message : "공용 단말 연결에 실패했습니다."}; }
+    redirect(path);
+  }
+  if (intent === "open-terminal-menu") {
+    let path: string;
+    try {
+      path = await getTableTerminalMenuPath(menuSiteId, tableId, (await cookies()).get(TABLE_VISIT_SESSION_COOKIE)?.value, (await headers()).get("user-agent") ?? "");
+      // Sign out only when the operator explicitly opens the customer screen.
+      const { error } = await (await createClient()).auth.signOut({ scope: "local" });
+      if (error) throw new TableTerminalConnectionError("관리자 로그아웃을 완료하지 못했습니다. 다시 ‘메뉴판 열기’를 눌러 주세요.");
+    } catch (error) { return actionError(error); }
     redirect(path);
   }
   if (intent === "unregister-terminal") {
     try {
       const cookieStore=await cookies(),token=cookieStore.get(TABLE_VISIT_SESSION_COOKIE)?.value;
-      if (isValidTableAccessToken(token)) await unregisterTableTerminal(menuSiteId,token);
+      await unregisterTableTerminal(menuSiteId, tableId, token, (await headers()).get("user-agent") ?? "");
       cookieStore.delete(TABLE_VISIT_SESSION_COOKIE);
-      return {...initialMenuTableActionState,status:"success",message:"이 브라우저의 공용 단말 연결을 해제했습니다."};
+      revalidateTableOperations(menuSiteId);
+      return {...initialMenuTableActionState,status:"success",message:"현재 태블릿의 테이블 연결을 해제했습니다. 기존 주문 기록은 유지됩니다."};
     } catch(error) {return actionError(error);}
   }
 

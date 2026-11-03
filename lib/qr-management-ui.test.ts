@@ -29,6 +29,7 @@ function fixture({ qr = true, tables = true, runtime = true, active = true, publ
   };
   const service = serverModule<typeof import("./server/menu-qr-management-service")>("lib/server/menu-qr-management-service.ts", {
     "server-only": {},
+    "@/lib/menu-url": { getConfiguredPublicMenuOrigin: () => null },
     "@/lib/dining-product-tiers": { getDiningTemplateFeatures: () => ({ smartCall: supported }) },
     "@/lib/menu-table-validation": { normalizeMenuTableId },
     "@/lib/menu-site-permissions": { hasMenuSitePermission, MenuSiteAccessError },
