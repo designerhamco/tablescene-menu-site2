@@ -29,7 +29,8 @@ test("mypage navigation uses separate surfaces and a sticky single-line rail bef
   assert.match(navigationRailSource, /querySelector<HTMLElement>\('\[aria-current="page"\]'\)/);
   assert.match(navigationRailSource, /nav\.scrollLeft \+= hiddenAtEnd/);
   assert.match(navigationRailSource, /hasMoreAtEnd/);
-  assert.match(navigationRailSource, /aria-label="다음 마이페이지 메뉴 보기"/);
+  assert.match(navigationRailSource, /moreLabel = "다음 마이페이지 메뉴 보기"/);
+  assert.match(navigationRailSource, /aria-label=\{moreLabel\}/);
   assert.match(navigationRailSource, /nav\.scrollBy/);
   assert.match(siteDesignSource, /\.site-account-sidebar \{ display: contents; \}/);
   assert.match(siteDesignSource, /\.site-account-summary \{[\s\S]*?border: 0[\s\S]*?background: var\(--ui-surface-muted\)/);
