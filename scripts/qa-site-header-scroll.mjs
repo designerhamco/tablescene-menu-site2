@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import { chromium } from '@playwright/test';
+import { chromium, expect } from '@playwright/test';
 const base=process.env.ORDER_QA_BASE || 'http://localhost:3042';
 const out=process.env.ORDER_QA_OUTPUT || '/private/tmp/site-header-scroll';
 await fs.mkdir(out,{recursive:true});
@@ -48,13 +48,13 @@ try {
    const page=await create(width,height);try {
     const response=await page.goto(base+route,{waitUntil:'networkidle'});assert.ok(response.ok());await page.evaluate(()=>document.fonts.ready);
     const header=page.locator('[data-site-header]');await header.locator('[data-site-header-account]').waitFor({state:'attached'});await scroll(page,0);
-    const initial=await snapshot(header);assert.equal(initial.background,'rgba(0, 0, 0, 0)');assert.equal(initial.panelBackground,'rgba(0, 0, 0, 0)');
+    const initial=await snapshot(header);if(route==='/services/dining'){assert.equal(await header.evaluate(e=>getComputedStyle(e).color),'rgb(255, 255, 255)');const joined=await page.evaluate(()=>{const spacer=document.querySelector('.site-header-spacer'),body=document.querySelector('[data-service-page="dining"]');return {spacer:getComputedStyle(spacer).backgroundColor,body:getComputedStyle(body).backgroundColor,top:spacer.getBoundingClientRect().top,gap:body.getBoundingClientRect().top-spacer.getBoundingClientRect().bottom};});assert.equal(joined.spacer,joined.body);assert.equal(joined.top,0);assert.equal(joined.gap,0);if([390,820,1440].includes(width))await page.screenshot({path:`${out}/dining-initial-${width}.png`});}assert.equal(initial.background,'rgba(0, 0, 0, 0)');assert.equal(initial.panelBackground,'rgba(0, 0, 0, 0)');
     assert.equal(initial.shell.x,0);assert.equal(initial.shell.width,width);assert.equal(initial.shell.y,0);
     await scroll(page,20);assert.equal((await snapshot(header)).background,initial.background);
     await scroll(page,400);const after=await snapshot(header);
-    assert.equal(after.background,'rgb(255, 255, 255)');assert.equal(after.radius,'0px');assert.equal(after.blur,'none');assert.equal(after.shadow,'none');
+    assert.equal(after.background,'rgb(255, 255, 255)');assert.equal(await header.evaluate(e=>getComputedStyle(e).color),'rgb(21, 24, 30)');assert.equal(after.radius,'0px');assert.equal(after.blur,'none');assert.equal(after.shadow,'none');
     assert.deepEqual(after,{...initial,background:'rgb(255, 255, 255)'});assert.ok(await header.getByRole('link',{name:'ArtiMenu',exact:true}).isVisible());
-    if(width<1280){const trigger=header.getByRole('button',{name:'메뉴 열기',exact:true});await trigger.click();const menu=page.getByRole('dialog',{name:'아티메뉴 전체 메뉴',exact:true});await menu.waitFor();await page.keyboard.press('Escape');await menu.waitFor({state:'hidden'});assert.ok(await trigger.evaluate(e=>e===document.activeElement));assert.deepEqual((await snapshot(header)).controls,initial.controls);}
+    if(width<1280){const trigger=header.getByRole('button',{name:'메뉴 열기',exact:true});await trigger.click();const menu=page.getByRole('dialog',{name:'아티메뉴 전체 메뉴',exact:true});await menu.waitFor();await page.keyboard.press('Escape');await menu.waitFor({state:'hidden'});await expect(trigger).toBeFocused();assert.deepEqual((await snapshot(header)).controls,initial.controls);}
     else {assert.ok(await header.getByRole('link',{name:'만들기',exact:true}).isVisible());assert.ok(await header.getByRole('button',{name:'고객센터 메뉴',exact:true}).isVisible());}
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
     if(route==='/'&&[390,820,1440].includes(width))await page.screenshot({path:`${out}/scrolled-${width}.png`});
@@ -63,8 +63,8 @@ try {
   });
   await run(`owner controls ${width}`,async()=>{
    const page=await create(width,height,'사장');try{
-    await page.goto(base+'/services/dining',{waitUntil:'networkidle'});const header=page.locator('[data-site-header]');await header.locator('[data-site-header-account]').waitFor({state:'attached'});await page.evaluate(()=>document.fonts.ready);await scroll(page,0);const initial=await snapshot(header);await scroll(page,400);assert.deepEqual(await snapshot(header),{...initial,background:'rgb(255, 255, 255)'});
-    if(width>=768){const bell=header.locator('[data-site-notification-trigger]');await bell.click();const panel=page.locator('[data-site-notification-popover]');await panel.waitFor();await page.keyboard.press('Escape');await panel.waitFor({state:'hidden'});assert.ok(await bell.evaluate(e=>e===document.activeElement));}
+    await page.goto(base+'/services/dining',{waitUntil:'networkidle'});const header=page.locator('[data-site-header]');await header.locator('[data-site-header-account]').waitFor({state:'attached'});await page.evaluate(()=>document.fonts.ready);await scroll(page,0);const initial=await snapshot(header);const initialInk=await header.locator('[data-site-header-account], [data-site-notification-trigger], [data-site-notification-link], [data-site-header-operations]').evaluateAll(es=>es.map(e=>getComputedStyle(e).color));assert.ok(initialInk.length>0&&initialInk.every(c=>c==='rgb(255, 255, 255)'));await scroll(page,400);assert.deepEqual(await snapshot(header),{...initial,background:'rgb(255, 255, 255)'});
+    if(width>=768){const bell=header.locator('[data-site-notification-trigger]');await bell.click();const panel=page.locator('[data-site-notification-popover]');await panel.waitFor();await page.keyboard.press('Escape');await panel.waitFor({state:'hidden'});await expect(bell).toBeFocused();}
     else assert.equal(await header.locator('[data-site-notification-link]').getAttribute('href'),'/notifications');
     if(width<1280){await header.getByRole('button',{name:'메뉴 열기',exact:true}).click();const menu=page.getByRole('dialog',{name:'아티메뉴 전체 메뉴',exact:true});await menu.getByText('검증 매장',{exact:true}).waitFor();assert.ok(await menu.getByRole('link',{name:/매장 운영/}).isVisible());await page.keyboard.press('Escape');await menu.waitFor({state:'hidden'});}
     else assert.ok(await header.locator('[data-site-header-operations]').isVisible());
@@ -73,7 +73,7 @@ try {
  }
  await run('background transition and route navigation',async()=>{
   const page=await create(1440,900);try{
-   await page.emulateMedia({reducedMotion:'no-preference'});await page.goto(base+'/faq',{waitUntil:'networkidle'});const header=page.locator('[data-site-header]');assert.equal(await header.evaluate(e=>getComputedStyle(e).transitionProperty),'background-color');assert.equal(await header.evaluate(e=>getComputedStyle(e).transitionDuration),'0.24s');await scroll(page,400);await header.getByRole('link',{name:'디자인 템플릿',exact:true}).click();await page.waitForURL('**/templates');await scroll(page,0);assert.equal(await header.getAttribute('data-scrolled'),'false');await delay(300);assert.equal((await snapshot(header)).background,'rgba(0, 0, 0, 0)');
+   await page.emulateMedia({reducedMotion:'no-preference'});await page.goto(base+'/faq',{waitUntil:'networkidle'});const header=page.locator('[data-site-header]');assert.ok((await header.evaluate(e=>getComputedStyle(e).transitionProperty)).includes('background-color'));assert.ok((await header.evaluate(e=>getComputedStyle(e).transitionDuration)).split(', ').every(v=>v==='0.24s'));await scroll(page,400);await header.getByRole('link',{name:'디자인 템플릿',exact:true}).click();await page.waitForURL('**/templates');await scroll(page,0);assert.equal(await header.getAttribute('data-scrolled'),'false');await delay(300);assert.equal((await snapshot(header)).background,'rgba(0, 0, 0, 0)');
   }finally{await page.close();}
  });
 } finally {await browser.close();await fs.writeFile(`${out}/report.json`,JSON.stringify({results,failures,errors,writes},null,2));}

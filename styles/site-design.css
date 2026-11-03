@@ -2,6 +2,7 @@
    owned by the renderers and are deliberately absent from this stylesheet. */
 :root {
   --site-accent: #f8e731;
+  --site-dining-background: #101113;
   --site-text-secondary: var(--ui-text-muted);
   --site-text-muted: var(--ui-text-subtle);
   --site-divider: var(--ui-border);
@@ -21,6 +22,7 @@
 }
 .site-content { width: 100%; max-width: var(--site-content-width); margin-inline: auto; }
 .site-header-spacer { height: var(--site-header-height); flex: none; }
+.site-header-spacer[data-header-surface="dark"] { background: var(--site-dining-background); }
 .site-auth-page {
   display: grid;
   min-height: min(calc(100svh - var(--site-header-height)), 56rem);
