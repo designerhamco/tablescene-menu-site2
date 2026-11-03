@@ -2,7 +2,8 @@
 import { NotificationPanel } from "@/app/components/ui/notification-panel";
 
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { applyNotificationsReadAll, getNotificationsReadAll, NOTIFICATIONS_READ_ALL_EVENT, requestNotificationsReadAll } from "@/lib/notification-read-state";
 import { useRouter } from "next/navigation";
 
 import { NOTIFICATION_FALLBACK_HREF } from "@/lib/notification-display-policy";
@@ -22,6 +23,8 @@ export type MypageNotificationEvent = {
 
 type NotificationHistorySectionProps = {
   events: MypageNotificationEvent[];
+  userId: string;
+  unreadCount?: number;
   showIntro?: boolean;
   fallbackHref?: string;
 };
@@ -58,9 +61,26 @@ function getDeliveryLabel(event: MypageNotificationEvent) {
   return "인앱 알림";
 }
 
-export default function NotificationHistorySection({ events, showIntro = true, fallbackHref = NOTIFICATION_FALLBACK_HREF }: NotificationHistorySectionProps) {
+export default function NotificationHistorySection({ events, userId, unreadCount, showIntro = true, fallbackHref = NOTIFICATION_FALLBACK_HREF }: NotificationHistorySectionProps) {
   const [items, setItems] = useState(events);
   const router = useRouter();
+  const [remainingUnread, setRemainingUnread] = useState(unreadCount);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Server refresh supplies the authoritative notification list and count.
+    setItems(events);
+    setRemainingUnread(unreadCount);
+  }, [events, unreadCount]);
+  useEffect(() => {
+    const handleReadAll = (event: Event) => {
+      const result = getNotificationsReadAll(event);
+      if (!result || result.userId !== userId) return;
+      setItems(current => applyNotificationsReadAll(current, result.readAt));
+      setRemainingUnread(0);
+      router.refresh();
+    };
+    window.addEventListener(NOTIFICATIONS_READ_ALL_EVENT, handleReadAll);
+    return () => window.removeEventListener(NOTIFICATIONS_READ_ALL_EVENT, handleReadAll);
+  }, [router, userId]);
 
   const markAsRead = async (notificationId: string) => {
     const event = items.find((item) => item.id === notificationId);
@@ -72,6 +92,7 @@ export default function NotificationHistorySection({ events, showIntro = true, f
     setItems((currentItems) =>
       currentItems.map((item) => item.id === notificationId ? { ...item, read_at: new Date().toISOString() } : item)
     );
+    setRemainingUnread(count => count === undefined ? count : Math.max(0, count - 1));
 
     try {
       const response = await fetch(`/api/notifications/${notificationId}/read`, {
@@ -83,6 +104,7 @@ export default function NotificationHistorySection({ events, showIntro = true, f
         throw new Error("read failed");
       }
     } catch {
+      setRemainingUnread(count => count === undefined ? count : count + 1);
       setItems((currentItems) =>
         currentItems.map((item) => item.id === notificationId ? { ...item, read_at: event.read_at } : item)
       );
@@ -104,7 +126,7 @@ export default function NotificationHistorySection({ events, showIntro = true, f
         id:event.id ?? `${event.title}-${event.created_at}-${index}`, title:event.title ?? "알림",
         message:event.message ?? "알림 내용을 확인할 수 없습니다.",createdAt:event.created_at,unread:!event.read_at,
         href:getNotificationHref(event.metadata, fallbackHref),detail:getDeliveryLabel(event),
-      }))} onActivate={item=>{
+      }))} unreadCount={remainingUnread} onReadAll={requestNotificationsReadAll} onActivate={item=>{
         const event=items.find((event,index)=>(event.id ?? `${event.title}-${event.created_at}-${index}`)===item.id);
         const navigate=()=>{if(item.href!==fallbackHref) window.location.assign(item.href);else router.refresh();};
         if(event?.id) void markAsRead(event.id).finally(navigate); else if(item.href!==fallbackHref) window.location.assign(item.href);
