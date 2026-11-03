@@ -4,7 +4,6 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { LoadingState, ProgressBar } from "../app/components/ui/loading-state";
 import { getNavigationRole, isSiteNavItemActive, SITE_NAV_ITEMS } from "./site-navigation";
-import { DETAIL_FEATURES, DETAIL_FEATURE_GROUPS } from "./template-detail-features";
 
 test("unmeasured loading exposes status copy without a fabricated percent", () => {
   const markup = renderToStaticMarkup(createElement(LoadingState, { label: "공지사항 조회 중" }));
@@ -27,11 +26,4 @@ test("navigation role labels follow verified accessible ownership and membership
   assert.equal(isSiteNavItemActive(support, "/faq/notices/entry"), true);
   assert.equal(isSiteNavItemActive(support, "/guides"), true);
   assert.equal(isSiteNavItemActive(support, "/templates"), false);
-});
-
-test("three feature summaries cover the eight detail capabilities once, in order", () => {
-  const ids = DETAIL_FEATURE_GROUPS.flatMap(group => group.features);
-  assert.equal(DETAIL_FEATURE_GROUPS.length, 3);
-  assert.equal(new Set(ids).size, 8);
-  assert.deepEqual(ids, DETAIL_FEATURES.map(feature => feature.id));
 });

@@ -28,13 +28,9 @@
 .thumbnail { position: relative; width: 3.25rem; height: 2.5rem; overflow: hidden; border: 1px solid var(--ui-border); border-radius: .5rem; background: var(--ui-surface-muted); cursor: pointer; }
 .thumbnail[aria-pressed="true"] { border: 2px solid var(--ui-text); }
 .thumbnail:focus-visible, .breadcrumb a:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
-.featureSummary { display:grid; gap:var(--site-space-copy); }
-.featureSummary > a { display:flex; min-height:2.75rem; align-items:center; justify-content:space-between; gap:var(--site-space-copy); padding-block:var(--site-space-copy); color:var(--ui-text); }
-.featureSummary > a > span { display:grid; gap:.25rem; min-width:0; }
-.featureSummary > a > span > span, .featureSummary > p { color:var(--ui-text-muted); }
-.featureSummary > a > svg { flex:none; }
-.featureSummary > a:hover strong { text-decoration:underline; text-underline-offset:.25rem; }
-.featureSummary > a:focus-visible { outline:2px solid var(--ui-focus); outline-offset:4px; }
+.included { display:grid; gap:var(--site-space-copy); padding:0; list-style:none; }
+.included li { display:flex; align-items:flex-start; gap:var(--site-space-copy); }
+.included svg { flex:none; margin-top:.25em; }
 
 .purchase { margin-top: 1.5rem; border-top: 1px solid var(--site-divider); padding-top: 1.25rem; }
 .priceHeader { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; align-items: center; }

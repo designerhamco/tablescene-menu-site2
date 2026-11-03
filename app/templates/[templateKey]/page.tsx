@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowDownRight, ArrowLeft, ArrowUpRight, ChevronRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Check, ChevronRight } from "lucide-react";
 
 import Footer from "@/app/components/layout/Footer";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
@@ -12,7 +12,6 @@ import styles from "@/components/templates/template-detail.module.css";
 import { isDisplayCheckoutQaEnabled } from "@/lib/display-checkout-qa";
 import { formatProductPrice } from "@/lib/public-product-details";
 import { getPublicTemplateDetail, getTemplateDetailInfo } from "@/lib/template-details";
-import { DETAIL_FEATURE_GROUPS, DETAIL_FEATURES } from "@/lib/template-detail-features";
 
 type Props = { params: Promise<{ templateKey: string }> };
 
@@ -28,6 +27,7 @@ export default async function TemplateDetailPage({ params }: Props) {
   const info = getTemplateDetailInfo(template);
   const checkoutEnabled = !info.display || isDisplayCheckoutQaEnabled();
   const standard = template.categoryLabel === "기본 디자인";
+  const included = ["8가지 파워풀한 기능들", "마음대로 커스터마이징", "할인,광고,위젯과 주문 및 호출까지"];
 
   return <>
     <OfficialSiteNavbar showQuickMenu={false} />
@@ -48,13 +48,7 @@ export default async function TemplateDetailPage({ params }: Props) {
             </>}
             note={<p className={`type-caption ${styles.billingNote}`}>{info.display ? "디스플레이는 현재 출시 준비 중입니다." : "첫 구독은 계정당 최초 1회 30일 무료체험. 결제수단 등록 후 시작하며, 체험 종료 후 매월 자동결제됩니다."}</p>}
           >
-            <nav className={styles.featureSummary} aria-label="8가지 기능 상세 안내">
-              {DETAIL_FEATURE_GROUPS.map(group => <a key={group.id} href={`#feature-${group.features[0]}`} data-feature-summary={group.id}>
-                <span><strong className="type-label">{group.label}</strong><span className="type-caption">{group.features.map(id => DETAIL_FEATURES.find(feature => feature.id === id)!.label).join(" · ")}</span></span>
-                <ArrowDownRight size={18} aria-hidden="true" />
-              </a>)}
-              <p className="type-caption">디자인별 지원 여부는 아래 기능 안내에서 확인하세요.</p>
-            </nav>
+            <ul className={`${styles.included} type-body-sm`} aria-label="상품 설명">{included.map(label => <li key={label}><Check size={15} aria-hidden="true" /><span>{label}</span></li>)}</ul>
             <div className={styles.purchase}>
               <div className={styles.priceHeader}><span className="type-label">{info.formatLabel}</span><span className="type-caption">메뉴판 1개 · 월 구독</span></div>
               <div className={styles.price}><span className="type-body-sm">얼리버드</span><strong>{formatProductPrice(info.pricing.earlyBirdMonthly)}<span> / 월</span></strong><del className="type-caption">{formatProductPrice(info.pricing.regularMonthly)}</del></div>
