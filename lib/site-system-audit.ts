@@ -15,7 +15,7 @@ const appearance = /^(?:p[trblxyse]?|h|min-h|max-h|rounded(?:-[a-z]+)?|font|text
 const verticalUtility = /^(?:!?-?(?:p[ytb]|m[ytb]|p|m|space-y|gap-y|translate-y|top|bottom)-|!?gap-|\[(?:margin|padding|gap|top|bottom|translate|transform)[^:]*:)/;
 const verticalProperty = /^(?:margin(?:-(?:top|bottom|block(?:-start|-end)?))?|padding(?:-(?:top|bottom|block(?:-start|-end)?))?|row-gap|gap|top|bottom|translate|transform)$/;
 const appearanceProperty = /^(?:padding(?:-.+)?|font(?:-.+)?|line-height|color|background(?:-.+)?|border(?:-.+)?|(?:min-|max-)?height|box-shadow|opacity)$/;
-const protectedSelector = /(?:\.site-(?:area-tab(?:s|s-root)?|page-tabs|topic-tab(?:s)?|tab(?:s)?|button|field|chip)\b|\[data-slot=["']?tabs(?:-list|-trigger)?["']?\])/;
+const protectedSelector = /(?:\.site-(?:area-tab(?:s|s-root)?|page-tabs|topic-tab(?:s)?|tab(?:s)?|button|field|chip|indicator-icon)\b|\[data-slot=["']?tabs(?:-list|-trigger)?["']?\])/;
 
 function utilityValue(token: string) {
   let depth = 0, start = 0;

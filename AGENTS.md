@@ -10,6 +10,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Official-site responsive UI
 
+- Display/indicator icons use their immediate surface, not the page canvas: preserve useful pale/role-colored icon tiles on white surfaces; on gray or other colored surfaces, show the glyph without another white/colored tile, border or shadow. Use `site-indicator-icon` with `data-icon-surface="white" | "colored"` and the shared contract in `docs/site-design-system.md`. A white card inside a gray page is still white. Preserve icon geometry, ink, notification dots and all icon-button hit areas/focus/interaction styles.
+
 - Preserve scope in visual refinements: changing size, spacing, typography or responsive scale does not authorize moving, hiding, removing or regrouping existing functions/buttons. Keep their current positions and entry points unless the user explicitly requests a relocation. Record and verify the requested change without reorganizing unrelated controls.
 
 - New normal site routes MUST render `components/layout/SitePage.tsx`, directly or through a composed view. Its API deliberately has no className/style/spacing escape hatch. It owns header, footer, page inset, SitePageHeader and the intro-to-content boundary. Existing specialized layouts use SitePageHeader and shared spacing tokens; do not copy their legacy markup into new routes.

@@ -10,7 +10,7 @@ export function MetricCard({ label, value, detail, icon, tone = "neutral", href,
   footer?: ReactNode;
 }) {
   const content = <><div className="site-metric-heading">
-    {icon ? <span className="site-metric-icon" data-tone={tone} aria-hidden="true">{icon}</span> : null}
+    {icon ? <span className="site-metric-icon site-indicator-icon" data-icon-surface={surface === "muted" ? "colored" : "white"} data-tone={tone} aria-hidden="true">{icon}</span> : null}
     <span className="site-metric-label">{label}</span>{href ? <ArrowUpRight className="site-metric-arrow" size={16} aria-hidden="true" /> : null}
   </div><p className="site-metric-value">{value}</p>{detail ? <p className="site-metric-detail">{detail}</p> : null}</>;
   if (footer) return <article className="site-metric-card" data-surface={surface}>

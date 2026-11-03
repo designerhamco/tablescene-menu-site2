@@ -31,7 +31,7 @@ export function NotificationPanel({ items, loading = false, footer, compact = fa
         {loading ? <LoadingState label="알림을 불러오는 중입니다." /> : rows.length ? rows.map((item,index)=><div key={item.id}>
           {index === 0 || dateLabel(rows[index-1].createdAt) !== dateLabel(item.createdAt) ? <h3 className="type-label site-notification-date">{dateLabel(item.createdAt)}</h3> : null}
           <a href={item.href} className="site-notification-item" data-unread={item.unread || undefined} onClick={onActivate ? event=>{event.preventDefault();onActivate(item);} : undefined}>
-            <span className="site-notification-symbol" aria-hidden="true"><Bell size={20} />{item.unread ? <i /> : null}</span>
+            <span className="site-notification-symbol site-indicator-icon" data-icon-surface="white" aria-hidden="true"><Bell size={20} />{item.unread ? <i /> : null}</span>
             <span className="site-notification-copy"><span className="site-notification-title">{item.title}{item.unread ? <span className="sr-only"> · 읽지 않음</span> : null}</span>
               <span className="site-notification-message">{item.message}</span><span className="site-notification-meta"><time dateTime={item.createdAt ?? undefined}>{formatNotificationDateTime(item.createdAt)}</time>{item.detail ? <span>{item.detail}</span> : null}</span>
             </span>
