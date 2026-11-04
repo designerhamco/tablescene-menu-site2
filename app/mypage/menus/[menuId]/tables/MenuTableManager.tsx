@@ -49,6 +49,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
               </label>
               <button type="submit" disabled={createPending || (kiosk && !pointSettingsAvailable)} className="site-button site-button-primary">{createPending ? "생성 중" : `${noun} 만들기`}</button>
             </form>
+            <p className="type-footnote site-copy-muted">‘{noun} 만들기’를 누르면 바로 등록·저장됩니다. 룸 없이도 등록할 수 있으며, 지도 배치는 아래 ‘지도형’에서 따로 저장합니다.</p>
             {createPending ? <LoadingState inline label={`${noun}${kiosk ? "를" : "을"} 만들고 있습니다. 잠시만 기다려 주세요.`} /> : null}
             {kiosk && !pointSettingsAvailable ? <p className="type-body-sm site-copy-muted">키오스크 설정 업데이트를 준비 중입니다. 기존 테이블은 계속 사용할 수 있습니다.</p> : null}
           </ContentPanel>
