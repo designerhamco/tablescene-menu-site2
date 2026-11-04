@@ -53,6 +53,8 @@
 
 `styles/site-spacing.css`가 구현을, `lib/site-spacing.ts`가 표시용 역할 표를 소유한다. `/design-system#content-composition`의 실제 `ContentPanel`·폼·안내 예시에서 확인한다. 새/수정 작업 박스에는 `ContentPanel`과 의미별 구성 클래스를 사용한다.
 
+등록 항목의 기본 조회와 편집은 `EditableList`/`EditableListItem`으로 구분한다. 목록 전체에 ContentPanel 하나를 사용하고, 각 행은 이름·상태·공통 compact outline ‘편집’ 버튼만 표시한다. 행 사이는 공통 divider와 block 간격으로 구분하며 개별 행에 카드를 중첩하지 않는다. 제목은 공통 `site-editable-list-title`의12ch 최소 너비를 사용하며, 좁은 화면에서는 상태·편집 묶음이 다음 줄로 내려가 이름을 지나치게 좁히지 않는다. ‘편집’으로 펼친 영역에 입력·연결 상태·보관·삭제를 둔다. 공통 Collapsible의 키보드·aria-expanded/controls 연결을 유지하고, 접어도 작성 중인 입력값은 보존한다. 테이블·키오스크 관리에서는 한 항목만 펼치며 추가 행동은 리스트형·배치도형 전환 아래에 공통으로 배치한다.
+
 `check:site-system`은 미등록 type 역할, 별칭으로 가져온 ContentPanel 안의 수치형 여백·글자 덮어쓰기, 의미 구성 클래스의 자체 padding/gap 및 지역 CSS 덮어쓰기, panel 토큰 재정의를 검사한다. 표시 아이콘의 크기를 페이지 CSS에서 다시 키우는 것도 차단한다. 기존 코드 전체의 배치 의미를 자동 추론하는 검사는 아니므로 실제 브라우저에서 경계·간격·글자·아이콘 래퍼 치수·줄바꿈·overflow를 측정해야 한다. 새 예외를 레거시 목록에 추가해 검사를 우회하지 않는다.
 
 ## 이번 적용의 검수
