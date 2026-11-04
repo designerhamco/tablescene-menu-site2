@@ -20,7 +20,8 @@ import FloorPlanEditor from "@/components/mypage/floor-plan/FloorPlanEditor";
 import { emptyFloorDocument, type FloorPlanSnapshot, type FloorDocument, type FloorSaveResult } from "@/lib/menu-floor-plan";
 
 type ManagedPoint = Pick<MenuTableListItem, "id" | "label" | "status" | "kind">;
-export default function MenuTableManager({ menuSiteId, tables, archivedTables = [], pointSettingsAvailable = false, canDelete = false, connectionState, saveFloorPlanAction, floorPlan = { available: false, revision: 0, document: emptyFloorDocument() } }: {
+export default function MenuTableManager({ menuSiteId, tables, archivedTables = [], pointSettingsAvailable = false, canDelete = false, connectionState, kind = "table", saveFloorPlanAction, floorPlan = { available: false, revision: 0, document: emptyFloorDocument() } }: {
+  kind?: OrderPointKind;
   saveFloorPlanAction?: (revision: number, document: FloorDocument) => Promise<FloorSaveResult>;
   floorPlan?: FloorPlanSnapshot; menuSiteId: string; tables: ManagedPoint[]; archivedTables?: ArchivedMenuTableListItem[];
   pointSettingsAvailable?: boolean; canDelete?: boolean; connectionState?: OrderPointConnectionState;
@@ -28,17 +29,13 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
   const [createState, createAction, createPending] = useActionState(createMenuTableAction, initialMenuTableActionState);
   const [mutationState, mutationAction, mutationPending] = useActionState(mutateMenuTableAction, initialMenuTableActionState);
   const [displayMode, setDisplayMode] = useState("list");
-  const [view, setView] = useState("table");
   const usageId = useId();
-  const kind = view as OrderPointKind, kiosk = kind === "kiosk", noun = kiosk ? "키오스크" : "테이블";
+  const kiosk = kind === "kiosk", noun = kiosk ? "키오스크" : "테이블";
   const points = tables.filter(table => (table.kind ?? "table") === kind);
   const archived = archivedTables.filter(table => (table.kind ?? "table") === kind);
   return <div className="site-stack-group">
     <ActionFeedbackToast message={createState.message} tone={createState.status === "success" ? "success" : "error"} eventKey={createState} />
     <ActionFeedbackToast message={mutationState.message} tone={mutationState.status === "success" ? "success" : "error"} eventKey={mutationState} />
-    <Tabs purpose="state" value={view} onValueChange={setView}>
-      <TabsList aria-label="테이블·키오스크 관리"><TabsTrigger value="table">테이블 관리</TabsTrigger><TabsTrigger value="kiosk">키오스크 관리</TabsTrigger></TabsList>
-      <TabsContent value={view}>
         <div className="site-stack-group">
           <ContentPanel>
             <div className="site-stack-title">
@@ -55,9 +52,9 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
             {createPending ? <LoadingState inline label={`${noun}${kiosk ? "를" : "을"} 만들고 있습니다. 잠시만 기다려 주세요.`} /> : null}
             {kiosk && !pointSettingsAvailable ? <p className="type-body-sm site-copy-muted">키오스크 설정 업데이트를 준비 중입니다. 기존 테이블은 계속 사용할 수 있습니다.</p> : null}
           </ContentPanel>
-          <section className="site-stack-group" aria-labelledby={`${usageId}-${view}-title`}>
+          <section className="site-stack-group" aria-labelledby={`${usageId}-${kind}-title`}>
             <div className="site-stack-title">
-              <h2 className="type-subsection-title" id={`${usageId}-${view}-title`}>운영 {noun} · {points.length.toLocaleString("ko-KR")}개</h2>
+              <h2 className="type-subsection-title" id={`${usageId}-${kind}-title`}>운영 {noun} · {points.length.toLocaleString("ko-KR")}개</h2>
               <p className="type-body-sm site-copy-muted">{noun}의 이름·상태를 수정하거나 보관할 수 있습니다. 주문·호출 설정과 기기 연결은 각 관리 메뉴에서, 메뉴판 주소·QR은 QR 관리에서 변경해 주세요.</p>
             </div>
             <Tabs purpose="state" value={displayMode} onValueChange={setDisplayMode}>
@@ -97,7 +94,5 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
             </ContentPanel>)}
           </section>
         </div>
-      </TabsContent>
-    </Tabs>
   </div>;
 }

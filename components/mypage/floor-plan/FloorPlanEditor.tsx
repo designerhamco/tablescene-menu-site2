@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, useTransition, type PointerEvent } from "react";
-import { LayoutGrid, Pencil, Plus, Save } from "lucide-react";
+import { ChevronDown, LayoutGrid, Pencil, Plus, Save } from "lucide-react";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/app/components/ui/collapsible";
+import { Button } from "@/app/components/ui/button";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/ui/tabs";
 import { LoadingState } from "@/app/components/ui/loading-state";
@@ -20,6 +22,7 @@ export default function FloorPlanEditor({ initial, points, kind, onSave }: {
   const [roomId, setRoomId] = useState(initial.document.rooms[0]?.id ?? "");
   const [selectedId, setSelectedId] = useState("");
   const [unplacedId, setUnplacedId] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [drawing, setDrawing] = useState(false);
   const [removeRoom, setRemoveRoom] = useState(false);
@@ -144,7 +147,7 @@ export default function FloorPlanEditor({ initial, points, kind, onSave }: {
             {removeRoom ? <ContentPanel surface="notice" density="compact"><p className="type-body-sm">‘{room.name}’ 룸과 그 안의 배치를 지울까요? 등록된 테이블·키오스크와 주문 기록은 유지됩니다. 저장 전에는 ‘변경 취소’로 되돌릴 수 있습니다.</p><div className="site-action-row"><button type="button" className="site-button site-button-outline" onClick={() => { setDraft(previous => ({ rooms: previous.rooms.filter(r => r.id !== room.id), placements: previous.placements.filter(p => p.roomId !== room.id) })); setRemoveRoom(false); setSelectedId(""); }}>룸만 삭제</button><button type="button" className="site-button site-button-ghost" onClick={() => setRemoveRoom(false)}>취소</button></div></ContentPanel> : null}
             {unplaced.length ? <div className="site-form-row"><label className="site-field-stack type-label">배치할 {noun}<select className="site-field w-full" value={chosen?.id ?? ""} onChange={e => { setUnplacedId(e.target.value); setDrawing(false); }}>{unplaced.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</select></label><button type="button" className="site-button site-button-outline" onClick={addPoint}>바로 배치</button><button type="button" className="site-button site-button-outline" aria-pressed={drawing} onClick={() => setDrawing(!drawing)}>{drawing ? "그리기 취소" : "사각형 그리기"}</button></div> : <p className="type-body-sm site-copy-muted">{visiblePoints.length ? `등록된 ${noun}를 모두 배치했습니다.` : `리스트형에서 ${noun}를 먼저 등록해 주세요.`}</p>}
           </fieldset> : null}
-          <p id={helpId} className="type-footnote site-copy-muted">{drawing ? `빈 영역을 드래그해 ‘${chosen?.label}’의 사각형을 그려 주세요.` : editing ? "사각형을 끌어 이동하고 오른쪽 아래 모서리로 크기를 조절하세요. 방향키로 이동하거나 아래 위치·크기 입력란을 사용할 수도 있습니다. Shift+방향키는 크게 이동합니다." : "‘배치 편집’을 누르면 위치와 크기를 바꿀 수 있습니다. 룸 크기에 맞춘 상대 위치로 저장됩니다."}</p>
+          <p id={helpId} className="type-footnote site-copy-muted">{drawing ? `빈 영역을 드래그해 ‘${chosen?.label}’의 사각형을 그려 주세요.` : editing ? "사각형을 끌어 이동하고 오른쪽 아래 모서리로 크기를 조절하세요. 방향키로 이동하거나 ‘상세 조정’의 위치·크기 입력란을 사용할 수도 있습니다. Shift+방향키는 크게 이동합니다." : "‘배치 편집’을 누르면 위치와 크기를 바꿀 수 있습니다. 룸 크기에 맞춘 상대 위치로 저장됩니다."}</p>
           <FloorPlanCanvas ref={boardRef} name={room.name} aspectRatio={room.aspectRatio} editing={editing} drawing={drawing} aria-describedby={helpId} onPointerDown={e => begin(e)} onPointerMove={move} onPointerUp={e => end(e)} onPointerCancel={e => end(e, true)} onLostPointerCapture={e => end(e, true)} onKeyDown={event => { if (event.key !== "Escape") return; setDrawing(false); const g = gesture.current; if (!g) return; setDraft(g.before); gesture.current = null; if (boardRef.current?.hasPointerCapture(g.pointerId)) boardRef.current.releasePointerCapture(g.pointerId); }}>
             {document.placements.filter(p => p.roomId === room.id && visiblePoints.some(point => point.id === p.pointId)).map(p => {
               const point = visiblePoints.find(point => point.id === p.pointId)!;
@@ -157,9 +160,12 @@ export default function FloorPlanEditor({ initial, points, kind, onSave }: {
             })}
           </FloorPlanCanvas>
           {editing ? <fieldset disabled={pending || !selected} className="site-stack-block" aria-labelledby={labelId}>
-            <legend id={labelId} className="type-item-title">선택한 {noun} 위치·크기</legend>
+            <legend id={labelId} className="type-item-title">선택한 {noun} 관리</legend>
             <p className="type-body-sm truncate" role="status" title={selectedPoint?.label}>{selectedPoint ? `${selectedPoint.label} 선택됨` : `지도에서 ${noun}를 선택해 주세요.`}</p>
-            <div className="site-form-row">{([ ["x", "왼쪽 위치 (%)"], ["y", "위쪽 위치 (%)"], ["width", "가로 크기 (%)"], ["height", "세로 크기 (%)"] ] as const).map(([key, label]) => <label className="site-field-stack type-label" data-field-width="short" key={key}>{label}<input className="site-field w-full" type="number" min={key === "x" || key === "y" ? 0 : 8} max={100} step={1} value={selected ? Math.round(selected[key] * 100) / 100 : ""} onChange={e => { const value = e.target.valueAsNumber; if (selected && Number.isFinite(value)) changePlacement(selected.pointId, { ...selected, [key]: value }); }} /></label>)}</div>
+            <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen} className="site-stack-block">
+              <CollapsibleTrigger asChild><Button variant="ghost">상세 조정<ChevronDown aria-hidden="true" /></Button></CollapsibleTrigger>
+              <CollapsibleContent><div className="site-form-row">{([ ["x", "왼쪽 위치 (%)"], ["y", "위쪽 위치 (%)"], ["width", "가로 크기 (%)"], ["height", "세로 크기 (%)"] ] as const).map(([key, label]) => <label className="site-field-stack type-label" data-field-width="short" key={key}>{label}<input className="site-field w-full" type="number" min={key === "x" || key === "y" ? 0 : 8} max={100} step={1} value={selected ? Math.round(selected[key] * 100) / 100 : ""} onChange={e => { const value = e.target.valueAsNumber; if (selected && Number.isFinite(value)) changePlacement(selected.pointId, { ...selected, [key]: value }); }} /></label>)}</div></CollapsibleContent>
+            </Collapsible>
             <div className="site-form-row"><label className="site-field-stack type-label">다른 룸으로 이동<select className="site-field w-full" value={selected?.roomId ?? room.id} onChange={e => { if (!selected) return; const target = e.target.value; setDraft(previous => ({ ...previous, placements: previous.placements.map(p => p.pointId === selected.pointId ? { ...p, roomId: target } : p) })); setRoomId(target); }}>{document.rooms.map(r => <option key={r.id} value={r.id}>{r.name || "이름 없는 룸"}</option>)}</select></label><button type="button" className="site-button site-button-outline" onClick={() => { if (!selected) return; setDraft(previous => ({ ...previous, placements: previous.placements.filter(p => p.pointId !== selected.pointId) })); setSelectedId(""); }}>배치만 해제</button></div>
           </fieldset> : null}
           <p className="type-footnote site-copy-muted">배치되지 않은 {noun} {unplaced.length}개 · 현재 룸 {document.placements.filter(p => p.roomId === room.id && visiblePoints.some(point => point.id === p.pointId)).length}개</p>

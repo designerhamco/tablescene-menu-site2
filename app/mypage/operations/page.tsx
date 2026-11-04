@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Button } from "@/app/components/ui/button";
-import { Bell, ChevronRight, LayoutGrid, ShoppingBag, Ticket } from "lucide-react";
+import { Bell, LayoutGrid, ShoppingBag, Ticket } from "lucide-react";
 import { AnnouncementBar, MetricCard } from "@/app/components/ui/data-display";
 import { redirect } from "next/navigation";
 
@@ -11,8 +10,6 @@ import OperationTableSetupNotice from "@/components/mypage/OperationTableSetupNo
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { Badge } from "@/app/components/ui/badge";
 import { CUSTOMER_ORDER_STATUS_LABELS } from "@/lib/customer-order-history";
-import { getSalesSummaryDashboard } from "@/lib/server/sales-summary-service";
-import { StoreSalesMetrics } from "@/components/mypage/StoreSalesSummary";
 import OperationsDashboardRefresh from "@/components/mypage/OperationsDashboardRefresh";
 import OperationStatusCards from "@/components/mypage/OperationStatusCards";
 import { isStoreOperationsTemplate } from "@/lib/operations-dashboard";
@@ -44,6 +41,7 @@ const OPERATION_FEATURE_LABELS = {
   orders: "주문관리",
   calls: "호출관리",
   tables: "테이블 관리",
+  kiosks: "키오스크 관리",
   sales: "매출 관리",
   pickup: "대기번호",
 } as const;
@@ -131,14 +129,13 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
 
   const access = selectedSite.operationAccess;
   const canReadTables = selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage");
-  const [orderData, callData, tableData, pickupData, settingsData, receptionSummary, salesData] = await Promise.all([
+  const [orderData, callData, tableData, pickupData, settingsData, receptionSummary] = await Promise.all([
     loadOptionalDashboard(access.orders, "orders", () => listOrderDashboard(selectedSite.menuSiteId)),
     loadOptionalDashboard(access.calls, "calls", () => listCallDashboard(selectedSite.menuSiteId)),
     loadOptionalDashboard(canReadTables, "tables", () => listMenuTables(selectedSite.menuSiteId)),
     loadOptionalDashboard(access.pickup, "pickup", () => listPickupQueueDashboard(selectedSite.menuSiteId)),
     loadOptionalDashboard(selectedSite.canConfigure, "settings", () => loadMenuOrderSettings(selectedSite.menuSiteId)),
     loadOptionalDashboard(!selectedSite.canConfigure && (access.orders || access.calls), "reception", () => loadOperationReceptionSummary(selectedSite.menuSiteId)),
-    loadOptionalDashboard(access.sales, "sales", () => getSalesSummaryDashboard(selectedSite.menuSiteId, new Date(), { includeItems: false })),
   ]);
 
   const openOrders = orderData?.orders.filter((order) => !["served", "cancelled"].includes(order.status)) ?? [];
@@ -159,15 +156,15 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
           </p>
         </header>
 
-        {isStoreOperationsTemplate(selectedSite.templateKey) ? <OperationTableSetupNotice menuId={selectedSite.menuSiteId}
-          tableSetupAvailable={selectedSite.tableSetupAvailable} activeTablesReady={selectedSite.activeTablesReady}
-          canManageTables={selectedSite.permissions.includes("table.manage")} /> : null}
-
         {selectedSite.canConfigure ? <p className="type-body-sm text-zinc-600">
           메뉴판 공개와 사용 중인 테이블 또는 키오스크를 준비한 뒤 전체 주문·전체 호출을 켜 주세요. 개별 허용 설정과 기기 연결은 각 주문·호출 설정에서 변경합니다. 메뉴판 주소·QR은 QR 관리에서 확인합니다. 비공개로 바꾸면 두 기능도 OFF로 저장되며, 기존 접수 내역은 유지됩니다.
         </p> : null}
 
-        {isStoreOperationsTemplate(selectedSite.templateKey) ? <section className="site-stack-block" aria-label="주문·호출 사용 여부"><h3 className="type-subsection-title">주문·호출 사용 여부</h3><OperationStatusCards key={`operation-status:${selectedSite.menuSiteId}`}
+        {isStoreOperationsTemplate(selectedSite.templateKey) ? <section className="site-stack-block" aria-label="주문·호출 사용 여부"><h3 className="type-subsection-title">주문·호출 사용 여부</h3>
+          <OperationTableSetupNotice menuId={selectedSite.menuSiteId}
+          tableSetupAvailable={selectedSite.tableSetupAvailable} activeTablesReady={selectedSite.activeTablesReady}
+          canManageTables={selectedSite.permissions.includes("table.manage")} />
+          <OperationStatusCards key={`operation-status:${selectedSite.menuSiteId}`}
           menuId={selectedSite.menuSiteId} published={selectedSite.status === "published"}
           canPublish={selectedSite.permissions.includes("menu.publish")} canConfigure={selectedSite.canConfigure}
           permissions={{ orders: selectedSite.permissions.includes("order.read"), calls: selectedSite.permissions.includes("call.manage"), tables: canReadTables, edit: selectedSite.permissions.includes("menu.edit") }}
@@ -211,11 +208,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
           />
         </section>)}
 
-        {!access.sales ? <OperationsDashboardRefresh /> : null}
-        {access.sales ? <section className="site-stack-group" aria-label="대시보드 매출 요약">
-          <OperationsDashboardRefresh title="매출 요약" action={<Button variant="ghost" asChild><Link href={`/mypage/menus/${selectedSite.menuSiteId}/sales`}>전체 보기<ChevronRight aria-hidden="true" /></Link></Button>} />
-          {salesData ? <StoreSalesMetrics summary={salesData.summary} presentation="overview" /> : <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">매출 정보를 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.</p></ContentPanel>}
-        </section> : null}
+        <OperationsDashboardRefresh />
         <div className="site-card-grid xl:grid-cols-2">
           <DashboardList title="최근 주문 내역" emptyLabel={orderData ? "접수된 주문이 없습니다." : access.orders ? "주문 정보를 불러오지 못했습니다." : "현재 주문 내역을 확인할 수 없습니다."} href={access.orders ? `/mypage/menus/${selectedSite.menuSiteId}/orders` : null} hasItems={recentOrders.length > 0}>
             {recentOrders.map(order => <li key={order.id} className="site-content-heading-row site-content-divider">

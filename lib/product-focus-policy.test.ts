@@ -23,7 +23,7 @@ test("비활성 관리 화면은 직접 주소 접근도 MY 메뉴판으로 돌�
   for (const path of [
     "app/mypage/operations/page.tsx",
     "app/mypage/staff/page.tsx",
-    "app/mypage/menus/[menuId]/tables/page.tsx",
+    "components/mypage/OrderPointManagementPage.tsx",
     "app/mypage/menus/[menuId]/calls/page.tsx",
     "app/mypage/menus/[menuId]/orders/page.tsx",
     "app/mypage/menus/[menuId]/sales/page.tsx",

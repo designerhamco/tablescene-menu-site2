@@ -437,51 +437,6 @@
       "78f263ec03d40202"
     ]
   },
-  "app/mypage/menus/[menuId]/calls/page.tsx": {
-    "page-shell": [
-      "78f263ec03d40202"
-    ]
-  },
-  "app/mypage/menus/[menuId]/calls/settings/page.tsx": {
-    "page-shell": [
-      "78f263ec03d40202"
-    ]
-  },
-  "app/mypage/menus/[menuId]/orders/page.tsx": {
-    "page-shell": [
-      "78f263ec03d40202"
-    ]
-  },
-  "app/mypage/menus/[menuId]/orders/settings/page.tsx": {
-    "page-shell": [
-      "78f263ec03d40202"
-    ]
-  },
-  "app/mypage/menus/[menuId]/pickup/page.tsx": {
-    "page-shell": [
-      "78f263ec03d40202"
-    ]
-  },
-  "app/mypage/menus/[menuId]/qr/page.tsx": {
-    "page-shell": [
-      "78f263ec03d40202"
-    ]
-  },
-  "app/mypage/menus/[menuId]/sales/page.tsx": {
-    "page-shell": [
-      "78f263ec03d40202"
-    ]
-  },
-  "app/mypage/menus/[menuId]/tables/page.tsx": {
-    "page-shell": [
-      "78f263ec03d40202"
-    ]
-  },
-  "app/mypage/operations/page.tsx": {
-    "page-shell": [
-      "78f263ec03d40202"
-    ]
-  },
   "app/mypage/page.tsx": {
     "page-shell": [
       "78f263ec03d40202"

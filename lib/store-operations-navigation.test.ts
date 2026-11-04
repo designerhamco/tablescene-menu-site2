@@ -38,16 +38,17 @@ test("매장 운영 내비게이션은 주문과 권한에 따른 매출 관리�
   assert.match(shellSource, /selectedSite\.operationAccess\[item.key\]/);
   assert.match(navigationBlock, /key: "sales", label: "매출 관리", permission: "sales.read"/);
   assert.match(navigationBlock, /key: "calls"/);
-  assert.match(navigationBlock, /key: "tables"/);
+  assert.match(navigationBlock, /key: "tables", label: "테이블 관리"/);
+  assert.match(navigationBlock, /key: "kiosks", label: "키오스크 관리", permission: "table.manage"/);
   assert.match(navigationBlock, /key: "pickup"/);
 });
 
-test("매장 운영 대시보드는 권한에 따라 주문·호출 최근 내역과 매출을 불러온다", () => {
+test("매장 운영 대시보드는 권한에 따라 주문·호출 최근 내역만 불러온다", () => {
   const dashboardSource = readSource("app/mypage/operations/page.tsx");
 
   assert.match(dashboardSource, /loadOptionalDashboard\(access.orders, "orders", \(\) => listOrderDashboard/);
   assert.match(dashboardSource, /label="진행 중 주문"/);
-  assert.match(dashboardSource, /loadOptionalDashboard\(access.sales, "sales", \(\) => getSalesSummaryDashboard/);
+  assert.doesNotMatch(dashboardSource, /getSalesSummaryDashboard|StoreSalesMetrics|대시보드 매출 요약/);
   assert.match(dashboardSource, /title="최근 주문 내역"/);
   assert.match(dashboardSource, /label="대기 중 호출"/);
   assert.match(dashboardSource, /label="운영 테이블"/);
@@ -60,7 +61,7 @@ test("매장 운영 화면은 공통 여백·카드·피드백 시스템을 사�
   const shellSource = readSource("components/mypage/StoreOperationsShell.tsx");
   const dashboardSource = readSource("app/mypage/operations/page.tsx");
 
-  assert.match(shellSource, /site-gutter site-page-spacing-compact/);
+  assert.match(shellSource, /<SitePage title="매장 운영"/);
   assert.match(shellSource, /<OperationSiteSelector/);
   assert.match(shellSource, /getNavigationClassName\(activeSection === "dashboard"\)/);
   assert.doesNotMatch(shellSource, /shadow-sm/);

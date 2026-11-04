@@ -7,8 +7,8 @@ import { MenuSiteAccessError } from "./menu-site-permissions";
 
 const menuId = "11111111-1111-4111-8111-111111111111";
 
-function loadPage(section: "tables" | "qr", context: () => Promise<unknown>) {
-  const source = readFileSync(new URL(`../app/mypage/menus/[menuId]/${section}/page.tsx`, import.meta.url), "utf8");
+function loadPage(section: "tables" | "kiosks" | "qr", context: () => Promise<unknown>) {
+  const source = readFileSync(new URL(section === "qr" ? "../app/mypage/menus/[menuId]/qr/page.tsx" : "../components/mypage/OrderPointManagementPage.tsx", import.meta.url), "utf8");
   const output = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
@@ -43,8 +43,8 @@ function loadPage(section: "tables" | "qr", context: () => Promise<unknown>) {
     },
     "@/lib/server/menu-floor-plan-service": { async loadMenuFloorPlan() { privateReads++; throw new Error("Unexpected floor-plan read"); } },
     "@/lib/menu-floor-plan": {},
-    "./floor-plan-actions": {},
-    "./MenuTableManager": {},
+    "@/app/mypage/menus/[menuId]/tables/floor-plan-actions": {},
+    "@/app/mypage/menus/[menuId]/tables/MenuTableManager": {},
     "./MenuTableQrManager": {},
   };
   new Function("require", "module", "exports", output)((name: string) => {
@@ -52,12 +52,12 @@ function loadPage(section: "tables" | "qr", context: () => Promise<unknown>) {
     return dependencies[name];
   }, loaded, loaded.exports);
   return {
-    run: (loaded.exports as { default: (props: { params: Promise<{ menuId: string }> }) => Promise<unknown> }).default,
+    run: (props: { params: Promise<{ menuId: string }> }) => (loaded.exports as { default: (props: { params: Promise<{ menuId: string }>; kind?: string }) => Promise<unknown> }).default({ ...props, kind: section === "kiosks" ? "kiosk" : "table" }),
     getPrivateReads: () => privateReads,
   };
 }
 
-for (const section of ["tables", "qr"] as const) {
+for (const section of ["tables", "kiosks", "qr"] as const) {
   test(`${section}: 공용 전환 후 로그아웃 상태의 재진입은 원래 경로를 보존해 로그인으로 이동한다`, async () => {
     const page = loadPage(section, async () => { throw new MenuSiteAccessError("AUTH_REQUIRED", "로그인이 필요합니다.", 401); });
     await assert.rejects(page.run({ params: Promise.resolve({ menuId }) }), (error: unknown) => {

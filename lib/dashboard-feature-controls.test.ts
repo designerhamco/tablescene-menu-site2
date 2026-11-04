@@ -134,13 +134,18 @@ test("운영 요약의 미등록·비공개·조회 실패·권한 부족에도 
     assert.doesNotMatch(html, /테이블·키오스크 미등록|메뉴판 비공개|사용 중인 테이블·키오스크 없음/);
     assert.match(html, /aria-label="전체 주문 상태 안내"/);
     assert.match(html, /aria-label="전체 호출 상태 안내"/);
+    assert.match(html, /aria-label="테이블 상태 안내"/);
+    assert.match(html, /aria-label="키오스크 상태 안내"/);
+    if (props.permissions.tables) assert.match(html, /\/kiosks/);
+    else assert.doesNotMatch(html, /href="[^"]*\/kiosks/);
     assert.ok(html.includes(`/mypage/menus/${id}/edit?tab=publish`));
   }
 });
 
 test("대시보드는 전체 현황과 준비 안내를 보여주고 기기 연결 관리는 각 기능 설정에 모은다", () => {
   const page = readFileSync(new URL("../app/mypage/operations/page.tsx", import.meta.url), "utf8");
-  assert.ok(page.indexOf("<OperationTableSetupNotice") < page.indexOf('aria-label="매장 운영 요약"'));
+  assert.ok(page.indexOf('aria-label="주문·호출 사용 여부"') < page.indexOf("<OperationTableSetupNotice"));
+  assert.ok(page.indexOf("<OperationTableSetupNotice") < page.indexOf("<OperationStatusCards"));
   assert.doesNotMatch(page, /CurrentTabletConnectionPanel|getCurrentTableTerminalId/);
   assert.ok(page.indexOf('aria-label="매장 운영 요약"') < page.indexOf('title="최근 호출 내역"'));
   assert.doesNotMatch(page, /OperationTerminalPanel|unregister-terminal/);

@@ -24,7 +24,7 @@ export default function OrderPointReceptionSettings({ menuSiteId, feature, point
 }) {
   const label = feature === "orders" ? "주문" : "호출";
   const globalEnabled = feature === "orders" ? settings.orderEnabled : settings.callEnabled;
-  const manageLink = <Link href={`/mypage/menus/${menuSiteId}/tables`} className="site-button site-button-outline">테이블·키오스크 관리</Link>;
+  const manageLink = <><Link href={`/mypage/menus/${menuSiteId}/tables`} className="site-button site-button-outline">테이블 관리</Link><Link href={`/mypage/menus/${menuSiteId}/kiosks`} className="site-button site-button-outline">키오스크 관리</Link></>;
 
   function channelControl(point: ReceptionPoint, channel: OrderPointChannel) {
     const reason = !point.policyAvailable ? "방식별 설정을 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요."
@@ -52,7 +52,7 @@ export default function OrderPointReceptionSettings({ menuSiteId, feature, point
     {points === null ? <ContentPanel surface="notice" density="compact">
       <p className="type-body-sm">테이블·키오스크 설정을 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요. 기존 허용 설정은 유지됩니다.</p>
     </ContentPanel> : !points.length ? <ContentPanel>
-      <div className="site-stack-title"><h4 className="type-content-title">등록된 테이블·키오스크가 없습니다</h4><p className="type-body-sm site-copy-muted">테이블·키오스크 관리에서 먼저 등록해 주세요. 등록한 항목이 이곳에도 함께 표시됩니다.</p></div>
+      <div className="site-stack-title"><h4 className="type-content-title">등록된 테이블·키오스크가 없습니다</h4><p className="type-body-sm site-copy-muted">테이블 관리 또는 키오스크 관리에서 먼저 등록해 주세요. 등록한 항목이 이곳에도 함께 표시됩니다.</p></div>
       <div className="site-action-row">{manageLink}</div>
     </ContentPanel> : <>
       {(["table", "kiosk"] as const).map(kind => {
