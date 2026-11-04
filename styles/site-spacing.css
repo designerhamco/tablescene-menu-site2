@@ -54,6 +54,7 @@
 .site-action-row[data-distribution="between"] { justify-content: space-between; }
 .site-action-row[data-distribution="end"] { justify-content: flex-end; }
 .site-action-row > * { min-width: 0; margin-block: 0; }
+.site-editable-list-title { flex: 1 1 12ch; min-inline-size: min(100%, 12ch); }
 .site-content-divider { border-top: 1px solid var(--ui-border); padding-top: var(--site-space-block); }
 .site-content-heading-row { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: var(--site-space-title-copy); }
 .site-notice-layout { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: var(--site-space-title-copy); }
