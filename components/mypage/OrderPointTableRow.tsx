@@ -39,12 +39,12 @@ export default function OrderPointTableRow({ menuSiteId, point, connectionState,
   const connectionLabel = !available ? "확인 불가" : connected ? `기기 연결됨${devices.length > 1 ? ` · ${devices.length}대` : ""}` : kiosk ? "연결 필요" : "미사용";
 
   return <TableRow>
-    <TableCell data-column="kind">{noun}</TableCell>
-    <TableCell data-column="name">
+    <TableCell nowrap>{noun}</TableCell>
+    <TableCell primary>
       <ActionFeedbackToast message={editState.message} tone={editState.status === "success" ? "success" : "error"} eventKey={editState} />
       <ActionFeedbackToast message={statusResult?.message} tone={statusResult?.status === "success" ? "success" : "error"} eventKey={statusResult} />
       <Dialog open={editOpen} onOpenChange={next => { if (!editPending) setEditOpen(next); }}>
-        <DialogTrigger asChild><Button variant="link" size="compact" disabled={busy} aria-label={`${point.label} 이름 수정`}><span className="min-w-0 break-words">{point.label}</span><Pencil aria-hidden="true" /></Button></DialogTrigger>
+        <DialogTrigger asChild><Button variant="link" size="compact" disabled={busy} aria-label={`${point.label} 이름 수정`}><span className="type-item-title min-w-0 break-words">{point.label}</span><Pencil aria-hidden="true" /></Button></DialogTrigger>
         <DialogContent onEscapeKeyDown={event => { if (editPending) event.preventDefault(); }} onInteractOutside={event => { if (editPending) event.preventDefault(); }}>
           <DialogHeader reserveCloseButton><DialogTitle>{noun} 이름 수정</DialogTitle><DialogDescription>매장에서 알아보기 쉬운 번호 또는 이름을 입력해 주세요.</DialogDescription></DialogHeader>
           <form action={editAction} className="site-stack-group" aria-busy={editPending}>
@@ -55,7 +55,7 @@ export default function OrderPointTableRow({ menuSiteId, point, connectionState,
         </DialogContent>
       </Dialog>
     </TableCell>
-    <TableCell data-column="connection">
+    <TableCell>
       <div className="site-action-row">
         <InfoTooltip label={`${point.label} 기기 연결 안내`}>
           {!available ? <p>연결 정보를 불러오지 못했습니다. 기기별 설정에서 다시 확인해 주세요.</p>
@@ -66,8 +66,8 @@ export default function OrderPointTableRow({ menuSiteId, point, connectionState,
         <Link className="site-button site-button-outline site-button-compact" aria-label={`${point.label} ${!available ? "연결 확인" : connected ? "연결 관리" : "연결하기"}`} href={`/mypage/menus/${menuSiteId}/orders/settings?tab=devices#point-${point.id}`}>{!available ? "연결 확인" : connected ? "연결 관리" : "연결하기"}</Link>
       </div>
     </TableCell>
-    <TableCell data-column="status">
-      <div className="site-action-row">
+    <TableCell nowrap>
+      <div className="site-action-row" data-wrap="nowrap">
         <label htmlFor={id} className="type-label" aria-live="polite">{statusPending ? "저장 중…" : point.status === "active" ? "사용 중" : "일시정지"}</label>
         <Switch id={id} checked={point.status === "active"} loading={statusPending} disabled={busy} aria-label={`${point.label} 사용`} onCheckedChange={checked => changeStatus(async () => {
           setStatusResult(null);
@@ -76,8 +76,8 @@ export default function OrderPointTableRow({ menuSiteId, point, connectionState,
         })} />
       </div>
     </TableCell>
-    <TableCell data-column="actions">
-      <div className="site-action-row">
+    <TableCell nowrap>
+      <div className="site-action-row" data-wrap="nowrap">
         <form action={archiveAction} aria-busy={disabled}>
           <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={point.id} />
           <button name="intent" value="archive" disabled={busy} aria-label={`${point.label} 미사용(보관)`} className="site-button site-button-outline site-button-compact">보관</button>
