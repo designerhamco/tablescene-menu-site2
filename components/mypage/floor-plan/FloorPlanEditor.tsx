@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, useTransition, type PointerEvent } from "react";
+import { useEffect, useId, useRef, useState, useTransition, type PointerEvent, type ReactNode } from "react";
 import { ChevronDown, LayoutGrid, Pencil, Plus, Save } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/app/components/ui/collapsible";
 import { Button } from "@/app/components/ui/button";
@@ -13,7 +13,8 @@ import type { OrderPointKind } from "@/lib/order-point-policy";
 import { FloorPlanCanvas, FloorPlanObject } from "@/app/components/ui/floor-plan-canvas";
 
 type Gesture = { pointerId: number; mode: "draw" | "move" | "resize"; pointId: string; roomId: string; startX: number; startY: number; origin: FloorPlacement; before: FloorDocument };
-export default function FloorPlanEditor({ initial, points, kind, onSave }: {
+export default function FloorPlanEditor({ initial, points, kind, onSave, registrationForm }: {
+  registrationForm?: ReactNode;
   initial: FloorPlanSnapshot; points: FloorPoint[]; kind: OrderPointKind;
   onSave: (revision: number, document: FloorDocument) => Promise<FloorSaveResult>;
 }) {
@@ -24,13 +25,14 @@ export default function FloorPlanEditor({ initial, points, kind, onSave }: {
   const [unplacedId, setUnplacedId] = useState("");
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [registrationOpen, setRegistrationOpen] = useState(false);
   const [drawing, setDrawing] = useState(false);
   const [drawingPointId, setDrawingPointId] = useState("");
   const [removeRoom, setRemoveRoom] = useState(false);
   const [feedback, setFeedback] = useState<{ error: boolean; message: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const gesture = useRef<Gesture | null>(null), boardRef = useRef<HTMLDivElement>(null);
-  const helpId = useId(), labelId = useId(), placementHelpId = useId();
+  const helpId = useId(), labelId = useId(), placementHelpId = useId(), registrationId = useId();
   const document = retainRegisteredFloorPoints(draft, points);
   const dirty = JSON.stringify(document) !== JSON.stringify(retainRegisteredFloorPoints(saved.document, points));
   const room = document.rooms.find(r => r.id === roomId) ?? document.rooms[0];
@@ -46,7 +48,7 @@ export default function FloorPlanEditor({ initial, points, kind, onSave }: {
   const noun = kind === "kiosk" ? "키오스크" : "테이블";
   const objectParticle = kind === "kiosk" ? "를" : "을";
   const placementReason = !visiblePoints.length
-    ? `페이지 위의 ‘새 ${noun} 추가’에서 ${noun}${objectParticle} 먼저 등록해 주세요.${!room ? " ‘룸 추가’로 공간도 만들어 주세요." : ""}`
+    ? `‘${noun} 추가’에서 ${noun}${objectParticle} 먼저 등록해 주세요.${!room ? " ‘룸 추가’로 공간도 만들어 주세요." : ""}`
     : !room ? "‘룸 추가’로 공간을 먼저 만들어 주세요. 룸을 만든 뒤 사각형을 그릴 수 있습니다."
       : !chosen ? `등록한 ${noun}${objectParticle} 모두 배치했습니다. 기존 사각형을 이동·조절하거나 새 ${noun}${objectParticle} 등록해 주세요.`
         : `배치할 ${noun}${objectParticle} 고른 뒤 ‘사각형 그리기’를 누르고 룸 안을 드래그하세요. ‘바로 배치’로 추가할 수도 있습니다.`;
@@ -142,7 +144,7 @@ export default function FloorPlanEditor({ initial, points, kind, onSave }: {
     </div>
     <p id={placementHelpId} className="type-body-sm site-copy-muted">{placementReason}</p>
   </fieldset>;
-  if (!initial.available) return <ContentPanel surface="notice" density="compact"><p className="type-body-sm">{initial.unavailableMessage ?? "배치도 저장 기능을 준비 중입니다. 리스트형에서는 기존 테이블·키오스크를 계속 관리할 수 있습니다."}</p></ContentPanel>;
+  if (!initial.available) return <div className="site-stack-group"><ContentPanel surface="notice" density="compact"><p className="type-body-sm">{initial.unavailableMessage ?? "배치도 저장 기능을 준비 중입니다. 리스트형에서는 기존 테이블·키오스크를 계속 관리할 수 있습니다."}</p></ContentPanel>{registrationForm ? <ContentPanel>{registrationForm}</ContentPanel> : null}</div>;
   return <ContentPanel>
     <div className="site-content-heading-row">
       <div className="site-stack-title"><h3 className="type-content-title">매장 배치도</h3><p className="type-body-sm site-copy-muted">테이블·키오스크 관리에서 같은 룸을 사용합니다. 현재 화면의 {noun} 위치를 표시합니다.</p></div>
@@ -152,9 +154,13 @@ export default function FloorPlanEditor({ initial, points, kind, onSave }: {
       </div>
     </div>
     <div className="site-action-row" data-distribution="between">
-      <button type="button" className="site-button site-button-outline" onClick={addRoom} disabled={pending || document.rooms.length >= 30}><Plus aria-hidden="true" />룸 추가</button>
+      <div className="site-action-row">
+        <button type="button" className="site-button site-button-outline" onClick={addRoom} disabled={pending || document.rooms.length >= 30}><Plus aria-hidden="true" />룸 추가</button>
+        {registrationForm ? <button type="button" className="site-button site-button-outline" disabled={pending} aria-expanded={registrationOpen} aria-controls={registrationOpen ? registrationId : undefined} onClick={() => { setRegistrationOpen(!registrationOpen); if (!registrationOpen) setEditing(true); }}><Plus aria-hidden="true" />{noun} 추가</button> : null}
+      </div>
       <button type="button" className="site-button site-button-ghost" disabled={pending || !dirty} onClick={() => { setDraft(saved.document); setSelectedId(""); setRemoveRoom(false); }}>변경 취소</button>
     </div>
+    {registrationForm && registrationOpen ? <div id={registrationId}><ContentPanel surface="muted">{registrationForm}</ContentPanel></div> : null}
     <p className="type-caption site-copy-muted" role="status">{dirty ? "저장하지 않은 변경이 있습니다." : "변경사항이 없습니다."}</p>
     {feedback ? <p className={`type-body-sm ${feedback.error ? "text-destructive" : "site-copy-muted"}`} role={feedback.error ? "alert" : "status"}>{feedback.message}</p> : null}
     {pending ? <LoadingState inline label="배치도를 저장하고 있습니다." /> : null}
