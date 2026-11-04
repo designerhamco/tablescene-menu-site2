@@ -19,6 +19,7 @@ tmp/qa/
 # next.js
 /.next/
 /.next-order-session-build/
+/.next-payment-terminal-build/
 /out/
 
 # production
