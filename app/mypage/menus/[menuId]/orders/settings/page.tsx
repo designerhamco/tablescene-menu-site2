@@ -35,7 +35,7 @@ export default async function OrderSettingsPage({ params, searchParams }: { para
       {data ? <ContentPanel><OrderSettingsForm menuId={menuId} section="orders" settings={data.settings} runtime={data.runtime} published={site.status === "published"} activeTablesReady={site.activeTablesReady} /></ContentPanel> : <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">주문 사용 설정은 사장님이 변경할 수 있습니다. {canManageDevices ? "기기 연결은 ‘기기별 설정’ 탭에서 관리하세요." : "이 브라우저의 주문 알림음은 아래에서 설정할 수 있습니다."}</p></ContentPanel>}
       {data || site.operationAccess.orders ? <OperationalSoundSettings menuSiteId={menuId} kind="orders" /> : null}
       </> : null}
-      {paymentPanel ? <PaymentTerminalSettings menuSiteId={menuId} preparations={paymentSetup.preparations} storageAvailable={paymentSetup.available} loadError={paymentLoadError} /> : null}
+      {paymentPanel ? <PaymentTerminalSettings key={menuId} menuSiteId={menuId} preparations={paymentSetup.preparations} storageAvailable={paymentSetup.available} loadError={paymentLoadError} /> : null}
       {devicesPanel && (data || canManageDevices) ? <OrderPointReceptionSettings menuSiteId={menuId} feature="orders" points={points}
         settings={pointSettings} runtime={pointRuntime.orders} published={site.status === "published"} deviceSetup={deviceSetup} canManageQr={site.canManageQr} readOnly={!site.isOwner} /> : null}
     </div>

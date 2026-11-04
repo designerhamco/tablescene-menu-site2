@@ -15,7 +15,7 @@ export const PAYMENT_TERMINAL_PROVIDER_INFO = {
     label: "KSNET KSCAT · Windows", program: "KSCAT", platform: "Windows",
     documentation: "https://www.ksnet.co.kr/support/resource/7482e95f-45b2-42ca-b057-cc12e88114e1",
     download: "https://www.ksnet.co.kr/support/resource/7482e95f-45b2-42ca-b057-cc12e88114e1",
-    readiness: "웹 연동 규격 확인 중", chargeEnabled: false,
+    readiness: "프로그램 응답 확인 가능 · 카드 결제 검증 전", chargeEnabled: false,
   },
 } as const;
 

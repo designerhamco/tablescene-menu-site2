@@ -6,6 +6,7 @@ import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { NewWindowIndicator } from "@/app/components/ui/new-window-indicator";
+import KscatConnectionCheck from "./KscatConnectionCheck";
 import { savePaymentTerminalPreparationAction } from "@/app/mypage/menus/[menuId]/orders/settings/payment-terminal-actions";
 import {
   PAYMENT_TERMINAL_PROVIDERS, PAYMENT_TERMINAL_PROVIDER_INFO, emptyPaymentTerminalDraft,
@@ -84,9 +85,10 @@ export default function PaymentTerminalSettings({ menuSiteId, preparations, stor
         <label className="site-field-stack"><span className="type-label">{provider === "nice_apppos_ios" ? "NICE CATID" : "업체 단말기 번호"}</span>
           <Input value={draft.terminalId} maxLength={32} autoComplete="off" placeholder="업체에서 발급한 번호" onChange={event => update("terminalId", event.target.value)} disabled={pending} />
         </label>
-        {provider === "ksnet_kscat_windows" ? <label className="site-field-stack"><span className="type-label">KSCAT 프로그램 포트</span>
-          <Input value={draft.localPort} maxLength={5} inputMode="numeric" autoComplete="off" placeholder="업체가 웹 연동용으로 안내한 값" onChange={event => update("localPort", event.target.value)} disabled={pending} />
-        </label> : null}
+        {provider === "ksnet_kscat_windows" ? <div className="site-field-stack"><label className="type-label" htmlFor="kscat-web-port">KSCAT WEB 포트</label>
+          <Input id="kscat-web-port" aria-describedby="kscat-web-port-help" value={draft.localPort} maxLength={5} inputMode="numeric" autoComplete="off" placeholder="예: 27098" onChange={event => update("localPort", event.target.value)} disabled={pending} />
+          <p id="kscat-web-port-help" className="type-footnote site-copy-muted">KSCAT 설정 화면의 WEB 포트와 같은 값을 입력하세요.</p>
+        </div> : null}
       </div>
       {loadError || !storageAvailable ? <p className="type-body-sm site-copy-muted" role="status">{loadError ?? "계정에 저장하는 기능은 준비 중입니다. 지금은 입력 형식 확인과 문의용 정보 복사를 사용할 수 있습니다. 입력값은 이 화면을 벗어나면 사라집니다."}</p> : <p className="type-caption site-copy-muted">{entries[provider] ? "저장된 준비 정보가 있습니다. 변경 후 다시 저장해 주세요." : "아직 저장한 준비 정보가 없습니다."}</p>}
       <div className="site-action-row">
@@ -98,20 +100,26 @@ export default function PaymentTerminalSettings({ menuSiteId, preparations, stor
 
     <ContentPanel>
       <div className="site-stack-title"><h3 className="type-content-title">설치·연결·결제 테스트</h3><p className="type-body-sm site-copy-muted">{info.platform} 기기에서 {info.program}을 사용합니다. 프로그램 설치와 결제 승인은 각각 확인해야 합니다.</p></div>
-      <ol className="site-stack-block type-body-sm">
+      {provider === "ksnet_kscat_windows" ? <ol className="site-stack-block type-body-sm">
+        <li>1. 사용할 Windows 기기에 KSNET의 KSCAT을 설치합니다.</li>
+        <li>2. KSCAT에서 WebServer를 켜고 서비스를 시작한 뒤, 위에 같은 WEB 포트를 입력합니다.</li>
+        <li>3. 아래 ‘KSCAT 연결 확인’으로 이 기기의 프로그램 응답을 확인합니다.</li>
+        <li>4. 실제 카드 결제는 지원 장비와 테스트 계정을 준비하고 연동 검증을 마친 뒤 사용할 수 있습니다.</li>
+      </ol> : <ol className="site-stack-block type-body-sm">
         <li>1. 업체에 개발용 단말기와 테스트 계정 사용 조건을 확인합니다.</li>
         <li>2. 공식 프로그램·앱을 설치하고 업체 안내대로 리더기를 연결합니다.</li>
         <li>3. 아티메뉴 연동 준비가 완료되면 연결 확인, 테스트 결제, 결과 확인, 취소를 순서대로 진행합니다.</li>
-      </ol>
+      </ol>}
       <div className="site-action-row">
         <Button asChild variant="outline"><a href={info.download} target="_blank" rel="noopener noreferrer">공식 설치 안내<NewWindowIndicator /></a></Button>
         <Button asChild variant="outline"><a href={info.documentation} target="_blank" rel="noopener noreferrer">업체 연동 안내<NewWindowIndicator /></a></Button>
       </div>
+      {provider === "ksnet_kscat_windows" ? <KscatConnectionCheck key={`${menuSiteId}:${provider}`} port={draft.localPort} /> : null}
       <div className="site-action-row">
-        <Button type="button" variant="secondary" disabled>연결 확인 준비 중</Button>
+        {provider !== "ksnet_kscat_windows" ? <Button type="button" variant="secondary" disabled>연결 확인 준비 중</Button> : null}
         <Button type="button" variant="secondary" disabled>결제 테스트 준비 중</Button>
       </div>
-      <p className="type-footnote site-copy-muted">테스트 기능은 업체 규격과 단말기 검증을 마친 뒤 제공합니다. 이 화면은 실제 결제를 실행하지 않습니다.</p>
+      <p className="type-footnote site-copy-muted">카드 결제 테스트는 업체 규격과 단말기 검증을 마친 뒤 제공합니다. 이 화면은 실제 결제를 실행하지 않습니다.</p>
     </ContentPanel>
   </div>;
 }
