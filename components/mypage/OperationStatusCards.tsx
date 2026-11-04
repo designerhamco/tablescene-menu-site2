@@ -37,7 +37,7 @@ export default function OperationStatusCards(props: OperationStatusCardsProps) {
       return <OverviewCard key={kind} label={`${noun} 상태`}
         value={counts ? counts.registered === 0 ? "미등록" : `사용 중 ${counts.active.toLocaleString("ko-KR")}개` : permissions.tables ? "상태 확인 불가" : "확인 불가"}
         detail={counts ? `등록 ${counts.registered.toLocaleString("ko-KR")}개 · 비활성 ${(counts.registered - counts.active).toLocaleString("ko-KR")}개` : permissions.tables ? `${noun} 정보를 불러오지 못했습니다.` : `${noun} 관리 권한이 필요합니다.`}
-        help={`${noun}는 주문·호출 기능을 사용할 때만 등록해 주세요. 메뉴판만 보여주는 경우에는 등록하지 않아도 됩니다.`}
+        help="주문·호출 기능을 사용할 때만 등록해 주세요. 메뉴판만 보여주는 경우에는 등록하지 않아도 됩니다."
         footer={permissions.tables ? <Button variant="outline" asChild><Link href={`/mypage/menus/${menuId}/${kind === "table" ? "tables" : "kiosks"}`}>{noun} 관리<ArrowRight aria-hidden="true" /></Link></Button> : <p className="type-footnote site-copy-muted">{noun} 설정은 사장님에게 요청해 주세요.</p>} />;
     })}
     {(["orders", "calls"] as const).map(feature => {
