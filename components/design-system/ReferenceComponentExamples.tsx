@@ -4,6 +4,8 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { Bell, Check, CreditCard, LayoutGrid, Search, Share2, ShoppingBag } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
+import { Switch } from "@/app/components/ui/switch";
+import { OverviewCard, OverviewCardResponsiveLabel, OverviewCardGroup } from "@/app/components/ui/overview-card";
 import { MetricCard, FilterPanel, RecordCard, KeyValueList, AnnouncementBar } from "@/app/components/ui/data-display";
 import { NOTIFICATION_COMPACT_NOTICE } from "@/lib/notification-display-policy";
 import { NotificationPanel } from "@/app/components/ui/notification-panel";
@@ -21,6 +23,7 @@ function Example({title,description,children}:{title:string;description:string;c
 }
 const notices=[{id:"sample-1",title:"메뉴판 공개 설정을 확인해 주세요",message:"디자인과 메뉴를 확인한 뒤 공개할 수 있습니다.",createdAt:"2026-10-26T02:00:00Z",unread:true,href:"/design-system"},{id:"sample-2",title:"이용 내역을 한곳에서 확인하세요",message:"마이페이지에서 구독과 메뉴판 이용 내역을 확인할 수 있습니다.",createdAt:"2026-10-25T02:00:00Z",unread:false,href:"/design-system"}];
 export default function ReferenceComponentExamples() {
+  const [exampleOrdersEnabled, setExampleOrdersEnabled] = useState(false);
   const [read,setRead]=useState<string[]>([]);
   const [query,setQuery]=useState("");
   const [status,setStatus]=useState("all");
@@ -32,6 +35,14 @@ export default function ReferenceComponentExamples() {
   return <>
     <Example title="고객지원 홈" description="도움이 필요할 때 문의 방법부터 고릅니다. AI 실시간 문의·1:1 문의·FAQ 아래에 서비스 가이드와 기존 FAQ를 표시합니다."><div className={styles.supportExample}><h3 className="type-content-title px-5 pt-5">도움이 필요하신가요?</h3><SupportHome enabled={false} onChat={() => window.dispatchEvent(new Event(AI_SUPPORT_CHAT_OPEN_EVENT))} /></div></Example>
     <Example title="알림 패널" description="분류 탭·목록 하단 중앙에 떠 있는 모두 읽기·날짜별 목록·읽지 않은 표시·하단 전체보기를 한 구조로 묶습니다. 표시는 최근 90일 기준이며, 완료된 알림 본문은 별도 1년 보관 정책을 따릅니다. 아래 알림은 동작 확인용 예시입니다."><div className={styles.notificationExample}><NotificationPanel compact items={notices.map(item=>({...item,unread:item.unread&&!read.includes(item.id)}))} onActivate={item=>setRead(current=>[...current,item.id])} onReadAll={()=>setRead(notices.map(item=>item.id))} footer={<><p className="site-notification-limit">{NOTIFICATION_COMPACT_NOTICE}</p><Link href="/mypage?tab=notifications">전체 알림 보기</Link></>} /></div></Example>
+    <Example title="운영 대시보드 요약 카드" description="아이콘 없이 흰색 ContentPanel의 시작선에 라벨·값을 정렬합니다. 공개 설정은 편집 링크로, 주문·호출 안내는 클릭·호버 도움말로 제공합니다. 상태 변경은 우측 상단, 이동은 하단 구분선 아래에 둡니다. 모바일·태블릿 2열·넓은 PC 4열로 표시합니다.">
+      <OverviewCardGroup label="운영 요약 카드 예시">
+        <OverviewCard label="메뉴판 공개 상태" value="공개 중" detail="손님이 메뉴판을 볼 수 있습니다." footer={<Button variant="outline" asChild><Link href="/design-system" aria-label="메뉴판 공개 설정"><OverviewCardResponsiveLabel compact="공개 설정">메뉴판 공개 설정</OverviewCardResponsiveLabel></Link></Button>} />
+        <OverviewCard label="테이블·키오스크 상태" value="사용 중 1개" detail="테이블 1개 · 키오스크 0개" footer={<Button variant="outline" asChild><Link href="/design-system" aria-label="테이블·키오스크 관리"><OverviewCardResponsiveLabel compact="테이블 관리">테이블·키오스크 관리</OverviewCardResponsiveLabel></Link></Button>} />
+        <OverviewCard label="전체 주문 상태" value={<OverviewCardResponsiveLabel compact={exampleOrdersEnabled ? "접수 중" : "미사용"}>{exampleOrdersEnabled ? "주문 접수 중" : "주문 미사용"}</OverviewCardResponsiveLabel>} help="전체 스위치를 켜면 주문 접수를 시작합니다. 동작 확인용 예시이며 실제 설정은 저장하지 않습니다." control={<Switch checked={exampleOrdersEnabled} onCheckedChange={setExampleOrdersEnabled} aria-label="예시 전체 주문 기능 사용" />} footer={<Button variant="outline" asChild><Link href="/design-system">주문 설정</Link></Button>} />
+        <OverviewCard label="오늘 결제 완료액" value="0원" detail="결제 완료 0건" />
+      </OverviewCardGroup>
+    </Example>
     <Example title="현황 카드와 요약 목록" description="회색 작업 영역 안에서 흰 카드를 사용합니다. 라벨보다 숫자를 강조하고, 아이콘에만 작은 색상 포인트를 줍니다. 아래 수치는 예시입니다."><div className="site-dashboard"><AnnouncementBar label="안내">현황 카드에서 필요한 운영 화면으로 이동할 수 있습니다.</AnnouncementBar><div className="site-metric-grid mt-4"><MetricCard label="진행 중 주문" value="2건" detail="예시 데이터" icon={<ShoppingBag />} tone="blue" /><MetricCard label="대기 중 호출" value="0건" icon={<Bell />} tone="brand" /><MetricCard label="운영 테이블" value="12개" icon={<LayoutGrid />} tone="green" /><div className="site-card-surface p-5"><h3 className="type-label">이용 현황</h3><KeyValueList items={[{label:"공개 메뉴판",value:"1개"},{label:"작성 중",value:"1개"},{label:"결제 내역",value:"3건"}]} /></div></div></div></Example>
     <Example title="검색 필터와 상세 카드" description="조건 입력과 내역을 분리하고, 상세 정보·보조 안내·행동 버튼을 순서대로 배치합니다. 조회와 상세보기는 이 화면의 예시에만 적용됩니다.">
       <form onSubmit={event=>{event.preventDefault();setApplied({query,status});}}><FilterPanel footer={<><fieldset className={styles.buttonRow}><legend className="sr-only">정렬</legend>{[{value:"recent",label:"최신순"},{value:"name",label:"이름순"}].map(item=><label key={item.value} className="type-body-sm inline-flex items-center gap-2"><input type="radio" name="sample-sort" value={item.value} checked={sort===item.value} onChange={()=>setSort(item.value)} />{item.label}</label>)}</fieldset><label className="type-body-sm inline-flex items-center gap-2"><input type="checkbox" checked={onlyUnread} onChange={event=>setOnlyUnread(event.target.checked)} />미확인 항목만</label></>}><div className={styles.filterExample}><label><span className="type-label mb-2 block">상태</span><select value={status} onChange={event=>setStatus(event.target.value)} className="site-field w-full"><option value="all">전체 상태</option><option value="draft">작성 중</option><option value="published">공개 중</option></select></label><label><span className="type-label mb-2 block">메뉴판명</span><span className="relative block"><Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-zinc-400" aria-hidden="true" /><input value={query} onChange={event=>setQuery(event.target.value)} type="search" className="site-field site-field-leading w-full" placeholder="아티메뉴 카페" /></span></label><Button type="submit">조회</Button></div></FilterPanel></form>

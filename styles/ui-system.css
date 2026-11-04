@@ -1268,3 +1268,13 @@ textarea.site-field[data-field-size="lg"], textarea[data-field-size="lg"] { min-
 /* User-approved floating notification action; keeps shared control type and states. */
 .site-button-notification-read-all { width: var(--ui-notification-read-all-width); border-radius: var(--ui-notification-read-all-radius); border-color: var(--ui-text-muted); box-shadow: var(--ui-notification-read-all-shadow); }
 .site-button-notification-read-all:is(:disabled, [aria-disabled="true"]) { box-shadow: none; }
+
+/* Compact help in narrow summary cards retains the default icon control on PC. */
+@media (max-width: 639px) {
+  .site-button-icon.site-button-icon-compact-mobile {
+    width: var(--ui-control-height-compact);
+    min-width: var(--ui-control-height-compact);
+    height: var(--ui-control-height-compact);
+    min-height: var(--ui-control-height-compact);
+  }
+}
