@@ -127,7 +127,7 @@ export async function mutateMenuTableAction(
     if (intent === "restore") {
       const table = await restoreMenuTable({ menuSiteId, tableId, label: getFormString(formData, "label") });
       revalidateTableOperations(menuSiteId);
-      return { ...initialMenuTableActionState, status: "success", message: `${table.label}을 비활성 상태로 복원했습니다. 사용할 때 상태를 사용 중으로 바꿔 주세요.`, tableId: table.id };
+      return { ...initialMenuTableActionState, status: "success", message: `${table.label}을 일시정지 상태로 복원했습니다. 사용할 때 상태를 사용 중으로 바꿔 주세요.`, tableId: table.id };
     }
     if (intent === "rotate-token") {
       const result = await rotateMenuTableToken({ menuSiteId, tableId });
@@ -150,12 +150,12 @@ export async function mutateMenuTableAction(
       };
     }
 
-    if (intent === "update") {
+    if (intent === "update" || intent === "rename") {
       const table = await updateMenuTable({
         menuSiteId,
         tableId,
         label: getFormString(formData, "label"),
-        status: getFormString(formData, "status"),
+        ...(intent === "update" ? { status: getFormString(formData, "status") } : {}),
       });
       revalidateTableOperations(menuSiteId);
       return {
@@ -173,6 +173,20 @@ export async function mutateMenuTableAction(
     };
   } catch (error) {
     return actionError(error);
+  }
+}
+
+export async function updateOrderPointStatus(input: {
+  menuSiteId: string; tableId: string; status: "active" | "disabled"; expectedStatus: "active" | "disabled";
+}): Promise<{ status: "success" | "error"; message: string }> {
+  try {
+    const point = await updateMenuTable({ menuSiteId: input.menuSiteId, tableId: input.tableId, status: input.status, expectedStatus: input.expectedStatus });
+    revalidateTableOperations(input.menuSiteId);
+    return { status: "success", message: `${point.label}을 ${point.status === "active" ? "사용 중" : "일시정지"}으로 변경했습니다.` };
+  } catch (error) {
+    // Refresh a stale switch without overwriting a change from another operator.
+    revalidateTableOperations(input.menuSiteId);
+    return { status: "error", message: actionError(error).message };
   }
 }
 

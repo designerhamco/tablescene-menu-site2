@@ -18,6 +18,7 @@ function fixture({ error = null as null | { code: string; message?: string }, mi
   const query = {
     select() { return this; },
     eq(key: string, value: unknown) { filters.push([key, value]); return this; },
+    neq(key: string, value: unknown) { filters.push([key, "!=", value]); return this; },
     in(_key: string, values: string[]) { listStatuses = values; return this; },
     order() { return this; },
     then(resolve: (value: unknown) => void) {
@@ -83,4 +84,28 @@ test("복원 권한·입력 검증과 이름 충돌·테이블 제한·이미 �
   const f = fixture();
   await assert.rejects(f.service.restoreMenuTable({ menuSiteId: siteId, tableId, label: " " }), /1자 이상/);
   assert.deepEqual(f.writes, []);
+});
+
+test("목록의 상태 전환은 이름과 QR을 덮어쓰지 않고 현재 상태·매장·권한을 검사한다", async () => {
+  const f = fixture();
+  await f.service.updateMenuTable({ menuSiteId: siteId, tableId, status: "active", expectedStatus: "disabled" });
+  assert.deepEqual(f.writes, [{ updated_by: "owner", status: "active" }]);
+  assert.deepEqual(f.filters, [["menu_site_id", siteId], ["id", tableId], ["status", "!=", "archived"], ["status", "disabled"]]);
+  assert.deepEqual(f.permissions, [[siteId, "table.manage"], [siteId, "table.manage", "menu_table_management"]]);
+  const rename = fixture();
+  await rename.service.updateMenuTable({ menuSiteId: siteId, tableId, label: " 새 이름 " });
+  assert.deepEqual(rename.writes, [{ updated_by: "owner", label: "새 이름" }]);
+});
+
+test("상태 전환의 권한 부족·보관/동시 변경·잘못된 상태를 거절한다", async () => {
+  const denied = fixture({ denied: true });
+  await assert.rejects(denied.service.updateMenuTable({ menuSiteId: siteId, tableId, status: "active", expectedStatus: "disabled" }), /permission denied/);
+  assert.deepEqual(denied.writes, []);
+  const missing = fixture({ missing: true });
+  await assert.rejects(missing.service.updateMenuTable({ menuSiteId: siteId, tableId, status: "active", expectedStatus: "disabled" }), /상태가 변경됐거나/);
+  const invalid = fixture();
+  for (const patch of [{ status: "archived" }, { status: "active", expectedStatus: "archived" }, { label: " " }, {}]) {
+    await assert.rejects(invalid.service.updateMenuTable({ menuSiteId: siteId, tableId, ...patch }), /올바른 테이블 상태|1자 이상|변경할 이름 또는 상태/);
+  }
+  assert.deepEqual(invalid.writes, []);
 });

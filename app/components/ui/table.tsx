@@ -4,15 +4,18 @@ import * as React from "react";
 
 import { cn } from "./utils";
 
-function Table({ className, ...props }: React.ComponentProps<"table">) {
+function Table({ className, variant = "default", label, ...props }: React.ComponentProps<"table"> & { variant?: "default" | "management"; label?: string }) {
   return (
     <div
       data-slot="table-container"
-      className="relative w-full overflow-x-auto"
+      className={cn("relative w-full overflow-x-auto", variant === "management" && "site-table-scroll")}
+      role={variant === "management" ? "region" : undefined}
+      aria-label={variant === "management" ? label : undefined}
+      tabIndex={variant === "management" ? 0 : undefined}
     >
       <table
         data-slot="table"
-        className={cn("w-full caption-bottom text-copy", className)}
+        className={cn("w-full caption-bottom text-copy", variant === "management" && "site-management-table type-body-sm", className)}
         {...props}
       />
     </div>
