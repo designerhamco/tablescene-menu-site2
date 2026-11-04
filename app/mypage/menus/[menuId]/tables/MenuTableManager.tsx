@@ -4,11 +4,14 @@ import { useActionState, useId, useState } from "react";
 import { Armchair, Monitor, LayoutGrid, List, Map, Plus } from "lucide-react";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import type { ArchivedMenuTableListItem, MenuTableListItem } from "@/lib/menu-table-management";
-import OrderPointConnectionSummary, { type OrderPointConnectionState } from "@/components/mypage/OrderPointConnectionSummary";
+import type { OrderPointConnectionState } from "@/components/mypage/OrderPointConnectionSummary";
+import OrderPointTableRow from "@/components/mypage/OrderPointTableRow";
+import InfoTooltip from "@/components/ui/InfoTooltip";
 import DeleteOrderPoint from "@/components/mypage/DeleteOrderPoint";
 import { LoadingState } from "@/app/components/ui/loading-state";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { EditableList, EditableListItem } from "@/app/components/ui/editable-list";
+import { Table, TableBody, TableCaption, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
 import { formatKoreanDateTime } from "@/lib/korean-date-time";
 import { initialMenuTableActionState } from "./action-state";
 import { createMenuTableAction, mutateMenuTableAction } from "./actions";
@@ -57,7 +60,6 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
     <ActionFeedbackToast message={mutationState.message} tone={mutationState.status === "success" ? "success" : "error"} eventKey={mutationState} />
 
     <section className="site-stack-group" aria-labelledby={`${usageId}-title`}>
-      <h2 className="type-subsection-title" id={`${usageId}-title`}>운영 테이블·키오스크 · {tables.length.toLocaleString("ko-KR")}개</h2>
       <Tabs purpose="state" value={displayMode} onValueChange={setDisplayMode}>
         <TabsList aria-label="보기 유형"><TabsTrigger value="list"><List aria-hidden="true" />리스트형</TabsTrigger><TabsTrigger value="map"><Map aria-hidden="true" />배치도형</TabsTrigger></TabsList>
         <div className="site-stack-block">
@@ -84,30 +86,20 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
           </ContentPanel></div> : null}
         </div>
 
+        <h2 className="type-subsection-title" id={`${usageId}-title`}>운영 테이블·키오스크 · {tables.length.toLocaleString("ko-KR")}개</h2>
+
         <TabsContent value="list" forceMount hidden={displayMode !== "list"}>
-          {!tables.length ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title="아직 등록된 테이블·키오스크가 없습니다." description="위의 ‘테이블 추가’ 또는 ‘키오스크 추가’로 등록해 주세요." /> : <EditableList label="운영 테이블·키오스크 목록">
-            {tables.map((point, index) => <EditableListItem key={point.id} label={point.label} title={<PointTitle point={point} />}
-              status={<Badge tone={point.status === "active" ? "active" : "neutral"}>{point.status === "active" ? "사용 중" : "일시정지"}</Badge>}
-              divided={index > 0} open={expandedPointId === point.id} onOpenChange={open => setExpanded(point.id, open)} disabled={mutationPending}>
-              <form action={mutationAction} className="site-form-row" aria-busy={mutationPending}>
-                <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={point.id} />
-                <label className="site-field-stack type-label">이름<input name="label" required maxLength={80} defaultValue={point.label} className="site-field w-full" /></label>
-                <label className="site-field-stack type-label" data-field-width="short">상태<select name="status" defaultValue={point.status} className="site-field w-full"><option value="active">사용 중</option><option value="disabled">일시정지</option></select></label>
-                <button name="intent" value="update" disabled={mutationPending} className="site-button site-button-outline">저장</button>
-              </form>
-              <OrderPointConnectionSummary menuSiteId={menuSiteId} point={point} state={connectionState} />
-              <div className="site-stack-copy site-content-divider">
-                <div className="site-action-row">
-                  <form action={mutationAction} aria-busy={mutationPending}>
-                    <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={point.id} />
-                    <button name="intent" value="archive" disabled={mutationPending} className="site-button site-button-outline">{point.kind === "kiosk" ? "키오스크" : "테이블"} 미사용(보관)</button>
-                  </form>
-                  {canDelete ? <DeleteOrderPoint menuSiteId={menuSiteId} point={point} disabled={mutationPending} /> : null}
-                </div>
-                <p className="type-footnote site-copy-muted">보관하면 운영 목록에서 빠지고 연결은 종료됩니다. 기존 주문·호출 기록은 유지됩니다.</p>
-              </div>
-            </EditableListItem>)}
-          </EditableList>}
+          {!tables.length ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title="아직 등록된 테이블·키오스크가 없습니다." description="위의 ‘테이블 추가’ 또는 ‘키오스크 추가’로 등록해 주세요." /> : <Table variant="management" label="운영 테이블·키오스크 목록">
+            <TableCaption className="sr-only">종류, 이름, 공용 태블릿 연결 여부와 운영 상태를 확인할 수 있습니다. 이름을 누르면 수정할 수 있습니다.</TableCaption>
+            <TableHeader><TableRow>
+              <TableHead scope="col" data-column="kind">종류</TableHead>
+              <TableHead scope="col" data-column="name">이름</TableHead>
+              <TableHead scope="col" data-column="connection">공용 태블릿 연결 여부</TableHead>
+              <TableHead scope="col" data-column="status">상태</TableHead>
+              <TableHead scope="col" data-column="actions"><div className="site-action-row">관리<InfoTooltip label="보관·삭제 안내"><p>보관하면 운영 목록에서 빠지고 기기 연결은 종료됩니다. 기존 주문·호출 기록은 유지됩니다. 삭제는 사용 이력이 없는 등록만 가능합니다.</p></InfoTooltip></div></TableHead>
+            </TableRow></TableHeader>
+            <TableBody>{tables.map(point => <OrderPointTableRow key={`${point.id}:${point.label}`} menuSiteId={menuSiteId} point={point} connectionState={connectionState} canDelete={canDelete} disabled={mutationPending} archiveAction={mutationAction} />)}</TableBody>
+          </Table>}
         </TabsContent>
         <TabsContent value="map" forceMount hidden={displayMode !== "map"}>
           <FloorPlanEditor initial={floorPlan} points={tables} onSave={saveFloorPlanAction ?? (async () => ({ status: "error", message: "배치도 저장 기능을 사용할 수 없습니다." }))} />

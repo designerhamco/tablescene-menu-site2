@@ -224,37 +224,48 @@ export async function updateMenuTable({
   tableId,
   label,
   status,
+  expectedStatus,
 }: {
   menuSiteId: string;
   tableId: string;
-  label: string;
-  status: MenuTableMutableStatus | string;
+  label?: string;
+  status?: MenuTableMutableStatus | string;
+  expectedStatus?: MenuTableMutableStatus | string;
 }) {
   let normalizedMenuSiteId: string;
   let normalizedTableId: string;
-  let normalizedLabel: string;
-  let normalizedStatus: MenuTableMutableStatus;
+  let normalizedLabel: string | undefined;
+  let normalizedStatus: MenuTableMutableStatus | undefined;
+  let normalizedExpectedStatus: MenuTableMutableStatus | undefined;
   try {
     normalizedMenuSiteId = normalizeMenuTableId(menuSiteId);
     normalizedTableId = normalizeMenuTableId(tableId);
-    normalizedLabel = normalizeMenuTableLabel(label);
-    normalizedStatus = normalizeMenuTableStatus(status);
+    normalizedLabel = label === undefined ? undefined : normalizeMenuTableLabel(label);
+    normalizedStatus = status === undefined ? undefined : normalizeMenuTableStatus(status);
+    normalizedExpectedStatus = expectedStatus === undefined ? undefined : normalizeMenuTableStatus(expectedStatus);
   } catch (error) {
     return inputError(error);
   }
 
+  if (normalizedLabel === undefined && normalizedStatus === undefined) {
+    throw new MenuTableManagementError("INVALID_INPUT", "변경할 이름 또는 상태를 확인해 주세요.", 400);
+  }
+
   const { context, supabase } = await requireMenuTableWriteAccess(normalizedMenuSiteId);
-  const { data, error } = await supabase
+  const patch: Database["public"]["Tables"]["menu_tables"]["Update"] = { updated_by: context.actorUserId };
+  if (normalizedLabel !== undefined) patch.label = normalizedLabel;
+  if (normalizedStatus !== undefined) patch.status = normalizedStatus;
+  let query = supabase
     .from("menu_tables")
-    .update({ label: normalizedLabel, status: normalizedStatus, updated_by: context.actorUserId })
+    .update(patch)
     .eq("menu_site_id", normalizedMenuSiteId)
     .eq("id", normalizedTableId)
-    .neq("status", "archived")
-    .select("*")
-    .maybeSingle();
+    .neq("status", "archived");
+  if (normalizedExpectedStatus !== undefined) query = query.eq("status", normalizedExpectedStatus);
+  const { data, error } = await query.select("*").maybeSingle();
 
   if (error) mapDatabaseError(error, "TABLE_UPDATE_FAILED");
-  if (!data) throw new MenuTableManagementError("TABLE_NOT_FOUND", "테이블을 찾을 수 없거나 이미 보관되었습니다.", 404);
+  if (!data) throw new MenuTableManagementError("TABLE_NOT_FOUND", "상태가 변경됐거나 이미 보관된 항목입니다. 새로고침 후 다시 시도해 주세요.", 409);
   return toMenuTableListItem(data);
 }
 
