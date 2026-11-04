@@ -1,19 +1,17 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, useTransition, type PointerEvent, type ReactNode } from "react";
+import { useEffect, useId, useRef, useState, useTransition, type PointerEvent } from "react";
 import { Armchair, Monitor, LayoutGrid, Plus, Save } from "lucide-react";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/ui/tabs";
 import { LoadingState } from "@/app/components/ui/loading-state";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { constrainFloorRect, normalizeFloorDocument, retainRegisteredFloorPoints, type FloorDocument, type FloorPlacement, type FloorPlanSnapshot, type FloorPoint, type FloorSaveResult } from "@/lib/menu-floor-plan";
-import type { OrderPointKind } from "@/lib/order-point-policy";
 import { FloorPlanCanvas, FloorPlanObject } from "@/app/components/ui/floor-plan-canvas";
 
 type Gesture = { pointerId: number; mode: "draw" | "move" | "resize"; pointId: string; roomId: string; startX: number; startY: number; origin: FloorPlacement; before: FloorDocument };
-export default function FloorPlanEditor({ initial, points, kind, onSave, registrationForm }: {
-  registrationForm?: ReactNode;
-  initial: FloorPlanSnapshot; points: FloorPoint[]; kind?: OrderPointKind;
+export default function FloorPlanEditor({ initial, points, onSave }: {
+  initial: FloorPlanSnapshot; points: FloorPoint[];
   onSave: (revision: number, document: FloorDocument) => Promise<FloorSaveResult>;
 }) {
   const [draft, setDraft] = useState(initial.document);
@@ -22,22 +20,17 @@ export default function FloorPlanEditor({ initial, points, kind, onSave, registr
   const [selectedId, setSelectedId] = useState("");
   const [unplacedId, setUnplacedId] = useState("");
   const editing = true;
-  const [registrationOpen, setRegistrationOpen] = useState(false);
-  const [drawingState, setDrawingState] = useState<{ active: boolean; kind?: OrderPointKind }>({ active: false, kind });
-  // A display-filter change cancels drawing; returning to the old filter must not re-arm it.
-  if (drawingState.kind !== kind) setDrawingState({ active: false, kind });
-  const drawing = drawingState.active && drawingState.kind === kind;
-  const setDrawing = (active: boolean) => setDrawingState({ active, kind });
+  const [drawing, setDrawing] = useState(false);
   const [drawingPointId, setDrawingPointId] = useState("");
   const [removeRoom, setRemoveRoom] = useState(false);
   const [feedback, setFeedback] = useState<{ error: boolean; message: string } | null>(null);
   const [pending, startTransition] = useTransition();
   const gesture = useRef<Gesture | null>(null), boardRef = useRef<HTMLDivElement>(null);
-  const helpId = useId(), labelId = useId(), placementHelpId = useId(), registrationId = useId();
+  const helpId = useId(), labelId = useId(), placementHelpId = useId();
   const document = retainRegisteredFloorPoints(draft, points);
   const dirty = JSON.stringify(document) !== JSON.stringify(retainRegisteredFloorPoints(saved.document, points));
   const room = document.rooms.find(r => r.id === roomId) ?? document.rooms[0];
-  const visiblePoints = points.filter(p => !kind || (p.kind ?? "table") === kind);
+  const visiblePoints = points;
   const unplaced = visiblePoints.filter(p => !document.placements.some(item => item.pointId === p.id));
   // Keep the active draw target in the toolbar until pointer release. Removing it
   // on pointer-down can resize the toolbar and move the drawing canvas mid-gesture.
@@ -46,10 +39,10 @@ export default function FloorPlanEditor({ initial, points, kind, onSave, registr
   const chosen = drawingPoint ?? unplaced.find(p => p.id === unplacedId) ?? unplaced[0];
   const selected = document.placements.find(p => p.pointId === selectedId && p.roomId === room?.id && visiblePoints.some(point => point.id === p.pointId));
   const selectedPoint = points.find(p => p.id === selected?.pointId);
-  const noun = kind === "kiosk" ? "키오스크" : kind === "table" ? "테이블" : "테이블·키오스크";
-  const objectParticle = kind === "table" ? "을" : "를";
+  const noun = "테이블·키오스크";
+  const objectParticle = "를";
   const placementReason = !visiblePoints.length
-    ? `‘테이블·키오스크 추가’에서 ${noun}${objectParticle} 먼저 등록해 주세요.${!room ? " ‘룸 추가’로 공간도 만들어 주세요." : ""}`
+    ? `상단의 ‘테이블 추가’ 또는 ‘키오스크 추가’로 먼저 등록해 주세요.${!room ? " ‘룸 추가’로 공간도 만들어 주세요." : ""}`
     : !room ? "‘룸 추가’로 공간을 먼저 만들어 주세요. 룸을 만든 뒤 사각형을 그릴 수 있습니다."
       : !chosen ? `등록한 ${noun}${objectParticle} 모두 배치했습니다. 기존 사각형을 이동·조절하거나 새 ${noun}${objectParticle} 등록해 주세요.`
         : `배치할 ${noun}${objectParticle} 고른 뒤 ‘사각형 그리기’를 누르고 룸 안을 드래그하세요. ‘바로 배치’로 추가할 수도 있습니다.`;
@@ -145,7 +138,7 @@ export default function FloorPlanEditor({ initial, points, kind, onSave, registr
     </div>
     <p id={placementHelpId} className="type-body-sm site-copy-muted">{placementReason}</p>
   </fieldset>;
-  if (!initial.available) return <div className="site-stack-group"><ContentPanel surface="notice" density="compact"><p className="type-body-sm">{initial.unavailableMessage ?? "배치도 저장 기능을 준비 중입니다. 리스트형에서는 기존 테이블·키오스크를 계속 관리할 수 있습니다."}</p></ContentPanel>{registrationForm ? <ContentPanel>{registrationForm}</ContentPanel> : null}</div>;
+  if (!initial.available) return <div className="site-stack-group"><ContentPanel surface="notice" density="compact"><p className="type-body-sm">{initial.unavailableMessage ?? "배치도 저장 기능을 준비 중입니다. 리스트형에서는 기존 테이블·키오스크를 계속 관리할 수 있습니다."}</p></ContentPanel></div>;
   return <ContentPanel>
     <div className="site-content-heading-row">
       <div className="site-stack-title"><h3 className="type-content-title">매장 배치도</h3><p className="type-body-sm site-copy-muted">공간을 만들고 등록한 테이블·키오스크를 배치하세요. 룸은 배치도를 사용할 때만 필요합니다.</p></div>
@@ -155,12 +148,10 @@ export default function FloorPlanEditor({ initial, points, kind, onSave, registr
       </div>
     </div>
     <div className="site-stack-block site-content-divider">
-      <div className="site-stack-title"><h4 className="type-content-title">공간과 항목 준비</h4><p className="type-body-sm site-copy-muted">‘룸 추가’로 공간을 만든 뒤 아래에서 배치할 항목을 선택하세요. 항목 등록은 룸 없이도 가능합니다.</p></div>
+      <div className="site-stack-title"><h4 className="type-content-title">공간 설정</h4><p className="type-body-sm site-copy-muted">‘룸 추가’로 공간을 만든 뒤 아래에서 등록된 항목을 선택해 배치하세요.</p></div>
       <div className="site-action-row">
         <button type="button" className="site-button site-button-outline" onClick={addRoom} disabled={pending || document.rooms.length >= 30}><Plus aria-hidden="true" />룸 추가</button>
-        {registrationForm ? <button type="button" className="site-button site-button-outline" disabled={pending} aria-expanded={registrationOpen} aria-controls={registrationOpen ? registrationId : undefined} onClick={() => setRegistrationOpen(!registrationOpen)}><Plus aria-hidden="true" />테이블·키오스크 추가</button> : null}
       </div>
-      {registrationForm && registrationOpen ? <div id={registrationId}><ContentPanel surface="muted">{registrationForm}</ContentPanel></div> : null}
     </div>
     {feedback && (!dirty || feedback.error) ? <p className={`type-body-sm ${feedback.error ? "text-destructive" : "site-copy-muted"}`} role={feedback.error ? "alert" : "status"}>{feedback.message}</p> : null}
     {pending ? <LoadingState inline label="배치도를 저장하고 있습니다." /> : null}

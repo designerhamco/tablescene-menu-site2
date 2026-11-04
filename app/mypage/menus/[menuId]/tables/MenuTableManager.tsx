@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useId, useState } from "react";
-import { Armchair, Monitor, LayoutGrid, List, Map } from "lucide-react";
+import { Armchair, Monitor, LayoutGrid, List, Map, Plus } from "lucide-react";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import type { ArchivedMenuTableListItem, MenuTableListItem } from "@/lib/menu-table-management";
 import OrderPointConnectionSummary, { type OrderPointConnectionState } from "@/components/mypage/OrderPointConnectionSummary";
@@ -20,39 +20,47 @@ import FloorPlanEditor from "@/components/mypage/floor-plan/FloorPlanEditor";
 import { emptyFloorDocument, type FloorPlanSnapshot, type FloorDocument, type FloorSaveResult } from "@/lib/menu-floor-plan";
 
 type ManagedPoint = Pick<MenuTableListItem, "id" | "label" | "status" | "kind">;
-export default function MenuTableManager({ menuSiteId, tables, archivedTables = [], pointSettingsAvailable = false, canDelete = false, connectionState, initialKind = "table", saveFloorPlanAction, floorPlan = { available: false, revision: 0, document: emptyFloorDocument() } }: {
-  initialKind?: OrderPointKind;
+export default function MenuTableManager({ menuSiteId, tables, archivedTables = [], pointSettingsAvailable = false, canDelete = false, connectionState, saveFloorPlanAction, floorPlan = { available: false, revision: 0, document: emptyFloorDocument() } }: {
   saveFloorPlanAction?: (revision: number, document: FloorDocument) => Promise<FloorSaveResult>;
   floorPlan?: FloorPlanSnapshot; menuSiteId: string; tables: ManagedPoint[]; archivedTables?: ArchivedMenuTableListItem[];
   pointSettingsAvailable?: boolean; canDelete?: boolean; connectionState?: OrderPointConnectionState;
 }) {
-  const [createState, createAction, createPending] = useActionState(createMenuTableAction, initialMenuTableActionState);
+  const [registrationKind, setRegistrationKind] = useState<OrderPointKind | null>(null);
+  const [nameDrafts, setNameDrafts] = useState({ table: "", kiosk: "" });
+  const [createState, createAction, createPending] = useActionState(async (previous: typeof initialMenuTableActionState, formData: FormData) => {
+    const result = await createMenuTableAction(previous, formData);
+    if (result.status === "success") {
+      const kind = formData.get("kind") === "kiosk" ? "kiosk" : "table";
+      setNameDrafts(current => ({ ...current, [kind]: "" }));
+      setRegistrationKind(null);
+    }
+    return result;
+  }, initialMenuTableActionState);
   const [mutationState, mutationAction, mutationPending] = useActionState(mutateMenuTableAction, initialMenuTableActionState);
   const [displayMode, setDisplayMode] = useState("list");
   const usageId = useId();
-  const [registrationKind, setRegistrationKind] = useState<OrderPointKind>(initialKind);
-  const [typeFilter, setTypeFilter] = useState<"all" | OrderPointKind>("all");
   const kiosk = registrationKind === "kiosk", registrationNoun = kiosk ? "키오스크" : "테이블";
   const noun = "테이블·키오스크";
-  const points = tables.filter(point => typeFilter === "all" || (point.kind ?? "table") === typeFilter);
-  const archived = archivedTables.filter(point => typeFilter === "all" || (point.kind ?? "table") === typeFilter);
-  const registrationForm = <div className="site-stack-group">
+  const points = tables;
+  const archived = archivedTables;
+  const registrationForm = registrationKind ? <div className="site-stack-group">
             <div className="site-stack-title">
-              <h2 className="type-subsection-title">새 {registrationNoun} 추가</h2>
+              <h3 className="type-subsection-title">{registrationNoun} 추가</h3>
               <p className="type-body-sm site-copy-muted">{kiosk ? "키오스크마다 번호 또는 이름을 등록해 주세요. 기기 연결은 주문·호출 설정에서 관리합니다." : "매장에서 사용할 테이블 번호 또는 이름을 등록해 주세요. 등록한 테이블은 주문·호출 설정과 QR 관리에서 함께 사용합니다."}</p>
             </div>
             <form action={createAction} aria-busy={createPending} className="site-form-row">
               <input type="hidden" name="menuSiteId" value={menuSiteId} />
-              <label className="site-field-stack type-label" data-field-width="short">유형<select name="kind" className="site-field w-full" value={registrationKind} disabled={createPending} onChange={event => setRegistrationKind(event.target.value as OrderPointKind)}><option value="table">테이블</option><option value="kiosk" disabled={!pointSettingsAvailable}>키오스크</option></select></label>
-              <label className="site-field-stack type-label">{registrationNoun} {kiosk ? "번호·이름" : "이름"}
-                <input name="label" required maxLength={80} placeholder={kiosk ? "예: 키오스크 1" : "예: 1번 테이블"} className="site-field w-full" />
+              <input type="hidden" name="kind" value={registrationKind} />
+              <label className="site-field-stack type-label">{registrationNoun} 이름
+                <input name="label" required maxLength={80} disabled={createPending} value={nameDrafts[registrationKind]} onChange={event => setNameDrafts(current => ({ ...current, [registrationKind]: event.target.value }))} placeholder={kiosk ? "예: 키오스크 1" : "예: 1번 테이블"} className="site-field w-full" />
               </label>
               <button type="submit" disabled={createPending || (kiosk && !pointSettingsAvailable)} className="site-button site-button-primary">{createPending ? "생성 중" : `${registrationNoun} 만들기`}</button>
+              <button type="button" className="site-button site-button-ghost" disabled={createPending} onClick={() => setRegistrationKind(null)}>취소</button>
             </form>
             <p className="type-footnote site-copy-muted">‘{registrationNoun} 만들기’를 누르면 바로 등록·저장됩니다. 룸 없이도 등록할 수 있고, 지도에서 바꾼 룸·위치는 ‘배치도 저장’으로 따로 저장합니다.</p>
             {createPending ? <LoadingState inline label={`${registrationNoun}${kiosk ? "를" : "을"} 만들고 있습니다. 잠시만 기다려 주세요.`} /> : null}
             {kiosk && !pointSettingsAvailable ? <p className="type-body-sm site-copy-muted">키오스크 설정 업데이트를 준비 중입니다. 기존 테이블은 계속 사용할 수 있습니다.</p> : null}
-  </div>;
+  </div> : null;
   return <div className="site-stack-group">
     <ActionFeedbackToast message={createState.message} tone={createState.status === "success" ? "success" : "error"} eventKey={createState} />
     <ActionFeedbackToast message={mutationState.message} tone={mutationState.status === "success" ? "success" : "error"} eventKey={mutationState} />
@@ -63,16 +71,24 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
               <h2 className="type-subsection-title" id={`${usageId}-title`}>운영 {noun} · {points.length.toLocaleString("ko-KR")}개</h2>
               <p className="type-body-sm site-copy-muted">{noun}의 이름·상태를 수정하거나 보관할 수 있습니다. 주문·호출 설정과 기기 연결은 각 관리 메뉴에서, 메뉴판 주소·QR은 QR 관리에서 변경해 주세요.</p>
             </div>
+            <div className="site-stack-block">
+              <div className="site-action-row" aria-label="테이블·키오스크 추가">
+                <button type="button" className="site-button site-button-outline" disabled={createPending} aria-expanded={registrationKind === "table"} aria-controls={registrationKind ? `${usageId}-registration` : undefined} onClick={() => setRegistrationKind("table")}><Plus aria-hidden="true" />테이블 추가</button>
+                <button type="button" className="site-button site-button-outline" disabled={createPending || !pointSettingsAvailable} aria-expanded={registrationKind === "kiosk"} aria-controls={registrationKind ? `${usageId}-registration` : undefined} onClick={() => setRegistrationKind("kiosk")}><Plus aria-hidden="true" />키오스크 추가</button>
+              </div>
+              {!pointSettingsAvailable ? <p className="type-footnote site-copy-muted">키오스크 등록 기능을 현재 사용할 수 없습니다. 기존 등록 정보는 계속 확인할 수 있습니다.</p> : null}
+              {registrationForm ? <div id={`${usageId}-registration`}><ContentPanel surface="muted">{registrationForm}</ContentPanel></div> : null}
+            </div>
+            <div className="site-stack-block">
+              <h3 id={`${usageId}-view-title`} className="type-content-title">보기 유형</h3>
             <Tabs purpose="state" value={displayMode} onValueChange={setDisplayMode}>
-              <TabsList aria-label={`운영 ${noun} 표시 방식`}><TabsTrigger value="list"><List aria-hidden="true" />리스트형</TabsTrigger><TabsTrigger value="map"><Map aria-hidden="true" />지도형</TabsTrigger></TabsList>
-              <div className="site-form-row"><label className="site-field-stack type-label" data-field-width="short">표시 유형<select className="site-field" value={typeFilter} onChange={event => setTypeFilter(event.target.value as typeof typeFilter)}><option value="all">전체</option><option value="table">테이블</option><option value="kiosk">키오스크</option></select></label></div>
+              <TabsList aria-labelledby={`${usageId}-view-title`}><TabsTrigger value="list"><List aria-hidden="true" />리스트형</TabsTrigger><TabsTrigger value="map"><Map aria-hidden="true" />배치도형</TabsTrigger></TabsList>
               <TabsContent value="map" forceMount hidden={displayMode !== "map"}>
-                <FloorPlanEditor registrationForm={registrationForm} initial={floorPlan} points={tables} kind={typeFilter === "all" ? undefined : typeFilter} onSave={saveFloorPlanAction ?? (async () => ({ status: "error", message: "배치도 저장 기능을 사용할 수 없습니다." }))} />
+                <FloorPlanEditor initial={floorPlan} points={tables} onSave={saveFloorPlanAction ?? (async () => ({ status: "error", message: "배치도 저장 기능을 사용할 수 없습니다." }))} />
               </TabsContent>
               <TabsContent value="list" forceMount hidden={displayMode !== "list"}>
                 <div className="site-stack-group">
-                  <ContentPanel>{registrationForm}</ContentPanel>
-            {!points.length ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title={`아직 등록된 ${noun}가 없습니다.`} description="표시 유형을 확인하거나 새 테이블·키오스크를 추가해 주세요." /> : points.map(point => <ContentPanel as="article" key={point.id} aria-label={point.label}>
+            {!points.length ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title={`아직 등록된 ${noun}가 없습니다.`} description="상단의 ‘테이블 추가’ 또는 ‘키오스크 추가’로 등록해 주세요." /> : points.map(point => <ContentPanel as="article" key={point.id} aria-label={point.label}>
               <div className="site-content-heading-row"><div className="site-stack-copy"><p className="type-caption site-copy-muted">{point.kind === "kiosk" ? "키오스크" : "테이블"}</p><h3 className="type-content-title break-words"><span className="site-action-row"><span className="site-label-icon" aria-hidden="true">{point.kind === "kiosk" ? <Monitor /> : <Armchair />}</span>{point.label}</span></h3></div><Badge tone={point.status === "active" ? "active" : "neutral"}>{point.status === "active" ? "사용 중" : "비활성"}</Badge></div>
               <form action={mutationAction} className="site-form-row site-content-divider">
                 <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={point.id} />
@@ -91,6 +107,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
                 </div>
               </TabsContent>
             </Tabs>
+            </div>
             {mutationPending ? <LoadingState inline label={`${noun} 작업을 처리하고 있습니다.`} /> : null}
           </section>
           <section className="site-stack-block" aria-label={`보관된 ${noun}`}>
