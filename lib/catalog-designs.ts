@@ -48,11 +48,16 @@ const standards: CatalogDesign[]=DEFAULT_DESIGN_REVIEWS.map(design=>{
     image:`/template-previews/default-${design.id}-20261021.jpg`,previewHref:getDefaultDesignReviewUrl(design),detailHref:`/templates/${design.id}`,
     startHref:getCatalogStartHref(service,design.renderer,design.id)};
 });
+// Catalog cards, detail galleries and checkout media share the same image.
+const catalogImages: Readonly<Partial<Record<string, string>>> = {
+  cafe_real_matcha_a: '/template-previews/cafe_real_matcha_a-20261104.jpg',
+  cafe_sunday_roasters_a: '/template-previews/cafe_sunday_roasters_a-20261104.jpg',
+};
 const designers: CatalogDesign[]=templateCatalog.filter(t=>t.status==='available').map(t=>{
   const service=t.service==='display'?'display':getDiningTemplateTier(t.key)==='multi'?'dining':'basic';
   const route=getTemplatePreviewRouteKey(t.key);
   return {id:t.key,name:t.name,description:t.description,service,kind:'designer',templateKey:t.key,itemLayout:'list',categories:[...t.categories],categoryLabel:getCatalogIndustryLabel(t.categories,t.categoryLabel),
-    image:`/template-previews/${route}.jpg`,previewHref:`/templates/${route}/preview`,detailHref:`/templates/${route}`,startHref:getCatalogStartHref(service,t.key,t.key)};
+    image:catalogImages[route]??`/template-previews/${route}.jpg`,previewHref:`/templates/${route}/preview`,detailHref:`/templates/${route}`,startHref:getCatalogStartHref(service,t.key,t.key)};
 });
 export const catalogDesigns: readonly CatalogDesign[]=[...standards,...designers];
 export function getCatalogDesign(id: unknown) {
