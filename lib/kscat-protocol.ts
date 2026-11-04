@@ -83,8 +83,11 @@ function dateValid(value: string, yearDigits: 2 | 4): boolean {
 }
 
 export function inspectKscatVersionReply(row: Record<string, string>): { versionDate: string; resultCode: "0000" } {
-  if (row.REQ !== "AP" || row.TRADEFLAG !== "VR" || !/^\d{4}$/.test(row.RES ?? "") || !/^\d{4}$/.test(row.RESPCODE ?? "")) throw new KscatProtocolError();
-  if (row.RES !== "0000" || row.RESPCODE !== "0000") throw new KscatProtocolError("KSCAT이 버전 조회에 응답하지 못했습니다. 프로그램을 확인해 주세요.");
+  // Windows 11 Surface reply verified 2026-11-04: VR includes ERRCODE, not RESPCODE.
+  // If a variant also includes RESPCODE, do not ignore an explicit failure there.
+  if (row.REQ !== "AP" || row.TRADEFLAG !== "VR" || !/^\d{4}$/.test(row.RES ?? "") || !/^\d{2}$/.test(row.ERRCODE ?? "")) throw new KscatProtocolError();
+  if (row.RES !== "0000" || row.ERRCODE !== "00" || (Object.hasOwn(row, "RESPCODE") && row.RESPCODE !== "0000"))
+    throw new KscatProtocolError("KSCAT이 버전 조회에 응답하지 못했습니다. 프로그램을 확인해 주세요.");
   if (!dateValid(row.VERSION ?? "", 4)) throw new KscatProtocolError("프로그램 응답을 받았지만 KSCAT 버전 정보를 확인하지 못했습니다.");
   return { versionDate: `${row.VERSION.slice(0, 4)}-${row.VERSION.slice(4, 6)}-${row.VERSION.slice(6)}`, resultCode: "0000" };
 }

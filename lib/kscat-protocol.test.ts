@@ -5,7 +5,7 @@ import { buildKscatCreditLabRequest, inspectKscatCreditLabReply, inspectKscatVer
 const callback = "artimenu_11111111111141118111111111111111";
 const base = { terminalId: "DPT0TEST03", telegramNumber: "000000000001", amount: 11000, vat: 1000, service: 0, taxFree: 0 };
 const wrap = (value: unknown) => `${callback}(${JSON.stringify(value)});`;
-const version = { REQ: "AP", TRADEFLAG: "VR", RES: "0000", RESPCODE: "0000", VERSION: "20260914" };
+const version = { ERRCODE: "00", MSG: "", REQ: "AP", RES: "0000", TRADEFLAG: "VR", VERSION: "20260914" };
 
 test("KSCAT connection request is only a framed version query on loopback", () => {
   assert.equal(KSCAT_VERSION_REQUEST, "AP\x020004VR\x03\r");
@@ -30,8 +30,24 @@ test("JSONP parser rejects executable expressions, duplicate keys and extra stat
 
 test("version evidence must identify the requested command and a real calendar date", () => {
   assert.deepEqual(inspectKscatVersionReply(version), { resultCode: "0000", versionDate: "2026-09-14" });
-  for (const patch of [{ TRADEFLAG: "IC" }, { REQ: "CC" }, { RES: "9999" }, { RESPCODE: "9999" }, { VERSION: "20260230" }, { VERSION: "20260914\n" }, { VERSION: "19990101" }])
+  assert.deepEqual(inspectKscatVersionReply({ ...version, RESPCODE: "0000" }), { resultCode: "0000", versionDate: "2026-09-14" });
+  const patches: Record<string, string>[] = [{ TRADEFLAG: "IC" }, { REQ: "CC" }, { RES: "9999" }, { ERRCODE: "90" }, { ERRCODE: "0000" },
+    { ERRCODE: "00\n" }, { RESPCODE: "9999" }, { RESPCODE: "" }, { VERSION: "20260230" }, { VERSION: "20260914\n" }, { VERSION: "19990101" }];
+  for (const patch of patches)
     assert.throws(() => inspectKscatVersionReply({ ...version, ...patch }));
+  for (const key of ["REQ", "TRADEFLAG", "RES", "ERRCODE", "VERSION"]) {
+    const incomplete: Record<string, string> = { ...version };
+    delete incomplete[key];
+    assert.throws(() => inspectKscatVersionReply(incomplete));
+  }
+});
+
+test("observed Windows 11 Surface version reply has ERRCODE and no payment RESPCODE", () => {
+  // Transcribed from the user's 2026-11-04 15:09 screenshot; only the callback is substituted.
+  const raw = `${callback}({ "ERRCODE" : "00", "MSG" : "", "REQ" : "AP", "RES" : "0000", "TRADEFLAG" : "VR", "VERSION" : "20260914" }\r\n)`;
+  const row = parseKscatWebReply(raw, callback);
+  assert.equal(Object.hasOwn(row, "RESPCODE"), false);
+  assert.deepEqual(inspectKscatVersionReply(row), { resultCode: "0000", versionDate: "2026-09-14" });
 });
 
 test("credit lab frames have independent byte offsets, correct tax fields and default signature policy", () => {

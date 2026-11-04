@@ -5,7 +5,9 @@ import { KSCAT_VERSION_REQUEST } from "./kscat-protocol";
 
 function versionResponse(init: RequestInit, patch: Record<string, string> = {}) {
   const callback = (init.body as URLSearchParams).get("callback");
-  return new Response(`${callback}(${JSON.stringify({ REQ: "AP", TRADEFLAG: "VR", RES: "0000", RESPCODE: "0000", VERSION: "20260914", ...patch })});`);
+  return new Response(`${callback}(${JSON.stringify({ ERRCODE: "00", MSG: "", REQ: "AP", RES: "0000", TRADEFLAG: "VR", VERSION: "20260914", ...patch })});`, {
+    headers: { "Content-Type": "application/x-www-form-urlencoded; charset=euc-kr", "Access-Control-Allow-Origin": "*" },
+  });
 }
 const code = (expected: string) => (error: unknown) => error instanceof KscatConnectionError && error.code === expected;
 
@@ -28,7 +30,7 @@ test("version transport sends only the allowlisted command with no cookies, redi
 test("malformed and unrelated responses never become a verified connection", async () => {
   for (const raw of ["not kscat", "<script>window.leak()</script>", "x".repeat(32769)])
     await assert.rejects(requestKscatVersion("27098", undefined, async () => new Response(raw)), code("invalid_response"));
-  const patches: Record<string, string>[] = [{ TRADEFLAG: "IC" }, { VERSION: "20260230" }, { RESPCODE: "9999" }];
+  const patches: Record<string, string>[] = [{ TRADEFLAG: "IC" }, { VERSION: "20260230" }, { RES: "9999" }, { ERRCODE: "90" }, { ERRCODE: "" }, { RESPCODE: "9999" }];
   for (const patch of patches)
     await assert.rejects(requestKscatVersion("27098", undefined, async (_, init) => versionResponse(init!, patch)), code("invalid_response"));
   await assert.rejects(requestKscatVersion("27098", undefined, async () => new Response(new Uint8Array([0xff, 0xff]))), code("invalid_response"));
@@ -37,10 +39,10 @@ test("malformed and unrelated responses never become a verified connection", asy
 test("the declared Korean response charset is decoded without retaining the vendor message", async () => {
   const transport: typeof fetch = async (_, init) => {
     const callback = (init?.body as URLSearchParams).get("callback");
-    const prefix = new TextEncoder().encode(`${callback}({REQ:'AP',TRADEFLAG:'VR',RES:'0000',RESPCODE:'0000',VERSION:'20260914',MSG:'`);
+    const prefix = new TextEncoder().encode(`${callback}({REQ:'AP',TRADEFLAG:'VR',RES:'0000',ERRCODE:'00',VERSION:'20260914',MSG:'`);
     const suffix = new TextEncoder().encode("'});");
     const bytes = new Uint8Array([...prefix, 0xc1, 0xa4, 0xbb, 0xf3, ...suffix]);
-    return new Response(bytes, { headers: { "Content-Type": "text/html; charset=EUC-KR" } });
+    return new Response(bytes, { headers: { "Content-Type": "application/x-www-form-urlencoded; charset=euc-kr", "Access-Control-Allow-Origin": "*" } });
   };
   assert.deepEqual(await requestKscatVersion("27098", undefined, transport), { resultCode: "0000", versionDate: "2026-09-14" });
 });
