@@ -90,7 +90,7 @@ function mapDatabaseError(error: DatabaseError, fallbackCode: "TABLE_CREATE_FAIL
   );
 }
 
-async function requireMenuTableReadAccess(menuSiteId: string) {
+export async function requireMenuTableReadAccess(menuSiteId: string) {
   if (!isTableManagementRuntimeEnabledForSite(menuSiteId)) {
     throw new MenuTableManagementError("MENU_SITE_UNAVAILABLE", "테이블 관리는 제품 활성화 전까지 안전하게 잠겨 있습니다.", 403);
   }
@@ -116,7 +116,7 @@ async function requireMenuTableReadAccess(menuSiteId: string) {
   return { context, supabase, menuSite };
 }
 
-async function requireMenuTableWriteAccess(menuSiteId: string) {
+export async function requireMenuTableWriteAccess(menuSiteId: string) {
   await requireMenuTableReadAccess(menuSiteId);
   return requireMenuSiteWriteAccess(menuSiteId, "table.manage", "menu_table_management");
 }

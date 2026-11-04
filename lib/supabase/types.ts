@@ -2689,6 +2689,12 @@ export type Database = {
           },
         ]
       }
+      menu_floor_plans: {
+        Row: { menu_site_id: string; revision: number; document: Json; updated_by: string | null; updated_at: string }
+        Insert: { menu_site_id: string; revision?: number; document?: Json; updated_by?: string | null; updated_at?: string }
+        Update: { menu_site_id?: string; revision?: number; document?: Json; updated_by?: string | null; updated_at?: string }
+        Relationships: [{ foreignKeyName: "menu_floor_plans_menu_site_id_fkey"; columns: ["menu_site_id"]; isOneToOne: true; referencedRelation: "menu_sites"; referencedColumns: ["id"] }]
+      }
       menu_tables: {
         Row: {
           point_kind: string
