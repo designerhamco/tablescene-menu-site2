@@ -15,10 +15,11 @@ import { ContentPanel } from "@/app/components/ui/content-panel";
 import type { OrderPointKind } from "@/lib/order-point-policy";
 
 export default async function OrderPointManagementPage({ params, kind = "table" }: { params: Promise<{ menuId: string }>; kind?: OrderPointKind }) {
-  const section = kind === "kiosk" ? "kiosks" : "tables";
-  const noun = kind === "kiosk" ? "키오스크" : "테이블";
+  const section = "tables";
+  const noun = "테이블·키오스크";
   if (!isStoreOperationsAvailable()) redirect("/mypage?tab=menus");
   const { menuId } = await params;
+  if (kind === "kiosk") redirect(`/mypage/menus/${menuId}/tables`);
   const operationsContext = await getStoreOperationsContext(menuId).catch((error: unknown) => {
     if (error instanceof MenuSiteAccessError && error.code === "AUTH_REQUIRED") {
       redirect(`/sign-in?next=${encodeURIComponent(`/mypage/menus/${menuId}/${section}`)}`);
@@ -55,10 +56,10 @@ export default async function OrderPointManagementPage({ params, kind = "table" 
         <header className="site-stack-title">
           <p className="type-label text-zinc-500">{selectedSite.name}</p>
           <h2 className="type-subsection-title">{noun} 관리</h2>
-          <p className="type-body-sm site-copy-muted">{noun}{kind === "table" ? "을" : "를"} 등록하고, 이름·상태와 보관 목록을 관리합니다.</p>
+          <p className="type-body-sm site-copy-muted">테이블과 키오스크를 등록하고, 이름·상태와 보관 목록을 관리합니다. 지도형에서는 같은 룸 안에 함께 배치할 수 있습니다.</p>
         </header>
         {data ? (
-          <MenuTableManager key={`${menuId}:${kind}`} kind={kind} menuSiteId={data.menuSite.id} tables={data.tables.map(({ id, label, status, kind }) => ({ id, label, status, kind }))}
+          <MenuTableManager key={menuId} initialKind={kind} menuSiteId={data.menuSite.id} tables={data.tables.map(({ id, label, status, kind }) => ({ id, label, status, kind }))}
             saveFloorPlanAction={saveFloorPlanAction.bind(null, menuId)} floorPlan={floorPlan ?? undefined} archivedTables={data.archivedTables} pointSettingsAvailable={data.pointSettingsAvailable} canDelete={selectedSite.isOwner} connectionState={connectionState} />
         ) : (
           <ContentPanel>

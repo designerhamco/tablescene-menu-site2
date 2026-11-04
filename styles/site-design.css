@@ -854,3 +854,6 @@
 @media(prefers-reduced-motion:reduce) { .site-loading-spinner, .site-loading-bar > span, .site-progress-bar[data-indeterminate] > span { animation:none !important; } .site-loading-bar > span, .site-progress-bar[data-indeterminate] > span { width:35%; margin-inline:auto; } }
 
 .site-help-anchor { display:inline-flex; flex:none; align-items:center; vertical-align:middle; }
+
+.site-overview-card-label { display: flex; align-items: center; gap: var(--site-space-copy); }
+.site-overview-card-label > span:last-child { min-width: 0; }

@@ -96,7 +96,7 @@ test("운영 요약의 미등록·비공개·조회 실패·권한 부족에도 
   const dependencies: Record<string, unknown> = {
     "react/jsx-runtime": jsxRuntime,
     "next/link": { default: ({ children, ...props }: React.ComponentProps<"a">) => createElement("a", props, children) },
-    "lucide-react": { ArrowRight: () => createElement("svg", { "aria-hidden": true }) },
+    "lucide-react": Object.fromEntries(["ArrowRight", "Globe", "LayoutGrid", "ShoppingBag", "Bell"].map(name => [name, () => createElement("svg", { "aria-hidden": true, "data-test-icon": name })])),
     "@/app/components/ui/overview-card": { OverviewCard, OverviewCardGroup, OverviewCardResponsiveLabel },
     "@/app/components/ui/button": { Button },
     "@/lib/operation-reception-state": { getOperationReceptionState },
@@ -116,7 +116,7 @@ test("운영 요약의 미등록·비공개·조회 실패·권한 부족에도 
     historyAccess: { orders: true, calls: true },
     settings: { orderEnabled: false, callEnabled: false },
     runtime: { orders: true, calls: true, tables: true },
-    activeTablesReady: false, tableCounts: { registered: 0, active: 0, disabled: 0 },
+    activeTablesReady: false, tableCounts: { registered: 0, active: 0, disabled: 0 }, kioskCounts: { registered: 0, active: 0 },
   };
   const cases = [
     { props: base, status: "주문 사용 불가" },
@@ -134,10 +134,11 @@ test("운영 요약의 미등록·비공개·조회 실패·권한 부족에도 
     assert.doesNotMatch(html, /테이블·키오스크 미등록|메뉴판 비공개|사용 중인 테이블·키오스크 없음/);
     assert.match(html, /aria-label="전체 주문 상태 안내"/);
     assert.match(html, /aria-label="전체 호출 상태 안내"/);
-    assert.match(html, /aria-label="테이블 상태 안내"/);
-    assert.match(html, /aria-label="키오스크 상태 안내"/);
-    if (props.permissions.tables) assert.match(html, /\/kiosks/);
-    else assert.doesNotMatch(html, /href="[^"]*\/kiosks/);
+    assert.match(html, /aria-label="테이블·키오스크 상태 안내"/);
+    assert.doesNotMatch(html, /href="[^"]*\/kiosks/);
+    for (const name of ["Globe", "LayoutGrid", "ShoppingBag", "Bell"]) assert.ok(html.includes(`data-test-icon="${name}"`));
+    assert.equal((html.match(/data-component="overview-card"/g) ?? []).length, 4);
+    if (props.permissions.tables) assert.ok(html.includes(`href="/mypage/menus/${id}/tables"`));
     assert.ok(html.includes(`/mypage/menus/${id}/edit?tab=publish`));
   }
 });

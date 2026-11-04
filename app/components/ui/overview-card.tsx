@@ -2,9 +2,10 @@ import type { ReactNode } from "react";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import { ContentPanel } from "./content-panel";
 
-/** Text-first summaries with independent help, state controls and navigation. */
-export function OverviewCard({ label, value, detail, help, control, footer }: {
+/** Compact summaries with independent help, state controls and navigation. */
+export function OverviewCard({ label, value, detail, help, control, footer, icon }: {
   label: string;
+  icon?: ReactNode;
   value: ReactNode;
   detail?: ReactNode;
   help?: ReactNode;
@@ -14,7 +15,7 @@ export function OverviewCard({ label, value, detail, help, control, footer }: {
   return <ContentPanel as="article" data-component="overview-card" data-has-footer={Boolean(footer)}>
     <div className="site-overview-card-body" data-has-control={Boolean(control)}>
       <div className="site-action-row site-overview-card-heading">
-        <p className="type-label">{label}</p>
+        <p className="type-label site-overview-card-label">{icon ? <span className="site-label-icon" aria-hidden="true">{icon}</span> : null}<span>{label}</span></p>
         {help ? <InfoTooltip label={`${label} 안내`} compactOnMobile>{help}</InfoTooltip> : null}
       </div>
       {control ? <div className="site-overview-card-control">{control}</div> : null}

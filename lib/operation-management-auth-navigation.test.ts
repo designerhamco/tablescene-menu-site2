@@ -57,7 +57,7 @@ function loadPage(section: "tables" | "kiosks" | "qr", context: () => Promise<un
   };
 }
 
-for (const section of ["tables", "kiosks", "qr"] as const) {
+for (const section of ["tables", "qr"] as const) {
   test(`${section}: 공용 전환 후 로그아웃 상태의 재진입은 원래 경로를 보존해 로그인으로 이동한다`, async () => {
     const page = loadPage(section, async () => { throw new MenuSiteAccessError("AUTH_REQUIRED", "로그인이 필요합니다.", 401); });
     await assert.rejects(page.run({ params: Promise.resolve({ menuId }) }), (error: unknown) => {
@@ -83,3 +83,12 @@ for (const section of ["tables", "kiosks", "qr"] as const) {
     assert.equal(page.getPrivateReads(), 0);
   });
 }
+
+// The old URL resolves before private reads, then the canonical page applies the normal gate.
+test("기존 키오스크 진입은 비공개 데이터를 읽지 않고 통합 경로로 연결한다", async () => {
+  const page = loadPage("kiosks", async () => { throw new Error("Legacy redirect must not read context"); });
+  await assert.rejects(page.run({ params: Promise.resolve({ menuId }) }), (error: unknown) => {
+    assert.deepEqual(error, { redirect: `/mypage/menus/${menuId}/tables` }); return true;
+  });
+  assert.equal(page.getPrivateReads(), 0);
+});
