@@ -23,7 +23,7 @@ import type { OrderPointChannel, OrderPointFeature } from "@/lib/order-point-pol
 import { initialMenuTableActionState, type MenuTableActionState } from "./action-state";
 
 function revalidateTableOperations(menuSiteId: string) {
-  for (const section of ["tables", "qr", "orders", "calls", "orders/settings", "calls/settings"]) {
+  for (const section of ["tables", "kiosks", "qr", "orders", "calls", "orders/settings", "calls/settings"]) {
     revalidatePath(`/mypage/menus/${menuSiteId}/${section}`);
   }
   revalidatePath("/mypage/operations");

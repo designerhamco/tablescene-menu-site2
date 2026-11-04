@@ -22,7 +22,7 @@ export default function StoreSalesSummary({ summary, menuId, ordersAvailable }: 
   const methods = { manual_card: "외부 카드 단말기", manual_cash: "현금", pg: "PG", other: "기타" };
   const visibleDays = summary.days.slice(0, Number(summary.today.date.slice(-2))).reverse();
   return <div className="site-stack-group">
-    <StoreSalesMetrics summary={summary} />
+    <StoreSalesMetrics summary={summary} presentation="overview" />
     <ActivityOverview days={visibleDays} label={`${summary.year}년 ${summary.month}월`} completion={summary.receivedOrderPayments} />
     <ContentPanel>
       <div className="site-stack-title"><h3 className="type-content-title">{summary.year}년 {summary.month}월 일별 현황</h3><p className="type-body-sm site-copy-muted">주문은 접수일, 결제 완료액은 결제 완료일을 기준으로 집계합니다. 날짜는 한국 시간 기준입니다.</p></div>

@@ -8,6 +8,7 @@ export async function saveFloorPlanAction(menuSiteId: string, revision: number, 
   try {
     const saved = await saveMenuFloorPlan(menuSiteId, revision, input);
     revalidatePath(`/mypage/menus/${menuSiteId}/tables`);
+    revalidatePath(`/mypage/menus/${menuSiteId}/kiosks`);
     return { status: "success", ...saved };
   } catch (error) {
     if (error instanceof MenuSiteAccessError || error instanceof MenuTableManagementError) return { status: "error", message: error.message };

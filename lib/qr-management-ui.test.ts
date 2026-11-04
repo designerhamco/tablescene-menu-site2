@@ -127,7 +127,7 @@ test("내 메뉴판은 다운로드 전용 Dialog를 열고 기존 QR URL은 통
   assert.match(legacy, /<RepresentativeQrCard/);
   assert.match(legacy, /<MenuTableQrManager/);
   assert.match(legacy, /activeSection="qr"/);
-  const tables = readSource("app/mypage/menus/[menuId]/tables/page.tsx");
+  const tables = readSource("components/mypage/OrderPointManagementPage.tsx");
   assert.match(tables, /<MenuTableManager/);
   assert.doesNotMatch(tables, /<RepresentativeQrCard|<MenuTableQrManager/);
 
