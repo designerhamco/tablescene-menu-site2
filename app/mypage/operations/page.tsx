@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bell, LayoutGrid, ShoppingBag, Ticket } from "lucide-react";
+import { Button } from "@/app/components/ui/button";
+import { Bell, ChevronRight, LayoutGrid, ShoppingBag, Ticket } from "lucide-react";
 import { AnnouncementBar, MetricCard } from "@/app/components/ui/data-display";
 import { redirect } from "next/navigation";
 
@@ -14,7 +15,6 @@ import { getSalesSummaryDashboard } from "@/lib/server/sales-summary-service";
 import { StoreSalesMetrics } from "@/components/mypage/StoreSalesSummary";
 import OperationsDashboardRefresh from "@/components/mypage/OperationsDashboardRefresh";
 import OperationStatusCards from "@/components/mypage/OperationStatusCards";
-import { getConfiguredPublicMenuOrigin, getPublicMenuPath } from "@/lib/menu-url";
 import { isStoreOperationsTemplate } from "@/lib/operations-dashboard";
 import { loadMenuOrderSettings, loadOperationReceptionSummary } from "@/lib/server/menu-order-settings-service";
 import { formatKoreanDateTime } from "@/lib/korean-date-time";
@@ -167,9 +167,8 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
           메뉴판 공개와 사용 중인 테이블 또는 키오스크를 준비한 뒤 전체 주문·전체 호출을 켜 주세요. 개별 허용 설정과 기기 연결은 각 주문·호출 설정에서 변경합니다. 메뉴판 주소·QR은 QR 관리에서 확인합니다. 비공개로 바꾸면 두 기능도 OFF로 저장되며, 기존 접수 내역은 유지됩니다.
         </p> : null}
 
-        {isStoreOperationsTemplate(selectedSite.templateKey) ? <OperationStatusCards key={`operation-status:${selectedSite.menuSiteId}`}
+        {isStoreOperationsTemplate(selectedSite.templateKey) ? <section className="site-stack-block" aria-label="주문·호출 사용 여부"><h3 className="type-subsection-title">주문·호출 사용 여부</h3><OperationStatusCards key={`operation-status:${selectedSite.menuSiteId}`}
           menuId={selectedSite.menuSiteId} published={selectedSite.status === "published"}
-          publicUrl={selectedSite.slug ? `${getConfiguredPublicMenuOrigin() ?? ""}${getPublicMenuPath(selectedSite.slug)}` : null}
           canPublish={selectedSite.permissions.includes("menu.publish")} canConfigure={selectedSite.canConfigure}
           permissions={{ orders: selectedSite.permissions.includes("order.read"), calls: selectedSite.permissions.includes("call.manage"), tables: canReadTables, edit: selectedSite.permissions.includes("menu.edit") }}
           historyAccess={access} settings={settingsData?.settings ?? receptionSummary}
@@ -177,7 +176,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
           activeTablesReady={selectedSite.activeTablesReady}
           tableCounts={tableData ? { registered: tableData.tables.filter(table => table.kind !== "kiosk").length, active: activeTables.filter(table => table.kind !== "kiosk").length, disabled: tableData.tables.filter(table => table.kind !== "kiosk" && table.status === "disabled").length } : null}
           kioskCounts={tableData ? { registered: tableData.tables.filter(table => table.kind === "kiosk").length, active: activeTables.filter(table => table.kind === "kiosk").length } : null}
-          openOrders={orderData ? openOrders.length : null} pendingCalls={callData ? pendingCalls.length : null} /> : (
+          /></section> : (
         <section className="site-metric-grid" aria-label="매장 운영 요약">
           <MetricCard icon={<ShoppingBag />} tone="blue" surface="muted"
             label="진행 중 주문"
@@ -212,10 +211,10 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
           />
         </section>)}
 
-        <OperationsDashboardRefresh />
+        {!access.sales ? <OperationsDashboardRefresh /> : null}
         {access.sales ? <section className="site-stack-group" aria-label="대시보드 매출 요약">
-          <div className="site-content-heading-row"><h3 className="type-subsection-title">매출 요약</h3><Link href={`/mypage/menus/${selectedSite.menuSiteId}/sales`} className="site-button site-button-outline">매출 관리</Link></div>
-          {salesData ? <><StoreSalesMetrics summary={salesData.summary} /><p className="type-footnote site-copy-muted">결제 완료 처리한 금액입니다. 취소·환불·미결제는 제외하며 한국 시간을 기준으로 집계합니다.</p></> : <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">매출 정보를 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.</p></ContentPanel>}
+          <OperationsDashboardRefresh title="매출 요약" action={<Button variant="ghost" asChild><Link href={`/mypage/menus/${selectedSite.menuSiteId}/sales`}>전체 보기<ChevronRight aria-hidden="true" /></Link></Button>} />
+          {salesData ? <StoreSalesMetrics summary={salesData.summary} presentation="overview" /> : <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">매출 정보를 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요.</p></ContentPanel>}
         </section> : null}
         <div className="site-card-grid xl:grid-cols-2">
           <DashboardList title="최근 주문 내역" emptyLabel={orderData ? "접수된 주문이 없습니다." : access.orders ? "주문 정보를 불러오지 못했습니다." : "현재 주문 내역을 확인할 수 없습니다."} href={access.orders ? `/mypage/menus/${selectedSite.menuSiteId}/orders` : null} hasItems={recentOrders.length > 0}>

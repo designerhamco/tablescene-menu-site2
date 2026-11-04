@@ -2,9 +2,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { createElement } from "react";
+import * as jsxRuntime from "react/jsx-runtime";
 import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 import { MetricCard } from "../app/components/ui/data-display";
+import { OverviewCard, OverviewCardGroup, OverviewCardResponsiveLabel } from "../app/components/ui/overview-card";
+import { Button } from "../app/components/ui/button";
+import { getOperationReceptionState } from "./operation-reception-state";
 import { isUuid } from "./postpay-order-runtime";
 
 const id = "11111111-1111-4111-8111-111111111111";
@@ -79,6 +83,59 @@ test("요약 카드 링크 안에 스위치 버튼을 중첩하지 않는다", (
     footer: createElement("button", { role: "switch", "aria-checked": false }, "OFF"),
   }));
   assert.ok(html.indexOf("</a>") < html.indexOf("<button"));
+  const overview = renderToStaticMarkup(createElement(OverviewCard, {
+    label: "전체 주문 상태", value: "주문 미사용",
+    control: createElement("button", { role: "switch", "aria-checked": false }, "주문 사용"),
+    footer: createElement("a", { href: "/orders/settings" }, "주문 설정"),
+  }));
+  assert.ok(overview.indexOf("</button>") < overview.indexOf("<a "));
+  assert.doesNotMatch(overview, /<a [^>]*>[^]*<button/);
+});
+
+test("운영 요약의 미등록·비공개·조회 실패·권한 부족에도 보조 상태 칩을 표시하지 않는다", () => {
+  const dependencies: Record<string, unknown> = {
+    "react/jsx-runtime": jsxRuntime,
+    "next/link": { default: ({ children, ...props }: React.ComponentProps<"a">) => createElement("a", props, children) },
+    "lucide-react": { ArrowRight: () => createElement("svg", { "aria-hidden": true }) },
+    "@/app/components/ui/overview-card": { OverviewCard, OverviewCardGroup, OverviewCardResponsiveLabel },
+    "@/app/components/ui/button": { Button },
+    "@/lib/operation-reception-state": { getOperationReceptionState },
+    "./OperationFeatureToggle": { default: () => createElement("button", { role: "switch", "aria-checked": false }) },
+  };
+  const code = ts.transpileModule(readFileSync(new URL("../components/mypage/OperationStatusCards.tsx", import.meta.url), "utf8"), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
+  }).outputText;
+  const loaded = { exports: {} };
+  new Function("require", "module", "exports", code)((name: string) => {
+    assert.ok(name in dependencies, name); return dependencies[name];
+  }, loaded, loaded.exports);
+  const Cards = (loaded.exports as typeof import("../components/mypage/OperationStatusCards")).default;
+  const base: Parameters<typeof Cards>[0] = {
+    menuId: id, published: true, canPublish: true, canConfigure: true,
+    permissions: { orders: true, calls: true, tables: true, edit: true },
+    historyAccess: { orders: true, calls: true },
+    settings: { orderEnabled: false, callEnabled: false },
+    runtime: { orders: true, calls: true, tables: true },
+    activeTablesReady: false, tableCounts: { registered: 0, active: 0, disabled: 0 },
+  };
+  const cases = [
+    { props: base, status: "주문 사용 불가" },
+    { props: { ...base, published: false }, status: "주문 사용 불가" },
+    { props: { ...base, tableCounts: { registered: 1, active: 0, disabled: 1 } }, status: "주문 사용 불가" },
+    { props: { ...base, settings: null, activeTablesReady: null, tableCounts: null }, status: "상태 확인 불가" },
+    { props: { ...base, permissions: { orders: false, calls: false, tables: false, edit: true } }, status: "확인 불가" },
+    { props: { ...base, activeTablesReady: true }, status: "주문 미사용" },
+    { props: { ...base, activeTablesReady: true, settings: { orderEnabled: true, callEnabled: true } }, status: "주문 접수 중" },
+  ];
+  for (const { props, status } of cases) {
+    const html = renderToStaticMarkup(createElement(Cards, props));
+    assert.ok(html.includes(status), status);
+    assert.doesNotMatch(html, /data-slot="badge"|class="[^"]*\bsite-chip\b/);
+    assert.doesNotMatch(html, /테이블·키오스크 미등록|메뉴판 비공개|사용 중인 테이블·키오스크 없음/);
+    assert.match(html, /aria-label="전체 주문 상태 안내"/);
+    assert.match(html, /aria-label="전체 호출 상태 안내"/);
+    assert.ok(html.includes(`/mypage/menus/${id}/edit?tab=publish`));
+  }
 });
 
 test("대시보드는 전체 현황과 준비 안내를 보여주고 기기 연결 관리는 각 기능 설정에 모은다", () => {

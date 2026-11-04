@@ -2,17 +2,21 @@ import Link from "next/link";
 import { CreditCard, ShoppingBag } from "lucide-react";
 import { ActivityOverview } from "@/app/components/ui/activity-overview";
 import { MetricCard } from "@/app/components/ui/data-display";
+import { OverviewCard, OverviewCardGroup } from "@/app/components/ui/overview-card";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import type { SalesMonthSummary } from "@/lib/sales-summary";
 
 export const formatSalesAmount = (amount: number) => `${amount.toLocaleString("ko-KR")}원`;
-export function StoreSalesMetrics({ summary }: { summary: SalesMonthSummary }) {
-  return <section className="site-metric-grid" aria-label="매출 요약">
-    <MetricCard surface="muted" label="오늘 결제 완료액" value={formatSalesAmount(summary.today.collectedAmount)} detail={`결제 완료 ${summary.today.paidOrderCount.toLocaleString("ko-KR")}건`} icon={<CreditCard />} tone="green" />
-    <MetricCard surface="muted" label="오늘 접수 주문" value={`${summary.today.orderCount.toLocaleString("ko-KR")}건`} detail="취소 주문을 포함한 접수 건수" icon={<ShoppingBag />} tone="blue" />
-    <MetricCard surface="muted" label={`${summary.month}월 결제 완료액`} value={formatSalesAmount(summary.monthTotals.collectedAmount)} detail={`결제 완료 ${summary.monthTotals.paidOrderCount.toLocaleString("ko-KR")}건`} icon={<CreditCard />} tone="green" />
-    <MetricCard surface="muted" label={`${summary.month}월 접수 주문`} value={`${summary.monthTotals.orderCount.toLocaleString("ko-KR")}건`} detail="취소 주문을 포함한 접수 건수" icon={<ShoppingBag />} tone="blue" />
-  </section>;
+export function StoreSalesMetrics({ summary, presentation = "metric" }: { summary: SalesMonthSummary; presentation?: "metric" | "overview" }) {
+  const Card = presentation === "overview" ? OverviewCard : MetricCard;
+  const Group = presentation === "overview" ? OverviewCardGroup : null;
+  const cards = <>
+    <Card {...(presentation === "metric" ? { surface: "muted" as const, icon: <CreditCard />, tone: "green" as const } : {})} label="오늘 결제 완료액" value={formatSalesAmount(summary.today.collectedAmount)} detail={`결제 완료 ${summary.today.paidOrderCount.toLocaleString("ko-KR")}건`} />
+    <Card {...(presentation === "metric" ? { surface: "muted" as const, icon: <ShoppingBag />, tone: "blue" as const } : {})} label="오늘 접수 주문" value={`${summary.today.orderCount.toLocaleString("ko-KR")}건`} detail="취소 주문을 포함한 접수 건수" />
+    <Card {...(presentation === "metric" ? { surface: "muted" as const, icon: <CreditCard />, tone: "green" as const } : {})} label={`${summary.month}월 결제 완료액`} value={formatSalesAmount(summary.monthTotals.collectedAmount)} detail={`결제 완료 ${summary.monthTotals.paidOrderCount.toLocaleString("ko-KR")}건`} />
+    <Card {...(presentation === "metric" ? { surface: "muted" as const, icon: <ShoppingBag />, tone: "blue" as const } : {})} label={`${summary.month}월 접수 주문`} value={`${summary.monthTotals.orderCount.toLocaleString("ko-KR")}건`} detail="취소 주문을 포함한 접수 건수" />
+  </>;
+  return Group ? <Group label="매출 요약">{cards}</Group> : <section className="site-metric-grid" aria-label="매출 요약">{cards}</section>;
 }
 export default function StoreSalesSummary({ summary, menuId, ordersAvailable }: { summary: SalesMonthSummary; menuId: string; ordersAvailable: boolean }) {
   const methods = { manual_card: "외부 카드 단말기", manual_cash: "현금", pg: "PG", other: "기타" };
