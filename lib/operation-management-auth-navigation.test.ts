@@ -41,6 +41,9 @@ function loadPage(section: "tables" | "qr", context: () => Promise<unknown>) {
     "@/lib/server/menu-qr-management-service": {
       async getMenuQrManagementPageData() { privateReads++; throw new Error("Unexpected QR read"); },
     },
+    "@/lib/server/menu-floor-plan-service": { async loadMenuFloorPlan() { privateReads++; throw new Error("Unexpected floor-plan read"); } },
+    "@/lib/menu-floor-plan": {},
+    "./floor-plan-actions": {},
     "./MenuTableManager": {},
     "./MenuTableQrManager": {},
   };

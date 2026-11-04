@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState, useId, useState } from "react";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, List, Map } from "lucide-react";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import type { ArchivedMenuTableListItem, MenuTableListItem } from "@/lib/menu-table-management";
 import OrderPointConnectionSummary, { type OrderPointConnectionState } from "@/components/mypage/OrderPointConnectionSummary";
@@ -16,13 +16,18 @@ import { EmptyState } from "@/app/components/ui/empty-state";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/ui/tabs";
 import type { OrderPointKind } from "@/lib/order-point-policy";
 
+import FloorPlanEditor from "@/components/mypage/floor-plan/FloorPlanEditor";
+import { emptyFloorDocument, type FloorPlanSnapshot, type FloorDocument, type FloorSaveResult } from "@/lib/menu-floor-plan";
+
 type ManagedPoint = Pick<MenuTableListItem, "id" | "label" | "status" | "kind">;
-export default function MenuTableManager({ menuSiteId, tables, archivedTables = [], pointSettingsAvailable = false, canDelete = false, connectionState }: {
-  menuSiteId: string; tables: ManagedPoint[]; archivedTables?: ArchivedMenuTableListItem[];
+export default function MenuTableManager({ menuSiteId, tables, archivedTables = [], pointSettingsAvailable = false, canDelete = false, connectionState, saveFloorPlanAction, floorPlan = { available: false, revision: 0, document: emptyFloorDocument() } }: {
+  saveFloorPlanAction?: (revision: number, document: FloorDocument) => Promise<FloorSaveResult>;
+  floorPlan?: FloorPlanSnapshot; menuSiteId: string; tables: ManagedPoint[]; archivedTables?: ArchivedMenuTableListItem[];
   pointSettingsAvailable?: boolean; canDelete?: boolean; connectionState?: OrderPointConnectionState;
 }) {
   const [createState, createAction, createPending] = useActionState(createMenuTableAction, initialMenuTableActionState);
   const [mutationState, mutationAction, mutationPending] = useActionState(mutateMenuTableAction, initialMenuTableActionState);
+  const [displayMode, setDisplayMode] = useState("list");
   const [view, setView] = useState("table");
   const usageId = useId();
   const kind = view as OrderPointKind, kiosk = kind === "kiosk", noun = kiosk ? "키오스크" : "테이블";
@@ -55,6 +60,13 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
               <h2 className="type-subsection-title" id={`${usageId}-${view}-title`}>운영 {noun} · {points.length.toLocaleString("ko-KR")}개</h2>
               <p className="type-body-sm site-copy-muted">{noun}의 이름·상태를 수정하거나 보관할 수 있습니다. 주문·호출 설정과 기기 연결은 각 관리 메뉴에서, 메뉴판 주소·QR은 QR 관리에서 변경해 주세요.</p>
             </div>
+            <Tabs purpose="state" value={displayMode} onValueChange={setDisplayMode}>
+              <TabsList aria-label={`운영 ${noun} 표시 방식`}><TabsTrigger value="list"><List aria-hidden="true" />리스트형</TabsTrigger><TabsTrigger value="map"><Map aria-hidden="true" />지도형</TabsTrigger></TabsList>
+              <TabsContent value="map" forceMount hidden={displayMode !== "map"}>
+                <FloorPlanEditor initial={floorPlan} points={tables} kind={kind} onSave={saveFloorPlanAction ?? (async () => ({ status: "error", message: "배치도 저장 기능을 사용할 수 없습니다." }))} />
+              </TabsContent>
+              <TabsContent value="list">
+                <div className="site-stack-group">
             {!points.length ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title={`아직 등록된 ${noun}${kiosk ? "가" : "이"} 없습니다.`} description={`${noun}${kiosk ? "를" : "을"} 추가하면 이곳에서 관리할 수 있습니다.`} /> : points.map(point => <ContentPanel as="article" key={point.id} aria-label={point.label}>
               <div className="site-content-heading-row"><h3 className="type-content-title break-words">{point.label}</h3><Badge tone={point.status === "active" ? "active" : "neutral"}>{point.status === "active" ? "사용 중" : "비활성"}</Badge></div>
               <form action={mutationAction} className="site-form-row site-content-divider">
@@ -71,6 +83,9 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
               {canDelete ? <div className="site-action-row"><DeleteOrderPoint menuSiteId={menuSiteId} point={point} disabled={mutationPending} /></div> : null}
               <p className="type-footnote site-copy-muted">보관하면 운영 목록에서 빠지고 연결은 종료됩니다. 기존 주문·호출 기록은 유지됩니다.</p>
             </ContentPanel>)}
+                </div>
+              </TabsContent>
+            </Tabs>
             {mutationPending ? <LoadingState inline label={`${noun} 작업을 처리하고 있습니다.`} /> : null}
           </section>
           <section className="site-stack-block" aria-label={`보관된 ${noun}`}>

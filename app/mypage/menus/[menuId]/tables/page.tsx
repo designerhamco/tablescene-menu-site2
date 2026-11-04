@@ -8,6 +8,9 @@ import { isStoreOperationsAvailable } from "@/lib/product-focus-policy";
 import { listMenuTables } from "@/lib/server/menu-table-management-service";
 import { MenuTableManagementError } from "@/lib/server/menu-table-management-service";
 import { getStoreOperationsContext } from "@/lib/server/store-operations-context";
+import { loadMenuFloorPlan } from "@/lib/server/menu-floor-plan-service";
+import { retainRegisteredFloorPoints } from "@/lib/menu-floor-plan";
+import { saveFloorPlanAction } from "./floor-plan-actions";
 import MenuTableManager from "./MenuTableManager";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 export const metadata: Metadata = {
@@ -46,6 +49,8 @@ export default async function MenuTableManagementPage({ params }: { params: Prom
     throw error;
   }
 
+  const floorPlan = data ? await loadMenuFloorPlan(menuId) : null;
+  if (floorPlan && data) floorPlan.document = retainRegisteredFloorPoints(floorPlan.document, data.tables);
   const deviceState = data?.tables.length ? await loadOrderPointDeviceSettings(menuId) : null;
   const connectionState = { available: deviceState?.connectionsAvailable ?? true, connections: deviceState?.connections.map(({ tableId, device }) => ({ tableId, device })) ?? [] };
   return (
@@ -58,7 +63,7 @@ export default async function MenuTableManagementPage({ params }: { params: Prom
         </header>
         {data ? (
           <MenuTableManager key={menuId} menuSiteId={data.menuSite.id} tables={data.tables.map(({ id, label, status, kind }) => ({ id, label, status, kind }))}
-            archivedTables={data.archivedTables} pointSettingsAvailable={data.pointSettingsAvailable} canDelete={selectedSite.isOwner} connectionState={connectionState} />
+            saveFloorPlanAction={saveFloorPlanAction.bind(null, menuId)} floorPlan={floorPlan ?? undefined} archivedTables={data.archivedTables} pointSettingsAvailable={data.pointSettingsAvailable} canDelete={selectedSite.isOwner} connectionState={connectionState} />
         ) : (
           <ContentPanel>
             <div className="site-stack-title">
