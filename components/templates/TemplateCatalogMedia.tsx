@@ -1,5 +1,7 @@
 import Image from "next/image";
 
+import { getCatalogDesign } from "@/lib/catalog-designs";
+
 import { getTemplatePreviewRouteKey, type TemplateCatalogItem } from "@/lib/templates";
 import { TemplateThumbnail } from "./TemplateCard";
 
@@ -15,7 +17,7 @@ export default function TemplateCatalogMedia({ template }: { template: TemplateC
 
   return (
     <Image
-      src={`/template-previews/${key}.jpg`}
+      src={getCatalogDesign(template.key)?.image ?? `/template-previews/${key}.jpg`}
       alt={`${template.name} 메뉴판 디자인`}
       width={1200}
       height={900}
