@@ -3,8 +3,15 @@
 import * as React from "react";
 
 import { cn } from "./utils";
+import { getSiteTableLayout, type SiteTableColumn } from "@/lib/site-table";
 
-function Table({ className, variant = "default", label, ...props }: React.ComponentProps<"table"> & { variant?: "default" | "management"; label?: string }) {
+type TableProps = React.ComponentProps<"table"> & { variant?: "default"; label?: never; columns?: never }
+  | Omit<React.ComponentProps<"table">, "className" | "style"> & { variant: "management"; label: string; columns?: readonly SiteTableColumn[]; className?: never; style?: never };
+
+function Table({ className, style, variant = "default", label, columns, children, ...props }: TableProps) {
+  const layout = columns?.length ? getSiteTableLayout(columns) : null;
+  const items = layout ? React.Children.toArray(children) : [];
+  const isCaption = (child: React.ReactNode) => React.isValidElement(child) && child.type === TableCaption;
   return (
     <div
       data-slot="table-container"
@@ -15,9 +22,13 @@ function Table({ className, variant = "default", label, ...props }: React.Compon
     >
       <table
         data-slot="table"
+        data-layout={layout ? "columns" : undefined}
         className={cn("w-full caption-bottom text-copy", variant === "management" && "site-management-table type-body-sm", className)}
+        style={layout ? { "--site-table-min-width": `${layout.minWidthRem}rem` } as React.CSSProperties : style}
         {...props}
-      />
+      >
+        {layout ? <>{items.filter(isCaption)}<colgroup>{layout.widths.map((width, index) => <col key={index} style={{ width: `${width}%` }} />)}</colgroup>{items.filter(child => !isCaption(child))}</> : children}
+      </table>
     </div>
   );
 }
@@ -68,10 +79,12 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   );
 }
 
-function TableHead({ className, ...props }: React.ComponentProps<"th">) {
+function TableHead({ className, scope = "col", align = "start", ...props }: Omit<React.ComponentProps<"th">, "align"> & { align?: "start" | "center" | "end" }) {
   return (
     <th
       data-slot="table-head"
+      data-align={align}
+      scope={scope}
       className={cn(
         "text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className,
@@ -81,10 +94,13 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   );
 }
 
-function TableCell({ className, ...props }: React.ComponentProps<"td">) {
+function TableCell({ className, primary = false, nowrap = false, align = "start", ...props }: Omit<React.ComponentProps<"td">, "align"> & { primary?: boolean; nowrap?: boolean; align?: "start" | "center" | "end" }) {
   return (
     <td
       data-slot="table-cell"
+      data-cell={primary ? "primary" : undefined}
+      data-nowrap={nowrap || undefined}
+      data-align={align}
       className={cn(
         "p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]",
         className,
