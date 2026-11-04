@@ -38,8 +38,8 @@ test("매장 운영 내비게이션은 주문과 권한에 따른 매출 관리�
   assert.match(shellSource, /selectedSite\.operationAccess\[item.key\]/);
   assert.match(navigationBlock, /key: "sales", label: "매출 관리", permission: "sales.read"/);
   assert.match(navigationBlock, /key: "calls"/);
-  assert.match(navigationBlock, /key: "tables", label: "테이블 관리"/);
-  assert.match(navigationBlock, /key: "kiosks", label: "키오스크 관리", permission: "table.manage"/);
+  assert.match(navigationBlock, /key: "tables", label: "테이블·키오스크 관리"/);
+  assert.doesNotMatch(navigationBlock, /key: "kiosks"/);
   assert.match(navigationBlock, /key: "pickup"/);
 });
 
