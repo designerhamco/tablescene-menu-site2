@@ -33,11 +33,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
   const kiosk = kind === "kiosk", noun = kiosk ? "키오스크" : "테이블";
   const points = tables.filter(table => (table.kind ?? "table") === kind);
   const archived = archivedTables.filter(table => (table.kind ?? "table") === kind);
-  return <div className="site-stack-group">
-    <ActionFeedbackToast message={createState.message} tone={createState.status === "success" ? "success" : "error"} eventKey={createState} />
-    <ActionFeedbackToast message={mutationState.message} tone={mutationState.status === "success" ? "success" : "error"} eventKey={mutationState} />
-        <div className="site-stack-group">
-          <ContentPanel>
+  const registrationForm = <div className="site-stack-group">
             <div className="site-stack-title">
               <h2 className="type-subsection-title">새 {noun} 추가</h2>
               <p className="type-body-sm site-copy-muted">{kiosk ? "키오스크마다 번호 또는 이름을 등록해 주세요. 기기 연결은 주문·호출 설정에서 관리합니다." : "매장에서 사용할 테이블 번호 또는 이름을 등록해 주세요. 등록한 테이블은 주문·호출 설정과 QR 관리에서 함께 사용합니다."}</p>
@@ -49,10 +45,15 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
               </label>
               <button type="submit" disabled={createPending || (kiosk && !pointSettingsAvailable)} className="site-button site-button-primary">{createPending ? "생성 중" : `${noun} 만들기`}</button>
             </form>
-            <p className="type-footnote site-copy-muted">‘{noun} 만들기’를 누르면 바로 등록·저장됩니다. 룸 없이도 등록할 수 있으며, 지도 배치는 아래 ‘지도형’에서 따로 저장합니다.</p>
+            <p className="type-footnote site-copy-muted">‘{noun} 만들기’를 누르면 바로 등록·저장됩니다. 룸 없이도 등록할 수 있고, 지도에서 바꾼 룸·위치는 ‘배치도 저장’으로 따로 저장합니다.</p>
             {createPending ? <LoadingState inline label={`${noun}${kiosk ? "를" : "을"} 만들고 있습니다. 잠시만 기다려 주세요.`} /> : null}
             {kiosk && !pointSettingsAvailable ? <p className="type-body-sm site-copy-muted">키오스크 설정 업데이트를 준비 중입니다. 기존 테이블은 계속 사용할 수 있습니다.</p> : null}
-          </ContentPanel>
+  </div>;
+  return <div className="site-stack-group">
+    <ActionFeedbackToast message={createState.message} tone={createState.status === "success" ? "success" : "error"} eventKey={createState} />
+    <ActionFeedbackToast message={mutationState.message} tone={mutationState.status === "success" ? "success" : "error"} eventKey={mutationState} />
+        <div className="site-stack-group">
+
           <section className="site-stack-group" aria-labelledby={`${usageId}-${kind}-title`}>
             <div className="site-stack-title">
               <h2 className="type-subsection-title" id={`${usageId}-${kind}-title`}>운영 {noun} · {points.length.toLocaleString("ko-KR")}개</h2>
@@ -61,10 +62,11 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
             <Tabs purpose="state" value={displayMode} onValueChange={setDisplayMode}>
               <TabsList aria-label={`운영 ${noun} 표시 방식`}><TabsTrigger value="list"><List aria-hidden="true" />리스트형</TabsTrigger><TabsTrigger value="map"><Map aria-hidden="true" />지도형</TabsTrigger></TabsList>
               <TabsContent value="map" forceMount hidden={displayMode !== "map"}>
-                <FloorPlanEditor initial={floorPlan} points={tables} kind={kind} onSave={saveFloorPlanAction ?? (async () => ({ status: "error", message: "배치도 저장 기능을 사용할 수 없습니다." }))} />
+                <FloorPlanEditor registrationForm={registrationForm} initial={floorPlan} points={tables} kind={kind} onSave={saveFloorPlanAction ?? (async () => ({ status: "error", message: "배치도 저장 기능을 사용할 수 없습니다." }))} />
               </TabsContent>
-              <TabsContent value="list">
+              <TabsContent value="list" forceMount hidden={displayMode !== "list"}>
                 <div className="site-stack-group">
+                  <ContentPanel>{registrationForm}</ContentPanel>
             {!points.length ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title={`아직 등록된 ${noun}${kiosk ? "가" : "이"} 없습니다.`} description={`${noun}${kiosk ? "를" : "을"} 추가하면 이곳에서 관리할 수 있습니다.`} /> : points.map(point => <ContentPanel as="article" key={point.id} aria-label={point.label}>
               <div className="site-content-heading-row"><h3 className="type-content-title break-words">{point.label}</h3><Badge tone={point.status === "active" ? "active" : "neutral"}>{point.status === "active" ? "사용 중" : "비활성"}</Badge></div>
               <form action={mutationAction} className="site-form-row site-content-divider">
