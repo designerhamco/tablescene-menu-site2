@@ -1,3 +1,4 @@
+import { loadOperationsFloorPlan } from "@/lib/server/operations-floor-plan-service";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
@@ -58,6 +59,8 @@ export default async function OrderDashboardPage({
     redirect("/mypage/operations");
   }
 
+  const floorPlan = await loadOperationsFloorPlan(menuId, "orders");
+
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="orders">
       <div className="space-y-8">
@@ -70,7 +73,7 @@ export default async function OrderDashboardPage({
         </header>
 
         <OperationFeatureNavigation menuId={menuId} feature="orders" settings={false} historyAvailable={selectedSite.operationAccess.orders} canConfigure={selectedSite.isOwner} canManageDevices={selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage")} />
-        <OrderDashboard menuSiteId={data.menuSite.id} menuSiteName={data.menuSite.name} orders={data.orders} permissions={data.permissions} />
+        <OrderDashboard floorPlan={floorPlan} menuSiteId={data.menuSite.id} menuSiteName={data.menuSite.name} orders={data.orders} permissions={data.permissions} />
       </div>
     </StoreOperationsShell>
   );

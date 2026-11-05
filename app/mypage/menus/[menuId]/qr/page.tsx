@@ -59,7 +59,7 @@ export default async function MenuQrManagementPage({ params }: { params: Promise
         {data ? <>
           <RepresentativeQrCard data={data} />
           {data.canManageTables ? (
-            <MenuTableQrManager menuSiteId={data.menuSite.id} menuSlug={data.menuSite.slug} publicBaseUrl={data.publicBaseUrl} tables={data.tables} canConnectDevices={selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage")} />
+            <MenuTableQrManager published={data.menuSite.status === "published"} menuSiteId={data.menuSite.id} menuSlug={data.menuSite.slug} publicBaseUrl={data.publicBaseUrl} tables={data.tables} canConnectDevices={selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage")} />
           ) : <ContentPanel><div className="site-stack-title"><h3 className="type-subsection-title">테이블별 QR</h3><p className="type-body-sm site-copy-muted">{data.tableQrUnavailableReason}</p></div></ContentPanel>}
           {selectedSite.permissions.includes("table.manage") ? <Link href={`/mypage/menus/${menuId}/tables`} className="site-button site-button-outline">테이블 등록·관리로 이동</Link> : null}
         </> : null}

@@ -85,6 +85,7 @@ export type OrderDashboardItem = {
 
 export type OrderDashboardOrder = {
   id: string;
+  tableId: string;
   orderNumber: number;
   tableLabel: string;
   status: string;
@@ -293,6 +294,7 @@ export async function listOrderDashboard(menuSiteIdValue: unknown): Promise<Orde
     orders: orders.map((order) => ({
       id: order.id,
       orderNumber: order.order_number,
+      tableId: order.menu_table_id,
       tableLabel: tableLabelById.get(order.menu_table_id) ?? "알 수 없는 테이블",
       status: order.status,
       nextStatus: getNextOrderStatus(order.status),

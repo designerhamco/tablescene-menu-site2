@@ -117,13 +117,6 @@
       "78f263ec03d40202"
     ]
   },
-  "app/mypage/menus/[menuId]/calls/CallDashboard.tsx": {
-    "control-appearance": [
-      "3d17c36d4cdecf61",
-      "3d17c36d4cdecf61",
-      "c2fc116cd629dbbb"
-    ]
-  },
   "app/mypage/menus/[menuId]/convert/page.tsx": {
     "shared-heading": [
       "fda998200295f68e"
@@ -162,10 +155,6 @@
   "app/mypage/menus/[menuId]/orders/OrderDashboard.tsx": {
     "shared-heading": [
       "51cb4692c2dbd20a"
-    ],
-    "control-appearance": [
-      "eb6f09cff2661265",
-      "074b42b050029072"
     ]
   },
   "app/mypage/menus/[menuId]/pickup/PickupQueueDashboard.tsx": {
@@ -319,11 +308,6 @@
     "control-appearance": [
       "a0025f958c4f6f98",
       "a0025f958c4f6f98"
-    ]
-  },
-  "components/mypage/QrAddressActions.tsx": {
-    "control-appearance": [
-      "b5b1f1f783045ef8"
     ]
   },
   "components/mypage/SubscriptionManagementModal.tsx": {

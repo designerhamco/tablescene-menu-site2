@@ -1,3 +1,4 @@
+import * as qrRotation from "./qr-rotation-policy";
 import { parseOrderPointDeletionSummary } from "./order-point-deletion";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -37,7 +38,7 @@ function serviceFixture({ owner = true, runtime = true, conflict = false, denied
   } };
   const access = async (...args: unknown[]) => { permissions.push(args); if (denied) throw new Error("PERMISSION_DENIED"); return { isOwner: owner, actorUserId: "owner" }; };
   const deps: Record<string, unknown> = {
-    "server-only": {}, "@/lib/order-point-deletion": { parseOrderPointDeletionSummary }, "@/lib/order-point-policy": policy,
+    "server-only": {}, "@/lib/qr-rotation-policy": qrRotation, "@/lib/order-point-deletion": { parseOrderPointDeletionSummary }, "@/lib/order-point-policy": policy,
     "@/lib/menu-table-management": { normalizeMenuTableId },
     "@/lib/dining-product-tiers": { getDiningTemplateFeatures: () => ({ smartCall: true }) },
     "@/lib/table-management-runtime": { isTableManagementRuntimeEnabledForSite: () => runtime },

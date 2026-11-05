@@ -448,3 +448,8 @@ FAQ의 1:1 문의·AI 상담은 `site-support-actions`의 가운데 정렬 flex 
 - `TabsList action={<TabsAction>…</TabsAction>} tools={…}`로 탭 목록, 생성 행동, 우측 도구를 구분한다. 추가는 실제 탭이 아니며 방향키 선택에 포함하지 않는다. 룸 이름 연필은 `TabsTrigger accessory`의 독립 버튼이다. 여러 룸은 내부 가로 스크롤, 좁은 화면 도구는 다음 행을 사용한다.
 - sm44/md52/lg56px와 기존 공통 글자·색·포커스·비활성 토큰을 공유한다. `/design-system#shaped-tabs`에 영역형/문서형 예시, 상태 표와 실제 룸 편집 예시를 제공한다.
 - `InlineNameEditor`는 이름+연필 또는 연필만 제공한다. 입력 시작 시 기존 이름을 선택하고 Enter/blur는 한 번만 저장, Esc는 취소한다. 실패 시 입력을 유지하고 오류를 표시하며 저장 중 중복 전송을 막는다. 테이블·키오스크 이름과 룸 탭 이름에 같은 입력 컴포넌트를 사용한다.
+
+
+### 운영 내역의 리스트·배치도
+
+`OperationsHistoryViews`는 테이블·키오스크 편집기의 `Tabs purpose="state"`, 문서형 룸 탭, `FloorPlanCanvas`/`FloorPlanObject`와 관리 표를 조합한다. 사각형의 선택적 `summary`는 공통 caption과 표면 inset을 사용하며 전체 내역은 공통 Dialog에서 확인한다. 등록/배치 편집과 운영 상태 처리는 분리한다. QR 관리는 관리 표만 사용하고 QR 교체는 compact 새로고침 아이콘과 영향 확인 Dialog로 실행한다. 주문 설정 분류는 state 탭의 결제 방식/주문 알림/조리완료 알림톡이며 탭 이동 중 작성 값을 유지한다.

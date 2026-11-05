@@ -1,4 +1,5 @@
 import "server-only";
+import { canRotateTableQr, QR_ROTATION_BLOCKED_MESSAGE } from "@/lib/qr-rotation-policy";
 import { parseOrderPointDeletionSummary } from "@/lib/order-point-deletion";
 import type { Database } from "@/lib/supabase/types";
 import { orderPointKind, ORDER_POINT_POLICY_COLUMNS, orderPointPolicyKey, type OrderPointKind, type OrderPointChannel, type OrderPointFeature } from "@/lib/order-point-policy";
@@ -286,6 +287,12 @@ export async function rotateMenuTableToken({
   }
 
   const { context, supabase } = await requireMenuTableWriteAccess(normalizedMenuSiteId);
+  const [siteResult, pointResult] = await Promise.all([
+    supabase.from("menu_sites").select("status").eq("id", normalizedMenuSiteId).maybeSingle(),
+    supabase.from("menu_tables").select("status").eq("menu_site_id", normalizedMenuSiteId).eq("id", normalizedTableId).maybeSingle(),
+  ]);
+  if (siteResult.error || pointResult.error || !siteResult.data || !pointResult.data) throw new MenuTableManagementError("TABLE_UPDATE_FAILED", "메뉴판·테이블 상태를 확인하지 못했습니다. 새로고침 후 다시 시도해 주세요.", 409);
+  if (!canRotateTableQr(siteResult.data.status, pointResult.data.status)) throw new MenuTableManagementError("TABLE_UPDATE_FAILED", QR_ROTATION_BLOCKED_MESSAGE, 409);
   const token = createMenuTableTokenMaterial();
   const tokenRotatedAt = new Date().toISOString();
   const { data, error } = await supabase
@@ -297,12 +304,13 @@ export async function rotateMenuTableToken({
     })
     .eq("menu_site_id", normalizedMenuSiteId)
     .eq("id", normalizedTableId)
+    .eq("status", pointResult.data.status)
     .neq("status", "archived")
     .select("*")
     .maybeSingle();
 
   if (error) mapDatabaseError(error, "TABLE_UPDATE_FAILED");
-  if (!data) throw new MenuTableManagementError("TABLE_NOT_FOUND", "테이블을 찾을 수 없거나 이미 보관되었습니다.", 404);
+  if (!data) throw new MenuTableManagementError("TABLE_CONFLICT", "테이블 상태가 변경되었습니다. 새로고침 후 다시 확인해 주세요.", 409);
   const table = toMenuTableListItem(data);
   return { table, qrPath: table.qrPath };
 }
