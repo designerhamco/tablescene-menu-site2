@@ -1,5 +1,5 @@
-import { PanelsTopLeft, Rows3 } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
+import { PanelsTopLeft, Rows3, Plus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger, TabsAction } from "@/app/components/ui/tabs";
 import HintBubble from "@/components/ui/HintBubble";
 import styles from "./SiteComponentGallery.module.css";
 
@@ -17,6 +17,10 @@ export default function ShapedTabExamples() {
     <div className={styles.shapedExample}>
       <div className={styles.heading}><h3 className="type-content-title">영역형 탭</h3><p className="type-body-sm text-zinc-600">사각형 버튼을 하나의 줄로 연결하고 바깥 네 모서리만 8px로 둥글립니다. 선택은 검정 바탕과 흰 글자, 비선택은 흰 바탕과 중성 회색 글자로 구분합니다.</p></div>
       <Tabs purpose="section" defaultValue="designer"><TabsList size="sm" aria-label="영역형 디자인 탭 예시"><TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger><TabsTrigger value="unavailable" disabled>준비 중</TabsTrigger></TabsList><TabsContent value="designer"><ExampleContent /></TabsContent><TabsContent value="standard"><ExampleContent standard /></TabsContent></Tabs>
+    </div>
+    <div className={styles.shapedExample}>
+      <div className={styles.heading}><h3 className="type-content-title">문서형 탭</h3><p className="type-body-sm text-zinc-600">흰 선택 탭의 아래쪽을 기준선에 연결합니다. 룸처럼 추가 가능한 작업 영역에 사용하며, ‘추가’는 탭 옆의 별도 버튼입니다. 공통 크기와 작은 위쪽 모서리를 사용합니다.</p></div>
+      <Tabs purpose="section" appearance="document" defaultValue="room1"><TabsList aria-label="문서형 룸 탭 예시" action={<TabsAction disabled><Plus aria-hidden="true" />룸 추가</TabsAction>}><TabsTrigger value="room1">룸 1</TabsTrigger><TabsTrigger value="room2">룸 2</TabsTrigger><TabsTrigger value="unavailable" disabled>준비 중</TabsTrigger></TabsList><TabsContent value="room1"><p className="type-body-sm">룸 1의 작업 영역입니다. 실제 추가·이름 수정은 아래 룸 배치도 편집 예시에서 확인할 수 있습니다.</p></TabsContent><TabsContent value="room2"><p className="type-body-sm">룸 2의 작업 영역입니다.</p></TabsContent></Tabs>
     </div>
     <p className="type-body-sm text-zinc-600">영역형은 독립 콘텐츠를 전환하는 역할에 사용합니다. 일반 md는 높이52px·상하12px·좌우24px, 밀집 sm은 높이44px로 여유를 확보합니다. 버튼 경계는 한 줄로 공유하며 콘텐츠까지 이어지는 긴 기준선은 넣지 않습니다. 업종 필터에는 작은 필터 버튼을 사용하며, Tab과 방향키·Home·End로 조작할 수 있습니다.</p>
   </section>;

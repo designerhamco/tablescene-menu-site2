@@ -128,3 +128,8 @@ ON/OFF 스위치는 [디자인 시스템의 스위치 계약](site-design-system
 ### 긴 확인창 (2026-11-03)
 
 공통 DialogContent의 `scrollable`은 화면 높이에서 공유 `--site-space-content` 여백을 뺀 범위 안에서 읽고 스크롤하게 한다. 긴 삭제 범위·경고·확인 입력을 페이지별 고정 높이나 별도 글자 축소로 맞추지 않는다. DialogHeader의 `reserveCloseButton`으로 닫기 버튼과 제목의 영역을 분리하며 포커스 제한·Escape·원래 버튼 복귀를 유지한다.
+
+
+## 문서형 탭·인라인 이름 수정 (2026-11-05)
+
+section의 추가 appearance=document는 흰 선택 면이 아래 기준선과 이어지는 문서형이다. 기존 역할·크기와 영역형 기본값은 유지한다. 생성 버튼은 TabsAction, 연필은 TabsTrigger accessory로 분리해 중첩 button과 가짜 선택 탭을 만들지 않는다. 짧은 이름 수정은 InlineNameEditor의 Enter/blur 저장·Esc 취소·실패 초안 유지·중복 저장 차단을 공유한다. 한글 조합 중 Enter는 저장하지 않는다.

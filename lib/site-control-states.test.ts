@@ -213,3 +213,20 @@ test("tab hierarchy keeps service navigation, embedded catalog lists and notific
     assert.match(read(`app/${route}/page.tsx`), /<h1 className="type-page-title"/);
   }
 });
+
+test("문서형은 기존 영역형을 유지하며 추가 행동을 선택 탭과 구분한다", async () => {
+  const { createElement: h } = await import("react");
+  const { renderToStaticMarkup } = await import("react-dom/server");
+  const { Tabs, TabsList, TabsTrigger, TabsAction } = await import("../app/components/ui/tabs");
+  const old = renderToStaticMarkup(h(Tabs, { purpose: "section", defaultValue: "first" }, h(TabsList, { "aria-label": "기존 영역" }, h(TabsTrigger, { value: "first" }, "첫 영역"))));
+  assert.match(old, /class="site-area-tabs/); assert.doesNotMatch(old, /site-document-tabs/);
+  const html = renderToStaticMarkup(h(Tabs, { purpose: "section", appearance: "document", defaultValue: "first" },
+    h(TabsList, { "aria-label": "룸", action: h(TabsAction, null, "룸 추가") }, h(TabsTrigger, { value: "first", accessory: h("button", { type: "button", "aria-label": "이름 수정" }, "연필") }, "룸 1"))));
+  assert.match(html, /aria-selected="true"/); assert.match(html, /site-document-tabs/);
+  const actions = html.split("<button").slice(1).map(part => part.split("</button>")[0]);
+  assert.equal(actions.length, 3);
+  const add = actions.find(part => part.includes("룸 추가"))!;
+  assert.match(add, /type="button"/); assert.doesNotMatch(add, /role="tab"|data-slot="tabs-trigger"/);
+  const edit = actions.find(part => part.includes("이름 수정"))!;
+  assert.doesNotMatch(edit, /role="tab"|data-slot="tabs-trigger"/);
+});

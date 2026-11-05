@@ -87,3 +87,17 @@ test("권한 거부·외부 테이블·비정상 버전은 저장하지 않고 �
   const f = fixture(); for (const revision of [-1, NaN, "1", 2147483647]) await assert.rejects(f.service.saveMenuFloorPlan(site, revision, document()), /버전/); assert.equal(f.calls(), 0);
   assert.equal((await fixture({ missingSchema: true }).service.loadMenuFloorPlan(site)).available, false);
 });
+
+test("룸 이름 자동 저장은 기존 저장 배치와 다른 룸을 보존하고 새 룸도 단독 저장한다", () => {
+  const saved = document(), before = structuredClone(saved);
+  const renamed = floor.renameSavedFloorRoom(saved, { ...saved.rooms[0], name: "편집 초안", aspectRatio: 1.78 }, " 새 이름 ");
+  assert.equal(renamed.rooms[0].name, "새 이름");
+  assert.equal(renamed.rooms[0].aspectRatio, saved.rooms[0].aspectRatio);
+  assert.deepEqual(renamed.placements, saved.placements);
+  assert.deepEqual(saved, before);
+  const added = floor.renameSavedFloorRoom(saved, { id: site, name: "새 룸", aspectRatio: 1.33 }, "테라스");
+  assert.equal(added.rooms.length, 2); assert.equal(added.rooms[1].name, "테라스");
+  assert.deepEqual(added.placements, saved.placements);
+  assert.throws(() => floor.renameSavedFloorRoom(added, added.rooms[1], "홀"), floor.FloorPlanError);
+  assert.throws(() => floor.renameSavedFloorRoom(saved, saved.rooms[0], " "), floor.FloorPlanError);
+});

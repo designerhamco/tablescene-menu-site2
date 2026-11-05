@@ -49,7 +49,8 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
     return result;
   }, initialMenuTableActionState);
   const [mutationState, mutationAction, mutationPending] = useActionState(mutateMenuTableAction, initialMenuTableActionState);
-  const [displayMode, setDisplayMode] = useState("list");
+  const [displayMode, setDisplayMode] = useState("map");
+  const [floorDocument, setFloorDocument] = useState(floorPlan.document);
   const [expandedPointId, setExpandedPointId] = useState<string | null>(null);
   const usageId = useId();
   const kiosk = registrationKind === "kiosk", registrationNoun = kiosk ? "키오스크" : "테이블";
@@ -93,20 +94,21 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
         <h2 className={displayMode === "map" ? "sr-only" : "type-subsection-title"} id={`${usageId}-title`}>운영 테이블·키오스크 · {tables.length.toLocaleString("ko-KR")}개</h2>
 
         <TabsContent value="list" forceMount hidden={displayMode !== "list"}>
-          {!tables.length ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title="아직 등록된 테이블·키오스크가 없습니다." description="위의 ‘테이블 추가’ 또는 ‘키오스크 추가’로 등록해 주세요." /> : <Table variant="management" label="운영 테이블·키오스크 목록" columns={["compact", "text", "detail", "control", "actions"]}>
-            <TableCaption className="sr-only">종류, 이름, 공용 태블릿 연결 여부와 운영 상태를 확인할 수 있습니다. 이름을 누르면 수정할 수 있습니다.</TableCaption>
+          {!tables.length ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title="아직 등록된 테이블·키오스크가 없습니다." description="위의 ‘테이블 추가’ 또는 ‘키오스크 추가’로 등록해 주세요." /> : <Table variant="management" label="운영 테이블·키오스크 목록" columns={["compact", "text", "text", "control", "detail", "actions"]}>
+            <TableCaption className="sr-only">종류, 이름, 룸, 운영 상태와 공용 태블릿 연결 여부를 확인할 수 있습니다. 이름을 누르면 수정할 수 있습니다.</TableCaption>
             <TableHeader><TableRow>
               <TableHead>종류</TableHead>
               <TableHead>이름</TableHead>
-              <TableHead>공용 태블릿 연결 여부</TableHead>
+              <TableHead>룸</TableHead>
               <TableHead>상태</TableHead>
+              <TableHead>공용 태블릿 연결 여부</TableHead>
               <TableHead><div className="site-action-row" data-wrap="nowrap">관리<InfoTooltip label="보관·삭제 안내"><p>보관하면 운영 목록에서 빠지고 기기 연결은 종료됩니다. 기존 주문·호출 기록은 유지됩니다. 삭제는 사용 이력이 없는 등록만 가능합니다.</p></InfoTooltip></div></TableHead>
             </TableRow></TableHeader>
-            <TableBody>{tables.map(point => <OrderPointTableRow key={`${point.id}:${point.label}`} menuSiteId={menuSiteId} point={point} connectionState={connectionState} canDelete={canDelete} disabled={mutationPending} archiveAction={mutationAction} />)}</TableBody>
+            <TableBody>{tables.map(point => <OrderPointTableRow key={`${point.id}:${point.label}`} menuSiteId={menuSiteId} point={point} roomAvailable={floorPlan.available} roomName={floorDocument.rooms.find(room => room.id === floorDocument.placements.find(placement => placement.pointId === point.id)?.roomId)?.name} connectionState={connectionState} canDelete={canDelete} disabled={mutationPending} archiveAction={mutationAction} />)}</TableBody>
           </Table>}
         </TabsContent>
         <TabsContent value="map" forceMount hidden={displayMode !== "map"}>
-          <FloorPlanEditor registration={displayMode === "map" ? registration : undefined} initial={floorPlan} points={tables} onSave={saveFloorPlanAction ?? (async () => ({ status: "error", message: "배치도 저장 기능을 사용할 수 없습니다." }))} />
+          <FloorPlanEditor onDocumentChange={setFloorDocument} registration={displayMode === "map" ? registration : undefined} initial={floorPlan} points={tables} onSave={saveFloorPlanAction ?? (async () => ({ status: "error", message: "배치도 저장 기능을 사용할 수 없습니다." }))} />
         </TabsContent>
         </div>
         </div>

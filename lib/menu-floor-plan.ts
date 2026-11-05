@@ -50,3 +50,13 @@ export function constrainFloorRect(rect: Pick<FloorPlacement, "x" | "y" | "width
   const width = Math.min(100, Math.max(8, rect.width)), height = Math.min(100, Math.max(8, rect.height));
   return { x: Math.min(100 - width, Math.max(0, rect.x)), y: Math.min(100 - height, Math.max(0, rect.y)), width, height };
 }
+
+export const FLOOR_PLAN_DISPLAY_ASPECT_RATIO = 4 / 3;
+/** A name commit must not accidentally persist other unsaved rooms/placements. */
+export function renameSavedFloorRoom(saved: FloorDocument, room: FloorRoom, name: string): FloorDocument {
+  const existing = saved.rooms.find(item => item.id === room.id);
+  return normalizeFloorDocument({
+    rooms: existing ? saved.rooms.map(item => item.id === room.id ? { ...item, name } : item) : [...saved.rooms, { ...room, name }],
+    placements: saved.placements,
+  });
+}
