@@ -31,7 +31,7 @@ test("매장 운영·직원 액션은 기존 인라인 안내와 토스트를 �
       assert.match(source, /<ActionFeedbackToast message=\{createState\.message\}/);
       assert.match(source, /tone=\{createState\.status === "success" \? "success" : "error"\}/);
       assert.match(source, /tone=\{mutationState\.status === "success" \? "success" : "error"\}/);
-    } else if (path.endsWith("CallItemManager.tsx")) {
+    } else if ((path.endsWith("CallItemManager.tsx") || path.endsWith("CallDashboard.tsx"))) {
       assert.match(source, /ContentPanel as="aside" surface="notice"/);
       assert.match(source, /role="status"/);
     } else {

@@ -1,3 +1,4 @@
+import * as qrRotation from "./qr-rotation-policy";
 import { parseOrderPointDeletionSummary } from "./order-point-deletion";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -33,7 +34,7 @@ function fixture({ error = null as null | { code: string; message?: string }, mi
     return query;
   } };
   const dependencies: Record<string, unknown> = {
-    "server-only": {}, "@/lib/order-point-deletion": { parseOrderPointDeletionSummary },
+    "server-only": {}, "@/lib/qr-rotation-policy": qrRotation, "@/lib/order-point-deletion": { parseOrderPointDeletionSummary },
     "@/lib/order-point-policy": pointPolicy,
     "@/lib/menu-table-management": { ...validation, createMenuTableTokenMaterial() { throw new Error("Tokens must not rotate on restore"); } },
     "@/lib/dining-product-tiers": { getDiningTemplateFeatures: () => ({ smartCall: true }) },

@@ -37,6 +37,7 @@ type CallRow = {
 
 export type CallDashboardCall = {
   id: string;
+  tableId: string;
   callNumber: number;
   tableLabel: string;
   callType: "staff";
@@ -167,6 +168,7 @@ export async function listCallDashboard(menuSiteIdValue: unknown): Promise<CallD
     calls: calls.map((call) => ({
       id: call.id,
       callNumber: call.call_number,
+      tableId: call.menu_table_id,
       tableLabel: tableLabelById.get(call.menu_table_id) ?? "알 수 없는 테이블",
       callType: "staff",
       requestKey: call.request_key ?? "staff",

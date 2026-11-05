@@ -1299,3 +1299,10 @@ textarea.site-field[data-field-size="lg"], textarea[data-field-size="lg"] { min-
 /* Shared short-name editing retains the standard field and control geometry. */
 .site-inline-name-editor { display: inline-grid; min-width: 0; max-width: 100%; align-items: center; gap: var(--site-space-copy); }
 .site-inline-name-editor[data-editing="true"] { width: 12rem; }
+
+/* Operational maps share the editor geometry; summaries remain bounded and full details open on selection. */
+.site-floor-object[data-summary="true"] { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; padding: var(--site-space-copy); gap: var(--site-space-copy); }
+.site-floor-object-summary { display: grid; gap: 0; width: 100%; min-width: 0; pointer-events: none; }
+.site-floor-object-summary > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.site-floor-object[data-summary="true"] > .site-floor-object-label, .site-floor-object-summary { flex: none; }

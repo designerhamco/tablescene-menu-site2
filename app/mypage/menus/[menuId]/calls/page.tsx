@@ -1,3 +1,4 @@
+import { loadOperationsFloorPlan } from "@/lib/server/operations-floor-plan-service";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
@@ -57,6 +58,8 @@ export default async function CallDashboardPage({
     redirect("/mypage/operations");
   }
 
+  const floorPlan = await loadOperationsFloorPlan(menuId, "calls");
+
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="calls">
       <div className="space-y-8">
@@ -68,7 +71,7 @@ export default async function CallDashboardPage({
           </p>
         </header>
         <OperationFeatureNavigation menuId={menuId} feature="calls" settings={false} historyAvailable={selectedSite.operationAccess.calls} canConfigure />
-        <CallDashboard menuSiteId={data.menuSite.id} calls={data.calls} />
+        <CallDashboard floorPlan={floorPlan} menuSiteId={data.menuSite.id} calls={data.calls} />
       </div>
     </StoreOperationsShell>
   );

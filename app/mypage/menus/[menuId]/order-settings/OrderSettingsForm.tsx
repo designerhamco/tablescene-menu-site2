@@ -93,16 +93,10 @@ export default function OrderSettingsForm({
         </section>
         <section className="site-stack-block site-content-divider" aria-label="매장 공용 단말 주문 옵션">
           <h4 className="type-content-title">매장 공용 단말</h4>
-          <label className="site-action-row" data-distribution="between"><span className="type-label">모든 매장 기기 후결제 허용</span><Switch name="terminalOrderEnabled" defaultChecked={settings.terminalOrderEnabled!==false} disabled={pending} /></label>
-          <p className="type-body-sm site-copy-muted">전화번호를 받지 않습니다. ‘기기별 설정’ 탭에서 사용할 기기를 연결할 수 있습니다.</p>
+          <label className="site-action-row" data-distribution="between"><span className="type-label">매장 태블릿·키오스크 후결제 허용</span><Switch name="terminalOrderEnabled" defaultChecked={settings.terminalOrderEnabled!==false} disabled={pending} /></label>
+          <p className="type-body-sm site-copy-muted">연결된 모든 매장 태블릿·키오스크에 적용되는 상위 스위치입니다. 켜져 있어도 ‘기기별 설정’에서 해당 기기의 주문을 허용해야 합니다. 손님 휴대폰·QR 설정과 별개이며 전화번호는 받지 않습니다.</p>
           <p className="type-body-sm site-copy-muted">장바구니가 있는 상태로 마지막 조작 후 2분간 사용하지 않으면 미주문 상품만 비웁니다. 30초 전에 안내하며 ‘계속 이용하기’를 누르면 다시 2분 동안 이용할 수 있습니다. 이미 접수된 주문은 유지합니다.</p>
         </section>
-        <ContentPanel surface="muted" aria-label="알림톡 설정 준비">
-          <div className="site-content-heading-row"><h3 className="type-content-title">조리 완료 알림톡</h3><span className="type-body-sm site-copy-muted">연동 준비 중</span></div>
-          <p className="type-body-sm site-copy-muted">개인 기기로 주문할 때 입력한 번호로 조리 완료를 안내할 예정입니다. 현재는 카카오 연결 및 실제 발송을 제공하지 않습니다.</p>
-          <label className="site-action-row type-label site-copy-muted"><Switch disabled />알림톡 사용 · 준비 중</label>
-          <div className="site-stack-copy"><p className="type-label">메시지 미리보기</p><p className="type-body-sm">주문하신 메뉴가 준비되었습니다. 픽업대에서 받아 주세요.</p></div>
-        </ContentPanel>
       </> : null}
       <div className="site-action-row">
       <button
