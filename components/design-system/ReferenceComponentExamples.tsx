@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import Link from "next/link";
-import { Bell, Check, CreditCard, Globe, Armchair, Monitor, LayoutGrid, Search, Share2, ShoppingBag } from "lucide-react";
+import { Bell, Check, CreditCard, Globe, LayoutGrid, Search, Share2, ShoppingBag } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Switch } from "@/app/components/ui/switch";
 import { OverviewCard, OverviewCardResponsiveLabel, OverviewCardGroup } from "@/app/components/ui/overview-card";
@@ -16,8 +16,7 @@ import { AI_SUPPORT_CHAT_OPEN_EVENT } from "@/lib/ai-support-chat-launcher";
 import ProductOfferCard from "@/components/marketing/ProductOfferCard";
 import { publicBasicProducts } from "@/lib/public-product-details";
 import { Badge } from "@/app/components/ui/badge";
-import { FloorPlanCanvas, FloorPlanObject } from "@/app/components/ui/floor-plan-canvas";
-import { ContentPanel } from "@/app/components/ui/content-panel";
+import FloorPlanEditor from "@/components/mypage/floor-plan/FloorPlanEditor";
 import styles from "./SiteComponentGallery.module.css";
 
 function Example({title,description,children}:{title:string;description:string;children:ReactNode}) {
@@ -25,7 +24,6 @@ function Example({title,description,children}:{title:string;description:string;c
 }
 const notices=[{id:"sample-1",title:"메뉴판 공개 설정을 확인해 주세요",message:"디자인과 메뉴를 확인한 뒤 공개할 수 있습니다.",createdAt:"2026-10-26T02:00:00Z",unread:true,href:"/design-system"},{id:"sample-2",title:"이용 내역을 한곳에서 확인하세요",message:"마이페이지에서 구독과 메뉴판 이용 내역을 확인할 수 있습니다.",createdAt:"2026-10-25T02:00:00Z",unread:false,href:"/design-system"}];
 export default function ReferenceComponentExamples() {
-  const [floorSelected, setFloorSelected] = useState(1);
   const [exampleOrdersEnabled, setExampleOrdersEnabled] = useState(false);
   const [read,setRead]=useState<string[]>([]);
   const [query,setQuery]=useState("");
@@ -36,8 +34,8 @@ export default function ReferenceComponentExamples() {
   const [onlyUnread,setOnlyUnread]=useState(false);
   const visible=(applied.status==="all"||applied.status==="draft") && "아티메뉴 카페".includes(applied.query.trim());
   return <>
-    <Example title="룸 배치도 캔버스" description="매장 공간 안의 사각형을 상대 좌표로 표시합니다. 편집·조회 화면이 같은 캔버스와 선택·비활성 상태를 공유하며, 실제 편집기에서는 드래그와 모서리 크기 조절을 제공하고 방향키로도 이동할 수 있습니다.">
-      <ContentPanel><FloorPlanCanvas name="홀 예시" aspectRatio={1.78}>{[1,2,3].map((n) => <FloorPlanObject key={n} rect={{x: 8 + (n-1)*29, y: 25, width: 22, height: 35}} label={n === 2 ? "키오스크 1" : `테이블 ${n}`} typeLabel={n === 2 ? "키오스크" : "테이블"} icon={n === 2 ? <Monitor /> : <Armchair />} selected={floorSelected === n} disabled={n === 3} onClick={() => setFloorSelected(n)} onKeyDown={event => { if(event.key === "Enter" || event.key === " ") {event.preventDefault();setFloorSelected(n);} }} />)}</FloorPlanCanvas></ContentPanel>
+    <Example title="룸 배치도 편집" description="관리 화면과 같은 컴포넌트로 룸 탭·배치 도구·캔버스·다른 룸 이동·저장 순서를 확인합니다. 드래그와 모서리 크기 조절, 방향키 이동을 제공합니다. 아래 예시의 저장은 현재 화면에만 적용되며 실제 매장 데이터는 변경하지 않습니다.">
+      <FloorPlanEditor initial={{available: true, revision: 0, document: {rooms: [{id: "11111111-1111-4111-8111-111111111111", name: "홀 예시", aspectRatio: 1.78}, {id: "22222222-2222-4222-8222-222222222222", name: "테라스 예시", aspectRatio: 1.33}], placements: [{pointId: "33333333-3333-4333-8333-333333333333", roomId: "11111111-1111-4111-8111-111111111111", x: 8, y: 20, width: 22, height: 30}, {pointId: "44444444-4444-4444-8444-444444444444", roomId: "11111111-1111-4111-8111-111111111111", x: 40, y: 20, width: 22, height: 30}]}}} points={[{id: "33333333-3333-4333-8333-333333333333", label: "테이블 1", kind: "table", status: "active"}, {id: "44444444-4444-4444-8444-444444444444", label: "키오스크 1", kind: "kiosk", status: "active"}, {id: "55555555-5555-4555-8555-555555555555", label: "테이블 2", kind: "table", status: "disabled"}]} onSave={async (revision, document) => ({status: "success", revision: revision + 1, document})} />
     </Example>
     <Example title="고객지원 홈" description="도움이 필요할 때 문의 방법부터 고릅니다. AI 실시간 문의·1:1 문의·FAQ 아래에 서비스 가이드와 기존 FAQ를 표시합니다."><div className={styles.supportExample}><h3 className="type-content-title px-5 pt-5">도움이 필요하신가요?</h3><SupportHome enabled={false} onChat={() => window.dispatchEvent(new Event(AI_SUPPORT_CHAT_OPEN_EVENT))} /></div></Example>
     <Example title="알림 패널" description="분류 탭·목록 하단 중앙에 떠 있는 모두 읽기·날짜별 목록·읽지 않은 표시·하단 전체보기를 한 구조로 묶습니다. 표시는 최근 90일 기준이며, 완료된 알림 본문은 별도 1년 보관 정책을 따릅니다. 아래 알림은 동작 확인용 예시입니다."><div className={styles.notificationExample}><NotificationPanel compact items={notices.map(item=>({...item,unread:item.unread&&!read.includes(item.id)}))} onActivate={item=>setRead(current=>[...current,item.id])} onReadAll={()=>setRead(notices.map(item=>item.id))} footer={<><p className="site-notification-limit">{NOTIFICATION_COMPACT_NOTICE}</p><Link href="/mypage?tab=notifications">전체 알림 보기</Link></>} /></div></Example>

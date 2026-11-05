@@ -55,15 +55,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
   const kiosk = registrationKind === "kiosk", registrationNoun = kiosk ? "키오스크" : "테이블";
   const setExpanded = (pointId: string, open: boolean) => setExpandedPointId(open ? pointId : null);
 
-  return <div className="site-stack-content">
-    <ActionFeedbackToast message={createState.message} tone={createState.status === "success" ? "success" : "error"} eventKey={createState} />
-    <ActionFeedbackToast message={mutationState.message} tone={mutationState.status === "success" ? "success" : "error"} eventKey={mutationState} />
-
-    <section className="site-stack-group" aria-labelledby={`${usageId}-title`}>
-      <Tabs purpose="state" value={displayMode} onValueChange={setDisplayMode}>
-        <div className="site-stack-group">
-        <TabsList aria-label="보기 유형"><TabsTrigger value="list"><List aria-hidden="true" />리스트형</TabsTrigger><TabsTrigger value="map"><Map aria-hidden="true" />배치도형</TabsTrigger></TabsList>
-        <div className="site-stack-block">
+  const registration = <div className="site-stack-block">
           <div className="site-action-row" aria-label="테이블·키오스크 추가">
             <button type="button" className="site-button site-button-outline" disabled={createPending} aria-expanded={registrationKind === "table"} aria-controls={registrationKind ? `${usageId}-registration` : undefined} onClick={() => setRegistrationKind("table")}><Plus aria-hidden="true" />테이블 추가</button>
             <button type="button" className="site-button site-button-outline" disabled={createPending || !pointSettingsAvailable} aria-expanded={registrationKind === "kiosk"} aria-controls={registrationKind ? `${usageId}-registration` : undefined} onClick={() => setRegistrationKind("kiosk")}><Plus aria-hidden="true" />키오스크 추가</button>
@@ -85,10 +77,20 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
             <p className="type-footnote site-copy-muted">만들기를 누르면 바로 등록됩니다. 배치도의 룸·위치 변경은 ‘배치도 저장’으로 따로 저장해 주세요.</p>
             {createPending ? <LoadingState inline label={`${registrationNoun}${kiosk ? "를" : "을"} 만들고 있습니다. 잠시만 기다려 주세요.`} /> : null}
           </ContentPanel></div> : null}
-        </div>
+        </div>;
+
+  return <div className="site-stack-content">
+    <ActionFeedbackToast message={createState.message} tone={createState.status === "success" ? "success" : "error"} eventKey={createState} />
+    <ActionFeedbackToast message={mutationState.message} tone={mutationState.status === "success" ? "success" : "error"} eventKey={mutationState} />
+
+    <section className="site-stack-group" aria-labelledby={`${usageId}-title`}>
+      <Tabs purpose="state" value={displayMode} onValueChange={setDisplayMode}>
+        <div className="site-stack-group">
+        <div className="site-field-stack"><span className="type-label">보기 유형</span><TabsList aria-label="보기 유형"><TabsTrigger value="list"><List aria-hidden="true" />리스트형</TabsTrigger><TabsTrigger value="map"><Map aria-hidden="true" />배치도형</TabsTrigger></TabsList></div>
+        {displayMode === "list" ? registration : null}
 
         <div className="site-stack-block">
-        <h2 className="type-subsection-title" id={`${usageId}-title`}>운영 테이블·키오스크 · {tables.length.toLocaleString("ko-KR")}개</h2>
+        <h2 className={displayMode === "map" ? "sr-only" : "type-subsection-title"} id={`${usageId}-title`}>운영 테이블·키오스크 · {tables.length.toLocaleString("ko-KR")}개</h2>
 
         <TabsContent value="list" forceMount hidden={displayMode !== "list"}>
           {!tables.length ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title="아직 등록된 테이블·키오스크가 없습니다." description="위의 ‘테이블 추가’ 또는 ‘키오스크 추가’로 등록해 주세요." /> : <Table variant="management" label="운영 테이블·키오스크 목록" columns={["compact", "text", "detail", "control", "actions"]}>
@@ -104,7 +106,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
           </Table>}
         </TabsContent>
         <TabsContent value="map" forceMount hidden={displayMode !== "map"}>
-          <FloorPlanEditor initial={floorPlan} points={tables} onSave={saveFloorPlanAction ?? (async () => ({ status: "error", message: "배치도 저장 기능을 사용할 수 없습니다." }))} />
+          <FloorPlanEditor registration={displayMode === "map" ? registration : undefined} initial={floorPlan} points={tables} onSave={saveFloorPlanAction ?? (async () => ({ status: "error", message: "배치도 저장 기능을 사용할 수 없습니다." }))} />
         </TabsContent>
         </div>
         </div>
