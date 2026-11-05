@@ -1295,3 +1295,7 @@ textarea.site-field[data-field-size="lg"], textarea[data-field-size="lg"] { min-
 /* Shared compact label icons inherit ink and have no decorative tile. */
 .site-label-icon { display: inline-flex; flex: 0 0 auto; width: 1.125rem; height: 1.125rem; vertical-align: middle; color: inherit; }
 .site-label-icon > svg { display: block; width: 100%; height: 100%; }
+
+/* Shared short-name editing retains the standard field and control geometry. */
+.site-inline-name-editor { display: inline-grid; min-width: 0; max-width: 100%; align-items: center; gap: var(--site-space-copy); }
+.site-inline-name-editor[data-editing="true"] { width: 12rem; }

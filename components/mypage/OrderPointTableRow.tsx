@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useId, useState, useTransition } from "react";
-import { Pencil } from "lucide-react";
-import { Button } from "@/app/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
+import { useId, useState, useTransition } from "react";
+import { InlineNameEditor } from "@/app/components/ui/inline-name-editor";
 import { Switch } from "@/app/components/ui/switch";
 import { TableCell, TableRow } from "@/app/components/ui/table";
 import { initialMenuTableActionState } from "@/app/mypage/menus/[menuId]/tables/action-state";
@@ -18,18 +16,14 @@ import type { OrderPointConnectionState } from "./OrderPointConnectionSummary";
 
 type ManagedPoint = Pick<MenuTableListItem, "id" | "label" | "status" | "kind">;
 
-export default function OrderPointTableRow({ menuSiteId, point, connectionState, canDelete, disabled, archiveAction }: {
-  menuSiteId: string; point: ManagedPoint; connectionState?: OrderPointConnectionState; canDelete: boolean; disabled: boolean;
+export default function OrderPointTableRow({ menuSiteId, point, roomName, roomAvailable = true, connectionState, canDelete, disabled, archiveAction }: {
+  menuSiteId: string; point: ManagedPoint; roomName?: string; roomAvailable?: boolean; connectionState?: OrderPointConnectionState; canDelete: boolean; disabled: boolean;
   archiveAction: (data: FormData) => void;
 }) {
-  const [editOpen, setEditOpen] = useState(false), [name, setName] = useState(point.label);
+  const [editPending, setEditPending] = useState(false);
+  const [editState, setEditState] = useState(initialMenuTableActionState);
   const [statusPending, changeStatus] = useTransition();
   const [statusResult, setStatusResult] = useState<{ status: "success" | "error"; message: string } | null>(null);
-  const [editState, editAction, editPending] = useActionState(async (previous: typeof initialMenuTableActionState, data: FormData) => {
-    const result = await mutateMenuTableAction(previous, data);
-    if (result.status === "success") setEditOpen(false);
-    return result;
-  }, initialMenuTableActionState);
   const id = useId(), kiosk = point.kind === "kiosk";
   const noun = kiosk ? "키오스크" : "테이블";
   const busy = disabled || statusPending || editPending;
@@ -43,17 +37,27 @@ export default function OrderPointTableRow({ menuSiteId, point, connectionState,
     <TableCell primary>
       <ActionFeedbackToast message={editState.message} tone={editState.status === "success" ? "success" : "error"} eventKey={editState} />
       <ActionFeedbackToast message={statusResult?.message} tone={statusResult?.status === "success" ? "success" : "error"} eventKey={statusResult} />
-      <Dialog open={editOpen} onOpenChange={next => { if (!editPending) setEditOpen(next); }}>
-        <DialogTrigger asChild><Button variant="link" size="compact" disabled={busy} aria-label={`${point.label} 이름 수정`}><span className="type-item-title min-w-0 break-words">{point.label}</span><Pencil aria-hidden="true" /></Button></DialogTrigger>
-        <DialogContent onEscapeKeyDown={event => { if (editPending) event.preventDefault(); }} onInteractOutside={event => { if (editPending) event.preventDefault(); }}>
-          <DialogHeader reserveCloseButton><DialogTitle>{noun} 이름 수정</DialogTitle><DialogDescription>매장에서 알아보기 쉬운 번호 또는 이름을 입력해 주세요.</DialogDescription></DialogHeader>
-          <form action={editAction} className="site-stack-group" aria-busy={editPending}>
-            <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={point.id} />
-            <label className="site-field-stack type-label">이름<input name="label" className="site-field w-full" required maxLength={80} value={name} onChange={event => setName(event.target.value)} disabled={editPending} /></label>
-            <DialogFooter><Button type="button" variant="outline" disabled={editPending} onClick={() => setEditOpen(false)}>취소</Button><Button name="intent" value="rename" disabled={editPending}>{editPending ? "저장 중…" : "저장"}</Button></DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <InlineNameEditor value={point.label} label={`${point.label} 이름 수정`} maxLength={80} disabled={busy} onSave={async name => {
+        setEditPending(true);
+        try {
+          const data = new FormData(); data.set("menuSiteId", menuSiteId); data.set("tableId", point.id); data.set("intent", "rename"); data.set("label", name);
+          const result = await mutateMenuTableAction(initialMenuTableActionState, data); setEditState(result);
+          return result.status === "success" ? { status: "success", value: name } : { status: "error", message: result.message };
+        } finally { setEditPending(false); }
+      }} />
+    </TableCell>
+    <TableCell>
+      {roomAvailable && roomName ? <span className="break-words">{roomName}</span> : <div className="site-action-row" data-wrap="nowrap"><span>{roomAvailable ? "미연동" : "확인 불가"}</span><InfoTooltip label={`${point.label} 룸 ${roomAvailable ? "미연동" : "정보"} 안내`}><p>{roomAvailable ? "배치도형에서 ‘룸 추가’로 공간을 만든 뒤, 이 테이블·키오스크를 선택해 배치하고 ‘배치도 저장’을 눌러 주세요. QR만 사용할 때는 룸 없이도 이용할 수 있습니다." : "배치도 정보를 불러오지 못했습니다. 페이지를 새로고침해 다시 확인해 주세요."}</p></InfoTooltip></div>}
+    </TableCell>
+    <TableCell nowrap>
+      <div className="site-action-row" data-wrap="nowrap">
+        <label htmlFor={id} className="type-label" aria-live="polite">{statusPending ? "저장 중…" : point.status === "active" ? "사용 중" : "일시정지"}</label>
+        <Switch id={id} checked={point.status === "active"} loading={statusPending} disabled={busy} aria-label={`${point.label} 사용`} onCheckedChange={checked => changeStatus(async () => {
+          setStatusResult(null);
+          try { setStatusResult(await updateOrderPointStatus({ menuSiteId, tableId: point.id, status: checked ? "active" : "disabled", expectedStatus: point.status })); }
+          catch { setStatusResult({ status: "error", message: "상태를 저장하지 못했습니다. 연결을 확인하고 다시 시도해 주세요." }); }
+        })} />
+      </div>
     </TableCell>
     <TableCell>
       <div className="site-action-row">
@@ -64,16 +68,6 @@ export default function OrderPointTableRow({ menuSiteId, point, connectionState,
         </InfoTooltip>
         <span className="type-label">{connectionLabel}</span>
         <Link className="site-button site-button-outline site-button-compact" aria-label={`${point.label} ${!available ? "연결 확인" : connected ? "연결 관리" : "연결하기"}`} href={`/mypage/menus/${menuSiteId}/orders/settings?tab=devices#point-${point.id}`}>{!available ? "연결 확인" : connected ? "연결 관리" : "연결하기"}</Link>
-      </div>
-    </TableCell>
-    <TableCell nowrap>
-      <div className="site-action-row" data-wrap="nowrap">
-        <label htmlFor={id} className="type-label" aria-live="polite">{statusPending ? "저장 중…" : point.status === "active" ? "사용 중" : "일시정지"}</label>
-        <Switch id={id} checked={point.status === "active"} loading={statusPending} disabled={busy} aria-label={`${point.label} 사용`} onCheckedChange={checked => changeStatus(async () => {
-          setStatusResult(null);
-          try { setStatusResult(await updateOrderPointStatus({ menuSiteId, tableId: point.id, status: checked ? "active" : "disabled", expectedStatus: point.status })); }
-          catch { setStatusResult({ status: "error", message: "상태를 저장하지 못했습니다. 연결을 확인하고 다시 시도해 주세요." }); }
-        })} />
       </div>
     </TableCell>
     <TableCell nowrap>
