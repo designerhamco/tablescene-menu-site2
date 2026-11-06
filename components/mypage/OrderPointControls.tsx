@@ -8,10 +8,10 @@ import { DEFAULT_ORDER_POINT_POLICY, ORDER_POINT_CONNECTION_REQUIRED, orderPoint
 import OrderPointFeatureControl from "./OrderPointFeatureControl";
 import { ControlCategory, ControlCategoryRow } from "@/app/components/ui/control-category-row";
 
-export type ManagedOrderPoint = Pick<MenuTableListItem, "id" | "label" | "status" | "kind" | "policy" | "policyAvailable">;
+export type ManagedOrderPoint = Pick<MenuTableListItem, "id" | "label" | "status" | "kind" | "policy" | "policyAvailable"> & { draft?: boolean };
 
 export function OrderPointFeatureControls({ menuSiteId, point, feature, connectionState, onConnect, onUpdate, readOnly = false, disabled = false }: { onConnect?: OrderPointConnectHandler; connectionState?: OrderPointConnectionState; menuSiteId: string; point: ManagedOrderPoint; feature: OrderPointFeature; onUpdate: OrderPointFeatureUpdate; readOnly?: boolean; disabled?: boolean }) {
-  const reason = !point.policyAvailable || !point.policy ? "허용 설정을 불러오지 못했습니다. 새로고침해 주세요." : disabled ? "다른 작업을 처리하고 있습니다." : null;
+  const reason = point.draft ? "하단 저장 버튼을 눌러 등록을 완료한 뒤 사용할 수 있습니다." : !point.policyAvailable || !point.policy ? "허용 설정을 불러오지 못했습니다. 새로고침해 주세요." : disabled ? "다른 작업을 처리하고 있습니다." : null;
   const connectionReason = orderPointTerminalConnectionReason(point.id, connectionState);
   const canRequestConnection = connectionReason === ORDER_POINT_CONNECTION_REQUIRED && Boolean(onConnect);
   return <div className="site-order-point-toggles" role="group" aria-label={`${point.label} ${feature === "orders" ? "주문" : "호출"} 기기별 허용`}>
@@ -21,6 +21,7 @@ export function OrderPointFeatureControls({ menuSiteId, point, feature, connecti
 }
 
 export function OrderPointConnectionControl({ point, state, onConnect }: { point: ManagedOrderPoint; state?: OrderPointConnectionState; onConnect: OrderPointConnectHandler }) {
+  if (point.draft) return <span className="type-label">저장 필요</span>;
   const available = Boolean(state?.available), kiosk = point.kind === "kiosk";
   const devices = available ? state!.connections.filter(item => item.tableId === point.id) : [];
   const connected = devices.length > 0;
@@ -40,7 +41,7 @@ export function OrderPointConnectionControl({ point, state, onConnect }: { point
 }
 
 export function OrderPointArchiveControl({ menuSiteId, point, action, disabled = false }: { menuSiteId: string; point: ManagedOrderPoint; action: (data: FormData) => void; disabled?: boolean }) {
-  return <form action={action} aria-busy={disabled}><input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={point.id} /><button name="intent" value="archive" disabled={disabled} aria-label={`${point.label} 보관`} className="site-button site-button-outline site-button-compact">보관</button></form>;
+  return <form data-unsaved-commit={point.draft || undefined} action={action} aria-busy={disabled}><input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={point.id} /><button name="intent" value="archive" disabled={disabled} aria-label={`${point.label} ${point.draft ? "추가 취소" : "보관"}`} className="site-button site-button-outline site-button-compact">{point.draft ? "추가 취소" : "보관"}</button></form>;
 }
 
 export function OrderPointSelectionDetails({ menuSiteId, point, connectionState, disabled, readOnly, onUpdate, onConnect }: {

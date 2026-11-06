@@ -28,7 +28,7 @@ export default function TableTerminalConnections({ menuSiteId, table, connection
       {deviceEditor}
       {pending ? <LoadingState inline indicator="bar" label="기기 연결 설정을 처리하고 있습니다. 잠시만 기다려 주세요." /> : null}
       <div className="site-action-row">
-        {currentTableId !== table.id || enableRequest ? <form action={action} aria-busy={pending} onSubmit={event => {
+        {currentTableId !== table.id || enableRequest ? <form data-unsaved-commit action={action} aria-busy={pending} onSubmit={event => {
           // Toggle activation is confirmed by the shared connection dialog and its Save action.
           if (enableRequest) return;
           if (!window.confirm(`현재 기기를 ${table.label}에 연결할까요?${currentTableId ? " 이 기기의 기존 연결은 해제됩니다." : ""} 관리자 화면은 유지되며 다른 기기의 연결에도 영향을 주지 않습니다.`)) event.preventDefault();
@@ -55,7 +55,7 @@ export default function TableTerminalConnections({ menuSiteId, table, connection
               <p className="type-body break-words">{connection.device ? formatTerminalDevice(connection.device) : connection.current ? formatTerminalDevice(device) : "기기 정보가 없는 이전 연결입니다."}</p>
               <div className="site-action-row"><Badge tone="neutral">{connection.current ? "현재 기기" : "다른 기기"}</Badge><span className="type-caption site-copy-muted">연결일 {formatKoreanDateTime(connection.createdAt)}</span></div>
             </div>
-            <form action={action} aria-busy={pending} onSubmit={event => {
+            <form data-unsaved-commit action={action} aria-busy={pending} onSubmit={event => {
               if (!window.confirm(`${table.label}의 ${connection.current ? "현재 기기" : connection.device ? formatTerminalDevice(connection.device) : "선택한 기기"} 연결을 해제할까요? 이 기기의 주문·호출이 중단되며 기존 주문과 다른 기기의 연결은 유지됩니다.`)) event.preventDefault();
             }}>
               <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={table.id} /><input type="hidden" name="connectionId" value={connection.id} />
