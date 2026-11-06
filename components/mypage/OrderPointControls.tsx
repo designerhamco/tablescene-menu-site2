@@ -18,7 +18,7 @@ export function OrderPointReceptionSummary({ menuSiteId, point }: { menuSiteId: 
       const customer = feature === "orders" ? point.policy?.customerOrderEnabled : point.policy?.customerCallEnabled;
       const known = point.policyAvailable && point.policy;
       const detail = !known ? "확인 불가" : point.status === "disabled" ? "이전 설정으로 중지됨" : point.kind === "kiosk" ? `기기 ${terminal ? "ON" : "OFF"}` : `태블릿 ${terminal ? "ON" : "OFF"} · QR ${customer ? "ON" : "OFF"}`;
-      return <div key={feature} className="site-action-row" data-wrap="nowrap"><span className="type-label">{label}</span><span className="type-body-sm">{detail}</span><Link className="site-button site-button-outline site-button-compact" href={`/mypage/menus/${menuSiteId}/${feature}/settings#point-${point.id}`} aria-label={`${point.label} ${label} 설정`}>설정</Link></div>;
+      return <div key={feature} className="site-action-row" data-wrap="nowrap"><span className="type-label">{label}</span><span className="type-body-sm">{detail}</span><Link className="site-button site-button-outline site-button-compact" href={`/mypage/menus/${menuSiteId}/${feature}/settings${feature === "orders" ? "?tab=devices" : ""}#point-${point.id}`} aria-label={`${point.label} ${label} 설정`}>설정</Link></div>;
     })}
     <div className="site-order-point-reception-help"><InfoTooltip label={`${point.label} 주문·호출 허용 안내`}><p>표시는 이 테이블·키오스크의 개별 허용 설정입니다. 실제로 주문·호출을 받으려면 전체 기능이 켜져 있고 메뉴판 공개와 해당 기기 연결 등 이용 조건도 충족되어야 합니다.</p><p>잠깐 멈추려면 주문·호출 설정에서 각각 OFF로 바꾸세요. 운영 목록에서 제외하려면 보관을 사용해 주세요.</p></InfoTooltip></div>
   </div>;
