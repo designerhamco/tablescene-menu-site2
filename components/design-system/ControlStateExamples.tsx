@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpen, Plus, Sparkles, Trash2 } from "lucide-react";
-import { Button } from "@/app/components/ui/button";
+import { BookOpen, Plus, Sparkles, Square, Trash2 } from "lucide-react";
+import { Button, ButtonGroupDivider } from "@/app/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import styles from "./SiteComponentGallery.module.css";
 
@@ -26,11 +26,19 @@ export default function ControlStateExamples() {
       <Button onClick={() => setClicks(n => n + 1)}><Plus />동작 확인</Button>
       <Button variant="outline" size="compact">밀집 도구 32px</Button><Button size="lg">주요 완료 48px</Button>
       <Button variant="outline"><BookOpen />사용가이드</Button><Button variant="ai"><Sparkles />AI 상담</Button>
-      <Button size="icon" variant="ghost" aria-label="추가 도구"><Plus /></Button>
+      <div className="site-action-row" data-wrap="nowrap"><ButtonGroupDivider /><Button size="icon" variant="ghost" aria-label="추가 도구"><Plus /></Button></div>
+    </div>
+    <div id="button-shape-groups" className="site-stack-block" role="group" aria-labelledby="button-shape-groups-title">
+      <div className="site-stack-title"><h3 id="button-shape-groups-title" className="type-content-title">버튼 모양별 묶음</h3><p className="type-body-sm site-copy-muted">한 작업 행에서 사각형 텍스트 버튼과 원형 아이콘 도구가 이어지면, 모양이 바뀌는 경계에만 옅은 회색 세로선 한 개를 둡니다. 같은 모양끼리는 선 없이 공통 8px 간격으로 묶습니다.</p></div>
+      <div className="site-action-row" role="group" aria-label="사각형과 원형 버튼 묶음 예시">
+        <Button variant="outline" onClick={() => setClicks(n => n + 1)}>바로 배치</Button>
+        <div className="site-action-row" data-wrap="nowrap"><ButtonGroupDivider /><Button size="icon" variant="outline" aria-label="묶음 예시 사각형 도구"><Square aria-hidden="true" /></Button><Button size="icon" variant="outline" disabled aria-label="묶음 예시 삭제"><Trash2 aria-hidden="true" /></Button></div>
+      </div>
+      <p className="type-footnote site-copy-muted">구분선은 1px·높이 24px이며 버튼 중앙에 맞춥니다. 선은 뒤쪽 버튼 묶음과 함께 유지하고, 비활성 여부·색상 차이만으로는 선을 추가하지 않습니다. 탭·입력 필드·서로 떨어진 작업 영역에는 이 규칙을 일괄 적용하지 않습니다.</p>
     </div>
     <div className="site-stack-group" role="group" aria-label="흰 배경의 보조 버튼 예시">
       <div className="site-stack-title"><h3 className="type-content-title">흰 배경의 보조 행동</h3><p className="type-body-sm site-copy-muted">취소·변경 취소·로그아웃처럼 독립된 텍스트 행동은 회색 테두리로 구분합니다. 투명 버튼은 아이콘 도구, link는 본문·목록 안의 보조 이동에 사용합니다.</p></div>
-      <div className="site-action-row"><Button variant="outline">취소</Button><Button variant="outline">변경 취소</Button><Button variant="outline">로그아웃</Button><Button variant="outline" disabled>변경 취소 · 비활성</Button><Button variant="outline-danger">삭제 요청</Button><Button variant="ghost" size="icon" aria-label="보조 버튼 예시 추가 도구"><Plus aria-hidden="true" /></Button></div>
+      <div className="site-action-row"><Button variant="outline">취소</Button><Button variant="outline">변경 취소</Button><Button variant="outline">로그아웃</Button><Button variant="outline" disabled>변경 취소 · 비활성</Button><Button variant="outline-danger">삭제 요청</Button><div className="site-action-row" data-wrap="nowrap"><ButtonGroupDivider /><Button variant="ghost" size="icon" aria-label="보조 버튼 예시 추가 도구"><Plus aria-hidden="true" /></Button></div></div>
     </div>
     <p className="type-body-sm text-zinc-600" role="status">동작 확인 {clicks}회 · Tab으로 포커스하고 Enter·Space로 실행해 보세요.</p>
     <div className={styles.usageTable}><table aria-label="버튼 상태 기준"><thead><tr><th scope="col">역할</th>{states.map(([key,label]) => <th scope="col" key={key}>{label}</th>)}</tr></thead>

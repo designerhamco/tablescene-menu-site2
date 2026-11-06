@@ -60,4 +60,9 @@ function Button({
   );
 }
 
-export { Button, buttonVariants };
+/** Decorative boundary between neighboring button-shape groups, never a control. */
+function ButtonGroupDivider() {
+  return <span className="site-button-group-divider" aria-hidden="true" />;
+}
+
+export { Button, ButtonGroupDivider, buttonVariants };
