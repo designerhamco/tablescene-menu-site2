@@ -1,6 +1,6 @@
-import { placeNewFloorPoints, type FloorDocument, type FloorPlanSnapshot, type FloorSaveResult } from "./menu-floor-plan";
+import { floorMemberships, placeNewFloorPoints, type FloorDocument, type FloorPlanSnapshot, type FloorSaveResult } from "./menu-floor-plan";
 
-export type RegisteredFloorPoint = { pointId: string; roomId: string };
+export type RegisteredFloorPoint = { pointId: string; roomId: string; operationId?:string };
 
 /** Persist only the new registration; other hand-edited layout drafts stay unsaved. */
 export async function saveRegisteredFloorPoint(saved: FloorPlanSnapshot, point: RegisteredFloorPoint, save: (revision: number, document: FloorDocument) => Promise<FloorSaveResult>): Promise<FloorSaveResult> {
@@ -15,5 +15,5 @@ export async function saveRegisteredFloorPoint(saved: FloorPlanSnapshot, point: 
 export function mergeRegisteredFloorPoint(draft: FloorDocument, committed: FloorDocument, pointId: string): FloorDocument {
   const placement = committed.placements.find(item => item.pointId === pointId);
   if (!placement || !draft.rooms.some(room => room.id === placement.roomId)) return draft;
-  return { ...draft, placements: [...draft.placements.filter(item => item.pointId !== pointId), placement] };
+  return { ...draft, placements: [...draft.placements.filter(item => item.pointId !== pointId), placement], memberships:[...floorMemberships(draft).filter(item=>item.pointId!==pointId),{pointId,roomId:placement.roomId}] };
 }

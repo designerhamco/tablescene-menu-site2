@@ -164,7 +164,7 @@ export async function listMenuTables(menuSiteId: string, { includeArchived = fal
   };
 }
 
-export async function restoreMenuTable({ menuSiteId, tableId, label }: { menuSiteId: string; tableId: string; label: string }) {
+export async function restoreMenuTable({ menuSiteId, tableId, label, roomId }: { menuSiteId: string; tableId: string; label: string; roomId: string }) {
   let normalizedMenuSiteId: string;
   let normalizedTableId: string;
   let normalizedLabel: string;
@@ -175,7 +175,10 @@ export async function restoreMenuTable({ menuSiteId, tableId, label }: { menuSit
   } catch (error) {
     return inputError(error);
   }
+  const normalizedRoomId=normalizeMenuTableId(roomId);
   const { context, supabase } = await requireMenuTableWriteAccess(normalizedMenuSiteId);
+  const room=await supabase.from("menu_floor_plans").select("document").eq("menu_site_id",normalizedMenuSiteId).maybeSingle();
+  if(room.error || !hasMenuTableRegistrationRoom(room.data?.document,normalizedRoomId)) throw new MenuTableManagementError("ROOM_REQUIRED","복원할 룸을 먼저 추가하고 선택해 주세요.",409);
   // Return to the operating list with all order/call channels off; old visits stay revoked.
   const { data, error } = await supabase.from("menu_tables")
     .update({ label: normalizedLabel, status: "active", archived_at: null, ...RECEPTION_OFF, updated_by: context.actorUserId })

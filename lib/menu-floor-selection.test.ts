@@ -12,8 +12,8 @@ const placement = (pointId: string) => ({pointId, roomId: room, x: 5, y: 5, widt
 function render(ids: string[], registered = [first, second]) {
   return renderToStaticMarkup(createElement(AppRouterContext.Provider, {value: {push() {}} as never}, createElement(FloorPlanEditor, {
     initial: {available: true, revision: 1, document: {rooms: [{id: room, name: "홀", aspectRatio: 4/3}], placements: ids.map(placement)}},
-    points: registered.map((id, index) => ({id, label: `테이블 ${index+1}`})),
-    onSave: async () => ({status: "error", message: "이 검사는 저장하지 않습니다."}),
+    points: registered.map((id, index) => ({id, label: `테이블 ${index+1}`,status:"active"})),
+    onSave: async () => ({status: "error" as const, message: "이 검사는 저장하지 않습니다."}),
     renderSelectedPoint: point => createElement("span", {"data-selected-details": point.id}, point.label),
   })));
 }

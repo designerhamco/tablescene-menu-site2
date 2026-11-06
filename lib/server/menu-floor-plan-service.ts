@@ -1,6 +1,6 @@
 import "server-only";
 import type { Json } from "@/lib/supabase/types";
-import { FloorPlanError, emptyFloorDocument, normalizeFloorDocument, retainRegisteredFloorPoints, type FloorPlanSnapshot } from "@/lib/menu-floor-plan";
+import { assertFloorMembershipsPreserved, FloorPlanError, emptyFloorDocument, normalizeFloorDocument, retainRegisteredFloorPoints, type FloorPlanSnapshot } from "@/lib/menu-floor-plan";
 import { normalizeMenuTableId } from "@/lib/menu-table-validation";
 import { requireMenuTableReadAccess, requireMenuTableWriteAccess } from "@/lib/server/menu-table-management-service";
 
@@ -25,7 +25,10 @@ export async function saveMenuFloorPlan(menuSiteId: string, revision: unknown, i
   const { context, supabase } = await requireMenuTableWriteAccess(siteId);
   const points = await supabase.from("menu_tables").select("id").eq("menu_site_id", siteId).in("status", ["active", "disabled"]);
   if (points.error) throw new FloorPlanError("등록된 테이블 정보를 확인하지 못했습니다.");
-  if (retainRegisteredFloorPoints(document, points.data ?? []).placements.length !== document.placements.length) throw new FloorPlanError("삭제·보관되었거나 다른 메뉴판의 테이블이 포함되어 있습니다. 목록을 새로고침해 주세요.");
+  if (retainRegisteredFloorPoints(document, points.data ?? []).placements.length !== document.placements.length || (document.memberships && retainRegisteredFloorPoints(document,points.data ?? []).memberships?.length !== document.memberships.length)) throw new FloorPlanError("삭제·보관되었거나 다른 메뉴판의 테이블이 포함되어 있습니다. 목록을 새로고침해 주세요.");
+  const previous = await supabase.from("menu_floor_plans").select("document, revision").eq("menu_site_id",siteId).maybeSingle();
+  if (previous.error) throw new FloorPlanError("기존 룸 정보를 확인하지 못했습니다.");
+  if (previous.data) assertFloorMembershipsPreserved(normalizeFloorDocument(previous.data.document), document, (points.data ?? []).map(point=>point.id));
   const nextRevision = (revision as number) + 1;
   const values = { document: document as unknown as Json, revision: nextRevision, updated_by: context.actorUserId, updated_at: new Date().toISOString() };
   const result = revision === 0

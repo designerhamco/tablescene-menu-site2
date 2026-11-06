@@ -148,9 +148,11 @@ export async function mutateMenuTableAction(
 
   try {
     if (intent === "restore") {
-      const table = await restoreMenuTable({ menuSiteId, tableId, label: getFormString(formData, "label") });
+      const roomId=getFormString(formData,"roomId");
+      if(!roomId)throw new MenuTableManagementError("ROOM_REQUIRED","복원할 룸을 먼저 추가하고 선택해 주세요.",409);
+      const table = await restoreMenuTable({ menuSiteId, tableId, roomId, label: getFormString(formData, "label") });
       revalidateTableOperations(menuSiteId);
-      return { ...initialMenuTableActionState, status: "success", message: `${table.label}을 복원했습니다. 주문·호출은 모두 OFF이며 각 설정에서 켤 수 있습니다.`, tableId: table.id };
+      return { ...initialMenuTableActionState, status: "success", message: `${table.label}을 복원했습니다. 주문·호출은 모두 OFF이며 각 설정에서 켤 수 있습니다.`, tableId: table.id, registrationRoomId:roomId };
     }
     if (intent === "rotate-token") {
       const result = await rotateMenuTableToken({ menuSiteId, tableId });
