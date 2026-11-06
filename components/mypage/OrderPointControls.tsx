@@ -24,16 +24,17 @@ export function OrderPointConnectionControl({ point, state, onConnect }: { point
   const devices = available ? state!.connections.filter(item => item.tableId === point.id) : [];
   const connected = devices.length > 0;
   const connectionLabel = orderPointConnectionLabel(point, state);
-  if (connectionLabel === "해당 없음") return <span className="type-label">해당 없음</span>;
+  const mobileOnly = connectionLabel === "해당 없음";
   const actionLabel = !available ? "연결 확인" : connected ? "연결 관리" : "연결하기";
   return <div className="site-action-row" data-wrap="nowrap">
     <InfoTooltip label={`${point.label} 기기 연결 안내`}>
-      {!available ? <p>연결 정보를 불러오지 못했습니다. 테이블·키오스크 관리에서 연결 상태를 다시 확인해 주세요.</p>
+      {mobileOnly ? <p>모바일·QR 주문·호출만 사용 중이므로 매장 기기 연결이 필요하지 않습니다. 태블릿도 사용하려면 주문·호출의 태블릿 스위치를 켜서 기기를 연결해 주세요.</p>
+        : !available ? <p>연결 정보를 불러오지 못했습니다. 테이블·키오스크 관리에서 연결 상태를 다시 확인해 주세요.</p>
         : connected ? <div className="site-stack-copy"><p>{"연결된 매장 기기의 주문·호출 사용 여부는 각 스위치에서 설정할 수 있습니다."}</p><ul className="site-stack-copy">{devices.map((item, index) => <li key={index}>{item.device ? formatTerminalDevice(item.device) : "기기 정보가 없는 이전 연결입니다."}</li>)}</ul></div>
           : <p>{kiosk ? "키오스크의 주문·호출을 켜려면 먼저 사용할 기기를 연결해 주세요. 손님마다 다시 연결할 필요는 없습니다." : "고객 휴대폰의 모바일·QR 주문·호출에는 매장 기기 연결이 필요하지 않습니다. 태블릿도 사용하려면 주문·호출의 태블릿 스위치를 켜서 기기를 연결해 주세요."}</p>}
     </InfoTooltip>
     <span className="type-label">{connectionLabel}</span>
-    <button type="button" className="site-button site-button-outline site-button-compact" aria-label={`${point.label} ${actionLabel}`} onClick={() => onConnect(point.id)}>{actionLabel}</button>
+    {!mobileOnly ? <button type="button" className="site-button site-button-outline site-button-compact" aria-label={`${point.label} ${actionLabel}`} onClick={() => onConnect(point.id)}>{actionLabel}</button> : null}
   </div>;
 }
 
