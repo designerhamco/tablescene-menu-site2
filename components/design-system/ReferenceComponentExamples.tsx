@@ -21,6 +21,7 @@ import { Badge } from "@/app/components/ui/badge";
 import OperationsHistoryExample from "./OperationsHistoryExample";
 import { OrderPointSelectionDetails, OrderPointArchiveControl, type ManagedOrderPoint } from "@/components/mypage/OrderPointControls";
 import OrderPointConnectionDialog from "@/components/mypage/OrderPointConnectionDialog";
+import { readTerminalDeviceInfo } from "@/lib/terminal-device-info";
 import { DEFAULT_ORDER_POINT_POLICY, orderPointPolicyKey, type OrderPointFeatureUpdate } from "@/lib/order-point-policy";
 import OrderPointRegistrationForm from "@/components/mypage/OrderPointRegistrationForm";
 import FloorPlanEditor from "@/components/mypage/floor-plan/FloorPlanEditor";
@@ -35,6 +36,7 @@ export default function ReferenceComponentExamples() {
   const [exampleKind, setExampleKind] = useState<"table" | "kiosk">("table");
   const [exampleName, setExampleName] = useState("");
   const [exampleConnectionState, setExampleConnectionState] = useState<OrderPointConnectionState>({available: true, connections: []});
+  const [exampleCurrentTableId, setExampleCurrentTableId] = useState<string | null>(null);
   const [exampleEnableRequest, setExampleEnableRequest] = useState<OrderPointConnectRequest | undefined>();
   const openExampleConnection = (id: string, request?: OrderPointConnectRequest) => { setConnectionPointId(id); setExampleEnableRequest(request); };
   const [connectionPointId, setConnectionPointId] = useState<string | null>(null);
@@ -58,14 +60,21 @@ export default function ReferenceComponentExamples() {
     <Example title="룸 배치도 편집" description="룸 탭과 오른쪽 삭제 아이콘, 상시 등록 폼은 두 보기가 공유합니다. 룸이 있어야 종류·이름을 입력하고 만들기를 누를 수 있습니다. 첫 룸은 추가 시 바로 저장하며 새 등록도 선택한 룸에 배치와 저장을 함께 진행합니다. 등록 폼에는 취소 버튼을 두지 않습니다. 선택 정보와 기기별 소형 토글은 한 줄이며 ON/OFF 문구를 붙이지 않습니다. 캔버스 오른쪽 위 아이콘은 마지막 저장 배치로 되돌리고 선택한 사각형 안 보관은 X 배치 해제와 구분합니다. 크기조절 아이콘은16px, 조절 영역은32px입니다. 아래 예시는 실제 매장 데이터를 변경하지 않습니다.">
       <FloorPlanEditor createdPoint={exampleCreatedPoint} registration={({ canRegister, roomId, pending, blockedReason }) => <OrderPointRegistrationForm menuSiteId="example" kind={exampleKind} onKindChange={setExampleKind} name={exampleName} onNameChange={setExampleName} roomReady={canRegister} roomId={roomId} disabled={pending} blockedReason={blockedReason} kioskAvailable action={async data => { const id = crypto.randomUUID(); setExamplePoints(current => [...current, { id, label: String(data.get("label")), kind: data.get("kind") === "kiosk" ? "kiosk" : "table", status: "active", policy: DEFAULT_ORDER_POINT_POLICY, policyAvailable: true }]); setExampleCreatedPoint({pointId:id,roomId:String(data.get("roomId"))}); setExampleName(""); }} />} initial={{available: true, revision: 0, document: {rooms: [{id: "11111111-1111-4111-8111-111111111111", name: "홀 예시", aspectRatio: 1.78}, {id: "22222222-2222-4222-8222-222222222222", name: "테라스 예시", aspectRatio: 1.33}], placements: [{pointId: "33333333-3333-4333-8333-333333333333", roomId: "11111111-1111-4111-8111-111111111111", x: 8, y: 20, width: 22, height: 30}, {pointId: "44444444-4444-4444-8444-444444444444", roomId: "11111111-1111-4111-8111-111111111111", x: 40, y: 20, width: 22, height: 30}]}}} points={examplePoints} renderSelectedPoint={(point, pending) => <OrderPointSelectionDetails key={point.id} menuSiteId="example" point={examplePoints.find(item => item.id === point.id)!} disabled={pending} connectionState={exampleConnectionState} onUpdate={updateExampleFeature} onConnect={openExampleConnection} />} renderSelectedActions={(point, pending) => <OrderPointArchiveControl menuSiteId="example" point={examplePoints.find(item => item.id === point.id)!} disabled={pending} action={async data => { setExamplePoints(current => current.filter(item => item.id !== data.get("tableId"))); }} />} onSave={async (revision, document) => ({status: "success", revision: revision + 1, document})} />
     </Example>
-    <OrderPointConnectionDialog enableRequest={exampleEnableRequest} menuSiteId="example" point={examplePoints.find(point => point.id === connectionPointId) ?? null} published setup={{currentDevice: {kind: "PC", os: "OS 확인 중", model: "모델 확인 불가", browser: "브라우저 확인 중"}, currentTableId: null, connectionStatusAvailable: true, connectionsAvailable: true, connections: []}} onClose={() => { setConnectionPointId(null); setExampleEnableRequest(undefined); }} mutateAction={async (_previous, data) => {
+    <OrderPointConnectionDialog enableRequest={exampleEnableRequest} menuSiteId="example" point={examplePoints.find(point => point.id === connectionPointId) ?? null} published setup={{currentDevice: {kind: "PC", os: "OS 확인 중", model: "모델 확인 불가", browser: "브라우저 확인 중"}, currentTableId: exampleCurrentTableId, connectionStatusAvailable: true, connectionsAvailable: true, connections: exampleConnectionState.connections.map(item => ({...item, id: `example-${item.tableId}`, current: item.tableId === exampleCurrentTableId, createdAt: "2026-11-06T00:00:00Z"}))}} onClose={() => { setConnectionPointId(null); setExampleEnableRequest(undefined); }} mutateAction={async (_previous, data) => {
+      // A short sample-only delay makes the shared pending indicator observable.
+      await new Promise(resolve => setTimeout(resolve, 1000));
       if (data.get("intent") === "register-terminal") {
         const id = String(data.get("tableId")), feature = data.get("enableFeature");
-        setExampleConnectionState(current => ({available: true, connections: [...current.connections.filter(item => item.tableId !== id), {tableId: id, device: null}]}));
+        const device = readTerminalDeviceInfo(JSON.parse(String(data.get("deviceInfo"))));
+        setExampleConnectionState(current => ({available: true, connections: [...current.connections.filter(item => item.tableId !== id && item.tableId !== exampleCurrentTableId), {tableId: id, device}]}));
+        setExampleCurrentTableId(id);
         if (feature === "orders" || feature === "calls") setExamplePoints(current => current.map(point => point.id === id ? {...point, status: "active", policy: {...point.policy!, [orderPointPolicyKey("terminal", feature)]: true}} : point));
-        setConnectionPointId(null); setExampleEnableRequest(undefined);
+      } else if (data.get("intent") === "revoke-terminal-connection") {
+        const id = String(data.get("tableId"));
+        setExampleConnectionState(current => ({...current, connections: current.connections.filter(item => item.tableId !== id)}));
+        if (id === exampleCurrentTableId) setExampleCurrentTableId(null);
       }
-      return {status: "success", message: "예시 화면에만 적용했습니다. 실제 기기 연결과 관리자 로그인은 변경하지 않습니다.", tableId: null, qrPath: null};
+      return {status: "success", message: "예시 화면에만 적용했습니다. 실제 기기 연결과 관리자 로그인은 변경하지 않습니다.", tableId: String(data.get("tableId")), qrPath: null};
     }} />
     <Example title="모바일 첫 진입 안내" description="테이블·키오스크 관리에 모바일로 처음 들어오면 탭 세션당 한 번 PC 편집 권장 안내를 표시합니다. 모바일 이용은 제한하지 않습니다. 아래는 같은 안내 Dialog의 동작 예시입니다."><Button ref={desktopNoticeRef} variant="outline" onClick={() => setDesktopNoticeOpen(true)}>모바일 진입 안내 보기</Button><FloorPlanDesktopNoticeDialog open={desktopNoticeOpen} onOpenChange={setDesktopNoticeOpen} returnFocusRef={desktopNoticeRef} /></Example>
     <Example title="운영 내역의 리스트·배치도" description="배치도형을 왼쪽에 두고 같은 룸 배치·관리 표를 사용합니다. 룸 탭과 캔버스 사이의 중첩 박스를 없애고 사각형 선택으로 상품·옵션·수량·시간·상태를 확인합니다. 아래는 읽기 전용 예시입니다."><OperationsHistoryExample /></Example>
