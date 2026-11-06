@@ -9,14 +9,16 @@ import LoadingSpinner from "@/components/ui/LoadingSpinner";
 function Switch({
   className,
   surface,
+  size = "md",
   loading = false,
   disabled,
   ...props
-}: React.ComponentProps<typeof SwitchPrimitive.Root> & { surface?: "light" | "dark"; loading?: boolean }) {
+}: React.ComponentProps<typeof SwitchPrimitive.Root> & { surface?: "light" | "dark"; size?: "sm" | "md"; loading?: boolean }) {
   return (
     <SwitchPrimitive.Root
       data-slot="switch"
       data-surface={surface}
+      data-size={size}
       data-loading={loading || undefined}
       className={cn("site-switch peer", className)}
       {...props}

@@ -48,12 +48,23 @@ test("표의 문서 치수는 공통 토큰과 일치하고 행은 내용에 맞
 test("관리 화면과 라이브러리는 같은 표 API와 간격·상태 예시를 공유한다", () => {
   const manager = read("../app/mypage/menus/[menuId]/tables/MenuTableManager.tsx");
   const examples = read("../components/design-system/ManagementTableExamples.tsx");
-  assert.match(manager, /columns=\{\["compact", "text", "text", "toggles", "toggles", "detail", "actions"\]\}/);
+  assert.match(manager, /columns=\{\["compact", "text", "toggles", "toggles", "detail", "actions"\]\}/);
   assert.match(examples, /columns=\{\["compact", "text", "detail", "control", "actions"\]\}/);
   assert.match(manager, /<Tabs purpose="state"[^>]*>\s*<div className="site-stack-group">/);
-  assert.match(manager, /<div className="site-stack-block">\s*<h2[^>]*>운영 테이블/);
+  assert.match(manager, /renderList=\{\(\) => <div className="site-stack-block">/);
   assert.match(examples, /SITE_TABLE_RULES.map/);
   assert.match(examples, /align="end"/);
   assert.match(examples, /loading=\{index === 2\}/);
   assert.match(read("../components/design-system/SiteComponentGallery.tsx"), /<ManagementTableExamples \/>/);
+});
+
+
+test("모든 공통 표는 같은 조건부 오른쪽 페이드와 배경 투명 마스크를 사용한다", () => {
+  for (const props of [{}, { variant: "management" as const, label: "관리 표" }]) {
+    const html = renderToStaticMarkup(h(Table, props));
+    assert.match(html, /site-table-overflow/);
+    assert.doesNotMatch(html, /data-overflow-right="true"/);
+  }
+  const css = read("../styles/site-spacing.css");
+  assert.match(css, /\.site-table-overflow\[data-overflow-right="true"\] \{ mask-image: linear-gradient\(to right, #000 calc\(100% - var\(--site-table-overflow-fade-width\)\), transparent\); \}/);
 });

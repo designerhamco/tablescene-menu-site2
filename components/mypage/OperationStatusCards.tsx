@@ -53,7 +53,7 @@ export default function OperationStatusCards(props: OperationStatusCardsProps) {
         label={`전체 ${label} 상태`} icon={feature === "orders" ? <ShoppingBag /> : <Bell />} value={<OverviewCardResponsiveLabel compact={state.value.startsWith(`${label} `) ? state.value.slice(label.length + 1) : state.value}>{state.value}</OverviewCardResponsiveLabel>} help={state.detail}
         control={canConfigure && typeof flag === "boolean" ? <OperationFeatureToggle menuId={menuId} feature={feature} enabled={flag}
           published={published} canEnable={runtime[feature]} activeTablesReady={activeTablesReady}
-          blockedReason={state.next !== "manage" ? state.detail : null} reasonVisible={false} showStateLabel={false} />
+          blockedReason={state.next !== "manage" ? state.detail : null} reasonVisible={false} />
           : undefined}
         footer={action} />;
     })}

@@ -9,13 +9,32 @@ type TableProps = React.ComponentProps<"table"> & { variant?: "default"; label?:
   | Omit<React.ComponentProps<"table">, "className" | "style"> & { variant: "management"; label: string; columns?: readonly SiteTableColumn[]; className?: never; style?: never };
 
 function Table({ className, style, variant = "default", label, columns, children, ...props }: TableProps) {
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [overflowRight, setOverflowRight] = React.useState(false);
+  React.useEffect(() => {
+    const viewport = scrollRef.current;
+    const table = viewport?.querySelector("table");
+    if (!viewport || !table) return;
+    let active = true;
+    const measure = () => {
+      if (active) setOverflowRight(viewport.clientWidth > 0 && table.getBoundingClientRect().right > viewport.getBoundingClientRect().right + 1);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(viewport); observer.observe(table);
+    viewport.addEventListener("scroll", measure, { passive: true });
+    void document.fonts.ready.then(measure);
+    return () => { active = false; observer.disconnect(); viewport.removeEventListener("scroll", measure); };
+  }, [children]);
   const layout = columns?.length ? getSiteTableLayout(columns) : null;
   const items = layout ? React.Children.toArray(children) : [];
   const isCaption = (child: React.ReactNode) => React.isValidElement(child) && child.type === TableCaption;
   return (
     <div
+      ref={scrollRef}
       data-slot="table-container"
-      className={cn("relative w-full overflow-x-auto", variant === "management" && "site-table-scroll")}
+      data-overflow-right={overflowRight || undefined}
+      className={cn("site-table-overflow relative w-full overflow-x-auto", variant === "management" && "site-table-scroll")}
       role={variant === "management" ? "region" : undefined}
       aria-label={variant === "management" ? label : undefined}
       tabIndex={variant === "management" ? 0 : undefined}

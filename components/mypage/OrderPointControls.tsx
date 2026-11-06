@@ -11,7 +11,7 @@ export type ManagedOrderPoint = Pick<MenuTableListItem, "id" | "label" | "status
 
 export function OrderPointFeatureControls({ menuSiteId, point, feature, onUpdate, readOnly = false, disabled = false }: { menuSiteId: string; point: ManagedOrderPoint; feature: OrderPointFeature; onUpdate: OrderPointFeatureUpdate; readOnly?: boolean; disabled?: boolean }) {
   const reason = !point.policyAvailable || !point.policy ? "허용 설정을 불러오지 못했습니다. 새로고침해 주세요." : disabled ? "다른 작업을 처리하고 있습니다." : null;
-  return <div className="site-stack-copy" role="group" aria-label={`${point.label} ${feature === "orders" ? "주문" : "호출"} 기기별 허용`}>
+  return <div className="site-order-point-toggles" role="group" aria-label={`${point.label} ${feature === "orders" ? "주문" : "호출"} 기기별 허용`}>
     <OrderPointFeatureControl inline menuSiteId={menuSiteId} tableId={point.id} label={point.label} channel="terminal" feature={feature} policy={point.policy ?? DEFAULT_ORDER_POINT_POLICY} pointStatus={point.status} disabledReason={reason} readOnly={readOnly} channelLabel={point.kind === "kiosk" ? "키오스크" : "태블릿"} onUpdate={onUpdate} />
     {point.kind !== "kiosk" ? <OrderPointFeatureControl inline menuSiteId={menuSiteId} tableId={point.id} label={point.label} channel="customer" feature={feature} policy={point.policy ?? DEFAULT_ORDER_POINT_POLICY} pointStatus={point.status} disabledReason={reason} readOnly={readOnly} channelLabel="모바일" onUpdate={onUpdate} /> : null}
   </div>;
@@ -45,6 +45,6 @@ export function OrderPointSelectionDetails({ menuSiteId, point, connectionState,
     <h3 className="type-content-title site-floor-selection-name">{point.label}</h3>
     <div className="site-floor-selection-feature"><h4 className="type-label">주문</h4><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="orders" onUpdate={onUpdate} readOnly={readOnly} disabled={disabled} /></div>
     <div className="site-floor-selection-feature"><h4 className="type-label">호출</h4><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="calls" onUpdate={onUpdate} readOnly={readOnly} disabled={disabled} /></div>
-    <div className="site-stack-copy"><h4 className="type-label">{point.kind === "kiosk" ? "기기 연결 여부" : "공용 태블릿 연결 여부"}</h4><OrderPointConnectionControl point={point} state={connectionState} onConnect={onConnect} /></div>
+    <div className="site-floor-selection-feature"><h4 className="type-label">{point.kind === "kiosk" ? "기기 연결 여부" : "공용 태블릿 연결 여부"}</h4><OrderPointConnectionControl point={point} state={connectionState} onConnect={onConnect} /></div>
   </div>;
 }

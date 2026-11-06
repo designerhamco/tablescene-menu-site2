@@ -106,3 +106,14 @@ test("switch state rules keep disabled opaque and motion / forced colors support
   assert.match(css, /@media \(forced-colors: active\) \{[\s\S]*?\.site-switch:disabled \.site-switch-thumb \{ background: GrayText; \}/);
   assert.doesNotMatch(read("app/components/ui/switch.tsx"), /bg-switch-background|opacity-/);
 });
+
+
+test("compact switch keeps the shared state semantics and full touch target", () => {
+  const html = renderToStaticMarkup(createElement(Switch, { size: "sm", checked: true, "aria-label": "태블릿 주문 허용" }));
+  assert.match(html, /data-size="sm"/);
+  assert.match(html, /role="switch" aria-checked="true"/);
+  assert.doesNotMatch(html, />ON<|>OFF</);
+  const compact = /\.site-switch\[data-size="sm"\] \{([^}]+)\}/.exec(css)?.[1] ?? "";
+  assert.match(compact, /--ui-switch-width: 2.25rem/);
+  assert.match(compact, /width: var\(--ui-control-height-header\)/);
+});

@@ -15,6 +15,7 @@
   --site-table-cell-inset: var(--site-space-block);
   --site-table-head-height: 3.5rem;
   --site-table-row-height: 4rem;
+  --site-table-overflow-fade-width: 2rem;
 }
 
 .site-support-actions { margin-top: 1.25rem; }
@@ -112,3 +113,6 @@
   .site-pagination { margin-top: var(--site-space-content); }
   .site-catalog-consultation { margin-top: var(--site-space-section); }
 }
+
+/* A transparent mask reveals the actual white/gray/colored surface behind the table. */
+.site-table-overflow[data-overflow-right="true"] { mask-image: linear-gradient(to right, #000 calc(100% - var(--site-table-overflow-fade-width)), transparent); }
