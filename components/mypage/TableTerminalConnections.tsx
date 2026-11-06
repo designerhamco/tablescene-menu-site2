@@ -1,16 +1,17 @@
 "use client";
 
+import type { OrderPointConnectRequest } from "@/lib/order-point-connection";
 import type { ReactNode } from "react";
 import { RefreshButton } from "@/app/components/ui/refresh-button";
 import { Badge } from "@/app/components/ui/badge";
 import { formatTerminalDevice, type TableTerminalConnection, type TerminalDeviceInfo } from "@/lib/terminal-device-info";
 import { formatKoreanDateTime } from "@/lib/korean-date-time";
 
-export default function TableTerminalConnections({ menuSiteId, table, connections, available, currentTableId, currentKnown, published, device, pending, action, showMenuOpen = true, deviceEditor, onRefresh, refreshing = false }: {
+export default function TableTerminalConnections({ menuSiteId, table, connections, available, currentTableId, currentKnown, published, device, pending, action, showMenuOpen = true, deviceEditor, onRefresh, refreshing = false, enableRequest }: {
   menuSiteId: string; table: { id: string; label: string; status: string; kind?: "table" | "kiosk" }; connections: TableTerminalConnection[];
   available: boolean; currentTableId: string | null; currentKnown: boolean; published: boolean;
   device: TerminalDeviceInfo; pending: boolean; action: (formData: FormData) => void;
-  showMenuOpen?: boolean; deviceEditor?: ReactNode; onRefresh?: () => void; refreshing?: boolean;
+  enableRequest?: OrderPointConnectRequest; showMenuOpen?: boolean; deviceEditor?: ReactNode; onRefresh?: () => void; refreshing?: boolean;
 }) {
   const kiosk = table.kind === "kiosk", pointLabel = kiosk ? "키오스크" : "테이블";
   return <div className="site-stack-group" aria-label={`${table.label} 기기 연결`}>
@@ -26,10 +27,13 @@ export default function TableTerminalConnections({ menuSiteId, table, connection
       {deviceEditor}
       <div className="site-action-row">
         <form action={action} aria-busy={pending} onSubmit={event => {
-          if (!window.confirm(`현재 기기를 ${table.label} 주문용으로 연결할까요?${currentTableId ? " 이 기기의 기존 연결은 해제됩니다." : ""} 관리자 로그아웃 후 손님용 메뉴판이 자동으로 열립니다. 다른 기기의 연결은 유지됩니다.`)) event.preventDefault();
+          // Toggle activation is confirmed by the shared connection dialog and its Save action.
+          if (enableRequest) return;
+          if (!window.confirm(`현재 기기를 ${table.label}에 연결할까요?${currentTableId ? " 이 기기의 기존 연결은 해제됩니다." : ""} 관리자 로그아웃 후 손님용 메뉴판이 자동으로 열립니다. 다른 기기의 연결은 유지됩니다.`)) event.preventDefault();
         }}>
-          <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={table.id} /><input type="hidden" name="pointStatus" value={table.status} /><input type="hidden" name="deviceInfo" value={JSON.stringify(device)} />
-          <button name="intent" value="register-terminal" disabled={pending || !available || !currentKnown || !published || table.status === "archived" || currentTableId === table.id} className="site-button site-button-outline">{kiosk ? "현재 기기를 키오스크에 연결" : "현재 태블릿을 테이블에 연결"}</button>
+          {enableRequest ? <><input type="hidden" name="enableFeature" value={enableRequest.feature} /><input type="hidden" name="enableExpectedEnabled" value={String(enableRequest.expectedEnabled)} /></> : null}
+          <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={table.id} /><input type="hidden" name="pointStatus" value={enableRequest?.expectedStatus ?? table.status} /><input type="hidden" name="deviceInfo" value={JSON.stringify(device)} />
+          <button name="intent" value="register-terminal" disabled={pending || !available || !currentKnown || !published || table.status === "archived" || (currentTableId === table.id && !enableRequest)} className={enableRequest ? "site-button site-button-primary" : "site-button site-button-outline"}>{enableRequest ? "설정 저장" : kiosk ? "현재 기기를 키오스크에 연결" : "현재 태블릿을 테이블에 연결"}</button>
         </form>
         {showMenuOpen && currentKnown && currentTableId === table.id ? <form action={action} aria-busy={pending}>
           <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={table.id} />

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getTableTerminalMenuPath, registerTableTerminal, revokeTableTerminalConnection, TableTerminalConnectionError, unregisterTableTerminal } from "@/lib/server/table-terminal-service";
 import { TABLE_VISIT_SESSION_COOKIE, TABLE_VISIT_SESSION_COOKIE_SECURITY, getTableVisitSessionCookieMaxAge, isValidTableAccessToken } from "@/lib/table-qr-session-tokens";
 
+import { requireMenuSitePermission } from "@/lib/server/menu-site-access-service";
 import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import {
   archiveMenuTable,
@@ -81,11 +82,30 @@ export async function mutateMenuTableAction(
   if (intent === "register-terminal") {
     let path: string;
     try {
+      const enableFeature = getFormString(formData, "enableFeature");
+      const expectedEnabled = getFormString(formData, "enableExpectedEnabled");
+      const pointStatus = getFormString(formData, "pointStatus");
+      if (enableFeature) {
+        if (!["orders", "calls"].includes(enableFeature) || !["true", "false"].includes(expectedEnabled) || !["active", "disabled"].includes(pointStatus)) throw new TableTerminalConnectionError("사용할 주문·호출 설정을 다시 선택해 주세요.");
+        const permission = await requireMenuSitePermission(menuSiteId, "menu.edit");
+        if (!permission.isOwner) throw new TableTerminalConnectionError("주문·호출 허용 설정은 사장님만 변경할 수 있습니다.");
+      }
       const previous=(await cookies()).get(TABLE_VISIT_SESSION_COOKIE)?.value;
       let deviceInfo: unknown;
       try { const raw = getFormString(formData, "deviceInfo"); if (raw.length <= 2048) deviceInfo = JSON.parse(raw); } catch {}
       if (getFormString(formData, "pointStatus") === "disabled") await resumeMenuTable({ menuSiteId, tableId });
       const result=await registerTableTerminal(menuSiteId,tableId,(await headers()).get("user-agent") ?? "",isValidTableAccessToken(previous)?previous:undefined,deviceInfo);
+      if (enableFeature) {
+        try {
+          await setOrderPointFeature({ menuSiteId, tableId, channel: "terminal", feature: enableFeature as OrderPointFeature, enabled: true, expectedEnabled: pointStatus === "disabled" ? false : expectedEnabled === "true", expectedStatus: "active" });
+        } catch (error) {
+          revalidateTableOperations(menuSiteId);
+          try { await unregisterTableTerminal(menuSiteId, tableId, result.token, (await headers()).get("user-agent") ?? ""); }
+          catch { throw new TableTerminalConnectionError("설정을 켜지 못했고 새 기기 연결을 해제하지 못했습니다. 연결 상태를 새로고침해 확인해 주세요."); }
+          throw new TableTerminalConnectionError(`설정을 켜지 못해 새 기기 연결을 해제했습니다. ${error instanceof Error ? error.message : "다시 시도해 주세요."}`);
+        }
+        revalidateTableOperations(menuSiteId);
+      }
       const { error } = await (await createClient()).auth.signOut({ scope: "local" });
       if (error) throw new TableTerminalConnectionError("관리자 로그아웃을 완료하지 못했습니다. 태블릿 연결을 다시 시도해 주세요.");
       (await cookies()).set(TABLE_VISIT_SESSION_COOKIE,result.token,{...TABLE_VISIT_SESSION_COOKIE_SECURITY,expires:new Date(result.expiresAt),maxAge:getTableVisitSessionCookieMaxAge(result.expiresAt,new Date(),"terminal")});

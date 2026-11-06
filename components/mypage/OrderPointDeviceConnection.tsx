@@ -1,5 +1,6 @@
 "use client";
 
+import type { OrderPointConnectRequest } from "@/lib/order-point-connection";
 import { useActionState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { mutateMenuTableAction } from "@/app/mypage/menus/[menuId]/tables/actions";
@@ -9,9 +10,9 @@ import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import { useCurrentDeviceInfo } from "./useCurrentDeviceInfo";
 import TableTerminalConnections from "./TableTerminalConnections";
 
-export default function OrderPointDeviceConnection({ menuSiteId, point, published, setup, embedded = false, expandedDeviceEditor = false, mutateAction = mutateMenuTableAction }: {
+export default function OrderPointDeviceConnection({ menuSiteId, point, published, setup, embedded = false, expandedDeviceEditor = false, enableRequest, mutateAction = mutateMenuTableAction }: {
   menuSiteId: string; point: { id: string; label: string; status: string; kind?: "table" | "kiosk" };
-  published: boolean; setup: OrderPointDeviceSettings; embedded?: boolean; expandedDeviceEditor?: boolean; mutateAction?: typeof mutateMenuTableAction;
+  enableRequest?: OrderPointConnectRequest; published: boolean; setup: OrderPointDeviceSettings; embedded?: boolean; expandedDeviceEditor?: boolean; mutateAction?: typeof mutateMenuTableAction;
 }) {
   const [state, action, pending] = useActionState(mutateAction, initialMenuTableActionState);
   const router = useRouter(), [refreshing, refresh] = useTransition();
@@ -26,10 +27,10 @@ export default function OrderPointDeviceConnection({ menuSiteId, point, publishe
   </details>;
   return <div className={embedded ? "site-stack-group" : "site-stack-group site-content-divider"}>
     <ActionFeedbackToast message={state.message} tone={state.status === "success" ? "success" : "error"} eventKey={state} />
-    <p className="type-body-sm site-copy-muted">사용할 기기에서 연결해 주세요. 연결하면 이 브라우저의 관리자 로그인이 종료되고 손님용 메뉴판이 자동으로 열립니다. 연결과 {point.kind === "kiosk" ? "키오스크" : "테이블"}의 주문·호출 허용은 별도로 관리됩니다.</p>
+    <p className="type-body-sm site-copy-muted">{enableRequest ? `설정 저장 시 이 기기를 연결하고 ${enableRequest.feature === "orders" ? "주문" : "호출"}을 켭니다. ` : "사용할 기기에서 연결해 주세요. "}연결하면 이 브라우저의 관리자 로그인이 종료되고 손님용 메뉴판이 자동으로 열립니다.{!enableRequest ? " 주문·호출 허용은 별도로 관리됩니다." : ""}</p>
     <TableTerminalConnections menuSiteId={menuSiteId} table={point} connections={setup.connections.filter(connection => connection.tableId === point.id)}
       available={setup.connectionsAvailable} currentTableId={setup.currentTableId} currentKnown={setup.connectionStatusAvailable}
-      published={published} device={device} pending={pending} action={action} deviceEditor={editor}
+      published={published} enableRequest={enableRequest} device={device} pending={pending} action={action} deviceEditor={editor}
       refreshing={refreshing} onRefresh={() => refresh(() => router.refresh())} />
   </div>;
 }
