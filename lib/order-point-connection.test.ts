@@ -5,7 +5,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { DEFAULT_ORDER_POINT_POLICY } from "./order-point-policy";
 import { orderPointConnectionLabel, type OrderPointConnectionState } from "./order-point-connection";
 import TableTerminalConnections from "../components/mypage/TableTerminalConnections";
-import { OrderPointFeatureControls, OrderPointConnectionControl } from "../components/mypage/OrderPointControls";
+import { OrderPointFeatureControls, OrderPointConnectionControl, OrderPointArchiveControl } from "../components/mypage/OrderPointControls";
 const point = {id:"point",label:"2번 테이블",kind:"table" as const,status:"active" as const,policyAvailable:true,policy:DEFAULT_ORDER_POINT_POLICY};
 const connected: OrderPointConnectionState = {available:true,connections:[{tableId:"point",device:null}]};
 const disconnected: OrderPointConnectionState = {available:true,connections:[]};
@@ -63,4 +63,15 @@ test("연결 처리 중에는 실제 진행률을 만들지 않고 공통 로딩
 test("테이블·키오스크 관리 연결창은 연결 후에도 메뉴판 열기 진입을 노출하지 않는다",()=>{
  const html=renderToStaticMarkup(createElement(TableTerminalConnections,{menuSiteId:"site",table:point,connections:[],available:true,currentTableId:point.id,currentKnown:true,published:true,device:{kind:"PC",os:"macOS",model:"모델 확인 불가",browser:"Chrome"},pending:false,showMenuOpen:false,action:()=>{}}));
  assert.doesNotMatch(html,/open-terminal-menu|메뉴판 열기/);assert.match(html,/연결되어 있습니다/);
+});
+
+test("저장 전 항목은 연결·수신을 막고 추가 취소만 초안 편집으로 처리한다",()=>{
+ const draft={...point,draft:true};
+ const connection=renderToStaticMarkup(createElement(OrderPointConnectionControl,{point:draft,state:disconnected,onConnect:()=>assert.fail()}));
+ assert.match(connection,/저장 필요/);assert.doesNotMatch(connection,/<button/);
+ const controls=renderToStaticMarkup(createElement(OrderPointFeatureControls,{menuSiteId:"site",point:draft,feature:"orders",connectionState:connected,onConnect:()=>assert.fail(),onUpdate:async()=>{assert.fail();}}));
+ for(const button of controls.match(/<button[^>]*role="switch"[^>]*>/g)??[])assert.match(button,/disabled=""/);
+ assert.doesNotMatch(controls,/aria-checked="true"/);
+ const cancel=renderToStaticMarkup(createElement(OrderPointArchiveControl,{menuSiteId:"site",point:draft,action:()=>{}}));
+ assert.match(cancel,/data-unsaved-commit="true"/);assert.match(cancel,/추가 취소/);
 });

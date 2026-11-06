@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { InlineNameEditor } from "@/app/components/ui/inline-name-editor";
+import { InlineNameEditor, type InlineNameResult } from "@/app/components/ui/inline-name-editor";
 import { TableCell, TableRow } from "@/app/components/ui/table";
 import { initialMenuTableActionState } from "@/app/mypage/menus/[menuId]/tables/action-state";
 import { mutateMenuTableAction } from "@/app/mypage/menus/[menuId]/tables/actions";
@@ -14,8 +14,9 @@ import { OrderPointArchiveControl, OrderPointConnectionControl, OrderPointFeatur
 
 type ManagedPoint = ManagedOrderPoint;
 
-export default function OrderPointTableRow({ menuSiteId, point, connectionState, canDelete, disabled, archiveAction, readOnly = false, onUpdate, onConnect }: {
+export default function OrderPointTableRow({ menuSiteId, point, connectionState, canDelete, disabled, archiveAction, readOnly = false, onUpdate, onConnect, onRename }: {
   menuSiteId: string; point: ManagedPoint; connectionState?: OrderPointConnectionState; canDelete: boolean; disabled: boolean;
+  onRename?: (id: string, name: string) => Promise<InlineNameResult>;
   archiveAction: (data: FormData) => void; readOnly?: boolean; onUpdate: OrderPointFeatureUpdate; onConnect: OrderPointConnectHandler;
 }) {
   const [editPending, setEditPending] = useState(false);
@@ -28,6 +29,7 @@ export default function OrderPointTableRow({ menuSiteId, point, connectionState,
     <TableCell primary>
       <ActionFeedbackToast message={editState.message} tone={editState.status === "success" ? "success" : "error"} eventKey={editState} />
       <InlineNameEditor protectNavigation value={point.label} label={`${point.label} 이름 수정`} maxLength={80} disabled={busy} onSave={async name => {
+        if (onRename) return onRename(point.id, name);
         setEditPending(true);
         try {
           const data = new FormData(); data.set("menuSiteId", menuSiteId); data.set("tableId", point.id); data.set("intent", "rename"); data.set("label", name);
@@ -42,7 +44,7 @@ export default function OrderPointTableRow({ menuSiteId, point, connectionState,
     <TableCell nowrap>
       <div className="site-action-row" data-wrap="nowrap">
         <OrderPointArchiveControl menuSiteId={menuSiteId} point={point} action={archiveAction} disabled={busy} />
-        {canDelete ? <DeleteOrderPoint menuSiteId={menuSiteId} point={point} disabled={busy} compact /> : null}
+        {canDelete && !point.draft ? <DeleteOrderPoint menuSiteId={menuSiteId} point={point} disabled={busy} compact /> : null}
       </div>
     </TableCell>
   </TableRow>;
