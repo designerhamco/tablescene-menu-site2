@@ -49,7 +49,8 @@ function RestorePointForm({ point, menuSiteId, action, pending }: { point: Archi
   </form>;
 }
 
-export default function MenuTableManager({ menuSiteId, tables, archivedTables = [], pointSettingsAvailable = false, canDelete = false, canConfigure = false, published = false, deviceSetup = null, connectionState, saveFloorPlanAction, floorPlan = { available: false, revision: 0, document: emptyFloorDocument() } }: {
+export default function MenuTableManager({ menuSiteId, tables, archivedTables = [], pointSettingsAvailable = false, canDelete = false, canConfigure = false, published = false, deviceSetup = null, connectionState, saveFloorPlanAction, createPointAction = createMenuTableAction, floorPlan = { available: false, revision: 0, document: emptyFloorDocument() } }: {
+  createPointAction?: typeof createMenuTableAction;
   saveFloorPlanAction?: (revision: number, document: FloorDocument) => Promise<FloorSaveResult>;
   floorPlan?: FloorPlanSnapshot; menuSiteId: string; tables: ManagedPoint[]; archivedTables?: ArchivedMenuTableListItem[];
   canConfigure?: boolean; published?: boolean; deviceSetup?: OrderPointDeviceSettings | null;
@@ -58,7 +59,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
   const [registrationKind, setRegistrationKind] = useState<OrderPointKind>("table");
   const [nameDrafts, setNameDrafts] = useState({ table: "", kiosk: "" });
   const [createState, createAction, createPending] = useActionState(async (previous: typeof initialMenuTableActionState, formData: FormData) => {
-    const result = await createMenuTableAction(previous, formData);
+    const result = await createPointAction(previous, formData);
     if (result.status === "success") {
       const kind = formData.get("kind") === "kiosk" ? "kiosk" : "table";
       setNameDrafts(current => ({ ...current, [kind]: "" }));
@@ -81,7 +82,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
   // Both views share the same mounted editor; switching views preserves every draft.
   function changeDisplayMode(value: string) { setDisplayMode(value); }
 
-  const registration = ({ canRegister, pending, blockedReason }: { canRegister: boolean; pending: boolean; blockedReason?: string }) => <OrderPointRegistrationForm menuSiteId={menuSiteId} kind={registrationKind} onKindChange={setRegistrationKind} name={nameDrafts[registrationKind]} onNameChange={name => setNameDrafts(current => ({ ...current, [registrationKind]: name }))} roomReady={canRegister} blockedReason={blockedReason} pending={createPending} disabled={pending} kioskAvailable={pointSettingsAvailable} action={createAction} />;
+  const registration = ({ canRegister, roomId, pending, blockedReason }: { canRegister: boolean; roomId: string; pending: boolean; blockedReason?: string }) => <OrderPointRegistrationForm menuSiteId={menuSiteId} kind={registrationKind} onKindChange={setRegistrationKind} name={nameDrafts[registrationKind]} onNameChange={name => setNameDrafts(current => ({ ...current, [registrationKind]: name }))} roomReady={canRegister} roomId={roomId} blockedReason={blockedReason} pending={createPending} disabled={pending} kioskAvailable={pointSettingsAvailable} action={createAction} />;
 
   return <div className="site-stack-content">
     <OrderPointConnectionDialog menuSiteId={menuSiteId} point={tables.find(point => point.id === connectionPointId) ?? null} published={published} setup={deviceSetup} returnFocusRef={connectionTriggerRef} enableRequest={enableRequest} onClose={() => { setConnectionPointId(null); setEnableRequest(undefined); }} />
@@ -95,7 +96,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
         <div className="site-stack-group">
         <div className="site-field-stack"><span className="type-label">보기 유형</span><TabsList aria-label="보기 유형"><TabsTrigger ref={mapTabRef} value="map"><Map aria-hidden="true" />배치도형</TabsTrigger><TabsTrigger value="list"><List aria-hidden="true" />리스트형</TabsTrigger></TabsList></div>
         <TabsContent value={displayMode} forceMount>
-          <FloorPlanEditor view={displayMode === "list" ? "list" : "map"} registration={registration} initial={floorPlan} points={tables}
+          <FloorPlanEditor registrationPending={createPending} createdPoint={createState.status === "success" && createState.tableId && createState.registrationRoomId ? { pointId: createState.tableId, roomId: createState.registrationRoomId } : undefined} view={displayMode === "list" ? "list" : "map"} registration={registration} initial={floorPlan} points={tables}
             renderList={() => <div className="site-stack-block">
               <h3 className="type-subsection-title">운영 테이블·키오스크 · {tables.length.toLocaleString("ko-KR")}개</h3>
               {!tables.length ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title="아직 등록된 테이블·키오스크가 없습니다." description="위에서 종류와 이름을 입력하고 ‘만들기’를 눌러 주세요." /> : <Table variant="management" label="운영 테이블·키오스크 목록" columns={["compact", "text", "toggles", "toggles", "detail", "actions"]}>

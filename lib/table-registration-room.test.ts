@@ -69,3 +69,14 @@ test("룸이 있으면 기존 권한·등록·QR와 키오스크 채널 초기�
   const duplicate = fixture({ conflict: true });
   await assert.rejects(duplicate.service.createMenuTable({ menuSiteId: siteId, label: "1번 테이블" }), { code: "TABLE_CONFLICT" });
 });
+
+
+test("선택한 룸이 같은 메뉴판의 저장 문서에 없으면 새 항목을 등록하지 않는다", async () => {
+  const other = "55555555-5555-4555-8555-555555555555";
+  const missing = fixture();
+  await assert.rejects(missing.service.createMenuTable({menuSiteId:siteId,label:"새 테이블",roomId:other}),{code:"ROOM_REQUIRED"});
+  assert.equal(missing.writes.length,0); assert.equal(missing.tokens(),0);
+  const valid = fixture();
+  await valid.service.createMenuTable({menuSiteId:siteId,label:"새 테이블",roomId});
+  assert.equal(valid.writes.length,1);
+});
