@@ -25,3 +25,18 @@ export function getHistoryPlacements(floor: OperationsFloorPlan) {
     (placement) => rooms.has(placement.roomId) && points.has(placement.pointId),
   );
 }
+
+/** Registered points stay visible even when the current result has no records.
+ * Historical records whose point was removed remain accessible by their ID. */
+export function getOperationHistoryRows<T extends { id: string; tableId: string; tableLabel: string }>(floor: OperationsFloorPlan, records: readonly T[]) {
+  const roomNames = new Map(floor.document.rooms.map(room => [room.id, room.name]));
+  const roomByPoint = new Map(getHistoryPlacements(floor).map(placement => [placement.pointId, roomNames.get(placement.roomId)]));
+  const pointNames = new Map(floor.points.map(point => [point.id, point.label]));
+  const roomName = (id: string) => floor.available ? roomByPoint.get(id) ?? "미연동" : "확인 불가";
+  const rows: { key: string; pointId: string; pointLabel: string; roomName: string; record: T | null }[] = records.map(record => ({
+    key: `record:${record.id}`, pointId: record.tableId, pointLabel: pointNames.get(record.tableId) ?? record.tableLabel, roomName: roomName(record.tableId), record,
+  }));
+  const recorded = new Set(records.map(record => record.tableId));
+  for (const point of floor.points) if (!recorded.has(point.id)) rows.push({ key: `point:${point.id}`, pointId: point.id, pointLabel: point.label, roomName: roomName(point.id), record: null });
+  return rows;
+}

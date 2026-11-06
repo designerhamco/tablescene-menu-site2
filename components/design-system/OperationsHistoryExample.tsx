@@ -1,14 +1,10 @@
 "use client";
+import { useState } from "react";
+import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import OperationsHistoryViews from "@/components/mypage/OperationsHistoryViews";
 import { ContentPanel } from "@/app/components/ui/content-panel";
-import {
-  Table,
-  TableHeader,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-} from "@/app/components/ui/table";
+import { TableCell } from "@/app/components/ui/table";
+import OperationsHistoryTable from "@/components/mypage/OperationsHistoryTable";
 import { Badge } from "@/app/components/ui/badge";
 import type {
   OperationsFloorPlan,
@@ -59,58 +55,18 @@ const floorPlan: OperationsFloorPlan = {
   })),
 };
 export default function OperationsHistoryExample() {
-  return (
+  const [result, setResult] = useState("orders");
+  const shown = result === "empty" ? [] : records;
+  return <div className="site-stack-group">
+    <Tabs purpose="state" value={result} onValueChange={setResult}><TabsList size="sm" aria-label="운영 내역 예시 데이터"><TabsTrigger value="orders">주문 있음</TabsTrigger><TabsTrigger value="empty">주문 없음</TabsTrigger></TabsList></Tabs>
+
     <OperationsHistoryViews
       noun="주문"
-      records={records}
+      records={shown}
       floorPlan={floorPlan}
-      renderList={(open) => (
-        <ContentPanel>
-          <Table
-            variant="management"
-            label="운영 주문 내역 예시"
-            columns={["text", "detail", "text", "actions"]}
-          >
-            <TableHeader>
-              <TableRow>
-                {["테이블·키오스크", "상품·옵션·수량", "시간·상태", "상세"].map(
-                  (label) => (
-                    <TableHead key={label}>{label}</TableHead>
-                  ),
-                )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {records.map((record) => (
-                <TableRow key={record.id}>
-                  <TableCell primary>{record.pointLabel}</TableCell>
-                  <TableCell>
-                    <div className="site-stack-copy">
-                      <p>{record.summary}</p>
-                      <p className="site-copy-muted">{record.options}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="site-stack-copy">
-                      <p>{record.time}</p>
-                      <Badge>{record.status}</Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <button
-                      type="button"
-                      className="site-button site-button-outline site-button-compact"
-                      onClick={() => open(record.id)}
-                    >
-                      상세 보기
-                    </button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </ContentPanel>
-      )}
+      renderList={(open) => <OperationsHistoryTable noun="주문" label="운영 주문 내역 예시" floorPlan={floorPlan} records={shown.map(record => ({ ...record, tableId: record.pointId, tableLabel: record.pointLabel }))} renderRecord={record => <>
+        <TableCell>예시</TableCell><TableCell><div className="site-stack-copy"><p>{record.summary}</p><p className="site-copy-muted">{record.options}</p></div></TableCell><TableCell>{record.time}</TableCell><TableCell><Badge>{record.status}</Badge></TableCell><TableCell><button type="button" className="site-button site-button-outline site-button-compact" onClick={() => open(record.id)}>상세 보기</button></TableCell>
+      </>} />}
       renderDetail={(ids) => (
         <div className="site-stack-group">
           {records
@@ -126,5 +82,5 @@ export default function OperationsHistoryExample() {
         </div>
       )}
     />
-  );
+  </div>;
 }

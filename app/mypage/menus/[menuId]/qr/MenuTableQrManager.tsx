@@ -1,6 +1,5 @@
 "use client";
 import { QrCode } from "lucide-react";
-import { ContentPanel } from "@/app/components/ui/content-panel";
 import {
   Table,
   TableHeader,
@@ -48,8 +47,7 @@ export default function MenuTableQrManager({
           description="테이블 관리에서 테이블을 먼저 등록해 주세요."
         />
       ) : (
-        <ContentPanel>
-          <Table
+        <Table
             variant="management"
             label="테이블별 QR 관리"
             columns={["text", "control", "detail", "text", "actions"]}
@@ -110,8 +108,7 @@ export default function MenuTableQrManager({
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
-        </ContentPanel>
+        </Table>
       )}
     </section>
   );

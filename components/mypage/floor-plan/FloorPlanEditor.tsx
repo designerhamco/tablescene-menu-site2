@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "@/components/ui/useUnsavedChanges";
 
 import { useEffect, useId, useRef, useState, useTransition, type PointerEvent, type ReactNode } from "react";
 import { Armchair, Monitor, LayoutGrid, Plus, Save, Square, Trash2 } from "lucide-react";
@@ -64,21 +65,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
 
   useEffect(() => { onDocumentChange?.(retainRegisteredFloorPoints(draft, points)); }, [draft, points, onDocumentChange]);
 
-  useEffect(() => {
-    if (!dirty) return;
-    const unload = (event: BeforeUnloadEvent) => { event.preventDefault(); };
-    const navigation = (event: MouseEvent) => {
-      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const anchor = event.target instanceof Element ? event.target.closest<HTMLAnchorElement>("a[href]") : null;
-      if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) return;
-      const target = new URL(anchor.href, window.location.href);
-      if (target.pathname === window.location.pathname && target.search === window.location.search) return;
-      if (!window.confirm("저장하지 않은 배치도 변경 사항이 있습니다. 저장하지 않고 이동할까요?")) { event.preventDefault(); event.stopPropagation(); }
-    };
-    window.addEventListener("beforeunload", unload);
-    window.document.addEventListener("click", navigation, true);
-    return () => { window.removeEventListener("beforeunload", unload); window.document.removeEventListener("click", navigation, true); };
-  }, [dirty]);
+  useUnsavedChanges({ dirty, pending, discard: () => { setDraft(saved.document); setSelectedId(""); setRemoveRoom(false); setDrawing(false); } });
 
   function changePlacement(pointId: string, rect: Pick<FloorPlacement, "x" | "y" | "width" | "height">) {
     setDraft(previous => ({ ...previous, placements: previous.placements.map(p => p.pointId === pointId ? { ...p, ...constrainFloorRect(rect) } : p) }));
@@ -183,7 +170,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   return <Tabs purpose="section" appearance="document" value={room?.id ?? ""} onValueChange={value => { setRoomId(value); setSelectedId(""); setDrawing(false); setRemoveRoom(false); }}>
     <div className="site-stack-group">
       <TabsList ref={roomListRef} size="sm" aria-label="매장 공간" action={<TabsAction onClick={addRoom} disabled={pending || document.rooms.length >= 30}><Plus aria-hidden="true" />룸 추가</TabsAction>} tools={<button type="button" className="site-button site-button-ghost site-button-icon" disabled={pending || !room} aria-label="선택한 룸 삭제" title="룸 삭제" onClick={() => setRemoveRoom(true)}><Trash2 aria-hidden="true" /></button>}>
-        {document.rooms.map(r => <TabsTrigger key={r.id} value={r.id} disabled={layoutPending} accessory={<InlineNameEditor iconOnly value={r.name} label={`${r.name || "룸"} 이름 수정`} disabled={pending} onSave={name => renameRoom(r.id, name)} />}>{r.name || "이름 없는 룸"}</TabsTrigger>)}
+        {document.rooms.map(r => <TabsTrigger key={r.id} value={r.id} disabled={layoutPending} accessory={<InlineNameEditor protectNavigation iconOnly value={r.name} label={`${r.name || "룸"} 이름 수정`} disabled={pending} onSave={name => renameRoom(r.id, name)} />}>{r.name || "이름 없는 룸"}</TabsTrigger>)}
       </TabsList>
     <TabsContent value={room?.id ?? ""}>
     <div className="site-stack-group">

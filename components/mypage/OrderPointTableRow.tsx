@@ -37,7 +37,7 @@ export default function OrderPointTableRow({ menuSiteId, point, roomName, roomAv
     <TableCell primary>
       <ActionFeedbackToast message={editState.message} tone={editState.status === "success" ? "success" : "error"} eventKey={editState} />
       <ActionFeedbackToast message={statusResult?.message} tone={statusResult?.status === "success" ? "success" : "error"} eventKey={statusResult} />
-      <InlineNameEditor value={point.label} label={`${point.label} 이름 수정`} maxLength={80} disabled={busy} onSave={async name => {
+      <InlineNameEditor protectNavigation value={point.label} label={`${point.label} 이름 수정`} maxLength={80} disabled={busy} onSave={async name => {
         setEditPending(true);
         try {
           const data = new FormData(); data.set("menuSiteId", menuSiteId); data.set("tableId", point.id); data.set("intent", "rename"); data.set("label", name);
