@@ -6,6 +6,7 @@
   --ui-control-height-md: 2.5rem;
   --ui-control-height-header: 2.75rem;
   --ui-control-height-lg: 3rem;
+  --ui-button-group-divider-height: 1.5rem;
   --ui-radius-control-rounded: .5rem;
   --ui-tab-rail-height: 3rem;
   --ui-control-gap: .5rem;
@@ -1306,3 +1307,14 @@ textarea.site-field[data-field-size="lg"], textarea[data-field-size="lg"] { min-
 .site-floor-object-summary > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .site-floor-object[data-summary="true"] > .site-floor-object-label, .site-floor-object-summary { flex: none; }
+
+/* Keep this divider inside the following shape group so wrapping cannot orphan it. */
+.site-button-group-divider {
+  display: block;
+  flex: 0 0 auto;
+  align-self: center;
+  inline-size: 1px;
+  block-size: var(--ui-button-group-divider-height);
+  background: var(--ui-border);
+  pointer-events: none;
+}

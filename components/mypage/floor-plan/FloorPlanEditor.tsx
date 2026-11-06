@@ -4,6 +4,7 @@ import { useUnsavedChanges } from "@/components/ui/useUnsavedChanges";
 import { useEffect, useId, useRef, useState, useTransition, type PointerEvent, type ReactNode } from "react";
 import { Armchair, Monitor, LayoutGrid, Plus, Save, Square, Trash2 } from "lucide-react";
 import { ContentPanel } from "@/app/components/ui/content-panel";
+import { ButtonGroupDivider } from "@/app/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent, TabsAction } from "@/app/components/ui/tabs";
 import { InlineNameEditor, type InlineNameResult } from "@/app/components/ui/inline-name-editor";
 import { LoadingState } from "@/app/components/ui/loading-state";
@@ -159,7 +160,8 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
         </label>
         <button type="button" className="site-button site-button-outline" disabled={!room || !chosen} onClick={addPoint}>바로 배치</button>
       </div>
-      <div className="site-action-row">
+      <div className="site-action-row" data-wrap="nowrap">
+        <ButtonGroupDivider />
         <button type="button" className={drawing ? "site-button site-button-primary site-button-icon" : "site-button site-button-outline site-button-icon"} disabled={!room || !chosen} aria-label={drawing ? "그리기 취소" : "사각형 그리기"} title={drawing ? "그리기 취소" : "사각형 그리기"} aria-pressed={drawing} onClick={() => setDrawing(!drawing)}><Square aria-hidden="true" /></button>
         <button type="button" className="site-button site-button-outline site-button-icon" disabled={!selected} aria-label="선택한 항목 배치만 해제" title="배치만 해제 · 등록 정보는 유지됩니다" onClick={() => { setDraft(previous => ({ ...previous, placements: previous.placements.filter(p => p.pointId !== selected?.pointId) })); setSelectedId(""); }}><Trash2 aria-hidden="true" /></button>
       </div>
