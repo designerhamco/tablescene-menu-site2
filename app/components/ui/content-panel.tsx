@@ -3,7 +3,7 @@ import type { ComponentPropsWithoutRef } from "react";
 type ContentPanelProps = Omit<ComponentPropsWithoutRef<"section">, "className" | "style"> & {
   as?: "section" | "article" | "aside" | "div";
   surface?: "white" | "muted" | "notice" | "danger";
-  density?: "default" | "compact";
+  density?: "default" | "compact" | "controls";
   layout?: "default" | "canvas";
 };
 

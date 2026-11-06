@@ -1,6 +1,7 @@
 "use client";
 import {useId,useRef,useState} from "react";
 import {useUnsavedChanges} from "@/components/ui/useUnsavedChanges";
+import {FieldActionRow} from "@/app/components/ui/field-action-row";
 import {FieldMessage} from "@/app/components/ui/field-message";
 import {getOrderPointNameError,orderPointNameKey,type OrderPointLabelError} from "@/lib/order-point-name";
 import type {ArchivedMenuTableListItem} from "@/lib/menu-table-management";
@@ -16,10 +17,10 @@ export default function OrderPointRestoreForm({point,menuSiteId,operatingPoints,
   return <form data-unsaved-commit action={action} onSubmit={event=>{if(error){event.preventDefault();input.current?.focus();}}} className="site-field-stack" aria-busy={pending}>
     <input type="hidden" name="menuSiteId" value={menuSiteId}/><input type="hidden" name="tableId" value={point.id}/>
     <label className="type-label" htmlFor={id}>복원할 이름</label>
-    <div className="site-form-row" data-alignment="center">
+    <FieldActionRow field={
       <input ref={input} id={id} name="label" required maxLength={80} value={name} readOnly={pending} onChange={event=>setName(event.target.value)} className="site-field w-full" aria-invalid={Boolean(error)} aria-describedby={error?`${id}-error`:undefined}/>
-      <button name="intent" value="restore" disabled={pending||Boolean(error)} className="site-button site-button-outline">{pending?"복원 중":`${point.kind==="kiosk"?"키오스크":"테이블"} 복원`}</button>
-    </div>
+      } action={<button name="intent" value="restore" disabled={pending||Boolean(error)} className="site-button site-button-outline">{pending?"복원 중":`${point.kind==="kiosk"?"키오스크":"테이블"} 복원`}</button>
+    }/>
     {error?<FieldMessage id={`${id}-error`} role="alert">{error}</FieldMessage>:null}
   </form>;
 }

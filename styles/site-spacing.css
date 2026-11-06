@@ -150,3 +150,10 @@
   .site-record-actions { flex-direction: column; align-items: stretch; align-content: stretch; }
 }
 @media (min-width: 1280px) { .site-field-grid[data-columns="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* A committing action never separates from its field, including on phones. */
+.site-field-action-row { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--site-space-copy); }
+.site-field-action-row > .site-field-stack { min-width: 0; }
+.site-field-action-row > .site-button { white-space: nowrap; }
+.site-content-panel[data-density="controls"] { padding: var(--site-panel-inset-compact); gap: var(--site-space-block); }
+@media (min-width: 768px) { .site-content-panel[data-density="controls"] { padding: var(--site-panel-inset-wide); gap: var(--site-space-group); } }

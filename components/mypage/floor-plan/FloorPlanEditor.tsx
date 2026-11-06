@@ -6,6 +6,7 @@ import { Armchair, Monitor, LayoutGrid, Plus, Save, Trash2, X, RotateCcw } from 
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from "@/app/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
+import { FieldActionRow } from "@/app/components/ui/field-action-row";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { Button } from "@/app/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent, TabsAction } from "@/app/components/ui/tabs";
@@ -54,7 +55,8 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   const visiblePoints = points;
   const unplaced = visiblePoints.filter(p => !document.placements.some(item => item.pointId === p.id));
   const chosen = unplaced.find(p => p.id === unplacedId) ?? unplaced[0];
-  const selected = document.placements.find(p => p.pointId === selectedId && p.roomId === room?.id && visiblePoints.some(point => point.id === p.pointId));
+  const roomPlacements = document.placements.filter(p => p.roomId === room?.id && visiblePoints.some(point => point.id === p.pointId));
+  const selected = roomPlacements.find(p => p.pointId === selectedId) ?? roomPlacements[0];
   const selectedPoint = points.find(p => p.id === selected?.pointId);
   const otherRooms = document.rooms.filter(r => r.id !== room?.id);
   const targetRoom = otherRooms.find(r => r.id === targetRoomId) ?? otherRooms[0];
@@ -185,14 +187,14 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   const placementTools = <fieldset disabled={pending} className="site-stack-block" aria-describedby={placementHelpId}>
     <legend className="sr-only">테이블·키오스크 배치 도구</legend>
     <div className="site-action-row">
-      <div className="site-form-row site-floor-workspace-placement" data-alignment="center">
+      <div className="site-floor-workspace-placement"><FieldActionRow field={
         <label className="site-field-stack type-label"><span className="sr-only">배치할 {noun}</span>
           <select ref={placementSelectRef} className="site-field w-full" value={chosen?.id ?? ""} disabled={!room || !chosen} onChange={e => { setUnplacedId(e.target.value); }}>
             {!chosen ? <option value="">배치할 {noun} 없음</option> : null}
             {unplaced.map(point => <option key={point.id} value={point.id}>{point.kind === "kiosk" ? "키오스크" : "테이블"} · {point.label}</option>)}
           </select>
         </label>
-        <button type="button" className="site-button site-button-outline" disabled={!room || !chosen} onClick={addPoint}>바로 배치</button>
+        } action={<button type="button" className="site-button site-button-outline" disabled={!room || !chosen} onClick={addPoint}>바로 배치</button>} />
       </div>
     </div>
     <p id={placementHelpId} className="sr-only">{placementReason}</p>
@@ -227,21 +229,21 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       {renderList?.()}
       <div className="site-action-row" data-distribution="end">{saveAction}</div>
     </> : <FloorPlanWorkspace canvasActions={resetAction} tools={<>
-      <div className="site-action-row" data-wrap="nowrap"><h3 className="type-content-title">배치되지 않은 {noun} {unplaced.length}개 · 현재 룸 {document.placements.filter(p => p.roomId === room?.id && visiblePoints.some(point => point.id === p.pointId)).length}개</h3><InfoTooltip label="테이블·키오스크 배치 안내"><p>{placementReason}</p><p>새로 등록한 항목은 선택한 룸에 자동으로 배치하고 저장합니다. ‘바로 배치’로 기존 미배치 항목을 넣을 수 있습니다. 배치한 영역을 끌어 위치를 바꾸고 오른쪽 아래 화살표로 크기를 조절해 주세요.</p><p>위치·크기·룸 구성은 ‘배치도 저장’으로 반영합니다. ‘처음으로 되돌리기’는 마지막 저장 배치로 돌아갑니다. 등록·보관·주문·호출 허용과 기기 연결은 즉시 반영됩니다.</p></InfoTooltip></div>
+      <div className="site-action-row" data-wrap="nowrap"><h3 className="type-content-title">미배치 {unplaced.length}개 · 현재 룸 {roomPlacements.length}개</h3><InfoTooltip label="테이블·키오스크 배치 안내"><p>{placementReason}</p><p>새로 등록한 항목은 선택한 룸에 자동으로 배치하고 저장합니다. ‘바로 배치’로 기존 미배치 항목을 넣을 수 있습니다. 배치한 영역을 끌어 위치를 바꾸고 오른쪽 아래 화살표로 크기를 조절해 주세요.</p><p>위치·크기·룸 구성은 ‘배치도 저장’으로 반영합니다. ‘처음으로 되돌리기’는 마지막 저장 배치로 돌아갑니다. 등록·보관·주문·호출 허용과 기기 연결은 즉시 반영됩니다.</p></InfoTooltip></div>
       {placementTools}
     </>} selection={renderSelectedPoint ? selectedPoint ? renderSelectedPoint(selectedPoint, pending) : <p className="type-body-sm site-copy-muted">테이블·키오스크 영역을 선택하면 기기별 주문·호출 허용과 연결 정보를 확인하고 변경할 수 있습니다.</p> : undefined} footer={<>
       <div className="site-action-row" data-distribution="between">
         <fieldset disabled={pending || !selected || !targetRoom} className="site-floor-workspace-transfer" aria-describedby={helpId}>
           <legend className="sr-only">선택한 항목을 다른 룸으로 이동</legend>
           <label className="type-label" htmlFor={transferId}>다른 룸으로 이동</label>
-          <div className="site-form-row" data-alignment="center"><div className="site-field-stack"><select id={transferId} className="site-field w-full" value={targetRoom?.id ?? ""} onChange={e => setTargetRoomId(e.target.value)}>{!targetRoom ? <option value="">이동할 다른 룸이 없습니다</option> : null}{otherRooms.map(r => <option key={r.id} value={r.id}>{r.name || "이름 없는 룸"}</option>)}</select></div><button type="button" className="site-button site-button-outline" onClick={() => { if (!selected || !targetRoom) return; setDraft(previous => ({ ...previous, placements: previous.placements.map(p => p.pointId === selected.pointId ? { ...p, roomId: targetRoom.id } : p) })); setRoomId(targetRoom.id); setTargetRoomId(""); }}>이동</button></div>
+          <FieldActionRow field={<select id={transferId} className="site-field w-full" value={targetRoom?.id ?? ""} onChange={e => setTargetRoomId(e.target.value)}>{!targetRoom ? <option value="">이동할 다른 룸이 없습니다</option> : null}{otherRooms.map(r => <option key={r.id} value={r.id}>{r.name || "이름 없는 룸"}</option>)}</select>} action={<button type="button" className="site-button site-button-outline" onClick={() => { if (!selected || !targetRoom) return; setDraft(previous => ({ ...previous, placements: previous.placements.map(p => p.pointId === selected.pointId ? { ...p, roomId: targetRoom.id } : p) })); setRoomId(targetRoom.id); setTargetRoomId(""); }}>이동</button>} />
         </fieldset>
         <div className="site-action-row site-floor-workspace-actions">{saveAction}</div>
       </div>
       <p id={helpId} className="type-footnote site-copy-muted" role="status">{selectedPoint ? `${selectedPoint.label} 선택됨 · 테이블·키오스크 영역을 끌어 이동하고 오른쪽 아래 화살표로 크기를 조절하세요. 방향키로도 이동할 수 있습니다.` : "이동할 테이블·키오스크 영역을 선택해 주세요. 영역 안의 X는 배치만 해제하며 등록 정보는 유지됩니다."}</p>
     </>}>
       {!room ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title="배치할 공간을 만들어 주세요" description="‘룸 추가’로 공간을 만들면 등록된 테이블·키오스크의 영역을 배치할 수 있습니다." /> : <FloorPlanCanvas ref={boardRef} name={room.name} aspectRatio={FLOOR_PLAN_DISPLAY_ASPECT_RATIO} editing={editing} aria-describedby={helpId} onPointerMove={move} onPointerUp={e => end(e)} onPointerCancel={e => end(e, true)} onLostPointerCapture={e => end(e, true)} onKeyDown={event => { if (event.key !== "Escape") return; const g = gesture.current; if (!g) return; setDraft(g.before); gesture.current = null; if (boardRef.current?.hasPointerCapture(g.pointerId)) boardRef.current.releasePointerCapture(g.pointerId); }}>
-        {document.placements.filter(p => p.roomId === room.id && visiblePoints.some(point => point.id === p.pointId)).map(p => {
+        {roomPlacements.map(p => {
           const point = visiblePoints.find(point => point.id === p.pointId)!;
           return <FloorPlanObject key={p.pointId} rect={p} label={point.label} typeLabel={point.kind === "kiosk" ? "키오스크" : "테이블"} icon={point.kind === "kiosk" ? <Monitor /> : <Armchair />} selected={selected?.pointId === p.pointId} editing={editing} managementActions={selected?.pointId === p.pointId ? renderSelectedActions?.(point, pending) : null} actions={<Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" disabled={pending} aria-label={`${point.label} 배치 해제`} onClick={() => { setDraft(previous => ({ ...previous, placements: previous.placements.filter(item => item.pointId !== p.pointId) })); setSelectedId(current => current === p.pointId ? "" : current); requestAnimationFrame(() => placementSelectRef.current?.focus()); }}><X aria-hidden="true" /></Button></TooltipTrigger><TooltipContent>배치 해제 · 등록 정보는 유지됩니다</TooltipContent></Tooltip>} aria-describedby={helpId} onClick={() => setSelectedId(p.pointId)} onPointerDown={e => begin(e, p)} onKeyDown={e => {
             if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedId(p.pointId); }
