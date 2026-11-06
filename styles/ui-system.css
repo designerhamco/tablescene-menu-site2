@@ -1347,7 +1347,7 @@ svg.site-edit-icon {
 .site-floor-workspace-placement { flex: 1 1 28rem; max-inline-size: 44rem; }
 .site-floor-workspace-transfer { display: flex; min-width: 0; flex: 1 1 28rem; max-inline-size: 44rem; align-items: center; gap: var(--site-space-block); }
 .site-floor-workspace-transfer > label { flex: 0 0 auto; }
-.site-floor-workspace-transfer > .site-form-row { flex: 1; }
+.site-floor-workspace-transfer > .site-field-action-row { flex: 1; }
 .site-floor-workspace-actions { margin-inline-start: auto; }
 .site-floor-object-interaction { position: absolute; inset: 0; display: grid; place-items: start; padding: var(--site-space-copy); outline: none; }
 .site-floor-object-interaction > .site-floor-object-label { max-width: 100%; padding-inline-end: calc(var(--ui-control-height-md) + var(--site-space-copy)); }
@@ -1374,7 +1374,7 @@ svg.site-edit-icon {
 
 /* Compact tracks keep a full 44px touch/focus target. */
 .site-switch[data-size="sm"] { --ui-switch-width: 2.25rem; --ui-switch-track-height: 1.25rem; --ui-switch-thumb-size: .75rem; --ui-switch-travel: 1rem; width: var(--ui-control-height-header); }
-.site-registration-row { display: grid; min-width: 0; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--site-space-block); }
+.site-registration-row { display: grid; min-width: 0; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--site-space-block); }
 .site-registration-kind, .site-registration-name { display: flex; min-width: 0; align-items: center; gap: var(--site-space-copy); white-space: nowrap; }
 .site-registration-name > input { min-width: 0; width: 100%; }
 @media (max-width: 639px) { .site-registration-row { grid-template-columns: minmax(0, 1fr); } .site-registration-kind > select { flex: 1; } }
@@ -1382,3 +1382,9 @@ svg.site-edit-icon {
 .site-floor-workspace-canvas > .site-floor-canvas { border: 0; border-radius: 0; }
 .site-floor-canvas-actions { position: absolute; inset-block-start: var(--site-panel-inset); inset-inline-end: var(--site-panel-inset); z-index: 1; }
 .site-floor-object-management { position: absolute; inset-block-end: var(--site-space-copy); inset-inline-start: var(--site-space-copy); cursor: default; }
+
+/* Mobile control surfaces keep reading/control sizes and use compact shared inset. */
+@media (max-width: 767px) {
+  .site-floor-workspace-tools, .site-floor-workspace-footer { padding: var(--site-panel-inset-compact); }
+  .site-floor-workspace-transfer { display: grid; gap: var(--site-space-copy); }
+}
