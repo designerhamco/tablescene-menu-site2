@@ -453,3 +453,8 @@ FAQ의 1:1 문의·AI 상담은 `site-support-actions`의 가운데 정렬 flex 
 ### 운영 내역의 리스트·배치도
 
 `OperationsHistoryViews`는 테이블·키오스크 편집기의 `Tabs purpose="state"`, 문서형 룸 탭, `FloorPlanCanvas`/`FloorPlanObject`와 관리 표를 조합한다. 사각형의 선택적 `summary`는 공통 caption과 표면 inset을 사용하며 전체 내역은 공통 Dialog에서 확인한다. 등록/배치 편집과 운영 상태 처리는 분리한다. QR 관리는 관리 표만 사용하고 QR 교체는 compact 새로고침 아이콘과 영향 확인 Dialog로 실행한다. 주문 설정 분류는 state 탭의 결제 방식/주문 알림/조리완료 알림톡이며 탭 이동 중 작성 값을 유지한다.
+
+
+### 배치도 표면과 보조 버튼 (2026-11-06)
+
+배치도형/리스트형의 공통 보기 순서는 배치도형을 왼쪽에 둔다. 룸 문서형 탭 아래는 연속 콘텐츠이며 캔버스 바깥에 중복 흰 박스를 더하지 않는다. 단독 취소·변경 취소·로그아웃·안내 실행은 outline, 삭제 요청은 outline-danger를 사용한다. ghost는 아이콘 도구, link는 문맥 안의 보조 이동/인라인 진입으로 구분한다. ‘버튼·탭 공통 기준과 상태’에 실제 outline 보조 행동 예시를 제공하고 자동 source 검사에서 ghost 텍스트 오용을 차단한다. 회색 표면·기존 icon 도구/본문 링크·disabled와 포커스 계약은 유지한다.

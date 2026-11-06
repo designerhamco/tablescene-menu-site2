@@ -64,13 +64,13 @@ export default function OperationsHistoryViews({
         <div className="site-field-stack">
           <span className="type-label">보기 유형</span>
           <TabsList aria-label={`${noun} 내역 보기 유형`}>
-            <TabsTrigger value="list">
-              <List aria-hidden="true" />
-              리스트형
-            </TabsTrigger>
             <TabsTrigger value="map">
               <Map aria-hidden="true" />
               배치도형
+            </TabsTrigger>
+            <TabsTrigger value="list">
+              <List aria-hidden="true" />
+              리스트형
             </TabsTrigger>
           </TabsList>
         </div>
@@ -116,7 +116,7 @@ export default function OperationsHistoryViews({
                   ))}
                 </TabsList>
                 <TabsContent value={room.id}>
-                  <ContentPanel aria-label={`${room.name} ${noun} 배치도`}>
+                  <section className="site-stack-group" aria-label={`${room.name} ${noun} 배치도`}>
                     <p className="type-body-sm site-copy-muted">
                       각 사각형에는 처리할 {noun}을 우선 요약하고 건수를
                       표시합니다. 표시 내역이 없는 경우에도 실제 이용 중 여부를
@@ -197,7 +197,7 @@ export default function OperationsHistoryViews({
                           );
                         })}
                     </FloorPlanCanvas>
-                  </ContentPanel>
+                  </section>
                 </TabsContent>
               </Tabs>
             )}

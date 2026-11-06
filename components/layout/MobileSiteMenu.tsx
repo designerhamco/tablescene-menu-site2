@@ -36,7 +36,7 @@ export default function MobileSiteMenu({ pathname, authenticated, loading, accou
             {account?.role ? <Badge>{account.role}</Badge> : null}
             <span className={styles.drawerEmail}>{account?.email}</span>
           </Link>
-          {signOutControl ?? <form action={signOutAction}><button type="submit" className="site-button site-button-link">로그아웃</button></form>}</div>
+          {signOutControl ?? <form action={signOutAction}><button type="submit" className="site-button site-button-outline">로그아웃</button></form>}</div>
           {accountLoading ? <LoadingState label="계정 정보를 확인 중입니다." inline /> : null}
           <div className={styles.drawerAccountLinks}>
             <Link href="/mypage" onClick={close}>마이 메뉴</Link>

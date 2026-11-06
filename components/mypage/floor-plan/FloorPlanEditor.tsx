@@ -187,10 +187,10 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       </TabsList>
     <TabsContent value={room?.id ?? ""}>
     <div className="site-stack-group">
-    {removeRoom && room ? <ContentPanel surface="notice" density="compact"><p className="type-body-sm">‘{room.name}’ 룸과 그 안의 배치를 지울까요? 등록된 테이블·키오스크와 주문 기록은 유지됩니다. 배치도 저장 전에는 ‘변경 취소’로 되돌릴 수 있습니다.</p><div className="site-action-row"><button type="button" className="site-button site-button-outline" disabled={pending} onClick={() => { setDraft(previous => ({ rooms: previous.rooms.filter(r => r.id !== room.id), placements: previous.placements.filter(p => p.roomId !== room.id) })); setRemoveRoom(false); setSelectedId(""); }}>룸만 삭제</button><button type="button" className="site-button site-button-ghost" onClick={() => setRemoveRoom(false)}>취소</button></div></ContentPanel> : null}
+    {removeRoom && room ? <ContentPanel surface="notice" density="compact"><p className="type-body-sm">‘{room.name}’ 룸과 그 안의 배치를 지울까요? 등록된 테이블·키오스크와 주문 기록은 유지됩니다. 배치도 저장 전에는 ‘변경 취소’로 되돌릴 수 있습니다.</p><div className="site-action-row"><button type="button" className="site-button site-button-outline" disabled={pending} onClick={() => { setDraft(previous => ({ rooms: previous.rooms.filter(r => r.id !== room.id), placements: previous.placements.filter(p => p.roomId !== room.id) })); setRemoveRoom(false); setSelectedId(""); }}>룸만 삭제</button><button type="button" className="site-button site-button-outline" onClick={() => setRemoveRoom(false)}>취소</button></div></ContentPanel> : null}
     {registration}
     <p className="type-body-sm site-copy-muted">배치되지 않은 {noun} {unplaced.length}개 · 현재 룸 {document.placements.filter(p => p.roomId === room?.id && visiblePoints.some(point => point.id === p.pointId)).length}개</p>
-    <ContentPanel aria-label="매장 배치 편집">
+    <section className="site-stack-group" aria-label="매장 배치 편집">
       {placementTools}
       {!room ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title="배치할 공간을 만들어 주세요" description="‘룸 추가’로 공간을 만들면 등록된 테이블·키오스크의 사각형을 놓을 수 있습니다." /> : <FloorPlanCanvas ref={boardRef} name={room.name} aspectRatio={FLOOR_PLAN_DISPLAY_ASPECT_RATIO} editing={editing} drawing={drawing} aria-describedby={helpId} onPointerDown={e => begin(e)} onPointerMove={move} onPointerUp={e => end(e)} onPointerCancel={e => end(e, true)} onLostPointerCapture={e => end(e, true)} onKeyDown={event => { if (event.key !== "Escape") return; setDrawing(false); setDrawingPointId(""); const g = gesture.current; if (!g) return; setDraft(g.before); gesture.current = null; if (boardRef.current?.hasPointerCapture(g.pointerId)) boardRef.current.releasePointerCapture(g.pointerId); }}>
         {document.placements.filter(p => p.roomId === room.id && visiblePoints.some(point => point.id === p.pointId)).map(p => {
@@ -211,11 +211,11 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
         </fieldset>
         <p id={helpId} className="type-footnote site-copy-muted" role="status">{selectedPoint ? `${selectedPoint.label} 선택됨 · 사각형을 끌어 이동하고 오른쪽 아래 모서리로 크기를 조절하세요. 방향키로도 이동할 수 있습니다.` : "이동하거나 배치를 해제할 사각형을 선택해 주세요. 사각형을 끌어 이동하고 모서리로 크기를 조절할 수 있습니다."}</p>
       </ContentPanel>
-    </ContentPanel>
+    </section>
     <div className="site-stack-block">
       <div className="site-action-row">
         <button type="button" className="site-button site-button-primary" onClick={save} disabled={pending || !dirty}><Save aria-hidden="true" />{pending ? "저장 중" : "배치도 저장"}</button>
-        <button type="button" className="site-button site-button-ghost" disabled={pending || !dirty} onClick={() => { setDraft(saved.document); setSelectedId(""); setRemoveRoom(false); setDrawing(false); }}>변경 취소</button>
+        <button type="button" className="site-button site-button-outline" disabled={pending || !dirty} onClick={() => { setDraft(saved.document); setSelectedId(""); setRemoveRoom(false); setDrawing(false); }}>변경 취소</button>
       </div>
       <p className="type-footnote site-copy-muted">룸과 사각형의 변경사항은 ‘배치도 저장’을 눌러야 반영됩니다. 항목 등록은 즉시 저장됩니다.</p>
       {feedback && (feedback.name || !dirty || feedback.error) ? <p className={`type-body-sm ${feedback.error ? "text-destructive" : "site-copy-muted"}`} role={feedback.error ? "alert" : "status"}>{feedback.message}</p> : null}

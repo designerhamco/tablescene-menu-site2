@@ -133,3 +133,11 @@ ON/OFF 스위치는 [디자인 시스템의 스위치 계약](site-design-system
 ## 문서형 탭·인라인 이름 수정 (2026-11-05)
 
 section의 추가 appearance=document는 흰 선택 면이 아래 기준선과 이어지는 문서형이다. 기존 역할·크기와 영역형 기본값은 유지한다. 생성 버튼은 TabsAction, 연필은 TabsTrigger accessory로 분리해 중첩 button과 가짜 선택 탭을 만들지 않는다. 짧은 이름 수정은 InlineNameEditor의 Enter/blur 저장·Esc 취소·실패 초안 유지·중복 저장 차단을 공유한다. 한글 조합 중 Enter는 저장하지 않는다.
+
+
+## 흰 배경의 독립 보조 행동 (2026-11-06)
+
+- 취소·변경 취소·로그아웃·독립 안내 CTA는 기존 outline을 사용한다. 흰 바탕에 공통 밝은 회색1px 경계로 구분한다. 삭제 요청은 outline-danger의 의미색을 유지한다. 새로운 버튼 크기·색·모서리 변형은 추가하지 않는다.
+- ghost/danger-ghost는 아이콘 도구에 사용한다. 독립 텍스트 실행을 투명 버튼으로 표시하지 않는다. 본문 이동 링크·동의 상세·이름 옆 연필과 결합한 인라인 편집 진입은 각각 기존 link/인라인 패턴을 유지한다.
+- disabled는 기존 공통의 옅은 회색 표면·흐린 문구·반응 없음으로 표시한다. 회색·유색 패널에 장식 테두리를 추가하지 않는다. 아이콘 도구의 클릭 영역·포커스·hover는 유지한다.
+- /design-system의 ‘흰 배경의 보조 행동’ 예시는 실제 Button outline·outline-danger·ghost/icon과 비활성을 표시한다. 상태 표의 ghost는 텍스트가 아닌 실제 아이콘 도구로 비교한다. 자동 검사 action-affordance는 네이티브 버튼/링크·별칭 Button의 ghost 텍스트 오용을 차단한다.

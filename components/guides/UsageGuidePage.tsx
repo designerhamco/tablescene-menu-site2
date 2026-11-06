@@ -289,7 +289,7 @@ function GuideArticle({
                 href={source.href}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="site-button site-button-ghost type-label"
+                className="site-button site-button-outline"
               >
                 {source.label}
                 <ArrowUpRight size={14} aria-hidden="true" />
