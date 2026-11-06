@@ -5,9 +5,9 @@ import type { OrderPointKind } from "@/lib/order-point-policy";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { LoadingState } from "@/app/components/ui/loading-state";
 
-export default function OrderPointRegistrationForm({ menuSiteId, kind, onKindChange, name, onNameChange, roomReady, blockedReason, pending = false, disabled = false, kioskAvailable, action }: {
+export default function OrderPointRegistrationForm({ menuSiteId, kind, onKindChange, name, onNameChange, roomReady, roomId = "", blockedReason, pending = false, disabled = false, kioskAvailable, action }: {
   menuSiteId: string; kind: OrderPointKind; onKindChange: (kind: OrderPointKind) => void;
-  name: string; onNameChange: (name: string) => void; roomReady: boolean; blockedReason?: string;
+  name: string; onNameChange: (name: string) => void; roomReady: boolean; roomId?: string; blockedReason?: string;
   pending?: boolean; disabled?: boolean; kioskAvailable: boolean; action: (data: FormData) => void | Promise<void>;
 }) {
   const reasonId = useId();
@@ -15,7 +15,7 @@ export default function OrderPointRegistrationForm({ menuSiteId, kind, onKindCha
   const kiosk = kind === "kiosk", registrationNoun = kiosk ? "키오스크" : "테이블";
   return <ContentPanel surface="muted">
     <form data-unsaved-commit action={action} aria-busy={pending} aria-describedby={!roomReady ? reasonId : undefined} className="site-registration-row">
-      <input type="hidden" name="menuSiteId" value={menuSiteId} />
+      <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="roomId" value={roomId} />
       <label className="type-label site-registration-kind">종류
         <select name="kind" value={kind} disabled={blocked} onChange={event => onKindChange(event.target.value as OrderPointKind)} className="site-field">
           <option value="table">테이블</option><option value="kiosk" disabled={!kioskAvailable}>키오스크</option>

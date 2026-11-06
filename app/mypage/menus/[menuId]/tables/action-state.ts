@@ -3,6 +3,7 @@ export type MenuTableActionState = {
   message: string;
   tableId: string | null;
   qrPath: string | null;
+  registrationRoomId?: string;
 };
 
 export const initialMenuTableActionState: MenuTableActionState = {

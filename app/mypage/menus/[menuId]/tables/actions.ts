@@ -54,7 +54,10 @@ export async function createMenuTableAction(
 ): Promise<MenuTableActionState> {
   const menuSiteId = getFormString(formData, "menuSiteId");
   try {
+    const roomId = getFormString(formData, "roomId");
+    if (!roomId) throw new MenuTableManagementError("ROOM_REQUIRED", "등록할 룸을 먼저 선택해 주세요.", 409);
     const result = await createMenuTable({
+      roomId,
       menuSiteId,
       label: getFormString(formData, "label"),
       kind: getFormString(formData, "kind") === "kiosk" ? "kiosk" : "table",
@@ -65,6 +68,7 @@ export async function createMenuTableAction(
       message: `${result.table.label}을 만들었습니다.`,
       tableId: result.table.id,
       qrPath: result.qrPath,
+      registrationRoomId: roomId,
     };
   } catch (error) {
     return actionError(error);
