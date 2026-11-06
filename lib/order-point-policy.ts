@@ -31,3 +31,6 @@ export function isOrderPointChannelAllowed(kind: OrderPointKind, policy: OrderPo
 
 export type OrderPointFeatureUpdateInput = { menuSiteId: string; tableId: string; channel: OrderPointChannel; feature: OrderPointFeature; enabled: boolean; expectedEnabled: boolean; expectedStatus?: "active" | "disabled" };
 export type OrderPointFeatureUpdate = (input: OrderPointFeatureUpdateInput) => Promise<{ status: "success" | "error"; message: string }>;
+
+export const ORDER_POINT_CONNECTION_REQUIRED = "먼저 ‘연결하기’에서 사용할 기기를 연결해 주세요. 연결 후 태블릿·키오스크 주문과 호출을 켤 수 있습니다.";
+export const ORDER_POINT_CONNECTION_UNKNOWN = "기기 연결 상태를 확인하지 못했습니다. 새로고침 후 다시 확인해 주세요.";

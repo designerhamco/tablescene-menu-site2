@@ -97,9 +97,9 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
             renderList={() => <div className="site-stack-block">
               <h3 className="type-subsection-title">운영 테이블·키오스크 · {tables.length.toLocaleString("ko-KR")}개</h3>
               {!tables.length ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title="아직 등록된 테이블·키오스크가 없습니다." description="위에서 종류와 이름을 입력하고 ‘만들기’를 눌러 주세요." /> : <Table variant="management" label="운영 테이블·키오스크 목록" columns={["compact", "text", "toggles", "toggles", "detail", "actions"]}>
-                <TableCaption className="sr-only">종류, 이름, 주문·호출 개별 허용과 공용 태블릿 연결 여부를 확인할 수 있습니다. 이름을 누르면 수정할 수 있습니다.</TableCaption>
+                <TableCaption className="sr-only">종류, 이름, 주문·호출 개별 허용과 매장 기기 연결를 확인할 수 있습니다. 이름을 누르면 수정할 수 있습니다.</TableCaption>
                 <TableHeader><TableRow>
-                  <TableHead>종류</TableHead><TableHead>이름</TableHead><TableHead>주문</TableHead><TableHead>호출</TableHead><TableHead>공용 태블릿 연결 여부</TableHead>
+                  <TableHead>종류</TableHead><TableHead>이름</TableHead><TableHead>주문</TableHead><TableHead>호출</TableHead><TableHead>매장 기기 연결</TableHead>
                   <TableHead><div className="site-action-row" data-wrap="nowrap">관리<InfoTooltip label="보관·삭제 안내"><p>보관하면 운영 목록에서 빠지고 기기 연결은 종료됩니다. 기존 주문·호출 기록은 유지됩니다. 삭제는 사용 이력이 없는 등록만 가능합니다.</p></InfoTooltip></div></TableHead>
                 </TableRow></TableHeader>
                 <TableBody>{tables.map(point => <OrderPointTableRow key={`${point.id}:${point.label}`} menuSiteId={menuSiteId} point={point} connectionState={connectionState} canDelete={canDelete} disabled={mutationPending} archiveAction={mutationAction} readOnly={!canConfigure} onUpdate={updateOrderPointFeature} onConnect={openConnection} />)}</TableBody>

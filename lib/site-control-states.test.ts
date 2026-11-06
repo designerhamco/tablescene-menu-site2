@@ -282,15 +282,16 @@ test("리스트와 배치도는 동일한 기기별 Switch와 연결 팝업 진�
   const { OrderPointFeatureControls, OrderPointSelectionDetails, OrderPointConnectionControl } = await import("../components/mypage/OrderPointControls");
   const point = { id: "point", label: "창가", status: "active" as const, kind: "table" as const, policyAvailable: true, policy: { terminalOrderEnabled: true, customerOrderEnabled: false, terminalCallEnabled: false, customerCallEnabled: true } };
   const onUpdate = async () => ({status: "success" as const, message: "예시"}), onConnect = () => {};
+  const connectionState = {available: true, connections: [{tableId: point.id, device: null}]};
   for (const feature of ["orders", "calls"] as const) {
-    const html = renderToStaticMarkup(createElement(OrderPointFeatureControls, { menuSiteId: "store", point, feature, onUpdate }));
+    const html = renderToStaticMarkup(createElement(OrderPointFeatureControls, { menuSiteId: "store", point, feature, connectionState, onUpdate }));
     assert.equal((html.match(/role="switch"/g) ?? []).length, 2);
     assert.equal((html.match(/aria-checked="true"/g) ?? []).length, 1);
     assert.match(html, /태블릿/); assert.match(html, /모바일/);
     assert.doesNotMatch(html, />(?:ON|OFF)<|설정<|href=/);
     assert.equal((html.match(/data-size="sm"/g) ?? []).length, 2);
   }
-  const kiosk = renderToStaticMarkup(createElement(OrderPointFeatureControls, { menuSiteId: "store", point: {...point, kind: "kiosk"}, feature: "orders", onUpdate }));
+  const kiosk = renderToStaticMarkup(createElement(OrderPointFeatureControls, { menuSiteId: "store", point: {...point, kind: "kiosk"}, feature: "orders", connectionState, onUpdate }));
   assert.equal((kiosk.match(/role="switch"/g) ?? []).length, 1); assert.doesNotMatch(kiosk, /모바일/);
   for (const override of [{ policyAvailable: false }, { status: "disabled" as const }]) {
     const html = renderToStaticMarkup(createElement(OrderPointFeatureControls, { menuSiteId: "store", point: {...point, ...override}, feature: "orders", onUpdate }));

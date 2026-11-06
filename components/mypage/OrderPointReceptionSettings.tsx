@@ -1,5 +1,6 @@
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import Link from "next/link";
+import { orderPointTerminalConnectionReason } from "@/lib/order-point-connection";
 import type { OrderPointDeviceSettings } from "@/lib/terminal-device-info";
 import OrderPointDeviceConnection from "./OrderPointDeviceConnection";
 import { ContentPanel } from "@/app/components/ui/content-panel";
@@ -37,7 +38,7 @@ export default function OrderPointReceptionSettings({ menuSiteId, feature, point
     return <ContentPanel surface="muted">
       <h6 className="type-item-title">{channel === "customer" ? "손님 휴대폰·QR" : point.kind === "kiosk" ? "키오스크 기기" : "매장 태블릿"}</h6>
       <OrderPointFeatureToggle menuSiteId={menuSiteId} tableId={point.id} label={point.label} channel={channel}
-        feature={feature} pointStatus={point.status} policy={point.policy ?? DEFAULT_ORDER_POINT_POLICY} disabledReason={reason} readOnly={readOnly} />
+        feature={feature} pointStatus={point.status} policy={point.policy ?? DEFAULT_ORDER_POINT_POLICY} disabledReason={reason ?? (channel === "terminal" ? orderPointTerminalConnectionReason(point.id, deviceSetup ? { available: deviceSetup.connectionsAvailable, connections: deviceSetup.connections } : undefined) : null)} readOnly={readOnly} />
       {channel === "terminal" && deviceSetup ? <OrderPointDeviceConnection menuSiteId={menuSiteId} point={point} published={published} setup={deviceSetup} /> : null}
     </ContentPanel>;
   }
