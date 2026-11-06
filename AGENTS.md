@@ -101,3 +101,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Routine small UI fixes: run relevant tests and the required site UI checks once, reuse the provider production build instead of repeating local full builds, and keep browser QA to the requested change. Avoid duplicate preview/production builds blocking delivery; preserve meaningful behavior and permission checks. Detailed optional visual review may be left to the user as requested.
 
 - Room deletion must resolve all owned operating points first through shared RoomRemovalDialog: list names/count, move all to another room or archive all, then save room deletion immediately. Last room has archive only; empty rooms delete directly. Preserve memberships independently of geometry when unplacing. Never autoassign existing points to a newly created room. Restores require a saved selected room. Server checks authority/revision/expected point IDs, blocks room-ownership loss through generic saves, and retains the room on archival/save failure with accurate partial-completion feedback. Preserve existing records/QR identifiers and shared loading/error/FieldActionRow contracts.
+
+
+### 룸별 리스트·이동·복원 선택 (2026-11-06 후속 수정)
+
+리스트형은 선택한 룸의 소속 항목만 표시하며 배치 해제된 항목도 소속으로 구분한다. 기존 소속 없는 항목은 별도의 ‘룸 미지정’ 목록으로 보존하고 관리 열의 이동으로 명시적으로 배치한다. 각 행의 이동은 공통 Dialog의 대상 룸 select와 FieldActionRow로 구성하며 두 보기의 같은 배치 초안을 변경한다. 하단 저장으로 확정하고 취소·실패·이탈 보호를 유지한다. 룸 열은 추가하지 않는다. 룸 추가 버튼 자체는 처리 중 공통 LoadingSpinner·aria-busy와 ‘룸 추가 중’을 표시하고 중복 실행을 막으며 실패 후 다시 사용할 수 있다.
+
+보관 항목은 복원 영역에 항상 보이는 ‘복원할 룸’ 셀렉트박스를 제공한다. 현재 룸을 기본값으로 제안하되 사용자가 다른 저장된 룸을 선택할 수 있고, 선택한 roomId를 제출한다. 룸 생성·이름 변경·삭제 후 저장된 룸 목록을 즉시 동기화하며 없는 룸 선택은 해제한다. 룸이 없거나 조회에 실패하면 복원을 막고 먼저 룸 추가를 안내한다. 복원 이름 input과 실행 버튼의 한 행, 중복 이름의 지속 오류와 서버의 룸·권한 검증을 유지한다.

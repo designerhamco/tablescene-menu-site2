@@ -11,7 +11,7 @@ const room="77777777-7777-4777-8777-777777777777", point="88888888-8888-4888-888
 export default function OrderPointSaveExample(){
  const [points,setPoints]=useState<ManagedOrderPoint[]>([{id:point,label:"저장 예시 테이블",kind:"table",status:"active",policy:DEFAULT_ORDER_POINT_POLICY,policyAvailable:true}]);
  const [saved,setSaved]=useState<FloorPlanSnapshot>({available:true,revision:0,document:{rooms:[{id:room,name:"저장 예시 룸",aspectRatio:4/3}],placements:[{pointId:point,roomId:room,x:10,y:20,width:25,height:20}]}});
- const [archived,setArchived]=useState<ArchivedMenuTableListItem[]>([]);
+ const [archived,setArchived]=useState<ArchivedMenuTableListItem[]>([{id:"99999999-9999-4999-8999-999999999999",label:"보관 예시 테이블",kind:"table",archivedAt:"2026-11-06T00:00:00Z"}]);
  const [writes,setWrites]=useState(0);
  return <div className="site-stack-group">
   <p className="type-body-sm" role="status">예시 저장 횟수 {writes} · 저장된 테이블·키오스크 {points.length}개</p>
