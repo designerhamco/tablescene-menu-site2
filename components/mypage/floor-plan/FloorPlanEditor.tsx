@@ -17,7 +17,7 @@ import { FloorPlanCanvas, FloorPlanObject, FloorPlanWorkspace } from "@/app/comp
 
 type Gesture = { pointerId: number; mode: "move" | "resize"; pointId: string; roomId: string; startX: number; startY: number; origin: FloorPlacement; before: FloorDocument };
 export default function FloorPlanEditor({ initial, points, onSave, registration, onDocumentChange, renderSelectedPoint, renderSelectedActions, view = "map", renderList }: {
-  view?: "map" | "list"; renderList?: () => ReactNode; initial: FloorPlanSnapshot; points: FloorPoint[]; renderSelectedActions?: (point: FloorPoint, pending: boolean) => ReactNode; renderSelectedPoint?: (point: FloorPoint, pending: boolean) => ReactNode; registration?: () => ReactNode; onDocumentChange?: (document: FloorDocument) => void;
+  view?: "map" | "list"; renderList?: () => ReactNode; initial: FloorPlanSnapshot; points: FloorPoint[]; renderSelectedActions?: (point: FloorPoint, pending: boolean) => ReactNode; renderSelectedPoint?: (point: FloorPoint, pending: boolean) => ReactNode; registration?: (context: { canRegister: boolean; pending: boolean; blockedReason?: string }) => ReactNode; onDocumentChange?: (document: FloorDocument) => void;
   onSave: (revision: number, document: FloorDocument) => Promise<FloorSaveResult>;
 }) {
   const [draft, setDraft] = useState(initial.document);
@@ -49,7 +49,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   const noun = "테이블·키오스크";
   const objectParticle = "를";
   const placementReason = !visiblePoints.length
-    ? `상단에서 종류와 이름을 입력하고 ‘만들기’를 눌러 등록해 주세요.${!room ? " ‘룸 추가’로 공간도 만들어 주세요." : ""}`
+    ? !room ? "‘룸 추가’로 공간을 먼저 만든 뒤 테이블·키오스크를 등록해 주세요." : "상단에서 종류와 이름을 입력하고 ‘만들기’를 눌러 등록해 주세요."
     : !room ? "‘룸 추가’로 공간을 먼저 만들어 주세요. 룸을 만든 뒤 테이블·키오스크를 배치할 수 있습니다."
       : !chosen ? `등록한 ${noun}${objectParticle} 모두 배치했습니다. 기존 테이블·키오스크 영역을 이동·조절하거나 새 ${noun}${objectParticle} 등록해 주세요.`
         : `배치할 ${noun}${objectParticle} 고른 뒤 ‘바로 배치’를 누르세요. 배치한 영역을 끌어 이동하고 오른쪽 아래 화살표로 크기를 조절할 수 있습니다.`;
@@ -101,9 +101,23 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
     if (boardRef.current?.hasPointerCapture(event.pointerId)) boardRef.current.releasePointerCapture(event.pointerId);
   }
   function addRoom() {
+    if (pending) return;
     let number = document.rooms.length + 1;
     while (document.rooms.some(r => r.name === `룸 ${number}`)) number++;
     const next = { id: crypto.randomUUID(), name: `룸 ${number}`, aspectRatio: FLOOR_PLAN_DISPLAY_ASPECT_RATIO };
+    // The first room is the registration prerequisite, so persist it with the add action.
+    if (saved.document.rooms.length === 0 && document.rooms.length === 0) {
+      startTransition(async () => {
+        try {
+          const result = await onSave(saved.revision, { rooms: [next], placements: [] });
+          if (result.status === "error") { setFeedback({ error: true, message: result.message }); return; }
+          setDraft(result.document); setSaved({ available: true, revision: result.revision, document: result.document });
+          setRoomId(next.id); setSelectedId(""); setRemoveRoom(false);
+          setFeedback({ error: false, message: "룸을 추가했습니다. 테이블·키오스크를 만들 수 있습니다." });
+        } catch { setFeedback({ error: true, message: "룸을 추가하지 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요." }); }
+      });
+      return;
+    }
     setDraft(previous => ({ ...previous, rooms: [...previous.rooms, next] })); setRoomId(next.id); setSelectedId(""); setRemoveRoom(false);
   }
   function addPoint() {
@@ -123,8 +137,8 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       try {
         const result = await onSave(saved.revision, normalized);
         if (result.status === "error") { setFeedback({ error: true, message: result.message }); return; }
-        setDraft(result.document); setSaved({ available: true, revision: result.revision, document: result.document }); setFeedback({ error: false, message: "배치도를 저장했습니다." });
-      } catch { setFeedback({ error: true, message: "배치도를 저장하지 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요." }); }
+        setDraft(result.document); setSaved({ available: true, revision: result.revision, document: result.document }); setFeedback({ error: false, message: view === "list" ? "저장했습니다." : "배치도를 저장했습니다." });
+      } catch { setFeedback({ error: true, message: `${view === "list" ? "저장하지" : "배치도를 저장하지"} 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.` }); }
     });
   }
   async function renameRoom(id: string, name: string): Promise<InlineNameResult> {
@@ -166,7 +180,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
     <AlertDialogContent onCloseAutoFocus={event => { if (!room) { event.preventDefault(); roomAddRef.current?.focus(); } }}>
       <AlertDialogHeader>
         <AlertDialogTitle>‘{room?.name}’ 룸을 삭제할까요?</AlertDialogTitle>
-        <AlertDialogDescription>룸과 그 안의 배치만 삭제됩니다. 등록된 테이블·키오스크와 주문 기록은 유지됩니다. ‘배치도 저장’을 눌러야 반영되며, 저장 전에는 ‘처음으로 되돌리기’로 되돌릴 수 있습니다.</AlertDialogDescription>
+        <AlertDialogDescription>룸과 그 안의 배치만 삭제됩니다. 등록된 테이블·키오스크와 주문 기록은 유지됩니다. ‘{view === "list" ? "저장" : "배치도 저장"}’을 눌러야 반영되며 저장 전에는 실제 룸이 삭제되지 않습니다.</AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>취소</AlertDialogCancel>
@@ -174,10 +188,11 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>;
-  const registrationContent = registration?.();
+  const canRegister = initial.available && document.rooms.some(room => saved.document.rooms.some(savedRoom => savedRoom.id === room.id));
+  const registrationContent = registration?.({ canRegister, pending, blockedReason: !initial.available ? "룸 정보를 확인할 수 없어 등록할 수 없습니다. 새로고침 후 다시 확인해 주세요." : document.rooms.length ? "룸을 먼저 저장하면 테이블·키오스크를 만들 수 있습니다." : "룸을 먼저 추가하면 테이블·키오스크를 만들 수 있습니다." });
   const resetAction = <Tooltip><TooltipTrigger asChild><Button type="button" variant="outline" size="icon" disabled={pending || !dirty} onClick={() => { setDraft(saved.document); setSelectedId(""); setRemoveRoom(false); }} aria-label="처음으로 되돌리기" title="마지막으로 저장한 배치로 되돌립니다"><RotateCcw aria-hidden="true" /></Button></TooltipTrigger><TooltipContent>마지막으로 저장한 배치로 되돌리기</TooltipContent></Tooltip>;
-  const saveAction = <button type="button" className="site-button site-button-primary" onClick={save} disabled={pending || !dirty}><Save aria-hidden="true" />{pending ? "저장 중" : "배치도 저장"}</button>;
-  if (!initial.available) return <div className="site-stack-group">{registrationContent}{view === "list" ? renderList?.() : null}<ContentPanel surface="notice" density="compact"><p className="type-body-sm">{initial.unavailableMessage ?? "배치도 저장 기능을 준비 중입니다. 리스트형에서는 기존 테이블·키오스크를 계속 관리할 수 있습니다."}</p></ContentPanel></div>;
+  const saveAction = <button type="button" className="site-button site-button-primary" onClick={save} disabled={pending || !dirty}><Save aria-hidden="true" />{pending ? "저장 중" : view === "list" ? "저장" : "배치도 저장"}</button>;
+  if (!initial.available) return <div className="site-stack-group">{registrationContent}{view === "list" ? renderList?.() : null}<ContentPanel surface="notice" density="compact"><p className="type-body-sm">{initial.unavailableMessage ?? "룸 정보를 확인할 수 없습니다. 리스트형에서는 기존 테이블·키오스크를 계속 관리할 수 있습니다."}</p></ContentPanel></div>;
   return <Tabs purpose="section" appearance="document" value={room?.id ?? ""} onValueChange={value => { setRoomId(value); setSelectedId(""); setRemoveRoom(false); }}>
     <div className="site-stack-group">
       <TabsList ref={roomListRef} size="sm" aria-label="매장 공간" tools={roomAction} action={<TabsAction ref={roomAddRef} onClick={addRoom} disabled={pending || document.rooms.length >= 30}><Plus aria-hidden="true" />룸 추가</TabsAction>}>
@@ -188,7 +203,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
     {registrationContent}
     {view === "list" ? <>
       {renderList?.()}
-      <div className="site-action-row" data-distribution="end">{resetAction}{saveAction}</div>
+      <div className="site-action-row" data-distribution="end">{saveAction}</div>
     </> : <FloorPlanWorkspace canvasActions={resetAction} tools={<>
       <div className="site-action-row" data-wrap="nowrap"><h3 className="type-content-title">배치되지 않은 {noun} {unplaced.length}개 · 현재 룸 {document.placements.filter(p => p.roomId === room?.id && visiblePoints.some(point => point.id === p.pointId)).length}개</h3><InfoTooltip label="테이블·키오스크 배치 안내"><p>{placementReason}</p><p>‘바로 배치’는 선택한 룸의 빈 곳에 배치합니다. 배치한 영역을 끌어 위치를 바꾸고 오른쪽 아래 화살표로 크기를 조절해 주세요.</p><p>위치·크기·룸 구성은 ‘배치도 저장’으로 반영합니다. ‘처음으로 되돌리기’는 마지막 저장 배치로 돌아갑니다. 등록·보관·주문·호출 허용과 기기 연결은 즉시 반영됩니다.</p></InfoTooltip></div>
       {placementTools}
@@ -217,7 +232,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
     </FloorPlanWorkspace>}
     <div className="site-stack-block">
       {feedback && (feedback.name || !dirty || feedback.error) ? <p className={`type-body-sm ${feedback.error ? "text-destructive" : "site-copy-muted"}`} role={feedback.error ? "alert" : "status"}>{feedback.message}</p> : null}
-      {pending ? <LoadingState inline label={renamePending ? "룸 이름을 저장하고 있습니다." : "배치도를 저장하고 있습니다."} /> : null}
+      {pending ? <LoadingState inline label={renamePending ? "룸 이름을 저장하고 있습니다." : view === "list" ? "저장하고 있습니다." : "배치도를 저장하고 있습니다."} /> : null}
     </div>
     </div>
     </TabsContent>

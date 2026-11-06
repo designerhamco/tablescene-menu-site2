@@ -92,3 +92,13 @@ export function toMenuTableListItem(row: {
     updatedAt: row.updated_at,
   };
 }
+
+
+/** Registration requires at least one real room in the persisted floor document. */
+export function hasMenuTableRegistrationRoom(document: unknown): boolean {
+  if (!document || typeof document !== "object" || !("rooms" in document) || !Array.isArray(document.rooms)) return false;
+  return document.rooms.some(room => {
+    if (!room || typeof room !== "object" || typeof room.id !== "string" || typeof room.name !== "string" || !room.name.trim()) return false;
+    try { normalizeMenuTableId(room.id); return true; } catch { return false; }
+  });
+}
