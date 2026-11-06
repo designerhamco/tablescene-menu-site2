@@ -25,6 +25,7 @@ import { Badge } from "@/app/components/ui/badge";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/ui/tabs";
 import type { OrderPointKind } from "@/lib/order-point-policy";
+import OrderPointRestoreForm from "@/components/mypage/OrderPointRestoreForm";
 import FloorPlanDesktopNotice from "@/components/mypage/floor-plan/FloorPlanDesktopNotice";
 import FloorPlanEditor from "@/components/mypage/floor-plan/FloorPlanEditor";
 import { emptyFloorDocument, type FloorPlanSnapshot, type FloorDocument, type FloorSaveResult } from "@/lib/menu-floor-plan";
@@ -37,16 +38,6 @@ function PointTitle({ point }: { point: { label: string; kind?: OrderPointKind }
     <span className="sr-only">{point.kind === "kiosk" ? "키오스크 · " : "테이블 · "}</span>
     <span className="min-w-0 flex-1 break-words">{point.label}</span>
   </span>;
-}
-
-function RestorePointForm({ point, menuSiteId, action, pending }: { point: ArchivedMenuTableListItem; menuSiteId: string; action: (data: FormData) => void; pending: boolean }) {
-  const [name, setName] = useState(point.label);
-  useUnsavedChanges({ dirty: name !== point.label, pending: pending && name !== point.label, discard: () => setName(point.label) });
-  return <form data-unsaved-commit action={action} className="site-form-row" aria-busy={pending}>
-    <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={point.id} />
-    <label className="type-label site-field-stack">복원할 이름<input name="label" required maxLength={80} value={name} onChange={event => setName(event.target.value)} className="site-field w-full" /></label>
-    <button name="intent" value="restore" disabled={pending} className="site-button site-button-outline">{point.kind === "kiosk" ? "키오스크" : "테이블"} 복원</button>
-  </form>;
 }
 
 export default function MenuTableManager({ menuSiteId, tables, archivedTables = [], pointSettingsAvailable = false, canDelete = false, canConfigure = false, published = false, deviceSetup = null, connectionState, saveFloorPlanAction, createPointAction = createMenuTableAction, floorPlan = { available: false, revision: 0, document: emptyFloorDocument() } }: {
@@ -124,7 +115,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
           meta={`보관일 ${formatKoreanDateTime(point.archivedAt)}`} status={<Badge tone="neutral">미사용(보관)</Badge>}
           divided={index > 0} open={expandedPointId === point.id} onOpenChange={open => { if (open) setExpanded(point.id, true); else void confirmUnsavedChanges().then(allowed => { if (allowed) setExpanded(point.id, false); }); }} disabled={mutationPending}>
           <p className="type-body-sm site-copy-muted">복원하면 운영 목록으로 돌아오며 주문·호출은 모두 꺼진 상태로 시작합니다. 필요한 기기의 주문·호출 스위치만 켜 주세요.</p>
-          <RestorePointForm point={point} menuSiteId={menuSiteId} action={mutationAction} pending={mutationPending} />
+          <OrderPointRestoreForm point={point} menuSiteId={menuSiteId} operatingPoints={tables} action={mutationAction} pending={mutationPending} serverError={mutationState.tableId === point.id ? mutationState.labelError : undefined} />
           {canDelete ? <div className="site-action-row"><DeleteOrderPoint menuSiteId={menuSiteId} point={point} disabled={mutationPending} /><DeleteOrderPoint menuSiteId={menuSiteId} point={point} withHistory disabled={mutationPending} /></div> : null}
         </EditableListItem>)}
       </EditableList>}

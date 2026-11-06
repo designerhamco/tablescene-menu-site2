@@ -15,6 +15,7 @@ import {
 
 import { cn } from "./utils";
 import { Label } from "./label";
+import { FieldMessage } from "./field-message";
 
 const Form = FormProvider;
 
@@ -144,16 +145,7 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
     return null;
   }
 
-  return (
-    <p
-      data-slot="form-message"
-      id={formMessageId}
-      className={cn("text-destructive type-footnote", className)}
-      {...props}
-    >
-      {body}
-    </p>
-  );
+  return <FieldMessage id={formMessageId} className={className} {...props}>{body}</FieldMessage>;
 }
 
 export {
@@ -164,5 +156,6 @@ export {
   FormControl,
   FormDescription,
   FormMessage,
+  FieldMessage,
   FormField,
 };

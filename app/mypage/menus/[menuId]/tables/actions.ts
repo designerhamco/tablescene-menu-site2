@@ -8,6 +8,7 @@ import { getTableTerminalMenuPath, registerTableTerminal, revokeTableTerminalCon
 import { TABLE_VISIT_SESSION_COOKIE, TABLE_VISIT_SESSION_COOKIE_SECURITY, getTableVisitSessionCookieMaxAge, isValidTableAccessToken } from "@/lib/table-qr-session-tokens";
 
 import { requireMenuSitePermission } from "@/lib/server/menu-site-access-service";
+import { ORDER_POINT_DUPLICATE_NAME_MESSAGE } from "@/lib/order-point-name";
 import { MenuSiteAccessError } from "@/lib/menu-site-permissions";
 import {
   archiveMenuTable,
@@ -193,7 +194,9 @@ export async function mutateMenuTableAction(
       message: "올바른 테이블 작업을 선택해 주세요.",
     };
   } catch (error) {
-    return actionError(error);
+    const state = actionError(error);
+    if (intent === "restore" && error instanceof MenuTableManagementError && error.code === "TABLE_CONFLICT") return { ...state, tableId, labelError: { value: getFormString(formData, "label"), message: ORDER_POINT_DUPLICATE_NAME_MESSAGE } };
+    return state;
   }
 }
 

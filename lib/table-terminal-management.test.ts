@@ -1,3 +1,4 @@
+import * as orderPointName from "./order-point-name";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
@@ -139,19 +140,21 @@ test("메뉴판 열기는 선택한 테이블 연결과 공개 상태를 다시 
   assert.deepEqual(f.writes, []);
 });
 
-function actionFixture({ registerFailed = false, rejected = false, logoutFailed = false, revokedCurrent = false, featureFailed = false, notOwner = false, rollbackFailed = false } = {}) {
+function actionFixture({ registerFailed = false, rejected = false, logoutFailed = false, revokedCurrent = false, featureFailed = false, notOwner = false, rollbackFailed = false, restoreConflict = false } = {}) {
   const events: unknown[] = [];
   let signOuts = 0, deleted = 0, set = 0;
   class ConnectionError extends Error {}
   class AccessError extends Error {}
+  class ManagementError extends Error { code = "TABLE_CONFLICT"; }
   const dependencies = {
+    "@/lib/order-point-name": orderPointName,
     "next/cache": { revalidatePath() {} }, "next/headers": { cookies: async () => ({ get: () => ({ value: token }), set: () => { set++; }, delete: () => { deleted++; } }), headers: async () => ({ get: () => userAgent }) },
     "next/navigation": { redirect(path: string) { throw { redirect: path }; } },
     "@/lib/supabase/server": { createClient: async () => ({ auth: { signOut: async () => { events.push("logout"); signOuts++; return { error: logoutFailed ? new Error("logout failed") : null }; } } }) },
     "@/lib/server/table-terminal-service": { TableTerminalConnectionError: ConnectionError, registerTableTerminal: async () => { events.push("connect"); if (registerFailed) throw new ConnectionError("연결 실패"); return { token, expiresAt: "2099-01-01", path: "/unused" }; }, getTableTerminalMenuPath: async () => { if (rejected) throw new ConnectionError("먼저 연결해 주세요."); return "/menu/store?mode=terminal"; }, unregisterTableTerminal: async () => { events.push("rollback"); if (rollbackFailed) throw new Error("rollback failed"); if (rejected) throw new ConnectionError("연결되지 않은 테이블"); }, revokeTableTerminalConnection: async () => { if (rejected) throw new ConnectionError("해제 실패"); return { current: revokedCurrent }; } },
     "@/lib/table-qr-session-tokens": tokens, "@/lib/menu-site-permissions": { MenuSiteAccessError: AccessError },
     "@/lib/server/menu-site-access-service": { requireMenuSitePermission: async () => { events.push("owner"); return {isOwner:!notOwner}; } },
-    "@/lib/server/menu-table-management-service": { MenuTableManagementError: AccessError, resumeMenuTable: async () => {events.push("resume");}, setOrderPointFeature: async (input:unknown) => {events.push(input);if(featureFailed) throw new Error("concurrent change");} }, "./action-state": { initialMenuTableActionState: { status: "idle", message: "", tableId: null, qrPath: null } },
+    "@/lib/server/menu-table-management-service": { MenuTableManagementError: ManagementError, restoreMenuTable: async () => { if (restoreConflict) throw new ManagementError("중복 이름"); return { id: tableId, label: "복원 이름" }; }, resumeMenuTable: async () => {events.push("resume");}, setOrderPointFeature: async (input:unknown) => {events.push(input);if(featureFailed) throw new Error("concurrent change");} }, "./action-state": { initialMenuTableActionState: { status: "idle", message: "", tableId: null, qrPath: null } },
   };
   const actions = moduleWith<typeof import("../app/mypage/menus/[menuId]/tables/actions")>("app/mypage/menus/[menuId]/tables/actions.ts", dependencies);
   const submit = (intent: string, fields:Record<string,string> = {}) => { const data = new FormData(); data.set("menuSiteId", menuId); data.set("tableId", tableId); data.set("intent", intent); for(const [key,value] of Object.entries(fields)) data.set(key,value); return actions.mutateMenuTableAction({ status: "idle", message: "", tableId: null, qrPath: null }, data); };
@@ -220,4 +223,11 @@ test("연결 실패는 관리자 세션과 기존 연결 쿠키를 변경하지 
  const f=actionFixture({registerFailed:true});
  assert.equal((await f.submit("register-terminal")).status,"error");
  assert.deepEqual(f.counts(),{signOuts:0,deleted:0,set:0});
+});
+
+
+test("복원 이름의 서버 중복 오류는 항목과 입력값을 포함해 지속 필드 오류로 반환한다",async()=>{
+  const result=await actionFixture({restoreConflict:true}).submit("restore",{label:"1번 테이블"});
+  assert.equal(result.status,"error");assert.equal(result.tableId,tableId);
+  assert.deepEqual(result.labelError,{value:"1번 테이블",message:orderPointName.ORDER_POINT_DUPLICATE_NAME_MESSAGE});
 });
