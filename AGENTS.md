@@ -94,3 +94,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 
 2026-11-06 이름 편집 피드백: 보관 복원의 중복 이름은 `OrderPointRestoreForm`에서 같은 종류의 운영 이름과 비교하고 `aria-invalid`의 공통 위험 테두리·`FieldMessage` 하단 오류를 지속 표시한다. 오류 메시지를 `aria-describedby`로 연결하고 중복 복원을 막으며 수정 후 해제한다. 서버 유일성 검사는 유지하고 서버에서 발견한 중복도 해당 입력에 연결한다. `InlineNameEditor`는 룸 탭을 포함한 저장 중 입력 옆에 기존16px `LoadingSpinner`를 표시하며 `aria-busy`·상태 안내·중복 저장 차단·실패 초안을 유지한다. 별도 색상·크기·여백·토스트 전용 오류를 만들지 않는다.
+
+- Grouped inline settings use shared ControlCategoryRow/ControlCategory: stronger type-content-title category headings, type-label device labels, common 1px gray dividers between categories and block spacing. Floor-plan selection retains one row and44px targets with only8px block inset (60px default row), and reserves the same height before selection. No per-page typography/spacing overrides; see docs/site-content-layout-contract.md.

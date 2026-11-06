@@ -1356,17 +1356,20 @@ svg.site-edit-icon {
 @media (min-width: 768px) { .site-floor-workspace-tools, .site-floor-workspace-footer { padding: var(--site-panel-inset-wide); } }
 
 /* One reserved row keeps canvas coordinates stable when an object is selected. */
-.site-floor-workspace-selection { display: flex; align-items: center; min-block-size: calc(var(--ui-control-height-header) + var(--site-panel-inset) * 2); padding: var(--site-panel-inset); border-bottom: 1px solid var(--ui-border); overflow-x: auto; }
+.site-floor-workspace-selection { display: flex; align-items: center; min-block-size: calc(var(--ui-control-height-header) + var(--site-space-copy) * 2); padding: var(--site-space-copy) var(--site-panel-inset); border-bottom: 1px solid var(--ui-border); overflow-x: auto; }
 .site-floor-workspace-selection > p { margin: 0; white-space: nowrap; }
-.site-floor-selection-details { display: flex; inline-size: 100%; min-inline-size: max-content; align-items: center; gap: var(--site-space-group); white-space: nowrap; }
-.site-floor-selection-details .site-action-row { flex-wrap: nowrap; }
-.site-floor-selection-name { margin: 0; padding-inline-end: var(--site-space-group); border-inline-end: 1px solid var(--ui-border); }
-@media (min-width: 768px) { .site-floor-workspace-selection { min-block-size: calc(var(--ui-control-height-header) + var(--site-panel-inset-wide) * 2); padding: var(--site-panel-inset-wide); } }
+/* Categories use stronger shared headings and functional dividers, without cards. */
+.site-control-category-row { display: flex; inline-size: 100%; min-inline-size: max-content; min-block-size: var(--ui-control-height-header); align-items: center; gap: var(--site-space-block); white-space: nowrap; }
+.site-control-category-row > * { flex: 0 0 auto; margin-block: 0; }
+.site-control-category-row > * + * { padding-inline-start: var(--site-space-block); border-inline-start: 1px solid var(--ui-border); }
+.site-control-category { display: flex; min-block-size: var(--ui-control-height-header); align-items: center; gap: var(--site-space-block); }
+.site-control-category > h4 { margin: 0; }
+.site-control-category .site-action-row { flex-wrap: nowrap; }
+@media (min-width: 768px) { .site-floor-workspace-selection { padding-inline: var(--site-panel-inset-wide); } }
 
 .site-order-point-toggles { display: flex; flex-wrap: nowrap; align-items: center; gap: var(--site-space-block); }
 .site-order-point-toggle { display: inline-flex; flex-wrap: nowrap; align-items: center; gap: var(--site-space-copy); }
 .site-order-point-toggle > label { white-space: nowrap; }
-.site-floor-selection-feature { display: flex; align-items: center; flex-wrap: nowrap; gap: var(--site-space-copy); }
 
 
 /* Compact tracks keep a full 44px touch/focus target. */
