@@ -232,14 +232,19 @@ test("문서형은 기존 영역형을 유지하며 추가 행동을 선택 탭�
 });
 
 
-test("tab label and document accessory glyphs share a small size without shrinking icon-button targets", () => {
-  assert.match(tabCss, /--site-tab-icon-size: 1rem;/);
-  assert.match(tabCss, /\[data-slot="tabs-trigger"\] svg,\s*\.site-document-tab-action > svg,\s*\.site-document-tab-accessory svg \{[^}]*width: var\(--site-tab-icon-size\);[^}]*height: var\(--site-tab-icon-size\);/);
+test("only edit pencils share the small glyph size, independent of tabs and without shrinking controls", () => {
+  assert.match(css, /--ui-edit-icon-size: 1rem;/);
+  assert.match(css, /svg\.site-edit-icon \{[^}]*width: var\(--ui-edit-icon-size\);[^}]*height: var\(--ui-edit-icon-size\);/);
+  assert.doesNotMatch(tabCss, /--site-tab-icon-size|\[data-slot="tabs-trigger"\] svg/);
+  assert.match(read("app/components/ui/edit-icon.tsx"), /<Pencil className="site-edit-icon" aria-hidden="true"/);
+  for (const file of ["app/components/ui/inline-name-editor.tsx", "components/design-system/ManagementTableExamples.tsx"]) {
+    assert.match(read(file), /<EditIcon \/>/);
+    assert.doesNotMatch(read(file), /<Pencil\b/);
+  }
   assert.match(read("app/components/ui/tabs.tsx"), /className="site-document-tab-accessory">\{accessory\}/);
   assert.match(read("app/components/ui/inline-name-editor.tsx"), /iconOnly \? "site-button site-button-ghost site-button-icon"/);
   const iconBox = css.match(/\.site-button-icon \{([^}]+)\}/)![1];
   for (const dimension of ["width", "height", "min-width"]) assert.match(iconBox, new RegExp(`${dimension}: var\\(--ui-control-height-md\\);`));
-  assert.doesNotMatch(tabCss, /\.site-document-tabs-tools svg[^}]*site-tab-icon-size/);
 });
 
 

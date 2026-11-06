@@ -7,6 +7,7 @@
   --ui-control-height-header: 2.75rem;
   --ui-control-height-lg: 3rem;
   --ui-button-group-divider-height: 1.5rem;
+  --ui-edit-icon-size: 1rem;
   --ui-button-boundary: var(--ui-border);
   --ui-radius-control-rounded: .5rem;
   --ui-tab-rail-height: 3rem;
@@ -1323,6 +1324,14 @@ textarea.site-field[data-field-size="lg"], textarea[data-field-size="lg"] { min-
   inline-size: 1px;
   block-size: var(--ui-button-group-divider-height);
   background: var(--ui-border);
+  pointer-events: none;
+}
+
+/* Edit glyph size belongs to the action, not to a tab or button container. */
+svg.site-edit-icon {
+  width: var(--ui-edit-icon-size);
+  height: var(--ui-edit-icon-size);
+  flex: none;
   pointer-events: none;
 }
 

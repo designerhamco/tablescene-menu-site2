@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Pencil } from "lucide-react";
+import { EditIcon } from "@/app/components/ui/edit-icon";
 import { Button } from "@/app/components/ui/button";
 import { Switch } from "@/app/components/ui/switch";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/app/components/ui/table";
@@ -33,13 +33,13 @@ export default function ManagementTableExamples() {
           <TableHeader><TableRow><TableHead>종류</TableHead><TableHead>이름</TableHead><TableHead>기기 연결 여부</TableHead><TableHead>태블릿 주문</TableHead><TableHead>관리</TableHead></TableRow></TableHeader>
           <TableBody>{["테이블 1", "긴 이름도 생략하지 않고 여러 줄로 표시하는 테이블", "키오스크 1"].map((name, index) => <TableRow key={name}>
             <TableCell nowrap>{index === 2 ? "키오스크" : "테이블"}</TableCell>
-            <TableCell primary><Button variant="link" size="compact" aria-label={`${name} 수정 예시`} onClick={exampleAction} disabled={index > 0}><span className="type-item-title min-w-0 break-words">{name}</span><Pencil aria-hidden="true" /></Button></TableCell>
+            <TableCell primary><Button variant="link" size="compact" aria-label={`${name} 수정 예시`} onClick={exampleAction} disabled={index > 0}><span className="type-item-title min-w-0 break-words">{name}</span><EditIcon /></Button></TableCell>
             <TableCell><div className="site-action-row"><InfoTooltip label={`${name} 연결 안내 예시`}><p>{index === 2 ? "기기 정보 예시: [태블릿] iPadOS · iPad · Safari. 실제 운영 화면에서는 조회한 OS·모델·브라우저 정보를 표시합니다." : "손님 휴대폰·QR 주문은 기기를 연결하지 않아도 됩니다. 테이블에 비치한 태블릿을 사용할 때 연결해 주세요."}</p></InfoTooltip><span className="type-label">{index === 2 ? "기기 연결됨" : "미사용"}</span><Button variant="outline" size="compact" onClick={exampleAction} disabled={index > 0}>{index === 2 ? "연결 관리" : "연결하기"}</Button></div></TableCell>
             <TableCell nowrap><div className="site-action-row" data-wrap="nowrap"><label className="type-label" htmlFor={`table-example-${index}`}>{index === 2 ? "저장 중…" : index === 1 ? "OFF" : active ? "ON" : "OFF"}</label><Switch id={`table-example-${index}`} checked={index === 0 ? active : index === 2} onCheckedChange={index === 0 ? setActive : undefined} disabled={index === 1} loading={index === 2} aria-label={`${name} 태블릿 주문 허용 예시`} /></div></TableCell>
             <TableCell nowrap><div className="site-action-row" data-wrap="nowrap"><Button variant="outline" size="compact" disabled={index > 0} onClick={exampleAction}>보관</Button><Button variant="outline-danger" size="compact" disabled={index > 0} onClick={exampleAction}>삭제</Button></div></TableCell>
           </TableRow>)}</TableBody>
         </Table>
-        <p className="type-footnote site-copy-muted">두 번째 행은 읽기 전용, 세 번째 행은 저장 대기 예시입니다. 32px compact 버튼·40px 도움말 버튼·44px Switch의 기존 조작 영역을 줄이지 않습니다. 표면은 회색 헤더와 흰 본문, 가로 구분선만 사용합니다.</p>
+        <p className="type-footnote site-copy-muted">두 번째 행은 읽기 전용, 세 번째 행은 저장 대기 예시입니다. 이름 옆 편집 연필은 공통16px입니다. 32px compact 버튼·40px 도움말 버튼·44px Switch의 기존 조작 영역을 줄이지 않습니다. 표면은 회색 헤더와 흰 본문, 가로 구분선만 사용합니다.</p>
       </div>
       <div className="site-stack-block">
         <h3 className="type-subsection-title">숫자 비교와 열 너비</h3>
