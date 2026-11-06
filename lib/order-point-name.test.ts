@@ -7,7 +7,7 @@ import RestoreForm from "../components/mypage/OrderPointRestoreForm";
 import {getOrderPointNameError,ORDER_POINT_DUPLICATE_NAME_MESSAGE} from "./order-point-name";
 const point={id:"archived",label:"1번 테이블",kind:"table" as const};
 const current=[{id:"active",label:"1번 테이블",kind:"table" as const}];
-const render=(options:Partial<Parameters<typeof RestoreForm>[0]>={})=>renderToStaticMarkup(h(AppRouterContext.Provider,{value:{push(){}} as never},h(RestoreForm,{point,menuSiteId:"example",operatingPoints:current,action:()=>{},...options})));
+const render=(options:Partial<Parameters<typeof RestoreForm>[0]>={})=>renderToStaticMarkup(h(AppRouterContext.Provider,{value:{push(){}} as never},h(RestoreForm,{point,menuSiteId:"example",operatingPoints:current,rooms:[{id:"room-a",name:"홀"},{id:"room-b",name:"테라스"}],action:()=>{},...options})));
 
 test("보관 복원 이름은 공백·대소문자와 같은 종류를 기준으로 운영 이름 중복을 검사한다",()=>{
   assert.equal(getOrderPointNameError(point,current),ORDER_POINT_DUPLICATE_NAME_MESSAGE);
@@ -33,4 +33,15 @@ test("서버가 뒤늦게 발견한 중복도 해당 이름을 수정할 때까�
   assert.match(render({operatingPoints:[],serverError:labelError}),/aria-invalid="true"/);
   assert.doesNotMatch(render({point:{...point,label:"수정한 이름"},operatingPoints:[],serverError:labelError}),/data-slot="form-message"/);
   assert.match(render({point:{...point,label:"2번 테이블"},pending:true}),/readOnly=""/i);
+});
+
+
+test("복원할 룸은 숨은 값이 아닌 이름이 연결된 셀렉트로 제출하고 현재 룸을 기본 선택한다",()=>{
+  const html=render({roomId:"room-b",operatingPoints:[]});
+  assert.match(html,/<label[^>]*>복원할 룸<\/label>/);
+  assert.match(html,/<select[^>]*name="roomId"[^>]*required=""/);
+  assert.match(html,/<option value="room-b" selected="">테라스<\/option>/);
+  assert.doesNotMatch(html,/<input[^>]*type="hidden"[^>]*name="roomId"/);
+  const empty=render({rooms:[],operatingPoints:[]});
+  assert.match(empty,/복원할 룸 없음/);assert.match(empty,/<button[^>]*disabled=""/);
 });

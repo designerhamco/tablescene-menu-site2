@@ -6,6 +6,8 @@ import { TableCell, TableRow } from "@/app/components/ui/table";
 import { initialMenuTableActionState } from "@/app/mypage/menus/[menuId]/tables/action-state";
 import { mutateMenuTableAction } from "@/app/mypage/menus/[menuId]/tables/actions";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
+import OrderPointMoveDialog from "./OrderPointMoveDialog";
+import type { FloorRoom } from "@/lib/menu-floor-plan";
 import DeleteOrderPoint from "./DeleteOrderPoint";
 import type { OrderPointConnectHandler } from "@/lib/order-point-connection";
 import type { OrderPointFeatureUpdate } from "@/lib/order-point-policy";
@@ -14,8 +16,9 @@ import { OrderPointArchiveControl, OrderPointConnectionControl, OrderPointFeatur
 
 type ManagedPoint = ManagedOrderPoint;
 
-export default function OrderPointTableRow({ menuSiteId, point, connectionState, canDelete, disabled, archiveAction, readOnly = false, onUpdate, onConnect, onRename }: {
+export default function OrderPointTableRow({ menuSiteId, point, connectionState, canDelete, disabled, archiveAction, readOnly = false, onUpdate, onConnect, onRename, rooms = [], roomId, onMove }: {
   menuSiteId: string; point: ManagedPoint; connectionState?: OrderPointConnectionState; canDelete: boolean; disabled: boolean;
+  rooms?: FloorRoom[]; roomId?: string; onMove?: (pointId: string, roomId: string) => void;
   onRename?: (id: string, name: string) => Promise<InlineNameResult>;
   archiveAction: (data: FormData) => void; readOnly?: boolean; onUpdate: OrderPointFeatureUpdate; onConnect: OrderPointConnectHandler;
 }) {
@@ -43,6 +46,7 @@ export default function OrderPointTableRow({ menuSiteId, point, connectionState,
     <TableCell><OrderPointConnectionControl point={point} state={connectionState} onConnect={onConnect} /></TableCell>
     <TableCell nowrap>
       <div className="site-action-row" data-wrap="nowrap">
+        {onMove ? <OrderPointMoveDialog point={point} rooms={rooms} roomId={roomId} disabled={busy} onMove={target => onMove(point.id, target)} /> : null}
         <OrderPointArchiveControl menuSiteId={menuSiteId} point={point} action={archiveAction} disabled={busy} />
         {canDelete && !point.draft ? <DeleteOrderPoint menuSiteId={menuSiteId} point={point} disabled={busy} compact /> : null}
       </div>

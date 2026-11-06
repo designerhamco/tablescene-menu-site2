@@ -27,3 +27,27 @@ test("미등록 항목을 제외하고 빈 룸은 선택 정보를 만들지 않
   assert.match(render([first, second], [second]), new RegExp(`data-selected-details="${second}"`));
   assert.doesNotMatch(render([]), /data-selected-details=/);
 });
+
+test("리스트는 선택 룸의 배치·미배치 소속과 과거 룸 미지정 항목을 구분한다", () => {
+  const terrace = "44444444-4444-4444-8444-444444444444";
+  const unplaced = "55555555-5555-4555-8555-555555555555";
+  const legacy = "66666666-6666-4666-8666-666666666666";
+  let context: Parameters<NonNullable<Parameters<typeof FloorPlanEditor>[0]["renderList"]>>[0] | undefined;
+  renderToStaticMarkup(createElement(AppRouterContext.Provider, {value: {push() {}} as never}, createElement(FloorPlanEditor, {
+    view: "list",
+    initial: {available: true, revision: 1, document: {
+      rooms: [{id:room,name:"홀",aspectRatio:4/3},{id:terrace,name:"테라스",aspectRatio:4/3}],
+      placements: [placement(first),{...placement(second),roomId:terrace}],
+      memberships: [{pointId:unplaced,roomId:room}],
+    }},
+    points: [first,second,unplaced,legacy].map(id=>({id,label:id,status:"active"})),
+    onSave: async()=>({status:"error" as const,message:"저장하지 않습니다."}),
+    renderList: value=>{context=value;return null;},
+  })));
+  assert.ok(context);
+  assert.equal(context.roomId,room);
+  assert.deepEqual(context.pointIds,[first,unplaced]);
+  assert.deepEqual(context.unassignedPointIds,[legacy]);
+  assert.equal(context.rooms.length,2);
+  assert.equal(typeof context.onMovePoint,"function");
+});
