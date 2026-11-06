@@ -6,6 +6,7 @@ import InfoTooltip from "@/components/ui/InfoTooltip";
 import { orderPointTerminalConnectionReason, orderPointConnectionLabel, type OrderPointConnectHandler, type OrderPointConnectionState } from "@/lib/order-point-connection";
 import { DEFAULT_ORDER_POINT_POLICY, ORDER_POINT_CONNECTION_REQUIRED, orderPointPolicyKey, type OrderPointFeature, type OrderPointFeatureUpdate } from "@/lib/order-point-policy";
 import OrderPointFeatureControl from "./OrderPointFeatureControl";
+import { ControlCategory, ControlCategoryRow } from "@/app/components/ui/control-category-row";
 
 export type ManagedOrderPoint = Pick<MenuTableListItem, "id" | "label" | "status" | "kind" | "policy" | "policyAvailable">;
 
@@ -45,10 +46,10 @@ export function OrderPointArchiveControl({ menuSiteId, point, action, disabled =
 export function OrderPointSelectionDetails({ menuSiteId, point, connectionState, disabled, readOnly, onUpdate, onConnect }: {
   menuSiteId: string; point: ManagedOrderPoint; connectionState?: OrderPointConnectionState; disabled: boolean; readOnly?: boolean; onUpdate: OrderPointFeatureUpdate; onConnect: OrderPointConnectHandler;
 }) {
-  return <div className="site-floor-selection-details" role="group" aria-label={`${point.label} 운영 정보`}>
-    <h3 className="type-content-title site-floor-selection-name">{point.label}</h3>
-    <div className="site-floor-selection-feature"><h4 className="type-label">주문</h4><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="orders" connectionState={connectionState} onConnect={onConnect} onUpdate={onUpdate} readOnly={readOnly} disabled={disabled} /></div>
-    <div className="site-floor-selection-feature"><h4 className="type-label">호출</h4><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="calls" connectionState={connectionState} onConnect={onConnect} onUpdate={onUpdate} readOnly={readOnly} disabled={disabled} /></div>
-    <div className="site-floor-selection-feature"><h4 className="type-label">매장 기기 연결</h4><OrderPointConnectionControl point={point} state={connectionState} onConnect={onConnect} /></div>
-  </div>;
+  return <ControlCategoryRow label={`${point.label} 운영 정보`}>
+    <h3 className="type-content-title">{point.label}</h3>
+    <ControlCategory title="주문"><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="orders" connectionState={connectionState} onConnect={onConnect} onUpdate={onUpdate} readOnly={readOnly} disabled={disabled} /></ControlCategory>
+    <ControlCategory title="호출"><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="calls" connectionState={connectionState} onConnect={onConnect} onUpdate={onUpdate} readOnly={readOnly} disabled={disabled} /></ControlCategory>
+    <ControlCategory title="매장 기기 연결"><OrderPointConnectionControl point={point} state={connectionState} onConnect={onConnect} /></ControlCategory>
+  </ControlCategoryRow>;
 }
