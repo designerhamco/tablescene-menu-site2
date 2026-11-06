@@ -2,7 +2,7 @@ import "server-only";
 import { canRotateTableQr, QR_ROTATION_BLOCKED_MESSAGE } from "@/lib/qr-rotation-policy";
 import { parseOrderPointDeletionSummary } from "@/lib/order-point-deletion";
 import type { Database } from "@/lib/supabase/types";
-import { orderPointKind, ORDER_POINT_POLICY_COLUMNS, orderPointPolicyKey, type OrderPointKind, type OrderPointChannel, type OrderPointFeature } from "@/lib/order-point-policy";
+import { ORDER_POINT_CONNECTION_REQUIRED, ORDER_POINT_CONNECTION_UNKNOWN, orderPointKind, ORDER_POINT_POLICY_COLUMNS, orderPointPolicyKey, type OrderPointKind, type OrderPointChannel, type OrderPointFeature } from "@/lib/order-point-policy";
 
 import {
   createMenuTableTokenMaterial,
@@ -419,6 +419,15 @@ export async function setOrderPointFeature(input: {
   // Feature policies are owner settings, like the store-wide order/call switches.
   const permission = await requireMenuSitePermission(menuSiteId, "menu.edit");
   if (!permission.isOwner) throw new MenuTableManagementError("MENU_SITE_UNAVAILABLE", "주문·호출 허용 설정은 사장님만 변경할 수 있습니다.", 403);
+  // Enabling a shop-device channel requires a current registration for this exact point.
+  // OFF and customer QR controls remain available even if a device is disconnected.
+  if (input.channel === "terminal" && input.enabled) {
+    const connection = await supabase.from("table_visit_sessions").select("id")
+      .eq("menu_site_id", menuSiteId).eq("menu_table_id", tableId).eq("access_channel", "terminal")
+      .is("revoked_at", null).gt("expires_at", new Date().toISOString()).limit(1).maybeSingle();
+    if (connection.error) throw new MenuTableManagementError("TABLE_UPDATE_FAILED", ORDER_POINT_CONNECTION_UNKNOWN, 409);
+    if (!connection.data) throw new MenuTableManagementError("TABLE_UPDATE_FAILED", ORDER_POINT_CONNECTION_REQUIRED, 409);
+  }
   const column = ORDER_POINT_POLICY_COLUMNS[orderPointPolicyKey(input.channel, input.feature)];
   // A legacy paused point starts with every channel OFF; only the explicitly chosen flag turns ON.
   const patch: Database["public"]["Tables"]["menu_tables"]["Update"] = { ...(expectedStatus === "disabled" ? { status: "active", ...RECEPTION_OFF } : {}), updated_by: context.actorUserId };

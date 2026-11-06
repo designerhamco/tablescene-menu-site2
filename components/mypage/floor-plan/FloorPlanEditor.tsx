@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent, TabsAction } from "@/app/comp
 import { InlineNameEditor, type InlineNameResult } from "@/app/components/ui/inline-name-editor";
 import { LoadingState } from "@/app/components/ui/loading-state";
 import { EmptyState } from "@/app/components/ui/empty-state";
-import { constrainFloorRect, normalizeFloorDocument, renameSavedFloorRoom, FLOOR_PLAN_DISPLAY_ASPECT_RATIO, retainRegisteredFloorPoints, type FloorDocument, type FloorPlacement, type FloorPlanSnapshot, type FloorPoint, type FloorSaveResult } from "@/lib/menu-floor-plan";
+import { placeNewFloorPoints, constrainFloorRect, normalizeFloorDocument, renameSavedFloorRoom, FLOOR_PLAN_DISPLAY_ASPECT_RATIO, retainRegisteredFloorPoints, type FloorDocument, type FloorPlacement, type FloorPlanSnapshot, type FloorPoint, type FloorSaveResult } from "@/lib/menu-floor-plan";
 import { FloorPlanCanvas, FloorPlanObject, FloorPlanWorkspace } from "@/app/components/ui/floor-plan-canvas";
 
 type Gesture = { pointerId: number; mode: "move" | "resize"; pointId: string; roomId: string; startX: number; startY: number; origin: FloorPlacement; before: FloorDocument };
@@ -39,6 +39,16 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   const document = retainRegisteredFloorPoints(draft, points);
   const dirty = JSON.stringify(document) !== JSON.stringify(retainRegisteredFloorPoints(saved.document, points));
   const room = document.rooms.find(r => r.id === roomId) ?? document.rooms[0];
+  const pointIds = points.map(point => point.id).join("|");
+  const [knownPointIds, setKnownPointIds] = useState(pointIds);
+  // Registration refreshes props in the same editor for both views. Add only new IDs,
+  // so a deliberately removed placement is never silently recreated.
+  if (knownPointIds !== pointIds) {
+    const known = new Set(knownPointIds.split("|"));
+    const added = points.filter(point => !known.has(point.id)).map(point => point.id);
+    setKnownPointIds(pointIds);
+    if (initial.available && room && added.length) setDraft(previous => placeNewFloorPoints(retainRegisteredFloorPoints(previous, points), added, room.id));
+  }
   const visiblePoints = points;
   const unplaced = visiblePoints.filter(p => !document.placements.some(item => item.pointId === p.id));
   const chosen = unplaced.find(p => p.id === unplacedId) ?? unplaced[0];
@@ -104,18 +114,13 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
     let number = document.rooms.length + 1;
     while (document.rooms.some(r => r.name === `룸 ${number}`)) number++;
     const next = { id: crypto.randomUUID(), name: `룸 ${number}`, aspectRatio: FLOOR_PLAN_DISPLAY_ASPECT_RATIO };
-    setDraft(previous => ({ ...previous, rooms: [...previous.rooms, next] })); setRoomId(next.id); setSelectedId(""); setRemoveRoom(false);
+    setDraft(previous => placeNewFloorPoints({ ...previous, rooms: [...previous.rooms, next] }, previous.rooms.length === 0 ? points.map(point => point.id) : [], next.id)); setRoomId(next.id); setSelectedId(""); setRemoveRoom(false);
   }
   function addPoint() {
     if (!room || !chosen) return;
-    const occupied = document.placements.filter(p => p.roomId === room.id);
-    let rect = { x: 4, y: 4, width: 20, height: 16 };
-    for (let i = 0; i < 20; i++) {
-      const candidate = { ...rect, x: 4 + (i % 4) * 24, y: 4 + Math.floor(i / 4) * 19 };
-      if (!occupied.some(p => candidate.x < p.x + p.width && candidate.x + candidate.width > p.x && candidate.y < p.y + p.height && candidate.y + candidate.height > p.y)) { rect = candidate; break; }
-    }
-    setDraft(previous => ({ ...previous, placements: [...previous.placements, { pointId: chosen.id, roomId: room.id, ...rect }] })); setSelectedId(chosen.id);
+    setDraft(previous => placeNewFloorPoints(previous, [chosen.id], room.id)); setSelectedId(chosen.id);
   }
+
   function save() {
     let normalized: FloorDocument;
     try { normalized = normalizeFloorDocument(document); } catch (error) { setFeedback({ error: true, message: (error as Error).message }); return; }
@@ -190,7 +195,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       {renderList?.()}
       <div className="site-action-row" data-distribution="end">{resetAction}{saveAction}</div>
     </> : <FloorPlanWorkspace canvasActions={resetAction} tools={<>
-      <div className="site-action-row" data-wrap="nowrap"><h3 className="type-content-title">배치되지 않은 {noun} {unplaced.length}개 · 현재 룸 {document.placements.filter(p => p.roomId === room?.id && visiblePoints.some(point => point.id === p.pointId)).length}개</h3><InfoTooltip label="테이블·키오스크 배치 안내"><p>{placementReason}</p><p>‘바로 배치’는 선택한 룸의 빈 곳에 배치합니다. 배치한 영역을 끌어 위치를 바꾸고 오른쪽 아래 화살표로 크기를 조절해 주세요.</p></InfoTooltip></div>
+      <div className="site-action-row" data-wrap="nowrap"><h3 className="type-content-title">배치되지 않은 {noun} {unplaced.length}개 · 현재 룸 {document.placements.filter(p => p.roomId === room?.id && visiblePoints.some(point => point.id === p.pointId)).length}개</h3><InfoTooltip label="테이블·키오스크 배치 안내"><p>{placementReason}</p><p>새로 등록한 항목은 선택한 룸에 자동으로 초기 배치됩니다. 룸 없이 등록했다면 첫 룸을 만들 때 초기 배치됩니다. ‘바로 배치’는 기존 미배치 항목을 선택한 룸의 빈 곳에 배치합니다. 배치한 영역을 끌어 위치를 바꾸고 오른쪽 아래 화살표로 크기를 조절해 주세요.</p></InfoTooltip></div>
       {placementTools}
     </>} selection={renderSelectedPoint ? selectedPoint ? renderSelectedPoint(selectedPoint, pending) : <p className="type-body-sm site-copy-muted">테이블·키오스크 영역을 선택하면 기기별 주문·호출 허용과 연결 정보를 확인하고 변경할 수 있습니다.</p> : undefined} footer={<>
       <div className="site-action-row" data-distribution="between">

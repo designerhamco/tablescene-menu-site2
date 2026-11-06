@@ -29,10 +29,20 @@ test("손님 화면의 버튼도 공통 설정과 현재 사용 방식의 허용
   }
 });
 
-function serviceFixture({ owner = true, runtime = true, conflict = false, denied = false } = {}) {
+function serviceFixture({ owner = true, runtime = true, conflict = false, denied = false, connected = true, connectionError = false, expired = false, revoked = false, otherTable = false, otherStore = false, customerSession = false } = {}) {
   const writes: unknown[] = [], filters: unknown[] = [], permissions: unknown[] = [];
   const db = { from(table: string) {
     if (table === "menu_sites") return { select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: { id: menu, name: "검수", slug: "test", status: "published", template_key: "cafe_design_a" } }; } };
+    if (table === "table_visit_sessions") {
+      const constraints: Array<[string, string, unknown]> = [];
+      const row: Record<string, unknown> = { id: "connection", menu_site_id: otherStore ? "other" : menu, menu_table_id: otherTable ? "other" : point, access_channel: customerSession ? "customer" : "terminal", revoked_at: revoked ? "2020-01-01" : null, expires_at: expired ? "2020-01-01" : "2099-01-01" };
+      return { select(value: string) { assert.equal(value, "id"); return this; }, eq(k: string, v: unknown) { constraints.push(["eq", k, v]); return this; }, is(k: string, v: unknown) { constraints.push(["is", k, v]); return this; }, gt(k: string, v: unknown) { constraints.push(["gt", k, v]); return this; }, limit(value: number) { assert.equal(value, 1); return this; }, async maybeSingle() {
+        assert.deepEqual(constraints.filter(([op]) => op !== "gt"), [["eq", "menu_site_id", menu], ["eq", "menu_table_id", point], ["eq", "access_channel", "terminal"], ["is", "revoked_at", null]]);
+        assert.equal(constraints.find(([op]) => op === "gt")?.[1], "expires_at");
+        const matches = connected && constraints.every(([op, k, v]) => op === "gt" ? String(row[k]) > String(v) : row[k] === v);
+        return { data: matches ? { id: row.id } : null, error: connectionError ? { message: "query failed" } : null };
+      } };
+    }
     assert.equal(table, "menu_tables");
     return { update(value: unknown) { writes.push(value); return this; }, eq(k: string, v: unknown) { filters.push([k, v]); return this; }, neq(k: string, v: unknown) { filters.push(["neq", k, v]); return this; }, select() { return this; }, async maybeSingle() { return { data: conflict ? null : { id: point }, error: null }; } };
   } };
@@ -89,4 +99,24 @@ test("이전 중지 항목의 첫 ON은 다른 세 플래그를 OFF로 보존하
   await assert.rejects(invalid.service.setOrderPointFeature({ ...input, expectedStatus: "archived" } as never));
   await assert.rejects(invalid.service.setOrderPointFeature({ ...input, enabled: false }));
   assert.deepEqual(invalid.writes, []);
+});
+
+
+test("태블릿·키오스크 ON은 같은 매장·항목의 유효한 terminal 연결이 있어야 저장된다", async () => {
+  for (const feature of ["orders", "calls"] as const) {
+    const input = { menuSiteId: menu, tableId: point, channel: "terminal" as const, feature, enabled: true, expectedEnabled: false };
+    for (const options of [{ connected: false }, { expired: true }, { revoked: true }, { otherTable: true }, { otherStore: true }, { customerSession: true }]) {
+      const f = serviceFixture(options);
+      await assert.rejects(f.service.setOrderPointFeature(input), /먼저.*연결하기/);
+      assert.deepEqual(f.writes, []);
+    }
+    const failed = serviceFixture({ connectionError: true });
+    await assert.rejects(failed.service.setOrderPointFeature(input), /연결 상태를 확인하지 못/);
+    assert.deepEqual(failed.writes, []);
+    const valid = serviceFixture(); await valid.service.setOrderPointFeature(input); assert.equal(valid.writes.length, 1);
+    const off = serviceFixture({ connected: false, connectionError: true });
+    await off.service.setOrderPointFeature({ ...input, enabled: false, expectedEnabled: true }); assert.equal(off.writes.length, 1);
+    const mobile = serviceFixture({ connected: false, connectionError: true });
+    await mobile.service.setOrderPointFeature({ ...input, channel: "customer" }); assert.equal(mobile.writes.length, 1);
+  }
 });

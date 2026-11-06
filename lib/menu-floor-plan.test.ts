@@ -101,3 +101,20 @@ test("룸 이름 자동 저장은 기존 저장 배치와 다른 룸을 보존�
   assert.throws(() => floor.renameSavedFloorRoom(added, added.rooms[1], "홀"), floor.FloorPlanError);
   assert.throws(() => floor.renameSavedFloorRoom(saved, saved.rooms[0], " "), floor.FloorPlanError);
 });
+
+
+test("새 등록은 선택 룸의 빈 곳에 초기 배치하고 기존 위치·중복·다른 룸은 유지한다", () => {
+  const original = document();
+  const second = "44444444-4444-4444-8444-444444444444", third = "55555555-5555-4555-8555-555555555555";
+  const next = floor.placeNewFloorPoints(original, [point, second, third, second], room);
+  assert.deepEqual(next.placements[0], original.placements[0]); assert.equal(next.placements.length, 3);
+  assert.equal(original.placements.length, 1);
+  for (const rect of next.placements) { assert.equal(rect.roomId, room); assert.ok(rect.x >= 0 && rect.y >= 0 && rect.x + rect.width <= 100 && rect.y + rect.height <= 100); }
+  for (let i=0;i<next.placements.length;i++) for(let j=i+1;j<next.placements.length;j++) {
+    const a=next.placements[i],b=next.placements[j]; assert.ok(a.x>=b.x+b.width || a.x+a.width<=b.x || a.y>=b.y+b.height || a.y+a.height<=b.y);
+  }
+  assert.equal(floor.placeNewFloorPoints(original, [second], "missing"), original);
+  assert.equal(floor.placeNewFloorPoints(original, [point], room), original);
+  const other = {...original,rooms:[...original.rooms,{id:third,name:"야외",aspectRatio:1.33}]};
+  const moved = floor.placeNewFloorPoints(other,[point,second],third); assert.equal(moved.placements[0].roomId,room); assert.equal(moved.placements[1].roomId,third);
+});

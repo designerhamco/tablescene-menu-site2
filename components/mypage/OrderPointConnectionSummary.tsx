@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Badge } from "@/app/components/ui/badge";
-import { formatTerminalDevice, type TerminalDeviceInfo } from "@/lib/terminal-device-info";
+import { formatTerminalDevice } from "@/lib/terminal-device-info";
 
-export type OrderPointConnectionState = { available: boolean; connections: { tableId: string; device: TerminalDeviceInfo | null }[] };
+import type { OrderPointConnectionState } from "@/lib/order-point-connection";
+export type { OrderPointConnectionState } from "@/lib/order-point-connection";
 export default function OrderPointConnectionSummary({ menuSiteId, point, state }: {
   menuSiteId: string; point: { id: string; kind?: "table" | "kiosk" }; state?: OrderPointConnectionState;
 }) {

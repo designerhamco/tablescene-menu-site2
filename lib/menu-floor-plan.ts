@@ -60,3 +60,21 @@ export function renameSavedFloorRoom(saved: FloorDocument, room: FloorRoom, name
     placements: saved.placements,
   });
 }
+
+/** Initial placement for new registrations; saved and hand-edited rectangles stay intact. */
+export function placeNewFloorPoints(document: FloorDocument, pointIds: readonly string[], roomId: string): FloorDocument {
+  if (!document.rooms.some(room => room.id === roomId)) return document;
+  const placed = new Set(document.placements.map(item => item.pointId));
+  const placements = [...document.placements];
+  for (const pointId of pointIds) {
+    if (placed.has(pointId) || placements.length >= 200) continue;
+    const occupied = placements.filter(item => item.roomId === roomId);
+    const candidates: Array<Pick<FloorPlacement, "x" | "y" | "width" | "height">> = [];
+    for (let row = 0; row < 5; row++) for (let column = 0; column < 4; column++) candidates.push({x:4+column*24,y:4+row*19,width:20,height:16});
+    for (let row = 0; row < 12; row++) for (let column = 0; column < 12; column++) candidates.push({x:column*8,y:row*8,width:8,height:8});
+    const free = candidates.find(rect => !occupied.some(item => rect.x < item.x + item.width && rect.x + rect.width > item.x && rect.y < item.y + item.height && rect.y + rect.height > item.y));
+    const rect = free ?? {x:4+(occupied.length%10)*8,y:4+(Math.floor(occupied.length/10)%10)*8,width:8,height:8};
+    placements.push({pointId,roomId,...constrainFloorRect(rect)}); placed.add(pointId);
+  }
+  return placements.length === document.placements.length ? document : {...document,placements};
+}

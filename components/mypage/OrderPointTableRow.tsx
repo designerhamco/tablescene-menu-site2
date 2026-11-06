@@ -35,8 +35,8 @@ export default function OrderPointTableRow({ menuSiteId, point, connectionState,
         } finally { setEditPending(false); }
       }} />
     </TableCell>
-    <TableCell><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="orders" onUpdate={onUpdate} readOnly={readOnly} disabled={busy} /></TableCell>
-    <TableCell><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="calls" onUpdate={onUpdate} readOnly={readOnly} disabled={busy} /></TableCell>
+    <TableCell><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="orders" connectionState={connectionState} onUpdate={onUpdate} readOnly={readOnly} disabled={busy} /></TableCell>
+    <TableCell><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="calls" connectionState={connectionState} onUpdate={onUpdate} readOnly={readOnly} disabled={busy} /></TableCell>
     <TableCell><OrderPointConnectionControl point={point} state={connectionState} onConnect={onConnect} /></TableCell>
     <TableCell nowrap>
       <div className="site-action-row" data-wrap="nowrap">
