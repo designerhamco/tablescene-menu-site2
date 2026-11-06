@@ -7,6 +7,7 @@ import { initialMenuTableActionState } from "@/app/mypage/menus/[menuId]/tables/
 import { mutateMenuTableAction } from "@/app/mypage/menus/[menuId]/tables/actions";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import DeleteOrderPoint from "./DeleteOrderPoint";
+import type { OrderPointConnectHandler } from "@/lib/order-point-connection";
 import type { OrderPointFeatureUpdate } from "@/lib/order-point-policy";
 import type { OrderPointConnectionState } from "./OrderPointConnectionSummary";
 import { OrderPointArchiveControl, OrderPointConnectionControl, OrderPointFeatureControls, type ManagedOrderPoint } from "./OrderPointControls";
@@ -15,7 +16,7 @@ type ManagedPoint = ManagedOrderPoint;
 
 export default function OrderPointTableRow({ menuSiteId, point, connectionState, canDelete, disabled, archiveAction, readOnly = false, onUpdate, onConnect }: {
   menuSiteId: string; point: ManagedPoint; connectionState?: OrderPointConnectionState; canDelete: boolean; disabled: boolean;
-  archiveAction: (data: FormData) => void; readOnly?: boolean; onUpdate: OrderPointFeatureUpdate; onConnect: (id: string) => void;
+  archiveAction: (data: FormData) => void; readOnly?: boolean; onUpdate: OrderPointFeatureUpdate; onConnect: OrderPointConnectHandler;
 }) {
   const [editPending, setEditPending] = useState(false);
   const [editState, setEditState] = useState(initialMenuTableActionState);
@@ -35,8 +36,8 @@ export default function OrderPointTableRow({ menuSiteId, point, connectionState,
         } finally { setEditPending(false); }
       }} />
     </TableCell>
-    <TableCell><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="orders" connectionState={connectionState} onUpdate={onUpdate} readOnly={readOnly} disabled={busy} /></TableCell>
-    <TableCell><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="calls" connectionState={connectionState} onUpdate={onUpdate} readOnly={readOnly} disabled={busy} /></TableCell>
+    <TableCell><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="orders" connectionState={connectionState} onConnect={onConnect} onUpdate={onUpdate} readOnly={readOnly} disabled={busy} /></TableCell>
+    <TableCell><OrderPointFeatureControls menuSiteId={menuSiteId} point={point} feature="calls" connectionState={connectionState} onConnect={onConnect} onUpdate={onUpdate} readOnly={readOnly} disabled={busy} /></TableCell>
     <TableCell><OrderPointConnectionControl point={point} state={connectionState} onConnect={onConnect} /></TableCell>
     <TableCell nowrap>
       <div className="site-action-row" data-wrap="nowrap">

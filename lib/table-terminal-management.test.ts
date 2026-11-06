@@ -139,21 +139,23 @@ test("메뉴판 열기는 선택한 테이블 연결과 공개 상태를 다시 
   assert.deepEqual(f.writes, []);
 });
 
-function actionFixture({ rejected = false, logoutFailed = false, revokedCurrent = false } = {}) {
+function actionFixture({ rejected = false, logoutFailed = false, revokedCurrent = false, featureFailed = false, notOwner = false, rollbackFailed = false } = {}) {
+  const events: unknown[] = [];
   let signOuts = 0, deleted = 0, set = 0;
   class ConnectionError extends Error {}
   class AccessError extends Error {}
   const dependencies = {
     "next/cache": { revalidatePath() {} }, "next/headers": { cookies: async () => ({ get: () => ({ value: token }), set: () => { set++; }, delete: () => { deleted++; } }), headers: async () => ({ get: () => userAgent }) },
     "next/navigation": { redirect(path: string) { throw { redirect: path }; } },
-    "@/lib/supabase/server": { createClient: async () => ({ auth: { signOut: async () => { signOuts++; return { error: logoutFailed ? new Error("logout failed") : null }; } } }) },
-    "@/lib/server/table-terminal-service": { TableTerminalConnectionError: ConnectionError, registerTableTerminal: async () => ({ token, expiresAt: "2099-01-01", path: "/unused" }), getTableTerminalMenuPath: async () => { if (rejected) throw new ConnectionError("먼저 연결해 주세요."); return "/menu/store?mode=terminal"; }, unregisterTableTerminal: async () => { if (rejected) throw new ConnectionError("연결되지 않은 테이블"); }, revokeTableTerminalConnection: async () => { if (rejected) throw new ConnectionError("해제 실패"); return { current: revokedCurrent }; } },
+    "@/lib/supabase/server": { createClient: async () => ({ auth: { signOut: async () => { events.push("logout"); signOuts++; return { error: logoutFailed ? new Error("logout failed") : null }; } } }) },
+    "@/lib/server/table-terminal-service": { TableTerminalConnectionError: ConnectionError, registerTableTerminal: async () => { events.push("connect"); return { token, expiresAt: "2099-01-01", path: "/unused" }; }, getTableTerminalMenuPath: async () => { if (rejected) throw new ConnectionError("먼저 연결해 주세요."); return "/menu/store?mode=terminal"; }, unregisterTableTerminal: async () => { events.push("rollback"); if (rollbackFailed) throw new Error("rollback failed"); if (rejected) throw new ConnectionError("연결되지 않은 테이블"); }, revokeTableTerminalConnection: async () => { if (rejected) throw new ConnectionError("해제 실패"); return { current: revokedCurrent }; } },
     "@/lib/table-qr-session-tokens": tokens, "@/lib/menu-site-permissions": { MenuSiteAccessError: AccessError },
-    "@/lib/server/menu-table-management-service": { MenuTableManagementError: AccessError }, "./action-state": { initialMenuTableActionState: { status: "idle", message: "", tableId: null, qrPath: null } },
+    "@/lib/server/menu-site-access-service": { requireMenuSitePermission: async () => { events.push("owner"); return {isOwner:!notOwner}; } },
+    "@/lib/server/menu-table-management-service": { MenuTableManagementError: AccessError, resumeMenuTable: async () => {events.push("resume");}, setOrderPointFeature: async (input:unknown) => {events.push(input);if(featureFailed) throw new Error("concurrent change");} }, "./action-state": { initialMenuTableActionState: { status: "idle", message: "", tableId: null, qrPath: null } },
   };
   const actions = moduleWith<typeof import("../app/mypage/menus/[menuId]/tables/actions")>("app/mypage/menus/[menuId]/tables/actions.ts", dependencies);
-  const submit = (intent: string) => { const data = new FormData(); data.set("menuSiteId", menuId); data.set("tableId", tableId); data.set("intent", intent); return actions.mutateMenuTableAction({ status: "idle", message: "", tableId: null, qrPath: null }, data); };
-  return { submit, counts: () => ({ signOuts, deleted, set }) };
+  const submit = (intent: string, fields:Record<string,string> = {}) => { const data = new FormData(); data.set("menuSiteId", menuId); data.set("tableId", tableId); data.set("intent", intent); for(const [key,value] of Object.entries(fields)) data.set(key,value); return actions.mutateMenuTableAction({ status: "idle", message: "", tableId: null, qrPath: null }, data); };
+  return { submit, events, counts: () => ({ signOuts, deleted, set }) };
 }
 
 test("연결 버튼은 관리자 로그아웃과 연결 쿠키 저장 후 자동으로 메뉴판을 연다", async () => {
@@ -190,4 +192,25 @@ test("다른 기기를 해제하는 관리자는 자신의 쿠키·관리자 로
     assert.deepEqual(f.counts(), { signOuts: 0, deleted: revokedCurrent ? 1 : 0, set: 0 });
   }
   const failed = actionFixture({ rejected: true }); assert.equal((await failed.submit("revoke-terminal-connection")).status, "error"); assert.equal(failed.counts().deleted, 0);
+});
+
+
+test("토글 연결 저장은 사장 권한·입력 확인 후 연결하고 선택 기능 CAS 성공 뒤 로그아웃한다",async()=>{
+  for(const feature of ["orders","calls"]) {
+    const f=actionFixture();
+    await assert.rejects(f.submit("register-terminal",{enableFeature:feature,enableExpectedEnabled:"false",pointStatus:"active"}),error=>{assert.deepEqual(error,{redirect:"/unused"});return true;});
+    assert.deepEqual(f.events,["owner","connect",{menuSiteId:menuId,tableId,channel:"terminal",feature,enabled:true,expectedEnabled:false,expectedStatus:"active"},"logout"]);
+    assert.deepEqual(f.counts(),{signOuts:1,deleted:0,set:1});
+  }
+  const denied=actionFixture({notOwner:true});assert.equal((await denied.submit("register-terminal",{enableFeature:"calls",enableExpectedEnabled:"false",pointStatus:"active"})).status,"error");assert.deepEqual(denied.events,["owner"]);
+  const invalid=actionFixture();assert.equal((await invalid.submit("register-terminal",{enableFeature:"invalid",enableExpectedEnabled:"false",pointStatus:"active"})).status,"error");assert.deepEqual(invalid.events,[]);
+  const resumed=actionFixture();await assert.rejects(resumed.submit("register-terminal",{enableFeature:"calls",enableExpectedEnabled:"true",pointStatus:"disabled"}));assert.deepEqual(resumed.events.slice(0,3),["owner","resume","connect"]);assert.deepEqual(resumed.events[3],{menuSiteId:menuId,tableId,channel:"terminal",feature:"calls",enabled:true,expectedEnabled:false,expectedStatus:"active"});
+});
+test("연결 후 설정 저장 실패는 새 연결을 해제하며 로그아웃·쿠키·성공 전환을 하지 않는다",async()=>{
+  for(const rollbackFailed of [false,true]) {
+    const f=actionFixture({featureFailed:true,rollbackFailed});
+    const result=await f.submit("register-terminal",{enableFeature:"calls",enableExpectedEnabled:"false",pointStatus:"active"});
+    assert.equal(result.status,"error");assert.equal(f.events.at(-1),"rollback");assert.deepEqual(f.counts(),{signOuts:0,deleted:0,set:0});
+    assert.match(result.message,rollbackFailed?/해제하지 못했습니다/:/새 기기 연결을 해제했습니다/);
+  }
 });
