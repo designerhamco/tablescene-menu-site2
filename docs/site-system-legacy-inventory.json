@@ -178,19 +178,7 @@
       "78f263ec03d40202"
     ]
   },
-  "app/mypage/staff/StaffInvitationForm.tsx": {
-    "control-appearance": [
-      "72ed710a062469f1",
-      "72ed710a062469f1"
-    ]
-  },
   "app/mypage/staff/page.tsx": {
-    "heading-spacing": [
-      "bced5faae68340a1"
-    ],
-    "control-appearance": [
-      "8fd46d42370e2e2a"
-    ],
     "page-shell": [
       "78f263ec03d40202"
     ]
@@ -272,14 +260,6 @@
   "components/mypage/AccountDeletionPanel.tsx": {
     "control-appearance": [
       "75aaf3b5a9f46608"
-    ]
-  },
-  "components/mypage/BillingHistoryPanel.tsx": {
-    "control-appearance": [
-      "af18335bc11d92c4",
-      "af18335bc11d92c4",
-      "af18335bc11d92c4",
-      "af18335bc11d92c4"
     ]
   },
   "components/mypage/BusinessPlanConvertPanel.tsx": {

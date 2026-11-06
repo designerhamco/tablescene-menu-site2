@@ -1,5 +1,6 @@
 "use client";
-import { FilterPanel } from "@/app/components/ui/data-display";
+import { ContentPanel } from "@/app/components/ui/content-panel";
+import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { CreditCard } from "lucide-react";
 
@@ -167,12 +168,12 @@ function FilterSelect({
   options: Array<{ value: string; label: string }>;
 }) {
   return (
-    <label className="block">
-      <span className="text-support font-medium text-zinc-600">{label}</span>
+    <label className="site-field-stack">
+      <span className="type-label site-copy-muted">{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-800 transition-colors"
+        className="site-field w-full"
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -554,12 +555,12 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
   const hasActiveFilters = JSON.stringify(filters) !== JSON.stringify(initialFilters);
 
   return (
-    <section className="space-y-5">
-      <FilterPanel>
-        <div className="flex flex-col justify-between gap-3 md:flex-row md:items-start">
-          <div>
+    <section className="site-stack-group">
+      <ContentPanel>
+        <div className="site-content-heading-row">
+          <div className="site-stack-title">
             <h3 className="type-content-title text-zinc-950">결제내역 필터</h3>
-            <p className="mt-2 break-keep text-copy font-normal leading-relaxed text-zinc-600">
+            <p className="type-body text-zinc-600">
               결제일, 서비스 유형, 결제 방식, 서비스 상태, 결제/환불 상태, 메뉴판명 또는 주소로 결제 기록을 찾을 수 있습니다.
             </p>
           </div>
@@ -573,23 +574,23 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
           </button>
         </div>
 
-        <div className="mt-5 grid grid-cols-1 gap-3 min-[375px]:grid-cols-2 xl:grid-cols-4">
-          <label className="block">
-            <span className="text-support font-medium text-zinc-600">결제 시작일</span>
+        <div className="site-field-grid" data-columns="4">
+          <label className="site-field-stack">
+            <span className="type-label site-copy-muted">결제 시작일</span>
             <input
               type="date"
               value={filters.from}
               onChange={(event) => setFilters((current) => ({ ...current, from: event.target.value }))}
-              className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-800 transition-colors"
+              className="site-field min-w-0 w-full"
             />
           </label>
-          <label className="block">
-            <span className="text-support font-medium text-zinc-600">결제 종료일</span>
+          <label className="site-field-stack">
+            <span className="type-label site-copy-muted">결제 종료일</span>
             <input
               type="date"
               value={filters.to}
               onChange={(event) => setFilters((current) => ({ ...current, to: event.target.value }))}
-              className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-800 transition-colors"
+              className="site-field min-w-0 w-full"
             />
           </label>
           <FilterSelect
@@ -625,42 +626,42 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
             onChange={(value) => setFilters((current) => ({ ...current, paymentStatus: value as FilterState["paymentStatus"] }))}
             options={paymentStatusFilterOptions}
           />
-          <label className="block min-[375px]:col-span-2">
-            <span className="text-support font-medium text-zinc-600">매장명 / 메뉴판 주소 / 결제번호 검색</span>
+          <label className="site-field-stack site-field-span-two">
+            <span className="type-label site-copy-muted">매장명 / 메뉴판 주소 / 결제번호 검색</span>
             <input
               value={filters.query}
               onChange={(event) => setFilters((current) => ({ ...current, query: event.target.value }))}
-              className="site-field mt-2 w-full border-zinc-200 px-4 py-3 text-zinc-800 transition-colors"
+              className="site-field min-w-0 w-full"
               placeholder="예: 매장명, 메뉴판 주소, 결제번호로 검색"
             />
           </label>
         </div>
-      </FilterPanel>
+      </ContentPanel>
 
-      <div className="site-notice site-notice-warning p-5 text-copy font-medium leading-relaxed">
+      <ContentPanel surface="notice" density="compact"><div className="site-stack-copy type-body-sm">
         <p>월결제와 연결제는 모두 정기결제 상품입니다. 해지 예약 시 다음 결제일부터 자동결제가 중단되며, 이미 결제된 이용 기간까지 계속 사용할 수 있습니다.</p>
-        <p className="mt-2">
+        <p>
           연결제 중도해지/환불은 사용 기간을 월결제 기준 금액으로 재정산한 뒤, 잔여 환불 가능액에서 중도해지 수수료 10%를 공제하는 방식으로 안내합니다.
         </p>
-        <p className="mt-2">
+        <p>
           구독 해지, 환불 요청, 재구독하고 복구는 구독/결제내역에서 관리하고, 편집·미리보기·공개 메뉴판 보기·QR 관리는 내 메뉴판에서 사용할 수 있습니다.
         </p>
-      </div>
+      </div></ContentPanel>
 
-      <div className="flex items-center justify-between gap-3">
+      <div className="site-content-heading-row">
         <h3 className="type-subsection-title">결제내역</h3>
-        <p className="text-support font-medium text-zinc-600">
+        <p className="type-body-sm text-zinc-600">
           {filteredEntries.length.toLocaleString("ko-KR")} / {entries.length.toLocaleString("ko-KR")}건
         </p>
       </div>
 
       {filteredEntries.length > 0 ? (
-        <div className="site-record-list site-record-list-cards">
+        <div className="site-stack-group">
           {filteredEntries.map((entry) => (
-            <article key={entry.id} className="site-record-card site-record-card-main">
+            <ContentPanel as="article" key={entry.id}>
               <div className="site-record-layout">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2">
+                <div className="site-stack-group min-w-0">
+                  <div className="site-action-row">
                     <h4 className="type-content-title text-zinc-950">{entry.productName}</h4>
                     <Badge>
                       {entry.serviceStatusLabel}
@@ -670,69 +671,37 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
                     </Badge>
                   </div>
 
-                  <dl className="site-record-details mt-5 grid grid-cols-2 gap-x-5 gap-y-4 text-copy xl:grid-cols-4">
-                    <div>
-                      <dt className="text-support font-medium text-zinc-600">결제일</dt>
-                      <dd className="mt-1 font-bold text-zinc-900">{entry.paidAtLabel}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-support font-medium text-zinc-600">메뉴판</dt>
-                      <dd className="mt-1 break-keep font-bold text-zinc-900">{entry.menuName ?? "연결 메뉴판 없음"}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-support font-medium text-zinc-600">공개 주소</dt>
-                      <dd className="mt-1 break-all font-bold text-zinc-900">{entry.menuPath}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-support font-medium text-zinc-600">결제 방식</dt>
-                      <dd className="mt-1 font-bold text-zinc-900">{entry.billingMethodLabel}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-support font-medium text-zinc-600">결제금액</dt>
-                      <dd className="mt-1 font-bold text-zinc-900">{entry.originalAmountLabel}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-support font-medium text-zinc-600">결제/환불 상태</dt>
-                      <dd className="mt-1">
+                  <DetailGrid columns={3}><DetailField label={<>결제일</>}>{entry.paidAtLabel}</DetailField>
+<DetailField label={<>메뉴판</>}>{entry.menuName ?? "연결 메뉴판 없음"}</DetailField>
+<DetailField label={<>공개 주소</>}>{entry.menuPath}</DetailField>
+<DetailField label={<>결제 방식</>}>{entry.billingMethodLabel}</DetailField>
+<DetailField label={<>결제금액</>}>{entry.originalAmountLabel}</DetailField>
+<DetailField label={<>결제/환불 상태</>}>
                         <Badge>
                           {entry.paymentStatusLabel}
                         </Badge>
-                      </dd>
-                    </div>
-                    <div>
-                      <dt className="text-support font-medium text-zinc-600">{entry.renewalLabel}</dt>
-                      <dd className="mt-1 font-bold text-zinc-900">{entry.renewalDateLabel}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-support font-medium text-zinc-600">정기결제</dt>
-                      <dd className="mt-1 font-bold text-zinc-900">{entry.billingMethod === "trial" ? "이전 체험 상품" : entry.billingMethod === "one_time" ? "1회 결제" : "정기결제"}</dd>
-                    </div>
-                    {entry.refundAmountLabel ? (
-                      <div>
-                        <dt className="text-support font-medium text-zinc-600">환불금액</dt>
-                        <dd className="mt-1 font-bold text-zinc-900">{entry.refundAmountLabel}</dd>
-                      </div>
+                      </DetailField>
+<DetailField label={<>{entry.renewalLabel}</>}>{entry.renewalDateLabel}</DetailField>
+<DetailField label={<>정기결제</>}>{entry.billingMethod === "trial" ? "이전 체험 상품" : entry.billingMethod === "one_time" ? "1회 결제" : "정기결제"}</DetailField>
+{entry.refundAmountLabel ? (
+                      <DetailField label={<>환불금액</>}>{entry.refundAmountLabel}</DetailField>
                     ) : null}
-                    <div>
-                      <dt className="text-support font-medium text-zinc-600">결제수단</dt>
-                      <dd className="mt-1 break-keep font-bold text-zinc-900">{entry.paymentMethodLabel}</dd>
-                    </div>
-                  </dl>
+<DetailField label={<>결제수단</>}>{entry.paymentMethodLabel}</DetailField></DetailGrid>
 
                   {entry.supportMessage ? (
-                    <div className="site-supporting-note mt-5 text-support font-medium leading-relaxed text-zinc-600">
+                    <ContentPanel surface="notice" density="compact"><p className="type-body-sm">
                       {entry.supportMessage}
-                    </div>
+                    </p></ContentPanel>
                   ) : null}
 
                   {entry.billingMethod === "yearly" ? (
-                    <div className="site-supporting-note mt-3 text-support font-medium leading-relaxed text-zinc-600">
+                    <ContentPanel surface="notice" density="compact"><p className="type-body-sm">
                       연결제는 매년 자동결제되는 연 정기결제 상품입니다. 중도해지/환불 요청 시 사용 기간은 월결제 기준 금액으로 재정산되며, 잔여 환불 가능액에서 중도해지 수수료 10%가 공제됩니다.
-                    </div>
+                    </p></ContentPanel>
                   ) : null}
                 </div>
 
-                <div className="flex shrink-0 flex-wrap gap-2 lg:flex-col">
+                <div className="site-record-actions site-action-row">
                   {entry.restoreSubscription ? (
                     <RestoreSubscriptionModal
                       restore={entry.restoreSubscription}
@@ -755,7 +724,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
                   />
                 </div>
               </div>
-            </article>
+            </ContentPanel>
           ))}
         </div>
       ) : (

@@ -54,7 +54,9 @@ test("content panels and semantic composition reject private spacing and unregis
   for (const content of ['<p className="mt-3 type-body-sm">설명</p>', '<div className="md:gap-5"/>', '<div style={{padding:20}}/>', '<p className="font-medium leading-relaxed">본문</p>']) {
     assert.ok(audit([["components/NewView.tsx", view(content)]]).some(item => item.rule === "content-composition"), content);
   }
-  assert.ok(audit([["components/NewView.tsx", '<div className="site-field-stack gap-3"/>']]).some(item => item.rule === "content-composition"));
+  for (const role of ["field-stack", "detail-grid", "detail-field", "checkbox-grid", "checkbox-field", "field-grid", "data-row", "record-heading", "record-actions"]) {
+    assert.ok(audit([["components/NewView.tsx", `<div className="site-${role} gap-3"/>`]]).some(item => item.rule === "content-composition"), role);
+  }
   assert.ok(audit([["components/NewView.tsx", '<p className="type-meta">날짜</p>']]).some(item => item.rule === "type-role"));
   for (const css of ['.page .site-content-panel {padding:20px}', '.page {--site-panel-inset:20px}', '.page .site-indicator-icon {width:40px}']) {
     assert.ok(audit([["components/view.css", css]]).length > 0, css);

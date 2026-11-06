@@ -1,5 +1,6 @@
 "use client";
 
+import { ContentPanel } from "@/app/components/ui/content-panel";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -60,11 +61,11 @@ export default function AccountDeletionPanel({
 
   return (
     <>
-      <section className="mt-6 rounded-2xl border border-red-100 bg-red-50 p-5">
-        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
-          <div>
+      <ContentPanel surface="danger">
+        <div className="site-content-heading-row">
+          <div className="site-stack-title">
             <h3 className="type-content-title text-red-950">회원탈퇴</h3>
-            <p className="mt-2 break-keep text-support font-normal leading-relaxed text-red-700">
+            <p className="type-body-sm text-red-700">
               회원탈퇴 시 아티메뉴 서비스 이용이 중단되며, 메뉴판 데이터는 보관·삭제 정책에 따라 처리됩니다. 결제 및 정산, 분쟁 대응에 필요한 기록은 관계 법령에 따라 일정 기간 보관될 수 있습니다.
             </p>
           </div>
@@ -76,7 +77,7 @@ export default function AccountDeletionPanel({
             회원탈퇴 신청
           </button>
         </div>
-      </section>
+      </ContentPanel>
 
       {isOpen ? (
         <div className="site-management-scope site-dialog-overlay fixed inset-0 z-[100] flex items-end justify-center p-0 md:items-center md:p-6" onClick={() => setIsOpen(false)}>
