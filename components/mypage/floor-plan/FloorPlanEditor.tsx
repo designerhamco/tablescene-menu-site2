@@ -3,6 +3,7 @@ import { useUnsavedChanges } from "@/components/ui/useUnsavedChanges";
 
 import { useEffect, useId, useRef, useState, useTransition, type PointerEvent, type ReactNode } from "react";
 import { Armchair, Monitor, LayoutGrid, Plus, Save, Square, Trash2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { ButtonGroupDivider } from "@/app/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent, TabsAction } from "@/app/components/ui/tabs";
@@ -14,7 +15,7 @@ import { FloorPlanCanvas, FloorPlanObject } from "@/app/components/ui/floor-plan
 
 type Gesture = { pointerId: number; mode: "draw" | "move" | "resize"; pointId: string; roomId: string; startX: number; startY: number; origin: FloorPlacement; before: FloorDocument };
 export default function FloorPlanEditor({ initial, points, onSave, registration, onDocumentChange }: {
-  initial: FloorPlanSnapshot; points: FloorPoint[]; registration?: ReactNode; onDocumentChange?: (document: FloorDocument) => void;
+  initial: FloorPlanSnapshot; points: FloorPoint[]; registration?: (roomAction: ReactNode) => ReactNode; onDocumentChange?: (document: FloorDocument) => void;
   onSave: (revision: number, document: FloorDocument) => Promise<FloorSaveResult>;
 }) {
   const [draft, setDraft] = useState(initial.document);
@@ -158,7 +159,9 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
             {placementOptions.map(point => <option key={point.id} value={point.id}>{point.kind === "kiosk" ? "키오스크" : "테이블"} · {point.label}</option>)}
           </select>
         </label>
-        <button type="button" className="site-button site-button-outline" disabled={!room || !chosen} onClick={addPoint}>바로 배치</button>
+        <Tooltip><TooltipTrigger asChild><span className="inline-flex" tabIndex={!room || !chosen ? 0 : undefined} aria-label={!room || !chosen ? "바로 배치 안내" : undefined}>
+          <button type="button" className="site-button site-button-outline" disabled={!room || !chosen} onClick={addPoint}>바로 배치</button>
+        </span></TooltipTrigger><TooltipContent>배치되지 않은 테이블·키오스크를 선택한 룸에 배치해 주세요.</TooltipContent></Tooltip>
       </div>
       <div className="site-action-row" data-wrap="nowrap">
         <ButtonGroupDivider />
@@ -168,16 +171,18 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
     </div>
     <p id={placementHelpId} className="type-footnote site-copy-muted">{drawing ? `빈 영역을 드래그해 ‘${chosen?.label}’의 사각형을 그려 주세요.` : placementReason}</p>
   </fieldset>;
-  if (!initial.available) return <div className="site-stack-group">{registration}<ContentPanel surface="notice" density="compact"><p className="type-body-sm">{initial.unavailableMessage ?? "배치도 저장 기능을 준비 중입니다. 리스트형에서는 기존 테이블·키오스크를 계속 관리할 수 있습니다."}</p></ContentPanel></div>;
+  const roomAction = <button type="button" className="site-button site-button-outline" disabled={pending || !room || !initial.available} aria-label="선택한 룸 삭제" onClick={() => setRemoveRoom(true)}><Trash2 aria-hidden="true" />룸 삭제</button>;
+  const registrationContent = registration ? registration(roomAction) : <div className="site-action-row">{roomAction}</div>;
+  if (!initial.available) return <div className="site-stack-group">{registrationContent}<ContentPanel surface="notice" density="compact"><p className="type-body-sm">{initial.unavailableMessage ?? "배치도 저장 기능을 준비 중입니다. 리스트형에서는 기존 테이블·키오스크를 계속 관리할 수 있습니다."}</p></ContentPanel></div>;
   return <Tabs purpose="section" appearance="document" value={room?.id ?? ""} onValueChange={value => { setRoomId(value); setSelectedId(""); setDrawing(false); setRemoveRoom(false); }}>
     <div className="site-stack-group">
-      <TabsList ref={roomListRef} size="sm" aria-label="매장 공간" action={<TabsAction onClick={addRoom} disabled={pending || document.rooms.length >= 30}><Plus aria-hidden="true" />룸 추가</TabsAction>} tools={<button type="button" className="site-button site-button-ghost site-button-icon" disabled={pending || !room} aria-label="선택한 룸 삭제" title="룸 삭제" onClick={() => setRemoveRoom(true)}><Trash2 aria-hidden="true" /></button>}>
+      <TabsList ref={roomListRef} size="sm" aria-label="매장 공간" action={<TabsAction onClick={addRoom} disabled={pending || document.rooms.length >= 30}><Plus aria-hidden="true" />룸 추가</TabsAction>}>
         {document.rooms.map(r => <TabsTrigger key={r.id} value={r.id} disabled={layoutPending} accessory={<InlineNameEditor protectNavigation iconOnly value={r.name} label={`${r.name || "룸"} 이름 수정`} disabled={pending} onSave={name => renameRoom(r.id, name)} />}>{r.name || "이름 없는 룸"}</TabsTrigger>)}
       </TabsList>
     <TabsContent value={room?.id ?? ""}>
     <div className="site-stack-group">
     {removeRoom && room ? <ContentPanel surface="notice" density="compact"><p className="type-body-sm">‘{room.name}’ 룸과 그 안의 배치를 지울까요? 등록된 테이블·키오스크와 주문 기록은 유지됩니다. 배치도 저장 전에는 ‘변경 취소’로 되돌릴 수 있습니다.</p><div className="site-action-row"><button type="button" className="site-button site-button-outline" disabled={pending} onClick={() => { setDraft(previous => ({ rooms: previous.rooms.filter(r => r.id !== room.id), placements: previous.placements.filter(p => p.roomId !== room.id) })); setRemoveRoom(false); setSelectedId(""); }}>룸만 삭제</button><button type="button" className="site-button site-button-outline" onClick={() => setRemoveRoom(false)}>취소</button></div></ContentPanel> : null}
-    {registration}
+    {registrationContent}
     <p className="type-body-sm site-copy-muted">배치되지 않은 {noun} {unplaced.length}개 · 현재 룸 {document.placements.filter(p => p.roomId === room?.id && visiblePoints.some(point => point.id === p.pointId)).length}개</p>
     <section className="site-stack-group" aria-label="매장 배치 편집">
       {placementTools}

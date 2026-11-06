@@ -2,7 +2,7 @@
 
 import { confirmUnsavedChanges } from "@/lib/unsaved-changes";
 import { useUnsavedChanges } from "@/components/ui/useUnsavedChanges";
-import { useActionState, useId, useState } from "react";
+import { useActionState, useId, useState, type ReactNode } from "react";
 import { Armchair, Monitor, LayoutGrid, List, Map, Plus } from "lucide-react";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import type { ArchivedMenuTableListItem, MenuTableListItem } from "@/lib/menu-table-management";
@@ -72,24 +72,26 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
 
   function changeDisplayMode(value: string) { if (value !== displayMode) void confirmUnsavedChanges().then(allowed => { if (allowed) setDisplayMode(value); }); }
 
-  const registration = <div className="site-stack-block">
+  const registration = (roomAction?: ReactNode) => <div className="site-stack-block">
           <div className="site-action-row" aria-label="테이블·키오스크 추가">
             <button type="button" className="site-button site-button-outline" disabled={createPending} aria-expanded={registrationKind === "table"} aria-controls={registrationKind ? `${usageId}-registration` : undefined} onClick={() => setRegistrationKind("table")}><Plus aria-hidden="true" />테이블 추가</button>
             <button type="button" className="site-button site-button-outline" disabled={createPending || !pointSettingsAvailable} aria-expanded={registrationKind === "kiosk"} aria-controls={registrationKind ? `${usageId}-registration` : undefined} onClick={() => setRegistrationKind("kiosk")}><Plus aria-hidden="true" />키오스크 추가</button>
+            {roomAction}
           </div>
           {!pointSettingsAvailable ? <p className="type-footnote site-copy-muted">키오스크 등록 기능을 현재 사용할 수 없습니다. 기존 등록 정보는 계속 확인할 수 있습니다.</p> : null}
           {registrationKind ? <div id={`${usageId}-registration`}><ContentPanel surface="muted">
-            <div className="site-stack-title">
-              <h3 className="type-content-title">{registrationNoun} 추가</h3>
-              <p className="type-body-sm site-copy-muted">{kiosk ? "키오스크마다 번호 또는 이름을 등록해 주세요." : "매장에서 사용할 테이블 번호 또는 이름을 등록해 주세요."}</p>
-            </div>
-            <form data-unsaved-commit action={createAction} aria-busy={createPending} className="site-form-row">
+            <form data-unsaved-commit action={createAction} aria-busy={createPending} className="site-field-stack">
               <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="kind" value={registrationKind} />
-              <label className="site-field-stack type-label">{registrationNoun} 이름
-                <input name="label" required maxLength={80} disabled={createPending} value={nameDrafts[registrationKind]} onChange={event => setNameDrafts(current => ({ ...current, [registrationKind]: event.target.value }))} placeholder={kiosk ? "예: 키오스크 1" : "예: 1번 테이블"} className="site-field w-full" />
-              </label>
-              <button type="submit" disabled={createPending || (kiosk && !pointSettingsAvailable)} className="site-button site-button-primary">{createPending ? "생성 중" : `${registrationNoun} 만들기`}</button>
-              <button type="button" className="site-button site-button-outline" disabled={createPending} onClick={() => setRegistrationKind(null)}>취소</button>
+              <label htmlFor={`${usageId}-point-name`} className="type-label">{registrationNoun} 이름</label>
+              <div className="site-form-row" data-alignment="center">
+                <div className="site-field-stack">
+                  <input id={`${usageId}-point-name`} name="label" required maxLength={80} disabled={createPending} value={nameDrafts[registrationKind]} onChange={event => setNameDrafts(current => ({ ...current, [registrationKind]: event.target.value }))} placeholder={kiosk ? "예: 입구 키오스크, 카운터 키오스크" : "예: 1번 테이블, 테라스 1번 테이블, 1번 단체 테이블"} className="site-field w-full" />
+                </div>
+                <div className="site-action-row" data-wrap="nowrap">
+                  <button type="submit" disabled={createPending || (kiosk && !pointSettingsAvailable)} className="site-button site-button-primary">{createPending ? "생성 중" : `${registrationNoun} 만들기`}</button>
+                  <button type="button" className="site-button site-button-outline" disabled={createPending} onClick={() => setRegistrationKind(null)}>취소</button>
+                </div>
+              </div>
             </form>
             <p className="type-footnote site-copy-muted">만들기를 누르면 바로 등록됩니다. 배치도의 룸·위치 변경은 ‘배치도 저장’으로 따로 저장해 주세요.</p>
             {createPending ? <LoadingState inline label={`${registrationNoun}${kiosk ? "를" : "을"} 만들고 있습니다. 잠시만 기다려 주세요.`} /> : null}
@@ -104,7 +106,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
       <Tabs purpose="state" value={displayMode} onValueChange={changeDisplayMode}>
         <div className="site-stack-group">
         <div className="site-field-stack"><span className="type-label">보기 유형</span><TabsList aria-label="보기 유형"><TabsTrigger value="map"><Map aria-hidden="true" />배치도형</TabsTrigger><TabsTrigger value="list"><List aria-hidden="true" />리스트형</TabsTrigger></TabsList></div>
-        {displayMode === "list" ? registration : null}
+        {displayMode === "list" ? registration() : null}
 
         <div className="site-stack-block">
         <h2 className={displayMode === "map" ? "sr-only" : "type-subsection-title"} id={`${usageId}-title`}>운영 테이블·키오스크 · {tables.length.toLocaleString("ko-KR")}개</h2>
