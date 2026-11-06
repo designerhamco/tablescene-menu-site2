@@ -16,6 +16,7 @@ async function renderDashboard(menuSiteId: string) {
     "react/jsx-runtime": jsxRuntime, "next/link": { default: stub }, "lucide-react": { Bell: stub, ChevronRight: stub, LayoutGrid: stub, ShoppingBag: stub, Ticket: stub },
     "next/navigation": { redirect() { assert.fail("Authenticated dashboard must render"); } },
     "next/headers": { cookies: async () => ({ get: () => undefined }), headers: async () => ({ get: () => "test browser" }) },
+    "@/components/ui/InfoTooltip": { default: stub },
     "@/app/components/ui/content-panel": { ContentPanel: stub },
     "@/app/components/ui/button": { Button: stub },
     "@/app/components/ui/badge": { Badge: stub },

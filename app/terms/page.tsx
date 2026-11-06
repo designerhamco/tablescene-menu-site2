@@ -44,7 +44,7 @@ export default function TermsPage() {
     <>
       <OfficialSiteNavbar />
       <main className="site-gutter site-page-spacing min-h-screen bg-white text-zinc-950">
-        <SitePageHeader title="아티메뉴 이용약관" description="아티메뉴 서비스 이용약관입니다." />
+        <SitePageHeader title="아티메뉴 이용약관" />
         <article className="site-card mx-auto w-full max-w-4xl p-7 md:p-10">
           <div>{renderPolicyContent(termsContent)}</div>
         </article>

@@ -21,7 +21,7 @@ export default function AiSupportChatPage() {
       <OfficialSiteNavbar />
       <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-4xl">
-          <SitePageHeader title="AI 상담" description="아티메뉴 이용 방법을 빠르게 확인하고, 사람의 확인이 필요하면 1:1 문의로 이어집니다."><Link href="/mypage/inquiries" className="site-button site-button-link">1:1 문의</Link></SitePageHeader>
+          <SitePageHeader title="AI 상담"><Link href="/mypage/inquiries" className="site-button site-button-link">1:1 문의</Link></SitePageHeader>
           {enabled ? (
             <AiSupportChat />
           ) : (

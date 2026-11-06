@@ -186,6 +186,12 @@ export function auditSiteSystem(files: FileMap): SiteSystemViolation[] {
             if (prop === "style" && /(?:padding|font|color|background|border|height|opacity|shadow|lineHeight)/i.test(attr.getText(tree))) add(file, "control-appearance", "Do not override control appearance inline.", attr.getText(tree), line);
           }
         }
+        if (headingNames.has(name) && !infrastructure.has(file)) {
+          const description = attrs.find(attr => attr.name.getText(tree) === "description");
+          const purpose = attrs.find(attr => attr.name.getText(tree) === "descriptionPurpose");
+          if (description && !purpose) add(file, "copy-purpose", "Default to a title only. A necessary description must declare requested/state/essential/content purpose.", node.getText(tree), line);
+          if (purpose && strings(purpose).some(value => !["requested", "state", "essential", "content"].includes(value))) add(file, "copy-purpose", "Choose a registered reason for keeping the page description.", purpose.getText(tree), line);
+        }
         if (headingNames.has(name) || (raw === "h1" && file === "components/layout/SitePageHeader.tsx")) {
           let current: ts.Node | undefined = node;
           while (current) {

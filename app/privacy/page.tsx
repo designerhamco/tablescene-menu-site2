@@ -354,7 +354,7 @@ export default function PrivacyPage() {
     <>
       <OfficialSiteNavbar />
       <main className="site-gutter site-page-spacing min-h-screen bg-white text-zinc-950">
-        <SitePageHeader title="아티메뉴 개인정보 처리방침" description="아티메뉴 개인정보 처리방침입니다." />
+        <SitePageHeader title="아티메뉴 개인정보 처리방침" />
         <article className="site-card mx-auto w-full max-w-4xl p-7 md:p-10">
           <div>{renderPolicyContent(privacyContent)}</div>
         </article>

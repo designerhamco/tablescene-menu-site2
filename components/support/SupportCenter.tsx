@@ -120,7 +120,7 @@ export default function SupportCenter({ supportActions }: { supportActions?: Rea
     <>
       <section className={`site-page-spacing-compact ${styles.hero}`} aria-labelledby={`${uid}-title`}>
         <div className="site-container">
-          <SitePageHeader id={`${uid}-title`} title="자주 묻는 질문" description="메뉴판 만들기부터 매장 운영까지, 궁금한 내용을 찾아보세요." />
+          <SitePageHeader id={`${uid}-title`} title="자주 묻는 질문" />
           <form
             role="search"
             aria-label="고객센터 검색"

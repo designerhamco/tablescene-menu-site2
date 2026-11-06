@@ -316,3 +316,15 @@ test("리스트와 배치도는 동일한 기기별 Switch와 연결 팝업 진�
   assert.match(editor, /마지막으로 저장한 배치로 되돌립니다/);
   assert.doesNotMatch(read("app/mypage/menus/[menuId]/tables/actions.ts"), /intent === "resume"|export async function updateOrderPointStatus/);
 });
+
+
+test("등록은 룸이 있을 때만 활성화하고 취소를 제공하지 않는다", async () => {
+  const { default: Registration } = await import("../components/mypage/OrderPointRegistrationForm");
+  for (const roomReady of [false, true]) {
+    const html = renderToStaticMarkup(createElement(Registration, { menuSiteId: "example", kind: "table", onKindChange: () => {}, name: "1번 테이블", onNameChange: () => {}, roomReady, kioskAvailable: true, action: () => {} }));
+    assert.doesNotMatch(html, />취소</);
+    assert.equal((html.match(/disabled=""/g) ?? []).length, roomReady ? 0 : 3);
+    if (!roomReady) assert.match(html, /룸을 먼저 추가/);
+  }
+
+});

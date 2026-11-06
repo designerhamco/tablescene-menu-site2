@@ -232,7 +232,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
     >
       <section className={`${styles.hero} ${styles.serviceHero}`}>
         <div className="site-container">
-          <SitePageHeader title={copy.title} description={copy.body} />
+          <SitePageHeader title={copy.title} descriptionPurpose="content" description={copy.body} />
           {service !== "basic" ? <div className={styles.serviceIntroAction}>
             {service === "display" ? (
               <p className={styles.availability}>

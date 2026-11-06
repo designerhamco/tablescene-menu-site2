@@ -57,7 +57,7 @@ export default function MenuQrDownloadModal({
       <DialogContent className="site-management-scope max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
         <div className="pr-8">
           <DialogTitle>QR 다운로드</DialogTitle>
-          <DialogDescription className="mt-2">{menuName}의 대표 QR과 테이블별 QR을 다운로드합니다.</DialogDescription>
+          <DialogDescription className="mt-2">{menuName}</DialogDescription>
         </div>
         <div aria-live="polite" aria-busy={loading}>
           {loading ? (
@@ -105,7 +105,6 @@ export default function MenuQrDownloadModal({
           <Link href={`/mypage/menus/${menuSiteId}/${data?.canManageTables && data.tables.length === 0 ? "tables" : "qr"}`} className="site-button site-button-outline w-full" onClick={() => setOpen(false)}>
             {data?.canManageTables && data.tables.length === 0 ? "테이블 등록·관리로 이동" : "QR 관리로 이동"}<ArrowUpRight className="size-4" aria-hidden="true" />
           </Link>
-          <p className="type-footnote mt-2 text-center text-zinc-500">테이블 설정은 테이블 관리에서, QR 다운로드와 교체는 QR 관리에서 할 수 있습니다.</p>
         </div>
       </DialogContent>
     </Dialog>

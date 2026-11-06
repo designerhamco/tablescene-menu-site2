@@ -35,7 +35,7 @@ export default function PricingPage() {
       <OfficialSiteNavbar />
       <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
-          <SitePageHeader title="요금제 안내" description="요금제를 확인한 뒤 매장에 맞는 디자인을 선택해 시작하세요." />
+          <SitePageHeader title="요금제 안내" />
           <div className="site-notice mb-8 p-5">
             <p className="type-body-sm">모든 금액은 부가세 포함입니다. 오픈 얼리버드는 2026년 10월 1일부터 12월 31일까지 가입할 수 있으며, 구독 유지 중 할인 가격이 유지됩니다.</p>
             <p className="type-body-sm mt-2">메뉴판마다 기본 디자인 또는 디자인 포함 이용권을 선택합니다. 같은 서비스 안에서 이용권에 포함된 디자인끼리 교체할 수 있습니다.</p>

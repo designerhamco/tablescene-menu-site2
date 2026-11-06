@@ -1,3 +1,4 @@
+import InfoTooltip from "@/components/ui/InfoTooltip";
 import Link from "next/link";
 import { orderPointTerminalConnectionReason } from "@/lib/order-point-connection";
 import type { OrderPointDeviceSettings } from "@/lib/terminal-device-info";
@@ -44,9 +45,7 @@ export default function OrderPointReceptionSettings({ menuSiteId, feature, point
 
   return <section className="site-stack-group" aria-label={`테이블·키오스크별 ${label} 허용`}>
     <div className="site-stack-title">
-      <h3 className="type-subsection-title">테이블·키오스크별 {label} 허용</h3>
-      <p className="type-body-sm site-copy-muted">전체 {label}이 켜져 있을 때, 아래에서 받을 곳과 사용 방식을 정할 수 있습니다. 개별 스위치는 변경 즉시 저장됩니다.</p>
-      <p className="type-body-sm site-copy-muted">태블릿과 손님 휴대폰·QR은 같은 테이블 번호를 사용하며, {label} 허용은 각각 설정할 수 있습니다. 기존 {label} 내역은 유지됩니다.</p>
+      <div className="site-action-row"><h3 className="type-subsection-title">테이블·키오스크별 {label} 허용</h3><InfoTooltip label={`${label} 허용 안내`}><p>전체 {label}이 켜져 있을 때 적용됩니다. 태블릿과 모바일은 같은 테이블 번호를 사용하며 허용 여부는 각각 설정합니다. 스위치는 즉시 저장되고 기존 내역은 유지됩니다.</p></InfoTooltip></div>
     </div>
     {points === null ? <ContentPanel surface="notice" density="compact">
       <p className="type-body-sm">테이블·키오스크 설정을 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요. 기존 허용 설정은 유지됩니다.</p>

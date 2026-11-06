@@ -79,7 +79,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
   // Both views share the same mounted editor; switching views preserves every draft.
   function changeDisplayMode(value: string) { setDisplayMode(value); }
 
-  const registration = () => <OrderPointRegistrationForm menuSiteId={menuSiteId} kind={registrationKind} onKindChange={setRegistrationKind} name={nameDrafts[registrationKind]} onNameChange={name => setNameDrafts(current => ({ ...current, [registrationKind]: name }))} onCancel={() => setNameDrafts(current => ({ ...current, [registrationKind]: "" }))} pending={createPending} kioskAvailable={pointSettingsAvailable} action={createAction} />;
+  const registration = ({ canRegister, pending, blockedReason }: { canRegister: boolean; pending: boolean; blockedReason?: string }) => <OrderPointRegistrationForm menuSiteId={menuSiteId} kind={registrationKind} onKindChange={setRegistrationKind} name={nameDrafts[registrationKind]} onNameChange={name => setNameDrafts(current => ({ ...current, [registrationKind]: name }))} roomReady={canRegister} blockedReason={blockedReason} pending={createPending} disabled={pending} kioskAvailable={pointSettingsAvailable} action={createAction} />;
 
   return <div className="site-stack-content">
     <OrderPointConnectionDialog menuSiteId={menuSiteId} point={tables.find(point => point.id === connectionPointId) ?? null} published={published} setup={deviceSetup} returnFocusRef={connectionTriggerRef} onClose={() => setConnectionPointId(null)} />

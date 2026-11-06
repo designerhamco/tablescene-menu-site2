@@ -187,7 +187,7 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
           message={resultNotice?.message}
           tone={resultNotice?.tone ?? "success"}
         />
-        <SitePageHeader title="직원 관리" align="start" description="메뉴판별로 직원을 초대하고 역할과 개별 권한을 관리합니다."><Link href="/mypage?tab=menus" className="site-button site-button-link">마이페이지로 돌아가기</Link></SitePageHeader>
+        <SitePageHeader title="직원 관리" align="start"><Link href="/mypage?tab=menus" className="site-button site-button-link">마이페이지로 돌아가기</Link></SitePageHeader>
 
         {menuSitesError ? (
           <p className="site-notice site-notice-error px-4 py-3 text-copy font-medium">

@@ -12,7 +12,7 @@ export default function MenuPlanChangeModal({ subscriptionId, menuName }: { subs
       <DialogContent className="site-management-scope max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
         <div className="pr-8">
           <DialogTitle>구독 변경</DialogTitle>
-          <DialogDescription className="mt-2">{menuName}의 이용권과 디자인을 변경합니다.</DialogDescription>
+          <DialogDescription className="mt-2">{menuName}</DialogDescription>
         </div>
         <MenuPlanChangePanel subscriptionId={subscriptionId} />
       </DialogContent>

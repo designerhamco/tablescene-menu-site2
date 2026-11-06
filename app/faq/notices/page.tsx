@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function AnnouncementsPage() {
-  return <SitePage title="공지사항" description="아티메뉴의 서비스 소식과 업데이트를 확인하세요."><AnnouncementBoard /></SitePage>;
+  return <SitePage title="공지사항"><AnnouncementBoard /></SitePage>;
 }
