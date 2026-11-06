@@ -7,6 +7,7 @@
   --ui-control-height-header: 2.75rem;
   --ui-control-height-lg: 3rem;
   --ui-button-group-divider-height: 1.5rem;
+  --ui-button-boundary: var(--ui-border);
   --ui-radius-control-rounded: .5rem;
   --ui-tab-rail-height: 3rem;
   --ui-control-gap: .5rem;
@@ -292,7 +293,7 @@
 }
 
 .site-button-secondary {
-  border-color: transparent;
+  border-color: var(--ui-button-boundary);
   background: var(--ui-surface-soft);
   color: var(--ui-text);
 }
@@ -329,6 +330,12 @@
 .site-button-ghost:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) {
   background: var(--ui-surface-soft);
   color: var(--ui-text);
+}
+
+/* A functional outline keeps opaque disabled actions visible on matching surfaces.
+   Native :disabled includes controls disabled by an ancestor fieldset. */
+.site-button:is(:disabled, [aria-disabled="true"]):not(.site-button-ghost, .site-button-danger-ghost, .site-button-link) {
+  border-color: var(--ui-button-boundary);
 }
 
 /* Text/icon navigation keeps its ghost surface when unavailable. */

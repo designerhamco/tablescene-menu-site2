@@ -241,3 +241,14 @@ test("tab label and document accessory glyphs share a small size without shrinki
   for (const dimension of ["width", "height", "min-width"]) assert.match(iconBox, new RegExp(`${dimension}: var\\(--ui-control-height-md\\);`));
   assert.doesNotMatch(tabCss, /\.site-document-tabs-tools svg[^}]*site-tab-icon-size/);
 });
+
+
+test("opaque disabled actions retain a functional edge on matching backgrounds without changing disabled behavior", () => {
+  assert.match(css, /--ui-button-boundary: var\(--ui-border\);/);
+  assert.match(css, /\.site-button-secondary \{[^}]*border-color: var\(--ui-button-boundary\);/);
+  assert.match(css, /\.site-button:is\(:disabled, \[aria-disabled="true"\]\):not\(\.site-button-ghost, \.site-button-danger-ghost, \.site-button-link\) \{\s*border-color: var\(--ui-button-boundary\);\s*\}/);
+  const gallery = read("components/design-system/ControlStateExamples.tsx");
+  assert.match(gallery, /id="button-surface-boundaries"/);
+  assert.match(gallery, /<fieldset disabled className="site-form-row" data-alignment="center"/);
+  assert.match(gallery, /<Button variant="outline">이동<\/Button>/);
+});
