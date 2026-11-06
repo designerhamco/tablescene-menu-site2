@@ -50,6 +50,7 @@
 .site-content-panel > * { min-width: 0; margin-block: 0; }
 .site-content-panel[data-surface="muted"] { border: 0; background: var(--ui-surface-muted); }
 .site-content-panel[data-surface="notice"] { border: 0; border-radius: .375rem; background: var(--ui-notice-surface); }
+.site-content-panel[data-surface="danger"] { border: 0; background: var(--ui-error-surface); }
 .site-content-panel[data-density="compact"] { padding: var(--site-panel-inset-compact); gap: var(--site-space-block); }
 .site-field-stack { display: grid; min-width: 0; align-content: start; gap: var(--site-space-copy); }
 .site-field-stack > * { min-width: 0; margin-block: 0; }
@@ -116,3 +117,36 @@
 
 /* A transparent mask reveals the actual white/gray/colored surface behind the table. */
 .site-table-overflow[data-overflow-right="true"] { mask-image: linear-gradient(to right, #000 calc(100% - var(--site-table-overflow-fade-width)), transparent); }
+
+/* Shared account/workflow data and native selection fields. */
+.site-detail-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--site-space-group); margin: 0; }
+.site-detail-field { display: grid; min-width: 0; align-content: start; gap: var(--site-space-copy); }
+.site-detail-field > :is(dt, dd) { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.site-detail-field[data-full="true"] { grid-column: 1 / -1; }
+.site-checkbox-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--site-space-copy); }
+.site-checkbox-field { display: flex; align-items: center; min-width: 0; min-height: var(--ui-control-height-md); gap: var(--site-space-copy); padding: var(--site-space-title-copy); border: 1px solid var(--ui-border); border-radius: var(--ui-radius-control-rounded); background: var(--ui-surface); cursor: pointer; }
+.site-checkbox-field > span { min-width: 0; overflow-wrap: anywhere; }
+.site-checkbox-field:focus-within { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+.site-field-stack > legend { padding: 0; margin-block-end: var(--site-space-copy); }
+.site-checkbox-field:has(input:checked) { border-color: var(--ui-text); }
+.site-checkbox-field:has(input:disabled) { color: var(--ui-disabled-text); cursor: not-allowed; }
+.site-data-row { padding-block: var(--site-space-group); }
+.site-data-row + .site-data-row { border-top: 1px solid var(--ui-border); }
+@media (min-width: 640px) { .site-detail-grid, .site-checkbox-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1280px) { .site-detail-grid[data-columns="3"], .site-checkbox-grid[data-columns="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); } .site-detail-grid[data-columns="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* Field collections and management record slots retain the common control rhythm. */
+.site-field-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--site-space-block); }
+.site-record-heading { display: grid; min-width: 0; grid-template-columns: minmax(0, 1fr); align-items: center; gap: var(--site-space-block); }
+.site-form-row > .site-field { flex: 1; }
+.site-data-row:first-child { padding-top: 0; }
+.site-data-row:last-child { padding-bottom: 0; }
+@media (min-width: 640px) {
+  .site-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .site-field-span-two { grid-column: span 2; }
+}
+@media (min-width: 1024px) {
+  .site-record-heading { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
+  .site-record-actions { flex-direction: column; align-items: stretch; align-content: stretch; }
+}
+@media (min-width: 1280px) { .site-field-grid[data-columns="4"] { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

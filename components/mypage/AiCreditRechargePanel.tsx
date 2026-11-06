@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { ContentPanel } from "@/app/components/ui/content-panel";
 import AiCreditPurchaseModal from "@/components/ai/AiCreditPurchaseModal";
 import { formatAiCredits, type AiCreditBalance, type AiCreditPackKey } from "@/lib/ai-credits";
 
@@ -86,11 +87,51 @@ export default function AiCreditRechargePanel({
   const totalPurchasedCredits = balance?.accountPurchasedCredits ?? 0;
   const totalUsedCredits = balance?.accountUsedCredits ?? 0;
   const totalCredits = totalGrantedCredits + totalPurchasedCredits;
-  const wrapperClassName = accountSummaryOnly
-    ? "site-section p-6"
-    : compact
+  const wrapperClassName = compact
       ? "site-section mt-4 p-4"
       : "site-section mt-6 p-4";
+
+  const purchaseModal = (<AiCreditPurchaseModal
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        menuSiteId={menuSiteId}
+        menuName={menuName}
+        userId={userId}
+        userEmail={userEmail}
+        storeId={storeId}
+        channelKey={channelKey}
+        pendingProductKey={pendingProductKey}
+        setPendingProductKey={setPendingProductKey}
+        onPurchased={(nextBalance, nextMessage) => {
+          setBalance(nextBalance);
+          setMessage(nextMessage);
+          router.refresh();
+        }}
+        onError={(nextMessage) => setMessage(nextMessage || null)}
+      />);
+
+  if (accountSummaryOnly) {
+    return (
+      <ContentPanel>
+        <div className="site-content-heading-row">
+          <div className="site-stack-title">
+            <h3 className="type-content-title">보유 AI 크레딧 {formatAiCredits(totalRemainingCredits)}</h3>
+            <p className="type-body-sm site-copy-muted">AI 크레딧은 아티메뉴 AI 기능 이용을 위한 통합 단위입니다. 계정의 첫 메뉴판 생성이 완료되면 웰컴 크레딧 6개를 계정당 1회 제공합니다.</p>
+          </div>
+          <button type="button" onClick={() => setIsOpen(true)} className="site-button site-button-outline">AI 크레딧 충전하기</button>
+        </div>
+        <ContentPanel surface="muted" density="compact">
+          <div className="site-stack-copy type-body-sm site-copy-muted">
+            <p>차감 기준: AI 설명 작성 1크레딧 · 부분 자동 번역 1크레딧 · AI 메뉴 정리 3크레딧 · 전체 자동 번역 3크레딧</p>
+            <p>AI 웰컴 크레딧은 현금성 가치가 없으며 환불, 현금 교환 또는 양도 대상이 아닙니다.</p>
+            <p>AI 결과물은 참고용 초안이므로 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.</p>
+          </div>
+        </ContentPanel>
+        {message ? <p className="type-body-sm" role="status">{message}</p> : null}
+        {purchaseModal}
+      </ContentPanel>
+    );
+  }
 
   return (
     <div className={wrapperClassName}>
@@ -100,13 +141,11 @@ export default function AiCreditRechargePanel({
             {`보유 AI 크레딧 ${formatAiCredits(totalRemainingCredits)}`}
           </h4>
           <p className="mt-2 break-keep text-support font-normal leading-relaxed text-zinc-600">
-            {accountSummaryOnly
-              ? "AI 크레딧은 아티메뉴 AI 기능 이용을 위한 통합 단위입니다. 계정의 첫 메뉴판 생성이 완료되면 웰컴 크레딧 6개를 계정당 1회 제공합니다."
-              : compact
+            {compact
                 ? "이 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다."
                 : `혜택 지급 ${formatAiCredits(totalGrantedCredits)} · 추가 충전 ${formatAiCredits(totalPurchasedCredits)} · 사용 ${formatAiCredits(totalUsedCredits)}`}
           </p>
-          {!accountSummaryOnly && balance && totalCredits > 0 ? (
+          {balance && totalCredits > 0 ? (
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
               <div
                 className="h-full rounded-full bg-zinc-950"
@@ -124,7 +163,7 @@ export default function AiCreditRechargePanel({
         </button>
       </div>
 
-      {!compact && !accountSummaryOnly ? (
+      {!compact ? (
         <div className="mt-3 space-y-1 break-keep text-support font-medium leading-relaxed text-zinc-600">
           <p>AI 크레딧은 아티메뉴 AI 기능 이용을 위한 통합 단위입니다. 보유 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.</p>
           <p>계정의 첫 메뉴판 생성 완료 시 웰컴 크레딧 6개를 계정당 1회 제공합니다.</p>
@@ -134,32 +173,9 @@ export default function AiCreditRechargePanel({
           <p>주민등록번호, 카드번호, 계좌번호, 민감정보, 제3자의 개인정보는 AI 입력창에 입력하지 마세요.</p>
         </div>
       ) : null}
-      {accountSummaryOnly ? (
-        <div className="site-section mt-4 p-4 text-support font-medium leading-relaxed text-zinc-600">
-          <p>차감 기준: AI 설명 작성 1크레딧 · 부분 자동 번역 1크레딧 · AI 메뉴 정리 3크레딧 · 전체 자동 번역 3크레딧</p>
-          <p className="mt-2">AI 웰컴 크레딧은 현금성 가치가 없으며 환불, 현금 교환 또는 양도 대상이 아닙니다.</p>
-          <p className="mt-2">AI 결과물은 참고용 초안이므로 공개 전 실제 메뉴 정보와 일치하는지 직접 확인해주세요.</p>
-        </div>
-      ) : null}
+
       {message ? <p className="mt-3 break-keep text-support font-normal leading-relaxed text-zinc-700">{message}</p> : null}
-      <AiCreditPurchaseModal
-        open={isOpen}
-        onClose={() => setIsOpen(false)}
-        menuSiteId={menuSiteId}
-        menuName={menuName}
-        userId={userId}
-        userEmail={userEmail}
-        storeId={storeId}
-        channelKey={channelKey}
-        pendingProductKey={pendingProductKey}
-        setPendingProductKey={setPendingProductKey}
-        onPurchased={(nextBalance, nextMessage) => {
-          setBalance(nextBalance);
-          setMessage(nextMessage);
-          router.refresh();
-        }}
-        onError={(nextMessage) => setMessage(nextMessage || null)}
-      />
+      {purchaseModal}
     </div>
   );
 }

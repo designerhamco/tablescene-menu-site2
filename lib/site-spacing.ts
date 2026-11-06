@@ -19,5 +19,7 @@ export const SITE_CONTENT_COMPOSITION = [
   { role: "제목과 설명", mobile: 12, wide: 12, owner: "site-stack-title", usage: "페이지 내부 섹션·박스 제목과 설명" },
   { role: "필드·작은 블록 사이", mobile: 16, wide: 16, owner: "site-form-row / site-stack-block", usage: "연결된 입력 필드·폼과 도움말 · 컨트롤만 나란히 놓으면 data-alignment=center" },
   { role: "라벨과 입력·관련 문구", mobile: 8, wide: 8, owner: "site-field-stack / site-stack-copy", usage: "라벨 → 입력, 이름 → 날짜, 연결된 짧은 문구" },
+  { role: "정보 필드 사이", mobile: 24, wide: 24, owner: "DetailGrid / DetailField", usage: "정보 값은 본문16px, 라벨14px. 개별 정보 필드에 박스를 중첩하지 않음" },
+  { role: "선택 항목 사이", mobile: 8, wide: 8, owner: "CheckboxFieldGroup / CheckboxField", usage: "네이티브 체크박스·14px 라벨·13px 메타, 기본 컨트롤 높이 이상" },
   { role: "버튼 사이", mobile: 8, wide: 8, owner: "site-action-row", usage: "문구 너비, 시작 정렬, 좁으면 순서대로 줄바꿈" },
 ] as const;

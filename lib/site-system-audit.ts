@@ -17,7 +17,7 @@ const verticalUtility = /^(?:!?-?(?:p[ytb]|m[ytb]|p|m|space-y|gap-y|translate-y|
 const verticalProperty = /^(?:margin(?:-(?:top|bottom|block(?:-start|-end)?))?|padding(?:-(?:top|bottom|block(?:-start|-end)?))?|row-gap|gap|top|bottom|translate|transform)$/;
 const appearanceProperty = /^(?:padding(?:-.+)?|font(?:-.+)?|line-height|color|background(?:-.+)?|border(?:-.+)?|(?:min-|max-)?height|box-shadow|opacity)$/;
 const protectedSelector = /(?:\.site-(?:area-tab(?:s|s-root)?|page-tabs|topic-tab(?:s)?|tab(?:s)?|button|field|chip|indicator-icon)\b|\[data-slot=["']?tabs(?:-list|-trigger)?["']?\])/;
-const compositionSelector = /\.site-(?:content-panel|stack-title|field-stack|form-row|action-row|content-divider|content-heading-row|notice-layout)\b/;
+const compositionSelector = /\.site-(?:content-panel|stack-title|field-stack|form-row|action-row|content-divider|content-heading-row|notice-layout|detail-grid|detail-field|checkbox-grid|checkbox-field|field-grid|data-row|record-heading|record-actions)\b/;
 const compositionUtility = /^(?:-?(?:p[trblxyse]?|m[trblxyse]?|gap(?:-[xy])?|space-[xy])-|font-|leading-|tracking-)/;
 const typeRoles = new Set<string>(SITE_TYPE_ROLES.map(role => role.className));
 
@@ -165,7 +165,7 @@ export function auditSiteSystem(files: FileMap): SiteSystemViolation[] {
           }
           panel = panel.parent;
         }
-        const semanticComposition = classes && strings(classes).some(value => /\bsite-(?:content-panel|stack-title|field-stack|form-row|action-row|content-divider|content-heading-row|notice-layout)\b/.test(value));
+        const semanticComposition = classes && strings(classes).some(value => /\bsite-(?:content-panel|stack-title|field-stack|form-row|action-row|content-divider|content-heading-row|notice-layout|detail-grid|detail-field|checkbox-grid|checkbox-field|field-grid|data-row|record-heading|record-actions)\b/.test(value));
         if (!file.startsWith("app/components/ui/") && (composed || semanticComposition)) {
           if (classes) {
             const overrides = strings(classes).flatMap(value => value.split(/\s+/)).filter(value => compositionUtility.test(utilityValue(value)) || /^\[(?:margin|padding|gap|font|line-height|letter-spacing):/.test(utilityValue(value)));

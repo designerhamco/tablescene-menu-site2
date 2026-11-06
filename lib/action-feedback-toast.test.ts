@@ -34,6 +34,9 @@ test("매장 운영·직원 액션은 기존 인라인 안내와 토스트를 �
     } else if ((path.endsWith("CallItemManager.tsx") || path.endsWith("CallDashboard.tsx"))) {
       assert.match(source, /ContentPanel as="aside" surface="notice"/);
       assert.match(source, /role="status"/);
+    } else if (path.endsWith("StaffInvitationForm.tsx")) {
+      assert.match(source, /surface=\{state.status === "success" \? "muted" : "notice"\}/);
+      assert.match(source, /aria-live="polite">\{state.message\}/);
     } else {
       assert.match(source, /site-notice-success/);
     }
@@ -54,6 +57,11 @@ test("리다이렉트 결과 안내도 상단 박스와 토스트를 함께 유�
   for (const path of redirectSurfaces) {
     const source = readSource(path);
     assert.match(source, /ActionFeedbackToast/);
-    assert.match(source, /site-notice-success/);
+    if (path === "app/mypage/staff/page.tsx") {
+      assert.match(source, /<ContentPanel surface=\{resultNotice.tone === "success"/);
+      assert.match(source, /role="status">\{resultNotice.message\}/);
+    } else {
+      assert.match(source, /site-notice-success/);
+    }
   }
 });

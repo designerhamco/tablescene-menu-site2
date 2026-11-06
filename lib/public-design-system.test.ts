@@ -90,7 +90,7 @@ test("마이페이지와 주요 서브페이지는 같은 사이트 여백 계�
     mypagePreviewSource,
     storeOperationsShellSource,
   ]) {
-    assert.match(source, /<SitePage\b|site-gutter/);
+    assert.match(source, /<SitePage\b|site-gutter|<AccountPageContent/);
   }
 
   for (const source of operationPageSources) {

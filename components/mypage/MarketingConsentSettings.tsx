@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
 import { toast } from "sonner";
+import { ContentPanel } from "@/app/components/ui/content-panel";
 import { Switch } from "@/app/components/ui/switch";
 
 type MarketingConsentSettingsProps = {
@@ -76,35 +77,35 @@ export default function MarketingConsentSettings({
   }
 
   return (
-    <section className="site-section mt-6 p-5">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-        <div className="min-w-0">
+    <ContentPanel>
+      <div className="site-content-heading-row">
+        <div className="site-stack-title min-w-0">
           <h3 className="type-content-title text-zinc-950">광고성 정보 수신 동의</h3>
-          <p className="mt-2 break-keep text-support font-normal leading-relaxed text-zinc-600">
+          <p className="type-body-sm site-copy-muted">
             이벤트, 할인 혜택, 신규 템플릿 출시, AI 기능 업데이트, 서비스 개선 소식, 유료 기능 안내 등을 이메일, 문자메시지, 카카오 메시지 등으로 받을 수 있습니다.
           </p>
-          <p className="mt-3 break-keep text-support font-normal leading-relaxed text-zinc-600">
+          <p className="type-body-sm site-copy-muted">
             동의하지 않아도 아티메뉴 서비스 이용에는 제한이 없습니다. 결제 완료, 정기결제 예정 또는 실패, 구독 만료, 데이터 삭제 예정, 약관·정책 변경, 서비스 장애, 보안 안내 등 필수 고지는 수신 동의 여부와 관계없이 발송될 수 있습니다.
           </p>
-          <p className="mt-3 break-keep text-support font-normal leading-relaxed text-zinc-600">
+          <p className="type-body-sm site-copy-muted">
             {accepted
               ? `동의일: ${formatDateTime(consentedAt) ?? "저장 후 기록됩니다."}`
               : `철회일: ${formatDateTime(withdrawnAt) ?? "저장 후 기록됩니다."}`} · 추후 이메일/문자/카카오 채널별 설정으로 확장할 수 있도록 계정 단위 설정으로 저장합니다.
           </p>
-          {message ? <p className="mt-3 text-support font-medium text-emerald-700">{message}</p> : null}
-          {error ? <p className="mt-3 text-support font-medium text-red-700">{error}</p> : null}
+          {message ? <p className="type-body-sm text-emerald-700">{message}</p> : null}
+          {error ? <p className="type-body-sm text-red-700">{error}</p> : null}
         </div>
         <label
           htmlFor={switchId}
-          className={`flex w-full items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-4 text-left transition-colors md:w-auto md:min-w-52 ${isSaving ? "cursor-not-allowed" : "cursor-pointer hover:bg-zinc-50"}`}
+          className="site-action-row shrink-0"
         >
-          <span className="min-w-0">
-            <span className="block text-copy font-medium text-zinc-900">{accepted ? "수신 동의 중" : "수신 동의 안 함"}</span>
-            <span id={`${switchId}-description`} className="mt-1 block text-support font-medium text-zinc-600">{isSaving ? "저장 중..." : "클릭해서 변경"}</span>
+          <span className="site-stack-copy min-w-0">
+            <span className="type-label">{accepted ? "수신 동의 중" : "수신 동의 안 함"}</span>
+            <span id={`${switchId}-description`} className="type-caption site-copy-muted">{isSaving ? "저장 중..." : "클릭해서 변경"}</span>
           </span>
-          <Switch id={switchId} surface="light" checked={accepted} disabled={isSaving} aria-label="광고성 정보 수신 동의" aria-describedby={`${switchId}-description`} aria-busy={isSaving} onCheckedChange={nextAccepted => void updateConsent(nextAccepted)} />
+          <Switch id={switchId} surface="light" checked={accepted} loading={isSaving} disabled={isSaving} aria-label="광고성 정보 수신 동의" aria-describedby={`${switchId}-description`} aria-busy={isSaving} onCheckedChange={nextAccepted => void updateConsent(nextAccepted)} />
         </label>
       </div>
-    </section>
+    </ContentPanel>
   );
 }

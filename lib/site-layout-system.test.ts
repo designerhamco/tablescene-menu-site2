@@ -44,7 +44,8 @@ test("주요 공개·인증·고객지원 화면은 공통 페이지 간격을 �
 test("마이페이지 본체는 공통 카드·탭·피드백 표면을 사용한다", () => {
   const source = readSource("../app/mypage/page.tsx");
 
-  assert.match(source, /site-gutter site-page-spacing-compact/);
+  assert.match(source, /<AccountPageContent sidebar=/);
+  assert.match(readSource("../components/mypage/AccountPageContent.tsx"), /className="site-container"/);
   assert.match(source, /<NavigationTabs label="내 메뉴판 탭"/);
   assert.match(source, /site-notice site-notice-success/);
   assert.match(source, /site-notice site-notice-warning/);
@@ -155,6 +156,8 @@ test("content layout examples and documented spacing match the canonical token c
     ["--site-space-group", "--site-space-group"],
     ["--site-space-title-copy", "--site-space-title-copy"],
     ["--site-space-block", "--site-space-block"],
+    ["--site-space-copy", "--site-space-copy"],
+    ["--site-space-group", "--site-space-group"],
     ["--site-space-copy", "--site-space-copy"],
     ["--site-space-copy", "--site-space-copy"],
   ];
