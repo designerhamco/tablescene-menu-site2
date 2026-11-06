@@ -17,7 +17,7 @@ export const SITE_CONTENT_COMPOSITION = [
   { role: "조밀한 안내 안쪽", mobile: 16, wide: 16, owner: 'ContentPanel density="compact"', usage: "짧은 안내와 상태 피드백" },
   { role: "박스 안의 콘텐츠 묶음", mobile: 24, wide: 24, owner: "ContentPanel / site-stack-group", usage: "제목 그룹 → 폼 → 별도 행동 묶음" },
   { role: "제목과 설명", mobile: 12, wide: 12, owner: "site-stack-title", usage: "페이지 내부 섹션·박스 제목과 설명" },
-  { role: "필드·작은 블록 사이", mobile: 16, wide: 16, owner: "site-form-row / site-stack-block", usage: "연결된 입력 필드·폼과 도움말" },
+  { role: "필드·작은 블록 사이", mobile: 16, wide: 16, owner: "site-form-row / site-stack-block", usage: "연결된 입력 필드·폼과 도움말 · 컨트롤만 나란히 놓으면 data-alignment=center" },
   { role: "라벨과 입력·관련 문구", mobile: 8, wide: 8, owner: "site-field-stack / site-stack-copy", usage: "라벨 → 입력, 이름 → 날짜, 연결된 짧은 문구" },
   { role: "버튼 사이", mobile: 8, wide: 8, owner: "site-action-row", usage: "문구 너비, 시작 정렬, 좁으면 순서대로 줄바꿈" },
 ] as const;

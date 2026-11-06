@@ -91,6 +91,7 @@
 
 @media (min-width: 640px) {
   .site-form-row { flex-direction: row; align-items: flex-end; }
+  .site-form-row[data-alignment="center"] { align-items: center; }
   .site-form-row > [data-field-width="short"] { flex: 0 1 10rem; }
   .site-content-heading-row { flex-direction: row; align-items: flex-start; }
 }

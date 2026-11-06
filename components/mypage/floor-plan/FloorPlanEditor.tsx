@@ -151,7 +151,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   const placementTools = <fieldset disabled={pending} className="site-stack-block" aria-describedby={placementHelpId}>
     <legend className="sr-only">테이블·키오스크 배치 도구</legend>
     <div className="site-action-row" data-distribution="between">
-      <div className="site-form-row flex-1">
+      <div className="site-form-row flex-1" data-alignment="center">
         <label className="site-field-stack type-label"><span className="sr-only">배치할 {noun}</span>
           <select className="site-field w-full" value={chosen?.id ?? ""} disabled={!room || !chosen} onChange={e => { setUnplacedId(e.target.value); setDrawing(false); }}>
             {!chosen ? <option value="">배치할 {noun} 없음</option> : null}

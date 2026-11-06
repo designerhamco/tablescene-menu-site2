@@ -165,3 +165,14 @@ test("content layout examples and documented spacing match the canonical token c
   });
   assert.match(readSource("../components/design-system/SiteSpacingRules.tsx"), /SITE_CONTENT_COMPOSITION.map/);
 });
+
+
+test("adjacent controls opt into center alignment while labeled forms and mobile stacking retain their defaults", () => {
+  const spacing = readSource("../styles/site-spacing.css");
+  assert.match(spacing, /\.site-form-row \{[^}]*flex-direction: column;[^}]*align-items: stretch;/);
+  assert.match(spacing, /@media \(min-width: 640px\) \{\s*\.site-form-row \{ flex-direction: row; align-items: flex-end; \}\s*\.site-form-row\[data-alignment="center"\] \{ align-items: center; \}/);
+  const editor = readSource("../components/mypage/floor-plan/FloorPlanEditor.tsx");
+  assert.match(editor, /className="site-form-row flex-1" data-alignment="center"/);
+  assert.match(readSource("../components/design-system/SiteSpacingRules.tsx"), /htmlFor="control-row-address"/);
+  assert.match(readSource("../components/design-system/SiteSpacingRules.tsx"), /data-alignment="center"/);
+});
