@@ -282,7 +282,7 @@ test("운영 요약은 개별 주문·호출 허용과 연결 상태를 공유�
   const point = { id: "point", label: "창가", status: "active" as const, kind: "table" as const, policyAvailable: true, policy: { terminalOrderEnabled: true, customerOrderEnabled: false, terminalCallEnabled: false, customerCallEnabled: true } };
   const table = renderToStaticMarkup(createElement(OrderPointReceptionSummary, { menuSiteId: "store", point }));
   assert.match(table, /태블릿 ON · QR OFF/); assert.match(table, /태블릿 OFF · QR ON/);
-  assert.match(table, /orders\/settings#point-point/); assert.match(table, /calls\/settings#point-point/);
+  assert.match(table, /orders\/settings\?tab=devices#point-point/); assert.match(table, /calls\/settings#point-point/);
   assert.doesNotMatch(table, /role="switch"/);
   const kiosk = renderToStaticMarkup(createElement(OrderPointReceptionSummary, { menuSiteId: "store", point: {...point, kind: "kiosk"} }));
   assert.match(kiosk, /기기 ON/); assert.doesNotMatch(kiosk, /태블릿 ON · QR/);
