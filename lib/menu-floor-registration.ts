@@ -2,7 +2,7 @@ import { floorMemberships, placeNewFloorPoints, type FloorDocument, type FloorPl
 
 export type RegisteredFloorPoint = { pointId: string; roomId: string; operationId?:string };
 
-/** Persist only the new registration; other hand-edited layout drafts stay unsaved. */
+/** Persist only an explicit restoration; ordinary creations use the draft-only helper below. */
 export async function saveRegisteredFloorPoint(saved: FloorPlanSnapshot, point: RegisteredFloorPoint, save: (revision: number, document: FloorDocument) => Promise<FloorSaveResult>): Promise<FloorSaveResult> {
   if (!saved.available || !saved.document.rooms.some(room => room.id === point.roomId)) return { status: "error", message: "등록할 룸을 확인하지 못했습니다. 룸을 저장한 뒤 다시 시도해 주세요." };
   const document = placeNewFloorPoints(saved.document, [point.pointId], point.roomId);
@@ -17,3 +17,6 @@ export function mergeRegisteredFloorPoint(draft: FloorDocument, committed: Floor
   if (!placement || !draft.rooms.some(room => room.id === placement.roomId)) return draft;
   return { ...draft, placements: [...draft.placements.filter(item => item.pointId !== pointId), placement], memberships:[...floorMemberships(draft).filter(item=>item.pointId!==pointId),{pointId,roomId:placement.roomId}] };
 }
+
+/** Ordinary new registrations remain in the draft until the footer save. */
+export function placeRegisteredFloorPoint(draft:FloorDocument,point:RegisteredFloorPoint):FloorDocument {return placeNewFloorPoints(draft,[point.pointId],point.roomId);}
