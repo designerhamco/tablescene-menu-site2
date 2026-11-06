@@ -1,4 +1,6 @@
-import SitePageHeader from "@/components/layout/SitePageHeader";
+import { ContentPanel } from "@/app/components/ui/content-panel";
+import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
+import AccountPageContent from "@/components/mypage/AccountPageContent";
 import { getTemplateByKey } from "@/lib/templates";
 import Link from "next/link";
 import FavoriteTemplates from "@/components/mypage/FavoriteTemplates";
@@ -2731,12 +2733,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         message={mypageNotice}
         tone={messageCode === "staff-invitation-accepted" ? "success" : "warning"}
       />
-      <main className="site-management-scope site-account-page site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
-        <div className="mx-auto w-full max-w-[var(--site-content-width)]">
-          <SitePageHeader title="마이페이지" align="start" />
-
-        <div className="site-account-layout">
-          <aside className="site-account-sidebar min-w-0">
+      <main className="site-management-scope site-account-page site-page-spacing-compact min-h-screen bg-white text-zinc-950">
+        <AccountPageContent sidebar={<>
             <MypageAccountCard
               businessName={businessProfile?.business_name}
               email={user.email ?? "이메일 정보 없음"}
@@ -2751,9 +2749,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               canShowOwnerCommerce={canShowOwnerCommerce}
               unreadNotificationCount={unreadNotificationCount}
             />
-          </aside>
-
-          <div className="min-w-0 space-y-8 lg:space-y-10">
+          </>}>
             {activeTab === "menus" ? (
             <section id="my-menus" className="scroll-mt-28">
               <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
@@ -2835,24 +2831,24 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             ) : null}
 
             {activeTab === "payments" ? (
-              <section id="payment-history" className="scroll-mt-28">
-                <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+              <section id="payment-history" className="site-stack-group">
+                <div className="site-content-heading-row">
                   <div>
                     <h2 className="type-section-title">구독/결제 내역</h2>
                   </div>
                 </div>
 
-                <NavigationTabs purpose="section" label="구독/결제 내역 탭" className="mb-6" items={[
+                <NavigationTabs purpose="section" label="구독/결제 내역 탭" items={[
                   { label: "결제내역", href: "/mypage?tab=payments&billingTab=history", active: activeBillingTab === "history" },
                   { label: "AI 충전/사용내역", href: "/mypage?tab=payments&billingTab=ai-credits", active: activeBillingTab === "ai-credits" },
                 ]} />
 
                 {paymentsErrors.length > 0 ? (
-                  <div className="site-notice site-notice-warning mb-5 p-5">
+                  <ContentPanel surface="notice" density="compact">
                     {Array.from(new Set(paymentsErrors)).map((paymentsError) => (
-                      <p key={paymentsError}>{paymentsError}</p>
+                      <p key={paymentsError} className="type-body-sm">{paymentsError}</p>
                     ))}
-                  </div>
+                  </ContentPanel>
                 ) : null}
 
                 {activeBillingTab === "history" ? (
@@ -3202,29 +3198,29 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                     accountSummaryOnly
                   />
                 ) : (
-                  <article className="site-card site-card-compact p-4">
+                  <ContentPanel as="article">
                     <h3 className="type-item-title text-zinc-950">보유 AI 크레딧 0개</h3>
-                    <p className="mt-2 break-keep text-copy font-normal leading-relaxed text-zinc-600">
+                    <p className="type-body text-zinc-600">
                       충전한 AI 크레딧은 내 계정의 모든 메뉴판에서 사용할 수 있습니다.
                     </p>
-                  </article>
+                  </ContentPanel>
                 )}
-                <section className="space-y-4">
-                  <div className="flex flex-col justify-between gap-2 md:flex-row md:items-end">
-                    <div>
+                <section className="site-stack-group">
+                  <div className="site-content-heading-row">
+                    <div className="site-stack-title">
                       <h3 className="type-subsection-title">AI 크레딧 충전/사용 내역</h3>
-                      <p className="mt-2 max-w-2xl break-keep text-support font-normal leading-relaxed text-amber-700">
+                      <p className="type-body-sm text-amber-700">
                         AI 크레딧은 계정 공용으로 충전되며, 지급 후 단순 변심에 따른 취소/환불이 제한됩니다. 중복 결제 또는 미지급 건은 고객지원으로 문의해주세요.
                       </p>
                     </div>
                     {aiCreditTransactions.length > displayedAiCreditTransactions.length ? (
-                      <p className="text-support font-medium text-zinc-600">최근 {displayedAiCreditTransactions.length.toLocaleString("ko-KR")}건 표시</p>
+                      <p className="type-body-sm text-zinc-600">최근 {displayedAiCreditTransactions.length.toLocaleString("ko-KR")}건 표시</p>
                     ) : null}
                   </div>
 
                   {displayedAiCreditTransactions.length > 0 ? (
-                    <div className="site-record-list">
-                      {displayedAiCreditTransactions.map((transaction, index) => {
+                    <div>
+                      {displayedAiCreditTransactions.map((transaction) => {
                         const isPurchase = transaction.transaction_type === "purchase";
                         const product = isPurchase ? getAiCreditPack(transaction.product_key) : null;
                         const payment = payments.find((item) => {
@@ -3241,26 +3237,26 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         const creditAmountLabel = `${creditAmount > 0 ? "+" : ""}${creditAmount.toLocaleString("ko-KR")}개`;
 
                         return (
-                          <article key={transaction.id ?? `${transaction.transaction_type}-${transaction.created_at}`} className={`p-4 ${index > 0 ? "border-t border-zinc-100" : ""}`}>
-                            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                              <div className="min-w-0">
+                          <article key={transaction.id ?? `${transaction.transaction_type}-${transaction.created_at}`} className="site-data-row site-stack-group">
+                            <div className="site-content-heading-row">
+                              <div className="site-stack-copy min-w-0">
                                 <h4 className="type-item-title text-zinc-950">{transactionName}</h4>
-                                <p className="mt-1 text-support font-medium text-zinc-600">
+                                <p className="type-body-sm text-zinc-600">
                                   {formatDateTime(transaction.created_at)}
                                   {menuSite?.name ? ` · ${menuSite.name}` : " · 계정 공용"}
                                 </p>
                                 {isPurchase && paymentId ? (
-                                  <p className="type-caption mt-1 font-mono text-zinc-600">결제번호 {maskPaymentId(paymentId)}</p>
+                                  <p className="type-caption text-zinc-600">결제번호 {maskPaymentId(paymentId)}</p>
                                 ) : null}
                               </div>
-                              <div className="text-left md:text-right">
-                                {isPurchase ? <p className="text-copy font-medium text-zinc-950">{product ? formatKrw(product.amount) : "-"}</p> : null}
-                                <p className={`text-copy font-medium ${creditAmount < 0 ? "text-zinc-700" : "text-emerald-700"}`}>{creditAmountLabel}</p>
-                                <p className="mt-1 text-support font-medium text-zinc-600">
+                              <div className="site-stack-copy text-left md:text-right">
+                                {isPurchase ? <p className="type-body text-zinc-950">{product ? formatKrw(product.amount) : "-"}</p> : null}
+                                <p className={`type-body ${creditAmount < 0 ? "text-zinc-700" : "text-emerald-700"}`}>{creditAmountLabel}</p>
+                                <p className="type-body-sm text-zinc-600">
                                   사용 후 잔여 {typeof transaction.balance_after === "number" ? `${transaction.balance_after.toLocaleString("ko-KR")}개` : "-"}
                                 </p>
                                 {isPurchase ? (
-                                  <div className="mt-2 flex flex-wrap gap-2 md:justify-end">
+                                  <div className="site-action-row" data-distribution="end">
                                     <Badge>
                                       {getPaymentStatusLabel(paymentStatus)}
                                     </Badge>
@@ -3324,8 +3320,8 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
             ) : null}
 
             {activeTab === "account" ? (
-            <section id="account-info" className="scroll-mt-28">
-              <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <section id="account-info" className="site-stack-group">
+              <div className="site-content-heading-row">
                 <div>
                   <h2 className="type-section-title">로그인 및 가입 정보</h2>
                 </div>
@@ -3337,52 +3333,29 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 </Link>
               </div>
 
-              <article className="site-card p-5 sm:p-6">
-                <dl className="grid gap-5 md:grid-cols-2">
-                  <div className="rounded-2xl bg-zinc-50 p-4">
-                    <dt className="text-support font-medium uppercase text-zinc-600">로그인 이메일</dt>
-                    <dd className="mt-2 break-all text-copy font-medium text-zinc-900">{user.email ?? "이메일 정보 없음"}</dd>
-                  </div>
-                  <div className="rounded-2xl bg-zinc-50 p-4">
-                    <dt className="text-support font-medium uppercase text-zinc-600">가입 방식</dt>
-                    <dd className="mt-2 text-copy font-medium text-zinc-900">{getProviderLabel(primaryProvider)}</dd>
-                  </div>
-                  <div className="rounded-2xl bg-zinc-50 p-4">
-                    <dt className="text-support font-medium uppercase text-zinc-600">연결된 소셜 계정</dt>
-                    <dd className="mt-2 flex flex-wrap gap-2">
+              <div className="site-stack-group">
+                <ContentPanel><DetailGrid><DetailField label={<>로그인 이메일</>}>{user.email ?? "이메일 정보 없음"}</DetailField>
+<DetailField label={<>가입 방식</>}>{getProviderLabel(primaryProvider)}</DetailField>
+<DetailField label={<>연결된 소셜 계정</>}><span className="site-action-row">
                       {connectedAccounts.map((provider) => (
                         <Badge key={provider} >
                           {getProviderLabel(provider)}
                         </Badge>
                       ))}
-                    </dd>
-                  </div>
-                  <div className="rounded-2xl bg-zinc-50 p-4">
-                    <dt className="text-support font-medium uppercase text-zinc-600">가입일</dt>
-                    <dd className="mt-2 text-copy font-medium text-zinc-900">{formatDate(user.created_at ?? null)}</dd>
-                  </div>
-                  <div className="rounded-2xl bg-zinc-50 p-4">
-                    <dt className="text-support font-medium uppercase text-zinc-600">최근 로그인일</dt>
-                    <dd className="mt-2 text-copy font-medium text-zinc-900">{formatDate(user.last_sign_in_at ?? null)}</dd>
-                  </div>
-                  <div className="rounded-2xl bg-zinc-50 p-4">
-                    <dt className="text-support font-medium uppercase text-zinc-600">이름 또는 매장명</dt>
-                    <dd className="mt-2 break-keep text-copy font-medium text-zinc-900">
+                    </span></DetailField>
+<DetailField label={<>가입일</>}>{formatDate(user.created_at ?? null)}</DetailField>
+<DetailField label={<>최근 로그인일</>}>{formatDate(user.last_sign_in_at ?? null)}</DetailField>
+<DetailField label={<>이름 또는 매장명</>}>
                       {displayName || "아직 등록된 업체 정보가 없습니다."}
-                    </dd>
-                  </div>
-                  <div className="rounded-2xl bg-zinc-50 p-4 md:col-span-2">
-                    <dt className="text-support font-medium uppercase text-zinc-600">사용자 ID</dt>
-                    <dd className="mt-2 break-all font-mono text-support font-medium text-zinc-600">{user.id}</dd>
-                  </div>
-                </dl>
-                <section className="site-section mt-6 p-5">
-                  <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
-                    <div>
+                    </DetailField>
+<DetailField label={<>사용자 ID</>} full>{user.id}</DetailField></DetailGrid></ContentPanel>
+                <ContentPanel>
+                  <div className="site-content-heading-row">
+                    <div className="site-stack-title">
                       <h3 className="type-content-title text-zinc-950">
                         {businessProfile?.business_name || "아직 인증된 사업자 정보가 없습니다."}
                       </h3>
-                      <p className="mt-2 break-keep type-footnote text-zinc-600">
+                      <p className="type-footnote text-zinc-600">
                         사업자 인증 정보는 결제 및 서비스 이용 기준 정보로 사용됩니다. 변경이 필요한 경우 고객지원으로 문의해주세요.
                       </p>
                     </div>
@@ -3395,51 +3368,31 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   </div>
 
                   {businessProfile ? (
-                    <dl className="mt-5 grid gap-3 md:grid-cols-2">
-                      <div className="rounded-2xl bg-white p-4">
-                        <dt className="text-support font-medium uppercase text-zinc-600">대표자명</dt>
-                        <dd className="mt-2 text-copy font-medium text-zinc-900">{businessProfile.representative_name ?? "-"}</dd>
-                      </div>
-                      <div className="rounded-2xl bg-white p-4">
-                        <dt className="text-support font-medium uppercase text-zinc-600">사업자등록번호</dt>
-                        <dd className="mt-2 text-copy font-medium text-zinc-900">
+                    <DetailGrid><DetailField label={<>대표자명</>}>{businessProfile.representative_name ?? "-"}</DetailField>
+<DetailField label={<>사업자등록번호</>}>
                           {businessProfile.business_registration_number ? maskBusinessRegistrationNumber(businessProfile.business_registration_number) : "-"}
-                        </dd>
-                      </div>
-                      <div className="rounded-2xl bg-white p-4">
-                        <dt className="text-support font-medium uppercase text-zinc-600">사업자 상태</dt>
-                        <dd className="mt-2 text-copy font-medium text-zinc-900">{businessProfile.business_status ?? "-"}</dd>
-                      </div>
-                      <div className="rounded-2xl bg-white p-4">
-                        <dt className="text-support font-medium uppercase text-zinc-600">과세 유형</dt>
-                        <dd className="mt-2 text-copy font-medium text-zinc-900">{businessProfile.tax_type ?? "-"}</dd>
-                      </div>
-                      <div className="rounded-2xl bg-white p-4">
-                        <dt className="text-support font-medium uppercase text-zinc-600">인증 상태</dt>
-                        <dd className="mt-2 text-copy font-medium text-zinc-900">{businessProfile.verification_status === "verified" ? "인증 완료" : businessProfile.verification_status ?? "-"}</dd>
-                      </div>
-                      <div className="rounded-2xl bg-white p-4">
-                        <dt className="text-support font-medium uppercase text-zinc-600">인증일</dt>
-                        <dd className="mt-2 text-copy font-medium text-zinc-900">{formatDate(businessProfile.last_verified_at ?? businessProfile.verified_at)}</dd>
-                      </div>
-                    </dl>
+                        </DetailField>
+<DetailField label={<>사업자 상태</>}>{businessProfile.business_status ?? "-"}</DetailField>
+<DetailField label={<>과세 유형</>}>{businessProfile.tax_type ?? "-"}</DetailField>
+<DetailField label={<>인증 상태</>}>{businessProfile.verification_status === "verified" ? "인증 완료" : businessProfile.verification_status ?? "-"}</DetailField>
+<DetailField label={<>인증일</>}>{formatDate(businessProfile.last_verified_at ?? businessProfile.verified_at)}</DetailField></DetailGrid>
                   ) : (
-                    <p className="mt-5 break-keep rounded-2xl bg-white p-4 text-copy font-normal leading-relaxed text-zinc-600">
+                    <p className="type-body text-zinc-600">
                       사업자 월결제/연결제를 이용하려면 /apply/basic에서 사업자 인증을 먼저 진행해주세요.
                     </p>
                   )}
 
                   {businessProfilesError && (
-                    <p className="mt-4 break-keep text-support font-normal leading-relaxed text-amber-700">
+                    <p className="type-body-sm text-amber-700">
                       사업자 정보 테이블이 아직 적용되지 않았거나 조회 권한이 없습니다.
                     </p>
                   )}
-                </section>
-                <section className="site-section mt-6 p-5">
-                  <div className="flex flex-col justify-between gap-4 md:flex-row md:items-start">
-                    <div>
+                </ContentPanel>
+                <ContentPanel>
+                  <div className="site-content-heading-row">
+                    <div className="site-stack-title">
                       <h3 className="type-content-title text-zinc-950">서비스 안내 및 문의 수신 정보</h3>
-                      <p className="mt-2 break-keep type-footnote text-zinc-600">
+                      <p className="type-footnote text-zinc-600">
                         문의 답변과 서비스 안내는 담당자 정보 기준으로 전달됩니다.
                       </p>
                     </div>
@@ -3449,30 +3402,19 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                       notificationEmail={notificationEmail}
                     />
                   </div>
-                  <dl className="mt-5 grid gap-3 md:grid-cols-3">
-                    <div className="rounded-2xl bg-zinc-50 p-4">
-                      <dt className="text-support font-medium uppercase text-zinc-600">담당자명</dt>
-                      <dd className="mt-2 break-keep text-copy font-medium text-zinc-900">{contactName || "등록된 담당자명 없음"}</dd>
-                    </div>
-                    <div className="rounded-2xl bg-zinc-50 p-4">
-                      <dt className="text-support font-medium uppercase text-zinc-600">담당자 연락처</dt>
-                      <dd className="mt-2 text-copy font-medium text-zinc-900">{contactPhone || "등록된 연락처 없음"}</dd>
-                    </div>
-                    <div className="rounded-2xl bg-zinc-50 p-4">
-                      <dt className="text-support font-medium uppercase text-zinc-600">문의/알림 수신 이메일</dt>
-                      <dd className="mt-2 break-all text-copy font-medium text-zinc-900">{notificationEmail || "이메일 정보 없음"}</dd>
-                    </div>
-                  </dl>
+                  <DetailGrid columns={3}><DetailField label={<>담당자명</>}>{contactName || "등록된 담당자명 없음"}</DetailField>
+<DetailField label={<>담당자 연락처</>}>{contactPhone || "등록된 연락처 없음"}</DetailField>
+<DetailField label={<>문의/알림 수신 이메일</>}>{notificationEmail || "이메일 정보 없음"}</DetailField></DetailGrid>
                   {contactProfileError && !isMissingOptionalMypageRelation(contactProfileError) ? (
-                    <p className="mt-4 break-keep text-support font-semibold leading-relaxed text-amber-700">
+                    <p className="type-body-sm text-amber-700">
                       담당자 정보 조회에 실패했습니다. 저장된 정보가 보이지 않으면 잠시 후 다시 시도해주세요.
                     </p>
                   ) : (
-                    <p className="mt-4 break-keep text-support font-semibold leading-relaxed text-zinc-600">
+                    <p className="type-body-sm text-zinc-600">
                       사업자 인증 정보는 읽기 전용이며, 담당자 정보만 직접 등록하거나 수정할 수 있습니다.
                     </p>
                   )}
-                </section>
+                </ContentPanel>
                 <MarketingConsentSettings
                   initialAccepted={marketingAccepted}
                   consentedAt={marketingConsentedAt}
@@ -3482,12 +3424,10 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   hasActiveBusinessSubscription={hasActiveBusinessSubscriptionForDeletion}
                   hasAnyMenuSite={sites.length > 0}
                 />
-              </article>
+              </div>
             </section>
             ) : null}
-          </div>
-        </div>
-        </div>
+          </AccountPageContent>
       </main>
       <Footer />
     </>

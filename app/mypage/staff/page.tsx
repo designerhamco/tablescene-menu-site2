@@ -1,4 +1,6 @@
-import SitePageHeader from "@/components/layout/SitePageHeader";
+import { ContentPanel } from "@/app/components/ui/content-panel";
+import { CheckboxField, CheckboxFieldGroup } from "@/app/components/ui/checkbox-field";
+import AccountPageContent from "@/components/mypage/AccountPageContent";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -169,9 +171,8 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-management-scope site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
-        <div className="site-account-layout mx-auto w-full max-w-[var(--site-content-width)]">
-          <aside className="site-account-sidebar min-w-0">
+      <main className="site-management-scope site-page-spacing-compact min-h-screen bg-white text-zinc-950">
+        <AccountPageContent sidebar={<>
             <MypageAccountCard
               businessName={businessProfileResult.data?.business_name}
               email={user.email ?? "이메일 정보 없음"}
@@ -181,30 +182,23 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
               staffAccountCount={new Set(activeMemberships.map(member => member.user_id)).size}
             />
             <MypageNavigation active="staff" totalMenuCount={menuSites.length} canShowOwnerCommerce />
-          </aside>
-          <section className="min-w-0 space-y-8">
+          </>}>
         <ActionFeedbackToast
           message={resultNotice?.message}
           tone={resultNotice?.tone ?? "success"}
         />
-        <SitePageHeader title="직원 관리" align="start"><Link href="/mypage?tab=menus" className="site-button site-button-link">마이페이지로 돌아가기</Link></SitePageHeader>
+        <div className="site-content-heading-row"><h2 className="type-section-title">직원 관리</h2><Link href="/mypage?tab=menus" className="site-button site-button-link">마이페이지로 돌아가기</Link></div>
 
         {menuSitesError ? (
-          <p className="site-notice site-notice-error px-4 py-3 text-copy font-medium">
+          <p className="type-body-sm text-red-700">
             메뉴판 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
           </p>
         ) : null}
 
         {resultNotice ? (
-          <p className={`site-notice   px-4 py-3 text-copy font-medium ${
-            resultNotice.tone === "success"
-              ? "site-notice-success"
-              : resultNotice.tone === "warning"
-                ? "site-notice-warning"
-                : "site-notice-error"
-          }`}>
-            {resultNotice.message}
-          </p>
+          <ContentPanel surface={resultNotice.tone === "success" ? "muted" : resultNotice.tone === "error" ? "danger" : "notice"} density="compact">
+            <p className="type-body-sm" role="status">{resultNotice.message}</p>
+          </ContentPanel>
         ) : null}
 
         <StaffInvitationForm
@@ -216,20 +210,20 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
           }))}
         />
 
-        <section className="site-section p-6 md:p-8">
-          <div>
-            <h2 className="type-content-title">활동 중인 직원</h2>
-            <p className="mt-2 text-copy font-medium text-zinc-500">메뉴판별 역할 프리셋을 변경하거나 접근을 즉시 회수할 수 있습니다.</p>
+        <ContentPanel>
+          <div className="site-stack-title">
+            <h3 className="type-content-title">활동 중인 직원</h3>
+            <p className="type-body text-zinc-500">메뉴판별 역할 프리셋을 변경하거나 접근을 즉시 회수할 수 있습니다.</p>
           </div>
 
           {membershipResult.error || acceptedInvitationResult.error ? (
-            <p className="site-notice site-notice-error mt-5 px-4 py-3 text-copy font-medium">
+            <p className="type-body">
               직원 목록을 불러오지 못했습니다.
             </p>
           ) : activeMemberships.length === 0 ? (
-            <p className="mt-5 rounded-2xl bg-zinc-100 px-4 py-5 text-copy font-medium text-zinc-600">활동 중인 직원이 없습니다.</p>
+            <ContentPanel surface="muted" density="compact"><p className="type-body-sm">활동 중인 직원이 없습니다.</p></ContentPanel>
           ) : (
-            <div className="site-section mt-5 divide-y divide-zinc-100 overflow-hidden">
+            <div>
               {activeMemberships.map((membership) => {
                 const email = memberEmailBySiteAndUser.get(`${membership.menu_site_id}:${membership.user_id}`);
                 const effectivePermissions = resolvePermissionsForAccessRole(
@@ -237,22 +231,22 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                   membership.permission_overrides,
                 );
                 return (
-                  <div key={membership.id} className="px-4 py-5">
-                    <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr_auto] lg:items-center">
-                      <div className="min-w-0">
-                        <p className="truncate text-copy font-medium text-zinc-900">{email ?? `직원 ${membership.user_id.slice(0, 8)}`}</p>
-                        <p className="mt-1 truncate text-support font-semibold text-zinc-500">
+                  <div key={membership.id} className="site-data-row site-stack-group">
+                    <div className="site-record-heading">
+                      <div className="site-stack-copy min-w-0">
+                        <p className="type-body text-zinc-900">{email ?? `직원 ${membership.user_id.slice(0, 8)}`}</p>
+                        <p className="type-body-sm text-zinc-500">
                           {menuSiteNameById.get(membership.menu_site_id) ?? "메뉴판"}
                         </p>
                         {isStaffInvitationRole(membership.role) ? (
-                          <p className="mt-2 text-support font-semibold leading-relaxed text-zinc-500">
+                          <p className="type-body-sm text-zinc-500">
                             {STAFF_INVITATION_ROLE_DESCRIPTIONS[membership.role]}
                           </p>
                         ) : null}
                       </div>
-                      <form action={updateStaffMembershipRoleAction} className="flex gap-2">
+                      <form action={updateStaffMembershipRoleAction} className="site-form-row" data-alignment="center">
                         <input type="hidden" name="membershipId" value={membership.id} />
-                        <select name="role" defaultValue={membership.role} className="site-field min-w-0 flex-1 border-zinc-200 px-3 py-2 text-zinc-700">
+                        <select name="role" aria-label="직원 역할 프리셋" defaultValue={membership.role} className="site-field min-w-0 w-full">
                           {STAFF_INVITATION_ROLES.map((role) => (
                             <option key={role} value={role}>{STAFF_INVITATION_ROLE_LABELS[role]}</option>
                           ))}
@@ -269,15 +263,15 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                       </form>
                     </div>
 
-                    <form action={updateStaffMembershipPermissionsAction} className="mt-5 border-t border-zinc-100 pt-5">
+                    <form action={updateStaffMembershipPermissionsAction} className="site-content-divider site-stack-block">
                       <input type="hidden" name="membershipId" value={membership.id} />
-                      <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
-                        <div>
-                          <p className="text-copy font-medium text-zinc-900">직원별 권한</p>
-                          <p className="mt-1 text-support font-semibold text-zinc-500">
+                      <div className="site-content-heading-row">
+                        <div className="site-stack-copy">
+                          <p className="type-body text-zinc-900">직원별 권한</p>
+                          <p className="type-body-sm text-zinc-500">
                             역할 프리셋을 기준으로 이 직원에게 필요한 기능만 켜거나 끕니다.
                           </p>
-                          <p className="mt-1 text-support font-semibold text-amber-700">
+                          <p className="type-body-sm text-amber-700">
                             역할 프리셋을 변경하면 개별 체크 설정은 새 프리셋 기본값으로 초기화됩니다.
                           </p>
                         </div>
@@ -285,24 +279,12 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
                           개별 권한 저장
                         </button>
                       </div>
-                      <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                      <CheckboxFieldGroup label="직원별 권한" columns={3}>
                         {MENU_SITE_STAFF_CUSTOMIZABLE_PERMISSIONS.map((permission) => (
-                          <label
-                            key={permission}
-                            className="flex cursor-pointer items-center gap-3 rounded-2xl border border-zinc-200 bg-white px-3 py-3 text-support font-medium text-zinc-700"
-                          >
-                            <input
-                              type="checkbox"
-                              name="permissions"
-                              value={permission}
-                              defaultChecked={effectivePermissions.has(permission)}
-                              className="size-4 accent-zinc-950"
-                            />
-                            <span>{MENU_SITE_STAFF_PERMISSION_LABELS[permission]}</span>
-                          </label>
+                          <CheckboxField key={permission} name="permissions" value={permission} defaultChecked={effectivePermissions.has(permission)} label={MENU_SITE_STAFF_PERMISSION_LABELS[permission]} />
                         ))}
-                      </div>
-                      <p className="mt-3 text-support font-semibold leading-relaxed text-zinc-500">
+                      </CheckboxFieldGroup>
+                      <p className="type-body-sm text-zinc-500">
                         결제·구독, 직원 관리, 메뉴판 보관·삭제는 사장만 사용할 수 있습니다.
                       </p>
                     </form>
@@ -311,34 +293,34 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
               })}
             </div>
           )}
-        </section>
+        </ContentPanel>
 
-        <section className="site-section p-6 md:p-8">
-          <div>
-            <h2 className="type-content-title">대기 중인 초대</h2>
-            <p className="mt-2 text-copy font-medium text-zinc-500">아직 수락하지 않은 초대를 확인하고 재전송하거나 취소할 수 있습니다.</p>
+        <ContentPanel>
+          <div className="site-stack-title">
+            <h3 className="type-content-title">대기 중인 초대</h3>
+            <p className="type-body text-zinc-500">아직 수락하지 않은 초대를 확인하고 재전송하거나 취소할 수 있습니다.</p>
           </div>
 
           {invitationResult.error ? (
-            <p className="site-notice site-notice-error mt-5 px-4 py-3 text-copy font-medium">
+            <p className="type-body">
               초대 목록을 불러오지 못했습니다.
             </p>
           ) : pendingInvitationBatches.length === 0 ? (
-            <p className="mt-5 rounded-2xl bg-zinc-100 px-4 py-5 text-copy font-medium text-zinc-600">대기 중인 초대가 없습니다.</p>
+            <ContentPanel surface="muted" density="compact"><p className="type-body-sm">대기 중인 초대가 없습니다.</p></ContentPanel>
           ) : (
-            <div className="site-section mt-5 divide-y divide-zinc-100 overflow-hidden">
+            <div>
               {pendingInvitationBatches.map((invitation) => (
-                <div key={invitation.inviteBatchId} className="grid gap-4 px-4 py-4 md:grid-cols-[1.2fr_1fr_auto] md:items-center">
-                  <div className="min-w-0">
-                    <p className="truncate text-copy font-medium text-zinc-900">{invitation.email}</p>
-                    <p className="mt-1 text-support font-semibold leading-relaxed text-zinc-500">
+                <div key={invitation.inviteBatchId} className="site-data-row site-record-heading">
+                  <div className="site-stack-copy min-w-0">
+                    <p className="type-body text-zinc-900">{invitation.email}</p>
+                    <p className="type-body-sm text-zinc-500">
                       {invitation.menuSiteNames.join(" · ")}
                     </p>
                   </div>
-                  <p className="text-support font-medium text-zinc-600">역할: {getRoleLabel(invitation.role)}</p>
-                  <div className="space-y-2 md:text-right">
-                    <p className="text-support font-medium text-zinc-500">{formatExpiry(invitation.expiresAt)} 만료</p>
-                    <div className="flex gap-2 md:justify-end">
+                  <p className="type-body-sm text-zinc-600">역할: {getRoleLabel(invitation.role)}</p>
+                  <div className="site-stack-copy">
+                    <p className="type-caption site-copy-muted">{formatExpiry(invitation.expiresAt)} 만료</p>
+                    <div className="site-action-row">
                       <form action={resendStaffInvitationAction}>
                         <input type="hidden" name="inviteBatchId" value={invitation.inviteBatchId} />
                         <button
@@ -361,9 +343,8 @@ export default async function StaffManagementPage({ searchParams }: { searchPara
               ))}
             </div>
           )}
-        </section>
-          </section>
-        </div>
+        </ContentPanel>
+          </AccountPageContent>
       </main>
       <Footer />
     </>

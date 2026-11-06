@@ -211,14 +211,14 @@ test("일반 페이지는 공통 제목을 쓰며 필요한 설명만 같은 읽
   assert.match(detailSource, /<h1 className="type-page-title"[\s\S]{0,180}?type-page-description/);
 });
 
-test("마이페이지와 매장 운영의 최상위 설명은 관리 영역 안에서도 기능 설명 크기를 유지한다", () => {
-  const mypageSource = readFileSync(join(appRoot, "mypage/page.tsx"), "utf8");
-  const staffSource = readFileSync(join(appRoot, "mypage/staff/page.tsx"), "utf8");
+test("마이페이지와 직원 관리는 같은 제목 경계를 사용하고 매장 운영은 공통 헤더를 유지한다", () => {
+  const accountShell = readFileSync(join(componentsRoot, "mypage/AccountPageContent.tsx"), "utf8");
+  assert.match(accountShell, /<SitePageHeader title="마이페이지" align="start"/);
+  for (const path of ["mypage/page.tsx", "mypage/staff/page.tsx"]) {
+    assert.match(readFileSync(join(appRoot, path), "utf8"), /<AccountPageContent sidebar=/);
+  }
   const operationsShellSource = readFileSync(join(componentsRoot, "mypage/StoreOperationsShell.tsx"), "utf8");
-
-  assert.match(mypageSource, /<SitePage(?:Header)?\b|<h1 className="type-page-title"[\s\S]*?<p className="type-page-description/);
-  assert.match(staffSource, /<SitePage(?:Header)?\b|<h1 className="type-page-title[^\"]*"[\s\S]*?<p className="type-page-description/);
-  assert.match(operationsShellSource, /<SitePage(?:Header)?\b|<h1 className="type-page-title"[\s\S]*?<p className="type-page-description/);
+  assert.match(operationsShellSource, /<SitePage(?:Header)?\b/);
 });
 
 test("활성 사이트 UI의 h1부터 h6까지 승인된 의미 기반 타이포 역할만 사용한다", () => {

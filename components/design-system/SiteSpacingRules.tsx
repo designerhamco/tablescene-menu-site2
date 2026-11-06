@@ -1,5 +1,7 @@
 import { SITE_CONTENT_COMPOSITION, SITE_MOBILE_MAX_WIDTH, SITE_MOBILE_SPACING } from "@/lib/site-spacing";
 import { ContentPanel } from "@/app/components/ui/content-panel";
+import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
+import { CheckboxField, CheckboxFieldGroup } from "@/app/components/ui/checkbox-field";
 import { Button } from "@/app/components/ui/button";
 import styles from "./SiteComponentGallery.module.css";
 
@@ -25,6 +27,9 @@ export default function SiteSpacingRules() {
         <div className="site-field-stack"><label className="type-label" htmlFor="control-row-address">메뉴판 주소</label><div className="site-form-row" data-alignment="center"><div className="site-field-stack"><input id="control-row-address" className="site-field w-full" readOnly value="artimenu.kr/example" /></div><Button variant="outline">복사 예시</Button></div></div>
         <div className="site-form-row" data-alignment="center"><label className="site-field-stack"><span className="sr-only">배치할 항목 예시</span><select className="site-field w-full" defaultValue="kiosk"><option value="kiosk">키오스크 · 키오스크 1</option><option value="table">테이블 · 테이블 1</option></select></label><Button variant="outline">바로 배치 예시</Button></div>
       </ContentPanel>
+      <ContentPanel aria-label="계정 정보 목록 예시"><h3 className="type-content-title">읽기 전용 정보</h3><DetailGrid><DetailField label="로그인 이메일">owner@example.com</DetailField><DetailField label="가입 방식">이메일</DetailField><DetailField label="사용자 ID" full>account-example-1234</DetailField></DetailGrid></ContentPanel>
+      <ContentPanel aria-label="직원 메뉴판 선택 예시"><h3 className="type-content-title">기본 체크박스 선택</h3><CheckboxFieldGroup label="초대할 메뉴판 예시"><CheckboxField name="exampleMenus" value="cafe" label="카페 메뉴판" description="/menu/cafe" defaultChecked /><CheckboxField name="exampleMenus" value="dining" label="다이닝 메뉴판" description="/menu/dining" /></CheckboxFieldGroup></ContentPanel>
+      <ContentPanel surface="danger" density="compact" aria-label="위험 작업 표면 예시"><h3 className="type-content-title">복구할 수 없는 작업</h3><div className="site-action-row"><Button variant="destructive">위험 작업 예시</Button></div></ContentPanel>
       <ContentPanel surface="muted" aria-label="회색 작업 박스 예시"><div className="site-stack-title"><h3 className="type-content-title">회색 보조 영역</h3><p className="type-body-sm site-copy-muted">테두리와 그림자 없이 같은 안쪽 여백을 사용합니다. 버튼은 문구 너비를 따릅니다.</p></div><div className="site-action-row"><Button variant="outline">보조 실행 예시</Button></div></ContentPanel>
       <ContentPanel surface="notice" density="compact" as="aside" aria-label="안내 박스 예시"><div className="site-stack-title"><h3 className="type-content-title">다음 행동을 알려주는 안내</h3><p className="type-body-sm site-copy-muted">밝은 노랑·무테·6px 모서리, 안쪽 16px입니다. 일반 작업 박스의 12px 모서리와 역할을 구분합니다.</p></div></ContentPanel>
     </div>
