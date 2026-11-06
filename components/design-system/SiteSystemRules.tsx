@@ -8,7 +8,8 @@ export default function SiteSystemRules() {
     <div className={styles.usageTable}><table aria-label="공통 디자인 시스템 자동 적용"><thead><tr><th>역할</th><th>사용 방법</th><th>검사에서 차단하는 변경</th></tr></thead><tbody>
       <tr><td>공통 헤더</td><td>OfficialSiteNavbar · 처음 투명 · 스크롤24px 이후 흰색 · 다이닝 첫 화면은 흰색 글자</td><td>스크롤 시 로고·액션 숨김, 축소·글래스 형태 및 임의 배치 변경</td></tr>
       <tr><td>페이지 제목과 간격</td><td>SitePage · SitePageHeader</td><td>별도 h1, 제목 바깥의 임의 여백·인라인 위치 보정</td></tr>
-      <tr><td>탭</td><td>Tabs · NavigationTabs의 purpose와 size · 문구 옆 보조 아이콘16px · 클릭 영역 유지</td><td>페이지별 색·두께·높이·패딩·모서리 덮어쓰기</td></tr>
+      <tr><td>탭</td><td>Tabs · NavigationTabs의 purpose와 size · 아이콘은 각 역할의 기본 크기</td><td>페이지별 색·두께·높이·패딩·모서리 덮어쓰기</td></tr>
+      <tr><td>편집 연필</td><td>EditIcon · 탭·리스트·버튼 안팎에서16px · 클릭 영역 유지</td><td>탭의 모든 아이콘을 일괄 축소하거나 연필 크기에 맞춰 조작 영역 축소</td></tr>
       <tr><td>버튼과 입력</td><td>Button · Input · Select의 variant와 size · 모양이 다른 버튼 묶음 경계는 ButtonGroupDivider · 입력 옆 버튼은 공통 중앙 정렬 행 · 회색/비활성 실행 버튼은 기능적 경계 유지</td><td>개별 외형 재정의와 폐기된 크기·모양</td></tr>
       <tr><td>고객지원 액션 행</td><td>site-support-actions · 내용 너비 · 가운데 정렬 · 좁으면 줄바꿈</td><td>버튼 묶음을 카드용 균등 분할 그리드로 확장</td></tr>
       <tr><td>새 창 링크</td><td>NewWindowIndicator · 대각선 화살표 · 새 창 안내</td><td>같은 창 링크에 새 창 표시를 붙이거나 새 창 안내를 생략</td></tr>
