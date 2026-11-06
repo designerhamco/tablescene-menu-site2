@@ -17,9 +17,9 @@ test("모바일만 사용하는 테이블은 실제 스위치와 동일하게 �
     for(const terminal of [{terminalOrderEnabled:true,terminalCallEnabled:false},{terminalOrderEnabled:false,terminalCallEnabled:true}]) assert.equal(orderPointConnectionLabel({...p,policy:{...p.policy,...terminal}},connected),"연결됨");
     assert.equal(orderPointConnectionLabel({...p,kind:"kiosk"},disconnected),"미연결");
     const html=renderToStaticMarkup(createElement(OrderPointConnectionControl,{point:p,state:disconnected,onConnect:()=>{}}));
-    assert.match(html,/해당 없음/);assert.doesNotMatch(html,/<button|연결하기|연결 관리/);
+    assert.match(html,/해당 없음/);assert.match(html,/aria-label="2번 테이블 기기 연결 안내"/);assert.doesNotMatch(html,/2번 테이블 (?:연결하기|연결 관리)/);
     const existing=renderToStaticMarkup(createElement(OrderPointConnectionControl,{point:{...p,policy:{...p.policy,terminalOrderEnabled:false,terminalCallEnabled:false}},state:connected,onConnect:()=>{}}));
-    assert.match(existing,/해당 없음/);assert.doesNotMatch(existing,/<button/);
+    assert.match(existing,/해당 없음/);assert.match(existing,/aria-label="2번 테이블 기기 연결 안내"/);assert.doesNotMatch(existing,/2번 테이블 (?:연결하기|연결 관리)/);
   }
   assert.equal(orderPointConnectionLabel({...point,policy:{...point.policy,customerOrderEnabled:false,customerCallEnabled:false}},disconnected),"미연결");
   assert.equal(orderPointConnectionLabel(point,{available:false,connections:[]}),"확인 불가");

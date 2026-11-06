@@ -304,7 +304,7 @@ test("리스트와 배치도는 동일한 기기별 Switch와 연결 팝업 진�
   assert.doesNotMatch(selected, /보관|운영 재개/);
   for (const [state, text] of [[{available: true, connections: []}, "연결하기"], [{available: false, connections: []}, "연결 확인"], [{available: true, connections: [{tableId: "point", device: null}, {tableId: "point", device: null}]}, "연결 관리"]] as const) {
     const html = renderToStaticMarkup(createElement(OrderPointConnectionControl, { point, state: { ...state, connections: [...state.connections] }, onConnect }));
-    if (state.available && !state.connections.length) { assert.match(html, /해당 없음/); assert.doesNotMatch(html, /<button/); }
+    if (state.available && !state.connections.length) { assert.match(html, /해당 없음/); assert.match(html, /aria-label="창가 기기 연결 안내"/); assert.doesNotMatch(html, /창가 연결하기/); }
     else assert.match(html, new RegExp(`창가 ${text}`));
     assert.doesNotMatch(html, /href=/);
   }
