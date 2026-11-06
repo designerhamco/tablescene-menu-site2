@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import ts from "typescript";
+import * as jsxRuntime from "react/jsx-runtime";
 import { MenuSiteAccessError } from "./menu-site-permissions";
 import { parseMenuItemOrderConfiguration } from "./menu-order-configuration";
 import { DEFAULT_MENU_ORDER_SETTINGS } from "./menu-order-settings";
@@ -10,7 +11,7 @@ import { isStoreOperationsTemplate } from "./operations-dashboard";
 // Execute the real server modules with isolated auth/database adapters. No network or customer writes.
 function serverModule<T>(path: string, dependencies: Record<string, unknown>): T {
   const source = readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
-  const output = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const output = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
   const loadedModule = { exports: {} };
   new Function("require", "module", "exports", output)((name: string) => {
     if (!(name in dependencies)) throw new Error(`Unmocked server dependency: ${name}`);
@@ -178,4 +179,26 @@ test("일반 주문 설정은 기기별 목록·연결을 조회하지 않는다
   const page = await owner.service.loadOperationSettingsPage(menuId, "orders", { includeDevices: false });
   assert.ok(page.data); assert.equal(page.points, null); assert.equal(page.deviceSetup, null);
   assert.deepEqual(owner.pointReads, []);
+});
+
+
+test("이전 기기별 설정 주소는 설정 데이터를 읽기 전에 테이블 관리로 이동한다", async () => {
+  let settingsReads = 0;
+  const page = serverModule<typeof import("../app/mypage/menus/[menuId]/orders/settings/page")>("app/mypage/menus/[menuId]/orders/settings/page.tsx", {
+    "react/jsx-runtime": jsxRuntime,
+    "next/navigation": { redirect: (path: string) => { throw new Error(`redirect:${path}`); } },
+    "@/components/mypage/OrderSettingsCategories": {},
+    "@/components/mypage/OrderReadyNotificationSettings": {},
+    "@/components/mypage/StoreOperationsShell": {},
+    "@/app/components/ui/content-panel": {},
+    "@/components/mypage/OperationalSoundSettings": {},
+    "@/components/mypage/OperationFeatureNavigation": {},
+    "../../order-settings/OrderSettingsForm": {},
+    "@/lib/server/operation-settings-page": { loadOperationSettingsPage: async () => { settingsReads++; throw new Error("Unexpected settings read"); } },
+  });
+  for (const tab of ["devices", ["devices"], ["devices", "settings"]]) {
+    await assert.rejects(page.default({ params: Promise.resolve({ menuId }), searchParams: Promise.resolve({ tab }) }),
+      { message: `redirect:/mypage/menus/${menuId}/tables` });
+  }
+  assert.equal(settingsReads, 0);
 });

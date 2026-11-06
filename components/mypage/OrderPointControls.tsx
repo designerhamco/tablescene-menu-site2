@@ -25,7 +25,7 @@ export function OrderPointConnectionControl({ point, state, onConnect }: { point
   const actionLabel = !available ? "연결 확인" : connected ? "연결 관리" : "연결하기";
   return <div className="site-action-row" data-wrap="nowrap">
     <InfoTooltip label={`${point.label} 기기 연결 안내`}>
-      {!available ? <p>연결 정보를 불러오지 못했습니다. 기기별 설정에서 다시 확인해 주세요.</p>
+      {!available ? <p>연결 정보를 불러오지 못했습니다. 테이블·키오스크 관리에서 연결 상태를 다시 확인해 주세요.</p>
         : connected ? <ul className="site-stack-copy">{devices.map((item, index) => <li key={index}>{item.device ? formatTerminalDevice(item.device) : "기기 정보가 없는 이전 연결입니다."}</li>)}</ul>
           : <p>{kiosk ? "키오스크로 주문을 받으려면 이 번호에 사용할 기기를 연결해 주세요. 손님마다 다시 연결할 필요는 없습니다." : "손님 휴대폰·QR 주문은 기기를 연결하지 않아도 됩니다. 테이블에 비치한 태블릿으로 주문을 받으려면 해당 태블릿에서 연결해 주세요."}</p>}
     </InfoTooltip>

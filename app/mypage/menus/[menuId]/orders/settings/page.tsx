@@ -5,7 +5,6 @@ import type { Metadata } from "next";
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import OperationalSoundSettings from "@/components/mypage/OperationalSoundSettings";
-import OrderPointReceptionSettings from "@/components/mypage/OrderPointReceptionSettings";
 import OperationFeatureNavigation from "@/components/mypage/OperationFeatureNavigation";
 import { loadOperationSettingsPage } from "@/lib/server/operation-settings-page";
 import OrderSettingsForm from "../../order-settings/OrderSettingsForm";
@@ -15,18 +14,19 @@ export const dynamic = "force-dynamic";
 
 export default async function OrderSettingsPage({ params, searchParams }: { params: Promise<{ menuId: string }>; searchParams?: Promise<{ tab?: string | string[] }> }) {
   const { menuId } = await params;
-  const query = await searchParams, devicesPanel = query?.tab === "devices" || (Array.isArray(query?.tab) && query.tab[0] === "devices");
-  const { operations, site, data, points, deviceSetup, canManageDevices, pointSettings, pointRuntime } = await loadOperationSettingsPage(menuId, "orders", { includeDevices: devicesPanel });
-  if (devicesPanel && !site.isOwner && !canManageDevices) redirect(`/mypage/menus/${menuId}/orders/settings`);
-  return <StoreOperationsShell sites={operations.sites} selectedSite={site} activeSection={devicesPanel ? "order-devices" : "order-settings"}>
+  const query = await searchParams;
+  // Keep bookmarks working; the destination enforces table.manage as before.
+  if ((Array.isArray(query?.tab) ? query.tab[0] : query?.tab) === "devices") {
+    redirect(`/mypage/menus/${menuId}/tables`);
+  }
+  const { operations, site, data, canManageDevices } = await loadOperationSettingsPage(menuId, "orders", { includeDevices: false });
+  return <StoreOperationsShell sites={operations.sites} selectedSite={site} activeSection="order-settings">
     <div className="site-stack-content">
       <header className="site-stack-title"><p className="type-label site-copy-muted">{site.name}</p><h2 className="type-subsection-title">주문관리</h2></header>
-      <OperationFeatureNavigation menuId={menuId} feature="orders" settings historyAvailable={site.operationAccess.orders} canConfigure={site.isOwner} canManageDevices={canManageDevices} panel={devicesPanel ? "devices" : "settings"} />
-      {!devicesPanel ? <OrderSettingsCategories payment={<>
-      {data ? <ContentPanel><OrderSettingsForm menuId={menuId} section="orders" settings={data.settings} runtime={data.runtime} published={site.status === "published"} activeTablesReady={site.activeTablesReady} /></ContentPanel> : <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">주문 사용 설정은 사장님이 변경할 수 있습니다. {canManageDevices ? "기기 연결은 ‘기기별 설정’ 탭에서 관리하세요." : "이 브라우저의 주문 알림음은 ‘주문 알림’에서 설정할 수 있습니다."}</p></ContentPanel>}
-      </>} notifications={data || site.operationAccess.orders ? <OperationalSoundSettings menuSiteId={menuId} kind="orders" /> : null} ready={<OrderReadyNotificationSettings />} /> : null}
-      {devicesPanel && (data || canManageDevices) ? <OrderPointReceptionSettings menuSiteId={menuId} feature="orders" points={points}
-        settings={pointSettings} runtime={pointRuntime.orders} published={site.status === "published"} deviceSetup={deviceSetup} canManageQr={site.canManageQr} readOnly={!site.isOwner} /> : null}
+      <OperationFeatureNavigation menuId={menuId} feature="orders" settings historyAvailable={site.operationAccess.orders} canConfigure={site.isOwner} canManageDevices={canManageDevices} />
+      <OrderSettingsCategories payment={<>
+      {data ? <ContentPanel><OrderSettingsForm menuId={menuId} section="orders" settings={data.settings} runtime={data.runtime} published={site.status === "published"} activeTablesReady={site.activeTablesReady} /></ContentPanel> : <ContentPanel as="aside" surface="notice" density="compact"><p className="type-body-sm">주문 사용 설정은 사장님이 변경할 수 있습니다. {canManageDevices ? "기기 연결은 ‘테이블·키오스크 관리’에서 관리하세요." : "이 브라우저의 주문 알림음은 ‘주문 알림’에서 설정할 수 있습니다."}</p></ContentPanel>}
+      </>} notifications={data || site.operationAccess.orders ? <OperationalSoundSettings menuSiteId={menuId} kind="orders" /> : null} ready={<OrderReadyNotificationSettings />} />
     </div>
   </StoreOperationsShell>;
 }
