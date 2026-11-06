@@ -87,13 +87,13 @@ function TabsTrigger({
       data-purpose={purpose}
       className={cn(
         variant === "document" ? "site-document-tab" : variant === "area" ? "site-area-tab" : variant === "underline" ? "site-topic-tab" : "site-tab",
-        "gap-1.5 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "gap-1.5",
         className,
       )}
       {...props}
     >{children}{count !== undefined ? <span className="site-tab-count">{count}<span className="sr-only">건</span></span> : null}</TabsPrimitive.Trigger>
   );
-  return variant === "document" ? <div className="site-document-tab-item">{trigger}{accessory}</div> : trigger;
+  return variant === "document" ? <div className="site-document-tab-item">{trigger}{accessory ? <span className="site-document-tab-accessory">{accessory}</span> : null}</div> : trigger;
 }
 
 function TabsContent({

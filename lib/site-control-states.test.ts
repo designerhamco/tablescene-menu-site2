@@ -230,3 +230,14 @@ test("문서형은 기존 영역형을 유지하며 추가 행동을 선택 탭�
   const edit = actions.find(part => part.includes("이름 수정"))!;
   assert.doesNotMatch(edit, /role="tab"|data-slot="tabs-trigger"/);
 });
+
+
+test("tab label and document accessory glyphs share a small size without shrinking icon-button targets", () => {
+  assert.match(tabCss, /--site-tab-icon-size: 1rem;/);
+  assert.match(tabCss, /\[data-slot="tabs-trigger"\] svg,\s*\.site-document-tab-action > svg,\s*\.site-document-tab-accessory svg \{[^}]*width: var\(--site-tab-icon-size\);[^}]*height: var\(--site-tab-icon-size\);/);
+  assert.match(read("app/components/ui/tabs.tsx"), /className="site-document-tab-accessory">\{accessory\}/);
+  assert.match(read("app/components/ui/inline-name-editor.tsx"), /iconOnly \? "site-button site-button-ghost site-button-icon"/);
+  const iconBox = css.match(/\.site-button-icon \{([^}]+)\}/)![1];
+  for (const dimension of ["width", "height", "min-width"]) assert.match(iconBox, new RegExp(`${dimension}: var\\(--ui-control-height-md\\);`));
+  assert.doesNotMatch(tabCss, /\.site-document-tabs-tools svg[^}]*site-tab-icon-size/);
+});
