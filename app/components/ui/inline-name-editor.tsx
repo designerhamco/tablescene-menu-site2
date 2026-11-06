@@ -2,6 +2,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { isUnsavedChangesPromptOpen } from "@/lib/unsaved-changes";
 import { useUnsavedChanges } from "@/components/ui/useUnsavedChanges";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { EditIcon } from "@/app/components/ui/edit-icon";
 
 export type InlineNameResult = { status: "success"; value?: string } | { status: "error"; message: string };
@@ -38,7 +39,8 @@ export function InlineNameEditor({ value, label, maxLength = 40, iconOnly = fals
   }
   return <span className="site-inline-name-editor" data-editing={editing} data-icon-only={iconOnly} aria-busy={pending}>
     {editing ? <>
-      <input ref={input} className="site-field w-full" aria-label={label} maxLength={maxLength} value={draft} readOnly={pending} aria-invalid={Boolean(error)} aria-describedby={`${id}-help${error ? ` ${id}` : ""}`}
+      <span className="site-action-row" data-wrap="nowrap">
+      <input ref={input} className="site-field w-full min-w-0" aria-label={label} maxLength={maxLength} value={draft} readOnly={pending} aria-invalid={Boolean(error)} aria-describedby={`${id}-help${error ? ` ${id}` : ""}`}
         onChange={event => { setDraft(event.target.value); setError(""); }}
         onBlur={event => { if (!isUnsavedChangesPromptOpen()) void commit(event.currentTarget.value); }}
         onKeyDown={event => {
@@ -46,6 +48,8 @@ export function InlineNameEditor({ value, label, maxLength = 40, iconOnly = fals
           if (event.key === "Enter") { event.preventDefault(); void commit(event.currentTarget.value, true); }
           if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); if (saving.current) return; cancelled.current = true; returnFocus.current = true; setEditing(false); setError(""); }
         }} />
+      {pending ? <LoadingSpinner /> : null}
+      </span>
       <span id={`${id}-help`} className="sr-only">Enter 또는 입력칸을 벗어나면 저장합니다. Esc는 변경을 취소합니다.</span>
       {error ? <span id={id} className="type-footnote text-destructive" role="alert">{error}</span> : null}
       {pending ? <span className="sr-only" role="status">이름 저장 중</span> : null}
