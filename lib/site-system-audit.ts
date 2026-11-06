@@ -137,6 +137,20 @@ export function auditSiteSystem(files: FileMap): SiteSystemViolation[] {
         if (name === "Tabs" && attrs.some(attr => attr.name.getText(tree) === "variant") && !designPreview && !file.startsWith("app/components/ui/")) add(file, "tab-purpose", "Choose a semantic tab purpose instead of a private visual variant.", node.getText(tree), line);
         if (attrs.some(attr => attr.name.getText(tree) === "role" && /^(?:tab|tablist)$/.test(strings(attr)[0] ?? "")) && !file.startsWith("app/components/ui/") && !designPreview) add(file, "tab-purpose", "Use Tabs/NavigationTabs instead of a private tab implementation.", node.getText(tree), line);
         const classes = attrs.find(attr => attr.name.getText(tree) === "className");
+        if (!file.startsWith("app/components/ui/") && ["Button", "button", "a"].includes(name) && ts.isJsxOpeningElement(node)) {
+          const tokens = new Set(classes ? strings(classes).flatMap(value => value.split(/\s+/)) : []);
+          const variant = attrs.find(attr => attr.name.getText(tree) === "variant");
+          const size = attrs.find(attr => attr.name.getText(tree) === "size");
+          const ghost = tokens.has("site-button-ghost") || tokens.has("site-button-danger-ghost") || (variant && strings(variant).some(value => value === "ghost" || value === "danger-ghost"));
+          const icon = tokens.has("site-button-icon") || (size && strings(size).includes("icon"));
+          const visibleText = (child: ts.Node): boolean => {
+            if (ts.isJsxText(child)) return Boolean(child.text.trim());
+            if (ts.isJsxExpression(child)) return strings(child).some(value => value.trim());
+            if (ts.isJsxElement(child)) return child.children.some(visibleText);
+            return false;
+          };
+          if (ghost && !icon && ts.isJsxElement(node.parent) && node.parent.children.some(visibleText)) add(file, "action-affordance", "Standalone text actions need outline/secondary; ghost is for icon tools, not floating text buttons.", node.getText(tree), line);
+        }
         if (classes && !file.startsWith("app/components/ui/")) {
           const unknownRoles = strings(classes).flatMap(value => value.split(/\s+/)).filter(value => /^type-/.test(value) && !typeRoles.has(value));
           if (unknownRoles.length) add(file, "type-role", `Use a registered typography role, not ${unknownRoles.join(" ")}.`, classes.getText(tree), line);

@@ -106,3 +106,15 @@ test("migrated legacy exceptions must be removed instead of leaving a reusable b
   assert.deepEqual(staleSiteSystemAllowances(old, baseline), []);
   assert.equal(staleSiteSystemAllowances([], baseline).length, 1);
 });
+
+
+test("standalone ghost text actions are rejected while outlined actions and icon tools retain their roles", () => {
+  for (const content of ['<button className="site-button site-button-ghost">변경 취소</button>', '<a className="site-button site-button-ghost" href="/guides">공식 도움말</a>', '<Action variant="ghost">취소</Action>', '<Action variant="danger-ghost">영구 삭제</Action>']) {
+    const source = `import {Button as Action} from "@/app/components/ui/button"; export default function View(){return ${content}}`;
+    assert.ok(audit([["components/NewAction.tsx",source]]).some(item => item.rule === "action-affordance"),content);
+  }
+  for (const content of ['<button className="site-button site-button-outline">변경 취소</button>', '<Action variant="outline">취소</Action>', '<Action variant="ghost" size="icon" aria-label="닫기"><Icon/></Action>', '<button className="site-button site-button-ghost site-button-icon" aria-label="닫기"><Icon/></button>']) {
+    const source = `import {Button as Action} from "@/app/components/ui/button"; export default function View(){return ${content}}`;
+    assert.deepEqual(audit([["components/NewAction.tsx",source]]),[],content);
+  }
+});

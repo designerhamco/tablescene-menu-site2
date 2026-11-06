@@ -87,7 +87,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
     <section className="site-stack-group" aria-labelledby={`${usageId}-title`}>
       <Tabs purpose="state" value={displayMode} onValueChange={setDisplayMode}>
         <div className="site-stack-group">
-        <div className="site-field-stack"><span className="type-label">보기 유형</span><TabsList aria-label="보기 유형"><TabsTrigger value="list"><List aria-hidden="true" />리스트형</TabsTrigger><TabsTrigger value="map"><Map aria-hidden="true" />배치도형</TabsTrigger></TabsList></div>
+        <div className="site-field-stack"><span className="type-label">보기 유형</span><TabsList aria-label="보기 유형"><TabsTrigger value="map"><Map aria-hidden="true" />배치도형</TabsTrigger><TabsTrigger value="list"><List aria-hidden="true" />리스트형</TabsTrigger></TabsList></div>
         {displayMode === "list" ? registration : null}
 
         <div className="site-stack-block">

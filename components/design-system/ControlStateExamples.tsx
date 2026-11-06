@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpen, Plus, Sparkles } from "lucide-react";
+import { BookOpen, Plus, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import styles from "./SiteComponentGallery.module.css";
@@ -11,7 +11,7 @@ const states = [
 ] as const;
 const actions = [
   ["default", "저장"], ["outline", "미리보기"], ["secondary", "초기화"],
-  ["ghost", "도구"], ["destructive", "삭제"], ["outline-danger", "삭제 요청"], ["ai", "AI 상담"], ["link", "자세히"], ["danger-ghost", "제거 도구"], ["kakao", "카카오 로그인"],
+  ["ghost", "아이콘 도구"], ["destructive", "삭제"], ["outline-danger", "삭제 요청"], ["ai", "AI 상담"], ["link", "자세히"], ["danger-ghost", "제거 아이콘"], ["kakao", "카카오 로그인"],
 ] as const;
 
 /** State previews share selectors with the actual pseudo states; they have no private palette. */
@@ -28,10 +28,14 @@ export default function ControlStateExamples() {
       <Button variant="outline"><BookOpen />사용가이드</Button><Button variant="ai"><Sparkles />AI 상담</Button>
       <Button size="icon" variant="ghost" aria-label="추가 도구"><Plus /></Button>
     </div>
+    <div className="site-stack-group" role="group" aria-label="흰 배경의 보조 버튼 예시">
+      <div className="site-stack-title"><h3 className="type-content-title">흰 배경의 보조 행동</h3><p className="type-body-sm site-copy-muted">취소·변경 취소·로그아웃처럼 독립된 텍스트 행동은 회색 테두리로 구분합니다. 투명 버튼은 아이콘 도구, link는 본문·목록 안의 보조 이동에 사용합니다.</p></div>
+      <div className="site-action-row"><Button variant="outline">취소</Button><Button variant="outline">변경 취소</Button><Button variant="outline">로그아웃</Button><Button variant="outline" disabled>변경 취소 · 비활성</Button><Button variant="outline-danger">삭제 요청</Button><Button variant="ghost" size="icon" aria-label="보조 버튼 예시 추가 도구"><Plus aria-hidden="true" /></Button></div>
+    </div>
     <p className="type-body-sm text-zinc-600" role="status">동작 확인 {clicks}회 · Tab으로 포커스하고 Enter·Space로 실행해 보세요.</p>
     <div className={styles.usageTable}><table aria-label="버튼 상태 기준"><thead><tr><th scope="col">역할</th>{states.map(([key,label]) => <th scope="col" key={key}>{label}</th>)}</tr></thead>
       <tbody>{actions.map(([variant,label]) => <tr key={variant}><th scope="row">{label}</th>{states.map(([state,stateLabel]) => <td key={state}>
-        <Button variant={variant} disabled={state === "disabled"} data-ui-state={state === "default" || state === "disabled" ? undefined : state} aria-label={`${label} ${stateLabel} 예시`}>{label}</Button>
+        <Button variant={variant} size={variant === "ghost" || variant === "danger-ghost" ? "icon" : undefined} disabled={state === "disabled"} data-ui-state={state === "default" || state === "disabled" ? undefined : state} aria-label={`${label} ${stateLabel} 예시`}>{variant === "ghost" ? <Plus aria-hidden="true" /> : variant === "danger-ghost" ? <Trash2 aria-hidden="true" /> : label}</Button>
       </td>)}</tr>)}</tbody></table></div>
     <p className="type-body-sm text-zinc-600">상태 표는 실제 공통 스타일을 고정해 비교합니다. 비활성 버튼은 무테의 가장 옅은 회색 표면과 흐린 문구를 사용하며 hover·클릭 색상으로 바뀌지 않습니다. 고객지원 퀵 버튼은 56px의 둥근 정사각형이며 원형 도구와 구분합니다.</p>
     <div className={styles.ruleGrid}>{([
