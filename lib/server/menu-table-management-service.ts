@@ -205,16 +205,20 @@ export async function createMenuTable({
   menuSiteId,
   label,
   kind = "table",
+  roomId,
 }: {
   menuSiteId: string;
   label: string;
   kind?: OrderPointKind;
+  roomId?: string;
 }): Promise<MenuTableTokenDelivery> {
   let normalizedMenuSiteId: string;
   let normalizedLabel: string;
+  let normalizedRoomId: string | undefined;
   try {
     normalizedMenuSiteId = normalizeMenuTableId(menuSiteId);
     normalizedLabel = normalizeMenuTableLabel(label);
+    normalizedRoomId = roomId === undefined ? undefined : normalizeMenuTableId(roomId);
   } catch (error) {
     return inputError(error);
   }
@@ -222,7 +226,7 @@ export async function createMenuTable({
   const { context, supabase } = await requireMenuTableWriteAccess(normalizedMenuSiteId);
   const rooms = await supabase.from("menu_floor_plans").select("document").eq("menu_site_id", normalizedMenuSiteId).maybeSingle();
   if (rooms.error) throw new MenuTableManagementError("TABLE_CREATE_FAILED", "룸 정보를 확인하지 못했습니다. 새로고침 후 다시 시도해 주세요.", 503);
-  if (!hasMenuTableRegistrationRoom(rooms.data?.document)) throw new MenuTableManagementError("ROOM_REQUIRED", "룸을 먼저 추가한 뒤 테이블·키오스크를 만들어 주세요.", 409);
+  if (!hasMenuTableRegistrationRoom(rooms.data?.document, normalizedRoomId)) throw new MenuTableManagementError("ROOM_REQUIRED", "룸을 먼저 추가한 뒤 테이블·키오스크를 만들어 주세요.", 409);
   const token = createMenuTableTokenMaterial();
   const { data, error } = await supabase
     .from("menu_tables")
