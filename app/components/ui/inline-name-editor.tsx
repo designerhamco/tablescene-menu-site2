@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
+import { isUnsavedChangesPromptOpen } from "@/lib/unsaved-changes";
+import { useUnsavedChanges } from "@/components/ui/useUnsavedChanges";
 import { Pencil } from "lucide-react";
 
 export type InlineNameResult = { status: "success"; value?: string } | { status: "error"; message: string };
 /** Short names: Enter/blur commit once, Escape cancels; failed drafts stay editable. */
-export function InlineNameEditor({ value, label, maxLength = 40, iconOnly = false, disabled = false, onSave }: {
-  value: string; label: string; maxLength?: number; iconOnly?: boolean; disabled?: boolean;
+export function InlineNameEditor({ value, label, maxLength = 40, iconOnly = false, disabled = false, protectNavigation = false, onSave }: {
+  value: string; label: string; maxLength?: number; iconOnly?: boolean; disabled?: boolean; protectNavigation?: boolean;
   onSave: (name: string) => Promise<InlineNameResult>;
 }) {
   const [localName, setLocalName] = useState({ source: value, name: value }), [draft, setDraft] = useState(value);
@@ -19,6 +21,7 @@ export function InlineNameEditor({ value, label, maxLength = 40, iconOnly = fals
     if (editing) { input.current?.focus(); input.current?.select(); }
     else if (returnFocus.current) { returnFocus.current = false; trigger.current?.focus(); }
   }, [editing]);
+  useUnsavedChanges({ dirty: editing && draft !== display, pending, discard: () => { cancelled.current = true; setDraft(display); setEditing(false); setError(""); } }, protectNavigation);
   async function commit(name: string, fromEnter = false) {
     if (saving.current || cancelled.current) return;
     const next = name.trim();
@@ -37,7 +40,7 @@ export function InlineNameEditor({ value, label, maxLength = 40, iconOnly = fals
     {editing ? <>
       <input ref={input} className="site-field w-full" aria-label={label} maxLength={maxLength} value={draft} readOnly={pending} aria-invalid={Boolean(error)} aria-describedby={`${id}-help${error ? ` ${id}` : ""}`}
         onChange={event => { setDraft(event.target.value); setError(""); }}
-        onBlur={event => { void commit(event.currentTarget.value); }}
+        onBlur={event => { if (!isUnsavedChangesPromptOpen()) void commit(event.currentTarget.value); }}
         onKeyDown={event => {
           if (event.nativeEvent.isComposing) return;
           if (event.key === "Enter") { event.preventDefault(); void commit(event.currentTarget.value, true); }

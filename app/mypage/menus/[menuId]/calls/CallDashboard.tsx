@@ -1,17 +1,11 @@
 "use client";
 
 import { ContentPanel } from "@/app/components/ui/content-panel";
-import {
-  Table,
-  TableHeader,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-} from "@/app/components/ui/table";
+import { TableCell } from "@/app/components/ui/table";
+import OperationsHistoryTable from "@/components/mypage/OperationsHistoryTable";
 import OperationsHistoryViews from "@/components/mypage/OperationsHistoryViews";
 import type { OperationsFloorPlan } from "@/lib/operations-history";
-import { Bell, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { RefreshButton } from "@/app/components/ui/refresh-button";
 import { useRouter } from "next/navigation";
 import {
@@ -31,7 +25,6 @@ import type { CallDashboardPageData } from "@/lib/server/call-management-service
 import { initialCallManagementActionState } from "./action-state";
 import { mutateCallAction } from "./actions";
 import { Badge } from "@/app/components/ui/badge";
-import { EmptyState } from "@/app/components/ui/empty-state";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "미처리",
@@ -264,51 +257,8 @@ export default function CallDashboard({
           attention:
             call.status === "pending" || call.status === "acknowledged",
         }))}
-        renderList={(open) =>
-          !filteredCalls.length ? (
-            <EmptyState
-              headingLevel={3}
-              icon={<Bell />}
-              title={
-                calls.length
-                  ? "조건에 맞는 호출 내역이 없습니다."
-                  : "아직 접수된 직원 호출이 없습니다."
-              }
-              description="검색·상태·날짜·처리자 조건을 확인해주세요."
-            />
-          ) : (
-            <ContentPanel>
-              <Table
-                variant="management"
-                label="호출 내역"
-                columns={[
-                  "compact",
-                  "text",
-                  "detail",
-                  "text",
-                  "text",
-                  "actions",
-                ]}
-              >
-                <TableHeader>
-                  <TableRow>
-                    {[
-                      "호출 번호",
-                      "테이블·키오스크",
-                      "호출 내용",
-                      "호출 시간",
-                      "처리 상태",
-                      "관리",
-                    ].map((label) => (
-                      <TableHead key={label}>{label}</TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredCalls.map((call) => (
-                    <TableRow key={call.id}>
+        renderList={(open) => <OperationsHistoryTable noun="호출" floorPlan={floorPlan} records={filteredCalls} renderRecord={call => <>
                       <TableCell>#{call.callNumber}</TableCell>
-                      <TableCell primary>{call.tableLabel}</TableCell>
                       <TableCell>{call.requestLabel}</TableCell>
                       <TableCell>
                         {formatKoreanDateTime(call.createdAt)}
@@ -334,13 +284,7 @@ export default function CallDashboard({
                           </button>
                         </div>
                       </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </ContentPanel>
-          )
-        }
+        </>} />}
         renderDetail={(ids) => (
           <div className="site-stack-group">
             {filteredCalls

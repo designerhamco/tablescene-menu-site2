@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import UnsavedChangesDialog from "@/components/ui/UnsavedChangesDialog";
 import { Toaster } from "@/app/components/ui/sonner";
 import ScrollToTopOnPathChange from "@/app/components/navigation/ScrollToTopOnPathChange";
 import "./globals.css";
@@ -21,6 +22,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <ScrollToTopOnPathChange />
         </Suspense>
+        <UnsavedChangesDialog />
         <Toaster richColors position="top-right" />
       </body>
     </html>

@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmUnsavedChanges } from "@/lib/unsaved-changes";
 import { useId, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
@@ -42,7 +43,7 @@ export default function DeleteOrderPoint({ menuSiteId, point, withHistory = fals
   }
   return <>
     <ActionFeedbackToast message={feedback?.message} tone={feedback?.tone} eventKey={feedback} />
-    <Dialog open={open} onOpenChange={next => { if (pending) return; setOpen(next); if (next) preview(); else generation.current++; }}>
+    <Dialog open={open} onOpenChange={next => { if (pending) return; if (!next) { setOpen(false); generation.current++; } else void confirmUnsavedChanges().then(allowed => { if (allowed) { setOpen(true); preview(); } }); }}>
       <DialogTrigger asChild><button type="button" disabled={disabled} aria-label={compact ? `${point.label} 삭제` : undefined} className={`site-button site-button-outline-danger${compact ? " site-button-compact" : ""}`}>{withHistory ? "관련 데이터까지 영구 삭제" : compact ? "삭제" : `${noun} 삭제`}</button></DialogTrigger>
       <DialogContent scrollable onEscapeKeyDown={event => { if (pending) event.preventDefault(); }} onInteractOutside={event => { if (pending) event.preventDefault(); }}>
         <DialogHeader reserveCloseButton><DialogTitle>{point.label}{withHistory ? " 및 관련 데이터를 영구 삭제할까요?" : " 등록을 삭제할까요?"}</DialogTitle><DialogDescription>{withHistory ? "아래 범위의 데이터와 등록을 실제로 삭제하며 복원할 수 없습니다. 매출 집계에서도 제외됩니다." : "사용 이력이 없는 테이블·키오스크 등록만 삭제합니다. 사용 이력이 있으면 보관해 주세요."}</DialogDescription></DialogHeader>

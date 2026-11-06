@@ -1,8 +1,12 @@
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import OperationsHistoryTable from "../components/mypage/OperationsHistoryTable";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFileSync } from "node:fs";
 import ts from "typescript";
 import {
+  getOperationHistoryRows,
   groupOperationHistory,
   getHistoryPlacements,
   type OperationHistoryRecord,
@@ -193,4 +197,26 @@ test("권한·런타임·이용권 거부는 DB 조회 전에 중단하고 조�
     assert.deepEqual(result.document, floor.emptyFloorDocument());
     assert.deepEqual(result.points, []);
   }
+});
+
+test("내역이 없어도 같은 룸·테이블·키오스크 행을 보여주고 삭제된 항목의 이력을 잃지 않는다", () => {
+  const data: OperationsFloorPlan = { available: true, revision: 1, document, points: [
+    { id: point, label: "새 테이블 이름", status: "active" },
+    { id: "kiosk", label: "키오스크 1", kind: "kiosk", status: "disabled" },
+  ] };
+  const empty = getOperationHistoryRows(data, []);
+  assert.deepEqual(empty.map(row => [row.pointLabel, row.roomName, row.record]), [["새 테이블 이름", "홀", null], ["키오스크 1", "미연동", null]]);
+  const records = [{ id: "1", tableId: point, tableLabel: "이전 이름" }, { id: "2", tableId: "deleted", tableLabel: "삭제된 항목" }, { id: "3", tableId: point, tableLabel: "이전 이름" }];
+  const rows = getOperationHistoryRows(data, records);
+  assert.deepEqual(rows.map(row => row.record?.id ?? null), ["1", "2", "3", null]);
+  assert.equal(rows[0].roomName, "홀"); assert.equal(rows[0].pointLabel, "새 테이블 이름");
+  assert.equal(rows[1].pointLabel, "삭제된 항목");
+  assert.equal(getOperationHistoryRows({ ...data, available: false }, records)[0].roomName, "확인 불가");
+});
+
+test("빈 주문 표도 열 제목과 등록된 룸·테이블 행을 실제 공통 표로 렌더링한다", () => {
+  const markup = renderToStaticMarkup(createElement(OperationsHistoryTable, { noun: "주문", floorPlan: { available: true, revision: 1, document, points: [{ id: point, label: "1번 테이블", status: "active" }] }, records: [], renderRecord: () => null }));
+  for (const title of ["룸 이름", "테이블·키오스크", "주문 번호", "주문 내역", "주문 시간", "처리 상태"]) assert.ok(markup.includes(title));
+  assert.match(markup, /<tbody[^>]*>.*홀.*1번 테이블.*주문 내역 없음/);
+  assert.doesNotMatch(markup, /site-content-panel/);
 });

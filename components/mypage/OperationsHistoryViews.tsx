@@ -61,6 +61,7 @@ export default function OperationsHistoryViews({
   return (
     <div className="site-stack-group">
       <Tabs purpose="state" value={view} onValueChange={setView}>
+        <div className="site-stack-group">
         <div className="site-field-stack">
           <span className="type-label">보기 유형</span>
           <TabsList aria-label={`${noun} 내역 보기 유형`}>
@@ -80,8 +81,7 @@ export default function OperationsHistoryViews({
         <TabsContent value="map">
           <div className="site-stack-group">
             <p className="type-body-sm site-copy-muted">
-              최근 100건 중 현재 조건에 맞는 내역입니다. 테이블·키오스크를
-              선택하면 상품·요청과 처리 내역 전체를 확인할 수 있습니다.
+              테이블·키오스크를 선택하면 {noun} 내역과 처리 상태를 확인할 수 있습니다.
             </p>
             {!floorPlan.available ? (
               <ContentPanel surface="notice" density="compact">
@@ -108,6 +108,7 @@ export default function OperationsHistoryViews({
                 value={room.id}
                 onValueChange={setRoomId}
               >
+                <div className="site-stack-group">
                 <TabsList size="sm" aria-label={`${noun} 내역 룸`}>
                   {floorPlan.document.rooms.map((item) => (
                     <TabsTrigger key={item.id} value={item.id}>
@@ -118,9 +119,7 @@ export default function OperationsHistoryViews({
                 <TabsContent value={room.id}>
                   <section className="site-stack-group" aria-label={`${room.name} ${noun} 배치도`}>
                     <p className="type-body-sm site-copy-muted">
-                      각 사각형에는 처리할 {noun}을 우선 요약하고 건수를
-                      표시합니다. 표시 내역이 없는 경우에도 실제 이용 중 여부를
-                      뜻하지 않습니다.
+                      처리할 {noun}을 먼저 표시합니다. ‘내역 없음’은 현재 조회 결과에 내역이 없다는 뜻입니다.
                     </p>
                     <FloorPlanCanvas
                       name={room.name}
@@ -199,6 +198,7 @@ export default function OperationsHistoryViews({
                     </FloorPlanCanvas>
                   </section>
                 </TabsContent>
+                </div>
               </Tabs>
             )}
             {unplaced.length ? (
@@ -235,6 +235,7 @@ export default function OperationsHistoryViews({
             ) : null}
           </div>
         </TabsContent>
+        </div>
       </Tabs>
       <Dialog
         open={selection !== null}

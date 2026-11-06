@@ -1,5 +1,7 @@
 "use client";
 
+import { confirmUnsavedChanges } from "@/lib/unsaved-changes";
+import { useUnsavedChanges } from "@/components/ui/useUnsavedChanges";
 import { useActionState, useId, useState } from "react";
 import { Armchair, Monitor, LayoutGrid, List, Map, Plus } from "lucide-react";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
@@ -32,6 +34,16 @@ function PointTitle({ point }: { point: { label: string; kind?: OrderPointKind }
   </span>;
 }
 
+function RestorePointForm({ point, menuSiteId, action, pending }: { point: ArchivedMenuTableListItem; menuSiteId: string; action: (data: FormData) => void; pending: boolean }) {
+  const [name, setName] = useState(point.label);
+  useUnsavedChanges({ dirty: name !== point.label, pending: pending && name !== point.label, discard: () => setName(point.label) });
+  return <form data-unsaved-commit action={action} className="site-form-row" aria-busy={pending}>
+    <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={point.id} />
+    <label className="type-label site-field-stack">복원할 이름<input name="label" required maxLength={80} value={name} onChange={event => setName(event.target.value)} className="site-field w-full" /></label>
+    <button name="intent" value="restore" disabled={pending} className="site-button site-button-outline">{point.kind === "kiosk" ? "키오스크" : "테이블"} 복원</button>
+  </form>;
+}
+
 export default function MenuTableManager({ menuSiteId, tables, archivedTables = [], pointSettingsAvailable = false, canDelete = false, connectionState, saveFloorPlanAction, floorPlan = { available: false, revision: 0, document: emptyFloorDocument() } }: {
   saveFloorPlanAction?: (revision: number, document: FloorDocument) => Promise<FloorSaveResult>;
   floorPlan?: FloorPlanSnapshot; menuSiteId: string; tables: ManagedPoint[]; archivedTables?: ArchivedMenuTableListItem[];
@@ -56,6 +68,10 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
   const kiosk = registrationKind === "kiosk", registrationNoun = kiosk ? "키오스크" : "테이블";
   const setExpanded = (pointId: string, open: boolean) => setExpandedPointId(open ? pointId : null);
 
+  useUnsavedChanges({ dirty: Boolean(registrationKind && nameDrafts[registrationKind].trim()), pending: createPending, discard: () => { setNameDrafts({ table: "", kiosk: "" }); setRegistrationKind(null); } });
+
+  function changeDisplayMode(value: string) { if (value !== displayMode) void confirmUnsavedChanges().then(allowed => { if (allowed) setDisplayMode(value); }); }
+
   const registration = <div className="site-stack-block">
           <div className="site-action-row" aria-label="테이블·키오스크 추가">
             <button type="button" className="site-button site-button-outline" disabled={createPending} aria-expanded={registrationKind === "table"} aria-controls={registrationKind ? `${usageId}-registration` : undefined} onClick={() => setRegistrationKind("table")}><Plus aria-hidden="true" />테이블 추가</button>
@@ -67,7 +83,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
               <h3 className="type-content-title">{registrationNoun} 추가</h3>
               <p className="type-body-sm site-copy-muted">{kiosk ? "키오스크마다 번호 또는 이름을 등록해 주세요." : "매장에서 사용할 테이블 번호 또는 이름을 등록해 주세요."}</p>
             </div>
-            <form action={createAction} aria-busy={createPending} className="site-form-row">
+            <form data-unsaved-commit action={createAction} aria-busy={createPending} className="site-form-row">
               <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="kind" value={registrationKind} />
               <label className="site-field-stack type-label">{registrationNoun} 이름
                 <input name="label" required maxLength={80} disabled={createPending} value={nameDrafts[registrationKind]} onChange={event => setNameDrafts(current => ({ ...current, [registrationKind]: event.target.value }))} placeholder={kiosk ? "예: 키오스크 1" : "예: 1번 테이블"} className="site-field w-full" />
@@ -85,7 +101,7 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
     <ActionFeedbackToast message={mutationState.message} tone={mutationState.status === "success" ? "success" : "error"} eventKey={mutationState} />
 
     <section className="site-stack-group" aria-labelledby={`${usageId}-title`}>
-      <Tabs purpose="state" value={displayMode} onValueChange={setDisplayMode}>
+      <Tabs purpose="state" value={displayMode} onValueChange={changeDisplayMode}>
         <div className="site-stack-group">
         <div className="site-field-stack"><span className="type-label">보기 유형</span><TabsList aria-label="보기 유형"><TabsTrigger value="map"><Map aria-hidden="true" />배치도형</TabsTrigger><TabsTrigger value="list"><List aria-hidden="true" />리스트형</TabsTrigger></TabsList></div>
         {displayMode === "list" ? registration : null}
@@ -121,13 +137,9 @@ export default function MenuTableManager({ menuSiteId, tables, archivedTables = 
       {!archivedTables.length ? <p className="type-body-sm site-copy-muted">보관된 테이블·키오스크가 없습니다.</p> : <EditableList label="보관된 테이블·키오스크 목록">
         {archivedTables.map((point, index) => <EditableListItem key={point.id} label={point.label} title={<PointTitle point={point} />}
           meta={`보관일 ${formatKoreanDateTime(point.archivedAt)}`} status={<Badge tone="neutral">미사용(보관)</Badge>}
-          divided={index > 0} open={expandedPointId === point.id} onOpenChange={open => setExpanded(point.id, open)} disabled={mutationPending}>
+          divided={index > 0} open={expandedPointId === point.id} onOpenChange={open => { if (open) setExpanded(point.id, true); else void confirmUnsavedChanges().then(allowed => { if (allowed) setExpanded(point.id, false); }); }} disabled={mutationPending}>
           <p className="type-body-sm site-copy-muted">다시 사용하려면 복원한 뒤 상태를 ‘사용 중’으로 바꿔 주세요. 잠깐 사용을 쉬는 항목은 보관 대신 ‘일시정지’로 두면 됩니다.</p>
-          <form action={mutationAction} className="site-form-row" aria-busy={mutationPending}>
-            <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={point.id} />
-            <label className="type-label site-field-stack">복원할 이름<input name="label" required maxLength={80} defaultValue={point.label} className="site-field w-full" /></label>
-            <button name="intent" value="restore" disabled={mutationPending} className="site-button site-button-outline">{point.kind === "kiosk" ? "키오스크" : "테이블"} 복원</button>
-          </form>
+          <RestorePointForm point={point} menuSiteId={menuSiteId} action={mutationAction} pending={mutationPending} />
           {canDelete ? <div className="site-action-row"><DeleteOrderPoint menuSiteId={menuSiteId} point={point} disabled={mutationPending} /><DeleteOrderPoint menuSiteId={menuSiteId} point={point} withHistory disabled={mutationPending} /></div> : null}
         </EditableListItem>)}
       </EditableList>}

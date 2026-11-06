@@ -1,19 +1,11 @@
 "use client";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ShoppingBag } from "lucide-react";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { RefreshButton } from "@/app/components/ui/refresh-button";
-import {
-  Table,
-  TableHeader,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
-} from "@/app/components/ui/table";
+import { TableCell } from "@/app/components/ui/table";
+import OperationsHistoryTable from "@/components/mypage/OperationsHistoryTable";
 import { Badge } from "@/app/components/ui/badge";
-import { EmptyState } from "@/app/components/ui/empty-state";
 import OperationalArrivalAlert from "@/components/mypage/OperationalArrivalAlert";
 import OperationsHistoryViews from "@/components/mypage/OperationsHistoryViews";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
@@ -294,8 +286,7 @@ export default function OrderDashboard({
             .map((order) => order.id)}
           onBackgroundPollingChange={setBackgroundPollingEnabled}
         />
-        <ContentPanel>
-          <div className="site-content-heading-row">
+        <div className="site-content-heading-row">
             <div className="site-stack-title">
               <p className="type-label">
                 최근 주문 {orders.length.toLocaleString("ko-KR")}건
@@ -309,8 +300,7 @@ export default function OrderDashboard({
               loading={refreshing}
               onClick={() => refresh(() => router.refresh())}
             />
-          </div>
-        </ContentPanel>
+        </div>
         {state.message ? (
           <ContentPanel as="aside" surface="notice" density="compact">
             <p role="status" className="type-body-sm">
@@ -341,40 +331,8 @@ export default function OrderDashboard({
               order.status !== "cancelled" &&
               (order.status !== "served" || order.paymentStatus === "unpaid"),
           }))}
-          renderList={(open) =>
-            orders.length ? (
-              <ContentPanel>
-                <Table
-                  variant="management"
-                  label="주문 내역"
-                  columns={[
-                    "compact",
-                    "text",
-                    "detail",
-                    "text",
-                    "text",
-                    "actions",
-                  ]}
-                >
-                  <TableHeader>
-                    <TableRow>
-                      {[
-                        "주문 번호",
-                        "테이블·키오스크",
-                        "상품·옵션·수량",
-                        "주문 시간",
-                        "주문·결제 상태",
-                        "관리",
-                      ].map((label) => (
-                        <TableHead key={label}>{label}</TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {orders.map((order) => (
-                      <TableRow key={order.id}>
+          renderList={(open) => <OperationsHistoryTable noun="주문" floorPlan={floorPlan} records={orders} renderRecord={order => <>
                         <TableCell>#{order.orderNumber}</TableCell>
-                        <TableCell primary>{order.tableLabel}</TableCell>
                         <TableCell>
                           <OrderItems order={order} />
                         </TableCell>
@@ -403,20 +361,7 @@ export default function OrderDashboard({
                             상세·처리
                           </button>
                         </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ContentPanel>
-            ) : (
-              <EmptyState
-                headingLevel={3}
-                icon={<ShoppingBag />}
-                title="아직 접수된 주문이 없습니다."
-                description="새 주문이 접수되면 이곳에 표시됩니다."
-              />
-            )
-          }
+          </>} />}
           renderDetail={(ids) => (
             <div className="site-stack-group">
               {orders.filter((order) => ids.includes(order.id)).map(detail)}

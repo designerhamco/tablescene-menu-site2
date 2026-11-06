@@ -1,5 +1,6 @@
 "use client";
 
+import { confirmUnsavedChanges } from "@/lib/unsaved-changes";
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { LoadingState } from "@/app/components/ui/loading-state";
@@ -18,7 +19,7 @@ export default function OperationSiteSelector({ selectedId, items }: {
           <select id="operation-menu-site" className="site-field w-full min-w-0" value={selectedId} disabled={pending} aria-busy={pending}
             onChange={event => {
               const item = items.find(item => item.id === event.target.value);
-              if (item) startTransition(() => router.push(item.href));
+              if (item && item.id !== selectedId) void confirmUnsavedChanges().then(allowed => { if (allowed) startTransition(() => router.push(item.href)); });
             }}>
             {items.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}
           </select>
