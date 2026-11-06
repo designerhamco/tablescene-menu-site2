@@ -118,3 +118,13 @@ test("standalone ghost text actions are rejected while outlined actions and icon
     assert.deepEqual(audit([["components/NewAction.tsx",source]]),[],content);
   }
 });
+
+
+test("page introductions require an explicit purpose while title-only pages stay the default", () => {
+  for (const name of ["SitePage", "SitePageHeader"]) {
+    assert.ok(audit([["components/NewPage.tsx", `import ${name} from '@/components/layout/${name}'; export default function Page(){return <${name} title="제목" description="내용"/>}`]]).some(item => item.rule === "copy-purpose"));
+    assert.deepEqual(audit([["components/NewPage.tsx", `import ${name} from '@/components/layout/${name}'; export default function Page(){return <${name} title="제목"/>}`]]), []);
+    for (const purpose of ["requested", "state", "essential", "content"]) assert.deepEqual(audit([["components/NewPage.tsx", `import ${name} from '@/components/layout/${name}'; export default function Page(){return <${name} title="제목" description="내용" descriptionPurpose="${purpose}"/>}`]]), []);
+  }
+  assert.ok(audit([["components/NewPage.tsx", `import Intro from '@/components/layout/SitePageHeader'; export default function Page(){return <Intro title="제목" description="중복 소개"/>}`]]).some(item => item.rule === "copy-purpose"));
+});

@@ -56,7 +56,6 @@ export default async function OrderPointManagementPage({ params, kind = "table" 
         <header className="site-stack-title">
           <p className="type-label text-zinc-500">{selectedSite.name}</p>
           <h2 className="type-subsection-title">{noun} 관리</h2>
-          <p className="type-body-sm site-copy-muted">테이블과 키오스크를 등록하고, 주문·호출 허용과 기기 연결 여부를 확인하고 보관 목록을 관리합니다. 배치도형에서는 같은 룸 안에 함께 배치할 수 있습니다.</p>
         </header>
         {data ? (
           <MenuTableManager key={menuId} menuSiteId={data.menuSite.id} tables={data.tables.map(({ id, label, status, kind, policy, policyAvailable }) => ({ id, label, status, kind, policy, policyAvailable }))}

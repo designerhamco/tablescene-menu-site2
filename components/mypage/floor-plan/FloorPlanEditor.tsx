@@ -190,7 +190,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       {renderList?.()}
       <div className="site-action-row" data-distribution="end">{resetAction}{saveAction}</div>
     </> : <FloorPlanWorkspace canvasActions={resetAction} tools={<>
-      <div className="site-action-row" data-wrap="nowrap"><h3 className="type-content-title">배치되지 않은 {noun} {unplaced.length}개 · 현재 룸 {document.placements.filter(p => p.roomId === room?.id && visiblePoints.some(point => point.id === p.pointId)).length}개</h3><InfoTooltip label="테이블·키오스크 배치 안내"><p>{placementReason}</p><p>‘바로 배치’는 선택한 룸의 빈 곳에 배치합니다. 배치한 영역을 끌어 위치를 바꾸고 오른쪽 아래 화살표로 크기를 조절해 주세요.</p></InfoTooltip></div>
+      <div className="site-action-row" data-wrap="nowrap"><h3 className="type-content-title">배치되지 않은 {noun} {unplaced.length}개 · 현재 룸 {document.placements.filter(p => p.roomId === room?.id && visiblePoints.some(point => point.id === p.pointId)).length}개</h3><InfoTooltip label="테이블·키오스크 배치 안내"><p>{placementReason}</p><p>‘바로 배치’는 선택한 룸의 빈 곳에 배치합니다. 배치한 영역을 끌어 위치를 바꾸고 오른쪽 아래 화살표로 크기를 조절해 주세요.</p><p>위치·크기·룸 구성은 ‘배치도 저장’으로 반영합니다. ‘처음으로 되돌리기’는 마지막 저장 배치로 돌아갑니다. 등록·보관·주문·호출 허용과 기기 연결은 즉시 반영됩니다.</p></InfoTooltip></div>
       {placementTools}
     </>} selection={renderSelectedPoint ? selectedPoint ? renderSelectedPoint(selectedPoint, pending) : <p className="type-body-sm site-copy-muted">테이블·키오스크 영역을 선택하면 기기별 주문·호출 허용과 연결 정보를 확인하고 변경할 수 있습니다.</p> : undefined} footer={<>
       <div className="site-action-row" data-distribution="between">
@@ -216,7 +216,6 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       </FloorPlanCanvas>}
     </FloorPlanWorkspace>}
     <div className="site-stack-block">
-      <p className="type-footnote site-copy-muted">위치·크기·룸 구성은 ‘배치도 저장’을 눌러야 반영됩니다. ‘처음으로 되돌리기’는 마지막 저장 배치로 되돌립니다. 항목 등록·보관, 주문·호출 허용과 기기 연결은 별도로 즉시 반영됩니다.</p>
       {feedback && (feedback.name || !dirty || feedback.error) ? <p className={`type-body-sm ${feedback.error ? "text-destructive" : "site-copy-muted"}`} role={feedback.error ? "alert" : "status"}>{feedback.message}</p> : null}
       {pending ? <LoadingState inline label={renamePending ? "룸 이름을 저장하고 있습니다." : "배치도를 저장하고 있습니다."} /> : null}
     </div>

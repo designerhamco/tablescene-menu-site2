@@ -54,7 +54,6 @@ export default async function MenuQrManagementPage({ params }: { params: Promise
         <header className="site-stack-title">
           <p className="type-label text-zinc-500">{selectedSite.name}</p>
           <h2 className="type-subsection-title">QR 관리</h2>
-          <p className="type-body-sm site-copy-muted">대표 메뉴 QR과 등록된 테이블별 QR을 한곳에서 확인하고 다운로드합니다.</p>
         </header>
         {data ? <>
           <RepresentativeQrCard data={data} />

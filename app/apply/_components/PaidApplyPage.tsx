@@ -104,7 +104,7 @@ export default async function PaidApplyPage({
       <OfficialSiteNavbar />
       <main className="site-checkout-page site-page-spacing-compact min-h-screen text-zinc-950">
         <div className="site-container">
-          <SitePageHeader title={copy.title} description={copy.description} />
+          <SitePageHeader title={copy.title} />
 
           <ApplyOrderForm
             templates={templates}

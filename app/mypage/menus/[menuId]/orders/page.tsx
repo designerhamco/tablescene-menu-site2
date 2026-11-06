@@ -67,9 +67,7 @@ export default async function OrderDashboardPage({
         <header className="site-stack-title">
           <p className="type-label site-copy-muted">{data.menuSite.name}</p>
           <h2 className="type-subsection-title">주문관리</h2>
-          <p className="type-body-sm site-copy-muted">
-            접수부터 제공까지의 상태와 외부 카드 단말기·현금 결제 완료를 관리합니다. ArtiMenu는 이 후불 흐름에서 카드 승인을 수행하지 않습니다.
-          </p>
+          <p className="type-body-sm site-copy-muted" data-copy-purpose="essential">ArtiMenu는 이 후불 흐름에서 카드 승인을 수행하지 않습니다.</p>
         </header>
 
         <OperationFeatureNavigation menuId={menuId} feature="orders" settings={false} historyAvailable={selectedSite.operationAccess.orders} canConfigure={selectedSite.isOwner} canManageDevices={selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage")} />

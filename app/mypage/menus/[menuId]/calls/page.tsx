@@ -66,9 +66,6 @@ export default async function CallDashboardPage({
         <header className="site-stack-title">
           <p className="type-label site-copy-muted">{data.menuSite.name}</p>
           <h2 className="type-subsection-title">호출관리</h2>
-          <p className="type-body-sm site-copy-muted">
-            테이블의 직원 호출을 접수 확인하고 완료합니다. 손님이 취소한 호출과 완료 이력도 함께 확인할 수 있습니다.
-          </p>
         </header>
         <OperationFeatureNavigation menuId={menuId} feature="calls" settings={false} historyAvailable={selectedSite.operationAccess.calls} canConfigure />
         <CallDashboard floorPlan={floorPlan} menuSiteId={data.menuSite.id} calls={data.calls} />

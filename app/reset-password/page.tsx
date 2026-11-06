@@ -46,7 +46,6 @@ export default async function ResetPasswordPage({
           <div className="site-auth-form">
             <div className="site-auth-header">
               <h1 className="type-page-title">새 비밀번호 설정</h1>
-              <p className="type-page-description mt-3 text-zinc-500">새로운 비밀번호를 입력해주세요.</p>
             </div>
 
             <ResetPasswordForm recoveryAuthorized={recoveryAuthorized} />

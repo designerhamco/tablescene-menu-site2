@@ -123,7 +123,7 @@ export default async function ConsultingApplyPage({
       <OfficialSiteNavbar />
       <main className="site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-4xl">
-          <SitePageHeader title={copy.title} description={copy.description} />
+          <SitePageHeader title={copy.title} descriptionPurpose="content" description={copy.description} />
 
           <form
             action={createConsultingApplyAction}

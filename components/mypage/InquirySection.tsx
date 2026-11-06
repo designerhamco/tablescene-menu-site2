@@ -168,9 +168,6 @@ export function InquirySection({
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <h2 className="type-section-title">문의 및 답변</h2>
-            <p className="type-body-sm mt-3 break-keep text-zinc-600">
-              고객지원 문의와 답변 내역을 확인하고 새 문의를 남길 수 있습니다.
-            </p>
           </div>
         </div>
       ) : null}
