@@ -84,6 +84,7 @@ export async function mutateMenuTableAction(
       const previous=(await cookies()).get(TABLE_VISIT_SESSION_COOKIE)?.value;
       let deviceInfo: unknown;
       try { const raw = getFormString(formData, "deviceInfo"); if (raw.length <= 2048) deviceInfo = JSON.parse(raw); } catch {}
+      if (getFormString(formData, "pointStatus") === "disabled") await resumeMenuTable({ menuSiteId, tableId });
       const result=await registerTableTerminal(menuSiteId,tableId,(await headers()).get("user-agent") ?? "",isValidTableAccessToken(previous)?previous:undefined,deviceInfo);
       const { error } = await (await createClient()).auth.signOut({ scope: "local" });
       if (error) throw new TableTerminalConnectionError("관리자 로그아웃을 완료하지 못했습니다. 태블릿 연결을 다시 시도해 주세요.");
@@ -129,11 +130,6 @@ export async function mutateMenuTableAction(
       const table = await restoreMenuTable({ menuSiteId, tableId, label: getFormString(formData, "label") });
       revalidateTableOperations(menuSiteId);
       return { ...initialMenuTableActionState, status: "success", message: `${table.label}을 복원했습니다. 주문·호출은 모두 OFF이며 각 설정에서 켤 수 있습니다.`, tableId: table.id };
-    }
-    if (intent === "resume") {
-      const table = await resumeMenuTable({ menuSiteId, tableId });
-      revalidateTableOperations(menuSiteId);
-      return { ...initialMenuTableActionState, status: "success", message: `${table.label}의 운영을 재개했습니다. 주문·호출은 모두 OFF이며 각 설정에서 켤 수 있습니다.`, tableId: table.id };
     }
     if (intent === "rotate-token") {
       const result = await rotateMenuTableToken({ menuSiteId, tableId });
@@ -183,7 +179,7 @@ export async function mutateMenuTableAction(
 
 export async function updateOrderPointFeature(input: {
   menuSiteId: string; tableId: string; channel: OrderPointChannel; feature: OrderPointFeature;
-  enabled: boolean; expectedEnabled: boolean;
+  enabled: boolean; expectedEnabled: boolean; expectedStatus?: "active" | "disabled";
 }): Promise<{ status: "success" | "error"; message: string }> {
   try {
     await setOrderPointFeature(input);

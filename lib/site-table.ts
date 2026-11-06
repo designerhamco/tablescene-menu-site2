@@ -4,6 +4,7 @@ export const SITE_TABLE_COLUMNS = {
   text: { rem: 12, label: "이름·본문", usage: "길면 줄바꿈하는 이름·일반 내용" },
   detail: { rem: 18, label: "상세·연결 정보", usage: "상태 설명과 이동 행동이 함께 있는 정보" },
   control: { rem: 10, label: "상태 조작", usage: "라벨과 공통 Switch" },
+  toggles: { rem: 14, label: "기기별 허용", usage: "태블릿·모바일 각각 라벨·ON/OFF·Switch를 두 행으로 표시" },
   actions: { rem: 10, label: "행 작업", usage: "공통 compact 버튼 2개" },
 } as const;
 export type SiteTableColumn = keyof typeof SITE_TABLE_COLUMNS;

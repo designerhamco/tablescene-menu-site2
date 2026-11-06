@@ -28,8 +28,8 @@ export default function TableTerminalConnections({ menuSiteId, table, connection
         <form action={action} aria-busy={pending} onSubmit={event => {
           if (!window.confirm(`현재 기기를 ${table.label} 주문용으로 연결할까요?${currentTableId ? " 이 기기의 기존 연결은 해제됩니다." : ""} 관리자 로그아웃 후 손님용 메뉴판이 자동으로 열립니다. 다른 기기의 연결은 유지됩니다.`)) event.preventDefault();
         }}>
-          <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={table.id} /><input type="hidden" name="deviceInfo" value={JSON.stringify(device)} />
-          <button name="intent" value="register-terminal" disabled={pending || !available || !currentKnown || !published || table.status !== "active" || currentTableId === table.id} className="site-button site-button-outline">{kiosk ? "현재 기기를 키오스크에 연결" : "현재 태블릿을 테이블에 연결"}</button>
+          <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={table.id} /><input type="hidden" name="pointStatus" value={table.status} /><input type="hidden" name="deviceInfo" value={JSON.stringify(device)} />
+          <button name="intent" value="register-terminal" disabled={pending || !available || !currentKnown || !published || table.status === "archived" || currentTableId === table.id} className="site-button site-button-outline">{kiosk ? "현재 기기를 키오스크에 연결" : "현재 태블릿을 테이블에 연결"}</button>
         </form>
         {showMenuOpen && currentKnown && currentTableId === table.id ? <form action={action} aria-busy={pending}>
           <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="tableId" value={table.id} />

@@ -15,7 +15,7 @@ export default function ManagementTableExamples() {
   const [feedback, setFeedback] = useState<{ message: string } | null>(null);
   const exampleAction = () => setFeedback({ message: "동작 확인용 예시입니다. 실제 매장 데이터는 변경하지 않습니다." });
   return <section id="management-tables" className={styles.section}>
-    <div className={styles.heading}><h2 className="type-section-title">관리 표</h2><p className="type-body site-copy-muted">항목을 비교하고 같은 행에서 작업할 때 사용합니다. 표도 공통 여백·서체·색·버튼과 스위치 규칙을 따릅니다. 아래 조작은 예시 화면에서만 반영됩니다.</p></div>
+    <div className={styles.heading}><h2 className="type-section-title">관리 표</h2><p className="type-body site-copy-muted">항목을 비교하고 같은 행에서 작업할 때 사용합니다. 표도 공통 여백·서체·색·버튼과 스위치 규칙을 따릅니다. 주문과 호출은 별도 열에서 태블릿·모바일 스위치로 조작합니다. 관리 열에는 보관·삭제만 두며 연결하기는 공통 팝업을 엽니다. 아래 조작은 예시 화면에서만 반영됩니다.</p></div>
     <div className="site-management-scope site-stack-content">
       <ActionFeedbackToast message={feedback?.message} tone="success" eventKey={feedback} />
       <div className="site-stack-block">

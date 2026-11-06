@@ -28,7 +28,6 @@ export default function OrderPointReceptionSettings({ menuSiteId, feature, point
   function channelControl(point: ReceptionPoint, channel: OrderPointChannel) {
     const reason = !point.policyAvailable ? "방식별 설정을 불러오지 못했습니다. 새로고침 후 다시 확인해 주세요."
       : !published ? "메뉴판을 공개하면 사용할 수 있습니다."
-        : point.status !== "active" ? "이전 사용 중지 설정이 남아 있습니다. 테이블·키오스크 관리에서 운영을 재개해 주세요."
           : !runtime ? `${label} 기능을 현재 사용할 수 없습니다.`
             : globalEnabled == null ? `전체 ${label} 설정을 확인할 수 없습니다.`
             : !globalEnabled ? `${label} 설정${feature === "orders" ? " 탭" : ""}에서 전체 ${label}을 켜고 저장해 주세요.`
@@ -37,7 +36,7 @@ export default function OrderPointReceptionSettings({ menuSiteId, feature, point
     return <ContentPanel surface="muted">
       <h6 className="type-item-title">{channel === "customer" ? "손님 휴대폰·QR" : point.kind === "kiosk" ? "키오스크 기기" : "매장 태블릿"}</h6>
       <OrderPointFeatureToggle menuSiteId={menuSiteId} tableId={point.id} label={point.label} channel={channel}
-        feature={feature} policy={point.policy ?? DEFAULT_ORDER_POINT_POLICY} disabledReason={reason} readOnly={readOnly} />
+        feature={feature} pointStatus={point.status} policy={point.policy ?? DEFAULT_ORDER_POINT_POLICY} disabledReason={reason} readOnly={readOnly} />
       {channel === "terminal" && deviceSetup ? <OrderPointDeviceConnection menuSiteId={menuSiteId} point={point} published={published} setup={deviceSetup} /> : null}
     </ContentPanel>;
   }
@@ -60,7 +59,7 @@ export default function OrderPointReceptionSettings({ menuSiteId, feature, point
         return <div key={kind} className="site-stack-block">
           <h4 className="type-content-title">{kind === "table" ? "테이블" : "키오스크"} · {group.length.toLocaleString("ko-KR")}개</h4>
           {group.map(point => <ContentPanel as="article" id={`point-${point.id}`} key={point.id} aria-label={`${point.label} ${label} 설정`}>
-            <div className="site-content-heading-row"><h5 className="type-content-title break-words">{point.label}</h5>{point.status !== "active" ? <p className="type-body-sm site-copy-muted">기존 사용 중지 · 관리 화면에서 운영을 재개해 주세요.</p> : null}</div>
+            <div className="site-content-heading-row"><h5 className="type-content-title break-words">{point.label}</h5></div>
             <div className={kind === "table" ? "site-card-grid xl:grid-cols-2" : "site-stack-block"}>
               {channelControl(point, "terminal")}
               {kind === "table" ? channelControl(point, "customer") : null}

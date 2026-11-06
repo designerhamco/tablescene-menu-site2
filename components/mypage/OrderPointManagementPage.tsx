@@ -60,7 +60,7 @@ export default async function OrderPointManagementPage({ params, kind = "table" 
         </header>
         {data ? (
           <MenuTableManager key={menuId} menuSiteId={data.menuSite.id} tables={data.tables.map(({ id, label, status, kind, policy, policyAvailable }) => ({ id, label, status, kind, policy, policyAvailable }))}
-            saveFloorPlanAction={saveFloorPlanAction.bind(null, menuId)} floorPlan={floorPlan ?? undefined} archivedTables={data.archivedTables} pointSettingsAvailable={data.pointSettingsAvailable} canDelete={selectedSite.isOwner} connectionState={connectionState} />
+            saveFloorPlanAction={saveFloorPlanAction.bind(null, menuId)} floorPlan={floorPlan ?? undefined} archivedTables={data.archivedTables} pointSettingsAvailable={data.pointSettingsAvailable} canDelete={selectedSite.isOwner} canConfigure={selectedSite.isOwner} published={data.menuSite.status === "published"} deviceSetup={deviceState} connectionState={connectionState} />
         ) : (
           <ContentPanel>
             <div className="site-stack-title">
