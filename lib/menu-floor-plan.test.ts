@@ -118,3 +118,22 @@ test("새 등록은 선택 룸의 빈 곳에 초기 배치하고 기존 위치·
   const other = {...original,rooms:[...original.rooms,{id:third,name:"야외",aspectRatio:1.33}]};
   const moved = floor.placeNewFloorPoints(other,[point,second],third); assert.equal(moved.placements[0].roomId,room); assert.equal(moved.placements[1].roomId,third);
 });
+
+
+test("룸 추가 결과는 서버 반올림 값을 사용해 저장된 문서와 일치하며 다른 초안을 보존한다",async()=>{
+  const {mergeSavedFloorRoom,normalizeFloorDocument}=await import("./menu-floor-plan");
+  const room={id:"11111111-1111-4111-8111-111111111111",name:"룸 1",aspectRatio:4/3};
+  const before={rooms:[],placements:[]};
+  const saved=normalizeFloorDocument({...before,rooms:[room]});
+  assert.equal(saved.rooms[0].aspectRatio,1.33);
+  assert.deepEqual(mergeSavedFloorRoom(before,saved.rooms[0]),saved);
+  const pointId="22222222-2222-4222-8222-222222222222";
+  const draft={...saved,placements:[{pointId,roomId:room.id,x:12,y:24,width:20,height:16}],memberships:[{pointId,roomId:room.id}]};
+  const added={id:"33333333-3333-4333-8333-333333333333",name:"룸 2",aspectRatio:4/3};
+  const result=normalizeFloorDocument({...saved,rooms:[...saved.rooms,added]});
+  const merged=mergeSavedFloorRoom(draft,result.rooms[1]);
+  assert.deepEqual(merged.rooms,result.rooms);
+  assert.deepEqual(merged.placements,draft.placements);
+  assert.deepEqual(merged.memberships,draft.memberships);
+  assert.notDeepEqual(merged,result);
+});

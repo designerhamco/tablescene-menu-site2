@@ -73,6 +73,13 @@ export function renameSavedFloorRoom(saved: FloorDocument, room: FloorRoom, name
   });
 }
 
+/** Only merge the server-confirmed room; canonical precision must not create a false draft. */
+export function mergeSavedFloorRoom(draft: FloorDocument, savedRoom: FloorRoom): FloorDocument {
+  return {...draft, rooms: draft.rooms.some(room=>room.id===savedRoom.id)
+    ? draft.rooms.map(room=>room.id===savedRoom.id?savedRoom:room)
+    : [...draft.rooms,savedRoom]};
+}
+
 /** Initial placement for new registrations; saved and hand-edited rectangles stay intact. */
 export function placeNewFloorPoints(document: FloorDocument, pointIds: readonly string[], roomId: string): FloorDocument {
   if (!document.rooms.some(room => room.id === roomId)) return document;

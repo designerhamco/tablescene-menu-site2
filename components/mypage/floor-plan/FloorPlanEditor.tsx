@@ -14,7 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent, TabsAction } from "@/app/comp
 import { InlineNameEditor, type InlineNameResult } from "@/app/components/ui/inline-name-editor";
 import { LoadingState } from "@/app/components/ui/loading-state";
 import { EmptyState } from "@/app/components/ui/empty-state";
-import { floorMemberships, removeFloorPlacement, moveFloorPoint, resolveFloorRoomRemoval, placeNewFloorPoints, constrainFloorRect, normalizeFloorDocument, renameSavedFloorRoom, FLOOR_PLAN_DISPLAY_ASPECT_RATIO, retainRegisteredFloorPoints, type FloorDocument, type FloorPlacement, type FloorPlanSnapshot, type FloorPoint, type FloorSaveResult, type FloorRoomRemoval, type FloorRoomRemovalResult, type FloorRoom } from "@/lib/menu-floor-plan";
+import { mergeSavedFloorRoom, floorMemberships, removeFloorPlacement, moveFloorPoint, resolveFloorRoomRemoval, placeNewFloorPoints, constrainFloorRect, normalizeFloorDocument, renameSavedFloorRoom, FLOOR_PLAN_DISPLAY_ASPECT_RATIO, retainRegisteredFloorPoints, type FloorDocument, type FloorPlacement, type FloorPlanSnapshot, type FloorPoint, type FloorSaveResult, type FloorRoomRemoval, type FloorRoomRemovalResult, type FloorRoom } from "@/lib/menu-floor-plan";
 import { placeRegisteredFloorPoint, saveRegisteredFloorPoint, mergeRegisteredFloorPoint, type RegisteredFloorPoint } from "@/lib/menu-floor-registration";
 import { FloorPlanCanvas, FloorPlanObject, FloorPlanWorkspace } from "@/app/components/ui/floor-plan-canvas";
 
@@ -154,7 +154,9 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
         const result = await onSave(saved.revision, { ...saved.document, rooms: [...saved.document.rooms, next] });
         if (result.status === "error") { setFeedback({ error: true, message: result.message }); return; }
         setSaved({ available: true, revision: result.revision, document: result.document });
-        setDraft(previous => ({...previous,rooms:[...previous.rooms,next]}));
+        const savedRoom = result.document.rooms.find(room => room.id === next.id);
+        if (!savedRoom) { setFeedback({error:true,message:"룸 저장 결과를 확인하지 못했습니다. 새로고침 후 확인해 주세요."}); return; }
+        setDraft(previous => mergeSavedFloorRoom(previous, savedRoom));
         setRoomId(next.id); setSelectedId(""); setRemoveRoom(false);
         setFeedback({ error: false, message: "룸을 추가했습니다." });
       } catch { setFeedback({ error: true, message: "룸을 추가하지 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요." }); } finally { setRoomAddPending(false); }
