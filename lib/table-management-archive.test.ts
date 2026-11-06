@@ -26,7 +26,7 @@ function fixture({ error = null as null | { code: string; message?: string }, mi
       resolve({ data: [row, { ...row, id: "44444444-4444-4444-8444-444444444444", status: "archived", archived_at: "2026-11-02T00:00:00Z" }].filter(r => listStatuses.includes(r.status)), error: null });
     },
     update(value: Record<string, unknown>) { writes.push(value); return this; },
-    async maybeSingle() { return { data: missing ? null : row, error }; },
+    async maybeSingle() { return { data: missing ? null : { ...row, ...writes.at(-1) }, error }; },
   };
   const db = { from(name: string) {
     if (name === "menu_sites") return { select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: { id: siteId, name: "매장", slug: "store", status: "published", template_key: "cafe_design_a" }, error: null }; } };
@@ -63,10 +63,10 @@ test("보관 테이블은 관리 화면에서만 명시적으로 조회하며 QR
   assert.deepEqual(all.archivedTables, [{ id: "44444444-4444-4444-8444-444444444444", label: "창가", archivedAt: "2026-11-02T00:00:00Z", kind: "table" }]);
 });
 
-test("복원은 대상 매장·보관 상태로 제한하고 비활성으로 복원하며 QR과 종료된 방문 세션을 변경하지 않는다", async () => {
+test("복원은 대상 매장·보관 상태로 제한하고 주문·호출을 OFF로 복원하며 QR과 종료된 방문 세션을 변경하지 않는다", async () => {
   const f = fixture();
   await f.service.restoreMenuTable({ menuSiteId: siteId, tableId, label: " 창가 2 " });
-  assert.deepEqual(f.writes, [{ label: "창가 2", status: "disabled", archived_at: null, updated_by: "owner" }]);
+  assert.deepEqual(f.writes, [{ label: "창가 2", status: "active", archived_at: null, terminal_order_enabled: false, terminal_call_enabled: false, customer_order_enabled: false, customer_call_enabled: false, updated_by: "owner" }]);
   assert.deepEqual(f.filters, [["menu_site_id", siteId], ["id", tableId], ["status", "archived"]]);
   assert.deepEqual(f.permissions, [[siteId, "table.manage"], [siteId, "table.manage", "menu_table_management"]]);
 });
@@ -108,5 +108,22 @@ test("상태 전환의 권한 부족·보관/동시 변경·잘못된 상태를 
   for (const patch of [{ status: "archived" }, { status: "active", expectedStatus: "archived" }, { label: " " }, {}]) {
     await assert.rejects(invalid.service.updateMenuTable({ menuSiteId: siteId, tableId, ...patch }), /올바른 테이블 상태|1자 이상|변경할 이름 또는 상태/);
   }
+  assert.deepEqual(invalid.writes, []);
+});
+
+
+test("이전 사용 중지는 명시적 재개만 허용하고 모든 수신을 OFF로 같은 요청에서 저장한다", async () => {
+  const f = fixture();
+  const result = await f.service.resumeMenuTable({ menuSiteId: siteId, tableId });
+  assert.equal(result.status, "active");
+  assert.deepEqual(result.policy, { terminalOrderEnabled: false, terminalCallEnabled: false, customerOrderEnabled: false, customerCallEnabled: false });
+  assert.deepEqual(f.writes, [{ status: "active", terminal_order_enabled: false, terminal_call_enabled: false, customer_order_enabled: false, customer_call_enabled: false, updated_by: "owner" }]);
+  assert.deepEqual(f.filters, [["menu_site_id", siteId], ["id", tableId], ["status", "disabled"]]);
+  const denied = fixture({ denied: true });
+  await assert.rejects(denied.service.resumeMenuTable({ menuSiteId: siteId, tableId }), /permission denied/);
+  assert.deepEqual(denied.writes, []);
+  await assert.rejects(fixture({ missing: true }).service.resumeMenuTable({ menuSiteId: siteId, tableId }), /상태가 변경/);
+  const invalid = fixture();
+  await assert.rejects(invalid.service.resumeMenuTable({ menuSiteId: "invalid", tableId }), /테이블 정보를/);
   assert.deepEqual(invalid.writes, []);
 });

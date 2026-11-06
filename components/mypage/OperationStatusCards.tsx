@@ -31,9 +31,9 @@ export default function OperationStatusCards(props: OperationStatusCardsProps) {
       value={published ? "공개 중" : "비공개"}
       detail={published ? "손님이 메뉴판을 볼 수 있습니다." : "메뉴판을 공개하면 주문·호출을 켤 수 있습니다."}
       footer={publicAction ?? <p className="type-footnote site-copy-muted">공개 설정은 사장님에게 요청해 주세요.</p>} />
-    <OverviewCard label="테이블·키오스크 상태" icon={<LayoutGrid />}
-      value={tableCounts && props.kioskCounts ? tableCounts.registered + props.kioskCounts.registered === 0 ? "미등록" : `사용 중 ${(tableCounts.active + props.kioskCounts.active).toLocaleString("ko-KR")}개` : permissions.tables ? "상태 확인 불가" : "확인 불가"}
-      detail={tableCounts && props.kioskCounts ? <><span className="block">테이블 {tableCounts.registered.toLocaleString("ko-KR")}개 · 사용 중 {tableCounts.active.toLocaleString("ko-KR")}개</span><span className="block">키오스크 {props.kioskCounts.registered.toLocaleString("ko-KR")}개 · 사용 중 {props.kioskCounts.active.toLocaleString("ko-KR")}개</span></> : permissions.tables ? "등록 정보를 불러오지 못했습니다." : "테이블·키오스크 관리 권한이 필요합니다."}
+    <OverviewCard label="테이블·키오스크 등록" icon={<LayoutGrid />}
+      value={tableCounts && props.kioskCounts ? tableCounts.registered + props.kioskCounts.registered === 0 ? "미등록" : `등록 ${(tableCounts.registered + props.kioskCounts.registered).toLocaleString("ko-KR")}개` : permissions.tables ? "상태 확인 불가" : "확인 불가"}
+      detail={tableCounts && props.kioskCounts ? <><span className="block">테이블 {tableCounts.registered.toLocaleString("ko-KR")}개</span><span className="block">키오스크 {props.kioskCounts.registered.toLocaleString("ko-KR")}개</span></> : permissions.tables ? "등록 정보를 불러오지 못했습니다." : "테이블·키오스크 관리 권한이 필요합니다."}
       help="주문·호출 기능을 사용할 때만 등록해 주세요. 메뉴판만 보여주는 경우에는 등록하지 않아도 됩니다. 같은 지도에서 두 유형을 함께 배치할 수 있습니다."
       footer={permissions.tables ? <Button variant="outline" asChild><Link href={tablesHref} aria-label="테이블·키오스크 관리"><OverviewCardResponsiveLabel compact="등록 관리">테이블·키오스크 관리</OverviewCardResponsiveLabel><ArrowRight aria-hidden="true" /></Link></Button> : <p className="type-footnote site-copy-muted">등록 설정은 사장님에게 요청해 주세요.</p>} />
     {(["orders", "calls"] as const).map(feature => {

@@ -25,6 +25,9 @@ import {
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isTableManagementRuntimeEnabledForSite } from "@/lib/table-management-runtime";
 
+// Restoring/restarting a registration must never silently resume reception.
+const RECEPTION_OFF = { terminal_order_enabled: false, terminal_call_enabled: false, customer_order_enabled: false, customer_call_enabled: false } as const;
+
 type DatabaseError = {
   code?: string;
   message?: string;
@@ -171,13 +174,28 @@ export async function restoreMenuTable({ menuSiteId, tableId, label }: { menuSit
     return inputError(error);
   }
   const { context, supabase } = await requireMenuTableWriteAccess(normalizedMenuSiteId);
-  // Restore as disabled so old QR codes cannot immediately accept new visits.
+  // Return to the operating list with all order/call channels off; old visits stay revoked.
   const { data, error } = await supabase.from("menu_tables")
-    .update({ label: normalizedLabel, status: "disabled", archived_at: null, updated_by: context.actorUserId })
+    .update({ label: normalizedLabel, status: "active", archived_at: null, ...RECEPTION_OFF, updated_by: context.actorUserId })
     .eq("menu_site_id", normalizedMenuSiteId).eq("id", normalizedTableId).eq("status", "archived")
     .select("*").maybeSingle();
   if (error) mapDatabaseError(error, "TABLE_UPDATE_FAILED");
   if (!data) throw new MenuTableManagementError("TABLE_NOT_FOUND", "보관된 테이블을 찾을 수 없습니다. 목록을 새로고침해 주세요.", 404);
+  return toMenuTableListItem(data);
+}
+
+/** One-way compatibility entry for registrations paused before individual reception controls. */
+export async function resumeMenuTable({ menuSiteId, tableId }: { menuSiteId: string; tableId: string }) {
+  let normalizedMenuSiteId: string, normalizedTableId: string;
+  try { normalizedMenuSiteId = normalizeMenuTableId(menuSiteId); normalizedTableId = normalizeMenuTableId(tableId); }
+  catch (error) { return inputError(error); }
+  const { context, supabase } = await requireMenuTableWriteAccess(normalizedMenuSiteId);
+  const { data, error } = await supabase.from("menu_tables")
+    .update({ status: "active", ...RECEPTION_OFF, updated_by: context.actorUserId })
+    .eq("menu_site_id", normalizedMenuSiteId).eq("id", normalizedTableId).eq("status", "disabled")
+    .select("*").maybeSingle();
+  if (error) mapDatabaseError(error, "TABLE_UPDATE_FAILED");
+  if (!data) throw new MenuTableManagementError("TABLE_CONFLICT", "사용 중지 상태가 변경되었습니다. 목록을 새로고침해 주세요.", 409);
   return toMenuTableListItem(data);
 }
 

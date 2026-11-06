@@ -21,14 +21,14 @@ export default function SiteSpacingRules() {
         </div>
       </ContentPanel>
       <ContentPanel aria-label="입력과 버튼 중앙 정렬 예시">
-        <div className="site-stack-title"><h3 className="type-content-title">입력·선택 박스와 버튼의 중앙 맞춤</h3><p className="type-body-sm site-copy-muted">서로 높이가 달라도 표준 크기는 유지하고, 나란히 놓인 컨트롤의 세로 중심을 맞춥니다. 보이는 라벨은 컨트롤 행 위에 둡니다.</p></div>
+        <div className="site-stack-title"><h3 className="type-content-title">입력·선택 박스와 버튼의 중앙 맞춤</h3><p className="type-body-sm site-copy-muted">서로 높이가 달라도 표준 크기는 유지하고, 나란히 놓인 컨트롤의 높이 중심을 맞춥니다. 보이는 라벨은 컨트롤 행 위에 둡니다.</p></div>
         <div className="site-field-stack"><label className="type-label" htmlFor="control-row-address">메뉴판 주소</label><div className="site-form-row" data-alignment="center"><div className="site-field-stack"><input id="control-row-address" className="site-field w-full" readOnly value="artimenu.kr/example" /></div><Button variant="outline">복사 예시</Button></div></div>
         <div className="site-form-row" data-alignment="center"><label className="site-field-stack"><span className="sr-only">배치할 항목 예시</span><select className="site-field w-full" defaultValue="kiosk"><option value="kiosk">키오스크 · 키오스크 1</option><option value="table">테이블 · 테이블 1</option></select></label><Button variant="outline">바로 배치 예시</Button></div>
       </ContentPanel>
       <ContentPanel surface="muted" aria-label="회색 작업 박스 예시"><div className="site-stack-title"><h3 className="type-content-title">회색 보조 영역</h3><p className="type-body-sm site-copy-muted">테두리와 그림자 없이 같은 안쪽 여백을 사용합니다. 버튼은 문구 너비를 따릅니다.</p></div><div className="site-action-row"><Button variant="outline">보조 실행 예시</Button></div></ContentPanel>
       <ContentPanel surface="notice" density="compact" as="aside" aria-label="안내 박스 예시"><div className="site-stack-title"><h3 className="type-content-title">다음 행동을 알려주는 안내</h3><p className="type-body-sm site-copy-muted">밝은 노랑·무테·6px 모서리, 안쪽 16px입니다. 일반 작업 박스의 12px 모서리와 역할을 구분합니다.</p></div></ContentPanel>
     </div>
-    <p className="type-body-sm site-copy-muted">관리 화면은 시작 정렬입니다. 라벨이 포함된 폼 열은 하단을 맞추고, 입력·선택 박스 자체와 버튼을 나란히 놓는 행은 <code>site-form-row data-alignment=&quot;center&quot;</code>로 세로 중심을 맞춥니다. 640px 미만에서는 기존 순서대로 쌓습니다. 제목 20px/700, 콘텐츠 제목 18px/600, 보조 설명 14px/400, 라벨 14px/600, 입력 16px/400입니다. 공통 버튼·입력의 자체 높이와 포커스는 유지합니다.</p>
+    <p className="type-body-sm site-copy-muted">관리 화면은 시작 정렬입니다. 라벨이 포함된 폼 열은 하단을 맞추고, 입력·선택 박스 자체와 버튼을 나란히 놓는 행은 <code>site-form-row data-alignment=&quot;center&quot;</code>로 높이 중심을 맞춥니다. 640px 미만에서는 기존 순서대로 쌓습니다. 제목 20px/700, 콘텐츠 제목 18px/600, 보조 설명 14px/400, 라벨 14px/600, 입력 16px/400입니다. 공통 버튼·입력의 자체 높이와 포커스는 유지합니다.</p>
   </section><section className={styles.section} id="mobile-spacing">
     <div className={styles.heading}>
       <h2 className="type-section-title">모바일 간격과 여백</h2>

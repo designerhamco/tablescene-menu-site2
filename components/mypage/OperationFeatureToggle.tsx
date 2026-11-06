@@ -26,7 +26,7 @@ export default function OperationFeatureToggle({ menuId, feature, enabled, canEn
   const displayedEnabled = published && activeTablesReady === true && canEnable && enabled;
   const disabled = pending || !published || activeTablesReady !== true || !canEnable;
   const reason = blockedReason ?? (!published ? "메뉴판 공개 후 ON 가능" : !enabled && activeTablesReady !== true
-    ? activeTablesReady === null ? "테이블 상태 확인 필요" : "테이블 또는 키오스크 활성화 후 ON 가능"
+    ? activeTablesReady === null ? "테이블 상태 확인 필요" : "테이블 또는 키오스크 등록·복원 후 ON 가능"
     : !canEnable ? "현재 기능 연결을 확인해 주세요." : null);
 
   return <div className="site-stack-copy">

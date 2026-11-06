@@ -252,3 +252,45 @@ test("opaque disabled actions retain a functional edge on matching backgrounds w
   assert.match(gallery, /<fieldset disabled className="site-form-row" data-alignment="center"/);
   assert.match(gallery, /<Button variant="outline">이동<\/Button>/);
 });
+
+
+test("editable floor objects keep their selection surface and X actions as separate interactive siblings", async () => {
+  const { FloorPlanObject, FloorPlanWorkspace } = await import("../app/components/ui/floor-plan-canvas");
+  const item = createElement(FloorPlanObject, { rect: { x: 4, y: 4, width: 20, height: 16 }, label: "테이블 1", editing: true, actions: createElement("button", { type: "button", "aria-label": "테이블 1 배치 해제" }, "X") });
+  const html = renderToStaticMarkup(item);
+  assert.match(html, /class="site-floor-object-interaction"/);
+  assert.match(html, /<\/div><div class="site-floor-object-actions"><button/);
+  assert.equal((html.match(/role="button"/g) ?? []).length, 1);
+  assert.match(html, /data-resize-handle/);
+  const readonly = renderToStaticMarkup(createElement(FloorPlanObject, { rect: { x: 4, y: 4, width: 20, height: 16 }, label: "테이블 1" }));
+  assert.doesNotMatch(readonly, /site-floor-object-actions|site-floor-object-interaction/);
+  const workspace = renderToStaticMarkup(createElement(FloorPlanWorkspace, { tools: "도구", selection: "선택 항목 정보", footer: "이동·저장" }, item));
+  assert.match(workspace, /data-layout="canvas"/);
+  assert.ok(workspace.indexOf("도구") < workspace.indexOf("선택 항목 정보"));
+  assert.ok(workspace.indexOf("선택 항목 정보") < workspace.indexOf("테이블 1"));
+  assert.ok(workspace.indexOf("테이블 1") < workspace.indexOf("이동·저장"));
+});
+
+
+test("운영 요약은 개별 주문·호출 허용과 연결 상태를 공유하며 중복 사용 스위치를 만들지 않는다", async () => {
+  const { OrderPointReceptionSummary, OrderPointConnectionControl, OrderPointLegacyResume } = await import("../components/mypage/OrderPointControls");
+  const point = { id: "point", label: "창가", status: "active" as const, kind: "table" as const, policyAvailable: true, policy: { terminalOrderEnabled: true, customerOrderEnabled: false, terminalCallEnabled: false, customerCallEnabled: true } };
+  const table = renderToStaticMarkup(createElement(OrderPointReceptionSummary, { menuSiteId: "store", point }));
+  assert.match(table, /태블릿 ON · QR OFF/); assert.match(table, /태블릿 OFF · QR ON/);
+  assert.match(table, /orders\/settings#point-point/); assert.match(table, /calls\/settings#point-point/);
+  assert.doesNotMatch(table, /role="switch"/);
+  const kiosk = renderToStaticMarkup(createElement(OrderPointReceptionSummary, { menuSiteId: "store", point: {...point, kind: "kiosk"} }));
+  assert.match(kiosk, /기기 ON/); assert.doesNotMatch(kiosk, /태블릿 ON · QR/);
+  const unknown = renderToStaticMarkup(createElement(OrderPointReceptionSummary, { menuSiteId: "store", point: {...point, policyAvailable: false} }));
+  assert.match(unknown, /확인 불가/); assert.doesNotMatch(unknown, /태블릿 ON|태블릿 OFF/);
+  const offline = renderToStaticMarkup(createElement(OrderPointConnectionControl, { menuSiteId: "store", point, state: {available: true, connections: []} }));
+  assert.match(offline, /미사용/); assert.match(offline, /창가 연결하기/);
+  const unavailable = renderToStaticMarkup(createElement(OrderPointConnectionControl, { menuSiteId: "store", point, state: {available: false, connections: []} }));
+  assert.match(unavailable, /확인 불가/); assert.match(unavailable, /창가 연결 확인/);
+  const connected = renderToStaticMarkup(createElement(OrderPointConnectionControl, { menuSiteId: "store", point, state: {available: true, connections: [{tableId:"point",device:null}, {tableId:"point",device:null}]} }));
+  assert.match(connected, /기기 연결됨 · 2대/); assert.match(connected, /창가 연결 관리/);
+  assert.equal(renderToStaticMarkup(createElement(OrderPointLegacyResume, {menuSiteId:"store",point,action:()=>{}})), "");
+  const legacy = renderToStaticMarkup(createElement(OrderPointLegacyResume, {menuSiteId:"store",point:{...point,status:"disabled"},action:()=>{}}));
+  assert.match(legacy, /value="resume"/); assert.match(legacy, /창가 운영 재개/);
+  assert.doesNotMatch(read("app/mypage/menus/[menuId]/tables/actions.ts"), /export async function updateOrderPointStatus|intent === "update"/);
+});

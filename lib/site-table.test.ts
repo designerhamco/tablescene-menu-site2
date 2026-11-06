@@ -48,7 +48,7 @@ test("표의 문서 치수는 공통 토큰과 일치하고 행은 내용에 맞
 test("관리 화면과 라이브러리는 같은 표 API와 간격·상태 예시를 공유한다", () => {
   const manager = read("../app/mypage/menus/[menuId]/tables/MenuTableManager.tsx");
   const examples = read("../components/design-system/ManagementTableExamples.tsx");
-  assert.match(manager, /columns=\{\["compact", "text", "text", "control", "detail", "actions"\]\}/);
+  assert.match(manager, /columns=\{\["compact", "text", "text", "detail", "detail", "actions"\]\}/);
   assert.match(examples, /columns=\{\["compact", "text", "detail", "control", "actions"\]\}/);
   assert.match(manager, /<Tabs purpose="state"[^>]*>\s*<div className="site-stack-group">/);
   assert.match(manager, /<div className="site-stack-block">\s*<h2[^>]*>운영 테이블/);

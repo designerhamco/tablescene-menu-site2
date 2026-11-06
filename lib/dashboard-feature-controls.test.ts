@@ -134,7 +134,7 @@ test("운영 요약의 미등록·비공개·조회 실패·권한 부족에도 
     assert.doesNotMatch(html, /테이블·키오스크 미등록|메뉴판 비공개|사용 중인 테이블·키오스크 없음/);
     assert.match(html, /aria-label="전체 주문 상태 안내"/);
     assert.match(html, /aria-label="전체 호출 상태 안내"/);
-    assert.match(html, /aria-label="테이블·키오스크 상태 안내"/);
+    assert.match(html, /aria-label="테이블·키오스크 등록 안내"/);
     assert.doesNotMatch(html, /href="[^"]*\/kiosks/);
     for (const name of ["Globe", "LayoutGrid", "ShoppingBag", "Bell"]) assert.ok(html.includes(`data-test-icon="${name}"`));
     assert.equal((html.match(/data-component="overview-card"/g) ?? []).length, 4);
