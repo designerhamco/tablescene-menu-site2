@@ -1,4 +1,5 @@
 "use client";
+import { MoveDiagonal2 } from "lucide-react";
 import { useId } from "react";
 import { ContentPanel } from "./content-panel";
 import type { CSSProperties, ComponentPropsWithRef, ComponentPropsWithoutRef, ReactNode } from "react";
@@ -18,7 +19,7 @@ export function FloorPlanObject({ rect, label, icon, typeLabel, disabled = false
   const content = <>
     <span className="type-caption site-floor-object-label">{icon ? <span className="site-label-icon" aria-hidden="true">{icon}</span> : null}{label}{disabled ? " · 비활성" : null}</span>
     {summary ? <div id={summaryId} className="site-floor-object-summary type-caption">{summary}</div> : null}
-    {editing ? <span data-resize-handle className="site-floor-object-resize" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M11 3 3 11M11 7 7 11" /></svg></span> : null}
+    {editing ? <span data-resize-handle className="site-floor-object-resize" aria-hidden="true"><MoveDiagonal2 /></span> : null}
   </>;
   const interaction = <div {...props} aria-describedby={summary ? summaryId : props["aria-describedby"]} role="button" tabIndex={0} aria-label={`${typeLabel ? `${typeLabel} · ` : ""}${label}${disabled ? " · 비활성" : ""}`} aria-pressed={selected} className={actions ? "site-floor-object-interaction" : "site-floor-object"} data-selected={selected} data-disabled={disabled} data-summary={Boolean(summary)} style={actions ? undefined : geometry} title={`${typeLabel ? `${typeLabel} · ` : ""}${label}${disabled ? " · 비활성" : ""}`}>{content}</div>;
   return actions ? <div className="site-floor-object" data-selected={selected} data-disabled={disabled} style={geometry}>{interaction}<div className="site-floor-object-actions" onPointerDown={event => event.stopPropagation()} onClick={event => event.stopPropagation()}>{actions}</div></div> : interaction;

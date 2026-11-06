@@ -1299,7 +1299,8 @@ textarea.site-field[data-field-size="lg"], textarea[data-field-size="lg"] { min-
 .site-floor-object[data-disabled="true"] { color: var(--ui-text-muted); }
 .site-floor-object-label .site-label-icon { margin-inline-end: var(--site-space-copy); }
 .site-floor-object-label { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; pointer-events: none; }
-.site-floor-object-resize { position: absolute; right: 0; bottom: 0; display: grid; width: 1.5rem; height: 1.5rem; place-items: end; cursor: nwse-resize; color: var(--ui-text); }
+.site-floor-object-resize { position: absolute; right: var(--site-space-copy); bottom: var(--site-space-copy); display: grid; width: 2rem; height: 2rem; place-items: center; cursor: nwse-resize; color: var(--ui-text-muted); }
+.site-floor-object-resize > svg { width: 1.5rem; height: 1.5rem; pointer-events: none; }
 
 /* Shared compact label icons inherit ink and have no decorative tile. */
 .site-label-icon { display: inline-flex; flex: 0 0 auto; width: 1.125rem; height: 1.125rem; vertical-align: middle; color: inherit; }
@@ -1354,13 +1355,13 @@ svg.site-edit-icon {
 @media (min-width: 768px) { .site-floor-workspace-tools, .site-floor-workspace-footer { padding: var(--site-panel-inset-wide); } }
 
 /* One reserved row keeps canvas coordinates stable when an object is selected. */
-.site-floor-workspace-selection { display: flex; align-items: center; min-block-size: calc(var(--ui-control-height-compact) * 2 + var(--site-space-copy) + var(--site-panel-inset) * 2); padding: var(--site-panel-inset); border-bottom: 1px solid var(--ui-border); overflow-x: auto; }
+.site-floor-workspace-selection { display: flex; align-items: center; min-block-size: calc(var(--ui-control-height-header) * 2 + var(--type-label-size) * var(--site-leading-control) + var(--site-space-copy) * 2 + var(--site-panel-inset) * 2); padding: var(--site-panel-inset); border-bottom: 1px solid var(--ui-border); overflow-x: auto; }
 .site-floor-workspace-selection > p { margin: 0; white-space: nowrap; }
 .site-floor-selection-details { display: flex; inline-size: 100%; min-inline-size: max-content; align-items: center; gap: var(--site-space-group); white-space: nowrap; }
 .site-floor-selection-details .site-action-row { flex-wrap: nowrap; }
 .site-floor-selection-name { margin: 0; padding-inline-end: var(--site-space-group); border-inline-end: 1px solid var(--ui-border); }
-@media (min-width: 768px) { .site-floor-workspace-selection { min-block-size: calc(var(--ui-control-height-compact) * 2 + var(--site-space-copy) + var(--site-panel-inset-wide) * 2); padding: var(--site-panel-inset-wide); } }
+@media (min-width: 768px) { .site-floor-workspace-selection { min-block-size: calc(var(--ui-control-height-header) * 2 + var(--type-label-size) * var(--site-leading-control) + var(--site-space-copy) * 2 + var(--site-panel-inset-wide) * 2); padding: var(--site-panel-inset-wide); } }
 
-.site-order-point-reception-summary { display: grid; grid-template-columns: auto auto; align-items: center; gap: var(--site-space-copy); }
-.site-order-point-reception-summary > .site-action-row { grid-column: 1; }
-.site-order-point-reception-help { grid-column: 2; grid-row: 1 / span 2; }
+.site-order-point-toggle { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: var(--site-space-copy); }
+.site-order-point-toggle > label { overflow-wrap: anywhere; }
+.site-floor-selection-feature { display: grid; min-inline-size: 12rem; gap: var(--site-space-copy); }

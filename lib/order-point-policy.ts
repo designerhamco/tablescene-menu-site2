@@ -28,3 +28,6 @@ export function orderPointPolicyKey(channel: OrderPointChannel, feature: OrderPo
 export function isOrderPointChannelAllowed(kind: OrderPointKind, policy: OrderPointPolicy, channel: OrderPointChannel, feature: OrderPointFeature) {
   return !(kind === "kiosk" && channel !== "terminal") && policy[orderPointPolicyKey(channel, feature)];
 }
+
+export type OrderPointFeatureUpdateInput = { menuSiteId: string; tableId: string; channel: OrderPointChannel; feature: OrderPointFeature; enabled: boolean; expectedEnabled: boolean; expectedStatus?: "active" | "disabled" };
+export type OrderPointFeatureUpdate = (input: OrderPointFeatureUpdateInput) => Promise<{ status: "success" | "error"; message: string }>;

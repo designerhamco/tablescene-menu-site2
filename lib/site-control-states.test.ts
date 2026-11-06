@@ -267,6 +267,7 @@ test("editable floor objects keep their selection surface and X actions as separ
   assert.match(html, /<\/div><div class="site-floor-object-actions"><button/);
   assert.equal((html.match(/role="button"/g) ?? []).length, 1);
   assert.match(html, /data-resize-handle/);
+  assert.match(html, /lucide-move-diagonal-2/);
   const readonly = renderToStaticMarkup(createElement(FloorPlanObject, { rect: { x: 4, y: 4, width: 20, height: 16 }, label: "테이블 1" }));
   assert.doesNotMatch(readonly, /site-floor-object-actions|site-floor-object-interaction/);
   const workspace = renderToStaticMarkup(createElement(FloorPlanWorkspace, { tools: "도구", selection: "선택 항목 정보", footer: "이동·저장" }, item));
@@ -277,25 +278,39 @@ test("editable floor objects keep their selection surface and X actions as separ
 });
 
 
-test("운영 요약은 개별 주문·호출 허용과 연결 상태를 공유하며 중복 사용 스위치를 만들지 않는다", async () => {
-  const { OrderPointReceptionSummary, OrderPointConnectionControl, OrderPointLegacyResume } = await import("../components/mypage/OrderPointControls");
+test("리스트와 배치도는 동일한 기기별 Switch와 연결 팝업 진입을 공유한다", async () => {
+  const { OrderPointFeatureControls, OrderPointSelectionDetails, OrderPointConnectionControl } = await import("../components/mypage/OrderPointControls");
   const point = { id: "point", label: "창가", status: "active" as const, kind: "table" as const, policyAvailable: true, policy: { terminalOrderEnabled: true, customerOrderEnabled: false, terminalCallEnabled: false, customerCallEnabled: true } };
-  const table = renderToStaticMarkup(createElement(OrderPointReceptionSummary, { menuSiteId: "store", point }));
-  assert.match(table, /태블릿 ON · QR OFF/); assert.match(table, /태블릿 OFF · QR ON/);
-  assert.match(table, /orders\/settings\?tab=devices#point-point/); assert.match(table, /calls\/settings#point-point/);
-  assert.doesNotMatch(table, /role="switch"/);
-  const kiosk = renderToStaticMarkup(createElement(OrderPointReceptionSummary, { menuSiteId: "store", point: {...point, kind: "kiosk"} }));
-  assert.match(kiosk, /기기 ON/); assert.doesNotMatch(kiosk, /태블릿 ON · QR/);
-  const unknown = renderToStaticMarkup(createElement(OrderPointReceptionSummary, { menuSiteId: "store", point: {...point, policyAvailable: false} }));
-  assert.match(unknown, /확인 불가/); assert.doesNotMatch(unknown, /태블릿 ON|태블릿 OFF/);
-  const offline = renderToStaticMarkup(createElement(OrderPointConnectionControl, { menuSiteId: "store", point, state: {available: true, connections: []} }));
-  assert.match(offline, /미사용/); assert.match(offline, /창가 연결하기/);
-  const unavailable = renderToStaticMarkup(createElement(OrderPointConnectionControl, { menuSiteId: "store", point, state: {available: false, connections: []} }));
-  assert.match(unavailable, /확인 불가/); assert.match(unavailable, /창가 연결 확인/);
-  const connected = renderToStaticMarkup(createElement(OrderPointConnectionControl, { menuSiteId: "store", point, state: {available: true, connections: [{tableId:"point",device:null}, {tableId:"point",device:null}]} }));
-  assert.match(connected, /기기 연결됨 · 2대/); assert.match(connected, /창가 연결 관리/);
-  assert.equal(renderToStaticMarkup(createElement(OrderPointLegacyResume, {menuSiteId:"store",point,action:()=>{}})), "");
-  const legacy = renderToStaticMarkup(createElement(OrderPointLegacyResume, {menuSiteId:"store",point:{...point,status:"disabled"},action:()=>{}}));
-  assert.match(legacy, /value="resume"/); assert.match(legacy, /창가 운영 재개/);
-  assert.doesNotMatch(read("app/mypage/menus/[menuId]/tables/actions.ts"), /export async function updateOrderPointStatus|intent === "update"/);
+  const onUpdate = async () => ({status: "success" as const, message: "예시"}), onConnect = () => {};
+  for (const feature of ["orders", "calls"] as const) {
+    const html = renderToStaticMarkup(createElement(OrderPointFeatureControls, { menuSiteId: "store", point, feature, onUpdate }));
+    assert.equal((html.match(/role="switch"/g) ?? []).length, 2);
+    assert.equal((html.match(/aria-checked="true"/g) ?? []).length, 1);
+    assert.match(html, /태블릿/); assert.match(html, /모바일/);
+    assert.doesNotMatch(html, /설정<|href=/);
+  }
+  const kiosk = renderToStaticMarkup(createElement(OrderPointFeatureControls, { menuSiteId: "store", point: {...point, kind: "kiosk"}, feature: "orders", onUpdate }));
+  assert.equal((kiosk.match(/role="switch"/g) ?? []).length, 1); assert.doesNotMatch(kiosk, /모바일/);
+  for (const override of [{ policyAvailable: false }, { status: "disabled" as const }]) {
+    const html = renderToStaticMarkup(createElement(OrderPointFeatureControls, { menuSiteId: "store", point: {...point, ...override}, feature: "orders", onUpdate }));
+    assert.doesNotMatch(html, /aria-checked="true"/);
+    if ("policyAvailable" in override) assert.match(html, /확인 필요/);
+    assert.doesNotMatch(html, /운영 재개|기존 사용 중지/);
+  }
+  const selected = renderToStaticMarkup(createElement(OrderPointSelectionDetails, { menuSiteId: "store", point, connectionState: {available: true, connections: []}, disabled: false, onUpdate, onConnect }));
+  assert.equal((selected.match(/role="switch"/g) ?? []).length, 4);
+  assert.doesNotMatch(selected, /보관|운영 재개/);
+  for (const [state, text] of [[{available: true, connections: []}, "연결하기"], [{available: false, connections: []}, "연결 확인"], [{available: true, connections: [{tableId: "point", device: null}, {tableId: "point", device: null}]}, "연결 관리"]] as const) {
+    const html = renderToStaticMarkup(createElement(OrderPointConnectionControl, { point, state: { ...state, connections: [...state.connections] }, onConnect }));
+    assert.match(html, new RegExp(`창가 ${text}`)); assert.doesNotMatch(html, /href=/);
+  }
+  const manager = read("app/mypage/menus/[menuId]/tables/MenuTableManager.tsx");
+  assert.equal((manager.match(/<OrderPointConnectionDialog /g) ?? []).length, 1);
+  assert.match(manager, /<TableHead>주문<\/TableHead>/); assert.match(manager, /<TableHead>호출<\/TableHead>/);
+  const editor = read("components/mypage/floor-plan/FloorPlanEditor.tsx");
+  assert.doesNotMatch(editor, /사각형 그리기|setDrawing|사각형을 선택하면/);
+  assert.match(editor, /테이블·키오스크 영역을 선택하면/);
+  assert.match(editor, /site-floor-workspace-actions[^\n]*renderSelectedActions/);
+  assert.match(editor, /마지막으로 저장한 배치로 되돌립니다/);
+  assert.doesNotMatch(read("app/mypage/menus/[menuId]/tables/actions.ts"), /intent === "resume"|export async function updateOrderPointStatus/);
 });

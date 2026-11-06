@@ -407,21 +407,24 @@ export async function deleteOrderPoint(input: { menuSiteId: string; tableId: str
 /** One flag at a time, with compare-and-set: never overwrite the other channel or a newer change. */
 export async function setOrderPointFeature(input: {
   menuSiteId: string; tableId: string; channel: OrderPointChannel; feature: OrderPointFeature;
-  enabled: boolean; expectedEnabled: boolean;
+  enabled: boolean; expectedEnabled: boolean; expectedStatus?: "active" | "disabled";
 }) {
   if (!input || typeof input.menuSiteId !== "string" || typeof input.tableId !== "string") throw new Error("변경할 테이블 또는 키오스크를 확인해 주세요.");
   const menuSiteId = normalizeMenuTableId(input.menuSiteId), tableId = normalizeMenuTableId(input.tableId);
   if (!["terminal", "customer"].includes(input.channel) || !["orders", "calls"].includes(input.feature)
     || typeof input.enabled !== "boolean" || typeof input.expectedEnabled !== "boolean") throw new Error("변경할 사용 설정을 확인해 주세요.");
+  const expectedStatus = input.expectedStatus ?? "active";
+  if (!["active", "disabled"].includes(expectedStatus) || (expectedStatus === "disabled" && !input.enabled)) throw new Error("변경할 사용 설정을 확인해 주세요.");
   const { context, supabase } = await requireMenuTableWriteAccess(menuSiteId);
   // Feature policies are owner settings, like the store-wide order/call switches.
   const permission = await requireMenuSitePermission(menuSiteId, "menu.edit");
   if (!permission.isOwner) throw new MenuTableManagementError("MENU_SITE_UNAVAILABLE", "주문·호출 허용 설정은 사장님만 변경할 수 있습니다.", 403);
   const column = ORDER_POINT_POLICY_COLUMNS[orderPointPolicyKey(input.channel, input.feature)];
-  const patch: Database["public"]["Tables"]["menu_tables"]["Update"] = { updated_by: context.actorUserId };
+  // A legacy paused point starts with every channel OFF; only the explicitly chosen flag turns ON.
+  const patch: Database["public"]["Tables"]["menu_tables"]["Update"] = { ...(expectedStatus === "disabled" ? { status: "active", ...RECEPTION_OFF } : {}), updated_by: context.actorUserId };
   patch[column] = input.enabled;
   let query = supabase.from("menu_tables").update(patch)
-    .eq("menu_site_id", menuSiteId).eq("id", tableId).neq("status", "archived").eq(column, input.expectedEnabled);
+    .eq("menu_site_id", menuSiteId).eq("id", tableId).eq("status", expectedStatus).eq(column, input.expectedEnabled);
   if (input.channel === "customer") query = query.eq("point_kind", "table");
   const { data, error } = await query.select("id").maybeSingle();
   if (error || !data) throw new MenuTableManagementError("TABLE_UPDATE_FAILED", "설정이 변경됐거나 저장하지 못했습니다. 새로고침 후 다시 시도해 주세요.", 409);

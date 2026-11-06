@@ -57,7 +57,7 @@ test("사장님의 개별 변경은 한 플래그만 CAS로 저장하고 매장�
     await f.service.setOrderPointFeature({ menuSiteId: menu, tableId: point, channel, feature, enabled: false, expectedEnabled: true });
     const column = policy.ORDER_POINT_POLICY_COLUMNS[policy.orderPointPolicyKey(channel, feature)];
     assert.deepEqual(f.writes, [{ updated_by: "owner", [column]: false }]);
-    for (const filter of [["menu_site_id", menu], ["id", point], ["neq", "status", "archived"], [column, true]]) assert.ok(f.filters.some(v => JSON.stringify(v) === JSON.stringify(filter)));
+    for (const filter of [["menu_site_id", menu], ["id", point], ["status", "active"], [column, true]]) assert.ok(f.filters.some(v => JSON.stringify(v) === JSON.stringify(filter)));
     assert.equal(f.filters.some(v => JSON.stringify(v) === JSON.stringify(["point_kind", "table"])), channel === "customer");
   }
 });
@@ -71,4 +71,22 @@ test("직원·권한 없음·런타임 제한·잘못된 입력·동시 변경�
   for (const change of [{ channel: "fake" }, { feature: "prepay" }, { tableId: "bad" }, { enabled: "true" }]) await assert.rejects(f.service.setOrderPointFeature({ ...input, ...change } as never));
   assert.deepEqual(f.writes, []);
   await assert.rejects(serviceFixture({ conflict: true }).service.setOrderPointFeature(input), /설정이 변경/);
+});
+
+
+test("이전 중지 항목의 첫 ON은 다른 세 플래그를 OFF로 보존하고 선택한 채널만 활성화한다", async () => {
+  for (const channel of ["terminal", "customer"] as const) for (const feature of ["orders", "calls"] as const) {
+    const f = serviceFixture();
+    await f.service.setOrderPointFeature({ menuSiteId: menu, tableId: point, channel, feature, enabled: true, expectedEnabled: true, expectedStatus: "disabled" });
+    const column = policy.ORDER_POINT_POLICY_COLUMNS[policy.orderPointPolicyKey(channel, feature)];
+    assert.deepEqual(f.writes, [{ status: "active", terminal_order_enabled: false, terminal_call_enabled: false, customer_order_enabled: false, customer_call_enabled: false, updated_by: "owner", [column]: true }]);
+    assert.ok(f.filters.some(v => JSON.stringify(v) === JSON.stringify(["status", "disabled"])));
+    assert.ok(f.filters.some(v => JSON.stringify(v) === JSON.stringify([column, true])));
+  }
+  const input = { menuSiteId: menu, tableId: point, channel: "terminal" as const, feature: "orders" as const, enabled: true, expectedEnabled: false, expectedStatus: "disabled" as const };
+  await assert.rejects(serviceFixture({ conflict: true }).service.setOrderPointFeature(input), /설정이 변경/);
+  const invalid = serviceFixture();
+  await assert.rejects(invalid.service.setOrderPointFeature({ ...input, expectedStatus: "archived" } as never));
+  await assert.rejects(invalid.service.setOrderPointFeature({ ...input, enabled: false }));
+  assert.deepEqual(invalid.writes, []);
 });
