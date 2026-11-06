@@ -80,7 +80,6 @@ export async function mutateMenuTableAction(
   const intent = getFormString(formData, "intent");
 
   if (intent === "register-terminal") {
-    let path: string;
     try {
       const enableFeature = getFormString(formData, "enableFeature");
       const expectedEnabled = getFormString(formData, "enableExpectedEnabled");
@@ -104,14 +103,11 @@ export async function mutateMenuTableAction(
           catch { throw new TableTerminalConnectionError("설정을 켜지 못했고 새 기기 연결을 해제하지 못했습니다. 연결 상태를 새로고침해 확인해 주세요."); }
           throw new TableTerminalConnectionError(`설정을 켜지 못해 새 기기 연결을 해제했습니다. ${error instanceof Error ? error.message : "다시 시도해 주세요."}`);
         }
-        revalidateTableOperations(menuSiteId);
       }
-      const { error } = await (await createClient()).auth.signOut({ scope: "local" });
-      if (error) throw new TableTerminalConnectionError("관리자 로그아웃을 완료하지 못했습니다. 태블릿 연결을 다시 시도해 주세요.");
       (await cookies()).set(TABLE_VISIT_SESSION_COOKIE,result.token,{...TABLE_VISIT_SESSION_COOKIE_SECURITY,expires:new Date(result.expiresAt),maxAge:getTableVisitSessionCookieMaxAge(result.expiresAt,new Date(),"terminal")});
-      path = result.path;
+      revalidateTableOperations(menuSiteId);
+      return { ...initialMenuTableActionState, status: "success", tableId, message: enableFeature ? `기기를 연결하고 ${enableFeature === "orders" ? "주문" : "호출"}을 켰습니다.` : "기기를 연결했습니다." };
     } catch(error) { return {...initialMenuTableActionState,status:"error",message:error instanceof Error ? error.message : "공용 단말 연결에 실패했습니다."}; }
-    redirect(path);
   }
   if (intent === "open-terminal-menu") {
     let path: string;

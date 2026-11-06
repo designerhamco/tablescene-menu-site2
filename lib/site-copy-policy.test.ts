@@ -27,7 +27,8 @@ test("requested notices, boxed explanations, real data and empty/error states su
   assert.match(read("components/mypage/floor-plan/FloorPlanDesktopNotice.tsx"), /배치도 편집은 PC에서 더 편리해요/);
   const device = read("components/mypage/OrderPointDeviceConnection.tsx");
   assert.match(device, /브라우저의 실제 OS·모델·브라우저 정보를 표시합니다/);
-  assert.match(device, /관리자 로그인이 종료되고/);
+  assert.match(device, /연결 후에도 관리자 화면이 유지됩니다/);
+  assert.match(read("components/mypage/TableTerminalConnections.tsx"), /손님용 메뉴판을 열까요.*관리자 로그인이 종료됩니다/);
   assert.match(read("components/mypage/TableTerminalConnections.tsx"), /현재 기기는 이.*연결되어 있지 않습니다/);
   const page = read("app/mypage/page.tsx");
   assert.doesNotMatch(page, /생성한 메뉴판을 편집하고 공개 상태를 확인|현재 편집과 공개가 가능한 메뉴판입니다/);

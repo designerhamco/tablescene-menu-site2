@@ -17,7 +17,7 @@ export default function OrderPointConnectionDialog({ menuSiteId, point, publishe
       <DialogHeader reserveCloseButton>
         <DialogTitle>{point?.label} · 기기 연결</DialogTitle>
       </DialogHeader>
-      {point && setup ? <OrderPointDeviceConnection key={`${point.id}:${enableRequest?.feature ?? "connection"}`} enableRequest={enableRequest} embedded expandedDeviceEditor menuSiteId={menuSiteId} point={point} published={published} setup={setup} mutateAction={mutateAction} /> : <p className="type-body-sm" role="alert">기기 정보를 불러오지 못했습니다. 페이지를 새로고침해 주세요.</p>}
+      {point && setup ? <OrderPointDeviceConnection key={`${point.id}:${enableRequest?.feature ?? "connection"}`} enableRequest={enableRequest} embedded menuSiteId={menuSiteId} point={point} published={published} setup={setup} mutateAction={mutateAction} /> : <p className="type-body-sm" role="alert">기기 정보를 불러오지 못했습니다. 페이지를 새로고침해 주세요.</p>}
     </DialogContent>
   </Dialog>;
 }
