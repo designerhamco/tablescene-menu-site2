@@ -48,7 +48,7 @@ export default function OrderSettingsForm({
         [
           "orderEnabled",
           "전체 주문 사용",
-          "모든 테이블·키오스크의 주문을 함께 켜거나 끕니다. 개별 허용은 ‘기기별 설정’ 탭에서 설정할 수 있습니다.",
+          "모든 테이블·키오스크의 주문을 함께 켜거나 끕니다. 개별 허용은 ‘테이블·키오스크 관리’에서 설정할 수 있습니다.",
         ],
       ]).map(([key, label, description]) => (
         <label
@@ -94,7 +94,7 @@ export default function OrderSettingsForm({
         <section className="site-stack-block site-content-divider" aria-label="매장 공용 단말 주문 옵션">
           <h4 className="type-content-title">매장 공용 단말</h4>
           <label className="site-action-row" data-distribution="between"><span className="type-label">매장 태블릿·키오스크 후결제 허용</span><Switch name="terminalOrderEnabled" defaultChecked={settings.terminalOrderEnabled!==false} disabled={pending} /></label>
-          <p className="type-body-sm site-copy-muted">연결된 모든 매장 태블릿·키오스크에 적용되는 상위 스위치입니다. 켜져 있어도 ‘기기별 설정’에서 해당 기기의 주문을 허용해야 합니다. 손님 휴대폰·QR 설정과 별개이며 전화번호는 받지 않습니다.</p>
+          <p className="type-body-sm site-copy-muted">연결된 모든 매장 태블릿·키오스크에 적용되는 상위 스위치입니다. 켜져 있어도 ‘테이블·키오스크 관리’에서 해당 기기의 주문을 허용해야 합니다. 손님 휴대폰·QR 설정과 별개이며 전화번호는 받지 않습니다.</p>
           <p className="type-body-sm site-copy-muted">장바구니가 있는 상태로 마지막 조작 후 2분간 사용하지 않으면 미주문 상품만 비웁니다. 30초 전에 안내하며 ‘계속 이용하기’를 누르면 다시 2분 동안 이용할 수 있습니다. 이미 접수된 주문은 유지합니다.</p>
         </section>
       </> : null}

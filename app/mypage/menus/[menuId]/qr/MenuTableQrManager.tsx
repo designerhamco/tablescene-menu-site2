@@ -98,7 +98,7 @@ export default function MenuTableQrManager({
                       {canConnectDevices && table.status === "active" ? (
                         <Link
                           className="site-button site-button-outline site-button-compact"
-                          href={`/mypage/menus/${menuSiteId}/orders/settings?tab=devices#point-${table.id}`}
+                          href={`/mypage/menus/${menuSiteId}/tables`}
                         >
                           연결 설정
                         </Link>
