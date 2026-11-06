@@ -227,7 +227,7 @@ test("연결 실패는 관리자 세션과 기존 연결 쿠키를 변경하지 
 
 
 test("복원 이름의 서버 중복 오류는 항목과 입력값을 포함해 지속 필드 오류로 반환한다",async()=>{
-  const result=await actionFixture({restoreConflict:true}).submit("restore",{label:"1번 테이블"});
+  const result=await actionFixture({restoreConflict:true}).submit("restore",{label:"1번 테이블",roomId:menuId});
   assert.equal(result.status,"error");assert.equal(result.tableId,tableId);
   assert.deepEqual(result.labelError,{value:"1번 테이블",message:orderPointName.ORDER_POINT_DUPLICATE_NAME_MESSAGE});
 });

@@ -24,7 +24,7 @@ export async function saveOrderPointDrafts({ revision, document, added, names, c
       if (result.status !== "success") throw new Error(result.message);
       wrote = true;
     }
-    const result = await saveLayout(revision, { ...document, placements: document.placements.map(p => ({ ...p, pointId: ids[p.pointId] ?? p.pointId })) });
+    const result = await saveLayout(revision, { ...document, placements: document.placements.map(p => ({ ...p, pointId: ids[p.pointId] ?? p.pointId })), ...(document.memberships?{memberships:document.memberships.map(member=>({...member,pointId:ids[member.pointId]??member.pointId}))}:{}) });
     if (result.status === "error") throw new Error(result.message);
     return result;
   } catch (error) {

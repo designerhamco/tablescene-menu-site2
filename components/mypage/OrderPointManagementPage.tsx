@@ -9,7 +9,7 @@ import { MenuTableManagementError } from "@/lib/server/menu-table-management-ser
 import { getStoreOperationsContext } from "@/lib/server/store-operations-context";
 import { loadMenuFloorPlan } from "@/lib/server/menu-floor-plan-service";
 import { retainRegisteredFloorPoints } from "@/lib/menu-floor-plan";
-import { saveFloorPlanAction } from "@/app/mypage/menus/[menuId]/tables/floor-plan-actions";
+import { removeFloorRoomAction, saveFloorPlanAction } from "@/app/mypage/menus/[menuId]/tables/floor-plan-actions";
 import MenuTableManager from "@/app/mypage/menus/[menuId]/tables/MenuTableManager";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import type { OrderPointKind } from "@/lib/order-point-policy";
@@ -59,7 +59,7 @@ export default async function OrderPointManagementPage({ params, kind = "table" 
         </header>
         {data ? (
           <MenuTableManager key={menuId} menuSiteId={data.menuSite.id} tables={data.tables.map(({ id, label, status, kind, policy, policyAvailable }) => ({ id, label, status, kind, policy, policyAvailable }))}
-            saveFloorPlanAction={saveFloorPlanAction.bind(null, menuId)} floorPlan={floorPlan ?? undefined} archivedTables={data.archivedTables} pointSettingsAvailable={data.pointSettingsAvailable} canDelete={selectedSite.isOwner} canConfigure={selectedSite.isOwner} published={data.menuSite.status === "published"} deviceSetup={deviceState} connectionState={connectionState} />
+            removeFloorRoomAction={removeFloorRoomAction.bind(null,menuId)} saveFloorPlanAction={saveFloorPlanAction.bind(null, menuId)} floorPlan={floorPlan ?? undefined} archivedTables={data.archivedTables} pointSettingsAvailable={data.pointSettingsAvailable} canDelete={selectedSite.isOwner} canConfigure={selectedSite.isOwner} published={data.menuSite.status === "published"} deviceSetup={deviceState} connectionState={connectionState} />
         ) : (
           <ContentPanel>
             <div className="site-stack-title">

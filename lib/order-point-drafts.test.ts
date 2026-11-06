@@ -4,14 +4,14 @@ import { saveOrderPointDrafts, type DraftOrderPoint } from "./order-point-drafts
 import type { FloorDocument } from "./menu-floor-plan";
 const room="11111111-1111-4111-8111-111111111111", draftId="22222222-2222-4222-8222-222222222222", remote="33333333-3333-4333-8333-333333333333";
 const point:DraftOrderPoint={id:draftId,label:"새 테이블",kind:"table",roomId:room};
-const document=():FloorDocument=>({rooms:[{id:room,name:"홀",aspectRatio:4/3}],placements:[{pointId:draftId,roomId:room,x:37,y:14,width:25,height:21}]});
+const document=():FloorDocument=>({rooms:[{id:room,name:"홀",aspectRatio:4/3}],placements:[{pointId:draftId,roomId:room,x:37,y:14,width:25,height:21}],memberships:[{pointId:draftId,roomId:room}]});
 test("명시 저장에서 등록·이름·배치를 저장하고 임시 ID만 실제 ID로 바꾼다",async()=>{
  const source=document(), calls:string[]=[];
  const result=await saveOrderPointDrafts({revision:2,document:source,added:[point],names:{[draftId]:"수정된 이름"},committedIds:{},
  create:async input=>{assert.deepEqual(input,point);calls.push("create");return{status:"success",tableId:remote,message:""};},
  rename:async(id,name)=>{assert.equal(id,remote);assert.equal(name,"수정된 이름");calls.push("rename");return{status:"success",message:""};},
  onCreated:(id,value)=>{assert.equal(id,draftId);assert.equal(value,remote);calls.push("remember");},
- saveLayout:async(revision,doc)=>{assert.equal(revision,2);assert.deepEqual(doc.placements[0],{...source.placements[0],pointId:remote});calls.push("layout");return{status:"success",revision:3,document:doc};}});
+ saveLayout:async(revision,doc)=>{assert.equal(revision,2);assert.deepEqual(doc.placements[0],{...source.placements[0],pointId:remote});assert.deepEqual(doc.memberships,[{pointId:remote,roomId:room}]);calls.push("layout");return{status:"success",revision:3,document:doc};}});
  assert.equal(result.status,"success");assert.deepEqual(calls,["create","remember","rename","layout"]);assert.equal(source.placements[0].pointId,draftId);
 });
 test("일부 등록 뒤 배치 저장 실패는 성공으로 바꾸지 않고 재시도에서 같은 항목을 만들지 않는다",async()=>{

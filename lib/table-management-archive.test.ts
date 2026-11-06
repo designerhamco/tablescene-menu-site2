@@ -11,7 +11,7 @@ const siteId = "11111111-1111-4111-8111-111111111111";
 const tableId = "22222222-2222-4222-8222-222222222222";
 const row = { id: tableId, label: "창가", qr_public_id: "33333333-3333-4333-8333-333333333333", display_order: 0, status: "disabled", archived_at: null, token_rotated_at: "2026-11-01T00:00:00Z", created_at: "2026-11-01T00:00:00Z", updated_at: "2026-11-01T00:00:00Z" };
 
-function fixture({ error = null as null | { code: string; message?: string }, missing = false, denied = false } = {}) {
+function fixture({ error = null as null | { code: string; message?: string }, missing = false, denied = false, roomMissing=false, roomError=false } = {}) {
   const filters: unknown[] = [];
   const writes: Record<string, unknown>[] = [];
   const permissions: unknown[] = [];
@@ -30,6 +30,7 @@ function fixture({ error = null as null | { code: string; message?: string }, mi
   };
   const db = { from(name: string) {
     if (name === "menu_sites") return { select() { return this; }, eq() { return this; }, async maybeSingle() { return { data: { id: siteId, name: "매장", slug: "store", status: "published", template_key: "cafe_design_a" }, error: null }; } };
+    if(name==="menu_floor_plans")return{select(){return this;},eq(){return this;},async maybeSingle(){return{data:roomMissing?null:{document:{rooms:[{id:siteId,name:"홀"}]}},error:roomError?{code:"read-failed"}:null};}};
     assert.equal(name, "menu_tables");
     return query;
   } };
@@ -65,7 +66,7 @@ test("보관 테이블은 관리 화면에서만 명시적으로 조회하며 QR
 
 test("복원은 대상 매장·보관 상태로 제한하고 주문·호출을 OFF로 복원하며 QR과 종료된 방문 세션을 변경하지 않는다", async () => {
   const f = fixture();
-  await f.service.restoreMenuTable({ menuSiteId: siteId, tableId, label: " 창가 2 " });
+  await f.service.restoreMenuTable({ menuSiteId: siteId, tableId, roomId:siteId, label: " 창가 2 " });
   assert.deepEqual(f.writes, [{ label: "창가 2", status: "active", archived_at: null, terminal_order_enabled: false, terminal_call_enabled: false, customer_order_enabled: false, customer_call_enabled: false, updated_by: "owner" }]);
   assert.deepEqual(f.filters, [["menu_site_id", siteId], ["id", tableId], ["status", "archived"]]);
   assert.deepEqual(f.permissions, [[siteId, "table.manage"], [siteId, "table.manage", "menu_table_management"]]);
@@ -79,11 +80,11 @@ test("복원 권한·입력 검증과 이름 충돌·테이블 제한·이미 �
     [{ missing: true }, /보관된 테이블을 찾을/],
   ] as const) {
     const f = fixture(options);
-    await assert.rejects(f.service.restoreMenuTable({ menuSiteId: siteId, tableId, label: "창가" }), message);
+    await assert.rejects(f.service.restoreMenuTable({ menuSiteId: siteId, tableId, roomId:siteId, label: "창가" }), message);
     if (options.denied) assert.deepEqual(f.writes, []);
   }
   const f = fixture();
-  await assert.rejects(f.service.restoreMenuTable({ menuSiteId: siteId, tableId, label: " " }), /1자 이상/);
+  await assert.rejects(f.service.restoreMenuTable({ menuSiteId: siteId, tableId, roomId:siteId, label: " " }), /1자 이상/);
   assert.deepEqual(f.writes, []);
 });
 
@@ -126,4 +127,10 @@ test("이전 사용 중지는 명시적 재개만 허용하고 모든 수신을 
   const invalid = fixture();
   await assert.rejects(invalid.service.resumeMenuTable({ menuSiteId: "invalid", tableId }), /테이블 정보를/);
   assert.deepEqual(invalid.writes, []);
+});
+
+
+test("보관 복원도 저장된 룸을 확인하기 전에는 상태를 변경하지 않는다",async()=>{
+ for(const options of [{roomMissing:true},{roomError:true}]){const f=fixture(options);await assert.rejects(f.service.restoreMenuTable({menuSiteId:siteId,tableId,label:"새 이름",roomId:siteId}),/복원할 룸/);assert.deepEqual(f.writes,[]);}
+ const f=fixture();await assert.rejects(f.service.restoreMenuTable({menuSiteId:siteId,tableId,label:"새 이름",roomId:tableId}),/복원할 룸/);assert.deepEqual(f.writes,[]);
 });

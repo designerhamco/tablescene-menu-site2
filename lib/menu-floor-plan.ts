@@ -4,7 +4,10 @@ export class FloorPlanError extends Error {}
 
 export type FloorRoom = { id: string; name: string; aspectRatio: number };
 export type FloorPlacement = { pointId: string; roomId: string; x: number; y: number; width: number; height: number };
-export type FloorDocument = { rooms: FloorRoom[]; placements: FloorPlacement[] };
+export type FloorMembership = { pointId: string; roomId: string };
+export type FloorDocument = { rooms: FloorRoom[]; placements: FloorPlacement[]; memberships?: FloorMembership[] };
+export type FloorRoomRemoval = { roomId: string; mode: "move" | "archive"; targetRoomId?: string; pointIds: readonly string[] };
+export type FloorRoomRemovalResult = FloorSaveResult & { message?: string };
 export type FloorPlanSnapshot = { available: boolean; unavailableMessage?: string; revision: number; document: FloorDocument };
 export type FloorPoint = { id: string; label: string; kind?: OrderPointKind; status: string };
 export type FloorSaveResult = { status: "success"; revision: number; document: FloorDocument } | { status: "error"; message: string };
@@ -40,11 +43,19 @@ export function normalizeFloorDocument(input: unknown): FloorDocument {
     pointIds.add(pointId);
     return { pointId, roomId, x, y, width, height };
   });
-  return { rooms, placements };
+  if (value.memberships === undefined) return { rooms, placements };
+  if (!Array.isArray(value.memberships) || value.memberships.length > 200) throw new FloorPlanError("룸 소속 정보를 확인해 주세요.");
+  const assigned = new Set<string>();
+  const memberships = value.memberships.map(raw => {
+    const member = record(raw), pointId = id(member.pointId), roomId = id(member.roomId);
+    if (!roomIds.has(roomId) || assigned.has(pointId)) throw new FloorPlanError("항목은 존재하는 룸 한 곳에만 소속될 수 있습니다.");
+    assigned.add(pointId); return {pointId, roomId};
+  });
+  return { rooms, placements, memberships: floorMemberships({rooms, placements, memberships}) };
 }
 export function retainRegisteredFloorPoints(document: FloorDocument, points: Pick<FloorPoint, "id">[]): FloorDocument {
   const ids = new Set(points.map(p => p.id));
-  return { ...document, placements: document.placements.filter(p => ids.has(p.pointId)) };
+  return { ...document, placements: document.placements.filter(p => ids.has(p.pointId)), ...(document.memberships ? {memberships: document.memberships.filter(p => ids.has(p.pointId))} : {}) };
 }
 export function constrainFloorRect(rect: Pick<FloorPlacement, "x" | "y" | "width" | "height">) {
   const width = Math.min(100, Math.max(8, rect.width)), height = Math.min(100, Math.max(8, rect.height));
@@ -56,6 +67,7 @@ export const FLOOR_PLAN_DISPLAY_ASPECT_RATIO = 4 / 3;
 export function renameSavedFloorRoom(saved: FloorDocument, room: FloorRoom, name: string): FloorDocument {
   const existing = saved.rooms.find(item => item.id === room.id);
   return normalizeFloorDocument({
+    ...saved,
     rooms: existing ? saved.rooms.map(item => item.id === room.id ? { ...item, name } : item) : [...saved.rooms, { ...room, name }],
     placements: saved.placements,
   });
@@ -76,5 +88,42 @@ export function placeNewFloorPoints(document: FloorDocument, pointIds: readonly 
     const rect = free ?? {x:4+(occupied.length%10)*8,y:4+(Math.floor(occupied.length/10)%10)*8,width:8,height:8};
     placements.push({pointId,roomId,...constrainFloorRect(rect)}); placed.add(pointId);
   }
-  return placements.length === document.placements.length ? document : {...document,placements};
+  return placements.length === document.placements.length ? document : {...document,placements,memberships:floorMemberships({...document,placements})};
+}
+
+/** Legacy documents derive room membership from their rectangles without data migration. */
+export function floorMemberships(document: FloorDocument): FloorMembership[] {
+  const members = new Map((document.memberships ?? []).map(member => [member.pointId, member]));
+  for (const {pointId, roomId} of document.placements) members.set(pointId, {pointId, roomId});
+  return [...members.values()];
+}
+export function removeFloorPlacement(document: FloorDocument, pointId: string): FloorDocument {
+  return {...document, memberships:floorMemberships(document), placements:document.placements.filter(item=>item.pointId!==pointId)};
+}
+export function moveFloorPoint(document: FloorDocument, pointId: string, roomId: string): FloorDocument {
+  return {...document, memberships:floorMemberships(document).map(item=>item.pointId===pointId?{...item,roomId}:item), placements:document.placements.map(item=>item.pointId===pointId?{...item,roomId}:item)};
+}
+export function resolveFloorRoomRemoval(document: FloorDocument, request: FloorRoomRemoval, activeIds: readonly string[]): FloorDocument {
+  if (!document.rooms.some(room=>room.id===request.roomId)) throw new FloorPlanError("삭제할 룸을 확인해 주세요.");
+  if (!["move","archive"].includes(request.mode)) throw new FloorPlanError("룸의 항목을 이동하거나 보관해 주세요.");
+  const active = new Set(activeIds), memberships = floorMemberships(document).filter(item=>active.has(item.pointId));
+  const members = memberships.filter(item=>item.roomId===request.roomId);
+  const expected = [...new Set(request.pointIds)].sort(), actual = members.map(item=>item.pointId).sort();
+  if (expected.length!==request.pointIds.length || JSON.stringify(expected)!==JSON.stringify(actual)) throw new FloorPlanError("룸의 항목이 변경되었습니다. 목록을 새로고침한 뒤 다시 확인해 주세요.");
+  if (document.rooms.length===1 && activeIds.some(pointId=>!memberships.some(item=>item.pointId===pointId))) throw new FloorPlanError("소속 룸이 없는 항목이 있습니다. 먼저 룸에 배치한 뒤 정리해 주세요.");
+  const affected = new Set(actual);
+  const next: FloorDocument = {rooms:document.rooms.filter(room=>room.id!==request.roomId), placements:document.placements.filter(item=>!affected.has(item.pointId)), memberships:memberships.filter(item=>!affected.has(item.pointId))};
+  if (request.mode==="move") {
+    const target = request.targetRoomId;
+    if (!target || target===request.roomId || !next.rooms.some(room=>room.id===target)) throw new FloorPlanError("이동할 다른 룸을 선택해 주세요.");
+    next.memberships!.push(...members.map(item=>({...item,roomId:target})));
+    return normalizeFloorDocument(placeNewFloorPoints(next,document.placements.filter(item=>affected.has(item.pointId)).map(item=>item.pointId),target));
+  }
+  return normalizeFloorDocument(next);
+}
+/** Geometry removal must never silently remove an operating point's room ownership. */
+export function assertFloorMembershipsPreserved(previous: FloorDocument, next: FloorDocument, activeIds: readonly string[]) {
+  const current = new Map(floorMemberships(next).map(item=>[item.pointId,item.roomId]));
+  for (const member of floorMemberships(previous)) if (activeIds.includes(member.pointId) && !current.has(member.pointId)) throw new FloorPlanError("룸의 테이블·키오스크를 다른 룸으로 이동하거나 보관한 뒤 룸을 삭제해 주세요.");
+  if (previous.rooms.length && !next.rooms.length && activeIds.length) throw new FloorPlanError("테이블·키오스크를 모두 보관한 뒤 마지막 룸을 삭제해 주세요.");
 }
