@@ -2,7 +2,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { isUnsavedChangesPromptOpen } from "@/lib/unsaved-changes";
 import { useUnsavedChanges } from "@/components/ui/useUnsavedChanges";
-import { Pencil } from "lucide-react";
+import { EditIcon } from "@/app/components/ui/edit-icon";
 
 export type InlineNameResult = { status: "success"; value?: string } | { status: "error"; message: string };
 /** Short names: Enter/blur commit once, Escape cancels; failed drafts stay editable. */
@@ -50,7 +50,7 @@ export function InlineNameEditor({ value, label, maxLength = 40, iconOnly = fals
       {error ? <span id={id} className="type-footnote text-destructive" role="alert">{error}</span> : null}
       {pending ? <span className="sr-only" role="status">이름 저장 중</span> : null}
     </> : <button ref={trigger} type="button" className={iconOnly ? "site-button site-button-ghost site-button-icon" : "site-button site-button-link site-button-compact"} disabled={disabled} aria-label={label} onClick={() => { cancelled.current = false; setDraft(display); setError(""); setEditing(true); }}>
-      {!iconOnly ? <span className="type-item-title min-w-0 break-words">{display}</span> : null}<Pencil aria-hidden="true" />
+      {!iconOnly ? <span className="type-item-title min-w-0 break-words">{display}</span> : null}<EditIcon />
     </button>}
   </span>;
 }
