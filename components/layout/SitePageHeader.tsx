@@ -1,14 +1,14 @@
+import type { SiteIntroDescriptionProps } from "@/lib/site-copy-policy";
 import type { ReactNode } from "react";
 
-/** The normal site page title, description and first-content rhythm. */
-export default function SitePageHeader({ title, description, align = "center", children, id }: {
+/** Title-only by default; necessary descriptions declare their purpose and keep shared rhythm. */
+export default function SitePageHeader({ title, description, descriptionPurpose, align = "center", children, id }: {
   title: ReactNode;
-  description?: ReactNode;
   align?: "center" | "start";
   children?: ReactNode;
   id?: string;
-}) {
-  return <header className="site-page-intro" data-align={align}>
+} & SiteIntroDescriptionProps) {
+  return <header className="site-page-intro" data-align={align} data-copy-purpose={description ? descriptionPurpose : undefined}>
     <h1 id={id} className="type-page-title">{title}</h1>
     {description ? <p className="type-page-description">{description}</p> : null}
     {children}

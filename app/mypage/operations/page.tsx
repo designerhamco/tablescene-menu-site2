@@ -4,6 +4,7 @@ import { Bell, LayoutGrid, ShoppingBag, Ticket } from "lucide-react";
 import { AnnouncementBar, MetricCard } from "@/app/components/ui/data-display";
 import { redirect } from "next/navigation";
 
+import InfoTooltip from "@/components/ui/InfoTooltip";
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
 import OperationFeatureToggle from "@/components/mypage/OperationFeatureToggle";
 import OperationTableSetupNotice from "@/components/mypage/OperationTableSetupNotice";
@@ -151,16 +152,9 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
         {permissionNotice ? <PermissionNotice message={permissionNotice} /> : null}
         <header className="site-stack-title">
           <h2 className="type-section-title">{selectedSite.name} 운영 현황</h2>
-          <p className="type-body site-copy-muted">
-            {selectedSite.canConfigure ? "전체 주문·전체 호출 사용 여부를 바로 변경하고, 현재 운영 현황을 확인합니다." : "현재 주문과 호출, 테이블 현황을 빠르게 확인합니다."}
-          </p>
         </header>
 
-        {selectedSite.canConfigure ? <p className="type-body-sm text-zinc-600">
-          메뉴판 공개와 사용 중인 테이블 또는 키오스크를 준비한 뒤 전체 주문·전체 호출을 켜 주세요. 개별 허용 설정과 기기 연결은 각 주문·호출 설정에서 변경합니다. 메뉴판 주소·QR은 QR 관리에서 확인합니다. 비공개로 바꾸면 두 기능도 OFF로 저장되며, 기존 접수 내역은 유지됩니다.
-        </p> : null}
-
-        {isStoreOperationsTemplate(selectedSite.templateKey) ? <section className="site-stack-block" aria-label="주문·호출 사용 여부"><h3 className="type-subsection-title">주문·호출 사용 여부</h3>
+        {isStoreOperationsTemplate(selectedSite.templateKey) ? <section className="site-stack-block" aria-label="주문·호출 사용 여부"><div className="site-action-row"><h3 className="type-subsection-title">주문·호출 사용 여부</h3>{selectedSite.canConfigure ? <InfoTooltip label="주문·호출 운영 안내"><p>메뉴판을 공개하고 테이블·키오스크를 등록한 뒤 전체 주문·호출을 켜 주세요. 기기별 허용과 연결은 테이블·키오스크 관리에서 변경합니다.</p><p>메뉴판을 비공개로 바꾸면 전체 주문·호출도 OFF로 저장됩니다. 기존 접수 내역은 유지됩니다.</p></InfoTooltip> : null}</div>
           <OperationTableSetupNotice menuId={selectedSite.menuSiteId}
           tableSetupAvailable={selectedSite.tableSetupAvailable} activeTablesReady={selectedSite.activeTablesReady}
           canManageTables={selectedSite.permissions.includes("table.manage")} />

@@ -42,7 +42,7 @@ const applyOptions = [
 export default function ApplyPage() {
 
   return (
-    <SitePage title="어떤 메뉴판을 만들까요?" description="필요한 메뉴판 유형을 선택하면 디자인과 매장 정보를 확인하는 신청 단계로 이어집니다.">
+    <SitePage title="어떤 메뉴판을 만들까요?">
 
     <section className="site-card-grid grid gap-5 md:grid-cols-2" aria-label="메뉴판 만들기 유형 선택">
       {applyOptions.map((option) => (

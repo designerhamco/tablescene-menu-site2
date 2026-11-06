@@ -14,7 +14,7 @@ test("고객센터 세 항목은 독립 페이지로 연결되고 상세 공지�
 
 test("공통 페이지 시작은 하나의 제목·설명과 정렬 역할을 유지한다", () => {
   for (const align of ["center", "start"] as const) {
-    const html = renderToStaticMarkup(createElement(SitePageHeader, { title: "페이지 제목", description: "페이지 설명", align }));
+    const html = renderToStaticMarkup(createElement(SitePageHeader, { title: "페이지 제목", description: "페이지 설명", descriptionPurpose: "content", align }));
     assert.equal((html.match(/<h1/g) ?? []).length, 1);
     assert.match(html, /class="type-page-title">페이지 제목<\/h1>/);
     assert.match(html, /class="type-page-description">페이지 설명<\/p>/);

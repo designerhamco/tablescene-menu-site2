@@ -314,7 +314,7 @@ export default function UsageGuidePage({
   return (
     <div className={styles.page} data-usage-guide>
       <div className="site-container">
-        <SitePageHeader title="이용가이드" description="메뉴판 연결부터 브라우저 설정까지, 필요한 이용 방법을 확인하세요." />
+        <SitePageHeader title="이용가이드" />
         <Tabs
           purpose="page"
           value={plan}

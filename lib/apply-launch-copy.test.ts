@@ -42,7 +42,8 @@ test("일반 페이지 타이틀과 본문은 홈과 같은 디자인 시스템 
   assert.match(typographyStylesSource, /\.type-body-lg/);
   assert.match(typographyStylesSource, /\.type-body-sm/);
   assert.match(typographyStylesSource, /--type-page-title-size:/);
-  assert.match(applyPageSource, /필요한 메뉴판 유형을 선택/);
+  assert.doesNotMatch(applyPageSource, /<SitePage[^>]*description=/);
+  assert.match(applyPageSource, /카페와 매장의 메뉴를 한 화면에/);
   assert.doesNotMatch(applyPageSource, /text-emerald/);
 });
 

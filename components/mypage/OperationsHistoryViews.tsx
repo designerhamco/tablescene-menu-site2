@@ -1,4 +1,5 @@
 "use client";
+import InfoTooltip from "@/components/ui/InfoTooltip";
 import { useState, type ReactNode } from "react";
 import { Armchair, List, Map, Monitor } from "lucide-react";
 import { ContentPanel } from "@/app/components/ui/content-panel";
@@ -17,7 +18,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/app/components/ui/dialog";
 import { FLOOR_PLAN_DISPLAY_ASPECT_RATIO } from "@/lib/menu-floor-plan";
 import {
@@ -243,14 +243,12 @@ export default function OperationsHistoryViews({
           if (!open) setSelection(null);
         }}
       >
-        <DialogContent scrollable className="print:hidden">
+        <DialogContent scrollable className="print:hidden" aria-describedby={undefined}>
           <DialogHeader reserveCloseButton>
-            <DialogTitle>
-              {selected[0]?.pointLabel ?? "테이블·키오스크"} {noun} 내역
-            </DialogTitle>
-            <DialogDescription>
-              현재 조회 조건에 맞는 내역입니다. 상태는 15초마다 갱신됩니다.
-            </DialogDescription>
+            <div className="site-action-row">
+              <DialogTitle>{selected[0]?.pointLabel ?? "테이블·키오스크"} {noun} 내역</DialogTitle>
+              <InfoTooltip label="내역 갱신 안내"><p>현재 조회 조건의 내역을 표시하며 15초마다 갱신합니다.</p></InfoTooltip>
+            </div>
           </DialogHeader>
           {selected.length ? (
             renderDetail(selected.map((item) => item.id))

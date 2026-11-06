@@ -1,3 +1,4 @@
+import InfoTooltip from "@/components/ui/InfoTooltip";
 import type { Metadata } from "next";
 import StoreSalesSummary from "@/components/mypage/StoreSalesSummary";
 import { notFound, redirect } from "next/navigation";
@@ -58,7 +59,7 @@ export default async function SalesSummaryPage({
 
   return <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="sales">
     <div className="site-stack-content">
-      <header className="site-stack-title"><p className="type-label site-copy-muted">{data.menuSite.name}</p><h2 className="type-subsection-title">매출 관리</h2><p className="type-body-sm site-copy-muted">접수 주문과 실제 결제 완료액을 구분해 확인합니다. 결제 취소·환불 내역은 완료액에서 제외됩니다.</p></header>
+      <header className="site-stack-title"><p className="type-label site-copy-muted">{data.menuSite.name}</p><div className="site-action-row"><h2 className="type-subsection-title">매출 관리</h2><InfoTooltip label="매출 집계 안내"><p>접수 주문과 실제 결제 완료액을 구분하며, 결제 취소·환불 내역은 완료액에서 제외합니다.</p></InfoTooltip></div></header>
       <StoreSalesSummary summary={data.summary} menuId={menuId} ordersAvailable={selectedSite.operationAccess.orders} />
     </div>
   </StoreOperationsShell>;

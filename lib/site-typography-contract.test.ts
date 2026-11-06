@@ -144,10 +144,11 @@ test("마이페이지와 편집·운영 화면은 동일한 관리 화면 타이
   }
 });
 
-test("인증 화면은 페이지 소개보다 계정 보조 링크를 작게 표시한다", () => {
+test("인증 화면은 제목만 허용하며 계정 보조 링크는 기존 읽기 역할을 유지한다", () => {
   for (const route of ["sign-in", "sign-up", "forgot-password", "find-account", "reset-password", "auth/recovery"]) {
     const source = readFileSync(join(appRoot, route, "page.tsx"), "utf8");
-    assert.match(source, /<div className="site-auth-header">[\s\S]*?<h1 className="type-page-title"[\s\S]*?<p className="type-page-description /);
+    assert.match(source, /<div className="site-auth-header">[\s\S]*?<h1 className="type-page-title"/);
+    if (route === "find-account") assert.match(source, /<p className="type-page-description /);
   }
 
   const signInSource = readFileSync(join(appRoot, "sign-in/page.tsx"), "utf8");
@@ -170,7 +171,7 @@ test("디자인 시스템은 글자 역할 이름과 화면 예시를 같은 계
   assert.doesNotMatch(typographySource, /\.type-body-lg,\s*\n\.site-body\s*\{/);
 });
 
-test("일반 페이지의 h1 바로 아래 설명은 화면 종류와 무관하게 같은 역할을 쓴다", () => {
+test("일반 페이지는 공통 제목을 쓰며 필요한 설명만 같은 읽기 역할을 쓴다", () => {
   const pageDescriptionFiles = [
     "sign-in/page.tsx",
     "templates/page.tsx",
@@ -193,7 +194,7 @@ test("일반 페이지의 h1 바로 아래 설명은 화면 종류와 무관하�
     const source = readFileSync(join(appRoot, route), "utf8");
     assert.match(
       source,
-      /<SitePage(?:Header)?\b|<h1 className="type-page-title[^\"]*"[\s\S]{0,320}?<p className="type-page-description/,
+      /<SitePage(?:Header)?\b|<h1 className="type-page-title[^\"]*"/,
       `${route}의 페이지 제목 설명이 공통 역할을 사용하지 않습니다.`,
     );
   }

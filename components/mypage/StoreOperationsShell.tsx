@@ -74,7 +74,7 @@ export default async function StoreOperationsShell({
   } = await supabase.auth.getUser();
 
   return (
-    <SitePage title="매장 운영" align="start" description="운영 중인 메뉴판의 주문, 호출과 테이블을 한곳에서 관리합니다.">
+    <SitePage title="매장 운영" align="start">
       <div className="site-management-scope site-account-page">
           <div className="site-account-layout">
             <StoreOperationsNavigation

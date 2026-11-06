@@ -14,7 +14,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
   const initialProduct = query.plan === "dining" ? "dining_multi" : query.plan === "display" ? "display" : "dining_single";
 
   return (
-    <SitePage title="매장에 맞는 디자인 선택" description="완성된 디자인으로 시작하거나 기본 레이아웃을 매장에 맞게 직접 꾸며보세요.">
+    <SitePage title="매장에 맞는 디자인 선택">
 
     <TemplateGallery
       initialProduct={initialProduct}

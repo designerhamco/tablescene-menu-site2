@@ -2733,7 +2733,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
       />
       <main className="site-management-scope site-account-page site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
-          <SitePageHeader title="마이페이지" align="start" description={isStaffOnlyAccount ? "직원으로 참여한 메뉴판과 고객지원 정보를 한곳에서 확인합니다." : "메뉴판 디자인과 공개 상태, 고객지원, 결제 정보를 한곳에서 확인합니다."} />
+          <SitePageHeader title="마이페이지" align="start" />
 
         <div className="site-account-layout">
           <aside className="site-account-sidebar min-w-0">
@@ -2759,11 +2759,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
                   <h2 className="type-section-title">메뉴판 관리</h2>
-                  <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-600">
-                    {isStaffOnlyAccount
-                      ? "배정받은 메뉴판과 현재 역할에서 사용할 수 있는 기능을 확인합니다."
-                      : "생성한 메뉴판을 편집하고 공개 상태를 확인할 수 있습니다."}
-                  </p>
                 </div>
 
               </div>
@@ -2805,13 +2800,11 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                   <h3 className="type-content-title">
                     {activeMenuTab === "active" ? "이용 중인 메뉴판" : activeMenuTab === "holding" ? "보관 중인 메뉴판" : "종료된 메뉴판"}
                   </h3>
-                  <p className="mt-1 break-keep text-copy font-normal leading-relaxed text-zinc-600">
-                    {activeMenuTab === "active"
-                      ? "현재 편집과 공개가 가능한 메뉴판입니다."
-                      : activeMenuTab === "holding"
-                        ? "이용이 종료되었지만 보관 기간 안에 있어 미리보기와 재구독 복구 흐름을 사용할 수 있습니다."
-                        : "보관 기간이 끝났거나 복구 가능한 보관 기준을 확인할 수 없는 메뉴판입니다."}
-                  </p>
+                  {activeMenuTab !== "active" ? <p className="mt-1 break-keep text-copy font-normal leading-relaxed text-zinc-600">
+                    {activeMenuTab === "holding"
+                      ? "이용이 종료되었지만 보관 기간 안에 있어 미리보기와 재구독 복구 흐름을 사용할 수 있습니다."
+                      : "보관 기간이 끝났거나 복구 가능한 보관 기준을 확인할 수 없는 메뉴판입니다."}
+                  </p> : null}
                 </div>
                 <span className="text-support font-medium text-zinc-600">
                   {visibleMenuCardCount.toLocaleString("ko-KR")}개 · 전체 {totalMenuCardCount.toLocaleString("ko-KR")}개
@@ -2846,9 +2839,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                 <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                   <div>
                     <h2 className="type-section-title">구독/결제 내역</h2>
-                    <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-600">
-                      결제 기록과 AI 크레딧 충전·사용 내역을 확인할 수 있습니다. 구독 해지, 환불 요청, 재구독 복구는 구독/결제 내역에서 관리하고, 메뉴판 운영은 내 메뉴판 탭에서 확인해주세요.
-                    </p>
                   </div>
                 </div>
 
@@ -3338,9 +3328,6 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
               <div className="mb-5 flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
                   <h2 className="type-section-title">로그인 및 가입 정보</h2>
-                  <p className="mt-3 break-keep text-copy font-medium leading-relaxed text-zinc-600">
-                    현재 계정의 로그인 방식과 연결된 인증 정보를 확인합니다.
-                  </p>
                 </div>
                 <Link
                   href="/forgot-password"
