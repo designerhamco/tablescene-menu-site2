@@ -884,6 +884,6 @@
 .site-document-tab-action:disabled { opacity: .4; cursor: not-allowed; }
 .site-document-tabs-tools { display: flex; align-items: center; align-self: center; }
 .site-document-panel { min-width: 0; outline: none; }
-@media (max-width: 639px) { .site-document-tabs-header { grid-template-columns: minmax(0, 1fr); } .site-document-tabs-tools { justify-self: end; } }
+
 
 .site-document-tabs.site-tab-size-md { --site-tab-font: var(--site-type-16); }

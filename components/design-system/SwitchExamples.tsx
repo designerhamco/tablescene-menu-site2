@@ -5,20 +5,20 @@ import { Switch } from "@/app/components/ui/switch";
 import SwitchField from "@/components/mypage/menu-editor/SwitchField";
 import styles from "./SiteComponentGallery.module.css";
 
-function SwitchExample({ surface, label, initialChecked, disabled = false, loading = false }: {
+function SwitchExample({ surface, label, initialChecked, disabled = false, loading = false, size = "md" }: {
   surface: "light" | "dark";
   label: string;
   initialChecked: boolean;
   disabled?: boolean;
   loading?: boolean;
+  size?: "sm" | "md";
 }) {
   const id = useId();
   const [checked, setChecked] = useState(initialChecked);
   return <label htmlFor={id} className={styles.switchRow}>
     <span className="type-label">{label}</span>
     <span className={styles.switchValue}>
-      <span className="type-label" aria-hidden="true">{checked ? "ON" : "OFF"}</span>
-      <Switch id={id} surface={surface} checked={checked} onCheckedChange={setChecked} disabled={disabled} loading={loading} aria-label={label} />
+      <Switch size={size} id={id} surface={surface} checked={checked} onCheckedChange={setChecked} disabled={disabled} loading={loading} aria-label={label} />
     </span>
   </label>;
 }
@@ -26,7 +26,7 @@ function SwitchExample({ surface, label, initialChecked, disabled = false, loadi
 export default function SwitchExamples() {
   return <section className={styles.section} aria-labelledby="switch-contract-title">
     <div className={styles.heading}>
-      <h2 id="switch-contract-title" className="type-section-title">ON/OFF 스위치</h2>
+      <h2 id="switch-contract-title" className="type-section-title">사용 설정 스위치</h2>
       <p className="type-body text-zinc-600">흰색·밝은 회색은 같은 밝은 배경용 스타일, 어두운 배경은 반전 스타일을 사용합니다. 색상과 손잡이 위치로 상태를 구분하며, 비활성 상태도 윤곽을 유지합니다.</p>
     </div>
     <div className={styles.switchGrid}>
@@ -40,12 +40,13 @@ export default function SwitchExamples() {
         <SwitchExample surface={surface} label={`${title} 사용 설정 2`} initialChecked />
         <SwitchExample surface={surface} label={`${title} 변경 불가 1`} initialChecked={false} disabled />
         <SwitchExample surface={surface} label={`${title} 변경 불가 2`} initialChecked disabled />
-        <SwitchExample surface={surface} label={`${title} 저장 중 OFF`} initialChecked={false} loading />
-        <SwitchExample surface={surface} label={`${title} 저장 중 ON`} initialChecked loading />
+        <SwitchExample surface={surface} label={`${title} 저장 대기 1`} initialChecked={false} loading />
+        <SwitchExample surface={surface} label={`${title} 저장 대기 2`} initialChecked loading />
+        <SwitchExample surface={surface} label="소형 스위치" initialChecked size="sm" />
         <p className="type-body-sm">‘변경 불가’는 현재 상태를 보여주며 조작할 수 없습니다.</p>
       </article>)}
     </div>
-    <p className="type-body-sm text-zinc-600">클릭·Space·Enter로 변경해 보세요. 손잡이 왼쪽은 OFF, 오른쪽은 ON이며 화면의 예시만 바뀝니다. Tab 포커스와 48×44px 조작 영역을 공통으로 제공합니다.</p>
+    <p className="type-body-sm text-zinc-600">클릭·Space·Enter로 변경해 보세요. 손잡이의 위치와 색상으로 상태를 구분하며 화면의 예시만 바뀝니다. Tab 포커스와 기본48×44px·소형44×44px 조작 영역을 제공합니다. 스위치 옆에 ON/OFF 상태 문구를 반복하지 않습니다.</p>
     <div className={styles.heading}>
       <h3 className="type-content-title">편집기에서도 같은 스위치 사용</h3>
       <p className="type-body-sm text-zinc-600">폼의 이름·체크값·연결된 폼과 켜기 제한을 유지합니다. 아래 예시는 저장되지 않습니다.</p>

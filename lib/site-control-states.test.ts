@@ -287,7 +287,8 @@ test("리스트와 배치도는 동일한 기기별 Switch와 연결 팝업 진�
     assert.equal((html.match(/role="switch"/g) ?? []).length, 2);
     assert.equal((html.match(/aria-checked="true"/g) ?? []).length, 1);
     assert.match(html, /태블릿/); assert.match(html, /모바일/);
-    assert.doesNotMatch(html, /설정<|href=/);
+    assert.doesNotMatch(html, />(?:ON|OFF)<|설정<|href=/);
+    assert.equal((html.match(/data-size="sm"/g) ?? []).length, 2);
   }
   const kiosk = renderToStaticMarkup(createElement(OrderPointFeatureControls, { menuSiteId: "store", point: {...point, kind: "kiosk"}, feature: "orders", onUpdate }));
   assert.equal((kiosk.match(/role="switch"/g) ?? []).length, 1); assert.doesNotMatch(kiosk, /모바일/);
@@ -310,7 +311,7 @@ test("리스트와 배치도는 동일한 기기별 Switch와 연결 팝업 진�
   const editor = read("components/mypage/floor-plan/FloorPlanEditor.tsx");
   assert.doesNotMatch(editor, /사각형 그리기|setDrawing|사각형을 선택하면/);
   assert.match(editor, /테이블·키오스크 영역을 선택하면/);
-  assert.match(editor, /site-floor-workspace-actions[^\n]*renderSelectedActions/);
+  assert.match(editor, /managementActions=\{selected\?\.pointId[^\n]*renderSelectedActions/);
   assert.match(editor, /마지막으로 저장한 배치로 되돌립니다/);
   assert.doesNotMatch(read("app/mypage/menus/[menuId]/tables/actions.ts"), /intent === "resume"|export async function updateOrderPointStatus/);
 });

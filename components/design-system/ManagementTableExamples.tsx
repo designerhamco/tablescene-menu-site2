@@ -27,7 +27,7 @@ export default function ManagementTableExamples() {
       </div>
       <div className="site-stack-block">
         <h3 className="type-subsection-title">조작이 있는 표</h3>
-        <p className="type-body-sm site-copy-muted">헤더와 본문의 열 시작선을 맞춥니다. 이름은 줄바꿈하고, 버튼 묶음은 8px 간격을 유지합니다. 행 전체는 클릭 영역으로 만들지 않습니다. 좁은 화면에서는 포커스 가능한 표 영역 안에서만 좌우로 이동합니다.</p>
+        <p className="type-body-sm site-copy-muted">헤더와 본문의 열 시작선을 맞춥니다. 이름은 줄바꿈하고, 버튼 묶음은 8px 간격을 유지합니다. 행 전체는 클릭 영역으로 만들지 않습니다. 좁은 화면에서는 포커스 가능한 표 영역 안에서만 좌우로 이동합니다. 오른쪽에 숨겨진 내용이 남으면 실제 표면색으로 페이드하고 끝까지 이동하면 사라집니다.</p>
         <Table variant="management" label="조작이 있는 관리 표 예시" columns={["compact", "text", "detail", "control", "actions"]}>
           <TableCaption className="sr-only">태블릿 주문 허용·중지·읽기 전용·저장 중 상태와 긴 이름을 보여주는 예시입니다.</TableCaption>
           <TableHeader><TableRow><TableHead>종류</TableHead><TableHead>이름</TableHead><TableHead>기기 연결 여부</TableHead><TableHead>태블릿 주문</TableHead><TableHead>관리</TableHead></TableRow></TableHeader>
@@ -35,7 +35,7 @@ export default function ManagementTableExamples() {
             <TableCell nowrap>{index === 2 ? "키오스크" : "테이블"}</TableCell>
             <TableCell primary><Button variant="link" size="compact" aria-label={`${name} 수정 예시`} onClick={exampleAction} disabled={index > 0}><span className="type-item-title min-w-0 break-words">{name}</span><EditIcon /></Button></TableCell>
             <TableCell><div className="site-action-row"><InfoTooltip label={`${name} 연결 안내 예시`}><p>{index === 2 ? "기기 정보 예시: [태블릿] iPadOS · iPad · Safari. 실제 운영 화면에서는 조회한 OS·모델·브라우저 정보를 표시합니다." : "손님 휴대폰·QR 주문은 기기를 연결하지 않아도 됩니다. 테이블에 비치한 태블릿을 사용할 때 연결해 주세요."}</p></InfoTooltip><span className="type-label">{index === 2 ? "기기 연결됨" : "미사용"}</span><Button variant="outline" size="compact" onClick={exampleAction} disabled={index > 0}>{index === 2 ? "연결 관리" : "연결하기"}</Button></div></TableCell>
-            <TableCell nowrap><div className="site-action-row" data-wrap="nowrap"><label className="type-label" htmlFor={`table-example-${index}`}>{index === 2 ? "저장 중…" : index === 1 ? "OFF" : active ? "ON" : "OFF"}</label><Switch id={`table-example-${index}`} checked={index === 0 ? active : index === 2} onCheckedChange={index === 0 ? setActive : undefined} disabled={index === 1} loading={index === 2} aria-label={`${name} 태블릿 주문 허용 예시`} /></div></TableCell>
+            <TableCell nowrap><div className="site-action-row" data-wrap="nowrap"><label className="type-label" htmlFor={`table-example-${index}`}>태블릿</label><Switch id={`table-example-${index}`} checked={index === 0 ? active : index === 2} onCheckedChange={index === 0 ? setActive : undefined} disabled={index === 1} loading={index === 2} aria-label={`${name} 태블릿 주문 허용 예시`} /></div></TableCell>
             <TableCell nowrap><div className="site-action-row" data-wrap="nowrap"><Button variant="outline" size="compact" disabled={index > 0} onClick={exampleAction}>보관</Button><Button variant="outline-danger" size="compact" disabled={index > 0} onClick={exampleAction}>삭제</Button></div></TableCell>
           </TableRow>)}</TableBody>
         </Table>

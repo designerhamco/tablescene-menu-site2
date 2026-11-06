@@ -7,7 +7,7 @@ import type { MenuOrderSettingsSection } from "@/lib/menu-order-settings";
 import type { ReactNode } from "react";
 import OperationActionFeedback from "./OperationActionFeedback";
 
-export default function OperationFeatureToggle({ menuId, feature, enabled, canEnable, activeTablesReady, published = true, action, blockedReason, reasonVisible = true, showStateLabel = true }: {
+export default function OperationFeatureToggle({ menuId, feature, enabled, canEnable, activeTablesReady, published = true, action, blockedReason, reasonVisible = true }: {
   menuId: string;
   feature: MenuOrderSettingsSection;
   enabled: boolean;
@@ -17,7 +17,6 @@ export default function OperationFeatureToggle({ menuId, feature, enabled, canEn
   action?: ReactNode;
   blockedReason?: string | null;
   reasonVisible?: boolean;
-  showStateLabel?: boolean;
 }) {
   const id = useId();
   const [pending, startTransition] = useTransition();
@@ -25,15 +24,15 @@ export default function OperationFeatureToggle({ menuId, feature, enabled, canEn
   const triggerRef = useRef<HTMLButtonElement>(null);
   const displayedEnabled = published && activeTablesReady === true && canEnable && enabled;
   const disabled = pending || !published || activeTablesReady !== true || !canEnable;
-  const reason = blockedReason ?? (!published ? "메뉴판 공개 후 ON 가능" : !enabled && activeTablesReady !== true
-    ? activeTablesReady === null ? "테이블 상태 확인 필요" : "테이블 또는 키오스크 등록·복원 후 ON 가능"
+  const reason = blockedReason ?? (!published ? "메뉴판을 공개한 뒤 켤 수 있습니다." : !enabled && activeTablesReady !== true
+    ? activeTablesReady === null ? "테이블 상태 확인 필요" : "테이블 또는 키오스크를 등록·복원한 뒤 켤 수 있습니다."
     : !canEnable ? "현재 기능 연결을 확인해 주세요." : null);
 
   return <div className="site-stack-copy">
     <div className="site-action-row" data-distribution={action ? "between" : "end"}>
     {action}
     <label htmlFor={id} className="site-action-row">
-      <span className={showStateLabel ? "type-caption" : "sr-only"} aria-live="polite">{pending ? "저장 중…" : activeTablesReady === null ? "확인 필요" : displayedEnabled ? "ON" : "OFF"}</span>
+      <span className="sr-only" aria-live="polite">{pending ? "저장 중…" : activeTablesReady === null ? "확인 필요" : displayedEnabled ? "ON" : "OFF"}</span>
       <Switch ref={triggerRef} id={id} checked={displayedEnabled} loading={pending} disabled={disabled} aria-busy={pending}
         aria-label={`전체 ${feature === "orders" ? "주문" : "호출"} 기능 사용`}
         aria-describedby={reason ? `${id}-reason` : undefined}
