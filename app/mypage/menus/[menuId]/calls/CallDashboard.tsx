@@ -170,9 +170,6 @@ export default function CallDashboard({
               처리할 호출 {unresolvedCount.toLocaleString("ko-KR")}건 · 최근
               이력 {calls.length.toLocaleString("ko-KR")}건
             </p>
-            <p className="type-body-sm site-copy-muted">
-              최근 100건을 최신 호출부터 표시하며 15초마다 자동으로 갱신합니다.
-            </p>
           </div>
           <RefreshButton
             loading={refreshing}

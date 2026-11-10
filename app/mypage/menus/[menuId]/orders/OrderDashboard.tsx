@@ -300,9 +300,7 @@ export default function OrderDashboard({
               <p className="type-label">
                 {view?.error ? "조회 조건을 확인해 주세요." : history ? "주문 이력" : "현재 주문"} {!view?.error ? ` ${history ? (view?.totalCount ?? orders.length).toLocaleString("ko-KR") : orders.length.toLocaleString("ko-KR")}건` : ""}
               </p>
-              <p className="type-body-sm site-copy-muted">
-                {history ? `${view?.filters.from} ~ ${view?.filters.to} · 한국 시간 기준 · 현재 페이지 ${orders.length}건` : "진행 중·미결제 주문을 날짜와 관계없이 15초마다 갱신합니다."}
-              </p>
+              {history?<p className="type-body-sm site-copy-muted">{`${view?.filters.from} ~ ${view?.filters.to} · 한국 시간 기준 · 현재 페이지 ${orders.length}건`}</p>:null}
             </div>
             <RefreshButton
               loading={refreshing}

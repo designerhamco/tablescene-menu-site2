@@ -1,3 +1,4 @@
+import {isFloorRoomIcon} from "./floor-room-icons";
 import type { OrderPointKind } from "./order-point-policy";
 
 export class FloorPlanError extends Error {}
@@ -10,7 +11,7 @@ const legacyLimits={minWidth:4.56,minHeight:7.41,maxWidth:9.11,maxHeight:14.81};
 export function floorRectsOverlap(a:Pick<FloorPlacement,"x"|"y"|"width"|"height">,b:Pick<FloorPlacement,"x"|"y"|"width"|"height">){return a.x < b.x+b.width-.005 && a.x+a.width > b.x+.005 && a.y < b.y+b.height-.005 && a.y+a.height > b.y+.005;}
 
 
-export type FloorRoom = { id: string; name: string; aspectRatio: number };
+export type FloorRoom = { id: string; name: string; emoji?: string; aspectRatio: number };
 export type FloorPlacement = { pointId: string; roomId: string; x: number; y: number; width: number; height: number };
 export type FloorMembership = { pointId: string; roomId: string };
 export type FloorDocument = { layoutVersion?: 2 | 3; rooms: FloorRoom[]; placements: FloorPlacement[]; memberships?: FloorMembership[] };
@@ -43,8 +44,9 @@ export function normalizeFloorDocument(input: unknown): FloorDocument {
     const room = record(raw), roomId = id(room.id);
     const name = typeof room.name === "string" ? room.name.trim() : "";
     if (!name || name.length > 40 || /[\u0000-\u001f\u007f]/.test(name) || roomIds.has(roomId) || names.has(name.toLocaleLowerCase("ko-KR"))) throw new FloorPlanError("룸 이름은 중복 없이 1~40자로 입력해 주세요.");
+    if(room.emoji!==undefined&&!isFloorRoomIcon(room.emoji))throw new FloorPlanError("룸 이모지를 선택 목록에서 골라 주세요.");
     roomIds.add(roomId); names.add(name.toLocaleLowerCase("ko-KR"));
-    return { id: roomId, name, aspectRatio: number(room.aspectRatio, 0.5, 2) };
+    return { id: roomId, name, ...(room.emoji?{emoji:room.emoji as string}:{}), aspectRatio: number(room.aspectRatio, 0.5, 2) };
   });
   const placements = value.placements.map(raw => {
     const p = record(raw), pointId = id(p.pointId), roomId = id(p.roomId);
@@ -107,11 +109,11 @@ export function readableFloorDocument(document:FloorDocument):FloorDocument{
 export function canPlaceFloorPoint(document:FloorDocument,roomId:string){const view=readableFloorDocument(document);return Boolean(freeFloorRect(view.placements.filter(p=>p.roomId===roomId),{x:0,y:0,...FLOOR_RECT_SIZE}));}
 
 /** A name commit must not accidentally persist other unsaved rooms/placements. */
-export function renameSavedFloorRoom(saved: FloorDocument, room: FloorRoom, name: string): FloorDocument {
+export function renameSavedFloorRoom(saved: FloorDocument, room: FloorRoom, name: string, emoji?: string): FloorDocument {
   const existing = saved.rooms.find(item => item.id === room.id);
   return normalizeFloorDocument({
     ...saved,
-    rooms: existing ? saved.rooms.map(item => item.id === room.id ? { ...item, name } : item) : [...saved.rooms, { ...room, name }],
+    rooms: existing ? saved.rooms.map(item => item.id === room.id ? { ...item, name, ...(emoji!==undefined?{emoji}:{}) } : item) : [...saved.rooms, { ...room, name, ...(emoji!==undefined?{emoji}:{}) }],
     placements: saved.placements,
   });
 }
@@ -179,6 +181,6 @@ export function assertFloorMembershipsPreserved(previous: FloorDocument, next: F
 
 /** Compare persisted meaning, not object key insertion order or sub-persistence precision. */
 export function sameFloorDocument(a:FloorDocument,b:FloorDocument){
-  const signature=(d:FloorDocument)=>JSON.stringify({version:d.layoutVersion??1,rooms:d.rooms.map(r=>({id:r.id,name:r.name,aspectRatio:Math.round(r.aspectRatio*100)/100})),placements:d.placements.map(p=>({pointId:p.pointId,roomId:p.roomId,...Object.fromEntries((["x","y","width","height"] as const).map(k=>[k,Math.round(p[k]*100)/100]))})),memberships:floorMemberships(d).sort((x,y)=>x.pointId.localeCompare(y.pointId))});
+  const signature=(d:FloorDocument)=>JSON.stringify({version:d.layoutVersion??1,rooms:d.rooms.map(r=>({id:r.id,name:r.name,emoji:r.emoji??"",aspectRatio:Math.round(r.aspectRatio*100)/100})),placements:d.placements.map(p=>({pointId:p.pointId,roomId:p.roomId,...Object.fromEntries((["x","y","width","height"] as const).map(k=>[k,Math.round(p[k]*100)/100]))})),memberships:floorMemberships(d).sort((x,y)=>x.pointId.localeCompare(y.pointId))});
   return signature(a)===signature(b);
 }

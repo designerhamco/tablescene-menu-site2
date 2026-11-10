@@ -1,3 +1,4 @@
+import {SectionHeader} from "@/app/components/ui/section-header";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Bell, LayoutGrid, ShoppingBag, Ticket } from "lucide-react";
@@ -150,9 +151,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="dashboard">
       <div className="site-stack-group">
         {permissionNotice ? <PermissionNotice message={permissionNotice} /> : null}
-        <header className="site-stack-title">
-          <h2 className="type-section-title">{selectedSite.name} 운영 현황</h2>
-        </header>
+        <SectionHeader title="운영 대시보드"/>
 
         {isStoreOperationsTemplate(selectedSite.templateKey) ? <section className="site-stack-block" aria-label="주문·호출 사용 여부"><div className="site-action-row"><h3 className="type-subsection-title">주문·호출 사용 여부</h3>{selectedSite.canConfigure ? <InfoTooltip label="주문·호출 운영 안내"><p>메뉴판을 공개하고 테이블·키오스크를 등록한 뒤 전체 주문·호출을 켜 주세요. 기기별 허용과 연결은 테이블·키오스크 관리에서 변경합니다.</p><p>메뉴판을 비공개로 바꾸면 전체 주문·호출도 OFF로 저장됩니다. 기존 접수 내역은 유지됩니다.</p></InfoTooltip> : null}</div>
           <OperationTableSetupNotice menuId={selectedSite.menuSiteId}

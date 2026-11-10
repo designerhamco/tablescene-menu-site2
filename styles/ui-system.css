@@ -1421,3 +1421,9 @@ svg.site-edit-icon {
 }
 
 .site-floor-workspace-canvas .site-floor-viewport { border:0; border-radius:0; }
+
+/* An icon choice can sit immediately beside a name field without narrowing its action. */
+.site-select-trigger.site-select-icon { width:var(--ui-field-height-md); min-width:var(--ui-field-height-md); padding-inline:.375rem 1.125rem; justify-content:flex-start; gap:0; }
+.site-select-trigger.site-select-icon .site-select-chevron { inset-inline-end:.125rem; top:calc(50% - .375rem); width:.75rem; height:.75rem; margin-inline-start:0; }
+.site-icon-name-field { display:grid; min-width:0; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:var(--site-space-copy); }
+.site-icon-name-field > input.site-field { width:100%; min-width:0; }

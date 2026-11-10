@@ -37,7 +37,7 @@ const floorPlan: OperationsFloorPlan = {
   available: true,
   revision: 1,
   document: {
-    rooms: [{ id: room, name: "홀 예시", aspectRatio: 1.33 }],
+    rooms: [{ id: room, name: "홀 예시", emoji: "🏠", aspectRatio: 1.33 }],
     placements: records.map((record, index) => ({
       pointId: record.pointId,
       roomId: room,

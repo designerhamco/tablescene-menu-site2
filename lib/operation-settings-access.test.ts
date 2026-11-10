@@ -187,9 +187,12 @@ test("이전 기기별 설정 주소는 설정 데이터를 읽기 전에 테이
   const page = serverModule<typeof import("../app/mypage/menus/[menuId]/orders/settings/page")>("app/mypage/menus/[menuId]/orders/settings/page.tsx", {
     "react/jsx-runtime": jsxRuntime,
     "next/navigation": { redirect: (path: string) => { throw new Error(`redirect:${path}`); } },
+    "@/components/mypage/PaymentTerminalSettings": {},
+    "@/lib/server/payment-terminal-preparation-service": {loadPaymentTerminalPreparations:async()=>{settingsReads++;throw new Error("Unexpected payment read");}},
     "@/components/mypage/OrderSettingsCategories": {},
     "@/components/mypage/OrderReadyNotificationSettings": {},
     "@/components/mypage/StoreOperationsShell": {},
+    "@/app/components/ui/section-header": {SectionHeader:()=>null},
     "@/app/components/ui/content-panel": {},
     "@/components/mypage/OperationalSoundSettings": {},
     "@/components/mypage/OperationFeatureNavigation": {},

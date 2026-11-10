@@ -3,8 +3,12 @@ import {FloorPlanViewport} from "@/app/components/ui/floor-plan-viewport";
 import {readableFloorDocument} from "@/lib/menu-floor-plan";
 import OrderCardSummary from "./OrderCardSummary";
 import InfoTooltip from "@/components/ui/InfoTooltip";
+import {SectionHeader} from "@/app/components/ui/section-header";
+import {ViewStyleSelect} from "@/app/components/ui/view-style-select";
+import {RoomLabel} from "@/app/components/ui/room-label";
+import {useOperationsView} from "./OperationsViewLayout";
 import { useState, type ReactNode } from "react";
-import { Armchair, List, Map, Monitor } from "lucide-react";
+import { Armchair, Monitor } from "lucide-react";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import {
   FloorPlanCanvas,
@@ -44,8 +48,10 @@ export default function OperationsHistoryViews({
   renderList: (open: (recordId: string) => void) => ReactNode;
   renderDetail: (recordIds: string[]) => ReactNode;
 }) {
-  const [view, setView] = useState("map"),
+  const sharedView=useOperationsView();
+  const [localView, setLocalView] = useState("map"),
     [roomId, setRoomId] = useState("");
+  const view=sharedView?.view??localView,setView=sharedView?.setView??setLocalView;
   const [selection, setSelection] = useState<
     { pointId: string; label: string } | { recordId: string; label: string } | null
   >(null);
@@ -90,29 +96,8 @@ export default function OperationsHistoryViews({
   if(listOnly)return <div className="site-stack-group">{renderList(openRecord)}{detailDialog}</div>;
   return (
     <div className="site-stack-group">
-      <Tabs purpose="state" value={view} onValueChange={setView}>
-        <div className="site-stack-group">
-        <div className="site-field-stack">
-          <span className="type-label">보기 유형</span>
-          <TabsList aria-label={`${noun} 내역 보기 유형`}>
-            <TabsTrigger value="map">
-              <Map aria-hidden="true" />
-              배치도형
-            </TabsTrigger>
-            <TabsTrigger value="list">
-              <List aria-hidden="true" />
-              리스트형
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        <TabsContent value="list">
-          {renderList(openRecord)}
-        </TabsContent>
-        <TabsContent value="map">
-          <div className="site-stack-group">
-            <p className="type-body-sm site-copy-muted">
-              테이블·키오스크를 선택하면 {noun} 내역과 처리 상태를 확인할 수 있습니다.
-            </p>
+      {!sharedView?<SectionHeader title={`${noun} 관리`} actions={<ViewStyleSelect label={`${noun} 내역 보기 유형`} value={view} onValueChange={setView}/>}/>:null}
+      {view==="list"?renderList(openRecord):<div className="site-stack-group">
             {!floorPlan.available ? (
               <ContentPanel surface="notice" density="compact">
                 <p role="status" className="type-body-sm">
@@ -134,7 +119,7 @@ export default function OperationsHistoryViews({
             ) : (
               <Tabs
                 purpose="section"
-                appearance="document"
+                appearance="pills"
                 value={room.id}
                 onValueChange={setRoomId}
               >
@@ -142,15 +127,12 @@ export default function OperationsHistoryViews({
                 <TabsList size="sm" aria-label={`${noun} 내역 룸`}>
                   {floorPlan.document.rooms.map((item) => (
                     <TabsTrigger key={item.id} value={item.id}>
-                      {item.name}
+                      <RoomLabel name={item.name} emoji={item.emoji}/>
                     </TabsTrigger>
                   ))}
                 </TabsList>
                 <TabsContent value={room.id}>
                   <section className="site-stack-group" aria-label={`${room.name} ${noun} 배치도`}>
-                    <p className="type-body-sm site-copy-muted">
-                      처리할 {noun}을 먼저 표시합니다. ‘내역 없음’은 현재 조회 결과에 내역이 없다는 뜻입니다.
-                    </p>
                     <FloorPlanViewport name={room.name}><FloorPlanCanvas
                       data-mobile-cards="true"
                       name={room.name}
@@ -264,10 +246,7 @@ export default function OperationsHistoryViews({
                 표시할 {noun} 내역이 없습니다.
               </p>
             ) : null}
-          </div>
-        </TabsContent>
-        </div>
-      </Tabs>
+      </div>}
       {detailDialog}
     </div>
   );

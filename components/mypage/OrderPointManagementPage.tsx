@@ -1,3 +1,4 @@
+import {SectionHeader} from "@/app/components/ui/section-header";
 import { loadOrderPointDeviceSettings } from "@/lib/server/order-point-device-settings";
 import { notFound, redirect } from "next/navigation";
 
@@ -54,14 +55,11 @@ export default async function OrderPointManagementPage({ params, kind = "table" 
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection={section}>
       <div className="site-stack-content">
         {data ? (
-          <MenuTableManager key={menuId} menuSiteName={selectedSite.name} menuSiteId={data.menuSite.id} tables={data.tables.map(({ id, label, status, kind, policy, policyAvailable }) => ({ id, label, status, kind, policy, policyAvailable }))}
+          <MenuTableManager key={menuId} menuSiteId={data.menuSite.id} tables={data.tables.map(({ id, label, status, kind, policy, policyAvailable }) => ({ id, label, status, kind, policy, policyAvailable }))}
             removeFloorRoomAction={removeFloorRoomAction.bind(null,menuId)} saveFloorPlanAction={saveFloorPlanAction.bind(null, menuId)} floorPlan={floorPlan ?? undefined} archivedTables={data.archivedTables} pointSettingsAvailable={data.pointSettingsAvailable} canDelete={selectedSite.isOwner} canConfigure={selectedSite.isOwner} published={data.menuSite.status === "published"} deviceSetup={deviceState} connectionState={connectionState} />
         ) : (
           <div className="site-stack-content">
-        <header className="site-stack-title">
-          <p className="type-label text-zinc-500">{selectedSite.name}</p>
-          <h2 className="type-subsection-title">{noun} 관리</h2>
-        </header>
+        <SectionHeader title={`${noun} 관리`}/>
           <ContentPanel>
             <div className="site-stack-title">
             <h3 className="type-subsection-title">{noun} 관리를 사용할 수 없습니다</h3>
