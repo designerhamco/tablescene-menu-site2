@@ -230,6 +230,8 @@
 /* Corner list panels own the auxiliary paper and the common page inset.
    The first photo is full bleed; both visible tracks and probes use inner widths. */
 .frame[data-basic-structure="basic-upper-left"] {
+  --scroll-page-inset: var(--basic-panel-workspace-gap);
+  --scroll-column-gap: var(--basic-panel-workspace-gap);
   --scroll-panel-inset: var(--basic-reading-page-inset);
 }
 .frame[data-basic-structure="basic-upper-left"] .column {
@@ -251,4 +253,13 @@
 }
 .mobile[data-basic-structure="basic-upper-left"] :global([data-cafe-a-scroll-content]) {
   background: var(--menu-design-aux-bg, #fff);
+}
+
+.frame[data-basic-structure="basic-upper-left"] .footer { padding: var(--basic-panel-action-inset); box-sizing: border-box; }
+.mobile[data-basic-structure="basic-upper-left"] :global(.cafe-a-mobile-call-dock) {
+  inset-inline: 0; bottom: 0;
+  padding: var(--basic-panel-action-inset);
+  padding-bottom: calc(var(--basic-panel-action-inset) + env(safe-area-inset-bottom, 0px));
+  background: var(--menu-design-page-bg, #fff);
+  box-sizing: border-box;
 }

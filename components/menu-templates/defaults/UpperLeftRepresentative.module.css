@@ -36,10 +36,9 @@
   background: linear-gradient(180deg, #160e0bd9, #160e0b66 60%, #160e0bd9);
   pointer-events: none;
 }
-.controls { grid-row: 1; z-index: 3; min-width: 0; min-height: var(--corner-controls-size); }
-.controls > :global([data-template-language-control]) { text-align: left; }
-.controls :global(button[aria-haspopup="menu"]) { width: var(--corner-controls-size); height: var(--corner-controls-size); padding: 0; }
-.controls :global(button[aria-haspopup="menu"] svg) { width: 1.5rem; height: 1.5rem; }
+.controls { grid-row: 1; z-index: 3; min-width: 0; min-height: var(--corner-controls-size); display: flex; justify-content: flex-end; align-items: center; }
+.controls > :global([data-template-language-control]) { text-align: right; }
+.controls :global([data-language-menu-trigger]) { min-width: 2.75rem; min-height: var(--corner-controls-size); padding-inline: .375rem; }
 .identity { grid-row: 3; z-index: 1; display: flex; flex-direction: column; align-items: var(--menu-representative-justify, center); gap: var(--corner-copy-gap); min-width: 0; text-align: var(--menu-representative-align, center); }
 .identity :global(.cafe-a-store-title) { width: 100%; margin: 0; line-height: 1.08; }
 .identity :global(.cafe-a-store-description) { margin: 0; color: var(--menu-text-representative, var(--menu-role-brand-color, #191c1b)); }
@@ -51,3 +50,9 @@
   .intro[data-photo="true"] { aspect-ratio: 1 / 1; }
   .intro[data-mobile-call="true"] { --corner-controls-size: 3.5rem; }
 }
+
+.intro :global([data-cafe-a-cover-indicators]) { top: auto; right: auto; bottom: 1rem; left: 50%; transform: translateX(-50%); }
+.intro[data-carousel="true"] :global(.cafe-a-featured-copy) { margin-bottom: 1.5rem; }
+.controls :global(.cafe-a-call-language-slot) { grid-column: 3; grid-row: 1; justify-self: end; }
+.controls :global(.cafe-a-call-table-label) { grid-column: 2; grid-row: 1; }
+.controls :global(.cafe-a-table-actions) { grid-column: 1; grid-row: 1; justify-self: start; }

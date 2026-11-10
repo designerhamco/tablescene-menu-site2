@@ -171,3 +171,6 @@
 .board .header[data-basic-header-align="left"] :global(.cafe-a-topline-description-panel) { grid-column: 3; grid-row: 1; display: flex; align-items: center; justify-content: flex-end; gap: .75rem; overflow: visible; text-align: right; }
 .board .header[data-basic-header-align="left"] :global(.cafe-a-topline-description) { padding-top: 0; text-align: right !important; }
 .board .header[data-basic-header-align="left"] :global([data-template-language-control]) { flex: none; position: relative; z-index: 5; }
+
+/* Equal panel workspaces reserve one consistent service-action inset. */
+.board.board[data-native-shell="brand_panel_flow"] .actions { padding: var(--basic-panel-action-inset); box-sizing: border-box; }

@@ -2174,7 +2174,7 @@ function CoverHero({
           <div className="absolute inset-x-0 bottom-0 h-[72%] bg-[linear-gradient(to_top,rgba(0,0,0,0.68)_0%,rgba(0,0,0,0.46)_38%,rgba(0,0,0,0.18)_72%,rgba(0,0,0,0)_100%)]" />
         ) : null}
         {hasCarousel && (
-          <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
+          <div data-cafe-a-cover-indicators className="absolute right-4 top-4 z-10 flex items-center gap-2">
             {featuredSlides.map((slide, index) => {
               const isActive = index === safeActiveSlideIndex;
               return (
@@ -3212,15 +3212,17 @@ function CafeLanguageHoverControl({
   menuPlacement = "bottom",
   menuAlign = "right",
   iconOnly = false,
+  showCurrentLocale = false,
 }: {
   data: CafeDesignAProps;
   className?: string;
   menuPlacement?: "top" | "bottom";
   menuAlign?: "left" | "right";
   iconOnly?: boolean;
+  showCurrentLocale?: boolean;
 }) {
   const visibleLocaleCount = Array.from(new Set(data.enabledLocales)).length;
-  if (visibleLocaleCount <= 1 && !iconOnly) return null;
+  if (visibleLocaleCount <= 1 && !iconOnly && !showCurrentLocale) return null;
 
   return (
     <div className={`menu-font-en relative shrink-0 text-right text-[#191c1b] ${className}`} data-template-language-control="">
@@ -3235,6 +3237,7 @@ function CafeLanguageHoverControl({
           menuPlacement={menuPlacement}
           menuAlign={menuAlign}
           iconOnly={iconOnly}
+          showCurrentLocale={showCurrentLocale}
         />
       </div>
     </div>
@@ -3644,13 +3647,13 @@ export function CafeAUpperLeftIntro({ data, density = "default", mobileReading =
   const slides = showCover ? getFeaturedHeroSlides(data, capabilities) : [];
   const custom = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
   const controls = <div className={upperLeftStyles.controls} data-corner-controls>
-    {mobileReading && call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} iconOnly menuAlign="left" />} /> : <CafeLanguageHoverControl data={data} iconOnly menuAlign="left" />}
+    {mobileReading && call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} showCurrentLocale menuAlign="right" />} /> : <CafeLanguageHoverControl data={data} showCurrentLocale menuAlign="right" />}
   </div>;
   const identity = <div className={upperLeftStyles.identity} data-representative-copy data-corner-identity>
     <StoreIdentity data={data} capabilities={capabilities} titleClassName="cafe-a-store-title cafe-a-panel-brand" logoClassName="cafe-a-store-logo" mobileAutoFit={mobileReading} layoutShell="brand_panel_flow" />
     {(data.menuSite.brand_description || data.menuSite.description) && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p>}
   </div>;
-  return <div className={upperLeftStyles.intro} data-upper-left-intro data-photo={slides.length ? "true" : "false"} data-mobile-call={mobileReading && call.enabled ? "true" : undefined}
+  return <div className={upperLeftStyles.intro} data-upper-left-intro data-photo={slides.length ? "true" : "false"} data-carousel={slides.length > 1 ? "true" : undefined} data-mobile-call={mobileReading && call.enabled ? "true" : undefined}
     style={slides.length && (!custom?.typography_roles?.brand?.color || custom.typography_roles.brand.color.toLowerCase() === "#191c1b") ? { "--menu-role-brand-color": "#ffffff", "--menu-design-brand-ink": "#ffffff", "--menu-role-supporting-color": "#ffffff" } as CSSProperties : undefined}>
     {slides.length ? <CoverHero data={data} featuredSlides={slides} capabilities={capabilities} density={density}
       customBadgeStyles={getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings)}
