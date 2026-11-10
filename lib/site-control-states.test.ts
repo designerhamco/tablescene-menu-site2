@@ -261,13 +261,13 @@ test("opaque disabled actions retain a functional edge on matching backgrounds w
 
 test("editable floor objects keep their selection surface and X actions as separate interactive siblings", async () => {
   const { FloorPlanObject, FloorPlanWorkspace } = await import("../app/components/ui/floor-plan-canvas");
-  const item = createElement(FloorPlanObject, { rect: { x: 4, y: 4, width: 20, height: 16 }, label: "테이블 1", editing: true, actions: createElement("button", { type: "button", "aria-label": "테이블 1 배치 해제" }, "X") });
+  const item = createElement(FloorPlanObject, { rect: { x: 4, y: 4, width: 20, height: 16 }, label: "테이블 1", actions: createElement("button", { type: "button", "aria-label": "테이블 1 배치 해제" }, "X") });
   const html = renderToStaticMarkup(item);
   assert.match(html, /class="site-floor-object-interaction"/);
   assert.match(html, /<\/div><div class="site-floor-object-actions"><button/);
   assert.equal((html.match(/role="button"/g) ?? []).length, 1);
-  assert.match(html, /data-resize-handle/);
-  assert.match(html, /lucide-move-diagonal-2/);
+  assert.doesNotMatch(html, /data-resize-handle/);
+  assert.doesNotMatch(html, /lucide-move-diagonal-2/);
   const readonly = renderToStaticMarkup(createElement(FloorPlanObject, { rect: { x: 4, y: 4, width: 20, height: 16 }, label: "테이블 1" }));
   assert.doesNotMatch(readonly, /site-floor-object-actions|site-floor-object-interaction/);
   const workspace = renderToStaticMarkup(createElement(FloorPlanWorkspace, { tools: "도구", selection: "선택 항목 정보", footer: "이동·저장" }, item));
