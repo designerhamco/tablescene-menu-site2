@@ -157,3 +157,11 @@
 .site-field-action-row > .site-button { white-space: nowrap; }
 .site-content-panel[data-density="controls"] { padding: var(--site-panel-inset-compact); gap: var(--site-space-block); }
 @media (min-width: 768px) { .site-content-panel[data-density="controls"] { padding: var(--site-panel-inset-wide); gap: var(--site-space-group); } }
+
+/* Title and view selector form one compact toolbar, including on phones. */
+.site-content-heading-row[data-layout="toolbar"] { flex-direction:row; align-items:center; }
+.site-content-heading-row[data-layout="toolbar"] > :first-child { flex:1; min-width:0; }
+.site-content-heading-row[data-layout="toolbar"] > .site-field-stack { flex:none; }
+.site-inline-field { display:flex; min-width:0; align-items:center; gap:var(--site-space-copy); white-space:nowrap; }
+.site-inline-field > .site-field { flex:1; width:100%; min-width:0; }
+.site-pill-tabs[data-overflow-right="true"] { mask-image:linear-gradient(to right,#000 0,#000 calc(100% - var(--site-table-overflow-fade-width)),transparent 100%); }

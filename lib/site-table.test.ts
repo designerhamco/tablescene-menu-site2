@@ -50,7 +50,8 @@ test("관리 화면과 라이브러리는 같은 표 API와 간격·상태 예�
   const examples = read("../components/design-system/ManagementTableExamples.tsx");
   assert.match(manager, /columns=\{\["compact", "text", "toggles", "toggles", "detail", "actions"\]\}/);
   assert.match(examples, /columns=\{\["compact", "text", "detail", "control", "actions"\]\}/);
-  assert.match(manager, /<Tabs purpose="state"[^>]*>\s*<div className="site-stack-group">/);
+  assert.match(manager, /<Select value=\{displayMode\}/);
+  assert.match(manager, /<SelectTrigger[^>]*aria-label="보기 유형"/);
   assert.match(manager, /renderList=\{\(\{pointIds,unassignedPointIds,rooms,roomId,pending,onMovePoint\}\) =>/);
   assert.match(examples, /SITE_TABLE_RULES.map/);
   assert.match(examples, /align="end"/);

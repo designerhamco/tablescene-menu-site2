@@ -14,7 +14,7 @@ export default function RoomRemovalDialog({open,onOpenChange,room,rooms,points,p
 }) {
  const [target,setTarget]=useState("");const id=useId();const other=rooms.filter(item=>item.id!==room?.id);const selected=other.find(item=>item.id===target)?.id??other[0]?.id;
  return <Dialog open={open} onOpenChange={value=>{if(!pending)onOpenChange(value);}}>
-  <Tooltip><TooltipTrigger asChild><DialogTrigger asChild><Button variant="ghost" size="icon" disabled={disabled} aria-label="선택한 룸 삭제"><Trash2 aria-hidden="true"/></Button></DialogTrigger></TooltipTrigger><TooltipContent>선택한 룸 삭제</TooltipContent></Tooltip>
+  <Tooltip><TooltipTrigger asChild><DialogTrigger asChild><Button type="button" variant="ghost" size="icon" disabled={disabled} aria-label="선택한 룸 삭제"><Trash2 aria-hidden="true"/></Button></DialogTrigger></TooltipTrigger><TooltipContent>선택한 룸 삭제</TooltipContent></Tooltip>
   <DialogContent onEscapeKeyDown={e=>{if(pending)e.preventDefault();}} onInteractOutside={e=>{if(pending)e.preventDefault();}} onCloseAutoFocus={e=>{e.preventDefault();returnFocusRef.current?.focus();}}>
    <DialogHeader><DialogTitle>‘{room?.name}’ 룸 삭제</DialogTitle><DialogDescription>{points.length?`테이블·키오스크 ${points.length}개를 ${other.length?"다른 룸으로 모두 이동하거나 보관한 뒤":"모두 보관한 뒤"} 룸을 삭제합니다. 처리 결과는 바로 저장되며 기존 주문·호출 기록은 유지됩니다.`:saved?"비어 있는 룸을 삭제하고 바로 저장합니다.":"아직 저장하지 않은 빈 룸을 삭제합니다."}</DialogDescription></DialogHeader>
    <div className="site-stack-block" aria-busy={pending}>

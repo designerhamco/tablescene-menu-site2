@@ -6,15 +6,15 @@ import { ContentPanel } from "@/app/components/ui/content-panel";
 import { FieldActionRow } from "@/app/components/ui/field-action-row";
 import { LoadingState } from "@/app/components/ui/loading-state";
 
-export default function OrderPointRegistrationForm({ menuSiteId, kind, onKindChange, name, onNameChange, roomReady, roomId = "", blockedReason, pending = false, disabled = false, kioskAvailable, action }: {
-  menuSiteId: string; kind: OrderPointKind; onKindChange: (kind: OrderPointKind) => void;
+export default function OrderPointRegistrationForm({ embedded = false, menuSiteId, kind, onKindChange, name, onNameChange, roomReady, roomId = "", blockedReason, pending = false, disabled = false, kioskAvailable, action }: {
+  embedded?: boolean; menuSiteId: string; kind: OrderPointKind; onKindChange: (kind: OrderPointKind) => void;
   name: string; onNameChange: (name: string) => void; roomReady: boolean; roomId?: string; blockedReason?: string;
   pending?: boolean; disabled?: boolean; kioskAvailable: boolean; action: (data: FormData) => void | Promise<void>;
 }) {
   const reasonId = useId();
   const blocked = pending || disabled || !roomReady;
   const kiosk = kind === "kiosk", registrationNoun = kiosk ? "키오스크" : "테이블";
-  return <ContentPanel surface="muted" density="controls">
+  const content = <>
     <form data-unsaved-commit action={action} aria-busy={pending} aria-describedby={!roomReady ? reasonId : undefined} className="site-registration-row">
       <input type="hidden" name="menuSiteId" value={menuSiteId} /><input type="hidden" name="roomId" value={roomId} />
       <label className="type-label site-registration-kind">종류
@@ -31,5 +31,6 @@ export default function OrderPointRegistrationForm({ menuSiteId, kind, onKindCha
     {!roomReady ? <p id={reasonId} className="type-footnote site-copy-muted" role="status">{blockedReason ?? "룸을 먼저 추가하면 테이블·키오스크를 만들 수 있습니다."}</p> : null}
     {!kioskAvailable ? <p className="type-footnote site-copy-muted">키오스크 등록 기능을 현재 사용할 수 없습니다. 기존 등록 정보는 계속 확인할 수 있습니다.</p> : null}
     {pending ? <LoadingState inline label={`${registrationNoun}${kiosk ? "를" : "을"} 만들고 있습니다. 잠시만 기다려 주세요.`} /> : null}
-  </ContentPanel>;
+  </>;
+  return embedded ? content : <ContentPanel surface="muted" density="controls">{content}</ContentPanel>;
 }
