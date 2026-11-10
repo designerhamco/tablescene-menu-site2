@@ -130,11 +130,11 @@ function TableMenuMobileDock() {
   const actions = useContext(Context);
   if (!actions || (!actions.call && !actions.order)) return null;
   return <div className={styles.mobileDock} data-table-mobile-dock>
-    {actions.order ? <button type="button" className={styles.mobileOrder} onClick={actions.openCart} aria-label={t("주문하기, 장바구니 {0}개", actions.count)}>
-      <MenuOrderIcon variant={actions.presentation === "aube" ? "document" : "cart"} purpose="view" /><span>{t("주문하기")}{actions.count ? ` (${actions.count})` : ""}</span>
-    </button> : null}
     {actions.call ? <button type="button" className={actions.order ? styles.mobileCall : styles.mobileCallOnly} onClick={actions.openCall} aria-label={t("직원 호출하기")}>
       <StaffCallIcon aria-hidden="true" /><span>{t("호출하기")}</span>
+    </button> : null}
+    {actions.order ? <button type="button" className={styles.mobileOrder} onClick={actions.openCart} aria-label={t("주문하기, 장바구니 {0}개", actions.count)}>
+      <MenuOrderIcon variant={actions.presentation === "aube" ? "document" : "cart"} purpose="view" /><span>{t("주문하기")}{actions.count ? ` (${actions.count})` : ""}</span>
     </button> : null}
   </div>;
 }

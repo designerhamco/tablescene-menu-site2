@@ -1,12 +1,16 @@
 # Menu template spacing contract
 
+## Service action order — 2026-11-10
+
+Every customer-menu service action group uses Call then Order on PC, tablet and mobile. Keep both DOM and visual order consistent (left to right): 호출하기 → 주문하기. Basic one-page and the shared TableMenuMobileDock used by Dining/multi-page follow the same rule. With only one feature enabled, render that action alone and preserve its handler, cart count, permissions and accessible name. The language/table/cart header tools remain a separate toolbar.
+
 ## ONUE / upper-left representative and action spacing — 2026-11-10
 
 Both panel workspaces use one `--basic-panel-action-inset` (16px) above and below the service buttons. The action strip owns the bottom edge: the board must not add its outer workspace inset below it. On mobile the dock spans the page width, starts at bottom zero and adds the safe-area inset once. Its internal inset is 16px on every side; other templates keep their existing floating docks.
 
 Representative photo controls share `--basic-panel-hero-inset` (`clamp(16px, 1.8vmin, 28px)`) and a 48px control row on PC/tablet. Do not use menu-column reading padding for this row. The photo identity has equal flexible space (minimum 12px) above and below it, with a mirrored control-height row below. Indicators sit 16px from the bottom, centered. Mobile uses 16px horizontal inset, safe-area-only top inset, a 48px row (56px with Call), and the registered 1:1 image; it must not add another page top inset above the tools. PC/tablet remain 4:3.
 
-The neutral upper-left starter page is warm charcoal `#3D3531`, with white auxiliary columns. ONUE retains its dark brown `#33221E`. These are starter defaults, not customer-data migrations. Saved explicit surfaces remain authoritative. Photo identity text resolves against the existing dark overlay; plain identity text resolves against its actual surface (ONUE auxiliary paper, neutral page background). Keep configured brand/representative ink when its contrast is at least 4.5:1, then try the configured category/brand ink and finally readable neutral ink. Thus a light plain surface uses dark text and a dark plain surface keeps light text; switching a photo off must never blindly darken text against a dark background. Language/table tools follow the resulting brand ink.
+The neutral upper-left starter page is light gray `#F2F3F5`, with white auxiliary columns. ONUE retains its dark brown `#33221E`. These are starter defaults, not customer-data migrations. Saved explicit surfaces remain authoritative. Photo identity text resolves against the existing dark overlay; plain identity text resolves against its actual surface (ONUE auxiliary paper, neutral page background). Keep configured brand/representative ink when its contrast is at least 4.5:1, then try the configured category/brand ink and finally readable neutral ink. Thus a light plain surface uses dark text and a dark plain surface keeps light text; switching a photo off must never blindly darken text against a dark background. Language/table tools follow the resulting brand ink.
 
 
 ## Upper-left neutral list panels and palette fallback — 2026-11-10
