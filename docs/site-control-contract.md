@@ -51,7 +51,8 @@ secondary는 중간 회색 표면·공통 1px 경계를 사용한다. 비활성 
 | 주요 화면 전환 | Tabs/NavigationTabs purpose="page" | 배경 없는 텍스트·문구 너비의 검정 밑줄. 서비스, 가이드, 편집 설정 |
 | 독립 콘텐츠 전환 | Tabs/NavigationTabs purpose="section" | 연결형 사각 버튼·검정 선택 면. 템플릿 종류, 결제/AI 내역, 미리보기, 요금 상품 유형 |
 | 목록 분류 | CategoryFilter, Tabs purpose="category" | 별도 영역 없는 밑줄. 고객센터·새 메뉴판 주제, 전체/읽지 않은 알림 |
-| 목록 조건·본문 이동 | site-filter, ChoiceTile, 링크 | 작은 필터·아이콘. 업종·구성·문서 위치 |
+| 목록 조건·본문 이동 | site-filter, ChoiceTile purpose="filter", 링크 | 완전히 둥근 캡슐형. 업종·구성·문서 위치 |
+| 룸 선택·추가 | Tabs purpose="section" appearance="rooms", Button shape="rounded" size="icon" | 독립된8px 사각형, 흰 선택 면과 진한 경계. 왼쪽 고정 추가와 스크롤 목록 |
 | 상태·보기 값 | Tabs/NavigationTabs purpose="state" | 회색 레일의 둥근 흰 선택 면. 이용 상태·언어·보기 방식 |
 
 템플릿은 page → section → 필터 → 결과, 고객센터는 page → category → 결과다. 영역형은 특정 단계에 고정하지 않는다. 최상위 버튼은 PC·태블릿 내용 폭+좌우 각각24px, 모바일 기존 폭·영역 내 스크롤을 사용한다. 크기는 lg48px/16px, md44px/15px, sm40px/14px다. 선택600·비선택500의 공통 토큰을 쓰고 페이지 CSS로 덮어쓰지 않는다.
@@ -196,3 +197,10 @@ section의 추가 appearance=document는 흰 선택 면이 아래 기준선과 �
 2026-11-06 이름 편집 피드백: 보관 복원의 중복 이름은 `OrderPointRestoreForm`에서 같은 종류의 운영 이름과 비교하고 `aria-invalid`의 공통 위험 테두리·`FieldMessage` 하단 오류를 지속 표시한다. 오류 메시지를 `aria-describedby`로 연결하고 중복 복원을 막으며 수정 후 해제한다. 서버 유일성 검사는 유지하고 서버에서 발견한 중복도 해당 입력에 연결한다. `InlineNameEditor`는 룸 탭을 포함한 저장 중 입력 옆에 기존16px `LoadingSpinner`를 표시하며 `aria-busy`·상태 안내·중복 저장 차단·실패 초안을 유지한다. 별도 색상·크기·여백·토스트 전용 오류를 만들지 않는다.
 
 검수: 전체 테스트1,125건·사이트 UI 계약133건·타입·ESLint·Production 빌드를 통과했다. 공통 복원 폼에서 중복 이름의 빨간 입력 테두리/하단 메시지와 초점 중 위험 색상 유지, 수정 후 오류 해제·복원 활성화를 확인했다. 룸 문서형 탭의 실제 이름 편집기에서 저장 중 스피너·readOnly·aria-busy·상태 안내와 저장 후 이름 갱신을 확인했다.320/820/1440px 문서 가로 넘침은0px이다. 예시 검증은 실제 복원·이름 쓰기를 실행하지 않았다.
+
+
+## 카테고리 필터와 룸 선택의 모양 (2026-11-11)
+
+- 업종 등 버튼형 목록 조건은 완전히 둥근 캡슐형이다. 아이콘이 있는 필터는 `ChoiceTile purpose="filter"`, 짧은 텍스트 필터는 `site-filter`가 `--ui-radius-control`을 사용한다. 높이·패딩·아이콘·선택·비활성·포커스는 기존 공통 크기를 유지한다. 일반 기능/상품 선택 카드는 기존 사각형이며 `purpose="choice"`가 기본값이다. FAQ·알림 등의 밑줄형 주제 탭은 이 버튼형 필터와 다른 역할이다.
+- 룸 이름 선택과 룸 추가는 `--ui-radius-control-rounded`의8px 모서리를 사용한다. `Tabs purpose="section" appearance="rooms"`가 독립 사각형과 흰 선택 면·진한 경계를 소유한다. 왼쪽 고정 추가는 `Button shape="rounded" size="icon"`의 동일한 사각형이다. 기존 아이콘 버튼의40px 조작 영역과 룸 탭의sm40px 높이를 유지하며 다른 아이콘 도구는 기존 모양을 유지한다.
+- 테이블·키오스크 관리의 리스트/배치도와 주문·호출의 룸 선택에 같은 API를 적용한다. 추가 위치, 룸 순서·이름, 등록/저장/되돌리기, 선택 자동 노출·가로 스크롤·조건부 페이드, Radix 방향키·Home/End·선택/포커스와 저장 중 비활성을 유지한다. 고객 메뉴판 렌더러에는 적용하지 않는다.

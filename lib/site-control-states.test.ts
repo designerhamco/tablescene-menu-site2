@@ -31,7 +31,8 @@ test("support actions stay centered at content width instead of inheriting a car
 test("ordinary action geometry is shared and icon / quick-menu shapes are explicit", () => {
   const button = read("app/components/ui/button.tsx");
   assert.match(button, /pill: "site-button-pill"/);
-  assert.doesNotMatch(button, /\b(?:sm|xl):|shape: \{[\s\S]*?(?:rounded|square)/);
+  assert.doesNotMatch(button, /\b(?:sm|xl):/);
+  assert.match(button, /rounded: "site-button-rounded"/);
   assert.match(css, /\.site-button \{[^}]*min-height: var\(--ui-control-height-md\);[^}]*border-radius: var\(--ui-radius-control-rounded\);/);
   assert.match(css, /--ui-control-height-compact: 2rem/);
   assert.match(css, /--ui-control-height-md: 2\.5rem/);
@@ -75,9 +76,9 @@ test("site pages cannot override shared action padding, shape, typography or dis
       else if (file.endsWith(".tsx")) {
         const source = read(file);
         if (
-          /site-button-(?:sm|xl|rounded|square)\b/.test(source) ||
-          /\b(?:size="xl"|shape="(?:rounded|square)")/.test(source) ||
-          /\b(?:size:\s*["']xl["']|shape:\s*["'](?:rounded|square)["'])/.test(source)
+          /site-button-(?:sm|xl|square)\b/.test(source) ||
+          /\b(?:size="xl"|shape="square")/.test(source) ||
+          /\b(?:size:\s*["']xl["']|shape:\s*["']square["'])/.test(source)
         ) deprecated.push(file);
         for (const match of source.matchAll(/"([^"\n]*\bsite-button\b[^"\n]*)"|'([^'\n]*\bsite-button\b[^'\n]*)'|`([^`\n]*\bsite-button\b[^`\n]*)`/g)) {
           const literal = match[1] ?? match[2] ?? match[3];
@@ -86,7 +87,7 @@ test("site pages cannot override shared action padding, shape, typography or dis
         }
       } else if (file.endsWith(".css")) {
         const source = read(file);
-        if (/--ui-(?:control-height-(?:sm|xl)|control-padding-inline-xl|radius-control-square)\b|\.site-button-(?:sm|xl|rounded|square)\b/.test(source)) {
+        if (/--ui-(?:control-height-(?:sm|xl)|control-padding-inline-xl|radius-control-square)\b|\.site-button-(?:sm|xl|square)\b/.test(source)) {
           deprecated.push(file);
         }
       }
@@ -332,9 +333,35 @@ test("등록은 룸이 있을 때만 활성화하고 취소를 제공하지 않�
 });
 
 
-test("룸 선택의 pill 탭은 고정 추가 행동과 선택 가능한 룸을 분리한다",async()=>{
+test("룸 선택의 독립 사각 탭은 고정 추가 행동과 선택 가능한 룸을 분리한다",async()=>{
  const {Tabs,TabsList,TabsTrigger}=await import("../app/components/ui/tabs");
- const html=renderToStaticMarkup(createElement(Tabs,{purpose:"section",appearance:"pills",defaultValue:"main"},createElement(TabsList,{"aria-label":"룸 선택",action:createElement("button",{type:"button","aria-label":"룸 추가"},"+")},createElement(TabsTrigger,{value:"main"},"메인"),createElement(TabsTrigger,{value:"terrace"},"테라스"))));
- assert.match(html,/site-pill-tabs-header/);assert.ok(html.indexOf('aria-label="룸 추가"')<html.indexOf('role="tablist"'));
+ const html=renderToStaticMarkup(createElement(Tabs,{purpose:"section",appearance:"rooms",defaultValue:"main"},createElement(TabsList,{"aria-label":"룸 선택",action:createElement("button",{type:"button","aria-label":"룸 추가"},"+")},createElement(TabsTrigger,{value:"main"},"메인"),createElement(TabsTrigger,{value:"terrace"},"테라스"))));
+ assert.match(html,/site-room-tabs-header/);assert.ok(html.indexOf('aria-label="룸 추가"')<html.indexOf('role="tablist"'));
  assert.equal((html.match(/role="tab"/g)??[]).length,2);assert.match(html,/aria-selected="true"/);assert.doesNotMatch(html,/site-document-tab/);
+});
+
+test("category capsules and room rectangles use separate shared roles without changing control geometry", async () => {
+  const { ChoiceTile } = await import("../app/components/ui/choice-tile");
+  const { Button } = await import("../app/components/ui/button");
+  const filter = renderToStaticMarkup(createElement(ChoiceTile, { purpose: "filter", size: "compact", label: "전체", selected: true }));
+  const choice = renderToStaticMarkup(createElement(ChoiceTile, { label: "메뉴판 선택", selected: false }));
+  const add = renderToStaticMarkup(createElement(Button, { shape: "rounded", size: "icon", variant: "outline", "aria-label": "룸 추가", disabled: true }, "+"));
+  assert.match(filter, /data-purpose="filter"/);
+  assert.match(filter, /aria-pressed="true"/);
+  assert.match(choice, /data-purpose="choice"/);
+  assert.match(add, /site-button-rounded/);
+  assert.match(add, /site-button-icon/);
+  assert.match(add, /disabled=""/);
+  assert.match(css, /\.site-choice-tile\[data-purpose="filter"\] \{ border-radius: var\(--ui-radius-control\); \}/);
+  assert.match(css, /\.site-filter \{[^}]*border-radius: var\(--ui-radius-control\)/);
+  assert.match(css, /\.site-button\.site-button-icon\.site-button-rounded \{ border-radius: var\(--ui-radius-control-rounded\); \}/);
+  assert.match(tabCss, /\.site-room-tabs > \.site-room-tab \{[^}]*border-radius:var\(--ui-radius-control-rounded\)/);
+  assert.match(tabCss, /\.site-room-tabs > \.site-room-tab\[data-state="active"\] \{[^}]*background:var\(--ui-surface\);[^}]*color:var\(--ui-text\);[^}]*box-shadow:inset/);
+  for (const path of ["components/mypage/floor-plan/FloorPlanEditor.tsx", "components/mypage/OperationsHistoryViews.tsx"]) {
+    assert.match(read(path), /appearance="rooms"/);
+    assert.doesNotMatch(read(path), /appearance="pills"/);
+  }
+  assert.match(read("components/mypage/floor-plan/FloorPlanEditor.tsx"), /shape="rounded" size="icon" onClick=\{addRoom\}/);
+  assert.match(read("components/apply/TemplateGallery.tsx"), /purpose="filter" size="compact"/);
+  assert.match(read("styles/site-spacing.css"), /\.site-room-tabs\[data-overflow-right="true"\]/);
 });

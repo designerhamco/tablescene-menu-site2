@@ -99,7 +99,7 @@ export default function TemplateGallery({
       const icon = item.key === "list" || item.key === "album"
         ? { icon: <CatalogLayoutIcon layout={item.key} /> }
         : { icon: <CatalogIndustryIcon industry={item.key as CatalogIndustry} /> };
-      return <ChoiceTile key={item.key} size="compact" {...icon} label={item.label} selected={filter === item.key} onClick={() => selectFilter(item.key)} />;
+      return <ChoiceTile key={item.key} purpose="filter" size="compact" {...icon} label={item.label} selected={filter === item.key} onClick={() => selectFilter(item.key)} />;
     });
   }
 
