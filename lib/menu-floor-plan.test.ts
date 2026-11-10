@@ -25,12 +25,12 @@ test("중복 룸·테이블, 다른 룸, 경계 초과, 비정상 수치와 과�
   assert.throws(() => floor.normalizeFloorDocument({ rooms: Array(31).fill(document().rooms[0]), placements: [] }));
   assert.throws(() => floor.normalizeFloorDocument({ rooms: [], placements: Array(201).fill(document().placements[0]) }));
 });
-test("사각형 이동·크기 조절은 룸 경계와 최소 크기를 보존한다", () => {
+test("사각형 이동은 룸 경계와 동일한 고정 크기를 보존한다", () => {
   for (let n = -200; n <= 200; n += 3) {
     const rect = floor.constrainFloorRect({ x: n, y: 100 - n, width: n / 2, height: 150 - n });
-    assert.ok(rect.x >= 0 && rect.y >= 0 && rect.width >= floor.FLOOR_RECT_LIMITS.minWidth && rect.height >= floor.FLOOR_RECT_LIMITS.minHeight);
+    assert.ok(rect.x >= 0 && rect.y >= 0 && rect.width === floor.FLOOR_RECT_SIZE.width && rect.height === floor.FLOOR_RECT_SIZE.height);
     assert.ok(rect.x + rect.width <= 100 && rect.y + rect.height <= 100);
-    floor.normalizeFloorDocument({ ...document(), layoutVersion:2, placements: [{ pointId: point, roomId: room, ...rect }] });
+    floor.normalizeFloorDocument({ ...document(), layoutVersion:3, placements: [{ pointId: point, roomId: room, ...rect }] });
   }
 });
 function fixture({ denied = false, missingSchema = false, stale = false, foreignPoint = false, legacy = false } = {}) {

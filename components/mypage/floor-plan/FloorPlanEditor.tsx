@@ -20,7 +20,7 @@ import { sameFloorDocument, FLOOR_GEOMETRY, readableFloorDocument, canPlaceFloor
 import { placeRegisteredFloorPoint, saveRegisteredFloorPoint, mergeRegisteredFloorPoint, type RegisteredFloorPoint } from "@/lib/menu-floor-registration";
 import { FloorPlanCanvas, FloorPlanObject, FloorPlanWorkspace } from "@/app/components/ui/floor-plan-canvas";
 
-type Gesture = { pointerId: number; mode: "move" | "resize"; pointId: string; roomId: string; startX: number; startY: number; origin: FloorPlacement; before: FloorDocument };
+type Gesture = { pointerId: number; pointId: string; roomId: string; startX: number; startY: number; origin: FloorPlacement; before: FloorDocument };
 export default function FloorPlanEditor({ initial, points, onSave, registration, onDocumentChange, renderSelectedPoint, renderSelectedActions, view = "map", renderList, createdPoint, onRemoveRoom, onRoomChange, restoredPoint, registrationPending = false, externalDirty=false, onSaveEdits, onDiscardEdits }: {
   externalDirty?:boolean;onSaveEdits?:(revision:number,document:FloorDocument)=>Promise<FloorSaveResult>;onDiscardEdits?:()=>void;restoredPoint?:RegisteredFloorPoint;
   onRoomChange?: (roomId:string, savedRooms:FloorRoom[])=>void; onRemoveRoom?: (revision:number,request:FloorRoomRemoval)=>Promise<FloorRoomRemovalResult>;
@@ -68,8 +68,8 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   const placementReason = !visiblePoints.length
     ? !room ? "‘룸 추가’로 공간을 먼저 만든 뒤 테이블·키오스크를 등록해 주세요." : "상단에서 종류와 이름을 입력하고 ‘만들기’를 눌러 등록해 주세요."
     : !room ? "‘룸 추가’로 공간을 먼저 만들어 주세요. 룸을 만든 뒤 테이블·키오스크를 배치할 수 있습니다."
-      : !chosen ? `등록한 ${noun}${objectParticle} 모두 배치했습니다. 새 ${noun}${objectParticle} 등록하거나 PC에서 기존 영역을 이동·조절해 주세요.`
-        : `배치할 ${noun}${objectParticle} 고른 뒤 ‘바로 배치’를 누르세요. 위치·크기 편집은 PC에서 할 수 있으며 모바일에서는 같은 크기의 카드로 확인합니다.`;
+      : !chosen ? `등록한 ${noun}${objectParticle} 모두 배치했습니다. 새 ${noun}${objectParticle} 등록하거나 PC에서 기존 영역을 이동해 주세요.`
+        : `배치할 ${noun}${objectParticle} 고른 뒤 ‘바로 배치’를 누르세요. 위치 편집은 PC에서 할 수 있으며 모바일에서는 같은 크기의 카드로 확인합니다.`;
 
   useEffect(() => {
     const list = roomListRef.current;
@@ -121,10 +121,10 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   function begin(event: PointerEvent<HTMLDivElement>, placement: FloorPlacement) {
     if (gesture.current || !editing || pending || event.button !== 0 || !room) return;
     event.preventDefault(); event.stopPropagation();
-    const start = position(event), mode = event.target instanceof Element && event.target.closest("[data-resize-handle]") ? "resize" : "move";
+    const start = position(event);
     geometryBlocked.current=false;
     const origin = placement;
-    gesture.current = { pointerId: event.pointerId, mode, pointId: origin.pointId, roomId: room.id, startX: start.x, startY: start.y, origin, before: draft };
+    gesture.current = { pointerId: event.pointerId, pointId: origin.pointId, roomId: room.id, startX: start.x, startY: start.y, origin, before: draft };
     boardRef.current!.setPointerCapture(event.pointerId);
     setSelectedId(origin.pointId);
   }
@@ -132,8 +132,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
     const g = gesture.current;
     if (!g || g.pointerId !== event.pointerId) return;
     const pos = position(event), dx = pos.x - g.startX, dy = pos.y - g.startY;
-    const rect = g.mode === "move" ? { ...g.origin, x: g.origin.x + dx, y: g.origin.y + dy }
-      : { ...g.origin, width: Math.min(100 - g.origin.x, g.origin.width + dx), height: Math.min(100 - g.origin.y, g.origin.height + dy) };
+    const rect = { ...g.origin, x: g.origin.x + dx, y: g.origin.y + dy };
     changePlacement(g.pointId, rect);
   }
   function end(event: PointerEvent<HTMLDivElement>, cancel = false) {
@@ -258,7 +257,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       {listContent()}
       <div className="site-action-row" data-distribution="end">{saveAction}</div>
     </> : <FloorPlanWorkspace canvasActions={resetAction} tools={<>
-      <div className="site-action-row" data-wrap="nowrap"><h3 className="type-content-title">미배치 {unplaced.length}개 · 현재 룸 {roomPlacements.length}개</h3><InfoTooltip label="테이블·키오스크 배치 안내"><p>{placementReason}</p><p>새로 추가한 항목은 선택한 룸의 초안에 배치되며 하단 저장으로 확정합니다. ‘바로 배치’로 기존 미배치 항목을 넣을 수 있습니다. PC에서 위치·크기를 편집할 수 있으며 영역끼리 겹칠 수 없습니다. 모바일에서는 같은 크기의 카드로 확인하고 바로 배치할 수 있습니다.</p><p>위치·크기·룸 구성은 ‘배치도 저장’으로 반영합니다. ‘처음으로 되돌리기’는 마지막 저장 배치로 돌아갑니다. 테이블·키오스크 추가와 이름·배치는 하단 저장으로 확정합니다. 룸 생성·이름 변경·정리와 보관·복원, 주문·호출 허용과 기기 연결은 즉시 반영됩니다.</p></InfoTooltip></div>
+      <div className="site-action-row" data-wrap="nowrap"><h3 className="type-content-title">미배치 {unplaced.length}개 · 현재 룸 {roomPlacements.length}개</h3><InfoTooltip label="테이블·키오스크 배치 안내"><p>{placementReason}</p><p>새로 추가한 항목은 선택한 룸의 초안에 배치되며 하단 저장으로 확정합니다. ‘바로 배치’로 기존 미배치 항목을 넣을 수 있습니다. PC에서 위치를 편집할 수 있으며 영역끼리 겹칠 수 없습니다. 모바일에서는 같은 크기의 카드로 확인하고 바로 배치할 수 있습니다.</p><p>위치·룸 구성은 ‘배치도 저장’으로 반영합니다. ‘처음으로 되돌리기’는 마지막 저장 배치로 돌아갑니다. 테이블·키오스크 추가와 이름·배치는 하단 저장으로 확정합니다. 룸 생성·이름 변경·정리와 보관·복원, 주문·호출 허용과 기기 연결은 즉시 반영됩니다.</p></InfoTooltip></div>
       {placementTools}
     </>} selection={renderSelectedPoint ? selectedPoint ? renderSelectedPoint(selectedPoint, pending) : <p className="type-body-sm site-copy-muted">테이블·키오스크 영역을 선택하면 기기별 주문·호출 허용과 연결 정보를 확인하고 변경할 수 있습니다.</p> : undefined} footer={<>
       <div className="site-action-row" data-distribution="between">
@@ -269,12 +268,12 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
         </fieldset>
         <div className="site-action-row site-floor-workspace-actions">{saveAction}</div>
       </div>
-      <p id={helpId} className="type-footnote site-copy-muted" role="status">{selectedPoint ? `${selectedPoint.label} 선택됨 · ${mobile ? "모바일에서는 위치·크기를 편집할 수 없습니다." : "영역을 끌거나 방향키로 이동하고, 오른쪽 아래에서 크기를 조절할 수 있습니다."}` : "이동할 테이블·키오스크 영역을 선택해 주세요. 영역 안의 X는 배치만 해제하며 등록 정보는 유지됩니다."}</p>
+      <p id={helpId} className="type-footnote site-copy-muted" role="status">{selectedPoint ? `${selectedPoint.label} 선택됨 · ${mobile ? "모바일에서는 위치를 편집할 수 없습니다." : "영역을 끌거나 방향키로 이동할 수 있습니다. 크기는 모든 테이블·키오스크가 같습니다."}` : "이동할 테이블·키오스크 영역을 선택해 주세요. 영역 안의 X는 배치만 해제하며 등록 정보는 유지됩니다."}</p>
     </>}>
       {!room ? <EmptyState headingLevel={3} icon={<LayoutGrid />} title="배치할 공간을 만들어 주세요" description="‘룸 추가’로 공간을 만들면 등록된 테이블·키오스크의 영역을 배치할 수 있습니다." /> : <FloorPlanViewport name={room.name}><FloorPlanCanvas ref={boardRef} data-mobile-cards="true" name={room.name} aspectRatio={FLOOR_PLAN_DISPLAY_ASPECT_RATIO} editing={editing} aria-describedby={helpId} onPointerMove={move} onPointerUp={e => end(e)} onPointerCancel={e => end(e, true)} onLostPointerCapture={e => end(e, true)} onKeyDown={event => { if (event.key !== "Escape") return; const g = gesture.current; if (!g) return; setDraft(g.before); gesture.current = null; if (boardRef.current?.hasPointerCapture(g.pointerId)) boardRef.current.releasePointerCapture(g.pointerId); }}>
         {roomPlacements.map(p => {
           const point = visiblePoints.find(point => point.id === p.pointId)!;
-          return <FloorPlanObject key={p.pointId} rect={p} label={point.label} typeLabel={point.kind === "kiosk" ? "키오스크" : "테이블"} icon={point.kind === "kiosk" ? <Monitor /> : <Armchair />} selected={selected?.pointId === p.pointId} editing={editing} managementActions={selected?.pointId === p.pointId ? renderSelectedActions?.(point, pending) : null} actions={editing ? <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" disabled={pending} aria-label={`${point.label} 배치 해제`} onClick={() => { setDraft(previous => removeFloorPlacement(previous,p.pointId)); setSelectedId(current => current === p.pointId ? "" : current); requestAnimationFrame(() => placementSelectRef.current?.focus()); }}><X aria-hidden="true" /></Button></TooltipTrigger><TooltipContent>배치 해제 · 등록 정보는 유지됩니다</TooltipContent></Tooltip> : undefined} aria-describedby={helpId} onClick={() => setSelectedId(p.pointId)} onPointerDown={e => begin(e, p)} onKeyDown={e => {
+          return <FloorPlanObject key={p.pointId} rect={p} label={point.label} typeLabel={point.kind === "kiosk" ? "키오스크" : "테이블"} icon={point.kind === "kiosk" ? <Monitor /> : <Armchair />} selected={selected?.pointId === p.pointId} managementActions={selected?.pointId === p.pointId ? renderSelectedActions?.(point, pending) : null} actions={editing ? <Tooltip><TooltipTrigger asChild><Button type="button" variant="ghost" size="icon" disabled={pending} aria-label={`${point.label} 배치 해제`} onClick={() => { setDraft(previous => removeFloorPlacement(previous,p.pointId)); setSelectedId(current => current === p.pointId ? "" : current); requestAnimationFrame(() => placementSelectRef.current?.focus()); }}><X aria-hidden="true" /></Button></TooltipTrigger><TooltipContent>배치 해제 · 등록 정보는 유지됩니다</TooltipContent></Tooltip> : undefined} aria-describedby={helpId} onClick={() => setSelectedId(p.pointId)} onPointerDown={e => begin(e, p)} onKeyDown={e => {
             if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedId(p.pointId); }
             if (!editing || pending || !["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) return;
             e.preventDefault(); setSelectedId(p.pointId); const step = e.shiftKey ? 32 : 8, stepX=step/FLOOR_GEOMETRY.width*100,stepY=step/FLOOR_GEOMETRY.height*100;

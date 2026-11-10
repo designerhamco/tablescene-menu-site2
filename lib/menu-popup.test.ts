@@ -29,7 +29,7 @@ test("popup save accepts only matching Storage URLs owned by this menu", () => {
 test("four album reviews share existing structures while all previews default popup OFF", () => {
   const albums = DEFAULT_DESIGN_REVIEWS.filter(design => design.itemLayout === "album");
   assert.equal(albums.length, 4);
-  assert.equal(DEFAULT_DESIGN_REVIEWS.filter(design => design.itemLayout === "list").length, 6);
+  assert.equal(DEFAULT_DESIGN_REVIEWS.filter(design => design.itemLayout === "list").length, 7);
   for (const design of DEFAULT_DESIGN_REVIEWS) {
     assert.equal(getDefaultDesignOptions({ design: design.id }).popupPreview, false);
     assert.equal(getDefaultDesignOptions({ design: design.id }).widgetsPreview, false);

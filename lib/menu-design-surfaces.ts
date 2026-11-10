@@ -19,7 +19,7 @@ export function menuSurfaceSupport(templateKey: string) {
 export function hasFixedHeaderAlignment(templateKey: string, settings: unknown = {}) {
   const designId = menuSurfaceRecord(settings).menu_design_id;
   const design = getDefaultDesignReview(typeof designId === "string" ? designId : undefined, templateKey);
-  return design ? design.layout === "basic-top-row" : getFixedOnePageLayoutShell(templateKey) === "brand_top_band";
+  return design ? design.layout === "basic-top-row" || design.layout === "basic-top-row-left-logo" : getFixedOnePageLayoutShell(templateKey) === "brand_top_band";
 }
 export function readMenuSurfaceSettings(pageSettings: unknown): MenuSurfaceSettings {
   const page = menuSurfaceRecord(pageSettings), design = menuSurfaceRecord(page.design), result: MenuSurfaceSettings = {};

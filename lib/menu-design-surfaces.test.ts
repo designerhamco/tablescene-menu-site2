@@ -72,6 +72,7 @@ test('editor auxiliary defaults distinguish no fill from explicit white and nati
 test('top-row alignment locking follows the saved design before the native shell',()=>{
  assert.equal(hasFixedHeaderAlignment('cafe_design_a',{menu_design_id:'basic-top-row'}),true);
  assert.equal(hasFixedHeaderAlignment('cafe_design_a',{menu_design_id:'basic-top-row-album'}),true);
+ assert.equal(hasFixedHeaderAlignment('cafe_design_a',{menu_design_id:'basic-top-row-left-logo'}),true);
  assert.equal(hasFixedHeaderAlignment('cafe_sunday_line_a'),true);
  assert.equal(hasFixedHeaderAlignment('cafe_van_gogh_a'),true);
  assert.equal(hasFixedHeaderAlignment('cafe_design_a',{menu_design_id:'basic-first-column'}),false);

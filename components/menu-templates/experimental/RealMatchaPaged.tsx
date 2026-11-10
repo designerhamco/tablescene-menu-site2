@@ -107,7 +107,8 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   const mobile = device === "mobile";
   const defaultStructure = useDefaultDesignLayout();
   const album = useDefaultAlbum();
-  const structure = defaultStructure ?? "basic-first-column";
+  const leftLogo = defaultStructure === "basic-top-row-left-logo";
+  const structure = leftLogo ? "basic-top-row" : defaultStructure ?? "basic-first-column";
   const portraitCover = defaultStructure === "basic-first-column" || defaultStructure === "basic-center-column";
   const topRow = structure === "basic-top-row";
   const centerColumn = structure === "basic-center-column";
@@ -187,7 +188,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     "cafe_design_a",
   );
   const allNotices = getCafeAFooterInfo(baseProps, capabilities);
-  const notices = topRow ? [] : allNotices;
+  const notices = topRow && !leftLogo ? [] : allNotices;
 
   const units = useMemo(() => {
     const result: Unit[] = [];
@@ -402,7 +403,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       measuredContent.removeEventListener("load", schedule, true);
       document.fonts.removeEventListener("loadingdone", fontsChanged);
     };
-  }, [mobile, album, units, layoutMode, showCall, showOrder, device, updateScrollHint, centerColumn, upperLeft, topRow, leftColumn]);
+  }, [mobile, album, units, layoutMode, showCall, showOrder, device, updateScrollHint, centerColumn, upperLeft, topRow, leftColumn, leftLogo]);
   // Album flow does not use list packing, but its fixed identity still needs
   // the same actual overflow guard before reporting a settled layout.
   useLayoutEffect(() => {
@@ -538,7 +539,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       </div>
     );
   };
-  const languageControl = <div className={styles.brandControls} data-paged-controls><CafeLanguageHoverControl data={baseProps} menuAlign="left" iconOnly /></div>;
+  const languageControl = <div className={styles.brandControls} data-paged-controls><CafeLanguageHoverControl data={baseProps} menuAlign={leftLogo ? "right" : "left"} iconOnly /></div>;
   const storeIdentity = <CafeAStoreIdentity data={baseProps} capabilities={capabilities}
     titleClassName="cafe-a-store-title cafe-a-rail-title" logoClassName={styles.logo}
     layoutShell={topRow ? "brand_top_band" : centerColumn ? "brand_center_column" : "brand_left_rail"} />;
@@ -602,12 +603,12 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         data-scroll-content-height={layout.contentHeight}
       >
         <OnePageCallPalette />
-        {topRow ? <header className={styles.topRow} data-basic-top-row>
-          <div className={styles.topDescription} data-scroll-header-copy>{languageControl}{storeDescription}</div>
+        {topRow ? <header className={styles.topRow} data-basic-top-row data-basic-header-align={leftLogo ? "left" : undefined}>
+          {!leftLogo ? <div className={styles.topDescription} data-scroll-header-copy>{languageControl}{storeDescription}</div> : null}
           <div className={styles.topIdentity}>{storeIdentity}</div>
-          <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices data-scroll-header-copy>
+          {leftLogo ? <div className={styles.topDescription} data-scroll-header-copy>{storeDescription}{languageControl}</div> : <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices data-scroll-header-copy>
             {allNotices.map((n, i) => <p key={i}><ScriptAwareText text={n} /></p>)}
-          </div>
+          </div>}
         </header> : null}
         {!upperLeft ? brandPanel : null}
         <div className={styles.menuPanel} data-paged-menu-panel>
