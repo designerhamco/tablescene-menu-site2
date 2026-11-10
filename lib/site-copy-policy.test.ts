@@ -24,7 +24,7 @@ test("title-only headers have no empty explanation or extra placeholder; explici
 });
 
 test("requested notices, boxed explanations, real data and empty/error states survive the cleanup", () => {
-  assert.match(read("components/mypage/floor-plan/FloorPlanDesktopNotice.tsx"), /배치도 편집은 PC에서 더 편리해요/);
+  assert.match(read("components/mypage/floor-plan/FloorPlanDesktopNotice.tsx"), /위치·크기 편집은 PC에서 해 주세요/);
   const device = read("components/mypage/OrderPointDeviceConnection.tsx");
   assert.match(device, /브라우저의 실제 OS·모델·브라우저 정보를 표시합니다/);
   assert.match(device, /연결 후에도 관리자 화면이 유지됩니다/);

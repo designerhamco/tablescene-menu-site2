@@ -1,4 +1,6 @@
 "use client";
+import {FloorPlanViewport} from "@/app/components/ui/floor-plan-viewport";
+import {readableFloorDocument} from "@/lib/menu-floor-plan";
 import OrderCardSummary from "./OrderCardSummary";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import { useState, type ReactNode } from "react";
@@ -48,7 +50,7 @@ export default function OperationsHistoryViews({
     { pointId: string; label: string } | { recordId: string; label: string } | null
   >(null);
   const groups = groupOperationHistory(records),
-    placements = getHistoryPlacements(floorPlan);
+    placements = getHistoryPlacements({...floorPlan,document:readableFloorDocument(floorPlan.document)});
   const room =
     floorPlan.document.rooms.find((item) => item.id === roomId) ??
     floorPlan.document.rooms[0];
@@ -149,7 +151,8 @@ export default function OperationsHistoryViews({
                     <p className="type-body-sm site-copy-muted">
                       처리할 {noun}을 먼저 표시합니다. ‘내역 없음’은 현재 조회 결과에 내역이 없다는 뜻입니다.
                     </p>
-                    <FloorPlanCanvas
+                    <FloorPlanViewport name={room.name}><FloorPlanCanvas
+                      data-mobile-cards="true"
                       name={room.name}
                       data-order-cards={noun === "주문" || undefined}
                       aspectRatio={FLOOR_PLAN_DISPLAY_ASPECT_RATIO}
@@ -186,7 +189,7 @@ export default function OperationsHistoryViews({
                               ) : null}
                             </>
                           ) : (
-                            <span>표시 내역 없음</span>
+                            <span>{noun === "주문" ? "진행 중·미결제 주문 없음" : "표시 내역 없음"}</span>
                           );
                           return (
                             <FloorPlanObject
@@ -223,7 +226,7 @@ export default function OperationsHistoryViews({
                             />
                           );
                         })}
-                    </FloorPlanCanvas>
+                    </FloorPlanCanvas></FloorPlanViewport>
                   </section>
                 </TabsContent>
                 </div>

@@ -12,7 +12,7 @@ export function FloorPlanDesktopNoticeDialog({ open, onOpenChange, returnFocusRe
   open: boolean; onOpenChange: (open: boolean) => void; returnFocusRef?: RefObject<HTMLElement | null>;
 }) {
   return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent onCloseAutoFocus={event => { if (returnFocusRef?.current) { event.preventDefault(); returnFocusRef.current.focus(); } }}>
-    <DialogHeader reserveCloseButton><DialogTitle>배치도 편집은 PC에서 더 편리해요</DialogTitle><DialogDescription>모바일에서도 확인하고 편집할 수 있습니다. 테이블·키오스크를 옮기거나 크기를 조절할 때는 화면이 넓은 PC를 이용하시면 더 편리합니다.</DialogDescription></DialogHeader>
+    <DialogHeader reserveCloseButton><DialogTitle>위치·크기 편집은 PC에서 해 주세요</DialogTitle><DialogDescription>모바일에서는 같은 크기의 카드로 확인하고 테이블·키오스크를 등록·바로 배치할 수 있습니다. 위치 이동과 크기 조절은 PC에서 할 수 있습니다.</DialogDescription></DialogHeader>
     <DialogFooter><DialogClose asChild><Button type="button">확인</Button></DialogClose></DialogFooter>
   </DialogContent></Dialog>;
 }

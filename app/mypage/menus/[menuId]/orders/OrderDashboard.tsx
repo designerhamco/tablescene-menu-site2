@@ -338,6 +338,8 @@ export default function OrderDashboard({
             status: `${STATUS_LABELS[order.status] ?? order.status} · ${PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}`,
             attention:
               isCurrentOrder(order),
+            orderStatusLabel: STATUS_LABELS[order.status] ?? order.status,
+            paymentStatusLabel: PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus,
             orderNumber: order.orderNumber,
             createdAt: order.createdAt,
             amount: formatAmount(order.totalAmount),
