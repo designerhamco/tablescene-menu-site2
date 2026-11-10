@@ -46,6 +46,11 @@ for(const c of selected){
   if(c.device!=='mobile'){assert.ok(m.cart.visible);assert.equal(m.cartDisabled,Boolean(c.off||c.photo));if(c.off)assert.ok(!m.table);else assert.equal(m.table,'Table 1');}
   const geometry=await page.locator('[data-dining-menu-toolbar]').evaluateAll(es=>es.map(e=>[...e.querySelectorAll('[data-language-menu-trigger],[data-terminal-table-label],[data-dining-cart]')].filter(e=>e.getBoundingClientRect().width).map(e=>{const r=e.getBoundingClientRect();return {x:r.x,w:r.width};})));
   if(c.device!=='mobile'){const [g]=geometry;assert.ok(g[0].x<50&&g.at(-1).x>c.width-100,'left language/right history: '+JSON.stringify(g));if(!c.off)assert.ok(Math.abs(g[1].x+g[1].w/2-c.width/2)<2,'table is centered');}
+  const languageSurface=await page.evaluate(()=>{
+   const trigger=document.querySelector('[data-dining-menu-toolbar] [data-language-menu-trigger]'),sidebar=document.querySelector('.aube-table-sidebar-navigation');
+   if(!trigger||!sidebar)return null;const t=trigger.getBoundingClientRect(),s=sidebar.getBoundingClientRect();
+   return s.width&&t.x+t.width/2<s.right?{ink:getComputedStyle(trigger).color,bg:getComputedStyle(sidebar).backgroundColor}:null;
+  });if(languageSurface)assert.ok(menuColorContrast(languageSurface.ink,languageSurface.bg)>=4.5,'left language is readable on a distinct sidebar surface');
   const adds=await page.locator('[data-menu-order-add]').evaluateAll(es=>es.map(e=>getComputedStyle(e).color));assert.ok(adds.every(ink=>ink==='rgb(38, 49, 58)'),'course and item add icons follow product ink');
   if(!c.design&&c.key==='dining_aube_table_a'&&c.surface==='dark'&&!c.off&&!c.photo)await page.screenshot({path:`${output}/${c.device}-separate-colors.png`});
   if(!c.photo){

@@ -58,7 +58,10 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
       const surfaceControl = coverActive ? control?.querySelector<HTMLElement>("[data-language-menu-trigger]") ?? control : control;
       const toolSurface = dining ? readDiningToolSurface(root, surfaceControl, schedule) : style.backgroundColor;
       const toolPalette = cover ? [pageTitle ?? "", preferredToolsInk, ...(brand ? [getComputedStyle(brand).color] : []), ...[...cover.querySelectorAll<HTMLElement>("h1,.aube-table-cover-notices")].map(e=>getComputedStyle(e).color), getComputedStyle(cover).backgroundColor] : [...inks, ...surfaces];
+      const languageTrigger = control?.querySelector<HTMLElement>("[data-language-menu-trigger]") ?? null;
+      const languageSurface = dining ? readDiningToolSurface(root, languageTrigger, schedule) : toolSurface;
       const next = { ...palette, ...(dining ? {
+        "--menu-dining-language-trigger-ink": resolveMenuToolsInk({ preferred: preferredToolsInk, surface: languageSurface, palette: toolPalette }),
         "--menu-dining-language-ink": resolveMenuToolsInk({ preferred: categoryColor, surface: "#ffffff" }),
         "--menu-dining-tools-surface": coverActive ? "transparent" : style.backgroundColor,
         "--menu-dining-tools-ink": resolveMenuToolsInk({
