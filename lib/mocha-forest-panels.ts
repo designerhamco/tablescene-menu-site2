@@ -1,9 +1,12 @@
 export const MOCHA_FOREST_TEMPLATE_KEY = "cafe_mocha_forest_a" as const;
 
+export const MELLOW_COLORS = { background: "#792839", ink: "#ECEAB7" } as const;
+
+// Keep legacy panel keys and template identity compatible with saved menus.
 export const MOCHA_FOREST_PANEL_COLORS = {
-  brown: "#852322",
-  ivory: "#F4EDDC",
-  green: "#F4EDDC",
+  brown: MELLOW_COLORS.background,
+  ivory: MELLOW_COLORS.background,
+  green: MELLOW_COLORS.background,
 } as const;
 
 export type MochaForestPanel = keyof typeof MOCHA_FOREST_PANEL_COLORS;

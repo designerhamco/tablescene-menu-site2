@@ -157,3 +157,7 @@
 .board[data-representative-panel="true"][data-native-shell="brand_panel_flow"] .menuPanel:has(.actions) { padding-bottom: var(--native-gap); box-sizing: border-box; }
 .board[data-representative-panel="true"][data-native-shell="brand_panel_flow"] .menuPanel:has(.actions) .menu { padding-bottom: 0; }
 .board[data-representative-panel="true"][data-native-shell="brand_panel_flow"] .actions { padding-inline: var(--native-gap); }
+
+/* MELLOW rules divide menu tracks only; the representative/photo track is separate. */
+.root[data-template-key="cafe_mocha_forest_a"] .column { position: relative; }
+.columnRule { position: absolute; inset-block: 0; inset-inline-start: calc(var(--native-gap) * -0.5); width: 1px; background: currentColor; color: var(--menu-role-category-color, #eceab7); pointer-events: none; }

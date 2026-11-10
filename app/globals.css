@@ -3025,10 +3025,10 @@ video {
   --cafe-a-template-secondary-copy-scale: 1;
   --cafe-a-template-shared-supporting-copy-base-size: clamp(0.76rem, calc(0.72rem + 0.14vmin), 0.88rem);
   --cafe-a-template-supporting-copy-scale: 1;
-  --mocha-panel-primary: #852322;
-  --mocha-panel-supporting: #852322;
+  --mocha-panel-primary: #eceab7;
+  --mocha-panel-supporting: #eceab7;
   --mocha-panel-line: transparent;
-  background: var(--mocha-forest-ivory, #f4eddc);
+  background: var(--mocha-forest-ivory, #792839);
 }
 
 /* Mocha Forest keeps mobile copy unchanged and slightly quiets the linked supporting role on larger screens. */
@@ -3280,27 +3280,27 @@ video {
 }
 
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel="brown"] {
-  --mocha-panel-primary: #f4eddc;
-  --mocha-panel-supporting: #f4eddc;
+  --mocha-panel-primary: #eceab7;
+  --mocha-panel-supporting: #eceab7;
   --mocha-panel-line: transparent;
 }
 
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] :is([data-mocha-panel="ivory"], [data-mocha-panel="green"]) {
-  --mocha-panel-primary: #852322;
-  --mocha-panel-supporting: #852322;
+  --mocha-panel-primary: #eceab7;
+  --mocha-panel-supporting: #eceab7;
   --mocha-panel-line: transparent;
 }
 
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel="brown"] {
-  background: var(--mocha-forest-brown, #852322);
+  background: var(--mocha-forest-brown, #792839);
 }
 
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel="ivory"] {
-  background: var(--mocha-forest-ivory, #f4eddc);
+  background: var(--mocha-forest-ivory, #792839);
 }
 
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel="green"] {
-  background: var(--mocha-forest-green, #f4eddc);
+  background: var(--mocha-forest-green, #792839);
 }
 
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel] .cafe-a-menu-title,
@@ -3325,11 +3325,11 @@ video {
 }
 
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-time-sale-regular-price {
-  color: rgb(133 35 34 / 68%);
+  color: rgb(236 234 183 / 68%);
 }
 
 .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel="brown"] .cafe-a-time-sale-regular-price {
-  color: rgb(244 237 220 / 76%);
+  color: rgb(236 234 183 / 76%);
 }
 
 .cafe-a-typography[data-cafe-a-skin="sunday_line"] .cafe-a-menu-category-top-divider {
@@ -3447,28 +3447,28 @@ video {
   }
 
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] header {
-    background: var(--mocha-forest-brown, #852322);
+    background: var(--mocha-forest-brown, #792839);
     border-bottom: 0;
-    box-shadow: 0 0 0 100vmax var(--mocha-forest-brown, #852322);
+    box-shadow: 0 0 0 100vmax var(--mocha-forest-brown, #792839);
     clip-path: inset(0 -100vmax);
     padding: var(--mocha-mobile-section-rhythm);
   }
 
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] header .cafe-a-store-title {
-    color: #f4eddc;
+    color: #eceab7;
   }
 
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] header .cafe-a-store-description {
-    color: #f4eddc;
+    color: #eceab7;
     margin-top: clamp(0.66rem, 2.4vw, 0.88rem);
   }
 
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-fit-menu-grid {
-    background: var(--mocha-forest-ivory, #f4eddc);
+    background: var(--mocha-forest-ivory, #792839);
   }
 
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] header + .grid {
-    background: var(--mocha-forest-brown, #852322);
+    background: var(--mocha-forest-brown, #792839);
     padding-bottom: 0;
     padding-left: var(--mocha-mobile-section-rhythm);
     padding-right: var(--mocha-mobile-section-rhythm);
@@ -3477,8 +3477,8 @@ video {
   }
 
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-cover-hero {
-    background: var(--mocha-forest-brown, #852322);
-    box-shadow: 0 0 0 100vmax var(--mocha-forest-brown, #852322);
+    background: var(--mocha-forest-brown, #792839);
+    box-shadow: 0 0 0 100vmax var(--mocha-forest-brown, #792839);
     clip-path: inset(0 -100vmax);
     margin-bottom: var(--mocha-mobile-section-rhythm);
     padding-bottom: 0;
@@ -3486,11 +3486,11 @@ video {
   }
 
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-fit-menu-grid > .cafe-a-footer-info {
-    background: var(--mocha-forest-ivory, #f4eddc);
+    background: var(--mocha-forest-ivory, #792839);
   }
 
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-fit-menu-grid {
-    box-shadow: 0 0 0 100vmax var(--mocha-forest-ivory, #f4eddc);
+    box-shadow: 0 0 0 100vmax var(--mocha-forest-ivory, #792839);
     clip-path: inset(0 -100vmax);
     padding-bottom: var(--mocha-mobile-section-rhythm);
     padding-top: var(--mocha-mobile-section-rhythm);
@@ -3542,8 +3542,8 @@ video {
     --mocha-green-panel-start: 75.124%;
     background: linear-gradient(
       to right,
-      var(--mocha-forest-ivory, #f4eddc) 0 var(--mocha-green-panel-start),
-      var(--mocha-forest-green, #f4eddc) var(--mocha-green-panel-start) 100%
+      var(--mocha-forest-ivory, #792839) 0 var(--mocha-green-panel-start),
+      var(--mocha-forest-green, #792839) var(--mocha-green-panel-start) 100%
     );
     gap: 0;
     padding: 0;
@@ -3583,7 +3583,7 @@ video {
   }
 
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-ordered-menu-flow {
-    background: var(--mocha-forest-ivory, #f4eddc);
+    background: var(--mocha-forest-ivory, #792839);
     padding: var(--board-padding);
   }
 
@@ -3601,13 +3601,13 @@ video {
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-desktop-fit-board > .cafe-a-footer-info-anchor,
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-ordered-menu-flow > .cafe-a-footer-info,
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel="green"] .cafe-a-footer-info {
-    color: #852322;
+    color: #eceab7;
   }
 
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-desktop-fit-board > .cafe-a-footer-info-anchor .cafe-a-description-text,
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-ordered-menu-flow > .cafe-a-footer-info .cafe-a-description-text,
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-mocha-panel="green"] .cafe-a-footer-info .cafe-a-description-text {
-    color: #852322;
+    color: #eceab7;
   }
 
   .cafe-a-typography[data-cafe-a-skin="mocha_forest"] .cafe-a-category-heading {
@@ -5654,7 +5654,7 @@ video {
 }
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-cafe-a-skin="mocha_forest"] .cafe-a-mobile-upper-box {
-  background: var(--mocha-forest-brown, #852322);
+  background: var(--mocha-forest-brown, #792839);
   padding: 1.5rem;
 }
 
@@ -5669,7 +5669,7 @@ video {
 }
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-cafe-a-skin="mocha_forest"] :is([data-cafe-a-scroll-content], .cafe-a-fit-menu-grid) {
-  background: var(--mocha-forest-ivory, #f4eddc);
+  background: var(--mocha-forest-ivory, #792839);
   box-shadow: none;
   clip-path: none;
   padding-bottom: 0;
@@ -5963,11 +5963,12 @@ video {
 .cafe-a-desktop-call-button:not([data-one-page-call-button="desktop-cart"]) { border: 1px solid var(--menu-call-border, #191c1b); }
 
 /* Saved other-text colors opt in per role. Native panel/overlay palettes stay
-   authoritative until the customer chooses a color; chips keep their own theme. */
+   authoritative until the customer chooses a color; chips keep their own theme.
+   Scope-only exclusions use :where so explicit Design text groups win. */
 .cafe-a-typography[data-menu-text-colors~="itemName"] :is(.cafe-a-menu-title, .cafe-a-featured-title, .aube-table-item-heading h3) {
   color: var(--menu-role-item-name-color) !important;
 }
-.cafe-a-typography[data-menu-text-colors~="supporting"] :is(.cafe-a-menu-meta:not([data-cafe-a-reference-copy]), .cafe-a-menu-description, .cafe-a-description-text, .cafe-a-price-note, .cafe-a-time-sale-time-text, [data-cafe-a-widget-title], [data-cafe-a-widget-body], .aube-table-page-description, .aube-table-course-description, .aube-table-course-price-description, .aube-table-item-secondary, .aube-table-item-description, .aube-table-cover-description):not([data-cafe-a-category-description]):not(.aube-table-course-description) {
+.cafe-a-typography[data-menu-text-colors~="supporting"] :is(.cafe-a-menu-meta:not([data-cafe-a-reference-copy]), .cafe-a-menu-description, .cafe-a-description-text, .cafe-a-price-note, .cafe-a-time-sale-time-text, [data-cafe-a-widget-title], [data-cafe-a-widget-body], .aube-table-page-description, .aube-table-course-description, .aube-table-course-price-description, .aube-table-item-secondary, .aube-table-item-description, .aube-table-cover-description):where(:not([data-cafe-a-category-description]):not(.aube-table-course-description)) {
   color: var(--menu-role-supporting-color) !important;
 }
 .cafe-a-typography[data-menu-text-colors~="price"] :is(.cafe-a-menu-price, .cafe-a-featured-price, .cafe-a-price-label, .cafe-a-time-sale-price, .aube-table-item-price, .aube-table-course-price) {
@@ -6033,4 +6034,18 @@ video {
 }
 .cafe-a-typography :is([data-cafe-a-category-divider], [data-menu-category-decoration]) {
   border-color: currentColor;
+}
+
+/* MELLOW retains category-owned language ink on a matching dark surface. */
+.cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-language-menu-surface] {
+  background-color: var(--menu-design-page-bg, var(--mocha-forest-ivory, #792839));
+  border-color: var(--cafe-a-language-menu-ink, #eceab7);
+}
+.cafe-a-typography[data-cafe-a-skin="mocha_forest"] [data-language-menu-item]:hover {
+  background-color: color-mix(in srgb, var(--cafe-a-language-menu-ink, #eceab7) 10%, transparent);
+}
+
+/* Light category ink stays readable on MELLOW's matching Call surface. */
+.cafe-a-typography[data-cafe-a-skin="mocha_forest"] {
+  --menu-call-bg: var(--menu-design-page-bg, var(--mocha-forest-ivory, #792839)) !important;
 }

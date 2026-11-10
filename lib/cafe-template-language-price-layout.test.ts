@@ -116,7 +116,7 @@ test("원페이지 언어 UI는 실제 가게명과 카테고리명 색상을 �
 });
 
 test("모카 포레스트 모바일은 데스크톱과 같은 베이지·와인 역할 색상을 사용한다", () => {
-  assert.match(globalStylesSource, /--mocha-panel-primary: #852322;[\s\S]*background: var\(--mocha-forest-ivory, #f4eddc\);/);
+  assert.match(globalStylesSource, /--mocha-panel-primary: #eceab7;[\s\S]*background: var\(--mocha-forest-ivory, #792839\);/);
   assert.match(
     globalStylesSource,
     /@media \(max-width: 1023px\)[\s\S]*\.cafe-a-fit-menu-grid :is\([\s\S]*\.cafe-a-category-title,[\s\S]*\.cafe-a-menu-title,[\s\S]*\.cafe-a-menu-price,[\s\S]*color: var\(--mocha-panel-primary\);/,

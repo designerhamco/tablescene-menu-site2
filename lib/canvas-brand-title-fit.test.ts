@@ -18,10 +18,10 @@ test("PC/tablet title size is fixed to the category ratio for each layout", () =
 });
 
 test("all seven one-page templates keep their explicit layout family", () => {
-  for (const key of ["cafe_design_a",  "cafe_mocha_forest_a", "fast_food_loop_bagel_a"]) {
+  for (const key of ["cafe_design_a", "fast_food_loop_bagel_a"]) {
     assert.equal(getFixedOnePageLayoutShell(key), "brand_left_rail", key);
   }
-  for (const key of ["cafe_sunday_line_a", "cafe_van_gogh_a"]) {
+  for (const key of ["cafe_sunday_line_a", "cafe_van_gogh_a", "cafe_mocha_forest_a"]) {
     assert.equal(getFixedOnePageLayoutShell(key), "brand_top_band", key);
   }
   assert.equal(getFixedOnePageLayoutShell("cafe_round_focus_a"), "brand_center_column");

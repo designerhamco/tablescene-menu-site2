@@ -17,7 +17,7 @@ export const TEMPLATE_CATEGORIES = [
       { key: "cafe_design_a", label: "REAL MATCHA", design: "design_a" },
       { key: "cafe_real_matcha_paged_test", label: "리얼맛차 · 스크롤 테스트", design: "design_a" },
 
-      { key: "cafe_mocha_forest_a", label: "모카 포레스트", design: "design_a" },
+      { key: "cafe_mocha_forest_a", label: "MELLOW", design: "design_a" },
       { key: "cafe_sunday_line_a", label: "선데이 로스터스", design: "design_a" },
       { key: "cafe_van_gogh_a", label: "Van Gogh", design: "design_a" },
       { key: "cafe_brew_chapter_a", label: "브루 챕터", design: "design_a" },
@@ -241,7 +241,7 @@ const templateDescriptionByDesign: Record<TemplateDesignKey, string> = {
 const templateDescriptionByKey: Partial<Record<string, string>> = {
   restaurant_onue_a: "따뜻한 배경 위의 흰 패널과 첫 패널 상단의 대표영역으로 구성한 레스토랑 다이닝 메뉴판입니다.",
   cafe_design_a: "선명한 그린 포인트와 맛차 시그니처 메뉴를 중심으로 구성한 카페 메뉴판입니다.",
-  cafe_mocha_forest_a: "갈색·아이보리·초록 패널로 구성한 고급스러운 카페/베이커리 메뉴판입니다.",
+  cafe_mocha_forest_a: "자주색 배경과 연한 노랑 글자, 상단 로고로 구성한 카페/베이커리 메뉴판입니다.",
   cafe_sunday_line_a: "브랜드와 대표 메뉴를 상단에 두고 전체 폭 메뉴 영역으로 이어지는 로스터리 카페 메뉴판입니다.",
   cafe_van_gogh_a: "반고흐의 선명한 색과 따뜻한 빛에서 영감을 받은 커피와 디저트를 회화적인 분위기로 보여주는 아트 카페 메뉴판입니다.",
   cafe_round_focus_a: "오렌지 그라데이션 브랜드 영역을 중앙 축에 두고 칵테일과 하이볼, 바 푸드를 좌우로 나누는 바·주점 메뉴판입니다.",

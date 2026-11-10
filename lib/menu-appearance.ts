@@ -31,7 +31,7 @@ export type AlbumImageRatio = typeof ALBUM_IMAGE_RATIOS[number];
 export type MenuAppearance = { imageRadii: Partial<Record<ImageRadiusKey, number>>; chipShape: ChipShape; albumImageRatio: AlbumImageRatio };
 export const TEMPLATE_SHAPE_DEFAULTS = [
   { key: "cafe_design_a", label: "REAL MATCHA", preset: "square" },
-  { key: "cafe_mocha_forest_a", label: "모카 포레스트", preset: "soft" },
+  { key: "cafe_mocha_forest_a", label: "MELLOW", preset: "soft" },
   { key: "cafe_sunday_line_a", label: "선데이 로스터스", preset: "square" },
   { key: "cafe_van_gogh_a", label: "Van Gogh", preset: "square" },
   { key: "restaurant_onue_a", label: "온유 테이블", preset: "square" },

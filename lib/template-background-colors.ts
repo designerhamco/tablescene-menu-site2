@@ -1,9 +1,11 @@
+import { MELLOW_COLORS } from "./mocha-forest-panels";
+
 const FALLBACK_BACKGROUND_COLOR = "#FFFFFF";
 
 const TEMPLATE_DEFAULT_BACKGROUND_COLORS: Record<string, string> = {
   restaurant_onue_a: "#33221E",
   cafe_design_a: "#FFFFFF",
-  cafe_mocha_forest_a: "#F0E8D8",
+  cafe_mocha_forest_a: MELLOW_COLORS.background,
   cafe_sunday_line_a: "#FFFFFF",
   cafe_van_gogh_a: "#FFFFFF",
   cafe_round_focus_a: "#FFFFFF",
@@ -56,8 +58,8 @@ export function getMenuDesignBackgrounds(templateKey: string, pageSettings: unkn
   const page = getCustomBackgroundColor(pageSettings);
   const auxiliary = normalizeBackgroundColor(design?.auxiliaryBackgroundColor);
   const sidebar = normalizeBackgroundColor(design?.sidebarBackgroundColor);
-  const nativePage = templateKey === "cafe_mocha_forest_a" ? "#F4EDDC" : getTemplateDefaultBackgroundColor(templateKey);
-  const nativeColoredPanel = templateKey === "cafe_round_focus_a" || templateKey === "cafe_mocha_forest_a";
+  const nativePage = getTemplateDefaultBackgroundColor(templateKey);
+  const nativeColoredPanel = templateKey === "cafe_round_focus_a"; // MELLOW now shares one page/auxiliary surface.
   return {
     page,
     auxiliary,
