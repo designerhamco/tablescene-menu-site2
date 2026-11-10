@@ -5,6 +5,7 @@ import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import MenuPreviewOptionsPanel from "../components/menu/MenuPreviewOptionsPanel";
 import MenuPreviewDeviceFrame from "../components/menu/MenuPreviewDeviceFrame";
 import { DEFAULT_DESIGN_REVIEWS } from "./menu-design-policy";
 import type { MenuPageData } from "./menu-page-data";
@@ -200,4 +201,28 @@ test("widget opt-in preserves type and every editor image/text setting", () => {
     assert.deepEqual(applyTemplatePreviewOptions(source, { widgetsPreview: "on" }).widgets![0], original);
     assert.deepEqual(source.widgets![0], original);
   }
+});
+
+test("Van Gogh starts cover OFF but keeps the representative-area control available", () => {
+  const source = buildStarterPreviewData("cafe_van_gogh_a");
+  const original = structuredClone(source);
+  const groups = getTemplatePreviewOptionGroups("cafe_van_gogh_a");
+  assert.ok(groups.flatMap(group => group.choices).some(([key]) => key === "coverPreview"));
+  assert.equal(getTemplatePreviewOptions(source, {}).coverPreview, false);
+  for (const enabled of [false, true]) {
+    const values = getTemplatePreviewOptions(source, { coverPreview: enabled ? "on" : "off" });
+    const html = renderToStaticMarkup(createElement(MenuPreviewOptionsPanel, {
+      open: true, onToggle: () => {}, tab: "features", onTabChange: () => {}, groups, values,
+      onFeatureChange: () => {}, pending: false, templateKey: "cafe_van_gogh_a", design: {}, onDesignChange: () => {}, album: false,
+    }));
+    const input = (label: string) => html.match(new RegExp(`<input[^>]*aria-label="${label} 보기"[^>]*>`))?.[0] ?? "";
+    assert.ok(input("대표 영역"));
+    assert.doesNotMatch(input("대표 영역"), /disabled/);
+    if (enabled) assert.doesNotMatch(input("대표 상품"), /disabled/);
+    else assert.match(input("대표 상품"), /disabled/);
+  }
+  const enabled = applyTemplatePreviewOptions(source, { coverPreview: "on" });
+  assert.equal(enabled.pageSettings.menu_cover_enabled, true);
+  for (const device of ["pc", "tablet", "mobile"] as const) assert.equal(enabled.pageSettings[`menu_cover_visible_${device}`], true);
+  assert.deepEqual(source, original, "starter OFF and source data remain unchanged");
 });

@@ -8,6 +8,7 @@ import { getTemplateByKey } from "@/lib/templates";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import { buildOnePageCallPreviewConfig } from "@/lib/one-page-call-preview";
+import { applyPreviewDesign } from "@/lib/menu-preview-design";
 import { getDefaultBadgeStyles } from "@/lib/template-badge-styles";
 
 export default async function WidgetPlacementQa({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -15,7 +16,7 @@ export default async function WidgetPlacementQa({ searchParams }: { searchParams
   const query = await searchParams;
   const first = (key: string) => { const value = query[key]; return Array.isArray(value) ? value[0] : value; };
   const key = getTemplateByKey(first("template") ?? "cafe_mocha_forest_a").key;
-  const data = buildWidgetPlacementFixture(key, first("variant"));
+  let data = buildWidgetPlacementFixture(key, first("variant"));
   if (first("editor") === "on") {
     const capabilities = getTemplateCapabilities(key);
     const usage = { used: 0, limit: 0, period: "QA", last_used_at: null };
@@ -40,6 +41,7 @@ export default async function WidgetPlacementQa({ searchParams }: { searchParams
   if (first("layout") === "orderedFit") data.previewLayoutMode = "orderedFit";
   const orderCallConfig = buildOnePageCallPreviewConfig({ enabled: first("call") === "on", templateKey: key, menuSiteId: data.menuSite.id, storeName: data.menuSite.name }) ?? (first("call") === "on" && key.startsWith("dining_") ? { mode: "active" as const, callEnabled: true, orderEnabled: false, hasValidTableSession: true, orderingOpen: false, languageSlotEnabled: true, tableLabel: "Table 1", menuSiteId: data.menuSite.id, storeName: data.menuSite.name, previewOnly: true } : undefined);
   if (design) data.menuSite.settings = { ...data.menuSite.settings as Record<string, unknown>, menu_design_id: design.id };
+  data = applyPreviewDesign(data, first("designPreview"), design?.itemLayout === "album");
   const renderer = <MenuPageRenderer orderCallConfig={orderCallConfig} {...data} mode="preview" previewDevice={device} initialPreviewPageId={first("cover") === "on" ? undefined : data.pages[0].id} pagePresentation={first("multi") === "on" ? "multi" : "one"} />;
   return renderer;
 }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MENU_TEXT_COLOR_GROUPS, resolvedMenuTextColors, normalizeMenuTextColors, readMenuTextColors, setMenuTextColorsFromForm, getMutedMenuPriceColor } from "./menu-text-colors";
+import { MENU_TEXT_COLOR_GROUPS, getMenuTextColorLabel, getMenuTextColorDescription, resolvedMenuTextColors, normalizeMenuTextColors, readMenuTextColors, setMenuTextColorsFromForm, getMutedMenuPriceColor } from "./menu-text-colors";
 import { menuColorContrast } from "./menu-interaction-theme";
 import { applyPreviewDesign, readPreviewDesign, serializePreviewDesign, previewDesignDefaults } from "./menu-preview-design";
 import type { MenuPageData } from "./menu-page-data";
@@ -87,4 +87,13 @@ test("notice and widget colors split independently while existing combined saved
  assert.deepEqual(source.menuSite.page_settings,{});
  const native=applyPreviewDesign(source,{textColorGroupsVersion:2,textColors:{supporting:"#AA2255"}},false);
  assert.equal(resolvedMenuTextColors(native.menuSite.page_settings).information,undefined);
+});
+
+test("Dining names only widget ink while Basic preserves its separate footer-notice group", () => {
+  assert.equal(getMenuTextColorLabel("information", true), "위젯");
+  assert.equal(getMenuTextColorDescription("information", true), "위젯텍스트");
+  assert.equal(getMenuTextColorDescription("representative", true), "커버설명·커버 안내사항");
+  assert.equal(getMenuTextColorLabel("information", false), "하단 안내·위젯");
+  assert.equal(getMenuTextColorDescription("information", false), "메뉴영역 안내사항·위젯텍스트");
+  assert.equal(getMenuTextColorLabel("representative", true), "가게 설명·안내");
 });

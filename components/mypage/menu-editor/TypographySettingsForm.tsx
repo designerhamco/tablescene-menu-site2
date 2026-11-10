@@ -35,7 +35,7 @@ import {
   type TypographyRoleSettings,
 } from "@/lib/template-typography-presets";
 import PreviewColorPicker from "@/components/menu/PreviewColorPicker";
-import { MENU_TEXT_COLOR_GROUPS, MENU_TEXT_COLOR_LABELS, MENU_TEXT_COLOR_DESCRIPTIONS, resolvedMenuTextColors, type MenuTextColors } from "@/lib/menu-text-colors";
+import { MENU_TEXT_COLOR_GROUPS, getMenuTextColorLabel, getMenuTextColorDescription, resolvedMenuTextColors, type MenuTextColors } from "@/lib/menu-text-colors";
 import type { TemplateType } from "@/lib/template-types";
 
 type TypographySettingsFormProps = {
@@ -313,8 +313,8 @@ export default function TypographySettingsForm({
                 {MENU_TEXT_COLOR_GROUPS.map(group => {
                   const role = group === "brand" || group === "category" ? group : group === "product" ? "itemName" : "supporting";
                   return <div key={group} className="grid gap-3 px-3 py-3 lg:grid-cols-[minmax(8rem,1fr)_minmax(8rem,0.8fr)] lg:items-center">
-                    <div><p className="text-copy font-medium text-zinc-800">{MENU_TEXT_COLOR_LABELS[group]}</p><p className="mt-1 break-keep text-support leading-relaxed text-zinc-600">{MENU_TEXT_COLOR_DESCRIPTIONS[group]}</p></div>
-                    <PreviewColorPicker label="글자색" accessibleLabel={`${MENU_TEXT_COLOR_LABELS[group]} 글자색`} value={textColors[group]} defaultColor={selectedRoleSettings[role].color ?? "#191C1B"} disabled={false} onChange={color => setTextColors(current => ({ ...current, [group]: color }))} />
+                    <div><p className="text-copy font-medium text-zinc-800">{getMenuTextColorLabel(group, isAubeTableTemplate)}</p><p className="mt-1 break-keep text-support leading-relaxed text-zinc-600">{getMenuTextColorDescription(group, isAubeTableTemplate)}</p></div>
+                    <PreviewColorPicker label="글자색" accessibleLabel={`${getMenuTextColorLabel(group, isAubeTableTemplate)} 글자색`} value={textColors[group]} defaultColor={selectedRoleSettings[role].color ?? "#191C1B"} disabled={false} onChange={color => setTextColors(current => ({ ...current, [group]: color }))} />
                   </div>;
                 })}
               </div>

@@ -16,6 +16,17 @@ export const MENU_TEXT_COLOR_DESCRIPTIONS: Record<MenuTextColorGroup, string> = 
   supporting: "보조언어명·상품설명",
   information: "메뉴영역 안내사항·위젯텍스트",
 };
+/** Dining has no menu-footer notice group; its notices belong to the cover. */
+export function getMenuTextColorLabel(group: MenuTextColorGroup, dining = false): string {
+  return dining && group === "information" ? "위젯" : MENU_TEXT_COLOR_LABELS[group];
+}
+
+export function getMenuTextColorDescription(group: MenuTextColorGroup, dining = false): string {
+  if (dining && group === "information") return "위젯텍스트";
+  if (dining && group === "representative") return "커버설명·커버 안내사항";
+  return MENU_TEXT_COLOR_DESCRIPTIONS[group];
+}
+
 export function normalizeMenuTextColors(value: unknown): MenuTextColors {
   const raw = menuSurfaceRecord(value), result: MenuTextColors = {};
   for (const group of MENU_TEXT_COLOR_GROUPS) {

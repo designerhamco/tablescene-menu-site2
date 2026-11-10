@@ -6,7 +6,7 @@ import { KOREAN_FONT_OPTIONS, getAvailableEnglishFontsForTemplate, getEnglishFon
 import { type PreviewDesign, type PreviewDesignDefaults, type PreviewFontChoice } from "@/lib/menu-preview-design";
 import { resolvePreviewChipColors, type PreviewChipColors } from "@/lib/menu-preview-chip-colors";
 import { REPRESENTATIVE_ALIGNMENTS } from "@/lib/menu-design-surfaces";
-import { MENU_TEXT_COLOR_GROUPS, MENU_TEXT_COLOR_LABELS, type MenuTextColorGroup } from "@/lib/menu-text-colors";
+import { MENU_TEXT_COLOR_GROUPS, getMenuTextColorLabel, type MenuTextColorGroup } from "@/lib/menu-text-colors";
 import ImageRadiusSelect from "./ImageRadiusSelect";
 import PreviewColorPicker from "./PreviewColorPicker";
 import styles from "./PreviewDesignOptions.module.css";
@@ -57,7 +57,7 @@ export default function PreviewDesignOptions({ value, defaults, renderedDesign, 
       </select></label>
     </div></fieldset>
     <fieldset><legend className={styles.legend}>글자색</legend><div className={styles.colorGrid} data-preview-font-groups>{MENU_TEXT_COLOR_GROUPS.map(group => {
-      const label = MENU_TEXT_COLOR_LABELS[group];
+      const label = getMenuTextColorLabel(group, dining);
       return <PreviewColorPicker key={group} label={label} accessibleLabel={`${label} 글자색`} value={value.textColors?.[group]} defaultColor={colorDefault(group)} onChange={color => textColor(group, color)} disabled={disabled} loading={!renderedDesign} />;
     })}</div></fieldset>
     {album ? <fieldset className={styles.albumRatio}><legend className={styles.legend}>앨범형 상품 이미지</legend><label className={styles.option}>상품 이미지 비율<select aria-label="앨범형 상품 이미지 비율" value={value.albumImageRatio ?? defaults.appearance.albumImageRatio} onChange={event => set({ albumImageRatio: event.target.value as PreviewDesign["albumImageRatio"] })} disabled={disabled} className={styles.select}>{ALBUM_IMAGE_RATIOS.map(ratio => <option key={ratio} value={ratio}>{ratio}</option>)}</select></label></fieldset> : null}
