@@ -3660,8 +3660,11 @@ export function CafeAUpperLeftIntro({ data, density = "default", mobileReading =
   const device = mobileReading ? "mobile" : data.previewDevice ?? "pc";
   const showCover = data.pageSettings.menu_cover_enabled !== false && isMenuCoverVisibleOnDevice(data.pageSettings, device);
   const slides = showCover ? getFeaturedHeroSlides(data, capabilities) : [];
+  const languageControl = mobileReading
+    ? <CafeLanguageHoverControl data={data} iconOnly menuAlign="left" />
+    : <CafeLanguageHoverControl data={data} showCurrentLocale menuAlign="right" />;
   const controls = <div className={upperLeftStyles.controls} data-corner-controls>
-    {mobileReading && call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} showCurrentLocale menuAlign="right" />} /> : <CafeLanguageHoverControl data={data} showCurrentLocale menuAlign="right" />}
+    {mobileReading && call.enabled ? <OnePageMobileCallBar languageControl={languageControl} /> : languageControl}
   </div>;
   const identity = <div className={upperLeftStyles.identity} data-representative-copy data-corner-identity>
     <StoreIdentity data={data} capabilities={capabilities} titleClassName="cafe-a-store-title cafe-a-panel-brand" logoClassName="cafe-a-store-logo" mobileAutoFit={mobileReading} layoutShell="brand_panel_flow" />

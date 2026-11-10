@@ -163,13 +163,13 @@ export function OnePageMobileCallDock() {
   if (!showCall && !showOrder) return null;
   return (
     <div className="cafe-a-mobile-call-dock" data-one-page-call-dock="" data-has-order={showOrder ? "true" : "false"}>
-      {showOrder ? <button type="button" className="cafe-a-mobile-call-dock-button cafe-a-mobile-order-dock-button"
-        aria-label={t("주문하기, 장바구니 {0}개", call.cartCount ?? 0)} data-one-page-call-button="mobile-order-bottom" onClick={call.openCart}>
-        <ShoppingCart aria-hidden="true" strokeWidth={1.8} /><span>{t("주문하기")}{(call.cartCount ?? 0) > 0 ? ` (${call.cartCount})` : ""}</span>
-      </button> : null}
       {showCall ? <button type="button" className="cafe-a-mobile-call-dock-button" aria-label={t("직원 호출하기")}
         data-one-page-call-button="mobile-bottom" onClick={call.openCall}>
         <StaffCallIcon aria-hidden="true" strokeWidth={1.8} /><span>{showOrder ? t("호출하기") : t("직원 호출하기")}</span>
+      </button> : null}
+      {showOrder ? <button type="button" className="cafe-a-mobile-call-dock-button cafe-a-mobile-order-dock-button"
+        aria-label={t("주문하기, 장바구니 {0}개", call.cartCount ?? 0)} data-one-page-call-button="mobile-order-bottom" onClick={call.openCart}>
+        <ShoppingCart aria-hidden="true" strokeWidth={1.8} /><span>{t("주문하기")}{(call.cartCount ?? 0) > 0 ? ` (${call.cartCount})` : ""}</span>
       </button> : null}
     </div>
   );

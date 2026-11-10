@@ -64,8 +64,10 @@ test("ONUE starter has one standalone image and no featured-product fallback", (
 });
 
 test("plain identity ink uses the actual panel surface, including dark saved backgrounds", () => {
- assert.equal(resolvePanelTextInk("#FFFFFF", "#713F36", CORNER_PANEL_BACKGROUND), "#FFFFFF");
- assert.equal(resolvePanelTextInk("#191C1B", "#713F36", CORNER_PANEL_BACKGROUND), "#FFFFFF");
+ assert.equal(resolvePanelTextInk("#FFFFFF", "#713F36", "#3D3531"), "#FFFFFF");
+ assert.equal(resolvePanelTextInk("#191C1B", "#713F36", "#3D3531"), "#FFFFFF");
  assert.equal(resolvePanelTextInk("#FFF9EE", "#713F36", "#FFFFFF"), "#713F36");
+ assert.equal(resolvePanelTextInk("#FFFFFF", "#713F36", CORNER_PANEL_BACKGROUND), "#713F36");
+ assert.equal(resolvePanelTextInk("#191C1B", "#713F36", CORNER_PANEL_BACKGROUND), "#191C1B");
  assert.equal(resolvePanelTextInk("#FFF9EE", "#713F36", "#33221E"), "#FFF9EE");
 });

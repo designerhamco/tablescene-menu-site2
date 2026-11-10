@@ -46,12 +46,11 @@
 .identity :global(.cafe-a-store-logo) { max-width: 75%; max-height: 5rem; width: auto; height: auto; object-fit: contain; margin-inline: auto; }
 .intro :global(.cafe-a-featured-copy) { position: relative; inset: auto; grid-row: 5; align-self: end; z-index: 1; }
 @media (max-width: 767px) {
+  .controls { justify-content: flex-start; }
+  .controls > :global([data-template-language-control]) { text-align: left; }
   .intro[data-photo="false"], .intro :global(.cafe-a-cover-frame) { padding-top: env(safe-area-inset-top, 0px); }
   .intro[data-photo="true"] { aspect-ratio: 1 / 1; }
 }
 
 .intro :global([data-cafe-a-cover-indicators]) { top: auto; right: auto; bottom: 1rem; left: 50%; transform: translateX(-50%); }
 .intro[data-carousel="true"] :global(.cafe-a-featured-copy) { margin-bottom: 1.5rem; }
-.controls :global(.cafe-a-call-language-slot) { grid-column: 3; grid-row: 1; justify-self: end; }
-.controls :global(.cafe-a-call-table-label) { grid-column: 2; grid-row: 1; }
-.controls :global(.cafe-a-table-actions) { grid-column: 1; grid-row: 1; justify-self: start; }

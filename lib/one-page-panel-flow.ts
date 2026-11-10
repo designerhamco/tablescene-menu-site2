@@ -2,7 +2,7 @@ import type { MenuPageGroup, CafeDesignAWidgetContentBlock } from "@/components/
 
 import { menuColorContrast } from "./menu-interaction-theme";
 
-export const CORNER_PANEL_BACKGROUND = "#3D3531";
+export const CORNER_PANEL_BACKGROUND = "#F2F3F5";
 export const PANEL_INTRO_KEY = "__one-page-panel-intro";
 export const PANEL_FEATURED_IMAGE = { ratio: "4:3", cssRatio: "4 / 3", width: 1600, height: 1200 } as const;
 export const PANEL_MOBILE_FEATURED_IMAGE = { ratio: "1:1", cssRatio: "1 / 1", width: 1600, height: 1600 } as const;
