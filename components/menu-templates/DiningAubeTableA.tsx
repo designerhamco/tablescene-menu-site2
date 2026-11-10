@@ -517,7 +517,7 @@ export default function DiningAubeTableA({
             {coverDescription ? <motion.p className="aube-table-cover-description" variants={AUBE_TABLE_COVER_REVEAL_ITEM}><ScriptAwareText text={coverDescription} /></motion.p> : null}
           </motion.div>
           {coverNotices.length ? <div className="aube-table-cover-bottom" ref={measureCoverBottom}>
-            <div className="aube-table-cover-notices" data-dining-cover-notices data-notice-count={coverNotices.length} style={{ gridTemplateColumns: `repeat(${coverNotices.length}, minmax(0, 1fr))` }}>
+            <div className="aube-table-cover-notices" data-dining-cover-notices data-notice-count={coverNotices.length}>
               {coverNotices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>)}
             </div>
           </div> : null}
@@ -643,7 +643,7 @@ export default function DiningAubeTableA({
         .aube-table-cover-overlay { position: absolute; inset: 0; z-index: -1; }
         .aube-table-cover-copy { width: min(92vw, 1240px); padding: var(--aube-cover-padding-top) var(--aube-cover-padding-inline) var(--aube-cover-padding-bottom); text-align: center; color: #fff; }
         .aube-table-cover-bottom { position: absolute; z-index: 2; bottom: var(--aube-cover-notice-bottom, max(24px, env(safe-area-inset-bottom))); inset-inline: var(--aube-cover-padding-inline); }
-        .aube-table-cover-notices { --cafe-a-script-ko-font: var(--menu-font-ko); --cafe-a-script-en-font: var(--menu-font-ko); display: grid; align-items: end; gap: clamp(12px, 2vw, 24px); color: var(--dining-cover-notice-ink, #fff); font-family: var(--menu-font-ko), sans-serif; font-size: var(--aube-type-item-body); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.5; text-align: center; }
+        .aube-table-cover-notices { --cafe-a-script-ko-font: var(--menu-font-ko); --cafe-a-script-en-font: var(--menu-font-ko); display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); align-items: end; gap: clamp(12px, 2vw, 24px); color: var(--dining-cover-notice-ink, #fff); font-family: var(--menu-font-ko), sans-serif; font-size: var(--aube-type-item-body); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.5; text-align: center; }
         .aube-table-cover-notices p { min-width: 0; margin: 0; overflow-wrap: anywhere; white-space: pre-line; }
         .aube-table-cover[data-cover-notices="true"] .aube-table-cover-copy { padding-bottom: max(var(--aube-cover-padding-bottom), calc(var(--aube-cover-bottom-height, 0px) + 48px)); }
         .aube-table-cover-logo { display: block; width: auto; height: auto; max-width: min(300px, 46vw); max-height: 104px; margin: 0 auto clamp(22px, 2.2vw, 32px); object-fit: contain; }
@@ -772,6 +772,7 @@ export default function DiningAubeTableA({
             --aube-mobile-tab-padding-bottom: clamp(12px, 3.6vw, 14px);
           }
           .aube-table-cover-copy { width: min(92vw, 680px); }
+          .aube-table-cover-notices { grid-auto-flow: row; grid-template-columns: minmax(0, 1fr); gap: 0; }
           .aube-table-language-control { top: max(8px, env(safe-area-inset-top)); left: 16px; right: auto; }
           :global([data-public-menu-entry-layer]) .aube-table-language-control { display: none; }
           .aube-table-cover-logo { max-width: min(230px, 58vw); max-height: 84px; margin-bottom: clamp(18px, 5.6vw, 22px); }
