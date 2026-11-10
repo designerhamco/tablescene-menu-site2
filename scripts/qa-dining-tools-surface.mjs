@@ -18,7 +18,9 @@ const measure=()=>{
  const root=document.querySelector('.aube-table-root'),cover=root?.querySelector('[data-aube-table-cover]'),shell=document.querySelector('[data-menu-interaction-shell]');
  const header=document.querySelector('[data-table-menu-header]'),toolbar=document.querySelector('[data-dining-menu-toolbar]'),dock=document.querySelector('[data-table-mobile-dock]'),nav=document.querySelector('.aube-table-pagination'),notes=document.querySelector('[data-dining-cover-notices]');
  const control=header||toolbar||document.querySelector('[data-aube-table-language-control]');
- return {viewport:[innerWidth,innerHeight],cover:box(cover),root:box(root),header:box(header),toolbar:box(toolbar),tools:box(control),dock:box(dock),nav:box(nav),dots:[...document.querySelectorAll('.aube-table-pagination-dot')].map(e=>({...box(e),appearance:getComputedStyle(e).appearance})),notes:box(notes),circle:box(document.querySelector('[data-dining-floating-call]')),
+ const sidebar=root?.querySelector('.aube-table-sidebar-navigation'),trigger=control?.querySelector('[data-language-menu-trigger]'),sb=sidebar?.getBoundingClientRect(),tr=trigger?.getBoundingClientRect();
+ const sidebarSurface=sb?.width&&tr&&tr.x+tr.width/2<sb.right?getComputedStyle(sidebar).backgroundColor:null;
+ return {sidebarSurface,viewport:[innerWidth,innerHeight],cover:box(cover),root:box(root),header:box(header),toolbar:box(toolbar),tools:box(control),dock:box(dock),nav:box(nav),dots:[...document.querySelectorAll('.aube-table-pagination-dot')].map(e=>({...box(e),appearance:getComputedStyle(e).appearance})),notes:box(notes),circle:box(document.querySelector('[data-dining-floating-call]')),
  toolInks:control?[...control.querySelectorAll('[data-language-menu-trigger],[data-terminal-table-label],[data-table-menu-actions] button,[data-dining-cart]')].filter(visible).map(e=>getComputedStyle(e).color):[],buttons:dock?[...dock.querySelectorAll('button')].map(box):[],
  palette:Object.fromEntries(['--menu-order-bg','--menu-order-ink','--menu-call-bg','--menu-call-ink','--menu-call-circle-bg','--menu-call-circle-ink'].map(k=>[k,shell?getComputedStyle(shell).getPropertyValue(k).trim():'']))};
 };
@@ -34,7 +36,7 @@ for(const c of selected){
   const m=await page.evaluate(measure),tools=m.tools;assert.deepEqual(m.viewport,[c.width,c.height]);assert.ok(m.cover);assert.ok(tools&&transparent(tools.bg),'cover tools have no white paper');assert.ok(m.toolInks.length&&m.toolInks.every(ink=>ink===tools.ink),'language/order/table share current surface ink');
   if(m.nav){assert.ok(m.nav.width>0&&m.nav.height>0,'pagination is visible');assert.ok(m.dots.length&&m.dots.every(d=>d.width>0&&d.height>0&&d.appearance==='none'),'custom dots do not inherit native button rendering');}
   if(c.surface==='dark'&&c.key==='dining_aube_table_a'&&c.actions==='both'&&['pc','mobile'].includes(c.device))await page.screenshot({path:`${output}/${c.device}-${c.width}-dark-cover.png`});
-  if(c.surface==='photo')assert.equal(tools.ink,'rgb(255, 255, 255)');else assert.ok(menuColorContrast(tools.ink,m.cover.bg)>=4.5,'solid cover controls remain readable');
+  if(c.surface==='photo')assert.equal(tools.ink,'rgb(255, 255, 255)');else assert.ok(menuColorContrast(tools.ink,m.sidebarSurface||m.cover.bg)>=4.5,'solid cover controls remain readable');
   assert.ok(!m.circle||m.circle.height===0,'cover hides floating Call');assert.ok(!m.dock||m.dock.height===0,'cover hides mobile actions');
   if(c.device==='mobile'&&c.actions!=='none'){
    assert.ok(m.dock&&transparent(m.dock.bg),'mobile cover dock has no white bar');assert.equal(m.header.position,'fixed');assert.equal(m.cover.top,0);assert.ok(Math.abs(m.cover.bottom-c.height)<2,'cover fills behind both bars');assert.ok(m.buttons.every(b=>b.height===0),'cover hides action buttons');

@@ -6,7 +6,7 @@ const readablePhotos = new Map<string, HTMLImageElement>();
 export function readDiningToolSurface(root: HTMLElement, control: HTMLElement | null, onReady: () => void) {
   const cover = root.dataset.coverActive === "true" ? root.querySelector<HTMLElement>("[data-aube-table-cover]") : null;
   const surface = getComputedStyle(cover ?? root).backgroundColor;
-  if (!cover && control) {
+  if (control) {
     const sidebar = root.querySelector<HTMLElement>(".aube-table-sidebar-navigation");
     if (sidebar) {
       const panel = sidebar.getBoundingClientRect(), tool = control.getBoundingClientRect();
