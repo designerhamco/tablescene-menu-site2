@@ -6,7 +6,7 @@ import { KOREAN_FONT_OPTIONS, getAvailableEnglishFontsForTemplate, getEnglishFon
 import { type PreviewDesign, type PreviewDesignDefaults, type PreviewFontChoice } from "@/lib/menu-preview-design";
 import { resolvePreviewChipColors, type PreviewChipColors } from "@/lib/menu-preview-chip-colors";
 import { REPRESENTATIVE_ALIGNMENTS } from "@/lib/menu-design-surfaces";
-import { getMenuTextColorGroups, getMenuTextColorLabel, type MenuTextColorGroup } from "@/lib/menu-text-colors";
+import { getMenuTextColorGroups, getMenuTextColorLabel, resolvedMenuTextColors, type MenuTextColorGroup } from "@/lib/menu-text-colors";
 import ImageRadiusSelect from "./ImageRadiusSelect";
 import PreviewColorPicker from "./PreviewColorPicker";
 import styles from "./PreviewDesignOptions.module.css";
@@ -25,14 +25,14 @@ export default function PreviewDesignOptions({ value, defaults, renderedDesign, 
   const set = (patch: Partial<PreviewDesign>) => onChange({ ...value, ...patch });
   const textColor = (group: MenuTextColorGroup, color?: string) => set({
     textColorGroupsVersion: 2,
-    ...(dining ? { diningTextColorGroupsVersion: 1 as const } : {}),
-    textColors: { ...(dining ? defaults.textColors : {}), ...value.textColors,
+    ...(dining ? { diningTextColorGroupsVersion: 2 as const } : {}),
+    textColors: { ...(dining ? resolvedMenuTextColors({design:{...value,textColors:{...defaults.textColors,...value.textColors}}},true) : {}), ...value.textColors,
       ...(value.textColorGroupsVersion !== 2 && value.textColors?.supporting && !value.textColors?.information ? { information: value.textColors.supporting } : {}),
       [group]: color },
   });
   const colorDefault = (group: MenuTextColorGroup) => (group === "information" && value.textColorGroupsVersion !== 2 ? value.textColors?.supporting : undefined) ?? defaults.textColors[group]
     ?? renderedDesign?.nativeTextColors[group]
-    ?? (group === "pageTitle" || group === "sectionDescription" ? undefined : value.fonts?.[group === "brand" || group === "category" ? group : "other"]?.color)
+    ?? (group === "pageTitle" || group === "sectionDescription" || group === "price" ? undefined : value.fonts?.[group === "brand" || group === "category" ? group : "other"]?.color)
     ?? (dining && group === "representative" ? value.coverDescriptionColor ?? defaults.colors.coverDescription : defaults.textColorDefaults[group]);
   const appearance = { ...defaults.appearance, imageRadii: { ...defaults.appearance.imageRadii, ...value.imageRadii }, chipShape: value.chipShape ?? defaults.appearance.chipShape };
   const chipColors = resolvePreviewChipColors(value.chipColors ?? {});

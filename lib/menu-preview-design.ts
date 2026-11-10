@@ -17,7 +17,7 @@ export type PreviewFontChoice = { color?: string; ko?: KoreanFontValue; en?: Eng
 export type PreviewDesign = {
   textColors?: MenuTextColors;
   textColorGroupsVersion?: 2;
-  diningTextColorGroupsVersion?: 1;
+  diningTextColorGroupsVersion?: 1 | 2;
   pageBackground?: string;
   auxiliaryBackground?: string;
   coverBackground?: string;
@@ -37,7 +37,7 @@ export function readPreviewDesign(raw: unknown): PreviewDesign {
   try { source = record(typeof raw === "string" && raw.length <= 4000 ? JSON.parse(raw) : raw); } catch { return {}; }
   const result: PreviewDesign = {};
   if (source.textColorGroupsVersion === 2) result.textColorGroupsVersion = 2;
-  if (source.diningTextColorGroupsVersion === 1) result.diningTextColorGroupsVersion = 1;
+  if (source.diningTextColorGroupsVersion === 1 || source.diningTextColorGroupsVersion === 2) result.diningTextColorGroupsVersion = source.diningTextColorGroupsVersion;
   for (const key of ["pageBackground", "auxiliaryBackground", "coverBackground", "sidebarBackground", "coverDescriptionColor"] as const) {
     const color = normalizeBackgroundColor(source[key]); if (color) result[key] = color;
   }
@@ -84,7 +84,8 @@ export function previewDesignDefaults(data: MenuPageData) {
       pageTitle: typography.typography_roles.category.color ?? (dining ? getDiningTextColorDefaults(key, neutral).pageTitle : normalizeBackgroundColor(data.menuSite.brand_color) ?? "#191C1B"),
       sectionDescription: typography.typography_roles.supporting.color ?? (dining ? getDiningTextColorDefaults(key, neutral).sectionDescription : "#191C1B"),
       category: typography.typography_roles.category.color ?? normalizeBackgroundColor(data.menuSite.brand_color) ?? "#191C1B",
-      product: typography.typography_roles.itemName.color ?? typography.typography_roles.price.color ?? "#191C1B",
+      price: typography.typography_roles.price.color ?? (dining ? getDiningTextColorDefaults(key, neutral).price : "#191C1B"),
+      product: typography.typography_roles.itemName.color ?? (!dining ? typography.typography_roles.price.color : undefined) ?? "#191C1B",
       representative: typography.typography_roles.supporting.color ?? "#191C1B",
       supporting: typography.typography_roles.supporting.color ?? "#191C1B",
       information: typography.typography_roles.supporting.color ?? "#191C1B",
@@ -113,8 +114,13 @@ export function applyPreviewDesign(source: MenuPageData, value: unknown, album: 
   if (overrides.textColors) {
     // Resolve the previous combined group before entering the independent scheme.
     design.textColors = { ...resolvedMenuTextColors(page, data.menuSite.template_key?.startsWith("dining_aube_table_") === true), ...overrides.textColors };
-    if (overrides.diningTextColorGroupsVersion === 1) design.diningTextColorGroupsVersion = 1;
+    if (overrides.diningTextColorGroupsVersion === 1 || overrides.diningTextColorGroupsVersion === 2) design.diningTextColorGroupsVersion = overrides.diningTextColorGroupsVersion;
     if (overrides.textColorGroupsVersion === 2) design.textColorGroupsVersion = 2;
+  }
+  if (overrides.diningTextColorGroupsVersion === 2) {
+    design.diningTextColorGroupsVersion = 2;
+    // An absent price after a new independent edit means native/reset, not legacy product ink.
+    if (!overrides.textColors?.price && design.textColors) delete (design.textColors as MenuTextColors).price;
   }
   if (overrides.chipColors) design.previewChipColors = overrides.chipColors;
   if (overrides.representativeAlignment) design.representativeAlignment = overrides.representativeAlignment;

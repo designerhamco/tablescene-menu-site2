@@ -312,10 +312,10 @@ export default function TypographySettingsForm({
               </div>
               <div className="site-section site-editor-subpanel mt-4 divide-y divide-zinc-100">
                 {getMenuTextColorGroups(isAubeTableTemplate).map(group => {
-                  const role = group === "brand" || group === "category" ? group : group === "pageTitle" ? "category" : group === "product" ? "itemName" : "supporting";
+                  const role = group === "brand" || group === "category" ? group : group === "pageTitle" ? "category" : group === "product" ? "itemName" : group === "price" ? "price" : "supporting";
                   return <div key={group} className="grid gap-3 px-3 py-3 lg:grid-cols-[minmax(8rem,1fr)_minmax(8rem,0.8fr)] lg:items-center">
                     <div><p className="text-copy font-medium text-zinc-800">{getMenuTextColorLabel(group, isAubeTableTemplate)}</p><p className="mt-1 break-keep text-support leading-relaxed text-zinc-600">{getMenuTextColorDescription(group, isAubeTableTemplate)}</p></div>
-                    <PreviewColorPicker label="글자색" accessibleLabel={`${getMenuTextColorLabel(group, isAubeTableTemplate)} 글자색`} value={textColors[group]} defaultColor={(group === "pageTitle" ? selectedRoleSettings.category.color ?? getDiningTextColorDefaults(templateKey).pageTitle : group === "sectionDescription" ? selectedRoleSettings.supporting.color ?? getDiningTextColorDefaults(templateKey).sectionDescription : selectedRoleSettings[role].color) ?? "#191C1B"} disabled={false} onChange={color => setTextColors(current => ({ ...current, [group]: color }))} />
+                    <PreviewColorPicker label="글자색" accessibleLabel={`${getMenuTextColorLabel(group, isAubeTableTemplate)} 글자색`} value={textColors[group]} defaultColor={(group === "pageTitle" ? selectedRoleSettings.category.color ?? getDiningTextColorDefaults(templateKey).pageTitle : group === "sectionDescription" ? selectedRoleSettings.supporting.color ?? getDiningTextColorDefaults(templateKey).sectionDescription : group === "price" ? selectedRoleSettings.price.color ?? getDiningTextColorDefaults(templateKey).price : selectedRoleSettings[role].color) ?? "#191C1B"} disabled={false} onChange={color => setTextColors(current => ({ ...current, [group]: color }))} />
                   </div>;
                 })}
               </div>

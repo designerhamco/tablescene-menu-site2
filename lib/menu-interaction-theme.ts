@@ -53,8 +53,11 @@ export function resolveMenuInteractionTheme({ category, pageTitle, surfaces, ink
   const orderBackground = accent;
   // Prefer bright menu ink when readable. On a light fill, try the darkest
   // configured menu swatch first; neutral fallback is only the final option.
-  const orderForeground = readableInk(orderBackground, [lightest, ...sorted]);
-  const callCircleForeground = readableInk(accent, [lightest]);
+  // Dining explicitly uses the brightest current menu color for both actions.
+  // Only an identical fill/ink needs the readable fallback; Basic keeps contrast selection.
+  const diningForeground = lightest !== accent ? lightest : readableInk(accent, sorted);
+  const orderForeground = pageTitle ? diningForeground : readableInk(orderBackground, [lightest, ...sorted]);
+  const callCircleForeground = pageTitle ? diningForeground : readableInk(accent, [lightest]);
   return {
     "--menu-order-bg": orderBackground,
     "--menu-order-ink": orderForeground,
@@ -64,7 +67,7 @@ export function resolveMenuInteractionTheme({ category, pageTitle, surfaces, ink
     "--menu-call-border": accent,
     // Dining passes page-title ink as its accent. Basic retains category ink.
     // Circular Call matches Order, while its
-    // label/icon use the lightest readable menu color.
+    // label/icon share Dining's brightest menu color.
     "--menu-call-circle-bg": accent,
     "--menu-call-circle-ink": callCircleForeground,
     "--menu-call-circle-border": accent,

@@ -6,6 +6,14 @@ const readablePhotos = new Map<string, HTMLImageElement>();
 export function readDiningToolSurface(root: HTMLElement, control: HTMLElement | null, onReady: () => void) {
   const cover = root.dataset.coverActive === "true" ? root.querySelector<HTMLElement>("[data-aube-table-cover]") : null;
   const surface = getComputedStyle(cover ?? root).backgroundColor;
+  if (control) {
+    const sidebar = root.querySelector<HTMLElement>(".aube-table-sidebar-navigation");
+    if (sidebar) {
+      const panel = sidebar.getBoundingClientRect(), tool = control.getBoundingClientRect();
+      const x = tool.left + tool.width / 2, y = tool.top + tool.height / 2;
+      if (panel.width && panel.height && x >= panel.left && x <= panel.right && y >= panel.top && y <= panel.bottom) return getComputedStyle(sidebar).backgroundColor;
+    }
+  }
   const image = cover?.querySelector<HTMLImageElement>(".aube-table-cover-image");
   if (!image?.complete || !image.naturalWidth || !cover) return surface;
   const overlay = cover.querySelector<HTMLElement>(".aube-table-cover-overlay");

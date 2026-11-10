@@ -97,3 +97,13 @@ test("tool selection uses the brightest readable page swatch after store-copy in
   assert.equal(compositeMenuSurface("#FFFFFF", "transparent", 1), "#ffffff");
   assert.equal(compositeMenuSurface("#000000", "#FFFFFF", .25), "#404040");
 });
+
+
+test("Dining Order and circular Call share the brightest menu foreground even on a gold fill", () => {
+  const theme = resolveMenuInteractionTheme({category:"#17191f",pageTitle:"#C5A165",surfaces:["#fff"],inks:["#72757D"]});
+  assert.equal(theme["--menu-order-ink"], "#ffffff");
+  assert.equal(theme["--menu-call-circle-ink"], theme["--menu-order-ink"]);
+  const bright = resolveMenuInteractionTheme({category:"#17191f",pageTitle:"#fff",surfaces:["#fff"],inks:["#17191f"]});
+  assert.equal(bright["--menu-order-ink"], "#17191f");
+  assert.equal(bright["--menu-call-circle-ink"], "#17191f");
+});
