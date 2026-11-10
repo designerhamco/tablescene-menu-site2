@@ -19,9 +19,10 @@ export default async function BasicDesignFixture({ searchParams }: { searchParam
   if (process.env.NODE_ENV === "production") notFound();
   const query = await searchParams;
   const first = (key: string) => { const value = query[key]; return Array.isArray(value) ? value[0] : value; };
+  const editorKey = first("template") === "dining_aube_table_a" || first("template") === "dining_aube_table_b" ? first("template")! : "cafe_design_a";
   if (first("editor") === "on") return <main className="mx-auto max-w-5xl p-6"><h1>공통 디자인 설정 검증</h1><form id="fixture-design" />
-    <MenuSurfaceSettingsForm pageSettings={{}} settings={{}} templateKey="cafe_design_a" formId="fixture-design" />
-    <TypographySettingsForm formId="fixture-design" initialFont={getKoreanFontOption("pretendard")!} defaultFont={getKoreanFontOption("pretendard")!} initialEnglishFont={getEnglishFontOption("alata")!} defaultEnglishFont={getEnglishFontOption("outfit")!} hasCustomKoreanFont hasCustomEnglishFont initialFontSizeScale="m" pageSettings={{design:{textColors:readPreviewDesign(first("designPreview")).textColors}}} initialRoleSettings={normalizeTypographyRoleSettings({ brand: { font_en_key: "mogra", color: "#123456" }, category: { font_en_key: "carme", color: "#654321" } })} templateType="menu" templateKey="cafe_design_a" />
+    <MenuSurfaceSettingsForm pageSettings={{}} settings={{}} templateKey={editorKey} formId="fixture-design" />
+    <TypographySettingsForm formId="fixture-design" initialFont={getKoreanFontOption("pretendard")!} defaultFont={getKoreanFontOption("pretendard")!} initialEnglishFont={getEnglishFontOption("alata")!} defaultEnglishFont={getEnglishFontOption("outfit")!} hasCustomKoreanFont hasCustomEnglishFont initialFontSizeScale="m" pageSettings={{design:{textColors:readPreviewDesign(first("designPreview")).textColors}}} initialRoleSettings={normalizeTypographyRoleSettings({ brand: { font_en_key: "mogra", color: "#123456" }, category: { font_en_key: "carme", color: "#654321" } })} templateType="menu" templateKey={editorKey} />
   </main>;
   const device = first("device") === "mobile" ? "mobile" : first("device") === "tablet" ? "tablet" : "pc";
   const design = getDefaultDesignReview(first("design") ?? "basic-first-column", "cafe_design_a");

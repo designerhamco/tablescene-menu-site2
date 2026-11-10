@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState, type CSSProperties, type RefObject } from "react";
+import { readDiningToolSurface } from "./dining-tool-surface";
 import { getRenderedMenuBrandElement } from "@/components/menu-templates/shared/rendered-menu-colors";
 import { resolveMenuInteractionTheme, resolveMenuToolsInk } from "@/lib/menu-interaction-theme";
 
@@ -8,7 +9,7 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
   useEffect(() => {
     const container = content.current;
     if (!container) return;
-    let frame = 0;
+    let frame = 0, disposed = false;
     // Retain the category ink while a multi-page cover has no category heading.
     let categoryColor = "#191c1b";
     const visible = (e: HTMLElement) => e.getBoundingClientRect().width > 0 && !e.closest('[aria-hidden="true"]');
@@ -28,7 +29,7 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
       const savedCategory = style.getPropertyValue("--menu-role-category-color").trim();
       // Dining course headings fall back to --aube-ink, not --aube-accent.
       // Resolve that same category palette even on a cover with no heading.
-      categoryColor = style.getPropertyValue("--menu-design-category-ink").trim()
+      categoryColor = style.getPropertyValue("--menu-text-category").trim() || style.getPropertyValue("--menu-design-category-ink").trim()
         || (dining
           ? savedCategory || style.getPropertyValue("--aube-ink").trim()
           : (category && getComputedStyle(category).color) || savedCategory)
@@ -41,31 +42,38 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
         if (panel === root) break;
       }
       const declaredInks = ["--menu-role-brand-color", "--menu-role-category-color", "--menu-role-supporting-color", "--aube-accent", "--aube-ink", "--cafe-a-ink", "--menu-role-item-name-color", "--menu-role-price-color"].map(key => style.getPropertyValue(key).trim()).filter(Boolean);
-      const inks = [...(brand ? [getComputedStyle(brand).color] : []), ...declaredInks, ...[...root.querySelectorAll<HTMLElement>(".cafe-a-category-title,[data-cafe-a-menu-name],.cafe-a-menu-price,.aube-table-course-title,.aube-table-item-heading h3,.aube-table-item-price")].filter(visible).slice(0, 12).map(e => getComputedStyle(e).color)];
+      const inks = [...(brand ? [getComputedStyle(brand).color] : []), ...declaredInks, ...[...root.querySelectorAll<HTMLElement>(dining ? ".aube-table-page-header h1,.aube-table-course-header h2,.aube-table-page-description,.aube-table-course-description,.aube-table-item-heading h3,.aube-table-item-price,.aube-table-item-description" : ".cafe-a-category-title,[data-cafe-a-menu-name],.cafe-a-menu-price")].filter(visible).slice(0, 12).map(e => getComputedStyle(e).color)];
       // Include the actual reading panels, not photo pixels or site chrome.
       for (const panel of root.querySelectorAll<HTMLElement>("[data-native-column],[data-paged-column],.aube-table-page,.cafe-a-fixed-rail")) {
         if (visible(panel)) surfaces.push(getComputedStyle(panel).backgroundColor);
       }
-      const palette = resolveMenuInteractionTheme({ category: categoryColor, surfaces, inks });
+      const pageTitle = dining ? style.getPropertyValue("--aube-page-title-ink").trim() : undefined;
+      const palette = resolveMenuInteractionTheme({ category: categoryColor, pageTitle, surfaces, inks });
       const coverActive = dining && root.dataset.coverActive === "true";
       const cover = coverActive ? root.querySelector<HTMLElement>("[data-aube-table-cover]") : null;
+      const coverDescription = root.querySelector<HTMLElement>(".aube-table-cover-description");
+      const preferredToolsInk = coverDescription ? getComputedStyle(coverDescription).color : style.getPropertyValue("--aube-cover-copy-ink").trim();
+      const control = container.parentElement?.querySelector<HTMLElement>("[data-table-menu-header]") ?? root.querySelector<HTMLElement>("[data-dining-menu-toolbar],[data-aube-table-language-control]");
+      const toolSurface = dining ? readDiningToolSurface(root, control, schedule) : style.backgroundColor;
+      const toolPalette = cover ? [pageTitle ?? "", preferredToolsInk, ...(brand ? [getComputedStyle(brand).color] : []), ...[...cover.querySelectorAll<HTMLElement>("h1,.aube-table-cover-notices")].map(e=>getComputedStyle(e).color), getComputedStyle(cover).backgroundColor] : [...inks, ...surfaces];
       const next = { ...palette, ...(dining ? {
-        "--menu-dining-language-ink": resolveMenuToolsInk({ preferred: palette["--menu-order-bg"], surface: "#ffffff" }),
+        "--menu-dining-language-ink": resolveMenuToolsInk({ preferred: categoryColor, surface: "#ffffff" }),
         "--menu-dining-tools-surface": coverActive ? "transparent" : style.backgroundColor,
         "--menu-dining-tools-ink": resolveMenuToolsInk({
-          preferred: palette["--menu-order-bg"],
-          surface: cover ? getComputedStyle(cover).backgroundColor : style.backgroundColor,
-          photo: coverActive && root.dataset.coverImageActive === "true",
+          preferred: preferredToolsInk,
+          surface: toolSurface,
+          palette: toolPalette,
         }),
       } : {}) };
       setTheme(previous => JSON.stringify(previous) === JSON.stringify(next) ? previous : next);
     };
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    const schedule = () => { if (!disposed && !frame) frame = requestAnimationFrame(update); };
     const observer = new MutationObserver(schedule);
     observer.observe(container, { subtree: true, childList: true, attributes: true, attributeFilter: ["style", "class", "data-theme", "data-fit-presentation-state", "data-cover-active", "data-cover-image-active"] });
+    container.addEventListener("load", schedule, true);
     window.addEventListener("resize", schedule);
     schedule();
-    return () => { observer.disconnect(); cancelAnimationFrame(frame); window.removeEventListener("resize", schedule); };
+    return () => { disposed = true; container.removeEventListener("load", schedule, true); observer.disconnect(); cancelAnimationFrame(frame); window.removeEventListener("resize", schedule); };
   }, [content]);
   return theme as CSSProperties;
 }

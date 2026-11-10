@@ -55,8 +55,12 @@ try {
           const next = await buttonStyle(call);
           assert.deepEqual([next.bg, next.ink, next.border], [initial.bg, initial.ink, initial.border], `page ${index} retains cover palette`);
         }
-        // Saved/preview category colors must update without page-dependent sampling.
+        // Dining category edits are independent; the page-title accent updates actions.
         await p.locator('.aube-table-root').evaluate(e => e.style.setProperty('--menu-design-category-ink', '#70528e'));
+        await settle(p);
+        const categoryOnly = await buttonStyle(call);
+        assert.deepEqual([categoryOnly.bg, categoryOnly.ink, categoryOnly.border], [initial.bg, initial.ink, initial.border]);
+        await p.locator('.aube-table-root').evaluate(e => e.style.setProperty('--menu-text-pageTitle', '#70528e'));
         await p.waitForFunction(() => document.querySelector('[data-menu-interaction-shell]').style.getPropertyValue('--menu-call-circle-bg') === '#70528e');
         const custom = await buttonStyle(call);
         await tabs.nth(1).click(); await settle(p);

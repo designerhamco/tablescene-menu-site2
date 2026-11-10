@@ -2,13 +2,24 @@ import { normalizeBackgroundColor } from "./template-background-colors";
 import { menuSurfaceRecord } from "./menu-design-surfaces";
 import { menuColorContrast } from "./menu-interaction-theme";
 
-export const MENU_TEXT_COLOR_GROUPS = ["brand", "representative", "category", "product", "supporting", "information"] as const;
+export const MENU_TEXT_COLOR_GROUPS = ["brand", "representative", "pageTitle", "category", "sectionDescription", "product", "supporting", "information"] as const;
 export type MenuTextColorGroup = typeof MENU_TEXT_COLOR_GROUPS[number];
 export type MenuTextColors = Partial<Record<MenuTextColorGroup, string>>;
+/** Dining owns page titles and shared section descriptions; Basic keeps its six groups. */
+export function getMenuTextColorGroups(dining = false): readonly MenuTextColorGroup[] {
+  return dining ? MENU_TEXT_COLOR_GROUPS : MENU_TEXT_COLOR_GROUPS.filter(group => group !== "pageTitle" && group !== "sectionDescription");
+}
+/** Native fallbacks shared by the editor and preview when a page is unmounted. */
+export function getDiningTextColorDefaults(templateKey?: string | null, neutral = false) {
+  return { pageTitle: neutral ? "#191C1B" : templateKey === "dining_aube_table_b" ? "#A66D52" : "#C5A165",
+    sectionDescription: templateKey === "dining_aube_table_b" ? "#756B68" : "#72757D" };
+}
 export const MENU_TEXT_COLOR_LABELS: Record<MenuTextColorGroup, string> = {
-  brand: "가게명", category: "카테고리명", product: "메뉴 기본정보", representative: "가게 설명·안내", supporting: "메뉴 설명", information: "하단 안내·위젯",
+  pageTitle: "페이지 제목", sectionDescription: "페이지·카테고리 설명", brand: "가게명", category: "카테고리명", product: "메뉴 기본정보", representative: "가게 설명·안내", supporting: "메뉴 설명", information: "하단 안내·위젯",
 };
 export const MENU_TEXT_COLOR_DESCRIPTIONS: Record<MenuTextColorGroup, string> = {
+  pageTitle: "본문 페이지 제목·주문 및 호출 강조색",
+  sectionDescription: "페이지 제목 아래 설명·카테고리 설명",
   brand: "가게명",
   category: "카테고리명·카테고리설명·카테고리 장식·가격 옵션명",
   product: "상품명·판매가격·가격설명",
@@ -23,6 +34,7 @@ export function getMenuTextColorLabel(group: MenuTextColorGroup, dining = false)
 
 export function getMenuTextColorDescription(group: MenuTextColorGroup, dining = false): string {
   if (dining && group === "information") return "위젯텍스트";
+  if (dining && group === "category") return "카테고리명·카테고리 장식·가격 옵션명";
   if (dining && group === "representative") return "커버설명·커버 안내사항";
   return MENU_TEXT_COLOR_DESCRIPTIONS[group];
 }
@@ -39,11 +51,18 @@ export function readMenuTextColors(pageSettings: unknown): MenuTextColors {
   return normalizeMenuTextColors(menuSurfaceRecord(menuSurfaceRecord(pageSettings).design).textColors);
 }
 /** Preserve the former combined color on saved menus/old preview URLs until edited. */
-export function resolvedMenuTextColors(pageSettings: unknown): MenuTextColors {
+export function resolvedMenuTextColors(pageSettings: unknown, dining = false): MenuTextColors {
   const colors = readMenuTextColors(pageSettings);
   const design = menuSurfaceRecord(menuSurfaceRecord(pageSettings).design);
-  return colors.information || design.textColorGroupsVersion === 2 || !colors.supporting
+  const resolved = colors.information || design.textColorGroupsVersion === 2 || !colors.supporting
     ? colors : { ...colors, information: colors.supporting };
+  // Freeze former combined title ink on the first new editor/preview edit.
+  // The version marker then makes clearing or changing either group independent.
+  return dining && design.diningTextColorGroupsVersion !== 1 ? {
+    ...resolved,
+    ...(!colors.pageTitle && colors.category ? { pageTitle: colors.category } : {}),
+    ...(!colors.sectionDescription && colors.supporting ? { sectionDescription: colors.supporting } : {}),
+  } : resolved;
 }
 /** Absent controls leave older forms untouched. An empty submitted group restores its native/legacy color. */
 export function setMenuTextColorsFromForm(design: Record<string, unknown>, form: Pick<FormData, "get">) {
@@ -56,10 +75,12 @@ export function setMenuTextColorsFromForm(design: Record<string, unknown>, form:
     if (!color) throw new Error("글자색은 #RRGGBB 형식으로 선택해주세요.");
     colors[group] = color;
   }
-  if (form.get("text_color_information") == null) {
-    const previous = readMenuTextColors({ design });
-    if (previous.information) colors.information = previous.information;
-  } else if (Object.keys(colors).length) design.textColorGroupsVersion = 2;
+  const previous = readMenuTextColors({ design });
+  for (const group of ["information", "pageTitle", "sectionDescription"] as const) {
+    if (form.get(`text_color_${group}`) == null && previous[group]) colors[group] = previous[group];
+  }
+  if (form.get("text_color_information") != null && Object.keys(colors).length) design.textColorGroupsVersion = 2;
+  if (form.get("dining_text_colors_present") === "1") design.diningTextColorGroupsVersion = 1;
   if (Object.keys(colors).length) design.textColors = colors;
   else { delete design.textColors; delete design.textColorGroupsVersion; }
 }

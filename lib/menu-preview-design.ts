@@ -8,7 +8,7 @@ import { getMenuDesignBackgrounds, getResolvedBackgroundColor, normalizeBackgrou
 import { getCustomBadgeStyles, mergeBadgeStyles } from "./template-badge-styles";
 import { DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR, getTemplateTimeSaleBadgeTextColor } from "./menu-time-sales";
 import { readPreviewChipColors, type PreviewChipColors } from "./menu-preview-chip-colors";
-import { normalizeMenuTextColors, resolvedMenuTextColors, type MenuTextColors } from "./menu-text-colors";
+import { getDiningTextColorDefaults, normalizeMenuTextColors, resolvedMenuTextColors, type MenuTextColors } from "./menu-text-colors";
 import { MOCHA_FOREST_PANEL_COLORS } from "./mocha-forest-panels";
 
 export const PREVIEW_FONT_GROUPS = ["brand", "category", "other"] as const;
@@ -17,6 +17,7 @@ export type PreviewFontChoice = { color?: string; ko?: KoreanFontValue; en?: Eng
 export type PreviewDesign = {
   textColors?: MenuTextColors;
   textColorGroupsVersion?: 2;
+  diningTextColorGroupsVersion?: 1;
   pageBackground?: string;
   auxiliaryBackground?: string;
   coverBackground?: string;
@@ -36,6 +37,7 @@ export function readPreviewDesign(raw: unknown): PreviewDesign {
   try { source = record(typeof raw === "string" && raw.length <= 4000 ? JSON.parse(raw) : raw); } catch { return {}; }
   const result: PreviewDesign = {};
   if (source.textColorGroupsVersion === 2) result.textColorGroupsVersion = 2;
+  if (source.diningTextColorGroupsVersion === 1) result.diningTextColorGroupsVersion = 1;
   for (const key of ["pageBackground", "auxiliaryBackground", "coverBackground", "sidebarBackground", "coverDescriptionColor"] as const) {
     const color = normalizeBackgroundColor(source[key]); if (color) result[key] = color;
   }
@@ -67,6 +69,7 @@ export function readPreviewDesign(raw: unknown): PreviewDesign {
 export function serializePreviewDesign(value: PreviewDesign) { const clean = readPreviewDesign(value); return Object.keys(clean).length ? JSON.stringify(clean) : undefined; }
 export function previewDesignDefaults(data: MenuPageData) {
   const key = data.menuSite.template_key;
+  const dining = key?.startsWith("dining_aube_table_") === true;
   const typography = mergeTypographySettings(key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
   const backgrounds = getMenuDesignBackgrounds(key, data.menuSite.page_settings);
   const savedDesignId = record(data.menuSite.settings).menu_design_id;
@@ -75,9 +78,11 @@ export function previewDesignDefaults(data: MenuPageData) {
   const badge = mergeBadgeStyles(key, getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings)).default;
   const saleBackground = data.timeSales?.[0]?.badgeBackgroundColor ?? DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR;
   return {
-    textColors: resolvedMenuTextColors(data.menuSite.page_settings),
+    textColors: resolvedMenuTextColors(data.menuSite.page_settings, key?.startsWith("dining_aube_table_") === true),
     textColorDefaults: {
       brand: typography.typography_roles.brand.color ?? normalizeBackgroundColor(data.menuSite.brand_color) ?? "#191C1B",
+      pageTitle: typography.typography_roles.category.color ?? (dining ? getDiningTextColorDefaults(key, neutral).pageTitle : normalizeBackgroundColor(data.menuSite.brand_color) ?? "#191C1B"),
+      sectionDescription: typography.typography_roles.supporting.color ?? (dining ? getDiningTextColorDefaults(key, neutral).sectionDescription : "#191C1B"),
       category: typography.typography_roles.category.color ?? normalizeBackgroundColor(data.menuSite.brand_color) ?? "#191C1B",
       product: typography.typography_roles.itemName.color ?? typography.typography_roles.price.color ?? "#191C1B",
       representative: typography.typography_roles.supporting.color ?? "#191C1B",
@@ -107,7 +112,8 @@ export function applyPreviewDesign(source: MenuPageData, value: unknown, album: 
   const data = structuredClone(source), page = record(data.menuSite.page_settings), design = record(page.design);
   if (overrides.textColors) {
     // Resolve the previous combined group before entering the independent scheme.
-    design.textColors = { ...resolvedMenuTextColors(page), ...overrides.textColors };
+    design.textColors = { ...resolvedMenuTextColors(page, data.menuSite.template_key?.startsWith("dining_aube_table_") === true), ...overrides.textColors };
+    if (overrides.diningTextColorGroupsVersion === 1) design.diningTextColorGroupsVersion = 1;
     if (overrides.textColorGroupsVersion === 2) design.textColorGroupsVersion = 2;
   }
   if (overrides.chipColors) design.previewChipColors = overrides.chipColors;

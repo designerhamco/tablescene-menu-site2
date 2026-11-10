@@ -59,6 +59,7 @@ export function applyTemplatePreviewOptions(source: MenuPageData, query: Templat
   if (enabled("coverImagesPreview") !== undefined) data.pageSettings.cover_image_visible = enabled("coverImagesPreview")!;
   if (enabled("imagesPreview") === false) data.items.forEach(item => { item.image_url = null; });
   if (enabled("imagesPreview") === true) ordinary.forEach(item => { item.image_url ||= image; });
+  if (enabled("pageDescriptionsPreview") !== undefined) data.pages.forEach(page => { page.description_visible = enabled("pageDescriptionsPreview")!; if (page.description_visible) page.description ||= copy.category; });
   if (enabled("categoryDescriptionsPreview") === false) data.categories.forEach(category => { category.description = null; category.description_visible = false; });
   if (enabled("categoryDescriptionsPreview") === true) {
     data.categories.forEach(category => { category.description_visible = true; category.description ||= copy.category; });

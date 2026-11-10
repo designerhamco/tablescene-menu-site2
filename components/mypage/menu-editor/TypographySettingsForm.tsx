@@ -35,7 +35,7 @@ import {
   type TypographyRoleSettings,
 } from "@/lib/template-typography-presets";
 import PreviewColorPicker from "@/components/menu/PreviewColorPicker";
-import { MENU_TEXT_COLOR_GROUPS, getMenuTextColorLabel, getMenuTextColorDescription, resolvedMenuTextColors, type MenuTextColors } from "@/lib/menu-text-colors";
+import { getDiningTextColorDefaults, getMenuTextColorGroups, getMenuTextColorLabel, getMenuTextColorDescription, resolvedMenuTextColors, type MenuTextColors } from "@/lib/menu-text-colors";
 import type { TemplateType } from "@/lib/template-types";
 
 type TypographySettingsFormProps = {
@@ -236,7 +236,7 @@ export default function TypographySettingsForm({
   );
   const [selectedFontSizeScale, setSelectedFontSizeScale] = useState<FontSizeScaleKey>(initialDisplaySafeFontSizeScale);
   const [selectedRoleSettings, setSelectedRoleSettings] = useState<TypographyRoleSettings>(showRoleTypographyControl ? withCommonTypographyFonts(initialRoleSettings) : initialRoleSettings);
-  const [textColors, setTextColors] = useState<MenuTextColors>(() => resolvedMenuTextColors(pageSettings));
+  const [textColors, setTextColors] = useState<MenuTextColors>(() => resolvedMenuTextColors(pageSettings, isAubeTableTemplate));
   const safeSelectedEnglishFontValue = selectedEnglishFontValue
     ? getSafeEnglishFontValueForTemplate(templateKey, selectedEnglishFontValue)
     : "";
@@ -272,7 +272,8 @@ export default function TypographySettingsForm({
           <>
             <input form={formId} type="hidden" name="common_fonts_present" value="1" />
             <input form={formId} type="hidden" name="text_colors_present" value="1" />
-            {MENU_TEXT_COLOR_GROUPS.map(group => <input key={group} form={formId} type="hidden" name={`text_color_${group}`} value={textColors[group] ?? ""} />)}
+            {isAubeTableTemplate ? <input form={formId} type="hidden" name="dining_text_colors_present" value="1" /> : null}
+            {getMenuTextColorGroups(isAubeTableTemplate).map(group => <input key={group} form={formId} type="hidden" name={`text_color_${group}`} value={textColors[group] ?? ""} />)}
             <input form={formId} type="hidden" name="font_size_scale_key" value={selectedFontSizeScale} />
             <div className="grid gap-4 xl:grid-cols-2" data-editor-common-fonts>
               <FontPicker label="공통 한글 서체" description="가게명·카테고리·메뉴에 공통 적용됩니다. 설명과 안내사항은 영문도 이 서체를 사용합니다." name="korean_font_key" options={KOREAN_FONT_OPTIONS} categoryOptions={KOREAN_FONT_CATEGORY_OPTIONS} value={selectedFontValue} defaultOption={defaultFont} formId={formId} onChange={setSelectedFontValue} />
@@ -310,11 +311,11 @@ export default function TypographySettingsForm({
                 </button>
               </div>
               <div className="site-section site-editor-subpanel mt-4 divide-y divide-zinc-100">
-                {MENU_TEXT_COLOR_GROUPS.map(group => {
-                  const role = group === "brand" || group === "category" ? group : group === "product" ? "itemName" : "supporting";
+                {getMenuTextColorGroups(isAubeTableTemplate).map(group => {
+                  const role = group === "brand" || group === "category" ? group : group === "pageTitle" ? "category" : group === "product" ? "itemName" : "supporting";
                   return <div key={group} className="grid gap-3 px-3 py-3 lg:grid-cols-[minmax(8rem,1fr)_minmax(8rem,0.8fr)] lg:items-center">
                     <div><p className="text-copy font-medium text-zinc-800">{getMenuTextColorLabel(group, isAubeTableTemplate)}</p><p className="mt-1 break-keep text-support leading-relaxed text-zinc-600">{getMenuTextColorDescription(group, isAubeTableTemplate)}</p></div>
-                    <PreviewColorPicker label="글자색" accessibleLabel={`${getMenuTextColorLabel(group, isAubeTableTemplate)} 글자색`} value={textColors[group]} defaultColor={selectedRoleSettings[role].color ?? "#191C1B"} disabled={false} onChange={color => setTextColors(current => ({ ...current, [group]: color }))} />
+                    <PreviewColorPicker label="글자색" accessibleLabel={`${getMenuTextColorLabel(group, isAubeTableTemplate)} 글자색`} value={textColors[group]} defaultColor={(group === "pageTitle" ? selectedRoleSettings.category.color ?? getDiningTextColorDefaults(templateKey).pageTitle : group === "sectionDescription" ? selectedRoleSettings.supporting.color ?? getDiningTextColorDefaults(templateKey).sectionDescription : selectedRoleSettings[role].color) ?? "#191C1B"} disabled={false} onChange={color => setTextColors(current => ({ ...current, [group]: color }))} />
                   </div>;
                 })}
               </div>

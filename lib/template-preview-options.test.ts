@@ -100,7 +100,7 @@ test("supported options match each native engine and preserve neutral album excl
   const basic = getTemplatePreviewOptionGroups("cafe_sunday_line_a").flatMap(group => group.choices.map(([key]) => key));
   const dining = getTemplatePreviewOptionGroups("dining_aube_table_a").flatMap(group => group.choices.map(([key]) => key));
   assert.equal(basic.length, 14); assert.ok(basic.includes("widgetsPreview"));
-  assert.equal(dining.length, 11); assert.ok(dining.includes("coverImagesPreview"));
+  assert.equal(dining.length, 12); assert.ok(dining.includes("pageDescriptionsPreview")); assert.ok(!basic.includes("pageDescriptionsPreview")); assert.ok(dining.includes("coverImagesPreview"));
   assert.ok(!dining.includes("featuredPreview") && !dining.includes("timeSalesPreview"));
   assert.deepEqual(getTemplatePreviewOptionGroups("display_menu_a"), []);
   for (const design of DEFAULT_DESIGN_REVIEWS.filter(design => design.itemLayout === "album" && design.layout.startsWith("basic-"))) {
@@ -225,4 +225,18 @@ test("Van Gogh starts cover OFF but keeps the representative-area control availa
   assert.equal(enabled.pageSettings.menu_cover_enabled, true);
   for (const device of ["pc", "tablet", "mobile"] as const) assert.equal(enabled.pageSettings[`menu_cover_visible_${device}`], true);
   assert.deepEqual(source, original, "starter OFF and source data remain unchanged");
+});
+
+test("Dining page-description visibility is independent of category descriptions and preserves source copy", () => {
+  const source=fixture();source.menuSite.template_key="dining_aube_table_a";
+  source.pages[0].description="페이지 소개";source.pages[0].description_visible=true;
+  const hidden=applyTemplatePreviewOptions(source,{pageDescriptionsPreview:"off"});
+  assert.equal(hidden.pages[0].description,"페이지 소개");assert.equal(hidden.pages[0].description_visible,false);
+  assert.equal(hidden.categories[0].description_visible,true);
+  const shown=applyTemplatePreviewOptions(hidden,{pageDescriptionsPreview:"on",categoryDescriptionsPreview:"off"});
+  assert.equal(shown.pages[0].description_visible,true);assert.equal(shown.pages[0].description,"페이지 소개");
+  assert.equal(shown.categories[0].description_visible,false);
+  assert.equal(source.pages[0].description_visible,true);assert.equal(source.categories[0].description_visible,true);
+  source.pages[0].description=null;
+  assert.ok(applyTemplatePreviewOptions(source,{pageDescriptionsPreview:"on"}).pages[0].description);
 });

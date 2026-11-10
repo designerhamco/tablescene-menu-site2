@@ -39,7 +39,9 @@ export function previewRadiusSelection(images: (number|string)[], chips: (number
 
 const samples: Record<MenuTextColorGroup, string[]> = {
   brand: [".cafe-a-store-title", ".aube-table-cover h1"],
-  category: [".cafe-a-category-title", ".aube-table-course-header h2", ".aube-table-course-title h2", ".aube-table-page-header h1"],
+  pageTitle: [".aube-table-page-header h1"],
+  sectionDescription: [".aube-table-page-description", ".aube-table-course-description"],
+  category: [".cafe-a-category-title", ".aube-table-course-header h2", ".aube-table-course-title h2"],
   product: [".cafe-a-menu-title", ".aube-table-item-heading h3", ".cafe-a-featured-title"],
   representative: [".cafe-a-store-description", "[data-cafe-a-store-description]", ".cafe-a-topline-description", ".aube-table-cover-description", ".aube-table-cover-notices"],
   supporting: [".cafe-a-menu-description:not([data-cafe-a-category-description]):not(.cafe-a-store-description):not([data-cafe-a-store-description]):not(.cafe-a-time-sale-time-text)", ".cafe-a-menu-meta", ".aube-table-item-description", ".aube-table-item-secondary"],
@@ -50,7 +52,7 @@ const samples: Record<MenuTextColorGroup, string[]> = {
 function nativeColor(element: Element, group: MenuTextColorGroup, doc: Document): string | undefined {
   const win = doc.defaultView;
   if (!win) return;
-  if (!element.closest(`[data-text-color-${group}]`)) return previewCssColorHex(win.getComputedStyle(element).color);
+  if (!element.closest(`[data-text-color-${group === "pageTitle" ? "page-title" : group === "sectionDescription" ? "section-description" : group}]`)) return previewCssColorHex(win.getComputedStyle(element).color);
   const ancestors: Element[] = [];
   for (let node: Element | null = element; node && node !== doc.body; node = node.parentElement) ancestors.unshift(node);
   if (!ancestors.length) return;
@@ -58,7 +60,8 @@ function nativeColor(element: Element, group: MenuTextColorGroup, doc: Document)
   for (const ancestor of ancestors) {
     const copy = ancestor.cloneNode(ancestor === element) as HTMLElement;
     copy.removeAttribute("id");
-    copy.removeAttribute(`data-text-color-${group}`);
+    if (group === "pageTitle" || group === "sectionDescription") copy.style.removeProperty(`--menu-text-${group}`);
+    copy.removeAttribute(`data-text-color-${group === "pageTitle" ? "page-title" : group === "sectionDescription" ? "section-description" : group}`);
     if (!sample) sample = copy; else cursor!.append(copy);
     cursor = copy;
   }
@@ -96,6 +99,8 @@ export function readPreviewRenderedDesign(doc: Document): PreviewRenderedDesign 
     const style = win.getComputedStyle(dining);
     const token = (...names: string[]) => names.map(name => previewCssColorHex(style.getPropertyValue(name).trim())).find(Boolean);
     nativeTextColors.brand = token("--menu-role-brand-color", "--aube-accent");
+    nativeTextColors.pageTitle = token("--menu-role-category-color", "--aube-accent");
+    nativeTextColors.sectionDescription = token("--menu-role-supporting-color", "--aube-muted");
     nativeTextColors.category = token("--menu-role-category-color", "--aube-ink");
     nativeTextColors.product = token("--menu-role-item-name-color", "--aube-ink");
     nativeTextColors.supporting = token("--aube-item-copy");

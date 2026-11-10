@@ -61,7 +61,7 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
     badge: index === 0 ? "추천" : item.badge,
     badge_label: index === 0 ? "추천" : item.badge_label,
   }));
-  data.pages = data.pages.map(page => ({ ...page, description: page.description ? neutralizeDiningSampleText(page.description) : null }));
+  data.pages = data.pages.map(page => ({ ...page, description: page.description ? neutralizeDiningSampleText(page.description) : null, description_visible: options.pageDescriptionsPreview }));
   const basicCategoryDescriptions: Record<string, string> = {
     SIGNATURE: "좋은 재료로 완성한 시그니처 음료입니다.",
     BAKERY: "커피와 함께 즐기기 좋은 디저트입니다.",

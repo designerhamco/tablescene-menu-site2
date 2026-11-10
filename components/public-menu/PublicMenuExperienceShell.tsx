@@ -42,12 +42,12 @@ export default function PublicMenuExperienceShell({
   }
 
   if (
-    orderCallConfig &&
-    (orderCallConfig.orderEnabled || orderCallConfig.callEnabled || orderCallConfig.hasValidTableSession)
+    isAubeTableTemplate(templateKey) || (orderCallConfig &&
+    (orderCallConfig.orderEnabled || orderCallConfig.callEnabled || orderCallConfig.hasValidTableSession))
   ) {
     return (
       <TableMenuInteractions
-        config={orderCallConfig}
+        config={orderCallConfig ?? getLockedOrderCallEntryConfig({ storeName: storeName ?? undefined })}
         presentation={isAubeTableTemplate(templateKey) ? "aube" : "cafe"}
         locale={currentLocale}
         locales={enabledLocales}

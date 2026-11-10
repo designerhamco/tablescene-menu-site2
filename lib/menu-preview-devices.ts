@@ -46,7 +46,7 @@ export const MENU_PREVIEW_QUERY_KEYS = [
   "lang", "page", "debugCafeA", "callPreview", "orderPreview", "layoutMode",
   "designPreview", "previewOptions", "albumImageRatio", "logoPreview", "popupPreview",
   "coverImagesPreview", "widgetsPreview", "coverPreview", "featuredPreview", "imagesPreview",
-  "categoryDescriptionsPreview", "secondaryNamesPreview", "descriptionsPreview", "badgesPreview",
+  "pageDescriptionsPreview", "categoryDescriptionsPreview", "secondaryNamesPreview", "descriptionsPreview", "badgesPreview",
   "priceOptionsPreview", "priceNotesPreview", "timeSalesPreview", "soldOutPreview",
 ] as const;
 
@@ -134,7 +134,7 @@ const TEMPLATE_PREVIEW_QUERY_KEYS = [
   "coverPreview",
   "featuredPreview",
   "imagesPreview",
-  "categoryDescriptionsPreview",
+  "pageDescriptionsPreview", "categoryDescriptionsPreview",
   "secondaryNamesPreview",
   "descriptionsPreview",
   "badgesPreview",

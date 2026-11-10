@@ -32,6 +32,11 @@ export default async function WidgetPlacementQa({ searchParams }: { searchParams
     data.pageSettings = { ...data.pageSettings, menu_cover_enabled: true };
     data.menuSite.page_settings = data.pageSettings;
   }
+  if (key.startsWith("dining_") && ["dark", "light"].includes(first("photo") ?? "")) {
+    data.menuSite.cover_image_url = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900"><path fill="${first("photo") === "dark" ? "#101820" : "#fffdf8"}" d="M0 0h1200v900H0z"/></svg>`)}`;
+    data.pageSettings = {...data.pageSettings,cover_image_visible:true,multi_page_cover_background_opacity:0};
+    data.menuSite.page_settings = data.pageSettings;
+  }
   if (first("coverImage") === "off") data.pageSettings.cover_image_visible = false;
   const noticeCount = Number(first("notices"));
   if (first("notices") !== undefined && [0, 1, 2, 3].includes(noticeCount)) {

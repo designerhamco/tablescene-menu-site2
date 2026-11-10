@@ -1,12 +1,14 @@
 # Shared text color groups — 2026-10-24
 
-The catalog preview and menu editor now expose the same six optional color groups through saved `design.textColors`.
+The catalog preview and menu editor share saved `design.textColors`. Basic keeps six optional groups. Dining adds independent `pageTitle` and `sectionDescription` groups (eight total); its page and category descriptions share the latter, while category headings/ornaments remain separate. These current Dining roles supersede older combined references in the dated verification history below.
 
 | Control | Ownership |
 | --- | --- |
 | 가게명 | Store text identity |
 | 가게 설명·안내 | Store description and notices physically inside the representative surface |
-| 카테고리명 | Category headings, category descriptions, category-owned lines/ornaments and price-option names, including inline option labels |
+| 카테고리명 | Category headings, ornaments and price-option names; Basic also owns category descriptions |
+| 페이지 제목 (Dining) | Body-page titles and Order/Call accent |
+| 페이지·카테고리 설명 (Dining) | Both page introductions and category/course descriptions |
 | 메뉴 기본정보 | Product/featured name, selling price and price explanation |
 | 메뉴 설명 | Secondary names and product descriptions |
 | 하단 안내·위젯 | Menu-area notices and widget title/body |
@@ -25,7 +27,7 @@ Original time-sale prices use the local selling-price hue blended at 60% concent
 - Notices: top-row notices use the representative color; ordinary menu-footer notices use the menu-description color. ROSY mobile notices inside the representative block use its representative color.
 - The picker leaves iframe colors unchanged until Apply; reset removes the temporary override from the preview URL. Menu editor restores saved colors in its controls and uses the same staged picker.
 - Dining A/B cover text and Dining B course/product/price-description text follow the same groups. The former duplicate cover-description picker is replaced by the representative-description group; old saved cover colors remain compatible.
-- The order button still follows the rendered category color with its existing light foreground.
+- Basic Order follows category ink. Current Dining Order/circular Call use page-title ink; rectangular Call text/border use that same ink.
 - Production QA fixture remains 404. The local fixture never reads or writes a customer menu.
 
 Preview labels now read “이미지·텍스트칩 라운드” and “가게명·가게 설명 정렬”. The radius scope is shown once; the old duplicate labels and radius/alignment footer copy are removed. Radius behavior, logo handling and featured-product left alignment are unchanged.
