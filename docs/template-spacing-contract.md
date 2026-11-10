@@ -1,5 +1,9 @@
 # Menu template spacing contract
 
+## Mobile service dock surface — 2026-11-10
+
+The mobile Call/Order container is always transparent for all customer-menu templates, including ONUE, the neutral upper-left list and Dining/multi-page. It must not paint a page/auxiliary/native color, opaque strip, gradient, border or shadow around the buttons. Only the individual buttons use their existing readable fills, borders and ink. Keep existing placement, action order, measured content clearance, padding and safe-area reservation; transparency is not permission to cover final content or alter the desktop/tablet action surface. New templates use the same shared dock rule.
+
 ## Service action order — 2026-11-10
 
 Every customer-menu service action group uses Call then Order on PC, tablet and mobile. Keep both DOM and visual order consistent (left to right): 호출하기 → 주문하기. Basic one-page and the shared TableMenuMobileDock used by Dining/multi-page follow the same rule. With only one feature enabled, render that action alone and preserve its handler, cart count, permissions and accessible name. The language/table/cart header tools remain a separate toolbar.
