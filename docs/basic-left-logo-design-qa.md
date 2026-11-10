@@ -20,4 +20,6 @@
 
 `20261110042640_add_basic_top_row_left_logo_design.sql`은 기존 함수 3개의 기본 디자인 허용 목록에 새 ID 하나만 추가한다. 함수 시그니처·권한·서비스 검증·가격·결제 확인·레코드 갱신 로직은 그대로이며, 회귀 테스트에서 기존 함수와의 차이가 허용 목록 추가뿐인지 비교한다.
 
-운영 DB 적용은 별도 승인 후 수행한다. SQL 런타임 실행/운영 적용은 아직 하지 않았다. SQL 적용과 확인이 끝난 뒤 웹 변경을 병합·배포해야 한다. 기존 고객 메뉴나 구독을 자동 변경하지 않는다.
+Applied on 2026-11-10 to linked `tablescene-prod` (`kfbekbapwsyeanobyjsv`) after explicit user approval in this chat. Before execution, all three live function bodies exactly matched the repository baseline and did not contain the new ID. Executed this one SQL file once with `supabase db query --linked --file`; no bulk `db push` was used.
+
+Postcheck: each function contains the new ID exactly once. Removing only that added string restores the complete prior function body byte for byte. Function signatures, execution ACLs, security-definer flags and empty search_path settings are unchanged. No customer menu, subscription or payment records were changed, and no real payment was executed. SQL is already applied and does not need to be rerun. Vercel Preview passed, and PR #519 merged as `12317169`. Production deployment verification is tracked in the PR.
