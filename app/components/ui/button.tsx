@@ -15,6 +15,7 @@ const buttonVariants = cva(
         outline: "site-button-outline",
         secondary: "site-button-secondary",
         ghost: "site-button-ghost",
+        media: "site-button-media",
         ai: "site-button-ai",
         kakao: "site-button-kakao",
         "outline-danger": "site-button-outline-danger",

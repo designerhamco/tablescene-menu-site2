@@ -204,3 +204,7 @@ section의 추가 appearance=document는 흰 선택 면이 아래 기준선과 �
 - 업종 등 버튼형 목록 조건은 완전히 둥근 캡슐형이다. 아이콘이 있는 필터는 `ChoiceTile purpose="filter"`, 짧은 텍스트 필터는 `site-filter`가 `--ui-radius-control`을 사용한다. 높이·패딩·아이콘·선택·비활성·포커스는 기존 공통 크기를 유지한다. 일반 기능/상품 선택 카드는 기존 사각형이며 `purpose="choice"`가 기본값이다. FAQ·알림 등의 밑줄형 주제 탭은 이 버튼형 필터와 다른 역할이다.
 - 룸 이름 선택과 룸 추가는 `--ui-radius-control-rounded`의8px 모서리를 사용한다. `Tabs purpose="section" appearance="rooms"`가 독립 사각형과 흰 선택 면·진한 경계를 소유한다. 왼쪽 고정 추가는 `Button shape="rounded" size="icon"`의 동일한 사각형이다. 기존 아이콘 버튼의40px 조작 영역과 룸 탭의sm40px 높이를 유지하며 다른 아이콘 도구는 기존 모양을 유지한다.
 - 테이블·키오스크 관리의 리스트/배치도와 주문·호출의 룸 선택에 같은 API를 적용한다. 추가 위치, 룸 순서·이름, 등록/저장/되돌리기, 선택 자동 노출·가로 스크롤·조건부 페이드, Radix 방향키·Home/End·선택/포커스와 저장 중 비활성을 유지한다. 고객 메뉴판 렌더러에는 적용하지 않는다.
+
+## 이미지 위의 이동 도구 (2026-11-11)
+
+`Button variant="media" size="icon"`은 사진 위 캐러셀에만 사용한다. 흰색 chevron과 미세한 그림자, 투명한 기본 면, hover/pressed의 반투명 면,40px 클릭 영역과 대비되는 focus 링을 공통 `--ui-media-*` 토큰으로 관리한다. 한 장에는 도구와 장수 표시가 없다. 일반 secondary/outline 버튼의 경계 규칙은 그대로 유지한다. 상세 규격과 실제 사용 예시는 `site-design-system.md`의 등록 이미지 캐러셀을 따른다.

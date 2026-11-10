@@ -388,8 +388,8 @@
 .site-catalog-layout-select [data-slot="select-value"] { min-width: 0; }
 .site-catalog-layout-options [data-slot="select-item"] { gap: .5rem; }
 .site-catalog-results .site-template-grid { grid-template-columns: minmax(0, 1fr); column-gap: 1.5rem; row-gap: 2.5rem; }
-.site-catalog-media-link { position: relative; display: block; border-radius: 1rem; }
-.site-catalog-media-link .site-template-media { border-radius: inherit; outline: 1px solid rgb(21 24 30 / 6%); outline-offset: -1px; }
+.site-catalog-media-wrap { position: relative; border-radius: 1rem; }
+.site-catalog-media-wrap > .site-template-media { border-radius: inherit; outline: 1px solid rgb(21 24 30 / 6%); outline-offset: -1px; }
 .site-catalog-image { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; }
 .site-catalog-open { position: absolute; right: .75rem; bottom: .75rem; display: grid; width: 2.25rem; height: 2.25rem; place-items: center; border: 1px solid var(--site-divider); border-radius: 50%; background: #fff; color: var(--ui-text); transition: background-color var(--ui-transition), color var(--ui-transition); }
 .site-catalog-open > svg { width: 1.125rem; height: 1.125rem; }

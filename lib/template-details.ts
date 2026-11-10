@@ -27,5 +27,6 @@ export function getTemplateDetailInfo(template:PublicTemplateDetail) {
     previewHref:design?.previewHref??`${getTemplateDetailHref(template.key)}/preview`,
     startHref:design?.startHref??(display?`/apply/display?template=${template.key}`:`/apply/basic?product=${productKey}&template=${template.key}`),
     listHref:display?'/templates?plan=display':`/templates?plan=${multiPage?'dining':'basic'}&category=${design?.kind??'designer'}`,
+    images:design?.images??[{src:`/template-previews/${getTemplatePreviewRouteKey(template.key)}.jpg`,label:"메뉴판 디자인"}],
     image:design?.image??`/template-previews/${getTemplatePreviewRouteKey(template.key)}.jpg`};
 }
