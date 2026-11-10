@@ -251,15 +251,5 @@
   background-size: calc((100% + var(--scroll-column-gap)) / var(--paged-columns)) 100%;
   mask-image: linear-gradient(to bottom, transparent, #000 95%);
 }
-.mobile[data-basic-structure="basic-upper-left"] :global([data-cafe-a-scroll-content]) {
-  background: var(--menu-design-aux-bg, #fff);
-}
 
 .frame[data-basic-structure="basic-upper-left"] .footer { padding: var(--basic-panel-action-inset); box-sizing: border-box; }
-.mobile[data-basic-structure="basic-upper-left"] :global(.cafe-a-mobile-call-dock) {
-  inset-inline: 0; bottom: 0;
-  padding: var(--basic-panel-action-inset);
-  padding-bottom: calc(var(--basic-panel-action-inset) + env(safe-area-inset-bottom, 0px));
-  background: var(--menu-design-page-bg, #fff);
-  box-sizing: border-box;
-}
