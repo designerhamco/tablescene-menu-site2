@@ -4795,6 +4795,11 @@ video {
   font-size: max(0.75rem, calc(var(--cafe-a-linked-item-name-size) * var(--cafe-a-sunday-secondary-ratio, 0.64))) !important;
 }
 
+.cafe-a-typography {
+  --basic-panel-workspace-gap: clamp(.5rem, .85vmin, .875rem);
+  --basic-panel-action-inset: 1rem;
+}
+
 /* Active Basic reading: one product-size policy for designer, neutral and album
    presentations. Legacy canvas and mobile retain their independent contracts.
    Reference-size headings keep their geometry; all descriptions share one token,
@@ -4802,8 +4807,6 @@ video {
    is shared by visible rows, measuring rows and representative products. */
 .cafe-a-typography[data-spacing-contract="contained-reading"] {
   --basic-reading-page-inset: clamp(2rem, 4.2vmin, 4.25rem);
-  --basic-panel-workspace-gap: clamp(.5rem, .85vmin, .875rem);
-  --basic-panel-action-inset: 1rem;
   --basic-reading-heading-inset: clamp(0.32rem, 0.62vmin, 0.56rem);
   --basic-reading-heading-stroke-space: clamp(0.1rem, 0.14vmin, 0.15rem);
   --cafe-a-product-reading-scale: .94;
@@ -6035,10 +6038,12 @@ video {
   --menu-call-bg: var(--menu-design-page-bg, var(--mocha-forest-ivory, #792839)) !important;
 }
 
-.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-mobile-call-dock {
+.cafe-a-typography:is([data-one-page-layout-shell="brand_panel_flow"], :has([data-upper-left-intro])) .cafe-a-mobile-call-dock {
   inset-inline: 0; bottom: 0;
   padding: var(--basic-panel-action-inset);
   padding-bottom: calc(var(--basic-panel-action-inset) + env(safe-area-inset-bottom, 0px));
-  background: var(--menu-design-page-bg, var(--native-background, #33221e));
+  background: var(--menu-design-page-bg, #fff);
   box-sizing: border-box;
 }
+
+.cafe-a-typography[data-cafe-a-mobile-style="true"]:has([data-upper-left-intro]) [data-cafe-a-scroll-content] { background: var(--menu-design-aux-bg, #fff); }
