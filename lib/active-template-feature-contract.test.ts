@@ -51,7 +51,7 @@ test("Basic launch starters retain the fixture evidence used by feature QA", () 
     assert.equal(items.filter((item) => item.is_sold_out).length, expected.soldOut, `${templateKey}: sold out`);
     assert.equal(items.some((item) => item.badge_label), expected.starterBadges, `${templateKey}: badge`);
     assert.equal(items.some((item) => item.image_url), expected.starterImages, `${templateKey}: starter images`);
-    assert.equal(Boolean(preset.site.cover_image_url), expected.cover !== "none" && templateKey !== "cafe_round_focus_a" && templateKey !== "cafe_van_gogh_a", `${templateKey}: cover image`);
+    assert.equal(Boolean(preset.site.cover_image_url), expected.cover !== "none" && !["cafe_round_focus_a", "cafe_van_gogh_a", "cafe_mocha_forest_a"].includes(templateKey), `${templateKey}: cover image`);
   }
 });
 

@@ -50,7 +50,7 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
       );
     } else if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a") {
       const items = categories.flatMap((category) => category.items);
-      assert.equal(items.every((item) => templateKey === "cafe_mocha_forest_a" ? Boolean(item.set_name?.trim()) : !item.set_name?.trim()), true);
+      assert.equal(items.every((item) => !item.set_name?.trim()), true);
       if (templateKey === "cafe_mocha_forest_a") {
         assert.equal(items.every((item) => Boolean(item.description?.trim())), true);
         const mochaBadges = new Map(
@@ -269,17 +269,16 @@ test("starter-specific image and promotion presentation stays intentional", () =
 
   const mochaForest = getStarterPreset("cafe_mocha_forest_a");
   assert.equal(mochaForest.widgets?.[0]?.type, "image");
-  assert.equal(mochaForest.widgets?.[0]?.image_url, "/menu-templates/cafe_mocha_forest_a/mellow-widget.png");
+  assert.equal(mochaForest.widgets?.[0]?.image_url, "/menu-templates/cafe_mocha_forest_a/mellow-widget-resized.png");
   assert.equal(mochaForest.widgets?.[0]?.settings?.aspectRatio, "2:1");
   assert.equal(mochaForest.widgets?.[0]?.settings?.objectFit, "contain");
   assert.equal(mochaForest.widgets?.[0]?.settings?.objectPosition, "bottom-right");
   assert.equal(mochaForest.widgets?.[0]?.settings?.placement, "bottom");
   assert.equal(mochaForest.featured_item_key, undefined);
-  assert.equal(mochaForest.featured_slides?.length, 1);
-  assert.equal(mochaForest.featured_slides?.[0]?.image_url, "/menu-templates/cafe_mocha_forest_a/featured.png");
+  assert.equal(mochaForest.featured_slides?.length, 0);
   assert.equal(mochaForest.featured_slides?.[0]?.featured_item_key, undefined);
-  assert.equal(mochaForest.menu_cover_visible_pc, true);
-  assert.equal(mochaForest.menu_cover_visible_tablet, true);
+  assert.equal(mochaForest.menu_cover_visible_pc, false);
+  assert.equal(mochaForest.menu_cover_visible_tablet, false);
   assert.equal(mochaForest.menu_cover_visible_mobile, false);
   const mochaSignatureItems = mochaForest.pages[0]?.categories.find((category) => category.key === "signature-coffee")?.items ?? [];
   assert.equal(mochaSignatureItems.every((item) => !item.image_url), true);
@@ -395,12 +394,13 @@ test("ONUE starters demonstrate complete product copy, multiple price rails and 
 });
 
 
-test("Mocha and Loop bilingual starters use the registered English copy for every item", () => {
+test("Loop starts bilingual and MELLOW retains registered translations without secondary rows", () => {
   for (const templateKey of ["cafe_mocha_forest_a", "fast_food_loop_bagel_a"]) {
     const english = getSinglePageStarterTranslations(templateKey)!.en.items;
     const first = getStarterPreset(templateKey);
     for (const menuItem of first.pages.flatMap(page => page.categories.flatMap(category => category.items))) {
-      assert.equal(menuItem.set_name, english[menuItem.key!].name.toUpperCase());
+      assert.ok(english[menuItem.key!].name);
+      assert.equal(menuItem.set_name, templateKey === "fast_food_loop_bagel_a" ? english[menuItem.key!].name.toUpperCase() : undefined);
     }
     first.pages[0].categories[0].items[0].set_name = "CUSTOMER EDIT";
     assert.notEqual(getStarterPreset(templateKey).pages[0].categories[0].items[0].set_name, "CUSTOMER EDIT", "reads do not mutate the starter source");

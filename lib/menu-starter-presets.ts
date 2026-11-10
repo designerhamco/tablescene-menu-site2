@@ -806,7 +806,8 @@ cafeMochaForestStarterPreset.site = {
   restaurant_name: "MELLOW",
   intro_title: "MELLOW",
   menu_cover_title: "MELLOW",
-  logo_url: "/menu-templates/cafe_mocha_forest_a/mellow-logo.png",
+  logo_url: "/menu-templates/cafe_mocha_forest_a/mellow-logo-resized.png",
+  cover_image_url: "",
   brand_description: "깊은 로스팅 향과 초콜릿의 풍미를 편안하게 즐길 수 있는 어두운 숲의 무드를 담은 커피 바입니다.",
   intro_description: "깊은 로스팅 향과 초콜릿의 풍미를 담은 커피 바입니다.",
   menu_cover_description: "깊은 로스팅 향과 초콜릿의 풍미를 담은 커피 바입니다.",
@@ -825,17 +826,11 @@ cafeMochaForestStarterPreset.site = {
 };
 cafeMochaForestStarterPreset.featured_item_name = undefined;
 cafeMochaForestStarterPreset.featured_item_key = undefined;
-cafeMochaForestStarterPreset.menu_cover_visible_pc = true;
-cafeMochaForestStarterPreset.menu_cover_visible_tablet = true;
+cafeMochaForestStarterPreset.menu_cover_enabled = false;
+cafeMochaForestStarterPreset.menu_cover_visible_pc = false;
+cafeMochaForestStarterPreset.menu_cover_visible_tablet = false;
 cafeMochaForestStarterPreset.menu_cover_visible_mobile = false;
-cafeMochaForestStarterPreset.featured_slides = [
-  {
-    id: "mocha-forest-cover-image",
-    image_url: "/menu-templates/cafe_mocha_forest_a/featured.png",
-    image_path: null,
-    sort_order: 0,
-  },
-];
+cafeMochaForestStarterPreset.featured_slides = [];
 cafeMochaForestStarterPreset.time_sales = [
   {
     key: "americano-morning-deal",
@@ -867,7 +862,7 @@ cafeMochaForestStarterPreset.widgets = [
     type: "image",
     title: null,
     description: null,
-    image_url: "/menu-templates/cafe_mocha_forest_a/mellow-widget.png",
+    image_url: "/menu-templates/cafe_mocha_forest_a/mellow-widget-resized.png",
     image_path: null,
     sort_order: 5,
     visible: true,
@@ -2938,9 +2933,9 @@ function getRendererStarterPreset(templateKey?: string | null, restaurantCategor
   const normalizedTemplateKey = templateKey?.trim().toLowerCase() ?? "";
   const templatePreset = normalizedTemplateKey ? templateStarterPresets[normalizedTemplateKey === "cafe_real_matcha_paged_test" ? "cafe_design_a" : normalizedTemplateKey] : null;
   if (templatePreset) {
-    // These bilingual starters show their secondary names from the first open,
-    // both in the catalog preview and when creating a new menu.
-    if (normalizedTemplateKey === "cafe_mocha_forest_a" || normalizedTemplateKey === "fast_food_loop_bagel_a") {
+    // Loop starts bilingual. MELLOW retains its registered translations for the
+    // preview toggle, while secondary names are absent from its initial rows.
+    if (normalizedTemplateKey === "fast_food_loop_bagel_a") {
       const englishItems = getSinglePageStarterTranslations(normalizedTemplateKey)?.en.items;
       return { ...templatePreset, pages: templatePreset.pages.map(page => ({ ...page,
         categories: page.categories.map(category => ({ ...category,
@@ -2950,7 +2945,7 @@ function getRendererStarterPreset(templateKey?: string | null, restaurantCategor
         })),
       })) };
     }
-    return templatePreset;
+    return normalizedTemplateKey === "cafe_mocha_forest_a" ? cloneStarterPresetForTemplate(templatePreset, normalizedTemplateKey) : templatePreset;
   }
 
   if (isTemplateCategoryKey(templateCategory ?? "")) {

@@ -67,11 +67,23 @@ try{
      const edge=m.columns[r][0]+m.columns[r][2],next=m.columns[r+1][0];
      assert.ok(Math.abs(m.rules[r].box[0]-(edge+next)/2)<1);assert.equal(m.rules[r].box[2],1);assert.equal(m.rules[r].background,category);
     }
-    assert.equal(m.headerCopy.length,2);for(const copy of m.headerCopy)assert.ok(copy.box[1]+copy.box[3]<=copy.parent[1]+copy.parent[3]+1,'complete header description and notices');
+    assert.equal(m.headerCopy.length,1);for(const copy of m.headerCopy)assert.ok(copy.box[1]+copy.box[3]<=copy.parent[1]+copy.parent[3]+1,'complete header description and notices');
+   }
+   if(c.device!=='mobile'){
+    const headerState=await page.evaluate(()=>{
+      const header=document.querySelector('[data-native-header]'),identity=header.querySelector('[data-cafe-a-topline-brand-identity]'),description=header.querySelector('.cafe-a-topline-description'),control=header.querySelector('[data-template-language-control]'),notices=document.querySelector('[data-native-tracks] [data-native-notices]');
+      const rect=e=>e.getBoundingClientRect().toJSON();
+      return {align:header.dataset.basicHeaderAlign,header:rect(header),identity:rect(identity),description:rect(description),control:rect(control),last:notices?.closest('[data-native-column]')===document.querySelector('[data-native-column]:last-child'),headerNotices:header.querySelectorAll('[data-cafe-a-topline-notices]').length,hasCover:!!document.querySelector('.cafe-a-cover-hero'),secondary:document.querySelectorAll('.cafe-a-menu-meta:not([data-cafe-a-reference-copy])').length,chip:[...document.querySelectorAll('.cafe-a-menu-badge,.cafe-a-time-sale-badge')].filter(e=>!e.closest('[inert]')).map(e=>getComputedStyle(e).color)};
+    });
+    assert.equal(headerState.align,'left');assert.ok(Math.abs(headerState.identity.left-headerState.header.left)<1);
+    assert.ok(headerState.description.left>headerState.header.left+headerState.header.width*.6);
+    assert.ok(Math.abs(headerState.control.right-headerState.header.right)<1);
+    assert.equal(headerState.last,true);assert.equal(headerState.headerNotices,0);assert.equal(headerState.hasCover,false);assert.equal(headerState.secondary,0);
+    assert.ok(headerState.chip.every(color=>color==='rgb(121, 40, 57)'),'ordinary and sale chips share MELLOW ink');
    }
    if(c.off){assert.equal(m.logo,undefined);assert.equal(m.widget,undefined);}else{
-    assert.equal(m.logo.src,'/menu-templates/cafe_mocha_forest_a/mellow-logo.png');assert.equal(m.logo.loaded,true);assert.equal(m.logo.fit,'contain');
-    assert.equal(m.widget.src,'/menu-templates/cafe_mocha_forest_a/mellow-widget.png');assert.equal(m.widget.fit,'contain');assert.equal(m.widget.position,'100% 100%');assert.ok(Math.abs(m.widget.box[2]/m.widget.box[3]-2)<.02);
+    assert.equal(m.logo.src,'/menu-templates/cafe_mocha_forest_a/mellow-logo-resized.png');assert.equal(m.logo.loaded,true);assert.equal(m.logo.fit,'contain');
+    assert.equal(m.widget.src,'/menu-templates/cafe_mocha_forest_a/mellow-widget-resized.png');assert.equal(m.widget.fit,'contain');assert.equal(m.widget.position,'100% 100%');assert.ok(Math.abs(m.widget.box[2]/m.widget.box[3]-2)<.02);
    }
    await page.addScriptTag({content:bundle.outputFiles[0].text});const defaults=await page.evaluate(()=>window.readMellowDesign());
    assert.equal(defaults.nativeTextColors.category,c.design?.fonts?.category?.color||'#ECEAB7');assert.equal(defaults.nativeTextColors.product,'#ECEAB7');

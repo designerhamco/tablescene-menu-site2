@@ -161,3 +161,13 @@
 /* MELLOW rules divide menu tracks only; the representative/photo track is separate. */
 .root[data-template-key="cafe_mocha_forest_a"] .column { position: relative; }
 .columnRule { position: absolute; inset-block: 0; inset-inline-start: calc(var(--native-gap) * -0.5); width: 1px; background: currentColor; color: var(--menu-role-category-color, #eceab7); pointer-events: none; }
+
+/* The registered left-logo top-row composition keeps native skin/reading roles. */
+.board .header[data-basic-header-align="left"] :global(.cafe-a-topline-info-header) { align-items: center; }
+.board .header[data-basic-header-align="left"] :global(.cafe-a-topline-brand-identity) { grid-column: 1; grid-row: 1; justify-content: flex-start; text-align: left; }
+.board .header[data-basic-header-align="left"] :global(.cafe-a-store-title) { text-align: left !important; }
+.board .header[data-basic-header-align="left"] :global(.cafe-a-store-logo-wrap) { place-items: center start; justify-content: flex-start !important; }
+.board .header[data-basic-header-align="left"] :global(.cafe-a-store-logo) { margin-inline: 0 auto !important; object-position: left center !important; }
+.board .header[data-basic-header-align="left"] :global(.cafe-a-topline-description-panel) { grid-column: 3; grid-row: 1; display: flex; align-items: center; justify-content: flex-end; gap: .75rem; overflow: visible; text-align: right; }
+.board .header[data-basic-header-align="left"] :global(.cafe-a-topline-description) { padding-top: 0; text-align: right !important; }
+.board .header[data-basic-header-align="left"] :global([data-template-language-control]) { flex: none; position: relative; z-index: 5; }

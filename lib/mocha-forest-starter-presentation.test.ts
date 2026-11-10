@@ -93,7 +93,7 @@ test("MELLOW native starter, catalog controls and provisioning share its logo, p
   assert.equal(getFixedOnePageLayoutShell(key), "brand_top_band");
   assert.equal(starter.site.restaurant_name, "MELLOW");
   assert.equal(preview.menuSite.restaurant_name, "MELLOW");
-  assert.equal(preview.menuSite.logo_url, "/menu-templates/cafe_mocha_forest_a/mellow-logo.png");
+  assert.equal(preview.menuSite.logo_url, "/menu-templates/cafe_mocha_forest_a/mellow-logo-resized.png");
   assert.equal(getTemplatePreviewOptions(preview, {}).logoPreview, true);
   const defaults = previewDesignDefaults(preview);
   assert.equal(defaults.colors.page, "#792839");
@@ -101,7 +101,7 @@ test("MELLOW native starter, catalog controls and provisioning share its logo, p
   assert.equal(menuSurfaceDefaults(key).pageBackground, defaults.colors.page);
   assert.ok(Object.values(defaults.textColorDefaults).every(color => color === "#ECEAB7"));
   const widget = preview.widgets![0];
-  assert.equal(widget.imageUrl, "/menu-templates/cafe_mocha_forest_a/mellow-widget.png");
+  assert.equal(widget.imageUrl, "/menu-templates/cafe_mocha_forest_a/mellow-widget-resized.png");
   assert.equal(widget.settings.aspectRatio, "2:1");
   assert.equal(widget.settings.objectFit, "contain");
   assert.equal(widget.settings.objectPosition, "bottom-right");
@@ -120,4 +120,42 @@ test("MELLOW native starter, catalog controls and provisioning share its logo, p
   const savedWidget = (client.rows.get("menu_widgets") ?? [])[0];
   assert.equal(savedWidget.image_url, widget.imageUrl);
   for (const [field, value] of Object.entries(widget.settings)) assert.equal((savedWidget.settings as Record<string, unknown>)[field], value);
+});
+
+
+test("MELLOW starts without representative media or secondary names, while both preview options remain available", async () => {
+  const { existsSync } = await import("node:fs");
+  const { buildStarterPreviewData } = await import("./template-starter-preview");
+  const { getTemplatePreviewOptions } = await import("./template-preview-options");
+  const { applyTemplatePreviewOptions } = await import("./template-preview-data");
+  const { previewDesignDefaults } = await import("./menu-preview-design");
+  const { getOnePageTopRowAlignment } = await import("./one-page-layout-shells");
+  const data = buildStarterPreviewData("cafe_mocha_forest_a");
+  const options = getTemplatePreviewOptions(data, {});
+  assert.equal(getOnePageTopRowAlignment(data.menuSite.template_key), "left");
+  assert.equal(options.coverPreview, false);
+  assert.equal(options.secondaryNamesPreview, false);
+  assert.equal(data.menuSite.cover_image_url, "");
+  assert.deepEqual(data.featuredSlides, []);
+  assert.equal(existsSync(new URL("../public/menu-templates/cafe_mocha_forest_a/featured.png", import.meta.url)), false);
+  const enabled = applyTemplatePreviewOptions(data, { coverPreview: "on", secondaryNamesPreview: "on" });
+  assert.equal(enabled.pageSettings.menu_cover_enabled, true);
+  assert.equal(enabled.menuSite.cover_image_url, "");
+  assert.deepEqual(enabled.featuredSlides, []);
+  assert.ok(enabled.items.every(item => Boolean(item.set_name)));
+  assert.ok(data.items.every(item => !item.set_name));
+  const chips = previewDesignDefaults(data).chipColors;
+  assert.equal(chips.saleText, chips.generalText);
+});
+
+
+test("MELLOW sale ink keeps readable custom-background fallback and explicit foreground overrides", async () => {
+  const { getTemplateTimeSaleBadgeTextColor, getReadableTextColorForTimeSaleBadge } = await import("./menu-time-sales");
+  const { buildStarterPreviewData } = await import("./template-starter-preview");
+  const { applyPreviewDesign, readPreviewDesign } = await import("./menu-preview-design");
+  assert.equal(getTemplateTimeSaleBadgeTextColor("cafe_mocha_forest_a", "#101010"), "#FFF8EA");
+  assert.equal(getTemplateTimeSaleBadgeTextColor("cafe_design_a", "#ECEAB7"), getReadableTextColorForTimeSaleBadge("#ECEAB7"));
+  const data = applyPreviewDesign(buildStarterPreviewData("cafe_mocha_forest_a"), { chipColors: { saleText: "#123456" } }, false);
+  const design = (data.menuSite.page_settings as { design: { previewChipColors: { saleText: string } } }).design;
+  assert.equal(readPreviewDesign({ chipColors: design.previewChipColors }).chipColors?.saleText, "#123456");
 });

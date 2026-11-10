@@ -53,7 +53,7 @@ import { shouldPreferActualCopyBeforeRescue, isOnePageCategoryOrderCandidatePref
 import { formatMenuPriceByMode, getPriceDisplayModeFromSettings } from "@/lib/menu-price-format";
 import { getMenuPublicCapabilities } from "@/lib/menu-public-capabilities";
 import { formatTimeSaleDigitalCountdownLabel } from "@/lib/menu-time-sale-display";
-import { getReadableTextColorForTimeSaleBadge, normalizeTimeSaleBadgeBackgroundColor } from "@/lib/menu-time-sales";
+import { getTemplateTimeSaleBadgeTextColor, normalizeTimeSaleBadgeBackgroundColor } from "@/lib/menu-time-sales";
 import { getActiveTimeSaleWindowEndMs, getNextTimeSaleBoundaryMs as getScheduleNextTimeSaleBoundaryMs, isTimeSaleActiveAt, type NormalizedTimeSaleSchedule } from "@/lib/menu-time-sale-schedule";
 import { MENU_LIMITS } from "@/lib/menu-starter-presets";
 import { getMochaForestPanelRole, MOCHA_FOREST_PANEL_COLORS, type MochaForestPanel } from "@/lib/mocha-forest-panels";
@@ -795,21 +795,21 @@ function getCafeATimeSaleAccentColor(backgroundColor: PublicTimeSale["badgeBackg
 }
 
 
-function getTimeSaleBadgeStyle(backgroundColor: PublicTimeSale["badgeBackgroundColor"]): CSSProperties {
+function getTimeSaleBadgeStyle(backgroundColor: PublicTimeSale["badgeBackgroundColor"], templateKey?: string | null): CSSProperties {
   const normalizedBackgroundColor = getCafeATimeSaleAccentColor(backgroundColor);
   return {
     backgroundColor: normalizedBackgroundColor,
     borderColor: normalizedBackgroundColor,
-    color: getReadableTextColorForTimeSaleBadge(normalizedBackgroundColor),
+    color: getTemplateTimeSaleBadgeTextColor(templateKey, normalizedBackgroundColor),
   };
 }
 
 
-function TimeSaleBadge({ timeSale, className = "" }: { timeSale: PublicTimeSale; className?: string }) {
+function TimeSaleBadge({ timeSale, templateKey, className = "" }: { timeSale: PublicTimeSale; templateKey?: string | null; className?: string }) {
   return (
     <span
       className={`menu-badge cafe-a-menu-badge cafe-a-time-sale-badge inline-flex rounded-none border px-1.5 py-1 font-black uppercase leading-none ${className}`}
-      style={getTimeSaleBadgeStyle(timeSale.badgeBackgroundColor)}
+      style={getTimeSaleBadgeStyle(timeSale.badgeBackgroundColor, templateKey)}
     >
       <ScriptAwareText text={timeSale.badgeText} />
     </span>
@@ -892,13 +892,15 @@ function getFeaturedHeroSlides(data: PublicMenuTemplateProps, capabilities: Temp
   if (!capabilities.featuredItemHero) return [];
 
   if (data.featuredSlides !== undefined) {
-    return data.featuredSlides.flatMap((slide: PublicFeaturedSlide) => {
+    const slides = data.featuredSlides.flatMap((slide: PublicFeaturedSlide) => {
       if (!slide.imageUrl) return [];
       const slideItem = data.pageSettings.featured_item_enabled && slide.featuredItemId
         ? data.items.find((item) => item.id === slide.featuredItemId && item.visible !== false) ?? null
         : null;
       return [{ id: slide.id, imageUrl: slide.imageUrl, item: slideItem }];
     });
+    return slides.length || data.pageSettings.menu_cover_enabled === false ? slides
+      : [{ id: "empty-representative-frame", imageUrl: null, item: null }];
   }
 
   const featuredItem = data.pageSettings.featured_item_enabled ? getLegacyFeaturedItem(data) : null;
@@ -1703,13 +1705,13 @@ function MenuItemRow({
             <span className="cafe-a-title-chips inline-flex shrink-0 flex-wrap items-center gap-1.5">
               {showSoldOutBadge ? <SoldOutBadge locale={locale} className={titleClassName} /> : null}
               {showRegularBadge ? <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} className={titleClassName} /> : null}
-              {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} className={titleClassName} /> : null}
+              {showMenuTimeSale && timeSale ? <TimeSaleBadge templateKey={templateKey} timeSale={timeSale.promotion} className={titleClassName} /> : null}
             </span>
           ) : null
         ) : <>
           {showSoldOutBadge ? <SoldOutBadge locale={locale} className={titleClassName} /> : null}
           {showRegularBadge ? <Badge item={item} capabilities={capabilities} templateKey={templateKey} customBadgeStyles={customBadgeStyles} className={titleClassName} /> : null}
-          {showMenuTimeSale && timeSale ? <TimeSaleBadge timeSale={timeSale.promotion} className={titleClassName} /> : null}
+          {showMenuTimeSale && timeSale ? <TimeSaleBadge templateKey={templateKey} timeSale={timeSale.promotion} className={titleClassName} /> : null}
         </>}
         <span className="cafe-a-round-focus-price-leader" aria-hidden="true" />
       </div>
@@ -3735,10 +3737,14 @@ function DesktopToplineInformationHeader({
   data,
   capabilities,
   density,
+  leftLogo = false,
+  languageControl,
 }: {
   data: CafeDesignAProps;
   capabilities: TemplateCapabilities;
   density: MenuLayoutDensity;
+  leftLogo?: boolean;
+  languageControl?: ReactNode;
 }) {
   const description = data.menuSite.brand_description || data.menuSite.description;
   const infoRows = getCafeAFooterInfo(data, capabilities);
@@ -3748,14 +3754,15 @@ function DesktopToplineInformationHeader({
     <section
       className="cafe-a-topline-info-header hidden min-w-0 lg:grid"
       data-cafe-a-topline-info-header=""
+      data-basic-header-align={leftLogo ? "left" : undefined}
     >
-      <div className="cafe-a-topline-description-panel min-w-0" data-cafe-a-topline-description-panel="">
+      {!leftLogo ? <div className="cafe-a-topline-description-panel min-w-0" data-cafe-a-topline-description-panel="">
         {description ? (
           <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description break-keep text-[#3f4945] ${descriptionSizeClassName}`}>
             <ScriptAwareText text={description} />
           </p>
         ) : null}
-      </div>
+      </div> : null}
 
       <div className="cafe-a-topline-brand-identity min-w-0" data-cafe-a-topline-brand-identity="">
         <StoreIdentity
@@ -3766,13 +3773,16 @@ function DesktopToplineInformationHeader({
         />
       </div>
 
-      <aside className="cafe-a-topline-notices min-w-0 text-right text-[#58645f]" data-cafe-a-topline-notices="">
+      {leftLogo ? <div className="cafe-a-topline-description-panel min-w-0" data-cafe-a-topline-description-panel="">
+        {description ? <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description break-keep ${descriptionSizeClassName}`}><ScriptAwareText text={description} /></p> : null}
+        {languageControl}
+      </div> : <aside className="cafe-a-topline-notices min-w-0 text-right text-[#58645f]" data-cafe-a-topline-notices="">
         {infoRows.length > 0 ? (
           <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-notice-text whitespace-pre-line break-keep text-[#3f4945] ${descriptionSizeClassName}`}>
             <ScriptAwareText text={infoRows.join("\n")} />
           </p>
         ) : null}
-      </aside>
+      </aside>}
     </section>
   );
 }

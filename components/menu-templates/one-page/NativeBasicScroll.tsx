@@ -18,7 +18,7 @@ import { getFlatContentBlocks } from "../one-page/pc-tablet/cafe-fit-engine";
 import { OnePageCallPalette, useOnePageCallActions } from "./OnePageCallControls";
 import { StaffCallIcon } from "@/components/public-menu/order-call/MenuActionIcons";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
-import { getFixedOnePageLayoutShell } from "@/lib/one-page-layout-shells";
+import { getFixedOnePageLayoutShell, getOnePageTopRowAlignment } from "@/lib/one-page-layout-shells";
 import { getOnePageItemNameCeilingRem, getOnePageTypographyProfile } from "@/lib/one-page-typography-profile";
 import { getOrderedFitGapScale } from "./pc-tablet/cafe-fit-engine";
 import { layoutScrollableMenu, selectScrollableMenuCandidate, type ScrollableMenuLayout } from "@/lib/basic-menu-scroll";
@@ -57,6 +57,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
   const shell = getFixedOnePageLayoutShell(key);
   const center = shell === "brand_center_column";
   const top = shell === "brand_top_band";
+  const leftLogo = top && getOnePageTopRowAlignment(key) === "left";
   const panel = shell === "brand_panel_flow";
   const mocha = data.templateSkin === "mocha_forest";
   const capabilities = useMemo(() => getTemplateCapabilities(key), [key]);
@@ -259,7 +260,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
     void document.fonts.ready.then(schedule); schedule();
     return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); copyObserver.disconnect(); logo.removeEventListener("load", schedule); document.fonts.removeEventListener("loadingdone", schedule); root.style.removeProperty("--cafe-a-header-copy-height"); };
   }, [top, data.menuSite.logo_url]);
-  const noticeNode = !top && !center && notices.length ? <div className={`${styles.notices} cafe-a-menu-description cafe-a-description-text`} data-native-notices>{notices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>)}</div> : null;
+  const noticeNode = (!top || leftLogo) && !center && notices.length ? <div className={`${styles.notices} cafe-a-menu-description cafe-a-description-text`} data-native-notices>{notices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>)}</div> : null;
   const dock = showCall || showOrder || call.terminalConnected ? <footer className={styles.actions} data-native-actions data-call-only={showCall && !showOrder ? "true" : undefined} aria-label={t("메뉴 이용")}>
     {call.terminalConnected ? <span className={styles.tableLabel} data-terminal-table-label title={call.tableLabel}>{call.tableLabel}</span> : null}
     {showCall ? <button type="button" className={styles.call} onClick={call.openCall} aria-label={t("직원 호출하기")}><StaffCallIcon strokeWidth={1.8} /><ScriptAwareText text={t("호출하기")} /></button> : null}
@@ -270,7 +271,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
     <main className={`menu-typography cafe-a-typography ${styles.root}`} data-menu-text-colors={getTypographyCustomColorRoles(typography)} data-template-key={key} data-cafe-a-skin={data.templateSkin} data-preview-device={device} data-one-page-layout-shell={shell} data-cafe-a-proportion-policy="true" data-cafe-a-adaptive-fit="true" data-cafe-a-copy-aware-rhythm="true" data-cafe-a-mobile-style="false" data-spacing-contract="contained-reading" data-cafe-a-brand-font-en={typography.typography_roles.brand.font_en_key ?? typography.english_font_key} data-cafe-a-category-font-en={typography.typography_roles.category.font_en_key ?? typography.english_font_key} data-one-page-typography-profile={getOnePageTypographyProfile(key).key} style={{ ...getTypographyCssVariables(typography, key), backgroundColor: background, "--native-background": background, "--mocha-forest-brown": MOCHA_FOREST_PANEL_COLORS.brown, "--mocha-forest-ivory": MOCHA_FOREST_PANEL_COLORS.ivory, "--mocha-forest-green": MOCHA_FOREST_PANEL_COLORS.green } as CSSProperties}>
       <OnePageCallPalette />
       <div ref={board} className={styles.board} aria-busy={!ready} data-native-scroll data-scroll-brand-board data-native-shell={shell} data-representative-panel={getMenuDesignBackgrounds(key, data.menuSite.page_settings).coloredPanel ? "true" : undefined} data-native-ready={ready ? "true" : "false"} data-layout-mode={grouped ? "orderedBalancedFit" : "orderedFit"} data-native-more={more ? "true" : "false"} style={{ "--native-columns": layout.columns.length } as CSSProperties}>
-        {top ? <div className={styles.header} data-native-header><CafeADesktopToplineInformationHeader data={data} capabilities={capabilities} density="default" /><div className={styles.headerLanguage}><CafeLanguageHoverControl data={data} menuAlign="left" iconOnly /></div></div> : null}
+        {top ? <div className={styles.header} data-native-header data-basic-header-align={leftLogo ? "left" : undefined}><CafeADesktopToplineInformationHeader data={data} capabilities={capabilities} density="default" leftLogo={leftLogo} languageControl={leftLogo ? <CafeLanguageHoverControl data={data} menuAlign="right" iconOnly /> : undefined} />{!leftLogo ? <div className={styles.headerLanguage}><CafeLanguageHoverControl data={data} menuAlign="left" iconOnly /></div> : null}</div> : null}
         {!panel ? <div className={styles.brand} data-native-brand>
           {center ? <div className={styles.cornerLanguage} data-native-corner-language><CafeLanguageHoverControl data={data} menuAlign="left" iconOnly /></div> : null}
           {top ? cover ? <CafeADesktopToplineFeaturedSlot data={data} featuredSlides={slides} capabilities={capabilities} density="default" customBadgeStyles={badges} priceDisplayMode={priceMode} /> : null : <CafeADesktopFixedRail data={data} density="default" variant={shell} mochaColumnCount={layout.columns.length + 1} hideLanguageControl={center}>{cover ? <CafeACoverHero data={data} featuredSlides={slides} capabilities={capabilities} density="default" customBadgeStyles={badges} priceDisplayMode={priceMode} /> : null}</CafeADesktopFixedRail>}

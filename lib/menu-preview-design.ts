@@ -6,7 +6,7 @@ import { ALBUM_IMAGE_RATIOS, CHIP_SHAPES, IMAGE_RADIUS_KEYS, MAX_IMAGE_RADIUS, r
 import { getCustomTypographySettings, mergeTypographySettings, withCommonTypographyFonts, type TypographyRoleKey } from "./template-typography-presets";
 import { getMenuDesignBackgrounds, getResolvedBackgroundColor, normalizeBackgroundColor } from "./template-background-colors";
 import { getCustomBadgeStyles, mergeBadgeStyles } from "./template-badge-styles";
-import { DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR, getReadableTextColorForTimeSaleBadge } from "./menu-time-sales";
+import { DEFAULT_TIME_SALE_BADGE_BACKGROUND_COLOR, getTemplateTimeSaleBadgeTextColor } from "./menu-time-sales";
 import { readPreviewChipColors, type PreviewChipColors } from "./menu-preview-chip-colors";
 import { normalizeMenuTextColors, resolvedMenuTextColors, type MenuTextColors } from "./menu-text-colors";
 import { MOCHA_FOREST_PANEL_COLORS } from "./mocha-forest-panels";
@@ -85,7 +85,7 @@ export function previewDesignDefaults(data: MenuPageData) {
       information: typography.typography_roles.supporting.color ?? "#191C1B",
     },
     fontFamily: { ko: typography.korean_font_key, en: typography.english_font_key },
-    chipColors: { generalBackground: badge.background_color, generalText: badge.text_color, saleBackground, saleText: getReadableTextColorForTimeSaleBadge(saleBackground) },
+    chipColors: { generalBackground: badge.background_color, generalText: badge.text_color, saleBackground, saleText: getTemplateTimeSaleBadgeTextColor(key, saleBackground) },
     fonts: Object.fromEntries(PREVIEW_FONT_GROUPS.map(group => {
       const role = typography.typography_roles[group === "other" ? "supporting" : group];
       return [group, { ko: role.font_ko_key ?? typography.korean_font_key, en: role.font_en_key ?? typography.english_font_key,
