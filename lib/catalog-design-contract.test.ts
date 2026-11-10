@@ -43,8 +43,10 @@ test('a designer purchase cannot reuse the cheaper standard promotion snapshot',
 });
 
 test('public catalog, checkout and filter identities are complete and unique',()=>{
-  assert.equal(catalogDesigns.length,20);assert.equal(new Set(catalogDesigns.map(d=>d.id)).size,20);
-  assert.equal(filterCatalogDesigns('basic','standard').length,6);
+  assert.equal(catalogDesigns.length,21);assert.equal(new Set(catalogDesigns.map(d=>d.id)).size,21);
+  assert.equal(filterCatalogDesigns('basic','standard').length,7);
+  assert.equal(getCatalogDesign('basic-top-row-left-logo')?.name,'상단행 고정형(왼쪽 로고) · 리스트형');
+  assert.equal(canSelectMenuDesign('basic','standard','basic-top-row-left-logo'),true);
   assert.equal(filterCatalogDesigns('basic','standard','album').length,2);
   assert.equal(filterCatalogDesigns('dining','standard','list').length,2);
   assert.equal(filterCatalogDesigns('dining','designer').length,2);

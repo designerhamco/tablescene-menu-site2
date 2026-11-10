@@ -161,6 +161,13 @@
 .topDescription { display: flex; align-items: center; gap: .75rem; min-width: 0; }
 .topIdentity { min-width: 0; text-align: center; }
 .topIdentity :global(.cafe-a-store-title) { line-height: 1.08; }
+/* The left-logo variant keeps the same three-cell header and reading geometry. */
+.topRow[data-basic-header-align="left"] .topIdentity { grid-column: 1; text-align: left; }
+.topRow[data-basic-header-align="left"] .topIdentity :global(.cafe-a-store-title) { text-align: left !important; }
+.topRow[data-basic-header-align="left"] .topIdentity :global(.cafe-a-store-logo-wrap) { justify-content: start !important; justify-items: start; }
+.topRow[data-basic-header-align="left"] .topIdentity :global(.cafe-a-store-logo) { margin-inline: 0 auto !important; object-position: left center !important; }
+.topRow[data-basic-header-align="left"] .topDescription { grid-column: 3; justify-content: flex-end; text-align: right; }
+.topRow[data-basic-header-align="left"] .topDescription :global(.cafe-a-store-description) { text-align: right !important; }
 .frame[data-basic-structure="basic-top-row"] > .brand, .frame[data-basic-structure="basic-top-row"] > .menuPanel { grid-row: 2; }
 .frame[data-basic-structure="basic-top-row"][data-show-cover="false"] > .brand { display: none; }
 .frame[data-basic-structure="basic-top-row"][data-show-cover="false"] > .menuPanel { grid-column: 1 / -1; }

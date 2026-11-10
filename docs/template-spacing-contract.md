@@ -1,5 +1,11 @@
 # Menu template spacing contract
 
+## Left-logo top-row Basic list — 2026-11-10
+
+`basic-top-row-left-logo` is an additional neutral list design cloned from `basic-top-row`; the existing list and album designs keep their original centered headers. PC/tablet reuse the same three-cell header, measured brand/logo sizing, cover rail, contained menu reader, grouped/fill layout and service dock. The first header cell owns the left-aligned logo or store name. Store description and the right-aligned language trigger occupy the last cell, with the trigger at the far-right edge and its popup aligned inward. Saved representative alignment cannot override these fixed desktop positions. Mobile keeps the source template's independent reading composition and saved alignment.
+
+Notices 1/2/3 belong to the final menu column after its last content unit, using the existing measured notice footer and category-to-footer spacing. They scroll with that column and never appear in this variant's header. The information color role remains independent of the representative header role. The public catalog, preview, starter creation and design switching share the registered ID and label “상단행 고정형(왼쪽 로고) · 리스트형”. The accompanying SQL migration only extends the existing three contract allowlists; apply it before exposing the design in Production.
+
 ## Mocha / REAL MATCHA contained-reading clearances — 2026-11-10
 
 Both PC/tablet readers consume `--basic-reading-page-inset: clamp(2rem, 4.2vmin, 4.25rem)` for their page and visible column gutter. Mocha's native board explicitly uses this token instead of inheriting the legacy tablet `--board-padding` reduction. Keep the brown rail's padding inside its painted edge and measure one common gutter from that edge to menu content. Other native shells keep their existing structural insets.
