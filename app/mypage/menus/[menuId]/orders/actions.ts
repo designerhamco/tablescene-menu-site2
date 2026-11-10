@@ -59,6 +59,7 @@ export async function mutateOrderAction(
     }
 
     revalidatePath(`/mypage/menus/${menuSiteId}/orders`);
+    revalidatePath("/mypage/operations");
     return {
       status: "success",
       message: intent === "manual-payment"

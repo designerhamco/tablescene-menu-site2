@@ -1,4 +1,5 @@
 "use client";
+import OrderCardSummary from "./OrderCardSummary";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import { useState, type ReactNode } from "react";
 import { Armchair, List, Map, Monitor } from "lucide-react";
@@ -21,7 +22,7 @@ import {
 } from "@/app/components/ui/dialog";
 import { FLOOR_PLAN_DISPLAY_ASPECT_RATIO } from "@/lib/menu-floor-plan";
 import {
-  groupOperationHistory,
+  groupOperationHistory, representativeOperationOrder,
   getHistoryPlacements,
   type OperationHistoryRecord,
   type OperationsFloorPlan,
@@ -32,9 +33,10 @@ export default function OperationsHistoryViews({
   records,
   floorPlan,
   renderList,
-  renderDetail,
+  renderDetail, listOnly = false,
 }: {
   noun: "주문" | "호출";
+  listOnly?: boolean;
   records: OperationHistoryRecord[];
   floorPlan: OperationsFloorPlan;
   renderList: (open: (recordId: string) => void) => ReactNode;
@@ -43,7 +45,7 @@ export default function OperationsHistoryViews({
   const [view, setView] = useState("map"),
     [roomId, setRoomId] = useState("");
   const [selection, setSelection] = useState<
-    { pointId: string } | { recordId: string } | null
+    { pointId: string; label: string } | { recordId: string; label: string } | null
   >(null);
   const groups = groupOperationHistory(records),
     placements = getHistoryPlacements(floorPlan);
@@ -57,7 +59,33 @@ export default function OperationsHistoryViews({
       ? (groups.get(selection.pointId) ?? [])
       : records.filter((item) => item.id === selection.recordId)
     : [];
-  const openPoint = (pointId: string) => setSelection({ pointId });
+  const openPoint = (pointId: string) => setSelection({ pointId, label: floorPlan.points.find(point=>point.id===pointId)?.label ?? groups.get(pointId)?.[0]?.pointLabel ?? "테이블·키오스크" });
+  const openRecord = (recordId: string) => setSelection({recordId,label:records.find(record=>record.id===recordId)?.pointLabel ?? "테이블·키오스크"});
+  const detailDialog = (
+      <Dialog
+        open={selection !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelection(null);
+        }}
+      >
+        <DialogContent scrollable className="print:hidden" aria-describedby={undefined}>
+          <DialogHeader reserveCloseButton>
+            <div className="site-action-row">
+              <DialogTitle>{selected[0]?.pointLabel ?? selection?.label ?? "테이블·키오스크"} {noun} 내역</DialogTitle>
+              <InfoTooltip label="내역 갱신 안내"><p>{listOnly ? "현재 조회 조건의 내역을 표시합니다. 새 내역은 다시 조회하면 반영됩니다." : "현재 조회 조건의 내역을 표시하며 15초마다 갱신합니다."}</p></InfoTooltip>
+            </div>
+          </DialogHeader>
+          {selected.length ? (
+            renderDetail(selected.map((item) => item.id))
+          ) : (
+            <p className="type-body-sm site-copy-muted">
+              현재 조건에 맞는 내역이 없습니다.
+            </p>
+          )}
+        </DialogContent>
+      </Dialog>
+  );
+  if(listOnly)return <div className="site-stack-group">{renderList(openRecord)}{detailDialog}</div>;
   return (
     <div className="site-stack-group">
       <Tabs purpose="state" value={view} onValueChange={setView}>
@@ -76,7 +104,7 @@ export default function OperationsHistoryViews({
           </TabsList>
         </div>
         <TabsContent value="list">
-          {renderList((recordId) => setSelection({ recordId }))}
+          {renderList(openRecord)}
         </TabsContent>
         <TabsContent value="map">
           <div className="site-stack-group">
@@ -123,6 +151,7 @@ export default function OperationsHistoryViews({
                     </p>
                     <FloorPlanCanvas
                       name={room.name}
+                      data-order-cards={noun === "주문" || undefined}
                       aspectRatio={FLOOR_PLAN_DISPLAY_ASPECT_RATIO}
                     >
                       {placements
@@ -133,12 +162,11 @@ export default function OperationsHistoryViews({
                           )!;
                           const history = groups.get(point.id) ?? [],
                             latest =
-                              history.find((item) => item.attention) ??
-                              history[0];
+                              noun === "주문" && history.some(item=>item.orderNumber!==undefined) ? representativeOperationOrder(history) : history.find((item) => item.attention) ?? history[0];
                           const count = history.filter(
                             (item) => item.attention,
                           ).length;
-                          const summary = latest ? (
+                          const summary = latest ? noun === "주문" && latest.orderNumber !== undefined ? <OrderCardSummary order={latest} records={history}/> : (
                             <>
                               <span>
                                 {count
@@ -237,28 +265,7 @@ export default function OperationsHistoryViews({
         </TabsContent>
         </div>
       </Tabs>
-      <Dialog
-        open={selection !== null}
-        onOpenChange={(open) => {
-          if (!open) setSelection(null);
-        }}
-      >
-        <DialogContent scrollable className="print:hidden" aria-describedby={undefined}>
-          <DialogHeader reserveCloseButton>
-            <div className="site-action-row">
-              <DialogTitle>{selected[0]?.pointLabel ?? "테이블·키오스크"} {noun} 내역</DialogTitle>
-              <InfoTooltip label="내역 갱신 안내"><p>현재 조회 조건의 내역을 표시하며 15초마다 갱신합니다.</p></InfoTooltip>
-            </div>
-          </DialogHeader>
-          {selected.length ? (
-            renderDetail(selected.map((item) => item.id))
-          ) : (
-            <p className="type-body-sm site-copy-muted">
-              현재 조건에 맞는 내역이 없습니다.
-            </p>
-          )}
-        </DialogContent>
-      </Dialog>
+      {detailDialog}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import "server-only";
+import {defaultOrderHistoryFilters, normalizeOrderHistory, orderHistoryBounds, orderCursorPredicate, encodeOrderCursor, ORDER_HISTORY_PAGE_SIZE, OrderHistoryInputError, type OrderHistoryFilters, type OrderHistorySearch, type OrderCursor} from "@/lib/order-history-query";
 import { hasPaidTableOperationsAccess } from "@/lib/server/table-operations-eligibility-service";
 
 import {
@@ -106,7 +107,13 @@ export type OrderDashboardOrder = {
   items: OrderDashboardItem[];
 };
 
+export type OrderDashboardView = {
+  kind: "current" | "history"; filters: OrderHistoryFilters; error?: string;
+  totalCount: number | null; olderCursor: string | null; newerCursor: string | null;
+  tables: Array<{id:string;label:string;archived:boolean}>;
+};
 export type OrderDashboardPageData = {
+  view?: OrderDashboardView;
   menuSite: { id: string; name: string };
   permissions: {
     canManage: boolean;
@@ -218,7 +225,7 @@ function assertUpdated<T>(data: T | null) {
   return data;
 }
 
-export async function listOrderDashboard(menuSiteIdValue: unknown): Promise<OrderDashboardPageData> {
+export async function listOrderDashboard(menuSiteIdValue: unknown, search: OrderHistorySearch = {}): Promise<OrderDashboardPageData> {
   const menuSiteId = normalizedId(menuSiteIdValue);
   const context = await requireMenuSitePermission(menuSiteId, "order.read");
   await assertDashboardEnabled(menuSiteId);
@@ -231,46 +238,81 @@ export async function listOrderDashboard(menuSiteIdValue: unknown): Promise<Orde
   if (menuSiteResult.error) mapReadError(menuSiteResult.error);
   if (!menuSiteResult.data) throw new OrderManagementError("ORDER_NOT_FOUND", "메뉴판을 찾을 수 없습니다.", 404);
 
-  const ordersResult = await supabase
-    .from("menu_customer_orders")
-    .select("id, order_number, menu_table_id, status, payment_status, payment_method, request_text, total_amount, currency, status_updated_by, payment_completed_by, accepted_at, cooking_at, ready_at, served_at, cancelled_at, cancellation_reason, payment_completed_at, created_at, updated_at")
-    .eq("menu_site_id", menuSiteId)
-    .order("created_at", { ascending: false })
-    .limit(100);
-  if (ordersResult.error) mapReadError(ordersResult.error);
-  const orders = (ordersResult.data ?? []) as OrderRow[];
+  const history = search.tab === "history";
+  let request: ReturnType<typeof normalizeOrderHistory> | undefined, queryError: string | undefined;
+  if (history) try {request = normalizeOrderHistory(search);} catch (error) {if (!(error instanceof OrderHistoryInputError)) throw error;queryError=error.message;}
+  const view: OrderDashboardView = {kind:history?"history":"current", filters:request?.filters??defaultOrderHistoryFilters(), error:queryError, totalCount:0, olderCursor:null, newerCursor:null, tables:[]};
+  const columns = "id, order_number, menu_table_id, status, payment_status, payment_method, request_text, total_amount, currency, status_updated_by, payment_completed_by, accepted_at, cooking_at, ready_at, served_at, cancelled_at, cancellation_reason, payment_completed_at, created_at, updated_at";
+  let orders: OrderRow[] = [];
+  if (history) {
+    for(let offset=0;;offset+=500){
+      const choices=await supabase.from("menu_tables").select("id,label,point_kind,status").eq("menu_site_id",menuSiteId).order("id",{ascending:true}).range(offset,offset+499);
+      if(choices.error)mapReadError(choices.error);
+      const batch=choices.data??[];view.tables.push(...batch.map(point=>({id:point.id,label:point.point_kind==="kiosk"&&!point.label.startsWith("키오스크")?`키오스크 · ${point.label}`:point.label,archived:point.status==="archived"})));
+      if(batch.length<500)break;
+    }
+    view.tables.sort((a,b)=>a.label.localeCompare(b.label,"ko-KR"));
+    if(request&&!queryError){
+      const {filters,cursor,direction}=request,bounds=orderHistoryBounds(filters);
+      const filtered = () => {
+        let query=supabase.from("menu_customer_orders").select(columns,{count:"exact"}).eq("menu_site_id",menuSiteId).gte("created_at",bounds.from).lt("created_at",bounds.until);
+        if(filters.status!=="all")query=query.eq("status",filters.status);
+        if(filters.paymentStatus!=="all")query=query.eq("payment_status",filters.paymentStatus);
+        if(filters.tableId)query=query.eq("menu_table_id",filters.tableId);
+        if(filters.orderNumber)query=query.eq("order_number",Number(filters.orderNumber));
+        return query;
+      };
+      let pageQuery=filtered();
+      if(cursor)pageQuery=pageQuery.or(orderCursorPredicate(cursor,direction));
+      const [page,count] = await Promise.all([
+        pageQuery.order("created_at",{ascending:direction==="newer"}).order("id",{ascending:direction==="newer"}).limit(ORDER_HISTORY_PAGE_SIZE+1),
+        // Count the complete filtered range, not only the current cursor page.
+        cursor?filtered().limit(0):Promise.resolve(null),
+      ]);
+      if(page.error)mapReadError(page.error);if(count?.error)mapReadError(count.error);
+      view.totalCount=count?.count??page.count;
+      const rows=(page.data??[]) as unknown as OrderRow[], extra=rows.length>ORDER_HISTORY_PAGE_SIZE;
+      orders=rows.slice(0,ORDER_HISTORY_PAGE_SIZE);if(direction==="newer")orders.reverse();
+      if(orders.length){
+        if(direction==="older"?extra:Boolean(cursor))view.olderCursor=encodeOrderCursor(orders[orders.length-1]);
+        if(direction==="newer"?extra:Boolean(cursor))view.newerCursor=encodeOrderCursor(orders[0]);
+      }
+    }
+  } else {
+    // Stable keyset batches include every outstanding order, regardless of age.
+    const asOf=new Date().toISOString();let cursor:OrderCursor|null=null;
+    for(;;){
+      let query=supabase.from("menu_customer_orders").select(columns).eq("menu_site_id",menuSiteId).neq("status","cancelled").lte("created_at",asOf);
+      const active="or(status.neq.served,payment_status.eq.unpaid)";
+      query=query.or(cursor?`and(${active},or(${orderCursorPredicate(cursor,"newer")}))`:`status.neq.served,payment_status.eq.unpaid`);
+      const result=await query.order("created_at",{ascending:true}).order("id",{ascending:true}).limit(200);
+      if(result.error)mapReadError(result.error);
+      const batch=(result.data??[]) as unknown as OrderRow[];orders.push(...batch);
+      if(batch.length<200)break;
+      const last=batch[batch.length-1];cursor={createdAt:last.created_at,id:last.id};
+    }
+    view.totalCount=orders.length;
+  }
   const orderIds = orders.map((order) => order.id);
   const tableIds = [...new Set(orders.map((order) => order.menu_table_id))];
 
-  const [tablesResult, itemsResult] = await Promise.all([
-    tableIds.length === 0
-      ? Promise.resolve({ data: [], error: null })
-      : supabase.from("menu_tables").select("*").eq("menu_site_id", menuSiteId).in("id", tableIds),
-    orderIds.length === 0
-      ? Promise.resolve({ data: [], error: null })
-      : supabase
-          .from("menu_customer_order_items")
-          .select("id, order_id, item_name_snapshot, base_price_snapshot, option_price_snapshot, unit_price_snapshot, quantity, line_total_snapshot, display_order")
-          .eq("menu_site_id", menuSiteId)
-          .in("order_id", orderIds)
-          .order("display_order", { ascending: true }),
+  const chunks = (ids:string[]) => Array.from({length:Math.ceil(ids.length/100)},(_,index)=>ids.slice(index*100,index*100+100));
+  const [tables,items] = await Promise.all([
+    (async()=>{const rows:Array<{id:string;label:string;point_kind:string}>=[];for(const ids of chunks(tableIds)){
+      const result=await supabase.from("menu_tables").select("id,label,point_kind").eq("menu_site_id",menuSiteId).in("id",ids);
+      if(result.error)mapReadError(result.error);rows.push(...(result.data??[]));
+    }return rows;})(),
+    (async()=>{const rows:ItemRow[]=[];for(const ids of chunks(orderIds))for(let offset=0;;offset+=500){
+      const result=await supabase.from("menu_customer_order_items").select("id, order_id, item_name_snapshot, base_price_snapshot, option_price_snapshot, unit_price_snapshot, quantity, line_total_snapshot, display_order").eq("menu_site_id",menuSiteId).in("order_id",ids).order("display_order",{ascending:true}).order("id",{ascending:true}).range(offset,offset+499);
+      if(result.error)mapReadError(result.error);const batch=result.data??[];rows.push(...batch);if(batch.length<500)break;
+    }return rows;})(),
   ]);
-  if (tablesResult.error) mapReadError(tablesResult.error);
-  if (itemsResult.error) mapReadError(itemsResult.error);
-  const items = (itemsResult.data ?? []) as ItemRow[];
-  const itemIds = items.map((item) => item.id);
-  const optionsResult = itemIds.length === 0
-    ? { data: [], error: null }
-    : await supabase
-        .from("menu_customer_order_item_options")
-        .select("order_item_id, group_name_snapshot, value_name_snapshot, price_delta_snapshot, display_order")
-        .eq("menu_site_id", menuSiteId)
-        .in("order_item_id", itemIds)
-        .order("display_order", { ascending: true });
-  if (optionsResult.error) mapReadError(optionsResult.error);
-  const options = (optionsResult.data ?? []) as OptionRow[];
-
-  const tableLabelById = new Map((tablesResult.data ?? []).map((table) => [table.id, table.point_kind === "kiosk" && !table.label.startsWith("키오스크") ? `키오스크 · ${table.label}` : table.label]));
+  const options:OptionRow[]=[];
+  for(const ids of chunks(items.map(item=>item.id)))for(let offset=0;;offset+=500){
+    const result=await supabase.from("menu_customer_order_item_options").select("order_item_id, group_name_snapshot, value_name_snapshot, price_delta_snapshot, display_order").eq("menu_site_id",menuSiteId).in("order_item_id",ids).order("display_order",{ascending:true}).order("id",{ascending:true}).range(offset,offset+499);
+    if(result.error)mapReadError(result.error);const batch=result.data??[];options.push(...batch);if(batch.length<500)break;
+  }
+  const tableLabelById = new Map(tables.map(table=>[table.id,table.point_kind==="kiosk"&&!table.label.startsWith("키오스크")?`키오스크 · ${table.label}`:table.label]));
   const optionsByItemId = new Map<string, OptionRow[]>();
   for (const option of options) {
     const bucket = optionsByItemId.get(option.order_item_id) ?? [];
@@ -285,6 +327,7 @@ export async function listOrderDashboard(menuSiteIdValue: unknown): Promise<Orde
   }
 
   return {
+    view,
     menuSite: menuSiteResult.data,
     permissions: {
       canManage: hasMenuSitePermission(context, "order.manage"),

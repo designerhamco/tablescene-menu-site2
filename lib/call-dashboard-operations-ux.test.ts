@@ -59,17 +59,18 @@ test("새 호출은 화면에 항상 알리고 선택 시 브라우저 알림과
 });
 
 
-test("주문관리에는 내역·설정 두 탭만 있고 호출 항목 탭은 유지한다", () => {
+test("주문관리는 현재 주문·주문 이력·설정으로 나누고 호출 항목 탭은 유지한다", () => {
   for (const settings of [false, true]) {
     for (const canConfigure of [false, true]) {
       const html = renderToStaticMarkup(createElement(OperationFeatureNavigation, {
         menuId: "menu-1", feature: "orders", settings, historyAvailable: true,
         canConfigure, canManageDevices: true,
       }));
-      assert.match(html, /주문 내역/);
+      assert.match(html, /현재 주문/);
+      assert.match(html, /주문 이력/);
       assert.match(html, /주문 설정/);
       assert.doesNotMatch(html, /기기별 설정|tab=devices/);
-      assert.equal((html.match(/href="\/mypage\/menus\/menu-1\/orders(?:\/settings)?"/g) ?? []).length, 2);
+      assert.equal((html.match(/href="\/mypage\/menus\/menu-1\/orders(?:\/settings|\?tab=history)?"/g) ?? []).length, 3);
     }
   }
   const calls = renderToStaticMarkup(createElement(OperationFeatureNavigation, {

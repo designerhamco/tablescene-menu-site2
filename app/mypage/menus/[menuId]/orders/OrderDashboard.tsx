@@ -1,4 +1,8 @@
 "use client";
+import Link from "next/link";
+import { Button } from "@/app/components/ui/button";
+import OrderHistoryFilters from "@/components/mypage/OrderHistoryFilters";
+import {orderHistoryHref,isCurrentOrder} from "@/lib/order-history-query";
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ContentPanel } from "@/app/components/ui/content-panel";
@@ -31,18 +35,18 @@ function OrderItems({ order }: { order: Order }) {
     <div className="site-stack-block">
       {order.items.map((item) => (
         <div key={item.id} className="site-stack-copy">
-          <p className="type-item-title">
+          <p className="type-item-title break-words">
             {item.name} × {item.quantity}
           </p>
           {item.options.map((option, index) => (
-            <p key={index} className="type-body-sm site-copy-muted">
+            <p key={index} className="type-body-sm site-copy-muted break-words">
               {option.groupName}: {option.valueName}
-              {option.priceDelta > 0
-                ? ` (+${formatAmount(option.priceDelta)})`
+              {option.priceDelta !== 0
+                ? ` (${option.priceDelta > 0 ? "+" : ""}${formatAmount(option.priceDelta)})`
                 : ""}
             </p>
           ))}
-          <p className="type-body-sm">{formatAmount(item.lineTotal)}</p>
+          <p className="type-body-sm">단가 {formatAmount(item.unitPrice)} · 상품 금액 {formatAmount(item.lineTotal)}</p>
         </div>
       ))}
     </div>
@@ -104,14 +108,17 @@ export default function OrderDashboard({
   menuSiteName,
   orders,
   permissions,
-  floorPlan,
+  floorPlan, view, onHistoryFilterApply, autoRefresh = true,
 }: {
+  view?: OrderDashboardPageData["view"];
+  onHistoryFilterApply?: (filters: import("@/lib/order-history-query").OrderHistoryFilters)=>void; autoRefresh?:boolean;
   menuSiteId: string;
   menuSiteName: string;
   orders: Order[];
   permissions: OrderDashboardPageData["permissions"];
   floorPlan: OperationsFloorPlan;
 }) {
+  const history=view?.kind === "history";
   const router = useRouter();
   const [refreshing, refresh] = useTransition();
   const [state, action, pending] = useActionState(
@@ -123,6 +130,7 @@ export default function OrderDashboard({
     useState(false);
   const printOrder = orders.find((order) => order.id === printOrderId) ?? null;
   useEffect(() => {
+    if(history||!autoRefresh)return;
     const timer = window.setInterval(() => {
       if (
         shouldRefreshArrivalDashboard({
@@ -134,7 +142,7 @@ export default function OrderDashboard({
         router.refresh();
     }, 15_000);
     return () => window.clearInterval(timer);
-  }, [backgroundPollingEnabled, pending, router]);
+  }, [backgroundPollingEnabled, pending, router, history, autoRefresh]);
   useEffect(() => {
     if (!printOrder) return;
     const clear = () => setPrintOrderId(null);
@@ -278,22 +286,22 @@ export default function OrderDashboard({
           tone={state.status === "success" ? "success" : "error"}
           eventKey={state}
         />
-        <OperationalArrivalAlert
+        {!history && autoRefresh ? <OperationalArrivalAlert
           menuSiteId={menuSiteId}
           kind="orders"
           arrivalIds={orders
             .filter((order) => order.status !== "cancelled")
             .map((order) => order.id)}
           onBackgroundPollingChange={setBackgroundPollingEnabled}
-        />
+        /> : null}
+        {history && view ? <OrderHistoryFilters key={JSON.stringify(view.filters)} path={`/mypage/menus/${menuSiteId}/orders`} filters={view.filters} tables={view.tables} error={view.error} onApply={onHistoryFilterApply}/> : null}
         <div className="site-content-heading-row">
             <div className="site-stack-title">
               <p className="type-label">
-                최근 주문 {orders.length.toLocaleString("ko-KR")}건
+                {view?.error ? "조회 조건을 확인해 주세요." : history ? "주문 이력" : "현재 주문"} {!view?.error ? ` ${history ? (view?.totalCount ?? orders.length).toLocaleString("ko-KR") : orders.length.toLocaleString("ko-KR")}건` : ""}
               </p>
               <p className="type-body-sm site-copy-muted">
-                최근 100건을 15초마다 자동 갱신합니다. 상태 변경은 서버가 현재
-                값을 다시 확인합니다.
+                {history ? `${view?.filters.from} ~ ${view?.filters.to} · 한국 시간 기준 · 현재 페이지 ${orders.length}건` : "진행 중·미결제 주문을 날짜와 관계없이 15초마다 갱신합니다."}
               </p>
             </div>
             <RefreshButton
@@ -308,7 +316,8 @@ export default function OrderDashboard({
             </p>
           </ContentPanel>
         ) : null}
-        <OperationsHistoryViews
+        {!view?.error ? <OperationsHistoryViews
+          listOnly={history}
           noun="주문"
           floorPlan={floorPlan}
           records={orders.map((order) => ({
@@ -328,10 +337,14 @@ export default function OrderDashboard({
             time: formatKoreanDateTime(order.createdAt),
             status: `${STATUS_LABELS[order.status] ?? order.status} · ${PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}`,
             attention:
-              order.status !== "cancelled" &&
-              (order.status !== "served" || order.paymentStatus === "unpaid"),
+              isCurrentOrder(order),
+            orderNumber: order.orderNumber,
+            createdAt: order.createdAt,
+            amount: formatAmount(order.totalAmount),
+            processing: order.status !== "served" && order.status !== "cancelled",
+            unpaid: order.paymentStatus === "unpaid" && order.status !== "cancelled",
           }))}
-          renderList={(open) => <OperationsHistoryTable noun="주문" floorPlan={floorPlan} records={orders} renderRecord={order => <>
+          renderList={(open) => <OperationsHistoryTable noun="주문" floorPlan={floorPlan} records={orders} includeEmptyPoints={!history} renderRecord={order => <>
                         <TableCell>#{order.orderNumber}</TableCell>
                         <TableCell>
                           <OrderItems order={order} />
@@ -367,7 +380,12 @@ export default function OrderDashboard({
               {orders.filter((order) => ids.includes(order.id)).map(detail)}
             </div>
           )}
-        />
+        /> : null}
+        {history && view && !view.error ? <div className="site-action-row" aria-label="주문 이력 페이지 이동">
+          {view.newerCursor ? <Button variant="outline" asChild><Link href={orderHistoryHref(`/mypage/menus/${menuSiteId}/orders`,view.filters,{cursor:view.newerCursor,direction:"newer"})}>이전 페이지</Link></Button> : null}
+          {view.olderCursor ? <Button variant="outline" asChild><Link href={orderHistoryHref(`/mypage/menus/${menuSiteId}/orders`,view.filters,{cursor:view.olderCursor,direction:"older"})}>다음 페이지</Link></Button> : null}
+          {view.newerCursor || view.olderCursor ? <Button variant="outline" asChild><Link href={orderHistoryHref(`/mypage/menus/${menuSiteId}/orders`,view.filters)}>처음 페이지</Link></Button> : null}
+        </div> : null}
       </div>
     </>
   );
