@@ -36,7 +36,7 @@ export function getMenuTextColorLabel(group: MenuTextColorGroup, dining = false)
 
 export function getMenuTextColorDescription(group: MenuTextColorGroup, dining = false): string {
   if (dining && group === "information") return "위젯텍스트";
-  if (dining && group === "category") return "카테고리명·카테고리 장식·가격 옵션명";
+  if (dining && group === "category") return "카테고리명·카테고리 장식";
   if (dining && group === "product") return "상품명·코스/아이템 담기 아이콘";
   if (dining && group === "supporting") return "보조언어명·상품설명·코스 설명·코스 가격 안내";
   if (dining && group === "sectionDescription") return "페이지 제목 아래 설명·일반 카테고리 설명";

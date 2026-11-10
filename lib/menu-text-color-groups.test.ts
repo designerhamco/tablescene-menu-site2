@@ -103,7 +103,7 @@ test("Dining separates page titles, category headings and shared section descrip
   assert.equal(getMenuTextColorGroups(true).length, 9);
   assert.ok(!getMenuTextColorGroups(false).includes("pageTitle"));
   assert.equal(getMenuTextColorLabel("sectionDescription", true), "페이지·카테고리 설명");
-  assert.equal(getMenuTextColorDescription("category", true), "카테고리명·카테고리 장식·가격 옵션명");
+  assert.equal(getMenuTextColorDescription("category", true), "카테고리명·카테고리 장식");
   const legacy = {design:{textColors:{category:"#123456",supporting:"#778899"}}};
   assert.equal(resolvedMenuTextColors(legacy, true).pageTitle, "#123456");
   assert.equal(resolvedMenuTextColors(legacy, true).sectionDescription, "#778899");

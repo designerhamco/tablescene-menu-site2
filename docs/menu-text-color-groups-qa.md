@@ -6,7 +6,7 @@ The catalog preview and menu editor share saved `design.textColors`. Basic keeps
 | --- | --- |
 | 가게명 | Store text identity |
 | 가게 설명·안내 | Store description and notices physically inside the representative surface |
-| 카테고리명 | Category headings, ornaments and price-option names; Basic also owns category descriptions |
+| 카테고리명 | Category headings and ornaments; Basic also owns category descriptions and separate price-option labels |
 | 페이지 제목 (Dining) | Body-page titles and Order/Call accent |
 | 페이지·카테고리 설명 (Dining) | Page introductions and ordinary category descriptions |
 | 메뉴 기본정보 (Basic) | Product/featured name, selling price and price explanation |
