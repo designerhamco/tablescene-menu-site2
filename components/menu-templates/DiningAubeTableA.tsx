@@ -722,7 +722,7 @@ export default function DiningAubeTableA({
         .aube-table-bottom-fade { position: fixed; z-index: 15; inset: auto 0 0; height: clamp(116px, 17vh, 174px); pointer-events: none; background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, .82) 52%, #fff 86%); }
         .aube-table-pagination { position: fixed; z-index: 20; left: 50%; bottom: max(22px, env(safe-area-inset-bottom)); transform: translateX(-50%); display: flex; align-items: center; justify-content: center; padding: 0; }
         .aube-table-pagination-dots { display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .aube-table-pagination-dot { width: 5.5px; height: 5.5px; border: 0; border-radius: 999px; padding: 0; background: #c9c9c9; transition: background-color .2s ease, transform .2s ease; }
+        .aube-table-pagination-dot { appearance: none; width: 5.5px; height: 5.5px; border: 0; border-radius: 999px; padding: 0; background: #c9c9c9; transition: background-color .2s ease, transform .2s ease; }
         .aube-table-pagination-dot[data-active="true"] { background: var(--aube-accent); transform: scale(1.06); }
         .aube-table-pagination-dot[data-active="true"]:focus { outline: none; }
         .aube-table-pagination-dot:focus-visible:not([data-active="true"]), .aube-table-pagination-direction:focus-visible { outline: 2px solid var(--aube-accent); outline-offset: 5px; }
