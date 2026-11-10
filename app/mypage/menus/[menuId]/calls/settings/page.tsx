@@ -1,3 +1,4 @@
+import {SectionHeader} from "@/app/components/ui/section-header";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
@@ -24,7 +25,7 @@ export default async function CallSettingsPage({ params, searchParams }: { param
   const items = itemsPanel && canManageCallItems ? await listStaffCallItems({ menuSiteId: menuId, includeInactive: true }) : [];
   return <StoreOperationsShell sites={operations.sites} selectedSite={site} activeSection={itemsPanel ? "call-items" : "call-settings"}>
     <div className="site-stack-content">
-      <header className="site-stack-title"><p className="type-label site-copy-muted">{site.name}</p><h2 className="type-subsection-title">호출관리</h2></header>
+      <SectionHeader title="호출 관리"/>
       <OperationFeatureNavigation menuId={menuId} feature="calls" settings historyAvailable={site.operationAccess.calls} canConfigure={site.isOwner} canManageDevices={canManageDevices} panel={itemsPanel ? "items" : "settings"} callItemsAvailable={canManageCallItems} />
       {!itemsPanel ? <>
       {data ? <ContentPanel><OrderSettingsForm menuId={menuId} section="calls" settings={data.settings} runtime={data.runtime} published={site.status === "published"} activeTablesReady={site.activeTablesReady} /></ContentPanel>

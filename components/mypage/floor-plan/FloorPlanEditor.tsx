@@ -8,6 +8,7 @@ import { Armchair, Monitor, LayoutGrid, Plus, Save, X, RotateCcw } from "lucide-
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import RoomRemovalDialog from "./RoomRemovalDialog";
 import RoomNameForm from "./RoomNameForm";
+import {RoomLabel} from "@/app/components/ui/room-label";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { FieldActionRow } from "@/app/components/ui/field-action-row";
@@ -189,13 +190,13 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       } catch { if(removeRoom)setRemoveError("배치 변경을 저장하지 못했습니다. 다시 시도해 주세요."); setFeedback({ error: true, message: `${view === "list" ? "저장하지" : "배치도를 저장하지"} 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.` }); }
     });
   }
-  async function renameRoom(id: string, name: string): Promise<InlineNameResult> {
+  async function renameRoom(id: string, name: string, emoji?: string): Promise<InlineNameResult> {
     const target = document.rooms.find(item => item.id === id);
     if (!target || pending) return { status: "error", message: "룸 정보를 확인한 뒤 다시 시도해 주세요." };
     let candidate: FloorDocument;
     try {
-      normalizeFloorDocument({ ...document, rooms: document.rooms.map(item => item.id === id ? { ...item, name } : item) });
-      candidate = renameSavedFloorRoom(retainRegisteredFloorPoints(saved.document, points), target, name);
+      normalizeFloorDocument({ ...document, rooms: document.rooms.map(item => item.id === id ? { ...item, name, ...(emoji!==undefined?{emoji}:{}) } : item) });
+      candidate = renameSavedFloorRoom(retainRegisteredFloorPoints(saved.document, points), target, name, emoji);
     } catch (error) { return { status: "error", message: (error as Error).message }; }
     setRenamePending(true);
     try {
@@ -203,7 +204,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
       if (result.status === "error") return result;
       const updated = result.document.rooms.find(item => item.id === id)!;
       setSaved({ available: true, revision: result.revision, document: result.document });
-      setDraft(previous => ({ ...previous, rooms: previous.rooms.map(item => item.id === id ? { ...item, name: updated.name, aspectRatio: updated.aspectRatio } : item) }));
+      setDraft(previous => ({ ...previous, rooms: previous.rooms.map(item => item.id === id ? { ...item, name: updated.name, emoji: updated.emoji, aspectRatio: updated.aspectRatio } : item) }));
       setFeedback({ error: false, message: "룸 이름을 저장했습니다.", name: true });
       return { status: "success", value: updated.name };
     } finally { setRenamePending(false); }
@@ -251,7 +252,8 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   return <Tabs purpose="section" appearance="pills" value={room?.id ?? ""} onValueChange={value => { setRoomId(value); setSelectedId(""); setRemoveRoom(false); }}>
     <div className="site-stack-group">
       <TabsList ref={roomListRef} size="sm" aria-label="매장 공간" action={<Tooltip><TooltipTrigger asChild><Button ref={roomAddRef} type="button" variant="outline" shape="pill" size="icon" onClick={addRoom} disabled={pending || document.rooms.length >= 30} aria-label={roomAddPending?"룸 추가 중":"룸 추가"} aria-busy={roomAddPending}>{roomAddPending ? <LoadingSpinner /> : <Plus aria-hidden="true" />}</Button></TooltipTrigger><TooltipContent>룸 추가</TooltipContent></Tooltip>}>
-        {document.rooms.map(r => <TabsTrigger key={r.id} value={r.id} disabled={pending} aria-busy={renamePending&&room?.id===r.id}>{r.name || "이름 없는 룸"}{renamePending&&room?.id===r.id?<LoadingSpinner/>:null}</TabsTrigger>)}
+        {document.rooms.map(r => <TabsTrigger key={r.id} value={r.id} disabled={pending} aria-busy={renamePending&&room?.id===r.id}>{<RoomLabel name={r.name || "이름 없는 룸"} emoji={r.emoji}/>}
+        {renamePending&&room?.id===r.id?<LoadingSpinner/>:null}</TabsTrigger>)}
       </TabsList>
     <TabsContent value={room?.id ?? ""}>
     <div className="site-stack-group">

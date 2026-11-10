@@ -23,6 +23,7 @@ function loadPage(section: "tables" | "kiosks" | "qr", context: () => Promise<un
     "next/link": {},
     "next/headers": {},
     "@/components/mypage/StoreOperationsShell": {},
+    "@/app/components/ui/section-header": {SectionHeader:()=>null},
     "@/app/components/ui/content-panel": {},
     "@/components/mypage/RepresentativeQrCard": {},
     "@/lib/menu-site-permissions": { MenuSiteAccessError },

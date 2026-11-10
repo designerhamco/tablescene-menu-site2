@@ -1,3 +1,5 @@
+import OperationsViewLayout from "@/components/mypage/OperationsViewLayout";
+import InfoTooltip from "@/components/ui/InfoTooltip";
 import { loadOperationsFloorPlan } from "@/lib/server/operations-floor-plan-service";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
@@ -62,14 +64,10 @@ export default async function CallDashboardPage({
 
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="calls">
-      <div className="site-stack-content">
-        <header className="site-stack-title">
-          <p className="type-label site-copy-muted">{data.menuSite.name}</p>
-          <h2 className="type-subsection-title">호출관리</h2>
-        </header>
+      <OperationsViewLayout title="호출 관리" help={<InfoTooltip label="호출 관리 안내"><p>최근 100건을 최신 호출부터 표시하며 15초마다 갱신합니다. 테이블·키오스크를 선택하면 호출 내역과 처리 상태를 확인할 수 있습니다.</p></InfoTooltip>}>
         <OperationFeatureNavigation menuId={menuId} feature="calls" settings={false} historyAvailable={selectedSite.operationAccess.calls} canConfigure />
         <CallDashboard floorPlan={floorPlan} menuSiteId={data.menuSite.id} calls={data.calls} />
-      </div>
+      </OperationsViewLayout>
     </StoreOperationsShell>
   );
 }

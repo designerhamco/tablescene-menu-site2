@@ -1,3 +1,4 @@
+import {SectionHeader} from "@/app/components/ui/section-header";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
@@ -50,14 +51,8 @@ export default async function PickupQueuePage({ params }: { params: Promise<{ me
 
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="pickup">
-      <div className="space-y-8">
-        <header>
-          <p className="type-label text-zinc-500">{data.menuSite.name}</p>
-          <h2 className="type-subsection-title mt-2">대기번호</h2>
-          <p className="type-body-sm mt-3 max-w-3xl break-keep text-zinc-500">
-            번호를 직접 등록하고 준비 완료 시 고객 대기판의 픽업 요청 영역으로 이동합니다.
-          </p>
-        </header>
+      <div className="site-stack-content">
+        <SectionHeader title="대기번호"/>
         <PickupQueueDashboard
           menuSiteId={data.menuSite.id}
           slug={data.menuSite.slug}

@@ -1,3 +1,4 @@
+import {SectionHeader} from "@/app/components/ui/section-header";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 
@@ -51,10 +52,7 @@ export default async function MenuQrManagementPage({ params }: { params: Promise
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection="qr">
       <div className="site-stack-content">
-        <header className="site-stack-title">
-          <p className="type-label text-zinc-500">{selectedSite.name}</p>
-          <h2 className="type-subsection-title">QR 관리</h2>
-        </header>
+        <SectionHeader title="QR 관리"/>
         {data ? <>
           <RepresentativeQrCard data={data} />
           {data.canManageTables ? (

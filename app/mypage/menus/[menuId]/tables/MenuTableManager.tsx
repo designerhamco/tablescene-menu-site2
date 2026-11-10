@@ -9,7 +9,7 @@ import type { OrderPointConnectRequest } from "@/lib/order-point-connection";
 import { confirmUnsavedChanges } from "@/lib/unsaved-changes";
 import { useUnsavedChanges } from "@/components/ui/useUnsavedChanges";
 import { useActionState, useCallback, useId, useRef, useState } from "react";
-import { Armchair, Monitor, LayoutGrid, List, Map } from "lucide-react";
+import { Armchair, Monitor, LayoutGrid } from "lucide-react";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import type { ArchivedMenuTableListItem } from "@/lib/menu-table-management";
 import type { OrderPointConnectionState } from "@/components/mypage/OrderPointConnectionSummary";
@@ -29,7 +29,8 @@ import { initialMenuTableActionState } from "./action-state";
 import { createMenuTableAction, mutateMenuTableAction, updateOrderPointFeature } from "./actions";
 import { Badge } from "@/app/components/ui/badge";
 import { EmptyState } from "@/app/components/ui/empty-state";
-import {Select,SelectTrigger,SelectValue,SelectContent,SelectItem} from "@/app/components/ui/select";
+import {SectionHeader} from "@/app/components/ui/section-header";
+import {ViewStyleSelect} from "@/app/components/ui/view-style-select";
 import type { OrderPointKind } from "@/lib/order-point-policy";
 import OrderPointRestoreForm from "@/components/mypage/OrderPointRestoreForm";
 import FloorPlanDesktopNotice from "@/components/mypage/floor-plan/FloorPlanDesktopNotice";
@@ -46,11 +47,11 @@ function PointTitle({ point }: { point: { label: string; kind?: OrderPointKind }
   </span>;
 }
 
-export default function MenuTableManager({ menuSiteName, menuSiteId, tables, archivedTables = [], pointSettingsAvailable = false, canDelete = false, canConfigure = false, published = false, deviceSetup = null, connectionState, saveFloorPlanAction, removeFloorRoomAction, createPointAction = createMenuTableAction, mutatePointAction = mutateMenuTableAction, updateFeatureAction = updateOrderPointFeature, floorPlan = { available: false, revision: 0, document: emptyFloorDocument() } }: {
+export default function MenuTableManager({ menuSiteId, tables, archivedTables = [], pointSettingsAvailable = false, canDelete = false, canConfigure = false, published = false, deviceSetup = null, connectionState, saveFloorPlanAction, removeFloorRoomAction, createPointAction = createMenuTableAction, mutatePointAction = mutateMenuTableAction, updateFeatureAction = updateOrderPointFeature, floorPlan = { available: false, revision: 0, document: emptyFloorDocument() } }: {
   removeFloorRoomAction?:(revision:number,request:FloorRoomRemoval)=>Promise<FloorRoomRemovalResult>;
   createPointAction?: typeof createMenuTableAction; mutatePointAction?: typeof mutateMenuTableAction; updateFeatureAction?: typeof updateOrderPointFeature;
   saveFloorPlanAction?: (revision: number, document: FloorDocument) => Promise<FloorSaveResult>;
-  menuSiteName?:string; floorPlan?: FloorPlanSnapshot; menuSiteId: string; tables: ManagedPoint[]; archivedTables?: ArchivedMenuTableListItem[];
+  floorPlan?: FloorPlanSnapshot; menuSiteId: string; tables: ManagedPoint[]; archivedTables?: ArchivedMenuTableListItem[];
   canConfigure?: boolean; published?: boolean; deviceSetup?: OrderPointDeviceSettings | null;
   pointSettingsAvailable?: boolean; canDelete?: boolean; connectionState?: OrderPointConnectionState;
 }) {
@@ -130,11 +131,7 @@ export default function MenuTableManager({ menuSiteName, menuSiteId, tables, arc
 
     <section className="site-stack-group" aria-labelledby={`${usageId}-title`}>
       <div className="site-stack-group">
-        <header className="site-stack-title">
-          {menuSiteName?<p className="type-label site-copy-muted">{menuSiteName}</p>:null}
-          <div className="site-content-heading-row" data-layout="toolbar"><h2 className="type-subsection-title" id={`${usageId}-title`}>테이블·키오스크 관리</h2>
-          <div className="site-field-stack"><Select value={displayMode} onValueChange={value=>{void changeDisplayMode(value);}}><SelectTrigger ref={viewSelectRef} aria-label="보기 유형"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="map"><Map aria-hidden="true"/>배치도형</SelectItem><SelectItem value="list"><List aria-hidden="true"/>리스트형</SelectItem></SelectContent></Select></div></div>
-        </header>
+        <SectionHeader id={`${usageId}-title`} title="테이블·키오스크 관리" actions={<ViewStyleSelect ref={viewSelectRef} value={displayMode} onValueChange={value=>{void changeDisplayMode(value);}}/>}/>
           <FloorPlanEditor onRoomChange={roomChanged} onRemoveRoom={removeFloorRoomAction} restoredPoint={recentRestore} externalDirty={editsDirty} onSaveEdits={saveEdits} onDiscardEdits={discardEdits} createdPoint={createState.status === "success" && createState.tableId && createState.registrationRoomId ? { pointId: createState.tableId, roomId: createState.registrationRoomId } : undefined} view={displayMode === "list" ? "list" : "map"} registration={registration} initial={floorPlan} points={draftTables}
             renderList={({pointIds,unassignedPointIds,rooms,roomId,pending,onMovePoint}) => <div className="site-stack-group">{[
               {title:"운영 테이블·키오스크",ids:pointIds,unassigned:false},

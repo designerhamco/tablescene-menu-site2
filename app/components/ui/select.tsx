@@ -31,10 +31,12 @@ function SelectValue({
 function SelectTrigger({
   className,
   size = "default",
+  iconOnly = false,
   children,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
   size?: "sm" | "md" | "lg" | "default";
+  iconOnly?: boolean;
 }) {
   return (
     <SelectPrimitive.Trigger
@@ -43,6 +45,7 @@ function SelectTrigger({
       data-field-size={size === "default" ? "md" : size}
       className={cn(
         "site-field site-select-trigger data-[placeholder]:text-muted-foreground flex w-full items-center gap-2 whitespace-nowrap *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        iconOnly && "site-select-icon",
         className,
       )}
       {...props}
