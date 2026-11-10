@@ -19,6 +19,7 @@ function render(ids: string[], registered = [first, second]) {
 }
 test("배치도 첫 유효 항목은 클릭 전부터 선택 정보와 선택 상태를 표시한다", () => {
   const html = render([first, second]);
+  assert.doesNotMatch(html,/저장하지 않은 변경사항/);
   assert.match(html, new RegExp(`data-selected-details="${first}"`));
   assert.match(html, /aria-label="테이블 · 테이블 1" aria-pressed="true"/);
   assert.match(html, /aria-label="테이블 · 테이블 2" aria-pressed="false"/);

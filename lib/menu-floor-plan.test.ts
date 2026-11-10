@@ -28,13 +28,13 @@ test("중복 룸·테이블, 다른 룸, 경계 초과, 비정상 수치와 과�
 test("사각형 이동·크기 조절은 룸 경계와 최소 크기를 보존한다", () => {
   for (let n = -200; n <= 200; n += 3) {
     const rect = floor.constrainFloorRect({ x: n, y: 100 - n, width: n / 2, height: 150 - n });
-    assert.ok(rect.x >= 0 && rect.y >= 0 && rect.width >= 8 && rect.height >= 8);
+    assert.ok(rect.x >= 0 && rect.y >= 0 && rect.width >= floor.FLOOR_RECT_LIMITS.minWidth && rect.height >= floor.FLOOR_RECT_LIMITS.minHeight);
     assert.ok(rect.x + rect.width <= 100 && rect.y + rect.height <= 100);
-    floor.normalizeFloorDocument({ ...document(), placements: [{ pointId: point, roomId: room, ...rect }] });
+    floor.normalizeFloorDocument({ ...document(), layoutVersion:2, placements: [{ pointId: point, roomId: room, ...rect }] });
   }
 });
-function fixture({ denied = false, missingSchema = false, stale = false, foreignPoint = false } = {}) {
-  let stored: { revision: number; document: unknown } | null = null;
+function fixture({ denied = false, missingSchema = false, stale = false, foreignPoint = false, legacy = false } = {}) {
+  let stored: { revision: number; document: unknown } | null = legacy?{revision:1,document:document()}:null;
   let writes = 0, calls = 0;
   const gates: string[] = [];
   const db = { from(table: string) {
@@ -107,7 +107,7 @@ test("새 등록은 선택 룸의 빈 곳에 초기 배치하고 기존 위치·
   const original = document();
   const second = "44444444-4444-4444-8444-444444444444", third = "55555555-5555-4555-8555-555555555555";
   const next = floor.placeNewFloorPoints(original, [point, second, third, second], room);
-  assert.deepEqual(next.placements[0], original.placements[0]); assert.equal(next.placements.length, 3);
+  assert.deepEqual(next.placements[0], floor.readableFloorDocument(original).placements[0]); assert.equal(next.placements.length, 3);
   assert.equal(original.placements.length, 1);
   for (const rect of next.placements) { assert.equal(rect.roomId, room); assert.ok(rect.x >= 0 && rect.y >= 0 && rect.x + rect.width <= 100 && rect.y + rect.height <= 100); }
   for (let i=0;i<next.placements.length;i++) for(let j=i+1;j<next.placements.length;j++) {
@@ -136,4 +136,12 @@ test("룸 추가 결과는 서버 반올림 값을 사용해 저장된 문서와
   assert.deepEqual(merged.placements,draft.placements);
   assert.deepEqual(merged.memberships,draft.memberships);
   assert.notDeepEqual(merged,result);
+});
+
+test("기존 룸의 이름만 저장하거나 첫 빈 룸을 만들 때 geometry 변환·가짜 미저장을 만들지 않는다",async()=>{
+ const f=fixture({legacy:true}),before=await f.service.loadMenuFloorPlan(site);
+ const renamed=floor.renameSavedFloorRoom(before.document,before.document.rooms[0],"새 홀");
+ const result=await f.service.saveMenuFloorPlan(site,1,renamed);
+ assert.deepEqual(result.document.placements,before.document.placements);assert.equal(result.document.layoutVersion,undefined);
+ const empty=await fixture().service.saveMenuFloorPlan(site,0,{rooms:document().rooms,placements:[]});assert.equal(empty.document.layoutVersion,undefined);assert.deepEqual(empty.document.placements,[]);
 });
