@@ -3,6 +3,7 @@ import { getDefaultDesignOptions } from "./default-design-options";
 import type { DefaultDesignReview } from "./menu-design-policy";
 import type { MenuPageData } from "./menu-page-data";
 import type { TemplatePreviewQuery } from "./menu-preview-devices";
+import { isAubeTableTemplate } from "./aube-table";
 import { getTemplateCapabilities } from "./template-capabilities";
 
 export type PreviewOptionGroup = { label: string; choices: [DefaultDesignOptionKey, string][] };
@@ -23,6 +24,7 @@ export function getTemplatePreviewOptionGroups(templateKey: string, design?: Def
       ...(capabilities.menuWidgets.enabled ? [["widgetsPreview", "위젯"] as [DefaultDesignOptionKey, string]] : []),
     ] },
     { label: "메뉴 정보", choices: [
+      ...(isAubeTableTemplate(templateKey) ? [["pageDescriptionsPreview", "페이지 설명"] as [DefaultDesignOptionKey, string]] : []),
       ...(capabilities.categoryDescription ? [["categoryDescriptionsPreview", "카테고리 설명"] as [DefaultDesignOptionKey, string]] : []),
       ["secondaryNamesPreview", "보조 언어명"],
       ...(capabilities.itemDescription ? [["descriptionsPreview", "메뉴 설명"] as [DefaultDesignOptionKey, string]] : []),
@@ -55,6 +57,7 @@ export function getTemplatePreviewOptions(source: MenuPageData, query: TemplateP
     featuredPreview: source.pageSettings.featured_item_enabled === true,
     imagesPreview: source.items.some(item => Boolean(item.image_url)),
     widgetsPreview: source.widgets?.some(widget => widget.visible !== false) ?? false,
+    pageDescriptionsPreview: source.pages.some(page => page.description_visible !== false && Boolean(page.description)),
     categoryDescriptionsPreview: source.categories.some(category => category.description_visible !== false && Boolean(category.description)),
     secondaryNamesPreview: source.items.some(item => basic && source.locale !== "ko" ? Boolean(item.default_name && item.default_name !== item.name) : Boolean(item.set_name)),
     descriptionsPreview: source.items.some(item => Boolean(item.description)),

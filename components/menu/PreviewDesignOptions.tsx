@@ -6,7 +6,7 @@ import { KOREAN_FONT_OPTIONS, getAvailableEnglishFontsForTemplate, getEnglishFon
 import { type PreviewDesign, type PreviewDesignDefaults, type PreviewFontChoice } from "@/lib/menu-preview-design";
 import { resolvePreviewChipColors, type PreviewChipColors } from "@/lib/menu-preview-chip-colors";
 import { REPRESENTATIVE_ALIGNMENTS } from "@/lib/menu-design-surfaces";
-import { MENU_TEXT_COLOR_GROUPS, getMenuTextColorLabel, type MenuTextColorGroup } from "@/lib/menu-text-colors";
+import { getMenuTextColorGroups, getMenuTextColorLabel, type MenuTextColorGroup } from "@/lib/menu-text-colors";
 import ImageRadiusSelect from "./ImageRadiusSelect";
 import PreviewColorPicker from "./PreviewColorPicker";
 import styles from "./PreviewDesignOptions.module.css";
@@ -25,13 +25,14 @@ export default function PreviewDesignOptions({ value, defaults, renderedDesign, 
   const set = (patch: Partial<PreviewDesign>) => onChange({ ...value, ...patch });
   const textColor = (group: MenuTextColorGroup, color?: string) => set({
     textColorGroupsVersion: 2,
-    textColors: { ...value.textColors,
+    ...(dining ? { diningTextColorGroupsVersion: 1 as const } : {}),
+    textColors: { ...(dining ? defaults.textColors : {}), ...value.textColors,
       ...(value.textColorGroupsVersion !== 2 && value.textColors?.supporting && !value.textColors?.information ? { information: value.textColors.supporting } : {}),
       [group]: color },
   });
   const colorDefault = (group: MenuTextColorGroup) => (group === "information" && value.textColorGroupsVersion !== 2 ? value.textColors?.supporting : undefined) ?? defaults.textColors[group]
     ?? renderedDesign?.nativeTextColors[group]
-    ?? value.fonts?.[group === "brand" || group === "category" ? group : "other"]?.color
+    ?? (group === "pageTitle" || group === "sectionDescription" ? undefined : value.fonts?.[group === "brand" || group === "category" ? group : "other"]?.color)
     ?? (dining && group === "representative" ? value.coverDescriptionColor ?? defaults.colors.coverDescription : defaults.textColorDefaults[group]);
   const appearance = { ...defaults.appearance, imageRadii: { ...defaults.appearance.imageRadii, ...value.imageRadii }, chipShape: value.chipShape ?? defaults.appearance.chipShape };
   const chipColors = resolvePreviewChipColors(value.chipColors ?? {});
@@ -56,7 +57,7 @@ export default function PreviewDesignOptions({ value, defaults, renderedDesign, 
         <option value="">기본값 · {getEnglishFontOption(defaults.fontFamily.en)?.label}</option>{getAvailableEnglishFontsForTemplate(templateKey).map(item=><option key={item.value} value={item.value}>{item.label}</option>)}
       </select></label>
     </div></fieldset>
-    <fieldset><legend className={styles.legend}>글자색</legend><div className={styles.colorGrid} data-preview-font-groups>{MENU_TEXT_COLOR_GROUPS.map(group => {
+    <fieldset><legend className={styles.legend}>글자색</legend><div className={styles.colorGrid} data-preview-font-groups>{getMenuTextColorGroups(dining).map(group => {
       const label = getMenuTextColorLabel(group, dining);
       return <PreviewColorPicker key={group} label={label} accessibleLabel={`${label} 글자색`} value={value.textColors?.[group]} defaultColor={colorDefault(group)} onChange={color => textColor(group, color)} disabled={disabled} loading={!renderedDesign} />;
     })}</div></fieldset>

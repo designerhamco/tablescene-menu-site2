@@ -34,13 +34,13 @@ export function menuColorContrast(first: string, second: string) {
   const b = luminance(parseColor(second)?.rgb ?? [255, 255, 255]);
   return (Math.max(a, b) + .05) / (Math.min(a, b) + .05);
 }
-export function resolveMenuInteractionTheme({ category, surfaces, inks = [] }: {
-  category: string; surfaces: string[]; inks?: string[];
+export function resolveMenuInteractionTheme({ category, pageTitle, surfaces, inks = [] }: {
+  category: string; pageTitle?: string; surfaces: string[]; inks?: string[];
 }) {
   // Ignore transparent/invalid swatches; never sample photos or include site colors.
   const backgrounds = surfaces.map(opaque).filter((c): c is string => Boolean(c));
   const panel = backgrounds[0] ?? LIGHT;
-  const parsed = parseColor(category);
+  const parsed = parseColor(pageTitle ?? category);
   const base = parseColor(panel)!.rgb;
   const accent = parsed ? hexColor(parsed.rgb.map((c, i) => c * parsed.alpha + base[i] * (1 - parsed.alpha)) as RGB) : DARK;
   const inksOnly = [accent, ...inks.map(opaque).filter((c): c is string => Boolean(c))];
@@ -62,7 +62,8 @@ export function resolveMenuInteractionTheme({ category, surfaces, inks = [] }: {
     "--menu-call-bg": lightest,
     "--menu-call-ink": accent,
     "--menu-call-border": accent,
-    // Dining's circular Call uses the category fill, matching Order, while its
+    // Dining passes page-title ink as its accent. Basic retains category ink.
+    // Circular Call matches Order, while its
     // label/icon use the lightest readable menu color.
     "--menu-call-circle-bg": accent,
     "--menu-call-circle-ink": callCircleForeground,
@@ -70,13 +71,25 @@ export function resolveMenuInteractionTheme({ category, surfaces, inks = [] }: {
   };
 }
 
-/** Tools sit on the current surface; their ink is separate from branded action fills. */
-export function resolveMenuToolsInk({ preferred, surface, photo = false }: {
-  preferred: string; surface: string; photo?: boolean;
+/** Prefer the requested copy ink, then real menu swatches by surface brightness. */
+export function resolveMenuToolsInk({ preferred, surface, palette = [] }: {
+  preferred: string; surface: string; palette?: string[];
 }) {
-  if (photo) return LIGHT;
   const background = opaque(surface) ?? LIGHT;
   const ink = opaque(preferred);
   if (ink && menuColorContrast(ink, background) >= 4.5) return ink;
-  return menuColorContrast(LIGHT, background) > menuColorContrast(DARK, background) ? LIGHT : DARK;
+  const candidates = [...new Set(palette.map(opaque).filter((c): c is string => Boolean(c)))];
+  const darkSurface = luminance(parseColor(background)!.rgb) < .179;
+  candidates.sort((a, b) => (luminance(parseColor(a)!.rgb) - luminance(parseColor(b)!.rgb)) * (darkSurface ? -1 : 1));
+  return candidates.find(color => menuColorContrast(color, background) >= 4.5)
+    ?? (menuColorContrast(LIGHT, background) > menuColorContrast(DARK, background) ? LIGHT : DARK);
+}
+
+/** Composite a cover overlay over a sampled photo without inventing new menu ink. */
+export function compositeMenuSurface(background: string, overlay: string, opacity = 1) {
+  const base = parseColor(background)?.rgb ?? [255, 255, 255];
+  const foreground = parseColor(overlay);
+  if (!foreground) return hexColor(base as RGB);
+  const alpha = foreground.alpha * Math.max(0, Math.min(1, opacity));
+  return hexColor(foreground.rgb.map((c, i) => c * alpha + base[i] * (1 - alpha)) as RGB);
 }

@@ -78,6 +78,7 @@ type PageProps = {
     coverPreview?: string | string[];
     featuredPreview?: string | string[];
     imagesPreview?: string | string[];
+    pageDescriptionsPreview?: string | string[];
     categoryDescriptionsPreview?: string | string[];
     secondaryNamesPreview?: string | string[];
     descriptionsPreview?: string | string[];

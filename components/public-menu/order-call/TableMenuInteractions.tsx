@@ -57,6 +57,7 @@ type Actions = {
   presentation: "cafe" | "aube";
   device: MenuPreviewDevice;
   terminalConnected: boolean;
+  showDiningTable: boolean;
 };
 const Context = createContext<Actions | null>(null);
 export function TableMenuActionButtons({ appearance = "circle", headerOnly = false, hideCall = false, showTableLabel = true }: { appearance?: "circle" | "inline"; headerOnly?: boolean; hideCall?: boolean; showTableLabel?: boolean }) {
@@ -109,7 +110,7 @@ export function TableMenuHeader({ actions = true }: { actions?: boolean }) {
         triggerVariant={a.presentation}
         menuAlign="left"
       />
-      <span className={styles.table} data-terminal-table-label={a.terminalConnected ? "" : undefined} title={a.table}>{a.table}</span>
+      {a.presentation !== "aube" || a.showDiningTable ? <span className={styles.table} data-terminal-table-label={a.terminalConnected ? "" : undefined} title={a.table}>{a.table}</span> : <span />}
       {actions ? <TableMenuActionButtons headerOnly showTableLabel={false} /> : <span />}
     </header>
   );
@@ -120,9 +121,13 @@ export function DiningMenuToolbar({ children }: { children: ReactNode }) {
   const actions = useContext(Context);
   if (!actions || actions.device === "mobile") return <>{children}</>;
   return <div className={styles.diningToolbar} data-dining-menu-toolbar role="group" aria-label={t("메뉴판 도구")}>
-    {actions.terminalConnected ? <span className={styles.table} data-terminal-table-label title={actions.table}>{actions.table}</span> : null}
     <MenuLanguageSwitcher currentLocale={actions.locale} enabledLocales={actions.locales} compact triggerVariant="aube" menuAlign="right" />
-    <TableMenuActionButtons hideCall showTableLabel={false} />
+    {actions.showDiningTable ? <span className={styles.table} data-terminal-table-label title={actions.table}>{actions.table}</span> : null}
+    <button type="button" className={styles.circle} data-dining-cart disabled={!actions.order} title={!actions.order ? t("지금은 주문을 사용할 수 없습니다.") : undefined}
+      aria-label={t("장바구니 {0}개", actions.count)} onClick={actions.order ? actions.openCart : undefined}>
+      <MenuOrderIcon variant="document" purpose="view" />
+      {actions.count > 0 ? <MenuCartCountBadge className={styles.badge} count={actions.count} /> : null}
+    </button>
   </div>;
 }
 function TableMenuMobileDock() {
@@ -168,6 +173,7 @@ export default function TableMenuInteractions({
   const [toast, setToast] = useState("");
   const live = useLiveOrderPointAccess(config);
   const visibility = getOrderCallEntryVisibility({ ...config, orderEnabled: config.orderEnabled && live.order, callEnabled: config.callEnabled && live.call, hasValidTableSession: config.hasValidTableSession && live.valid });
+  const hasMobileHeader = presentation !== "aube" || config.orderEnabled || config.callEnabled || config.hasValidTableSession;
   const terminalConnected = live.valid && config.mode === "active" && config.hasValidTableSession && config.channel === "terminal" && Boolean(config.tableLabel?.trim());
   useTerminalConnection(config.menuSiteId ?? "", terminalConnected, Boolean(config.previewOnly));
   const order =
@@ -187,7 +193,7 @@ export default function TableMenuInteractions({
     call,
     order,
     count,
-    table: config.tableLabel || "Table 1",
+    table: config.tableLabel || (presentation === "aube" && !config.previewOnly ? t("테이블 미지정") : "Table 1"),
     openCall: () => setCallOpen(true),
     openCart: () => {
       setSelected(null);
@@ -198,6 +204,7 @@ export default function TableMenuInteractions({
     presentation,
     device: devicePresentation,
     terminalConnected,
+    showDiningTable: config.orderEnabled || config.callEnabled,
   };
   return (
     <Context.Provider value={actions}>
@@ -228,9 +235,10 @@ export default function TableMenuInteractions({
             data-device={devicePresentation}
             data-presentation={presentation}
             data-embedded={embedded ? "true" : "false"}
+            data-mobile-header={hasMobileHeader ? "true" : "false"}
             data-mobile-dock={!embedded && devicePresentation === "mobile" && (call || order) ? "true" : "false"}
           >
-            {!embedded && devicePresentation === "mobile" ? (
+            {!embedded && devicePresentation === "mobile" && hasMobileHeader ? (
               <TableMenuHeader />
             ) : null}
             <div ref={contentRef} className={styles.content}>{children}</div>

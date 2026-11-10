@@ -56,6 +56,8 @@ export const MENU_UI_COPY: Record<string, readonly [string, string, string]> = {
   "장바구니": ["Cart", "カート", "购物车"],
   "주문하기": ["Order", "注文する", "下单"],
   "메뉴 이용": ["Menu actions", "メニュー操作", "菜单操作"],
+  "지금은 주문을 사용할 수 없습니다.": ["Ordering is unavailable right now.", "現在は注文できません。", "当前无法下单。"],
+  "테이블 미지정": ["No table assigned", "テーブル未指定", "未指定桌号"],
   "메뉴판 도구": ["Menu tools", "メニューツール", "菜单工具"],
   "주문내역": ["Order history", "注文履歴", "订单记录"],
   "주문 메뉴": ["Order menu", "注文メニュー", "订单菜单"],

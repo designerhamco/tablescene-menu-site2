@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MENU_TEXT_COLOR_GROUPS, getMenuTextColorLabel, getMenuTextColorDescription, resolvedMenuTextColors, normalizeMenuTextColors, readMenuTextColors, setMenuTextColorsFromForm, getMutedMenuPriceColor } from "./menu-text-colors";
+import { MENU_TEXT_COLOR_GROUPS, getMenuTextColorGroups, getMenuTextColorLabel, getMenuTextColorDescription, resolvedMenuTextColors, normalizeMenuTextColors, readMenuTextColors, setMenuTextColorsFromForm, getMutedMenuPriceColor } from "./menu-text-colors";
 import { menuColorContrast } from "./menu-interaction-theme";
 import { applyPreviewDesign, readPreviewDesign, serializePreviewDesign, previewDesignDefaults } from "./menu-preview-design";
 import type { MenuPageData } from "./menu-page-data";
 
-test("only the six registered color groups accept validated opaque colors", () => {
+test("only registered color groups accept validated opaque colors", () => {
  assert.deepEqual(normalizeMenuTextColors({brand:"#abcdef",supporting:"url(evil)",product:42,unknown:"#ffffff"}),{brand:"#ABCDEF"});
  assert.deepEqual(normalizeMenuTextColors(null),{});
 });
@@ -96,4 +96,32 @@ test("Dining names only widget ink while Basic preserves its separate footer-not
   assert.equal(getMenuTextColorLabel("information", false), "하단 안내·위젯");
   assert.equal(getMenuTextColorDescription("information", false), "메뉴영역 안내사항·위젯텍스트");
   assert.equal(getMenuTextColorLabel("representative", true), "가게 설명·안내");
+});
+
+test("Dining separates page titles, category headings and shared section descriptions", () => {
+  assert.equal(getMenuTextColorGroups(false).length, 6);
+  assert.equal(getMenuTextColorGroups(true).length, 8);
+  assert.ok(!getMenuTextColorGroups(false).includes("pageTitle"));
+  assert.equal(getMenuTextColorLabel("sectionDescription", true), "페이지·카테고리 설명");
+  assert.equal(getMenuTextColorDescription("category", true), "카테고리명·카테고리 장식·가격 옵션명");
+  const legacy = {design:{textColors:{category:"#123456",supporting:"#778899"}}};
+  assert.equal(resolvedMenuTextColors(legacy, true).pageTitle, "#123456");
+  assert.equal(resolvedMenuTextColors(legacy, true).sectionDescription, "#778899");
+  assert.equal(resolvedMenuTextColors(legacy, false).pageTitle, undefined);
+  const source={menuSite:{template_key:"dining_aube_table_a",settings:{},page_settings:legacy},pageSettings:{}} as unknown as MenuPageData;
+  const preview=applyPreviewDesign(source,readPreviewDesign(serializePreviewDesign({diningTextColorGroupsVersion:1,textColors:{pageTitle:"#C5A165",category:"#358833",sectionDescription:"#61718A"}})),false);
+  assert.deepEqual(readMenuTextColors(preview.menuSite.page_settings),{category:"#358833",pageTitle:"#C5A165",sectionDescription:"#61718A",supporting:"#778899",information:"#778899"});
+  assert.equal(resolvedMenuTextColors(source.menuSite.page_settings,true).pageTitle,"#123456");
+  const design:Record<string,unknown>={};
+  const form=new FormData();form.set("text_colors_present","1");form.set("dining_text_colors_present","1");
+  form.set("text_color_pageTitle","#C5A165");form.set("text_color_category","#358833");form.set("text_color_sectionDescription","#61718A");
+  setMenuTextColorsFromForm(design,form);
+  assert.equal(design.diningTextColorGroupsVersion,1);
+  assert.equal(readMenuTextColors({design}).sectionDescription,"#61718A");
+  form.set("text_color_pageTitle","");setMenuTextColorsFromForm(design,form);
+  assert.equal(resolvedMenuTextColors({design},true).pageTitle,undefined);
+  assert.equal(readMenuTextColors({design}).category,"#358833");
+  const oldForm=new FormData();oldForm.set("text_colors_present","1");oldForm.set("text_color_category","#112233");
+  setMenuTextColorsFromForm(design,oldForm);
+  assert.equal(readMenuTextColors({design}).sectionDescription,"#61718A");
 });

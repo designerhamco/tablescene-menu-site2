@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties }
 import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "motion/react";
 
 import MenuOrderAddButton from "@/components/public-menu/order-call/MenuOrderAddButton";
+import { readMenuSurfaceSettings } from "@/lib/menu-design-surfaces";
 import { DiningMenuToolbar } from "@/components/public-menu/order-call/TableMenuInteractions";
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
@@ -247,7 +248,8 @@ export default function DiningAubeTableA({
   const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
   const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
   const typographyStyle = getTypographyCssVariables(typographySettings, data.menuSite.template_key);
-  const categoryToolsInk = resolvedMenuTextColors(data.menuSite.page_settings).category ?? typographySettings.typography_roles.category.color ?? "#191c1b";
+  const textColors = resolvedMenuTextColors(data.menuSite.page_settings, true);
+  const categoryToolsInk = textColors.category ?? typographySettings.typography_roles.category.color ?? "#191c1b";
   const customColorRoles = getTypographyCustomColorRoles(typographySettings);
   const fontAssets = [
     getKoreanFontLoadAssets(typographySettings.korean_font_key),
@@ -340,8 +342,10 @@ export default function DiningAubeTableA({
   const pageColumns = normalizeAubeTableLayoutColumns(activePage?.layout_columns);
   const coverColor = normalizeAubeTableCoverBackgroundColor(data.pageSettings.multi_page_cover_background_color);
   const coverOpacity = normalizeAubeTableCoverBackgroundOpacity(data.pageSettings.multi_page_cover_background_opacity);
+  const coverToolsInk = textColors.representative ?? readMenuSurfaceSettings(data.menuSite.page_settings).coverDescriptionColor ?? typographySettings.typography_roles.supporting.color ?? (defaultDesign ? "#606561" : "#FFFFFF");
   const toolsStyle = {
-    "--aube-cover-tools-ink": resolveMenuToolsInk({ preferred: categoryToolsInk, surface: coverColor, photo: data.pageSettings.cover_image_visible !== false && Boolean(data.menuSite.cover_image_url) }),
+    "--aube-cover-copy-ink": coverToolsInk,
+    "--aube-cover-tools-ink": resolveMenuToolsInk({ preferred: coverToolsInk, surface: coverColor, palette: [coverToolsInk, typographySettings.typography_roles.brand.color ?? "#C5A165"] }),
     "--menu-dining-language-ink": resolveMenuToolsInk({ preferred: categoryToolsInk, surface: "#ffffff" }),
   } as CSSProperties;
   const storeName = data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name;
@@ -579,6 +583,9 @@ export default function DiningAubeTableA({
         .aube-table-viewport[data-preview-device="mobile"] { max-width:767px; }
         .aube-table-root {
           --aube-item-reading-scale: 1;
+          --aube-page-title-ink: var(--menu-text-pageTitle, var(--menu-role-category-color, var(--aube-accent)));
+          --aube-section-description-ink: var(--menu-text-sectionDescription, var(--menu-role-supporting-color, var(--aube-muted)));
+          --aube-cover-copy-ink: var(--menu-text-representative, var(--menu-cover-description-ink, var(--dining-cover-notice-ink, #fff)));
           --aube-accent: #c5a165;
           --aube-surface: #fff;
           --aube-ink: #17191f;
@@ -645,7 +652,7 @@ export default function DiningAubeTableA({
         .aube-table-sidebar-navigation, .aube-table-mobile-page-tabs { display: none; }
         .aube-table-root[data-layout="sidebar"] { --aube-sidebar-mobile-top: 0px; }
         .aube-table-language-control { position: fixed; z-index: 60; top: max(24px, env(safe-area-inset-top)); right: max(28px, env(safe-area-inset-right)); }
-        .aube-table-language-control { color: var(--menu-role-category-color, var(--aube-ink)); }
+        .aube-table-language-control { color: var(--menu-dining-tools-ink, var(--aube-cover-tools-ink)); }
         .aube-table-language-control :global([data-language-menu-trigger]) { color: inherit; }
         .aube-table-root[data-cover-active="true"] .aube-table-language-control { color: var(--menu-dining-tools-ink, var(--aube-cover-tools-ink)); }
         .aube-table-root[data-layout="sidebar"] .aube-table-stage { cursor: default; }
@@ -665,9 +672,9 @@ export default function DiningAubeTableA({
         .aube-table-page { width: min(100%, 1440px); min-height: 100%; margin: 0 auto; padding: var(--aube-page-padding-top) var(--aube-page-padding-inline) var(--aube-page-padding-bottom); }
         .aube-table-page[data-align="center"] { text-align: center; }
         .aube-table-page-header { --cafe-a-script-ko-font: var(--menu-role-category-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-category-font-en, var(--menu-font-en)); max-width: 820px; margin: 0 auto var(--aube-space-section-start); text-align: center; }
-        .aube-table-page-header h1 { margin: 0; color: var(--menu-role-category-color, var(--aube-accent)); font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: clamp(48px, 4.7vw, 68px); font-weight: var(--menu-role-category-font-weight, 400); line-height: 1.05; letter-spacing: -.025em; }
+        .aube-table-page-header h1 { margin: 0; color: var(--aube-page-title-ink); font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: clamp(48px, 4.7vw, 68px); font-weight: var(--menu-role-category-font-weight, 400); line-height: 1.05; letter-spacing: -.025em; }
         .aube-table-widgets { grid-column: 1 / -1; display: grid; gap: var(--aube-space-course); --cafe-a-widget-ink: var(--aube-ink); }
-        .aube-table-page-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 680px; margin: clamp(11px, 1.1vw, 16px) auto 0; color: var(--aube-muted); font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-page-description); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.55; }
+        .aube-table-page-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 680px; margin: clamp(11px, 1.1vw, 16px) auto 0; color: var(--aube-section-description-ink); font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: var(--aube-type-page-description); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.55; }
         .aube-table-page-content { display: grid; gap: var(--aube-space-course); text-align: left; }
         .aube-table-page[data-align="center"] .aube-table-page-content { text-align: center; }
         .aube-table-page[data-columns="2"] .aube-table-page-content { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--aube-column-gap); row-gap: var(--aube-space-course); }
@@ -681,7 +688,7 @@ export default function DiningAubeTableA({
         .aube-table-course-rule { width: 100%; border-top: 1px solid currentColor; }
         .aube-table-course-header h2 { --cafe-a-script-ko-font: var(--menu-role-category-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-category-font-en, var(--menu-font-en)); margin: 0; color: var(--menu-role-category-color, var(--aube-ink)); font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: var(--aube-type-course-title); font-weight: var(--menu-role-category-font-weight, 500); line-height: 1.18; letter-spacing: -.025em; }
         .aube-table-course-price { --cafe-a-script-ko-font: var(--menu-role-price-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-price-font-en, var(--menu-font-en)); margin: 0; white-space: nowrap; color: var(--aube-accent); font-family: var(--menu-role-price-font-family, var(--menu-font-ko)); font-size: calc(var(--aube-type-course-price) * var(--aube-item-reading-scale)); font-weight: var(--menu-role-price-font-weight, 700); line-height: 1.35; }
-        .aube-table-course-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 700px; margin: clamp(14px, 1.4vw, 20px) 0 0; color: var(--menu-text-category, var(--menu-design-category-ink, var(--menu-role-category-color, var(--aube-ink)))) !important; font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: calc(var(--aube-type-course-body) * var(--aube-item-reading-scale)); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.58; }
+        .aube-table-course-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 700px; margin: clamp(14px, 1.4vw, 20px) 0 0; color: var(--aube-section-description-ink) !important; font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: calc(var(--aube-type-course-body) * var(--aube-item-reading-scale)); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.58; }
         .aube-table-course-price-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); margin: clamp(6px, .65vw, 10px) 0 0; color: var(--aube-subtle); font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: calc(var(--aube-type-course-meta) * var(--aube-item-reading-scale)); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.55; }
         .aube-table-course-items, .aube-table-direct-items { display: grid; gap: 0; }
         .aube-table-course-items { margin-top: var(--aube-space-section-start); }
