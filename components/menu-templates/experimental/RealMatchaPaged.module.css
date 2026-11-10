@@ -4,7 +4,7 @@
   --paged-ink: #191c1b;
   --paged-brand: var(--menu-role-brand-color, #191c1b);
   /* Match the original adaptive board inset at each actual viewport width. */
-  --scroll-page-inset: clamp(2rem, 4.2vmin, 4.25rem);
+  --scroll-page-inset: var(--basic-reading-page-inset);
   --scroll-column-gap: var(--scroll-page-inset);
   --scroll-action-clearance: clamp(0.875rem, calc(var(--scroll-page-inset) * 0.75), 1.25rem);
   --cafe-a-reading-reference-size: var(--scroll-item-size, 1rem);

@@ -4818,6 +4818,9 @@ video {
    while the 94% product role
    is shared by visible rows, measuring rows and representative products. */
 .cafe-a-typography[data-spacing-contract="contained-reading"] {
+  --basic-reading-page-inset: clamp(2rem, 4.2vmin, 4.25rem);
+  --basic-reading-heading-inset: clamp(0.32rem, 0.62vmin, 0.56rem);
+  --basic-reading-heading-stroke-space: clamp(0.1rem, 0.14vmin, 0.15rem);
   --cafe-a-product-reading-scale: .94;
   --cafe-a-sunday-secondary-ratio: .64 !important;
   --cafe-a-sunday-supporting-ratio: .72 !important;
@@ -4825,6 +4828,16 @@ video {
   --cafe-a-template-supporting-copy-scale: 1 !important;
   --cafe-a-loop-non-heading-type-scale: 1 !important;
   --cafe-a-mocha-tablet-product-text-scale: 1 !important;
+}
+/* Preserve Matcha's rule and give the unruled Mocha heading the same
+   measured breathing room. These tokens do not participate in mobile rhythm. */
+.cafe-a-typography[data-spacing-contract="contained-reading"][data-template-key="cafe_design_a"] .cafe-a-category-heading {
+  padding-bottom: var(--basic-reading-heading-inset);
+  border-bottom-width: var(--basic-reading-heading-stroke-space);
+}
+.cafe-a-typography[data-spacing-contract="contained-reading"][data-template-key="cafe_mocha_forest_a"] :is([data-native-unit], [data-native-measure])[data-kind="heading"] .cafe-a-category-heading {
+  padding-bottom: var(--basic-reading-heading-inset);
+  border-bottom: var(--basic-reading-heading-stroke-space) solid transparent;
 }
 .cafe-a-typography[data-spacing-contract="contained-reading"][data-preview-device="tablet"] {
   --cafe-a-sunday-secondary-ratio: .63 !important;
