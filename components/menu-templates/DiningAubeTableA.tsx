@@ -365,12 +365,12 @@ export default function DiningAubeTableA({
     const update = () => {
       const frame = cover.getBoundingClientRect();
       const noticesHeight = bottom.getBoundingClientRect().height;
-      const pageBottom = Math.min(frame.bottom, win.innerHeight, dock?.getBoundingClientRect().top ?? Infinity);
+      const dockRect = dock?.getBoundingClientRect();
+      const pageBottom = Math.min(frame.bottom, win.innerHeight, dockRect?.height ? dockRect.top : Infinity);
       const noticeEnd = Math.min(pageBottom - 24, pagination ? pagination.getBoundingClientRect().top - 20 : Infinity);
       root.style.setProperty("--aube-cover-notice-bottom", `${Math.max(24, frame.bottom - noticeEnd)}px`);
       // Bound the height budget to the viewport so oversized cover copy cannot feed back into measurement.
       root.style.setProperty("--aube-cover-bottom-height", `${Math.max(0, Math.min(frame.bottom, win.innerHeight) - noticeEnd) + noticesHeight}px`);
-      shell?.style.setProperty("--dining-cover-call-clearance", `${win.innerHeight - noticeEnd + noticesHeight + 20}px`);
     };
     const observer = new ResizeObserver(update);
     for (const element of [bottom, cover, pagination, dock]) if (element) observer.observe(element);
@@ -381,7 +381,6 @@ export default function DiningAubeTableA({
       win.removeEventListener("resize", update);
       root.style.removeProperty("--aube-cover-notice-bottom");
       root.style.removeProperty("--aube-cover-bottom-height");
-      shell?.style.removeProperty("--dining-cover-call-clearance");
     };
   }, []);
   if (!activeUnit) return null;
@@ -446,7 +445,7 @@ export default function DiningAubeTableA({
           enabledLocales={data.enabledLocales}
           compact
           triggerVariant="aube"
-          menuAlign="right"
+          menuAlign="left"
         />
         </DiningMenuToolbar>
       </div>
@@ -651,7 +650,7 @@ export default function DiningAubeTableA({
         .aube-table-stage:active { cursor: grabbing; }
         .aube-table-sidebar-navigation, .aube-table-mobile-page-tabs { display: none; }
         .aube-table-root[data-layout="sidebar"] { --aube-sidebar-mobile-top: 0px; }
-        .aube-table-language-control { position: fixed; z-index: 60; top: max(24px, env(safe-area-inset-top)); right: max(28px, env(safe-area-inset-right)); }
+        .aube-table-language-control { position: fixed; z-index: 60; top: max(24px, env(safe-area-inset-top)); left: max(28px, env(safe-area-inset-left)); right: max(28px, env(safe-area-inset-right)); }
         .aube-table-language-control { color: var(--menu-dining-tools-ink, var(--aube-cover-tools-ink)); }
         .aube-table-language-control :global([data-language-menu-trigger]) { color: inherit; }
         .aube-table-root[data-cover-active="true"] .aube-table-language-control { color: var(--menu-dining-tools-ink, var(--aube-cover-tools-ink)); }
@@ -681,6 +680,7 @@ export default function DiningAubeTableA({
         .aube-table-course { min-width: 0; }
         .aube-table-course-header { color: var(--menu-role-category-color, var(--aube-ink)); display: grid; grid-template-columns: auto minmax(32px, 1fr) auto; align-items: baseline; gap: clamp(14px, 1.5vw, 22px); }
         .aube-table-course-header:not(:has(.aube-table-course-price, [data-menu-order-add])) { grid-template-columns: auto minmax(32px, 1fr); }
+        .aube-table-root [data-menu-order-add] { color: var(--menu-text-product, var(--menu-role-item-name-color, var(--aube-ink))) !important; }
         .aube-table-course-purchase, .aube-table-item-purchase { display: flex; align-items: center; gap: .375rem; min-width: 0; }
         .aube-table-course-purchase:empty, .aube-table-item-purchase:empty { display: none; }
         .aube-table-course-title { min-width: 0; }
@@ -688,7 +688,8 @@ export default function DiningAubeTableA({
         .aube-table-course-rule { width: 100%; border-top: 1px solid currentColor; }
         .aube-table-course-header h2 { --cafe-a-script-ko-font: var(--menu-role-category-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-category-font-en, var(--menu-font-en)); margin: 0; color: var(--menu-role-category-color, var(--aube-ink)); font-family: var(--menu-role-category-font-family, var(--menu-font-en)); font-size: var(--aube-type-course-title); font-weight: var(--menu-role-category-font-weight, 500); line-height: 1.18; letter-spacing: -.025em; }
         .aube-table-course-price { --cafe-a-script-ko-font: var(--menu-role-price-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-price-font-en, var(--menu-font-en)); margin: 0; white-space: nowrap; color: var(--aube-accent); font-family: var(--menu-role-price-font-family, var(--menu-font-ko)); font-size: calc(var(--aube-type-course-price) * var(--aube-item-reading-scale)); font-weight: var(--menu-role-price-font-weight, 700); line-height: 1.35; }
-        .aube-table-course-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 700px; margin: clamp(14px, 1.4vw, 20px) 0 0; color: var(--aube-section-description-ink) !important; font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: calc(var(--aube-type-course-body) * var(--aube-item-reading-scale)); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.58; }
+        .aube-table-course-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 700px; margin: clamp(14px, 1.4vw, 20px) 0 0; color: var(--menu-text-supporting, var(--menu-role-supporting-color, var(--aube-item-copy))); font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: calc(var(--aube-type-course-body) * var(--aube-item-reading-scale)); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.58; }
+        .aube-table-course:not([data-course-priced="true"]) .aube-table-course-description { color: var(--aube-section-description-ink) !important; }
         .aube-table-course-price-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); margin: clamp(6px, .65vw, 10px) 0 0; color: var(--aube-subtle); font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: calc(var(--aube-type-course-meta) * var(--aube-item-reading-scale)); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.55; }
         .aube-table-course-items, .aube-table-direct-items { display: grid; gap: 0; }
         .aube-table-course-items { margin-top: var(--aube-space-section-start); }

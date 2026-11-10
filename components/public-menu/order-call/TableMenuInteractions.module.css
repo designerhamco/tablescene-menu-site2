@@ -151,22 +151,19 @@
 .inlineAction:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 .inlineAction .badge { position: static; border: 0; background: transparent; color: inherit; padding: 0; min-width: 0; }
 
-/* Dining desktop/tablet controls share the existing fixed top language slot. */
+/* Dining tools span the board: language left, table centered, history right. */
 .diningToolbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: .25rem;
-  padding: .25rem;
-  border-radius: .5rem;
-  background: var(--menu-dining-tools-surface, var(--aube-surface, #fff));
+  background: transparent;
   color: var(--menu-dining-tools-ink, var(--menu-call-ink, #191c1b));
   box-shadow: none;
 }
-.diningToolbar .table { max-width: min(12rem, 28vw); }
-/* Every cover keeps its own surface, including solid-color covers. */
-.shell :global(.aube-table-root[data-cover-active="true"]) .diningToolbar {
-  background: transparent;
-}
+.diningToolbar > div:first-child { grid-column: 1; justify-self: start; }
+.diningToolbar .table { grid-column: 2; max-width: min(12rem, 28vw); }
+.diningToolbar > [data-dining-cart] { grid-column: 3; justify-self: end; }
 .diningToolbar .actions { gap: .25rem; }
 .diningToolbar button {
   display: inline-flex;
@@ -184,13 +181,13 @@
 .diningToolbar button:not(:disabled):hover { opacity: .65; }
 .diningToolbar button:disabled { cursor: not-allowed; }
 .diningToolbar svg { width: 24px; height: 24px; }
-.diningToolbar [data-template-language-control] > button { width: auto; min-width: 64px; gap: .375rem; padding-inline: .5rem; }
-.diningToolbar [data-template-language-control] svg { width: 16px; height: 16px; }
+.diningToolbar [data-language-menu-trigger] { width: auto; min-width: 64px; gap: .375rem; padding-inline: .5rem; }
+.diningToolbar [data-language-menu-trigger] svg { width: 16px; height: 16px; }
 .shell[data-presentation="aube"] :is(.circle, .mobileDock, [data-menu-order-add]) svg { stroke-width: 1.6; }
 .diningFloatingCall {
   position: fixed;
   right: max(24px, env(safe-area-inset-right));
-  bottom: var(--dining-cover-call-clearance, max(24px, env(safe-area-inset-bottom)));
+  bottom: max(24px, env(safe-area-inset-bottom));
   z-index: 90;
   display: flex;
   flex-direction: column;
@@ -225,12 +222,7 @@
 .shell .dock .circle[aria-label^="장바구니"] { background: var(--menu-order-bg, #191c1b); color: var(--menu-order-ink, #fff); border-color: var(--menu-order-border, #191c1b); }
 .header .circle { border: 0; }
 
-/* Every mobile cover extends behind both operational bars. Their container
-   paper disappears locally; branded Order/Call button fills remain unchanged. */
-.shell[data-presentation="aube"][data-device="mobile"][data-mobile-dock="true"]:has(:global([data-cover-active="true"])) {
-  --aube-viewport-height: 100dvh;
-  padding-bottom: 0;
-}
+/* Mobile cover language controls overlay the cover without reserving a bar. */
 .shell[data-presentation="aube"][data-device="mobile"][data-mobile-header="true"]:has(:global([data-cover-active="true"])) .header {
   position: fixed; inset: 0 0 auto; background: transparent; color: var(--menu-dining-tools-ink, #fff);
 }
@@ -244,3 +236,14 @@
 .shell[data-presentation="aube"][data-device="mobile"][data-mobile-header="true"]:has(:global([data-cover-active="true"])) :global(.aube-table-mobile-page-tabs button[data-active="true"]) { border-bottom-color: var(--menu-dining-tools-ink, #fff); }
 .shell[data-presentation="aube"][data-device="mobile"][data-mobile-header="true"]:has(:global([data-cover-active="true"])) :global(.aube-table-root[data-layout="sidebar"] .aube-table-stage),
 .shell[data-presentation="aube"][data-device="mobile"][data-mobile-header="true"]:has(:global([data-cover-active="true"])) :global(.aube-table-root[data-layout="sidebar"] .aube-table-cover) { min-height: 100dvh; }
+
+/* Cover operational tools are language-only on every Dining device. Hidden
+   controls release their dock/navigation clearance as well as their hit areas. */
+.shell[data-presentation="aube"]:has(:global([data-cover-active="true"])) :is([data-dining-cart], .table, [data-table-menu-actions], .diningFloatingCall, .mobileDock) { display: none; }
+.shell[data-presentation="aube"][data-device="mobile"]:has(:global([data-cover-active="true"])) {
+  --aube-viewport-height: 100dvh;
+  padding-bottom: 0;
+}
+.shell[data-presentation="aube"][data-device="mobile"]:has(:global([data-cover-active="true"])) :global(.aube-table-pagination) {
+  bottom: max(24px, env(safe-area-inset-bottom));
+}

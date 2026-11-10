@@ -41,7 +41,7 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
         surfaces.push(getComputedStyle(panel).backgroundColor);
         if (panel === root) break;
       }
-      const declaredInks = ["--menu-role-brand-color", "--menu-role-category-color", "--menu-role-supporting-color", "--aube-accent", "--aube-ink", "--cafe-a-ink", "--menu-role-item-name-color", "--menu-role-price-color"].map(key => style.getPropertyValue(key).trim()).filter(Boolean);
+      const declaredInks = [...(dining ? ["--menu-text-brand", "--menu-text-representative", "--menu-text-product", "--menu-text-price", "--menu-text-supporting", "--menu-text-sectionDescription", "--aube-cover-copy-ink"] : []), "--menu-role-brand-color", "--menu-role-category-color", "--menu-role-supporting-color", "--aube-accent", "--aube-ink", "--cafe-a-ink", "--menu-role-item-name-color", "--menu-role-price-color"].map(key => style.getPropertyValue(key).trim()).filter(Boolean);
       const inks = [...(brand ? [getComputedStyle(brand).color] : []), ...declaredInks, ...[...root.querySelectorAll<HTMLElement>(dining ? ".aube-table-page-header h1,.aube-table-course-header h2,.aube-table-page-description,.aube-table-course-description,.aube-table-item-heading h3,.aube-table-item-price,.aube-table-item-description" : ".cafe-a-category-title,[data-cafe-a-menu-name],.cafe-a-menu-price")].filter(visible).slice(0, 12).map(e => getComputedStyle(e).color)];
       // Include the actual reading panels, not photo pixels or site chrome.
       for (const panel of root.querySelectorAll<HTMLElement>("[data-native-column],[data-paged-column],.aube-table-page,.cafe-a-fixed-rail")) {
@@ -54,7 +54,9 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
       const coverDescription = root.querySelector<HTMLElement>(".aube-table-cover-description");
       const preferredToolsInk = coverDescription ? getComputedStyle(coverDescription).color : style.getPropertyValue("--aube-cover-copy-ink").trim();
       const control = container.parentElement?.querySelector<HTMLElement>("[data-table-menu-header]") ?? root.querySelector<HTMLElement>("[data-dining-menu-toolbar],[data-aube-table-language-control]");
-      const toolSurface = dining ? readDiningToolSurface(root, control, schedule) : style.backgroundColor;
+      // A language-only cover samples the visible trigger, not the empty full-width toolbar.
+      const surfaceControl = coverActive ? control?.querySelector<HTMLElement>("[data-language-menu-trigger]") ?? control : control;
+      const toolSurface = dining ? readDiningToolSurface(root, surfaceControl, schedule) : style.backgroundColor;
       const toolPalette = cover ? [pageTitle ?? "", preferredToolsInk, ...(brand ? [getComputedStyle(brand).color] : []), ...[...cover.querySelectorAll<HTMLElement>("h1,.aube-table-cover-notices")].map(e=>getComputedStyle(e).color), getComputedStyle(cover).backgroundColor] : [...inks, ...surfaces];
       const next = { ...palette, ...(dining ? {
         "--menu-dining-language-ink": resolveMenuToolsInk({ preferred: categoryColor, surface: "#ffffff" }),

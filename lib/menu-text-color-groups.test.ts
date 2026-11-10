@@ -100,7 +100,7 @@ test("Dining names only widget ink while Basic preserves its separate footer-not
 
 test("Dining separates page titles, category headings and shared section descriptions", () => {
   assert.equal(getMenuTextColorGroups(false).length, 6);
-  assert.equal(getMenuTextColorGroups(true).length, 8);
+  assert.equal(getMenuTextColorGroups(true).length, 9);
   assert.ok(!getMenuTextColorGroups(false).includes("pageTitle"));
   assert.equal(getMenuTextColorLabel("sectionDescription", true), "페이지·카테고리 설명");
   assert.equal(getMenuTextColorDescription("category", true), "카테고리명·카테고리 장식·가격 옵션명");
@@ -124,4 +124,35 @@ test("Dining separates page titles, category headings and shared section descrip
   const oldForm=new FormData();oldForm.set("text_colors_present","1");oldForm.set("text_color_category","#112233");
   setMenuTextColorsFromForm(design,oldForm);
   assert.equal(readMenuTextColors({design}).sectionDescription,"#61718A");
+});
+
+
+test("Dining price colors preserve legacy product ink and independently save, reset and round-trip", () => {
+  const legacy={design:{diningTextColorGroupsVersion:1,textColors:{product:"#123456",category:"#663322"},unrelated:"keep"}};
+  assert.equal(resolvedMenuTextColors(legacy,true).price,"#123456");
+  assert.equal(resolvedMenuTextColors(legacy,false).price,undefined);
+  assert.equal(getMenuTextColorLabel("product",true),"상품명");
+  assert.equal(getMenuTextColorLabel("price",true),"가격·가격 안내");
+  assert.ok(!getMenuTextColorGroups(false).includes("price"));
+  const design:Record<string,unknown>=structuredClone(legacy.design),form=new FormData();
+  form.set("text_colors_present","1");form.set("dining_text_colors_present","1");
+  form.set("text_color_product","#223344");form.set("text_color_price","#C5A165");
+  setMenuTextColorsFromForm(design,form);
+  assert.equal(design.diningTextColorGroupsVersion,2);
+  assert.equal(resolvedMenuTextColors({design},true).product,"#223344");
+  assert.equal(resolvedMenuTextColors({design},true).price,"#C5A165");
+  const olderForm=new FormData();olderForm.set("text_colors_present","1");olderForm.set("text_color_product","#556677");
+  setMenuTextColorsFromForm(design,olderForm);assert.equal(resolvedMenuTextColors({design},true).price,"#C5A165");
+  form.set("text_color_price","");setMenuTextColorsFromForm(design,form);
+  assert.equal(resolvedMenuTextColors({design},true).price,undefined);
+  assert.equal(resolvedMenuTextColors({design},true).product,"#223344");assert.equal(design.unrelated,"keep");
+  const source={menuSite:{template_key:"dining_aube_table_a",settings:{},page_settings:legacy},pageSettings:{}} as unknown as MenuPageData;
+  const original=structuredClone(source);
+  const preview=applyPreviewDesign(source,readPreviewDesign(serializePreviewDesign({diningTextColorGroupsVersion:2,textColors:{product:"#334455",price:"#DDAA66"}})),false);
+  assert.equal(resolvedMenuTextColors(preview.menuSite.page_settings,true).price,"#DDAA66");
+  assert.equal(resolvedMenuTextColors(preview.menuSite.page_settings,true).product,"#334455");
+  const reset=applyPreviewDesign(source,{diningTextColorGroupsVersion:2,textColors:{product:"#334455"}},false);
+  assert.equal(resolvedMenuTextColors(reset.menuSite.page_settings,true).price,undefined);
+  assert.equal(resolvedMenuTextColors(reset.menuSite.page_settings,true).product,"#334455");
+  assert.deepEqual(source,original);
 });

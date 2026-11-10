@@ -31,10 +31,11 @@ try {
       await p.goto(`${base}/templates/${c.key}/preview?` + new URLSearchParams({ device: c.device, view: 'actual', callPreview: 'on', lang }), { waitUntil: 'networkidle' });
       await settle(p);
       assert.deepEqual(await p.evaluate(() => [innerWidth, innerHeight]), [c.width, c.height]);
+      const dining = c.key.startsWith('dining_');
+      if(dining){assert.equal(await p.locator(callSelector).filter({visible:true}).count(),0,'cover hides Call');await p.locator('.aube-table-pagination-dots button,.aube-table-sidebar-list button,.aube-table-mobile-page-tabs button').filter({visible:true}).nth(1).click();await settle(p);}
       const call = p.locator(callSelector).filter({ visible: true }).first();
       await call.waitFor();
       const initial = await buttonStyle(call);
-      const dining = c.key.startsWith('dining_');
       if (dining && c.device !== 'mobile') {
         assert.equal(initial.radius, '50%');
         assert.equal(initial.width, initial.height);
@@ -49,7 +50,7 @@ try {
       if (dining) {
         const tabs = p.locator('.aube-table-pagination-dots button,.aube-table-sidebar-list button,.aube-table-mobile-page-tabs button').filter({ visible: true });
         const count = await tabs.count();
-        for (const index of [...Array(count - 1)].map((_, i) => i + 1).concat(0)) {
+        for (const index of [...Array(count - 1)].map((_, i) => i + 1)) {
           await tabs.nth(index).click();
           await settle(p);
           const next = await buttonStyle(call);
