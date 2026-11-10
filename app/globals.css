@@ -5899,7 +5899,7 @@ video {
 }
 .cafe-a-mobile-call-bar .cafe-a-call-language-slot button > svg,
 .cafe-a-mobile-call-dock-button svg { inline-size: 1.5rem; block-size: 1.5rem; }
-.cafe-a-mobile-call-dock { display: none; }
+.cafe-a-mobile-call-dock { display: none; background: transparent; }
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] .cafe-a-mobile-call-dock {
   display: flex;
   gap: .5rem;
@@ -6044,7 +6044,6 @@ video {
   inset-inline: 0; bottom: 0;
   padding: var(--basic-panel-action-inset);
   padding-bottom: calc(var(--basic-panel-action-inset) + env(safe-area-inset-bottom, 0px));
-  background: var(--menu-design-page-bg, #fff);
   box-sizing: border-box;
 }
 

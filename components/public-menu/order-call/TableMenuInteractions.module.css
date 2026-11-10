@@ -211,12 +211,11 @@
 .shell[data-presentation="aube"] .header [data-language-menu-trigger] { color: inherit; }
 
 /* Mobile ordering keeps one header icon and reserves one shared bottom action row. */
-.mobileDock { position: fixed; inset-inline: 0; bottom: 0; z-index: 110; display: flex; gap: .5rem; padding: .75rem 1rem max(.75rem, env(safe-area-inset-bottom)); background: #fff; font-family: "Pretendard", system-ui, sans-serif; }
+.mobileDock { position: fixed; inset-inline: 0; bottom: 0; z-index: 110; display: flex; gap: .5rem; padding: .75rem 1rem max(.75rem, env(safe-area-inset-bottom)); background: transparent; font-family: "Pretendard", system-ui, sans-serif; }
 .mobileDock button { display: flex; align-items: center; justify-content: center; gap: .5rem; flex: 1 1 0; min-width: 0; min-height: 3.25rem; padding: .75rem; border-radius: .5rem; border: 1px solid var(--menu-call-border, #191c1b); font-size: .875rem; font-weight: var(--menu-action-font-weight, 500); line-height: 1.5; cursor: pointer; }
 .mobileDock svg { width: 1.5rem; height: 1.5rem; stroke-width: 1.7; flex: none; }
 .mobileDock button:focus-visible { outline: 2px solid #191c1b; outline-offset: 2px; }
 .mobileDock .mobileOrder { background: var(--menu-order-bg, #191c1b); color: var(--menu-order-ink, #fff); border-color: var(--menu-order-border, #191c1b); }
-.shell[data-presentation="aube"] .mobileDock { background: var(--menu-dining-tools-surface, #fff); }
 .mobileCall, .mobileCallOnly { background: var(--menu-call-bg, #fff); color: var(--menu-call-ink, #191c1b); }
 
 .shell[data-mobile-dock="true"] { --aube-viewport-height: calc(100dvh - 56px - 5.25rem - env(safe-area-inset-bottom)); padding-bottom: calc(5.25rem + env(safe-area-inset-bottom)); }
@@ -237,7 +236,6 @@
 .shell[data-presentation="aube"][data-device="mobile"]:has(:global([data-cover-active="true"])) .header [data-language-menu-trigger] {
   background: transparent; color: inherit;
 }
-.shell[data-presentation="aube"][data-device="mobile"]:has(:global([data-cover-active="true"])) .mobileDock { background: transparent; }
 .shell[data-presentation="aube"][data-device="mobile"]:has(:global([data-cover-active="true"])) :global(.aube-table-root[data-layout="sidebar"] .aube-table-mobile-page-tabs) {
   position: absolute; top: 56px; background: transparent; border-color: transparent;
 }
