@@ -58,3 +58,8 @@ Final Production-build matrix: 152/152 passed, zero page errors, zero API writes
 ## Current viewing-option names — 2026-11-01
 
 Keep the released labels: 가게명 / 카테고리명 / 메뉴 기본정보 / 가게 설명·안내 / 메뉴 설명 / 하단 안내·위젯. The category rule adds category descriptions and ornaments to 카테고리명; 메뉴 설명 owns secondary names and product descriptions. Internal six-group keys and saved JSON remain unchanged. Catalog and editor share `MENU_TEXT_COLOR_LABELS`; browser checks and this ownership table use those same current names.
+
+
+## Dining cover ownership — 2026-11-10
+
+Dining cover description and notices 1/2/3 use representative ink (가게 설명·안내), including its legacy cover-description fallback. Dining information ink is labeled 위젯 and controls only widget title/body. Catalog and editor use the same context-aware label helper. Basic retains 하단 안내·위젯 and all existing notice ownership; no saved field/key or customer data is migrated. Native color sampling includes cover notices when the description is absent.

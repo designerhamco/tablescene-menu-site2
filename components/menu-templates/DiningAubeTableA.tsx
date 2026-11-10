@@ -341,21 +341,33 @@ export default function DiningAubeTableA({
   const coverDescription = data.menuSite.menu_cover_description || data.menuSite.brand_description || data.menuSite.description;
   const useCoverLogo = shouldUseAubeTableCoverLogo(data.menuSite.logo_url, failedCoverLogoUrl);
   const coverNotices = getMenuNoticeRows(data.menuSite);
-  // Callback-ref lifetime follows the mounted cover even after AnimatePresence exits.
+  // Observe the mounted cover; fixed pagination never moves with notice length.
   const measureCoverBottom = useCallback((bottom: HTMLDivElement | null) => {
     const root = bottom?.closest<HTMLElement>(".aube-table-root");
-    if (!bottom || !root) return;
+    const cover = bottom?.closest<HTMLElement>(".aube-table-cover");
+    const win = root?.ownerDocument.defaultView;
+    if (!bottom || !root || !cover || !win) return;
     const shell = root.closest<HTMLElement>("[data-menu-interaction-shell]");
+    const pagination = root.querySelector<HTMLElement>(".aube-table-pagination");
+    const dock = shell?.querySelector<HTMLElement>("[data-table-mobile-dock]");
     const update = () => {
-      root.style.setProperty("--aube-cover-bottom-height", `${bottom.getBoundingClientRect().height}px`);
-      const noticesHeight = bottom.querySelector("[data-dining-cover-notices]")?.getBoundingClientRect().height ?? 0;
-      shell?.style.setProperty("--dining-cover-call-clearance", `${noticesHeight + 20}px`);
+      const frame = cover.getBoundingClientRect();
+      const noticesHeight = bottom.getBoundingClientRect().height;
+      const pageBottom = Math.min(frame.bottom, win.innerHeight, dock?.getBoundingClientRect().top ?? Infinity);
+      const noticeEnd = Math.min(pageBottom - 24, pagination ? pagination.getBoundingClientRect().top - 20 : Infinity);
+      root.style.setProperty("--aube-cover-notice-bottom", `${Math.max(24, frame.bottom - noticeEnd)}px`);
+      // Bound the height budget to the viewport so oversized cover copy cannot feed back into measurement.
+      root.style.setProperty("--aube-cover-bottom-height", `${Math.max(0, Math.min(frame.bottom, win.innerHeight) - noticeEnd) + noticesHeight}px`);
+      shell?.style.setProperty("--dining-cover-call-clearance", `${win.innerHeight - noticeEnd + noticesHeight + 20}px`);
     };
     const observer = new ResizeObserver(update);
-    observer.observe(bottom);
+    for (const element of [bottom, cover, pagination, dock]) if (element) observer.observe(element);
+    win.addEventListener("resize", update);
     update();
     return () => {
       observer.disconnect();
+      win.removeEventListener("resize", update);
+      root.style.removeProperty("--aube-cover-notice-bottom");
       root.style.removeProperty("--aube-cover-bottom-height");
       shell?.style.removeProperty("--dining-cover-call-clearance");
     };
@@ -505,7 +517,6 @@ export default function DiningAubeTableA({
             {coverDescription ? <motion.p className="aube-table-cover-description" variants={AUBE_TABLE_COVER_REVEAL_ITEM}><ScriptAwareText text={coverDescription} /></motion.p> : null}
           </motion.div>
           {coverNotices.length ? <div className="aube-table-cover-bottom" ref={measureCoverBottom}>
-            {pagination}
             <div className="aube-table-cover-notices" data-dining-cover-notices data-notice-count={coverNotices.length} style={{ gridTemplateColumns: `repeat(${coverNotices.length}, minmax(0, 1fr))` }}>
               {coverNotices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>)}
             </div>
@@ -549,7 +560,7 @@ export default function DiningAubeTableA({
         </motion.div>
       </AnimatePresence>
 
-      {activeUnit.type === "cover" && coverNotices.length ? null : pagination}
+      {pagination}
 
       {!usesSidebarNavigation && activeUnit.type === "page" ? <div className="aube-table-bottom-fade" aria-hidden="true" /> : null}
 
@@ -631,8 +642,7 @@ export default function DiningAubeTableA({
         .aube-table-cover-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
         .aube-table-cover-overlay { position: absolute; inset: 0; z-index: -1; }
         .aube-table-cover-copy { width: min(92vw, 1240px); padding: var(--aube-cover-padding-top) var(--aube-cover-padding-inline) var(--aube-cover-padding-bottom); text-align: center; color: #fff; }
-        .aube-table-cover-bottom { position: absolute; z-index: 2; bottom: calc(max(24px, env(safe-area-inset-bottom)) + var(--dining-cover-bottom-clearance, 0px)); inset-inline: var(--aube-cover-padding-inline); display: flex; flex-direction: column; align-items: stretch; gap: 20px; }
-        .aube-table-cover-bottom .aube-table-pagination { position: static; align-self: center; transform: none; max-width: 100%; }
+        .aube-table-cover-bottom { position: absolute; z-index: 2; bottom: var(--aube-cover-notice-bottom, max(24px, env(safe-area-inset-bottom))); inset-inline: var(--aube-cover-padding-inline); }
         .aube-table-cover-notices { --cafe-a-script-ko-font: var(--menu-font-ko); --cafe-a-script-en-font: var(--menu-font-ko); display: grid; align-items: end; gap: clamp(12px, 2vw, 24px); color: var(--dining-cover-notice-ink, #fff); font-family: var(--menu-font-ko), sans-serif; font-size: var(--aube-type-item-body); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.5; text-align: center; }
         .aube-table-cover-notices p { min-width: 0; margin: 0; overflow-wrap: anywhere; white-space: pre-line; }
         .aube-table-cover[data-cover-notices="true"] .aube-table-cover-copy { padding-bottom: max(var(--aube-cover-padding-bottom), calc(var(--aube-cover-bottom-height, 0px) + 48px)); }
