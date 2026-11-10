@@ -181,7 +181,7 @@
 .diningToolbar button:not(:disabled):hover { opacity: .65; }
 .diningToolbar button:disabled { cursor: not-allowed; }
 .diningToolbar svg { width: 24px; height: 24px; }
-.diningToolbar [data-language-menu-trigger] { color: var(--menu-dining-language-trigger-ink, inherit) !important; width: auto; min-width: 64px; gap: .375rem; padding-inline: .5rem; }
+.diningToolbar [data-language-menu-trigger] { width: auto; min-width: 64px; gap: .375rem; padding-inline: .5rem; }
 .diningToolbar [data-language-menu-trigger] svg { width: 16px; height: 16px; }
 .shell[data-presentation="aube"] :is(.circle, .mobileDock, [data-menu-order-add]) svg { stroke-width: 1.6; }
 .diningFloatingCall {

@@ -17,7 +17,7 @@ export type PreviewFontChoice = { color?: string; ko?: KoreanFontValue; en?: Eng
 export type PreviewDesign = {
   textColors?: MenuTextColors;
   textColorGroupsVersion?: 2;
-  diningTextColorGroupsVersion?: 1 | 2;
+  diningTextColorGroupsVersion?: 1 | 2 | 3;
   pageBackground?: string;
   auxiliaryBackground?: string;
   coverBackground?: string;
@@ -37,7 +37,7 @@ export function readPreviewDesign(raw: unknown): PreviewDesign {
   try { source = record(typeof raw === "string" && raw.length <= 4000 ? JSON.parse(raw) : raw); } catch { return {}; }
   const result: PreviewDesign = {};
   if (source.textColorGroupsVersion === 2) result.textColorGroupsVersion = 2;
-  if (source.diningTextColorGroupsVersion === 1 || source.diningTextColorGroupsVersion === 2) result.diningTextColorGroupsVersion = source.diningTextColorGroupsVersion;
+  if (source.diningTextColorGroupsVersion === 1 || source.diningTextColorGroupsVersion === 2 || source.diningTextColorGroupsVersion === 3) result.diningTextColorGroupsVersion = source.diningTextColorGroupsVersion;
   for (const key of ["pageBackground", "auxiliaryBackground", "coverBackground", "sidebarBackground", "coverDescriptionColor"] as const) {
     const color = normalizeBackgroundColor(source[key]); if (color) result[key] = color;
   }
@@ -114,13 +114,18 @@ export function applyPreviewDesign(source: MenuPageData, value: unknown, album: 
   if (overrides.textColors) {
     // Resolve the previous combined group before entering the independent scheme.
     design.textColors = { ...resolvedMenuTextColors(page, data.menuSite.template_key?.startsWith("dining_aube_table_") === true), ...overrides.textColors };
-    if (overrides.diningTextColorGroupsVersion === 1 || overrides.diningTextColorGroupsVersion === 2) design.diningTextColorGroupsVersion = overrides.diningTextColorGroupsVersion;
+    if (overrides.diningTextColorGroupsVersion === 1 || overrides.diningTextColorGroupsVersion === 2 || overrides.diningTextColorGroupsVersion === 3) design.diningTextColorGroupsVersion = overrides.diningTextColorGroupsVersion;
     if (overrides.textColorGroupsVersion === 2) design.textColorGroupsVersion = 2;
   }
-  if (overrides.diningTextColorGroupsVersion === 2) {
-    design.diningTextColorGroupsVersion = 2;
+  if (overrides.diningTextColorGroupsVersion === 2 || overrides.diningTextColorGroupsVersion === 3) {
+    design.diningTextColorGroupsVersion = overrides.diningTextColorGroupsVersion;
     // An absent price after a new independent edit means native/reset, not legacy product ink.
     if (!overrides.textColors?.price && design.textColors) delete (design.textColors as MenuTextColors).price;
+  }
+  if (data.menuSite.template_key?.startsWith("dining_aube_table_") && overrides.diningTextColorGroupsVersion === 3) {
+    const colors = (design.textColors ??= {}) as MenuTextColors;
+    delete colors.sectionDescription;
+    if (!overrides.textColors?.supporting) delete colors.supporting;
   }
   if (overrides.chipColors) design.previewChipColors = overrides.chipColors;
   if (overrides.representativeAlignment) design.representativeAlignment = overrides.representativeAlignment;

@@ -272,7 +272,7 @@ export default function TypographySettingsForm({
           <>
             <input form={formId} type="hidden" name="common_fonts_present" value="1" />
             <input form={formId} type="hidden" name="text_colors_present" value="1" />
-            {isAubeTableTemplate ? <input form={formId} type="hidden" name="dining_text_colors_present" value="1" /> : null}
+            {isAubeTableTemplate ? <><input form={formId} type="hidden" name="dining_text_colors_present" value="1" /><input form={formId} type="hidden" name="dining_shared_descriptions" value="1" /></> : null}
             {getMenuTextColorGroups(isAubeTableTemplate).map(group => <input key={group} form={formId} type="hidden" name={`text_color_${group}`} value={textColors[group] ?? ""} />)}
             <input form={formId} type="hidden" name="font_size_scale_key" value={selectedFontSizeScale} />
             <div className="grid gap-4 xl:grid-cols-2" data-editor-common-fonts>
