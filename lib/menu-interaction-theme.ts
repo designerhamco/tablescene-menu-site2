@@ -69,3 +69,14 @@ export function resolveMenuInteractionTheme({ category, surfaces, inks = [] }: {
     "--menu-call-circle-border": accent,
   };
 }
+
+/** Tools sit on the current surface; their ink is separate from branded action fills. */
+export function resolveMenuToolsInk({ preferred, surface, photo = false }: {
+  preferred: string; surface: string; photo?: boolean;
+}) {
+  if (photo) return LIGHT;
+  const background = opaque(surface) ?? LIGHT;
+  const ink = opaque(preferred);
+  if (ink && menuColorContrast(ink, background) >= 4.5) return ink;
+  return menuColorContrast(LIGHT, background) > menuColorContrast(DARK, background) ? LIGHT : DARK;
+}

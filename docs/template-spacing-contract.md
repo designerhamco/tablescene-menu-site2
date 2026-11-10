@@ -513,3 +513,8 @@ The semantic three-field reference remains the sizing constraint. Score fill usi
 ## Mobile ordering controls follow-up — 2026-10-19
 
 When Order is enabled, the mobile header shows cart only (Bell remains for Call-only). The shared bottom row shows Order, Call, or Order+Call according to independent feature flags, using the existing reserved bottom reading space. This approved control update changes no 20/24/48 body rhythm, name/price alignment, PC/tablet canvas-fit policy or Display engine. Cart UI is an explicit Pretendard 400–600 operational dialog, independent of template artwork typography.
+
+
+## Dining operation surfaces
+
+Dining operational chrome follows the active cover/menu surface, independently of photo visibility. No added white box/bar on a cover: toolbar/header/dock containers are transparent and the cover extends behind them. Photo tools keep white ink; solid cover/menu tools prefer category ink when readable (4.5 contrast), otherwise neutral readable ink. Language trigger, order-history icon and table label share tool ink; the white language list has its own readable category ink. Retain Dining PC/tablet circular Call, mobile side-by-side rectangular Order/Call, and existing category-based action fills across cover/menu states. Basic remains independent. See `docs/dining-tools-surface-qa.md`.

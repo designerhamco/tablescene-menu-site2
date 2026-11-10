@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { resolveMenuInteractionTheme, menuColorContrast } from "./menu-interaction-theme";
+import { resolveMenuInteractionTheme, resolveMenuToolsInk, menuColorContrast } from "./menu-interaction-theme";
 
 test("Order and Dining circle use category fill while rectangular Call keeps the bright menu surface", () => {
   const t = resolveMenuInteractionTheme({ category: "rgb(22, 95, 60)", surfaces: ["#fff", "#f6f3ed"], inks: ["#191c1b"] });
@@ -62,5 +62,16 @@ test("configured swatches precede neutral fallback and never return unreadable O
   for (const category of ["#fff", "#777", "#08E39A", "#fefecc", "invalid", "rgba(0 0 0 / 50%)"]) {
     const theme = resolveMenuInteractionTheme({ category, surfaces: ["#792839", "#ECEAB7"], inks: ["#f7eedc"] });
     assert.ok(menuColorContrast(theme["--menu-order-bg"], theme["--menu-order-ink"]) >= 4.5);
+  }
+});
+
+test("Dining tools use readable surface ink independently of action fills", () => {
+  assert.equal(resolveMenuToolsInk({preferred:"#17191f",surface:"#0d172a"}), "#ffffff");
+  assert.equal(resolveMenuToolsInk({preferred:"#17191f",surface:"#ffffff"}), "#17191f");
+  assert.equal(resolveMenuToolsInk({preferred:"#ffffff",surface:"#ffffff"}), "#191c1b");
+  assert.equal(resolveMenuToolsInk({preferred:"#ffffff",surface:"#ffffff",photo:true}), "#ffffff");
+  for (const surface of ["#0d172a", "#f7f2ea", "#792839", "#888888"]) {
+    const ink=resolveMenuToolsInk({preferred:"#c5a165",surface});
+    assert.ok(menuColorContrast(ink,surface)>=4.5);
   }
 });
