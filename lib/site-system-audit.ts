@@ -16,7 +16,7 @@ const appearance = /^(?:p[trblxyse]?|h|min-h|max-h|rounded(?:-[a-z]+)?|font|text
 const verticalUtility = /^(?:!?-?(?:p[ytb]|m[ytb]|p|m|space-y|gap-y|translate-y|top|bottom)-|!?gap-|\[(?:margin|padding|gap|top|bottom|translate|transform)[^:]*:)/;
 const verticalProperty = /^(?:margin(?:-(?:top|bottom|block(?:-start|-end)?))?|padding(?:-(?:top|bottom|block(?:-start|-end)?))?|row-gap|gap|top|bottom|translate|transform)$/;
 const appearanceProperty = /^(?:padding(?:-.+)?|font(?:-.+)?|line-height|color|background(?:-.+)?|border(?:-.+)?|(?:min-|max-)?height|box-shadow|opacity)$/;
-const protectedSelector = /(?:\.site-(?:area-tab(?:s|s-root)?|page-tabs|topic-tab(?:s)?|tab(?:s)?|button|field|chip|indicator-icon)\b|\[data-slot=["']?tabs(?:-list|-trigger)?["']?\])/;
+const protectedSelector = /(?:\.site-(?:area-tab(?:s|s-root)?|page-tabs|topic-tab(?:s)?|tab(?:s)?|button|field|chip|indicator-icon|icon-control)\b|\[data-slot=["']?tabs(?:-list|-trigger)?["']?\])/;
 const compositionSelector = /\.site-(?:content-panel|stack-title|field-stack|form-row|action-row|content-divider|content-heading-row|notice-layout|detail-grid|detail-field|checkbox-grid|checkbox-field|field-grid|data-row|record-heading|record-actions)\b/;
 const compositionUtility = /^(?:-?(?:p[trblxyse]?|m[trblxyse]?|gap(?:-[xy])?|space-[xy])-|font-|leading-|tracking-)/;
 const typeRoles = new Set<string>(SITE_TYPE_ROLES.map(role => role.className));
@@ -137,12 +137,21 @@ export function auditSiteSystem(files: FileMap): SiteSystemViolation[] {
         if (name === "Tabs" && attrs.some(attr => attr.name.getText(tree) === "variant") && !designPreview && !file.startsWith("app/components/ui/")) add(file, "tab-purpose", "Choose a semantic tab purpose instead of a private visual variant.", node.getText(tree), line);
         if (attrs.some(attr => attr.name.getText(tree) === "role" && /^(?:tab|tablist)$/.test(strings(attr)[0] ?? "")) && !file.startsWith("app/components/ui/") && !designPreview) add(file, "tab-purpose", "Use Tabs/NavigationTabs instead of a private tab implementation.", node.getText(tree), line);
         const classes = attrs.find(attr => attr.name.getText(tree) === "className");
+        if (["Button", "button", "a", "Link"].includes(name)) {
+          const tokens = classes ? strings(classes).flatMap(value => value.split(/\s+/)).map(utilityValue) : [];
+          const iconSize = attrs.find(attr => attr.name.getText(tree) === "size");
+          const icon = tokens.includes("site-icon-control") || tokens.includes("site-button-icon") || (iconSize && strings(iconSize).includes("icon"));
+          if (icon && !tokens.includes("site-room-add")) {
+            const paint = tokens.filter(value => /^(?:(?:p[trblxyse]?|size|[wh]|min-[wh]|max-[wh])-(?!0(?:$|\s))|rounded(?:-|$)|(?:bg|border|shadow|ring)(?:-|$))/.test(value));
+            if (paint.length) add(file, "bare-icon-control", "Icon-only tools use the glyph hit area without padding, fixed geometry, background or frame; keep states in the shared rule.", classes!.getText(tree), line);
+          }
+        }
         if (!file.startsWith("app/components/ui/") && ["Button", "button", "a"].includes(name) && ts.isJsxOpeningElement(node)) {
           const tokens = new Set(classes ? strings(classes).flatMap(value => value.split(/\s+/)) : []);
           const variant = attrs.find(attr => attr.name.getText(tree) === "variant");
           const size = attrs.find(attr => attr.name.getText(tree) === "size");
           const ghost = tokens.has("site-button-ghost") || tokens.has("site-button-danger-ghost") || (variant && strings(variant).some(value => value === "ghost" || value === "danger-ghost"));
-          const icon = tokens.has("site-button-icon") || (size && strings(size).includes("icon"));
+          const icon = tokens.has("site-button-icon") || tokens.has("site-icon-control") || (size && strings(size).includes("icon"));
           const visibleText = (child: ts.Node): boolean => {
             if (ts.isJsxText(child)) return Boolean(child.text.trim());
             if (ts.isJsxExpression(child)) return strings(child).some(value => value.trim());

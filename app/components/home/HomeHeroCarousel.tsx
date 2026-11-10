@@ -107,7 +107,7 @@ export default function HomeHeroCarousel() {
         </div>
         <button
           type="button"
-          className={styles.playbackButton}
+          className={`site-icon-control ${styles.playbackButton} `}
           aria-label={requestedPlayback ? '자동 슬라이드 일시 정지' : '자동 슬라이드 재생'}
           onClick={() => {
             if (requestedPlayback) setPaused(true);

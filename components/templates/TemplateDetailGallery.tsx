@@ -19,7 +19,7 @@ export function TemplateDetailActions({ designId, name }: { designId: string; na
   const liked = favorites.includes(designId);
   useEffect(() => { if (message) toast.error(message); }, [message]);
   return <div className={styles.headingActions} role="group" aria-label="템플릿 좋아요와 공유">
-    <button type="button" className="site-button site-button-ghost site-catalog-heart" aria-label={`${name} 좋아요${liked ? " 취소" : ""}`} aria-pressed={liked} disabled={busy} onClick={() => toggle(designId)}><Heart size={20} strokeWidth={1.7} fill={liked ? "currentColor" : "none"} aria-hidden="true" /></button>
+    <button type="button" className="site-icon-control site-button site-button-ghost site-button-icon site-catalog-heart" aria-label={`${name} 좋아요${liked ? " 취소" : ""}`} aria-pressed={liked} disabled={busy} onClick={() => toggle(designId)}><Heart size={20} strokeWidth={1.7} fill={liked ? "currentColor" : "none"} aria-hidden="true" /></button>
     <TemplateDetailShare />
   </div>;
 }

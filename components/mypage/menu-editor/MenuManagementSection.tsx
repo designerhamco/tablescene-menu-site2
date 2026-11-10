@@ -8739,7 +8739,7 @@ export default function MenuManagementSection({
                       event.stopPropagation();
                       setDragState({ type: "page", id: page.id });
                     }}
-                    className="cursor-grab px-2 py-2 text-zinc-600 active:cursor-grabbing"
+                    className="site-icon-control cursor-grab text-zinc-600 active:cursor-grabbing"
                     aria-label={`${page.title || `메뉴 페이지 ${index + 1}`} 순서 이동`}
                   >
                     <DragHandleIcon />
@@ -8904,7 +8904,7 @@ export default function MenuManagementSection({
                             setDragState({ type: "page", id: page.id });
                           }}
                           onClick={(event) => event.stopPropagation()}
-                          className={`inline-flex shrink-0 cursor-grab select-none items-center justify-center rounded px-1 active:cursor-grabbing ${pageActive ? "text-zinc-300 hover:text-white" : "text-zinc-300 hover:text-zinc-600"}`}
+                          className={`site-icon-control inline-flex shrink-0 cursor-grab select-none items-center justify-center active:cursor-grabbing ${pageActive ? "text-zinc-300 hover:text-white" : "text-zinc-300 hover:text-zinc-600"} `}
                           aria-label={`${labels.pageLabel} 순서 이동`}
                         >
                           <DragHandleIcon />
@@ -9015,13 +9015,13 @@ export default function MenuManagementSection({
                                     setDragState({ type: "contentBlock", sortableId: contentSortableId, pageId: page.id });
                                   }}
                                   onClick={(event) => event.stopPropagation()}
-                                  className={`inline-flex shrink-0 select-none items-center justify-center rounded px-1 ${
+                                  className={`site-icon-control inline-flex shrink-0 select-none items-center justify-center ${
                                     contentDragDisabled
                                       ? "cursor-not-allowed text-zinc-200"
                                       : categoryActive
                                         ? "cursor-grab text-zinc-300 hover:text-white active:cursor-grabbing"
                                         : "cursor-grab text-zinc-300 hover:text-zinc-600 active:cursor-grabbing"
-                                  }`}
+                                  } `}
                                   aria-label={`${labels.categoryLabel} 순서 이동`}
                                 >
                                   <DragHandleIcon />
@@ -9082,7 +9082,7 @@ export default function MenuManagementSection({
                                         }}
                                         onClick={(event) => event.stopPropagation()}
                                         onPointerUp={(event) => event.stopPropagation()}
-                                        className="inline-flex shrink-0 cursor-grab select-none items-center justify-center rounded px-1 text-zinc-300 hover:text-zinc-600 active:cursor-grabbing"
+                                        className="site-icon-control inline-flex shrink-0 cursor-grab select-none items-center justify-center text-zinc-300 hover:text-zinc-600 active:cursor-grabbing"
                                         aria-label={`${labels.itemLabel} 순서 이동`}
                                       >
                                         <DragHandleIcon />

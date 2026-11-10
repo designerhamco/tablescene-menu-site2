@@ -82,7 +82,7 @@ export default function RotateTableQrButton({
         <DialogTrigger asChild>
           <button
             type="button"
-            className="site-button site-button-outline site-button-icon site-button-compact"
+            className="site-button site-button-ghost site-button-icon site-button-compact"
             disabled={!allowed || pending}
             aria-label={`${point.label} QR 주소 변경`}
             title={allowed ? "QR 주소 변경" : QR_ROTATION_BLOCKED_MESSAGE}

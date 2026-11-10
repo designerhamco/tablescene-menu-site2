@@ -12,7 +12,7 @@ export default function ListExamples() {
   const [page, setPage] = useState(1);
   return <>
     <section className={styles.section}>
-      <div className={styles.heading}><h2 className="type-section-title">위치와 용도로 구분하는 버튼 모서리</h2><p className="type-body text-zinc-600">헤더의 주요 진입 버튼은 pill, 본문과 폼의 실행은 8px 사각형입니다. 원형은 페이지 번호·작은 아이콘에 사용하며 고객지원은 20px 모서리의 전용 형태를 유지합니다.</p></div>
+      <div className={styles.heading}><h2 className="type-section-title">위치와 용도로 구분하는 버튼 모서리</h2><p className="type-body text-zinc-600">헤더의 주요 진입 버튼은 pill, 본문과 폼의 실행은 8px 사각형입니다. 페이지 번호는 8px 모서리, 아이콘 도구는 무배경·무테이며 고객지원은 20px 모서리의 전용 형태를 유지합니다.</p></div>
       <div className={styles.buttonRow}><Button className="site-button-header" shape="pill" asChild><Link href="/apply">헤더 · 만들기</Link></Button><Button asChild><Link href="/guides">본문 · 가이드 보기</Link></Button><Button variant="outline">폼 · 취소</Button></div>
     </section>
     <section className={styles.section}>

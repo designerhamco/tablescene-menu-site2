@@ -86,7 +86,7 @@ export default function TemplateFeatureAccordion({ feature, headingId, label, ti
     </ol>
     <div className={styles.playback}>
       <span className="type-caption">자동 전환</span>
-      <button type="button" className="site-button site-button-ghost" aria-label={`${label} 자동 전환 ${requestedPlayback ? "일시정지" : "재생"}`} onClick={() => {
+      <button type="button" className="site-icon-control site-button site-button-ghost" aria-label={`${label} 자동 전환 ${requestedPlayback ? "일시정지" : "재생"}`} onClick={() => {
         if (requestedPlayback) setPaused(true);
         else { setPaused(false); setMotionOptIn(true); setKeyboardFocus(false); }
       }}>{requestedPlayback ? <Pause size={16} aria-hidden="true" /> : <Play size={16} aria-hidden="true" />}</button>

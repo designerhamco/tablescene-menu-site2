@@ -99,7 +99,7 @@ export function MypageNavigationRail({
         {children}
       </nav>
       {hasMoreAtEnd ? (
-        <button type="button" className="site-account-nav-more" onClick={revealMore} aria-label={moreLabel}>
+        <button type="button" className="site-icon-control site-account-nav-more" onClick={revealMore} aria-label={moreLabel}>
           <ChevronRight aria-hidden="true" />
         </button>
       ) : null}

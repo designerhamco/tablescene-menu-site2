@@ -193,7 +193,7 @@ export default function SiteHeader({ variant = "solid" }: { variant?: SiteHeader
             aria-label={isMenuOpen ? "메뉴 닫기" : "메뉴 열기"}
             aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen((current) => !current)}
-            className="inline-flex items-center justify-center p-1 text-current transition-opacity hover:opacity-70"
+            className="site-icon-control inline-flex items-center justify-center text-current transition-opacity hover:opacity-70"
           >
             {isMenuOpen ? <X size={24} strokeWidth={2} aria-hidden="true" /> : <Menu size={24} strokeWidth={2} aria-hidden="true" />}
           </button>

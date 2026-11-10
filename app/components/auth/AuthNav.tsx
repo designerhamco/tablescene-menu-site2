@@ -75,7 +75,7 @@ export default function AuthNav({ dark }: { dark: boolean }) {
         <a
           href="/mypage"
           aria-label="마이페이지"
-          className={`inline-flex items-center justify-center p-1 transition-opacity ${iconButtonClass}`}
+          className={`site-icon-control inline-flex items-center justify-center transition-opacity ${iconButtonClass} `}
           title={authState.email}
         >
           <User size={20} strokeWidth={2} aria-hidden="true" />
@@ -90,7 +90,7 @@ export default function AuthNav({ dark }: { dark: boolean }) {
         href="/sign-in?next=/mypage"
         aria-label="마이페이지"
         title="마이페이지"
-        className={`inline-flex items-center justify-center p-1 transition-opacity ${iconButtonClass}`}
+        className={`site-icon-control inline-flex items-center justify-center transition-opacity ${iconButtonClass} `}
       >
         <User size={20} strokeWidth={2} aria-hidden="true" />
       </a>

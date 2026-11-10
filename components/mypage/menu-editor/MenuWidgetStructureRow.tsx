@@ -62,13 +62,13 @@ export default function MenuWidgetStructureRow({
             onDragStart?.();
           }}
           onClick={(event) => event.stopPropagation()}
-          className={`inline-flex shrink-0 select-none items-center justify-center rounded px-1 py-1 ${
+          className={`site-icon-control inline-flex shrink-0 select-none items-center justify-center ${
             dragDisabled
               ? "cursor-not-allowed text-zinc-200"
               : selected
                 ? "cursor-grab text-zinc-300 hover:text-white active:cursor-grabbing"
                 : "cursor-grab text-zinc-300 hover:text-zinc-600 active:cursor-grabbing"
-          }`}
+          } `}
           aria-label="위젯 순서 이동"
         >
           <DragHandleIcon />
