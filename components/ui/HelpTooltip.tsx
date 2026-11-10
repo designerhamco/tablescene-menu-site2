@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState, type ComponentProps, type ReactElement, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { CircleHelp, X } from "lucide-react";
 import { TooltipBubbleArrow, TooltipBubbleBody, TOOLTIP_ARROW_PADDING } from "@/app/components/ui/tooltip-bubble";
+import { Button } from "@/app/components/ui/button";
 import { Popover, PopoverArrow, PopoverClose, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 
 type HelpTooltipProps = {
@@ -29,7 +30,7 @@ export default function HelpTooltip({ label, children, heading, tone = "light", 
     <Popover open={hover ? open : undefined} onOpenChange={hover ? setOpen : undefined}>
       <span className="site-help-anchor" onPointerEnter={hover ? event => { if (event.pointerType !== "mouse") return; cancel(); openTimer.current = setTimeout(() => { hoverOpened.current = true; setOpen(true); }, 120); } : undefined} onPointerLeave={hover ? scheduleClose : undefined} onPointerDown={hover ? () => { cancel(); hoverOpened.current = false; } : undefined}>
       <PopoverTrigger asChild>
-        {trigger ?? <button type="button" aria-label={label} className="site-button site-button-outline site-help-trigger">?</button>}
+        {trigger ?? <Button type="button" variant="ghost" size="icon" aria-label={label}><CircleHelp size={20} aria-hidden="true" /></Button>}
       </PopoverTrigger>
       </span>
       <PopoverContent aria-label={label} side={side} align={align} alignOffset={alignOffset} arrowPadding={TOOLTIP_ARROW_PADDING} sideOffset={8} collisionPadding={16} data-tooltip-tone={tone} data-dismissible={tone !== "light" || undefined} className="site-tooltip-surface site-help-content"
@@ -39,7 +40,7 @@ export default function HelpTooltip({ label, children, heading, tone = "light", 
         onEscapeKeyDown={() => { cancel(); hoverOpened.current = false; }}>
         <TooltipBubbleBody heading={heading}>{children}</TooltipBubbleBody>
         {tone !== "light" ?
-          <PopoverClose className="site-help-close" aria-label="도움말 닫기"><X size={16} aria-hidden="true" /></PopoverClose>
+          <PopoverClose className="site-icon-control site-help-close" aria-label="도움말 닫기"><X size={16} aria-hidden="true" /></PopoverClose>
         : null}
         <PopoverArrow asChild width={24} height={14}><TooltipBubbleArrow className="site-tooltip-arrow" /></PopoverArrow>
       </PopoverContent>

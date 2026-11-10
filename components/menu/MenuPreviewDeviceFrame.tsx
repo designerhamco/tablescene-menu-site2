@@ -317,7 +317,7 @@ export default function MenuPreviewDeviceFrame(
                 })}
                 scroll={false}
                 tabIndex={showToolbar ? undefined : -1}
-                className="site-preview-control site-preview-control-icon"
+                className="site-icon-control site-preview-control site-preview-control-icon"
               >
                 <PreviewOrientationIcon />
               </Link>
@@ -349,11 +349,11 @@ export default function MenuPreviewDeviceFrame(
             aria-label={
               showToolbar ? "기기 선택 도구 닫기" : "기기 선택 도구 열기"
             }
-            className={`absolute grid place-items-center text-white/70 transition-[top,right,left,width,height,transform,color,background-color] duration-300 hover:bg-white/10 hover:text-white ${
+            className={`site-icon-control absolute grid place-items-center text-white/70 transition-[top,right,left,width,height,transform,color,background-color] duration-300 hover:text-white ${
               showToolbar
-                ? "right-2 top-2 h-9 w-9 rounded-xl"
-                : "bottom-0 left-1/2 h-7 w-12 -translate-x-1/2 rounded-t-xl"
-            }`}
+                ? "right-2 top-2"
+                : "bottom-0 left-1/2 -translate-x-1/2"
+            } `}
           >
             {showToolbar ? (
               <ChevronUp className="h-4 w-4" aria-hidden="true" />

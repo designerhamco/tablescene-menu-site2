@@ -1,6 +1,6 @@
 import { Pencil } from "lucide-react";
 
-/** Editing uses a small glyph; the containing control keeps its own hit area. */
+/** Editing uses a small glyph; the control follows the glyph without a padded frame. */
 export function EditIcon() {
   return <Pencil className="site-edit-icon" aria-hidden="true" />;
 }

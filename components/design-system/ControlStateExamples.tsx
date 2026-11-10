@@ -21,17 +21,17 @@ export default function ControlStateExamples() {
   const [previewDevice, setPreviewDevice] = useState("태블릿");
   return <section className={styles.section} aria-labelledby="control-states-title">
     <div className={styles.heading}><h2 className="type-section-title" id="control-states-title">버튼·탭 공통 기준과 상태</h2>
-      <p className="type-body text-zinc-600">밀집 도구 32px, 일반 실행 40px, 헤더 44px, 로그인·결제 같은 주요 완료 행동 48px을 사용합니다. 본문 버튼은 8px 모서리와 15px·600 글자를 공유합니다.</p>
+      <p className="type-body text-zinc-600">텍스트 밀집 도구 32px, 일반 실행 40px, 헤더 44px, 로그인·결제 같은 주요 완료 행동 48px을 사용합니다. 본문 버튼은 8px 모서리와 15px·600 글자를 공유합니다.</p>
     </div>
-    <div className={styles.buttonRow}>
+    <p className="type-body-sm site-copy-muted">아이콘 전용 도구는 그림 자체가 클릭 영역입니다. 모든 상태에서 배경·테두리·패딩을 추가하지 않으며 키보드 포커스와 상태 잉크를 유지합니다.</p><div className={styles.buttonRow}>
       <Button onClick={() => setClicks(n => n + 1)}><Plus />동작 확인</Button>
       <Button variant="outline" size="compact">밀집 도구 32px</Button><Button size="lg">주요 완료 48px</Button>
       <Button variant="outline"><BookOpen />사용가이드</Button><Button variant="ai"><Sparkles />AI 상담</Button>
       <div className="site-action-row" data-wrap="nowrap"><ButtonGroupDivider /><Button size="icon" variant="ghost" aria-label="추가 도구"><Plus /></Button></div>
     </div>
     <div id="button-shape-groups" className="site-stack-block" role="group" aria-labelledby="button-shape-groups-title">
-      <div className="site-stack-title"><h3 id="button-shape-groups-title" className="type-content-title">버튼 모양별 묶음</h3><p className="type-body-sm site-copy-muted">한 작업 행에서 사각형 텍스트 버튼과 원형 아이콘 도구가 이어지면, 모양이 바뀌는 경계에만 옅은 회색 세로선 한 개를 둡니다. 같은 모양끼리는 선 없이 공통 8px 간격으로 묶습니다.</p></div>
-      <div className="site-action-row" role="group" aria-label="사각형과 원형 버튼 묶음 예시">
+      <div className="site-stack-title"><h3 id="button-shape-groups-title" className="type-content-title">버튼 모양별 묶음</h3><p className="type-body-sm site-copy-muted">한 작업 행에서 사각형 텍스트 버튼과 아이콘 도구가 이어지면, 모양이 바뀌는 경계에만 옅은 회색 세로선 한 개를 둡니다. 같은 모양끼리는 선 없이 공통 8px 간격으로 묶습니다.</p></div>
+      <div className="site-action-row" role="group" aria-label="텍스트 버튼과 아이콘 도구 묶음 예시">
         <Button variant="outline" onClick={() => setClicks(n => n + 1)}>바로 배치</Button>
         <div className="site-action-row" data-wrap="nowrap"><ButtonGroupDivider /><Button size="icon" variant="outline" aria-label="묶음 예시 사각형 도구"><Square aria-hidden="true" /></Button><Button size="icon" variant="outline" disabled aria-label="묶음 예시 삭제"><Trash2 aria-hidden="true" /></Button></div>
       </div>
@@ -55,7 +55,7 @@ export default function ControlStateExamples() {
       <tbody>{actions.map(([variant,label]) => <tr key={variant}><th scope="row">{label}</th>{states.map(([state,stateLabel]) => <td key={state}>
         <Button variant={variant} size={variant === "ghost" || variant === "danger-ghost" ? "icon" : undefined} disabled={state === "disabled"} data-ui-state={state === "default" || state === "disabled" ? undefined : state} aria-label={`${label} ${stateLabel} 예시`}>{variant === "ghost" ? <Plus aria-hidden="true" /> : variant === "danger-ghost" ? <Trash2 aria-hidden="true" /> : label}</Button>
       </td>)}</tr>)}</tbody></table></div>
-    <p className="type-body-sm text-zinc-600">상태 표는 실제 공통 스타일을 고정해 비교합니다. 비활성 실행 버튼은 옅은 회색 표면·흐린 문구·공통 1px 경계를 사용하며 hover·클릭 색상으로 바뀌지 않습니다. 고객지원 퀵 버튼은 56px의 둥근 정사각형이며 원형 도구와 구분합니다.</p>
+    <p className="type-body-sm text-zinc-600">상태 표는 실제 공통 스타일을 고정해 비교합니다. 비활성 실행 버튼은 옅은 회색 표면·흐린 문구·공통 1px 경계를 사용하며 hover·클릭 색상으로 바뀌지 않습니다. 고객지원 퀵 버튼은 56px의 둥근 정사각형이며 무배경 아이콘 도구와 구분합니다.</p>
     <div className={styles.ruleGrid}>{([
       ["underline", "목록 주제 분류", "밑줄 탭 · 4px 선택선"],
       ["area", "독립 콘텐츠 영역 전환", "흰 콘텐츠 면 · 상단 연결 탭"],

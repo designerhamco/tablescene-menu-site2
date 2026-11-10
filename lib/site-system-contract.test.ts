@@ -130,3 +130,13 @@ test("page introductions require an explicit purpose while title-only pages stay
   }
   assert.ok(audit([["components/NewPage.tsx", `import Intro from '@/components/layout/SitePageHeader'; export default function Page(){return <Intro title="제목" description="중복 소개"/>}`]]).some(item => item.rule === "copy-purpose"));
 });
+
+
+test("bare icon tools reject private frames, hover paint and enlarged hit boxes", () => {
+  for (const classes of ["site-icon-control p-2", "site-icon-control rounded-full hover:bg-white", "site-button site-button-icon w-10 h-10", "site-button site-button-icon shadow-lg"]) {
+    const result = auditSiteSystem(new Map([["components/NewIcon.tsx", `<button className="${classes}" aria-label="tool"><Icon/></button>`]]));
+    assert.ok(result.some(item => item.rule === "bare-icon-control"), classes);
+  }
+  const normal = auditSiteSystem(new Map([["components/NewIcon.tsx", '<button className="site-icon-control" aria-label="tool"><Icon/></button>']]));
+  assert.equal(normal.length, 0);
+});

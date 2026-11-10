@@ -59,7 +59,7 @@ const Store = () => {
                   alt={product.name}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <button className="absolute bottom-4 right-4 p-3 bg-black text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg">
+                <button className="site-icon-control absolute bottom-4 right-4 text-white opacity-0 group-hover:opacity-100 transition-opacity">
                   <ShoppingBag size={20} />
                 </button>
               </div>

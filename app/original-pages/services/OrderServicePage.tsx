@@ -807,7 +807,7 @@ const OrderServicePage = () => {
                     {/* Mobile Left Arrow */}
                     <button 
                         onClick={handlePrev}
-                        className="md:hidden p-1 text-zinc-300 hover:text-black transition-colors z-20 -mr-2"
+                        className="site-icon-control md:hidden text-zinc-300 hover:text-black transition-colors z-20 -mr-2"
                         aria-label="Previous Feature"
                     >
                         <ChevronLeft className="w-6 h-6" />
@@ -865,7 +865,7 @@ const OrderServicePage = () => {
                     {/* Mobile Right Arrow */}
                     <button 
                         onClick={handleNext}
-                        className="md:hidden p-1 text-zinc-300 hover:text-black transition-colors z-20 -ml-2"
+                        className="site-icon-control md:hidden text-zinc-300 hover:text-black transition-colors z-20 -ml-2"
                         aria-label="Next Feature"
                     >
                         <ChevronRight className="w-6 h-6" />
@@ -876,18 +876,18 @@ const OrderServicePage = () => {
                 <div className="md:hidden flex justify-center gap-4 mt-2 w-full order-2">
                     <button
                         onClick={() => setDeviceMode('tablet')}
-                        className={`p-2 rounded-full transition-colors ${
-                            deviceMode === 'tablet' ? 'bg-zinc-100 text-black' : 'text-zinc-400 hover:text-zinc-600'
-                        }`}
+                        className={`site-icon-control transition-colors ${
+                            deviceMode === 'tablet' ? 'text-black' : 'text-zinc-400 hover:text-zinc-600'
+                        } `}
                         aria-label="Tablet View"
                     >
                         <Tablet className="w-5 h-5" />
                     </button>
                     <button
                         onClick={() => setDeviceMode('mobile')}
-                        className={`p-2 rounded-full transition-colors ${
-                            deviceMode === 'mobile' ? 'bg-zinc-100 text-black' : 'text-zinc-400 hover:text-zinc-600'
-                        }`}
+                        className={`site-icon-control transition-colors ${
+                            deviceMode === 'mobile' ? 'text-black' : 'text-zinc-400 hover:text-zinc-600'
+                        } `}
                          aria-label="Mobile View"
                     >
                         <Smartphone className="w-5 h-5" />
@@ -898,9 +898,9 @@ const OrderServicePage = () => {
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-12 hidden md:flex items-center gap-2 z-20">
                     <button
                         onClick={() => setDeviceMode('tablet')}
-                        className={`p-3 rounded-full transition-all duration-300 group hover:bg-zinc-100 ${
-                            deviceMode === 'tablet' ? 'text-zinc-900 bg-zinc-50 ring-1 ring-zinc-200' : 'text-zinc-300'
-                        }`}
+                        className={`site-icon-control transition-all duration-300 group ${
+                            deviceMode === 'tablet' ? 'text-zinc-900' : 'text-zinc-300'
+                        } `}
                         title="PC/Tablet View"
                     >
                          <Tablet className={`w-5 h-5 transition-transform duration-300 ${deviceMode === 'tablet' ? 'scale-110' : 'scale-100'}`} />
@@ -910,9 +910,9 @@ const OrderServicePage = () => {
                     
                     <button
                         onClick={() => setDeviceMode('mobile')}
-                        className={`p-3 rounded-full transition-all duration-300 group hover:bg-zinc-100 ${
-                            deviceMode === 'mobile' ? 'text-zinc-900 bg-zinc-50 ring-1 ring-zinc-200' : 'text-zinc-300'
-                        }`}
+                        className={`site-icon-control transition-all duration-300 group ${
+                            deviceMode === 'mobile' ? 'text-zinc-900' : 'text-zinc-300'
+                        } `}
                         title="Mobile View"
                     >
                          <Smartphone className={`w-5 h-5 transition-transform duration-300 ${deviceMode === 'mobile' ? 'scale-110' : 'scale-100'}`} />
@@ -1038,10 +1038,10 @@ const OrderServicePage = () => {
                      <h3 className="text-xl md:text-3xl font-bold text-zinc-900">압도적인 디지털 고객 경험</h3>
                   </div>
                   <div className="hidden md:flex gap-2">
-                     <button onClick={() => scroll(scrollRef1, 'left')} className="p-2 text-zinc-300 hover:text-zinc-900 transition-colors">
+                     <button onClick={() => scroll(scrollRef1, 'left')} className="site-icon-control text-zinc-300 hover:text-zinc-900 transition-colors">
                         <ArrowLeft className="w-6 h-6" />
                      </button>
-                     <button onClick={() => scroll(scrollRef1, 'right')} className="p-2 text-zinc-300 hover:text-zinc-900 transition-colors">
+                     <button onClick={() => scroll(scrollRef1, 'right')} className="site-icon-control text-zinc-300 hover:text-zinc-900 transition-colors">
                         <ArrowRight className="w-6 h-6" />
                      </button>
                   </div>
@@ -1099,10 +1099,10 @@ const OrderServicePage = () => {
                       <p className="text-zinc-500 font-medium pb-1">"웹 POS(대시보드)로 주문 접수부터 결제까지 매장 운영이 완벽해집니다."</p>
                   </div>
                   <div className="hidden md:flex gap-2 shrink-0">
-                     <button onClick={() => scroll(scrollRef2, 'left')} className="p-2 text-zinc-300 hover:text-zinc-900 transition-colors">
+                     <button onClick={() => scroll(scrollRef2, 'left')} className="site-icon-control text-zinc-300 hover:text-zinc-900 transition-colors">
                         <ArrowLeft className="w-6 h-6" />
                      </button>
-                     <button onClick={() => scroll(scrollRef2, 'right')} className="p-2 text-zinc-300 hover:text-zinc-900 transition-colors">
+                     <button onClick={() => scroll(scrollRef2, 'right')} className="site-icon-control text-zinc-300 hover:text-zinc-900 transition-colors">
                         <ArrowRight className="w-6 h-6" />
                      </button>
                   </div>

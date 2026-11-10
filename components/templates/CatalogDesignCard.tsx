@@ -11,7 +11,7 @@ export default function CatalogDesignCard({design,liked,busy,onToggle}:{design:C
     <div className="site-template-details">
       <div className="site-template-title-row">
         <h2 className="type-card-title site-template-title"><Link href={design.detailHref}>{design.name}</Link></h2>
-        <button type="button" className="site-button site-button-ghost site-catalog-heart" aria-label={`${design.name} 좋아요${liked?' 취소':''}`} aria-pressed={liked} disabled={busy} onClick={()=>onToggle(design.id)}><Heart size={20} strokeWidth={1.7} fill={liked?'currentColor':'none'} aria-hidden="true" /></button>
+        <button type="button" className="site-icon-control site-button site-button-ghost site-button-icon site-catalog-heart" aria-label={`${design.name} 좋아요${liked?' 취소':''}`} aria-pressed={liked} disabled={busy} onClick={()=>onToggle(design.id)}><Heart size={20} strokeWidth={1.7} fill={liked?'currentColor':'none'} aria-hidden="true" /></button>
       </div>
       <p className="site-template-category mt-1">{design.kind==='standard'?'기본 디자인':design.categoryLabel} · {design.service==='basic'?'베이직':design.service==='dining'?'다이닝':'디스플레이'}</p>
       <p className="site-template-description mt-2 line-clamp-2 whitespace-pre-line">{design.description}</p>

@@ -341,7 +341,7 @@ const Navbar = () => {
                     aria-label="알림"
                     data-site-notification-trigger
                     aria-expanded={isNotificationOpen}
-                    className={`relative inline-flex size-10 min-h-10 min-w-10 shrink-0 items-center justify-center p-0 transition-colors ${styles.notificationButton}`}
+                    className={`site-icon-control relative inline-flex shrink-0 items-center justify-center transition-colors ${styles.notificationButton} `}
                   >
                     <HeaderBellIcon />
                     {unreadCount > 0 ? (
@@ -372,7 +372,7 @@ const Navbar = () => {
                 href={NOTIFICATION_INBOX_HREF}
                 data-site-notification-link
                 aria-label={unreadCount > 0 ? `알림, 읽지 않음 ${unreadBadgeLabel}개` : '알림'}
-                className={`relative inline-flex size-9 min-h-9 min-w-9 shrink-0 items-center justify-center rounded-full p-0 transition-opacity md:hidden ${menuButtonClass}`}
+                className={`site-icon-control relative inline-flex shrink-0 items-center justify-center transition-opacity md:hidden ${menuButtonClass} `}
               >
                 <HeaderBellIcon />
                 {unreadCount > 0 ? (
@@ -384,7 +384,7 @@ const Navbar = () => {
             ) : null}
 
             <Dialog.Trigger asChild><button
-              className={`inline-flex aspect-square h-9 w-9 shrink-0 items-center justify-center p-0 transition-opacity xl:hidden ${menuButtonClass}`}
+              className={`site-icon-control inline-flex aspect-square shrink-0 items-center justify-center transition-opacity xl:hidden ${menuButtonClass} `}
               aria-label={isOpen ? '메뉴 닫기' : '메뉴 열기'}
               aria-expanded={isOpen}
             >

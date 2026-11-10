@@ -114,13 +114,13 @@ export function Navbar() {
           <a
             href="#devices"
             aria-label="스토어"
-            className={`p-1 transition-colors ${darkNav ? "text-black hover:text-zinc-600" : "text-white hover:text-white/80"}`}
+            className={`site-icon-control transition-colors ${darkNav ? "text-black hover:text-zinc-600" : "text-white hover:text-white/80"} `}
           >
             <Icon name="cart" className="h-5 w-5" />
           </a>
           <button
             type="button"
-            className={`p-1 transition-colors lg:hidden ${darkNav ? "text-black" : "text-white"}`}
+            className={`site-icon-control transition-colors lg:hidden ${darkNav ? "text-black" : "text-white"} `}
             onClick={() => setIsOpen((value) => !value)}
             aria-label="메뉴 열기"
           >

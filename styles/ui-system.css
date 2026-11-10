@@ -1,8 +1,6 @@
 :root {
   --ui-media-ink: #ffffff;
   --ui-media-counter-surface: rgb(9 9 11 / 60%);
-  --ui-media-arrow-hover: rgb(9 9 11 / 16%);
-  --ui-media-arrow-pressed: rgb(9 9 11 / 28%);
   --ui-media-arrow-shadow: 0 1px 4px rgb(0 0 0 / 65%);
   --ui-media-arrow-size: 1.5rem;
   --ui-media-inset: .5rem;
@@ -397,13 +395,14 @@
 }
 
 .site-button-icon {
-  height: var(--ui-control-height-md);
-  width: var(--ui-control-height-md);
-  min-width: var(--ui-control-height-md);
-  aspect-ratio: 1;
   flex: none;
+  width: max-content;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
   padding: 0;
-  border-radius: 50%;
+  border: 0;
+  border-radius: 0;
 }
 
 /*
@@ -1175,7 +1174,7 @@ textarea.site-field,
 .site-filter-inverse[aria-pressed="true"] { border-color: #fff; background: #fff; color: var(--ui-text); }
 .site-filter-inverse:hover:not(:disabled) { background: #4b515b; color: #fff; }
 .site-filter-inverse[aria-pressed="true"]:hover:not(:disabled) { background: var(--ui-surface-soft); color: var(--ui-text); }
-.site-button.site-button-icon { border-radius: 50%; }
+
 .site-button-header { min-height: var(--ui-control-height-header); padding-inline: var(--ui-control-padding-inline-lg); border-radius: var(--ui-radius-control); }
 /* Provider identity is explicit; it shares action geometry and disabled behavior. */
 .site-button-kakao { border-color: #fee500; background: #fee500; color: #15181e; }
@@ -1183,10 +1182,7 @@ textarea.site-field,
 .site-button-kakao:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { border-color: #e8d000; background: #e8d000; }
 @media (prefers-reduced-motion: reduce) { .site-choice-control { transition: none; } }
 
-.site-button-ghost.site-tool-button[aria-pressed="true"]:not(:disabled):not([aria-disabled="true"]) { background: var(--ui-text); color: #fff; }
-.site-button-ghost.site-tool-button[aria-pressed="true"]:hover:not(:disabled):not([aria-disabled="true"]) { background: var(--ui-action-hover); }
-.site-button-ghost.site-tool-button[aria-pressed="true"]:active:not(:disabled):not([aria-disabled="true"]) { background: var(--ui-action-pressed); }
-.site-button-icon.site-button-compact { min-width: var(--ui-control-height-compact); width: var(--ui-control-height-compact); height: var(--ui-control-height-compact); min-height: var(--ui-control-height-compact); padding: 0; }
+
 .site-color-swatch { display: inline-flex; flex: none; align-items: center; justify-content: center; width: var(--ui-control-height-md); height: var(--ui-control-height-md); padding: .3rem; border: 1px solid var(--ui-border); border-radius: var(--ui-radius-control-rounded); background: var(--ui-surface); cursor: pointer; }
 .site-color-swatch > span { width: 100%; height: 100%; border-radius: .2rem; box-shadow: inset 0 0 0 1px #0000001a; }
 .site-color-swatch:hover:not(:disabled) { border-color: var(--ui-border-strong); }
@@ -1289,16 +1285,6 @@ textarea.site-field[data-field-size="lg"], textarea[data-field-size="lg"] { min-
 /* User-approved floating notification action; keeps shared control type and states. */
 .site-button-notification-read-all { width: var(--ui-notification-read-all-width); border-radius: var(--ui-notification-read-all-radius); border-color: var(--ui-text-muted); box-shadow: var(--ui-notification-read-all-shadow); }
 .site-button-notification-read-all:is(:disabled, [aria-disabled="true"]) { box-shadow: none; }
-
-/* Compact help in narrow summary cards retains the default icon control on PC. */
-@media (max-width: 639px) {
-  .site-button-icon.site-button-icon-compact-mobile {
-    width: var(--ui-control-height-compact);
-    min-width: var(--ui-control-height-compact);
-    height: var(--ui-control-height-compact);
-    min-height: var(--ui-control-height-compact);
-  }
-}
 
 /* Canvas objects own their geometry; site controls and type roles remain shared. */
 .site-floor-canvas { position: relative; width: 100%; min-width: 0; overflow: hidden; isolation: isolate; border: 1px solid var(--ui-border); border-radius: var(--ui-radius-surface); background-color: var(--ui-surface); background-image: radial-gradient(var(--ui-border) 1px, transparent 1px); background-size: 5% 5%; }
@@ -1441,11 +1427,11 @@ svg.site-edit-icon {
 
 /* Image navigation is a media tool: white glyphs over the actual photograph. */
 .site-button-media { border-color: transparent; background: transparent; color: var(--ui-media-ink); }
-.site-button-media:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { background: var(--ui-media-arrow-hover); }
-.site-button-media:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { background: var(--ui-media-arrow-pressed); }
+.site-button-media:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { background: transparent; }
+.site-button-media:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { background: transparent; }
 .site-button-media:disabled, .site-button-media[aria-disabled="true"] { background: transparent; border-color: transparent; color: var(--ui-disabled-text); }
 .site-button-media svg { width: var(--ui-media-arrow-size); height: var(--ui-media-arrow-size); stroke-width: 1.75; filter: drop-shadow(var(--ui-media-arrow-shadow)); }
-.site-button-media:is(:focus-visible, [data-ui-state="focus"]) { outline-color: var(--ui-media-ink); box-shadow: 0 0 0 4px var(--ui-media-counter-surface); }
+.site-button-media:is(:focus-visible, [data-ui-state="focus"]) { outline-color: var(--ui-media-ink); box-shadow: none; }
 .site-image-carousel { min-width: 0; width: 100%; border-radius: inherit; }
 .site-image-carousel:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
 .site-image-carousel-stage { position: relative; border-radius: inherit; }
@@ -1457,7 +1443,7 @@ svg.site-edit-icon {
 .site-image-carousel-slide img { object-fit: cover; user-select: none; }
 .site-image-carousel-arrows { position: absolute; inset: 0; display: none; align-items: center; justify-content: space-between; padding-inline: var(--ui-media-inset); pointer-events: none; }
 .site-image-carousel-arrows > button { pointer-events: auto; }
-.site-image-carousel-count { position: absolute; inset-inline-end: var(--site-space-copy); bottom: var(--site-space-copy); padding: .125rem .5rem; border-radius: var(--ui-radius-control-rounded); background: var(--ui-media-counter-surface); color: var(--ui-media-ink); font-variant-numeric: tabular-nums; pointer-events: none; }
+.site-image-carousel-count { position: absolute; inset-inline-end: var(--site-space-copy); bottom: var(--site-space-copy); padding: .125rem .5rem; border-radius: var(--ui-radius-control); background: var(--ui-media-counter-surface); color: var(--ui-media-ink); font-variant-numeric: tabular-nums; pointer-events: none; }
 .site-image-carousel[data-presentation="gallery"] { border-radius: var(--ui-radius-surface); }
 .site-image-carousel[data-presentation="gallery"] .site-image-carousel-viewport { aspect-ratio: var(--ui-media-gallery-ratio); background: var(--ui-surface-muted); }
 .site-image-carousel[data-presentation="gallery"] .site-image-carousel-slide img { object-fit: contain; }
@@ -1468,3 +1454,41 @@ svg.site-edit-icon {
 .site-image-carousel-thumbnail:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -3px; }
 @media (min-width: 768px) { .site-image-carousel-arrows { display: flex; } }
 @media (prefers-reduced-motion: reduce) { .site-button-media { transition: none; } }
+
+/* Bare icon tools: the glyph itself owns the hit area in every interaction state.
+   Layout wrappers may position tools but must not enlarge individual controls. */
+:is(.site-icon-control, .site-button.site-button-icon:not(.site-room-add)) {
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: max-content !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none;
+  aspect-ratio: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  line-height: 1;
+  cursor: pointer;
+}
+:is(.site-icon-control, .site-button.site-button-icon:not(.site-room-add)):is(:hover, :active, :disabled, [aria-disabled="true"], [aria-pressed="true"], [data-ui-state]) {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+:is(.site-icon-control, .site-button.site-button-icon:not(.site-room-add)):is(:focus-visible, [data-ui-state="focus"]) { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
+:is(.site-icon-control, .site-button.site-button-icon):is(:disabled, [aria-disabled="true"]) { cursor: not-allowed; }
+:is(.site-icon-control, .site-button-icon).site-button-primary:not(:disabled):not([aria-disabled="true"]) { color: var(--ui-text); }
+:is(.site-icon-control, .site-button-icon).site-button-ai:not(:disabled):not([aria-disabled="true"]) { color: var(--ui-focus); }
+:is(.site-icon-control, .site-button-icon).site-button-danger:not(:disabled):not([aria-disabled="true"]) { color: var(--ui-danger); }
+.site-button-icon.site-tool-button[aria-pressed="true"]:not(:disabled):not([aria-disabled="true"]) { color: var(--ui-focus); }
+.site-icon-control[draggable="true"] { cursor: grab; }
+.site-icon-control[draggable="true"]:active { cursor: grabbing; }
+.site-icon-control[draggable="true"]:disabled { cursor: not-allowed; }
+.site-button-media.site-button-icon:is(:focus-visible, [data-ui-state="focus"]) { outline-color: var(--ui-media-ink); }
+/* The explicitly requested room-add selector is a framed action, not a bare tool. */
+.site-button.site-button-icon.site-room-add { width: var(--ui-control-height-md); height: var(--ui-control-height-md); min-width: var(--ui-control-height-md); min-height: var(--ui-control-height-md); border: 1px solid var(--ui-button-boundary); border-radius: var(--ui-radius-control-rounded); }
