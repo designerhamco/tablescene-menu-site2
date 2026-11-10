@@ -1,3 +1,4 @@
+import { getEffectiveWidgetPlacement, isBottomWidgetLocked, orderWidgetContentBlocks, normalizeWidgetPlacementPayload } from "./menu-widget-placement";
 import type { MenuWidget, MenuWidgetDraft } from "@/lib/menu-widgets";
 import type { MenuWidgetFinalSavePayload } from "@/lib/menu-widget-save-contract";
 
@@ -59,7 +60,7 @@ export type MenuEditorContentBlockReorderResult =
     }
   | {
       ok: false;
-      reason: "INVALID_SORTABLE_ID" | "PAGE_NOT_FOUND" | "BLOCK_NOT_FOUND";
+      reason: "INVALID_SORTABLE_ID" | "PAGE_NOT_FOUND" | "BLOCK_NOT_FOUND" | "FIXED_BOTTOM_WIDGET";
       state: MenuEditorContentBlockDraftsByPageId;
       blocks: MenuEditorContentBlockDraft[];
     };
@@ -112,6 +113,7 @@ export function createInitialMenuWidgetEditorDraft(args: {
   pages: readonly MenuWidgetEditorPageInput[];
   categories: readonly MenuWidgetEditorCategoryInput[];
   widgets: readonly MenuWidget[];
+  templateKey?: string;
 }): InitialMenuWidgetEditorDraft {
   const pageIds = new Set(args.pages.map((page) => page.id).filter(Boolean));
   const contentBlockDraftsByPageId = Object.fromEntries(
@@ -137,6 +139,7 @@ export function createInitialMenuWidgetEditorDraft(args: {
     if (!pageIds.has(widget.menuPageId)) return;
 
     widgetDraftsById[widget.id] = createMenuWidgetDraftFromWidget(widget);
+    if (args.templateKey) widgetDraftsById[widget.id].settings.placement = getEffectiveWidgetPlacement(args.templateKey, widget.settings.placement);
     contentBlockDraftsByPageId[widget.menuPageId]?.push({
       blockType: "widget",
       id: widget.id,
@@ -152,7 +155,7 @@ export function createInitialMenuWidgetEditorDraft(args: {
     contentBlockDraftsByPageId: Object.fromEntries(
       Object.entries(contentBlockDraftsByPageId).map(([pageId, blocks]) => [
         pageId,
-        normalizeIndexedContentBlockDrafts(pageId, blocks),
+        args.templateKey ? orderWidgetContentBlocks(normalizeIndexedContentBlockDrafts(pageId, blocks), widgetDraftsById, args.templateKey) : normalizeIndexedContentBlockDrafts(pageId, blocks),
       ]),
     ),
   };
@@ -306,9 +309,12 @@ export function reorderMenuEditorContentBlocks(
     menuPageId: string;
     activeSortableId: MenuContentSortableId | string;
     overSortableId: MenuContentSortableId | string;
+    templateKey?: string;
+    widgetDraftsById?: Readonly<Record<string, MenuWidgetDraft>>;
   },
 ): MenuEditorContentBlockReorderResult {
-  const blocks = sortPageBlocks(state[args.menuPageId] ?? []);
+  const sorted = sortPageBlocks(state[args.menuPageId] ?? []);
+  const blocks = args.templateKey && args.widgetDraftsById ? orderWidgetContentBlocks(sorted, args.widgetDraftsById, args.templateKey) : sorted;
   const active = parseMenuContentSortableId(args.activeSortableId);
   const over = parseMenuContentSortableId(args.overSortableId);
 
@@ -325,6 +331,10 @@ export function reorderMenuEditorContentBlocks(
 
   if (activeIndex < 0 || overIndex < 0) {
     return { ok: false, reason: "BLOCK_NOT_FOUND", state, blocks };
+  }
+
+  if (args.templateKey && args.widgetDraftsById && [active, over].some(block => block.blockType === "widget" && isBottomWidgetLocked(args.templateKey, args.widgetDraftsById?.[block.id]))) {
+    return { ok: false, reason: "FIXED_BOTTOM_WIDGET", state, blocks };
   }
 
   if (activeIndex === overIndex) {
@@ -486,6 +496,7 @@ export function pageHasWidgetContentBlocks(
 }
 
 export function createMenuWidgetFinalSavePayloadFromEditorState(args: {
+  templateKey?: string;
   widgetDraftsById: Record<string, MenuWidgetDraft>;
   deletedWidgetIds: ReadonlySet<string>;
   contentBlockDraftsByPageId: MenuEditorContentBlockDraftsByPageId;
@@ -509,11 +520,12 @@ export function createMenuWidgetFinalSavePayloadFromEditorState(args: {
     }))
     .sort((left, right) => left.menuPageId.localeCompare(right.menuPageId));
 
-  return {
+  const payload = {
     widgetDrafts,
     deletedWidgetIds: Array.from(deletedWidgetIds).sort(),
     contentBlocksByPage,
   };
+  return args.templateKey ? normalizeWidgetPlacementPayload(payload, args.templateKey) : payload;
 }
 
 export function getMenuWidgetEditorTypeLabel(type: string): string {

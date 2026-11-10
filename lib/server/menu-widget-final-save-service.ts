@@ -1,4 +1,5 @@
 import "server-only";
+import { normalizeWidgetPlacementPayload } from "@/lib/menu-widget-placement";
 
 import { createMenuWidgetSavePlan, type MenuWidgetSavePlan } from "@/lib/menu-widget-save-plan";
 import {
@@ -110,7 +111,7 @@ export async function saveParsedMenuWidgetsForFinalDraft(args: {
   const existingWidgets = Object.values(existingResult.widgetsByPageId).flat();
   const planResult = createMenuWidgetSavePlan({
     existingWidgets,
-    payload: args.payload,
+    payload: normalizeWidgetPlacementPayload(args.payload, contextResult.templateKey),
   });
 
   if (!planResult.ok) {
@@ -205,6 +206,7 @@ async function requireMenuWidgetFinalSaveContext(
       ok: true;
       supabase: SupabaseServerClient;
       ownerUserId: string;
+      templateKey: string;
     }
   | {
       ok: false;
@@ -267,6 +269,7 @@ async function requireMenuWidgetFinalSaveContext(
     ok: true,
     supabase,
     ownerUserId: menuSite.user_id,
+    templateKey: menuSite.template_key,
   };
 }
 

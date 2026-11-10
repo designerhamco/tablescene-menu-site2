@@ -23,6 +23,7 @@ type MenuWidgetDraftEditorMode = "create" | "copy" | "edit";
 
 type MenuWidgetDraftEditorProps = {
   mode: MenuWidgetDraftEditorMode;
+  allowBottomPlacement?: boolean;
   menuSiteId: string;
   draft: MenuWidgetDraft;
   persistedImagePath: string | null;
@@ -79,12 +80,13 @@ const PLACEMENT_OPTIONS: Record<MenuWidgetDraft["settings"]["placement"], { labe
   },
   bottom: {
     label: "마지막 열 하단 정렬",
-    description: "PC·태블릿에서는 마지막 열 하단, 안내사항이 있으면 그 바로 위에 배치합니다.",
+    description: "PC·태블릿에서는 마지막 열 바닥에 정렬합니다. 안내사항이 있으면 그 바로 위, 모바일에서는 마지막 메뉴 다음에 배치합니다.",
   },
 };
 
 export default function MenuWidgetDraftEditor({
   mode,
+  allowBottomPlacement = true,
   menuSiteId,
   draft,
   persistedImagePath,
@@ -169,7 +171,7 @@ export default function MenuWidgetDraftEditor({
           </label>
         </div>
 
-        <FieldBlock label="배치 방식">
+        {allowBottomPlacement ? <FieldBlock label="배치 방식">
           <div className="grid gap-3 md:grid-cols-2">
             {MENU_WIDGET_PLACEMENTS.map((placement) => {
               const option = PLACEMENT_OPTIONS[placement];
@@ -204,7 +206,7 @@ export default function MenuWidgetDraftEditor({
               );
             })}
           </div>
-        </FieldBlock>
+        </FieldBlock> : null}
 
         {usesImage && (
           <MenuWidgetImageField

@@ -31,7 +31,7 @@ Shared components may render the same price or name, but presentation policies r
 
 `lib/template-preview-data.ts` adapts explicit catalog option overrides only. It preserves source data, fills every missing eligible field, supplies a cover/featured example for empty starters and preserves explicit widget previews, synthesizing a full image+title+body example only when none exists. Saved-menu/public routes never import this adapter. Starter records supply default examples only when creating/resetting menus; they do not update existing customers.
 
-Widget rendering follows `getTemplateCapabilities(...).menuWidgets.enabled`, not a parallel template-key allowlist. `CafeAWidgetBlock` and its `toCafeAWidgetPreview` adapter are reused by Dining A/B after the current page's category/standalone content; sorting, visibility, image fitting and the existing generic editor/save path remain shared. Priced-course imagery/one-column exceptions are independent.
+Widget rendering follows `getTemplateCapabilities(...).menuWidgets.enabled`, not a parallel template-key allowlist. `CafeAWidgetBlock` and its `toCafeAWidgetPreview` adapter are reused by Dining A/B in mixed category/widget order; sorting, visibility, image fitting and the existing generic editor/save path remain shared. `lib/menu-widget-placement.ts` owns the service-aware placement/order policy used by the editor, authorized final save and active Basic renderers. Basic bottom widgets are locked trailing blocks and dock immediately above footer notices; Dining always uses freely ordered flow. Priced-course imagery/one-column exceptions are independent.
 
 ## One-page PC/tablet structures
 

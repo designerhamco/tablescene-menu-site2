@@ -29,9 +29,9 @@
 .board .brand :global(.cafe-a-fixed-rail-copy) { flex: none; }
 .menuPanel { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; min-width: 0; }
 .viewport { min-width: 0; min-height: 0; position: relative; }
-.menu { height: 100%; min-height: 0; min-width: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-gutter: stable; column-gap: var(--native-gap); }
+.menu { height: 100%; min-height: 0; min-width: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-gutter: stable; column-gap: var(--native-menu-gap, var(--native-gap)); }
 .menu:focus-visible { outline: 2px solid var(--menu-role-brand-color); outline-offset: -2px; }
-.tracks { display: grid; grid-template-columns: repeat(var(--native-columns), minmax(0, 1fr)); column-gap: var(--native-gap); min-height: 100%; }
+.tracks { display: grid; grid-template-columns: repeat(var(--native-columns), minmax(0, 1fr)); column-gap: var(--native-menu-gap, var(--native-gap)); min-height: 100%; }
 .board[data-layout-mode="orderedFit"] .tracks { padding-bottom: var(--native-gap); }
 .column { min-width: 0; display: flex; flex-direction: column; }
 .unit { flex: none; min-width: 0; padding-bottom: calc(var(--cafe-a-item-rhythm-gap) * var(--native-rhythm, 1)); }
@@ -160,7 +160,7 @@
 
 /* MELLOW rules divide menu tracks only; the representative/photo track is separate. */
 .root[data-template-key="cafe_mocha_forest_a"] .column { position: relative; }
-.columnRule { position: absolute; inset-block: 0; inset-inline-start: calc(var(--native-gap) * -0.5); width: 1px; background: currentColor; color: var(--menu-role-category-color, #eceab7); pointer-events: none; }
+.columnRule { position: absolute; inset-block: 0; inset-inline-start: var(--menu-column-divider-offset); width: var(--menu-column-divider-width, 1px); background: currentColor; color: var(--menu-role-category-color, #eceab7); pointer-events: none; }
 
 /* The registered left-logo top-row composition keeps native skin/reading roles. */
 .board .header[data-basic-header-align="left"] :global(.cafe-a-topline-info-header) { align-items: center; }
@@ -171,3 +171,7 @@
 .board .header[data-basic-header-align="left"] :global(.cafe-a-topline-description-panel) { grid-column: 3; grid-row: 1; display: flex; align-items: center; justify-content: flex-end; gap: .75rem; overflow: visible; text-align: right; }
 .board .header[data-basic-header-align="left"] :global(.cafe-a-topline-description) { padding-top: 0; text-align: right !important; }
 .board .header[data-basic-header-align="left"] :global([data-template-language-control]) { flex: none; position: relative; z-index: 5; }
+
+/* A single auto spacer docks the widget stack; notices retain the true bottom edge. */
+.column > .unit[data-widget-dock-start="true"] { margin-top: auto; }
+.notices[data-widget-notices="true"] { margin-top: 0; padding-top: var(--cafe-a-item-rhythm-gap); }

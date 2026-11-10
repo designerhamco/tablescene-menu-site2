@@ -330,6 +330,7 @@ export default function DiningAubeTableA({
         .sort((left, right) => left.sort_order - right.sort_order)
     : [];
   const pageWidgets = (data.widgets ?? []).filter(widget => widget.visible !== false && widget.menuPageId === activePage?.id).sort((a, b) => a.sortOrder - b.sortOrder);
+  const pageContent = [...courses.map(course => ({ type: "category" as const, order: course.sort_order, value: course })), ...pageWidgets.map(widget => ({ type: "widget" as const, order: widget.sortOrder, value: widget }))].sort((a, b) => a.order - b.order);
   const pageAlignment = normalizeAubeTableTextAlignment(activePage?.text_alignment);
   const pageColumns = normalizeAubeTableLayoutColumns(activePage?.layout_columns);
   const coverColor = normalizeAubeTableCoverBackgroundColor(data.pageSettings.multi_page_cover_background_color);
@@ -471,13 +472,12 @@ export default function DiningAubeTableA({
               initial={prefersReducedMotion ? false : "hidden"}
               animate="visible"
             >
-              {courses.map((course) => <CourseBlock key={course.id} course={course} priceOptions={data.priceOptions} onOpenImage={openImage} />)}
+              {pageContent.map(block => block.type === "category" ? <CourseBlock key={block.value.id} course={block.value} priceOptions={data.priceOptions} onOpenImage={openImage} /> : <section key={block.value.id} className="aube-table-widgets" data-aube-table-widgets data-dining-widget={block.value.id}><CafeAWidgetBlock widget={toCafeAWidgetPreview(block.value)} /></section>)}
               {directItems.length > 0 ? (
                 <motion.section className="aube-table-direct-items" data-separated={courses.length ? "true" : undefined} variants={AUBE_TABLE_COURSE_REVEAL_ITEMS}>
                   {directItems.map((item) => <MenuItemRow key={item.id} item={item} priceOptions={data.priceOptions} onOpenImage={openImage} />)}
                 </motion.section>
               ) : null}
-              {pageWidgets.length ? <section className="aube-table-widgets" data-aube-table-widgets>{pageWidgets.map(widget => <CafeAWidgetBlock key={widget.id} widget={toCafeAWidgetPreview(widget)} />)}</section> : null}
             </motion.div>
           </main>
         </div>
