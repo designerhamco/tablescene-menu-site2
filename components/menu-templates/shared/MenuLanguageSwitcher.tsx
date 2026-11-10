@@ -19,6 +19,7 @@ type MenuLanguageSwitcherProps = {
   tone?: "default" | "inverse";
   scriptAwareLabels?: boolean;
   iconOnly?: boolean;
+  showCurrentLocale?: boolean;
 };
 
 const SHORT_LOCALE_LABELS: Record<SupportedLocale, string> = {
@@ -62,6 +63,7 @@ export default function MenuLanguageSwitcher({
   tone = "default",
   scriptAwareLabels = false,
   iconOnly = false,
+  showCurrentLocale = false,
 }: MenuLanguageSwitcherProps) {
   const t = useMenuText();
   const pathname = usePathname();
@@ -117,7 +119,7 @@ export default function MenuLanguageSwitcher({
     };
   }, [isOpen]);
 
-  if (visibleLocales.length === 0 || (visibleLocales.length === 1 && triggerVariant !== "aube" && !iconOnly)) return null;
+  if (visibleLocales.length === 0 || (visibleLocales.length === 1 && triggerVariant !== "aube" && !iconOnly && !showCurrentLocale)) return null;
 
   const triggerClassName =
     triggerVariant === "cafe"
