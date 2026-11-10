@@ -43,7 +43,7 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
       const declaredInks = ["--menu-role-brand-color", "--menu-role-category-color", "--menu-role-supporting-color", "--aube-accent", "--aube-ink", "--cafe-a-ink", "--menu-role-item-name-color", "--menu-role-price-color"].map(key => style.getPropertyValue(key).trim()).filter(Boolean);
       const inks = [...(brand ? [getComputedStyle(brand).color] : []), ...declaredInks, ...[...root.querySelectorAll<HTMLElement>(".cafe-a-category-title,[data-cafe-a-menu-name],.cafe-a-menu-price,.aube-table-course-title,.aube-table-item-heading h3,.aube-table-item-price")].filter(visible).slice(0, 12).map(e => getComputedStyle(e).color)];
       // Include the actual reading panels, not photo pixels or site chrome.
-      for (const panel of root.querySelectorAll<HTMLElement>("[data-native-column],.aube-table-page,.cafe-a-fixed-rail")) {
+      for (const panel of root.querySelectorAll<HTMLElement>("[data-native-column],[data-paged-column],.aube-table-page,.cafe-a-fixed-rail")) {
         if (visible(panel)) surfaces.push(getComputedStyle(panel).backgroundColor);
       }
       const next = resolveMenuInteractionTheme({ category: categoryColor, surfaces, inks });

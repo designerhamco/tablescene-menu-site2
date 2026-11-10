@@ -1,5 +1,16 @@
 # Menu template spacing contract
 
+## Upper-left neutral list panels and palette fallback — 2026-11-10
+
+`basic-upper-left` uses equal auxiliary-color menu columns (default `#FFFFFF`), independently of page background. Each column has the common `--basic-reading-page-inset` on all four sides, including when auxiliary and page colors match. Visible units, hidden probes, available width/height and fade all include the same panel inset. This supersedes its earlier representative-only auxiliary paint and equal-color unpanelled geometry; other Basic structures and native ONUE remain unchanged.
+
+The first representative photo fills a fixed 4:3 frame on PC/tablet and an explicitly approved 1:1 frame on mobile. Brand/logo and store description overlay the photo; default alignment is center, with explicit saved/preview alignment authoritative. The language control stays upper left. Reserve an equal control row below the identity, including when no linked product exists, so the identity is visually centered. A linked featured product occupies that bottom row without overlaying identity. Image OFF removes photo and ratio space and shows natural-height identity on the page background. Native neutral black brand defaults use readable white photo ink; explicit text-group edits and non-default role inks remain authoritative. Logo/text fitting, carousel, script fonts and reading sizes remain shared.
+
+Language controls retain separate roles: trigger = final rendered brand ink; popup text = final category ink; labels use saved Korean/English fonts by script and shared supporting-copy size. Default popup paper is white. MELLOW explicitly uses its page background (native `#792839`) with category-owned text/border (native `#ECEAB7`); it does not derive paper from category ink.
+
+Order keeps the final category ink as its background. First try the lightest menu swatch if readable (4.5:1); otherwise choose the darkest readable configured menu swatch, including actual page/auxiliary paper and role inks. Only when none works, use the existing neutral fallback. This supersedes earlier brightest-distinct-only and immediate-black substitution rules. MELLOW's native light yellow Order button therefore has wine-colored text/icons. Basic and Dining share this resolver; preserve separate Call rules.
+
+
 ## Ordered widgets and notice anchors — 2026-11-10 (current)
 
 This supersedes the earlier same-day bottom-docking/structure-lock policy for all existing and future widget-capable Basic and Dining templates, catalog/saved previews, public menus and the configuration editor.

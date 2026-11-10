@@ -77,3 +77,11 @@ test("Van Gogh persists Belleza in its starter and preview while preserving Kore
   assert.equal(resolved.english_font_key, expected.english_font_key);
   assert.equal(mergeTypographySettings(key, { english_font_key: "special-elite" }).english_font_key, "special-elite");
 });
+
+
+test("corner list preview and registration share centered identity and white panels", () => {
+ const preview = buildStarterPreviewData("cafe_design_a", null, "basic-upper-left");
+ const design = (preview.menuSite.page_settings as { design: Record<string, unknown> }).design;
+ assert.equal(design.representativeAlignment, "center");
+ assert.equal(design.auxiliaryBackgroundColor, "#FFFFFF");
+});

@@ -89,3 +89,9 @@ test('a fixed-header editor submits the stored mobile alignment while its deskto
  const ordinary=renderToStaticMarkup(createElement(MenuSurfaceSettingsForm,{pageSettings:{},settings:{menu_design_id:'basic-first-column'},templateKey:'cafe_design_a',formId:'design'}));
  assert.doesNotMatch(ordinary,/<select[^>]*name="representative_alignment"[^>]*\sdisabled=/);
 });
+
+
+test('corner list defaults to white auxiliary paper', () => {
+ assert.equal(menuSurfaceDefaults('cafe_design_a',{menu_design_id:'basic-upper-left'}).auxiliaryBackground,'#FFFFFF');
+ assert.equal(menuSurfaceDefaults('cafe_design_a',{menu_design_id:'basic-first-column'}).auxiliaryBackground,null);
+});

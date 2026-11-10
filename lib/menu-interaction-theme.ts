@@ -51,9 +51,9 @@ export function resolveMenuInteractionTheme({ category, surfaces, inks = [] }: {
     candidates.find(c => menuColorContrast(c, background) >= 4.5) ??
     [DARK, LIGHT, "#000000"].find(color => menuColorContrast(color, background) >= 4.5) ?? DARK;
   const orderBackground = accent;
-  // Order follows the requested lightest menu swatch, including intentionally
-  // bright category colors. Only an identical fill/label needs a fallback.
-  const orderForeground = lightest === orderBackground ? readableInk(orderBackground, [lightest]) : lightest;
+  // Prefer bright menu ink when readable. On a light fill, try the darkest
+  // configured menu swatch first; neutral fallback is only the final option.
+  const orderForeground = readableInk(orderBackground, [lightest, ...sorted]);
   const callCircleForeground = readableInk(accent, [lightest]);
   return {
     "--menu-order-bg": orderBackground,

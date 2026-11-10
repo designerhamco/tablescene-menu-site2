@@ -30,6 +30,7 @@ import CanvasBrandTitle from "@/components/menu-templates/shared/CanvasBrandTitl
 import { applyOnePageChipLayout, applyOnePageChipLayouts } from "@/components/menu-templates/one-page-chip-layout";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import MenuOrderAddButton from "@/components/public-menu/order-call/MenuOrderAddButton";
+import upperLeftStyles from "./defaults/UpperLeftRepresentative.module.css";
 import { useDefaultDesign, useDefaultDesignLayout, useDefaultDesignLogoImage } from "@/components/menu-templates/defaults/DefaultDesignScope";
 import { OnePageCallButton, OnePageMobileCallBar, OnePageMobileCallDock, OnePageCallPalette, useOnePageCallActions } from "@/components/menu-templates/one-page/OnePageCallControls";
 import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
@@ -3633,6 +3634,29 @@ function CafeNoirA({ data }: { data: PublicMenuTemplateProps }) {
   );
 }
 
+
+/** Neutral corner identity shares its photo composition on every device. */
+export function CafeAUpperLeftIntro({ data, density = "default", mobileReading = false }: { data: PublicMenuTemplateProps; density?: MenuLayoutDensity; mobileReading?: boolean }) {
+  const capabilities = getTemplateCapabilities(data.menuSite.template_key);
+  const call = useOnePageCallActions();
+  const device = mobileReading ? "mobile" : data.previewDevice ?? "pc";
+  const showCover = data.pageSettings.menu_cover_enabled !== false && isMenuCoverVisibleOnDevice(data.pageSettings, device);
+  const slides = showCover ? getFeaturedHeroSlides(data, capabilities) : [];
+  const custom = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
+  const controls = <div className={upperLeftStyles.controls} data-corner-controls>
+    {mobileReading && call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} iconOnly menuAlign="left" />} /> : <CafeLanguageHoverControl data={data} iconOnly menuAlign="left" />}
+  </div>;
+  const identity = <div className={upperLeftStyles.identity} data-representative-copy data-corner-identity>
+    <StoreIdentity data={data} capabilities={capabilities} titleClassName="cafe-a-store-title cafe-a-panel-brand" logoClassName="cafe-a-store-logo" mobileAutoFit={mobileReading} layoutShell="brand_panel_flow" />
+    {(data.menuSite.brand_description || data.menuSite.description) && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p>}
+  </div>;
+  return <div className={upperLeftStyles.intro} data-upper-left-intro data-photo={slides.length ? "true" : "false"} data-mobile-call={mobileReading && call.enabled ? "true" : undefined}
+    style={slides.length && (!custom?.typography_roles?.brand?.color || custom.typography_roles.brand.color.toLowerCase() === "#191c1b") ? { "--menu-role-brand-color": "#ffffff", "--menu-design-brand-ink": "#ffffff", "--menu-role-supporting-color": "#ffffff" } as CSSProperties : undefined}>
+    {slides.length ? <CoverHero data={data} featuredSlides={slides} capabilities={capabilities} density={density}
+      customBadgeStyles={getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings)}
+      priceDisplayMode={getPriceDisplayModeFromSettings(data.menuSite.settings, data.menuSite.template_key)} identity={<>{controls}{identity}</>} /> : <>{controls}{identity}</>}
+  </div>;
+}
 
 function PanelFlowIntro({ data, density, mobileReading = false }: { data: PublicMenuTemplateProps; density: MenuLayoutDensity; mobileReading?: boolean }) {
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
@@ -7541,7 +7565,11 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         <OnePageCallPalette />
         <OnePageMobileCallDock />
         <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
-          {isPanelFlow ? (
+          {defaultDesignLayout === "basic-upper-left" ? (
+            <section className="lg:hidden" data-upper-left-mobile-intro>
+              <CafeAUpperLeftIntro data={data} density={density} mobileReading />
+            </section>
+          ) : isPanelFlow ? (
             <section className="cafe-a-panel-mobile-intro lg:hidden">
               <PanelFlowIntro data={data} density={density} mobileReading />
             </section>
@@ -7573,7 +7601,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             </>
           )}
           <div data-cafe-a-scroll-content="" className={`grid min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-[var(--cafe-a-page-block-end)] md:grid-cols-2 lg:hidden ${isRoundFocus ? "cafe-a-round-focus-mobile-menu-grid" : ""} ${outerGridGapClassName}`}>
-            {!isPanelFlow && !isRoundFocus && !(isMochaForest && onePageRhythmMode === "mobile") && shouldRenderMenuCoverSection && (
+            {defaultDesignLayout !== "basic-upper-left" && !isPanelFlow && !isRoundFocus && !(isMochaForest && onePageRhythmMode === "mobile") && shouldRenderMenuCoverSection && (
               <CoverHero
                 data={data}
                 featuredSlides={featuredHeroSlides}
