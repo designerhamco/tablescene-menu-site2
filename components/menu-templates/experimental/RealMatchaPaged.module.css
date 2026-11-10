@@ -182,19 +182,6 @@
 @container (max-width: 12rem) {
   .frame[data-basic-structure="basic-center-column"] .footer button { flex-direction: column; gap: .125rem; padding-inline: .25rem; }
 }
-/* The corner occupies real space in the first scrolling column. */
-.frame[data-basic-structure="basic-upper-left"] .column > .brand {
-  flex: none;
-  width: var(--scroll-track-width, 100%);
-  height: auto;
-  margin-bottom: var(--scroll-column-gap);
-}
-.frame[data-basic-structure="basic-upper-left"][data-show-cover="false"] .column > .brand { height: auto; }
-
-.frame[data-basic-structure="basic-upper-left"] .cover { flex: none !important; aspect-ratio: 4 / 3; }
-.mobile[data-basic-structure="basic-upper-left"] :global(.cafe-a-cover-hero) { height: auto !important; min-height: 0 !important; aspect-ratio: 4 / 3 !important; flex: none !important; }
-.mobile[data-basic-structure="basic-upper-left"] :global(.cafe-a-cover-frame) { height: 100% !important; min-height: 0 !important; }
-
 .portraitCoverSlot { display: flex; flex-direction: column; flex: 1 1 0; min-height: clamp(6rem, 16vh, 10rem); min-width: 0; }
 .portraitCoverSlot .cover { align-self: stretch !important; width: 100% !important; height: auto !important; aspect-ratio: auto !important; flex: 1 1 0 !important; }
 .mobile[data-portrait-cover="true"] :global(.cafe-a-cover-hero) { height: auto !important; min-height: 0 !important; aspect-ratio: 4 / 5 !important; flex: none !important; }
@@ -228,7 +215,6 @@
 /* PC/tablet representative pictures fill their full rail width and remainder. */
 .frame .cover { min-height: clamp(6rem, 16vh, 10rem) !important; aspect-ratio: auto !important; }
 .frame .cover :global(.cafe-a-cover-frame) { width: 100% !important; aspect-ratio: auto !important; }
-.frame[data-basic-structure="basic-upper-left"] .cover { height: clamp(10rem, 34vh, 24rem) !important; }
 .frame[data-representative-panel="true"][data-basic-structure="basic-first-column"] { padding: 0 var(--scroll-page-inset) 0 0; }
 .frame[data-representative-panel="true"][data-basic-structure="basic-first-column"] > .brand { padding: var(--scroll-page-inset); box-sizing: border-box; }
 .frame[data-representative-panel="true"][data-basic-structure="basic-first-column"] > .menuPanel { padding-block: var(--scroll-page-inset); box-sizing: border-box; }
@@ -241,15 +227,28 @@
 /* Shared usable width includes colored panel padding in the occupied rail. */
 .frame[data-basic-structure="basic-first-column"] { grid-template-columns: minmax(0, var(--scroll-rail-width, calc((100% - 2 * var(--scroll-column-gap)) / 3))) minmax(0, 1fr); }
 
-/* Colored corners bleed to the page edges inside the scroll surface.
-   Ordinary columns retain their page inset; the corner owns its inner inset. */
-.frame[data-representative-panel="true"][data-basic-structure="basic-upper-left"] { padding: 0; }
-.frame[data-representative-panel="true"][data-basic-structure="basic-upper-left"] .menu { padding: var(--scroll-page-inset); box-sizing: border-box; }
-.frame[data-representative-panel="true"][data-basic-structure="basic-upper-left"] .column > .brand {
-  width: calc(var(--scroll-track-width, 100%) + var(--scroll-page-inset));
-  margin-top: calc(-1 * var(--scroll-page-inset));
-  margin-left: calc(-1 * var(--scroll-page-inset));
+/* Corner list panels own the auxiliary paper and the common page inset.
+   The first photo is full bleed; both visible tracks and probes use inner widths. */
+.frame[data-basic-structure="basic-upper-left"] {
+  --scroll-panel-inset: var(--basic-reading-page-inset);
 }
-.frame[data-representative-panel="true"][data-basic-structure="basic-upper-left"] .menuPanel:has(.footer) { padding-bottom: var(--scroll-page-inset); box-sizing: border-box; }
-.frame[data-representative-panel="true"][data-basic-structure="basic-upper-left"] .menuPanel:has(.footer) .menu { padding-bottom: 0; }
-.frame[data-representative-panel="true"][data-basic-structure="basic-upper-left"] .footer { padding-inline: var(--scroll-page-inset); }
+.frame[data-basic-structure="basic-upper-left"] .column {
+  background: var(--menu-design-aux-bg, #fff);
+  padding: var(--scroll-panel-inset);
+  box-sizing: border-box;
+}
+.frame[data-basic-structure="basic-upper-left"] .column > .brand {
+  flex: none;
+  width: calc(var(--scroll-track-width, 100%) + 2 * var(--scroll-panel-inset));
+  height: auto;
+  margin: calc(-1 * var(--scroll-panel-inset)) calc(-1 * var(--scroll-panel-inset)) var(--scroll-panel-inset);
+  gap: 0;
+}
+.frame[data-basic-structure="basic-upper-left"] .fade {
+  background-image: linear-gradient(to right, var(--menu-design-aux-bg, #fff) calc(100% - var(--scroll-column-gap)), transparent 0);
+  background-size: calc((100% + var(--scroll-column-gap)) / var(--paged-columns)) 100%;
+  mask-image: linear-gradient(to bottom, transparent, #000 95%);
+}
+.mobile[data-basic-structure="basic-upper-left"] :global([data-cafe-a-scroll-content]) {
+  background: var(--menu-design-aux-bg, #fff);
+}

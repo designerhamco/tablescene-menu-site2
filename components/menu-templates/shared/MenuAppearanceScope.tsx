@@ -22,7 +22,7 @@ export default function MenuAppearanceScope({ pageSettings, templateKey, designI
   const textColorStyle = Object.fromEntries(MENU_TEXT_COLOR_GROUPS.filter(group => textColors[group]).map(group => [`--menu-text-${group}`, textColors[group]]));
   const appearance = resolveMenuAppearance(pageSettings, templateKey, designId);
   const surfaces = readMenuSurfaceSettings(pageSettings);
-  const alignment = basic ? surfaces.representativeAlignment : undefined;
+  const alignment = basic ? surfaces.representativeAlignment ?? (designId === "basic-upper-left" ? "center" : undefined) : undefined;
   const previewChipColors = resolvePreviewChipColors(readPreviewChipColors(menuSurfaceRecord(menuSurfaceRecord(pageSettings).design).previewChipColors));
   const chipColorStyle = {
     ...(previewChipColors.generalBackground ? { "--menu-preview-chip-bg": previewChipColors.generalBackground } : {}),

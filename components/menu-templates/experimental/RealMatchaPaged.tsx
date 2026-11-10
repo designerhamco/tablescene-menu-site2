@@ -20,6 +20,7 @@ import CafeDesignA, {
   CafeATypographyFontAssets,
   CafeACategoryTitle,
   CafeAStoreIdentity,
+  CafeAUpperLeftIntro,
   CafeACoverHero,
   CafeLanguageHoverControl,
   CafeMenuImageLightbox,
@@ -70,6 +71,16 @@ type Unit = {
   kind: MeasuredMenuBlock["kind"];
   node: ReactNode;
 };
+function hasSafeCornerIdentity(panel: HTMLElement | null) {
+  const intro = panel?.querySelector('[data-upper-left-intro][data-photo="true"]');
+  if (!intro) return true;
+  const photo = intro.getBoundingClientRect();
+  const identity = intro.querySelector('[data-corner-identity]')?.getBoundingClientRect();
+  const controls = intro.querySelector('[data-corner-controls]')?.getBoundingClientRect();
+  const featured = intro.querySelector('.cafe-a-featured-copy')?.getBoundingClientRect();
+  return [identity, controls, featured].every(rect => !rect || rect.left >= photo.left - 1 && rect.right <= photo.right + 1 && rect.top >= photo.top - 1 && rect.bottom <= photo.bottom + 1) &&
+    (!identity || !controls || identity.top >= controls.bottom - 1) && (!identity || !featured || identity.bottom <= featured.top - 1);
+}
 function widgetView(w: MenuWidget): CafeAWidgetPreview {
   const base = {
     id: w.id,
@@ -291,7 +302,8 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       if (bounds.width <= 1 || bounds.height <= 1) return;
       const menuStyle = getComputedStyle(area.current);
       const regionWidth = Math.min(area.current.clientWidth, bounds.width - (area.current.offsetWidth - area.current.clientWidth)) - parseFloat(menuStyle.paddingLeft) - parseFloat(menuStyle.paddingRight);
-      const capacity = bounds.height - parseFloat(menuStyle.paddingTop) - parseFloat(menuStyle.paddingBottom);
+      const panelInset = upperLeft ? parseFloat(getComputedStyle(area.current.querySelector<HTMLElement>("[data-paged-column]")!).paddingLeft) || 0 : 0;
+      const capacity = bounds.height - parseFloat(menuStyle.paddingTop) - parseFloat(menuStyle.paddingBottom) - 2 * panelInset;
       const gap = parseFloat(menuStyle.columnGap) || 24;
       const brandWidth = brandArea.current?.getBoundingClientRect().width ?? 0;
       const width = centerColumn ? regionWidth - brandWidth - gap : regionWidth;
@@ -318,7 +330,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const collect = (columnCount: number, reference = false) => {
         measure.current!.toggleAttribute("data-cafe-a-three-part-reference", reference);
         // Match fractional CSS grid widths; integer clientWidth can cross a text-wrap boundary.
-        const columnWidth = leftColumn ? railGeometry(columnCount).trackWidth : Math.min(columnCount === 1 ? 40 * rem : Infinity, (width - (columnCount - 1) * gap) / columnCount);
+        const columnWidth = leftColumn ? railGeometry(columnCount).trackWidth : Math.min(columnCount === 1 && !upperLeft ? 40 * rem : Infinity, (width - (columnCount - 1) * gap) / columnCount) - 2 * panelInset;
         measure.current!.style.width = `${columnWidth}px`;
         applyOnePageChipLayouts(measure.current!);
         const measured = units.map(u => {
@@ -335,7 +347,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         const firstColumnInset = upperLeft ? (brandArea.current?.getBoundingClientRect().height ?? 0) + (parseFloat(cornerStyle?.marginTop ?? "0") || 0) + (parseFloat(cornerStyle?.marginBottom ?? "0") || 0) : 0;
         root.style.setProperty("--scroll-first-inset", `${firstColumnInset}px`);
         const footerHeight = noticeMeasure.current?.getBoundingClientRect().height ?? 0;
-        const candidate = { columnCount, columnWidth, layout: layoutScrollableMenu(measured, columnCount, capacity, grouped, { footerHeight, firstColumnInset }) };
+        const candidate = { columnCount, columnWidth, representativeSafe: !upperLeft || hasSafeCornerIdentity(brandArea.current), layout: layoutScrollableMenu(measured, columnCount, capacity, grouped, { footerHeight, firstColumnInset }) };
         measure.current!.removeAttribute("data-cafe-a-three-part-reference");
         return candidate;
       };
@@ -356,7 +368,8 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         const names = measureScrollableNames(measure.current!);
         return { ...natural, itemSize: ceiling, names };
       });
-      const selected = selectScrollableMenuCandidate(candidates, grouped) as typeof candidates[number];
+      const photoSafe = candidates.filter(candidate => candidate.representativeSafe);
+      const selected = selectScrollableMenuCandidate(photoSafe.length ? photoSafe : candidates.slice(0, 1), grouped) as typeof candidates[number];
       if (leftColumn) {
         const geometry = railGeometry(selected.columnCount);
         root.style.setProperty("--scroll-rail-width", `${geometry.railWidth}px`);
@@ -394,6 +407,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     measuredContent.addEventListener("load", schedule, true);
     if (brandArea.current)
       for (const node of brandArea.current.children) observer.observe(node);
+    const identityObserver = new MutationObserver(schedule);
+    const cornerIdentity = brandArea.current?.querySelector("[data-corner-identity]");
+    if (cornerIdentity) identityObserver.observe(cornerIdentity, { subtree: true, attributes: true, attributeFilter: ["data-canvas-brand-fit", "data-canvas-brand-width"] });
     const fontsChanged = () => { rejectedRailColumns.clear(); schedule(); };
     document.fonts.ready.then(fontsChanged);
     document.fonts.addEventListener("loadingdone", fontsChanged);
@@ -402,6 +418,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       disposed = true;
       cancelAnimationFrame(raf);
       observer.disconnect();
+      identityObserver.disconnect();
       measuredContent.removeEventListener("load", schedule, true);
       document.fonts.removeEventListener("loadingdone", fontsChanged);
     };
@@ -575,9 +592,11 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             </footer>
           ) : null;
   const brandPanel = <aside ref={brandArea} className={styles.brand} data-paged-brand>
+          {upperLeft ? <CafeAUpperLeftIntro data={baseProps} /> : <>
           {!topRow ? <>{languageControl}<div className={styles.identity} data-representative-copy>{storeIdentity}{storeDescription}</div></> : null}
           {showCover ? (portraitCover ? <div className={styles.portraitCoverSlot} data-portrait-cover-slot><CafeACoverHero data={baseProps} featuredSlides={featuredSlides} capabilities={capabilities} density="default" customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} desktopClassName={styles.cover} /></div> : <CafeACoverHero data={baseProps} featuredSlides={featuredSlides} capabilities={capabilities} density="default" customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} desktopClassName={styles.cover} />) : null}
           {centerColumn ? actionFooter : null}
+          </>}
         </aside>;
   return (
     <CafeATimeSaleClock value={saleNow}>
@@ -650,7 +669,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
                 {album ? <div className={styles.albumSections} data-album-sections style={{ minHeight: "var(--paged-album-capacity, 0px)" }}>
                   {albumGroups.map(albumGroup)}
                   {footerNotices}
-                </div> : <div className={styles.columns} data-scroll-columns style={{ height: layout.contentHeight, maxWidth: layout.columns.length === 1 && !upperLeft && !centerColumn ? layout.columnWidth : undefined }}>
+                </div> : <div className={styles.columns} data-scroll-columns style={{ height: upperLeft ? `calc(${layout.contentHeight}px + 2 * var(--scroll-panel-inset))` : layout.contentHeight, maxWidth: layout.columns.length === 1 && !upperLeft && !centerColumn ? layout.columnWidth : undefined }}>
                   {layout.columns.map((column, i) => {
                     return <div key={i} className={styles.column} data-paged-column={i + 1}
                       data-scroll-natural-height={layout.naturalHeights[i]}>
