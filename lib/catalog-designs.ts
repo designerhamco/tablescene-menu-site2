@@ -54,6 +54,7 @@ const standards: CatalogDesign[]=DEFAULT_DESIGN_REVIEWS.map(design=>{
 });
 // Catalog cards, detail galleries and checkout media share the same image.
 const catalogImages: Readonly<Partial<Record<string, string>>> = {
+  cafe_mocha_forest_a: '/template-previews/cafe_mocha_forest_a-20261110.jpg',
   cafe_real_matcha_a: '/template-previews/cafe_real_matcha_a-20261104.jpg',
   cafe_sunday_roasters_a: '/template-previews/cafe_sunday_roasters_a-20261104.jpg',
 };
