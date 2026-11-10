@@ -97,11 +97,9 @@ Type-specific settings:
 - `text`: `textAlign`, `placement`
 - `image_text`: `aspectRatio`, `objectFit`, `textAlign`, `placement`, optional `altText`
 
-For Basic, `placement` is `flow` or `bottom`. `flow` follows freely editable mixed category/widget order. `bottom` is collected in the last occupied desktop/tablet menu column: footer notices end at its inner bottom and widgets sit immediately above them; without footer notices the widget ends at the bottom. Preserve existing top-row/representative notice anchors. Keep the dock with the last real content so it cannot create a spare widget-only column. Active contained readers and retained multi-page presentations use the same meaning. Mobile bottom widgets follow the last menu item naturally, without viewport-height docking. Missing legacy Basic values normalize to `bottom`.
+All widget-capable Basic and Dining templates use freely editable mixed category/widget order. Widgets move before, between and after whole categories. The editor exposes no placement selector or movement lock. New drafts/starters and authorized saves persist `flow`; legacy `bottom` remains accepted JSON but normalizes to `flow` without changing source order. Missing legacy values also mean `flow`. The shared editor/server normalizer is idempotent and does not mutate loaded customer objects or run a data migration.
 
-The Basic structure list stable-partitions bottom widgets to its end, labels them “하단 고정” and disables drag/up/down movement, while selection/editing remain available. Changing placement to flow re-enables movement. The same service-aware helper normalizes editor serialization and the authorized final save payload before the existing save plan. No schema change or automatic customer migration is required.
-
-Dining always uses mixed category/widget order. Its editor hides the bottom-placement choice; rendering and save normalization interpret legacy `bottom` hints as `flow`. Widget ratios, text/image formatting and per-page limits remain unchanged.
+Basic notices follow final content naturally, except ordinary centered top-row designs retain their upper/right anchor; left-logo top-row designs use the content footer. There is no viewport-bottom widget dock. Dining widgets cannot split a course heading/description/prices/items; insertion occurs only outside a complete category on that page. Dining notices belong to the cover bottom rather than category content. Ratios, text/image formatting and per-page limits stay unchanged.
 
 The stored `aspectRatio` is the presentation ratio on PC, tablet, and mobile. The editor explains that one saved choice applies to every device.
 
@@ -154,7 +152,7 @@ Example final sequence:
 
 The stable sort policy is:
 
-- Sort by `sortOrder` ascending, then for Basic stable-partition bottom widgets to the end. Dining keeps the mixed sequence.
+- Stable-sort category/widget blocks by `sortOrder` ascending in both Basic and Dining. Never partition by legacy placement.
 - If sort values are equal, preserve input order.
 - Do not sort by name or ID as a hidden fallback.
 

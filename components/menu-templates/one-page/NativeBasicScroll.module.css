@@ -39,7 +39,7 @@
 .unit[data-boundary="section"] { padding-bottom: var(--native-section-gap); }
 .board .unit :global(.cafe-a-category-heading) { margin-bottom: 0; }
 .measure { position: absolute; height: 0; visibility: hidden; pointer-events: none; overflow: hidden; contain: layout; }
-.notices { color: var(--menu-role-supporting-color, var(--mocha-panel-supporting, #3f4945)); margin-top: auto; padding-top: var(--native-section-gap); text-align: right; white-space: pre-line; line-height: 1.5; }
+.notices { color: var(--menu-role-supporting-color, var(--mocha-panel-supporting, #3f4945)); margin-top: 0; padding-top: var(--native-section-gap); text-align: right; white-space: pre-line; line-height: 1.5; }
 .notices p { margin: 0; }
 .fade { position: absolute; bottom: 0; inset-inline: 0; height: clamp(3rem, 9vh, 6rem); background: linear-gradient(to bottom, transparent, var(--native-background) 95%); opacity: 0; pointer-events: none; transition: opacity .15s; }
 .board[data-native-more="true"] .fade { opacity: 1; }
@@ -171,7 +171,3 @@
 .board .header[data-basic-header-align="left"] :global(.cafe-a-topline-description-panel) { grid-column: 3; grid-row: 1; display: flex; align-items: center; justify-content: flex-end; gap: .75rem; overflow: visible; text-align: right; }
 .board .header[data-basic-header-align="left"] :global(.cafe-a-topline-description) { padding-top: 0; text-align: right !important; }
 .board .header[data-basic-header-align="left"] :global([data-template-language-control]) { flex: none; position: relative; z-index: 5; }
-
-/* A single auto spacer docks the widget stack; notices retain the true bottom edge. */
-.column > .unit[data-widget-dock-start="true"] { margin-top: auto; }
-.notices[data-widget-notices="true"] { margin-top: 0; padding-top: var(--cafe-a-item-rhythm-gap); }

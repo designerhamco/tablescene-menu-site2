@@ -422,7 +422,7 @@ function cloneWidgetDraft(rawDraft: Record<string, unknown>): MenuWidgetDraft {
       objectFit: toStringValue(rawSettings.objectFit) as MenuWidgetDraft["settings"]["objectFit"],
       objectPosition: (toStringValue(rawSettings.objectPosition) || "center") as MenuWidgetDraft["settings"]["objectPosition"],
       textAlign: toStringValue(rawSettings.textAlign) as MenuWidgetDraft["settings"]["textAlign"],
-      placement: (toStringValue(rawSettings.placement) || "bottom") as MenuWidgetDraft["settings"]["placement"],
+      placement: (toStringValue(rawSettings.placement) || "flow") as MenuWidgetDraft["settings"]["placement"],
       altText: toStringValue(rawSettings.altText),
     },
   };

@@ -158,3 +158,7 @@
 .surface[data-menu-item-layout="album"] :global(.aube-table-album-price-leader) { flex: 1; min-width: .5rem; height: 1.5px; align-self: center; background: radial-gradient(circle, var(--aube-leader-dot) .65px, transparent .78px) left center / 5px 1.5px repeat-x; }
 .surface[data-menu-item-layout="album"] :global(.aube-table-album-price-row .aube-table-option-price) { flex: none; white-space: nowrap; }
 .surface[data-menu-item-layout="album"] :global(.aube-table-item-purchase [data-menu-order-add]) { flex: none; align-self: center; }
+
+/* Cover notices share the actual native/neutral cover surface contrast. */
+.surface :global(.aube-table-cover) { --dining-cover-notice-ink: #606561; }
+.surface :global(.aube-table-cover[data-default-cover-image="true"]) { --dining-cover-notice-ink: #fff; }

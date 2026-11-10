@@ -60,7 +60,6 @@ import { getOrderedFitGapScale } from "../one-page/pc-tablet/cafe-fit-engine";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 
 import { useDefaultAlbum, useDefaultDesignLayout } from "../defaults/DefaultDesignScope";
-import { getEffectiveWidgetPlacement } from "@/lib/menu-widget-placement";
 import type { MenuWidget } from "@/lib/menu-widgets";
 import styles from "./RealMatchaPaged.module.css";
 const capabilities = getTemplateCapabilities("cafe_design_a");
@@ -70,7 +69,6 @@ type Unit = {
   group: string;
   kind: MeasuredMenuBlock["kind"];
   node: ReactNode;
-  dockToBottom?: boolean;
 };
 function widgetView(w: MenuWidget): CafeAWidgetPreview {
   const base = {
@@ -219,7 +217,6 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
           id: w.id,
           group: w.id,
           kind: "widget",
-          dockToBottom: getEffectiveWidgetPlacement(data.menuSite.template_key, w.settings.placement) === "bottom",
           node: (
             <div
               className={styles.widget}
@@ -277,7 +274,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         });
       }
     }
-    return [...result.filter(unit => !unit.dockToBottom), ...result.filter(unit => unit.dockToBottom)];
+    return result;
   // Rebuild measurements for content, role fonts, features and sale boundaries.
   // Countdown ticks stay inside the original sale component.
   }, [data, timeSaleByItemId, device, saleNow, customBadgeStyles, priceDisplayMode, openImage]);
@@ -294,8 +291,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       if (bounds.width <= 1 || bounds.height <= 1) return;
       const menuStyle = getComputedStyle(area.current);
       const regionWidth = Math.min(area.current.clientWidth, bounds.width - (area.current.offsetWidth - area.current.clientWidth)) - parseFloat(menuStyle.paddingLeft) - parseFloat(menuStyle.paddingRight);
-      const bottomInset = units.some(unit => unit.dockToBottom) && scrollContent.current ? parseFloat(getComputedStyle(scrollContent.current).paddingBottom) || 0 : 0;
-      const capacity = bounds.height - parseFloat(menuStyle.paddingTop) - parseFloat(menuStyle.paddingBottom) - bottomInset;
+      const capacity = bounds.height - parseFloat(menuStyle.paddingTop) - parseFloat(menuStyle.paddingBottom);
       const gap = parseFloat(menuStyle.columnGap) || 24;
       const brandWidth = brandArea.current?.getBoundingClientRect().width ?? 0;
       const width = centerColumn ? regionWidth - brandWidth - gap : regionWidth;
@@ -330,10 +326,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
           const rhythm = Number(element.querySelector<HTMLElement>("[data-cafe-a-item-rhythm]")?.dataset.cafeAItemRhythm ?? 1);
           element.style.setProperty("--scroll-item-rhythm", String(reference && u.kind === "item" ? 1.2 : rhythm));
           const gapAfter = parseFloat(getComputedStyle(element).paddingBottom) || 0;
-          const trim = u === units.at(-1) && u.dockToBottom && notices.length > 0;
-          return { id: u.id, group: u.group, kind: u.kind, dockToBottom: u.dockToBottom,
-            height: element.getBoundingClientRect().height - (trim ? gapAfter : 0),
-            gapAfter: trim ? 0 : gapAfter };
+          return { id: u.id, group: u.group, kind: u.kind,
+            height: element.getBoundingClientRect().height,
+            gapAfter };
         });
         root.style.setProperty("--scroll-track-width", `${columnWidth}px`);
         const cornerStyle = upperLeft && brandArea.current ? getComputedStyle(brandArea.current) : null;
@@ -541,8 +536,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         data-kind={value.kind}
         data-next-kind={nextKind}
         data-paged-block={id}
-        data-widget-placement={value.dockToBottom ? "bottom" : undefined}
-        style={{ "--scroll-base-gap": `${block.gapAfter ?? 0}px`, ...(last && (!hasFooter || value.dockToBottom) ? { paddingBottom: 0 } : {}) } as CSSProperties & Record<`--${string}`, string | number>}
+        style={{ "--scroll-base-gap": `${block.gapAfter ?? 0}px`, ...(last && !hasFooter ? { paddingBottom: 0 } : {}) } as CSSProperties & Record<`--${string}`, string | number>}
       >
         {value.node}
       </div>
@@ -550,7 +544,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   };
   const albumGroup = (first: Unit) => {
     const group = units.filter(value => value.group === first.group);
-    return <section key={first.group} data-album-category data-widget-placement={first.dockToBottom ? "bottom" : undefined}>
+    return <section key={first.group} data-album-category>
       {group.filter(value => value.kind !== "item").map(value => <div key={value.id}>{value.node}</div>)}
       {group.some(value => value.kind === "item") ? <div className={styles.albumGrid} data-album-grid>{group.filter(value => value.kind === "item").map(value => <div key={value.id}>{value.node}</div>)}</div> : null}
     </section>;
@@ -647,29 +641,26 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
                     {u.node}
                   </div>
                 ))}
-                <div ref={noticeMeasure} className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-widget-notices={units.some(unit => unit.dockToBottom) ? "true" : undefined}>
+                <div ref={noticeMeasure} className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`}>
                   {notices.map((n, i) => <p key={i}><ScriptAwareText text={n} /></p>)}
                 </div>
               </div>
               <div ref={scrollContent} className={styles.scrollContent} data-scroll-content>
                 {!units.length ? <p role="status">{t("메뉴를 준비하고 있어요.")}</p> : null}
                 {album ? <div className={styles.albumSections} data-album-sections style={{ minHeight: "var(--paged-album-capacity, 0px)" }}>
-                  {albumGroups.filter(first => !first.dockToBottom).map(albumGroup)}
-                  {albumGroups.some(first => first.dockToBottom) ? <div className={styles.albumBottom} data-album-widget-dock>
-                    {albumGroups.filter(first => first.dockToBottom).map(albumGroup)}
-                    {footerNotices}
-                  </div> : footerNotices}
+                  {albumGroups.map(albumGroup)}
+                  {footerNotices}
                 </div> : <div className={styles.columns} data-scroll-columns style={{ height: layout.contentHeight, maxWidth: layout.columns.length === 1 && !upperLeft && !centerColumn ? layout.columnWidth : undefined }}>
                   {layout.columns.map((column, i) => {
                     return <div key={i} className={styles.column} data-paged-column={i + 1}
                       data-scroll-natural-height={layout.naturalHeights[i]}>
                       {upperLeft && i === 0 ? brandPanel : null}
-                      {column.map((b, index) => <div key={b.id} data-widget-dock-start={b.dockToBottom && !column[index - 1]?.dockToBottom ? "true" : undefined}>
+                      {column.map((b, index) => <div key={b.id}>
                         {unit(b, index === column.length - 1, i === layout.footerColumn && notices.length > 0,
                           column[index + 1]?.kind ?? (i === layout.footerColumn && notices.length ? "notices" : undefined))}
                       </div>)}
                       {i === layout.footerColumn ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`}
-                        data-paged-notices data-widget-notices={units.some(unit => unit.dockToBottom) ? "true" : undefined}>
+                        data-paged-notices>
                         {notices.map((n, index) => <p key={index}><ScriptAwareText text={n} /></p>)}
                       </div> : null}
                     </div>;

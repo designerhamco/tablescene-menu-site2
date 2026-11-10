@@ -1,6 +1,5 @@
 "use client";
 import { hasMenuColumnDivider, getMenuColumnDividerGeometry } from "@/lib/menu-column-divider";
-import { getEffectiveWidgetPlacement } from "@/lib/menu-widget-placement";
 import { getRepresentativeRailGeometry } from "@/lib/representative-rail-geometry";
 import { getMenuDesignBackgrounds } from "@/lib/template-background-colors";
 
@@ -38,7 +37,7 @@ import { getCanvasHeaderRatio } from "@/lib/canvas-brand-title-fit";
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import styles from "./NativeBasicScroll.module.css";
 
-type Unit = { id: string; group: string; kind: "heading" | "item" | "widget"; dockToBottom?: boolean; node: ReactNode; };
+type Unit = { id: string; group: string; kind: "heading" | "item" | "widget"; node: ReactNode; };
 
 function hasSafePhotoCopy(intro: Element | null | undefined) {
   const photo = intro?.querySelector(".cafe-a-cover-frame")?.getBoundingClientRect();
@@ -95,7 +94,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
     if (panel) result.push({ id: "native-intro", group: "native-intro", kind: "widget", node: <CafeAPanelFlowIntro data={data} density="default" /> });
     for (const block of getFlatContentBlocks(getVisibleMenuPageGroups(data))) {
       if (block.blockType === "widget") {
-        result.push({ id: block.key, group: block.key, kind: "widget", dockToBottom: getEffectiveWidgetPlacement(key, block.widget.placement) === "bottom", node: <CafeAWidgetBlock widget={block.widget} /> });
+        result.push({ id: block.key, group: block.key, kind: "widget", node: <CafeAWidgetBlock widget={block.widget} /> });
         continue;
       }
       const columns = getCategoryPriceRailColumns({ category: block.category, items: block.items, timeSaleByItemId: sales, templateKey: key, priceDisplayMode: priceMode, nowMs: now });
@@ -105,7 +104,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       </> });
       for (const item of block.items) result.push({ id: item.id, group: block.key, kind: "item", node: <CafeAMenuItemRow item={item} category={block.category} priceOptions={data.priceOptions} traits={data.traits.filter(trait => trait.menu_item_id === item.id && trait.visible !== false)} capabilities={capabilities} density="default" templateKey={key} timeSale={sales.get(item.id)} customBadgeStyles={badges} locale={data.locale} priceDisplayMode={priceMode} priceRailColumns={columns} previewDevice={device} pagePresentation="one" onOpenImage={openImage} /> });
     }
-    return [...result.filter(unit => !unit.dockToBottom), ...result.filter(unit => unit.dockToBottom)];
+    return result;
   }, [data, panel, sales, key, priceMode, now, badges, device, openImage, capabilities]);
   const board = useRef<HTMLDivElement>(null);
   const area = useRef<HTMLDivElement>(null);
@@ -167,7 +166,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
           el.style.setProperty("--native-rhythm", el.querySelector<HTMLElement>("[data-cafe-a-item-rhythm]")?.dataset.cafeAItemRhythm ?? "1");
           const gapAfter = parseFloat(getComputedStyle(el).paddingBottom) || 0;
           const trimNoticeBoundary = unit === units.at(-1) && Boolean(noticeMeasure.current?.getBoundingClientRect().height);
-          return { id: unit.id, group: unit.group, kind: unit.kind, dockToBottom: unit.dockToBottom,
+          return { id: unit.id, group: unit.group, kind: unit.kind,
             height: el.getBoundingClientRect().height - (panel && unit.id === "native-intro" ? panelInset + viewportPaddingTop : 0) - (trimNoticeBoundary ? gapAfter : 0),
             gapAfter: trimNoticeBoundary ? 0 : gapAfter };
         });
@@ -264,7 +263,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
     void document.fonts.ready.then(schedule); schedule();
     return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); copyObserver.disconnect(); logo.removeEventListener("load", schedule); document.fonts.removeEventListener("loadingdone", schedule); root.style.removeProperty("--cafe-a-header-copy-height"); };
   }, [top, data.menuSite.logo_url]);
-  const noticeNode = (!top || leftLogo) && !center && notices.length ? <div className={`${styles.notices} cafe-a-menu-description cafe-a-description-text`} data-native-notices data-widget-notices={units.some(unit => unit.dockToBottom) ? "true" : undefined}>{notices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>)}</div> : null;
+  const noticeNode = (!top || leftLogo) && notices.length ? <div className={`${styles.notices} cafe-a-menu-description cafe-a-description-text`} data-native-notices >{notices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>)}</div> : null;
   const dock = showCall || showOrder || call.terminalConnected ? <footer className={styles.actions} data-native-actions data-call-only={showCall && !showOrder ? "true" : undefined} aria-label={t("메뉴 이용")}>
     {call.terminalConnected ? <span className={styles.tableLabel} data-terminal-table-label title={call.tableLabel}>{call.tableLabel}</span> : null}
     {showCall ? <button type="button" className={styles.call} onClick={call.openCall} aria-label={t("직원 호출하기")}><StaffCallIcon strokeWidth={1.8} /><ScriptAwareText text={t("호출하기")} /></button> : null}
@@ -288,7 +287,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
               <div ref={tracks} className={styles.tracks} data-native-tracks>
                 {layout.columns.map((column, index) => <div key={index} className={styles.column} data-native-column={index + 1} data-mocha-panel={mocha ? index === layout.columns.length - 1 ? "green" : "ivory" : undefined}>
                   {columnDividers && index > 0 ? <span className={styles.columnRule} data-menu-category-decoration="" data-menu-column-divider="" aria-hidden="true" /> : null}
-                  {column.map((block, i) => <div key={block.id} className={styles.unit} data-native-unit={block.id} data-kind={block.kind} data-widget-placement={block.dockToBottom ? "bottom" : undefined} data-widget-dock-start={block.dockToBottom && !column[i - 1]?.dockToBottom ? "true" : undefined} style={{ paddingBottom: i === column.length - 1 ? 0 : block.gapAfter }}>{units.find(unit => unit.id === block.id)?.node}</div>)}
+                  {column.map((block, i) => <div key={block.id} className={styles.unit} data-native-unit={block.id} data-kind={block.kind} style={{ paddingBottom: i === column.length - 1 ? 0 : block.gapAfter }}>{units.find(unit => unit.id === block.id)?.node}</div>)}
                   {index === layout.footerColumn ? noticeNode : null}
                 </div>)}
                 {!units.length ? <p>{t("메뉴를 준비하고 있어요.")}</p> : null}

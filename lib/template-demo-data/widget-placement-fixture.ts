@@ -7,7 +7,7 @@ export function buildWidgetPlacementFixture(key: TemplateKey, variant = "bottom"
   const data = buildStarterPreviewData(key);
   const page = data.pages[0];
   data.pages = [page];
-  data.categories = data.categories.slice(0, 2).map((category, index) => ({ ...category, menu_page_id: page.id, sort_order: index * 2, course_price: null, course_price_label: null }));
+  data.categories = data.categories.slice(0, 2).map((category, index) => ({ ...category, menu_page_id: page.id, sort_order: index * 2, course_price: variant === "course" ? 90000 : null, course_price_label: variant === "course" ? "코스" : null }));
   data.items = data.categories.flatMap(category => {
     const examples = data.items.filter(item => item.category_id === category.id).slice(0, 2).map(item => ({ ...item, menu_page_id: page.id }));
     return variant === "long" ? Array.from({ length: 16 }, (_, index) => ({ ...examples[index % examples.length], id: `${category.id}-widget-qa-${index}`, sort_order: index })) : examples;
@@ -21,9 +21,10 @@ export function buildWidgetPlacementFixture(key: TemplateKey, variant = "bottom"
   data.menuSite.page_settings = data.pageSettings;
   data.widgets = [1, ...(variant === "multiple" ? [2] : [])].map((index): MenuWidget => ({
     id: `00000000-0000-4000-8000-00000000000${index}`, menuSiteId: data.menuSite.id, menuPageId: page.id,
-    type: "text", title: `검수 위젯 ${index}`, description: "저장한 순서와 기기별 하단 배치를 확인합니다.",
-    imageUrl: null, imagePath: null, sortOrder: index === 1 ? 1 : 3, visible: true,
+    type: "text", title: `검수 위젯 ${index}`, description: "카테고리 사이에 저장한 위젯 순서를 확인합니다.",
+    imageUrl: null, imagePath: null, sortOrder: variant === "first" ? -1 : variant === "last" ? 5 : index === 1 ? 1 : 3, visible: variant !== "hidden",
     settings: { schemaVersion: 1, textAlign: "left", placement: variant === "flow" ? "flow" : "bottom" },
   }));
+  if (variant === "none") data.widgets = [];
   return data;
 }

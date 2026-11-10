@@ -98,3 +98,5 @@
 .scope[data-representative-align] :global(:is([data-basic-top-row]:not([data-basic-header-align="left"]), .cafe-a-topline-info-header) :is(.cafe-a-topline-description, .cafe-a-store-description, [data-cafe-a-store-description])) { text-align: left !important; }
 .scope[data-representative-align] :global(:is([data-basic-top-row]:not([data-basic-header-align="left"]), .cafe-a-topline-info-header) .cafe-a-store-logo-wrap) { justify-content: center !important; }
 .scope[data-representative-align] :global(:is([data-basic-top-row]:not([data-basic-header-align="left"]), .cafe-a-topline-info-header) .cafe-a-store-logo) { margin-inline: auto !important; object-position: center !important; }
+
+.scope[data-text-color-information] :global(.aube-table-cover-notices) { color: var(--menu-text-information) !important; }

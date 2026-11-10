@@ -413,7 +413,7 @@ function parseMenuWidgetSettings(
         (aspectRatio as MenuWidgetAspectRatio | null) ?? "2:1",
         (objectFit as MenuWidgetObjectFit | null) ?? "cover",
         (objectPosition as MenuWidgetObjectPosition | null) ?? "center",
-        (placement as MenuWidgetPlacement | null) ?? "bottom",
+        "flow",
         normalizedAltText,
       ),
       issues: [],
@@ -424,7 +424,7 @@ function parseMenuWidgetSettings(
     return {
       settings: createTextSettings(
         (textAlign as MenuWidgetTextAlign | null) ?? "left",
-        (placement as MenuWidgetPlacement | null) ?? "bottom",
+        "flow",
       ),
       issues: [],
     };
@@ -436,7 +436,7 @@ function parseMenuWidgetSettings(
         (aspectRatio as MenuWidgetAspectRatio | null) ?? "4:3",
         (objectFit as MenuWidgetObjectFit | null) ?? "cover",
         (objectPosition as MenuWidgetObjectPosition | null) ?? "center",
-        (placement as MenuWidgetPlacement | null) ?? "bottom",
+        "flow",
         normalizedAltText,
       ),
       textAlign: (textAlign as MenuWidgetTextAlign | null) ?? "left",

@@ -273,7 +273,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(mochaForest.widgets?.[0]?.settings?.aspectRatio, "2:1");
   assert.equal(mochaForest.widgets?.[0]?.settings?.objectFit, "contain");
   assert.equal(mochaForest.widgets?.[0]?.settings?.objectPosition, "bottom-right");
-  assert.equal(mochaForest.widgets?.[0]?.settings?.placement, "bottom");
+  assert.equal(mochaForest.widgets?.[0]?.settings?.placement, "flow");
   assert.equal(mochaForest.featured_item_key, undefined);
   assert.equal(mochaForest.featured_slides?.length, 0);
   assert.equal(mochaForest.featured_slides?.[0]?.featured_item_key, undefined);

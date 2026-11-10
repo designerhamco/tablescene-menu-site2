@@ -85,7 +85,7 @@ export function applyPagedMatchaFixture(data: MenuPageData, scenario: string = "
           objectFit: "cover",
           objectPosition: "center",
           textAlign: "left",
-          placement: "bottom",
+          placement: "flow",
         },
       },
     ];

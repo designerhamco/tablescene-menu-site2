@@ -1,4 +1,4 @@
-import { getEffectiveWidgetPlacement, isBottomWidgetLocked, orderWidgetContentBlocks, normalizeWidgetPlacementPayload } from "./menu-widget-placement";
+import { getEffectiveWidgetPlacement, orderWidgetContentBlocks, normalizeWidgetPlacementPayload } from "./menu-widget-placement";
 import type { MenuWidget, MenuWidgetDraft } from "@/lib/menu-widgets";
 import type { MenuWidgetFinalSavePayload } from "@/lib/menu-widget-save-contract";
 
@@ -60,7 +60,7 @@ export type MenuEditorContentBlockReorderResult =
     }
   | {
       ok: false;
-      reason: "INVALID_SORTABLE_ID" | "PAGE_NOT_FOUND" | "BLOCK_NOT_FOUND" | "FIXED_BOTTOM_WIDGET";
+      reason: "INVALID_SORTABLE_ID" | "PAGE_NOT_FOUND" | "BLOCK_NOT_FOUND";
       state: MenuEditorContentBlockDraftsByPageId;
       blocks: MenuEditorContentBlockDraft[];
     };
@@ -100,7 +100,7 @@ export function createMenuWidgetDraftFromWidget(widget: MenuWidget): MenuWidgetD
         widget.type === "text" || widget.type === "image_text"
           ? widget.settings.textAlign
           : "left",
-      placement: widget.settings.placement,
+      placement: "flow",
       altText:
         widget.type === "image" || widget.type === "image_text"
           ? widget.settings.altText ?? ""
@@ -333,9 +333,6 @@ export function reorderMenuEditorContentBlocks(
     return { ok: false, reason: "BLOCK_NOT_FOUND", state, blocks };
   }
 
-  if (args.templateKey && args.widgetDraftsById && [active, over].some(block => block.blockType === "widget" && isBottomWidgetLocked(args.templateKey, args.widgetDraftsById?.[block.id]))) {
-    return { ok: false, reason: "FIXED_BOTTOM_WIDGET", state, blocks };
-  }
 
   if (activeIndex === overIndex) {
     return { ok: true, changed: false, state, blocks: normalizeMenuEditorContentBlockDrafts(args.menuPageId, blocks) };

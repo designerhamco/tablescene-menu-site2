@@ -32,6 +32,7 @@ export const MENU_WIDGET_TEXT_ALIGNS = ["left", "center", "right"] as const;
 
 export type MenuWidgetTextAlign = (typeof MENU_WIDGET_TEXT_ALIGNS)[number];
 
+/** bottom is decode-only compatibility for existing saved rows; no positioning behavior. */
 export const MENU_WIDGET_PLACEMENTS = ["flow", "bottom"] as const;
 
 export type MenuWidgetPlacement = (typeof MENU_WIDGET_PLACEMENTS)[number];
@@ -235,7 +236,7 @@ export function createDefaultMenuWidgetDraft(
         objectFit: "cover",
         objectPosition: "center",
         textAlign: "left",
-        placement: "bottom",
+        placement: "flow",
         altText: "",
       },
     };
@@ -249,7 +250,7 @@ export function createDefaultMenuWidgetDraft(
         objectFit: "cover",
         objectPosition: "center",
         textAlign: "left",
-        placement: "bottom",
+        placement: "flow",
         altText: "",
       },
     };
@@ -262,7 +263,7 @@ export function createDefaultMenuWidgetDraft(
       objectFit: "cover",
       objectPosition: "center",
       textAlign: "left",
-      placement: "bottom",
+      placement: "flow",
       altText: "",
     },
   };
@@ -538,7 +539,7 @@ function requireMenuWidgetTextAlign(value: unknown): MenuWidgetTextAlign {
 
 function requireMenuWidgetPlacement(value: unknown): MenuWidgetPlacement {
   if (!isMenuWidgetPlacement(value)) throw new TypeError("Invalid menu widget placement.");
-  return value;
+  return "flow";
 }
 
 function createMenuWidgetValidationError(
