@@ -58,7 +58,8 @@ import { getActiveTimeSaleWindowEndMs, getNextTimeSaleBoundaryMs as getScheduleN
 import { MENU_LIMITS } from "@/lib/menu-starter-presets";
 import { getMochaForestPanelRole, MOCHA_FOREST_PANEL_COLORS, type MochaForestPanel } from "@/lib/mocha-forest-panels";
 import { getBadgeStyleCss, getBadgeStyleForItem, getCustomBadgeStyles } from "@/lib/template-badge-styles";
-import { getResolvedBackgroundColor } from "@/lib/template-background-colors";
+import { resolvedMenuTextColors } from "@/lib/menu-text-colors";
+import { getMenuDesignBackgrounds, getResolvedBackgroundColor } from "@/lib/template-background-colors";
 import { getBasicPricingCapabilities, getTemplateCapabilities, type TemplateCapabilities } from "@/lib/template-capabilities";
 import { getTemplateContentSeparatorRules, shouldShowCategoryContentDivider } from "@/lib/template-content-separator-rules";
 import { getMenuLayoutDensity, getTemplateLayoutRules, type MenuLayoutDensity } from "@/lib/template-layout-rules";
@@ -3638,6 +3639,20 @@ function CafeNoirA({ data }: { data: PublicMenuTemplateProps }) {
 }
 
 
+/** Photo overlays and plain identities resolve ink against their own surface. */
+function panelIdentityStyle(data: PublicMenuTemplateProps, photo: boolean, plainSurface: string): CSSProperties {
+  const typography = mergeTypographySettings(data.menuSite.template_key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
+  const colors = resolvedMenuTextColors(data.pageSettings);
+  const surface = photo ? "#33221E" : plainSurface;
+  const brand = resolvePanelTextInk(colors.brand ?? typography.typography_roles.brand.color, typography.typography_roles.category.color, surface);
+  const description = resolvePanelTextInk(colors.representative ?? brand, brand, surface);
+  return {
+    "--menu-role-brand-color": brand, "--menu-design-brand-ink": brand, "--menu-text-brand": brand,
+    "--menu-role-supporting-color": description, "--menu-text-representative": description,
+    "--cafe-a-language-trigger-ink": brand, "--cafe-a-call-ink": brand,
+  } as CSSProperties;
+}
+
 /** Neutral corner identity shares its photo composition on every device. */
 export function CafeAUpperLeftIntro({ data, density = "default", mobileReading = false }: { data: PublicMenuTemplateProps; density?: MenuLayoutDensity; mobileReading?: boolean }) {
   const capabilities = getTemplateCapabilities(data.menuSite.template_key);
@@ -3645,7 +3660,6 @@ export function CafeAUpperLeftIntro({ data, density = "default", mobileReading =
   const device = mobileReading ? "mobile" : data.previewDevice ?? "pc";
   const showCover = data.pageSettings.menu_cover_enabled !== false && isMenuCoverVisibleOnDevice(data.pageSettings, device);
   const slides = showCover ? getFeaturedHeroSlides(data, capabilities) : [];
-  const custom = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
   const controls = <div className={upperLeftStyles.controls} data-corner-controls>
     {mobileReading && call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} showCurrentLocale menuAlign="right" />} /> : <CafeLanguageHoverControl data={data} showCurrentLocale menuAlign="right" />}
   </div>;
@@ -3654,7 +3668,7 @@ export function CafeAUpperLeftIntro({ data, density = "default", mobileReading =
     {(data.menuSite.brand_description || data.menuSite.description) && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p>}
   </div>;
   return <div className={upperLeftStyles.intro} data-upper-left-intro data-photo={slides.length ? "true" : "false"} data-carousel={slides.length > 1 ? "true" : undefined} data-mobile-call={mobileReading && call.enabled ? "true" : undefined}
-    style={slides.length && (!custom?.typography_roles?.brand?.color || custom.typography_roles.brand.color.toLowerCase() === "#191c1b") ? { "--menu-role-brand-color": "#ffffff", "--menu-design-brand-ink": "#ffffff", "--menu-role-supporting-color": "#ffffff" } as CSSProperties : undefined}>
+    style={panelIdentityStyle(data, Boolean(slides.length), getResolvedBackgroundColor(data.menuSite.template_key, data.pageSettings))}>
     {slides.length ? <CoverHero data={data} featuredSlides={slides} capabilities={capabilities} density={density}
       customBadgeStyles={getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings)}
       priceDisplayMode={getPriceDisplayModeFromSettings(data.menuSite.settings, data.menuSite.template_key)} identity={<>{controls}{identity}</>} /> : <>{controls}{identity}</>}
@@ -3673,10 +3687,9 @@ function PanelFlowIntro({ data, density, mobileReading = false }: { data: Public
     <StoreIdentity data={data} capabilities={capabilities} titleClassName="cafe-a-store-title cafe-a-panel-brand" logoClassName="cafe-a-store-logo" mobileAutoFit={mobileReading} />
     {(data.menuSite.brand_description || data.menuSite.description) && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p>}
   </div>;
-  const typography = mergeTypographySettings(data.menuSite.template_key, getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings));
-  const plainInk = resolvePanelTextInk(typography.typography_roles.brand.color, typography.typography_roles.category.color);
-  if (!showCover || !slides.length) return <div className="cafe-a-panel-plain-intro" style={{ "--menu-role-brand-color": plainInk } as CSSProperties}>{controls}{identity}</div>;
-  return <div className="cafe-a-panel-intro" style={{ "--panel-featured-ratio": (mobileReading ? PANEL_MOBILE_FEATURED_IMAGE : PANEL_FEATURED_IMAGE).cssRatio } as CSSProperties}>
+  const identityStyle = panelIdentityStyle(data, Boolean(slides.length), getMenuDesignBackgrounds(data.menuSite.template_key, data.pageSettings).auxiliary ?? "#FFFFFF");
+  if (!slides.length) return <div className="cafe-a-panel-plain-intro" style={identityStyle}>{controls}{identity}</div>;
+  return <div className="cafe-a-panel-intro" style={{ ...identityStyle, "--panel-featured-ratio": (mobileReading ? PANEL_MOBILE_FEATURED_IMAGE : PANEL_FEATURED_IMAGE).cssRatio } as CSSProperties}>
     <CoverHero data={data} featuredSlides={slides} capabilities={capabilities} density={density}
       customBadgeStyles={getCustomBadgeStyles(data.menuSite.settings, data.menuSite.page_settings)}
       priceDisplayMode={getPriceDisplayModeFromSettings(data.menuSite.settings, data.menuSite.template_key)} identity={<>{controls}{identity}</>} />

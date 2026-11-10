@@ -174,3 +174,7 @@
 
 /* Equal panel workspaces reserve one consistent service-action inset. */
 .board.board[data-native-shell="brand_panel_flow"] .actions { padding: var(--basic-panel-action-inset); box-sizing: border-box; }
+
+/* The dock owns its bottom inset, including on auxiliary-color panels. */
+.board.board[data-native-shell="brand_panel_flow"]:has(.actions) { padding-bottom: 0; }
+.board.board[data-native-shell="brand_panel_flow"] .menuPanel:has(.actions) { padding-bottom: 0; }

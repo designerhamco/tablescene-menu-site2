@@ -253,3 +253,6 @@
 }
 
 .frame[data-basic-structure="basic-upper-left"] .footer { padding: var(--basic-panel-action-inset); box-sizing: border-box; }
+
+/* The dock owns its bottom inset; do not add the workspace inset again. */
+.frame[data-basic-structure="basic-upper-left"]:has(.footer) { padding-bottom: 0; }

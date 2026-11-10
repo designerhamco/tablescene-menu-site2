@@ -93,5 +93,6 @@ test('a fixed-header editor submits the stored mobile alignment while its deskto
 
 test('corner list defaults to white auxiliary paper', () => {
  assert.equal(menuSurfaceDefaults('cafe_design_a',{menu_design_id:'basic-upper-left'}).auxiliaryBackground,'#FFFFFF');
+ assert.equal(menuSurfaceDefaults('cafe_design_a',{menu_design_id:'basic-upper-left'}).pageBackground,'#3D3531');
  assert.equal(menuSurfaceDefaults('cafe_design_a',{menu_design_id:'basic-first-column'}).auxiliaryBackground,null);
 });

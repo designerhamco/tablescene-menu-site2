@@ -1,6 +1,6 @@
 .intro {
-  --corner-hero-inset: var(--basic-reading-page-inset);
-  --corner-controls-size: 2.75rem;
+  --corner-hero-inset: var(--basic-panel-hero-inset);
+  --corner-controls-size: var(--basic-panel-controls-size);
   --corner-copy-gap: .75rem;
   position: relative;
   width: 100%;
@@ -38,7 +38,7 @@
 }
 .controls { grid-row: 1; z-index: 3; min-width: 0; min-height: var(--corner-controls-size); display: flex; justify-content: flex-end; align-items: center; }
 .controls > :global([data-template-language-control]) { text-align: right; }
-.controls :global([data-language-menu-trigger]) { min-width: 2.75rem; min-height: var(--corner-controls-size); padding-inline: .375rem; }
+.controls :global([data-language-menu-trigger]) { min-width: 2.75rem; }
 .identity { grid-row: 3; z-index: 1; display: flex; flex-direction: column; align-items: var(--menu-representative-justify, center); gap: var(--corner-copy-gap); min-width: 0; text-align: var(--menu-representative-align, center); }
 .identity :global(.cafe-a-store-title) { width: 100%; margin: 0; line-height: 1.08; }
 .identity :global(.cafe-a-store-description) { margin: 0; color: var(--menu-text-representative, var(--menu-role-brand-color, #191c1b)); }
@@ -46,9 +46,8 @@
 .identity :global(.cafe-a-store-logo) { max-width: 75%; max-height: 5rem; width: auto; height: auto; object-fit: contain; margin-inline: auto; }
 .intro :global(.cafe-a-featured-copy) { position: relative; inset: auto; grid-row: 5; align-self: end; z-index: 1; }
 @media (max-width: 767px) {
-  .intro { --corner-hero-inset: var(--cafe-a-page-inline, 1.5rem); --corner-controls-size: 3rem; }
+  .intro[data-photo="false"], .intro :global(.cafe-a-cover-frame) { padding-top: env(safe-area-inset-top, 0px); }
   .intro[data-photo="true"] { aspect-ratio: 1 / 1; }
-  .intro[data-mobile-call="true"] { --corner-controls-size: 3.5rem; }
 }
 
 .intro :global([data-cafe-a-cover-indicators]) { top: auto; right: auto; bottom: 1rem; left: 50%; transform: translateX(-50%); }

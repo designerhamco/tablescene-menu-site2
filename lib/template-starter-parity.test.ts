@@ -84,4 +84,5 @@ test("corner list preview and registration share centered identity and white pan
  const design = (preview.menuSite.page_settings as { design: Record<string, unknown> }).design;
  assert.equal(design.representativeAlignment, "center");
  assert.equal(design.auxiliaryBackgroundColor, "#FFFFFF");
+ assert.equal(design.backgroundColor, "#3D3531");
 });

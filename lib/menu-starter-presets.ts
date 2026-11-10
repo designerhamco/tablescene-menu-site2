@@ -1,3 +1,4 @@
+import { CORNER_PANEL_BACKGROUND } from "./one-page-panel-flow";
 import { MELLOW_COLORS } from "./mocha-forest-panels";
 import { getTemplateMenuAppearance } from "./menu-appearance";
 import { getDefaultEnglishFontForTemplate, getDefaultKoreanFontForTemplate } from "./font-options";
@@ -3114,7 +3115,7 @@ export function getStarterPageSettings(preset: StarterPreset, serviceType: Start
   const starterPageSettings = useLeanPreset ? MENU_SCREEN_STARTER_PAGE_SETTINGS : STARTER_PAGE_SETTINGS;
   return {
     ...starterPageSettings,
-    design: { ...starterPageSettings.design, ...(preset.design_id === "basic-upper-left" ? { auxiliaryBackgroundColor: "#FFFFFF", representativeAlignment: "center" as const } : {}), pcTabletLayoutMode: getDefaultPcTabletLayoutMode(preset.template_key), appearance: getTemplateMenuAppearance(preset.template_key, preset.design_id) },
+    design: { ...starterPageSettings.design, ...(preset.design_id === "basic-upper-left" ? { backgroundColor: CORNER_PANEL_BACKGROUND, auxiliaryBackgroundColor: "#FFFFFF", representativeAlignment: "center" as const } : {}), pcTabletLayoutMode: getDefaultPcTabletLayoutMode(preset.template_key), appearance: getTemplateMenuAppearance(preset.template_key, preset.design_id) },
     multi_page_cover_background_opacity: preset.design_id ? 90 : 75,
     menu_cover_enabled: preset.menu_cover_enabled ?? starterPageSettings.menu_cover_enabled,
     menu_cover_visible_pc: preset.menu_cover_visible_pc ?? starterPageSettings.menu_cover_visible_pc,
