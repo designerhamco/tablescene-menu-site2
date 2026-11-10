@@ -282,6 +282,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
               <div className={styles.measure} ref={measure} aria-hidden="true" inert>{units.map((unit, i) => <div className={styles.unit} data-native-measure={unit.id} data-measure-id={unit.id} data-kind={unit.kind} data-boundary={units[i + 1]?.kind !== "item" ? "section" : undefined} key={unit.id}>{unit.node}</div>)}<div ref={noticeMeasure}>{noticeNode}</div></div>
               <div ref={tracks} className={styles.tracks} data-native-tracks>
                 {layout.columns.map((column, index) => <div key={index} className={styles.column} data-native-column={index + 1} data-mocha-panel={mocha ? index === layout.columns.length - 1 ? "green" : "ivory" : undefined}>
+                  {mocha && index > 0 ? <span className={styles.columnRule} data-menu-category-decoration="" aria-hidden="true" /> : null}
                   {column.map((block, i) => <div key={block.id} className={styles.unit} data-native-unit={block.id} data-kind={block.kind} style={{ paddingBottom: i === column.length - 1 ? 0 : block.gapAfter }}>{units.find(unit => unit.id === block.id)?.node}</div>)}
                   {index === layout.footerColumn ? noticeNode : null}
                 </div>)}

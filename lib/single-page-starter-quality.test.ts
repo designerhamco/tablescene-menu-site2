@@ -269,8 +269,8 @@ test("starter-specific image and promotion presentation stays intentional", () =
 
   const mochaForest = getStarterPreset("cafe_mocha_forest_a");
   assert.equal(mochaForest.widgets?.[0]?.type, "image");
-  assert.equal(mochaForest.widgets?.[0]?.image_url, "/menu-templates/cafe_mocha_forest_a/widget-character.png");
-  assert.equal(mochaForest.widgets?.[0]?.settings?.aspectRatio, "3:1");
+  assert.equal(mochaForest.widgets?.[0]?.image_url, "/menu-templates/cafe_mocha_forest_a/mellow-widget.png");
+  assert.equal(mochaForest.widgets?.[0]?.settings?.aspectRatio, "2:1");
   assert.equal(mochaForest.widgets?.[0]?.settings?.objectFit, "contain");
   assert.equal(mochaForest.widgets?.[0]?.settings?.objectPosition, "bottom-right");
   assert.equal(mochaForest.widgets?.[0]?.settings?.placement, "bottom");
@@ -365,7 +365,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
   );
 
   const mochaMorningDeal = mochaForest.time_sales?.find((sale) => sale.key === "americano-morning-deal");
-  assert.equal(mochaMorningDeal?.badge_background_color, "#852322");
+  assert.equal(mochaMorningDeal?.badge_background_color, "#ECEAB7");
 });
 
 test("starter chip languages remain intentional in every locale", () => {

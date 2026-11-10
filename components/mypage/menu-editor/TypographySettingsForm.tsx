@@ -213,7 +213,7 @@ export default function TypographySettingsForm({
     : isSundayLineTemplate
       ? "선데이 로스터스 SUNDAY 2026"
       : isMochaForestTemplate
-        ? "모카 포레스트 MOCHA 2026"
+        ? "MELLOW mellow 2026"
         : "리얼 맛차 REAL MATCHA 2026";
   const cafeAMiniPreviewDescriptionText = isRoundFocusTemplate
     ? "시트러스와 Deep 스피릿이 어우러지는 칵테일 바입니다."

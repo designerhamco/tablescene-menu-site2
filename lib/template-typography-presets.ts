@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { MELLOW_COLORS } from "./mocha-forest-panels";
 
 import {
   ENGLISH_FONT_OPTIONS as REGISTERED_ENGLISH_FONT_OPTIONS,
@@ -131,6 +132,7 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
     korean_font_key: "pretendard",
     english_font_key: "carme",
     font_size_scale_key: "m",
+    typography_roles: Object.fromEntries(TYPOGRAPHY_ROLE_KEYS.map(role => [role, { ...createDefaultTypographyRoleSettings()[role], color: MELLOW_COLORS.ink }])) as TypographyRoleSettings,
   },
   cafe_sunday_line_a: {
     korean_font_key: "pretendard",

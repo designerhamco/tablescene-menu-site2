@@ -197,13 +197,13 @@ const REAL_MATCHA_TRANSLATIONS: SinglePageStarterTranslationBundle = {
 const MOCHA_FOREST_TRANSLATIONS: SinglePageStarterTranslationBundle = {
   en: {
     site: {
-      restaurantName: "MOCHA FOREST",
+      restaurantName: "MELLOW",
       restaurantCategory: "Cafe",
       brandDescription: "Dark roasts and chocolate flavors in a forest-inspired coffee bar.",
       introDescription: "A coffee bar for deep roasts and rich chocolate flavors.",
       menuCoverDescription: "A coffee bar for deep roasts and rich chocolate flavors.",
       aboutDescription: "Dark-roasted coffee, chocolate drinks, and comforting desserts.",
-      footerNotices: ["Wi-Fi · MOCHA_GUEST", "Instagram · @mocha.forest", "Decaf beans are available."],
+      footerNotices: ["Wi-Fi · MELLOW_GUEST", "Instagram · @mellow", "Decaf beans are available."],
     },
     pageTitle: "Menu",
     categoryNames: {
@@ -244,13 +244,13 @@ const MOCHA_FOREST_TRANSLATIONS: SinglePageStarterTranslationBundle = {
   },
   zh: {
     site: {
-      restaurantName: "MOCHA FOREST",
+      restaurantName: "MELLOW",
       restaurantCategory: "咖啡馆",
       brandDescription: "以深度烘焙和巧克力风味为核心，呈现幽暗森林氛围的咖啡吧。",
       introDescription: "专注深度烘焙与浓郁巧克力风味的咖啡吧。",
       menuCoverDescription: "专注深度烘焙与浓郁巧克力风味的咖啡吧。",
       aboutDescription: "深烘咖啡、巧克力饮品与温暖甜点。",
-      footerNotices: ["Wi-Fi · MOCHA_GUEST", "Instagram · @mocha.forest", "可更换为低咖啡因咖啡豆。"],
+      footerNotices: ["Wi-Fi · MELLOW_GUEST", "Instagram · @mellow", "可更换为低咖啡因咖啡豆。"],
     },
     pageTitle: "菜单",
     categoryNames: {
@@ -291,13 +291,13 @@ const MOCHA_FOREST_TRANSLATIONS: SinglePageStarterTranslationBundle = {
   },
   ja: {
     site: {
-      restaurantName: "MOCHA FOREST",
+      restaurantName: "MELLOW",
       restaurantCategory: "カフェ",
       brandDescription: "深煎りの香りとチョコレートの風味を、静かな森のムードで楽しむコーヒーバーです。",
       introDescription: "深煎りの香りと濃厚なチョコレートを楽しむコーヒーバーです。",
       menuCoverDescription: "深煎りの香りと濃厚なチョコレートを楽しむコーヒーバーです。",
       aboutDescription: "深煎りコーヒーとチョコレートドリンク、心ほどけるデザート。",
-      footerNotices: ["Wi-Fi · MOCHA_GUEST", "Instagram · @mocha.forest", "デカフェ豆に変更できます。"],
+      footerNotices: ["Wi-Fi · MELLOW_GUEST", "Instagram · @mellow", "デカフェ豆に変更できます。"],
     },
     pageTitle: "メニュー",
     categoryNames: {

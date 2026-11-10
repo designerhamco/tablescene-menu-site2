@@ -45,7 +45,7 @@ test('Dining colors are independent; cover opacity/content survive save and temp
  assert.equal(reset.multi_page_cover_background_color,'#401E24');assert.equal(reset.multi_page_cover_background_opacity,61);assert.equal(readMenuSurfaceSettings(reset).sidebarBackground,undefined);
  const neutral=withMenuSurfaceSettings(saved,{menu_design_id:'dining-sidebar'},'dining_aube_table_b',{});
  assert.equal(neutral.multi_page_cover_background_color,'#FFFFFF');
- assert.equal(menuSurfaceDefaults('cafe_mocha_forest_a').pageBackground,'#F4EDDC');
+ assert.equal(menuSurfaceDefaults('cafe_mocha_forest_a').pageBackground,'#792839');
 });
 test('Dining design round-trip restores cover and sidebar colors without replacing content settings',()=>{
  const original={settings:{menu_design_id:'dining_aube_table_b'},templateKey:'dining_aube_table_b',brandColor:'#112233',pageSettings:{menu_cover_enabled:true,multi_page_cover_background_color:'#301122',multi_page_cover_background_opacity:62,design:{sidebarBackgroundColor:'#ABCDEF',coverDescriptionColor:'#EEDDCC'}}};
@@ -65,7 +65,7 @@ test('editor auxiliary defaults distinguish no fill from explicit white and nati
  const cleared=withMenuSurfaceSettings(white, {}, 'cafe_design_a', {});
  assert.equal(readMenuSurfaceSettings(cleared).auxiliaryBackground,undefined);
  assert.equal(getMenuDesignBackgrounds('cafe_design_a',cleared).coloredPanel,false);
- assert.equal(getMenuDesignBackgrounds('cafe_mocha_forest_a',{}).coloredPanel,true);
+ assert.equal(getMenuDesignBackgrounds('cafe_mocha_forest_a',{}).coloredPanel,false);
 });
 
 

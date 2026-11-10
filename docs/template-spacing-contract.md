@@ -1,5 +1,11 @@
 # Menu template spacing contract
 
+## MELLOW native starter and top-row layout — 2026-11-10
+
+MELLOW is the display/store name of the existing `cafe_mocha_forest_a` registration. Keep that persisted key and content IDs compatible. PC/tablet now register the common `brand_top_band` shell: description left, logo/text brand centered, notices right, with the ordinary shared top-row geometry and typography. Mobile retains its independent reading composition. The native background is `#792839` and reading ink is `#ECEAB7` across all native panels. Equal page/auxiliary surfaces use the shared unpanelled geometry, avoiding duplicate header padding. Explicit merchant background/text/font choices remain authoritative; preview/editor defaults and resets read the same palette.
+
+The starter uses the supplied transparent MELLOW logo with `logo_replaces_name`, and the supplied image-only widget at its native **2:1** ratio, `contain`, bottom-right object position and bottom placement. Preserve widget OFF, merchant image/ratio/fitting/position choices and original menu/featured content. Logos use the existing common fitting rules. Only PC/tablet menu tracks receive a 1px divider halfway inside each existing menu-to-menu gutter; the representative/photo track has no divider. Dividers use `data-menu-category-decoration` and `currentColor`, including saved, preview and legacy category ink. They occupy no layout space and do not change gutters or measurement probes. The language popup retains category ink on the matching native surface so the new light text remains legible. The Call surface uses the same page hue with its existing category ink. Supporting-role exclusion filters use `:where` so explicit Design text groups override registered/default role ink without changing the selected elements or their typography.
+
 ## Mocha / REAL MATCHA contained-reading clearances — 2026-11-10
 
 Both PC/tablet readers consume `--basic-reading-page-inset: clamp(2rem, 4.2vmin, 4.25rem)` for their page and visible column gutter. Mocha's native board explicitly uses this token instead of inheriting the legacy tablet `--board-padding` reduction. Keep the brown rail's padding inside its painted edge and measure one common gutter from that edge to menu content. Other native shells keep their existing structural insets.

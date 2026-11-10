@@ -39,9 +39,9 @@ Widget rendering follows `getTemplateCapabilities(...).menuWidgets.enabled`, not
 
 | Structure | Templates | Fixed content |
 | --- | --- | --- |
-| First column | REAL MATCHA, Mocha Forest, Loop Bagel | First brand/featured column |
+| First column | REAL MATCHA, Loop Bagel | First brand/featured column |
 | Central column | ROSY ORANGE | Fixed native rail between two synchronized menu tracks |
-| Top row | Sunday Roasters, Van Gogh | Three equal header cells; content-driven 8–14% row; central brand width target 65% |
+| Top row | Sunday Roasters, Van Gogh, MELLOW | Three equal header cells; content-driven 8–14% row; central brand width target 65% |
 
 Template-owned fonts, role ratios, decorative rules, category boundaries and featured-area differences remain intact.
 

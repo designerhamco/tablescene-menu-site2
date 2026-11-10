@@ -1,3 +1,4 @@
+import { MELLOW_COLORS } from "./mocha-forest-panels";
 import { getTemplateMenuAppearance } from "./menu-appearance";
 import { getDefaultEnglishFontForTemplate, getDefaultKoreanFontForTemplate } from "./font-options";
 import { getDefaultDesignReview } from "./menu-design-policy";
@@ -801,9 +802,10 @@ const cafeRoundFocusStarterPreset: StarterPreset = cloneStarterPresetForTemplate
 
 cafeMochaForestStarterPreset.site = {
   ...cafeMochaForestStarterPreset.site,
-  restaurant_name: "MOCHA FOREST",
-  intro_title: "MOCHA FOREST",
-  menu_cover_title: "MOCHA FOREST",
+  restaurant_name: "MELLOW",
+  intro_title: "MELLOW",
+  menu_cover_title: "MELLOW",
+  logo_url: "/menu-templates/cafe_mocha_forest_a/mellow-logo.png",
   brand_description: "깊은 로스팅 향과 초콜릿의 풍미를 편안하게 즐길 수 있는 어두운 숲의 무드를 담은 커피 바입니다.",
   intro_description: "깊은 로스팅 향과 초콜릿의 풍미를 담은 커피 바입니다.",
   menu_cover_description: "깊은 로스팅 향과 초콜릿의 풍미를 담은 커피 바입니다.",
@@ -814,8 +816,9 @@ cafeMochaForestStarterPreset.site = {
       english_font_key: "carme",
       font_size_scale_key: "m",
     },
-    footer_notice_1: "Wi-Fi · MOCHA_GUEST",
-    footer_notice_2: "Instagram · @mocha.forest",
+    logo_replaces_name: true,
+    footer_notice_1: "Wi-Fi · MELLOW_GUEST",
+    footer_notice_2: "Instagram · @mellow",
     footer_notice_3: "디카페인 원두로 변경 가능합니다.",
   },
 };
@@ -838,7 +841,7 @@ cafeMochaForestStarterPreset.time_sales = [
     name: "아메리카노 모닝딜",
     schedule_type: "once",
     badge_text: "모닝딜",
-    badge_background_color: "#852322",
+    badge_background_color: MELLOW_COLORS.ink,
     time_display_mode: "message",
     time_display_text: "매일 오전 8시부터 10시까지",
     targets: [
@@ -851,7 +854,7 @@ cafeMochaForestStarterPreset.time_sales = [
     schedule_type: "once",
     duration_minutes: 60,
     badge_text: "재고 마감",
-    badge_background_color: "#852322",
+    badge_background_color: MELLOW_COLORS.ink,
     time_display_mode: "countdown",
     targets: [{ target_item_key: "dark-chocolate-brownie", target_item_name: "다크 초콜릿 브라우니", sale_price: 3200 }],
   },
@@ -863,17 +866,17 @@ cafeMochaForestStarterPreset.widgets = [
     type: "image",
     title: null,
     description: null,
-    image_url: "/menu-templates/cafe_mocha_forest_a/widget-character.png",
+    image_url: "/menu-templates/cafe_mocha_forest_a/mellow-widget.png",
     image_path: null,
     sort_order: 5,
     visible: true,
     settings: {
-      aspectRatio: "3:1",
+      aspectRatio: "2:1",
       objectFit: "contain",
       objectPosition: "bottom-right",
       textAlign: "left",
       placement: "bottom",
-      altText: "모카 포레스트 캐릭터",
+      altText: "mellow 베이커리 일러스트",
     },
   },
 ];

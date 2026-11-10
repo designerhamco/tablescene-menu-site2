@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import { chromium } from '@playwright/test';
+const base=process.env.MELLOW_QA_BASE||'http://localhost:3027';
+const browser=await chromium.launch(),page=await browser.newPage({viewport:{width:1512,height:900}}),errors=[],writes=[];
+page.on('pageerror',e=>errors.push(e.message));
+await page.route('**/api/**',r=>r.request().method()==='GET'?r.continue():(writes.push(r.request().url()),r.abort()));
+try{
+ await page.goto(`${base}/templates/cafe_mocha_forest_a/preview?device=pc`,{waitUntil:'domcontentloaded',timeout:60000});
+ const frame=page.frameLocator('iframe').first();
+ await frame.locator('[data-native-ready=true]').waitFor({timeout:45000});
+ const panel=page.locator('[data-preview-options-panel]');
+ if(await panel.getAttribute('data-options-open')!=='true')await page.locator('[data-preview-options-toggle]').click();
+ assert.equal(await page.getByRole('checkbox',{name:'로고 보기',exact:true}).isChecked(),true);
+ assert.equal(await page.getByRole('checkbox',{name:'위젯 보기',exact:true}).isChecked(),true);
+ await page.getByRole('tab',{name:'디자인 옵션',exact:true}).click();
+ const color=page.getByRole('button',{name:'카테고리명 글자색 선택',exact:true});
+ await color.waitFor();await page.waitForFunction(()=>document.querySelector('[data-preview-font-groups] .site-color-swatch')?.title!=='템플릿 색상 확인 중');
+ assert.equal(await page.getByRole('button',{name:'페이지 배경색 선택',exact:true}).getAttribute('title'),'#792839');
+ assert.equal(await page.getByRole('button',{name:'보조 배경색 선택',exact:true}).getAttribute('title'),'#792839');
+ assert.deepEqual(await page.locator('[data-preview-font-groups] .site-color-swatch').evaluateAll(es=>es.map(e=>e.title)),Array(6).fill('#ECEAB7'));
+ assert.equal(await page.getByRole('combobox',{name:'가게명·가게 설명 정렬',exact:true}).isDisabled(),true);
+ await color.click();const picker=page.locator('[data-preview-color-picker]');
+ await picker.getByRole('textbox').fill('#65C9DC');await picker.getByRole('button',{name:'적용',exact:true}).click();
+ await frame.locator('[data-native-ready=true]').waitFor();await page.waitForTimeout(500);
+ const line=frame.locator('[data-menu-category-decoration]').first();
+ assert.equal(await line.evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(101, 201, 220)');
+ await page.getByRole('button',{name:'카테고리명 글자색 기본색 복원',exact:true}).click();
+ assert.equal(await picker.getByRole('textbox').inputValue(),'#ECEAB7');await picker.getByRole('button',{name:'적용',exact:true}).click();
+ await frame.locator('[data-native-ready=true]').waitFor();await page.waitForTimeout(500);
+ assert.equal(await line.evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(236, 234, 183)');
+ const actions=frame.locator('[data-native-actions] button');
+ if(await actions.count())assert.notEqual(await actions.first().evaluate(e=>getComputedStyle(e).backgroundColor),await actions.first().evaluate(e=>getComputedStyle(e).color));
+ assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);console.log('PASS MELLOW options defaults, logo/widget ON, fixed top-row alignment, category apply/reset and linked rules; no browser errors or API writes');
+}finally{await browser.close();}
