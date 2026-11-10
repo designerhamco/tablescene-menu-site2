@@ -16,7 +16,7 @@ test("없는 룸에는 초안 배치도 추가하지 않는다",()=>{
 test("복원 배치 병합은 과거 초안을 새 좌표계로 맞추고 같은 저장 결과를 가짜 미저장으로 표시하지 않는다",()=>{
  const legacy:FloorDocument={rooms:[{id:room,name:"룸",aspectRatio:4/3}],placements:[]};
  const committed=normalizeFloorDocument(placeNewFloorPoints(legacy,[point],room));
- const merged=mergeRegisteredFloorPoint(legacy,committed,point);assert.ok(sameFloorDocument(merged,committed));assert.equal(merged.layoutVersion,2);
+ const merged=mergeRegisteredFloorPoint(legacy,committed,point);assert.ok(sameFloorDocument(merged,committed));assert.equal(merged.layoutVersion,3);
  const existing="44444444-4444-4444-8444-444444444444",draft=placeNewFloorPoints(legacy,[existing],room);
  const preserved=mergeRegisteredFloorPoint(draft,committed,point);normalizeFloorDocument(preserved);assert.deepEqual(preserved.placements.find(p=>p.pointId===existing),draft.placements[0]);assert.equal(preserved.placements.length,2);
  assert.deepEqual(legacy.placements,[]);assert.ok(sameFloorDocument(readableFloorDocument(committed),committed));
