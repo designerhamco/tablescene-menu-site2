@@ -45,7 +45,7 @@ export function applyTemplatePreviewOptions(source: MenuPageData, query: Templat
     menu_cover_enabled: enabled("coverPreview"),
     ...(enabled("coverPreview") ? { menu_cover_visible_pc: true, menu_cover_visible_tablet: true, menu_cover_visible_mobile: true } : {}),
   });
-  if (enabled("coverPreview") === true && !data.featuredSlides?.length && capabilities.menuCover.coverMode === "section") {
+  if (enabled("coverPreview") === true && !data.featuredSlides?.length && capabilities.menuCover.coverMode === "section" && source.menuSite.template_key !== "cafe_mocha_forest_a") {
     data.menuSite.cover_image_url ||= "/placeholders/starter/default-basic-cover.svg";
     data.featuredSlides = [{ id: "catalog-preview-cover", imageUrl: data.menuSite.cover_image_url, featuredItemId: data.pageSettings.featured_item_enabled ? sample?.id ?? null : null, sortOrder: 0 }];
   }

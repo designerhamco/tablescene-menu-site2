@@ -1,6 +1,7 @@
 import type { Json } from "@/lib/supabase/types";
 import { MAX_TIME_SALES_PER_MENU_SITE } from "@/lib/menu-time-sale-validation";
 import { normalizeDailyTime, normalizeTimeSaleScheduleType, type TimeSaleScheduleType } from "@/lib/menu-time-sale-schedule";
+import { MELLOW_COLORS } from "./mocha-forest-panels";
 import { normalizeTemplateKey } from "@/lib/templates";
 
 export const TIME_SALE_TYPE = "time_sale";
@@ -178,6 +179,12 @@ export function getReadableTextColorForTimeSaleBadge(backgroundColor: unknown) {
   const blue = Number.parseInt(color.slice(4, 6), 16);
   const luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255;
   return luminance > 0.62 ? "#191C1B" : "#FFF8EA";
+}
+
+/** MELLOW's native sale and ordinary chips share their registered ink. */
+export function getTemplateTimeSaleBadgeTextColor(templateKey: string | null | undefined, backgroundColor: unknown) {
+  return templateKey === "cafe_mocha_forest_a" && normalizeTimeSaleBadgeBackgroundColor(backgroundColor) === MELLOW_COLORS.ink
+    ? MELLOW_COLORS.background : getReadableTextColorForTimeSaleBadge(backgroundColor);
 }
 
 export function parseTimeSalePriceInputToWon(value: unknown) {

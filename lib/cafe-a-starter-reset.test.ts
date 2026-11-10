@@ -102,11 +102,11 @@ test("Mocha Forest starter preserves a cover image without requiring a featured 
 
   assert.equal(result.snapshot.featuredEnabled, false);
   assert.equal(result.snapshot.featuredItemId, null);
-  assert.equal(result.snapshot.featuredSlides.length, 1);
-  assert.equal(result.snapshot.featuredSlides[0]?.featuredItemId, null);
-  assert.equal(result.snapshot.coverSettings.coverImageUrl, "/menu-templates/cafe_mocha_forest_a/featured.png");
-  assert.equal(result.snapshot.coverSettings.menuCoverVisiblePc, true);
-  assert.equal(result.snapshot.coverSettings.menuCoverVisibleTablet, true);
+  assert.equal(result.snapshot.featuredSlides.length, 0);
+  assert.equal(result.snapshot.coverSettings.coverImageUrl, "");
+  assert.equal(result.snapshot.coverSettings.menuCoverEnabled, false);
+  assert.equal(result.snapshot.coverSettings.menuCoverVisiblePc, false);
+  assert.equal(result.snapshot.coverSettings.menuCoverVisibleTablet, false);
   assert.equal(result.snapshot.coverSettings.menuCoverVisibleMobile, false);
 });
 

@@ -37,6 +37,11 @@ export function getFixedOnePageLayoutShell(templateKey: string | null | undefine
   return fixedOnePageLayoutShells[templateKey] ?? DEFAULT_ONE_PAGE_LAYOUT_SHELL;
 }
 
+/** Native designer skins reuse the registered left-logo top-row composition. */
+export function getOnePageTopRowAlignment(templateKey: string | null | undefined): "left" | "center" {
+  return templateKey === "cafe_mocha_forest_a" ? "left" : "center";
+}
+
 export function supportsOnePageLayoutShell(templateKey: string | null | undefined) {
   // Shells are template-owned. The alternate shells remain experimental and are
   // not customer-configurable for CafeA.

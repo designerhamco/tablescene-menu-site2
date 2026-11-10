@@ -12,6 +12,17 @@ try{
  if(await panel.getAttribute('data-options-open')!=='true')await page.locator('[data-preview-options-toggle]').click();
  assert.equal(await page.getByRole('checkbox',{name:'로고 보기',exact:true}).isChecked(),true);
  assert.equal(await page.getByRole('checkbox',{name:'위젯 보기',exact:true}).isChecked(),true);
+ const cover=page.getByRole('checkbox',{name:'대표 영역 보기',exact:true});
+ const secondary=page.getByRole('checkbox',{name:'보조 언어명 보기',exact:true});
+ assert.equal(await cover.isChecked(),false);assert.equal(await secondary.isChecked(),false);
+ assert.equal(await frame.locator('.cafe-a-cover-hero').count(),0);
+ assert.equal(await frame.locator('.cafe-a-menu-meta:not([data-cafe-a-reference-copy])').count(),0);
+ await cover.check();await frame.locator('[data-native-ready=true]').waitFor();
+ await frame.locator('[data-cafe-a-cover-has-image=false]').first().waitFor();
+ assert.equal(await frame.locator('[data-cafe-a-cover-image]').count(),0);
+ await secondary.check();await frame.locator('.cafe-a-menu-meta:not([data-cafe-a-reference-copy])').filter({visible:true}).first().waitFor();
+ await secondary.uncheck();await cover.uncheck();
+ await frame.locator('[data-native-ready=true]').waitFor();
  await page.getByRole('tab',{name:'디자인 옵션',exact:true}).click();
  const color=page.getByRole('button',{name:'카테고리명 글자색 선택',exact:true});
  await color.waitFor();await page.waitForFunction(()=>document.querySelector('[data-preview-font-groups] .site-color-swatch')?.title!=='템플릿 색상 확인 중');
@@ -30,5 +41,5 @@ try{
  assert.equal(await line.evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(236, 234, 183)');
  const actions=frame.locator('[data-native-actions] button');
  if(await actions.count())assert.notEqual(await actions.first().evaluate(e=>getComputedStyle(e).backgroundColor),await actions.first().evaluate(e=>getComputedStyle(e).color));
- assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);console.log('PASS MELLOW options defaults, logo/widget ON, fixed top-row alignment, category apply/reset and linked rules; no browser errors or API writes');
+ assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);console.log('PASS MELLOW representative/secondary OFF defaults, empty cover and translated secondary ON, logo/widget ON, category apply/reset; no browser errors or API writes');
 }finally{await browser.close();}
