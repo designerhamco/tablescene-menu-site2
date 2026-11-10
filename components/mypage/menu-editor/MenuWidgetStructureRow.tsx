@@ -11,6 +11,7 @@ type MenuWidgetStructureRowProps = {
   widget: MenuWidgetDraft | null;
   selected?: boolean;
   dragDisabled?: boolean;
+  bottomLocked?: boolean;
   onSelect?: () => void;
   onDragStart?: () => void;
   onDragOver?: () => void;
@@ -22,17 +23,21 @@ export default function MenuWidgetStructureRow({
   widget,
   selected = false,
   dragDisabled = false,
+  bottomLocked = false,
   onSelect,
   onDragStart,
   onDragOver,
   onDrop,
 }: MenuWidgetStructureRowProps) {
+  dragDisabled ||= bottomLocked;
   const hidden = block.visible === false || widget?.visible === false;
   const displayName = getMenuWidgetEditorDisplayName(widget);
   const typeLabel = getMenuWidgetEditorTypeLabel(widget?.type ?? "");
 
   return (
     <div
+      data-widget-structure-row={block.id}
+      data-widget-order-locked={bottomLocked ? "true" : undefined}
       onDragOver={(event) => {
         if (!onDragOver && !onDrop) return;
         event.preventDefault();
@@ -51,6 +56,8 @@ export default function MenuWidgetStructureRow({
         <button
           type="button"
           draggable={!dragDisabled}
+          disabled={dragDisabled}
+          title={bottomLocked ? "하단 정렬 위젯은 목록 끝에 고정됩니다. 배치 방식을 바꾸면 이동할 수 있습니다." : undefined}
           onDragStart={(event) => {
             event.stopPropagation();
             if (dragDisabled) {
@@ -67,7 +74,7 @@ export default function MenuWidgetStructureRow({
                 ? "cursor-grab text-zinc-300 hover:text-white active:cursor-grabbing"
                 : "cursor-grab text-zinc-300 hover:text-zinc-600 active:cursor-grabbing"
           }`}
-          aria-label="위젯 순서 이동"
+          aria-label={bottomLocked ? "하단 고정 위젯: 순서 이동 불가" : "위젯 순서 이동"}
         >
           <DragHandleIcon />
         </button>
@@ -80,6 +87,7 @@ export default function MenuWidgetStructureRow({
         <button type="button" onClick={onSelect} className="min-w-0 flex-1 text-left">
           <div className="flex min-w-0 items-center gap-1.5">
             <span className={`min-w-0 truncate text-support font-medium ${selected ? "text-white" : "text-zinc-700"}`}>{displayName}</span>
+            {bottomLocked ? <Badge>하단 고정</Badge> : null}
             {hidden && (
               <span className={`shrink-0 rounded-full px-2 py-0.5 text-support font-medium ${selected ? "bg-zinc-800 text-zinc-300" : "bg-zinc-100 text-zinc-600"}`}>
                 숨김

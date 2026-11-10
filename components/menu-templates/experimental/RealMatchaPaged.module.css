@@ -253,3 +253,9 @@
 .frame[data-representative-panel="true"][data-basic-structure="basic-upper-left"] .menuPanel:has(.footer) { padding-bottom: var(--scroll-page-inset); box-sizing: border-box; }
 .frame[data-representative-panel="true"][data-basic-structure="basic-upper-left"] .menuPanel:has(.footer) .menu { padding-bottom: 0; }
 .frame[data-representative-panel="true"][data-basic-structure="basic-upper-left"] .footer { padding-inline: var(--scroll-page-inset); }
+
+.column > [data-widget-dock-start="true"] { margin-top: auto; }
+.notices[data-widget-notices="true"] { padding-top: var(--cafe-a-item-rhythm-gap); }
+
+
+.albumBottom { margin-top: auto; display: flex; flex-direction: column; gap: var(--cafe-a-item-rhythm-gap); }

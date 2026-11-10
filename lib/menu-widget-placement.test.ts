@@ -211,7 +211,7 @@ test("bottom placement is persisted independently from content order and docks i
   );
   assert.match(widgetEditorSource, /콘텐츠 이어붙이기/);
   assert.match(widgetEditorSource, /마지막 열 하단 정렬/);
-  assert.match(editorSource, /위젯 추가·수정에서 콘텐츠 순서대로 배치하거나 마지막 열 하단에 정렬하도록 선택/);
+  assert.match(editorSource, /하단 정렬 위젯은 목록 끝에 고정되며/);
 });
 
 test("a docked widget and footer notices share the item rhythm gap", () => {

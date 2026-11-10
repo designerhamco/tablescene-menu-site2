@@ -97,7 +97,11 @@ Type-specific settings:
 - `text`: `textAlign`, `placement`
 - `image_text`: `aspectRatio`, `objectFit`, `textAlign`, `placement`, optional `altText`
 
-`placement` is `flow` or `bottom`. `flow` follows the mixed category/widget order. `bottom` is collected into the final desktop/tablet column and the mobile content end, immediately above footer notices when present. Missing legacy values normalize to `bottom`, so the previous trailing-widget behavior remains compatible without a DB migration.
+For Basic, `placement` is `flow` or `bottom`. `flow` follows freely editable mixed category/widget order. `bottom` is collected in the last occupied desktop/tablet menu column: footer notices end at its inner bottom and widgets sit immediately above them; without footer notices the widget ends at the bottom. Preserve existing top-row/representative notice anchors. Keep the dock with the last real content so it cannot create a spare widget-only column. Active contained readers and retained multi-page presentations use the same meaning. Mobile bottom widgets follow the last menu item naturally, without viewport-height docking. Missing legacy Basic values normalize to `bottom`.
+
+The Basic structure list stable-partitions bottom widgets to its end, labels them “하단 고정” and disables drag/up/down movement, while selection/editing remain available. Changing placement to flow re-enables movement. The same service-aware helper normalizes editor serialization and the authorized final save payload before the existing save plan. No schema change or automatic customer migration is required.
+
+Dining always uses mixed category/widget order. Its editor hides the bottom-placement choice; rendering and save normalization interpret legacy `bottom` hints as `flow`. Widget ratios, text/image formatting and per-page limits remain unchanged.
 
 The stored `aspectRatio` is the presentation ratio on PC, tablet, and mobile. The editor explains that one saved choice applies to every device.
 
@@ -150,7 +154,7 @@ Example final sequence:
 
 The stable sort policy is:
 
-- Sort by `sortOrder` ascending.
+- Sort by `sortOrder` ascending, then for Basic stable-partition bottom widgets to the end. Dining keeps the mixed sequence.
 - If sort values are equal, preserve input order.
 - Do not sort by name or ID as a hidden fallback.
 

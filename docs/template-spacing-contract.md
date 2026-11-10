@@ -1,5 +1,18 @@
 # Menu template spacing contract
 
+## Widget placement and column divider gutters — 2026-11-10 (current)
+
+This supersedes older blanket statements that every widget follows flow order or that bottom widgets receive no automatic docking. All widget-capable Basic native/neutral list and album renderers, retained multi-page presentations, catalog previews and saved menus share the two placement meanings:
+
+- `flow`: preserve mixed category/widget order and allow drag/up/down movement.
+- `bottom`: collect widgets at the end of the structure and lock only movement, while preserving selection/editing and visibility controls. The editor payload and authorized final save canonicalize the same order. PC/tablet puts the complete widget stack in the last occupied menu track. Footer notices occupy its actual inner bottom, widgets sit immediately above with one item-rhythm boundary; absent footer notices, the widget ends at the bottom. Existing top-row/representative notice anchors remain unchanged. The dock cannot create an otherwise empty extra track. Scrollable content keeps the dock reachable at its actual end.
+- Mobile: bottom widgets follow the last menu item using the existing natural category/widget boundary. No viewport-height spacer, type change or bottom-fixed widget is added. Flow widgets retain insertion order.
+- Dining: widgets participate in mixed category/widget order on every device and expose no placement switch. Legacy saved `bottom` is interpreted as `flow`; no customer-data migration is needed. Unsupported Display/Brew/Noir widgets remain unsupported.
+
+A vertical menu-column divider reserves one full page inner inset on **each side of its stroke**. Total gap = `2 × page inset + stroke width`; the shared `getMenuColumnDividerGeometry` result drives both visible tracks and candidate measurement. MELLOW currently registers this decoration. Ordinary undivided gutters remain one page inset. Do not change page padding, header-cell gaps, representative gutters, horizontal category rules, image ratios or mobile spacing to achieve this. The divider follows category ink.
+
+Behavioral tests: `lib/widget-placement-contract.test.ts`; rendered template/editor/device checks: `scripts/qa-widget-placement.mjs`. See `docs/widget-placement-qa.md` for the verified release scope.
+
 ## MELLOW native starter and left-logo top-row layout — 2026-11-10
 
 MELLOW keeps the persisted `cafe_mocha_forest_a` key and native `#792839` / `#ECEAB7` palette. Its PC/tablet list now uses the registered left-logo top-row composition: logo/text brand in the first header cell, description and inward-opening language control in the last, notices in the measured final menu column footer. The common three-cell title/logo fitting, reading sizes, item/category rhythm and header budget remain unchanged. Mobile retains its independent reading composition. Explicit merchant colors/fonts remain authoritative.
