@@ -41,7 +41,7 @@ export default async function TemplateDetailPage({ params }: Props) {
               <h1 className="type-page-title">{template.name}</h1>
               <p className={`type-page-description ${styles.templateDescription}`}>{template.description}</p>
             </>}
-            gallery={<TemplateDetailGallery image={info.image} name={template.name} />}
+            gallery={<TemplateDetailGallery images={info.images} name={template.name} />}
             actions={<>
               <Link href={info.previewHref} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline">미리보기 <ArrowUpRight size={17} aria-hidden="true" /></Link>
               {checkoutEnabled ? <Link href={info.startHref} className="site-button site-button-primary">이 디자인으로 시작 <ArrowUpRight size={17} aria-hidden="true" /></Link> : <button type="button" disabled className="site-button site-button-primary">디스플레이 신청 준비 중</button>}
