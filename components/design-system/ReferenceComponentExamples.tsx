@@ -31,6 +31,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/ui/ta
 import { InlineNameEditor } from "@/app/components/ui/inline-name-editor";
 import OrderPointRegistrationForm from "@/components/mypage/OrderPointRegistrationForm";
 import FloorPlanEditor from "@/components/mypage/floor-plan/FloorPlanEditor";
+import { ImageCarousel } from "@/app/components/ui/image-carousel";
+import { getCatalogDesign } from "@/lib/catalog-designs";
 import styles from "./SiteComponentGallery.module.css";
 
 function Example({title,description,children}:{title:string;description:string;children:ReactNode}) {
@@ -107,6 +109,12 @@ export default function ReferenceComponentExamples() {
     </Example>
     <Example title="날짜 선택·그래프·진행률" description="날짜와 막대를 누르면 선택한 날짜의 수치를 확인합니다. 운영 매출 화면에서는 실제 데이터로 연결되며, 아래는 7일간의 예시입니다."><div className="site-dashboard"><ActivityOverview label="2026년 10월" days={[0,1,2,3,4,5,6].map((i)=>({date:`2026-10-${20+i}`,orderCount:10+i,paidOrderCount:8+i,collectedAmount:[52000,45000,82000,64000,72000,120000,98000][i]}))} /></div></Example>
     <Example title="공유 모달" description="큰 원형 아이콘과 짧은 이름으로 공유 방법을 선택합니다. 링크 복사는 항상 제공하며, 기기 공유는 해당 브라우저에서 지원할 때 표시합니다."><ShareDialog title="아티메뉴 디자인 템플릿" url="https://tablescene-menu-site2.vercel.app/templates" trigger={<Button variant="outline"><Share2 />공유하기</Button>} /></Example>
+    <Example title="이미지 캐러셀" description="여러 장일 때만 우측 하단의 반투명 검정 장수 표시와 PC·태블릿의 흰색 화살표를 표시합니다. 스와이프와 좌우 방향키로 이동하며, 한 장에는 이동 도구를 표시하지 않습니다.">
+      <div className="site-card-grid" id="image-carousel-examples">
+        <div className="site-template-media"><ImageCarousel name="MELLOW 캐러셀 예시" sizes="100vw" images={getCatalogDesign("cafe_mocha_forest_a")!.images} /></div>
+        <div className="site-template-media"><ImageCarousel name="단일 이미지 예시" sizes="100vw" images={getCatalogDesign("cafe_real_matcha_a")!.images} /></div>
+      </div>
+    </Example>
     <Example title="탭형 요금 선택 카드" description="테두리 안에서 선택 옵션과 가격·제공 범위·보조 행동·주요 행동을 연결합니다. 가격과 링크는 실제 요금제와 같은 데이터를 사용합니다."><div className={styles.offerExample}><ProductOfferCard product={publicBasicProducts[0]} /></div></Example>
   </>;
 }

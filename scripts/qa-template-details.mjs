@@ -190,7 +190,7 @@ try {
 
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce", permissions: ["clipboard-read", "clipboard-write"] });
   const page = await context.newPage();
-  await page.goto(`${base}/templates/cafe_real_matcha_a`, { waitUntil: "networkidle" });
+  await page.goto(`${base}/templates/cafe_mocha_forest_a`, { waitUntil: "networkidle" });
   await settle(page);
   const sidebarInfo = page.getByRole("region", { name: "템플릿 상세 정보" });
   const footer = page.locator("[data-template-detail-actions]");
@@ -221,7 +221,7 @@ try {
   await inspect(page, 1024, 400);
   await page.evaluate(() => { document.documentElement.style.fontSize = ""; });
   results.push({ case: "enlarged-text", viewport: [1024, 400], rootFont: "125%", expandedAndDocked: "no clipping or covered actions" });
-  const selectedImage = page.getByRole("button", { name: "오른쪽 디테일", exact: true });
+  const selectedImage = page.getByRole("button", { name: "매장 내부", exact: true });
   await selectedImage.click();
   await selectedImage.focus();
   await page.evaluate(() => window.scrollTo({ top: 1500, behavior: "instant" }));
@@ -242,12 +242,8 @@ try {
   await expect(thumbnail).not.toHaveAttribute("target", "_blank");
   await thumbnail.click();
   await expect(page).toHaveURL(`${base}/templates/cafe_real_matcha_a`);
-  await page.getByRole("button", { name: "오른쪽 디테일", exact: true }).click();
-  await expect(page.getByRole("button", { name: "오른쪽 디테일", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: "다음 디자인 이미지" }).click();
-  await expect(page.getByRole("button", { name: "전체 디자인", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: "전체 디자인", exact: true }).press("ArrowLeft");
-  await expect(page.getByRole("button", { name: "오른쪽 디테일", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: /REAL MATCHA (이전|다음) 이미지/ })).toHaveCount(0);
+  await expect(page.getByRole("status", { name: /REAL MATCHA 이미지/ })).toHaveCount(0);
   await page.getByRole("button", { name: "템플릿 공유하기" }).click();
   await page.getByRole("button", { name: "링크 복사", exact: true }).click();
   assert.equal(await page.evaluate(() => navigator.clipboard.readText()), `${base}/templates/cafe_real_matcha_a`);
@@ -257,6 +253,13 @@ try {
   const next = new URL(page.url()).searchParams.get("next");
   assert.ok(next.includes("template=cafe_design_a"));
   assert.ok(next.includes("product=business_basic_single_monthly"));
+  await page.goto(`${base}/templates/cafe_mocha_forest_a`, { waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "매장 내부", exact: true }).click();
+  await expect(page.getByRole("status", { name: "MELLOW 이미지 2 / 2", exact: true })).toHaveText("2/2");
+  await page.getByRole("button", { name: "MELLOW 다음 이미지", exact: true }).click();
+  await expect(page.getByRole("button", { name: "매장 외관", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("region", { name: "MELLOW 이미지", exact: true }).press("End");
+  await expect(page.getByRole("button", { name: "매장 내부", exact: true })).toHaveAttribute("aria-pressed", "true");
   results.push({ case: "interactions", thumbnail: "same-tab detail", gallery: "click, wrap and keyboard", share: "clipboard", checkout: "login retains selection" });
   for (const route of ["unknown-design", "cafe_brew_chapter_a", "cafe_real_matcha_paged_test", "cafe_kohi_a"]) {
     const response = await page.goto(`${base}/templates/${route}`, { waitUntil: "domcontentloaded" });

@@ -14,10 +14,11 @@ export type CatalogLayoutFilter = typeof CATALOG_LAYOUT_FILTERS[number]['key'];
 export function normalizeCatalogLayoutFilter(value: unknown): CatalogLayoutFilter {
   return value === 'list' || value === 'album' ? value : 'all';
 }
+export type CatalogImage = { src: string; label: string };
 export type CatalogDesign = {
   id: string; name: string; description: string; service: CatalogService; kind: CatalogKind;
   templateKey: string; itemLayout: 'list' | 'album'; categories: TemplateCategoryKey[];
-  categoryLabel: string; image: string; previewHref: string; detailHref: string; startHref: string;
+  categoryLabel: string; image: string; images: readonly CatalogImage[]; previewHref: string; detailHref: string; startHref: string;
 };
 export const CATALOG_INDUSTRIES = [
   {key:'all',label:'전체',categories:[]},
@@ -49,20 +50,27 @@ const standards: CatalogDesign[]=DEFAULT_DESIGN_REVIEWS.map(design=>{
   return {id:design.id,name:`${MENU_LAYOUTS[design.layout].label} · ${design.itemLayout==='album'?'앨범형':'리스트형'}`,
     description:design.itemLayout==='album'?'상품 사진을 중심으로 메뉴를 보여주는 기본 디자인입니다. 색상과 서체를 매장에 맞게 꾸며보세요.':'흰 배경과 검정 글자를 바탕으로 메뉴를 정갈하게 보여주는 기본 디자인입니다.',
     service,kind:'standard',templateKey:design.renderer,itemLayout:design.itemLayout,categories:[],categoryLabel:'기본 디자인',
-    image:`/template-previews/default-${design.id}-${standardPreviewVersions[design.id] ?? "20261021"}.jpg`,previewHref:getDefaultDesignReviewUrl(design),detailHref:`/templates/${design.id}`,
+    image:`/template-previews/default-${design.id}-${standardPreviewVersions[design.id] ?? "20261021"}.jpg`,
+    images:[{src:`/template-previews/default-${design.id}-${standardPreviewVersions[design.id] ?? "20261021"}.jpg`,label:"메뉴판 디자인"}],previewHref:getDefaultDesignReviewUrl(design),detailHref:`/templates/${design.id}`,
     startHref:getCatalogStartHref(service,design.renderer,design.id)};
 });
 // Catalog cards, detail galleries and checkout media share the same image.
 const catalogImages: Readonly<Partial<Record<string, string>>> = {
-  cafe_mocha_forest_a: '/template-previews/cafe_mocha_forest_a-20261110.jpg',
   cafe_real_matcha_a: '/template-previews/cafe_real_matcha_a-20261104.jpg',
   cafe_sunday_roasters_a: '/template-previews/cafe_sunday_roasters_a-20261104.jpg',
+};
+const catalogGalleries: Readonly<Partial<Record<string, readonly CatalogImage[]>>> = {
+  cafe_mocha_forest_a: [
+    { src: '/template-previews/cafe_mocha_forest_a-exterior-20261111.jpg', label: '매장 외관' },
+    { src: '/template-previews/cafe_mocha_forest_a-interior-20261111.jpg', label: '매장 내부' },
+  ],
 };
 const designers: CatalogDesign[]=templateCatalog.filter(t=>t.status==='available').map(t=>{
   const service=t.service==='display'?'display':getDiningTemplateTier(t.key)==='multi'?'dining':'basic';
   const route=getTemplatePreviewRouteKey(t.key);
+  const images=catalogGalleries[route]??[{src:catalogImages[route]??`/template-previews/${route}.jpg`,label:"메뉴판 디자인"}];
   return {id:t.key,name:t.name,description:t.description,service,kind:'designer',templateKey:t.key,itemLayout:'list',categories:[...t.categories],categoryLabel:getCatalogIndustryLabel(t.categories,t.categoryLabel),
-    image:catalogImages[route]??`/template-previews/${route}.jpg`,previewHref:`/templates/${route}/preview`,detailHref:`/templates/${route}`,startHref:getCatalogStartHref(service,t.key,t.key)};
+    image:images[0].src,images,previewHref:`/templates/${route}/preview`,detailHref:`/templates/${route}`,startHref:getCatalogStartHref(service,t.key,t.key)};
 });
 export const catalogDesigns: readonly CatalogDesign[]=[...standards,...designers];
 export function getCatalogDesign(id: unknown) {
