@@ -190,7 +190,7 @@
 .diningFloatingCall {
   position: fixed;
   right: max(24px, env(safe-area-inset-right));
-  bottom: max(24px, env(safe-area-inset-bottom));
+  bottom: calc(max(24px, env(safe-area-inset-bottom)) + var(--dining-cover-call-clearance, 0px));
   z-index: 90;
   display: flex;
   flex-direction: column;
@@ -228,6 +228,7 @@
    paper disappears locally; branded Order/Call button fills remain unchanged. */
 .shell[data-presentation="aube"][data-device="mobile"][data-mobile-dock="true"]:has(:global([data-cover-image-active="true"])) {
   --aube-viewport-height: 100dvh;
+  --dining-cover-bottom-clearance: calc(5.25rem + env(safe-area-inset-bottom));
   padding-bottom: 0;
 }
 .shell[data-presentation="aube"][data-device="mobile"]:has(:global([data-cover-image-active="true"])) .header {

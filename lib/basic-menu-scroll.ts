@@ -3,7 +3,7 @@ import type { MeasuredMenuBlock } from "./basic-menu-pagination";
 /** Fill changes column flow, not typography or the semantic spacing rhythm. */
 export const SCROLL_FILL_MIN_OCCUPANCY = 0.8;
 export const SCROLL_FILL_MAX_TYPE_LOSS = 0.08;
-export type ScrollableMenuBlock = MeasuredMenuBlock & { gapAfter?: number; dockToBottom?: boolean };
+export type ScrollableMenuBlock = MeasuredMenuBlock & { gapAfter?: number };
 export type ScrollableMenuLayout = {
   columns: ScrollableMenuBlock[][];
   height: number;
@@ -18,8 +18,6 @@ const gapOf = (block: ScrollableMenuBlock | undefined) => Math.max(0, block?.gap
 /** A category is atomic in grouped mode; only its title + first product are atomic in flow. */
 function makeAtoms(blocks: readonly ScrollableMenuBlock[], grouped: boolean, footerHeight: number): Atom[] {
   const atoms: Atom[] = [];
-  const bottom = blocks.filter(block => block.dockToBottom);
-  blocks = blocks.filter(block => !block.dockToBottom);
   for (let i = 0; i < blocks.length; i++) {
     const members = [blocks[i]];
     if (grouped && blocks[i].kind !== "widget") {
@@ -29,13 +27,6 @@ function makeAtoms(blocks: readonly ScrollableMenuBlock[], grouped: boolean, foo
       members.push(blocks[++i]);
     }
     atoms.push({ blocks: members, height: members.reduce((sum, b) => sum + b.height, 0), trailingGap: gapOf(members.at(-1)) });
-  }
-  // The complete dock stays with the final real content atom, never an empty extra column.
-  if (bottom.length) {
-    const tail = atoms.at(-1);
-    const height = bottom.reduce((sum, block) => sum + block.height, 0);
-    if (tail) { tail.blocks.push(...bottom); tail.height += height; tail.trailingGap = gapOf(bottom.at(-1)); }
-    else atoms.push({ blocks: bottom, height, trailingGap: gapOf(bottom.at(-1)) });
   }
   // Notices belong to the final real block: they cannot create an otherwise empty column.
   const last = atoms.at(-1);
@@ -89,7 +80,7 @@ export function layoutScrollableMenu(
     (index === footerColumn && footerHeight > 0 ? 0 : gapOf(column.at(-1))) +
     (index === footerColumn ? footerHeight : 0));
   const contentHeight = blocks.length
-    ? Math.max(grouped || blocks.some(block => block.dockToBottom) ? viewport : 0, ...naturalHeights)
+    ? Math.max(grouped ? viewport : 0, ...naturalHeights)
     : footerHeight;
   return { columns, height: Math.max(viewport, contentHeight), contentHeight, naturalHeights, footerColumn, viewportHeight: viewport };
 }

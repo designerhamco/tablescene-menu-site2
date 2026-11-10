@@ -12,7 +12,6 @@ import {
   MENU_WIDGET_ASPECT_RATIOS,
   MENU_WIDGET_OBJECT_FITS,
   MENU_WIDGET_OBJECT_POSITIONS,
-  MENU_WIDGET_PLACEMENTS,
   MENU_WIDGET_TEXT_ALIGNS,
   type MenuWidgetDraft,
   type MenuWidgetType,
@@ -23,7 +22,6 @@ type MenuWidgetDraftEditorMode = "create" | "copy" | "edit";
 
 type MenuWidgetDraftEditorProps = {
   mode: MenuWidgetDraftEditorMode;
-  allowBottomPlacement?: boolean;
   menuSiteId: string;
   draft: MenuWidgetDraft;
   persistedImagePath: string | null;
@@ -73,20 +71,8 @@ const TEXT_ALIGN_LABELS: Record<string, string> = {
   right: "오른쪽",
 };
 
-const PLACEMENT_OPTIONS: Record<MenuWidgetDraft["settings"]["placement"], { label: string; description: string }> = {
-  flow: {
-    label: "콘텐츠 이어붙이기",
-    description: "편집페이지에서 지정한 콘텐츠 순서에 맞춰 바로 이어서 배치합니다.",
-  },
-  bottom: {
-    label: "마지막 열 하단 정렬",
-    description: "PC·태블릿에서는 마지막 열 바닥에 정렬합니다. 안내사항이 있으면 그 바로 위, 모바일에서는 마지막 메뉴 다음에 배치합니다.",
-  },
-};
-
 export default function MenuWidgetDraftEditor({
   mode,
-  allowBottomPlacement = true,
   menuSiteId,
   draft,
   persistedImagePath,
@@ -134,7 +120,7 @@ export default function MenuWidgetDraftEditor({
         objectFit: draft.settings.objectFit || "cover",
         objectPosition: draft.settings.objectPosition || "center",
         textAlign: draft.settings.textAlign || "left",
-        placement: draft.settings.placement || "bottom",
+        placement: draft.settings.placement || "flow",
         altText: type === "text" ? "" : draft.settings.altText,
       },
     };
@@ -170,43 +156,6 @@ export default function MenuWidgetDraftEditor({
             />
           </label>
         </div>
-
-        {allowBottomPlacement ? <FieldBlock label="배치 방식">
-          <div className="grid gap-3 md:grid-cols-2">
-            {MENU_WIDGET_PLACEMENTS.map((placement) => {
-              const option = PLACEMENT_OPTIONS[placement];
-              const selected = draft.settings.placement === placement;
-
-              return (
-                <label
-                  key={placement}
-                  className={`cursor-pointer rounded-xl border p-4 transition ${
-                    selected
-                      ? "border-zinc-950 bg-zinc-950 text-white"
-                      : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-400"
-                  }`}
-                >
-                  <span className="flex items-start gap-3">
-                    <input
-                      type="radio"
-                      name={`widget-placement-${draft.id}`}
-                      value={placement}
-                      checked={selected}
-                      onChange={() => patchSettings({ placement })}
-                      className="mt-0.5 h-4 w-4 shrink-0 border-zinc-300 text-zinc-950 focus:ring-zinc-950"
-                    />
-                    <span>
-                      <span className="block text-copy font-medium">{option.label}</span>
-                      <span className={`mt-1.5 block break-keep text-support font-semibold leading-relaxed ${selected ? "text-zinc-300" : "text-zinc-600"}`}>
-                        {option.description}
-                      </span>
-                    </span>
-                  </span>
-                </label>
-              );
-            })}
-          </div>
-        </FieldBlock> : null}
 
         {usesImage && (
           <MenuWidgetImageField

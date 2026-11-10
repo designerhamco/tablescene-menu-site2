@@ -78,13 +78,13 @@ test("a customer-selected category remains a valid widget insertion anchor", () 
   );
 });
 
-test("new widgets default to bottom placement and preserve an explicit flow selection", () => {
+test("new widgets use ordinary content order without a placement mode", () => {
   const draft = createDefaultMenuWidgetDraft("text", {
     id: "widget-1",
     menuPageId: "page-1",
     sortOrder: 2,
   });
-  assert.equal(draft.settings.placement, "bottom");
+  assert.equal(draft.settings.placement, "flow");
 
   draft.title = "안내";
   draft.settings.placement = "flow";
@@ -146,7 +146,7 @@ test("persisted widget settings accept legacy rows and explicit placement values
 
   const legacyResult = parseMenuWidgetRow(createRow());
   assert.equal(legacyResult.ok, true);
-  if (legacyResult.ok) assert.equal(legacyResult.widget.settings.placement, "bottom");
+  if (legacyResult.ok) assert.equal(legacyResult.widget.settings.placement, "flow");
 
   const flowResult = parseMenuWidgetRow(createRow("flow"));
   assert.equal(flowResult.ok, true);
@@ -194,35 +194,10 @@ test("persisted widget settings accept legacy rows and explicit placement values
   }
 });
 
-test("bottom placement is persisted independently from content order and docks in the final column", () => {
-  assert.match(templateSource, /function getBottomWidgetBlocks/);
-  assert.match(templateSource, /dockBottomWidgetContentBlocks/);
-  assert.match(templateSource, /dockBottomWidgetMeasurements/);
-  assert.match(templateSource, /block\.widget\.placement !== "bottom"/);
-  assert.match(templateSource, /data-cafe-a-widget-dock-bottom=\{dockToBottom \? "true" : undefined\}/);
-  assert.match(templateSource, /data-cafe-a-widget-placement=\{block\.widget\.placement \?\? "bottom"\}/);
-  assert.match(
-    globalStylesSource,
-    /\.cafe-a-balanced-column > \.cafe-a-menu-widget-block\[data-cafe-a-widget-dock-bottom="true"\] \{\s*margin-top: auto;/,
-  );
-  assert.match(
-    globalStylesSource,
-    /\.cafe-a-balanced-menu-grid \{\s*align-content: stretch;/,
-  );
-  assert.match(widgetEditorSource, /콘텐츠 이어붙이기/);
-  assert.match(widgetEditorSource, /마지막 열 하단 정렬/);
-  assert.match(editorSource, /하단 정렬 위젯은 목록 끝에 고정되며/);
-});
-
-test("a docked widget and footer notices share the item rhythm gap", () => {
-  assert.match(
-    globalStylesSource,
-    /data-cafe-a-widget-placement="bottom"\]:has\(\+ \.cafe-a-footer-info\) \{\s*margin-bottom: var\(--cafe-a-item-rhythm-gap\);/,
-  );
-  assert.match(
-    globalStylesSource,
-    /cafe-a-balanced-column:has\(> \.cafe-a-menu-widget-block\[data-cafe-a-widget-dock-bottom="true"\]\) > \.cafe-a-footer-info \{\s*margin-top: 0;/,
-  );
+test("all editors remove the retired bottom selector and movement locks", () => {
+  assert.doesNotMatch(widgetEditorSource, /콘텐츠 이어붙이기|마지막 열 하단 정렬/);
+  assert.doesNotMatch(editorSource, /하단 정렬 위젯은 목록 끝에 고정되며|isBottomWidgetLocked/);
+  assert.doesNotMatch(globalStylesSource, /data-cafe-a-widget-dock-bottom="true"/);
   assert.match(templateSource, /renderDesktopMenuGrid\(\{ includeFooter: true \}\)/);
 });
 

@@ -105,7 +105,7 @@ test("MELLOW native starter, catalog controls and provisioning share its logo, p
   assert.equal(widget.settings.aspectRatio, "2:1");
   assert.equal(widget.settings.objectFit, "contain");
   assert.equal(widget.settings.objectPosition, "bottom-right");
-  assert.equal(widget.settings.placement, "bottom");
+  assert.equal(widget.settings.placement, "flow");
   assert.equal(widget.visible, true);
   assert.equal(applyTemplatePreviewOptions(preview, { widgetsPreview: "off" }).widgets!.length, 0);
   const changed = applyPreviewDesign(preview, { textColorGroupsVersion: 2, textColors: { category: "#123456" }, pageBackground: "#EFEFEF" }, false);

@@ -1,5 +1,5 @@
 "use client";
-import { getEffectiveWidgetPlacement, isBottomWidgetLocked, orderWidgetContentBlocks, supportsBottomWidgetPlacement } from "@/lib/menu-widget-placement";
+import { getEffectiveWidgetPlacement, orderWidgetContentBlocks } from "@/lib/menu-widget-placement";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
@@ -5681,13 +5681,12 @@ export default function MenuManagementSection({
     }
 
     if (selectedWidgetDraft) {
-      if (isBottomWidgetLocked(templateKey, selectedWidgetDraft)) return null;
       const pageBlocks = contentBlockDraftsByPageId[selectedWidgetDraft.menuPageId] ?? [];
       return {
         type: "contentBlock" as const,
         label: "콘텐츠",
         selectedId: createMenuContentSortableId({ blockType: "widget", id: selectedWidgetDraft.id }),
-        siblingIds: orderWidgetContentBlocks(pageBlocks, widgetDraftsById, templateKey).filter(block => block.blockType !== "widget" || !isBottomWidgetLocked(templateKey, widgetDraftsById[block.id])).map((block) => createMenuContentSortableId(block)),
+        siblingIds: orderWidgetContentBlocks(pageBlocks, widgetDraftsById, templateKey).map((block) => createMenuContentSortableId(block)),
       };
     }
 
@@ -5699,7 +5698,7 @@ export default function MenuManagementSection({
           type: "contentBlock" as const,
           label: "콘텐츠",
           selectedId: createMenuContentSortableId({ blockType: "category", id: selectedCategory.id }),
-          siblingIds: orderWidgetContentBlocks(pageBlocks, widgetDraftsById, templateKey).filter(block => block.blockType !== "widget" || !isBottomWidgetLocked(templateKey, widgetDraftsById[block.id])).map((block) => createMenuContentSortableId(block)),
+          siblingIds: orderWidgetContentBlocks(pageBlocks, widgetDraftsById, templateKey).map((block) => createMenuContentSortableId(block)),
         };
       }
       const siblingIds = pageId ? sortCategories(draftedCategories.filter((category) => category.menu_page_id === pageId)).map((category) => category.id) : [];
@@ -8863,7 +8862,7 @@ export default function MenuManagementSection({
             )}
             {menuWidgetCapability.enabled && (
               <p className="mt-3 text-support font-semibold leading-relaxed text-zinc-600">
-                {isAubeTable ? "위젯은 카테고리처럼 원하는 순서로 이동할 수 있습니다." : "콘텐츠 이어붙이기 위젯은 자유롭게 이동합니다. 하단 정렬 위젯은 목록 끝에 고정되며, PC·태블릿에서 안내사항 바로 위(안내사항이 없으면 마지막 열 바닥)에 배치됩니다. 모바일은 마지막 메뉴 다음에 이어집니다."}
+                {isAubeTable ? "위젯은 페이지 안에서 카테고리 앞·사이·뒤로 이동할 수 있습니다. 코스 제목부터 마지막 아이템까지는 하나의 카테고리로 유지됩니다." : "위젯은 카테고리처럼 맨 위·카테고리 사이·맨 아래로 자유롭게 이동할 수 있습니다."}
               </p>
             )}
 
@@ -8978,10 +8977,9 @@ export default function MenuManagementSection({
                                 widget={widgetDraftsById[block.id] ?? null}
                                 selected={block.id === selectedWidgetId}
                                 dragDisabled={contentDragDisabled}
-                                bottomLocked={isBottomWidgetLocked(templateKey, widgetDraftsById[block.id])}
                                 onSelect={() => startEditWidget(block.id)}
                                 onDragStart={() => setDragState({ type: "contentBlock", sortableId: contentSortableId, pageId: page.id })}
-                                onDrop={isBottomWidgetLocked(templateKey, widgetDraftsById[block.id]) ? undefined : () => handleContentBlockDrop(page.id, contentSortableId)}
+                                onDrop={() => handleContentBlockDrop(page.id, contentSortableId)}
                               />
                             );
                           }
@@ -9222,7 +9220,6 @@ export default function MenuManagementSection({
             ) : activeWidgetEditor ? (
               <MenuWidgetDraftEditor
                 mode={activeWidgetEditor.mode}
-                allowBottomPlacement={supportsBottomWidgetPlacement(templateKey)}
                 menuSiteId={menuId}
                 draft={activeWidgetEditor.draft}
                 persistedImagePath={getPersistedWidgetImagePath(activeWidgetEditor.draft.id)}
@@ -9247,7 +9244,6 @@ export default function MenuManagementSection({
                 <div className="site-section site-editor-subpanel grid gap-4 p-5 md:grid-cols-2">
                   <DetailValue label="위젯 유형">{selectedWidgetDraft.type === "image" ? "이미지" : selectedWidgetDraft.type === "text" ? "텍스트" : "이미지 + 텍스트"}</DetailValue>
                   <DetailValue label="메뉴판 표시">{selectedWidgetDraft.visible ? "표시함" : "표시 안 함"}</DetailValue>
-                  <DetailValue label="배치 방식">{isAubeTable ? "콘텐츠 순서대로" : selectedWidgetDraft.settings.placement === "bottom" ? "마지막 열 하단 정렬" : "콘텐츠 이어붙이기"}</DetailValue>
                   {(selectedWidgetDraft.type === "text" || selectedWidgetDraft.type === "image_text") && (
                     <>
                       <DetailValue label="제목">{selectedWidgetDraft.title}</DetailValue>

@@ -871,7 +871,7 @@ cafeMochaForestStarterPreset.widgets = [
       objectFit: "contain",
       objectPosition: "bottom-right",
       textAlign: "left",
-      placement: "bottom",
+      placement: "flow",
       altText: "mellow 베이커리 일러스트",
     },
   },

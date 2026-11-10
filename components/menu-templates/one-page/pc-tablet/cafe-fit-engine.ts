@@ -1,3 +1,4 @@
+import { getMenuNoticeRows } from "@/lib/menu-notices";
 // Extracted without changing the existing rendering or fit formulas.
 import { type CSSProperties } from "react";
 import { type CafeAWidgetPreview } from "@/components/menu-templates/CafeAWidgetBlock";
@@ -29,7 +30,6 @@ import {
   type CafeDesignABalancedWeightedBlock,
   type CafeDesignAColumnMeasurement,
   type CafeDesignAContentBlock,
-  type CafeDesignAContentBlockType,
   type CafeDesignAFinalFillBoost,
   type CafeDesignAFitMeasurement,
   type CafeDesignAFitState,
@@ -1593,7 +1593,7 @@ export function getOrderedBalancedMenuColumns({
     key: weightedBlock.block.key,
     blockType: weightedBlock.block.blockType,
     widgetPlacement:
-      weightedBlock.block.blockType === "widget" ? weightedBlock.block.widget.placement ?? "bottom" : undefined,
+      weightedBlock.block.blockType === "widget" ? weightedBlock.block.widget.placement ?? "flow" : undefined,
     order: weightedBlock.index,
     height: weightedBlock.estimatedHeight,
     visibleItemHeight: weightedBlock.estimatedHeight,
@@ -1608,16 +1608,11 @@ export function getOrderedBalancedMenuColumns({
     : getOrderedBalancedContiguousColumns(fallbackBlocks, safeColumns);
   const blockByKey = new Map(blocks.map((block) => [block.key, block]));
 
-  return dockBottomWidgetContentBlocks({
-    columns: partitionColumns.map((column, columnIndex) => ({
+  return partitionColumns.map((column, columnIndex) => ({
       id: `ordered-balanced-column-${columnIndex + 1}`,
       blocks: column.blocks.map((block) => blockByKey.get(block.key)).filter((block): block is CafeDesignAContentBlock => Boolean(block)),
       estimatedHeight: column.height,
-    })),
-    orderedBlocks: blocks,
-    data,
-    capabilities,
-  });
+    }));
 }
 
 
@@ -2144,22 +2139,7 @@ export function hasMenuSiteSetting(site: PublicMenuTemplateProps["menuSite"], ke
 export function getCafeAFooterInfo(data: PublicMenuTemplateProps, capabilities: TemplateCapabilities) {
   if (!capabilities.footerStoreInfo) return [];
 
-  const site = data.menuSite;
-  const footerNotice1 = hasMenuSiteSetting(site, "footer_notice_1")
-    ? getMenuSiteSettingString(site, "footer_notice_1")
-    : site.opening_hours?.trim() ?? "";
-  const footerNotice2 = hasMenuSiteSetting(site, "footer_notice_2")
-    ? getMenuSiteSettingString(site, "footer_notice_2")
-    : site.restaurant_address?.trim() ?? "";
-  const footerNotice3 = hasMenuSiteSetting(site, "footer_notice_3")
-    ? getMenuSiteSettingString(site, "footer_notice_3")
-    : getMenuSiteSettingString(site, "footer_sns_text") || getMenuSiteSettingString(site, "footer_note");
-
-  return [
-    footerNotice1,
-    footerNotice2,
-    footerNotice3,
-  ].filter(Boolean);
+  return getMenuNoticeRows(data.menuSite);
 }
 
 
@@ -2256,54 +2236,6 @@ export function estimateContentBlockHeight(
   }
 
   return estimateWidgetHeight(block.widget);
-}
-
-
-export function getBottomWidgetBlocks<
-  TBlock extends {
-    blockType?: CafeDesignAContentBlockType;
-    widget?: { placement?: "flow" | "bottom" };
-    widgetPlacement?: "flow" | "bottom";
-  },
->(blocks: readonly TBlock[]) {
-  return blocks.filter(
-    (block) =>
-      block.blockType === "widget" &&
-      (block.widget?.placement === "bottom" || block.widgetPlacement === "bottom"),
-  );
-}
-
-
-function dockBottomWidgetContentBlocks({
-  columns,
-  orderedBlocks,
-  data,
-  capabilities,
-}: {
-  columns: BalancedColumn[];
-  orderedBlocks: readonly CafeDesignAContentBlock[];
-  data: PublicMenuTemplateProps;
-  capabilities: TemplateCapabilities;
-}) {
-  const bottomWidgets = getBottomWidgetBlocks(orderedBlocks);
-  if (bottomWidgets.length === 0 || columns.length === 0) return columns;
-
-  const bottomWidgetKeys = new Set(bottomWidgets.map((block) => block.key));
-  const nextColumns = columns.map((column) => ({
-    ...column,
-    blocks: column.blocks.filter((block) => !bottomWidgetKeys.has(block.key)),
-  }));
-  const lastColumn = nextColumns[nextColumns.length - 1];
-  if (!lastColumn) return columns;
-
-  lastColumn.blocks.push(...bottomWidgets);
-  return nextColumns.map((column) => ({
-    ...column,
-    estimatedHeight: column.blocks.reduce(
-      (height, block) => height + estimateContentBlockHeight(block, data, capabilities),
-      0,
-    ),
-  }));
 }
 
 
@@ -2446,12 +2378,7 @@ export function getBalancedMenuColumns({
       estimatedHeight: estimateContentBlockHeight(block, data, capabilities),
     }));
 
-  return dockBottomWidgetContentBlocks({
-    columns: createBalancedColumnsFromWeightedBlocks(weightedBlocks, safeColumns, variant),
-    orderedBlocks: weightedBlocks.map((weightedBlock) => weightedBlock.block),
-    data,
-    capabilities,
-  });
+  return createBalancedColumnsFromWeightedBlocks(weightedBlocks, safeColumns, variant);
 }
 
 
@@ -2468,20 +2395,6 @@ export function getCenterRailContentColumns({
 }) {
   const orderedBlocks = getFlatContentBlocks(pageGroups);
   const columns: CafeDesignAContentBlock[][] = [[], []];
-  const dockBottomWidgets = (sourceColumns: CafeDesignAContentBlock[][]) =>
-    dockBottomWidgetContentBlocks({
-      columns: sourceColumns.map((blocks, index) => ({
-        id: `center-column-${index}`,
-        blocks,
-        estimatedHeight: blocks.reduce(
-          (height, block) => height + estimateContentBlockHeight(block, data, capabilities),
-          0,
-        ),
-      })),
-      orderedBlocks,
-      data,
-      capabilities,
-    }).map((column) => column.blocks);
 
   if (orderedBlocks.length === 0) return columns;
 
@@ -2489,14 +2402,14 @@ export function getCenterRailContentColumns({
     const midpoint = Math.ceil(orderedBlocks.length / 2);
     columns[0] = orderedBlocks.slice(0, midpoint);
     columns[1] = orderedBlocks.slice(midpoint);
-    return dockBottomWidgets(columns);
+    return columns;
   }
 
   if (variant === "sourceRoundRobin") {
     orderedBlocks.forEach((block, index) => {
       columns[index % columns.length]?.push(block);
     });
-    return dockBottomWidgets(columns);
+    return columns;
   }
 
   const heights = [0, 0];
@@ -2506,5 +2419,5 @@ export function getCenterRailContentColumns({
     heights[targetIndex] += estimateContentBlockHeight(block, data, capabilities);
   });
 
-  return dockBottomWidgets(columns);
+  return columns;
 }

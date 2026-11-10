@@ -564,14 +564,7 @@ test("단일 페이지별 미세 조정은 유동 간격과 동일 열 계약을
     globalStylesSource,
     /data-cafe-a-skin="mocha_forest"[^}]*\.cafe-a-balanced-column \{[\s\S]*padding-block: calc\(var\(--board-padding\) \+ clamp\(0\.3rem, 0\.65vmin, 0\.55rem\)\);[\s\S]*padding-inline: calc\(var\(--board-padding\) \+ clamp\(0\.35rem, 0\.75vmin, 0\.65rem\)\);/,
   );
-  assert.equal(
-    (
-      globalStylesSource.match(
-        /\.cafe-a-menu-widget-block\[data-cafe-a-widget-placement="bottom"\]:has\(\+ \.cafe-a-footer-info\) \{\s*margin-bottom: var\(--cafe-a-item-rhythm-gap\);/g,
-      ) ?? []
-    ).length,
-    2,
-  );
+  assert.doesNotMatch(globalStylesSource, /data-cafe-a-widget-placement="bottom"/);
 });
 
 test("데스크톱 맞춤 엔진은 안정화와 DOM 잘림 검증을 통과하기 전까지 로딩 화면을 보여준다", () => {

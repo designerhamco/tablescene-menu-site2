@@ -783,7 +783,7 @@ function createStarterWidgetDraft(args: {
       objectFit: args.widget.settings?.objectFit ?? "cover",
       objectPosition: args.widget.settings?.objectPosition ?? "center",
       textAlign: args.widget.settings?.textAlign ?? "left",
-      placement: args.widget.settings?.placement ?? "bottom",
+      placement: args.widget.settings?.placement ?? "flow",
       altText: args.widget.settings?.altText ?? "",
     },
   };

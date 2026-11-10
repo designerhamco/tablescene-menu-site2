@@ -29,7 +29,6 @@ test("단일페이지 PC·태블릿은 유동 fit 간격을, 모바일은 독립
   assert.match(globalStylesSource, /--cafe-a-category-separation-ratio: 2\.6;/);
   assert.match(globalStylesSource, /data-cafe-a-skin="round_focus"[\s\S]*--cafe-a-category-title-to-first-ratio: 1\.25;[\s\S]*--cafe-a-category-separation-ratio: 3\.6;/);
   assert.match(globalStylesSource, /data-cafe-a-skin="mocha_forest"[\s\S]*cafe-a-menu-item-stack:not\(:last-child\)[\s\S]*padding-bottom: 0;/);
-  assert.match(globalStylesSource, /data-cafe-a-widget-placement="bottom"\]:has\(\+ \.cafe-a-footer-info\)[\s\S]*margin-bottom: var\(--cafe-a-item-rhythm-gap\);/);
   assert.match(globalStylesSource, /cafe-a-round-focus-price-leader[\s\S]*radial-gradient\(circle, currentColor 0 0\.55px, transparent 0\.85px\)/);
   assert.doesNotMatch(globalStylesSource, /cafe-a-round-focus-price-leader[\s\S]{0,240}border-bottom: 1px dashed/);
   assert.match(globalStylesSource, /--cafe-a-category-title-to-items-gap: calc\(var\(--cafe-a-item-rhythm-gap\) \* var\(--cafe-a-category-title-to-first-ratio\)\);/);

@@ -275,7 +275,7 @@ export function buildStarterPreviewData(templateKey: TemplateKey, qaCase: string
           aspectRatio: widget.settings?.aspectRatio ?? "2:1",
           objectFit: widget.settings?.objectFit ?? "cover",
           objectPosition: widget.settings?.objectPosition ?? "center",
-          placement: widget.settings?.placement ?? "bottom",
+          placement: "flow",
           altText: widget.settings?.altText ?? "메뉴 이미지",
         },
       });
@@ -293,7 +293,7 @@ export function buildStarterPreviewData(templateKey: TemplateKey, qaCase: string
         settings: {
           schemaVersion: MENU_WIDGET_SETTINGS_VERSION,
           textAlign: widget.settings?.textAlign ?? "left",
-          placement: widget.settings?.placement ?? "bottom",
+          placement: "flow",
         },
       });
       return resolvedWidgets;
@@ -312,7 +312,7 @@ export function buildStarterPreviewData(templateKey: TemplateKey, qaCase: string
         objectFit: widget.settings?.objectFit ?? "cover",
         objectPosition: widget.settings?.objectPosition ?? "center",
         textAlign: widget.settings?.textAlign ?? "left",
-        placement: widget.settings?.placement ?? "bottom",
+        placement: "flow",
         altText: widget.settings?.altText ?? "메뉴 이미지",
       },
     });

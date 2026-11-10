@@ -30,9 +30,8 @@ import CanvasBrandTitle from "@/components/menu-templates/shared/CanvasBrandTitl
 import { applyOnePageChipLayout, applyOnePageChipLayouts } from "@/components/menu-templates/one-page-chip-layout";
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
 import MenuOrderAddButton from "@/components/public-menu/order-call/MenuOrderAddButton";
-import { useDefaultDesign, useDefaultDesignLogoImage } from "@/components/menu-templates/defaults/DefaultDesignScope";
+import { useDefaultDesign, useDefaultDesignLayout, useDefaultDesignLogoImage } from "@/components/menu-templates/defaults/DefaultDesignScope";
 import { OnePageCallButton, OnePageMobileCallBar, OnePageMobileCallDock, OnePageCallPalette, useOnePageCallActions } from "@/components/menu-templates/one-page/OnePageCallControls";
-import { createCafeAOrderedBalancedColumnFromBlocks } from "@/components/menu-templates/cafe-a-balanced-layout";
 import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
 import { getCafeAMenuWrapScaleCandidates, hasCafeAMenuWrapDensityImproved, type CafeAMenuWrapDensityDecision } from "@/lib/cafe-a-wrap-density";
 import { DEFAULT_LOCALE } from "@/lib/locales";
@@ -171,7 +170,6 @@ import {
   getBalancedMeasurementFromColumns,
   getBalancedMenuColumns,
   getBoostedFitState,
-  getBottomWidgetBlocks,
   getCafeAActualDomCropMeasurement,
   getCafeAClippingBottom,
   getCafeAFooterInfo,
@@ -963,10 +961,7 @@ function getVisibleMenuPageGroups(data: PublicMenuTemplateProps): MenuPageGroup[
         .map((block, index) => ({ block, index }))
         .sort((left, right) => left.block.sortOrder - right.block.sortOrder || left.index - right.index)
         .map(({ block }) => block);
-      const placementOrderedBlocks = [
-        ...sortedBlocks.filter((block) => block.blockType !== "widget" || block.widget.placement !== "bottom"),
-        ...sortedBlocks.filter((block) => block.blockType === "widget" && block.widget.placement === "bottom"),
-      ];
+      const placementOrderedBlocks = sortedBlocks;
       const blocks = placementOrderedBlocks.map((block, blockIndex): CafeDesignAContentBlock => {
         const previousVisibleBlockType = placementOrderedBlocks[blockIndex - 1]?.blockType ?? null;
         const nextVisibleBlockType = placementOrderedBlocks[blockIndex + 1]?.blockType ?? null;
@@ -1015,7 +1010,7 @@ function getCafeAWidgetPreview(widget: PublicMenuWidget): CafeAWidgetPreview | n
       aspectRatio: widget.settings.aspectRatio,
       objectFit: widget.settings.objectFit,
       objectPosition: widget.settings.objectPosition,
-      placement: widget.settings.placement,
+      placement: "flow",
     };
   }
 
@@ -1027,7 +1022,7 @@ function getCafeAWidgetPreview(widget: PublicMenuWidget): CafeAWidgetPreview | n
       title: widget.title ?? "",
       body: widget.description,
       textAlign: widget.settings.textAlign,
-      placement: widget.settings.placement,
+      placement: "flow",
     };
   }
 
@@ -1043,7 +1038,7 @@ function getCafeAWidgetPreview(widget: PublicMenuWidget): CafeAWidgetPreview | n
     objectFit: widget.settings.objectFit,
     objectPosition: widget.settings.objectPosition,
     textAlign: widget.settings.textAlign,
-    placement: widget.settings.placement,
+    placement: "flow",
   };
 }
 
@@ -1196,29 +1191,6 @@ function syncOrderedFitColumnStartCategoryDividers(menuElement: HTMLElement, tem
 
     element.removeAttribute("data-cafe-a-category-divider-desktop-suppressed");
   });
-}
-
-
-function dockBottomWidgetMeasurements(columns: CafeDesignABalancedSimulatedColumn[]) {
-  if (columns.length === 0) return columns;
-  const orderedBlocks = columns.flatMap((column) => column.blocks);
-  const bottomWidgets = getBottomWidgetBlocks(orderedBlocks);
-  if (bottomWidgets.length === 0) return columns;
-
-  const bottomWidgetKeys = new Set(bottomWidgets.map((block) => block.key));
-  const nextColumns = columns.map((column) =>
-    createCafeAOrderedBalancedColumnFromBlocks(
-      column.blocks.filter((block) => !bottomWidgetKeys.has(block.key)),
-    ),
-  );
-  const lastColumn = nextColumns[nextColumns.length - 1];
-  if (!lastColumn) return columns;
-
-  nextColumns[nextColumns.length - 1] = createCafeAOrderedBalancedColumnFromBlocks([
-    ...lastColumn.blocks,
-    ...bottomWidgets,
-  ]);
-  return nextColumns;
 }
 
 
@@ -3830,33 +3802,6 @@ function SundayLineMobileNotices({
 }
 
 
-function RoundFocusMobileNotices({
-  data,
-  capabilities,
-  density,
-}: {
-  data: CafeDesignAProps;
-  capabilities: TemplateCapabilities;
-  density: MenuLayoutDensity;
-}) {
-  const infoRows = getCafeAFooterInfo(data, capabilities);
-  const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
-  if (infoRows.length === 0) return null;
-
-  return (
-    <aside className="cafe-a-round-focus-mobile-notices min-w-0 text-left text-[#3f4945]" data-cafe-a-round-focus-mobile-notices="">
-      <div className="cafe-a-round-focus-notice-list">
-        {infoRows.map((row, index) => (
-          <p key={`${index}-${row}`} className={`cafe-a-round-focus-notice cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap break-keep ${descriptionSizeClassName}`}>
-            <ScriptAwareText text={row} />
-          </p>
-        ))}
-      </div>
-    </aside>
-  );
-}
-
-
 function DesktopToplineFeaturedSlot({
   data,
   featuredSlides,
@@ -3917,7 +3862,6 @@ function DesktopFixedRail({
   const site = data.menuSite;
   const description = site.brand_description || site.description;
   const isCenterColumn = variant === "brand_center_column";
-  const infoRows = isCenterColumn ? getCafeAFooterInfo(data, capabilities) : [];
   const isAubeCoffee = data.menuSite.template_key === "cafe_design_a";
   const descriptionSizeClassName = getMenuDescriptionSizeClassName(density);
   const mochaPanelAttributes = isMochaForestSkin(data.templateSkin)
@@ -3962,17 +3906,6 @@ function DesktopFixedRail({
             </div>
           ) : null}
           <div className="cafe-a-round-focus-footer-cluster" data-cafe-a-round-focus-footer-cluster="">
-            {infoRows.length > 0 ? (
-              <div className="cafe-a-round-focus-notices text-[#3f4945]" data-cafe-a-round-focus-notices="">
-                <div className="cafe-a-round-focus-notice-list">
-                  {infoRows.map((row, index) => (
-                    <p key={`${index}-${row}`} className={`cafe-a-round-focus-notice cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap break-keep ${descriptionSizeClassName}`}>
-                      <ScriptAwareText text={row} />
-                    </p>
-                  ))}
-                </div>
-              </div>
-            ) : null}
             {!hideLanguageControl ? <CafeLanguageHoverControl
               data={data}
               className="cafe-a-round-focus-language-control"
@@ -4107,7 +4040,6 @@ function MenuWidgetContentBlock({
   itemStackSpacing,
   visualNextBlockType,
   balancedSourceOrder,
-  dockToBottom = false,
 }: {
   block: CafeDesignAWidgetContentBlock;
   data: PublicMenuTemplateProps;
@@ -4115,7 +4047,6 @@ function MenuWidgetContentBlock({
   itemStackSpacing: string;
   visualNextBlockType?: CafeDesignAContentBlockType | null;
   balancedSourceOrder?: number;
-  dockToBottom?: boolean;
 }) {
   const balancedAttributes =
     balancedSourceOrder == null
@@ -4137,8 +4068,7 @@ function MenuWidgetContentBlock({
       data-cafe-a-previous-block-type={block.previousVisibleBlockType ?? undefined}
       data-cafe-a-next-block-type={block.nextVisibleBlockType ?? undefined}
       data-cafe-a-visual-next-block-type={visualNextBlockType ?? undefined}
-      data-cafe-a-widget-dock-bottom={dockToBottom ? "true" : undefined}
-      data-cafe-a-widget-placement={block.widget.placement ?? "bottom"}
+      data-cafe-a-widget-placement="flow"
       {...balancedAttributes}
     >
       <CafeAWidgetBlock widget={block.widget} />
@@ -4160,7 +4090,6 @@ function MenuContentBlock({
   suppressDesktopColumnStartDivider,
   visualNextBlockType,
   balancedSourceOrder,
-  dockWidgetToBottom,
 }: {
   block: CafeDesignAContentBlock;
   density: MenuLayoutDensity;
@@ -4174,7 +4103,6 @@ function MenuContentBlock({
   suppressDesktopColumnStartDivider?: boolean;
   visualNextBlockType?: CafeDesignAContentBlockType | null;
   balancedSourceOrder?: number;
-  dockWidgetToBottom?: boolean;
 }) {
   if (block.key === PANEL_INTRO_KEY) {
     return <section className="cafe-a-panel-intro-block" data-cafe-a-panel-intro-block="" data-cafe-a-balanced-atomic-block=""
@@ -4193,7 +4121,6 @@ function MenuContentBlock({
         itemStackSpacing={itemStackSpacing}
         visualNextBlockType={visualNextBlockType}
         balancedSourceOrder={balancedSourceOrder}
-        dockToBottom={dockWidgetToBottom}
       />
     );
   }
@@ -4320,7 +4247,6 @@ function BalancedExperimentalMenuGrid({
 }) {
   const orderedBlocks = useMemo(() => getFlatContentBlocks(pageGroups), [pageGroups]);
   const blockOrderByKey = useMemo(() => new Map(orderedBlocks.map((block, index) => [block.key, index])), [orderedBlocks]);
-  const bottomWidgetStackStartKey = getBottomWidgetBlocks(orderedBlocks)[0]?.key ?? null;
   const balancedColumns = useMemo(
     () => getBalancedMenuColumns({ pageGroups, columns, data, capabilities, variant }),
     [capabilities, columns, data, pageGroups, variant]
@@ -4358,7 +4284,6 @@ function BalancedExperimentalMenuGrid({
                 suppressDesktopColumnStartDivider={block.blockType === "category" && blockIndex === 0}
                 visualNextBlockType={column.blocks[blockIndex + 1]?.blockType ?? null}
                 balancedSourceOrder={blockOrderByKey.get(block.key) ?? 0}
-                dockWidgetToBottom={columnIndex === balancedColumns.length - 1 && block.key === bottomWidgetStackStartKey}
               />
             );
           })}
@@ -4408,7 +4333,6 @@ function OrderedBalancedFitMenuGrid({
 }) {
   const orderedBlocks = useMemo(() => getFlatContentBlocks(pageGroups), [pageGroups]);
   const blockOrderByKey = useMemo(() => new Map(orderedBlocks.map((block, index) => [block.key, index])), [orderedBlocks]);
-  const bottomWidgetStackStartKey = getBottomWidgetBlocks(orderedBlocks)[0]?.key ?? null;
   const orderedBalancedColumns = useMemo(
     () => getOrderedBalancedMenuColumns({ pageGroups, columns, data, capabilities, orderedBalancedBreaks }),
     [capabilities, columns, data, orderedBalancedBreaks, pageGroups],
@@ -4447,7 +4371,6 @@ function OrderedBalancedFitMenuGrid({
                 suppressDesktopColumnStartDivider={block.blockType === "category" && blockIndex === 0}
                 visualNextBlockType={column.blocks[blockIndex + 1]?.blockType ?? null}
                 balancedSourceOrder={blockOrderByKey.get(block.key) ?? 0}
-                dockWidgetToBottom={columnIndex === orderedBalancedColumns.length - 1 && block.key === bottomWidgetStackStartKey}
               />
             );
           })}
@@ -4496,7 +4419,6 @@ function CenterRailMenuGrid({
 }) {
   const orderedBlocks = useMemo(() => getFlatContentBlocks(pageGroups), [pageGroups]);
   const blockOrderByKey = useMemo(() => new Map(orderedBlocks.map((block, index) => [block.key, index])), [orderedBlocks]);
-  const bottomWidgetStackStartKey = getBottomWidgetBlocks(orderedBlocks)[0]?.key ?? null;
   const centerRailColumns = useMemo(() => {
     if (columnsVariant === "sourceSequential") {
       return getOrderedBalancedMenuColumns({
@@ -4536,7 +4458,6 @@ function CenterRailMenuGrid({
               suppressDesktopColumnStartDivider={block.blockType === "category" && blockIndex === 0}
               visualNextBlockType={column[blockIndex + 1]?.blockType ?? null}
               balancedSourceOrder={blockOrderByKey.get(block.key) ?? 0}
-              dockWidgetToBottom={columnIndex === centerRailColumns.length - 1 && block.key === bottomWidgetStackStartKey}
             />
           ))}
           {columnIndex === centerRailColumns.length - 1 && footerInfo}
@@ -4680,6 +4601,8 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const categoryEnglishFontKey = typographySettings.typography_roles.category.font_en_key ?? typographySettings.english_font_key;
   const isMochaForest = isMochaForestSkin(data.templateSkin);
   const isSundayLine = isSundayLineSkin(data.templateSkin);
+  const defaultDesignLayout = useDefaultDesignLayout();
+  const mobileTopNotices = defaultDesignLayout ? defaultDesignLayout === "basic-top-row" : isSundayLine;
   const isRoundFocus = isRoundFocusSkin(data.templateSkin);
   const cafeASkinAttribute = getCafeASkinAttribute(data.templateSkin);
   const skinStyle = isMochaForest
@@ -4690,7 +4613,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       } as CSSProperties)
     : {};
   const shouldRenderToplineFeaturedHero = isSundayLine && shouldRenderMenuCoverSection && featuredHeroSlides.length > 0;
-  const footerInfo = <CafeAFooterInfo data={data} capabilities={capabilities} density={density} callOnly={isSundayLine || isRoundFocus} />;
+  const footerInfo = <CafeAFooterInfo data={data} capabilities={capabilities} density={density} callOnly={isSundayLine} />;
   const initialNowMs = normalizeInitialNowMs(data.initialNowMs);
   const timeSaleBoundaryNowMs = useTimeSaleBoundaryNowMs(data.timeSales, data.menuSite.template_key, initialNowMs);
   useNextTimeSaleStartRefresh(data.nextTimeSaleStartAt, isCafeDesignATimeSaleTemplate(data.menuSite.template_key));
@@ -5723,9 +5646,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           const fitsWidth = fitMenuElement.scrollWidth <= fitMenuElement.clientWidth + 1;
 
           for (const variant of layoutVariants) {
-            const simulatedColumns = dockBottomWidgetMeasurements(
-              createBalancedSimulatedColumns(blockMeasurements, columns, variant),
-            );
+            const simulatedColumns = createBalancedSimulatedColumns(blockMeasurements, columns, variant);
             const measurement = getBalancedMeasurementFromColumns({
               boardElement: fitBoardElement,
               menuElement: fitMenuElement,
@@ -6055,7 +5976,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             targetHeight,
             isCandidateRejected,
             columnTargetHeights,
-          ).map(dockBottomWidgetMeasurements);
+          );
 
           for (const simulatedColumns of simulatedColumnCandidates) {
             const orderedBalancedBreaks = getOrderedBalancedBreaksFromColumns(simulatedColumns);
@@ -6381,15 +6302,13 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               : undefined;
           const orderedBalancedFallbackColumns =
             layoutMode === "orderedBalancedFit"
-              ? dockBottomWidgetMeasurements(
-                  getOrderedBalancedContiguousColumns(
+              ? getOrderedBalancedContiguousColumns(
                     orderedBalancedFallbackBlocks,
                     fallbackColumns,
                     orderedBalancedFallbackTargetHeight,
                     isOrderedBalancedFallbackCandidateRejected,
                     orderedBalancedFallbackColumnTargetHeights,
-                  ),
-                )
+                  )
               : [];
           const orderedBalancedFallbackMeasurement =
             layoutMode === "orderedBalancedFit"
@@ -6716,9 +6635,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
       let bestScore = Number.POSITIVE_INFINITY;
 
       for (const breakIndices of candidateBreakSets) {
-        const simulatedColumns = dockBottomWidgetMeasurements(
-          createOrderedBalancedColumnsFromBreakIndices(blocks, baseState.columns, breakIndices),
-        );
+        const simulatedColumns = createOrderedBalancedColumnsFromBreakIndices(blocks, baseState.columns, breakIndices);
         if (hasOrderedBalancedAtomicBlockOverflow(simulatedColumns, targetHeight, ORDERED_BALANCED_CROP_TOLERANCE, columnTargetHeights)) continue;
 
         const orderedBalancedBreaks = getOrderedBalancedBreaksFromColumns(simulatedColumns);
@@ -7643,7 +7560,6 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                   />
                 </div>
               )}
-              <RoundFocusMobileNotices data={data} capabilities={capabilities} density={density} />
             </section>
           ) : isMochaForest && onePageRhythmMode === "mobile" ? (
             <section className="cafe-a-mobile-upper-box" data-cafe-a-mobile-upper-box="">
@@ -7653,7 +7569,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
           ) : (
             <>
               <HeaderBlock data={data} density={density} className="lg:hidden" mobileReading={onePageRhythmMode === "mobile"} templateSkin={data.templateSkin} />
-              {isSundayLine ? <SundayLineMobileNotices data={data} capabilities={capabilities} density={density} mobileReading={onePageRhythmMode === "mobile"} /> : null}
+              {mobileTopNotices ? <SundayLineMobileNotices data={data} capabilities={capabilities} density={density} mobileReading={onePageRhythmMode === "mobile"} /> : null}
             </>
           )}
           <div data-cafe-a-scroll-content="" className={`grid min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-[var(--cafe-a-page-block-end)] md:grid-cols-2 lg:hidden ${isRoundFocus ? "cafe-a-round-focus-mobile-menu-grid" : ""} ${outerGridGapClassName}`}>
@@ -7685,7 +7601,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
                 timeSaleByItemId={timeSaleByItemId}
                 priceDisplayMode={priceDisplayMode}
                 onOpenImage={openMenuImagePreview}
-                footerInfo={isSundayLine || isRoundFocus ? undefined : <CafeAFooterInfo data={data} capabilities={capabilities} density={density} placement="mobile" mobileReading={onePageRhythmMode === "mobile"} />}
+                footerInfo={mobileTopNotices ? undefined : <CafeAFooterInfo data={data} capabilities={capabilities} density={density} placement="mobile" mobileReading={onePageRhythmMode === "mobile"} />}
                 templateSkin={data.templateSkin}
               />
             )}
@@ -7796,7 +7712,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               )
             ) : onePageLayoutShell === "brand_center_rail" || onePageLayoutShell === "brand_center_column" ? (
               <>
-                {renderDesktopMenuGrid({ centerRail: true, includeFooter: onePageCall.enabled || onePageLayoutShell === "brand_center_rail" })}
+                {renderDesktopMenuGrid({ centerRail: true, includeFooter: true })}
                 <DesktopFixedRail
                   data={data}
                   density={density}

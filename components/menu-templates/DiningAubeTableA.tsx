@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 import CafeAWidgetBlock, { toCafeAWidgetPreview } from "./CafeAWidgetBlock";
+import { getMenuNoticeRows } from "@/lib/menu-notices";
 import { formatMenuMoney } from "@/lib/menu-ui-copy";
 import type { SupportedLocale } from "@/lib/locales";
 import { useMenuLocale, useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
@@ -339,7 +340,64 @@ export default function DiningAubeTableA({
   const coverTitle = data.menuSite.menu_cover_title || data.menuSite.restaurant_name || data.menuSite.name;
   const coverDescription = data.menuSite.menu_cover_description || data.menuSite.brand_description || data.menuSite.description;
   const useCoverLogo = shouldUseAubeTableCoverLogo(data.menuSite.logo_url, failedCoverLogoUrl);
+  const coverNotices = getMenuNoticeRows(data.menuSite);
+  // Callback-ref lifetime follows the mounted cover even after AnimatePresence exits.
+  const measureCoverBottom = useCallback((bottom: HTMLDivElement | null) => {
+    const root = bottom?.closest<HTMLElement>(".aube-table-root");
+    if (!bottom || !root) return;
+    const shell = root.closest<HTMLElement>("[data-menu-interaction-shell]");
+    const update = () => {
+      root.style.setProperty("--aube-cover-bottom-height", `${bottom.getBoundingClientRect().height}px`);
+      const noticesHeight = bottom.querySelector("[data-dining-cover-notices]")?.getBoundingClientRect().height ?? 0;
+      shell?.style.setProperty("--dining-cover-call-clearance", `${noticesHeight + 20}px`);
+    };
+    const observer = new ResizeObserver(update);
+    observer.observe(bottom);
+    update();
+    return () => {
+      observer.disconnect();
+      root.style.removeProperty("--aube-cover-bottom-height");
+      shell?.style.removeProperty("--dining-cover-call-clearance");
+    };
+  }, []);
   if (!activeUnit) return null;
+  const pagination = !usesSidebarNavigation && units.length > 1 ? (
+        <nav className="aube-table-pagination" aria-label={t("메뉴 페이지 이동")}>
+          <button
+            type="button"
+            className="aube-table-pagination-direction aube-table-pagination-prev"
+            aria-label={t("이전 메뉴 페이지")}
+            disabled={safeActiveIndex === 0}
+            onClick={() => selectUnit(safeActiveIndex - 1)}
+          >
+            <span className="aube-table-pagination-arrow" aria-hidden="true" />
+            <ScriptAwareText text="Prev" />
+          </button>
+          <div className="aube-table-pagination-dots">
+            {units.map((unit, index) => (
+              <button
+                type="button"
+                className="aube-table-pagination-dot"
+                key={unit.id}
+                aria-label={t("{0} 페이지로 이동", unit.label)}
+                aria-current={index === safeActiveIndex ? "page" : undefined}
+                data-active={index === safeActiveIndex ? "true" : "false"}
+                onClick={() => selectUnit(index)}
+              />
+            ))}
+          </div>
+          <button
+            type="button"
+            className="aube-table-pagination-direction aube-table-pagination-next"
+            aria-label={t("다음 메뉴 페이지")}
+            disabled={safeActiveIndex === units.length - 1}
+            onClick={() => selectUnit(safeActiveIndex + 1)}
+          >
+            <ScriptAwareText text="Next" />
+            <span className="aube-table-pagination-arrow" aria-hidden="true" />
+          </button>
+        </nav>
+      ) : null;
 
   return (
     <>
@@ -417,7 +475,7 @@ export default function DiningAubeTableA({
           onDragEnd={onSwipeEnd}
         >
       {activeUnit.type === "cover" ? (
-        <section className="aube-table-cover" style={{ backgroundColor: coverColor }} data-aube-table-cover="" data-default-cover-image={defaultDesign && data.pageSettings.cover_image_visible !== false && data.menuSite.cover_image_url ? "true" : undefined}>
+        <section className="aube-table-cover" style={{ backgroundColor: coverColor }} data-aube-table-cover="" data-cover-notices={coverNotices.length ? "true" : undefined} data-default-cover-image={defaultDesign && data.pageSettings.cover_image_visible !== false && data.menuSite.cover_image_url ? "true" : undefined}>
           {data.pageSettings.cover_image_visible !== false && data.menuSite.cover_image_url ? (
             <img className="aube-table-cover-image" src={data.menuSite.cover_image_url} alt="" />
           ) : null}
@@ -446,6 +504,12 @@ export default function DiningAubeTableA({
             {coverTitle && !(defaultDesign && useCoverLogo) ? <motion.h1 variants={AUBE_TABLE_COVER_REVEAL_ITEM}><ScriptAwareText text={coverTitle} /></motion.h1> : null}
             {coverDescription ? <motion.p className="aube-table-cover-description" variants={AUBE_TABLE_COVER_REVEAL_ITEM}><ScriptAwareText text={coverDescription} /></motion.p> : null}
           </motion.div>
+          {coverNotices.length ? <div className="aube-table-cover-bottom" ref={measureCoverBottom}>
+            {pagination}
+            <div className="aube-table-cover-notices" data-dining-cover-notices data-notice-count={coverNotices.length} style={{ gridTemplateColumns: `repeat(${coverNotices.length}, minmax(0, 1fr))` }}>
+              {coverNotices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>)}
+            </div>
+          </div> : null}
         </section>
       ) : activePage ? (
         <div ref={scrollRef} className="aube-table-page-scroll" data-aube-table-page-scroll="">
@@ -485,43 +549,7 @@ export default function DiningAubeTableA({
         </motion.div>
       </AnimatePresence>
 
-      {!usesSidebarNavigation && units.length > 1 ? (
-        <nav className="aube-table-pagination" aria-label={t("메뉴 페이지 이동")}>
-          <button
-            type="button"
-            className="aube-table-pagination-direction aube-table-pagination-prev"
-            aria-label={t("이전 메뉴 페이지")}
-            disabled={safeActiveIndex === 0}
-            onClick={() => selectUnit(safeActiveIndex - 1)}
-          >
-            <span className="aube-table-pagination-arrow" aria-hidden="true" />
-            <ScriptAwareText text="Prev" />
-          </button>
-          <div className="aube-table-pagination-dots">
-            {units.map((unit, index) => (
-              <button
-                type="button"
-                className="aube-table-pagination-dot"
-                key={unit.id}
-                aria-label={t("{0} 페이지로 이동", unit.label)}
-                aria-current={index === safeActiveIndex ? "page" : undefined}
-                data-active={index === safeActiveIndex ? "true" : "false"}
-                onClick={() => selectUnit(index)}
-              />
-            ))}
-          </div>
-          <button
-            type="button"
-            className="aube-table-pagination-direction aube-table-pagination-next"
-            aria-label={t("다음 메뉴 페이지")}
-            disabled={safeActiveIndex === units.length - 1}
-            onClick={() => selectUnit(safeActiveIndex + 1)}
-          >
-            <ScriptAwareText text="Next" />
-            <span className="aube-table-pagination-arrow" aria-hidden="true" />
-          </button>
-        </nav>
-      ) : null}
+      {activeUnit.type === "cover" && coverNotices.length ? null : pagination}
 
       {!usesSidebarNavigation && activeUnit.type === "page" ? <div className="aube-table-bottom-fade" aria-hidden="true" /> : null}
 
@@ -603,6 +631,11 @@ export default function DiningAubeTableA({
         .aube-table-cover-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; }
         .aube-table-cover-overlay { position: absolute; inset: 0; z-index: -1; }
         .aube-table-cover-copy { width: min(92vw, 1240px); padding: var(--aube-cover-padding-top) var(--aube-cover-padding-inline) var(--aube-cover-padding-bottom); text-align: center; color: #fff; }
+        .aube-table-cover-bottom { position: absolute; z-index: 2; bottom: calc(max(24px, env(safe-area-inset-bottom)) + var(--dining-cover-bottom-clearance, 0px)); inset-inline: var(--aube-cover-padding-inline); display: flex; flex-direction: column; align-items: stretch; gap: 20px; }
+        .aube-table-cover-bottom .aube-table-pagination { position: static; align-self: center; transform: none; max-width: 100%; }
+        .aube-table-cover-notices { --cafe-a-script-ko-font: var(--menu-font-ko); --cafe-a-script-en-font: var(--menu-font-ko); display: grid; align-items: end; gap: clamp(12px, 2vw, 24px); color: var(--dining-cover-notice-ink, #fff); font-family: var(--menu-font-ko), sans-serif; font-size: var(--aube-type-item-body); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.5; text-align: center; }
+        .aube-table-cover-notices p { min-width: 0; margin: 0; overflow-wrap: anywhere; white-space: pre-line; }
+        .aube-table-cover[data-cover-notices="true"] .aube-table-cover-copy { padding-bottom: max(var(--aube-cover-padding-bottom), calc(var(--aube-cover-bottom-height, 0px) + 48px)); }
         .aube-table-cover-logo { display: block; width: auto; height: auto; max-width: min(300px, 46vw); max-height: 104px; margin: 0 auto clamp(22px, 2.2vw, 32px); object-fit: contain; }
         .aube-table-cover h1 { --cafe-a-script-ko-font: var(--menu-role-brand-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-brand-font-en, var(--menu-font-en)); margin: 0; color: var(--menu-role-brand-color, var(--aube-accent)); font-family: var(--menu-role-brand-font-family, var(--menu-font-en)); font-size: clamp(60px, 7.5vw, 112px); font-weight: var(--menu-role-brand-font-weight, 400); line-height: .96; letter-spacing: .13em; text-indent: .13em; }
         .aube-table-cover-description { --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko)); --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en)); max-width: 820px; margin: clamp(22px, 2.2vw, 32px) auto 0; font-family: var(--menu-role-supporting-font-family, var(--menu-font-ko)); font-size: clamp(18px, 1.8vw, 27px); font-weight: var(--menu-role-supporting-font-weight, 400); line-height: 1.5; letter-spacing: .02em; opacity: .88; }
