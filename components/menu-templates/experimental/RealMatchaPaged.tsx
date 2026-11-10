@@ -295,6 +295,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     let disposed = false,
       raf = 0;
     const rejectedRailColumns = new Set<number>();
+    const rejectedPhotoColumns = new Set<number>();
     let railFrameKey = "";
     const update = () => {
       if (disposed || !area.current || !measure.current) return;
@@ -316,7 +317,10 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const scrollbar = area.current.offsetWidth - area.current.clientWidth;
       const railGeometry = (count: number) => getRepresentativeRailGeometry(boardWidth, panelPadding, gap, count, scrollbar);
       const frameKey = `${boardWidth}|${root.clientHeight}`;
-      if (frameKey !== railFrameKey) { rejectedRailColumns.clear(); railFrameKey = frameKey; }
+      if (frameKey !== railFrameKey) { rejectedRailColumns.clear(); rejectedPhotoColumns.clear(); railFrameKey = frameKey; }
+      if (upperLeft && !hasSafeCornerIdentity(brandArea.current)) {
+        rejectedPhotoColumns.add(Number(root.dataset.scrollColumns));
+      }
       // The menu region already excludes the fixed brand column and its gutter.
       // Automatic tracks stop at three. Overflow stays on the scroll surface.
       const maxColumns = Math.max(1, Math.min(centerColumn ? 2 : 3, Math.floor((width + gap) / (12 * rem + gap))));
@@ -347,7 +351,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         const firstColumnInset = upperLeft ? (brandArea.current?.getBoundingClientRect().height ?? 0) + (parseFloat(cornerStyle?.marginTop ?? "0") || 0) + (parseFloat(cornerStyle?.marginBottom ?? "0") || 0) : 0;
         root.style.setProperty("--scroll-first-inset", `${firstColumnInset}px`);
         const footerHeight = noticeMeasure.current?.getBoundingClientRect().height ?? 0;
-        const candidate = { columnCount, columnWidth, representativeSafe: !upperLeft || hasSafeCornerIdentity(brandArea.current), layout: layoutScrollableMenu(measured, columnCount, capacity, grouped, { footerHeight, firstColumnInset }) };
+        const candidate = { columnCount, columnWidth, representativeSafe: !upperLeft || !rejectedPhotoColumns.has(columnCount) && hasSafeCornerIdentity(brandArea.current), layout: layoutScrollableMenu(measured, columnCount, capacity, grouped, { footerHeight, firstColumnInset }) };
         measure.current!.removeAttribute("data-cafe-a-three-part-reference");
         return candidate;
       };
@@ -407,10 +411,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     measuredContent.addEventListener("load", schedule, true);
     if (brandArea.current)
       for (const node of brandArea.current.children) observer.observe(node);
-    const identityObserver = new MutationObserver(schedule);
     const cornerIdentity = brandArea.current?.querySelector("[data-corner-identity]");
-    if (cornerIdentity) identityObserver.observe(cornerIdentity, { subtree: true, attributes: true, attributeFilter: ["data-canvas-brand-fit", "data-canvas-brand-width"] });
-    const fontsChanged = () => { rejectedRailColumns.clear(); schedule(); };
+    if (cornerIdentity) observer.observe(cornerIdentity);
+    const fontsChanged = () => { rejectedRailColumns.clear(); rejectedPhotoColumns.clear(); schedule(); };
     document.fonts.ready.then(fontsChanged);
     document.fonts.addEventListener("loadingdone", fontsChanged);
     schedule();
@@ -418,7 +421,6 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       disposed = true;
       cancelAnimationFrame(raf);
       observer.disconnect();
-      identityObserver.disconnect();
       measuredContent.removeEventListener("load", schedule, true);
       document.fonts.removeEventListener("loadingdone", fontsChanged);
     };
