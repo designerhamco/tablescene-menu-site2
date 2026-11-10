@@ -40,12 +40,16 @@ export function getCatalogStartHref(service: CatalogService, templateKey: string
   if(service==='display') return `/apply/display?template=${templateKey}`;
   return `/apply/basic?${new URLSearchParams({product:service==='dining'?'business_basic_multi_monthly':'business_basic_single_monthly',template:templateKey,design:designId})}`;
 }
+const standardPreviewVersions: Readonly<Record<string, string>> = {
+  "basic-top-row": "20261110",
+  "basic-top-row-left-logo": "20261110-v2",
+};
 const standards: CatalogDesign[]=DEFAULT_DESIGN_REVIEWS.map(design=>{
   const service=MENU_LAYOUTS[design.layout].service;
   return {id:design.id,name:`${MENU_LAYOUTS[design.layout].label} · ${design.itemLayout==='album'?'앨범형':'리스트형'}`,
     description:design.itemLayout==='album'?'상품 사진을 중심으로 메뉴를 보여주는 기본 디자인입니다. 색상과 서체를 매장에 맞게 꾸며보세요.':'흰 배경과 검정 글자를 바탕으로 메뉴를 정갈하게 보여주는 기본 디자인입니다.',
     service,kind:'standard',templateKey:design.renderer,itemLayout:design.itemLayout,categories:[],categoryLabel:'기본 디자인',
-    image:`/template-previews/default-${design.id}-${design.id === "basic-top-row-left-logo" ? "20261110" : "20261021"}.jpg`,previewHref:getDefaultDesignReviewUrl(design),detailHref:`/templates/${design.id}`,
+    image:`/template-previews/default-${design.id}-${standardPreviewVersions[design.id] ?? "20261021"}.jpg`,previewHref:getDefaultDesignReviewUrl(design),detailHref:`/templates/${design.id}`,
     startHref:getCatalogStartHref(service,design.renderer,design.id)};
 });
 // Catalog cards, detail galleries and checkout media share the same image.

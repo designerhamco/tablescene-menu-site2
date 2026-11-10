@@ -44,6 +44,7 @@ export function buildStarterPreviewData(templateKey: TemplateKey, qaCase: string
   const items: MenuPageData["items"] = [];
   const priceOptions: MenuPageData["priceOptions"] = [];
   const priceColumnIdByCategoryKey = new Map<string, string>();
+  const itemIdByStarterKey = new Map<string, string>();
 
   preset.pages.forEach((page, pageIndex) => {
     const pageId = pages[pageIndex]?.id ?? null;
@@ -80,6 +81,7 @@ export function buildStarterPreviewData(templateKey: TemplateKey, qaCase: string
 
       category.items.forEach((menuItem, itemIndex) => {
         const itemId = `${siteId}-item-${pageIndex}-${categoryIndex}-${itemIndex}`;
+        if (menuItem.key) itemIdByStarterKey.set(menuItem.key, itemId);
         const priceColumnValues = (menuItem.price_column_values ?? []).flatMap((columnValue) => {
           const priceColumnId = priceColumnIdByCategoryKey.get(`${categoryId}:${columnValue.key}`);
           if (!priceColumnId || columnValue.price == null) return [];
@@ -179,7 +181,7 @@ export function buildStarterPreviewData(templateKey: TemplateKey, qaCase: string
 
   const featuredName = preset.featured_item_name ?? preset.pages.flatMap(page => page.categories.flatMap(category => category.items)).find(item => preset.featured_item_key && item.key === preset.featured_item_key)?.name;
   const featuredItem = items.find(item => item.name === featuredName) ?? items.find(item => item.recommended);
-  const featuredSlides = resolveStarterFeaturedSlides(preset, items);
+  const featuredSlides = resolveStarterFeaturedSlides(preset, items, itemIdByStarterKey);
   const firstCompleteFeaturedSlide = getFirstCompleteStarterFeaturedSlide(featuredSlides);
   const firstFeaturedImageSlide = getFirstStarterFeaturedImageSlide(featuredSlides);
   const pageSettings = {

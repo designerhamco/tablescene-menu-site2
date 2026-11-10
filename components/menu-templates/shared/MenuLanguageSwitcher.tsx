@@ -154,6 +154,7 @@ export default function MenuLanguageSwitcher({
     <div ref={rootRef} className="relative">
       <button
         type="button"
+        data-language-menu-trigger=""
         className={triggerClassName}
         aria-label={visibleLocales.length > 1 ? t("언어 변경") : t("현재 언어: {0}", SHORT_LOCALE_LABELS[currentLocale])}
         aria-haspopup={visibleLocales.length > 1 ? "menu" : undefined}

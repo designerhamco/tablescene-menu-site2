@@ -41,7 +41,32 @@ for (const design of DEFAULT_DESIGN_REVIEWS) {
       const bakery = (client.rows.get("menu_categories") ?? []).find(c => c.name === "BAKERY");
       assert.ok(rows.filter(row => row.category_id === bakery?.id).every(row => row.image_url === null));
       const columns = client.rows.get("menu_category_price_columns") ?? [];
-      assert.equal(columns.length, design.itemLayout === "album" ? 0 : 5);
+      const topRowList = design.id === "basic-top-row" || design.id === "basic-top-row-left-logo";
+      assert.equal(columns.length, design.itemLayout === "album" ? 0 : topRowList ? 6 : 5);
+      if (topRowList) {
+        assert.equal(preset.menu_cover_enabled, false);
+        assert.equal((client.site.page_settings as Record<string, unknown>).menu_cover_enabled, false);
+        for (const category of client.rows.get("menu_categories") ?? []) {
+          const items = rows.filter(row => row.category_id === category.id);
+          const labels = columns.filter(column => column.category_id === category.id).map(column => column.label);
+          if (["SIGNATURE", "NON-COFFEE", "COFFEE"].includes(String(category.name))) {
+            assert.deepEqual(labels, ["HOT", "ICE"]);
+            for (const item of items) {
+              const values = (client.rows.get("menu_item_price_column_values") ?? []).filter(value => value.menu_item_id === item.id);
+              assert.equal(values.length, 2);
+              if (category.name !== "COFFEE") assert.equal(item.price_note, null);
+            }
+          }
+          if (category.name === "ADE") {
+            assert.deepEqual(labels, []);
+            assert.ok(items.length > 0 && items.every(item => item.price_note === "ICE ONLY"));
+            for (const item of items) {
+              assert.equal((client.rows.get("menu_item_price_column_values") ?? []).filter(value => value.menu_item_id === item.id).length, 0);
+              assert.equal((client.rows.get("menu_item_price_options") ?? []).filter(value => value.menu_item_id === item.id).length, 0);
+            }
+          }
+        }
+      }
       assert.ok((client.rows.get("menu_site_translations") ?? []).every(row => row.restaurant_name === null));
       const translations = getStarterTranslationCopy(preset)!;
       for (const locale of ["en", "zh", "ja"] as const) {

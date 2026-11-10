@@ -536,10 +536,11 @@ export function getStarterFeaturedSlides(preset: StarterPreset): StarterFeatured
 
 export function resolveStarterFeaturedSlides<T extends { id: string; name: string; visible?: boolean | null }>(
   preset: StarterPreset,
-  items: T[]
+  items: T[],
+  starterItemIds?: ReadonlyMap<string, string>
 ): ResolvedStarterFeaturedSlide[] {
   const itemByName = new Map(items.filter(item => item.visible !== false).map(item => [item.name, item.id]));
-  const itemByKey = new Map(preset.pages.flatMap(page => page.categories.flatMap(category => category.items)).flatMap(item => {
+  const itemByKey = starterItemIds ?? new Map(preset.pages.flatMap(page => page.categories.flatMap(category => category.items)).flatMap(item => {
     const id = itemByName.get(item.name);
     return item.key && id ? [[item.key, id] as const] : [];
   }));
@@ -3764,7 +3765,7 @@ export async function createStarterMenuData(
     return [...courseItems, ...directItems];
   });
 
-  let { data: insertedItems, error: itemsError } = await supabase.from("menu_items").insert(itemInserts as never).select("id, name, category_id");
+  let { data: insertedItems, error: itemsError } = await supabase.from("menu_items").insert(itemInserts as never).select("id, name, category_id, sort_order");
 
   if (
     itemsError &&
@@ -3777,7 +3778,7 @@ export async function createStarterMenuData(
       delete fallbackMenuItem.badge_label;
       return fallbackMenuItem;
     });
-    const fallbackResult = await supabase.from("menu_items").insert(fallbackItemInserts as never).select("id, name, category_id");
+    const fallbackResult = await supabase.from("menu_items").insert(fallbackItemInserts as never).select("id, name, category_id, sort_order");
     insertedItems = fallbackResult.data;
     itemsError = fallbackResult.error;
   }
@@ -3786,15 +3787,16 @@ export async function createStarterMenuData(
     throw new Error(`기본 메뉴 아이템 생성에 실패했습니다: ${itemsError.message}`);
   }
 
-  const itemIdByKey = new Map((insertedItems ?? []).map((menuItem) => [`${menuItem.category_id ?? ""}:${menuItem.name}`, menuItem.id]));
+  // Names can repeat inside a starter category; preserve each inserted row.
+  const itemIdByKey = new Map((insertedItems ?? []).map((menuItem) => [`${menuItem.category_id ?? ""}:${menuItem.sort_order}:${menuItem.name}`, menuItem.id]));
   const itemIdByStarterKey = new Map<string, string>();
   const itemIdByName = new Map<string, string>();
   preset.pages.forEach((page) => {
     const pageId = pageIdByTitle.get(page.title) ?? "";
     page.categories.forEach((category) => {
       const categoryId = categoryIdByKey.get(`${pageId}:${category.name}`) ?? "";
-      category.items.forEach((menuItem) => {
-        const insertedItemId = itemIdByKey.get(`${categoryId}:${menuItem.name}`);
+      category.items.forEach((menuItem, index) => {
+        const insertedItemId = itemIdByKey.get(`${categoryId}:${index + 1}:${menuItem.name}`);
         if (!insertedItemId) return;
         if (menuItem.key) itemIdByStarterKey.set(menuItem.key, insertedItemId);
         itemIdByName.set(menuItem.name, insertedItemId);
@@ -3856,8 +3858,8 @@ export async function createStarterMenuData(
     const pageId = pageIdByTitle.get(page.title) ?? "";
     return page.categories.flatMap((category) => {
       const categoryId = categoryIdByKey.get(`${pageId}:${category.name}`) ?? "";
-      return category.items.flatMap((menuItem) => {
-        const menuItemId = itemIdByKey.get(`${categoryId}:${menuItem.name}`);
+      return category.items.flatMap((menuItem, itemIndex) => {
+        const menuItemId = itemIdByKey.get(`${categoryId}:${itemIndex + 1}:${menuItem.name}`);
         if (!menuItemId || !menuItem.price_column_values?.length) return [];
 
         return menuItem.price_column_values.flatMap((columnValue) => {
@@ -3889,8 +3891,8 @@ export async function createStarterMenuData(
     const pageId = pageIdByTitle.get(page.title) ?? "";
     return page.categories.flatMap((category) => {
       const categoryId = categoryIdByKey.get(`${pageId}:${category.name}`) ?? "";
-      return category.items.flatMap((menuItem) => {
-        const menuItemId = itemIdByKey.get(`${categoryId}:${menuItem.name}`);
+      return category.items.flatMap((menuItem, itemIndex) => {
+        const menuItemId = itemIdByKey.get(`${categoryId}:${itemIndex + 1}:${menuItem.name}`);
         if (!menuItemId || !menuItem.price_options?.length) return [];
 
         return menuItem.price_options.slice(0, maxPriceOptionsPerItem).map((option, index) => ({
@@ -3929,12 +3931,13 @@ export async function createStarterMenuData(
           const pageId = pageIdByTitle.get(page.title) ?? "";
           return page.categories.flatMap((category) => {
             const categoryId = categoryIdByKey.get(`${pageId}:${category.name}`) ?? "";
-            const starterItem = category.items.find((menuItem) =>
+            const starterItemIndex = category.items.findIndex((menuItem) =>
               saleTarget.target_item_key
                 ? menuItem.key === saleTarget.target_item_key
                 : menuItem.name === saleTarget.target_item_name
             );
-            const menuItemId = starterItem ? itemIdByKey.get(`${categoryId}:${starterItem.name}`) : null;
+            const starterItem = category.items[starterItemIndex];
+            const menuItemId = starterItem ? itemIdByKey.get(`${categoryId}:${starterItemIndex + 1}:${starterItem.name}`) : null;
             return menuItemId ? [{ categoryId, menuItemId }] : [];
           });
         });
