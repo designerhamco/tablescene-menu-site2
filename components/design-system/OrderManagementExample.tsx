@@ -1,0 +1,16 @@
+"use client";
+import {useState} from "react";
+import OrderDashboard from "@/app/mypage/menus/[menuId]/orders/OrderDashboard";
+import {Tabs,TabsList,TabsTrigger,TabsContent} from "@/app/components/ui/tabs";
+import {defaultOrderHistoryFilters,koreanDate,isCurrentOrder,orderHistoryBounds,type OrderHistoryFilters} from "@/lib/order-history-query";
+import type {OrderDashboardOrder,OrderDashboardView} from "@/lib/server/order-management-service";
+const room="11111111-1111-4111-8111-111111111111",table="22222222-2222-4222-8222-222222222222",kiosk="33333333-3333-4333-8333-333333333333";
+export default function OrderManagementExample(){
+ const [mode,setMode]=useState("current"),[filters,setFilters]=useState<OrderHistoryFilters>(()=>defaultOrderHistoryFilters());
+ const today=koreanDate();
+ const orders:OrderDashboardOrder[]=Array.from({length:4},(_,index)=>({id:`44444444-4444-4444-8444-${String(index+1).padStart(12,"0")}`,tableId:index===3?kiosk:table,tableLabel:index===3?"키오스크 1":"1번 테이블",orderNumber:1042+index,status:index===1?"served":index===2?"cancelled":"received",paymentStatus:index===1?"unpaid":index===2?"cancelled":"paid",paymentMethod:null,requestText:"음료는 식사 후에 준비해 주세요.",totalAmount:24000+index*1000,currency:"KRW",createdAt:`${today}T0${index}:10:00Z`,updatedAt:`${today}T0${index}:10:00Z`,statusUpdatedBy:null,paymentCompletedBy:null,paymentCompletedAt:null,cancellationReason:index===2?"고객 요청":null,nextStatus:null,canCancelUnpaid:false,canMarkManualPayment:false,items:[{id:`item-${index}`,name:"아이스 아메리카노와 바닐라 라떼, 치즈케이크 세트에 대한 긴 상품 이름 표시 예시",basePrice:20000+index*1000,optionPrice:4000,unitPrice:24000+index*1000,quantity:1,lineTotal:24000+index*1000,options:[{groupName:"커피 옵션",valueName:"디카페인 변경, 얼음 적게, 샷 추가와 포장 선택을 포함한 긴 옵션 표시 예시",priceDelta:4000}]}]}));
+ const bounds=orderHistoryBounds(filters);
+ const shown=mode==="current"?orders.filter(isCurrentOrder):orders.filter(order=>order.createdAt>=bounds.from&&order.createdAt<bounds.until&&(filters.status==="all"||order.status===filters.status)&&(filters.paymentStatus==="all"||order.paymentStatus===filters.paymentStatus)&&(!filters.tableId||order.tableId===filters.tableId)&&(!filters.orderNumber||order.orderNumber===Number(filters.orderNumber)));
+ const view:OrderDashboardView={kind:mode==="history"?"history":"current",filters,totalCount:shown.length,olderCursor:null,newerCursor:null,tables:[{id:table,label:"1번 테이블",archived:false},{id:kiosk,label:"키오스크 1",archived:false}]};
+ return <Tabs purpose="page" value={mode} onValueChange={setMode}><div className="site-stack-group"><TabsList aria-label="주문 관리 예시"><TabsTrigger value="current">현재 주문</TabsTrigger><TabsTrigger value="history">주문 이력</TabsTrigger></TabsList><TabsContent value={mode}><OrderDashboard menuSiteId="example-orders" menuSiteName="주문 관리 예시" orders={shown} view={view} onHistoryFilterApply={setFilters} autoRefresh={false} permissions={{canManage:false,canCancelUnpaid:false,canMarkManualPayment:false}} floorPlan={{available:true,revision:1,points:[{id:table,label:"1번 테이블",status:"active"},{id:kiosk,label:"키오스크 1",kind:"kiosk",status:"active"}],document:{rooms:[{id:room,name:"홀",aspectRatio:4/3}],placements:[{pointId:table,roomId:room,x:3,y:4,width:45,height:65},{pointId:kiosk,roomId:room,x:52,y:4,width:45,height:65}]}}}/></TabsContent></div></Tabs>;
+}

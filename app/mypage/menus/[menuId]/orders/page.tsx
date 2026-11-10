@@ -1,3 +1,4 @@
+import type { OrderHistorySearch } from "@/lib/order-history-query";
 import { loadOperationsFloorPlan } from "@/lib/server/operations-floor-plan-service";
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
@@ -23,17 +24,19 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function OrderDashboardPage({
-  params,
+  params, searchParams,
 }: {
   params: Promise<{ menuId: string }>;
+  searchParams: Promise<OrderHistorySearch>;
 }) {
   if (!isStoreOperationsAvailable()) redirect("/mypage?tab=menus");
 
   const { menuId } = await params;
+  const query=await searchParams;
   let data;
 
   try {
-    data = await listOrderDashboard(menuId);
+    data = await listOrderDashboard(menuId,query);
   } catch (error) {
     if (error instanceof MenuSiteAccessError) {
       if (error.code === "AUTH_REQUIRED") {
@@ -70,8 +73,8 @@ export default async function OrderDashboardPage({
           <p className="type-body-sm site-copy-muted" data-copy-purpose="essential">ArtiMenu는 이 후불 흐름에서 카드 승인을 수행하지 않습니다.</p>
         </header>
 
-        <OperationFeatureNavigation menuId={menuId} feature="orders" settings={false} historyAvailable={selectedSite.operationAccess.orders} canConfigure={selectedSite.isOwner} canManageDevices={selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage")} />
-        <OrderDashboard floorPlan={floorPlan} menuSiteId={data.menuSite.id} menuSiteName={data.menuSite.name} orders={data.orders} permissions={data.permissions} />
+        <OperationFeatureNavigation menuId={menuId} feature="orders" settings={false} orderHistory={data.view?.kind === "history"} historyAvailable={selectedSite.operationAccess.orders} canConfigure={selectedSite.isOwner} canManageDevices={selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage")} />
+        <OrderDashboard floorPlan={floorPlan} menuSiteId={data.menuSite.id} menuSiteName={data.menuSite.name} orders={data.orders} view={data.view} permissions={data.permissions} />
       </div>
     </StoreOperationsShell>
   );

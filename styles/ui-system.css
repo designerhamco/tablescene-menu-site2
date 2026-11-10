@@ -1315,6 +1315,11 @@ textarea.site-field[data-field-size="lg"], textarea[data-field-size="lg"] { min-
 .site-floor-object[data-summary="true"] { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; padding: var(--site-space-copy); gap: var(--site-space-copy); }
 .site-floor-object-summary { display: grid; gap: 0; width: 100%; min-width: 0; pointer-events: none; }
 .site-floor-object-summary > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.site-floor-object-summary > [data-order-card="metadata"] { white-space: normal; overflow: visible; text-overflow: clip; }
+.site-floor-object-summary > [data-order-card="products"] { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; }
+.site-floor-object-summary > [data-order-card="options"] { white-space: nowrap; }
+.site-floor-object-summary > [data-order-card="detail"] { text-decoration: underline; }
+
 
 .site-floor-object[data-summary="true"] > .site-floor-object-label, .site-floor-object-summary { flex: none; }
 
@@ -1387,4 +1392,13 @@ svg.site-edit-icon {
 @media (max-width: 767px) {
   .site-floor-workspace-tools, .site-floor-workspace-footer { padding: var(--site-panel-inset-compact); }
   .site-floor-workspace-transfer { display: grid; gap: var(--site-space-copy); }
+}
+
+/* Read-only order maps become equal readable cards on phones; saved coordinates stay intact. */
+@media (max-width: 767px) {
+  .site-floor-canvas[data-order-cards="true"] { display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: 1fr; gap: var(--site-space-block); padding: var(--site-panel-inset-compact); aspect-ratio: auto !important; }
+  .site-floor-canvas[data-order-cards="true"] > .site-floor-object { position: relative; inset: auto !important; width: auto !important; height: auto !important; }
+}
+@media (min-width: 640px) and (max-width: 767px) {
+  .site-floor-canvas[data-order-cards="true"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

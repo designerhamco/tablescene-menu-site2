@@ -9,6 +9,7 @@ export type OperationHistoryRecord = {
   time: string;
   status: string;
   attention: boolean;
+  orderNumber?:number;createdAt?:string;amount?:string;processing?:boolean;unpaid?:boolean;
 };
 /** Identity joins deliberately use IDs, never mutable/duplicate display names. */
 export function groupOperationHistory(records: OperationHistoryRecord[]) {
@@ -39,4 +40,10 @@ export function getOperationHistoryRows<T extends { id: string; tableId: string;
   const recorded = new Set(records.map(record => record.tableId));
   for (const point of floor.points) if (!recorded.has(point.id)) rows.push({ key: `point:${point.id}`, pointId: point.id, pointLabel: point.label, roomName: roomName(point.id), record: null });
   return rows;
+}
+
+/** Keep one order's time, status, items and amount together on a table card. */
+export function representativeOperationOrder(records:readonly OperationHistoryRecord[]){
+  const ascending=[...records].sort((a,b)=>(a.createdAt??"").localeCompare(b.createdAt??"")||a.id.localeCompare(b.id));
+  return ascending.find(record=>record.processing)??ascending.find(record=>record.unpaid)??ascending[ascending.length-1];
 }
