@@ -191,6 +191,7 @@ export default function MenuLanguageSwitcher({
           ref={menuRef}
           role="menu"
           data-language-menu-surface=""
+          style={triggerVariant === "aube" ? { color: "var(--menu-dining-language-ink, #191c1b)" } : undefined}
           className={`absolute z-30 overflow-hidden border border-zinc-200 bg-white py-1 text-left ${menuPlacementClassName} ${menuAlignClassName} ${
             triggerVariant === "aube" ? "min-w-20 rounded-md shadow-none" : "min-w-36 rounded-lg shadow-xl"
           }`}

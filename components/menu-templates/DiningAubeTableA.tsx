@@ -1,12 +1,14 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 import CafeAWidgetBlock, { toCafeAWidgetPreview } from "./CafeAWidgetBlock";
+import { resolveMenuToolsInk } from "@/lib/menu-interaction-theme";
+import { resolvedMenuTextColors } from "@/lib/menu-text-colors";
 import { getMenuNoticeRows } from "@/lib/menu-notices";
 import { formatMenuMoney } from "@/lib/menu-ui-copy";
 import type { SupportedLocale } from "@/lib/locales";
 import { useMenuLocale, useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion, useReducedMotion, type PanInfo } from "motion/react";
 
 import MenuOrderAddButton from "@/components/public-menu/order-call/MenuOrderAddButton";
@@ -235,6 +237,7 @@ function CourseBlock({ course, priceOptions, onOpenImage }: { course: CourseWith
 export default function DiningAubeTableA({
   layoutVariant = "paged",
   themeVariant = "aube",
+  pages,
   ...data
 }: DiningAubeTableProps) {
   const t = useMenuText();
@@ -244,6 +247,7 @@ export default function DiningAubeTableA({
   const customTypography = getCustomTypographySettings(data.menuSite.settings, data.menuSite.page_settings);
   const typographySettings = mergeTypographySettings(data.menuSite.template_key, customTypography);
   const typographyStyle = getTypographyCssVariables(typographySettings, data.menuSite.template_key);
+  const categoryToolsInk = resolvedMenuTextColors(data.menuSite.page_settings).category ?? typographySettings.typography_roles.category.color ?? "#191c1b";
   const customColorRoles = getTypographyCustomColorRoles(typographySettings);
   const fontAssets = [
     getKoreanFontLoadAssets(typographySettings.korean_font_key),
@@ -251,8 +255,8 @@ export default function DiningAubeTableA({
     ...getTypographyRoleFontLoadAssets(typographySettings.typography_roles),
   ];
   const visiblePages = useMemo(
-    () => sortAubeTablePages(data.pages.filter((page) => page.visible !== false)),
-    [data.pages],
+    () => sortAubeTablePages(pages.filter((page) => page.visible !== false)),
+    [pages],
   );
   const coverEnabled = data.pageSettings.menu_cover_enabled !== false;
   const units = useMemo(() => buildAubeTableNavigationUnits(coverEnabled, visiblePages), [coverEnabled, visiblePages]);
@@ -336,6 +340,10 @@ export default function DiningAubeTableA({
   const pageColumns = normalizeAubeTableLayoutColumns(activePage?.layout_columns);
   const coverColor = normalizeAubeTableCoverBackgroundColor(data.pageSettings.multi_page_cover_background_color);
   const coverOpacity = normalizeAubeTableCoverBackgroundOpacity(data.pageSettings.multi_page_cover_background_opacity);
+  const toolsStyle = {
+    "--aube-cover-tools-ink": resolveMenuToolsInk({ preferred: categoryToolsInk, surface: coverColor, photo: data.pageSettings.cover_image_visible !== false && Boolean(data.menuSite.cover_image_url) }),
+    "--menu-dining-language-ink": resolveMenuToolsInk({ preferred: categoryToolsInk, surface: "#ffffff" }),
+  } as CSSProperties;
   const storeName = data.menuSite.restaurant_name || data.menuSite.business_name || data.menuSite.name;
   const coverTitle = data.menuSite.menu_cover_title || data.menuSite.restaurant_name || data.menuSite.name;
   const coverDescription = data.menuSite.menu_cover_description || data.menuSite.brand_description || data.menuSite.description;
@@ -417,13 +425,14 @@ export default function DiningAubeTableA({
       <div className="aube-table-viewport" data-preview-device={data.previewDevice}>
       <div
         className="aube-table-root cafe-a-typography"
-        style={typographyStyle}
+        style={{ ...typographyStyle, ...toolsStyle }}
         data-menu-text-colors={customColorRoles}
         data-aube-table=""
         data-layout={layoutVariant}
         data-item-layout={album ? "album" : undefined}
         data-spacing-contract="editorial-scroll"
         data-theme={themeVariant}
+        data-cover-active={activeUnit.type === "cover" ? "true" : undefined}
         data-cover-image-active={activeUnit.type === "cover" && data.pageSettings.cover_image_visible !== false && Boolean(data.menuSite.cover_image_url) ? "true" : undefined}
       >
       <div className="aube-table-language-control" data-aube-table-language-control="">
@@ -636,6 +645,9 @@ export default function DiningAubeTableA({
         .aube-table-sidebar-navigation, .aube-table-mobile-page-tabs { display: none; }
         .aube-table-root[data-layout="sidebar"] { --aube-sidebar-mobile-top: 0px; }
         .aube-table-language-control { position: fixed; z-index: 60; top: max(24px, env(safe-area-inset-top)); right: max(28px, env(safe-area-inset-right)); }
+        .aube-table-language-control { color: var(--menu-role-category-color, var(--aube-ink)); }
+        .aube-table-language-control :global([data-language-menu-trigger]) { color: inherit; }
+        .aube-table-root[data-cover-active="true"] .aube-table-language-control { color: var(--menu-dining-tools-ink, var(--aube-cover-tools-ink)); }
         .aube-table-root[data-layout="sidebar"] .aube-table-stage { cursor: default; }
         .aube-table-root[data-layout="sidebar"] .aube-table-stage:active { cursor: default; }
         .aube-table-cover { position: relative; min-height: var(--aube-viewport-height, 100dvh); display: grid; place-items: center; overflow: hidden; isolation: isolate; }

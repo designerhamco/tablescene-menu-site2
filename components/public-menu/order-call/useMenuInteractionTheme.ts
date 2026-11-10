@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, type CSSProperties, type RefObject } from "react";
 import { getRenderedMenuBrandElement } from "@/components/menu-templates/shared/rendered-menu-colors";
-import { resolveMenuInteractionTheme } from "@/lib/menu-interaction-theme";
+import { resolveMenuInteractionTheme, resolveMenuToolsInk } from "@/lib/menu-interaction-theme";
 
 export default function useMenuInteractionTheme(content: RefObject<HTMLDivElement | null>) {
   const [theme, setTheme] = useState(() => resolveMenuInteractionTheme({ category: "#191c1b", surfaces: ["#ffffff"] }));
@@ -46,12 +46,23 @@ export default function useMenuInteractionTheme(content: RefObject<HTMLDivElemen
       for (const panel of root.querySelectorAll<HTMLElement>("[data-native-column],[data-paged-column],.aube-table-page,.cafe-a-fixed-rail")) {
         if (visible(panel)) surfaces.push(getComputedStyle(panel).backgroundColor);
       }
-      const next = resolveMenuInteractionTheme({ category: categoryColor, surfaces, inks });
+      const palette = resolveMenuInteractionTheme({ category: categoryColor, surfaces, inks });
+      const coverActive = dining && root.dataset.coverActive === "true";
+      const cover = coverActive ? root.querySelector<HTMLElement>("[data-aube-table-cover]") : null;
+      const next = { ...palette, ...(dining ? {
+        "--menu-dining-language-ink": resolveMenuToolsInk({ preferred: palette["--menu-order-bg"], surface: "#ffffff" }),
+        "--menu-dining-tools-surface": coverActive ? "transparent" : style.backgroundColor,
+        "--menu-dining-tools-ink": resolveMenuToolsInk({
+          preferred: palette["--menu-order-bg"],
+          surface: cover ? getComputedStyle(cover).backgroundColor : style.backgroundColor,
+          photo: coverActive && root.dataset.coverImageActive === "true",
+        }),
+      } : {}) };
       setTheme(previous => JSON.stringify(previous) === JSON.stringify(next) ? previous : next);
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
     const observer = new MutationObserver(schedule);
-    observer.observe(container, { subtree: true, childList: true, attributes: true, attributeFilter: ["style", "class", "data-theme", "data-fit-presentation-state"] });
+    observer.observe(container, { subtree: true, childList: true, attributes: true, attributeFilter: ["style", "class", "data-theme", "data-fit-presentation-state", "data-cover-active", "data-cover-image-active"] });
     window.addEventListener("resize", schedule);
     schedule();
     return () => { observer.disconnect(); cancelAnimationFrame(frame); window.removeEventListener("resize", schedule); };
