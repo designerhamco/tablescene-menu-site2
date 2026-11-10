@@ -1,4 +1,5 @@
 "use client";
+import { measureMenuHeaderContentHeight, MENU_HEADER_CONTENT_SELECTOR } from "@/lib/menu-header-measurement";
 import { getRepresentativeRailGeometry } from "@/lib/representative-rail-geometry";
 import { getMenuDesignBackgrounds } from "@/lib/template-background-colors";
 import { useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
@@ -473,7 +474,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       const naturalRatio = logo.naturalWidth > 0 ? logo.naturalHeight / logo.naturalWidth : 0;
       const desiredLogoHeight = Math.min(slot.clientWidth * .75 * naturalRatio, innerHeight * .2, 12 * rem);
-      const sideHeight = Math.max(0, ...[...header.querySelectorAll<HTMLElement>("[data-scroll-header-copy]")].map(element => Math.max(element.scrollHeight, element.getBoundingClientRect().height)));
+      const sideHeight = measureMenuHeaderContentHeight(header);
       // Copy sets a real minimum; the compact title/logo budget must not crop it.
       board.style.setProperty("--cafe-a-header-copy-height", `${Math.ceil(sideHeight)}px`);
       const ratio = getCanvasHeaderRatio(height, 0, 0, 1, Math.max(desiredLogoHeight, sideHeight));
@@ -487,7 +488,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     const observer = new ResizeObserver(schedule);
     observer.observe(board);
     observer.observe(slot);
-    for (const element of header.querySelectorAll("[data-scroll-header-copy]")) observer.observe(element);
+    for (const element of header.querySelectorAll(MENU_HEADER_CONTENT_SELECTOR)) observer.observe(element);
     const copyObserver = new MutationObserver(schedule);
     copyObserver.observe(header, { childList: true, characterData: true, subtree: true });
     logo.addEventListener("load", schedule);
@@ -544,7 +545,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     titleClassName="cafe-a-store-title cafe-a-rail-title" logoClassName={styles.logo}
     layoutShell={topRow ? "brand_top_band" : centerColumn ? "brand_center_column" : "brand_left_rail"} />;
   const storeDescription = (data.menuSite.brand_description || data.menuSite.description)
-    ? <p data-representative-copy className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null;
+    ? <p data-representative-copy data-scroll-header-copy className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null;
   const showCover = data.pageSettings.menu_cover_enabled && featuredSlides.length > 0 && isMenuCoverVisibleOnDevice(data.pageSettings, device);
   const actionFooter = showCall || showOrder || call.terminalConnected ? (
             <footer className={styles.footer} data-scroll-actions aria-label={t("메뉴 이용")}>
@@ -604,9 +605,9 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       >
         <OnePageCallPalette />
         {topRow ? <header className={styles.topRow} data-basic-top-row data-basic-header-align={leftLogo ? "left" : undefined}>
-          {!leftLogo ? <div className={styles.topDescription} data-scroll-header-copy>{languageControl}{storeDescription}</div> : null}
+          {!leftLogo ? <div className={styles.topDescription}>{languageControl}{storeDescription}</div> : null}
           <div className={styles.topIdentity}>{storeIdentity}</div>
-          {leftLogo ? <div className={styles.topDescription} data-scroll-header-copy>{storeDescription}{languageControl}</div> : <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices data-scroll-header-copy>
+          {leftLogo ? <div className={styles.topDescription}>{storeDescription}{languageControl}</div> : <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices data-scroll-header-copy>
             {allNotices.map((n, i) => <p key={i}><ScriptAwareText text={n} /></p>)}
           </div>}
         </header> : null}

@@ -3,6 +3,7 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
 import { type MobileBrandTitleFit } from "@/lib/mobile-brand-title-fit";
 import { CANVAS_HEADER_MAX_RATIO, getCanvasBrandMeasurementTexts, getCanvasHeaderGapScale, getCanvasHeaderRatio, getCanvasBrandHeight, getCanvasBrandLimits, selectCanvasBrandTitleFit, type CanvasBrandSlotLayout } from "@/lib/canvas-brand-title-fit";
+import { measureMenuHeaderContentHeight, MENU_HEADER_CONTENT_SELECTOR } from "@/lib/menu-header-measurement";
 import type { OnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import ScriptAwareText from "./ScriptAwareText";
 
@@ -46,7 +47,7 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
       const header = container.closest("[data-cafe-a-topline-info-header], [data-basic-top-row]");
       // Header copy can already be capped by the current row height. Its
       // scroll height preserves the required wrapped-copy height for the next fit.
-      const sideHeight = Math.max(0, ...[...header?.querySelectorAll<HTMLElement>(".cafe-a-topline-description, .cafe-a-topline-notice-text, [data-scroll-header-copy]") ?? []].map((element) => Math.max(element.getBoundingClientRect().height, element.scrollHeight)));
+      const sideHeight = measureMenuHeaderContentHeight(header);
       const panelFrame = layoutShell === "brand_panel_flow" ? root.closest<HTMLElement>(".cafe-a-panel-intro") : null;
       // Panel brands use the common column target/height budget, bounded only
       // by the actual controls, supporting copy and featured item around them.
@@ -128,7 +129,7 @@ export default function CanvasBrandTitle({ title, className, fontSignature, devi
     if (board) categoryObserver.observe(board, { childList: true, subtree: true });
     const panelFrame = layoutShell === "brand_panel_flow" ? root.closest(".cafe-a-panel-intro") : null;
     for (const element of panelFrame?.querySelectorAll(".cafe-a-panel-controls, .cafe-a-featured-copy, .cafe-a-store-description") ?? []) observer.observe(element);
-    for (const element of board?.querySelectorAll(".cafe-a-topline-description, .cafe-a-topline-notice-text, [data-scroll-header-copy]") ?? []) observer.observe(element);
+    for (const element of board?.querySelectorAll(MENU_HEADER_CONTENT_SELECTOR) ?? []) observer.observe(element);
     // Capped legacy copy can change its scrollHeight without changing its box.
     // Watch content too, including edits that retain the same menu IDs/counts.
     const copyObserver = new MutationObserver(schedule);

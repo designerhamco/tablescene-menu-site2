@@ -5,9 +5,10 @@ export type DefaultDesignOptionKey = typeof DEFAULT_DESIGN_OPTION_KEYS[number];
 export type DefaultDesignOptions = Record<DefaultDesignOptionKey, boolean>;
 
 export function getDefaultDesignOptions(query: TemplatePreviewQuery): DefaultDesignOptions {
+  const design = Array.isArray(query.design) ? query.design[0] : query.design;
+  const coverEnabled = !["basic-top-row", "basic-top-row-left-logo", "basic-top-row-album"].includes(design ?? "");
   return Object.fromEntries(DEFAULT_DESIGN_OPTION_KEYS.map(key => {
     const value = Array.isArray(query[key]) ? query[key][0] : query[key];
-    const design = Array.isArray(query.design) ? query.design[0] : query.design;
-    return [key, value ? value !== "off" : !(key === "popupPreview" || key === "widgetsPreview" || key === "logoPreview" || key === "coverImagesPreview" || (key === "featuredPreview" && design === "basic-upper-left") || (key === "coverPreview" && design === "basic-top-row-album"))];
+    return [key, value ? value !== "off" : !(key === "popupPreview" || key === "widgetsPreview" || key === "logoPreview" || key === "coverImagesPreview" || (key === "featuredPreview" && design === "basic-upper-left") || (key === "coverPreview" && !coverEnabled))];
   })) as DefaultDesignOptions;
 }

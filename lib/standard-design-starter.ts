@@ -17,6 +17,7 @@ export function buildStandardDesignStarter(source: StarterPreset, designId?: str
   }
   const preset = structuredClone(source);
   const basic = design.layout.startsWith("basic-");
+  const topRowList = design.id === "basic-top-row" || design.id === "basic-top-row-left-logo";
   const copy = getStandardDesignCopy(design);
   const options = getDefaultDesignOptions({ design: design.id });
   preset.design_id = design.id;
@@ -44,9 +45,15 @@ export function buildStandardDesignStarter(source: StarterPreset, designId?: str
       category.description_visible = true;
       category.items = category.items.map(item => neutralItem(item, basic ? category.name === "BAKERY" : category.course_price != null || Boolean(category.course_price_label)));
       if (basic) {
-        const labels = design.itemLayout === "album" ? [] : category.name === "COFFEE" ? ["HOT", "ICE"] : category.name === "ADE" ? ["Small", "Tall", "Large"] : [];
+        const labels = design.itemLayout === "album" ? []
+          : category.name === "COFFEE" || (topRowList && ["SIGNATURE", "NON-COFFEE"].includes(category.name)) ? ["HOT", "ICE"]
+          : category.name === "ADE" && !topRowList ? ["Small", "Tall", "Large"] : [];
         category.price_columns = labels.map(label => ({ key: label.toLowerCase(), label, visible: true }));
-        for (const item of category.items) item.price_column_values = labels.map((label, i) => ({key: label.toLowerCase(), price: item.price + i * 500, visible: true}));
+        for (const item of category.items) {
+          item.price_column_values = labels.map((label, i) => ({key: label.toLowerCase(), price: item.price + i * 500, visible: true}));
+          if (topRowList && category.name === "ADE") item.price_note = "ICE ONLY";
+          if (topRowList && ["SIGNATURE", "NON-COFFEE"].includes(category.name)) item.price_note = null;
+        }
       }
     }
     page.direct_items = page.direct_items?.map(item => neutralItem(item, false));

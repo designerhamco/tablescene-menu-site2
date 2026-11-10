@@ -9,7 +9,7 @@ test("all default designs open with the logo disabled", () => {
     const options = getDefaultDesignOptions({ design: design.id });
     assert.equal(options.logoPreview, false);
     assert.equal(options.coverImagesPreview, false);
-    assert.equal(options.coverPreview, design.id !== "basic-top-row-album");
+    assert.equal(options.coverPreview, !["basic-top-row", "basic-top-row-left-logo", "basic-top-row-album"].includes(design.id));
     assert.equal(options.featuredPreview, design.id !== "basic-upper-left");
   }
 });
@@ -30,6 +30,10 @@ test("logo selection is independent of representative content and survives previ
   }
 });
 
-test("top-row album representative area can still be explicitly enabled", () => {
-  assert.equal(getDefaultDesignOptions({ design: "basic-top-row-album", coverPreview: "on" }).coverPreview, true);
+test("every top-row representative area defaults OFF and can still be explicitly enabled", () => {
+  for (const design of ["basic-top-row", "basic-top-row-left-logo", "basic-top-row-album"]) {
+    assert.equal(getDefaultDesignOptions({ design }).coverPreview, false);
+    assert.equal(getDefaultDesignOptions({ design, coverPreview: "on" }).coverPreview, true);
+    assert.equal(getDefaultDesignOptions({ design, coverPreview: "off" }).coverPreview, false);
+  }
 });
