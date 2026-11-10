@@ -1,3 +1,4 @@
+import { CORNER_PANEL_BACKGROUND } from "./one-page-panel-flow";
 import { getTemplateCapabilities } from "./template-capabilities";
 import { getAubeTableDefaultCoverBackgroundColor, isAubeTableTemplate } from "./aube-table";
 import { getFixedOnePageLayoutShell } from "./one-page-layout-shells";
@@ -34,7 +35,7 @@ export function readMenuSurfaceSettings(pageSettings: unknown): MenuSurfaceSetti
 }
 export function menuSurfaceDefaults(templateKey: string, settings: unknown = {}) {
   const raw = menuSurfaceRecord(settings), neutral = Boolean(getDefaultDesignReview(typeof raw.menu_design_id === "string" ? raw.menu_design_id : undefined, templateKey));
-  const page = neutral ? "#FFFFFF" : templateKey === "cafe_mocha_forest_a" ? MOCHA_FOREST_PANEL_COLORS.ivory : templateKey === "dining_aube_table_b" ? "#F7F2EA" : getTemplateDefaultBackgroundColor(templateKey);
+  const page = raw.menu_design_id === "basic-upper-left" ? CORNER_PANEL_BACKGROUND : neutral ? "#FFFFFF" : templateKey === "cafe_mocha_forest_a" ? MOCHA_FOREST_PANEL_COLORS.ivory : templateKey === "dining_aube_table_b" ? "#F7F2EA" : getTemplateDefaultBackgroundColor(templateKey);
   return { pageBackground: page, auxiliaryBackground: raw.menu_design_id === "basic-upper-left" ? "#FFFFFF" : templateKey === "cafe_mocha_forest_a" && !neutral ? MOCHA_FOREST_PANEL_COLORS.brown : templateKey === "cafe_round_focus_a" && !neutral ? page : null,
     coverBackground: neutral ? "#FFFFFF" : getAubeTableDefaultCoverBackgroundColor(templateKey), sidebarBackground: neutral ? "#F4F5F3" : "#401E24", coverDescriptionColor: neutral ? "#606561" : "#FFFFFF" };
 }

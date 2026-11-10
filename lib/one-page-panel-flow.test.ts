@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { getStarterPageSettings, getStarterPreset, resolveStarterFeaturedSlides } from "./menu-starter-presets";
 import { getFixedOnePageLayoutShell } from "./one-page-layout-shells";
 import { getOnePageTotalColumnCount } from "./one-page-fit-policy";
-import { PANEL_INTRO_KEY, PANEL_FEATURED_IMAGE, PANEL_MOBILE_FEATURED_IMAGE, resolvePanelTextInk, withPanelIntro } from "./one-page-panel-flow";
+import { CORNER_PANEL_BACKGROUND, PANEL_INTRO_KEY, PANEL_FEATURED_IMAGE, PANEL_MOBILE_FEATURED_IMAGE, resolvePanelTextInk, withPanelIntro } from "./one-page-panel-flow";
 import { getTemplateLayoutRules } from "./template-layout-rules";
 import { getTemplateCapabilities } from "./template-capabilities";
 import { usesOnePageProportionPolicy } from "./one-page-proportion-policy";
@@ -61,4 +61,11 @@ test("ONUE starter has one standalone image and no featured-product fallback", (
  const slides=resolveStarterFeaturedSlides(preset,items.map(item=>({id:item.key!,name:item.name})));
  assert.equal(slides[0].featured_item_id,null);
  assert.notEqual(preset.site.cover_image_url,items.find(item=>item.key==="scallop")?.image_url);
+});
+
+test("plain identity ink uses the actual panel surface, including dark saved backgrounds", () => {
+ assert.equal(resolvePanelTextInk("#FFFFFF", "#713F36", CORNER_PANEL_BACKGROUND), "#FFFFFF");
+ assert.equal(resolvePanelTextInk("#191C1B", "#713F36", CORNER_PANEL_BACKGROUND), "#FFFFFF");
+ assert.equal(resolvePanelTextInk("#FFF9EE", "#713F36", "#FFFFFF"), "#713F36");
+ assert.equal(resolvePanelTextInk("#FFF9EE", "#713F36", "#33221E"), "#FFF9EE");
 });

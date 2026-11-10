@@ -4798,6 +4798,8 @@ video {
 .cafe-a-typography {
   --basic-panel-workspace-gap: clamp(.5rem, .85vmin, .875rem);
   --basic-panel-action-inset: 1rem;
+  --basic-panel-hero-inset: clamp(1rem, 1.8vmin, 1.75rem);
+  --basic-panel-controls-size: 3rem;
 }
 
 /* Active Basic reading: one product-size policy for designer, neutral and album
@@ -5211,8 +5213,8 @@ video {
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] {
   --board-padding: var(--basic-panel-workspace-gap);
   --panel-content-inset: clamp(2.25rem, 4vmin, 3.25rem);
-  --panel-hero-inset: clamp(1rem, 1.8vmin, 1.75rem);
-  --panel-controls-row-size: 3rem;
+  --panel-hero-inset: var(--basic-panel-hero-inset);
+  --panel-controls-row-size: var(--basic-panel-controls-size);
   --cafe-a-category-separation-ratio: 2.6;
 }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro {
@@ -5330,7 +5332,7 @@ video {
   grid-template-rows: auto minmax(var(--panel-equal-gap), 1fr) auto minmax(var(--panel-equal-gap), 1fr) minmax(var(--panel-controls-row-size), auto);
   align-content: center;
 }
-.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro .cafe-a-cover-frame > .absolute:has(button[aria-current]) { right: auto; left: var(--panel-hero-inset); }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro [data-cafe-a-cover-indicators] { top: auto; right: auto; bottom: 1rem; left: 50%; transform: translateX(-50%); }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-intro .cafe-a-cover-frame {
   padding-top: env(safe-area-inset-top, 0px);
 }
@@ -6038,7 +6040,7 @@ video {
   --menu-call-bg: var(--menu-design-page-bg, var(--mocha-forest-ivory, #792839)) !important;
 }
 
-.cafe-a-typography:is([data-one-page-layout-shell="brand_panel_flow"], :has([data-upper-left-intro])) .cafe-a-mobile-call-dock {
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"]:is([data-one-page-layout-shell="brand_panel_flow"], :has([data-upper-left-intro])) .cafe-a-mobile-call-dock {
   inset-inline: 0; bottom: 0;
   padding: var(--basic-panel-action-inset);
   padding-bottom: calc(var(--basic-panel-action-inset) + env(safe-area-inset-bottom, 0px));
@@ -6047,3 +6049,10 @@ video {
 }
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"]:has([data-upper-left-intro]) [data-cafe-a-scroll-content] { background: var(--menu-design-aux-bg, #fff); }
+
+/* Panel top tools start at the safe top edge, like other mobile menus. */
+.cafe-a-typography[data-cafe-a-mobile-style="true"] {
+  --basic-panel-hero-inset: 1rem;
+  --basic-panel-controls-size: 3rem;
+}
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] { --basic-panel-controls-size: 3.5rem; }
