@@ -41,7 +41,7 @@ for(const c of selected){
   assert.equal(m.palette['--menu-order-bg'],'#225577');assert.equal(m.palette['--menu-call-circle-bg'],'#225577');assert.equal(m.palette['--menu-call-ink'],'#225577');assert.equal(m.palette['--menu-call-border'],'#225577');
   if(c.off&&c.device!=='mobile')assert.equal(await page.locator('[data-dining-floating-call]').count(),0);
   const nav=page.locator('.aube-table-pagination-dots button,.aube-table-sidebar-list button,.aube-table-mobile-page-tabs button').filter({visible:true});await nav.nth(1).click();await page.locator('.aube-table-page').waitFor();await page.waitForTimeout(200);m=await page.evaluate(read);
-  assert.equal(m.title.ink,'rgb(34, 85, 119)');assert.equal(m.category.ink,'rgb(165, 42, 75)');assert.equal(m.pageDescription.ink,'rgb(100, 114, 138)');assert.equal(m.categoryDescription.ink,m.coursePriced?'rgb(85, 107, 72)':'rgb(100, 114, 138)');assert.equal(m.product.ink,'rgb(38, 49, 58)');if(m.price)assert.equal(m.price.ink,'rgb(136, 102, 34)');if(m.priceNote)assert.equal(m.priceNote.ink,'rgb(136, 102, 34)');assert.equal(m.palette['--menu-order-bg'],'#225577');
+  assert.equal(m.title.ink,'rgb(34, 85, 119)');assert.equal(m.category.ink,'rgb(165, 42, 75)');assert.equal(m.pageDescription.ink,'rgb(100, 114, 138)');assert.equal(m.categoryDescription.ink,m.coursePriced?'rgb(85, 107, 72)':'rgb(100, 114, 138)');assert.equal(m.product.ink,'rgb(38, 49, 58)');if(m.price)assert.equal(m.price.ink,'rgb(136, 102, 34)');if(m.priceNote)assert.equal(m.priceNote.ink,'rgb(85, 107, 72)');assert.equal(m.palette['--menu-order-bg'],'#225577');
   assert.ok(m.tools.visible&&menuColorContrast(m.tools.ink,m.root.bg)>=4.5);
   if(c.device!=='mobile'){assert.ok(m.cart.visible);assert.equal(m.cartDisabled,Boolean(c.off||c.photo));if(c.off)assert.ok(!m.table);else assert.equal(m.table,'Table 1');}
   const geometry=await page.locator('[data-dining-menu-toolbar]').evaluateAll(es=>es.map(e=>[...e.querySelectorAll('[data-language-menu-trigger],[data-terminal-table-label],[data-dining-cart]')].filter(e=>e.getBoundingClientRect().width).map(e=>{const r=e.getBoundingClientRect();return {x:r.x,w:r.width};})));
@@ -65,7 +65,7 @@ if(!process.env.DINING_SEMANTIC_QA_PRODUCTION&&!process.env.DINING_SEMANTIC_QA_S
   try{
    await page.goto(`${base}/__qa/basic-design?editor=on&template=${key}`,{waitUntil:'networkidle'});await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(300);
    if(key.startsWith('dining_')){
-    for(const [label,hex]of [['페이지 제목','#225577'],['카테고리명','#A52A4B'],['페이지·카테고리 설명','#64728A'],['상품명','#26313A'],['가격·가격 안내','#886622']]){
+    for(const [label,hex]of [['페이지 제목','#225577'],['카테고리명','#A52A4B'],['페이지·카테고리 설명','#64728A'],['상품명','#26313A'],['가격','#886622']]){
      await page.getByRole('button',{name:`${label} 글자색 선택`,exact:true}).click();
      await page.getByRole('textbox',{name:`${label} 글자색 색상값`,exact:true}).fill(hex);
      await page.getByRole('button',{name:'적용',exact:true}).click();
@@ -74,7 +74,7 @@ if(!process.env.DINING_SEMANTIC_QA_PRODUCTION&&!process.env.DINING_SEMANTIC_QA_S
     assert.equal(values.text_color_pageTitle,'#225577');assert.equal(values.text_color_category,'#A52A4B');assert.equal(values.text_color_sectionDescription,'#64728A');assert.equal(values.text_color_product,'#26313A');assert.equal(values.text_color_price,'#886622');assert.equal(values.dining_text_colors_present,'1');
     await page.getByRole('button',{name:'페이지 제목 글자색 기본색 복원',exact:true}).click();await page.getByRole('button',{name:'적용',exact:true}).click();
     const reset=await page.locator('#fixture-design').evaluate(form=>Object.fromEntries(new FormData(form)));assert.equal(reset.text_color_pageTitle,'');assert.equal(reset.text_color_category,'#A52A4B');
-    await page.getByRole('button',{name:'가격·가격 안내 글자색 기본색 복원',exact:true}).click();await page.getByRole('button',{name:'적용',exact:true}).click();
+    await page.getByRole('button',{name:'가격 글자색 기본색 복원',exact:true}).click();await page.getByRole('button',{name:'적용',exact:true}).click();
     const priceReset=await page.locator('#fixture-design').evaluate(form=>Object.fromEntries(new FormData(form)));assert.equal(priceReset.text_color_price,'');assert.equal(priceReset.text_color_product,'#26313A');
    }else{assert.equal(await page.getByRole('button',{name:'페이지 제목 글자색 선택',exact:true}).count(),0);assert.equal(await page.locator('[name="text_color_pageTitle"]').count(),0);}
    passed.push({editor:key});console.log('PASS',JSON.stringify({editor:key}));

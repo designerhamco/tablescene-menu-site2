@@ -45,7 +45,7 @@ const samples: Record<MenuTextColorGroup, string[]> = {
   price: [".aube-table-item-price", ".aube-table-course-price"],
   product: [".cafe-a-menu-title", ".aube-table-item-heading h3", ".cafe-a-featured-title"],
   representative: [".cafe-a-store-description", "[data-cafe-a-store-description]", ".cafe-a-topline-description", ".aube-table-cover-description", ".aube-table-cover-notices"],
-  supporting: [".cafe-a-menu-description:not([data-cafe-a-category-description]):not(.cafe-a-store-description):not([data-cafe-a-store-description]):not(.cafe-a-time-sale-time-text)", ".cafe-a-menu-meta", ".aube-table-item-description", ".aube-table-item-secondary", ".aube-table-course[data-course-priced=\"true\"] .aube-table-course-description"],
+  supporting: [".cafe-a-menu-description:not([data-cafe-a-category-description]):not(.cafe-a-store-description):not([data-cafe-a-store-description]):not(.cafe-a-time-sale-time-text)", ".cafe-a-menu-meta", ".aube-table-item-description", ".aube-table-item-secondary", ".aube-table-course-price-description", ".aube-table-course[data-course-priced=\"true\"] .aube-table-course-description"],
   information: ["[data-cafe-a-footer-info] .cafe-a-description-text", ".cafe-a-topline-notice-text", ".cafe-a-round-focus-notice", ".cafe-a-mobile-notice-list .cafe-a-description-text", "[data-native-notices]", "[data-paged-notices]", "[data-cafe-a-widget-body]"],
 };
 

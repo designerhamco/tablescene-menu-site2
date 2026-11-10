@@ -16,10 +16,10 @@ export function getDiningTextColorDefaults(templateKey?: string | null, neutral 
     sectionDescription: templateKey === "dining_aube_table_b" ? "#756B68" : "#72757D" };
 }
 export const MENU_TEXT_COLOR_LABELS: Record<MenuTextColorGroup, string> = {
-  price: "가격·가격 안내", pageTitle: "페이지 제목", sectionDescription: "페이지·카테고리 설명", brand: "가게명", category: "카테고리명", product: "메뉴 기본정보", representative: "가게 설명·안내", supporting: "메뉴 설명", information: "하단 안내·위젯",
+  price: "가격", pageTitle: "페이지 제목", sectionDescription: "페이지·카테고리 설명", brand: "가게명", category: "카테고리명", product: "메뉴 기본정보", representative: "가게 설명·안내", supporting: "메뉴 설명", information: "하단 안내·위젯",
 };
 export const MENU_TEXT_COLOR_DESCRIPTIONS: Record<MenuTextColorGroup, string> = {
-  price: "코스 가격·메뉴 가격·가격 옵션·코스 가격 안내",
+  price: "코스 가격·메뉴 가격",
   pageTitle: "본문 페이지 제목·주문 및 호출 강조색",
   sectionDescription: "페이지 제목 아래 설명·카테고리 설명",
   brand: "가게명",
@@ -38,7 +38,7 @@ export function getMenuTextColorDescription(group: MenuTextColorGroup, dining = 
   if (dining && group === "information") return "위젯텍스트";
   if (dining && group === "category") return "카테고리명·카테고리 장식·가격 옵션명";
   if (dining && group === "product") return "상품명·코스/아이템 담기 아이콘";
-  if (dining && group === "supporting") return "보조언어명·상품설명·코스 설명";
+  if (dining && group === "supporting") return "보조언어명·상품설명·코스 설명·코스 가격 안내";
   if (dining && group === "sectionDescription") return "페이지 제목 아래 설명·일반 카테고리 설명";
   if (dining && group === "representative") return "커버설명·커버 안내사항";
   return MENU_TEXT_COLOR_DESCRIPTIONS[group];

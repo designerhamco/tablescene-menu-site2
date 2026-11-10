@@ -132,7 +132,7 @@ test("Dining price colors preserve legacy product ink and independently save, re
   assert.equal(resolvedMenuTextColors(legacy,true).price,"#123456");
   assert.equal(resolvedMenuTextColors(legacy,false).price,undefined);
   assert.equal(getMenuTextColorLabel("product",true),"상품명");
-  assert.equal(getMenuTextColorLabel("price",true),"가격·가격 안내");
+  assert.equal(getMenuTextColorLabel("price",true),"가격");
   assert.ok(!getMenuTextColorGroups(false).includes("price"));
   const design:Record<string,unknown>=structuredClone(legacy.design),form=new FormData();
   form.set("text_colors_present","1");form.set("dining_text_colors_present","1");

@@ -11,8 +11,8 @@ The catalog preview and menu editor share saved `design.textColors`. Basic keeps
 | 페이지·카테고리 설명 (Dining) | Page introductions and ordinary category descriptions |
 | 메뉴 기본정보 (Basic) | Product/featured name, selling price and price explanation |
 | 상품명 (Dining) | Item names and course/item add icons |
-| 가격·가격 안내 (Dining) | Course/menu/option prices and course price notes |
-| 메뉴 설명 | Secondary names, product descriptions and Dining priced-course descriptions |
+| 가격 (Dining) | Course/menu/option prices |
+| 메뉴 설명 | Secondary names, product descriptions, Dining priced-course descriptions and course price notes |
 | 하단 안내·위젯 | Menu-area notices and widget title/body |
 
 Missing groups preserve the original native/legacy role colors. Representative image/placeholder featured names and prices retain white, descriptions white at 82%; chips and sold-out attenuation remain independent. Price notes such as ICE ONLY follow product ink, while real option labels follow category ink. Legacy five-group settings preserve their combined notice/widget color until edited; new six-group edits use `textColorGroupsVersion: 2` so an absent/reset information color stays native. New color changes do not rewrite font roles, sizes, weights, spacing, customer content or image geometry. Old three-group preview URLs remain supported. The form validator rejects invalid colors before persistence, preserves unrelated Design JSON and supports older forms without the new controls. Both typography/design reset paths clear the new explicit overrides. There is no customer-data migration or schema change.
