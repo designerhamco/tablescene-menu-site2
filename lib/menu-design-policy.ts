@@ -6,6 +6,7 @@ export type MenuDesignAccess = "standard" | "all";
 export const MENU_LAYOUTS = {
   "basic-first-column": { service: "basic", label: "1열 고정형" },
   "basic-top-row": { service: "basic", label: "상단행 고정형" },
+  "basic-top-row-left-logo": { service: "basic", label: "상단행 고정형(왼쪽 로고)" },
   "basic-center-column": { service: "basic", label: "중앙열 고정형" },
   "basic-upper-left": { service: "basic", label: "좌상단 배치형" },
   "dining-full-page": { service: "dining", label: "전면 페이지형" },
@@ -29,6 +30,7 @@ export function canUseMenuDesign(service: MenuService, access: MenuDesignAccess,
 export const DEFAULT_DESIGN_REVIEWS = [
   { id: "basic-first-column", label: "베이직 기본 디자인", layout: "basic-first-column", kind: "standard", renderer: "cafe_design_a", itemLayout: "list" },
   { id: "basic-top-row", label: "베이직 기본 디자인", layout: "basic-top-row", kind: "standard", renderer: "cafe_design_a", itemLayout: "list" },
+  { id: "basic-top-row-left-logo", label: "베이직 기본 디자인", layout: "basic-top-row-left-logo", kind: "standard", renderer: "cafe_design_a", itemLayout: "list" },
   { id: "basic-center-column", label: "베이직 기본 디자인", layout: "basic-center-column", kind: "standard", renderer: "cafe_design_a", itemLayout: "list" },
   { id: "basic-upper-left", label: "베이직 기본 디자인", layout: "basic-upper-left", kind: "standard", renderer: "cafe_design_a", itemLayout: "list" },
   { id: "dining-full-page", label: "다이닝 기본 디자인", layout: "dining-full-page", kind: "standard", renderer: "dining_aube_table_a", itemLayout: "list" },
