@@ -53,20 +53,22 @@ export default async function OrderPointManagementPage({ params, kind = "table" 
   return (
     <StoreOperationsShell sites={operationsContext.sites} selectedSite={selectedSite} activeSection={section}>
       <div className="site-stack-content">
+        {data ? (
+          <MenuTableManager key={menuId} menuSiteName={selectedSite.name} menuSiteId={data.menuSite.id} tables={data.tables.map(({ id, label, status, kind, policy, policyAvailable }) => ({ id, label, status, kind, policy, policyAvailable }))}
+            removeFloorRoomAction={removeFloorRoomAction.bind(null,menuId)} saveFloorPlanAction={saveFloorPlanAction.bind(null, menuId)} floorPlan={floorPlan ?? undefined} archivedTables={data.archivedTables} pointSettingsAvailable={data.pointSettingsAvailable} canDelete={selectedSite.isOwner} canConfigure={selectedSite.isOwner} published={data.menuSite.status === "published"} deviceSetup={deviceState} connectionState={connectionState} />
+        ) : (
+          <div className="site-stack-content">
         <header className="site-stack-title">
           <p className="type-label text-zinc-500">{selectedSite.name}</p>
           <h2 className="type-subsection-title">{noun} 관리</h2>
         </header>
-        {data ? (
-          <MenuTableManager key={menuId} menuSiteId={data.menuSite.id} tables={data.tables.map(({ id, label, status, kind, policy, policyAvailable }) => ({ id, label, status, kind, policy, policyAvailable }))}
-            removeFloorRoomAction={removeFloorRoomAction.bind(null,menuId)} saveFloorPlanAction={saveFloorPlanAction.bind(null, menuId)} floorPlan={floorPlan ?? undefined} archivedTables={data.archivedTables} pointSettingsAvailable={data.pointSettingsAvailable} canDelete={selectedSite.isOwner} canConfigure={selectedSite.isOwner} published={data.menuSite.status === "published"} deviceSetup={deviceState} connectionState={connectionState} />
-        ) : (
           <ContentPanel>
             <div className="site-stack-title">
             <h3 className="type-subsection-title">{noun} 관리를 사용할 수 없습니다</h3>
             <p className="type-body-sm site-copy-muted">{noun} 관리는 유효한 베이직·다이닝 이용권에서 사용할 수 있습니다. 이용권이 유효한데도 이 안내가 보이면 잠시 후 다시 시도해 주세요.</p>
             </div>
           </ContentPanel>
+          </div>
         )}
       </div>
     </StoreOperationsShell>

@@ -887,3 +887,13 @@
 
 
 .site-document-tabs.site-tab-size-md { --site-tab-font: var(--site-type-16); }
+
+/* Independent section pills keep the creation action outside the scrolling tablist. */
+.site-pill-tabs-header { display:flex; min-width:0; align-items:center; gap:var(--site-space-copy); }
+.site-pill-tabs-header > .site-button { flex:none; }
+.site-pill-tabs { display:flex; min-width:0; max-width:100%; gap:var(--site-space-copy); overflow-x:auto; scrollbar-width:none; }
+.site-pill-tabs::-webkit-scrollbar { display:none; }
+.site-pill-tabs > .site-pill-tab { flex:none; min-height:var(--site-tab-height); padding-inline:var(--site-tab-padding); border:1px solid var(--ui-border); border-radius:var(--ui-radius-control); background:var(--ui-surface); color:var(--ui-text); font-size:var(--site-tab-font); }
+.site-pill-tabs > .site-pill-tab[data-state="active"] { border-color:var(--ui-text); background:var(--ui-text); color:var(--ui-surface); }
+.site-pill-tabs > .site-pill-tab:focus-visible { outline-offset:-3px; }
+.site-pill-tab > svg { width:1rem; height:1rem; }

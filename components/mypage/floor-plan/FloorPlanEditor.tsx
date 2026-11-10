@@ -7,13 +7,14 @@ import { useEffect, useMemo, useId, useRef, useState, useTransition, type Pointe
 import { Armchair, Monitor, LayoutGrid, Plus, Save, X, RotateCcw } from "lucide-react";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import RoomRemovalDialog from "./RoomRemovalDialog";
+import RoomNameForm from "./RoomNameForm";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/app/components/ui/tooltip";
 import { FieldActionRow } from "@/app/components/ui/field-action-row";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { Button } from "@/app/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent, TabsAction } from "@/app/components/ui/tabs";
-import { InlineNameEditor, type InlineNameResult } from "@/app/components/ui/inline-name-editor";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/app/components/ui/tabs";
+import { type InlineNameResult } from "@/app/components/ui/inline-name-editor";
 import { LoadingState } from "@/app/components/ui/loading-state";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { sameFloorDocument, FLOOR_GEOMETRY, readableFloorDocument, canPlaceFloorPoint, floorRectsOverlap, mergeSavedFloorRoom, floorMemberships, removeFloorPlacement, moveFloorPoint, resolveFloorRoomRemoval, placeNewFloorPoints, constrainFloorRect, normalizeFloorDocument, renameSavedFloorRoom, FLOOR_PLAN_DISPLAY_ASPECT_RATIO, retainRegisteredFloorPoints, type FloorDocument, type FloorPlacement, type FloorPlanSnapshot, type FloorPoint, type FloorSaveResult, type FloorRoomRemoval, type FloorRoomRemovalResult, type FloorRoom } from "@/lib/menu-floor-plan";
@@ -43,6 +44,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   const [layoutPending, startTransition] = useTransition();
   const [renamePending, setRenamePending] = useState(false);
   const [roomAddPending, setRoomAddPending] = useState(false);
+  const [focusRoomNameId,setFocusRoomNameId]=useState("");
   const pending = layoutPending || renamePending || registrationPending;
   const gesture = useRef<Gesture | null>(null), boardRef = useRef<HTMLDivElement>(null), roomListRef = useRef<HTMLDivElement>(null);
   const roomAddRef = useRef<HTMLButtonElement>(null);
@@ -73,7 +75,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
 
   useEffect(() => {
     const list = roomListRef.current;
-    const item = list?.querySelector('[data-state="active"]')?.parentElement;
+    const item = list?.querySelector('[data-state="active"]');
     if (!list || !item) return;
     const bounds = list.getBoundingClientRect(), target = item.getBoundingClientRect();
     if (target.left < bounds.left || target.width > bounds.width) list.scrollLeft += target.left - bounds.left;
@@ -166,7 +168,7 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
         const savedRoom = result.document.rooms.find(room => room.id === next.id);
         if (!savedRoom) { setFeedback({error:true,message:"룸 저장 결과를 확인하지 못했습니다. 새로고침 후 확인해 주세요."}); return; }
         setDraft(previous => mergeSavedFloorRoom(previous, savedRoom));
-        setRoomId(next.id); setSelectedId(""); setRemoveRoom(false);
+        setRoomId(next.id); setFocusRoomNameId(next.id); setSelectedId(""); setRemoveRoom(false);
         setFeedback({ error: false, message: "룸을 추가했습니다." });
       } catch { setFeedback({ error: true, message: "룸을 추가하지 못했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요." }); } finally { setRoomAddPending(false); }
     });
@@ -241,18 +243,19 @@ export default function FloorPlanEditor({ initial, points, onSave, registration,
   const roomAction=<RoomRemovalDialog open={removeRoom} onOpenChange={open=>{setRemoveError(null);setRemoveRoom(open);}} room={room} rooms={document.rooms} points={roomPoints} pending={pending} disabled={pending||!room||!initial.available} dirty={dirty&&saved.document.rooms.some(item=>item.id===room?.id)} saved={saved.document.rooms.some(item=>item.id===room?.id)} error={removeError} onSave={save} onRemove={removeRoomWithPoints} returnFocusRef={roomAddRef}/>;
   const hasSpace=Boolean(room&&document.placements.length<200&&canPlaceFloorPoint(document,room.id));
   const canRegister = initial.available && hasSpace && Boolean(room && saved.document.rooms.some(savedRoom => savedRoom.id === room.id));
-  const registrationContent = registration?.({ canRegister, roomId: room?.id ?? "", pending, blockedReason: !hasSpace&&room ? "룸에 빈 배치 공간이 부족합니다. 영역을 줄이거나 다른 룸을 선택해 주세요." : !initial.available ? "룸 정보를 확인할 수 없어 등록할 수 없습니다. 새로고침 후 다시 확인해 주세요." : document.rooms.length ? "룸을 먼저 저장하면 테이블·키오스크를 만들 수 있습니다." : "룸을 먼저 추가하면 테이블·키오스크를 만들 수 있습니다." });
+  const registrationContent = registration?.({ canRegister, roomId: room?.id ?? "", pending, blockedReason: !hasSpace&&room ? "룸에 빈 배치 공간이 부족합니다. 다른 룸을 선택해 주세요." : !initial.available ? "룸 정보를 확인할 수 없어 등록할 수 없습니다. 새로고침 후 다시 확인해 주세요." : document.rooms.length ? "룸을 먼저 저장하면 테이블·키오스크를 만들 수 있습니다." : "룸을 먼저 추가하면 테이블·키오스크를 만들 수 있습니다." });
   const resetAction = <Tooltip><TooltipTrigger asChild><Button type="button" variant="outline" size="icon" disabled={pending || !dirty} onClick={() => { setDraft(saved.document); onDiscardEdits?.(); setSelectedId(""); setRemoveRoom(false); }} aria-label="처음으로 되돌리기" title="마지막으로 저장한 배치로 되돌립니다"><RotateCcw aria-hidden="true" /></Button></TooltipTrigger><TooltipContent>마지막으로 저장한 배치로 되돌리기</TooltipContent></Tooltip>;
   const saveAction = <div className="site-field-stack">{dirty ? <span className="type-footnote site-copy-muted">저장하지 않은 변경사항이 있습니다.</span> : null}<button type="button" className="site-button site-button-primary" onClick={save} disabled={pending || !dirty}><Save aria-hidden="true" />{pending ? "저장 중" : view === "list" ? "저장" : "배치도 저장"}</button></div>;
-  if (!initial.available) return <div className="site-stack-group">{registrationContent}{view === "list" ? listContent() : null}<ContentPanel surface="notice" density="compact"><p className="type-body-sm">{initial.unavailableMessage ?? "룸 정보를 확인할 수 없습니다. 리스트형에서는 기존 테이블·키오스크를 계속 관리할 수 있습니다."}</p></ContentPanel></div>;
-  return <Tabs purpose="section" appearance="document" value={room?.id ?? ""} onValueChange={value => { setRoomId(value); setSelectedId(""); setRemoveRoom(false); }}>
+  const registrationPanel=<ContentPanel surface="muted" density="controls">{room?<RoomNameForm room={room} rooms={document.rooms} pending={pending} saving={renamePending} focusRoomId={focusRoomNameId} onSave={renameRoom} deleteAction={roomAction}/>:null}{room&&registrationContent?<div className="site-content-divider">{registrationContent}</div>:registrationContent}</ContentPanel>;
+  if (!initial.available) return <div className="site-stack-group">{registrationPanel}{view === "list" ? listContent() : null}<ContentPanel surface="notice" density="compact"><p className="type-body-sm">{initial.unavailableMessage ?? "룸 정보를 확인할 수 없습니다. 리스트형에서는 기존 테이블·키오스크를 계속 관리할 수 있습니다."}</p></ContentPanel></div>;
+  return <Tabs purpose="section" appearance="pills" value={room?.id ?? ""} onValueChange={value => { setRoomId(value); setSelectedId(""); setRemoveRoom(false); }}>
     <div className="site-stack-group">
-      <TabsList ref={roomListRef} size="sm" aria-label="매장 공간" tools={roomAction} action={<TabsAction ref={roomAddRef} onClick={addRoom} disabled={pending || document.rooms.length >= 30} aria-busy={roomAddPending}>{roomAddPending ? <LoadingSpinner /> : <Plus aria-hidden="true" />}{roomAddPending ? "룸 추가 중" : "룸 추가"}</TabsAction>}>
-        {document.rooms.map(r => <TabsTrigger key={r.id} value={r.id} disabled={layoutPending} accessory={<InlineNameEditor protectNavigation iconOnly value={r.name} label={`${r.name || "룸"} 이름 수정`} disabled={pending} onSave={name => renameRoom(r.id, name)} />}>{r.name || "이름 없는 룸"}</TabsTrigger>)}
+      <TabsList ref={roomListRef} size="sm" aria-label="매장 공간" action={<Tooltip><TooltipTrigger asChild><Button ref={roomAddRef} type="button" variant="outline" shape="pill" size="icon" onClick={addRoom} disabled={pending || document.rooms.length >= 30} aria-label={roomAddPending?"룸 추가 중":"룸 추가"} aria-busy={roomAddPending}>{roomAddPending ? <LoadingSpinner /> : <Plus aria-hidden="true" />}</Button></TooltipTrigger><TooltipContent>룸 추가</TooltipContent></Tooltip>}>
+        {document.rooms.map(r => <TabsTrigger key={r.id} value={r.id} disabled={pending} aria-busy={renamePending&&room?.id===r.id}>{r.name || "이름 없는 룸"}{renamePending&&room?.id===r.id?<LoadingSpinner/>:null}</TabsTrigger>)}
       </TabsList>
     <TabsContent value={room?.id ?? ""}>
     <div className="site-stack-group">
-    {registrationContent}
+    {registrationPanel}
     {view === "list" ? <>
       {listContent()}
       <div className="site-action-row" data-distribution="end">{saveAction}</div>

@@ -330,3 +330,11 @@ test("등록은 룸이 있을 때만 활성화하고 취소를 제공하지 않�
   }
 
 });
+
+
+test("룸 선택의 pill 탭은 고정 추가 행동과 선택 가능한 룸을 분리한다",async()=>{
+ const {Tabs,TabsList,TabsTrigger}=await import("../app/components/ui/tabs");
+ const html=renderToStaticMarkup(createElement(Tabs,{purpose:"section",appearance:"pills",defaultValue:"main"},createElement(TabsList,{"aria-label":"룸 선택",action:createElement("button",{type:"button","aria-label":"룸 추가"},"+")},createElement(TabsTrigger,{value:"main"},"메인"),createElement(TabsTrigger,{value:"terrace"},"테라스"))));
+ assert.match(html,/site-pill-tabs-header/);assert.ok(html.indexOf('aria-label="룸 추가"')<html.indexOf('role="tablist"'));
+ assert.equal((html.match(/role="tab"/g)??[]).length,2);assert.match(html,/aria-selected="true"/);assert.doesNotMatch(html,/site-document-tab/);
+});
