@@ -119,7 +119,7 @@ export default function OperationsHistoryViews({
             ) : (
               <Tabs
                 purpose="section"
-                appearance="pills"
+                appearance="rooms"
                 value={room.id}
                 onValueChange={setRoomId}
               >

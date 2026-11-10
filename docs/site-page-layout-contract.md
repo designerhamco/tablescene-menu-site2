@@ -47,7 +47,7 @@
 제목만 기본으로 표시하고 필요한 조건은 공통 도움말에 둡니다. 사용자 요청·박스 내부·상태·데이터·필수 주의사항의 보존 기준과 `descriptionPurpose` 계약은 [디자인 시스템](site-design-system.md#설명도움말-최소화-2026-11-06)을 따릅니다. 코드 전수 점검 범위는 [설명 정리 기록](site-copy-audit.md)에 기록합니다.
 
 
-룸처럼 독립 선택 버튼이 필요한 영역은 `Tabs purpose="section" appearance="pills"`를 사용한다. 왼쪽 고정 추가 행동과 스크롤되는 룸 선택, 조건부 오른쪽 페이드와 룸 관리 패널의 최신 계약은 [디자인 시스템의 룸 선택·관리 도구](site-design-system.md#룸-선택관리-도구-2026-11-10-이전-룸-탭-내-이름-편집오른쪽-삭제-배치-대체)를 따른다. `site-content-heading-row data-layout="toolbar"`는 제목과 보기 선택을 모바일에서도 한 행에 두는 공통 변형이다.
+룸처럼 독립 선택 버튼이 필요한 영역은 `Tabs purpose="section" appearance="rooms"`를 사용한다. 왼쪽 고정 추가 행동과 스크롤되는 룸 선택, 조건부 오른쪽 페이드와 룸 관리 패널의 최신 계약은 [디자인 시스템의 룸 선택·관리 도구](site-design-system.md#룸-선택관리-도구-2026-11-10-이전-룸-탭-내-이름-편집오른쪽-삭제-배치-대체)를 따른다. `site-content-heading-row data-layout="toolbar"`는 제목과 보기 선택을 모바일에서도 한 행에 두는 공통 변형이다.
 
 
 운영 메뉴의 제목은 `SectionHeader`의 `type-section-title`로 통일한다. 현재 선택 메뉴판명·소개 문구를 본문 제목에 반복하지 않고, 선택기가 있는 경우 같은 헤더 오른쪽의 공통 `ViewStyleSelect`를 쓴다. 필수 조건은 기존 InfoTooltip, 실제 기간·개수·오류는 원래 위치를 유지한다.

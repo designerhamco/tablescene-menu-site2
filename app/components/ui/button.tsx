@@ -24,6 +24,7 @@ const buttonVariants = cva(
       },
       shape: {
         pill: "site-button-pill",
+        rounded: "site-button-rounded",
       },
       size: {
         default: "",

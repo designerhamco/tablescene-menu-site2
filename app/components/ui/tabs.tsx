@@ -6,7 +6,7 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { cn } from "./utils";
 
 export type TabsSize = "sm" | "md" | "lg";
-export type TabsVariant = "outline" | "underline" | "area" | "page" | "document" | "pills";
+export type TabsVariant = "outline" | "underline" | "area" | "page" | "document" | "rooms";
 export type TabsPurpose = "page" | "section" | "category" | "state";
 
 const purposeVariant: Record<TabsPurpose, TabsVariant> = {
@@ -24,7 +24,7 @@ function Tabs({
   purpose,
   appearance,
   ...props
-}: React.ComponentProps<typeof TabsPrimitive.Root> & ({ purpose: "section"; appearance?: "document" | "pills"; variant?: never } | { purpose: Exclude<TabsPurpose, "section">; appearance?: never; variant?: never } | { purpose?: never; appearance?: never; variant: TabsVariant })) {
+}: React.ComponentProps<typeof TabsPrimitive.Root> & ({ purpose: "section"; appearance?: "document" | "rooms"; variant?: never } | { purpose: Exclude<TabsPurpose, "section">; appearance?: never; variant?: never } | { purpose?: never; appearance?: never; variant: TabsVariant })) {
   const resolvedVariant = appearance ?? variant ?? (purpose ? purposeVariant[purpose] : "underline");
   return (
     <TabsPurposeContext.Provider value={purpose}>
@@ -62,7 +62,7 @@ function TabsList({
   const [overflowRight,setOverflowRight]=React.useState(false);
   React.useEffect(()=>{
     const node=scrollRef.current;
-    if(variant!=="pills"||!node)return;
+    if(variant!=="rooms"||!node)return;
     let active=true;
     const measure=()=>{if(active)setOverflowRight(node.clientWidth>0&&node.scrollWidth-node.scrollLeft>node.clientWidth+1);};
     measure();const observer=new ResizeObserver(measure);observer.observe(node);
@@ -72,16 +72,16 @@ function TabsList({
   },[variant,children]);
   const list = <TabsPrimitive.List
     ref={node=>{scrollRef.current=node;if(typeof ref==="function")ref(node);else if(ref)ref.current=node;}}
-    data-overflow-right={variant==="pills"&&overflowRight||undefined}
+    data-overflow-right={variant==="rooms"&&overflowRight||undefined}
     data-slot="tabs-list" data-variant={variant} data-purpose={purpose}
     data-size={size === "default" ? "md" : size}
     className={cn(
-      variant === "pills" ? "site-pill-tabs" : variant === "document" ? "site-document-tabs" : variant === "area" ? "site-area-tabs" : variant === "underline" ? "site-topic-tabs" : "site-tabs",
+      variant === "rooms" ? "site-room-tabs" : variant === "document" ? "site-document-tabs" : variant === "area" ? "site-area-tabs" : variant === "underline" ? "site-topic-tabs" : "site-tabs",
       variant === "outline" && "site-tabs-outline", variant === "page" && "site-page-tabs",
       distribution === "equal" && (variant === "area" ? "site-area-tabs-even" : variant !== "underline" && variant !== "document" && "site-tabs-even"),
       `site-tab-size-${size === "default" ? "md" : size}`, className,
     )} {...props}>{children}</TabsPrimitive.List>;
-  if(variant==="pills")return <div className="site-pill-tabs-header">{action}{list}</div>;
+  if(variant==="rooms")return <div className="site-room-tabs-header">{action}{list}</div>;
   return variant === "document" ? <div className={`site-document-tabs-header site-tab-size-${size === "default" ? "md" : size}`}>
     <div className="site-document-tabs-bar">{React.Children.count(children) ? list : null}{action}</div>
     {tools ? <div className="site-document-tabs-tools">{tools}</div> : null}
@@ -102,7 +102,7 @@ function TabsTrigger({
       data-slot="tabs-trigger"
       data-purpose={purpose}
       className={cn(
-        variant === "pills" ? "site-tab site-pill-tab" : variant === "document" ? "site-document-tab" : variant === "area" ? "site-area-tab" : variant === "underline" ? "site-topic-tab" : "site-tab",
+        variant === "rooms" ? "site-tab site-room-tab" : variant === "document" ? "site-document-tab" : variant === "area" ? "site-area-tab" : variant === "underline" ? "site-topic-tab" : "site-tab",
         "gap-1.5",
         className,
       )}

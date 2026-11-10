@@ -78,8 +78,8 @@ export default function SiteComponentGallery() {
         {choices.map(({key,label}) => <TabsTrigger key={key} value={key}>{label}</TabsTrigger>)}
       </TabsList>{choices.map(({key,description}) => <TabsContent key={key} value={key} className="type-body text-zinc-600">{description}</TabsContent>)}</Tabs>
     </Examples>
-    <Examples title="업종 선택 버튼" description="업종에는 카테고리를 바로 이해할 수 있는 단색 아이콘과 짧은 이름을 사용합니다.">
-      <ChoiceGroup><ChoiceTile size="compact" icon={<CatalogIndustryIcon industry="cafe_bakery" />} label="카페·베이커리" selected={industry} onClick={()=>setIndustry(current=>!current)} /><ChoiceTile size="compact" icon={<CatalogIndustryIcon industry="restaurant_dining" />} label="준비 중인 업종" disabled /></ChoiceGroup>
+    <Examples title="업종 선택 버튼" description="업종 필터는 완전히 둥근 캡슐형으로 구분합니다. 단색 아이콘·짧은 이름과 기존 선택·포커스·비활성 상태를 유지합니다.">
+      <ChoiceGroup><ChoiceTile purpose="filter" size="compact" icon={<CatalogIndustryIcon industry="cafe_bakery" />} label="카페·베이커리" selected={industry} onClick={()=>setIndustry(current=>!current)} /><ChoiceTile purpose="filter" size="compact" icon={<CatalogIndustryIcon industry="restaurant_dining" />} label="준비 중인 업종" disabled /></ChoiceGroup>
     </Examples>
     <Examples title="영역 안의 목록 전환" description="디자인·기본 템플릿처럼 하나의 목록 영역 안에서 하위 종류를 바꿉니다. 연결형 사각 탭의 검정 선택 면으로 현재 영역을 표시합니다.">
       <Tabs purpose="section" defaultValue="designer"><TabsList size="sm" aria-label="영역 내부 템플릿 탭 예시">
