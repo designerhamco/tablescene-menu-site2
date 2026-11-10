@@ -26,7 +26,7 @@ const measure=()=>{
  topNotes:query('[data-cafe-a-topline-mobile-notices],.cafe-a-topline-notice-text,[data-basic-top-row] [data-scroll-header-copy]').length,
  menu:menu?{...rect(menu),scrollHeight:menu.scrollHeight,clientHeight:menu.clientHeight,scrollTop:menu.scrollTop}:null,
  dining:dining.map(e=>e.hasAttribute('data-dining-widget')?'widget':'category'),courseItems:dining.filter(e=>e.hasAttribute('data-aube-table-course')).map(e=>e.querySelectorAll('.aube-table-item').length),innerWidgets:query('[data-aube-table-course] [data-dining-widget]').length,
- cover:rect(cover),coverNotes:rect(coverNotes),coverBottomInset:parseFloat(cover?.querySelector('.aube-table-cover-bottom')?getComputedStyle(cover.querySelector('.aube-table-cover-bottom')).bottom:'0'),mobileDock:rect(document.querySelector('[data-table-mobile-dock]')),floatingCall:rect(document.querySelector('[data-dining-floating-call]')),coverColumns:children.map(rect),coverInk:coverNotes?getComputedStyle(coverNotes).color:null,
+ cover:rect(cover),coverNotes:rect(coverNotes),coverBottomInset:parseFloat(cover?.querySelector('.aube-table-cover-bottom')?getComputedStyle(cover.querySelector('.aube-table-cover-bottom')).bottom:'0'),mobileDock:rect(document.querySelector('[data-table-mobile-dock]')),floatingCall:rect(document.querySelector('[data-dining-floating-call]')),coverColumns:children.map(rect),coverInk:coverNotes?getComputedStyle(coverNotes).color:null,coverAlignment:coverNotes?getComputedStyle(coverNotes).textAlign:null,
  coverCopy:rect(cover?.querySelector('.aube-table-cover-copy h1')),coverDescription:rect(cover?.querySelector('.aube-table-cover-description')),nav:rect(nav),navPosition:nav?getComputedStyle(nav).position:null,navBottom:nav?parseFloat(getComputedStyle(nav).bottom):null,coverOverflow:children.some(e=>e.scrollWidth>e.clientWidth+1)};
 };
 async function run(c){
@@ -49,7 +49,11 @@ async function run(c){
    if(m.coverNotes){
     assert.ok(Math.abs(m.cover.bottom-m.coverNotes.bottom-m.coverBottomInset)<2,'notices stay at cover inner bottom');
     const widths=m.coverColumns.map(r=>r.width);assert.ok(Math.max(...widths)-Math.min(...widths)<1,'equal notice columns');
-    assert.ok(m.coverColumns.every(r=>Math.abs(r.bottom-m.coverNotes.bottom)<1),'one row with aligned bottom edges');
+    if(c.device==='mobile'){
+     assert.equal(m.coverAlignment,'center','mobile notice copy remains centered');
+     assert.ok(m.coverColumns.every(r=>Math.abs(r.left-m.coverNotes.left)<1&&Math.abs(r.right-m.coverNotes.right)<1),'mobile notices fill one centered column');
+     assert.ok(m.coverColumns.every((r,i)=>i===0||r.top>=m.coverColumns[i-1].bottom-1),'mobile notices stack in registered order');
+    }else assert.ok(m.coverColumns.every(r=>Math.abs(r.bottom-m.coverNotes.bottom)<1),'PC/tablet notices remain one horizontal row');
     assert.ok(!m.coverOverflow,'long notices wrap without horizontal clipping');
     const copy=m.coverDescription||m.coverCopy;
     assert.ok(copy.bottom<m.coverNotes.top-4,'cover identity does not overlap notices');
@@ -93,7 +97,7 @@ for(const design of ['dining-full-page','dining-sidebar','dining-full-page-album
  cases.push({key:design.includes('sidebar')?'dining_aube_table_b':'dining_aube_table_a',design,device,width,height,cover:true,notices:3,coverImage:'off',longNotice:true});
 }
 if(process.env.WIDGET_QA_CASES==='extra'){cases.length=0;for(const key of keys){for(const [device,width,height] of [devices[0],devices[1]])cases.push({key,device,width,height,call:true});for(const width of [320,430])cases.push({key,device:'mobile',width,height:844,call:true});}for(const key of ['dining_aube_table_a','dining_aube_table_b'])for(const [device,width,height] of devices)cases.push({key,device,width,height,cover:true,notices:3,call:true,coverImage:'off',longNotice:true});}
-const selected=process.env.WIDGET_QA_CASES==='cover-edge'?[...cases.filter(c=>c.cover&&c.design).map(c=>({...c,call:true})),...['dining_aube_table_a','dining_aube_table_b'].flatMap(key=>devices.map(([device,width,height])=>({key,device,width,height,cover:true,notices:3,call:true,coverImage:'off',longNotice:true})))]:process.env.WIDGET_QA_CASES==='covers'?cases.filter(c=>c.cover&&!c.design):process.env.WIDGET_QA_CASES==='designs'?cases.filter(c=>c.design):process.env.WIDGET_QA_CASES==='smoke'?[cases[1],cases[4],cases[13],cases.find(c=>c.cover&&c.device==='mobile'&&c.notices===3)]:process.env.WIDGET_QA_CASES==='retry'?JSON.parse(await fs.readFile(`${output}/results.json`,'utf8')).failures.map(({error,...c})=>{void error;return c;}):cases;
+const selected=process.env.WIDGET_QA_CASES==='cover-edge'?[...cases.filter(c=>c.cover&&c.design).map(c=>({...c,call:true})),...['dining_aube_table_a','dining_aube_table_b'].flatMap(key=>devices.map(([device,width,height])=>({key,device,width,height,cover:true,notices:3,call:true,coverImage:'off',longNotice:true}))),...['dining_aube_table_a','dining_aube_table_b'].flatMap(key=>[320,430].map(width=>({key,device:'mobile',width,height:844,cover:true,notices:3,call:true,longNotice:true})))]:process.env.WIDGET_QA_CASES==='covers'?cases.filter(c=>c.cover&&!c.design):process.env.WIDGET_QA_CASES==='designs'?cases.filter(c=>c.design):process.env.WIDGET_QA_CASES==='smoke'?[cases[1],cases[4],cases[13],cases.find(c=>c.cover&&c.device==='mobile'&&c.notices===3)]:process.env.WIDGET_QA_CASES==='retry'?JSON.parse(await fs.readFile(`${output}/results.json`,'utf8')).failures.map(({error,...c})=>{void error;return c;}):cases;
 for(let i=0;i<selected.length;i+=2)await Promise.all(selected.slice(i,i+2).map(run));
 await browser.close();await fs.writeFile(`${output}/results.json`,JSON.stringify({results,failures,errors,writes},null,2));
 console.log(JSON.stringify({passed:results.length,failed:failures.length,errors,writes}));
