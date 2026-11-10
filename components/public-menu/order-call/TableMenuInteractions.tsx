@@ -123,11 +123,11 @@ export function DiningMenuToolbar({ children }: { children: ReactNode }) {
   return <div className={styles.diningToolbar} data-dining-menu-toolbar role="group" aria-label={t("메뉴판 도구")}>
     <MenuLanguageSwitcher currentLocale={actions.locale} enabledLocales={actions.locales} compact triggerVariant="aube" menuAlign="left" />
     {actions.showDiningTable ? <span className={styles.table} data-terminal-table-label title={actions.table}>{actions.table}</span> : null}
-    <button type="button" className={styles.circle} data-dining-cart disabled={!actions.order} title={!actions.order ? t("지금은 주문을 사용할 수 없습니다.") : undefined}
+    {actions.showDiningTable ? <button type="button" className={styles.circle} data-dining-cart disabled={!actions.order} title={!actions.order ? t("지금은 주문을 사용할 수 없습니다.") : undefined}
       aria-label={t("장바구니 {0}개", actions.count)} onClick={actions.order ? actions.openCart : undefined}>
       <MenuOrderIcon variant="document" purpose="view" />
       {actions.count > 0 ? <MenuCartCountBadge className={styles.badge} count={actions.count} /> : null}
-    </button>
+    </button> : null}
   </div>;
 }
 function TableMenuMobileDock() {

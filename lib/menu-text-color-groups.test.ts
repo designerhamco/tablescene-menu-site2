@@ -98,15 +98,16 @@ test("Dining names only widget ink while Basic preserves its separate footer-not
   assert.equal(getMenuTextColorLabel("representative", true), "가게 설명·안내");
 });
 
-test("Dining separates page titles, category headings and shared section descriptions", () => {
+test("Dining keeps title/category independent with one shared description control", () => {
   assert.equal(getMenuTextColorGroups(false).length, 6);
-  assert.equal(getMenuTextColorGroups(true).length, 9);
+  assert.equal(getMenuTextColorGroups(true).length, 8);
   assert.ok(!getMenuTextColorGroups(false).includes("pageTitle"));
-  assert.equal(getMenuTextColorLabel("sectionDescription", true), "페이지·카테고리 설명");
+  assert.ok(!getMenuTextColorGroups(true).includes("sectionDescription"));
+  assert.equal(getMenuTextColorLabel("supporting", true), "페이지·카테고리·메뉴 설명");
   assert.equal(getMenuTextColorDescription("category", true), "카테고리명·카테고리 장식");
   const legacy = {design:{textColors:{category:"#123456",supporting:"#778899"}}};
   assert.equal(resolvedMenuTextColors(legacy, true).pageTitle, "#123456");
-  assert.equal(resolvedMenuTextColors(legacy, true).sectionDescription, "#778899");
+  assert.equal(resolvedMenuTextColors(legacy, true).supporting, "#778899");
   assert.equal(resolvedMenuTextColors(legacy, false).pageTitle, undefined);
   const source={menuSite:{template_key:"dining_aube_table_a",settings:{},page_settings:legacy},pageSettings:{}} as unknown as MenuPageData;
   const preview=applyPreviewDesign(source,readPreviewDesign(serializePreviewDesign({diningTextColorGroupsVersion:1,textColors:{pageTitle:"#C5A165",category:"#358833",sectionDescription:"#61718A"}})),false);
@@ -155,4 +156,30 @@ test("Dining price colors preserve legacy product ink and independently save, re
   assert.equal(resolvedMenuTextColors(reset.menuSite.page_settings,true).price,undefined);
   assert.equal(resolvedMenuTextColors(reset.menuSite.page_settings,true).product,"#334455");
   assert.deepEqual(source,original);
+});
+
+
+test("Dining shared descriptions resolve old settings and persist/reset without reviving section ink", () => {
+  const old = {design:{diningTextColorGroupsVersion:2,textColorGroupsVersion:2,textColors:{supporting:"#556677",sectionDescription:"#112233",price:"#886622"}}};
+  assert.deepEqual(resolvedMenuTextColors(old,true),{supporting:"#556677",price:"#886622"});
+  const sectionOnly={design:{diningTextColorGroupsVersion:2,textColors:{sectionDescription:"#112233"}}};
+  assert.equal(resolvedMenuTextColors(sectionOnly,true).supporting,"#112233");
+  const design:Record<string,unknown>=structuredClone(old.design),form=new FormData();
+  form.set("text_colors_present","1");form.set("dining_text_colors_present","1");form.set("dining_shared_descriptions","1");
+  form.set("text_color_supporting","#334455");form.set("text_color_price","#886622");
+  setMenuTextColorsFromForm(design,form);
+  assert.equal(design.diningTextColorGroupsVersion,3);assert.equal(readMenuTextColors({design}).sectionDescription,undefined);
+  assert.equal(resolvedMenuTextColors({design},true).supporting,"#334455");
+  form.set("text_color_supporting","");setMenuTextColorsFromForm(design,form);
+  assert.equal(resolvedMenuTextColors({design},true).supporting,undefined);
+  assert.equal(resolvedMenuTextColors({design},true).price,"#886622");
+  const source={menuSite:{template_key:"dining_aube_table_a",settings:{},page_settings:old},pageSettings:{}} as unknown as MenuPageData;
+  const snapshot=structuredClone(source);
+  const preview=applyPreviewDesign(source,readPreviewDesign(serializePreviewDesign({diningTextColorGroupsVersion:3,textColors:{supporting:"#334455",price:"#886622"}})),false);
+  assert.equal(readMenuTextColors(preview.menuSite.page_settings).sectionDescription,undefined);
+  assert.equal(resolvedMenuTextColors(preview.menuSite.page_settings,true).supporting,"#334455");
+  const reset=applyPreviewDesign(source,{diningTextColorGroupsVersion:3,textColors:{price:"#886622"}},false);
+  assert.equal(resolvedMenuTextColors(reset.menuSite.page_settings,true).supporting,undefined);
+  assert.deepEqual(source,snapshot);
+  assert.equal(resolvedMenuTextColors(old,false).sectionDescription,"#112233");
 });

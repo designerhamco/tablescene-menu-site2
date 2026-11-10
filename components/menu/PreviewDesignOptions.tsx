@@ -25,7 +25,7 @@ export default function PreviewDesignOptions({ value, defaults, renderedDesign, 
   const set = (patch: Partial<PreviewDesign>) => onChange({ ...value, ...patch });
   const textColor = (group: MenuTextColorGroup, color?: string) => set({
     textColorGroupsVersion: 2,
-    ...(dining ? { diningTextColorGroupsVersion: 2 as const } : {}),
+    ...(dining ? { diningTextColorGroupsVersion: 3 as const } : {}),
     textColors: { ...(dining ? resolvedMenuTextColors({design:{...value,textColors:{...defaults.textColors,...value.textColors}}},true) : {}), ...value.textColors,
       ...(value.textColorGroupsVersion !== 2 && value.textColors?.supporting && !value.textColors?.information ? { information: value.textColors.supporting } : {}),
       [group]: color },

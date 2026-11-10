@@ -5,9 +5,9 @@ import { menuColorContrast } from "./menu-interaction-theme";
 export const MENU_TEXT_COLOR_GROUPS = ["brand", "representative", "pageTitle", "category", "sectionDescription", "product", "price", "supporting", "information"] as const;
 export type MenuTextColorGroup = typeof MENU_TEXT_COLOR_GROUPS[number];
 export type MenuTextColors = Partial<Record<MenuTextColorGroup, string>>;
-/** Dining owns page titles and shared section descriptions; Basic keeps its six groups. */
+/** sectionDescription remains decode-only for old saved settings and preview URLs. */
 export function getMenuTextColorGroups(dining = false): readonly MenuTextColorGroup[] {
-  return dining ? MENU_TEXT_COLOR_GROUPS : MENU_TEXT_COLOR_GROUPS.filter(group => group !== "pageTitle" && group !== "sectionDescription" && group !== "price");
+  return MENU_TEXT_COLOR_GROUPS.filter(group => group !== "sectionDescription" && (dining || (group !== "pageTitle" && group !== "price")));
 }
 /** Native fallbacks shared by the editor and preview when a page is unmounted. */
 export function getDiningTextColorDefaults(templateKey?: string | null, neutral = false) {
@@ -19,7 +19,7 @@ export const MENU_TEXT_COLOR_LABELS: Record<MenuTextColorGroup, string> = {
   price: "가격", pageTitle: "페이지 제목", sectionDescription: "페이지·카테고리 설명", brand: "가게명", category: "카테고리명", product: "메뉴 기본정보", representative: "가게 설명·안내", supporting: "메뉴 설명", information: "하단 안내·위젯",
 };
 export const MENU_TEXT_COLOR_DESCRIPTIONS: Record<MenuTextColorGroup, string> = {
-  price: "코스 가격·메뉴 가격",
+  price: "코스 가격·메뉴 가격·옵션 가격",
   pageTitle: "본문 페이지 제목·주문 및 호출 강조색",
   sectionDescription: "페이지 제목 아래 설명·카테고리 설명",
   brand: "가게명",
@@ -31,14 +31,14 @@ export const MENU_TEXT_COLOR_DESCRIPTIONS: Record<MenuTextColorGroup, string> = 
 };
 /** Dining has no menu-footer notice group; its notices belong to the cover. */
 export function getMenuTextColorLabel(group: MenuTextColorGroup, dining = false): string {
-  return dining && group === "information" ? "위젯" : dining && group === "product" ? "상품명" : MENU_TEXT_COLOR_LABELS[group];
+  return dining && group === "information" ? "위젯" : dining && group === "product" ? "상품명" : dining && group === "supporting" ? "페이지·카테고리·메뉴 설명" : MENU_TEXT_COLOR_LABELS[group];
 }
 
 export function getMenuTextColorDescription(group: MenuTextColorGroup, dining = false): string {
   if (dining && group === "information") return "위젯텍스트";
   if (dining && group === "category") return "카테고리명·카테고리 장식";
   if (dining && group === "product") return "상품명·코스/아이템 담기 아이콘";
-  if (dining && group === "supporting") return "보조언어명·상품설명·코스 설명·코스 가격 안내";
+  if (dining && group === "supporting") return "페이지 설명·카테고리 설명·상품설명·보조언어명·코스 가격 안내";
   if (dining && group === "sectionDescription") return "페이지 제목 아래 설명·일반 카테고리 설명";
   if (dining && group === "representative") return "커버설명·커버 안내사항";
   return MENU_TEXT_COLOR_DESCRIPTIONS[group];
@@ -64,12 +64,17 @@ export function resolvedMenuTextColors(pageSettings: unknown, dining = false): M
   // Freeze former combined title ink on the first new editor/preview edit.
   // The version marker then makes clearing or changing either group independent.
   if (!dining) return resolved;
-  const independentSections = design.diningTextColorGroupsVersion === 1 || design.diningTextColorGroupsVersion === 2;
+  const version = design.diningTextColorGroupsVersion;
+  const independentSections = version === 1 || version === 2 || version === 3;
+  const shared = { ...resolved };
+  delete shared.sectionDescription;
   return {
-    ...resolved,
+    ...shared,
+    // The menu-description choice owns all descriptions. Old section-only edits
+    // are a fallback until a v3 edit/reset explicitly takes ownership.
+    ...(version !== 3 && !colors.supporting && colors.sectionDescription ? { supporting: colors.sectionDescription } : {}),
     ...(!independentSections && !colors.pageTitle && colors.category ? { pageTitle: colors.category } : {}),
-    ...(!independentSections && !colors.sectionDescription && colors.supporting ? { sectionDescription: colors.supporting } : {}),
-    ...(design.diningTextColorGroupsVersion !== 2 && !colors.price && colors.product ? { price: colors.product } : {}),
+    ...(version !== 2 && version !== 3 && !colors.price && colors.product ? { price: colors.product } : {}),
   };
 }
 /** Absent controls leave older forms untouched. An empty submitted group restores its native/legacy color. */
@@ -88,7 +93,14 @@ export function setMenuTextColorsFromForm(design: Record<string, unknown>, form:
     if (form.get(`text_color_${group}`) == null && previous[group]) colors[group] = previous[group];
   }
   if (form.get("text_color_information") != null && Object.keys(colors).length) design.textColorGroupsVersion = 2;
-  if (form.get("dining_text_colors_present") === "1") design.diningTextColorGroupsVersion = form.get("text_color_price") != null || design.diningTextColorGroupsVersion === 2 ? 2 : 1;
+  if (form.get("dining_text_colors_present") === "1") {
+    if (form.get("dining_shared_descriptions") === "1") {
+      delete colors.sectionDescription;
+      design.diningTextColorGroupsVersion = 3;
+    } else if (design.diningTextColorGroupsVersion !== 3) {
+      design.diningTextColorGroupsVersion = form.get("text_color_price") != null || design.diningTextColorGroupsVersion === 2 ? 2 : 1;
+    }
+  }
   if (Object.keys(colors).length) design.textColors = colors;
   else { delete design.textColors; delete design.textColorGroupsVersion; }
 }
