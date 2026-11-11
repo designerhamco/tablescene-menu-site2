@@ -31,7 +31,7 @@ async function controls(width,dining){const p=await page(width,1000);try{
    await picker.getByRole('button',{name:'적용',exact:true}).click();
    await p.waitForURL(u=>JSON.parse(u.searchParams.get('designPreview')||'{}').textColors?.brand==='#234567');
    await p.getByRole('button',{name:'가게명 글자색 기본색 복원',exact:true}).click();
-   await picker.getByRole('button',{name:'적용',exact:true}).click();
+   await p.getByRole('alertdialog').getByRole('button',{name:'되돌리기',exact:true}).click();
    await p.waitForURL(u=>JSON.parse(u.searchParams.get('designPreview')||'{}').textColors?.brand===undefined);
  }
  assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));

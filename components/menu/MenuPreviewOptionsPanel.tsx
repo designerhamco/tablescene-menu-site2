@@ -33,7 +33,7 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
   const count = choices.filter(([key]) => values[key]).length;
   return <aside className={styles.panel} aria-label="보기 옵션" data-preview-options-panel data-options-open={open ? "true" : "false"}
     onKeyDown={event => {
-      if (event.key === "Escape" && open && !event.defaultPrevented && !(event.target as Element).closest("[data-preview-color-picker]")) {
+      if (event.key === "Escape" && open && !event.defaultPrevented && !(event.target as Element).closest("[data-preview-color-picker], [data-preview-color-reset]")) {
         event.preventDefault(); onToggle(); toggle.current?.focus();
       }
     }}>

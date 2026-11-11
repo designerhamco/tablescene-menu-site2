@@ -1,4 +1,5 @@
 :root {
+  --ui-layer-preview-modal: 260;
   --ui-media-ink: #ffffff;
   --ui-media-hover-ink: #d4d4d8;
   --ui-media-counter-surface: rgb(9 9 11 / 60%);
@@ -717,6 +718,11 @@ textarea.site-field,
 
 .site-dialog {
   border-radius: var(--ui-radius-surface);
+}
+
+.site-dialog-overlay[data-dialog-layer="preview"],
+.site-dialog[data-dialog-layer="preview"] {
+  z-index: var(--ui-layer-preview-modal);
 }
 
 .site-dialog[data-scrollable] {
