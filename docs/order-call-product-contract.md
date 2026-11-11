@@ -1,4 +1,4 @@
-# ArtiMenu Order·Call Product Contract
+# 아티메뉴 주문·호출 서비스 규칙
 
 Current scope reviewed with the approved Basic/Dining rollout; historical sections below are retained for provenance.
 
