@@ -6,7 +6,7 @@
   --site-text-secondary: var(--ui-text-muted);
   --site-text-muted: var(--ui-text-subtle);
   --site-divider: var(--ui-border);
-  --site-tab-indicator-width: .25rem;
+  --site-tab-indicator-width: 2px;
   --site-shadow-popover: 0 2px 10px rgb(75 81 91 / 10%), 0 0 2px rgb(75 81 91 / 20%);
   --site-shadow-tooltip: 0 8px 24px rgb(21 24 30 / 14%), 0 2px 6px rgb(21 24 30 / 6%);
   --space-1: .25rem;
@@ -462,7 +462,7 @@
 /* Main views use text with a label-width underline; state values keep their muted rail. */
 .site-page-tabs { width: fit-content; gap: var(--site-tab-gap, 1.5rem); padding: 0; border: 0; border-radius: 0; background: transparent; }
 .site-page-tabs > .site-tab { position: relative; flex: 0 0 auto; min-height: var(--site-tab-height, 2.75rem); padding: .25rem 0 .5rem; border: 0; border-radius: 0; background: transparent; color: var(--ui-tab-inactive-text); font-size: var(--site-tab-font); font-weight: 500; }
-.site-page-tabs > .site-tab::after { content: ""; position: absolute; inset-inline: 0; bottom: .25rem; height: 3px; background: transparent; pointer-events: none; }
+.site-page-tabs > .site-tab::after { content: ""; position: absolute; inset-inline: 0; bottom: .25rem; height: var(--site-tab-indicator-width); background: transparent; pointer-events: none; }
 .site-page-tabs > .site-tab:is([aria-selected="true"], [data-state="active"], [aria-current="page"])::after { background: var(--ui-text); }
 .site-page-tabs > .site-tab:is([aria-selected="true"], [data-state="active"], [aria-current="page"]) { background: transparent; color: var(--ui-text); font-weight: 600; }
 .site-page-tabs > .site-tab:is(:hover, [data-ui-state="hover"], :active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { background: transparent; color: var(--ui-text); }
@@ -638,6 +638,12 @@
 .site-announcement-label { flex: none; padding: .25rem .5rem; border-radius: .375rem; background: var(--ui-brand-soft); font-size: var(--type-caption-size); font-weight: 600; }
 .site-announcement-copy { flex: 1; min-width: 0; }
 .site-announcement > svg { flex: none; }
+/* Unread indicators stay anchored to the bell glyph, never the button hit target. */
+.site-notification-bell { position: relative; display: inline-flex; flex: none; width: 23px; height: 23px; }
+.site-notification-bell > svg { display: block; width: 100%; height: 100%; }
+.site-notification-bell-badge { position: absolute; top: 0; inset-inline-end: 0; display: flex; align-items: center; justify-content: center; min-width: 1.25rem; height: 1.25rem; padding-inline: .25rem; border-radius: 9999px; background: var(--ui-danger); color: var(--ui-surface); line-height: 1; font-variant-numeric: tabular-nums; transform: translate(45%, -45%); pointer-events: none; }
+.site-notification-bell-badge[data-compact] { min-width: 1rem; height: 1rem; padding-inline: .125rem; }
+.site-notification-bell-badge[data-indicator="dot"] { top: 2px; inset-inline-end: 1px; min-width: .375rem; width: .375rem; height: .375rem; padding: 0; transform: none; }
 .site-notification-panel { --type-body-size: var(--type-dialog-body-size); --type-body-sm-size: var(--type-dialog-body-size); --type-caption-size: var(--type-footnote-size); min-width: 0; overflow: hidden; border-radius: var(--ui-radius-panel); background: var(--ui-surface); color: var(--ui-text); }
 .site-notification-tabs.site-topic-tabs { width: 100%; gap: 0; padding-inline: 0; }
 .site-notification-tabs > .site-topic-tab { flex: 1; justify-content: center; min-height: var(--ui-control-height-lg); padding-block: var(--site-space-copy); }

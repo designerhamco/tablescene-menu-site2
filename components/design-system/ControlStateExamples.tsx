@@ -59,7 +59,7 @@ export default function ControlStateExamples() {
       </td>)}</tr>)}</tbody></table></div>
     <p className="type-body-sm text-zinc-600">상태 표는 실제 공통 스타일을 고정해 비교합니다. 비활성 실행 버튼은 옅은 회색 표면·흐린 문구·무테를 사용하며 hover·클릭 색상으로 바뀌지 않습니다. 고객지원 퀵 버튼은 56px의 둥근 정사각형이며 무배경 아이콘 도구와 구분합니다.</p>
     <div className={styles.ruleGrid}>{([
-      ["underline", "목록 주제 분류", "밑줄 탭 · 4px 선택선"],
+      ["underline", "목록 주제 분류", "밑줄 탭 · 2px 선택선"],
       ["area", "독립 콘텐츠 영역 전환", "흰 콘텐츠 면 · 상단 연결 탭"],
     ] as const).map(([variant,title,description]) => <div key={variant} className="min-w-0">
       <h3 className="type-content-title mb-2">{title}</h3><p className="type-caption mb-4 text-zinc-600">{description}</p>

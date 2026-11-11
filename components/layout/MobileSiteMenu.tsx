@@ -2,7 +2,8 @@
 
 import { useId, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { Bell, Minus, Plus } from "@/app/components/ui/site-icon";
+import { Minus, Plus } from "@/app/components/ui/site-icon";
+import { NotificationBellIcon } from "@/app/components/ui/notification-bell-icon";
 import { Badge } from "@/app/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/app/components/ui/collapsible";
 import { LoadingState } from "@/app/components/ui/loading-state";
@@ -24,7 +25,7 @@ export default function MobileSiteMenu({ pathname, authenticated, loading, accou
       <Link href="/" onClick={close} className={styles.wordmark}>ArtiMenu</Link>
       <div className={styles.drawerHeaderActions}>
         <Link href="/apply" onClick={close} className="site-button site-button-primary site-button-header">만들기</Link>
-        {authenticated && !loading ? <button type="button" onClick={onNotifications} aria-haspopup="dialog" data-site-menu-notification-trigger className="site-button site-button-icon site-button-ghost" aria-label={unreadCount ? `알림, 읽지 않음 ${formatNotificationBadgeCount(unreadCount)}개` : "알림"}><Bell size={23} strokeWidth={2.1} aria-hidden="true" />{unreadCount ? <span className={styles.drawerUnread} aria-hidden="true" /> : null}</button> : null}
+        {authenticated && !loading ? <button type="button" onClick={onNotifications} aria-haspopup="dialog" data-site-menu-notification-trigger className="site-button site-button-icon site-button-ghost" aria-label={unreadCount ? `알림, 읽지 않음 ${formatNotificationBadgeCount(unreadCount)}개` : "알림"}><NotificationBellIcon unreadCount={unreadCount} indicator="dot" /></button> : null}
         {closeButton}
       </div>
     </div>

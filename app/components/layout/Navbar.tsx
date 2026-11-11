@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Bell, Menu, X } from "@/app/components/ui/site-icon";
+import { Menu, X } from "@/app/components/ui/site-icon";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -18,6 +18,7 @@ import { NewWindowIndicator } from '@/app/components/ui/new-window-indicator';
 import SupportNavigation from '@/components/layout/SupportNavigation';
 import { SITE_NAV_ITEMS as NAV_ITEMS, isSiteNavItemActive as isNavItemActive, type NavigationAccount } from '@/lib/site-navigation';
 import MobileSiteMenu from '@/components/layout/MobileSiteMenu';
+import { NotificationBellIcon } from '@/app/components/ui/notification-bell-icon';
 
 function DisabledChip() {
   return (
@@ -25,10 +26,6 @@ function DisabledChip() {
       준비중
     </span>
   );
-}
-
-function HeaderBellIcon() {
-  return <Bell size={23} strokeWidth={2.1} aria-hidden="true" />;
 }
 
 type AuthState = {
@@ -355,18 +352,13 @@ const Navbar = () => {
                   <PopoverTrigger asChild>
                   <button
                     type="button"
-                    aria-label="알림"
+                    aria-label={unreadCount > 0 ? `알림, 읽지 않음 ${unreadBadgeLabel}개` : '알림'}
                     ref={desktopNotificationTrigger}
                     data-site-notification-trigger
                     aria-expanded={isNotificationOpen}
                     className={`site-icon-control relative inline-flex shrink-0 items-center justify-center transition-colors ${styles.notificationButton} `}
                   >
-                    <HeaderBellIcon />
-                    {unreadCount > 0 ? (
-                      <span className="type-caption absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-white">
-                        {unreadBadgeLabel}
-                      </span>
-                    ) : null}
+                    <NotificationBellIcon unreadCount={unreadCount} />
                   </button>
 
                   </PopoverTrigger>
@@ -393,12 +385,7 @@ const Navbar = () => {
                 aria-label={unreadCount > 0 ? `알림, 읽지 않음 ${unreadBadgeLabel}개` : '알림'}
                 className={`site-icon-control relative inline-flex shrink-0 items-center justify-center transition-opacity md:hidden ${menuButtonClass} `}
               >
-                <HeaderBellIcon />
-                {unreadCount > 0 ? (
-                  <span className="type-caption absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-white">
-                    {unreadBadgeLabel}
-                  </span>
-                ) : null}
+                <NotificationBellIcon unreadCount={unreadCount} compact />
               </button>
             ) : null}
 

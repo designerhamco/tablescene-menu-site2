@@ -13,6 +13,7 @@ export const SITE_ICON_MAP = {
   "Bold": "bold",
   "BookOpen": "book-open-line",
   "Building2": "building-line",
+  "CalendarIcon": "calendar-line",
   "Check": "check-line",
   "CheckCircle2": "checkbox-circle-line",
   "CheckIcon": "check-line",

@@ -110,14 +110,14 @@ test("tab purpose maps main views, independent sections, categories and states t
     assert.match(preview, new RegExp(`id="preview-${value}-panel" aria-labelledby="preview-${value}-tab"`));
   }
   assert.match(read("components/guides/UsageGuidePage.tsx"), /purpose="page"/);
-  assert.match(tabCss, /--site-tab-indicator-width: \.25rem/);
+  assert.match(tabCss, /--site-tab-indicator-width: 2px;/);
   for (const cls of ["site-tab", "site-topic-tab", "site-area-tab"]) {
     assert.match(tabCss, new RegExp(`\\.${cls}:is\\(:focus-visible, \\[data-ui-state="focus"\\]\\)`));
   }
   assert.match(tabCss, /\.site-area-tabs-root\[data-slot="tabs"\] \{[^}]*border: 0;[^}]*background: transparent/);
   assert.doesNotMatch(tabCss, /\.site-area-tabs::after/);
   assert.match(tabCss, /\.site-area-tab \+ \.site-area-tab \{ margin-inline-start: -1px;/);
-  assert.match(tabCss, /\.site-page-tabs > \.site-tab::after \{[^}]*bottom: \.25rem;[^}]*height: 3px;/);
+  assert.match(tabCss, /\.site-page-tabs > \.site-tab::after \{[^}]*bottom: \.25rem;[^}]*height: var\(--site-tab-indicator-width\);/);
   assert.match(tabCss, /\.site-area-tab:is\(\[data-state="active"\],[^}]*border-color: var\(--ui-text\);[^}]*background: var\(--ui-text\);[^}]*color: var\(--ui-surface\)/);
   assert.match(tabCss, /\.site-area-panel \{[^}]*border: 0;[^}]*background: var\(--ui-surface\)/);
   assert.doesNotMatch(tabCss, /site-(?:folder|flow|contained)-(?:tabs|tab|panel)|site-shaped-tab-label|site-shadow-shaped-tab|tab-folder-mask/);
