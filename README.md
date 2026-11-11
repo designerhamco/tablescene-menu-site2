@@ -1,3 +1,13 @@
+# ArtiMenu
+
+## 프로젝트 문서
+
+- [개발 작업 규칙](AGENTS.md): 모든 작업에서 따르는 공통 기준
+- [템플릿 공통 규칙](docs/template-spacing-contract.md): 레이아웃·타이포그래피·언어·기기별 경계
+- [스타터 번역·문구 수정 기준](docs/starter-translations-qa.md): 4개 언어 동시 수정, 미리보기·신규 구매 번역 동등성, 검수 방법
+- [메뉴 템플릿 구조](docs/menu-template-architecture.md): 렌더러와 공통 모듈의 역할
+- [공식 사이트 디자인 시스템](docs/site-design-system.md): 사이트 UI의 공통 구성 기준
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
