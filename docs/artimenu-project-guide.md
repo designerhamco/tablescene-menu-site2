@@ -2,11 +2,17 @@
 
 기준일: 2026-11-11. 서비스·가격·템플릿·디자인·약관 자료의 진입점이다. 문서가 존재한다는 사실, 코드/공개 화면과의 정합성 확인, 실제 운영 활성화, 법적 검토 완료는 각각 구분한다.
 
+## 기능별 누락·분산 점검
+
+[기능별 문서 범위·보완 점검표](feature-documentation-coverage.md)에서 메뉴판 설정·구독·결제·매장 운영과 계정/권한·QR·AI·파일·알림·배포/복구까지 확인한다. 관련 MD가 있다는 것과 현재 운영 검증 완료를 구분한다. 데이터 저장/권한/보관/삭제/백업은 [Supabase 데이터 안내](supabase-data-lifecycle-guide.md)에서 읽는다.
+
 ## 어디서 무엇을 확인하는가
 
 | 표시 제목 | 파일 | 담당 내용 |
 | --- | --- | --- |
 | 아티메뉴 개발 작업 규칙 | [AGENTS.md](../AGENTS.md) | 개발 도구가 자동으로 읽는 작업 원칙과 승인된 공통 규칙 |
+| 아티메뉴 기능별 문서 범위·보완 점검표 | [feature-documentation-coverage.md](feature-documentation-coverage.md) | 실제 기능별 관련 문서·코드와 누락/분산/미확인 영역 |
+| 아티메뉴 Supabase 데이터 저장·보관·삭제 안내 | [supabase-data-lifecycle-guide.md](supabase-data-lifecycle-guide.md) | DB·파일·Auth·권한·보관/복구·실삭제와 백업의 구분 |
 | 아티메뉴 서비스·요금·이용권 기준 | [service-pricing-contract.md](service-pricing-contract.md) | 세 서비스, 기본/디자인 포함, 현행 요금 원본, 체험·갱신·기존 계약 경계 |
 | 아티메뉴 서비스 명칭과 안내 기준 | [service-category-copy-contract.md](service-category-copy-contract.md) | 베이직·다이닝·디스플레이의 고객 표시 명칭 |
 | 아티메뉴 템플릿 문서 안내 | [template-docs-index.md](template-docs-index.md) | 기본/디자이너·리스트/앨범 등록표와 구조별 문서 |

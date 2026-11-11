@@ -4,6 +4,8 @@
 
 먼저 [아티메뉴 프로젝트 문서 안내](docs/artimenu-project-guide.md)에서 문서별 역할과 현행/과거/검토 상태를 확인합니다.
 
+- [기능별 문서 범위·보완 점검표](docs/feature-documentation-coverage.md): 메뉴판 관리·구독·결제·운영·계정·권한·QR·AI·파일·알림·복구 자료의 범위
+- [Supabase 데이터 저장·보관·삭제 안내](docs/supabase-data-lifecycle-guide.md): DB·Storage·Auth·권한·보관/복구·백업의 구분
 - [서비스·요금·이용권 기준](docs/service-pricing-contract.md): 가격 원본, 서비스 구성과 기존 계약의 구분
 - [약관·개인정보·동의 검토 현황](docs/legal-policy-review.md): 공개 원문 위치와 아직 확인이 필요한 사항
 
