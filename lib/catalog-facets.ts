@@ -29,6 +29,7 @@ export const CATALOG_COLORS = [
 export type CatalogMoodFilter = typeof CATALOG_MOODS[number]["key"];
 export type CatalogColorFilter = typeof CATALOG_COLORS[number]["key"];
 export type CatalogThumbnailSize = "large" | "small";
+export const CATALOG_DEFAULT_THUMBNAIL_SIZE: CatalogThumbnailSize = "small";
 export type CatalogFacets = {
   industries?: readonly TemplateCategoryKey[];
   searchNames?: readonly string[];
@@ -62,7 +63,7 @@ export function normalizeCatalogColor(value: unknown): CatalogColorFilter {
   return CATALOG_COLORS.find(item => item.key === value)?.key ?? "all";
 }
 export function normalizeCatalogThumbnailSize(value: unknown): CatalogThumbnailSize {
-  return value === "small" ? "small" : "large";
+  return value === "large" ? "large" : CATALOG_DEFAULT_THUMBNAIL_SIZE;
 }
 export function normalizeCatalogSearch(value: unknown) {
   return typeof value === "string" ? value.slice(0, 100).normalize("NFKC").toLowerCase().replace(/\s+/g, "") : "";

@@ -46,9 +46,10 @@ test("unknown URL choices safely restore default controls", () => {
   for (const input of ["unknown", ["cozy"], null, undefined, { color: "red" }]) {
     assert.equal(normalizeCatalogMood(input), "all");
     assert.equal(normalizeCatalogColor(input), "all");
-    assert.equal(normalizeCatalogThumbnailSize(input), "large");
+    assert.equal(normalizeCatalogThumbnailSize(input), "small");
   }
   assert.equal(normalizeCatalogThumbnailSize("small"), "small");
+  assert.equal(normalizeCatalogThumbnailSize("large"), "large");
   assert.equal(normalizeCatalogSearch(["mellow"]), "");
 });
 

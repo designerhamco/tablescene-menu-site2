@@ -24,7 +24,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
       initialMoodFilter={query.mood ?? "all"}
       initialColorFilter={query.color ?? "all"}
       initialQuery={typeof query.q === "string" ? query.q : ""}
-      initialThumbnailSize={typeof query.view === "string" ? query.view : "large"}
+      initialThumbnailSize={typeof query.view === "string" ? query.view : undefined}
     />
 
     <section className="site-dark-cta site-catalog-consultation">

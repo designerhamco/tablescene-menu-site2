@@ -11,7 +11,7 @@ import {
   type CatalogKind,
   type CatalogService,
 } from "@/lib/catalog-designs";
-import { CATALOG_COLORS, CATALOG_MOODS, normalizeCatalogThumbnailSize, type CatalogThumbnailSize } from "@/lib/catalog-facets";
+import { CATALOG_COLORS, CATALOG_MOODS, CATALOG_DEFAULT_THUMBNAIL_SIZE, normalizeCatalogThumbnailSize, type CatalogThumbnailSize } from "@/lib/catalog-facets";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { FieldActionRow } from "@/app/components/ui/field-action-row";
@@ -43,7 +43,7 @@ const colorOptions = CATALOG_COLORS.map(item => ({ ...item, icon: item.swatch
 
 export default function TemplateGallery({
   initialProduct = "dining_single", initialKind = "designer", initialFilter = "all", initialLayoutFilter = "all",
-  initialMoodFilter = "all", initialColorFilter = "all", initialQuery = "", initialThumbnailSize = "large",
+  initialMoodFilter = "all", initialColorFilter = "all", initialQuery = "", initialThumbnailSize = CATALOG_DEFAULT_THUMBNAIL_SIZE,
 }: {
   initialProduct?: "dining_single" | "dining_multi" | "display";
   initialKind?: CatalogKind;
@@ -85,7 +85,7 @@ export default function TemplateGallery({
     url.searchParams.set("plan", service);
     url.searchParams.set("category", nextKind);
     for (const [key, value] of Object.entries({ filter: next.industry.join(","), layout: next.layout.join(","), mood: next.mood.join(","), color: next.color.join(","), q: search.trim(), view: size })) {
-      if (value && value !== "all" && !(key === "view" && value === "large")) url.searchParams.set(key, value);
+      if (value && value !== "all" && !(key === "view" && value === CATALOG_DEFAULT_THUMBNAIL_SIZE)) url.searchParams.set(key, value);
       else url.searchParams.delete(key);
     }
     history.replaceState(null, "", url);
