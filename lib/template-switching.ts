@@ -155,11 +155,11 @@ export function getTemplateCommercialTier(templateKey: string): TemplateCommerci
 export function getTemplateCommercialTierLabel(tier: TemplateCommercialTier) {
   switch (tier) {
     case "dining_multi_page":
-      return "멀티페이지";
+      return "다이닝";
     case "display":
       return "디스플레이";
     default:
-      return "단일 페이지";
+      return "베이직";
   }
 }
 
@@ -223,7 +223,7 @@ export function getTemplateSwitchDecision(
     return {
       allowed: false,
       reason: "cross_service",
-      message: "다이닝과 디스플레이 서비스 사이에서는 템플릿만 바꿀 수 없습니다.",
+      message: "베이직·다이닝과 디스플레이 서비스 사이에서는 템플릿만 바꿀 수 없습니다.",
     };
   }
 
@@ -231,7 +231,7 @@ export function getTemplateSwitchDecision(
     return {
       allowed: false,
       reason: "cross_tier",
-      message: "단일 페이지와 멀티페이지 상품 사이에서는 템플릿만 바꿀 수 없습니다.",
+      message: "베이직과 다이닝 서비스 사이에서는 템플릿만 바꿀 수 없습니다.",
     };
   }
 

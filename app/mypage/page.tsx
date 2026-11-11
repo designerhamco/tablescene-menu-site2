@@ -46,6 +46,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAiCreditPack, type AiCreditBalance } from "@/lib/ai-credits";
 import { getSubscriptionProduct } from "@/lib/billing-products";
 import { getDiningTemplateTier } from "@/lib/dining-product-tiers";
+import { getServiceCategory, getServiceCategoryLabel } from "@/lib/service-categories";
 import { getNotificationDisplaySince, NOTIFICATION_VISIBLE_CHANNELS } from "@/lib/notification-display-policy";
 import { formatKrw, getBasicPaymentProduct, personalTrialBasicProduct } from "@/lib/payments";
 import { RETENTION_DDAY_DISPLAY_THRESHOLD_DAYS } from "@/lib/service-retention-policy";
@@ -485,43 +486,26 @@ function getAiCreditTransactionLabel(transaction: AiCreditTransaction) {
   return "AI 크레딧 변경";
 }
 
-function getServiceName(planType: string | null | undefined, billingCycle: string | null | undefined) {
-  if (planType === "personal_trial" || planType === "personal_trial_basic_1month") return "아티메뉴 다이닝 개인 체험";
-  if (planType === "business_display") return billingCycle === "yearly" ? "아티메뉴 디스플레이 연결제" : "아티메뉴 디스플레이 월결제";
-  if (planType === "business_basic") return billingCycle === "yearly" ? "아티메뉴 다이닝 연결제" : "아티메뉴 다이닝 월결제";
-
+function getServiceName(
+  planType: string | null | undefined,
+  billingCycle: string | null | undefined,
+  productKey?: string | null,
+  templateKey?: string | null,
+) {
+  const category = getServiceCategory({ productKey, planType, templateKey });
+  const label = category ? getServiceCategoryLabel(category) : "메뉴판";
+  if (planType === "personal_trial" || planType === "personal_trial_basic_1month") return `아티메뉴 ${label} 개인 체험`;
+  if (category || planType === "business_basic") return `아티메뉴 ${label} ${billingCycle === "yearly" ? "연결제" : "월결제"}`;
   return "아티메뉴 이용권";
 }
 
-function getMenuServiceBadge({
-  productKey,
-  planType,
-  templateKey,
-}: {
+function getMenuServiceBadge(input: {
   productKey: string | null | undefined;
   planType: string | null | undefined;
   templateKey: string | null | undefined;
 }) {
-  const normalizedProductKey = getSafeString(productKey);
-  const normalizedPlanType = getSafeString(planType);
-  const normalizedTemplateKey = getSafeString(templateKey);
-  const isDisplayService =
-    normalizedPlanType === "business_display"
-    || normalizedProductKey === "business_display_monthly"
-    || normalizedProductKey === "business_display_yearly"
-    || normalizedTemplateKey.startsWith("display_");
-
-  if (isDisplayService) {
-    return {
-      label: "아티메뉴 디스플레이",
-
-    };
-  }
-
-  return {
-    label: "베이직·다이닝",
-
-  };
+  const category = getServiceCategory(input);
+  return { key: `service:${category ?? "unknown"}`, label: category ? getServiceCategoryLabel(category) : "서비스 확인 필요" };
 }
 
 type MenuCardBadge = {
@@ -846,20 +830,14 @@ function getBillingServiceStatus({
 }
 
 function getBillingHistoryServiceType(productKey: string | null | undefined, templateKey?: string | null): BillingHistoryEntry["serviceType"] {
-  const key = getSafeString(productKey);
-  const template = getSafeString(templateKey);
-
-  if (key.includes("trial")) return "trial";
-  if (key.includes("display") || template.startsWith("display_")) return "display";
-  if (key.includes("basic") || template.startsWith("cafe_") || template.startsWith("restaurant_")) return "basic";
-  return "other";
+  if (getSafeString(productKey).includes("trial")) return "trial";
+  return getServiceCategory({ productKey, templateKey }) ?? "other";
 }
 
 function getBillingHistoryServiceTypeLabel(serviceType: BillingHistoryEntry["serviceType"]) {
   if (serviceType === "trial") return "이전 체험 상품";
-  if (serviceType === "display") return "아티메뉴 디스플레이";
-  if (serviceType === "basic") return "베이직·다이닝";
-  return "기타";
+  if (serviceType === "other") return "기타";
+  return getServiceCategoryLabel(serviceType);
 }
 
 function getBillingHistoryMethod(productKey: string | null | undefined, billingCycle: string | null | undefined): BillingHistoryEntry["billingMethod"] {
@@ -884,8 +862,8 @@ function getRestoreSubscriptionOptions(
   serviceType: BillingHistoryEntry["serviceType"],
   templateKey?: string | null,
 ) {
-  const productKeys = serviceType === "basic"
-    ? getDiningTemplateTier(templateKey) === "multi"
+  const productKeys = serviceType === "basic" || serviceType === "dining"
+    ? serviceType === "dining" || getDiningTemplateTier(templateKey) === "multi"
       ? ["business_basic_multi_monthly", "business_basic_multi_yearly"]
       : ["business_basic_single_monthly", "business_basic_single_yearly"]
     : serviceType === "display"
@@ -923,7 +901,7 @@ function getRestoreSubscriptionCta({
   hasActiveSubscription: boolean;
 }): BillingHistoryEntry["restoreSubscription"] {
   if (serviceStatusBucket !== "archived") return null;
-  if (serviceType !== "basic" && serviceType !== "display") return null;
+  if (serviceType !== "basic" && serviceType !== "dining" && serviceType !== "display") return null;
   if (!menuSite?.id) return null;
   if (hasActiveSubscription) return null;
 
@@ -2055,7 +2033,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
 
       return {
         id: getSafeString(payment.id) || paymentId || `${productKey ?? "payment"}-${payment.created_at ?? "unknown"}`,
-        productName: productKey ? getProductLabel(productKey) : getServiceName(entitlement?.plan_type ?? matchingSubscription?.plan_type ?? null, billingCycle),
+        productName: productKey ? getProductLabel(productKey) : getServiceName(entitlement?.plan_type ?? matchingSubscription?.plan_type ?? null, billingCycle, productKey, resolvedMenuSite?.template_key),
         productKey: getSafeString(productKey),
         serviceType,
         serviceTypeLabel: getBillingHistoryServiceTypeLabel(serviceType),
@@ -2090,7 +2068,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
         subscriptionManagement: matchingSubscription?.id && (billingMethod === "monthly" || billingMethod === "yearly")
           ? {
               subscriptionId: matchingSubscription.id,
-              productName: getServiceName(matchingSubscription.plan_type, matchingSubscription.billing_cycle),
+              productName: getServiceName(matchingSubscription.plan_type, matchingSubscription.billing_cycle, matchingSubscription.product_key, resolvedMenuSite?.template_key),
               menuName: resolvedMenuSite?.name ?? "연결된 메뉴판 확인 필요",
               menuStatus: resolvedMenuSite?.status ? getStatusLabel(resolvedMenuSite.status) : "상태 확인 필요",
               amountLabel: typeof matchingSubscription.amount === "number" ? formatKrw(matchingSubscription.amount) : "-",
@@ -2209,7 +2187,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
     });
     const visibilityBadge = isAccessRestricted ? null : getMenuVisibilityBadge(site.status);
     const serviceTypeBadge: MenuCardBadge = {
-      key: serviceBadge.label === "아티메뉴 디스플레이" ? "service:display" : "service:basic",
+      key: serviceBadge.key,
       label: serviceBadge.label,
 
     };
@@ -2891,7 +2869,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         const latestPaymentStatus = latestPayment?.payment.status ?? null;
                         const isBusinessSubscription = Boolean(subscription?.id && !isPersonalTrial);
                         const isBusinessFreeTrial = isActiveBusinessFreeTrial(subscription);
-                        const paymentDetailProductName = productKey ? getProductLabel(productKey) : getServiceName(planType, billingCycle);
+                        const paymentDetailProductName = productKey ? getProductLabel(productKey) : getServiceName(planType, billingCycle, productKey, menuSite?.template_key);
                         const paymentDetailAmount = latestPayment?.payment.amount ?? amount;
                         const paymentDetailDate = latestPayment?.payment.created_at ?? subscription?.last_paid_at ?? entitlement?.created_at ?? null;
                         const paymentDetailId = getSafeString(latestPayment?.payment.payment_id ?? latestPayment?.payment.portone_payment_id ?? subscription?.portone_payment_id ?? latestPayment?.order?.payment_id ?? null);
@@ -2914,7 +2892,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                             <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                               <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <h4 className="type-content-title">{getServiceName(planType, billingCycle)}</h4>
+                                  <h4 className="type-content-title">{getServiceName(planType, billingCycle, productKey, menuSite?.template_key)}</h4>
                                   <Badge>
                                     {subscriptionCardStatusLabel}
                                   </Badge>
@@ -2965,7 +2943,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                                 {isBusinessSubscription && subscription?.id ? (
                                   <SubscriptionManagementModal
                                     subscriptionId={subscription.id}
-                                    productName={getServiceName(planType, billingCycle)}
+                                    productName={getServiceName(planType, billingCycle, productKey, menuSite?.template_key)}
                                     menuName={menuSite?.name ?? "연결된 메뉴판 확인 필요"}
                                     menuStatus={menuSite?.status ? getStatusLabel(menuSite.status) : "상태 확인 필요"}
                                     amountLabel={typeof amount === "number" ? formatKrw(amount) : "-"}
@@ -3073,7 +3051,7 @@ export default async function MyPage({ searchParams }: { searchParams: SearchPar
                         const dataRetentionUntil = entitlement?.data_retention_until ?? entitlement?.deleted_scheduled_at ?? null;
                         const expiresAt = entitlement?.access_expires_at ?? subscription?.current_period_end ?? subscription?.next_billing_at ?? null;
                         const dataDeletionScheduledAt = dataRetentionUntil;
-                        const paymentDetailProductName = productKey ? getProductLabel(productKey) : getServiceName(planType, billingCycle);
+                        const paymentDetailProductName = productKey ? getProductLabel(productKey) : getServiceName(planType, billingCycle, productKey, menuSite?.template_key);
                         const paymentDetailDate = latestPayment?.payment.created_at ?? subscription?.last_paid_at ?? entitlement?.created_at ?? null;
                         const paymentDetailId = getSafeString(latestPayment?.payment.payment_id ?? latestPayment?.payment.portone_payment_id ?? subscription?.portone_payment_id ?? latestPayment?.order?.payment_id ?? null);
                         const paymentDetailPgLabel = isPersonalTrial ? "PortOne 일반 결제" : subscription ? "NHN KCP 카드 정기결제" : "결제수단 확인 필요";

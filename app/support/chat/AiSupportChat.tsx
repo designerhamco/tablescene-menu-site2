@@ -12,7 +12,7 @@ import styles from "./ai-support-chat.module.css";
 type Message = { role: "user" | "assistant"; text: string };
 
 const SUGGESTIONS = [
-  { icon: PanelsTopLeft, text: "단일페이지와 멀티페이지의 차이가 궁금해요" },
+  { icon: PanelsTopLeft, text: "베이직·다이닝·디스플레이의 차이가 궁금해요" },
   { icon: QrCode, text: "대표 QR은 어떻게 사용하나요?" },
   { icon: Coins, text: "AI 크레딧은 언제, 얼마나 사용되나요?" },
 ] as const;

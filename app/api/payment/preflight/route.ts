@@ -178,7 +178,7 @@ export async function POST(request: Request) {
   }
 
   if (templateServiceType === "basic" && !isDiningProductCompatibleWithTemplate(product.product_key, templateKey)) {
-    return jsonError("선택한 단일·멀티페이지 상품과 템플릿 유형이 일치하지 않습니다.", 400, {
+    return jsonError("선택한 상품과 디자인의 서비스(베이직·다이닝)가 일치하지 않습니다.", 400, {
       productKey,
       templateKey,
     });

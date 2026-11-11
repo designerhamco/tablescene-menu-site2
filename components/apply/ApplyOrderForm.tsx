@@ -400,11 +400,11 @@ const serviceProducts = {
 const basicProductCards = [
   {
     product: businessBasicMonthlyProduct,
-    bullets: ["베이직 디자인 1개", "월 자동결제 · 웰컴 크레딧 6개"],
+    bullets: ["베이직 메뉴판 1개", "월 자동결제 · 웰컴 크레딧 6개"],
   },
   {
     product: businessBasicMultiMonthlyProduct,
-    bullets: ["다이닝 디자인 1개", "월 자동결제 · 웰컴 크레딧 6개"],
+    bullets: ["다이닝 메뉴판 1개", "월 자동결제 · 웰컴 크레딧 6개"],
   },
 ] as const satisfies readonly {
   product: BasicPaymentProduct;
@@ -2164,9 +2164,9 @@ export default function ApplyOrderForm({
         {isMenuService && (
           <section className="order-2 site-checkout-section">
             <div className="mb-6">
-              <h2 className="type-subsection-title">템플릿 유형</h2>
+              <h2 className="type-subsection-title">서비스 선택</h2>
               <p className="mt-2 break-keep text-copy font-medium leading-relaxed text-zinc-600">
-                사용할 디자인 유형을 선택해 주세요. 모든 상품은 메뉴판 1개 기준 월 구독입니다.
+                이용할 서비스를 선택해 주세요. 모든 상품은 메뉴판 1개 기준 월 구독입니다.
               </p>
               {monthlyFreeTrialAvailable ? (
                 <p className="mt-2 break-keep text-copy font-medium leading-relaxed text-emerald-700">
@@ -2481,7 +2481,7 @@ export default function ApplyOrderForm({
               <p className="mt-2 break-keep text-copy font-medium leading-relaxed text-zinc-600">
                 {isScreenService
                   ? "이 Display 카테고리의 템플릿은 준비 중입니다."
-                  : "이 Basic 카테고리의 템플릿은 준비 중입니다."}
+                  : "이 카테고리의 템플릿은 준비 중입니다."}
               </p>
             </div>
           )}

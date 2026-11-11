@@ -17,7 +17,7 @@ export type BillingHistoryEntry = {
   id: string;
   productName: string;
   productKey: string;
-  serviceType: "basic" | "display" | "trial" | "other";
+  serviceType: "basic" | "dining" | "display" | "trial" | "other";
   serviceTypeLabel: string;
   billingMethod: "monthly" | "yearly" | "trial" | "one_time" | "unknown";
   billingMethodLabel: string;
@@ -121,8 +121,9 @@ const initialFilters: FilterState = {
 
 const serviceTypeFilterOptions = [
   { value: "all", label: "전체" },
-  { value: "basic", label: "베이직·다이닝" },
-  { value: "display", label: "아티메뉴 디스플레이" },
+  { value: "basic", label: "베이직" },
+  { value: "dining", label: "다이닝" },
+  { value: "display", label: "디스플레이" },
 ];
 
 const billingMethodFilterOptions = [

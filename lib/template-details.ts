@@ -2,6 +2,7 @@ import { getDiningTemplateFeatures, getDiningTemplateTier } from '@/lib/dining-p
 import { templateSubscriptionPricing } from '@/lib/template-subscription-pricing';
 import { getTemplatePreviewRouteKey, resolveTemplatePreviewRouteKey, templateCatalog, type TemplateCatalogItem } from '@/lib/templates';
 import { getCatalogDesign, getCatalogPricing } from './catalog-designs';
+import { getServiceCategoryLabel } from './service-categories';
 export type PublicTemplateDetail = Omit<TemplateCatalogItem, "key" | "categoryLabel" | "name" | "description"> & {key:string;categoryLabel:string;name:string;description:string};
 export function getPublicTemplateDetail(routeKey:string) {
   const design=getCatalogDesign(routeKey);
@@ -22,8 +23,9 @@ export function getTemplateDetailInfo(template:PublicTemplateDetail) {
   const features=getDiningTemplateFeatures(design?.templateKey??template.key);
   const pricing=display?templateSubscriptionPricing.display:getCatalogPricing(multiPage?'dining':'basic',design?.kind??'designer');
   const productKey=display?'business_display_monthly':multiPage?'business_basic_multi_monthly':'business_basic_single_monthly';
-  return {display,multiPage,features,pricing,serviceLabel:display?'디스플레이':multiPage?'다이닝':'베이직',
-    formatLabel:design?.kind==='standard'?'기본 디자인':display?'TV·모니터 메뉴판':multiPage?'멀티페이지 메뉴판':'원페이지 메뉴판',
+  const serviceLabel=getServiceCategoryLabel(display?'display':multiPage?'dining':'basic');
+  return {display,multiPage,features,pricing,serviceLabel,
+    formatLabel:`${serviceLabel} ${design?.kind==='standard'?'기본 디자인':'디자인 포함'}`,
     previewHref:design?.previewHref??`${getTemplateDetailHref(template.key)}/preview`,
     startHref:design?.startHref??(display?`/apply/display?template=${template.key}`:`/apply/basic?product=${productKey}&template=${template.key}`),
     listHref:display?'/templates?plan=display':`/templates?plan=${multiPage?'dining':'basic'}&category=${design?.kind??'designer'}`,
