@@ -28,7 +28,7 @@
   --ui-notification-read-all-shadow: 0 3px 4px rgb(21 24 30 / 24%);
   --ui-choice-size: 1rem;
   --ui-radius-control: 9999px;
-  --ui-radius-field: .5rem;
+  --ui-radius-field: .75rem;
   --ui-field-height-sm: 2rem;
   --ui-field-height-md: 2.5rem;
   --ui-field-height-lg: 2.75rem;
@@ -1270,7 +1270,7 @@ select:not([multiple]):is(:not([size]), [size="1"]):not(:where(.menu-typography,
   min-height: var(--ui-field-height-lg); padding-block: .5rem;
 }
 .site-field.site-field-search, input[data-field-size="search"] {
-  min-height: var(--ui-field-height-search); border-radius: var(--ui-radius-field);
+  min-height: var(--ui-field-height-search); border-radius: 1rem;
   padding-block: .5rem; font-size: var(--ui-field-font-size); font-weight: 400;
 }
 textarea.site-field[data-field-size="lg"], textarea[data-field-size="lg"] { min-height: 10rem; padding-block: .875rem; }
@@ -1591,12 +1591,12 @@ svg.site-edit-icon {
   .site-filter-toolbar-options[data-filter-count="4"] { grid-template-columns: repeat(4, minmax(max-content, 1fr)); }
 }
 
-/* Dedicated search shares field corners, with its existing circular submit action. */
+/* Large-search reading sizes are independent from the approved capsule shape. */
 .site-field.site-input-group[data-field-size="search"], .site-field.site-field-search, input[data-field-size="search"] { font-size: var(--site-type-16); }
 @media (min-width: 768px) { .site-field.site-input-group[data-field-size="search"], .site-field.site-field-search, input[data-field-size="search"] { font-size: var(--site-type-18); } }
 
-/* Dedicated search keeps one field, including its clear and optional submit action. */
-.site-field.site-input-group.site-search-field { --ui-search-action-size: var(--ui-control-height-compact); border-radius: var(--ui-radius-field); }
+/* Dedicated search keeps its approved capsule, including clear and submit actions. */
+.site-field.site-input-group.site-search-field { --ui-search-action-size: var(--ui-control-height-compact); border-radius: var(--ui-radius-control); }
 .site-search-field[data-field-size="search"] { --ui-search-action-size: var(--ui-control-height-md); }
 .site-search-field:has([data-search-action="submit"]) { padding-inline-end: calc((var(--site-input-height) - var(--ui-search-action-size)) / 2 - 1px); }
 .site-search-field .site-input-group-action[data-search-action="submit"] { width: var(--ui-search-action-size); min-height: var(--ui-search-action-size); }

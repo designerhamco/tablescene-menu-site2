@@ -272,4 +272,4 @@ section의 추가 appearance=document는 흰 선택 면이 아래 기준선과 �
 
 ## 필드 모서리와 대표 검색의 계층 (2026-11-11)
 
-입력·선택·검색 계열은 공통8px `--ui-radius-field`를 사용한다. 검색의 예전 pill 덮어쓰기는 제거하고 안쪽 검색 실행 버튼의 원형·클릭 영역은 유지한다.768px 이상은 라벨/개수8px·화살표 최소 여유8px, 좁은 화면은 기존 간격을 유지한다. 대표 검색 `fieldSize="search"`는 모바일16px·PC/태블릿18px이며 일반 작은 필드 글자와 분리한다. FAQ의 카테고리는 공통 lg16px·행 분류명은 type-body16px을 사용한다. 세부 계약과 라이브러리 표는 `site-component-density.md`와 `SITE_CONTROL_DENSITY`다.
+라운드는 이전 승인 상태로 복구한다. 일반 입력·선택은 기존12px `--ui-radius-field`, 검색은 `--ui-radius-control`의 캡슐형을 사용한다. 일반 필드 모서리와 검색창 모양은 별도 역할이며, 모서리 일괄 정리로 검색 캡슐을 변경하지 않는다. 안쪽 검색 실행 버튼의 원형·클릭 영역도 유지한다.768px 이상은 라벨/개수8px·화살표 최소 여유8px, 좁은 화면은 기존 간격을 유지한다. 대표 검색 `fieldSize="search"`는 모바일16px·PC/태블릿18px이며 일반 작은 필드 글자와 분리한다. FAQ의 카테고리는 공통 lg16px·행 분류명은 type-body16px을 사용한다. 세부 계약과 라이브러리 표는 `site-component-density.md`와 `SITE_CONTROL_DENSITY`다.
