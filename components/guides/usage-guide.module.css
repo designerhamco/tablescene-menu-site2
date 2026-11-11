@@ -17,12 +17,6 @@
 .planContent {
   margin-top: 1.5rem;
 }
-.topics {
-  width: fit-content;
-  max-width: 100%;
-  margin: 0 auto;
-  justify-content: center;
-}
 .articles {
   display: grid;
   gap: clamp(4rem, 7vw, 7rem);

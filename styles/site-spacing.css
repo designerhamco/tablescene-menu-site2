@@ -57,6 +57,7 @@
 .site-form-row { display: flex; min-width: 0; flex-direction: column; align-items: stretch; gap: var(--site-space-block); }
 .site-form-row > .site-field-stack { flex: 1; }
 .site-action-row { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: var(--site-space-copy); }
+.site-action-row[data-distribution="center"] { justify-content: center; }
 .site-action-row[data-distribution="between"] { justify-content: space-between; }
 .site-action-row[data-distribution="end"] { justify-content: flex-end; }
 .site-action-row[data-wrap="nowrap"] { flex-wrap: nowrap; }

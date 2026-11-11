@@ -26,6 +26,7 @@ import {
 } from "@/lib/usage-guides";
 import styles from "./usage-guide.module.css";
 import SitePageHeader from "@/components/layout/SitePageHeader";
+import { Button } from "@/app/components/ui/button";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 
 const GUIDE_DEVICE = "windows";
@@ -276,6 +277,7 @@ function GuideArticle({
           className="type-subsection-title"
         >
           {section.title}
+          {section.id === "fullscreen" && <> <InfoTooltip label="권장 브라우저 안내">아티메뉴 메뉴판은 Chrome(크롬) 사용을 권장합니다. 아래 브라우저 설정은 컴퓨터용 Chrome 기준입니다.</InfoTooltip></>}
         </h2>
         <p className="type-body">{section.body}</p>
         <GuideInstructions section={section} />
@@ -342,27 +344,21 @@ export default function UsageGuidePage({
                 className={styles.planContent}
               >
                 <div
-                  className={`site-filter-group ${styles.topics}`}
+                  className="site-action-row"
+                  data-distribution="center"
                   role="group"
                   aria-label="가이드 종류"
                 >
-                  <InfoTooltip label="권장 브라우저 안내">아티메뉴 메뉴판은 Chrome(크롬) 사용을 권장합니다. 아래 브라우저 설정은 컴퓨터용 Chrome 기준입니다.</InfoTooltip>
-                  <a
-                    href={`#${entry.id}-${entry.id === "display" ? "connection" : "fullscreen"}`}
-                    className="site-filter"
-                    aria-current="location"
-                  >
-                    {entry.id === "display"
-                      ? "화면 연결·브라우저 설정 가이드"
-                      : "브라우저 설정 가이드"}
-                  </a>
-                  <button
-                    type="button"
-                    className="site-filter"
-                    disabled
-                  >
+                  <Button variant="outline" asChild>
+                    <a href={`#${entry.id}-${entry.id === "display" ? "connection" : "fullscreen"}`} aria-current="location">
+                      {entry.id === "display"
+                        ? "화면 연결·브라우저 설정 가이드"
+                        : "브라우저 설정 가이드"}
+                    </a>
+                  </Button>
+                  <Button variant="outline" disabled>
                     추가 가이드 · 준비 중
-                  </button>
+                  </Button>
                 </div>
                 <div className={styles.articles}>
                   {sections.map((section) => (

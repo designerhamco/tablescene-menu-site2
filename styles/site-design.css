@@ -640,7 +640,7 @@
 .site-announcement > svg { flex: none; }
 .site-notification-panel { --type-body-size: var(--type-dialog-body-size); --type-body-sm-size: var(--type-dialog-body-size); --type-caption-size: var(--type-footnote-size); min-width: 0; overflow: hidden; border-radius: var(--ui-radius-panel); background: var(--ui-surface); color: var(--ui-text); }
 .site-notification-tabs.site-topic-tabs { width: 100%; gap: 0; padding-inline: 0; }
-.site-notification-tabs > .site-topic-tab { flex: 1; justify-content: center; }
+.site-notification-tabs > .site-topic-tab { flex: 1; justify-content: center; min-height: var(--ui-control-height-lg); padding-block: var(--site-space-copy); }
 .site-notification-panel:not([data-compact]) { overflow: visible; }
 .site-notification-body { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); }
 .site-notification-feed { grid-area: 1 / 1; min-width: 0; padding: .5rem 0 1rem; }
@@ -817,7 +817,7 @@
 
 /* Compact announcement boards share the site's type, controls and dividers. */
 .site-board-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
-.site-board-search { display: grid; grid-template-columns: 9rem minmax(0, 18rem); align-items: center; gap: .5rem; min-width: 0; }
+.site-board-search { display: grid; grid-template-columns: minmax(0, 18rem); align-items: center; gap: .5rem; min-width: 0; }
 .site-board-list { width: 100%; table-layout: fixed; border-collapse: collapse; border-block-start: 1px solid var(--ui-border); }
 .site-board-list th { padding: 1rem; font-size: var(--type-body-sm-size); font-weight: 500; color: var(--ui-text-muted); }
 .site-board-list :is(th, td) { border-block-end: 1px solid var(--ui-border); }
@@ -831,16 +831,11 @@
 .site-board-status > div { display: grid; justify-items: center; gap: 1rem; }
 @media (max-width: 639px) {
   .site-board-toolbar { flex-direction: column; align-items: stretch; }
-  .site-board-search { grid-template-columns: 9.25rem minmax(0, 1fr); }
+  .site-board-search { grid-template-columns: minmax(0, 1fr); }
   .site-board-list :is(th, td):first-child:not(.site-board-status) { width: 0; padding-inline: 0; visibility: hidden; }
   .site-board-list :is(th, td):last-child { width: 7rem; }
   .site-board-list :is(th, td) { padding-inline: .5rem; }
   .site-board-list td.site-board-status { width: auto; }
-}
-
-@media (max-width: 360px) {
-  .site-board-search { grid-template-columns: minmax(0, 1fr); }
-  .site-board-search > select { grid-column: 1 / -1; }
 }
 
 /* Shared asynchronous feedback. Never animate a fabricated completion value. */
