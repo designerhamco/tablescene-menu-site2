@@ -654,10 +654,11 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       >
         <OnePageCallPalette />
         {topRow ? <header className={styles.topRow} data-basic-top-row data-basic-header-align={leftLogo ? "left" : undefined}>
+          {!leftLogo ? <div className={headerInformationStyles.description}>{storeDescription}</div> : null}
           <div className={styles.topIdentity}>{storeIdentity}</div>
           <div className={headerInformationStyles.stack} data-menu-header-info-stack>
             {languageControl}
-            {storeDescription}
+            {leftLogo ? storeDescription : null}
             {!leftLogo && allNotices.length ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices data-scroll-header-copy>
               {allNotices.map((n, i) => <p key={i}><ScriptAwareText text={n} /></p>)}
             </div> : null}
