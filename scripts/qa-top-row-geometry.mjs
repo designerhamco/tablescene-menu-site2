@@ -46,14 +46,33 @@ try {
       assert.deepEqual(before.viewport, [width, height], id);
       assert.ok(Math.abs(before.trigger.y - before.header.y - before.insetTop) < 1, `${id}: language at header top`);
       assert.ok(Math.abs(before.trigger.right - before.header.right + before.insetRight) < 1, `${id}: language at header right`);
-      const information = await page.locator('[data-menu-header-info-stack]').evaluate(stack => {
-        const description = stack.querySelector('.cafe-a-topline-description, .cafe-a-store-description'), trigger = stack.querySelector('[data-language-menu-trigger]');
-        const s = stack.getBoundingClientRect(), d = description.getBoundingClientRect(), t = trigger.getBoundingClientRect();
-        return {width:s.width, descriptionWidth:d.width, right:s.right, descriptionRight:d.right, gap:d.top-t.bottom, expectedGap:parseFloat(getComputedStyle(document.documentElement).fontSize)*.75};
+      const information = await page.locator('[data-native-header], [data-basic-top-row]').evaluate(header => {
+        const grid = header.querySelector('[data-cafe-a-topline-info-header]') ?? header;
+        const stack = header.querySelector('[data-menu-header-info-stack]');
+        const description = header.querySelector('.cafe-a-topline-description, .cafe-a-store-description');
+        const trigger = stack.querySelector('[data-language-menu-trigger]');
+        const notices = stack.querySelector('.cafe-a-topline-notice-text, [data-paged-notices]');
+        const identity = header.querySelector('.cafe-a-topline-brand-identity') ?? header.querySelector('.cafe-a-store-logo-wrap, [data-canvas-brand-fit]').parentElement;
+        const rect = e => { const r=e.getBoundingClientRect();return {x:r.x,right:r.right,top:r.top,bottom:r.bottom,width:r.width}; };
+        const cell = e => { while(e.parentElement!==grid) e=e.parentElement;return rect(e); };
+        return {left:header.dataset.basicHeaderAlign==='left', stack:rect(stack), description:rect(description), descriptionCell:cell(description), identity:rect(identity), notices:notices&&rect(notices), trigger:rect(trigger), gap:parseFloat(getComputedStyle(grid).columnGap), expectedGap:parseFloat(getComputedStyle(document.documentElement).fontSize)*.75, descriptionInStack:stack.contains(description)};
       });
-      assert.ok(Math.abs(information.width-information.descriptionWidth)<1, `${id}: description uses its full information cell`);
-      assert.ok(Math.abs(information.right-information.descriptionRight)<1, `${id}: shared right edge`);
-      assert.ok(Math.abs(information.gap-information.expectedGap)<1, `${id}: shared related-block gap`);
+      const info = information;
+      assert.ok(Math.abs(info.description.width-info.descriptionCell.width)<1, `${id}: description fills only its own cell`);
+      if(info.left) {
+        assert.equal(info.descriptionInStack,true, `${id}: left-logo variant keeps right description`);
+        assert.equal(info.notices,null, `${id}: left-logo notices remain after menu content`);
+        assert.ok(Math.abs(info.stack.right-info.description.right)<1, `${id}: left-logo description keeps shared right edge`);
+        assert.ok(info.identity.right+info.gap<=info.description.x+1, `${id}: left-logo identity and description retain gutter`);
+      } else {
+        assert.equal(info.descriptionInStack,false, `${id}: centered header cannot merge description into notices column`);
+        assert.ok(info.description.right+info.gap<=info.identity.x+1, `${id}: description stays left of identity with gutter`);
+        assert.ok(info.identity.right+info.gap<=info.stack.x+1, `${id}: notices stay right of identity with gutter`);
+        assert.ok(Math.abs((info.identity.x-info.descriptionCell.right)-(info.stack.x-info.identity.right))<1, `${id}: equal header gutters`);
+        assert.ok(info.notices, `${id}: centered header retains notices`);
+      }
+      const nextRightBlock=info.left?info.description:info.notices;
+      assert.ok(Math.abs(nextRightBlock.top-info.trigger.bottom-info.expectedGap)<1, `${id}: language-to-right-content gap`);
       for (const copy of before.copy) {
         const overlapX = Math.min(copy.right,before.trigger.right)-Math.max(copy.x,before.trigger.x);
         const overlapY = Math.min(copy.bottom,before.trigger.bottom)-Math.max(copy.y,before.trigger.y);

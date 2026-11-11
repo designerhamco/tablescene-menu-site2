@@ -3774,6 +3774,9 @@ function DesktopToplineInformationHeader({
       data-cafe-a-topline-info-header=""
       data-basic-header-align={leftLogo ? "left" : undefined}
     >
+      {!leftLogo ? <div className={`cafe-a-topline-description-panel min-w-0 ${headerInformationStyles.description}`} data-cafe-a-topline-description-panel="">
+        {description ? <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description whitespace-pre-line break-keep text-[#3f4945] ${descriptionSizeClassName}`}><ScriptAwareText text={description} /></p> : null}
+      </div> : null}
       <div className="cafe-a-topline-brand-identity min-w-0" data-cafe-a-topline-brand-identity="">
         <StoreIdentity
           data={data}
@@ -3786,7 +3789,7 @@ function DesktopToplineInformationHeader({
 
       <div className={`cafe-a-topline-info-stack ${headerInformationStyles.stack}`} data-menu-header-info-stack>
         {languageControl}
-        {description ? <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description whitespace-pre-line break-keep ${!leftLogo ? "text-[#3f4945]" : ""} ${descriptionSizeClassName}`}><ScriptAwareText text={description} /></p> : null}
+        {leftLogo && description ? <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description whitespace-pre-line break-keep ${descriptionSizeClassName}`}><ScriptAwareText text={description} /></p> : null}
         {!leftLogo && infoRows.length ? <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-notices cafe-a-topline-notice-text whitespace-pre-line break-keep text-[#3f4945] ${descriptionSizeClassName}`}><ScriptAwareText text={infoRows.join("\n")} /></p> : null}
       </div>
     </section>
