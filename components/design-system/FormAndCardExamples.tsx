@@ -1,10 +1,11 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Check, Search } from "lucide-react";
+import { Check } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
 import { Input } from "@/app/components/ui/input";
+import { SearchField } from "@/app/components/ui/search-field";
 import { Textarea } from "@/app/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
 import styles from "./SiteComponentGallery.module.css";
@@ -12,6 +13,7 @@ import styles from "./SiteComponentGallery.module.css";
 export default function FormAndCardExamples() {
   const id = useId();
   const [plan, setPlan] = useState("basic");
+  const [query, setQuery] = useState("");
   return <>
     <section className={styles.section} id="form-controls">
       <div className={styles.heading}>
@@ -24,7 +26,7 @@ export default function FormAndCardExamples() {
         <label className={styles.fieldExample} htmlFor={`${id}-store`}><span className="type-label">신청 정보 · 48px</span><Input id={`${id}-store`} fieldSize="lg" placeholder="상호명을 입력해 주세요" /><span className="type-footnote text-zinc-600">작성할 정보가 많은 신청 화면</span></label>
         <div className={styles.fieldExample}><label className="type-label" htmlFor={`${id}-select`}>셀렉트 · 입력창과 같은 크기</label><Select defaultValue="all"><SelectTrigger id={`${id}-select`} size="lg"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">전체 상태</SelectItem><SelectItem value="active">공개 중</SelectItem><SelectItem value="draft">작성 중</SelectItem></SelectContent></Select><span className="type-footnote text-zinc-600">같은 폼에서는 input과 동일한 규격</span></div>
       </div>
-      <label className={styles.fieldExample} htmlFor={`${id}-question`}><span className="type-label">질문 검색 · 56px</span><div className={styles.searchExample}><Search aria-hidden="true" size={22} /><input id={`${id}-question`} className="site-field site-field-search" type="search" placeholder="어떤 점이 궁금하신가요?" /></div></label>
+      <div className={styles.fieldExample}><label className="type-label" htmlFor={`${id}-question`}>질문 검색 · 56px</label><SearchField id={`${id}-question`} label="질문 검색" fieldSize="search" value={query} onValueChange={setQuery} placeholder="어떤 점이 궁금하신가요?" /></div>
       <label className={styles.fieldExample} htmlFor={`${id}-message`}><span className="type-label">긴 문의 · 여러 줄 입력</span><Textarea id={`${id}-message`} fieldSize="lg" rows={4} placeholder="문의 내용을 자세히 적어 주세요." /></label>
       <div className={styles.fieldGrid}>
         <label className={styles.fieldExample} htmlFor={`${id}-readonly`}><span className="type-label">읽기 전용</span><Input id={`${id}-readonly`} value="입력 내용을 확인하는 항목" readOnly /></label>

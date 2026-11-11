@@ -13,7 +13,7 @@ import {
 } from "@/lib/catalog-designs";
 import { CATALOG_COLORS, CATALOG_MOODS, CATALOG_DEFAULT_THUMBNAIL_SIZE, normalizeCatalogThumbnailSize, type CatalogThumbnailSize } from "@/lib/catalog-facets";
 import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
+import { SearchField } from "@/app/components/ui/search-field";
 import { FieldActionRow } from "@/app/components/ui/field-action-row";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
@@ -141,7 +141,7 @@ export default function TemplateGallery({
               <form role="search" aria-label="템플릿 이름 검색" className="site-catalog-search" onSubmit={event => event.preventDefault()}>
                 <FieldActionRow field={<>
                   <label className="sr-only" htmlFor={`${tabsId}-search`}>템플릿 이름 검색</label>
-                  <Input id={`${tabsId}-search`} type="search" placeholder="템플릿 이름으로 검색" enterKeyHint="search" maxLength={100} value={query} onChange={event => searchByName(event.target.value)} />
+                  <SearchField id={`${tabsId}-search`} label="템플릿 이름 검색" showSearchIcon={false} placeholder="템플릿 이름으로 검색" enterKeyHint="search" maxLength={100} value={query} onValueChange={searchByName} />
                 </>} action={<Button type="submit" variant="ghost" size="icon" aria-label="이름 검색"><Search aria-hidden="true" /></Button>} />
               </form>
               <div className="site-catalog-filter-toolbar">

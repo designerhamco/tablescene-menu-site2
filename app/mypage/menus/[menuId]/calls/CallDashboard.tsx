@@ -5,12 +5,13 @@ import { TableCell } from "@/app/components/ui/table";
 import OperationsHistoryTable from "@/components/mypage/OperationsHistoryTable";
 import OperationsHistoryViews from "@/components/mypage/OperationsHistoryViews";
 import type { OperationsFloorPlan } from "@/lib/operations-history";
-import { Search } from "lucide-react";
+import { SearchField } from "@/app/components/ui/search-field";
 import { RefreshButton } from "@/app/components/ui/refresh-button";
 import { useRouter } from "next/navigation";
 import {
   useActionState,
   useEffect,
+  useId,
   useMemo,
   useState,
   useTransition,
@@ -54,6 +55,7 @@ export default function CallDashboard({
   floorPlan: OperationsFloorPlan;
 }) {
   const router = useRouter();
+  const queryId = useId();
   const [refreshing, refresh] = useTransition();
   const [state, action, pending] = useActionState(
     mutateCallAction,
@@ -177,22 +179,10 @@ export default function CallDashboard({
           />
         </div>
         <div className="site-form-row">
-          <label className="site-field-stack">
-            <span className="type-label">호출 내역 검색</span>
-            <span className="relative block">
-              <Search
-                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"
-                aria-hidden="true"
-              />
-              <input
-                type="search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="테이블·요청·처리자 검색"
-                className="site-field site-field-leading w-full"
-              />
-            </span>
-          </label>
+          <div className="site-field-stack">
+            <label htmlFor={queryId} className="type-label">호출 내역 검색</label>
+            <SearchField id={queryId} label="호출 내역 검색" value={query} onValueChange={setQuery} placeholder="테이블·요청·처리자 검색" />
+          </div>
           <label className="site-field-stack">
             <span className="type-label">상태</span>
             <select

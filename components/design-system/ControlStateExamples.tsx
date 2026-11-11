@@ -44,7 +44,7 @@ export default function ControlStateExamples() {
       <div className="site-action-row"><Button variant="outline">취소</Button><Button variant="outline">변경 취소</Button><Button variant="outline">로그아웃</Button><Button variant="outline" disabled>변경 취소 · 비활성</Button><Button variant="outline-danger">삭제 요청</Button><div className="site-action-row" data-wrap="nowrap"><ButtonGroupDivider /><Button variant="ghost" size="icon" aria-label="보조 버튼 예시 추가 도구"><Plus aria-hidden="true" /></Button></div></div>
     </div>
     <div id="button-surface-boundaries" className="site-stack-group" role="group" aria-labelledby="button-surface-boundaries-title">
-      <div className="site-stack-title"><h3 className="type-content-title" id="button-surface-boundaries-title">배경과 버튼의 경계</h3><p className="type-body-sm site-copy-muted">회색·유색 배경에서도 실행 버튼의 형태가 구분되어야 합니다. 회색 secondary와 비활성 실행 버튼에는 공통 1px 경계를 남깁니다. 비활성은 흐린 문구와 반응 없음으로 구분합니다.</p></div>
+      <div className="site-stack-title"><h3 className="type-content-title" id="button-surface-boundaries-title">배경과 버튼의 경계</h3><p className="type-body-sm site-copy-muted">테두리는 흰색 버튼의 경계가 불분명할 때 사용합니다. 회색 secondary와 비활성 버튼은 채움과 흐린 문구로 구분하고, hover·클릭 반응을 보이지 않습니다.</p></div>
       <ContentPanel surface="muted" density="compact" aria-label="회색 배경의 비활성 이동 예시">
         <div className="site-field-stack"><label className="type-label" htmlFor="button-boundary-room">다른 룸으로 이동</label><fieldset disabled className="site-form-row" data-alignment="center"><legend className="sr-only">비활성 룸 이동 예시</legend><div className="site-field-stack"><select id="button-boundary-room" className="site-field w-full" defaultValue=""><option value="">이동할 다른 룸이 없습니다</option></select></div><Button variant="outline">이동</Button></fieldset></div>
         <div className="site-action-row"><Button variant="outline">사용 가능한 이동 예시</Button><Button variant="secondary">초기화 예시</Button><Button variant="secondary" disabled>초기화 · 비활성</Button></div>
@@ -57,7 +57,7 @@ export default function ControlStateExamples() {
       <tbody>{actions.map(([variant,label]) => <tr key={variant}><th scope="row">{label}</th>{states.map(([state,stateLabel]) => <td key={state}>
         <Button variant={variant} size={variant === "ghost" || variant === "danger-ghost" ? "icon" : undefined} disabled={state === "disabled"} data-ui-state={state === "default" || state === "disabled" ? undefined : state} aria-label={`${label} ${stateLabel} 예시`}>{variant === "ghost" ? <Plus aria-hidden="true" /> : variant === "danger-ghost" ? <Trash2 aria-hidden="true" /> : label}</Button>
       </td>)}</tr>)}</tbody></table></div>
-    <p className="type-body-sm text-zinc-600">상태 표는 실제 공통 스타일을 고정해 비교합니다. 비활성 실행 버튼은 옅은 회색 표면·흐린 문구·공통 1px 경계를 사용하며 hover·클릭 색상으로 바뀌지 않습니다. 고객지원 퀵 버튼은 56px의 둥근 정사각형이며 무배경 아이콘 도구와 구분합니다.</p>
+    <p className="type-body-sm text-zinc-600">상태 표는 실제 공통 스타일을 고정해 비교합니다. 비활성 실행 버튼은 옅은 회색 표면·흐린 문구·무테를 사용하며 hover·클릭 색상으로 바뀌지 않습니다. 고객지원 퀵 버튼은 56px의 둥근 정사각형이며 무배경 아이콘 도구와 구분합니다.</p>
     <div className={styles.ruleGrid}>{([
       ["underline", "목록 주제 분류", "밑줄 탭 · 4px 선택선"],
       ["area", "독립 콘텐츠 영역 전환", "흰 콘텐츠 면 · 상단 연결 탭"],

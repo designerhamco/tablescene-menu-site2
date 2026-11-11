@@ -302,7 +302,7 @@
 }
 
 .site-button-secondary {
-  border-color: var(--ui-button-boundary);
+  border-color: transparent;
   background: var(--ui-surface-soft);
   color: var(--ui-text);
 }
@@ -341,10 +341,10 @@
   color: var(--ui-text);
 }
 
-/* A functional outline keeps opaque disabled actions visible on matching surfaces.
+/* Filled disabled buttons communicate state through fill and ink, without a decorative edge.
    Native :disabled includes controls disabled by an ancestor fieldset. */
 .site-button:is(:disabled, [aria-disabled="true"]):not(.site-button-ghost, .site-button-danger-ghost, .site-button-link) {
-  border-color: var(--ui-button-boundary);
+  border-color: transparent;
 }
 
 /* Text/icon navigation keeps its ghost surface when unavailable. */
@@ -573,7 +573,7 @@
   font-size: var(--site-type-16);
   font-weight: 400;
   line-height: 1.5;
-  padding: .5rem .875rem;
+  padding: .5rem var(--ui-control-padding-inline);
   transition:
     border-color var(--ui-transition),
     background-color var(--ui-transition),
@@ -639,8 +639,8 @@ textarea.site-field,
 :where(input, textarea, select):not(.menu-typography *):not(.menu-typography, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *):disabled {
   cursor: not-allowed;
   background-color: var(--ui-surface-muted);
-  color: #71717a;
-  opacity: 0.72;
+  color: var(--ui-disabled-text);
+  opacity: 1;
 }
 
 :is(input, textarea).site-field:read-only:not(:disabled),
@@ -656,16 +656,16 @@ textarea.site-field,
     [type="image"],
     [type="hidden"]
   ):not(.menu-typography *):not(.menu-typography, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *):read-only:not(:disabled) {
-  cursor: not-allowed;
+  cursor: text;
   border-color: var(--ui-border);
   background: var(--ui-surface-muted);
-  color: #71717a;
+  color: var(--ui-text-muted);
   box-shadow: none;
   opacity: 1;
 }
 
-:is(input, textarea).site-field:read-only:not(:disabled):focus,
-:where(input, textarea):not(.menu-typography *):not(.menu-typography, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *):read-only:not(:disabled):focus {
+:is(input, textarea).site-field:read-only:not(:disabled):focus:not(:focus-visible),
+:where(input, textarea):not(.menu-typography *):not(.menu-typography, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *):read-only:not(:disabled):focus:not(:focus-visible) {
   border-color: var(--ui-border);
   outline: none;
   box-shadow: none;
@@ -1236,7 +1236,7 @@ select:not([multiple]):is(:not([size]), [size="1"]):not(:where(.menu-typography,
   background-position: right var(--site-select-chevron-inset) center;
   background-size: var(--site-select-chevron-size);
 }
-.site-field.site-select-trigger { position: relative; min-width: 0; max-width: 100%; padding-inline: .875rem var(--site-select-trailing-space); }
+.site-field.site-select-trigger { position: relative; min-width: 0; max-width: 100%; padding-inline: var(--ui-control-padding-inline) var(--site-select-trailing-space); }
 .site-select-trigger > [data-slot="select-value"] { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .site-select-trigger .site-select-chevron { position: absolute; inset-inline-end: var(--site-select-chevron-inset); top: calc(50% - .625rem); width: var(--site-select-chevron-size); height: var(--site-select-chevron-size); color: var(--site-text-secondary); transition: transform var(--ui-transition); }
 .site-select-trigger[data-state="open"] .site-select-chevron { transform: rotate(180deg); }
@@ -1499,6 +1499,56 @@ svg.site-edit-icon {
 .site-multiselect-swatch:has(input:checked) .site-color-swatch { outline: 2px solid var(--ui-text); outline-offset: 2px; }
 .site-multiselect-swatch:has(input:focus-visible) .site-color-swatch { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
 @media (forced-colors: active) { .site-multiselect-swatch:has(input:checked) .site-color-swatch { outline-color: Highlight; } }
+
+/* Composed fields retain one boundary and keep interactive siblings outside the input. */
+.site-field.site-input-group { --site-input-height: var(--ui-field-height-md); display: flex; align-items: center; gap: var(--site-space-copy); width: 100%; min-width: 0; min-height: var(--site-input-height); padding: 0 var(--ui-control-padding-inline); }
+.site-input-group[data-field-size="sm"] { --site-input-height: var(--ui-field-height-sm); }
+.site-input-group[data-field-size="lg"] { --site-input-height: var(--ui-field-height-lg); }
+.site-input-group[data-field-size="search"] { --site-input-height: var(--ui-field-height-search); border-radius: var(--ui-radius-field); }
+.site-field.site-input-group > .site-input-group-control,
+.site-field.site-input-group > .site-input-group-control:is(:hover, :focus, :read-only, :disabled, [aria-invalid="true"]) { flex: 1 1 0; width: 100%; min-width: 0; height: calc(var(--site-input-height) - 2px); min-height: calc(var(--site-input-height) - 2px); padding: 0; border: 0; border-radius: 0; outline: none; background: transparent; box-shadow: none; color: inherit; opacity: 1; font: inherit; }
+.site-input-group-control[type="search"]::-webkit-search-cancel-button { appearance: none; }
+.site-input-group-addon { display: inline-flex; flex: none; align-items: center; gap: var(--site-space-copy); color: var(--ui-text-muted); white-space: nowrap; }
+.site-input-group-addon > svg { width: 1.25rem; height: 1.25rem; }
+.site-input-group-action { display: inline-flex; flex: none; align-items: center; justify-content: center; width: var(--ui-control-height-compact); min-height: var(--ui-control-height-compact); }
+.site-input-group-action > .site-button { color: var(--ui-text-muted); }
+.site-input-group:has(.site-input-group-action) { padding-inline-end: var(--site-space-copy); }
+.site-input-group:focus-within:not(:has(input:disabled, input[readonly])) { border-color: var(--ui-focus); outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+.site-input-group:has(input[readonly]) { background: var(--ui-surface-muted); color: var(--ui-text-muted); }
+.site-input-group:has(input[readonly]):focus-within { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+.site-input-group:has(input[aria-invalid="true"]):not(:has(input:disabled)) { border-color: var(--ui-danger); outline-color: var(--ui-danger); }
+.site-input-group:has(input:disabled) { border-color: var(--ui-border); background: var(--ui-disabled-surface); color: var(--ui-disabled-text); outline: none; cursor: not-allowed; }
+.site-input-group:has(input:disabled) .site-input-group-addon { color: inherit; }
+:is(input, textarea).site-field[readonly]:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+
+/* Radix and native choices use the same established18px glyph geometry. */
+.site-checkbox, .site-radio { display: inline-flex; flex: none; align-items: center; justify-content: center; width: var(--ui-choice-size); height: var(--ui-choice-size); padding: 0; border: 1px solid var(--ui-border-strong); background: var(--ui-surface); color: var(--ui-text); box-shadow: none; cursor: pointer; }
+.site-checkbox { border-radius: .25rem; }
+.site-radio { border-radius: var(--ui-radius-control); }
+.site-checkbox[data-state="checked"], .site-checkbox[data-state="indeterminate"] { border-color: transparent; background: var(--ui-text); color: var(--ui-surface); }
+.site-radio[data-state="checked"] { border-color: var(--ui-text); }
+.site-checkbox-indicator, .site-radio-indicator { display: inline-flex; align-items: center; justify-content: center; }
+.site-checkbox-indicator > svg { width: .875rem; height: .875rem; }
+.site-checkbox-indicator .site-checkbox-mixed { display: none; }
+.site-checkbox-indicator[data-state="indeterminate"] .site-checkbox-check { display: none; }
+.site-checkbox-indicator[data-state="indeterminate"] .site-checkbox-mixed { display: block; }
+.site-radio-indicator > svg { width: .5rem; height: .5rem; fill: currentColor; }
+:is(.site-checkbox, .site-radio):hover:not(:disabled) { border-color: var(--ui-text); }
+:is(.site-checkbox, .site-radio):focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
+:is(.site-checkbox, .site-radio)[aria-invalid="true"] { border-color: var(--ui-danger); outline-color: var(--ui-danger); }
+:is(.site-checkbox, .site-radio):disabled { border-color: var(--ui-disabled-text); background: var(--ui-disabled-surface); color: var(--ui-disabled-text); opacity: 1; cursor: not-allowed; }
+.site-checkbox:disabled:is([data-state="checked"], [data-state="indeterminate"]) { background: var(--ui-disabled-text); color: var(--ui-disabled-surface); }
+
+/* Calendar geometry is independent from action buttons and generic icon overrides. */
+.site-calendar { max-width: 100%; overflow-x: auto; }
+.site-calendar-caption { min-height: var(--ui-control-height-md); }
+.site-calendar .site-calendar-nav-button { --ui-icon-control-size: var(--ui-control-height-compact); }
+.site-calendar .site-calendar-day { width: var(--ui-control-height-compact); height: var(--ui-control-height-compact); min-height: var(--ui-control-height-compact); padding: 0; border: 0; border-radius: var(--ui-radius-control); }
+.site-calendar .site-calendar-day[aria-selected="true"] { background: var(--ui-text); color: var(--ui-surface); }
+.site-calendar .site-calendar-day[aria-selected="true"]:is(:hover, :focus-visible) { background: var(--ui-action-hover); color: var(--ui-surface); }
+.site-calendar .site-calendar-range-middle[aria-selected="true"] { border-radius: 0; background: var(--ui-surface-soft); color: var(--ui-text); }
+.site-calendar .site-calendar-day:disabled { background: transparent; color: var(--ui-disabled-text); opacity: 1; }
+.site-calendar .site-calendar-day:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
 
 /* Bare is a paint choice, never a rule that shrinks control geometry. */
 :is(.site-icon-control, .site-button.site-button-icon):not([data-icon-appearance="framed"]),

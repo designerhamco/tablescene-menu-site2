@@ -6,7 +6,7 @@ import { Search } from "lucide-react";
 import { ANNOUNCEMENT_CATEGORIES, ANNOUNCEMENT_PAGE_SIZE, formatAnnouncementDate, type AnnouncementSummary } from "@/lib/announcements";
 import { BoardList } from "@/app/components/ui/board-list";
 import { Button } from "@/app/components/ui/button";
-import { Input } from "@/app/components/ui/input";
+import { SearchField } from "@/app/components/ui/search-field";
 import { SitePagination } from "@/app/components/ui/site-pagination";
 
 type AnnouncementResult = { items: AnnouncementSummary[]; count: number; unavailable: boolean };
@@ -54,7 +54,7 @@ export default function AnnouncementBoard() {
           {ANNOUNCEMENT_CATEGORIES.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
         </select>
         <label className="sr-only" htmlFor={`${uid}-query`}>공지 제목과 내용 검색</label>
-        <Input id={`${uid}-query`} type="search" fieldSize="sm" placeholder="제목과 내용 검색" enterKeyHint="search" value={query} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && event.nativeEvent.isComposing) event.preventDefault(); }} />
+        <SearchField id={`${uid}-query`} label="공지 제목과 내용 검색" showSearchIcon={false} fieldSize="sm" placeholder="제목과 내용 검색" enterKeyHint="search" value={query} onValueChange={setQuery} onKeyDown={event => { if (event.key === "Enter" && event.nativeEvent.isComposing) event.preventDefault(); }} />
         <Button type="submit" size="icon" aria-label="공지사항 검색"><Search size={18} aria-hidden="true" /></Button>
       </form>
     </div>
