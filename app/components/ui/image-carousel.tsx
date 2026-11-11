@@ -6,7 +6,6 @@ import { ChevronLeft, ChevronRight } from "@/app/components/ui/site-arrow";
 import useEmblaCarousel from "embla-carousel-react";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Button } from "./button";
-import { ImageViewer } from "./image-viewer";
 
 export type ImageCarouselItem = { src: string; label: string };
 type ImageCarouselProps = {
@@ -65,8 +64,7 @@ export function ImageCarousel({ images, name, href, presentation = "catalog", sh
             return <div key={image.src} className="site-image-carousel-slide" role={multiple ? "group" : undefined}
               aria-roledescription={multiple ? "슬라이드" : undefined} aria-label={multiple ? `${index + 1} / ${images.length}` : undefined}
               aria-hidden={multiple ? selected !== index : undefined}>
-              {href ? <Link href={href} aria-label={`${name} 상세 보기`} tabIndex={selected === index ? 0 : -1}>{picture}</Link> : presentation === "gallery" ?
-                <ImageViewer images={images} name={name} initialIndex={index}><button type="button" className="site-image-open-trigger" aria-label={`${name} ${image.label} 크게 보기`} tabIndex={selected === index ? 0 : -1}>{picture}</button></ImageViewer> : picture}
+              {href ? <Link href={href} aria-label={`${name} 상세 보기`} tabIndex={selected === index ? 0 : -1}>{picture}</Link> : picture}
             </div>;
           })}
         </div>
@@ -82,10 +80,10 @@ export function ImageCarousel({ images, name, href, presentation = "catalog", sh
       </> : null}
     </div>
     {multiple && showThumbnails ? <div className="site-image-carousel-thumbnails" role="group" aria-label={`${name} 이미지 선택`}>
-      {images.map((image, index) => <ImageViewer key={image.src} images={images} name={name} initialIndex={index}><button type="button" className="site-image-carousel-thumbnail"
+      {images.map((image, index) => <button key={image.src} type="button" className="site-image-carousel-thumbnail"
         aria-label={image.label} aria-pressed={selected === index} onClick={() => api?.scrollTo(index)}>
         <Image src={image.src} alt="" fill sizes="56px" draggable={false} />
-      </button></ImageViewer>)}
+      </button>)}
     </div> : null}
   </div>;
 }

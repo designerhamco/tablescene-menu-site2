@@ -411,11 +411,14 @@
 @media (min-width: 1280px) {
   .site-catalog-results .site-template-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+/* The implicit mobile default also applies before client hydration. */
 @media (max-width: 767px) {
-  .site-catalog-results .site-template-grid[data-thumbnail-size] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .site-catalog-results .site-template-grid[data-thumbnail-size="large"],
+  .site-catalog-results .site-template-grid[data-thumbnail-default] { grid-template-columns: minmax(0, 1fr); }
 }
 @media (min-width: 640px) and (max-width: 767px) {
-  .site-catalog-results .site-template-grid[data-thumbnail-size] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .site-catalog-results .site-template-grid[data-thumbnail-size="large"],
+  .site-catalog-results .site-template-grid[data-thumbnail-default] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* Compatibility rules for existing site pages, including account and editor
