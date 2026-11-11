@@ -223,7 +223,7 @@ const CustomServicePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white font-sans selection:bg-zinc-900 selection:text-white text-zinc-900">
+    <div className="min-h-screen bg-white selection:bg-zinc-900 selection:text-white text-zinc-900">
       
       {/* 1. Intro Section with Title & Carousel */}
       <section className="pt-32 pb-6 md:pb-12 bg-white overflow-hidden">

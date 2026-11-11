@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 export default function DiningPage() {
   return (
-    <MarketingShell>
+    <MarketingShell surface="dining">
       <MarketingServicePage service="dining" />
     </MarketingShell>
   );

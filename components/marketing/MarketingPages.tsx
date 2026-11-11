@@ -163,13 +163,13 @@ const serviceCopy = {
   },
 } as const;
 
-export function MarketingShell({ children }: { children: React.ReactNode }) {
+export function MarketingShell({ children, surface = "default" }: { children: React.ReactNode; surface?: "default" | "dining" }) {
   return (
-    <>
+    <div className={styles.shell} data-surface={surface}>
       <OfficialSiteNavbar />
       <main>{children}</main>
       <Footer />
-    </>
+    </div>
   );
 }
 

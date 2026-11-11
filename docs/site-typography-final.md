@@ -4,6 +4,12 @@
 
 2026-10-26 사용자가 첨부한 홈 플랜 화면의 전체 비율을 기준으로 한다. PC에서 페이지 제목36px/700, 큰 구역 제목28px/700, 하위 구역 제목24px/700, 대표 가격44px/700, 페이지 설명·일반 본문16px/400, 사이트 탐색16px/500, 버튼14px/600, 보조 설명14px, 하단 작은 안내13px로 역할을 고정한다.
 
+## 공식 사이트 대표 서체 (2026-11-11)
+
+- 한글은 Pretendard, 영문과 숫자는 Tenor Sans다. 혼합 문장도 공통 `--font-family-site: "Tenor Sans", "Pretendard", "Noto Sans KR", system-ui, sans-serif` 스택으로 문자별 적용한다. 한글 글리프가 없는 Tenor Sans에서 Pretendard로 대체된다. 사이트 글꼴은 `styles/fonts.css`에서 로드한다.
+- 공식 사이트 본문·제목·탐색·버튼·입력·공통 팝업은 이 스택을 상속한다. 기존 역할별 크기·굵기·행간·자간은 유지한다.
+- 고객 메뉴판 디자인·저장된 서체·스타터·실제 렌더러·미리보기/시연 안의 글자에는 적용하지 않는다. 메뉴판의 `--menu-font-ko`/`--menu-font-en`과 Tailwind 기초 `--font-sans`는 독립적으로 유지한다. 로고·푸터 장식 워드마크·코드 식별자용 고정폭 서체도 기존 그래픽/의미 역할을 보존한다.
+
 ## 단일 기준
 
 - 기준 데이터는 `lib/site-typography.ts`의 `SITE_TYPE_STEPS`와 `SITE_TYPE_ROLES`다. 실제 CSS는 `styles/typography.css`, 라이브러리의 역할 표는 같은 데이터를 직접 표시한다. 단위·계약 검사가 CSS와 데이터의 일치를 확인한다.
