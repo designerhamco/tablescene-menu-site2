@@ -651,9 +651,9 @@ OrderHistoryFilters는 ContentPanel density=controls, site-form-row/site-field-s
 
 ## 등록 이미지 캐러셀 (2026-11-11)
 
-목록과 상세는 `CatalogDesign.images`의 실제 등록 이미지 순서를 공유하고 첫 이미지를 대표 이미지(`image`)로 사용한다. 한 원본의 확대·좌우 크롭을 서로 다른 등록 이미지처럼 세지 않는다. MELLOW는 외관·내부 두 장을 사용한다.
+목록과 상세는 `CatalogDesign.images`의 실제 등록 이미지 순서를 공유하고 첫 이미지를 대표 이미지(`image`)로 사용한다. 한 원본의 확대·좌우 크롭을 서로 다른 등록 이미지처럼 세지 않는다. MELLOW는 외관·내부 두 장, REAL MATCHA는 기존 메뉴판 디자인·모바일 QR 메뉴·태블릿 스탠드 세 장을 사용한다.
 
-공통 `ImageCarousel` (`app/components/ui/image-carousel.tsx`)은 목록 4:3 / 상세 16:9 프레임을 유지하고, 상세의 작은 썸네일도 실제 이미지로 선택한다. 사진은 목록 cover, 상세 contain이다. 두 장 이상일 때만 장수 표시·방향키·스와이프 및 이동 도구를 활성화한다. 한 장에는 장수·화살표·작은 선택 썸네일을 숨긴다. 자동 재생은 하지 않는다.
+공통 `ImageCarousel` (`app/components/ui/image-carousel.tsx`)은 목록 4:3 / 상세 16:9 프레임을 유지하고, 상세의 작은 썸네일도 실제 이미지로 선택한다. 사진은 목록·상세·작은 썸네일 모두 cover로 프레임을 빈틈없이 채운다. 원본 비율은 유지하며 프레임 밖 부분만 중앙 기준으로 잘라 보여준다. 두 장 이상일 때만 장수 표시·방향키·스와이프 및 이동 도구를 활성화한다. 한 장에는 장수·화살표·작은 선택 썸네일을 숨긴다. 자동 재생은 하지 않는다.
 
 - 장수 표시: 우측 하단, `type-caption`, 흰 글자 `1/2`, 검정60% 반투명 바탕, 공통 캡슐 모서리와8px 인셋. 숫자 너비는 tabular이다.
 - 좌우 화살표: 768px 이상 PC·태블릿에서 상시 표시. `Button variant="media" size="icon"`의기존24px 투명 클릭 영역, 흰24px chevron /1.75 stroke, 미세한 검정 그림자를 사용한다. 기본 흰색에서 hover 시 `--ui-media-hover-ink`(#d4d4d8)의 은은한 회색으로 공통 `--ui-transition`(150ms ease)에 따라 전환한다. default·hover·pressed 모두 바탕을 추가하지 않으며 키보드 포커스는 흰 outline으로 보존한다. 폰에서는 화살표를 숨기고 스와이프·방향키·상세의 작은 썸네일을 사용한다.

@@ -61,6 +61,11 @@ const catalogImages: Readonly<Partial<Record<string, string>>> = {
   cafe_sunday_roasters_a: '/template-previews/cafe_sunday_roasters_a-20261104.jpg',
 };
 const catalogGalleries: Readonly<Partial<Record<string, readonly CatalogImage[]>>> = {
+  cafe_real_matcha_a: [
+    { src: '/template-previews/cafe_real_matcha_a-20261104.jpg', label: '메뉴판 디자인' },
+    { src: '/template-previews/cafe_real_matcha_a-mobile-qr-20261111.jpg', label: '모바일 QR 메뉴' },
+    { src: '/template-previews/cafe_real_matcha_a-tablet-stand-20261111.jpg', label: '태블릿 스탠드' },
+  ],
   cafe_mocha_forest_a: [
     { src: '/template-previews/cafe_mocha_forest_a-exterior-20261111.jpg', label: '매장 외관' },
     { src: '/template-previews/cafe_mocha_forest_a-interior-20261111.jpg', label: '매장 내부' },
