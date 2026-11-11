@@ -44,10 +44,11 @@
 .featureCard { display: flex; flex-direction: column; align-items: flex-start; gap: .75rem; height: 100%; padding: 1.25rem; color: var(--ui-text); text-align: left; }
 .featureCard svg { flex: none; }
 .featureCard p { color: var(--ui-text-muted); }
+.featureCard:hover h3 { text-decoration: underline; text-underline-offset: .25em; }
 .featureCard:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
 .guideAction { display: flex; justify-content: center; margin-top: 1.75rem; }
 .guideAction a { width: auto; }
-.storySection { container-type: inline-size; min-width: 0; overflow: hidden; scroll-margin-top: calc(var(--site-header-height) + 1.5rem); border-radius: var(--ui-radius-box); background: var(--ui-surface-muted); padding: clamp(1rem, 2.5vw, 2rem); }
+.storySection { container-type: inline-size; min-width: 0; overflow: hidden; scroll-margin-top: calc(var(--site-header-height) + 1.5rem); padding: clamp(1rem, 2.5vw, 2rem); }
 .featureNote { color: var(--ui-text-muted); margin-top: 1.25rem; }
 @media (max-width: 479px) { .featureCard { padding: 1rem; } }
 @media (min-width: 768px) {

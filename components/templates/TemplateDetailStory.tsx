@@ -24,7 +24,7 @@ export default function TemplateDetailStory({ template }: { template: PublicTemp
       <ul className={styles.featureGrid} aria-label="메뉴판 핵심 기능 8가지">
         {DETAIL_FEATURES.map((feature, index) => {
           const Icon = icons[index];
-          return <li key={feature.id}><a href={`#feature-${feature.id}`} className={`site-card-surface site-card-interactive ${styles.featureCard}`} data-feature-card={feature.id}>
+          return <li key={feature.id}><a href={`#feature-${feature.id}`} className={styles.featureCard} data-feature-card={feature.id}>
             <Icon size={24} strokeWidth={1.5} aria-hidden="true" />
             <h3 className="type-content-title">{feature.label}</h3>
             <p className="type-body-sm">{feature.summary}</p>

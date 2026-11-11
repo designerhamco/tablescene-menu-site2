@@ -1,5 +1,7 @@
 # 공통 디자인 시스템의 자동 적용과 회귀 방지
 
+일반·상세·목록·알림 본문은 배경 없는 열린 구성이 기본이다. 제목·여백·정렬·필요한 구분선으로 영역을 구분하고, 회색 박스나 흰 카드를 자동 추가하지 않는다. 관리 문맥의 독립 작업/정보 단위에 박스가 필요한 경우에만 사용한다. 표면 선택은 `site-design-system.md`의 2026-11-11 기준이 이전 지침보다 우선한다.
+
 작업 박스는 [본문 구성 계약](site-content-layout-contract.md)의 `ContentPanel`·의미별 stack/form/action 구성을 사용한다. 검사는 미등록 type 역할, ContentPanel 내부 수치형 여백·글자 덮어쓰기, 의미 구성 클래스/아이콘 래퍼의 지역 CSS geometry 덮어쓰기와 panel 토큰 재정의도 차단한다. 기존 임의 본문 여백 전체를 자동 보증하지 않으므로 실제 반응형 치수 검수를 함께 수행한다.
 
 2026-10-29 사용자 요청. 새 일반 페이지는 `SitePage`를 직접 또는 합성 컴포넌트를 통해 렌더링한다.
@@ -38,4 +40,4 @@ export default function Page() {
 
 ## 모바일 간격의 자동 적용
 
-`styles/site-spacing.css`가 본문 간격의 공통 소유자다. `lib/site-spacing.ts`의 역할 표를 디자인 기준과 컴포넌트 페이지가 함께 표시하고 `check:site-ui`에서 CSS 값과 표의 일치, SitePage 연결, stack의 중복 margin 제거, 푸터 연결을 검사한다. CSS 자동 감사는 페이지/컴포넌트에서 `--site-space-*`, `--site-surface-inset`을 덮어쓰는 것도 차단한다. 새 페이지는 SitePage와 의미별 stack을 사용하고 기존 공통 카드·푸터를 상속한다. 정적 검사만으로 실제 모든 간격을 증명하지는 않으므로 새 구성도 모바일 줄바꿈·overflow를 브라우저에서 확인한다.
+`styles/site-spacing.css`가 본문 간격의 공통 소유자다. `lib/site-spacing.ts`의 역할 표를 디자인 기준과 컴포넌트 페이지가 함께 표시하고 `check:site-ui`에서 CSS 값과 표의 일치, SitePage 연결, stack의 중복 margin 제거, 푸터 연결을 검사한다. CSS 자동 감사는 페이지/컴포넌트에서 `--site-space-*`, `--site-surface-inset`을 덮어쓰는 것도 차단한다. 새 페이지는 SitePage와 의미별 stack으로 배경 없이 시작하고 공통 푸터를 상속한다. 관리용 카드가 필요할 때만 해당 역할을 선택한다. 정적 검사만으로 실제 모든 간격을 증명하지는 않으므로 새 구성도 모바일 줄바꿈·overflow를 브라우저에서 확인한다.

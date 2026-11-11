@@ -36,13 +36,13 @@ export default function FormAndCardExamples() {
       <p className="type-body-sm text-zinc-600">마우스를 올리면 경계가 또렷해지고, 입력 중에는 파란 포커스가 표시됩니다. 오류는 문구와 경계로 함께 안내합니다.</p>
     </section>
     <section className={styles.section}>
-      <div className={styles.heading}><h2 id="card-patterns" className="type-section-title">정보와 선택을 구분하는 카드</h2><p className="type-body text-zinc-600">흰 표면·옅은 회색 경계·12px 모서리를 기본으로 사용합니다. 제목과 요금에만 굵기를 주고, 선택은 또렷한 경계와 표시로 구분합니다.</p></div>
+      <div className={styles.heading}><h2 id="card-patterns" className="type-section-title">관리 정보와 선택에 사용하는 카드</h2><p className="type-body text-zinc-600">독립된 계정·구독 정보와 실제 선택 항목에 필요할 때 사용합니다. 일반·상세 페이지의 설명과 알림 본문은 배경 없이 구성합니다.</p></div>
       <div className={styles.fieldGrid}>
         {[{key:"basic",name:"베이직 템플릿",price:"4,900원",description:"한 화면에 담는 매장 메뉴"},{key:"dining",name:"다이닝 템플릿",price:"6,900원",description:"커버와 여러 페이지로 전하는 메뉴"}].map(item=><button className="site-choice site-plan-card" key={item.key} type="button" aria-pressed={plan===item.key} onClick={()=>setPlan(item.key)}><span className={styles.planHeading}><span className="type-card-title">{item.name}</span>{plan===item.key?<span className="site-chip"><Check size={14} aria-hidden="true" />선택됨</span>:null}</span><span className="type-card-body text-zinc-600">{item.description}</span><span className="site-plan-price">{item.price}<span className="type-body-sm font-normal text-zinc-600"> / 월</span></span><span className="type-card-detail text-zinc-600">얼리버드 요금 · 부가세 포함</span></button>)}
       </div>
       <div className={styles.fieldGrid}>
-        <article className="site-card p-5"><h3 className="type-card-title">일반 정보 카드</h3><p className="type-card-body mt-3 text-zinc-600">계정 정보와 상세 내용은 흰 카드 안에서 제목·본문·설명을 구분합니다.</p></article>
-        <article className="site-card site-card-muted p-5"><h3 className="type-card-title">보조 정보 카드</h3><p className="type-card-body mt-3 text-zinc-600">옅은 배경은 참고 정보와 하위 묶음에 사용합니다.</p></article>
+        <article className="site-card p-5"><h3 className="type-card-title">계정 정보 카드</h3><p className="type-card-body mt-3 text-zinc-600">마이페이지의 프로필·구독 정보 등 독립된 정보 묶음에 사용합니다.</p></article>
+        <article className="site-card site-card-muted p-5"><h3 className="type-card-title">관리 설정 카드</h3><p className="type-card-body mt-3 text-zinc-600">운영관리 안의 별도 설정 묶음에 필요한 경우만 선택합니다. 보조 설명이라는 이유로 추가하지 않습니다.</p></article>
       </div>
     </section>
     <section className={styles.section} id="small-copy">

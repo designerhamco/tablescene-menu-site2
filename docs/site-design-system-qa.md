@@ -214,3 +214,11 @@
 - 전체1018건·사이트 UI108건, TypeScript·변경 파일 ESLint·별도 경로 Production 빌드·diff 공백 검사 통과.
 - 빌드된 로컬 화면11건: 헤더820/1440/2560px에서 실제 REST 요청의 동일한90일 하한을 검증하고91일 전 가상 알림 제외·배지·전체 읽음 동기화를 확인했다. 공통 내역320/390/820/1440/2560px의 안내·버튼 치수/중앙 정렬/overflow, 처리 대기·실패·재시도·계정 격리, 긴 목록 스크롤과 라이브러리 예시도 통과했다.
 - 브라우저 인증/알림 데이터와 읽음 응답은 격리된 fixture다. 전체 내역은 서버 인증 경로 대신 동일한 실제 `NotificationHistorySection`을 배포 CSS와 함께 렌더링한다. 실제 고객 알림·DB를 읽음 처리하거나 삭제하지 않았다.
+
+
+## Open content and optional management panels (2026-11-11)
+
+- General/detail/catalog pages and notification bodies default to unpainted content. Updated AGENTS, surface/composition/control/enforcement contracts and both library views. Panel spacing does not require creating a panel.
+- Removed the catalog backdrop, detail feature/shortcut card backdrops and shared EmptyState background. Kept content, spacing, actions, selection/playback, images, management panels and the approved footer composition.
+- Passed 162 site UI contracts, TypeScript, ESLint for changed TS/TSX and a Production build. Browser QA: actual DOM widths 320/390/820/1440/1920px, catalog + ONUE detail + a temporary page rendering the real NotificationPanel/ContentPanel, 15 checks. Transparent target surfaces, 0px overflow, no pageerrors, detail selection and muted management surfaces verified. Temporary route removed.
+- Existing library limitation: the full /design-system page has 187px overflow at 320px from hidden tab examples, reproduced identically on the changed local page and existing Production. This surface change does not claim to fix that pre-existing issue.

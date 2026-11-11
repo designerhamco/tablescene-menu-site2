@@ -8,14 +8,15 @@ import styles from "./SiteComponentGallery.module.css";
 export default function SiteSpacingRules() {
   return <><section className={styles.section} id="content-composition">
     <div className={styles.heading}>
-      <h2 className="type-section-title">박스·폼·간격·정렬</h2>
-      <p className="type-body site-copy-muted">공식 사이트의 작업 영역은 같은 구성 규칙을 사용합니다. 외곽 여백, 박스 안쪽, 제목과 설명, 입력과 버튼 간격을 서로 다른 역할로 정하고 한 곳에서 관리합니다.</p>
+      <h2 className="type-section-title">열린 구성·작업 패널·간격</h2>
+      <p className="type-body site-copy-muted">일반·상세·목록·알림 본문은 배경 없는 열린 구성이 기본입니다. 제목·여백·정렬·필요한 구분선으로 나누고, 대시보드·마이페이지·운영관리의 독립된 정보·설정·작업에만 필요한 패널을 선택합니다. 공통 간격은 박스 없이도 사용합니다.</p>
     </div>
     <div className={styles.usageTable}><table aria-label="작업 영역 구성 기준"><thead><tr><th>역할</th><th>모바일 / 768px 이상</th><th>공통 구현</th><th>사용 위치</th></tr></thead><tbody>
       {SITE_CONTENT_COMPOSITION.map(item => <tr key={item.role}><td>{item.role}</td><td>{item.mobile} / {item.wide}px</td><td><code>{item.owner}</code></td><td>{item.usage}</td></tr>)}
     </tbody></table></div>
     <div className="site-stack-title"><h3 className="type-content-title">컴포넌트 내부 밀도</h3><p className="type-body-sm site-copy-muted">본문 구역 간격과 컨트롤 내부 간격은 별도입니다. 옵션 행 높이에 큰 gap을 겹쳐 더하지 않습니다.</p></div>
     <div className={styles.usageTable}><table aria-label="컴포넌트 크기·간격 기준"><thead><tr><th>역할</th><th>기준</th><th>공통 토큰</th><th>적용 원칙</th></tr></thead><tbody>{SITE_CONTROL_DENSITY.map(item => <tr key={item.role}><td>{item.role}</td><td>{item.value}</td><td><code>{item.token}</code></td><td>{item.rule}</td></tr>)}</tbody></table></div>
+    <section className="site-stack-block" aria-label="배경 없는 일반 콘텐츠 예시"><div className="site-stack-title"><h3 className="type-content-title">일반·상세 페이지의 기본 구성</h3><p className="type-body">기능 설명과 보조 정보는 제목과 여백으로 읽습니다.</p></div><div className="site-content-divider"><p className="type-body-sm site-copy-muted">내용이 달라지는 지점에 필요한 구분선만 둡니다. 필터와 빈 상태에도 회색 박스를 자동 추가하지 않습니다.</p></div></section>
     <div className="site-management-scope site-stack-group" data-layout-example="composition">
       <ContentPanel aria-label="작업 박스 예시">
         <div className="site-stack-title"><h3 className="type-subsection-title">테이블 설정</h3><p className="type-body-sm site-copy-muted">제목과 설명은 12px, 이 제목 묶음과 폼은 24px로 구분합니다.</p></div>
@@ -32,7 +33,7 @@ export default function SiteSpacingRules() {
       <ContentPanel aria-label="계정 정보 목록 예시"><h3 className="type-content-title">읽기 전용 정보</h3><DetailGrid><DetailField label="로그인 이메일">owner@example.com</DetailField><DetailField label="가입 방식">이메일</DetailField><DetailField label="사용자 ID" full>account-example-1234</DetailField></DetailGrid></ContentPanel>
       <ContentPanel aria-label="직원 메뉴판 선택 예시"><h3 className="type-content-title">기본 체크박스 선택</h3><CheckboxFieldGroup label="초대할 메뉴판 예시"><CheckboxField name="exampleMenus" value="cafe" label="카페 메뉴판" description="/menu/cafe" defaultChecked /><CheckboxField name="exampleMenus" value="dining" label="다이닝 메뉴판" description="/menu/dining" /></CheckboxFieldGroup></ContentPanel>
       <ContentPanel surface="danger" density="compact" aria-label="위험 작업 표면 예시"><h3 className="type-content-title">복구할 수 없는 작업</h3><div className="site-action-row"><Button variant="destructive">위험 작업 예시</Button></div></ContentPanel>
-      <ContentPanel surface="muted" aria-label="회색 작업 박스 예시"><div className="site-stack-title"><h3 className="type-content-title">회색 보조 영역</h3><p className="type-body-sm site-copy-muted">테두리와 그림자 없이 같은 안쪽 여백을 사용합니다. 버튼은 문구 너비를 따릅니다.</p></div><div className="site-action-row"><Button variant="outline">보조 실행 예시</Button></div></ContentPanel>
+      <ContentPanel surface="muted" aria-label="회색 작업 박스 예시"><div className="site-stack-title"><h3 className="type-content-title">운영관리의 별도 설정 묶음</h3><p className="type-body-sm site-copy-muted">관리 작업 안에서 별도 설정을 구분할 필요가 있을 때만 선택합니다. 일반 본문·필터·보조 설명의 기본 바탕으로 사용하지 않습니다.</p></div><div className="site-action-row"><Button variant="outline">보조 실행 예시</Button></div></ContentPanel>
       <ContentPanel surface="notice" density="compact" as="aside" aria-label="안내 박스 예시"><div className="site-stack-title"><h3 className="type-content-title">다음 행동을 알려주는 안내</h3><p className="type-body-sm site-copy-muted">밝은 노랑·무테·6px 모서리, 안쪽 16px입니다. 일반 작업 박스의 12px 모서리와 역할을 구분합니다.</p></div></ContentPanel>
     </div>
     <p className="type-body-sm site-copy-muted">관리 화면은 시작 정렬입니다. 라벨이 포함된 폼 열은 하단을 맞추고, 입력·선택 박스 자체와 버튼을 나란히 놓는 행은 <code>site-form-row data-alignment=&quot;center&quot;</code>로 높이 중심을 맞춥니다. 640px 미만에서는 기존 순서대로 쌓습니다. 제목 20px/700, 콘텐츠 제목 18px/600, 보조 설명 14px/400, 라벨 14px/600, 입력은 기본14px·터치16px/400입니다. 공통 버튼·입력의 자체 높이와 포커스는 유지합니다.</p>

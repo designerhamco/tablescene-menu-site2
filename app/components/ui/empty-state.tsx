@@ -6,7 +6,7 @@ export function EmptyState({ icon, title, description, action, className, headin
 }) {
   const Heading = `h${headingLevel}` as "h2" | "h3" | "h4";
   return <section className={cn("site-empty-state site-empty-state-spacious", className)}>
-    <span className="site-empty-state-icon site-indicator-icon" data-icon-surface="colored" aria-hidden="true">{icon}</span>
+    <span className="site-empty-state-icon site-indicator-icon" data-icon-surface="unpainted" aria-hidden="true">{icon}</span>
     <Heading className="type-content-title">{title}</Heading>
     {description ? <p className="type-body site-empty-state-description">{description}</p> : null}
     {action ? <div className="site-empty-state-action">{action}</div> : null}
