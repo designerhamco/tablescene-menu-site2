@@ -1,5 +1,14 @@
 # Menu template spacing contract
 
+## Starter translation and chip locale parity — 2026-11-11 (current)
+
+All existing/future catalog starters share one locale projection between their preview and purchase initialization. English, Chinese and Japanese are starter data, including regular/featured chips, promotion labels/messages, page/category/item descriptions, direct items, option labels and text widgets. Store the completed copies in the existing translation tables using actual inserted parent IDs and sort positions; never rely on insert return order. Explicit merchant store names and numeric prices remain authoritative. Do not introduce a separate preview-only wording source. Preset-only identity replacements must not restore a native brand in a neutral design.
+
+All built-in chip labels follow the active locale in each renderer, including legacy recommended/type fallbacks. Preserve explicitly translated custom labels. Translation does not reclassify chip styling: retain original badge-label ownership for colors, without storing an extra customer field. Sale badges use the same rule. Shared HOT/ICE/size labels use one dictionary in both the preview projection and saved-menu reads.
+
+A translation write failure rejects purchase initialization. Payment recovery checks complete locale coverage rather than accepting base rows alone; it never silently reseeds existing customer content. No real payment, schema migration, or bulk customer-data change is part of verification. Use the actual creation function against the in-memory client, compare every locale against the real preview projection, and verify public locale readiness for Dining. Render all catalog designs on PC/tablet/mobile. See `docs/starter-translations-qa.md`.
+
+
 ## Dining toolbar, cover visibility and action foreground — 2026-11-11 (current)
 
 All native and neutral Dining list/album layouts use one PC/tablet toolbar across the board: language at the left inner edge, table at the exact horizontal center, history at the right inner edge. Its container is transparent. Body-page table labels and history appear only when Order or Call is configured ON (preview: Table 1); hide both when both features are OFF. Call-only history remains disabled without granting ordering access. On the cover, **all devices and feature combinations show only language among operational controls**: hide the table, history, floating Call and mobile Order/Call dock, including their focus targets and reserved dock clearance. Preserve page navigation, cover notices and photo geometry. Body-page service entry/session gates do not change.

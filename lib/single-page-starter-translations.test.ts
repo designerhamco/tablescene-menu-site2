@@ -1,5 +1,4 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { getStarterPreset } from "./menu-starter-presets";
@@ -60,16 +59,6 @@ for (const [templateKey, translations] of Object.entries(SINGLE_PAGE_STARTER_TRA
   });
 }
 
-test("single-page starter provisioning saves completed translations and enables every supported locale", () => {
-  const source = readFileSync(new URL("./menu-starter-presets.ts", import.meta.url), "utf8");
-  assert.match(source, /nextSettings\.enabled_locales = \["ko", \.\.\.SINGLE_PAGE_STARTER_TRANSLATION_LOCALES\]/);
-  assert.match(source, /status: "completed"/);
-  assert.match(source, /menu_site_translations/);
-  assert.match(source, /menu_page_translations/);
-  assert.match(source, /menu_category_translations/);
-  assert.match(source, /menu_item_translations/);
-  assert.match(source, /menu_promotion_translations/);
-});
 
 test("REAL MATCHA keeps cream and classic matcha distinct without duplicating matcha in non-coffee", () => {
   const preset = getStarterPreset("cafe_design_a");

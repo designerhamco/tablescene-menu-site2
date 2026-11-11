@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
+import { translateMenuText } from "@/lib/menu-ui-copy";
+import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 
 import type { CSSProperties, PointerEvent as ReactPointerEvent, RefObject } from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -296,11 +298,11 @@ function MenuItemRow({
       <div className="brew-chapter-menu-item-primary">
         <h3 className="cafe-a-menu-title cafe-a-menu-title-size-default break-words font-bold leading-snug text-[#191c1b]"><ScriptAwareText text={item.name} /></h3>
         {item.badge_label && badgeStyle ? (
-          <span className="brew-chapter-menu-badge menu-badge cafe-a-menu-badge" style={getBadgeStyleCss(badgeStyle)}><ScriptAwareText text={item.badge_label} /></span>
+          <span className="brew-chapter-menu-badge menu-badge cafe-a-menu-badge" style={getBadgeStyleCss(badgeStyle)}><ScriptAwareText text={getMenuItemBadgeLabel(item, locale)} /></span>
         ) : null}
         {showTimeSale && timeSale ? (
           <span className="brew-chapter-menu-badge menu-badge cafe-a-menu-badge cafe-a-time-sale-badge" style={getTimeSaleBadgeStyle(timeSale.promotion.badgeBackgroundColor)}>
-            <ScriptAwareText text={timeSale.promotion.badgeText} />
+            <ScriptAwareText text={translateMenuText(timeSale.promotion.badgeText, locale)} />
           </span>
         ) : null}
         {item.is_sold_out ? <span className="brew-chapter-menu-badge brew-chapter-sold-out-chip menu-badge cafe-a-menu-badge cafe-a-sold-out-chip"><ScriptAwareText text="품절" /></span> : null}

@@ -200,7 +200,7 @@ export function mergeBadgeStyles(templateKey?: string | null, customBadgeStyles?
 
 export function getBadgeStyleKey(itemOrLabel: BadgeableMenuItem | string | null | undefined, recommended = false): BadgeStyleKey {
   const item = typeof itemOrLabel === "object" && itemOrLabel !== null ? itemOrLabel : null;
-  const label = typeof itemOrLabel === "string" ? itemOrLabel : item?.badge_label;
+  const label = typeof itemOrLabel === "string" ? itemOrLabel : item?.badge_style_label ?? item?.badge_label;
   const normalizedLabel = normalizeMenuBadgeLabel(label);
   const rawLabel = typeof label === "string" ? label.trim().toLowerCase() : "";
   const badgeType = item ? getMenuItemBadgeType(item) : "none";

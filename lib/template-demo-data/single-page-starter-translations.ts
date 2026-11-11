@@ -238,8 +238,8 @@ const MOCHA_FOREST_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "hazelnut-cookie": { name: "Hazelnut Cookie", description: "A crisp cookie with toasted hazelnuts and chocolate." },
     },
     promotions: {
-      "americano-morning-deal": { badgeText: "모닝딜", timeDisplayText: "Daily from 8 AM to 10 AM" },
-      "dark-chocolate-brownie-closeout": { badgeText: "재고 마감" },
+      "americano-morning-deal": { badgeText: "MORNING DEAL", timeDisplayText: "Daily from 8 AM to 10 AM" },
+      "dark-chocolate-brownie-closeout": { badgeText: "LAST BATCH" },
     },
   },
   zh: {
@@ -285,8 +285,8 @@ const MOCHA_FOREST_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "hazelnut-cookie": { name: "榛子曲奇", description: "加入烤榛子与巧克力的香脆曲奇。" },
     },
     promotions: {
-      "americano-morning-deal": { badgeText: "모닝딜", timeDisplayText: "每天上午8点至10点" },
-      "dark-chocolate-brownie-closeout": { badgeText: "재고 마감" },
+      "americano-morning-deal": { badgeText: "早晨优惠", timeDisplayText: "每天上午8点至10点" },
+      "dark-chocolate-brownie-closeout": { badgeText: "即将售罄" },
     },
   },
   ja: {
@@ -332,8 +332,8 @@ const MOCHA_FOREST_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "hazelnut-cookie": { name: "ヘーゼルナッツクッキー", description: "ローストナッツとチョコを加えた香ばしいクッキー。" },
     },
     promotions: {
-      "americano-morning-deal": { badgeText: "모닝딜", timeDisplayText: "毎日午前8時から10時まで" },
-      "dark-chocolate-brownie-closeout": { badgeText: "재고 마감" },
+      "americano-morning-deal": { badgeText: "モーニング", timeDisplayText: "毎日午前8時から10時まで" },
+      "dark-chocolate-brownie-closeout": { badgeText: "まもなく完売" },
     },
   },
 };
@@ -656,8 +656,8 @@ const ROUND_FOCUS_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "blood-orange-spritz": { name: "血橙气泡鸡尾酒", description: "血橙果香与清爽气泡酒的相遇。" },
     },
     promotions: {
-      "classic-highball-happy-hour": { badgeText: "HAPPY HOUR", timeDisplayText: "每天晚上6点至8点" },
-      "truffle-fries-last-call": { badgeText: "LAST CALL" },
+      "classic-highball-happy-hour": { badgeText: "欢乐时光", timeDisplayText: "每天晚上6点至8点" },
+      "truffle-fries-last-call": { badgeText: "最后优惠" },
     },
   },
   ja: {
@@ -701,8 +701,8 @@ const ROUND_FOCUS_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "blood-orange-spritz": { name: "ブラッドオレンジスプリッツ", description: "ブラッドオレンジとスパークリングワインの爽やかな出会い。" },
     },
     promotions: {
-      "classic-highball-happy-hour": { badgeText: "HAPPY HOUR", timeDisplayText: "毎日午後6時から8時まで" },
-      "truffle-fries-last-call": { badgeText: "LAST CALL" },
+      "classic-highball-happy-hour": { badgeText: "ハッピーアワー", timeDisplayText: "毎日午後6時から8時まで" },
+      "truffle-fries-last-call": { badgeText: "ラストチャンス" },
     },
   },
 };
@@ -788,8 +788,8 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "strawberry-cream-cheese": { name: "草莓奶油奶酪", description: "" },
     },
     promotions: {
-      "egg-cheese-morning-deal": { badgeText: "SALE", timeDisplayText: "每天上午8点至10点" },
-      "plain-cream-cheese-closeout": { badgeText: "SALE", timeDisplayText: "" },
+      "egg-cheese-morning-deal": { badgeText: "优惠", timeDisplayText: "每天上午8点至10点" },
+      "plain-cream-cheese-closeout": { badgeText: "优惠", timeDisplayText: "" },
     },
   },
   ja: {
@@ -830,8 +830,8 @@ const LOOP_BAGEL_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       "strawberry-cream-cheese": { name: "ストロベリークリームチーズ", description: "" },
     },
     promotions: {
-      "egg-cheese-morning-deal": { badgeText: "SALE", timeDisplayText: "毎日午前8時から10時まで" },
-      "plain-cream-cheese-closeout": { badgeText: "SALE", timeDisplayText: "" },
+      "egg-cheese-morning-deal": { badgeText: "割引", timeDisplayText: "毎日午前8時から10時まで" },
+      "plain-cream-cheese-closeout": { badgeText: "割引", timeDisplayText: "" },
     },
   },
 };
