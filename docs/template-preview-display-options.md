@@ -81,4 +81,6 @@ Basic은 글자색 6역할, Dining은 페이지 제목·상품명·가격·통�
 
 ## 실제 화면보기와 브라우저 안내 — 2026-11-11
 
-카탈로그와 저장 메뉴판의 모든 기기 모드에서 실제 화면보기를 제공한다. 새 탭에 선택 모드의 device/orientation을 강제하지 않으며 실제 브라우저 크기에 반응한다. 전체화면은 실제 API 지원 여부로 노출하고, 터치 기기에는 자동 안내·PC용 확대축소·ESC 설명을 표시하지 않는다. 미지원 안내는 수동 ‘화면 보기 안내’ 안에서만 제공하며 Chrome 열기 버튼은 추가하지 않는다. 자세한 기준은 [공통 계약의 Preview workspace and actual-screen guide](template-spacing-contract.md#preview-workspace-and-actual-screen-guide--2026-10-31-current)를 따른다.
+카탈로그와 저장 메뉴판의 모든 기기 모드에서 실제 화면보기를 제공한다. 새 탭에 선택 모드의 device/orientation을 강제하지 않으며 실제 브라우저 크기에 반응한다. 모바일 접속에서는 메뉴판만 표시하고 전체화면·안내 버튼과 안내창을 모두 생략한다. PC·태블릿의 전체화면은 실제 API 지원 여부로 노출하고, 태블릿에는 자동 안내·PC용 확대축소·ESC 설명을 표시하지 않는다. PC·태블릿의 미지원 안내는 수동 ‘화면 보기 안내’ 안에서만 제공하며 Chrome 열기 버튼은 추가하지 않는다. 자세한 기준은 [공통 계약의 Preview workspace and actual-screen guide](template-spacing-contract.md#preview-workspace-and-actual-screen-guide--2026-10-31-current)를 따른다.
+
+모바일에서 미리보기 작업 화면에 처음 들어오면 공통 Dialog로 “PC에서 더 편하게 볼 수 있어요”를 안내한다. “모바일로 계속 보기”로 닫으며, 같은 탭 세션에서는 템플릿/기기 변경과 새로고침 시 반복하지 않는다. 카탈로그·저장 미리보기·Display가 공유하고 실제 화면보기·내부 iframe·고객 QR 메뉴판에는 표시하지 않는다. PC·태블릿에는 이 권장 팝업을 띄우지 않는다.

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Maximize2, X } from "@/app/components/ui/site-icon";
 import BrowserZoomGuide from "./MenuPreviewGuide";
+import {getMenuPreviewAccessDevice,subscribeMenuPreviewAccess} from "@/lib/menu-preview-access-device";
 import styles from "./PreviewFullscreenControl.module.css";
 
 function subscribeFullscreen(onChange: () => void) {
@@ -15,22 +16,13 @@ const getServerFullscreenSnapshot = () => false;
 // Detect touch guidance independently of viewport width: landscape iPads can be
 // wider than PC windows, and iPad Safari can advertise a desktop user agent.
 function subscribeEnvironment(onChange: () => void) {
-  const pointer = window.matchMedia("(pointer: coarse)");
-  pointer.addEventListener("change", onChange);
-  window.addEventListener("resize", onChange);
-  document.addEventListener("fullscreenchange", onChange);
-  return () => {
-    pointer.removeEventListener("change", onChange);
-    window.removeEventListener("resize", onChange);
-    document.removeEventListener("fullscreenchange", onChange);
-  };
+  const unsubscribe=subscribeMenuPreviewAccess(onChange);
+  document.addEventListener("fullscreenchange",onChange);
+  return () => {unsubscribe();document.removeEventListener("fullscreenchange",onChange);};
 }
 function getEnvironmentSnapshot() {
-  const touch = window.matchMedia("(pointer: coarse)").matches
-    || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-    || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const fullscreen = Boolean(document.fullscreenEnabled && document.documentElement.requestFullscreen);
-  return `${touch ? "touch" : "desktop"}:${fullscreen ? "fullscreen" : "windowed"}`;
+  return `${getMenuPreviewAccessDevice()}:${fullscreen ? "fullscreen" : "windowed"}`;
 }
 const getServerEnvironmentSnapshot = () => null;
 
@@ -85,7 +77,7 @@ export default function PreviewFullscreenControl() {
   };
 
   if (isFullscreen) return null;
-  if (environment === null) return null;
+  if (environment === null || environment.startsWith("phone:")) return null;
 
   return <>
     <div className={styles.dock} data-preview-fullscreen-control="">

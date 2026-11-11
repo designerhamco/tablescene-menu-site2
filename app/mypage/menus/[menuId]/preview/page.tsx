@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 
 import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import PreviewFullscreenControl from "@/components/menu/PreviewFullscreenControl";
+import MobilePreviewEntryNotice from "@/components/menu/MobilePreviewEntryNotice";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
 import { getAuthorizedPreviewMenuPageData, type MenuPageData } from "@/lib/menu-page-data";
@@ -167,14 +168,14 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
 
   if (!isActualView && usesDevicePreviewFrame) {
     return (
-      <MenuPreviewDeviceFrame
+      <><MenuPreviewDeviceFrame
         device={device}
         orientation={orientation}
         menuId={menuId}
         menuTemplateKey={data.menuSite.template_key ?? undefined}
         menuDesignId={design?.id}
         query={previewQuery}
-      />
+      /><MobilePreviewEntryNotice /></>
     );
   }
 
@@ -203,6 +204,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
           기기 프레임으로 돌아가기
         </Link>
       ) : null}
+      {!isActualView ? <MobilePreviewEntryNotice /> : null}
       {isDetachedView ? <PreviewFullscreenControl /> : null}
     </>
   );

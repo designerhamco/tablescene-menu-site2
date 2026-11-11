@@ -188,7 +188,7 @@ test("catalog Call, Order and layout experiments remain in the top toolbar indep
   }
 });
 
-test("framed and Display previews no longer launch an introductory guide", () => {
+test("preview workspaces do not launch the actual-screen zoom guide", () => {
   for (const source of [previewFrameSource, displayTemplatePreviewSource, menuPreviewSource]) assert.doesNotMatch(source, /<MenuPreviewGuide/);
   assert.match(fullscreenControlSource, /<BrowserZoomGuide/);
   assert.match(fullscreenControlSource, /브라우저 오른쪽 상단의 더보기/);
@@ -210,7 +210,7 @@ test("browser guide uses a filled round profile and restores the address pill wi
   assert.doesNotMatch(previewGuideSource, /게스트/);
 });
 
-test("Display preview preserves its bottom-edge pagination without an opening guide", () => {
+test("Display preview preserves its bottom-edge pagination independently of the mobile entry notice", () => {
   assert.doesNotMatch(displayTemplatePreviewSource, /<MenuPreviewGuide/);
   assert.match(displayTemplateSource, /clientY >= window\.innerHeight \* 0\.82/);
   assert.match(displayTemplateSource, /data-display-preview-pagination=""/);
