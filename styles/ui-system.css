@@ -1474,6 +1474,23 @@ svg.site-edit-icon {
 @media (min-width: 768px) { .site-image-carousel-arrows { display: flex; } }
 @media (prefers-reduced-motion: reduce) { .site-button-media { transition: none; } }
 
+/* Checkbox filter popovers share field geometry, native checks and surface tokens. */
+.site-multiselect-trigger { display: flex; align-items: center; gap: var(--site-space-copy); width: 100%; text-align: start; cursor: pointer; }
+.site-multiselect-trigger > span { min-width: 0; flex: 1; }
+.site-multiselect-trigger > svg:not(.site-select-chevron), .site-multiselect-option > svg { width: 1rem; height: 1rem; flex: none; }
+[data-slot="popover-content"].site-multiselect-content { width: min(20rem, var(--radix-popover-content-available-width)); max-height: var(--radix-popover-content-available-height); overflow-y: auto; padding: var(--site-space-block); }
+.site-multiselect-options { display: grid; gap: var(--site-space-title-copy); }
+.site-multiselect-option { display: flex; align-items: center; min-height: var(--ui-control-height-md); gap: var(--site-space-copy); padding-inline: var(--site-space-copy); border-radius: var(--ui-radius-control-rounded); cursor: pointer; }
+.site-multiselect-option:hover { background: var(--ui-surface-soft); }
+.site-multiselect-option:focus-within { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+.site-multiselect-reset { display: flex; justify-content: flex-end; margin-block-start: var(--site-space-block); }
+.site-multiselect-swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--ui-control-height-md), 1fr)); gap: var(--site-space-copy); }
+.site-multiselect-swatch { display: flex; justify-content: center; cursor: pointer; }
+.site-color-swatch[data-shape="circle"], .site-color-swatch[data-shape="circle"] > span { border-radius: 50%; }
+.site-multiselect-swatch:has(input:checked) .site-color-swatch { outline: 2px solid var(--ui-text); outline-offset: 2px; }
+.site-multiselect-swatch:has(input:focus-visible) .site-color-swatch { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+@media (forced-colors: active) { .site-multiselect-swatch:has(input:checked) .site-color-swatch { outline-color: Highlight; } }
+
 /* Bare is a paint choice, never a rule that shrinks control geometry. */
 :is(.site-icon-control, .site-button.site-button-icon):not([data-icon-appearance="framed"]),
 :is(.site-icon-control, .site-button.site-button-icon):not([data-icon-appearance="framed"]):is(:hover, :active, :disabled, [aria-disabled="true"], [aria-pressed="true"], [data-ui-state]) {

@@ -1,4 +1,4 @@
-import { getCatalogFacets, normalizeCatalogSearch, type CatalogFacets, type CatalogMoodFilter, type CatalogColorFilter } from "./catalog-facets";
+import { getCatalogFacets, normalizeCatalogSearch, normalizeCatalogSelections, CATALOG_MOODS, CATALOG_COLORS, type CatalogFacets, type CatalogMoodFilter, type CatalogColorFilter } from "./catalog-facets";
 import { DEFAULT_DESIGN_REVIEWS, MENU_LAYOUTS, getDefaultDesignReviewUrl } from './menu-design-policy';
 import { getDiningTemplateTier } from './dining-product-tiers';
 import { getMenuPlanMonthlyPrice } from './menu-plan-pricing';
@@ -80,17 +80,27 @@ export function getCatalogDesign(id: unknown) {
   if(typeof id!=='string')return null;
   return catalogDesigns.find(d=>d.id===id||d.detailHref===`/templates/${id}`)??null;
 }
-export function filterCatalogDesigns(service:CatalogService,kind:CatalogKind,filter='all',layout:CatalogLayoutFilter='all', facets: { mood?: CatalogMoodFilter; color?: CatalogColorFilter; query?: string } = {}) {
+export type CatalogFilters = {
+  industry: Exclude<CatalogIndustry, "all">[];
+  layout: Exclude<CatalogLayoutFilter, "all">[];
+  mood: Exclude<CatalogMoodFilter, "all">[];
+  color: Exclude<CatalogColorFilter, "all">[];
+};
+export function normalizeCatalogFilters(input: { industry?: unknown; layout?: unknown; mood?: unknown; color?: unknown }, kind: CatalogKind): CatalogFilters {
+  return {
+    industry: kind === "standard" ? [] : normalizeCatalogSelections(input.industry, CATALOG_INDUSTRIES),
+    layout: normalizeCatalogSelections(input.layout ?? (kind === "standard" ? input.industry : undefined), CATALOG_LAYOUT_FILTERS),
+    mood: kind === "standard" ? [] : normalizeCatalogSelections(input.mood, CATALOG_MOODS),
+    color: kind === "standard" ? [] : normalizeCatalogSelections(input.color, CATALOG_COLORS),
+  };
+}
+export function filterCatalogDesigns(service: CatalogService, kind: CatalogKind, filter: string | readonly string[] = 'all', layout: CatalogLayoutFilter | readonly CatalogLayoutFilter[] = 'all', facets: { mood?: CatalogMoodFilter | readonly CatalogMoodFilter[]; color?: CatalogColorFilter | readonly CatalogColorFilter[]; query?: string } = {}) {
   const search = normalizeCatalogSearch(facets.query);
-  return catalogDesigns.filter(d=>d.service===service&&(service==='display'||d.kind===kind)).filter(d=>{
-    if(filter==='all')return true;
-    // Retain old standard-design links such as filter=album.
-    if(kind==='standard'&&(filter==='list'||filter==='album'))return d.itemLayout===filter;
-    const industry=CATALOG_INDUSTRIES.find(i=>i.key===filter);
-    return industry ? d.kind==='standard'||industry.categories.some(c=>d.categories.includes(c as TemplateCategoryKey)) : false;
-  })
-    .filter(design => layout === 'all' || design.itemLayout === layout)
-    .filter(design => !facets.mood || facets.mood === 'all' || design.moods.includes(facets.mood))
-    .filter(design => !facets.color || facets.color === 'all' || design.colors.includes(facets.color))
+  const selections = normalizeCatalogFilters({ industry: filter, layout: layout === "all" ? undefined : layout, ...facets }, service === "display" ? "designer" : kind);
+  return catalogDesigns.filter(design => design.service === service && (service === 'display' || design.kind === kind))
+    .filter(design => !selections.industry.length || selections.industry.some(key => CATALOG_INDUSTRIES.find(industry => industry.key === key)!.categories.some(category => design.categories.includes(category as TemplateCategoryKey))))
+    .filter(design => !selections.layout.length || selections.layout.includes(design.itemLayout))
+    .filter(design => !selections.mood.length || selections.mood.some(mood => design.moods.includes(mood)))
+    .filter(design => !selections.color.length || selections.color.some(color => design.colors.includes(color)))
     .filter(design => !search || [design.name, ...(design.searchNames ?? [])].some(name => normalizeCatalogSearch(name).includes(search)));
 }
