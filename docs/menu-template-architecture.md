@@ -1,5 +1,7 @@
 # Menu template responsibilities
 
+Current design registrations, list/album support and document ownership are indexed in [template-docs-index.md](template-docs-index.md). Date-stamped sections below retain their historical scope; the current template contract takes priority.
+
 Catalog preview controls are composed by `MenuPreviewDeviceFrame` and `MenuPreviewOptionsPanel`. The frame owns temporary selection/navigation; the panel owns the responsive light overlay and functional/design tabs. At outer browser widths of 960px and above, the left panel starts open and overlays the menu. It never reserves layout space or changes the preview's position, size, scale or iframe viewport. Narrow top options start closed. A hydration-safe media subscription supplies the responsive default until an explicit user toggle; explicit choices survive resizing/navigation. Closing unmounts the design controls/picker but preserves their values in the frame. Customer renderers and menu reading geometry are independent of drawer state.
 
 This refactor moves existing declarations without changing formulas, tokens, content order, presentation routing or CSS. The file split preserved rendering. The user subsequently approved the top-row spacing correction described below.
@@ -41,7 +43,9 @@ Widget rendering follows `getTemplateCapabilities(...).menuWidgets.enabled`, not
 | --- | --- | --- |
 | First column | REAL MATCHA, Loop Bagel | First brand/featured column |
 | Central column | ROSY ORANGE | Fixed native rail between two synchronized menu tracks |
-| Top row | Sunday Roasters, Van Gogh, MELLOW | Three equal header cells; content-driven 8–14% row; central brand width target 65% |
+| Centered top row | Sunday Roasters, Van Gogh | Three shared header cells; current title/header policy in template-spacing-contract.md; notices at upper right |
+| Left-logo top row | MELLOW | Left brand/logo, right description/language; notices after final menu content |
+| Upper-left panel flow | ONUE TABLE | Representative at first panel top; scrolls with menu; 4:3 PC/tablet, 1:1 mobile |
 
 Template-owned fonts, role ratios, decorative rules, category boundaries and featured-area differences remain intact.
 

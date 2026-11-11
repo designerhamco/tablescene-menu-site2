@@ -1,5 +1,47 @@
 # 실제 디자인 템플릿의 보기 옵션
 
+## 현행 보기옵션 계약 (2026-11-11)
+
+현재 등록과 문서 경로는 [템플릿 문서 안내](template-docs-index.md)를 따른다. Basic/Dining의 기본·디자이너·지원 앨범 디자인에 같은 패널을 연결하며 Display는 이 패널에서 제외한다. 아래 2026-10-20 검수 기록의 9종/도구막대 공간 설명은 당시 이력이다.
+
+### 컨트롤의 소유 영역
+
+- 상단 도구막대: PC·태블릿·모바일 기기 선택, 지원 회전, PC·태블릿 묶음형/채움형, 주문/호출 미리보기, 새 창. 지원하지 않는 엔진/기기에 기능을 강제로 노출하지 않는다.
+- 보기옵션의 **기능 옵션** 탭: 콘텐츠 영역·문구·이미지·가격/판매 상태 노출.
+- 보기옵션의 **디자인** 탭: 지원 배경색, 공통 한글/영문 서체, 서비스별 글자색 역할, 지원 칩 색상, 대표 텍스트 정렬, 앨범 상품 비율, 이미지·텍스트칩 라운드, 디자인 초기화.
+
+실제 옵션 목록은 [template-preview-options.ts](../lib/template-preview-options.ts)와 [template-capabilities.ts](../lib/template-capabilities.ts)가 결정한다. 템플릿 이름만으로 별도 지원 목록을 만들지 않는다.
+
+| 기능 그룹 | Basic | Dining |
+| --- | --- | --- |
+| 영역·이미지 | 광고, 로고, 대표영역, 대표상품, 상품 이미지, 위젯 중 capability가 지원하는 항목 | 광고, 로고, 커버 페이지/이미지, 상품 이미지, 위젯 중 지원 항목 |
+| 메뉴 정보 | 카테고리 설명, 보조 언어명, 메뉴 설명, 일반 텍스트칩 | 페이지 설명, 카테고리 설명, 보조 언어명, 메뉴 설명 |
+| 가격·판매 상태 | 가격 옵션, 가격 설명, 기간 할인, 품절 중 지원 항목 | 가격 옵션, 가격 설명, 품절 중 지원 항목 |
+
+Basic 기본 앨범은 가격 옵션을 제외한다. Dining의 코스 상품 이미지 미노출과 코스 가격 규칙은 옵션으로 해제하지 않는다. 커버 OFF의 커버 이미지 제어 등 종속 조건도 유지한다. 실제 지원 여부와 처음 체크된 상태는 별개다. 대표영역 기본 OFF인 상단행/Van Gogh도 지원할 때 체크해 사용할 수 있다.
+
+### 기본값·임시 예시·상태 유지
+
+처음 체크된 상태는 스타터 실제 데이터와 기본 디자인의 초기 정책에서 읽는다. 명시적인 on/off 선택이 우선한다. 광고는 기본 OFF이며, 템플릿 고유 로고/위젯/이미지와 선택한 모양·비율은 보존한다. 없는 콘텐츠를 켰을 때의 예시는 카탈로그 전용 adapter가 공급한다. MELLOW의 대표영역 ON처럼 승인된 빈 이미지 프레임 정책이 있는 경우 그 예외를 유지한다.
+
+기능 선택과 검증된 `designPreview` 값은 기기·회전·언어·묶음/채움·새 창에 유지된다. 탭 전환만으로 메뉴 iframe을 다시 불러오지 않는다. 디자인 초기화는 임시 디자인 선택만 지우고 해당 디자인의 기본값으로 복원한다. 디자인 선택은 구매용 스타터 기본값이나 고객 저장 데이터에 기록되지 않는다. 고객 편집기의 저장은 별도 권한 있는 저장 경로를 따른다.
+
+### 패널과 메뉴판의 경계
+
+실제 바깥 브라우저 폭 960px 이상에서는 왼쪽의 밝은 overlay 패널이 기본으로 열리고, 더 좁으면 기본으로 접힌다. 사용자가 연/닫은 선택은 유지한다. 패널이 메뉴 공간을 예약하거나 메뉴판을 옆으로 밀거나 축소하지 않는다. 미리보기 프레임과 고객 메뉴판의 읽기 크기/레이아웃은 독립이다. 상세 수치는 [공통 계약의 Preview option overlay 절](template-spacing-contract.md#preview-option-overlay--2026-10-21)과 [menu-preview-fit.ts](../lib/menu-preview-fit.ts)를 따른다.
+
+Basic은 글자색 6역할, Dining은 페이지 제목·상품명·가격·통합 설명·위젯 등을 분리한 8역할을 사용한다. Dining의 페이지/카테고리/메뉴 설명은 한 색상 역할이며, Basic의 카테고리 설명은 카테고리명 색상을 따른다. [menu-text-colors.ts](../lib/menu-text-colors.ts)와 공통 계약의 최신 색상 절이 기준이다. 라운드 제어는 로고와 Dining full-bleed 커버를 제외하며, 앨범 비율은 상품 이미지에만 적용한다. 구조가 고정한 PC·태블릿 헤더 정렬을 자유 정렬로 덮어쓰지 않는다.
+
+미리보기 패널 UI는 공식 사이트 디자인 시스템을 사용한다. 패널이 제어하는 메뉴판의 서체·색·간격·대표 이미지 비율은 고객 renderer의 별도 규칙이다.
+
+### 구현과 검수 경로
+
+- [MenuPreviewOptionsPanel](../components/menu/MenuPreviewOptionsPanel.tsx), [MenuPreviewDeviceFrame](../components/menu/MenuPreviewDeviceFrame.tsx), [PreviewDesignOptions](../components/menu/PreviewDesignOptions.tsx): 패널/도구막대/디자인 제어.
+- [template-preview-data](../lib/template-preview-data.ts), [default-design-options](../lib/default-design-options.ts), [menu-preview-design](../lib/menu-preview-design.ts): 예시 데이터·초기값·임시 디자인 검증.
+- 관련 검수: `lib/template-preview-options.test.ts`, `lib/menu-preview-design.test.ts`, `lib/menu-appearance.test.ts`, `scripts/qa-template-display-options.mjs`, `scripts/qa-top-row-language-stability.mjs`. 현재 테스트 개수나 전체 조합 통과 여부는 해당 실행 결과로 확인한다.
+
+## 최초 도입·검수 이력 (2026-10-20)
+
 2026-10-20 사용자 승인: 기본 디자인 검토 화면뿐 아니라 실제 아티메뉴 디자인 템플릿 미리보기에서도 보기 옵션을 사용한다.
 
 ## 범위와 동작

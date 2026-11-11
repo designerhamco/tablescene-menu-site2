@@ -1,5 +1,7 @@
 # ArtiMenu Basic Template Engine Rules
 
+> Historical engine baseline. The canvas-fit/shrink/fill candidate and bottom-widget rules below describe retained earlier engines, not the current active Basic contained-reading policy. Start with [template-docs-index.md](template-docs-index.md), [template-spacing-contract.md](template-spacing-contract.md) and [menu-template-architecture.md](menu-template-architecture.md). Current layout modes retain their registered names/default; do not restore obsolete measurement, docking or skin assumptions from this record.
+
 ## 1. Purpose
 
 This document records the current CafeA behavior and uses it as the baseline for future ArtiMenu Basic templates.
