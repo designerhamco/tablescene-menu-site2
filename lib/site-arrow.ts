@@ -26,7 +26,20 @@ export const SITE_ARROW_PATHS = {
   turn: `M4 21V15A7 7 0 0 1 11 8H21${curvedHead(21, 8, 0, 6)}`,
   "turn-back": `M10 20H9A6.5 6.5 0 0 1 9 7H21${curvedHead(21, 7, 0, 5.5)}`,
   bidirectional: `M3 7H21${curvedHead(21, 7, 0, 5)}M21 17H3${curvedHead(3, 17, 180, 5)}`,
-  refresh: `M19.5 12A7.5 7.5 0 0 0 6.697 6.697${curvedHead(6.697, 6.697, 135, 3.5)}M4.5 12A7.5 7.5 0 0 0 17.303 17.303${curvedHead(17.303, 17.303, 315, 3.5)}`,
-  rotate: `M4.5 12A7.5 7.5 0 1 0 6.697 6.697${curvedHead(6.697, 6.697, 135, 3.5)}`,
+  refresh: "M19 12A7 7 0 0 0 7.05 7.05M5 12A7 7 0 0 0 16.95 16.95",
+  rotate: "M5 12A7 7 0 1 0 7.05 7.05",
 } as const;
 export type SiteArrowKind = keyof typeof SITE_ARROW_PATHS;
+
+/** Small circular heads are filled shapes, avoiding three stroked branches and
+ * their acute miter spikes at16px. The concave back retains the sculpted family.
+ */
+function circularHead(x: number, y: number, angle: number) {
+  const radians = angle * Math.PI / 180;
+  const point = (px: number, py: number) => `${Number((x + px * Math.cos(radians) - py * Math.sin(radians)).toFixed(3))} ${Number((y + px * Math.sin(radians) + py * Math.cos(radians)).toFixed(3))}`;
+  return `M${point(0, 0)}L${point(-5, -3.5)}Q${point(-3.5, 0)} ${point(-5, 3.5)}Z`;
+}
+export const SITE_CIRCULAR_ARROW_HEADS = {
+  refresh: circularHead(5.636, 8.464, 135) + circularHead(18.364, 15.536, 315),
+  rotate: circularHead(5.636, 8.464, 135),
+} as const;

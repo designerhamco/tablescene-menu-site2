@@ -20,7 +20,7 @@ for (const width of [375, 768, 1440, 2560]) {
  assert.equal(icons.length,38);assert.equal(icons.filter(i=>i.kind==='shaft'&&i.linecap==='butt').length,14);
  assert.equal(icons.filter(i=>i.kind==='chevron'&&i.fill!=='none').length,4);
  await page.locator('#site-arrows').screenshot({path:`${out}/arrows-${width}.png`});
- const bounds = await page.locator('#site-arrows svg[data-site-arrow]').evaluateAll(els => els.map(el => { const s=el.getBoundingClientRect(); const p=el.querySelector('path').getBoundingClientRect(); return {kind:el.dataset.siteArrow,direction:el.dataset.direction,inside:p.left>=s.left-.1&&p.right<=s.right+.1&&p.top>=s.top-.1&&p.bottom<=s.bottom+.1}; }));
+ const bounds = await page.locator('#site-arrows svg[data-site-arrow]').evaluateAll(els => els.map(el => { const s=el.getBoundingClientRect(); const paths=[...el.querySelectorAll('path')].map(path=>path.getBoundingClientRect()); return {kind:el.dataset.siteArrow,direction:el.dataset.direction,inside:paths.every(p=>p.left>=s.left-.1&&p.right<=s.right+.1&&p.top>=s.top-.1&&p.bottom<=s.bottom+.1)}; }));
  assert.ok(bounds.every(b=>b.inside),JSON.stringify(bounds.filter(b=>!b.inside)));
  const select=page.locator('button[role="combobox"]').first();
  await select.scrollIntoViewIfNeeded();await select.focus();await page.keyboard.press('Enter');
