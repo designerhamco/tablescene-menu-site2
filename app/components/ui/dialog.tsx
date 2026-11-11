@@ -77,7 +77,7 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close className="site-button site-button-ghost site-button-icon absolute top-3 right-3">
+      <DialogPrimitive.Close data-slot="dialog-close" className="site-button site-button-ghost site-button-icon absolute top-3 right-3">
         <XIcon />
         <span className="sr-only">닫기</span>
       </DialogPrimitive.Close>

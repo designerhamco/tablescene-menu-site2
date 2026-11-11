@@ -652,6 +652,7 @@
 .site-notification-panel:not([data-compact]) { overflow: visible; }
 .site-notification-body { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); }
 .site-notification-feed { grid-area: 1 / 1; min-width: 0; padding: .5rem 0 1rem; }
+.site-notification-feed:has(> .site-empty-state) { padding-top: var(--site-space-group); }
 .site-notification-body[data-read-all] .site-notification-feed { padding-bottom: calc(var(--ui-control-height-compact) + var(--site-space-group) + var(--site-space-block)); }
 .site-notification-read-all-dock { grid-area: 1 / 1; align-self: end; justify-self: center; position: sticky; bottom: var(--site-space-group); z-index: 1; display: flex; justify-content: center; max-width: 100%; margin-bottom: var(--site-space-group); padding-inline: var(--site-surface-inset); pointer-events: none; }
 .site-notification-read-all-dock > button { pointer-events: auto; }

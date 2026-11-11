@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ImageViewer } from "@/app/components/ui/image-viewer";
 import Link from "next/link";
 import { Bell, ImageIcon, LayoutPanelTop, Megaphone, PanelsTopLeft, ShoppingBag, Tags, Timer } from "@/app/components/ui/site-icon";
 import { ArrowUpRight } from "@/app/components/ui/site-arrow";
@@ -15,7 +16,9 @@ export default function TemplateDetailStory({ template }: { template: PublicTemp
   return <div className={styles.story} data-template-story="">
     <section aria-labelledby="template-overview-title">
       <div className={styles.heroImage}>
+        <ImageViewer images={info.images} name={template.name}><button type="button" className="site-image-open-trigger" aria-label={`${template.name} 메뉴판 전체 구성 크게 보기`}>
         <Image src={info.image} alt={`${template.name} 메뉴판 전체 구성`} width={1200} height={900} loading="eager" sizes="(min-width: 1600px) 1000px, (min-width: 768px) 63vw, 100vw" />
+        </button></ImageViewer>
       </div>
       <div className={styles.overviewCopy}>
         <h2 id="template-overview-title" className="type-section-title">메뉴판 하나에, 매일 필요한 기능을 담았어요</h2>
