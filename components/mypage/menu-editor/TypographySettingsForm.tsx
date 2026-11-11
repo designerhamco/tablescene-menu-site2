@@ -2,6 +2,7 @@
 
 import { useId, useMemo, useState, type CSSProperties } from "react";
 
+import { FontSelect } from "@/app/components/ui/font-select";
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
 import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
 import { isAubeTableTemplate as isAubeTableTemplateKey } from "@/lib/aube-table";
@@ -152,33 +153,7 @@ function FontPicker<Value extends string>({
             );
           })}
         </div>
-        <div className="max-h-64 overflow-y-auto rounded-lg border border-zinc-100 bg-zinc-50 p-2">
-          <button
-            type="button"
-            onClick={() => onChange("")}
-            className="site-choice site-choice-control site-choice-row" aria-pressed={value === ""}
-          >
-            <span>템플릿 기본값 · {defaultOption.label}</span>
-            {value === "" ? <span className="text-support font-medium opacity-70">선택됨</span> : null}
-          </button>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {filteredOptions.map((option) => {
-              const selected = value === option.value;
-
-              return (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => onChange(option.value)}
-                className="site-choice site-choice-control site-choice-row" aria-pressed={selected}
-              >
-                <span className="min-w-0 truncate">{option.label}</span>
-                {selected ? <span className="shrink-0 text-support font-medium opacity-70">선택됨</span> : null}
-              </button>
-              );
-            })}
-          </div>
-        </div>
+        <FontSelect label={label} script={name === "korean_font_key" ? "ko" : "en"} options={filteredOptions} defaultOption={defaultOption} selectedOption={selectedOption} value={value} onChange={onChange} />
       </div>
     </section>
   );
