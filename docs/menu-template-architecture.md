@@ -1,4 +1,4 @@
-# Menu template responsibilities
+# 아티메뉴 메뉴판 렌더러 구조
 
 Current design registrations, list/album support and document ownership are indexed in [template-docs-index.md](template-docs-index.md). Date-stamped sections below retain their historical scope; the current template contract takes priority.
 

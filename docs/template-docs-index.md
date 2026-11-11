@@ -1,12 +1,14 @@
 # 아티메뉴 템플릿 문서 안내
 
+전체 서비스·가격·약관 문서는 [아티메뉴 프로젝트 문서 안내](artimenu-project-guide.md)에서 확인한다.
+
 기준일: 2026-11-11. 아래 등록 목록은 현재 코드와 대조한 문서 요약이다. 문서 확인은 모든 화면·옵션 조합의 회귀 검수를 대신하지 않는다.
 
 ## 문서를 읽는 순서
 
 | 확인할 내용 | 현행 문서 | 실제 등록·구현 경계 |
 | --- | --- | --- |
-| 작업의 필수 기준 | [AGENTS.md](../AGENTS.md) | 사용자 승인 및 적용 범위 |
+| 작업의 필수 기준 | [아티메뉴 개발 작업 규칙](../AGENTS.md) | 사용자 승인 및 적용 범위 |
 | 템플릿 구조·리스트/앨범 구분 | 이 문서의 등록표, [렌더러 구조](menu-template-architecture.md) | [menu-design-policy](../lib/menu-design-policy.ts), [catalog-designs](../lib/catalog-designs.ts) |
 | 여백·글자·비율·카테고리·위젯·안내사항 | [템플릿 공통 계약](template-spacing-contract.md) | 해당 계약에서 연결한 공통 토큰·측정·배치 모듈 |
 | 미리보기 보기옵션 | [보기옵션 계약](template-preview-display-options.md) | [template-preview-options](../lib/template-preview-options.ts), [menu-preview-design](../lib/menu-preview-design.ts) |

@@ -1,4 +1,4 @@
-# ArtiMenu Basic Template Engine Rules
+# 아티메뉴 Basic 초기 엔진 규칙 (과거 기록)
 
 > Historical engine baseline. The canvas-fit/shrink/fill candidate and bottom-widget rules below describe retained earlier engines, not the current active Basic contained-reading policy. Start with [template-docs-index.md](template-docs-index.md), [template-spacing-contract.md](template-spacing-contract.md) and [menu-template-architecture.md](menu-template-architecture.md). Current layout modes retain their registered names/default; do not restore obsolete measurement, docking or skin assumptions from this record.
 

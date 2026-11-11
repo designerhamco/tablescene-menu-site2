@@ -1,6 +1,11 @@
-# ArtiMenu
+# 아티메뉴 프로젝트 안내 (ArtiMenu)
 
 ## 프로젝트 문서
+
+먼저 [아티메뉴 프로젝트 문서 안내](docs/artimenu-project-guide.md)에서 문서별 역할과 현행/과거/검토 상태를 확인합니다.
+
+- [서비스·요금·이용권 기준](docs/service-pricing-contract.md): 가격 원본, 서비스 구성과 기존 계약의 구분
+- [약관·개인정보·동의 검토 현황](docs/legal-policy-review.md): 공개 원문 위치와 아직 확인이 필요한 사항
 
 - [개발 작업 규칙](AGENTS.md): 모든 작업에서 따르는 공통 기준
 - [템플릿 문서 안내](docs/template-docs-index.md): 기본/디자이너 구분, 리스트·앨범 등록표, 구조별 레이아웃, 보기옵션과 과거 기록 구분
@@ -12,7 +17,7 @@
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+## 개발 서버 실행
 
 First, run the development server:
 
@@ -32,7 +37,7 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## 프레임워크 참고 자료
 
 To learn more about Next.js, take a look at the following resources:
 
@@ -41,13 +46,13 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## 배포 참고 자료
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
-## Supabase Auth Recovery Setup
+## 인증 이메일의 비밀번호 재설정 경로
 
 Password reset uses Supabase Auth `resetPasswordForEmail` and the `/reset-password` route.
 

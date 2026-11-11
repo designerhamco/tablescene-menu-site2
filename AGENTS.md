@@ -1,3 +1,7 @@
+# 아티메뉴 개발 작업 규칙
+
+개발 도구가 자동으로 읽는 공통 규칙이다. 프로젝트 문서의 전체 안내는 [아티메뉴 프로젝트 문서 안내](docs/artimenu-project-guide.md)를 따른다. 아래 Next.js 관리 블록은 자동 생성 지침이므로 보존한다.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know
@@ -7,6 +11,10 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## 문서 제목·상태 표시
+
+- 사람이 보는 제목과 목차 링크는 아티메뉴와 담당 기능을 명시한다. 원문/현행 규칙/검토안/검수 이력/운영 절차를 구분하고, 과거 기록은 최신 사양처럼 표시하지 않는다. 도구가 자동으로 읽는 AGENTS.md·CLAUDE.md 파일명과 Next.js 관리 블록은 유지한다. 가격·서비스의 코드 원본과 약관·개인정보 공개 원문을 문서에서 연결하고, MD 존재를 전체 정합성·법적 검토·운영 활성화 완료로 주장하지 않는다. 문서 전체 진입점은 docs/artimenu-project-guide.md다.
 
 ## Official-site responsive UI
 

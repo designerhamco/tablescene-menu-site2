@@ -1,4 +1,4 @@
-# Service Lifecycle Hard Delete Runbook
+# 아티메뉴 서비스 종료·데이터 삭제 운영 절차
 
 This runbook documents the pre-execute checklist for ArtiMenu service data deletion.
 

@@ -1,4 +1,4 @@
-# Default design and switch rollout — 2026-10-19
+# 아티메뉴 기본 디자인 도입 기록 (과거 기록: 2026-10-19)
 
 > Historical rollout record. Current registrations are Basic 5 structures / 7 list-album designs and Dining 2 structures / 4 list-album designs. Use [template-docs-index.md](template-docs-index.md) and the latest [template-spacing-contract.md](template-spacing-contract.md). Old preview-only availability, four-structure counts, image ratios and color/control ownership below are not current product specifications.
 

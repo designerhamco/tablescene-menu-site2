@@ -1,4 +1,4 @@
-# Menu template spacing contract
+# 아티메뉴 메뉴판 공통 규칙
 
 ## Starter translation and chip locale parity — 2026-11-11 (current)
 
