@@ -899,3 +899,18 @@
 .site-room-tabs > .site-room-tab:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { background:var(--ui-action-soft-pressed); color:var(--ui-text); }
 .site-room-tabs > .site-room-tab:focus-visible { outline-offset:-3px; }
 .site-room-tab > svg { width:1rem; height:1rem; }
+
+/* Mobile inbox keeps the underlying page mounted and only scrolls its feed. */
+.site-dialog-panel.site-notification-sheet { inset: auto 0 0; display: flex; flex-direction: column; width: 100%; max-width: 100%; height: min(48rem, 92dvh); max-height: 92dvh; gap: 0; padding: 0 0 env(safe-area-inset-bottom, 0px); overflow: hidden; }
+.site-notification-sheet-header { flex: none; padding: var(--site-surface-inset); padding-inline-end: calc(var(--site-surface-inset) + var(--ui-control-height-md)); }
+.site-notification-sheet-header > h2:focus { outline: none; }
+.site-notification-panel[data-layout="sheet"] { display: flex; flex: 1; min-height: 0; flex-direction: column; border-radius: 0; }
+.site-notification-panel[data-layout="sheet"] > [data-slot="tabs"] { flex: 1; min-height: 0; }
+.site-notification-panel[data-layout="sheet"] .site-notification-tabs, .site-notification-panel[data-layout="sheet"] .site-notification-footer { flex: none; }
+.site-notification-panel[data-layout="sheet"] .site-notification-body { flex: 1; min-height: 0; }
+.site-notification-panel[data-layout="sheet"] .site-notification-feed { min-height: 0; max-height: none; }
+.site-dialog-panel.site-notification-sheet[data-state="open"] { animation: siteNotificationSheetIn 180ms ease-out both; }
+.site-dialog-panel.site-notification-sheet[data-state="closed"] { animation: siteNotificationSheetOut 140ms ease-in both; pointer-events: none; }
+@keyframes siteNotificationSheetIn { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes siteNotificationSheetOut { from { transform: translateY(0); } to { transform: translateY(100%); } }
+@media (prefers-reduced-motion: reduce) { .site-dialog-panel.site-notification-sheet[data-state] { animation: none; } }

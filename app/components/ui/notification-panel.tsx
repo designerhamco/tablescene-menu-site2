@@ -18,8 +18,8 @@ function dateLabel(value: string | null) {
   return new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long", day: "numeric", weekday: "short" }).format(new Date(value));
 }
 
-export function NotificationPanel({ items, loading = false, footer, compact = false, onActivate, onReadAll, unreadCount }: {
-  items: NotificationRow[]; loading?: boolean; footer?: ReactNode; compact?: boolean;
+export function NotificationPanel({ items, loading = false, footer, compact = false, layout, onActivate, onReadAll, unreadCount }: {
+  items: NotificationRow[]; loading?: boolean; footer?: ReactNode; compact?: boolean; layout?: "sheet";
   onActivate?: (item: NotificationRow) => void;
   onReadAll?: () => Promise<void> | void; unreadCount?: number;
 }) {
@@ -37,7 +37,7 @@ export function NotificationPanel({ items, loading = false, footer, compact = fa
     catch { setReadError(true); }
     finally { readPending.current = false; setReadingAll(false); }
   };
-  return <div className="site-notification-panel" aria-busy={loading} data-compact={compact || undefined}>
+  return <div className="site-notification-panel" aria-busy={loading} data-compact={compact || undefined} data-layout={layout}>
     <Tabs purpose="category" defaultValue="all" className="gap-0">
       <TabsList size="md" distribution="equal" className="site-notification-tabs" aria-label="알림 분류">
         <TabsTrigger value="all">전체 알림</TabsTrigger><TabsTrigger value="unread" count={totalUnread}>읽지 않음</TabsTrigger>
