@@ -629,7 +629,7 @@ OrderHistoryFilters는 ContentPanel density=controls, site-form-row/site-field-s
 공통 `ImageCarousel` (`app/components/ui/image-carousel.tsx`)은 목록 4:3 / 상세 16:9 프레임을 유지하고, 상세의 작은 썸네일도 실제 이미지로 선택한다. 사진은 목록 cover, 상세 contain이다. 두 장 이상일 때만 장수 표시·방향키·스와이프 및 이동 도구를 활성화한다. 한 장에는 장수·화살표·작은 선택 썸네일을 숨긴다. 자동 재생은 하지 않는다.
 
 - 장수 표시: 우측 하단, `type-caption`, 흰 글자 `1/2`, 검정60% 반투명 바탕, 공통 캡슐 모서리와8px 인셋. 숫자 너비는 tabular이다.
-- 좌우 화살표: 768px 이상 PC·태블릿에서 상시 표시. `Button variant="media" size="icon"`의40px 투명 클릭 영역, 흰24px chevron /1.75 stroke, 미세한 검정 그림자를 사용한다. 기본 흰색에서 hover 시 `--ui-media-hover-ink`(#d4d4d8)의 은은한 회색으로 공통 `--ui-transition`(150ms ease)에 따라 전환한다. default·hover·pressed 모두 바탕을 추가하지 않으며 키보드 포커스는 흰 outline으로 보존한다. 폰에서는 화살표를 숨기고 스와이프·방향키·상세의 작은 썸네일을 사용한다.
+- 좌우 화살표: 768px 이상 PC·태블릿에서 상시 표시. `Button variant="media" size="icon"`의기존24px 투명 클릭 영역, 흰24px chevron /1.75 stroke, 미세한 검정 그림자를 사용한다. 기본 흰색에서 hover 시 `--ui-media-hover-ink`(#d4d4d8)의 은은한 회색으로 공통 `--ui-transition`(150ms ease)에 따라 전환한다. default·hover·pressed 모두 바탕을 추가하지 않으며 키보드 포커스는 흰 outline으로 보존한다. 폰에서는 화살표를 숨기고 스와이프·방향키·상세의 작은 썸네일을 사용한다.
 - 공통 `--ui-media-*` 토큰과 `site-image-carousel-*` 클래스만 사용한다. 미디어 도구 스타일은 이미지 위에만 사용하며 일반 실행 버튼을 대체하지 않는다.
 - 상세 이동 링크는 각 슬라이드에만 있고, 화살표·작은 썸네일은 링크와 별개다. 드래그는 상세 이동을 일으키지 않는다. 방향키·Home/End, 현재 이미지 상태 안내, 비활성 슬라이드의 탭 제외, 세로 스크롤·핀치 줌을 보존한다.
 

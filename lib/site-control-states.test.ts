@@ -379,6 +379,7 @@ test("bare tools keep transparent paint without shrinking targets and counters u
   assert.match(css, /\.site-image-carousel-count \{[^}]*border-radius: var\(--ui-radius-control\);/);
   assert.doesNotMatch(css, /--ui-media-arrow-hover|--ui-media-arrow-pressed/);
   assert.match(css, /--ui-media-hover-ink: #d4d4d8;/);
+  assert.match(css, /\.site-button-media\.site-button-icon \{ --ui-icon-control-size: var\(--ui-media-arrow-size\); \}/);
   assert.match(css, /\.site-button-media:is\(:hover, \[data-ui-state="hover"\]\)[^{]+\{ background: transparent; color: var\(--ui-media-hover-ink\); \}/);
   assert.match(read("app/components/ui/floor-plan-viewport.tsx"), /variant="ghost" size="icon"/);
   assert.match(read("app/components/ui/refresh-button.tsx"), /variant="ghost" size="icon"/);

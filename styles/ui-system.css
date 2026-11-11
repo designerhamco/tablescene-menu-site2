@@ -1446,6 +1446,7 @@ svg.site-edit-icon {
 
 /* Image navigation is a media tool: white glyphs over the actual photograph. */
 .site-button-media { border-color: transparent; background: transparent; color: var(--ui-media-ink); }
+.site-button-media.site-button-icon { --ui-icon-control-size: var(--ui-media-arrow-size); }
 .site-button-media:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { background: transparent; color: var(--ui-media-hover-ink); }
 .site-button-media:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { background: transparent; }
 .site-button-media:disabled, .site-button-media[aria-disabled="true"] { background: transparent; border-color: transparent; color: var(--ui-disabled-text); }
