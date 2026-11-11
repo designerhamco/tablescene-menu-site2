@@ -97,6 +97,8 @@ export type PublicMenuItem = Pick<
 > & {
   menu_page_id?: string | null;
   default_name?: string | null;
+  /** Original label owns chip style while localized text owns its copy. */
+  badge_style_label?: string | null;
   priceNote: string | null;
   priceColumnValues: PublicMenuItemPriceColumnValue[];
 };

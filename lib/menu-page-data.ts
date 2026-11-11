@@ -1,3 +1,4 @@
+import { translateMenuText } from "./menu-ui-copy";
 import "server-only";
 
 import type { PublicMenuTemplateProps, PublicMenuTimeSale } from "@/components/menu-templates/types";
@@ -715,6 +716,7 @@ async function applyMenuTranslations(
         ? {
             ...category,
             name: getLocalizedRequiredValue(category.name, translation.name),
+            priceColumns: category.priceColumns.map(column => ({ ...column, label: translateMenuText(column.label, locale) })),
             description: getLocalizedValue(category.description, translation.description),
             course_price_label: getLocalizedValue(
               category.course_price_label,
@@ -738,6 +740,7 @@ async function applyMenuTranslations(
             price_label: getLocalizedValue(item.price_label, translation.price_label),
             priceNote: getLocalizedValue(item.priceNote, translation.price_note),
             portion_label: getLocalizedValue(item.portion_label, translation.portion_label),
+            badge_style_label: item.badge_label,
             badge_label: getLocalizedValue(item.badge_label, translation.badge_label),
             origin_info: getLocalizedValue(item.origin_info, translation.origin_info),
           }

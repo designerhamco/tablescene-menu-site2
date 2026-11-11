@@ -12,6 +12,7 @@ class StarterProvisioningClient {
   from(table: string) {
     return {
       select: (_columns: string, options?: { count?: string; head?: boolean }) => {
+        if (table === "menu_sites" && !options?.head) return {eq: () => ({maybeSingle: async () => ({data: null,error: null})})};
         if (!options?.head) throw new Error(`Unexpected select on ${table}`);
 
         return {

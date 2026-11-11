@@ -1,3 +1,5 @@
+import { diningSampleNames, neutralizeDiningSampleText } from "../standard-design-copy";
+import { getMenuItemBadgeLabel } from "../menu-badges";
 import { getStarterTranslationCopy } from "../standard-design-starter";
 import { translateMenuText } from "@/lib/menu-ui-copy";
 import type { MenuPageData } from "@/lib/menu-page-data";
@@ -224,9 +226,9 @@ const DISPLAY_COPY: Record<PreviewTextLocale, Record<string, string>> = {
   },
 };
 
-function translateText<T extends string | null | undefined>(value: T, copy: Record<string, string>): T extends string ? string : T {
+function translateText<T extends string | null | undefined>(value: T, copy: Record<string, string>, locale: SupportedLocale = "ko"): T extends string ? string : T {
   if (value == null) return value as T extends string ? string : T;
-  return (copy[value] ?? value) as T extends string ? string : T;
+  return (copy[value] ?? translateMenuText(value, locale)) as T extends string ? string : T;
 }
 
 function titleCaseEnglishLabel(value: string) {
@@ -235,52 +237,57 @@ function titleCaseEnglishLabel(value: string) {
 
 function applyTextMap(data: MenuPageData, locale: PreviewTextLocale, copy: Record<string, string>): MenuPageData {
   const mergedCopy = { ...COMMON_LABELS[locale], ...copy };
+  const designId = (data.menuSite.settings as Record<string, unknown> | null)?.menu_design_id;
+  if (typeof designId === "string" && designId.startsWith("dining-")) {
+    for (const [original, translated] of Object.entries(copy)) mergedCopy[neutralizeDiningSampleText(original)] = neutralizeDiningSampleText(translated);
+    for (const [original, [korean]] of Object.entries(diningSampleNames)) mergedCopy[korean] = copy[original] ?? translateMenuText(original, locale);
+  }
   const settings = data.menuSite.settings && typeof data.menuSite.settings === "object" && !Array.isArray(data.menuSite.settings)
-    ? Object.fromEntries(Object.entries(data.menuSite.settings).map(([key, value]) => [key, typeof value === "string" ? translateText(value, mergedCopy) : value]))
+    ? Object.fromEntries(Object.entries(data.menuSite.settings).map(([key, value]) => [key, typeof value === "string" ? translateText(value, mergedCopy, locale) : value]))
     : data.menuSite.settings;
 
   return {
     ...data,
     menuSite: {
       ...data.menuSite,
-      name: translateText(data.menuSite.name, mergedCopy) ?? data.menuSite.name,
-      description: translateText(data.menuSite.description, mergedCopy),
-      business_name: translateText(data.menuSite.business_name, mergedCopy),
-      business_address: translateText(data.menuSite.business_address, mergedCopy),
-      restaurant_name: translateText(data.menuSite.restaurant_name, mergedCopy),
-      restaurant_category: translateText(data.menuSite.restaurant_category, mergedCopy),
-      restaurant_address: translateText(data.menuSite.restaurant_address, mergedCopy),
-      intro_title: translateText(data.menuSite.intro_title, mergedCopy),
-      intro_description: translateText(data.menuSite.intro_description, mergedCopy),
-      brand_description: translateText(data.menuSite.brand_description, mergedCopy),
-      menu_cover_title: translateText(data.menuSite.menu_cover_title, mergedCopy),
-      menu_cover_description: translateText(data.menuSite.menu_cover_description, mergedCopy),
-      about_description: translateText(data.menuSite.about_description, mergedCopy),
-      opening_hours: translateText(data.menuSite.opening_hours, mergedCopy),
+      name: translateText(data.menuSite.name, mergedCopy, locale) ?? data.menuSite.name,
+      description: translateText(data.menuSite.description, mergedCopy, locale),
+      business_name: translateText(data.menuSite.business_name, mergedCopy, locale),
+      business_address: translateText(data.menuSite.business_address, mergedCopy, locale),
+      restaurant_name: translateText(data.menuSite.restaurant_name, mergedCopy, locale),
+      restaurant_category: translateText(data.menuSite.restaurant_category, mergedCopy, locale),
+      restaurant_address: translateText(data.menuSite.restaurant_address, mergedCopy, locale),
+      intro_title: translateText(data.menuSite.intro_title, mergedCopy, locale),
+      intro_description: translateText(data.menuSite.intro_description, mergedCopy, locale),
+      brand_description: translateText(data.menuSite.brand_description, mergedCopy, locale),
+      menu_cover_title: translateText(data.menuSite.menu_cover_title, mergedCopy, locale),
+      menu_cover_description: translateText(data.menuSite.menu_cover_description, mergedCopy, locale),
+      about_description: translateText(data.menuSite.about_description, mergedCopy, locale),
+      opening_hours: translateText(data.menuSite.opening_hours, mergedCopy, locale),
       settings,
     },
-    pages: data.pages.map((page) => ({ ...page, title: translateText(page.title, mergedCopy) ?? page.title, description: translateText(page.description, mergedCopy) })),
+    pages: data.pages.map((page) => ({ ...page, title: translateText(page.title, mergedCopy, locale) ?? page.title, description: translateText(page.description, mergedCopy, locale) })),
     categories: data.categories.map((category) => ({
       ...category,
-      name: translateText(category.name, mergedCopy) ?? category.name,
-      description: translateText(category.description, mergedCopy),
-      course_price_label: translateText(category.course_price_label, mergedCopy),
-      course_price_description: translateText(category.course_price_description, mergedCopy),
-      priceColumns: category.priceColumns.map((column) => ({ ...column, label: translateText(column.label, mergedCopy) ?? column.label })),
+      name: translateText(category.name, mergedCopy, locale) ?? category.name,
+      description: translateText(category.description, mergedCopy, locale),
+      course_price_label: translateText(category.course_price_label, mergedCopy, locale),
+      course_price_description: translateText(category.course_price_description, mergedCopy, locale),
+      priceColumns: category.priceColumns.map((column) => ({ ...column, label: translateMenuText(column.label, locale) })),
     })),
     items: data.items.map((item) => ({
       ...item,
-      name: translateText(item.name, mergedCopy) ?? item.name,
-      set_name: translateText(item.set_name, mergedCopy),
-      description: translateText(item.description, mergedCopy),
-      price_label: translateText(item.price_label, mergedCopy),
-      priceNote: translateText(item.priceNote, mergedCopy),
-      portion_label: translateText(item.portion_label, mergedCopy),
-      badge: translateText(item.badge, mergedCopy),
-      badge_label: translateText(item.badge_label, mergedCopy),
+      name: translateText(item.name, mergedCopy, locale) ?? item.name,
+      set_name: translateText(item.set_name, mergedCopy, locale),
+      description: translateText(item.description, mergedCopy, locale),
+      price_label: translateText(item.price_label, mergedCopy, locale),
+      priceNote: translateText(item.priceNote, mergedCopy, locale),
+      portion_label: translateText(item.portion_label, mergedCopy, locale),
+      badge: translateText(item.badge, mergedCopy, locale),
+      badge_label: translateText(item.badge_label, mergedCopy, locale),
     })),
-    priceOptions: data.priceOptions.map((option) => ({ ...option, label: translateText(option.label, mergedCopy) ?? option.label })),
-    timeSales: data.timeSales.map((sale) => ({ ...sale, name: translateText(sale.name, mergedCopy) ?? sale.name, displayText: translateText(sale.displayText, mergedCopy), badgeText: translateText(sale.badgeText, mergedCopy) ?? sale.badgeText })),
+    priceOptions: data.priceOptions.map((option) => ({ ...option, label: translateMenuText(option.label, locale) })),
+    timeSales: data.timeSales.map((sale) => ({ ...sale, name: translateText(sale.name, mergedCopy, locale) ?? sale.name, displayText: translateText(sale.displayText, mergedCopy, locale), badgeText: translateMenuText(translateText(sale.badgeText, mergedCopy, locale) ?? sale.badgeText, locale) })),
   };
 }
 
@@ -344,7 +351,7 @@ function applySinglePageCopy(data: MenuPageData, locale: SinglePageStarterTransl
     pages: data.pages.map((page) => ({ ...page, title: copy.pageTitle })),
     categories: data.categories.map((category) => {
       const localized = categoryCopyById.get(category.id);
-      return localized ? { ...category, name: localized.name, description: localized.description ?? category.description } : category;
+      return localized ? { ...category, name: localized.name, description: localized.description ?? category.description, priceColumns: category.priceColumns.map(column => ({ ...column, label: translateMenuText(column.label, locale) })) } : category;
     }),
     items: data.items.map((item) => {
       const localized = itemCopyById.get(item.id);
@@ -356,9 +363,10 @@ function applySinglePageCopy(data: MenuPageData, locale: SinglePageStarterTransl
           }
         : item;
     }),
+    priceOptions: data.priceOptions.map(option => ({ ...option, label: translateMenuText(option.label, locale) })),
     timeSales: data.timeSales.map((sale) => {
       const localized = promotionCopyById.get(sale.id);
-      return localized ? { ...sale, badgeText: localized.badgeText, displayText: localized.timeDisplayText ?? sale.displayText } : sale;
+      return localized ? { ...sale, badgeText: translateMenuText(localized.badgeText, locale), displayText: localized.timeDisplayText ?? sale.displayText } : sale;
     }),
   };
 }
@@ -380,6 +388,7 @@ function applyDisplayCopy(data: MenuPageData, locale: PreviewTextLocale): MenuPa
 
 export function applyStarterPreviewLocalization(data: MenuPageData, locale: SupportedLocale): MenuPageData {
   const localizedBase = { ...data, locale,
+    items: data.items.map(item => ({ ...item, badge_style_label: item.badge_style_label ?? item.badge_label, badge: getMenuItemBadgeLabel(item, locale) || null, badge_label: getMenuItemBadgeLabel(item, locale) || null })),
     widgets: data.widgets?.map(widget => widget.type === "image" ? widget : { ...widget, title: widget.title ? translateMenuText(widget.title, locale) : null, description: translateMenuText(widget.description, locale) }),
     enabledLocales: ["ko", "en", "zh", "ja"] as SupportedLocale[] };
   if (locale === "ko") return localizedBase;
@@ -391,7 +400,7 @@ export function applyStarterPreviewLocalization(data: MenuPageData, locale: Supp
     return applyTextMap(localizedBase, locale, AUBE_TABLE_COPY[locale]);
   }
   if (data.menuSite.template_key === "dining_aube_table_b") {
-    return applyTextMap(localizedBase, locale, MARAIS_COPY[locale]);
+    return applyTextMap(localizedBase, locale, typeof (data.menuSite.settings as Record<string, unknown> | null)?.menu_design_id === "string" && String((data.menuSite.settings as Record<string, unknown>).menu_design_id).startsWith("dining-") ? AUBE_TABLE_COPY[locale] : MARAIS_COPY[locale]);
   }
   if (data.menuSite.template_key === "display_menu_a") {
     return applyDisplayCopy(localizedBase, locale);

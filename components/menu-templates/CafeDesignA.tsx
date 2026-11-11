@@ -36,6 +36,8 @@ import { OnePageCallButton, OnePageMobileCallBar, OnePageMobileCallDock, OnePage
 import { BASIC_RIGHT_EDGE_SAFETY_GAP_PX } from "@/lib/basic-template-constants";
 import { getCafeAMenuWrapScaleCandidates, hasCafeAMenuWrapDensityImproved, type CafeAMenuWrapDensityDecision } from "@/lib/cafe-a-wrap-density";
 import { DEFAULT_LOCALE } from "@/lib/locales";
+import { translateMenuText } from "@/lib/menu-ui-copy";
+import { useMenuLocale } from "./shared/MenuLocaleScope";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { isMenuCoverVisibleOnDevice } from "@/lib/menu-cover-device-visibility";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
@@ -806,12 +808,13 @@ function getTimeSaleBadgeStyle(backgroundColor: PublicTimeSale["badgeBackgroundC
 
 
 function TimeSaleBadge({ timeSale, templateKey, className = "" }: { timeSale: PublicTimeSale; templateKey?: string | null; className?: string }) {
+  const locale = useMenuLocale();
   return (
     <span
       className={`menu-badge cafe-a-menu-badge cafe-a-time-sale-badge inline-flex rounded-none border px-1.5 py-1 font-black uppercase leading-none ${className}`}
       style={getTimeSaleBadgeStyle(timeSale.badgeBackgroundColor, templateKey)}
     >
-      <ScriptAwareText text={timeSale.badgeText} />
+      <ScriptAwareText text={translateMenuText(timeSale.badgeText, locale)} />
     </span>
   );
 }
@@ -1378,9 +1381,10 @@ function Badge({
   customBadgeStyles: unknown;
   className?: string;
 }) {
+  const locale = useMenuLocale();
   if (!capabilities.itemBadges) return null;
 
-  const label = getMenuItemBadgeLabel(item);
+  const label = getMenuItemBadgeLabel(item, locale);
   if (!label) return null;
 
   const badgeStyle = getBadgeStyleForItem(item, templateKey, customBadgeStyles);
@@ -1419,9 +1423,10 @@ function HeroOverlayBadge({
   customBadgeStyles: unknown;
   className?: string;
 }) {
+  const locale = useMenuLocale();
   if (!capabilities.itemBadges) return null;
 
-  const label = getMenuItemBadgeLabel(item);
+  const label = getMenuItemBadgeLabel(item, locale);
   if (!label) return null;
 
   const badgeStyle = getBadgeStyleForItem(item, templateKey, customBadgeStyles);
@@ -3580,7 +3585,7 @@ function CafeNoirA({ data }: { data: PublicMenuTemplateProps }) {
                                         });
                                   const metaText = getMenuItemMetaText(item, data.locale);
                                   const isSoldOut = item.is_sold_out === true;
-                                  const badgeLabel = isSoldOut ? getCafeASoldOutLabel(data.locale) : getMenuItemBadgeLabel(item);
+                                  const badgeLabel = isSoldOut ? getCafeASoldOutLabel(data.locale) : getMenuItemBadgeLabel(item, data.locale);
 
                                   return (
                                     <li

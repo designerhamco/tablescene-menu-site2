@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { translateMenuText } from "./menu-ui-copy";
 import { ENGLISH_FONT_OPTIONS } from "./font-options";
 import { getStarterPreset } from "./menu-starter-presets";
 import { TEMPLATE_BADGE_STYLE_PRESETS } from "./template-badge-styles";
@@ -198,8 +199,8 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(loopBagelItems.find((item) => item.key === "basil-chicken-bagel")?.badge_label, "NEW");
   const loopTranslations = getSinglePageStarterTranslations("fast_food_loop_bagel_a");
   for (const locale of ["en", "zh", "ja"] as const) {
-    assert.equal(loopTranslations?.[locale].promotions["egg-cheese-morning-deal"]?.badgeText, "SALE");
-    assert.equal(loopTranslations?.[locale].promotions["plain-cream-cheese-closeout"]?.badgeText, "SALE");
+    assert.equal(loopTranslations?.[locale].promotions["egg-cheese-morning-deal"]?.badgeText, translateMenuText("SALE", locale));
+    assert.equal(loopTranslations?.[locale].promotions["plain-cream-cheese-closeout"]?.badgeText, translateMenuText("SALE", locale));
   }
   assert.deepEqual(loopBagel.time_sales?.[1]?.targets, [
     { target_item_key: "plain-cream-cheese", target_item_name: "플레인 크림치즈", sale_price: 1000 },
@@ -260,8 +261,8 @@ test("starter-specific image and promotion presentation stays intentional", () =
   );
   const roundTranslations = getSinglePageStarterTranslations("cafe_round_focus_a");
   for (const locale of ["en", "zh", "ja"] as const) {
-    assert.equal(roundTranslations?.[locale].promotions["classic-highball-happy-hour"]?.badgeText, "HAPPY HOUR");
-    assert.equal(roundTranslations?.[locale].promotions["truffle-fries-last-call"]?.badgeText, "LAST CALL");
+    assert.equal(roundTranslations?.[locale].promotions["classic-highball-happy-hour"]?.badgeText, translateMenuText("HAPPY HOUR", locale));
+    assert.equal(roundTranslations?.[locale].promotions["truffle-fries-last-call"]?.badgeText, translateMenuText("LAST CALL", locale));
   }
   const roundFocusLastBlock = roundFocus.mixed_content_order?.at(-1);
   assert.equal(roundFocusLastBlock?.block_type, "widget");
@@ -287,8 +288,8 @@ test("starter-specific image and promotion presentation stays intentional", () =
   assert.equal(mochaSignatureItems.find((item) => item.key === "hazelnut-cream-latte")?.badge_label, "베스트");
   const mochaTranslations = getSinglePageStarterTranslations("cafe_mocha_forest_a");
   for (const locale of ["en", "zh", "ja"] as const) {
-    assert.equal(mochaTranslations?.[locale].promotions["americano-morning-deal"]?.badgeText, "모닝딜");
-    assert.equal(mochaTranslations?.[locale].promotions["dark-chocolate-brownie-closeout"]?.badgeText, "재고 마감");
+    assert.equal(mochaTranslations?.[locale].promotions["americano-morning-deal"]?.badgeText, ({en:"MORNING DEAL",zh:"早晨优惠",ja:"モーニング"} as const)[locale]);
+    assert.equal(mochaTranslations?.[locale].promotions["dark-chocolate-brownie-closeout"]?.badgeText, ({en:"LAST BATCH",zh:"即将售罄",ja:"まもなく完売"} as const)[locale]);
   }
   const mochaForestLastBlock = mochaForest.mixed_content_order?.at(-1);
   assert.equal(mochaForestLastBlock?.block_type, "widget");

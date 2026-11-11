@@ -16,6 +16,7 @@ import {
   normalizeMenuPageDisplaySettings,
   type MenuPageDisplaySettings,
 } from "@/lib/display-page-settings";
+import { translateMenuText } from "@/lib/menu-ui-copy";
 import { getMenuItemBadgeLabel } from "@/lib/menu-badges";
 import { getMenuTimeSaleAuxiliaryLabels } from "@/lib/menu-time-sale-display";
 import {
@@ -874,7 +875,7 @@ function MenuItemRow({
   timeSale?: DisplayMenuTimeSaleMatch;
   nowMs: number;
 }) {
-  const badge = getMenuItemBadgeLabel(item);
+  const badge = getMenuItemBadgeLabel(item, locale);
   const isSoldOut = item.is_sold_out === true;
   const itemName = normalizeDisplayText(item.name) || "";
   const itemPriceOptions = priceOptions.filter((option) => option.menu_item_id === item.id && option.visible);
@@ -941,7 +942,7 @@ function MenuItemRow({
                   {isSoldOut
                     ? DISPLAY_SOLD_OUT_LABELS[locale]
                     : showTimeSale && timeSale
-                      ? timeSale.promotion.badgeText
+                      ? translateMenuText(timeSale.promotion.badgeText, locale)
                       : badge}
                 </span>
               )}

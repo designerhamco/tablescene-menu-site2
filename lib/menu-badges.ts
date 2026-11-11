@@ -1,3 +1,5 @@
+import type { SupportedLocale } from "./locales";
+import { translateMenuText } from "./menu-ui-copy";
 import type { BadgeType } from "@/lib/supabase/types";
 
 export type { BadgeType };
@@ -53,6 +55,7 @@ export const BADGE_LABELS: Record<BadgeType, string> = {
 };
 
 export type BadgeableMenuItem = {
+  badge_style_label?: string | null;
   badge_label?: MenuBadgeLabel | string | null;
   badge_type?: BadgeType | string | null;
   recommended?: boolean | null;
@@ -128,7 +131,11 @@ export function getLegacyBadgeTypeForLabel(label: string | null): BadgeType | nu
   return null;
 }
 
-export function getMenuItemBadgeLabel(item: BadgeableMenuItem): string {
+export function getMenuItemBadgeLabel(item: BadgeableMenuItem, locale: SupportedLocale = "ko"): string {
+  return translateMenuText(getUnlocalizedBadgeLabel(item), locale);
+}
+
+function getUnlocalizedBadgeLabel(item: BadgeableMenuItem): string {
   const normalizedLabel = normalizeMenuBadgeLabel(item.badge_label);
 
   if (normalizedLabel) {

@@ -1,3 +1,4 @@
+import { assertPurchasedStarterTranslations } from "../starter-translation-provisioning";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { createStarterMenuData } from "@/lib/menu-starter-presets";
@@ -50,5 +51,6 @@ export async function ensurePurchasedMenuStarter(
     throw new Error("메뉴판 스타터가 부분적으로만 생성되어 자동 복구할 수 없습니다. 관리자 확인이 필요합니다.");
   }
 
+  await assertPurchasedStarterTranslations(supabase, menuSiteId);
   return result;
 }
