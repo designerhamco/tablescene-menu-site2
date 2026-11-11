@@ -19,7 +19,7 @@ export default function CatalogFilterSearch({ search, children }: { search: Reac
     <PopoverAnchor asChild><div className="site-catalog-search-row">
       {search}
       <div className="site-catalog-mobile-filters">
-        <PopoverTrigger asChild><Button type="button" variant="outline" size="icon" iconAppearance="framed" aria-label="템플릿 필터" title="필터"><SlidersHorizontal aria-hidden="true" /></Button></PopoverTrigger>
+        <PopoverTrigger asChild><Button type="button" variant="ghost" size="icon" aria-label="템플릿 필터" title="필터"><SlidersHorizontal aria-hidden="true" /></Button></PopoverTrigger>
       </div>
     </div></PopoverAnchor>
     <PopoverContent side="bottom" avoidCollisions={false} align="end" collisionPadding={16} className="site-catalog-mobile-filter-content" aria-label="템플릿 필터">

@@ -9,6 +9,7 @@ import { Input } from "@/app/components/ui/input";
 import { FieldMessage } from "@/app/components/ui/field-message";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/app/components/ui/input-group";
 import { PasswordField } from "@/app/components/ui/password-field";
+import { FilterToolbar } from "@/app/components/ui/filter-toolbar";
 import { SearchField } from "@/app/components/ui/search-field";
 import { MultiSelect } from "@/app/components/ui/multi-select";
 import { Accordion } from "@/app/components/ui/accordion";
@@ -24,6 +25,7 @@ export default function ComposedFieldExamples() {
   const [checked, setChecked] = useState<boolean | "indeterminate">("indeterminate");
   const [filters, setFilters] = useState<string[]>(["cozy"]);
   const filterOptions = [{ key: "lively", label: "발랄한" }, { key: "cozy", label: "코지한" }, { key: "modern", label: "모던한" }];
+  const [toolbarFilters, setToolbarFilters] = useState<Record<string, string[]>>({});
   const [radio, setRadio] = useState("email");
   const [date, setDate] = useState<Date | undefined>(() => new Date(2026, 10, 11));
   const items = ["메뉴판 편집", "테이블 관리", "디자인 템플릿"].filter(item => item.includes(query.trim()));
@@ -41,5 +43,6 @@ export default function ComposedFieldExamples() {
       <ContentPanel><h3 className="type-content-title">복수 선택 필터</h3><MultiSelect label="분위기" icon={<Sparkles aria-hidden="true" />} options={filterOptions} value={filters} onValueChange={setFilters} /><Accordion type="single" collapsible><MultiSelect presentation="accordion" label="접이식 분위기" icon={<Sparkles aria-hidden="true" />} options={filterOptions} value={filters} onValueChange={setFilters} /></Accordion></ContentPanel>
       <ContentPanel><h3 className="type-content-title">날짜 선택</h3><div className="site-field-stack"><label htmlFor={`${id}-date`} className="type-label">날짜</label><Input id={`${id}-date`} type="date" value={date ? format(date, "yyyy-MM-dd") : ""} onChange={event => setDate(event.currentTarget.value ? new Date(`${event.currentTarget.value}T12:00:00`) : undefined)} /></div><Calendar mode="single" locale={ko} selected={date} onSelect={setDate} defaultMonth={new Date(2026, 10, 1)} /></ContentPanel>
     </div>
+    <ContentPanel><h3 className="type-content-title">내용 기준 검색·필터 너비</h3><FilterToolbar search={<SearchField label="너비 예시 검색" placeholder="이름으로 검색" value={query} onValueChange={setQuery} />} filters={["업종", "분위기", "색상", "레이아웃"].map(label => <MultiSelect key={label} label={label} icon={<Sparkles aria-hidden="true" />} options={filterOptions} value={toolbarFilters[label] ?? []} onValueChange={value => setToolbarFilters(current => ({ ...current, [label]: value }))} />)} summary={<p className="type-caption" role="status">선택 {Object.values(toolbarFilters).reduce((sum, values) => sum + values.length, 0)}개</p>} /></ContentPanel>
   </section>;
 }

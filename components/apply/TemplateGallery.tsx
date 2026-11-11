@@ -13,6 +13,7 @@ import {
 import { CATALOG_COLORS, CATALOG_MOODS, CATALOG_DEFAULT_THUMBNAIL_SIZE, normalizeCatalogThumbnailSize, type CatalogThumbnailSize } from "@/lib/catalog-facets";
 import { Button } from "@/app/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/app/components/ui/toggle-group";
+import { FilterToolbar } from "@/app/components/ui/filter-toolbar";
 import { SearchField } from "@/app/components/ui/search-field";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
@@ -104,14 +105,14 @@ export default function TemplateGallery({
   }
 
   function renderFilters(presentation: "popover" | "accordion") {
-    return <>
-      {(kind !== "standard" || product === "display") && <>
-        <CatalogFilterSelect label="업종" presentation={presentation} icon={<Store aria-hidden="true" />} options={industryOptions} value={filters.industry} onValueChange={value => selectFilter("industry", value)} />
-        <CatalogFilterSelect label="분위기" presentation={presentation} icon={<Sparkles aria-hidden="true" />} options={CATALOG_MOODS} value={filters.mood} onValueChange={value => selectFilter("mood", value)} />
-        <CatalogFilterSelect label="색상" presentation={presentation} appearance="swatches" icon={<Palette aria-hidden="true" />} options={colorOptions} value={filters.color} onValueChange={value => selectFilter("color", value)} />
-      </>}
-      <CatalogLayoutSelect presentation={presentation} value={filters.layout} onValueChange={value => selectFilter("layout", value)} />
-    </>;
+    return [
+      ...((kind !== "standard" || product === "display") ? [
+        <CatalogFilterSelect key="industry" label="업종" presentation={presentation} icon={<Store aria-hidden="true" />} options={industryOptions} value={filters.industry} onValueChange={value => selectFilter("industry", value)} />,
+        <CatalogFilterSelect key="mood" label="분위기" presentation={presentation} icon={<Sparkles aria-hidden="true" />} options={CATALOG_MOODS} value={filters.mood} onValueChange={value => selectFilter("mood", value)} />,
+        <CatalogFilterSelect key="color" label="색상" presentation={presentation} appearance="swatches" icon={<Palette aria-hidden="true" />} options={colorOptions} value={filters.color} onValueChange={value => selectFilter("color", value)} />,
+      ] : []),
+      <CatalogLayoutSelect key="layout" presentation={presentation} value={filters.layout} onValueChange={value => selectFilter("layout", value)} />,
+    ];
   }
 
   return <Tabs purpose="page" value={product} className="site-catalog" onValueChange={value => selectProduct(value as CatalogService)}>
@@ -138,25 +139,22 @@ export default function TemplateGallery({
             id={`${tabsId}-kind-panel`} aria-labelledby={product !== "display" ? `${tabsId}-${kind}` : undefined}>
             <div className="site-catalog-surface">
               <div className="site-catalog-results">
-                <CatalogFilterSearch search={
-                  <form role="search" aria-label="템플릿 이름 검색" className="site-catalog-search" onSubmit={event => event.preventDefault()}>
-                    <SearchField id={`${tabsId}-search`} label="템플릿 이름 검색" submitLabel="이름 검색" placeholder="템플릿 이름으로 검색" enterKeyHint="search" maxLength={100} value={query} onValueChange={searchByName} />
-                  </form>
-                }>{renderFilters("accordion")}</CatalogFilterSearch>
-                <div className="site-catalog-filter-toolbar">
-                  <div className="site-catalog-filter-controls" data-filter-count={kind === "standard" && product !== "display" ? "1" : "4"} role="group" aria-label="템플릿 필터">
-                    {renderFilters("popover")}
-                  </div>
-                  <div className="site-catalog-view-controls" role="group" aria-label="썸네일 크기">
-                    <ToggleGroup type="single" appearance="segmented" size="sm" value={thumbnailSize} onValueChange={value => { if (value === "large" || value === "small") selectThumbnailSize(value); }} aria-label="썸네일 크기">
-                      <ToggleGroupItem value="large" aria-label="썸네일 크게 보기" title="썸네일 크게 보기"><Grid2X2 aria-hidden="true" /></ToggleGroupItem>
-                      <ToggleGroupItem value="small" aria-label="썸네일 작게 보기" title="썸네일 작게 보기"><Grid3X3 aria-hidden="true" /></ToggleGroupItem>
-                    </ToggleGroup>
-                  </div>
+                <FilterToolbar collapseFiltersOnMobile filterLabel="템플릿 필터" search={
+                  <CatalogFilterSearch search={
+                    <form role="search" aria-label="템플릿 이름 검색" className="site-catalog-search" onSubmit={event => event.preventDefault()}>
+                      <SearchField id={`${tabsId}-search`} label="템플릿 이름 검색" submitLabel="이름 검색" placeholder="템플릿 이름으로 검색" enterKeyHint="search" maxLength={100} value={query} onValueChange={searchByName} />
+                    </form>
+                  }>{renderFilters("accordion")}</CatalogFilterSearch>
+                } filters={renderFilters("popover")} tools={
+                  <ToggleGroup type="single" appearance="segmented" size="sm" value={thumbnailSize} onValueChange={value => { if (value === "large" || value === "small") selectThumbnailSize(value); }} aria-label="썸네일 크기">
+                    <ToggleGroupItem value="large" aria-label="썸네일 크게 보기" title="썸네일 크게 보기"><Grid2X2 aria-hidden="true" /></ToggleGroupItem>
+                    <ToggleGroupItem value="small" aria-label="썸네일 작게 보기" title="썸네일 작게 보기"><Grid3X3 aria-hidden="true" /></ToggleGroupItem>
+                  </ToggleGroup>
+                } summary={
                   <p className="site-catalog-count" aria-live="polite" aria-atomic="true">
                     {product === "display" ? "디스플레이" : selectedKind.label} · <span>{visibleTemplates.length}개</span>
                   </p>
-                </div>
+                } />
                 <div className="site-stack-group">
                   <hr className="site-content-divider" />
                   {message && <p role="status" className="type-body-sm text-red-700">{message}</p>}

@@ -1483,7 +1483,7 @@ svg.site-edit-icon {
 @media (prefers-reduced-motion: reduce) { .site-button-media { transition: none; } }
 
 /* Checkbox filter popovers share field geometry, native checks and surface tokens. */
-.site-multiselect-control { display: flex; align-items: center; gap: var(--site-space-block); }
+.site-field.site-multiselect-control { display: flex; align-items: center; gap: var(--site-space-block); padding-block: var(--ui-menu-section-gap); }
 .site-multiselect-trigger { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; border-radius: inherit; background: transparent; cursor: pointer; }
 .site-multiselect-trigger:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
 .site-multiselect-label { display: inline-flex; align-items: center; gap: var(--site-space-copy); min-width: 0; pointer-events: none; white-space: nowrap; }
@@ -1570,6 +1570,25 @@ svg.site-edit-icon {
 .site-calendar .site-calendar-range-middle[aria-selected="true"] { border-radius: 0; background: var(--ui-surface-soft); color: var(--ui-text); }
 .site-calendar .site-calendar-day:disabled { background: transparent; color: var(--ui-disabled-text); opacity: 1; }
 .site-calendar .site-calendar-day:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+
+/* Discovery controls hug content; form fields retain their existing fill behavior. */
+:root { --ui-filter-search-width: 18rem; }
+.site-filter-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "fields fields" "summary tools"; align-items: center; gap: var(--site-space-block); margin-block-end: var(--site-space-group); }
+.site-filter-toolbar-fields { grid-area: fields; display: flex; flex-wrap: wrap; align-items: center; min-width: 0; gap: var(--site-space-block); }
+.site-filter-toolbar-search { flex: 0 1 100%; min-width: 0; max-width: 100%; }
+.site-filter-toolbar-options { display: grid; width: max-content; max-width: 100%; grid-template-columns: minmax(max-content, 1fr); gap: var(--site-space-copy); }
+.site-filter-toolbar-options[data-filter-count="1"] { grid-template-columns: minmax(max-content, 1fr); }
+.site-filter-toolbar-tools { grid-area: tools; justify-self: end; align-self: end; }
+.site-filter-toolbar-summary { grid-area: summary; min-width: 0; }
+@media (max-width: 767px) { .site-filter-toolbar[data-mobile-filters="collapsed"] .site-filter-toolbar-options { display: none; } }
+@media (min-width: 768px) {
+  .site-filter-toolbar { grid-template-areas: "fields tools" "summary summary"; }
+  .site-filter-toolbar-search { flex-basis: var(--ui-filter-search-width); }
+  .site-filter-toolbar-options { grid-template-columns: repeat(2, minmax(max-content, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .site-filter-toolbar-options[data-filter-count="4"] { grid-template-columns: repeat(4, minmax(max-content, 1fr)); }
+}
 
 /* Dedicated search keeps one capsule, including its clear and optional submit action. */
 .site-field.site-input-group.site-search-field { --ui-search-action-size: var(--ui-control-height-compact); border-radius: var(--ui-radius-control); }
