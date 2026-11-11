@@ -349,8 +349,8 @@ export default function MenuPreviewDeviceFrame(
             aria-label={
               showToolbar ? "기기 선택 도구 닫기" : "기기 선택 도구 열기"
             }
-            className="site-preview-control site-preview-toolbar-toggle"
-            data-icon-appearance="framed"
+            className="site-icon-control site-preview-control site-preview-toolbar-toggle"
+            data-icon-appearance="bare"
           >
             {showToolbar ? (
               <ChevronUp className="h-4 w-4" aria-hidden="true" />
