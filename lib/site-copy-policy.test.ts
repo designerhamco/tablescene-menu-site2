@@ -52,3 +52,11 @@ test("page-level floor-plan guidance moves into the existing help without removi
   assert.doesNotMatch(connection, /<DialogDescription>/);
   assert.match(read("components/mypage/MenuQrDownloadModal.tsx"), /<DialogDescription[^>]*>\{menuName\}<\/DialogDescription>/);
 });
+
+
+test("catalog counts show only kind and result count without repeated introductions or selected filter prose", () => {
+  const catalog = read("components/apply/TemplateGallery.tsx");
+  assert.doesNotMatch(catalog, /완성된 스타일에 우리 매장 메뉴|기본 레이아웃에서 색상과 글꼴|site-catalog-kind-description|activeLabels/);
+  assert.match(catalog, /selectedKind.label} · <span>{visibleTemplates.length}개/);
+  assert.match(catalog, /hasFilters.*Object.values\(filters\)/);
+});

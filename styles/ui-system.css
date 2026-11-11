@@ -1484,7 +1484,10 @@ svg.site-edit-icon {
 .site-multiselect-control > .site-select-chevron { pointer-events: none; }
 .site-multiselect-control:has(.site-multiselect-trigger[data-state="open"]) > .site-select-chevron { transform: rotate(180deg); }
 .site-chip.site-multiselect-count { position: relative; height: 1.5rem; padding-block: 0; padding-inline: var(--site-space-copy) 0; gap: 0; border-radius: var(--ui-radius-control); background: var(--ui-text); }
-.site-multiselect-count .site-button.site-button-icon { color: inherit; }
+.site-multiselect-count .site-button.site-multiselect-clear,
+.site-multiselect-count .site-button.site-multiselect-clear:is(:hover, :active, [data-ui-state]):not(:disabled):not([aria-disabled="true"]) { color: var(--ui-media-ink); }
+.site-multiselect-count { pointer-events: none; }
+.site-multiselect-clear { pointer-events: auto; }
 .site-multiselect-count .site-button.site-button-icon:focus-visible { outline-offset: 0; }
 .site-multiselect-body { display: grid; gap: var(--site-space-copy); }
 [data-slot="popover-content"].site-multiselect-content { width: min(20rem, var(--radix-popover-content-available-width)); max-height: var(--radix-popover-content-available-height); overflow-y: auto; padding: var(--site-space-block); }
@@ -1492,13 +1495,21 @@ svg.site-edit-icon {
 .site-multiselect-option { display: flex; align-items: center; min-height: var(--ui-control-height-md); gap: var(--site-space-copy); padding-inline: var(--site-space-copy); border-radius: var(--ui-radius-control-rounded); cursor: pointer; }
 .site-multiselect-option:hover { background: var(--ui-surface-soft); }
 .site-multiselect-option:focus-within { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
-.site-multiselect-reset { display: flex; justify-content: flex-end; margin-block-start: var(--site-space-block); }
 .site-multiselect-swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--ui-control-height-md), 1fr)); gap: var(--site-space-copy); }
 .site-multiselect-swatch { display: flex; justify-content: center; cursor: pointer; }
 .site-color-swatch[data-shape="circle"], .site-color-swatch[data-shape="circle"] > span { border-radius: 50%; }
 .site-multiselect-swatch:has(input:checked) .site-color-swatch { outline: 2px solid var(--ui-text); outline-offset: 2px; }
 .site-multiselect-swatch:has(input:focus-visible) .site-color-swatch { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
 @media (forced-colors: active) { .site-multiselect-swatch:has(input:checked) .site-color-swatch { outline-color: Highlight; } }
+
+/* Compact filter sections use the same title/count/checkbox geometry as fields. */
+.site-multiselect-section { border-color: var(--ui-border); }
+.site-multiselect-section-heading { position: relative; display: flex; align-items: center; min-height: var(--ui-field-height-md); gap: var(--site-space-block); padding-inline: var(--site-space-copy) var(--site-select-trailing-space); }
+.site-multiselect-section-heading > h3 { display: contents; }
+.site-multiselect-section-trigger > svg { display: none; }
+.site-multiselect-section-heading > .site-select-chevron { pointer-events: none; }
+.site-multiselect-section-heading:has([data-state="open"]) > .site-select-chevron { transform: rotate(180deg); }
+.site-multiselect-section-content { padding-block: var(--site-space-copy) var(--site-space-block); }
 
 /* Composed fields retain one boundary and keep interactive siblings outside the input. */
 .site-field.site-input-group { --site-input-height: var(--ui-field-height-md); display: flex; align-items: center; gap: var(--site-space-copy); width: 100%; min-width: 0; min-height: var(--site-input-height); padding: 0 var(--ui-control-padding-inline); }
