@@ -1,0 +1,38 @@
+"use client";
+
+import { useId, useState } from "react";
+import { UserRound } from "lucide-react";
+import { ko } from "date-fns/locale";
+import { format } from "date-fns";
+import { ContentPanel } from "@/app/components/ui/content-panel";
+import { Input } from "@/app/components/ui/input";
+import { FieldMessage } from "@/app/components/ui/field-message";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/app/components/ui/input-group";
+import { PasswordField } from "@/app/components/ui/password-field";
+import { SearchField } from "@/app/components/ui/search-field";
+import { Checkbox } from "@/app/components/ui/checkbox";
+import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
+import { Calendar } from "@/app/components/ui/calendar";
+import styles from "./SiteComponentGallery.module.css";
+
+export default function ComposedFieldExamples() {
+  const id = useId();
+  const [query, setQuery] = useState("");
+  const [checked, setChecked] = useState<boolean | "indeterminate">("indeterminate");
+  const [radio, setRadio] = useState("email");
+  const [date, setDate] = useState<Date | undefined>(() => new Date(2026, 10, 11));
+  const items = ["메뉴판 편집", "테이블 관리", "디자인 템플릿"].filter(item => item.includes(query.trim()));
+  return <section className={styles.section} id="composed-fields" aria-labelledby={`${id}-title`}>
+    <div className="site-stack-title"><h2 className="type-section-title" id={`${id}-title`}>입력 구조·선택·날짜</h2><p className="type-body site-copy-muted">입력값과 아이콘·단위·보조 행동을 하나의 경계 안에 정렬합니다. 기존 색상과40·44·48·56px 규격을 공유합니다.</p></div>
+    <div className="site-detail-grid">
+      <ContentPanel><div className="site-field-stack"><label className="type-label" htmlFor={`${id}-name`}>아이콘이 있는 입력</label><InputGroup><InputGroupAddon aria-hidden="true"><UserRound /></InputGroupAddon><InputGroupInput id={`${id}-name`} name="sampleName" placeholder="담당자명" /></InputGroup></div></ContentPanel>
+      <ContentPanel><div className="site-field-stack"><label className="type-label" htmlFor={`${id}-amount`}>금액</label><InputGroup><InputGroupInput id={`${id}-amount`} name="sampleAmount" inputMode="decimal" defaultValue="10000" aria-describedby={`${id}-unit`} /><InputGroupAddon id={`${id}-unit`}>원</InputGroupAddon></InputGroup></div></ContentPanel>
+      <ContentPanel><div className="site-field-stack"><label className="type-label" htmlFor={`${id}-password`}>비밀번호</label><PasswordField id={`${id}-password`} defaultValue="sample-password" autoComplete="off" /></div></ContentPanel>
+      <ContentPanel><div className="site-field-stack"><label className="type-label" htmlFor={`${id}-search`}>검색</label><SearchField id={`${id}-search`} label="컴포넌트 예시 검색" value={query} onValueChange={setQuery} placeholder="메뉴판·테이블·템플릿" /><p className="type-caption site-copy-muted" role="status">{items.length ? `검색 결과 ${items.length}개` : "검색 결과가 없습니다."}</p></div></ContentPanel>
+      <ContentPanel><div className="site-field-stack"><label className="type-label" htmlFor={`${id}-readonly`}>읽기 전용</label><Input id={`${id}-readonly`} value="선택하고 복사할 수 있는 값" readOnly /></div><div className="site-field-stack"><label className="type-label" htmlFor={`${id}-disabled`}>비활성</label><SearchField id={`${id}-disabled`} label="비활성 검색 예시" value="검색할 수 없는 상태" onValueChange={() => {}} disabled /></div></ContentPanel>
+      <ContentPanel><div className="site-field-stack"><label className="type-label" htmlFor={`${id}-invalid`}>입력 오류</label><PasswordField id={`${id}-invalid`} defaultValue="short" aria-invalid="true" aria-describedby={`${id}-error`} /><FieldMessage id={`${id}-error`}>비밀번호는8자 이상 입력해 주세요.</FieldMessage></div></ContentPanel>
+      <ContentPanel><h3 className="type-content-title">선택 상태</h3><label className="site-action-row type-label"><Checkbox checked={checked} onCheckedChange={value => setChecked(value === true)} />부분 선택·전체 선택</label><label className="site-action-row type-label"><Checkbox checked disabled />비활성 선택</label><RadioGroup value={radio} onValueChange={setRadio} aria-label="알림 채널 예시"><label className="site-action-row type-label"><RadioGroupItem value="email" />이메일</label><label className="site-action-row type-label"><RadioGroupItem value="message" />문자 메시지</label><label className="site-action-row type-label"><RadioGroupItem value="disabled" disabled />준비 중</label></RadioGroup></ContentPanel>
+      <ContentPanel><h3 className="type-content-title">날짜 선택</h3><div className="site-field-stack"><label htmlFor={`${id}-date`} className="type-label">날짜</label><Input id={`${id}-date`} type="date" value={date ? format(date, "yyyy-MM-dd") : ""} onChange={event => setDate(event.currentTarget.value ? new Date(`${event.currentTarget.value}T12:00:00`) : undefined)} /></div><Calendar mode="single" locale={ko} selected={date} onSelect={setDate} defaultMonth={new Date(2026, 10, 1)} /></ContentPanel>
+    </div>
+  </section>;
+}

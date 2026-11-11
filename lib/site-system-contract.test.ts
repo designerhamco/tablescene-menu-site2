@@ -145,3 +145,11 @@ test("icon tools use shared appearance and geometry APIs instead of private util
     '<button className="site-icon-control" data-icon-appearance="framed" aria-label="tool"><Icon/></button>',
   ]) assert.deepEqual(auditSiteSystem(new Map([["components/NewIcon.tsx", markup]])), []);
 });
+
+
+test("composed fields inherit the shared appearance guard", () => {
+  for (const name of ["InputGroup", "InputGroupInput", "InputGroupAddon", "InputGroupAction", "SearchField", "PasswordField"]) {
+    const violations = auditSiteSystem(new Map([["components/NewField.tsx", `<${name} className="h-20 bg-red-100" />`]]));
+    assert.ok(violations.some(item => item.rule === "control-appearance"), name);
+  }
+});

@@ -253,10 +253,10 @@ test("edit pencil glyphs stay small while icon-control geometry remains independ
 });
 
 
-test("opaque disabled actions retain a functional edge on matching backgrounds without changing disabled behavior", () => {
+test("gray secondary and disabled actions omit decorative edges without changing white outline states", () => {
   assert.match(css, /--ui-button-boundary: var\(--ui-border\);/);
-  assert.match(css, /\.site-button-secondary \{[^}]*border-color: var\(--ui-button-boundary\);/);
-  assert.match(css, /\.site-button:is\(:disabled, \[aria-disabled="true"\]\):not\(\.site-button-ghost, \.site-button-danger-ghost, \.site-button-link\) \{\s*border-color: var\(--ui-button-boundary\);\s*\}/);
+  assert.match(css, /\.site-button-secondary \{[^}]*border-color: transparent;/);
+  assert.match(css, /\.site-button:is\(:disabled, \[aria-disabled="true"\]\):not\(\.site-button-ghost, \.site-button-danger-ghost, \.site-button-link\) \{\s*border-color: transparent;\s*\}/);
   const gallery = read("components/design-system/ControlStateExamples.tsx");
   assert.match(gallery, /id="button-surface-boundaries"/);
   assert.match(gallery, /<fieldset disabled className="site-form-row" data-alignment="center"/);

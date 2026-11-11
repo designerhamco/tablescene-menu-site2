@@ -1,5 +1,6 @@
 "use client";
 
+import { PasswordField } from "@/app/components/ui/password-field";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
@@ -112,15 +113,13 @@ export default function ResetPasswordForm({
         <label htmlFor="newPassword" className="mb-2 block text-copy font-medium">
           새 비밀번호
         </label>
-        <input
+        <PasswordField
           id="newPassword"
-          type="password"
           required
           minLength={8}
           autoComplete="new-password"
           value={newPassword}
           onChange={(event) => setNewPassword(event.target.value)}
-          className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-copy outline-none transition-colors focus:border-zinc-950"
           placeholder="8자 이상 입력"
         />
       </div>
@@ -129,15 +128,13 @@ export default function ResetPasswordForm({
         <label htmlFor="confirmPassword" className="mb-2 block text-copy font-medium">
           새 비밀번호 확인
         </label>
-        <input
+        <PasswordField
           id="confirmPassword"
-          type="password"
           required
           minLength={8}
           autoComplete="new-password"
           value={confirmPassword}
           onChange={(event) => setConfirmPassword(event.target.value)}
-          className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-copy outline-none transition-colors focus:border-zinc-950"
           placeholder="새 비밀번호를 한 번 더 입력"
         />
       </div>

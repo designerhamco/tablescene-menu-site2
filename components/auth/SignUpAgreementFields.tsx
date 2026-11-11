@@ -1,5 +1,6 @@
 "use client";
 
+import { PasswordField } from "@/app/components/ui/password-field";
 import { useMemo, useState } from "react";
 
 import { ConsentAgreementBox, type ConsentAgreementItem } from "@/components/consent/ConsentAgreementBox";
@@ -121,16 +122,14 @@ export default function SignUpAgreementFields({ action, safeNext }: SignUpAgreem
           <label htmlFor="password" className="mb-2 block text-copy font-medium">
             비밀번호
           </label>
-          <input
+          <PasswordField
             id="password"
             name="password"
-            type="password"
             required
             minLength={6}
             autoComplete="new-password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-copy outline-none transition-colors focus:border-zinc-950"
             placeholder="6자 이상"
           />
         </div>

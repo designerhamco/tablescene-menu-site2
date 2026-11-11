@@ -1,3 +1,4 @@
+import { PasswordField } from "@/app/components/ui/password-field";
 import Link from "next/link";
 
 import Footer from "@/app/components/layout/Footer";
@@ -82,13 +83,11 @@ export default async function SignInPage({
                 <label htmlFor="password" className="type-label mb-2 block">
                   비밀번호
                 </label>
-                <input data-field-size="md"
+                <PasswordField fieldSize="md"
                   id="password"
                   name="password"
-                  type="password"
                   required
                   autoComplete="current-password"
-                  className="w-full rounded-2xl border border-zinc-200 px-4 py-3 text-copy outline-none transition-colors focus:border-zinc-950"
                   placeholder="비밀번호"
                 />
               </div>
