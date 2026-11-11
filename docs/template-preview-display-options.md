@@ -32,6 +32,14 @@ Basic 기본 앨범은 가격 옵션을 제외한다. Dining의 코스 상품 �
 
 기능 선택과 검증된 `designPreview` 값은 기기·회전·언어·묶음/채움·새 창에 유지된다. 탭 전환만으로 메뉴 iframe을 다시 불러오지 않는다. 디자인 초기화는 임시 디자인 선택만 지우고 해당 디자인의 기본값으로 복원한다. 디자인 선택은 구매용 스타터 기본값이나 고객 저장 데이터에 기록되지 않는다. 고객 편집기의 저장은 별도 권한 있는 저장 경로를 따른다.
 
+### 대표영역·회전·묶음/채움과 본문 너비
+
+베이직 PC·태블릿의 1열 고정형·상단행형 본문은 별도 대표열과 각 선택된 메뉴 열의 실제 사용 너비를 같게 계산한다. 기본/디자이너·리스트/앨범이 같은 규칙을 사용하며, 보기옵션에 별도 열 비율 제어나 고정 50% 값을 추가하지 않는다. 세로 태블릿도 실제 본문 폭과 공통 16rem 최소 메뉴 폭·이름 가독성을 기준으로 다시 측정한다. 예를 들어 대표 1 + 메뉴 1이면 전체 2열이다.
+
+상단행의 대표영역 ON은 본문에 같은 너비의 이미지 열을 만들고, OFF는 이를 제거해 메뉴에 너비를 돌려준다. 1열 고정형은 사진을 꺼도 가게명/설명의 고정 대표열을 유지한다. 회전·묶음/채움·폰트/이미지/가격 옵션 변경 후에도 현재 데이터로 재측정하며, 임시 옵션이나 저장된 명시적 선택을 임의로 바꾸지 않는다. 상단 헤더 세 칸, 중앙열과 좌상단 구조, 등록 이미지 비율, 모바일·다이닝은 각자의 계약을 유지한다. [베이직 동일 너비 규칙](basic-menu-scroll-policy.md#대표열과-메뉴-열의-동일-너비--2026-11-11)이 수치/구현 원본이다.
+
+검수는 `ORDER_QA_BASE=http://localhost:3027 npm run qa:basic-equal-tracks`로 실행한다. 실제 서버 주소는 `ORDER_QA_BASE`, 결과 위치는 `ORDER_QA_OUTPUT`으로 지정한다. 이 명령은 브라우저를 여는 수동 회귀 검사이며 단위 테스트/빌드 자동 검사와 구분한다.
+
 ### 패널과 메뉴판의 경계
 
 미리보기 보기옵션에는 제목·탭·라벨을 반복하는 상시 소개나 체험/저장 여부 설명을 다시 넣지 않는다. 사용자가 삭제한 문구는 패널·카드 안이라는 이유로 복원하지 않는다. 필요한 비직관적 적용 범위·비활성 조건만 해당 제어 옆 공통 InfoTooltip에 제공하며, 미리보기 도움말은 공통 preview 레이어를 사용한다. 모바일 PC 권장 진입 팝업과 실제 화면보기 안내는 별도 승인 범위를 따른다.
@@ -46,7 +54,7 @@ Basic은 글자색 6역할, Dining은 페이지 제목·상품명·가격·통�
 
 - [MenuPreviewOptionsPanel](../components/menu/MenuPreviewOptionsPanel.tsx), [MenuPreviewDeviceFrame](../components/menu/MenuPreviewDeviceFrame.tsx), [PreviewDesignOptions](../components/menu/PreviewDesignOptions.tsx): 패널/도구막대/디자인 제어.
 - [template-preview-data](../lib/template-preview-data.ts), [default-design-options](../lib/default-design-options.ts), [menu-preview-design](../lib/menu-preview-design.ts): 예시 데이터·초기값·임시 디자인 검증.
-- 관련 검수: `lib/template-preview-options.test.ts`, `lib/menu-preview-design.test.ts`, `lib/menu-appearance.test.ts`, `scripts/qa-template-display-options.mjs`, `scripts/qa-top-row-language-stability.mjs`. 현재 테스트 개수나 전체 조합 통과 여부는 해당 실행 결과로 확인한다.
+- 관련 검수: `lib/template-preview-options.test.ts`, `lib/menu-preview-design.test.ts`, `lib/menu-appearance.test.ts`, `scripts/qa-template-display-options.mjs`, `scripts/qa-top-row-language-stability.mjs`, `scripts/qa-basic-equal-tracks.mjs`. 현재 테스트 개수나 전체 조합 통과 여부는 해당 실행 결과로 확인한다.
 
 ## 최초 도입·검수 이력 (2026-10-20)
 
