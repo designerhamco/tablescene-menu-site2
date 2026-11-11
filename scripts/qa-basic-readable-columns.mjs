@@ -44,12 +44,12 @@ try {
     await page.goto(`${base}/templates/cafe_design_a/preview?` + new URLSearchParams({ design: 'basic-first-column', device: 'tablet', view: 'actual', embedded: '1', callPreview: 'on', orderPreview: 'on', layoutMode }), { waitUntil: 'networkidle' });
     const tablet = await settled();
     assert.equal(tablet.columns, 2, 'thumbnails plus three price options require wider names');
-    assert.ok(tablet.names.every(name => name.lines === 1), 'the sample tablet product names fit their widened slots');
+    assert.ok(tablet.names.every(name => name.lines <= 2), 'the sample avoids 3+ line squeezing while preserving isolated long names');
     assert.ok(tablet.scroll > 0 && tablet.more === 'true');
     results.push({ case: 'tablet-three-options', layoutMode, ...tablet });
     await page.screenshot({ path: `${output}/tablet-${layoutMode}.png` });
     // Resize the same document in both directions; do not rely on a fresh mount.
-    for (const [width, height, count] of [[1920, 1080, 3], [1180, 820, 2]]) {
+    for (const [width, height, count] of [[820, 1180, 1], [768, 1024, 1], [1920, 1080, 3], [1180, 820, 2]]) {
       await page.setViewportSize({ width, height });
       const resized = await settled();
       assert.equal(resized.columns, count);
@@ -60,6 +60,39 @@ try {
     const pc = await settled();
     assert.equal(pc.columns, 3, 'wide PC retains readable three columns');
     results.push({ case: 'wide-pc', layoutMode, ...pc });
+  }
+  // Album cards use the same width floor and must also release/recover their rail.
+  for (const layoutMode of ['orderedBalancedFit', 'orderedFit']) {
+    await page.setViewportSize({ width: 1180, height: 820 });
+    await page.goto(`${base}/templates/cafe_design_a/preview?` + new URLSearchParams({ design: 'basic-first-column-album', device: 'tablet', view: 'actual', embedded: '1', layoutMode }), { waitUntil: 'networkidle' });
+    await page.locator('[data-paged-ready="true"]').waitFor();
+    await page.evaluate(() => document.fonts.ready);
+    let landscape;
+    for (const [width, height, count] of [[1180, 820, 2], [820, 1180, 1], [1180, 820, 2]]) {
+      await page.setViewportSize({ width, height });
+      await page.waitForTimeout(350);
+      const readAlbum = () => {
+        const root = document.querySelector('[data-scroll-template]');
+        const grid = root.querySelector('[data-album-grid]');
+        const widths = getComputedStyle(grid).gridTemplateColumns.split(' ').map(Number.parseFloat);
+        const names = [...root.querySelectorAll('[data-album-grid] [data-cafe-a-menu-name]')];
+        return { columns: widths.length, widths, size: getComputedStyle(names[0]).fontSize,
+          order: names.map(name => name.textContent), outerWidth: document.documentElement.scrollWidth };
+      };
+      const album = await page.evaluate(readAlbum);
+      await page.waitForTimeout(180);
+      assert.deepEqual(await page.evaluate(readAlbum), album, 'album geometry must settle');
+      assert.equal(album.columns, count);
+      assert.ok(album.widths.every(track => track >= 256 - 1));
+      assert.equal(album.outerWidth, width);
+      assert.ok(album.order.length > 0);
+      if (landscape) {
+        assert.equal(album.size, landscape.size, 'narrow album retains its reading type');
+        assert.deepEqual(album.order, landscape.order);
+        if (width === 1180) assert.deepEqual(album, landscape, 'album restores landscape geometry');
+      } else landscape = album;
+      results.push({ case: 'album-resize-same-document', layoutMode, viewport: [width, height], ...album });
+    }
   }
   // Real toolbar options reload the preview data without stale column decisions.
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -72,7 +105,10 @@ try {
   for (const enabled of [false, true]) {
     for (const label of ['상품 이미지', '가격 옵션']) await page.getByRole('checkbox', { name: label + ' 보기', exact: true }).setChecked(enabled);
     const updated = await settled(frame);
-    assert.equal(updated.columns, enabled ? 2 : 3, 'removing/returning competing rails recomputes readable columns');
+    assert.equal(updated.columns, 2, 'the representative rail leaves room for at most two 16rem menu tracks');
+    assert.ok(updated.names.some((name, index) => enabled
+      ? Math.abs(name.width - initial.names[index].width) < 1
+      : name.width > initial.names[index].width + 1), 'competing image/price rails remeasure actual name slots');
     results.push({ case: 'preview-options', enabled, ...updated });
   }
   assert.deepEqual(errors, []); assert.deepEqual(writes, []);

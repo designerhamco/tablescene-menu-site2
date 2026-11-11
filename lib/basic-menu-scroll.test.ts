@@ -209,3 +209,23 @@ test("repeated category wrapping participates in the same measured 2/3-track pol
   assert.equal(shouldPreferWiderScrollableNames(headings(130, 2, 1), headings(260, 1, 1)), false);
   assert.equal(shouldPreferWiderScrollableNames(headings(130, 2), headings(260, 2)), false);
 });
+
+test("cramped two-track menus can fall back to one readable track without shrinking type", () => {
+  const input = [...category("a", 9), ...category("b", 9), ...category("c", 9)];
+  const candidate = (count: number, height: number, measured: ScrollableMenuNameMeasurement[]) => ({
+    columnCount: count, columnWidth: count === 1 ? 370 : 240, itemSize: 20, names: measured,
+    layout: { ...layoutScrollableMenu(input, count, 1180), naturalHeights: Array(count).fill(height) },
+  });
+  for (const grouped of [false, true]) {
+    const wide = candidate(1, 2100, names(300, 1));
+    const cramped = candidate(2, 1100, names(95, 3));
+    assert.equal(selectScrollableMenuCandidate([wide, cramped], grouped), wide, "readability wins even when two tracks fit one screen");
+    const headings = (width: number, lines: number) => names(width, lines, 2).map(name => ({ ...name, role: "category" as const }));
+    const wideHeadings = candidate(1, 2100, headings(370, 1));
+    assert.equal(selectScrollableMenuCandidate([wideHeadings, candidate(2, 1100, headings(240, 2))], grouped), wideHeadings);
+    const readable = candidate(2, 1100, names(220, 1));
+    assert.equal(selectScrollableMenuCandidate([wide, readable], grouped), readable, "do not collapse already readable tracks");
+    assert.equal(selectScrollableMenuCandidate([candidate(1, 2100, names(300, 4)), candidate(2, 1100, names(95, 4))], grouped).columnCount, 2, "width must actually improve the copy");
+    assert.equal(selectScrollableMenuCandidate([candidate(1, 2100, names(300, 1, 1)), candidate(2, 1100, names(180, 2, 1))], grouped).columnCount, 2, "one ordinary wrap is not a fallback trigger");
+  }
+});

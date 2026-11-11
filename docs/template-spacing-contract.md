@@ -1,5 +1,11 @@
 # 아티메뉴 메뉴판 공통 규칙
 
+## Narrow Basic reading columns — 2026-11-11 (current)
+
+Basic variable menu tracks use one shared 16rem minimum inner width (`SCROLL_MIN_COLUMN_WIDTH_REM`), replacing the former 12rem candidate floor. Deduct the actual fixed representative rail, panel padding, divider gutters and scrollbar before deciding how many tracks fit. This is a reading-width policy, not an orientation/preview-only breakpoint. The native and neutral list/album readers share it; the registered central-rail two-side structure stays independent.
+
+Compare allowed 1/2/3-track candidates at the same reading typography. Readability can reduce two menu tracks to one when the wider candidate materially improves real name/category wrapping or clipping; the earlier 3→2 check alone missed this case. Width and measured readability precede occupancy/shorter-scroll ranking. Do not shrink type or rearrange categories/representative content to gain tracks. A left representative rail plus one menu track is two total columns; it is not two menu tracks. Keep mobile and Dining page engines independent. See `docs/basic-menu-scroll-policy.md`.
+
 ## Tablet preview rotation — 2026-11-11 (current)
 
 All Basic and Dining catalog/saved previews offer the existing tablet rotation control, including native/default designs and list/album layouts. Landscape uses 1180×820 and portrait uses 820×1180 inside the same shared preview shell. Honor explicit portrait URLs and retain language, design and supported feature/layout choices when rotating. Show the control only in tablet mode. Display keeps its independent real-screen preview. This supersedes the former Dining-only/Basic-list exclusion; customer renderer rules and registered image ratios do not change.
