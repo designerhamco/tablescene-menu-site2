@@ -7,7 +7,6 @@
 .toolbar[data-preview-service-controls="services"] { width: 43rem; }
 .toolbar[data-preview-service-controls="layout"] { width: 53rem; }
 .deviceNav > a { flex: 1; }
-.toolbar :global(.site-preview-control) { min-height: 2.25rem; padding: .375rem .5rem; font-size: var(--site-type-14); }
 .stage { width: 100%; height: 100%; padding: var(--preview-gutter); overflow: hidden; }
 .stage:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -3px; }
 .canvas { width: 100%; height: 100%; display: grid; place-items: center; }
@@ -31,7 +30,4 @@
 }
 @media (max-width: 959px) {
   .workspace[data-toolbar-open="false"] [data-preview-options-panel] { display: none; }
-}
-@media (max-width: 767px) {
-  .toolbar :global(.site-preview-control) { min-height: 2.75rem; }
 }

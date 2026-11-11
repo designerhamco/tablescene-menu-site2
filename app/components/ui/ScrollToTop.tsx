@@ -29,6 +29,7 @@ const ScrollToTop = () => {
               type="button"
               onClick={() => window.scrollTo({ top: 0, behavior: reduceMotion ? 'instant' : 'smooth' })}
               className="site-button site-button-secondary site-button-icon"
+              data-icon-appearance="framed"
               aria-label="맨 위로 이동"
             >
               <ArrowUp className="h-5 w-5" aria-hidden="true" />

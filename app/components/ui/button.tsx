@@ -45,17 +45,23 @@ function Button({
   variant,
   size,
   shape,
+  iconAppearance = "bare",
+  iconSize,
   asChild = false,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean;
+    iconAppearance?: "bare" | "framed";
+    iconSize?: "compact";
   }) {
   const Comp = asChild ? Slot : "button";
 
   return (
     <Comp
       data-slot="button"
+      data-icon-appearance={size === "icon" ? iconAppearance : undefined}
+      data-icon-size={size === "icon" ? iconSize : undefined}
       className={cn(buttonVariants({ variant, size, shape, className }))}
       {...props}
     />

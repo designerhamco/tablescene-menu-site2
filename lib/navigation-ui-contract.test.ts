@@ -19,7 +19,7 @@ test("모바일 전체 메뉴는 공통 Dialog와 같은 단계의 고객센터 
   assert.match(menuSource, /action=\{signOutAction\}/);
 });
 
-test("헤더와 퀵 메뉴의 아이콘 도구는 도형이나 확장된 클릭 영역을 만들지 않는다", () => {
+test("헤더 아이콘은 무배경을 유지하고 떠 있는 맨 위로는 명시적인 형태와 공통 클릭 영역을 사용한다", () => {
   const navbarSource = readSource("app/components/layout/Navbar.tsx");
   const scrollSource = readSource("app/components/ui/ScrollToTop.tsx");
   const uiSystemSource = readSource("styles/ui-system.css");
@@ -28,7 +28,8 @@ test("헤더와 퀵 메뉴의 아이콘 도구는 도형이나 확장된 클릭 
   assert.doesNotMatch(navbarSource, /size-10 min-h-10 min-w-10|size-9 min-h-9 min-w-9/);
   assert.match(scrollSource, /site-button-secondary site-button-icon/);
   assert.doesNotMatch(scrollSource, /height: 0/);
-  assert.match(uiSystemSource, /\.site-button-icon \{[\s\S]*?width: max-content;[\s\S]*?height: auto;/);
+  assert.match(scrollSource, /data-icon-appearance="framed"/);
+  assert.match(uiSystemSource, /\.site-button-icon \{[^}]*width: var\(--ui-icon-control-size, var\(--ui-control-height-md\)\);/);
   assert.doesNotMatch(uiSystemSource, /\.site-button-icon\.site-button-compact \{/);
 });
 

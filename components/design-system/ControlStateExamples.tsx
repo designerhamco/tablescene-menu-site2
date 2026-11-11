@@ -5,6 +5,7 @@ import { BookOpen, Plus, Sparkles, Square, Trash2 } from "lucide-react";
 import { Button, ButtonGroupDivider } from "@/app/components/ui/button";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
+import IconControlExamples from "./IconControlExamples";
 import styles from "./SiteComponentGallery.module.css";
 
 const states = [
@@ -23,17 +24,18 @@ export default function ControlStateExamples() {
     <div className={styles.heading}><h2 className="type-section-title" id="control-states-title">버튼·탭 공통 기준과 상태</h2>
       <p className="type-body text-zinc-600">텍스트 밀집 도구 32px, 일반 실행 40px, 헤더 44px, 로그인·결제 같은 주요 완료 행동 48px을 사용합니다. 본문 버튼은 8px 모서리와 15px·600 글자를 공유합니다.</p>
     </div>
-    <p className="type-body-sm site-copy-muted">아이콘 전용 도구는 그림 자체가 클릭 영역입니다. 모든 상태에서 배경·테두리·패딩을 추가하지 않으며 키보드 포커스와 상태 잉크를 유지합니다.</p><div className={styles.buttonRow}>
+    <p className="type-body-sm site-copy-muted">아이콘의 표현과 클릭 영역은 분리합니다. 불필요한 장식은 생략하고 버튼 식별에 필요한 형태·중앙 정렬·포커스는 유지합니다.</p><div className={styles.buttonRow}>
       <Button onClick={() => setClicks(n => n + 1)}><Plus />동작 확인</Button>
       <Button variant="outline" size="compact">밀집 도구 32px</Button><Button size="lg">주요 완료 48px</Button>
       <Button variant="outline"><BookOpen />사용가이드</Button><Button variant="ai"><Sparkles />AI 상담</Button>
       <div className="site-action-row" data-wrap="nowrap"><ButtonGroupDivider /><Button size="icon" variant="ghost" aria-label="추가 도구"><Plus /></Button></div>
     </div>
+    <IconControlExamples />
     <div id="button-shape-groups" className="site-stack-block" role="group" aria-labelledby="button-shape-groups-title">
       <div className="site-stack-title"><h3 id="button-shape-groups-title" className="type-content-title">버튼 모양별 묶음</h3><p className="type-body-sm site-copy-muted">한 작업 행에서 사각형 텍스트 버튼과 아이콘 도구가 이어지면, 모양이 바뀌는 경계에만 옅은 회색 세로선 한 개를 둡니다. 같은 모양끼리는 선 없이 공통 8px 간격으로 묶습니다.</p></div>
       <div className="site-action-row" role="group" aria-label="텍스트 버튼과 아이콘 도구 묶음 예시">
         <Button variant="outline" onClick={() => setClicks(n => n + 1)}>바로 배치</Button>
-        <div className="site-action-row" data-wrap="nowrap"><ButtonGroupDivider /><Button size="icon" variant="outline" aria-label="묶음 예시 사각형 도구"><Square aria-hidden="true" /></Button><Button size="icon" variant="outline" disabled aria-label="묶음 예시 삭제"><Trash2 aria-hidden="true" /></Button></div>
+        <div className="site-action-row" data-wrap="nowrap"><ButtonGroupDivider /><Button size="icon" iconAppearance="framed" variant="outline" aria-label="묶음 예시 사각형 도구"><Square aria-hidden="true" /></Button><Button size="icon" iconAppearance="framed" variant="outline" disabled aria-label="묶음 예시 삭제"><Trash2 aria-hidden="true" /></Button></div>
       </div>
       <p className="type-footnote site-copy-muted">구분선은 1px·높이 24px이며 버튼 중앙에 맞춥니다. 선은 뒤쪽 버튼 묶음과 함께 유지하고, 비활성 여부·색상 차이만으로는 선을 추가하지 않습니다. 탭·입력 필드·서로 떨어진 작업 영역에는 이 규칙을 일괄 적용하지 않습니다.</p>
     </div>

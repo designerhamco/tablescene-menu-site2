@@ -39,7 +39,7 @@ export default function ManagementTableExamples() {
             <TableCell nowrap><div className="site-action-row" data-wrap="nowrap"><Button variant="outline" size="compact" disabled={index > 0} onClick={exampleAction}>보관</Button><Button variant="outline-danger" size="compact" disabled={index > 0} onClick={exampleAction}>삭제</Button></div></TableCell>
           </TableRow>)}</TableBody>
         </Table>
-        <p className="type-footnote site-copy-muted">두 번째 행은 읽기 전용, 세 번째 행은 저장 대기 예시입니다. 이름 옆 편집 연필은 공통16px입니다. 텍스트 버튼·Switch는 표준 높이를 유지하며, 도움말·연필 도구는 그림 자체가 클릭 영역입니다. 표면은 회색 헤더와 흰 본문, 가로 구분선만 사용합니다.</p>
+        <p className="type-footnote site-copy-muted">두 번째 행은 읽기 전용, 세 번째 행은 저장 대기 예시입니다. 이름 옆 편집 연필은 공통16px입니다. 텍스트 버튼·Switch는 표준 높이를 유지하며, 도움말·연필은 SVG 크기와 공통 클릭 영역을 분리합니다. 표면은 회색 헤더와 흰 본문, 가로 구분선만 사용합니다.</p>
       </div>
       <div className="site-stack-block">
         <h3 className="type-subsection-title">숫자 비교와 열 너비</h3>
