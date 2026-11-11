@@ -18,15 +18,15 @@ export default function FormAndCardExamples() {
     <section className={styles.section} id="form-controls">
       <div className={styles.heading}>
         <h2 className="type-section-title">용도로 구분하는 입력 요소</h2>
-        <p className="type-body text-zinc-600">작은 목록 필터, 계정 입력, 신청 입력, 큰 질문 검색창을 구분합니다. 글자는 16px 이상이며 입력값은 보통 굵기로 표시합니다.</p>
+        <p className="type-body text-zinc-600">작은 목록 필터, 계정 입력, 신청 입력, 큰 질문 검색창을 구분합니다. 입력 글자는 기본14px·터치16px이며 값은 보통 굵기로 표시합니다.</p>
       </div>
       <div className={styles.fieldGrid}>
-        <label className={styles.fieldExample} htmlFor={`${id}-filter`}><span className="type-label">목록 필터 · 40px</span><Input id={`${id}-filter`} fieldSize="sm" placeholder="매장명 검색" /><span className="type-footnote text-zinc-600">필터와 편집 도구 안의 짧은 입력</span></label>
-        <label className={styles.fieldExample} htmlFor={`${id}-email`}><span className="type-label">로그인·계정 · 44px</span><Input id={`${id}-email`} fieldSize="md" type="email" placeholder="이메일을 입력해 주세요" autoComplete="off" /><span className="type-footnote text-zinc-600">이메일·비밀번호 등 일반 입력</span></label>
-        <label className={styles.fieldExample} htmlFor={`${id}-store`}><span className="type-label">신청 정보 · 48px</span><Input id={`${id}-store`} fieldSize="lg" placeholder="상호명을 입력해 주세요" /><span className="type-footnote text-zinc-600">작성할 정보가 많은 신청 화면</span></label>
+        <div className={styles.fieldExample}><label className="type-label" htmlFor={`${id}-filter`}>목록 필터 · 32px</label><SearchField id={`${id}-filter`} label="매장명 검색" fieldSize="sm" placeholder="매장명 검색" /><span className="type-footnote text-zinc-600">필터와 편집 도구 안의 짧은 입력</span></div>
+        <label className={styles.fieldExample} htmlFor={`${id}-email`}><span className="type-label">로그인·계정 · 40px</span><Input id={`${id}-email`} fieldSize="md" type="email" placeholder="이메일을 입력해 주세요" autoComplete="off" /><span className="type-footnote text-zinc-600">이메일·비밀번호 등 일반 입력</span></label>
+        <label className={styles.fieldExample} htmlFor={`${id}-store`}><span className="type-label">신청 정보 · 44px</span><Input id={`${id}-store`} fieldSize="lg" placeholder="상호명을 입력해 주세요" /><span className="type-footnote text-zinc-600">작성할 정보가 많은 신청 화면</span></label>
         <div className={styles.fieldExample}><label className="type-label" htmlFor={`${id}-select`}>셀렉트 · 입력창과 같은 크기</label><Select defaultValue="all"><SelectTrigger id={`${id}-select`} size="lg"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">전체 상태</SelectItem><SelectItem value="active">공개 중</SelectItem><SelectItem value="draft">작성 중</SelectItem></SelectContent></Select><span className="type-footnote text-zinc-600">같은 폼에서는 input과 동일한 규격</span></div>
       </div>
-      <div className={styles.fieldExample}><label className="type-label" htmlFor={`${id}-question`}>질문 검색 · 56px</label><SearchField id={`${id}-question`} label="질문 검색" fieldSize="search" value={query} onValueChange={setQuery} placeholder="어떤 점이 궁금하신가요?" /></div>
+      <form className={styles.fieldExample} onSubmit={event => event.preventDefault()}><label className="type-label" htmlFor={`${id}-question`}>질문 검색 · 48px</label><SearchField id={`${id}-question`} label="질문 검색" fieldSize="search" submitLabel="질문 검색 실행" value={query} onValueChange={setQuery} placeholder="어떤 점이 궁금하신가요?" /></form>
       <label className={styles.fieldExample} htmlFor={`${id}-message`}><span className="type-label">긴 문의 · 여러 줄 입력</span><Textarea id={`${id}-message`} fieldSize="lg" rows={4} placeholder="문의 내용을 자세히 적어 주세요." /></label>
       <div className={styles.fieldGrid}>
         <label className={styles.fieldExample} htmlFor={`${id}-readonly`}><span className="type-label">읽기 전용</span><Input id={`${id}-readonly`} value="입력 내용을 확인하는 항목" readOnly /></label>

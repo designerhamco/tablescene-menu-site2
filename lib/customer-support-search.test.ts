@@ -10,7 +10,7 @@ const mypageSource = readSource("../app/mypage/page.tsx");
 const inquiryPageSource = readSource("../app/mypage/inquiries/page.tsx");
 
 test("FAQ는 카테고리와 질문을 검색하고 빈 결과를 안내한다", () => {
-  assert.match(faqSource, /type="search"/);
+  assert.match(faqSource, /<SearchField/);
   assert.match(faqSource, /category\.category} \$\{item\.question/);
   assert.match(faqSource, /검색 결과가 없습니다/);
   assert.match(faqSource, /AI 상담을 이용해 주세요/);

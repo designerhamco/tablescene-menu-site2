@@ -8,6 +8,8 @@ import { SearchField } from "../app/components/ui/search-field";
 import { PasswordField } from "../app/components/ui/password-field";
 import { Checkbox } from "../app/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "../app/components/ui/radio-group";
+import { ToggleGroup, ToggleGroupItem } from "../app/components/ui/toggle-group";
+import { SITE_CONTROL_DENSITY } from "./site-spacing";
 import { Calendar } from "../app/components/ui/calendar";
 
 const css = readFileSync(new URL("../styles/ui-system.css", import.meta.url), "utf8");
@@ -63,4 +65,33 @@ test("calendar dates keep selected and disabled semantics independently of gener
   assert.match(html,/site-calendar-nav-button/);
   assert.match(css,/\.site-calendar \.site-calendar-day \{[^}]*min-height: var\(--ui-control-height-compact\);/);
   assert.match(css,/\.site-calendar \.site-calendar-day\[aria-selected="true"\] \{ background: var\(--ui-text\); color: var\(--ui-surface\);/);
+});
+
+
+test("dedicated search keeps one native submit action inside its capsule and supports server GET defaults", () => {
+  const html = render(h("form", {method:"get",action:"/mypage/inquiries"}, h(SearchField,{label:"제목 검색",name:"inquiryQuery",defaultValue:"메뉴판!",submitLabel:"검색 실행",required:true,maxLength:100})));
+  assert.match(html,/class="site-field site-input-group site-search-field"/);
+  assert.match(html,/name="inquiryQuery"/);assert.match(html,/value="메뉴판!"/);assert.match(html,/required=""/);assert.match(html,/maxLength="100"/i);
+  assert.equal((html.match(/type="submit"/g)??[]).length,1);
+  assert.match(html,/data-search-action="submit"/);assert.match(html,/aria-label="검색 실행"/);
+  assert.equal((html.match(/lucide-search/g)??[]).length,1);
+  assert.match(html,/<button[^>]*type="button"[^>]*aria-label="제목 검색 지우기"/);
+});
+
+test("view size switches expose exactly one selected option in the shared segmented group", () => {
+  const html = render(h(ToggleGroup,{type:"single",appearance:"segmented",value:"small","aria-label":"썸네일 크기"},h(ToggleGroupItem,{value:"large","aria-label":"크게"},"큰 보기"),h(ToggleGroupItem,{value:"small","aria-label":"작게"},"작은 보기")));
+  assert.match(html,/role="group"/);assert.match(html,/data-appearance="segmented"/);
+  assert.equal((html.match(/aria-checked="true"/g)??[]).length,1);
+  assert.doesNotMatch(html,/site-tool-button/);
+});
+
+test("compact controls document the same density and keep a separate coarse-pointer field policy", () => {
+  assert.ok(SITE_CONTROL_DENSITY.some(role=>role.token==="--ui-menu-inset"&&role.value==="8px"));
+  assert.match(css,/--ui-menu-row-height: 2rem;/);assert.match(css,/--ui-menu-inset: \.5rem;/);
+  assert.match(css,/--ui-field-font-size: var\(--site-type-14\);/);
+  assert.match(css,/@media \(pointer: coarse\) \{[\s\S]*?--ui-field-font-size: var\(--site-type-16\); --ui-menu-row-height: 2\.5rem;/);
+  assert.match(css,/\.site-multiselect-options \{ display: grid; gap: 0; \}/);
+  assert.match(css,/\.site-multiselect-body > \.site-content-divider \{[^}]*padding: 0;/);
+  assert.match(css,/\.site-multiselect-option:has\(input:focus-visible\)/);
+  assert.match(css,/\.site-multiselect-option > input\[type="checkbox"\]:focus-visible \{ outline: none; \}/);
 });

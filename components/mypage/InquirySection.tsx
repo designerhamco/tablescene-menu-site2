@@ -1,3 +1,4 @@
+import { SearchField } from "@/app/components/ui/search-field";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { MessageSquare } from "lucide-react";
 import Link from "next/link";
@@ -266,18 +267,11 @@ export function InquirySection({
           ))}
           <div>
             <label htmlFor="inquiry-query" className="type-label mb-2 block text-zinc-700">제목 검색</label>
-            <input data-field-size="sm"
-              id="inquiry-query"
-              name="inquiryQuery"
-              type="search"
-              defaultValue={inquiryQuery}
-              className="site-field w-full"
-              placeholder="문의 제목을 입력하세요"
-            />
+            <SearchField id="inquiry-query" name="inquiryQuery" label="제목 검색" fieldSize="md" defaultValue={inquiryQuery} placeholder="문의 제목을 입력하세요" />
           </div>
           <div>
             <label htmlFor="inquiry-status" className="type-label mb-2 block text-zinc-700">답변 상태</label>
-            <select data-field-size="sm" id="inquiry-status" name="inquiryStatus" defaultValue={inquiryStatus} className="site-field w-full">
+            <select data-field-size="md" id="inquiry-status" name="inquiryStatus" defaultValue={inquiryStatus} className="site-field w-full">
               <option value="all">전체</option>
               <option value="open">접수됨</option>
               <option value="answered">답변 완료</option>

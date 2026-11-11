@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { SearchField } from "@/app/components/ui/search-field";
 import { DETAILED_FAQ_DATA, FAQItem } from "@/app/components/common/FAQ";
 import styles from "./support.module.css";
 import SitePageHeader from "@/components/layout/SitePageHeader";
@@ -130,23 +130,9 @@ export default function SupportCenter({ supportActions }: { supportActions?: Rea
               submitSearch(query);
             }}
           >
-            <label className="sr-only" htmlFor={`${uid}-search`}>고객센터 검색</label>
-            <input
-              data-field-size="search"
-              className="site-field site-field-search"
-              id={`${uid}-search`}
-              type="search"
-              enterKeyHint="search"
-              placeholder="예: 메뉴판 만들기, QR, 결제"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && event.nativeEvent.isComposing) event.preventDefault();
-              }}
-            />
-            <Button type="submit" variant="link" size="icon" className={styles.searchButton} aria-label="검색">
-              <Search className="size-5" strokeWidth={2.5} aria-hidden="true" />
-            </Button>
+            <SearchField id={`${uid}-search`} label="고객센터 검색" fieldSize="search" submitLabel="검색"
+              placeholder="예: 메뉴판 만들기, QR, 결제" value={query} onValueChange={setQuery}
+              onKeyDown={event => { if (event.key === "Enter" && event.nativeEvent.isComposing) event.preventDefault(); }} />
           </form>
           <p className="site-body-sm text-zinc-500">
             더 자세한 도움이 필요하신가요?

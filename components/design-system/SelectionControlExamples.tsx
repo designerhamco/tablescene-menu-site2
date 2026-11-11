@@ -8,9 +8,9 @@ import styles from "./SiteComponentGallery.module.css";
 import SupportNavigation from "@/components/layout/SupportNavigation";
 
 const sizes = [
-  ["대", "영역 56px / 주요 48px · 18·16px", "공개 페이지의 넓은 주요 전환"],
-  ["중", "영역 52px / 주요 44px · 16px", "마이페이지·편집기의 일반 분류"],
-  ["소", "영역 44px / 기타 40px · 14px", "영역 안의 세부 전환·필터"],
+  ["대", "영역 48px / 주요 40px · 16px", "공개 페이지의 넓은 주요 전환"],
+  ["중", "영역 44px / 주요 36px · 14px", "마이페이지·편집기의 일반 분류"],
+  ["소", "영역 40px / 기타 32px · 14px", "영역 안의 세부 전환·필터"],
 ] as const;
 const options = [
   ["all", "전체 상태"], ["draft", "작성 중"], ["published", "공개 중"],
@@ -63,7 +63,7 @@ export default function SelectionControlExamples() {
       <p className="type-body-sm text-zinc-600">모양은 역할, 크기는 화면 밀도로 고릅니다. 영역 콘텐츠에는 둘레 테두리를 두지 않으며, 카탈로그처럼 결과를 묶는 곳은 공통 밝은 회색 표면을 사용할 수 있습니다. 실제 탭 패널은 방향키·Home·End로 이동하고, 주제 필터·링크는 본래 버튼·링크 키보드 동작을 유지합니다.</p>
     </section>
     <section className={styles.section} aria-labelledby="select-contract-title">
-      <div className={styles.heading}><h2 className="type-section-title" id="select-contract-title">셀렉트박스</h2><p className="type-body text-zinc-600">화살표는 20px·선 굵기 2.25, 오른쪽 여백은 16px입니다. 문구가 화살표에 겹치지 않도록 48px 공간을 확보합니다.</p></div>
+      <div className={styles.heading}><h2 className="type-section-title" id="select-contract-title">셀렉트박스</h2><p className="type-body text-zinc-600">화살표는 16px·선 굵기 2.25, 오른쪽 여백은 12px입니다. 문구가 화살표에 겹치지 않도록 40px 공간을 확보합니다.</p></div>
       <div className={styles.ruleGrid}>
         <label className="type-label grid min-w-0 content-start gap-2">기본 셀렉트<select className="site-field w-full min-w-0" value={nativeValue} onChange={event => setNativeValue(event.target.value)}>{options.map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         <div className="grid min-w-0 content-start gap-2"><label className="type-label" htmlFor="custom-select-demo">아이콘·목록 셀렉트</label><Select value={customValue} onValueChange={setCustomValue}><SelectTrigger id="custom-select-demo"><SelectValue /></SelectTrigger><SelectContent>{options.map(([value,label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}<SelectItem value="unavailable" disabled>준비 중</SelectItem></SelectContent></Select></div>

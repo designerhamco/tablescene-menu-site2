@@ -1,6 +1,6 @@
 "use client";
 
-import { Grid2X2, Grid3X3, Palette, PanelsTopLeft, Search, Sparkles, Store } from "lucide-react";
+import { Grid2X2, Grid3X3, Palette, PanelsTopLeft, Sparkles, Store } from "lucide-react";
 import { useId, useMemo, useRef, useState } from "react";
 import {
   CATALOG_INDUSTRIES,
@@ -12,8 +12,8 @@ import {
 } from "@/lib/catalog-designs";
 import { CATALOG_COLORS, CATALOG_MOODS, CATALOG_DEFAULT_THUMBNAIL_SIZE, normalizeCatalogThumbnailSize, type CatalogThumbnailSize } from "@/lib/catalog-facets";
 import { Button } from "@/app/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/app/components/ui/toggle-group";
 import { SearchField } from "@/app/components/ui/search-field";
-import { FieldActionRow } from "@/app/components/ui/field-action-row";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import CatalogDesignCard from "@/components/templates/CatalogDesignCard";
@@ -139,10 +139,7 @@ export default function TemplateGallery({
             <div className="site-catalog-results">
               <CatalogFilterSearch search={
                 <form role="search" aria-label="템플릿 이름 검색" className="site-catalog-search" onSubmit={event => event.preventDefault()}>
-                  <FieldActionRow field={<>
-                    <label className="sr-only" htmlFor={`${tabsId}-search`}>템플릿 이름 검색</label>
-                    <SearchField id={`${tabsId}-search`} label="템플릿 이름 검색" showSearchIcon={false} placeholder="템플릿 이름으로 검색" enterKeyHint="search" maxLength={100} value={query} onValueChange={searchByName} />
-                  </>} action={<Button type="submit" variant="ghost" size="icon" aria-label="이름 검색"><Search aria-hidden="true" /></Button>} />
+                  <SearchField id={`${tabsId}-search`} label="템플릿 이름 검색" submitLabel="이름 검색" placeholder="템플릿 이름으로 검색" enterKeyHint="search" maxLength={100} value={query} onValueChange={searchByName} />
                 </form>
               }>{renderFilters("accordion")}</CatalogFilterSearch>
               <div className="site-catalog-filter-toolbar">
@@ -150,8 +147,10 @@ export default function TemplateGallery({
                   {renderFilters("popover")}
                 </div>
                 <div className="site-catalog-view-controls" role="group" aria-label="썸네일 크기">
-                  <Button type="button" variant="ghost" size="icon" className="site-tool-button" aria-label="썸네일 크게 보기" title="썸네일 크게 보기" aria-pressed={thumbnailSize === "large"} onClick={() => selectThumbnailSize("large")}><Grid2X2 aria-hidden="true" /></Button>
-                  <Button type="button" variant="ghost" size="icon" className="site-tool-button" aria-label="썸네일 작게 보기" title="썸네일 작게 보기" aria-pressed={thumbnailSize === "small"} onClick={() => selectThumbnailSize("small")}><Grid3X3 aria-hidden="true" /></Button>
+                  <ToggleGroup type="single" appearance="segmented" size="sm" value={thumbnailSize} onValueChange={value => { if (value === "large" || value === "small") selectThumbnailSize(value); }} aria-label="썸네일 크기">
+                    <ToggleGroupItem value="large" aria-label="썸네일 크게 보기" title="썸네일 크게 보기"><Grid2X2 aria-hidden="true" /></ToggleGroupItem>
+                    <ToggleGroupItem value="small" aria-label="썸네일 작게 보기" title="썸네일 작게 보기"><Grid3X3 aria-hidden="true" /></ToggleGroupItem>
+                  </ToggleGroup>
                 </div>
                 <p className="site-catalog-count" aria-live="polite" aria-atomic="true">
                   {product === "display" ? "디스플레이" : selectedKind.label} · <span>{visibleTemplates.length}개</span>

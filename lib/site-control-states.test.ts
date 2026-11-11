@@ -42,7 +42,7 @@ test("ordinary action geometry is shared and icon / quick-menu shapes are explic
   assert.match(css, /--ui-control-height-lg: 3rem/);
   assert.doesNotMatch(css, /--ui-control-height-(?:sm|xl):/);
   assert.match(css, /--ui-button-font-weight: 600/);
-  assert.match(css, /\.site-button \{[^}]*font-size: var\(--site-type-15\);[^}]*font-weight: var\(--ui-button-font-weight\);/);
+  assert.match(css, /\.site-button \{[^}]*font-size: var\(--type-control-size\);[^}]*font-weight: var\(--ui-button-font-weight\);/);
   assert.match(css, /\.site-button-icon \{[^}]*width: var\(--ui-icon-control-size, var\(--ui-control-height-md\)\);[^}]*padding: 0;[^}]*border-radius: var\(--ui-radius-control\);/);
   const launcher = read("app/support/chat/AiSupportChatLauncher.tsx");
   assert.match(launcher, /site-button site-button-ai/);
@@ -152,7 +152,7 @@ test("content and view controls share three sizes without promoting nested guide
   const tabs = read("app/components/ui/tabs.tsx");
   assert.match(tabs, /TabsSize = "sm" \| "md" \| "lg"/);
   assert.match(tabs, /size = "md"/);
-  for (const [size, height, font] of [["sm", "2.5rem", ".875rem"], ["md", "2.75rem", ".9375rem"], ["lg", "3rem", "1rem"]]) {
+  for (const [size, height, font] of [["sm", "2rem", "var(--site-type-14)"], ["md", "2.25rem", "var(--site-type-14)"], ["lg", "2.5rem", "var(--site-type-16)"]]) {
     const rule = tabCss.match(new RegExp(`\\.site-tab-size-${size} \\{([^}]+)\\}`))?.[1];
     assert.ok(rule, `missing ${size}`);
     assert.ok(rule.includes(`--site-tab-height: ${height}`));
@@ -188,7 +188,7 @@ test("underline tab rails stop at their tab boundary without changing full-width
 test("native and custom selects reserve a common chevron gutter without affecting listboxes or menu renderers", () => {
   const select = read("app/components/ui/select.tsx");
   assert.match(select, /className="site-select-chevron" size=\{20\} strokeWidth=\{2\.25\}/);
-  assert.match(css, /--site-select-chevron-size: 1\.25rem; --site-select-chevron-inset: 1rem; --site-select-trailing-space: 3rem/);
+  assert.match(css, /--site-select-chevron-size: 1rem; --site-select-chevron-inset: \.75rem; --site-select-trailing-space: 2\.5rem/);
   assert.match(css, /stroke-width='2\.25'/);
   assert.match(css, /select:not\(\[multiple\]\):is\(:not\(\[size\]\), \[size="1"\]\):not\(:where\(\.menu-typography/);
   assert.match(css, /appearance: auto; background-image: none/);

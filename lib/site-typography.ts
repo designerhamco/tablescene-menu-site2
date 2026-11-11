@@ -5,7 +5,7 @@ export function getSiteWideTypeScale(viewportWidth: number) {
   return 1 + Math.max(0, Math.min(1, (viewportWidth - startWidth) / (endWidth - startWidth))) * (maxScale - 1);
 }
 export const SITE_READING_TYPE_STEPS = [13,14,16,18,20] as const;
-export const SITE_CONTROL_TYPE_STEPS = [14,15,16,18] as const;
+export const SITE_CONTROL_TYPE_STEPS = [14,16] as const;
 export const SITE_EMPHASIS_TYPE_STEPS = [24,28,32,36,44] as const;
 export const SITE_TYPE_STEPS = [13,14,15,16,18,20,24,28,32,36,44] as const;
 export const SITE_MANAGEMENT_TYPE_ROLES = [
@@ -143,9 +143,9 @@ export const SITE_TYPE_ROLES = [
   {
     "key": "label",
     "label": "폼 라벨",
-    "mobile": 15,
-    "tablet": 15,
-    "desktop": 16,
+    "mobile": 14,
+    "tablet": 14,
+    "desktop": 14,
     "weight": 500,
     "lineHeight": 1.4,
     "className": "type-label",
@@ -155,9 +155,9 @@ export const SITE_TYPE_ROLES = [
   {
     "key": "nav",
     "label": "탐색 문구",
-    "mobile": 15,
-    "tablet": 15,
-    "desktop": 16,
+    "mobile": 14,
+    "tablet": 14,
+    "desktop": 14,
     "weight": 500,
     "lineHeight": 1.4,
     "className": "type-nav",
@@ -179,9 +179,9 @@ export const SITE_TYPE_ROLES = [
   {
     "key": "control",
     "label": "버튼 문구",
-    "mobile": 15,
-    "tablet": 15,
-    "desktop": 16,
+    "mobile": 14,
+    "tablet": 14,
+    "desktop": 14,
     "weight": 600,
     "lineHeight": 1.4,
     "className": "type-control",

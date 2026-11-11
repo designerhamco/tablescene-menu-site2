@@ -19,12 +19,14 @@ function ToggleGroup({
   variant,
   size,
   children,
+  appearance = "default",
   ...props
 }: React.ComponentProps<typeof ToggleGroupPrimitive.Root> &
-  VariantProps<typeof toggleVariants>) {
+  VariantProps<typeof toggleVariants> & { appearance?: "default" | "segmented" }) {
   return (
     <ToggleGroupPrimitive.Root
       data-slot="toggle-group"
+      data-appearance={appearance}
       data-variant={variant}
       data-size={size}
       className={cn(
