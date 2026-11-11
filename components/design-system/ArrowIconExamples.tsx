@@ -37,7 +37,7 @@ export default function ArrowIconExamples() {
         <div className="site-action-row"><ArrowUpDown /><ArrowLeftRight /></div>
       </div>
       <div className="site-stack-block" data-arrow-family="compound"><h3 className="type-content-title">새로고침·초기화 · 원형</h3>
-        <div className="site-action-row"><RefreshCcw /><RefreshCw /><RotateCcw /><RotateCw /></div>
+        <div className="site-stack-block" data-circular-arrow-sizes>{[16, 20, 24].map(size => <div key={size} className="site-action-row"><RefreshCcw size={size} /><RefreshCw size={size} /><RotateCcw size={size} /><RotateCw size={size} /><span className="type-caption">{size}px</span></div>)}</div>
       </div>
       <div className="site-stack-block"><h3 className="type-content-title">크기·굵기</h3>
         <div className="site-action-row">{[16, 20, 24].map(size => <span key={size} className="site-action-row"><SiteArrow size={size} /><span className="type-caption">{size}px</span></span>)}</div>
