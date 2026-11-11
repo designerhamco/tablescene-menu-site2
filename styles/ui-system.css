@@ -7,7 +7,7 @@
   --ui-media-arrow-size: 1.5rem;
   --ui-media-inset: .5rem;
   --ui-media-catalog-ratio: 4 / 3;
-  --ui-media-gallery-ratio: 16 / 9;
+  --ui-media-gallery-ratio: var(--ui-media-catalog-ratio);
   --ui-loading-spinner-size: 1.5rem;
   --ui-progress-track-height: .25rem;
   --ui-feedback-motion-duration: 1.2s;
