@@ -2,7 +2,6 @@
 
 import { LoadingState } from "@/app/components/ui/loading-state";
 import { useEffect, useId, useState } from "react";
-import { Search } from "lucide-react";
 import { ANNOUNCEMENT_CATEGORIES, ANNOUNCEMENT_PAGE_SIZE, formatAnnouncementDate, type AnnouncementSummary } from "@/lib/announcements";
 import { BoardList } from "@/app/components/ui/board-list";
 import { Button } from "@/app/components/ui/button";
@@ -49,13 +48,12 @@ export default function AnnouncementBoard() {
       <p className="type-body-sm text-zinc-600" role="status">{loading ? "목록 확인 중" : result.unavailable ? "목록 확인 불가" : `${submittedQuery ? "검색 결과" : "전체"} ${result.count}개`}</p>
       <form className="site-board-search" role="search" aria-label="공지사항 검색" onSubmit={event => { event.preventDefault(); setLoading(true); setPage(1); setSubmittedQuery(query.trim()); setRetry(value => value + 1); }}>
         <label className="sr-only" htmlFor={`${uid}-category`}>공지 유형</label>
-        <select className="site-field" data-field-size="sm" id={`${uid}-category`} value={category} onChange={event => { setLoading(true); setCategory(event.target.value); setPage(1); }}>
+        <select className="site-field" data-field-size="md" id={`${uid}-category`} value={category} onChange={event => { setLoading(true); setCategory(event.target.value); setPage(1); }}>
           <option value="all">전체 공지</option>
           {ANNOUNCEMENT_CATEGORIES.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
         </select>
         <label className="sr-only" htmlFor={`${uid}-query`}>공지 제목과 내용 검색</label>
-        <SearchField id={`${uid}-query`} label="공지 제목과 내용 검색" showSearchIcon={false} fieldSize="sm" placeholder="제목과 내용 검색" enterKeyHint="search" value={query} onValueChange={setQuery} onKeyDown={event => { if (event.key === "Enter" && event.nativeEvent.isComposing) event.preventDefault(); }} />
-        <Button type="submit" size="icon" aria-label="공지사항 검색"><Search size={18} aria-hidden="true" /></Button>
+        <SearchField id={`${uid}-query`} label="공지 제목과 내용 검색" submitLabel="공지사항 검색" fieldSize="md" placeholder="제목과 내용 검색" enterKeyHint="search" value={query} onValueChange={setQuery} onKeyDown={event => { if (event.key === "Enter" && event.nativeEvent.isComposing) event.preventDefault(); }} />
       </form>
     </div>
     <BoardList label="공지사항 목록" entries={result.items.map((item, index) => ({ id: item.id, number: item.pinned ? "공지" : result.count - (page - 1) * ANNOUNCEMENT_PAGE_SIZE - index, title: item.title, href: `/faq/notices/${item.id}`, date: formatAnnouncementDate(item.published_at), dateTime: item.published_at ?? undefined }))} status={status} />

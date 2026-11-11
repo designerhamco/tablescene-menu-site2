@@ -1,4 +1,5 @@
 "use client";
+import { SearchField } from "@/app/components/ui/search-field";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
 import { EmptyState } from "@/app/components/ui/empty-state";
@@ -6,7 +7,7 @@ import { CreditCard } from "lucide-react";
 
 
 import * as PortOne from "@portone/browser-sdk/v2";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import PaymentDetailModal from "@/components/mypage/PaymentDetailModal";
@@ -523,6 +524,7 @@ function RestoreSubscriptionModal({
 }
 
 export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = false, restoreCheckoutConfig }: BillingHistoryPanelProps) {
+  const queryId = useId();
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const filteredEntries = useMemo(() => {
     const normalizedQuery = filters.query.trim().toLowerCase();
@@ -627,15 +629,11 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
             onChange={(value) => setFilters((current) => ({ ...current, paymentStatus: value as FilterState["paymentStatus"] }))}
             options={paymentStatusFilterOptions}
           />
-          <label className="site-field-stack site-field-span-two">
-            <span className="type-label site-copy-muted">매장명 / 메뉴판 주소 / 결제번호 검색</span>
-            <input
-              value={filters.query}
-              onChange={(event) => setFilters((current) => ({ ...current, query: event.target.value }))}
-              className="site-field min-w-0 w-full"
-              placeholder="예: 매장명, 메뉴판 주소, 결제번호로 검색"
-            />
-          </label>
+          <div className="site-field-stack site-field-span-two">
+            <label htmlFor={queryId} className="type-label site-copy-muted">매장명 / 메뉴판 주소 / 결제번호 검색</label>
+            <SearchField id={queryId} label="매장명 / 메뉴판 주소 / 결제번호 검색" value={filters.query}
+              onValueChange={query => setFilters(current => ({ ...current, query }))} placeholder="예: 매장명, 메뉴판 주소, 결제번호로 검색" />
+          </div>
         </div>
       </ContentPanel>
 

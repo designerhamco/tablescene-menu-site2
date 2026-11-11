@@ -118,7 +118,7 @@ test("마이페이지와 편집·운영 화면은 동일한 관리 화면 타이
   }
   assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-copy: var\(--site-type-16\);/);
   assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-support: var\(--site-type-14\);/);
-  assert.match(siteDesignSource, /\.site-management-scope :where\(input, textarea, select\)[\s\S]*?font-size: var\(--type-body-size\);/);
+  assert.match(siteDesignSource, /\.site-management-scope :where\(input, textarea, select\)[\s\S]*?font-size: var\(--ui-field-font-size\);/);
   assert.doesNotMatch(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-page-title-size:/);
   assert.doesNotMatch(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-page-description-size:/);
   assert.doesNotMatch(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-body-lg-size:/);
@@ -304,7 +304,7 @@ test("사이트 본문 역할은 메뉴판 기초 크기와 독립적으로 가�
 
 test("읽기·컨트롤·강조 크기는 중복 없이 정해진 단계만 사용한다", () => {
   assert.deepEqual(SITE_READING_TYPE_STEPS, [13,14,16,18,20]);
-  assert.deepEqual(SITE_CONTROL_TYPE_STEPS, [14,15,16,18]);
+  assert.deepEqual(SITE_CONTROL_TYPE_STEPS, [14,16]);
   assert.deepEqual(SITE_EMPHASIS_TYPE_STEPS, [24,28,32,36,44]);
   assert.deepEqual(SITE_TYPE_STEPS, [13,14,15,16,18,20,24,28,32,36,44]);
 
@@ -319,7 +319,7 @@ test("읽기·컨트롤·강조 크기는 중복 없이 정해진 단계만 사�
   }
   for (const key of ["label", "nav", "control"]) {
     const role = roles.get(key);
-    assert.deepEqual([role?.mobile, role?.tablet, role?.desktop], [15,15,16]);
+    assert.deepEqual([role?.mobile, role?.tablet, role?.desktop], [14,14,14]);
   }
   assert.deepEqual(
     SITE_MANAGEMENT_TYPE_ROLES.map(role => [role.key, role.size]),
@@ -464,7 +464,7 @@ test("UI CSS cannot introduce private or fluid font sizes outside the reference 
         const graphic = (local === "components/marketing/marketing.module.css" && selector.split(",").every(part => [...part.matchAll(/\.([A-Za-z0-9_-]+)/g)].some(match => graphicClasses.has(match[1]))))
           || (local === "app/components/home/TabletTemplateCarousel.module.css" && decl.value.includes("cqw"))
           || (local === "app/components/layout/Footer.module.css" && selector === ".wordmark");
-        if (!graphic && !/^(var\(--(?:type-|site-type-|site-tab-|site-segment-)|inherit$|initial$|unset$)/.test(decl.value)) failures.push(`${local} ${selector}: ${decl.value}`);
+        if (!graphic && decl.value !== "var(--ui-field-font-size)" && !/^(var\(--(?:type-|site-type-|site-tab-|site-segment-)|inherit$|initial$|unset$)/.test(decl.value)) failures.push(`${local} ${selector}: ${decl.value}`);
       });
     }
   }

@@ -22,7 +22,7 @@ export default function ControlStateExamples() {
   const [previewDevice, setPreviewDevice] = useState("태블릿");
   return <section className={styles.section} aria-labelledby="control-states-title">
     <div className={styles.heading}><h2 className="type-section-title" id="control-states-title">버튼·탭 공통 기준과 상태</h2>
-      <p className="type-body text-zinc-600">텍스트 밀집 도구 32px, 일반 실행 40px, 헤더 44px, 로그인·결제 같은 주요 완료 행동 48px을 사용합니다. 본문 버튼은 8px 모서리와 15px·600 글자를 공유합니다.</p>
+      <p className="type-body text-zinc-600">텍스트 밀집 도구 32px, 일반 실행 40px, 헤더 44px, 로그인·결제 같은 주요 완료 행동 48px을 사용합니다. 본문 버튼은 8px 모서리와 14px·600 글자를 공유합니다.</p>
     </div>
     <p className="type-body-sm site-copy-muted">아이콘의 표현과 클릭 영역은 분리합니다. 불필요한 장식은 생략하고 버튼 식별에 필요한 형태·중앙 정렬·포커스는 유지합니다.</p><div className={styles.buttonRow}>
       <Button onClick={() => setClicks(n => n + 1)}><Plus />동작 확인</Button>

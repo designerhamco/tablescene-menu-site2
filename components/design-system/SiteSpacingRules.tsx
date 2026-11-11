@@ -1,4 +1,4 @@
-import { SITE_CONTENT_COMPOSITION, SITE_MOBILE_MAX_WIDTH, SITE_MOBILE_SPACING } from "@/lib/site-spacing";
+import { SITE_CONTENT_COMPOSITION, SITE_CONTROL_DENSITY, SITE_MOBILE_MAX_WIDTH, SITE_MOBILE_SPACING } from "@/lib/site-spacing";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
 import { CheckboxField, CheckboxFieldGroup } from "@/app/components/ui/checkbox-field";
@@ -14,6 +14,8 @@ export default function SiteSpacingRules() {
     <div className={styles.usageTable}><table aria-label="작업 영역 구성 기준"><thead><tr><th>역할</th><th>모바일 / 768px 이상</th><th>공통 구현</th><th>사용 위치</th></tr></thead><tbody>
       {SITE_CONTENT_COMPOSITION.map(item => <tr key={item.role}><td>{item.role}</td><td>{item.mobile} / {item.wide}px</td><td><code>{item.owner}</code></td><td>{item.usage}</td></tr>)}
     </tbody></table></div>
+    <div className="site-stack-title"><h3 className="type-content-title">컴포넌트 내부 밀도</h3><p className="type-body-sm site-copy-muted">본문 구역 간격과 컨트롤 내부 간격은 별도입니다. 옵션 행 높이에 큰 gap을 겹쳐 더하지 않습니다.</p></div>
+    <div className={styles.usageTable}><table aria-label="컴포넌트 크기·간격 기준"><thead><tr><th>역할</th><th>기준</th><th>공통 토큰</th><th>적용 원칙</th></tr></thead><tbody>{SITE_CONTROL_DENSITY.map(item => <tr key={item.role}><td>{item.role}</td><td>{item.value}</td><td><code>{item.token}</code></td><td>{item.rule}</td></tr>)}</tbody></table></div>
     <div className="site-management-scope site-stack-group" data-layout-example="composition">
       <ContentPanel aria-label="작업 박스 예시">
         <div className="site-stack-title"><h3 className="type-subsection-title">테이블 설정</h3><p className="type-body-sm site-copy-muted">제목과 설명은 12px, 이 제목 묶음과 폼은 24px로 구분합니다.</p></div>
@@ -33,7 +35,7 @@ export default function SiteSpacingRules() {
       <ContentPanel surface="muted" aria-label="회색 작업 박스 예시"><div className="site-stack-title"><h3 className="type-content-title">회색 보조 영역</h3><p className="type-body-sm site-copy-muted">테두리와 그림자 없이 같은 안쪽 여백을 사용합니다. 버튼은 문구 너비를 따릅니다.</p></div><div className="site-action-row"><Button variant="outline">보조 실행 예시</Button></div></ContentPanel>
       <ContentPanel surface="notice" density="compact" as="aside" aria-label="안내 박스 예시"><div className="site-stack-title"><h3 className="type-content-title">다음 행동을 알려주는 안내</h3><p className="type-body-sm site-copy-muted">밝은 노랑·무테·6px 모서리, 안쪽 16px입니다. 일반 작업 박스의 12px 모서리와 역할을 구분합니다.</p></div></ContentPanel>
     </div>
-    <p className="type-body-sm site-copy-muted">관리 화면은 시작 정렬입니다. 라벨이 포함된 폼 열은 하단을 맞추고, 입력·선택 박스 자체와 버튼을 나란히 놓는 행은 <code>site-form-row data-alignment=&quot;center&quot;</code>로 높이 중심을 맞춥니다. 640px 미만에서는 기존 순서대로 쌓습니다. 제목 20px/700, 콘텐츠 제목 18px/600, 보조 설명 14px/400, 라벨 14px/600, 입력 16px/400입니다. 공통 버튼·입력의 자체 높이와 포커스는 유지합니다.</p>
+    <p className="type-body-sm site-copy-muted">관리 화면은 시작 정렬입니다. 라벨이 포함된 폼 열은 하단을 맞추고, 입력·선택 박스 자체와 버튼을 나란히 놓는 행은 <code>site-form-row data-alignment=&quot;center&quot;</code>로 높이 중심을 맞춥니다. 640px 미만에서는 기존 순서대로 쌓습니다. 제목 20px/700, 콘텐츠 제목 18px/600, 보조 설명 14px/400, 라벨 14px/600, 입력은 기본14px·터치16px/400입니다. 공통 버튼·입력의 자체 높이와 포커스는 유지합니다.</p>
   </section><section className={styles.section} id="mobile-spacing">
     <div className={styles.heading}>
       <h2 className="type-section-title">모바일 간격과 여백</h2>

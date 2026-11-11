@@ -2,7 +2,8 @@
 
 import React, { useId, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Minus, Search } from 'lucide-react';
+import { Plus, Minus } from 'lucide-react';
+import { SearchField } from '@/app/components/ui/search-field';
 
 export type FAQCategory = {
   category: string;
@@ -289,9 +290,9 @@ export const FAQItem = ({ item, isOpen, onToggle, inverted = false }: { item: FA
         aria-expanded={isOpen}
         aria-controls={isOpen ? answerId : undefined}
         onClick={onToggle}
-        className={`group flex w-full items-start justify-between gap-6 rounded-lg px-4 py-6 text-left transition-colors md:items-center ${inverted ? 'hover:bg-zinc-800' : 'hover:bg-zinc-50'}`}
+        className="site-faq-question group flex w-full items-start justify-between gap-6 px-4 py-6 text-left transition-colors md:items-center"
       >
-        <span className={`text-lg md:text-xl font-bold transition-colors ${isOpen ? 'text-primary' : inverted ? 'text-white group-hover:text-white' : 'text-zinc-900 group-hover:text-black'}`}>
+        <span className={`site-faq-question-title transition-colors ${isOpen ? 'text-primary' : inverted ? 'text-white group-hover:text-white' : 'text-zinc-900 group-hover:text-black'}`}>
           <span className="text-primary mr-2">Q.</span>{item.question}
         </span>
         <div className={`mt-1 flex h-8 w-8 shrink-0 items-center justify-center transition-all duration-300 md:mt-0 ${isOpen ? 'rotate-180 text-primary' : inverted ? 'text-zinc-400 group-hover:text-white' : 'text-zinc-400 group-hover:text-zinc-900'}`}>
@@ -384,20 +385,7 @@ const FAQ = ({
               <label htmlFor="faq-search" className="type-label mb-2 block text-zinc-700">
                 질문 검색
               </label>
-              <div className="relative">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" aria-hidden="true" />
-                <input
-                  id="faq-search"
-                  type="search"
-                  value={searchQuery}
-                  onChange={(event) => {
-                    setSearchQuery(event.target.value);
-                    setOpenIndex(null);
-                  }}
-                  className="site-field site-field-leading w-full"
-                  placeholder="예: 무료체험, QR, 디자인"
-                />
-              </div>
+              <SearchField id="faq-search" label="질문 검색" value={searchQuery} onValueChange={value => { setSearchQuery(value); setOpenIndex(null); }} placeholder="예: 무료체험, QR, 디자인" />
             </div>
           ) : null}
 

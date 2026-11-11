@@ -12,7 +12,7 @@ test("semantic copy sizes merge independently from foreground colors and respons
 
 test("visual field sizes preserve native input size and exclude non-text application controls", () => {
   const css = read("styles/ui-system.css");
-  for (const [size, height] of [["sm", "2.5rem"], ["md", "2.75rem"], ["lg", "3rem"], ["search", "3.5rem"]]) {
+  for (const [size, height] of [["sm", "2rem"], ["md", "2.5rem"], ["lg", "2.75rem"], ["search", "3rem"]]) {
     assert.ok(css.includes(`--ui-field-height-${size}: ${height};`));
   }
   assert.match(read("app/components/ui/input.tsx"), /fieldSize = "md"/);
