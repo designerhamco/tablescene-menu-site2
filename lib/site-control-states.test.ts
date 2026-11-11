@@ -378,6 +378,8 @@ test("icon tools have intrinsic hit areas in every state and counters use a caps
   assert.match(css, /box-shadow: none !important;/);
   assert.match(css, /\.site-image-carousel-count \{[^}]*border-radius: var\(--ui-radius-control\);/);
   assert.doesNotMatch(css, /--ui-media-arrow-hover|--ui-media-arrow-pressed/);
+  assert.match(css, /--ui-media-hover-ink: #d4d4d8;/);
+  assert.match(css, /\.site-button-media:is\(:hover, \[data-ui-state="hover"\]\)[^{]+\{ background: transparent; color: var\(--ui-media-hover-ink\); \}/);
   assert.match(read("app/components/ui/floor-plan-viewport.tsx"), /variant="ghost" size="icon"/);
   assert.match(read("app/components/ui/refresh-button.tsx"), /variant="ghost" size="icon"/);
 });

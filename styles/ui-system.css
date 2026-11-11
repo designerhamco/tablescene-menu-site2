@@ -1,5 +1,6 @@
 :root {
   --ui-media-ink: #ffffff;
+  --ui-media-hover-ink: #d4d4d8;
   --ui-media-counter-surface: rgb(9 9 11 / 60%);
   --ui-media-arrow-shadow: 0 1px 4px rgb(0 0 0 / 65%);
   --ui-media-arrow-size: 1.5rem;
@@ -1427,7 +1428,7 @@ svg.site-edit-icon {
 
 /* Image navigation is a media tool: white glyphs over the actual photograph. */
 .site-button-media { border-color: transparent; background: transparent; color: var(--ui-media-ink); }
-.site-button-media:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { background: transparent; }
+.site-button-media:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { background: transparent; color: var(--ui-media-hover-ink); }
 .site-button-media:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { background: transparent; }
 .site-button-media:disabled, .site-button-media[aria-disabled="true"] { background: transparent; border-color: transparent; color: var(--ui-disabled-text); }
 .site-button-media svg { width: var(--ui-media-arrow-size); height: var(--ui-media-arrow-size); stroke-width: 1.75; filter: drop-shadow(var(--ui-media-arrow-shadow)); }
