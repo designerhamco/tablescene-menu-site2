@@ -633,4 +633,4 @@ OrderHistoryFilters는 ContentPanel density=controls, site-form-row/site-field-s
 
 표현은 기본 `bare`와 명시적 `framed`만 사용한다. `Button size="icon"`의 일반40px·밀집32px 영역과 SVG 크기는 독립적이다. `iconAppearance="framed"`와 공통 variant로 면을 선택하고, `iconSize="compact"`로 밀집 크기를 선택한다. native는 같은 의미의 `data-icon-appearance`/`data-icon-size`를 사용한다. 전용 컨트롤은 등록된 크기를 유지한다.
 
-좋아요·공유는 bare, 페이지네이션 화살표는 번호와 같은 사각형, 떠 있는 맨 위로는 원형, 미리보기 접기/펼치기는 도구막대에 맞는 둥근 사각형으로 적용한다. 이는 세부 유형 목록이 아닌 공통 원칙의 예시다. [구현·상태·규격 계약](site-control-contract.md#아이콘-버튼-공통-원칙-2026-11-11)과 컴포넌트 라이브러리가 같은 기준을 사용한다. 표시 아이콘·고객지원 런처·썸네일·스위치의 기존 역할은 유지한다.
+좋아요·공유는 bare, 페이지네이션은 기본 무테·투명 및 검정 현재 페이지를 포함한 기존 전용 디자인을 유지하고, 떠 있는 맨 위로는 원형, 미리보기 접기/펼치기는 펼침·접힘 및 hover/pressed 모두 무배경·무테·그림자 없이 표시하며 클릭 영역과 중앙 정렬은 유지한다. 이는 세부 유형 목록이 아닌 공통 원칙의 예시다. [구현·상태·규격 계약](site-control-contract.md#아이콘-버튼-공통-원칙-2026-11-11)과 컴포넌트 라이브러리가 같은 기준을 사용한다. 표시 아이콘·고객지원 런처·썸네일·스위치의 기존 역할은 유지한다.

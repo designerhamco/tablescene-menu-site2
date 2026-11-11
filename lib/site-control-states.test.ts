@@ -405,15 +405,18 @@ test("bare and framed icon appearances preserve independent shared geometry and 
   }
 });
 
-test("pagination arrows retain aligned frames and first/last disabled boundaries", () => {
+test("pagination retains original borderless controls, selected-page surface and disabled boundaries", () => {
   for (const page of [1, 4, 8]) {
     const html = renderToStaticMarkup(createElement(SitePagination, {currentPage: page, totalPages: 8, onSelect() {}}));
-    const arrows = [...html.matchAll(/<button[^>]*site-pagination-arrow[^>]*>/g)].map(match => match[0]);
+    const arrows = [...html.matchAll(/<button[^>]*aria-label="(?:첫 페이지|이전 페이지|다음 페이지|마지막 페이지)"[^>]*>/g)].map(match => match[0]);
     assert.equal(arrows.length, 8);
-    assert.ok(arrows.every(tag => tag.includes('data-icon-appearance="framed"') && !tag.includes('site-icon-control')));
+    assert.ok(arrows.every(tag => tag.includes('class="site-pagination-control"') && !tag.includes('site-icon-control') && !tag.includes('data-icon-appearance')));
     assert.equal(arrows.filter(tag => tag.includes('disabled=""')).length, page === 4 ? 0 : 4);
     assert.match(html, new RegExp(`aria-current="page" aria-label="${page}페이지"`));
   }
-  assert.match(tabCss, /\.site-pagination \.site-pagination-arrow \{ border: 1px solid var\(--ui-button-boundary\); background: var\(--ui-surface\); \}/);
-  assert.match(tabCss, /\.site-pagination \.site-pagination-arrow:disabled \{ opacity: 1;/);
+  assert.doesNotMatch(tabCss, /\.site-pagination-arrow/);
+  assert.match(tabCss, /\.site-pagination \.site-pagination-control \{[^}]*border: 0;[^}]*background: transparent;/);
+  assert.match(tabCss, /\.site-pagination-control\[aria-current="page"\] \{ background: var\(--ui-text\); color: #fff;/);
+  assert.match(tabCss, /\.site-pagination-control:hover:not\(:disabled\) \{ background: var\(--ui-surface-muted\);/);
+  assert.match(tabCss, /\.site-pagination-control:disabled \{ opacity: .35;/);
 });

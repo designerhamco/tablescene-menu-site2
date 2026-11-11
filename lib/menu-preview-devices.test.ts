@@ -391,17 +391,23 @@ test("actual view opens a normal browser tab with a dismissible guide hidden dur
 });
 
 
-test("catalog and saved preview collapse controls keep shared centered geometry independently of bare icons", () => {
+test("catalog and saved preview collapse arrows stay bare in both states without losing shared centered targets", () => {
   for (const props of [
     {templateKey: "cafe_design_a", query: {}},
     {menuId: "4f7be4a1-90db-4e1f-987d-e91385f0bf91", query: {}},
   ]) {
     const html = renderFrame(createElement(MenuPreviewDeviceFrame, {device: "tablet", orientation: "landscape", ...props}));
-    assert.match(html, /aria-expanded="true" aria-label="기기 선택 도구 닫기" class="site-preview-control site-preview-toolbar-toggle" data-icon-appearance="framed"/);
+    assert.match(html, /aria-expanded="true" aria-label="기기 선택 도구 닫기" class="site-icon-control site-preview-control site-preview-toolbar-toggle" data-icon-appearance="bare"/);
   }
   const css = readFileSync(new URL("../styles/ui-system.css", import.meta.url), "utf8");
   assert.match(css, /\.site-preview-control\.site-preview-toolbar-toggle \{[^}]*top: 50%;[^}]*transform: translateY\(-50%\);/);
   assert.match(css, /\.site-preview-toolbar-toggle\[aria-expanded="false"\] \{[^}]*width: 3rem; height: 1.75rem; min-height: 1.75rem;/);
   assert.match(css, /@media \(max-width: 767px\) \{ \[data-preview-device-toolbar\] \{ --ui-preview-control-height: var\(--ui-control-height-header\);/);
   assert.doesNotMatch(previewFrameSource, /right-2 top-2|site-icon-control absolute/);
+  const togglePaint = css.match(/\.site-preview-control\.site-preview-toolbar-toggle \{([^}]+)\}/)![1];
+  assert.match(togglePaint, /border: 0; background: transparent; box-shadow: none;/);
+  assert.doesNotMatch(css, /\.site-preview-toolbar-toggle:(?:hover|active)[^{]*\{[^}]*background:/);
+  const barePaint = css.slice(css.indexOf("/* Bare is a paint choice"));
+  assert.match(barePaint, /:is\(\.site-icon-control, \.site-button\.site-button-icon\):not\(\[data-icon-appearance="framed"\]\):is\(:hover, :active/);
+  assert.match(barePaint, /background: transparent !important;/);
 });
