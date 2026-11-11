@@ -10,7 +10,7 @@ const browser = await chromium.launch();
 const results = [];
 const templates = [
   ["cafe_real_matcha_a", "REAL MATCHA", "single"],
-  ["cafe_mocha_forest_a", "모카 포레스트", "single"],
+  ["cafe_mocha_forest_a", "MELLOW", "single"],
   ["cafe_sunday_roasters_a", "선데이 로스터스", "single"],
   ["cafe_van_gogh_a", "Van Gogh", "single"],
   ["cafe_round_focus_a", "ROSY ORANGE", "single"],
@@ -242,8 +242,8 @@ try {
   await expect(thumbnail).not.toHaveAttribute("target", "_blank");
   await thumbnail.click();
   await expect(page).toHaveURL(`${base}/templates/cafe_real_matcha_a`);
-  await expect(page.getByRole("button", { name: /REAL MATCHA (이전|다음) 이미지/ })).toHaveCount(0);
-  await expect(page.getByRole("status", { name: /REAL MATCHA 이미지/ })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /REAL MATCHA (이전|다음) 이미지/ })).toHaveCount(2);
+  await expect(page.getByRole("status", { name: "REAL MATCHA 이미지 1 / 3", exact: true })).toHaveText("1/3");
   await page.getByRole("button", { name: "템플릿 공유하기" }).click();
   await page.getByRole("button", { name: "링크 복사", exact: true }).click();
   assert.equal(await page.evaluate(() => navigator.clipboard.readText()), `${base}/templates/cafe_real_matcha_a`);
