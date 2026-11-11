@@ -110,7 +110,7 @@ test("tab purpose maps main views, independent sections, categories and states t
     assert.match(preview, new RegExp(`id="preview-${value}-panel" aria-labelledby="preview-${value}-tab"`));
   }
   assert.match(read("components/guides/UsageGuidePage.tsx"), /purpose="page"/);
-  assert.match(tabCss, /--site-tab-indicator-width: 2px;/);
+  assert.match(tabCss, /--site-tab-indicator-width: 3px;/);
   for (const cls of ["site-tab", "site-topic-tab", "site-area-tab"]) {
     assert.match(tabCss, new RegExp(`\\.${cls}:is\\(:focus-visible, \\[data-ui-state="focus"\\]\\)`));
   }
