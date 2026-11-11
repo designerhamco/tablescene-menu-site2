@@ -16,9 +16,10 @@ type HelpTooltipProps = {
   align?: ComponentProps<typeof PopoverContent>["align"];
   alignOffset?: ComponentProps<typeof PopoverContent>["alignOffset"];
   hover?: boolean;
+  layer?: "preview";
 };
 
-export default function HelpTooltip({ label, children, heading, tone = "light", trigger, side = "top", align = "start", alignOffset = 0, hover = false }: HelpTooltipProps) {
+export default function HelpTooltip({ label, children, heading, tone = "light", trigger, side = "top", align = "start", alignOffset = 0, hover = false, layer }: HelpTooltipProps) {
   const [open, setOpen] = useState(false);
   const openTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -33,7 +34,7 @@ export default function HelpTooltip({ label, children, heading, tone = "light", 
         {trigger ?? <Button type="button" variant="ghost" size="icon" iconSize="compact" aria-label={label}><CircleHelp size={20} aria-hidden="true" /></Button>}
       </PopoverTrigger>
       </span>
-      <PopoverContent aria-label={label} side={side} align={align} alignOffset={alignOffset} arrowPadding={TOOLTIP_ARROW_PADDING} sideOffset={8} collisionPadding={16} data-tooltip-tone={tone} data-dismissible={tone !== "light" || undefined} className="site-tooltip-surface site-help-content"
+      <PopoverContent data-tooltip-layer={layer} aria-label={label} side={side} align={align} alignOffset={alignOffset} arrowPadding={TOOLTIP_ARROW_PADDING} sideOffset={8} collisionPadding={16} data-tooltip-tone={tone} data-dismissible={tone !== "light" || undefined} className="site-tooltip-surface site-help-content"
         onPointerEnter={hover ? cancel : undefined} onPointerLeave={hover ? scheduleClose : undefined}
         onOpenAutoFocus={hover ? event => { if (hoverOpened.current) event.preventDefault(); } : undefined}
         onCloseAutoFocus={hover ? event => { if (hoverOpened.current) event.preventDefault(); } : undefined}

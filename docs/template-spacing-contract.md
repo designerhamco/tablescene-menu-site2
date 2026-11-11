@@ -162,6 +162,8 @@ Basic uses the existing horizontal rectangular Call button with its bright menu 
 
 ## Preview workspace and actual-screen guide — 2026-10-31 (current)
 
+Preview options follow docs/template-preview-display-options.md and docs/site-copy-audit.md: no always-visible introduction, experiment/save disclaimer or repeated label prose. Never restore user-deleted copy because its container is a panel. Non-obvious scope/disabled conditions use nearby shared InfoTooltip; the explicitly requested phone entry notice and actual-screen guide remain independent.
+
 Catalog and saved previews share the same presentation. Tablet/mobile mockups center against the entire browser page, with symmetric gutters only. The top toolbar and left options panel are fixed overlays: opening, closing or collapsing them never moves/resizes the canvas or reloads its iframe. Mockups fill the available canvas while preserving aspect ratio, capped at 1.25× on wide screens (landscape tablet including bezel up to1500×1050; phone up to512.5×1080). Tablet rotation is available to Basic and Dining, including explicit portrait URLs, under the current 2026-11-11 rule.
 
 PC has no bezel, round frame or shadow. At browser widths >=768px its iframe fills the whole browser viewport with scale1; options remain overlaid. This explicitly supersedes the fixed1440×900 source viewport for PC on larger browsers. On phones, preserve a1440×900 desktop layout and scale it to fit as a borderless overview, rather than switching the PC selection to a mobile layout. Keep tablet1180×820/820×1180 and phone390×844 source viewports, customer fonts/content/fit algorithms, and saved state independent.
