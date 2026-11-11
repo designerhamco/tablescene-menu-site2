@@ -9,6 +9,7 @@ await build({stdin:{contents:`export {catalogDesigns} from './lib/catalog-design
 const fixtures=await import(pathToFileURL(`${output}/fixtures.mjs`).href);
 const devices=[['pc',1440,900],['tablet',1180,820],['mobile',390,844]],cases=[];
 for(const design of fixtures.catalogDesigns)for(const locale of ['en','zh','ja'])for(const [device,width,height]of devices){
+ if(process.env.STARTER_QA_DESIGN&&design.id!==process.env.STARTER_QA_DESIGN)continue;
  if(process.env.STARTER_QA_SMOKE&&(design.kind!=='designer'||locale!=='ja'||device==='tablet'))continue;
  cases.push({design,locale,device,width,height});
 }
@@ -20,11 +21,14 @@ async function worker(){
  await page.route('**/*',route=>['GET','HEAD','OPTIONS'].includes(route.request().method())?route.continue():(writes.push(route.request().url()),route.abort()));
  try{
   const url=new URL(c.design.previewHref,base);for(const [key,value]of Object.entries({device:c.device,view:'actual',lang:c.locale,coverPreview:'off',orderPreview:'off',callPreview:'off'}))url.searchParams.set(key,value);
+  // Display opens on an image promotion by default; inspect its real full-menu page.
+  if(c.design.service==='display')url.searchParams.set('page','3');
   await page.goto(url.href,{waitUntil:'domcontentloaded'});await page.evaluate(()=>document.fonts.ready);
   await page.waitForFunction(()=>document.querySelector('.cafe-a-typography,.aube-table-root,[data-display-preview-controls-visible]'));
   await page.waitForTimeout(250);
   const localized=fixtures.applyStarterPreviewLocalization(fixtures.buildStarterPreviewData(c.design.templateKey,null,c.design.id),c.locale);
   const expected=new Set([...localized.items.map(item=>fixtures.getMenuItemBadgeLabel(item,c.locale)),...localized.timeSales.map(sale=>sale.badgeText)].filter(Boolean).map(text=>text.replace(/\s+/g,' ').trim().toUpperCase()));
+  if(expected.size&&c.design.service!=='dining')await page.waitForFunction(()=>[...document.querySelectorAll('.cafe-a-menu-badge,.cafe-a-featured-badge,.brew-chapter-menu-badge')].some(element=>{const r=element.getBoundingClientRect(),s=getComputedStyle(element);return r.width>0&&r.height>0&&s.visibility!=='hidden'&&!element.closest('[inert],[aria-hidden="true"]');}),null,{timeout:15000});
   const chips=await page.locator('.cafe-a-menu-badge,.cafe-a-featured-badge,.brew-chapter-menu-badge').evaluateAll(elements=>elements.filter(element=>{const r=element.getBoundingClientRect(),s=getComputedStyle(element);return r.width>0&&r.height>0&&s.visibility!=='hidden'&&!element.closest('[inert],[aria-hidden="true"]');}).map(element=>({text:element.textContent?.replace(/\s+/g,' ').trim(),soldOut:element.classList.contains('cafe-a-sold-out-chip')})));
   for(const chip of chips){assert.ok(!/[가-힣]/.test(chip.text),`Korean chip: ${chip.text}`);if(!chip.soldOut)assert.ok(expected.has(chip.text.toUpperCase()),`unexpected untranslated chip: ${chip.text}`);}
   const viewport=await page.evaluate(()=>[innerWidth,innerHeight]);assert.deepEqual(viewport,[c.width,c.height]);

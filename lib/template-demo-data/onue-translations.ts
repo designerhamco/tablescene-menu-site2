@@ -44,8 +44,8 @@ function buildCopy(locale: keyof typeof copy): SinglePageStarterLocaleCopy {
     categoryDescriptions: Object.fromEntries(categories.slice(0, 3).map((key, i) => [key, text.categoryDescriptions[i]])),
     items: Object.fromEntries(keys.map((key, i) => [key, { name: entries[locale][i][0], description: entries[locale][i][1] }])),
     promotions: {
-      "cheese-table-special": { badgeText: "TABLE SPECIAL" },
-      "panna-seasonal-special": { badgeText: "SEASONAL", timeDisplayText: ({ en: "Seasonal dessert special", zh: "季节甜品特价", ja: "季節のデザート特別価格" })[locale] },
+      "cheese-table-special": { badgeText: ({en:"TABLE SPECIAL",zh:"餐桌特惠",ja:"特別価格"})[locale] },
+      "panna-seasonal-special": { badgeText: ({en:"SEASONAL",zh:"季节限定",ja:"季節限定"})[locale], timeDisplayText: ({ en: "Seasonal dessert special", zh: "季节甜品特价", ja: "季節のデザート特別価格" })[locale] },
     },
   };
 }
