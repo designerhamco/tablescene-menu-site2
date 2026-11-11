@@ -421,3 +421,25 @@ test("pagination retains original borderless controls, selected-page surface and
   assert.match(tabCss, /\.site-pagination-control:hover:not\(:disabled\) \{ background: var\(--ui-surface-muted\);/);
   assert.match(tabCss, /\.site-pagination-control:disabled \{ opacity: .35;/);
 });
+
+
+test("multi-select counts preserve category names and keep reset controls outside the opening button", async () => {
+  const { MultiSelect } = await import("../app/components/ui/multi-select");
+  const options = [{ key: "red", label: "빨간색" }, { key: "blue", label: "파란색" }, { key: "green", label: "초록색" }];
+  for (const value of [[], ["red"], ["red", "blue", "green"]]) {
+    const markup = renderToStaticMarkup(createElement(MultiSelect, { label: "색상", icon: null, options, value, onValueChange: () => {} }));
+    assert.match(markup, /aria-label="색상"/);
+    assert.match(markup, /site-multiselect-label[^>]*[^]*?<span>색상<\/span>/);
+    const buttons = [...markup.matchAll(/<button\b[^>]*>([\s\S]*?)<\/button>/g)];
+    assert.equal(buttons.length, value.length ? 2 : 1);
+    for (const button of buttons) assert.doesNotMatch(button[1], /<button\b/);
+    if (value.length) {
+      assert.match(markup, /aria-label="색상 선택 해제"/);
+      assert.ok(markup.includes(`aria-hidden="true">${value.length}</span>`));
+      assert.ok(markup.includes(`${value.length}개 선택:`));
+    } else {
+      assert.doesNotMatch(markup, /site-multiselect-count/);
+      assert.match(markup, /선택 없음, 전체 결과/);
+    }
+  }
+});

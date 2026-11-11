@@ -1476,9 +1476,17 @@ svg.site-edit-icon {
 @media (prefers-reduced-motion: reduce) { .site-button-media { transition: none; } }
 
 /* Checkbox filter popovers share field geometry, native checks and surface tokens. */
-.site-multiselect-trigger { display: flex; align-items: center; gap: var(--site-space-copy); width: 100%; text-align: start; cursor: pointer; }
-.site-multiselect-trigger > span { min-width: 0; flex: 1; }
-.site-multiselect-trigger > svg:not(.site-select-chevron), .site-multiselect-option > svg { width: 1rem; height: 1rem; flex: none; }
+.site-multiselect-control { display: flex; align-items: center; gap: var(--site-space-copy); }
+.site-multiselect-trigger { position: absolute; inset: 0; width: 100%; height: 100%; padding: 0; border: 0; border-radius: inherit; background: transparent; cursor: pointer; }
+.site-multiselect-trigger:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+.site-multiselect-label { display: inline-flex; align-items: center; gap: var(--site-space-copy); min-width: 0; pointer-events: none; white-space: nowrap; }
+.site-multiselect-label > svg, .site-multiselect-option > svg { width: 1rem; height: 1rem; flex: none; }
+.site-multiselect-control > .site-select-chevron { pointer-events: none; }
+.site-multiselect-control:has(.site-multiselect-trigger[data-state="open"]) > .site-select-chevron { transform: rotate(180deg); }
+.site-chip.site-multiselect-count { position: relative; height: 1.5rem; padding-block: 0; padding-inline: var(--site-space-copy) 0; gap: 0; border-radius: var(--ui-radius-control); background: var(--ui-text); }
+.site-multiselect-count .site-button.site-button-icon { color: inherit; }
+.site-multiselect-count .site-button.site-button-icon:focus-visible { outline-offset: 0; }
+.site-multiselect-body { display: grid; gap: var(--site-space-copy); }
 [data-slot="popover-content"].site-multiselect-content { width: min(20rem, var(--radix-popover-content-available-width)); max-height: var(--radix-popover-content-available-height); overflow-y: auto; padding: var(--site-space-block); }
 .site-multiselect-options { display: grid; gap: var(--site-space-title-copy); }
 .site-multiselect-option { display: flex; align-items: center; min-height: var(--ui-control-height-md); gap: var(--site-space-copy); padding-inline: var(--site-space-copy); border-radius: var(--ui-radius-control-rounded); cursor: pointer; }
