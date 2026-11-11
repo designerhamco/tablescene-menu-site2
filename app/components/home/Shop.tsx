@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight } from "@/app/components/ui/site-arrow";
 import { Link } from 'react-router';
 
 const PRODUCTS = [

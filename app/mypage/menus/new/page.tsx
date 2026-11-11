@@ -1,3 +1,4 @@
+import { ArrowLeft } from "@/app/components/ui/site-arrow";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -42,7 +43,7 @@ export default async function NewMenuSitePage({
         <div className="mx-auto w-full max-w-[var(--site-content-width)]">
           <div className="flex w-full max-w-3xl flex-col">
             <Link href="/mypage?tab=menus" className="w-fit text-copy font-medium text-zinc-500 transition-colors hover:text-zinc-950">
-              ← 마이페이지로 돌아가기
+              <ArrowLeft size={16} className="inline-block align-text-bottom" aria-hidden="true" /> 마이페이지로 돌아가기
             </Link>
 
             <div className="site-card mt-6 p-6 sm:p-8 lg:p-10">

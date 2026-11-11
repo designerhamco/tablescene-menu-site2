@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "@/app/components/ui/site-arrow";
 import useEmblaCarousel from "embla-carousel-react";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent } from "react";
 import { Button } from "./button";

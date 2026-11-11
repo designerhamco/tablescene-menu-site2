@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink } from "lucide-react";
+import { ArrowUpRight as ExternalLink } from "@/app/components/ui/site-arrow";
 
 /** A normal browser tab keeps browser zoom available before optional fullscreen. */
 export default function PreviewActualView({ href, tabIndex }: { href: string; tabIndex?: number }) {

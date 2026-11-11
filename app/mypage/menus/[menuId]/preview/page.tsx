@@ -1,3 +1,4 @@
+import { ArrowLeft } from "@/app/components/ui/site-arrow";
 import { buildSavedMenuPreview } from "@/lib/saved-menu-preview";
 import { buildInteractivePreviewConfig } from "@/lib/preview-order-config";
 import type { Metadata } from "next";
@@ -79,7 +80,7 @@ function LockedMenuPreview({ menuId, accessState }: { menuId: string; accessStat
     <main className="site-management-scope site-gutter site-page-spacing-compact min-h-screen bg-white text-zinc-950">
       <section className="mx-auto flex min-h-[70vh] w-full max-w-2xl flex-col justify-center">
         <Link href="/mypage?tab=menus&menuTab=deleted" className="mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950">
-          ← 메뉴판 목록으로
+          <ArrowLeft size={16} className="inline-block align-text-bottom" aria-hidden="true" /> 메뉴판 목록으로
         </Link>
         <div className="site-card p-6 sm:p-8">
           <Badge>미리보기 제한</Badge>

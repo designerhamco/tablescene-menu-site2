@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp } from "@/app/components/ui/site-arrow";
 import AiSupportChatLauncher from '@/app/support/chat/AiSupportChatLauncher';
 
 const ScrollToTop = () => {

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/app/components/ui/site-arrow";
 import { buttonVariants } from "@/app/components/ui/button";
 import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import Footer from "@/app/components/layout/Footer";

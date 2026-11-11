@@ -3,7 +3,7 @@
 import { useEffect, useOptimistic, useRef, useState, useSyncExternalStore, useTransition, type CSSProperties } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "@/app/components/ui/site-arrow";
 import PreviewActualView from "./PreviewActualView";
 import { usePreviewRenderedDesign } from "./usePreviewRenderedDesign";
 

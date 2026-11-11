@@ -1230,7 +1230,7 @@ textarea.site-field,
 .site-preview-choice { background: rgb(255 255 255 / 10%); }
 @media (prefers-reduced-motion: reduce) { .site-preview-control { transition: none; } }
 
-/* Site selects share one16px / 2.25 stroke chevron and a12px trailing inset.
+/* Site selects share the sculpted filled SVG chevron at16px and a12px trailing inset.
    Preserve native form/keyboard behavior; multi-select/listboxes have no arrow. */
 :root { --site-select-chevron-size: 1rem; --site-select-chevron-inset: .75rem; --site-select-trailing-space: 2.5rem; --ui-multiselect-count-gap: 1rem; }
 @media (min-width: 768px) { :root { --site-select-trailing-space: 2.25rem; --ui-multiselect-count-gap: .5rem; } }
@@ -1239,7 +1239,7 @@ select:not([multiple]):is(:not([size]), [size="1"]):not(:where(.menu-typography,
   min-width: 0;
   max-width: 100%;
   padding-inline-end: var(--site-select-trailing-space);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234b515b' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("/icons/site-chevron-down.svg");
   background-repeat: no-repeat;
   background-position: right var(--site-select-chevron-inset) center;
   background-size: var(--site-select-chevron-size);

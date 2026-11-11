@@ -1,3 +1,4 @@
+import { SiteArrow } from "@/app/components/ui/site-arrow";
 import type { SVGProps } from "react";
 
 export type IconName =
@@ -23,14 +24,11 @@ export type IconName =
   | "x"
   | "message";
 
-const paths: Record<IconName, string[]> = {
-  arrowRight: ["M5 12h14", "m12 5 7 7-7 7"],
-  arrowUpRight: ["M7 17 17 7", "M7 7h10v10"],
+const paths: Record<Exclude<IconName, "arrowRight" | "arrowUpRight" | "chevronRight">, string[]> = {
   bell: ["M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9", "M13.73 21a2 2 0 0 1-3.46 0"],
   camera: ["M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3.5z", "M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8"],
   cart: ["M6 6h15l-1.5 9h-12z", "M6 6 5 3H2", "M9 21a1 1 0 1 0 0-2 1 1 0 0 0 0 2", "M18 21a1 1 0 1 0 0-2 1 1 0 0 0 0 2"],
   check: ["M20 6 9 17l-5-5"],
-  chevronRight: ["m9 18 6-6-6-6"],
   creditCard: ["M3 7h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z", "M3 10h18"],
   layout: ["M4 5h16v14H4z", "M4 10h16", "M10 10v9"],
   menu: ["M4 6h16", "M4 12h16", "M4 18h16"],
@@ -52,6 +50,9 @@ export function Icon({
   className,
   ...props
 }: SVGProps<SVGSVGElement> & { name: IconName }) {
+  if (name === "arrowRight" || name === "arrowUpRight" || name === "chevronRight") {
+    return <SiteArrow {...props} direction={name === "arrowUpRight" ? "up-right" : "right"} kind={name === "chevronRight" ? "chevron" : "shaft"} className={className} />;
+  }
   return (
     <svg
       viewBox="0 0 24 24"

@@ -11,7 +11,8 @@ import {
 import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
 import AutoScroll from "embla-carousel-auto-scroll";
-import { ArrowLeft, ArrowRight, Pause, Play } from "lucide-react";
+import { Pause, Play } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "@/app/components/ui/site-arrow";
 import { useInView } from "motion/react";
 import { getMenuPreviewFrame } from "@/lib/menu-preview-devices";
 import styles from "./TabletTemplateCarousel.module.css";

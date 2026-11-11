@@ -1,4 +1,5 @@
 "use client";
+import { ArrowUp, ArrowDown, ChevronUp, ChevronDown } from "@/app/components/ui/site-arrow";
 import { getEffectiveWidgetPlacement, orderWidgetContentBlocks } from "@/lib/menu-widget-placement";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactNode } from "react";
@@ -2786,7 +2787,7 @@ function MenuCategoryForm({
                       className="site-button site-button-outline"
                       aria-label={`${column.label || `컬럼 ${index + 1}`} 위로 이동`}
                     >
-                      ↑
+                      <ArrowUp size={16} className="inline-block align-text-bottom" aria-hidden="true" />
                     </button>
                     <button
                       type="button"
@@ -2795,7 +2796,7 @@ function MenuCategoryForm({
                       className="site-button site-button-outline"
                       aria-label={`${column.label || `컬럼 ${index + 1}`} 아래로 이동`}
                     >
-                      ↓
+                      <ArrowDown size={16} className="inline-block align-text-bottom" aria-hidden="true" />
                     </button>
                     <button
                       type="button"
@@ -8935,7 +8936,7 @@ export default function MenuManagementSection({
                             aria-expanded={pageExpanded}
                             aria-label={pageExpanded ? "페이지 접기" : "페이지 펼치기"}
                           >
-                            {pageExpanded ? "⌃" : "⌄"}
+                            {pageExpanded ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
                           </button>
                         )}
                       </div>}
@@ -9041,7 +9042,7 @@ export default function MenuManagementSection({
                                     aria-expanded={categoryExpanded}
                                     aria-label={categoryExpanded ? `${labels.categoryLabel} 접기` : `${labels.categoryLabel} 펼치기`}
                                   >
-                                    {categoryExpanded ? "⌃" : "⌄"}
+                                    {categoryExpanded ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
                                   </button>
                                 )}
                               </div>
@@ -9112,7 +9113,7 @@ export default function MenuManagementSection({
                 title="위로 이동"
                 className="site-button site-button-outline inline-flex items-center justify-center site-button-icon"
               >
-                ↑
+                <ArrowUp size={16} className="inline-block align-text-bottom" aria-hidden="true" />
               </button>
               <button
                 type="button"
@@ -9122,7 +9123,7 @@ export default function MenuManagementSection({
                 title="아래로 이동"
                 className="site-button site-button-outline inline-flex items-center justify-center site-button-icon"
               >
-                ↓
+                <ArrowDown size={16} className="inline-block align-text-bottom" aria-hidden="true" />
               </button>
             </div>
           </aside>

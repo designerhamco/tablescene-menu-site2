@@ -2,11 +2,8 @@
 
 import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
-import {
-  CheckIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-} from "lucide-react";
+import { CheckIcon } from "lucide-react";
+import { ChevronDownIcon, ChevronUpIcon } from "@/app/components/ui/site-arrow";
 
 import { cn } from "./utils";
 
@@ -52,7 +49,7 @@ function SelectTrigger({
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="site-select-chevron" size={20} strokeWidth={2.25} aria-hidden="true" />
+        <ChevronDownIcon className="site-select-chevron" size={20} aria-hidden="true" />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );

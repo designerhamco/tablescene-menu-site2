@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp } from "@/app/components/ui/site-arrow";
 
 export function ContentList({ label, children }: { label: string; children: ReactNode }) {
   return <ul className="site-content-list" aria-label={label}>{children}</ul>;

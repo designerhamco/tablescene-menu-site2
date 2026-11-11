@@ -1,9 +1,6 @@
 import * as React from "react";
-import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  MoreHorizontalIcon,
-} from "lucide-react";
+import { MoreHorizontalIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon } from "@/app/components/ui/site-arrow";
 
 import { cn } from "./utils";
 import { Button, buttonVariants } from "./button";

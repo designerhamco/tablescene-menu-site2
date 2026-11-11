@@ -1,6 +1,7 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp } from "@/app/components/ui/site-arrow";
 import { useActionState, useState } from "react";
 
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";

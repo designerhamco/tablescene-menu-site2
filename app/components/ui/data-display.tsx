@@ -1,6 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "@/app/components/ui/site-arrow";
 import { cn } from "./utils";
 
 export function MetricCard({ label, value, detail, icon, tone = "neutral", href, surface = "default", footer, status, variant = "metric" }: {

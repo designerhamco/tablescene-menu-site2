@@ -2,7 +2,7 @@
 
 import { LoadingState } from "@/app/components/ui/loading-state";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@/app/components/ui/site-arrow";
 import { useEffect, useRef, useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
 import { SupportChatIcon, SupportSparkleIcon } from "@/app/components/ui/support-chat-icon";

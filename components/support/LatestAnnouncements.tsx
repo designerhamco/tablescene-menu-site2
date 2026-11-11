@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { LoadingState } from "@/app/components/ui/loading-state";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/app/components/ui/site-arrow";
 import { ContentList, ContentListItem } from "@/app/components/ui/content-list";
 import { ANNOUNCEMENT_PREVIEW_SIZE, formatAnnouncementDate, getAnnouncementCategory, type AnnouncementSummary } from "@/lib/announcements";
 import styles from "./support.module.css";

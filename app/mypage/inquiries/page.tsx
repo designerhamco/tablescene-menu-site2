@@ -1,3 +1,4 @@
+import { ArrowLeft } from "@/app/components/ui/site-arrow";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -88,7 +89,7 @@ export default async function InquiriesPage({ searchParams }: { searchParams: Se
           <header className="mb-10 flex flex-col justify-between gap-6 border-b border-zinc-200 pb-8 md:flex-row md:items-end">
             <div>
               <Link href="/mypage?tab=inquiries" className="type-label mb-6 inline-block text-zinc-400 hover:text-zinc-950">
-                ← 마이페이지 문의 내역
+                <ArrowLeft size={16} className="inline-block align-text-bottom" aria-hidden="true" /> 마이페이지 문의 내역
               </Link>
               <h1 className="type-page-title">문의하기</h1>
             </div>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useId, useRef, type ReactNode } from "react";
-import { ChevronDown, X } from "lucide-react";
+import { X } from "lucide-react";
+import { ChevronDown } from "@/app/components/ui/site-arrow";
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "./popover";
 import { Button } from "./button";
 import { Badge } from "./badge";
@@ -73,7 +74,7 @@ export function MultiSelect<T extends string>({ label, icon, options, value, onV
           <button ref={triggerRef} type="button" className="site-multiselect-trigger" aria-label={label} aria-describedby={summaryId} />
         </PopoverTrigger>
         {title}{count}
-        <ChevronDown className="site-select-chevron" size={20} strokeWidth={2.25} aria-hidden="true" />
+        <ChevronDown className="site-select-chevron" size={20} aria-hidden="true" />
       </div>
     </PopoverAnchor>
     {summary}
