@@ -49,7 +49,7 @@ try{
    }
    if(device==='pc'&&!cover){
     const description=page.locator('[data-basic-top-row] .cafe-a-store-description');const original=await description.textContent();
-    await description.evaluate((el,text)=>el.textContent=text.repeat(4),original);await page.waitForTimeout(250);
+    await description.evaluate((el,text)=>el.textContent=text.repeat(8),original);await page.waitForTimeout(250);
     const expanded=await geometry(page);assert.ok(expanded.height>before.height,'real long description can still grow header');
     await trigger.click();await popupFits(page);await page.waitForTimeout(200);unchanged(expanded,await geometry(page),'long-copy popup');await page.keyboard.press('Escape');
     await description.evaluate((el,text)=>el.textContent=text,original);await page.waitForTimeout(250);unchanged(before,await geometry(page),'restored copy');

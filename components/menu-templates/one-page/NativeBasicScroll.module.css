@@ -55,12 +55,17 @@
 .board[data-native-shell="brand_top_band"] { grid-template-rows: minmax(max(2.75rem, var(--cafe-a-header-copy-height, 0px)), var(--cafe-a-header-fr, 8fr)) minmax(0, var(--cafe-a-body-fr, 92fr)); row-gap: calc(var(--native-gap) * var(--cafe-a-header-gap-scale, 1)); }
 .header { grid-column: 1 / -1; position: relative; min-height: 0; }
 .board .header :global(.cafe-a-topline-info-header) { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: var(--native-gap); width: 100%; height: 100%; min-height: 0; }
-.headerLanguage { position: absolute; top: 0; left: 0; z-index: 5; }
-.board .header :global(.cafe-a-topline-description) { padding-top: 2.75rem; }
+.headerLanguage { position: absolute; top: 0; right: 0; z-index: 5; }
+.board .header :global(.cafe-a-topline-description) { padding-top: 0; }
+.board .header :global(.cafe-a-topline-notices) { padding-inline-end: 3.5rem; box-sizing: border-box; }
 .board[data-native-shell="brand_top_band"] > .brand, .board[data-native-shell="brand_top_band"] > .menuPanel { grid-row: 2; }
 .board[data-native-shell="brand_top_band"]:has(.brand:empty) { grid-template-columns: minmax(0, 1fr); }
 .board[data-native-shell="brand_top_band"]:has(.brand:empty) > .brand { display: none; }
 .board .brand :global(.cafe-a-topline-featured-slot) { display: flex !important; flex-direction: column; height: 100%; }
+/* Top-row photos fill the remaining-height rail, just like neutral top rows.
+   Legacy Mocha contain fitting belongs to its independent mobile composition. */
+.board.board[data-native-shell="brand_top_band"] .brand :global(.cafe-a-cover-hero) { margin: 0; }
+.board.board[data-native-shell="brand_top_band"] .brand :global(.cafe-a-cover-hero [data-cafe-a-cover-image]) { object-fit: cover; }
 /* One shared scroll surface straddles the fixed central panel. Neither track
    is independently scrolled, and keyboard reading order remains contiguous. */
 .board[data-native-shell="brand_center_column"] {
@@ -128,7 +133,7 @@
 .board[data-native-shell="brand_left_rail"] .brand :global(.cafe-a-fixed-rail) { padding: 0 !important; }
 .board[data-representative-panel="true"][data-native-shell="brand_top_band"] { padding: 0 0 var(--native-gap); }
 .board[data-representative-panel="true"][data-native-shell="brand_top_band"] > .header { padding: var(--native-gap); background: var(--menu-design-aux-bg); box-sizing: border-box; }
-.board[data-representative-panel="true"][data-native-shell="brand_top_band"] .headerLanguage { top: var(--native-gap); left: var(--native-gap); }
+.board[data-representative-panel="true"][data-native-shell="brand_top_band"] .headerLanguage { top: var(--native-gap); right: var(--native-gap); }
 .board[data-representative-panel="true"][data-native-shell="brand_top_band"] > .brand { margin-left: var(--native-gap); }
 .board[data-representative-panel="true"][data-native-shell="brand_top_band"] > .menuPanel { margin-right: var(--native-gap); }
 .board[data-representative-panel="true"][data-native-shell="brand_top_band"]:has(.brand:empty) > .menuPanel { margin-inline: var(--native-gap); }
@@ -168,9 +173,8 @@
 .board .header[data-basic-header-align="left"] :global(.cafe-a-store-title) { text-align: left !important; }
 .board .header[data-basic-header-align="left"] :global(.cafe-a-store-logo-wrap) { place-items: center start; justify-content: flex-start !important; }
 .board .header[data-basic-header-align="left"] :global(.cafe-a-store-logo) { margin-inline: 0 auto !important; object-position: left center !important; }
-.board .header[data-basic-header-align="left"] :global(.cafe-a-topline-description-panel) { grid-column: 3; grid-row: 1; display: flex; align-items: center; justify-content: flex-end; gap: .75rem; overflow: visible; text-align: right; }
+.board .header[data-basic-header-align="left"] :global(.cafe-a-topline-description-panel) { grid-column: 3; grid-row: 1; display: flex; align-items: center; justify-content: flex-end; gap: .75rem; overflow: visible; text-align: right; padding-inline-end: 3.5rem; box-sizing: border-box; }
 .board .header[data-basic-header-align="left"] :global(.cafe-a-topline-description) { padding-top: 0; text-align: right !important; }
-.board .header[data-basic-header-align="left"] :global([data-template-language-control]) { flex: none; position: relative; z-index: 5; }
 
 /* Equal panel workspaces reserve one consistent service-action inset. */
 .board.board[data-native-shell="brand_panel_flow"] .actions { padding: var(--basic-panel-action-inset); box-sizing: border-box; }
