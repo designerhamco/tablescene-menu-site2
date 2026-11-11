@@ -2,6 +2,17 @@
 
 # 아티메뉴 공식 사이트 디자인 시스템
 
+## 화살표 SVG (2026-11-11)
+
+공식 사이트는 `app/components/ui/site-arrow.tsx`의 공통 SVG를 사용한다. `/design-system#site-arrows`에서 실제 예시를 확인한다. 정본은 `lib/site-arrow.ts`다.
+
+- 일반·대각선·꺾임·U턴·양방향은 승인된 곡선 머리, 단일/이중 꺾쇠는 안쪽이 파인 채움형을 유지한다.
+- 원형 새로고침·초기화는16px에서 선 세 갈래의 급한 miter 접합이 뾰족하게 튀거나 뭉치지 않도록 반지름7의 원호와 별도 채움형 머리(`SITE_CIRCULAR_ARROW_HEADS`)를 사용한다. 머리는 `currentColor`, stroke 없음이며 안쪽 곡선으로 기존 조형 계열을 잇는다.
+- SVG24px 그리드와 기존 호출 크기, 색, 클릭 영역, 포커스, 로딩 회전, 비활성 상태와 행동을 유지한다. 새 화면에 별도 Lucide 방향 화살표·문자형 조작 화살표·로컬 변형을 추가하지 않는다.
+- 네이티브 select는 동일 꺾쇠의 `public/icons/site-chevron-down.svg`를 사용한다. 기존 gutter와 강제 색상 모드, 메뉴판 제외 selector를 유지한다.
+- `components/menu-templates`·`components/public-menu`의 고객 메뉴판 디자인·언어·페이지 이동·주문/호출은 별도 경계다. 툴팁 꼬리, 재생 삼각형, 기기 회전 안내도 교체 대상에서 제외한다.
+
+
 ## 최종 폰트 기준 우선 적용
 
 글자 크기의 현재 기준은 [최종 사이트 폰트 기준](site-typography-final.md)이다. 이전 기록의 40–60px 제목이나 fluid 글자 크기보다 이 기준이 우선한다.

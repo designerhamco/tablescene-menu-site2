@@ -1,5 +1,5 @@
 import type { SVGProps } from "react";
-import { SITE_ARROW_PATHS, SITE_ARROW_ROTATION, type SiteArrowDirection, type SiteArrowKind } from "@/lib/site-arrow";
+import { SITE_ARROW_PATHS, SITE_ARROW_ROTATION, SITE_CIRCULAR_ARROW_HEADS, type SiteArrowDirection, type SiteArrowKind } from "@/lib/site-arrow";
 
 export type SiteArrowProps = SVGProps<SVGSVGElement> & {
   size?: number | string;
@@ -13,12 +13,14 @@ export type SiteArrowProps = SVGProps<SVGSVGElement> & {
  */
 export function SiteArrow({ size = 24, direction = "right", kind = "shaft", mirrored = false, strokeWidth = 2, children, ...props }: SiteArrowProps) {
   const filled = kind === "chevron" || kind === "double-chevron";
+  const circularHead = kind === "refresh" || kind === "rotate" ? SITE_CIRCULAR_ARROW_HEADS[kind] : null;
   return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none"
     aria-hidden="true" focusable="false" data-site-arrow={kind} data-direction={direction} {...props}>
     <g transform={`rotate(${SITE_ARROW_ROTATION[direction]} 12 12)`}>
       <path transform={mirrored ? "translate(0 24) scale(1 -1)" : undefined} d={SITE_ARROW_PATHS[kind]}
         fill={filled ? "currentColor" : "none"} stroke={filled ? "none" : "currentColor"}
         strokeWidth={strokeWidth} strokeLinecap="butt" strokeLinejoin="miter" />
+      {circularHead ? <path transform={mirrored ? "translate(0 24) scale(1 -1)" : undefined} d={circularHead} fill="currentColor" stroke="none" /> : null}
     </g>{children}
   </svg>;
 }
