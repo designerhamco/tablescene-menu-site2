@@ -8,6 +8,7 @@ import { resolvePreviewChipColors, type PreviewChipColors } from "@/lib/menu-pre
 import { REPRESENTATIVE_ALIGNMENTS } from "@/lib/menu-design-surfaces";
 import { getMenuTextColorGroups, getMenuTextColorLabel, resolvedMenuTextColors, type MenuTextColorGroup } from "@/lib/menu-text-colors";
 import { FontSelect } from "@/app/components/ui/font-select";
+import InfoTooltip from "@/components/ui/InfoTooltip";
 import ImageRadiusSelect from "./ImageRadiusSelect";
 import PreviewColorPicker from "./PreviewColorPicker";
 import styles from "./PreviewDesignOptions.module.css";
@@ -65,18 +66,17 @@ export default function PreviewDesignOptions({ value, defaults, renderedDesign, 
           <PreviewColorPicker label="배경색" accessibleLabel="일반 텍스트칩 배경색" value={value.chipColors?.generalBackground} defaultColor={defaults.chipColors.generalBackground} onChange={color => setChipColor("generalBackground", color)} disabled={disabled}/>
           <PreviewColorPicker label="글자색" accessibleLabel="일반 텍스트칩 글자색" value={value.chipColors?.generalText} defaultColor={chipColors.generalText ?? defaults.chipColors.generalText} onChange={color => setChipColor("generalText", color)} disabled={disabled}/>
         </div></fieldset>
-        <fieldset><legend>기간할인 텍스트칩</legend><div className={styles.colorGrid}>
+        <fieldset><legend>기간할인 텍스트칩<InfoTooltip layer="preview" label="기간할인 색상 적용 범위">배경색은 할인 안내와 남은 시간 문구에도 함께 적용됩니다.</InfoTooltip></legend><div className={styles.colorGrid}>
           <PreviewColorPicker label="배경색" accessibleLabel="기간할인 텍스트칩 배경색" value={value.chipColors?.saleBackground} defaultColor={defaults.chipColors.saleBackground} onChange={color => setChipColor("saleBackground", color)} disabled={disabled}/>
           <PreviewColorPicker label="글자색" accessibleLabel="기간할인 텍스트칩 글자색" value={value.chipColors?.saleText} defaultColor={chipColors.saleText ?? defaults.chipColors.saleText} onChange={color => setChipColor("saleText", color)} disabled={disabled}/>
-        </div><p className={styles.hint}>배경색은 할인 안내와 남은 시간 문구에도 함께 적용됩니다.</p></fieldset>
+        </div></fieldset>
       </div>
     </fieldset> : null}
-    {!dining ? <fieldset data-preview-representative-alignment><legend className={styles.legend}>가게명·가게 설명 정렬</legend>
+    {!dining ? <fieldset data-preview-representative-alignment><legend className={styles.legend}>가게명·가게 설명 정렬{alignmentDisabled ? <InfoTooltip layer="preview" label="정렬 변경 제한">상단행 고정형의 PC·태블릿에서는 템플릿에 정해진 정렬을 유지합니다.</InfoTooltip> : null}</legend>
       <label className={styles.option}><select aria-label="가게명·가게 설명 정렬" value={renderedDesign?.alignment.value ?? "current"} disabled={disabled || alignmentDisabled || !renderedDesign} className={styles.select} onChange={event => { if (REPRESENTATIVE_ALIGNMENTS.includes(event.target.value as PreviewDesign["representativeAlignment"] & string)) set({ representativeAlignment: event.target.value as PreviewDesign["representativeAlignment"] }); }}>
         {REPRESENTATIVE_ALIGNMENTS.map(align => <option key={align} value={align}>{{ left: "왼쪽 정렬", center: "가운데 정렬", right: "오른쪽 정렬" }[align]}</option>)}
         {(!renderedDesign || renderedDesign.alignment.value === "current") ? <option value="current">{renderedDesign?.alignment.label ?? "설정 확인 중"}</option> : null}
       </select></label>
-      {alignmentDisabled ? <p className={styles.hint}>상단행 고정형은 가게명 중앙·가게 설명 왼쪽 정렬을 유지합니다.</p> : null}
     </fieldset> : null}
     <fieldset data-preview-image-radii><legend className={styles.legend}>이미지·텍스트칩 라운드</legend>
       <label className={styles.option}><span>광고·{!dining ? "대표·" : ""}위젯·상품 이미지·텍스트칩</span><ImageRadiusSelect label="이미지·텍스트칩" selection={renderedDesign?.radius ?? {value:"current",label:"설정 확인 중"}} showTemplateOption={false} disabled={disabled || !renderedDesign} className={styles.select}

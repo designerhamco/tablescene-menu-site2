@@ -4,6 +4,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import MenuPreviewDeviceFrame from "../components/menu/MenuPreviewDeviceFrame";
+import PreviewDesignOptions from "../components/menu/PreviewDesignOptions";
 import { buildSavedMenuPreview } from "./saved-menu-preview";
 import { buildMenuPreviewUrl } from "./menu-preview-devices";
 import { serializePreviewDesign } from "./menu-preview-design";
@@ -79,12 +80,20 @@ test("customer preview omits the edit link and keeps shared viewing controls", (
   assert.doesNotMatch(html,/data-preview-edit-link|수정하기/);
 });
 
-test("catalog previews retain feature and design experiments with one shared explanation", () => {
+test("catalog previews keep controls without reintroducing deleted introductory prose", () => {
   const html=renderToStaticMarkup(createElement(AppRouterContext.Provider,{value:{push(){}} as never},createElement(MenuPreviewDeviceFrame,{templateKey:"cafe_design_a",device:"pc",orientation:"landscape",query:{},previewDesignDefaults:previewDesignDefaults(fixture())})));
   assert.match(html,/data-preview-options-panel/);
   assert.match(html,/기능 옵션/);assert.match(html,/디자인 옵션/);
-  assert.equal((html.match(/data-preview-experience-note/g)??[]).length,1);
-  assert.match(html,/보기·디자인 옵션을 바꿔 템플릿을 체험해 보세요./);
-  assert.match(html,/변경 내용은 미리보기에만 적용되며 저장되지 않습니다./);
+  assert.doesNotMatch(html,/data-preview-experience-note|체험해 보세요|미리보기에만 적용|저장되지 않습니다/);
   assert.match(html,/data-preview-call-toggle/);assert.match(html,/data-preview-order-toggle/);
+});
+
+
+test("preview design conditions stay in shared help instead of permanent paragraphs", () => {
+  const html=renderToStaticMarkup(createElement(PreviewDesignOptions,{value:{},defaults:previewDesignDefaults(fixture()),templateKey:"cafe_design_a",album:false,dining:false,disabled:false,alignmentDisabled:true,onChange(){}}));
+  assert.doesNotMatch(html,/<p[ >]|배경색은 할인 안내|템플릿에 정해진 정렬/);
+  assert.match(html,/aria-label="기간할인 색상 적용 범위"/);
+  assert.match(html,/aria-label="정렬 변경 제한"/);
+  assert.match(html,/디자인 초기화/);
+  assert.match(html,/aria-label="가게명·가게 설명 정렬"[^>]*disabled/);
 });
