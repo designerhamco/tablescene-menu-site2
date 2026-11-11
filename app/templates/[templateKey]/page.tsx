@@ -27,7 +27,9 @@ export default async function TemplateDetailPage({ params }: Props) {
   const info = getTemplateDetailInfo(template);
   const checkoutEnabled = !info.display || isDisplayCheckoutQaEnabled();
   const standard = template.categoryLabel === "기본 디자인";
-  const included = ["8가지 파워풀한 기능들", "마음대로 커스터마이징", "할인,광고,위젯과 주문 및 호출까지"];
+  const included = info.display
+    ? ["매장 TV·모니터용 메뉴보드", "화면별 메뉴 페이지 구성", "이미지·동영상 콘텐츠"]
+    : [info.multiPage ? "커버와 여러 페이지 메뉴 구성" : "대표 상품과 메뉴를 한 화면에", "매장에 맞춘 글꼴과 색상 설정", "할인·광고와 지원 디자인의 위젯"];
 
   return <>
     <OfficialSiteNavbar showQuickMenu={false} />

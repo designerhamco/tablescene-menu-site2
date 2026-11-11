@@ -60,8 +60,9 @@ test("mypage menu cards use the shared gallery layout on PC and tablet", () => {
 });
 
 test("billing filters use the current product names and do not expose a legacy trial filter", () => {
-  assert.match(billingPanelSource, /베이직·다이닝/);
-  assert.match(billingPanelSource, /아티메뉴 디스플레이/);
+  assert.match(billingPanelSource, /value: "basic", label: "베이직"/);
+  assert.match(billingPanelSource, /value: "dining", label: "다이닝"/);
+  assert.match(billingPanelSource, /value: "display", label: "디스플레이"/);
   assert.doesNotMatch(billingPanelSource, /value: "trial", label: "체험 결제"/);
   assert.match(billingPanelSource, /이전 체험 상품/);
 });

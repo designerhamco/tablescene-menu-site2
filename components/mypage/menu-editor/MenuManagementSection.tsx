@@ -8717,7 +8717,7 @@ export default function MenuManagementSection({
         </div>
 
         {isAubeTable && canManagePages ? (
-          <nav className="sticky top-16 z-20 -mx-2 mb-6 overflow-x-auto border-y border-zinc-100 bg-white px-2 py-3" aria-label="멀티페이지 메뉴 설정">
+          <nav className="sticky top-16 z-20 -mx-2 mb-6 overflow-x-auto border-y border-zinc-100 bg-white px-2 py-3" aria-label="다이닝 메뉴 설정">
             <div className="flex min-w-max items-center gap-2">
               <a
                 href={`/mypage/menus/${menuId}/edit?tab=cover`}

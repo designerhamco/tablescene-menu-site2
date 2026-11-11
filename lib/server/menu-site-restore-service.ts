@@ -173,7 +173,7 @@ function getReasonMessage(reasonCode: RestoreReasonCode) {
     case "SERVICE_TYPE_MISMATCH":
       return "보관 중인 메뉴판과 선택한 구독 상품의 서비스 유형이 일치하지 않습니다.";
     case "TEMPLATE_TIER_MISMATCH":
-      return "보관 중인 메뉴판과 같은 단일·멀티페이지 상품을 선택해주세요.";
+      return "보관 중인 메뉴판과 같은 서비스(베이직·다이닝)의 상품을 선택해주세요.";
     case "UNKNOWN_SERVICE_TYPE":
       return "메뉴판의 서비스 유형을 확인할 수 없습니다.";
     case "OK":
@@ -498,7 +498,7 @@ export async function validateRestorableMenuSiteForPayment({
   }
 
   if (serviceType === "basic" && !isDiningProductCompatibleWithTemplate(product.productKey, menuSite.template_key)) {
-    throw new MenuSiteRestorePreflightError("TEMPLATE_TIER_MISMATCH", "보관 중인 메뉴판과 같은 단일·멀티페이지 상품을 선택해주세요.", 409);
+    throw new MenuSiteRestorePreflightError("TEMPLATE_TIER_MISMATCH", "보관 중인 메뉴판과 같은 서비스(베이직·다이닝)의 상품을 선택해주세요.", 409);
   }
 
   return {
