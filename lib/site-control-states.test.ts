@@ -202,7 +202,7 @@ test("tab hierarchy keeps service navigation, embedded catalog lists and notific
   assert.doesNotMatch(catalog, /variant=\{product === "display" \? undefined : "contained"\}/);
   assert.match(catalog, /className="site-catalog-panel"/);
   assert.match(catalog, /distribution="equal" aria-label="템플릿 종류 선택"/);
-  assert.match(catalog, /site-catalog-surface[\s\S]*site-catalog-filters[\s\S]*<TemplatePagination/);
+  assert.match(catalog, /site-catalog-surface[\s\S]*site-catalog-filter-controls[\s\S]*<TemplatePagination/);
   const notification = read("app/components/ui/notification-panel.tsx");
   assert.match(notification, /<Tabs purpose="category"/);
   assert.doesNotMatch(notification, /variant="(?:folder|flow|contained)"/);
@@ -364,7 +364,7 @@ test("category capsules and room rectangles use separate shared roles without ch
     assert.doesNotMatch(read(path), /appearance="pills"/);
   }
   assert.match(read("components/mypage/floor-plan/FloorPlanEditor.tsx"), /shape="rounded" size="icon" onClick=\{addRoom\}/);
-  assert.match(read("components/apply/TemplateGallery.tsx"), /purpose="filter" size="compact"/);
+  assert.match(read("components/apply/TemplateGallery.tsx"), /<CatalogFilterSelect label="업종"/);
   assert.match(read("styles/site-spacing.css"), /\.site-room-tabs\[data-overflow-right="true"\]/);
 });
 
