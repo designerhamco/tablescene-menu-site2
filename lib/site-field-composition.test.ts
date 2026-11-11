@@ -68,7 +68,7 @@ test("calendar dates keep selected and disabled semantics independently of gener
 });
 
 
-test("dedicated search keeps one native submit action inside its capsule and supports server GET defaults", () => {
+test("dedicated search keeps one native submit action inside its shared field and supports server GET defaults", () => {
   const html = render(h("form", {method:"get",action:"/mypage/inquiries"}, h(SearchField,{label:"제목 검색",name:"inquiryQuery",defaultValue:"메뉴판!",submitLabel:"검색 실행",required:true,maxLength:100})));
   assert.match(html,/class="site-field site-input-group site-search-field"/);
   assert.match(html,/name="inquiryQuery"/);assert.match(html,/value="메뉴판!"/);assert.match(html,/required=""/);assert.match(html,/maxLength="100"/i);

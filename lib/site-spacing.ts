@@ -26,6 +26,9 @@ export const SITE_CONTENT_COMPOSITION = [
 
 /** Compact control internals; never reuse content-panel gaps for menu rows. */
 export const SITE_CONTROL_DENSITY = [
+  { role: "입력·선택·검색 모서리", value: "8px", token: "--ui-radius-field", rule: "일반 입력·네이티브/공통 셀렉트·복합 입력·검색이 같은 필드 모양을 공유" },
+  { role: "선택 라벨·개수 / 화살표 최소 여유", value: "PC·태블릿8 / 8px", token: "--ui-multiselect-count-gap / --site-select-trailing-space", rule: "768px 이상에서만 축소. 모바일 기존16 / 12px와 아코디언8px 유지" },
+  { role: "대표 검색 글자", value: "모바일16 / 태블릿·PC18px", token: "SearchField fieldSize=search / --site-type-16/18", rule: "FAQ 같은 대표 검색. 일반 도구 입력14px·터치16px와 구분" },
   { role: "검색·필터 도구 너비", value: "PC 검색 최대288px / 선택은 내용 기준", token: "FilterToolbar / --ui-filter-search-width", rule: "동일 그룹은 가장 넓은 컨트롤에 맞춘 같은 너비. 남는 폭을 채우지 않고 공간이 부족하면 줄바꿈" },
   { role: "일반 조작 글자", value: "14px", token: "--type-control-size", rule: "버튼·필드 라벨·드롭다운 내부 전용. 사이트 탐색·제목·본문은 제외하며 공통 와이드 보정 유지" },
   { role: "입력 글자", value: "14px / 터치16px", token: "--ui-field-font-size", rule: "본문 크기와 분리. 터치 환경은 입력 가독성 유지" },

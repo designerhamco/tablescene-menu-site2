@@ -10,7 +10,7 @@ type SearchValueProps = { value: string; onValueChange: (value: string) => void;
 type SearchFieldProps = Omit<ComponentProps<"input">, "type" | "value" | "defaultValue" | "onChange" | "size" | "className" | "style"> & SearchValueProps & {
   label: string;
   fieldSize?: InputGroupSize;
-  /** Dedicated search submits inside the capsule; combined filter forms keep their existing apply action. */
+  /** Dedicated search submits inside the field; combined filter forms keep their existing apply action. */
   submitLabel?: string;
 };
 
