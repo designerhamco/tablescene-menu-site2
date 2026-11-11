@@ -21,7 +21,7 @@ function declarations(selector: string) {
 test("indicator surfaces follow the actual component surface, including a white card in a gray page", () => {
   const icon = createElement("svg", { "data-example-glyph": true });
   const empty = renderToStaticMarkup(createElement(EmptyState, { icon, title: "테이블 없음", description: "등록해 주세요." }));
-  assert.match(empty, /class="site-empty-state-icon site-indicator-icon" data-icon-surface="colored"/);
+  assert.match(empty, /class="site-empty-state-icon site-indicator-icon" data-icon-surface="unpainted"/);
   for (const surface of ["default", "muted"] as const) {
     const html = renderToStaticMarkup(createElement("div", { className: "site-dashboard" },
       createElement(MetricCard, { icon, label: "운영 테이블", value: "0개", surface, tone: "green" })));
@@ -33,6 +33,9 @@ test("indicator surfaces follow the actual component surface, including a white 
 
 test("colored indicators remove the entire tile slot while white indicators retain their fills and dimensions", () => {
   const colored = declarations('.site-indicator-icon[data-icon-surface="colored"]');
+  assert.deepEqual(declarations('.site-indicator-icon[data-icon-surface="unpainted"]'), colored);
+  assert.equal(declarations(".site-empty-state").background, "transparent");
+  assert.equal(declarations(".site-empty-state").border, "0");
   assert.equal(colored.background, "transparent");
   assert.equal(colored.border, "0");
   assert.equal(colored["box-shadow"], "none");

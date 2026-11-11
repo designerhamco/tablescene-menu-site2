@@ -20,7 +20,7 @@ export default function IndicatorSurfaceExamples() {
         <p className="type-body-sm">{description}</p>
       </article>)}
     </div>
-    <EmptyState icon={<LayoutGrid />} title="아직 등록된 테이블이 없습니다." description="회색 빈 상태 영역에서는 흰 아이콘 바탕을 추가하지 않습니다." />
+    <EmptyState icon={<LayoutGrid />} title="아직 등록된 테이블이 없습니다." description="빈 상태는 배경과 테두리 없이 표시하며 아이콘에도 별도 타일을 추가하지 않습니다." />
     <div className={styles.heading}>
       <h3 className="type-content-title">회색 영역 안의 흰 카드</h3>
       <p className="type-body-sm text-zinc-600">페이지가 회색이어도 아이콘이 놓인 카드가 흰색이면 흰 영역 기준을 적용합니다. 아래 두 카드는 같은 현황 컴포넌트입니다.</p>

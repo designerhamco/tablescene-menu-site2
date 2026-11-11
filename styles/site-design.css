@@ -124,7 +124,7 @@
 .site-record-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; }
 .site-record-details > div { min-width: 0; }
 .site-supporting-note { border: 0; border-radius: .375rem; padding: .75rem 1rem; background: var(--ui-notice-surface); color: var(--ui-text); font-size: var(--type-body-sm-size); font-weight: var(--font-weight-medium); line-height: 1.6; }
-.site-empty-state { border-block: 1px solid var(--site-divider); background: var(--ui-surface-muted); }
+.site-empty-state { border: 0; background: transparent; }
 .site-detail-section { border-top: 1px solid var(--site-divider); padding-top: 1.5rem; }
 .site-account-layout { display: grid; gap: 1.5rem; align-items: start; }
 .site-account-sidebar { display: contents; }
@@ -379,7 +379,7 @@
 .site-catalog-access { display: flex; align-items: flex-start; gap: .375rem; color: var(--site-text-secondary); }
 .site-catalog-access svg { flex: none; }
 .site-catalog-panel { min-width: 0; width: 100%; }
-.site-catalog-surface { padding: clamp(1rem, 2vw, 1.5rem); border-radius: var(--ui-radius-panel); background: var(--ui-surface-muted); }
+.site-catalog-surface { padding: clamp(1rem, 2vw, 1.5rem); background: transparent; }
 .site-catalog-results { min-width: 0; }
 .site-catalog-search-row { display: flex; align-items: center; gap: var(--site-space-copy); width: 100%; }
 .site-catalog-search { flex: 1; min-width: 0; }
@@ -665,6 +665,7 @@
 /* Indicator icons follow the immediate surface, not the page canvas.
  * White surfaces keep their role-specific fills above. Colored surfaces keep
  * only the glyph's own dimensions and ink, with no invisible tile slot. */
+.site-indicator-icon[data-icon-surface="unpainted"],
 .site-indicator-icon[data-icon-surface="colored"],
 .site-notification-item:hover .site-indicator-icon {
   background: transparent;
@@ -672,6 +673,7 @@
   border-radius: 0;
   box-shadow: none;
 }
+.site-indicator-icon[data-icon-surface="unpainted"],
 .site-indicator-icon[data-icon-surface="colored"] {
   display: inline-flex;
   width: max-content;
@@ -685,6 +687,7 @@
   justify-content: center;
   flex: none;
 }
+.site-indicator-icon[data-icon-surface="unpainted"] > svg,
 .site-indicator-icon[data-icon-surface="colored"] > svg { display: block; }
 .site-notification-copy { display: grid; min-width: 0; flex: 1; gap: .375rem; }
 .site-notification-title { font-size: var(--type-body-size); font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }

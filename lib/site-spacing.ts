@@ -13,7 +13,7 @@ export const SITE_MOBILE_MAX_WIDTH = 767;
 
 /** Base px values are documentation data; CSS resolves rem and owns the layout. */
 export const SITE_CONTENT_COMPOSITION = [
-  { role: "작업 박스 안쪽", mobile: 20, wide: 24, owner: "ContentPanel", usage: "흰 작업 박스·회색 보조 영역" },
+  { role: "작업 박스 안쪽", mobile: 20, wide: 24, owner: "ContentPanel", usage: "관리 문맥에서 필요한 독립 작업·정보 패널" },
   { role: "조밀한 안내 안쪽", mobile: 16, wide: 16, owner: 'ContentPanel density="compact"', usage: "짧은 안내와 상태 피드백" },
   { role: "박스 안의 콘텐츠 묶음", mobile: 24, wide: 24, owner: "ContentPanel / site-stack-group", usage: "제목 그룹 → 폼 → 별도 행동 묶음" },
   { role: "제목과 설명", mobile: 12, wide: 12, owner: "site-stack-title", usage: "페이지 내부 섹션·박스 제목과 설명" },
