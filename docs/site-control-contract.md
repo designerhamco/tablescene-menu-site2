@@ -207,7 +207,7 @@ section의 추가 appearance=document는 흰 선택 면이 아래 기준선과 �
 
 ## 이미지 위의 이동 도구 (2026-11-11)
 
-`Button variant="media" size="icon"`은 사진 위 캐러셀에만 사용한다. 흰색 chevron과 미세한 SVG 그림자, 모든 상태의 투명한 면,24px 그림 자체 클릭 영역과 focus outline을 공통 `--ui-media-*` 토큰으로 관리한다. 한 장에는 도구와 장수 표시가 없다. 일반 secondary/outline 버튼의 경계 규칙은 그대로 유지한다. 상세 규격과 실제 사용 예시는 `site-design-system.md`의 등록 이미지 캐러셀을 따른다.
+`Button variant="media" size="icon"`은 사진 위 캐러셀에만 사용한다. 기본 흰색·hover 시 은은한 회색(`#d4d4d8`)으로150ms ease 전환하는 chevron과 미세한 SVG 그림자, 모든 상태의 투명한 면,24px 그림 자체 클릭 영역과 focus outline을 공통 `--ui-media-*` 토큰으로 관리한다. 한 장에는 도구와 장수 표시가 없다. 일반 secondary/outline 버튼의 경계 규칙은 그대로 유지한다. 상세 규격과 실제 사용 예시는 `site-design-system.md`의 등록 이미지 캐러셀을 따른다.
 
 ## 아이콘 도구의 기본값 (2026-11-11, 이전 원형·확장 클릭 영역 규칙 대체)
 
