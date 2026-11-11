@@ -1,3 +1,4 @@
+import { getCatalogFacets, normalizeCatalogSearch, type CatalogFacets, type CatalogMoodFilter, type CatalogColorFilter } from "./catalog-facets";
 import { DEFAULT_DESIGN_REVIEWS, MENU_LAYOUTS, getDefaultDesignReviewUrl } from './menu-design-policy';
 import { getDiningTemplateTier } from './dining-product-tiers';
 import { getMenuPlanMonthlyPrice } from './menu-plan-pricing';
@@ -15,7 +16,7 @@ export function normalizeCatalogLayoutFilter(value: unknown): CatalogLayoutFilte
   return value === 'list' || value === 'album' ? value : 'all';
 }
 export type CatalogImage = { src: string; label: string };
-export type CatalogDesign = {
+export type CatalogDesign = CatalogFacets & {
   id: string; name: string; description: string; service: CatalogService; kind: CatalogKind;
   templateKey: string; itemLayout: 'list' | 'album'; categories: TemplateCategoryKey[];
   categoryLabel: string; image: string; images: readonly CatalogImage[]; previewHref: string; detailHref: string; startHref: string;
@@ -47,7 +48,7 @@ const standardPreviewVersions: Readonly<Record<string, string>> = {
 };
 const standards: CatalogDesign[]=DEFAULT_DESIGN_REVIEWS.map(design=>{
   const service=MENU_LAYOUTS[design.layout].service;
-  return {id:design.id,name:`${MENU_LAYOUTS[design.layout].label} · ${design.itemLayout==='album'?'앨범형':'리스트형'}`,
+  return {...getCatalogFacets(design.renderer, "standard"),id:design.id,name:`${MENU_LAYOUTS[design.layout].label} · ${design.itemLayout==='album'?'앨범형':'리스트형'}`,
     description:design.itemLayout==='album'?'상품 사진을 중심으로 메뉴를 보여주는 기본 디자인입니다. 색상과 서체를 매장에 맞게 꾸며보세요.':'흰 배경과 검정 글자를 바탕으로 메뉴를 정갈하게 보여주는 기본 디자인입니다.',
     service,kind:'standard',templateKey:design.renderer,itemLayout:design.itemLayout,categories:[],categoryLabel:'기본 디자인',
     image:`/template-previews/default-${design.id}-${standardPreviewVersions[design.id] ?? "20261021"}.jpg`,
@@ -68,8 +69,10 @@ const catalogGalleries: Readonly<Partial<Record<string, readonly CatalogImage[]>
 const designers: CatalogDesign[]=templateCatalog.filter(t=>t.status==='available').map(t=>{
   const service=t.service==='display'?'display':getDiningTemplateTier(t.key)==='multi'?'dining':'basic';
   const route=getTemplatePreviewRouteKey(t.key);
+  const facets=getCatalogFacets(t.key,"designer");
+  const categories=facets.industries?[...facets.industries]:[...t.categories];
   const images=catalogGalleries[route]??[{src:catalogImages[route]??`/template-previews/${route}.jpg`,label:"메뉴판 디자인"}];
-  return {id:t.key,name:t.name,description:t.description,service,kind:'designer',templateKey:t.key,itemLayout:'list',categories:[...t.categories],categoryLabel:getCatalogIndustryLabel(t.categories,t.categoryLabel),
+  return {...facets,id:t.key,name:t.name,description:t.description,service,kind:'designer',templateKey:t.key,itemLayout:'list',categories,categoryLabel:getCatalogIndustryLabel(categories,t.categoryLabel),
     image:images[0].src,images,previewHref:`/templates/${route}/preview`,detailHref:`/templates/${route}`,startHref:getCatalogStartHref(service,t.key,t.key)};
 });
 export const catalogDesigns: readonly CatalogDesign[]=[...standards,...designers];
@@ -77,11 +80,17 @@ export function getCatalogDesign(id: unknown) {
   if(typeof id!=='string')return null;
   return catalogDesigns.find(d=>d.id===id||d.detailHref===`/templates/${id}`)??null;
 }
-export function filterCatalogDesigns(service:CatalogService,kind:CatalogKind,filter='all',layout:CatalogLayoutFilter='all') {
+export function filterCatalogDesigns(service:CatalogService,kind:CatalogKind,filter='all',layout:CatalogLayoutFilter='all', facets: { mood?: CatalogMoodFilter; color?: CatalogColorFilter; query?: string } = {}) {
+  const search = normalizeCatalogSearch(facets.query);
   return catalogDesigns.filter(d=>d.service===service&&(service==='display'||d.kind===kind)).filter(d=>{
     if(filter==='all')return true;
-    if(kind==='standard')return d.itemLayout===filter;
+    // Retain old standard-design links such as filter=album.
+    if(kind==='standard'&&(filter==='list'||filter==='album'))return d.itemLayout===filter;
     const industry=CATALOG_INDUSTRIES.find(i=>i.key===filter);
-    return industry?.categories.some(c=>d.categories.includes(c as TemplateCategoryKey))??false;
-  }).filter(design => layout === 'all' || design.itemLayout === layout);
+    return industry ? d.kind==='standard'||industry.categories.some(c=>d.categories.includes(c as TemplateCategoryKey)) : false;
+  })
+    .filter(design => layout === 'all' || design.itemLayout === layout)
+    .filter(design => !facets.mood || facets.mood === 'all' || design.moods.includes(facets.mood))
+    .filter(design => !facets.color || facets.color === 'all' || design.colors.includes(facets.color))
+    .filter(design => !search || [design.name, ...(design.searchNames ?? [])].some(name => normalizeCatalogSearch(name).includes(search)));
 }
