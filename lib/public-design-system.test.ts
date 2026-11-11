@@ -131,7 +131,7 @@ test("주요 공개 페이지는 표준 페이지 타이틀을 사용한다", ()
   assert.doesNotMatch(privacySource, /text-5xl/);
 });
 
-test("사이트 UI는 의미 기반 타이포 역할과 Pretendard 기본 서체를 사용한다", () => {
+test("사이트 UI는 의미 기반 타이포 역할과 영문 Tenor Sans·한글 Pretendard를 사용한다", () => {
   for (const role of [
     "type-display",
     "type-page-title",
@@ -148,7 +148,7 @@ test("사이트 UI는 의미 기반 타이포 역할과 Pretendard 기본 서체
     assert.match(typographySource, new RegExp(`\\.${role}`));
   }
 
-  assert.match(typographySource, /--font-family-site:\s*"Pretendard",\s*"Noto Sans KR"/);
+  assert.match(typographySource, /--font-family-site:\s*"Tenor Sans",\s*"Pretendard",\s*"Noto Sans KR"/);
   assert.doesNotMatch(typographySource, /Outfit/);
   assert.doesNotMatch(themeSource, /Global Typography Scale/);
   assert.doesNotMatch(themeSource, /h1\s*\{[\s\S]*@apply text-4xl/);

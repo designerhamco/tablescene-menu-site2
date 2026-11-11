@@ -1,5 +1,5 @@
 :root {
-  --font-family-site: "Pretendard", "Noto Sans KR", system-ui, sans-serif;
+  --font-family-site: "Tenor Sans", "Pretendard", "Noto Sans KR", system-ui, sans-serif;
 
   /* Approved foundation scale used by Tailwind text utilities in site UI. */
   --font-size-100: 0.75rem;

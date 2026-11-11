@@ -1,3 +1,5 @@
+.shell[data-surface="dining"] { background: var(--site-dining-background); }
+
 .page {
   background: var(--ui-bg, #fff);
   color: var(--ui-text, #15181e);
