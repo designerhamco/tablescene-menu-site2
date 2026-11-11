@@ -1,6 +1,6 @@
 "use client";
 import { useState, type ReactNode } from "react";
-import { Bell, CreditCard, MessageCircle } from "lucide-react";
+import { Bell, CreditCard, MessageCircle } from "@/app/components/ui/site-icon";
 import {
   Tabs,
   TabsContent,

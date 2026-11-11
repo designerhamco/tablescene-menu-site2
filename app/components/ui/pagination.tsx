@@ -1,5 +1,5 @@
 import * as React from "react";
-import { MoreHorizontalIcon } from "lucide-react";
+import { MoreHorizontalIcon } from "@/app/components/ui/site-icon";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/app/components/ui/site-arrow";
 
 import { cn } from "./utils";

@@ -1,6 +1,6 @@
 import { SearchField } from "@/app/components/ui/search-field";
 import { EmptyState } from "@/app/components/ui/empty-state";
-import { MessageSquare } from "lucide-react";
+import { MessageSquare } from "@/app/components/ui/site-icon";
 import Link from "next/link";
 
 import { createInquiryAction, deleteInquiryAction, updateInquiryAction } from "@/app/mypage/inquiries/actions";

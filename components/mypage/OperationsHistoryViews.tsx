@@ -8,7 +8,7 @@ import {ViewStyleSelect} from "@/app/components/ui/view-style-select";
 import {RoomLabel} from "@/app/components/ui/room-label";
 import {useOperationsView} from "./OperationsViewLayout";
 import { useState, type ReactNode } from "react";
-import { Armchair, Monitor } from "lucide-react";
+import { Armchair, Monitor } from "@/app/components/ui/site-icon";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import {
   FloorPlanCanvas,

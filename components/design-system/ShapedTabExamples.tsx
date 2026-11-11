@@ -1,4 +1,4 @@
-import { PanelsTopLeft, Rows3, Plus } from "lucide-react";
+import { PanelsTopLeft, Rows3, Plus } from "@/app/components/ui/site-icon";
 import { Tabs, TabsContent, TabsList, TabsTrigger, TabsAction } from "@/app/components/ui/tabs";
 import HintBubble from "@/components/ui/HintBubble";
 import styles from "./SiteComponentGallery.module.css";

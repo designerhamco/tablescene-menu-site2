@@ -1,4 +1,4 @@
-import { Minus, MoreVertical, Plus } from "lucide-react";
+import { Minus, MoreVertical, Plus } from "@/app/components/ui/site-icon";
 
 export default function BrowserZoomGuide() {
   return (

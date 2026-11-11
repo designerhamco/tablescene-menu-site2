@@ -1,7 +1,7 @@
 import {SectionHeader} from "@/app/components/ui/section-header";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bell, LayoutGrid, ShoppingBag, Ticket } from "lucide-react";
+import { Bell, LayoutGrid, ShoppingBag, Ticket } from "@/app/components/ui/site-icon";
 import { AnnouncementBar, MetricCard } from "@/app/components/ui/data-display";
 import { redirect } from "next/navigation";
 

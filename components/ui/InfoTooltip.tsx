@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { CircleAlert } from "lucide-react";
+import { CircleAlert } from "@/app/components/ui/site-icon";
 import { Button } from "@/app/components/ui/button";
 import HelpTooltip from "./HelpTooltip";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Pause, Play } from "lucide-react";
+import { Pause, Play } from "@/app/components/ui/site-icon";
 import { useInView } from "motion/react";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { DetailFeatureId, DetailFeatureSlide } from "@/lib/template-detail-features";

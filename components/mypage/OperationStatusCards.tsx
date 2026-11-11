@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Globe, LayoutGrid, ShoppingBag, Bell } from "lucide-react";
+import { Globe, LayoutGrid, ShoppingBag, Bell } from "@/app/components/ui/site-icon";
 import { ArrowRight } from "@/app/components/ui/site-arrow";
 import { OverviewCard, OverviewCardResponsiveLabel, OverviewCardGroup } from "@/app/components/ui/overview-card";
 import { Button } from "@/app/components/ui/button";

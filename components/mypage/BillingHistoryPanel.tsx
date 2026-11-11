@@ -3,7 +3,7 @@ import { SearchField } from "@/app/components/ui/search-field";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
 import { EmptyState } from "@/app/components/ui/empty-state";
-import { CreditCard } from "lucide-react";
+import { CreditCard } from "@/app/components/ui/site-icon";
 
 
 import * as PortOne from "@portone/browser-sdk/v2";

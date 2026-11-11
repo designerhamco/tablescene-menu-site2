@@ -2,7 +2,7 @@
 
 import { ImageCarousel } from "@/app/components/ui/image-carousel";
 import type { CatalogImage } from "@/lib/catalog-designs";
-import { Heart, Share2 } from "lucide-react";
+import { Heart, Share2 } from "@/app/components/ui/site-icon";
 import { useEffect } from "react";
 import { toast } from "sonner";
 

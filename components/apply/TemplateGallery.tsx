@@ -1,6 +1,6 @@
 "use client";
 
-import { Grid2X2, Grid3X3, Palette, PanelsTopLeft, Sparkles, Store } from "lucide-react";
+import { Grid2X2, Grid3X3, Palette, PanelsTopLeft, Sparkles, Store } from "@/app/components/ui/site-icon";
 import { useId, useMemo, useRef, useState } from "react";
 import {
   CATALOG_INDUSTRIES,

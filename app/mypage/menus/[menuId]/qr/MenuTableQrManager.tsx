@@ -1,5 +1,5 @@
 "use client";
-import { QrCode } from "lucide-react";
+import { QrCode } from "@/app/components/ui/site-icon";
 import {
   Table,
   TableHeader,

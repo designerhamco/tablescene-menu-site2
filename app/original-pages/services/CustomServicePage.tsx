@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Check, PenTool } from "lucide-react";
+import { Check, PenTool } from "@/app/components/ui/site-icon";
 import { ArrowRight, ChevronLeft, ChevronRight } from "@/app/components/ui/site-arrow";
 import { Link } from 'react-router';
 import { ImageWithFallback } from '@/app/components/figma/ImageWithFallback';

@@ -1,7 +1,7 @@
 import React from 'react';
 import PageHeader from '../components/layout/PageHeader';
 import { motion } from 'motion/react';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag } from "@/app/components/ui/site-icon";
 
 const products = [
   {

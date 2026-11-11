@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Check, Plus } from 'lucide-react';
+import { Check, Plus } from "@/app/components/ui/site-icon";
 
 const Branding = () => {
   return (

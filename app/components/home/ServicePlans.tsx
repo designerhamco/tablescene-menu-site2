@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle2 } from "@/app/components/ui/site-icon";
 
 const services = [
   {

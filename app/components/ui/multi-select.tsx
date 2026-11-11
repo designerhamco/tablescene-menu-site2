@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { X } from "@/app/components/ui/site-icon";
 import { ChevronDown } from "@/app/components/ui/site-arrow";
 import { Popover, PopoverContent, PopoverTrigger, PopoverAnchor } from "./popover";
 import { Button } from "./button";

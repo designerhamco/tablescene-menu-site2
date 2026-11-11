@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
-import { Pause, Play } from 'lucide-react';
+import { Pause, Play } from "@/app/components/ui/site-icon";
 import { useInView, useReducedMotion } from 'motion/react';
 import HeroDeviceScene from './HeroDeviceScene';
 import styles from './HomeHero.module.css';

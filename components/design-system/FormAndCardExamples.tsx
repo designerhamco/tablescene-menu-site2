@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Check } from "lucide-react";
+import { Check } from "@/app/components/ui/site-icon";
 import { Button } from "@/app/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
 import { Input } from "@/app/components/ui/input";

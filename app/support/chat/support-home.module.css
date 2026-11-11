@@ -11,10 +11,9 @@
 .channel { display: flex; min-width: 0; min-height: 7.5rem; flex-direction: column; align-items: center; gap: .5rem; border: 1px solid transparent; border-radius: .875rem; background: var(--ui-surface-muted); padding: .875rem .375rem .625rem; color: var(--ui-text); text-align: center; transition: background-color var(--ui-transition), border-color var(--ui-transition); }
 .channelLabel { display: grid; min-height: 2.8em; align-content: center; font-size: var(--type-body-sm-size); font-weight: 600; line-height: 1.4; word-break: keep-all; }
 .availability { margin-top: -.375rem; color: var(--ui-text-muted); font-size: var(--type-caption-size); line-height: 1.4; }
-.aiIcon, .emoji { display: grid; flex: none; width: 2.5rem; height: 2.5rem; place-items: center; }
+.aiIcon, .channelIcon { display: grid; flex: none; width: 2.5rem; height: 2.5rem; place-items: center; }
 .aiIcon { border-radius: .75rem; background: var(--site-ai-gradient); color: var(--site-ai-foreground); }
 .chatMark { flex: none; color: var(--site-ai-icon); }
-.emoji { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", emoji; font-size: var(--site-type-28); line-height: 1; }
 .section { margin-top: 1.75rem; }
 .section h3 { font-size: var(--type-body-size); }
 .sectionHeading { display: flex; min-height: 2rem; align-items: center; justify-content: space-between; gap: .5rem; }

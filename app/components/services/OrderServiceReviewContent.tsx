@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BellRing, CheckCircle2, CreditCard, QrCode, ShoppingCart } from "lucide-react";
+import { BellRing, CheckCircle2, CreditCard, QrCode, ShoppingCart } from "@/app/components/ui/site-icon";
 import { Badge } from "@/app/components/ui/badge";
 
 const verifiedFeatures = [

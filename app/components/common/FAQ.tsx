@@ -2,7 +2,7 @@
 
 import React, { useId, useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus } from "@/app/components/ui/site-icon";
 import { SearchField } from '@/app/components/ui/search-field';
 
 export type FAQCategory = {

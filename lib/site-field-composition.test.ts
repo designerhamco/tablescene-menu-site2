@@ -48,8 +48,8 @@ test("password inputs retain browser validation and autocomplete with an indepen
 test("Radix checkbox states include the partial-selection glyph and explicit disabled state", () => {
   const mixed=render(h(Checkbox,{checked:"indeterminate","aria-label":"전체 선택"}));
   const checked=render(h(Checkbox,{checked:true,disabled:true,"aria-label":"선택됨"}));
-  assert.match(mixed,/aria-checked="mixed"/);assert.match(mixed,/data-state="indeterminate"/);assert.match(mixed,/lucide-minus/);
-  assert.match(checked,/aria-checked="true"/);assert.match(checked,/disabled=""/);assert.match(checked,/lucide-check/);
+  assert.match(mixed,/aria-checked="mixed"/);assert.match(mixed,/data-state="indeterminate"/);assert.match(mixed,/data-site-icon="subtract-line"/);
+  assert.match(checked,/aria-checked="true"/);assert.match(checked,/disabled=""/);assert.match(checked,/data-site-icon="check-line"/);
   assert.match(css,/\.site-checkbox, \.site-radio \{[^}]*width: var\(--ui-choice-size\); height: var\(--ui-choice-size\);/);
 });
 
@@ -74,7 +74,7 @@ test("dedicated search keeps one native submit action inside its shared field an
   assert.match(html,/name="inquiryQuery"/);assert.match(html,/value="메뉴판!"/);assert.match(html,/required=""/);assert.match(html,/maxLength="100"/i);
   assert.equal((html.match(/type="submit"/g)??[]).length,1);
   assert.match(html,/data-search-action="submit"/);assert.match(html,/aria-label="검색 실행"/);
-  assert.equal((html.match(/lucide-search/g)??[]).length,1);
+  assert.equal((html.match(/data-site-icon="search-line"/g)??[]).length,1);
   assert.match(html,/<button[^>]*type="button"[^>]*aria-label="제목 검색 지우기"/);
 });
 

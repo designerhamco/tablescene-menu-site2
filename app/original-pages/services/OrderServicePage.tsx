@@ -1,7 +1,7 @@
 import React from 'react';
 import PageHeader from '../../components/layout/PageHeader';
 import { motion, AnimatePresence } from 'motion/react';
-import { Bell, Languages, Headset, Clock, MonitorSmartphone, Check, X, CheckCircle2, ThumbsUp, ThumbsDown, AlertTriangle, Utensils, Wine, Coffee, HelpCircle, Palette, Settings, Award, AlertCircle, CreditCard, FileCheck, LayoutTemplate, Sparkles, FileText, Layers, TrendingUp, TrendingDown, Zap, Plus, Minus, Tablet, Smartphone, BarChart3, MessageSquare, Users, Globe, Info, Monitor, MessageCircle, Download, Store, User } from "lucide-react";
+import { Bell, Languages, Headset, Clock, MonitorSmartphone, Check, X, CheckCircle2, ThumbsUp, ThumbsDown, AlertTriangle, Utensils, Wine, Coffee, HelpCircle, Palette, Settings, Award, AlertCircle, CreditCard, FileCheck, LayoutTemplate, Sparkles, FileText, Layers, Zap, Plus, Minus, Tablet, Smartphone, BarChart3, MessageSquare, Users, Globe, Info, Monitor, MessageCircle, Download, Store, User } from "@/app/components/ui/site-icon";
 import { RefreshCcw } from "@/app/components/ui/site-arrow";
 import { ArrowRight, ArrowLeft, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from "@/app/components/ui/site-arrow";
 import {

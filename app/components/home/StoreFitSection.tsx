@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Check } from "lucide-react";
+import { Check } from "@/app/components/ui/site-icon";
 
 const storeTypes = [
   {

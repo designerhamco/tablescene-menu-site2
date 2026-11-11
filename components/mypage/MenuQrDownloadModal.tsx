@@ -3,7 +3,7 @@
 import { LoadingState } from "@/app/components/ui/loading-state";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { QrCode } from "lucide-react";
+import { QrCode } from "@/app/components/ui/site-icon";
 import { ArrowUpRight } from "@/app/components/ui/site-arrow";
 import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/app/components/ui/dialog";
 import type { MenuQrDownloadData } from "@/lib/menu-qr-downloads";

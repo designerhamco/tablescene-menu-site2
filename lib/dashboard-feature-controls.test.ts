@@ -96,7 +96,7 @@ test("운영 요약의 미등록·비공개·조회 실패·권한 부족에도 
   const dependencies: Record<string, unknown> = {
     "react/jsx-runtime": jsxRuntime,
     "next/link": { default: ({ children, ...props }: React.ComponentProps<"a">) => createElement("a", props, children) },
-    "lucide-react": Object.fromEntries(["Globe", "LayoutGrid", "ShoppingBag", "Bell"].map(name => [name, () => createElement("svg", { "aria-hidden": true, "data-test-icon": name })])),
+    "@/app/components/ui/site-icon": Object.fromEntries(["Globe", "LayoutGrid", "ShoppingBag", "Bell"].map(name => [name, () => createElement("svg", { "aria-hidden": true, "data-test-icon": name })])),
     "@/app/components/ui/site-arrow": { ArrowRight: () => createElement("svg", { "aria-hidden": true }) },
     "@/app/components/ui/overview-card": { OverviewCard, OverviewCardGroup, OverviewCardResponsiveLabel },
     "@/app/components/ui/button": { Button },

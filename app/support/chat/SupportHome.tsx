@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useId } from "react";
-import { BookOpen, Monitor } from "lucide-react";
+import { BookOpen, Monitor, Mail, CircleHelp } from "@/app/components/ui/site-icon";
 import { ChevronRight } from "@/app/components/ui/site-arrow";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { SupportChatIcon } from "@/app/components/ui/support-chat-icon";
@@ -29,10 +29,10 @@ export default function SupportHome({ enabled, onChat, onNavigate }: {
         {enabled === false ? <span className={styles.availability}>준비 중</span> : null}
       </button>
       <Link href="/mypage/inquiries" onClick={onNavigate} className={styles.channel}>
-        <span className={styles.emoji} aria-hidden="true">✉️</span><span className={styles.channelLabel}>1:1 문의</span>
+        <span className={styles.channelIcon}><Mail size={26} aria-hidden="true" /></span><span className={styles.channelLabel}>1:1 문의</span>
       </Link>
       <Link href="/faq?tab=faq" onClick={onNavigate} className={styles.channel}>
-        <span className={styles.emoji} aria-hidden="true">❓</span><span className={styles.channelLabel}>FAQ</span>
+        <span className={styles.channelIcon}><CircleHelp size={26} aria-hidden="true" /></span><span className={styles.channelLabel}>FAQ</span>
       </Link>
     </nav>
     <section className={styles.section} aria-labelledby={`${uid}-guides`}>

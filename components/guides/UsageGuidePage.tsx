@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
-import { EllipsisVertical, Fullscreen, Minus, Plus, Video } from "lucide-react";
+import { EllipsisVertical, Fullscreen, Minus, Plus, Video } from "@/app/components/ui/site-icon";
 import { ArrowUpRight, ChevronDown } from "@/app/components/ui/site-arrow";
 import {
   Tabs,

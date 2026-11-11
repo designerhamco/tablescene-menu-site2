@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LogIn, User, UserPlus } from "lucide-react";
+import { LogIn, User, UserPlus } from "@/app/components/ui/site-icon";
 
 import { createClient } from "@/lib/supabase/client";
 

@@ -1,4 +1,4 @@
-import { Monitor, Smartphone, Tablet } from "lucide-react";
+import { Monitor, Smartphone, Tablet } from "@/app/components/ui/site-icon";
 
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 

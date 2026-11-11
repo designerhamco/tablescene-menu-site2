@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "@/app/components/ui/site-icon";
 import { Button } from "@/app/components/ui/button";
 import { Accordion } from "@/app/components/ui/accordion";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";

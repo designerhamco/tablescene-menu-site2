@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import type * as PortOneSdk from "@portone/browser-sdk/v2";
 
-import { Check } from "lucide-react";
+import { Check } from "@/app/components/ui/site-icon";
 import Image from "next/image";
 import TemplateCatalogMedia from "@/components/templates/TemplateCatalogMedia";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";

@@ -1,0 +1,6 @@
+Remix Icon 4.8.0 - Copyright (c) 2020 RemixIcon.com / Remix Design
+SVG subset distributed under Apache License 2.0 (see remix-icon-LICENSE.txt).
+Source: https://github.com/iconify/icon-sets/blob/bf7874faf28e1dccf463867b524a9b76d9b00ae0/json/ri.json
+Upstream snapshot: https://github.com/cyberalien/RemixIcon
+Only the pinned Apache-licensed snapshot is included; no later upstream assets are used.
+Modifications: SVGs converted to React components, aliases for existing site APIs, heart outline/filled state selection.

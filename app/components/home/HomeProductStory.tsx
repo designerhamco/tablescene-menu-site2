@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Clock3, Languages, Link2, Monitor, Smartphone, Sparkles, Tablet, WandSparkles } from "lucide-react";
+import { Clock3, Languages, Link2, Monitor, Smartphone, Sparkles, Tablet, WandSparkles } from "@/app/components/ui/site-icon";
 import { ChevronLeft, ChevronRight } from "@/app/components/ui/site-arrow";
 
 import { MarketingSectionCopy } from "./MarketingSectionCopy";

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { Bell, Menu, X } from 'lucide-react';
+import { Bell, Menu, X } from "@/app/components/ui/site-icon";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 

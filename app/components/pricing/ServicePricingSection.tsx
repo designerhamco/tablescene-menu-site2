@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Check } from "lucide-react";
+import { Check } from "@/app/components/ui/site-icon";
 import { ArrowRight } from "@/app/components/ui/site-arrow";
 import { Link } from "react-router";
 
