@@ -7,6 +7,7 @@ import { applyPreviewDesign, previewDesignDefaults } from "@/lib/menu-preview-de
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import MenuPreviewDeviceFrame from "@/components/menu/MenuPreviewDeviceFrame";
 import PreviewFullscreenControl from "@/components/menu/PreviewFullscreenControl";
+import MobilePreviewEntryNotice from "@/components/menu/MobilePreviewEntryNotice";
 import previewDisplayStyles from "@/components/menu/template-preview-display.module.css";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import { getTemplatePreviewOptionOverride, getTemplatePreviewOptions } from "@/lib/template-preview-options";
@@ -1154,8 +1155,8 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   data.menuSite.page_settings = menuAppearancePreview(data.menuSite.page_settings, resolvedSearchParams, defaultDesign?.itemLayout === "album") as typeof data.menuSite.page_settings;
   data = applyPreviewDesign(data, getFirstParam(resolvedSearchParams.designPreview), defaultDesign?.itemLayout === "album");
   if (!isActualView && usesDevicePreviewFrame) {
-    return <MenuPreviewDeviceFrame device={device} orientation={orientation} templateKey={templateKey} query={resolvedSearchParams}
-      previewDesignDefaults={designDefaults} previewDisplayOptions={getTemplatePreviewOptions(localizedData, resolvedSearchParams)} />;
+    return <><MenuPreviewDeviceFrame device={device} orientation={orientation} templateKey={templateKey} query={resolvedSearchParams}
+      previewDesignDefaults={designDefaults} previewDisplayOptions={getTemplatePreviewOptions(localizedData, resolvedSearchParams)} /><MobilePreviewEntryNotice /></>;
   }
   if (templateKey === "cafe_real_matcha_paged_test") applyPagedMatchaFixture(data, getFirstParam(resolvedSearchParams.pageTest));
   const requestedRenderMode = Array.isArray(resolvedSearchParams.renderMode)
@@ -1193,5 +1194,5 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     data-preview-secondary={getTemplatePreviewOptionOverride(resolvedSearchParams, "secondaryNamesPreview") === true ? "on" : undefined}
     data-preview-category-description={getTemplatePreviewOptionOverride(resolvedSearchParams, "categoryDescriptionsPreview") === true ? "on" : undefined}>{preview}</div> : preview;
 
-  return <>{renderedPreview}{isDetachedView ? <PreviewFullscreenControl /> : null}</>;
+  return <>{renderedPreview}{!isActualView ? <MobilePreviewEntryNotice /> : null}{isDetachedView ? <PreviewFullscreenControl /> : null}</>;
 }
