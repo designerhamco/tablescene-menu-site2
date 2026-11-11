@@ -165,7 +165,7 @@ test("content and view controls share three sizes without promoting nested guide
   assert.match(read("app/components/home/HomeProductStory.tsx"), /site-tabs-outline site-tab-size-sm/);
   const guide = read("components/guides/UsageGuidePage.tsx");
   assert.match(guide, /size="lg" aria-label="플랜별 사용가이드"/);
-  assert.match(guide, /site-filter-group \$\{styles.topics\}/);
+  assert.match(guide, /className="site-action-row"\s+data-distribution="center"/);
   assert.match(guide, /aria-current="location"/);
   assert.doesNotMatch(guide, /className="site-topic-tab"/);
   assert.match(read("components/mypage/menu-editor/LocalizationSection.tsx"), /size="sm" aria-label="번역 항목 선택"/);
@@ -209,6 +209,7 @@ test("tab hierarchy keeps service navigation, embedded catalog lists and notific
   const notification = read("app/components/ui/notification-panel.tsx");
   assert.match(notification, /<Tabs purpose="category"/);
   assert.doesNotMatch(notification, /variant="(?:folder|flow|contained)"/);
+  assert.match(tabCss, /\.site-notification-tabs > \.site-topic-tab \{[^}]*min-height: var\(--ui-control-height-lg\);[^}]*padding-block: var\(--site-space-copy\);/);
   assert.match(read("app/components/layout/Navbar.tsx"), /<NotificationPanel compact/);
   assert.match(read("components/mypage/NotificationHistorySection.tsx"), /<NotificationPanel items=/);
   assert.match(read("app/components/ui/navigation-tabs.tsx"), /data-purpose=\{purpose\}/);

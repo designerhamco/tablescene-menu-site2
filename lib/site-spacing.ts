@@ -41,5 +41,6 @@ export const SITE_CONTROL_DENSITY = [
   { role: "입력·버튼 좌우", value: "12px / 큰 행동16px", token: "--ui-control-padding-inline/lg", rule: "일반 컨트롤 내부. 검색의 원형 실행은 높이에서 여백을 계산" },
   { role: "체크박스·라디오", value: "16px", token: "--ui-choice-size", rule: "시각 크기. 클릭은 라벨 행 전체로 확장" },
   { role: "일반 탭 높이", value: "32 / 36 / 40px", token: "--site-tab-height", rule: "sm·md14px, lg16px. 영역형·문서형·룸 선택은40·44·48px" },
+  { role: "알림 분류 탭", value: "최소48px · 상하8px · 글자14px", token: "--ui-control-height-lg / --site-space-copy", rule: "NotificationPanel 공통 규격. 팝업·알림 이력·컴포넌트 예시에 동일 적용" },
   { role: "룸 선택·추가", value: "40 / 44 / 48px · 글자16px", token: "--site-room-control-height / --site-type-16", rule: "sm·md·lg. 같은 묶음의 추가와 선택이 한 크기 설정을 공유. 너비는 정사각 아이콘/내용 기준 텍스트로 구분" },
 ] as const;
