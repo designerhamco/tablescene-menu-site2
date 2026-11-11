@@ -13,6 +13,9 @@
 | 아티메뉴 개발 작업 규칙 | [AGENTS.md](../AGENTS.md) | 개발 도구가 자동으로 읽는 작업 원칙과 승인된 공통 규칙 |
 | 아티메뉴 기능별 문서 범위·보완 점검표 | [feature-documentation-coverage.md](feature-documentation-coverage.md) | 실제 기능별 관련 문서·코드와 누락/분산/미확인 영역 |
 | 아티메뉴 Supabase 데이터 저장·보관·삭제 안내 | [supabase-data-lifecycle-guide.md](supabase-data-lifecycle-guide.md) | DB·파일·Auth·권한·보관/복구·실삭제와 백업의 구분 |
+| 아티메뉴 백업·장애 복구 운영 절차 | [backup-disaster-recovery.md](runbooks/backup-disaster-recovery.md) | DB·파일·Auth·외부 결제 대조, 격리 복원/재개 순서. 운영값·훈련은 미확인 |
+| 아티메뉴 메뉴판 관리 초안·저장·공개 계약 | [menu-management-save-contract.md](menu-management-save-contract.md) | 탭별 저장·샘플 복원·파일/번역·미저장 이동·부분 실패 경계 |
+| 아티메뉴 구독·결제 상태와 실패 복구 계약 | [subscription-payment-state-contract.md](subscription-payment-state-contract.md) | 체험·승인·생성·갱신·해지·전환·환불/복구와 자동 재시도 한계 |
 | 아티메뉴 서비스·요금·이용권 기준 | [service-pricing-contract.md](service-pricing-contract.md) | 세 서비스, 기본/디자인 포함, 현행 요금 원본, 체험·갱신·기존 계약 경계 |
 | 아티메뉴 서비스 명칭과 안내 기준 | [service-category-copy-contract.md](service-category-copy-contract.md) | 베이직·다이닝·디스플레이의 고객 표시 명칭 |
 | 아티메뉴 템플릿 문서 안내 | [template-docs-index.md](template-docs-index.md) | 기본/디자이너·리스트/앨범 등록표와 구조별 문서 |

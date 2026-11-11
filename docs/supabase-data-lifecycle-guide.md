@@ -17,8 +17,8 @@ Supabase의 [Storage 접근 제어 안내](https://supabase.com/docs/guides/stor
 
 ## 생성·수정·파일 저장
 
-- 메뉴판/디자인/다국어/공개 변경은 [메뉴 action](../app/mypage/menus/actions.ts)과 담당 서비스가 소유한다. UI 임시 선택, 브라우저 초안, DB에 저장된 값, 공개 여부를 구분한다.
-- 구매 후 생성은 [purchased-menu-provisioning](../lib/server/purchased-menu-provisioning.ts), 스타터 번역은 [번역 계약](starter-translations-qa.md)을 따른다. 결제 성공과 모든 메뉴/번역 행 생성 완료는 각각 확인하며 중복·부분 실패를 새 구매로 처리하지 않는다.
+- 메뉴판/디자인/다국어/공개 변경은 [메뉴 action](../app/mypage/menus/actions.ts)과 담당 서비스가 소유한다. UI 임시 선택, 브라우저 초안, DB에 저장된 값, 공개 여부를 구분한다. 탭별 경계와 전역 미저장 이동 보호/순차 저장의 한계는 [편집 저장 계약](menu-management-save-contract.md)을 따른다.
+- 구매 후 생성은 [purchased-menu-provisioning](../lib/server/purchased-menu-provisioning.ts), 스타터 번역은 [번역 계약](starter-translations-qa.md)을 따른다. 결제 성공과 모든 메뉴/번역 행 생성 완료는 각각 확인하며 중복·부분 실패를 새 구매로 처리하지 않는다. [구독·결제 상태 계약](subscription-payment-state-contract.md)에서 일반 갱신과 예약 전환의 다른 실패 처리도 구분한다.
 - [메뉴 이미지](../app/api/menu-images/route.ts), [위젯 이미지](../app/api/menu-widget-images/route.ts), [동영상](../app/api/menu-videos/route.ts)은 별도 저장/참조 경로다. MIME/용량·소유 경로·DB 참조 갱신/실패 정리를 확인한다. 일반 이미지 API에는 같은 path를 upsert한 경우 이전 파일 복원의 TODO가 있으므로 파일 교체의 모든 실패 보상이 완료됐다고 표현하지 않는다.
 - [위젯 이미지 정리](../lib/server/menu-widget-image-cleanup-service.ts)는 유효한 해당 메뉴판/위젯 경로만 대상으로 하고, 아직 참조 중이거나 중복인 경로를 제외한다. 이 보장을 다른 업로드 기능에 자동으로 일반화하지 않는다.
 - [메뉴 가져오기/연결 계약](shared-menu-catalog.md)은 URL 공유와 원본 파일 소유권을 분리한다. 다른 메뉴판이 참조하는 파일을 단순히 대상 메뉴판의 파일로 가정해 삭제하지 않는다.
@@ -41,7 +41,7 @@ Supabase의 [Storage 접근 제어 안내](https://supabase.com/docs/guides/stor
 
 Supabase [Database Backups 공식 안내](https://supabase.com/docs/guides/platform/backups)에 따르면 DB 백업은 Storage 객체의 메타데이터를 포함하지만 업로드 파일의 실제 bytes는 포함하지 않는다. 따라서 DB 백업만으로 삭제한 메뉴 사진/동영상까지 복구된다고 볼 수 없다.
 
-저장소에서 **DB와 Storage 파일을 함께 다루는 통합 백업·장애복구 절차**는 이번 점검에서 찾지 못했다. 이는 실제 클라우드 백업이 없다는 뜻이 아니다. 다음은 별도로 확인·정리해야 한다.
+**DB와 Storage 파일을 함께 다루는 [백업·장애 복구 운영 절차](runbooks/backup-disaster-recovery.md)**를 작성했다. 격리 복원·참조/권한·외부 결제 대조·단계별 재개와 결과 기록을 정의하며, 실제 클라우드 백업 설정 확인이나 복구 훈련 완료를 뜻하지 않는다. 다음 운영값과 증거는 아직 확인해야 한다.
 
 - 실제 프로젝트 요금제/DB 백업·PITR 활성화/보존 기간·최근 성공과 접근 권한
 - 이미지/동영상 bytes의 별도 사본·주기·보존·삭제 반영과 복구 권한
