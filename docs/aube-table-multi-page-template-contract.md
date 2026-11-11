@@ -2,6 +2,8 @@
 
 최종 갱신: 2026-09-29
 
+> 초기 제품/데이터 계약과 당시 상태를 보존한 문서다. 현재 기본/디자이너·리스트/앨범 구성은 [템플릿 문서 안내](template-docs-index.md), 커버 안내·도구/서비스 버튼·설명 색상·위젯·이미지 비율은 [공통 계약](template-spacing-contract.md)의 최신 Dining 절을 먼저 확인한다. 아래 초기 hidden/coming_soon 및 주문·호출 제한·가격 기록을 현재 판매/서비스 정책으로 복원하지 않는다. 현재 등록은 lib/catalog-designs.ts와 lib/templates.ts, 금액은 lib/menu-plan-pricing.ts에서 확인한다.
+
 ## 제품 범위
 
 - A타입 템플릿 key: `dining_aube_table_a`, 고객 표시명: `오브 테이블`

@@ -1,5 +1,7 @@
 # Default design and switch rollout — 2026-10-19
 
+> Historical rollout record. Current registrations are Basic 5 structures / 7 list-album designs and Dining 2 structures / 4 list-album designs. Use [template-docs-index.md](template-docs-index.md) and the latest [template-spacing-contract.md](template-spacing-contract.md). Old preview-only availability, four-structure counts, image ratios and color/control ownership below are not current product specifications.
+
 ## 현재 상태 — 2026-10-22
 
 아래 날짜별 항목은 당시의 검토 범위를 보존한 이력이다. 기본/기존 디자인 적용, 카탈로그·신규 이용권·교체, 편집기 배경/색상, 호출/테이블, 실제 방문 주문내역/고객 취소는 PR #292~#299의 운영 배포를 완료했다. 이후 공통 규칙이 이전 문구보다 우선한다. 현재 고객 동선 검수와 실제 QA/실결제 잔여 범위는 `docs/runbooks/customer-journey-qa.md`와 `docs/task-queue.md` 상단을 따른다.
