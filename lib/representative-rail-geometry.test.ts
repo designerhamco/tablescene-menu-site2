@@ -23,3 +23,14 @@ test("the reported narrow tablet title retains CAFE and ARTIMENU as whole words 
 test("very narrow frames cannot create a negative content width", () => {
   assert.equal(getRepresentativeRailGeometry(120, 64, 32, 3, 8).trackWidth, 0);
 });
+
+test("top-row body insets and wider menu-divider gutters retain equal usable tracks", () => {
+  for (const columns of [1, 2, 3]) {
+    const inset = 32, stroke = 1, scrollbar = 8;
+    const menuGap = 2 * inset + stroke;
+    // Full-bleed header; the representative/menu body retains both outer insets.
+    const layout = getRepresentativeRailGeometry(1248 - 2 * inset, 0, inset, columns, scrollbar, menuGap);
+    close((layout.menuWidth - (columns - 1) * menuGap) / columns, layout.trackWidth);
+    close(layout.railWidth + inset + layout.menuWidth + scrollbar + 2 * inset, 1248);
+  }
+});

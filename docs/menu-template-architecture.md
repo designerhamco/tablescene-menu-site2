@@ -49,6 +49,10 @@ Widget rendering follows `getTemplateCapabilities(...).menuWidgets.enabled`, not
 
 Template-owned fonts, role ratios, decorative rules, category boundaries and featured-area differences remain intact.
 
+## Current Basic side-rail width ownership — 2026-11-11
+
+`lib/representative-rail-geometry.ts` owns equal usable widths for separate left representative rails and menu tracks, including top-row bodies in native and neutral list/album readers. Both candidate measurements and final CSS consume the chosen geometry; album grids explicitly use the selected card count. Body margins, colored panel padding, independent ruled/unruled gutters and scrollbars are measured before division. Header cells, central slots, upper-left panel blocks, image ratios and mobile/Dining stay independent. The current specification is [the Basic equal-track rule](basic-menu-scroll-policy.md#대표열과-메뉴-열의-동일-너비--2026-11-11); it supersedes historical fixed 24/25% top-row body widths.
+
 ## Shared top-row spacing — approved 2026-10-13
 
 Sunday Roasters and Van Gogh now inherit the same outer padding and header-to-menu row-gap formula. Removed Van Gogh's PC-only `padding-block` and `--sunday-line-row-gap` overrides; preserved its typography and decorative rules.

@@ -188,6 +188,8 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   const priceDisplayMode = getPriceDisplayModeFromSettings(data.menuSite.settings, "cafe_design_a");
   const timeSaleByItemId = useMemo(() => getTimeSaleByItemId(data.timeSales, "cafe_design_a", saleNow), [data.timeSales, saleNow]);
   const featuredSlides = getFeaturedHeroSlides(baseProps, capabilities);
+  const showCover = data.pageSettings.menu_cover_enabled && featuredSlides.length > 0 && isMenuCoverVisibleOnDevice(data.pageSettings, device);
+  const equalSideRail = leftColumn || (topRow && showCover);
   const typographySettings = mergeTypographySettings(
     "cafe_design_a",
     getCustomTypographySettings(
@@ -312,10 +314,13 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const root = area.current.closest<HTMLElement>("[data-scroll-template]")!;
       const boardStyle = getComputedStyle(root);
       const brandStyle = brandArea.current ? getComputedStyle(brandArea.current) : null;
-      const boardWidth = root.getBoundingClientRect().width - parseFloat(boardStyle.paddingLeft) - parseFloat(boardStyle.paddingRight);
+      const menuPanelStyle = getComputedStyle(area.current.closest<HTMLElement>("[data-scroll-menu-panel]")!);
+      const brandMargin = (parseFloat(brandStyle?.marginLeft ?? "0") || 0) + (parseFloat(brandStyle?.marginRight ?? "0") || 0);
+      const boardWidth = root.getBoundingClientRect().width - parseFloat(boardStyle.paddingLeft) - parseFloat(boardStyle.paddingRight)
+        - brandMargin - (parseFloat(menuPanelStyle.marginLeft) || 0) - (parseFloat(menuPanelStyle.marginRight) || 0);
       const panelPadding = (parseFloat(brandStyle?.paddingLeft ?? "0") || 0) + (parseFloat(brandStyle?.paddingRight ?? "0") || 0);
       const scrollbar = area.current.offsetWidth - area.current.clientWidth;
-      const railGeometry = (count: number) => getRepresentativeRailGeometry(boardWidth, panelPadding, gap, count, scrollbar);
+      const railGeometry = (count: number) => getRepresentativeRailGeometry(boardWidth, panelPadding, parseFloat(boardStyle.columnGap), count, scrollbar, gap);
       const frameKey = `${boardWidth}|${root.clientHeight}`;
       if (frameKey !== railFrameKey) { rejectedRailColumns.clear(); rejectedPhotoColumns.clear(); railFrameKey = frameKey; }
       if (upperLeft && !hasSafeCornerIdentity(brandArea.current)) {
@@ -334,7 +339,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const collect = (columnCount: number, reference = false) => {
         measure.current!.toggleAttribute("data-cafe-a-three-part-reference", reference);
         // Match fractional CSS grid widths; integer clientWidth can cross a text-wrap boundary.
-        const columnWidth = leftColumn ? railGeometry(columnCount).trackWidth : Math.min(columnCount === 1 && !upperLeft ? 40 * rem : Infinity, (width - (columnCount - 1) * gap) / columnCount) - 2 * panelInset;
+        const columnWidth = equalSideRail ? railGeometry(columnCount).trackWidth : Math.min(columnCount === 1 && !upperLeft ? 40 * rem : Infinity, (width - (columnCount - 1) * gap) / columnCount) - 2 * panelInset;
         measure.current!.style.width = `${columnWidth}px`;
         applyOnePageChipLayouts(measure.current!);
         const measured = units.map(u => {
@@ -362,24 +367,24 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         root.style.setProperty("--fit-menu-gap-scale", String(getOrderedFitGapScale(size / base, readingWidth)));
       };
       // Grouping changes partition boundaries, never the shared reading size.
-      const counts = centerColumn ? [2] : leftColumn ? [1, 2, 3].filter(count => count === 1 || (!rejectedRailColumns.has(count) && railGeometry(count).trackWidth >= SCROLL_MIN_COLUMN_WIDTH_REM * rem)) : Array.from({ length: maxColumns }, (_, index) => index + 1);
+      const counts = centerColumn ? [2] : equalSideRail ? [1, 2, 3].filter(count => count === 1 || (!rejectedRailColumns.has(count) && railGeometry(count).trackWidth >= SCROLL_MIN_COLUMN_WIDTH_REM * rem)) : Array.from({ length: maxColumns }, (_, index) => index + 1);
       const candidates = counts.map(count => {
         const ceiling = (getOnePageItemNameCeilingRem(device) ?? 1.3) * rem;
         // Compare names at one shared reading size. Shrinking a cramped 3-track
         // candidate must not disguise its width/wrapping cost during selection.
-        setSize(ceiling, leftColumn ? railGeometry(count).menuWidth : width);
+        setSize(ceiling, equalSideRail ? railGeometry(count).menuWidth : width);
         const natural = collect(count);
         const names = measureScrollableNames(measure.current!);
         return { ...natural, itemSize: ceiling, names };
       });
       const photoSafe = candidates.filter(candidate => candidate.representativeSafe);
       const selected = selectScrollableMenuCandidate(photoSafe.length ? photoSafe : candidates.slice(0, 1), grouped) as typeof candidates[number];
-      if (leftColumn) {
+      if (equalSideRail) {
         const geometry = railGeometry(selected.columnCount);
-        root.style.setProperty("--scroll-rail-width", `${geometry.railWidth}px`);
+        root.style.setProperty("--scroll-rail-width", `${geometry.railWidth + brandMargin}px`);
         root.dataset.representativeContentWidth = String(geometry.trackWidth);
       }
-      setSize(selected.itemSize, leftColumn ? railGeometry(selected.columnCount).menuWidth : width);
+      setSize(selected.itemSize, equalSideRail ? railGeometry(selected.columnCount).menuWidth : width);
       collect(selected.columnCount); // Restore final-width chip/rhythm measurements after probes.
       measure.current!.style.width = `${selected.columnWidth}px`;
       const brandBounds = brandArea.current?.getBoundingClientRect();
@@ -424,31 +429,36 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       measuredContent.removeEventListener("load", schedule, true);
       document.fonts.removeEventListener("loadingdone", fontsChanged);
     };
-  }, [mobile, album, units, layoutMode, showCall, showOrder, device, updateScrollHint, centerColumn, upperLeft, topRow, leftColumn, leftLogo]);
+  }, [mobile, album, units, layoutMode, showCall, showOrder, device, updateScrollHint, centerColumn, upperLeft, topRow, leftColumn, leftLogo, equalSideRail]);
   // Album flow does not use list packing, but its fixed identity still needs
   // the same actual overflow guard before reporting a settled layout.
   useLayoutEffect(() => {
     if (!album || mobile || !area.current) return;
     const viewport = area.current;
-    let frame = 0, disposed = false, albumRailColumns = 2, railFrameKey = "";
+    let frame = 0, disposed = false, albumRailColumns = 3, railFrameKey = "";
     const check = () => {
       frame = 0;
       if (disposed) return;
       const panel = brandArea.current;
       const root = viewport.closest<HTMLElement>("[data-scroll-brand-board]");
-      if (leftColumn && root && panel) {
+      if (equalSideRail && root && panel) {
         const style = getComputedStyle(root), panelStyle = getComputedStyle(panel);
         const frameKey = `${root.clientWidth}|${root.clientHeight}`;
-        if (frameKey !== railFrameKey) { albumRailColumns = 2; railFrameKey = frameKey; }
+        if (frameKey !== railFrameKey) { albumRailColumns = 3; railFrameKey = frameKey; }
+        const menuPanelStyle = getComputedStyle(viewport.closest<HTMLElement>("[data-scroll-menu-panel]")!);
+        const brandMargin = (parseFloat(panelStyle.marginLeft) || 0) + (parseFloat(panelStyle.marginRight) || 0);
         const geometryFor = (columns: number) => getRepresentativeRailGeometry(
-          root.getBoundingClientRect().width - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight),
+          root.getBoundingClientRect().width - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)
+            - brandMargin - (parseFloat(menuPanelStyle.marginLeft) || 0) - (parseFloat(menuPanelStyle.marginRight) || 0),
           parseFloat(panelStyle.paddingLeft) + parseFloat(panelStyle.paddingRight),
           parseFloat(style.columnGap), columns, viewport.offsetWidth - viewport.clientWidth,
+          parseFloat(getComputedStyle(viewport).columnGap),
         );
         const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-        if (geometryFor(2).trackWidth < SCROLL_MIN_COLUMN_WIDTH_REM * rem) albumRailColumns = 1;
+        while (albumRailColumns > 1 && geometryFor(albumRailColumns).trackWidth < SCROLL_MIN_COLUMN_WIDTH_REM * rem) albumRailColumns--;
+        root.style.setProperty("--scroll-album-columns", String(albumRailColumns));
         const geometry = geometryFor(albumRailColumns);
-        root.style.setProperty("--scroll-rail-width", `${geometry.railWidth}px`);
+        root.style.setProperty("--scroll-rail-width", `${geometry.railWidth + brandMargin}px`);
         root.dataset.representativeContentWidth = String(geometry.trackWidth);
       }
       viewport.style.setProperty("--paged-album-capacity", `${viewport.clientHeight - (scrollContent.current ? parseFloat(getComputedStyle(scrollContent.current).paddingBottom) || 0 : 0)}px`);
@@ -460,7 +470,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const title = panel?.querySelector<HTMLElement>("[data-canvas-brand-fit]");
       if (leftColumn && brandOverflow && albumRailColumns > 1 && root && title?.dataset.canvasBrandFit === "ready" &&
         Math.abs(Number(title.dataset.canvasBrandWidth) - Number(root.dataset.representativeContentWidth)) < 1) {
-        albumRailColumns = 1;
+        albumRailColumns--;
         setLayout(previous => ({ ...previous, ready: false }));
         frame = requestAnimationFrame(check);
         return;
@@ -474,12 +484,12 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     if (brandArea.current) for (const node of brandArea.current.children) observer.observe(node);
     const header = viewport.closest("[data-scroll-brand-board]")?.querySelector("[data-basic-top-row]");
     if (header) observer.observe(header);
-    const fontsChanged = () => { albumRailColumns = 2; schedule(); };
+    const fontsChanged = () => { albumRailColumns = 3; schedule(); };
     document.fonts.addEventListener("loadingdone", fontsChanged);
     void document.fonts.ready.then(fontsChanged);
     schedule();
     return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); document.fonts.removeEventListener("loadingdone", fontsChanged); };
-  }, [album, mobile, units, updateScrollHint, leftColumn]);
+  }, [album, mobile, units, updateScrollHint, leftColumn, equalSideRail]);
   // A logo replaces CanvasBrandTitle, but must retain its shared header budget.
   useLayoutEffect(() => {
     if (mobile || !topRow || !defaultStructure || !data.menuSite.logo_url) return;
@@ -579,7 +589,6 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     layoutShell={topRow ? "brand_top_band" : centerColumn ? "brand_center_column" : "brand_left_rail"} />;
   const storeDescription = (data.menuSite.brand_description || data.menuSite.description)
     ? <p data-representative-copy data-scroll-header-copy className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null;
-  const showCover = data.pageSettings.menu_cover_enabled && featuredSlides.length > 0 && isMenuCoverVisibleOnDevice(data.pageSettings, device);
   const actionFooter = showCall || showOrder || call.terminalConnected ? (
             <footer className={styles.footer} data-scroll-actions aria-label={t("메뉴 이용")}>
               {call.terminalConnected ? <span className={styles.tableLabel} data-terminal-table-label title={call.tableLabel}>{call.tableLabel}</span> : null}
@@ -621,6 +630,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         }
         data-menu-text-colors={getTypographyCustomColorRoles(typographySettings)}
         data-scroll-brand-board
+        data-equal-side-rail={equalSideRail ? "true" : undefined}
         data-basic-structure={structure} data-representative-panel={getMenuDesignBackgrounds("cafe_design_a", data.menuSite.page_settings).coloredPanel ? "true" : undefined}
         data-default-reading={defaultStructure ? "true" : undefined}
         data-show-cover={showCover ? "true" : "false"}
@@ -648,7 +658,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
           </div>}
         </header> : null}
         {!upperLeft ? brandPanel : null}
-        <div className={styles.menuPanel} data-paged-menu-panel>
+        <div data-scroll-menu-panel className={styles.menuPanel} data-paged-menu-panel>
           <div className={styles.viewport} data-scroll-viewport>
             <div
               role="region"

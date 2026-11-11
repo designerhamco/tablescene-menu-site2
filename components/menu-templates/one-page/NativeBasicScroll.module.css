@@ -142,7 +142,7 @@
    globals.css. Visible and measured units must preserve that device ratio;
    the full-width remaining-height rule above applies only to fixed rails. */
 
-.board[data-native-shell="brand_left_rail"] { grid-template-columns: minmax(0, var(--native-rail-width, calc((100% - 2 * var(--native-gap)) / 3))) minmax(0, 1fr); }
+.board[data-equal-side-rail="true"] { grid-template-columns: minmax(0, var(--native-rail-width, calc((100% - 2 * var(--native-gap)) / 3))) minmax(0, 1fr); }
 /* The optional corner surface includes native image/identity content; probes
    and visible units share this geometry so following menu blocks stay clear. */
 .board[data-representative-panel="true"][data-native-shell="brand_panel_flow"] .unit :global(.cafe-a-panel-intro),

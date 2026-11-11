@@ -1,5 +1,7 @@
 # 아티메뉴 기본 디자인 도입 기록 (과거 기록: 2026-10-19)
 
+Current Basic PC/tablet first-column and top-row body representative/menu widths follow [the 2026-11-11 equal-track contract](basic-menu-scroll-policy.md#대표열과-메뉴-열의-동일-너비--2026-11-11), including list/album defaults. Historical fixed top-row fractions and two-logical-track album assumptions below are superseded. Central and upper-left structures keep their independent registered geometry.
+
 > Historical rollout record. Current registrations are Basic 5 structures / 7 list-album designs and Dining 2 structures / 4 list-album designs. Use [template-docs-index.md](template-docs-index.md) and the latest [template-spacing-contract.md](template-spacing-contract.md). Old preview-only availability, four-structure counts, image ratios and color/control ownership below are not current product specifications.
 
 ## 현재 상태 — 2026-10-22

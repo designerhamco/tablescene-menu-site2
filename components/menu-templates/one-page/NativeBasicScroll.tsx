@@ -74,6 +74,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
   const background = mocha ? MOCHA_FOREST_PANEL_COLORS.ivory : getResolvedBackgroundColor(key, data.menuSite.page_settings);
   const slides = getFeaturedHeroSlides(data, capabilities);
   const cover = data.pageSettings.menu_cover_enabled !== false && slides.length > 0 && isMenuCoverVisibleOnDevice(data.pageSettings, device);
+  const equalSideRail = shell === "brand_left_rail" || (top && cover);
   const notices = getCafeAFooterInfo(data, capabilities);
   const [now, setNow] = useState(data.initialNowMs);
   useLayoutEffect(() => {
@@ -141,9 +142,14 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       const boardStyle = getComputedStyle(root);
       const brand = root.querySelector<HTMLElement>("[data-native-brand]");
       const brandStyle = brand ? getComputedStyle(brand) : null;
-      const boardWidth = root.getBoundingClientRect().width - parseFloat(boardStyle.paddingLeft) - parseFloat(boardStyle.paddingRight);
+      const menuPanelStyle = getComputedStyle(viewport.closest<HTMLElement>("[data-native-menu-panel]")!);
+      const brandMargin = (parseFloat(brandStyle?.marginLeft ?? "0") || 0) + (parseFloat(brandStyle?.marginRight ?? "0") || 0);
+      // Colored top headers bleed to the page edges; their body still retains
+      // the outer insets as margins. Exclude those before dividing tracks.
+      const boardWidth = root.getBoundingClientRect().width - parseFloat(boardStyle.paddingLeft) - parseFloat(boardStyle.paddingRight)
+        - brandMargin - (parseFloat(menuPanelStyle.marginLeft) || 0) - (parseFloat(menuPanelStyle.marginRight) || 0);
       const panelPadding = (parseFloat(brandStyle?.paddingLeft ?? "0") || 0) + (parseFloat(brandStyle?.paddingRight ?? "0") || 0);
-      const railGeometry = (count: number) => getRepresentativeRailGeometry(boardWidth, panelPadding, gap, count, viewport.offsetWidth - viewport.clientWidth);
+      const railGeometry = (count: number) => getRepresentativeRailGeometry(boardWidth, panelPadding, parseFloat(boardStyle.columnGap), count, viewport.offsetWidth - viewport.clientWidth, gap);
       const frameKey = `${boardWidth}|${root.clientHeight}`;
       if (frameKey !== railFrameKey) { rejectedRailColumns.clear(); rejectedPhotoColumns.clear(); railFrameKey = frameKey; }
       // Committed brand lines are authoritative if the async hidden brand
@@ -157,8 +163,8 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       const base = Math.min(1.08 * rem, .88 * rem + Math.min(innerWidth, innerHeight) * .002);
       root.style.setProperty("--fit-menu-gap-scale", String(getOrderedFitGapScale(size / base, width)));
       const panelInset = panel ? parseFloat(getComputedStyle(measure.current.children[units.length > 1 ? 1 : 0] ?? measure.current).paddingLeft) || 0 : 0;
-      const candidates = (center ? [2] : leftRail ? [1, 2, 3].filter(count => count === 1 || (!rejectedRailColumns.has(count) && railGeometry(count).trackWidth >= SCROLL_MIN_COLUMN_WIDTH_REM * rem)) : Array.from({ length: max }, (_, i) => i + 1)).map(count => {
-        const columnWidth = leftRail ? railGeometry(count).trackWidth : (width - (count - 1) * gap) / count;
+      const candidates = (center ? [2] : equalSideRail ? [1, 2, 3].filter(count => count === 1 || (!rejectedRailColumns.has(count) && railGeometry(count).trackWidth >= SCROLL_MIN_COLUMN_WIDTH_REM * rem)) : Array.from({ length: max }, (_, i) => i + 1)).map(count => {
+        const columnWidth = equalSideRail ? railGeometry(count).trackWidth : (width - (count - 1) * gap) / count;
         measure.current!.style.width = `${columnWidth}px`;
         applyOnePageChipLayouts(measure.current!);
         const measured = units.map(unit => {
@@ -178,9 +184,9 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       });
       const photoSafeCandidates = candidates.filter(candidate => candidate.representativeSafe);
       const selected = selectScrollableMenuCandidate(photoSafeCandidates.length ? photoSafeCandidates : candidates, grouped);
-      if (leftRail) {
+      if (equalSideRail) {
         const geometry = railGeometry(selected.columnCount);
-        root.style.setProperty("--native-rail-width", `${geometry.railWidth}px`);
+        root.style.setProperty("--native-rail-width", `${geometry.railWidth + brandMargin}px`);
         root.dataset.representativeContentWidth = String(geometry.trackWidth);
       }
       const title = brand?.querySelector<HTMLElement>("[data-canvas-brand-fit]");
@@ -215,7 +221,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
     void document.fonts.ready.then(fontsChanged);
     schedule();
     return () => { disposed = true; requestMeasure.current = null; cancelAnimationFrame(frame); observer.disconnect(); measuredContent.removeEventListener("load", schedule, true); document.fonts.removeEventListener("loadingdone", fontsChanged); };
-  }, [units, device, grouped, center, panel, shell, updateHint]);
+  }, [units, device, grouped, center, panel, shell, equalSideRail, updateHint]);
   useLayoutEffect(() => {
     if (!panel) return;
     // Observe committed copy after brand lines/carousel content settle. Hidden
@@ -273,7 +279,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
     <CafeATypographyFontAssets typographySettings={typography} />
     <main className={`menu-typography cafe-a-typography ${styles.root}`} data-menu-text-colors={getTypographyCustomColorRoles(typography)} data-template-key={key} data-cafe-a-skin={data.templateSkin} data-preview-device={device} data-one-page-layout-shell={shell} data-cafe-a-proportion-policy="true" data-cafe-a-adaptive-fit="true" data-cafe-a-copy-aware-rhythm="true" data-cafe-a-mobile-style="false" data-spacing-contract="contained-reading" data-cafe-a-brand-font-en={typography.typography_roles.brand.font_en_key ?? typography.english_font_key} data-cafe-a-category-font-en={typography.typography_roles.category.font_en_key ?? typography.english_font_key} data-one-page-typography-profile={getOnePageTypographyProfile(key).key} style={{ ...getTypographyCssVariables(typography, key), backgroundColor: background, "--native-background": background, "--mocha-forest-brown": MOCHA_FOREST_PANEL_COLORS.brown, "--mocha-forest-ivory": MOCHA_FOREST_PANEL_COLORS.ivory, "--mocha-forest-green": MOCHA_FOREST_PANEL_COLORS.green } as CSSProperties}>
       <OnePageCallPalette />
-      <div ref={board} className={styles.board} aria-busy={!ready} data-native-scroll data-menu-column-dividers={columnDividers ? "true" : undefined} data-scroll-brand-board data-native-shell={shell} data-representative-panel={getMenuDesignBackgrounds(key, data.menuSite.page_settings).coloredPanel ? "true" : undefined} data-native-ready={ready ? "true" : "false"} data-layout-mode={grouped ? "orderedBalancedFit" : "orderedFit"} data-native-more={more ? "true" : "false"} style={{ "--native-columns": layout.columns.length, ...(columnDividers ? { "--native-menu-gap": dividerGeometry.gap, "--menu-column-divider-offset": dividerGeometry.offset, "--menu-column-divider-width": dividerGeometry.width } : {}) } as CSSProperties}>
+      <div ref={board} className={styles.board} aria-busy={!ready} data-native-scroll data-equal-side-rail={equalSideRail ? "true" : undefined} data-menu-column-dividers={columnDividers ? "true" : undefined} data-scroll-brand-board data-native-shell={shell} data-representative-panel={getMenuDesignBackgrounds(key, data.menuSite.page_settings).coloredPanel ? "true" : undefined} data-native-ready={ready ? "true" : "false"} data-layout-mode={grouped ? "orderedBalancedFit" : "orderedFit"} data-native-more={more ? "true" : "false"} style={{ "--native-columns": layout.columns.length, ...(columnDividers ? { "--native-menu-gap": dividerGeometry.gap, "--menu-column-divider-offset": dividerGeometry.offset, "--menu-column-divider-width": dividerGeometry.width } : {}) } as CSSProperties}>
         {top ? <div className={styles.header} data-native-header data-basic-header-align={leftLogo ? "left" : undefined}><CafeADesktopToplineInformationHeader data={data} capabilities={capabilities} density="default" leftLogo={leftLogo} languageControl={leftLogo ? <CafeLanguageHoverControl data={data} menuAlign="right" iconOnly /> : undefined} />{!leftLogo ? <div className={styles.headerLanguage}><CafeLanguageHoverControl data={data} menuAlign="left" iconOnly /></div> : null}</div> : null}
         {!panel ? <div className={styles.brand} data-native-brand>
           {center ? <div className={styles.cornerLanguage} data-native-corner-language><CafeLanguageHoverControl data={data} menuAlign="left" iconOnly /></div> : null}
