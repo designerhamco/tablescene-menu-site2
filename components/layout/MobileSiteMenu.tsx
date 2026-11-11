@@ -20,11 +20,11 @@ export default function MobileSiteMenu({ pathname, authenticated, loading, accou
   const [supportOpen, setSupportOpen] = useState(false);
   const supportId = useId();
   return <>
-    <div className={styles.drawerHeader}>
+    <div className={`site-container ${styles.drawerHeader}`}>
       <Link href="/" onClick={close} className={styles.wordmark}>ArtiMenu</Link>
       <div className={styles.drawerHeaderActions}>
-        {authenticated && !loading ? <Link href={NOTIFICATION_INBOX_HREF} onClick={close} className="site-button site-button-icon site-button-ghost" aria-label={unreadCount ? `알림, 읽지 않음 ${formatNotificationBadgeCount(unreadCount)}개` : "알림"}><Bell size={23} strokeWidth={2.1} aria-hidden="true" />{unreadCount ? <span className={styles.drawerUnread} aria-hidden="true" /> : null}</Link> : null}
         <Link href="/apply" onClick={close} className="site-button site-button-primary site-button-header">만들기</Link>
+        {authenticated && !loading ? <Link href={NOTIFICATION_INBOX_HREF} onClick={close} className="site-button site-button-icon site-button-ghost" aria-label={unreadCount ? `알림, 읽지 않음 ${formatNotificationBadgeCount(unreadCount)}개` : "알림"}><Bell size={23} strokeWidth={2.1} aria-hidden="true" />{unreadCount ? <span className={styles.drawerUnread} aria-hidden="true" /> : null}</Link> : null}
         {closeButton}
       </div>
     </div>
