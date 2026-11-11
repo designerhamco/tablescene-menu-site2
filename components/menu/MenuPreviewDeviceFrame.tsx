@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import PreviewActualView from "./PreviewActualView";
 import { usePreviewRenderedDesign } from "./usePreviewRenderedDesign";
-import { isAubeTableTemplate } from "@/lib/aube-table";
 
 import { fitMenuPreviewFrame } from "@/lib/menu-preview-fit";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
@@ -23,6 +22,7 @@ import {
   buildMenuPreviewUrl,
   buildTemplatePreviewUrl,
   getMenuPreviewFrame,
+  shouldUseMenuPreviewDeviceFrame,
   MENU_PREVIEW_DEVICE_ORDER,
   MENU_PREVIEW_DEVICES,
   MENU_PREVIEW_ORIENTATIONS,
@@ -113,7 +113,7 @@ export default function MenuPreviewDeviceFrame(
   const templateKey = props.templateKey ?? props.menuTemplateKey;
   const designParam = props.menuId ? props.menuDesignId : (query as TemplatePreviewQuery).design;
   const defaultDesign = templateKey ? getDefaultDesignReview(Array.isArray(designParam) ? designParam[0] : designParam, templateKey) : undefined;
-  const supportsTabletOrientation = isAubeTableTemplate(templateKey);
+  const supportsTabletOrientation = shouldUseMenuPreviewDeviceFrame(templateKey);
   const orientation = supportsTabletOrientation ? props.orientation : "landscape";
   const router = useRouter();
   const [isPending, startTransition] = useTransition();

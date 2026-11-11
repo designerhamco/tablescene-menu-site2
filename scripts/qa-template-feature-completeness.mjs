@@ -35,8 +35,8 @@ async function check(key,device,width,height){const p=await b.newPage({viewport:
  await p.screenshot({path:`${out}/${key}-${device}.png`});results.push({key,device,viewport:[width,height],widgets:await widgets.count(),palette});console.log('PASS',key,device);
  }catch(e){failures.push({key,device,error:e.message});console.log('FAIL',key,device,e.message);}finally{await p.close();}}
 try{const cases=keys.filter(k=>!process.env.QA_KEYS||process.env.QA_KEYS.split(',').includes(k)).flatMap(key=>sizes.map(size=>[key,...size]));for(let i=0;i<cases.length;i+=3)await Promise.all(cases.slice(i,i+3).map(args=>check(...args)));
- // Device toolbar really hides Basic rotation and retains Dining rotation.
- for(const key of ['cafe_design_a','cafe_mocha_forest_a','restaurant_onue_a','dining_aube_table_a','dining_aube_table_b']){const p=await b.newPage({viewport:{width:1440,height:1100}});try{await p.goto(`${base}/templates/${key}/preview?device=tablet&orientation=portrait`,{waitUntil:'networkidle'});assert.equal(await p.locator('[data-preview-tablet-orientation-toggle]').count(),key.startsWith('dining')?1:0);results.push({key,behavior:'tablet-rotation'});}catch(e){failures.push({key,error:e.message});}finally{await p.close();}}
+ // Both Basic and Dining tablet previews retain the rotation control.
+ for(const key of ['cafe_design_a','cafe_mocha_forest_a','restaurant_onue_a','dining_aube_table_a','dining_aube_table_b']){const p=await b.newPage({viewport:{width:1440,height:1100}});try{await p.goto(`${base}/templates/${key}/preview?device=tablet&orientation=portrait`,{waitUntil:'networkidle'});assert.equal(await p.locator('[data-preview-tablet-orientation-toggle]').count(),1);results.push({key,behavior:'tablet-rotation'});}catch(e){failures.push({key,error:e.message});}finally{await p.close();}}
  // Source starters also remain complete without forced visibility overrides.
  for(const key of ['fast_food_loop_bagel_a','restaurant_onue_a']){
   const p=await b.newPage({viewport:{width:1180,height:820},reducedMotion:'reduce'});
