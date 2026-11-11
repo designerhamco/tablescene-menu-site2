@@ -22,6 +22,7 @@ for (const design of catalogDesigns) test(`${design.id}: purchased translations 
   await createStarterMenuData(client as never, "purchased-menu", design.templateKey, null, null,
     design.service === "display" ? "business_display_monthly" : design.service === "dining" ? "business_basic_multi_monthly" : "business_basic_single_monthly", { designId: design.id });
   const rows = (table: string) => client.rows.get(table) ?? [];
+  for (const [table, calls] of client.insertCalls) if (table.endsWith("_translations")) assert.equal(calls,1,`${table}: batch all locale copies in one insert`);
   const id = getStarterTranslationIds(preview, { pages: rows("menu_pages"), categories: rows("menu_categories"), items: rows("menu_items"), options: rows("menu_item_price_options"), widgets: rows("menu_widgets"), promotions: rows("menu_promotions") });
   assert.deepEqual((client.site.settings as {enabled_locales: string[]}).enabled_locales,["ko","en","zh","ja"]);
   assert.equal(client.site.restaurant_name,"고객 매장");
@@ -42,7 +43,7 @@ for (const design of catalogDesigns) test(`${design.id}: purchased translations 
       assert.equal(getBadgeStyleKey(item),getBadgeStyleKey(original),"translation never changes chip color role");
     }
     for(const option of translated.priceOptions)check("menu_item_price_option_translations","price_option_id",option.id,{label:option.label,price_label:option.price_label});
-    for(const sale of translated.timeSales){assert.ok(!/[가-힣]/.test(sale.badgeText),`${design.id}/${locale}: Korean sale chip remains`);check("menu_promotion_translations","menu_promotion_id",sale.id,{badge_text:sale.badgeText,time_display_text:sale.displayText});}
+    for(const sale of translated.timeSales){if(locale!=="en")assert.notEqual(sale.badgeText,preview.timeSales.find(original=>original.id===sale.id)?.badgeText,`${design.id}/${locale}: sale chip must have target-language copy`);assert.ok(!/[가-힣]/.test(sale.badgeText),`${design.id}/${locale}: Korean sale chip remains`);check("menu_promotion_translations","menu_promotion_id",sale.id,{badge_text:sale.badgeText,time_display_text:sale.displayText});}
     for(const widget of translated.widgets??[])if(widget.type!=="image")check("menu_widget_translations","menu_widget_id",widget.id,{title:widget.title,description:widget.description});
   }
   if(design.service==="dining")assert.deepEqual(getReadyAubeTableLocales({configuredLocales:["ko","en","zh","ja"],coverEnabled:true,site:client.site,pages:rows("menu_pages"),categories:rows("menu_categories"),items:rows("menu_items"),priceOptions:rows("menu_item_price_options"),siteTranslations:rows("menu_site_translations"),pageTranslations:rows("menu_page_translations"),categoryTranslations:rows("menu_category_translations"),itemTranslations:rows("menu_item_translations"),priceOptionTranslations:rows("menu_item_price_option_translations")} as never),["ko","en","zh","ja"]);
