@@ -6,6 +6,9 @@
 
 - [기능별 문서 범위·보완 점검표](docs/feature-documentation-coverage.md): 메뉴판 관리·구독·결제·운영·계정·권한·QR·AI·파일·알림·복구 자료의 범위
 - [Supabase 데이터 저장·보관·삭제 안내](docs/supabase-data-lifecycle-guide.md): DB·Storage·Auth·권한·보관/복구·백업의 구분
+- [백업·장애 복구 운영 절차](docs/runbooks/backup-disaster-recovery.md): DB/파일 별도 복원, 격리 검증과 재개 기준. 실설정·복구 훈련은 미확인
+- [메뉴판 관리 초안·저장·공개 계약](docs/menu-management-save-contract.md): 탭별 저장·샘플 복원·파일·번역·미저장/부분 실패 경계
+- [구독·결제 상태와 실패 복구 계약](docs/subscription-payment-state-contract.md): 승인/생성/이용권, 갱신·전환·환불·재시도와 남은 한계
 - [서비스·요금·이용권 기준](docs/service-pricing-contract.md): 가격 원본, 서비스 구성과 기존 계약의 구분
 - [약관·개인정보·동의 검토 현황](docs/legal-policy-review.md): 공개 원문 위치와 아직 확인이 필요한 사항
 

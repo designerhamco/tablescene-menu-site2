@@ -14,6 +14,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## 문서 제목·상태 표시
 
+- 편집/운영 변경 전 docs/menu-management-save-contract.md, docs/subscription-payment-state-contract.md, docs/runbooks/backup-disaster-recovery.md에서 담당 경계를 확인한다. 저장 버튼 dirty 제어를 전역 미저장 이동 보호로, 개별 검증을 전체 저장 원자성으로, 내부 결제 상태를 외부 승인 결과로 확대하지 않는다. 문서의 운영값 미확인·미실행·구현 TODO는 증거 없이 완료로 바꾸지 않는다.
+
 - 기능 문서 점검은 docs/feature-documentation-coverage.md와 docs/supabase-data-lifecycle-guide.md를 따른다. 메뉴판 설정·구독·결제·매장 운영 외에도 계정/직원 권한·QR/세션·AI/크레딧·파일·알림·배포/백업/복구를 포함한다. 문서/스키마 파일 존재와 실제 배포·데이터 저장·정리 실행·복구 검증을 구분한다. 백업 운영 확인이 없으면 복구 완료라고 주장하지 않고, 서비스 재구독 복구를 DB/Storage 장애 복구와 혼동하지 않는다.
 
 - 사람이 보는 제목과 목차 링크는 아티메뉴와 담당 기능을 명시한다. 원문/현행 규칙/검토안/검수 이력/운영 절차를 구분하고, 과거 기록은 최신 사양처럼 표시하지 않는다. 도구가 자동으로 읽는 AGENTS.md·CLAUDE.md 파일명과 Next.js 관리 블록은 유지한다. 가격·서비스의 코드 원본과 약관·개인정보 공개 원문을 문서에서 연결하고, MD 존재를 전체 정합성·법적 검토·운영 활성화 완료로 주장하지 않는다. 문서 전체 진입점은 docs/artimenu-project-guide.md다.
