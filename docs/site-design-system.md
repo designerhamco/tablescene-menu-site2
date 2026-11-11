@@ -686,3 +686,7 @@ OrderHistoryFilters는 ContentPanel density=controls, site-form-row/site-field-s
 - 출처는 Iconify의 Remix Icon4.8.0 Apache-2.0 스냅샷으로 고정한다. 정확한 커밋과 라이선스는 `public/licenses/remix-icon-NOTICE.txt`, `remix-icon-LICENSE.txt`에 포함한다.
 
 공통 Switch는 기존 흑백 대비·상태·RTL·로딩·비활성·키보드/폼 동작을 유지하며 기본 트랙44×24px/손잡이18px, 소형36×20px/손잡이14px, 경계1px/안쪽2px를 사용한다. 두 크기 모두44×44px 조작 영역을 유지한다. 별도 ON/OFF 상태 문구는 추가하지 않는다.
+
+### 서체 선택 견본 (2026-11-11)
+
+보기 옵션·메뉴판 디자인 설정의 서체 선택은 공통 `FontSelect`다. 열린 목록은 이름을 해당 등록 서체로, 한글은 ‘가나다’와 함께 보여 준다. 견본16px·행40px/터치44px·기존 기본값/선택 체크/초점과 팝업 스크롤을 사용한다. 보이는 서체부터 기존 자산을 로드하며 선택 전후 값과 명시적 저장 동작은 유지한다. 선택 버튼과 주변 UI의 사이트 폰트는 그대로다. 상세 경계는 `site-control-contract.md`의 ‘서체 선택 목록의 견본’을 따른다.

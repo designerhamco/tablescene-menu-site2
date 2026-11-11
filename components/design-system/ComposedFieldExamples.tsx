@@ -5,6 +5,8 @@ import { Sparkles, UserRound } from "@/app/components/ui/site-icon";
 import { ko } from "date-fns/locale";
 import { format } from "date-fns";
 import { ContentPanel } from "@/app/components/ui/content-panel";
+import { FontSelect } from "@/app/components/ui/font-select";
+import { KOREAN_FONT_OPTIONS, getKoreanFontOption, getAvailableEnglishFontsForTemplate, getEnglishFontOption } from "@/lib/font-options";
 import { Input } from "@/app/components/ui/input";
 import { FieldMessage } from "@/app/components/ui/field-message";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/app/components/ui/input-group";
@@ -21,6 +23,8 @@ import styles from "./SiteComponentGallery.module.css";
 
 export default function ComposedFieldExamples() {
   const id = useId();
+  const [koreanFont, setKoreanFont] = useState("");
+  const [englishFont, setEnglishFont] = useState("");
   const [query, setQuery] = useState("");
   const [checked, setChecked] = useState<boolean | "indeterminate">("indeterminate");
   const [filters, setFilters] = useState<string[]>(["cozy"]);
@@ -32,6 +36,8 @@ export default function ComposedFieldExamples() {
   return <section className={styles.section} id="composed-fields" aria-labelledby={`${id}-title`}>
     <div className="site-stack-title"><h2 className="type-section-title" id={`${id}-title`}>입력 구조·선택·날짜</h2><p className="type-body site-copy-muted">입력값과 아이콘·단위·보조 행동을 하나의 경계 안에 정렬합니다. 일반 필드와 캡슐형 검색은 각각의 모서리를 유지하며32·40·44·48px 입력 규격을 공유합니다.</p></div>
     <div className="site-detail-grid">
+      <ContentPanel><div className="site-field-stack"><span className="type-label">한글 서체 미리보기</span><FontSelect label="한글 서체 미리보기" script="ko" options={KOREAN_FONT_OPTIONS} defaultOption={getKoreanFontOption("pretendard")!} value={koreanFont} onChange={setKoreanFont} /></div></ContentPanel>
+      <ContentPanel><div className="site-field-stack"><span className="type-label">영문 서체 미리보기</span><FontSelect label="영문 서체 미리보기" script="en" options={getAvailableEnglishFontsForTemplate("cafe_design_a")} defaultOption={getEnglishFontOption("alata")!} value={englishFont} onChange={setEnglishFont} /></div></ContentPanel>
       <ContentPanel><div className="site-field-stack"><label className="type-label" htmlFor={`${id}-name`}>아이콘이 있는 입력</label><InputGroup><InputGroupAddon aria-hidden="true"><UserRound /></InputGroupAddon><InputGroupInput id={`${id}-name`} name="sampleName" placeholder="담당자명" /></InputGroup></div></ContentPanel>
       <ContentPanel><div className="site-field-stack"><label className="type-label" htmlFor={`${id}-amount`}>금액</label><InputGroup><InputGroupInput id={`${id}-amount`} name="sampleAmount" inputMode="decimal" defaultValue="10000" aria-describedby={`${id}-unit`} /><InputGroupAddon id={`${id}-unit`}>원</InputGroupAddon></InputGroup></div></ContentPanel>
       <ContentPanel><div className="site-field-stack"><label className="type-label" htmlFor={`${id}-password`}>비밀번호</label><PasswordField id={`${id}-password`} defaultValue="sample-password" autoComplete="off" /></div></ContentPanel>

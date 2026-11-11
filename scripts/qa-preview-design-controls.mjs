@@ -20,7 +20,7 @@ async function controls(width,dining){const p=await page(width,1000);try{
  const grids=panel.locator('[data-preview-backgrounds],[data-preview-font-groups],[data-preview-chip-colors] fieldset > div');
  const measured=await grids.evaluateAll(es=>es.map(e=>({columns:getComputedStyle(e).gridTemplateColumns.split(' ').length,overflow:e.scrollWidth>e.clientWidth+1,fields:[...e.querySelectorAll('[data-preview-color-field]')].map(f=>{const r=f.getBoundingClientRect(),label=f.querySelector('span').getBoundingClientRect(),button=f.querySelector('button').getBoundingClientRect();return{width:r.width,buttonBottom:button.bottom,labelBottom:label.bottom};})})));
  assert.equal(measured.length,dining?2:4);for(const g of measured){assert.equal(g.columns,2);assert.equal(g.overflow,false);for(const f of g.fields)assert.ok(f.buttonBottom>f.labelBottom);}
- assert.equal(await panel.locator('[data-preview-common-fonts] select').count(),2);
+ assert.equal(await panel.locator('[data-preview-common-fonts] [data-font-select]').count(),2);
  assert.equal(await panel.locator('input[type=text],input[type=number],input[type=range]').count(),0);
  const brand=p.getByRole('button',{name:'가게명 글자색 선택',exact:true});await brand.click();
  const picker=p.locator('[data-preview-color-picker]');await picker.waitFor();

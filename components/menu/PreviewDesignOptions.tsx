@@ -3,10 +3,11 @@
 import { ALBUM_IMAGE_RATIOS, withUnifiedAppearanceRadius } from "@/lib/menu-appearance";
 import type { PreviewRenderedDesign } from "@/lib/menu-preview-rendered-design";
 import { KOREAN_FONT_OPTIONS, getAvailableEnglishFontsForTemplate, getEnglishFontOption, getKoreanFontOption } from "@/lib/font-options";
-import { type PreviewDesign, type PreviewDesignDefaults, type PreviewFontChoice } from "@/lib/menu-preview-design";
+import { type PreviewDesign, type PreviewDesignDefaults } from "@/lib/menu-preview-design";
 import { resolvePreviewChipColors, type PreviewChipColors } from "@/lib/menu-preview-chip-colors";
 import { REPRESENTATIVE_ALIGNMENTS } from "@/lib/menu-design-surfaces";
 import { getMenuTextColorGroups, getMenuTextColorLabel, resolvedMenuTextColors, type MenuTextColorGroup } from "@/lib/menu-text-colors";
+import { FontSelect } from "@/app/components/ui/font-select";
 import ImageRadiusSelect from "./ImageRadiusSelect";
 import PreviewColorPicker from "./PreviewColorPicker";
 import styles from "./PreviewDesignOptions.module.css";
@@ -50,12 +51,8 @@ export default function PreviewDesignOptions({ value, defaults, renderedDesign, 
       </> : <PreviewColorPicker label="보조 배경색" value={value.auxiliaryBackground} defaultColor={defaults.colors.auxiliary} onChange={auxiliaryBackground => set({ auxiliaryBackground })} disabled={disabled} />}
     </div></fieldset>
     <fieldset data-preview-common-fonts><legend className={styles.legend}>공통 서체</legend><div className={styles.backgrounds}>
-      <label className={styles.option}>한글 서체<select aria-label="공통 한글 서체" value={value.fontFamily?.ko ?? ""} disabled={disabled} className={styles.select} onChange={event => set({fontFamily:{...value.fontFamily,ko:event.target.value as PreviewFontChoice["ko"] || undefined}})}>
-        <option value="">기본값 · {getKoreanFontOption(defaults.fontFamily.ko)?.label}</option>{KOREAN_FONT_OPTIONS.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}
-      </select></label>
-      <label className={styles.option}>영문 서체<select aria-label="공통 영문 서체" value={value.fontFamily?.en ?? ""} disabled={disabled} className={styles.select} onChange={event => set({fontFamily:{...value.fontFamily,en:event.target.value as PreviewFontChoice["en"] || undefined}})}>
-        <option value="">기본값 · {getEnglishFontOption(defaults.fontFamily.en)?.label}</option>{getAvailableEnglishFontsForTemplate(templateKey).map(item=><option key={item.value} value={item.value}>{item.label}</option>)}
-      </select></label>
+      <div className={styles.option}><span>한글 서체</span><FontSelect label="공통 한글 서체" script="ko" options={KOREAN_FONT_OPTIONS} defaultOption={getKoreanFontOption(defaults.fontFamily.ko)!} value={value.fontFamily?.ko ?? ""} disabled={disabled} className={styles.select} size="sm" defaultLabel="기본값" onChange={ko => set({fontFamily:{...value.fontFamily,ko:ko || undefined}})} /></div>
+      <div className={styles.option}><span>영문 서체</span><FontSelect label="공통 영문 서체" script="en" options={getAvailableEnglishFontsForTemplate(templateKey)} defaultOption={getEnglishFontOption(defaults.fontFamily.en)!} value={value.fontFamily?.en ?? ""} disabled={disabled} className={styles.select} size="sm" defaultLabel="기본값" onChange={en => set({fontFamily:{...value.fontFamily,en:en || undefined}})} /></div>
     </div></fieldset>
     <fieldset><legend className={styles.legend}>글자색</legend><div className={styles.colorGrid} data-preview-font-groups>{getMenuTextColorGroups(dining).map(group => {
       const label = getMenuTextColorLabel(group, dining);
