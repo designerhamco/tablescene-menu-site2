@@ -444,3 +444,24 @@ test("multi-select counts preserve category names and keep reset controls outsid
     }
   }
 });
+
+
+test("compact filter sections preserve partial checks and sibling clear controls", async () => {
+  const { MultiSelect, MultiSelectChoices } = await import("../app/components/ui/multi-select");
+  const { Accordion } = await import("../app/components/ui/accordion");
+  const options = [{ key: "red", label: "빨간색" }, { key: "blue", label: "파란색" }];
+  const props = { label: "색상", icon: null, options, value: ["red"], onValueChange: () => {} };
+  const choices = renderToStaticMarkup(createElement(MultiSelectChoices, props));
+  assert.match(choices, /aria-checked="mixed"/);
+  assert.equal([...choices.matchAll(/checked=""/g)].length, 1);
+  assert.doesNotMatch(choices, /선택 해제/);
+  const section = renderToStaticMarkup(createElement(Accordion, { type: "single", collapsible: true }, createElement(MultiSelect, { ...props, presentation: "accordion" })));
+  assert.match(section, /site-multiselect-section/);
+  assert.match(section, /aria-label="색상 선택 해제"/);
+  for (const button of section.matchAll(/<button\b[^>]*>([\s\S]*?)<\/button>/g)) assert.doesNotMatch(button[1], /<button\b/);
+  const source = read("app/components/ui/multi-select.tsx");
+  assert.match(source, /side="bottom" avoidCollisions=\{false\}/);
+  assert.doesNotMatch(source, /site-multiselect-reset/);
+  assert.match(read("components/design-system/ComposedFieldExamples.tsx"), /<MultiSelect presentation="accordion"/);
+  assert.match(css, /\.site-multiselect-count \.site-button\.site-multiselect-clear:is\(:hover, :active, \[data-ui-state\]\):not\(:disabled\):not\(\[aria-disabled="true"\]\) \{ color: var\(--ui-media-ink\);/);
+});

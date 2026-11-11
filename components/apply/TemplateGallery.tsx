@@ -4,7 +4,6 @@ import { Grid2X2, Grid3X3, Palette, PanelsTopLeft, Search, Sparkles, Store } fro
 import { useId, useMemo, useRef, useState } from "react";
 import {
   CATALOG_INDUSTRIES,
-  CATALOG_LAYOUT_FILTERS,
   filterCatalogDesigns,
   normalizeCatalogFilters,
   type CatalogFilters,
@@ -18,6 +17,7 @@ import { FieldActionRow } from "@/app/components/ui/field-action-row";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import CatalogDesignCard from "@/components/templates/CatalogDesignCard";
+import CatalogFilterSearch from "@/components/templates/CatalogFilterSearch";
 import CatalogFilterSelect from "@/components/templates/CatalogFilterSelect";
 import CatalogIndustryIcon from "@/components/templates/CatalogIndustryIcon";
 import CatalogLayoutSelect from "@/components/templates/CatalogLayoutSelect";
@@ -32,8 +32,8 @@ const PRODUCT_TABS = [
   { key: "display", label: "디스플레이" },
 ] as const;
 const KIND_TABS = [
-  { key: "designer", label: "디자인 템플릿", description: "완성된 스타일에 우리 매장 메뉴를 넣어 시작하세요." },
-  { key: "standard", label: "기본 템플릿", description: "기본 레이아웃에서 색상과 글꼴을 매장에 맞게 직접 설정하세요." },
+  { key: "designer", label: "디자인 템플릿" },
+  { key: "standard", label: "기본 템플릿" },
 ] as const;
 const DEFAULT_FILTERS: CatalogFilters = { industry: [], mood: [], color: [], layout: [] };
 const industryOptions = CATALOG_INDUSTRIES.map(item => ({ ...item, label: item.key === "all" ? "전체 업종" : item.label, icon: <CatalogIndustryIcon industry={item.key} /> }));
@@ -71,14 +71,7 @@ export default function TemplateGallery({
   const currentPage = Math.min(page, Math.max(totalPages, 1));
   const paginatedTemplates = visibleTemplates.slice((currentPage - 1) * TEMPLATES_PER_PAGE, currentPage * TEMPLATES_PER_PAGE);
   const selectedKind = KIND_TABS.find(item => item.key === kind)!;
-  const activeLabels = [
-    ...CATALOG_INDUSTRIES.filter(item => filters.industry.some(key => key === item.key)).map(item => item.label),
-    ...CATALOG_MOODS.filter(item => filters.mood.some(key => key === item.key)).map(item => item.label),
-    ...CATALOG_COLORS.filter(item => filters.color.some(key => key === item.key)).map(item => item.label),
-    ...CATALOG_LAYOUT_FILTERS.filter(item => filters.layout.some(key => key === item.key)).map(item => item.label),
-    query.trim() ? `“${query.trim()}”` : null,
-  ].filter(Boolean);
-  const hasFilters = activeLabels.length > 0;
+  const hasFilters = Object.values(filters).some(value => value.length > 0) || Boolean(query.trim());
 
   function keepUrl(service: CatalogService, nextKind: CatalogKind, next: CatalogFilters, search = query, size = thumbnailSize) {
     const url = new URL(location.href);
@@ -110,6 +103,17 @@ export default function TemplateGallery({
     setFilters(DEFAULT_FILTERS); setQuery(""); setPage(1); keepUrl(product, kind, DEFAULT_FILTERS, "");
   }
 
+  function renderFilters(presentation: "popover" | "accordion") {
+    return <>
+      {(kind !== "standard" || product === "display") && <>
+        <CatalogFilterSelect label="업종" presentation={presentation} icon={<Store aria-hidden="true" />} options={industryOptions} value={filters.industry} onValueChange={value => selectFilter("industry", value)} />
+        <CatalogFilterSelect label="분위기" presentation={presentation} icon={<Sparkles aria-hidden="true" />} options={CATALOG_MOODS} value={filters.mood} onValueChange={value => selectFilter("mood", value)} />
+        <CatalogFilterSelect label="색상" presentation={presentation} appearance="swatches" icon={<Palette aria-hidden="true" />} options={colorOptions} value={filters.color} onValueChange={value => selectFilter("color", value)} />
+      </>}
+      <CatalogLayoutSelect presentation={presentation} value={filters.layout} onValueChange={value => selectFilter("layout", value)} />
+    </>;
+  }
+
   return <Tabs purpose="page" value={product} className="site-catalog" onValueChange={value => selectProduct(value as CatalogService)}>
     <TabsList size="lg" className="site-catalog-services" aria-label="서비스 선택">
       {PRODUCT_TABS.map(({ key, label }) => (
@@ -131,34 +135,26 @@ export default function TemplateGallery({
         <div role={product !== "display" ? "tabpanel" : undefined} tabIndex={product !== "display" ? 0 : undefined}
           className="site-catalog-panel"
           id={`${tabsId}-kind-panel`} aria-labelledby={product !== "display" ? `${tabsId}-${kind}` : undefined}>
-          <section className="site-catalog-plan" aria-label="템플릿 이용 안내">
-            <p className="type-body site-catalog-kind-description">
-              {product === "display" ? "매장 모니터에 어울리는 디자인을 미리 확인하세요. 신규 신청은 준비 중입니다." : selectedKind.description}
-            </p>
-          </section>
           <div className="site-catalog-surface">
             <div className="site-catalog-results">
-              <form role="search" aria-label="템플릿 이름 검색" className="site-catalog-search" onSubmit={event => event.preventDefault()}>
-                <FieldActionRow field={<>
-                  <label className="sr-only" htmlFor={`${tabsId}-search`}>템플릿 이름 검색</label>
-                  <SearchField id={`${tabsId}-search`} label="템플릿 이름 검색" showSearchIcon={false} placeholder="템플릿 이름으로 검색" enterKeyHint="search" maxLength={100} value={query} onValueChange={searchByName} />
-                </>} action={<Button type="submit" variant="ghost" size="icon" aria-label="이름 검색"><Search aria-hidden="true" /></Button>} />
-              </form>
+              <CatalogFilterSearch search={
+                <form role="search" aria-label="템플릿 이름 검색" className="site-catalog-search" onSubmit={event => event.preventDefault()}>
+                  <FieldActionRow field={<>
+                    <label className="sr-only" htmlFor={`${tabsId}-search`}>템플릿 이름 검색</label>
+                    <SearchField id={`${tabsId}-search`} label="템플릿 이름 검색" showSearchIcon={false} placeholder="템플릿 이름으로 검색" enterKeyHint="search" maxLength={100} value={query} onValueChange={searchByName} />
+                  </>} action={<Button type="submit" variant="ghost" size="icon" aria-label="이름 검색"><Search aria-hidden="true" /></Button>} />
+                </form>
+              }>{renderFilters("accordion")}</CatalogFilterSearch>
               <div className="site-catalog-filter-toolbar">
                 <div className="site-catalog-filter-controls" data-filter-count={kind === "standard" && product !== "display" ? "1" : "4"} role="group" aria-label="템플릿 필터">
-                  {(kind !== "standard" || product === "display") && <>
-                  <CatalogFilterSelect label="업종" icon={<Store aria-hidden="true" />} options={industryOptions} value={filters.industry} onValueChange={value => selectFilter("industry", value)} />
-                  <CatalogFilterSelect label="분위기" icon={<Sparkles aria-hidden="true" />} options={CATALOG_MOODS} value={filters.mood} onValueChange={value => selectFilter("mood", value)} />
-                  <CatalogFilterSelect label="색상" appearance="swatches" icon={<Palette aria-hidden="true" />} options={colorOptions} value={filters.color} onValueChange={value => selectFilter("color", value)} />
-                  </>}
-                  <CatalogLayoutSelect value={filters.layout} onValueChange={value => selectFilter("layout", value)} />
+                  {renderFilters("popover")}
                 </div>
                 <div className="site-catalog-view-controls" role="group" aria-label="썸네일 크기">
                   <Button type="button" variant="ghost" size="icon" className="site-tool-button" aria-label="썸네일 크게 보기" title="썸네일 크게 보기" aria-pressed={thumbnailSize === "large"} onClick={() => selectThumbnailSize("large")}><Grid2X2 aria-hidden="true" /></Button>
                   <Button type="button" variant="ghost" size="icon" className="site-tool-button" aria-label="썸네일 작게 보기" title="썸네일 작게 보기" aria-pressed={thumbnailSize === "small"} onClick={() => selectThumbnailSize("small")}><Grid3X3 aria-hidden="true" /></Button>
                 </div>
                 <p className="site-catalog-count" aria-live="polite" aria-atomic="true">
-                  {product === "display" ? "디스플레이" : selectedKind.label}{activeLabels.length > 0 ? ` · ${activeLabels.join(" · ")}` : ""} <span>{visibleTemplates.length}개</span>
+                  {product === "display" ? "디스플레이" : selectedKind.label} · <span>{visibleTemplates.length}개</span>
                 </p>
               </div>
               <div className="site-stack-group">

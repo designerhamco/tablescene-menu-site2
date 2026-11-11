@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import { UserRound } from "lucide-react";
+import { Sparkles, UserRound } from "lucide-react";
 import { ko } from "date-fns/locale";
 import { format } from "date-fns";
 import { ContentPanel } from "@/app/components/ui/content-panel";
@@ -10,6 +10,8 @@ import { FieldMessage } from "@/app/components/ui/field-message";
 import { InputGroup, InputGroupAddon, InputGroupInput } from "@/app/components/ui/input-group";
 import { PasswordField } from "@/app/components/ui/password-field";
 import { SearchField } from "@/app/components/ui/search-field";
+import { MultiSelect } from "@/app/components/ui/multi-select";
+import { Accordion } from "@/app/components/ui/accordion";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/app/components/ui/radio-group";
 import { Calendar } from "@/app/components/ui/calendar";
@@ -19,6 +21,8 @@ export default function ComposedFieldExamples() {
   const id = useId();
   const [query, setQuery] = useState("");
   const [checked, setChecked] = useState<boolean | "indeterminate">("indeterminate");
+  const [filters, setFilters] = useState<string[]>(["cozy"]);
+  const filterOptions = [{ key: "lively", label: "발랄한" }, { key: "cozy", label: "코지한" }, { key: "modern", label: "모던한" }];
   const [radio, setRadio] = useState("email");
   const [date, setDate] = useState<Date | undefined>(() => new Date(2026, 10, 11));
   const items = ["메뉴판 편집", "테이블 관리", "디자인 템플릿"].filter(item => item.includes(query.trim()));
@@ -32,6 +36,7 @@ export default function ComposedFieldExamples() {
       <ContentPanel><div className="site-field-stack"><label className="type-label" htmlFor={`${id}-readonly`}>읽기 전용</label><Input id={`${id}-readonly`} value="선택하고 복사할 수 있는 값" readOnly /></div><div className="site-field-stack"><label className="type-label" htmlFor={`${id}-disabled`}>비활성</label><SearchField id={`${id}-disabled`} label="비활성 검색 예시" value="검색할 수 없는 상태" onValueChange={() => {}} disabled /></div></ContentPanel>
       <ContentPanel><div className="site-field-stack"><label className="type-label" htmlFor={`${id}-invalid`}>입력 오류</label><PasswordField id={`${id}-invalid`} defaultValue="short" aria-invalid="true" aria-describedby={`${id}-error`} /><FieldMessage id={`${id}-error`}>비밀번호는8자 이상 입력해 주세요.</FieldMessage></div></ContentPanel>
       <ContentPanel><h3 className="type-content-title">선택 상태</h3><label className="site-action-row type-label"><Checkbox checked={checked} onCheckedChange={value => setChecked(value === true)} />부분 선택·전체 선택</label><label className="site-action-row type-label"><Checkbox checked disabled />비활성 선택</label><RadioGroup value={radio} onValueChange={setRadio} aria-label="알림 채널 예시"><label className="site-action-row type-label"><RadioGroupItem value="email" />이메일</label><label className="site-action-row type-label"><RadioGroupItem value="message" />문자 메시지</label><label className="site-action-row type-label"><RadioGroupItem value="disabled" disabled />준비 중</label></RadioGroup></ContentPanel>
+      <ContentPanel><h3 className="type-content-title">복수 선택 필터</h3><MultiSelect label="분위기" icon={<Sparkles aria-hidden="true" />} options={filterOptions} value={filters} onValueChange={setFilters} /><Accordion type="single" collapsible><MultiSelect presentation="accordion" label="접이식 분위기" icon={<Sparkles aria-hidden="true" />} options={filterOptions} value={filters} onValueChange={setFilters} /></Accordion></ContentPanel>
       <ContentPanel><h3 className="type-content-title">날짜 선택</h3><div className="site-field-stack"><label htmlFor={`${id}-date`} className="type-label">날짜</label><Input id={`${id}-date`} type="date" value={date ? format(date, "yyyy-MM-dd") : ""} onChange={event => setDate(event.currentTarget.value ? new Date(`${event.currentTarget.value}T12:00:00`) : undefined)} /></div><Calendar mode="single" locale={ko} selected={date} onSelect={setDate} defaultMonth={new Date(2026, 10, 1)} /></ContentPanel>
     </div>
   </section>;

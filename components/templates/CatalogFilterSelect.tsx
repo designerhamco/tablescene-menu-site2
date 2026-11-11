@@ -10,6 +10,7 @@ export default function CatalogFilterSelect<T extends string>({ options, ...prop
   value: readonly Exclude<T, "all">[];
   onValueChange: (value: Exclude<T, "all">[]) => void;
   appearance?: "list" | "swatches";
+  presentation?: "popover" | "accordion";
 }) {
   const choices = options.filter((option): option is MultiSelectOption<Exclude<T, "all">> => option.key !== "all");
   return <MultiSelect {...props} options={choices} />;
