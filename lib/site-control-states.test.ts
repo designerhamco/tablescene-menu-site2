@@ -341,7 +341,13 @@ test("등록은 룸이 있을 때만 활성화하고 취소를 제공하지 않�
 test("룸 선택의 독립 사각 탭은 고정 추가 행동과 선택 가능한 룸을 분리한다",async()=>{
  const {Tabs,TabsList,TabsTrigger}=await import("../app/components/ui/tabs");
  const html=renderToStaticMarkup(createElement(Tabs,{purpose:"section",appearance:"rooms",defaultValue:"main"},createElement(TabsList,{"aria-label":"룸 선택",action:createElement("button",{type:"button","aria-label":"룸 추가"},"+")},createElement(TabsTrigger,{value:"main"},"메인"),createElement(TabsTrigger,{value:"terrace"},"테라스"))));
- assert.match(html,/site-room-tabs-header/);assert.ok(html.indexOf('aria-label="룸 추가"')<html.indexOf('role="tablist"'));
+ assert.match(html,/site-room-tabs-header" data-size="md"/);assert.ok(html.indexOf('aria-label="룸 추가"')<html.indexOf('role="tablist"'));
+ for(const size of ["sm","md","lg","default"] as const){
+  const sized=renderToStaticMarkup(createElement(Tabs,{purpose:"section",appearance:"rooms",defaultValue:"main"},createElement(TabsList,{size},createElement(TabsTrigger,{value:"main"},"메인"))));
+  const expected=size==="default"?"md":size;
+  assert.match(sized,new RegExp(`site-room-tabs-header" data-size="${expected}"`));
+  assert.match(sized,new RegExp(`data-size="${expected}" class="site-room-tabs`));
+ }
  assert.equal((html.match(/role="tab"/g)??[]).length,2);assert.match(html,/aria-selected="true"/);assert.doesNotMatch(html,/site-document-tab/);
 });
 

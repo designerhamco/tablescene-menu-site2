@@ -618,7 +618,7 @@ OrderHistoryFilters는 ContentPanel density=controls, site-form-row/site-field-s
 ## 룸 선택·관리 도구 (2026-11-10, 이전 룸 탭 내 이름 편집·오른쪽 삭제 배치 대체)
 
 - 테이블·키오스크 관리 제목 오른쪽의 공통 Select에서 배치도형/리스트형을 고른다. 모바일에서도 제목과 선택을 같은 도구 행에 두고, 기존 미저장 확인과 초안 보존/버리기를 유지한다.
-- 룸 선택은 공통 `Tabs purpose="section" appearance="rooms"`를 사용한다. 선택은 흰 면/진한 경계, 비선택은 흰 면/공통 회색 경계이며 기존 sm 탭·버튼 크기와8px 모서리 토큰을 따른다. 둥근 사각형 + 추가는 tablist 밖의 왼쪽 고정 행동이고 룸 버튼만 가로 스크롤한다. 오른쪽에 숨겨진 내용이 있을 때만 공통 투명 마스크로 페이드하고 끝에서는 해제한다. 방향키·선택 상태·포커스와 선택 룸 자동 노출을 유지한다.
+- 룸 선택은 공통 `Tabs purpose="section" appearance="rooms"`를 사용한다. 선택은 흰 면/진한 경계, 비선택은 흰 면/공통 회색 경계이며 룸 전용 sm40px 높이·16px 글자와8px 모서리 토큰을 따른다. 둥근 사각형 + 추가는 tablist 밖의 왼쪽 고정 행동이고 룸 버튼만 가로 스크롤한다. 오른쪽에 숨겨진 내용이 있을 때만 공통 투명 마스크로 페이드하고 끝에서는 해제한다. 방향키·선택 상태·포커스와 선택 룸 자동 노출을 유지한다.
 - 선택 룸의 이름 입력·이름 저장·삭제 아이콘과 테이블/키오스크 등록을 하나의 `ContentPanel surface="muted" density="controls"` 안에 둔다. 룸 관리와 항목 등록 사이에는 공통 `site-content-divider`만 사용하고 회색 면의 장식 테두리나 중첩 패널을 추가하지 않는다. 입력과 확정 행동은 모바일에서도 `FieldActionRow`의 한 행이다.
 - 룸 이름은 입력/blur로 자동 저장하지 않고 ‘이름 저장’ 또는 Enter로 해당 이름만 확정한다. 저장 중 입력·실행을 잠그고 공통 스피너를 버튼과 선택 룸 탭에 표시한다. 중복 이름은 공통 오류 테두리와 입력 아래 지속 도움말로 표시한다. 룸 전환에서는 이름 초안을 유지하고 보기/페이지 이동에서는 기존 미저장 확인에 포함한다. 추가한 룸은 즉시 저장하고 해당 이름 입력에 초점을 둔다.
 - 룸 삭제는 기존 다른 룸으로 모두 이동/모두 보관 절차를 유지한다. 하단 저장은 항목 등록·이름·배치 초안용이고 룸의 이름 저장과 분리한다. 보기·삭제 UI 이동으로 권한, 소속, 복원, 운영 설정과 이력을 변경하지 않는다.
@@ -636,7 +636,7 @@ OrderHistoryFilters는 ContentPanel density=controls, site-form-row/site-field-s
 ## 카테고리 필터와 룸 선택의 모양 (2026-11-11)
 
 - 업종 등 버튼형 목록 조건은 완전히 둥근 캡슐형이다. 아이콘이 있는 필터는 `ChoiceTile purpose="filter"`, 짧은 텍스트 필터는 `site-filter`가 `--ui-radius-control`을 사용한다. 높이·패딩·아이콘·선택·비활성·포커스는 기존 공통 크기를 유지한다. 일반 기능/상품 선택 카드는 기존 사각형이며 `purpose="choice"`가 기본값이다. FAQ·알림 등의 밑줄형 주제 탭은 이 버튼형 필터와 다른 역할이다.
-- 룸 이름 선택과 룸 추가는 `--ui-radius-control-rounded`의8px 모서리를 사용한다. `Tabs purpose="section" appearance="rooms"`가 독립 사각형과 흰 선택 면·진한 경계를 소유한다. 왼쪽 고정 추가는 `Button shape="rounded" size="icon"`의 동일한 사각형이다. 룸 추가는 `iconAppearance="framed"`로40px 조작 영역과 룸 탭의sm40px 높이를 유지한다. 다른 아이콘의 표현과 클릭 영역은 아이콘 버튼 공통 원칙을 따른다.
+- 룸 이름 선택과 룸 추가는 `--ui-radius-control-rounded`의8px 모서리를 사용한다. `Tabs purpose="section" appearance="rooms"`가 독립 사각형과 흰 선택 면·진한 경계를 소유한다. 왼쪽 고정 추가는 `Button shape="rounded" size="icon"`의 동일한 사각형이다. 룸 추가는 `iconAppearance="framed"`를 유지하며 `TabsList size`가 추가·선택 모두의 높이를 함께 결정한다(sm40 / md44 / lg48px). 룸 이름은16px·좌우12px(lg16px), 아이콘 추가는 해당 높이와 같은 정사각형이다. `--site-room-control-height/padding`과 `--site-type-16`을 공유해 일반 sm 탭의32px/14px 축소 규칙과 분리한다. 다른 아이콘의 표현과 클릭 영역은 아이콘 버튼 공통 원칙을 따른다.
 - 테이블·키오스크 관리의 리스트/배치도와 주문·호출의 룸 선택에 같은 API를 적용한다. 추가 위치, 룸 순서·이름, 등록/저장/되돌리기, 선택 자동 노출·가로 스크롤·조건부 페이드, Radix 방향키·Home/End·선택/포커스와 저장 중 비활성을 유지한다. 고객 메뉴판 렌더러에는 적용하지 않는다.
 
 ## 등록 이미지 캐러셀 (2026-11-11)
