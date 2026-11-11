@@ -30,7 +30,7 @@ export default function ComposedFieldExamples() {
   const [date, setDate] = useState<Date | undefined>(() => new Date(2026, 10, 11));
   const items = ["메뉴판 편집", "테이블 관리", "디자인 템플릿"].filter(item => item.includes(query.trim()));
   return <section className={styles.section} id="composed-fields" aria-labelledby={`${id}-title`}>
-    <div className="site-stack-title"><h2 className="type-section-title" id={`${id}-title`}>입력 구조·선택·날짜</h2><p className="type-body site-copy-muted">입력값과 아이콘·단위·보조 행동을 하나의 경계 안에 정렬합니다. 공통 필드 모서리와 기본32·40·44·48px 입력 규격을 공유합니다.</p></div>
+    <div className="site-stack-title"><h2 className="type-section-title" id={`${id}-title`}>입력 구조·선택·날짜</h2><p className="type-body site-copy-muted">입력값과 아이콘·단위·보조 행동을 하나의 경계 안에 정렬합니다. 일반 필드와 캡슐형 검색은 각각의 모서리를 유지하며32·40·44·48px 입력 규격을 공유합니다.</p></div>
     <div className="site-detail-grid">
       <ContentPanel><div className="site-field-stack"><label className="type-label" htmlFor={`${id}-name`}>아이콘이 있는 입력</label><InputGroup><InputGroupAddon aria-hidden="true"><UserRound /></InputGroupAddon><InputGroupInput id={`${id}-name`} name="sampleName" placeholder="담당자명" /></InputGroup></div></ContentPanel>
       <ContentPanel><div className="site-field-stack"><label className="type-label" htmlFor={`${id}-amount`}>금액</label><InputGroup><InputGroupInput id={`${id}-amount`} name="sampleAmount" inputMode="decimal" defaultValue="10000" aria-describedby={`${id}-unit`} /><InputGroupAddon id={`${id}-unit`}>원</InputGroupAddon></InputGroup></div></ContentPanel>
