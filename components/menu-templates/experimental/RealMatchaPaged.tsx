@@ -583,7 +583,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   };
   const albumGroups = units.filter((value, index) => index === 0 || value.group !== units[index - 1].group);
   const footerNotices = notices.length ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices>{notices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>)}</div> : null;
-  const languageControl = <div className={styles.brandControls} data-paged-controls><CafeLanguageHoverControl data={baseProps} menuAlign={leftLogo ? "right" : "left"} iconOnly /></div>;
+  const languageControl = <div className={styles.brandControls} data-paged-controls><CafeLanguageHoverControl data={baseProps} menuAlign={topRow ? "right" : "left"} iconOnly /></div>;
   const storeIdentity = <CafeAStoreIdentity data={baseProps} capabilities={capabilities}
     titleClassName="cafe-a-store-title cafe-a-rail-title" logoClassName={styles.logo}
     layoutShell={topRow ? "brand_top_band" : centerColumn ? "brand_center_column" : "brand_left_rail"} />;
@@ -651,11 +651,12 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       >
         <OnePageCallPalette />
         {topRow ? <header className={styles.topRow} data-basic-top-row data-basic-header-align={leftLogo ? "left" : undefined}>
-          {!leftLogo ? <div className={styles.topDescription}>{languageControl}{storeDescription}</div> : null}
+          {!leftLogo ? <div className={styles.topDescription}>{storeDescription}</div> : null}
           <div className={styles.topIdentity}>{storeIdentity}</div>
-          {leftLogo ? <div className={styles.topDescription}>{storeDescription}{languageControl}</div> : <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices data-scroll-header-copy>
+          {leftLogo ? <div className={styles.topDescription}>{storeDescription}</div> : <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices data-scroll-header-copy>
             {allNotices.map((n, i) => <p key={i}><ScriptAwareText text={n} /></p>)}
           </div>}
+          <div className={styles.topLanguage}>{languageControl}</div>
         </header> : null}
         {!upperLeft ? brandPanel : null}
         <div data-scroll-menu-panel className={styles.menuPanel} data-paged-menu-panel>

@@ -3758,13 +3758,11 @@ function DesktopToplineInformationHeader({
   capabilities,
   density,
   leftLogo = false,
-  languageControl,
 }: {
   data: CafeDesignAProps;
   capabilities: TemplateCapabilities;
   density: MenuLayoutDensity;
   leftLogo?: boolean;
-  languageControl?: ReactNode;
 }) {
   const description = data.menuSite.brand_description || data.menuSite.description;
   const infoRows = getCafeAFooterInfo(data, capabilities);
@@ -3795,7 +3793,6 @@ function DesktopToplineInformationHeader({
 
       {leftLogo ? <div className="cafe-a-topline-description-panel min-w-0" data-cafe-a-topline-description-panel="">
         {description ? <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description break-keep ${descriptionSizeClassName}`}><ScriptAwareText text={description} /></p> : null}
-        {languageControl}
       </div> : <aside className="cafe-a-topline-notices min-w-0 text-right text-[#58645f]" data-cafe-a-topline-notices="">
         {infoRows.length > 0 ? (
           <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-notice-text whitespace-pre-line break-keep text-[#3f4945] ${descriptionSizeClassName}`}>
