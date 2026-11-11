@@ -4,7 +4,8 @@ import {useIsMobile} from "@/app/components/ui/use-mobile";
 import { useUnsavedChanges } from "@/components/ui/useUnsavedChanges";
 
 import { useEffect, useMemo, useId, useRef, useState, useTransition, type PointerEvent, type ReactNode } from "react";
-import { Armchair, Monitor, LayoutGrid, Plus, Save, X, RotateCcw } from "lucide-react";
+import { Armchair, Monitor, LayoutGrid, Plus, Save, X } from "lucide-react";
+import { RotateCcw } from "@/app/components/ui/site-arrow";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import RoomRemovalDialog from "./RoomRemovalDialog";
 import RoomNameForm from "./RoomNameForm";

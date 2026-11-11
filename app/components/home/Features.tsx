@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Plus, Minus, ArrowRight } from 'lucide-react';
+import { Plus, Minus } from "lucide-react";
+import { ArrowRight } from "@/app/components/ui/site-arrow";
 import { Badge } from "@/app/components/ui/badge";
 
 const features = [

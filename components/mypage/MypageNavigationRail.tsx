@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronRight } from "lucide-react";
+import { ChevronRight } from "@/app/components/ui/site-arrow";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 
 export function MypageNavigationRail({

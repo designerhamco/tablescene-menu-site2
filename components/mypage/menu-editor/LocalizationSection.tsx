@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronDown, ChevronRight } from "@/app/components/ui/site-arrow";
+
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
@@ -466,7 +468,7 @@ function TranslationEditorItemGroups({
                 className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
               >
                 <span className="break-words text-copy font-medium text-zinc-950">{category.categoryLabel} ({itemCount})</span>
-                <span className="text-copy font-medium text-zinc-600">{isOpen ? "▾" : "▸"}</span>
+                <span className="text-copy font-medium text-zinc-600">{isOpen ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}</span>
               </button>
               {isOpen ? (
                 <div className="space-y-4 border-t border-zinc-100 p-4">
@@ -557,7 +559,7 @@ function ReadOnlyItemGroups({ fields }: { fields: EditableTranslationField[] }) 
               className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
             >
               <span className="break-words text-copy font-medium text-zinc-950">{categoryLabel} ({itemCount})</span>
-              <span className="text-copy font-medium text-zinc-600">{isOpen ? "▾" : "▸"}</span>
+              <span className="text-copy font-medium text-zinc-600">{isOpen ? <ChevronDown size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}</span>
             </button>
             {isOpen ? <div className="border-t border-zinc-100 p-4"><ReadOnlyTranslationFields fields={categoryFields} /></div> : null}
           </div>

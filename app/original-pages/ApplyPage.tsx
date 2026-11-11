@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import PageHeader from '../components/layout/PageHeader';
-import { 
-  Check, Upload, CreditCard, Shield, AlertCircle, 
-  Building2, MonitorSmartphone, Receipt, FileText, 
-  ChevronRight, Info, HelpCircle
-} from 'lucide-react';
+import { Check, Upload, CreditCard, Shield, AlertCircle, Building2, MonitorSmartphone, Receipt, FileText, Info, HelpCircle } from "lucide-react";
+import { ChevronRight } from "@/app/components/ui/site-arrow";
 
 const ApplyPage = () => {
   const [isPortoneLater, setIsPortoneLater] = useState(false);

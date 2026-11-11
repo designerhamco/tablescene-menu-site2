@@ -5,18 +5,8 @@ import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
 import { TextStyle, FontSize } from "@tiptap/extension-text-style";
-import {
-  Bold,
-  Italic,
-  Underline,
-  List,
-  ListOrdered,
-  ImagePlus,
-  Undo2,
-  Redo2,
-  Eraser,
-  Trash2,
-} from "lucide-react";
+import { Bold, Italic, Underline, List, ListOrdered, ImagePlus, Eraser, Trash2 } from "lucide-react";
+import { Undo2, Redo2 } from "@/app/components/ui/site-arrow";
 import {
   ANNOUNCEMENT_BODY_LIMIT,
   ANNOUNCEMENT_FONT_SIZES,

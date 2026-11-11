@@ -1,4 +1,4 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "@/app/components/ui/site-arrow";
 
 /** Append to a link that opens a separate browsing context. */
 export function NewWindowIndicator() {

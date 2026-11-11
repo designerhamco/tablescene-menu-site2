@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "@/app/components/ui/site-arrow";
 
 import { signOutAction } from "@/app/auth/actions";
 import { formatNotificationBadgeCount } from "@/lib/notification-display-policy";

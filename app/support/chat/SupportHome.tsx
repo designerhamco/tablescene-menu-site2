@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useId } from "react";
-import { BookOpen, ChevronRight, Monitor } from "lucide-react";
+import { BookOpen, Monitor } from "lucide-react";
+import { ChevronRight } from "@/app/components/ui/site-arrow";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/app/components/ui/accordion";
 import { SupportChatIcon } from "@/app/components/ui/support-chat-icon";
 import { DETAILED_FAQ_DATA } from "@/app/components/common/FAQ";

@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { ArrowRight, Check } from "lucide-react";
+import { Check } from "lucide-react";
+import { ArrowRight } from "@/app/components/ui/site-arrow";
 import { Link } from "react-router";
 
 type ServicePricingKey = "basic" | "display";

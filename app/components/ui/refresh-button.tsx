@@ -1,7 +1,7 @@
 "use client";
 
 import type { ComponentProps } from "react";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw } from "@/app/components/ui/site-arrow";
 import { Button } from "./button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./tooltip";
 

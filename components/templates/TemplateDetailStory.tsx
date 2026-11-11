@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, Bell, ImageIcon, LayoutPanelTop, Megaphone, PanelsTopLeft, ShoppingBag, Tags, Timer } from "lucide-react";
+import { Bell, ImageIcon, LayoutPanelTop, Megaphone, PanelsTopLeft, ShoppingBag, Tags, Timer } from "lucide-react";
+import { ArrowUpRight } from "@/app/components/ui/site-arrow";
 
 import { DETAIL_FEATURES, getDetailFeaturePresentation, getDetailFeatureSlides } from "@/lib/template-detail-features";
 import type { PublicTemplateDetail } from "@/lib/template-details";

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight } from "@/app/components/ui/site-arrow";
 
 import type { CatalogDesign } from "@/lib/catalog-designs";
 import type { TemplateCatalogItem } from "@/lib/templates";
@@ -177,7 +177,7 @@ export default function TemplateCard({
           <div className="min-w-0">
             <h3 className={`type-content-title inline-flex max-w-full items-center gap-1.5 break-keep ${inverted ? "text-white" : "text-zinc-950"}`}>
               <span className="min-w-0">{template.name}</span>
-              <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 stroke-[2.4] md:h-[18px] md:w-[18px]" aria-hidden="true" />
+              <ArrowUpRight className="mt-0.5 h-4 w-4 shrink-0 md:h-[18px] md:w-[18px]" aria-hidden="true" />
             </h3>
           </div>
           {action}

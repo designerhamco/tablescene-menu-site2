@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router';
-import { ArrowRight, Lock } from 'lucide-react';
+import { Lock } from "lucide-react";
+import { ArrowRight } from "@/app/components/ui/site-arrow";
 import { Badge } from "@/app/components/ui/badge";
 
 const PLANS = [

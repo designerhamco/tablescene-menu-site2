@@ -187,10 +187,10 @@ test("underline tab rails stop at their tab boundary without changing full-width
 
 test("native and custom selects reserve a common chevron gutter without affecting listboxes or menu renderers", () => {
   const select = read("app/components/ui/select.tsx");
-  assert.match(select, /className="site-select-chevron" size=\{20\} strokeWidth=\{2\.25\}/);
+  assert.match(select, /className="site-select-chevron" size=\{20\}/);
   assert.match(css, /--site-select-chevron-size: 1rem; --site-select-chevron-inset: \.75rem; --site-select-trailing-space: 2\.5rem/);
   assert.match(css, /@media \(min-width: 768px\) \{ :root \{ --site-select-trailing-space: 2\.25rem; --ui-multiselect-count-gap: \.5rem;/);
-  assert.match(css, /stroke-width='2\.25'/);
+  assert.match(css, /background-image: url\("\/icons\/site-chevron-down\.svg"\)/);
   assert.match(css, /select:not\(\[multiple\]\):is\(:not\(\[size\]\), \[size="1"\]\):not\(:where\(\.menu-typography/);
   assert.match(css, /appearance: auto; background-image: none/);
   assert.match(css, /\[data-state="open"\] \.site-select-chevron \{ transform: rotate\(180deg\)/);

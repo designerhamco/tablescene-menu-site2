@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowUp, Heart, Share2 } from "lucide-react";
+import { Heart, Share2 } from "lucide-react";
+import { ArrowUp } from "@/app/components/ui/site-arrow";
 import { Button } from "@/app/components/ui/button";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { SitePagination } from "@/app/components/ui/site-pagination";

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown } from "@/app/components/ui/site-arrow";
 import { Popover, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";
 import { SITE_SUPPORT_LINKS, isSupportLinkActive } from "@/lib/site-support-navigation";
 import styles from "@/app/components/layout/Navbar.module.css";

@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef } from "react";
-import { ChevronLeft, Palette } from "lucide-react";
+import { Palette } from "lucide-react";
+import { ChevronLeft } from "@/app/components/ui/site-arrow";
 import { getTemplatePreviewOptionGroups } from "@/lib/template-preview-options";
 import type { DefaultDesignOptionKey, DefaultDesignOptions } from "@/lib/default-design-options";
 import type { PreviewDesign, PreviewDesignDefaults } from "@/lib/menu-preview-design";

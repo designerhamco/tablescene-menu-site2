@@ -2,7 +2,8 @@
 
 import { useId, useRef, useState, type PointerEvent } from "react";
 import * as Popover from "@radix-ui/react-popover";
-import { RotateCcw, X } from "lucide-react";
+import { X } from "lucide-react";
+import { RotateCcw } from "@/app/components/ui/site-arrow";
 import { hexToHsv, hsvToHex, type HSV } from "@/lib/color-picker";
 import styles from "./PreviewColorPicker.module.css";
 
@@ -104,6 +105,6 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
       </Popover.Content></Popover.Portal>
     </Popover.Root>
     <button type="button" className="site-button site-button-ghost site-button-icon site-button-compact" aria-label={`${accessibleLabel} 기본색 복원`} title="템플릿 기본색 복원" disabled={disabled || loading || !value}
-      onPointerDown={event => event.preventDefault()} onClick={() => startDraft(defaultColor, true)}><RotateCcw size={15} strokeWidth={1.7} aria-hidden="true" /></button>
+      onPointerDown={event => event.preventDefault()} onClick={() => startDraft(defaultColor, true)}><RotateCcw size={15} aria-hidden="true" /></button>
   </div>;
 }

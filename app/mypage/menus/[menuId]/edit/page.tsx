@@ -1,3 +1,4 @@
+import { ArrowLeft } from "@/app/components/ui/site-arrow";
 import { readMenuTextColors } from "@/lib/menu-text-colors";
 import { getSavedMenuDesign } from "@/lib/menu-design-identity";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
@@ -841,7 +842,7 @@ function LockedMenuEditorScreen({ site, accessState }: { site: MenuSite; accessS
       <main className="site-management-scope site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950">
         <section className="mx-auto flex min-h-[70vh] w-full max-w-3xl flex-col justify-center">
           <Link href="/mypage?tab=menus&menuTab=archived" className="mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950">
-            ← 메뉴판 목록으로
+            <ArrowLeft size={16} className="inline-block align-text-bottom" aria-hidden="true" /> 메뉴판 목록으로
           </Link>
           <div className="site-card site-editor-panel p-6 sm:p-8">
             <div className="flex flex-wrap gap-2">
@@ -1112,7 +1113,7 @@ function CustomEditorUnavailable({ siteName }: { siteName: string }) {
       <main className="site-management-scope site-gutter site-page-spacing-compact site-editor-workspace min-h-screen text-zinc-950">
         <div className="mx-auto w-full max-w-3xl">
           <Link href="/mypage" className="mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950">
-            ← 메뉴판 목록으로
+            <ArrowLeft size={16} className="inline-block align-text-bottom" aria-hidden="true" /> 메뉴판 목록으로
           </Link>
           <section className="site-card site-editor-panel p-6 sm:p-8">
             <h1 className="type-subsection-title text-zinc-950">아티메뉴 커스텀은 맞춤 제작형 서비스입니다.</h1>
@@ -1812,7 +1813,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
         <div className={`mx-auto w-full ${editorShellMaxWidth}`}>
         <header className="site-card site-editor-panel mb-6 p-5 sm:p-6">
           <Link href="/mypage" className="mb-5 inline-block text-copy font-medium text-zinc-400 hover:text-zinc-950">
-            ← 메뉴판 목록으로
+            <ArrowLeft size={16} className="inline-block align-text-bottom" aria-hidden="true" /> 메뉴판 목록으로
           </Link>
           <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
             <div>

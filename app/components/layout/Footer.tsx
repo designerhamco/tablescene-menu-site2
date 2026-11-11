@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, ChevronDown } from "lucide-react";
+import { ArrowUpRight, ChevronDown } from "@/app/components/ui/site-arrow";
 import styles from "./Footer.module.css";
 
 const groups = [

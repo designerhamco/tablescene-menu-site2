@@ -1,3 +1,4 @@
+import { ArrowLeft } from "@/app/components/ui/site-arrow";
 import { getCatalogDesign } from "@/lib/catalog-designs";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -50,7 +51,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
       <main className="site-gutter min-h-screen bg-white py-14 text-zinc-950 md:py-20">
         <article className="mx-auto max-w-5xl">
           <Link href="/pricing" className="text-copy font-medium text-zinc-500 transition hover:text-zinc-950">
-            ← 요금제 안내
+            <ArrowLeft size={16} className="inline-block align-text-bottom" aria-hidden="true" /> 요금제 안내
           </Link>
 
           <header className="mt-7 grid gap-8 site-section p-7 md:grid-cols-[1fr_320px] md:p-10">
