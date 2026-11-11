@@ -155,9 +155,9 @@ export const SITE_TYPE_ROLES = [
   {
     "key": "nav",
     "label": "탐색 문구",
-    "mobile": 14,
-    "tablet": 14,
-    "desktop": 14,
+    "mobile": 15,
+    "tablet": 15,
+    "desktop": 16,
     "weight": 500,
     "lineHeight": 1.4,
     "className": "type-nav",

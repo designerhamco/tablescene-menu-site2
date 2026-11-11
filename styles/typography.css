@@ -41,7 +41,8 @@
   --type-body-size: var(--site-type-16);
   --type-body-sm-size: var(--site-type-14);
   --type-label-size: var(--site-type-14);
-  --type-nav-size: var(--site-type-14);
+  /* Site navigation stays independent from compact control text. */
+  --type-nav-size: var(--site-type-15);
   --type-caption-size: var(--site-type-13);
   --type-control-size: var(--site-type-14);
   --type-footnote-size: var(--site-type-13);
@@ -212,7 +213,7 @@
     --type-content-title-size: var(--site-type-20);
     --type-body-lg-size: var(--site-type-20);
     --type-label-size: var(--site-type-14);
-    --type-nav-size: var(--site-type-14);
+    --type-nav-size: var(--site-type-16);
     --type-control-size: var(--site-type-14);
     --type-metric-size: var(--site-type-32);
   }

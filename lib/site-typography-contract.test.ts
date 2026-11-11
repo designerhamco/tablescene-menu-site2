@@ -118,6 +118,7 @@ test("마이페이지와 편집·운영 화면은 동일한 관리 화면 타이
   }
   assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-copy: var\(--site-type-16\);/);
   assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-support: var\(--site-type-14\);/);
+  assert.match(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-nav-size: var\(--site-type-15\);/);
   assert.match(siteDesignSource, /\.site-management-scope :where\(input, textarea, select\)[\s\S]*?font-size: var\(--ui-field-font-size\);/);
   assert.doesNotMatch(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-page-title-size:/);
   assert.doesNotMatch(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-page-description-size:/);
@@ -317,7 +318,7 @@ test("읽기·컨트롤·강조 크기는 중복 없이 정해진 단계만 사�
     const role = roles.get(key);
     assert.deepEqual([role?.mobile, role?.tablet, role?.desktop], [14,14,14]);
   }
-  for (const key of ["label", "nav", "control"]) {
+  for (const key of ["label", "control"]) {
     const role = roles.get(key);
     assert.deepEqual([role?.mobile, role?.tablet, role?.desktop], [14,14,14]);
   }
@@ -341,6 +342,29 @@ test("읽기·컨트롤·강조 크기는 중복 없이 정해진 단계만 사�
   }
 });
 
+
+test("컴포넌트 밀도 조정은 사이트 탐색·페이지 제목·본문 크기를 축소하지 않는다", () => {
+  const roles = new Map<string, (typeof SITE_TYPE_ROLES)[number]>(SITE_TYPE_ROLES.map(role => [role.key, role]));
+  for (const [key, sizes] of [
+    ["nav", [15,15,16]],
+    ["display", [28,32,36]],
+    ["page-title", [28,32,36]],
+    ["section-title", [24,28,28]],
+    ["subsection-title", [20,20,24]],
+    ["content-title", [18,18,20]],
+    ["item-title", [18,18,18]],
+    ["page-description", [16,16,16]],
+    ["body-lg", [18,18,20]],
+    ["body", [16,16,16]],
+  ] as const) {
+    const role = roles.get(key);
+    assert.deepEqual([role?.mobile, role?.tablet, role?.desktop], sizes, key);
+    postcss.parse(typographySource).walkDecls(`--type-${key}-size`, declaration => {
+      assert.equal(declaration.parent?.type === "rule" && declaration.parent.selector, ":root", `${key} must not inherit a compact control scope`);
+      assert.doesNotMatch(declaration.value, /--(?:type-control-size|ui-field-font-size)/, key);
+    });
+  }
+});
 
 test("all semantic roles resolve to the reference steps at each breakpoint", () => {
   const css = postcss.parse(typographySource);
