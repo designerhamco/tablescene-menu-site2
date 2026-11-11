@@ -54,7 +54,7 @@ import {
 } from "@/lib/template-typography-presets";
 import type { MeasuredMenuBlock } from "@/lib/basic-menu-pagination";
 
-import { layoutScrollableMenu, selectScrollableMenuCandidate, type ScrollableMenuLayout, type ScrollableMenuBlock } from "@/lib/basic-menu-scroll";
+import { SCROLL_MIN_COLUMN_WIDTH_REM, layoutScrollableMenu, selectScrollableMenuCandidate, type ScrollableMenuLayout, type ScrollableMenuBlock } from "@/lib/basic-menu-scroll";
 import { getCanvasHeaderRatio } from "@/lib/canvas-brand-title-fit";
 import { getOnePageItemNameCeilingRem } from "@/lib/one-page-typography-profile";
 import { getOrderedFitGapScale } from "../one-page/pc-tablet/cafe-fit-engine";
@@ -323,7 +323,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       }
       // The menu region already excludes the fixed brand column and its gutter.
       // Automatic tracks stop at three. Overflow stays on the scroll surface.
-      const maxColumns = Math.max(1, Math.min(centerColumn ? 2 : 3, Math.floor((width + gap) / (12 * rem + gap))));
+      const maxColumns = Math.max(1, Math.min(centerColumn ? 2 : 3, Math.floor((width + gap) / (SCROLL_MIN_COLUMN_WIDTH_REM * rem + gap))));
       if (upperLeft) {
         const boardStyle = getComputedStyle(root);
         const innerHeight = root.clientHeight - parseFloat(boardStyle.paddingTop) - parseFloat(boardStyle.paddingBottom);
@@ -362,7 +362,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         root.style.setProperty("--fit-menu-gap-scale", String(getOrderedFitGapScale(size / base, readingWidth)));
       };
       // Grouping changes partition boundaries, never the shared reading size.
-      const counts = centerColumn ? [2] : leftColumn ? [1, 2, 3].filter(count => count === 1 || (!rejectedRailColumns.has(count) && railGeometry(count).trackWidth >= 12 * rem)) : Array.from({ length: maxColumns }, (_, index) => index + 1);
+      const counts = centerColumn ? [2] : leftColumn ? [1, 2, 3].filter(count => count === 1 || (!rejectedRailColumns.has(count) && railGeometry(count).trackWidth >= SCROLL_MIN_COLUMN_WIDTH_REM * rem)) : Array.from({ length: maxColumns }, (_, index) => index + 1);
       const candidates = counts.map(count => {
         const ceiling = (getOnePageItemNameCeilingRem(device) ?? 1.3) * rem;
         // Compare names at one shared reading size. Shrinking a cramped 3-track
@@ -440,11 +440,14 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         const style = getComputedStyle(root), panelStyle = getComputedStyle(panel);
         const frameKey = `${root.clientWidth}|${root.clientHeight}`;
         if (frameKey !== railFrameKey) { albumRailColumns = 2; railFrameKey = frameKey; }
-        const geometry = getRepresentativeRailGeometry(
+        const geometryFor = (columns: number) => getRepresentativeRailGeometry(
           root.getBoundingClientRect().width - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight),
           parseFloat(panelStyle.paddingLeft) + parseFloat(panelStyle.paddingRight),
-          parseFloat(style.columnGap), albumRailColumns, viewport.offsetWidth - viewport.clientWidth,
+          parseFloat(style.columnGap), columns, viewport.offsetWidth - viewport.clientWidth,
         );
+        const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        if (geometryFor(2).trackWidth < SCROLL_MIN_COLUMN_WIDTH_REM * rem) albumRailColumns = 1;
+        const geometry = geometryFor(albumRailColumns);
         root.style.setProperty("--scroll-rail-width", `${geometry.railWidth}px`);
         root.dataset.representativeContentWidth = String(geometry.trackWidth);
       }
@@ -611,6 +614,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
             backgroundColor: getResolvedBackgroundColor("cafe_design_a", data.menuSite.page_settings),
             "--scroll-background": getResolvedBackgroundColor("cafe_design_a", data.menuSite.page_settings),
             "--paged-capacity": layout.capacity + "px",
+            "--scroll-min-column-width": `${SCROLL_MIN_COLUMN_WIDTH_REM}rem`,
             ...(album ? { "--scroll-item-size": `${getOnePageItemNameCeilingRem(device) ?? 1.3}rem` } : {}),
             "--paged-gap-scale": 1,
           } as CSSProperties

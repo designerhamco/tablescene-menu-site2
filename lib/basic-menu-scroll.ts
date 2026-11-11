@@ -1,5 +1,7 @@
 import type { MeasuredMenuBlock } from "./basic-menu-pagination";
 
+/** Reading floor for variable menu tracks, before name/price/image measurements. */
+export const SCROLL_MIN_COLUMN_WIDTH_REM = 16;
 /** Fill changes column flow, not typography or the semantic spacing rhythm. */
 export const SCROLL_FILL_MIN_OCCUPANCY = 0.8;
 export const SCROLL_FILL_MAX_TYPE_LOSS = 0.08;
@@ -131,11 +133,17 @@ export function shouldPreferWiderScrollableNames(narrow: readonly ScrollableMenu
 export function selectScrollableMenuCandidate(candidates: readonly ScrollableMenuCandidate[], grouped = false) {
   const preferred = candidates.filter(candidate => candidate.columnCount >= 1 && candidate.columnCount <= 3);
   if (!preferred.length) throw new Error("At least one measured 1–3-column scroll candidate is required");
+  const one = preferred.find(candidate => candidate.columnCount === 1);
   const two = preferred.find(candidate => candidate.columnCount === 2 && candidate.layout.columns.every(column => column.length));
   const three = preferred.find(candidate => candidate.columnCount === 3 && candidate.layout.columns.every(column => column.length));
-  if (two?.names && three?.names && shouldPreferWiderScrollableNames(three.names, two.names)) return two;
-  const selected = selectPreferredScrollCandidate(preferred, grouped);
-  return selected.columnCount === 3 && two && shouldReduceScrollColumnImbalance(selected, two) ? two : selected;
+  let selected = two?.names && three?.names && shouldPreferWiderScrollableNames(three.names, two.names)
+    ? two : selectPreferredScrollCandidate(preferred, grouped);
+  if (selected.columnCount === 3 && two && shouldReduceScrollColumnImbalance(selected, two)) selected = two;
+  // A narrow board with a fixed representative rail may admit two menu tracks
+  // at the width floor, but still need one wider track to read its real names.
+  // Keep the same typography/wrapping test above the one-screen/scroll ranking.
+  if (selected.columnCount > 1 && one?.names && selected.names && shouldPreferWiderScrollableNames(selected.names, one.names)) return one;
+  return selected;
 }
 
 /** Compare measured ends, without resizing type or reordering categories. A shorter

@@ -22,7 +22,7 @@ import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { getFixedOnePageLayoutShell, getOnePageTopRowAlignment } from "@/lib/one-page-layout-shells";
 import { getOnePageItemNameCeilingRem, getOnePageTypographyProfile } from "@/lib/one-page-typography-profile";
 import { getOrderedFitGapScale } from "./pc-tablet/cafe-fit-engine";
-import { layoutScrollableMenu, selectScrollableMenuCandidate, type ScrollableMenuLayout } from "@/lib/basic-menu-scroll";
+import { SCROLL_MIN_COLUMN_WIDTH_REM, layoutScrollableMenu, selectScrollableMenuCandidate, type ScrollableMenuLayout } from "@/lib/basic-menu-scroll";
 import { measureScrollableNames } from "../experimental/scroll-name-readability";
 import { applyOnePageChipLayouts } from "../one-page-chip-layout";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
@@ -151,13 +151,13 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       if (panel && !hasSafePhotoCopy(tracks.current?.querySelector('[data-native-unit="native-intro"] .cafe-a-panel-intro'))) {
         rejectedPhotoColumns.add(Number(root.style.getPropertyValue("--native-columns")));
       }
-      const max = center ? 2 : Math.max(1, Math.min(3, Math.floor((width + gap) / (12 * rem + gap))));
+      const max = center ? 2 : Math.max(1, Math.min(3, Math.floor((width + gap) / (SCROLL_MIN_COLUMN_WIDTH_REM * rem + gap))));
       const size = (getOnePageItemNameCeilingRem(device) ?? 1.3) * rem;
       root.style.setProperty("--native-item-size", `${size}px`);
       const base = Math.min(1.08 * rem, .88 * rem + Math.min(innerWidth, innerHeight) * .002);
       root.style.setProperty("--fit-menu-gap-scale", String(getOrderedFitGapScale(size / base, width)));
       const panelInset = panel ? parseFloat(getComputedStyle(measure.current.children[units.length > 1 ? 1 : 0] ?? measure.current).paddingLeft) || 0 : 0;
-      const candidates = (center ? [2] : leftRail ? [1, 2, 3].filter(count => count === 1 || (!rejectedRailColumns.has(count) && railGeometry(count).trackWidth >= 12 * rem)) : Array.from({ length: max }, (_, i) => i + 1)).map(count => {
+      const candidates = (center ? [2] : leftRail ? [1, 2, 3].filter(count => count === 1 || (!rejectedRailColumns.has(count) && railGeometry(count).trackWidth >= SCROLL_MIN_COLUMN_WIDTH_REM * rem)) : Array.from({ length: max }, (_, i) => i + 1)).map(count => {
         const columnWidth = leftRail ? railGeometry(count).trackWidth : (width - (count - 1) * gap) / count;
         measure.current!.style.width = `${columnWidth}px`;
         applyOnePageChipLayouts(measure.current!);
