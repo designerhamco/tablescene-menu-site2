@@ -18,8 +18,13 @@ try{
  assert.equal(await frame.locator('.cafe-a-cover-hero').count(),0);
  assert.equal(await frame.locator('.cafe-a-menu-meta:not([data-cafe-a-reference-copy])').count(),0);
  await cover.check();await frame.locator('[data-native-ready=true]').waitFor();
- await frame.locator('[data-cafe-a-cover-has-image=false]').first().waitFor();
- assert.equal(await frame.locator('[data-cafe-a-cover-image]').count(),0);
+ await frame.locator('[data-cafe-a-cover-image]').first().waitFor();
+ assert.equal(await frame.locator('[data-cafe-a-cover-image]').first().getAttribute('src'),'/placeholders/starter/default-basic-cover.svg');
+ const featured=page.getByRole('checkbox',{name:'대표 상품 보기',exact:true});
+ assert.equal(await featured.isChecked(),true);
+ await frame.locator('.cafe-a-featured-copy').filter({visible:true}).first().waitFor();
+ assert.match(await frame.locator('.cafe-a-featured-copy').filter({visible:true}).first().innerText(),/포레스트 모카/);
+ await featured.uncheck();await frame.locator('.cafe-a-featured-copy').filter({visible:true}).waitFor({state:'hidden'});
  await secondary.check();await frame.locator('.cafe-a-menu-meta:not([data-cafe-a-reference-copy])').filter({visible:true}).first().waitFor();
  await secondary.uncheck();await cover.uncheck();
  await frame.locator('[data-native-ready=true]').waitFor();
@@ -36,10 +41,10 @@ try{
  const line=frame.locator('[data-menu-category-decoration]').first();
  assert.equal(await line.evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(101, 201, 220)');
  await page.getByRole('button',{name:'카테고리명 글자색 기본색 복원',exact:true}).click();
- assert.equal(await picker.getByRole('textbox').inputValue(),'#ECEAB7');await picker.getByRole('button',{name:'적용',exact:true}).click();
+ await page.getByRole('alertdialog').getByRole('button',{name:'되돌리기',exact:true}).click();
  await frame.locator('[data-native-ready=true]').waitFor();await page.waitForTimeout(500);
  assert.equal(await line.evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(236, 234, 183)');
  const actions=frame.locator('[data-native-actions] button');
  if(await actions.count())assert.notEqual(await actions.first().evaluate(e=>getComputedStyle(e).backgroundColor),await actions.first().evaluate(e=>getComputedStyle(e).color));
- assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);console.log('PASS MELLOW representative/secondary OFF defaults, empty cover and translated secondary ON, logo/widget ON, category apply/reset; no browser errors or API writes');
+ assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);console.log('PASS MELLOW representative/secondary OFF defaults, empty-cover/featured opt-ins and translated secondary ON, logo/widget ON, category apply/reset; no browser errors or API writes');
 }finally{await browser.close();}

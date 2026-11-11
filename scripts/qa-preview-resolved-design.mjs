@@ -61,9 +61,7 @@ try{
  await page.goto(mocha+'&designPreview='+encodeURIComponent(JSON.stringify(overrides)),{waitUntil:'domcontentloaded'});await ready();
  for(let i=0;i<groups.length;i++){
    await page.getByRole('button',{name:`${labels[i]} 글자색 기본색 복원`,exact:true}).click();
-   const picker=page.locator('[data-preview-color-picker]');
-   await expect(picker.getByRole('textbox',{name:`${labels[i]} 글자색 색상값`,exact:true})).toHaveValue(baseline[i]);
-   await picker.getByRole('button',{name:'적용',exact:true}).click();
+   await page.getByRole('alertdialog').getByRole('button',{name:'되돌리기',exact:true}).click();
    await page.waitForURL(url=>!JSON.parse(url.searchParams.get('designPreview')??'{}').textColors?.[groups[i]]);await ready();
    assert.equal((await swatches())[i],baseline[i]);
  }

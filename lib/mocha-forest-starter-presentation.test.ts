@@ -140,8 +140,10 @@ test("MELLOW starts without representative media or secondary names, while both 
   assert.equal(existsSync(new URL("../public/menu-templates/cafe_mocha_forest_a/featured.png", import.meta.url)), false);
   const enabled = applyTemplatePreviewOptions(data, { coverPreview: "on", secondaryNamesPreview: "on" });
   assert.equal(enabled.pageSettings.menu_cover_enabled, true);
-  assert.equal(enabled.menuSite.cover_image_url, "");
-  assert.deepEqual(enabled.featuredSlides, []);
+  assert.equal(enabled.menuSite.cover_image_url, "/placeholders/starter/default-basic-cover.svg");
+  assert.equal(enabled.featuredSlides?.[0].featuredItemId, data.items[0].id);
+  assert.equal(data.menuSite.cover_image_url, "", "catalog opt-in does not register a photograph in the starter");
+  assert.deepEqual(data.featuredSlides, []);
   assert.ok(enabled.items.every(item => Boolean(item.set_name)));
   assert.ok(data.items.every(item => !item.set_name));
   const chips = previewDesignDefaults(data).chipColors;

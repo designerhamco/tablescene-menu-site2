@@ -1,3 +1,4 @@
+import { applyStarterPreviewLocalization } from "./template-demo-data/starter-preview-localization";
 import { buildStarterPreviewData } from "./template-starter-preview";
 import type { TemplateKey } from "./templates";
 import assert from "node:assert/strict";
@@ -239,4 +240,28 @@ test("Dining page-description visibility is independent of category descriptions
   assert.equal(source.pages[0].description_visible,true);assert.equal(source.categories[0].description_visible,true);
   source.pages[0].description=null;
   assert.ok(applyTemplatePreviewOptions(source,{pageDescriptionsPreview:"on"}).pages[0].description);
+});
+
+
+test("MELLOW opt-ins connect the empty-cover example to an existing localized featured item", () => {
+  const starter = buildStarterPreviewData("cafe_mocha_forest_a");
+  const original = structuredClone(starter);
+  assert.equal(getTemplatePreviewOptions(starter, {}).coverPreview, false);
+  assert.equal(getTemplatePreviewOptions(starter, {}).featuredPreview, true);
+  assert.ok(!starter.menuSite.cover_image_url && !starter.featuredSlides?.length);
+  for (const locale of ["ko", "en", "zh", "ja"] as const) {
+    const source = applyStarterPreviewLocalization(starter, locale);
+    const before = structuredClone(source);
+    const coverOnly = applyTemplatePreviewOptions(source, { coverPreview: "on" });
+    assert.equal(coverOnly.featuredSlides?.[0].imageUrl, "/placeholders/starter/default-basic-cover.svg");
+    assert.equal(coverOnly.featuredSlides?.[0].featuredItemId, source.items[0].id);
+    const enabled = applyTemplatePreviewOptions(source, { coverPreview: "on", featuredPreview: "on" });
+    const item = enabled.items.find(item => item.id === enabled.featuredSlides?.[0].featuredItemId);
+    assert.ok(item?.name && item.description && item.price && item.badge_label, locale);
+    assert.equal(item.id, source.items[0].id, "use existing translated starter copy, not an unrelated product");
+    const hidden = applyTemplatePreviewOptions(source, { coverPreview: "on", featuredPreview: "off" });
+    assert.equal(hidden.pageSettings.featured_item_enabled, false);
+    assert.deepEqual(source, before);
+  }
+  assert.deepEqual(starter, original, "opt-ins never mutate starter/purchased content");
 });

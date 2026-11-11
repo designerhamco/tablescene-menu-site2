@@ -3,6 +3,7 @@
 import { useId, useRef, useState, type PointerEvent } from "react";
 import * as Popover from "@radix-ui/react-popover";
 import { X } from "@/app/components/ui/site-icon";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/app/components/ui/alert-dialog";
 import { RotateCcw } from "@/app/components/ui/site-arrow";
 import { hexToHsv, hsvToHex, type HSV } from "@/lib/color-picker";
 import styles from "./PreviewColorPicker.module.css";
@@ -23,15 +24,13 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
   const [hsv, setHsv] = useState(() => hexToHsv(current ?? "#FFFFFF"));
   const colorRef = useRef(hsv);
   const [invalid, setInvalid] = useState(false);
-  const [restoreOnApply, setRestoreOnApply] = useState(false);
-  const startDraft = (color: string | null, restore = false) => {
+  const startDraft = (color: string | null) => {
     const nextHsv = hexToHsv(color ?? "#FFFFFF");
     setDraftEmpty(color === null);
     colorRef.current = nextHsv;
     setHsv(nextHsv);
     setDraft(color ?? "");
     setInvalid(false);
-    setRestoreOnApply(restore);
     setOpen(true);
   };
   const update = (next: HSV) => {
@@ -41,7 +40,6 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
     const hex = hsvToHex(next);
     setDraft(hex);
     setInvalid(false);
-    setRestoreOnApply(false);
   };
   const validateHex = () => {
     if (draftEmpty) return;
@@ -59,7 +57,7 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
     const hex = validateHex();
     if (!hex) return;
     setOpen(false);
-    if (restoreOnApply ? value !== undefined : hex !== current?.toUpperCase()) onChange(restoreOnApply ? undefined : hex);
+    if (hex !== current?.toUpperCase()) onChange(hex);
   };
   const point = (event: PointerEvent<HTMLDivElement>) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -96,7 +94,7 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
         <input className={styles.hue} aria-label={`${accessibleLabel} 색조`} type="range" min={0} max={359} value={Math.round(hsv.h)}
           onChange={event => update({ ...colorRef.current, h: Number(event.target.value) })} />
         <label className={styles.hexRow}><span>HEX</span><input className={styles.hex} aria-label={`${accessibleLabel} 색상값`} value={draft} placeholder={draftEmpty ? "색상 없음" : undefined} maxLength={7} autoComplete="off" spellCheck={false} aria-invalid={invalid} aria-describedby={invalid ? `${id}-error` : undefined}
-          onChange={event => { setDraftEmpty(false); setDraft(event.target.value); setInvalid(false); setRestoreOnApply(false); }} onBlur={validateHex} onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); validateHex(); } }} /></label>
+          onChange={event => { setDraftEmpty(false); setDraft(event.target.value); setInvalid(false); }} onBlur={validateHex} onKeyDown={event => { if (event.key === "Enter") { event.preventDefault(); validateHex(); } }} /></label>
         {invalid ? <p id={`${id}-error`} className={styles.error}>#과 여섯 자리 색상값을 입력해주세요.</p> : null}
         <div className={styles.actions}>
           <Popover.Close asChild><button type="button" className="site-button site-button-outline">취소</button></Popover.Close>
@@ -104,7 +102,18 @@ export default function PreviewColorPicker({ label, accessibleLabel = label, val
         </div>
       </Popover.Content></Popover.Portal>
     </Popover.Root>
-    <button type="button" className="site-button site-button-ghost site-button-icon site-button-compact" aria-label={`${accessibleLabel} 기본색 복원`} title="템플릿 기본색 복원" disabled={disabled || loading || !value}
-      onPointerDown={event => event.preventDefault()} onClick={() => startDraft(defaultColor, true)}><RotateCcw size={15} aria-hidden="true" /></button>
+    <AlertDialog>
+      <AlertDialogTrigger asChild><button type="button" className="site-button site-button-ghost site-button-icon site-button-compact" aria-label={`${accessibleLabel} 기본색 복원`} title="템플릿 기본색 복원" disabled={disabled || loading || !value}><RotateCcw size={15} aria-hidden="true" /></button></AlertDialogTrigger>
+      <AlertDialogContent layer="preview" data-preview-color-reset>
+        <AlertDialogHeader>
+          <AlertDialogTitle>기본색으로 되돌릴까요?</AlertDialogTitle>
+          <AlertDialogDescription>{accessibleLabel}을 템플릿의 기본색으로 되돌립니다.</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>취소</AlertDialogCancel>
+          <AlertDialogAction onClick={() => { setOpen(false); onChange(undefined); }}>되돌리기</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>;
 }

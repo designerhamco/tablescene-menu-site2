@@ -1,6 +1,10 @@
 # Preview color application QA — 2026-10-23
 
-## Changes
+## Current follow-up — 2026-11-11
+
+Color editing retains staged Apply/Cancel. The adjacent default-color reset now opens a shared confirmation dialog; Cancel/Escape retain the override, and Confirm removes only that override immediately without another Apply. The staged reset behavior recorded below is historical and superseded. See `docs/template-preview-display-options.md` and `scripts/qa-preview-color-reset.mjs`.
+
+## Original changes (historical)
 
 - All catalog color pickers stage HEX, spectrum, hue and keyboard edits; only Apply commits. Cancel, Escape, close/outside dismissal and default-reset staging preserve the current preview until Apply.
 - Sale-chip backgrounds also color sale explanations, deadlines/countdowns and their clock icons. Explicit preview sale accents win over generic supporting-text colors without changing sale-price or state-chip colors.
