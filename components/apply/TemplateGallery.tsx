@@ -10,8 +10,9 @@ import {
   type CatalogKind,
   type CatalogService,
 } from "@/lib/catalog-designs";
-import { CATALOG_COLORS, CATALOG_MOODS, CATALOG_DEFAULT_THUMBNAIL_SIZE, normalizeCatalogThumbnailSize, type CatalogThumbnailSize } from "@/lib/catalog-facets";
+import { CATALOG_COLORS, CATALOG_MOODS, normalizeCatalogThumbnailSize, type CatalogThumbnailSize } from "@/lib/catalog-facets";
 import { Button } from "@/app/components/ui/button";
+import { useIsMobile } from "@/app/components/ui/use-mobile";
 import { ToggleGroup, ToggleGroupItem } from "@/app/components/ui/toggle-group";
 import { FilterToolbar } from "@/app/components/ui/filter-toolbar";
 import { SearchField } from "@/app/components/ui/search-field";
@@ -44,7 +45,7 @@ const colorOptions = CATALOG_COLORS.map(item => ({ ...item, icon: item.swatch
 
 export default function TemplateGallery({
   initialProduct = "dining_single", initialKind = "designer", initialFilter = "all", initialLayoutFilter = "all",
-  initialMoodFilter = "all", initialColorFilter = "all", initialQuery = "", initialThumbnailSize = CATALOG_DEFAULT_THUMBNAIL_SIZE,
+  initialMoodFilter = "all", initialColorFilter = "all", initialQuery = "", initialThumbnailSize,
 }: {
   initialProduct?: "dining_single" | "dining_multi" | "display";
   initialKind?: CatalogKind;
@@ -62,7 +63,9 @@ export default function TemplateGallery({
     mood: initialMoodFilter, color: initialColorFilter,
   }, initialProduct === "display" ? "designer" : initialKind));
   const [query, setQuery] = useState(initialQuery.slice(0, 100));
-  const [thumbnailSize, setThumbnailSize] = useState(normalizeCatalogThumbnailSize(initialThumbnailSize));
+  const [thumbnailSize, setThumbnailSize] = useState<CatalogThumbnailSize | undefined>(initialThumbnailSize === "small" || initialThumbnailSize === "large" ? initialThumbnailSize : undefined);
+  const isMobile = useIsMobile();
+  const resolvedThumbnailSize = normalizeCatalogThumbnailSize(thumbnailSize, isMobile);
   const [page, setPage] = useState(1);
   const galleryStartRef = useRef<HTMLDivElement>(null);
   const tabsId = useId();
@@ -79,7 +82,7 @@ export default function TemplateGallery({
     url.searchParams.set("plan", service);
     url.searchParams.set("category", nextKind);
     for (const [key, value] of Object.entries({ filter: next.industry.join(","), layout: next.layout.join(","), mood: next.mood.join(","), color: next.color.join(","), q: search.trim(), view: size })) {
-      if (value && value !== "all" && !(key === "view" && value === CATALOG_DEFAULT_THUMBNAIL_SIZE)) url.searchParams.set(key, value);
+      if (value && value !== "all") url.searchParams.set(key, value);
       else url.searchParams.delete(key);
     }
     history.replaceState(null, "", url);
@@ -145,7 +148,7 @@ export default function TemplateGallery({
                   </form>
                 }>{renderFilters("accordion")}</CatalogFilterSearch>
               } filters={renderFilters("popover")} tools={
-                <ToggleGroup type="single" appearance="segmented" size="sm" value={thumbnailSize} onValueChange={value => { if (value === "large" || value === "small") selectThumbnailSize(value); }} aria-label="썸네일 크기">
+                <ToggleGroup type="single" appearance="segmented" size="sm" value={resolvedThumbnailSize} onValueChange={value => { if (value === "large" || value === "small") selectThumbnailSize(value); }} aria-label="썸네일 크기">
                   <ToggleGroupItem value="large" aria-label="썸네일 크게 보기" title="썸네일 크게 보기"><Grid2X2 aria-hidden="true" /></ToggleGroupItem>
                   <ToggleGroupItem value="small" aria-label="썸네일 작게 보기" title="썸네일 작게 보기"><Grid3X3 aria-hidden="true" /></ToggleGroupItem>
                 </ToggleGroup>
@@ -158,7 +161,7 @@ export default function TemplateGallery({
                 <hr className="site-content-divider" />
                 {message && <p role="status" className="type-body-sm text-red-700">{message}</p>}
                 {paginatedTemplates.length ? (
-                  <div className="site-template-grid" data-thumbnail-size={thumbnailSize}>{paginatedTemplates.map(design => <CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={busy} onToggle={toggle} />)}</div>
+                  <div className="site-template-grid" data-thumbnail-size={resolvedThumbnailSize} data-thumbnail-default={thumbnailSize === undefined || undefined}>{paginatedTemplates.map(design => <CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={busy} onToggle={toggle} />)}</div>
                 ) : (
                   <EmptyState icon={<PanelsTopLeft />} title={hasFilters ? "조건에 맞는 템플릿이 없습니다" : "템플릿 준비 중"}
                     description={hasFilters ? "이름이나 필터 조건을 바꿔 다시 찾아보세요." : "매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다."}

@@ -223,7 +223,6 @@ try {
   results.push({ case: "enlarged-text", viewport: [1024, 400], rootFont: "125%", expandedAndDocked: "no clipping or covered actions" });
   const selectedImage = page.getByRole("button", { name: "매장 내부", exact: true });
   await selectedImage.click();
-  await page.getByRole("dialog").getByRole("button", { name: "닫기", exact: true }).click();
   await selectedImage.focus();
   await page.evaluate(() => window.scrollTo({ top: 1500, behavior: "instant" }));
   await expect(sidebar).toHaveAttribute("data-docked", "true");
@@ -256,7 +255,6 @@ try {
   assert.ok(next.includes("product=business_basic_single_monthly"));
   await page.goto(`${base}/templates/cafe_mocha_forest_a`, { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "매장 내부", exact: true }).click();
-  await page.getByRole("dialog").getByRole("button", { name: "닫기", exact: true }).click();
   await expect(page.getByRole("status", { name: "MELLOW 이미지 2 / 2", exact: true })).toHaveText("2/2");
   await page.getByRole("button", { name: "MELLOW 다음 이미지", exact: true }).click();
   await expect(page.getByRole("button", { name: "매장 외관", exact: true })).toHaveAttribute("aria-pressed", "true");

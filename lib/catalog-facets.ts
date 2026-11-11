@@ -62,8 +62,9 @@ export function normalizeCatalogMood(value: unknown): CatalogMoodFilter {
 export function normalizeCatalogColor(value: unknown): CatalogColorFilter {
   return CATALOG_COLORS.find(item => item.key === value)?.key ?? "all";
 }
-export function normalizeCatalogThumbnailSize(value: unknown): CatalogThumbnailSize {
-  return value === "large" ? "large" : CATALOG_DEFAULT_THUMBNAIL_SIZE;
+export function normalizeCatalogThumbnailSize(value: unknown, isMobile = false): CatalogThumbnailSize {
+  if (value === "small" || value === "large") return value;
+  return isMobile ? "large" : CATALOG_DEFAULT_THUMBNAIL_SIZE;
 }
 export function normalizeCatalogSearch(value: unknown) {
   return typeof value === "string" ? value.slice(0, 100).normalize("NFKC").toLowerCase().replace(/\s+/g, "") : "";
