@@ -135,11 +135,11 @@ test("preview selector renders labeled PC, tablet, and mobile device icons", () 
   assert.match(html, /tabindex="0"/);
 });
 
-test("actual-screen entry belongs only to PC in catalog and saved previews", () => {
+test("actual-screen entry stays available in all catalog and saved preview modes", () => {
   for (const device of MENU_PREVIEW_DEVICE_ORDER) {
     for (const props of [{ templateKey: "cafe_design_a" }, { menuId: "saved-menu", menuTemplateKey: "cafe_design_a" }]) {
       const html = renderFrame(createElement(MenuPreviewDeviceFrame, { ...props, device, orientation: "landscape", query: {} }));
-      assert.equal(html.includes('data-preview-detached-link'), device === "pc");
+      assert.ok(html.includes('data-preview-detached-link'));
     }
   }
 });
@@ -169,7 +169,7 @@ test("catalog and saved previews expose the same common toolbar for each device"
     const saved = labels(renderFrame(createElement(MenuPreviewDeviceFrame, { ...common, menuId: "saved-menu" })));
     const catalog = labels(renderFrame(createElement(MenuPreviewDeviceFrame, { ...common, templateKey: "cafe_design_a" })));
     assert.deepEqual(saved, catalog);
-    assert.equal(saved.length, device === "mobile" ? 3 : 4);
+    assert.equal(saved.length, device === "tablet" ? 5 : 4);
   }
 });
 
@@ -329,10 +329,6 @@ test("actual-screen links infer the current viewport and strip saved interactive
       query: { lang: "en", page: "2", callPreview: "on" },
     }));
     const link = html.match(/<a[^>]*data-preview-detached-link=""[^>]*>/)?.[0] ?? "";
-    if (device !== "pc") {
-      assert.equal(link, "");
-      continue;
-    }
     const href = link.match(/href="([^"]*)"/)?.[1].replaceAll("&amp;", "&");
     assert.equal(href, `/mypage/menus/menu-a/preview?lang=en&page=2&view=actual&embedded=1&detached=1`);
     assert.match(html, new RegExp(`src="[^\"]*device=${device}`));
@@ -392,7 +388,7 @@ test("actual view opens a normal browser tab with a dismissible guide hidden dur
   assert.match(fullscreenControlSource, /전체화면 보기/);
   assert.match(fullscreenControlSource, /ESC/);
   assert.match(fullscreenControlSource, /href="\/guides"/);
-  assert.doesNotMatch(fullscreenControlSource, /Minimize2|전체화면 종료/);
+  assert.doesNotMatch(fullscreenControlSource, /Minimize2|>전체화면 종료</);
   assert.match(fullscreenControlSource, />닫기</);
 });
 
