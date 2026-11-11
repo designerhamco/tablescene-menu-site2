@@ -1630,6 +1630,10 @@ svg.site-edit-icon {
 .site-font-default-label { color: var(--ui-text-muted); }
 @media (pointer: coarse) { .site-font-select-content [data-slot="select-item"] { min-height: var(--ui-control-height-header); } }
 
+/* Date filters reuse the shared calendar and input-group surface. */
+.site-date-popover[data-slot="popover-content"] { width: max-content; max-width: calc(100vw - 2 * var(--site-space-block)); padding: 0; }
+.site-calendar-actions { padding: 0 var(--site-space-title-copy) var(--site-space-title-copy); }
+
 /* Bare is a paint choice, never a rule that shrinks control geometry. */
 :is(.site-icon-control, .site-button.site-button-icon):not([data-icon-appearance="framed"]),
 :is(.site-icon-control, .site-button.site-button-icon):not([data-icon-appearance="framed"]):is(:hover, :active, :disabled, [aria-disabled="true"], [aria-pressed="true"], [data-ui-state]) {

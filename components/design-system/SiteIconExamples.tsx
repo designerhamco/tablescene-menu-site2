@@ -5,6 +5,7 @@ import styles from "./SiteComponentGallery.module.css";
 const glyphs = [
   [Icons.Mail, "메일", "mail-line"],
   [Icons.Bell, "알림", "notification-3-line"],
+  [Icons.CalendarIcon, "달력", "calendar-line"],
   [Icons.X, "닫기", "close-line"],
   [Icons.MessageCircle, "말풍선", "chat-1-line"],
   [Icons.MessageSquare, "문의", "chat-3-line"],

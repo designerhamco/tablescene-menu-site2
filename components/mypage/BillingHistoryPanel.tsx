@@ -1,4 +1,5 @@
 "use client";
+import { DateField } from "@/app/components/ui/date-field";
 import { SearchField } from "@/app/components/ui/search-field";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { DetailGrid, DetailField } from "@/app/components/ui/detail-grid";
@@ -578,24 +579,14 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
         </div>
 
         <div className="site-field-grid" data-columns="4">
-          <label className="site-field-stack">
-            <span className="type-label site-copy-muted">결제 시작일</span>
-            <input
-              type="date"
-              value={filters.from}
-              onChange={(event) => setFilters((current) => ({ ...current, from: event.target.value }))}
-              className="site-field min-w-0 w-full"
-            />
-          </label>
-          <label className="site-field-stack">
-            <span className="type-label site-copy-muted">결제 종료일</span>
-            <input
-              type="date"
-              value={filters.to}
-              onChange={(event) => setFilters((current) => ({ ...current, to: event.target.value }))}
-              className="site-field min-w-0 w-full"
-            />
-          </label>
+          <div className="site-field-stack">
+            <label htmlFor={`${queryId}-from`} className="type-label site-copy-muted">결제 시작일</label>
+            <DateField id={`${queryId}-from`} label="결제 시작일" value={filters.from} onValueChange={from => setFilters(current => ({ ...current, from }))} />
+          </div>
+          <div className="site-field-stack">
+            <label htmlFor={`${queryId}-to`} className="type-label site-copy-muted">결제 종료일</label>
+            <DateField id={`${queryId}-to`} label="결제 종료일" value={filters.to} onValueChange={to => setFilters(current => ({ ...current, to }))} />
+          </div>
           <FilterSelect
             label="서비스 유형"
             value={filters.serviceType}

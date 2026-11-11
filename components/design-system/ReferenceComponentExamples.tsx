@@ -14,6 +14,7 @@ import { Switch } from "@/app/components/ui/switch";
 import { OverviewCard, OverviewCardResponsiveLabel, OverviewCardGroup } from "@/app/components/ui/overview-card";
 import { MetricCard, FilterPanel, RecordCard, KeyValueList, AnnouncementBar } from "@/app/components/ui/data-display";
 import { NOTIFICATION_COMPACT_NOTICE } from "@/lib/notification-display-policy";
+import { NotificationBellIcon } from "@/app/components/ui/notification-bell-icon";
 import { NotificationPanel } from "@/app/components/ui/notification-panel";
 import { ShareDialog } from "@/app/components/ui/share-dialog";
 import { ActivityOverview } from "@/app/components/ui/activity-overview";
@@ -94,6 +95,15 @@ export default function ReferenceComponentExamples() {
     <Example title="모바일 첫 진입 안내" description="모바일에서는 같은 크기 카드로 확인·등록·바로 배치하며 위치 편집은 PC에서 합니다. 탭 세션당 한 번 안내합니다. 아래는 같은 안내 Dialog의 동작 예시입니다."><Button ref={desktopNoticeRef} variant="outline" onClick={() => setDesktopNoticeOpen(true)}>모바일 진입 안내 보기</Button><FloorPlanDesktopNoticeDialog open={desktopNoticeOpen} onOpenChange={setDesktopNoticeOpen} returnFocusRef={desktopNoticeRef} /></Example>
     <Example title="운영 내역의 리스트·배치도" description="배치도형을 왼쪽에 두고 같은 룸 배치·관리 표를 사용합니다. 룸 탭과 캔버스 사이의 중첩 박스를 없애고 사각형 선택으로 상품·옵션·수량·시간·상태를 확인합니다. 아래는 읽기 전용 예시입니다."><OperationsHistoryExample /></Example>
     <Example title="고객지원 홈" description="도움이 필요할 때 문의 방법부터 고릅니다. AI 실시간 문의·1:1 문의·FAQ 아래에 서비스 가이드와 기존 FAQ를 표시합니다."><div className={styles.supportExample}><h3 className="type-content-title px-5 pt-5">도움이 필요하신가요?</h3><SupportHome enabled={false} onChat={() => window.dispatchEvent(new Event(AI_SUPPORT_CHAT_OPEN_EVENT))} /></div></Example>
+    <Example title="알림 벨 배지" description="배지는 23px 종 아이콘의 오른쪽 위를 기준으로 붙습니다. 클릭 영역 크기와 관계없이 같은 위치를 유지하며, 0건은 숨기고 10건 이상은 9+로 표시합니다.">
+      <div className="site-action-row" role="group" aria-label="알림 벨 배지 예시">
+        <Button variant="ghost" size="icon" aria-label="새 알림 없음"><NotificationBellIcon /></Button>
+        <Button variant="ghost" size="icon" aria-label="알림 5개"><NotificationBellIcon unreadCount={5} /></Button>
+        <Button variant="ghost" size="icon" aria-label="알림 9개 초과"><NotificationBellIcon unreadCount={12} /></Button>
+        <Button variant="ghost" size="icon" aria-label="모바일 알림 5개"><NotificationBellIcon unreadCount={5} compact /></Button>
+        <Button variant="ghost" size="icon" aria-label="전체 메뉴 새 알림"><NotificationBellIcon unreadCount={3} indicator="dot" /></Button>
+      </div>
+    </Example>
     <Example title="알림 패널" description="분류 탭·목록 하단 중앙에 떠 있는 모두 읽기·날짜별 목록·읽지 않은 표시·하단 전체보기를 한 구조로 묶습니다. 표시는 최근 90일 기준이며, 완료된 알림 본문은 별도 1년 보관 정책을 따릅니다. 아래 알림은 동작 확인용 예시입니다."><div className={styles.notificationExample}><NotificationPanel compact items={notices.map(item=>({...item,unread:item.unread&&!read.includes(item.id)}))} onActivate={item=>setRead(current=>[...current,item.id])} onReadAll={()=>setRead(notices.map(item=>item.id))} footer={<><p className="site-notification-limit">{NOTIFICATION_COMPACT_NOTICE}</p><Link href="/mypage?tab=notifications">전체 알림 보기</Link></>} /></div></Example>
     <Example title="운영 대시보드 요약 카드" description="소제목 옆에 의미를 나타내는 작은 아이콘을 표시하고 흰색 ContentPanel의 시작선에 값과 설명을 정렬합니다. 공개 설정은 편집 링크로, 주문·호출 및 테이블·키오스크 안내는 클릭·호버 도움말로 제공합니다. 매출 요약은 매출관리 상단에서 같은 카드를 사용합니다. 상태 변경은 우측 상단, 이동은 하단 구분선 아래에 둡니다. 모바일·태블릿 2열·넓은 PC 4열로 표시합니다.">
       <OverviewCardGroup label="운영 요약 카드 예시">
