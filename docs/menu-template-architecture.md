@@ -96,3 +96,7 @@ Four album reviews extend the six default list designs through an explicit `item
 ## Category ink ownership — 2026-11-01
 
 Category color owns category names, category descriptions and category-related ornaments on every device. `MenuAppearanceScope.module.css` links saved/preview/legacy overrides and excludes category descriptions from supporting ink. The shared Basic global rule links native heading/description/divider ink; `CategoryTitle` and BREW CHAPTER mark descriptions with `data-cafe-a-category-description`. New standalone ornaments use `data-menu-category-decoration` and `currentColor` for painted borders/gradients/SVG geometry. Dining course headings/descriptions/rules and Display category rules keep their native geometry while sharing their category ink. Description typography and unrelated colors remain separate. See `template-spacing-contract.md` for the required contract.
+
+## Basic identity ownership — 2026-11-11
+
+`shared/MenuBrandLogo.tsx` and `lib/menu-brand-logo.ts` own the actual-slot, device-specific two-axis logo fit and bounded transparent-canvas analysis for every native/neutral Basic identity. They preserve the original source and existing text fallback. Text brands retain their separate fitters. Active native and neutral top rows place language, full-cell description and applicable notices in a right-aligned information stack. `menu-header-measurement.ts` measures its real leaves and their gaps; it never measures popup overflow. See the current Basic identity section of `template-spacing-contract.md`.

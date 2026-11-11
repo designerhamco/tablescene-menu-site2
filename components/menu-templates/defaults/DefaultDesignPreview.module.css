@@ -68,8 +68,8 @@
 }
 
 /* Logo artwork keeps its intrinsic ratio; only its available size is bounded.
-   These selectors cannot change existing designer/customer logo rendering. */
-.surface :global([data-default-design-logo]) {
+   Shared Basic MenuBrandLogo images own their geometry; these legacy caps remain for Dining and non-shared identities. */
+.surface :global([data-default-design-logo]:not([data-menu-logo-image])) {
   display: block;
   width: auto !important;
   height: auto !important;
@@ -79,11 +79,11 @@
   object-fit: contain;
   object-position: left center;
 }
-.surface[data-default-design^="dining-"] :global([data-default-design-logo]) {
+.surface[data-default-design^="dining-"] :global([data-default-design-logo]:not([data-menu-logo-image])) {
   margin: 0 auto;
   object-position: center;
 }
-.surface :global(.cafe-a-typography[data-cafe-a-mobile-style="true"] [data-default-design-logo]) {
+.surface :global(.cafe-a-typography[data-cafe-a-mobile-style="true"] [data-default-design-logo]:not([data-menu-logo-image])) {
   max-height: min(20svh, 8rem) !important;
   margin-inline: var(--menu-representative-logo-start, auto) var(--menu-representative-logo-end, auto);
   object-position: var(--menu-representative-align, center);
@@ -94,7 +94,7 @@
   text-align: var(--menu-representative-align, center);
 }
 @container aube (max-width: 767px) {
-  .surface :global([data-default-design-logo]) { max-height: min(20svh, 8rem) !important; }
+  .surface :global([data-default-design-logo]:not([data-menu-logo-image])) { max-height: min(20svh, 8rem) !important; }
 }
 
 /* The optional neutral cover photo has its own readable title/copy palette. */

@@ -1,0 +1,4 @@
+.slot.slot { display: flex !important; align-items: center; justify-content: var(--menu-logo-justify, var(--menu-representative-justify, center)) !important; width: 100%; min-width: 0; min-height: 0; flex: none; line-height: 0; }
+.slot[data-menu-logo-layout="top-row"] { height: 100%; }
+.box { position: relative; flex: none; overflow: hidden; width: var(--menu-logo-width); height: var(--menu-logo-height); }
+.slot .image.image { position: absolute; inset: auto; display: block; width: var(--menu-logo-image-width) !important; height: var(--menu-logo-image-height) !important; max-width: none !important; max-height: none !important; left: var(--menu-logo-left); top: var(--menu-logo-top); margin: 0 !important; object-fit: contain; }

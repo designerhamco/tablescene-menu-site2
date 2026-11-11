@@ -1,4 +1,5 @@
 "use client";
+import headerInformationStyles from "../shared/MenuHeaderInformation.module.css";
 import { measureMenuHeaderContentHeight, MENU_HEADER_CONTENT_SELECTOR } from "@/lib/menu-header-measurement";
 import { getRepresentativeRailGeometry } from "@/lib/representative-rail-geometry";
 import { getMenuDesignBackgrounds } from "@/lib/template-background-colors";
@@ -506,12 +507,14 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const style = getComputedStyle(board);
       const height = board.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) - parseFloat(style.rowGap);
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-      const naturalRatio = logo.naturalWidth > 0 ? logo.naturalHeight / logo.naturalWidth : 0;
-      const desiredLogoHeight = Math.min(slot.clientWidth * .75 * naturalRatio, innerHeight * .2, 12 * rem);
+      const naturalRatio = Number(logo.closest<HTMLElement>("[data-menu-logo-slot]")?.dataset.menuLogoRatio) || (logo.naturalWidth > 0 ? logo.naturalHeight / logo.naturalWidth : 0);
+      const desiredLogoHeight = Math.min(slot.clientWidth * .75 * naturalRatio / .8, innerHeight * .2, 12 * rem);
       const sideHeight = measureMenuHeaderContentHeight(header);
+      const headerStyle = getComputedStyle(header);
+      const padding = (parseFloat(headerStyle.paddingTop) || 0) + (parseFloat(headerStyle.paddingBottom) || 0);
       // Copy sets a real minimum; the compact title/logo budget must not crop it.
-      board.style.setProperty("--cafe-a-header-copy-height", `${Math.ceil(sideHeight)}px`);
-      const ratio = getCanvasHeaderRatio(height, 0, 0, 1, Math.max(desiredLogoHeight, sideHeight));
+      board.style.setProperty("--cafe-a-header-copy-height", `${Math.ceil(sideHeight + padding)}px`);
+      const ratio = getCanvasHeaderRatio(height, 0, 0, 1, Math.max(desiredLogoHeight, sideHeight) + padding);
       board.style.setProperty("--cafe-a-header-fr", `${ratio * 100}fr`);
       board.style.setProperty("--cafe-a-body-fr", `${(1 - ratio) * 100}fr`);
       board.dataset.fitHeaderRatio = String(ratio);
@@ -524,7 +527,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     observer.observe(slot);
     for (const element of header.querySelectorAll(MENU_HEADER_CONTENT_SELECTOR)) observer.observe(element);
     const copyObserver = new MutationObserver(schedule);
-    copyObserver.observe(header, { childList: true, characterData: true, subtree: true });
+    copyObserver.observe(header, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ["data-menu-logo-ratio"] });
     logo.addEventListener("load", schedule);
     document.fonts.addEventListener("loadingdone", schedule);
     void document.fonts.ready.then(schedule);
@@ -651,12 +654,14 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       >
         <OnePageCallPalette />
         {topRow ? <header className={styles.topRow} data-basic-top-row data-basic-header-align={leftLogo ? "left" : undefined}>
-          {!leftLogo ? <div className={styles.topDescription}>{storeDescription}</div> : null}
           <div className={styles.topIdentity}>{storeIdentity}</div>
-          {leftLogo ? <div className={styles.topDescription}>{storeDescription}</div> : <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices data-scroll-header-copy>
-            {allNotices.map((n, i) => <p key={i}><ScriptAwareText text={n} /></p>)}
-          </div>}
-          <div className={styles.topLanguage}>{languageControl}</div>
+          <div className={headerInformationStyles.stack} data-menu-header-info-stack>
+            {languageControl}
+            {storeDescription}
+            {!leftLogo && allNotices.length ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices data-scroll-header-copy>
+              {allNotices.map((n, i) => <p key={i}><ScriptAwareText text={n} /></p>)}
+            </div> : null}
+          </div>
         </header> : null}
         {!upperLeft ? brandPanel : null}
         <div data-scroll-menu-panel className={styles.menuPanel} data-paged-menu-panel>
