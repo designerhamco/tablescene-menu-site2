@@ -435,6 +435,7 @@ test("multi-select counts preserve category names and keep reset controls outsid
     for (const button of buttons) assert.doesNotMatch(button[1], /<button\b/);
     if (value.length) {
       assert.match(markup, /aria-label="색상 선택 해제"/);
+      assert.ok(markup.indexOf("site-multiselect-count") < markup.indexOf("site-multiselect-label"));
       assert.ok(markup.includes(`aria-hidden="true">${value.length}</span>`));
       assert.ok(markup.includes(`${value.length}개 선택:`));
     } else {

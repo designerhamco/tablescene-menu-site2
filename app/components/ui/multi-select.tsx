@@ -35,11 +35,11 @@ export function MultiSelect<T extends string>({ label, icon, options, value, onV
         <PopoverTrigger asChild>
           <button ref={triggerRef} type="button" className="site-multiselect-trigger" aria-label={label} aria-describedby={summaryId} />
         </PopoverTrigger>
-        <span className="site-multiselect-label" aria-hidden="true">{icon}<span>{label}</span></span>
         {selected.length > 0 && <Badge tone="neutral" className="site-multiselect-count">
           <span aria-hidden="true">{selected.length}</span>
           <Button type="button" variant="ghost" size="icon" iconSize="compact" className="site-multiselect-clear" aria-label={`${label} 선택 해제`} title={`${label} 선택 해제`} onPointerDown={event => event.preventDefault()} onClick={clearSelection}><X aria-hidden="true" /></Button>
         </Badge>}
+        <span className="site-multiselect-label" aria-hidden="true">{icon}<span>{label}</span></span>
         <ChevronDown className="site-select-chevron" size={20} strokeWidth={2.25} aria-hidden="true" />
       </div>
     </PopoverAnchor>
