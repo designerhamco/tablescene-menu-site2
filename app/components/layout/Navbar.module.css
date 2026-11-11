@@ -20,7 +20,7 @@
 }
 .wordmark { font-size: var(--site-type-28); font-weight: 700; line-height: 1; letter-spacing: -.055em; }
 .primaryNav { display: none; }
-.actions { gap: clamp(.5rem, 1.5vw, 1.25rem); }
+.actions, .drawerHeaderActions { gap: clamp(.5rem, 1.5vw, 1.25rem); }
 .actions > :global(.site-button) { display: none; }
 .accountLink, .accountDivider { display: none; }
 .notificationGroup { display: none; align-items: center; gap: .5rem; }
@@ -51,17 +51,15 @@
   background: #fff;
   color: var(--ui-text);
 }
-.drawer[data-state="open"] { animation:drawerSlideIn 300ms cubic-bezier(.22,1,.36,1) both; }
-.drawer[data-state="closed"] { animation:drawerSlideOut 240ms ease-in both; pointer-events:none; }
-.drawerOverlay[data-state="open"] { animation:drawerFadeIn 300ms ease both; }
-.drawerOverlay[data-state="closed"] { animation:drawerFadeOut 240ms ease both; }
-@keyframes drawerSlideIn { from { transform:translateX(100%); } to { transform:translateX(0); } }
-@keyframes drawerSlideOut { from { transform:translateX(0); } to { transform:translateX(100%); } }
+.drawer[data-state="open"] { animation:drawerFadeIn 160ms ease-out both; }
+.drawer[data-state="closed"] { animation:drawerFadeOut 120ms ease-in both; pointer-events:none; }
+.drawerOverlay[data-state="open"] { animation:drawerFadeIn 160ms ease-out both; }
+.drawerOverlay[data-state="closed"] { animation:drawerFadeOut 120ms ease-in both; }
 @keyframes drawerFadeIn { from { opacity:0; } to { opacity:1; } }
 @keyframes drawerFadeOut { from { opacity:1; } to { opacity:0; } }
-.drawerHeader { display:flex; height:var(--site-header-height); flex:none; align-items:center; justify-content:space-between; gap:var(--site-space-copy); padding-inline:var(--site-space-block); }
-.drawerHeaderActions { display:flex; align-items:center; gap:.25rem; }
-.drawerHeaderActions > a:first-child { position:relative; }
+.drawerHeader { display:flex; height:var(--site-header-height); flex:none; align-items:center; justify-content:space-between; gap:var(--site-space-copy); }
+.drawerHeaderActions { display:flex; flex-shrink:0; align-items:center; }
+.drawerHeaderActions > a { position:relative; }
 .drawerUnread { position:absolute; top:.5rem; right:.5rem; width:.375rem; height:.375rem; border-radius:50%; background:var(--ui-danger); }
 .drawerBody { display:flex; min-height:0; flex:1; flex-direction:column; overflow-y:auto; overscroll-behavior:contain; padding:var(--site-space-group) var(--site-surface-inset) max(var(--site-space-group),env(safe-area-inset-bottom)); }
 .drawerAccount { display:grid; gap:var(--site-space-block); padding-bottom:var(--site-space-group); border-bottom:1px solid var(--ui-border); }
@@ -84,6 +82,9 @@
 .drawerSupportLinks { display:flex; flex-wrap:wrap; gap:var(--site-space-block); font-size:var(--type-body-sm-size); color:var(--ui-text-muted); }
 .drawerSupportLinks a { display:inline-flex; min-height:2.75rem; align-items:center; }
 .drawerSupportLinks a:hover { text-decoration:underline; text-underline-offset:.25rem; }
+@media (max-width: 359px) {
+  .actions, .drawerHeader, .drawerHeaderActions { gap: var(--space-1); }
+}
 @media (min-width: 1280px) {
   .actions > :global(.site-button) { display: inline-flex; }
   .accountLink { display: inline-flex; align-items: center; min-height: 2.75rem; white-space: nowrap; }

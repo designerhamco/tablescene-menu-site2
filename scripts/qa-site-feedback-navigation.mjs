@@ -27,7 +27,7 @@ async function create(width,height,role){
  }
  return p;
 }
-async function run(name,fn){try{await fn();results.push(name);console.log('PASS',name);}catch(e){failures.push({name,error:e.message});console.log('FAIL',name,e.message);}}
+async function run(name,fn){if(process.env.ORDER_QA_FILTER&&!new RegExp(process.env.ORDER_QA_FILTER).test(name))return;try{await fn();results.push(name);console.log('PASS',name);}catch(e){failures.push({name,error:e.message});console.log('FAIL',name,e.message);}}
 async function overflow(p){assert.ok(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'no page horizontal overflow');}
 try{
  for(const [w,h] of [[320,780],[390,844],[820,1000],[1440,900]]) await run(`guide ${w}`,async()=>{
@@ -47,7 +47,11 @@ try{
   const p=await create(w,h,role);try{
    await p.goto(`${base}/guides`,{waitUntil:'networkidle'});
    if(role)await p.locator('[data-site-header-account]').waitFor({state:'attached'});
-   const trigger=p.getByRole('button',{name:'메뉴 열기',exact:true});await trigger.click();const menu=p.getByRole('dialog',{name:'아티메뉴 전체 메뉴',exact:true});await menu.waitFor();
+   const trigger=p.getByRole('button',{name:'메뉴 열기',exact:true});const triggerBox=await trigger.boundingBox();const bellBox=role?await p.locator('[data-site-notification-trigger],[data-site-notification-link]').filter({visible:true}).boundingBox():null;await trigger.click();const menu=p.getByRole('dialog',{name:'아티메뉴 전체 메뉴',exact:true});await menu.waitFor();
+   const closeBox=await menu.getByRole('button',{name:'메뉴 닫기',exact:true}).boundingBox();
+   const samePosition=(a,b)=>{for(const key of ['x','y','width','height'])assert.ok(Math.abs(a[key]-b[key])<1,`header control ${key} stays fixed`);};
+   samePosition(triggerBox,closeBox);
+   if(bellBox){const bell=menu.getByRole('link',{name:/^알림/});const openBellBox=await bell.boundingBox();samePosition(bellBox,openBellBox);const makeBox=await menu.getByRole('link',{name:'만들기',exact:true}).boundingBox();assert.ok(makeBox.x+makeBox.width<=openBellBox.x,'create stays left of notifications');}
    const main=menu.getByRole('navigation',{name:'모바일 공식 사이트 메뉴',exact:true});const support=main.getByRole('button',{name:'고객센터',exact:true});assert.equal(await support.getAttribute('aria-expanded'),'false');
    assert.equal(await main.getByRole('link',{name:'공지사항',exact:true}).count(),0);
    await support.click();assert.equal(await support.getAttribute('aria-expanded'),'true');await main.getByRole('link',{name:'공지사항',exact:true}).waitFor();
@@ -56,7 +60,7 @@ try{
    assert.equal(sizes.length,5);assert.equal(new Set(sizes.map(s=>s.font)).size,1);assert.ok(sizes.every(s=>s.height>=44));
    assert.equal(await menu.getByRole('link',{name:'만들기',exact:true}).getAttribute('href'),'/apply');
    const bounds=await menu.boundingBox();assert.ok(Math.abs(bounds.x)<1&&Math.abs(bounds.width-w)<1,'menu fills viewport from its right edge');
-   assert.equal(await menu.evaluate(e=>getComputedStyle(e).animationName),'none','reduced motion disables slide');
+   assert.equal(await menu.evaluate(e=>getComputedStyle(e).animationName),'none','reduced motion disables dissolve');
    if(role){await menu.getByText('검증 매장',{exact:true}).waitFor();assert.equal(await menu.getByText(role,{exact:true}).count(),1);await menu.getByText('qa@example.com',{exact:true}).waitFor();
     assert.ok(await menu.getByRole('link',{name:'마이 메뉴',exact:true}).isVisible());
     const operations=menu.getByRole('link',{name:'매장 운영 (새 창으로 열기)',exact:true});assert.ok(await operations.isVisible());assert.equal(await operations.getAttribute('target'),'_blank');assert.equal(await operations.getAttribute('rel'),'noopener noreferrer');
@@ -72,11 +76,12 @@ try{
    await p.keyboard.press('Escape');await menu.waitFor({state:'hidden'});assert.ok(await trigger.evaluate(e=>e===document.activeElement),'Escape restores trigger focus');await overflow(p);
   }finally{await p.close();}
  });
- await run('menu slides from and back to the right',async()=>{
+ await run('menu dissolves in place on open and close',async()=>{
   const p=await create(390,844);try{await p.emulateMedia({reducedMotion:'no-preference'});await p.goto(`${base}/guides`,{waitUntil:'networkidle'});const trigger=p.getByRole('button',{name:'메뉴 열기',exact:true});await trigger.click();const menu=p.getByRole('dialog',{name:'아티메뉴 전체 메뉴',exact:true});
-   const sample=async()=>menu.evaluate(e=>{const a=e.getAnimations().find(a=>a.animationName?.includes('drawerSlide'));if(!a)throw new Error('slide animation missing');const duration=a.effect.getTiming().duration;a.pause();const positions=[0,duration/2,duration-1].map(time=>{a.currentTime=time;return e.getBoundingClientRect().x;});a.currentTime=0;a.play();return {duration,positions};});
-   const opening=await sample();assert.equal(opening.duration,300);assert.ok(Math.abs(opening.positions[0]-390)<1&&opening.positions[1]>0&&opening.positions[1]<390&&opening.positions[2]<1);
-   await menu.getByRole('button',{name:'메뉴 닫기',exact:true}).click();const closing=await sample();assert.equal(closing.duration,240);assert.ok(closing.positions[0]<1&&closing.positions[1]>0&&closing.positions[1]<390&&closing.positions[2]>385);await menu.waitFor({state:'hidden'});assert.ok(await trigger.evaluate(e=>e===document.activeElement));await overflow(p);
+   const sample=async()=>menu.evaluate(e=>{const a=e.getAnimations().find(a=>a.animationName?.includes('drawerFade'));if(!a)throw new Error('dissolve animation missing');const duration=a.effect.getTiming().duration;a.pause();const frames=[0,duration/2,duration].map(time=>{a.currentTime=time;const s=getComputedStyle(e);return {x:e.getBoundingClientRect().x,opacity:Number(s.opacity),transform:s.transform};});a.currentTime=0;a.play();return {duration,frames};});
+   const inPlace=frames=>assert.ok(frames.every(f=>Math.abs(f.x)<1&&f.transform==='none'),'panel never moves horizontally');
+   const opening=await sample();assert.equal(opening.duration,160);inPlace(opening.frames);assert.equal(opening.frames[0].opacity,0);assert.ok(opening.frames[1].opacity>0&&opening.frames[1].opacity<1);assert.equal(opening.frames[2].opacity,1);
+   await menu.getByRole('button',{name:'메뉴 닫기',exact:true}).click();const closing=await sample();assert.equal(closing.duration,120);inPlace(closing.frames);assert.equal(closing.frames[0].opacity,1);assert.ok(closing.frames[1].opacity>0&&closing.frames[1].opacity<1);assert.equal(closing.frames[2].opacity,0);await menu.waitFor({state:'hidden'});assert.ok(await trigger.evaluate(e=>e===document.activeElement));await overflow(p);
   }finally{await p.close();}
  });
  for(const [w,h] of [[320,780],[820,1000],[1440,900]])await run(`notice loading ${w}`,async()=>{
