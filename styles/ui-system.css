@@ -1586,7 +1586,11 @@ svg.site-edit-icon {
 .site-filter-toolbar-options[data-filter-count="1"] { grid-template-columns: minmax(max-content, 1fr); }
 .site-filter-toolbar-tools { grid-area: tools; justify-self: end; align-self: end; }
 .site-filter-toolbar-summary { grid-area: summary; min-width: 0; }
-@media (max-width: 767px) { .site-filter-toolbar[data-mobile-filters="collapsed"] .site-filter-toolbar-options { display: none; } }
+@media (max-width: 767px) {
+  .site-filter-toolbar[data-mobile-filters="collapsed"] .site-filter-toolbar-options { display: none; }
+  .site-filter-toolbar[data-mobile-tools="hidden"] { grid-template-columns: minmax(0, 1fr); grid-template-areas: "fields" "summary"; }
+  .site-filter-toolbar[data-mobile-tools="hidden"] .site-filter-toolbar-tools { display: none; }
+}
 @media (min-width: 768px) {
   .site-filter-toolbar { grid-template-areas: "fields tools" "summary summary"; }
   .site-filter-toolbar-search { flex-basis: var(--ui-filter-search-width); }

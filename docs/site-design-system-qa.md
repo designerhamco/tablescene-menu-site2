@@ -222,3 +222,12 @@
 - Removed the catalog backdrop, detail feature/shortcut card backdrops and shared EmptyState background. Kept content, spacing, actions, selection/playback, images, management panels and the approved footer composition.
 - Passed 162 site UI contracts, TypeScript, ESLint for changed TS/TSX and a Production build. Browser QA: actual DOM widths 320/390/820/1440/1920px, catalog + ONUE detail + a temporary page rendering the real NotificationPanel/ContentPanel, 15 checks. Transparent target surfaces, 0px overflow, no pageerrors, detail selection and muted management surfaces verified. Temporary route removed.
 - Existing library limitation: the full /design-system page has 187px overflow at 320px from hidden tab examples, reproduced identically on the changed local page and existing Production. This surface change does not claim to fix that pre-existing issue.
+
+
+## 아티메뉴 박스 구조 제거·모바일 보기·인증 여백 검수 (2026-11-11)
+
+- 앞선 배경 제거에 남은 catalog surface 래퍼와 PC/모바일 안쪽 여백을 제거했다. 상세 기능 section/링크의 카드 패딩·클리핑·중복 여백, EmptyState의 패딩·모서리·16rem 최소 높이와 빈 알림 feed의 최소 높이도 제거했다. 상세 구역 사이는 공통 section 간격 한 곳이 소유한다. 페이지 gutter, 이미지 비율, 컨트롤 클릭 영역과 실제 알림 스크롤/버튼 여유는 유지한다.
+- 모바일768px 미만은 기존 small 그리드로 고정하고 썸네일 토글·도구 트랙을 함께 숨겼다. URL의 large 값도 모바일 레이아웃을 바꾸지 않는다. PC/태블릿 보기 전환과 모바일 왕복 후 기존 PC 선택은 유지한다.
+- 인증 main의 화면 기반 최소 높이·세로 중앙 정렬을 제거하고 공통 페이지 위/아래와 제목→폼 토큰을 사용한다. 운영390px의 로그인 제목 위190.31px가 수정본40px로 줄었다. 수정본320/390/700px 위아래40px,820px41px,1440px64px,1920px72px로 동일 폭 일반 페이지의 제목 시작과 일치한다. 좁은 폼 폭과 인증 동작은 변경하지 않았다.
+- 실제 DOM320/390/700/820/1440/1920px에서 목록 small/large·빈 검색·로그인/가입/비밀번호 찾기/계정 찾기/비밀번호 재설정/복구·온유 상세60건을 확인했다. 콘텐츠 좌우의 추가 inset0px, 가로 넘침0px, 페이지 오류0건이며 상세 이미지 로드/선택과 PC 보기 왕복도 확인했다. 실제 NotificationPanel의 빈 알림은 padding0/min-height0/radius0, feed min-height0/overflow-y auto를 확인했다.
+- 사이트 UI 계약162건, TypeScript, 변경 파일 ESLint, Production 빌드가 통과했다. 예시 알림의 동작만 사용했으며 운영 계정·매장 자료를 수정하지 않았다.

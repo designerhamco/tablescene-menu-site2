@@ -9,7 +9,7 @@ export default function SiteSpacingRules() {
   return <><section className={styles.section} id="content-composition">
     <div className={styles.heading}>
       <h2 className="type-section-title">열린 구성·작업 패널·간격</h2>
-      <p className="type-body site-copy-muted">일반·상세·목록·알림 본문은 배경 없는 열린 구성이 기본입니다. 제목·여백·정렬·필요한 구분선으로 나누고, 대시보드·마이페이지·운영관리의 독립된 정보·설정·작업에만 필요한 패널을 선택합니다. 공통 간격은 박스 없이도 사용합니다.</p>
+      <p className="type-body site-copy-muted">일반·상세·목록·알림 본문은 배경 없는 열린 구성이 기본입니다. 제목·여백·정렬·필요한 구분선으로 나누고, 대시보드·마이페이지·운영관리의 독립된 정보·설정·작업에만 필요한 패널을 선택합니다. 박스를 제거할 때는 배경뿐 아니라 전용 래퍼·안쪽 여백·불필요한 높이·클리핑도 없앱니다. 페이지 바깥 여백과 컨트롤 클릭 영역은 유지하고, 콘텐츠 사이 간격은 공통 stack/section이 소유합니다.</p>
     </div>
     <div className={styles.usageTable}><table aria-label="작업 영역 구성 기준"><thead><tr><th>역할</th><th>모바일 / 768px 이상</th><th>공통 구현</th><th>사용 위치</th></tr></thead><tbody>
       {SITE_CONTENT_COMPOSITION.map(item => <tr key={item.role}><td>{item.role}</td><td>{item.mobile} / {item.wide}px</td><td><code>{item.owner}</code></td><td>{item.usage}</td></tr>)}
