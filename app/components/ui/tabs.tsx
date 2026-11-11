@@ -81,7 +81,7 @@ function TabsList({
       distribution === "equal" && (variant === "area" ? "site-area-tabs-even" : variant !== "underline" && variant !== "document" && "site-tabs-even"),
       `site-tab-size-${size === "default" ? "md" : size}`, className,
     )} {...props}>{children}</TabsPrimitive.List>;
-  if(variant==="rooms")return <div className="site-room-tabs-header">{action}{list}</div>;
+  if(variant==="rooms")return <div className="site-room-tabs-header" data-size={size === "default" ? "md" : size}>{action}{list}</div>;
   return variant === "document" ? <div className={`site-document-tabs-header site-tab-size-${size === "default" ? "md" : size}`}>
     <div className="site-document-tabs-bar">{React.Children.count(children) ? list : null}{action}</div>
     {tools ? <div className="site-document-tabs-tools">{tools}</div> : null}

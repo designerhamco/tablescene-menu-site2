@@ -890,12 +890,15 @@
 
 .site-document-tabs.site-tab-size-md { --site-tab-font: var(--site-type-14); }
 
-/* Independent room selectors keep creation outside the scrolling tablist. */
-.site-room-tabs-header { display:flex; min-width:0; align-items:center; gap:var(--site-space-copy); }
-.site-room-tabs-header > .site-button { flex:none; }
+/* One room toolbar size owns both the fixed action and scrolling selectors. */
+.site-room-tabs-header { --site-room-control-height:var(--ui-control-height-header); --site-room-control-padding:var(--ui-control-padding-inline); display:flex; min-width:0; align-items:center; gap:var(--site-space-copy); }
+.site-room-tabs-header[data-size="sm"] { --site-room-control-height:var(--ui-control-height-md); }
+.site-room-tabs-header[data-size="lg"] { --site-room-control-height:var(--ui-control-height-lg); --site-room-control-padding:var(--ui-control-padding-inline-lg); }
+.site-room-tabs-header > .site-button { flex:none; min-height:var(--site-room-control-height); font-size:var(--site-type-16); }
+.site-room-tabs-header > .site-button.site-button-icon { --ui-icon-control-size:var(--site-room-control-height); }
 .site-room-tabs { display:flex; min-width:0; max-width:100%; gap:var(--site-space-copy); overflow-x:auto; scrollbar-width:none; }
 .site-room-tabs::-webkit-scrollbar { display:none; }
-.site-room-tabs > .site-room-tab { flex:none; min-height:var(--site-tab-height); padding-inline:var(--site-tab-padding); border:1px solid var(--ui-border); border-radius:var(--ui-radius-control-rounded); background:var(--ui-surface); color:var(--ui-text); font-size:var(--site-tab-font); }
+.site-room-tabs > .site-room-tab { flex:none; min-width:var(--site-room-control-height); min-height:var(--site-room-control-height); padding-inline:var(--site-room-control-padding); border:1px solid var(--ui-border); border-radius:var(--ui-radius-control-rounded); background:var(--ui-surface); color:var(--ui-text); font-size:var(--site-type-16); }
 .site-room-tabs > .site-room-tab[data-state="active"] { border-color:var(--ui-text); background:var(--ui-surface); color:var(--ui-text); box-shadow:inset 0 0 0 1px var(--ui-text); }
 .site-room-tabs > .site-room-tab:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { background:var(--ui-surface-muted); color:var(--ui-text); }
 .site-room-tabs > .site-room-tab:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { background:var(--ui-action-soft-pressed); color:var(--ui-text); }
