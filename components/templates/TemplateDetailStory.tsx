@@ -13,7 +13,7 @@ const icons = [PanelsTopLeft, ImageIcon, Tags, Timer, LayoutPanelTop, Megaphone,
 export default function TemplateDetailStory({ template }: { template: PublicTemplateDetail }) {
   const { info, album, supported } = getDetailFeaturePresentation(template);
   return <div className={styles.story} data-template-story="">
-    <section className={styles.overview} aria-labelledby="template-overview-title">
+    <section aria-labelledby="template-overview-title">
       <div className={styles.heroImage}>
         <Image src={info.image} alt={`${template.name} 메뉴판 전체 구성`} width={1200} height={900} loading="eager" sizes="(min-width: 1600px) 1000px, (min-width: 768px) 63vw, 100vw" />
       </div>

@@ -205,7 +205,7 @@ test("tab hierarchy keeps service navigation, embedded catalog lists and notific
   assert.doesNotMatch(catalog, /variant=\{product === "display" \? undefined : "contained"\}/);
   assert.match(catalog, /className="site-catalog-panel"/);
   assert.match(catalog, /distribution="equal" aria-label="템플릿 종류 선택"/);
-  assert.match(catalog, /site-catalog-surface[\s\S]*<FilterToolbar[\s\S]*<TemplatePagination/);
+  assert.match(catalog, /site-catalog-panel[\s\S]*<FilterToolbar[\s\S]*<TemplatePagination/);
   const notification = read("app/components/ui/notification-panel.tsx");
   assert.match(notification, /<Tabs purpose="category"/);
   assert.doesNotMatch(notification, /variant="(?:folder|flow|contained)"/);

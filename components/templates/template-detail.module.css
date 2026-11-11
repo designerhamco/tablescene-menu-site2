@@ -33,24 +33,22 @@
 .actions a, .actions button { width: 100%; min-height: var(--ui-control-height-lg); }
 .billingNote { margin-top: .75rem; font-weight: var(--font-weight-regular); color: var(--site-text-muted); line-height: 1.65; }
 /* Detail marketing content uses the existing site card, button and type tokens. */
-.story { min-width: 0; display: grid; gap: 2rem; }
-.overview { margin-bottom: 2rem; }
+.story { min-width: 0; display: grid; gap: var(--site-section-space); }
 .heroImage { overflow: hidden; background: var(--ui-surface-muted); border-radius: var(--ui-radius-preview); }
 .heroImage img { width: 100%; height: auto; display: block; }
 .overviewCopy { margin-top: 2rem; }
 .description { margin-top: .875rem; color: var(--ui-text-muted); }
 .featureGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 1.75rem 0 0; padding: 0; list-style: none; }
 .featureGrid li { min-width: 0; }
-.featureCard { display: flex; flex-direction: column; align-items: flex-start; gap: .75rem; height: 100%; padding: 1.25rem; color: var(--ui-text); text-align: left; }
+.featureCard { display: flex; flex-direction: column; align-items: flex-start; gap: .75rem; height: 100%; color: var(--ui-text); text-align: left; }
 .featureCard svg { flex: none; }
 .featureCard p { color: var(--ui-text-muted); }
 .featureCard:hover h3 { text-decoration: underline; text-underline-offset: .25em; }
 .featureCard:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
 .guideAction { display: flex; justify-content: center; margin-top: 1.75rem; }
 .guideAction a { width: auto; }
-.storySection { container-type: inline-size; min-width: 0; overflow: hidden; scroll-margin-top: calc(var(--site-header-height) + 1.5rem); padding: clamp(1rem, 2.5vw, 2rem); }
+.storySection { container-type: inline-size; min-width: 0; scroll-margin-top: calc(var(--site-header-height) + 1.5rem); }
 .featureNote { color: var(--ui-text-muted); margin-top: 1.25rem; }
-@media (max-width: 479px) { .featureCard { padding: 1rem; } }
 @media (min-width: 768px) {
   .page { padding-block: 2rem 6rem; }
   .breadcrumb { margin-bottom: 2rem; }
@@ -67,12 +65,10 @@
   .scrollFade { display: block; position: absolute; inset: -2rem 0 auto; height: 2rem; background: linear-gradient(to bottom, rgb(255 255 255 / 0), var(--ui-surface)); opacity: 0; pointer-events: none; }
   .sidebarFooter[data-scroll-more="true"] .scrollFade { opacity: 1; }
   .sidebar h1 { font-size: var(--type-page-title-size); }
-  .story { grid-column: 1; grid-row: 1; gap: 2.5rem; }
-  .overview { margin-bottom: 2rem; }
+  .story { grid-column: 1; grid-row: 1; }
 }
 @media (min-width: 1200px) {
   .layout { grid-template-columns: minmax(0, 1fr) 23rem; }
   .sidebar h1 { font-size: var(--type-page-title-size); }
-  .overview { margin-bottom: 2.5rem; }
   .featureGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
 }

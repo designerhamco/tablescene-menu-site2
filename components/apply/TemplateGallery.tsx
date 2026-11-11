@@ -137,40 +137,38 @@ export default function TemplateGallery({
           <div role={product !== "display" ? "tabpanel" : undefined} tabIndex={product !== "display" ? 0 : undefined}
             className="site-catalog-panel"
             id={`${tabsId}-kind-panel`} aria-labelledby={product !== "display" ? `${tabsId}-${kind}` : undefined}>
-            <div className="site-catalog-surface">
-              <div className="site-catalog-results">
-                <FilterToolbar collapseFiltersOnMobile filterLabel="템플릿 필터" search={
-                  <CatalogFilterSearch search={
-                    <form role="search" aria-label="템플릿 이름 검색" className="site-catalog-search" onSubmit={event => event.preventDefault()}>
-                      <SearchField id={`${tabsId}-search`} label="템플릿 이름 검색" submitLabel="이름 검색" placeholder="템플릿 이름으로 검색" enterKeyHint="search" maxLength={100} value={query} onValueChange={searchByName} />
-                    </form>
-                  }>{renderFilters("accordion")}</CatalogFilterSearch>
-                } filters={renderFilters("popover")} tools={
-                  <ToggleGroup type="single" appearance="segmented" size="sm" value={thumbnailSize} onValueChange={value => { if (value === "large" || value === "small") selectThumbnailSize(value); }} aria-label="썸네일 크기">
-                    <ToggleGroupItem value="large" aria-label="썸네일 크게 보기" title="썸네일 크게 보기"><Grid2X2 aria-hidden="true" /></ToggleGroupItem>
-                    <ToggleGroupItem value="small" aria-label="썸네일 작게 보기" title="썸네일 작게 보기"><Grid3X3 aria-hidden="true" /></ToggleGroupItem>
-                  </ToggleGroup>
-                } summary={
-                  <p className="site-catalog-count" aria-live="polite" aria-atomic="true">
-                    {product === "display" ? "디스플레이" : selectedKind.label} · <span>{visibleTemplates.length}개</span>
-                  </p>
-                } />
-                <div className="site-stack-group">
-                  <hr className="site-content-divider" />
-                  {message && <p role="status" className="type-body-sm text-red-700">{message}</p>}
-                  {paginatedTemplates.length ? (
-                    <div className="site-template-grid" data-thumbnail-size={thumbnailSize}>{paginatedTemplates.map(design => <CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={busy} onToggle={toggle} />)}</div>
-                  ) : (
-                    <EmptyState icon={<PanelsTopLeft />} title={hasFilters ? "조건에 맞는 템플릿이 없습니다" : "템플릿 준비 중"}
-                      description={hasFilters ? "이름이나 필터 조건을 바꿔 다시 찾아보세요." : "매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다."}
-                      action={hasFilters ? <Button variant="outline" size="lg" onClick={clearFilters}>전체 템플릿 보기</Button> : undefined} />
-                  )}
-                </div>
-                <TemplatePagination currentPage={currentPage} totalPages={totalPages} onSelect={next => {
-                  setPage(next);
-                  requestAnimationFrame(() => galleryStartRef.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }));
-                }} />
+            <div className="site-catalog-results">
+              <FilterToolbar collapseFiltersOnMobile hideToolsOnMobile filterLabel="템플릿 필터" search={
+                <CatalogFilterSearch search={
+                  <form role="search" aria-label="템플릿 이름 검색" className="site-catalog-search" onSubmit={event => event.preventDefault()}>
+                    <SearchField id={`${tabsId}-search`} label="템플릿 이름 검색" submitLabel="이름 검색" placeholder="템플릿 이름으로 검색" enterKeyHint="search" maxLength={100} value={query} onValueChange={searchByName} />
+                  </form>
+                }>{renderFilters("accordion")}</CatalogFilterSearch>
+              } filters={renderFilters("popover")} tools={
+                <ToggleGroup type="single" appearance="segmented" size="sm" value={thumbnailSize} onValueChange={value => { if (value === "large" || value === "small") selectThumbnailSize(value); }} aria-label="썸네일 크기">
+                  <ToggleGroupItem value="large" aria-label="썸네일 크게 보기" title="썸네일 크게 보기"><Grid2X2 aria-hidden="true" /></ToggleGroupItem>
+                  <ToggleGroupItem value="small" aria-label="썸네일 작게 보기" title="썸네일 작게 보기"><Grid3X3 aria-hidden="true" /></ToggleGroupItem>
+                </ToggleGroup>
+              } summary={
+                <p className="site-catalog-count" aria-live="polite" aria-atomic="true">
+                  {product === "display" ? "디스플레이" : selectedKind.label} · <span>{visibleTemplates.length}개</span>
+                </p>
+              } />
+              <div className="site-stack-group">
+                <hr className="site-content-divider" />
+                {message && <p role="status" className="type-body-sm text-red-700">{message}</p>}
+                {paginatedTemplates.length ? (
+                  <div className="site-template-grid" data-thumbnail-size={thumbnailSize}>{paginatedTemplates.map(design => <CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={busy} onToggle={toggle} />)}</div>
+                ) : (
+                  <EmptyState icon={<PanelsTopLeft />} title={hasFilters ? "조건에 맞는 템플릿이 없습니다" : "템플릿 준비 중"}
+                    description={hasFilters ? "이름이나 필터 조건을 바꿔 다시 찾아보세요." : "매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다."}
+                    action={hasFilters ? <Button variant="outline" size="lg" onClick={clearFilters}>전체 템플릿 보기</Button> : undefined} />
+                )}
               </div>
+              <TemplatePagination currentPage={currentPage} totalPages={totalPages} onSelect={next => {
+                setPage(next);
+                requestAnimationFrame(() => galleryStartRef.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }));
+              }} />
             </div>
           </div>
         </div>

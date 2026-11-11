@@ -7,7 +7,7 @@ export const SITE_MOBILE_SPACING = [
   { token: "--site-space-content", rem: 2, label: "주요 콘텐츠", usage: "제목 그룹과 첫 콘텐츠, 필터와 결과, 페이지네이션" },
   { token: "--site-space-card", rem: 3, label: "독립 카드 사이", usage: "세로로 이어지는 템플릿 카드" },
   { token: "--site-space-section", rem: 4, label: "새 섹션", usage: "콘텐츠와 별도 상담 영역, 마케팅 섹션" },
-  { token: "--site-surface-inset", rem: 1.25, label: "표면 안쪽", usage: "목록 배경·설명 박스의 내부 여백" },
+  { token: "--site-surface-inset", rem: 1.25, label: "표면 안쪽", usage: "실제로 필요한 관리 패널·안내 표면의 내부 여백. 열린 목록/상세에는 추가하지 않음" },
 ] as const;
 export const SITE_MOBILE_MAX_WIDTH = 767;
 

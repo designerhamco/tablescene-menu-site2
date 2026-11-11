@@ -24,15 +24,12 @@
 .site-header-spacer { height: var(--site-header-height); flex: none; }
 .site-header-spacer[data-header-surface="dark"] { background: var(--site-dining-background); }
 .site-auth-page {
-  display: grid;
-  min-height: min(calc(100svh - var(--site-header-height)), 56rem);
-  align-content: center;
-  padding-block: clamp(3rem, 5vh, 4.5rem);
+  padding-block: var(--site-page-heading-top) var(--site-page-space-compact);
 }
 .site-auth-content { width: 100%; max-width: clamp(26rem, 26vw, 29.25rem); margin-inline: auto; }
 .site-auth-content-wide { max-width: 30rem; }
 .site-auth-form { border: 0; border-radius: 0; background: transparent; box-shadow: none; }
-.site-auth-header { margin-bottom: 2rem; text-align: center; }
+.site-auth-header { margin-bottom: var(--site-page-intro-content-gap); text-align: center; }
 
 /*
  * Account, editor and store-operation screens are dense working surfaces.
@@ -379,7 +376,6 @@
 .site-catalog-access { display: flex; align-items: flex-start; gap: .375rem; color: var(--site-text-secondary); }
 .site-catalog-access svg { flex: none; }
 .site-catalog-panel { min-width: 0; width: 100%; }
-.site-catalog-surface { padding: clamp(1rem, 2vw, 1.5rem); background: transparent; }
 .site-catalog-results { min-width: 0; }
 .site-catalog-search-row { display: flex; align-items: center; gap: var(--site-space-copy); width: 100%; }
 .site-catalog-search { flex: 1; min-width: 0; }
@@ -414,6 +410,12 @@
 }
 @media (min-width: 1280px) {
   .site-catalog-results .site-template-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 767px) {
+  .site-catalog-results .site-template-grid[data-thumbnail-size] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 640px) and (max-width: 767px) {
+  .site-catalog-results .site-template-grid[data-thumbnail-size] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* Compatibility rules for existing site pages, including account and editor
@@ -492,7 +494,7 @@
 .site-tab-count { position: relative; margin-left: .375rem; color: var(--site-text-muted); font-size: var(--type-body-sm-size); font-weight: var(--font-weight-semibold); font-variant-numeric: tabular-nums; }
 .site-topic-tab:is([aria-selected="true"], [aria-current="true"], [aria-current="page"], [data-state="active"]) .site-tab-count { color: var(--ui-text); }
 .site-topic-tab:is(:focus-visible, [data-ui-state="focus"]) { outline: 2px solid var(--ui-focus); outline-offset: -3px; }
-.site-empty-state-spacious { display: flex; min-height: 16rem; flex-direction: column; align-items: center; justify-content: center; gap: .75rem; border: 0; border-radius: .5rem; padding: 2rem 1.5rem; text-align: center; }
+.site-empty-state-spacious { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--site-space-title-copy); text-align: center; }
 .site-empty-state-icon { display: grid; width: 3rem; height: 3rem; margin-bottom: .25rem; place-items: center; border-radius: .75rem; background: var(--ui-surface); color: var(--ui-text-muted); }
 .site-empty-state-icon svg { width: 1.75rem; height: 1.75rem; stroke-width: 1.5; }
 .site-empty-state-description { max-width: 32rem; color: var(--ui-text-muted); }
@@ -549,7 +551,7 @@
     padding-left: 1.25rem;
   }
 }
-.site-account-page .site-empty-state-spacious { margin-top: 1.5rem; }
+.site-account-page .site-empty-state-spacious { margin-top: var(--site-space-group); }
 
 .site-tabs-even { width: min(100%, 32rem); }
 .site-tabs-even > .site-tab { flex: 1 0 0; min-width: 0; }
@@ -655,6 +657,7 @@
 .site-notification-read-all-dock > button { pointer-events: auto; }
 .site-notification-panel[data-compact] .site-notification-read-all-dock { position: absolute; inset-inline: 0; justify-self: stretch; margin-bottom: 0; }
 .site-notification-panel[data-compact] .site-notification-feed { min-height: 16rem; max-height: min(28rem,55dvh); overflow-y: auto; overscroll-behavior: contain; }
+.site-notification-panel[data-compact] .site-notification-feed:has(> .site-empty-state) { min-height: 0; }
 .site-notification-date { padding: 1rem 1.25rem .5rem; font-size: var(--type-footnote-size); font-weight: 600; }
 .site-notification-item { display: flex; align-items: flex-start; gap: .875rem; padding: 1rem 1.25rem; text-decoration: none; transition: background var(--ui-transition); }
 .site-notification-item:hover { background: var(--ui-surface-muted); }
