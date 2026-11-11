@@ -46,7 +46,7 @@ export default function SwitchExamples() {
         <p className="type-body-sm">‘변경 불가’는 현재 상태를 보여주며 조작할 수 없습니다.</p>
       </article>)}
     </div>
-    <p className="type-body-sm text-zinc-600">클릭·Space·Enter로 변경해 보세요. 손잡이의 위치와 색상으로 상태를 구분하며 화면의 예시만 바뀝니다. Tab 포커스와 기본48×44px·소형44×44px 조작 영역을 제공합니다. 스위치 옆에 ON/OFF 상태 문구를 반복하지 않습니다.</p>
+    <p className="type-body-sm text-zinc-600">클릭·Space·Enter로 변경해 보세요. 손잡이의 위치와 색상으로 상태를 구분하며 화면의 예시만 바뀝니다. Tab 포커스와 기본·소형 모두44×44px 조작 영역을 제공합니다. 스위치 옆에 ON/OFF 상태 문구를 반복하지 않습니다.</p>
     <div className={styles.heading}>
       <h3 className="type-content-title">편집기에서도 같은 스위치 사용</h3>
       <p className="type-body-sm text-zinc-600">폼의 이름·체크값·연결된 폼과 켜기 제한을 유지합니다. 아래 예시는 저장되지 않습니다.</p>

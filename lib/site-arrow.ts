@@ -31,13 +31,13 @@ export const SITE_ARROW_PATHS = {
 } as const;
 export type SiteArrowKind = keyof typeof SITE_ARROW_PATHS;
 
-/** Small circular heads are filled shapes, avoiding three stroked branches and
- * their acute miter spikes at16px. The concave back retains the sculpted family.
+/** Circular arrows use one curved outer wing, keeping the inner counter open.
+ * Filled geometry avoids acute stroked joins at small UI sizes.
  */
 function circularHead(x: number, y: number, angle: number) {
   const radians = angle * Math.PI / 180;
   const point = (px: number, py: number) => `${Number((x + px * Math.cos(radians) - py * Math.sin(radians)).toFixed(3))} ${Number((y + px * Math.sin(radians) + py * Math.cos(radians)).toFixed(3))}`;
-  return `M${point(0, 0)}L${point(-5, -3.5)}Q${point(-3.5, 0)} ${point(-5, 3.5)}Z`;
+  return `M${point(0, 0)}L${point(-5.2, 3.6)}Q${point(-4.4, 1)} ${point(-2.4, 0)}Z`;
 }
 export const SITE_CIRCULAR_ARROW_HEADS = {
   refresh: circularHead(5.636, 8.464, 135) + circularHead(18.364, 15.536, 315),

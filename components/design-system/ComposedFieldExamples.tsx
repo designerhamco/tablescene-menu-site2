@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
-import { Sparkles, UserRound } from "lucide-react";
+import { Sparkles, UserRound } from "@/app/components/ui/site-icon";
 import { ko } from "date-fns/locale";
 import { format } from "date-fns";
 import { ContentPanel } from "@/app/components/ui/content-panel";

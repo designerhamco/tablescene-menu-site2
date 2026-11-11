@@ -1,4 +1,4 @@
-import { BellRing, Smartphone } from 'lucide-react';
+import { BellRing, Smartphone } from "@/app/components/ui/site-icon";
 
 import { MarketingSectionCopy } from '../../components/home/MarketingSectionCopy';
 

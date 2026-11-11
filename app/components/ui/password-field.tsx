@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, type ComponentProps } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff } from "@/app/components/ui/site-icon";
 import { Button } from "./button";
 import { InputGroup, InputGroupAction, InputGroupInput, type InputGroupSize } from "./input-group";
 

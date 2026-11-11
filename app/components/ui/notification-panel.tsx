@@ -2,7 +2,7 @@
 
 import { LoadingState } from "@/app/components/ui/loading-state";
 import { useRef, useState, type ReactNode } from "react";
-import { Bell } from "lucide-react";
+import { Bell } from "@/app/components/ui/site-icon";
 import { Button } from "./button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./tabs";
 import { EmptyState } from "./empty-state";

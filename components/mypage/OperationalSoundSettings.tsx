@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Volume2 } from "lucide-react";
+import { Volume2 } from "@/app/components/ui/site-icon";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { Slider } from "@/app/components/ui/slider";
 import { Switch } from "@/app/components/ui/switch";

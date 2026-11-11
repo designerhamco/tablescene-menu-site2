@@ -13,7 +13,7 @@ async function renderDashboard(menuSiteId: string) {
     tableSetupAvailable: true, activeTablesReady: true, permissions: ["table.manage", "order.read", "call.manage", "menu.edit", "menu.publish"],
     operationAccess: { orders: true, calls: true, tables: true, sales: false, pickup: false } };
   const dependencies: Record<string, unknown> = {
-    "react/jsx-runtime": jsxRuntime, "next/link": { default: stub }, "lucide-react": { Bell: stub, ChevronRight: stub, LayoutGrid: stub, ShoppingBag: stub, Ticket: stub },
+    "react/jsx-runtime": jsxRuntime, "next/link": { default: stub }, "@/app/components/ui/site-icon": { Bell: stub, ChevronRight: stub, LayoutGrid: stub, ShoppingBag: stub, Ticket: stub },
     "next/navigation": { redirect() { assert.fail("Authenticated dashboard must render"); } },
     "next/headers": { cookies: async () => ({ get: () => undefined }), headers: async () => ({ get: () => "test browser" }) },
     "@/components/ui/InfoTooltip": { default: stub },

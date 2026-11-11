@@ -10,7 +10,7 @@ import {
   ShoppingBag,
   Sparkles,
   Timer,
-} from "lucide-react";
+} from "@/app/components/ui/site-icon";
 import styles from "./marketing.module.css";
 
 export type VisualKind =

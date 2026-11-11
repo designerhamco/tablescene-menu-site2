@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { TriangleAlert } from "lucide-react";
+import { TriangleAlert } from "@/app/components/ui/site-icon";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 
 export default function OperationTableSetupNotice({ menuId, tableSetupAvailable, activeTablesReady, canManageTables }: {

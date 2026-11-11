@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { EmptyState } from '@/app/components/ui/empty-state';
-import { Heart } from 'lucide-react';
+import { Heart } from "@/app/components/ui/site-icon";
 import { getCatalogDesign } from '@/lib/catalog-designs';
 import CatalogDesignCard from '@/components/templates/CatalogDesignCard';
 import useTemplateFavorites from '@/components/templates/useTemplateFavorites';

@@ -6,7 +6,7 @@ import OrderPointSaveExample from "./OrderPointSaveExample";
 import type { OrderPointConnectRequest, OrderPointConnectionState } from "@/lib/order-point-connection";
 import { useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { Bell, Check, CreditCard, Globe, LayoutGrid, Share2, ShoppingBag } from "lucide-react";
+import { Bell, Check, CreditCard, Globe, LayoutGrid, Share2, ShoppingBag } from "@/app/components/ui/site-icon";
 import { FloorPlanDesktopNoticeDialog } from "@/components/mypage/floor-plan/FloorPlanDesktopNotice";
 import { Button } from "@/app/components/ui/button";
 import { SearchField } from "@/app/components/ui/search-field";

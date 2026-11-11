@@ -108,9 +108,9 @@
   --ui-switch-disabled-edge: #686e78;
   --ui-switch-disabled-thumb: #686e78;
   --ui-switch-focus: #0b63ce;
-  --ui-switch-width: 3rem;
-  --ui-switch-track-height: 1.75rem;
-  --ui-switch-thumb-size: 1.25rem;
+  --ui-switch-width: 2.75rem;
+  --ui-switch-track-height: 1.5rem;
+  --ui-switch-thumb-size: 1.125rem;
   --ui-switch-travel: 1.25rem;
 }
 
@@ -150,7 +150,7 @@
   width: var(--ui-switch-width);
   height: var(--ui-switch-track-height);
   padding: .125rem;
-  border: 2px solid var(--ui-switch-off);
+  border: 1px solid var(--ui-switch-off);
   border-radius: var(--ui-radius-control);
   background: var(--ui-switch-off);
   pointer-events: none;
@@ -1400,7 +1400,7 @@ svg.site-edit-icon {
 
 
 /* Compact tracks keep a full 44px touch/focus target. */
-.site-switch[data-size="sm"] { --ui-switch-width: 2.25rem; --ui-switch-track-height: 1.25rem; --ui-switch-thumb-size: .75rem; --ui-switch-travel: 1rem; width: var(--ui-control-height-header); }
+.site-switch[data-size="sm"] { --ui-switch-width: 2.25rem; --ui-switch-track-height: 1.25rem; --ui-switch-thumb-size: .875rem; --ui-switch-travel: 1rem; width: var(--ui-control-height-header); }
 .site-registration-row { display: grid; min-width: 0; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--site-space-block); }
 .site-registration-kind, .site-registration-name { display: flex; min-width: 0; align-items: center; gap: var(--site-space-copy); white-space: nowrap; }
 .site-registration-name > input { min-width: 0; width: 100%; }

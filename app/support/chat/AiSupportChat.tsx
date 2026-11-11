@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Coins, PanelsTopLeft, QrCode } from "lucide-react";
+import { Coins, PanelsTopLeft, QrCode } from "@/app/components/ui/site-icon";
 import { ArrowUp, ArrowUpRight } from "@/app/components/ui/site-arrow";
 import { LoadingState } from "@/app/components/ui/loading-state";
 import { FormEvent, useEffect, useId, useRef, useState } from "react";

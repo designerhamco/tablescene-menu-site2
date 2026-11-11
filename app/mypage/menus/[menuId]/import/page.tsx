@@ -1,3 +1,4 @@
+import { Check } from "@/app/components/ui/site-icon";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -161,7 +162,7 @@ export default async function ImportMenuContentPage({ params, searchParams }: Pa
             <section className="site-section p-7">
               <h2 className="type-content-title">연결 시 함께 변경</h2>
               <ul className="mt-5 space-y-3 text-copy font-semibold text-zinc-600">
-                {MENU_CATALOG_LINKED_SHARED_FIELDS.map((field) => <li key={field}>✓ {field}</li>)}
+                {MENU_CATALOG_LINKED_SHARED_FIELDS.map((field) => <li key={field}><Check size={16} className="inline-block" aria-hidden="true" /> {field}</li>)}
               </ul>
             </section>
             <section className="site-section p-7">

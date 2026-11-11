@@ -1,7 +1,7 @@
 "use client";
 
 import * as Dialog from "@radix-ui/react-dialog";
-import { Laptop, Monitor, X } from "lucide-react";
+import { Laptop, Monitor, X } from "@/app/components/ui/site-icon";
 import { ArrowUpRight } from "@/app/components/ui/site-arrow";
 import { buttonVariants } from "@/app/components/ui/button";
 import styles from "./marketing.module.css";

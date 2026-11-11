@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { LogIn, Menu, ShoppingCart, User, UserPlus, X } from "lucide-react";
+import { LogIn, Menu, ShoppingCart, User, UserPlus, X } from "@/app/components/ui/site-icon";
 
 import { createClient } from "@/lib/supabase/client";
 

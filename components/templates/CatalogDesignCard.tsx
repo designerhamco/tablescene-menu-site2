@@ -1,7 +1,7 @@
 'use client';
 import { ImageCarousel } from '@/app/components/ui/image-carousel';
 import Link from 'next/link';
-import { Heart } from 'lucide-react';
+import { Heart } from "@/app/components/ui/site-icon";
 import type { CatalogDesign } from '@/lib/catalog-designs';
 export default function CatalogDesignCard({design,liked,busy,onToggle}:{design:CatalogDesign;liked:boolean;busy:boolean;onToggle:(id:string)=>void}) {
   return <article className="site-template-card site-template-selection-card" data-catalog-design={design.id}>

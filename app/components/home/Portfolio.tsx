@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Tablet, Smartphone } from 'lucide-react';
+import { Tablet, Smartphone } from "@/app/components/ui/site-icon";
 import { Badge } from "@/app/components/ui/badge";
 // import { SmartWaitingUI } from './preview-ui/SmartWaitingUI'; // Not used
 

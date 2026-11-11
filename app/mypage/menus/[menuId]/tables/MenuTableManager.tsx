@@ -9,7 +9,7 @@ import type { OrderPointConnectRequest } from "@/lib/order-point-connection";
 import { confirmUnsavedChanges } from "@/lib/unsaved-changes";
 import { useUnsavedChanges } from "@/components/ui/useUnsavedChanges";
 import { useActionState, useCallback, useId, useRef, useState } from "react";
-import { Armchair, Monitor, LayoutGrid } from "lucide-react";
+import { Armchair, Monitor, LayoutGrid } from "@/app/components/ui/site-icon";
 import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import type { ArchivedMenuTableListItem } from "@/lib/menu-table-management";
 import type { OrderPointConnectionState } from "@/components/mypage/OrderPointConnectionSummary";

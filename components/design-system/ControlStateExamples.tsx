@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpen, Plus, Sparkles, Square, Trash2 } from "lucide-react";
+import { BookOpen, Plus, Sparkles, Square, Trash2 } from "@/app/components/ui/site-icon";
 import { Button, ButtonGroupDivider } from "@/app/components/ui/button";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";

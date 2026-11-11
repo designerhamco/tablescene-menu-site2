@@ -2,7 +2,7 @@
 
 import { useId, useState, type ReactNode } from "react";
 import Link from "next/link";
-import { Bell, Minus, Plus } from "lucide-react";
+import { Bell, Minus, Plus } from "@/app/components/ui/site-icon";
 import { Badge } from "@/app/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/app/components/ui/collapsible";
 import { LoadingState } from "@/app/components/ui/loading-state";

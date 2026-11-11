@@ -62,7 +62,7 @@ import { isYearlyRefundConfirmQaEnabled } from "@/lib/yearly-refund-confirm-qa";
 import { isRestoreSubscriptionQaEnabled } from "@/lib/restore-subscription-qa";
 import { NavigationTabs } from "@/app/components/ui/navigation-tabs";
 import { EmptyState } from "@/app/components/ui/empty-state";
-import { PanelsTopLeft, Coins } from "lucide-react";
+import { PanelsTopLeft, Coins } from "@/app/components/ui/site-icon";
 import { Badge } from "@/app/components/ui/badge";
 
 type SearchParams = Promise<{

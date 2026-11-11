@@ -1,6 +1,6 @@
 "use client";
 import {useId,useState,type RefObject} from "react";
-import {Trash2} from "lucide-react";
+import {Trash2} from "@/app/components/ui/site-icon";
 import {Button} from "@/app/components/ui/button";
 import {Dialog,DialogTrigger,DialogContent,DialogHeader,DialogTitle,DialogDescription,DialogFooter} from "@/app/components/ui/dialog";
 import {Tooltip,TooltipTrigger,TooltipContent} from "@/app/components/ui/tooltip";

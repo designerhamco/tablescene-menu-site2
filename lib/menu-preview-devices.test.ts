@@ -115,9 +115,9 @@ test("preview selector renders labeled PC, tablet, and mobile device icons", () 
   }));
 
   assert.match(html, /aria-label="미리보기 기기 선택"/);
-  assert.match(html, /lucide-monitor/);
-  assert.match(html, /lucide-tablet/);
-  assert.match(html, /lucide-smartphone/);
+  assert.match(html, /data-site-icon="computer-line"/);
+  assert.match(html, /data-site-icon="tablet-line"/);
+  assert.match(html, /data-site-icon="smartphone-line"/);
   assert.match(html, />PC</);
   assert.match(html, />태블릿</);
   assert.match(html, />모바일</);

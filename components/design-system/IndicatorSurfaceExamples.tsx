@@ -1,4 +1,4 @@
-import { Bell, LayoutGrid } from "lucide-react";
+import { Bell, LayoutGrid } from "@/app/components/ui/site-icon";
 import { EmptyState } from "@/app/components/ui/empty-state";
 import { MetricCard } from "@/app/components/ui/data-display";
 import styles from "./SiteComponentGallery.module.css";

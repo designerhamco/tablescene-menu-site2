@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router';
-import { Lock } from "lucide-react";
+import { Lock } from "@/app/components/ui/site-icon";
 import { ArrowRight } from "@/app/components/ui/site-arrow";
 import { Badge } from "@/app/components/ui/badge";
 

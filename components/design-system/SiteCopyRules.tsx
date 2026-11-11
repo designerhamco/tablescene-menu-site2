@@ -1,4 +1,4 @@
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag } from "@/app/components/ui/site-icon";
 import { SITE_COPY_RULES } from "@/lib/site-copy-policy";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { EmptyState } from "@/app/components/ui/empty-state";

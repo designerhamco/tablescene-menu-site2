@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useImperativeHandle, useRef, useState, type ComponentProps } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X } from "@/app/components/ui/site-icon";
 import { Button } from "./button";
 import { InputGroup, InputGroupAction, InputGroupAddon, InputGroupInput, type InputGroupSize } from "./input-group";
 

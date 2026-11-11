@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ComponentProps, type ReactElement, type ReactNode } from "react";
-import { CircleHelp, X } from "lucide-react";
+import { CircleHelp, X } from "@/app/components/ui/site-icon";
 import { TooltipBubbleArrow, TooltipBubbleBody, TOOLTIP_ARROW_PADDING } from "@/app/components/ui/tooltip-bubble";
 import { Button } from "@/app/components/ui/button";
 import { Popover, PopoverArrow, PopoverClose, PopoverContent, PopoverTrigger } from "@/app/components/ui/popover";

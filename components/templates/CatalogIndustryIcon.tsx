@@ -1,4 +1,4 @@
-import { Coffee, Fish, LayoutGrid, Sandwich, UtensilsCrossed, Wine } from "lucide-react";
+import { Coffee, Fish, LayoutGrid, Sandwich, UtensilsCrossed, Wine } from "@/app/components/ui/site-icon";
 import type { CatalogIndustry } from "@/lib/catalog-designs";
 
 const INDUSTRY_ICONS = {

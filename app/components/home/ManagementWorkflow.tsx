@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Smartphone, ChefHat, Bell, Utensils, User, Store, MessageSquare, BadgePercent } from 'lucide-react';
+import { Smartphone, ChefHat, Bell, Utensils, User, Store, MessageSquare, BadgePercent } from "@/app/components/ui/site-icon";
 
 const FLOW_STEPS = [
   {

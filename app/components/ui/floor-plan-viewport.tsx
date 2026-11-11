@@ -1,5 +1,5 @@
 "use client";
-import {Hand} from "lucide-react";
+import {Hand} from "@/app/components/ui/site-icon";
 import {useRef,useState,type CSSProperties,type PointerEvent,type ReactNode} from "react";
 import {Button} from "./button";
 import {Tooltip,TooltipContent,TooltipTrigger} from "./tooltip";

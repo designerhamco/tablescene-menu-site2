@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, type ReactNode } from "react";
-import { Copy, Link as LinkIcon, Share2 } from "lucide-react";
+import { Copy, Link as LinkIcon, Share2 } from "@/app/components/ui/site-icon";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "./dialog";
 import { toast } from "sonner";
 

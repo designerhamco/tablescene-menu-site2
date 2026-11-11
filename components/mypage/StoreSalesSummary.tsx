@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CreditCard, ShoppingBag } from "lucide-react";
+import { CreditCard, ShoppingBag } from "@/app/components/ui/site-icon";
 import { ActivityOverview } from "@/app/components/ui/activity-overview";
 import { MetricCard } from "@/app/components/ui/data-display";
 import { OverviewCard, OverviewCardGroup } from "@/app/components/ui/overview-card";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { Maximize2, X } from "lucide-react";
+import { Maximize2, X } from "@/app/components/ui/site-icon";
 import BrowserZoomGuide from "./MenuPreviewGuide";
 import styles from "./PreviewFullscreenControl.module.css";
 

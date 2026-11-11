@@ -13,7 +13,7 @@ import {
 import { Badge } from "@/app/components/ui/badge";
 import { CategoryFilter } from "@/app/components/ui/category-filter";
 import { EmptyState } from "@/app/components/ui/empty-state";
-import { PanelsTopLeft } from "lucide-react";
+import { PanelsTopLeft, Check } from "@/app/components/ui/site-icon";
 
 const activeTemplateCatalog = getAvailableTemplatesForService("basic");
 const firstCategoryGroupWithTemplate = BASIC_TEMPLATE_CATEGORY_GROUPS.find((group) =>
@@ -83,7 +83,7 @@ export default function TemplateCatalogPicker() {
                   <Badge
 
                   >
-                    ✓
+                    <Check size={14} aria-hidden="true" />
                   </Badge>
                 }
               />

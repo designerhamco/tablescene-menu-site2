@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState, type PointerEvent } from "react";
 import * as Popover from "@radix-ui/react-popover";
-import { X } from "lucide-react";
+import { X } from "@/app/components/ui/site-icon";
 import { RotateCcw } from "@/app/components/ui/site-arrow";
 import { hexToHsv, hsvToHex, type HSV } from "@/lib/color-picker";
 import styles from "./PreviewColorPicker.module.css";

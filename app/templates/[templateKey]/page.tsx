@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Check } from "lucide-react";
+import { Check } from "@/app/components/ui/site-icon";
 import { ArrowLeft, ArrowUpRight, ChevronRight } from "@/app/components/ui/site-arrow";
 
 import Footer from "@/app/components/layout/Footer";

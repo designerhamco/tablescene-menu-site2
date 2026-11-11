@@ -11,7 +11,7 @@ import {
 import Image from "next/image";
 import useEmblaCarousel from "embla-carousel-react";
 import AutoScroll from "embla-carousel-auto-scroll";
-import { Pause, Play } from "lucide-react";
+import { Pause, Play } from "@/app/components/ui/site-icon";
 import { ArrowLeft, ArrowRight } from "@/app/components/ui/site-arrow";
 import { useInView } from "motion/react";
 import { getMenuPreviewFrame } from "@/lib/menu-preview-devices";
