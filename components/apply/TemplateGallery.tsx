@@ -1,6 +1,6 @@
 "use client";
 
-import { PanelsTopLeft } from "lucide-react";
+import { Grid2X2, Grid3X3, Palette, PanelsTopLeft, Search, Sparkles, Store } from "lucide-react";
 import { useId, useMemo, useRef, useState } from "react";
 import {
   CATALOG_INDUSTRIES,
@@ -12,13 +12,16 @@ import {
   type CatalogLayoutFilter,
   type CatalogService,
 } from "@/lib/catalog-designs";
+import { CATALOG_COLORS, CATALOG_MOODS, normalizeCatalogColor, normalizeCatalogMood, normalizeCatalogThumbnailSize,
+  type CatalogColorFilter, type CatalogMoodFilter, type CatalogThumbnailSize } from "@/lib/catalog-facets";
 import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { FieldActionRow } from "@/app/components/ui/field-action-row";
 import { EmptyState } from "@/app/components/ui/empty-state";
-import { ChoiceGroup, ChoiceTile } from "@/app/components/ui/choice-tile";
 import { Tabs, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import CatalogDesignCard from "@/components/templates/CatalogDesignCard";
+import CatalogFilterSelect from "@/components/templates/CatalogFilterSelect";
 import CatalogIndustryIcon from "@/components/templates/CatalogIndustryIcon";
-import CatalogLayoutIcon from "@/components/templates/CatalogLayoutIcon";
 import CatalogLayoutSelect from "@/components/templates/CatalogLayoutSelect";
 import useTemplateFavorites from "@/components/templates/useTemplateFavorites";
 import TemplatePagination from "./TemplatePagination";
@@ -34,77 +37,85 @@ const KIND_TABS = [
   { key: "designer", label: "디자인 템플릿", description: "완성된 스타일에 우리 매장 메뉴를 넣어 시작하세요." },
   { key: "standard", label: "기본 템플릿", description: "기본 레이아웃에서 색상과 글꼴을 매장에 맞게 직접 설정하세요." },
 ] as const;
+type Filters = { industry: CatalogIndustry; mood: CatalogMoodFilter; color: CatalogColorFilter; layout: CatalogLayoutFilter };
+const DEFAULT_FILTERS: Filters = { industry: "all", mood: "all", color: "all", layout: "all" };
+const industryOptions = CATALOG_INDUSTRIES.map(item => ({ ...item, label: item.key === "all" ? "전체 업종" : item.label, icon: <CatalogIndustryIcon industry={item.key} /> }));
+const colorOptions = CATALOG_COLORS.map(item => ({ ...item, icon: item.swatch
+  ? <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="7" fill={item.swatch} stroke="currentColor" strokeWidth="0.5" /></svg>
+  : <Palette aria-hidden="true" /> }));
+
 export default function TemplateGallery({
-  initialProduct = "dining_single",
-  initialKind = "designer",
-  initialFilter = "all",
-  initialLayoutFilter = "all",
+  initialProduct = "dining_single", initialKind = "designer", initialFilter = "all", initialLayoutFilter = "all",
+  initialMoodFilter = "all", initialColorFilter = "all", initialQuery = "", initialThumbnailSize = "large",
 }: {
   initialProduct?: "dining_single" | "dining_multi" | "display";
   initialKind?: CatalogKind;
   initialFilter?: string;
   initialLayoutFilter?: string;
+  initialMoodFilter?: string;
+  initialColorFilter?: string;
+  initialQuery?: string;
+  initialThumbnailSize?: string;
 }) {
   const [product, setProduct] = useState<CatalogService>(initialProduct === "dining_multi" ? "dining" : initialProduct === "display" ? "display" : "basic");
   const [kind, setKind] = useState<CatalogKind>(initialKind);
-  const [filter, setFilter] = useState(initialProduct === "display" ? "all" : initialKind === "standard"
-    ? (CATALOG_LAYOUT_FILTERS.some(item => item.key === initialFilter) ? initialFilter : "all")
-    : (CATALOG_INDUSTRIES.some(item => item.key === initialFilter) ? initialFilter : "all"));
-  const [layoutFilter, setLayoutFilter] = useState<CatalogLayoutFilter>(initialProduct !== "display" && initialKind === "designer"
-    ? normalizeCatalogLayoutFilter(initialLayoutFilter) : "all");
+  const [filters, setFilters] = useState<Filters>({
+    industry: CATALOG_INDUSTRIES.find(item => item.key === initialFilter)?.key ?? "all",
+    layout: normalizeCatalogLayoutFilter(initialLayoutFilter === "all" && initialKind === "standard" ? initialFilter : initialLayoutFilter),
+    mood: normalizeCatalogMood(initialMoodFilter), color: normalizeCatalogColor(initialColorFilter),
+  });
+  const [query, setQuery] = useState(initialQuery.slice(0, 100));
+  const [thumbnailSize, setThumbnailSize] = useState(normalizeCatalogThumbnailSize(initialThumbnailSize));
   const [page, setPage] = useState(1);
   const galleryStartRef = useRef<HTMLDivElement>(null);
   const tabsId = useId();
   const { favorites, toggle, busy, message } = useTemplateFavorites();
-  const visibleTemplates = useMemo(() => filterCatalogDesigns(product, kind, filter, layoutFilter), [product, kind, filter, layoutFilter]);
+  const visibleTemplates = useMemo(() => filterCatalogDesigns(product, kind, filters.industry, filters.layout, { mood: filters.mood, color: filters.color, query }), [product, kind, filters, query]);
   const totalPages = Math.ceil(visibleTemplates.length / TEMPLATES_PER_PAGE);
   const currentPage = Math.min(page, Math.max(totalPages, 1));
   const paginatedTemplates = visibleTemplates.slice((currentPage - 1) * TEMPLATES_PER_PAGE, currentPage * TEMPLATES_PER_PAGE);
   const selectedKind = KIND_TABS.find(item => item.key === kind)!;
-  const filters = kind === "standard" ? CATALOG_LAYOUT_FILTERS : CATALOG_INDUSTRIES;
-  const filterHeading = kind === "standard" ? "화면 구성" : "업종";
-  const filterLabel = filters.find(item => item.key === filter)?.label ?? "전체";
-  const layoutLabel = CATALOG_LAYOUT_FILTERS.find(item => item.key === layoutFilter)!.label;
-  const hasLayoutFilter = product !== "display" && kind === "designer";
-  const emptyTitle = hasLayoutFilter && layoutFilter !== "all"
-    ? `${filter === "all" ? "" : `${filterLabel} · `}${layoutLabel} 템플릿 준비 중`
-    : `${filterLabel} 템플릿 준비 중`;
+  const activeLabels = [
+    filters.industry === "all" ? null : CATALOG_INDUSTRIES.find(item => item.key === filters.industry)?.label,
+    filters.mood === "all" ? null : CATALOG_MOODS.find(item => item.key === filters.mood)?.label,
+    filters.color === "all" ? null : CATALOG_COLORS.find(item => item.key === filters.color)?.label,
+    filters.layout === "all" ? null : CATALOG_LAYOUT_FILTERS.find(item => item.key === filters.layout)?.label,
+    query.trim() ? `“${query.trim()}”` : null,
+  ].filter(Boolean);
+  const hasFilters = activeLabels.length > 0;
 
-  function keepUrl(service: CatalogService, nextKind: CatalogKind, nextFilter: string, nextLayout: CatalogLayoutFilter) {
+  function keepUrl(service: CatalogService, nextKind: CatalogKind, next: Filters, search = query, size = thumbnailSize) {
     const url = new URL(location.href);
     url.searchParams.set("plan", service);
     url.searchParams.set("category", nextKind);
-    url.searchParams.set("filter", nextFilter);
-    if (service !== "display" && nextKind === "designer" && nextLayout !== "all") url.searchParams.set("layout", nextLayout);
-    else url.searchParams.delete("layout");
+    for (const [key, value] of Object.entries({ filter: next.industry, layout: next.layout, mood: next.mood, color: next.color, q: search.trim(), view: size })) {
+      if (value && value !== "all" && !(key === "view" && value === "large")) url.searchParams.set(key, value);
+      else url.searchParams.delete(key);
+    }
     history.replaceState(null, "", url);
   }
   function selectProduct(service: CatalogService) {
-    setProduct(service); setFilter("all"); setLayoutFilter("all"); setPage(1); keepUrl(service, kind, "all", "all");
+    setProduct(service); setFilters(DEFAULT_FILTERS); setPage(1); keepUrl(service, kind, DEFAULT_FILTERS);
   }
   function selectKind(next: CatalogKind) {
-    setKind(next); setFilter("all"); setLayoutFilter("all"); setPage(1); keepUrl(product, next, "all", "all");
+    setKind(next); setFilters(DEFAULT_FILTERS); setPage(1); keepUrl(product, next, DEFAULT_FILTERS);
   }
-  function selectFilter(next: string) {
-    setFilter(next); setPage(1); keepUrl(product, kind, next, layoutFilter);
+  function selectFilter<K extends keyof Filters>(key: K, value: Filters[K]) {
+    const next = { ...filters, [key]: value };
+    setFilters(next); setPage(1); keepUrl(product, kind, next);
   }
-  function selectLayout(next: CatalogLayoutFilter) {
-    setLayoutFilter(next); setPage(1); keepUrl(product, kind, filter, next);
+  function searchByName(next: string) {
+    setQuery(next); setPage(1); keepUrl(product, kind, filters, next);
+  }
+  function selectThumbnailSize(next: CatalogThumbnailSize) {
+    setThumbnailSize(next); keepUrl(product, kind, filters, query, next);
   }
   function clearFilters() {
-    setFilter("all"); setLayoutFilter("all"); setPage(1); keepUrl(product, kind, "all", "all");
-  }
-  function filterButtons() {
-    return filters.map(item => {
-      const icon = item.key === "list" || item.key === "album"
-        ? { icon: <CatalogLayoutIcon layout={item.key} /> }
-        : { icon: <CatalogIndustryIcon industry={item.key as CatalogIndustry} /> };
-      return <ChoiceTile key={item.key} purpose="filter" size="compact" {...icon} label={item.label} selected={filter === item.key} onClick={() => selectFilter(item.key)} />;
-    });
+    setFilters(DEFAULT_FILTERS); setQuery(""); setPage(1); keepUrl(product, kind, DEFAULT_FILTERS, "");
   }
 
   return <Tabs purpose="page" value={product} className="site-catalog" onValueChange={value => selectProduct(value as CatalogService)}>
-    <TabsList size="lg" className="site-catalog-services" aria-label="서비스 및 페이지 유형 선택">
+    <TabsList size="lg" className="site-catalog-services" aria-label="서비스 선택">
       {PRODUCT_TABS.map(({ key, label }) => (
         <TabsTrigger key={key} value={key} id={`${tabsId}-${key}`} aria-controls={`${tabsId}-service-panel`}>{label}</TabsTrigger>
       ))}
@@ -130,36 +141,43 @@ export default function TemplateGallery({
             </p>
           </section>
           <div className="site-catalog-surface">
-            <div className="site-catalog-layout" data-with-filters={product !== "display"}>
-              {product !== "display" && (
-                <aside className="site-catalog-filters" aria-label={`템플릿 ${filterHeading} 필터`}>
-                  <h2 className="type-label mb-3">{filterHeading}</h2>
-                  <ChoiceGroup aria-label={`${filterHeading} 선택`}>{filterButtons()}</ChoiceGroup>
-                </aside>
-              )}
-              <div className="site-catalog-results">
-                <div className="site-catalog-results-toolbar">
-                  <p className="site-catalog-count" aria-live="polite" aria-atomic="true">
-                    {product === "display" ? "디스플레이" : `${selectedKind.label} · ${filterLabel}${hasLayoutFilter && layoutFilter !== "all" ? ` · ${layoutLabel}` : ""}`} <span>{visibleTemplates.length}개</span>
-                  </p>
-                  {hasLayoutFilter && <div className="site-catalog-layout-filter">
-                    <CatalogLayoutSelect label="디자인 템플릿 화면 구성" value={layoutFilter} onValueChange={selectLayout} />
-                  </div>}
+            <div className="site-catalog-results">
+              <form role="search" aria-label="템플릿 이름 검색" className="site-catalog-search" onSubmit={event => event.preventDefault()}>
+                <FieldActionRow field={<>
+                  <label className="sr-only" htmlFor={`${tabsId}-search`}>템플릿 이름 검색</label>
+                  <Input id={`${tabsId}-search`} type="search" placeholder="템플릿 이름으로 검색" enterKeyHint="search" maxLength={100} value={query} onChange={event => searchByName(event.target.value)} />
+                </>} action={<Button type="submit" variant="ghost" size="icon" aria-label="이름 검색"><Search aria-hidden="true" /></Button>} />
+              </form>
+              <div className="site-catalog-filter-toolbar">
+                <div className="site-catalog-filter-controls" role="group" aria-label="템플릿 필터">
+                  <CatalogFilterSelect label="업종" icon={<Store aria-hidden="true" />} options={industryOptions} value={filters.industry} onValueChange={value => selectFilter("industry", value)} />
+                  <CatalogFilterSelect label="분위기" icon={<Sparkles aria-hidden="true" />} options={CATALOG_MOODS} value={filters.mood} onValueChange={value => selectFilter("mood", value)} />
+                  <CatalogFilterSelect label="색상" icon={<Palette aria-hidden="true" />} options={colorOptions} value={filters.color} onValueChange={value => selectFilter("color", value)} />
+                  <CatalogLayoutSelect value={filters.layout} onValueChange={value => selectFilter("layout", value)} />
                 </div>
-                {message && <p role="status" className="type-body-sm mb-3 text-red-700">{message}</p>}
-                {paginatedTemplates.length ? (
-                  <div className="site-template-grid">{paginatedTemplates.map(design => <CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={busy} onToggle={toggle} />)}</div>
-                ) : (
-                  <EmptyState icon={<PanelsTopLeft />} title={emptyTitle} description={hasLayoutFilter && layoutFilter !== "all"
-                    ? "선택한 화면 구성의 디자인을 준비하고 있습니다. 다른 화면 구성이나 업종을 선택해 주세요."
-                    : "매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다."}
-                    action={product !== "display" ? <Button variant="outline" size="lg" onClick={clearFilters}>전체 템플릿 보기</Button> : undefined} />
-                )}
-                <TemplatePagination currentPage={currentPage} totalPages={totalPages} onSelect={next => {
-                  setPage(next);
-                  requestAnimationFrame(() => galleryStartRef.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }));
-                }} />
+                <div className="site-catalog-view-controls" role="group" aria-label="썸네일 크기">
+                  <Button type="button" variant="ghost" size="icon" className="site-tool-button" aria-label="썸네일 크게 보기" title="썸네일 크게 보기" aria-pressed={thumbnailSize === "large"} onClick={() => selectThumbnailSize("large")}><Grid2X2 aria-hidden="true" /></Button>
+                  <Button type="button" variant="ghost" size="icon" className="site-tool-button" aria-label="썸네일 작게 보기" title="썸네일 작게 보기" aria-pressed={thumbnailSize === "small"} onClick={() => selectThumbnailSize("small")}><Grid3X3 aria-hidden="true" /></Button>
+                </div>
+                <p className="site-catalog-count" aria-live="polite" aria-atomic="true">
+                  {product === "display" ? "디스플레이" : selectedKind.label}{activeLabels.length > 0 ? ` · ${activeLabels.join(" · ")}` : ""} <span>{visibleTemplates.length}개</span>
+                </p>
               </div>
+              <div className="site-stack-group">
+                <hr className="site-content-divider" />
+                {message && <p role="status" className="type-body-sm text-red-700">{message}</p>}
+                {paginatedTemplates.length ? (
+                  <div className="site-template-grid" data-thumbnail-size={thumbnailSize}>{paginatedTemplates.map(design => <CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={busy} onToggle={toggle} />)}</div>
+                ) : (
+                  <EmptyState icon={<PanelsTopLeft />} title={hasFilters ? "조건에 맞는 템플릿이 없습니다" : "템플릿 준비 중"}
+                    description={hasFilters ? "이름이나 필터 조건을 바꿔 다시 찾아보세요." : "매장에 잘 어울리는 새 디자인을 순차적으로 추가하고 있습니다."}
+                    action={hasFilters ? <Button variant="outline" size="lg" onClick={clearFilters}>전체 템플릿 보기</Button> : undefined} />
+                )}
+              </div>
+              <TemplatePagination currentPage={currentPage} totalPages={totalPages} onSelect={next => {
+                setPage(next);
+                requestAnimationFrame(() => galleryStartRef.current?.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" }));
+              }} />
             </div>
           </div>
         </div>

@@ -14,7 +14,7 @@ test("public product and support surfaces keep secondary copy at accessible cont
 
   assert.doesNotMatch(gallery, /border-transparent text-zinc-400/);
   assert.match(gallery, /<Tabs purpose="page" value=\{product\}/);
-  assert.match(gallery, /<TabsList size="lg"[^>]*aria-label="서비스 및 페이지 유형 선택"/);
+  assert.match(gallery, /<TabsList size="lg"[^>]*aria-label="서비스 선택"/);
   assert.doesNotMatch(pricing, /text-zinc-400/);
   assert.match(faq, /site-filter/);
   const controls = readSource("../styles/ui-system.css");
