@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
-import { chromium } from '@playwright/test';
+import { chromium, expect } from '@playwright/test';
 const base=process.env.ORDER_QA_BASE || 'http://localhost:3017';
 const out=process.env.ORDER_QA_OUTPUT || '/private/tmp/site-feedback';
 await fs.mkdir(out,{recursive:true});
@@ -47,11 +47,11 @@ try{
   const p=await create(w,h,role);try{
    await p.goto(`${base}/guides`,{waitUntil:'networkidle'});
    if(role)await p.locator('[data-site-header-account]').waitFor({state:'attached'});
-   const trigger=p.getByRole('button',{name:'메뉴 열기',exact:true});const triggerBox=await trigger.boundingBox();const bellBox=role?await p.locator('[data-site-notification-trigger],[data-site-notification-link]').filter({visible:true}).boundingBox():null;await trigger.click();const menu=p.getByRole('dialog',{name:'아티메뉴 전체 메뉴',exact:true});await menu.waitFor();
+   const trigger=p.getByRole('button',{name:'메뉴 열기',exact:true});const triggerBox=await trigger.boundingBox();const bellBox=role?await p.locator('[data-site-notification-trigger],[data-site-notification-mobile-trigger]').filter({visible:true}).boundingBox():null;await trigger.click();const menu=p.getByRole('dialog',{name:'아티메뉴 전체 메뉴',exact:true});await menu.waitFor();
    const closeBox=await menu.getByRole('button',{name:'메뉴 닫기',exact:true}).boundingBox();
    const samePosition=(a,b)=>{for(const key of ['x','y','width','height'])assert.ok(Math.abs(a[key]-b[key])<1,`header control ${key} stays fixed`);};
    samePosition(triggerBox,closeBox);
-   if(bellBox){const bell=menu.getByRole('link',{name:/^알림/});const openBellBox=await bell.boundingBox();samePosition(bellBox,openBellBox);const makeBox=await menu.getByRole('link',{name:'만들기',exact:true}).boundingBox();assert.ok(makeBox.x+makeBox.width<=openBellBox.x,'create stays left of notifications');}
+   if(bellBox){const bell=menu.getByRole('button',{name:/^알림/});const openBellBox=await bell.boundingBox();samePosition(bellBox,openBellBox);const makeBox=await menu.getByRole('link',{name:'만들기',exact:true}).boundingBox();assert.ok(makeBox.x+makeBox.width<=openBellBox.x,'create stays left of notifications');}
    const main=menu.getByRole('navigation',{name:'모바일 공식 사이트 메뉴',exact:true});const support=main.getByRole('button',{name:'고객센터',exact:true});assert.equal(await support.getAttribute('aria-expanded'),'false');
    assert.equal(await main.getByRole('link',{name:'공지사항',exact:true}).count(),0);
    await support.click();assert.equal(await support.getAttribute('aria-expanded'),'true');await main.getByRole('link',{name:'공지사항',exact:true}).waitFor();
@@ -64,8 +64,8 @@ try{
    if(role){await menu.getByText('검증 매장',{exact:true}).waitFor();assert.equal(await menu.getByText(role,{exact:true}).count(),1);await menu.getByText('qa@example.com',{exact:true}).waitFor();
     assert.ok(await menu.getByRole('link',{name:'마이 메뉴',exact:true}).isVisible());
     const operations=menu.getByRole('link',{name:'매장 운영 (새 창으로 열기)',exact:true});assert.ok(await operations.isVisible());assert.equal(await operations.getAttribute('target'),'_blank');assert.equal(await operations.getAttribute('rel'),'noopener noreferrer');
-    assert.ok(await menu.getByRole('region',{name:'계정 정보'}).getByRole('button',{name:'로그아웃',exact:true}).isVisible());assert.equal(await menu.getByRole('link',{name:'알림',exact:true}).getAttribute('href'),'/notifications');
-   }else{for(const label of ['로그인','회원가입'])assert.ok(await menu.getByRole('link',{name:label,exact:true}).isVisible());assert.equal(await menu.getByRole('button',{name:'로그아웃',exact:true}).count(),0);assert.equal(await menu.getByRole('link',{name:/^알림/}).count(),0,'guests do not see notifications');}
+    assert.ok(await menu.getByRole('region',{name:'계정 정보'}).getByRole('button',{name:'로그아웃',exact:true}).isVisible());assert.equal(await menu.getByRole('button',{name:/^알림/}).getAttribute('aria-haspopup'),'dialog');
+   }else{for(const label of ['로그인','회원가입'])assert.ok(await menu.getByRole('link',{name:label,exact:true}).isVisible());assert.equal(await menu.getByRole('button',{name:'로그아웃',exact:true}).count(),0);assert.equal(await menu.getByRole('button',{name:/^알림/}).count(),0,'guests do not see notifications');}
    const linkStyle=await menu.getByRole('link',{name:role?'마이 메뉴':'로그인',exact:true}).evaluate(e=>{const s=getComputedStyle(e);return {font:s.fontSize,weight:s.fontWeight,border:s.borderWidth,background:s.backgroundColor,height:e.getBoundingClientRect().height};});
    assert.equal(linkStyle.border,'0px');assert.equal(linkStyle.background,'rgba(0, 0, 0, 0)');if(accountLinkStyle)assert.deepEqual(linkStyle,accountLinkStyle,'account links share the guest text style');else accountLinkStyle=linkStyle;
    assert.equal(await menu.locator('[class*=drawerFooter]').getByRole('button',{name:'로그아웃',exact:true}).count(),0);
@@ -73,7 +73,7 @@ try{
    for(let i=0;i<14;i++){await p.keyboard.press('Tab');assert.ok(await menu.evaluate(e=>e.contains(document.activeElement)),'focus remains in modal');}
    await p.mouse.click(w-2,2);await main.evaluate(e=>e.closest('[role=dialog]').querySelector('[class*=drawerBody]').scrollTo({top:0,behavior:'instant'}));
    if(w===390)await p.screenshot({path:`${out}/menu-${role==='사장'?'owner':role==='직원'?'staff':'guest'}.png`});
-   await p.keyboard.press('Escape');await menu.waitFor({state:'hidden'});assert.ok(await trigger.evaluate(e=>e===document.activeElement),'Escape restores trigger focus');await overflow(p);
+   await p.keyboard.press('Escape');await menu.waitFor({state:'hidden'});await expect(trigger).toBeFocused();await overflow(p);
   }finally{await p.close();}
  });
  await run('menu dissolves in place on open and close',async()=>{
@@ -81,7 +81,7 @@ try{
    const sample=async()=>menu.evaluate(e=>{const a=e.getAnimations().find(a=>a.animationName?.includes('drawerFade'));if(!a)throw new Error('dissolve animation missing');const duration=a.effect.getTiming().duration;a.pause();const frames=[0,duration/2,duration].map(time=>{a.currentTime=time;const s=getComputedStyle(e);return {x:e.getBoundingClientRect().x,opacity:Number(s.opacity),transform:s.transform};});a.currentTime=0;a.play();return {duration,frames};});
    const inPlace=frames=>assert.ok(frames.every(f=>Math.abs(f.x)<1&&f.transform==='none'),'panel never moves horizontally');
    const opening=await sample();assert.equal(opening.duration,160);inPlace(opening.frames);assert.equal(opening.frames[0].opacity,0);assert.ok(opening.frames[1].opacity>0&&opening.frames[1].opacity<1);assert.equal(opening.frames[2].opacity,1);
-   await menu.getByRole('button',{name:'메뉴 닫기',exact:true}).click();const closing=await sample();assert.equal(closing.duration,120);inPlace(closing.frames);assert.equal(closing.frames[0].opacity,1);assert.ok(closing.frames[1].opacity>0&&closing.frames[1].opacity<1);assert.equal(closing.frames[2].opacity,0);await menu.waitFor({state:'hidden'});assert.ok(await trigger.evaluate(e=>e===document.activeElement));await overflow(p);
+   await menu.getByRole('button',{name:'메뉴 닫기',exact:true}).click();const closing=await sample();assert.equal(closing.duration,120);inPlace(closing.frames);assert.equal(closing.frames[0].opacity,1);assert.ok(closing.frames[1].opacity>0&&closing.frames[1].opacity<1);assert.equal(closing.frames[2].opacity,0);await menu.waitFor({state:'hidden'});await expect(trigger).toBeFocused();await overflow(p);
   }finally{await p.close();}
  });
  for(const [w,h] of [[320,780],[820,1000],[1440,900]])await run(`notice loading ${w}`,async()=>{

@@ -107,18 +107,21 @@ async function verifyNotificationEntry(page, viewport) {
 
   if (viewport.width < 768) {
     await page.goto(new URL('/mypage?tab=menus', baseUrl).toString());
-    const bell = page.locator('[data-site-notification-link]');
+    const bell = page.locator('[data-site-notification-mobile-trigger]');
     await expect(bell).toBeVisible();
-    await expect(bell).toHaveAttribute('href', '/notifications');
+    await expect(bell).toHaveAttribute('aria-haspopup', 'dialog');
     await bell.click();
-    await expect(page).toHaveURL(new URL('/notifications', baseUrl).toString());
-    await expect(inbox.getByRole('heading', { name: '알림', exact: true })).toBeVisible();
-    await inbox.getByRole('button', { name: '이전 화면으로 돌아가기' }).click();
+    const sheet = page.locator('[data-site-notification-sheet]');
+    await expect(sheet).toBeVisible();
+    await expect(page).toHaveURL(new URL('/mypage?tab=menus', baseUrl).toString());
+    await sheet.getByRole('button', { name: '닫기', exact: true }).click();
+    await expect(sheet).toBeHidden();
+    await expect(bell).toBeFocused();
     await expect(page).toHaveURL(new URL('/mypage?tab=menus', baseUrl).toString());
     await page.goto(new URL('/notifications', baseUrl).toString());
     await expect(inbox).toBeVisible();
   } else {
-    await expect(page.locator('[data-site-notification-link]')).toBeHidden();
+    await expect(page.locator('[data-site-notification-mobile-trigger]')).toBeHidden();
     await page.locator('[data-site-notification-trigger]').click();
     const layer = page.locator('[data-site-notification-popover]');
     await expect(layer).toBeVisible();

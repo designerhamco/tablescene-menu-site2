@@ -59,7 +59,7 @@
 @keyframes drawerFadeOut { from { opacity:1; } to { opacity:0; } }
 .drawerHeader { display:flex; height:var(--site-header-height); flex:none; align-items:center; justify-content:space-between; gap:var(--site-space-copy); }
 .drawerHeaderActions { display:flex; flex-shrink:0; align-items:center; }
-.drawerHeaderActions > a { position:relative; }
+.drawerHeaderActions > :is(a, button) { position:relative; }
 .drawerUnread { position:absolute; top:.5rem; right:.5rem; width:.375rem; height:.375rem; border-radius:50%; background:var(--ui-danger); }
 .drawerBody { display:flex; min-height:0; flex:1; flex-direction:column; overflow-y:auto; overscroll-behavior:contain; padding:var(--site-space-group) var(--site-surface-inset) max(var(--site-space-group),env(safe-area-inset-bottom)); }
 .drawerAccount { display:grid; gap:var(--site-space-block); padding-bottom:var(--site-space-group); border-bottom:1px solid var(--ui-border); }

@@ -10,12 +10,12 @@ import { signOutAction } from "@/app/auth/actions";
 import { NewWindowIndicator } from "@/app/components/ui/new-window-indicator";
 import { SITE_NAV_ITEMS, isSiteNavItemActive, type NavigationAccount } from "@/lib/site-navigation";
 import { SITE_SUPPORT_LINKS, isSupportLinkActive } from "@/lib/site-support-navigation";
-import { NOTIFICATION_INBOX_HREF, formatNotificationBadgeCount } from "@/lib/notification-display-policy";
+import { formatNotificationBadgeCount } from "@/lib/notification-display-policy";
 import styles from "@/app/components/layout/Navbar.module.css";
 
-export default function MobileSiteMenu({ pathname, authenticated, loading, account, accountLoading = false, showOperations, unreadCount, close, closeButton, signOutControl }: {
+export default function MobileSiteMenu({ pathname, authenticated, loading, account, accountLoading = false, showOperations, unreadCount, close, onNotifications, closeButton, signOutControl }: {
   pathname: string; authenticated: boolean; loading: boolean; account: NavigationAccount | null;
-  accountLoading?: boolean; showOperations: boolean; unreadCount: number; close: () => void; closeButton: ReactNode; signOutControl?: ReactNode;
+  accountLoading?: boolean; showOperations: boolean; unreadCount: number; close: () => void; onNotifications: () => void; closeButton: ReactNode; signOutControl?: ReactNode;
 }) {
   const [supportOpen, setSupportOpen] = useState(false);
   const supportId = useId();
@@ -24,7 +24,7 @@ export default function MobileSiteMenu({ pathname, authenticated, loading, accou
       <Link href="/" onClick={close} className={styles.wordmark}>ArtiMenu</Link>
       <div className={styles.drawerHeaderActions}>
         <Link href="/apply" onClick={close} className="site-button site-button-primary site-button-header">만들기</Link>
-        {authenticated && !loading ? <Link href={NOTIFICATION_INBOX_HREF} onClick={close} className="site-button site-button-icon site-button-ghost" aria-label={unreadCount ? `알림, 읽지 않음 ${formatNotificationBadgeCount(unreadCount)}개` : "알림"}><Bell size={23} strokeWidth={2.1} aria-hidden="true" />{unreadCount ? <span className={styles.drawerUnread} aria-hidden="true" /> : null}</Link> : null}
+        {authenticated && !loading ? <button type="button" onClick={onNotifications} aria-haspopup="dialog" data-site-menu-notification-trigger className="site-button site-button-icon site-button-ghost" aria-label={unreadCount ? `알림, 읽지 않음 ${formatNotificationBadgeCount(unreadCount)}개` : "알림"}><Bell size={23} strokeWidth={2.1} aria-hidden="true" />{unreadCount ? <span className={styles.drawerUnread} aria-hidden="true" /> : null}</button> : null}
         {closeButton}
       </div>
     </div>

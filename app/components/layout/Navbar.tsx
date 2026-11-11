@@ -4,12 +4,14 @@ import { Bell, Menu, X } from "@/app/components/ui/site-icon";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { formatNotificationBadgeCount, getNotificationDisplaySince, NOTIFICATION_COMPACT_NOTICE, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_INBOX_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
+import { formatNotificationBadgeCount, getNotificationDisplaySince, NOTIFICATION_COMPACT_NOTICE, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
 import { createClient } from '@/lib/supabase/client';
 import { getSiteHeaderSurface } from '@/lib/site-header-policy';
 import { applyNotificationsReadAll, getNotificationsReadAll, NOTIFICATIONS_READ_ALL_EVENT, requestNotificationsReadAll } from '@/lib/notification-read-state';
 import { isStoreOperationsAvailable } from '@/lib/product-focus-policy';
 import { NotificationPanel } from '@/app/components/ui/notification-panel';
+import { NotificationSheet } from '@/app/components/ui/notification-sheet';
+import { useIsMobile } from '@/app/components/ui/use-mobile';
 import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/popover';
 import styles from './Navbar.module.css';
 import { NewWindowIndicator } from '@/app/components/ui/new-window-indicator';
@@ -50,6 +52,9 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const mobileNotificationTrigger = useRef<HTMLButtonElement>(null);
+  const desktopNotificationTrigger = useRef<HTMLButtonElement>(null);
   const [notificationEvents, setNotificationEvents] = useState<NotificationEvent[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
@@ -72,6 +77,7 @@ const Navbar = () => {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- Close transient navigation when Next Link changes the route.
     setIsOpen(false);
+    setIsNotificationOpen(false);
   }, [pathname]);
 
   useEffect(() => {
@@ -92,13 +98,13 @@ const Navbar = () => {
       if (nextIsScrolled === scrolledRef.current) return;
       scrolledRef.current = nextIsScrolled;
       setIsScrolled(nextIsScrolled);
-      if (nextIsScrolled) setIsNotificationOpen(false);
+      if (nextIsScrolled && !isMobile) setIsNotificationOpen(false);
     };
 
     handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -267,6 +273,17 @@ const Navbar = () => {
     }
   };
 
+  const notificationPanel = (sheet = false) => <NotificationPanel compact layout={sheet ? "sheet" : undefined}
+    loading={notificationsLoading} unreadCount={unreadCount} onReadAll={requestNotificationsReadAll}
+    items={notificationEvents.map(event=>({id:event.id,title:event.title ?? '알림',message:event.message ?? '알림 내용을 확인할 수 없습니다.',createdAt:event.created_at,unread:!event.read_at,href:getNotificationHref(event.metadata)}))}
+    onActivate={item=>{void markNotificationAsRead(item.id).finally(()=>{setIsNotificationOpen(false);window.location.assign(item.href);});}}
+    footer={<><p className="site-notification-limit">{NOTIFICATION_COMPACT_NOTICE}</p><Link href={NOTIFICATION_FALLBACK_HREF} onClick={()=>setIsNotificationOpen(false)}>전체 알림 보기</Link></>} />;
+
+  const openNotificationsFromMenu = () => {
+    setIsOpen(false);
+    setIsNotificationOpen(true);
+  };
+
   return (
     <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
       <nav aria-label="공식 사이트 메뉴" data-site-header data-header-surface={getSiteHeaderSurface(pathname)} data-scrolled={isScrolled} className={styles.shell}>
@@ -334,11 +351,12 @@ const Navbar = () => {
             {authState.isAuthenticated ? (
               <div className={styles.notificationGroup}>
                 <span className={styles.accountDivider} aria-hidden="true" />
-                <Popover open={isNotificationOpen} onOpenChange={setIsNotificationOpen}>
+                <Popover open={!isMobile && isNotificationOpen} onOpenChange={setIsNotificationOpen}>
                   <PopoverTrigger asChild>
                   <button
                     type="button"
                     aria-label="알림"
+                    ref={desktopNotificationTrigger}
                     data-site-notification-trigger
                     aria-expanded={isNotificationOpen}
                     className={`site-icon-control relative inline-flex shrink-0 items-center justify-center transition-colors ${styles.notificationButton} `}
@@ -353,10 +371,7 @@ const Navbar = () => {
 
                   </PopoverTrigger>
                   <PopoverContent align="end" sideOffset={12} collisionPadding={16} className="site-notification-popover" aria-label="알림" data-site-notification-popover>
-                    <NotificationPanel compact loading={notificationsLoading} unreadCount={unreadCount} onReadAll={requestNotificationsReadAll}
-                      items={notificationEvents.map(event=>({id:event.id,title:event.title ?? '알림',message:event.message ?? '알림 내용을 확인할 수 없습니다.',createdAt:event.created_at,unread:!event.read_at,href:getNotificationHref(event.metadata)}))}
-                      onActivate={item=>{void markNotificationAsRead(item.id).finally(()=>{setIsNotificationOpen(false);window.location.assign(item.href);});}}
-                      footer={<><p className="site-notification-limit">{NOTIFICATION_COMPACT_NOTICE}</p><Link href={NOTIFICATION_FALLBACK_HREF} onClick={()=>setIsNotificationOpen(false)}>전체 알림 보기</Link></>} />
+                    {notificationPanel()}
                   </PopoverContent>
                 </Popover>
               </div>
@@ -368,9 +383,13 @@ const Navbar = () => {
               만들기
             </Link>
             {authState.isAuthenticated ? (
-              <Link
-                href={NOTIFICATION_INBOX_HREF}
-                data-site-notification-link
+              <button
+                type="button"
+                ref={mobileNotificationTrigger}
+                onClick={() => setIsNotificationOpen(true)}
+                aria-haspopup="dialog"
+                aria-expanded={isMobile && isNotificationOpen}
+                data-site-notification-mobile-trigger
                 aria-label={unreadCount > 0 ? `알림, 읽지 않음 ${unreadBadgeLabel}개` : '알림'}
                 className={`site-icon-control relative inline-flex shrink-0 items-center justify-center transition-opacity md:hidden ${menuButtonClass} `}
               >
@@ -380,7 +399,7 @@ const Navbar = () => {
                     {unreadBadgeLabel}
                   </span>
                 ) : null}
-              </Link>
+              </button>
             ) : null}
 
             <Dialog.Trigger asChild><button
@@ -396,16 +415,20 @@ const Navbar = () => {
 
       <Dialog.Portal>
           <Dialog.Overlay className={styles.drawerOverlay} />
-          <Dialog.Content className={styles.drawer}>
+          <Dialog.Content className={styles.drawer} onCloseAutoFocus={event => { if (isNotificationOpen) event.preventDefault(); }}>
             <Dialog.Title className="sr-only">아티메뉴 전체 메뉴</Dialog.Title>
             <Dialog.Description className="sr-only">서비스와 계정 메뉴를 선택하세요.</Dialog.Description>
             <MobileSiteMenu pathname={pathname} authenticated={authState.isAuthenticated} loading={authState.loading}
               account={navigationAccount?.userId === authState.userId && navigationAccount.account ? navigationAccount.account : { name: authState.name, email: authState.email ?? '', role: null }}
               accountLoading={Boolean(authState.userId && navigationAccount?.userId !== authState.userId)}
-              showOperations={showStoreOperations} unreadCount={unreadCount} close={closeMobileMenu}
+              showOperations={showStoreOperations} unreadCount={unreadCount} close={closeMobileMenu} onNotifications={openNotificationsFromMenu}
               closeButton={<Dialog.Close className="site-button site-button-icon site-button-ghost" aria-label="메뉴 닫기"><X size={24} aria-hidden="true" /></Dialog.Close>} />
           </Dialog.Content>
       </Dialog.Portal>
+      <NotificationSheet open={isMobile && isNotificationOpen} onOpenChange={setIsNotificationOpen}
+        returnFocusRef={isMobile ? mobileNotificationTrigger : desktopNotificationTrigger}>
+        {notificationPanel(true)}
+      </NotificationSheet>
     </Dialog.Root>
   );
 };
