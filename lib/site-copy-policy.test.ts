@@ -21,6 +21,7 @@ test("title-only headers have no empty explanation or extra placeholder; explici
   assert.match(empty, /표시할 주문 내역이 없습니다/);
   assert.doesNotMatch(empty, /site-empty-state-description/);
   assert.equal(SITE_COPY_RULES.length, 6);
+  assert.match(SITE_COPY_RULES.find(rule => rule.role === "보존")!.rule, /사용자가 삭제한 설명은 다시 추가하지 않습니다/);
 });
 
 test("requested notices, boxed explanations, real data and empty/error states survive the cleanup", () => {

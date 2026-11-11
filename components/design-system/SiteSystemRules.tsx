@@ -7,7 +7,7 @@ export default function SiteSystemRules() {
     <div className={styles.heading}><h2 className="type-section-title">새 페이지의 기본값과 자동 검사</h2><p className="type-body text-zinc-600">새 일반 페이지는 SitePage로 시작합니다. 제목·첫 콘텐츠 간격과 헤더·푸터를 상속하며, 페이지별 스타일을 다시 만들지 않습니다.</p></div>
     <div className={styles.usageTable}><table aria-label="공통 디자인 시스템 자동 적용"><thead><tr><th>역할</th><th>사용 방법</th><th>검사에서 차단하는 변경</th></tr></thead><tbody>
       <tr><td>공통 헤더</td><td>OfficialSiteNavbar · 처음 투명 · 스크롤24px 이후 흰색 · 다이닝 첫 화면은 흰색 글자</td><td>스크롤 시 로고·액션 숨김, 축소·글래스 형태 및 임의 배치 변경</td></tr>
-      <tr><td>설명·도움말</td><td>제목만 기본 · 필요한 조건은 InfoTooltip · 소개 예외는 descriptionPurpose 명시</td><td>제목을 반복하는 설명, 사용자 요청·박스 설명·상태·데이터·필수 주의사항의 일괄 삭제</td></tr>
+      <tr><td>설명·도움말</td><td>제목만 기본 · 필요한 조건은 InfoTooltip · 삭제한 설명 복원 금지 · 소개 예외는 descriptionPurpose 명시</td><td>제목을 반복하는 설명, 사용자 요청·박스 설명·상태·데이터·필수 주의사항의 일괄 삭제</td></tr>
       <tr><td>페이지 제목과 간격</td><td>SitePage · SitePageHeader</td><td>별도 h1, 제목 바깥의 임의 여백·인라인 위치 보정</td></tr>
       <tr><td>탭</td><td>Tabs · NavigationTabs의 purpose와 size · 아이콘은 각 역할의 기본 크기</td><td>페이지별 색·두께·높이·패딩·모서리 덮어쓰기</td></tr>
       <tr><td>편집 연필</td><td>EditIcon · SVG16px · 클릭 영역은 공통 아이콘 크기와 분리</td><td>탭의 모든 아이콘을 일괄 축소하거나 아이콘 뒤에 임의 도형·패딩 추가</td></tr>
