@@ -27,6 +27,7 @@ try {
       await page.waitForLoadState('networkidle');
       await page.evaluate(() => document.fonts.ready);
       await page.locator('[data-native-header] img, [data-basic-top-row] img, .cafe-a-cover-hero img').evaluateAll(images => Promise.all(images.map(image => image.decode().catch(() => {}))));
+      await page.waitForFunction(() => [...document.querySelectorAll('[data-menu-logo-slot]')].filter(e => e.getBoundingClientRect().width > 0 && getComputedStyle(e).visibility !== 'hidden').every(e => e.dataset.menuLogoReady === 'true' && e.dataset.menuLogoMeasured === 'true'));
       await page.waitForTimeout(200);
       const geometry = async () => page.evaluate(() => {
         const header = document.querySelector('[data-native-header], [data-basic-top-row]');
@@ -45,6 +46,14 @@ try {
       assert.deepEqual(before.viewport, [width, height], id);
       assert.ok(Math.abs(before.trigger.y - before.header.y - before.insetTop) < 1, `${id}: language at header top`);
       assert.ok(Math.abs(before.trigger.right - before.header.right + before.insetRight) < 1, `${id}: language at header right`);
+      const information = await page.locator('[data-menu-header-info-stack]').evaluate(stack => {
+        const description = stack.querySelector('.cafe-a-topline-description, .cafe-a-store-description'), trigger = stack.querySelector('[data-language-menu-trigger]');
+        const s = stack.getBoundingClientRect(), d = description.getBoundingClientRect(), t = trigger.getBoundingClientRect();
+        return {width:s.width, descriptionWidth:d.width, right:s.right, descriptionRight:d.right, gap:d.top-t.bottom, expectedGap:parseFloat(getComputedStyle(document.documentElement).fontSize)*.75};
+      });
+      assert.ok(Math.abs(information.width-information.descriptionWidth)<1, `${id}: description uses its full information cell`);
+      assert.ok(Math.abs(information.right-information.descriptionRight)<1, `${id}: shared right edge`);
+      assert.ok(Math.abs(information.gap-information.expectedGap)<1, `${id}: shared related-block gap`);
       for (const copy of before.copy) {
         const overlapX = Math.min(copy.right,before.trigger.right)-Math.max(copy.x,before.trigger.x);
         const overlapY = Math.min(copy.bottom,before.trigger.bottom)-Math.max(copy.y,before.trigger.y);

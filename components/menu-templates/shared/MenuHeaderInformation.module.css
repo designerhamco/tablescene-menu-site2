@@ -1,0 +1,5 @@
+/* Shared by native/neutral Basic headers. Percentage width is local to one
+   structural cell; the header grid continues to own the equal column gutters. */
+.header { overflow: visible !important; }
+.stack.stack { position: relative; z-index: 5; grid-column: 3; grid-row: 1; align-self: start; display: flex; flex-direction: column; align-items: flex-end; gap: .75rem; min-width: 0; width: 100%; text-align: right; }
+.stack > p, .stack > [data-scroll-header-copy] { width: 100% !important; margin: 0 !important; padding: 0 !important; max-height: none !important; overflow: visible !important; display: block !important; white-space: pre-line; overflow-wrap: anywhere; text-align: right !important; }

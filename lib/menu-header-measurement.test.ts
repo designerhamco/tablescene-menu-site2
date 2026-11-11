@@ -25,3 +25,14 @@ test("actual clipped or expanded copy still reserves its complete reading height
   assert.equal(measureMenuHeaderContentHeight(header(element(21, 21), element(44, 206, true))), 44);
   assert.equal(measureMenuHeaderContentHeight(null), 0);
 });
+
+test("right-column information reserves trigger, real copy and their in-flow gaps together", () => {
+  const stack = {};
+  const leaf = (top: number, height: number, trigger = false, overlay = false) => ({
+    getBoundingClientRect: () => ({top,height}), scrollHeight: trigger ? 900 : height,
+    hasAttribute: (name:string) => name === "data-language-menu-trigger" && trigger,
+    closest: (selector:string) => selector === "[data-language-menu-surface]" ? (overlay ? {} : null) : stack,
+  }) as unknown as HTMLElement;
+  assert.equal(measureMenuHeaderContentHeight(header(leaf(20,36,true),leaf(68,60),leaf(140,40),leaf(56,900,false,true))),160);
+  assert.equal(measureMenuHeaderContentHeight(header(leaf(20,36,true),leaf(68,100))),148);
+});

@@ -158,18 +158,12 @@
 /* New neutral review structures share the approved reading units and mobile renderer. */
 .frame[data-basic-structure="basic-top-row"] { grid-template-rows: minmax(var(--cafe-a-header-copy-height, 0px), var(--cafe-a-header-fr, 8fr)) minmax(0, var(--cafe-a-body-fr, 92fr)); row-gap: calc(var(--scroll-page-inset) * var(--cafe-a-header-gap-scale, 1)); }
 .topRow { position: relative; grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--scroll-column-gap); align-items: center; min-width: 0; }
-.topDescription { display: flex; align-items: center; gap: .75rem; min-width: 0; }
-.topLanguage { position: absolute; top: 0; right: 0; z-index: 5; }
-.topRow > .notices, .topRow[data-basic-header-align="left"] .topDescription { padding-inline-end: 3.5rem; box-sizing: border-box; }
-.topIdentity { min-width: 0; text-align: center; }
+.topIdentity { grid-column: 2; grid-row: 1; min-width: 0; text-align: center; }
 .topIdentity :global(.cafe-a-store-title) { line-height: 1.08; }
 /* The left-logo variant keeps the same three-cell header and reading geometry. */
 .topRow[data-basic-header-align="left"] .topIdentity { grid-column: 1; text-align: left; }
 .topRow[data-basic-header-align="left"] .topIdentity :global(.cafe-a-store-title) { text-align: left !important; }
 .topRow[data-basic-header-align="left"] .topIdentity :global(.cafe-a-store-logo-wrap) { justify-content: start !important; justify-items: start; }
-.topRow[data-basic-header-align="left"] .topIdentity :global(.cafe-a-store-logo) { margin-inline: 0 auto !important; object-position: left center !important; }
-.topRow[data-basic-header-align="left"] .topDescription { grid-column: 3; justify-content: flex-end; text-align: right; }
-.topRow[data-basic-header-align="left"] .topDescription :global(.cafe-a-store-description) { text-align: right !important; }
 .frame[data-basic-structure="basic-top-row"] > .brand, .frame[data-basic-structure="basic-top-row"] > .menuPanel { grid-row: 2; }
 .frame[data-basic-structure="basic-top-row"][data-show-cover="false"] > .brand { display: none; }
 .frame[data-basic-structure="basic-top-row"][data-show-cover="false"] > .menuPanel { grid-column: 1 / -1; }
@@ -194,17 +188,6 @@
   min-height: 0;
   container-type: size;
 }
-.topIdentity :global(.cafe-a-store-logo-wrap):has([data-default-design-logo]) {
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-}
-.frame[data-basic-structure="basic-top-row"] .topIdentity :global([data-default-design-logo]) {
-  max-width: 75cqw !important;
-  max-height: 100cqh !important;
-}
 
 .topRow:has(:global([data-default-design-logo])) { grid-template-rows: minmax(0, 1fr); }
 
@@ -222,7 +205,6 @@
 .frame[data-representative-panel="true"][data-basic-structure="basic-first-column"] > .menuPanel { padding-block: var(--scroll-page-inset); box-sizing: border-box; }
 .frame[data-representative-panel="true"][data-basic-structure="basic-top-row"] { padding: 0 0 var(--scroll-page-inset); }
 .frame[data-representative-panel="true"] > .topRow { padding: var(--scroll-page-inset); box-sizing: border-box; }
-.frame[data-representative-panel="true"] > .topRow > .topLanguage { top: var(--scroll-page-inset); right: var(--scroll-page-inset); }
 .frame[data-representative-panel="true"][data-basic-structure="basic-top-row"] > .brand { margin-left: var(--scroll-page-inset); }
 .frame[data-representative-panel="true"][data-basic-structure="basic-top-row"] > .menuPanel { margin-right: var(--scroll-page-inset); }
 .frame[data-representative-panel="true"][data-basic-structure="basic-top-row"][data-show-cover="false"] > .menuPanel { margin-inline: var(--scroll-page-inset); }

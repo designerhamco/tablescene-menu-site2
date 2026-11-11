@@ -1,4 +1,5 @@
 "use client";
+import { measureMenuHeaderContentHeight } from "@/lib/menu-header-measurement";
 import { hasMenuColumnDivider, getMenuColumnDividerGeometry } from "@/lib/menu-column-divider";
 import { getRepresentativeRailGeometry } from "@/lib/representative-rail-geometry";
 import { getMenuDesignBackgrounds } from "@/lib/template-background-colors";
@@ -252,10 +253,12 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       const style = getComputedStyle(root);
       const height = root.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom) - parseFloat(style.rowGap);
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-      const ratio = logo.naturalWidth ? logo.naturalHeight / logo.naturalWidth : 0;
-      const copyHeight = Math.max(0, ...[...root.querySelectorAll<HTMLElement>(".cafe-a-topline-description,.cafe-a-topline-notice-text")].map(el => Math.max(el.scrollHeight, el.getBoundingClientRect().height)));
-      root.style.setProperty("--cafe-a-header-copy-height", `${Math.ceil(copyHeight)}px`);
-      const headerRatio = getCanvasHeaderRatio(height, 0, 0, 1, Math.max(copyHeight, Math.min(slot.clientWidth * .75 * ratio, innerHeight * .2, 12 * rem)));
+      const ratio = Number(logo.closest<HTMLElement>("[data-menu-logo-slot]")?.dataset.menuLogoRatio) || (logo.naturalWidth ? logo.naturalHeight / logo.naturalWidth : 0);
+      const copyHeight = measureMenuHeaderContentHeight(root.querySelector("[data-cafe-a-topline-info-header]"));
+      const headerStyle = getComputedStyle(root.querySelector<HTMLElement>("[data-native-header]")!);
+      const padding = (parseFloat(headerStyle.paddingTop) || 0) + (parseFloat(headerStyle.paddingBottom) || 0);
+      root.style.setProperty("--cafe-a-header-copy-height", `${Math.ceil(copyHeight + padding)}px`);
+      const headerRatio = getCanvasHeaderRatio(height, 0, 0, 1, Math.max(copyHeight, Math.min(slot.clientWidth * .75 * ratio / .8, innerHeight * .2, 12 * rem)) + padding);
       root.style.setProperty("--cafe-a-header-fr", `${headerRatio * 100}fr`);
       root.style.setProperty("--cafe-a-body-fr", `${(1 - headerRatio) * 100}fr`);
     };
@@ -264,7 +267,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
     for (const element of root.querySelectorAll(".cafe-a-topline-description,.cafe-a-topline-notice-text")) observer.observe(element);
     const copyObserver = new MutationObserver(schedule);
     const header = root.querySelector("[data-cafe-a-topline-info-header]");
-    if (header) copyObserver.observe(header, { childList: true, characterData: true, subtree: true });
+    if (header) copyObserver.observe(header, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: ["data-menu-logo-ratio"] });
     logo.addEventListener("load", schedule); document.fonts.addEventListener("loadingdone", schedule);
     void document.fonts.ready.then(schedule); schedule();
     return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); copyObserver.disconnect(); logo.removeEventListener("load", schedule); document.fonts.removeEventListener("loadingdone", schedule); root.style.removeProperty("--cafe-a-header-copy-height"); };
@@ -280,7 +283,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
     <main className={`menu-typography cafe-a-typography ${styles.root}`} data-menu-text-colors={getTypographyCustomColorRoles(typography)} data-template-key={key} data-cafe-a-skin={data.templateSkin} data-preview-device={device} data-one-page-layout-shell={shell} data-cafe-a-proportion-policy="true" data-cafe-a-adaptive-fit="true" data-cafe-a-copy-aware-rhythm="true" data-cafe-a-mobile-style="false" data-spacing-contract="contained-reading" data-cafe-a-brand-font-en={typography.typography_roles.brand.font_en_key ?? typography.english_font_key} data-cafe-a-category-font-en={typography.typography_roles.category.font_en_key ?? typography.english_font_key} data-one-page-typography-profile={getOnePageTypographyProfile(key).key} style={{ ...getTypographyCssVariables(typography, key), backgroundColor: background, "--native-background": background, "--mocha-forest-brown": MOCHA_FOREST_PANEL_COLORS.brown, "--mocha-forest-ivory": MOCHA_FOREST_PANEL_COLORS.ivory, "--mocha-forest-green": MOCHA_FOREST_PANEL_COLORS.green } as CSSProperties}>
       <OnePageCallPalette />
       <div ref={board} className={styles.board} aria-busy={!ready} data-native-scroll data-equal-side-rail={equalSideRail ? "true" : undefined} data-menu-column-dividers={columnDividers ? "true" : undefined} data-scroll-brand-board data-native-shell={shell} data-representative-panel={getMenuDesignBackgrounds(key, data.menuSite.page_settings).coloredPanel ? "true" : undefined} data-native-ready={ready ? "true" : "false"} data-layout-mode={grouped ? "orderedBalancedFit" : "orderedFit"} data-native-more={more ? "true" : "false"} style={{ "--native-columns": layout.columns.length, ...(columnDividers ? { "--native-menu-gap": dividerGeometry.gap, "--menu-column-divider-offset": dividerGeometry.offset, "--menu-column-divider-width": dividerGeometry.width } : {}) } as CSSProperties}>
-        {top ? <div className={styles.header} data-native-header data-basic-header-align={leftLogo ? "left" : undefined}><CafeADesktopToplineInformationHeader data={data} capabilities={capabilities} density="default" leftLogo={leftLogo} /><div className={styles.headerLanguage}><CafeLanguageHoverControl data={data} menuAlign="right" iconOnly /></div></div> : null}
+        {top ? <div className={styles.header} data-native-header data-basic-header-align={leftLogo ? "left" : undefined}><CafeADesktopToplineInformationHeader data={data} capabilities={capabilities} density="default" leftLogo={leftLogo} languageControl={<CafeLanguageHoverControl data={data} menuAlign="right" iconOnly />} /></div> : null}
         {!panel ? <div className={styles.brand} data-native-brand>
           {center ? <div className={styles.cornerLanguage} data-native-corner-language><CafeLanguageHoverControl data={data} menuAlign="left" iconOnly /></div> : null}
           {top ? cover ? <CafeADesktopToplineFeaturedSlot data={data} featuredSlides={slides} capabilities={capabilities} density="default" customBadgeStyles={badges} priceDisplayMode={priceMode} /> : null : <CafeADesktopFixedRail data={data} density="default" variant={shell} mochaColumnCount={layout.columns.length + 1} hideLanguageControl={center}>{cover ? <CafeACoverHero data={data} featuredSlides={slides} capabilities={capabilities} density="default" customBadgeStyles={badges} priceDisplayMode={priceMode} /> : null}</CafeADesktopFixedRail>}

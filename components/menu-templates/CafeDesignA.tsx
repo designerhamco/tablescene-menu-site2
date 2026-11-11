@@ -25,6 +25,8 @@ import CafeAWidgetBlock, { type CafeAWidgetPreview } from "@/components/menu-tem
 import { applyOrderedCanvasLayout, clearOrderedCanvasLayout } from "@/components/menu-templates/one-page/pc-tablet/ordered-canvas-layout";
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import MobileNoticeList from "@/components/menu-templates/one-page/mobile/MobileNoticeList";
+import headerInformationStyles from "./shared/MenuHeaderInformation.module.css";
+import MenuBrandLogo from "@/components/menu-templates/shared/MenuBrandLogo";
 import MobileBrandTitle from "@/components/menu-templates/shared/MobileBrandTitle";
 import CanvasBrandTitle from "@/components/menu-templates/shared/CanvasBrandTitle";
 import { applyOnePageChipLayout, applyOnePageChipLayouts } from "@/components/menu-templates/one-page-chip-layout";
@@ -43,7 +45,7 @@ import { isMenuCoverVisibleOnDevice } from "@/lib/menu-cover-device-visibility";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import { PANEL_INTRO_KEY, PANEL_FEATURED_IMAGE, PANEL_MOBILE_FEATURED_IMAGE, resolvePanelTextInk, withPanelIntro } from "@/lib/one-page-panel-flow";
-import { getFixedOnePageLayoutShell, type OnePageLayoutShell } from "@/lib/one-page-layout-shells";
+import { getOnePageTopRowAlignment, getFixedOnePageLayoutShell, type OnePageLayoutShell } from "@/lib/one-page-layout-shells";
 import { getOnePageCategoryOrderTier, inferOnePageCategoryAffinity, getConventionalCategoryRank } from "@/lib/one-page-category-order";
 import { getOrderedFlowNextBlockTypes, resolveOrderedFlowBoundary } from "@/lib/one-page-flow-boundaries";
 import { getOrderedFlowColumnWidth } from "@/lib/ordered-flow-packing";
@@ -2276,22 +2278,18 @@ function StoreIdentity({
   const device = useMenuCoverRenderDevice(data.previewDevice);
   const useLogo = shouldUseBrandLogo(data.menuSite, capabilities) && !logoFailed;
   const defaultDesign = useDefaultDesign();
+  const defaultLayout = useDefaultDesignLayout();
   const logoImageRef = useDefaultDesignLogoImage(data.menuSite.logo_url, () => setLogoFailed(true));
 
   if (useLogo) {
     return (
-      <div className="cafe-a-store-logo-wrap min-w-0" data-cafe-a-store-logo="">
-        <img
-          src={data.menuSite.logo_url ?? ""}
-          alt={`${title} 로고`}
-          className={`cafe-a-store-logo ${logoClassName}`}
-          data-default-design-logo={defaultDesign ? "" : undefined}
-          ref={logoImageRef}
-          onError={() => setLogoFailed(true)}
-        />
+      <MenuBrandLogo src={data.menuSite.logo_url ?? ""} alt={`${title} 로고`} mobile={device === "mobile"}
+        topRow={(layoutShell ?? getFixedOnePageLayoutShell(data.menuSite.template_key)) === "brand_top_band"}
+        leftAligned={getOnePageTopRowAlignment(data.menuSite.template_key) === "left" || defaultLayout === "basic-top-row-left-logo"}
+        className={logoClassName} defaultDesign={defaultDesign} imageRef={logoImageRef} onError={() => setLogoFailed(true)}>
         <span className="sr-only">{title}</span>
         <span hidden aria-hidden="true" className={titleClassName} data-cafe-a-brand-color-probe="" />
-      </div>
+      </MenuBrandLogo>
     );
   }
 
@@ -3758,11 +3756,13 @@ function DesktopToplineInformationHeader({
   capabilities,
   density,
   leftLogo = false,
+  languageControl,
 }: {
   data: CafeDesignAProps;
   capabilities: TemplateCapabilities;
   density: MenuLayoutDensity;
   leftLogo?: boolean;
+  languageControl?: ReactNode;
 }) {
   const description = data.menuSite.brand_description || data.menuSite.description;
   const infoRows = getCafeAFooterInfo(data, capabilities);
@@ -3770,36 +3770,25 @@ function DesktopToplineInformationHeader({
 
   return (
     <section
-      className="cafe-a-topline-info-header hidden min-w-0 lg:grid"
+      className={`cafe-a-topline-info-header hidden min-w-0 lg:grid ${headerInformationStyles.header}`}
       data-cafe-a-topline-info-header=""
       data-basic-header-align={leftLogo ? "left" : undefined}
     >
-      {!leftLogo ? <div className="cafe-a-topline-description-panel min-w-0" data-cafe-a-topline-description-panel="">
-        {description ? (
-          <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description break-keep text-[#3f4945] ${descriptionSizeClassName}`}>
-            <ScriptAwareText text={description} />
-          </p>
-        ) : null}
-      </div> : null}
-
       <div className="cafe-a-topline-brand-identity min-w-0" data-cafe-a-topline-brand-identity="">
         <StoreIdentity
           data={data}
           capabilities={capabilities}
           titleClassName="cafe-a-store-title cafe-a-topline-title break-words text-center font-black uppercase leading-[0.96] text-[#191c1b]"
           logoClassName="max-h-[78px] max-w-[240px] object-contain"
+          layoutShell="brand_top_band"
         />
       </div>
 
-      {leftLogo ? <div className="cafe-a-topline-description-panel min-w-0" data-cafe-a-topline-description-panel="">
-        {description ? <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description break-keep ${descriptionSizeClassName}`}><ScriptAwareText text={description} /></p> : null}
-      </div> : <aside className="cafe-a-topline-notices min-w-0 text-right text-[#58645f]" data-cafe-a-topline-notices="">
-        {infoRows.length > 0 ? (
-          <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-notice-text whitespace-pre-line break-keep text-[#3f4945] ${descriptionSizeClassName}`}>
-            <ScriptAwareText text={infoRows.join("\n")} />
-          </p>
-        ) : null}
-      </aside>}
+      <div className={`cafe-a-topline-info-stack ${headerInformationStyles.stack}`} data-menu-header-info-stack>
+        {languageControl}
+        {description ? <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description whitespace-pre-line break-keep ${!leftLogo ? "text-[#3f4945]" : ""} ${descriptionSizeClassName}`}><ScriptAwareText text={description} /></p> : null}
+        {!leftLogo && infoRows.length ? <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-notices cafe-a-topline-notice-text whitespace-pre-line break-keep text-[#3f4945] ${descriptionSizeClassName}`}><ScriptAwareText text={infoRows.join("\n")} /></p> : null}
+      </div>
     </section>
   );
 }

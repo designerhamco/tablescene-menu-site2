@@ -84,6 +84,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Menu layout boundaries
 
+- Approved Basic identity policy (2026-11-11): all active native/neutral Basic logos use `shared/MenuBrandLogo` and `lib/menu-brand-logo.ts` with device-specific two-axis limits from the actual identity slot, preserving aspect/artwork and existing image ratios. PC/tablet top rows stack language → full-cell description → applicable notices at the same right edge, with no fixed320px description cap or reserved icon gutter. Measure stacked in-flow leaves/gaps without popup overflow; keep mobile identity/reading separate. Follow the current Basic identity section of `docs/template-spacing-contract.md`.
+
 - Approved equal Basic side rails (2026-11-11): PC/tablet first-column and top-row bodies, including centered/left-logo native and default list/album designs, give a separate representative rail and every selected menu track the same usable width through `getRepresentativeRailGeometry`. Deduct outer body insets/margins, rail padding, actual ruled/unruled gutters and scrollbar; probes and visible grids must agree. Album cards use the selected 1–3 track count, never an independent auto-fill count. Top-row cover OFF releases the body rail. Preserve header cells/title sizes, central slots, upper-left panel geometry, registered image ratios and mobile/Dining. Follow `docs/basic-menu-scroll-policy.md#대표열과-메뉴-열의-동일-너비--2026-11-11` and the current section in `docs/template-spacing-contract.md`; do not restore fixed 24/25% top-row widths.
 
 

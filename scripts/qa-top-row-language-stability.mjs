@@ -11,6 +11,7 @@ const sizes=process.env.TOP_ROW_QA_SMOKE==='1'?[['pc',1440,900]]:[['pc',1440,900
 async function settled(page){
  await page.evaluate(()=>document.fonts.ready);
  await page.locator('[data-paged-ready=true]').waitFor();
+ await page.waitForFunction(() => [...document.querySelectorAll('[data-menu-logo-slot]')].filter(e=>e.getBoundingClientRect().width>0&&getComputedStyle(e).visibility!=='hidden').every(e=>e.dataset.menuLogoReady==='true'&&e.dataset.menuLogoMeasured==='true'));
  await page.waitForTimeout(200);
 }
 async function geometry(page){return page.evaluate(()=>{
