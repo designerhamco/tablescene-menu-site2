@@ -6,14 +6,12 @@ import {
   CATALOG_INDUSTRIES,
   CATALOG_LAYOUT_FILTERS,
   filterCatalogDesigns,
-  normalizeCatalogLayoutFilter,
+  normalizeCatalogFilters,
+  type CatalogFilters,
   type CatalogKind,
-  type CatalogIndustry,
-  type CatalogLayoutFilter,
   type CatalogService,
 } from "@/lib/catalog-designs";
-import { CATALOG_COLORS, CATALOG_MOODS, normalizeCatalogColor, normalizeCatalogMood, normalizeCatalogThumbnailSize,
-  type CatalogColorFilter, type CatalogMoodFilter, type CatalogThumbnailSize } from "@/lib/catalog-facets";
+import { CATALOG_COLORS, CATALOG_MOODS, normalizeCatalogThumbnailSize, type CatalogThumbnailSize } from "@/lib/catalog-facets";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { FieldActionRow } from "@/app/components/ui/field-action-row";
@@ -37,8 +35,7 @@ const KIND_TABS = [
   { key: "designer", label: "디자인 템플릿", description: "완성된 스타일에 우리 매장 메뉴를 넣어 시작하세요." },
   { key: "standard", label: "기본 템플릿", description: "기본 레이아웃에서 색상과 글꼴을 매장에 맞게 직접 설정하세요." },
 ] as const;
-type Filters = { industry: CatalogIndustry; mood: CatalogMoodFilter; color: CatalogColorFilter; layout: CatalogLayoutFilter };
-const DEFAULT_FILTERS: Filters = { industry: "all", mood: "all", color: "all", layout: "all" };
+const DEFAULT_FILTERS: CatalogFilters = { industry: [], mood: [], color: [], layout: [] };
 const industryOptions = CATALOG_INDUSTRIES.map(item => ({ ...item, label: item.key === "all" ? "전체 업종" : item.label, icon: <CatalogIndustryIcon industry={item.key} /> }));
 const colorOptions = CATALOG_COLORS.map(item => ({ ...item, icon: item.swatch
   ? <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="7" fill={item.swatch} stroke="currentColor" strokeWidth="0.5" /></svg>
@@ -50,20 +47,19 @@ export default function TemplateGallery({
 }: {
   initialProduct?: "dining_single" | "dining_multi" | "display";
   initialKind?: CatalogKind;
-  initialFilter?: string;
-  initialLayoutFilter?: string;
-  initialMoodFilter?: string;
-  initialColorFilter?: string;
+  initialFilter?: string | string[];
+  initialLayoutFilter?: string | string[];
+  initialMoodFilter?: string | string[];
+  initialColorFilter?: string | string[];
   initialQuery?: string;
   initialThumbnailSize?: string;
 }) {
   const [product, setProduct] = useState<CatalogService>(initialProduct === "dining_multi" ? "dining" : initialProduct === "display" ? "display" : "basic");
   const [kind, setKind] = useState<CatalogKind>(initialKind);
-  const [filters, setFilters] = useState<Filters>({
-    industry: CATALOG_INDUSTRIES.find(item => item.key === initialFilter)?.key ?? "all",
-    layout: normalizeCatalogLayoutFilter(initialLayoutFilter === "all" && initialKind === "standard" ? initialFilter : initialLayoutFilter),
-    mood: normalizeCatalogMood(initialMoodFilter), color: normalizeCatalogColor(initialColorFilter),
-  });
+  const [filters, setFilters] = useState(() => normalizeCatalogFilters({
+    industry: initialFilter, layout: initialLayoutFilter === "all" ? undefined : initialLayoutFilter,
+    mood: initialMoodFilter, color: initialColorFilter,
+  }, initialProduct === "display" ? "designer" : initialKind));
   const [query, setQuery] = useState(initialQuery.slice(0, 100));
   const [thumbnailSize, setThumbnailSize] = useState(normalizeCatalogThumbnailSize(initialThumbnailSize));
   const [page, setPage] = useState(1);
@@ -76,19 +72,19 @@ export default function TemplateGallery({
   const paginatedTemplates = visibleTemplates.slice((currentPage - 1) * TEMPLATES_PER_PAGE, currentPage * TEMPLATES_PER_PAGE);
   const selectedKind = KIND_TABS.find(item => item.key === kind)!;
   const activeLabels = [
-    filters.industry === "all" ? null : CATALOG_INDUSTRIES.find(item => item.key === filters.industry)?.label,
-    filters.mood === "all" ? null : CATALOG_MOODS.find(item => item.key === filters.mood)?.label,
-    filters.color === "all" ? null : CATALOG_COLORS.find(item => item.key === filters.color)?.label,
-    filters.layout === "all" ? null : CATALOG_LAYOUT_FILTERS.find(item => item.key === filters.layout)?.label,
+    ...CATALOG_INDUSTRIES.filter(item => filters.industry.some(key => key === item.key)).map(item => item.label),
+    ...CATALOG_MOODS.filter(item => filters.mood.some(key => key === item.key)).map(item => item.label),
+    ...CATALOG_COLORS.filter(item => filters.color.some(key => key === item.key)).map(item => item.label),
+    ...CATALOG_LAYOUT_FILTERS.filter(item => filters.layout.some(key => key === item.key)).map(item => item.label),
     query.trim() ? `“${query.trim()}”` : null,
   ].filter(Boolean);
   const hasFilters = activeLabels.length > 0;
 
-  function keepUrl(service: CatalogService, nextKind: CatalogKind, next: Filters, search = query, size = thumbnailSize) {
+  function keepUrl(service: CatalogService, nextKind: CatalogKind, next: CatalogFilters, search = query, size = thumbnailSize) {
     const url = new URL(location.href);
     url.searchParams.set("plan", service);
     url.searchParams.set("category", nextKind);
-    for (const [key, value] of Object.entries({ filter: next.industry, layout: next.layout, mood: next.mood, color: next.color, q: search.trim(), view: size })) {
+    for (const [key, value] of Object.entries({ filter: next.industry.join(","), layout: next.layout.join(","), mood: next.mood.join(","), color: next.color.join(","), q: search.trim(), view: size })) {
       if (value && value !== "all" && !(key === "view" && value === "large")) url.searchParams.set(key, value);
       else url.searchParams.delete(key);
     }
@@ -100,7 +96,7 @@ export default function TemplateGallery({
   function selectKind(next: CatalogKind) {
     setKind(next); setFilters(DEFAULT_FILTERS); setPage(1); keepUrl(product, next, DEFAULT_FILTERS);
   }
-  function selectFilter<K extends keyof Filters>(key: K, value: Filters[K]) {
+  function selectFilter<K extends keyof CatalogFilters>(key: K, value: CatalogFilters[K]) {
     const next = { ...filters, [key]: value };
     setFilters(next); setPage(1); keepUrl(product, kind, next);
   }
@@ -149,10 +145,12 @@ export default function TemplateGallery({
                 </>} action={<Button type="submit" variant="ghost" size="icon" aria-label="이름 검색"><Search aria-hidden="true" /></Button>} />
               </form>
               <div className="site-catalog-filter-toolbar">
-                <div className="site-catalog-filter-controls" role="group" aria-label="템플릿 필터">
+                <div className="site-catalog-filter-controls" data-filter-count={kind === "standard" && product !== "display" ? "1" : "4"} role="group" aria-label="템플릿 필터">
+                  {(kind !== "standard" || product === "display") && <>
                   <CatalogFilterSelect label="업종" icon={<Store aria-hidden="true" />} options={industryOptions} value={filters.industry} onValueChange={value => selectFilter("industry", value)} />
                   <CatalogFilterSelect label="분위기" icon={<Sparkles aria-hidden="true" />} options={CATALOG_MOODS} value={filters.mood} onValueChange={value => selectFilter("mood", value)} />
-                  <CatalogFilterSelect label="색상" icon={<Palette aria-hidden="true" />} options={colorOptions} value={filters.color} onValueChange={value => selectFilter("color", value)} />
+                  <CatalogFilterSelect label="색상" appearance="swatches" icon={<Palette aria-hidden="true" />} options={colorOptions} value={filters.color} onValueChange={value => selectFilter("color", value)} />
+                  </>}
                   <CatalogLayoutSelect value={filters.layout} onValueChange={value => selectFilter("layout", value)} />
                 </div>
                 <div className="site-catalog-view-controls" role="group" aria-label="썸네일 크기">

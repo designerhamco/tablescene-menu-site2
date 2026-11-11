@@ -19,10 +19,10 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
     <TemplateGallery
       initialProduct={initialProduct}
       initialKind={query.category === "standard" ? "standard" : "designer"}
-      initialFilter={typeof query.filter === "string" ? query.filter : "all"}
-      initialLayoutFilter={typeof query.layout === "string" ? query.layout : "all"}
-      initialMoodFilter={typeof query.mood === "string" ? query.mood : "all"}
-      initialColorFilter={typeof query.color === "string" ? query.color : "all"}
+      initialFilter={query.filter ?? "all"}
+      initialLayoutFilter={query.layout ?? "all"}
+      initialMoodFilter={query.mood ?? "all"}
+      initialColorFilter={query.color ?? "all"}
       initialQuery={typeof query.q === "string" ? query.q : ""}
       initialThumbnailSize={typeof query.view === "string" ? query.view : "large"}
     />

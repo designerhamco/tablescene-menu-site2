@@ -67,3 +67,9 @@ export function normalizeCatalogThumbnailSize(value: unknown): CatalogThumbnailS
 export function normalizeCatalogSearch(value: unknown) {
   return typeof value === "string" ? value.slice(0, 100).normalize("NFKC").toLowerCase().replace(/\s+/g, "") : "";
 }
+
+/** Canonical option order keeps repeated/CSV URL values stable and deduplicated. */
+export function normalizeCatalogSelections<T extends string>(value: unknown, options: readonly { key: T }[]): Exclude<T, "all">[] {
+  const values = (Array.isArray(value) ? value : [value]).flatMap(item => typeof item === "string" ? item.split(",") : []);
+  return options.map(option => option.key).filter((key): key is Exclude<T, "all"> => key !== "all" && values.includes(key));
+}

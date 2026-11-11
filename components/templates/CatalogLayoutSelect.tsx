@@ -5,8 +5,8 @@ import CatalogFilterSelect from "./CatalogFilterSelect";
 import CatalogLayoutIcon from "./CatalogLayoutIcon";
 
 export default function CatalogLayoutSelect({ value, onValueChange }: {
-  value: CatalogLayoutFilter;
-  onValueChange: (value: CatalogLayoutFilter) => void;
+  value: readonly Exclude<CatalogLayoutFilter, "all">[];
+  onValueChange: (value: Exclude<CatalogLayoutFilter, "all">[]) => void;
 }) {
   return <CatalogFilterSelect label="레이아웃" icon={<CatalogLayoutIcon layout="all" />}
     value={value} onValueChange={onValueChange}
