@@ -395,16 +395,27 @@
   white-space: nowrap;
 }
 
+/* Control geometry is independent of icon paint and SVG dimensions. */
 .site-button-icon {
   flex: none;
-  width: max-content;
-  min-width: 0;
-  height: auto;
-  min-height: 0;
+  width: var(--ui-icon-control-size, var(--ui-control-height-md));
+  min-width: var(--ui-icon-control-size, var(--ui-control-height-md));
+  height: var(--ui-icon-control-size, var(--ui-control-height-md));
+  min-height: var(--ui-icon-control-size, var(--ui-control-height-md));
   padding: 0;
-  border: 0;
-  border-radius: 0;
+  border-radius: var(--ui-radius-control);
 }
+:where(.site-icon-control) {
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: var(--ui-icon-control-size, var(--ui-control-height-md));
+  height: var(--ui-icon-control-size, var(--ui-control-height-md));
+  padding: 0;
+  line-height: 1;
+  cursor: pointer;
+}
+:is(.site-button-icon, .site-icon-control)[data-icon-size="compact"] { --ui-icon-control-size: var(--ui-control-height-compact); }
 
 /*
  * Editor save rows stay compact on desktop, while mobile actions use the
@@ -1193,7 +1204,7 @@ textarea.site-field,
 .site-filter[aria-pressed="true"]:hover:not(:disabled) { border-color: var(--ui-text); }
 
 /* Device preview tools use one compact inverse palette above customer artwork. */
-.site-preview-control { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: .375rem; min-height: 2.25rem; padding: .5rem; border: 1px solid transparent; border-radius: var(--ui-radius-control-rounded); background: rgb(9 9 11 / 45%); color: #fff; font-size: var(--type-caption-size); font-weight: 600; line-height: 1.5; white-space: nowrap; cursor: pointer; transition: background-color var(--ui-transition), color var(--ui-transition); }
+.site-preview-control { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: .375rem; min-height: var(--ui-preview-control-height, 2.25rem); padding: .5rem; border: 1px solid transparent; border-radius: var(--ui-radius-control-rounded); background: rgb(9 9 11 / 45%); color: #fff; font-size: var(--type-caption-size); font-weight: 600; line-height: 1.5; white-space: nowrap; cursor: pointer; transition: background-color var(--ui-transition), color var(--ui-transition); }
 .site-preview-control:hover:not(:disabled):not([aria-disabled="true"]) { background: rgb(9 9 11 / 65%); }
 .site-preview-control:active:not(:disabled):not([aria-disabled="true"]) { background: #4b515b; }
 .site-preview-control:is([aria-current], [aria-pressed="true"]) { background: var(--ui-surface); color: var(--ui-text); }
@@ -1201,7 +1212,16 @@ textarea.site-field,
 .site-preview-control:is([aria-current], [aria-pressed="true"]):active:not(:disabled):not([aria-disabled="true"]) { background: var(--ui-action-soft-pressed); }
 .site-preview-control:focus-visible { outline: 2px solid #8bbcff; outline-offset: 2px; }
 .site-preview-control:is(:disabled, [aria-disabled="true"]), .site-preview-choice:has(:disabled) { cursor: not-allowed; opacity: .45; }
-.site-preview-control-icon { width: 2.25rem; min-width: 2.25rem; padding: 0; }
+.site-preview-control-icon { width: var(--ui-preview-control-height, 2.25rem); min-width: var(--ui-preview-control-height, 2.25rem); padding: 0; }
+[data-preview-device-toolbar] { --ui-preview-control-height: 2.25rem; }
+[data-preview-device-toolbar] .site-preview-control { padding: .375rem .5rem; font-size: var(--site-type-14); }
+[data-preview-device-toolbar] .site-preview-control-icon { padding: 0; }
+[data-preview-device-toolbar-content] { padding-inline-end: calc(var(--ui-preview-control-height) + .25rem); }
+.site-preview-control.site-preview-toolbar-toggle { position: absolute; right: .5rem; top: 50%; width: var(--ui-preview-control-height); height: var(--ui-preview-control-height); padding: 0; transform: translateY(-50%); border-color: rgb(255 255 255 / 15%); background: rgb(255 255 255 / 10%); color: #fff; }
+.site-preview-control.site-preview-toolbar-toggle:hover:not(:disabled):not([aria-disabled="true"]) { background: rgb(255 255 255 / 18%); }
+.site-preview-control.site-preview-toolbar-toggle:active:not(:disabled):not([aria-disabled="true"]) { background: rgb(255 255 255 / 24%); }
+.site-preview-control.site-preview-toolbar-toggle[aria-expanded="false"] { right: auto; top: auto; bottom: 0; left: 50%; width: 3rem; height: 1.75rem; min-height: 1.75rem; transform: translateX(-50%); }
+@media (max-width: 767px) { [data-preview-device-toolbar] { --ui-preview-control-height: var(--ui-control-height-header); } }
 .site-preview-choice { background: rgb(255 255 255 / 10%); }
 @media (prefers-reduced-motion: reduce) { .site-preview-control { transition: none; } }
 
@@ -1456,40 +1476,21 @@ svg.site-edit-icon {
 @media (min-width: 768px) { .site-image-carousel-arrows { display: flex; } }
 @media (prefers-reduced-motion: reduce) { .site-button-media { transition: none; } }
 
-/* Bare icon tools: the glyph itself owns the hit area in every interaction state.
-   Layout wrappers may position tools but must not enlarge individual controls. */
-:is(.site-icon-control, .site-button.site-button-icon:not(.site-room-add)) {
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: max-content !important;
-  height: auto !important;
-  min-width: 0 !important;
-  min-height: 0 !important;
-  max-width: none;
-  aspect-ratio: auto !important;
-  padding: 0 !important;
+/* Bare is a paint choice, never a rule that shrinks control geometry. */
+:is(.site-icon-control, .site-button.site-button-icon):not([data-icon-appearance="framed"]),
+:is(.site-icon-control, .site-button.site-button-icon):not([data-icon-appearance="framed"]):is(:hover, :active, :disabled, [aria-disabled="true"], [aria-pressed="true"], [data-ui-state]) {
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
   box-shadow: none !important;
-  line-height: 1;
-  cursor: pointer;
 }
-:is(.site-icon-control, .site-button.site-button-icon:not(.site-room-add)):is(:hover, :active, :disabled, [aria-disabled="true"], [aria-pressed="true"], [data-ui-state]) {
-  border: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-:is(.site-icon-control, .site-button.site-button-icon:not(.site-room-add)):is(:focus-visible, [data-ui-state="focus"]) { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
+:is(.site-icon-control, .site-button.site-button-icon):is(:focus-visible, [data-ui-state="focus"]) { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
 :is(.site-icon-control, .site-button.site-button-icon):is(:disabled, [aria-disabled="true"]) { cursor: not-allowed; }
-:is(.site-icon-control, .site-button-icon).site-button-primary:not(:disabled):not([aria-disabled="true"]) { color: var(--ui-text); }
-:is(.site-icon-control, .site-button-icon).site-button-ai:not(:disabled):not([aria-disabled="true"]) { color: var(--ui-focus); }
-:is(.site-icon-control, .site-button-icon).site-button-danger:not(:disabled):not([aria-disabled="true"]) { color: var(--ui-danger); }
+:is(.site-icon-control, .site-button-icon):not([data-icon-appearance="framed"]).site-button-primary:not(:disabled):not([aria-disabled="true"]) { color: var(--ui-text); }
+:is(.site-icon-control, .site-button-icon):not([data-icon-appearance="framed"]).site-button-ai:not(:disabled):not([aria-disabled="true"]) { color: var(--ui-focus); }
+:is(.site-icon-control, .site-button-icon):not([data-icon-appearance="framed"]).site-button-danger:not(:disabled):not([aria-disabled="true"]) { color: var(--ui-danger); }
 .site-button-icon.site-tool-button[aria-pressed="true"]:not(:disabled):not([aria-disabled="true"]) { color: var(--ui-focus); }
 .site-icon-control[draggable="true"] { cursor: grab; }
 .site-icon-control[draggable="true"]:active { cursor: grabbing; }
 .site-icon-control[draggable="true"]:disabled { cursor: not-allowed; }
 .site-button-media.site-button-icon:is(:focus-visible, [data-ui-state="focus"]) { outline-color: var(--ui-media-ink); }
-/* The explicitly requested room-add selector is a framed action, not a bare tool. */
-.site-button.site-button-icon.site-room-add { width: var(--ui-control-height-md); height: var(--ui-control-height-md); min-width: var(--ui-control-height-md); min-height: var(--ui-control-height-md); border: 1px solid var(--ui-button-boundary); border-radius: var(--ui-radius-control-rounded); }

@@ -141,9 +141,9 @@ export function auditSiteSystem(files: FileMap): SiteSystemViolation[] {
           const tokens = classes ? strings(classes).flatMap(value => value.split(/\s+/)).map(utilityValue) : [];
           const iconSize = attrs.find(attr => attr.name.getText(tree) === "size");
           const icon = tokens.includes("site-icon-control") || tokens.includes("site-button-icon") || (iconSize && strings(iconSize).includes("icon"));
-          if (icon && !tokens.includes("site-room-add")) {
+          if (icon) {
             const paint = tokens.filter(value => /^(?:(?:p[trblxyse]?|size|[wh]|min-[wh]|max-[wh])-(?!0(?:$|\s))|rounded(?:-|$)|(?:bg|border|shadow|ring)(?:-|$))/.test(value));
-            if (paint.length) add(file, "bare-icon-control", "Icon-only tools use the glyph hit area without padding, fixed geometry, background or frame; keep states in the shared rule.", classes!.getText(tree), line);
+            if (paint.length) add(file, "bare-icon-control", "Use shared icon appearance and size APIs; do not override icon-control geometry, paint or interaction states with private utilities.", classes!.getText(tree), line);
           }
         }
         if (!file.startsWith("app/components/ui/") && ["Button", "button", "a"].includes(name) && ts.isJsxOpeningElement(node)) {

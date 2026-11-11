@@ -4,6 +4,8 @@ import path from "node:path";
 import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { Button } from "../app/components/ui/button";
+import { SitePagination } from "../app/components/ui/site-pagination";
 import { DialogHeader } from "../app/components/ui/dialog";
 
 const read = (file: string) => readFileSync(path.join(process.cwd(), file), "utf8");
@@ -41,7 +43,7 @@ test("ordinary action geometry is shared and icon / quick-menu shapes are explic
   assert.doesNotMatch(css, /--ui-control-height-(?:sm|xl):/);
   assert.match(css, /--ui-button-font-weight: 600/);
   assert.match(css, /\.site-button \{[^}]*font-size: var\(--site-type-15\);[^}]*font-weight: var\(--ui-button-font-weight\);/);
-  assert.match(css, /\.site-button-icon \{[^}]*width: max-content;[^}]*min-width: 0;[^}]*min-height: 0;[^}]*padding: 0;[^}]*border: 0;[^}]*border-radius: 0;/);
+  assert.match(css, /\.site-button-icon \{[^}]*width: var\(--ui-icon-control-size, var\(--ui-control-height-md\)\);[^}]*padding: 0;[^}]*border-radius: var\(--ui-radius-control\);/);
   const launcher = read("app/support/chat/AiSupportChatLauncher.tsx");
   assert.match(launcher, /site-button site-button-ai/);
   assert.match(launcher, /SupportChatIcon/);
@@ -233,7 +235,7 @@ test("문서형은 기존 영역형을 유지하며 추가 행동을 선택 탭�
 });
 
 
-test("only edit pencils share the small glyph size, independent of tabs and with glyph-sized hit areas", () => {
+test("edit pencil glyphs stay small while icon-control geometry remains independent", () => {
   assert.match(css, /--ui-edit-icon-size: 1rem;/);
   assert.match(css, /svg\.site-edit-icon \{[^}]*width: var\(--ui-edit-icon-size\);[^}]*height: var\(--ui-edit-icon-size\);/);
   assert.doesNotMatch(tabCss, /--site-tab-icon-size|\[data-slot="tabs-trigger"\] svg/);
@@ -245,9 +247,9 @@ test("only edit pencils share the small glyph size, independent of tabs and with
   assert.match(read("app/components/ui/tabs.tsx"), /className="site-document-tab-accessory">\{accessory\}/);
   assert.match(read("app/components/ui/inline-name-editor.tsx"), /iconOnly \? "site-button site-button-ghost site-button-icon"/);
   const iconBox = css.match(/\.site-button-icon \{([^}]+)\}/)![1];
-  assert.match(iconBox, /width: max-content;/);
-  assert.match(iconBox, /height: auto;/);
-  assert.match(iconBox, /min-width: 0;/);
+  assert.match(iconBox, /width: var\(--ui-icon-control-size, var\(--ui-control-height-md\)\);/);
+  assert.match(iconBox, /height: var\(--ui-icon-control-size, var\(--ui-control-height-md\)\);/);
+  assert.doesNotMatch(iconBox, /max-content|min-width: 0|min-height: 0/);
 });
 
 
@@ -347,7 +349,7 @@ test("category capsules and room rectangles use separate shared roles without ch
   const { Button } = await import("../app/components/ui/button");
   const filter = renderToStaticMarkup(createElement(ChoiceTile, { purpose: "filter", size: "compact", label: "전체", selected: true }));
   const choice = renderToStaticMarkup(createElement(ChoiceTile, { label: "메뉴판 선택", selected: false }));
-  const add = renderToStaticMarkup(createElement(Button, { shape: "rounded", size: "icon", variant: "outline", "aria-label": "룸 추가", disabled: true }, "+"));
+  const add = renderToStaticMarkup(createElement(Button, { shape: "rounded", size: "icon", iconAppearance: "framed", variant: "outline", "aria-label": "룸 추가", disabled: true }, "+"));
   assert.match(filter, /data-purpose="filter"/);
   assert.match(filter, /aria-pressed="true"/);
   assert.match(choice, /data-purpose="choice"/);
@@ -369,10 +371,8 @@ test("category capsules and room rectangles use separate shared roles without ch
 });
 
 
-test("icon tools have intrinsic hit areas in every state and counters use a capsule", () => {
-  assert.match(css, /width: max-content !important;/);
-  assert.match(css, /min-height: 0 !important;/);
-  assert.match(css, /padding: 0 !important;/);
+test("bare tools keep transparent paint without shrinking targets and counters use a capsule", () => {
+  assert.doesNotMatch(css.slice(css.indexOf("/* Bare is a paint choice")), /(?:width|height|padding|aspect-ratio):/);
   assert.match(css, /background: transparent !important;/);
   assert.match(css, /border-radius: 0 !important;/);
   assert.match(css, /box-shadow: none !important;/);
@@ -382,4 +382,38 @@ test("icon tools have intrinsic hit areas in every state and counters use a caps
   assert.match(css, /\.site-button-media:is\(:hover, \[data-ui-state="hover"\]\)[^{]+\{ background: transparent; color: var\(--ui-media-hover-ink\); \}/);
   assert.match(read("app/components/ui/floor-plan-viewport.tsx"), /variant="ghost" size="icon"/);
   assert.match(read("app/components/ui/refresh-button.tsx"), /variant="ghost" size="icon"/);
+});
+
+
+test("bare and framed icon appearances preserve independent shared geometry and accessible state", () => {
+  const bare = renderToStaticMarkup(createElement(Button, {size: "icon", variant: "ghost", "aria-label": "공유"}, "icon"));
+  const framed = renderToStaticMarkup(createElement(Button, {size: "icon", iconAppearance: "framed", variant: "secondary", disabled: true, "aria-label": "위로"}, "icon"));
+  const compact = renderToStaticMarkup(createElement(Button, {size: "icon", iconSize: "compact", variant: "ghost", "aria-label": "도움말"}, "icon"));
+  assert.match(bare, /data-icon-appearance="bare"/);
+  assert.match(framed, /data-icon-appearance="framed"/);
+  assert.match(framed, /site-button-secondary/);
+  assert.match(framed, /disabled=""/);
+  assert.match(compact, /data-icon-size="compact"/);
+  assert.doesNotMatch(bare + framed + compact, /iconAppearance|iconSize/);
+  const barePaint = css.slice(css.indexOf("/* Bare is a paint choice"));
+  assert.match(barePaint, /:not\(\[data-icon-appearance="framed"\]\)/);
+  assert.doesNotMatch(barePaint, /(?:width|height|padding|aspect-ratio):/);
+  assert.match(css, /\[data-icon-size="compact"\] \{ --ui-icon-control-size: var\(--ui-control-height-compact\); \}/);
+  assert.match(read("app/components/ui/ScrollToTop.tsx"), /data-icon-appearance="framed"/);
+  for (const file of ["components/templates/TemplateDetailGallery.tsx", "components/templates/CatalogDesignCard.tsx"]) {
+    assert.doesNotMatch(read(file), /iconAppearance="framed"|data-icon-appearance="framed"/);
+  }
+});
+
+test("pagination arrows retain aligned frames and first/last disabled boundaries", () => {
+  for (const page of [1, 4, 8]) {
+    const html = renderToStaticMarkup(createElement(SitePagination, {currentPage: page, totalPages: 8, onSelect() {}}));
+    const arrows = [...html.matchAll(/<button[^>]*site-pagination-arrow[^>]*>/g)].map(match => match[0]);
+    assert.equal(arrows.length, 8);
+    assert.ok(arrows.every(tag => tag.includes('data-icon-appearance="framed"') && !tag.includes('site-icon-control')));
+    assert.equal(arrows.filter(tag => tag.includes('disabled=""')).length, page === 4 ? 0 : 4);
+    assert.match(html, new RegExp(`aria-current="page" aria-label="${page}페이지"`));
+  }
+  assert.match(tabCss, /\.site-pagination \.site-pagination-arrow \{ border: 1px solid var\(--ui-button-boundary\); background: var\(--ui-surface\); \}/);
+  assert.match(tabCss, /\.site-pagination \.site-pagination-arrow:disabled \{ opacity: 1;/);
 });

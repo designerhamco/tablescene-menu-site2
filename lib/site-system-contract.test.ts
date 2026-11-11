@@ -132,11 +132,16 @@ test("page introductions require an explicit purpose while title-only pages stay
 });
 
 
-test("bare icon tools reject private frames, hover paint and enlarged hit boxes", () => {
+test("icon tools use shared appearance and geometry APIs instead of private utilities", () => {
   for (const classes of ["site-icon-control p-2", "site-icon-control rounded-full hover:bg-white", "site-button site-button-icon w-10 h-10", "site-button site-button-icon shadow-lg"]) {
     const result = auditSiteSystem(new Map([["components/NewIcon.tsx", `<button className="${classes}" aria-label="tool"><Icon/></button>`]]));
     assert.ok(result.some(item => item.rule === "bare-icon-control"), classes);
   }
   const normal = auditSiteSystem(new Map([["components/NewIcon.tsx", '<button className="site-icon-control" aria-label="tool"><Icon/></button>']]));
   assert.equal(normal.length, 0);
+  for (const markup of [
+    '<Button size="icon" iconAppearance="framed" variant="secondary" aria-label="위로"><Icon/></Button>',
+    '<Button size="icon" iconSize="compact" variant="ghost" aria-label="도움말"><Icon/></Button>',
+    '<button className="site-icon-control" data-icon-appearance="framed" aria-label="tool"><Icon/></button>',
+  ]) assert.deepEqual(auditSiteSystem(new Map([["components/NewIcon.tsx", markup]])), []);
 });

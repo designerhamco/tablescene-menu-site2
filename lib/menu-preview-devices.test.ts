@@ -236,7 +236,7 @@ test("device selector is open by default and collapses upward into a compact han
   assert.match(previewFrameSource, /orientation === "landscape" \? "portrait" : "landscape"/);
   assert.match(previewFrameSource, /태블릿을 \$\{MENU_PREVIEW_ORIENTATIONS\[nextTabletOrientation\]\}로 회전/);
   assert.doesNotMatch(previewFrameSource, /태블릿 방향 선택/);
-  assert.match(previewFrameSource, /flex w-full items-center gap-1\.5 pl-1 pr-10/);
+  assert.match(previewFrameSource, /flex w-full items-center gap-1\.5 pl-1/);
   assert.match(previewFrameSource, /bg-zinc-950\/90/);
   assert.match(previewFrameSource, /backdrop-blur-\[2px\]/);
   assert.doesNotMatch(previewFrameSource, /flex w-full flex-col items-center/);
@@ -388,4 +388,20 @@ test("actual view opens a normal browser tab with a dismissible guide hidden dur
   assert.match(fullscreenControlSource, /href="\/guides"/);
   assert.doesNotMatch(fullscreenControlSource, /Minimize2|전체화면 종료/);
   assert.match(fullscreenControlSource, />닫기</);
+});
+
+
+test("catalog and saved preview collapse controls keep shared centered geometry independently of bare icons", () => {
+  for (const props of [
+    {templateKey: "cafe_design_a", query: {}},
+    {menuId: "4f7be4a1-90db-4e1f-987d-e91385f0bf91", query: {}},
+  ]) {
+    const html = renderFrame(createElement(MenuPreviewDeviceFrame, {device: "tablet", orientation: "landscape", ...props}));
+    assert.match(html, /aria-expanded="true" aria-label="기기 선택 도구 닫기" class="site-preview-control site-preview-toolbar-toggle" data-icon-appearance="framed"/);
+  }
+  const css = readFileSync(new URL("../styles/ui-system.css", import.meta.url), "utf8");
+  assert.match(css, /\.site-preview-control\.site-preview-toolbar-toggle \{[^}]*top: 50%;[^}]*transform: translateY\(-50%\);/);
+  assert.match(css, /\.site-preview-toolbar-toggle\[aria-expanded="false"\] \{[^}]*width: 3rem; height: 1.75rem; min-height: 1.75rem;/);
+  assert.match(css, /@media \(max-width: 767px\) \{ \[data-preview-device-toolbar\] \{ --ui-preview-control-height: var\(--ui-control-height-header\);/);
+  assert.doesNotMatch(previewFrameSource, /right-2 top-2|site-icon-control absolute/);
 });

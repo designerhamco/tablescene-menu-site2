@@ -30,7 +30,7 @@ export default function HelpTooltip({ label, children, heading, tone = "light", 
     <Popover open={hover ? open : undefined} onOpenChange={hover ? setOpen : undefined}>
       <span className="site-help-anchor" onPointerEnter={hover ? event => { if (event.pointerType !== "mouse") return; cancel(); openTimer.current = setTimeout(() => { hoverOpened.current = true; setOpen(true); }, 120); } : undefined} onPointerLeave={hover ? scheduleClose : undefined} onPointerDown={hover ? () => { cancel(); hoverOpened.current = false; } : undefined}>
       <PopoverTrigger asChild>
-        {trigger ?? <Button type="button" variant="ghost" size="icon" aria-label={label}><CircleHelp size={20} aria-hidden="true" /></Button>}
+        {trigger ?? <Button type="button" variant="ghost" size="icon" iconSize="compact" aria-label={label}><CircleHelp size={20} aria-hidden="true" /></Button>}
       </PopoverTrigger>
       </span>
       <PopoverContent aria-label={label} side={side} align={align} alignOffset={alignOffset} arrowPadding={TOOLTIP_ARROW_PADDING} sideOffset={8} collisionPadding={16} data-tooltip-tone={tone} data-dismissible={tone !== "light" || undefined} className="site-tooltip-surface site-help-content"
