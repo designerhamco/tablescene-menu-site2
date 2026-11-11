@@ -22,6 +22,7 @@ for (const design of catalogDesigns) test(`${design.id}: purchased translations 
   await createStarterMenuData(client as never, "purchased-menu", design.templateKey, null, null,
     design.service === "display" ? "business_display_monthly" : design.service === "dining" ? "business_basic_multi_monthly" : "business_basic_single_monthly", { designId: design.id });
   const rows = (table: string) => client.rows.get(table) ?? [];
+  for (const [table, calls] of client.insertCalls) if (table.endsWith("_translations")) assert.equal(calls,1,`${table}: batch all locale copies in one insert`);
   const id = getStarterTranslationIds(preview, { pages: rows("menu_pages"), categories: rows("menu_categories"), items: rows("menu_items"), options: rows("menu_item_price_options"), widgets: rows("menu_widgets"), promotions: rows("menu_promotions") });
   assert.deepEqual((client.site.settings as {enabled_locales: string[]}).enabled_locales,["ko","en","zh","ja"]);
   assert.equal(client.site.restaurant_name,"고객 매장");

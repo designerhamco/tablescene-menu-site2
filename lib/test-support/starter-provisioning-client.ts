@@ -2,6 +2,7 @@ export class StarterClient {
   site: Record<string, unknown> = { restaurant_name: "고객 매장", restaurant_phone: "고객 전화", restaurant_address: "고객 주소", settings: {menu_design_id: "basic-first-column", table_order: {orderEnabled: true}}, page_settings: {} };
   failInsertTable?: string;
   reverseInsertResults = false;
+  insertCalls = new Map<string, number>();
   rows = new Map<string, Record<string, unknown>[]>();
   from(table: string) {
     let operation = "select", payload: Record<string, unknown> | Record<string, unknown>[] = {}, head = false;
@@ -9,6 +10,7 @@ export class StarterClient {
     const execute = async () => {
       if (operation === "update") Object.assign(this.site, payload);
       if (operation === "insert") {
+        this.insertCalls.set(table, (this.insertCalls.get(table) ?? 0) + 1);
         if (table === this.failInsertTable) return {data: null, error: {message: "simulated insert failure"}};
         const rows = (Array.isArray(payload) ? payload : [payload]).map((row, i) => ({...row, id: `${table}-${(this.rows.get(table)?.length ?? 0) + i}`}));
         this.rows.set(table, [...this.rows.get(table) ?? [], ...rows]);

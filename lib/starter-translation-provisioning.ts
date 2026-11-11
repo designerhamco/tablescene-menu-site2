@@ -63,13 +63,19 @@ export async function createCatalogStarterTranslations(input: { supabase: Supaba
   const id = getStarterTranslationIds(source, input.records);
   const siteResult = await input.supabase.from("menu_sites").select("menu_cover_title").eq("id", input.menuSiteId).maybeSingle();
   if (siteResult.error) throw new Error(`기본 번역 가게명 확인에 실패했습니다: ${siteResult.error.message}`);
+  const batches = new Map<keyof ReturnType<typeof buildStarterTranslationRows>, unknown[]>();
   for (const locale of TRANSLATABLE_LOCALES) {
     const rows = buildStarterTranslationRows(source, applyStarterPreviewLocalization(source, locale), input.menuSiteId, id, locale, siteResult.data ?? undefined);
     for (const [table, values] of Object.entries(rows)) {
-      if (!values.length) continue;
-      const { error } = await input.supabase.from(table as keyof typeof rows).insert(values as never);
-      if (error) throw new Error(`기본 ${locale} 번역 생성에 실패했습니다 (${table}): ${error.message}`);
+      const key = table as keyof typeof rows;
+      batches.set(key, [...batches.get(key) ?? [], ...values]);
     }
+  }
+  // One bulk insert per entity type, not a network round trip for every locale.
+  for (const [table, values] of batches) {
+    if (!values.length) continue;
+    const { error } = await input.supabase.from(table).insert(values as never);
+    if (error) throw new Error(`기본 번역 생성에 실패했습니다 (${table}): ${error.message}`);
   }
 }
 
