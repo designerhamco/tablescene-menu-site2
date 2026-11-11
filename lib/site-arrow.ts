@@ -32,14 +32,15 @@ export const SITE_ARROW_PATHS = {
 export type SiteArrowKind = keyof typeof SITE_ARROW_PATHS;
 
 /** Circular arrows use one curved outer wing, keeping the inner counter open.
+ * A longer, wider wing and advanced tip remain legible at16–24px.
  * Filled geometry avoids acute stroked joins at small UI sizes.
  */
 function circularHead(x: number, y: number, angle: number) {
   const radians = angle * Math.PI / 180;
   const point = (px: number, py: number) => `${Number((x + px * Math.cos(radians) - py * Math.sin(radians)).toFixed(3))} ${Number((y + px * Math.sin(radians) + py * Math.cos(radians)).toFixed(3))}`;
-  return `M${point(0, 0)}L${point(-5.2, 3.6)}Q${point(-4.4, 1)} ${point(-2.4, 0)}Z`;
+  return `M${point(0, 0)}L${point(-6.6, 4.4)}Q${point(-5.4, 1.5)} ${point(-3.4, 0)}Z`;
 }
 export const SITE_CIRCULAR_ARROW_HEADS = {
-  refresh: circularHead(5.636, 8.464, 135) + circularHead(18.364, 15.536, 315),
-  rotate: circularHead(5.636, 8.464, 135),
+  refresh: circularHead(5.1, 9, 135) + circularHead(18.9, 15, 315),
+  rotate: circularHead(5.1, 9, 135),
 } as const;
