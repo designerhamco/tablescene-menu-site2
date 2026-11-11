@@ -52,7 +52,6 @@
 }
 .category {
   color: var(--ui-text-muted);
-  font-size: var(--type-body-sm-size);
   padding: var(--site-space-block) var(--ui-control-padding-inline);
 }
 
@@ -169,7 +168,6 @@
   }
   .category {
     padding: 1rem 0.75rem 0;
-    font-size: var(--type-caption-size);
   }
   .faqRow button {
     padding-top: var(--site-space-copy);

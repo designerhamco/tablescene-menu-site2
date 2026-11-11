@@ -64,6 +64,7 @@ export default function SupportCenter({ supportActions }: { supportActions?: Rea
       </h2>
       <CategoryFilter
         label="주제 선택"
+        size="lg"
         value={category}
         options={[{ value: "all", label: "전체" }, ...categories]}
         onValueChange={value => {
@@ -80,7 +81,7 @@ export default function SupportCenter({ supportActions }: { supportActions?: Rea
             <ContentList label="자주 묻는 질문 목록">
               {shownQuestions.map((item) => (
                 <li key={item.question} className={styles.faqRow}>
-                  <span className={styles.category}>{item.category}</span>
+                  <span className={`${styles.category} type-body`}>{item.category}</span>
                   <FAQItem
                     item={item}
                     isOpen={openQuestion === item.question}
