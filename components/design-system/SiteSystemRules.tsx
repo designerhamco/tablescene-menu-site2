@@ -11,8 +11,8 @@ export default function SiteSystemRules() {
       <tr><td>페이지 제목과 간격</td><td>SitePage · SitePageHeader</td><td>별도 h1, 제목 바깥의 임의 여백·인라인 위치 보정</td></tr>
       <tr><td>탭</td><td>Tabs · NavigationTabs의 purpose와 size · 아이콘은 각 역할의 기본 크기</td><td>페이지별 색·두께·높이·패딩·모서리 덮어쓰기</td></tr>
       <tr><td>편집 연필</td><td>EditIcon · SVG16px · 클릭 영역은 공통 아이콘 크기와 분리</td><td>탭의 모든 아이콘을 일괄 축소하거나 아이콘 뒤에 임의 도형·패딩 추가</td></tr>
-      <tr><td>아이콘 버튼</td><td>불필요한 장식 생략 · 식별 경계 유지 · 표현과 조작 영역 분리. bare/framed · 일반40px/밀집32px</td><td>배경 제거와 함께 클릭 영역·중앙 정렬 제거, 페이지별 크기·배경 덮어쓰기</td></tr>
-      <tr><td>버튼과 입력</td><td>Button · Input · Select의 variant와 size · 모양이 다른 버튼 묶음 경계는 ButtonGroupDivider · 입력 옆 버튼은 공통 중앙 정렬 행 · 회색/비활성 실행 버튼은 기능적 경계 유지</td><td>개별 외형 재정의와 폐기된 크기·모양</td></tr>
+      <tr><td>아이콘 버튼</td><td>불필요한 장식 생략 · 흰 fill의 경계가 불분명할 때만 테두리 · 표현과 조작 영역 분리. bare/framed · 일반40px/밀집32px</td><td>배경 제거와 함께 클릭 영역·중앙 정렬 제거, 페이지별 크기·배경 덮어쓰기</td></tr>
+      <tr><td>버튼과 입력</td><td>Button · Input · Select의 variant와 size · 모양이 다른 버튼 묶음 경계는 ButtonGroupDivider · 입력 옆 버튼은 공통 중앙 정렬 행 · 회색/유색 fill은 무테 · 기존 컴포넌트 외형은 요청 없이 변경하지 않음</td><td>개별 외형 재정의와 폐기된 크기·모양</td></tr>
       <tr><td>고객지원 액션 행</td><td>site-support-actions · 내용 너비 · 가운데 정렬 · 좁으면 줄바꿈</td><td>버튼 묶음을 카드용 균등 분할 그리드로 확장</td></tr>
       <tr><td>새 창 링크</td><td>NewWindowIndicator · 대각선 화살표 · 새 창 안내</td><td>같은 창 링크에 새 창 표시를 붙이거나 새 창 안내를 생략</td></tr>
       <tr><td>글자·색상·표면</td><td>의미 기반 type-* · 공통 굵기·행간·자간 토큰</td><td>임의 글자 크기와 지역별 공통 토큰 재정의</td></tr>

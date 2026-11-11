@@ -271,6 +271,8 @@
 :root { --site-support-launcher-edge: 1.25rem; }
 .site-support-launcher { bottom: calc(var(--site-support-launcher-edge) + env(safe-area-inset-bottom, 0px)); }
 .site-scroll-top { bottom: calc(var(--site-support-launcher-edge) + 4.5rem + env(safe-area-inset-bottom, 0px)); }
+/* Filled quick-menu controls are identified by their fill, not an outline. */
+.site-scroll-top-control { border: 0; }
 .site-scroll-top, .site-support-launcher { right: max(var(--site-gutter), calc((100vw - var(--site-content-width)) / 2)); }
 @media (min-width: 768px) {
   :root { --site-support-launcher-edge: 2rem; }
