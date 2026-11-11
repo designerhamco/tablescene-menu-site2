@@ -6,6 +6,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import MenuPreviewDeviceFrame from "../components/menu/MenuPreviewDeviceFrame";
+import { catalogDesigns } from "./catalog-designs";
 
 import {
   buildMenuPreviewUrl,
@@ -168,7 +169,7 @@ test("catalog and saved previews expose the same common toolbar for each device"
     const saved = labels(renderFrame(createElement(MenuPreviewDeviceFrame, { ...common, menuId: "saved-menu" })));
     const catalog = labels(renderFrame(createElement(MenuPreviewDeviceFrame, { ...common, templateKey: "cafe_design_a" })));
     assert.deepEqual(saved, catalog);
-    assert.equal(saved.length, device === "pc" ? 4 : 3);
+    assert.equal(saved.length, device === "mobile" ? 3 : 4);
   }
 });
 
@@ -368,13 +369,18 @@ test("layout comparisons survive device, feature and detached preview changes", 
 });
 
 
-test("tablet rotation belongs only to Dining in both preview sources", () => {
-  for (const templateKey of ["cafe_design_a", "cafe_real_matcha_paged_test", "dining_aube_table_a", "dining_aube_table_b"]) {
-    const dining = templateKey.startsWith("dining_");
-    for (const props of [{ templateKey }, { menuId: "saved-menu", menuTemplateKey: templateKey }]) {
-      const html = renderFrame(createElement(MenuPreviewDeviceFrame, { ...props, device: "tablet", orientation: "portrait", query: {} }));
-      assert.equal(html.includes('data-preview-tablet-orientation-toggle'), dining);
-      assert.match(html, new RegExp(`orientation=${dining ? "portrait" : "landscape"}`));
+test("every Basic and Dining design rotates both catalog and saved tablet previews", () => {
+  for (const design of catalogDesigns.filter(design => design.service !== "display")) {
+    for (const orientation of ["landscape", "portrait"] as const) {
+      for (const element of [
+        createElement(MenuPreviewDeviceFrame, { templateKey: design.templateKey, device: "tablet", orientation, query: design.kind === "standard" ? { design: design.id } : {} }),
+        createElement(MenuPreviewDeviceFrame, { menuId: "saved-menu", menuTemplateKey: design.templateKey, menuDesignId: design.id, device: "tablet", orientation, query: {} }),
+      ]) {
+        const html = renderFrame(element);
+        assert.match(html, /data-preview-tablet-orientation-toggle/, design.id);
+        assert.match(html, new RegExp(`orientation=${orientation}`), design.id);
+        assert.match(html, new RegExp(`aria-label="태블릿을 ${orientation === "landscape" ? "세로" : "가로"}로 회전"`), design.id);
+      }
     }
   }
 });

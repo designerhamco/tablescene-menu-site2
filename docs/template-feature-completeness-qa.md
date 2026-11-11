@@ -1,5 +1,7 @@
 # Template feature completeness — 2026-10-20
 
+> 과거 검수 기록이다. 아래 회전 제외 결과는 당시 정책이며, 2026-11-11 승인으로 베이직·다이닝 모두 태블릿 회전을 제공한다. 현행 기준은 `template-spacing-contract.md`의 Tablet preview rotation 절이다.
+
 Follow-up: `menu-state-layout-carousel-qa.md` supersedes this release's darkest-swatch Order rule and default-visible widget examples. Catalog widgets now default OFF; full examples remain available when ON.
 
 ## Scope and behavior
