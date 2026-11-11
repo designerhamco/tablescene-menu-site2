@@ -6,7 +6,7 @@
   --site-text-secondary: var(--ui-text-muted);
   --site-text-muted: var(--ui-text-subtle);
   --site-divider: var(--ui-border);
-  --site-tab-indicator-width: 2px;
+  --site-tab-indicator-width: 3px;
   --site-shadow-popover: 0 2px 10px rgb(75 81 91 / 10%), 0 0 2px rgb(75 81 91 / 20%);
   --site-shadow-tooltip: 0 8px 24px rgb(21 24 30 / 14%), 0 2px 6px rgb(21 24 30 / 6%);
   --space-1: .25rem;
