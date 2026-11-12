@@ -332,6 +332,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 - 라이브러리의 `#shaped-tabs`에서 영역형과 대·중·소를 실제로 전환하고 상태 표에서 기본/hover/pressed/focus/disabled를 비교한다. 폐기한 파일형·라운드 연결형을 새 화면에 사용하지 않는다.
 - 공통 Footer는 옅은 라운드 표면에 브랜드/서비스/이용 안내/고객지원, 사업자 정보, 약관을 묶고 같은 회색 표면의 맨 아래에 배경보다 조금 진한 연회색 장식 워드마크를 배치한다. 워드마크의 하단은 표면의 둥근 경계 안에서 잘리며, 박스 바깥에는 표시하지 않는다. 실제 정보는 보통 본문·보조 크기를 유지하며 장식 글자만 의도적으로 일부 잘라 표시하고 `aria-hidden` 처리한다. 외부 사업자 확인 링크와 기존 사업자·연락 정보는 유지한다.
 - 푸터 바깥 배경은 투명하다. 안쪽의 회색 라운드 박스와 장식 워드마크는 유지하며, 다이닝 소개의 공통 페이지 셸은 `--site-dining-background`를 푸터 아래와 페이지 마지막까지 연결한다.
+- 푸터 하단의 큰 ArtiMenu 장식 텍스트는 공통 `--font-family-site`로 Tenor Sans를 사용한다(2026-11-12). 고정 Pretendard 예외를 두지 않으며 기존 크기·색상·하단 잘림과 회색 표면은 유지한다.
 - 스타일은 `app/components/layout/Footer.module.css` 한 곳에서 관리한다. 구 landing Footer도 동일 컴포넌트를 다시 내보내며 페이지별 푸터 디자인을 복제하지 않는다. `#site-footer`는 라이브러리 바로가기에서도 실제 푸터를 보여준다.
 
 
