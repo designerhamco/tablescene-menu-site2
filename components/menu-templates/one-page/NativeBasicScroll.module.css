@@ -18,8 +18,8 @@
   width: 100%; height: 100%; min-height: 0; min-width: 0;
   padding: var(--native-page-top-inset) var(--native-gap) var(--native-gap); box-sizing: border-box;
 }
-/* Centered top rows alone use a 25% smaller top inset, with a 20px rem floor. */
-.board:has(> .header > :global([data-menu-header-shared-rows])) { --native-page-top-inset: max(1.25rem, calc(var(--native-gap) * .75)); }
+/* Centered top rows alone halve the normal top inset, with a 16px rem floor. */
+.board:has(> .header > :global([data-menu-header-shared-rows])) { --native-page-top-inset: max(1rem, calc(var(--native-gap) * .5)); }
 /* A legacy tablet --board-padding must not narrow the Mocha reading surface.
    Keep the brown-panel edge and its internal inset tied to the common token. */
 .root[data-template-key="cafe_mocha_forest_a"] .board.board {
