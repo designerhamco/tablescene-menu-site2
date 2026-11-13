@@ -6066,7 +6066,8 @@ video {
 }
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] { --basic-panel-controls-size: 3.5rem; }
 
-/* Preserve Mello Crema starter and merchant casing, including measurement probes. */
-.cafe-a-typography[data-template-key="cafe_sunday_line_a"] :is(.cafe-a-store-title, .cafe-a-category-title) {
+/* Preserve registered category casing, including measurement probes. */
+.cafe-a-typography[data-template-key="cafe_sunday_line_a"] :is(.cafe-a-store-title, .cafe-a-category-title),
+.cafe-a-typography[data-template-key="cafe_mocha_forest_a"] .cafe-a-category-title {
   text-transform: none;
 }
