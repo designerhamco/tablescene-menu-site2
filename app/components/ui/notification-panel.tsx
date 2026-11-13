@@ -66,7 +66,7 @@ export function NotificationPanel({ items, loading = false, footer, compact = fa
           </a>
         </div>) : <EmptyState headingLevel={3} icon={<Bell />} title={key === "unread" ? "읽지 않은 알림이 없습니다" : "새 알림이 없습니다"} description="새로운 소식이 생기면 이곳에 표시됩니다." />}
       </TabsContent>)}
-      {showReadAll ? <div className="site-notification-read-all-dock"><Button type="button" variant="default" size="compact" className="site-button-notification-read-all" disabled={loading || readingAll} aria-busy={readingAll} onClick={() => { void handleReadAll(); }}>{readingAll ? "처리 중…" : "모두 읽기"}</Button></div> : null}
+      {showReadAll ? <div className="site-notification-read-all-dock"><Button type="button" variant="outline" size="compact" className="site-button-notification-read-all" disabled={loading || readingAll} aria-busy={readingAll} onClick={() => { void handleReadAll(); }}>{readingAll ? "처리 중…" : "모두 읽음"}</Button></div> : null}
       </div>
     </Tabs>{footer ? <div className="site-notification-footer">{footer}</div> : null}
   </div>;

@@ -80,7 +80,7 @@ try {
     await expect(layer).toBeHidden();await expect(bell).toBeFocused();await expect(search).toHaveValue('QR');assert.equal(await p.evaluate(()=>scrollY),original.y);
    }
    await bell.click();await expect(layer).toBeVisible();
-   await layer.getByRole('button',{name:'모두 읽기',exact:true}).click();await expect(layer.locator('.site-notification-read-all-dock')).toHaveCount(0);
+   await layer.getByRole('button',{name:'모두 읽음',exact:true}).click();await expect(layer.locator('.site-notification-read-all-dock')).toHaveCount(0);
    assert.deepEqual(writes,['/api/notifications/read-all']);await expect(layer.locator('.site-notification-item[data-unread]')).toHaveCount(0);
    if(mobile){await p.mouse.click(width/2,2);await expect(layer).toBeHidden();await expect(bell).toBeFocused();assert.equal(await p.evaluate(()=>scrollY),original.y);}
    else await p.keyboard.press('Escape');
@@ -95,7 +95,7 @@ try {
    else {
     await bell.click();const sheet=p.locator('[data-site-notification-sheet]');await expect(sheet).toBeVisible();
     if(options.empty){await expect(sheet.getByRole('heading',{name:'새 알림이 없습니다',exact:true})).toBeVisible();await expect(sheet.locator('.site-notification-read-all-dock')).toHaveCount(0);}
-    else if(options.readError){await sheet.getByRole('button',{name:'모두 읽기',exact:true}).click();await expect(sheet.getByRole('alert')).toBeVisible();await expect(sheet.getByRole('button',{name:'모두 읽기',exact:true})).toBeEnabled();await expect(sheet.locator('.site-notification-item[data-unread]')).toHaveCount(5);}
+    else if(options.readError){await sheet.getByRole('button',{name:'모두 읽음',exact:true}).click();await expect(sheet.getByRole('alert')).toBeVisible();await expect(sheet.getByRole('button',{name:'모두 읽음',exact:true})).toBeEnabled();await expect(sheet.locator('.site-notification-item[data-unread]')).toHaveCount(5);}
     else {assert.match(await sheet.evaluate(e=>getComputedStyle(e).animationName),/siteNotificationSheetIn/);await sheet.getByRole('link',{name:/테스트 알림 1\s/}).click();await p.waitForURL('**/faq?tab=faq&notification=1');assert.deepEqual(writes,['/api/notifications/notice-0/read']);}
    }
    results.push(options);

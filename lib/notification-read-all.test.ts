@@ -76,14 +76,15 @@ test("클라이언트는 읽은 시각을 덮어쓰거나 요청 후 새로 도�
   assert.deepEqual(getNotificationsReadAll(new CustomEvent("read", { detail: { userId: "owner", readAt: originalReadAt } })), { userId: "owner", readAt: originalReadAt });
 });
 
-test("shared read-all action is dark and rendered only for the authoritative unread total", async () => {
+test("shared read-all action keeps the original outline and appears only for unread notifications", async () => {
   const { createElement } = await import("react");
   const { renderToStaticMarkup } = await import("react-dom/server");
   const { NotificationPanel } = await import("../app/components/ui/notification-panel");
   const item = { id: "notice", title: "Notice", message: "Message", createdAt: recentCreatedAt, unread: true, href: "/faq" };
   const render = (items: typeof item[], unreadCount?: number, enabled = true) => renderToStaticMarkup(createElement(NotificationPanel, { items, unreadCount, onReadAll: enabled ? () => {} : undefined }));
   const visible = render([item]);
-  assert.match(visible, /site-button-primary/);
+  assert.match(visible, /site-button-outline/);
+  assert.match(visible, /모두 읽음/);
   assert.match(visible, /site-notification-read-all-dock/);
   assert.match(visible, /data-read-all="true"/);
   for (const html of [render([]), render([{ ...item, unread: false }]), render([item], 0), render([item], 1, false)]) {

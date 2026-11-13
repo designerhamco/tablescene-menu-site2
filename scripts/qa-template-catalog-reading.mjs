@@ -109,7 +109,7 @@ try {
     await expect(page.locator('[data-slot="dialog-overlay"]')).toHaveCount(0);
   }
   const panel = page.locator(".site-notification-panel[data-compact]");
-  await panel.getByRole("button", { name: "모두 읽기", exact: true }).click();
+  await panel.getByRole("button", { name: "모두 읽음", exact: true }).click();
   await panel.getByRole("tab", { name: /읽지 않음/ }).click();
   await expect(panel.getByRole("heading", { name: "읽지 않은 알림이 없습니다", exact: true })).toBeVisible();
   assert.equal(await panel.locator('.site-notification-feed[data-state="active"]').evaluate(element => parseFloat(getComputedStyle(element).paddingTop)), 24);
