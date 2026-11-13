@@ -11,7 +11,9 @@ export function measureMenuHeaderContentHeight(header: ParentNode | null): numbe
     const rect = element.getBoundingClientRect();
     const bounded = element.hasAttribute("data-language-menu-trigger") || element.hasAttribute("data-menu-header-copy-clamped");
     const height = bounded ? rect.height : Math.max(rect.height, element.scrollHeight);
-    const stack = element.closest("[data-menu-header-info-stack]");
+    // A centered header's description and notices share the row below its tools.
+    // Include both sides so a taller description cannot overflow a short notice row.
+    const stack = element.closest("[data-menu-header-shared-rows]") ?? element.closest("[data-menu-header-info-stack]");
     if (!stack) { required = Math.max(required,height); continue; }
     const previous = groups.get(stack), top = rect.top, bottom = top + height;
     groups.set(stack,{top:Math.min(previous?.top ?? top,top),bottom:Math.max(previous?.bottom ?? bottom,bottom)});

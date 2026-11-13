@@ -8,6 +8,19 @@
 .description.description { grid-column: 1; grid-row: 1; align-self: center; min-width: 0; width: 100%; min-height: 0; overflow: visible; text-align: left; }
 .description > p { width: 100% !important; margin: 0 !important; padding: 0 !important; max-height: none !important; overflow: visible !important; white-space: pre-line; overflow-wrap: anywhere; text-align: left !important; }
 
+/* Centered top rows share one tool track and one full-width copy track.
+   The identity spans both; left-logo headers retain their original stack. */
+.header.header[data-menu-header-shared-rows] { grid-template-rows: minmax(0, 1fr); row-gap: 0; align-items: start; }
+.header[data-menu-header-shared-rows] > .stack { display: contents; }
+.header[data-menu-header-shared-rows] .tools { position: relative; z-index: 5; grid-column: 3; grid-row: 1; display: flex; justify-content: flex-end; min-width: 0; }
+.header[data-menu-header-shared-rows] .tools:empty { display: none; }
+.header[data-menu-header-shared-rows] > .description { grid-row: 1; align-self: start; }
+.header[data-menu-header-shared-rows] > .stack > :not(.tools) { grid-column: 3; grid-row: 1; align-self: start; }
+.header.header[data-menu-header-shared-rows] > .identity.identity { grid-row: 1 / -1; align-self: center; }
+.header.header[data-menu-header-shared-rows]:has(.tools:not(:empty)) { grid-template-rows: auto minmax(0, 1fr); row-gap: .75rem; }
+.header[data-menu-header-shared-rows]:has(.tools:not(:empty)) > .description,
+.header[data-menu-header-shared-rows]:has(.tools:not(:empty)) > .stack > :not(.tools) { grid-row: 2; }
+
 /* Clamp copy leaves only. Language triggers and their popup stay outside. */
 .clampedCopy.clampedCopy {
   display: -webkit-box !important;
