@@ -2,6 +2,7 @@ import { ArrowLeft } from "@/app/components/ui/site-arrow";
 import { readMenuTextColors } from "@/lib/menu-text-colors";
 import { getSavedMenuDesign } from "@/lib/menu-design-identity";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
+import { hasFixedHeaderAlignment } from "@/lib/menu-design-surfaces";
 import MenuSurfaceSettingsForm from "@/components/mypage/menu-editor/MenuSurfaceSettingsForm";
 import MenuDesignSwitcher from "@/components/mypage/menu-editor/MenuDesignSwitcher";
 import { getMenuPlanEntitlement } from "@/lib/server/menu-plan-design-service";
@@ -1776,7 +1777,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   );
   const globalBannerError = activeTab === "localization" ? bannerError : null;
   const templateDisplayName = getMenuDesignDisplayName(site.template_key, site.template_category, site.settings);
-  const templateContentLimits = getTemplateContentLimits(site.template_key);
+  const templateContentLimits = getTemplateContentLimits(site.template_key, site.settings);
+  const usesTopRowCopyLimit = hasFixedHeaderAlignment(site.template_key, site.settings);
   const publicUrl = getPublicMenuUrl(site.slug);
   const qrDownloadUrl = `/api/qr?slug=${encodeURIComponent(site.slug)}`;
   const previewUrl = `/mypage/menus/${site.id}/preview`;
@@ -1980,6 +1982,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                         helperText={
                           <>
                             공개 메뉴판 상단에 매장 소개 문구로 표시됩니다. 최대 {templateContentLimits.brandDescription}자까지 입력할 수 있습니다.
+                            {usesTopRowCopyLimit && <span className="block">PC·태블릿에서는 최대 3줄까지 표시되며, 문구가 길면 …으로 표시될 수 있습니다.</span>}
                             {basicBrandDescriptionError && <span className="mt-1 block text-red-600">{basicBrandDescriptionError}</span>}
                           </>
                         }
@@ -2053,6 +2056,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
 
                       {supportsFooterStoreInfo && (
                         <div className="grid gap-4 md:grid-cols-3">
+                          {usesTopRowCopyLimit && <p className="type-caption md:col-span-3">PC·태블릿에서는 안내사항 1·2·3을 합쳐 최대 3줄까지 표시하며, 문구가 길면 …으로 표시될 수 있습니다. 짧고 간결하게 입력해주세요.</p>}
                           <div>
                             <FieldLabel>안내사항 1</FieldLabel>
                             <TextArea
@@ -2062,7 +2066,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                               placeholder="예: 매일 10:00~22:00"
                               helperText={
                                 <>
-                                  메뉴판 하단에 입력한 문구만 표시됩니다. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.
+                                  입력한 문구만 표시됩니다. 최대 {templateContentLimits.footerNotice}자까지 입력할 수 있습니다.
                                   {basicFooterNotice1Error && <span className="mt-1 block text-red-600">{basicFooterNotice1Error}</span>}
                                 </>
                               }

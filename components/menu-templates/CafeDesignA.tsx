@@ -26,6 +26,7 @@ import { applyOrderedCanvasLayout, clearOrderedCanvasLayout } from "@/components
 import MenuLanguageSwitcher from "@/components/menu-templates/shared/MenuLanguageSwitcher";
 import MobileNoticeList from "@/components/menu-templates/one-page/mobile/MobileNoticeList";
 import headerInformationStyles from "./shared/MenuHeaderInformation.module.css";
+import MenuClampedCopy from "./shared/MenuClampedCopy";
 import MenuBrandLogo from "@/components/menu-templates/shared/MenuBrandLogo";
 import MobileBrandTitle from "@/components/menu-templates/shared/MobileBrandTitle";
 import CanvasBrandTitle from "@/components/menu-templates/shared/CanvasBrandTitle";
@@ -3777,7 +3778,7 @@ function DesktopToplineInformationHeader({
       data-basic-header-align={leftLogo ? "left" : undefined}
     >
       {!leftLogo ? <div className={`cafe-a-topline-description-panel min-w-0 ${headerInformationStyles.description}`} data-cafe-a-topline-description-panel="">
-        {description ? <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description whitespace-pre-line break-keep text-[#3f4945] ${descriptionSizeClassName}`}><ScriptAwareText text={description} /></p> : null}
+        {description ? <MenuClampedCopy text={description} className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description whitespace-pre-line break-keep text-[#3f4945] ${descriptionSizeClassName}`} /> : null}
       </div> : null}
       <div className="cafe-a-topline-brand-identity min-w-0" data-cafe-a-topline-brand-identity="">
         <StoreIdentity
@@ -3791,8 +3792,8 @@ function DesktopToplineInformationHeader({
 
       <div className={`cafe-a-topline-info-stack ${headerInformationStyles.stack}`} data-menu-header-info-stack>
         {languageControl}
-        {leftLogo && description ? <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description whitespace-pre-line break-keep ${descriptionSizeClassName}`}><ScriptAwareText text={description} /></p> : null}
-        {!leftLogo && infoRows.length ? <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-notices cafe-a-topline-notice-text whitespace-pre-line break-keep text-[#3f4945] ${descriptionSizeClassName}`}><ScriptAwareText text={infoRows.join("\n")} /></p> : null}
+        {leftLogo && description ? <MenuClampedCopy text={description} className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description whitespace-pre-line break-keep ${descriptionSizeClassName}`} /> : null}
+        {!leftLogo && infoRows.length ? <MenuClampedCopy text={infoRows.join("\n")} className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-notices cafe-a-topline-notice-text whitespace-pre-line break-keep text-[#3f4945] ${descriptionSizeClassName}`} /> : null}
       </div>
     </section>
   );

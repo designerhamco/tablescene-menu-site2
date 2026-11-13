@@ -3338,7 +3338,7 @@ export async function updateMenuSiteAction(formData: FormData) {
   const shouldDeleteLogoImage = getBoolean(formData, "delete_logo_image");
   const draftLogoImageUrl = getNullableString(formData, "draft_logo_image_url");
   const draftLogoImagePath = getNullableString(formData, "draft_logo_image_path");
-  const templateContentLimits = getTemplateContentLimits(menuSite.template_key);
+  const templateContentLimits = getTemplateContentLimits(menuSite.template_key, menuSite.settings);
 
   assertMenuSiteDraftImage(menuId, draftLogoImageUrl, draftLogoImagePath, "basic");
 
@@ -3462,7 +3462,7 @@ export async function updateIntroAction(formData: FormData) {
   const shouldDeleteIntroImage = getBoolean(formData, "delete_intro_image");
   const draftIntroImageUrl = getNullableString(formData, "draft_intro_image_url");
   const draftIntroImagePath = getNullableString(formData, "draft_intro_image_path");
-  const templateContentLimits = getTemplateContentLimits(menuSite.template_key);
+  const templateContentLimits = getTemplateContentLimits(menuSite.template_key, menuSite.settings);
 
   assertMenuSiteDraftImage(menuId, draftIntroImageUrl, draftIntroImagePath, "intro");
 
@@ -4010,7 +4010,7 @@ export async function updateAboutAction(formData: FormData) {
   const mapUrl = hasMapUrlField ? getNullableString(formData, "map_url") : null;
   const hasBrandDescriptionField = formData.has("brand_description");
   const brandDescription = hasBrandDescriptionField ? getNullableString(formData, "brand_description") : menuSite.brand_description;
-  const templateContentLimits = getTemplateContentLimits(menuSite.template_key);
+  const templateContentLimits = getTemplateContentLimits(menuSite.template_key, menuSite.settings);
 
   if (hasRestaurantAddressField) {
     validateRequiredText(menuId, restaurantAddress ?? "", "주소", MENU_FIELD_LIMITS.menuSites.restaurantAddress, "about");

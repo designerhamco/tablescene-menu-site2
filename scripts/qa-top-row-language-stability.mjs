@@ -51,7 +51,9 @@ try{
    if(device==='pc'&&!cover){
     const description=page.locator('[data-basic-top-row] .cafe-a-store-description');const original=await description.textContent();
     await description.evaluate((el,text)=>el.textContent=text.repeat(8),original);await page.waitForTimeout(250);
-    const expanded=await geometry(page);assert.ok(expanded.height>before.height,'real long description can still grow header');
+    const expanded=await geometry(page);
+    const copy=await description.evaluate(el=>{const s=getComputedStyle(el);return {height:el.getBoundingClientRect().height,lineHeight:parseFloat(s.lineHeight),scrollHeight:el.scrollHeight,clamp:s.getPropertyValue('-webkit-line-clamp')};});
+    assert.equal(copy.clamp,'3');assert.ok(copy.height<=copy.lineHeight*3+1,'long description stays within three visible lines');assert.ok(copy.scrollHeight>copy.height+1,'overflow text remains in the rendered copy');
     await trigger.click();await popupFits(page);await page.waitForTimeout(200);unchanged(expanded,await geometry(page),'long-copy popup');await page.keyboard.press('Escape');
     await description.evaluate((el,text)=>el.textContent=text,original);await page.waitForTimeout(250);unchanged(before,await geometry(page),'restored copy');
    }

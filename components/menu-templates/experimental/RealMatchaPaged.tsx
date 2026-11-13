@@ -1,5 +1,6 @@
 "use client";
 import headerInformationStyles from "../shared/MenuHeaderInformation.module.css";
+import MenuClampedCopy from "../shared/MenuClampedCopy";
 import { measureMenuHeaderContentHeight, MENU_HEADER_CONTENT_SELECTOR } from "@/lib/menu-header-measurement";
 import { getRepresentativeRailGeometry } from "@/lib/representative-rail-geometry";
 import { getMenuDesignBackgrounds } from "@/lib/template-background-colors";
@@ -585,13 +586,17 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     </section>;
   };
   const albumGroups = units.filter((value, index) => index === 0 || value.group !== units[index - 1].group);
-  const footerNotices = notices.length ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices>{notices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>)}</div> : null;
+  const noticeCopy = !notices.length ? null : topRow
+    ? <MenuClampedCopy text={notices.join("\n")} />
+    : notices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>);
+  const footerNotices = notices.length ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices>{noticeCopy}</div> : null;
   const languageControl = <div className={styles.brandControls} data-paged-controls><CafeLanguageHoverControl data={baseProps} menuAlign={topRow ? "right" : "left"} iconOnly /></div>;
   const storeIdentity = <CafeAStoreIdentity data={baseProps} capabilities={capabilities}
     titleClassName="cafe-a-store-title cafe-a-rail-title" logoClassName={styles.logo}
     layoutShell={topRow ? "brand_top_band" : centerColumn ? "brand_center_column" : "brand_left_rail"} />;
   const storeDescription = (data.menuSite.brand_description || data.menuSite.description)
-    ? <p data-representative-copy data-scroll-header-copy className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null;
+    ? topRow ? <MenuClampedCopy data-representative-copy data-scroll-header-copy text={data.menuSite.brand_description || data.menuSite.description || ""} className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]" />
+      : <p data-representative-copy data-scroll-header-copy className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null;
   const actionFooter = showCall || showOrder || call.terminalConnected ? (
             <footer className={styles.footer} data-scroll-actions aria-label={t("메뉴 이용")}>
               {call.terminalConnected ? <span className={styles.tableLabel} data-terminal-table-label title={call.tableLabel}>{call.tableLabel}</span> : null}
@@ -659,8 +664,8 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
           <div className={headerInformationStyles.stack} data-menu-header-info-stack>
             {languageControl}
             {leftLogo ? storeDescription : null}
-            {!leftLogo && allNotices.length ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices data-scroll-header-copy>
-              {allNotices.map((n, i) => <p key={i}><ScriptAwareText text={n} /></p>)}
+            {!leftLogo && allNotices.length ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices>
+              <MenuClampedCopy data-scroll-header-copy text={allNotices.join("\n")} />
             </div> : null}
           </div>
         </header> : null}
@@ -684,7 +689,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
                   </div>
                 ))}
                 <div ref={noticeMeasure} className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`}>
-                  {notices.map((n, i) => <p key={i}><ScriptAwareText text={n} /></p>)}
+                  {noticeCopy}
                 </div>
               </div>
               <div ref={scrollContent} className={styles.scrollContent} data-scroll-content>
@@ -703,7 +708,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
                       </div>)}
                       {i === layout.footerColumn ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`}
                         data-paged-notices>
-                        {notices.map((n, index) => <p key={index}><ScriptAwareText text={n} /></p>)}
+                        {noticeCopy}
                       </div> : null}
                     </div>;
                   })}

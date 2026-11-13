@@ -9,7 +9,8 @@ export function measureMenuHeaderContentHeight(header: ParentNode | null): numbe
   for (const element of header?.querySelectorAll<HTMLElement>(MENU_HEADER_CONTENT_SELECTOR) ?? []) {
     if (element.closest("[data-language-menu-surface]")) continue;
     const rect = element.getBoundingClientRect();
-    const height = element.hasAttribute("data-language-menu-trigger") ? rect.height : Math.max(rect.height, element.scrollHeight);
+    const bounded = element.hasAttribute("data-language-menu-trigger") || element.hasAttribute("data-menu-header-copy-clamped");
+    const height = bounded ? rect.height : Math.max(rect.height, element.scrollHeight);
     const stack = element.closest("[data-menu-header-info-stack]");
     if (!stack) { required = Math.max(required,height); continue; }
     const previous = groups.get(stack), top = rect.top, bottom = top + height;
