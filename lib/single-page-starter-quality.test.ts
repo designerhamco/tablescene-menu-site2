@@ -304,16 +304,12 @@ test("starter-specific image and promotion presentation stays intentional", () =
     })),
     [
       {
-        imageUrl: "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-01.png",
-        itemKey: "orange-vanilla-cold-brew",
+        imageUrl: "/menu-templates/cafe_sunday_line_a/mello-crema-cream-latte.png",
+        itemKey: "mello-cream-latte",
       },
       {
-        imageUrl: "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-02.png",
-        itemKey: "salted-maple-latte",
-      },
-      {
-        imageUrl: "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-03.png",
-        itemKey: "sunday-cream-latte",
+        imageUrl: "/menu-templates/cafe_sunday_line_a/mello-crema-brown-sugar-latte.png",
+        itemKey: "brown-sugar-cream-latte",
       },
     ],
   );
@@ -321,7 +317,7 @@ test("starter-specific image and promotion presentation stays intentional", () =
     sundayLine.time_sales?.map((timeSale) => timeSale.badge_background_color),
     ["#F76A03", "#F76A03"],
   );
-  for (const itemKey of ["sunday-cream-latte", "salted-maple-latte"]) {
+  for (const itemKey of ["mello-cream-latte", "salted-maple-latte"]) {
     assert.equal(sundayItems.find((item) => item.key === itemKey)?.image_url, undefined);
   }
   assert.equal(sundayItems.find((item) => item.key === "matcha-cream-latte")?.badge_label, undefined);

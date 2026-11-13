@@ -70,11 +70,11 @@ export const TEMPLATE_BADGE_STYLE_PRESETS: Record<string, Partial<BadgeStyles>> 
     default: { background_color: "#ECEAB7", text_color: "#792839" },
   },
   cafe_sunday_line_a: {
-    best: { background_color: "#24369C", text_color: "#FFFFFF" },
-    signature: { background_color: "#24369C", text_color: "#FFFFFF" },
-    new: { background_color: "#24369C", text_color: "#FFFFFF" },
-    recommended: { background_color: "#24369C", text_color: "#FFFFFF" },
-    default: { background_color: "#24369C", text_color: "#FFFFFF" },
+    best: { background_color: "#2237A0", text_color: "#FFFFFF" },
+    signature: { background_color: "#2237A0", text_color: "#FFFFFF" },
+    new: { background_color: "#2237A0", text_color: "#FFFFFF" },
+    recommended: { background_color: "#2237A0", text_color: "#FFFFFF" },
+    default: { background_color: "#2237A0", text_color: "#FFFFFF" },
   },
   cafe_van_gogh_a: {
     best: { background_color: "#000000", text_color: "#FFFFFF" },

@@ -136,17 +136,17 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
   },
   cafe_sunday_line_a: {
     korean_font_key: "pretendard",
-    english_font_key: "federo",
+    english_font_key: "alata",
     font_size_scale_key: "m",
     typography_roles: {
       ...createDefaultTypographyRoleSettings(),
       brand: {
         ...createDefaultTypographyRoleSettings().brand,
-        color: "#24369C",
+        color: "#2237A0",
       },
       category: {
         ...createDefaultTypographyRoleSettings().category,
-        color: "#24369C",
+        color: "#2237A0",
       },
     },
   },

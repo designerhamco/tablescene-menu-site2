@@ -2126,6 +2126,8 @@ function CoverHero({
         className={`cafe-a-cover-frame relative h-full ${heroMinHeightClassName} flex-1 touch-pan-y overflow-hidden lg:min-h-0`}
         onPointerDown={(event) => {
           if (!hasCarousel || (event.pointerType === "mouse" && event.button !== 0)) return;
+          // Keep slide controls clickable instead of retargeting their click to the drag frame.
+          if (event.target instanceof Element && event.target.closest("button")) return;
           dragStartXRef.current = event.clientX;
           dragStartYRef.current = event.clientY;
           dragDeltaXRef.current = 0;

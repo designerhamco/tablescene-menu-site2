@@ -85,7 +85,7 @@ test("모바일은 공통 48px/24px 읽기 리듬을 사용한다", () => {
   assert.match(globalStylesSource, /\.cafe-a-fit-menu-grid > \* \+ \.cafe-a-menu-category-block \{\s*margin-top: var\(--cafe-a-mobile-category-boundary-gap\);/);
 });
 
-test("선데이 로스터스 분리선은 기기별 카테고리 경계의 정중앙에 놓인다", () => {
+test("멜로크레마 분리선은 기기별 카테고리 경계의 정중앙에 놓인다", () => {
   assert.match(
     globalStylesSource,
     /data-template-key="cafe_sunday_line_a"\] \.cafe-a-desktop-fit-board \{\s*--cafe-a-category-divider-before-gap: calc\(var\(--cafe-a-category-no-divider-gap\) \* 0\.5\);\s*--cafe-a-category-divider-after-gap: calc\(var\(--cafe-a-category-no-divider-gap\) \* 0\.5\);/,

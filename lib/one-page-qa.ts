@@ -3,7 +3,7 @@ export const ONE_PAGE_QA_TEMPLATES = [
   { key: "cafe_design_a", name: "REAL MATCHA" },
 
   { key: "cafe_mocha_forest_a", name: "MELLOW" },
-  { key: "cafe_sunday_line_a", name: "선데이 로스터스" },
+  { key: "cafe_sunday_line_a", name: "멜로크레마" },
   { key: "cafe_van_gogh_a", name: "Van Gogh" },
   { key: "cafe_round_focus_a", name: "ROSY ORANGE" },
   { key: "fast_food_loop_bagel_a", name: "LOOP BAGEL" },

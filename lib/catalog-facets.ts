@@ -42,7 +42,7 @@ export type CatalogFacets = {
 const designerFacets: Readonly<Record<string, CatalogFacets>> = {
   cafe_design_a: { moods: ["lively", "modern"], colors: ["green", "white"] },
   cafe_mocha_forest_a: { moods: ["cozy", "vintage"], colors: ["red", "yellow"] },
-  cafe_sunday_line_a: { searchNames: ["SUNDAY ROASTERS"], moods: ["cozy", "vintage"], colors: ["blue", "white"] },
+  cafe_sunday_line_a: { searchNames: ["mello crema", "멜로 크레마"], moods: ["cozy", "vintage"], colors: ["blue", "white"] },
   cafe_van_gogh_a: { moods: ["minimal", "modern"], colors: ["black", "white"] },
   restaurant_onue_a: { searchNames: ["ONUE TABLE"], moods: ["cozy", "elegant"], colors: ["brown", "beige", "white"] },
   cafe_round_focus_a: { moods: ["lively", "modern"], colors: ["orange", "white"] },

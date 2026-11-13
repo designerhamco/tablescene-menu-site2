@@ -6055,3 +6055,8 @@ video {
   --basic-panel-controls-size: 3rem;
 }
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] { --basic-panel-controls-size: 3.5rem; }
+
+/* Preserve the native mello crema identity case, including title-fit probes. */
+.cafe-a-typography[data-template-key="cafe_sunday_line_a"] .cafe-a-store-title {
+  text-transform: none;
+}
