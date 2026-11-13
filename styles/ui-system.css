@@ -1581,6 +1581,7 @@ svg.site-edit-icon {
 /* Discovery controls hug content; form fields retain their existing fill behavior. */
 :root { --ui-filter-search-width: 18rem; }
 .site-filter-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "fields fields" "summary tools"; align-items: center; gap: var(--site-space-block); margin-block-end: var(--site-space-group); }
+.site-filter-toolbar[data-surface="muted"] { padding: var(--site-panel-inset); border: 0; border-radius: var(--ui-radius-surface); background: var(--ui-surface-muted); box-shadow: none; }
 .site-filter-toolbar-fields { grid-area: fields; display: flex; flex-wrap: wrap; align-items: center; min-width: 0; gap: var(--site-space-block); }
 .site-filter-toolbar-search { flex: 0 1 100%; min-width: 0; max-width: 100%; }
 .site-filter-toolbar-options { display: grid; width: max-content; max-width: 100%; grid-template-columns: minmax(max-content, 1fr); gap: var(--site-space-copy); }
@@ -1594,6 +1595,7 @@ svg.site-edit-icon {
 }
 @media (min-width: 768px) {
   .site-filter-toolbar { grid-template-areas: "fields tools" "summary summary"; }
+  .site-filter-toolbar[data-surface="muted"] { padding: var(--site-panel-inset-wide); }
   .site-filter-toolbar-search { flex-basis: var(--ui-filter-search-width); }
   .site-filter-toolbar-options { grid-template-columns: repeat(2, minmax(max-content, 1fr)); }
 }

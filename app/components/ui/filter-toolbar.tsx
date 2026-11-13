@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 
 /** Search keeps a bounded width; equal option tracks hug the widest control. */
-export function FilterToolbar({ search, filters, tools, summary, filterLabel = "필터", collapseFiltersOnMobile = false, hideToolsOnMobile = false }: {
+export function FilterToolbar({ search, filters, tools, summary, filterLabel = "필터", collapseFiltersOnMobile = false, hideToolsOnMobile = false, surface }: {
+  /** Painted grouping is explicit; ordinary filters stay unpainted. */
+  surface?: "muted";
   search: ReactNode;
   filters: ReactNode[];
   tools?: ReactNode;
@@ -12,7 +14,7 @@ export function FilterToolbar({ search, filters, tools, summary, filterLabel = "
   /** Omit auxiliary tools and their grid track below the shared 768px boundary. */
   hideToolsOnMobile?: boolean;
 }) {
-  return <div className="site-filter-toolbar" data-mobile-filters={collapseFiltersOnMobile ? "collapsed" : "inline"} data-mobile-tools={hideToolsOnMobile ? "hidden" : undefined}>
+  return <div className="site-filter-toolbar" data-surface={surface} data-mobile-filters={collapseFiltersOnMobile ? "collapsed" : "inline"} data-mobile-tools={hideToolsOnMobile ? "hidden" : undefined}>
     <div className="site-filter-toolbar-fields">
       <div className="site-filter-toolbar-search">{search}</div>
       <div className="site-filter-toolbar-options" data-filter-count={filters.length} role="group" aria-label={filterLabel}>{filters}</div>

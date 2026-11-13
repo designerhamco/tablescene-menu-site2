@@ -13,6 +13,10 @@
 - `components/menu-templates`·`components/public-menu`의 고객 메뉴판 디자인·언어·페이지 이동·주문/호출은 별도 경계다. 툴팁 꼬리와 기기 회전 안내는 별도 도형을 유지한다. 재생/일시정지는 일반 UI 아이콘 정책을 따른다.
 
 
+## 템플릿 검색·필터 표면 (2026-11-13)
+
+2026-11-13 사용자 승인: 템플릿 선택 화면의 검색·필터·썸네일 크기 도구·결과 개수를 하나의 밝은 회색 영역으로 묶는다. 공통 FilterToolbar의 명시적 surface="muted"만 사용하며 기본값은 배경 없는 구성이다. 표면은 --ui-surface-muted, 모서리는 --ui-radius-surface, 무테·무그림자다. 안쪽 여백은 --site-panel-inset(모바일20px)/--site-panel-inset-wide(768px 이상24px), 내부 행 간격16px(--site-space-block), 옵션 사이8px(--site-space-copy), 다음 썸네일 목록과24px(--site-space-group)를 한 번만 적용한다. 결과 개수 아래 구분선과 그 전용 여백은 제거한다. 썸네일·페이지네이션은 회색 영역 밖이며 기존 검색/선택/보기 전환·모바일 필터 동작은 유지한다. 다른 일반 필터에 표면을 자동 추가하지 않는다. 공통 구현과 실제 예시는 FilterToolbar 및 /design-system#composed-fields를 따른다.
+
 ## 최종 폰트 기준 우선 적용
 
 글자 크기의 현재 기준은 [최종 사이트 폰트 기준](site-typography-final.md)이다. 이전 기록의 40–60px 제목이나 fluid 글자 크기보다 이 기준이 우선한다.

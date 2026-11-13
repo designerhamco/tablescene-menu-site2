@@ -141,7 +141,7 @@ export default function TemplateGallery({
             className="site-catalog-panel"
             id={`${tabsId}-kind-panel`} aria-labelledby={product !== "display" ? `${tabsId}-${kind}` : undefined}>
             <div className="site-catalog-results">
-              <FilterToolbar collapseFiltersOnMobile hideToolsOnMobile filterLabel="템플릿 필터" search={
+              <FilterToolbar surface="muted" collapseFiltersOnMobile hideToolsOnMobile filterLabel="템플릿 필터" search={
                 <CatalogFilterSearch search={
                   <form role="search" aria-label="템플릿 이름 검색" className="site-catalog-search" onSubmit={event => event.preventDefault()}>
                     <SearchField id={`${tabsId}-search`} label="템플릿 이름 검색" submitLabel="이름 검색" placeholder="템플릿 이름으로 검색" enterKeyHint="search" maxLength={100} value={query} onValueChange={searchByName} />
@@ -158,7 +158,6 @@ export default function TemplateGallery({
                 </p>
               } />
               <div className="site-stack-group">
-                <hr className="site-content-divider" />
                 {message && <p role="status" className="type-body-sm text-red-700">{message}</p>}
                 {paginatedTemplates.length ? (
                   <div className="site-template-grid" data-thumbnail-size={resolvedThumbnailSize} data-thumbnail-default={thumbnailSize === undefined || undefined}>{paginatedTemplates.map(design => <CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={busy} onToggle={toggle} />)}</div>
