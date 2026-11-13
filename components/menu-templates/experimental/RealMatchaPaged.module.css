@@ -81,6 +81,13 @@
   column-gap: var(--scroll-column-gap);
 }
 .menu:focus-visible { outline: 2px solid var(--paged-brand); outline-offset: -2px; }
+.frame.frame[data-menu-page-flow="true"] { overflow: visible !important; }
+.frame[data-menu-page-flow="true"] > .menuPanel { height: max-content; min-height: 100%; padding-bottom: var(--scroll-page-inset); overflow: visible !important; }
+.frame[data-menu-page-flow="true"] .viewport,
+.frame[data-menu-page-flow="true"] .menu { min-height: var(--menu-page-reading-height, 1px); }
+.frame[data-menu-page-flow="true"] .menu { height: auto; overflow: visible; scrollbar-gutter: auto; }
+.frame[data-menu-page-flow="true"] .fade { display: none; }
+.frame[data-menu-page-flow="true"] .footer { position: sticky; bottom: var(--scroll-page-inset); z-index: 4; background: var(--scroll-background); }
 .scrollContent { min-height: 100%; box-sizing: border-box; }
 /* Only continuous fill gets one page inset after its last real menu/notice row. */
 .frame[data-paged-layout="orderedFit"] .scrollContent { padding-bottom: var(--scroll-page-inset); }
