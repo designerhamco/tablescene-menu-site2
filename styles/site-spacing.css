@@ -107,8 +107,6 @@
   .site-catalog-plan { padding-block: var(--site-space-group); }
   .site-catalog-results .site-template-grid[data-thumbnail-size] { column-gap: var(--site-space-title-copy); row-gap: var(--site-space-content); }
   .site-catalog-results .site-template-card > :last-child { padding-top: var(--site-space-block); }
-  .site-catalog-results .site-template-category { margin-top: var(--site-space-copy); }
-  .site-catalog-results .site-template-description { margin-top: var(--site-space-copy); }
   .site-pagination { margin-top: var(--site-space-content); }
   .site-catalog-consultation { margin-top: var(--site-space-section); }
 }

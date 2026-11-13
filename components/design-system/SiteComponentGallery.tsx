@@ -97,11 +97,11 @@ export default function SiteComponentGallery() {
         <TabsTrigger value="designer">이미지로 보기</TabsTrigger><TabsTrigger value="standard">목록으로 보기</TabsTrigger>
       </TabsList><TabsContent value="designer" className="type-body text-zinc-600">썸네일을 중심으로 디자인을 살펴봅니다.</TabsContent><TabsContent value="standard" className="type-body text-zinc-600">이름과 설명을 중심으로 디자인을 살펴봅니다.</TabsContent></Tabs>
     </Examples>
-    <Examples title="최상위 보기와 이미지 카드" description="서비스 단위로 전체 목록이 바뀌면 텍스트와 짧은 밑줄로 선택을 표시하는 주요 화면 탭을 사용하고, 썸네일과 제목·설명·이동 액션의 크기를 구분합니다.">
+    <Examples title="최상위 보기와 이미지 카드" description="디자이너 카드는 카테고리·제목·구조와 형식·분위기 해시태그로 비교하고, 기본 템플릿은 제목·설명으로 표시합니다.">
       <div className="site-collection"><Tabs purpose="page" defaultValue="all"><TabsList size="md" aria-label="템플릿 라이브러리 서비스">
-        <TabsTrigger value="all">전체 디자인</TabsTrigger><TabsTrigger value="basic">베이직</TabsTrigger><TabsTrigger value="dining">다이닝</TabsTrigger>
-      </TabsList>{["all","basic","dining"].map(key=><TabsContent key={key} value={key} className={styles.galleryPanel}>
-        <div className={styles.mediaGrid}>{catalogDesigns.filter(d=>d.kind==="designer"&&(key==="all"||d.service===key)).slice(0,3).map(design=><CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={false} onToggle={id=>setFavorites(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id])} />)}</div>
+        <TabsTrigger value="all">전체 디자인</TabsTrigger><TabsTrigger value="basic">베이직</TabsTrigger><TabsTrigger value="dining">다이닝</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger>
+      </TabsList>{["all","basic","dining","standard"].map(key=><TabsContent key={key} value={key} className={styles.galleryPanel}>
+        <div className={styles.mediaGrid}>{catalogDesigns.filter(d=>key==="standard"?d.kind==="standard":d.kind==="designer"&&(key==="all"||d.service===key)).slice(0,3).map(design=><CatalogDesignCard key={design.id} design={design} liked={favorites.includes(design.id)} busy={false} onToggle={id=>setFavorites(current=>current.includes(id)?current.filter(value=>value!==id):[...current,id])} />)}</div>
       </TabsContent>)}</Tabs></div>
     </Examples>
     <Examples title="상태별 건수와 빈 목록" description="상태는 회색 레일 안의 둥근 세그먼트와 건수로 구분하고, 빈 목록에서는 다음 행동을 안내합니다.">

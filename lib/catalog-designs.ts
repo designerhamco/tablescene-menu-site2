@@ -1,6 +1,7 @@
+import { getFixedOnePageLayoutShell, getOnePageTopRowAlignment, type OnePageLayoutShell } from "./one-page-layout-shells";
 import { getCatalogTemplateName } from "./catalog-template-names";
 import { getCatalogFacets, normalizeCatalogSearch, normalizeCatalogSelections, CATALOG_MOODS, CATALOG_COLORS, type CatalogFacets, type CatalogMoodFilter, type CatalogColorFilter } from "./catalog-facets";
-import { DEFAULT_DESIGN_REVIEWS, MENU_LAYOUTS, getDefaultDesignReviewUrl } from './menu-design-policy';
+import { DEFAULT_DESIGN_REVIEWS, MENU_LAYOUTS, getDefaultDesignReviewUrl, type MenuLayoutId } from './menu-design-policy';
 import { getDiningTemplateTier } from './dining-product-tiers';
 import { getMenuPlanMonthlyPrice } from './menu-plan-pricing';
 import { getTemplatePreviewRouteKey, templateCatalog, type TemplateCategoryKey } from './templates';
@@ -19,7 +20,7 @@ export function normalizeCatalogLayoutFilter(value: unknown): CatalogLayoutFilte
 export type CatalogImage = { src: string; label: string };
 export type CatalogDesign = CatalogFacets & {
   id: string; name: string; description: string; service: CatalogService; kind: CatalogKind;
-  templateKey: string; itemLayout: 'list' | 'album'; categories: TemplateCategoryKey[];
+  templateKey: string; structureLabel: string; itemLayout: 'list' | 'album'; categories: TemplateCategoryKey[];
   categoryLabel: string; image: string; images: readonly CatalogImage[]; previewHref: string; detailHref: string; startHref: string;
 };
 export const CATALOG_INDUSTRIES = [
@@ -43,6 +44,21 @@ export function getCatalogStartHref(service: CatalogService, templateKey: string
   if(service==='display') return `/apply/display?template=${templateKey}`;
   return `/apply/basic?${new URLSearchParams({product:service==='dining'?'business_basic_multi_monthly':'business_basic_single_monthly',template:templateKey,design:designId})}`;
 }
+// Card metadata follows the renderer's registered shell; it never configures it.
+const shellLayouts: Record<OnePageLayoutShell, MenuLayoutId> = {
+  brand_left_rail: "basic-first-column", brand_top_band: "basic-top-row",
+  brand_center_rail: "basic-center-column", brand_center_column: "basic-center-column", brand_panel_flow: "basic-upper-left",
+};
+function designerStructureLabel(templateKey: string, service: CatalogService) {
+  if (service === "display") return "TV·모니터형";
+  if (service === "dining") {
+    const design = DEFAULT_DESIGN_REVIEWS.find(item => item.renderer === templateKey);
+    return design ? MENU_LAYOUTS[design.layout].label : "페이지형";
+  }
+  const shell = getFixedOnePageLayoutShell(templateKey);
+  const layout = shell === "brand_top_band" && getOnePageTopRowAlignment(templateKey) === "left" ? "basic-top-row-left-logo" : shellLayouts[shell];
+  return MENU_LAYOUTS[layout].label;
+}
 const standardPreviewVersions: Readonly<Record<string, string>> = {
   "basic-top-row": "20261110",
   "basic-top-row-left-logo": "20261110-v2",
@@ -51,7 +67,7 @@ const standards: CatalogDesign[]=DEFAULT_DESIGN_REVIEWS.map(design=>{
   const service=MENU_LAYOUTS[design.layout].service;
   return {...getCatalogFacets(design.renderer, "standard"),id:design.id,name:`${MENU_LAYOUTS[design.layout].label} · ${design.itemLayout==='album'?'앨범형':'리스트형'}`,
     description:design.itemLayout==='album'?'상품 사진을 중심으로 메뉴를 보여주는 기본 디자인입니다. 색상과 서체를 매장에 맞게 꾸며보세요.':'흰 배경과 검정 글자를 바탕으로 메뉴를 정갈하게 보여주는 기본 디자인입니다.',
-    service,kind:'standard',templateKey:design.renderer,itemLayout:design.itemLayout,categories:[],categoryLabel:'기본 디자인',
+    service,kind:'standard',templateKey:design.renderer,structureLabel:MENU_LAYOUTS[design.layout].label,itemLayout:design.itemLayout,categories:[],categoryLabel:'기본 디자인',
     image:`/template-previews/default-${design.id}-${standardPreviewVersions[design.id] ?? "20261021"}.jpg`,
     images:[{src:`/template-previews/default-${design.id}-${standardPreviewVersions[design.id] ?? "20261021"}.jpg`,label:"메뉴판 디자인"}],previewHref:getDefaultDesignReviewUrl(design),detailHref:`/templates/${design.id}`,
     startHref:getCatalogStartHref(service,design.renderer,design.id)};
@@ -80,7 +96,7 @@ const designers: CatalogDesign[]=templateCatalog.filter(t=>t.status==='available
   const facets=getCatalogFacets(t.key,"designer");
   const categories=facets.industries?[...facets.industries]:[...t.categories];
   const images=catalogGalleries[route]??[{src:catalogImages[route]??`/template-previews/${route}.jpg`,label:"메뉴판 디자인"}];
-  return {...facets,id:t.key,name:getCatalogTemplateName(t.key,t.name),description:t.description,service,kind:'designer',templateKey:t.key,itemLayout:'list',categories,categoryLabel:getCatalogIndustryLabel(categories,t.categoryLabel),
+  return {...facets,id:t.key,name:getCatalogTemplateName(t.key,t.name),description:t.description,service,kind:'designer',templateKey:t.key,structureLabel:designerStructureLabel(t.key,service),itemLayout:'list',categories,categoryLabel:getCatalogIndustryLabel(categories,t.categoryLabel),
     image:images[0].src,images,previewHref:`/templates/${route}/preview`,detailHref:`/templates/${route}`,startHref:getCatalogStartHref(service,t.key,t.key)};
 });
 export const catalogDesigns: readonly CatalogDesign[]=[...standards,...designers];

@@ -17,6 +17,10 @@
 
 2026-11-13 사용자 승인: 템플릿 선택 화면의 검색·필터·썸네일 크기 도구·결과 개수를 하나의 밝은 회색 영역으로 묶는다. 공통 FilterToolbar의 명시적 surface="muted"만 사용하며 기본값은 배경 없는 구성이다. 표면은 --ui-surface-muted, 모서리는 --ui-radius-surface, 무테·무그림자다. 안쪽 여백은 --site-panel-inset(모바일20px)/--site-panel-inset-wide(768px 이상24px), 내부 행 간격16px(--site-space-block), 옵션 사이8px(--site-space-copy), 다음 썸네일 목록과24px(--site-space-group)를 한 번만 적용한다. 결과 개수 아래 구분선과 그 전용 여백은 제거한다. 썸네일·페이지네이션은 회색 영역 밖이며 기존 검색/선택/보기 전환·모바일 필터 동작은 유지한다. 다른 일반 필터에 표면을 자동 추가하지 않는다. 공통 구현과 실제 예시는 FilterToolbar 및 /design-system#composed-fields를 따른다.
 
+## 템플릿 카드 정보 (2026-11-13)
+
+디자이너는 카테고리 → 제목 → 구조·표시 형식 → 분위기 해시태그 순서이며 서비스명·긴 설명·중복 리스트/앨범 표시는 생략한다. 기본은 기존 제목·설명을 유지하고 유형 줄을 제거한다. 기본의 분위기·색상 분류값과 필터는 없다. 간격은 site-stack-copy8px, 글자는 기존 카드 역할을 사용한다. 분위기 등록·필터·카드와 구조 라벨의 정본은 [컴포넌트 기준](site-component-density.md#템플릿-카드-정보-2026-11-13), catalog-facets/catalog-designs 및 기존 구조 레지스트리를 따른다.
+
 ## 최종 폰트 기준 우선 적용
 
 글자 크기의 현재 기준은 [최종 사이트 폰트 기준](site-typography-final.md)이다. 이전 기록의 40–60px 제목이나 fluid 글자 크기보다 이 기준이 우선한다.

@@ -5,8 +5,11 @@ import { CATALOG_COLORS, CATALOG_MOODS, normalizeCatalogColor, normalizeCatalogM
 
 const ids = (items: typeof catalogDesigns) => items.map(item => item.id);
 
-test("every public design has registered discovery tags independent of customer settings", () => {
+test("designer tags are registered while neutral standards have no mood or color facets", () => {
   for (const design of catalogDesigns) {
+    if (design.kind === "standard") {
+      assert.deepEqual(design.moods, []); assert.deepEqual(design.colors, []); continue;
+    }
     assert.ok(design.moods.length > 0, design.id);
     assert.ok(design.colors.length > 0, design.id);
     for (const mood of design.moods) assert.ok(CATALOG_MOODS.some(item => item.key === mood), design.id);
