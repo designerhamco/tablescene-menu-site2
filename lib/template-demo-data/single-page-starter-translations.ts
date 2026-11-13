@@ -343,7 +343,7 @@ const SUNDAY_LINE_TRANSLATIONS: SinglePageStarterTranslationBundle = {
     site: {
       restaurantName: "Mello Crema",
       restaurantCategory: "Cafe",
-      brandDescription: "A cafe for slow days, with rich espresso, soft cream and simple, freshly baked treats.",
+      brandDescription: "Rich espresso topped with soft cream, served alongside freshly baked treats. At Mello Crema, your favorite cup brings a little ease to every day.",
       introDescription: "Take your time with espresso, cream and freshly baked treats.",
       menuCoverDescription: "Take your time with espresso, cream and freshly baked treats.",
       aboutDescription: "Soft cream and deep coffee aromas bring a comforting cup to your day.",
@@ -379,7 +379,7 @@ const SUNDAY_LINE_TRANSLATIONS: SinglePageStarterTranslationBundle = {
     site: {
       restaurantName: "Mello Crema",
       restaurantCategory: "咖啡馆",
-      brandDescription: "以浓郁意式浓缩、柔滑奶油与朴实烘焙，陪你悠闲度过每一天的咖啡馆。",
+      brandDescription: "浓郁的意式浓缩覆上柔滑奶油，搭配每日新鲜出炉的烘焙点心。在 Mello Crema，用喜欢的一杯，为日常添上一点悠闲。",
       introDescription: "慢慢享用意式浓缩、奶油与新鲜出炉的烘焙美味。",
       menuCoverDescription: "慢慢享用意式浓缩、奶油与新鲜出炉的烘焙美味。",
       aboutDescription: "以柔滑奶油与醇厚咖啡香，为日常添上一杯惬意。",
@@ -415,7 +415,7 @@ const SUNDAY_LINE_TRANSLATIONS: SinglePageStarterTranslationBundle = {
     site: {
       restaurantName: "Mello Crema",
       restaurantCategory: "カフェ",
-      brandDescription: "濃厚なエスプレッソとやさしいクリーム、素朴な焼き菓子で、ゆったりした一日を届けるカフェです。",
+      brandDescription: "濃厚なエスプレッソになめらかなクリームをのせ、日々焼き上げる菓子を添えます。お気に入りの一杯とともに、日常に小さなくつろぎを届ける Mello Crema です。",
       introDescription: "エスプレッソとクリーム、焼きたての味をゆっくり楽しむカフェです。",
       menuCoverDescription: "エスプレッソとクリーム、焼きたての味をゆっくり楽しむカフェです。",
       aboutDescription: "なめらかなクリームと深いコーヒーの香りで、毎日にほっとする一杯を。",

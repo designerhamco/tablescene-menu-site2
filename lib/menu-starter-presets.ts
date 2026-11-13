@@ -1182,7 +1182,7 @@ cafeSundayLineStarterPreset.site = {
   menu_cover_label: "COFFEE & CREAM",
   cover_image_url: "/menu-templates/cafe_sunday_line_a/mello-crema-cream-latte.png",
   about_description: "부드러운 크림과 깊은 커피 향으로 일상에 편안한 한 잔을 더합니다.",
-  brand_description: "진한 에스프레소와 부드러운 크림, 담백한 베이커리로 느긋한 하루를 전하는 카페입니다.",
+  brand_description: "진한 에스프레소에 부드러운 크림을 올리고, 매일 구운 베이커리를 곁들입니다. 좋아하는 한 잔과 함께 일상에 작은 여유를 전하는 멜로크레마입니다.",
   intro_description: "에스프레소와 크림, 갓 구운 베이커리를 느긋하게 즐기는 카페입니다.",
   menu_cover_description: "에스프레소와 크림, 갓 구운 베이커리를 느긋하게 즐기는 카페입니다.",
   settings: {
