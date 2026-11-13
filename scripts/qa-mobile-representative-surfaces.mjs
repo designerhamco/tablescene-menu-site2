@@ -97,7 +97,7 @@ async function render(design,[device,width,height],extra={}){
 async function roundtrip(design){
  const page=await newPage({width:1440,height:1000});
  try{
-  await page.goto(href(design,'pc',{previewOptions:'design'}),{waitUntil:'networkidle'});
+  await page.goto(href(design,'pc',{previewOptions:'design'}),{waitUntil:'domcontentloaded'});
   await page.getByRole('button',{name:'보조 배경색 선택',exact:true}).click();
   const picker=page.locator('[data-preview-color-picker]');
   const input=picker.getByRole('textbox',{name:'보조 배경색 색상값',exact:true});
