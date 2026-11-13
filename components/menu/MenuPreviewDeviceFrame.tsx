@@ -16,7 +16,7 @@ import { readPreviewDesign, serializePreviewDesign, type PreviewDesign, type Pre
 import { hasFixedHeaderAlignment } from "@/lib/menu-design-surfaces";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import { getTemplatePreviewOptionGroups } from "@/lib/template-preview-options";
-import { getDefaultDesignOptions, type DefaultDesignOptionKey, type DefaultDesignOptions } from "@/lib/default-design-options";
+import { DEFAULT_DESIGN_OPTION_KEYS, getDefaultDesignOptions, withoutTemplatePreviewFeatureOverrides, type DefaultDesignOptionKey, type DefaultDesignOptions } from "@/lib/default-design-options";
 
 import {
   buildMenuPreviewUrl,
@@ -106,7 +106,7 @@ function PreviewOrientationIcon() {
 }
 
 export default function MenuPreviewDeviceFrame(
-  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; previewDesignDefaults?: PreviewDesignDefaults },
+  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; previewDisplayDefaults?: DefaultDesignOptions; previewDesignDefaults?: PreviewDesignDefaults },
 ) {
   const { device, query } = props;
   const isTemplatePreview = typeof props.templateKey === "string";
@@ -126,7 +126,7 @@ export default function MenuPreviewDeviceFrame(
   const legacyRatio = readPreviewDesign({albumImageRatio:(query as TemplatePreviewQuery).albumImageRatio}).albumImageRatio;
   if (isTemplatePreview && legacyRatio && !initialDesign.albumImageRatio) initialDesign.albumImageRatio = legacyRatio;
   const [designOptions, setDesignOptions] = useOptimistic(initialDesign);
-  const templateQuery = { ...query, previewOptions: optionsTab, designPreview: serializePreviewDesign(designOptions) };
+  const templateQuery: TemplatePreviewQuery = { ...query, previewOptions: optionsTab, designPreview: serializePreviewDesign(designOptions) };
   const toolbarRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -176,6 +176,15 @@ export default function MenuPreviewDeviceFrame(
     startTransition(() => {
       setDisplayOptions({ ...displayOptions, [key]: enabled });
       router.push(buildPreviewUrl({ device, orientation }, { ...templateQuery, [key]: enabled ? "on" : "off" }), { scroll: false });
+    });
+  };
+  const canResetFeatures = DEFAULT_DESIGN_OPTION_KEYS.some(key => templateQuery[key] !== undefined);
+  const resetDisplayOptions = () => {
+    if (!hasDisplayOptions || !canResetFeatures || isPending) return;
+    const nextQuery = withoutTemplatePreviewFeatureOverrides(templateQuery);
+    startTransition(() => {
+      setDisplayOptions(props.previewDisplayDefaults ?? getDefaultDesignOptions(nextQuery));
+      router.replace(buildPreviewUrl({ device, orientation }, nextQuery), { scroll: false });
     });
   };
   const layoutMode = normalizePcTabletLayoutMode(Array.isArray(query.layoutMode) ? query.layoutMode[0] : query.layoutMode, templateKey);
@@ -360,7 +369,7 @@ export default function MenuPreviewDeviceFrame(
           </button>
         </header>
         {hasDisplayOptions && templateKey ? <MenuPreviewOptionsPanel open={areDisplayOptionsOpen} onToggle={() => setDisplayOptionsOpenOverride(!areDisplayOptionsOpen)} tab={optionsTab} onTabChange={changeOptionsTab}
-          groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} pending={isPending} templateKey={templateKey} defaults={props.previewDesignDefaults} renderedDesign={renderedDesign} design={designOptions} onDesignChange={changeDesign} alignmentDisabled={device !== "mobile" && hasFixedHeaderAlignment(templateKey, { menu_design_id: defaultDesign?.id })} album={defaultDesign?.itemLayout === "album"} /> : null}
+          groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} onFeatureReset={resetDisplayOptions} canResetFeatures={canResetFeatures} pending={isPending} templateKey={templateKey} defaults={props.previewDesignDefaults} renderedDesign={renderedDesign} design={designOptions} onDesignChange={changeDesign} alignmentDisabled={device !== "mobile" && hasFixedHeaderAlignment(templateKey, { menu_design_id: defaultDesign?.id })} album={defaultDesign?.itemLayout === "album"} /> : null}
       </div>
 
       <section className={styles.stage} data-preview-stage=""

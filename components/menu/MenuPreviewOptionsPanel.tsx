@@ -8,10 +8,11 @@ import type { DefaultDesignOptionKey, DefaultDesignOptions } from "@/lib/default
 import type { PreviewDesign, PreviewDesignDefaults } from "@/lib/menu-preview-design";
 import type { PreviewRenderedDesign } from "@/lib/menu-preview-rendered-design";
 import PreviewDesignOptions from "./PreviewDesignOptions";
+import { Button } from "@/app/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import styles from "./MenuPreviewOptionsPanel.module.css";
 
-export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, pending, templateKey, defaults, renderedDesign, design, onDesignChange, album, alignmentDisabled = false }: {
+export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, onFeatureReset, canResetFeatures, pending, templateKey, defaults, renderedDesign, design, onDesignChange, album, alignmentDisabled = false }: {
   open: boolean;
   onToggle: () => void;
   tab: string;
@@ -19,6 +20,8 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
   groups: ReturnType<typeof getTemplatePreviewOptionGroups>;
   values: DefaultDesignOptions;
   onFeatureChange: (key: DefaultDesignOptionKey, enabled: boolean) => void;
+  onFeatureReset: () => void;
+  canResetFeatures: boolean;
   pending: boolean;
   templateKey: string;
   defaults?: PreviewDesignDefaults;
@@ -47,11 +50,14 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
           <TabsTrigger value="design" id="preview-design-tab" aria-controls="preview-design-panel">디자인 옵션</TabsTrigger>
         </TabsList>
         <TabsContent value="features" id="preview-features-panel" aria-labelledby="preview-features-tab" data-preview-display-options>
+        <div className="site-stack-block">
+          <div className="site-action-row" data-distribution="end"><Button type="button" variant="outline" size="compact" onClick={onFeatureReset} disabled={pending || !canResetFeatures} data-preview-feature-reset>기능 초기화</Button></div>
         <div className={styles.groups}>{groups.map(group => <fieldset key={group.label} className={styles.group}>
           <legend>{group.label}</legend><div className={styles.choices}>{group.choices.map(([key, label]) => <label key={key} className={styles.choice}>
             <input type="checkbox" aria-label={`${label} 보기`} checked={values[key]} disabled={pending || ((key === "featuredPreview" || key === "coverImagesPreview") && !values.coverPreview)} onChange={event => onFeatureChange(key, event.target.checked)} />{label}
           </label>)}</div>
         </fieldset>)}</div>
+        </div>
         </TabsContent>
         <TabsContent value="design" id="preview-design-panel" aria-labelledby="preview-design-tab">
         {open && defaults ? <PreviewDesignOptions templateKey={templateKey} defaults={defaults} renderedDesign={renderedDesign} value={design} album={album} dining={templateKey.startsWith("dining_")} disabled={pending} alignmentDisabled={alignmentDisabled} onChange={onDesignChange} /> : null}

@@ -1157,7 +1157,7 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   data = applyPreviewDesign(data, getFirstParam(resolvedSearchParams.designPreview), defaultDesign?.itemLayout === "album");
   if (!isActualView && usesDevicePreviewFrame) {
     return <><MenuPreviewDeviceFrame device={device} orientation={orientation} templateKey={templateKey} query={resolvedSearchParams}
-      previewDesignDefaults={designDefaults} previewDisplayOptions={getTemplatePreviewOptions(localizedData, resolvedSearchParams)} /><MobilePreviewEntryNotice /></>;
+      previewDesignDefaults={designDefaults} previewDisplayOptions={getTemplatePreviewOptions(localizedData, resolvedSearchParams)} previewDisplayDefaults={getTemplatePreviewOptions(localizedData, {})} /><MobilePreviewEntryNotice /></>;
   }
   if (templateKey === "cafe_real_matcha_paged_test") applyPagedMatchaFixture(data, getFirstParam(resolvedSearchParams.pageTest));
   const requestedRenderMode = Array.isArray(resolvedSearchParams.renderMode)
