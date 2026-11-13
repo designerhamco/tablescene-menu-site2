@@ -810,31 +810,31 @@ function applySundayLineCopyQaFixture(
     : {};
   const longCopyByLocale = {
     ko: {
-      restaurantName: "SUNDAY ROASTERS.",
+      restaurantName: "mello crema.",
       brandDescription: "좋은 원두와 담백한 디저트를 천천히 즐기는 동네 로스터리의 메뉴판 안내입니다. 여유로운 매장 분위기를 함께 안내합니다.",
-      footerNotice1: "Wi-Fi · SUNDAY_GUEST · Password 2026",
-      footerNotice2: "Instagram · @sunday.roasters · 매일 새 소식",
+      footerNotice1: "Wi-Fi · MELLO_CREMA_GUEST · Password 2026",
+      footerNotice2: "Instagram · @mello.crema · 매일 새 소식",
       footerNotice3: "반려동물은 야외 좌석만 이용 가능하며 포장 주문도 가능합니다.",
     },
     en: {
-      restaurantName: "SUNDAY ROASTERS",
-      brandDescription: "Carefully roasted coffee and simple desserts are prepared for neighbors who enjoy an easy Sunday rhythm.",
-      footerNotice1: "Wi-Fi SUNDAY_GUEST · Password 2026",
-      footerNotice2: "Instagram @sunday.roasters",
+      restaurantName: "mello crema",
+      brandDescription: "Carefully roasted coffee and simple desserts are prepared for neighbors who enjoy an easy, unhurried rhythm.",
+      footerNotice1: "Wi-Fi MELLO_CREMA_GUEST · Password 2026",
+      footerNotice2: "Instagram @mello.crema",
       footerNotice3: "Takeout available · Patio pet seating",
     },
     zh: {
-      restaurantName: "星期日烘焙咖啡店欢迎",
+      restaurantName: "欢迎来到 Mello Crema",
       brandDescription: "每日准备烘焙咖啡和朴素甜点，为附近客人提供轻松舒适的菜单说明和温暖的店铺体验。",
-      footerNotice1: "Wi-Fi SUNDAY_GUEST · 密码 2026",
-      footerNotice2: "Instagram @sunday.roasters",
+      footerNotice1: "Wi-Fi MELLO_CREMA_GUEST · 密码 2026",
+      footerNotice2: "Instagram @mello.crema",
       footerNotice3: "可外带 · 宠物可使用户外座位说明",
     },
     ja: {
-      restaurantName: "サンデーロースターズ本店",
+      restaurantName: "メロクレマ本店",
       brandDescription: "丁寧に焙煎したコーヒーと素朴なデザートを用意し、ゆっくり過ごせる店内のメニューを案内します。",
-      footerNotice1: "Wi-Fi SUNDAY_GUEST · Password 2026",
-      footerNotice2: "Instagram @sunday.roasters",
+      footerNotice1: "Wi-Fi MELLO_CREMA_GUEST · Password 2026",
+      footerNotice2: "Instagram @mello.crema",
       footerNotice3: "テイクアウト可 · ペットは屋外席のみ",
     },
   } as const;
@@ -848,19 +848,19 @@ function applySundayLineCopyQaFixture(
   const filler = fillerByLocale[locale];
 
   const restaurantName = isStress
-    ? toExactPreviewLength("SUNDAYROASTERSNEIGHBORHOODCAFE2026", contentLimits.restaurantName)
+    ? toExactPreviewLength("MELLOCREMANEIGHBORHOODCAFE2026", contentLimits.restaurantName)
     : toExactPreviewLength(longCopy.restaurantName, contentLimits.restaurantName, filler);
   const brandDescription = isStress
-    ? toExactPreviewLength("SUNDAYROASTERSCOFFEEDESSERTNEIGHBORHOODPAPERMENUDAILYBREWINGGUIDE", contentLimits.brandDescription)
+    ? toExactPreviewLength("MELLOCREMACOFFEEDESSERTNEIGHBORHOODPAPERMENUDAILYBREWINGGUIDE", contentLimits.brandDescription)
     : toExactPreviewLength(longCopy.brandDescription, contentLimits.brandDescription, filler);
   const footerNotice1 = isStress
-    ? toExactPreviewLength("WiFiSSID_SUNDAYROASTERS_GUEST_NETWORK_2026_PASSWORD", contentLimits.footerNotice)
+    ? toExactPreviewLength("WiFiSSID_MELLOCREMA_GUEST_NETWORK_2026_PASSWORD", contentLimits.footerNotice)
     : toExactPreviewLength(longCopy.footerNotice1, contentLimits.footerNotice, filler);
   const footerNotice2 = isStress
-    ? toExactPreviewLength("Instagram @sunday.roasters.official.account.2026", contentLimits.footerNotice)
+    ? toExactPreviewLength("Instagram @mello.crema.official.account.2026", contentLimits.footerNotice)
     : toExactPreviewLength(longCopy.footerNotice2, contentLimits.footerNotice, filler);
   const footerNotice3 = isStress
-    ? toExactPreviewLength("TAKEOUTPETFRIENDLYPATIOSEATINGSUNDAYROASTERSNOTICE", contentLimits.footerNotice)
+    ? toExactPreviewLength("TAKEOUTPETFRIENDLYPATIOSEATINGMELLOCREMANOTICE", contentLimits.footerNotice)
     : toExactPreviewLength(longCopy.footerNotice3, contentLimits.footerNotice, filler);
 
   settings.footer_notice_1 = footerNotice1;

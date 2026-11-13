@@ -11,7 +11,7 @@ const results = [];
 const templates = [
   ["cafe_real_matcha_a", "REAL MATCHA", "single"],
   ["cafe_mocha_forest_a", "MELLOW", "single"],
-  ["cafe_sunday_roasters_a", "선데이 로스터스", "single"],
+  ["cafe_sunday_roasters_a", "멜로크레마", "single"],
   ["cafe_van_gogh_a", "Van Gogh", "single"],
   ["cafe_round_focus_a", "ROSY ORANGE", "single"],
   ["fast_food_loop_bagel_a", "루프베이글", "single"],

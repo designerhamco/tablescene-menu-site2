@@ -1176,45 +1176,41 @@ const cafeBrewChapterStarterPreset: StarterPreset = {
 
 cafeSundayLineStarterPreset.site = {
   ...cafeSundayLineStarterPreset.site,
-  restaurant_name: "SUNDAY ROASTERS",
-  intro_title: "SUNDAY ROASTERS",
-  menu_cover_title: "SUNDAY ROASTERS",
-  brand_description: "좋은 원두와 담백한 디저트를 천천히 즐길 수 있도록, 매일 균형 잡힌 커피와 편안한 한 잔을 준비하는 동네 로스터리입니다.",
-  intro_description: "좋은 원두와 담백한 디저트를 천천히 즐기는 동네 로스터리입니다.",
-  menu_cover_description: "좋은 원두와 담백한 디저트를 천천히 즐기는 동네 로스터리입니다.",
+  restaurant_name: "mello crema",
+  intro_title: "mello crema",
+  menu_cover_title: "mello crema",
+  menu_cover_label: "COFFEE & CREAM",
+  cover_image_url: "/menu-templates/cafe_sunday_line_a/mello-crema-cream-latte.png",
+  about_description: "부드러운 크림과 깊은 커피 향으로 일상에 편안한 한 잔을 더합니다.",
+  brand_description: "진한 에스프레소와 부드러운 크림, 담백한 베이커리로 느긋한 하루를 전하는 카페입니다.",
+  intro_description: "에스프레소와 크림, 갓 구운 베이커리를 느긋하게 즐기는 카페입니다.",
+  menu_cover_description: "에스프레소와 크림, 갓 구운 베이커리를 느긋하게 즐기는 카페입니다.",
   settings: {
     ...(cafeSundayLineStarterPreset.site.settings ?? {}),
-    footer_notice_1: "Wi-Fi · SUNDAY_GUEST",
-    footer_notice_2: "Instagram · @sunday.roasters",
+    typography: { korean_font_key: "pretendard", english_font_key: "alata", font_size_scale_key: "m" },
+    footer_notice_1: "Wi-Fi · MELLO_CREMA_GUEST",
+    footer_notice_2: "Instagram · @mello.crema",
     footer_notice_3: "반려동물은 야외 좌석만 이용 가능합니다.",
   },
 };
-cafeSundayLineStarterPreset.featured_item_name = "오렌지 바닐라 콜드브루";
-cafeSundayLineStarterPreset.featured_item_key = "orange-vanilla-cold-brew";
+cafeSundayLineStarterPreset.featured_item_name = "멜로우 크림 라떼";
+cafeSundayLineStarterPreset.featured_item_key = "mello-cream-latte";
 cafeSundayLineStarterPreset.featured_slides = [
   {
-    id: "sunday-roasters-featured-orange-vanilla-cold-brew",
-    image_url: "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-01.png",
+    id: "mello-crema-featured-cream-latte",
+    image_url: "/menu-templates/cafe_sunday_line_a/mello-crema-cream-latte.png",
     image_path: null,
-    featured_item_key: "orange-vanilla-cold-brew",
-    featured_item_name: "오렌지 바닐라 콜드브루",
+    featured_item_key: "mello-cream-latte",
+    featured_item_name: "멜로우 크림 라떼",
     sort_order: 0,
   },
   {
-    id: "sunday-roasters-featured-salted-maple-latte",
-    image_url: "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-02.png",
+    id: "mello-crema-featured-brown-sugar-latte",
+    image_url: "/menu-templates/cafe_sunday_line_a/mello-crema-brown-sugar-latte.png",
     image_path: null,
-    featured_item_key: "salted-maple-latte",
-    featured_item_name: "솔티드 메이플 라떼",
+    featured_item_key: "brown-sugar-cream-latte",
+    featured_item_name: "브라운 슈가 크림 라떼",
     sort_order: 1,
-  },
-  {
-    id: "sunday-roasters-featured-sunday-cream-latte",
-    image_url: "/menu-templates/cafe_sunday_line_a/sunday-roasters-featured-03.png",
-    image_path: null,
-    featured_item_key: "sunday-cream-latte",
-    featured_item_name: "선데이 크림 라떼",
-    sort_order: 2,
   },
 ];
 cafeSundayLineStarterPreset.time_sales = [
@@ -1262,9 +1258,9 @@ cafeSundayLineStarterPreset.pages = [
         name: "SIGNATURE COFFEE",
         section_key: "main_menu",
         items: [
-          item("선데이 크림 라떼", 6500, "고소한 크림과 에스프레소를 부드럽게 즐기는 시그니처 라떼", {
-            key: "sunday-cream-latte",
-            set_name: "SUNDAY CREAM LATTE",
+          item("멜로우 크림 라떼", 6500, "고소한 크림과 에스프레소를 부드럽게 즐기는 시그니처 라떼", {
+            key: "mello-cream-latte",
+            set_name: "MELLO CREAM LATTE",
             badge_label: "SIGNATURE",
             recommended: true,
           }),
