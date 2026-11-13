@@ -346,6 +346,7 @@
 .site-template-details { display: flex; flex: 1; flex-direction: column; }
 .site-template-category { color: var(--site-text-muted); font-size: var(--type-card-detail-size); font-weight: 500; line-height: var(--site-leading-meta); letter-spacing: var(--site-tracking-meta); }
 .site-template-title { font-size: var(--type-card-title-size); font-weight: var(--font-weight-medium); }
+.site-template-moods { display: flex; flex-wrap: wrap; gap: var(--site-space-copy); padding: 0; list-style: none; }
 .site-template-description { font-size: var(--type-card-body-size); line-height: var(--site-leading-support); color: var(--site-text-secondary); letter-spacing: var(--site-tracking-copy); }
 .site-template-actions { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-top: auto; padding-top: .75rem; }
 .site-template-preview-link { display: inline-flex; min-height: var(--ui-control-height-compact); align-items: center; gap: .375rem; color: var(--ui-text-muted); font-size: var(--type-body-sm-size); font-weight: 500; white-space: nowrap; transition: color var(--ui-transition); }

@@ -40,18 +40,19 @@ export type CatalogFacets = {
 // Editorial discovery tags describe the default menu artwork, not mockup photos
 // or customer-edited colors. Register tags here when adding a designer template.
 const designerFacets: Readonly<Record<string, CatalogFacets>> = {
-  cafe_design_a: { moods: ["lively", "modern"], colors: ["green", "white"] },
+  cafe_design_a: { moods: ["lively", "minimal", "modern"], colors: ["green", "white"] },
   cafe_mocha_forest_a: { moods: ["cozy", "vintage"], colors: ["red", "yellow"] },
-  cafe_sunday_line_a: { searchNames: ["mello crema", "멜로 크레마"], moods: ["cozy", "vintage"], colors: ["blue", "white"] },
-  cafe_van_gogh_a: { moods: ["minimal", "modern"], colors: ["black", "white"] },
-  restaurant_onue_a: { searchNames: ["ONUE TABLE"], moods: ["cozy", "elegant"], colors: ["brown", "beige", "white"] },
+  cafe_sunday_line_a: { searchNames: ["mello crema", "멜로 크레마"], moods: ["cozy", "minimal", "modern"], colors: ["blue", "white"] },
+  cafe_van_gogh_a: { moods: ["minimal", "vintage"], colors: ["black", "white"] },
+  restaurant_onue_a: { searchNames: ["ONUE TABLE"], moods: ["elegant", "cozy", "minimal"], colors: ["brown", "beige", "white"] },
   cafe_round_focus_a: { moods: ["lively", "modern"], colors: ["orange", "white"] },
   fast_food_loop_bagel_a: { searchNames: ["LOOP BAGEL"], moods: ["lively", "vintage"], colors: ["blue", "white"] },
   dining_aube_table_a: { searchNames: ["AUBE TABLE"], moods: ["elegant", "minimal"], colors: ["blue", "white"] },
   dining_aube_table_b: { searchNames: ["MAISON MARE"], moods: ["elegant", "modern"], colors: ["red", "beige"] },
   display_menu_a: { searchNames: ["SUMMER BLUE"], industries: ["cafe", "bakery", "dessert"], moods: ["lively", "modern"], colors: ["blue", "yellow"] },
 };
-const standardFacets: CatalogFacets = { moods: ["minimal", "modern"], colors: ["black", "white"] };
+// Neutral previews demonstrate configurable shapes, not editorial mood/color facets.
+const standardFacets: CatalogFacets = { moods: [], colors: [] };
 
 export function getCatalogFacets(templateKey: string, kind: "standard" | "designer"): CatalogFacets {
   return kind === "standard" ? standardFacets : designerFacets[templateKey] ?? { moods: [], colors: [] };
