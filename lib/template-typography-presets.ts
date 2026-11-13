@@ -130,7 +130,7 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
 
   cafe_mocha_forest_a: {
     korean_font_key: "pretendard",
-    english_font_key: "carme",
+    english_font_key: getDefaultEnglishFontForTemplate("cafe_mocha_forest_a").value,
     font_size_scale_key: "m",
     typography_roles: Object.fromEntries(TYPOGRAPHY_ROLE_KEYS.map(role => [role, { ...createDefaultTypographyRoleSettings()[role], color: MELLOW_COLORS.ink }])) as TypographyRoleSettings,
   },

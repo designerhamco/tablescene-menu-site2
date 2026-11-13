@@ -813,7 +813,7 @@ cafeMochaForestStarterPreset.site = {
     ...(cafeMochaForestStarterPreset.site.settings ?? {}),
     typography: {
       korean_font_key: "pretendard",
-      english_font_key: "carme",
+      english_font_key: getDefaultEnglishFontForTemplate("cafe_mocha_forest_a").value,
       font_size_scale_key: "m",
     },
     logo_replaces_name: true,
