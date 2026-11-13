@@ -7,6 +7,7 @@ import { applyStarterPreviewLocalization } from "./template-demo-data/starter-pr
 import { applyPreviewDesign, previewDesignDefaults } from "./menu-preview-design";
 import { StarterClient } from "./test-support/starter-provisioning-client";
 import { getTemplateByKey } from "./templates";
+import { getTemplateContentLimits } from "./template-content-limits";
 import { getCustomTypographySettings, mergeTypographySettings } from "./template-typography-presets";
 
 const key = "cafe_sunday_line_a";
@@ -16,6 +17,7 @@ test("Mello Crema native defaults and preview controls resolve the same Alata an
   const defaults = previewDesignDefaults(preview);
   assert.equal(getTemplateByKey(key).name, "멜로크레마");
   assert.equal(preview.menuSite.restaurant_name, "Mello Crema");
+  assert.ok(Array.from(preview.menuSite.brand_description ?? "").length <= getTemplateContentLimits(key).brandDescription);
   assert.equal(defaults.fontFamily.en, "alata");
   assert.equal(defaults.colors.page, "#FAF8F1");
   assert.equal(defaults.textColorDefaults.product, "#2237A0");
