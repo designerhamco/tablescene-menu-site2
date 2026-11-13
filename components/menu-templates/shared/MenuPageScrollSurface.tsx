@@ -18,13 +18,15 @@ export default function MenuPageScrollSurface({enabled, background, label, child
       if (!board || !menu || !content) return;
       const inset = parseFloat(getComputedStyle(board).paddingBottom) || 0;
       const actions = board.querySelector<HTMLElement>('[data-menu-page-actions]');
-      const bottom = inset + (actions?.getBoundingClientRect().height ?? 0);
+      const clearance = actions ? inset : 0;
+      const bottom = clearance + (actions?.getBoundingClientRect().height ?? 0);
       const bounds = scroll.getBoundingClientRect(), area = menu.getBoundingClientRect();
       const end = content.getBoundingClientRect().bottom - (parseFloat(getComputedStyle(content).paddingBottom) || 0);
       shell.dataset.more = end > bounds.bottom - bottom + 2 ? 'true' : 'false';
       shell.style.setProperty('--menu-page-fade-left', `${area.left - bounds.left}px`);
       shell.style.setProperty('--menu-page-fade-width', `${area.width}px`);
       shell.style.setProperty('--menu-page-fade-bottom', `${bottom}px`);
+      shell.style.setProperty('--menu-page-bottom-clearance', `${clearance}px`);
     };
     const schedule = () => {if (!disposed && !frame) frame = requestAnimationFrame(measure);};
     const resize = new ResizeObserver(schedule);
@@ -44,5 +46,6 @@ export default function MenuPageScrollSurface({enabled, background, label, child
   return <div className={styles.shell} style={{'--menu-page-background':background} as CSSProperties}>
     <div ref={ref} className={styles.scroll} data-menu-page-scroll role="region" aria-label={label} tabIndex={0}>{children}</div>
     <div className={styles.fade} aria-hidden="true" />
+    <div className={styles.bottomClearance} aria-hidden="true" />
   </div>;
 }
