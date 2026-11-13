@@ -7,7 +7,7 @@
 공식 사이트는 `app/components/ui/site-arrow.tsx`의 공통 SVG를 사용한다. `/design-system#site-arrows`에서 실제 예시를 확인한다. 정본은 `lib/site-arrow.ts`다.
 
 - 일반·대각선·꺾임·U턴·양방향은 승인된 곡선 머리, 단일/이중 꺾쇠는 안쪽이 파인 채움형을 유지한다.
-- 원형 새로고침·초기화는16px에서 선 세 갈래의 급한 miter 접합이 뾰족하게 튀거나 뭉치지 않도록 반지름7의 원호와 별도 채움형 머리(`SITE_CIRCULAR_ARROW_HEADS`)를 사용한다. 머리는 `currentColor`, stroke 없음이며 원호 바깥쪽 곡선 날개 하나로 기존 조형 계열을 잇는다.16–24px 가독성을 위해 날개 길이5.2→6.6, 폭3.6→4.4, 안쪽 접점2.4→3.4로 넓혀 채움 면적을 약1.5배로 키우고 끝을 진행 방향으로 전진시킨다. 원호 선 굵기와 버튼 크기는 유지한다. 라이브러리에서16/20/24px의 새로고침·회전을 함께 표시한다.
+- 새로고침은2026-11-13 승인된 Remix Line `refresh-line` 원본 윤곽을 사용한다. `RefreshCw`는 원본 시계 방향, `RefreshCcw`는 반전된 반시계 방향이다. `currentColor` 채움과 stroke 없음으로 원본 굵기를 유지하며 별도 곡선 머리를 덧붙이지 않는다. 회전·초기화의 `RotateCw`/`RotateCcw`는 기존 한쪽 곡선 날개를 유지한다. 라이브러리에서16/20/24px의 새로고침·회전을 함께 표시한다.
 - SVG24px 그리드와 기존 호출 크기, 색, 클릭 영역, 포커스, 로딩 회전, 비활성 상태와 행동을 유지한다. 새 화면에 별도 Lucide 방향 화살표·문자형 조작 화살표·로컬 변형을 추가하지 않는다.
 - 네이티브 select는 동일 꺾쇠의 `public/icons/site-chevron-down.svg`를 사용한다. 기존 gutter와 강제 색상 모드, 메뉴판 제외 selector를 유지한다.
 - `components/menu-templates`·`components/public-menu`의 고객 메뉴판 디자인·언어·페이지 이동·주문/호출은 별도 경계다. 툴팁 꼬리와 기기 회전 안내는 별도 도형을 유지한다. 재생/일시정지는 일반 UI 아이콘 정책을 따른다.
@@ -710,7 +710,7 @@ OrderHistoryFilters는 ContentPanel density=controls, site-form-row/site-field-s
 - 일반 UI 아이콘은 `app/components/ui/site-icon.tsx`의 Remix Line을 사용한다. 24px 그리드의 로컬 SVG이며16/20/24/32px에서도 같은 윤곽 비율을 유지한다. 외부 CDN/아이콘 API 요청은 없다. 색은 `currentColor`, 굵기는 원본 윤곽을 따른다. 기존 `strokeWidth`로 윤곽을 덧그리지 않는다.
 - 알림·닫기·말풍선·하트·공유·저장·검색·추가·업종/색상/분위기/레이아웃 필터·마이페이지·미리보기 도구·사이트 마케팅 UI 모두 같은 출처를 사용한다. 업종은 커피잔/식기/그릇/고블릿/빵으로 구분한다. 매장 룸에 저장된 이모지는 사용자 데이터이므로 유지한다.
 - `lib/site-icon-map.ts`는 기존 이름과 원본 glyph의 매핑, `/design-system#site-icons`는 전체 glyph 예시를 제공한다. 좋아요는 `Heart`의 `filled` 또는 기존 `fill` 선택값으로 실제 채움형을 표시한다. 라디오와 메뉴의 선택점은 채움형 원이다. 의미/접근성/선택 상태를 보존한다.
-- 화살표는 기존 `site-arrow.tsx`를 유지한다. 새 창/외부 링크도 기존 ↗를 유지한다. 새로고침/회전만 작은 원호 바깥으로 한쪽 곡선 날개를 둔다. 안쪽 날개와 뾰족한 stroke join을 제거해 작은 크기에서 빈 공간이 열린다.
+- 화살표는 기존 `site-arrow.tsx`를 유지한다. 새 창/외부 링크도 기존 ↗를 유지한다. 새로고침은 사용자 선택에 따라 Remix Line `refresh-line`으로 표시한다(2026-11-13). 회전은 기존 원호 바깥의 한쪽 곡선 날개를 유지한다.
 - 툴팁 말풍선의 모양·꼬리·동작, 데이터 스와치/차트/QR/제스처 그림, 고객 메뉴판 렌더러는 변경 대상이 아니다. 메뉴판 영역에 새 사이트 아이콘을 가져오지 않는다.
 - 출처는 Iconify의 Remix Icon4.8.0 Apache-2.0 스냅샷으로 고정한다. 정확한 커밋과 라이선스는 `public/licenses/remix-icon-NOTICE.txt`, `remix-icon-LICENSE.txt`에 포함한다.
 

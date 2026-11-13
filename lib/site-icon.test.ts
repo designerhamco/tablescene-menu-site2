@@ -40,10 +40,10 @@ test("Remix icons preserve SVG props, names and actual selected heart geometry",
   assert.doesNotMatch(named, /stroke-width/);
   for (const Glyph of [Check, CircleIcon]) assert.match(renderToStaticMarkup(createElement(Glyph)), /<path fill="currentColor"/);
 });
-test("circular arrows use one filled wing and leave other approved arrow paths intact", () => {
+test("refresh uses Remix while rotate and other approved arrow paths remain intact", () => {
   // One line and one curve per wing, without the former second wing's quadratic back.
   assert.equal((SITE_CIRCULAR_ARROW_HEADS.rotate.match(/L/g) ?? []).length, 1);
   assert.equal((SITE_CIRCULAR_ARROW_HEADS.rotate.match(/Q/g) ?? []).length, 1);
-  assert.equal((SITE_CIRCULAR_ARROW_HEADS.refresh.match(/Z/g) ?? []).length, 2);
+  assert.match(SITE_ARROW_PATHS.refresh, /^M5\.463 4\.433A9\.96/);
   assert.match(SITE_ARROW_PATHS.shaft, /^M3 12H21M13 4C/);
 });

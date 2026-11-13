@@ -12,14 +12,14 @@ export type SiteArrowProps = SVGProps<SVGSVGElement> & {
  * Ref remains an SVG prop for React 19 / Radix asChild. Never use inside menu artwork.
  */
 export function SiteArrow({ size = 24, direction = "right", kind = "shaft", mirrored = false, strokeWidth = 2, children, ...props }: SiteArrowProps) {
-  const filled = kind === "chevron" || kind === "double-chevron";
-  const circularHead = kind === "refresh" || kind === "rotate" ? SITE_CIRCULAR_ARROW_HEADS[kind] : null;
+  const filled = kind === "chevron" || kind === "double-chevron" || kind === "refresh";
+  const circularHead = kind === "rotate" ? SITE_CIRCULAR_ARROW_HEADS.rotate : null;
   return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none"
-    aria-hidden="true" focusable="false" data-site-arrow={kind} data-direction={direction} {...props}>
+    aria-hidden="true" focusable="false" data-site-arrow={kind} data-direction={direction} data-icon-source={kind === "refresh" ? "remix" : undefined} {...props}>
     <g transform={`rotate(${SITE_ARROW_ROTATION[direction]} 12 12)`}>
       <path transform={mirrored ? "translate(0 24) scale(1 -1)" : undefined} d={SITE_ARROW_PATHS[kind]}
         fill={filled ? "currentColor" : "none"} stroke={filled ? "none" : "currentColor"}
-        strokeWidth={strokeWidth} strokeLinecap="butt" strokeLinejoin="miter" />
+        strokeWidth={kind === "refresh" ? undefined : strokeWidth} strokeLinecap="butt" strokeLinejoin="miter" />
       {circularHead ? <path transform={mirrored ? "translate(0 24) scale(1 -1)" : undefined} d={circularHead} fill="currentColor" stroke="none" /> : null}
     </g>{children}
   </svg>;
@@ -60,8 +60,9 @@ export const ArrowUTurnUp = directionalIcon("up", "turn-back");
 export const ArrowUTurnDown = directionalIcon("down", "turn-back", true);
 export const ArrowLeftRight = directionalIcon("right", "bidirectional");
 export const ArrowUpDown = directionalIcon("down", "bidirectional");
-export const RefreshCcw = directionalIcon("right", "refresh");
-export const RefreshCw = directionalIcon("right", "refresh", true);
+// The Remix original turns clockwise; mirror only the counterclockwise export.
+export const RefreshCcw = directionalIcon("right", "refresh", true);
+export const RefreshCw = directionalIcon("right", "refresh");
 export const RotateCcw = directionalIcon("right", "rotate");
 export const RotateCw = directionalIcon("right", "rotate", true);
 export { ArrowUTurnLeft as Undo2, ArrowUTurnRight as Redo2 };
