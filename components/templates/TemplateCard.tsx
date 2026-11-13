@@ -26,8 +26,8 @@ function getThumbnailClassName(tone: TemplateCatalogItem["thumbnailTone"]) {
 }
 
 export function TemplateThumbnail({ template, design }: { template: TemplateCatalogItem; design?: CatalogDesign | null }) {
-  const previewDesign = design ?? (template.key === "cafe_mocha_forest_a" ? getCatalogDesign(template.key) : null);
-  if (previewDesign && (previewDesign.kind === "standard" || previewDesign.id === "cafe_mocha_forest_a")) return <div data-template-artwork className="site-template-artwork"><Image src={previewDesign.image} alt={`${previewDesign.kind === "standard" ? "기본 디자인 / " : ""}${previewDesign.name}`} width={1200} height={900} className="aspect-[4/3] w-full object-cover" /></div>;
+  const previewDesign = design ?? ((template.key === "cafe_mocha_forest_a" || template.key === "cafe_sunday_line_a") ? getCatalogDesign(template.key) : null);
+  if (previewDesign && (previewDesign.kind === "standard" || previewDesign.id === "cafe_mocha_forest_a" || previewDesign.id === "cafe_sunday_line_a")) return <div data-template-artwork className="site-template-artwork"><Image src={previewDesign.image} alt={`${previewDesign.kind === "standard" ? "기본 디자인 / " : ""}${previewDesign.name}`} width={1200} height={900} className="aspect-[4/3] w-full object-cover" /></div>;
   return <div data-template-artwork className="site-template-artwork"><TemplateArtwork template={template} /></div>;
 }
 
