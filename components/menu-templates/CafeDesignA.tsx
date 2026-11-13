@@ -7587,7 +7587,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               <PanelFlowIntro data={data} density={density} mobileReading />
             </section>
           ) : isRoundFocus ? (
-            <section className="cafe-a-round-focus-mobile-brand-section lg:hidden" data-cafe-a-round-focus-mobile-brand-section="">
+            <section className="cafe-a-round-focus-mobile-brand-section lg:hidden" data-cafe-a-round-focus-mobile-brand-section="" data-menu-mobile-representative="panel">
               <HeaderBlock data={data} density={density} mobileReading={onePageRhythmMode === "mobile"} templateSkin={data.templateSkin} />
               {shouldRenderMenuCoverSection && (
                 <div className="cafe-a-round-focus-mobile-featured-shell min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)]">
@@ -7603,15 +7603,15 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               )}
             </section>
           ) : isMochaForest && onePageRhythmMode === "mobile" ? (
-            <section className="cafe-a-mobile-upper-box" data-cafe-a-mobile-upper-box="">
+            <section className="cafe-a-mobile-upper-box" data-cafe-a-mobile-upper-box="" data-menu-mobile-representative="panel">
               <HeaderBlock data={data} density={density} mobileReading templateSkin={data.templateSkin} />
               {shouldRenderMenuCoverSection && <div className="cafe-a-mobile-upper-featured"><CoverHero data={data} featuredSlides={featuredHeroSlides} capabilities={capabilities} density={density} customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} /></div>}
             </section>
           ) : (
-            <>
-              <HeaderBlock data={data} density={density} className="lg:hidden" mobileReading={onePageRhythmMode === "mobile"} templateSkin={data.templateSkin} />
+            <section className="lg:hidden" data-menu-mobile-representative="header">
+              <HeaderBlock data={data} density={density} mobileReading={onePageRhythmMode === "mobile"} templateSkin={data.templateSkin} />
               {mobileTopNotices ? <SundayLineMobileNotices data={data} capabilities={capabilities} density={density} mobileReading={onePageRhythmMode === "mobile"} /> : null}
-            </>
+            </section>
           )}
           <div data-cafe-a-scroll-content="" className={`grid min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-[var(--cafe-a-page-block-end)] md:grid-cols-2 lg:hidden ${isRoundFocus ? "cafe-a-round-focus-mobile-menu-grid" : ""} ${outerGridGapClassName}`}>
             {defaultDesignLayout !== "basic-upper-left" && !isPanelFlow && !isRoundFocus && !(isMochaForest && onePageRhythmMode === "mobile") && shouldRenderMenuCoverSection && (
