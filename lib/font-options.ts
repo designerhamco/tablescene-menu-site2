@@ -61,8 +61,7 @@ function toFontValue(label: string): EnglishFontValue {
 }
 
 function getGoogleFontHref(label: string) {
-  const axes = label === "Fraunces" ? ":opsz,wght@9..144,100..900" : "";
-  return `https://fonts.googleapis.com/css2?family=${encodeURIComponent(label).replace(/%20/g, "+")}${axes}&display=swap`;
+  return `https://fonts.googleapis.com/css2?family=${encodeURIComponent(label).replace(/%20/g, "+")}&display=swap`;
 }
 
 function getGoogleFontFamily(label: string, fallback: "sans-serif" | "serif" | "cursive" | "monospace" = "sans-serif") {
@@ -300,7 +299,6 @@ const CLASSIC_ENGLISH_FONT_LABELS = [
   "Federant",
   "Federo",
   "Forum",
-  "Fraunces",
   "Gotu",
   "Italiana",
   "Julius Sans One",
@@ -547,7 +545,7 @@ export const TEMPLATE_DEFAULT_ENGLISH_FONTS: Record<string, EnglishFontValue> = 
   dining_aube_table_a: "tenor-sans",
   dining_aube_table_b: "cormorant-garamond",
   cafe_design_a: "alata",
-  cafe_mocha_forest_a: "fraunces",
+  cafe_mocha_forest_a: "lilita-one",
   cafe_sunday_line_a: "alata",
   cafe_van_gogh_a: "belleza",
   cafe_round_focus_a: "aboreto",
