@@ -8,6 +8,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import MenuPreviewOptionsPanel from "../components/menu/MenuPreviewOptionsPanel";
 import MenuPreviewDeviceFrame from "../components/menu/MenuPreviewDeviceFrame";
+import { DEFAULT_DESIGN_OPTION_KEYS, withoutTemplatePreviewFeatureOverrides } from "./default-design-options";
 import { DEFAULT_DESIGN_REVIEWS } from "./menu-design-policy";
 import type { MenuPageData } from "./menu-page-data";
 import { getTemplatePreviewOptionGroups, getTemplatePreviewOptions } from "./template-preview-options";
@@ -214,7 +215,7 @@ test("Van Gogh starts cover OFF but keeps the representative-area control availa
     const values = getTemplatePreviewOptions(source, { coverPreview: enabled ? "on" : "off" });
     const html = renderToStaticMarkup(createElement(MenuPreviewOptionsPanel, {
       open: true, onToggle: () => {}, tab: "features", onTabChange: () => {}, groups, values,
-      onFeatureChange: () => {}, pending: false, templateKey: "cafe_van_gogh_a", design: {}, onDesignChange: () => {}, album: false,
+      onFeatureChange: () => {}, onFeatureReset: () => {}, canResetFeatures: false, pending: false, templateKey: "cafe_van_gogh_a", design: {}, onDesignChange: () => {}, album: false,
     }));
     const input = (label: string) => html.match(new RegExp(`<input[^>]*aria-label="${label} 보기"[^>]*>`))?.[0] ?? "";
     assert.ok(input("대표 영역"));
@@ -264,4 +265,39 @@ test("MELLOW opt-ins connect the empty-cover example to an existing localized fe
     assert.deepEqual(source, before);
   }
   assert.deepEqual(starter, original, "opt-ins never mutate starter/purchased content");
+});
+
+
+test("feature reset restores starter defaults while preserving other preview state and source data", () => {
+  const source = fixture();
+  source.pageSettings.menu_cover_enabled = false;
+  source.pageSettings.featured_item_enabled = false;
+  source.menuSite.logo_url = null;
+  const original = structuredClone(source);
+  const baseline = getTemplatePreviewOptions(source, {});
+  const designPreview = JSON.stringify({ pageBackground: "#123456" });
+  const retained = { design: "basic-top-row", device: "tablet", orientation: "portrait", lang: "en", page: "2", previewOptions: "features", designPreview, callPreview: "on", orderPreview: "on", layoutMode: "orderedFit" };
+  const query = { ...retained, ...Object.fromEntries(DEFAULT_DESIGN_OPTION_KEYS.map(key => [key, [baseline[key] ? "off" : "on"]])) };
+  const before = structuredClone(query);
+  assert.notDeepEqual(getTemplatePreviewOptions(source, query), baseline);
+  const reset = withoutTemplatePreviewFeatureOverrides(query);
+  assert.deepEqual(reset, retained);
+  assert.deepEqual(query, before);
+  assert.deepEqual(getTemplatePreviewOptions(source, reset), baseline);
+  assert.equal(getTemplatePreviewOptions(source, reset).coverPreview, false);
+  assert.equal(getTemplatePreviewOptions(source, reset).logoPreview, false);
+  assert.deepEqual(source, original);
+});
+
+test("feature reset is available only for changed catalog options and is disabled while pending", () => {
+  for (const [canResetFeatures, pending, disabled] of [[false, false, true], [true, false, false], [true, true, true]] as const) {
+    const html = renderToStaticMarkup(createElement(MenuPreviewOptionsPanel, {
+      open: true, onToggle() {}, tab: "features", onTabChange() {}, groups: getTemplatePreviewOptionGroups("cafe_design_a"), values: getTemplatePreviewOptions(fixture(), {}),
+      onFeatureChange() {}, onFeatureReset() {}, canResetFeatures, pending, templateKey: "cafe_design_a", design: {}, onDesignChange() {}, album: false,
+    }));
+    const reset = html.match(/<button[^>]*data-preview-feature-reset[^>]*>기능 초기화<\/button>/)?.[0];
+    assert.ok(reset);
+    assert.equal(/ disabled=""/.test(reset), disabled);
+    assert.doesNotMatch(html, /체험해 보세요|저장되지 않습니다/);
+  }
 });

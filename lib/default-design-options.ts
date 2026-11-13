@@ -12,3 +12,10 @@ export function getDefaultDesignOptions(query: TemplatePreviewQuery): DefaultDes
     return [key, value ? value !== "off" : !(key === "popupPreview" || key === "widgetsPreview" || key === "logoPreview" || key === "coverImagesPreview" || (key === "featuredPreview" && design === "basic-upper-left") || (key === "coverPreview" && !coverEnabled))];
   })) as DefaultDesignOptions;
 }
+
+/** Remove only this tab's temporary choices so starter-owned defaults apply again. */
+export function withoutTemplatePreviewFeatureOverrides(query: TemplatePreviewQuery): TemplatePreviewQuery {
+  const next = { ...query };
+  for (const key of DEFAULT_DESIGN_OPTION_KEYS) delete next[key];
+  return next;
+}

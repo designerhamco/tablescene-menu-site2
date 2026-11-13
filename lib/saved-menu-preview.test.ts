@@ -59,7 +59,7 @@ test("customer preview removes editing tools and legacy overrides from all devic
   const html = renderToStaticMarkup(createElement(AppRouterContext.Provider, { value: { push() {}, replace() {} } as never }, createElement(MenuPreviewDeviceFrame, {
     menuId: "saved-menu", menuTemplateKey: "cafe_design_a", menuDesignId: "basic-first-column", device: "tablet", orientation: "portrait", query,
   })));
-  assert.doesNotMatch(html, /data-preview-options-panel|기능 옵션|디자인 옵션|data-preview-call-toggle|data-preview-order-toggle|data-preview-layout-mode/);
+  assert.doesNotMatch(html, /data-preview-options-panel|기능 초기화|기능 옵션|디자인 옵션|data-preview-call-toggle|data-preview-order-toggle|data-preview-layout-mode/);
   assert.doesNotMatch(html, /imagesPreview=|designPreview=|callPreview=|orderPreview=|layoutMode=|previewOptions=|\/templates\//);
   assert.doesNotMatch(html, /data-preview-edit-link|수정하기/);
   assert.match(html, /data-preview-tablet-orientation-toggle/);
@@ -83,7 +83,7 @@ test("customer preview omits the edit link and keeps shared viewing controls", (
 test("catalog previews keep controls without reintroducing deleted introductory prose", () => {
   const html=renderToStaticMarkup(createElement(AppRouterContext.Provider,{value:{push(){}} as never},createElement(MenuPreviewDeviceFrame,{templateKey:"cafe_design_a",device:"pc",orientation:"landscape",query:{},previewDesignDefaults:previewDesignDefaults(fixture())})));
   assert.match(html,/data-preview-options-panel/);
-  assert.match(html,/기능 옵션/);assert.match(html,/디자인 옵션/);
+  assert.match(html,/기능 옵션/);assert.match(html,/디자인 옵션/);assert.match(html,/기능 초기화/);
   assert.doesNotMatch(html,/data-preview-experience-note|체험해 보세요|미리보기에만 적용|저장되지 않습니다/);
   assert.match(html,/data-preview-call-toggle/);assert.match(html,/data-preview-order-toggle/);
 });
