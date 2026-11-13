@@ -1,5 +1,6 @@
 /** Official site only; rem values resolve from the normal 16px site base. */
 export const SITE_MOBILE_SPACING = [
+  { token: "--site-space-detail", rem: .25, label: "밀접한 세부 정보", usage: "카드 분류와 제목, 구조와 해시태그 등 같은 정보 묶음 내부. 일반 본문·필드 간격과 구분" },
   { token: "--site-space-copy", rem: .5, label: "관련 문구", usage: "분류·보조 설명, 연결된 짧은 문구" },
   { token: "--site-space-title-copy", rem: .75, label: "제목과 설명", usage: "페이지·섹션 제목과 바로 아래 설명" },
   { token: "--site-space-block", rem: 1, label: "작은 블록", usage: "썸네일과 카드 정보, 약관과 저작권" },

@@ -1,5 +1,6 @@
 /* Official-site spacing only. Customer menu engines keep their own geometry. */
 :root {
+  --site-space-detail: .25rem;
   --site-space-copy: .5rem;
   --site-space-title-copy: .75rem;
   --site-space-block: 1rem;
@@ -21,17 +22,18 @@
 .site-support-actions { margin-top: 1.25rem; }
 
 /* Opt-in body composition. SitePage owns the title and first-content boundary. */
-.site-stack-copy, .site-stack-title, .site-stack-block, .site-stack-group, .site-stack-content, .site-stack-section {
+.site-stack-detail, .site-stack-copy, .site-stack-title, .site-stack-block, .site-stack-group, .site-stack-content, .site-stack-section {
   display: grid;
   min-width: 0;
 }
+.site-stack-detail { gap: var(--site-space-detail); }
 .site-stack-copy { gap: var(--site-space-copy); }
 .site-stack-title { gap: var(--site-space-title-copy); }
 .site-stack-block { gap: var(--site-space-block); }
 .site-stack-group { gap: var(--site-space-group); }
 .site-stack-content { gap: var(--site-space-content); }
 .site-stack-section { gap: var(--site-section-space); }
-.site-stack-copy > *, .site-stack-block > *, .site-stack-group > *, .site-stack-content > *, .site-stack-section > * { margin-block: 0; }
+.site-stack-detail > *, .site-stack-copy > *, .site-stack-block > *, .site-stack-group > *, .site-stack-content > *, .site-stack-section > * { margin-block: 0; }
 .site-stack-title > * { margin-block: 0; }
 
 /* Shared content composition, on every device. Keep control geometry separate. */

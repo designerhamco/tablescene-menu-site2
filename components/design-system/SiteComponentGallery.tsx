@@ -97,7 +97,7 @@ export default function SiteComponentGallery() {
         <TabsTrigger value="designer">이미지로 보기</TabsTrigger><TabsTrigger value="standard">목록으로 보기</TabsTrigger>
       </TabsList><TabsContent value="designer" className="type-body text-zinc-600">썸네일을 중심으로 디자인을 살펴봅니다.</TabsContent><TabsContent value="standard" className="type-body text-zinc-600">이름과 설명을 중심으로 디자인을 살펴봅니다.</TabsContent></Tabs>
     </Examples>
-    <Examples title="최상위 보기와 이미지 카드" description="디자이너 카드는 카테고리·제목·구조와 형식·분위기 해시태그로 비교하고, 기본 템플릿은 제목·설명으로 표시합니다.">
+    <Examples title="최상위 보기와 이미지 카드" description="제목을 강조하고 카테고리·구조·태그를 4/8px 간격으로 묶습니다. 기본 템플릿은 제목·설명만 표시하며 하단 텍스트 버튼으로 미리봅니다.">
       <div className="site-collection"><Tabs purpose="page" defaultValue="all"><TabsList size="md" aria-label="템플릿 라이브러리 서비스">
         <TabsTrigger value="all">전체 디자인</TabsTrigger><TabsTrigger value="basic">베이직</TabsTrigger><TabsTrigger value="dining">다이닝</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger>
       </TabsList>{["all","basic","dining","standard"].map(key=><TabsContent key={key} value={key} className={styles.galleryPanel}>
