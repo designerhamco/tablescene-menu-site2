@@ -1,8 +1,6 @@
 "use client";
 import headerInformationStyles from "../shared/MenuHeaderInformation.module.css";
 import MenuClampedCopy from "../shared/MenuClampedCopy";
-import MenuPageScrollSurface from "../shared/MenuPageScrollSurface";
-import { getMenuReadingViewportHeight } from "@/lib/menu-page-scroll";
 import { measureMenuHeaderContentHeight, MENU_HEADER_CONTENT_SELECTOR } from "@/lib/menu-header-measurement";
 import { getRepresentativeRailGeometry } from "@/lib/representative-rail-geometry";
 import { getMenuDesignBackgrounds } from "@/lib/template-background-colors";
@@ -306,11 +304,11 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     const update = () => {
       if (disposed || !area.current || !measure.current) return;
       const bounds = area.current.getBoundingClientRect();
-      if (bounds.width <= 1 || (bounds.height <= 1 && !topRow)) return;
+      if (bounds.width <= 1 || bounds.height <= 1) return;
       const menuStyle = getComputedStyle(area.current);
       const regionWidth = Math.min(area.current.clientWidth, bounds.width - (area.current.offsetWidth - area.current.clientWidth)) - parseFloat(menuStyle.paddingLeft) - parseFloat(menuStyle.paddingRight);
       const panelInset = upperLeft ? parseFloat(getComputedStyle(area.current.querySelector<HTMLElement>("[data-paged-column]")!).paddingLeft) || 0 : 0;
-      const capacity = getMenuReadingViewportHeight(area.current, bounds.height - parseFloat(menuStyle.paddingTop) - parseFloat(menuStyle.paddingBottom) - 2 * panelInset);
+      const capacity = bounds.height - parseFloat(menuStyle.paddingTop) - parseFloat(menuStyle.paddingBottom) - 2 * panelInset;
       const gap = parseFloat(menuStyle.columnGap) || 24;
       const brandWidth = brandArea.current?.getBoundingClientRect().width ?? 0;
       const width = centerColumn ? regionWidth - brandWidth - gap : regionWidth;
@@ -415,9 +413,6 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     };
     const observer = new ResizeObserver(schedule);
     observer.observe(area.current);
-    const readingBoard = area.current.closest('[data-scroll-brand-board]');
-    if (readingBoard) observer.observe(readingBoard);
-    for (const node of area.current.closest('[data-scroll-brand-board]')?.querySelectorAll('[data-basic-top-row], [data-menu-page-actions]') ?? []) observer.observe(node);
     // Probe row sizes are measurement outputs, not independent resize inputs.
     const measuredContent = measure.current;
     measuredContent.addEventListener("load", schedule, true);
@@ -468,7 +463,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         root.style.setProperty("--scroll-rail-width", `${geometry.railWidth + brandMargin}px`);
         root.dataset.representativeContentWidth = String(geometry.trackWidth);
       }
-      viewport.style.setProperty("--paged-album-capacity", `${getMenuReadingViewportHeight(area.current!, viewport.clientHeight) - (scrollContent.current ? parseFloat(getComputedStyle(scrollContent.current).paddingBottom) || 0 : 0)}px`);
+      viewport.style.setProperty("--paged-album-capacity", `${viewport.clientHeight - (scrollContent.current ? parseFloat(getComputedStyle(scrollContent.current).paddingBottom) || 0 : 0)}px`);
       const bounds = panel?.getBoundingClientRect();
       const header = viewport.closest("[data-scroll-brand-board]")?.querySelector<HTMLElement>("[data-basic-top-row]");
       const headerBounds = header?.getBoundingClientRect();
@@ -488,8 +483,6 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     const schedule = () => { if (disposed) return; cancelAnimationFrame(frame); frame = requestAnimationFrame(check); };
     const observer = new ResizeObserver(schedule);
     observer.observe(viewport);
-    const readingBoard = viewport.closest('[data-scroll-brand-board]');
-    if (readingBoard) observer.observe(readingBoard);
     if (brandArea.current) for (const node of brandArea.current.children) observer.observe(node);
     const header = viewport.closest("[data-scroll-brand-board]")?.querySelector("[data-basic-top-row]");
     if (header) observer.observe(header);
@@ -605,7 +598,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     ? topRow ? <MenuClampedCopy data-representative-copy data-scroll-header-copy text={data.menuSite.brand_description || data.menuSite.description || ""} className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]" />
       : <p data-menu-store-description data-representative-copy data-scroll-header-copy className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null;
   const actionFooter = showCall || showOrder || call.terminalConnected ? (
-            <footer className={styles.footer} data-scroll-actions data-menu-page-actions aria-label={t("메뉴 이용")}>
+            <footer className={styles.footer} data-scroll-actions aria-label={t("메뉴 이용")}>
               {call.terminalConnected ? <span className={styles.tableLabel} data-terminal-table-label title={call.tableLabel}>{call.tableLabel}</span> : null}
               {showCall ? (
                 <button type="button" className={styles.callButton} onClick={call.openCall} aria-label={t("직원 호출하기")} data-scroll-call>
@@ -630,7 +623,6 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
   return (
     <CafeATimeSaleClock value={saleNow}>
       <CafeATypographyFontAssets typographySettings={typographySettings} />
-      <MenuPageScrollSurface enabled={topRow} background={getResolvedBackgroundColor("cafe_design_a", data.menuSite.page_settings)} label={t("메뉴 내용")}>
       <main
         className={`menu-typography cafe-a-typography ${styles.frame}`}
         style={
@@ -646,7 +638,6 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         }
         data-menu-text-colors={getTypographyCustomColorRoles(typographySettings)}
         data-scroll-brand-board
-        data-menu-page-flow={topRow ? "true" : undefined}
         data-equal-side-rail={equalSideRail ? "true" : undefined}
         data-basic-structure={structure} data-representative-panel={getMenuDesignBackgrounds("cafe_design_a", data.menuSite.page_settings).coloredPanel ? "true" : undefined}
         data-default-reading={defaultStructure ? "true" : undefined}
@@ -682,11 +673,11 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         <div data-scroll-menu-panel className={styles.menuPanel} data-paged-menu-panel>
           <div className={styles.viewport} data-scroll-viewport>
             <div
-              role={topRow ? undefined : "region"}
-              tabIndex={topRow ? undefined : 0}
+              role="region"
+              tabIndex={0}
               className={styles.menu}
               ref={area}
-              aria-label={topRow ? undefined : t("메뉴 내용")}
+              aria-label={t("메뉴 내용")}
               onScroll={updateScrollHint}
               style={{ "--paged-columns": layout.columns.length } as CSSProperties}
               data-scroll-menu
@@ -731,7 +722,6 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         </div>
         <CafeMenuImageLightbox preview={imagePreview} templateKey="cafe_design_a" onClose={() => { setImagePreview(null); imageTrigger.current?.focus({preventScroll: true}); }} />
       </main>
-      </MenuPageScrollSurface>
     </CafeATimeSaleClock>
   );
 }
