@@ -1,3 +1,4 @@
+import { getCatalogTemplateName } from "@/lib/catalog-template-names";
 import { buildStarterPreviewData as buildPreviewData } from "@/lib/template-starter-preview";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -810,14 +811,14 @@ function applySundayLineCopyQaFixture(
     : {};
   const longCopyByLocale = {
     ko: {
-      restaurantName: "mello crema.",
+      restaurantName: "Mello Crema.",
       brandDescription: "좋은 원두와 담백한 디저트를 천천히 즐기는 동네 로스터리의 메뉴판 안내입니다. 여유로운 매장 분위기를 함께 안내합니다.",
       footerNotice1: "Wi-Fi · MELLO_CREMA_GUEST · Password 2026",
       footerNotice2: "Instagram · @mello.crema · 매일 새 소식",
       footerNotice3: "반려동물은 야외 좌석만 이용 가능하며 포장 주문도 가능합니다.",
     },
     en: {
-      restaurantName: "mello crema",
+      restaurantName: "Mello Crema",
       brandDescription: "Carefully roasted coffee and simple desserts are prepared for neighbors who enjoy an easy, unhurried rhythm.",
       footerNotice1: "Wi-Fi MELLO_CREMA_GUEST · Password 2026",
       footerNotice2: "Instagram @mello.crema",
@@ -1061,7 +1062,7 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
   const template = getTemplateByKey(templateKey);
   const query = searchParams ? await searchParams : {};
   const design = getDefaultDesignReview(Array.isArray(query.design) ? query.design[0] : query.design, templateKey);
-  const label = design?.label ?? template.name;
+  const label = design?.label ?? getCatalogTemplateName(templateKey, template.name);
 
   return {
     title: `${label} 미리보기 | ArtiMenu`,

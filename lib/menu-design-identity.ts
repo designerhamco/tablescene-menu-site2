@@ -10,5 +10,6 @@ export function getSavedMenuDesign(templateKey: string | null | undefined, setti
 }
 export function getMenuDesignDisplayName(templateKey?: string | null, templateCategory?: string | null, settings?: unknown) {
   const design = getSavedMenuDesign(templateKey, settings);
-  return design?.kind === "standard" ? `기본 디자인 / ${design.name}` : getTemplateDisplayName(templateKey, templateCategory);
+  if (!design) return getTemplateDisplayName(templateKey, templateCategory);
+  return design.kind === "standard" ? `기본 디자인 / ${design.name}` : design.name;
 }

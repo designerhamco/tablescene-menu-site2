@@ -6,7 +6,7 @@ const TEMPLATE_DEFAULT_BACKGROUND_COLORS: Record<string, string> = {
   restaurant_onue_a: "#33221E",
   cafe_design_a: "#FFFFFF",
   cafe_mocha_forest_a: MELLOW_COLORS.background,
-  cafe_sunday_line_a: "#FFFFFF",
+  cafe_sunday_line_a: "#FAF8F1",
   cafe_van_gogh_a: "#FFFFFF",
   cafe_round_focus_a: "#FFFFFF",
   fast_food_loop_bagel_a: "#FFFFFF",

@@ -15,8 +15,14 @@ test("Mello Crema native defaults and preview controls resolve the same Alata an
   const preview = buildStarterPreviewData(key);
   const defaults = previewDesignDefaults(preview);
   assert.equal(getTemplateByKey(key).name, "멜로크레마");
-  assert.equal(preview.menuSite.restaurant_name, "mello crema");
+  assert.equal(preview.menuSite.restaurant_name, "Mello Crema");
   assert.equal(defaults.fontFamily.en, "alata");
+  assert.equal(defaults.colors.page, "#FAF8F1");
+  assert.equal(defaults.textColorDefaults.product, "#2237A0");
+  assert.equal(defaults.textColorDefaults.price, "#2237A0");
+  assert.equal(defaults.appearance.imageRadii.cover, 8);
+  assert.equal(defaults.appearance.imageRadii.item, 8);
+  assert.equal(defaults.appearance.chipShape, "soft");
   assert.equal(defaults.textColorDefaults.brand, "#2237A0");
   assert.equal(defaults.textColorDefaults.category, "#2237A0");
   assert.equal(defaults.chipColors.generalBackground, "#2237A0");
@@ -45,7 +51,7 @@ test("the two supplied photos keep their linked products through every preview l
     assert.deepEqual(localized.featuredSlides?.map(slide => localized.items.find(item => item.id === slide.featuredItemId)?.name), expectedNames[locale]);
     const visibleCopy = JSON.stringify({site: localized.menuSite, items: localized.items, categories: localized.categories});
     assert.doesNotMatch(visibleCopy, /SUNDAY ROASTERS|SUNDAY CREAM LATTE|선데이 크림 라떼|sunday\.roasters|SUNDAY_GUEST/);
-    assert.equal(localized.menuSite.restaurant_name, "mello crema");
+    assert.equal(localized.menuSite.restaurant_name, "Mello Crema");
   }
 });
 
@@ -60,7 +66,21 @@ test("new purchases receive the same photos and Alata without replacing merchant
   assert.equal(client.site.cover_image_url, preview.menuSite.cover_image_url);
   assert.equal(client.site.restaurant_name, "고객 매장");
   const savedItems = client.rows.get("menu_items") ?? [];
-  assert.ok(savedItems.some(item => item.name === "멜로우 크림 라떼" && item.set_name === "MELLO CREAM LATTE"));
+  assert.ok(savedItems.some(item => item.name === "멜로우 크림 라떼" && !item.set_name));
   const settings = client.site.page_settings as { featured_slides: {image_url: string; featured_item_id: string}[] };
   assert.deepEqual(settings.featured_slides.map(slide => ({url:slide.image_url, name:savedItems.find(item => item.id === slide.featured_item_id)?.name})), starter.featured_slides?.map(slide => ({url:slide.image_url, name:slide.featured_item_name})));
+});
+
+
+test("Mello Crema starts without secondary names and preserves the optional bilingual preview", async () => {
+  const { getTemplatePreviewOptions } = await import("./template-preview-options");
+  const { applyTemplatePreviewOptions } = await import("./template-preview-data");
+  const preview = buildStarterPreviewData(key);
+  assert.equal(getTemplatePreviewOptions(preview, {}).secondaryNamesPreview, false);
+  assert.ok(preview.items.every(item => !item.set_name));
+  assert.deepEqual(preview.categories.map(category => category.name), ["Signature Coffee", "Coffee", "Non-coffee", "Tea & Ade", "Bakery & Dessert"]);
+  const enabled = applyTemplatePreviewOptions(preview, { secondaryNamesPreview: "on" });
+  assert.ok(enabled.items.every(item => Boolean(item.set_name)));
+  assert.equal(enabled.items[0].set_name, "MELLO CREAM LATTE");
+  assert.ok(preview.items.every(item => !item.set_name), "preview option never rewrites starter rows");
 });

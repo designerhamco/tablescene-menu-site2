@@ -49,7 +49,7 @@ for (const [templateKey, expectedCategoryCounts] of Object.entries(SINGLE_PAGE_D
         items.every((item) => descriptionlessItems.has(item.key ?? "") ? !item.description.trim() : Boolean(item.description.trim())),
         true,
       );
-    } else if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_round_focus_a") {
+    } else if (templateKey === "cafe_mocha_forest_a" || templateKey === "cafe_sunday_line_a" || templateKey === "cafe_round_focus_a") {
       const items = categories.flatMap((category) => category.items);
       assert.equal(items.every((item) => !item.set_name?.trim()), true);
       if (templateKey === "cafe_mocha_forest_a") {

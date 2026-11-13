@@ -32,7 +32,7 @@ export type MenuAppearance = { imageRadii: Partial<Record<ImageRadiusKey, number
 export const TEMPLATE_SHAPE_DEFAULTS = [
   { key: "cafe_design_a", label: "REAL MATCHA", preset: "square" },
   { key: "cafe_mocha_forest_a", label: "MELLOW", preset: "soft" },
-  { key: "cafe_sunday_line_a", label: "멜로크레마", preset: "square" },
+  { key: "cafe_sunday_line_a", label: "멜로크레마", preset: "soft" },
   { key: "cafe_van_gogh_a", label: "Van Gogh", preset: "square" },
   { key: "restaurant_onue_a", label: "온유 테이블", preset: "square" },
   { key: "cafe_round_focus_a", label: "ROSY ORANGE", preset: "square" },
