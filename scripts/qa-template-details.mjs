@@ -9,16 +9,16 @@ await mkdir(output, { recursive: true });
 const browser = await chromium.launch();
 const results = [];
 const templates = [
-  ["cafe_real_matcha_a", "REAL MATCHA", "single"],
-  ["cafe_mocha_forest_a", "MELLOW", "single"],
-  ["cafe_sunday_roasters_a", "멜로크레마", "single"],
-  ["cafe_van_gogh_a", "Van Gogh", "single"],
-  ["cafe_round_focus_a", "ROSY ORANGE", "single"],
-  ["fast_food_loop_bagel_a", "루프베이글", "single"],
-  ["restaurant_onue_a", "온유 테이블", "single"],
-  ["dining_aube_table_a", "오브 테이블", "multi"],
-  ["dining_aube_table_b", "메종 마레", "multi"],
-  ["display_menu_a", "썸머 블루", "display"],
+  ["cafe_real_matcha_a", "REAL MATCHA(리얼맛차)", "single"],
+  ["cafe_mocha_forest_a", "MELLOW(멜로우)", "single"],
+  ["cafe_sunday_roasters_a", "MELLO CREMA(멜로크레마)", "single"],
+  ["cafe_van_gogh_a", "VAN GOGH(반고흐)", "single"],
+  ["cafe_round_focus_a", "ROSY ORANGE(로지오렌지)", "single"],
+  ["fast_food_loop_bagel_a", "LOOP BAGEL(루프베이글)", "single"],
+  ["restaurant_onue_a", "ONUE TABLE(온유 테이블)", "single"],
+  ["dining_aube_table_a", "AUBE TABLE(오브 테이블)", "multi"],
+  ["dining_aube_table_b", "MAISON MARAIS(메종 마레)", "multi"],
+  ["display_menu_a", "SUMMER BLUE(썸머 블루)", "display"],
 ];
 
 async function settle(page) {

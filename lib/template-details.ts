@@ -11,7 +11,8 @@ export function getPublicTemplateDetail(routeKey:string) {
     return base?{...base,key:design.id,name:design.name,description:design.description,categoryLabel:'기본 디자인'}:null;
   }
   const key=resolveTemplatePreviewRouteKey(routeKey);
-  return templateCatalog.find(t=>t.key===key&&t.status==='available')??null;
+  const template=templateCatalog.find(t=>t.key===key&&t.status==='available');
+  return template?{...template,name:design?.name??template.name}:null;
 }
 export function getTemplateDetailHref(templateKey:string) {
   return getCatalogDesign(templateKey)?.detailHref??`/templates/${getTemplatePreviewRouteKey(templateKey)}`;

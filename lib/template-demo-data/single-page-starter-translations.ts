@@ -341,7 +341,7 @@ const MOCHA_FOREST_TRANSLATIONS: SinglePageStarterTranslationBundle = {
 const SUNDAY_LINE_TRANSLATIONS: SinglePageStarterTranslationBundle = {
   en: {
     site: {
-      restaurantName: "mello crema",
+      restaurantName: "Mello Crema",
       restaurantCategory: "Cafe",
       brandDescription: "A cafe for slow days, with rich espresso, soft cream and simple, freshly baked treats.",
       introDescription: "Take your time with espresso, cream and freshly baked treats.",
@@ -350,7 +350,7 @@ const SUNDAY_LINE_TRANSLATIONS: SinglePageStarterTranslationBundle = {
       footerNotices: ["Wi-Fi · MELLO_CREMA_GUEST", "Instagram · @mello.crema", "Pets are welcome at outdoor seats only."],
     },
     pageTitle: "Menu",
-    categoryNames: { signature: "SIGNATURE COFFEE", coffee: "COFFEE", "non-coffee": "NON-COFFEE", "tea-ade": "TEA & ADE", "bakery-dessert": "BAKERY & DESSERT" },
+    categoryNames: { signature: "Signature Coffee", coffee: "Coffee", "non-coffee": "Non-coffee", "tea-ade": "Tea & Ade", "bakery-dessert": "Bakery & Dessert" },
     items: {
       "mello-cream-latte": { name: "Mello Cream Latte", description: "A signature latte with nutty cream and smooth espresso" },
       "salted-maple-latte": { name: "Salted Maple Latte", description: "A latte with gentle maple sweetness and salted cream" },
@@ -377,7 +377,7 @@ const SUNDAY_LINE_TRANSLATIONS: SinglePageStarterTranslationBundle = {
   },
   zh: {
     site: {
-      restaurantName: "mello crema",
+      restaurantName: "Mello Crema",
       restaurantCategory: "咖啡馆",
       brandDescription: "以浓郁意式浓缩、柔滑奶油与朴实烘焙，陪你悠闲度过每一天的咖啡馆。",
       introDescription: "慢慢享用意式浓缩、奶油与新鲜出炉的烘焙美味。",
@@ -413,7 +413,7 @@ const SUNDAY_LINE_TRANSLATIONS: SinglePageStarterTranslationBundle = {
   },
   ja: {
     site: {
-      restaurantName: "mello crema",
+      restaurantName: "Mello Crema",
       restaurantCategory: "カフェ",
       brandDescription: "濃厚なエスプレッソとやさしいクリーム、素朴な焼き菓子で、ゆったりした一日を届けるカフェです。",
       introDescription: "エスプレッソとクリーム、焼きたての味をゆっくり楽しむカフェです。",

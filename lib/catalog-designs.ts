@@ -1,3 +1,4 @@
+import { getCatalogTemplateName } from "./catalog-template-names";
 import { getCatalogFacets, normalizeCatalogSearch, normalizeCatalogSelections, CATALOG_MOODS, CATALOG_COLORS, type CatalogFacets, type CatalogMoodFilter, type CatalogColorFilter } from "./catalog-facets";
 import { DEFAULT_DESIGN_REVIEWS, MENU_LAYOUTS, getDefaultDesignReviewUrl } from './menu-design-policy';
 import { getDiningTemplateTier } from './dining-product-tiers';
@@ -79,7 +80,7 @@ const designers: CatalogDesign[]=templateCatalog.filter(t=>t.status==='available
   const facets=getCatalogFacets(t.key,"designer");
   const categories=facets.industries?[...facets.industries]:[...t.categories];
   const images=catalogGalleries[route]??[{src:catalogImages[route]??`/template-previews/${route}.jpg`,label:"메뉴판 디자인"}];
-  return {...facets,id:t.key,name:t.name,description:t.description,service,kind:'designer',templateKey:t.key,itemLayout:'list',categories,categoryLabel:getCatalogIndustryLabel(categories,t.categoryLabel),
+  return {...facets,id:t.key,name:getCatalogTemplateName(t.key,t.name),description:t.description,service,kind:'designer',templateKey:t.key,itemLayout:'list',categories,categoryLabel:getCatalogIndustryLabel(categories,t.categoryLabel),
     image:images[0].src,images,previewHref:`/templates/${route}/preview`,detailHref:`/templates/${route}`,startHref:getCatalogStartHref(service,t.key,t.key)};
 });
 export const catalogDesigns: readonly CatalogDesign[]=[...standards,...designers];

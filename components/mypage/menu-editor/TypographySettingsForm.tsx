@@ -186,7 +186,7 @@ export default function TypographySettingsForm({
   const cafeAMiniPreviewBrandText = isRoundFocusTemplate
     ? "로지 오렌지 ROSY ORANGE"
     : templateKey === "cafe_sunday_line_a"
-      ? "멜로크레마 mello crema 2026"
+      ? "멜로크레마 Mello Crema 2026"
       : isSundayLineTemplate
         ? "반고흐 VAN GOGH 2026"
         : isMochaForestTemplate

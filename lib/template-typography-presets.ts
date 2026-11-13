@@ -148,6 +148,14 @@ export const TEMPLATE_TYPOGRAPHY_PRESETS: Record<string, Partial<TypographySetti
         ...createDefaultTypographyRoleSettings().category,
         color: "#2237A0",
       },
+      itemName: {
+        ...createDefaultTypographyRoleSettings().itemName,
+        color: "#2237A0",
+      },
+      price: {
+        ...createDefaultTypographyRoleSettings().price,
+        color: "#2237A0",
+      },
     },
   },
   cafe_van_gogh_a: {

@@ -135,3 +135,18 @@ test('designer card industry labels agree with every matching catalog filter',()
   assert.equal(getCatalogIndustryLabel(['cafe','japanese'],'legacy'),'카페베이커리 · 일식');
   assert.equal(getCatalogIndustryLabel(['display'],'디스플레이'),'디스플레이');
 });
+
+
+test('every designer title uses one English(Korean) label across catalog and detail aliases', async () => {
+  const { getPublicTemplateDetail } = await import('./template-details');
+  for (const design of catalogDesigns.filter(design => design.kind === 'designer')) {
+    assert.match(design.name, /^[A-Z][A-Z .É&-]+\([가-힣 ]+\)$/, design.id);
+    assert.equal(getPublicTemplateDetail(design.id)?.name, design.name);
+    assert.equal(getPublicTemplateDetail(design.detailHref.split('/').at(-1)!)?.name, design.name);
+  }
+  assert.equal(getCatalogDesign('cafe_sunday_line_a')?.name, 'MELLO CREMA(멜로크레마)');
+  for (const design of catalogDesigns.filter(design => design.kind === 'standard')) {
+    assert.equal(getPublicTemplateDetail(design.id)?.name, design.name);
+    assert.doesNotMatch(design.name, /^[A-Z]+\(/);
+  }
+});
