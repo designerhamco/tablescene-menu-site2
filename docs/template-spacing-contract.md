@@ -154,6 +154,8 @@ Menu-to-menu column dividers remain 1px, use `data-menu-category-decoration` / `
 
 ### Centered information alignment — 2026-11-13
 
+“상단행 고정형” is a composition label, not scroll pinning. All Basic PC/tablet top-row variants, including left-logo, keep the header and menu in the same outer page scroll. Column packing keeps its viewport-based reading budget; growing content never feeds back into that budget. Preserve image bounds and service-action access. Other structures and mobile retain their existing scrolling. See docs/basic-menu-scroll-policy.md.
+
 PC/tablet centered top rows use a page top inset of `max(1rem, normal page inset × 0.5)`, superseding the earlier 75%/1.25rem trial. This applies to native skins and neutral list/album structures, identified by their shared information rows. Other page edges, tool-to-copy spacing, language hit targets and header-to-menu spacing keep their existing tokens. With a colored representative header, reduce its internal top padding so the color still reaches the page edge. Left-logo headers, other layouts and mobile retain their existing insets. Header fitting and menu capacity continue to measure actual computed padding.
 
 Centered Basic top-row headers (native, neutral list and album) put language in a separate top-right tool row. Description and combined notices start together below it, each using its complete original cell width. The centered title/logo spans both rows. With no language control, the tool row collapses. Measure the trigger plus the taller description/notice extent as one shared group; retain the existing font sizes, bounded title fitting, three-line ellipsis and input limits. Left-logo headers keep their original right-side stack and content-footer notices.

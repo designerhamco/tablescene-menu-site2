@@ -1,5 +1,7 @@
 "use client";
 import { measureMenuHeaderContentHeight } from "@/lib/menu-header-measurement";
+import { getMenuReadingViewportHeight } from "@/lib/menu-page-scroll";
+import MenuPageScrollSurface from "../shared/MenuPageScrollSurface";
 import { hasMenuColumnDivider, getMenuColumnDividerGeometry } from "@/lib/menu-column-divider";
 import { getRepresentativeRailGeometry } from "@/lib/representative-rail-geometry";
 import { getMenuDesignBackgrounds } from "@/lib/template-background-colors";
@@ -138,7 +140,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       const brandWidth = center ? root.querySelector<HTMLElement>("[data-native-brand]")?.getBoundingClientRect().width ?? 0 : 0;
       const viewportStyle = getComputedStyle(viewport);
       const viewportPaddingTop = parseFloat(viewportStyle.paddingTop) || 0;
-      const viewportHeight = viewport.clientHeight - viewportPaddingTop - (parseFloat(viewportStyle.paddingBottom) || 0);
+      const viewportHeight = getMenuReadingViewportHeight(viewport, viewport.clientHeight - viewportPaddingTop - (parseFloat(viewportStyle.paddingBottom) || 0));
       const width = viewport.clientWidth - (parseFloat(viewportStyle.paddingLeft) || 0) - (parseFloat(viewportStyle.paddingRight) || 0) - (center ? brandWidth + gap : 0);
       const leftRail = shell === "brand_left_rail";
       const boardStyle = getComputedStyle(root);
@@ -212,6 +214,8 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
     requestMeasure.current = schedule;
     const observer = new ResizeObserver(schedule);
     observer.observe(area.current);
+    observer.observe(board.current);
+    for (const node of board.current.querySelectorAll('[data-native-header], [data-menu-page-actions]')) observer.observe(node);
     for (const copy of board.current?.querySelectorAll("[data-native-brand] .cafe-a-fixed-rail-copy") ?? []) observer.observe(copy);
     // Candidate probes resize hidden rows themselves. Observing those outputs
     // feeds the next measurement back into the current decision. Real content
@@ -276,16 +280,17 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
   const noticeNode = (!top || leftLogo) && notices.length ? <div className={`${styles.notices} cafe-a-menu-description cafe-a-description-text`} data-native-notices >{top
     ? <MenuClampedCopy text={notices.join("\n")} />
     : notices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>)}</div> : null;
-  const dock = showCall || showOrder || call.terminalConnected ? <footer className={styles.actions} data-native-actions data-call-only={showCall && !showOrder ? "true" : undefined} aria-label={t("메뉴 이용")}>
+  const dock = showCall || showOrder || call.terminalConnected ? <footer className={styles.actions} data-native-actions data-menu-page-actions data-call-only={showCall && !showOrder ? "true" : undefined} aria-label={t("메뉴 이용")}>
     {call.terminalConnected ? <span className={styles.tableLabel} data-terminal-table-label title={call.tableLabel}>{call.tableLabel}</span> : null}
     {showCall ? <button type="button" className={styles.call} onClick={call.openCall} aria-label={t("직원 호출하기")}><StaffCallIcon strokeWidth={1.8} /><ScriptAwareText text={t("호출하기")} /></button> : null}
     {showOrder ? <button type="button" className={styles.order} onClick={call.openCart} aria-label={t("주문하기, 장바구니 {0}개", call.cartCount ?? 0)}><ShoppingCart strokeWidth={1.8} /><ScriptAwareText text={t("주문하기")} />{(call.cartCount ?? 0) > 0 ? <span>({call.cartCount})</span> : null}</button> : null}
   </footer> : null;
   return <CafeATimeSaleClock value={now}>
     <CafeATypographyFontAssets typographySettings={typography} />
-    <main className={`menu-typography cafe-a-typography ${styles.root}`} data-menu-text-colors={getTypographyCustomColorRoles(typography)} data-template-key={key} data-cafe-a-skin={data.templateSkin} data-preview-device={device} data-one-page-layout-shell={shell} data-cafe-a-proportion-policy="true" data-cafe-a-adaptive-fit="true" data-cafe-a-copy-aware-rhythm="true" data-cafe-a-mobile-style="false" data-spacing-contract="contained-reading" data-cafe-a-brand-font-en={typography.typography_roles.brand.font_en_key ?? typography.english_font_key} data-cafe-a-category-font-en={typography.typography_roles.category.font_en_key ?? typography.english_font_key} data-one-page-typography-profile={getOnePageTypographyProfile(key).key} style={{ ...getTypographyCssVariables(typography, key), backgroundColor: background, "--native-background": background, "--mocha-forest-brown": MOCHA_FOREST_PANEL_COLORS.brown, "--mocha-forest-ivory": MOCHA_FOREST_PANEL_COLORS.ivory, "--mocha-forest-green": MOCHA_FOREST_PANEL_COLORS.green } as CSSProperties}>
+    <MenuPageScrollSurface enabled={top} background={background} label={t("메뉴 내용")}>
+    <main className={`menu-typography cafe-a-typography ${styles.root}`} data-menu-page-flow={top ? "true" : undefined} data-menu-text-colors={getTypographyCustomColorRoles(typography)} data-template-key={key} data-cafe-a-skin={data.templateSkin} data-preview-device={device} data-one-page-layout-shell={shell} data-cafe-a-proportion-policy="true" data-cafe-a-adaptive-fit="true" data-cafe-a-copy-aware-rhythm="true" data-cafe-a-mobile-style="false" data-spacing-contract="contained-reading" data-cafe-a-brand-font-en={typography.typography_roles.brand.font_en_key ?? typography.english_font_key} data-cafe-a-category-font-en={typography.typography_roles.category.font_en_key ?? typography.english_font_key} data-one-page-typography-profile={getOnePageTypographyProfile(key).key} style={{ ...getTypographyCssVariables(typography, key), backgroundColor: background, "--native-background": background, "--mocha-forest-brown": MOCHA_FOREST_PANEL_COLORS.brown, "--mocha-forest-ivory": MOCHA_FOREST_PANEL_COLORS.ivory, "--mocha-forest-green": MOCHA_FOREST_PANEL_COLORS.green } as CSSProperties}>
       <OnePageCallPalette />
-      <div ref={board} className={styles.board} aria-busy={!ready} data-native-scroll data-equal-side-rail={equalSideRail ? "true" : undefined} data-menu-column-dividers={columnDividers ? "true" : undefined} data-scroll-brand-board data-native-shell={shell} data-representative-panel={getMenuDesignBackgrounds(key, data.menuSite.page_settings).coloredPanel ? "true" : undefined} data-native-ready={ready ? "true" : "false"} data-layout-mode={grouped ? "orderedBalancedFit" : "orderedFit"} data-native-more={more ? "true" : "false"} style={{ "--native-columns": layout.columns.length, ...(columnDividers ? { "--native-menu-gap": dividerGeometry.gap, "--menu-column-divider-offset": dividerGeometry.offset, "--menu-column-divider-width": dividerGeometry.width } : {}) } as CSSProperties}>
+      <div ref={board} className={styles.board} aria-busy={!ready} data-native-scroll data-menu-page-flow={top ? "true" : undefined} data-equal-side-rail={equalSideRail ? "true" : undefined} data-menu-column-dividers={columnDividers ? "true" : undefined} data-scroll-brand-board data-native-shell={shell} data-representative-panel={getMenuDesignBackgrounds(key, data.menuSite.page_settings).coloredPanel ? "true" : undefined} data-native-ready={ready ? "true" : "false"} data-layout-mode={grouped ? "orderedBalancedFit" : "orderedFit"} data-native-more={more ? "true" : "false"} style={{ "--native-columns": layout.columns.length, ...(columnDividers ? { "--native-menu-gap": dividerGeometry.gap, "--menu-column-divider-offset": dividerGeometry.offset, "--menu-column-divider-width": dividerGeometry.width } : {}) } as CSSProperties}>
         {top ? <div className={styles.header} data-native-header data-basic-header-align={leftLogo ? "left" : undefined}><CafeADesktopToplineInformationHeader data={data} capabilities={capabilities} density="default" leftLogo={leftLogo} languageControl={<CafeLanguageHoverControl data={data} menuAlign="right" iconOnly />} /></div> : null}
         {!panel ? <div className={styles.brand} data-native-brand>
           {center ? <div className={styles.cornerLanguage} data-native-corner-language><CafeLanguageHoverControl data={data} menuAlign="left" iconOnly /></div> : null}
@@ -294,7 +299,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
         </div> : null}
         <div className={styles.menuPanel} data-native-menu-panel>
           <div className={styles.viewport}>
-            <div className={styles.menu} ref={area} role="region" aria-label={t("메뉴 내용")} tabIndex={0} onScroll={updateHint} data-native-menu>
+            <div className={styles.menu} ref={area} role={top ? undefined : "region"} aria-label={top ? undefined : t("메뉴 내용")} tabIndex={top ? undefined : 0} onScroll={updateHint} data-native-menu>
               <div className={styles.measure} ref={measure} aria-hidden="true" inert>{units.map((unit, i) => <div className={styles.unit} data-native-measure={unit.id} data-measure-id={unit.id} data-kind={unit.kind} data-boundary={units[i + 1]?.kind !== "item" ? "section" : undefined} key={unit.id}>{unit.node}</div>)}<div ref={noticeMeasure}>{noticeNode}</div></div>
               <div ref={tracks} className={styles.tracks} data-native-tracks>
                 {layout.columns.map((column, index) => <div key={index} className={styles.column} data-native-column={index + 1} data-mocha-panel={mocha ? index === layout.columns.length - 1 ? "green" : "ivory" : undefined}>
@@ -311,6 +316,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
         </div>
       </div>
     </main>
+    </MenuPageScrollSurface>
     <CafeMenuImageLightbox preview={image} onClose={closeImage} templateKey={key} />
   </CafeATimeSaleClock>;
 }
