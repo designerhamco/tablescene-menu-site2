@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 
 import { getStarterPreset } from "./menu-starter-presets";
+import { getDefaultEnglishFontForTemplate, getAvailableEnglishFontsForTemplate } from "./font-options";
 import { getCustomTypographySettings, mergeTypographySettings } from "./template-typography-presets";
 
 const globalStylesSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
@@ -11,7 +12,7 @@ const cafeSource = readFileSync(
   "utf8",
 );
 
-test("Mocha Forest starter uses Pretendard and Carme", () => {
+test("MELLOW starter uses Pretendard and Lilita One", () => {
   const preset = getStarterPreset("cafe_mocha_forest_a");
   const typography = mergeTypographySettings(
     preset.template_key,
@@ -19,7 +20,10 @@ test("Mocha Forest starter uses Pretendard and Carme", () => {
   );
 
   assert.equal(typography.korean_font_key, "pretendard");
-  assert.equal(typography.english_font_key, "carme");
+  assert.equal(typography.english_font_key, "lilita-one");
+  assert.equal(getDefaultEnglishFontForTemplate(preset.template_key).value, "lilita-one");
+  assert.ok(getAvailableEnglishFontsForTemplate(preset.template_key).some(font => font.value === "lilita-one"));
+  assert.equal(mergeTypographySettings(preset.template_key, { english_font_key: "carme" }).english_font_key, "carme");
 });
 
 test("legacy notice face remains available to excluded engines; one-page uses its scoped saved-font rule", () => {
