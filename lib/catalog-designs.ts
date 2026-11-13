@@ -70,7 +70,7 @@ const catalogGalleries: Readonly<Partial<Record<string, readonly CatalogImage[]>
     { src: '/template-previews/cafe_mocha_forest_a-mobile-20261113.jpg', label: '모바일 QR 메뉴' },
     { src: '/template-previews/cafe_mocha_forest_a-tablet-stand-20261113.png', label: '태블릿 스탠드' },
     { src: '/template-previews/cafe_mocha_forest_a-desktop-20261113.png', label: 'PC 메뉴 모니터' },
-    { src: '/template-previews/cafe_mocha_forest_a-exterior-20261113.jpg', label: '매장 외관' },
+    { src: '/template-previews/cafe_mocha_forest_a-exterior-20261113-v2.jpg', label: '매장 외관' },
   ],
 };
 const designers: CatalogDesign[]=templateCatalog.filter(t=>t.status==='available').map(t=>{
