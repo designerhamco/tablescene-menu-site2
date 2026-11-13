@@ -8,7 +8,7 @@ const mellow = getCatalogDesign("cafe_mocha_forest_a")!;
 
 test("catalog and detail share actual ordered images with a canonical first image", () => {
   assert.equal(mellow.images.length, 4);
-  assert.deepEqual(mellow.images.map(image => image.label), ["모바일 QR 메뉴", "태블릿 스탠드", "PC 메뉴 모니터", "매장 외관"]);
+  assert.deepEqual(mellow.images.map(image => image.label), ["매장 외관", "모바일 QR 메뉴", "태블릿 스탠드", "PC 메뉴 모니터"]);
   for (const design of catalogDesigns) {
     assert.ok(design.images.length);
     assert.equal(design.image, design.images[0].src);

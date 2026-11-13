@@ -57,20 +57,20 @@ const standards: CatalogDesign[]=DEFAULT_DESIGN_REVIEWS.map(design=>{
 });
 // Catalog cards, detail galleries and checkout media share the same image.
 const catalogImages: Readonly<Partial<Record<string, string>>> = {
-  cafe_real_matcha_a: '/template-previews/cafe_real_matcha_a-desktop-20261113.jpg',
+  cafe_real_matcha_a: '/template-previews/cafe_real_matcha_a-mobile-qr-20261111.jpg',
   cafe_sunday_roasters_a: '/template-previews/cafe_sunday_roasters_a-20261104.jpg',
 };
 const catalogGalleries: Readonly<Partial<Record<string, readonly CatalogImage[]>>> = {
   cafe_real_matcha_a: [
-    { src: '/template-previews/cafe_real_matcha_a-desktop-20261113.jpg', label: '메뉴판 디자인' },
     { src: '/template-previews/cafe_real_matcha_a-mobile-qr-20261111.jpg', label: '모바일 QR 메뉴' },
+    { src: '/template-previews/cafe_real_matcha_a-desktop-20261113.jpg', label: '메뉴판 디자인' },
     { src: '/template-previews/cafe_real_matcha_a-tablet-stand-20261111-v2.jpg', label: '태블릿 스탠드' },
   ],
   cafe_mocha_forest_a: [
+    { src: '/template-previews/cafe_mocha_forest_a-exterior-20261113-v2.jpg', label: '매장 외관' },
     { src: '/template-previews/cafe_mocha_forest_a-mobile-20261113.jpg', label: '모바일 QR 메뉴' },
     { src: '/template-previews/cafe_mocha_forest_a-tablet-stand-20261113.png', label: '태블릿 스탠드' },
     { src: '/template-previews/cafe_mocha_forest_a-desktop-20261113-v2.png', label: 'PC 메뉴 모니터' },
-    { src: '/template-previews/cafe_mocha_forest_a-exterior-20261113-v2.jpg', label: '매장 외관' },
   ],
 };
 const designers: CatalogDesign[]=templateCatalog.filter(t=>t.status==='available').map(t=>{
