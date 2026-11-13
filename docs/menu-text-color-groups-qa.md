@@ -67,3 +67,7 @@ Keep the released labels: 가게명 / 카테고리명 / 메뉴 기본정보 / �
 ## Dining cover ownership — 2026-11-10
 
 Dining cover description and notices 1/2/3 use representative ink (가게 설명·안내), including its legacy cover-description fallback. Dining information ink is labeled 위젯 and controls only widget title/body. Catalog and editor use the same context-aware label helper. Basic retains 하단 안내·위젯 and all existing notice ownership; no saved field/key or customer data is migrated. Native color sampling includes cover notices when the description is absent.
+
+## Mobile representative-surface notice ownership — 2026-11-13
+
+The shared `data-menu-mobile-representative` boundary includes centered top-row mobile notices. They use representative ink even if information ink is also explicitly set. Left-logo notices remain in the menu footer and keep information ink. This corrects the missed mobile boundary without moving notices, changing saved color keys, or automatically selecting new colors. The full surface and both explicit groups are checked by `scripts/qa-mobile-representative-surfaces.mjs`.
