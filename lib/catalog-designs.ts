@@ -75,9 +75,14 @@ const standards: CatalogDesign[]=DEFAULT_DESIGN_REVIEWS.map(design=>{
 // Catalog cards, detail galleries and checkout media share the same image.
 const catalogImages: Readonly<Partial<Record<string, string>>> = {
   cafe_real_matcha_a: '/template-previews/cafe_real_matcha_a-mobile-qr-20261111.jpg',
-  cafe_sunday_roasters_a: '/template-previews/cafe_sunday_roasters_a-20261104.jpg',
+  cafe_sunday_roasters_a: '/template-previews/cafe_sunday_roasters_a-tablet-20261113.jpg',
 };
 const catalogGalleries: Readonly<Partial<Record<string, readonly CatalogImage[]>>> = {
+  cafe_sunday_roasters_a: [
+    { src: '/template-previews/cafe_sunday_roasters_a-tablet-20261113.jpg', label: '태블릿 스탠드' },
+    { src: '/template-previews/cafe_sunday_roasters_a-mobile-20261113.jpg', label: '모바일 QR 메뉴' },
+    { src: '/template-previews/cafe_sunday_roasters_a-desktop-20261113.jpg', label: 'PC 메뉴 모니터' },
+  ],
   cafe_real_matcha_a: [
     { src: '/template-previews/cafe_real_matcha_a-mobile-qr-20261111.jpg', label: '모바일 QR 메뉴' },
     { src: '/template-previews/cafe_real_matcha_a-desktop-20261113.jpg', label: '메뉴판 디자인' },
