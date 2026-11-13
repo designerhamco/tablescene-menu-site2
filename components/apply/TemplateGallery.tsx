@@ -129,7 +129,7 @@ export default function TemplateGallery({
         <div className="site-stack-group">
           {product !== "display" && (
             <div className="site-catalog-kind-controls">
-              <div className="site-catalog-kind-hint"><HintBubble id={`${tabsId}-designer-hint`}>처음이라면 여기부터</HintBubble></div>
+              <div className="site-catalog-kind-hint"><HintBubble id={`${tabsId}-designer-hint`}>완성된 디자인으로 시작</HintBubble></div>
               <TabsList size="md" distribution="equal" aria-label="템플릿 종류 선택">
                 {KIND_TABS.map(({ key, label }) => (
                   <TabsTrigger key={key} value={key} id={`${tabsId}-${key}`} aria-controls={`${tabsId}-kind-panel`} aria-describedby={key === "designer" ? `${tabsId}-designer-hint` : undefined}>{label}</TabsTrigger>
