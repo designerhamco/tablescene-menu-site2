@@ -225,7 +225,7 @@ function applyActiveTemplateLocaleQaFixture(
     },
   };
   const copy = copyByLocale[data.locale];
-  const limits = getTemplateContentLimits(data.menuSite.template_key);
+  const limits = getTemplateContentLimits(data.menuSite.template_key, data.menuSite.settings);
   const firstCategoryId = data.categories.find((category) => category.visible !== false)?.id ?? null;
   const firstItemId = data.items.find((item) => item.visible !== false)?.id ?? null;
   const settings = data.menuSite.settings && typeof data.menuSite.settings === "object" && !Array.isArray(data.menuSite.settings)
@@ -805,7 +805,7 @@ function applySundayLineCopyQaFixture(
   const locale = normalizeSundayLineCopyQaLocale(lang);
   const isStress = copyQaCase === "stress";
   const isGlobalMax = copyQaCase === "globalMax";
-  const contentLimits = isGlobalMax ? DEFAULT_TEMPLATE_CONTENT_LIMITS : getTemplateContentLimits(data.menuSite.template_key);
+  const contentLimits = isGlobalMax ? DEFAULT_TEMPLATE_CONTENT_LIMITS : getTemplateContentLimits(data.menuSite.template_key, data.menuSite.settings);
   const settings = data.menuSite.settings && typeof data.menuSite.settings === "object" && !Array.isArray(data.menuSite.settings)
     ? { ...data.menuSite.settings }
     : {};
