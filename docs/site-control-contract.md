@@ -254,6 +254,7 @@ section의 추가 appearance=document는 흰 선택 면이 아래 기준선과 �
 ## 복합 입력·선택·달력 공통 구성 (2026-11-11)
 
 - `InputGroup`은 입력·앞뒤 아이콘/단위·보조 행동을 한 경계 안에서 중앙 정렬한다. `InputGroupInput`은 native name·required·min/max·autocomplete·aria-describedby를 그대로 전달한다. 보조 버튼은 입력과 형제인 `InputGroupAction` 안에 둔다.
+- `SearchField`의 기본 경계는 공통 --ui-search-boundary(#b5bac3)의1px 선이다. 일반 필드보다 한 단계 진하게 구분하되 캡슐형·치수는 유지한다. hover의 --ui-border-strong과 focus/error/disabled 공통 상태를 덮어쓰지 않는다. 고객 메뉴판과 일반 입력·셀렉트의 경계는 독립적이다.
 - `SearchField`는 접근 가능한 label, 선택적 검색 아이콘, 값이 있을 때의 지우기와 입력으로의 포커스 복귀를 공유한다. 기존 실시간 필터/제출 검색과 IME 보호를 바꾸지 않는다. 결과가 없다는 이유로 입력 오류를 만들거나 특수문자를 임의 차단하지 않는다.
 - `PasswordField`는 초기 마스킹과 별도 표시/숨기기 버튼을 제공한다. 이 버튼은 type=button이며 검증·자동완성·폼 이름/값을 유지한다.
 - 필드 크기32/40/44/48px와 기본14px·터치16px 글자,12px 안쪽 여백, 기존 아티메뉴 색상만 사용한다. 비활성은 투명도를 겹치지 않으며 읽기 전용은 선택·복사와 키보드 포커스를 유지한다.

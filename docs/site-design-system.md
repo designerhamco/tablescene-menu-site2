@@ -17,6 +17,10 @@
 
 2026-11-13 사용자 승인: 템플릿 선택 화면의 검색·필터·썸네일 크기 도구·결과 개수를 하나의 밝은 회색 영역으로 묶는다. 공통 FilterToolbar의 명시적 surface="muted"만 사용하며 기본값은 배경 없는 구성이다. 표면은 --ui-surface-muted, 모서리는 --ui-radius-surface, 무테·무그림자다. 안쪽 여백은 --site-panel-inset(모바일20px)/--site-panel-inset-wide(768px 이상24px), 내부 행 간격16px(--site-space-block), 옵션 사이8px(--site-space-copy), 다음 썸네일 목록과24px(--site-space-group)를 한 번만 적용한다. 결과 개수 아래 구분선과 그 전용 여백은 제거한다. 썸네일·페이지네이션은 회색 영역 밖이며 기존 검색/선택/보기 전환·모바일 필터 동작은 유지한다. 다른 일반 필터에 표면을 자동 추가하지 않는다. 공통 구현과 실제 예시는 FilterToolbar 및 /design-system#composed-fields를 따른다.
 
+## 검색창 경계 (2026-11-13)
+
+공통 SearchField는 --ui-search-boundary(#b5bac3)의1px 기본 경계로 일반 입력보다 또렷하게 구분한다. 기존 캡슐 모양·치수와 hover/focus/error/disabled 상태는 유지한다. 일반 필드·셀렉트·버튼·구분선이나 고객 메뉴판의 경계에는 적용하지 않는다. 상세 규칙은 site-control-contract.md와 site-component-density.md를 따른다.
+
 ## 템플릿 카드 정보 (2026-11-13)
 
 디자이너는 카테고리 → 제목 → 구조·표시 형식 → 분위기 해시태그 순서이며 서비스명·긴 설명·중복 리스트/앨범 표시는 생략한다. 기본은 기존 제목·설명을 유지하고 유형 줄을 제거한다. 기본의 분위기·색상 분류값과 필터는 없다. 카테고리/제목과 구조/해시태그 내부는 site-stack-detail4px, 두 정보 묶음 사이는8px, 하단 미리보기 행동 앞은12px이다. 제목은 기존 카드 크기·줄높이1.4에600/기본 잉크, 보조 정보는13px의 secondary/subtle로 위계를 구분한다. 미리보기는 공통40px outline/rounded 텍스트 버튼과 눈 아이콘으로 직접 연결하고, 좋아요의40px 클릭 영역은 유지한다. 분위기 등록·필터·카드와 구조 라벨의 정본은 [컴포넌트 기준](site-component-density.md#템플릿-카드-정보-2026-11-13), catalog-facets/catalog-designs 및 기존 구조 레지스트리를 따른다.
