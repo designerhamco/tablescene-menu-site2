@@ -207,11 +207,11 @@ const MOCHA_FOREST_TRANSLATIONS: SinglePageStarterTranslationBundle = {
     },
     pageTitle: "Menu",
     categoryNames: {
-      "signature-coffee": "Forest Signature",
-      "classic-coffee": "Espresso",
-      "non-coffee": "Chocolate",
-      ade: "Tea & Ade",
-      bakery: "Dessert",
+      "signature-coffee": "forest signature",
+      "classic-coffee": "espresso",
+      "non-coffee": "chocolate",
+      ade: "tea & ade",
+      bakery: "dessert",
     },
     items: {
       "forest-mocha": { name: "Forest Mocha", description: "Dark chocolate mocha with espresso and cream" },

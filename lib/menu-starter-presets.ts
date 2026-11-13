@@ -890,7 +890,7 @@ cafeMochaForestStarterPreset.pages = [
     categories: [
       {
         key: "signature-coffee",
-        name: "Forest Signature",
+        name: "forest signature",
         section_key: "main_menu",
         items: [
           item("포레스트 모카", 6500, "다크 초콜릿과 에스프레소에 부드러운 크림을 더한 시그니처 모카", {
@@ -914,7 +914,7 @@ cafeMochaForestStarterPreset.pages = [
       },
       {
         key: "classic-coffee",
-        name: "Espresso",
+        name: "espresso",
         section_key: "main_menu",
         items: [
           item("아메리카노", 4000, "다크 초콜릿처럼 묵직한 단맛과 깊은 로스팅 향", {
@@ -937,7 +937,7 @@ cafeMochaForestStarterPreset.pages = [
       },
       {
         key: "non-coffee",
-        name: "Chocolate",
+        name: "chocolate",
         section_key: "dessert_drink",
         items: [
           item("다크 초콜릿 라떼", 5800, "진한 다크 카카오의 깊고 묵직한 풍미", {
@@ -956,7 +956,7 @@ cafeMochaForestStarterPreset.pages = [
       },
       {
         key: "ade",
-        name: "Tea & Ade",
+        name: "tea & ade",
         section_key: "dessert_drink",
         items: [
           item("블랙티 플럼 에이드", 5800, "홍차와 자두의 산뜻한 향을 담은 탄산 에이드", { key: "black-tea-plum-ade" }),
@@ -967,7 +967,7 @@ cafeMochaForestStarterPreset.pages = [
       },
       {
         key: "bakery",
-        name: "Dessert",
+        name: "dessert",
         section_key: "dessert_drink",
         items: [
           item("다크 초콜릿 브라우니", 4500, "진한 다크 초콜릿을 넣어 촉촉하게 구운 브라우니", { key: "dark-chocolate-brownie" }),
