@@ -344,7 +344,7 @@ Every active Basic starter has a complete category-level price-option example (u
 
 Active contained-reading top rows use the common actual title/copy-height minimum above, including native language-row reservation, wrapped notices/description and colored panel padding. A long store description grows the fixed header and reduces the scrolling body. Recompute on real copy, font, logo or viewport changes and release on unmount. Mobile natural flow and legacy canvas engines remain separate.
 
-Notice 1/2/3 use the ordinary supporting-copy ink (including the native panel palette and saved supporting-color overrides), without independent dark defaults. MELLOW and Loop Bagel starters use Lilita One and Mogra respectively, and their registered English item names are present by default, so catalog secondary-name checkboxes infer ON while explicit OFF remains available. Saved customer fonts/content are not overwritten.
+Notice 1/2/3 use the ordinary supporting-copy ink (including the native panel palette and saved supporting-color overrides), without independent dark defaults. MELLOW and Loop Bagel starters use Lilita One and Mogra respectively, and their registered English item names are present by default, so catalog secondary-name checkboxes infer ON while explicit OFF remains available. Saved customer fonts/content are not overwritten. MELLOW starter category headings preserve mixed case (`Forest Signature`, `Espresso`, `Chocolate`, `Tea & Ade`, `Dessert`) in the Korean source and English translation; Chinese/Japanese keep their localized names. Do not force uppercase in the renderer or rewrite saved customer categories.
 
 ## Current Basic contained reading — 2026-10-20
 
