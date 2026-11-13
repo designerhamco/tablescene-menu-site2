@@ -8,7 +8,7 @@ import { getMenuDesignBackgrounds } from "@/lib/template-background-colors";
 import { menuColorContrast } from "@/lib/menu-interaction-theme";
 import { getTypographyTitleColorOverrides } from "@/lib/template-typography-presets";
 import { readPreviewChipColors, resolvePreviewChipColors } from "@/lib/menu-preview-chip-colors";
-import { menuSurfaceRecord, readMenuSurfaceSettings } from "@/lib/menu-design-surfaces";
+import { getDefaultRepresentativeAlignment, menuSurfaceRecord, readMenuSurfaceSettings } from "@/lib/menu-design-surfaces";
 import { MENU_TEXT_COLOR_GROUPS, resolvedMenuTextColors } from "@/lib/menu-text-colors";
 import { useRegularPriceColors } from "./useRegularPriceColors";
 import styles from "./MenuAppearanceScope.module.css";
@@ -22,7 +22,7 @@ export default function MenuAppearanceScope({ pageSettings, templateKey, designI
   const textColorStyle = Object.fromEntries(MENU_TEXT_COLOR_GROUPS.filter(group => textColors[group]).map(group => [`--menu-text-${group}`, textColors[group]]));
   const appearance = resolveMenuAppearance(pageSettings, templateKey, designId);
   const surfaces = readMenuSurfaceSettings(pageSettings);
-  const alignment = basic ? surfaces.representativeAlignment ?? (designId === "basic-upper-left" ? "center" : undefined) : undefined;
+  const alignment = basic ? surfaces.representativeAlignment ?? getDefaultRepresentativeAlignment(templateKey, { menu_design_id: designId }) : undefined;
   const previewChipColors = resolvePreviewChipColors(readPreviewChipColors(menuSurfaceRecord(menuSurfaceRecord(pageSettings).design).previewChipColors));
   const chipColorStyle = {
     ...(previewChipColors.generalBackground ? { "--menu-preview-chip-bg": previewChipColors.generalBackground } : {}),

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {hasFixedHeaderAlignment,menuSurfaceSettingsFromForm,readMenuSurfaceSettings,withMenuSurfaceSettings,menuSurfaceDefaults} from './menu-design-surfaces';
+import {getFixedHeaderIdentityAlignment,getDefaultRepresentativeAlignment,hasFixedHeaderAlignment,menuSurfaceSettingsFromForm,readMenuSurfaceSettings,withMenuSurfaceSettings,menuSurfaceDefaults} from './menu-design-surfaces';
 import {getMenuDesignBackgrounds} from './template-background-colors';
 import {buildMenuDesignMutation} from './menu-design-mutation';
 const form=(values:Record<string,string>)=>{const data=new FormData();for(const[key,value]of Object.entries(values))data.set(key,value);return data;};
@@ -95,4 +95,33 @@ test('corner list defaults to white auxiliary paper', () => {
  assert.equal(menuSurfaceDefaults('cafe_design_a',{menu_design_id:'basic-upper-left'}).auxiliaryBackground,'#FFFFFF');
  assert.equal(menuSurfaceDefaults('cafe_design_a',{menu_design_id:'basic-upper-left'}).pageBackground,'#F2F3F5');
  assert.equal(menuSurfaceDefaults('cafe_design_a',{menu_design_id:'basic-first-column'}).auxiliaryBackground,null);
+});
+
+test('left-logo structure owns desktop identity and has an unsaved centered mobile default',()=>{
+ for(const [templateKey,settings] of [['cafe_mocha_forest_a',{}],['cafe_design_a',{menu_design_id:'basic-top-row-left-logo'}]] as const){
+  assert.equal(getFixedHeaderIdentityAlignment(templateKey,settings),'left');
+  assert.equal(hasFixedHeaderAlignment(templateKey,settings),true);
+  assert.equal(getDefaultRepresentativeAlignment(templateKey,settings),'center');
+ }
+ assert.equal(getFixedHeaderIdentityAlignment('cafe_sunday_line_a'),'center');
+ assert.equal(getDefaultRepresentativeAlignment('cafe_sunday_line_a'),undefined);
+ assert.equal(getFixedHeaderIdentityAlignment('cafe_design_a',{menu_design_id:'basic-first-column'}),undefined);
+ assert.equal(getDefaultRepresentativeAlignment('cafe_design_a',{menu_design_id:'basic-upper-left'}),'center');
+});
+
+test('left-logo mobile default is render-only and explicit saved alignment survives rendering',async()=>{
+ const {createElement}=await import('react');const {renderToStaticMarkup}=await import('react-dom/server');
+ const {default:Scope}=await import('../components/menu-templates/shared/MenuAppearanceScope');
+ for(const [templateKey,designId] of [['cafe_mocha_forest_a',undefined],['cafe_design_a','basic-top-row-left-logo']] as const){
+  const pageSettings={design:{unrelated:'keep'}};
+  const html=renderToStaticMarkup(createElement(Scope,{templateKey,designId,pageSettings,children:null}));
+  assert.match(html,/data-representative-align="center"/);
+  assert.deepEqual(pageSettings,{design:{unrelated:'keep'}});
+  for(const alignment of ['left','center','right'] as const){
+   const saved={design:{representativeAlignment:alignment,unrelated:'keep'}};
+   const rendered=renderToStaticMarkup(createElement(Scope,{templateKey,designId,pageSettings:saved,children:null}));
+   assert.ok(rendered.includes(`data-representative-align="${alignment}"`));
+   assert.deepEqual(saved,{design:{representativeAlignment:alignment,unrelated:'keep'}});
+  }
+ }
 });

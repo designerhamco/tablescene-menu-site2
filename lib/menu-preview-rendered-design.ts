@@ -118,10 +118,16 @@ export function readPreviewRenderedDesign(doc: Document): PreviewRenderedDesign 
     if (value === "end") return style.direction === "rtl" ? "left" : "right";
     return ["left", "center", "right"].includes(value) ? value : undefined;
   };
-  const brandAlign = align(pick(samples.brand)), descriptionAlign = align(pick(samples.representative));
+  // A visible logo replaces the title. Read its actual slot alignment instead
+  // of incorrectly reporting only the (independently right-aligned) description.
+  const logo = pick(["[data-menu-logo-slot]", ".cafe-a-store-logo-wrap"]);
+  const justify = logo ? win.getComputedStyle(logo).justifyContent : undefined;
+  const logoAlign = justify === "flex-start" || justify === "start" || justify === "left" ? "left"
+    : justify === "flex-end" || justify === "end" || justify === "right" ? "right" : justify === "center" ? "center" : undefined;
+  const brandAlign = logo ? logoAlign : align(pick(samples.brand)), descriptionAlign = align(pick(samples.representative));
   const labels: Record<string,string> = { left: "왼쪽", center: "가운데", right: "오른쪽" };
   const alignment = brandAlign && descriptionAlign && brandAlign !== descriptionAlign
-    ? { value: "current", label: `가게명 ${labels[brandAlign]} · 설명 ${labels[descriptionAlign]}` }
+    ? { value: "current", label: `${logo ? "로고" : "가게명"} ${labels[brandAlign]} · 설명 ${labels[descriptionAlign]}` }
     : { value: brandAlign ?? descriptionAlign ?? "current", ...(brandAlign || descriptionAlign ? {} : {label:"표시 대상 없음"}) };
   const radii = (selector: string) => [...root.querySelectorAll(selector)].filter(visible).map(element => win.getComputedStyle(element).borderTopLeftRadius);
   const images = radii(".ad-viewer-frame, .cafe-a-cover-frame, .cafe-a-cover-hero, .cafe-a-menu-item-image-slot, [data-cafe-a-widget-media], .aube-table-image-trigger");
