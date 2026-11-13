@@ -5,6 +5,7 @@
   --paged-brand: var(--menu-role-brand-color, #191c1b);
   /* Match the original adaptive board inset at each actual viewport width. */
   --scroll-page-inset: var(--basic-reading-page-inset);
+  --scroll-page-top-inset: var(--scroll-page-inset);
   --scroll-column-gap: var(--scroll-page-inset);
   --scroll-action-clearance: clamp(0.875rem, calc(var(--scroll-page-inset) * 0.75), 1.25rem);
   --cafe-a-reading-reference-size: var(--scroll-item-size, 1rem);
@@ -24,7 +25,7 @@
   min-height: 0;
   overflow: hidden;
   box-sizing: border-box;
-  padding: var(--scroll-page-inset);
+  padding: var(--scroll-page-top-inset) var(--scroll-page-inset) var(--scroll-page-inset);
   background: #fff;
   color: var(--paged-ink);
 }
@@ -157,6 +158,8 @@
 
 /* New neutral review structures share the approved reading units and mobile renderer. */
 .frame[data-basic-structure="basic-top-row"] { grid-template-rows: minmax(var(--cafe-a-header-copy-height, 0px), var(--cafe-a-header-fr, 8fr)) minmax(0, var(--cafe-a-body-fr, 92fr)); row-gap: calc(var(--scroll-page-inset) * var(--cafe-a-header-gap-scale, 1)); }
+/* Match native centered headers, including the inset inside a colored panel. */
+.frame:has(> .topRow:global([data-menu-header-shared-rows])) { --scroll-page-top-inset: max(1.25rem, calc(var(--scroll-page-inset) * .75)); }
 .topRow { position: relative; grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--scroll-column-gap); align-items: center; min-width: 0; }
 .topIdentity { grid-column: 2; grid-row: 1; min-width: 0; text-align: center; }
 .topIdentity :global(.cafe-a-store-title) { line-height: 1.08; }
@@ -204,7 +207,7 @@
 .frame[data-representative-panel="true"][data-basic-structure="basic-first-column"] > .brand { padding: var(--scroll-page-inset); box-sizing: border-box; }
 .frame[data-representative-panel="true"][data-basic-structure="basic-first-column"] > .menuPanel { padding-block: var(--scroll-page-inset); box-sizing: border-box; }
 .frame[data-representative-panel="true"][data-basic-structure="basic-top-row"] { padding: 0 0 var(--scroll-page-inset); }
-.frame[data-representative-panel="true"] > .topRow { padding: var(--scroll-page-inset); box-sizing: border-box; }
+.frame[data-representative-panel="true"] > .topRow { padding: var(--scroll-page-top-inset) var(--scroll-page-inset) var(--scroll-page-inset); box-sizing: border-box; }
 .frame[data-representative-panel="true"][data-basic-structure="basic-top-row"] > .brand { margin-left: var(--scroll-page-inset); }
 .frame[data-representative-panel="true"][data-basic-structure="basic-top-row"] > .menuPanel { margin-right: var(--scroll-page-inset); }
 .frame[data-representative-panel="true"][data-basic-structure="basic-top-row"][data-show-cover="false"] > .menuPanel { margin-inline: var(--scroll-page-inset); }

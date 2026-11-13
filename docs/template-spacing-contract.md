@@ -154,6 +154,8 @@ Menu-to-menu column dividers remain 1px, use `data-menu-category-decoration` / `
 
 ### Centered information alignment — 2026-11-13
 
+PC/tablet centered top rows use a page top inset of `max(1.25rem, normal page inset × 0.75)`. This applies to native skins and neutral list/album structures, identified by their shared information rows. Other page edges, tool-to-copy spacing and header-to-menu spacing keep their existing tokens. With a colored representative header, reduce its internal top padding so the color still reaches the page edge. Left-logo headers, other layouts and mobile retain their existing insets. Header fitting and menu capacity continue to measure actual computed padding.
+
 Centered Basic top-row headers (native, neutral list and album) put language in a separate top-right tool row. Description and combined notices start together below it, each using its complete original cell width. The centered title/logo spans both rows. With no language control, the tool row collapses. Measure the trigger plus the taller description/notice extent as one shared group; retain the existing font sizes, bounded title fitting, three-line ellipsis and input limits. Left-logo headers keep their original right-side stack and content-footer notices.
 
 On mobile, top-row notices inside the representative area follow the saved representative left/center/right alignment along with its title/logo/description. Footer notices and other content anchors remain independent. PC/tablet representative alignment remains fixed and its preview selector disabled; switching devices preserves the stored mobile choice.
