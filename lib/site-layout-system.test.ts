@@ -132,7 +132,7 @@ test("mobile spacing documentation and live CSS use the same canonical roles", (
 
 test("shared mobile stacks own sibling gaps without duplicate child margins", () => {
   const source = readSource("../styles/site-spacing.css");
-  for (const role of ["copy", "block", "group", "content"]) {
+  for (const role of ["detail", "copy", "block", "group", "content"]) {
     assert.ok(source.includes(`.site-stack-${role} { gap: var(--site-space-${role}); }`));
   }
   assert.match(source, /site-stack-section > \* \{ margin-block: 0; \}/);

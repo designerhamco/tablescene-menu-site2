@@ -345,12 +345,12 @@
 .site-template-selection-card { display: flex; flex-direction: column; }
 .site-template-details { display: flex; flex: 1; flex-direction: column; }
 .site-template-category { color: var(--site-text-muted); font-size: var(--type-card-detail-size); font-weight: 500; line-height: var(--site-leading-meta); letter-spacing: var(--site-tracking-meta); }
-.site-template-title { font-size: var(--type-card-title-size); font-weight: var(--font-weight-medium); }
-.site-template-moods { display: flex; flex-wrap: wrap; gap: var(--site-space-copy); padding: 0; list-style: none; }
+.site-template-title { color: var(--ui-text); font-size: var(--type-card-title-size); font-weight: var(--font-weight-semibold); }
+.site-template-structure, .site-template-moods { font-size: var(--type-card-detail-size); font-weight: var(--font-weight-regular); line-height: var(--site-leading-meta); letter-spacing: var(--site-tracking-meta); }
+.site-template-structure { color: var(--site-text-secondary); }
+.site-template-moods { display: flex; flex-wrap: wrap; gap: var(--site-space-detail) var(--site-space-copy); padding: 0; color: var(--site-text-muted); list-style: none; }
 .site-template-description { font-size: var(--type-card-body-size); line-height: var(--site-leading-support); color: var(--site-text-secondary); letter-spacing: var(--site-tracking-copy); }
-.site-template-actions { display: flex; align-items: center; justify-content: space-between; gap: .75rem; margin-top: auto; padding-top: .75rem; }
-.site-template-preview-link { display: inline-flex; min-height: var(--ui-control-height-compact); align-items: center; gap: .375rem; color: var(--ui-text-muted); font-size: var(--type-body-sm-size); font-weight: 500; white-space: nowrap; transition: color var(--ui-transition); }
-.site-template-preview-link:hover { color: var(--ui-text); }
+.site-template-actions { margin-top: auto; }
 .site-template-artwork { overflow: hidden; border-radius: var(--ui-radius-preview); }
 .site-template-artwork > * { border-radius: inherit; }
 
@@ -455,13 +455,12 @@
 /* Public catalog navigation and account favorites share the existing card system. */
 .site-catalog-heart:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }
 .site-catalog-media-wrap { position: relative; }
-.site-template-title-row { display: flex; align-items: center; justify-content: space-between; gap: .75rem; min-width: 0; }
-.site-template-title-row .site-template-title { flex: 1; min-width: 0; }
+.site-template-title-row { display: flex; align-items: center; justify-content: space-between; gap: var(--site-space-copy); min-width: 0; }
+.site-template-title-row > .site-stack-detail { flex: 1; min-width: 0; }
 .site-catalog-heart { flex: none; color: var(--ui-text-muted); }
 .site-catalog-heart:hover { color: var(--ui-text); }
 .site-catalog-heart[aria-pressed="true"] { color: #c73750; }
 .site-catalog-heart:disabled { cursor: wait; }
-.site-catalog-results .site-template-actions { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 1rem; padding-top: .75rem; }
 .site-catalog-results .site-template-actions .site-button { width: auto; }
 
 /* Role-specific tab variants; they share the existing tab semantics and ink. */

@@ -46,6 +46,7 @@
 | 작업 헤더 → 다음 주요 영역 | `site-stack-content` | 32px |
 | 박스·섹션 제목 → 설명 | `site-stack-title` | 12px |
 | 필드 사이·연결된 작은 블록 사이 | `site-form-row` / `site-stack-block` | 16px |
+| 밀접한 카드 세부 정보(카테고리→제목, 구조→태그) | `site-stack-detail` | 4px |
 | 라벨 → 입력, 이름 → 날짜, 연관 설명 | `site-field-stack` / `site-stack-copy` | 8px |
 | 버튼 사이 | `site-action-row` | 8px |
 | 구분선 → 다음 내용 | `site-content-divider` | 16px |
