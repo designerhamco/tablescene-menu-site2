@@ -7545,6 +7545,11 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
     );
   };
 
+  const mobileHeaderContent = <>
+    <HeaderBlock data={data} density={density} className="lg:hidden" mobileReading={onePageRhythmMode === "mobile"} templateSkin={data.templateSkin} />
+    {mobileTopNotices ? <SundayLineMobileNotices data={data} capabilities={capabilities} density={density} mobileReading={onePageRhythmMode === "mobile"} /> : null}
+  </>;
+
   // CafeA skin shell: mobile scroll layout and desktop board share the same CafeA visual components.
   return (
     <CafeATimeSaleInitialNowContext.Provider value={initialNowMs}>
@@ -7607,12 +7612,9 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
               <HeaderBlock data={data} density={density} mobileReading templateSkin={data.templateSkin} />
               {shouldRenderMenuCoverSection && <div className="cafe-a-mobile-upper-featured"><CoverHero data={data} featuredSlides={featuredHeroSlides} capabilities={capabilities} density={density} customBadgeStyles={customBadgeStyles} priceDisplayMode={priceDisplayMode} /></div>}
             </section>
-          ) : (
-            <section className="lg:hidden" data-menu-mobile-representative="header">
-              <HeaderBlock data={data} density={density} mobileReading={onePageRhythmMode === "mobile"} templateSkin={data.templateSkin} />
-              {mobileTopNotices ? <SundayLineMobileNotices data={data} capabilities={capabilities} density={density} mobileReading={onePageRhythmMode === "mobile"} /> : null}
-            </section>
-          )}
+          ) : onePageRhythmMode === "mobile" ? (
+            <section className="lg:hidden" data-menu-mobile-representative="header">{mobileHeaderContent}</section>
+          ) : mobileHeaderContent}
           <div data-cafe-a-scroll-content="" className={`grid min-w-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-[var(--cafe-a-page-block-end)] md:grid-cols-2 lg:hidden ${isRoundFocus ? "cafe-a-round-focus-mobile-menu-grid" : ""} ${outerGridGapClassName}`}>
             {defaultDesignLayout !== "basic-upper-left" && !isPanelFlow && !isRoundFocus && !(isMochaForest && onePageRhythmMode === "mobile") && shouldRenderMenuCoverSection && (
               <CoverHero

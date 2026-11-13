@@ -24,6 +24,8 @@
 /* Paint the complete mobile representative surface, including control rows,
    insets and any top-row notices. Copy leaves never own a separate fill. */
 .scope[data-design-aux-background] :global(:is([data-menu-mobile-representative], .cafe-a-mobile-upper-box, .cafe-a-round-focus-mobile-brand-section, .cafe-a-panel-mobile-intro)) { background: var(--menu-design-aux-bg) !important; }
+/* Preserve the excluded canvas engine's previous copy treatment. */
+.scope[data-design-aux-background] :global(.cafe-a-typography:not([data-cafe-a-mobile-style="true"]) .cafe-a-mobile-header-copy) { background: var(--menu-design-aux-bg) !important; }
 .scope[data-design-colored-panel] :global(.cafe-a-typography[data-cafe-a-mobile-style="true"] [data-menu-mobile-representative="header"]) { padding-bottom: var(--cafe-a-mobile-inner-gap); }
 .scope[data-design-colored-panel] :global([data-basic-structure]:not([data-basic-structure="basic-top-row"]):not([data-basic-structure="basic-center-column"]):not([data-basic-structure="basic-upper-left"]) [data-paged-brand]) { padding: var(--scroll-page-inset); }
 /* A colored center panel owns the full page-height stripe. Its content keeps
