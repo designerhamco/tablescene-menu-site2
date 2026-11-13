@@ -1318,7 +1318,7 @@ textarea.site-field[data-field-size="lg"], textarea[data-field-size="lg"] { min-
 [data-slot="form-message"] { color: var(--ui-danger); }
 
 /* User-approved floating notification action; keeps shared control type and states. */
-.site-button-notification-read-all { width: var(--ui-notification-read-all-width); border-radius: var(--ui-notification-read-all-radius); border-color: var(--ui-text-muted); box-shadow: var(--ui-notification-read-all-shadow); }
+.site-button-notification-read-all { width: var(--ui-notification-read-all-width); border-radius: var(--ui-notification-read-all-radius); box-shadow: var(--ui-notification-read-all-shadow); }
 .site-button-notification-read-all:is(:disabled, [aria-disabled="true"]) { box-shadow: none; }
 
 /* Canvas objects own their geometry; site controls and type roles remain shared. */
