@@ -37,6 +37,7 @@ import { getNextTimeSaleBoundaryMs } from "@/lib/menu-time-sale-schedule";
 import { getCanvasHeaderRatio } from "@/lib/canvas-brand-title-fit";
 import type { MenuPreviewDevice } from "@/lib/menu-preview-devices";
 import styles from "./NativeBasicScroll.module.css";
+import MenuClampedCopy from "../shared/MenuClampedCopy";
 
 type Unit = { id: string; group: string; kind: "heading" | "item" | "widget"; node: ReactNode; };
 
@@ -272,7 +273,9 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
     void document.fonts.ready.then(schedule); schedule();
     return () => { disposed = true; cancelAnimationFrame(frame); observer.disconnect(); copyObserver.disconnect(); logo.removeEventListener("load", schedule); document.fonts.removeEventListener("loadingdone", schedule); root.style.removeProperty("--cafe-a-header-copy-height"); };
   }, [top, data.menuSite.logo_url]);
-  const noticeNode = (!top || leftLogo) && notices.length ? <div className={`${styles.notices} cafe-a-menu-description cafe-a-description-text`} data-native-notices >{notices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>)}</div> : null;
+  const noticeNode = (!top || leftLogo) && notices.length ? <div className={`${styles.notices} cafe-a-menu-description cafe-a-description-text`} data-native-notices >{top
+    ? <MenuClampedCopy text={notices.join("\n")} />
+    : notices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>)}</div> : null;
   const dock = showCall || showOrder || call.terminalConnected ? <footer className={styles.actions} data-native-actions data-call-only={showCall && !showOrder ? "true" : undefined} aria-label={t("메뉴 이용")}>
     {call.terminalConnected ? <span className={styles.tableLabel} data-terminal-table-label title={call.tableLabel}>{call.tableLabel}</span> : null}
     {showCall ? <button type="button" className={styles.call} onClick={call.openCall} aria-label={t("직원 호출하기")}><StaffCallIcon strokeWidth={1.8} /><ScriptAwareText text={t("호출하기")} /></button> : null}

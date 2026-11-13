@@ -3,6 +3,21 @@
 .header { overflow: visible !important; }
 .stack.stack { position: relative; z-index: 5; grid-column: 3; grid-row: 1; align-self: start; display: flex; flex-direction: column; align-items: flex-end; gap: .75rem; min-width: 0; width: 100%; text-align: right; }
 .stack > p, .stack > [data-scroll-header-copy] { width: 100% !important; margin: 0 !important; padding: 0 !important; max-height: none !important; overflow: visible !important; display: block !important; white-space: pre-line; overflow-wrap: anywhere; text-align: right !important; }
+.stack > :global([data-paged-notices]) { width: 100%; min-width: 0; margin: 0 !important; padding: 0 !important; }
 
 .description.description { grid-column: 1; grid-row: 1; align-self: center; min-width: 0; width: 100%; min-height: 0; overflow: visible; text-align: left; }
 .description > p { width: 100% !important; margin: 0 !important; padding: 0 !important; max-height: none !important; overflow: visible !important; white-space: pre-line; overflow-wrap: anywhere; text-align: left !important; }
+
+/* Clamp copy leaves only. Language triggers and their popup stay outside. */
+.clampedCopy.clampedCopy {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  /* A separate height cap can hide WebKit's ellipsis on right-aligned copy. */
+  max-height: none !important;
+  overflow: hidden !important;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.clampedCopy.clampedCopy[data-menu-copy-overflow="true"] { padding-inline-end: 1em !important; box-sizing: border-box; }
