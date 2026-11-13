@@ -7,9 +7,8 @@ import { getPublicTemplateDetail, getTemplateDetailInfo } from "./template-detai
 const mellow = getCatalogDesign("cafe_mocha_forest_a")!;
 
 test("catalog and detail share actual ordered images with a canonical first image", () => {
-  assert.equal(mellow.images.length, 2);
-  assert.equal(mellow.images[0].label, "매장 외관");
-  assert.equal(mellow.images[1].label, "매장 내부");
+  assert.equal(mellow.images.length, 4);
+  assert.deepEqual(mellow.images.map(image => image.label), ["모바일 QR 메뉴", "태블릿 스탠드", "PC 메뉴 모니터", "매장 외관"]);
   for (const design of catalogDesigns) {
     assert.ok(design.images.length);
     assert.equal(design.image, design.images[0].src);
