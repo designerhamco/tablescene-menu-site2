@@ -514,7 +514,7 @@ export default function DiningAubeTableA({
             animate="visible"
           >
             {useCoverLogo ? (
-              <motion.div variants={AUBE_TABLE_COVER_REVEAL_ITEM}>
+              <motion.div variants={AUBE_TABLE_COVER_REVEAL_ITEM} data-menu-brand-logo>
                 <img
                   className="aube-table-cover-logo"
                   data-default-design-logo={defaultDesign ? "" : undefined}
@@ -526,7 +526,7 @@ export default function DiningAubeTableA({
               </motion.div>
             ) : null}
             {coverTitle && !(defaultDesign && useCoverLogo) ? <motion.h1 variants={AUBE_TABLE_COVER_REVEAL_ITEM}><ScriptAwareText text={coverTitle} /></motion.h1> : null}
-            {coverDescription ? <motion.p className="aube-table-cover-description" variants={AUBE_TABLE_COVER_REVEAL_ITEM}><ScriptAwareText text={coverDescription} /></motion.p> : null}
+            {coverDescription ? <motion.p data-menu-store-description className="aube-table-cover-description" variants={AUBE_TABLE_COVER_REVEAL_ITEM}><ScriptAwareText text={coverDescription} /></motion.p> : null}
           </motion.div>
           {coverNotices.length ? <div className="aube-table-cover-bottom" ref={measureCoverBottom}>
             <div className="aube-table-cover-notices" data-dining-cover-notices data-notice-count={coverNotices.length}>

@@ -221,12 +221,12 @@ function CoverUnit({
       <div className="brew-chapter-cover-copy" data-brew-cover-has-image={useCoverImage ? "true" : "false"}>
         <div className="brew-chapter-cover-text">
           {site.logo_url ? (
-            <img src={site.logo_url} alt={title ?? ""} className="brew-chapter-cover-logo" />
+            <img data-menu-brand-logo src={site.logo_url} alt={title ?? ""} className="brew-chapter-cover-logo" />
           ) : title ? (
             <h1 className="brew-chapter-cover-title cafe-a-store-title break-words font-black uppercase leading-[0.96]"><ScriptAwareText text={title} /></h1>
           ) : null}
           {description ? (
-            <p className="brew-chapter-cover-description cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap cafe-a-menu-description-size-default break-keep text-[#3f4945]"><ScriptAwareText text={description} /></p>
+            <p data-menu-store-description className="brew-chapter-cover-description cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap cafe-a-menu-description-size-default break-keep text-[#3f4945]"><ScriptAwareText text={description} /></p>
           ) : null}
           {notices.length > 0 ? (
             <div className="brew-chapter-cover-notices" data-brew-cover-notices="">
