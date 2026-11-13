@@ -81,7 +81,6 @@ const catalogGalleries: Readonly<Partial<Record<string, readonly CatalogImage[]>
   cafe_sunday_roasters_a: [
     { src: '/template-previews/cafe_sunday_roasters_a-tablet-20261113.jpg', label: '태블릿 스탠드' },
     { src: '/template-previews/cafe_sunday_roasters_a-mobile-20261113.jpg', label: '모바일 QR 메뉴' },
-    { src: '/template-previews/cafe_sunday_roasters_a-desktop-20261113-final.jpg', label: 'PC 메뉴 모니터' },
     { src: '/template-previews/cafe_sunday_roasters_a-tablet-kiosk-20261113.jpg', label: '태블릿 키오스크' },
   ],
   cafe_real_matcha_a: [
