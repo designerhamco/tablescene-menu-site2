@@ -12,7 +12,7 @@ const cafeSource = readFileSync(
   "utf8",
 );
 
-test("MELLOW starter uses Pretendard and Fraunces", () => {
+test("MELLOW starter uses Pretendard and Lilita One", () => {
   const preset = getStarterPreset("cafe_mocha_forest_a");
   const typography = mergeTypographySettings(
     preset.template_key,
@@ -20,9 +20,9 @@ test("MELLOW starter uses Pretendard and Fraunces", () => {
   );
 
   assert.equal(typography.korean_font_key, "pretendard");
-  assert.equal(typography.english_font_key, "fraunces");
-  assert.equal(getDefaultEnglishFontForTemplate(preset.template_key).value, "fraunces");
-  assert.ok(getAvailableEnglishFontsForTemplate(preset.template_key).some(font => font.value === "fraunces"));
+  assert.equal(typography.english_font_key, "lilita-one");
+  assert.equal(getDefaultEnglishFontForTemplate(preset.template_key).value, "lilita-one");
+  assert.ok(getAvailableEnglishFontsForTemplate(preset.template_key).some(font => font.value === "lilita-one"));
   assert.equal(mergeTypographySettings(preset.template_key, { english_font_key: "carme" }).english_font_key, "carme");
 });
 
