@@ -658,11 +658,11 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         data-scroll-content-height={layout.contentHeight}
       >
         <OnePageCallPalette />
-        {topRow ? <header className={styles.topRow} data-basic-top-row data-basic-header-align={leftLogo ? "left" : undefined}>
+        {topRow ? <header className={`${styles.topRow} ${headerInformationStyles.header}`} data-basic-top-row data-basic-header-align={leftLogo ? "left" : undefined} data-menu-header-shared-rows={leftLogo ? undefined : "true"}>
           {!leftLogo ? <div className={headerInformationStyles.description}>{storeDescription}</div> : null}
-          <div className={styles.topIdentity}>{storeIdentity}</div>
+          <div className={`${styles.topIdentity} ${headerInformationStyles.identity}`}>{storeIdentity}</div>
           <div className={headerInformationStyles.stack} data-menu-header-info-stack>
-            {languageControl}
+            {leftLogo ? languageControl : <div className={headerInformationStyles.tools}>{languageControl}</div>}
             {leftLogo ? storeDescription : null}
             {!leftLogo && allNotices.length ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices>
               <MenuClampedCopy data-scroll-header-copy text={allNotices.join("\n")} />

@@ -3776,11 +3776,12 @@ function DesktopToplineInformationHeader({
       className={`cafe-a-topline-info-header hidden min-w-0 lg:grid ${headerInformationStyles.header}`}
       data-cafe-a-topline-info-header=""
       data-basic-header-align={leftLogo ? "left" : undefined}
+      data-menu-header-shared-rows={leftLogo ? undefined : "true"}
     >
       {!leftLogo ? <div className={`cafe-a-topline-description-panel min-w-0 ${headerInformationStyles.description}`} data-cafe-a-topline-description-panel="">
         {description ? <MenuClampedCopy text={description} className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description whitespace-pre-line break-keep text-[#3f4945] ${descriptionSizeClassName}`} /> : null}
       </div> : null}
-      <div className="cafe-a-topline-brand-identity min-w-0" data-cafe-a-topline-brand-identity="">
+      <div className={`cafe-a-topline-brand-identity min-w-0 ${headerInformationStyles.identity}`} data-cafe-a-topline-brand-identity="">
         <StoreIdentity
           data={data}
           capabilities={capabilities}
@@ -3791,7 +3792,7 @@ function DesktopToplineInformationHeader({
       </div>
 
       <div className={`cafe-a-topline-info-stack ${headerInformationStyles.stack}`} data-menu-header-info-stack>
-        {languageControl}
+        {leftLogo ? languageControl : <div className={headerInformationStyles.tools}>{languageControl}</div>}
         {leftLogo && description ? <MenuClampedCopy text={description} className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-description whitespace-pre-line break-keep ${descriptionSizeClassName}`} /> : null}
         {!leftLogo && infoRows.length ? <MenuClampedCopy text={infoRows.join("\n")} className={`cafe-a-description-text cafe-a-menu-description cafe-a-topline-notices cafe-a-topline-notice-text whitespace-pre-line break-keep text-[#3f4945] ${descriptionSizeClassName}`} /> : null}
       </div>

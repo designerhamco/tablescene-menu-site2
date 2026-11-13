@@ -47,12 +47,15 @@
 .scope[data-design-brand-ink] :global(.cafe-a-typography[data-template-key] .cafe-a-store-title), .scope[data-design-brand-ink] :global(.aube-table-root .aube-table-cover h1) { color: var(--menu-design-brand-ink) !important; }
 .scope[data-design-category-ink] :global(.cafe-a-typography[data-template-key] :is(.cafe-a-category-heading, .cafe-a-category-title, [data-cafe-a-category-description], [data-cafe-a-category-divider], [data-menu-category-decoration])), .scope[data-design-category-ink] :global(.aube-table-root :is(.aube-table-course-header, .aube-table-course-title h2, .aube-table-course-rule, [data-menu-category-decoration])) { color: var(--menu-design-category-ink) !important; }
 
-/* Explicit alignment affects representative content only, never menu/notice anchors. */
+/* Explicit alignment affects representative content, including its mobile
+   top-row notices. Menu and content-footer notice anchors stay independent. */
 .scope[data-representative-align] :global(.cafe-a-store-title),
 .scope[data-representative-align] :global([data-representative-copy]),
 .scope[data-representative-align] :global([data-representative-copy] .cafe-a-store-description),
 .scope[data-representative-align] :global([data-representative-copy] [data-cafe-a-store-description]),
 .scope[data-representative-align] :global(.cafe-a-topline-description) { text-align: var(--menu-representative-align) !important; }
+.scope[data-representative-align] :global([data-menu-mobile-representative] [data-cafe-a-topline-mobile-notices]),
+.scope[data-representative-align] :global([data-menu-mobile-representative] [data-cafe-a-topline-mobile-notices] p) { text-align: var(--menu-representative-align) !important; }
 .scope[data-representative-align] :global(.cafe-a-store-logo-wrap) { display: flex; justify-content: var(--menu-representative-justify); width: 100%; }
 .scope[data-representative-align] :global(.cafe-a-store-logo) { margin-inline-start: var(--menu-representative-logo-start) !important; margin-inline-end: var(--menu-representative-logo-end) !important; object-position: var(--menu-representative-align) center !important; }
 .scope[data-cover-description-ink] :global(:is(.aube-table-cover-description, .aube-table-cover-notices)) { --menu-role-supporting-color: var(--menu-cover-description-ink); color: var(--menu-cover-description-ink) !important; }

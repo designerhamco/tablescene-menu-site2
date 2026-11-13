@@ -40,6 +40,18 @@ try{
    const q=new URLSearchParams({design,device,view:'actual',embedded:'1',logoPreview:logo?'on':'off',coverPreview:cover?'on':'off',layoutMode:cover?'orderedFit':'orderedBalancedFit'});
    assert.equal((await page.goto(`${base}/templates/cafe_real_matcha_a/preview?${q}`,{waitUntil:'domcontentloaded'})).status(),200);await settled(page);
    const before=await geometry(page),trigger=page.locator('[data-basic-top-row] [data-language-menu-trigger]');
+   if(design==='basic-top-row'){
+    const rows=await page.evaluate(()=>{
+     const h=document.querySelector('[data-menu-header-shared-rows]');
+     const d=h.querySelector('[data-scroll-header-copy]').getBoundingClientRect();
+     const n=h.querySelector('[data-paged-notices] [data-scroll-header-copy]').getBoundingClientRect();
+     const t=h.querySelector('[data-language-menu-trigger]').getBoundingClientRect();
+     return {descriptionTop:d.top,noticeTop:n.top,descriptionWidth:d.width,noticeWidth:n.width,toolBottom:t.bottom};
+    });
+    assert.ok(Math.abs(rows.descriptionTop-rows.noticeTop)<.75,'description and notices start on the same row');
+    assert.ok(Math.abs(rows.descriptionWidth-rows.noticeWidth)<.75,'notices retain the complete cell width');
+    assert.ok(rows.toolBottom<rows.noticeTop,'language occupies a separate row above copy');
+   }
    assert.deepEqual(await page.evaluate(()=>[innerWidth,innerHeight]),[width,height]);
    for(let cycle=0;cycle<3;cycle++){
     if(cycle===1){await trigger.focus();await page.keyboard.press('Enter');}else await trigger.click();

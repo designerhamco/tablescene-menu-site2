@@ -42,3 +42,18 @@ test("right-column information reserves trigger, real copy and their in-flow gap
   assert.equal(measureMenuHeaderContentHeight(header(leaf(20,36,true),leaf(68,100))),148);
   assert.equal(measureMenuHeaderContentHeight(header(leaf(20,36,true),leaf(68,63,false,false,true))),111);
 });
+
+test("centered shared rows reserve tools plus the taller copy on either side", () => {
+  const sharedRows = {}, rightStack = {};
+  const leaf = (top: number, height: number, right = false, overlay = false) => ({
+    getBoundingClientRect: () => ({top, height}), scrollHeight: 900,
+    hasAttribute: () => true,
+    closest: (selector: string) => selector === "[data-language-menu-surface]" ? (overlay ? {} : null)
+      : selector === "[data-menu-header-shared-rows]" ? sharedRows : right ? rightStack : null,
+  }) as unknown as HTMLElement;
+  const trigger = leaf(20, 24, true);
+  assert.equal(measureMenuHeaderContentHeight(header(trigger, leaf(56, 63), leaf(56, 21, true))), 99);
+  assert.equal(measureMenuHeaderContentHeight(header(trigger, leaf(56, 21), leaf(56, 63, true), leaf(44, 900, true, true))), 99);
+  assert.equal(measureMenuHeaderContentHeight(header(trigger, leaf(56, 63))), 99);
+  assert.equal(measureMenuHeaderContentHeight(header(leaf(20, 63))), 63);
+});
