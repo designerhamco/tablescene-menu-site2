@@ -27,6 +27,7 @@ export const SITE_CONTENT_COMPOSITION = [
 
 /** Compact control internals; never reuse content-panel gaps for menu rows. */
 export const SITE_CONTROL_DENSITY = [
+  { role: "검색창 기본 경계", value: "1px · #b5bac3", token: "--ui-search-boundary", rule: "공통 검색만 일반 필드보다 진하게 구분. 캡슐과 기존 hover/focus/error/disabled 상태 유지" },
   { role: "일반 입력·선택 모서리", value: "12px", token: "--ui-radius-field", rule: "일반 입력·셀렉트·텍스트 영역은 이전 모서리 유지. 검색은 별도 캡슐형" },
   { role: "검색창 모서리", value: "캡슐형", token: "SearchField / --ui-radius-control", rule: "작은 검색·대표 검색 모두 유지. 일반 필드 모서리 변경에 포함하지 않음" },
   { role: "선택 라벨·개수 / 화살표 최소 여유", value: "PC·태블릿8 / 8px", token: "--ui-multiselect-count-gap / --site-select-trailing-space", rule: "768px 이상에서만 축소. 모바일 기존16 / 12px와 아코디언8px 유지" },

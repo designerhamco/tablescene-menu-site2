@@ -51,6 +51,7 @@
   --ui-tooltip-padding-inline-compact: .875rem;
   --ui-border: #dbdee3;
   --ui-border-strong: #9fa3ab;
+  --ui-search-boundary: #b5bac3;
   --ui-surface: #ffffff;
   --ui-surface-muted: #f7f8fa;
   --ui-surface-soft: #f0f1f3;
@@ -1526,6 +1527,9 @@ svg.site-edit-icon {
 .site-multiselect-section-heading > .site-select-chevron { pointer-events: none; }
 .site-multiselect-section-heading:has([data-state="open"]) > .site-select-chevron { transform: rotate(180deg); }
 .site-multiselect-section-content { padding-block: var(--ui-menu-section-gap) var(--ui-menu-inset); }
+
+/* Search has a clearer idle boundary; shared hover/focus/error/disabled states still win. */
+.site-search-field { border-color: var(--ui-search-boundary); }
 
 /* Composed fields retain one boundary and keep interactive siblings outside the input. */
 .site-field.site-input-group { --site-input-height: var(--ui-field-height-md); display: flex; align-items: center; gap: var(--site-space-copy); width: 100%; min-width: 0; min-height: var(--site-input-height); padding: 0 var(--ui-control-padding-inline); }

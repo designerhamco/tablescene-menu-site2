@@ -21,6 +21,8 @@
 
 PC·태블릿(768px 이상)의 셀렉트는 라벨→선택 개수8px, 개수→화살표 최소8px를 사용한다. 화살표16px·오른쪽 inset12px를 유지해 trailing space는36px이다. 좁은 화면의 기존 label/count gap16px·trailing40px(최소 여유12px), 모바일 아코디언의8px 간격은 그대로다. 동일한 필터 너비 때문에 짧은 라벨 뒤에 남는 여유는 허용하되 라벨과 개수를 양 끝으로 벌리지 않는다. 개수 X의32px 클릭 영역·키보드 초점·전체 선택 동작과 공통 필드 높이는 유지한다.
 
+공통 SearchField의 기본1px 경계는 --ui-search-boundary(#b5bac3)로 일반 필드의 --ui-border(#dbdee3)보다 한 단계 진하게 구분한다. 캡슐형·크기·두께·검색 동작은 유지하고 hover는 기존 --ui-border-strong, focus/error/disabled는 각 공통 상태가 우선한다. 일반 인풋·셀렉트·버튼·구분선과 고객 메뉴판에는 이 색을 일괄 적용하지 않는다.
+
 대표 검색은 `SearchField fieldSize="search"`의48px 높이에 모바일16px·PC/태블릿18px 글자를 사용한다. 작은 도구 입력의14px·터치16px와 구분하며 공통 와이드 보정을 따른다. FAQ 카테고리는 `CategoryFilter size="lg"`의16px, 질문 행의 분류명은 `type-body`16px이다. 질문·답변·페이지 제목·GNB의 크기는 이 요청으로 변경하지 않는다.
 
 ## 사이트 탐색·읽기 글자의 보호 경계
