@@ -1,5 +1,13 @@
 # 아티메뉴 메뉴판 공통 규칙
 
+## Logo-to-description optical clearance — 2026-11-13 (current)
+
+All customer-menu templates use one additive optical clearance when the **rendered logo replaces the text identity immediately above the store description**: `--menu-logo-description-gap-extra: 0.25rem` (4 CSS px at the normal 16px root). Preserve the existing base gap; Basic mobile therefore uses 12px + 4px = 16px. The same token applies to stacked PC/tablet rails, central/upper-left representatives, neutral list/album identities and eligible Dining/multi-page covers. It is independent of product/category spacing and must never change text-brand spacing.
+
+Mark real introduction leaves with `data-menu-store-description`. The shared selector accepts an adjacent `data-menu-logo-slot` / `data-menu-brand-logo`, or a `data-menu-brand-heading` containing the logo. Add the clearance once as top padding on that copy leaf, so existing margins/flex/grid gaps remain authoritative and measurement includes the real extra height. Empty/missing descriptions and text/error-fallback identities receive no extra space. Horizontal three-cell headers keep their separate identity and description cells; logo-plus-visible-title covers also keep their existing text-to-description gap. Navigation logos are outside this rule.
+
+Preserve logo sizing limits, protected artwork bounds, ratios, colors, alignment and notice/service anchors. Existing measured copy/panel budgets include the padded description height; hidden candidates and visible renderers must use the same hooks. Verify logos and text, logo errors, absent descriptions, actual image/text bounds and mobile/desktop/default/native paths through `scripts/qa-logo-description-gap.mjs`.
+
 ## Top-row copy ellipsis — 2026-11-13 (current)
 
 User-approved policy: PC/tablet Basic top-row store descriptions display at most three lines. Notices 1/2/3 share one three-line budget in registration order, including the content-footer notices of left-logo top rows. Overflow ends with an ellipsis; there is no expanded view, tooltip or new copy scrollbar. Keep the original text in storage/DOM and retain font size, newlines, cell ownership, language controls and existing notice anchors. Mobile reading and other layout families remain independent.

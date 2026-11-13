@@ -3674,7 +3674,7 @@ export function CafeAUpperLeftIntro({ data, density = "default", mobileReading =
   </div>;
   const identity = <div className={upperLeftStyles.identity} data-representative-copy data-corner-identity>
     <StoreIdentity data={data} capabilities={capabilities} titleClassName="cafe-a-store-title cafe-a-panel-brand" logoClassName="cafe-a-store-logo" mobileAutoFit={mobileReading} layoutShell="brand_panel_flow" />
-    {(data.menuSite.brand_description || data.menuSite.description) && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p>}
+    {(data.menuSite.brand_description || data.menuSite.description) && <p data-menu-store-description className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p>}
   </div>;
   return <div className={upperLeftStyles.intro} data-upper-left-intro data-photo={slides.length ? "true" : "false"} data-carousel={slides.length > 1 ? "true" : undefined} data-mobile-call={mobileReading && call.enabled ? "true" : undefined}
     style={panelIdentityStyle(data, Boolean(slides.length), getResolvedBackgroundColor(data.menuSite.template_key, data.pageSettings))}>
@@ -3694,7 +3694,7 @@ function PanelFlowIntro({ data, density, mobileReading = false }: { data: Public
   const slides = showCover ? getFeaturedHeroSlides(data, capabilities) : [];
   const identity = <div className="cafe-a-panel-identity" data-representative-copy>
     <StoreIdentity data={data} capabilities={capabilities} titleClassName="cafe-a-store-title cafe-a-panel-brand" logoClassName="cafe-a-store-logo" mobileAutoFit={mobileReading} />
-    {(data.menuSite.brand_description || data.menuSite.description) && <p className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p>}
+    {(data.menuSite.brand_description || data.menuSite.description) && <p data-menu-store-description className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p>}
   </div>;
   const identityStyle = panelIdentityStyle(data, Boolean(slides.length), getMenuDesignBackgrounds(data.menuSite.template_key, data.pageSettings).auxiliary ?? "#FFFFFF");
   if (!slides.length) return <div className="cafe-a-panel-plain-intro" style={identityStyle}>{controls}{identity}</div>;
@@ -3743,7 +3743,7 @@ function HeaderBlock({
             mobileAutoFit={mobileReading}
           />
           {description && (
-            <p className={descriptionClassName} data-cafe-a-store-description="">
+            <p className={descriptionClassName} data-cafe-a-store-description="" data-menu-store-description>
               <ScriptAwareText text={description} />
             </p>
           )}
@@ -3912,7 +3912,7 @@ function DesktopFixedRail({
   return (
     <aside className="cafe-a-fixed-rail hidden min-w-0 lg:flex lg:flex-col" data-cafe-a-brand-panel={variant} {...mochaPanelAttributes}>
       <div className="cafe-a-fixed-rail-copy min-w-0" data-representative-copy>
-        <div className="cafe-a-rail-heading flex min-w-0 flex-col items-stretch gap-[clamp(0.5rem,1.1vmin,0.875rem)]">
+        <div className="cafe-a-rail-heading flex min-w-0 flex-col items-stretch gap-[clamp(0.5rem,1.1vmin,0.875rem)]" data-menu-brand-heading>
           {!isCenterColumn && !isAubeCoffee ? (
             <div
               className="cafe-a-rail-language-row flex min-w-0 justify-end"
@@ -3929,7 +3929,7 @@ function DesktopFixedRail({
           />
         </div>
         {description && (
-          <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap cafe-a-rail-description mt-3 break-keep text-[#3f4945] ${descriptionSizeClassName}`} data-cafe-a-store-description="">
+          <p className={`cafe-a-description-text cafe-a-menu-description cafe-a-menu-description-wrap cafe-a-rail-description mt-3 break-keep text-[#3f4945] ${descriptionSizeClassName}`} data-cafe-a-store-description="" data-menu-store-description>
             <ScriptAwareText text={description} />
           </p>
         )}

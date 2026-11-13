@@ -531,6 +531,16 @@ video {
   font-weight: var(--menu-role-brand-font-weight, 900);
 }
 
+/* Shared optical clearance when a logo directly precedes store copy. */
+.menu-typography {
+  --menu-logo-description-gap-extra: 0.25rem;
+}
+
+.menu-typography :is([data-menu-logo-slot], [data-menu-brand-logo]) + [data-menu-store-description],
+.menu-typography [data-menu-brand-heading]:has(> [data-menu-logo-slot]) + [data-menu-store-description] {
+  padding-block-start: var(--menu-logo-description-gap-extra);
+}
+
 .cafe-a-typography .cafe-a-store-description {
   --cafe-a-script-ko-font: var(--menu-role-supporting-font-ko, var(--menu-font-ko));
   --cafe-a-script-en-font: var(--menu-role-supporting-font-en, var(--menu-font-en));

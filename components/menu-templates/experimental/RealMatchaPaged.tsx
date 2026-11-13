@@ -596,7 +596,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     layoutShell={topRow ? "brand_top_band" : centerColumn ? "brand_center_column" : "brand_left_rail"} />;
   const storeDescription = (data.menuSite.brand_description || data.menuSite.description)
     ? topRow ? <MenuClampedCopy data-representative-copy data-scroll-header-copy text={data.menuSite.brand_description || data.menuSite.description || ""} className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]" />
-      : <p data-representative-copy data-scroll-header-copy className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null;
+      : <p data-menu-store-description data-representative-copy data-scroll-header-copy className="cafe-a-description-text cafe-a-menu-description cafe-a-store-description whitespace-pre-line text-[#3f4945]"><ScriptAwareText text={data.menuSite.brand_description || data.menuSite.description || ""} /></p> : null;
   const actionFooter = showCall || showOrder || call.terminalConnected ? (
             <footer className={styles.footer} data-scroll-actions aria-label={t("메뉴 이용")}>
               {call.terminalConnected ? <span className={styles.tableLabel} data-terminal-table-label title={call.tableLabel}>{call.tableLabel}</span> : null}
