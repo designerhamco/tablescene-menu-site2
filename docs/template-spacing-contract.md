@@ -1,5 +1,11 @@
 # 아티메뉴 메뉴판 공통 규칙
 
+## Left-logo device alignment — 2026-11-13 (current)
+
+All existing/future Basic left-logo top-row designs (native MELLOW and neutral left-logo) keep store-name/logo **left** and store description **right** on PC/tablet. Their alignment option stays disabled and reports the actual fixed combination, including logo identities. A saved/catalog mobile center/right/left choice must never override these structural header positions. Centered top-row variants retain centered identity and left description; do not apply the left-logo exception to them.
+
+Mobile left-logo identities default to **center** only when no explicit saved/catalog alignment exists. Explicit left/center/right choices remain authoritative on mobile and survive mobile→PC→tablet→mobile navigation. Desktop rendering never rewrites that mobile choice. The fallback is render-only; no new customer field, data migration, starter rewrite or automatic save is introduced. The shared `getFixedHeaderIdentityAlignment`/`getDefaultRepresentativeAlignment` policy and `MenuAppearanceScope` separate structural desktop alignment from the mobile setting. Logo readout uses the visible logo slot's actual alignment rather than inferring from the description. Preserve title/logo sizes, cell ownership, header/body geometry, notices, image ratios and service controls. Verify text and logo identities, defaults/explicit choices, device round trips and centered-header regressions through `scripts/qa-left-logo-device-alignment.mjs`.
+
 ## Basic identity and top-row information — 2026-11-11 (current)
 
 This section supersedes earlier Basic logo pixel caps and the reserved 56px right icon gutter. It does **not** supersede each template's structural cell ownership. It applies to all active native and neutral Basic list/album designs. Dining/Display identities, text-brand typography, registered photograph ratios, reading columns and service controls remain independent.
