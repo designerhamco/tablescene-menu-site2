@@ -26,7 +26,7 @@ test("만들기와 디자인 템플릿 목록은 서로 다른 진입 화면을 
   for (const label of ["베이직", "다이닝", "디스플레이", "기본 템플릿", "디자인 템플릿"]) assert.ok(templateGallerySource.includes(label));
   assert.match(templateGallerySource, /filterCatalogDesigns/);
   assert.doesNotMatch(templateGallerySource, /얼리버드 월|정상가/);
-  assert.match(templateGallerySource, /const TEMPLATES_PER_PAGE = 6/);
+  assert.match(templateGallerySource, /const TEMPLATES_PER_PAGE = 24/);
   assert.match(templateGallerySource, /aria-label="템플릿 종류 선택"/);
   assert.match(templateGallerySource, /CatalogDesignCard/);
   assert.doesNotMatch(templateGallerySource, /템플릿 1개별 월 구독/);
