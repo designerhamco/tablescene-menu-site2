@@ -258,11 +258,11 @@
 :root { --site-home-hero-title-size: 2rem; }
 .site-marketing-page[data-marketing-page="home"] { --type-display-size: var(--site-home-hero-title-size); }
 @media (min-width: 768px) {
-  :root { --site-home-hero-title-size: 3.5rem; }
+  :root { --site-home-hero-title-size: 2.75rem; }
 }
 @media (min-width: 1024px) {
-  :root { --site-home-hero-title-size: 4.5rem; }
+  :root { --site-home-hero-title-size: 3.5rem; }
 }
 @media (min-width: 1600px) {
-  :root { --site-home-hero-title-size: clamp(4.5rem, calc(3.6rem + .9vw), 5.0625rem); }
+  :root { --site-home-hero-title-size: clamp(3.5rem, calc(2.8rem + .7vw), 3.9375rem); }
 }

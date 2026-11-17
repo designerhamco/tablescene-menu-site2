@@ -2,7 +2,7 @@
 
 ## 메인·서비스 소개 제목·본문 및 모바일 푸터 (2026-11-17)
 
-메인/베이직/다이닝/디스플레이 본문의 주요 제목은 모바일24·태블릿32·PC36px,700/줄높이1.2의 한 스타일이며 공통 와이드 보정을 유지한다. 메인 첫 제목만 후속 요청에 따라 type-display 히어로 스타일을 유지하며32/56/72px(와이드 최대81px)로 크게 구분한다. 첫 제목 위는 네 페이지 모두 --site-page-heading-top이다. 본문만 site-marketing-container로 공통 가장자리 gutter(PC40–48px)를 사용하며 최대 폭으로 큰 옆 공백을 만들지 않는다. 헤더·푸터 및 다른 페이지의 폭·제목은 독립적이다. 세부 기준은 marketing-page-design-rules.md, site-typography-final.md와 site-page-layout-contract.md를 따른다.
+메인/베이직/다이닝/디스플레이 본문의 주요 제목은 모바일24·태블릿32·PC36px,700/줄높이1.2의 한 스타일이며 공통 와이드 보정을 유지한다. 메인 첫 제목만 후속 요청에 따라 type-display 히어로 스타일을 유지하며32/44/56px(와이드 최대63px)로 크게 구분한다. 첫 제목 위는 네 페이지 모두 --site-page-heading-top이다. 본문만 site-marketing-container로 공통 가장자리 gutter(PC40–48px)를 사용하며 최대 폭으로 큰 옆 공백을 만들지 않는다. 헤더·푸터 및 다른 페이지의 폭·제목은 독립적이다. 세부 기준은 marketing-page-design-rules.md, site-typography-final.md와 site-page-layout-contract.md를 따른다.
 
 모바일 공통 푸터는3개의 기본 접힘 묶음(서비스/이용 안내/사업자 정보),44px 요약/링크, 열린 메뉴2열·위4/아래12px·가로8px·세로 gap0을 사용한다. 소개→메뉴24px, 내부 상단24px, 사업자 행8px, 정책 앞16px이다. 고객지원의 별도 묶음은 문의를 이용 안내에, 전화·이메일을 사업자 정보에 합친다. PC·태블릿 구성·연락처·법적 정보와 기존 표면/워드마크는 유지한다. lib/site-spacing.ts와 라이브러리 표가 같은 규격을 표시한다.
 

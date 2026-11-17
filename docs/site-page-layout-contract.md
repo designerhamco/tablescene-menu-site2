@@ -14,7 +14,7 @@
 
 ## 메인·세 서비스 소개의 본문 경계 (2026-11-17)
 
-메인·베이직·다이닝·디스플레이의 첫 제목도 SitePageHeader를 공유하고 헤더 spacer 다음 --site-page-heading-top을 적용한다. 같은 viewport에서 네 페이지의 제목 시작 간격은 같다. 홈의 별도48–112px hero 상단 여백은 폐기한다. 이 네 페이지 본문만 site-marketing-container로 화면 가장자리의 공통 gutter를 사용하며1600px max-width와 내부 주요 그리드의 중첩 cap을 제거한다. 헤더/푸터와 다른 페이지는 기존 최대 폭을 유지한다. 제목 크기는 marketing-page-design-rules.md의 모바일24/태블릿32/PC36px 및 공통 와이드 보정을 따른다. 메인 첫 제목만 명시적 titleRole="hero"로32/56/72px의 큰 히어로 스타일을 유지하며 위치·여백은 동일한 계약이다.
+메인·베이직·다이닝·디스플레이의 첫 제목도 SitePageHeader를 공유하고 헤더 spacer 다음 --site-page-heading-top을 적용한다. 같은 viewport에서 네 페이지의 제목 시작 간격은 같다. 홈의 별도48–112px hero 상단 여백은 폐기한다. 이 네 페이지 본문만 site-marketing-container로 화면 가장자리의 공통 gutter를 사용하며1600px max-width와 내부 주요 그리드의 중첩 cap을 제거한다. 헤더/푸터와 다른 페이지는 기존 최대 폭을 유지한다. 제목 크기는 marketing-page-design-rules.md의 모바일24/태블릿32/PC36px 및 공통 와이드 보정을 따른다. 메인 첫 제목만 명시적 titleRole="hero"로32/44/56px의 큰 히어로 스타일을 유지하며 위치·여백은 동일한 계약이다.
 
 ## 탭
 
