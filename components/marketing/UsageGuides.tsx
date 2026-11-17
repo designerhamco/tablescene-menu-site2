@@ -105,7 +105,7 @@ export default function UsageGuides({
 }) {
   return (
     <section className={styles.usage} aria-labelledby="usage-heading">
-      <div className="site-container">
+      <div className="site-marketing-container">
         <div className={styles.sectionHeading}>
 
           <h2 id="usage-heading" className="type-section-title">

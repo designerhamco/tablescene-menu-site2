@@ -7,7 +7,7 @@ const groups = [
   { title: "이용 안내", links: [["자주 묻는 질문", "/faq"], ["공지사항", "/faq/notices"], ["이용가이드", "/guides"], ["마이 메뉴", "/mypage"]] },
 ] as const;
 
-function FooterLinkList({ links }: { links: (typeof groups)[number]["links"] }) {
+function FooterLinkList({ links }: { links: readonly (readonly [string, string])[] }) {
   return (
     <ul>
       {links.map(([label, href]) => (
@@ -16,6 +16,11 @@ function FooterLinkList({ links }: { links: (typeof groups)[number]["links"] }) 
     </ul>
   );
 }
+
+const mobileGroups = groups.map(group => ({
+  ...group,
+  links: group.title === "이용 안내" ? [...group.links, ["1:1 문의", "/mypage/inquiries"] as const] : group.links,
+}));
 
 function ContactContent() {
   return (
@@ -71,7 +76,7 @@ const Footer = () => {
               <BusinessDetails />
             </div>
             <div className={styles.mobileSections} aria-label="푸터 상세 메뉴">
-              {groups.map((group) => (
+              {mobileGroups.map((group) => (
                 <details key={group.title} className={styles.disclosure}>
                   <summary><span>{group.title}</span><ChevronDown aria-hidden="true" /></summary>
                   <div className={`${styles.group} ${styles.disclosureContent}`}>
@@ -80,15 +85,10 @@ const Footer = () => {
                 </details>
               ))}
               <details className={styles.disclosure}>
-                <summary><span>고객지원</span><ChevronDown aria-hidden="true" /></summary>
-                <div className={`${styles.group} ${styles.contact} ${styles.disclosureContent}`}>
-                  <ContactContent />
-                </div>
-              </details>
-              <details className={styles.disclosure}>
                 <summary><span>사업자 정보</span><ChevronDown aria-hidden="true" /></summary>
                 <div className={`${styles.business} ${styles.disclosureBusiness}`}>
                   <BusinessDetails />
+                  <ul className={styles.businessContact} aria-label="연락처"><li><a href="tel:01036460642">010-3646-0642</a></li><li><a href="mailto:admin@dndcommerce.co.kr">admin@dndcommerce.co.kr</a></li></ul>
                 </div>
               </details>
             </div>

@@ -185,7 +185,7 @@ function Showcase({
       className={`${styles.showcase} ${dark ? styles.darkShowcase : ""}`}
       aria-labelledby="showcase-heading"
     >
-      <div className="site-container">
+      <div className="site-marketing-container">
         <div className={styles.sectionHeading}>
 
           <h2 id="showcase-heading" className="type-section-title">
@@ -227,11 +227,11 @@ export function MarketingServicePage({ service }: { service: Service }) {
   const dark = service === "dining";
   return (
     <div
-      className={`${styles.page} ${dark ? styles.darkPage : ""}`}
+      className={`site-marketing-page ${styles.page} ${dark ? styles.darkPage : ""}`}
       data-service-page={service}
     >
-      <section className={`${styles.hero} ${styles.serviceHero}`}>
-        <div className="site-container">
+      <section className={styles.hero}>
+        <div className="site-marketing-container">
           <SitePageHeader title={copy.title} descriptionPurpose="content" description={copy.body} />
           {service !== "basic" ? <div className={styles.serviceIntroAction}>
             {service === "display" ? (
@@ -256,7 +256,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
               alt={copy.alt}
               width={1536}
               height={864}
-              sizes="(min-width: 1600px) 1520px, 94vw"
+              sizes="(min-width: 1920px) calc(100vw - 96px), (min-width: 1334px) calc(100vw - 80px), 94vw"
               priority
             />
           </div>
@@ -267,7 +267,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
         className={styles.featureStory}
         aria-labelledby="feature-heading"
       >
-        <div className="site-container">
+        <div className="site-marketing-container">
           <div className={styles.sectionHeading}>
             <h2 id="feature-heading" className="type-section-title">
               {copy.section}
@@ -285,7 +285,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
                   <span className={styles.featureNumber}>
                     {String(i + 1).padStart(2, "0")} / {feature.label}
                   </span>
-                  <h3 className="type-subsection-title">{feature.title}</h3>
+                  <h3 className="type-section-title" data-marketing-story-title>{feature.title}</h3>
                   <p className="site-body">{feature.body}</p>
                 </div>
                 <MarketingVisual kind={feature.kind} />
@@ -297,7 +297,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
       <UsageGuides display={service === "display"} />
       {service !== "display" ? (
         <section className={styles.serviceCta}>
-          <div className="site-container">
+          <div className="site-marketing-container">
             <h2 className="type-section-title">
               우리 매장의 메뉴판을 만나보세요
             </h2>
@@ -359,22 +359,15 @@ export function MarketingHome() {
     },
   ];
   return (
-    <div className={styles.page} data-marketing-page="home">
+    <div className={`site-marketing-page ${styles.page}`} data-marketing-page="home">
       <section className={styles.hero}>
-        <div className="site-container">
-          <div className={styles.heroHeading}>
-
-            <h1 className="type-display">
-              메뉴를 보여주는 순간,
-              <br />
-              매장이 달라집니다
-            </h1>
-            <p className="site-body">
-              디자인부터 메뉴 관리까지.
-              <br className={styles.mobileBreak} /> 우리 매장에 맞는 디지털
-              메뉴판, 아티메뉴.
-            </p>
-          </div>
+        <div className="site-marketing-container">
+          <SitePageHeader
+            titleRole="hero"
+            title={<>메뉴를 보여주는 순간,<br />매장이 달라집니다</>}
+            descriptionPurpose="content"
+            description={<>디자인부터 메뉴 관리까지.<br className={styles.mobileBreak} /> 우리 매장에 맞는 디지털 메뉴판, 아티메뉴.</>}
+          />
           <div className={styles.heroImage} data-static-hero>
             <Image
               src="/assets/artimenu-home-hero-psd-v3-1536.webp"
@@ -382,14 +375,14 @@ export function MarketingHome() {
               width={1536}
               height={864}
               priority
-              sizes="(min-width: 1600px) 1520px, 94vw"
+              sizes="(min-width: 1920px) calc(100vw - 96px), (min-width: 1334px) calc(100vw - 80px), 94vw"
             />
           </div>
         </div>
       </section>
       <Showcase />
       <section className={styles.homeFeatures}>
-        <div className="site-container">
+        <div className="site-marketing-container">
           <div className={styles.sectionHeading}>
 
             <h2 className="type-section-title">
@@ -430,7 +423,7 @@ export function MarketingHome() {
         </div>
       </section>
       <section className={styles.capabilities}>
-        <div className="site-container">
+        <div className="site-marketing-container">
           <div className={styles.sectionHeading}>
 
             <h2 className="type-section-title">
@@ -457,7 +450,7 @@ export function MarketingHome() {
         </div>
       </section>
       <section className={styles.pricing} aria-labelledby="pricing-heading">
-        <div className="site-container">
+        <div className="site-marketing-container">
           <div className={styles.sectionHeading}>
 
             <h2 id="pricing-heading" className="type-section-title">

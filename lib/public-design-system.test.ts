@@ -155,3 +155,30 @@ test("사이트 UI는 의미 기반 타이포 역할과 영문 Tenor Sans·한�
   assert.match(themeSource, /button,\s*\n\s*input,\s*\n\s*textarea,\s*\n\s*select\s*\{\s*font:\s*inherit/);
   assert.doesNotMatch(globalsSource, /button,\s*\n\s*input,\s*\n\s*textarea,\s*\n\s*select\s*\{\s*font:\s*inherit/);
 });
+
+
+test("only marketing bodies use edge gutters and all four introductions share their top rhythm", () => {
+  const source = readSource("../components/marketing/MarketingPages.tsx");
+  const styles = readSource("../components/marketing/marketing.module.css");
+  assert.match(source, /<SitePageHeader/);
+  assert.doesNotMatch(source, /className="type-display"|styles\.heroHeading|styles\.serviceHero/);
+  assert.match(source, /site-marketing-container/);
+  assert.match(readSource("../components/marketing/UsageGuides.tsx"), /site-marketing-container/);
+  assert.match(globalsSource, /\.site-marketing-container \{[^}]*padding-inline: var\(--site-gutter\);/);
+  assert.doesNotMatch(globalsSource.match(/\.site-marketing-container \{[^}]*\}/)?.[0] ?? "", /max-width/);
+  assert.match(styles, /\.hero \{\s*padding-block: var\(--site-page-heading-top\)/);
+  assert.doesNotMatch(styles, /max-width: (?:70|72|80)rem/);
+});
+
+test("mobile footer keeps contact entry points while shortening its disclosure layout", () => {
+  const css = readSource("../app/components/layout/Footer.module.css");
+  assert.match(footerSource, /mobileGroups\.map/);
+  assert.doesNotMatch(footerSource, /<summary><span>고객지원<\/span>/);
+  assert.match(footerSource, /\["1:1 문의", "\/mypage\/inquiries"\]/);
+  assert.match(footerSource, /className=\{styles\.businessContact\}/);
+  assert.match(footerSource, /href="tel:01036460642"/);
+  assert.match(footerSource, /href="mailto:admin@dndcommerce\.co\.kr"/);
+  assert.match(css, /\.group ul \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/);
+  assert.match(css, /min-height: var\(--ui-control-height-header\);/);
+  assert.match(css, /padding: var\(--site-space-detail\) 0 var\(--site-space-title-copy\)/);
+});

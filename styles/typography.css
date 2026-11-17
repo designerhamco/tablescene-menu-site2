@@ -235,3 +235,34 @@
 .text-support { line-height: var(--site-leading-support); letter-spacing: var(--site-tracking-copy); }
 .text-meta { line-height: var(--site-leading-meta); letter-spacing: var(--site-tracking-meta); }
 .text-control { line-height: var(--site-leading-control); letter-spacing: var(--site-tracking-copy); }
+
+/* The four marketing bodies share one major-title role; header/footer remain outside this scope. */
+.site-marketing-page {
+  --type-section-title-size: var(--site-type-24);
+  --type-page-title-size: var(--type-section-title-size);
+}
+.site-marketing-page :is(.type-page-title, .type-section-title, .type-display) {
+  font-weight: var(--font-weight-strong);
+  line-height: 1.2;
+  letter-spacing: var(--site-tracking-title);
+  text-wrap: balance;
+}
+@media (min-width: 768px) {
+  .site-marketing-page { --type-section-title-size: var(--site-type-32); }
+}
+@media (min-width: 1024px) {
+  .site-marketing-page { --type-section-title-size: var(--site-type-36); }
+}
+
+/* The homepage alone retains an enlarged hero. Other titles keep their registered roles. */
+:root { --site-home-hero-title-size: 2rem; }
+.site-marketing-page[data-marketing-page="home"] { --type-display-size: var(--site-home-hero-title-size); }
+@media (min-width: 768px) {
+  :root { --site-home-hero-title-size: 3.5rem; }
+}
+@media (min-width: 1024px) {
+  :root { --site-home-hero-title-size: 4.5rem; }
+}
+@media (min-width: 1600px) {
+  :root { --site-home-hero-title-size: clamp(4.5rem, calc(3.6rem + .9vw), 5.0625rem); }
+}

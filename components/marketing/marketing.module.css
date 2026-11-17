@@ -5,28 +5,12 @@
   color: var(--ui-text, #15181e);
 }
 .hero {
-  padding-block: clamp(3.5rem, 7vw, 7rem) 1rem;
+  padding-block: var(--site-page-heading-top) var(--site-space-block);
 }
-.heroHeading,
 .sectionHeading {
   text-align: center;
   margin-inline: auto;
   max-width: 58rem;
-}
-.heroHeading {
-  display: grid;
-  justify-items: center;
-  gap: 1.5rem;
-  margin-bottom: clamp(2.5rem, 4vw, 4rem);
-}
-.heroHeading h1,
-.featureStory .sectionHeading h2 {
-  line-height: 1.18;
-  text-wrap: balance;
-}
-.heroHeading > p:not(:first-child) {
-  max-width: 40rem;
-  color: #626873;
 }
 .heroImage {
   overflow: hidden;
@@ -90,7 +74,6 @@
 .storyList {
   display: grid;
   gap: clamp(4rem, 8vw, 8rem);
-  max-width: 80rem;
   margin-inline: auto;
 }
 .storyRow {
@@ -472,7 +455,6 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
-  max-width: 70rem;
   margin-inline: auto;
 }
 .bentoGrid > article {
@@ -541,7 +523,6 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.5rem;
-  max-width: 80rem;
   margin-inline: auto;
 }
 .priceGrid article {
@@ -594,7 +575,6 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.5rem;
-  max-width: 72rem;
   margin-inline: auto;
 }
 .guideGrid > article {
@@ -625,7 +605,6 @@
   background: var(--site-dining-background);
   color: #fff;
 }
-.darkPage .heroHeading > p:not(:first-child),
 .darkShowcase .sectionHeading p:last-child,
 .darkPage .usage .sectionHeading p:last-child {
   color: #a6aab1;
@@ -709,13 +688,6 @@
   }
 }
 @media (max-width: 767px) {
-  .hero {
-    padding-top: 3rem;
-  }
-  .heroHeading {
-    gap: var(--site-space-title-copy);
-    margin-bottom: var(--site-space-content);
-  }
   .heroImage {
     aspect-ratio: 1.25;
     border-radius: 1.5rem;
@@ -747,7 +719,6 @@
   }
   .priceGrid {
     grid-template-columns: 1fr;
-    max-width: 32rem;
   }
   .guideGrid {
     grid-template-columns: 1fr;
@@ -777,10 +748,9 @@
 /* The approved plan reference uses 16px for its short service description. */
 .priceGrid article > p:first-of-type { font-size: var(--site-type-16); }
 
-/* Service-page introductions follow the normal page rhythm; the home hero stays independent. */
-.hero.serviceHero { padding-top: var(--site-page-heading-top); }
+/* Marketing introductions share SitePageHeader and its common page rhythm. */
 .serviceIntroAction { display: flex; justify-content: center; margin-bottom: var(--site-page-intro-content-gap); }
-.darkPage .serviceHero :global(.site-page-intro) > p { color: #a6aab1; }
+.darkPage .hero :global(.site-page-intro) > p { color: #a6aab1; }
 
 /* Mobile content rhythm uses the same roles as ordinary site pages. */
 @media (max-width: 767px) {

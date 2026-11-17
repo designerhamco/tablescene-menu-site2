@@ -29,7 +29,7 @@ export const SITE_TYPE_ROLES = [
     "weight": 700,
     "lineHeight": 1.2,
     "className": "type-display",
-    "usage": "메인·서비스 대표 문구",
+    "usage": "독립 대표 문구. 메인·서비스 소개는 전용 공통 제목 기준",
     "letterSpacing": "-0.04em"
   },
   {
@@ -302,3 +302,14 @@ export function siteTypeSizeCss(pixels: number): string {
   const nearest = SITE_TYPE_STEPS.reduce<number>((best, size) => Math.abs(size - pixels) < Math.abs(best - pixels) ? size : best, SITE_TYPE_STEPS[0]);
   return `var(--site-type-${nearest})`;
 }
+
+/** Major titles of /, /services/basic, /services/dining and /services/display only. */
+export const SITE_MARKETING_TITLE_POLICY = {
+  mobile: 24, tablet: 32, desktop: 36, weight: 700, lineHeight: 1.2,
+  scope: "site-marketing-page", container: "site-marketing-container",
+} as const;
+
+/** Explicit homepage-only hero; inherits the same bounded wide-screen growth. */
+export const SITE_HOME_HERO_TITLE_POLICY = {
+  mobile: 32, tablet: 56, desktop: 72, weight: 700, lineHeight: 1.2,
+} as const;
