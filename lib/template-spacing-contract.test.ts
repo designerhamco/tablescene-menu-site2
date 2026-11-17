@@ -119,8 +119,10 @@ test("리얼맛차 단일페이지의 데스크톱 카테고리 경계는 숨긴
   );
 });
 
-test("반고흐는 분리선 없이 기기별 기준에 같은 카테고리 간격 비율을 적용한다", () => {
+test("반고흐는 카테고리 분리선 없이 상품 사이에만 분리선을 적용한다", () => {
   const rules = getTemplateContentSeparatorRules("cafe_van_gogh_a", "cafe");
+  assert.equal(rules.itemDivider, "between-items");
+  for (const key of ["cafe_design_a", "cafe_sunday_line_a", "cafe_mocha_forest_a", "dining_aube_table_a"]) assert.equal(getTemplateContentSeparatorRules(key).itemDivider, "none");
   assert.equal(rules.categoryDivider, "none");
   assert.match(
     globalStylesSource,

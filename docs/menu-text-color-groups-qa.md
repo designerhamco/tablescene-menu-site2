@@ -71,3 +71,9 @@ Dining cover description and notices 1/2/3 use representative ink (가게 설명
 ## Mobile representative-surface notice ownership — 2026-11-13
 
 The shared `data-menu-mobile-representative` boundary includes centered top-row mobile notices. They use representative ink even if information ink is also explicitly set. Left-logo notices remain in the menu footer and keep information ink. This corrects the missed mobile boundary without moving notices, changing saved color keys, or automatically selecting new colors. The full surface and both explicit groups are checked by `scripts/qa-mobile-representative-surfaces.mjs`.
+
+## Product separator ownership — 2026-11-17
+
+Van Gogh product separators follow the menu-description/supporting color, including custom saved/preview values and description-hidden states. Category rules remain category-owned. Test these inks independently with distinct supporting, category and product/price colors; compare the actual separator pseudo-element with product descriptions. Separators must occur only between same-category products in one physical column, centered inside the existing gap, with no terminal/orphan lines or added height. Verify PC/tablet grouped and fill layouts, narrow/wide mobile, multi-line/image/promotion rows and excluded-template defaults.
+
+Run `node scripts/qa-van-gogh-item-separators.mjs`; set `VAN_GOGH_SEPARATOR_QA_BASE` for a different server, or `VAN_GOGH_SEPARATOR_QA_SMOKE=1` for deployment checks. The report records actual viewport sizes, each rule and gap, and zero layout-height change when rule paint is disabled. Mobile image rows are exercised; native PC/tablet keep their existing image suppression.
