@@ -56,7 +56,7 @@ test("모바일 푸터는 핵심 정보만 먼저 보이고 상세 묶음은 기
 
   assert.match(footerSource, /className=\{styles\.mobileSections\}/);
   assert.match(footerSource, /<details key=\{group\.title\} className=\{styles\.disclosure\}>/);
-  assert.match(footerSource, /<summary><span>사업자 정보<\/span><ChevronDown/);
+  assert.match(footerSource, /<summary><span>사업자 정보<\/span><ChevronDownLine/);
   assert.doesNotMatch(footerSource, /<details[^>]*\sopen/);
   assert.match(footerStyles, /\.mobileSections \{ display: none; \}/);
   assert.match(footerStyles, /@media \(max-width: 767px\) \{[\s\S]*?\.desktopNavigation, \.desktopBusiness \{ display: none; \}/);
@@ -179,6 +179,6 @@ test("mobile footer keeps contact entry points while shortening its disclosure l
   assert.match(footerSource, /href="tel:01036460642"/);
   assert.match(footerSource, /href="mailto:admin@dndcommerce\.co\.kr"/);
   assert.match(css, /\.group ul \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\);/);
-  assert.match(css, /\.group li a, \.legal a, \.businessContact a \{ min-height: var\(--ui-control-height-compact\);/);
-  assert.match(css, /padding: var\(--site-space-detail\) 0 var\(--site-space-copy\)/);
+  assert.match(css, /\.group li a, \.legal a, \.businessContact a \{ min-height: var\(--ui-control-height-header\);/);
+  assert.match(css, /padding: var\(--site-space-detail\) 0 var\(--site-space-title-copy\)/);
 });

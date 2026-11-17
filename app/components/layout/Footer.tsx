@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight, ChevronDown } from "@/app/components/ui/site-arrow";
+import { ArrowUpRight, ChevronDownLine } from "@/app/components/ui/site-arrow";
 import styles from "./Footer.module.css";
 
 const groups = [
@@ -78,14 +78,14 @@ const Footer = () => {
             <div className={styles.mobileSections} aria-label="푸터 상세 메뉴">
               {mobileGroups.map((group) => (
                 <details key={group.title} className={styles.disclosure}>
-                  <summary><span>{group.title}</span><ChevronDown aria-hidden="true" /></summary>
+                  <summary><span>{group.title}</span><ChevronDownLine aria-hidden="true" /></summary>
                   <div className={`${styles.group} ${styles.disclosureContent}`}>
                     <FooterLinkList links={group.links} />
                   </div>
                 </details>
               ))}
               <details className={styles.disclosure}>
-                <summary><span>사업자 정보</span><ChevronDown aria-hidden="true" /></summary>
+                <summary><span>사업자 정보</span><ChevronDownLine aria-hidden="true" /></summary>
                 <div className={`${styles.business} ${styles.disclosureBusiness}`}>
                   <BusinessDetails />
                   <ul className={styles.businessContact} aria-label="연락처"><li><a href="tel:01036460642">010-3646-0642</a></li><li><a href="mailto:admin@dndcommerce.co.kr">admin@dndcommerce.co.kr</a></li></ul>
