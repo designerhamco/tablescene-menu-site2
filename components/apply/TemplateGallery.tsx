@@ -27,7 +27,7 @@ import useTemplateFavorites from "@/components/templates/useTemplateFavorites";
 import TemplatePagination from "./TemplatePagination";
 import HintBubble from "@/components/ui/HintBubble";
 
-const TEMPLATES_PER_PAGE = 6;
+const TEMPLATES_PER_PAGE = 24;
 const PRODUCT_TABS = [
   { key: "basic", label: "베이직" },
   { key: "dining", label: "다이닝" },
