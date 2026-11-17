@@ -532,11 +532,11 @@ test("requested marketing titles share bounded readable sizes without changing g
 
 
 test("only the home first title opts into the preserved larger hero style", () => {
-  assert.deepEqual([SITE_HOME_HERO_TITLE_POLICY.mobile, SITE_HOME_HERO_TITLE_POLICY.tablet, SITE_HOME_HERO_TITLE_POLICY.desktop], [32,56,72]);
+  assert.deepEqual([SITE_HOME_HERO_TITLE_POLICY.mobile, SITE_HOME_HERO_TITLE_POLICY.tablet, SITE_HOME_HERO_TITLE_POLICY.desktop], [32,44,56]);
   const source = readFileSync(join(projectRoot, "components/marketing/MarketingPages.tsx"), "utf8");
   const home = source.slice(source.indexOf("export function MarketingHome"));
   assert.equal((source.match(/titleRole="hero"/g) ?? []).length, 1);
   assert.match(home, /<SitePageHeader\s+titleRole="hero"/);
   assert.match(readFileSync(join(projectRoot, "components/layout/SitePageHeader.tsx"), "utf8"), /titleRole === "hero" \? "type-display" : "type-page-title"/);
-  assert.match(typographySource, /--site-home-hero-title-size: clamp\(4\.5rem, calc\(3\.6rem \+ \.9vw\), 5\.0625rem\)/);
+  assert.match(typographySource, /--site-home-hero-title-size: clamp\(3\.5rem, calc\(2\.8rem \+ \.7vw\), 3\.9375rem\)/);
 });

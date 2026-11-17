@@ -311,5 +311,5 @@ export const SITE_MARKETING_TITLE_POLICY = {
 
 /** Explicit homepage-only hero; inherits the same bounded wide-screen growth. */
 export const SITE_HOME_HERO_TITLE_POLICY = {
-  mobile: 32, tablet: 56, desktop: 72, weight: 700, lineHeight: 1.2,
+  mobile: 32, tablet: 44, desktop: 56, weight: 700, lineHeight: 1.2,
 } as const;
