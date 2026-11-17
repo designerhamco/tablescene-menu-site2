@@ -409,6 +409,9 @@
 @media (min-width: 768px) {
   .site-catalog-mobile-filters, [data-slot="popover-content"].site-catalog-mobile-filter-content { display: none; }
 }
+@media (min-width: 1024px) {
+  .site-catalog-results .site-template-grid[data-thumbnail-size="small"] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
 @media (min-width: 1280px) {
   .site-catalog-results .site-template-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
