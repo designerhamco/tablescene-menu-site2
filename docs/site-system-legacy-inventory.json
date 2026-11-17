@@ -252,11 +252,6 @@
       "89385749b2031b95"
     ]
   },
-  "components/marketing/MarketingPages.tsx": {
-    "shared-heading": [
-      "5cd3b1a3584fa8de"
-    ]
-  },
   "components/mypage/AccountDeletionPanel.tsx": {
     "control-appearance": [
       "75aaf3b5a9f46608"
@@ -509,11 +504,5 @@
       "1d754f5596461591"
     ],
     "control-css": []
-  },
-  "components/marketing/marketing.module.css": {
-    "heading-css": [
-      "7929ee399fc57f85",
-      "b71f64547d2165fb"
-    ]
   }
 }

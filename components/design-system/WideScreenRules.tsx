@@ -1,4 +1,4 @@
-import { getSiteWideTypeScale, SITE_WIDE_TYPE_POLICY } from "@/lib/site-typography";
+import { getSiteWideTypeScale, SITE_WIDE_TYPE_POLICY, SITE_MARKETING_TITLE_POLICY, SITE_HOME_HERO_TITLE_POLICY } from "@/lib/site-typography";
 import { getMenuPreviewPresentation, MENU_PREVIEW_PRESENTATION } from "@/lib/menu-preview-fit";
 import { getMenuPreviewFrame } from "@/lib/menu-preview-devices";
 import styles from "./SiteComponentGallery.module.css";
@@ -26,6 +26,11 @@ export default function WideScreenRules({ id }: { id: string }) {
       </tr>)}</tbody>
     </table></div>
     <p className="type-body-sm mt-4 text-zinc-600">새 페이지와 수정 화면은 공통 제목·본문 역할, 버튼 컴포넌트, 페이지·구역 간격을 사용하면 같은 보정을 자동으로 받습니다. 화면마다 별도 확대 배율을 넣지 않습니다. 표는 PC의 기본 rem 기준이며 모바일·태블릿은 각 기기의 기본 크기와 브라우저 글자 확대를 유지합니다.</p>
+    <div className="site-stack-copy">
+      <h3 className="type-content-title">메인·베이직·다이닝·디스플레이의 제목·본문 여백</h3>
+      <div className={styles.usageTable}><table aria-label="메인·서비스 소개 제목 기준"><thead><tr><th>범위</th><th>모바일</th><th>태블릿</th><th>PC</th><th>굵기 / 줄높이</th></tr></thead><tbody><tr><td>서비스 첫 제목·주요 섹션·기능 스토리 제목</td><td>{SITE_MARKETING_TITLE_POLICY.mobile}px</td><td>{SITE_MARKETING_TITLE_POLICY.tablet}px</td><td>{SITE_MARKETING_TITLE_POLICY.desktop}px</td><td>{SITE_MARKETING_TITLE_POLICY.weight} / {SITE_MARKETING_TITLE_POLICY.lineHeight}</td></tr><tr><td>메인 첫 히어로만</td><td>{SITE_HOME_HERO_TITLE_POLICY.mobile}px</td><td>{SITE_HOME_HERO_TITLE_POLICY.tablet}px</td><td>{SITE_HOME_HERO_TITLE_POLICY.desktop}px</td><td>{SITE_HOME_HERO_TITLE_POLICY.weight} / {SITE_HOME_HERO_TITLE_POLICY.lineHeight}</td></tr></tbody></table></div>
+      <p className="type-body-sm site-copy-muted">이 네 페이지 본문만 최대 폭 없이 공통 화면 가장자리 여백을 사용합니다. PC는40–48px, 모바일·태블릿은 기존 공통 gutter이며 헤더·푸터와 일반 페이지의 최대 폭은 유지합니다. 첫 제목 위는 모두 공통 page-heading-top(40–72px)이고, 제목 크기는 기존 와이드 글자 보정을 함께 받습니다. 카드·요금·본문·시연 화면은 각 역할을 유지합니다.</p>
+    </div>
     <div className="site-collection mt-5">
       <h3 className="type-content-title" id={`${id}-mockups`}>미리보기 목업 크기 기준</h3>
       <p className="type-body-sm mt-2 text-zinc-600">미리보기를 여는 브라우저 너비와 상단에서 선택한 기기를 나눠 적용합니다. 옵션 창과 상단 도구는 고정 레이어이며 화면 영역을 밀지 않습니다. 태블릿·모바일 목업은 페이지 전체의 중앙에서 대칭 여백 안을 채우며 최대1.25배를 넘지 않습니다.</p>

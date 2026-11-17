@@ -12,6 +12,8 @@ import {
   SITE_TYPE_ROLES,
   SITE_TYPE_STEPS,
   SITE_WIDE_TYPE_POLICY,
+  SITE_MARKETING_TITLE_POLICY,
+  SITE_HOME_HERO_TITLE_POLICY,
   getSiteWideTypeScale,
   siteTypeSizeCss,
 } from "./site-typography";
@@ -360,7 +362,14 @@ test("컴포넌트 밀도 조정은 사이트 탐색·페이지 제목·본문 �
     const role = roles.get(key);
     assert.deepEqual([role?.mobile, role?.tablet, role?.desktop], sizes, key);
     postcss.parse(typographySource).walkDecls(`--type-${key}-size`, declaration => {
-      assert.equal(declaration.parent?.type === "rule" && declaration.parent.selector, ":root", `${key} must not inherit a compact control scope`);
+      const selector = declaration.parent?.type === "rule" && declaration.parent.selector;
+      if (selector === '.site-marketing-page[data-marketing-page="home"]' && key === "display") {
+        assert.equal(declaration.value, "var(--site-home-hero-title-size)");
+      } else if (selector === ".site-marketing-page" && ["display", "page-title", "section-title"].includes(key)) {
+        assert.match(declaration.value, /^var\(--(?:site-type-(?:24|32|36)|type-section-title-size)\)$/);
+      } else {
+        assert.equal(selector, ":root", `${key} must not inherit a compact control scope`);
+      }
       assert.doesNotMatch(declaration.value, /--(?:type-control-size|ui-field-font-size)/, key);
     });
   }
@@ -503,4 +512,31 @@ test("reading UI cannot use off-scale large utilities or private numeric type si
     if (visualPreviewFiles.has(routePath)) continue;
     assert.doesNotMatch(readFileSync(path, "utf8"), /\btext-(?:3xl|5xl|6xl|7xl|8xl|9xl)\b/, `${routePath} introduces an off-scale type utility`);
   }
+});
+
+
+test("requested marketing titles share bounded readable sizes without changing general site roles", () => {
+  assert.deepEqual([SITE_MARKETING_TITLE_POLICY.mobile, SITE_MARKETING_TITLE_POLICY.tablet, SITE_MARKETING_TITLE_POLICY.desktop], [24, 32, 36]);
+  const css = postcss.parse(typographySource);
+  const declarations = new Map<string, string[]>();
+  css.walkRules(".site-marketing-page", rule => {
+    const width = rule.parent?.type === "atrule" ? rule.parent.params : "mobile";
+    rule.walkDecls("--type-section-title-size", d => { declarations.set(width, [d.value]); });
+  });
+  assert.deepEqual([...declarations], [["mobile", ["var(--site-type-24)"]], ["(min-width: 768px)", ["var(--site-type-32)"]], ["(min-width: 1024px)", ["var(--site-type-36)"]]]);
+  assert.match(typographySource, /\.site-marketing-page :is\(\.type-page-title, \.type-section-title, \.type-display\) \{[^}]*line-height: 1\.2;/);
+  const source = readFileSync(join(projectRoot, "components/marketing/MarketingPages.tsx"), "utf8");
+  assert.match(source, /<main>\{children\}<\/main>/, "shared shell also serves non-marketing pages and must not own this scope");
+  assert.equal((source.match(/className=\{`site-marketing-page/g) ?? []).length, 2);
+});
+
+
+test("only the home first title opts into the preserved larger hero style", () => {
+  assert.deepEqual([SITE_HOME_HERO_TITLE_POLICY.mobile, SITE_HOME_HERO_TITLE_POLICY.tablet, SITE_HOME_HERO_TITLE_POLICY.desktop], [32,56,72]);
+  const source = readFileSync(join(projectRoot, "components/marketing/MarketingPages.tsx"), "utf8");
+  const home = source.slice(source.indexOf("export function MarketingHome"));
+  assert.equal((source.match(/titleRole="hero"/g) ?? []).length, 1);
+  assert.match(home, /<SitePageHeader\s+titleRole="hero"/);
+  assert.match(readFileSync(join(projectRoot, "components/layout/SitePageHeader.tsx"), "utf8"), /titleRole === "hero" \? "type-display" : "type-page-title"/);
+  assert.match(typographySource, /--site-home-hero-title-size: clamp\(4\.5rem, calc\(3\.6rem \+ \.9vw\), 5\.0625rem\)/);
 });

@@ -137,8 +137,8 @@ test("shared mobile stacks own sibling gaps without duplicate child margins", ()
   }
   assert.match(source, /site-stack-section > \* \{ margin-block: 0; \}/);
   const footer = readSource("../app/components/layout/Footer.module.css");
-  assert.match(footer, /\.mobileSections \{ display: grid; margin-top: var\(--site-space-content\)/);
-  assert.match(footer, /padding: var\(--site-space-content\) var\(--site-space-group\) 0/);
+  assert.match(footer, /\.mobileSections \{ display: grid; margin-top: var\(--site-space-group\)/);
+  assert.match(footer, /padding: var\(--site-space-group\) var\(--site-space-group\) 0/);
   assert.doesNotMatch(footer, /@media \(max-width: 639px\)/);
 });
 
