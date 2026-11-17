@@ -22,6 +22,7 @@ export const SITE_ARROW_DOUBLE_CHEVRON = "M3.5 4L13 12L3.5 20L7 12ZM10.5 4L20 12
 export const SITE_ARROW_PATHS = {
   shaft: SITE_ARROW_SHAFT,
   chevron: SITE_ARROW_CHEVRON,
+  "chevron-line": "M8 5L15 12L8 19",
   "double-chevron": SITE_ARROW_DOUBLE_CHEVRON,
   turn: `M4 21V15A7 7 0 0 1 11 8H21${curvedHead(21, 8, 0, 6)}`,
   "turn-back": `M10 20H9A6.5 6.5 0 0 1 9 7H21${curvedHead(21, 7, 0, 5.5)}`,

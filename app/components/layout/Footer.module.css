@@ -56,15 +56,15 @@
   .disclosure summary svg { width: 1.125rem; height: 1.125rem; flex: none; color: var(--ui-text-muted); transition: transform var(--ui-transition); }
   .disclosure[open] summary svg { transform: rotate(180deg); }
   .disclosure summary:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; border-radius: .25rem; }
-  .disclosureContent { gap: 0; padding: var(--site-space-detail) 0 var(--site-space-copy); }
-  .disclosureBusiness { margin: 0; padding: var(--site-space-detail) 0 var(--site-space-copy); }
-  .group li a, .legal a, .businessContact a { min-height: var(--ui-control-height-compact); }
+  .disclosureContent { gap: 0; padding: var(--site-space-detail) 0 var(--site-space-title-copy); }
+  .disclosureBusiness { margin: 0; padding: var(--site-space-detail) 0 var(--site-space-title-copy); }
+  .group li a, .legal a, .businessContact a { min-height: var(--ui-control-height-header); }
   .group ul { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--site-space-copy); row-gap: 0; }
   .group li a { display: flex; width: 100%; }
-  .businessContact { display: grid; gap: 0; margin-top: var(--site-space-detail); }
+  .businessContact { display: grid; gap: 0; margin-top: var(--site-space-copy); }
   .businessContact a { display: inline-flex; align-items: center; overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: .2em; }
   .businessContact a:hover { color: var(--ui-text); }
-  .business dl { display: grid; gap: var(--site-space-detail); }
+  .business dl { display: grid; gap: var(--site-space-copy); }
   .business dl > div { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; }
   .business .address { display: flex; }
   .business dd a { margin-left: 0; }

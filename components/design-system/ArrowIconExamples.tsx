@@ -24,6 +24,9 @@ export default function ArrowIconExamples() {
       <div className="site-stack-block"><h3 className="type-content-title">펼침·이전·다음 · 꺾쇠형</h3>
         <div className="site-action-row">{directions.filter(([direction]) => !direction.includes("-")).map(([direction, label]) => <span key={direction} className="site-stack-copy"><SiteArrow direction={direction} kind="chevron" /><span className="type-caption">{label}</span></span>)}</div>
       </div>
+      <div className="site-stack-block"><h3 className="type-content-title">접이식 목록 · 선형 꺾쇠</h3>
+        <div className="site-action-row"><SiteArrow direction="down" kind="chevron-line" /><SiteArrow direction="up" kind="chevron-line" /></div>
+      </div>
       <div className="site-stack-block"><h3 className="type-content-title">처음·마지막 · 두 겹 꺾쇠</h3>
         <div className="site-action-row"><SiteArrow direction="left" kind="double-chevron" /><SiteArrow direction="right" kind="double-chevron" /></div>
       </div>
@@ -43,7 +46,7 @@ export default function ArrowIconExamples() {
       <div className="site-stack-block"><h3 className="type-content-title">크기·굵기</h3>
         <div className="site-action-row">{[16, 20, 24].map(size => <span key={size} className="site-action-row"><SiteArrow size={size} /><span className="type-caption">{size}px</span></span>)}</div>
         <div className="site-action-row">{([[1.25, "얇게"], [2, "기본"], [2.75, "굵게"]] as const).map(([weight, label]) => <span key={weight} className="site-action-row"><SiteArrow direction="up-right" strokeWidth={weight} /><span className="type-caption">{label}</span></span>)}</div>
-        <p className="type-footnote text-zinc-600">사이트 기본 굵기는2이며, 색은 주변 글자색을 따릅니다. 버튼의 크기·클릭 영역·포커스는 기존 공통 규격을 유지합니다.</p>
+        <p className="type-footnote text-zinc-600">사이트 기본 굵기는2, 접이식 선형 꺾쇠는1.5이며 색은 주변 글자색을 따릅니다. 버튼의 크기·클릭 영역·포커스는 기존 공통 규격을 유지합니다.</p>
       </div>
     </ContentPanel>
   </section>;
