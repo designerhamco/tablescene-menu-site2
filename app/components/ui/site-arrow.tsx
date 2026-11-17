@@ -8,19 +8,18 @@ export type SiteArrowProps = SVGProps<SVGSVGElement> & {
   mirrored?: boolean;
 };
 
-/** Shared 24px arrows: curved shafts, sculpted filled chevrons and rounded open-line disclosures.
+/** Curved, square-ended shaft or sculpted filled chevron on a shared 24px grid.
  * Ref remains an SVG prop for React 19 / Radix asChild. Never use inside menu artwork.
  */
-export function SiteArrow({ size = 24, direction = "right", kind = "shaft", mirrored = false, strokeWidth = kind === "chevron-line" ? 1.5 : 2, children, ...props }: SiteArrowProps) {
+export function SiteArrow({ size = 24, direction = "right", kind = "shaft", mirrored = false, strokeWidth = 2, children, ...props }: SiteArrowProps) {
   const filled = kind === "chevron" || kind === "double-chevron" || kind === "refresh";
-  const rounded = kind === "chevron-line";
   const circularHead = kind === "rotate" ? SITE_CIRCULAR_ARROW_HEADS.rotate : null;
   return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none"
     aria-hidden="true" focusable="false" data-site-arrow={kind} data-direction={direction} data-icon-source={kind === "refresh" ? "remix" : undefined} {...props}>
     <g transform={`rotate(${SITE_ARROW_ROTATION[direction]} 12 12)`}>
       <path transform={mirrored ? "translate(0 24) scale(1 -1)" : undefined} d={SITE_ARROW_PATHS[kind]}
         fill={filled ? "currentColor" : "none"} stroke={filled ? "none" : "currentColor"}
-        strokeWidth={kind === "refresh" ? undefined : strokeWidth} strokeLinecap={rounded ? "round" : "butt"} strokeLinejoin={rounded ? "round" : "miter"} />
+        strokeWidth={kind === "refresh" ? undefined : strokeWidth} strokeLinecap="butt" strokeLinejoin="miter" />
       {circularHead ? <path transform={mirrored ? "translate(0 24) scale(1 -1)" : undefined} d={circularHead} fill="currentColor" stroke="none" /> : null}
     </g>{children}
   </svg>;
@@ -40,7 +39,6 @@ export const ArrowUp = directionalIcon("up");
 export const ArrowUpRight = directionalIcon("up-right");
 export const ChevronRight = directionalIcon("right", "chevron");
 export const ChevronDown = directionalIcon("down", "chevron");
-export const ChevronDownLine = directionalIcon("down", "chevron-line");
 export const ChevronLeft = directionalIcon("left", "chevron");
 export const ChevronUp = directionalIcon("up", "chevron");
 export const ChevronsRight = directionalIcon("right", "double-chevron");
