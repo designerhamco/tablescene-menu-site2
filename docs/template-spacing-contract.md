@@ -152,6 +152,14 @@ Menu-to-menu column dividers remain 1px, use `data-menu-category-decoration` / `
 
 ## Top-row popup geometry and starter defaults — 2026-11-10
 
+### Centered top-row logo vertical alignment — 2026-11-17
+
+PC/tablet centered-identity top rows (native SUNDAY/Van Gogh and neutral list/album) vertically center the logo artwork box in the **complete representative header band**, including the existing upper/lower insets, whether or not that band has a colored surface. The reduced upper inset remains approved. Centering within only the inner content track makes the logo appear too high because the lower inset is larger.
+
+Both native and neutral owners supply `--menu-top-row-logo-center-offset = (normal lower inset − actual upper inset) / 2`. The shared information-header CSS applies this relative visual offset only to the inner logo slot of the centered `top-row` identity; the outer identity cell stays at its original coordinates. Do not use a template-specific pixel nudge, change logo dimensions/aspect/fit, increase header height, reduce menu space, move description/notices/language controls, or change text-brand placement. The logo remains horizontally centered in the original middle cell; left description and right language/notices keep their separate cells.
+
+**Mobile is excluded** and retains its independent logo sizing, alignment, spacing and reading flow. **Left-logo top rows are excluded**, including MELLOW and neutral left-logo. Header fitting continues to use in-flow copy, original padding and unchanged logo dimensions; this visual correction does not become a new fit/cache input. `scripts/qa-top-row-logo-centering.mjs` compares real pre/post header/menu/copy bounds and excluded-device geometry; `scripts/qa-top-row-language-stability.mjs` covers popup state stability.
+
 ### Centered information alignment — 2026-11-13
 
 The final PC/tablet viewing choice keeps the top-row header and optional representative image in place while only menu content scrolls, for native/default list/album and left-logo variants. This replaces the whole-page-scroll trial and is an explicit device UX policy, not a meaning inferred from the layout name. Mobile keeps its independent whole-page reading scroll. Notice anchors, typography, clamps, alignment and the approved inset/header gaps remain intact. See docs/basic-menu-scroll-policy.md.
