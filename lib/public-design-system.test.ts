@@ -56,7 +56,7 @@ test("모바일 푸터는 핵심 정보만 먼저 보이고 상세 묶음은 기
 
   assert.match(footerSource, /className=\{styles\.mobileSections\}/);
   assert.match(footerSource, /<details key=\{group\.title\} className=\{styles\.disclosure\}>/);
-  assert.match(footerSource, /<summary><span>사업자 정보<\/span><ChevronDownLine/);
+  assert.match(footerSource, /<summary><span>사업자 정보<\/span><ArrowDown/);
   assert.doesNotMatch(footerSource, /<details[^>]*\sopen/);
   assert.match(footerStyles, /\.mobileSections \{ display: none; \}/);
   assert.match(footerStyles, /@media \(max-width: 767px\) \{[\s\S]*?\.desktopNavigation, \.desktopBusiness \{ display: none; \}/);
