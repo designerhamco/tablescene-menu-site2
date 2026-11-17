@@ -6078,3 +6078,26 @@ video {
 .cafe-a-typography[data-template-key="cafe_mocha_forest_a"] .cafe-a-category-title {
   text-transform: none;
 }
+
+/* Item rules occupy the existing between-item whitespace; never add layout height.
+   Category ornaments retain their separate category-owned ink. */
+.cafe-a-typography [data-menu-item-separator] {
+  position: relative;
+  --menu-item-separator-rhythm: 1;
+  --menu-item-separator-gap: calc(var(--cafe-a-local-item-rhythm-gap) * var(--menu-item-separator-rhythm));
+}
+.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"]:not([data-cafe-a-mobile-style="true"]) [data-menu-item-separator][data-cafe-a-item-rhythm="1.1"] { --menu-item-separator-rhythm: 1.1; }
+.cafe-a-typography[data-cafe-a-copy-aware-rhythm="true"]:not([data-cafe-a-mobile-style="true"]) [data-menu-item-separator][data-cafe-a-item-rhythm="1.2"] { --menu-item-separator-rhythm: 1.2; }
+.cafe-a-typography [data-menu-item-separator]::after {
+  content: none;
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + (var(--menu-item-separator-gap) - 1px) / 2);
+  height: 1px;
+  color: var(--menu-item-separator-ink, var(--menu-role-supporting-color, inherit));
+  background: currentColor;
+  pointer-events: none;
+}
+.cafe-a-typography .cafe-a-menu-item-stack:has(+ .cafe-a-menu-item-stack) > [data-menu-item-separator]::after,
+.cafe-a-typography [data-native-unit][data-kind="item"]:has(+ [data-native-unit][data-kind="item"]) > [data-menu-item-separator]::after,
+.cafe-a-typography [data-native-measure][data-kind="item"]:has(+ [data-native-measure][data-kind="item"]) > [data-menu-item-separator]::after { content: ""; }

@@ -118,3 +118,6 @@
 .scope[data-text-color-page-title] :global(.aube-table-page-header h1) { color: var(--menu-text-pageTitle) !important; }
 
 .scope[data-text-color-price] :global(.aube-table-root :is(.aube-table-item-price, .aube-table-course-price)) { color: var(--menu-text-price) !important; }
+
+/* Product rules share the resolved menu-description ink, even when copy is hidden. */
+.scope[data-text-color-supporting] :global([data-menu-item-separator]) { --menu-item-separator-ink: var(--menu-text-supporting); }

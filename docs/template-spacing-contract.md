@@ -186,6 +186,14 @@ ONUE photo-backed introductions retain **4:3 on PC/tablet** and **1:1 on mobile*
 
 Shared geometry, typography, fit or centering changes must preserve each template's registered device-specific photo ratios unless the user explicitly changes them. Verify the rendered frame rather than only the source constant: PC/tablet across widths and heights, grouped/fill, localized copy, logo/featured options and mobile. Assert probe/visible agreement and complete overlay bounds alongside centering and category integrity.
 
+## Product separators — 2026-11-17
+
+Van Gogh enables `itemDivider: "between-items"` through `getTemplateContentSeparatorRules`; other designs retain their registered defaults. Draw one 1px full-track rule only between adjacent products in the same category and physical reading column. No rule follows a final product or crosses a category, widget, notice/footer or column boundary. Keep it non-interactive and outside the accessibility reading order.
+
+Retain the existing item-to-item budget and center the stroke inside it: clear space above and below is `(actual gap − 1px) / 2`, so adding a rule never adds height or changes packing. Mobile keeps its independent 1.25rem/20px gap (9.5px clear on each side at a16px root). PC/tablet keep the common responsive gap and existing copy-aware1/1.10/1.20 multipliers, applied once. Hidden measurements and visible rows use the same geometry; category/title/copy spacing remains unchanged.
+
+Product separators belong to **menu/product-description ink** (`supporting`: saved `--menu-text-supporting`, otherwise `--menu-role-supporting-color`), including saved and preview overrides, even when description text is hidden. They do not belong to category ink; category-owned rules/ornaments continue to follow category ink. New product rules use `data-menu-item-separator` and `currentColor` from this supporting role; do not hardcode a gray or derive the color from product names/prices.
+
 ## Van Gogh default font — 2026-11-01
 
 The registered English default is Belleza; Korean remains Pretendard. Typography presets and initial starter settings read the common font registry, and catalog previews project the same starter. Remove the former Special Elite-specific title padding/line-height adjustment. Preserve customer-saved explicit faces, all existing role sizes/colors, corners and menu ordering. Verify canvas fit after fonts settle on PC/tablet and mobile reading at narrow/wide widths.

@@ -1826,6 +1826,7 @@ function MenuItemRow({
       data-cafe-a-image-title-only={hasItemImage && !hasContentAfterTitle ? "" : undefined}
       data-cafe-a-item-rhythm={usesOnePageProportionFitPolicy(templateKey, previewDevice) ? getOnePageItemRhythmMultiplier(hasSecondaryText, hasDescriptionText, showMenuTimeSale || visibleTraits.length > 0 || hasOriginInfo) : undefined}
       data-cafe-a-menu-item=""
+      data-menu-item-separator={pagePresentation === "one" && getTemplateContentSeparatorRules(templateKey).itemDivider === "between-items" ? "" : undefined}
       data-cafe-a-sold-out={isSoldOut ? "true" : undefined}
       data-cafe-a-tablet-price-layout={stackPriceOption ? "stacked" : undefined}
     >
