@@ -19,7 +19,7 @@ function FooterLinkList({ links }: { links: readonly (readonly [string, string])
 
 const mobileGroups = groups.map(group => ({
   ...group,
-  links: group.title === "이용 안내" ? [...group.links, ["1:1 문의", "/mypage/inquiries"] as const] : group.links,
+  links: group.title === "이용 안내" ? [...group.links.filter(([, href]) => href !== "/mypage"), ["1:1 문의", "/mypage/inquiries"] as const] : group.links,
 }));
 
 function ContactContent() {
