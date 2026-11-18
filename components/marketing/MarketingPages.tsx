@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { MARKETING_SERVICE_FEATURES as features, MARKETING_SHARED_FEATURES as shared } from "@/lib/marketing-service-features";
+import { MARKETING_SERVICE_FEATURES as features } from "@/lib/marketing-service-features";
 import SitePageHeader from "@/components/layout/SitePageHeader";
 import Link from "next/link";
 import { ArrowRight } from "@/app/components/ui/site-arrow";
@@ -17,6 +17,7 @@ import MarketingCopyReveal from "./MarketingCopyReveal";
 import ServiceStackStory from "./ServiceStackStory";
 import ServiceHomeLink from "@/components/layout/ServiceHomeLink";
 import { SERVICE_HOME_HREFS } from "@/lib/service-home-navigation";
+import MarketingOperationsVisual, { type OperationsVisualKind } from "./MarketingOperationsVisual";
 
 type Service = "basic" | "dining" | "display";
 type Feature = { kind: VisualKind; label: string; title: string; body: string };
@@ -222,35 +223,29 @@ export function MarketingServicePage({ service }: { service: Service }) {
 }
 
 export function MarketingHome() {
-  const customization: Feature[] = [
+  const operations: { kind: OperationsVisualKind; title: string; body: string }[] = [
     {
-      kind: "featured",
-      label: "대표 상품",
-      title: "사진 한 장으로 전하는 시그니처",
-      body: "가장 자신 있는 메뉴를 포스터처럼 소개하세요.",
+      kind: "tables",
+      title: "테이블과 키오스크를 한눈에",
+      body: "룸별로 테이블과 키오스크를 등록하고, 목록과 배치도로 운영 공간을 정리하세요.",
     },
     {
-      kind: "widgets",
-      label: "위젯",
-      title: "메뉴 사이사이, 매장의 소식",
-      body: "이벤트와 추천 메뉴를 원하는 위치에 담으세요.",
+      kind: "orders",
+      title: "들어온 주문부터 진행 상태까지",
+      body: "연결된 메뉴판의 주문을 테이블별로 확인하고, 진행 상태를 관리하세요.",
     },
     {
-      kind: "sale",
-      label: "기간 할인",
-      title: "오늘의 혜택이 눈에 띄도록",
-      body: "할인 가격과 남은 시간을 함께 보여주세요.",
+      kind: "calls",
+      title: "손님의 요청을 놓치지 않도록",
+      body: "어느 테이블에서 무엇을 요청했는지 확인하고, 호출 처리 상태를 관리하세요.",
     },
     {
-      kind: "advertising",
-      label: "광고",
-      title: "새로운 메뉴를 알리는 첫 장면",
-      body: "메뉴판을 여는 손님에게 매장의 프로모션을 전하세요.",
+      kind: "staff",
+      title: "함께 일하는 직원에게 필요한 권한만",
+      body: "직원을 초대하고 메뉴판별로 필요한 관리·운영 권한을 나누어 주세요.",
     },
   ];
   const capabilities: Feature[] = [
-    shared.order,
-    shared.call,
     {
       kind: "ai",
       label: "AI 메뉴 정리",
@@ -271,48 +266,48 @@ export function MarketingHome() {
         <DevicePlatformStory />
         <ServiceStackStory />
       </div>
-      <section className={styles.homeFeatures}>
+      <section className={styles.homeFeatures} data-home-section="operations">
         <div className="site-marketing-container">
           <MarketingCopyReveal className={styles.sectionHeading}>
 
             <h2 className="type-section-title">
-              메뉴판에도,
+              매장 운영도,
               <br />
-              매장만의 표정이 필요하니까
+              한눈에 정리되도록
             </h2>
             <p className="site-body text-zinc-500">
-              사진과 소식, 오늘의 혜택을 더해 매장다운 메뉴판을 완성하세요.
+              테이블과 키오스크, 주문과 호출까지. 매장에 필요한 운영 도구를 한곳에 모았습니다.
             </p>
           </MarketingCopyReveal>
           <div className={styles.bentoGrid}>
-            {customization.map((feature) => (
+            {operations.map((feature) => (
               <article key={feature.kind}>
                 <div className={styles.cardCopy}>
 
                   <h3 className="type-content-title">{feature.title}</h3>
                   <p className="site-body-sm">{feature.body}</p>
                 </div>
-                <MarketingVisual kind={feature.kind} />
+                <MarketingOperationsVisual kind={feature.kind} />
               </article>
             ))}
             <article className={styles.wideCard}>
               <div className={styles.cardCopy}>
 
                 <h3 className="type-subsection-title">
-                  지금 가진 기기로,
+                  여러 메뉴판의 운영도,
                   <br />
-                  어디서든 메뉴판을 열어보세요
+                  한곳에서 확인하세요
                 </h3>
                 <p className="site-body-sm">
-                  웹 링크 하나로 PC와 태블릿, 스마트폰에 연결합니다.
+                  권한이 있는 메뉴판의 주문과 호출을 한 화면에서 모아 확인하세요.
                 </p>
               </div>
-              <MarketingVisual kind="devices" />
+              <MarketingOperationsVisual kind="overview" />
             </article>
           </div>
         </div>
       </section>
-      <section className={styles.capabilities}>
+      <section className={styles.capabilities} data-home-section="capabilities">
         <div className="site-marketing-container">
           <MarketingCopyReveal className={styles.sectionHeading}>
 
