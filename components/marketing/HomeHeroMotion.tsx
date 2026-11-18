@@ -6,7 +6,7 @@ import { AnimatePresence, motion, useInView, useReducedMotion } from "motion/rea
 import { Hand } from "@/app/components/ui/site-icon";
 import { ProgressBar } from "@/app/components/ui/loading-state";
 import { Button } from "@/app/components/ui/button";
-import { HERO_CAFE_CHAPTERS, HERO_CAFE_PHOTOS, HERO_CAFE_SCREENS, HERO_TEMPLATE_SCREENS, heroChapterAt, heroScreenMatrix, type HeroQuad } from "@/lib/hero-cafe-motion";
+import { HERO_CAFE_CHAPTERS, HERO_CAFE_PHOTOS, HERO_CAFE_SCREENS, HERO_CHAPTER_DURATION_MS, HERO_TEMPLATE_SCREENS, heroChapterAt, heroScreenMatrix, type HeroQuad } from "@/lib/hero-cafe-motion";
 import styles from "./HomeHeroMotion.module.css";
 import { useHeroPlayback } from "./useHeroPlayback";
 
@@ -25,8 +25,8 @@ function CapturedScreen({ selected }: { selected: number }) {
 }
 
 /** Drives only fixed public catalog previews. Those routes use synthetic data and previewOnly actions. */
-function LiveMenu({ kind, chapter, playing, reduced, onDetail, highlight=false, onReady }: { kind: keyof typeof SOURCES; chapter:number; playing:boolean; reduced:boolean; onDetail?:(point:readonly [number,number])=>void; highlight?:boolean; onReady?:(chapter:number,ready:boolean)=>void }) {
-  const frame=useRef<HTMLIFrameElement>(null), elapsed=useRef(0), performed=useRef(new Set<string>());
+function LiveMenu({ kind, chapter, fraction, playing, reduced, onDetail, highlight=false, onReady }: { kind: keyof typeof SOURCES; chapter:number; fraction:number; playing:boolean; reduced:boolean; onDetail?:(point:readonly [number,number])=>void; highlight?:boolean; onReady?:(chapter:number,ready:boolean)=>void }) {
+  const frame=useRef<HTMLIFrameElement>(null), time=useRef(0), performed=useRef(new Set<string>());
   const [step,setStep]=useState("loading"), [orderReceived,setOrderReceived]=useState(false), [ready,setReady]=useState(false), [shellLoaded,setShellLoaded]=useState(false), [cue,setCue]=useState<{x:number;y:number;drag:boolean}|null>(null);
   useEffect(()=>{
     const received=(event:MessageEvent)=>{if(event.origin===location.origin && event.source===frame.current?.contentWindow && event.data?.type==="artimenu-preview-order")setOrderReceived(true);};
@@ -42,16 +42,16 @@ function LiveMenu({ kind, chapter, playing, reduced, onDetail, highlight=false, 
     },100);
     return()=>window.clearInterval(timer);
   },[shellLoaded,reduced,onReady,chapter,kind]);
-  useEffect(()=>{ elapsed.current=0; performed.current.clear(); const reset=requestAnimationFrame(()=>setCue(null));return()=>cancelAnimationFrame(reset); },[chapter]);
+  useEffect(()=>{ time.current=fraction*HERO_CHAPTER_DURATION_MS[chapter]/1000; },[fraction,chapter]);
   useEffect(()=>{
-    if (!playing || reduced || !ready) return;
-    let last=performance.now();
+    if (reduced || !ready) return;
     const interval=window.setInterval(()=>{
-      const now=performance.now(); elapsed.current+=Math.min(200,now-last); last=now;
-      const t=elapsed.current/1000, doc=frame.current?.contentDocument;
+      const t=time.current, doc=frame.current?.contentDocument;
       if (!doc || !frame.current?.contentWindow || !frame.current.src.includes("/templates/")) return;
       const width=doc.documentElement.clientWidth,height=doc.documentElement.clientHeight;
-      const once=(id:string,action:()=>boolean)=>{ if(!performed.current.has(id) && action()) {performed.current.add(id);setStep(id);} };
+      // One native action per tick lets React commit each preceding page/dialog state.
+      let acted=false;
+      const once=(id:string,action:()=>boolean)=>{ if(acted || performed.current.has(id))return;acted=true;if(action()){performed.current.add(id);setStep(id);} };
       const click=(selector:string)=>{
         const target=doc.querySelector<HTMLButtonElement>(selector);
         if(!target || target.disabled) return false;
@@ -102,8 +102,8 @@ function LiveMenu({ kind, chapter, playing, reduced, onDetail, highlight=false, 
       }
     },100);
     return ()=>window.clearInterval(interval);
-  },[kind,chapter,playing,reduced,ready,onDetail,highlight]);
-  return <div className={styles.live} data-hero-live={kind} data-ready={ready} data-demo-step={step} data-demo-order={orderReceived?"received":"none"}>
+  },[kind,chapter,reduced,ready,onDetail,highlight]);
+  return <div className={styles.live} data-hero-live={kind} data-ready={ready} data-demo-time={(fraction*HERO_CHAPTER_DURATION_MS[chapter]/1000).toFixed(2)} data-demo-step={step} data-demo-order={orderReceived?"received":"none"}>
     <img className={styles.fallback} src={`${ASSETS}screen-${kind==="counter"?"matcha":kind}.webp`} alt=""/>
     {!reduced ? <iframe ref={frame} src={SOURCES[kind]} title={`아티메뉴 ${kind==="phone"?"모바일":kind==="dining"?"다이닝":"태블릿"} 시연`} tabIndex={-1} aria-hidden="true" loading="eager" onLoad={()=>setShellLoaded(true)} className={styles.preview} style={{opacity:ready?1:0}}/> : null}
     {cue && playing && !reduced ? <span key={`${Math.round(cue.x)}-${Math.round(cue.y)}`} className={styles.cue} data-drag={cue.drag} style={{left:`${cue.x}%`,top:`${cue.y}%`}}>{cue.drag?<Hand/>:null}</span>:null}
@@ -113,12 +113,14 @@ function LiveMenu({ kind, chapter, playing, reduced, onDetail, highlight=false, 
 export default function HomeHeroMotion() {
   const root=useRef<HTMLElement>(null), stage=useRef<HTMLDivElement>(null), firstPhoto=useRef<HTMLImageElement>(null);
   const reduced=useReducedMotion(), inView=useInView(stage,{amount:.15});
-  const [detailFocus,setDetailFocus]=useState<readonly [number,number]>([1220,370]), [progress,setProgress]=useState(0), [selected,setSelected]=useState(0), [visible,setVisible]=useState(true), [loaded,setLoaded]=useState(false), [size,setSize]=useState({width:1536,height:1024,gutter:40,copyHeight:0,copyBottom:0});
+  const [detailFocus,setDetailFocus]=useState<readonly [number,number]>([1220,370]), [progress,setProgress]=useState(0), [visible,setVisible]=useState(true), [loaded,setLoaded]=useState(false), [size,setSize]=useState({width:1536,height:1024,gutter:40,copyHeight:0,copyBottom:0});
   const chapter=heroChapterAt(progress), scene=HERO_CAFE_CHAPTERS[chapter];
   const Heading=chapter===0?"h1":"h2", photo=`${ASSETS}${HERO_CAFE_PHOTOS[scene.image]}`;
   const [readyKey,setReadyKey]=useState("");
   const playback=useHeroPlayback({root,stage,chapter,enabled:inView && visible && loaded && !reduced,reduced:Boolean(reduced),readyKey});
   const playing=playback.playing;
+  const syncScroll=playback.syncScroll;
+  const selected=Math.floor(playback.fraction*HERO_CHAPTER_DURATION_MS[0]/2200)%HERO_TEMPLATE_SCREENS.length;
   const onReady=useCallback((index:number,ready:boolean)=>{
     if(root.current?.dataset.chapter===String(index))setReadyKey(ready?`${index}-${playback.replay}`:"");
   },[playback.replay]);
@@ -128,23 +130,26 @@ export default function HomeHeroMotion() {
     return()=>{active=false;};
   },[]);
   useEffect(()=>{
+    let seek=false;
     const update=()=>{
       if(!root.current || !stage.current)return;
       const rect=root.current.getBoundingClientRect(),height=stage.current.clientHeight;
-      setProgress(Math.max(0,Math.min(1,-rect.top/Math.max(1,root.current.offsetHeight-height))));
+      const next=Math.max(0,Math.min(1,-rect.top/Math.max(1,root.current.offsetHeight-height)));
+      setProgress(next);
+      if(seek){syncScroll(next);seek=false;}
       const copy=root.current.querySelector<HTMLElement>("[data-hero-copy]");
       setSize({width:stage.current.clientWidth,height,gutter:copy?parseFloat(getComputedStyle(copy).paddingLeft)||0:0,copyHeight:copy?.offsetHeight??0,copyBottom:copy?parseFloat(getComputedStyle(copy).bottom)||0:0});
     };
     let scheduled=0;const schedule=()=>{if(!scheduled)scheduled=requestAnimationFrame(()=>{scheduled=0;update();});};
+    const scroll=()=>{seek=true;schedule();};
     const observer=new ResizeObserver(schedule);if(stage.current)observer.observe(stage.current);
     const copy=root.current?.querySelector("[data-hero-copy]");if(copy)observer.observe(copy);
-    window.addEventListener("scroll",schedule,{passive:true});window.addEventListener("resize",schedule);update();
-    return()=>{cancelAnimationFrame(scheduled);observer.disconnect();window.removeEventListener("scroll",schedule);window.removeEventListener("resize",schedule);};
-  },[]);
+    window.addEventListener("scroll",scroll,{passive:true});window.addEventListener("resize",scroll);seek=true;update();
+    return()=>{cancelAnimationFrame(scheduled);observer.disconnect();window.removeEventListener("scroll",scroll);window.removeEventListener("resize",scroll);};
+  },[syncScroll]);
   useEffect(()=>{const update=()=>setVisible(!document.hidden);update();document.addEventListener("visibilitychange",update);return()=>document.removeEventListener("visibilitychange",update);},[]);
-  useEffect(()=>{if(!playing || chapter!==0)return;const timer=window.setInterval(()=>setSelected(value=>(value+1)%3),2200);return()=>window.clearInterval(timer);},[playing,chapter]);
   const mobile=size.width<1024;
-  const localProgress=Math.max(progress*5-chapter,playback.fraction);
+  const localProgress=playback.fraction;
   const detailZoom=!reduced && chapter===1?Math.max(0,(localProgress-.5)/.5):0;
   const fit=mobile && scene.image==="counter"?.63:mobile && scene.image==="dining"?.59:mobile && scene.image==="phone"?.95:1;
   const fitted=Math.max(size.width/1536,size.height/1024)*fit;
@@ -167,9 +172,9 @@ export default function HomeHeroMotion() {
             <motion.div className={styles.canvas} animate={{x,y,scale}} transition={{duration:reduced?0:.8,ease:[.22,1,.36,1]}}>
               <img ref={scene.image==="venue"?firstPhoto:undefined} src={photo} className={styles.photo} width={1536} height={1024} alt="" fetchPriority={scene.image==="venue"?"high":"auto"} onLoad={()=>setLoaded(true)}/>
               {scene.image==="venue" ? <>{HERO_CAFE_SCREENS.televisions.map((quad,i)=><Screen key={i} quad={quad}><CapturedScreen selected={selected}/></Screen>)}<Screen quad={HERO_CAFE_SCREENS.venueTablet}><CapturedScreen selected={selected}/></Screen></>:null}
-              {scene.image==="counter" ? <><Screen quad={HERO_CAFE_SCREENS.counter} width={mobile?820:1280} height={mobile?512:800}><LiveMenu key={`counter-${playback.replay}`} onReady={onReady} kind="counter" onDetail={setDetailFocus} highlight={detailZoom>0} chapter={chapter} playing={playing} reduced={Boolean(reduced)}/></Screen><img src={`${ASSETS}counter.webp`} className={`${styles.photo} ${styles.finger}`} width={1536} height={1024} alt=""/></>:null}
-              {scene.image==="dining" ? <Screen quad={HERO_CAFE_SCREENS.dining} width={mobile?820:1280} height={mobile?512:800}><LiveMenu key={`dining-${playback.replay}`} onReady={onReady} kind="dining" chapter={chapter} playing={playing} reduced={Boolean(reduced)}/></Screen>:null}
-              {scene.image==="phone" ? <><div className={styles.phoneMask}><Screen quad={HERO_CAFE_SCREENS.phone} width={390} height={900} phone><LiveMenu key={`phone-${chapter}-${playback.replay}`} onReady={onReady} kind="phone" chapter={chapter} playing={playing} reduced={Boolean(reduced)}/></Screen></div>{chapter===3?<span className={styles.qrPulse}/>:null}</>:null}
+              {scene.image==="counter" ? <><Screen quad={HERO_CAFE_SCREENS.counter} width={mobile?820:1280} height={mobile?512:800}><LiveMenu key={`counter-${playback.replay}`} onReady={onReady} kind="counter" onDetail={setDetailFocus} highlight={detailZoom>0} chapter={chapter} fraction={localProgress} playing={playing} reduced={Boolean(reduced)}/></Screen><img src={`${ASSETS}counter.webp`} className={`${styles.photo} ${styles.finger}`} width={1536} height={1024} alt=""/></>:null}
+              {scene.image==="dining" ? <Screen quad={HERO_CAFE_SCREENS.dining} width={mobile?820:1280} height={mobile?512:800}><LiveMenu key={`dining-${playback.replay}`} onReady={onReady} kind="dining" chapter={chapter} fraction={localProgress} playing={playing} reduced={Boolean(reduced)}/></Screen>:null}
+              {scene.image==="phone" ? <><div className={styles.phoneMask}><Screen quad={HERO_CAFE_SCREENS.phone} width={390} height={900} phone><LiveMenu key={`phone-${chapter}-${playback.replay}`} onReady={onReady} kind="phone" chapter={chapter} fraction={localProgress} playing={playing} reduced={Boolean(reduced)}/></Screen></div>{chapter===3?<span className={styles.qrPulse}/>:null}</>:null}
             </motion.div>
           </motion.div>
         </AnimatePresence>
@@ -181,7 +186,7 @@ export default function HomeHeroMotion() {
           <p className="type-caption">ARTIMENU · {scene.label}</p>
           <Heading className="type-section-title">{scene.title}</Heading>
           <p className="type-body">{scene.body}</p>
-          <div className={styles.progress}><ProgressBar label="메뉴판 소개 스크롤 진행" value={Math.round(progress*1000)/10} appearance="media" /></div>
+          <div className={styles.progress}><ProgressBar label={`${scene.label} 장면 재생 진행`} value={Math.round(localProgress*1000)/10} appearance="media" /></div>
         </div>
       </div>
       <nav className={styles.dots} data-hero-dots aria-label="소개 장면"

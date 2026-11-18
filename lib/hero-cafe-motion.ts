@@ -30,6 +30,12 @@ export function advanceHeroClock(elapsed: number, delta: number, duration: numbe
 export const HERO_TEMPLATE_SCREENS = ["matcha", "rosy", "loop"] as const;
 export const clampHeroProgress = (value: number) => Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
 export function heroChapterAt(progress: number) { return Math.min(4, Math.floor(clampHeroProgress(progress) * 5)); }
+/** Scroll seeking uses the current scene's own clock, including the final scene's inclusive end. */
+export function heroSceneAt(progress: number) {
+  const chapter = heroChapterAt(progress);
+  const fraction = clampHeroProgress(clampHeroProgress(progress) * HERO_CAFE_CHAPTERS.length - chapter);
+  return { chapter, fraction, elapsed: fraction * HERO_CHAPTER_DURATION_MS[chapter] };
+}
 
 /** A projective transform maps all four real screen corners without changing renderer geometry. */
 export function heroScreenMatrix(quad: HeroQuad, width: number, height: number): string {
