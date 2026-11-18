@@ -94,7 +94,7 @@ test("phone digits fill individually and erase at the same reverse scroll positi
 });
 test("sale zoom is restrained on desktop while preserving the approved compact camera",()=>{
  assert.equal(heroSaleZoom(0,1440),0);
- assert.equal(heroSaleZoom(26,1440),.3);
+ assert.equal(heroSaleZoom(26,1440),.6);
  assert.equal(heroSaleZoom(26,390),1.8);
  assert.equal(heroSaleZoom(26,820),1.8);
  assert.ok(heroSaleZoom(18,1440)<heroSaleZoom(22,1440));

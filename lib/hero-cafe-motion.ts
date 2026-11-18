@@ -38,7 +38,7 @@ export function heroTween(time: number, start: number, end: number) {
   const t = clampHeroProgress((time - start) / (end - start));
   return t * t * (3 - 2 * t);
 }
-export function heroSaleZoom(seconds: number, width: number) { return heroTween(seconds, 14, 22) * (width < 1024 ? 1.8 : .3); }
+export function heroSaleZoom(seconds: number, width: number) { return heroTween(seconds, 14, 22) * (width < 1024 ? 1.8 : .6); }
 /** Three templates appear once each; the opening never wraps back to the first. */
 export function heroTemplateAt(progress: number) { return Math.min(HERO_TEMPLATE_SCREENS.length - 1, Math.floor(clampHeroProgress(progress) * HERO_TEMPLATE_SCREENS.length)); }
 /** Repeating ripples are sampled from scroll, so a stopped/reversed scroll holds/reverses them. */
