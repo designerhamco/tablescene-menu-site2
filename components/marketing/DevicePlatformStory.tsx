@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { useReducedMotion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { DEVICE_ASSETS, DEVICE_MENU, DEVICE_STAGE_SIZE, clampDeviceProgress, deviceRevealAt, deviceScreenMatrix, deviceStageFrame } from "@/lib/device-platform-story";
 import MarketingCopyReveal from "./MarketingCopyReveal";
 import styles from "./DevicePlatformStory.module.css";
@@ -29,13 +29,16 @@ export default function DevicePlatformStory(){
   },[]);
   const frame=deviceStageFrame(view.width,view.height,view.copyBottom,view.gutter);
   const reveal=(order:number)=>deviceRevealAt(view.progress,order,Boolean(reduced));
+  const linkCopy=view.progress>=.48;
   return <section id="device-platform" className={styles.section} aria-labelledby="device-platform-heading" data-device-section data-reduced={Boolean(reduced)}>
     <div ref={root} className={styles.story} data-device-platform data-progress={view.progress.toFixed(3)} data-reduced={Boolean(reduced)} data-menu-template={DEVICE_MENU.key} data-layout={frame.compact?"compact":"wide"}>
       <div ref={stage} className={styles.stage}>
         <div ref={copy} className={`site-marketing-container ${styles.copy}`} data-device-copy>
-          <MarketingCopyReveal className="site-stack-title">
-            <h2 id="device-platform-heading" className="type-section-title">하나의 메뉴판, <br className={styles.copyBreak}/>모든 디바이스에서.</h2>
-            <p className="type-body site-copy-muted">PC부터 태블릿, 스마트폰까지. <br className={styles.copyBreak}/>우리 매장의 메뉴를 어디서나 보여주세요.</p>
+          <MarketingCopyReveal>
+            <motion.div key={String(linkCopy)} className="site-stack-title" data-device-message={linkCopy?"link":"devices"} initial={reduced?false:{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{duration:reduced?0:.35}}>
+              <h2 id="device-platform-heading" className="type-section-title">{linkCopy?<>웹 링크 하나로, <br className={styles.copyBreak}/>어디서든 자유롭게.</>:<>하나의 메뉴판, <br className={styles.copyBreak}/>모든 디바이스에서.</>}</h2>
+              <p className="type-body site-copy-muted">{linkCopy?<>화면이 크든 작든, 폴더블이든 걱정 없이 <br className={styles.copyBreak}/>반응형 웹 기술로 자연스럽게 보여집니다.</>:<>PC부터 태블릿, 스마트폰까지. <br className={styles.copyBreak}/>우리 매장의 메뉴를 어디서나 보여주세요.</>}</p>
+            </motion.div>
           </MarketingCopyReveal>
         </div>
         <div ref={visual} className={styles.visual} role="img" aria-label="같은 아티메뉴 메뉴판을 정면 PC 모니터, 태블릿, 스마트폰에서 보여주는 장면">

@@ -1,16 +1,16 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
-import { HERO_CAFE_CHAPTERS, HERO_CHAPTER_DURATION_MS, advanceHeroClock, heroSceneAt } from "@/lib/hero-cafe-motion";
+import { HERO_CAFE_CHAPTERS, HERO_CHAPTER_DURATION_MS, advanceHeroClock, heroProgressAt, heroSceneAt } from "@/lib/hero-cafe-motion";
 
 /** One scene clock drives playback and manual scroll seeking. */
-export function useHeroPlayback({ root, stage, chapter, enabled, reduced, readyKey }: {
+export function useHeroPlayback({ root, stage, chapter, enabled, reduced, ready }: {
   root: RefObject<HTMLElement | null>;
   stage: RefObject<HTMLDivElement | null>;
   chapter: number;
   enabled: boolean;
   reduced: boolean;
-  readyKey: string;
+  ready: boolean;
 }) {
   const clock = useRef({ chapter: 0, elapsed: 0 }), idleUntil = useRef(0), pointerDown = useRef(false);
   const target = useRef<{ y: number; until: number } | null>(null), autoPosition = useRef<number | null>(null), rewind = useRef<number | undefined>(undefined);
@@ -23,11 +23,12 @@ export function useHeroPlayback({ root, stage, chapter, enabled, reduced, readyK
     const next = Math.max(0, Math.min(HERO_CAFE_CHAPTERS.length - 1, index));
     const top = window.scrollY + root.current.getBoundingClientRect().top;
     // Stay just inside the chosen scene even when the browser rounds subpixel scroll positions.
-    const y = top + (root.current.offsetHeight - stage.current.offsetHeight) * next / HERO_CAFE_CHAPTERS.length + .5;
+    const y = top + (root.current.offsetHeight - stage.current.offsetHeight) * heroProgressAt(next) + .5;
     window.clearTimeout(rewind.current);
     autoPosition.current = null;
+    const restart = next <= clock.current.chapter;
     clock.current = { chapter: next, elapsed: 0 };
-    if (!automatic) { setPaused(false); setFinished(false); setTime({ chapter: next, fraction: 0 }); }
+    if (!automatic) { if(restart)setReplay(value => value + 1); setPaused(false); setFinished(false); setTime({ chapter: next, fraction: 0 }); }
     target.current = { y, until: performance.now() + 2500 };
     window.scrollTo({ top: y, behavior: automatic && !reduced ? "smooth" : "instant" });
   }, [root, stage, reduced]);
@@ -43,7 +44,10 @@ export function useHeroPlayback({ root, stage, chapter, enabled, reduced, readyK
     }
     const next = heroSceneAt(progress), previous = clock.current;
     // Restore native popup/cart/page state after a backwards seek, once the gesture settles.
-    if (previous.chapter !== next.chapter) window.clearTimeout(rewind.current);
+    if (previous.chapter !== next.chapter) {
+      window.clearTimeout(rewind.current);
+      if (next.chapter < previous.chapter) rewind.current = window.setTimeout(() => setReplay(value => value + 1), 160);
+    }
     else if (next.elapsed < previous.elapsed - 1) {
       window.clearTimeout(rewind.current);
       rewind.current = window.setTimeout(() => setReplay(value => value + 1), 160);
@@ -57,7 +61,7 @@ export function useHeroPlayback({ root, stage, chapter, enabled, reduced, readyK
   const activate = useCallback((index: number) => {
     if (index !== chapter) { select(index); return; }
     if (reduced) return;
-    if (finished) { setReplay(value => value + 1); select(index); }
+    if (finished) select(index);
     else setPaused(value => !value);
   }, [chapter, finished, reduced, select]);
 
@@ -97,7 +101,6 @@ export function useHeroPlayback({ root, stage, chapter, enabled, reduced, readyK
   }, []);
 
   const playing = enabled && !paused && !finished && !hovered && !focused;
-  const ready = chapter === 0 || readyKey === `${chapter}-${replay}`;
   useEffect(() => {
     if (!playing || reduced || !ready) return;
     let last = performance.now();
@@ -121,7 +124,7 @@ export function useHeroPlayback({ root, stage, chapter, enabled, reduced, readyK
       }
       if (!next.done || chapter === HERO_CAFE_CHAPTERS.length - 1) {
         const top = window.scrollY + root.current.getBoundingClientRect().top;
-        const y = top + (root.current.offsetHeight - stage.current.offsetHeight) * (chapter + next.fraction) / HERO_CAFE_CHAPTERS.length;
+        const y = top + (root.current.offsetHeight - stage.current.offsetHeight) * heroProgressAt(chapter, next.fraction);
         autoPosition.current = y;
         window.scrollTo({ top: y, behavior: "instant" });
       }

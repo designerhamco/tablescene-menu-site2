@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- Existing renderer captures retain their exact aspect ratios. */
 import MarketingCopyReveal from "./MarketingCopyReveal";
+import ServiceStackPanel from "./ServiceStackPanel";
+import { MARKETING_SERVICE_FEATURES, MARKETING_SERVICE_HEADINGS } from "@/lib/marketing-service-features";
 import styles from "./ServiceStackStory.module.css";
 
 const services = [
@@ -23,7 +25,7 @@ const services = [
 /** Each opaque sticky section is covered by the next section in normal scroll order. */
 export default function ServiceStackStory() {
   return <div id="service-stories" className={styles.stack} data-service-stack>
-    {services.map((service, index) => <section key={service.key} id={`service-${service.key}`} className={styles.panel} data-service-panel={service.key} aria-labelledby={`service-${service.key}-heading`}>
+    {services.map((service, index) => <ServiceStackPanel key={service.key} kind={service.key}>
       <div className={`site-marketing-container ${styles.layout}`}>
         <MarketingCopyReveal className={`site-stack-content ${styles.copy}`}>
           <div className={styles.identity}>
@@ -38,6 +40,16 @@ export default function ServiceStackStory() {
           <img className={styles.screen} src={service.image.src} width={service.image.width} height={service.image.height} alt={service.image.alt} loading="lazy" decoding="async"/>
         </div>
       </div>
-    </section>)}
+      <div className={`site-marketing-container site-stack-section ${styles.details}`}>
+        <h3 className="type-subsection-title">{MARKETING_SERVICE_HEADINGS[service.key]}</h3>
+        <ol className={styles.features} aria-label={`${service.name} 서비스 기능`}>
+          {MARKETING_SERVICE_FEATURES[service.key].map((feature,featureIndex)=><li key={feature.kind} className="site-stack-title" data-service-feature={feature.kind}>
+            <p className={`type-caption ${styles.description}`}>{String(featureIndex+1).padStart(2,"0")} / {feature.label}</p>
+            <h4 className="type-content-title">{feature.title}</h4>
+            <p className={`type-body ${styles.description}`}>{feature.body}</p>
+          </li>)}
+        </ol>
+      </div>
+    </ServiceStackPanel>)}
   </div>;
 }

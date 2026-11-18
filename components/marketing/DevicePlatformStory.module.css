@@ -1,4 +1,4 @@
-.section { --device-story-length:340svh; position:sticky; top:calc(100svh - var(--device-story-length)); background:var(--ui-surface); color:var(--ui-text); scroll-margin-top:var(--site-header-height); }
+.section { --device-story-length:175svh; position:sticky; top:calc(100svh - var(--device-story-length)); background:var(--ui-surface); color:var(--ui-text); scroll-margin-top:var(--site-header-height); }
 .story { position:relative; height:var(--device-story-length); }
 .stage { position:sticky; top:var(--site-header-height); height:calc(100svh - var(--site-header-height)); isolation:isolate; overflow:clip; }
 .visual { position:absolute; inset:0; overflow:hidden; }
