@@ -93,6 +93,7 @@ type PageProps = {
     orientation?: string | string[];
     view?: string | string[];
     embedded?: string | string[];
+    heroDemo?: string | string[];
     detached?: string | string[];
   }>;
 };
@@ -1177,6 +1178,11 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     templateKey,
   );
 
+  // Marketing automation gets an ephemeral preview cart, isolated from visitor catalog trials.
+  if (orderCallConfig && getFirstParam(resolvedSearchParams.heroDemo) === "1") {
+    orderCallConfig.previewOnly = true;
+    orderCallConfig.cartScope = `hero-demo-${crypto.randomUUID()}`;
+  }
   if (orderCallConfig && getFirstParam(resolvedSearchParams.prepayPreview) === "off") orderCallConfig.checkoutModes = ["postpay"];
   const preview = (
     <>
