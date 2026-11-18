@@ -37,11 +37,11 @@ function device(id:string,asset:Device["asset"],order:number,center:HeroPoint,uW
 // Flat devices share the floor's two axes. Both tablets are identical translated
 // copies; no independently guessed screen quadrilateral can skew their bodies.
 export const DEVICE_STAGE_ITEMS: readonly Device[] = [
-  device("upper-tablet","tablet",1,[880,200],290,225),
+  device("upper-tablet","tablet",1,[880,200],330,225),
   device("laptop","laptop",0,[558,529],345,232),
-  device("phone","phone",2,[210,780],115,190),
-  device("right-tablet","tablet",3,[892,790],290,225),
-  device("menu-card",undefined,4,[477,1015],198,176),
+  device("phone","phone",2,[210,780],103,202),
+  device("right-tablet","tablet",3,[892,790],330,225),
+  device("menu-card",undefined,4,[477,1015],230,144),
 ];
 
 export const clampDeviceProgress = (p:number) => Math.max(0,Math.min(1,Number.isFinite(p)?p:0));

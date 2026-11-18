@@ -37,6 +37,13 @@ test("every floor-facing edge follows the measured floor axes and both tablets a
   const tablets=DEVICE_STAGE_ITEMS.filter(i=>i.asset==="tablet");
   const offsets=tablets.map(i=>i.plane.map(([x,y])=>[x-i.plane[0][0],y-i.plane[0][1]]));
   offsets[0].forEach((p,i)=>p.forEach((v,j)=>assert.ok(Math.abs(v-offsets[1][i][j])<1e-10)));
+  const planeRatio=(q:readonly (readonly [number,number])[])=>{
+    const length=(a:number,b:number)=>Math.hypot(q[b][0]-q[a][0],q[b][1]-q[a][1]);
+    return (length(0,1)+length(3,2))/(length(0,3)+length(1,2));
+  };
+  for(const item of DEVICE_STAGE_ITEMS)if(item.asset){
+    assert.ok(Math.abs(planeRatio(item.plane)-planeRatio(DEVICE_ASSETS[item.asset].plane))<.05,`${item.id} retains its body proportions`);
+  }
 });
 test("wide illustration fills the entire section with a small symmetric crop",()=>{
   for(const width of [1024,1440,1920]){
