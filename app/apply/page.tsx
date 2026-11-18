@@ -1,6 +1,7 @@
 import SitePage from "@/components/layout/SitePage";
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 
 export const metadata: Metadata = {
   title: "메뉴판 만들기 | ArtiMenu",
@@ -11,6 +12,7 @@ const applyOptions = [
   {
     title: "베이직 메뉴판",
     eyebrow: "BASIC",
+    imageSrc: "/placeholders/service-image.svg",
     description: "카페와 매장의 메뉴를 한 화면에 정돈해 보여주는 메뉴판을 만듭니다.",
     href: "/apply/basic?product=business_basic_single_monthly",
     cta: "베이직으로 만들기",
@@ -18,6 +20,7 @@ const applyOptions = [
   {
     title: "다이닝 메뉴판",
     eyebrow: "DINING",
+    imageSrc: "/placeholders/service-image.svg",
     description: "커버와 여러 페이지로 코스와 메뉴의 흐름을 보여주는 메뉴판을 만듭니다.",
     href: "/apply/basic?product=business_basic_multi_monthly",
     cta: "다이닝으로 만들기",
@@ -25,6 +28,7 @@ const applyOptions = [
   {
     title: "디스플레이",
     eyebrow: "DISPLAY",
+    imageSrc: "/placeholders/service-image.svg",
     description: "TV와 모니터에 맞춘 대형 화면용 디지털 메뉴보드를 준비하고 있습니다.",
     href: "/services/display",
     cta: "준비 중 안내 보기",
@@ -33,6 +37,7 @@ const applyOptions = [
   {
     title: "커스텀 제작",
     eyebrow: "CUSTOM",
+    imageSrc: "/placeholders/service-image.svg",
     description: "템플릿 범위를 넘어선 별도 브랜딩과 기능을 상담하고 맞춤 제작합니다.",
     href: "/apply/custom",
     cta: "커스텀 상담하기",
@@ -47,9 +52,15 @@ export default function ApplyPage() {
     <section className="site-card-grid grid gap-5 md:grid-cols-2" aria-label="메뉴판 만들기 유형 선택">
       {applyOptions.map((option) => (
         <article key={option.href} className="site-section flex min-h-[260px] flex-col p-6 md:p-8">
-          <div className="flex items-center justify-between gap-3">
-            <p className="type-caption font-bold tracking-[0.16em] text-zinc-500">{option.eyebrow}</p>
-            {"pending" in option ? <span className="site-chip site-chip-pending">준비 중</span> : null}
+          <div className="site-stack-group">
+            <div className="site-media-frame" data-apply-service-media>
+              <Image src={option.imageSrc} alt="" width={1600} height={900}
+                className="block h-auto w-full" sizes="(min-width: 768px) 50vw, 100vw" />
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <p className="type-caption font-bold tracking-[0.16em] text-zinc-500">{option.eyebrow}</p>
+              {"pending" in option ? <span className="site-chip site-chip-pending">준비 중</span> : null}
+            </div>
           </div>
           <div className="mt-7 flex-1">
             <h2 className="type-subsection-title">{option.title}</h2>
