@@ -10,9 +10,9 @@
 4. QR: 같은 휴대폰/테이블 사진에서 QR 스티커를 물결로 강조한다. 실제 광고 팝업을 닫는 지점을 표시한다.
 5. 모바일: 가까워진 휴대폰에서 광고 닫기, 메뉴 스크롤, 상품 담기, 장바구니, 예시 번호를 이용한 후불 미리보기 주문, 호출 시연이 이어진다. 별도 CTA 없이 마지막 장면에서 마무리한다.
 
-큰 장면 전환·카메라는 페이지 스크롤에 연결한다. 화면 전체에 hero가 보일 때 오른쪽 세로 점의 원형 진행 링이 채워지면 다음 장면으로 부드럽게 스크롤한다. 각 장면은 실제 메뉴 미리보기가 준비된 후 8/12/15/5/30초 동안 재생한다. 마지막 장면은 완료 상태로 머물며 처음이나 일반 본문으로 자동 이동하지 않는다.
+큰 장면 전환·카메라는 페이지 스크롤에 연결한다. 화면 전체에 hero가 보일 때 제목 아래 공통 진행 바가 채워지면 다음 장면으로 부드럽게 스크롤한다. 각 장면은 실제 메뉴 미리보기가 준비된 후 8/12/15/5/30초 동안 재생한다. 마지막 장면은 완료 상태로 머물며 처음이나 일반 본문으로 자동 이동하지 않는다.
 
-기존 하단 장면 버튼·별도 일시정지·소개 건너뛰기는 제거한다. 다른 점을 누르면 해당 장면으로 바로 이동하고, 현재 점을 누르면 일시정지/재생한다. 마지막 점은 완료 후 다시 재생할 수 있다. 점에 마우스를 올리거나 키보드 포커스를 두면 자동 진행을 잠시 멈춘다. 방향키 위/아래와 Home/End로 장면을 선택할 수 있다. 직접 휠·터치·스크롤 키 입력은 자동 스크롤을 즉시 취소하고 마지막 입력 2.2초 후 현재 장면의 진행 링을 다시 시작한다. 숨긴 탭/화면 밖/열린 모달에서는 자동 스크롤하지 않는다. OS reduced-motion에서는 자동 시연·자동 스크롤·물결·부드러운 카메라 이동 없이 원본 캡처와 직접 장면 선택으로 볼 수 있다.
+기존 하단 장면 버튼·별도 일시정지·소개 건너뛰기는 제거한다. 다른 점을 누르면 해당 장면으로 바로 이동하고, 현재 점을 누르면 일시정지/재생한다. 마지막 점은 완료 후 다시 재생할 수 있다. 점에 마우스를 올리거나 키보드 포커스를 두면 자동 진행을 잠시 멈춘다. 방향키 위/아래와 Home/End로 장면을 선택할 수 있다. 직접 휠·터치·스크롤 키 입력은 자동 스크롤을 즉시 취소하고 마지막 입력 2.2초 후 현재 장면의 진행 바를 다시 시작한다. 숨긴 탭/화면 밖/열린 모달에서는 자동 스크롤하지 않는다. OS reduced-motion에서는 자동 시연·자동 스크롤·물결·부드러운 카메라 이동 없이 원본 캡처와 직접 장면 선택으로 볼 수 있다.
 
 모바일·좁은 태블릿 구도는 공통 gutter 안에 기기 전체가 들어오는 별도 카메라 배율과 실제 820×512 태블릿 미리보기를 사용한다. 모든 장면의 제목과 설명은 PC·태블릿·모바일 모두 왼쪽 하단에 둔다. 문구의 실제 높이를 관찰해 휴대폰 카메라의 상단 공간과 배율을 맞추고 하단 문구 공간을 확보한다. 모바일 문구 폭은 공통 고객지원 버튼의 자리도 피한다. 사용자 요청(2026-11-18 추가 수정)에 따라 첫 제목도 모든 장면과 같은 `type-section-title` 역할을 사용한다. 첫 장면은 의미상 h1, 나머지는 h2이며 기존 홈페이지용 큰 hero 역할 자체는 공통 스타일 시스템에 보존한다. 마지막 메뉴판 고르기 CTA는 제거한다.
 
@@ -50,4 +50,18 @@
 
 ```text
 Use case: precise-object-edit. Edit target: the attached cafe phone photograph. Make ONE extremely local correction only: the far/back edge of the reddish burl-wood rectangular tabletop currently has an unnatural rounded bulge behind the QR sticker (near x=620..840,y=235..300 in the 1536x1024 input). Straighten this far tabletop edge into a single physically straight perspective line, running from the visible far-left edge near the coffee cup (approximately x=275,y=260), behind the phone, toward the far-right visible edge near x=1536,y=400. Remove only the bulging wedge of tabletop above that straight line, reconstructing the cafe chair/background in that narrow region naturally. Keep the QR sticker in its exact current position on the table, flat and fully on the tabletop. Absolutely preserve camera position, image composition, crop and 1536x1024 aspect/resolution. Preserve the phone and its blank pale-gray screen pixel geometry, every bezel edge, rounded screen corner and device location; preserve both hands and fingers, the QR sticker and QR pattern, cup, food, all remaining wood grain, colors and lighting. Do not add any screen UI or text, new objects, symbols, logos, watermarks. Keep this same photograph, not a new scene. Return the full edited photograph with only that tabletop edge repaired.
+```
+
+## 2026-11-18 진행 표시·투명 헤더·사진 추가 보정
+
+- 오른쪽은 8px 흰색 점과 선택 명도만 표시한다. 공통 버튼의 클릭/키보드/정지·재생 기능은 보존한다. 실제 타이머 진행은 제목 설명 아래 공통 `ProgressBar appearance="media"`로 옮겼다.
+- 홈에서만 사진이 헤더 뒤를 채우며 5개 장면 전체의 실제 아래 경계에서 투명 헤더가 기존 흰색으로 바뀐다. 본문·다른 경로·다이닝의 기존 헤더는 독립적이다.
+- 모바일 첫 장면에도 사진 상단 14% 구간의 페이드를 적용해 흐린 배경과 선명한 사진 사이 수평 절단선을 없앤다.
+- 모바일 QR 장면은 스티커와 휴대폰이 함께 보이는 overview 배율을 사용하고 다음 모바일 장면에서 다시 가까워진다.
+- QR 스티커를 테이블 안쪽으로 옮기고 먼 가장자리를 다시 직선으로 교정했다. 새 최종 자산은 `public/assets/hero-cafe-v1/phone-v3.webp`, 도구는 내장 `image_gen` 편집이다. 앞선 원본과 v2는 보존한다.
+
+최종 추가 편집 프롬프트:
+
+```text
+Use case: precise-object-edit. EDIT the supplied 1536x1024 cafe photograph; keep this exact image, camera/crop, lighting, people, phone and environment. Make only two targeted edits. (1) Move the same QR sticker slightly inward onto the tabletop, approximately 25 pixels LEFT and 60 pixels DOWN toward the viewer: its current center is about (715,345), the new center should be about (690,405). Keep its size and natural flat perspective; do not duplicate it. Reconstruct the small old sticker location with matching continuous burl wood. Leave a comfortable visible tabletop margin between the sticker and the far edge; keep it clear of the fingers. (2) The FAR/BACK edge of the rectangular tabletop must be an absolutely ruler-straight perspective line. It is still subtly bowed in the input. Precisely align every visible segment to one mathematical line from (300,270) to (1535,407). Continue the same collinear edge behind the phone/foreground occlusions. No convex bulge, sag, concave dip, local wobble, rounded corner near QR, lens distortion or curved seam. The room stays above that line and burl tabletop below; naturally reconstruct only the narrow strip needed. Preserve cup/plate/food/vase and all hands even where they occlude that edge. Do not add a drawn guide line or contrasting stroke. CRITICAL invariants: keep the phone silhouette, rounded pale-gray BLANK screen, all four screen boundaries, both hands and exact device position pixel-aligned to the input because HTML will be projected on it. Keep everything outside these two small edit regions unchanged. Do not invent UI, text, logos, watermarks, extra stickers or objects. Full image, same 1536x1024 framing.
 ```

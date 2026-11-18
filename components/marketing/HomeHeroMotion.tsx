@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useInView, useReducedMotion } from "motion/react";
 import { Hand } from "@/app/components/ui/site-icon";
+import { ProgressBar } from "@/app/components/ui/loading-state";
 import { Button } from "@/app/components/ui/button";
 import { HERO_CAFE_CHAPTERS, HERO_CAFE_PHOTOS, HERO_CAFE_SCREENS, HERO_TEMPLATE_SCREENS, heroChapterAt, heroScreenMatrix, type HeroQuad } from "@/lib/hero-cafe-motion";
 import styles from "./HomeHeroMotion.module.css";
@@ -151,7 +152,8 @@ export default function HomeHeroMotion() {
   const desiredScale=tabletFit*(reduced?1:scene.zoom*(1+localProgress*.035+detailZoom*1.8));
   // Leave the measured lower-left copy clear, even when a narrow phone adds a line.
   const phoneRoom=Math.max(1,size.height-size.copyHeight-size.copyBottom-size.gutter);
-  const scale=mobile && scene.image==="phone"?Math.min(desiredScale,Math.max(1,phoneRoom-size.gutter)/700,(size.width-2*size.gutter)/340):desiredScale;
+  // The QR overview includes both sticker and handset; the final shot stays close.
+  const scale=mobile && scene.image==="phone"?Math.min(desiredScale,Math.max(1,phoneRoom-size.gutter)/700,(size.width-2*size.gutter)/(chapter===3?600:340)):desiredScale;
   const baseFocus=mobile?scene.mobileFocus:scene.focus;
   const focus=[baseFocus[0]+(detailFocus[0]-baseFocus[0])*detailZoom,baseFocus[1]+(detailFocus[1]-baseFocus[1])*detailZoom];
   const x=mobile?size.width/2-focus[0]*scale:Math.min(0,Math.max(size.width-1536*scale,size.width*.66-focus[0]*scale));
@@ -173,11 +175,13 @@ export default function HomeHeroMotion() {
         </AnimatePresence>
       </div>
       <div className={styles.shade}/>
+      <div className={styles.headerShade} aria-hidden="true"/>
       <div className={`site-marketing-container ${styles.sceneCopy}`} data-hero-copy>
         <div className={styles.caption} aria-live="off">
           <p className="type-caption">ARTIMENU · {scene.label}</p>
           <Heading className="type-section-title">{scene.title}</Heading>
           <p className="type-body">{scene.body}</p>
+          <div className={styles.progress}><ProgressBar label={`${scene.label} 장면 진행`} value={Math.round(playback.fraction*100)} appearance="media" /></div>
         </div>
       </div>
       <nav className={styles.dots} data-hero-dots aria-label="소개 장면"
@@ -195,10 +199,7 @@ export default function HomeHeroMotion() {
               if(next===null)return;event.preventDefault();event.stopPropagation();playback.select(next);
               event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("button")[next]?.focus({preventScroll:true});
             }}>
-            <span className={styles.dotGraphic} aria-hidden="true"><svg viewBox="0 0 28 28" focusable="false">
-              {active?<><circle className={styles.dotTrack} cx="14" cy="14" r="11"/><circle className={styles.dotProgress} cx="14" cy="14" r="11" strokeDasharray={Math.PI*22} strokeDashoffset={Math.PI*22*(1-playback.fraction)}/></>:null}
-              <circle className={styles.dotCenter} cx="14" cy="14" r={active?3:2.5}/>
-            </svg></span>
+            <span className={styles.dot} aria-hidden="true"/>
           </Button>;
         })}
       </nav>

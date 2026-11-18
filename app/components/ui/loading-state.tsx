@@ -2,9 +2,9 @@ import type { CSSProperties } from "react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 /** Only supply value when the operation reports real progress. */
-export function ProgressBar({ label, value }: { label: string; value?: number }) {
+export function ProgressBar({ label, value, appearance = "default" }: { label: string; value?: number; appearance?: "default" | "media" }) {
   const progress = typeof value === "number" && Number.isFinite(value) ? Math.min(100, Math.max(0, value)) : undefined;
-  return <div className="site-progress-bar" role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} data-indeterminate={progress === undefined || undefined}>
+  return <div className="site-progress-bar" data-appearance={appearance === "media" ? "media" : undefined} role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress} data-indeterminate={progress === undefined || undefined}>
     <span style={progress === undefined ? undefined : { "--site-progress-value": `${progress}%` } as CSSProperties} />
   </div>;
 }

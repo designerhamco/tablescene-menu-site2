@@ -18,7 +18,7 @@ export default function OfficialSiteNavbar({ showQuickMenu = true }: { showQuick
     <>
       <Navbar />
       {shouldShowQuickMenu ? <ScrollToTopButton /> : null}
-      <div className="site-header-spacer" data-header-surface={getSiteHeaderSurface(pathname)} aria-hidden="true" />
+      <div className="site-header-spacer" data-header-surface={getSiteHeaderSurface(pathname)} data-home-hero={pathname === "/" || undefined} aria-hidden="true" />
     </>
   );
 }

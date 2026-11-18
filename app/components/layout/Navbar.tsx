@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { formatNotificationBadgeCount, getNotificationDisplaySince, NOTIFICATION_COMPACT_NOTICE, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
 import { createClient } from '@/lib/supabase/client';
 import { getSiteHeaderSurface } from '@/lib/site-header-policy';
+import { useHomeHeroHeader } from '@/components/layout/useHomeHeroHeader';
 import { applyNotificationsReadAll, getNotificationsReadAll, NOTIFICATIONS_READ_ALL_EVENT, requestNotificationsReadAll } from '@/lib/notification-read-state';
 import { isStoreOperationsAvailable } from '@/lib/product-focus-policy';
 import { NotificationPanel } from '@/app/components/ui/notification-panel';
@@ -65,6 +66,7 @@ const Navbar = () => {
   const [navigationAccount, setNavigationAccount] = useState<{ userId: string; account: NavigationAccount | null } | null>(null);
   const scrolledRef = useRef(false);
   const pathname = usePathname();
+  const homeHeroHeader = useHomeHeroHeader(pathname);
 
   const closeMobileMenu = () => {
     setIsOpen(false);
@@ -283,7 +285,7 @@ const Navbar = () => {
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
-      <nav aria-label="공식 사이트 메뉴" data-site-header data-header-surface={getSiteHeaderSurface(pathname)} data-scrolled={isScrolled} className={styles.shell}>
+      <nav aria-label="공식 사이트 메뉴" data-site-header data-header-surface={getSiteHeaderSurface(pathname)} data-scrolled={isScrolled} data-home-hero={homeHeroHeader} className={styles.shell}>
         <div className={`site-container relative flex h-full items-center justify-between ${styles.panel}`}>
           <Link href="/" className={`group z-50 flex shrink-0 items-center ${styles.brand}`}>
             <span className={styles.wordmark}>ArtiMenu</span>
@@ -370,7 +372,7 @@ const Navbar = () => {
             ) : null}
             <Link
               href="/apply"
-              className={`site-button site-button-primary site-button-header`}
+              className={`site-button ${homeHeroHeader ? "site-button-secondary" : "site-button-primary"} site-button-header`}
             >
               만들기
             </Link>

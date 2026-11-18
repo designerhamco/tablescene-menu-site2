@@ -1,5 +1,5 @@
 .story { position:relative; height:500svh; background:#e8e1d7; }
-.stage { position:sticky; top:var(--site-header-height); height:calc(100svh - var(--site-header-height)); overflow:clip; isolation:isolate; }
+.stage { position:sticky; top:0; height:100svh; overflow:clip; isolation:isolate; }
 .scene,.plane { position:absolute; inset:0; overflow:hidden; }
 .ambient { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:blur(24px); opacity:.5; }
 .canvas { position:absolute; top:0; left:0; width:1536px; height:1024px; transform-origin:0 0; will-change:transform; }
@@ -15,30 +15,29 @@
 /* The photograph and this curved hand mask share the fixed 1536×1024 canvas. */
 .finger { clip-path:path("M1289 681 C1293 680 1299 683 1305 686 L1338 698 C1353 703 1368 706 1378 714 C1410 735 1439 765 1462 795 L1536 818 L1536 1024 L1402 1024 L1395 938 C1360 910 1330 870 1317 832 C1306 798 1320 781 1334 773 L1348 755 C1337 741 1322 730 1308 721 C1294 711 1285 699 1287 688 Z"); }
 .shade { position:absolute; inset:0; z-index:1; pointer-events:none; background:linear-gradient(0deg,rgba(22,19,16,.8),rgba(22,19,16,.36) 20%,transparent 48%); }
+.headerShade { position:absolute; z-index:1; inset:0 0 auto; height:calc(var(--site-header-height) + var(--site-space-card)); background:linear-gradient(180deg,rgb(0 0 0 / 66%) var(--site-header-height),transparent); pointer-events:none; }
 .sceneCopy { position:absolute; left:0; right:0; bottom:var(--site-space-card); z-index:3; color:#fff; pointer-events:none; }
 .caption { display:grid; gap:var(--site-space-copy); max-width:44rem; }
 .caption :is(p,h1,h2) { margin:0; }
 .dots { position:absolute; z-index:4; right:calc(var(--site-gutter) + var(--site-space-block)); top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:var(--site-space-detail); }
-.dotGraphic { display:block; width:28px; height:28px; filter:drop-shadow(0 1px 2px rgba(0,0,0,.65)); }
-.dotGraphic > svg { width:100%; height:100%; overflow:visible; }
-.dotTrack { fill:none; stroke:rgba(0,0,0,.3); stroke-width:3; }
-.dotProgress { fill:none; stroke:#fff; stroke-width:2; stroke-linecap:round; transform:rotate(-90deg); transform-origin:14px 14px; transition:stroke-dashoffset 80ms linear; }
-.dotCenter { fill:#fff; stroke:rgba(0,0,0,.25); stroke-width:1; }
+.progress { width:min(100%,12rem); margin-top:var(--site-space-copy); }
+.dot { display:block; width:var(--site-space-copy); height:var(--site-space-copy); border-radius:var(--ui-radius-control); background:var(--ui-media-ink); opacity:.5; filter:drop-shadow(var(--ui-media-arrow-shadow)); transition:opacity 150ms ease; }
+.dots [data-active="true"] .dot,.dots button:is(:hover,:focus-visible) .dot { opacity:1; }
 .cue { position:absolute; z-index:5; width:34px; height:34px; border:3px solid white; border-radius:50%; transform:translate(-50%,-50%); box-shadow:0 0 0 1px rgba(0,0,0,.25); background:rgba(0,0,0,.15); pointer-events:none; }
 .cue::after { content:""; position:absolute; inset:-3px; border:3px solid #fff; border-radius:50%; animation:touch-ripple 1.4s ease-out infinite; }
 .cue[data-drag="true"] { width:52px; height:52px; display:grid; place-items:center; background:rgba(16,20,18,.6); }
 .cue svg { width:28px; height:28px; color:#fff; }
-.qrPulse { position:absolute; left:635px; top:307px; width:164px; height:78px; border:3px solid #fff; border-radius:10px; transform:rotate(6deg); box-shadow:0 0 0 2px rgba(0,0,0,.25); animation:qr-focus .75s ease-in-out .4s 2 both; }
+.qrPulse { position:absolute; left:583px; top:378px; width:156px; height:80px; border:3px solid #fff; border-radius:10px; transform:rotate(6deg); box-shadow:0 0 0 2px rgba(0,0,0,.25); animation:qr-focus .75s ease-in-out .4s 2 both; }
 .story[data-playing="false"] :is(.cue::after,.qrPulse) { animation-play-state:paused; }
 @keyframes touch-ripple { from { opacity:1; transform:scale(1); } to { opacity:0; transform:scale(2.6); } }
 @keyframes qr-focus { 0% { opacity:.9; transform:rotate(6deg) scale(1); } 50% { opacity:.4; } 100% { opacity:0; transform:rotate(6deg) scale(1.07); } }
 @media (max-width:1023px) {
-  .story:is([data-chapter="1"],[data-chapter="2"],[data-chapter="3"],[data-chapter="4"]) .canvas { mask-image:linear-gradient(transparent,#000 9%,#000 91%,transparent),linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent); mask-composite:intersect; }
+  .story .canvas { mask-image:linear-gradient(transparent,#000 14%,#000 91%,transparent),linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent); mask-composite:intersect; }
   .sceneCopy { bottom:var(--site-space-group); }
   .caption { max-width:calc(100% - var(--site-space-card) - var(--site-space-block)); }
 }
 @media (prefers-reduced-motion:reduce) {
-  .captured,.preview,.dotProgress { transition:none; }
+  .captured,.preview,.dot { transition:none; }
   .cue,.qrPulse { display:none; }
   .canvas { will-change:auto; }
 }

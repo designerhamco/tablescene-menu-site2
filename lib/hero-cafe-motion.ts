@@ -5,10 +5,10 @@ export const HERO_CAFE_CHAPTERS = [
   { label: "매장", title: "메뉴를 보여주는 순간, 매장이 달라집니다", body: "디자인부터 메뉴 관리까지. 우리 매장에 맞는 디지털 메뉴판, 아티메뉴.", image: "venue", focus: [1010, 480], mobileFocus: [950, 410], zoom: 1 },
   { label: "태블릿", title: "가까이에서 고르는 오늘의 메뉴", body: "메뉴와 가격, 지금의 혜택을 한눈에.", image: "counter", focus: [1010, 515], mobileFocus: [1030, 500], zoom: 1.08 },
   { label: "다이닝", title: "한 장씩 이어지는 다이닝 경험", body: "커버부터 코스까지, 옆으로 넘겨 살펴보세요.", image: "dining", focus: [920, 540], mobileFocus: [920, 525], zoom: 1.04 },
-  { label: "QR", title: "테이블 위 QR로 가볍게", body: "앱 설치 없이, 손님 휴대폰에서 바로.", image: "phone", focus: [880, 500], mobileFocus: [880, 490], zoom: 1 },
+  { label: "QR", title: "테이블 위 QR로 가볍게", body: "앱 설치 없이, 손님 휴대폰에서 바로.", image: "phone", focus: [880, 500], mobileFocus: [860, 490], zoom: 1 },
   { label: "모바일", title: "살펴보고, 담고, 요청하는 순간까지", body: "우리 매장의 메뉴판을 손님 가까이에.", image: "phone", focus: [970, 490], mobileFocus: [970, 490], zoom: 1.16 },
 ] as const;
-export const HERO_CAFE_PHOTOS = { venue: "venue.webp", counter: "counter.webp", dining: "dining.webp", phone: "phone-v2.webp" } as const;
+export const HERO_CAFE_PHOTOS = { venue: "venue.webp", counter: "counter.webp", dining: "dining.webp", phone: "phone-v3.webp" } as const;
 export const HERO_CAFE_SCREENS = {
   televisions: [
     [[505,290],[739,277],[739,420],[505,424]],
