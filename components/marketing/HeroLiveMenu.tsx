@@ -192,7 +192,7 @@ function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,present
     },60);
     return()=>window.clearInterval(timer);
   },[active,ready,reduced,kind,onDetail,epoch,report,seeking,settled]);
-  const source=kind==="phone"?"/assets/device-platform-v2/menu-phone.webp":`/assets/hero-cafe-v1/screen-${kind==="counter"?"matcha":kind}.webp`;
+  const source=kind==="phone"?"/assets/device-platform-v2/menu-phone.webp":`/assets/hero-cafe-v1/screen-${kind==="counter"?"matcha":"dining-v2"}.webp`;
   const motion=cue?.gesture==="swipe-x"?`translateX(${(cue.progress-.5)*-24}px)`:cue?.gesture==="swipe-y"?`translateY(${(cue.progress-.5)*-24}px)`:"";
   const pulse=heroPulseAt(cue?.progress??1);
   return <div className={styles.live} data-hero-live={visible?kind:undefined} data-ready={ready} data-demo-time={seconds.toFixed(2)} data-demo-step={step} data-demo-order={orderReceived?"received":"none"} data-demo-cue={cue?.gesture??"none"} data-demo-slide={surface.slide} data-demo-popup={surface.popup} data-demo-request={surface.request} data-demo-scroll={surface.scroll} data-demo-cart={surface.cart} data-demo-phone={surface.phone}>

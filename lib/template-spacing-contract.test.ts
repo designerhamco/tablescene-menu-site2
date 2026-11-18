@@ -10,10 +10,9 @@ const displaySource = readFileSync(
   new URL("../components/menu-templates/DisplayMenuA.tsx", import.meta.url),
   "utf8",
 );
-const multiPageSource = readFileSync(
-  new URL("../components/menu-templates/DiningAubeTableA.tsx", import.meta.url),
-  "utf8",
-);
+const multiPageSource = ["DiningAubeTableA.tsx", "DiningAubeTableA.css"].map(file =>
+  readFileSync(new URL(`../components/menu-templates/${file}`, import.meta.url), "utf8")
+).join("\n");
 const globalStylesSource = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
 const contractSource = readFileSync(
   new URL("../docs/template-spacing-contract.md", import.meta.url),

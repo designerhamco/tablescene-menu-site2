@@ -7,6 +7,8 @@ const source = readFileSync(
   "utf8",
 );
 
+const styles = readFileSync(new URL("../components/menu-templates/DiningAubeTableA.css", import.meta.url), "utf8");
+
 test("Aube public menus expose their ready locales without requiring a table session", () => {
   assert.match(source, /data-aube-table-language-control/);
   assert.match(source, /currentLocale=\{data\.locale\}/);
@@ -16,7 +18,7 @@ test("Aube public menus expose their ready locales without requiring a table ses
 
 test("Aube avoids duplicating the mobile language control inside the table-session header", () => {
   assert.match(
-    source,
-    /:global\(\[data-public-menu-entry-layer\]\) \.aube-table-language-control \{ display: none; \}/,
+    styles,
+    /\[data-public-menu-entry-layer\] \.aube-table-language-control \{ display: none; \}/,
   );
 });
