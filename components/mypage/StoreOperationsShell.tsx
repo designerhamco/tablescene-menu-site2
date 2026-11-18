@@ -4,6 +4,7 @@ import OperationSiteSelector from "@/components/mypage/OperationSiteSelector";
 import StoreOperationsNavigation from "@/components/mypage/StoreOperationsNavigation";
 import OperationTableSetupNotice from "@/components/mypage/OperationTableSetupNotice";
 import { isStoreOperationsTemplate } from "@/lib/operations-dashboard";
+import { ALL_MENU_SITE_ID, allMenuOperationsHref, allMenuOperationSites } from "@/lib/all-menu-operations";
 
 import { MypageAccountCard } from "@/components/mypage/MypageSidebar";
 import type { MenuSitePermission } from "@/lib/menu-site-permissions";
@@ -61,27 +62,33 @@ export default async function StoreOperationsShell({
   sites,
   selectedSite,
   activeSection,
+  allMenus = false,
   children,
 }: {
   sites: StoreOperationsSite[];
   selectedSite: StoreOperationsSite | null;
   activeSection: StoreOperationsSection;
+  allMenus?: boolean;
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  const allOrders = allMenuOperationSites(sites, "orders");
+  const allCalls = allMenuOperationSites(sites, "calls");
 
   return (
     <SitePage title="매장 운영" align="start">
       <div className="site-management-scope site-account-page">
           <div className="site-account-layout">
             <StoreOperationsNavigation
-              activeKey={`${selectedSite?.menuSiteId ?? "none"}:${activeSection}`}
-              selector={selectedSite ? <OperationSiteSelector selectedId={selectedSite.menuSiteId} items={sites.map(site => ({
+              activeKey={`${allMenus ? ALL_MENU_SITE_ID : selectedSite?.menuSiteId ?? "none"}:${activeSection}`}
+              selector={selectedSite || allMenus ? <OperationSiteSelector selectedId={allMenus ? ALL_MENU_SITE_ID : selectedSite!.menuSiteId} items={[
+                ...(allOrders.length || allCalls.length || allMenus ? [{ id: ALL_MENU_SITE_ID, label: "전체 메뉴판", href: allMenuOperationsHref(activeSection) }] : []),
+                ...sites.map(site => ({
                 id: site.menuSiteId, label: site.name || "이름 없는 메뉴판", href: getSectionHref(site, activeSection),
-              }))} /> : null}
+              }))]} /> : null}
               account={user ? (
                 <MypageAccountCard
                   email={user.email ?? "이메일 정보 없음"}
@@ -90,9 +97,9 @@ export default async function StoreOperationsShell({
                 />
               ) : null}
             >
-              {selectedSite ? (
+              {selectedSite || allMenus ? (
                 <Link
-                  href={`/mypage/operations?site=${encodeURIComponent(selectedSite.menuSiteId)}`}
+                  href={allMenus ? allMenuOperationsHref("dashboard") : `/mypage/operations?site=${encodeURIComponent(selectedSite!.menuSiteId)}`}
                   aria-current={activeSection === "dashboard" ? "page" : undefined}
                   className={getNavigationClassName(activeSection === "dashboard")}
                 >
@@ -107,13 +114,15 @@ export default async function StoreOperationsShell({
 
               <div className="site-operations-feature-navigation">
                 {operationNavigation.map((item) => {
-                  const enabled = Boolean(selectedSite && (item.key === "qr" ? selectedSite.canManageQr : (item.key === "tables" || item.key === "kiosks") ? selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage") : selectedSite.operationAccess[item.key]));
+                  const enabled = allMenus ? (item.key === "orders" ? allOrders.length > 0 : item.key === "calls" ? allCalls.length > 0 : false) : Boolean(selectedSite && (item.key === "qr" ? selectedSite.canManageQr : (item.key === "tables" || item.key === "kiosks") ? selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage") : selectedSite.operationAccess[item.key]));
                   const configurationAvailable = Boolean((selectedSite?.canConfigure || (selectedSite?.tableSetupAvailable && selectedSite.permissions.includes("table.manage"))) && (item.key === "orders" || item.key === "calls"));
                   const active = activeSection === item.key || (item.key === "tables" && activeSection === "kiosks") || (item.key === "orders" && activeSection === "order-settings") || (item.key === "calls" && (activeSection === "call-settings" || activeSection === "call-items"));
-                  if (!selectedSite || (!enabled && !configurationAvailable)) {
+                  if ((!selectedSite && !allMenus) || (!enabled && !configurationAvailable)) {
                     const hasRolePermission = Boolean(selectedSite?.permissions.includes(item.permission));
-                    const unavailableLabel = selectedSite && !hasRolePermission ? "권한 없음" : "이용 불가";
-                    const unavailableReason = !selectedSite
+                    const unavailableLabel = allMenus ? "메뉴판 선택" : selectedSite && !hasRolePermission ? "권한 없음" : "이용 불가";
+                    const unavailableReason = allMenus
+                      ? item.key === "orders" || item.key === "calls" ? "이 기능을 이용할 수 있는 메뉴판이 없습니다." : "개별 메뉴판을 선택하면 이용할 수 있습니다."
+                      : !selectedSite
                       ? "먼저 운영할 메뉴판을 선택해 주세요."
                       : !hasRolePermission
                         ? `현재 직원 역할에는 ${item.label} 접근 권한이 없습니다.`
@@ -135,7 +144,7 @@ export default async function StoreOperationsShell({
                   return (
                     <Link
                       key={item.key}
-                      href={`/mypage/menus/${selectedSite.menuSiteId}/${item.key}${enabled ? "" : "/settings"}`}
+                      href={allMenus ? allMenuOperationsHref(item.key) : `/mypage/menus/${selectedSite!.menuSiteId}/${item.key}${enabled ? "" : "/settings"}`}
                       aria-current={active ? "page" : undefined}
                       className={getNavigationClassName(active)}
                     >

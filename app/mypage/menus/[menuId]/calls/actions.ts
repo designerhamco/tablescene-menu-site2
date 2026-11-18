@@ -25,6 +25,8 @@ export async function mutateCallAction(
   try {
     await transitionStaffCall({ menuSiteId, callId, nextStatus });
     revalidatePath(`/mypage/menus/${menuSiteId}/calls`);
+    revalidatePath("/mypage/operations");
+    revalidatePath("/mypage/operations/calls");
     return {
       status: "success",
       message: nextStatus === "completed" ? "호출을 완료했습니다." : "호출을 확인했습니다.",

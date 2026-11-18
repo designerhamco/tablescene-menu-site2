@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
+import { AllMenuOperationsDashboard } from "@/components/mypage/AllMenuOperationsPage";
 import OperationFeatureToggle from "@/components/mypage/OperationFeatureToggle";
 import OperationTableSetupNotice from "@/components/mypage/OperationTableSetupNotice";
 import { ContentPanel } from "@/app/components/ui/content-panel";
@@ -105,6 +106,7 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
     ? `${getOperationFeatureLabel(requestedFeature)}에 접근할 권한이 없습니다. 사장에게 직원 역할 변경을 요청해 주세요.`
     : null;
   const operationsContext = await getStoreOperationsContext(requestedSiteId);
+  if (requestedSiteId === "all") return <AllMenuOperationsDashboard sites={operationsContext.sites}/>;
   const selectedSite = operationsContext.selectedSite;
 
   if (!selectedSite) {

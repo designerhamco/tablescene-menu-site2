@@ -18,6 +18,7 @@ import { shouldRefreshArrivalDashboard } from "@/lib/dashboard-arrival-alerts";
 import { formatKoreanDateTime } from "@/lib/korean-date-time";
 import type { OperationsFloorPlan } from "@/lib/operations-history";
 import type { OrderDashboardPageData } from "@/lib/server/order-management-service";
+import type { OperationRecordSources, OperationArrivalGroup } from "@/lib/all-menu-operations";
 import { initialOrderManagementActionState } from "./action-state";
 import { mutateOrderAction } from "./actions";
 const STATUS_LABELS: Record<string, string> = CUSTOMER_ORDER_STATUS_LABELS;
@@ -109,7 +110,11 @@ export default function OrderDashboard({
   orders,
   permissions,
   floorPlan, view, onHistoryFilterApply, autoRefresh = true,
+  recordSources, arrivalGroups, historyPath,
 }: {
+  recordSources?: OperationRecordSources;
+  arrivalGroups?: OperationArrivalGroup[];
+  historyPath?: string;
   view?: OrderDashboardPageData["view"];
   onHistoryFilterApply?: (filters: import("@/lib/order-history-query").OrderHistoryFilters)=>void; autoRefresh?:boolean;
   menuSiteId: string;
@@ -119,6 +124,7 @@ export default function OrderDashboard({
   floorPlan: OperationsFloorPlan;
 }) {
   const history=view?.kind === "history";
+  const path = historyPath ?? `/mypage/menus/${menuSiteId}/orders`;
   const router = useRouter();
   const [refreshing, refresh] = useTransition();
   const [state, action, pending] = useActionState(
@@ -154,6 +160,9 @@ export default function OrderDashboard({
     };
   }, [printOrder]);
   function detail(order: Order) {
+    const source = recordSources?.[order.id];
+    const recordMenuSiteId = source?.menuSiteId ?? menuSiteId;
+    const recordPermissions = recordSources ? source?.permissions : permissions;
     return (
       <ContentPanel
         as="article"
@@ -162,6 +171,7 @@ export default function OrderDashboard({
       >
         <div className="site-content-heading-row">
           <div className="site-stack-copy">
+            {recordSources ? <p className="type-label break-words">{source?.menuSiteName ?? "확인 불가"}</p> : null}
             <h3 className="type-content-title">
               주문 #{order.orderNumber} · {order.tableLabel}
             </h3>
@@ -191,12 +201,12 @@ export default function OrderDashboard({
         >
           브라우저 영수증 인쇄
         </button>
-        {permissions.canManage && order.nextStatus ? (
+        {recordPermissions?.canManage && order.nextStatus ? (
           <form
             action={action}
             className="site-stack-block site-content-divider"
           >
-            <input type="hidden" name="menuSiteId" value={menuSiteId} />
+            <input type="hidden" name="menuSiteId" value={recordMenuSiteId} />
             <input type="hidden" name="orderId" value={order.id} />
             <input type="hidden" name="nextStatus" value={order.nextStatus} />
             <p className="type-label">
@@ -214,12 +224,12 @@ export default function OrderDashboard({
             </div>
           </form>
         ) : null}
-        {permissions.canMarkManualPayment && order.canMarkManualPayment ? (
+        {recordPermissions?.canMarkManualPayment && order.canMarkManualPayment ? (
           <form
             action={action}
             className="site-stack-block site-content-divider"
           >
-            <input type="hidden" name="menuSiteId" value={menuSiteId} />
+            <input type="hidden" name="menuSiteId" value={recordMenuSiteId} />
             <input type="hidden" name="orderId" value={order.id} />
             <label className="site-field-stack">
               <span className="type-label">외부 결제 완료</span>
@@ -240,12 +250,12 @@ export default function OrderDashboard({
             </div>
           </form>
         ) : null}
-        {permissions.canCancelUnpaid && order.canCancelUnpaid ? (
+        {recordPermissions?.canCancelUnpaid && order.canCancelUnpaid ? (
           <form
             action={action}
             className="site-stack-block site-content-divider"
           >
-            <input type="hidden" name="menuSiteId" value={menuSiteId} />
+            <input type="hidden" name="menuSiteId" value={recordMenuSiteId} />
             <input type="hidden" name="orderId" value={order.id} />
             <label className="site-field-stack">
               <span className="type-label">미결제 주문 취소</span>
@@ -277,7 +287,7 @@ export default function OrderDashboard({
     <>
       {printOrder ? (
         <div className="hidden print:block">
-          <OrderReceipt order={printOrder} menuSiteName={menuSiteName} />
+          <OrderReceipt order={printOrder} menuSiteName={recordSources?.[printOrder.id]?.menuSiteName ?? menuSiteName} />
         </div>
       ) : null}
       <div className="site-stack-group print:hidden">
@@ -288,13 +298,14 @@ export default function OrderDashboard({
         />
         {!history && autoRefresh ? <OperationalArrivalAlert
           menuSiteId={menuSiteId}
+          arrivalGroups={arrivalGroups}
           kind="orders"
           arrivalIds={orders
             .filter((order) => order.status !== "cancelled")
             .map((order) => order.id)}
           onBackgroundPollingChange={setBackgroundPollingEnabled}
         /> : null}
-        {history && view ? <OrderHistoryFilters key={JSON.stringify(view.filters)} path={`/mypage/menus/${menuSiteId}/orders`} filters={view.filters} tables={view.tables} error={view.error} onApply={onHistoryFilterApply}/> : null}
+        {history && view ? <OrderHistoryFilters key={JSON.stringify(view.filters)} path={path} filters={view.filters} tables={view.tables} error={view.error} onApply={onHistoryFilterApply}/> : null}
         <div className="site-content-heading-row">
             <div className="site-stack-title">
               <p className="type-label">
@@ -315,7 +326,7 @@ export default function OrderDashboard({
           </ContentPanel>
         ) : null}
         {!view?.error ? <OperationsHistoryViews
-          listOnly={history}
+          listOnly={history || Boolean(recordSources)}
           noun="주문"
           floorPlan={floorPlan}
           records={orders.map((order) => ({
@@ -344,7 +355,7 @@ export default function OrderDashboard({
             processing: order.status !== "served" && order.status !== "cancelled",
             unpaid: order.paymentStatus === "unpaid" && order.status !== "cancelled",
           }))}
-          renderList={(open) => <OperationsHistoryTable noun="주문" floorPlan={floorPlan} records={orders} includeEmptyPoints={!history} renderRecord={order => <>
+          renderList={(open) => <OperationsHistoryTable noun="주문" floorPlan={floorPlan} records={orders} recordSources={recordSources} includeEmptyPoints={!history && !recordSources} renderRecord={order => <>
                         <TableCell>#{order.orderNumber}</TableCell>
                         <TableCell>
                           <OrderItems order={order} />
@@ -382,9 +393,9 @@ export default function OrderDashboard({
           )}
         /> : null}
         {history && view && !view.error ? <div className="site-action-row" aria-label="주문 이력 페이지 이동">
-          {view.newerCursor ? <Button variant="outline" asChild><Link href={orderHistoryHref(`/mypage/menus/${menuSiteId}/orders`,view.filters,{cursor:view.newerCursor,direction:"newer"})}>이전 페이지</Link></Button> : null}
-          {view.olderCursor ? <Button variant="outline" asChild><Link href={orderHistoryHref(`/mypage/menus/${menuSiteId}/orders`,view.filters,{cursor:view.olderCursor,direction:"older"})}>다음 페이지</Link></Button> : null}
-          {view.newerCursor || view.olderCursor ? <Button variant="outline" asChild><Link href={orderHistoryHref(`/mypage/menus/${menuSiteId}/orders`,view.filters)}>처음 페이지</Link></Button> : null}
+          {view.newerCursor ? <Button variant="outline" asChild><Link href={orderHistoryHref(path,view.filters,{cursor:view.newerCursor,direction:"newer"})}>이전 페이지</Link></Button> : null}
+          {view.olderCursor ? <Button variant="outline" asChild><Link href={orderHistoryHref(path,view.filters,{cursor:view.olderCursor,direction:"older"})}>다음 페이지</Link></Button> : null}
+          {view.newerCursor || view.olderCursor ? <Button variant="outline" asChild><Link href={orderHistoryHref(path,view.filters)}>처음 페이지</Link></Button> : null}
         </div> : null}
       </div>
     </>

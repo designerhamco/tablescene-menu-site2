@@ -8,6 +8,7 @@ import ts from "typescript";
 async function renderDashboard(menuSiteId: string) {
   const CurrentTabletConnectionPanel = () => null;
   const OperationStatusCards = () => null;
+  const AllMenuOperationsDashboard = () => null;
   const stub = () => null;
   const site = { menuSiteId, name: "검수 매장", slug: "test-store", status: "published", templateKey: "cafe_design_a", canConfigure: true,
     tableSetupAvailable: true, activeTablesReady: true, permissions: ["table.manage", "order.read", "call.manage", "menu.edit", "menu.publish"],
@@ -31,6 +32,7 @@ async function renderDashboard(menuSiteId: string) {
     "@/components/mypage/OperationFeatureToggle": { default: stub }, "@/components/mypage/OperationTableSetupNotice": { default: stub },
     "@/components/mypage/CurrentTabletConnectionPanel": { default: CurrentTabletConnectionPanel },
     "@/components/mypage/OperationStatusCards": { default: OperationStatusCards },
+    "@/components/mypage/AllMenuOperationsPage": { AllMenuOperationsDashboard },
     "@/lib/menu-url": { getConfiguredPublicMenuOrigin: () => "https://example.test", getPublicMenuPath: () => "/menu/test-store" },
     "@/lib/server/table-terminal-service": { getCurrentTableTerminalId: async () => null }, "@/lib/table-qr-session-tokens": { TABLE_VISIT_SESSION_COOKIE: "test" },
     "@/lib/operations-dashboard": { isStoreOperationsTemplate: () => true },
@@ -49,7 +51,7 @@ async function renderDashboard(menuSiteId: string) {
   const loaded = { exports: {} };
   new Function("require", "module", "exports", code)((name: string) => { assert.ok(name in dependencies, name); return dependencies[name]; }, loaded, loaded.exports);
   const Page = (loaded.exports as typeof import("../app/mypage/operations/page")).default;
-  return { tree: await Page({ searchParams: Promise.resolve({ site: menuSiteId }) }), CurrentTabletConnectionPanel, OperationStatusCards };
+  return { tree: await Page({ searchParams: Promise.resolve({ site: menuSiteId }) }), CurrentTabletConnectionPanel, OperationStatusCards, AllMenuOperationsDashboard };
 }
 
 function verifyKeys(node: ReactNode, found: Map<unknown, string | null>) {
@@ -73,4 +75,10 @@ test("로그인된 운영 대시보드는 단말 패널을 제거하고 메뉴�
     snapshots.push([cards]);
   }
   assert.notEqual(snapshots[0][0], snapshots[1][0]);
+});
+
+test("전체 메뉴판 선택은 임의의 첫 메뉴판 대신 통합 운영 대시보드를 연다", async () => {
+  const { tree, AllMenuOperationsDashboard } = await renderDashboard("all");
+  assert.ok(isValidElement(tree));
+  assert.equal(tree.type, AllMenuOperationsDashboard);
 });
