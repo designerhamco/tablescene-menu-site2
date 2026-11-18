@@ -2,10 +2,10 @@
 export type HeroPoint = readonly [number, number];
 export type HeroQuad = readonly [HeroPoint, HeroPoint, HeroPoint, HeroPoint];
 export const HERO_CAFE_CHAPTERS = [
-  { label: "매장", title: "메뉴를 보여주는 순간, 매장이 달라집니다", body: "디자인부터 메뉴 관리까지. 우리 매장에 맞는 디지털 메뉴판, 아티메뉴.", image: "venue", focus: [1010, 480], mobileFocus: [950, 410], zoom: 1 },
-  { label: "태블릿", title: "가까이에서 고르는 오늘의 메뉴", body: "메뉴와 가격, 지금의 혜택을 한눈에.", image: "counter", focus: [1010, 515], mobileFocus: [1030, 500], zoom: 1.08 },
-  { label: "다이닝", title: "한 장씩 이어지는 다이닝 경험", body: "커버부터 코스까지, 옆으로 넘겨 살펴보세요.", image: "dining", focus: [920, 540], mobileFocus: [920, 525], zoom: 1.04 },
-  { label: "QR 주문", title: "QR로 열고, 고른 메뉴를 주문까지", body: "메뉴를 둘러보고 장바구니에 담아, 손님 휴대폰에서 바로.", image: "phone", focus: [880, 500], mobileFocus: [860, 490], zoom: 1 },
+  { label: "디자인 템플릿", title: "매장에 어울리는 메뉴판 디자인", body: "원하는 디자인을 고르고, 우리 매장의 메뉴와 가격으로 완성하세요.", image: "venue", focus: [1010, 480], mobileFocus: [950, 410], zoom: 1 },
+  { label: "베이직 메뉴판", title: "메뉴와 기간 할인을 한눈에", body: "메뉴와 가격을 정리하고, 기간 할인은 남은 시간까지 보여주세요.", image: "counter", focus: [1010, 515], mobileFocus: [1030, 500], zoom: 1.08 },
+  { label: "다이닝 메뉴판", title: "코스 안내부터 직원 호출까지", body: "코스와 음료를 페이지별로 살펴보고, 필요한 순간 화면에서 직원을 호출하세요.", image: "dining", focus: [920, 540], mobileFocus: [920, 525], zoom: 1.04 },
+  { label: "QR 메뉴·주문", title: "QR로 메뉴 확인부터 주문까지", body: "손님이 앱 설치 없이 메뉴를 고르고, 장바구니에 담아 주문할 수 있어요.", image: "phone", focus: [880, 500], mobileFocus: [860, 490], zoom: 1 },
 ] as const;
 export const HERO_CAFE_PHOTOS = { venue: "venue.webp", counter: "counter.webp", dining: "dining.webp", phone: "phone-v3.webp" } as const;
 /** Prepare at most one demo; the tablet may warm up near the end of the opening. */
@@ -52,6 +52,10 @@ export function heroTemplateAt(progress: number) { return Math.min(HERO_TEMPLATE
 /** Repeating ripples are sampled from scroll, so a stopped/reversed scroll holds/reverses them. */
 export function heroPulseAt(progress: number, cycles = 3) { return progress < 0 || progress >= 1 ? 0 : 1 - (clampHeroProgress(progress) * cycles) % 1; }
 export function heroPhoneValue(seconds: number) { return "01000000000".slice(0, Math.floor(clampHeroProgress((seconds - HERO_PHONE_TIMELINE.typing[0]) / (HERO_PHONE_TIMELINE.typing[1] - HERO_PHONE_TIMELINE.typing[0])) * 11 + 1e-7)); }
+/** Completed chapters stay full; current progress rewinds with the document scroll. */
+export function heroSegmentProgressAt(segment: number, chapter: number, progress: number) {
+  return segment < chapter ? 1 : segment === chapter ? clampHeroProgress(progress) : 0;
+}
 export function heroDemoPhase(kind: "counter" | "dining" | "phone", seconds: number) {
   const boundaries = kind === "dining" ? [6, 11, 18, 25, 31] : kind === "phone" ? [HERO_PHONE_TIMELINE.item[1], HERO_PHONE_TIMELINE.add[1], HERO_PHONE_TIMELINE.cart[1], HERO_PHONE_TIMELINE.typing[1], HERO_PHONE_TIMELINE.order[1]] : [];
   return boundaries.filter(boundary => seconds >= boundary).length;

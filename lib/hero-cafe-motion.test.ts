@@ -4,7 +4,7 @@ import test from "node:test";
 import {createElement} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import HomeHeroMotion from "../components/marketing/HomeHeroMotion";
-import {HERO_CAFE_CHAPTERS,HERO_CAFE_SCREENS,HERO_CHAPTER_DURATION_MS,HERO_CHAPTER_SCROLL_LENGTHS,HERO_SCROLL_LENGTH,HERO_COUNTER_TIMELINE,HERO_PHONE_TIMELINE,heroTween,heroProgressAt,heroChapterAt,heroSceneAt,heroScreenMatrix,heroSaleZoom,heroDemoPhase,heroTemplateAt,heroPulseAt,heroPhoneValue,heroLiveSceneAt,type HeroQuad} from "./hero-cafe-motion";
+import {HERO_CAFE_CHAPTERS,HERO_CAFE_SCREENS,HERO_CHAPTER_DURATION_MS,HERO_CHAPTER_SCROLL_LENGTHS,HERO_SCROLL_LENGTH,HERO_COUNTER_TIMELINE,HERO_PHONE_TIMELINE,heroTween,heroProgressAt,heroChapterAt,heroSceneAt,heroScreenMatrix,heroSaleZoom,heroDemoPhase,heroTemplateAt,heroPulseAt,heroPhoneValue,heroLiveSceneAt,heroSegmentProgressAt,type HeroQuad} from "./hero-cafe-motion";
 
 test("only one demo is eligible, with a bounded tablet warmup before its scene",()=>{
  assert.deepEqual([0,1,2,3,4,-1].map(chapter=>heroLiveSceneAt(chapter,true,true,false)),[null,"counter","dining","phone",null,null]);
@@ -23,6 +23,9 @@ test("initial hero renders no nested applications and one capture per venue scre
  const markup=renderToStaticMarkup(createElement(HomeHeroMotion));
  assert.doesNotMatch(markup,/<iframe\b/);
  assert.match(markup,/data-live-scene="none"/);
+ assert.equal((markup.match(/role="progressbar"/g)??[]).length,4);
+ assert.equal((markup.match(/data-hero-segment="/g)??[]).length,4);
+ assert.doesNotMatch(markup,/data-hero-dots|ARTIMENU ·/);
  assert.equal((markup.match(/data-hero-capture="true"/g)??[]).length,4);
 });
 
@@ -133,4 +136,16 @@ test("tablet browsing owns over two viewport lengths before sale enlargement sta
  assert.equal(middle,.5);
  assert.equal(heroTween(HERO_COUNTER_TIMELINE.browse[0],...HERO_COUNTER_TIMELINE.browse),0);
  assert.equal(heroTween(HERO_COUNTER_TIMELINE.browse[1],...HERO_COUNTER_TIMELINE.browse),1);
+});
+
+test("chapter segments fill completed scenes, seek the current one and rewind together",()=>{
+ const at=(chapter:number,progress:number)=>[0,1,2,3].map(index=>heroSegmentProgressAt(index,chapter,progress));
+ assert.deepEqual(at(0,0),[0,0,0,0]);
+ assert.deepEqual(at(1,.6),[1,.6,0,0]);
+ assert.deepEqual(at(3,.9),[1,1,1,.9]);
+ assert.deepEqual(at(1,.2),[1,.2,0,0]);
+ assert.deepEqual(at(0,.5),[.5,0,0,0]);
+ assert.deepEqual(at(3,1),[1,1,1,1]);
+ assert.deepEqual(at(1,2),[1,1,0,0]);
+ assert.deepEqual(at(1,-1),[1,0,0,0]);
 });

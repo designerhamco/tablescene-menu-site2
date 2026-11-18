@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { AnimatePresence, motion, useInView, useReducedMotion } from "motion/react";
 import { ProgressBar } from "@/app/components/ui/loading-state";
 import { Button } from "@/app/components/ui/button";
-import { HERO_CAFE_CHAPTERS, HERO_CAFE_PHOTOS, HERO_CAFE_SCREENS, HERO_CHAPTER_DURATION_MS, HERO_TEMPLATE_SCREENS, HERO_STORY_SVH, HERO_COUNTER_TIMELINE, HERO_PHONE_TIMELINE, heroTween, heroSceneAt, heroProgressAt, heroSaleZoom, heroScreenMatrix, heroTemplateAt, heroPulseAt, heroLiveSceneAt, type HeroQuad } from "@/lib/hero-cafe-motion";
+import { HERO_CAFE_CHAPTERS, HERO_CAFE_PHOTOS, HERO_CAFE_SCREENS, HERO_CHAPTER_DURATION_MS, HERO_TEMPLATE_SCREENS, HERO_STORY_SVH, HERO_COUNTER_TIMELINE, HERO_PHONE_TIMELINE, heroTween, heroSceneAt, heroProgressAt, heroSaleZoom, heroScreenMatrix, heroTemplateAt, heroPulseAt, heroLiveSceneAt, heroSegmentProgressAt, type HeroQuad } from "@/lib/hero-cafe-motion";
 import styles from "./HomeHeroMotion.module.css";
 import HeroLiveMenu from "./HeroLiveMenu";
 
@@ -101,27 +101,27 @@ export default function HomeHeroMotion() {
       <div className={styles.gestureSurface} data-hero-gesture-surface aria-hidden="true"/>
       <div className={`site-marketing-container ${styles.sceneCopy}`} data-hero-copy>
         <motion.div key={chapter} className={styles.caption} aria-live="off" initial={reduced?false:{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{duration:reduced?0:.5,ease:[.22,1,.36,1]}}>
-          <p className="type-caption">ARTIMENU · {scene.label}</p>
+          <p className="type-caption">{scene.label}</p>
           <Heading className="type-section-title">{scene.title}</Heading>
           <p className="type-body">{scene.body}</p>
-          <div className={styles.progress}><ProgressBar label={`${scene.label} 장면 스크롤 진행`} value={Math.round(localProgress*1000)/10} appearance="media" /></div>
         </motion.div>
+        <nav className={styles.progress} data-hero-progress aria-label="서비스 소개 진행">
+          {HERO_CAFE_CHAPTERS.map((item,index)=>{
+            const active=chapter===index;
+            const label=`${index+1}. ${item.label} · ${active?"현재 장면":"장면 보기"}`;
+            return <div className={styles.segment} key={item.image}>
+              <Button className={styles.segmentAction} type="button" variant="ghost" size="icon" aria-label={label} title={label}
+                aria-current={active?"step":undefined} data-hero-segment={index} data-active={active}
+                onClick={()=>select(index)} onKeyDown={event=>{
+                  const next=["ArrowRight","ArrowDown"].includes(event.key)?Math.min(HERO_CAFE_CHAPTERS.length-1,index+1):["ArrowLeft","ArrowUp"].includes(event.key)?Math.max(0,index-1):event.key==="Home"?0:event.key==="End"?HERO_CAFE_CHAPTERS.length-1:null;
+                  if(next===null)return;event.preventDefault();event.stopPropagation();select(next);
+                  event.currentTarget.closest("nav")?.querySelectorAll<HTMLButtonElement>("button")[next]?.focus({preventScroll:true});
+                }}/>
+              <ProgressBar label={`${item.label} 장면 스크롤 진행`} value={Math.round(heroSegmentProgressAt(index,chapter,localProgress)*1000)/10} appearance="media"/>
+            </div>;
+          })}
+        </nav>
       </div>
-      <nav className={styles.dots} data-hero-dots aria-label="소개 장면">
-        {HERO_CAFE_CHAPTERS.map((item,index)=>{
-          const active=chapter===index;
-          const label=`${index+1}. ${item.label} · ${active?"현재 장면":"장면 보기"}`;
-          return <Button key={item.label} type="button" variant="ghost" size="icon" iconSize="compact" aria-label={label} title={label}
-            aria-current={active?"step":undefined} data-hero-dot={index} data-active={active}
-            onClick={()=>select(index)} onKeyDown={event=>{
-              const next=event.key==="ArrowDown"?Math.min(HERO_CAFE_CHAPTERS.length-1,index+1):event.key==="ArrowUp"?Math.max(0,index-1):event.key==="Home"?0:event.key==="End"?HERO_CAFE_CHAPTERS.length-1:null;
-              if(next===null)return;event.preventDefault();event.stopPropagation();select(next);
-              event.currentTarget.parentElement?.querySelectorAll<HTMLButtonElement>("button")[next]?.focus({preventScroll:true});
-            }}>
-            <span className={styles.dot} aria-hidden="true"/>
-          </Button>;
-        })}
-      </nav>
     </div>
   </section>;
 }
