@@ -51,7 +51,7 @@
   .toolbar { display:grid; gap:var(--site-space-copy); }
   .chapters { justify-content:space-between; gap:0; }
   .toolbar > div:last-child { justify-content:space-between; }
-  .endAction { justify-content:center; }
+  .endAction { justify-content:center; padding-right:var(--site-space-section); }
 }
 @media (prefers-reduced-motion:reduce) {
   .captured,.preview,.intro { transition:none; }

@@ -25,7 +25,7 @@ function CapturedScreen({ selected }: { selected: number }) {
 }
 
 /** Drives only fixed public catalog previews. Those routes use synthetic data and previewOnly actions. */
-function LiveMenu({ kind, chapter, playing, reduced, onDetail }: { kind: keyof typeof SOURCES; chapter:number; playing:boolean; reduced:boolean; onDetail?:(point:readonly [number,number])=>void }) {
+function LiveMenu({ kind, chapter, playing, reduced, onDetail, highlight=false }: { kind: keyof typeof SOURCES; chapter:number; playing:boolean; reduced:boolean; onDetail?:(point:readonly [number,number])=>void; highlight?:boolean }) {
   const frame=useRef<HTMLIFrameElement>(null), elapsed=useRef(0), performed=useRef(new Set<string>());
   const [step,setStep]=useState("loading"), [orderReceived,setOrderReceived]=useState(false), [ready,setReady]=useState(false), [shellLoaded,setShellLoaded]=useState(false), [cue,setCue]=useState<{x:number;y:number;drag:boolean}|null>(null);
   useEffect(()=>{
@@ -66,12 +66,12 @@ function LiveMenu({ kind, chapter, playing, reduced, onDetail }: { kind: keyof t
       }
       if (kind==="counter") {
         const scroll=doc.querySelector<HTMLElement>('[data-native-menu], [data-scroll-menu]');
-        if(scroll && t>2 && t<4) { scroll.scrollTop=Math.min(scroll.scrollHeight-scroll.clientHeight,(t-2)*70); setCue({x:79,y:70-(t-2)*6,drag:true}); }
-        if(scroll && t>4) once("sale",()=>{
+        if(scroll && t>2 && t<4 && !highlight && !performed.current.has("sale")) { scroll.scrollTop=Math.min(scroll.scrollHeight-scroll.clientHeight,(t-2)*70); setCue({x:79,y:70-(t-2)*6,drag:true}); }
+        if(scroll && (t>4 || highlight)) once("sale",()=>{
           const sale=doc.querySelector<HTMLElement>('[data-native-tracks] [data-cafe-a-time-sale-digital-timer], [data-scroll-content] [data-cafe-a-time-sale-digital-timer]');if(!sale)return false;
           scroll.scrollTop+=sale.getBoundingClientRect().y-scroll.getBoundingClientRect().y-scroll.clientHeight*.25;return true;
         });
-        if(t>5) once("focus",()=>{
+        if(t>5 || highlight) once("focus",()=>{
           const sale=doc.querySelector<HTMLElement>('[data-native-tracks] [data-cafe-a-time-sale-digital-timer], [data-scroll-content] [data-cafe-a-time-sale-digital-timer]');if(!sale)return false;
           const r=sale.getBoundingClientRect(),u=(r.x+r.width/2)/width,v=(r.y+r.height/2)/height,q=HERO_CAFE_SCREENS.counter;
           onDetail?.([q[0][0]*(1-u)*(1-v)+q[1][0]*u*(1-v)+q[2][0]*u*v+q[3][0]*(1-u)*v,q[0][1]*(1-u)*(1-v)+q[1][1]*u*(1-v)+q[2][1]*u*v+q[3][1]*(1-u)*v]);
@@ -101,7 +101,7 @@ function LiveMenu({ kind, chapter, playing, reduced, onDetail }: { kind: keyof t
       }
     },100);
     return ()=>window.clearInterval(interval);
-  },[kind,chapter,playing,reduced,ready,onDetail]);
+  },[kind,chapter,playing,reduced,ready,onDetail,highlight]);
   return <div className={styles.live} data-hero-live={kind} data-ready={ready} data-demo-step={step} data-demo-order={orderReceived?"received":"none"}>
     <img className={styles.fallback} src={`${ASSETS}screen-${kind==="counter"?"matcha":kind}.webp`} alt=""/>
     {!reduced ? <iframe ref={frame} src={SOURCES[kind]} title={`아티메뉴 ${kind==="phone"?"모바일":kind==="dining"?"다이닝":"태블릿"} 시연`} tabIndex={-1} aria-hidden="true" loading="eager" onLoad={()=>setShellLoaded(true)} className={styles.preview} style={{opacity:ready?1:0}}/> : null}
@@ -136,11 +136,11 @@ export default function HomeHeroMotion({ children }: { children:ReactNode }) {
   useEffect(()=>{if(!playing || chapter!==0)return;const timer=window.setInterval(()=>setSelected(value=>(value+1)%3),2200);return()=>window.clearInterval(timer);},[playing,chapter]);
   const mobile=size.width<1024;
   const localProgress=progress*5-chapter;
-  const detailZoom=chapter===1?Math.max(0,(localProgress-.5)/.5):0;
+  const detailZoom=!reduced && chapter===1?Math.max(0,(localProgress-.5)/.5):0;
   const fit=mobile && scene.image==="counter"?.63:mobile && scene.image==="dining"?.59:mobile && scene.image==="phone"?.95:1;
   const fitted=Math.max(size.width/1536,size.height/1024)*fit;
   const tabletFit=mobile && (scene.image==="counter" || scene.image==="dining")?Math.min(fitted,(size.width-2*size.gutter)/(scene.image==="counter"?760:840)):fitted;
-  const scale=tabletFit*(reduced?1:scene.zoom*(1+localProgress*.035+detailZoom*.8));
+  const scale=tabletFit*(reduced?1:scene.zoom*(1+localProgress*.035+detailZoom*1.8));
   const baseFocus=mobile?scene.mobileFocus:scene.focus;
   const focus=[baseFocus[0]+(detailFocus[0]-baseFocus[0])*detailZoom,baseFocus[1]+(detailFocus[1]-baseFocus[1])*detailZoom];
   const x=mobile?size.width/2-focus[0]*scale:Math.min(0,Math.max(size.width-1536*scale,size.width*.66-focus[0]*scale));
@@ -156,7 +156,7 @@ export default function HomeHeroMotion({ children }: { children:ReactNode }) {
             <motion.div className={styles.canvas} animate={{x,y,scale}} transition={{duration:reduced?0:.8,ease:[.22,1,.36,1]}}>
               <img ref={scene.image==="venue"?firstPhoto:undefined} src={`${ASSETS}${scene.image}.webp`} className={styles.photo} width={1536} height={1024} alt="" fetchPriority={scene.image==="venue"?"high":"auto"} onLoad={()=>setLoaded(true)}/>
               {scene.image==="venue" ? <>{HERO_CAFE_SCREENS.televisions.map((quad,i)=><Screen key={i} quad={quad}><CapturedScreen selected={selected}/></Screen>)}<Screen quad={HERO_CAFE_SCREENS.venueTablet}><CapturedScreen selected={selected}/></Screen></>:null}
-              {scene.image==="counter" ? <><Screen quad={HERO_CAFE_SCREENS.counter} width={mobile?820:1280} height={mobile?512:800}><LiveMenu kind="counter" onDetail={setDetailFocus} chapter={chapter} playing={playing} reduced={Boolean(reduced)}/></Screen><img src={`${ASSETS}counter.webp`} className={`${styles.photo} ${styles.finger}`} width={1536} height={1024} alt=""/></>:null}
+              {scene.image==="counter" ? <><Screen quad={HERO_CAFE_SCREENS.counter} width={mobile?820:1280} height={mobile?512:800}><LiveMenu kind="counter" onDetail={setDetailFocus} highlight={detailZoom>0} chapter={chapter} playing={playing} reduced={Boolean(reduced)}/></Screen><img src={`${ASSETS}counter.webp`} className={`${styles.photo} ${styles.finger}`} width={1536} height={1024} alt=""/></>:null}
               {scene.image==="dining" ? <Screen quad={HERO_CAFE_SCREENS.dining} width={mobile?820:1280} height={mobile?512:800}><LiveMenu kind="dining" chapter={chapter} playing={playing} reduced={Boolean(reduced)}/></Screen>:null}
               {scene.image==="phone" ? <><Screen quad={HERO_CAFE_SCREENS.phone} width={390} height={900} phone><LiveMenu key={chapter} kind="phone" chapter={chapter} playing={playing} reduced={Boolean(reduced)}/></Screen>{chapter===3?<span className={styles.qrPulse}/>:null}</>:null}
             </motion.div>
