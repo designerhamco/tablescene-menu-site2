@@ -6,7 +6,7 @@ import { useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { ArrowRight } from "@/app/components/ui/site-arrow";
 import { buttonVariants } from "@/app/components/ui/button";
-import { DEVICE_ASSETS, DEVICE_MENU, DEVICE_STAGE_ITEMS, clampDeviceProgress, devicePlaneMatrix, deviceRevealAt, deviceScreenMatrix, deviceStageFrame } from "@/lib/device-platform-story";
+import { DEVICE_ASSETS, DEVICE_MENU, DEVICE_STAGE_BACKGROUND, DEVICE_STAGE_ITEMS, clampDeviceProgress, devicePlaneMatrix, deviceRevealAt, deviceScreenMatrix, deviceStageFrame } from "@/lib/device-platform-story";
 import styles from "./DevicePlatformStory.module.css";
 
 const ASSETS="/assets/device-platform-v1/";
@@ -36,7 +36,7 @@ export default function DevicePlatformStory(){
   const frame=deviceStageFrame(view.width,view.height,view.copyBottom);
   const frameTransform=`translate(${frame.x}px,${frame.y}px) scale(${frame.scale})`;
   const reveal=(order:number)=>deviceRevealAt(view.progress,order,Boolean(reduced));
-  return <section id="device-platform" className={styles.section} aria-labelledby="device-platform-heading" data-device-section>
+  return <section id="device-platform" className={styles.section} style={{backgroundColor:DEVICE_STAGE_BACKGROUND}} aria-labelledby="device-platform-heading" data-device-section>
     <div ref={root} className={styles.story} data-device-platform data-progress={view.progress.toFixed(3)} data-reduced={Boolean(reduced)} data-menu-template={DEVICE_MENU.key}>
       <div ref={stage} className={styles.stage}>
         <div ref={copy} className={`site-marketing-container ${styles.copy}`} data-device-copy>

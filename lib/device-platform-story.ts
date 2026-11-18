@@ -2,6 +2,8 @@ import { heroScreenMatrix, type HeroPoint, type HeroQuad } from "./hero-cafe-mot
 
 /** The user's 1200 × 1200 reference is the fixed composition coordinate system. */
 export const DEVICE_STAGE_SIZE = 1200;
+/** Measured RGB of the supplied floor's outer background, independent of UI surfaces. */
+export const DEVICE_STAGE_BACKGROUND = "#f0f0f1";
 export const DEVICE_MENU = {
   key: "cafe_real_matcha_a",
   desktop: "/assets/device-platform-v1/menu-desktop.webp",
