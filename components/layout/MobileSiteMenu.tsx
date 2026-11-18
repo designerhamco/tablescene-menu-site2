@@ -14,6 +14,7 @@ import { SITE_SUPPORT_LINKS, isSupportLinkActive } from "@/lib/site-support-navi
 import { formatNotificationBadgeCount } from "@/lib/notification-display-policy";
 import styles from "@/app/components/layout/Navbar.module.css";
 import ServiceHomeLink from "./ServiceHomeLink";
+import HomeStartLink from "./HomeStartLink";
 
 export default function MobileSiteMenu({ pathname, activeSection = null, authenticated, loading, account, accountLoading = false, showOperations, unreadCount, close, onNotifications, closeButton, signOutControl }: {
   pathname: string; activeSection?: string | null; authenticated: boolean; loading: boolean; account: NavigationAccount | null;
@@ -23,7 +24,7 @@ export default function MobileSiteMenu({ pathname, activeSection = null, authent
   const supportId = useId();
   return <>
     <div className={`site-container ${styles.drawerHeader}`}>
-      <Link href="/" onClick={close} className={styles.wordmark}>ArtiMenu</Link>
+      <HomeStartLink onClick={close} className={styles.wordmark}>ArtiMenu</HomeStartLink>
       <div className={styles.drawerHeaderActions}>
         <Link href="/apply" onClick={close} className="site-button site-button-primary site-button-header">만들기</Link>
         {authenticated && !loading ? <button type="button" onClick={onNotifications} aria-haspopup="dialog" data-site-menu-notification-trigger className="site-button site-button-icon site-button-ghost" aria-label={unreadCount ? `알림, 읽지 않음 ${formatNotificationBadgeCount(unreadCount)}개` : "알림"}><NotificationBellIcon unreadCount={unreadCount} indicator="dot" /></button> : null}
