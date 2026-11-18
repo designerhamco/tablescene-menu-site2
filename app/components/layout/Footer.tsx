@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { ArrowUpRight, ChevronDown } from "@/app/components/ui/site-arrow";
 import styles from "./Footer.module.css";
+import ServiceHomeLink from "@/components/layout/ServiceHomeLink";
+import { SERVICE_HOME_HREFS } from "@/lib/service-home-navigation";
 
 const groups = [
-  { title: "서비스", links: [["베이직", "/services/basic"], ["다이닝", "/services/dining"], ["디스플레이", "/services/display"], ["디자인 템플릿", "/templates"]] },
+  { title: "서비스", links: [["베이직", SERVICE_HOME_HREFS.basic], ["다이닝", SERVICE_HOME_HREFS.dining], ["디스플레이", SERVICE_HOME_HREFS.display], ["디자인 템플릿", "/templates"]] },
   { title: "이용 안내", links: [["자주 묻는 질문", "/faq"], ["공지사항", "/faq/notices"], ["이용가이드", "/guides"], ["마이 메뉴", "/mypage"]] },
 ] as const;
 
@@ -11,7 +13,7 @@ function FooterLinkList({ links }: { links: readonly (readonly [string, string])
   return (
     <ul>
       {links.map(([label, href]) => (
-        <li key={href}><Link href={href}>{label}</Link></li>
+        <li key={href}><ServiceHomeLink href={href}>{label}</ServiceHomeLink></li>
       ))}
     </ul>
   );

@@ -1,14 +1,17 @@
-export type SiteNavItem = { label: string; path: string; activePaths?: readonly string[]; disabled?: boolean };
+import { SERVICE_HOME_HREFS, SERVICE_HOME_SECTIONS } from "./service-home-navigation";
+
+export type SiteNavItem = { label: string; path: string; sectionId?: string; activePaths?: readonly string[]; disabled?: boolean };
 
 export const SITE_NAV_ITEMS: readonly SiteNavItem[] = [
-  { label: "베이직", path: "/services/basic", activePaths: ["/services/basic", "/services/menu", "/services/signature"] },
-  { label: "다이닝", path: "/services/dining", activePaths: ["/services/dining"] },
-  { label: "디스플레이", path: "/services/display", activePaths: ["/services/display", "/services/screen", "/services/full-option", "/tablescene-pro"] },
+  { label: "베이직", path: SERVICE_HOME_HREFS.basic, sectionId: SERVICE_HOME_SECTIONS.basic },
+  { label: "다이닝", path: SERVICE_HOME_HREFS.dining, sectionId: SERVICE_HOME_SECTIONS.dining },
+  { label: "디스플레이", path: SERVICE_HOME_HREFS.display, sectionId: SERVICE_HOME_SECTIONS.display },
   { label: "디자인 템플릿", path: "/templates", activePaths: ["/templates"] },
   { label: "고객센터", path: "/faq", activePaths: ["/faq", "/guides", "/support/chat"] },
 ];
 
-export function isSiteNavItemActive(item: SiteNavItem, pathname: string) {
+export function isSiteNavItemActive(item: SiteNavItem, pathname: string, activeSection: string | null = null) {
+  if (item.sectionId) return pathname === "/" && item.sectionId === activeSection;
   return (item.activePaths ?? [item.path]).some(path => pathname === path || pathname.startsWith(`${path}/`));
 }
 

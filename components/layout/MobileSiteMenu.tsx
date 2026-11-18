@@ -13,9 +13,10 @@ import { SITE_NAV_ITEMS, isSiteNavItemActive, type NavigationAccount } from "@/l
 import { SITE_SUPPORT_LINKS, isSupportLinkActive } from "@/lib/site-support-navigation";
 import { formatNotificationBadgeCount } from "@/lib/notification-display-policy";
 import styles from "@/app/components/layout/Navbar.module.css";
+import ServiceHomeLink from "./ServiceHomeLink";
 
-export default function MobileSiteMenu({ pathname, authenticated, loading, account, accountLoading = false, showOperations, unreadCount, close, onNotifications, closeButton, signOutControl }: {
-  pathname: string; authenticated: boolean; loading: boolean; account: NavigationAccount | null;
+export default function MobileSiteMenu({ pathname, activeSection = null, authenticated, loading, account, accountLoading = false, showOperations, unreadCount, close, onNotifications, closeButton, signOutControl }: {
+  pathname: string; activeSection?: string | null; authenticated: boolean; loading: boolean; account: NavigationAccount | null;
   accountLoading?: boolean; showOperations: boolean; unreadCount: number; close: () => void; onNotifications: () => void; closeButton: ReactNode; signOutControl?: ReactNode;
 }) {
   const [supportOpen, setSupportOpen] = useState(false);
@@ -49,7 +50,7 @@ export default function MobileSiteMenu({ pathname, authenticated, loading, accou
         {SITE_NAV_ITEMS.map(item => item.path === "/faq" ? <Collapsible key={item.path} open={supportOpen} onOpenChange={setSupportOpen}>
           <CollapsibleTrigger asChild><button type="button" className={styles.drawerNavLink} data-active={isSiteNavItemActive(item, pathname) || undefined} aria-controls={supportId}>고객센터{supportOpen ? <Minus size={20} aria-hidden="true" /> : <Plus size={20} aria-hidden="true" />}</button></CollapsibleTrigger>
           <CollapsibleContent id={supportId}><div className={styles.drawerSupportNavigation}>{SITE_SUPPORT_LINKS.map(link => <Link key={link.href} href={link.href} onClick={close} aria-current={isSupportLinkActive(link.href, pathname) ? "page" : undefined} className={styles.drawerSupportLink}>{link.label}</Link>)}</div></CollapsibleContent>
-        </Collapsible> : <Link key={item.path} href={item.path} onClick={close} className={styles.drawerNavLink} aria-current={isSiteNavItemActive(item, pathname) ? "page" : undefined} data-active={isSiteNavItemActive(item, pathname) || undefined}>{item.label}</Link>)}
+        </Collapsible> : <ServiceHomeLink key={item.path} href={item.path} onClick={close} className={styles.drawerNavLink} aria-current={isSiteNavItemActive(item, pathname, activeSection) ? item.sectionId ? "location" : "page" : undefined} data-active={isSiteNavItemActive(item, pathname, activeSection) || undefined}>{item.label}</ServiceHomeLink>)}
       </nav>
       <div className={styles.drawerFooter}>
         <div className={styles.drawerSupportLinks}><Link href="/mypage/inquiries" onClick={close}>1:1 문의</Link><Link href="/support/chat" onClick={close}>채팅상담</Link></div>

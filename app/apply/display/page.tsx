@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { SERVICE_HOME_HREFS } from "@/lib/service-home-navigation";
 
 import Footer from "@/app/components/layout/Footer";
 import PaidApplyPage from "@/app/apply/_components/PaidApplyPage";
@@ -74,7 +75,7 @@ export default async function ApplyDisplayPage({
                 상품 선택으로 돌아가기
               </Link>
               <Link
-                href="/services/display"
+                href={SERVICE_HOME_HREFS.display}
                 className="site-button site-button-outline inline-flex items-center justify-center"
               >
                 아티메뉴 디스플레이 소개 보기
