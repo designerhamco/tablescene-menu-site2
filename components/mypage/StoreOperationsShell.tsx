@@ -5,6 +5,8 @@ import StoreOperationsNavigation from "@/components/mypage/StoreOperationsNaviga
 import OperationTableSetupNotice from "@/components/mypage/OperationTableSetupNotice";
 import { isStoreOperationsTemplate } from "@/lib/operations-dashboard";
 import { ALL_MENU_SITE_ID, allMenuOperationsHref, allMenuOperationSites } from "@/lib/all-menu-operations";
+import { operationMenuTargets } from "@/lib/operation-menu-targets";
+import OperationMenuTarget from "./OperationMenuTarget";
 
 import { MypageAccountCard } from "@/components/mypage/MypageSidebar";
 import type { MenuSitePermission } from "@/lib/menu-site-permissions";
@@ -114,14 +116,18 @@ export default async function StoreOperationsShell({
 
               <div className="site-operations-feature-navigation">
                 {operationNavigation.map((item) => {
+                  const active = activeSection === item.key || (item.key === "tables" && activeSection === "kiosks") || (item.key === "orders" && activeSection === "order-settings") || (item.key === "calls" && (activeSection === "call-settings" || activeSection === "call-items"));
+                  if (allMenus && item.key !== "orders" && item.key !== "calls") {
+                    const targets = operationMenuTargets(sites, item.key === "kiosks" ? "tables" : item.key);
+                    if (targets.length) return <OperationMenuTarget key={item.key} label={item.label} items={targets} navigation active={active}/>;
+                  }
                   const enabled = allMenus ? (item.key === "orders" ? allOrders.length > 0 : item.key === "calls" ? allCalls.length > 0 : false) : Boolean(selectedSite && (item.key === "qr" ? selectedSite.canManageQr : (item.key === "tables" || item.key === "kiosks") ? selectedSite.tableSetupAvailable && selectedSite.permissions.includes("table.manage") : selectedSite.operationAccess[item.key]));
                   const configurationAvailable = Boolean((selectedSite?.canConfigure || (selectedSite?.tableSetupAvailable && selectedSite.permissions.includes("table.manage"))) && (item.key === "orders" || item.key === "calls"));
-                  const active = activeSection === item.key || (item.key === "tables" && activeSection === "kiosks") || (item.key === "orders" && activeSection === "order-settings") || (item.key === "calls" && (activeSection === "call-settings" || activeSection === "call-items"));
                   if ((!selectedSite && !allMenus) || (!enabled && !configurationAvailable)) {
                     const hasRolePermission = Boolean(selectedSite?.permissions.includes(item.permission));
-                    const unavailableLabel = allMenus ? "메뉴판 선택" : selectedSite && !hasRolePermission ? "권한 없음" : "이용 불가";
+                    const unavailableLabel = allMenus ? "이용 불가" : selectedSite && !hasRolePermission ? "권한 없음" : "이용 불가";
                     const unavailableReason = allMenus
-                      ? item.key === "orders" || item.key === "calls" ? "이 기능을 이용할 수 있는 메뉴판이 없습니다." : "개별 메뉴판을 선택하면 이용할 수 있습니다."
+                      ? "이 기능을 이용할 수 있는 메뉴판이 없습니다."
                       : !selectedSite
                       ? "먼저 운영할 메뉴판을 선택해 주세요."
                       : !hasRolePermission

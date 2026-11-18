@@ -7,8 +7,9 @@ import type { MenuOrderSettingsSection } from "@/lib/menu-order-settings";
 import type { ReactNode } from "react";
 import OperationActionFeedback from "./OperationActionFeedback";
 
-export default function OperationFeatureToggle({ menuId, feature, enabled, canEnable, activeTablesReady, published = true, action, blockedReason, reasonVisible = true }: {
+export default function OperationFeatureToggle({ menuId, feature, enabled, canEnable, activeTablesReady, published = true, action, blockedReason, reasonVisible = true, menuName }: {
   menuId: string;
+  menuName?: string;
   feature: MenuOrderSettingsSection;
   enabled: boolean;
   canEnable: boolean;
@@ -34,7 +35,7 @@ export default function OperationFeatureToggle({ menuId, feature, enabled, canEn
     <label htmlFor={id} className="site-action-row">
       <span className="sr-only" aria-live="polite">{pending ? "저장 중…" : activeTablesReady === null ? "확인 필요" : displayedEnabled ? "ON" : "OFF"}</span>
       <Switch ref={triggerRef} id={id} checked={displayedEnabled} loading={pending} disabled={disabled} aria-busy={pending}
-        aria-label={`전체 ${feature === "orders" ? "주문" : "호출"} 기능 사용`}
+        aria-label={`${menuName ? `${menuName} ` : ""}전체 ${feature === "orders" ? "주문" : "호출"} 기능 사용`}
         aria-describedby={reason ? `${id}-reason` : undefined}
         onCheckedChange={(nextEnabled) => startTransition(async () => {
           setNotice(null);
