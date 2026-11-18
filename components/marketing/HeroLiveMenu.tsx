@@ -85,6 +85,7 @@ function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,present
         initialised=true;return;
       }
       if([...doc.images].some(image=>{const r=image.getBoundingClientRect();return r.width>0&&r.top<doc.documentElement.clientHeight&&r.bottom>0&&!image.complete;}))return;
+      if(kind==="dining"&&[...doc.querySelectorAll<HTMLElement>('[data-aube-table-cover] .aube-table-cover-copy :is(h1,p)')].some(copy=>Number(doc.defaultView!.getComputedStyle(copy).opacity)<.99))return;
       const first=doc.querySelector<HTMLButtonElement>('[aria-label="1번째 대표 슬라이드 보기"]');
       first?.click();first?.dispatchEvent(new FocusEvent("focusin",{bubbles:true}));
       setReady(true);setStep("ready");window.clearInterval(timer);
