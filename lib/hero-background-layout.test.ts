@@ -1,36 +1,27 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { heroBackgroundBounds, heroLandscapeScale, heroWidePosition, heroExpansionMatrix } from "./hero-background-layout";
+import { heroLandscapeFrame, heroLandscapeScale, heroLandscapePosition } from "./hero-background-layout";
+import { HERO_CAFE_CHAPTERS, HERO_CAFE_SCREENS } from "./hero-cafe-motion";
 
-test("notebook and ordinary 16:9 retain the authored camera scale", () => {
-  for (const [width,height] of [[1280,800],[1440,900],[1920,1080],[2560,1440]]) {
-    assert.equal(heroLandscapeScale(width,height), Math.max(width/1536,height/1024));
+test("device height and center-relative placement match the notebook across wide screens", () => {
+  const sizes=[[1440,900],[1920,1080],[2560,1440],[3440,1440],[5120,1440]];
+  for (const chapter of HERO_CAFE_CHAPTERS) {
+    const quad=chapter.image==="venue"?HERO_CAFE_SCREENS.televisions[1]:HERO_CAFE_SCREENS[chapter.image];
+    // Both normal framing and the later emphasis must obey the same invariant.
+    for (const zoom of [1,1.6]) {
+      const positions=sizes.map(([width,height])=>{
+        const frame=heroLandscapeFrame(width,height),scale=heroLandscapeScale(width,height)*chapter.zoom*zoom;
+        const p=heroLandscapePosition(frame.width,height,scale,chapter.focus);
+        return quad.flatMap(([x,y])=>[(frame.left+p.x+x*scale-width/2)/height,(p.y+y*scale)/height]);
+      });
+      for (const position of positions.slice(1)) position.forEach((value,i)=>assert.ok(Math.abs(value-positions[0][i])<1e-12));
+    }
   }
 });
 
-test("tall phone coverage grows the surroundings without changing device geometry", () => {
-  const camera={x:-120,y:202,scale:.3467};
-  const before={...camera};
-  const [a,, ,d,x,y]=heroExpansionMatrix(camera,320,740);
-  assert.deepEqual(camera,before);
-  assert.ok(camera.x+x*camera.scale<=.01);
-  assert.ok(camera.x+(1536*a+x)*camera.scale>=319.99);
-  assert.ok(camera.y+y*camera.scale<=.01);
-  assert.ok(camera.y+(1024*d+y)*camera.scale>=739.99);
-});
-
-test("ultrawide reveals more surroundings instead of enlarging the device", () => {
-  assert.equal(heroLandscapeScale(3440,1440),heroLandscapeScale(2560,1440));
-  assert.equal(heroLandscapeScale(5120,1440),heroLandscapeScale(2560,1440));
-  for (const width of [3440,5120]) for (const image of ["venue","counter","dining","phone"] as const) {
-    const bounds=heroBackgroundBounds(image);
-    assert.ok(bounds.left<0 && bounds.top<0 && bounds.right>1536 && bounds.bottom>1024);
-    const scale=heroLandscapeScale(3440,1440);
-    const p=heroWidePosition(image,width,1440,scale,[1000,500],1260,54);
-    assert.ok(p.x+bounds.left*scale<=1);
-    assert.ok(p.x+bounds.right*scale>=width-1);
-    assert.ok(p.y+bounds.top*scale<=1);
-    assert.ok(p.y+bounds.bottom*scale>=1439);
-    if(image==="phone") assert.ok(p.y+810*scale<=1206.01);
-  }
+test("ultrawide width is left outside the clear frame; narrower windows remain bounded", () => {
+  assert.deepEqual(heroLandscapeFrame(5120,1440),{left:1408,width:2304});
+  assert.deepEqual(heroLandscapeFrame(1024,1366),{left:0,width:1024});
+  assert.equal(heroLandscapeScale(1440,900),.9375);
+  assert.equal(heroLandscapeScale(5120,1440),1.5);
 });
