@@ -12,7 +12,7 @@ import styles from "./DevicePlatformStory.module.css";
 const ASSETS="/assets/device-platform-v1/";
 const ITEMS=DEVICE_STAGE_ITEMS.map(item=>{
   const asset=item.asset?DEVICE_ASSETS[item.asset]:null,phone=item.asset==="phone";
-  return {...item,asset,phone,photoMatrix:asset?devicePlaneMatrix(asset.screen,item.screen):undefined,screenMatrix:deviceScreenMatrix(asset?.screen??item.screen,phone)};
+  return {...item,asset,phone,photoMatrix:asset?devicePlaneMatrix(asset.plane,item.plane):undefined,screenMatrix:deviceScreenMatrix(asset?.screen??item.plane,phone)};
 });
 export default function DevicePlatformStory(){
   const root=useRef<HTMLDivElement>(null),stage=useRef<HTMLDivElement>(null),visual=useRef<HTMLDivElement>(null);
@@ -21,8 +21,11 @@ export default function DevicePlatformStory(){
   useEffect(()=>{
     const update=()=>{
       if(!root.current||!stage.current||!visual.current)return;
-      const top=parseFloat(getComputedStyle(stage.current).top)||0;
-      const progress=clampDeviceProgress((top-root.current.getBoundingClientRect().top)/Math.max(1,root.current.offsetHeight-stage.current.offsetHeight));
+      const top=root.current.parentElement?parseFloat(getComputedStyle(root.current.parentElement).scrollMarginTop)||0:0;
+      const visibleHeight=Math.min(stage.current.offsetHeight,window.innerHeight-top);
+      // A tall desktop viewport must still reveal gradually when the whole square fits.
+      const scrollRange=Math.max(root.current.offsetHeight-visibleHeight,visual.current.clientWidth>=1024?visual.current.clientHeight*.45:1);
+      const progress=clampDeviceProgress((top-root.current.getBoundingClientRect().top)/scrollRange);
       setView({progress,width:visual.current.clientWidth,height:visual.current.clientHeight});
     };
     let frame=0;const schedule=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=0;update();});};
@@ -33,10 +36,16 @@ export default function DevicePlatformStory(){
     return()=>{cancelAnimationFrame(frame);cancelAnimationFrame(anchor);resize.disconnect();window.removeEventListener("scroll",schedule);window.removeEventListener("resize",schedule);};
   },[]);
   const camera=deviceStageCamera(view.progress,view.width,view.height,Boolean(reduced));
-  const reveal=(order:number)=>deviceRevealAt(view.progress,order,Boolean(reduced));
+  const reveal=(order:number)=>deviceRevealAt(view.progress,order,Boolean(reduced),view.width>=1024);
   return <section id="device-platform" className={styles.section} aria-labelledby="device-platform-heading" data-device-section>
     <div ref={root} className={styles.story} data-device-platform data-progress={view.progress.toFixed(3)} data-reduced={Boolean(reduced)} data-menu-template={DEVICE_MENU.key}>
       <div ref={stage} className={styles.stage}>
+        <div className={`site-marketing-container ${styles.copy}`}>
+          <div className="site-stack-title">
+            <h2 id="device-platform-heading" className="type-section-title">하나의 메뉴판, <br className={styles.copyBreak}/>모든 디바이스에서.</h2>
+            <p className="type-body site-copy-muted">PC부터 태블릿, 스마트폰까지. <br className={styles.copyBreak}/>우리 매장의 메뉴를 어디서나 보여주세요.</p>
+          </div>
+        </div>
         <div ref={visual} className={styles.visual} role="img" aria-label="같은 아티메뉴 메뉴판을 노트북, 태블릿, 스마트폰에서 보여주는 장면">
           <div className={styles.canvas} aria-hidden="true" style={{transform:`translate(${camera.x}px,${camera.y}px) scale(${camera.scale})`}}>
             <img className={styles.floor} src={`${ASSETS}floor.webp`} width={1200} height={1200} alt="" loading="lazy"/>
@@ -55,15 +64,9 @@ export default function DevicePlatformStory(){
                 </div>:<div className={`${styles.screen} ${styles.menuPlane}`} style={{width:1280,height:800,transform:item.screenMatrix}}>
                   <img src={DEVICE_MENU.desktop} width={1280} height={800} alt="" loading="lazy"/>
                 </div>}
-                {item.id==="right-tablet"?<svg className={styles.stylus} viewBox="0 0 1200 1200" aria-hidden="true"><path d="M1003 627 1197 733" stroke="#bbb" strokeWidth="5" opacity=".25"/><path d="m1004 625 188 102" stroke="#e5e5e5" strokeWidth="6" strokeLinecap="round"/><path d="m1004 623 188 102" stroke="#fff" strokeWidth="4" strokeLinecap="round"/><path d="m1003 624-7-7 10 3" fill="#e5e5e5"/></svg>:null}
+                {item.id==="right-tablet"?<svg className={styles.stylus} viewBox="0 0 1200 1200" aria-hidden="true"><path d="m1003 627 188 92.78" stroke="#bbb" strokeWidth="5" opacity=".25"/><path d="m1004 625 188 92.78" stroke="#e5e5e5" strokeWidth="6" strokeLinecap="round"/><path d="m1004 623 188 92.78" stroke="#fff" strokeWidth="4" strokeLinecap="round"/><path d="m1003 624-7-7 10 3" fill="#e5e5e5"/></svg>:null}
               </div>;
             })}
-          </div>
-        </div>
-        <div className={`site-marketing-container ${styles.copy}`}>
-          <div className="site-stack-title">
-            <h2 id="device-platform-heading" className="type-section-title">하나의 메뉴판,<br/>모든 디바이스에서.</h2>
-            <p className="type-body site-copy-muted">PC부터 태블릿, 스마트폰까지.<br/>우리 매장의 메뉴를 어디서나 보여주세요.</p>
           </div>
         </div>
       </div>

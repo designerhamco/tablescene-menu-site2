@@ -1,32 +1,51 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DEVICE_ASSETS, DEVICE_STAGE_ITEMS, devicePlaneMatrix, deviceRevealAt, deviceStageCamera } from "./device-platform-story";
+import { DEVICE_ASSETS, DEVICE_FLOOR_AXES, DEVICE_STAGE_ITEMS, devicePlaneMatrix, deviceRevealAt, deviceStageCamera } from "./device-platform-story";
 
 test("scroll reveals devices in order from an empty floor and reverses without retained state",()=>{
-  for(const item of DEVICE_STAGE_ITEMS){
-    assert.equal(deviceRevealAt(0,item.order),0);
-    assert.equal(deviceRevealAt(1,item.order),1);
-    assert.equal(deviceRevealAt(0,item.order,true),1);
+  for(const wide of [false,true])for(const item of DEVICE_STAGE_ITEMS){
+    assert.equal(deviceRevealAt(0,item.order,false,wide),0);
+    assert.equal(deviceRevealAt(1,item.order,false,wide),1);
+    assert.equal(deviceRevealAt(0,item.order,true,wide),1);
     let previous=0;
-    for(let step=0;step<=100;step++){const next=deviceRevealAt(step/100,item.order);assert.ok(next>=previous&&next<=1);previous=next;}
+    for(let step=0;step<=100;step++){const next=deviceRevealAt(step/100,item.order,false,wide);assert.ok(next>=previous&&next<=1);previous=next;}
   }
   assert.equal(deviceRevealAt(.2,0),1);
   assert.equal(deviceRevealAt(.2,3),0);
-  assert.ok(deviceRevealAt(.55,4)<deviceRevealAt(.65,4));
+  assert.ok(deviceRevealAt(.75,4)<deviceRevealAt(.85,4));
   assert.equal(deviceRevealAt(NaN,0),0);
 });
-test("restored device screens meet the fixed reference corners, including the cropped bottom device",()=>{
+test("physical device planes align to the floor without independently skewing their screens",()=>{
   for(const item of DEVICE_STAGE_ITEMS){
     if(!item.asset)continue;
-    const source=DEVICE_ASSETS[item.asset].screen;
-    const m=devicePlaneMatrix(source,item.screen).slice(9,-1).split(",").map(Number);
+    const source=DEVICE_ASSETS[item.asset].plane;
+    const m=devicePlaneMatrix(source,item.plane).slice(9,-1).split(",").map(Number);
     source.forEach(([x,y],i)=>{
       const z=m[3]*x+m[7]*y+m[15];
-      assert.ok(Math.abs((m[0]*x+m[4]*y+m[12])/z-item.screen[i][0])<.001);
-      assert.ok(Math.abs((m[1]*x+m[5]*y+m[13])/z-item.screen[i][1])<.001);
+      assert.ok(Math.abs((m[0]*x+m[4]*y+m[12])/z-item.plane[i][0])<.001);
+      assert.ok(Math.abs((m[1]*x+m[5]*y+m[13])/z-item.plane[i][1])<.001);
     });
   }
-  assert.ok(DEVICE_STAGE_ITEMS.find(i=>i.id==="bottom-tablet")!.screen.some(p=>p[1]>1200));
+  assert.equal(DEVICE_STAGE_ITEMS.length,5);
+  assert.ok(!DEVICE_STAGE_ITEMS.some(i=>i.id==="bottom-tablet"||i.id==="upright-menu"));
+});
+test("every floor-facing edge follows the measured floor axes and both tablets are identical copies",()=>{
+  for(const item of DEVICE_STAGE_ITEMS)for(let i=0;i<4;i++){
+    const a=item.plane[i],b=item.plane[(i+1)%4];
+    assert.ok(Math.abs((b[1]-a[1])/(b[0]-a[0])-(i%2?DEVICE_FLOOR_AXES.v[1]:DEVICE_FLOOR_AXES.u[1]))<1e-10);
+  }
+  const tablets=DEVICE_STAGE_ITEMS.filter(i=>i.asset==="tablet");
+  const offsets=tablets.map(i=>i.plane.map(([x,y])=>[x-i.plane[0][0],y-i.plane[0][1]]));
+  offsets[0].forEach((p,i)=>p.forEach((v,j)=>assert.ok(Math.abs(v-offsets[1][i][j])<1e-10)));
+});
+test("wide illustration fills the entire section with a small symmetric crop",()=>{
+  for(const width of [1024,1440,1920]){
+    const camera=deviceStageCamera(.5,width,width),side=1200*camera.scale;
+    assert.equal(side,width*1.05);
+    assert.equal(camera.x,(width-side)/2);
+    assert.equal(camera.y,(width-side)/2);
+    assert.deepEqual(camera,deviceStageCamera(0,width,width));
+  }
 });
 test("mobile camera follows the composition without exposing area outside its floor",()=>{
   for(const [w,h] of [[320,490],[390,560],[820,850]])for(let step=0;step<=100;step++){
