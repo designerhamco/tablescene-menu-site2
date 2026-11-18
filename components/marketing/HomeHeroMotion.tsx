@@ -112,7 +112,7 @@ function LiveMenu({ kind, chapter, playing, reduced, onDetail }: { kind: keyof t
 export default function HomeHeroMotion({ children }: { children:ReactNode }) {
   const root=useRef<HTMLElement>(null), stage=useRef<HTMLDivElement>(null), firstPhoto=useRef<HTMLImageElement>(null);
   const reduced=useReducedMotion(), inView=useInView(stage,{amount:.15});
-  const [detailFocus,setDetailFocus]=useState<readonly [number,number]>([1220,370]), [progress,setProgress]=useState(0), [selected,setSelected]=useState(0), [paused,setPaused]=useState(false), [visible,setVisible]=useState(true), [loaded,setLoaded]=useState(false), [size,setSize]=useState({width:1536,height:1024});
+  const [detailFocus,setDetailFocus]=useState<readonly [number,number]>([1220,370]), [progress,setProgress]=useState(0), [selected,setSelected]=useState(0), [paused,setPaused]=useState(false), [visible,setVisible]=useState(true), [loaded,setLoaded]=useState(false), [size,setSize]=useState({width:1536,height:1024,gutter:40});
   const chapter=heroChapterAt(progress), scene=HERO_CAFE_CHAPTERS[chapter];
   const playing=inView && visible && !paused && !reduced && loaded;
   useEffect(()=>{
@@ -125,7 +125,7 @@ export default function HomeHeroMotion({ children }: { children:ReactNode }) {
       if(!root.current || !stage.current)return;
       const rect=root.current.getBoundingClientRect(),height=stage.current.clientHeight;
       setProgress(Math.max(0,Math.min(1,-rect.top/Math.max(1,root.current.offsetHeight-height))));
-      setSize({width:stage.current.clientWidth,height});
+      setSize({width:stage.current.clientWidth,height,gutter:parseFloat(getComputedStyle(root.current.querySelector(".site-marketing-container")!).paddingLeft)||0});
     };
     let scheduled=0;const schedule=()=>{if(!scheduled)scheduled=requestAnimationFrame(()=>{scheduled=0;update();});};
     const observer=new ResizeObserver(schedule);if(stage.current)observer.observe(stage.current);
@@ -134,15 +134,17 @@ export default function HomeHeroMotion({ children }: { children:ReactNode }) {
   },[]);
   useEffect(()=>{const update=()=>setVisible(!document.hidden);update();document.addEventListener("visibilitychange",update);return()=>document.removeEventListener("visibilitychange",update);},[]);
   useEffect(()=>{if(!playing || chapter!==0)return;const timer=window.setInterval(()=>setSelected(value=>(value+1)%3),2200);return()=>window.clearInterval(timer);},[playing,chapter]);
-  const mobile=size.width<768;
+  const mobile=size.width<1024;
   const localProgress=progress*5-chapter;
   const detailZoom=chapter===1?Math.max(0,(localProgress-.5)/.5):0;
   const fit=mobile && scene.image==="counter"?.63:mobile && scene.image==="dining"?.59:mobile && scene.image==="phone"?.95:1;
-  const scale=Math.max(size.width/1536,size.height/1024)*fit*(reduced?1:scene.zoom*(1+localProgress*.035+detailZoom*.8));
+  const fitted=Math.max(size.width/1536,size.height/1024)*fit;
+  const tabletFit=mobile && (scene.image==="counter" || scene.image==="dining")?Math.min(fitted,(size.width-2*size.gutter)/(scene.image==="counter"?760:840)):fitted;
+  const scale=tabletFit*(reduced?1:scene.zoom*(1+localProgress*.035+detailZoom*.8));
   const baseFocus=mobile?scene.mobileFocus:scene.focus;
   const focus=[baseFocus[0]+(detailFocus[0]-baseFocus[0])*detailZoom,baseFocus[1]+(detailFocus[1]-baseFocus[1])*detailZoom];
   const x=mobile?size.width/2-focus[0]*scale:Math.min(0,Math.max(size.width-1536*scale,size.width*.66-focus[0]*scale));
-  const y=mobile?size.height*(scene.image==="phone"?.45:.52)-focus[1]*scale:Math.min(0,Math.max(size.height-1024*scale,size.height*.53-focus[1]*scale));
+  const y=mobile?size.height*(scene.image==="phone"?.47:.52)-focus[1]*scale:Math.min(0,Math.max(size.height-1024*scale,size.height*.53-focus[1]*scale));
   function go(index:number) { if(!root.current || !stage.current)return; const top=window.scrollY+root.current.getBoundingClientRect().top;window.scrollTo({top:top+(root.current.offsetHeight-stage.current.offsetHeight)*((index+.02)/5),behavior:reduced?"instant":"smooth"}); }
   function skip() { if(root.current) window.scrollTo({top:window.scrollY+root.current.getBoundingClientRect().bottom-(document.querySelector<HTMLElement>(".site-header-spacer")?.offsetHeight??0),behavior:reduced?"instant":"smooth"}); }
   return <section ref={root} className={styles.story} data-hero-motion data-chapter={chapter} data-playing={playing} data-template={selected} data-image-ready={loaded} data-in-view={inView} data-reduced={Boolean(reduced)} aria-label="매장에서 만나는 아티메뉴">

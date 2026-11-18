@@ -34,7 +34,7 @@
 .story[data-playing="false"] :is(.cue::after,.qrPulse) { animation-play-state:paused; }
 @keyframes touch-ripple { from { opacity:1; transform:scale(1); } to { opacity:0; transform:scale(2.6); } }
 @keyframes qr-focus { 50% { opacity:.5; transform:rotate(8deg) scale(1.07); } }
-@media (max-width:767px) {
+@media (max-width:1023px) {
   .stage { min-height:34rem; }
   .story:is([data-chapter="1"],[data-chapter="2"]) .canvas { mask-image:linear-gradient(transparent,#000 9%,#000 91%,transparent); }
   .intro { top:var(--site-page-heading-top); }
