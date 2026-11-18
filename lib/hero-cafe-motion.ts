@@ -19,6 +19,13 @@ export const HERO_CAFE_SCREENS = {
   dining: [[575,283],[1266,295],[1231,774],[515,731]] as HeroQuad,
   phone: [[881,183],[1125,192],[1073,792],[815,775]] as HeroQuad,
 };
+/** Enough time for each native preview to finish its visible action sequence. */
+export const HERO_CHAPTER_DURATION_MS = [8000, 12000, 15000, 5000, 30000] as const;
+export function advanceHeroClock(elapsed: number, delta: number, duration: number) {
+  const next = Math.min(duration, Math.max(0, elapsed) + Math.max(0, Math.min(200, delta)));
+  return { elapsed: next, fraction: next / duration, done: next >= duration };
+}
+
 export const HERO_TEMPLATE_SCREENS = ["matcha", "rosy", "loop"] as const;
 export const clampHeroProgress = (value: number) => Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
 export function heroChapterAt(progress: number) { return Math.min(4, Math.floor(clampHeroProgress(progress) * 5)); }
