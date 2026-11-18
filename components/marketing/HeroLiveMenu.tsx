@@ -3,7 +3,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeftRight, ArrowUpDown } from "@/app/components/ui/site-arrow";
-import { HERO_CAFE_SCREENS, HERO_PHONE_TIMELINE, heroDemoPhase, heroTween, heroPhoneValue, heroPulseAt } from "@/lib/hero-cafe-motion";
+import { HERO_CAFE_SCREENS, HERO_COUNTER_TIMELINE, HERO_PHONE_TIMELINE, heroDemoPhase, heroTween, heroPhoneValue, heroPulseAt } from "@/lib/hero-cafe-motion";
 import styles from "./HomeHeroMotion.module.css";
 
 const preview = (template: string, device: string, extra = "") => `/templates/${template}/preview?view=actual&embedded=1&heroDemo=1&device=${device}${extra}`;
@@ -150,9 +150,9 @@ function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,present
         if(scrolling&&sale){
           const maximum=scrolling.scrollHeight-scrolling.clientHeight;
           const target=Math.max(0,Math.min(maximum,scrolling.scrollTop+sale.getBoundingClientRect().top-scrolling.getBoundingClientRect().top-scrolling.clientHeight*.28));
-          scrolling.scrollTo({top:t<10?maximum*heroTween(t,4,10):maximum+(target-maximum)*heroTween(t,10,13),behavior:"instant"});
-          if(t>=4&&t<13){nextCue={id:"menu-scroll",gesture:"swipe-y",x:79,y:58,progress:heroTween(t,4,13)};setStep("menu-scroll");}
-          if(t>=13){
+          scrolling.scrollTo({top:t<HERO_COUNTER_TIMELINE.focus[0]?maximum*heroTween(t,...HERO_COUNTER_TIMELINE.browse):maximum+(target-maximum)*heroTween(t,...HERO_COUNTER_TIMELINE.focus),behavior:"instant"});
+          if(t>=HERO_COUNTER_TIMELINE.browse[0]&&t<HERO_COUNTER_TIMELINE.focus[1]){nextCue={id:"menu-scroll",gesture:"swipe-y",x:79,y:58,progress:heroTween(t,HERO_COUNTER_TIMELINE.browse[0],HERO_COUNTER_TIMELINE.focus[1])};setStep("menu-scroll");}
+          if(t>=HERO_COUNTER_TIMELINE.focus[1]){
             const r=sale.getBoundingClientRect(),u=(r.x+r.width/2)/width,v=(r.y+r.height/2)/height,q=HERO_CAFE_SCREENS.counter;
             onDetail?.([q[0][0]*(1-u)*(1-v)+q[1][0]*u*(1-v)+q[2][0]*u*v+q[3][0]*(1-u)*v,q[0][1]*(1-u)*(1-v)+q[1][1]*u*(1-v)+q[2][1]*u*v+q[3][1]*(1-u)*v]);
             setStep("sale-focus");
