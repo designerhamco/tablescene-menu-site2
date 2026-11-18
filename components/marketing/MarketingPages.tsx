@@ -365,8 +365,10 @@ export function MarketingHome() {
   return (
     <div className={`site-marketing-page ${styles.page}`} data-marketing-page="home">
       <HomeHeroMotion />
-      <DevicePlatformStory />
-      <ServiceStackStory />
+      <div className={styles.presentationSequence}>
+        <DevicePlatformStory />
+        <ServiceStackStory />
+      </div>
       <section className={styles.homeFeatures}>
         <div className="site-marketing-container">
           <MarketingCopyReveal className={styles.sectionHeading}>

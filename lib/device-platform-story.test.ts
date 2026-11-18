@@ -47,6 +47,10 @@ test("all three complete devices fit below the title in wide and compact static 
       assert.ok((item.y+item.height)*frame.scale+frame.y<=height);
     }
     assert.ok(frame.scale<=(frame.compact?1:1.25));
+    if(!frame.compact){
+      const bottom=Math.max(...frame.items.map(item=>(item.y+item.height)*frame.scale+frame.y));
+      assert.ok(height-bottom>=(height-copy)*.1,"desktop composition reserves breathing room below the devices");
+    }
   }
 });
 test("desktop foreground devices deliberately overlap the lower corners while mobile retains its composition",()=>{

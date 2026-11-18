@@ -60,7 +60,7 @@ export function deviceStageFrame(width:number,height:number,copyBottom=0,gutter=
     bottom:Math.max(...items.map(i=>i.y+i.height))+24,
   };
   const copy=Math.max(0,Math.min(h,copyBottom)),room=Math.max(1,h-copy);
-  const scale=Math.min(compact?1:1.25,Math.max(1,w-Math.max(0,gutter)*2)/(bounds.right-bounds.left),room*.92/(bounds.bottom-bounds.top));
-  const x=(w-(bounds.right-bounds.left)*scale)/2-bounds.left*scale,y=copy+room*.04-bounds.top*scale;
+  const scale=Math.min(compact?1:1.25,Math.max(1,w-Math.max(0,gutter)*2)/(bounds.right-bounds.left),room*(compact?.92:.86)/(bounds.bottom-bounds.top));
+  const x=(w-(bounds.right-bounds.left)*scale)/2-bounds.left*scale,y=copy+room*(compact?.04:.01)-bounds.top*scale;
   return {compact,items,scale,x,y};
 }

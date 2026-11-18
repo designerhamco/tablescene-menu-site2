@@ -29,7 +29,7 @@ export default function DevicePlatformStory(){
   },[]);
   const frame=deviceStageFrame(view.width,view.height,view.copyBottom,view.gutter);
   const reveal=(order:number)=>deviceRevealAt(view.progress,order,Boolean(reduced));
-  return <section id="device-platform" className={styles.section} aria-labelledby="device-platform-heading" data-device-section>
+  return <section id="device-platform" className={styles.section} aria-labelledby="device-platform-heading" data-device-section data-reduced={Boolean(reduced)}>
     <div ref={root} className={styles.story} data-device-platform data-progress={view.progress.toFixed(3)} data-reduced={Boolean(reduced)} data-menu-template={DEVICE_MENU.key} data-layout={frame.compact?"compact":"wide"}>
       <div ref={stage} className={styles.stage}>
         <div ref={copy} className={`site-marketing-container ${styles.copy}`} data-device-copy>
