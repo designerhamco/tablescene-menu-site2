@@ -1,7 +1,25 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import test from "node:test";
-import {HERO_CAFE_CHAPTERS,HERO_CAFE_SCREENS,HERO_CHAPTER_DURATION_MS,HERO_CHAPTER_SCROLL_LENGTHS,HERO_SCROLL_LENGTH,HERO_PHONE_TIMELINE,heroProgressAt,heroChapterAt,heroSceneAt,heroScreenMatrix,heroSaleZoom,heroDemoPhase,heroTemplateAt,heroPulseAt,heroPhoneValue,type HeroQuad} from "./hero-cafe-motion";
+import {createElement} from "react";
+import {renderToStaticMarkup} from "react-dom/server";
+import HomeHeroMotion from "../components/marketing/HomeHeroMotion";
+import {HERO_CAFE_CHAPTERS,HERO_CAFE_SCREENS,HERO_CHAPTER_DURATION_MS,HERO_CHAPTER_SCROLL_LENGTHS,HERO_SCROLL_LENGTH,HERO_PHONE_TIMELINE,heroProgressAt,heroChapterAt,heroSceneAt,heroScreenMatrix,heroSaleZoom,heroDemoPhase,heroTemplateAt,heroPulseAt,heroPhoneValue,heroLiveSceneAt,type HeroQuad} from "./hero-cafe-motion";
+
+test("only the visible active demo may mount a native menu application",()=>{
+ assert.deepEqual([0,1,2,3,4,-1].map(chapter=>heroLiveSceneAt(chapter,true,true,false)),[null,"counter","dining","phone",null,null]);
+ for(const chapter of [1,2,3]){
+  assert.equal(heroLiveSceneAt(chapter,false,true,false),null);
+  assert.equal(heroLiveSceneAt(chapter,true,false,false),null);
+  assert.equal(heroLiveSceneAt(chapter,true,true,true),null);
+ }
+});
+test("initial hero renders no nested applications and one capture per venue screen",()=>{
+ const markup=renderToStaticMarkup(createElement(HomeHeroMotion));
+ assert.doesNotMatch(markup,/<iframe\b/);
+ assert.match(markup,/data-live-scene="none"/);
+ assert.equal((markup.match(/data-hero-capture="true"/g)??[]).length,4);
+});
 
 test("hero chapters follow scroll boundaries in either direction",()=>{
  assert.equal(HERO_CAFE_CHAPTERS.length,4);

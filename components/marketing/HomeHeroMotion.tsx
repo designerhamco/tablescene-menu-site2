@@ -2,10 +2,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { motion, useInView, useReducedMotion } from "motion/react";
+import { AnimatePresence, motion, useInView, useReducedMotion } from "motion/react";
 import { ProgressBar } from "@/app/components/ui/loading-state";
 import { Button } from "@/app/components/ui/button";
-import { HERO_CAFE_CHAPTERS, HERO_CAFE_PHOTOS, HERO_CAFE_SCREENS, HERO_CHAPTER_DURATION_MS, HERO_TEMPLATE_SCREENS, HERO_STORY_SVH, HERO_PHONE_TIMELINE, heroTween, heroSceneAt, heroProgressAt, heroSaleZoom, heroScreenMatrix, heroTemplateAt, heroPulseAt, type HeroQuad } from "@/lib/hero-cafe-motion";
+import { HERO_CAFE_CHAPTERS, HERO_CAFE_PHOTOS, HERO_CAFE_SCREENS, HERO_CHAPTER_DURATION_MS, HERO_TEMPLATE_SCREENS, HERO_STORY_SVH, HERO_PHONE_TIMELINE, heroTween, heroSceneAt, heroProgressAt, heroSaleZoom, heroScreenMatrix, heroTemplateAt, heroPulseAt, heroLiveSceneAt, type HeroQuad } from "@/lib/hero-cafe-motion";
 import styles from "./HomeHeroMotion.module.css";
 import HeroLiveMenu from "./HeroLiveMenu";
 
@@ -14,7 +14,10 @@ function Screen({ quad, width=1280, height=800, children, phone=false }: { quad:
   return <div className={styles.screen} data-hero-screen style={{width,height,transform:heroScreenMatrix(quad,width,height),borderRadius:phone?0:8}}>{children}</div>;
 }
 function CapturedScreen({ selected }: { selected: number }) {
-  return <>{HERO_TEMPLATE_SCREENS.map((name,index)=><img key={name} src={`${ASSETS}screen-${name}.webp`} width={1280} height={800} alt="" draggable={false} className={styles.captured} data-active={selected===index}/>)}</>;
+  return <AnimatePresence initial={false}><motion.img key={selected} data-hero-capture src={`${ASSETS}screen-${HERO_TEMPLATE_SCREENS[selected]}.webp`} width={1280} height={800} alt="" draggable={false} className={styles.captured} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:.6,ease:"easeOut"}}/></AnimatePresence>;
+}
+function IdleScreen({ image }: { image: "counter" | "dining" | "phone" }) {
+  return <img className={styles.fallback} src={image==="phone"?"/assets/device-platform-v2/menu-phone.webp":`${ASSETS}screen-${image==="counter"?"matcha":"dining"}.webp`} alt="" loading="lazy"/>;
 }
 
 export default function HomeHeroMotion() {
@@ -22,6 +25,7 @@ export default function HomeHeroMotion() {
   const reduced=useReducedMotion(), inView=useInView(stage,{amount:.15});
   const [detailFocus,setDetailFocus]=useState<readonly [number,number]>([1220,370]), [progress,setProgress]=useState(0), [visible,setVisible]=useState(true), [loaded,setLoaded]=useState(false), [size,setSize]=useState({width:1536,height:1024,gutter:40,copyHeight:0,copyBottom:0});
   const scenePosition=heroSceneAt(progress),chapter=scenePosition.chapter,scene=HERO_CAFE_CHAPTERS[chapter];
+  const liveScene=heroLiveSceneAt(chapter,inView,visible,Boolean(reduced));
   const localProgress=scenePosition.fraction;
   const Heading=chapter===0?"h1":"h2";
   const selected=heroTemplateAt(localProgress);
@@ -73,19 +77,19 @@ export default function HomeHeroMotion() {
     const y=mobile?(item.image==="phone"?phoneRoom/2:size.height*.52)-focus[1]*scale:Math.min(0,Math.max(size.height-1024*scale,size.height*.53-focus[1]*scale));
     return {x,y,scale};
   };
-  return <section ref={root} className={styles.story} style={{height:`${HERO_STORY_SVH}svh`}} data-hero-motion data-chapter={chapter} data-scroll-driven="true" data-template={selected} data-progress={localProgress.toFixed(3)} data-scroll-progress={progress.toFixed(3)} data-image-ready={loaded} data-in-view={inView} data-reduced={Boolean(reduced)} aria-label="매장에서 만나는 아티메뉴">
-    <div ref={stage} className={styles.stage}>
+  return <section ref={root} className={styles.story} style={{height:`${HERO_STORY_SVH}svh`}} data-hero-motion data-chapter={chapter} data-live-scene={liveScene??"none"} data-scroll-driven="true" data-template={selected} data-progress={localProgress.toFixed(3)} data-scroll-progress={progress.toFixed(3)} data-image-ready={loaded} data-in-view={inView} data-reduced={Boolean(reduced)} aria-label="매장에서 만나는 아티메뉴">
+    <div ref={stage} className={styles.stage} data-rendering={inView&&visible}>
       <div className={styles.scene} aria-hidden="true" inert>
         {(["venue","counter","dining","phone"] as const).map(image=>{
           const active=scene.image===image,index=HERO_CAFE_CHAPTERS.findIndex(item=>item.image===image),photo=`${ASSETS}${HERO_CAFE_PHOTOS[image]}`;
-          return <motion.div key={image} className={styles.plane} initial={false} animate={{opacity:active?1:0}} transition={{duration:reduced?0:.45}} style={{zIndex:active?1:0}} data-hero-plane={image}>
+          return <motion.div key={image} className={styles.plane} initial={false} animate={{opacity:active?1:0}} transition={{duration:reduced?0:.45}} style={{zIndex:active?1:0}} data-hero-plane={image} data-active={active}>
             <img src={photo} className={styles.ambient} alt=""/>
             <motion.div className={styles.canvas} animate={cameraFor(index)} transition={{duration:reduced?0:.18,ease:[.22,1,.36,1]}}>
               <img ref={image==="venue"?firstPhoto:undefined} src={photo} className={styles.photo} width={1536} height={1024} alt="" fetchPriority={image==="venue"?"high":"auto"} onLoad={()=>{if(image==="venue")setLoaded(true);}}/>
               {image==="venue"?<>{HERO_CAFE_SCREENS.televisions.map((quad,i)=><Screen key={i} quad={quad}><CapturedScreen selected={selected}/></Screen>)}<Screen quad={HERO_CAFE_SCREENS.venueTablet}><CapturedScreen selected={selected}/></Screen></>:null}
-              {image==="counter"?<><Screen quad={HERO_CAFE_SCREENS.counter} width={1280} height={800}><HeroLiveMenu key="counter" kind="counter" active={active&&inView&&visible} onDetail={onDetail} seconds={active?localProgress*HERO_CHAPTER_DURATION_MS[chapter]/1000:0} reduced={Boolean(reduced)}/></Screen><img src={`${ASSETS}counter.webp`} className={`${styles.photo} ${styles.finger}`} width={1536} height={1024} alt=""/></>:null}
-              {image==="dining"?<Screen quad={HERO_CAFE_SCREENS.dining} width={820} height={512}><HeroLiveMenu key="dining" kind="dining" active={active&&inView&&visible} seconds={active?localProgress*HERO_CHAPTER_DURATION_MS[chapter]/1000:0} reduced={Boolean(reduced)}/></Screen>:null}
-              {image==="phone"?<><div className={styles.phoneMask}><Screen quad={HERO_CAFE_SCREENS.phone} width={390} height={900} phone><HeroLiveMenu key="phone" kind="phone" active={active&&inView&&visible} seconds={active?localProgress*HERO_CHAPTER_DURATION_MS[chapter]/1000:0} reduced={Boolean(reduced)}/></Screen></div>{chapter===3?<span className={styles.qrPulse} style={{opacity:qrProgress>=0&&qrProgress<1?.2+.8*heroPulseAt(qrProgress):0}}/>:null}</>:null}
+              {image==="counter"?<><Screen quad={HERO_CAFE_SCREENS.counter} width={1280} height={800}>{liveScene===image?<HeroLiveMenu key="counter" kind="counter" active onDetail={onDetail} seconds={localProgress*HERO_CHAPTER_DURATION_MS[chapter]/1000} reduced={false}/>:<IdleScreen image={image}/>}</Screen><img src={`${ASSETS}counter.webp`} className={`${styles.photo} ${styles.finger}`} width={1536} height={1024} alt=""/></>:null}
+              {image==="dining"?<Screen quad={HERO_CAFE_SCREENS.dining} width={820} height={512}>{liveScene===image?<HeroLiveMenu key="dining" kind="dining" active seconds={localProgress*HERO_CHAPTER_DURATION_MS[chapter]/1000} reduced={false}/>:<IdleScreen image={image}/>}</Screen>:null}
+              {image==="phone"?<><div className={styles.phoneMask}><Screen quad={HERO_CAFE_SCREENS.phone} width={390} height={900} phone>{liveScene===image?<HeroLiveMenu key="phone" kind="phone" active seconds={localProgress*HERO_CHAPTER_DURATION_MS[chapter]/1000} reduced={false}/>:<IdleScreen image={image}/>}</Screen></div>{chapter===3?<span className={styles.qrPulse} style={{opacity:qrProgress>=0&&qrProgress<1?.2+.8*heroPulseAt(qrProgress):0}}/>:null}</>:null}
             </motion.div>
           </motion.div>;
         })}
