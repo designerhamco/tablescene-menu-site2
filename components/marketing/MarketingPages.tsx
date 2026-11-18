@@ -361,15 +361,7 @@ export function MarketingHome() {
   ];
   return (
     <div className={`site-marketing-page ${styles.page}`} data-marketing-page="home">
-      <HomeHeroMotion>
-          <SitePageHeader
-            titleRole="hero"
-            align="start"
-            title={<>메뉴를 보여주는 순간,<br />매장이 달라집니다</>}
-            descriptionPurpose="content"
-            description={<>디자인부터 메뉴 관리까지.<br className={styles.mobileBreak} /> 우리 매장에 맞는 디지털 메뉴판, 아티메뉴.</>}
-          />
-      </HomeHeroMotion>
+      <HomeHeroMotion />
       <Showcase />
       <section className={styles.homeFeatures}>
         <div className="site-marketing-container">

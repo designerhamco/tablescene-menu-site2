@@ -2,12 +2,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import Link from "next/link";
 import { AnimatePresence, motion, useInView, useReducedMotion } from "motion/react";
 import { Hand } from "@/app/components/ui/site-icon";
-import { ArrowRight } from "@/app/components/ui/site-arrow";
 import { Button } from "@/app/components/ui/button";
-import { HERO_CAFE_CHAPTERS, HERO_CAFE_SCREENS, HERO_TEMPLATE_SCREENS, heroChapterAt, heroScreenMatrix, type HeroQuad } from "@/lib/hero-cafe-motion";
+import { HERO_CAFE_CHAPTERS, HERO_CAFE_PHOTOS, HERO_CAFE_SCREENS, HERO_TEMPLATE_SCREENS, heroChapterAt, heroScreenMatrix, type HeroQuad } from "@/lib/hero-cafe-motion";
 import styles from "./HomeHeroMotion.module.css";
 import { useHeroPlayback } from "./useHeroPlayback";
 
@@ -19,7 +17,7 @@ const SOURCES = {
   phone: preview("cafe_real_matcha_a", "mobile", "&callPreview=on&orderPreview=on&popupPreview=on&widgetsPreview=on&prepayPreview=off"),
 };
 function Screen({ quad, width=1280, height=800, children, phone=false }: { quad: HeroQuad; width?: number; height?: number; children: ReactNode; phone?: boolean }) {
-  return <div className={styles.screen} data-hero-screen style={{width,height,transform:heroScreenMatrix(quad,width,height),borderRadius:phone?40:8}}>{children}</div>;
+  return <div className={styles.screen} data-hero-screen style={{width,height,transform:heroScreenMatrix(quad,width,height),borderRadius:phone?0:8}}>{children}</div>;
 }
 function CapturedScreen({ selected }: { selected: number }) {
   return <>{HERO_TEMPLATE_SCREENS.map((name,index)=><img key={name} src={`${ASSETS}screen-${name}.webp`} width={1280} height={800} alt="" draggable={false} className={styles.captured} data-active={selected===index}/>)}</>;
@@ -111,11 +109,12 @@ function LiveMenu({ kind, chapter, playing, reduced, onDetail, highlight=false, 
   </div>;
 }
 
-export default function HomeHeroMotion({ children }: { children:ReactNode }) {
+export default function HomeHeroMotion() {
   const root=useRef<HTMLElement>(null), stage=useRef<HTMLDivElement>(null), firstPhoto=useRef<HTMLImageElement>(null);
   const reduced=useReducedMotion(), inView=useInView(stage,{amount:.15});
   const [detailFocus,setDetailFocus]=useState<readonly [number,number]>([1220,370]), [progress,setProgress]=useState(0), [selected,setSelected]=useState(0), [visible,setVisible]=useState(true), [loaded,setLoaded]=useState(false), [size,setSize]=useState({width:1536,height:1024,gutter:40,copyHeight:0,copyBottom:0});
   const chapter=heroChapterAt(progress), scene=HERO_CAFE_CHAPTERS[chapter];
+  const Heading=chapter===0?"h1":"h2", photo=`${ASSETS}${HERO_CAFE_PHOTOS[scene.image]}`;
   const [readyKey,setReadyKey]=useState("");
   const playback=useHeroPlayback({root,stage,chapter,enabled:inView && visible && loaded && !reduced,reduced:Boolean(reduced),readyKey});
   const playing=playback.playing;
@@ -162,13 +161,13 @@ export default function HomeHeroMotion({ children }: { children:ReactNode }) {
       <div className={styles.scene} aria-hidden="true" inert>
         <AnimatePresence initial={false}>
           <motion.div key={scene.image} className={styles.plane} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:reduced?0:.55}}>
-            <img src={`${ASSETS}${scene.image}.webp`} className={styles.ambient} alt=""/>
+            <img src={photo} className={styles.ambient} alt=""/>
             <motion.div className={styles.canvas} animate={{x,y,scale}} transition={{duration:reduced?0:.8,ease:[.22,1,.36,1]}}>
-              <img ref={scene.image==="venue"?firstPhoto:undefined} src={`${ASSETS}${scene.image}.webp`} className={styles.photo} width={1536} height={1024} alt="" fetchPriority={scene.image==="venue"?"high":"auto"} onLoad={()=>setLoaded(true)}/>
+              <img ref={scene.image==="venue"?firstPhoto:undefined} src={photo} className={styles.photo} width={1536} height={1024} alt="" fetchPriority={scene.image==="venue"?"high":"auto"} onLoad={()=>setLoaded(true)}/>
               {scene.image==="venue" ? <>{HERO_CAFE_SCREENS.televisions.map((quad,i)=><Screen key={i} quad={quad}><CapturedScreen selected={selected}/></Screen>)}<Screen quad={HERO_CAFE_SCREENS.venueTablet}><CapturedScreen selected={selected}/></Screen></>:null}
               {scene.image==="counter" ? <><Screen quad={HERO_CAFE_SCREENS.counter} width={mobile?820:1280} height={mobile?512:800}><LiveMenu key={`counter-${playback.replay}`} onReady={onReady} kind="counter" onDetail={setDetailFocus} highlight={detailZoom>0} chapter={chapter} playing={playing} reduced={Boolean(reduced)}/></Screen><img src={`${ASSETS}counter.webp`} className={`${styles.photo} ${styles.finger}`} width={1536} height={1024} alt=""/></>:null}
               {scene.image==="dining" ? <Screen quad={HERO_CAFE_SCREENS.dining} width={mobile?820:1280} height={mobile?512:800}><LiveMenu key={`dining-${playback.replay}`} onReady={onReady} kind="dining" chapter={chapter} playing={playing} reduced={Boolean(reduced)}/></Screen>:null}
-              {scene.image==="phone" ? <><Screen quad={HERO_CAFE_SCREENS.phone} width={390} height={900} phone><LiveMenu key={`phone-${chapter}-${playback.replay}`} onReady={onReady} kind="phone" chapter={chapter} playing={playing} reduced={Boolean(reduced)}/></Screen>{chapter===3?<span className={styles.qrPulse}/>:null}</>:null}
+              {scene.image==="phone" ? <><div className={styles.phoneMask}><Screen quad={HERO_CAFE_SCREENS.phone} width={390} height={900} phone><LiveMenu key={`phone-${chapter}-${playback.replay}`} onReady={onReady} kind="phone" chapter={chapter} playing={playing} reduced={Boolean(reduced)}/></Screen></div>{chapter===3?<span className={styles.qrPulse}/>:null}</>:null}
             </motion.div>
           </motion.div>
         </AnimatePresence>
@@ -177,8 +176,8 @@ export default function HomeHeroMotion({ children }: { children:ReactNode }) {
       <div className={`site-marketing-container ${styles.sceneCopy}`} data-hero-copy>
         <div className={styles.caption} aria-live="off">
           <p className="type-caption">ARTIMENU · {scene.label}</p>
-          {chapter===0?children:<><h2 className="type-section-title">{scene.title}</h2><p className="type-body">{scene.body}</p></>}
-          {chapter===4?<div className={styles.endAction}><Button asChild><Link href="/templates">우리 매장의 메뉴판 고르기<ArrowRight/></Link></Button></div>:null}
+          <Heading className="type-section-title">{scene.title}</Heading>
+          <p className="type-body">{scene.body}</p>
         </div>
       </div>
       <nav className={styles.dots} data-hero-dots aria-label="소개 장면"
