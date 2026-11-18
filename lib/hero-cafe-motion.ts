@@ -7,7 +7,7 @@ export const HERO_CAFE_CHAPTERS = [
   { label: "테이블 태블릿", title: "손님께 직접 건네는 태블릿 메뉴판", body: "자리에 앉은 손님께 태블릿을 건네, 메뉴를 편하게 살펴보도록 안내하세요.", image: "dining", focus: [920, 540], mobileFocus: [920, 525], zoom: 1.04 },
   { label: "QR 모바일 메뉴판", title: "QR을 찍으면, 내 휴대폰이 메뉴판", body: "테이블 위 QR코드를 찍으면, 손님 휴대폰에서 바로 메뉴판이 열려요.", image: "phone", focus: [880, 500], mobileFocus: [860, 490], zoom: 1 },
 ] as const;
-export const HERO_CAFE_PHOTOS = { venue: "venue.webp", counter: "counter-ceiling.webp", dining: "dining.webp", phone: "phone-v3.webp" } as const;
+export const HERO_CAFE_PHOTOS = { venue: "venue.webp", counter: "counter.webp", dining: "dining.webp", phone: "phone-v3.webp" } as const;
 /** Prepare at most one demo; the tablet may warm up near the end of the opening. */
 export function heroLiveSceneAt(chapter: number, inView: boolean, visible: boolean, reduced: boolean, openingProgress = 0): "counter" | "dining" | "phone" | null {
   if (!inView || !visible || reduced) return null;

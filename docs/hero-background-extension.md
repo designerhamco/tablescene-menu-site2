@@ -17,22 +17,11 @@
 
 원래 사진의 정상적인 손·목업·일부 인물 구도는 유지하되 주변을 더 보여주기 위한 인물 생성은 금지한다. 배경에 인물이 있더라도 중앙 구도 바깥에서는 블러/페이드로 가려 선명하게 드러나지 않도록 한다. 검수는 생성 파일 단독이 아니라 실제 합성 화면에서 해야 한다.
 
-## 모니터 브라켓·자산
+## 장면 연결·원본 복원 — 2026-11-19 후속 수정
 
-첫 매장 사진 `hero-cafe-v1/venue.webp`의3대 TV는 이미 상부 천장 구조물에 드롭 브라켓으로 매달려 있다. 태블릿 장면의 배경 모니터는 벽면 부착형처럼 보여 별도 형제 자산으로 수정했다.
+첫 매장 사진 `hero-cafe-v1/venue.webp`의3대 TV와 설치 구조는 유지한다. 두 번째 태블릿 장면은 모니터를 작게 바꾼 천장형 수정본이 첫 사진과 다른 공간처럼 보였으므로, 사용자 요청에 따라 **정확한 기존 `hero-cafe-v1/counter.webp`로 복원**한다. 폐기한 `counter-ceiling.webp`는 공개 자산에서 제거한다. 이 장면은 새 사진을 재생성하거나 유사한 구도로 대체하지 않는다. 전환 시간·초점·배율·화면 투영 좌표는 그대로다.
 
-- 최종 저장 자산: `public/assets/hero-cafe-v1/counter-ceiling.webp`.
-- 내장 **image_gen** 편집 모드 사용. CLI/API·외부 서비스를 사용하지 않았다.
-- 입력: `public/assets/hero-cafe-v1/counter.webp`.
-- 선택한 생성 PNG: `exec-60a03cdf-a548-4d70-8dff-edf602658b83.png`.
-- 생성 PNG를 동일1536×1024 WebP로 인코딩했다. 기존 원본은 보존한다.
-- 수정 대상은 상단 배경의 천장 드롭 폴·플레이트·브라켓과3대 화면이다. 전경 기기·손·메뉴 투영·손가락 가림 좌표를 유지한다. 원본 좌표1536×1024, 휴대폰 모서리·QR 강조·메뉴 화면 좌표는 바꾸지 않는다.
-
-최종 편집 프롬프트:
-
-```text
-Use case: precise-object-edit. Edit only the out-of-focus background in the TOP 220 PIXELS of this existing 1536x1024 cafe photo. Replace the cropped wall-mounted menu boards with THREE landscape monitors suspended on slim black CEILING DROP POLES with visible round ceiling attachment plates and rear brackets. Make all three monitors fit into the existing background upper-right band, with slightly smaller blank pale-gray rectangles and narrow gaps, above the foreground tablet. Leave the background as softly out of focus as the original. The rest of the photograph is LOCKED. In particular preserve the foreground tablet's exact outer bounds, black bezel and blank gray screen with its screen corners (758,291),(1374,288),(1339,704),(707,690), stand, touching hand, wrist and navy cuff/sleeve exactly as they are; do not extend the sleeve, add anatomy, add a body or face, change any hand, resize, crop, zoom or reframe anything. No scene expansion or outpainting. Keep the exact 1536x1024 composition, original colors and soft photographic lighting. Only new ceiling support hardware and three background screen rectangles in the top band may change.
-```
+모바일(<768px) 마지막 QR 장면만 사진·손·휴대폰·투영 메뉴·QR 강조를 같은 카메라 캔버스에서 아래로 함께 이동한다. 이동량은 창 높이의2.5%, 최대24px이며, 실제 제목 위 여유(사진 좌표의 기기 아래쪽810px 기준)를 넘지 않는다. 크기·가로 위치는 유지한다. 다른 장면,768px 이상 태블릿·PC의 위치와 구도는 변경하지 않는다.
 
 ## 검증
 

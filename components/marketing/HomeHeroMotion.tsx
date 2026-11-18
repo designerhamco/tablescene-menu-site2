@@ -76,6 +76,10 @@ export default function HomeHeroMotion() {
     const baseFocus=item.image==="phone"?[start[0]+(970-start[0])*phoneZoom,start[1]+(490-start[1])*phoneZoom]:start;
     const focus=[baseFocus[0]+(detailFocus[0]-baseFocus[0])*detailZoom,baseFocus[1]+(detailFocus[1]-baseFocus[1])*detailZoom];
     const position=mobile?{x:size.width/2-focus[0]*scale,y:(item.image==="phone"?phoneRoom/2:size.height*.52)-focus[1]*scale}:heroLandscapePosition(frame.width,size.height,scale,focus);
+    if(item.image==="phone"&&size.width<768){
+      const copyClearance=size.height-size.copyHeight-size.copyBottom-size.gutter-(position.y+810*scale);
+      position.y+=Math.max(0,Math.min(24,size.height*.025,copyClearance));
+    }
     return {...position,scale};
   };
   return <section ref={root} className={styles.story} style={{height:`${HERO_STORY_SVH}svh`}} data-hero-motion data-chapter={chapter} data-live-scene={liveScene??"none"} data-scroll-driven="true" data-template={selected} data-progress={localProgress.toFixed(3)} data-scroll-progress={progress.toFixed(3)} data-image-ready={loaded} data-in-view={inView} data-reduced={Boolean(reduced)} aria-label="매장에서 만나는 아티메뉴">
