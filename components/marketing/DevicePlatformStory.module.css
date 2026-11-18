@@ -2,18 +2,17 @@
 .story { position:relative; height:340svh; }
 .stage { position:sticky; top:var(--site-header-height); height:calc(100svh - var(--site-header-height)); isolation:isolate; overflow:clip; }
 .visual { position:absolute; inset:0; overflow:hidden; }
-.ambient { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:blur(24px); opacity:.65; }
-.canvas { position:absolute; left:0; top:0; width:1200px; height:1200px; transform-origin:0 0; overflow:hidden; transition:transform 160ms linear; will-change:transform; mask-image:linear-gradient(180deg,transparent,#000 var(--site-space-card),#000); }
-.floor { position:absolute; inset:0; width:100%; height:100%; }
-.shadows,.stylus { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
+.canvas { position:absolute; left:0; top:0; width:1200px; height:1200px; transform-origin:0 0; overflow:hidden; }
+.floorViewport { position:absolute; inset:0; pointer-events:none; mask-image:linear-gradient(180deg,transparent,#000 var(--site-space-group),#000 calc(100% - var(--site-space-group)),transparent); }
+/* Only the floor perimeter fades. Devices and the title have no covering mask. */
+.floor { position:absolute; left:0; top:0; width:1200px; height:1200px; max-width:none; transform-origin:0 0; mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent),linear-gradient(180deg,transparent,#000 6%,#000 94%,transparent); mask-composite:intersect; }
+.shadows { position:absolute; inset:0; width:100%; height:100%; overflow:visible; pointer-events:none; }
 .reveal { position:absolute; inset:0; pointer-events:none; }
 .device { position:absolute; left:0; top:0; transform-origin:0 0; }
 .devicePhoto { position:absolute; inset:0; display:block; width:100%; height:100%; }
 .screen { position:absolute; left:0; top:0; transform-origin:0 0; overflow:hidden; background:#fff; }
 .screen img { display:block; width:100%; height:100%; }
-.menuPlane { box-shadow:0 2px 0 #fff,0 8px 20px rgb(0 0 0 / 10%); }
 .copy { position:absolute; inset:0 0 auto; padding-block:var(--site-section-space) var(--site-page-intro-content-gap); text-align:center; pointer-events:none; z-index:2; }
-.copy::before { content:""; position:absolute; inset:0 0 calc(0px - var(--site-space-card)); z-index:-1; background:var(--ui-surface); backdrop-filter:blur(16px); mask-image:linear-gradient(#000,#000 65%,transparent); pointer-events:none; }
 .copy>div { max-width:48rem; margin-inline:auto; }
 .copyBreak { display:none; }
 .copy :is(h2,p) { margin:0; }
@@ -28,6 +27,5 @@
 @media (prefers-reduced-motion:reduce) {
   .story { height:auto; }
   .stage { position:relative; }
-  .canvas { transition:none; }
-  .reveal { opacity:1 !important; transform:none !important; }
+  .reveal { opacity:1 !important; }
 }

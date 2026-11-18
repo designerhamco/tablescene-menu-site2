@@ -28,26 +28,23 @@ export const DEVICE_ASSETS = {
   tablet: { file: "tablet.webp", width: 1768, height: 890, screen: tabletScreen, plane:tabletPlane },
   phone: { file: "phone.webp", width: 1721, height: 914, screen: phoneScreen, plane:phonePlane },
 } as const;
-type Device = { id:string; asset?:keyof typeof DEVICE_ASSETS; order:number; plane:HeroQuad; shadow:HeroQuad };
+type Device = { id:string; asset:keyof typeof DEVICE_ASSETS; order:number; plane:HeroQuad; shadow:HeroQuad };
 function device(id:string,asset:Device["asset"],order:number,center:HeroPoint,uWidth:number,vWidth:number):Device {
   const plane=floorPlane(center,uWidth,vWidth);
   return {id,asset,order,plane,shadow:floorPlane([center[0],center[1]+12],uWidth,vWidth)};
 }
 
-// Flat devices share the floor's two axes. Both tablets are identical translated
-// copies; no independently guessed screen quadrilateral can skew their bodies.
+// One laptop, one tablet and one phone share the floor's two physical axes.
 export const DEVICE_STAGE_ITEMS: readonly Device[] = [
-  device("upper-tablet","tablet",1,[880,200],330,225),
   device("laptop","laptop",0,[558,529],345,232),
+  device("right-tablet","tablet",1,[892,790],330,225),
   device("phone","phone",2,[210,780],103,202),
-  device("right-tablet","tablet",3,[892,790],330,225),
-  device("menu-card",undefined,4,[477,1015],230,144),
 ];
 
 export const clampDeviceProgress = (p:number) => Math.max(0,Math.min(1,Number.isFinite(p)?p:0));
 const ease = (p:number) => { const t=clampDeviceProgress(p);return t*t*(3-2*t); };
 export function deviceRevealAt(progress:number,order:number,reduced=false) {
-  return reduced?1:ease((clampDeviceProgress(progress)-(.03+order*.17))/.16);
+  return reduced?1:ease((clampDeviceProgress(progress)-(.05+order*.28))/.22);
 }
 
 /** Align a device's physical base plane to the floor; its screen remains nested. */
@@ -66,34 +63,12 @@ export function devicePlaneMatrix(source:HeroQuad,target:HeroQuad):string {
 }
 export const deviceScreenMatrix = (quad:HeroQuad,phone=false) => heroScreenMatrix(quad,phone?390:1280,phone?844:800);
 
-const MOBILE_CAMERA: readonly { at:number; focus:HeroPoint; span:number }[] = [
-  {at:0,focus:[600,600],span:1200},
-  {at:.16,focus:[560,390],span:710},
-  {at:.33,focus:[880,200],span:670},
-  {at:.50,focus:[210,780],span:480},
-  {at:.67,focus:[892,790],span:690},
-  {at:.84,focus:[477,1015],span:650},
-  {at:.98,focus:[600,600],span:1200},
-];
-const WIDE_CAMERA = [
-  {at:0,y:330}, {at:.34,y:330}, {at:.56,y:780}, {at:.70,y:780}, {at:.88,y:930}, {at:1,y:930},
-] as const;
-export function deviceStageCamera(progress:number,width:number,height:number,reduced=false,copyBottom=0) {
-  const w=Math.max(1,width),h=Math.max(1,height),p=clampDeviceProgress(progress);
-  const copy=Math.max(0,Math.min(h,copyBottom)),room=Math.max(1,h-copy),anchor=copy+room/2;
-  if(reduced){const scale=Math.min(w/1200,room/1200);return {scale,x:(w-1200*scale)/2,y:copy+(room-1200*scale)/2};}
-  if(w>=1024){
-    const scale=Math.max(w*1.05,h)/1200,side=1200*scale;
-    const right=WIDE_CAMERA.findIndex(k=>k.at>=p),b=WIDE_CAMERA[right],a=WIDE_CAMERA[Math.max(0,right-1)];
-    const t=ease((p-a.at)/Math.max(.00001,b.at-a.at)),focus=a.y+(b.y-a.y)*t;
-    return {scale,x:(w-side)/2,y:Math.max(h-side,Math.min(copy,anchor-focus*scale))};
-  }
-  let focus:HeroPoint=[600,600],span=1200;
-  const right=MOBILE_CAMERA.findIndex(k=>k.at>=p);
-  const b=MOBILE_CAMERA[right<0?MOBILE_CAMERA.length-1:right],a=MOBILE_CAMERA[Math.max(0,(right<0?MOBILE_CAMERA.length-1:right)-1)];
-  const t=ease((p-a.at)/Math.max(.00001,b.at-a.at));
-  focus=[a.focus[0]+(b.focus[0]-a.focus[0])*t,a.focus[1]+(b.focus[1]-a.focus[1])*t];span=a.span+(b.span-a.span)*t;
-  const scale=Math.max(Math.min(w/span,room/Math.min(span,800)),Math.max(w,h)/1200),side=1200*scale;
-  const position=(available:number,point:number)=>side<=available?(available-side)/2:Math.max(available-side,Math.min(0,available/2-point*scale));
-  return {scale,x:position(w,focus[0]),y:Math.max(h-side,Math.min(copy,anchor-focus[1]*scale))};
+/** A single responsive composition: scrolling never changes scale or position. */
+export function deviceStageFrame(width:number,height:number,copyBottom=0) {
+  const w=Math.max(1,width),h=Math.max(1,height);
+  const copy=Math.max(0,Math.min(h,copyBottom)),room=Math.max(1,h-copy);
+  // Physical devices occupy y=95…930. Fit all three below the measured title,
+  // with breathing room, rather than enlarging a square to fill the viewport.
+  const scale=Math.min(w*(w<768?1.05:.9)/DEVICE_STAGE_SIZE,room*.92/(930-95));
+  return {scale,x:(w-DEVICE_STAGE_SIZE*scale)/2,y:copy+room*.04-95*scale};
 }
