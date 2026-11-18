@@ -36,8 +36,8 @@ function LiveMenu({ kind, chapter, playing, reduced, onDetail }: { kind: keyof t
     if(!shellLoaded || reduced)return;
     const timer=window.setInterval(()=>{
       const doc=frame.current?.contentDocument;if(!doc)return;
-      const native=doc.querySelector('[data-native-ready]');
-      if(doc.fonts.status==="loaded" && native?.getAttribute("data-native-ready")!=="false") {setReady(true);window.clearInterval(timer);}
+      const native=doc.querySelector('[data-native-ready], [data-paged-ready]');
+      if(doc.fonts.status==="loaded" && native?.getAttribute("data-native-ready")!=="false" && native?.getAttribute("data-paged-ready")!=="false") {setReady(true);window.clearInterval(timer);}
     },100);
     return()=>window.clearInterval(timer);
   },[shellLoaded,reduced]);
@@ -65,14 +65,14 @@ function LiveMenu({ kind, chapter, playing, reduced, onDetail }: { kind: keyof t
         if(t>12) once("send",()=>click('[data-smart-call-submit]'));
       }
       if (kind==="counter") {
-        const scroll=doc.querySelector<HTMLElement>('[data-native-menu]');
+        const scroll=doc.querySelector<HTMLElement>('[data-native-menu], [data-scroll-menu]');
         if(scroll && t>2 && t<4) { scroll.scrollTop=Math.min(scroll.scrollHeight-scroll.clientHeight,(t-2)*70); setCue({x:79,y:70-(t-2)*6,drag:true}); }
         if(scroll && t>4) once("sale",()=>{
-          const sale=doc.querySelector<HTMLElement>('[data-native-tracks] [data-cafe-a-time-sale-digital-timer]');if(!sale)return false;
+          const sale=doc.querySelector<HTMLElement>('[data-native-tracks] [data-cafe-a-time-sale-digital-timer], [data-scroll-content] [data-cafe-a-time-sale-digital-timer]');if(!sale)return false;
           scroll.scrollTop+=sale.getBoundingClientRect().y-scroll.getBoundingClientRect().y-scroll.clientHeight*.25;return true;
         });
         if(t>5) once("focus",()=>{
-          const sale=doc.querySelector<HTMLElement>('[data-native-tracks] [data-cafe-a-time-sale-digital-timer]');if(!sale)return false;
+          const sale=doc.querySelector<HTMLElement>('[data-native-tracks] [data-cafe-a-time-sale-digital-timer], [data-scroll-content] [data-cafe-a-time-sale-digital-timer]');if(!sale)return false;
           const r=sale.getBoundingClientRect(),u=(r.x+r.width/2)/width,v=(r.y+r.height/2)/height,q=HERO_CAFE_SCREENS.counter;
           onDetail?.([q[0][0]*(1-u)*(1-v)+q[1][0]*u*(1-v)+q[2][0]*u*v+q[3][0]*(1-u)*v,q[0][1]*(1-u)*(1-v)+q[1][1]*u*(1-v)+q[2][1]*u*v+q[3][1]*(1-u)*v]);
           setCue({x:u*100,y:v*100,drag:false});return true;
