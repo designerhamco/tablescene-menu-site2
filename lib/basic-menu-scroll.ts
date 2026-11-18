@@ -129,6 +129,18 @@ export function shouldPreferWiderScrollableNames(narrow: readonly ScrollableMenu
     (wrappedItems >= Math.max(3, Math.ceil(items.length * .3)) && improvedItems >= 3 && savedItemLines >= Math.ceil(wrappedItems * .35)) ||
     (wrappedHeadings >= 2 && improvedHeadings >= 2);
 }
+/** A center rail keeps its two-sided identity until real reading width/names
+ * require a left rail with one continuous menu track. Density alone must not
+ * move the representative rail on otherwise readable wide screens. */
+export function selectCenterRailMenuCandidate<T extends ScrollableMenuCandidate>(candidates: readonly T[], minimumColumnWidth: number): T {
+  const one = candidates.find(candidate => candidate.columnCount === 1);
+  const two = candidates.find(candidate => candidate.columnCount === 2);
+  if (!one) throw new Error("A measured single-track fallback is required for a center rail");
+  if (!two || two.columnWidth < minimumColumnWidth ||
+    (two.names && one.names && shouldPreferWiderScrollableNames(two.names, one.names))) return one;
+  return two;
+}
+
 /** Prefer readable width to underfilled/empty columns. Sparse content stays honestly sparse. */
 export function selectScrollableMenuCandidate(candidates: readonly ScrollableMenuCandidate[], grouped = false) {
   const preferred = candidates.filter(candidate => candidate.columnCount >= 1 && candidate.columnCount <= 3);

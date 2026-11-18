@@ -10,3 +10,16 @@ export function getRepresentativeRailGeometry(contentWidth: number, panelPadding
     menuWidth: trackWidth * count + menuGap * (count - 1),
   };
 }
+
+/** Narrow center-column layouts relocate the representative to the left.
+ * Share usable content 35:65 after reserving paint padding, gap and scrollbar;
+ * the existing centered 24% slot and other side-rail layouts stay independent. */
+export function getRelocatedCenterRailGeometry(contentWidth: number, panelPadding: number, gap: number, scrollbar = 0) {
+  const usableWidth = Math.max(0, contentWidth - panelPadding - gap - scrollbar);
+  const representativeContentWidth = usableWidth * .35;
+  return {
+    representativeContentWidth,
+    railWidth: representativeContentWidth + panelPadding,
+    menuWidth: usableWidth - representativeContentWidth,
+  };
+}

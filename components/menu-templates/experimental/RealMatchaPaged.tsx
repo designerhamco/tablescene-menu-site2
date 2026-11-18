@@ -2,7 +2,7 @@
 import headerInformationStyles from "../shared/MenuHeaderInformation.module.css";
 import MenuClampedCopy from "../shared/MenuClampedCopy";
 import { measureMenuHeaderContentHeight, MENU_HEADER_CONTENT_SELECTOR } from "@/lib/menu-header-measurement";
-import { getRepresentativeRailGeometry } from "@/lib/representative-rail-geometry";
+import { getRepresentativeRailGeometry, getRelocatedCenterRailGeometry } from "@/lib/representative-rail-geometry";
 import { getMenuDesignBackgrounds } from "@/lib/template-background-colors";
 import { useMenuText } from "@/components/menu-templates/shared/MenuLocaleScope";
 import {
@@ -56,7 +56,7 @@ import {
 } from "@/lib/template-typography-presets";
 import type { MeasuredMenuBlock } from "@/lib/basic-menu-pagination";
 
-import { SCROLL_MIN_COLUMN_WIDTH_REM, layoutScrollableMenu, selectScrollableMenuCandidate, type ScrollableMenuLayout, type ScrollableMenuBlock } from "@/lib/basic-menu-scroll";
+import { SCROLL_MIN_COLUMN_WIDTH_REM, layoutScrollableMenu, selectCenterRailMenuCandidate, selectScrollableMenuCandidate, type ScrollableMenuLayout, type ScrollableMenuBlock } from "@/lib/basic-menu-scroll";
 import { getCanvasHeaderRatio } from "@/lib/canvas-brand-title-fit";
 import { getOnePageItemNameCeilingRem } from "@/lib/one-page-typography-profile";
 import { getOrderedFitGapScale } from "../one-page/pc-tablet/cafe-fit-engine";
@@ -310,11 +310,15 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const panelInset = upperLeft ? parseFloat(getComputedStyle(area.current.querySelector<HTMLElement>("[data-paged-column]")!).paddingLeft) || 0 : 0;
       const capacity = bounds.height - parseFloat(menuStyle.paddingTop) - parseFloat(menuStyle.paddingBottom) - 2 * panelInset;
       const gap = parseFloat(menuStyle.columnGap) || 24;
-      const brandWidth = brandArea.current?.getBoundingClientRect().width ?? 0;
-      const width = centerColumn ? regionWidth - brandWidth - gap : regionWidth;
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       const root = area.current.closest<HTMLElement>("[data-scroll-template]")!;
       const boardStyle = getComputedStyle(root);
+      // Both candidates use the original full board width; the left-rail
+      // margin must not feed back into the next layout decision.
+      const centerContentWidth = root.clientWidth - parseFloat(boardStyle.paddingLeft) - parseFloat(boardStyle.paddingRight);
+      const centeredRailWidth = centerContentWidth * .24;
+      const centerMenuWidth = centerContentWidth - (area.current.offsetWidth - area.current.clientWidth) - centeredRailWidth - gap;
+      const width = centerColumn ? centerMenuWidth : regionWidth;
       const brandStyle = brandArea.current ? getComputedStyle(brandArea.current) : null;
       const menuPanelStyle = getComputedStyle(area.current.closest<HTMLElement>("[data-scroll-menu-panel]")!);
       const brandMargin = (parseFloat(brandStyle?.marginLeft ?? "0") || 0) + (parseFloat(brandStyle?.marginRight ?? "0") || 0);
@@ -323,6 +327,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
       const panelPadding = (parseFloat(brandStyle?.paddingLeft ?? "0") || 0) + (parseFloat(brandStyle?.paddingRight ?? "0") || 0);
       const scrollbar = area.current.offsetWidth - area.current.clientWidth;
       const railGeometry = (count: number) => getRepresentativeRailGeometry(boardWidth, panelPadding, parseFloat(boardStyle.columnGap), count, scrollbar, gap);
+      const leftCenterGeometry = getRelocatedCenterRailGeometry(centerContentWidth, panelPadding, gap, scrollbar);
       const frameKey = `${boardWidth}|${root.clientHeight}`;
       if (frameKey !== railFrameKey) { rejectedRailColumns.clear(); rejectedPhotoColumns.clear(); railFrameKey = frameKey; }
       if (upperLeft && !hasSafeCornerIdentity(brandArea.current)) {
@@ -336,12 +341,11 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         const innerHeight = root.clientHeight - parseFloat(boardStyle.paddingTop) - parseFloat(boardStyle.paddingBottom);
         root.style.setProperty("--scroll-corner-height", `${Math.min(30 * rem, innerHeight * .56)}px`);
       }
-      root.style.setProperty("--scroll-center-slot", `${brandWidth}px`);
       const grouped = layoutMode !== "orderedFit";
       const collect = (columnCount: number, reference = false) => {
         measure.current!.toggleAttribute("data-cafe-a-three-part-reference", reference);
         // Match fractional CSS grid widths; integer clientWidth can cross a text-wrap boundary.
-        const columnWidth = equalSideRail ? railGeometry(columnCount).trackWidth : Math.min(columnCount === 1 && !upperLeft ? 40 * rem : Infinity, (width - (columnCount - 1) * gap) / columnCount) - 2 * panelInset;
+        const columnWidth = centerColumn && columnCount === 1 ? leftCenterGeometry.menuWidth : equalSideRail ? railGeometry(columnCount).trackWidth : Math.min(columnCount === 1 && !upperLeft && !centerColumn ? 40 * rem : Infinity, (width - (columnCount - 1) * gap) / columnCount) - 2 * panelInset;
         measure.current!.style.width = `${columnWidth}px`;
         applyOnePageChipLayouts(measure.current!);
         const measured = units.map(u => {
@@ -369,7 +373,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         root.style.setProperty("--fit-menu-gap-scale", String(getOrderedFitGapScale(size / base, readingWidth)));
       };
       // Grouping changes partition boundaries, never the shared reading size.
-      const counts = centerColumn ? [2] : equalSideRail ? [1, 2, 3].filter(count => count === 1 || (!rejectedRailColumns.has(count) && railGeometry(count).trackWidth >= SCROLL_MIN_COLUMN_WIDTH_REM * rem)) : Array.from({ length: maxColumns }, (_, index) => index + 1);
+      const counts = centerColumn ? [1, 2] : equalSideRail ? [1, 2, 3].filter(count => count === 1 || (!rejectedRailColumns.has(count) && railGeometry(count).trackWidth >= SCROLL_MIN_COLUMN_WIDTH_REM * rem)) : Array.from({ length: maxColumns }, (_, index) => index + 1);
       const candidates = counts.map(count => {
         const ceiling = (getOnePageItemNameCeilingRem(device) ?? 1.3) * rem;
         // Compare names at one shared reading size. Shrinking a cramped 3-track
@@ -380,7 +384,12 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         return { ...natural, itemSize: ceiling, names };
       });
       const photoSafe = candidates.filter(candidate => candidate.representativeSafe);
-      const selected = selectScrollableMenuCandidate(photoSafe.length ? photoSafe : candidates.slice(0, 1), grouped) as typeof candidates[number];
+      const safeCandidates = photoSafe.length ? photoSafe : candidates.slice(0, 1);
+      const selected = centerColumn ? selectCenterRailMenuCandidate(safeCandidates, SCROLL_MIN_COLUMN_WIDTH_REM * rem) : selectScrollableMenuCandidate(safeCandidates, grouped) as typeof candidates[number];
+      if (centerColumn) {
+        root.style.setProperty("--scroll-center-slot", `${selected.columnCount === 1 ? leftCenterGeometry.railWidth : centeredRailWidth}px`);
+        root.dataset.centerRailPosition = selected.columnCount === 1 ? "left" : "center";
+      }
       if (equalSideRail) {
         const geometry = railGeometry(selected.columnCount);
         root.style.setProperty("--scroll-rail-width", `${geometry.railWidth + brandMargin}px`);

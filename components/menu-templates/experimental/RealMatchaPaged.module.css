@@ -176,11 +176,12 @@
 .frame[data-basic-structure="basic-center-column"] { --scroll-center-width: calc((100% - 2 * var(--scroll-page-inset)) * .24); }
 .frame[data-basic-structure="basic-center-column"] > .brand { left: 50%; transform: translateX(-50%); width: var(--scroll-center-width); bottom: var(--scroll-page-inset); }
 .frame[data-basic-structure="basic-center-column"] .columns { column-gap: calc(var(--scroll-center-slot) + 2 * var(--scroll-column-gap)); }
-.frame[data-basic-structure="basic-center-column"] .footer { flex: none; display: flex; flex-direction: row; gap: .5rem; padding-top: 0; container-type: inline-size; }
-.frame[data-basic-structure="basic-center-column"] .footer button { flex: 1 1 0; padding-inline: .375rem; gap: .375rem; }
-@container (max-width: 12rem) {
-  .frame[data-basic-structure="basic-center-column"] .footer button { flex-direction: column; gap: .125rem; padding-inline: .25rem; }
-}
+.frame[data-basic-structure="basic-center-column"] .footer { flex: none; display: flex; flex-direction: column; flex-wrap: nowrap; gap: .5rem; padding-top: 0; }
+.frame[data-basic-structure="basic-center-column"] .footer button { flex: none; width: 100%; padding-inline: .375rem; gap: .5rem; }
+.frame[data-basic-structure="basic-center-column"] .footer .tableLabel { flex-basis: auto; }
+.frame[data-basic-structure="basic-center-column"][data-center-rail-position="left"] > .brand { left: var(--scroll-page-inset); transform: none; width: var(--scroll-center-slot); }
+.frame[data-basic-structure="basic-center-column"][data-center-rail-position="left"] > .menuPanel { margin-left: calc(var(--scroll-center-slot) + var(--scroll-column-gap)); }
+.frame[data-basic-structure="basic-center-column"][data-center-rail-position="left"] .columns { column-gap: var(--scroll-column-gap); }
 .portraitCoverSlot { display: flex; flex-direction: column; flex: 1 1 0; min-height: clamp(6rem, 16vh, 10rem); min-width: 0; }
 .portraitCoverSlot .cover { align-self: stretch !important; width: 100% !important; height: auto !important; aspect-ratio: auto !important; flex: 1 1 0 !important; }
 .mobile[data-portrait-cover="true"] :global(.cafe-a-cover-hero) { height: auto !important; min-height: 0 !important; aspect-ratio: 4 / 5 !important; flex: none !important; }

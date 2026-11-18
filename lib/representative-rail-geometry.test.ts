@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getRepresentativeRailGeometry } from "./representative-rail-geometry";
+import { getRepresentativeRailGeometry, getRelocatedCenterRailGeometry } from "./representative-rail-geometry";
 import { getCanvasBrandLimits, selectCanvasBrandTitleFit } from "./canvas-brand-title-fit";
 
 const close = (a: number, b: number) => assert.ok(Math.abs(a - b) < .01, `${a} != ${b}`);
@@ -33,4 +33,17 @@ test("top-row body insets and wider menu-divider gutters retain equal usable tra
     close((layout.menuWidth - (columns - 1) * menuGap) / columns, layout.trackWidth);
     close(layout.railWidth + inset + layout.menuWidth + scrollbar + 2 * inset, 1248);
   }
+});
+
+
+test("relocated center rails share actual content 35:65 while preserving outer geometry", () => {
+  for (const width of [720, 820, 1180]) for (const padding of [0, 32]) for (const scrollbar of [0, 8]) {
+    const layout = getRelocatedCenterRailGeometry(width, padding, 24, scrollbar);
+    close(layout.railWidth - padding, layout.representativeContentWidth);
+    close(layout.representativeContentWidth / layout.menuWidth, 35 / 65);
+    close(layout.railWidth + 24 + layout.menuWidth + scrollbar, width);
+  }
+  const narrow = getRelocatedCenterRailGeometry(40, 32, 24, 8);
+  assert.equal(narrow.representativeContentWidth, 0);
+  assert.equal(narrow.menuWidth, 0);
 });
