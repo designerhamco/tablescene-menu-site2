@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DEVICE_ASSETS, DEVICE_FLOOR_AXES, DEVICE_STAGE_ITEMS, devicePlaneMatrix, deviceRevealAt, deviceStageFrame } from "./device-platform-story";
+import { DEVICE_ASSETS, DEVICE_MENU, DEVICE_STAGE_ITEMS, deviceRevealAt, deviceScreenMatrix, deviceStageFrame } from "./device-platform-story";
 
-test("scroll reveals devices in order from an empty floor and reverses without retained state",()=>{
+test("exactly one monitor, tablet and phone appear in order from an empty scene",()=>{
+  assert.deepEqual(DEVICE_STAGE_ITEMS.map(i=>i.asset),["monitor","tablet","phone"]);
+  assert.deepEqual(DEVICE_STAGE_ITEMS.map(i=>i.order),[0,1,2]);
   for(const item of DEVICE_STAGE_ITEMS){
     assert.equal(deviceRevealAt(0,item.order),0);
     assert.equal(deviceRevealAt(1,item.order),1);
@@ -15,52 +17,54 @@ test("scroll reveals devices in order from an empty floor and reverses without r
   assert.ok(deviceRevealAt(.65,2)<deviceRevealAt(.8,2));
   assert.equal(deviceRevealAt(NaN,0),0);
 });
-test("physical device planes align to the floor without independently skewing their screens",()=>{
-  for(const item of DEVICE_STAGE_ITEMS){
-    const source=DEVICE_ASSETS[item.asset].plane;
-    const m=devicePlaneMatrix(source,item.plane).slice(9,-1).split(",").map(Number);
-    source.forEach(([x,y],i)=>{
-      const z=m[3]*x+m[7]*y+m[15];
-      assert.ok(Math.abs((m[0]*x+m[4]*y+m[12])/z-item.plane[i][0])<.001);
-      assert.ok(Math.abs((m[1]*x+m[5]*y+m[13])/z-item.plane[i][1])<.001);
+test("actual catalog captures meet all four front-facing display corners without perspective skew",()=>{
+  for(const {asset:kind} of DEVICE_STAGE_ITEMS){
+    const asset=DEVICE_ASSETS[kind],capture=DEVICE_MENU[kind];
+    const m=deviceScreenMatrix(kind).slice(9,-1).split(",").map(Number);
+    assert.ok(Math.abs(m[3])<1e-10&&Math.abs(m[7])<1e-10);
+    const points=[[0,0],[capture.width,0],[capture.width,capture.height],[0,capture.height]];
+    points.forEach(([x,y],i)=>{
+      const z=m[3]*x+m[7]*y+m[15],target=asset.screen[i];
+      assert.ok(Math.abs((m[0]*x+m[4]*y+m[12])/z-target[0])<.001);
+      assert.ok(Math.abs((m[1]*x+m[5]*y+m[13])/z-target[1])<.001);
+      assert.ok(target[0]>=asset.body.x&&target[0]<=asset.body.x+asset.body.width);
+      assert.ok(target[1]>=asset.body.y&&target[1]<=asset.body.y+asset.body.height);
     });
-  }
-  assert.deepEqual(DEVICE_STAGE_ITEMS.map(i=>i.asset),["laptop","tablet","phone"]);
-  assert.deepEqual(DEVICE_STAGE_ITEMS.map(i=>i.order),[0,1,2]);
-});
-test("all three devices retain their body proportions and the measured floor axes",()=>{
-  for(const item of DEVICE_STAGE_ITEMS)for(let i=0;i<4;i++){
-    const a=item.plane[i],b=item.plane[(i+1)%4];
-    assert.ok(Math.abs((b[1]-a[1])/(b[0]-a[0])-(i%2?DEVICE_FLOOR_AXES.v[1]:DEVICE_FLOOR_AXES.u[1]))<1e-10);
-  }
-  const planeRatio=(q:readonly (readonly [number,number])[])=>{
-    const length=(a:number,b:number)=>Math.hypot(q[b][0]-q[a][0],q[b][1]-q[a][1]);
-    return (length(0,1)+length(3,2))/(length(0,3)+length(1,2));
-  };
-  for(const item of DEVICE_STAGE_ITEMS){
-    assert.ok(Math.abs(planeRatio(item.plane)-planeRatio(DEVICE_ASSETS[item.asset].plane))<.05,`${item.id} retains its body proportions`);
+    const ratio=(asset.screen[3][1]-asset.screen[0][1])/(asset.screen[1][0]-asset.screen[0][0]);
+    assert.ok(Math.abs(ratio-capture.height/capture.width)<.002,"capture aspect matches the real screen");
   }
 });
-test("the static responsive composition fits all three devices below the title at once",()=>{
-  for(const [width,height,copyBottom] of [[320,676,214],[390,780,214],[820,1108,227],[1024,696,200],[1280,648,196],[1440,828,200],[1920,1008,212]]){
-    const frame=deviceStageFrame(width,height,copyBottom);
-    for(const item of DEVICE_STAGE_ITEMS){
+test("all three complete devices fit below the title in wide and compact static compositions",()=>{
+  for(const [width,height,copy,gutter] of [[320,676,214,20],[390,780,214,20],[820,1108,227,24],[1024,696,200,31],[1280,648,196,38.4],[1440,828,200,40],[1920,1008,212,48]]){
+    const frame=deviceStageFrame(width,height,copy,gutter);
+    assert.equal(frame.compact,width<1024);
+    for(const item of frame.items){
       const asset=DEVICE_ASSETS[item.asset];
-      const m=devicePlaneMatrix(asset.plane,item.plane).slice(9,-1).split(",").map(Number);
-      const display=asset.screen.map(([x,y])=>{const z=m[3]*x+m[7]*y+m[15];return [(m[0]*x+m[4]*y+m[12])/z,(m[1]*x+m[5]*y+m[13])/z];});
-      for(const [x,y] of [...item.plane,...display]){
-        assert.ok(x*frame.scale+frame.x>=0&&x*frame.scale+frame.x<=width,`${item.id} stays inside the width`);
-        assert.ok(y*frame.scale+frame.y>=copyBottom&&y*frame.scale+frame.y<=height,`${item.id} stays below the title without a covering layer`);
-      }
+      assert.ok(Math.abs(item.height/item.width-asset.body.height/asset.body.width)<1e-10,"source body proportions are unchanged");
+      assert.ok(item.x*frame.scale+frame.x>=gutter);
+      assert.ok((item.x+item.width)*frame.scale+frame.x<=width-gutter);
+      assert.ok(item.y*frame.scale+frame.y>=copy);
+      assert.ok((item.y+item.height)*frame.scale+frame.y<=height);
     }
-    if(width>=768)assert.ok(1200*frame.scale<=width*.9+.001,"wide artwork has visible breathing room");
+    assert.ok(frame.scale<=1);
   }
 });
-test("longer title copy reduces the illustration instead of covering or cropping it",()=>{
-  const normal=deviceStageFrame(1440,828,200),long=deviceStageFrame(1440,828,350);
+test("foreground devices sit in front of the stand without covering the monitor menu",()=>{
+  for(const width of [390,1440]){
+    const frame=deviceStageFrame(width,900,200,20),monitor=frame.items[0],asset=DEVICE_ASSETS.monitor;
+    const menuBottom=monitor.y+(asset.screen[3][1]-asset.body.y)*monitor.sourceScale;
+    for(const front of frame.items.slice(1)){
+      assert.ok(front.y>=menuBottom-.01);
+      assert.ok(front.y+front.height>monitor.y+monitor.height);
+      assert.ok(front.shadow.cy>=front.y+front.height);
+    }
+  }
+});
+test("longer title copy reduces the complete composition instead of covering or cropping it",()=>{
+  const normal=deviceStageFrame(1440,828,200,40),long=deviceStageFrame(1440,828,350,40);
   assert.ok(long.scale<normal.scale);
-  assert.equal(long.x,(1440-1200*long.scale)/2);
-  for(const item of DEVICE_STAGE_ITEMS)for(const [,y] of item.plane){
-    assert.ok(y*long.scale+long.y>=350&&y*long.scale+long.y<=828);
+  for(const item of long.items){
+    assert.ok(item.y*long.scale+long.y>=350);
+    assert.ok((item.y+item.height)*long.scale+long.y<=828);
   }
 });
