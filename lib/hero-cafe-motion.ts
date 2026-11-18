@@ -5,8 +5,7 @@ export const HERO_CAFE_CHAPTERS = [
   { label: "매장", title: "메뉴를 보여주는 순간, 매장이 달라집니다", body: "디자인부터 메뉴 관리까지. 우리 매장에 맞는 디지털 메뉴판, 아티메뉴.", image: "venue", focus: [1010, 480], mobileFocus: [950, 410], zoom: 1 },
   { label: "태블릿", title: "가까이에서 고르는 오늘의 메뉴", body: "메뉴와 가격, 지금의 혜택을 한눈에.", image: "counter", focus: [1010, 515], mobileFocus: [1030, 500], zoom: 1.08 },
   { label: "다이닝", title: "한 장씩 이어지는 다이닝 경험", body: "커버부터 코스까지, 옆으로 넘겨 살펴보세요.", image: "dining", focus: [920, 540], mobileFocus: [920, 525], zoom: 1.04 },
-  { label: "QR", title: "테이블 위 QR로 가볍게", body: "앱 설치 없이, 손님 휴대폰에서 바로.", image: "phone", focus: [880, 500], mobileFocus: [860, 490], zoom: 1 },
-  { label: "모바일", title: "고른 메뉴가 주문이 되는 순간", body: "우리 매장의 메뉴판을 손님 가까이에.", image: "phone", focus: [970, 490], mobileFocus: [970, 490], zoom: 1.16 },
+  { label: "QR 주문", title: "QR로 열고, 고른 메뉴를 주문까지", body: "메뉴를 둘러보고 장바구니에 담아, 손님 휴대폰에서 바로.", image: "phone", focus: [880, 500], mobileFocus: [860, 490], zoom: 1 },
 ] as const;
 export const HERO_CAFE_PHOTOS = { venue: "venue.webp", counter: "counter.webp", dining: "dining.webp", phone: "phone-v3.webp" } as const;
 export const HERO_CAFE_SCREENS = {
@@ -21,9 +20,9 @@ export const HERO_CAFE_SCREENS = {
   phone: [[871,180],[1129,191],[1071,798],[809,775]] as HeroQuad,
 };
 /** Enough time for each native preview to finish its visible action sequence. */
-export const HERO_CHAPTER_DURATION_MS = [8000, 26000, 36000, 50000, 6000] as const;
-/** Keep the original 80vh opening; native interactions receive longer scroll distances. */
-export const HERO_CHAPTER_SCROLL_LENGTHS = [.8, 2.2, 2.8, 4.8, .8] as const;
+/** Seconds are narrative positions, never a running playback clock. */
+export const HERO_CHAPTER_DURATION_MS = [12000, 26000, 36000, 46000] as const;
+export const HERO_CHAPTER_SCROLL_LENGTHS = [1.6, 2.2, 2.8, 4.6] as const;
 export const HERO_SCROLL_LENGTH = HERO_CHAPTER_SCROLL_LENGTHS.reduce((sum, length) => sum + length, 0);
 export const HERO_STORY_SVH = (1 + HERO_SCROLL_LENGTH) * 100;
 export function heroProgressAt(chapter: number, fraction = 0) {
@@ -34,9 +33,10 @@ export function heroTween(time: number, start: number, end: number) {
   const t = clampHeroProgress((time - start) / (end - start));
   return t * t * (3 - 2 * t);
 }
-export function advanceHeroClock(elapsed: number, delta: number, duration: number) {
-  const next = Math.min(duration, Math.max(0, elapsed) + Math.max(0, Math.min(200, delta)));
-  return { elapsed: next, fraction: next / duration, done: next >= duration };
+export function heroSaleZoom(seconds: number, width: number) { return heroTween(seconds, 14, 22) * (width < 1024 ? 1.8 : .3); }
+export function heroDemoPhase(kind: "counter" | "dining" | "phone", seconds: number) {
+  const boundaries = kind === "dining" ? [6, 11, 18, 25, 31] : kind === "phone" ? [23, 28, 33, 34, 40] : [];
+  return boundaries.filter(boundary => seconds >= boundary).length;
 }
 
 export const HERO_TEMPLATE_SCREENS = ["matcha", "rosy", "loop"] as const;
