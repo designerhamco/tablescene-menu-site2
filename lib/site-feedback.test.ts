@@ -12,7 +12,10 @@ test("unmeasured loading exposes status copy without a fabricated percent", () =
   assert.match(markup, /공지사항 조회 중/);
   const pending = renderToStaticMarkup(createElement(ProgressBar, { label: "업로드" }));
   assert.match(pending, /role="progressbar"/);
-  assert.doesNotMatch(pending, /aria-valuenow/);
+  assert.doesNotMatch(pending, /aria-valuenow|data-appearance/);
+  const media = renderToStaticMarkup(createElement(ProgressBar, {label:"장면 진행",value:25,appearance:"media"}));
+  assert.match(media, /data-appearance="media"/);
+  assert.match(media, /aria-label="장면 진행" aria-valuemin="0" aria-valuemax="100" aria-valuenow="25"/);
   for (const [value, expected] of [[-5, 0], [65, 65], [120, 100]]) assert.match(renderToStaticMarkup(createElement(ProgressBar, { label: "업로드", value })), new RegExp(`aria-valuenow="${expected}"`));
   assert.doesNotMatch(renderToStaticMarkup(createElement(ProgressBar, { label: "업로드", value: NaN })), /aria-valuenow/);
 });

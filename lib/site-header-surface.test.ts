@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { getSiteHeaderSurface } from "./site-header-policy";
+import { getSiteHeaderSurface, isHomeHeroHeaderOverlay } from "./site-header-policy";
 
 const navbarSource = readFileSync(
   new URL("../app/components/layout/Navbar.tsx", import.meta.url),
@@ -39,4 +39,12 @@ test("스크롤 배경 변경은 기존 로고·액션·알림·모바일 메뉴
   assert.match(navbarSource, /<NotificationPanel compact/);
   assert.match(navbarSource, /<MobileSiteMenu/);
   assert.match(navbarSource, /if \(window.innerWidth >= 1280\)/);
+});
+
+test("home overlay follows the complete story boundary and never affects another route", () => {
+  for (const bottom of [5000,4000,3000,2000,1000,73]) assert.equal(isHomeHeroHeaderOverlay("/",bottom,72),true);
+  for (const bottom of [72,0,-20,null,NaN,Infinity]) assert.equal(isHomeHeroHeaderOverlay("/",bottom,72),false);
+  assert.equal(isHomeHeroHeaderOverlay("/",65,64),true);
+  assert.equal(isHomeHeroHeaderOverlay("/",64,64),false);
+  for (const path of ["/services/basic","/services/dining","/services/display","/templates","/mypage"]) assert.equal(isHomeHeroHeaderOverlay(path,5000,72),false);
 });

@@ -10,6 +10,7 @@ import { templateSubscriptionPricing } from "@/lib/template-subscription-pricing
 import MarketingVisual, { type VisualKind } from "./MarketingVisual";
 import UsageGuides from "./UsageGuides";
 import styles from "./marketing.module.css";
+import HomeHeroMotion from "./HomeHeroMotion";
 
 type Service = "basic" | "dining" | "display";
 type Feature = { kind: VisualKind; label: string; title: string; body: string };
@@ -360,26 +361,7 @@ export function MarketingHome() {
   ];
   return (
     <div className={`site-marketing-page ${styles.page}`} data-marketing-page="home">
-      <section className={styles.hero}>
-        <div className="site-marketing-container">
-          <SitePageHeader
-            titleRole="hero"
-            title={<>메뉴를 보여주는 순간,<br />매장이 달라집니다</>}
-            descriptionPurpose="content"
-            description={<>디자인부터 메뉴 관리까지.<br className={styles.mobileBreak} /> 우리 매장에 맞는 디지털 메뉴판, 아티메뉴.</>}
-          />
-          <div className={styles.heroImage} data-static-hero>
-            <Image
-              src="/assets/artimenu-home-hero-psd-v3-1536.webp"
-              alt="매장의 모니터, 태블릿, 스마트폰으로 연결하는 아티메뉴"
-              width={1536}
-              height={864}
-              priority
-              sizes="(min-width: 1920px) calc(100vw - 96px), (min-width: 1334px) calc(100vw - 80px), 94vw"
-            />
-          </div>
-        </div>
-      </section>
+      <HomeHeroMotion />
       <Showcase />
       <section className={styles.homeFeatures}>
         <div className="site-marketing-container">
