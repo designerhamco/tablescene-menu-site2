@@ -8,7 +8,7 @@ import { Button } from "@/app/components/ui/button";
 import { HERO_CAFE_CHAPTERS, HERO_CAFE_PHOTOS, HERO_CAFE_SCREENS, HERO_CHAPTER_DURATION_MS, HERO_TEMPLATE_SCREENS, HERO_STORY_SVH, HERO_COUNTER_TIMELINE, HERO_PHONE_TIMELINE, heroTween, heroSceneAt, heroProgressAt, heroSaleZoom, heroScreenMatrix, heroTemplateAt, heroPulseAt, heroLiveSceneAt, heroSegmentProgressAt, type HeroQuad } from "@/lib/hero-cafe-motion";
 import styles from "./HomeHeroMotion.module.css";
 import HeroLiveMenu from "./HeroLiveMenu";
-import { heroLandscapeFrame, heroLandscapeScale, heroLandscapePosition } from "@/lib/hero-background-layout";
+import { HERO_SURROUNDINGS, HERO_SURROUNDINGS_TRANSFORM, heroLandscapeFrame, heroLandscapeScale, heroLandscapePosition } from "@/lib/hero-background-layout";
 
 const ASSETS = "/assets/hero-cafe-v1/";
 function Screen({ quad, width=1280, height=800, children, phone=false }: { quad: HeroQuad; width?: number; height?: number; children: ReactNode; phone?: boolean }) {
@@ -89,6 +89,9 @@ export default function HomeHeroMotion() {
           const active=scene.image===image,index=HERO_CAFE_CHAPTERS.findIndex(item=>item.image===image),photo=`${ASSETS}${HERO_CAFE_PHOTOS[image]}`,camera=cameraFor(index);
           return <motion.div key={image} className={styles.plane} initial={false} animate={{opacity:active?1:0}} transition={{duration:reduced?0:.45}} style={{zIndex:active?1:0}} data-hero-plane={image} data-active={active}>
             <img src={`${ASSETS}${HERO_CAFE_PHOTOS.venue}`} className={styles.ambient} data-hero-ambient alt=""/>
+            <motion.div className={styles.canvas} data-hero-surroundings-canvas animate={{...camera,x:camera.x+frame.left}} transition={{duration:reduced?0:.18,ease:[.22,1,.36,1]}}>
+              <img src={HERO_SURROUNDINGS[image]} className={`${styles.photo} ${styles.surroundings}`} data-hero-surroundings={image} style={{transform:HERO_SURROUNDINGS_TRANSFORM}} width={1536} height={1024} alt=""/>
+            </motion.div>
             <div className={styles.framing} data-hero-framing data-feathered={frame.left>0} style={{left:frame.left,width:frame.width}}>
             <motion.div className={styles.canvas} animate={camera} transition={{duration:reduced?0:.18,ease:[.22,1,.36,1]}}>
               <img ref={image==="venue"?firstPhoto:undefined} src={photo} className={`${styles.photo} ${styles.original}`} data-hero-original={image} width={1536} height={1024} alt="" fetchPriority={image==="venue"?"high":"auto"} onLoad={()=>{if(image==="venue")setLoaded(true);}}/>

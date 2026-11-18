@@ -12,6 +12,7 @@
 .framing[data-feathered="true"] { mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent); }
 .canvas { position:absolute; top:0; left:0; width:1536px; height:1024px; transform-origin:0 0; }
 .photo { position:absolute; inset:0; width:1536px; height:1024px; max-width:none; object-fit:cover; }
+.surroundings { transform-origin:0 0; }
 @media (max-width:1023px) {
   .original { mask-image:linear-gradient(transparent,#000 8%,#000 92%,transparent),linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent); mask-composite:intersect; }
 }
