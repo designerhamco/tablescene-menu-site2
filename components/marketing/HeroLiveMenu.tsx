@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element -- Authored stills are used only for reduced motion. */
+/* eslint-disable @next/next/no-img-element -- Authored stills cover native-demo loading and reduced motion. */
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -46,18 +46,18 @@ export default function HeroLiveMenu(props: Props) {
   const ids=view.pending===null?[view.shown]:[view.shown,view.pending];
   return <div className={styles.live} data-hero-buffer={props.kind} data-rebuilding={view.pending!==null}>
     {ids.map(id=><div className={styles.buffer} key={id} style={{opacity:id===view.shown?1:0}}>
-      <NativeFrame {...props} epoch={id} visible={id===view.shown} active={props.active&&(id===view.pending||view.pending===null)} seeking={id===view.pending} report={report} settled={settled}/>
+      <NativeFrame {...props} epoch={id} visible={id===view.shown} presentable={(id===view.shown?view.phase:view.pendingPhase)>=phase} active={props.active&&(id===view.pending||view.pending===null)} seeking={id===view.pending} report={report} settled={settled}/>
     </div>)}
   </div>;
 }
 
 /** Fixed public catalog URLs only; reception stays in the existing previewOnly branch. */
-function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,seeking,report,settled}:Props&{
-  epoch:number;visible:boolean;seeking:boolean;report:(id:number,phase:number)=>void;settled:(id:number,phase:number)=>void;
+function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,presentable,seeking,report,settled}:Props&{
+  epoch:number;visible:boolean;presentable:boolean;seeking:boolean;report:(id:number,phase:number)=>void;settled:(id:number,phase:number)=>void;
 }) {
   const frame=useRef<HTMLIFrameElement>(null),time=useRef(seconds),performed=useRef(new Set<string>()),points=useRef(new Map<string,{x:number;y:number}>());
   const receipt=useRef(false),settledPhase=useRef(-1),scheduled=useRef<number[]>([]);
-  const [ready,setReady]=useState(false),[step,setStep]=useState("preloading"),[orderReceived,setOrderReceived]=useState(false),[cue,setCue]=useState<Cue|null>(null);
+  const [ready,setReady]=useState(false),[presented,setPresented]=useState(false),[step,setStep]=useState("preloading"),[orderReceived,setOrderReceived]=useState(false),[cue,setCue]=useState<Cue|null>(null);
   const [typing,setTyping]=useState<{x:number;y:number;height:number;opacity:number}|null>(null);
   const [surface,setSurface]=useState({slide:"",popup:"",request:"",scroll:0,cart:"0",phone:""});
   useEffect(()=>{time.current=seconds;},[seconds]);
@@ -142,6 +142,7 @@ function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,seeking
       ]:[];
       const phase=actions.filter(action=>performed.current.has(action.id)).length;
       report(epoch,phase);
+      if(phase>=heroDemoPhase(kind,t))setPresented(true);
       let nextCue:Cue|null=null;
       if(kind==="counter"){
         const scrolling=doc.querySelector<HTMLElement>("[data-native-menu], [data-scroll-menu]"),sale=doc.querySelector<HTMLElement>('[data-native-tracks] [data-cafe-a-time-sale-digital-timer], [data-scroll-content] [data-cafe-a-time-sale-digital-timer]');
@@ -195,7 +196,8 @@ function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,seeking
   const motion=cue?.gesture==="swipe-x"?`translateX(${(cue.progress-.5)*-24}px)`:cue?.gesture==="swipe-y"?`translateY(${(cue.progress-.5)*-24}px)`:"";
   const pulse=heroPulseAt(cue?.progress??1);
   return <div className={styles.live} data-hero-live={visible?kind:undefined} data-ready={ready} data-demo-time={seconds.toFixed(2)} data-demo-step={step} data-demo-order={orderReceived?"received":"none"} data-demo-cue={cue?.gesture??"none"} data-demo-slide={surface.slide} data-demo-popup={surface.popup} data-demo-request={surface.request} data-demo-scroll={surface.scroll} data-demo-cart={surface.cart} data-demo-phone={surface.phone}>
-    {reduced?<img className={styles.fallback} src={source} alt=""/>:<iframe ref={frame} src={`${SOURCES[kind]}&heroSeek=${epoch}`} title={`아티메뉴 ${kind==="phone"?"모바일":kind==="dining"?"다이닝":"태블릿"} 시연`} tabIndex={-1} aria-hidden="true" loading="eager" className={styles.preview} style={{opacity:ready?1:0}}/>}
+    <img className={styles.fallback} src={source} alt=""/>
+    {!reduced?<iframe ref={frame} src={`${SOURCES[kind]}&heroSeek=${epoch}`} title={`아티메뉴 ${kind==="phone"?"모바일":kind==="dining"?"다이닝":"태블릿"} 시연`} tabIndex={-1} aria-hidden="true" loading="eager" className={styles.preview} style={{opacity:ready&&(presented||presentable)?1:0}}/>:null}
     {cue&&active&&!reduced?<span className={styles.cue} data-gesture={cue.gesture} style={{left:`${cue.x}%`,top:`${cue.y}%`,transform:`translate(-50%,-50%) ${motion}`,opacity:cue.gesture==="click"?.35+.65*pulse:1}}>
       {cue.gesture==="click"?<i className={styles.cueRipple} style={{transform:`scale(${1+(1-pulse)*1.3})`,opacity:pulse}}/>:cue.gesture==="swipe-x"?<ArrowLeftRight/>:<ArrowUpDown/>}
     </span>:null}

@@ -14,7 +14,7 @@ export default function HomeStartLink(props: Omit<ComponentProps<typeof Link>, "
   useEffect(() => {
     if (pathname !== "/" || !homeStartRequested) return;
     homeStartRequested = false;
-    // The shared intent owns its lifecycle (ready, newer navigation or user input),
+    // The shared intent owns its lifecycle (newer navigation or user input),
     // so closing/remounting a mobile header cannot cancel the requested reset.
     scrollToHomeStart();
   }, [pathname]);

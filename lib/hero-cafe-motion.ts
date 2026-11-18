@@ -8,6 +8,12 @@ export const HERO_CAFE_CHAPTERS = [
   { label: "QR 주문", title: "QR로 열고, 고른 메뉴를 주문까지", body: "메뉴를 둘러보고 장바구니에 담아, 손님 휴대폰에서 바로.", image: "phone", focus: [880, 500], mobileFocus: [860, 490], zoom: 1 },
 ] as const;
 export const HERO_CAFE_PHOTOS = { venue: "venue.webp", counter: "counter.webp", dining: "dining.webp", phone: "phone-v3.webp" } as const;
+/** Never preload full menu applications behind hidden scenes, especially on mobile WebKit. */
+export function heroLiveSceneAt(chapter: number, inView: boolean, visible: boolean, reduced: boolean): "counter" | "dining" | "phone" | null {
+  if (!inView || !visible || reduced) return null;
+  const image = HERO_CAFE_CHAPTERS[chapter]?.image;
+  return image && image !== "venue" ? image : null;
+}
 export const HERO_CAFE_SCREENS = {
   televisions: [
     [[505,290],[739,277],[739,420],[505,424]],

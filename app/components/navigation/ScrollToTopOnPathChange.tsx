@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { shouldResetDocumentScroll } from "@/lib/site-navigation-scroll";
 
 function scrollToDocumentTop() {
   const root = document.documentElement;
@@ -36,13 +37,9 @@ export default function ScrollToTopOnPathChange() {
       return;
     }
 
-    if (previousPathnameRef.current === null) {
-      previousPathnameRef.current = pathname;
-      return;
-    }
-
-    if (previousPathnameRef.current !== pathname) {
-      previousPathnameRef.current = pathname;
+    const previousPathname = previousPathnameRef.current;
+    previousPathnameRef.current = pathname;
+    if (shouldResetDocumentScroll(previousPathname, pathname, window.location.hash)) {
       scrollToDocumentTop();
     }
   }, [pathname]);

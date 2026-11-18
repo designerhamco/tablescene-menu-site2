@@ -61,7 +61,19 @@ test("brand navigation supersedes a queued service jump and resets the page star
   } finally { cleanup(); serviceCleanup(); env.restore(); }
 });
 
-test("late preview readiness restores the brand destination rather than an earlier service", () => {
+test("service navigation never jumps again after a demo becomes ready", () => {
+  const env = environment(false);
+  const cleanup = scrollToHomeService("service-dining", "smooth");
+  try {
+    env.flush();
+    env.scrollY = 9200;
+    env.ready(); env.input("scroll"); env.flush();
+    assert.equal(env.scrollY, 9200);
+    assert.deepEqual(env.moves, ["service-dining"]);
+  } finally { cleanup(); env.restore(); }
+});
+
+test("late programmatic scrolling cannot replace an explicit brand destination", () => {
   const env = environment(false);
   const serviceCleanup = scrollToHomeService("service-display", "instant");
   env.flush();
@@ -69,7 +81,7 @@ test("late preview readiness restores the brand destination rather than an earli
   try {
     env.flush();
     env.scrollY = 5000; // A late embedded preview takes focus before it is ready.
-    env.ready(); env.flush();
+    env.input("scroll"); env.ready(); env.flush();
     assert.equal(env.scrollY, 0);
     assert.deepEqual(env.moves, ["service-display", "start", "start"]);
   } finally { cleanup(); serviceCleanup(); env.restore(); }
