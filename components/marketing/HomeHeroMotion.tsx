@@ -158,7 +158,7 @@ export default function HomeHeroMotion() {
   const focus=[baseFocus[0]+(detailFocus[0]-baseFocus[0])*detailZoom,baseFocus[1]+(detailFocus[1]-baseFocus[1])*detailZoom];
   const x=mobile?size.width/2-focus[0]*scale:Math.min(0,Math.max(size.width-1536*scale,size.width*.66-focus[0]*scale));
   const y=mobile?(scene.image==="phone"?phoneRoom/2:size.height*.52)-focus[1]*scale:Math.min(0,Math.max(size.height-1024*scale,size.height*.53-focus[1]*scale));
-  return <section ref={root} className={styles.story} data-hero-motion data-chapter={chapter} data-playing={playing} data-template={selected} data-progress={playback.fraction.toFixed(3)} data-paused={playback.paused} data-finished={playback.finished} data-image-ready={loaded} data-in-view={inView} data-reduced={Boolean(reduced)} aria-label="매장에서 만나는 아티메뉴">
+  return <section ref={root} className={styles.story} data-hero-motion data-chapter={chapter} data-playing={playing} data-template={selected} data-progress={playback.fraction.toFixed(3)} data-scroll-progress={progress.toFixed(3)} data-paused={playback.paused} data-finished={playback.finished} data-image-ready={loaded} data-in-view={inView} data-reduced={Boolean(reduced)} aria-label="매장에서 만나는 아티메뉴">
     <div ref={stage} className={styles.stage}>
       <div className={styles.scene} aria-hidden="true" inert>
         <AnimatePresence initial={false}>
@@ -181,7 +181,7 @@ export default function HomeHeroMotion() {
           <p className="type-caption">ARTIMENU · {scene.label}</p>
           <Heading className="type-section-title">{scene.title}</Heading>
           <p className="type-body">{scene.body}</p>
-          <div className={styles.progress}><ProgressBar label={`${scene.label} 장면 진행`} value={Math.round(playback.fraction*100)} appearance="media" /></div>
+          <div className={styles.progress}><ProgressBar label="메뉴판 소개 스크롤 진행" value={Math.round(progress*1000)/10} appearance="media" /></div>
         </div>
       </div>
       <nav className={styles.dots} data-hero-dots aria-label="소개 장면"
@@ -192,7 +192,7 @@ export default function HomeHeroMotion() {
           const active=chapter===index;
           const action=reduced?"현재 장면":playback.finished?"다시 재생":playback.paused?"재생":"일시 정지";
           const label=`${index+1}. ${item.label} · ${active?action:"장면 보기"}`;
-          return <Button key={item.label} type="button" variant="ghost" size="icon" aria-label={label} title={label}
+          return <Button key={item.label} type="button" variant="ghost" size="icon" iconSize="compact" aria-label={label} title={label}
             aria-current={active?"step":undefined} data-hero-dot={index} data-active={active}
             onClick={()=>playback.activate(index)} onKeyDown={event=>{
               const next=event.key==="ArrowDown"?Math.min(4,index+1):event.key==="ArrowUp"?Math.max(0,index-1):event.key==="Home"?0:event.key==="End"?4:null;
