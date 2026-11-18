@@ -1,7 +1,7 @@
 "use client";
 import { measureMenuHeaderContentHeight } from "@/lib/menu-header-measurement";
 import { hasMenuColumnDivider, getMenuColumnDividerGeometry } from "@/lib/menu-column-divider";
-import { getRepresentativeRailGeometry } from "@/lib/representative-rail-geometry";
+import { getRepresentativeRailGeometry, getRelocatedCenterRailGeometry } from "@/lib/representative-rail-geometry";
 import { getMenuDesignBackgrounds } from "@/lib/template-background-colors";
 
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
@@ -23,7 +23,7 @@ import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { getFixedOnePageLayoutShell, getOnePageTopRowAlignment } from "@/lib/one-page-layout-shells";
 import { getOnePageItemNameCeilingRem, getOnePageTypographyProfile } from "@/lib/one-page-typography-profile";
 import { getOrderedFitGapScale } from "./pc-tablet/cafe-fit-engine";
-import { SCROLL_MIN_COLUMN_WIDTH_REM, layoutScrollableMenu, selectScrollableMenuCandidate, type ScrollableMenuLayout } from "@/lib/basic-menu-scroll";
+import { SCROLL_MIN_COLUMN_WIDTH_REM, layoutScrollableMenu, selectCenterRailMenuCandidate, selectScrollableMenuCandidate, type ScrollableMenuLayout } from "@/lib/basic-menu-scroll";
 import { measureScrollableNames } from "../experimental/scroll-name-readability";
 import { applyOnePageChipLayouts } from "../one-page-chip-layout";
 import { getPcTabletLayoutModeFromPageSettings } from "@/lib/menu-layout-modes";
@@ -135,13 +135,17 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       const viewport = area.current;
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
       const gap = parseFloat(getComputedStyle(viewport).columnGap) || 24;
-      const brandWidth = center ? root.querySelector<HTMLElement>("[data-native-brand]")?.getBoundingClientRect().width ?? 0 : 0;
       const viewportStyle = getComputedStyle(viewport);
       const viewportPaddingTop = parseFloat(viewportStyle.paddingTop) || 0;
       const viewportHeight = viewport.clientHeight - viewportPaddingTop - (parseFloat(viewportStyle.paddingBottom) || 0);
-      const width = viewport.clientWidth - (parseFloat(viewportStyle.paddingLeft) || 0) - (parseFloat(viewportStyle.paddingRight) || 0) - (center ? brandWidth + gap : 0);
-      const leftRail = shell === "brand_left_rail";
       const boardStyle = getComputedStyle(root);
+      // Decide from the whole board, never the already relocated menu region.
+      // This keeps the threshold stable through rotation and repeated resizing.
+      const centerContentWidth = root.clientWidth - parseFloat(boardStyle.paddingLeft) - parseFloat(boardStyle.paddingRight);
+      const centeredRailWidth = centerContentWidth * .24;
+      const centerMenuWidth = centerContentWidth - (viewport.offsetWidth - viewport.clientWidth) - centeredRailWidth - gap;
+      const width = center ? centerMenuWidth : viewport.clientWidth - (parseFloat(viewportStyle.paddingLeft) || 0) - (parseFloat(viewportStyle.paddingRight) || 0);
+      const leftRail = shell === "brand_left_rail";
       const brand = root.querySelector<HTMLElement>("[data-native-brand]");
       const brandStyle = brand ? getComputedStyle(brand) : null;
       const menuPanelStyle = getComputedStyle(viewport.closest<HTMLElement>("[data-native-menu-panel]")!);
@@ -152,6 +156,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
         - brandMargin - (parseFloat(menuPanelStyle.marginLeft) || 0) - (parseFloat(menuPanelStyle.marginRight) || 0);
       const panelPadding = (parseFloat(brandStyle?.paddingLeft ?? "0") || 0) + (parseFloat(brandStyle?.paddingRight ?? "0") || 0);
       const railGeometry = (count: number) => getRepresentativeRailGeometry(boardWidth, panelPadding, parseFloat(boardStyle.columnGap), count, viewport.offsetWidth - viewport.clientWidth, gap);
+      const leftCenterGeometry = getRelocatedCenterRailGeometry(centerContentWidth, panelPadding, gap, viewport.offsetWidth - viewport.clientWidth);
       const frameKey = `${boardWidth}|${root.clientHeight}`;
       if (frameKey !== railFrameKey) { rejectedRailColumns.clear(); rejectedPhotoColumns.clear(); railFrameKey = frameKey; }
       // Committed brand lines are authoritative if the async hidden brand
@@ -165,8 +170,8 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
       const base = Math.min(1.08 * rem, .88 * rem + Math.min(innerWidth, innerHeight) * .002);
       root.style.setProperty("--fit-menu-gap-scale", String(getOrderedFitGapScale(size / base, width)));
       const panelInset = panel ? parseFloat(getComputedStyle(measure.current.children[units.length > 1 ? 1 : 0] ?? measure.current).paddingLeft) || 0 : 0;
-      const candidates = (center ? [2] : equalSideRail ? [1, 2, 3].filter(count => count === 1 || (!rejectedRailColumns.has(count) && railGeometry(count).trackWidth >= SCROLL_MIN_COLUMN_WIDTH_REM * rem)) : Array.from({ length: max }, (_, i) => i + 1)).map(count => {
-        const columnWidth = equalSideRail ? railGeometry(count).trackWidth : (width - (count - 1) * gap) / count;
+      const candidates = (center ? [1, 2] : equalSideRail ? [1, 2, 3].filter(count => count === 1 || (!rejectedRailColumns.has(count) && railGeometry(count).trackWidth >= SCROLL_MIN_COLUMN_WIDTH_REM * rem)) : Array.from({ length: max }, (_, i) => i + 1)).map(count => {
+        const columnWidth = center && count === 1 ? leftCenterGeometry.menuWidth : equalSideRail ? railGeometry(count).trackWidth : (width - (count - 1) * gap) / count;
         measure.current!.style.width = `${columnWidth}px`;
         applyOnePageChipLayouts(measure.current!);
         const measured = units.map(unit => {
@@ -185,7 +190,12 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
         return { columnCount: count, columnWidth, itemSize: size, representativeSafe, names: measureScrollableNames(measure.current!), layout: layoutScrollableMenu(measured, count, viewportHeight - 2 * panelInset, grouped, { footerHeight: noticeMeasure.current?.getBoundingClientRect().height ?? 0 }) };
       });
       const photoSafeCandidates = candidates.filter(candidate => candidate.representativeSafe);
-      const selected = selectScrollableMenuCandidate(photoSafeCandidates.length ? photoSafeCandidates : candidates, grouped);
+      const safeCandidates = photoSafeCandidates.length ? photoSafeCandidates : candidates;
+      const selected = center ? selectCenterRailMenuCandidate(safeCandidates, SCROLL_MIN_COLUMN_WIDTH_REM * rem) : selectScrollableMenuCandidate(safeCandidates, grouped);
+      if (center) {
+        root.style.setProperty("--native-center-slot", `${selected.columnCount === 1 ? leftCenterGeometry.railWidth : centeredRailWidth}px`);
+        root.dataset.centerRailPosition = selected.columnCount === 1 ? "left" : "center";
+      }
       if (equalSideRail) {
         const geometry = railGeometry(selected.columnCount);
         root.style.setProperty("--native-rail-width", `${geometry.railWidth + brandMargin}px`);

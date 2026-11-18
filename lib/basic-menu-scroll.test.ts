@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { layoutScrollableMenu, selectScrollableMenuCandidate, shouldPreferWiderScrollableNames, type ScrollableMenuNameMeasurement } from "./basic-menu-scroll";
+import { layoutScrollableMenu, selectCenterRailMenuCandidate, selectScrollableMenuCandidate, shouldPreferWiderScrollableNames, type ScrollableMenuNameMeasurement } from "./basic-menu-scroll";
 import type { MeasuredMenuBlock } from "./basic-menu-pagination";
 const category = (id: string, count: number): MeasuredMenuBlock[] => [
   { id: `h-${id}`, group: id, kind: "heading", height: 30 },
@@ -228,4 +228,20 @@ test("cramped two-track menus can fall back to one readable track without shrink
     assert.equal(selectScrollableMenuCandidate([candidate(1, 2100, names(300, 4)), candidate(2, 1100, names(95, 4))], grouped).columnCount, 2, "width must actually improve the copy");
     assert.equal(selectScrollableMenuCandidate([candidate(1, 2100, names(300, 1, 1)), candidate(2, 1100, names(180, 2, 1))], grouped).columnCount, 2, "one ordinary wrap is not a fallback trigger");
   }
+});
+
+
+test("center rails relocate only for insufficient reading width or real name improvement", () => {
+  const blocks = [...category("a", 5), ...category("b", 5)];
+  const one = { columnCount: 1, columnWidth: 560, layout: layoutScrollableMenu(blocks, 1, 900) };
+  const two = { columnCount: 2, columnWidth: 264, layout: layoutScrollableMenu(blocks, 2, 900) };
+  assert.equal(selectCenterRailMenuCandidate([one, two], 256), two, "short or underfilled content alone keeps the centered structure");
+  assert.equal(selectCenterRailMenuCandidate([one, { ...two, columnWidth: 255 }], 256), one);
+  assert.equal(selectCenterRailMenuCandidate([one, { ...two, columnWidth: 256 }], 256).columnCount, 2);
+  const cramped = { id: "long-name", availableWidth: 90, naturalWidth: 180, fontSize: 20, lines: 3, overflow: false };
+  assert.equal(selectCenterRailMenuCandidate([
+    { ...one, names: [{ ...cramped, availableWidth: 390, lines: 1 }] },
+    { ...two, names: [cramped] },
+  ], 256).columnCount, 1, "repeated/three-line names can need the wider track even above the width floor");
+  assert.equal(selectCenterRailMenuCandidate([one, two], 256), two, "a later wider viewport restores the centered structure");
 });
