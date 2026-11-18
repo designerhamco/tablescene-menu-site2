@@ -32,6 +32,7 @@ async function renderDashboard(menuSiteId: string) {
     "@/components/mypage/OperationFeatureToggle": { default: stub }, "@/components/mypage/OperationTableSetupNotice": { default: stub },
     "@/components/mypage/CurrentTabletConnectionPanel": { default: CurrentTabletConnectionPanel },
     "@/components/mypage/OperationStatusCards": { default: OperationStatusCards },
+    "@/components/mypage/OperationsDashboardList": { default: stub },
     "@/components/mypage/AllMenuOperationsPage": { AllMenuOperationsDashboard },
     "@/lib/menu-url": { getConfiguredPublicMenuOrigin: () => "https://example.test", getPublicMenuPath: () => "/menu/test-store" },
     "@/lib/server/table-terminal-service": { getCurrentTableTerminalId: async () => null }, "@/lib/table-qr-session-tokens": { TABLE_VISIT_SESSION_COOKIE: "test" },

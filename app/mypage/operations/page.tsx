@@ -10,7 +10,7 @@ import StoreOperationsShell from "@/components/mypage/StoreOperationsShell";
 import { AllMenuOperationsDashboard } from "@/components/mypage/AllMenuOperationsPage";
 import OperationFeatureToggle from "@/components/mypage/OperationFeatureToggle";
 import OperationTableSetupNotice from "@/components/mypage/OperationTableSetupNotice";
-import { ContentPanel } from "@/app/components/ui/content-panel";
+import DashboardList from "@/components/mypage/OperationsDashboardList";
 import { Badge } from "@/app/components/ui/badge";
 import { CUSTOMER_ORDER_STATUS_LABELS } from "@/lib/customer-order-history";
 import OperationsDashboardRefresh from "@/components/mypage/OperationsDashboardRefresh";
@@ -225,23 +225,4 @@ export default async function StoreOperationsPage({ searchParams }: { searchPara
 
 function PermissionNotice({ message }: { message: string }) {
   return <AnnouncementBar label="권한 안내">{message}</AnnouncementBar>;
-}
-
-function DashboardList({
-  title,
-  emptyLabel,
-  href,
-  hasItems,
-  children,
-}: {
-  title: string;
-  emptyLabel: string;
-  href: string | null;
-  hasItems: boolean;
-  children: React.ReactNode;
-}) {
-  return <ContentPanel as="article">
-    <div className="site-content-heading-row"><h3 className="type-content-title">{title}</h3>{href ? <Link href={href} className="site-button site-button-outline">전체 보기</Link> : null}</div>
-    {hasItems ? <ul className="site-stack-block">{children}</ul> : <p className="type-body-sm site-copy-muted">{emptyLabel}</p>}
-  </ContentPanel>;
 }
