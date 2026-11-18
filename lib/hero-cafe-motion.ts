@@ -8,9 +8,10 @@ export const HERO_CAFE_CHAPTERS = [
   { label: "QR 주문", title: "QR로 열고, 고른 메뉴를 주문까지", body: "메뉴를 둘러보고 장바구니에 담아, 손님 휴대폰에서 바로.", image: "phone", focus: [880, 500], mobileFocus: [860, 490], zoom: 1 },
 ] as const;
 export const HERO_CAFE_PHOTOS = { venue: "venue.webp", counter: "counter.webp", dining: "dining.webp", phone: "phone-v3.webp" } as const;
-/** Never preload full menu applications behind hidden scenes, especially on mobile WebKit. */
-export function heroLiveSceneAt(chapter: number, inView: boolean, visible: boolean, reduced: boolean): "counter" | "dining" | "phone" | null {
+/** Prepare at most one demo; the tablet may warm up near the end of the opening. */
+export function heroLiveSceneAt(chapter: number, inView: boolean, visible: boolean, reduced: boolean, openingProgress = 0): "counter" | "dining" | "phone" | null {
   if (!inView || !visible || reduced) return null;
+  if (chapter === 0 && openingProgress >= .65) return "counter";
   const image = HERO_CAFE_CHAPTERS[chapter]?.image;
   return image && image !== "venue" ? image : null;
 }
@@ -27,8 +28,9 @@ export const HERO_CAFE_SCREENS = {
 };
 /** Enough time for each native preview to finish its visible action sequence. */
 /** Seconds are narrative positions, never a running playback clock. */
-export const HERO_CHAPTER_DURATION_MS = [12000, 26000, 36000, 66000] as const;
-export const HERO_CHAPTER_SCROLL_LENGTHS = [1.6, 2.2, 2.8, 6.6] as const;
+export const HERO_CHAPTER_DURATION_MS = [12000, 40000, 36000, 66000] as const;
+export const HERO_CHAPTER_SCROLL_LENGTHS = [1.6, 4.4, 2.8, 6.6] as const;
+export const HERO_COUNTER_TIMELINE = { browse: [5, 21], focus: [21, 27], zoom: [28, 36] } as const;
 export const HERO_PHONE_TIMELINE = {
   qr: [.4, 5.8], camera: [5, 9], browse: [9, 20], reposition: [20, 22],
   item: [22, 28, 29], add: [29, 35, 36], cart: [36, 42, 43],
@@ -44,7 +46,7 @@ export function heroTween(time: number, start: number, end: number) {
   const t = clampHeroProgress((time - start) / (end - start));
   return t * t * (3 - 2 * t);
 }
-export function heroSaleZoom(seconds: number, width: number) { return heroTween(seconds, 14, 22) * (width < 1024 ? 1.8 : .6); }
+export function heroSaleZoom(seconds: number, width: number) { return heroTween(seconds, ...HERO_COUNTER_TIMELINE.zoom) * (width < 1024 ? 1.8 : .6); }
 /** Three templates appear once each; the opening never wraps back to the first. */
 export function heroTemplateAt(progress: number) { return Math.min(HERO_TEMPLATE_SCREENS.length - 1, Math.floor(clampHeroProgress(progress) * HERO_TEMPLATE_SCREENS.length)); }
 /** Repeating ripples are sampled from scroll, so a stopped/reversed scroll holds/reverses them. */

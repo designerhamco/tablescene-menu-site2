@@ -4,10 +4,15 @@ import test from "node:test";
 import {createElement} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import HomeHeroMotion from "../components/marketing/HomeHeroMotion";
-import {HERO_CAFE_CHAPTERS,HERO_CAFE_SCREENS,HERO_CHAPTER_DURATION_MS,HERO_CHAPTER_SCROLL_LENGTHS,HERO_SCROLL_LENGTH,HERO_PHONE_TIMELINE,heroProgressAt,heroChapterAt,heroSceneAt,heroScreenMatrix,heroSaleZoom,heroDemoPhase,heroTemplateAt,heroPulseAt,heroPhoneValue,heroLiveSceneAt,type HeroQuad} from "./hero-cafe-motion";
+import {HERO_CAFE_CHAPTERS,HERO_CAFE_SCREENS,HERO_CHAPTER_DURATION_MS,HERO_CHAPTER_SCROLL_LENGTHS,HERO_SCROLL_LENGTH,HERO_COUNTER_TIMELINE,HERO_PHONE_TIMELINE,heroTween,heroProgressAt,heroChapterAt,heroSceneAt,heroScreenMatrix,heroSaleZoom,heroDemoPhase,heroTemplateAt,heroPulseAt,heroPhoneValue,heroLiveSceneAt,type HeroQuad} from "./hero-cafe-motion";
 
-test("only the visible active demo may mount a native menu application",()=>{
+test("only one demo is eligible, with a bounded tablet warmup before its scene",()=>{
  assert.deepEqual([0,1,2,3,4,-1].map(chapter=>heroLiveSceneAt(chapter,true,true,false)),[null,"counter","dining","phone",null,null]);
+ assert.equal(heroLiveSceneAt(0,true,true,false,.649),null);
+ assert.equal(heroLiveSceneAt(0,true,true,false,.65),"counter");
+ assert.equal(heroLiveSceneAt(0,false,true,false,1),null);
+ assert.equal(heroLiveSceneAt(0,true,false,false,1),null);
+ assert.equal(heroLiveSceneAt(0,true,true,true,1),null);
  for(const chapter of [1,2,3]){
   assert.equal(heroLiveSceneAt(chapter,false,true,false),null);
   assert.equal(heroLiveSceneAt(chapter,true,false,false),null);
@@ -112,8 +117,20 @@ test("phone digits fill individually and erase at the same reverse scroll positi
 });
 test("sale zoom is restrained on desktop while preserving the approved compact camera",()=>{
  assert.equal(heroSaleZoom(0,1440),0);
- assert.equal(heroSaleZoom(26,1440),.6);
- assert.equal(heroSaleZoom(26,390),1.8);
- assert.equal(heroSaleZoom(26,820),1.8);
- assert.ok(heroSaleZoom(18,1440)<heroSaleZoom(22,1440));
+ assert.equal(heroSaleZoom(40,1440),.6);
+ assert.equal(heroSaleZoom(40,390),1.8);
+ assert.equal(heroSaleZoom(40,820),1.8);
+ assert.ok(heroSaleZoom(30,1440)<heroSaleZoom(36,1440));
+});
+
+test("tablet browsing owns over two viewport lengths before sale enlargement starts",()=>{
+ const duration=HERO_CHAPTER_DURATION_MS[1]/1000;
+ const browseDistance=(HERO_COUNTER_TIMELINE.focus[1]-HERO_COUNTER_TIMELINE.browse[0])/duration*HERO_CHAPTER_SCROLL_LENGTHS[1];
+ assert.ok(browseDistance>=2);
+ assert.ok(HERO_COUNTER_TIMELINE.zoom[0]>HERO_COUNTER_TIMELINE.focus[1]);
+ assert.equal(heroSaleZoom(HERO_COUNTER_TIMELINE.focus[1],390),0);
+ const middle=heroTween(HERO_COUNTER_TIMELINE.browse[0]+8,...HERO_COUNTER_TIMELINE.browse);
+ assert.equal(middle,.5);
+ assert.equal(heroTween(HERO_COUNTER_TIMELINE.browse[0],...HERO_COUNTER_TIMELINE.browse),0);
+ assert.equal(heroTween(HERO_COUNTER_TIMELINE.browse[1],...HERO_COUNTER_TIMELINE.browse),1);
 });
