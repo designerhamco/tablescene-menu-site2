@@ -3,12 +3,12 @@ import test from "node:test";
 import { DEVICE_ASSETS, DEVICE_FLOOR_AXES, DEVICE_STAGE_ITEMS, devicePlaneMatrix, deviceRevealAt, deviceStageCamera } from "./device-platform-story";
 
 test("scroll reveals devices in order from an empty floor and reverses without retained state",()=>{
-  for(const wide of [false,true])for(const item of DEVICE_STAGE_ITEMS){
-    assert.equal(deviceRevealAt(0,item.order,false,wide),0);
-    assert.equal(deviceRevealAt(1,item.order,false,wide),1);
-    assert.equal(deviceRevealAt(0,item.order,true,wide),1);
+  for(const item of DEVICE_STAGE_ITEMS){
+    assert.equal(deviceRevealAt(0,item.order),0);
+    assert.equal(deviceRevealAt(1,item.order),1);
+    assert.equal(deviceRevealAt(0,item.order,true),1);
     let previous=0;
-    for(let step=0;step<=100;step++){const next=deviceRevealAt(step/100,item.order,false,wide);assert.ok(next>=previous&&next<=1);previous=next;}
+    for(let step=0;step<=100;step++){const next=deviceRevealAt(step/100,item.order);assert.ok(next>=previous&&next<=1);previous=next;}
   }
   assert.equal(deviceRevealAt(.2,0),1);
   assert.equal(deviceRevealAt(.2,3),0);
@@ -45,22 +45,33 @@ test("every floor-facing edge follows the measured floor axes and both tablets a
     assert.ok(Math.abs(planeRatio(item.plane)-planeRatio(DEVICE_ASSETS[item.asset].plane))<.05,`${item.id} retains its body proportions`);
   }
 });
-test("wide illustration fills the entire section with a small symmetric crop",()=>{
-  for(const width of [1024,1440,1920]){
-    const camera=deviceStageCamera(.5,width,width),side=1200*camera.scale;
-    assert.equal(side,width*1.05);
-    assert.equal(camera.x,(width-side)/2);
-    assert.equal(camera.y,(width-side)/2);
-    assert.deepEqual(camera,deviceStageCamera(0,width,width));
+test("wide pinned scene keeps full width while revealing each row inside the viewport below the title",()=>{
+  for(const [width,height,copyBottom] of [[1024,696,200],[1280,648,196],[1440,828,200],[1920,1008,212]]){
+    const initial=deviceStageCamera(0,width,height,false,copyBottom);
+    for(const item of DEVICE_STAGE_ITEMS){
+      const p=.19+item.order*.17,camera=deviceStageCamera(p,width,height,false,copyBottom),side=1200*camera.scale;
+      assert.ok(Math.abs(side-width*1.05)<1e-9);
+      assert.equal(camera.x,(width-side)/2);
+      assert.equal(camera.scale,initial.scale);
+      const centerY=item.plane.reduce((sum,p)=>sum+p[1],0)/4*camera.scale+camera.y;
+      assert.ok(centerY>=copyBottom&&centerY<=height,`${item.id} appears below the pinned title`);
+    }
+    assert.notEqual(initial.y,deviceStageCamera(1,width,height,false,copyBottom).y);
   }
 });
-test("mobile camera follows the composition without exposing area outside its floor",()=>{
-  for(const [w,h] of [[320,490],[390,560],[820,850]])for(let step=0;step<=100;step++){
-    const c=deviceStageCamera(step/100,w,h),side=1200*c.scale;
+test("mobile camera follows the composition below the integrated title without exposing a hard floor boundary",()=>{
+  for(const [w,h,copy] of [[320,676,214],[390,780,214],[820,1108,257]])for(let step=0;step<=100;step++){
+    const c=deviceStageCamera(step/100,w,h,false,copy),side=1200*c.scale;
     assert.ok([c.scale,c.x,c.y].every(Number.isFinite));
     if(side>=w){assert.ok(c.x<=.001);assert.ok(c.x+side>=w-.001);}
-    if(side>=h){assert.ok(c.y<=.001);assert.ok(c.y+side>=h-.001);}
+    assert.ok(c.y<=copy+.001);assert.ok(c.y+side>=h-.001);
   }
-  assert.deepEqual(deviceStageCamera(0,390,560,true),deviceStageCamera(1,390,560,true));
-  assert.deepEqual(deviceStageCamera(.1,1440,828),deviceStageCamera(.9,1440,828));
+});
+test("reduced motion shows the complete static composition below the title with no camera travel",()=>{
+  for(const [w,h,copy] of [[320,676,214],[820,1108,257],[1440,828,200]]){
+    const c=deviceStageCamera(0,w,h,true,copy),side=1200*c.scale;
+    assert.deepEqual(c,deviceStageCamera(1,w,h,true,copy));
+    assert.ok(c.y>=copy&&c.y+side<=h+.001);
+    assert.ok(c.x>=0&&c.x+side<=w+.001);
+  }
 });

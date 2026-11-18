@@ -15,38 +15,37 @@ const ITEMS=DEVICE_STAGE_ITEMS.map(item=>{
   return {...item,asset,phone,photoMatrix:asset?devicePlaneMatrix(asset.plane,item.plane):undefined,screenMatrix:deviceScreenMatrix(asset?.screen??item.plane,phone)};
 });
 export default function DevicePlatformStory(){
-  const root=useRef<HTMLDivElement>(null),stage=useRef<HTMLDivElement>(null),visual=useRef<HTMLDivElement>(null);
+  const root=useRef<HTMLDivElement>(null),stage=useRef<HTMLDivElement>(null),visual=useRef<HTMLDivElement>(null),copy=useRef<HTMLDivElement>(null);
   const reduced=useReducedMotion(),shadowId=useId().replaceAll(":","");
-  const [view,setView]=useState({progress:0,width:1200,height:1200});
+  const [view,setView]=useState({progress:0,width:1200,height:1200,copyBottom:0});
   useEffect(()=>{
     const update=()=>{
       if(!root.current||!stage.current||!visual.current)return;
       const top=root.current.parentElement?parseFloat(getComputedStyle(root.current.parentElement).scrollMarginTop)||0:0;
-      const visibleHeight=Math.min(stage.current.offsetHeight,window.innerHeight-top);
-      // A tall desktop viewport must still reveal gradually when the whole square fits.
-      const scrollRange=Math.max(root.current.offsetHeight-visibleHeight,visual.current.clientWidth>=1024?visual.current.clientHeight*.45:1);
+      const scrollRange=Math.max(1,root.current.offsetHeight-stage.current.offsetHeight);
       const progress=clampDeviceProgress((top-root.current.getBoundingClientRect().top)/scrollRange);
-      setView({progress,width:visual.current.clientWidth,height:visual.current.clientHeight});
+      setView({progress,width:visual.current.clientWidth,height:visual.current.clientHeight,copyBottom:copy.current?.offsetHeight??0});
     };
     let frame=0;const schedule=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=0;update();});};
-    const resize=new ResizeObserver(schedule);if(visual.current)resize.observe(visual.current);if(stage.current)resize.observe(stage.current);
+    const resize=new ResizeObserver(schedule);if(visual.current)resize.observe(visual.current);if(stage.current)resize.observe(stage.current);if(copy.current)resize.observe(copy.current);
     window.addEventListener("scroll",schedule,{passive:true});window.addEventListener("resize",schedule);update();
     // Resolve the section permalink after hydration, before the earlier hero can start its clock.
     const anchor=requestAnimationFrame(()=>{if(location.hash==="#device-platform"){root.current?.parentElement?.scrollIntoView({block:"start",behavior:"instant"});schedule();}});
     return()=>{cancelAnimationFrame(frame);cancelAnimationFrame(anchor);resize.disconnect();window.removeEventListener("scroll",schedule);window.removeEventListener("resize",schedule);};
   },[]);
-  const camera=deviceStageCamera(view.progress,view.width,view.height,Boolean(reduced));
-  const reveal=(order:number)=>deviceRevealAt(view.progress,order,Boolean(reduced),view.width>=1024);
+  const camera=deviceStageCamera(view.progress,view.width,view.height,Boolean(reduced),view.copyBottom);
+  const reveal=(order:number)=>deviceRevealAt(view.progress,order,Boolean(reduced));
   return <section id="device-platform" className={styles.section} aria-labelledby="device-platform-heading" data-device-section>
     <div ref={root} className={styles.story} data-device-platform data-progress={view.progress.toFixed(3)} data-reduced={Boolean(reduced)} data-menu-template={DEVICE_MENU.key}>
       <div ref={stage} className={styles.stage}>
-        <div className={`site-marketing-container ${styles.copy}`}>
+        <div ref={copy} className={`site-marketing-container ${styles.copy}`} data-device-copy>
           <div className="site-stack-title">
             <h2 id="device-platform-heading" className="type-section-title">하나의 메뉴판, <br className={styles.copyBreak}/>모든 디바이스에서.</h2>
             <p className="type-body site-copy-muted">PC부터 태블릿, 스마트폰까지. <br className={styles.copyBreak}/>우리 매장의 메뉴를 어디서나 보여주세요.</p>
           </div>
         </div>
         <div ref={visual} className={styles.visual} role="img" aria-label="같은 아티메뉴 메뉴판을 노트북, 태블릿, 스마트폰에서 보여주는 장면">
+          <img className={styles.ambient} src={`${ASSETS}floor.webp`} alt="" width={1200} height={1200} loading="lazy" aria-hidden="true"/>
           <div className={styles.canvas} aria-hidden="true" style={{transform:`translate(${camera.x}px,${camera.y}px) scale(${camera.scale})`}}>
             <img className={styles.floor} src={`${ASSETS}floor.webp`} width={1200} height={1200} alt="" loading="lazy"/>
             <svg className={styles.shadows} viewBox="0 0 1200 1200" aria-hidden="true">

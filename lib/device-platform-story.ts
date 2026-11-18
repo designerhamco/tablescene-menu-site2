@@ -46,9 +46,8 @@ export const DEVICE_STAGE_ITEMS: readonly Device[] = [
 
 export const clampDeviceProgress = (p:number) => Math.max(0,Math.min(1,Number.isFinite(p)?p:0));
 const ease = (p:number) => { const t=clampDeviceProgress(p);return t*t*(3-2*t); };
-export function deviceRevealAt(progress:number,order:number,reduced=false,wide=false) {
-  const start=wide?[.015,.13,.34,.47,.72][order]:.03+order*.17;
-  return reduced?1:ease((clampDeviceProgress(progress)-start)/(wide?.11:.16));
+export function deviceRevealAt(progress:number,order:number,reduced=false) {
+  return reduced?1:ease((clampDeviceProgress(progress)-(.03+order*.17))/.16);
 }
 
 /** Align a device's physical base plane to the floor; its screen remains nested. */
@@ -76,17 +75,25 @@ const MOBILE_CAMERA: readonly { at:number; focus:HeroPoint; span:number }[] = [
   {at:.84,focus:[477,1015],span:650},
   {at:.98,focus:[600,600],span:1200},
 ];
-export function deviceStageCamera(progress:number,width:number,height:number,reduced=false) {
+const WIDE_CAMERA = [
+  {at:0,y:330}, {at:.34,y:330}, {at:.56,y:780}, {at:.70,y:780}, {at:.88,y:930}, {at:1,y:930},
+] as const;
+export function deviceStageCamera(progress:number,width:number,height:number,reduced=false,copyBottom=0) {
   const w=Math.max(1,width),h=Math.max(1,height),p=clampDeviceProgress(progress);
-  if(w>=1024){const side=w*1.05;return {scale:side/1200,x:(w-side)/2,y:(h-side)/2};}
-  let focus:HeroPoint=[600,600],span=1200;
-  if(!reduced){
-    const right=MOBILE_CAMERA.findIndex(k=>k.at>=p);
-    const b=MOBILE_CAMERA[right<0?MOBILE_CAMERA.length-1:right],a=MOBILE_CAMERA[Math.max(0,(right<0?MOBILE_CAMERA.length-1:right)-1)];
-    const t=ease((p-a.at)/Math.max(.00001,b.at-a.at));
-    focus=[a.focus[0]+(b.focus[0]-a.focus[0])*t,a.focus[1]+(b.focus[1]-a.focus[1])*t];span=a.span+(b.span-a.span)*t;
+  const copy=Math.max(0,Math.min(h,copyBottom)),room=Math.max(1,h-copy),anchor=copy+room/2;
+  if(reduced){const scale=Math.min(w/1200,room/1200);return {scale,x:(w-1200*scale)/2,y:copy+(room-1200*scale)/2};}
+  if(w>=1024){
+    const scale=Math.max(w*1.05,h)/1200,side=1200*scale;
+    const right=WIDE_CAMERA.findIndex(k=>k.at>=p),b=WIDE_CAMERA[right],a=WIDE_CAMERA[Math.max(0,right-1)];
+    const t=ease((p-a.at)/Math.max(.00001,b.at-a.at)),focus=a.y+(b.y-a.y)*t;
+    return {scale,x:(w-side)/2,y:Math.max(h-side,Math.min(copy,anchor-focus*scale))};
   }
-  const scale=Math.max(Math.min(w/span,h/Math.min(span,800)),Math.max(w,h)/1200),side=1200*scale;
+  let focus:HeroPoint=[600,600],span=1200;
+  const right=MOBILE_CAMERA.findIndex(k=>k.at>=p);
+  const b=MOBILE_CAMERA[right<0?MOBILE_CAMERA.length-1:right],a=MOBILE_CAMERA[Math.max(0,(right<0?MOBILE_CAMERA.length-1:right)-1)];
+  const t=ease((p-a.at)/Math.max(.00001,b.at-a.at));
+  focus=[a.focus[0]+(b.focus[0]-a.focus[0])*t,a.focus[1]+(b.focus[1]-a.focus[1])*t];span=a.span+(b.span-a.span)*t;
+  const scale=Math.max(Math.min(w/span,room/Math.min(span,800)),Math.max(w,h)/1200),side=1200*scale;
   const position=(available:number,point:number)=>side<=available?(available-side)/2:Math.max(available-side,Math.min(0,available/2-point*scale));
-  return {scale,x:position(w,focus[0]),y:position(h,focus[1])};
+  return {scale,x:position(w,focus[0]),y:Math.max(h-side,Math.min(copy,anchor-focus[1]*scale))};
 }
