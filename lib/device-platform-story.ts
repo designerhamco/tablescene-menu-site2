@@ -22,7 +22,7 @@ export const DEVICE_STAGE_ITEMS = [
   {id:"phone",asset:"phone",order:2},
 ] as const;
 const LAYOUTS = {
-  wide:{monitor:{x:220,y:30,width:800},tablet:{x:85,y:490,width:380},phone:{x:1010,y:480,width:148}},
+  wide:{monitor:{x:210,y:30,width:900},tablet:{x:80,y:510,width:480},phone:{x:1010,y:492,width:180}},
   compact:{monitor:{x:110,y:25,width:1000},tablet:{x:40,y:700,width:560},phone:{x:930,y:680,width:230}},
 } as const;
 
@@ -47,9 +47,10 @@ export function deviceStageFrame(width:number,height:number,copyBottom=0,gutter=
     const bodyHeight=asset.body.height*sourceScale;
     return {...item,...position,height:bodyHeight,sourceScale,shadow:{
       cx:position.x+position.width*.525,cy:position.y+bodyHeight+2,
-      rx:position.width*(item.asset==="monitor"?.20:.52),
-      ry:position.width*(item.asset==="monitor"?.012:.018),
+      rx:position.width*(item.asset==="monitor"?.24:.54),
+      ry:position.width*(item.asset==="monitor"?.024:.026),
       contactRx:position.width*(item.asset==="monitor"?.14:.43),
+      contactRy:Math.max(2.5,position.width*.006),
     }};
   });
   const bounds={
@@ -59,6 +60,8 @@ export function deviceStageFrame(width:number,height:number,copyBottom=0,gutter=
     bottom:Math.max(...items.map(i=>i.y+i.height))+24,
   };
   const copy=Math.max(0,Math.min(h,copyBottom)),room=Math.max(1,h-copy);
-  const scale=Math.min(1,Math.max(1,w-Math.max(0,gutter)*2)/(bounds.right-bounds.left),room*.92/(bounds.bottom-bounds.top));
-  return {compact,items,scale,x:(w-(bounds.right-bounds.left)*scale)/2-bounds.left*scale,y:copy+room*.04-bounds.top*scale};
+  const scale=Math.min(compact?1:1.25,Math.max(1,w-Math.max(0,gutter)*2)/(bounds.right-bounds.left),room*.92/(bounds.bottom-bounds.top));
+  const x=(w-(bounds.right-bounds.left)*scale)/2-bounds.left*scale,y=copy+room*.04-bounds.top*scale;
+  const monitor=items[0];
+  return {compact,items,scale,x,y,floorTop:y+(monitor.y+monitor.height*.66)*scale};
 }

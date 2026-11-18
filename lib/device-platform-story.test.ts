@@ -35,7 +35,7 @@ test("actual catalog captures meet all four front-facing display corners without
   }
 });
 test("all three complete devices fit below the title in wide and compact static compositions",()=>{
-  for(const [width,height,copy,gutter] of [[320,676,214,20],[390,780,214,20],[820,1108,227,24],[1024,696,200,31],[1280,648,196,38.4],[1440,828,200,40],[1920,1008,212,48]]){
+  for(const [width,height,copy,gutter] of [[320,676,214,20],[390,780,214,20],[820,1108,227,24],[1024,696,200,31],[1280,648,196,38.4],[1440,828,200,40],[1920,1008,212,48],[2560,1368,230,48],[3440,1368,230,48]]){
     const frame=deviceStageFrame(width,height,copy,gutter);
     assert.equal(frame.compact,width<1024);
     for(const item of frame.items){
@@ -46,15 +46,22 @@ test("all three complete devices fit below the title in wide and compact static 
       assert.ok(item.y*frame.scale+frame.y>=copy);
       assert.ok((item.y+item.height)*frame.scale+frame.y<=height);
     }
-    assert.ok(frame.scale<=1);
+    assert.ok(frame.scale<=(frame.compact?1:1.25));
+    assert.ok(frame.floorTop>copy&&frame.floorTop<height);
+    for(const item of frame.items)assert.ok(frame.floorTop<frame.y+(item.y+item.height)*frame.scale);
   }
 });
-test("foreground devices sit in front of the stand without covering the monitor menu",()=>{
+test("desktop foreground devices deliberately overlap the lower corners while mobile retains its composition",()=>{
   for(const width of [390,1440]){
     const frame=deviceStageFrame(width,900,200,20),monitor=frame.items[0],asset=DEVICE_ASSETS.monitor;
     const menuBottom=monitor.y+(asset.screen[3][1]-asset.body.y)*monitor.sourceScale;
     for(const front of frame.items.slice(1)){
-      assert.ok(front.y>=menuBottom-.01);
+      if(frame.compact)assert.ok(front.y>=menuBottom-.01);
+      else {
+        const overlap=menuBottom-front.y;
+        assert.ok(overlap>20&&overlap<monitor.height*.1,"intentional small lower-screen overlap, rather than tangency");
+        assert.ok(front.x<monitor.x+monitor.width&&front.x+front.width>monitor.x);
+      }
       assert.ok(front.y+front.height>monitor.y+monitor.height);
       assert.ok(front.shadow.cy>=front.y+front.height);
     }

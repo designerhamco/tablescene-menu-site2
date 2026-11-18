@@ -3,10 +3,8 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { useReducedMotion } from "motion/react";
-import Link from "next/link";
-import { ArrowRight } from "@/app/components/ui/site-arrow";
-import { buttonVariants } from "@/app/components/ui/button";
 import { DEVICE_ASSETS, DEVICE_MENU, DEVICE_STAGE_SIZE, clampDeviceProgress, deviceRevealAt, deviceScreenMatrix, deviceStageFrame } from "@/lib/device-platform-story";
+import MarketingCopyReveal from "./MarketingCopyReveal";
 import styles from "./DevicePlatformStory.module.css";
 
 const ASSETS="/assets/device-platform-v2/";
@@ -35,21 +33,22 @@ export default function DevicePlatformStory(){
     <div ref={root} className={styles.story} data-device-platform data-progress={view.progress.toFixed(3)} data-reduced={Boolean(reduced)} data-menu-template={DEVICE_MENU.key} data-layout={frame.compact?"compact":"wide"}>
       <div ref={stage} className={styles.stage}>
         <div ref={copy} className={`site-marketing-container ${styles.copy}`} data-device-copy>
-          <div className="site-stack-title">
+          <MarketingCopyReveal className="site-stack-title">
             <h2 id="device-platform-heading" className="type-section-title">하나의 메뉴판, <br className={styles.copyBreak}/>모든 디바이스에서.</h2>
             <p className="type-body site-copy-muted">PC부터 태블릿, 스마트폰까지. <br className={styles.copyBreak}/>우리 매장의 메뉴를 어디서나 보여주세요.</p>
-          </div>
+          </MarketingCopyReveal>
         </div>
         <div ref={visual} className={styles.visual} role="img" aria-label="같은 아티메뉴 메뉴판을 정면 PC 모니터, 태블릿, 스마트폰에서 보여주는 장면">
+          <div className={styles.floor} data-device-floor aria-hidden="true" style={{top:frame.floorTop}}/>
           <div className={styles.canvas} data-device-frame aria-hidden="true" style={{width:DEVICE_STAGE_SIZE.width,height:DEVICE_STAGE_SIZE.height,transform:`translate(${frame.x}px,${frame.y}px) scale(${frame.scale})`}}>
             <svg className={styles.shadows} viewBox={`0 0 ${DEVICE_STAGE_SIZE.width} ${DEVICE_STAGE_SIZE.height}`} aria-hidden="true">
               <defs>
-                <filter id={`${shadowId}-ambient`} x="-60%" y="-600%" width="220%" height="1300%"><feGaussianBlur stdDeviation="9"/></filter>
-                <filter id={`${shadowId}-contact`} x="-30%" y="-400%" width="160%" height="900%"><feGaussianBlur stdDeviation="2"/></filter>
+                <filter id={`${shadowId}-ambient`} x="-60%" y="-600%" width="220%" height="1300%"><feGaussianBlur stdDeviation="11"/></filter>
+                <filter id={`${shadowId}-contact`} x="-30%" y="-400%" width="160%" height="900%"><feGaussianBlur stdDeviation="2.5"/></filter>
               </defs>
               {frame.items.map(item=><g key={item.id} opacity={reveal(item.order)}>
-                <ellipse cx={item.shadow.cx} cy={item.shadow.cy+2} rx={item.shadow.rx} ry={item.shadow.ry} fill="#202020" opacity=".12" filter={`url(#${shadowId}-ambient)`}/>
-                <ellipse cx={item.x+item.width/2} cy={item.shadow.cy-2} rx={item.shadow.contactRx} ry={2.5} fill="#202020" opacity=".16" filter={`url(#${shadowId}-contact)`}/>
+                <ellipse cx={item.shadow.cx} cy={item.shadow.cy+2} rx={item.shadow.rx} ry={item.shadow.ry} fill="#34302c" opacity=".20" filter={`url(#${shadowId}-ambient)`}/>
+                <ellipse cx={item.x+item.width/2} cy={item.shadow.cy-2} rx={item.shadow.contactRx} ry={item.shadow.contactRy} fill="#282522" opacity=".30" filter={`url(#${shadowId}-contact)`}/>
               </g>)}
             </svg>
             {frame.items.map(item=>{
@@ -68,9 +67,6 @@ export default function DevicePlatformStory(){
           </div>
         </div>
       </div>
-    </div>
-    <div className={`site-marketing-container ${styles.action}`}>
-      <Link href="/templates?plan=basic" className={buttonVariants({variant:"outline",size:"lg"})}>더 많은 디자인 보기<ArrowRight size={16} aria-hidden="true"/></Link>
     </div>
   </section>;
 }

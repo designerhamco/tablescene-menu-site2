@@ -12,6 +12,7 @@ import UsageGuides from "./UsageGuides";
 import styles from "./marketing.module.css";
 import HomeHeroMotion from "./HomeHeroMotion";
 import DevicePlatformStory from "./DevicePlatformStory";
+import MarketingCopyReveal from "./MarketingCopyReveal";
 
 type Service = "basic" | "dining" | "display";
 type Feature = { kind: VisualKind; label: string; title: string; body: string };
@@ -366,7 +367,7 @@ export function MarketingHome() {
       <DevicePlatformStory />
       <section className={styles.homeFeatures}>
         <div className="site-marketing-container">
-          <div className={styles.sectionHeading}>
+          <MarketingCopyReveal className={styles.sectionHeading}>
 
             <h2 className="type-section-title">
               메뉴판에도,
@@ -376,7 +377,7 @@ export function MarketingHome() {
             <p className="site-body text-zinc-500">
               사진과 소식, 오늘의 혜택을 더해 매장다운 메뉴판을 완성하세요.
             </p>
-          </div>
+          </MarketingCopyReveal>
           <div className={styles.bentoGrid}>
             {customization.map((feature) => (
               <article key={feature.kind}>
@@ -407,7 +408,7 @@ export function MarketingHome() {
       </section>
       <section className={styles.capabilities}>
         <div className="site-marketing-container">
-          <div className={styles.sectionHeading}>
+          <MarketingCopyReveal className={styles.sectionHeading}>
 
             <h2 className="type-section-title">
               메뉴판이 할 수 있는 일,
@@ -417,7 +418,7 @@ export function MarketingHome() {
             <p className="site-body text-zinc-500">
               손님의 선택은 편하게, 메뉴 관리는 간결하게.
             </p>
-          </div>
+          </MarketingCopyReveal>
           <div className={styles.capabilityGrid}>
             {capabilities.map((feature) => (
               <article key={feature.kind}>
@@ -434,7 +435,7 @@ export function MarketingHome() {
       </section>
       <section className={styles.pricing} aria-labelledby="pricing-heading">
         <div className="site-marketing-container">
-          <div className={styles.sectionHeading}>
+          <MarketingCopyReveal className={styles.sectionHeading}>
 
             <h2 id="pricing-heading" className="type-section-title">
               고르고, 만들고,
@@ -444,7 +445,7 @@ export function MarketingHome() {
             <p className="site-body text-zinc-500">
               메뉴의 구성과 사용할 화면에 맞는 플랜을 선택하세요.
             </p>
-          </div>
+          </MarketingCopyReveal>
           <div className={styles.priceGrid}>
             {(["basic", "dining", "display"] as const).map((service, i) => (
               <article key={service}>

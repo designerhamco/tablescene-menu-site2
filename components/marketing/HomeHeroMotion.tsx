@@ -182,12 +182,12 @@ export default function HomeHeroMotion() {
       <div className={styles.shade}/>
       <div className={styles.headerShade} aria-hidden="true"/>
       <div className={`site-marketing-container ${styles.sceneCopy}`} data-hero-copy>
-        <div className={styles.caption} aria-live="off">
+        <motion.div key={chapter} className={styles.caption} aria-live="off" initial={reduced?false:{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{duration:reduced?0:.5,ease:[.22,1,.36,1]}}>
           <p className="type-caption">ARTIMENU · {scene.label}</p>
           <Heading className="type-section-title">{scene.title}</Heading>
           <p className="type-body">{scene.body}</p>
           <div className={styles.progress}><ProgressBar label={`${scene.label} 장면 재생 진행`} value={Math.round(localProgress*1000)/10} appearance="media" /></div>
-        </div>
+        </motion.div>
       </div>
       <nav className={styles.dots} data-hero-dots aria-label="소개 장면"
         onPointerEnter={()=>playback.setHovered(true)} onPointerLeave={()=>playback.setHovered(false)}
