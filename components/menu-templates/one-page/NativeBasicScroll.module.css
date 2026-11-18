@@ -97,11 +97,12 @@
 .board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-round-focus-lower-cluster) { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: .75rem; }
 .board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-round-focus-featured-stack) { flex: 1; min-height: 0; display: flex; }
 .board[data-native-shell="brand_center_column"] .brand :global(.cafe-a-round-focus-footer-cluster) { flex: none; margin-top: auto; }
-.board[data-native-shell="brand_center_column"] .actions { flex-direction: row; flex: none; gap: .5rem; container-type: inline-size; }
-.board[data-native-shell="brand_center_column"] .actions button { flex: 1 1 0; padding-inline: .375rem; gap: .375rem; }
-@container (max-width: 12rem) {
-  .board[data-native-shell="brand_center_column"] .actions button { flex-direction: column; gap: .125rem; padding-inline: .25rem; }
-}
+.board[data-native-shell="brand_center_column"] .actions { flex-direction: column; flex-wrap: nowrap; flex: none; gap: .5rem; }
+.board[data-native-shell="brand_center_column"] .actions button { flex: none; width: 100%; padding-inline: .375rem; gap: .5rem; }
+.board[data-native-shell="brand_center_column"] .actions .tableLabel { flex-basis: auto; }
+.board[data-native-shell="brand_center_column"][data-center-rail-position="left"] > .brand { left: var(--native-gap); transform: none; width: var(--native-center-slot); }
+.board[data-native-shell="brand_center_column"][data-center-rail-position="left"] > .menuPanel { margin-left: calc(var(--native-center-slot) + var(--native-gap)); }
+.board[data-native-shell="brand_center_column"][data-center-rail-position="left"] .tracks { column-gap: var(--native-gap); }
 @media (min-width: 768px) and (max-width: 1023px) {
   .board[data-native-shell="brand_center_column"] { --native-gap: clamp(1.25rem, 3vmin, 2rem); }
 }
