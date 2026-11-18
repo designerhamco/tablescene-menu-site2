@@ -45,6 +45,6 @@ export default function SiteSpacingRules() {
     <div className={styles.usageTable}><table aria-label="모바일 공통 간격"><thead><tr><th>역할</th><th>간격</th><th>사용 위치</th><th>공통 토큰</th></tr></thead><tbody>
       {SITE_MOBILE_SPACING.map(item => <tr key={item.token}><td>{item.label}</td><td>{item.rem * 16}px</td><td>{item.usage}</td><td><code>{item.token}</code></td></tr>)}
     </tbody></table></div>
-    <p className="type-body-sm text-zinc-600">SitePage가 제목 위40px·제목과 설명12px·첫 콘텐츠32px를 자동 적용합니다. 본문은 site-stack-copy/block/group/content/section으로 구성합니다. 모바일 푸터는 위·좌우24px, 소개에서 접이식 메뉴까지24px입니다. 목록 버튼과 링크는44px을 유지하고 펼친 서비스·이용 안내는2열, 제목과 메뉴 사이4px·메뉴 아래12px로 압축합니다. 연락처와 문의는 통합 위치에서 보존합니다. 태블릿·PC와 고객 메뉴판의 간격은 각각의 기존 계약을 유지합니다.</p>
+    <p className="type-body-sm text-zinc-600">SitePage가 제목 위40px·제목과 설명12px·첫 콘텐츠32px를 자동 적용합니다. 본문은 site-stack-copy/block/group/content/section으로 구성합니다. 모바일 푸터는 위·좌우24px, 소개에서 접이식 메뉴까지24px입니다. 목록 버튼과 링크는44px을 유지하고 펼친 서비스·이용 안내는1열, 제목과 메뉴 사이4px·메뉴 아래12px로 압축합니다. 연락처와 문의는 통합 위치에서 보존합니다. 태블릿·PC와 고객 메뉴판의 간격은 각각의 기존 계약을 유지합니다.</p>
   </section></>;
 }
