@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { getSiteHeaderSurface, isHomeHeroHeaderOverlay } from "./site-header-policy";
+import { getSiteHeaderSurface, isHomeHeroHeaderOverlay, isHomeServiceHeaderOverlay } from "./site-header-policy";
 
 const navbarSource = readFileSync(
   new URL("../app/components/layout/Navbar.tsx", import.meta.url),
@@ -47,4 +47,11 @@ test("home overlay follows the complete story boundary and never affects another
   assert.equal(isHomeHeroHeaderOverlay("/",65,64),true);
   assert.equal(isHomeHeroHeaderOverlay("/",64,64),false);
   for (const path of ["/services/basic","/services/dining","/services/display","/templates","/mypage"]) assert.equal(isHomeHeroHeaderOverlay(path,5000,72),false);
+});
+
+test("service header becomes transparent only over dark panels and restores at either boundary", () => {
+  for (const [top,bottom] of [[0,2700],[-900,1800],[-1800,900],[-2400,73]]) assert.equal(isHomeServiceHeaderOverlay("/",top,bottom,72),true);
+  for (const [top,bottom] of [[1,2701],[72,2772],[-2628,72],[-2700,0],[NaN,900],[0,Infinity]]) assert.equal(isHomeServiceHeaderOverlay("/",top,bottom,72),false);
+  assert.equal(isHomeServiceHeaderOverlay("/",null,null,72),false);
+  for (const path of ["/services/basic","/services/dining","/services/display","/templates"]) assert.equal(isHomeServiceHeaderOverlay(path,-10,900,72),false);
 });

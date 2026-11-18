@@ -5,8 +5,7 @@ export const HERO_CAFE_CHAPTERS = [
   { label: "매장", title: "메뉴를 보여주는 순간, 매장이 달라집니다", body: "디자인부터 메뉴 관리까지. 우리 매장에 맞는 디지털 메뉴판, 아티메뉴.", image: "venue", focus: [1010, 480], mobileFocus: [950, 410], zoom: 1 },
   { label: "태블릿", title: "가까이에서 고르는 오늘의 메뉴", body: "메뉴와 가격, 지금의 혜택을 한눈에.", image: "counter", focus: [1010, 515], mobileFocus: [1030, 500], zoom: 1.08 },
   { label: "다이닝", title: "한 장씩 이어지는 다이닝 경험", body: "커버부터 코스까지, 옆으로 넘겨 살펴보세요.", image: "dining", focus: [920, 540], mobileFocus: [920, 525], zoom: 1.04 },
-  { label: "QR", title: "테이블 위 QR로 가볍게", body: "앱 설치 없이, 손님 휴대폰에서 바로.", image: "phone", focus: [880, 500], mobileFocus: [860, 490], zoom: 1 },
-  { label: "모바일", title: "살펴보고, 담고, 요청하는 순간까지", body: "우리 매장의 메뉴판을 손님 가까이에.", image: "phone", focus: [970, 490], mobileFocus: [970, 490], zoom: 1.16 },
+  { label: "QR 주문", title: "QR로 열고, 고른 메뉴를 주문까지", body: "메뉴를 둘러보고 장바구니에 담아, 손님 휴대폰에서 바로.", image: "phone", focus: [880, 500], mobileFocus: [860, 490], zoom: 1 },
 ] as const;
 export const HERO_CAFE_PHOTOS = { venue: "venue.webp", counter: "counter.webp", dining: "dining.webp", phone: "phone-v3.webp" } as const;
 export const HERO_CAFE_SCREENS = {
@@ -21,19 +20,51 @@ export const HERO_CAFE_SCREENS = {
   phone: [[871,180],[1129,191],[1071,798],[809,775]] as HeroQuad,
 };
 /** Enough time for each native preview to finish its visible action sequence. */
-export const HERO_CHAPTER_DURATION_MS = [8000, 12000, 15000, 5000, 30000] as const;
-export function advanceHeroClock(elapsed: number, delta: number, duration: number) {
-  const next = Math.min(duration, Math.max(0, elapsed) + Math.max(0, Math.min(200, delta)));
-  return { elapsed: next, fraction: next / duration, done: next >= duration };
+/** Seconds are narrative positions, never a running playback clock. */
+export const HERO_CHAPTER_DURATION_MS = [12000, 26000, 36000, 66000] as const;
+export const HERO_CHAPTER_SCROLL_LENGTHS = [1.6, 2.2, 2.8, 6.6] as const;
+export const HERO_PHONE_TIMELINE = {
+  qr: [.4, 5.8], camera: [5, 9], browse: [9, 20], reposition: [20, 22],
+  item: [22, 28, 29], add: [29, 35, 36], cart: [36, 42, 43],
+  typing: [44, 51], order: [53, 60, 62],
+} as const;
+export const HERO_SCROLL_LENGTH = HERO_CHAPTER_SCROLL_LENGTHS.reduce((sum, length) => sum + length, 0);
+export const HERO_STORY_SVH = (1 + HERO_SCROLL_LENGTH) * 100;
+export function heroProgressAt(chapter: number, fraction = 0) {
+  const index = Math.max(0, Math.min(HERO_CAFE_CHAPTERS.length - 1, Math.floor(chapter)));
+  return (HERO_CHAPTER_SCROLL_LENGTHS.slice(0, index).reduce((sum, length) => sum + length, 0) + HERO_CHAPTER_SCROLL_LENGTHS[index] * clampHeroProgress(fraction)) / HERO_SCROLL_LENGTH;
+}
+export function heroTween(time: number, start: number, end: number) {
+  const t = clampHeroProgress((time - start) / (end - start));
+  return t * t * (3 - 2 * t);
+}
+export function heroSaleZoom(seconds: number, width: number) { return heroTween(seconds, 14, 22) * (width < 1024 ? 1.8 : .6); }
+/** Three templates appear once each; the opening never wraps back to the first. */
+export function heroTemplateAt(progress: number) { return Math.min(HERO_TEMPLATE_SCREENS.length - 1, Math.floor(clampHeroProgress(progress) * HERO_TEMPLATE_SCREENS.length)); }
+/** Repeating ripples are sampled from scroll, so a stopped/reversed scroll holds/reverses them. */
+export function heroPulseAt(progress: number, cycles = 3) { return progress < 0 || progress >= 1 ? 0 : 1 - (clampHeroProgress(progress) * cycles) % 1; }
+export function heroPhoneValue(seconds: number) { return "01000000000".slice(0, Math.floor(clampHeroProgress((seconds - HERO_PHONE_TIMELINE.typing[0]) / (HERO_PHONE_TIMELINE.typing[1] - HERO_PHONE_TIMELINE.typing[0])) * 11 + 1e-7)); }
+export function heroDemoPhase(kind: "counter" | "dining" | "phone", seconds: number) {
+  const boundaries = kind === "dining" ? [6, 11, 18, 25, 31] : kind === "phone" ? [HERO_PHONE_TIMELINE.item[1], HERO_PHONE_TIMELINE.add[1], HERO_PHONE_TIMELINE.cart[1], HERO_PHONE_TIMELINE.typing[1], HERO_PHONE_TIMELINE.order[1]] : [];
+  return boundaries.filter(boundary => seconds >= boundary).length;
 }
 
 export const HERO_TEMPLATE_SCREENS = ["matcha", "rosy", "loop"] as const;
 export const clampHeroProgress = (value: number) => Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
-export function heroChapterAt(progress: number) { return Math.min(4, Math.floor(clampHeroProgress(progress) * 5)); }
+export function heroChapterAt(progress: number) {
+  const position = clampHeroProgress(progress) * HERO_SCROLL_LENGTH;
+  let end = 0;
+  for (let index = 0; index < HERO_CHAPTER_SCROLL_LENGTHS.length; index++) {
+    end += HERO_CHAPTER_SCROLL_LENGTHS[index];
+    if (position < end - 1e-9) return index;
+  }
+  return HERO_CAFE_CHAPTERS.length - 1;
+}
 /** Scroll seeking uses the current scene's own clock, including the final scene's inclusive end. */
 export function heroSceneAt(progress: number) {
   const chapter = heroChapterAt(progress);
-  const fraction = clampHeroProgress(clampHeroProgress(progress) * HERO_CAFE_CHAPTERS.length - chapter);
+  const start = HERO_CHAPTER_SCROLL_LENGTHS.slice(0, chapter).reduce((sum, length) => sum + length, 0);
+  const fraction = clampHeroProgress(progress) === 1 ? 1 : clampHeroProgress((clampHeroProgress(progress) * HERO_SCROLL_LENGTH - start) / HERO_CHAPTER_SCROLL_LENGTHS[chapter]);
   return { chapter, fraction, elapsed: fraction * HERO_CHAPTER_DURATION_MS[chapter] };
 }
 
