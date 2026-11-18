@@ -27,6 +27,8 @@ test("initial hero renders no nested applications and one capture per venue scre
  assert.equal((markup.match(/data-hero-segment="/g)??[]).length,4);
  assert.doesNotMatch(markup,/data-hero-dots|ARTIMENU ·/);
  assert.equal((markup.match(/data-hero-capture="true"/g)??[]).length,4);
+ assert.doesNotMatch(markup,/hero-cafe-v2|expanded\.webp|data-hero-expanded/);
+ assert.equal((markup.match(/src="\/assets\/hero-cafe-v1\/venue.webp"[^>]*data-hero-ambient/g)??[]).length,4,"only the person-free room may fill the surroundings");
 });
 
 test("hero chapters follow scroll boundaries in either direction",()=>{
