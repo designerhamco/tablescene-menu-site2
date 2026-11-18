@@ -97,6 +97,8 @@ export default function HomeHeroMotion() {
       </div>
       <div className={styles.shade}/>
       <div className={styles.headerShade} aria-hidden="true"/>
+      {/* Keep native touch scrolling on the home document, above transformed preview frames. */}
+      <div className={styles.gestureSurface} data-hero-gesture-surface aria-hidden="true"/>
       <div className={`site-marketing-container ${styles.sceneCopy}`} data-hero-copy>
         <motion.div key={chapter} className={styles.caption} aria-live="off" initial={reduced?false:{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{duration:reduced?0:.5,ease:[.22,1,.36,1]}}>
           <p className="type-caption">ARTIMENU · {scene.label}</p>

@@ -1,6 +1,9 @@
 .story { position:relative; height:500svh; background:#e8e1d7; }
 .stage { position:sticky; top:0; height:100svh; overflow:clip; isolation:isolate; }
 .scene,.plane { position:absolute; inset:0; overflow:hidden; }
+.scene { pointer-events:none; }
+/* A parent-document hit surface keeps iOS iframe scrolling out of the hero gesture. */
+.gestureSurface { position:absolute; inset:0; z-index:2; touch-action:pan-y pinch-zoom; }
 .plane { visibility:hidden; transition:visibility 0s linear .45s; }
 .plane[data-active="true"] { visibility:visible; transition-delay:0s; }
 .stage[data-rendering="false"] .plane { visibility:hidden; transition:none; }
