@@ -2,6 +2,7 @@ import SitePage from "@/components/layout/SitePage";
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
+import { SERVICE_HOME_HREFS } from "@/lib/service-home-navigation";
 
 export const metadata: Metadata = {
   title: "메뉴판 만들기 | ArtiMenu",
@@ -30,7 +31,7 @@ const applyOptions = [
     eyebrow: "DISPLAY",
     imageSrc: "/placeholders/service-image.svg",
     description: "TV와 모니터에 맞춘 대형 화면용 디지털 메뉴보드를 준비하고 있습니다.",
-    href: "/services/display",
+    href: SERVICE_HOME_HREFS.display,
     cta: "준비 중 안내 보기",
     pending: true,
   },

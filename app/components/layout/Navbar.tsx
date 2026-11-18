@@ -8,6 +8,8 @@ import { formatNotificationBadgeCount, getNotificationDisplaySince, NOTIFICATION
 import { createClient } from '@/lib/supabase/client';
 import { getSiteHeaderSurface } from '@/lib/site-header-policy';
 import { useHomeHeroHeader } from '@/components/layout/useHomeHeroHeader';
+import { useActiveHomeService } from '@/components/layout/useActiveHomeService';
+import ServiceHomeLink from '@/components/layout/ServiceHomeLink';
 import { applyNotificationsReadAll, getNotificationsReadAll, NOTIFICATIONS_READ_ALL_EVENT, requestNotificationsReadAll } from '@/lib/notification-read-state';
 import { isStoreOperationsAvailable } from '@/lib/product-focus-policy';
 import { NotificationPanel } from '@/app/components/ui/notification-panel';
@@ -67,6 +69,7 @@ const Navbar = () => {
   const scrolledRef = useRef(false);
   const pathname = usePathname();
   const homeHeroHeader = useHomeHeroHeader(pathname);
+  const activeHomeService = useActiveHomeService(pathname);
 
   const closeMobileMenu = () => {
     setIsOpen(false);
@@ -293,16 +296,16 @@ const Navbar = () => {
 
           <div className={styles.primaryNav}>
             {NAV_ITEMS.map((item) => {
-              const isActive = isNavItemActive(item, pathname);
+              const isActive = isNavItemActive(item, pathname, activeHomeService);
 
               return (
                 <div
                   key={item.path}
                   className="relative flex h-full items-center"
                 >
-                  {item.path === "/faq" ? <SupportNavigation pathname={pathname} /> : <Link
+                  {item.path === "/faq" ? <SupportNavigation pathname={pathname} /> : <ServiceHomeLink
                     href={item.path}
-                    aria-current={isActive ? 'page' : undefined}
+                    aria-current={isActive ? item.sectionId ? 'location' : 'page' : undefined}
                     aria-disabled={item.disabled ? true : undefined}
                     tabIndex={item.disabled ? -1 : undefined}
                     onClick={(event) => {
@@ -318,7 +321,7 @@ const Navbar = () => {
                   >
                     <span>{item.label}</span>
                     {item.disabled ? <DisabledChip /> : null}
-                  </Link>}
+                  </ServiceHomeLink>}
 
                 </div>
               );
@@ -407,7 +410,7 @@ const Navbar = () => {
           <Dialog.Content className={styles.drawer} onCloseAutoFocus={event => { if (isNotificationOpen) event.preventDefault(); }}>
             <Dialog.Title className="sr-only">아티메뉴 전체 메뉴</Dialog.Title>
             <Dialog.Description className="sr-only">서비스와 계정 메뉴를 선택하세요.</Dialog.Description>
-            <MobileSiteMenu pathname={pathname} authenticated={authState.isAuthenticated} loading={authState.loading}
+            <MobileSiteMenu pathname={pathname} activeSection={activeHomeService} authenticated={authState.isAuthenticated} loading={authState.loading}
               account={navigationAccount?.userId === authState.userId && navigationAccount.account ? navigationAccount.account : { name: authState.name, email: authState.email ?? '', role: null }}
               accountLoading={Boolean(authState.userId && navigationAccount?.userId !== authState.userId)}
               showOperations={showStoreOperations} unreadCount={unreadCount} close={closeMobileMenu} onNotifications={openNotificationsFromMenu}

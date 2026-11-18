@@ -15,6 +15,8 @@ import HomeHeroMotion from "./HomeHeroMotion";
 import DevicePlatformStory from "./DevicePlatformStory";
 import MarketingCopyReveal from "./MarketingCopyReveal";
 import ServiceStackStory from "./ServiceStackStory";
+import ServiceHomeLink from "@/components/layout/ServiceHomeLink";
+import { SERVICE_HOME_HREFS } from "@/lib/service-home-navigation";
 
 type Service = "basic" | "dining" | "display";
 type Feature = { kind: VisualKind; label: string; title: string; body: string };
@@ -395,13 +397,13 @@ export function MarketingHome() {
                     신규 신청은 정식 공개 후 안내합니다.
                   </p>
                 )}
-                <Link
-                  href={`/services/${service}`}
+                <ServiceHomeLink
+                  href={SERVICE_HOME_HREFS[service]}
                   className={buttonVariants({ variant: "outline", size: "lg" })}
                 >
                   플랜 알아보기
                   <ArrowRight size={16} aria-hidden="true" />
-                </Link>
+                </ServiceHomeLink>
                 {service !== "display" ? (
                   <Link
                     href="/apply"

@@ -416,27 +416,12 @@
       "78f263ec03d40202"
     ]
   },
-  "app/services/basic/page.tsx": {
-    "page-shell": [
-      "78f263ec03d40202"
-    ]
-  },
   "app/services/custom/page.tsx": {
     "page-shell": [
       "78f263ec03d40202"
     ]
   },
   "app/services/design-customizing/page.tsx": {
-    "page-shell": [
-      "78f263ec03d40202"
-    ]
-  },
-  "app/services/dining/page.tsx": {
-    "page-shell": [
-      "78f263ec03d40202"
-    ]
-  },
-  "app/services/display/page.tsx": {
     "page-shell": [
       "78f263ec03d40202"
     ]

@@ -1,4 +1,5 @@
 .stack { position:relative; isolation:isolate; scroll-margin-top:0; }
+.anchor { height:0; scroll-margin-top:0; }
 .panel { position:sticky; top:min(0px,calc(100svh - var(--service-panel-height,100svh))); min-height:100svh; color:var(--ui-media-ink); background:#101111; scroll-margin-top:0; overflow:clip; }
 .panel[data-service-panel="dining"] { background:#351c26; }
 .panel[data-service-panel="display"] { background:#101f35; }
