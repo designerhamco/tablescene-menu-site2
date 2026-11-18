@@ -21,6 +21,7 @@ import { NewWindowIndicator } from '@/app/components/ui/new-window-indicator';
 import SupportNavigation from '@/components/layout/SupportNavigation';
 import { SITE_NAV_ITEMS as NAV_ITEMS, isSiteNavItemActive as isNavItemActive, type NavigationAccount } from '@/lib/site-navigation';
 import MobileSiteMenu from '@/components/layout/MobileSiteMenu';
+import HomeStartLink from '@/components/layout/HomeStartLink';
 import { NotificationBellIcon } from '@/app/components/ui/notification-bell-icon';
 
 function DisabledChip() {
@@ -290,9 +291,9 @@ const Navbar = () => {
     <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
       <nav aria-label="공식 사이트 메뉴" data-site-header data-header-surface={getSiteHeaderSurface(pathname)} data-scrolled={isScrolled} data-home-hero={homeHeroHeader} className={styles.shell}>
         <div className={`site-container relative flex h-full items-center justify-between ${styles.panel}`}>
-          <Link href="/" className={`group z-50 flex shrink-0 items-center ${styles.brand}`}>
+          <HomeStartLink className={`group z-50 flex shrink-0 items-center ${styles.brand}`}>
             <span className={styles.wordmark}>ArtiMenu</span>
-          </Link>
+          </HomeStartLink>
 
           <div className={styles.primaryNav}>
             {NAV_ITEMS.map((item) => {
