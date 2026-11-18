@@ -110,11 +110,16 @@ function LiveMenu({ kind, chapter, playing, reduced, onDetail }: { kind: keyof t
 }
 
 export default function HomeHeroMotion({ children }: { children:ReactNode }) {
-  const root=useRef<HTMLElement>(null), stage=useRef<HTMLDivElement>(null);
+  const root=useRef<HTMLElement>(null), stage=useRef<HTMLDivElement>(null), firstPhoto=useRef<HTMLImageElement>(null);
   const reduced=useReducedMotion(), inView=useInView(stage,{amount:.15});
   const [detailFocus,setDetailFocus]=useState<readonly [number,number]>([1220,370]), [progress,setProgress]=useState(0), [selected,setSelected]=useState(0), [paused,setPaused]=useState(false), [visible,setVisible]=useState(true), [loaded,setLoaded]=useState(false), [size,setSize]=useState({width:1536,height:1024});
   const chapter=heroChapterAt(progress), scene=HERO_CAFE_CHAPTERS[chapter];
   const playing=inView && visible && !paused && !reduced && loaded;
+  useEffect(()=>{
+    let active=true;
+    void firstPhoto.current?.decode().then(()=>{if(active)setLoaded(true);}).catch(()=>{});
+    return()=>{active=false;};
+  },[]);
   useEffect(()=>{
     const update=()=>{
       if(!root.current || !stage.current)return;
@@ -140,14 +145,14 @@ export default function HomeHeroMotion({ children }: { children:ReactNode }) {
   const y=mobile?size.height*(scene.image==="phone"?.45:.52)-focus[1]*scale:Math.min(0,Math.max(size.height-1024*scale,size.height*.53-focus[1]*scale));
   function go(index:number) { if(!root.current || !stage.current)return; const top=window.scrollY+root.current.getBoundingClientRect().top;window.scrollTo({top:top+(root.current.offsetHeight-stage.current.offsetHeight)*((index+.02)/5),behavior:reduced?"instant":"smooth"}); }
   function skip() { if(root.current) window.scrollTo({top:window.scrollY+root.current.getBoundingClientRect().bottom-(document.querySelector<HTMLElement>(".site-header-spacer")?.offsetHeight??0),behavior:reduced?"instant":"smooth"}); }
-  return <section ref={root} className={styles.story} data-hero-motion data-chapter={chapter} data-playing={playing} data-template={selected} data-reduced={Boolean(reduced)} aria-label="매장에서 만나는 아티메뉴">
+  return <section ref={root} className={styles.story} data-hero-motion data-chapter={chapter} data-playing={playing} data-template={selected} data-image-ready={loaded} data-in-view={inView} data-reduced={Boolean(reduced)} aria-label="매장에서 만나는 아티메뉴">
     <div ref={stage} className={styles.stage}>
       <div className={styles.scene} aria-hidden="true" inert>
         <AnimatePresence initial={false}>
           <motion.div key={scene.image} className={styles.plane} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:reduced?0:.55}}>
             <img src={`${ASSETS}${scene.image}.webp`} className={styles.ambient} alt=""/>
             <motion.div className={styles.canvas} animate={{x,y,scale}} transition={{duration:reduced?0:.8,ease:[.22,1,.36,1]}}>
-              <img src={`${ASSETS}${scene.image}.webp`} className={styles.photo} width={1536} height={1024} alt="" fetchPriority={scene.image==="venue"?"high":"auto"} onLoad={()=>setLoaded(true)}/>
+              <img ref={scene.image==="venue"?firstPhoto:undefined} src={`${ASSETS}${scene.image}.webp`} className={styles.photo} width={1536} height={1024} alt="" fetchPriority={scene.image==="venue"?"high":"auto"} onLoad={()=>setLoaded(true)}/>
               {scene.image==="venue" ? <>{HERO_CAFE_SCREENS.televisions.map((quad,i)=><Screen key={i} quad={quad}><CapturedScreen selected={selected}/></Screen>)}<Screen quad={HERO_CAFE_SCREENS.venueTablet}><CapturedScreen selected={selected}/></Screen></>:null}
               {scene.image==="counter" ? <><Screen quad={HERO_CAFE_SCREENS.counter} width={mobile?820:1280} height={mobile?512:800}><LiveMenu kind="counter" onDetail={setDetailFocus} chapter={chapter} playing={playing} reduced={Boolean(reduced)}/></Screen><img src={`${ASSETS}counter.webp`} className={`${styles.photo} ${styles.finger}`} width={1536} height={1024} alt=""/></>:null}
               {scene.image==="dining" ? <Screen quad={HERO_CAFE_SCREENS.dining} width={mobile?820:1280} height={mobile?512:800}><LiveMenu kind="dining" chapter={chapter} playing={playing} reduced={Boolean(reduced)}/></Screen>:null}
