@@ -28,7 +28,7 @@ export default function CatalogDesignCard({design,liked,busy,onToggle}:{design:C
         </div> : <p className="site-template-description line-clamp-2 whitespace-pre-line">{design.description}</p>}
       </div>
       <div className="site-template-actions site-action-row">
-        <Button asChild variant="outline" shape="rounded"><Link href={design.previewHref} prefetch={false} aria-label={`${design.name} 템플릿 미리보기`}><Eye aria-hidden="true" />미리보기</Link></Button>
+        <Button asChild variant="outline" shape="rounded"><Link href={design.previewHref} prefetch={false} target="_blank" rel="noopener noreferrer" aria-label={`${design.name} 템플릿 미리보기 (새 창)`}><Eye aria-hidden="true" />미리보기</Link></Button>
       </div>
     </div>
   </article>;
