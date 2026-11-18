@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import test from "node:test";
-import {HERO_CAFE_CHAPTERS,HERO_CAFE_SCREENS,HERO_CHAPTER_DURATION_MS,HERO_CHAPTER_SCROLL_LENGTHS,HERO_SCROLL_LENGTH,heroProgressAt,heroChapterAt,heroSceneAt,heroScreenMatrix,heroSaleZoom,heroDemoPhase,type HeroQuad} from "./hero-cafe-motion";
+import {HERO_CAFE_CHAPTERS,HERO_CAFE_SCREENS,HERO_CHAPTER_DURATION_MS,HERO_CHAPTER_SCROLL_LENGTHS,HERO_SCROLL_LENGTH,HERO_PHONE_TIMELINE,heroProgressAt,heroChapterAt,heroSceneAt,heroScreenMatrix,heroSaleZoom,heroDemoPhase,heroTemplateAt,heroPulseAt,heroPhoneValue,type HeroQuad} from "./hero-cafe-motion";
 
 test("hero chapters follow scroll boundaries in either direction",()=>{
  assert.equal(HERO_CAFE_CHAPTERS.length,4);
@@ -58,12 +58,39 @@ test("scroll-only narrative has no timer-driven playback or advertisement steps"
  assert.doesNotMatch(component,/useHeroPlayback|setInterval|setTimeout|일시 정지|다시 재생/);
  assert.match(native,/popupPreview=off/);
  assert.doesNotMatch(native,/id:"advert|id:"popup"/);
- const forwards=[0,23,28,33,34,40,46].map(t=>heroDemoPhase("phone",t));
- const backwards=[46,40,34,33,28,23,0].map(t=>heroDemoPhase("phone",t));
+ const times=[0,HERO_PHONE_TIMELINE.item[1],HERO_PHONE_TIMELINE.add[1],HERO_PHONE_TIMELINE.cart[1],HERO_PHONE_TIMELINE.typing[1],HERO_PHONE_TIMELINE.order[1],66];
+ const forwards=times.map(t=>heroDemoPhase("phone",t));
+ const backwards=[...times].reverse().map(t=>heroDemoPhase("phone",t));
  assert.deepEqual(forwards,[0,1,2,3,4,5,5]);
  assert.deepEqual(backwards,[...forwards].reverse());
  assert.equal(heroDemoPhase("dining",31),5);
  assert.equal(heroDemoPhase("dining",20),3);
+});
+test("opening presents just three templates without wrapping, and reverses the same sequence",()=>{
+ const values=Array.from({length:101},(_,index)=>heroTemplateAt(index/100));
+ assert.deepEqual([...new Set(values)],[0,1,2]);
+ assert.equal(values.filter((value,index)=>index>0&&value!==values[index-1]).length,2);
+ assert.equal(heroTemplateAt(1),2);
+ assert.deepEqual([1,.5,0].map(heroTemplateAt),[2,1,0]);
+});
+test("each phone click has a long lead-in with repeated scroll-driven ripples",()=>{
+ for(const [start,click,end] of [HERO_PHONE_TIMELINE.item,HERO_PHONE_TIMELINE.add,HERO_PHONE_TIMELINE.cart,HERO_PHONE_TIMELINE.order]){
+  assert.ok(click-start>=6);
+  assert.ok(end>click);
+  assert.equal(heroDemoPhase("phone",click-.001)+1,heroDemoPhase("phone",click));
+ }
+ assert.equal(heroPulseAt(-.01),0);
+ assert.equal(heroPulseAt(1),0);
+ for(const point of [0,1/3,2/3])assert.ok(heroPulseAt(point)>.99);
+ for(const point of [.3,.63,.96])assert.ok(heroPulseAt(point)<.13);
+});
+test("phone digits fill individually and erase at the same reverse scroll positions",()=>{
+ const [start,end]=HERO_PHONE_TIMELINE.typing;
+ assert.equal(heroPhoneValue(start),"");
+ assert.equal(heroPhoneValue(end),"01000000000");
+ const values=Array.from({length:12},(_,index)=>heroPhoneValue(start+(end-start)*index/11));
+ assert.deepEqual(values.map(value=>value.length),Array.from({length:12},(_,index)=>index));
+ assert.deepEqual(values.map(value=>value.length).reverse(),Array.from({length:12},(_,index)=>heroPhoneValue(end-(end-start)*index/11).length));
 });
 test("sale zoom is restrained on desktop while preserving the approved compact camera",()=>{
  assert.equal(heroSaleZoom(0,1440),0);

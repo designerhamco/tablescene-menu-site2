@@ -28,6 +28,7 @@
 .cue svg { width:18px; height:18px; }
 .cue[data-gesture="click"] { width:24px; height:24px; }
 .cueRipple { position:absolute; inset:-1px; border:1px solid #fff; border-radius:50%; }
+.typingCaret { position:absolute; z-index:5; width:1.5px; background:#191c1b; pointer-events:none; }
 .qrPulse { position:absolute; left:583px; top:378px; width:156px; height:80px; border:2px solid #fff; border-radius:10px; transform:rotate(6deg); box-shadow:0 0 0 1px rgb(0 0 0 / 20%); pointer-events:none; }
 @media (max-width:1023px) {
   .story .canvas { mask-image:linear-gradient(transparent,#000 14%,#000 91%,transparent),linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent); mask-composite:intersect; }

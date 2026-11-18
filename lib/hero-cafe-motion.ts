@@ -21,8 +21,13 @@ export const HERO_CAFE_SCREENS = {
 };
 /** Enough time for each native preview to finish its visible action sequence. */
 /** Seconds are narrative positions, never a running playback clock. */
-export const HERO_CHAPTER_DURATION_MS = [12000, 26000, 36000, 46000] as const;
-export const HERO_CHAPTER_SCROLL_LENGTHS = [1.6, 2.2, 2.8, 4.6] as const;
+export const HERO_CHAPTER_DURATION_MS = [12000, 26000, 36000, 66000] as const;
+export const HERO_CHAPTER_SCROLL_LENGTHS = [1.6, 2.2, 2.8, 6.6] as const;
+export const HERO_PHONE_TIMELINE = {
+  qr: [.4, 5.8], camera: [5, 9], browse: [9, 20], reposition: [20, 22],
+  item: [22, 28, 29], add: [29, 35, 36], cart: [36, 42, 43],
+  typing: [44, 51], order: [53, 60, 62],
+} as const;
 export const HERO_SCROLL_LENGTH = HERO_CHAPTER_SCROLL_LENGTHS.reduce((sum, length) => sum + length, 0);
 export const HERO_STORY_SVH = (1 + HERO_SCROLL_LENGTH) * 100;
 export function heroProgressAt(chapter: number, fraction = 0) {
@@ -34,8 +39,13 @@ export function heroTween(time: number, start: number, end: number) {
   return t * t * (3 - 2 * t);
 }
 export function heroSaleZoom(seconds: number, width: number) { return heroTween(seconds, 14, 22) * (width < 1024 ? 1.8 : .3); }
+/** Three templates appear once each; the opening never wraps back to the first. */
+export function heroTemplateAt(progress: number) { return Math.min(HERO_TEMPLATE_SCREENS.length - 1, Math.floor(clampHeroProgress(progress) * HERO_TEMPLATE_SCREENS.length)); }
+/** Repeating ripples are sampled from scroll, so a stopped/reversed scroll holds/reverses them. */
+export function heroPulseAt(progress: number, cycles = 3) { return progress < 0 || progress >= 1 ? 0 : 1 - (clampHeroProgress(progress) * cycles) % 1; }
+export function heroPhoneValue(seconds: number) { return "01000000000".slice(0, Math.floor(clampHeroProgress((seconds - HERO_PHONE_TIMELINE.typing[0]) / (HERO_PHONE_TIMELINE.typing[1] - HERO_PHONE_TIMELINE.typing[0])) * 11 + 1e-7)); }
 export function heroDemoPhase(kind: "counter" | "dining" | "phone", seconds: number) {
-  const boundaries = kind === "dining" ? [6, 11, 18, 25, 31] : kind === "phone" ? [23, 28, 33, 34, 40] : [];
+  const boundaries = kind === "dining" ? [6, 11, 18, 25, 31] : kind === "phone" ? [HERO_PHONE_TIMELINE.item[1], HERO_PHONE_TIMELINE.add[1], HERO_PHONE_TIMELINE.cart[1], HERO_PHONE_TIMELINE.typing[1], HERO_PHONE_TIMELINE.order[1]] : [];
   return boundaries.filter(boundary => seconds >= boundary).length;
 }
 

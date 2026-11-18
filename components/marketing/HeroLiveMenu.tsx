@@ -3,14 +3,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeftRight, ArrowUpDown } from "@/app/components/ui/site-arrow";
-import { HERO_CAFE_SCREENS, heroDemoPhase, heroTween } from "@/lib/hero-cafe-motion";
+import { HERO_CAFE_SCREENS, HERO_PHONE_TIMELINE, heroDemoPhase, heroTween, heroPhoneValue, heroPulseAt } from "@/lib/hero-cafe-motion";
 import styles from "./HomeHeroMotion.module.css";
 
 const preview = (template: string, device: string, extra = "") => `/templates/${template}/preview?view=actual&embedded=1&heroDemo=1&device=${device}${extra}`;
 const SOURCES = {
   counter: preview("cafe_real_matcha_a", "tablet"),
   dining: preview("dining_aube_table_a", "tablet", "&callPreview=on"),
-  phone: preview("cafe_real_matcha_a", "mobile", "&callPreview=off&orderPreview=on&popupPreview=off&widgetsPreview=on&prepayPreview=off"),
+  phone: preview("cafe_real_matcha_a", "mobile", "&callPreview=off&orderPreview=on&popupPreview=off&widgetsPreview=off&prepayPreview=off"),
 };
 type Kind = keyof typeof SOURCES;
 type Gesture = "click" | "swipe-x" | "swipe-y";
@@ -58,7 +58,8 @@ function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,seeking
   const frame=useRef<HTMLIFrameElement>(null),time=useRef(seconds),performed=useRef(new Set<string>()),points=useRef(new Map<string,{x:number;y:number}>());
   const receipt=useRef(false),settledPhase=useRef(-1),scheduled=useRef<number[]>([]);
   const [ready,setReady]=useState(false),[step,setStep]=useState("preloading"),[orderReceived,setOrderReceived]=useState(false),[cue,setCue]=useState<Cue|null>(null);
-  const [surface,setSurface]=useState({slide:"",popup:"",request:"",scroll:0,cart:"0"});
+  const [typing,setTyping]=useState<{x:number;y:number;height:number;opacity:number}|null>(null);
+  const [surface,setSurface]=useState({slide:"",popup:"",request:"",scroll:0,cart:"0",phone:""});
   useEffect(()=>{time.current=seconds;},[seconds]);
   useEffect(()=>()=>scheduled.current.forEach(cancelAnimationFrame),[]);
   useEffect(()=>{
@@ -74,6 +75,11 @@ function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,seeking
       if(!native||doc.fonts.status!=="loaded"||native.getAttribute("data-native-ready")==="false"||native.getAttribute("data-paged-ready")==="false")return;
       if(!initialised){
         doc.scrollingElement?.scrollTo({top:0,behavior:"instant"});
+        if(kind==="phone"){
+          const style=doc.createElement("style");style.dataset.heroDemoStyle="true";
+          style.textContent='[data-menu-cart] :is([data-cart-back],[role="tab"]):focus-visible{outline:none!important;box-shadow:none!important} input[type="tel"]{caret-color:transparent}';
+          doc.head.append(style);
+        }
         const first=doc.querySelector<HTMLButtonElement>('[aria-label="1번째 대표 슬라이드 보기"]');
         first?.click();first?.dispatchEvent(new FocusEvent("focusin",{bubbles:true}));
         initialised=true;return;
@@ -99,6 +105,28 @@ function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,seeking
       const lastItem=()=>[...doc.querySelectorAll<HTMLButtonElement>('button[aria-label$=" 담기"]')].filter(item=>item.getBoundingClientRect().width>0).at(-1)??null;
       const itemSheet=()=>doc.querySelector('[role="dialog"][aria-label$=" 담기"]');
       const cartCount=()=>Number(button('[aria-label^="주문하기, 장바구니"]')?.getAttribute('aria-label')?.match(/장바구니 (\d+)/)?.[1]??0);
+      const phone=doc.querySelector<HTMLInputElement>('input[type="tel"]');
+      const writePhone=(input:HTMLInputElement,value:string)=>{
+        if(input.value===value)return;
+        Object.getOwnPropertyDescriptor(Object.getPrototypeOf(input),"value")?.set?.call(input,value);
+        input.dispatchEvent(new Event("input",{bubbles:true}));
+      };
+      let nextTyping:typeof typing=null;
+      if(kind==="phone"&&phone&&!performed.current.has("order")){
+        const body=doc.querySelector<HTMLElement>('[data-menu-cart] [role="tabpanel"]');
+        if(body&&t>=HERO_PHONE_TIMELINE.cart[1]+.5){
+          const target=Math.max(0,Math.min(body.scrollHeight-body.clientHeight,body.scrollTop+phone.getBoundingClientRect().top-body.getBoundingClientRect().top-body.clientHeight*.42));
+          body.scrollTo({top:target*heroTween(t,HERO_PHONE_TIMELINE.cart[1]+.5,HERO_PHONE_TIMELINE.typing[0]),behavior:"instant"});
+        }
+        const value=heroPhoneValue(t);writePhone(phone,value);
+        if(t>=HERO_PHONE_TIMELINE.typing[0]&&t<HERO_PHONE_TIMELINE.order[0]){
+          const r=phone.getBoundingClientRect(),css=doc.defaultView!.getComputedStyle(phone),context=doc.createElement("canvas").getContext("2d");
+          if(context)context.font=css.font;
+          const height=parseFloat(css.lineHeight)||parseFloat(css.fontSize)*1.5;
+          nextTyping={x:(r.left+parseFloat(css.paddingLeft)+(context?.measureText(value).width??0))/width*100,y:(r.top+(r.height-height)/2)/doc.documentElement.clientHeight*100,height,opacity:heroPulseAt((t-HERO_PHONE_TIMELINE.typing[0])/(HERO_PHONE_TIMELINE.order[0]-HERO_PHONE_TIMELINE.typing[0]),14)>.45?1:0};
+        }
+      }
+      setTyping(current=>JSON.stringify(current)===JSON.stringify(nextTyping)?current:nextTyping);
       const actions:Action[]=kind==="dining"?[
         {id:"page1",cueAt:4,at:6,until:8,gesture:"swipe-x",find:()=>button('[aria-label="다음 메뉴 페이지"]'),done:()=>pageIndex()>=1},
         {id:"page2",cueAt:9,at:11,until:13,gesture:"swipe-x",find:()=>button('[aria-label="다음 메뉴 페이지"]'),done:()=>pageIndex()>=2},
@@ -106,15 +134,11 @@ function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,seeking
         {id:"wine",cueAt:22,at:25,until:27,gesture:"click",find:()=>[...doc.querySelectorAll<HTMLButtonElement>('[aria-label="직원 호출 항목"] button')].find(item=>item.textContent?.includes("와인 문의"))??null,done:()=>Boolean(doc.querySelector('[aria-label="직원 호출 항목"] [aria-pressed="true"]')?.textContent?.includes("와인 문의"))},
         {id:"send",cueAt:28,at:31,until:34,gesture:"click",find:()=>button('[data-smart-call-submit]'),done:()=>Boolean(doc.querySelector('[data-call-status]'))},
       ]:kind==="phone"?[
-        {id:"item",cueAt:20,at:23,until:24,gesture:"click",find:lastItem,done:()=>Boolean(itemSheet())},
-        {id:"add",cueAt:25,at:28,until:29,gesture:"click",find:()=>[...doc.querySelectorAll<HTMLButtonElement>("button")].find(item=>item.textContent?.includes("· 장바구니 담기"))??null,done:()=>cartCount()>0&&!itemSheet()},
-        {id:"cart",cueAt:30,at:33,until:34,gesture:"click",find:()=>button('[aria-label^="주문하기, 장바구니"]'),done:()=>Boolean(doc.querySelector('[data-menu-cart]'))},
-        {id:"phone",cueAt:34,at:34,until:35,find:()=>doc.querySelector('input[type="tel"]')??orderButton(),act:target=>{
-          if(target.tagName!=="INPUT")return;
-          const setter=Object.getOwnPropertyDescriptor(Object.getPrototypeOf(target),"value")?.set;
-          setter?.call(target,"01000000000");target.dispatchEvent(new Event("input",{bubbles:true}));
-        }},
-        {id:"order",cueAt:36,at:40,until:42,gesture:"click",find:orderButton,done:()=>receipt.current},
+        {id:"item",cueAt:HERO_PHONE_TIMELINE.item[0],at:HERO_PHONE_TIMELINE.item[1],until:HERO_PHONE_TIMELINE.item[2],gesture:"click",find:lastItem,done:()=>Boolean(itemSheet())},
+        {id:"add",cueAt:HERO_PHONE_TIMELINE.add[0],at:HERO_PHONE_TIMELINE.add[1],until:HERO_PHONE_TIMELINE.add[2],gesture:"click",find:()=>[...doc.querySelectorAll<HTMLButtonElement>("button")].find(item=>item.textContent?.includes("· 장바구니 담기"))??null,done:()=>cartCount()>0&&!itemSheet()},
+        {id:"cart",cueAt:HERO_PHONE_TIMELINE.cart[0],at:HERO_PHONE_TIMELINE.cart[1],until:HERO_PHONE_TIMELINE.cart[2],gesture:"click",find:()=>button('[aria-label^="주문하기, 장바구니"]'),done:()=>Boolean(doc.querySelector('[data-menu-cart]'))},
+        {id:"phone",cueAt:HERO_PHONE_TIMELINE.typing[0],at:HERO_PHONE_TIMELINE.typing[1],until:HERO_PHONE_TIMELINE.order[0],find:()=>phone??orderButton(),act:target=>{if(target.tagName==="INPUT")writePhone(target as HTMLInputElement,heroPhoneValue(HERO_PHONE_TIMELINE.typing[1]));}},
+        {id:"order",cueAt:HERO_PHONE_TIMELINE.order[0],at:HERO_PHONE_TIMELINE.order[1],until:HERO_PHONE_TIMELINE.order[2],gesture:"click",find:orderButton,done:()=>receipt.current},
       ]:[];
       const phase=actions.filter(action=>performed.current.has(action.id)).length;
       report(epoch,phase);
@@ -137,15 +161,15 @@ function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,seeking
         const scrolling=doc.scrollingElement,maximum=scrolling.scrollHeight-scrolling.clientHeight;
         const target=lastItem();
         const itemTop=target?Math.max(0,Math.min(maximum,scrolling.scrollTop+target.getBoundingClientRect().top-height*.58)):maximum;
-        scrolling.scrollTo({top:t<18?maximum*heroTween(t,4,18):maximum+(itemTop-maximum)*heroTween(t,18,20),behavior:"instant"});
-        if(t>=4&&t<20){nextCue={id:"menu-scroll",gesture:"swipe-y",x:67,y:57,progress:heroTween(t,4,20)};setStep("menu-scroll");}
+        scrolling.scrollTo({top:t<HERO_PHONE_TIMELINE.browse[1]?maximum*heroTween(t,...HERO_PHONE_TIMELINE.browse):maximum+(itemTop-maximum)*heroTween(t,...HERO_PHONE_TIMELINE.reposition),behavior:"instant"});
+        if(t>=HERO_PHONE_TIMELINE.browse[0]&&t<HERO_PHONE_TIMELINE.reposition[1]){nextCue={id:"menu-scroll",gesture:"swipe-y",x:67,y:57,progress:heroTween(t,HERO_PHONE_TIMELINE.browse[0],HERO_PHONE_TIMELINE.reposition[1])};setStep("menu-scroll");}
       }
       for(const action of actions){
         if(action.gesture&&t>=action.cueAt&&t<=action.until){
           const target=action.find();
-          if(target){const r=target.getBoundingClientRect();points.current.set(action.id,{x:(r.x+r.width/2)/width*100,y:(r.y+r.height/2)/height*100});}
+          if(target&&!performed.current.has(action.id)&&!action.done?.()){const r=target.getBoundingClientRect();points.current.set(action.id,{x:(r.x+r.width/2)/width*100,y:(r.y+r.height/2)/height*100});}
           const point=action.gesture==="click"?points.current.get(action.id):{x:52,y:52};
-          if(point)nextCue={id:action.id,gesture:action.gesture,...point,progress:heroTween(t,action.cueAt,action.until)};
+          if(point)nextCue={id:action.id,gesture:action.gesture,...point,progress:Math.max(0,Math.min(1,(t-action.cueAt)/(action.until-action.cueAt)))};
         }
       }
       setCue(current=>JSON.stringify(current)===JSON.stringify(nextCue)?current:nextCue);
@@ -162,17 +186,19 @@ function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,seeking
         const first=requestAnimationFrame(()=>{const second=requestAnimationFrame(()=>settled(epoch,phase));scheduled.current.push(second);});
         scheduled.current.push(first);
       }
-      const snapshot={slide:doc.querySelector('[data-cafe-a-active-hero-index]')?.getAttribute('data-cafe-a-active-hero-index')??"",popup:doc.querySelector('[data-menu-advertisement-popup]')?"open":"closed",request:doc.querySelector('[aria-label="직원 호출 항목"] [aria-pressed="true"]')?.textContent??doc.querySelector('[data-call-status]')?.textContent??"",scroll:Math.round((kind==="counter"?doc.querySelector<HTMLElement>('[data-native-menu], [data-scroll-menu]')?.scrollTop:doc.scrollingElement?.scrollTop)??0),cart:button('[aria-label^="주문하기, 장바구니"]')?.getAttribute('aria-label')??"0"};
+      const snapshot={slide:doc.querySelector('[data-cafe-a-active-hero-index]')?.getAttribute('data-cafe-a-active-hero-index')??"",popup:doc.querySelector('[data-menu-advertisement-popup]')?"open":"closed",request:doc.querySelector('[aria-label="직원 호출 항목"] [aria-pressed="true"]')?.textContent??doc.querySelector('[data-call-status]')?.textContent??"",scroll:Math.round((kind==="counter"?doc.querySelector<HTMLElement>('[data-native-menu], [data-scroll-menu]')?.scrollTop:doc.scrollingElement?.scrollTop)??0),cart:button('[aria-label^="주문하기, 장바구니"]')?.getAttribute('aria-label')??"0",phone:phone?.value??""};
       setSurface(current=>JSON.stringify(current)===JSON.stringify(snapshot)?current:snapshot);
     },60);
     return()=>window.clearInterval(timer);
   },[active,ready,reduced,kind,onDetail,epoch,report,seeking,settled]);
   const source=kind==="phone"?"/assets/device-platform-v2/menu-phone.webp":`/assets/hero-cafe-v1/screen-${kind==="counter"?"matcha":kind}.webp`;
   const motion=cue?.gesture==="swipe-x"?`translateX(${(cue.progress-.5)*-24}px)`:cue?.gesture==="swipe-y"?`translateY(${(cue.progress-.5)*-24}px)`:"";
-  return <div className={styles.live} data-hero-live={visible?kind:undefined} data-ready={ready} data-demo-time={seconds.toFixed(2)} data-demo-step={step} data-demo-order={orderReceived?"received":"none"} data-demo-cue={cue?.gesture??"none"} data-demo-slide={surface.slide} data-demo-popup={surface.popup} data-demo-request={surface.request} data-demo-scroll={surface.scroll} data-demo-cart={surface.cart}>
+  const pulse=heroPulseAt(cue?.progress??1);
+  return <div className={styles.live} data-hero-live={visible?kind:undefined} data-ready={ready} data-demo-time={seconds.toFixed(2)} data-demo-step={step} data-demo-order={orderReceived?"received":"none"} data-demo-cue={cue?.gesture??"none"} data-demo-slide={surface.slide} data-demo-popup={surface.popup} data-demo-request={surface.request} data-demo-scroll={surface.scroll} data-demo-cart={surface.cart} data-demo-phone={surface.phone}>
     {reduced?<img className={styles.fallback} src={source} alt=""/>:<iframe ref={frame} src={`${SOURCES[kind]}&heroSeek=${epoch}`} title={`아티메뉴 ${kind==="phone"?"모바일":kind==="dining"?"다이닝":"태블릿"} 시연`} tabIndex={-1} aria-hidden="true" loading="eager" className={styles.preview} style={{opacity:ready?1:0}}/>}
-    {cue&&active&&!reduced?<span className={styles.cue} data-gesture={cue.gesture} style={{left:`${cue.x}%`,top:`${cue.y}%`,transform:`translate(-50%,-50%) ${motion}`}}>
-      {cue.gesture==="click"?<i className={styles.cueRipple} style={{transform:`scale(${1+cue.progress*1.3})`,opacity:1-cue.progress}}/>:cue.gesture==="swipe-x"?<ArrowLeftRight/>:<ArrowUpDown/>}
+    {cue&&active&&!reduced?<span className={styles.cue} data-gesture={cue.gesture} style={{left:`${cue.x}%`,top:`${cue.y}%`,transform:`translate(-50%,-50%) ${motion}`,opacity:cue.gesture==="click"?.35+.65*pulse:1}}>
+      {cue.gesture==="click"?<i className={styles.cueRipple} style={{transform:`scale(${1+(1-pulse)*1.3})`,opacity:pulse}}/>:cue.gesture==="swipe-x"?<ArrowLeftRight/>:<ArrowUpDown/>}
     </span>:null}
+    {typing&&active&&!reduced?<span className={styles.typingCaret} aria-hidden="true" style={{left:`${typing.x}%`,top:`${typing.y}%`,height:typing.height,opacity:typing.opacity}}/>:null}
   </div>;
 }
