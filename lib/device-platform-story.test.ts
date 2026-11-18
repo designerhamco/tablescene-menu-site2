@@ -47,8 +47,6 @@ test("all three complete devices fit below the title in wide and compact static 
       assert.ok((item.y+item.height)*frame.scale+frame.y<=height);
     }
     assert.ok(frame.scale<=(frame.compact?1:1.25));
-    assert.ok(frame.floorTop>copy&&frame.floorTop<height);
-    for(const item of frame.items)assert.ok(frame.floorTop<frame.y+(item.y+item.height)*frame.scale);
   }
 });
 test("desktop foreground devices deliberately overlap the lower corners while mobile retains its composition",()=>{

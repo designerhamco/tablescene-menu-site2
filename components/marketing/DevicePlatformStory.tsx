@@ -39,7 +39,6 @@ export default function DevicePlatformStory(){
           </MarketingCopyReveal>
         </div>
         <div ref={visual} className={styles.visual} role="img" aria-label="같은 아티메뉴 메뉴판을 정면 PC 모니터, 태블릿, 스마트폰에서 보여주는 장면">
-          <div className={styles.floor} data-device-floor aria-hidden="true" style={{top:frame.floorTop}}/>
           <div className={styles.canvas} data-device-frame aria-hidden="true" style={{width:DEVICE_STAGE_SIZE.width,height:DEVICE_STAGE_SIZE.height,transform:`translate(${frame.x}px,${frame.y}px) scale(${frame.scale})`}}>
             <svg className={styles.shadows} viewBox={`0 0 ${DEVICE_STAGE_SIZE.width} ${DEVICE_STAGE_SIZE.height}`} aria-hidden="true">
               <defs>

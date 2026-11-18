@@ -13,6 +13,7 @@ import styles from "./marketing.module.css";
 import HomeHeroMotion from "./HomeHeroMotion";
 import DevicePlatformStory from "./DevicePlatformStory";
 import MarketingCopyReveal from "./MarketingCopyReveal";
+import ServiceStackStory from "./ServiceStackStory";
 
 type Service = "basic" | "dining" | "display";
 type Feature = { kind: VisualKind; label: string; title: string; body: string };
@@ -365,6 +366,7 @@ export function MarketingHome() {
     <div className={`site-marketing-page ${styles.page}`} data-marketing-page="home">
       <HomeHeroMotion />
       <DevicePlatformStory />
+      <ServiceStackStory />
       <section className={styles.homeFeatures}>
         <div className="site-marketing-container">
           <MarketingCopyReveal className={styles.sectionHeading}>
