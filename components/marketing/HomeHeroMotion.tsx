@@ -17,7 +17,7 @@ function CapturedScreen({ selected }: { selected: number }) {
   return <AnimatePresence initial={false}><motion.img key={selected} data-hero-capture src={`${ASSETS}screen-${HERO_TEMPLATE_SCREENS[selected]}.webp`} width={1280} height={800} alt="" draggable={false} className={styles.captured} initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} transition={{duration:.6,ease:"easeOut"}}/></AnimatePresence>;
 }
 function IdleScreen({ image }: { image: "counter" | "dining" | "phone" }) {
-  return <img className={styles.fallback} src={image==="phone"?"/assets/device-platform-v2/menu-phone.webp":`${ASSETS}screen-${image==="counter"?"matcha":"dining"}.webp`} alt="" loading="lazy"/>;
+  return <img className={styles.fallback} src={image==="phone"?"/assets/device-platform-v2/menu-phone.webp":`${ASSETS}screen-${image==="counter"?"matcha":"dining-v2"}.webp`} alt="" loading="lazy"/>;
 }
 
 export default function HomeHeroMotion() {

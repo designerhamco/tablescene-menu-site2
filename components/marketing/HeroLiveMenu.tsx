@@ -85,6 +85,7 @@ function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,present
         initialised=true;return;
       }
       if([...doc.images].some(image=>{const r=image.getBoundingClientRect();return r.width>0&&r.top<doc.documentElement.clientHeight&&r.bottom>0&&!image.complete;}))return;
+      if(kind==="dining"&&[...doc.querySelectorAll<HTMLElement>('[data-aube-table-cover] .aube-table-cover-copy :is(h1,p)')].some(copy=>Number(doc.defaultView!.getComputedStyle(copy).opacity)<.99))return;
       const first=doc.querySelector<HTMLButtonElement>('[aria-label="1번째 대표 슬라이드 보기"]');
       first?.click();first?.dispatchEvent(new FocusEvent("focusin",{bubbles:true}));
       setReady(true);setStep("ready");window.clearInterval(timer);
@@ -192,7 +193,7 @@ function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,present
     },60);
     return()=>window.clearInterval(timer);
   },[active,ready,reduced,kind,onDetail,epoch,report,seeking,settled]);
-  const source=kind==="phone"?"/assets/device-platform-v2/menu-phone.webp":`/assets/hero-cafe-v1/screen-${kind==="counter"?"matcha":kind}.webp`;
+  const source=kind==="phone"?"/assets/device-platform-v2/menu-phone.webp":`/assets/hero-cafe-v1/screen-${kind==="counter"?"matcha":"dining-v2"}.webp`;
   const motion=cue?.gesture==="swipe-x"?`translateX(${(cue.progress-.5)*-24}px)`:cue?.gesture==="swipe-y"?`translateY(${(cue.progress-.5)*-24}px)`:"";
   const pulse=heroPulseAt(cue?.progress??1);
   return <div className={styles.live} data-hero-live={visible?kind:undefined} data-ready={ready} data-demo-time={seconds.toFixed(2)} data-demo-step={step} data-demo-order={orderReceived?"received":"none"} data-demo-cue={cue?.gesture??"none"} data-demo-slide={surface.slide} data-demo-popup={surface.popup} data-demo-request={surface.request} data-demo-scroll={surface.scroll} data-demo-cart={surface.cart} data-demo-phone={surface.phone}>
