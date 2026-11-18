@@ -2,10 +2,10 @@
 export type HeroPoint = readonly [number, number];
 export type HeroQuad = readonly [HeroPoint, HeroPoint, HeroPoint, HeroPoint];
 export const HERO_CAFE_CHAPTERS = [
-  { label: "디자인 템플릿", title: "매장에 어울리는 메뉴판 디자인", body: "원하는 디자인을 고르고, 우리 매장의 메뉴와 가격으로 완성하세요.", image: "venue", focus: [1010, 480], mobileFocus: [950, 410], zoom: 1 },
-  { label: "베이직 메뉴판", title: "메뉴와 기간 할인을 한눈에", body: "메뉴와 가격을 정리하고, 기간 할인은 남은 시간까지 보여주세요.", image: "counter", focus: [1010, 515], mobileFocus: [1030, 500], zoom: 1.08 },
-  { label: "다이닝 메뉴판", title: "코스 안내부터 직원 호출까지", body: "코스와 음료를 페이지별로 살펴보고, 필요한 순간 화면에서 직원을 호출하세요.", image: "dining", focus: [920, 540], mobileFocus: [920, 525], zoom: 1.04 },
-  { label: "QR 메뉴·주문", title: "QR로 메뉴 확인부터 주문까지", body: "손님이 앱 설치 없이 메뉴를 고르고, 장바구니에 담아 주문할 수 있어요.", image: "phone", focus: [880, 500], mobileFocus: [860, 490], zoom: 1 },
+  { label: "천장형 디스플레이", title: "큰 화면으로 보여주는 우리 매장 메뉴", body: "천장에 설치한 디스플레이에 메뉴판을 띄워, 멀리 있는 손님에게도 메뉴를 보여주세요.", image: "venue", focus: [1010, 480], mobileFocus: [950, 410], zoom: 1 },
+  { label: "카운터 태블릿", title: "카운터에 놓고 보여주는 메뉴판", body: "카운터나 테이블에 태블릿을 거치해, 손님이 메뉴를 직접 살펴볼 수 있게 하세요.", image: "counter", focus: [1010, 515], mobileFocus: [1030, 500], zoom: 1.08 },
+  { label: "테이블 태블릿", title: "손님께 직접 건네는 태블릿 메뉴판", body: "자리에 앉은 손님께 태블릿을 건네, 메뉴를 편하게 살펴보도록 안내하세요.", image: "dining", focus: [920, 540], mobileFocus: [920, 525], zoom: 1.04 },
+  { label: "QR 모바일 메뉴판", title: "QR을 찍으면, 내 휴대폰이 메뉴판", body: "테이블 위 QR코드를 찍으면, 손님 휴대폰에서 바로 메뉴판이 열려요.", image: "phone", focus: [880, 500], mobileFocus: [860, 490], zoom: 1 },
 ] as const;
 export const HERO_CAFE_PHOTOS = { venue: "venue.webp", counter: "counter.webp", dining: "dining.webp", phone: "phone-v3.webp" } as const;
 /** Prepare at most one demo; the tablet may warm up near the end of the opening. */
