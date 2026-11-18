@@ -22,6 +22,7 @@ import ActionFeedbackToast from "@/components/ui/ActionFeedbackToast";
 import { shouldRefreshArrivalDashboard } from "@/lib/dashboard-arrival-alerts";
 import { formatKoreanDateTime } from "@/lib/korean-date-time";
 import type { CallDashboardPageData } from "@/lib/server/call-management-service";
+import type { OperationRecordSources, OperationArrivalGroup } from "@/lib/all-menu-operations";
 
 import { initialCallManagementActionState } from "./action-state";
 import { mutateCallAction } from "./actions";
@@ -49,7 +50,10 @@ export default function CallDashboard({
   menuSiteId,
   calls,
   floorPlan,
+  recordSources, arrivalGroups,
 }: {
+  recordSources?: OperationRecordSources;
+  arrivalGroups?: OperationArrivalGroup[];
   menuSiteId: string;
   calls: CallDashboardPageData["calls"];
   floorPlan: OperationsFloorPlan;
@@ -109,6 +113,7 @@ export default function CallDashboard({
       if (handlerFilter && !handlers.includes(handlerFilter)) return false;
       if (!normalizedQuery) return true;
       return [
+        recordSources?.[call.id]?.menuSiteName ?? "",
         call.tableLabel,
         call.requestLabel,
         String(call.callNumber),
@@ -117,7 +122,7 @@ export default function CallDashboard({
         value.toLocaleLowerCase("ko-KR").includes(normalizedQuery),
       );
     });
-  }, [calls, dateFilter, handlerFilter, query, statusFilter]);
+  }, [calls, dateFilter, handlerFilter, query, statusFilter, recordSources]);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -134,9 +139,10 @@ export default function CallDashboard({
   }, [backgroundPollingEnabled, pending, router]);
 
   function callAction(call: CallDashboardPageData["calls"][number]) {
-    return call.nextStatus ? (
+    const source = recordSources?.[call.id];
+    return call.nextStatus && (!recordSources || source) ? (
       <form action={action}>
-        <input type="hidden" name="menuSiteId" value={menuSiteId} />
+        <input type="hidden" name="menuSiteId" value={source?.menuSiteId ?? menuSiteId} />
         <input type="hidden" name="callId" value={call.id} />
         <input type="hidden" name="nextStatus" value={call.nextStatus} />
         <button
@@ -154,6 +160,7 @@ export default function CallDashboard({
     <div className="site-stack-group">
       <OperationalArrivalAlert
         menuSiteId={menuSiteId}
+        arrivalGroups={arrivalGroups}
         kind="calls"
         arrivalIds={calls
           .filter((call) => call.status === "pending")
@@ -232,6 +239,7 @@ export default function CallDashboard({
         </ContentPanel>
       ) : null}
       <OperationsHistoryViews
+        listOnly={Boolean(recordSources)}
         noun="호출"
         floorPlan={floorPlan}
         records={filteredCalls.map((call) => ({
@@ -244,7 +252,7 @@ export default function CallDashboard({
           attention:
             call.status === "pending" || call.status === "acknowledged",
         }))}
-        renderList={(open) => <OperationsHistoryTable noun="호출" floorPlan={floorPlan} records={filteredCalls} renderRecord={call => <>
+        renderList={(open) => <OperationsHistoryTable noun="호출" floorPlan={floorPlan} records={filteredCalls} recordSources={recordSources} includeEmptyPoints={!recordSources} renderRecord={call => <>
                       <TableCell>#{call.callNumber}</TableCell>
                       <TableCell>{call.requestLabel}</TableCell>
                       <TableCell>
@@ -286,6 +294,7 @@ export default function CallDashboard({
                     <h3 className="type-content-title">{call.requestLabel}</h3>
                     <Badge>{STATUS_LABELS[call.status] ?? call.status}</Badge>
                   </div>
+                  {recordSources ? <p className="type-label break-words">{recordSources[call.id]?.menuSiteName ?? "확인 불가"}</p> : null}
                   <p className="type-body-sm">
                     {call.tableLabel} · 호출 #{call.callNumber}
                   </p>

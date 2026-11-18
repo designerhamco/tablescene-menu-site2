@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { OPERATIONAL_SOUND_CHANGED, getOperationalBrowserPermission, playOperationalSound, readOperationalSound } from "@/lib/operational-sound";
 import { ContentPanel } from "@/app/components/ui/content-panel";
+import type { OperationArrivalGroup } from "@/lib/all-menu-operations";
 
 import {
   getDashboardBrowserNotificationCopy,
@@ -43,17 +44,19 @@ export default function OperationalArrivalAlert({
   kind,
   arrivalIds,
   onBackgroundPollingChange,
+  arrivalGroups,
 }: {
   menuSiteId: string;
   kind: DashboardArrivalKind;
   arrivalIds: readonly string[];
   onBackgroundPollingChange?: (enabled: boolean) => void;
+  arrivalGroups?: OperationArrivalGroup[];
 }) {
   const [newCount, setNewCount] = useState(0);
   const [browserPermission, setBrowserPermission] = useState<DashboardBrowserNotificationPermission>("unsupported");
-  const [browserNotificationsEnabled, setBrowserNotificationsEnabled] = useState(false);
-  const storageKey = `menulink:dashboard-arrivals:${kind}:${menuSiteId}`;
-  const serializedIds = useMemo(() => JSON.stringify(arrivalIds), [arrivalIds]);
+  const [enabledSiteIds, setEnabledSiteIds] = useState<string[]>([]);
+  const browserNotificationsEnabled = enabledSiteIds.length > 0;
+  const serializedGroups = useMemo(() => JSON.stringify(arrivalGroups ?? [{ menuSiteId, menuSiteName: "", arrivalIds }]), [arrivalGroups, arrivalIds, menuSiteId]);
   const copy = KIND_COPY[kind];
 
   useEffect(() => {
@@ -66,7 +69,9 @@ export default function OperationalArrivalAlert({
     const syncPermission = () => {
       if (!active) return;
       setBrowserPermission(getOperationalBrowserPermission());
-      setBrowserNotificationsEnabled(readOperationalSound(menuSiteId, kind).receiveEnabled);
+      const groups = JSON.parse(serializedGroups) as OperationArrivalGroup[];
+      const enabled = groups.filter(group => readOperationalSound(group.menuSiteId, kind).receiveEnabled).map(group => group.menuSiteId);
+      setEnabledSiteIds(previous => JSON.stringify(previous) === JSON.stringify(enabled) ? previous : enabled);
     };
 
     window.queueMicrotask(syncPermission);
@@ -81,24 +86,23 @@ export default function OperationalArrivalAlert({
       window.removeEventListener(OPERATIONAL_SOUND_CHANGED, syncPermission);
       document.removeEventListener("visibilitychange", syncPermission);
     };
-  }, [menuSiteId, kind]);
+  }, [serializedGroups, kind]);
 
   useEffect(() => {
-    const currentIds = JSON.parse(serializedIds) as string[];
-    const seenIds = readSeenIds(storageKey);
-    if (seenIds === null) {
-      writeSeenIds(storageKey, mergeDashboardArrivalSeenIds({ currentIds, seenIds: [] }));
-      return;
-    }
-
-    const newIds = getNewDashboardArrivalIds({ currentIds, seenIds });
-    writeSeenIds(storageKey, mergeDashboardArrivalSeenIds({ currentIds, seenIds }));
-    if (newIds.length > 0) {
-      window.queueMicrotask(() => setNewCount((count) => count + newIds.length));
-      if (browserNotificationsEnabled) void playOperationalSound(readOperationalSound(menuSiteId, kind));
-
+    const groups = JSON.parse(serializedGroups) as OperationArrivalGroup[];
+    let count = 0, soundSiteId: string | undefined;
+    for (const group of groups) {
+      // Individual and aggregate views share the same per-site seen IDs and preferences.
+      const storageKey = `menulink:dashboard-arrivals:${kind}:${group.menuSiteId}`;
+      const currentIds = group.arrivalIds, seenIds = readSeenIds(storageKey);
+      const newIds = seenIds === null ? [] : getNewDashboardArrivalIds({ currentIds, seenIds });
+      writeSeenIds(storageKey, mergeDashboardArrivalSeenIds({ currentIds, seenIds: seenIds ?? [] }));
+      if (!newIds.length) continue;
+      count += newIds.length;
+      const enabled = enabledSiteIds.includes(group.menuSiteId);
+      if (enabled) soundSiteId ??= group.menuSiteId;
       if (shouldShowDashboardBrowserNotification({
-        enabled: browserNotificationsEnabled,
+        enabled,
         permission: browserPermission,
         newCount: newIds.length,
       })) {
@@ -106,7 +110,7 @@ export default function OperationalArrivalAlert({
         try {
           const notification = new window.Notification(notificationCopy.title, {
             body: notificationCopy.body,
-            tag: `menulink:${kind}:${menuSiteId}`,
+            tag: `menulink:${kind}:${group.menuSiteId}`,
             silent: true,
           });
           notification.onclick = () => {
@@ -118,7 +122,9 @@ export default function OperationalArrivalAlert({
         }
       }
     }
-  }, [browserNotificationsEnabled, browserPermission, kind, menuSiteId, serializedIds, storageKey]);
+    if (count) window.queueMicrotask(() => setNewCount(previous => previous + count));
+    if (soundSiteId) void playOperationalSound(readOperationalSound(soundSiteId, kind));
+  }, [enabledSiteIds, browserPermission, kind, serializedGroups]);
 
   useEffect(() => {
     if (newCount < 1) return;

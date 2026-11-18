@@ -49,7 +49,9 @@ test("새 호출은 화면에 항상 알리고 선택 시 브라우저 알림과
   const component = readSource("components/mypage/OperationalArrivalAlert.tsx");
   const policy = readSource("lib/dashboard-arrival-alerts.ts");
 
-  assert.match(component, /playOperationalSound\(readOperationalSound\(menuSiteId, kind\)\)/);
+  assert.match(component, /playOperationalSound\(readOperationalSound\(soundSiteId, kind\)\)/);
+  assert.match(component, /enabledSiteIds\.includes\(group\.menuSiteId\)/);
+  assert.match(component, /menulink:dashboard-arrivals:\$\{kind\}:\$\{group\.menuSiteId\}/);
   assert.match(readSource("lib/operational-sound.ts"), /AudioContext/);
   assert.doesNotMatch(component, /알림·소리 켜기|toggleBrowserNotifications|requestPermission/);
   const settings = readSource("components/mypage/OperationalSoundSettings.tsx");
