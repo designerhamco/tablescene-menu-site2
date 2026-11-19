@@ -1193,6 +1193,7 @@ function MenuList({
   const fitRootRef = useRef<HTMLDivElement | null>(null);
   const fitInputKey = useMemo(() => [
     page.id,
+    locale,
     columns,
     fontSizeScale,
     categoryBlocks.map((group) => `${group.category.id}:${group.items.map((item) => item.id).join(",")}:${group.optionHeaders?.map((header) => header.label).join(",") ?? ""}`).join("|"),
@@ -1201,7 +1202,7 @@ function MenuList({
       return match ? `${item.id}:${match.promotion.id}` : "";
     }).filter(Boolean).join("|"),
     priceOptionCount,
-  ].join("::"), [categoryBlocks, columns, fontSizeScale, page.id, priceOptionCount, timeSaleByItemId]);
+  ].join("::"), [categoryBlocks, columns, fontSizeScale, locale, page.id, priceOptionCount, timeSaleByItemId]);
   const [storedFitState, setStoredFitState] = useState<DisplayFitState>(DISPLAY_FIT_INITIAL_STATE);
   const fitState = storedFitState.key === fitInputKey
     ? storedFitState
