@@ -1,0 +1,162 @@
+{
+  "treatment": "one finished3:1 photograph; effects at complete photograph outer edges only",
+  "profiles": {
+    "lateral": [
+      [
+        0,
+        0
+      ],
+      [
+        12,
+        0
+      ],
+      [
+        26,
+        1
+      ],
+      [
+        74,
+        1
+      ],
+      [
+        88,
+        0
+      ],
+      [
+        100,
+        0
+      ]
+    ],
+    "vertical": [
+      [
+        0,
+        0
+      ],
+      [
+        8,
+        0
+      ],
+      [
+        14,
+        1
+      ],
+      [
+        86,
+        1
+      ],
+      [
+        92,
+        0
+      ],
+      [
+        100,
+        0
+      ]
+    ],
+    "clearLateral": [
+      [
+        0,
+        0
+      ],
+      [
+        22,
+        0
+      ],
+      [
+        29,
+        1
+      ],
+      [
+        71,
+        1
+      ],
+      [
+        78,
+        0
+      ],
+      [
+        100,
+        0
+      ]
+    ],
+    "clearVertical": [
+      [
+        0,
+        0
+      ],
+      [
+        12,
+        0
+      ],
+      [
+        16,
+        1
+      ],
+      [
+        84,
+        1
+      ],
+      [
+        88,
+        0
+      ],
+      [
+        100,
+        0
+      ]
+    ]
+  },
+  "blur": 48,
+  "coordinates": {
+    "width": 4608,
+    "height": 1536
+  },
+  "originalPlane": {
+    "x": 1536,
+    "y": 256,
+    "width": 1536,
+    "height": 1024
+  },
+  "assets": [
+    {
+      "scene": "venue",
+      "file": "venue-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/venue.jpg",
+      "sourceSha256": "de8e808eaac556b9a34c6c8b6193d95ccbef225e022baa8ca689defe1ea3fb0c",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 962574,
+      "embeddedPhotographs": 1
+    },
+    {
+      "scene": "counter",
+      "file": "counter-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/counter.jpg",
+      "sourceSha256": "27e0f25148cdcf2710bfd3c96d90b8dde001062fa20b2617b5d875be17a96e52",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 883898,
+      "embeddedPhotographs": 1
+    },
+    {
+      "scene": "dining",
+      "file": "dining-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/dining.jpg",
+      "sourceSha256": "dea30b791a88a54a26de11455906395ad38dad26f4ac129ecb3ea32b4aec0510",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 1019896,
+      "embeddedPhotographs": 1
+    },
+    {
+      "scene": "phone",
+      "file": "phone-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/phone.jpg",
+      "sourceSha256": "dd4d7c887ed7f0064e70190883d4b5da4769547a6f8c3fdaa63851b5164057e1",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 1240130,
+      "embeddedPhotographs": 1
+    }
+  ]
+}

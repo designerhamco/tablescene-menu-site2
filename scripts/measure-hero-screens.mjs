@@ -22,17 +22,17 @@ function grayQuad(data,w,h,roi){
  return {quad:[corner(0,0),corner(1,0),corner(1,1),corner(0,1)],pixels:best};
 }
 
-const sources={venue:'venue.png',counter:'counter.jpg',dining:'dining.jpg',phone:'phone.webp'};
+const sources={venue:'venue.jpg',counter:'counter.jpg',dining:'dining.jpg',phone:'phone.jpg'};
 const regions={venue:[[880,250,1080,410],[1060,240,1280,410],[1270,220,1535,410],[1300,450,1410,530]],counter:[[980,220,1420,480]],dining:[[900,220,1340,510]],phone:[[1050,180,1290,530]]};
 const geometry={};
 for(const[scene,file]of Object.entries(sources)){
- const {data,info}=await sharp(`assets/hero-photo-sources-v6/${file}`).rotate().removeAlpha().raw().toBuffer({resolveWithObject:true});
- const screens=regions[scene].map(roi=>grayQuad(data,info.width,info.height,roi));
+ const {data,info}=await sharp(`assets/hero-photo-sources-v7/${file}`).rotate().removeAlpha().raw().toBuffer({resolveWithObject:true});
+ const screens=regions[scene].map(roi=>grayQuad(data,info.width,info.height,roi.map(value=>value*info.width/2172)));
  geometry[scene]={source:file,width:info.width,height:info.height,nativeScreens:screens.map(s=>s.quad),screens:screens.map(s=>s.quad.map(([x,y])=>[Number((x*4608/info.width-1536).toFixed(4)),Number((y*1536/info.height-256).toFixed(4))]))};
  if(scene!=='venue'){
   const rgba=Buffer.alloc(info.width*info.height*4);
   for(const i of screens[0].pixels){rgba[i*4]=255;rgba[i*4+1]=255;rgba[i*4+2]=255;rgba[i*4+3]=255;}
-  await sharp(rgba,{raw:{width:info.width,height:info.height,channels:4}}).png().toFile(`public/assets/hero-cafe-v6/${scene}-screen-mask.png`);
+  await sharp(rgba,{raw:{width:info.width,height:info.height,channels:4}}).png().toFile(`public/assets/hero-cafe-v7/${scene}-screen-mask.png`);
  }
  console.log(scene,JSON.stringify(geometry[scene].screens));
 }
