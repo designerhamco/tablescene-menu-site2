@@ -306,6 +306,7 @@ const Navbar = () => {
                 >
                   {item.path === "/faq" ? <SupportNavigation pathname={pathname} /> : <ServiceHomeLink
                     href={item.path}
+                    instant
                     aria-current={isActive ? item.sectionId ? 'location' : 'page' : undefined}
                     aria-disabled={item.disabled ? true : undefined}
                     tabIndex={item.disabled ? -1 : undefined}

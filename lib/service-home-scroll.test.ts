@@ -1,12 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { scrollToHomeService, scrollToHomeStart } from "./service-home-scroll";
+import { HOME_START_EVENT, scrollToHomeService, scrollToHomeStart } from "./service-home-scroll";
 
 function environment(initialReady: boolean) {
   let nextFrame = 0, ready = initialReady, scrollY = 7000;
   const frames = new Map<number, FrameRequestCallback>();
   const listeners = new Map<string, Set<() => void>>();
   const moves: string[] = [];
+  const behaviors: (ScrollBehavior | undefined)[] = [];
+  const events: string[] = [];
   const observers: Observer[] = [];
   class Observer {
     constructor(readonly callback: () => void) { observers.push(this); }
@@ -17,16 +19,17 @@ function environment(initialReady: boolean) {
     window: {
       location: { pathname: "/" },
       get scrollY() { return scrollY; },
+      dispatchEvent(event: Event) { events.push(event.type); },
       addEventListener(name: string, callback: () => void) { if (!listeners.has(name)) listeners.set(name, new Set()); listeners.get(name)!.add(callback); },
       removeEventListener(name: string, callback: () => void) { listeners.get(name)?.delete(callback); },
-      scrollTo({ top }: { top: number }) { scrollY = top; moves.push("start"); },
+      scrollTo({ top, behavior }: ScrollToOptions) { scrollY = top!; moves.push("start"); behaviors.push(behavior); },
     },
     document: {
       body: {},
       fonts: { status: "loaded", ready: Promise.resolve() },
       querySelector(selector: string) { return selector === "[data-hero-motion]" ? { dataset: { reduced: "false" } } : {}; },
       querySelectorAll() { return Array.from({ length: 3 }, () => ({ dataset: { ready: String(ready) } })); },
-      getElementById(id: string) { return { scrollIntoView() { scrollY = 9000; moves.push(id); } }; },
+      getElementById(id: string) { return { scrollIntoView({ behavior }: ScrollIntoViewOptions) { scrollY = 9000; moves.push(id); behaviors.push(behavior); } }; },
     },
     MutationObserver: Observer,
     requestAnimationFrame(callback: FrameRequestCallback) { frames.set(++nextFrame, callback); return nextFrame; },
@@ -36,6 +39,8 @@ function environment(initialReady: boolean) {
   for (const [key, value] of Object.entries(values)) Object.defineProperty(globalThis, key, { value, configurable: true, writable: true });
   return {
     moves,
+    behaviors,
+    events,
     get scrollY() { return scrollY; },
     set scrollY(value: number) { scrollY = value; },
     flush() { const pending = [...frames.values()]; frames.clear(); for (const callback of pending) callback(0); },
@@ -55,9 +60,11 @@ test("brand navigation supersedes a queued service jump and resets the page star
   const serviceCleanup = scrollToHomeService("service-dining", "smooth");
   const cleanup = scrollToHomeStart();
   try {
-    env.flush();
     assert.equal(env.scrollY, 0);
+    env.flush();
     assert.deepEqual(env.moves, ["start"]);
+    assert.deepEqual(env.behaviors, ["instant"]);
+    assert.deepEqual(env.events, [HOME_START_EVENT]);
   } finally { cleanup(); serviceCleanup(); env.restore(); }
 });
 
@@ -76,6 +83,7 @@ test("service navigation never jumps again after a demo becomes ready", () => {
 test("late programmatic scrolling cannot replace an explicit brand destination", () => {
   const env = environment(false);
   const serviceCleanup = scrollToHomeService("service-display", "instant");
+  assert.deepEqual(env.moves, ["service-display"]);
   env.flush();
   const cleanup = scrollToHomeStart();
   try {
@@ -84,6 +92,8 @@ test("late programmatic scrolling cannot replace an explicit brand destination",
     env.input("scroll"); env.ready(); env.flush();
     assert.equal(env.scrollY, 0);
     assert.deepEqual(env.moves, ["service-display", "start", "start"]);
+    assert.deepEqual(env.behaviors, ["instant", "instant", "instant"]);
+    assert.deepEqual(env.events, [HOME_START_EVENT]);
   } finally { cleanup(); serviceCleanup(); env.restore(); }
 });
 
