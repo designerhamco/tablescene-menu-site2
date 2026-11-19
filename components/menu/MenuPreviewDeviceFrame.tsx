@@ -326,7 +326,7 @@ export default function MenuPreviewDeviceFrame(
                     })}
                     scroll={false}
                     tabIndex={showToolbar ? undefined : -1}
-                    aria-current={isSelected ? "page" : undefined}
+                    aria-current={isSelected ? "page" : "false"}
                     className="site-preview-control"
                   >
                     <PreviewDeviceIcon device={candidate} />
@@ -364,7 +364,7 @@ export default function MenuPreviewDeviceFrame(
                 {([['orderedBalancedFit', '묶음형'], ['orderedFit', '채움형']] as const).map(([mode, label]) => (
                   <Link key={mode} href={buildPreviewUrl({device, orientation, layoutMode: mode})} scroll={false}
                     tabIndex={showToolbar ? undefined : -1}
-                    aria-current={layoutMode === mode ? "true" : undefined} data-preview-layout-mode={mode}
+                    aria-current={layoutMode === mode ? "true" : "false"} data-preview-layout-mode={mode}
                     className="site-preview-control">{label}</Link>
                 ))}
               </div>

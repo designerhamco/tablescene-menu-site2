@@ -12,7 +12,7 @@
 
 ### 어두운 미리보기 도구막대의 버튼 구분 — 2026-11-19
 
-베이직·다이닝·디스플레이의 상단 공통 도구는 `site-preview-control`과 공통 `--ui-preview-button-*` 토큰을 사용한다. 실행 버튼은 불투명한 밝은 회색 면(`--ui-surface-hover`)·검정 글자·은은한 검정8% 경계로 표시하며, 밝은 테두리를 두르지 않는다. hover는 `--ui-surface-soft`, pressed는 `--ui-border`, 선택은 기존 흰 바탕·어두운 문구다. 비활성은 옅은 면/문구로 표현하고 hover/press는 차단한다. 도움말과 펼치기·접기는 `site-icon-control` / `data-icon-appearance="bare"`를 사용하는 배경·테두리 없는 흰색 아이콘으로, hover/pressed에도 면을 추가하지 않는다. 기존 클릭 영역과 키보드 포커스는 유지한다. 막대의 불투명도, 버튼 크기·순서·배치·기능은 바꾸지 않는다. 일반 `Button` / `site-button-primary`의 기본 검정 면은 변경하지 않는다. 컴포넌트 가이드 `ControlStateExamples`의 실제 공통 클래스 예시와 상태 비교표가 같은 토큰을 사용한다. 이전 반투명 회색 면·밝은 경계 시안은 이 규칙으로 대체한다.
+베이직·다이닝·디스플레이의 상단 공통 도구는 `site-preview-control`과 공통 `--ui-preview-*` 토큰을 사용한다. 선택한 기기·배치는 흰 면·검정 글자, 비선택 탭(`aria-current="false"` / `aria-pressed="false"`)과 꺼진 호출·주문은 진한 회색(`#35373c`)·흰 글자·은은한 흰색8% 경계다. 비선택은 여전히 조작 가능하며 hover/pressed도 진한 회색 계열을 유지한다. 실제 화면 보기·페이지 이동·회전 같은 실행 버튼은 밝은 회색 면(`--ui-surface-hover`)·검정 글자·은은한 검정8% 경계다. 실제 조작 불가(`disabled` / `aria-disabled`)는 더 어두운 면(`#202126`)·흐린 글자(`#6f737c`)로 표시하며 hover/press는 차단한다. 비선택과 조작 불가를 같은 상태로 취급하지 않는다. 도움말과 펼치기·접기는 `site-icon-control` / `data-icon-appearance="bare"`를 사용하는 배경·테두리 없는 흰색 아이콘으로, hover/pressed에도 면을 추가하지 않는다. 기존 클릭 영역과 키보드 포커스는 유지한다. 막대의 불투명도, 버튼 크기·순서·배치·기능은 바꾸지 않는다. 일반 `Button` / `site-button-primary`의 기본 검정 면은 변경하지 않는다. 컴포넌트 가이드 `ControlStateExamples`의 실제 공통 클래스 예시와 상태 비교표가 같은 토큰을 사용한다. 비선택 탭까지 밝은 회색으로 처리했던 이전 시안은 이 규칙으로 대체한다.
 
 ### 버튼 모양이 달라지는 경계 (2026-11-06)
 
