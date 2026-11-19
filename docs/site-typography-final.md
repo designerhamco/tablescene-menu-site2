@@ -4,15 +4,16 @@
 
 2026-10-26 사용자가 첨부한 홈 플랜 화면의 전체 비율을 기준으로 한다. PC에서 페이지 제목36px/700, 큰 구역 제목28px/700, 하위 구역 제목24px/700, 대표 가격44px/700, 페이지 설명·일반 본문16px/400, 사이트 탐색16px/500, 버튼14px/600, 보조 설명14px, 하단 작은 안내13px로 역할을 고정한다.
 
-## 공식 사이트 대표 서체 (2026-11-11)
+## 공식 사이트 대표 서체 (2026-11-19)
 
-- 한글은 Pretendard, 영문과 숫자는 Tenor Sans다. 혼합 문장도 공통 `--font-family-site: "Tenor Sans", "Pretendard", "Noto Sans KR", system-ui, sans-serif` 스택으로 문자별 적용한다. 한글 글리프가 없는 Tenor Sans에서 Pretendard로 대체된다. 사이트 글꼴은 `styles/fonts.css`에서 로드한다.
+- 영문 알파벳 A–Z/a–z는 Tenor Sans, 한글·숫자·기호는 Pretendard다. 혼합 문장도 공통 `--font-family-site-ui: "ArtiMenu Site Latin", "Pretendard", "Noto Sans KR", system-ui, sans-serif` 스택으로 문자별 적용한다. `styles/fonts.css`의 사이트 전용 Tenor Sans 별칭은 `unicode-range: U+0041-005A, U+0061-007A`로 알파벳만 담당한다. 숫자·문장부호·통화·백분율 기호는 다음 Pretendard에서 표시한다. 글리프가 없는 문자는 기존 대체 서체 순서를 따른다.
 - 공식 사이트 본문·제목·탐색·버튼·입력·공통 팝업은 이 스택을 상속한다. 기존 역할별 크기·굵기·행간·자간은 유지한다.
-- 고객 메뉴판 디자인·저장된 서체·스타터·실제 렌더러·미리보기/시연 안의 글자에는 적용하지 않는다. 메뉴판의 `--menu-font-ko`/`--menu-font-en`과 Tailwind 기초 `--font-sans`는 독립적으로 유지한다. 로고·코드 식별자용 고정폭 서체는 기존 그래픽/의미 역할을 보존한다.
+- 고객 메뉴판 디자인·저장된 서체·스타터·실제 렌더러·미리보기/시연 안의 메뉴판 글자에는 적용하지 않는다. 원본 `Tenor Sans`의 문자 범위와 메뉴판의 `--menu-font-ko`/`--menu-font-en`, Tailwind 기초 `--font-sans`는 독립적으로 유지한다. 메뉴판 뷰어/렌더러가 참조하는 기존 `--font-family-site` 스택도 그대로 보존하며 사이트 UI는 새 `--font-family-site-ui`만 사용한다. 로고·서체 선택기의 서체 견본·코드 식별자용 고정폭 서체는 기존 그래픽/의미 역할을 보존한다.
+- 변경 시 `node scripts/qa-site-fonts.mjs`로 실제 렌더링 서체를 문자 종류별로 확인하고, 메뉴판 미리보기의 원본 Tenor Sans 숫자·기호도 함께 확인한다. 메뉴판은 PC·태블릿·모바일에서 변경 전후 서체·크기·굵기를 비교한다.
 
 ## 푸터 하단 장식 글자 서체 (2026-11-12)
 
-공통 푸터 하단의 큰 ArtiMenu 텍스트도 `--font-family-site`를 사용해 영문 Tenor Sans를 적용한다. 기존 Pretendard 고정 예외는 제거한다. 장식의 크기·굵기·행간·자간·색상과 회색 표면 안에서 하단이 잘리는 구성은 유지한다. 별도 로고 자산과 고객 메뉴판 서체에는 적용하지 않는다.
+공통 푸터 하단의 큰 ArtiMenu 텍스트도 `--font-family-site-ui`를 사용해 영문 Tenor Sans를 적용한다. 기존 Pretendard 고정 예외는 제거한다. 장식의 크기·굵기·행간·자간·색상과 회색 표면 안에서 하단이 잘리는 구성은 유지한다. 별도 로고 자산과 고객 메뉴판 서체에는 적용하지 않는다.
 
 ## 헤더 주메뉴 굵기 (2026-11-11)
 

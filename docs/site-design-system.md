@@ -324,7 +324,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 
 사용자 요청에 따라 티오더와 카카오비즈니스 세미나의 제목/본문/콘텐츠 구분을 참고했다. 아래 기준이 과거의 12–14px 본문, 14px 헤더 및 모든 입력 40px 규칙을 대체한다. 메뉴판과 상품 화면 축소 시안은 제외한다.
 
-- `styles/typography.css`가 단일 폰트 기준이다. 한글 Pretendard·영문/숫자 Tenor Sans의 공통 `--font-family-site`를 사용하며 메뉴판 디자인에는 적용하지 않는다. 400 본문 / 500 보조 강조 / 600 항목·탐색 / 700 주요 제목을 구분한다. 일반 페이지 제목은 모바일28px·태블릿32px·PC36px이다.
+- `styles/typography.css`가 단일 폰트 기준이다. 공식 사이트는 영문 알파벳 A–Z/a–z만 Tenor Sans, 한글·숫자·기호는 Pretendard로 표시한다(2026-11-19). 공통 `--font-family-site-ui`와 알파벳 범위만 가진 `ArtiMenu Site Latin` 별칭을 사용한다. 원본 Tenor Sans·기존 `--font-family-site`·메뉴판 서체는 유지하며 메뉴판 디자인과 미리보기/시연 안의 메뉴판에는 적용하지 않는다. 400 본문 / 500 보조 강조 / 600 항목·탐색 / 700 주요 제목을 구분한다. 일반 페이지 제목은 모바일28px·태블릿32px·PC36px이다.
 - 일반 본문은 모든 기기에서16px, 강조 본문은18/20px, 보조 설명은14px, 날짜·메타는13px이다. `text-copy`/`text-support`/`text-meta`는 크기·줄높이만 정하므로 필요한 굵기·색상을 합성할 수 있다. `cn`의 Tailwind 병합도 이 역할을 인식한다.
 - PC 글자를 키우기 위해 html/rem 또는 기초 `--font-size-*`, 기존 `text-xs`/`text-sm` 값을 바꾸지 않는다. 실제 메뉴판의 독립 폰트·핏·축소 미리보기에는 영향을 주지 않는다.
 - 폼 컨트롤은 필터 `sm` 40px, 계정 `md` 44px, 신청 `lg` 48px, 큰 질문 검색 56px이다. Input/Textarea는 `fieldSize`, SelectTrigger는 `size`를 사용하며 네이티브 입력은 `data-field-size` 또는 `site-field-*`로 동일 규격을 사용한다. 네이티브 input의 `size`는 문자 수 속성으로 보존한다.
@@ -350,7 +350,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 - 라이브러리의 `#shaped-tabs`에서 영역형과 대·중·소를 실제로 전환하고 상태 표에서 기본/hover/pressed/focus/disabled를 비교한다. 폐기한 파일형·라운드 연결형을 새 화면에 사용하지 않는다.
 - 공통 Footer는 옅은 라운드 표면에 브랜드/서비스/이용 안내/고객지원, 사업자 정보, 약관을 묶고 같은 회색 표면의 맨 아래에 배경보다 조금 진한 연회색 장식 워드마크를 배치한다. 워드마크의 하단은 표면의 둥근 경계 안에서 잘리며, 박스 바깥에는 표시하지 않는다. 실제 정보는 보통 본문·보조 크기를 유지하며 장식 글자만 의도적으로 일부 잘라 표시하고 `aria-hidden` 처리한다. 외부 사업자 확인 링크와 기존 사업자·연락 정보는 유지한다.
 - 푸터 바깥 배경은 투명하다. 안쪽의 회색 라운드 박스와 장식 워드마크는 유지하며, 다이닝 소개의 공통 페이지 셸은 `--site-dining-background`를 푸터 아래와 페이지 마지막까지 연결한다.
-- 푸터 하단의 큰 ArtiMenu 장식 텍스트는 공통 `--font-family-site`로 Tenor Sans를 사용한다(2026-11-12). 고정 Pretendard 예외를 두지 않으며 기존 크기·색상·하단 잘림과 회색 표면은 유지한다.
+- 푸터 하단의 큰 ArtiMenu 장식 텍스트는 공통 `--font-family-site-ui`로 Tenor Sans를 사용한다(2026-11-19). 고정 Pretendard 예외를 두지 않으며 기존 크기·색상·하단 잘림과 회색 표면은 유지한다.
 - 스타일은 `app/components/layout/Footer.module.css` 한 곳에서 관리한다. 구 landing Footer도 동일 컴포넌트를 다시 내보내며 페이지별 푸터 디자인을 복제하지 않는다. `#site-footer`는 라이브러리 바로가기에서도 실제 푸터를 보여준다.
 
 
