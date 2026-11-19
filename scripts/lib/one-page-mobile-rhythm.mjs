@@ -158,10 +158,10 @@ export function getOnePageMobileRhythmFailures(measurement) {
   if ((measurement.categoryDescriptions ?? []).some((description) => Math.abs(description.size - rem * 0.875) > 0.05)) failures.push('category descriptions are not 14px');
   for (const [role, expected] of Object.entries(expectedFonts)) if (measurement.fonts?.[role] != null && Math.abs(measurement.fonts[role] - expected) > 0.05) failures.push(`${role}: mobile typography base changed`);
   const expectedTopControlHeight = measurement.callEnabled ? rem * 3.5 : rem * 3;
-  const expectedTopControlGap = measurement.callEnabled ? rem : rem * .75;
+  const expectedTopControlGap = measurement.callEnabled ? rem : rem * .375;
   if (measurement.languageHeight != null && Math.abs(measurement.languageHeight - expectedTopControlHeight) > 0.25) failures.push(`top control row is not ${measurement.callEnabled ? 56 : 48}px`);
   if (measurement.callEnabled && (measurement.callBarHeight == null || Math.abs(measurement.callBarHeight - rem * 3.5) > 0.25)) failures.push('enabled Call bar is not 56px');
-  if (measurement.languageToBrand != null && Math.abs(measurement.languageToBrand - expectedTopControlGap) > 0.25) failures.push(`top row to brand gap is not ${measurement.callEnabled ? 16 : 12}px`);
+  if (measurement.languageToBrand != null && Math.abs(measurement.languageToBrand - expectedTopControlGap) > 0.25) failures.push(`top row to brand gap is not ${measurement.callEnabled ? 16 : 6}px`);
   if (measurement.brandToDescription != null && Math.abs(measurement.brandToDescription - measurement.itemGap / 1.25 * 0.75) > 0.25) failures.push('brand to description gap is not 12px');
   if ((measurement.upperContentGaps ?? []).some((gap) => Math.abs(gap - rem * 1.5) > 0.25)) failures.push('upper content block gap is not 24px');
   return failures;

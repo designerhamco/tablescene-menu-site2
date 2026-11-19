@@ -5331,7 +5331,7 @@ video {
   .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-adaptive-fit="true"] .cafe-a-panel-mobile-intro { display: none; }
 }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] { background: #fff !important; }
-.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-plain-intro { padding: var(--panel-hero-inset); background: #fff; display: flex; flex-direction: column; gap: 1rem; }
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-plain-intro { padding: var(--panel-hero-inset); background: #fff; display: flex; flex-direction: column; gap: calc(1rem - var(--cafe-a-language-brand-gap-trim, 0rem)); }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-plain-intro .cafe-a-panel-identity { position: relative; inset: auto; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-identity .cafe-a-store-logo { object-fit: contain; max-width: 75%; max-height: 5rem; width: auto; height: auto; filter: drop-shadow(0 1px 1px #0006) drop-shadow(0 -1px 1px #fff5); }
 
@@ -5632,8 +5632,17 @@ video {
   align-items: center;
 }
 
+/* A standalone language row leaves less space before the in-flow store identity. */
+.cafe-a-typography[data-cafe-a-mobile-style="true"]:not([data-one-page-call-enabled="true"]) :is(
+  header:has(> .cafe-a-mobile-language-row [data-language-menu-trigger]),
+  .cafe-a-panel-plain-intro:has([data-language-menu-trigger]),
+  [data-upper-left-intro][data-photo="false"]:has([data-language-menu-trigger])
+) {
+  --cafe-a-language-brand-gap-trim: .375rem;
+}
+
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] header .cafe-a-mobile-language-row + .cafe-a-mobile-header-copy {
-  margin-top: var(--cafe-a-mobile-brand-copy-gap);
+  margin-top: calc(var(--cafe-a-mobile-brand-copy-gap) - var(--cafe-a-language-brand-gap-trim, 0rem));
 }
 
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] header .cafe-a-mobile-header-copy > div {
