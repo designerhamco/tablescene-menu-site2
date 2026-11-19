@@ -29,7 +29,7 @@ export default function WideScreenRules({ id }: { id: string }) {
     <div className="site-stack-copy">
       <h3 className="type-content-title">메인·베이직·다이닝·디스플레이의 제목·본문 여백</h3>
       <div className={styles.usageTable}><table aria-label="메인·서비스 소개 제목 기준"><thead><tr><th>범위</th><th>모바일</th><th>태블릿</th><th>PC</th><th>굵기 / 줄높이</th></tr></thead><tbody><tr><td>서비스 첫 제목·주요 섹션·기능 스토리 제목</td><td>{SITE_MARKETING_TITLE_POLICY.mobile}px</td><td>{SITE_MARKETING_TITLE_POLICY.tablet}px</td><td>{SITE_MARKETING_TITLE_POLICY.desktop}px</td><td>{SITE_MARKETING_TITLE_POLICY.weight} / {SITE_MARKETING_TITLE_POLICY.lineHeight}</td></tr><tr><td>메인 첫 히어로만</td><td>{SITE_HOME_HERO_TITLE_POLICY.mobile}px</td><td>{SITE_HOME_HERO_TITLE_POLICY.tablet}px</td><td>{SITE_HOME_HERO_TITLE_POLICY.desktop}px</td><td>{SITE_HOME_HERO_TITLE_POLICY.weight} / {SITE_HOME_HERO_TITLE_POLICY.lineHeight}</td></tr></tbody></table></div>
-      <p className="type-body-sm site-copy-muted">이 네 페이지 본문만 최대 폭 없이 공통 화면 가장자리 여백을 사용합니다. PC는40–48px, 모바일·태블릿은 기존 공통 gutter이며 헤더·푸터와 일반 페이지의 최대 폭은 유지합니다. 첫 제목 위는 모두 공통 page-heading-top(40–72px)이고, 제목 크기는 기존 와이드 글자 보정을 함께 받습니다. 카드·요금·본문·시연 화면은 각 역할을 유지합니다.</p>
+      <p className="type-body-sm site-copy-muted">메인 본문의 제목·설명·버튼과 콘텐츠 그리드는 헤더·푸터와 같은 최대1600px 중앙 컨테이너를 사용합니다. 배경 사진·배경색·시연 카메라는 화면 전체를 유지하며, 좁은 화면은 기존 공통 gutter를 사용합니다. 베이직·다이닝·디스플레이 소개는 메인 안의 서비스 프레임으로 통합되어 같은 콘텐츠 경계를 따릅니다. 제목 크기는 기존 와이드 글자 보정을 함께 받고 카드·본문·시연 화면은 각 역할을 유지합니다.</p>
     </div>
     <div className="site-collection mt-5">
       <h3 className="type-content-title" id={`${id}-mockups`}>미리보기 목업 크기 기준</h3>
