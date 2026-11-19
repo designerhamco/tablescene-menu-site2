@@ -7,6 +7,8 @@ import {
   validateImageUploadFile,
   type ImageUploadTarget as SharedImageUploadTarget,
 } from "@/lib/image-upload-policy";
+import { supportsMenuPatternBands } from "@/lib/menu-pattern-bands";
+import { prepareMenuPatternBandImage } from "@/lib/menu-pattern-band-upload";
 import { getLegacyMenuPath, getPublicMenuPath } from "@/lib/menu-url";
 import { requireMenuSiteWriteAccess } from "@/lib/server/menu-site-access-service";
 
@@ -18,7 +20,7 @@ type ImageTarget = SharedImageUploadTarget;
 type SupabaseDataClient = ReturnType<typeof createAdminClient>;
 type PersistentImageTarget = Exclude<
   ImageTarget,
-  "menu-popup-image-draft" | "site-logo-draft" | "site-cover-draft" | "site-intro-image-draft" | "display-page-image-draft" | "menu-item-draft"
+  "menu-pattern-band-draft" | "menu-popup-image-draft" | "site-logo-draft" | "site-cover-draft" | "site-intro-image-draft" | "display-page-image-draft" | "menu-item-draft"
 >;
 
 type TargetRecord = {
@@ -30,6 +32,7 @@ type TargetRecord = {
 
 function isImageTarget(value: string): value is ImageTarget {
   return (
+    value === "menu-pattern-band-draft" ||
     value === "menu-popup-image-draft" ||
     value === "site-logo" ||
     value === "site-logo-draft" ||
@@ -46,6 +49,7 @@ function isImageTarget(value: string): value is ImageTarget {
 
 function isDraftImageTarget(target: ImageTarget) {
   return (
+    target === "menu-pattern-band-draft" ||
     target === "menu-popup-image-draft" ||
     target === "site-logo-draft" ||
     target === "site-cover-draft" ||
@@ -85,6 +89,8 @@ function getExtension(file: File) {
 
 function getPath(target: ImageTarget, menuId: string, recordId: string, extension: string) {
   switch (target) {
+    case "menu-pattern-band-draft":
+      return `menu-sites/${menuId}/draft/pattern-bands/${crypto.randomUUID()}.webp`;
     case "menu-popup-image-draft":
       return `menu-sites/${menuId}/draft/popup/${crypto.randomUUID()}.${extension}`;
     case "site-logo":
@@ -112,6 +118,8 @@ function getPath(target: ImageTarget, menuId: string, recordId: string, extensio
 
 function getPathPrefix(target: ImageTarget, menuId: string, recordId: string) {
   switch (target) {
+    case "menu-pattern-band-draft":
+      return `menu-sites/${menuId}/draft/pattern-bands/`;
     case "menu-popup-image-draft":
       return `menu-sites/${menuId}/draft/popup/`;
     case "site-logo":
@@ -174,7 +182,7 @@ async function requireMenuImageAccess(menuId: string) {
 
   const { data: menuSite, error } = await supabase
     .from("menu_sites")
-    .select("id, user_id, slug, logo_url, logo_path, cover_image_url, cover_image_path, intro_image_url, intro_image_path")
+    .select("id, user_id, slug, template_key, settings, logo_url, logo_path, cover_image_url, cover_image_path, intro_image_url, intro_image_path")
     .eq("id", menuId)
     .maybeSingle();
 
@@ -208,7 +216,7 @@ async function getTargetRecord(
     };
   }
 
-  if (target === "menu-popup-image-draft" || target === "site-logo-draft") {
+  if (target === "menu-pattern-band-draft" || target === "menu-popup-image-draft" || target === "site-logo-draft") {
     return {
       error: null,
       record: {
@@ -414,10 +422,14 @@ export async function POST(request: Request) {
     return jsonError(validationMessage);
   }
 
-  const extension = getExtension(file);
+  const patternUpload = target === "menu-pattern-band-draft";
+  const extension = patternUpload ? "webp" : getExtension(file);
   const access = await requireMenuImageAccess(menuId);
   if (access.error || !access.menuSite || !access.supabase) return access.error;
   const { supabase, menuSite } = access;
+  if (patternUpload && !supportsMenuPatternBands(menuSite.template_key, menuSite.settings)) {
+    return jsonError("이 템플릿은 패턴 띠를 지원하지 않습니다.");
+  }
   const { record, error } = await getTargetRecord(supabase, menuSite, target, menuId, recordId);
 
   if (error || !record) {
@@ -431,11 +443,13 @@ export async function POST(request: Request) {
     ? safePreviousPath
     : getPath(target, menuId, recordId, extension);
 
-  const bytes = await file.arrayBuffer();
+  const original = await file.arrayBuffer();
+  const bytes = patternUpload ? await prepareMenuPatternBandImage(original) : original;
+  if (!bytes) return jsonError("정사각형 정지 이미지를 선택해주세요.");
   const { error: uploadError } = await supabase.storage.from(BUCKET).upload(nextPath, bytes, {
     cacheControl: "31536000",
-    contentType: file.type,
-    upsert: true,
+    contentType: patternUpload ? "image/webp" : file.type,
+    upsert: !patternUpload,
   });
 
   if (uploadError) {

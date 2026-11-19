@@ -3,6 +3,8 @@ import { readMenuTextColors } from "@/lib/menu-text-colors";
 import { getSavedMenuDesign } from "@/lib/menu-design-identity";
 import { getDefaultDesignReview } from "@/lib/menu-design-policy";
 import { hasFixedHeaderAlignment } from "@/lib/menu-design-surfaces";
+import MenuPatternBandsForm from "@/components/mypage/menu-editor/MenuPatternBandsForm";
+import { getMenuPatternBands, supportsMenuPatternBands } from "@/lib/menu-pattern-bands";
 import MenuSurfaceSettingsForm from "@/components/mypage/menu-editor/MenuSurfaceSettingsForm";
 import MenuDesignSwitcher from "@/components/mypage/menu-editor/MenuDesignSwitcher";
 import { getMenuPlanEntitlement } from "@/lib/server/menu-plan-design-service";
@@ -1212,6 +1214,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
   const site = menuSite as MenuSite;
   const menuDesignPlan = requestedActiveTab === "design" && accessContext.isOwner ? await getMenuPlanEntitlement(createDesignAdminClient(), menuId, user.id) : null;
   const savedMenuDesignId = site.settings && typeof site.settings === "object" && !Array.isArray(site.settings) && typeof site.settings.menu_design_id === "string" ? site.settings.menu_design_id : site.template_key ?? "";
+  const patternBands = supportsMenuPatternBands(site.template_key, site.settings)
+    ? getMenuPatternBands(site.template_key, site.page_settings) : undefined;
   const isAubeTable = isAubeTableTemplate(site.template_key);
   const accessState = await getMenuSiteAccessStateForMenuSite({ menuSiteId: site.id });
   if (!accessState?.canEdit) {
@@ -2583,6 +2587,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
                       />
                     </div>
                     {(menuCoverCapabilities.coverMode === "section" || isAubeTableTemplate(site.template_key)) ? <MenuAppearanceSettingsForm key={JSON.stringify(resolveMenuAppearance(site.page_settings, site.template_key, typeof (site.settings as Record<string, unknown> | null)?.menu_design_id === "string" ? (site.settings as Record<string, string>).menu_design_id : undefined))} initial={resolveMenuAppearance(site.page_settings, site.template_key, typeof (site.settings as Record<string, unknown> | null)?.menu_design_id === "string" ? (site.settings as Record<string, string>).menu_design_id : undefined)} basic={menuCoverCapabilities.coverMode === "section"} album={getDefaultDesignReview(typeof (site.settings as Record<string, unknown> | null)?.menu_design_id === "string" ? (site.settings as Record<string, string>).menu_design_id : undefined, site.template_key)?.itemLayout === "album"} formId="design-settings-form" /> : null}
+                    {patternBands ? <MenuPatternBandsForm key={JSON.stringify(patternBands)} menuId={site.id} initial={patternBands} hasDefault={site.template_key === "fast_food_loop_bagel_a"} disabled={isReadOnly} /> : null}
                     <FinalActionRow>
                       <ResetTabActionButton menuId={site.id} kind="design" />
                       <SubmitButton tone="final" dirtyFormId="design-settings-form" disabled={isReadOnly}>저장</SubmitButton>

@@ -3069,7 +3069,6 @@ video {
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"] {
   /* Keep the tablet's original proportions; both rows share this square size. */
   --loop-bagel-checker-square: clamp(0.42rem, 1.05vmin, 0.72rem);
-  padding-block: calc(var(--loop-bagel-checker-square) * 2);
 }
 
 .cafe-a-typography[data-template-key="fast_food_loop_bagel_a"][data-preview-device="pc"] {
@@ -3092,24 +3091,39 @@ video {
   }
 }
 
-.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"]::before,
-.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"]::after {
-  background-color: #ffffff;
-  background-image: conic-gradient(var(--menu-role-brand-color, #4354ef) 25%, #ffffff 0 50%, var(--menu-role-brand-color, #4354ef) 0 75%, #ffffff 0);
-  background-size: calc(var(--loop-bagel-checker-square) * 2) calc(var(--loop-bagel-checker-square) * 2);
+.cafe-a-typography[data-menu-pattern-bands] {
+  --menu-pattern-band-thickness: var(--menu-pattern-band-size, calc(var(--loop-bagel-checker-square) * 2));
+  --menu-pattern-band-top: var(--menu-pattern-band-thickness);
+}
+
+.cafe-a-typography[data-menu-pattern-bands]:not([data-scroll-template="real-matcha"]) {
+  padding-block: var(--menu-pattern-band-top) var(--menu-pattern-band-thickness);
+}
+
+.cafe-a-typography[data-menu-pattern-bands="checker"] {
+  --menu-pattern-band-image: conic-gradient(var(--menu-role-brand-color, #4354ef) 25%, #ffffff 0 50%, var(--menu-role-brand-color, #4354ef) 0 75%, #ffffff 0);
+}
+
+.cafe-a-typography[data-menu-pattern-bands]::before,
+.cafe-a-typography[data-menu-pattern-bands]::after {
+  background-image: var(--menu-pattern-band-image);
+  background-repeat: repeat-x;
   content: "";
-  height: calc(var(--loop-bagel-checker-square) * 2);
   inset-inline: 0;
   pointer-events: none;
   position: absolute;
   z-index: 60;
 }
 
-.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"]::before {
+.cafe-a-typography[data-menu-pattern-bands]::before {
+  height: var(--menu-pattern-band-top);
+  background-size: var(--menu-pattern-band-top) var(--menu-pattern-band-top);
   inset-block-start: 0;
 }
 
-.cafe-a-typography[data-template-key="fast_food_loop_bagel_a"]::after {
+.cafe-a-typography[data-menu-pattern-bands]::after {
+  height: var(--menu-pattern-band-thickness);
+  background-size: var(--menu-pattern-band-thickness) var(--menu-pattern-band-thickness);
   inset-block-end: 0;
 }
 
@@ -5881,6 +5895,7 @@ video {
 /* Align the painted strokes to the reading inset. The transparent row can
    extend into the space above them, including behind Loop Bagel's checker. */
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] {
+  --menu-pattern-band-top: min(var(--menu-pattern-band-thickness), calc(var(--cafe-a-page-inline) - .125rem));
   --cafe-a-mobile-operation-safe-top: env(safe-area-inset-top, 0px);
   --cafe-a-mobile-operation-top-inset: calc(
     var(--cafe-a-mobile-operation-safe-top) + var(--cafe-a-page-inline)

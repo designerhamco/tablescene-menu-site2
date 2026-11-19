@@ -12,6 +12,14 @@
 
 기본 중앙열 고정형 리스트(`basic-center-column`)와 로지오렌지(`cafe_round_focus_a`)는 신규 카탈로그·신청·디자인 교체 후보에서 제외한다. 기존 디자인 ID, 저장 메뉴·직접 미리보기·이미 승인된 신청의 복구 경로는 유지한다. 홈 히어로의 시연 교체는 별도 작업이다.
 
+## 베이직 상·하단 패턴 띠
+
+베이직 한 장 메뉴판의 기본·디자인 템플릿은 리스트형과 앨범형 모두 패턴 띠를 지원한다. 기본 좌상단 배치형과 온유 테이블은 제외한다. 디자인 설정은 사용 여부, 정사각형 JPG·PNG·WebP 이미지(최대 2MB), 띠 두께만 제공한다. 정사각형 타일 한 장의 가로·세로를 각각 표시 두께에 맞춰 가로로 반복한다. 선택 가능한 두께는 8·12·16·20·24·28·32px이고, 새 이미지의 기본 두께는 16px이다. 루프베이글은 기존 가게명 색상과 흰색의 2행 체크무늬 및 기기별 두께가 기본값이다. 루프베이글은 이미지를 교체해도 두께 기본값을 사용할 수 있다.
+
+초안 업로드는 메뉴판 편집 권한과 파일의 실제 정사각형 규격을 서버에서 검증한다. 등록·교체·제거와 ON/OFF는 디자인 저장 후 공개 화면에 반영한다. 설정 초기화는 루프베이글의 체크무늬 또는 나머지 템플릿의 OFF 상태로 복원한다. 미리보기 보기 옵션은 현재 패턴이 표시되는 경우에만 표시 체크와 도움말을 제공하고 저장값을 바꾸지 않는다.
+
+PC·태블릿의 상·하단 띠는 고객 메뉴 스크롤 영역 밖에 위치한다. 모바일에서는 문서의 양 끝에 표시한다. 주문 또는 호출이 켜지면 상단 띠에만 본문 좌우 여백보다 2px 작은 최대값을 적용한다. 이때 안전 영역 아래에서 아이콘 실제 선까지 24px, 44px 터치 영역과 테이블명 중앙을 유지한다.
+
 ## Logo-to-description optical clearance — 2026-11-13 (current)
 
 All customer-menu templates use one additive optical clearance when the **rendered logo replaces the text identity immediately above the store description**: `--menu-logo-description-gap-extra: 0.25rem` (4 CSS px at the normal 16px root). Preserve the existing base gap; Basic mobile therefore uses 12px + 4px = 16px. The same token applies to stacked PC/tablet rails, central/upper-left representatives, neutral list/album identities and eligible Dining/multi-page covers. It is independent of product/category spacing and must never change text-brand spacing.

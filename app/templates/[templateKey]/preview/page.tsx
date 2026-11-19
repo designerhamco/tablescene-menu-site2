@@ -1154,6 +1154,8 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     resolvedSearchParams.localeQa,
   );
   let data = applyTemplatePreviewOptions(localizedData, resolvedSearchParams);
+  const presentation = isMultiPagePresentationPreview(resolvedSearchParams.pagePresentation) ? "multi" : "one";
+  data = { ...data, pagePresentation: presentation };
   const designDefaults = previewDesignDefaults(data);
   data.menuSite.page_settings = menuAppearancePreview(data.menuSite.page_settings, resolvedSearchParams, defaultDesign?.itemLayout === "album") as typeof data.menuSite.page_settings;
   data = applyPreviewDesign(data, getFirstParam(resolvedSearchParams.designPreview), defaultDesign?.itemLayout === "album");
@@ -1193,7 +1195,6 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
         previewDevice={isActualView && !inferRhythmDevice ? getActualMenuPreviewDevice(getFirstParam(resolvedSearchParams.device)) : undefined}
         previewLayoutMode={previewLayoutMode}
         initialPreviewPageId={templateKey === "display_menu_a" ? getDisplayPreviewInitialPageId(data, displayPreviewPageIndex) : null}
-        pagePresentation={isMultiPagePresentationPreview(resolvedSearchParams.pagePresentation) ? "multi" : "one"}
         orderCallConfig={orderCallConfig}
         {...data}
       />

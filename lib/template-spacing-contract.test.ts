@@ -162,11 +162,11 @@ test("루프베이글은 분리선 없이 상하 2행 체커보드를 가게명 
   assert.equal(rules.categoryDivider, "none");
   assert.match(
     globalStylesSource,
-    /data-template-key="fast_food_loop_bagel_a"[^}]*\{[^}]*padding-block: calc\(var\(--loop-bagel-checker-square\) \* 2\);/,
+    /data-menu-pattern-bands\][^}]*\{[^}]*--menu-pattern-band-thickness: var\(--menu-pattern-band-size, calc\(var\(--loop-bagel-checker-square\) \* 2\)\);/,
   );
   assert.match(
     globalStylesSource,
-    /data-template-key="fast_food_loop_bagel_a"[^}]*::before,[\s\S]*::after[^}]*\{[^}]*conic-gradient\(var\(--menu-role-brand-color, #4354ef\) 25%, #ffffff 0 50%, var\(--menu-role-brand-color, #4354ef\) 0 75%, #ffffff 0\);[^}]*height: calc\(var\(--loop-bagel-checker-square\) \* 2\);/,
+    /data-menu-pattern-bands="checker"\][^}]*\{[^}]*--menu-pattern-band-image: conic-gradient\(var\(--menu-role-brand-color, #4354ef\) 25%, #ffffff 0 50%, var\(--menu-role-brand-color, #4354ef\) 0 75%, #ffffff 0\);/,
   );
   assert.doesNotMatch(
     globalStylesSource,

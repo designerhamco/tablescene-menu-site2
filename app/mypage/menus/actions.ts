@@ -11,6 +11,7 @@ import { menuAppearanceFromForm } from "@/lib/menu-appearance";
 
 import { MAX_MENU_POPUP_IMAGES, validateMenuPopupImage, type MenuPopupImage } from "@/lib/menu-popup";
 import { randomUUID } from "node:crypto";
+import { getMenuPatternBands, isMenuPatternBandPath, isMenuPatternBandThickness, supportsMenuPatternBands } from "@/lib/menu-pattern-bands";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -2965,6 +2966,26 @@ export async function updateDesignSettingsAction(formData: FormData) {
   } catch (error) {
     redirectToTabEditWithError(menuId, "design", error instanceof Error ? error.message : "이미지 모양 설정을 확인해주세요.");
   }
+  if (formData.get("pattern_bands_present") === "1" && supportsMenuPatternBands(menuSite.template_key, menuSite.settings)) {
+    const fail = (message: string) => redirectToTabEditWithError(menuId, "design", message);
+    if (formData.get("pattern_bands_upload_pending") === "1") fail("패턴 이미지 업로드가 끝난 뒤 저장해주세요.");
+    const enabled = formData.get("pattern_bands_enabled") === "1";
+    const thicknessField = getString(formData, "pattern_bands_thickness");
+    const thickness = thicknessField ? Number(thicknessField) : undefined;
+    if (thicknessField && !isMenuPatternBandThickness(thickness)) fail("패턴 띠 두께를 확인해주세요.");
+    const path = getString(formData, "pattern_bands_image_path");
+    let image = formData.get("pattern_bands_remove_image") === "1"
+      ? undefined : getMenuPatternBands(menuSite.template_key, pageSettings).image;
+    if (path) {
+      if (!isMenuPatternBandPath(path, menuId)) fail("패턴 이미지 경로가 올바르지 않습니다.");
+      const bucket = supabase.storage.from(MENU_IMAGES_BUCKET);
+      const { error } = await bucket.info(path);
+      if (error) fail("업로드된 패턴 이미지를 확인하지 못했습니다.");
+      image = { imagePath: path, imageUrl: bucket.getPublicUrl(path).data.publicUrl };
+    }
+    if (enabled && !image && menuSite.template_key !== "fast_food_loop_bagel_a") fail("패턴 띠를 사용하려면 정사각형 이미지를 등록해주세요.");
+    designSettings.patternBands = { enabled, ...(thickness === undefined ? {} : { thickness }), ...(image ? { image } : {}) };
+  }
   if (formData.get("menu_surfaces_present") !== "1") designSettings.backgroundColor = backgroundColor;
 
   if (koreanFontKey) {
@@ -3151,6 +3172,7 @@ export async function resetDesignSettingsToTemplateDefaultAction(formData: FormD
   delete pageSettings.typography;
   const designSettings = getJsonObject(pageSettings.design);
   delete designSettings.appearance;
+  delete designSettings.patternBands;
   delete designSettings.backgroundColor;
   delete designSettings.koreanFont;
   delete designSettings.englishFont;

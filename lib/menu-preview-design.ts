@@ -1,3 +1,4 @@
+import { resolveMenuPatternBands } from "./menu-pattern-bands";
 import { getDefaultDesignReview } from "./menu-design-policy";
 import { REPRESENTATIVE_ALIGNMENTS, type RepresentativeAlignment } from "./menu-design-surfaces";
 import type { MenuPageData } from "./menu-page-data";
@@ -15,6 +16,7 @@ export const PREVIEW_FONT_GROUPS = ["brand", "category", "other"] as const;
 export type PreviewFontGroup = typeof PREVIEW_FONT_GROUPS[number];
 export type PreviewFontChoice = { color?: string; ko?: KoreanFontValue; en?: EnglishFontValue };
 export type PreviewDesign = {
+  hidePatternBands?: true;
   textColors?: MenuTextColors;
   textColorGroupsVersion?: 2;
   diningTextColorGroupsVersion?: 1 | 2 | 3;
@@ -36,6 +38,7 @@ export function readPreviewDesign(raw: unknown): PreviewDesign {
   let source: Record<string, unknown>;
   try { source = record(typeof raw === "string" && raw.length <= 4000 ? JSON.parse(raw) : raw); } catch { return {}; }
   const result: PreviewDesign = {};
+  if (source.hidePatternBands === true) result.hidePatternBands = true;
   if (source.textColorGroupsVersion === 2) result.textColorGroupsVersion = 2;
   if (source.diningTextColorGroupsVersion === 1 || source.diningTextColorGroupsVersion === 2 || source.diningTextColorGroupsVersion === 3) result.diningTextColorGroupsVersion = source.diningTextColorGroupsVersion;
   for (const key of ["pageBackground", "auxiliaryBackground", "coverBackground", "sidebarBackground", "coverDescriptionColor"] as const) {
@@ -101,6 +104,7 @@ export function previewDesignDefaults(data: MenuPageData) {
       cover: normalizeBackgroundColor(data.pageSettings.multi_page_cover_background_color) ?? "#FFFFFF",
       sidebar: backgrounds.sidebar ?? (neutral ? "#F4F5F3" : "#401E24"),
       coverDescription: normalizeBackgroundColor(record(record(data.menuSite.page_settings).design).coverDescriptionColor) ?? (neutral ? "#606561" : "#FFFFFF") },
+    ...(resolveMenuPatternBands(key, data.menuSite.settings, data.menuSite.page_settings, data.pagePresentation) ? { patternBandsAvailable: true } : {}),
     appearance: resolveMenuAppearance(data.menuSite.page_settings, key, typeof savedDesignId === "string" ? savedDesignId : undefined),
   };
 }
@@ -121,6 +125,10 @@ export function applyPreviewDesign(source: MenuPageData, value: unknown, album: 
     return data;
   }
   const data = structuredClone(source), page = record(data.menuSite.page_settings), design = record(page.design);
+  if (overrides.hidePatternBands) {
+    const pattern = resolveMenuPatternBands(data.menuSite.template_key, data.menuSite.settings, page, data.pagePresentation);
+    if (pattern) design.patternBands = { ...pattern, enabled: false };
+  }
   if (overrides.textColors) {
     // Resolve the previous combined group before entering the independent scheme.
     design.textColors = { ...resolvedMenuTextColors(page, data.menuSite.template_key?.startsWith("dining_aube_table_") === true), ...overrides.textColors };

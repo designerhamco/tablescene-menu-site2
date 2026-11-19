@@ -1,4 +1,5 @@
 "use client";
+import { menuPatternBandRenderProps } from "@/lib/menu-pattern-bands";
 import { measureMenuHeaderContentHeight } from "@/lib/menu-header-measurement";
 import { hasMenuColumnDivider, getMenuColumnDividerGeometry } from "@/lib/menu-column-divider";
 import { getRepresentativeRailGeometry, getRelocatedCenterRailGeometry } from "@/lib/representative-rail-geometry";
@@ -57,6 +58,7 @@ function hasSafePhotoCopy(intro: Element | null | undefined) {
 export default function NativeBasicScroll({ data, device }: { data: CafeDesignAProps; device: MenuPreviewDevice }) {
   const t = useMenuText();
   const key = data.menuSite.template_key;
+  const patternBands = menuPatternBandRenderProps(key, data.menuSite.settings, data.menuSite.page_settings, data.pagePresentation);
   const shell = getFixedOnePageLayoutShell(key);
   const center = shell === "brand_center_column";
   const top = shell === "brand_top_band";
@@ -293,7 +295,7 @@ export default function NativeBasicScroll({ data, device }: { data: CafeDesignAP
   </footer> : null;
   return <CafeATimeSaleClock value={now}>
     <CafeATypographyFontAssets typographySettings={typography} />
-    <main className={`menu-typography cafe-a-typography ${styles.root}`} data-menu-text-colors={getTypographyCustomColorRoles(typography)} data-template-key={key} data-cafe-a-skin={data.templateSkin} data-preview-device={device} data-one-page-layout-shell={shell} data-cafe-a-proportion-policy="true" data-cafe-a-adaptive-fit="true" data-cafe-a-copy-aware-rhythm="true" data-cafe-a-mobile-style="false" data-spacing-contract="contained-reading" data-cafe-a-brand-font-en={typography.typography_roles.brand.font_en_key ?? typography.english_font_key} data-cafe-a-category-font-en={typography.typography_roles.category.font_en_key ?? typography.english_font_key} data-one-page-typography-profile={getOnePageTypographyProfile(key).key} style={{ ...getTypographyCssVariables(typography, key), backgroundColor: background, "--native-background": background, "--mocha-forest-brown": MOCHA_FOREST_PANEL_COLORS.brown, "--mocha-forest-ivory": MOCHA_FOREST_PANEL_COLORS.ivory, "--mocha-forest-green": MOCHA_FOREST_PANEL_COLORS.green } as CSSProperties}>
+    <main className={`menu-typography cafe-a-typography ${styles.root}`} data-menu-text-colors={getTypographyCustomColorRoles(typography)} data-menu-pattern-bands={patternBands.kind} data-template-key={key} data-cafe-a-skin={data.templateSkin} data-preview-device={device} data-one-page-layout-shell={shell} data-cafe-a-proportion-policy="true" data-cafe-a-adaptive-fit="true" data-cafe-a-copy-aware-rhythm="true" data-cafe-a-mobile-style="false" data-spacing-contract="contained-reading" data-cafe-a-brand-font-en={typography.typography_roles.brand.font_en_key ?? typography.english_font_key} data-cafe-a-category-font-en={typography.typography_roles.category.font_en_key ?? typography.english_font_key} data-one-page-typography-profile={getOnePageTypographyProfile(key).key} style={{ ...getTypographyCssVariables(typography, key), ...patternBands.style, backgroundColor: background, "--native-background": background, "--mocha-forest-brown": MOCHA_FOREST_PANEL_COLORS.brown, "--mocha-forest-ivory": MOCHA_FOREST_PANEL_COLORS.ivory, "--mocha-forest-green": MOCHA_FOREST_PANEL_COLORS.green } as CSSProperties}>
       <OnePageCallPalette />
       <div ref={board} className={styles.board} aria-busy={!ready} data-native-scroll data-equal-side-rail={equalSideRail ? "true" : undefined} data-menu-column-dividers={columnDividers ? "true" : undefined} data-scroll-brand-board data-native-shell={shell} data-representative-panel={getMenuDesignBackgrounds(key, data.menuSite.page_settings).coloredPanel ? "true" : undefined} data-native-ready={ready ? "true" : "false"} data-layout-mode={grouped ? "orderedBalancedFit" : "orderedFit"} data-native-more={more ? "true" : "false"} style={{ "--native-columns": layout.columns.length, ...(columnDividers ? { "--native-menu-gap": dividerGeometry.gap, "--menu-column-divider-offset": dividerGeometry.offset, "--menu-column-divider-width": dividerGeometry.width } : {}) } as CSSProperties}>
         {top ? <div className={styles.header} data-native-header data-basic-header-align={leftLogo ? "left" : undefined}><CafeADesktopToplineInformationHeader data={data} capabilities={capabilities} density="default" leftLogo={leftLogo} languageControl={<CafeLanguageHoverControl data={data} menuAlign="right" showCurrentLocale />} /></div> : null}

@@ -1,6 +1,7 @@
 export const IMAGE_UPLOAD_ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 
 export type ImageUploadTarget =
+  | "menu-pattern-band-draft"
   | "menu-popup-image-draft"
   | "site-logo"
   | "site-logo-draft"
@@ -23,6 +24,12 @@ type ImageUploadPolicy = {
 const MEGABYTE = 1024 * 1024;
 
 export const IMAGE_UPLOAD_LIMITS = {
+  patternBand: {
+    maxBytes: 2 * MEGABYTE,
+    label: "정사각형 JPG, PNG, WebP / 최대 2MB",
+    tooLargeMessage: "패턴 이미지는 최대 2MB까지 업로드할 수 있습니다.",
+    invalidTypeMessage: "JPG, PNG, WebP 형식의 정사각형 이미지를 선택해주세요.",
+  },
   logo: {
     maxBytes: 2 * MEGABYTE,
     label: "PNG, JPG, WebP / 최대 2MB",
@@ -54,6 +61,7 @@ export function isAllowedImageUploadMimeType(value: string) {
 }
 
 export function getImageUploadPolicy(target: ImageUploadTarget): ImageUploadPolicy {
+  if (target === "menu-pattern-band-draft") return IMAGE_UPLOAD_LIMITS.patternBand;
   if (target === "site-logo" || target === "site-logo-draft") return IMAGE_UPLOAD_LIMITS.logo;
   if (target === "menu-item" || target === "menu-item-draft") return IMAGE_UPLOAD_LIMITS.menuItem;
   if (target === "display-page-image-draft") return IMAGE_UPLOAD_LIMITS.displayPageImage;

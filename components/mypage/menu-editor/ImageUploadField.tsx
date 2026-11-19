@@ -24,6 +24,8 @@ type ImageUploadFieldProps = {
   deleteConfirmDescription?: string;
   fileGuidance?: ReactNode;
   optimizationGuidance?: ReactNode;
+  onUploadPendingChange?: (pending: boolean) => void;
+  emptyPreview?: ReactNode;
   onDraftImageChange?: (draft: { imageUrl: string | null; imagePath: string | null; imageAction: "replace" | "delete" }) => void;
 };
 
@@ -61,6 +63,8 @@ export default function ImageUploadField({
   deleteConfirmDescription = "삭제하면 저장 후 공개 메뉴판에 반영됩니다.",
   fileGuidance,
   optimizationGuidance = "업로드된 이미지는 화면에 맞게 자동 최적화될 수 있습니다.",
+  onUploadPendingChange,
+  emptyPreview,
   onDraftImageChange,
 }: ImageUploadFieldProps) {
   const router = useRouter();
@@ -73,6 +77,7 @@ export default function ImageUploadField({
   const [draftImagePath, setDraftImagePath] = useState("");
   const isLoading = state.type === "loading";
   const usesDraftUpload =
+    target === "menu-pattern-band-draft" ||
     target === "menu-popup-image-draft" ||
     target === "site-logo-draft" ||
     target === "site-cover-draft" ||
@@ -121,6 +126,7 @@ export default function ImageUploadField({
     formData.set("recordId", recordId ?? "");
     formData.set("file", file);
 
+    onUploadPendingChange?.(true);
     setState({ type: "loading", message: "이미지를 업로드하고 있습니다." });
 
     try {
@@ -148,6 +154,7 @@ export default function ImageUploadField({
     } catch (error) {
       setState({ type: "error", message: error instanceof Error ? error.message : "이미지 업로드 중 오류가 발생했습니다." });
     } finally {
+      onUploadPendingChange?.(false);
       if (inputRef.current) {
         inputRef.current.value = "";
       }
@@ -209,9 +216,9 @@ export default function ImageUploadField({
           {previewUrl ? (
             // TODO: 이미지 업로드 시 WebP 변환/압축을 서버 또는 브라우저에서 추가할 수 있습니다.
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={previewUrl} alt="" className={`h-full w-full ${isLogoUpload ? "object-contain p-3" : "object-cover"}`} />
+            <img src={previewUrl} alt="" className={`h-full w-full ${isLogoUpload || target === "menu-pattern-band-draft" ? "object-contain p-3" : "object-cover"}`} />
           ) : (
-            <span className="text-support font-medium text-zinc-600">이미지 없음</span>
+            emptyPreview ?? <span className="text-support font-medium text-zinc-600">이미지 없음</span>
           )}
         </div>
 
