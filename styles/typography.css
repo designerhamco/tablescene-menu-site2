@@ -274,6 +274,7 @@
  * changing shared navigation, other routes, or the renderer foundations. */
 .site-marketing-page[data-marketing-page="home"] {
   --type-section-title-size: var(--site-type-28);
+  --type-content-title-size: var(--site-type-18);
 }
 .site-marketing-page[data-marketing-page="home"] :is(.type-page-title, .type-section-title, .type-display) {
   font-weight: var(--font-weight-medium);

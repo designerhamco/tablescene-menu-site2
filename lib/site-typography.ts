@@ -319,7 +319,7 @@ export const SITE_HOME_TYPE_POLICY = [
   { key:'title', label:'주요 제목', classes:['type-page-title','type-section-title'], mobile:28, tablet:32, desktop:36, weight:500, lineHeight:1.28, tracking:{mobile:-.04,tablet:-.05,desktop:-.05} },
   { key:'lead', label:'제목 아래 소개 문장', classes:['type-body-lg'], mobile:18, tablet:18, desktop:20, weight:500, lineHeight:1.55, tracking:{mobile:-.03,tablet:-.03,desktop:-.03} },
   { key:'subsection', label:'하위 구역 제목', classes:['type-subsection-title'], mobile:20, tablet:20, desktop:24, weight:500, lineHeight:1.35, tracking:{mobile:-.04,tablet:-.04,desktop:-.04} },
-  { key:'content', label:'콘텐츠 제목', classes:['type-content-title'], mobile:18, tablet:18, desktop:20, weight:500, lineHeight:1.4, tracking:{mobile:-.03,tablet:-.03,desktop:-.03} },
+  { key:'content', label:'콘텐츠 제목', classes:['type-content-title'], mobile:18, tablet:18, desktop:18, weight:500, lineHeight:1.4, tracking:{mobile:-.03,tablet:-.03,desktop:-.03} },
   { key:'body', label:'자세한 본문', classes:['type-body','site-body'], mobile:16, tablet:16, desktop:16, weight:400, lineHeight:1.65, tracking:{mobile:-.02,tablet:-.02,desktop:-.02} },
   { key:'support', label:'보조 설명', classes:['type-body-sm','site-body-sm'], mobile:14, tablet:14, desktop:14, weight:400, lineHeight:1.6, tracking:{mobile:-.02,tablet:-.02,desktop:-.02} },
 ] as const;

@@ -364,8 +364,9 @@ test("컴포넌트 밀도 조정은 사이트 탐색·페이지 제목·본문 �
     assert.deepEqual([role?.mobile, role?.tablet, role?.desktop], sizes, key);
     postcss.parse(typographySource).walkDecls(`--type-${key}-size`, declaration => {
       const selector = declaration.parent?.type === "rule" && declaration.parent.selector;
-      if (selector === '.site-marketing-page[data-marketing-page="home"]' && ["display", "section-title"].includes(key)) {
+      if (selector === '.site-marketing-page[data-marketing-page="home"]' && ["display", "section-title", "content-title"].includes(key)) {
         if(key === "display")assert.equal(declaration.value, "var(--site-home-hero-title-size)");
+        else if(key === "content-title")assert.equal(declaration.value, "var(--site-type-18)");
         else assert.match(declaration.value,/^var\(--site-type-(?:28|32|36)\)$/);
       } else if (selector === ".site-marketing-page" && ["display", "page-title", "section-title"].includes(key)) {
         assert.match(declaration.value, /^var\(--(?:site-type-(?:24|32|36)|type-section-title-size)\)$/);
