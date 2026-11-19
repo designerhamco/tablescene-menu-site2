@@ -1,41 +1,28 @@
-/* eslint-disable @next/next/no-img-element -- Static menu artwork and the transparent photo retain their native proportions. */
+/* eslint-disable @next/next/no-img-element -- Approved transparent photo is layered with a projective screen. */
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { basicTabletScreenMatrix, BASIC_DEMO_CANVAS } from "@/lib/basic-feature-story";
 import styles from "./BasicTemplateShowcase.module.css";
 
-const templates = [
-  "/template-previews/cafe_real_matcha_a.jpg",
-  "/template-previews/cafe_round_focus_a.jpg",
-  "/template-previews/fast_food_loop_bagel_a.jpg",
-  "/template-previews/cafe_sunday_roasters_a.jpg",
-  "/template-previews/cafe_mocha_forest_a.jpg",
-] as const;
-
-/** Decorative background movement is independent of the page's scroll story. */
-export default function BasicTemplateShowcase({ active = true, reveal = 1 }: { active?: boolean; reveal?: number }) {
-  const root = useRef<HTMLDivElement>(null);
-  const [playing, setPlaying] = useState(false);
+/** The approved foreground and demo use one responsive scene coordinate system. */
+export default function BasicTemplateShowcase({ children, label }: { children: ReactNode; label: string }) {
+  const scene = useRef<HTMLDivElement>(null);
+  const [width,setWidth] = useState(0);
   useEffect(() => {
-    const element = root.current;
+    const element=scene.current;
     if (!element) return;
-    const observer = new IntersectionObserver(([entry]) => setPlaying(entry.isIntersecting));
+    const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
     observer.observe(element);
     return () => observer.disconnect();
   }, []);
-
-  const running = playing && active;
-  return <div ref={root} className={styles.showcase} data-basic-showcase data-playing={running}>
-    <div className={styles.scene}>
+  return <div className={styles.showcase} data-basic-showcase>
+    <div ref={scene} className={styles.scene}>
       <div className={styles.glow} aria-hidden="true"/>
-      <div className={styles.marquee} aria-hidden="true" data-basic-template-marquee>
-        <div className={styles.track}>
-          {[0, 1].map(copy => <div className={styles.templateSequence} key={copy} data-basic-template-group>
-            {templates.map(src => <img key={src} src={src} width={1200} height={900} alt="" loading={running ? "eager" : "lazy"} decoding="async" draggable={false}/>)}
-          </div>)}
-        </div>
+      <img className={styles.tablet} src="/assets/basic-showcase-v1/tablet-hands-cutout.png" width={1536} height={1024} alt="" loading="lazy" decoding="async" draggable={false}/>
+      <div className={styles.screen} style={{ width:BASIC_DEMO_CANVAS.width, height:BASIC_DEMO_CANVAS.height, transform:width ? basicTabletScreenMatrix(width) : undefined, visibility:width ? "visible" : "hidden" }} role="img" aria-label={`${label} 태블릿 시연`} data-basic-tablet-screen>
+        {children}
       </div>
-      <img className={styles.tablet} style={{ opacity: reveal, transform: `translateY(${(1 - reveal) * 28}px)` }} src="/assets/basic-showcase-v1/tablet-hands-cutout.png" width={1536} height={1024} alt="빈 화면의 가로 태블릿을 양손으로 들고 있는 모습" loading="lazy" decoding="async" draggable={false} data-basic-tablet data-reveal={reveal.toFixed(3)}/>
     </div>
   </div>;
 }
