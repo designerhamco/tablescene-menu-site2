@@ -8,7 +8,7 @@ import { Button } from "@/app/components/ui/button";
 import { HERO_CAFE_CHAPTERS, HERO_CAFE_PHOTOS, HERO_CAFE_SCREENS, HERO_CHAPTER_DURATION_MS, HERO_TEMPLATE_SCREENS, HERO_STORY_SVH, HERO_COUNTER_TIMELINE, HERO_PHONE_TIMELINE, heroTween, heroSceneAt, heroProgressAt, heroSaleZoom, heroScreenMatrix, heroTemplateAt, heroPulseAt, heroLiveSceneAt, heroSegmentProgressAt, type HeroQuad } from "@/lib/hero-cafe-motion";
 import styles from "./HomeHeroMotion.module.css";
 import HeroLiveMenu from "./HeroLiveMenu";
-import { HERO_SURROUNDINGS, HERO_SURROUNDINGS_TRANSFORM, heroLandscapeFrame, heroLandscapeScale, heroLandscapePosition } from "@/lib/hero-background-layout";
+import { HERO_COMPOSITIONS, heroLandscapeFrame, heroLandscapeScale, heroLandscapePosition } from "@/lib/hero-background-layout";
 
 const ASSETS = "/assets/hero-cafe-v1/";
 function Screen({ quad, width=1280, height=800, children, phone=false }: { quad: HeroQuad; width?: number; height?: number; children: ReactNode; phone?: boolean }) {
@@ -89,12 +89,9 @@ export default function HomeHeroMotion() {
           const active=scene.image===image,index=HERO_CAFE_CHAPTERS.findIndex(item=>item.image===image),photo=`${ASSETS}${HERO_CAFE_PHOTOS[image]}`,camera=cameraFor(index);
           return <motion.div key={image} className={styles.plane} initial={false} animate={{opacity:active?1:0}} transition={{duration:reduced?0:.45}} style={{zIndex:active?1:0}} data-hero-plane={image} data-active={active}>
             <img src={`${ASSETS}${HERO_CAFE_PHOTOS.venue}`} className={styles.ambient} data-hero-ambient alt=""/>
-            <motion.div className={styles.canvas} data-hero-surroundings-canvas animate={{...camera,x:camera.x+frame.left}} transition={{duration:reduced?0:.18,ease:[.22,1,.36,1]}}>
-              <img src={HERO_SURROUNDINGS[image]} className={`${styles.photo} ${styles.surroundings}`} data-hero-surroundings={image} style={{transform:HERO_SURROUNDINGS_TRANSFORM}} width={1536} height={1024} alt=""/>
-            </motion.div>
             <div className={styles.framing} data-hero-framing style={{left:frame.left,width:frame.width}}>
-            <motion.div className={styles.canvas} animate={camera} transition={{duration:reduced?0:.18,ease:[.22,1,.36,1]}}>
-              <img ref={image==="venue"?firstPhoto:undefined} src={photo} className={`${styles.photo} ${styles.original}`} data-hero-original={image} width={1536} height={1024} alt="" fetchPriority={image==="venue"?"high":"auto"} onLoad={()=>{if(image==="venue")setLoaded(true);}}/>
+            <motion.div className={styles.canvas} data-hero-canvas animate={camera} transition={{duration:reduced?0:.18,ease:[.22,1,.36,1]}}>
+              <img ref={image==="venue"?firstPhoto:undefined} src={HERO_COMPOSITIONS[image]} className={styles.composition} data-hero-composition={image} width={3072} height={2048} alt="" fetchPriority={image==="venue"?"high":"auto"} onLoad={()=>{if(image==="venue")setLoaded(true);}}/>
               {image==="venue"?<>{HERO_CAFE_SCREENS.televisions.map((quad,i)=><Screen key={i} quad={quad}><CapturedScreen selected={selected}/></Screen>)}<Screen quad={HERO_CAFE_SCREENS.venueTablet}><CapturedScreen selected={selected}/></Screen></>:null}
               {image==="counter"?<><Screen quad={HERO_CAFE_SCREENS.counter} width={1280} height={800}>{liveScene===image?<HeroLiveMenu key="counter" kind="counter" active={active} onDetail={onDetail} seconds={active?localProgress*HERO_CHAPTER_DURATION_MS[chapter]/1000:0} reduced={false}/>:<IdleScreen image={image}/>}</Screen><img src={photo} className={`${styles.photo} ${styles.finger}`} width={1536} height={1024} alt=""/></>:null}
               {image==="dining"?<Screen quad={HERO_CAFE_SCREENS.dining} width={820} height={512}>{liveScene===image?<HeroLiveMenu key="dining" kind="dining" active seconds={localProgress*HERO_CHAPTER_DURATION_MS[chapter]/1000} reduced={false}/>:<IdleScreen image={image}/>}</Screen>:null}

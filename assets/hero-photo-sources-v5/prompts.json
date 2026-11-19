@@ -1,0 +1,19 @@
+{
+  "mode": "built-in image_gen edit",
+  "inputCommit": "f0cc63774aef405c007c2f22e1356a4e194e54bc",
+  "inputs": "public/assets/hero-cafe-v2/{scene}-expanded.webp",
+  "edits": [
+    {
+      "scene": "counter",
+      "prompt": "Use case: precise-object-edit. Edit this exact photograph without changing canvas size (1536x1024), camera, lighting, tablet, counter, screens or any central composition. Fix only the anatomically cut-off navy sleeve in the lower-right extension: the pointing hand and wrist at about (1030,600) must stay exactly as they are, but the forearm must bend naturally down at a nearby elbow and continue out of the bottom-right frame as a normally proportioned bent arm. No extremely long horizontal forearm, no sleeve disappearing into the countertop, no floating cut-off wrist. Keep the existing central rectangle x384..1152,y256..768 as unchanged as possible; it will be restored exactly later. No new head, face, torso or extra person. Make only this small photographic continuation repair; preserve everything else."
+    },
+    {
+      "scene": "dining",
+      "prompt": "Use case: precise-object-edit. Edit this exact photograph at the same 1536x1024 framing, camera and scale. Remove only the newly added visible heads/faces in the extended margins: the seated customer's large head at the far left and the standing server's head near the upper right. Keep the device, both customer's hands, the server's offered hand and every pixel of the central rectangle x384..1152,y256..768 unchanged as far as possible. The seated customer should be represented only by natural forearms entering from bottom/left, with the removed head/upper torso area replaced by the same cafe windows/interior and chair. For the standing server, maintain a natural black sleeve entering from the upper-right frame into the existing offered hand; no added head, face, neck, complete torso, or headless full body. Outside the locked center, replace unnecessary body with the naturally continued cafe background. Do not move or shrink the tablet, food or normal hands. No elongated arms, disconnected wrists, new people, blur bands or fade effects. Photorealistic seamless background repair only."
+    },
+    {
+      "scene": "phone",
+      "prompt": "Use case: precise-object-edit. Edit this exact 1536x1024 photograph without changing framing, camera, phone size/position, hands, tabletop, QR card or cafe lighting. Remove the added head/face/neck at the extreme left and reduce the excessive shoulder/torso in the left outer margin, replacing it with a natural continuation of the existing cafe table, chair and windows. Keep both normal hands and forearms holding the phone intact, naturally entering from the lower edge. Keep the central rectangle x384..1152,y256..768 unchanged as far as possible; it will be restored exactly later. No new faces, heads or bodies, no long arms, cut wrists or floating hands. No blur or fade effects. This is a conservative photographic margin repair; preserve all other composition."
+    }
+  ]
+}
