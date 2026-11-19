@@ -29,7 +29,7 @@
 .segment { position:relative; width:var(--ui-control-height-md); }
 .segmentAction { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); }
 .segment :global(.site-progress-bar) { position:relative; pointer-events:none; }
-.skip { position:absolute; left:calc(100% + var(--site-space-copy)); top:50%; display:inline-flex; min-width:var(--ui-control-height-compact); min-height:var(--ui-control-height-compact); align-items:center; justify-content:center; transform:translateY(-50%); white-space:nowrap; text-underline-offset:.2em; }
+.skip { position:absolute; left:calc(100% + var(--site-space-block)); top:50%; display:inline-flex; min-width:var(--ui-control-height-compact); min-height:var(--ui-control-height-compact); align-items:center; justify-content:center; transform:translateY(-50%); white-space:nowrap; text-underline-offset:.2em; }
 .skip:is(:hover,:focus-visible) { text-decoration:underline; }
 .cue { position:absolute; z-index:5; display:grid; place-items:center; width:28px; height:28px; border:1px solid rgb(255 255 255 / 85%); border-radius:50%; background:rgb(16 20 22 / 45%); color:#fff; pointer-events:none; box-shadow:0 1px 4px rgb(0 0 0 / 16%); }
 .cue svg { width:18px; height:18px; }
