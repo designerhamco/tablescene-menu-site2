@@ -1,9 +1,9 @@
-/* eslint-disable @next/next/no-img-element -- Calibrated photographs and static menu captures retain their original screen quads. */
+/* eslint-disable @next/next/no-img-element -- Calibrated photographs and static menu captures use measured screen quads. */
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { motion } from "motion/react";
-import { DEVICE_ASSETS, DEVICE_CAPTURE_SIZE, DEVICE_PAPER_CARDS, DEVICE_TEMPLATE_SCENES, clampDeviceProgress, devicePaperAt, deviceScreenMatrix, deviceStageFrame, deviceTemplateSequenceAt } from "@/lib/device-platform-story";
+import { DEVICE_ASSETS, DEVICE_CAPTURE_SIZE, DEVICE_PAPER_CARDS, DEVICE_TEMPLATE_SCENES, clampDeviceProgress, devicePaperAt, deviceScreenClipPath, deviceScreenMatrix, deviceStageFrame, deviceTemplateSequenceAt } from "@/lib/device-platform-story";
 import MarketingCopyReveal from "./MarketingCopyReveal";
 import styles from "./DevicePlatformStory.module.css";
 
@@ -74,7 +74,7 @@ export default function DevicePlatformStory(){
                 <div className={styles.device} data-device-body style={{left:item.x,top:item.y,width:item.width,height:item.height}}>
                   <div className={styles.source} style={{left:-asset.body.x*item.sourceScale,top:-asset.body.y*item.sourceScale,width:asset.width,height:asset.height,transform:`scale(${item.sourceScale})`}}>
                     <img className={styles.devicePhoto} src={`${ASSETS}${asset.file}`} width={asset.width} height={asset.height} alt="" loading="lazy" decoding="async"/>
-                    <div className={styles.screen} data-device-screen style={{width:capture.width,height:capture.height,transform:SCREEN_MATRICES[item.asset],borderRadius:asset.screenRadius}}>
+                    <div className={styles.screen} data-device-screen style={{width:capture.width,height:capture.height,transform:SCREEN_MATRICES[item.asset],borderRadius:asset.screenRadius,clipPath:deviceScreenClipPath(item.asset)}}>
                       {DEVICE_TEMPLATE_SCENES.map((scene,index)=><img key={scene.id} src={scene.screens[item.asset].src} width={capture.width} height={capture.height} alt="" loading="lazy" decoding="async" data-device-screen-scene={scene.id} style={{opacity:sequence.weights[index]}}/>)}
                     </div>
                   </div>

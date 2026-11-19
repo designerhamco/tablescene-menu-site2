@@ -21,7 +21,7 @@ test("the three devices use real static captures for four templates, without a l
   assert.equal((html.match(/data-device-screen-scene=/g)??[]).length,12);
 });
 
-test("all captures meet the unchanged real screen corners and native aspect ratios",()=>{
+test("all captures meet the measured real screen corners and native aspect ratios",()=>{
   for(const kind of DEVICE_STAGE_ITEMS){
     const asset=DEVICE_ASSETS[kind],capture=DEVICE_CAPTURE_SIZE[kind];
     const m=deviceScreenMatrix(kind).slice(9,-1).split(",").map(Number);
@@ -69,7 +69,8 @@ test("the concave paper path makes the sides closer and larger than the distant 
     assert.ok(center.z<left.z&&center.z<right.z);assert.equal(left.z,right.z);
     assert.ok(left.theta<0&&right.theta>0);
     assert.ok(paper.perspective/(paper.perspective-right.z)>paper.perspective/(paper.perspective-center.z));
-    assert.ok(center.blur>right.blur&&right.blur>=.65);
+    assert.ok(center.blur>=right.blur&&right.blur>=.65);
+    assert.ok(center.blur>devicePaperAt(paper,DEVICE_PAPER_CENTER_INDEX+8,0).blur);
     assert.ok(paper.cardWidth<=(width>=1024?290:236)&&Math.abs(paper.cardWidth/paper.cardHeight-1024/697)<1e-10);
     assert.equal(devicePaperAt(paper,DEVICE_PAPER_CENTER_INDEX+1,1).theta,0);
   }
