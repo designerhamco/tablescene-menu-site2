@@ -5,15 +5,16 @@ import OfficialSiteNavbar from "@/components/layout/OfficialSiteNavbar";
 import SitePageHeader from "./SitePageHeader";
 
 /** Standard site pages inherit their shell and intro rhythm; no per-page style overrides. */
-export default function SitePage({ title, description, descriptionPurpose, children, align = "center" }: {
+export default function SitePage({ title, description, descriptionPurpose, children, align = "center", typography = "standard" }: {
   title: ReactNode;
   children: ReactNode;
   align?: "center" | "start";
+  typography?: "standard" | "management";
 } & SiteIntroDescriptionProps) {
   return (
     <>
       <OfficialSiteNavbar />
-      <main className="site-page-spacing-compact min-h-screen bg-white text-zinc-950">
+      <main className={`site-page-spacing-compact min-h-screen bg-white text-zinc-950${typography === "management" ? " site-management-scope" : ""}`}>
         <div className="site-container">
           {descriptionPurpose ? <SitePageHeader title={title} align={align} description={description} descriptionPurpose={descriptionPurpose} /> : <SitePageHeader title={title} align={align} />}
           <div className="site-page-content">{children}</div>

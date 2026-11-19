@@ -235,7 +235,9 @@ test("마이페이지와 직원 관리는 같은 제목 경계를 사용하고 �
     assert.match(readFileSync(join(appRoot, path), "utf8"), /<AccountPageContent sidebar=/);
   }
   const operationsShellSource = readFileSync(join(componentsRoot, "mypage/StoreOperationsShell.tsx"), "utf8");
-  assert.match(operationsShellSource, /<SitePage(?:Header)?\b/);
+  assert.match(operationsShellSource, /<SitePage\b[^>]*typography="management"/);
+  const shellSource = readFileSync(join(componentsRoot, "layout/SitePage.tsx"), "utf8");
+  assert.match(shellSource, /<main className=\{[^\n]*typography === "management" \? " site-management-scope"[^\n]*>[\s\S]*?<SitePageHeader[\s\S]*?<\/main>/);
 });
 
 test("활성 사이트 UI의 h1부터 h6까지 승인된 의미 기반 타이포 역할만 사용한다", () => {
