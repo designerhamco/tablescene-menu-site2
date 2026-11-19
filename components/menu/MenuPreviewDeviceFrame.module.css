@@ -17,7 +17,6 @@
 .workspace[data-preview-device="pc"] { background: white; }
 .workspace[data-preview-device="pc"] .stage { padding: 0; }
 .workspace[data-preview-device="pc"] .frame { border: 0; border-radius: 0; box-shadow: none; }
-.layoutChoices { display: flex; flex-shrink: 0; gap: .125rem; padding: .125rem; border-radius: .75rem; background: rgb(255 255 255 / 10%); }
 @container (max-width: 800px) {
   .toolbar[data-preview-service-controls="layout"] .toolbarContent { flex-wrap: wrap; }
   .toolbar[data-preview-service-controls="layout"] .deviceNav { flex-basis: 100%; }

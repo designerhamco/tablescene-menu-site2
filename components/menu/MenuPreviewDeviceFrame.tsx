@@ -351,6 +351,7 @@ export default function MenuPreviewDeviceFrame(
                 <PreviewOrientationIcon />
               </Link>
             ) : null}
+            {supportsCallPreview || supportsOrderPreview ? <div className="site-preview-control-group" role="group" aria-label="호출·주문 기능 미리보기">
             {supportsCallPreview ? (
               <CallPreviewToggle checked={features.call} disabled={!showToolbar || isPending}
                 onChange={(enabled) => changeFeature("call", enabled)} />
@@ -359,8 +360,9 @@ export default function MenuPreviewDeviceFrame(
               <CallPreviewToggle order checked={features.order} disabled={!showToolbar || isPending}
                 onChange={(enabled) => changeFeature("order", enabled)} />
             ) : null}
+            </div> : null}
             {supportsLayoutPreview && device !== "mobile" ? (
-              <div className={styles.layoutChoices} role="group" aria-label="메뉴 배치 방식">
+              <div className="site-preview-control-group" role="group" aria-label="메뉴 배치 방식">
                 {([['orderedBalancedFit', '묶음형'], ['orderedFit', '채움형']] as const).map(([mode, label]) => (
                   <Link key={mode} href={buildPreviewUrl({device, orientation, layoutMode: mode})} scroll={false}
                     tabIndex={showToolbar ? undefined : -1}

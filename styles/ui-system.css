@@ -10,6 +10,7 @@
   --ui-preview-selection-boundary: rgb(255 255 255 / 8%);
   --ui-preview-disabled-surface: #202126;
   --ui-preview-disabled-ink: #6f737c;
+  --ui-preview-group-surface: #55585f;
   --ui-media-ink: #ffffff;
   --ui-media-hover-ink: #d4d4d8;
   --ui-media-counter-surface: rgb(9 9 11 / 60%);
@@ -1229,6 +1230,7 @@ textarea.site-field,
 .site-filter[aria-pressed="true"]:hover:not(:disabled) { border-color: var(--ui-text); }
 
 /* Device preview tools use one compact inverse palette above customer artwork. */
+.site-preview-control-group { display: inline-flex; flex: none; align-items: center; gap: .125rem; padding: .25rem; border: 0; border-radius: .75rem; background: var(--ui-preview-group-surface); }
 .site-preview-control { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: .375rem; min-height: var(--ui-preview-control-height, 2.25rem); padding: .5rem; border: 1px solid var(--ui-preview-button-boundary); border-radius: var(--ui-radius-control-rounded); background: var(--ui-preview-button-surface); color: var(--ui-text); font-size: var(--type-caption-size); font-weight: 600; line-height: 1.5; white-space: nowrap; cursor: pointer; transition: background-color var(--ui-transition), color var(--ui-transition); }
 .site-preview-control:where(:not(.site-preview-toolbar-toggle):not(:disabled):not([aria-disabled="true"]):not(:has(:disabled))):is(:hover, [data-ui-state="hover"]) { background: var(--ui-preview-button-hover); }
 .site-preview-control:where(:not(.site-preview-toolbar-toggle):not(:disabled):not([aria-disabled="true"]):not(:has(:disabled))):is(:active, [data-ui-state="pressed"]) { background: var(--ui-preview-button-pressed); }
