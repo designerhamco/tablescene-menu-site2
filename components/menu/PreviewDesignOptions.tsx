@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { ALBUM_IMAGE_RATIOS, withUnifiedAppearanceRadius } from "@/lib/menu-appearance";
 import type { PreviewRenderedDesign } from "@/lib/menu-preview-rendered-design";
 import { KOREAN_FONT_OPTIONS, getAvailableEnglishFontsForTemplate, getEnglishFontOption, getKoreanFontOption } from "@/lib/font-options";
@@ -13,7 +14,7 @@ import ImageRadiusSelect from "./ImageRadiusSelect";
 import PreviewColorPicker from "./PreviewColorPicker";
 import styles from "./PreviewDesignOptions.module.css";
 
-export default function PreviewDesignOptions({ value, defaults, renderedDesign, templateKey, album, dining, disabled, alignmentDisabled = false, onChange }: {
+export default function PreviewDesignOptions({ value, defaults, renderedDesign, templateKey, album, dining, disabled, alignmentDisabled = false, onChange, children }: {
   value: PreviewDesign;
   defaults: PreviewDesignDefaults;
   renderedDesign?: PreviewRenderedDesign;
@@ -23,6 +24,7 @@ export default function PreviewDesignOptions({ value, defaults, renderedDesign, 
   disabled: boolean;
   alignmentDisabled?: boolean;
   onChange: (value: PreviewDesign) => void;
+  children?: ReactNode;
 }) {
   const set = (patch: Partial<PreviewDesign>) => onChange({ ...value, ...patch });
   const textColor = (group: MenuTextColorGroup, color?: string) => set({
@@ -85,5 +87,6 @@ export default function PreviewDesignOptions({ value, defaults, renderedDesign, 
           set({ imageRadii: next === undefined ? undefined : unified.imageRadii, chipShape: next === undefined ? undefined : unified.chipShape });
         }}/></label>
     </fieldset>
+    {children}
   </div>;
 }

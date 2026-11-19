@@ -12,6 +12,7 @@ import PreviewDesignOptions from "./PreviewDesignOptions";
 import { Button } from "@/app/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import styles from "./MenuPreviewOptionsPanel.module.css";
+import designStyles from "./PreviewDesignOptions.module.css";
 
 export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, onFeatureReset, canResetFeatures, pending, templateKey, defaults, renderedDesign, design, onDesignChange, album, patternBandsAvailable, alignmentDisabled = false, featureContent, designContent }: {
   open: boolean;
@@ -38,12 +39,14 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
   const toggle = useRef<HTMLButtonElement>(null);
   const choices = groups.flatMap(group => group.choices);
   const count = choices.filter(([key]) => values[key]).length;
-  const patternOption = patternBandsAvailable ? <div className="site-action-row" data-preview-pattern-bands>
-    <label className={styles.choice}>
-      <input type="checkbox" checked={!design.hidePatternBands} disabled={pending} onChange={event => onDesignChange({ ...design, hidePatternBands: event.target.checked ? undefined : true })} />패턴 띠 표시
-    </label>
-    <InfoTooltip layer="preview" label="패턴 띠 도움말">패턴 이미지와 띠 두께는 메뉴판 관리의 디자인 설정에서 바꿀 수 있어요.</InfoTooltip>
-  </div> : null;
+  const patternOption = patternBandsAvailable ? <fieldset data-preview-pattern-bands>
+    <legend className={designStyles.legend}>상·하단 패턴 띠<InfoTooltip layer="preview" label="패턴 띠 도움말">패턴 이미지와 띠 두께는 메뉴판 관리의 디자인 설정에서 바꿀 수 있어요.</InfoTooltip></legend>
+    <div className={styles.choices}>
+      <label className={styles.choice}>
+        <input type="checkbox" aria-label="패턴 띠 표시" checked={!design.hidePatternBands} disabled={pending} onChange={event => onDesignChange({ ...design, hidePatternBands: event.target.checked ? undefined : true })} />표시
+      </label>
+    </div>
+  </fieldset> : null;
   return <aside className={styles.panel} aria-label="보기 옵션" data-preview-options-panel data-options-open={open ? "true" : "false"}
     onKeyDown={event => {
       if (event.key === "Escape" && open && !event.defaultPrevented && !(event.target as Element).closest("[data-preview-color-picker], [data-preview-color-reset]")) {
@@ -54,7 +57,7 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
       <Palette className={styles.palette} size={22} aria-hidden="true" /><span className={styles.label}>보기 옵션</span><span className={styles.count}>{groups.length && tab === "features" ? `${count}/${choices.length} 선택` : "디자인 미리보기"}</span><ChevronLeft className={styles.chevron} size={16} aria-hidden="true" />
     </button>
     <div id="preview-display-options" className={styles.body} hidden={!open}>
-      {!groups.length ? patternOption : <Tabs purpose="section" value={tab} onValueChange={onTabChange}>
+      {!groups.length ? <div className={designStyles.panel}>{patternOption}</div> : <Tabs purpose="section" value={tab} onValueChange={onTabChange}>
         <TabsList size="sm" distribution="equal" aria-label="미리보기 옵션 종류" className="w-full">
           <TabsTrigger value="features" id="preview-features-tab" aria-controls="preview-features-panel">기능 옵션</TabsTrigger>
           <TabsTrigger value="design" id="preview-design-tab" aria-controls="preview-design-panel">디자인 옵션</TabsTrigger>
@@ -71,8 +74,7 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
         </div>
         </TabsContent>
         <TabsContent value="design" id="preview-design-panel" aria-labelledby="preview-design-tab">
-        {open && defaults ? designContent ?? <PreviewDesignOptions templateKey={templateKey} defaults={defaults} renderedDesign={renderedDesign} value={design} album={album} dining={templateKey.startsWith("dining_")} disabled={pending} alignmentDisabled={alignmentDisabled} onChange={onDesignChange} /> : null}
-          {patternOption}
+        {open && defaults ? designContent ?? <PreviewDesignOptions templateKey={templateKey} defaults={defaults} renderedDesign={renderedDesign} value={design} album={album} dining={templateKey.startsWith("dining_")} disabled={pending} alignmentDisabled={alignmentDisabled} onChange={onDesignChange}>{patternOption}</PreviewDesignOptions> : null}
         </TabsContent>
       </Tabs>}
     </div>
