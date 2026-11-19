@@ -314,6 +314,10 @@ Every catalog color picker stages spectrum, hue, keyboard and HEX edits locally.
 
 Time-sale explanation, deadline and remaining-time/countdown copy always use the associated chip background color, both for the default promotion color and for saved/preview overrides. Generic supporting-text color rules must exclude `.cafe-a-time-sale-time-text`; its typography still uses the shared supporting size/font. Chip foreground remains independent; discounted prices and state chips retain their existing color roles. Order fills use actual category ink and labels use the lightest rendered menu swatch, even for a deliberately bright category; only a swatch identical to the fill uses a readable fallback. Call-circle contrast behavior remains independent. This supersedes the older Order contrast-fallback policy below.
 
+### 베이직 기본 디자인 기간할인 글자 두께 — 2026-11-19 (현행)
+
+베이직 기본 디자인의 리스트형·앨범형은 기간할인 안내 문구, 마감 안내, 남은 시간과 카운트다운 숫자를 모두 `font-weight: 900`으로 표시한다. 리얼마차의 기본 강조 두께와 같으며, PC·태블릿·모바일의 카탈로그 미리보기와 저장된 공개 메뉴판에 적용한다. 일반 메뉴 설명의 글자 두께가 이 강조 두께를 덮어쓰지 않도록 한다. 기존 설명 글자 크기·저장 서체와 기간할인 텍스트칩 배경색을 따르는 문구색 규칙을 유지한다. 검수는 `scripts/qa-time-sale-color-contract.mjs`에서 실제 계산된 문구·숫자 두께와 색상을 함께 확인한다.
+
 ## Shared preview shapes and chip colors — 2026-10-23
 
 Catalog Design options expose one image-radius preset for advertisement, representative, widget and product images plus text chips. Catalog and editor use the same helper: square/soft/rounded/round maps images to 0/8/16/24 CSS px and chips to their existing square/soft/rounded/pill shapes. Logos are excluded from the control; Dining full-bleed covers remain square. Previously saved independent values, including logo values, stay intact until another shared preset is selected. Template default clears only the supported image/chip overrides. Existing JSON/form fields and album image ratios remain compatible. This supersedes the independent radius and chip-shape controls described below.

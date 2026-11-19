@@ -20,6 +20,7 @@
 .surface :global(.cafe-a-menu-badge),
 .surface :global(.cafe-a-menu-chip),
 .surface :global(.cafe-a-time-sale-time-text) { font-weight: 500; }
+.surface[data-default-design^="basic-"] :global(.cafe-a-time-sale-time-text) { font-weight: 900; }
 
 /* Price rails stay beside the item name in visible and measuring rows. */
 .surface :global(.cafe-a-typography .cafe-a-price-area) { align-self: start; }

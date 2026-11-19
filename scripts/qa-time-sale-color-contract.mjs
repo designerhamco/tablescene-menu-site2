@@ -15,13 +15,29 @@ function readColors(){
   return [...document.querySelectorAll('.cafe-a-time-sale-time-text')].filter(el=>el.getBoundingClientRect().width>0&&!el.closest('[inert]')).map(el=>{
     let parent=el.parentElement;while(parent&&!parent.querySelector('.cafe-a-time-sale-badge'))parent=parent.parentElement;
     const badge=parent?.querySelector('.cafe-a-time-sale-badge');
-    return {text:el.textContent,color:getComputedStyle(el).color,chip:badge?getComputedStyle(badge).backgroundColor:null,chipText:badge?getComputedStyle(badge).color:null,countdown:el.hasAttribute('data-cafe-a-time-sale-digital-timer'),children:[...el.querySelectorAll('span,svg')].map(child=>getComputedStyle(child).color)};
+    return {
+      text: el.textContent,
+      color: getComputedStyle(el).color,
+      weight: getComputedStyle(el).fontWeight,
+      chip: badge ? getComputedStyle(badge).backgroundColor : null,
+      chipText: badge ? getComputedStyle(badge).color : null,
+      countdown: el.hasAttribute('data-cafe-a-time-sale-digital-timer'),
+      children: [...el.querySelectorAll('span,svg')].map(child => getComputedStyle(child).color),
+      childWeights: [...el.querySelectorAll('span')].map(child => getComputedStyle(child).fontWeight),
+    };
   });
 }
 function check(rows,label,requireBoth){
   assert.ok(rows.length>=1,label+' sale timing sample present');
   if(requireBoth){assert.ok(rows.some(r=>r.countdown),label+' countdown present');assert.ok(rows.some(r=>!r.countdown),label+' message present');}
-  for(const row of rows){assert.equal(row.color,row.chip,label+' sale copy follows chip background');for(const color of row.children)assert.equal(color,row.chip,label+' digits/icon/script color');}
+  for (const row of rows) {
+    assert.equal(row.color, row.chip, label + ' sale copy follows chip background');
+    for (const color of row.children) assert.equal(color, row.chip, label + ' digits/icon/script color');
+    if (requireBoth) {
+      assert.equal(row.weight, '900', label + ' sale copy weight');
+      for (const weight of row.childWeights) assert.equal(weight, '900', label + ' digits/script weight');
+    }
+  }
 }
 try{
   for(const c of cases.filter(c=>process.env.SALE_COLOR_QA_SCOPE!=='additional'||!c.design||c.custom)){
@@ -37,8 +53,12 @@ try{
       if(c.custom)for(const row of before)assert.equal(row.chip,'rgb(37, 71, 138)');
       const root=p.locator('.cafe-a-typography').first();
       const saved=await root.evaluate(root=>({style:root.getAttribute('style'),roles:root.getAttribute('data-menu-text-colors')}));
-      // Exercise the legacy saved supporting-color selector that caused the regression.
-      await root.evaluate(root=>{root.dataset.menuTextColors='supporting';root.style.setProperty('--menu-role-supporting-color','#765432');});
+      // Exercise saved supporting styles without weakening the promotion emphasis.
+      await root.evaluate((root, standard) => {
+        root.dataset.menuTextColors = 'supporting';
+        root.style.setProperty('--menu-role-supporting-color', '#765432');
+        if (standard) root.style.setProperty('--menu-role-supporting-font-weight', '400');
+      }, Boolean(c.design));
       check(await p.evaluate(readColors),label+'/saved-supporting',Boolean(c.design));
       await root.evaluate((root,saved)=>{if(saved.style===null)root.removeAttribute('style');else root.setAttribute('style',saved.style);if(saved.roles===null)root.removeAttribute('data-menu-text-colors');else root.setAttribute('data-menu-text-colors',saved.roles);},saved);
       if(!c.custom&&c.design==='basic-top-row'&&device==='pc')await p.screenshot({path:`${output}/basic-top-row.png`});

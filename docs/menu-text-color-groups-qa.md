@@ -81,3 +81,5 @@ Run `node scripts/qa-van-gogh-item-separators.mjs`; set `VAN_GOGH_SEPARATOR_QA_B
 ## 2026-11-19 time-sale accent regression
 
 The legacy saved supporting-text selector must not recolor sale messages, deadlines, remaining time or digital countdowns. Their ink (including the clock and digits) follows the associated promotion-chip background, with saved/preview chip overrides authoritative. The supporting role still controls their typography. `scripts/qa-time-sale-color-contract.mjs` compares computed browser colors on Basic standard/native designs and repeats the assertion with a saved supporting-color override; custom preview chip colors are checked independently. Catalog thumbnails are regenerated after the correction.
+
+베이직 기본 디자인의 리스트형·앨범형 기간할인 문구와 카운트다운은 2026-11-19 승인 기준으로 두께 900을 사용한다. 설명 글자의 크기·서체와 칩 배경색을 따르는 문구색은 기존 규칙을 적용한다. 같은 브라우저 검사에서 PC·태블릿·모바일의 실제 문구와 숫자 두께 900을 확인하고, 일반 설명 두께 400을 주입해도 강조가 유지되는지 검증한다.
