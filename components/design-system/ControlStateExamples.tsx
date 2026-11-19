@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/ta
 import IconControlExamples from "./IconControlExamples";
 import styles from "./SiteComponentGallery.module.css";
 import MenuViewerPagination from "@/components/menu/MenuViewerPagination";
+import { ChevronUp } from "@/app/components/ui/site-arrow";
 
 const states = [
   ["default", "기본"], ["hover", "Hover"], ["pressed", "누르는 중"], ["focus", "키보드 포커스"], ["disabled", "비활성"],
@@ -74,8 +75,8 @@ export default function ControlStateExamples() {
       <tbody>{(["page", "underline", "area", "outline", "document"] as const).map(variant => <tr key={variant}><th scope="row">{{page:"페이지 전환",underline:"밑줄",area:"영역형",outline:"상태값 전환",document:"문서형"}[variant]}</th>{states.map(([state,stateLabel]) => <td key={state}><Tabs variant={variant} defaultValue="selected"><TabsList aria-label={`${variant} ${stateLabel} 예시`}>
         <TabsTrigger value="selected" data-ui-state={state === "default" || state === "disabled" ? undefined : state} disabled={state === "disabled"}>선택</TabsTrigger>
       </TabsList><TabsContent value="selected" className="sr-only" tabIndex={-1}>상태 예시</TabsContent></Tabs></td>)}</tr>)}</tbody></table></div>
-    <p className="type-body-sm text-zinc-600">어두운 미리보기 막대에서는 버튼에 밝은 회색 면과 얇은 밝은 경계를 사용합니다. 선택은 흰색, 비활성은 경계를 유지한 흐린 상태입니다. 펼치기·접기 화살표는 기존 투명 스타일을 유지합니다.</p>
-    <div className={styles.inverseToolbar} role="group" aria-label="미리보기 도구 스타일 예시">{["태블릿","PC","모바일"].map(label => <button key={label} type="button" className="site-preview-control" aria-pressed={previewDevice === label} onClick={() => setPreviewDevice(label)}>{label}</button>)}<button type="button" className="site-preview-control">실제 화면 보기</button><button type="button" className="site-preview-control site-preview-control-icon" aria-label="미리보기 안내 예시"><CircleHelp className="h-4 w-4" aria-hidden="true" /></button><button type="button" className="site-preview-control" disabled>준비 중</button></div>
+    <p className="type-body-sm text-zinc-600">어두운 미리보기 막대의 실행 버튼은 밝은 회색 면·검정 글자·은은한 경계, 선택은 흰색, 비활성은 흐린 면과 글자로 구분합니다. 도움말·접기는 배경 없는 흰색 아이콘입니다. 일반 기본 버튼의 검정 면은 유지합니다.</p>
+    <div className={styles.inverseToolbar} role="group" aria-label="미리보기 도구 스타일 예시">{["태블릿","PC","모바일"].map(label => <button key={label} type="button" className="site-preview-control" aria-pressed={previewDevice === label} onClick={() => setPreviewDevice(label)}>{label}</button>)}<button type="button" className="site-preview-control">실제 화면 보기</button><button type="button" className="site-icon-control site-preview-control site-preview-control-icon" data-icon-appearance="bare" aria-label="미리보기 안내 예시"><CircleHelp className="h-4 w-4" aria-hidden="true" /></button><button type="button" className="site-icon-control site-preview-control site-preview-control-icon" data-icon-appearance="bare" aria-label="미리보기 접기 예시"><ChevronUp className="h-4 w-4" aria-hidden="true" /></button><button type="button" className="site-preview-control" disabled>준비 중</button></div>
     <div className={styles.inverseToolbar} role="group" aria-label="미리보기 도구 상태 비교">{states.map(([state,label]) => <button key={state} type="button" className="site-preview-control" data-ui-state={state} disabled={state === "disabled"}>{label}</button>)}</div>
     <p className="type-body-sm text-zinc-600">메뉴 뷰어의 하단 탐색은 템플릿 색상·서체와 분리된 흰 표면, 검정 카운터, 공통 화살표를 사용합니다.</p>
     <div className={styles.buttonRow}><MenuViewerPagination page={viewerPage} count={4} onPrevious={() => setViewerPage(page => Math.max(1, page - 1))} onNext={() => setViewerPage(page => Math.min(4, page + 1))} /></div>
