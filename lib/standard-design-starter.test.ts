@@ -1,4 +1,5 @@
-import { getBasicStandardCategories, BASIC_STANDARD_SET_COPY, BASIC_STANDARD_INTRO } from "./basic-standard-sample";
+import { getBasicStandardCategories, BASIC_STANDARD_SET_COPY } from "./basic-standard-sample";
+import { BASIC_STANDARD_INTRO } from "./menu-ui-copy";
 import { getStandardDesignSampleTemplateKey } from "./standard-design-copy";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -6,6 +7,9 @@ import { DEFAULT_DESIGN_REVIEWS } from "./menu-design-policy";
 import { createStarterMenuData, getStarterPreset } from "./menu-starter-presets";
 import { getStarterTranslationCopy } from "./standard-design-starter";
 import { getMenuDesignDisplayName, getSavedMenuDesign } from "./menu-design-identity";
+import { applyTemplatePreviewOptions } from "./template-preview-data";
+import { getTemplatePreviewOptions } from "./template-preview-options";
+import { buildStarterPreviewData } from "./template-starter-preview";
 import { ensurePurchasedMenuStarter } from "./server/purchased-menu-provisioning";
 
 import { StarterClient } from "./test-support/starter-provisioning-client";
@@ -37,11 +41,23 @@ for (const design of DEFAULT_DESIGN_REVIEWS) {
     assert.equal((await createStarterMenuData(client as never, "new-menu", design.renderer, null, null, "business_basic_single_monthly", {designId: design.id})).created, false);
     assert.deepEqual([...client.rows], snapshot);
     if (design.renderer === "cafe_design_a") {
+      const isAlbum = design.itemLayout === "album";
+      const preview = buildStarterPreviewData(design.renderer, null, design.id);
+      const defaults = getTemplatePreviewOptions(preview, {});
+      assert.equal(defaults.imagesPreview, isAlbum);
+      assert.equal(defaults.categoryDescriptionsPreview, isAlbum);
+      const withOptionsOn = applyTemplatePreviewOptions(preview, { imagesPreview: "on", categoryDescriptionsPreview: "on" });
+      assert.ok(withOptionsOn.items.some(item => item.image_url));
+      assert.ok(withOptionsOn.categories.every(category => category.description_visible && category.description));
+      assert.equal(client.site.brand_description, BASIC_STANDARD_INTRO);
+      assert.equal(preview.menuSite.brand_description, BASIC_STANDARD_INTRO);
       const fallbackItem = preset.pages.flatMap(page => page.categories.flatMap(category => category.items))
         .find(item => item.key === preset.featured_item_key);
       assert.equal(fallbackItem?.name, "그릴 치킨 플레이트");
       const categories = client.rows.get("menu_categories") ?? [];
       assert.deepEqual(categories.map(row => row.name), ["MAIN", "SIDES", "DESSERTS", "DRINKS"]);
+      assert.ok(categories.every(row => row.description_visible === isAlbum && row.description));
+      assert.equal(rows.some(row => Boolean(row.image_url)), isAlbum);
       assert.equal(rows[0].name, "그릴 치킨 플레이트");
       assert.equal(rows.length, 16);
       assert.ok(rows.every(row => !String(row.name).includes("단품/세트")));
@@ -72,6 +88,9 @@ for (const design of DEFAULT_DESIGN_REVIEWS) {
         ja: ["メイン", "サイド", "デザート", "ドリンク"],
       };
       for (const locale of ["en", "zh", "ja"] as const) {
+        const intro = translations[locale].site.brandDescription;
+        assert.equal(intro.split("\n").length, 3);
+        assert.doesNotMatch(intro, /[가-힣]/);
         assert.deepEqual(Object.values(translations[locale].categoryNames), localizedCategoryNames[locale]);
         assert.doesNotMatch(JSON.stringify(translations[locale].site), /REAL.?MATCHA|real\.matcha|济州|済州/);
         assert.doesNotMatch(JSON.stringify(translations[locale].items), /Real Matcha|真抹茶|リアル抹茶|[가-힣]/);

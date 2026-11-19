@@ -2,7 +2,6 @@ import type { StarterCategory } from "./menu-starter-presets";
 import type { SupportedLocale } from "./locales";
 import { translateMenuText } from "./menu-ui-copy";
 
-export const BASIC_STANDARD_INTRO = "취향에 맞는 메뉴로 맛있는 시간을 즐겨보세요.";
 export const BASIC_STANDARD_SET_COPY = "(세트 선택 시 오늘의 수프 + 에이드 1잔 추가)";
 
 /** Shared sample content for Basic standard designs only; never applied to saved menus. */
@@ -36,7 +35,7 @@ export function getBasicStandardCategories(withPriceColumns: boolean): StarterCa
   return groups.map(group => {
     const main = group.key === "basic-main" && withPriceColumns;
     return {
-      key: group.key, name: group.name, description: group.description, description_visible: true,
+      key: group.key, name: group.name, description: group.description,
       price_columns: main ? [{ key: "single", label: "단품", visible: true }, { key: "set", label: "세트", visible: true }] : [],
       items: group.items.map(([key, name, english, price, description], index) => ({
         key, name, set_name: english, price, price_visible: true,

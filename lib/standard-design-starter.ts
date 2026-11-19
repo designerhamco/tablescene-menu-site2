@@ -41,7 +41,11 @@ export function buildStandardDesignStarter(source: StarterPreset, designId?: str
     const page = preset.pages[0];
     page.title = "메뉴";
     page.description = null;
-    page.categories = getBasicStandardCategories(design.itemLayout !== "album");
+    page.categories = getBasicStandardCategories(design.itemLayout !== "album").map(category => ({
+      ...category,
+      description_visible: options.categoryDescriptionsPreview,
+      items: options.imagesPreview ? category.items : category.items.map(item => ({ ...item, image_url: null })),
+    }));
     preset.featured_item_key = "grilled-chicken";
     page.direct_items = [];
     preset.site.restaurant_category = "음식점";
