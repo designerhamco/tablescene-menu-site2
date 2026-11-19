@@ -42,6 +42,7 @@ export function buildStandardDesignStarter(source: StarterPreset, designId?: str
     page.title = "메뉴";
     page.description = null;
     page.categories = getBasicStandardCategories(design.itemLayout !== "album");
+    preset.featured_item_key = "grilled-chicken";
     page.direct_items = [];
     preset.site.restaurant_category = "음식점";
     preset.mixed_content_order = page.categories.map((category, index) => ({ block_type: "category", page_key: page.key!, category_key: category.key!, sort_order: index }));
