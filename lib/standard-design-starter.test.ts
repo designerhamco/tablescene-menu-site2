@@ -1,3 +1,4 @@
+import { getBasicStandardCategories, BASIC_STANDARD_SET_COPY, BASIC_STANDARD_INTRO } from "./basic-standard-sample";
 import { getStandardDesignSampleTemplateKey } from "./standard-design-copy";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -19,7 +20,7 @@ for (const design of DEFAULT_DESIGN_REVIEWS) {
     assert.match(preset.site.cover_image_url, /^\/placeholders\/starter\//);
     assert.equal(preset.site.settings?.footer_notice_2, "알레르기가 있다면 주문 전 알려주세요.");
     assert.equal(preset.pages.length, native.pages.length);
-    assert.deepEqual(preset.pages.flatMap(p => p.categories.flatMap(c => c.items.map(i => i.key))), sample.pages.flatMap(p => p.categories.flatMap(c => c.items.map(i => i.key))));
+    assert.deepEqual(preset.pages.flatMap(p => p.categories.flatMap(c => c.items.map(i => i.key))), design.renderer === "cafe_design_a" ? getBasicStandardCategories(design.itemLayout !== "album").flatMap(c => c.items.map(i => i.key)) : sample.pages.flatMap(p => p.categories.flatMap(c => c.items.map(i => i.key))));
     const client = new StarterClient();
     const result = await createStarterMenuData(client as never, "new-menu", design.renderer, null, null, "business_basic_single_monthly", {designId: design.id});
     assert.equal(result.created, true);
@@ -36,42 +37,36 @@ for (const design of DEFAULT_DESIGN_REVIEWS) {
     assert.equal((await createStarterMenuData(client as never, "new-menu", design.renderer, null, null, "business_basic_single_monthly", {designId: design.id})).created, false);
     assert.deepEqual([...client.rows], snapshot);
     if (design.renderer === "cafe_design_a") {
-      assert.deepEqual((client.rows.get("menu_categories") ?? []).map(row => row.name), ["SIGNATURE", "COFFEE", "NON-COFFEE", "ADE", "BAKERY"]);
-      assert.equal(rows[0].name, "말차 라떼");
-      const bakery = (client.rows.get("menu_categories") ?? []).find(c => c.name === "BAKERY");
-      assert.ok(rows.filter(row => row.category_id === bakery?.id).every(row => row.image_url === null));
+      const categories = client.rows.get("menu_categories") ?? [];
+      assert.deepEqual(categories.map(row => row.name), ["메인 메뉴", "곁들임", "디저트", "음료"]);
+      assert.equal(rows[0].name, "그릴 치킨 플레이트");
+      assert.equal(rows.length, 16);
+      assert.ok(rows.every(row => !String(row.name).includes("단품/세트")));
       const columns = client.rows.get("menu_category_price_columns") ?? [];
-      const topRowList = design.id === "basic-top-row" || design.id === "basic-top-row-left-logo";
-      assert.equal(columns.length, design.itemLayout === "album" ? 0 : topRowList ? 6 : 5);
-      if (topRowList) {
-        assert.equal(preset.menu_cover_enabled, false);
-        assert.equal((client.site.page_settings as Record<string, unknown>).menu_cover_enabled, false);
-        for (const category of client.rows.get("menu_categories") ?? []) {
-          const items = rows.filter(row => row.category_id === category.id);
-          const labels = columns.filter(column => column.category_id === category.id).map(column => column.label);
-          if (["SIGNATURE", "NON-COFFEE", "COFFEE"].includes(String(category.name))) {
-            assert.deepEqual(labels, ["HOT", "ICE"]);
-            for (const item of items) {
-              const values = (client.rows.get("menu_item_price_column_values") ?? []).filter(value => value.menu_item_id === item.id);
-              assert.equal(values.length, 2);
-              if (category.name !== "COFFEE") assert.equal(item.price_note, null);
-            }
+      assert.equal(columns.length, design.itemLayout === "album" ? 0 : 2);
+      for (const category of categories) {
+        const items = rows.filter(row => row.category_id === category.id);
+        const labels = columns.filter(column => column.category_id === category.id).map(column => column.label);
+        const main: boolean = category.name === "메인 메뉴" && design.itemLayout !== "album";
+        assert.deepEqual(labels, main ? ["단품", "세트"] : []);
+        for (const item of items) {
+          const values = (client.rows.get("menu_item_price_column_values") ?? []).filter(value => value.menu_item_id === item.id);
+          assert.equal(values.length, main ? 2 : 0);
+          if (main) {
+            assert.deepEqual(values.map(value => value.price), [item.price, Number(item.price) + 3000]);
+            assert.ok(String(item.description).endsWith(BASIC_STANDARD_SET_COPY));
           }
-          if (category.name === "ADE") {
-            assert.deepEqual(labels, []);
-            assert.ok(items.length > 0 && items.every(item => item.price_note === "ICE ONLY"));
-            for (const item of items) {
-              assert.equal((client.rows.get("menu_item_price_column_values") ?? []).filter(value => value.menu_item_id === item.id).length, 0);
-              assert.equal((client.rows.get("menu_item_price_options") ?? []).filter(value => value.menu_item_id === item.id).length, 0);
-            }
-          }
+          assert.equal(item.price_note, category.name === "음료" ? "ICE ONLY" : null);
+          assert.equal((client.rows.get("menu_item_price_options") ?? []).filter(value => value.menu_item_id === item.id).length, 0);
         }
       }
+      if (["basic-top-row", "basic-top-row-left-logo"].includes(design.id)) assert.equal(preset.menu_cover_enabled, false);
       assert.ok((client.rows.get("menu_site_translations") ?? []).every(row => row.restaurant_name === null));
       const translations = getStarterTranslationCopy(preset)!;
       for (const locale of ["en", "zh", "ja"] as const) {
         assert.doesNotMatch(JSON.stringify(translations[locale].site), /REAL.?MATCHA|real\.matcha|济州|済州/);
-        assert.doesNotMatch(JSON.stringify(translations[locale].items).replace(/real-matcha/g, ""), /Real Matcha|真抹茶|リアル抹茶/);
+        assert.doesNotMatch(JSON.stringify(translations[locale].items), /Real Matcha|真抹茶|リアル抹茶|[가-힣]/);
+        assert.equal(Object.keys(translations[locale].items).length, 16);
       }
     }
   });
@@ -89,6 +84,6 @@ test("designer selection and legacy label keep native sample assets", () => {
 test("payment recovery forwards the purchased design instead of the shared renderer sample", async () => {
   const client = new StarterClient();
   await ensurePurchasedMenuStarter(client as never, {menuSiteId: "recovered", templateKey: "cafe_design_a", productKey: "business_basic_single_monthly", designId: "basic-first-column"});
-  assert.equal(client.rows.get("menu_items")?.[0].name, "말차 라떼");
-  assert.equal(client.site.brand_description, "좋은 커피와 갓 구운 디저트를 준비합니다.");
+  assert.equal(client.rows.get("menu_items")?.[0].name, "그릴 치킨 플레이트");
+  assert.equal(client.site.brand_description, BASIC_STANDARD_INTRO);
 });

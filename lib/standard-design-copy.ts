@@ -1,3 +1,4 @@
+import { BASIC_STANDARD_INTRO } from "./basic-standard-sample";
 import type { DefaultDesignReview } from "./menu-design-policy";
 
 export const diningSampleNames: Record<string, readonly [string, string]> = {
@@ -28,11 +29,8 @@ export const diningSampleNames: Record<string, readonly [string, string]> = {
 export function getStandardDesignCopy(design: DefaultDesignReview) {
   const basic = design.layout.startsWith("basic-");
   return {
-    title: basic ? "CAFE ARTIMENU" : "DINING ARTIMENU",
-    description: basic ? (design.layout === "basic-top-row" || design.layout === "basic-top-row-left-logo")
-      ? "좋은 커피와 갓 구운 디저트를 준비합니다. 향긋한 한 잔과 함께 편안한 시간을 즐겨보세요."
-      : "좋은 커피와 갓 구운 디저트를 준비합니다."
-      : "계절의 재료로 정성껏 준비한 식사를 만나보세요.",
+    title: basic ? "ARTIMENU" : "DINING ARTIMENU",
+    description: basic ? BASIC_STANDARD_INTRO : "계절의 재료로 정성껏 준비한 식사를 만나보세요.",
     coverImage: basic ? "/placeholders/starter/default-basic-cover.svg" : "/placeholders/starter/default-cover.svg",
     notices: ["영업시간 10:00–21:00", "알레르기가 있다면 주문 전 알려주세요.", "모든 가격은 부가세 포함입니다."],
   };
