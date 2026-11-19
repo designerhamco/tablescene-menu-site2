@@ -1,3 +1,4 @@
+import { translateBasicStandardText } from "./basic-standard-sample";
 import type { DefaultDesignReview } from "./menu-design-policy";
 import { getStandardDesignSampleTemplateKey, neutralizeDiningSampleText } from "./standard-design-copy";
 import type { MenuPageData } from "./menu-page-data";
@@ -28,21 +29,21 @@ export function localizeDefaultDesignPreview(data: MenuPageData, source: MenuPag
     pages: data.pages.map(page => ({ ...page, title: pages.get(page.id)?.title ?? page.title,
       description: page.description ? neutralizeDiningSampleText(pages.get(page.id)?.description ?? page.description) : null })),
     categories: data.categories.map(category => ({ ...category,
-      name: neutralizeDiningSampleText(categories.get(category.id)?.name ?? category.name),
+      name: basic ? t(category.name) : neutralizeDiningSampleText(categories.get(category.id)?.name ?? category.name),
       description: category.description ? basic ? t(category.description) : categories.get(category.id)?.description ?? category.description : null,
       course_price_description: category.course_price_description ? categories.get(category.id)?.course_price_description ?? category.course_price_description : null,
       priceColumns: category.priceColumns.map(column => ({ ...column, label: t(column.label) })),
     })),
-    items: data.items.map((item, index) => ({ ...item,
-      name: basic && index === 0 ? t("말차 라떼") : items.get(item.id)?.name?.replace(/Real Matcha /g, "Matcha ") ?? item.name,
-      description: item.description ? basic && index === 0 ? t("부드러운 말차와 우유의 조화") : items.get(item.id)?.description ?? item.description : null,
+    items: data.items.map(item => ({ ...item,
+      name: basic ? t(item.name) : items.get(item.id)?.name?.replace(/Real Matcha /g, "Matcha ") ?? item.name,
+      description: item.description ? basic ? translateBasicStandardText(item.description, locale) : items.get(item.id)?.description ?? item.description : null,
       priceNote: item.priceNote ? t(item.priceNote) : null,
       badge: item.badge ? t(item.badge) : null, badge_label: item.badge_label ? t(item.badge_label) : null,
     })),
     priceOptions: data.priceOptions.map(option => ({ ...option, label: t(option.label) })),
     timeSales: data.timeSales.map(sale => ({ ...sale,
-      name: sales.get(sale.id)?.name ?? sale.name,
-      displayText: sale.displayText ? sales.get(sale.id)?.displayText ?? sale.displayText : null,
+      name: basic ? t(sale.name) : sales.get(sale.id)?.name ?? sale.name,
+      displayText: sale.displayText ? basic ? t(sale.displayText) : sales.get(sale.id)?.displayText ?? sale.displayText : null,
       badgeText: t(sale.badgeText),
     })),
     widgets: (data.widgets ?? []).map(widget => {

@@ -60,8 +60,13 @@ function designerStructureLabel(templateKey: string, service: CatalogService) {
   return MENU_LAYOUTS[layout].label;
 }
 const standardPreviewVersions: Readonly<Record<string, string>> = {
-  "basic-top-row": "20261110",
-  "basic-top-row-left-logo": "20261110-v2",
+  "basic-first-column": "20261119",
+  "basic-top-row": "20261119",
+  "basic-top-row-left-logo": "20261119",
+  "basic-center-column": "20261119",
+  "basic-upper-left": "20261119",
+  "basic-first-column-album": "20261119",
+  "basic-top-row-album": "20261119",
 };
 const standards: CatalogDesign[]=DEFAULT_DESIGN_REVIEWS.map(design=>{
   const service=MENU_LAYOUTS[design.layout].service;
