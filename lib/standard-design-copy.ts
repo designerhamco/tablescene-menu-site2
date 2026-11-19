@@ -1,4 +1,4 @@
-import { BASIC_STANDARD_INTRO } from "./basic-standard-sample";
+import { BASIC_STANDARD_INTRO } from "./menu-ui-copy";
 import type { DefaultDesignReview } from "./menu-design-policy";
 
 export const diningSampleNames: Record<string, readonly [string, string]> = {

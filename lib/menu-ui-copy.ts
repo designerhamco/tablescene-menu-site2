@@ -1,6 +1,13 @@
 import type { SupportedLocale } from "./locales";
 
+export const BASIC_STANDARD_INTRO = "정성껏 차린 따뜻한 한 끼.\n함께 나누기 좋은 곁들임부터\n달콤한 디저트까지 즐겨보세요.";
+
 export const MENU_UI_COPY: Record<string, readonly [string, string, string]> = {
+  [BASIC_STANDARD_INTRO]: [
+    "Sit down to a meal made with care.\nShare a side or two,\nand finish with something sweet.",
+    "心を込めた温かいお食事。\nシェアできるサイドから、\n食後のデザートまで。",
+    "用心准备每一份热乎的餐点。\n从适合分享的小食，\n到饭后的甜点，都可尽情享用。",
+  ],
   "취향에 맞는 메뉴로 맛있는 시간을 즐겨보세요.": ["Enjoy delicious moments with dishes you love.", "お好みのメニューで、おいしいひとときを。", "挑选喜爱的美食，享受美味时光。"],
   "음식점": ["Restaurant", "飲食店", "餐厅"],
   "메인 메뉴": ["MAIN", "メイン", "主食"],
