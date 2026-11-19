@@ -20,8 +20,8 @@ const results = [];
 const browser = await chromium.launch({ headless: true });
 
 const exactRoles = {
+  "site-notice": [16],
   "type-page-description": [18, 20],
-  "type-section-title": [28, 32, 36],
   "type-body-lg": [18, 20],
   "type-body": [14, 16],
   "type-body-sm": [14],
@@ -44,9 +44,13 @@ async function semanticMetrics(page) {
       return [...element.classList].some(name => rolePattern.test(name));
     });
     return nodes.map(element => {
-      const classes = [...element.classList].filter(name => rolePattern.test(name));
+      // The notice surface owns its text size, including on legacy mixed-class notices.
+      const classes = element.classList.contains("site-notice")
+        ? ["site-notice"]
+        : [...element.classList].filter(name => rolePattern.test(name));
       return {
         classes,
+        management: Boolean(element.closest(".site-management-scope")),
         fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
         text: element.textContent?.trim().replace(/\s+/g, " ").slice(0, 80) || "",
       };
@@ -74,13 +78,23 @@ try {
       assert.ok(overflow <= 1, `${route} ${width}px has ${overflow}px horizontal overflow`);
 
       const metrics = await semanticMetrics(page);
+      const step = widths.indexOf(width);
+      const pageTitle = [28, 28, 32][step];
+      const sectionTitle = (route === "/" ? [28, 32, 36] : [24, 24, 28])[step];
+      const expectedRoles = { ...exactRoles, "type-page-title": [pageTitle], "type-section-title": [sectionTitle] };
       assert.ok(metrics.length > 0, `${route} ${width}px has no semantic typography roles`);
       for (const item of metrics) {
         assert.ok(
           !forbiddenSizes.has(item.fontSize),
           `${route} ${width}px still renders ${item.fontSize}px for ${item.classes.join(" ")}: ${item.text}`,
         );
-        for (const [role, expected] of Object.entries(exactRoles)) {
+        const sizes = item.management ? {
+          ...expectedRoles,
+          "type-section-title": [24],
+          "type-page-description": [16],
+          "type-body-lg": [16],
+        } : expectedRoles;
+        for (const [role, expected] of Object.entries(sizes)) {
           if (item.classes.includes(role)) {
             assert.ok(
               expected.includes(item.fontSize),

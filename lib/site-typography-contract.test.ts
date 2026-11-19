@@ -14,6 +14,7 @@ import {
   SITE_WIDE_TYPE_POLICY,
   SITE_MANAGEMENT_INTRO,
   SITE_HOME_HERO_TITLE_POLICY,
+  SITE_HOME_SECTION_TITLE_POLICY,
   getSiteWideTypeScale,
   siteTypeSizeCss,
 } from "./site-typography";
@@ -365,9 +366,9 @@ test("컴포넌트 밀도 조정은 사이트 탐색·페이지 제목·본문 �
   const roles = new Map<string, (typeof SITE_TYPE_ROLES)[number]>(SITE_TYPE_ROLES.map(role => [role.key, role]));
   for (const [key, sizes] of [
     ["nav", [15,15,16]],
-    ["display", [28,32,36]],
-    ["page-title", [28,32,36]],
-    ["section-title", [28,32,36]],
+    ["display", [28,28,32]],
+    ["page-title", [28,28,32]],
+    ["section-title", [24,24,28]],
     ["subsection-title", [20,20,24]],
     ["content-title", [18,18,18]],
     ["item-title", [18,18,18]],
@@ -381,6 +382,8 @@ test("컴포넌트 밀도 조정은 사이트 탐색·페이지 제목·본문 �
       const selector = declaration.parent?.type === "rule" && declaration.parent.selector;
       if (selector === '.site-marketing-page[data-marketing-page="home"]' && key === "display") {
         assert.equal(declaration.value, "var(--site-home-hero-title-size)");
+      } else if (selector === '.site-marketing-page[data-marketing-page="home"]' && key === "section-title") {
+        assert.equal(declaration.value, "var(--site-home-section-title-size)");
       } else {
         assert.equal(selector, ":root", `${key} must not inherit a compact control scope`);
       }
@@ -402,6 +405,7 @@ test("all semantic roles resolve to the reference steps at each breakpoint", () 
       }
       rule.walkDecls(decl => { values.set(decl.prop, decl.value); });
     });
+    assert.equal(values.get("--site-home-section-title-size"), `var(--site-type-${SITE_HOME_SECTION_TITLE_POLICY[device]})`, `home chapter at ${width}`);
     for (const role of SITE_TYPE_ROLES) {
       assert.ok(SITE_TYPE_STEPS.includes(role[device]));
       assert.equal(values.get(`--type-${role.key}-size`), `var(--site-type-${role[device]})`, `${role.key} at ${width}`);
@@ -534,6 +538,9 @@ test("animated home uses one title style while the larger hero role remains avai
   const source = readFileSync(join(projectRoot, "components/marketing/MarketingPages.tsx"), "utf8");
   const home = source.slice(source.indexOf("export function MarketingHome"));
   assert.doesNotMatch(home, /titleRole="hero"/);
+  assert.match(home, /data-marketing-page="home"/);
+  assert.deepEqual(Object.values(SITE_HOME_SECTION_TITLE_POLICY), [28, 32, 36]);
+  assert.match(typographySource, /\.site-marketing-page\[data-marketing-page="home"\]\s*\{[^}]*--type-section-title-size: var\(--site-home-section-title-size\);/);
   assert.match(home, /<HomeHeroMotion \/>/);
   const motion = readFileSync(join(projectRoot, "components/marketing/HomeHeroMotion.tsx"), "utf8");
   assert.match(motion, /Heading=chapter===0\?"h1":"h2"/);
@@ -559,8 +566,10 @@ test("공식 사이트의 주요 제목과 소개 문장은 화면 폭별 공통
   const lead = SITE_TYPE_ROLES.find(role => role.key === "body-lg")!;
   const body = SITE_TYPE_ROLES.find(role => role.key === "body")!;
   const title = SITE_TYPE_ROLES.find(role => role.key === "page-title")!;
+  const section = SITE_TYPE_ROLES.find(role => role.key === "section-title")!;
   for (const device of ["mobile", "tablet", "desktop"] as const) {
-    assert.ok(title[device] > description[device]);
+    assert.ok(title[device] > section[device]);
+    assert.ok(section[device] > description[device]);
     assert.equal(description[device], lead[device]);
     assert.ok(lead[device] > body[device]);
   }

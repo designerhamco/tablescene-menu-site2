@@ -36,7 +36,8 @@
   --type-display-size: var(--site-type-28);
   --type-page-title-size: var(--site-type-28);
   --type-page-description-size: var(--site-type-18);
-  --type-section-title-size: var(--site-type-28);
+  --type-section-title-size: var(--site-type-24);
+  --site-home-section-title-size: var(--site-type-28);
   --type-subsection-title-size: var(--site-type-20);
   --type-content-title-size: var(--site-type-18);
   --type-item-title-size: var(--site-type-18);
@@ -204,9 +205,7 @@
 
 @media (min-width: 768px) {
   :root {
-    --type-display-size: var(--site-type-32);
-    --type-page-title-size: var(--site-type-32);
-    --type-section-title-size: var(--site-type-32);
+    --site-home-section-title-size: var(--site-type-32);
     --site-tracking-title: -0.05em;
     --type-subsection-title-size: var(--site-type-20);
     --type-price-size: var(--site-type-44);
@@ -216,10 +215,11 @@
 
 @media (min-width: 1024px) {
   :root {
-    --type-display-size: var(--site-type-36);
-    --type-page-title-size: var(--site-type-36);
+    --type-display-size: var(--site-type-32);
+    --type-page-title-size: var(--site-type-32);
     --type-page-description-size: var(--site-type-20);
-    --type-section-title-size: var(--site-type-36);
+    --type-section-title-size: var(--site-type-28);
+    --site-home-section-title-size: var(--site-type-36);
     --type-subsection-title-size: var(--site-type-24);
     --type-body-lg-size: var(--site-type-20);
     --type-label-size: var(--site-type-14);
@@ -250,9 +250,12 @@
   text-wrap: balance;
 }
 
-/* The homepage alone retains an enlarged hero. Other titles keep their registered roles. */
+/* The homepage uses its own chapter and service title scale. */
 :root { --site-home-hero-title-size: 2rem; }
-.site-marketing-page[data-marketing-page="home"] { --type-display-size: var(--site-home-hero-title-size); }
+.site-marketing-page[data-marketing-page="home"] {
+  --type-display-size: var(--site-home-hero-title-size);
+  --type-section-title-size: var(--site-home-section-title-size);
+}
 @media (min-width: 768px) {
   :root { --site-home-hero-title-size: 2.75rem; }
 }
