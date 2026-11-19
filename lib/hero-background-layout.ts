@@ -15,10 +15,10 @@ export function heroLandscapePosition(width: number, height: number, scale: numb
     y: Math.min(0, Math.max(height - 1024 * scale, height * .53 - focus[1] * scale)),
   };
 }
-/** One expanded photograph with an exact original center and soft full-image edges. */
+/** One finished photograph per scene; no old-photo inserts or internal joins. */
 export const HERO_COMPOSITIONS = {
-  venue: "/assets/hero-cafe-v5/venue-composition.svg",
-  counter: "/assets/hero-cafe-v5/counter-composition.svg",
-  dining: "/assets/hero-cafe-v5/dining-composition.svg",
-  phone: "/assets/hero-cafe-v5/phone-composition.svg",
+  venue: "/assets/hero-cafe-v6/venue-composition.svg",
+  counter: "/assets/hero-cafe-v6/counter-composition.svg",
+  dining: "/assets/hero-cafe-v6/dining-composition.svg",
+  phone: "/assets/hero-cafe-v6/phone-composition.svg",
 } as const;

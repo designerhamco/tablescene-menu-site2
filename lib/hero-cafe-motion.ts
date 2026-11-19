@@ -1,4 +1,5 @@
-/** Marketing-only camera geometry. Coordinates belong to the authored 1536×1024 photos. */
+import photoGeometry from "./hero-photo-geometry.json";
+/** Marketing-only geometry in the shared1536×1024 camera plane. */
 export type HeroPoint = readonly [number, number];
 export type HeroQuad = readonly [HeroPoint, HeroPoint, HeroPoint, HeroPoint];
 export const HERO_CAFE_CHAPTERS = [
@@ -15,16 +16,14 @@ export function heroLiveSceneAt(chapter: number, inView: boolean, visible: boole
   const image = HERO_CAFE_CHAPTERS[chapter]?.image;
   return image && image !== "venue" ? image : null;
 }
+/** Measured from the approved flat photos; all UI shares the unchanged1536×1024 camera plane. */
+const measuredScreen = (scene: keyof typeof photoGeometry, index = 0) => photoGeometry[scene].screens[index] as unknown as HeroQuad;
 export const HERO_CAFE_SCREENS = {
-  televisions: [
-    [[505,290],[739,277],[739,420],[505,424]],
-    [[760,273],[1034,255],[1034,414],[760,419]],
-    [[1057,256],[1370,233],[1370,407],[1057,412]],
-  ] as readonly HeroQuad[],
-  venueTablet: [[1113,532.8],[1216.7,534],[1204.7,603.3],[1100.7,599.6]] as HeroQuad,
-  counter: [[758,291],[1374,288],[1339,704],[707,690]] as HeroQuad,
-  dining: [[575,283],[1266,295],[1231,774],[515,731]] as HeroQuad,
-  phone: [[871,180],[1129,191],[1071,798],[809,775]] as HeroQuad,
+  televisions: [measuredScreen("venue",0),measuredScreen("venue",1),measuredScreen("venue",2)] as readonly HeroQuad[],
+  venueTablet: measuredScreen("venue",3),
+  counter: measuredScreen("counter"),
+  dining: measuredScreen("dining"),
+  phone: measuredScreen("phone"),
 };
 /** Enough time for each native preview to finish its visible action sequence. */
 /** Seconds are narrative positions, never a running playback clock. */
