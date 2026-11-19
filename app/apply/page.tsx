@@ -77,7 +77,7 @@ export default function ApplyPage() {
     <section className="site-dark-cta mt-16 md:mt-20">
       <div className="mx-auto max-w-2xl">
         <h2 className="type-section-title">디자인을 먼저 둘러보세요</h2>
-        <p className="site-body mt-5 text-zinc-400">
+        <p className="type-body-lg mt-5 text-zinc-400">
           기본 레이아웃과 완성된 디자인 템플릿을 비교한 뒤 메뉴판 만들기를 시작할 수 있습니다.
         </p>
       </div>

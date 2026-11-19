@@ -19,7 +19,7 @@ export default function TemplateDetailStory({ template }: { template: PublicTemp
       </div>
       <div className={styles.overviewCopy}>
         <h2 id="template-overview-title" className="type-section-title">메뉴판 하나에, 매일 필요한 기능을 담았어요</h2>
-        <p className={`type-body ${styles.description}`}>메뉴 소개부터 손님의 요청까지. 디자인별로 사용할 수 있는 기능을 확인해보세요.</p>
+        <p className={`type-body-lg ${styles.description}`}>메뉴 소개부터 손님의 요청까지. 디자인별로 사용할 수 있는 기능을 확인해보세요.</p>
       </div>
       <ul className={styles.featureGrid} aria-label="메뉴판 핵심 기능 8가지">
         {DETAIL_FEATURES.map((feature, index) => {
