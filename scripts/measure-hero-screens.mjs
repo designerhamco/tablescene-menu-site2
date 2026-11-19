@@ -3,9 +3,9 @@ import sharp from 'sharp';
 import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
 function fitLine(points){const n=points.length,s=points.reduce((a,[x,y])=>[a[0]+x,a[1]+y,a[2]+x*x,a[3]+x*y],[0,0,0,0]);const a=(n*s[3]-s[0]*s[1])/(n*s[2]-s[0]*s[0]);return[a,(s[1]-a*s[0])/n];}
-function grayQuad(data,w,h,roi){
+function grayQuad(data,w,h,roi,maximum=249){
  const seen=new Uint8Array(w*h),queue=new Int32Array(w*h);let best=[];
- const gray=i=>{const r=data[i*3],g=data[i*3+1],b=data[i*3+2];return Math.min(r,g,b)>170&&Math.max(r,g,b)<249&&Math.max(r,g,b)-Math.min(r,g,b)<24;};
+ const gray=i=>{const r=data[i*3],g=data[i*3+1],b=data[i*3+2];return Math.min(r,g,b)>170&&Math.max(r,g,b)<maximum&&Math.max(r,g,b)-Math.min(r,g,b)<24;};
  const [l,t,r,b]=roi.map(Math.round);
  for(let y=t;y<b;y++)for(let x=l;x<r;x++){
   const start=y*w+x;if(seen[start]||!gray(start))continue;let head=0,tail=1;queue[0]=start;seen[start]=1;
@@ -23,11 +23,11 @@ function grayQuad(data,w,h,roi){
 }
 
 const sources={venue:'venue.jpg',counter:'counter.jpg',dining:'dining.jpg',phone:'phone.jpg'};
-const regions={venue:[[880,250,1080,410],[1060,240,1280,410],[1270,220,1535,410],[1300,450,1410,530]],counter:[[980,220,1420,480]],dining:[[900,220,1340,510]],phone:[[1050,180,1290,530]]};
+const regions={venue:[[880,250,1080,410],[1060,240,1280,410],[1270,220,1535,410],[1300,450,1410,530]],counter:[[980,220,1420,480]],dining:[[900,220,1340,510]],phone:[[1050,180,1290,530],[950,280,1070,350]]};
 const geometry={};
 for(const[scene,file]of Object.entries(sources)){
  const {data,info}=await sharp(`assets/hero-photo-sources-v7/${file}`).rotate().removeAlpha().raw().toBuffer({resolveWithObject:true});
- const screens=regions[scene].map(roi=>grayQuad(data,info.width,info.height,roi.map(value=>value*info.width/2172)));
+ const screens=regions[scene].map((roi,index)=>grayQuad(data,info.width,info.height,roi.map(value=>value*info.width/2172),scene==='phone'&&index===1?256:249));
  geometry[scene]={source:file,width:info.width,height:info.height,nativeScreens:screens.map(s=>s.quad),screens:screens.map(s=>s.quad.map(([x,y])=>[Number((x*4608/info.width-1536).toFixed(4)),Number((y*1536/info.height-256).toFixed(4))]))};
  if(scene!=='venue'){
   const rgba=Buffer.alloc(info.width*info.height*4);

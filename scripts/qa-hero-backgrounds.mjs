@@ -5,10 +5,11 @@ import { HERO_COUNTER_TIMELINE, HERO_CHAPTER_DURATION_MS, heroProgressAt } from 
 
 const base=process.env.QA_BASE||'http://localhost:3047';
 const out=process.env.QA_OUT||'tmp/qa/hero-backgrounds';
-const sizes=process.env.QA_WIDE_ONLY?[[3440,1440],[5120,1440]]:process.env.QA_COMPACT?[[390,844],[1512,762],[3440,1440]]:[[320,740],[390,844],[430,932],[820,1180],[1440,900],[1512,762],[1920,1080],[2560,1440],[3440,1440],[5120,1440]];
+const sizes=process.env.QA_EDGES_ONLY?[[1512,762],[2560,1440],[3440,1440],[5120,1440]]:process.env.QA_WIDE_ONLY?[[3440,1440],[5120,1440]]:process.env.QA_COMPACT?[[390,844],[1512,762],[3440,1440]]:[[320,740],[390,844],[430,932],[820,1180],[1440,900],[1512,762],[1920,1080],[2560,1440],[3440,1440],[5120,1440]];
 await mkdir(out,{recursive:true});
 let browser;
-const results=[],errors=[],writes=[],outpaintRequests=[];
+const results=[],errors=[],writes=[],outpaintRequests=[],responsiveSelections=[];
+const profileAt=(width,height)=>width>=3840&&width/height>=3?'ultrawide':width>=2560&&width/height>=11/5?'wide':'normal';
 try {
  for(const [width,height] of sizes.filter(([w])=>!process.env.QA_WIDTH||w===Number(process.env.QA_WIDTH))){
   browser=await chromium.launch();
@@ -25,7 +26,7 @@ try {
    return Promise.all(images.map(async image=>{
     // Render the ACTUAL SVG sharp-layer masks against solid white. Alpha is sharp
     // coverage, rather than total opacity (which includes the blurred underlay).
-    const xml=new DOMParser().parseFromString(await (await fetch(image.src)).text(),'image/svg+xml');
+    const xml=new DOMParser().parseFromString(await (await fetch(image.currentSrc)).text(),'image/svg+xml');
     if(xml.querySelectorAll('image').length!==1||xml.getElementById('seamX'))throw new Error('photo must be one approved flat image without an old-photo insert');
     const photo=xml.getElementById('photo'),rect=xml.createElementNS('http://www.w3.org/2000/svg','rect');
     rect.setAttribute('id','photo');rect.setAttribute('width','4608');rect.setAttribute('height','1536');rect.setAttribute('fill','white');photo.replaceWith(rect);
@@ -35,7 +36,7 @@ try {
     const alpha=(x,y)=>context.getImageData(x,y,1,1).data[3],scene=image.dataset.heroComposition;
     window.__heroSharpMaps[scene]=canvas;
     const positions=[0,461,1014,1337,1536,2304];
-    return {scene,center:alpha(2304,768),left:positions.map(x=>alpha(x,768)),right:positions.map(x=>alpha(4607-x,768)),top20:alpha(2304,307)};
+    return {scene,source:image.currentSrc,center:alpha(2304,768),left:positions.map(x=>alpha(x,768)),right:positions.map(x=>alpha(4607-x,768)),top20:alpha(2304,307)};
    }));
   });
   assert.equal(masking.length,4);
@@ -56,7 +57,7 @@ try {
     }
     const screens=[...plane.querySelectorAll('[data-hero-screen]')].map(screen=>{const s=screen.getBoundingClientRect();return {width:s.width/innerHeight,height:s.height/innerHeight,center:(s.x+s.width/2-innerWidth/2)/innerHeight,y:s.y/innerHeight};});
     const uiMask=plane.querySelector('[data-hero-ui-mask]');
-    return {image:plane.dataset.heroPlane,chapter:Number(hero.dataset.chapter),stageHeight:hero.firstElementChild.clientHeight,original:{x:r.x,y:r.y,width:r.width,height:r.height},composition:{src:photo.getAttribute('src'),x:b.x,y:b.y,width:b.width,height:b.height,loaded:photo.naturalWidth===4608,filter:getComputedStyle(photo).filter,edgeMask:getComputedStyle(photo).maskImage},sharpViewport:{minimum:Math.min(...sharpCoverage),softSamples:sharpCoverage.filter(a=>a<255).length,total:sharpCoverage.length},uiMask:uiMask?getComputedStyle(uiMask).maskImage:null,oldOriginals:plane.querySelectorAll('img[src$="/counter.webp"],img[src$="/dining.webp"],img[src$="/phone-v3.webp"]').length,scale,screens,frame:{left:f.left,width:f.width,mask:getComputedStyle(frame).maskImage,overflow:getComputedStyle(frame).overflow},ambient:{src:ambient.getAttribute('src'),filter:getComputedStyle(ambient).filter,opacity:getComputedStyle(ambient).opacity,covers:a.left<=0&&a.top<=0&&a.right>=innerWidth&&a.bottom>=innerHeight},overflow:document.documentElement.scrollWidth>innerWidth+1,frames:hero.querySelectorAll('iframe').length};
+    return {image:plane.dataset.heroPlane,chapter:Number(hero.dataset.chapter),stageHeight:hero.firstElementChild.clientHeight,original:{x:r.x,y:r.y,width:r.width,height:r.height},composition:{src:new URL(photo.currentSrc).pathname,x:b.x,y:b.y,width:b.width,height:b.height,loaded:photo.naturalWidth===4608,filter:getComputedStyle(photo).filter,edgeMask:getComputedStyle(photo).maskImage},sharpViewport:{minimum:Math.min(...sharpCoverage),softSamples:sharpCoverage.filter(a=>a<255).length,total:sharpCoverage.length},uiMask:uiMask?getComputedStyle(uiMask).maskImage:null,oldOriginals:plane.querySelectorAll('img[src$="/counter.webp"],img[src$="/dining.webp"],img[src$="/phone-v3.webp"]').length,scale,screens,frame:{left:f.left,width:f.width,mask:getComputedStyle(frame).maskImage,overflow:getComputedStyle(frame).overflow},ambient:{src:ambient.getAttribute('src'),filter:getComputedStyle(ambient).filter,opacity:getComputedStyle(ambient).opacity,covers:a.left<=0&&a.top<=0&&a.right>=innerWidth&&a.bottom>=innerHeight},overflow:document.documentElement.scrollWidth>innerWidth+1,frames:hero.querySelectorAll('iframe').length};
   });}
   function verifyPhoto(state){
    assert.equal(state.composition.loaded,true);assert.equal(state.overflow,false);
@@ -64,7 +65,8 @@ try {
    assert.equal(state.frame.overflow,'visible');assert.equal(state.frame.mask,'none');assert.equal(state.composition.filter,'none');assert.equal(state.composition.edgeMask,'none');
    assert.equal(state.oldOriginals,0,'no original photo may be reinserted over the approved source');
    if(state.image!=='venue')assert.ok(state.uiMask.includes(`${state.image}-screen-mask.png`),'only the projected UI is clipped to the actual device screen');
-   assert.ok(state.composition.src.endsWith(`/${state.image}-composition.svg`));
+   const profile=profileAt(width,height);
+   assert.ok(state.composition.src.endsWith(`/${state.image}${profile==='normal'?'':`-${profile}`}-composition.svg`),'browser selects the viewport-specific photo edges');
    assert.ok(Math.abs(state.composition.width-state.original.width*3)<.25);
    assert.ok(Math.abs(state.composition.height-state.original.height*1.5)<.25);
    assert.ok(Math.abs(state.composition.x-(state.original.x-1536*state.scale))<.25);
@@ -96,6 +98,15 @@ try {
   await page.locator('[data-hero-segment="0"]').dispatchEvent('pointerdown');await page.locator('[data-hero-segment="0"]').evaluate(button=>button.click());await page.waitForFunction(()=>document.querySelector('[data-hero-motion]').dataset.chapter==='0');
   if(width===390){const cdp=await page.context().newCDPSession(page);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:210,y:460}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:210,y:300}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await page.waitForTimeout(150);assert.ok(await page.evaluate(()=>scrollY>0),'mockup swipe scrolls the page');}
   if(width===3440||width===5120)assert.ok(states[0].sharpViewport.softSamples>0,'wider screens reveal the full photograph outer transition');
+  if(width===5120){
+   for(const [nextWidth,nextHeight]of [[3440,1440],[1512,762],[5120,1440]]){
+    await page.setViewportSize({width:nextWidth,height:nextHeight});
+    const profile=profileAt(nextWidth,nextHeight);
+    await page.waitForFunction(profile=>[...document.querySelectorAll('[data-hero-composition]')].every(image=>image.currentSrc.endsWith(`/${image.dataset.heroComposition}${profile==='normal'?'':`-${profile}`}-composition.svg`)),profile);
+    await page.locator('[data-hero-composition]').evaluateAll(images=>Promise.all(images.map(image=>image.decode())));
+    responsiveSelections.push({width:nextWidth,height:nextHeight,profile});
+   }
+  }
   results.push({width,height,masking,states});console.log('PASS',width,height);await browser.close();
  }
  const notebook=results.find(r=>r.width===1440);
@@ -103,5 +114,5 @@ try {
   result.states[chapter].screens.forEach((screen,i)=>{for(const key of ['width','height','center','y'])assert.ok(Math.abs(screen[key]-notebook.states[chapter].screens[i][key])<.005,`${result.width}/${chapter}/${i}: normalized ${key} matches notebook`);});
  }
  assert.deepEqual(errors,[]);assert.deepEqual(writes,[]);assert.deepEqual(outpaintRequests,[]);
- await writeFile(`${out}/report.json`,JSON.stringify({base,results,errors,writes,outpaintRequests},null,2));
+ await writeFile(`${out}/report.json`,JSON.stringify({base,results,responsiveSelections,errors,writes,outpaintRequests},null,2));
 }finally{await browser?.close();}

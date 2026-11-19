@@ -24,6 +24,7 @@ export const HERO_CAFE_SCREENS = {
   counter: measuredScreen("counter"),
   dining: measuredScreen("dining"),
   phone: measuredScreen("phone"),
+  qrCode: measuredScreen("phone",1),
 };
 /** Enough time for each native preview to finish its visible action sequence. */
 /** Seconds are narrative positions, never a running playback clock. */

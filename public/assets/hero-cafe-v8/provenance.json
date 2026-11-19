@@ -1,0 +1,373 @@
+{
+  "treatment": "one finished3:1 photograph; responsive effects at complete photograph outer edges only",
+  "edgeProfiles": {
+    "width": 4608,
+    "height": 1536,
+    "vertical": [
+      [
+        0,
+        0
+      ],
+      [
+        8,
+        0
+      ],
+      [
+        14,
+        1
+      ],
+      [
+        86,
+        1
+      ],
+      [
+        92,
+        0
+      ],
+      [
+        100,
+        0
+      ]
+    ],
+    "clearVertical": [
+      [
+        0,
+        0
+      ],
+      [
+        12,
+        0
+      ],
+      [
+        16,
+        1
+      ],
+      [
+        84,
+        1
+      ],
+      [
+        88,
+        0
+      ],
+      [
+        100,
+        0
+      ]
+    ],
+    "variants": {
+      "normal": {
+        "media": null,
+        "blur": 48,
+        "lateral": [
+          [
+            0,
+            0
+          ],
+          [
+            12,
+            0
+          ],
+          [
+            26,
+            1
+          ],
+          [
+            74,
+            1
+          ],
+          [
+            88,
+            0
+          ],
+          [
+            100,
+            0
+          ]
+        ],
+        "clearLateral": [
+          [
+            0,
+            0
+          ],
+          [
+            22,
+            0
+          ],
+          [
+            29,
+            1
+          ],
+          [
+            71,
+            1
+          ],
+          [
+            78,
+            0
+          ],
+          [
+            100,
+            0
+          ]
+        ]
+      },
+      "wide": {
+        "media": "(min-width: 2560px) and (min-aspect-ratio: 11/5)",
+        "blur": 64,
+        "lateral": [
+          [
+            0,
+            0
+          ],
+          [
+            20,
+            0
+          ],
+          [
+            29,
+            1
+          ],
+          [
+            71,
+            1
+          ],
+          [
+            80,
+            0
+          ],
+          [
+            100,
+            0
+          ]
+        ],
+        "clearLateral": [
+          [
+            0,
+            0
+          ],
+          [
+            26,
+            0
+          ],
+          [
+            31,
+            1
+          ],
+          [
+            69,
+            1
+          ],
+          [
+            74,
+            0
+          ],
+          [
+            100,
+            0
+          ]
+        ]
+      },
+      "ultrawide": {
+        "media": "(min-width: 3840px) and (min-aspect-ratio: 3/1)",
+        "blur": 80,
+        "lateral": [
+          [
+            0,
+            0
+          ],
+          [
+            24,
+            0
+          ],
+          [
+            31,
+            1
+          ],
+          [
+            69,
+            1
+          ],
+          [
+            76,
+            0
+          ],
+          [
+            100,
+            0
+          ]
+        ],
+        "clearLateral": [
+          [
+            0,
+            0
+          ],
+          [
+            29,
+            0
+          ],
+          [
+            33,
+            1
+          ],
+          [
+            67,
+            1
+          ],
+          [
+            71,
+            0
+          ],
+          [
+            100,
+            0
+          ]
+        ]
+      }
+    }
+  },
+  "coordinates": {
+    "width": 4608,
+    "height": 1536
+  },
+  "originalPlane": {
+    "x": 1536,
+    "y": 256,
+    "width": 1536,
+    "height": 1024
+  },
+  "assets": [
+    {
+      "scene": "venue",
+      "profile": "normal",
+      "file": "venue-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/venue.jpg",
+      "sourceSha256": "de8e808eaac556b9a34c6c8b6193d95ccbef225e022baa8ca689defe1ea3fb0c",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 962574,
+      "embeddedPhotographs": 1
+    },
+    {
+      "scene": "venue",
+      "profile": "wide",
+      "file": "venue-wide-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/venue.jpg",
+      "sourceSha256": "de8e808eaac556b9a34c6c8b6193d95ccbef225e022baa8ca689defe1ea3fb0c",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 962574,
+      "embeddedPhotographs": 1
+    },
+    {
+      "scene": "venue",
+      "profile": "ultrawide",
+      "file": "venue-ultrawide-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/venue.jpg",
+      "sourceSha256": "de8e808eaac556b9a34c6c8b6193d95ccbef225e022baa8ca689defe1ea3fb0c",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 962574,
+      "embeddedPhotographs": 1
+    },
+    {
+      "scene": "counter",
+      "profile": "normal",
+      "file": "counter-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/counter.jpg",
+      "sourceSha256": "27e0f25148cdcf2710bfd3c96d90b8dde001062fa20b2617b5d875be17a96e52",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 883898,
+      "embeddedPhotographs": 1
+    },
+    {
+      "scene": "counter",
+      "profile": "wide",
+      "file": "counter-wide-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/counter.jpg",
+      "sourceSha256": "27e0f25148cdcf2710bfd3c96d90b8dde001062fa20b2617b5d875be17a96e52",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 883898,
+      "embeddedPhotographs": 1
+    },
+    {
+      "scene": "counter",
+      "profile": "ultrawide",
+      "file": "counter-ultrawide-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/counter.jpg",
+      "sourceSha256": "27e0f25148cdcf2710bfd3c96d90b8dde001062fa20b2617b5d875be17a96e52",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 883898,
+      "embeddedPhotographs": 1
+    },
+    {
+      "scene": "dining",
+      "profile": "normal",
+      "file": "dining-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/dining.jpg",
+      "sourceSha256": "dea30b791a88a54a26de11455906395ad38dad26f4ac129ecb3ea32b4aec0510",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 1019896,
+      "embeddedPhotographs": 1
+    },
+    {
+      "scene": "dining",
+      "profile": "wide",
+      "file": "dining-wide-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/dining.jpg",
+      "sourceSha256": "dea30b791a88a54a26de11455906395ad38dad26f4ac129ecb3ea32b4aec0510",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 1019896,
+      "embeddedPhotographs": 1
+    },
+    {
+      "scene": "dining",
+      "profile": "ultrawide",
+      "file": "dining-ultrawide-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/dining.jpg",
+      "sourceSha256": "dea30b791a88a54a26de11455906395ad38dad26f4ac129ecb3ea32b4aec0510",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 1019896,
+      "embeddedPhotographs": 1
+    },
+    {
+      "scene": "phone",
+      "profile": "normal",
+      "file": "phone-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/phone.jpg",
+      "sourceSha256": "6a8f215aff22d9b8bcc85b5093b69a3356d75bf629467a27206744da12c06e43",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 1170560,
+      "embeddedPhotographs": 1
+    },
+    {
+      "scene": "phone",
+      "profile": "wide",
+      "file": "phone-wide-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/phone.jpg",
+      "sourceSha256": "6a8f215aff22d9b8bcc85b5093b69a3356d75bf629467a27206744da12c06e43",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 1170560,
+      "embeddedPhotographs": 1
+    },
+    {
+      "scene": "phone",
+      "profile": "ultrawide",
+      "file": "phone-ultrawide-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v7/phone.jpg",
+      "sourceSha256": "6a8f215aff22d9b8bcc85b5093b69a3356d75bf629467a27206744da12c06e43",
+      "nativeWidth": 4344,
+      "nativeHeight": 1448,
+      "displayBytes": 1170560,
+      "embeddedPhotographs": 1
+    }
+  ]
+}
