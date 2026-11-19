@@ -1481,6 +1481,17 @@ svg.site-edit-icon {
 .site-icon-name-field { display:grid; min-width:0; grid-template-columns:auto minmax(0,1fr); align-items:center; gap:var(--site-space-copy); }
 .site-icon-name-field > input.site-field { width:100%; min-width:0; }
 
+/* Manual inline playback shares one poster-sized hit target and focus ring. */
+.site-media-playback { position:absolute; inset:0; display:grid; place-items:center; width:100%; height:100%; padding:0; border:0; border-radius:inherit; background:transparent; color:var(--ui-media-ink); cursor:pointer; }
+.site-media-playback-indicator { display:grid; place-items:center; width:var(--ui-control-height-lg); height:var(--ui-control-height-lg); border-radius:50%; background:var(--ui-media-counter-surface); transition:opacity 160ms ease, transform 160ms ease; }
+.site-media-playback-indicator > svg { width:var(--ui-media-arrow-size); height:var(--ui-media-arrow-size); }
+.site-media-playback[aria-pressed="true"] .site-media-playback-indicator { opacity:0; }
+.site-media-playback:is(:hover,:focus-visible) .site-media-playback-indicator { opacity:1; }
+.site-media-playback:focus-visible { outline:2px solid var(--ui-media-ink); outline-offset:-4px; }
+.site-media-playback:disabled { cursor:default; }
+@media (hover:none) { .site-media-playback[aria-pressed="true"]:not(:focus-visible) .site-media-playback-indicator { opacity:0; } }
+@media (prefers-reduced-motion:reduce) { .site-media-playback-indicator { transition:none; } }
+
 /* Image navigation is a media tool: white glyphs over the actual photograph. */
 .site-button-media { border-color: transparent; background: transparent; color: var(--ui-media-ink); }
 .site-button-media.site-button-icon { --ui-icon-control-size: var(--ui-media-arrow-size); }
