@@ -11,8 +11,9 @@
 .framing { position:absolute; top:0; height:100%; overflow:visible; }
 .canvas { position:absolute; top:0; left:0; width:1536px; height:1024px; transform-origin:0 0; }
 .composition { position:absolute; left:-1536px; top:-256px; width:4608px; height:1536px; max-width:none; }
-/* Only the projected HTML is masked; the approved photograph is untouched. */
+/* Mask only projected screens, preserving the approved photograph and fingers. */
 .screenMask { position:absolute; inset:0; mask-size:4608px 1536px; mask-position:-1536px -256px; mask-repeat:no-repeat; }
+.screenMask[data-flat-mask="true"] { mask-size:1536px 1024px; mask-position:0 0; }
 .screen { position:absolute; top:0; left:0; transform-origin:0 0; overflow:hidden; background:#f9faf7; backface-visibility:hidden; }
 .captured,.fallback { position:absolute; inset:0; display:block; width:100%; height:100%; max-width:none; object-fit:fill; }
 .captured { opacity:1; }
