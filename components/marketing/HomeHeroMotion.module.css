@@ -31,10 +31,11 @@
 .cue { position:absolute; z-index:5; display:grid; place-items:center; width:28px; height:28px; border:1px solid rgb(255 255 255 / 85%); border-radius:50%; background:rgb(16 20 22 / 45%); color:#fff; pointer-events:none; box-shadow:0 1px 4px rgb(0 0 0 / 16%); }
 .cue svg { width:18px; height:18px; }
 .cue[data-gesture="click"] { width:24px; height:24px; }
+.cue[data-gesture^="point-"] { border:0; border-radius:0; background:transparent; box-shadow:none; }
+.cue[data-gesture^="point-"] svg { width:28px; height:28px; }
 .cueRipple { position:absolute; inset:-1px; border:1px solid #fff; border-radius:50%; }
 .typingCaret { position:absolute; z-index:5; width:1.5px; background:#191c1b; pointer-events:none; }
-.qrPulse { position:absolute; left:0; top:0; width:156px; height:80px; transform-origin:0 0; pointer-events:none; }
-.qrPulse::after { content:""; position:absolute; inset:-20%; border:3px solid #fff; border-radius:10px; box-shadow:0 0 0 1px rgb(0 0 0 / 20%); }
+.qrPulse { position:absolute; left:0; top:0; width:156px; height:80px; border:3px solid #fff; border-radius:10px; transform-origin:0 0; box-shadow:0 0 0 1px rgb(0 0 0 / 20%); pointer-events:none; }
 @media (max-width:1023px) {
   .sceneCopy { bottom:var(--site-space-group); }
   .caption { max-width:calc(100% - var(--site-space-card) - var(--site-space-block)); }

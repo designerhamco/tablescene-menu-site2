@@ -3,7 +3,7 @@ import sharp from 'sharp';
 import assert from 'node:assert/strict';
 import { writeFile } from 'node:fs/promises';
 function fitLine(points){const n=points.length,s=points.reduce((a,[x,y])=>[a[0]+x,a[1]+y,a[2]+x*x,a[3]+x*y],[0,0,0,0]);const a=(n*s[3]-s[0]*s[1])/(n*s[2]-s[0]*s[0]);return[a,(s[1]-a*s[0])/n];}
-function grayQuad(data,w,h,roi,maximum=249){
+function grayQuad(data,w,h,roi,maximum=249,trim=.2){
  const seen=new Uint8Array(w*h),queue=new Int32Array(w*h);let best=[];
  const gray=i=>{const r=data[i*3],g=data[i*3+1],b=data[i*3+2];return Math.min(r,g,b)>170&&Math.max(r,g,b)<maximum&&Math.max(r,g,b)-Math.min(r,g,b)<24;};
  const [l,t,r,b]=roi.map(Math.round);
@@ -15,7 +15,8 @@ function grayQuad(data,w,h,roi,maximum=249){
  assert.ok(best.length>1000,'blank phone screen must be measurable');
  let minX=w,maxX=0,minY=h,maxY=0;const rows=new Map(),cols=new Map();
  for(const i of best){const x=i%w,y=(i-x)/w;minX=Math.min(minX,x);maxX=Math.max(maxX,x);minY=Math.min(minY,y);maxY=Math.max(maxY,y);const rr=rows.get(y)||[w,0];rr[0]=Math.min(rr[0],x);rr[1]=Math.max(rr[1],x);rows.set(y,rr);const cc=cols.get(x)||[h,0];cc[0]=Math.min(cc[0],y);cc[1]=Math.max(cc[1],y);cols.set(x,cc);}
- const middle=(v,min,max)=>v>min+(max-min)*.2&&v<max-(max-min)*.2;
+ // The skewed QR paper has shorter overlapping straight-edge spans than a screen.
+ const middle=(v,min,max)=>v>min+(max-min)*trim&&v<max-(max-min)*trim;
  const lr=[0,1].map(side=>fitLine([...rows].filter(([y])=>middle(y,minY,maxY)).map(([y,x])=>[y,x[side]])));
  const tb=[0,1].map(side=>fitLine([...cols].filter(([x])=>middle(x,minX,maxX)).map(([x,y])=>[x,y[side]])));
  const corner=(side,edge)=>{const[c,d]=lr[side],[a,b]=tb[edge],x=(c*b+d)/(1-c*a);return[x,a*x+b];};
@@ -27,7 +28,7 @@ const regions={venue:[[880,250,1080,410],[1060,240,1280,410],[1270,220,1535,410]
 const geometry={};
 for(const[scene,file]of Object.entries(sources)){
  const {data,info}=await sharp(`assets/hero-photo-sources-v7/${file}`).rotate().removeAlpha().raw().toBuffer({resolveWithObject:true});
- const screens=regions[scene].map((roi,index)=>grayQuad(data,info.width,info.height,roi.map(value=>value*info.width/2172),scene==='phone'&&index===1?256:249));
+ const screens=regions[scene].map((roi,index)=>grayQuad(data,info.width,info.height,roi.map(value=>value*info.width/2172),scene==='phone'&&index===1?256:249,scene==='phone'&&index===1?.3:.2));
  geometry[scene]={source:file,width:info.width,height:info.height,nativeScreens:screens.map(s=>s.quad),screens:screens.map(s=>s.quad.map(([x,y])=>[Number((x*4608/info.width-1536).toFixed(4)),Number((y*1536/info.height-256).toFixed(4))]))};
  if(scene!=='venue'){
   const rgba=Buffer.alloc(info.width*info.height*4);

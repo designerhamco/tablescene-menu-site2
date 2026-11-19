@@ -341,10 +341,10 @@
       "profile": "normal",
       "file": "phone-composition.svg",
       "sourcePath": "assets/hero-photo-sources-v7/phone.jpg",
-      "sourceSha256": "6a8f215aff22d9b8bcc85b5093b69a3356d75bf629467a27206744da12c06e43",
+      "sourceSha256": "4d025430d815f50304953d778d1807b754463153733acb1dc935376d020c20f1",
       "nativeWidth": 4344,
       "nativeHeight": 1448,
-      "displayBytes": 1170560,
+      "displayBytes": 1140576,
       "embeddedPhotographs": 1
     },
     {
@@ -352,10 +352,10 @@
       "profile": "wide",
       "file": "phone-wide-composition.svg",
       "sourcePath": "assets/hero-photo-sources-v7/phone.jpg",
-      "sourceSha256": "6a8f215aff22d9b8bcc85b5093b69a3356d75bf629467a27206744da12c06e43",
+      "sourceSha256": "4d025430d815f50304953d778d1807b754463153733acb1dc935376d020c20f1",
       "nativeWidth": 4344,
       "nativeHeight": 1448,
-      "displayBytes": 1170560,
+      "displayBytes": 1140576,
       "embeddedPhotographs": 1
     },
     {
@@ -363,10 +363,10 @@
       "profile": "ultrawide",
       "file": "phone-ultrawide-composition.svg",
       "sourcePath": "assets/hero-photo-sources-v7/phone.jpg",
-      "sourceSha256": "6a8f215aff22d9b8bcc85b5093b69a3356d75bf629467a27206744da12c06e43",
+      "sourceSha256": "4d025430d815f50304953d778d1807b754463153733acb1dc935376d020c20f1",
       "nativeWidth": 4344,
       "nativeHeight": 1448,
-      "displayBytes": 1170560,
+      "displayBytes": 1140576,
       "embeddedPhotographs": 1
     }
   ]
