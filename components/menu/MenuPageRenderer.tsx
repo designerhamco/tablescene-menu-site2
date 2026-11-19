@@ -28,6 +28,10 @@ export default function MenuPageRenderer({ mode, ...data }: MenuPageRendererProp
   const settings = data.menuSite.settings as Record<string, unknown> | null;
   const design = getDefaultDesignReview(typeof settings?.menu_design_id === "string" ? settings.menu_design_id : undefined, data.menuSite.template_key ?? "");
   const appearance = resolveMenuAppearance(data.menuSite.page_settings, data.menuSite.template_key, design?.id);
-  const menu = <MenuLocaleScope locale={data.locale}><MenuAppearanceScope pageSettings={data.menuSite.page_settings} templateKey={data.menuSite.template_key} designId={design?.id}><MenuTemplateRenderer key={data.initialPreviewPageId ?? "default-preview-page"} mode={mode} {...data} />{data.menuSite.template_key !== "display_menu_a" && popup.enabled && popup.images.length > 0 ? <MenuAdvertisementPopup settings={popup} imageRadius={supportsShapes ? appearance.imageRadii.advertisement : undefined} /> : null}</MenuAppearanceScope></MenuLocaleScope>;
+  // Display owns manual page selection; a locale update must retain that instance.
+  const rendererKey = data.menuSite.template_key === "display_menu_a"
+    ? "display-viewer"
+    : data.initialPreviewPageId ?? "default-preview-page";
+  const menu = <MenuLocaleScope locale={data.locale}><MenuAppearanceScope pageSettings={data.menuSite.page_settings} templateKey={data.menuSite.template_key} designId={design?.id}><MenuTemplateRenderer key={rendererKey} mode={mode} {...data} />{data.menuSite.template_key !== "display_menu_a" && popup.enabled && popup.images.length > 0 ? <MenuAdvertisementPopup settings={popup} imageRadius={supportsShapes ? appearance.imageRadii.advertisement : undefined} /> : null}</MenuAppearanceScope></MenuLocaleScope>;
   return design ? <DefaultDesignScope layout={design.layout} itemLayout={design.itemLayout}><div className={defaultDesignStyles.surface} data-default-design={design.id} data-menu-item-layout={design.itemLayout}>{menu}</div></DefaultDesignScope> : menu;
 }

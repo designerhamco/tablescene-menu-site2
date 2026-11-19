@@ -2,8 +2,8 @@
 import { useMenuText } from "./MenuLocaleScope";
 
 import { ChevronDown, Globe2 } from "lucide-react";
-import { usePathname, useSearchParams } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
 
 import { LOCALE_LABELS, type SupportedLocale } from "@/lib/locales";
 import ScriptAwareText from "./ScriptAwareText";
@@ -69,8 +69,11 @@ export default function MenuLanguageSwitcher({
 }: MenuLanguageSwitcherProps) {
   const t = useMenuText();
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
   const rootRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const visibleLocales = enabledLocales.filter((locale, index) => enabledLocales.indexOf(locale) === index);
@@ -158,6 +161,7 @@ export default function MenuLanguageSwitcher({
   return (
     <div ref={rootRef} className="relative">
       <button
+        ref={triggerRef}
         type="button"
         data-language-menu-trigger=""
         className={triggerClassName}
@@ -165,9 +169,10 @@ export default function MenuLanguageSwitcher({
         aria-haspopup={visibleLocales.length > 1 ? "menu" : undefined}
         aria-expanded={visibleLocales.length > 1 ? isOpen : undefined}
         title={visibleLocales.length > 1 ? t("언어 변경") : undefined}
+        aria-busy={viewer && isPending ? true : undefined}
         disabled={visibleLocales.length === 1}
         onClick={() => {
-          if (visibleLocales.length > 1) setIsOpen((current) => !current);
+          if (visibleLocales.length > 1 && !isPending) setIsOpen((current) => !current);
         }}
       >
         {viewer ? null : triggerVariant === "cafe" ? (
@@ -203,6 +208,15 @@ export default function MenuLanguageSwitcher({
             <a
               key={locale}
               href={getLocaleHref(locale)}
+              onClick={viewer ? (event) => {
+                // Preserve real links for modified clicks and opening a new tab.
+                if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                event.preventDefault();
+                setIsOpen(false);
+                triggerRef.current?.focus({ preventScroll: true });
+                if (locale === currentLocale || isPending) return;
+                startTransition(() => router.replace(getLocaleHref(locale), { scroll: false }));
+              } : undefined}
               role="menuitem"
               data-language-menu-item=""
               aria-current={locale === currentLocale ? "true" : undefined}
