@@ -9,20 +9,19 @@
 .group { display: grid; min-width: 0; align-content: start; gap: .75rem; }
 .group ul { display: grid; gap: .125rem; }
 .group li { min-width: 0; }
-.group li a { display: inline-flex; align-items: center; min-height: 2rem; color: var(--ui-text-muted); font-size: var(--type-body-sm-size); line-height: 1.6; overflow-wrap: anywhere; }
+.group li a { display: inline-flex; align-items: center; min-height: 2rem; color: var(--ui-text-muted); font-size: var(--type-body-size); line-height: 1.6; overflow-wrap: anywhere; }
 .group li a:hover, .legal a:hover { color: var(--ui-text); text-decoration: underline; text-underline-offset: .25rem; }
 .contact { justify-items: start; }
 .contact :global(.site-button) { margin-top: .25rem; }
-.business { margin-top: 2.5rem; padding-top: 1.5rem; color: var(--ui-text-muted); font-size: var(--type-footnote-size); line-height: 1.7; }
+.business { margin-top: 2.5rem; padding-top: 1.5rem; color: var(--ui-text-muted); font-size: var(--type-body-sm-size); line-height: 1.7; }
 .business dl { display: flex; flex-wrap: wrap; gap: .375rem 1.5rem; }
 .business dl > div { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 0 .5rem; min-width: 0; }
 .business dt { font-weight: 500; }
 .business dd { min-width: 0; overflow-wrap: anywhere; }
 .business dd a { display: inline-flex; align-items: center; gap: .125rem; margin-left: .375rem; text-decoration: underline; text-underline-offset: .1875rem; }
 .address { flex-basis: 100%; }
-.bottom p { font-size: var(--type-footnote-size); font-weight: 400; }
 .bottom { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem 2rem; margin-top: 1.5rem; }
-.legal { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; font-size: var(--type-footnote-size); color: var(--ui-text-muted); }
+.legal { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; font-size: var(--type-body-sm-size); color: var(--ui-text-muted); }
 .legal a { display: inline-flex; align-items: center; min-height: 2rem; }
 .footer a:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 4px; border-radius: .25rem; }
 .wordmark { font-family: var(--font-family-site-ui); height: .65em; margin-top: .15em; overflow: hidden; color: var(--ui-wordmark); font-size: clamp(4rem, 20.5vw, 20.5rem); font-weight: 700; line-height: .88; letter-spacing: -.07em; text-align: center; white-space: nowrap; user-select: none; }
@@ -46,8 +45,8 @@
     justify-content: space-between;
     gap: var(--site-space-copy);
     color: var(--ui-text);
-    font-size: var(--type-label-size);
-    font-weight: 600;
+    font-size: var(--type-body-size);
+    font-weight: var(--font-weight-semibold);
     line-height: 1.4;
     cursor: pointer;
     list-style: none;
@@ -62,7 +61,7 @@
   .group ul { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .group li a { display: flex; width: 100%; }
   .businessContact { display: grid; gap: 0; margin-top: var(--site-space-copy); }
-  .businessContact a { display: inline-flex; align-items: center; overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: .2em; }
+  .businessContact a { display: inline-flex; align-items: center; font-size: var(--type-body-size); overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: .2em; }
   .businessContact a:hover { color: var(--ui-text); }
   .business dl { display: grid; gap: var(--site-space-copy); }
   .business dl > div { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; }

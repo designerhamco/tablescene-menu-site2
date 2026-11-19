@@ -64,11 +64,11 @@ const Footer = () => {
               </div>
               <nav className={`${styles.navigation} ${styles.desktopNavigation}`} aria-label="푸터 메뉴">
                 {groups.map(group => <div key={group.title} className={styles.group}>
-                  <h2 className="type-label">{group.title}</h2>
+                  <h2 className="type-content-title">{group.title}</h2>
                   <FooterLinkList links={group.links} />
                 </div>)}
                 <div className={`${styles.group} ${styles.contact}`}>
-                  <h2 className="type-label">고객지원</h2>
+                  <h2 className="type-content-title">고객지원</h2>
                   <ContactContent />
                 </div>
               </nav>
@@ -95,7 +95,7 @@ const Footer = () => {
               </details>
             </div>
             <div className={styles.bottom}>
-              <p className="type-caption uppercase tracking-wide text-zinc-600">© 2026 ArtiMenu Studio.</p>
+              <p className="type-body-sm uppercase tracking-wide text-zinc-600">© 2026 ArtiMenu Studio.</p>
               <nav className={styles.legal} aria-label="약관 및 정책">
                 <Link href="/terms">이용약관</Link>
                 <Link href="/privacy">개인정보 처리방침</Link>
