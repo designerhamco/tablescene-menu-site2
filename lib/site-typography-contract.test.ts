@@ -117,6 +117,12 @@ test("현재 OriginalApp 라우트의 활성 페이지를 전역 타이포 계�
 test("마이페이지와 편집·운영 화면은 동일한 관리 화면 타이포 범위를 사용한다", () => {
   for (const role of SITE_MANAGEMENT_TYPE_ROLES) {
     assert.ok(SITE_TYPE_STEPS.includes(role.size));
+    if (role.key === "caption") {
+      const caption = SITE_TYPE_ROLES.find(sharedRole => sharedRole.key === role.key)!;
+      assert.equal(role.size, caption.mobile);
+      assert.equal(role.desktopSize, caption.desktop);
+      continue;
+    }
     assert.match(siteDesignSource, new RegExp(`\\.site-management-scope[\\s\\S]*?--type-${role.key}-size: var\\(--site-type-${role.size}\\);`));
   }
   assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-copy: var\(--site-type-16\);/);
@@ -229,6 +235,8 @@ test("일반 페이지는 공통 제목을 쓰며 필요한 설명만 같은 읽
   assert.ok(detailSource.includes("type-body ${styles.templateDescription}"));
   assert.ok(detailSource.includes("${styles.included} type-body-sm"));
   assert.ok(detailSource.includes("type-body-sm ${styles.billingNote}"));
+  assert.match(detailSource, /className="type-plan-title"/);
+  assert.match(detailSource, /<Button asChild size="lg">/);
   const featureSource = readFileSync(join(componentsRoot, "templates/TemplateFeatureAccordion.tsx"), "utf8");
   assert.ok(featureSource.includes("type-body ${styles.lede}"));
 });
@@ -359,6 +367,11 @@ test("읽기·컨트롤·강조 크기는 중복 없이 정해진 단계만 사�
       ["metric", 24],
     ],
   );
+  for (const key of ["caption", "footnote", "card-detail"]) {
+    const role = roles.get(key);
+    assert.deepEqual([role?.mobile, role?.tablet, role?.desktop], [13, 13, 14]);
+  }
+  assert.doesNotMatch(siteDesignSource, /--type-(?:caption|card-detail)-size: var\(--site-type-13\)/);
   for (const removed of [17,22,26]) {
     assert.doesNotMatch(typographySource, new RegExp(`--site-type-${removed}:`));
     assert.doesNotMatch(siteDesignSource, new RegExp(`--site-type-${removed}\\)`));
@@ -444,6 +457,7 @@ test("공통 역할의 굵기·행간·자간은 라이브러리 표와 실제 C
     assert.ok(typeof tracking === "string" && tracking.endsWith("em"), `${role.key} tracking is font-relative`);
     assert.equal(parseFloat(tracking), parseFloat(role.letterSpacing), `${role.key} tracking`);
   }
+  assert.match(controls, /@media \(min-width: 1024px\) \{\s*\.site-button-lg\.site-button-primary \{ font-size: var\(--site-type-16\); \}/);
   assert.equal(SITE_TYPE_ROLES.find(role => role.key === "price")?.weight, 700);
 });
 

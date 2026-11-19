@@ -16,7 +16,7 @@ export const SITE_MANAGEMENT_TYPE_ROLES = [
   { key: "body", label: "일반 본문", size: 16, weight: 400, usage: "화면과 카드의 읽는 설명" },
   { key: "body-sm", label: "보조 설명", size: 14, weight: 400, usage: "상태 설명·폼 도움말" },
   { key: "label", label: "라벨·조작 문구", size: 14, weight: 500, usage: "필드명·필터·작은 조작" },
-  { key: "caption", label: "메타·작은 안내", size: 13, weight: 400, usage: "날짜·분류·보충 정보" },
+  { key: "caption", label: "메타·작은 안내", size: 13, desktopSize: 14, weight: 400, usage: "날짜·분류·보충 정보" },
   { key: "metric", label: "통계·작은 결제 수치", size: 24, weight: 700, usage: "운영 지표·결제 요약" },
 ] as const;
 export const SITE_TYPE_ROLES = [
@@ -172,7 +172,7 @@ export const SITE_TYPE_ROLES = [
     "label": "날짜·분류",
     "mobile": 13,
     "tablet": 13,
-    "desktop": 13,
+    "desktop": 14,
     "weight": 400,
     "lineHeight": 1.4,
     "className": "type-caption",
@@ -196,7 +196,7 @@ export const SITE_TYPE_ROLES = [
     "label": "작은 안내",
     "mobile": 13,
     "tablet": 13,
-    "desktop": 13,
+    "desktop": 14,
     "weight": 400,
     "lineHeight": 1.5,
     "className": "type-footnote",
@@ -232,7 +232,7 @@ export const SITE_TYPE_ROLES = [
     "label": "카드 보충 정보",
     "mobile": 13,
     "tablet": 13,
-    "desktop": 13,
+    "desktop": 14,
     "weight": 400,
     "lineHeight": 1.4,
     "className": "type-card-detail",
@@ -261,6 +261,18 @@ export const SITE_TYPE_ROLES = [
     "lineHeight": 1.45,
     "className": "site-dialog-description",
     "usage": "대화·알림 내용",
+    "letterSpacing": "-0.025em"
+  },
+  {
+    "key": "plan-title",
+    "label": "요금제 이름",
+    "mobile": 16,
+    "tablet": 16,
+    "desktop": 16,
+    "weight": 600,
+    "lineHeight": 1.4,
+    "className": "type-plan-title",
+    "usage": "상품 요금에서 적용되는 요금제 이름",
     "letterSpacing": "-0.025em"
   },
   {

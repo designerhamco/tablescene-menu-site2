@@ -32,7 +32,7 @@
 | 기본 본문 | `type-body`, `text-copy` | 16px | 16px | 일반 설명·중요 안내 |
 | 보조 본문 | `type-body-sm`, `text-support` | 14px | 14px | 도움말·부가 설명 |
 | 레이블·탐색 | `type-label`, `type-nav` | 15px | 16px | 필드명·헤더 |
-| 캡션 | `type-caption`, `text-meta` | 13px | 13px | 날짜·짧은 메타 정보 |
+| 캡션 | `type-caption`, `text-meta` | 13px | 14px (태블릿 13px) | 날짜·짧은 메타 정보 |
 
 - 토큰과 클래스의 단일 기준: `styles/typography.css`
 - 마케팅 설명 섹션의 공통 구현: `app/components/home/MarketingSectionCopy.tsx`

@@ -49,6 +49,7 @@
   --type-nav-size: var(--site-type-15);
   --type-caption-size: var(--site-type-13);
   --type-control-size: var(--site-type-14);
+  --type-plan-title-size: var(--site-type-16);
   --type-footnote-size: var(--site-type-13);
   --type-card-title-size: var(--site-type-18);
   --type-card-body-size: var(--site-type-14);
@@ -226,10 +227,13 @@
     --type-nav-size: var(--site-type-16);
     --type-control-size: var(--site-type-14);
     --type-metric-size: var(--site-type-32);
+    --type-caption-size: var(--site-type-14);
+    --type-footnote-size: var(--site-type-14);
+    --type-card-detail-size: var(--site-type-14);
   }
 }
 
-/* Small assistance has one size on every site page, independent of page copy. */
+/* Small assistance shares the site reading floor. */
 .type-footnote, .site-footnote { font-size: var(--type-footnote-size); font-weight: var(--font-weight-regular); line-height: 1.5; letter-spacing: var(--site-tracking-meta); overflow-wrap: anywhere; }
 
 /* Compact information cards opt into these roles; full-page sections do not shrink. */
@@ -237,6 +241,7 @@
 .type-card-body { font-size: var(--type-card-body-size); font-weight: var(--font-weight-regular); line-height: var(--site-leading-reading-support); word-break: keep-all; letter-spacing: var(--site-tracking-reading); }
 .type-card-detail { font-size: var(--type-card-detail-size); font-weight: var(--font-weight-regular); line-height: var(--site-leading-meta); overflow-wrap: anywhere; letter-spacing: var(--site-tracking-meta); }
 
+.type-plan-title { font-size: var(--type-plan-title-size); font-weight: var(--font-weight-semibold); line-height: 1.4; letter-spacing: var(--site-tracking-copy); word-break: keep-all; }
 .type-control { font-size: var(--type-control-size); font-weight: var(--font-weight-semibold); line-height: var(--site-leading-control); letter-spacing: var(--site-tracking-copy); }
 .type-price { font-size: var(--type-price-size); font-weight: var(--font-weight-strong); line-height: 1.1; font-variant-numeric: tabular-nums; letter-spacing: var(--site-tracking-copy); }
 .type-price-compact { font-size: var(--type-price-compact-size); font-weight: var(--font-weight-strong); line-height: 1.25; font-variant-numeric: tabular-nums; letter-spacing: var(--site-tracking-copy); }

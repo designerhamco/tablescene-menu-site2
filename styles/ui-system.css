@@ -406,6 +406,10 @@
   padding: .5rem var(--ui-control-padding-inline-lg);
 }
 
+@media (min-width: 1024px) {
+  .site-button-lg.site-button-primary { font-size: var(--site-type-16); }
+}
+
 .site-button-compact {
   min-height: var(--ui-control-height-compact);
   padding: .25rem .625rem;
