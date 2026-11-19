@@ -29,7 +29,7 @@ export function localizeDefaultDesignPreview(data: MenuPageData, source: MenuPag
     pages: data.pages.map(page => ({ ...page, title: pages.get(page.id)?.title ?? page.title,
       description: page.description ? neutralizeDiningSampleText(pages.get(page.id)?.description ?? page.description) : null })),
     categories: data.categories.map(category => ({ ...category,
-      name: basic ? t(category.name) : neutralizeDiningSampleText(categories.get(category.id)?.name ?? category.name),
+      name: basic ? translateBasicStandardText(category.name, locale) : neutralizeDiningSampleText(categories.get(category.id)?.name ?? category.name),
       description: category.description ? basic ? t(category.description) : categories.get(category.id)?.description ?? category.description : null,
       course_price_description: category.course_price_description ? categories.get(category.id)?.course_price_description ?? category.course_price_description : null,
       priceColumns: category.priceColumns.map(column => ({ ...column, label: t(column.label) })),

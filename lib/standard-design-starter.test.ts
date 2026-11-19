@@ -38,7 +38,7 @@ for (const design of DEFAULT_DESIGN_REVIEWS) {
     assert.deepEqual([...client.rows], snapshot);
     if (design.renderer === "cafe_design_a") {
       const categories = client.rows.get("menu_categories") ?? [];
-      assert.deepEqual(categories.map(row => row.name), ["메인 메뉴", "곁들임", "디저트", "음료"]);
+      assert.deepEqual(categories.map(row => row.name), ["MAIN", "SIDES", "DESSERTS", "DRINKS"]);
       assert.equal(rows[0].name, "그릴 치킨 플레이트");
       assert.equal(rows.length, 16);
       assert.ok(rows.every(row => !String(row.name).includes("단품/세트")));
@@ -47,7 +47,7 @@ for (const design of DEFAULT_DESIGN_REVIEWS) {
       for (const category of categories) {
         const items = rows.filter(row => row.category_id === category.id);
         const labels = columns.filter(column => column.category_id === category.id).map(column => column.label);
-        const main: boolean = category.name === "메인 메뉴" && design.itemLayout !== "album";
+        const main: boolean = category.name === "MAIN" && design.itemLayout !== "album";
         assert.deepEqual(labels, main ? ["단품", "세트"] : []);
         for (const item of items) {
           const values = (client.rows.get("menu_item_price_column_values") ?? []).filter(value => value.menu_item_id === item.id);
@@ -56,14 +56,20 @@ for (const design of DEFAULT_DESIGN_REVIEWS) {
             assert.deepEqual(values.map(value => value.price), [item.price, Number(item.price) + 3000]);
             assert.ok(String(item.description).endsWith(BASIC_STANDARD_SET_COPY));
           }
-          assert.equal(item.price_note, category.name === "음료" ? "ICE ONLY" : null);
+          assert.equal(item.price_note, category.name === "DRINKS" ? "ICE ONLY" : null);
           assert.equal((client.rows.get("menu_item_price_options") ?? []).filter(value => value.menu_item_id === item.id).length, 0);
         }
       }
       if (["basic-top-row", "basic-top-row-left-logo"].includes(design.id)) assert.equal(preset.menu_cover_enabled, false);
       assert.ok((client.rows.get("menu_site_translations") ?? []).every(row => row.restaurant_name === null));
       const translations = getStarterTranslationCopy(preset)!;
+      const localizedCategoryNames = {
+        en: ["MAIN", "SIDES", "DESSERTS", "DRINKS"],
+        zh: ["主食", "配菜", "甜点", "饮品"],
+        ja: ["メイン", "サイド", "デザート", "ドリンク"],
+      };
       for (const locale of ["en", "zh", "ja"] as const) {
+        assert.deepEqual(Object.values(translations[locale].categoryNames), localizedCategoryNames[locale]);
         assert.doesNotMatch(JSON.stringify(translations[locale].site), /REAL.?MATCHA|real\.matcha|济州|済州/);
         assert.doesNotMatch(JSON.stringify(translations[locale].items), /Real Matcha|真抹茶|リアル抹茶|[가-힣]/);
         assert.equal(Object.keys(translations[locale].items).length, 16);
