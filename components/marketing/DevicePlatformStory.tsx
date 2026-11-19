@@ -11,7 +11,7 @@ const ASSETS="/assets/device-platform-v2/";
 const SCREEN_MATRICES={monitor:deviceScreenMatrix("monitor"),tablet:deviceScreenMatrix("tablet"),phone:deviceScreenMatrix("phone")};
 function CopyFields({link,headingId}:{link:boolean;headingId?:string}) {
   return <>
-    <h2 id={headingId} className="type-section-title">{link?<>웹 링크 하나로, <br className={styles.copyBreak}/>어디서든 자유롭게.</>:<>하나의 메뉴판, <br className={styles.copyBreak}/>모든 디바이스에서.</>}</h2>
+    <h2 id={headingId} tabIndex={headingId?-1:undefined} className="type-section-title">{link?<>웹 링크 하나로, <br className={styles.copyBreak}/>어디서든 자유롭게.</>:<>하나의 메뉴판, <br className={styles.copyBreak}/>모든 디바이스에서.</>}</h2>
     <p className="type-body-lg site-copy-muted">{link?<>화면이 크든 작든, 폴더블이든 걱정 없이 <br className={styles.copyBreak}/>반응형 웹 기술로 자연스럽게 보여집니다.</>:<>PC부터 태블릿, 스마트폰까지. <br className={styles.copyBreak}/>우리 매장의 메뉴를 어디서나 보여주세요.</>}</p>
   </>;
 }
