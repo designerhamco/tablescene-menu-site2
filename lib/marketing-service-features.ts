@@ -1,7 +1,8 @@
 import type { VisualKind } from "@/components/marketing/MarketingVisual";
 
 type Service = "basic" | "dining" | "display";
-type Feature = { kind: VisualKind; label: string; title: string; body: string };
+export type MarketingFeature = { kind: VisualKind; label: string; title: string; body: string; media?: { poster: string; mp4: string; webm?: string } };
+type Feature = MarketingFeature;
 
 export const MARKETING_SHARED_FEATURES = {
   gallery: {

@@ -1,0 +1,2 @@
+.reveal { position:relative; }
+@media (prefers-reduced-motion:reduce) { .reveal { opacity:1 !important; transform:none !important; } }
