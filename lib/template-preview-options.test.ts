@@ -104,7 +104,7 @@ test("supported options match each native engine and preserve neutral album excl
   assert.equal(basic.length, 14); assert.ok(basic.includes("widgetsPreview"));
   assert.equal(dining.length, 12); assert.ok(dining.includes("pageDescriptionsPreview")); assert.ok(!basic.includes("pageDescriptionsPreview")); assert.ok(dining.includes("coverImagesPreview"));
   assert.ok(!dining.includes("featuredPreview") && !dining.includes("timeSalesPreview"));
-  assert.deepEqual(getTemplatePreviewOptionGroups("display_menu_a"), []);
+  assert.deepEqual(getTemplatePreviewOptionGroups("display_menu_a").flatMap(group => group.choices.map(([key]) => key)), ["secondaryNamesPreview", "badgesPreview", "priceOptionsPreview", "timeSalesPreview", "soldOutPreview"]);
   for (const design of DEFAULT_DESIGN_REVIEWS.filter(design => design.itemLayout === "album" && design.layout.startsWith("basic-"))) {
     assert.ok(!getTemplatePreviewOptionGroups(design.renderer, design).flatMap(group => group.choices).some(([key]) => key === "priceOptionsPreview"));
   }

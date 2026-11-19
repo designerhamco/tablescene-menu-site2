@@ -109,7 +109,17 @@ export type PreviewDesignDefaults = ReturnType<typeof previewDesignDefaults>;
 /** In-memory preview overrides only. Never saves settings or changes the source data. */
 export function applyPreviewDesign(source: MenuPageData, value: unknown, album: boolean): MenuPageData {
   const overrides = readPreviewDesign(value);
-  if (source.menuSite.template_key === "display_menu_a" || !Object.keys(overrides).length) return source;
+  if (!Object.keys(overrides).length) return source;
+  if (source.menuSite.template_key === "display_menu_a") {
+    // Display owns its palette and geometry. Only existing font settings are previewable.
+    if (!overrides.fontFamily) return source;
+    const data = structuredClone(source), page = record(data.menuSite.page_settings), design = record(page.design);
+    design.commonFonts = true;
+    if (overrides.fontFamily.ko) design.koreanFont = overrides.fontFamily.ko;
+    if (overrides.fontFamily.en) design.englishFont = getSafeEnglishFontValueForTemplate("display_menu_a", overrides.fontFamily.en);
+    data.menuSite.page_settings = { ...page, design } as typeof data.menuSite.page_settings;
+    return data;
+  }
   const data = structuredClone(source), page = record(data.menuSite.page_settings), design = record(page.design);
   if (overrides.textColors) {
     // Resolve the previous combined group before entering the independent scheme.

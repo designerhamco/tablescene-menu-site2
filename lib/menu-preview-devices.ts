@@ -147,6 +147,7 @@ const TEMPLATE_PREVIEW_QUERY_KEYS = [
   "page",
   "qaCase",
   "qaSplitImagePosition",
+  "displayImagePosition",
   "footerStress",
   "contentQa",
   "featured",

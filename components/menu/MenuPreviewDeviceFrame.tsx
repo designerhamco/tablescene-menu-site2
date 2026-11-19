@@ -6,6 +6,12 @@ import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp } from "@/app/components/ui/site-arrow";
 import PreviewActualView from "./PreviewActualView";
 import { usePreviewRenderedDesign } from "./usePreviewRenderedDesign";
+import DisplayPreviewGuide from "./DisplayPreviewGuide";
+import DisplayPreviewOptions from "./DisplayPreviewOptions";
+import { useDisplayPreviewNavigation } from "./useDisplayPreviewNavigation";
+import { ChevronLeft, ChevronRight } from "@/app/components/ui/site-arrow";
+import type { DisplayPreviewPage } from "@/lib/display-preview";
+import { normalizeFontSizeScaleKey } from "@/lib/template-typography-presets";
 
 import { fitMenuPreviewFrame } from "@/lib/menu-preview-fit";
 import PreviewDeviceIcon from "@/components/menu/PreviewDeviceIcon";
@@ -106,11 +112,12 @@ function PreviewOrientationIcon() {
 }
 
 export default function MenuPreviewDeviceFrame(
-  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; previewDisplayDefaults?: DefaultDesignOptions; previewDesignDefaults?: PreviewDesignDefaults },
+  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; previewDisplayDefaults?: DefaultDesignOptions; previewDesignDefaults?: PreviewDesignDefaults; displayPages?: DisplayPreviewPage[] },
 ) {
   const { device, query } = props;
   const isTemplatePreview = typeof props.templateKey === "string";
   const templateKey = props.templateKey ?? props.menuTemplateKey;
+  const isDisplayPreview = isTemplatePreview && templateKey === "display_menu_a";
   const designParam = props.menuId ? props.menuDesignId : (query as TemplatePreviewQuery).design;
   const defaultDesign = templateKey ? getDefaultDesignReview(Array.isArray(designParam) ? designParam[0] : designParam, templateKey) : undefined;
   const supportsTabletOrientation = shouldUseMenuPreviewDeviceFrame(templateKey);
@@ -130,6 +137,7 @@ export default function MenuPreviewDeviceFrame(
   const toolbarRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const displayNavigation = useDisplayPreviewNavigation(iframeRef, props.displayPages, query as TemplatePreviewQuery);
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0, viewportWidth: 0 });
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -178,10 +186,11 @@ export default function MenuPreviewDeviceFrame(
       router.push(buildPreviewUrl({ device, orientation }, { ...templateQuery, [key]: enabled ? "on" : "off" }), { scroll: false });
     });
   };
-  const canResetFeatures = DEFAULT_DESIGN_OPTION_KEYS.some(key => templateQuery[key] !== undefined);
+  const canResetFeatures = DEFAULT_DESIGN_OPTION_KEYS.some(key => templateQuery[key] !== undefined) || (isDisplayPreview && templateQuery.displayImagePosition !== undefined);
   const resetDisplayOptions = () => {
     if (!hasDisplayOptions || !canResetFeatures || isPending) return;
     const nextQuery = withoutTemplatePreviewFeatureOverrides(templateQuery);
+    if (isDisplayPreview) delete nextQuery.displayImagePosition;
     startTransition(() => {
       setDisplayOptions(props.previewDisplayDefaults ?? getDefaultDesignOptions(nextQuery));
       router.replace(buildPreviewUrl({ device, orientation }, nextQuery), { scroll: false });
@@ -189,6 +198,7 @@ export default function MenuPreviewDeviceFrame(
   };
   const layoutMode = normalizePcTabletLayoutMode(Array.isArray(query.layoutMode) ? query.layoutMode[0] : query.layoutMode, templateKey);
   const frame = getMenuPreviewFrame(device, orientation);
+  const previewLabel = isDisplayPreview ? "디스플레이" : frame.label;
   const fittedFrame = fitMenuPreviewFrame({ ...canvasSize, device }, frame);
   const orientationLabel =
     device === "tablet" ? MENU_PREVIEW_ORIENTATIONS[orientation] : null;
@@ -207,7 +217,9 @@ export default function MenuPreviewDeviceFrame(
     if (typeof props.templateKey === "string") {
       return buildTemplatePreviewUrl(
         props.templateKey,
-        nextQuery as TemplatePreviewQuery,
+        isDisplayPreview && !(options.embedded && !options.detached)
+          ? { ...nextQuery, page: String(displayNavigation.page), lang: displayNavigation.lang }
+          : nextQuery as TemplatePreviewQuery,
         {
           callPreview: features.call,
           orderPreview: features.order,
@@ -263,6 +275,10 @@ export default function MenuPreviewDeviceFrame(
     const url = new URL(window.location.href); url.searchParams.set("previewOptions",tab);
     window.history.replaceState(null,"",url);
   };
+  const changeDisplayQuery = (patch: TemplatePreviewQuery) => startTransition(() => {
+    router.replace(buildPreviewUrl({ device: "pc" }, { ...templateQuery, ...patch }), { scroll: false });
+  });
+  const fontSizeScale = normalizeFontSizeScaleKey(Array.isArray(templateQuery.fontSizeScale) ? templateQuery.fontSizeScale[0] : templateQuery.fontSizeScale);
 
   return (
     <main className={`${styles.workspace} h-screen overflow-hidden bg-zinc-100 text-zinc-950`} data-preview-device={device} data-has-options={hasDisplayOptions ? "true" : "false"} data-options-open={areDisplayOptionsOpen ? "true" : "false"} data-toolbar-open={showToolbar ? "true" : "false"}
@@ -288,7 +304,11 @@ export default function MenuPreviewDeviceFrame(
               showToolbar ? "opacity-100" : "pointer-events-none opacity-0"
             }`}
           >
-            <nav
+            {isDisplayPreview ? <nav aria-label="디스플레이 페이지 이동" className={`${styles.displayPages} flex min-w-0 flex-1 items-center justify-center`}>
+              <button type="button" className="site-preview-control" aria-label="이전 페이지" title="이전 페이지" tabIndex={showToolbar ? undefined : -1} disabled={!displayNavigation.ready || displayNavigation.page <= 1 || isPending} onClick={() => displayNavigation.select(displayNavigation.page - 1)}><ChevronLeft className="h-4 w-4" aria-hidden="true" /><span className="hidden min-[640px]:inline">이전 페이지</span></button>
+              <span role="status" aria-live="polite" aria-label={`전체 ${props.displayPages?.length ?? 0}페이지 중 ${displayNavigation.page}페이지`} className="type-caption tabular-nums" data-display-page-count="">{displayNavigation.page} / {props.displayPages?.length ?? 0}</span>
+              <button type="button" className="site-preview-control" aria-label="다음 페이지" title="다음 페이지" tabIndex={showToolbar ? undefined : -1} disabled={!displayNavigation.ready || displayNavigation.page >= (props.displayPages?.length ?? 0) || isPending} onClick={() => displayNavigation.select(displayNavigation.page + 1)}><span className="hidden min-[640px]:inline">다음 페이지</span><ChevronRight className="h-4 w-4" aria-hidden="true" /></button>
+            </nav> : <nav
               aria-label="미리보기 기기 선택"
               className={`${styles.deviceNav} flex min-w-0 flex-1 items-center justify-center gap-0.5`}
             >
@@ -314,7 +334,7 @@ export default function MenuPreviewDeviceFrame(
                   </Link>
                 );
               })}
-            </nav>
+            </nav>}
             {device === "tablet" && supportsTabletOrientation ? (
               <Link
                 aria-label={`태블릿을 ${MENU_PREVIEW_ORIENTATIONS[nextTabletOrientation]}로 회전`}
@@ -350,13 +370,14 @@ export default function MenuPreviewDeviceFrame(
               </div>
             ) : null}
             <PreviewActualView href={detachedUrl} tabIndex={showToolbar ? undefined : -1} />
+            {isDisplayPreview ? <DisplayPreviewGuide tabIndex={showToolbar ? undefined : -1} /> : null}
           </div>
           <button
             type="button"
             onClick={() => setIsToolbarOpen((open) => !open)}
             aria-expanded={showToolbar}
             aria-label={
-              showToolbar ? "기기 선택 도구 닫기" : "기기 선택 도구 열기"
+              isDisplayPreview ? (showToolbar ? "디스플레이 도구 닫기" : "디스플레이 도구 열기") : showToolbar ? "기기 선택 도구 닫기" : "기기 선택 도구 열기"
             }
             className="site-icon-control site-preview-control site-preview-toolbar-toggle"
             data-icon-appearance="bare"
@@ -369,19 +390,21 @@ export default function MenuPreviewDeviceFrame(
           </button>
         </header>
         {hasDisplayOptions && templateKey ? <MenuPreviewOptionsPanel open={areDisplayOptionsOpen} onToggle={() => setDisplayOptionsOpenOverride(!areDisplayOptionsOpen)} tab={optionsTab} onTabChange={changeOptionsTab}
-          groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} onFeatureReset={resetDisplayOptions} canResetFeatures={canResetFeatures} pending={isPending} templateKey={templateKey} defaults={props.previewDesignDefaults} renderedDesign={renderedDesign} design={designOptions} onDesignChange={changeDesign} alignmentDisabled={device !== "mobile" && hasFixedHeaderAlignment(templateKey, { menu_design_id: defaultDesign?.id })} album={defaultDesign?.itemLayout === "album"} /> : null}
+          groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} onFeatureReset={resetDisplayOptions} canResetFeatures={canResetFeatures} pending={isPending} templateKey={templateKey} defaults={props.previewDesignDefaults} renderedDesign={renderedDesign} design={designOptions} onDesignChange={changeDesign} alignmentDisabled={device !== "mobile" && hasFixedHeaderAlignment(templateKey, { menu_design_id: defaultDesign?.id })} album={defaultDesign?.itemLayout === "album"}
+          featureContent={isDisplayPreview && props.displayPages?.[displayNavigation.page - 1]?.split ? <label className="site-field-stack type-label"><span>이미지 위치</span><select className="site-field" aria-label="디스플레이 이미지 위치" value={templateQuery.displayImagePosition === "right" ? "right" : "left"} disabled={isPending} onChange={event => changeDisplayQuery({ displayImagePosition: event.target.value })}><option value="left">왼쪽</option><option value="right">오른쪽</option></select></label> : undefined}
+          designContent={isDisplayPreview && props.previewDesignDefaults ? <DisplayPreviewOptions value={designOptions} defaults={props.previewDesignDefaults} scale={fontSizeScale} pending={isPending} onChange={changeDesign} onScaleChange={scale => changeDisplayQuery({ fontSizeScale: scale })} onReset={() => changeDisplayQuery({ designPreview: undefined, fontSizeScale: undefined })} /> : undefined} /> : null}
       </div>
 
       <section className={styles.stage} data-preview-stage=""
         tabIndex={0}
-        aria-label={`${frame.label}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
+        aria-label={`${previewLabel}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
       >
         <div ref={canvasRef} className={styles.canvas} data-preview-canvas="">
           <div className={styles.scaledFrame} style={{ width: fittedFrame.displayWidth, height: fittedFrame.displayHeight }}>
             <div data-preview-frame-shell="" className={styles.frame}
               style={{ width: fittedFrame.width, height: fittedFrame.height, transform: `scale(${fittedFrame.scale})`, visibility: fittedFrame.scale ? "visible" : "hidden" }}>
               <iframe ref={iframeRef} key={embeddedUrl} src={embeddedUrl}
-                title={`${frame.label}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
+                title={`${previewLabel}${orientationLabel ? ` ${orientationLabel}` : ""} 메뉴판 미리보기`}
                 className="h-full w-full border-0 bg-white" referrerPolicy="no-referrer" />
             </div>
           </div>

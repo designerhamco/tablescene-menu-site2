@@ -10,7 +10,10 @@ export type PreviewOptionGroup = { label: string; choices: [DefaultDesignOptionK
 
 /** The toolbar and data adapter share the template's real supported features. */
 export function getTemplatePreviewOptionGroups(templateKey: string, design?: DefaultDesignReview): PreviewOptionGroup[] {
-  if (templateKey === "display_menu_a") return [];
+  if (templateKey === "display_menu_a") return [
+    { label: "메뉴 정보", choices: [["secondaryNamesPreview", "보조 언어명"], ["badgesPreview", "일반 텍스트칩"]] },
+    { label: "가격·판매 상태", choices: [["priceOptionsPreview", "가격 옵션"], ["timeSalesPreview", "기간 할인"], ["soldOutPreview", "품절"]] },
+  ];
   const capabilities = getTemplateCapabilities(templateKey);
   const basic = design ? design.layout.startsWith("basic-") : capabilities.menuCover.coverMode === "section";
   const groups: PreviewOptionGroup[] = [
