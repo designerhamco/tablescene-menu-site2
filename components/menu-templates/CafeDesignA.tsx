@@ -7590,8 +7590,8 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         }}
       >
         <OnePageCallPalette />
-        <OnePageMobileCallDock />
-        <div className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
+        {!patternBands.kind && <OnePageMobileCallDock />}
+        <div data-cafe-a-content-shell className="flex min-h-screen w-full max-w-none min-w-0 flex-col lg:h-full lg:min-h-0 lg:overflow-y-hidden">
           {defaultDesignLayout === "basic-upper-left" ? (
             <section className="lg:hidden" data-upper-left-mobile-intro>
               <CafeAUpperLeftIntro data={data} density={density} mobileReading />
@@ -7841,6 +7841,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
             </div>
           </div>
         </div>
+        {patternBands.kind && <OnePageMobileCallDock />}
       </main>
       <CafeADebugOverlay
         boardRef={desktopFitBoardRef}
