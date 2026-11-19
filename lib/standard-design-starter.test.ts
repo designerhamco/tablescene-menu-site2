@@ -49,6 +49,7 @@ for (const design of DEFAULT_DESIGN_REVIEWS) {
       const withOptionsOn = applyTemplatePreviewOptions(preview, { imagesPreview: "on", categoryDescriptionsPreview: "on" });
       assert.ok(withOptionsOn.items.some(item => item.image_url));
       assert.ok(withOptionsOn.categories.every(category => category.description_visible && category.description));
+      assert.doesNotMatch(BASIC_STANDARD_INTRO, /[\r\n]/);
       assert.equal(client.site.brand_description, BASIC_STANDARD_INTRO);
       assert.equal(preview.menuSite.brand_description, BASIC_STANDARD_INTRO);
       const fallbackItem = preset.pages.flatMap(page => page.categories.flatMap(category => category.items))
@@ -89,7 +90,7 @@ for (const design of DEFAULT_DESIGN_REVIEWS) {
       };
       for (const locale of ["en", "zh", "ja"] as const) {
         const intro = translations[locale].site.brandDescription;
-        assert.equal(intro.split("\n").length, 3);
+        assert.doesNotMatch(intro, /[\r\n]/);
         assert.doesNotMatch(intro, /[가-힣]/);
         assert.deepEqual(Object.values(translations[locale].categoryNames), localizedCategoryNames[locale]);
         assert.doesNotMatch(JSON.stringify(translations[locale].site), /REAL.?MATCHA|real\.matcha|济州|済州/);
