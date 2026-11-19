@@ -50,8 +50,10 @@ try {
       const response = await page.goto(`${base}${route}`, { waitUntil: "networkidle" });
       assert.ok(response?.ok(), `${route}: HTTP ${response?.status()}`);
       const fonts = await renderedFonts(page, client, "main");
-      assert.deepEqual(fonts.letters, ["Tenor Sans"], `${route} ${width}px letters`);
-      for (const key of ["korean", "digits", "symbols"]) {
+      for (const key of ["letters", "digits"]) {
+        assert.deepEqual(fonts[key], ["Tenor Sans"], `${route} ${width}px ${key}`);
+      }
+      for (const key of ["korean", "symbols"]) {
         assert.deepEqual(fonts[key], ["Pretendard"], `${route} ${width}px ${key}`);
       }
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
