@@ -4,7 +4,7 @@ import test from "node:test";
 import {createElement} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import HomeHeroMotion from "../components/marketing/HomeHeroMotion";
-import {HERO_CAFE_CHAPTERS,HERO_CAFE_SCREENS,HERO_CHAPTER_DURATION_MS,HERO_CHAPTER_SCROLL_LENGTHS,HERO_SCROLL_LENGTH,HERO_COUNTER_TIMELINE,HERO_PHONE_TIMELINE,heroTween,heroProgressAt,heroChapterAt,heroSceneAt,heroScreenMatrix,heroSaleZoom,heroDemoPhase,heroTemplateAt,heroPulseAt,heroPhoneValue,heroLiveSceneAt,heroSegmentProgressAt,type HeroQuad} from "./hero-cafe-motion";
+import {HERO_CAFE_CHAPTERS,HERO_CAFE_SCREENS,HERO_CHAPTER_DURATION_MS,HERO_CHAPTER_SCROLL_LENGTHS,HERO_SCROLL_LENGTH,HERO_COUNTER_TIMELINE,HERO_PHONE_TIMELINE,heroTween,heroProgressAt,heroChapterAt,heroSceneAt,heroScreenMatrix,heroScaleQuad,heroSaleZoom,heroDemoPhase,heroTemplateAt,heroPulseAt,heroPhoneValue,heroLiveSceneAt,heroSegmentProgressAt,type HeroQuad} from "./hero-cafe-motion";
 
 test("only one demo is eligible, with a bounded tablet warmup before its scene",()=>{
  assert.deepEqual([0,1,2,3,4,-1].map(chapter=>heroLiveSceneAt(chapter,true,true,false)),[null,"counter","dining","phone",null,null]);
@@ -75,6 +75,13 @@ test("projective screen overlays meet every authored device corner",()=>{
  }
  assert.throws(()=>heroScreenMatrix([[0,0],[0,0],[0,0],[0,0]] as HeroQuad,1280,800));
 });
+test("QR enlargement preserves the sticker center and every edge angle",()=>{
+ const sticker=HERO_CAFE_SCREENS.qrCode,outline=heroScaleQuad(sticker,1.4);
+ for(let axis=0;axis<2;axis++){
+  assert.ok(Math.abs(outline.reduce((sum,p)=>sum+p[axis],0)-sticker.reduce((sum,p)=>sum+p[axis],0))<1e-8);
+  for(let i=0;i<4;i++)assert.ok(Math.abs((outline[(i+1)%4][axis]-outline[i][axis])-(sticker[(i+1)%4][axis]-sticker[i][axis])*1.4)<1e-8);
+ }
+});
 test("hero automation uses isolated synthetic catalog previews and preserves customer renderers",()=>{
  const component=readFileSync(new URL("../components/marketing/HeroLiveMenu.tsx",import.meta.url),"utf8");
  const route=readFileSync(new URL("../app/templates/[templateKey]/preview/page.tsx",import.meta.url),"utf8");
@@ -123,12 +130,15 @@ test("phone digits fill individually and erase at the same reverse scroll positi
  assert.deepEqual(values.map(value=>value.length),Array.from({length:12},(_,index)=>index));
  assert.deepEqual(values.map(value=>value.length).reverse(),Array.from({length:12},(_,index)=>heroPhoneValue(end-(end-start)*index/11).length));
 });
-test("sale zoom is restrained on desktop while preserving the approved compact camera",()=>{
+test("sale zoom is stronger on desktop while preserving the approved compact camera",()=>{
  assert.equal(heroSaleZoom(0,1440),0);
- assert.equal(heroSaleZoom(40,1440),.6);
+ assert.equal(heroSaleZoom(40,1440),.8);
  assert.equal(heroSaleZoom(40,390),1.8);
  assert.equal(heroSaleZoom(40,820),1.8);
  assert.ok(heroSaleZoom(30,1440)<heroSaleZoom(36,1440));
+ const duration=HERO_CHAPTER_DURATION_MS[1]/1000;
+ const holdDistance=(duration-HERO_COUNTER_TIMELINE.zoom[1])/duration*HERO_CHAPTER_SCROLL_LENGTHS[1];
+ assert.ok(holdDistance>=1.09,"the enlarged countdown remains for over one viewport of scrolling");
 });
 
 test("tablet browsing owns over two viewport lengths before sale enlargement starts",()=>{

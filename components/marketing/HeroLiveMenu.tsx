@@ -2,8 +2,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeftRight, ArrowUpDown } from "@/app/components/ui/site-arrow";
-import { HERO_CAFE_SCREENS, HERO_COUNTER_TIMELINE, HERO_PHONE_TIMELINE, heroDemoPhase, heroTween, heroPhoneValue, heroPulseAt } from "@/lib/hero-cafe-motion";
+import { ArrowLeft, ArrowRight, ArrowLeftRight, ArrowUpDown } from "@/app/components/ui/site-arrow";
+import { HERO_CAFE_SCREENS, HERO_CHAPTER_DURATION_MS, HERO_COUNTER_TIMELINE, HERO_PHONE_TIMELINE, heroDemoPhase, heroTween, heroPhoneValue, heroPulseAt } from "@/lib/hero-cafe-motion";
 import styles from "./HomeHeroMotion.module.css";
 
 const preview = (template: string, device: string, extra = "") => `/templates/${template}/preview?view=actual&embedded=1&heroDemo=1&device=${device}${extra}`;
@@ -13,8 +13,8 @@ const SOURCES = {
   phone: preview("cafe_real_matcha_a", "mobile", "&callPreview=off&orderPreview=on&popupPreview=off&widgetsPreview=off&prepayPreview=off"),
 };
 type Kind = keyof typeof SOURCES;
-type Gesture = "click" | "swipe-x" | "swipe-y";
-type Cue = { id: string; x: number; y: number; gesture: Gesture; progress: number };
+type Gesture = "click" | "swipe-x" | "swipe-y" | "point-left" | "point-right";
+type Cue = { id: string; x: number; y: number; gesture: Gesture; progress: number; color?: string };
 type Props = { kind: Kind; active: boolean; seconds: number; reduced: boolean; onDetail?: (point: readonly [number, number]) => void };
 type Action = { id: string; cueAt: number; at: number; until: number; gesture?: Gesture; find: () => HTMLElement | null; act?: (target: HTMLElement) => void; done?: () => boolean };
 
@@ -155,6 +155,8 @@ function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,present
           if(t>=HERO_COUNTER_TIMELINE.focus[1]){
             const r=sale.getBoundingClientRect(),u=(r.x+r.width/2)/width,v=(r.y+r.height/2)/height,q=HERO_CAFE_SCREENS.counter;
             onDetail?.([q[0][0]*(1-u)*(1-v)+q[1][0]*u*(1-v)+q[2][0]*u*v+q[3][0]*(1-u)*v,q[0][1]*(1-u)*(1-v)+q[1][1]*u*(1-v)+q[2][1]*u*v+q[3][1]*(1-u)*v]);
+            const right=r.right+43<=width;
+            nextCue={id:"sale-countdown",gesture:right?"point-left":"point-right",x:(right?r.right+24:r.left-24)/width*100,y:v*100,color:doc.defaultView!.getComputedStyle(sale).color,progress:heroTween(t,HERO_COUNTER_TIMELINE.focus[1],HERO_CHAPTER_DURATION_MS[1]/1000)};
             setStep("sale-focus");
           }
         }
@@ -194,13 +196,13 @@ function NativeFrame({kind,active,seconds,reduced,onDetail,epoch,visible,present
     return()=>window.clearInterval(timer);
   },[active,ready,reduced,kind,onDetail,epoch,report,seeking,settled]);
   const source=kind==="phone"?"/assets/device-platform-v2/menu-phone.webp":`/assets/hero-cafe-v1/screen-${kind==="counter"?"matcha":"dining-v2"}.webp`;
-  const motion=cue?.gesture==="swipe-x"?`translateX(${(cue.progress-.5)*-24}px)`:cue?.gesture==="swipe-y"?`translateY(${(cue.progress-.5)*-24}px)`:"";
+  const motion=cue?.gesture==="swipe-x"?`translateX(${(cue.progress-.5)*-24}px)`:cue?.gesture==="swipe-y"?`translateY(${(cue.progress-.5)*-24}px)`:cue?.gesture.startsWith("point-")?`translateX(${Math.sin(cue.progress*Math.PI*6)*5}px)`:"";
   const pulse=heroPulseAt(cue?.progress??1);
   return <div className={styles.live} data-hero-live={visible?kind:undefined} data-ready={ready} data-demo-time={seconds.toFixed(2)} data-demo-step={step} data-demo-order={orderReceived?"received":"none"} data-demo-cue={cue?.gesture??"none"} data-demo-slide={surface.slide} data-demo-popup={surface.popup} data-demo-request={surface.request} data-demo-scroll={surface.scroll} data-demo-cart={surface.cart} data-demo-phone={surface.phone}>
     <img className={styles.fallback} src={source} alt=""/>
     {!reduced?<iframe ref={frame} src={`${SOURCES[kind]}&heroSeek=${epoch}`} title={`아티메뉴 ${kind==="phone"?"모바일":kind==="dining"?"다이닝":"태블릿"} 시연`} tabIndex={-1} aria-hidden="true" loading="eager" className={styles.preview} style={{opacity:ready&&(presented||presentable)?1:0}}/>:null}
-    {cue&&active&&!reduced?<span className={styles.cue} data-gesture={cue.gesture} style={{left:`${cue.x}%`,top:`${cue.y}%`,transform:`translate(-50%,-50%) ${motion}`,opacity:cue.gesture==="click"?.35+.65*pulse:1}}>
-      {cue.gesture==="click"?<i className={styles.cueRipple} style={{transform:`scale(${1+(1-pulse)*1.3})`,opacity:pulse}}/>:cue.gesture==="swipe-x"?<ArrowLeftRight/>:<ArrowUpDown/>}
+    {cue&&active&&!reduced?<span className={styles.cue} data-gesture={cue.gesture} data-hero-cue={cue.id} style={{left:`${cue.x}%`,top:`${cue.y}%`,color:cue.color,transform:`translate(-50%,-50%) ${motion}`,opacity:cue.gesture==="click"?.35+.65*pulse:1}}>
+      {cue.gesture==="click"?<i className={styles.cueRipple} style={{transform:`scale(${1+(1-pulse)*1.3})`,opacity:pulse}}/>:cue.gesture==="swipe-x"?<ArrowLeftRight/>:cue.gesture==="point-left"?<ArrowLeft/>:cue.gesture==="point-right"?<ArrowRight/>:<ArrowUpDown/>}
     </span>:null}
     {typing&&active&&!reduced?<span className={styles.typingCaret} aria-hidden="true" style={{left:`${typing.x}%`,top:`${typing.y}%`,height:typing.height,opacity:typing.opacity}}/>:null}
   </div>;

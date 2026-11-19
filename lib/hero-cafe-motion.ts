@@ -28,8 +28,8 @@ export const HERO_CAFE_SCREENS = {
 };
 /** Enough time for each native preview to finish its visible action sequence. */
 /** Seconds are narrative positions, never a running playback clock. */
-export const HERO_CHAPTER_DURATION_MS = [12000, 40000, 36000, 66000] as const;
-export const HERO_CHAPTER_SCROLL_LENGTHS = [1.6, 4.4, 2.8, 6.6] as const;
+export const HERO_CHAPTER_DURATION_MS = [12000, 46000, 36000, 66000] as const;
+export const HERO_CHAPTER_SCROLL_LENGTHS = [1.6, 5.06, 2.8, 6.6] as const;
 export const HERO_COUNTER_TIMELINE = { browse: [5, 21], focus: [21, 27], zoom: [28, 36] } as const;
 export const HERO_PHONE_TIMELINE = {
   qr: [.4, 5.8], camera: [5, 9], browse: [9, 20], reposition: [20, 22],
@@ -46,7 +46,7 @@ export function heroTween(time: number, start: number, end: number) {
   const t = clampHeroProgress((time - start) / (end - start));
   return t * t * (3 - 2 * t);
 }
-export function heroSaleZoom(seconds: number, width: number) { return heroTween(seconds, ...HERO_COUNTER_TIMELINE.zoom) * (width < 1024 ? 1.8 : .6); }
+export function heroSaleZoom(seconds: number, width: number) { return heroTween(seconds, ...HERO_COUNTER_TIMELINE.zoom) * (width < 1024 ? 1.8 : .8); }
 /** Three templates appear once each; the opening never wraps back to the first. */
 export function heroTemplateAt(progress: number) { return Math.min(HERO_TEMPLATE_SCREENS.length - 1, Math.floor(clampHeroProgress(progress) * HERO_TEMPLATE_SCREENS.length)); }
 /** Repeating ripples are sampled from scroll, so a stopped/reversed scroll holds/reverses them. */
@@ -78,6 +78,12 @@ export function heroSceneAt(progress: number) {
   const start = HERO_CHAPTER_SCROLL_LENGTHS.slice(0, chapter).reduce((sum, length) => sum + length, 0);
   const fraction = clampHeroProgress(progress) === 1 ? 1 : clampHeroProgress((clampHeroProgress(progress) * HERO_SCROLL_LENGTH - start) / HERO_CHAPTER_SCROLL_LENGTHS[chapter]);
   return { chapter, fraction, elapsed: fraction * HERO_CHAPTER_DURATION_MS[chapter] };
+}
+
+/** Scale in photo coordinates so every sticker edge retains its original angle. */
+export function heroScaleQuad(quad: HeroQuad, scale: number): HeroQuad {
+  const center = quad.reduce(([x,y], point) => [x + point[0] / 4, y + point[1] / 4], [0,0]);
+  return quad.map(([x,y]) => [center[0] + (x - center[0]) * scale, center[1] + (y - center[1]) * scale]) as unknown as HeroQuad;
 }
 
 /** A projective transform maps all four real screen corners without changing renderer geometry. */
