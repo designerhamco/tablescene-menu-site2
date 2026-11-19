@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element -- Existing renderer captures retain their exact aspect ratios. */
 import MarketingCopyReveal from "./MarketingCopyReveal";
 import ServiceStackPanel from "./ServiceStackPanel";
+import BasicTemplateShowcase from "./BasicTemplateShowcase";
 import { MARKETING_SERVICE_FEATURES, MARKETING_SERVICE_HEADINGS } from "@/lib/marketing-service-features";
 import styles from "./ServiceStackStory.module.css";
 
@@ -26,7 +27,7 @@ const services = [
 export default function ServiceStackStory() {
   return <div id="service-stories" className={styles.stack} data-service-stack>
     {services.map((service, index) => <ServiceStackPanel key={service.key} kind={service.key}>
-      <div className={`site-marketing-container ${styles.layout}`}>
+      <div className={`site-marketing-container ${styles.layout}`} data-service-intro={service.key}>
         <MarketingCopyReveal className={`site-stack-content ${styles.copy}`}>
           <div className={styles.identity}>
             <p className="type-caption">0{index + 1} / ARTIMENU {service.english}</p>
@@ -36,9 +37,9 @@ export default function ServiceStackStory() {
             <p className={`type-body ${styles.description}`}>{service.body}</p>
           </div>
         </MarketingCopyReveal>
-        <div className={styles.composition} data-service-artwork>
+        {service.key === "basic" ? <BasicTemplateShowcase/> : <div className={styles.composition} data-service-artwork>
           <img className={styles.screen} src={service.image.src} width={service.image.width} height={service.image.height} alt={service.image.alt} loading="lazy" decoding="async"/>
-        </div>
+        </div>}
       </div>
       <div className={`site-marketing-container site-stack-section ${styles.details}`}>
         <h3 className="type-subsection-title">{MARKETING_SERVICE_HEADINGS[service.key]}</h3>
