@@ -457,7 +457,9 @@ test("공통 역할의 굵기·행간·자간은 라이브러리 표와 실제 C
     assert.ok(typeof tracking === "string" && tracking.endsWith("em"), `${role.key} tracking is font-relative`);
     assert.equal(parseFloat(tracking), parseFloat(role.letterSpacing), `${role.key} tracking`);
   }
-  assert.match(controls, /\.site-button:is\(\.site-button-lg\.site-button-primary, \[data-purpose="primary-action"\]\) \{\s*font-size: var\(--type-primary-control-size\);/);
+  assert.match(controls, /\.site-button:is\(\.site-button-lg\.site-button-primary, \[data-purpose="primary-action"\]\) \{\s*font-size: var\(--type-primary-button-size, var\(--type-primary-control-size\)\);/);
+  assert.match(controls, /body:has\(\[data-site-header\]\) \{[^}]*--type-primary-button-size: var\(--site-type-16\);/);
+  assert.match(siteDesignSource, /\.site-tabs-outline\[data-purpose="state"\]\.site-tab-size-lg \{[^}]*--site-tab-height: var\(--ui-control-height-header\);[^}]*--site-segment-font: var\(--type-control-size\);/);
   assert.match(typographySource, /@media \(min-width: 1024px\) \{[\s\S]*?--type-primary-control-size: var\(--site-type-16\);/);
   assert.match(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-primary-control-size: var\(--type-control-size\);/);
   assert.match(siteDesignSource, /\.site-page-tabs\[data-purpose="page"\] \{ --site-tab-font: var\(--type-primary-control-size\); \}/);

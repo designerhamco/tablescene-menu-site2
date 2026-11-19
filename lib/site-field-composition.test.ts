@@ -85,19 +85,21 @@ test("view size switches expose exactly one selected option in the shared segmen
   assert.doesNotMatch(html,/site-tool-button/);
 });
 
-test("shared fields distinguish desktop form values, compact values and touch input", () => {
+test("shared fields use standard form values and retain compact and touch field roles", () => {
   assert.ok(SITE_CONTROL_DENSITY.some(role=>role.token==="--ui-menu-inset"&&role.value==="8px"));
   assert.match(css,/--ui-menu-row-height: 2rem;/);assert.match(css,/--ui-menu-inset: \.5rem;/);
   assert.match(css,/--ui-compact-field-font-size: var\(--site-type-14\);/);
   assert.match(css,/--ui-field-font-size: var\(--ui-compact-field-font-size\);/);
   assert.match(css,/@media \(pointer: coarse\) \{[\s\S]*?--ui-compact-field-font-size: var\(--site-type-16\); --ui-menu-row-height: 2\.5rem;/);
-  assert.match(css,/@media \(min-width: 1024px\) \{\s*body:has\(\[data-site-header\]\) \{\s*--ui-field-font-size: var\(--site-type-16\);/);
-  const desktopFields = css.split("/* Official desktop form values")[1].split("/* Font specimens")[0];
-  for (const scope of ['[data-field-density="compact"]', ".site-filter-panel", ".site-management-table", ".menu-typography", "[data-template-artwork]"]) {
-    assert.ok(desktopFields.includes(scope), scope);
+  assert.match(css,/body:has\(\[data-site-header\]\) \{[^}]*--ui-field-height-md: var\(--ui-field-height-lg\);[^}]*--ui-field-font-size: var\(--site-type-16\);/);
+  assert.match(css,/--ui-field-height-lg: 2\.75rem;/);
+  assert.match(css,/\.site-filter-panel \{[^}]*--ui-field-height-md: var\(--ui-field-height-sm\);[^}]*--ui-field-font-size: var\(--ui-compact-field-font-size\);/);
+  const siteControls = css.split("/* Standard official-site actions")[1].split("/* Font specimens")[0];
+  for (const scope of ['[data-field-density="compact"]', ".site-management-table", ".menu-typography", "[data-template-artwork]"]) {
+    assert.ok(siteControls.includes(scope), scope);
   }
   assert.match(css,/\)\) option \{ font-size: var\(--site-type-14\); \}/);
-  assert.ok(SITE_CONTROL_DENSITY.some(role => role.token === "--ui-field-font-size" && role.value.includes("PC 16px")));
+  assert.ok(SITE_CONTROL_DENSITY.some(role => role.token.startsWith("--ui-field-font-size") && role.value === "글자 16px / 높이 44px"));
   assert.ok(SITE_CONTROL_DENSITY.some(role => role.token === "--ui-compact-field-font-size" && role.value.includes("PC 14px")));
   assert.match(css,/\.site-multiselect-options \{ display: grid; gap: 0; \}/);
   assert.match(css,/\.site-multiselect-body > \.site-content-divider \{[^}]*padding: 0;/);

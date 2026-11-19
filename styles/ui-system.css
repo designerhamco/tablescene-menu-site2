@@ -26,6 +26,7 @@
   --ui-control-height-md: 2.5rem;
   --ui-control-height-header: 2.75rem;
   --ui-control-height-lg: 3rem;
+  --ui-button-height: var(--ui-control-height-md);
   --ui-button-group-divider-height: 1.5rem;
   --ui-edit-icon-size: 1rem;
   --ui-button-boundary: var(--ui-border);
@@ -42,7 +43,8 @@
   --ui-radius-control: 9999px;
   --ui-radius-field: .75rem;
   --ui-field-height-sm: 2rem;
-  --ui-field-height-md: 2.5rem;
+  --ui-compact-field-height: var(--ui-control-height-md);
+  --ui-field-height-md: var(--ui-compact-field-height);
   --ui-field-height-lg: 2.75rem;
   --ui-field-height-search: 3rem;
   --ui-compact-field-font-size: var(--site-type-14);
@@ -268,7 +270,7 @@
   display: inline-flex;
   flex-shrink: 0;
   max-width: 100%;
-  min-height: var(--ui-control-height-md);
+  min-height: var(--ui-button-height);
   align-items: center;
   justify-content: center;
   gap: var(--ui-control-gap);
@@ -409,7 +411,7 @@
 }
 
 .site-button:is(.site-button-lg.site-button-primary, [data-purpose="primary-action"]) {
-  font-size: var(--type-primary-control-size);
+  font-size: var(--type-primary-button-size, var(--type-primary-control-size));
 }
 
 .site-button-compact {
@@ -1326,7 +1328,11 @@ textarea.site-field[data-field-size="lg"], textarea[data-field-size="lg"] { min-
 .site-card-interactive:active { background: var(--ui-surface-soft); }
 .site-card-interactive:is(:disabled,[aria-disabled="true"]) { opacity: .45; cursor: not-allowed; }
 
-.site-filter-panel { --ui-field-height-md: var(--ui-field-height-sm); }
+.site-filter-panel {
+  --ui-field-height-md: var(--ui-field-height-sm);
+  --ui-field-font-size: var(--ui-compact-field-font-size);
+  --ui-field-md-padding-block: .5rem;
+}
 .site-button.site-consent-detail { min-height: 1.5rem; padding: 0; font-size: var(--type-body-sm-size); color: var(--ui-text-muted); text-decoration: underline; text-underline-offset: .2em; }
 
 /* Popup reading is compact; page headings and editable menu typography stay independent. */
@@ -1663,31 +1669,39 @@ svg.site-edit-icon {
 [data-appearance="segmented"] > [data-slot="toggle-group-item"][data-state="on"] { background: var(--ui-text); color: var(--ui-surface); }
 [data-appearance="segmented"] > [data-slot="toggle-group-item"]:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 1px; box-shadow: none; }
 @media (pointer: coarse) {
-  :root { --ui-field-height-sm: 2.5rem; --ui-field-height-md: 2.75rem; --ui-compact-field-font-size: var(--site-type-16); --ui-menu-row-height: 2.5rem; }
+  :root { --ui-field-height-sm: 2.5rem; --ui-compact-field-height: 2.75rem; --ui-compact-field-font-size: var(--site-type-16); --ui-menu-row-height: 2.5rem; }
   [data-appearance="segmented"] > [data-slot="toggle-group-item"] { min-width: var(--ui-control-height-header); height: var(--ui-control-height-header); }
 }
 
-/* Official desktop form values are distinct from labels and option text. */
-@media (min-width: 1024px) {
-  body:has([data-site-header]) {
-    --ui-field-font-size: var(--site-type-16);
-    /* Fit the 1.5 line box and 1px borders within the standard field height. */
-    --ui-field-md-padding-block: clamp(0px, calc((var(--ui-field-height-md) - 2px - 1.5em) / 2), .5rem);
-  }
-  :where(body:has([data-site-header])) :is(
-    [data-field-density="compact"], .site-filter-panel, .site-filter-toolbar,
-    .site-management-table, .site-field[data-field-size="sm"], .site-field-sm,
-    .site-multiselect-control, .site-select-icon,
-    .menu-typography, .aube-table-root, [data-template-artwork], [data-preview-device]
-  ) {
-    --ui-field-font-size: var(--ui-compact-field-font-size);
-    --ui-field-md-padding-block: .5rem;
-  }
-  :where(body:has([data-site-header])) select:not(:where(
-    .menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *,
-    [data-template-artwork], [data-template-artwork] *, [data-preview-device], [data-preview-device] *
-  )) option { font-size: var(--site-type-14); }
+/* Standard official-site actions and form values. */
+body:has([data-site-header]) {
+  --ui-button-height: var(--ui-control-height-header);
+  --type-primary-button-size: var(--site-type-16);
+  --ui-field-height-md: var(--ui-field-height-lg);
+  --ui-field-font-size: var(--site-type-16);
+  /* Fit the 1.5 line box and 1px borders within the standard field height. */
+  --ui-field-md-padding-block: clamp(0px, calc((var(--ui-field-height-md) - 2px - 1.5em) / 2), .5rem);
 }
+:where(body:has([data-site-header])) :where(
+  [data-field-density="compact"], .site-filter-toolbar,
+  .site-management-table, .site-field[data-field-size="sm"], .site-field-sm,
+  .site-multiselect-control, .site-multiselect-section-heading, .site-select-icon,
+  .menu-typography, .aube-table-root, [data-template-artwork], [data-preview-device]
+) {
+  --ui-field-height-md: var(--ui-compact-field-height);
+  --ui-field-font-size: var(--ui-compact-field-font-size);
+  --ui-field-md-padding-block: .5rem;
+}
+:where(body:has([data-site-header])) :where(
+  .menu-typography, .aube-table-root, [data-template-artwork], [data-preview-device]
+) {
+  --ui-button-height: var(--ui-control-height-md);
+  --type-primary-button-size: initial;
+}
+:where(body:has([data-site-header])) select:not(:where(
+  .menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *,
+  [data-template-artwork], [data-template-artwork] *, [data-preview-device], [data-preview-device] *
+)) option { font-size: var(--site-type-14); }
 
 /* Font specimens alone use menu font families; surrounding site UI stays unchanged. */
 .site-select-trigger[data-font-select] > [data-slot="select-value"] { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

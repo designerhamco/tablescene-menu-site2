@@ -35,9 +35,10 @@ test("ordinary action geometry is shared and icon / quick-menu shapes are explic
   assert.match(button, /pill: "site-button-pill"/);
   assert.doesNotMatch(button, /\b(?:sm|xl):/);
   assert.match(button, /rounded: "site-button-rounded"/);
-  assert.match(css, /\.site-button \{[^}]*min-height: var\(--ui-control-height-md\);[^}]*border-radius: var\(--ui-radius-control-rounded\);/);
+  assert.match(css, /\.site-button \{[^}]*min-height: var\(--ui-button-height\);[^}]*border-radius: var\(--ui-radius-control-rounded\);/);
   assert.match(css, /--ui-control-height-compact: 2rem/);
   assert.match(css, /--ui-control-height-md: 2\.5rem/);
+  assert.match(css, /body:has\(\[data-site-header\]\) \{[^}]*--ui-button-height: var\(--ui-control-height-header\);/);
   assert.match(css, /--ui-control-height-header: 2\.75rem/);
   assert.match(css, /--ui-control-height-lg: 3rem/);
   assert.doesNotMatch(css, /--ui-control-height-(?:sm|xl):/);
