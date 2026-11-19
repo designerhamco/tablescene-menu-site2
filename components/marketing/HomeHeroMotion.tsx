@@ -92,7 +92,7 @@ export default function HomeHeroMotion() {
             <motion.div className={styles.canvas} data-hero-surroundings-canvas animate={{...camera,x:camera.x+frame.left}} transition={{duration:reduced?0:.18,ease:[.22,1,.36,1]}}>
               <img src={HERO_SURROUNDINGS[image]} className={`${styles.photo} ${styles.surroundings}`} data-hero-surroundings={image} style={{transform:HERO_SURROUNDINGS_TRANSFORM}} width={1536} height={1024} alt=""/>
             </motion.div>
-            <div className={styles.framing} data-hero-framing data-feathered={frame.left>0} style={{left:frame.left,width:frame.width}}>
+            <div className={styles.framing} data-hero-framing style={{left:frame.left,width:frame.width}}>
             <motion.div className={styles.canvas} animate={camera} transition={{duration:reduced?0:.18,ease:[.22,1,.36,1]}}>
               <img ref={image==="venue"?firstPhoto:undefined} src={photo} className={`${styles.photo} ${styles.original}`} data-hero-original={image} width={1536} height={1024} alt="" fetchPriority={image==="venue"?"high":"auto"} onLoad={()=>{if(image==="venue")setLoaded(true);}}/>
               {image==="venue"?<>{HERO_CAFE_SCREENS.televisions.map((quad,i)=><Screen key={i} quad={quad}><CapturedScreen selected={selected}/></Screen>)}<Screen quad={HERO_CAFE_SCREENS.venueTablet}><CapturedScreen selected={selected}/></Screen></>:null}
