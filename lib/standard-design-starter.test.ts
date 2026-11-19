@@ -37,6 +37,9 @@ for (const design of DEFAULT_DESIGN_REVIEWS) {
     assert.equal((await createStarterMenuData(client as never, "new-menu", design.renderer, null, null, "business_basic_single_monthly", {designId: design.id})).created, false);
     assert.deepEqual([...client.rows], snapshot);
     if (design.renderer === "cafe_design_a") {
+      const fallbackItem = preset.pages.flatMap(page => page.categories.flatMap(category => category.items))
+        .find(item => item.key === preset.featured_item_key);
+      assert.equal(fallbackItem?.name, "그릴 치킨 플레이트");
       const categories = client.rows.get("menu_categories") ?? [];
       assert.deepEqual(categories.map(row => row.name), ["MAIN", "SIDES", "DESSERTS", "DRINKS"]);
       assert.equal(rows[0].name, "그릴 치킨 플레이트");
