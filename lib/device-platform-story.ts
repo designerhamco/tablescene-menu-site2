@@ -26,7 +26,8 @@ export const DEVICE_TEMPLATE_SCENES = [
   {id:"crema",name:"MELLO CREMA",key:"cafe_sunday_line_a",screens:screenPack("crema")},
   {id:"rosy",name:"ROSY ORANGE",key:"cafe_round_focus_a",screens:screenPack("rosy")},
 ] as const;
-export const DEVICE_PAPER_CARDS = Array.from({length:12},(_,index)=>({index,sceneIndex:index%DEVICE_TEMPLATE_SCENES.length}));
+export const DEVICE_PAPER_CENTER_INDEX = DEVICE_TEMPLATE_SCENES.length*3;
+export const DEVICE_PAPER_CARDS = Array.from({length:28},(_,index)=>({index,sceneIndex:index%DEVICE_TEMPLATE_SCENES.length}));
 export const clampDeviceProgress = (p:number) => Math.max(0,Math.min(1,Number.isFinite(p)?p:0));
 const smooth = (value:number) => { const t=clampDeviceProgress(value);return t*t*(3-2*t); };
 
@@ -80,13 +81,13 @@ export function deviceStageFrame(width:number,height:number,copyBottom=0,gutter=
   const monitorRight=items[0].x+items[0].width;
   const clusteredItems=items.map(item=>({...item,x:item.id==="tablet"?item.x+inwardOffset:item.id==="phone"?Math.min(item.x-inwardOffset,monitorRight-item.width*.18):item.x}));
   return {compact:w<1024,width:w,height:artHeight,items:clusteredItems,floor,scale,x:(w-w*scale)/2,y:copy*(1-scale),
-    paper:{cardWidth,cardHeight,centerY,perspective,farDepth:perspective*.48,depthBend:perspective*2.7,radius:w*.88,angleStep:w<640?.46:.32,curveDrop:w<640?4:8}};
+    paper:{cardWidth,cardHeight,centerY,perspective,farDepth:perspective*.48,depthBend:perspective*2.7,radius:w*.88,angleStep:cardWidth*.92/(w*.88),curveDrop:w<640?4:8}};
 }
 
 export function devicePaperAt(paper:ReturnType<typeof deviceStageFrame>["paper"],index:number,position:number) {
-  const theta=(index-DEVICE_TEMPLATE_SCENES.length-position)*paper.angleStep;
+  const theta=Math.atan((index-DEVICE_PAPER_CENTER_INDEX-position)*paper.angleStep);
   const x=paper.radius*Math.sin(theta),z=-paper.farDepth+paper.depthBend*(1-Math.cos(theta));
   const y=paper.curveDrop*(theta/.64)**2,yaw=-theta*180/Math.PI;
-  return {visible:Math.abs(theta)<=.90,theta,z,blur:.65+.55*Math.max(0,1-Math.abs(theta)/.72),
-    transform:`translate3d(${x}px,${y}px,${z}px) rotateY(${yaw}deg)`};
+  return {visible:Math.abs(theta)<=.90,theta,z,blur:Number((.65+.55*Math.max(0,1-Math.abs(theta)/.72)).toFixed(4)),
+    transform:`translate3d(${x.toFixed(4)}px,${y.toFixed(4)}px,${z.toFixed(4)}px) rotateY(${yaw.toFixed(4)}deg)`};
 }

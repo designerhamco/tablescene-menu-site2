@@ -49,8 +49,9 @@ try{
     assert.ok(Math.max(...initial.bodies.map(body=>body.bottom))-Math.min(...initial.bodies.map(body=>body.bottom))<.2,"physical bottoms must share the floor");
     for(const contact of initial.contacts)assert.ok(Math.abs(contact-initial.bodies[0].bottom)<1,"contact shadows meet the floor");
     for(const body of initial.bodies)assert.ok(body.x>=0&&body.x+body.width<=initial.width+1);
-    assert.ok(initial.paper[5].depth>initial.paper[4].depth);
-    assert.ok(initial.paper[5].height>initial.paper[4].height,"side thumbnails must appear closer/larger");
+    const centerPaper=initial.paper.findIndex(paper=>Math.abs(paper.angle)<.0001);
+    assert.ok(centerPaper>=0&&initial.paper[centerPaper+1].depth>initial.paper[centerPaper].depth);
+    assert.ok(initial.paper[centerPaper+1].height>initial.paper[centerPaper].height,"side thumbnails must appear closer/larger");
     const visual=page.locator("[data-device-platform] [role=img]");const box=await visual.boundingBox();
     await page.mouse.move(box.x+box.width/2,box.y+box.height*.6);const before=await page.evaluate(()=>scrollY);
     await page.mouse.wheel(0,220);await page.waitForTimeout(150);assert.ok(await page.evaluate(()=>scrollY)>before,"native wheel scroll");

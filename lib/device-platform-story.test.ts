@@ -4,7 +4,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import test from "node:test";
 import DevicePlatformStory from "../components/marketing/DevicePlatformStory";
-import { DEVICE_ASSETS, DEVICE_CAPTURE_SIZE, DEVICE_STAGE_ITEMS, DEVICE_TEMPLATE_SCENES, devicePaperAt, deviceScreenMatrix, deviceStageFrame, deviceTemplateSequenceAt } from "./device-platform-story";
+import { DEVICE_ASSETS, DEVICE_CAPTURE_SIZE, DEVICE_PAPER_CENTER_INDEX, DEVICE_STAGE_ITEMS, DEVICE_TEMPLATE_SCENES, devicePaperAt, deviceScreenMatrix, deviceStageFrame, deviceTemplateSequenceAt } from "./device-platform-story";
 
 test("the three devices use real static captures for four templates, without a live menu",()=>{
   assert.deepEqual(DEVICE_STAGE_ITEMS,["monitor","tablet","phone"]);
@@ -64,14 +64,14 @@ test("longer copy uniformly fits complete grounded devices without cropping them
 test("the concave paper path makes the sides closer and larger than the distant center",()=>{
   for(const width of [320,390,736,1024,1920]){
     const {paper}=deviceStageFrame(width,1000,150,20);
-    const center=devicePaperAt(paper,4,0),left=devicePaperAt(paper,3,0),right=devicePaperAt(paper,5,0);
+    const center=devicePaperAt(paper,DEVICE_PAPER_CENTER_INDEX,0),left=devicePaperAt(paper,DEVICE_PAPER_CENTER_INDEX-1,0),right=devicePaperAt(paper,DEVICE_PAPER_CENTER_INDEX+1,0);
     assert.ok(center.visible&&left.visible&&right.visible);
     assert.ok(center.z<left.z&&center.z<right.z);assert.equal(left.z,right.z);
     assert.ok(left.theta<0&&right.theta>0);
     assert.ok(paper.perspective/(paper.perspective-right.z)>paper.perspective/(paper.perspective-center.z));
     assert.ok(center.blur>right.blur&&right.blur>=.65);
     assert.ok(paper.cardWidth<=(width>=1024?290:236)&&Math.abs(paper.cardWidth/paper.cardHeight-1024/697)<1e-10);
-    assert.equal(devicePaperAt(paper,5,1).theta,0);
+    assert.equal(devicePaperAt(paper,DEVICE_PAPER_CENTER_INDEX+1,1).theta,0);
   }
 });
 
