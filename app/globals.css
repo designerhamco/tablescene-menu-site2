@@ -5975,11 +5975,12 @@ video {
 
 /* Saved other-text colors opt in per role. Native panel/overlay palettes stay
    authoritative until the customer chooses a color; chips keep their own theme.
+   Sale timing copy keeps its chip background accent, including countdowns.
    Scope-only exclusions use :where so explicit Design text groups win. */
 .cafe-a-typography[data-menu-text-colors~="itemName"] :is(.cafe-a-menu-title, .cafe-a-featured-title, .aube-table-item-heading h3) {
   color: var(--menu-role-item-name-color) !important;
 }
-.cafe-a-typography[data-menu-text-colors~="supporting"] :is(.cafe-a-menu-meta:not([data-cafe-a-reference-copy]), .cafe-a-menu-description, .cafe-a-description-text, .cafe-a-price-note, .cafe-a-time-sale-time-text, [data-cafe-a-widget-title], [data-cafe-a-widget-body], .aube-table-course-description, .aube-table-course-price-description, .aube-table-item-secondary, .aube-table-item-description, .aube-table-cover-description):where(:not([data-cafe-a-category-description]):not(.aube-table-course-description)) {
+.cafe-a-typography[data-menu-text-colors~="supporting"] :is(.cafe-a-menu-meta:not([data-cafe-a-reference-copy]), .cafe-a-menu-description, .cafe-a-description-text, .cafe-a-price-note, [data-cafe-a-widget-title], [data-cafe-a-widget-body], .aube-table-course-description, .aube-table-course-price-description, .aube-table-item-secondary, .aube-table-item-description, .aube-table-cover-description):where(:not([data-cafe-a-category-description]):not(.aube-table-course-description):not(.cafe-a-time-sale-time-text)) {
   color: var(--menu-role-supporting-color) !important;
 }
 .cafe-a-typography[data-menu-text-colors~="price"] :is(.cafe-a-menu-price, .cafe-a-featured-price, .cafe-a-price-label, .cafe-a-time-sale-price, .aube-table-item-price, .aube-table-course-price) {
