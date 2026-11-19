@@ -5862,6 +5862,7 @@ video {
 }
 
 .cafe-a-mobile-call-bar {
+  --cafe-a-call-glyph-inset: 0rem;
   display: grid;
   grid-template-columns: minmax(6.125rem, 1fr) minmax(0, 1fr) minmax(6.125rem, 1fr);
   align-items: center;
@@ -5903,7 +5904,31 @@ video {
 .cafe-a-call-language-slot { justify-self: start; }
 .cafe-a-typography .cafe-a-mobile-call-bar .cafe-a-call-language-slot,
 .cafe-a-typography .cafe-a-mobile-call-bar .cafe-a-call-language-slot * { color: var(--cafe-a-language-trigger-ink, var(--cafe-a-call-ink, #191c1b)) !important; }
-.cafe-a-mobile-call-bar [data-template-language-control] button { padding: 0; border: 0; background: transparent; }
+.cafe-a-mobile-call-bar [data-language-menu-trigger] {
+  inline-size: 2.75rem;
+  block-size: 2.75rem;
+  justify-content: flex-start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+/* These photo panels have their own tool inset. Align the glyphs to the
+   reading inset while keeping the buttons and popover at their existing anchors. */
+:is([data-upper-left-mobile-intro], .cafe-a-panel-mobile-intro) .cafe-a-mobile-call-bar {
+  --cafe-a-call-glyph-inset: calc(var(--cafe-a-page-inline) - var(--basic-panel-hero-inset));
+}
+
+/* Offset the blank SVG edges (including stroke) after aligning the 24px box. */
+.cafe-a-mobile-call-bar [data-language-menu-trigger] > svg {
+  translate: calc(var(--cafe-a-call-glyph-inset) - .13125rem);
+  pointer-events: none;
+}
+.cafe-a-mobile-call-bar [data-one-page-call-button="mobile-cart"] > svg {
+  justify-self: end;
+  translate: calc(.0625rem - var(--cafe-a-call-glyph-inset));
+  pointer-events: none;
+}
 
 /* Every one-page language trigger follows the rendered store title. Its white
    popup follows the rendered category title, independently of trigger tone. */
