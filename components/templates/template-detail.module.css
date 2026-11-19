@@ -31,7 +31,7 @@
 .price > del { color: var(--site-text-muted); }
 .actions { display: grid; gap: .5rem; margin-top: 1.25rem; }
 .actions a, .actions button { width: 100%; min-height: var(--ui-control-height-lg); }
-.billingNote { margin-top: .75rem; font-weight: var(--font-weight-regular); color: var(--site-text-muted); line-height: 1.65; }
+.billingNote { margin-top: var(--site-space-title-copy); color: var(--site-text-muted); }
 /* Detail marketing content uses the existing site card, button and type tokens. */
 .story { min-width: 0; display: grid; gap: var(--site-section-space); }
 .heroImage { overflow: hidden; background: var(--ui-surface-muted); border-radius: var(--ui-radius-preview); }

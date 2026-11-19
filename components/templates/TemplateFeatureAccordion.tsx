@@ -56,7 +56,7 @@ export default function TemplateFeatureAccordion({ feature, headingId, label, ti
     <header className={`site-stack-title ${styles.sectionCopy}`}>
       <p className={`type-caption ${styles.featureLabel}`}>{label}</p>
       <h2 id={headingId} className="type-section-title">{title}</h2>
-      <p className={`type-body-lg ${styles.lede}`}>{description}</p>
+      <p className={`type-body ${styles.lede}`}>{description}</p>
     </header>
     <figure className={styles.figure}>
       <div className={styles.imageBox} data-feature-image={slide.image}>

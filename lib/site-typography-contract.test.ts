@@ -226,7 +226,11 @@ test("일반 페이지는 공통 제목을 쓰며 필요한 설명만 같은 읽
   }
 
   const detailSource = readFileSync(join(appRoot, "templates/[templateKey]/page.tsx"), "utf8");
-  assert.match(detailSource, /<h1 className="type-page-title"[\s\S]{0,180}?type-page-description/);
+  assert.ok(detailSource.includes("type-body ${styles.templateDescription}"));
+  assert.ok(detailSource.includes("${styles.included} type-body-sm"));
+  assert.ok(detailSource.includes("type-body-sm ${styles.billingNote}"));
+  const featureSource = readFileSync(join(componentsRoot, "templates/TemplateFeatureAccordion.tsx"), "utf8");
+  assert.ok(featureSource.includes("type-body ${styles.lede}"));
 });
 
 test("마이페이지와 직원 관리는 같은 제목 경계를 사용하고 매장 운영은 공통 헤더를 유지한다", () => {
