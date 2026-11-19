@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { Clock3 } from "lucide-react";
+import { Clock3, ChevronLeft, ChevronRight } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
@@ -1504,30 +1504,13 @@ function DisplayPageIndicator({
   activePageId: string | null | undefined;
   onSelect: (pageId: string) => void;
 }) {
-  return (
-    <div className="flex items-center gap-1.5 rounded-full border border-[#D7E4E3] bg-white px-2.5 py-2">
-      {pages.map((displayPage, index) => {
-        const isActive = activePageId === displayPage.id;
-
-        return (
-          <button
-            key={displayPage.id}
-            type="button"
-            onClick={() => onSelect(displayPage.id)}
-            title={displayPage.page.title}
-            aria-current={isActive ? "page" : undefined}
-            className={`grid h-7 min-w-7 place-items-center rounded-full px-2 text-[11px] font-black transition ${
-              isActive
-                ? "bg-[#007C89] text-white"
-                : "text-slate-500 hover:bg-[#EFF7F6] hover:text-slate-900 focus-visible:bg-[#EFF7F6] focus-visible:text-slate-900"
-            }`}
-          >
-            {index + 1}
-          </button>
-        );
-      })}
-    </div>
-  );
+  const index = pages.findIndex(page => page.id === activePageId);
+  const buttonClass = "inline-flex h-11 min-w-11 items-center justify-center gap-1 rounded-full px-2 text-[13px] font-semibold text-slate-800 hover:bg-[#EFF7F6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#007C89] disabled:pointer-events-none disabled:opacity-40";
+  return <nav aria-label="디스플레이 페이지 이동" className="flex items-center gap-1 rounded-full border border-[#D7E4E3] bg-white p-1">
+    <button type="button" className={buttonClass} aria-label="이전 페이지" disabled={index <= 0} onClick={() => onSelect(pages[index - 1].id)}><ChevronLeft className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">이전</span></button>
+    <span role="status" aria-live="polite" className="whitespace-nowrap px-2 text-[13px] font-semibold tabular-nums" data-display-bottom-page-count="">{index + 1} / {pages.length}</span>
+    <button type="button" className={buttonClass} aria-label="다음 페이지" disabled={index >= pages.length - 1} onClick={() => onSelect(pages[index + 1].id)}><span className="hidden sm:inline">다음</span><ChevronRight className="h-4 w-4" aria-hidden="true" /></button>
+  </nav>;
 }
 
 function useDisplayBottomControls() {
@@ -1682,8 +1665,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   const activePageIndex = activeRenderPage ? displayPages.findIndex((page) => page.id === activeRenderPage.id) : -1;
   const activePageParam = activePageIndex >= 0 ? String(activePageIndex + 1) : null;
   const isFramedPreview = props.mode === "preview" && searchParams.get("embedded") === "1" && searchParams.get("detached") !== "1";
-  const isPlaybackPreview = props.mode === "preview" && searchParams.get("view") === "actual" && searchParams.get("detached") === "1";
-  const showPreviewSelector = props.mode === "preview" && !isFramedPreview && !isPlaybackPreview && displayPages.length > 1;
+  const showPreviewSelector = props.mode === "preview" && displayPages.length > 1;
   const activeSettings = activePage ? normalizeMenuPageDisplaySettings(activePage.display_settings) : null;
   const isPromotionPage = activeSettings?.pageType === "promotion";
   const isSplitMenuPage = activeSettings?.pageType !== "promotion" && activeSettings?.menuLayoutType === "split_image_menu";
@@ -1729,7 +1711,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   }, [isFramedPreview, displayPages, effectiveSelectedPageId, props.locale]);
 
   useEffect(() => {
-    if ((props.mode !== "public" && !isPlaybackPreview) || displayPages.length <= 1) return undefined;
+    if (props.mode !== "public" || displayPages.length <= 1) return undefined;
 
     const intervalId = window.setInterval(() => {
       setSelectedPageId((currentPageId) => {
@@ -1740,7 +1722,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
     }, DISPLAY_PUBLIC_PAGE_INTERVAL_MS);
 
     return () => window.clearInterval(intervalId);
-  }, [displayPages, props.mode, isPlaybackPreview]);
+  }, [displayPages, props.mode]);
 
   if (!activeRenderPage || !activePage) {
     return (
@@ -1769,7 +1751,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
         onKeyDown={displayControls.reveal}
         data-display-preview-controls-visible={displayControls.visible ? "true" : "false"}
         data-display-active-page={activePageParam}
-        data-display-autoplay={props.mode === "public" || isPlaybackPreview ? "true" : "false"}
+        data-display-autoplay={props.mode === "public" ? "true" : "false"}
         data-spacing-contract="canvas-fit"
       >
         <h1 className="sr-only">{displayTitle}</h1>
@@ -1778,7 +1760,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
           <div
             data-display-preview-pagination=""
             data-display-bottom-controls=""
-            className={`absolute bottom-5 left-1/2 z-30 -translate-x-1/2 transition-opacity duration-300 ${
+            className={`absolute bottom-5 left-4 z-30 transition-opacity duration-300 sm:left-1/2 sm:-translate-x-1/2 ${
               displayControls.visible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
             }`}
           >

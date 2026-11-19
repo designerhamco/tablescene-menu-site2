@@ -5,6 +5,7 @@ import { Maximize2, X } from "@/app/components/ui/site-icon";
 import BrowserZoomGuide from "./MenuPreviewGuide";
 import {getMenuPreviewAccessDevice,subscribeMenuPreviewAccess} from "@/lib/menu-preview-access-device";
 import styles from "./PreviewFullscreenControl.module.css";
+import DisplayBottomControlsGuide from "./DisplayBottomControlsGuide";
 
 function subscribeFullscreen(onChange: () => void) {
   document.addEventListener("fullscreenchange", onChange);
@@ -26,7 +27,7 @@ function getEnvironmentSnapshot() {
 }
 const getServerEnvironmentSnapshot = () => null;
 
-export default function PreviewFullscreenControl() {
+export default function PreviewFullscreenControl({ displayGuide = false }: { displayGuide?: boolean }) {
   const isFullscreen = useSyncExternalStore(subscribeFullscreen, getFullscreenSnapshot, getServerFullscreenSnapshot);
   const environment = useSyncExternalStore(subscribeEnvironment, getEnvironmentSnapshot, getServerEnvironmentSnapshot);
   const desktop = environment?.startsWith("desktop:") ?? false;
@@ -36,6 +37,9 @@ export default function PreviewFullscreenControl() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
+  const [displayHintDismissed, setDisplayHintDismissed] = useState(false);
+  const displayHint = displayGuide && !displayHintDismissed && environment !== null && (!guideOpen || isFullscreen)
+    ? <DisplayBottomControlsGuide onClose={() => setDisplayHintDismissed(true)} /> : null;
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -76,10 +80,11 @@ export default function PreviewFullscreenControl() {
     }
   };
 
-  if (isFullscreen) return null;
-  if (environment === null || environment.startsWith("phone:")) return null;
+  if (isFullscreen) return displayHint;
+  if (environment === null || environment.startsWith("phone:")) return displayHint;
 
   return <>
+    {displayHint}
     <div className={styles.dock} data-preview-fullscreen-control="">
       {fullscreenSupported ? <button type="button" onClick={enterFullscreen} className="site-button site-button-primary">
         <Maximize2 className="h-4 w-4" aria-hidden="true" />전체화면 보기
