@@ -40,6 +40,7 @@
 .controls > :global([data-template-language-control]) { text-align: right; }
 .controls :global([data-language-menu-trigger]) { min-width: 2.75rem; }
 .identity { grid-row: 3; z-index: 1; display: flex; flex-direction: column; align-items: var(--menu-representative-justify, center); gap: var(--corner-copy-gap); min-width: 0; text-align: var(--menu-representative-align, center); }
+.intro[data-photo="false"] > .identity { margin-block-start: calc(-1 * var(--cafe-a-language-brand-gap-trim, 0rem)); }
 .identity :global(.cafe-a-store-title) { width: 100%; margin: 0; line-height: 1.08; }
 .identity :global(.cafe-a-store-description) { margin: 0; color: var(--menu-text-representative, var(--menu-role-brand-color, #191c1b)); }
 .identity :global(.cafe-a-store-logo-wrap) { width: 100%; }
