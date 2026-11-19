@@ -6,7 +6,7 @@
 
 ## 공식 사이트 대표 서체 (2026-11-19)
 
-- 영문 알파벳 A–Z/a–z는 Tenor Sans, 한글·숫자·기호는 Pretendard다. 혼합 문장도 공통 `--font-family-site-ui: "ArtiMenu Site Latin", "Pretendard", "Noto Sans KR", system-ui, sans-serif` 스택으로 문자별 적용한다. `styles/fonts.css`의 사이트 전용 Tenor Sans 별칭은 `unicode-range: U+0041-005A, U+0061-007A`로 알파벳만 담당한다. 숫자·문장부호·통화·백분율 기호는 다음 Pretendard에서 표시한다. 글리프가 없는 문자는 기존 대체 서체 순서를 따른다.
+- 영문 알파벳 A–Z/a–z와 숫자 0–9는 Tenor Sans로, 한글과 기호는 Pretendard로 표시한다. 혼합 문장도 공통 `--font-family-site-ui: "ArtiMenu Site Latin", "Pretendard", "Noto Sans KR", system-ui, sans-serif` 스택으로 문자별 적용한다. `styles/fonts.css`의 사이트 전용 Tenor Sans 별칭은 `unicode-range: U+0030-0039, U+0041-005A, U+0061-007A`로 숫자와 알파벳을 담당한다. 문장부호·통화·백분율 기호는 Pretendard로 표시한다. 글리프가 없는 문자는 기존 대체 서체 순서를 따른다.
 - 공식 사이트 본문·제목·탐색·버튼·입력·공통 팝업은 이 스택을 상속한다. 기존 역할별 크기·굵기·행간·자간은 유지한다.
 - 고객 메뉴판 디자인·저장된 서체·스타터·실제 렌더러·미리보기/시연 안의 메뉴판 글자에는 적용하지 않는다. 원본 `Tenor Sans`의 문자 범위와 메뉴판의 `--menu-font-ko`/`--menu-font-en`, Tailwind 기초 `--font-sans`는 독립적으로 유지한다. 메뉴판 뷰어/렌더러가 참조하는 기존 `--font-family-site` 스택도 그대로 보존하며 사이트 UI는 새 `--font-family-site-ui`만 사용한다. 로고·서체 선택기의 서체 견본·코드 식별자용 고정폭 서체는 기존 그래픽/의미 역할을 보존한다.
 - 변경 시 `node scripts/qa-site-fonts.mjs`로 실제 렌더링 서체를 문자 종류별로 확인하고, 메뉴판 미리보기의 원본 Tenor Sans 숫자·기호도 함께 확인한다. 메뉴판은 PC·태블릿·모바일에서 변경 전후 서체·크기·굵기를 비교한다.

@@ -1,7 +1,7 @@
 :root {
   --font-family-site-ui: "ArtiMenu Site Latin", "Pretendard", "Noto Sans KR", system-ui, sans-serif;
   /* Compatibility stack still referenced by menu viewer/renderer UI.
-   * Site copy uses the separate letter-only alias; do not change this stack. */
+   * Site copy uses the separate letters-and-digits alias. */
   --font-family-site: "Tenor Sans", "Pretendard", "Noto Sans KR", system-ui, sans-serif;
 
   /* Approved foundation scale used by Tailwind text utilities in site UI. */

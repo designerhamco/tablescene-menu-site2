@@ -324,7 +324,7 @@ Ghost pagination/icon controls retain transparent background and border when dis
 
 사용자 요청에 따라 티오더와 카카오비즈니스 세미나의 제목/본문/콘텐츠 구분을 참고했다. 아래 기준이 과거의 12–14px 본문, 14px 헤더 및 모든 입력 40px 규칙을 대체한다. 메뉴판과 상품 화면 축소 시안은 제외한다.
 
-- `styles/typography.css`가 단일 폰트 기준이다. 공식 사이트는 영문 알파벳 A–Z/a–z만 Tenor Sans, 한글·숫자·기호는 Pretendard로 표시한다(2026-11-19). 공통 `--font-family-site-ui`와 알파벳 범위만 가진 `ArtiMenu Site Latin` 별칭을 사용한다. 원본 Tenor Sans·기존 `--font-family-site`·메뉴판 서체는 유지하며 메뉴판 디자인과 미리보기/시연 안의 메뉴판에는 적용하지 않는다. 400 본문 / 500 보조 강조 / 600 항목·탐색 / 700 주요 제목을 구분한다. 일반 페이지 제목은28/28/32px, 일반 구역 제목은24/24/28px, 메인 장면과 서비스 구역 제목은28/32/36px이다.
+- `styles/typography.css`가 단일 폰트 기준이다. 공식 사이트는 영문 알파벳 A–Z/a–z와 숫자 0–9를 Tenor Sans로, 한글과 기호를 Pretendard로 표시한다(2026-11-19). 공통 `--font-family-site-ui`와 해당 글자 범위를 지정한 `ArtiMenu Site Latin` 별칭을 사용한다. 원본 Tenor Sans·기존 `--font-family-site`·메뉴판 서체는 유지하며 메뉴판 디자인과 미리보기/시연 안의 메뉴판에는 적용하지 않는다. 400 본문 / 500 보조 강조 / 600 항목·탐색 / 700 주요 제목을 구분한다. 일반 페이지 제목은28/28/32px, 일반 구역 제목은24/24/28px, 메인 장면과 서비스 구역 제목은28/32/36px이다.
 - 일반 본문은 모든 기기에서16px, 강조 본문은18/20px, 보조 설명은14px, 날짜·메타는13px이다. `text-copy`/`text-support`/`text-meta`는 크기·줄높이만 정하므로 필요한 굵기·색상을 합성할 수 있다. `cn`의 Tailwind 병합도 이 역할을 인식한다.
 - PC 글자를 키우기 위해 html/rem 또는 기초 `--font-size-*`, 기존 `text-xs`/`text-sm` 값을 바꾸지 않는다. 실제 메뉴판의 독립 폰트·핏·축소 미리보기에는 영향을 주지 않는다.
 - 폼 컨트롤은 필터 `sm` 40px, 계정 `md` 44px, 신청 `lg` 48px, 큰 질문 검색 56px이다. Input/Textarea는 `fieldSize`, SelectTrigger는 `size`를 사용하며 네이티브 입력은 `data-field-size` 또는 `site-field-*`로 동일 규격을 사용한다. 네이티브 input의 `size`는 문자 수 속성으로 보존한다.
