@@ -18,7 +18,7 @@ export function buildDefaultDesignPreview(source: MenuPageData, design: DefaultD
   if (source.menuSite.template_key !== design.renderer) throw new Error("Default design renderer mismatch");
   const basic = design.layout.startsWith("basic-");
   const data = basic ? buildStarterPreviewData(design.renderer, null, design.id) : structuredClone(source);
-  const imageFreeCategories = new Set(basic ? data.categories.filter(category => category.name === "디저트").map(category => category.id) : []);
+  const imageFreeCategories = new Set(basic ? data.categories.filter(category => category.name === "DESSERTS").map(category => category.id) : []);
   const { coverImage, title, description } = getStandardDesignCopy(design);
   const roles = Object.fromEntries(TYPOGRAPHY_ROLE_KEYS.map(role => [role, {
     font_ko_key: "pretendard", font_en_key: "pretendard", size: "inherit",
