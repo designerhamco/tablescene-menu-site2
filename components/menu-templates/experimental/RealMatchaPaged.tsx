@@ -1,4 +1,5 @@
 "use client";
+import { menuPatternBandRenderProps } from "@/lib/menu-pattern-bands";
 import headerInformationStyles from "../shared/MenuHeaderInformation.module.css";
 import MenuClampedCopy from "../shared/MenuClampedCopy";
 import { measureMenuHeaderContentHeight, MENU_HEADER_CONTENT_SELECTOR } from "@/lib/menu-header-measurement";
@@ -116,6 +117,7 @@ function widgetView(w: MenuWidget): CafeAWidgetPreview {
       };
 }
 export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
+  const patternBands = menuPatternBandRenderProps(data.menuSite.template_key, data.menuSite.settings, data.menuSite.page_settings, data.pagePresentation);
   const t = useMenuText();
   const device = useMenuPresentationDevice(data.previewDevice);
   const mobile = device === "mobile";
@@ -637,6 +639,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
         style={
           {
             ...typography,
+            ...patternBands.style,
             backgroundColor: getResolvedBackgroundColor("cafe_design_a", data.menuSite.page_settings),
             "--scroll-background": getResolvedBackgroundColor("cafe_design_a", data.menuSite.page_settings),
             "--paged-capacity": layout.capacity + "px",
@@ -646,6 +649,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
           } as CSSProperties
         }
         data-menu-text-colors={getTypographyCustomColorRoles(typographySettings)}
+        data-menu-pattern-bands={patternBands.kind}
         data-scroll-brand-board
         data-equal-side-rail={equalSideRail ? "true" : undefined}
         data-basic-structure={structure} data-representative-panel={getMenuDesignBackgrounds("cafe_design_a", data.menuSite.page_settings).coloredPanel ? "true" : undefined}

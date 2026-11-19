@@ -1,4 +1,7 @@
 import { notFound } from "next/navigation";
+import MenuPatternBandsForm from "@/components/mypage/menu-editor/MenuPatternBandsForm";
+import { getMenuPatternBands, supportsMenuPatternBands } from "@/lib/menu-pattern-bands";
+import { buildInteractivePreviewConfig } from "@/lib/preview-order-config";
 import TypographySettingsForm from "@/components/mypage/menu-editor/TypographySettingsForm";
 import MenuSurfaceSettingsForm from "@/components/mypage/menu-editor/MenuSurfaceSettingsForm";
 import { getKoreanFontOption, getEnglishFontOption } from "@/lib/font-options";
@@ -19,8 +22,19 @@ export default async function BasicDesignFixture({ searchParams }: { searchParam
   if (process.env.NODE_ENV === "production") notFound();
   const query = await searchParams;
   const first = (key: string) => { const value = query[key]; return Array.isArray(value) ? value[0] : value; };
+  const patternSettings = first("pattern") === "on" ? { design: { patternBands: {
+    enabled: true,
+    thickness: 32,
+    image: {
+      imagePath: "menu-sites/pattern-qa/draft/pattern-bands/f31efd05-4936-4887-8ae1-e6b34a109b34.webp",
+      imageUrl: "https://pattern-qa.invalid/storage/v1/object/public/menu-images/menu-sites/pattern-qa/draft/pattern-bands/f31efd05-4936-4887-8ae1-e6b34a109b34.webp",
+    },
+  } } } : {};
+  const editorSettings = { menu_design_id: first("design") };
   const editorKey = first("template") === "dining_aube_table_a" || first("template") === "dining_aube_table_b" ? first("template")! : "cafe_design_a";
-  if (first("editor") === "on") return <main className="mx-auto max-w-5xl p-6"><h1>공통 디자인 설정 검증</h1><form id="fixture-design" />
+  if (first("editor") === "on") return <main className="mx-auto max-w-5xl p-6"><h1>공통 디자인 설정 검증</h1><form id="fixture-design">
+      {supportsMenuPatternBands(editorKey, editorSettings) ? <MenuPatternBandsForm menuId="pattern-qa" initial={getMenuPatternBands(editorKey, patternSettings)} hasDefault={false} disabled={false} /> : null}
+    </form>
     <MenuSurfaceSettingsForm pageSettings={{}} settings={{}} templateKey={editorKey} formId="fixture-design" />
     <TypographySettingsForm formId="fixture-design" initialFont={getKoreanFontOption("pretendard")!} defaultFont={getKoreanFontOption("pretendard")!} initialEnglishFont={getEnglishFontOption("alata")!} defaultEnglishFont={getEnglishFontOption("outfit")!} hasCustomKoreanFont hasCustomEnglishFont initialFontSizeScale="m" pageSettings={{design:{textColors:readPreviewDesign(first("designPreview")).textColors}}} initialRoleSettings={normalizeTypographyRoleSettings({ brand: { font_en_key: "mogra", color: "#123456" }, category: { font_en_key: "carme", color: "#654321" } })} templateType="menu" templateKey={editorKey} />
   </main>;
@@ -31,6 +45,7 @@ export default async function BasicDesignFixture({ searchParams }: { searchParam
   let data = buildDefaultDesignPreview(fixture.data, design, getDefaultDesignOptions({ design: design.id, widgetsPreview: "off" }));
   const title = (first("title") ?? "CAFE ARTIMENU").slice(0, 100);
   data.menuSite = { ...data.menuSite, name: title, restaurant_name: title, business_name: title, intro_title: title, menu_cover_title: title };
+  if (patternSettings.design) data.menuSite.page_settings = { ...(data.menuSite.page_settings as Record<string, never>), design: patternSettings.design };
   data = applyPreviewDesign(data, { fontFamily: { ko: first("ko") ?? "pretendard", en: first("font") ?? "alata" }, ...(first("panel") === "off" ? {} : { auxiliaryBackground: "#F8D689" }) }, design.itemLayout === "album");
-  return <DefaultDesignScope layout={design.layout} itemLayout={design.itemLayout}><div className={styles.surface} data-default-design={design.id} data-menu-item-layout={design.itemLayout}><MenuPageRenderer mode="preview" previewDevice={device} {...data} /></div></DefaultDesignScope>;
+  return <DefaultDesignScope layout={design.layout} itemLayout={design.itemLayout}><div className={styles.surface} data-default-design={design.id} data-menu-item-layout={design.itemLayout}><MenuPageRenderer mode="preview" previewDevice={device} orderCallConfig={buildInteractivePreviewConfig(data, first("call") === "on", first("order") === "on")} {...data} /></div></DefaultDesignScope>;
 }

@@ -39,12 +39,12 @@ export const MENU_PREVIEW_PAYMENT_MODES = {
 
 export type MenuPreviewPaymentMode = keyof typeof MENU_PREVIEW_PAYMENT_MODES;
 
-const SAVED_MENU_PREVIEW_QUERY_KEYS = ["lang", "page", "debugCafeA"] as const;
+const SAVED_MENU_PREVIEW_QUERY_KEYS = ["lang", "page", "debugCafeA", "patternBandsPreview"] as const;
 
 // Accept legacy query shapes at callers, but never propagate catalog edits.
 export const MENU_PREVIEW_QUERY_KEYS = [
   "lang", "page", "debugCafeA", "callPreview", "orderPreview", "layoutMode",
-  "designPreview", "previewOptions", "albumImageRatio", "logoPreview", "popupPreview",
+  "designPreview", "patternBandsPreview", "previewOptions", "albumImageRatio", "logoPreview", "popupPreview",
   "coverImagesPreview", "widgetsPreview", "coverPreview", "featuredPreview", "imagesPreview",
   "pageDescriptionsPreview", "categoryDescriptionsPreview", "secondaryNamesPreview", "descriptionsPreview", "badgesPreview",
   "priceOptionsPreview", "priceNotesPreview", "timeSalesPreview", "soldOutPreview",
@@ -105,7 +105,7 @@ export function buildMenuPreviewUrl(
 
   for (const key of SAVED_MENU_PREVIEW_QUERY_KEYS) {
     const value = query[key];
-    if (value) searchParams.set(key, value);
+    if (value && (key !== "patternBandsPreview" || value === "off")) searchParams.set(key, value);
   }
   if (options.device) searchParams.set("device", options.device);
   if (options.device === "tablet" && options.orientation) {

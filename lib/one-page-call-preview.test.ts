@@ -32,6 +32,6 @@ test("모바일 호출 바와 루프 상단 장식은 공통 호출 리듬을 �
   assert.match(css, /--cafe-a-mobile-call-row-size: 3\.5rem;/);
   assert.match(css, /\.cafe-a-mobile-call-bar \{[^}]*height: var\(--cafe-a-mobile-call-row-size\);[^}]*min-height: var\(--cafe-a-mobile-call-row-size\);/);
   assert.match(css, /data-one-page-call-enabled="true"[^}]*\.cafe-a-mobile-language-row \+ \.cafe-a-mobile-header-copy \{[^}]*margin-top: 1rem;/);
-  assert.match(css, /data-template-key="fast_food_loop_bagel_a"\]::before \{[^}]*inset-block-start: 0;/);
+  assert.match(css, /data-menu-pattern-bands\]::before \{[^}]*inset-block-start: 0;/);
   assert.doesNotMatch(css, /data-one-page-call-enabled="true"\]\[data-template-key="fast_food_loop_bagel_a"\] \{[^}]*padding-top:/);
 });

@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
+import { menuPatternBandRenderProps } from "@/lib/menu-pattern-bands";
 import {
   createContext,
   useCallback,
@@ -4644,6 +4645,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
   const isMochaForest = isMochaForestSkin(data.templateSkin);
   const isSundayLine = isSundayLineSkin(data.templateSkin);
   const defaultDesignLayout = useDefaultDesignLayout();
+  const patternBands = menuPatternBandRenderProps(data.menuSite.template_key, data.menuSite.settings, data.menuSite.page_settings, data.pagePresentation);
   const mobileTopNotices = defaultDesignLayout ? defaultDesignLayout === "basic-top-row" : isSundayLine;
   const isRoundFocus = isRoundFocusSkin(data.templateSkin);
   const cafeASkinAttribute = getCafeASkinAttribute(data.templateSkin);
@@ -7567,6 +7569,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         data-template-key={data.menuSite.template_key ?? undefined}
         data-one-page-layout-shell={onePageLayoutShell}
         data-preview-device={data.previewDevice}
+        data-menu-pattern-bands={patternBands.kind}
         data-one-page-call-enabled={onePageCall.enabled ? "true" : undefined}
         data-cafe-a-two-field-boost={isAdaptiveFit && !twoFieldBoostEnabled ? "off" : undefined}
         data-cafe-a-proportion-policy={usesOnePageProportionPolicy(data.menuSite.template_key, data.pagePresentation) ? "true" : undefined}
@@ -7580,6 +7583,7 @@ function CafeDesignAClassic(data: CafeDesignAProps) {
         style={{
           ...typographyStyle,
           ...skinStyle,
+          ...patternBands.style,
           ...(isPanelFlow ? { "--panel-plain-ink": resolvePanelTextInk(typographySettings.typography_roles.brand.color, typographySettings.typography_roles.category.color) } as CSSProperties : {}),
           ...(itemNameCeilingRem ? { "--cafe-a-linked-item-name-ceiling": `${itemNameCeilingRem}rem` } as CSSProperties : {}),
           backgroundColor: isMochaForest ? MOCHA_FOREST_PANEL_COLORS.ivory : backgroundColor,

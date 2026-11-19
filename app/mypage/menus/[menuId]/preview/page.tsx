@@ -1,3 +1,5 @@
+import { applyPreviewDesign } from "@/lib/menu-preview-design";
+import { resolveMenuPatternBands } from "@/lib/menu-pattern-bands";
 import { ArrowLeft } from "@/app/components/ui/site-arrow";
 import { buildSavedMenuPreview } from "@/lib/saved-menu-preview";
 import { buildInteractivePreviewConfig } from "@/lib/preview-order-config";
@@ -174,6 +176,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
         menuId={menuId}
         menuTemplateKey={data.menuSite.template_key ?? undefined}
         menuDesignId={design?.id}
+        savedPatternBandsAvailable={Boolean(resolveMenuPatternBands(data.menuSite.template_key, data.menuSite.settings, data.menuSite.page_settings, data.pagePresentation))}
         query={previewQuery}
       /><MobilePreviewEntryNotice /></>
     );
@@ -194,7 +197,7 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
         debugCafeA={debugCafeA}
         initialPreviewPageId={getDisplayPreviewInitialPageId(data, requestedPageIndex)}
         orderCallConfig={previewOrderCallConfig}
-        {...data}
+        {...(previewQuery.patternBandsPreview === "off" ? applyPreviewDesign(data, { hidePatternBands: true }, design?.itemLayout === "album") : data)}
       />
       {usesDevicePreviewFrame && !isEmbedded ? (
         <Link

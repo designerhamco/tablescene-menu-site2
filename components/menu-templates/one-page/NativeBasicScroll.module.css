@@ -138,9 +138,9 @@
 .board[data-representative-panel="true"][data-native-shell="brand_top_band"]:has(.brand:empty) > .menuPanel { margin-inline: var(--native-gap); }
 
 /* Paint below existing checker decorations while keeping content clear. */
-.root[data-template-key="fast_food_loop_bagel_a"]:has(.board[data-representative-panel="true"]) { padding-block: 0 !important; }
-.root[data-template-key="fast_food_loop_bagel_a"] .board[data-representative-panel="true"][data-native-shell="brand_left_rail"] > .brand,
-.root[data-template-key="fast_food_loop_bagel_a"] .board[data-representative-panel="true"][data-native-shell="brand_left_rail"] > .menuPanel { padding-block: calc(var(--native-gap) + var(--loop-bagel-checker-square) * 2); }
+.root[data-template-key="fast_food_loop_bagel_a"][data-menu-pattern-bands]:has(.board[data-representative-panel="true"]) { padding-block: 0 !important; }
+.root[data-template-key="fast_food_loop_bagel_a"][data-menu-pattern-bands] .board[data-representative-panel="true"][data-native-shell="brand_left_rail"] > .brand,
+.root[data-template-key="fast_food_loop_bagel_a"][data-menu-pattern-bands] .board[data-representative-panel="true"][data-native-shell="brand_left_rail"] > .menuPanel { padding-block: calc(var(--native-gap) + var(--menu-pattern-band-thickness)); }
 
 /* ONUE inherits the native 4:3 intro and its absolute photo/overlay from
    globals.css. Visible and measured units must preserve that device ratio;

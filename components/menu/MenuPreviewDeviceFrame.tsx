@@ -95,7 +95,7 @@ function CallPreviewToggle({
 }
 
 export default function MenuPreviewDeviceFrame(
-  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; previewDisplayDefaults?: DefaultDesignOptions; previewDesignDefaults?: PreviewDesignDefaults; displayPages?: DisplayPreviewPage[] },
+  props: MenuPreviewDeviceFrameProps & { supportsCallPreview?: boolean; supportsLayoutPreview?: boolean; previewDisplayOptions?: DefaultDesignOptions; previewDisplayDefaults?: DefaultDesignOptions; previewDesignDefaults?: PreviewDesignDefaults; savedPatternBandsAvailable?: boolean; displayPages?: DisplayPreviewPage[] },
 ) {
   const { device, query } = props;
   const isTemplatePreview = typeof props.templateKey === "string";
@@ -112,11 +112,16 @@ export default function MenuPreviewDeviceFrame(
   const [displayOptionsOpenOverride, setDisplayOptionsOpenOverride] = useState<boolean>();
   const areDisplayOptionsOpen = displayOptionsOpenOverride ?? wideOptions;
   const [optionsTab, setOptionsTab] = useState((query as TemplatePreviewQuery).previewOptions === "design" ? "design" : "features");
-  const initialDesign = readPreviewDesign(isTemplatePreview ? (query as TemplatePreviewQuery).designPreview : undefined);
+  const initialDesign = readPreviewDesign(isTemplatePreview ? (query as TemplatePreviewQuery).designPreview : { hidePatternBands: query.patternBandsPreview === "off" });
   const legacyRatio = readPreviewDesign({albumImageRatio:(query as TemplatePreviewQuery).albumImageRatio}).albumImageRatio;
   if (isTemplatePreview && legacyRatio && !initialDesign.albumImageRatio) initialDesign.albumImageRatio = legacyRatio;
   const [designOptions, setDesignOptions] = useOptimistic(initialDesign);
-  const templateQuery: TemplatePreviewQuery = { ...query, previewOptions: optionsTab, designPreview: serializePreviewDesign(designOptions) };
+  const templateQuery: TemplatePreviewQuery = {
+    ...query,
+    previewOptions: optionsTab,
+    designPreview: serializePreviewDesign(designOptions),
+    patternBandsPreview: !isTemplatePreview && designOptions.hidePatternBands ? "off" : undefined,
+  };
   const toolbarRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -161,7 +166,8 @@ export default function MenuPreviewDeviceFrame(
   const supportsLayoutPreview = isTemplatePreview && (props.supportsLayoutPreview ?? supportsPcTabletLayoutMode(templateKey));
   const [displayOptions, setDisplayOptions] = useOptimistic(props.previewDisplayOptions ?? getDefaultDesignOptions(query as TemplatePreviewQuery));
   const displayGroups = isTemplatePreview && templateKey ? getTemplatePreviewOptionGroups(templateKey, defaultDesign) : [];
-  const hasDisplayOptions = displayGroups.length > 0;
+  const patternBandsAvailable = props.previewDesignDefaults?.patternBandsAvailable || props.savedPatternBandsAvailable;
+  const hasDisplayOptions = displayGroups.length > 0 || Boolean(patternBandsAvailable);
   const changeDisplayOption = (key: DefaultDesignOptionKey, enabled: boolean) => {
     if (!hasDisplayOptions) return;
     startTransition(() => {
@@ -212,7 +218,7 @@ export default function MenuPreviewDeviceFrame(
     }
 
     if (typeof props.menuId === "string") {
-      return buildMenuPreviewUrl(props.menuId, query as MenuPreviewQuery, options);
+      return buildMenuPreviewUrl(props.menuId, nextQuery as MenuPreviewQuery, options);
     }
 
     throw new Error("미리보기 대상을 확인할 수 없습니다.");
@@ -250,7 +256,7 @@ export default function MenuPreviewDeviceFrame(
     if (serializePreviewDesign(next) === serializePreviewDesign(designOptions)) return;
     startTransition(() => {
       setDesignOptions(next);
-      router.replace(buildPreviewUrl({ device, orientation }, { ...templateQuery, designPreview: serializePreviewDesign(next), appearanceQa: undefined, albumImageRatio: undefined }), {scroll:false});
+      router.replace(buildPreviewUrl({ device, orientation }, { ...templateQuery, designPreview: serializePreviewDesign(next), patternBandsPreview: !isTemplatePreview && next.hidePatternBands ? "off" : undefined, appearanceQa: undefined, albumImageRatio: undefined }), {scroll:false});
     });
   };
   const changeOptionsTab = (tab: string) => {
@@ -377,7 +383,7 @@ export default function MenuPreviewDeviceFrame(
           </button>
         </header>
         {hasDisplayOptions && templateKey ? <MenuPreviewOptionsPanel open={areDisplayOptionsOpen} onToggle={() => setDisplayOptionsOpenOverride(!areDisplayOptionsOpen)} tab={optionsTab} onTabChange={changeOptionsTab}
-          groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} onFeatureReset={resetDisplayOptions} canResetFeatures={canResetFeatures} pending={isPending} templateKey={templateKey} defaults={props.previewDesignDefaults} renderedDesign={renderedDesign} design={designOptions} onDesignChange={changeDesign} alignmentDisabled={device !== "mobile" && hasFixedHeaderAlignment(templateKey, { menu_design_id: defaultDesign?.id })} album={defaultDesign?.itemLayout === "album"}
+          patternBandsAvailable={patternBandsAvailable} groups={displayGroups} values={displayOptions} onFeatureChange={changeDisplayOption} onFeatureReset={resetDisplayOptions} canResetFeatures={canResetFeatures} pending={isPending} templateKey={templateKey} defaults={props.previewDesignDefaults} renderedDesign={renderedDesign} design={designOptions} onDesignChange={changeDesign} alignmentDisabled={device !== "mobile" && hasFixedHeaderAlignment(templateKey, { menu_design_id: defaultDesign?.id })} album={defaultDesign?.itemLayout === "album"}
           featureContent={isDisplayPreview && props.displayPages?.[displayNavigation.page - 1]?.split ? <label className="site-field-stack type-label"><span>이미지 위치</span><select className="site-field" aria-label="디스플레이 이미지 위치" value={templateQuery.displayImagePosition === "right" ? "right" : "left"} disabled={isPending} onChange={event => changeDisplayQuery({ displayImagePosition: event.target.value })}><option value="left">왼쪽</option><option value="right">오른쪽</option></select></label> : undefined}
           designContent={isDisplayPreview && props.previewDesignDefaults ? <DisplayPreviewOptions value={designOptions} defaults={props.previewDesignDefaults} scale={fontSizeScale} pending={isPending} onChange={changeDesign} onScaleChange={scale => changeDisplayQuery({ fontSizeScale: scale })} onReset={() => changeDisplayQuery({ designPreview: undefined, fontSizeScale: undefined })} /> : undefined} /> : null}
       </div>
