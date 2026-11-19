@@ -1,9 +1,11 @@
+export const HOME_START_EVENT = "site:home-start";
+
 let pendingCleanup: (() => void) | null = null;
 
 /** One explicit navigation intent, without background demo-readiness observers. */
 function scrollHome(id: string | null, behavior: ScrollBehavior) {
   pendingCleanup?.();
-  let frame = 0, topFrame = 0, started = false, finished = false;
+  let frame = 0, topFrame = 0, finished = false;
   const inputs = ["wheel", "touchstart", "pointerdown", "keydown", "popstate"] as const;
   const cleanup = () => {
     finished = true;
@@ -20,17 +22,24 @@ function scrollHome(id: string | null, behavior: ScrollBehavior) {
   // Normal visits and service navigation never install this scroll guard.
   const holdStart = () => {
     if (window.location.pathname !== "/") { cleanup(); return; }
-    if (finished || !started || window.scrollY <= 1 || topFrame) return;
+    if (finished || window.scrollY <= 1 || topFrame) return;
     topFrame = requestAnimationFrame(() => { topFrame = 0; if (!finished) move("instant"); });
   };
   for (const input of inputs) window.addEventListener(input, cleanup, { passive: true });
   if (id === null) window.addEventListener("scroll", holdStart, { passive: true });
   pendingCleanup = cleanup;
-  frame = requestAnimationFrame(() => {
-    started = true;
-    if (id !== null) cleanup();
+  if (id === null) {
     move(behavior);
-  });
+    window.dispatchEvent(new Event(HOME_START_EVENT));
+  } else if (behavior === "instant") {
+    cleanup();
+    move(behavior);
+  } else {
+    frame = requestAnimationFrame(() => {
+      cleanup();
+      move(behavior);
+    });
+  }
   return cleanup;
 }
 

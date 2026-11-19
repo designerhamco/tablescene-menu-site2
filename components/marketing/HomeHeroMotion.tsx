@@ -10,6 +10,7 @@ import styles from "./HomeHeroMotion.module.css";
 import HeroLiveMenu from "./HeroLiveMenu";
 import HeroMobileMenu from "./HeroMobileMenu";
 import HeroSaleHighlight from "./HeroSaleHighlight";
+import { HOME_START_EVENT } from "@/lib/service-home-scroll";
 import { HERO_MOBILE_MEDIA, HERO_MOBILE_ASSETS } from "@/lib/hero-mobile-stills";
 import { HERO_COMPOSITIONS, HERO_RESPONSIVE_COMPOSITIONS, heroLandscapeFrame, heroLandscapeScale, heroLandscapePosition } from "@/lib/hero-background-layout";
 
@@ -28,6 +29,7 @@ export default function HomeHeroMotion() {
   const root=useRef<HTMLElement>(null), stage=useRef<HTMLDivElement>(null), firstPhoto=useRef<HTMLImageElement>(null);
   const reduced=useReducedMotion(), inView=useInView(stage,{amount:.15});
   const [detailFocus,setDetailFocus]=useState<readonly [number,number]>([1220,370]), [progress,setProgress]=useState(0), [visible,setVisible]=useState(true), [loaded,setLoaded]=useState(false), [size,setSize]=useState({width:1536,height:1024,gutter:40,copyHeight:0,copyBottom:0});
+  const [restart,setRestart]=useState({revision:0,atStart:false});
   const [saleTarget,setSaleTarget]=useState<HeroScreenRect|null>(null);
   // Unknown/server renders are image-only. Never briefly mount a preview app on a phone.
   const [presentation,setPresentation]=useState<"stills"|"live"|null>(null);
@@ -59,15 +61,22 @@ export default function HomeHeroMotion() {
       const rect=root.current.getBoundingClientRect(),height=stage.current.clientHeight;
       const next=Math.max(0,Math.min(1,-rect.top/Math.max(1,root.current.offsetHeight-height)));
       setProgress(next);
+      if(next>0) setRestart(current=>current.atStart?{...current,atStart:false}:current);
       const copy=root.current.querySelector<HTMLElement>("[data-hero-copy]");
       setSize({width:stage.current.clientWidth,height,gutter:copy?parseFloat(getComputedStyle(copy).paddingLeft)||0:0,copyHeight:copy?.offsetHeight??0,copyBottom:copy?parseFloat(getComputedStyle(copy).bottom)||0:0});
     };
     let scheduled=0;const schedule=()=>{if(!scheduled)scheduled=requestAnimationFrame(()=>{scheduled=0;update();});};
     const scroll=schedule;
+    // An explicit logo click resets the stage before its previous scene can fade out.
+    const restartScene=()=>{
+      setProgress(0);
+      setRestart(current=>({revision:current.revision+1,atStart:true}));
+    };
     const observer=new ResizeObserver(schedule);if(stage.current)observer.observe(stage.current);
     const copy=root.current?.querySelector("[data-hero-copy]");if(copy)observer.observe(copy);
+    window.addEventListener(HOME_START_EVENT,restartScene);
     window.addEventListener("scroll",scroll,{passive:true});window.addEventListener("resize",scroll);update();
-    return()=>{cancelAnimationFrame(scheduled);observer.disconnect();window.removeEventListener("scroll",scroll);window.removeEventListener("resize",scroll);};
+    return()=>{cancelAnimationFrame(scheduled);observer.disconnect();window.removeEventListener("scroll",scroll);window.removeEventListener("resize",scroll);window.removeEventListener(HOME_START_EVENT,restartScene);};
   },[]);
   useEffect(()=>{const update=()=>setVisible(!document.hidden);update();document.addEventListener("visibilitychange",update);return()=>document.removeEventListener("visibilitychange",update);},[]);
   useEffect(()=>{
@@ -100,7 +109,7 @@ export default function HomeHeroMotion() {
   };
   return <section ref={root} className={styles.story} style={{height:`${HERO_STORY_SVH}svh`}} data-hero-motion data-chapter={chapter} data-live-scene={liveScene??"none"} data-presentation={presentation??"pending"} data-scroll-driven="true" data-template={selected} data-progress={localProgress.toFixed(3)} data-scroll-progress={progress.toFixed(3)} data-image-ready={loaded} data-in-view={inView} data-reduced={Boolean(reduced)} aria-label="매장에서 만나는 아티메뉴">
     <div ref={stage} className={styles.stage} data-rendering={inView&&visible}>
-      <div className={styles.scene} aria-hidden="true" inert>
+      <div key={restart.revision} className={styles.scene} aria-hidden="true" inert>
         {(["venue","counter","dining","phone"] as const).filter(image=>presentation==="live"||image===scene.image).map(image=>{
           const active=scene.image===image,index=HERO_CAFE_CHAPTERS.findIndex(item=>item.image===image),camera=cameraFor(index);
           return <motion.div key={image} className={styles.plane} initial={false} animate={{opacity:active?1:0}} transition={{duration:reduced?0:.45}} style={{zIndex:active?1:0}} data-hero-plane={image} data-active={active}>
@@ -131,7 +140,7 @@ export default function HomeHeroMotion() {
       {/* Keep native touch scrolling on the home document, above transformed preview frames. */}
       <div className={styles.gestureSurface} data-hero-gesture-surface aria-hidden="true"/>
       <div className={`site-marketing-container ${styles.sceneCopy}`} data-hero-copy>
-        <motion.div key={chapter} className={styles.caption} aria-live="off" initial={reduced?false:{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{duration:reduced?0:.5,ease:[.22,1,.36,1]}}>
+        <motion.div key={`${restart.revision}-${chapter}`} className={styles.caption} aria-live="off" initial={reduced||restart.atStart?false:{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{duration:reduced?0:.5,ease:[.22,1,.36,1]}}>
           <p className="type-caption">{scene.label}</p>
           <Heading className="type-section-title">{scene.title}</Heading>
           <p className="type-body-lg">{scene.body}</p>
