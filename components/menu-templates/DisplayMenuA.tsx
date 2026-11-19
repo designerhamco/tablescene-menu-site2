@@ -26,6 +26,7 @@ import {
 import { getBadgeStyleCss, getBadgeStyleForItem } from "@/lib/template-badge-styles";
 import { getCustomTypographySettings, getEnglishFontLoadAssets, getFontSizeMultiplier, getKoreanFontLoadAssets, getTypographyCssVariables, mergeTypographySettings } from "@/lib/template-typography-presets";
 import { sortMenuPages } from "@/types/menu";
+import { DISPLAY_PREVIEW_REQUEST, DISPLAY_PREVIEW_SELECT, DISPLAY_PREVIEW_STATE } from "@/lib/display-preview";
 
 import type { PublicMenuTemplateProps } from "./types";
 
@@ -1680,15 +1681,17 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   const activePage = activeRenderPage?.page ?? null;
   const activePageIndex = activeRenderPage ? displayPages.findIndex((page) => page.id === activeRenderPage.id) : -1;
   const activePageParam = activePageIndex >= 0 ? String(activePageIndex + 1) : null;
-  const showPreviewSelector = props.mode === "preview" && displayPages.length > 1;
+  const isFramedPreview = props.mode === "preview" && searchParams.get("embedded") === "1" && searchParams.get("detached") !== "1";
+  const isPlaybackPreview = props.mode === "preview" && searchParams.get("view") === "actual" && searchParams.get("detached") === "1";
+  const showPreviewSelector = props.mode === "preview" && !isFramedPreview && !isPlaybackPreview && displayPages.length > 1;
   const activeSettings = activePage ? normalizeMenuPageDisplaySettings(activePage.display_settings) : null;
   const isPromotionPage = activeSettings?.pageType === "promotion";
   const isSplitMenuPage = activeSettings?.pageType !== "promotion" && activeSettings?.menuLayoutType === "split_image_menu";
   const displayTitle = props.menuSite.restaurant_name || props.menuSite.name || "ArtiMenu Display";
   const displayControls = useDisplayBottomControls();
 
-  function syncDisplayControlsToPointer(clientY: number) {
-    if (clientY >= window.innerHeight * 0.82) {
+  function syncDisplayControlsToPointer(clientY: number, target: EventTarget) {
+    if ((target instanceof Element && target.closest("[data-display-bottom-controls]")) || clientY >= window.innerHeight * 0.82) {
       displayControls.reveal();
       return;
     }
@@ -1709,7 +1712,24 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
   }
 
   useEffect(() => {
-    if (props.mode !== "public" || displayPages.length <= 1) return undefined;
+    if (!isFramedPreview || window.parent === window) return;
+    const report = () => window.parent.postMessage({ type: DISPLAY_PREVIEW_STATE, pageId: effectiveSelectedPageId, locale: props.locale }, window.location.origin);
+    const receive = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin || event.source !== window.parent) return;
+      if (event.data?.type === DISPLAY_PREVIEW_REQUEST) report();
+      if (event.data?.type !== DISPLAY_PREVIEW_SELECT || !displayPages.some(page => page.id === event.data.pageId)) return;
+      setSelectedPageId(event.data.pageId);
+      const url = new URL(window.location.href);
+      url.searchParams.set("page", String(displayPages.findIndex(page => page.id === event.data.pageId) + 1));
+      window.history.replaceState(null, "", url);
+    };
+    window.addEventListener("message", receive);
+    report();
+    return () => window.removeEventListener("message", receive);
+  }, [isFramedPreview, displayPages, effectiveSelectedPageId, props.locale]);
+
+  useEffect(() => {
+    if ((props.mode !== "public" && !isPlaybackPreview) || displayPages.length <= 1) return undefined;
 
     const intervalId = window.setInterval(() => {
       setSelectedPageId((currentPageId) => {
@@ -1720,7 +1740,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
     }, DISPLAY_PUBLIC_PAGE_INTERVAL_MS);
 
     return () => window.clearInterval(intervalId);
-  }, [displayPages, props.mode]);
+  }, [displayPages, props.mode, isPlaybackPreview]);
 
   if (!activeRenderPage || !activePage) {
     return (
@@ -1742,12 +1762,14 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
       <main
         className="menu-typography relative h-screen w-screen overflow-hidden bg-[var(--display-surface-color)] text-[var(--display-text-color)]"
         style={typographyStyle}
-        onPointerMove={(event) => syncDisplayControlsToPointer(event.clientY)}
-        onPointerDown={(event) => syncDisplayControlsToPointer(event.clientY)}
+        onPointerMove={(event) => syncDisplayControlsToPointer(event.clientY, event.target)}
+        onPointerDown={(event) => syncDisplayControlsToPointer(event.clientY, event.target)}
         onPointerLeave={displayControls.hide}
         onFocusCapture={displayControls.reveal}
         onKeyDown={displayControls.reveal}
         data-display-preview-controls-visible={displayControls.visible ? "true" : "false"}
+        data-display-active-page={activePageParam}
+        data-display-autoplay={props.mode === "public" || isPlaybackPreview ? "true" : "false"}
         data-spacing-contract="canvas-fit"
       >
         <h1 className="sr-only">{displayTitle}</h1>
@@ -1755,6 +1777,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
         {showPreviewSelector && (
           <div
             data-display-preview-pagination=""
+            data-display-bottom-controls=""
             className={`absolute bottom-5 left-1/2 z-30 -translate-x-1/2 transition-opacity duration-300 ${
               displayControls.visible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
             }`}
@@ -1763,6 +1786,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
           </div>
         )}
         <div
+          data-display-bottom-controls=""
           className={`absolute bottom-5 right-5 z-30 transition-opacity duration-300 ${
             displayControls.visible ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
           }`}

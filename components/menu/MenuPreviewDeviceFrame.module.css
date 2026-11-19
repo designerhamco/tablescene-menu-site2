@@ -7,6 +7,8 @@
 .toolbar[data-preview-service-controls="services"] { width: 43rem; }
 .toolbar[data-preview-service-controls="layout"] { width: 53rem; }
 .deviceNav > a { flex: 1; }
+.displayPages { flex-shrink: 0; gap: .25rem; }
+.displayPages [data-display-page-count] { white-space: nowrap; padding-inline: .25rem; }
 .stage { width: 100%; height: 100%; padding: var(--preview-gutter); overflow: hidden; }
 .stage:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: -3px; }
 .canvas { width: 100%; height: 100%; display: grid; place-items: center; }

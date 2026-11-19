@@ -53,6 +53,7 @@ type PageProps = {
     page?: string | string[];
     qaCase?: string | string[];
     qaSplitImagePosition?: string | string[];
+    displayImagePosition?: string | string[];
     footerStress?: string | string[];
     contentQa?: string | string[];
     featured?: string | string[];
@@ -1098,11 +1099,11 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
       : resolvedSearchParams.qaCase ?? null
     : null;
   const displayPreviewSplitImagePosition = templateKey === "display_menu_a"
-    ? getDisplayPreviewSplitImagePosition(resolvedSearchParams.qaSplitImagePosition)
+    ? getDisplayPreviewSplitImagePosition(resolvedSearchParams.displayImagePosition ?? resolvedSearchParams.qaSplitImagePosition)
     : null;
 
   const usesDevicePreviewFrame = shouldUseMenuPreviewDeviceFrame(templateKey);
-  const device = normalizeMenuPreviewDevice(
+  const device = templateKey === "display_menu_a" ? "pc" : normalizeMenuPreviewDevice(
     getFirstParam(resolvedSearchParams.device),
     usesDevicePreviewFrame ? "tablet" : "pc",
   );
@@ -1156,9 +1157,10 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
   const designDefaults = previewDesignDefaults(data);
   data.menuSite.page_settings = menuAppearancePreview(data.menuSite.page_settings, resolvedSearchParams, defaultDesign?.itemLayout === "album") as typeof data.menuSite.page_settings;
   data = applyPreviewDesign(data, getFirstParam(resolvedSearchParams.designPreview), defaultDesign?.itemLayout === "album");
-  if (!isActualView && usesDevicePreviewFrame) {
+  if (!isActualView && (usesDevicePreviewFrame || templateKey === "display_menu_a")) {
     return <><MenuPreviewDeviceFrame device={device} orientation={orientation} templateKey={templateKey} query={resolvedSearchParams}
-      previewDesignDefaults={designDefaults} previewDisplayOptions={getTemplatePreviewOptions(localizedData, resolvedSearchParams)} previewDisplayDefaults={getTemplatePreviewOptions(localizedData, {})} /><MobilePreviewEntryNotice /></>;
+      displayPages={templateKey === "display_menu_a" ? sortMenuPages(data.pages.filter(page => page.visible)).map(page => ({ id: page.id, title: page.title, split: normalizeMenuPageDisplaySettings(page.display_settings).menuLayoutType === "split_image_menu" })) : undefined}
+      previewDesignDefaults={designDefaults} previewDisplayOptions={getTemplatePreviewOptions(localizedData, resolvedSearchParams)} previewDisplayDefaults={getTemplatePreviewOptions(localizedData, {})} />{templateKey !== "display_menu_a" ? <MobilePreviewEntryNotice /> : null}</>;
   }
   if (templateKey === "cafe_real_matcha_paged_test") applyPagedMatchaFixture(data, getFirstParam(resolvedSearchParams.pageTest));
   const requestedRenderMode = Array.isArray(resolvedSearchParams.renderMode)

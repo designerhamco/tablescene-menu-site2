@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { Palette } from "@/app/components/ui/site-icon";
 import { ChevronLeft } from "@/app/components/ui/site-arrow";
 import { getTemplatePreviewOptionGroups } from "@/lib/template-preview-options";
@@ -12,7 +12,7 @@ import { Button } from "@/app/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import styles from "./MenuPreviewOptionsPanel.module.css";
 
-export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, onFeatureReset, canResetFeatures, pending, templateKey, defaults, renderedDesign, design, onDesignChange, album, alignmentDisabled = false }: {
+export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChange, groups, values, onFeatureChange, onFeatureReset, canResetFeatures, pending, templateKey, defaults, renderedDesign, design, onDesignChange, album, alignmentDisabled = false, featureContent, designContent }: {
   open: boolean;
   onToggle: () => void;
   tab: string;
@@ -30,6 +30,8 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
   onDesignChange: (value: PreviewDesign) => void;
   album: boolean;
   alignmentDisabled?: boolean;
+  featureContent?: ReactNode;
+  designContent?: ReactNode;
 }) {
   const toggle = useRef<HTMLButtonElement>(null);
   const choices = groups.flatMap(group => group.choices);
@@ -57,10 +59,11 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
             <input type="checkbox" aria-label={`${label} 보기`} checked={values[key]} disabled={pending || ((key === "featuredPreview" || key === "coverImagesPreview") && !values.coverPreview)} onChange={event => onFeatureChange(key, event.target.checked)} />{label}
           </label>)}</div>
         </fieldset>)}</div>
+        {featureContent}
         </div>
         </TabsContent>
         <TabsContent value="design" id="preview-design-panel" aria-labelledby="preview-design-tab">
-        {open && defaults ? <PreviewDesignOptions templateKey={templateKey} defaults={defaults} renderedDesign={renderedDesign} value={design} album={album} dining={templateKey.startsWith("dining_")} disabled={pending} alignmentDisabled={alignmentDisabled} onChange={onDesignChange} /> : null}
+        {open && defaults ? designContent ?? <PreviewDesignOptions templateKey={templateKey} defaults={defaults} renderedDesign={renderedDesign} value={design} album={album} dining={templateKey.startsWith("dining_")} disabled={pending} alignmentDisabled={alignmentDisabled} onChange={onDesignChange} /> : null}
         </TabsContent>
       </Tabs>
     </div>
