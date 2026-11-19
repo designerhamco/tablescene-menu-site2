@@ -163,6 +163,10 @@ test("catalog and saved previews expose the same common toolbar for each device"
     const labels = (html: string) => {
       const header = html.match(/<header[\s\S]*?<\/header>/)?.[0] ?? "";
       assert.doesNotMatch(header, /수정하기|전체화면/);
+      const deviceNav = header.match(/<nav aria-label="미리보기 기기 선택"[^>]*>[\s\S]*?<\/nav>/)?.[0] ?? "";
+      assert.match(deviceNav, /site-preview-control-group/);
+      assert.equal(deviceNav.match(/<a\s/g)?.length, device === "tablet" ? 4 : 3);
+      assert.equal(deviceNav.includes("data-preview-tablet-orientation-toggle"), device === "tablet");
       return [...header.matchAll(/<a([^>]*)>([\s\S]*?)<\/a>/g)].filter(([, attributes]) => !attributes.includes("data-preview-layout-mode")).map(([, attributes, inner]) =>
         attributes.match(/aria-label="([^"]*)"/)?.[1] ?? inner.replace(/<[^>]*>/g, "").trim());
     };
@@ -228,11 +232,12 @@ test("device selector is open by default and collapses upward into a compact han
   assert.match(previewFrameSource, /width: showToolbar \? undefined : "5rem"/);
   assert.match(previewFrameSource, /translateY\(calc\(-100% \+ 1\.75rem\)\)/);
   assert.match(previewFrameSource, /transition-\[width,transform\] duration-300 ease-out/);
-  assert.match(previewFrameSource, /function PreviewOrientationIcon\(\)/);
-  assert.match(previewFrameSource, /<svg[\s\S]*viewBox="0 0 383\.39 383\.38"/);
-  assert.match(previewFrameSource, /preserveAspectRatio="xMidYMid meet"/);
-  assert.match(previewFrameSource, /fill="currentColor"/);
-  assert.match(previewFrameSource, /M168\.78,354\.99/);
+  const deviceIconSource = readFileSync(new URL("../components/menu/PreviewDeviceIcon.tsx", import.meta.url), "utf8");
+  assert.match(previewFrameSource, /<PreviewOrientationIcon \/>/);
+  assert.match(deviceIconSource, /<svg[\s\S]*viewBox="0 0 383\.39 383\.38"/);
+  assert.match(deviceIconSource, /preserveAspectRatio="xMidYMid meet"/);
+  assert.match(deviceIconSource, /fill="currentColor"/);
+  assert.match(deviceIconSource, /M168\.78,354\.99/);
   assert.match(previewFrameSource, /data-preview-tablet-orientation-toggle=""/);
   assert.match(previewFrameSource, /orientation === "landscape" \? "portrait" : "landscape"/);
   assert.match(previewFrameSource, /태블릿을 \$\{MENU_PREVIEW_ORIENTATIONS\[nextTabletOrientation\]\}로 회전/);

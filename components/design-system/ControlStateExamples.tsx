@@ -9,6 +9,8 @@ import IconControlExamples from "./IconControlExamples";
 import styles from "./SiteComponentGallery.module.css";
 import MenuViewerPagination from "@/components/menu/MenuViewerPagination";
 import { ChevronUp } from "@/app/components/ui/site-arrow";
+import PreviewDeviceIcon, { PreviewOrientationIcon } from "@/components/menu/PreviewDeviceIcon";
+import { MENU_PREVIEW_DEVICE_ORDER, MENU_PREVIEW_DEVICES, MENU_PREVIEW_ORIENTATIONS, type MenuPreviewDevice } from "@/lib/menu-preview-devices";
 
 const states = [
   ["default", "기본"], ["hover", "Hover"], ["pressed", "누르는 중"], ["focus", "키보드 포커스"], ["disabled", "비활성"],
@@ -21,7 +23,8 @@ const actions = [
 /** State previews share selectors with the actual pseudo states; they have no private palette. */
 export default function ControlStateExamples() {
   const [clicks, setClicks] = useState(0);
-  const [previewDevice, setPreviewDevice] = useState("태블릿");
+  const [previewDevice, setPreviewDevice] = useState<MenuPreviewDevice>("tablet");
+  const [previewPortrait, setPreviewPortrait] = useState(false);
   const [previewServices, setPreviewServices] = useState({ call: false, order: true });
   const [previewLayout, setPreviewLayout] = useState("묶음형");
   const [viewerPage, setViewerPage] = useState(2);
@@ -78,9 +81,23 @@ export default function ControlStateExamples() {
         <TabsTrigger value="selected" data-ui-state={state === "default" || state === "disabled" ? undefined : state} disabled={state === "disabled"}>선택</TabsTrigger>
       </TabsList><TabsContent value="selected" className="sr-only" tabIndex={-1}>상태 예시</TabsContent></Tabs></td>)}</tr>)}</tbody></table></div>
     <p className="type-body-sm text-zinc-600">어두운 미리보기 막대에서 선택한 기기·배치는 흰색, 비선택 탭과 꺼진 기능은 진한 회색 면·흰 글자입니다. 실행 버튼은 밝은 회색 면·검정 글자, 조작 불가는 더 어두운 면·흐린 글자로 구분합니다. 도움말·접기는 무배경 흰색 아이콘, 일반 기본 버튼은 검정 면을 유지합니다.</p>
-    <p className="type-body-sm text-zinc-600">호출·주문과 묶음형·채움형은 각각 같은 회색 그룹 레일로 묶습니다. 그룹 안에서는 함께 붙이고, 바깥에는 독립된 여백을 유지합니다.</p>
+    <p className="type-body-sm text-zinc-600">기기 선택과 태블릿 회전, 호출·주문, 묶음형·채움형을 각각 같은 회색 배경으로 묶습니다.</p>
     <div className={styles.inverseToolbar} role="group" aria-label="미리보기 도구 스타일 예시">
-      {["태블릿","PC","모바일"].map(label => <button key={label} type="button" className="site-preview-control" aria-pressed={previewDevice === label} onClick={() => setPreviewDevice(label)}>{label}</button>)}
+      <div className="site-preview-control-group" role="group" aria-label="기기 선택 그룹 예시">
+        {MENU_PREVIEW_DEVICE_ORDER.map(device => (
+          <button key={device} type="button" className="site-preview-control" aria-pressed={previewDevice === device} onClick={() => setPreviewDevice(device)}>
+            <PreviewDeviceIcon device={device} />
+            {MENU_PREVIEW_DEVICES[device].label}
+          </button>
+        ))}
+        {previewDevice === "tablet" ? (
+          <button type="button" className="site-preview-control site-preview-control-icon" data-icon-appearance="framed"
+            aria-label={`태블릿을 ${MENU_PREVIEW_ORIENTATIONS[previewPortrait ? "landscape" : "portrait"]}로 회전 예시`}
+            onClick={() => setPreviewPortrait(current => !current)}>
+            <PreviewOrientationIcon />
+          </button>
+        ) : null}
+      </div>
       <div className="site-preview-control-group" role="group" aria-label="호출·주문 그룹 예시">{([['call','호출 기능'],['order','주문 기능']] as const).map(([key,label]) => <label key={key} className="site-preview-control site-preview-choice"><input type="checkbox" aria-label={`${label} 그룹 예시`} checked={previewServices[key]} onChange={event => setPreviewServices(current => ({ ...current, [key]: event.target.checked }))} />{label}</label>)}</div>
       <div className="site-preview-control-group" role="group" aria-label="메뉴 배치 그룹 예시">{["묶음형","채움형"].map(label => <button key={label} type="button" className="site-preview-control" aria-pressed={previewLayout === label} onClick={() => setPreviewLayout(label)}>{label}</button>)}</div>
       <button type="button" className="site-preview-control">실제 화면 보기</button><button type="button" className="site-icon-control site-preview-control site-preview-control-icon" data-icon-appearance="bare" aria-label="미리보기 안내 예시"><CircleHelp className="h-4 w-4" aria-hidden="true" /></button><button type="button" className="site-icon-control site-preview-control site-preview-control-icon" data-icon-appearance="bare" aria-label="미리보기 접기 예시"><ChevronUp className="h-4 w-4" aria-hidden="true" /></button><button type="button" className="site-preview-control" disabled>준비 중</button>
