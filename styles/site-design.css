@@ -58,6 +58,7 @@
   --type-label-size: var(--site-type-14);
   --type-nav-size: var(--site-type-15);
   --type-control-size: var(--site-type-14);
+  --type-primary-control-size: var(--type-control-size);
   --type-card-title-size: var(--site-type-16);
   --type-card-body-size: var(--site-type-14);
   --type-price-compact-size: var(--site-type-24);
@@ -913,6 +914,15 @@
 
 
 .site-document-tabs.site-tab-size-md { --site-tab-font: var(--site-type-14); }
+
+/* Tab purpose sets desktop lettering. List sizes keep their own hit areas. */
+@media (min-width: 1024px) {
+  :is(.site-page-tabs, .site-area-tabs, .site-topic-tabs, .site-tabs-outline, .site-document-tabs, .site-document-tabs-header):is(.site-tab-size-sm, .site-tab-size-md, .site-tab-size-lg) {
+    --site-tab-font: var(--type-control-size);
+    --site-segment-font: var(--type-control-size);
+  }
+  .site-page-tabs[data-purpose="page"] { --site-tab-font: var(--type-primary-control-size); }
+}
 
 /* One room toolbar size owns both the fixed action and scrolling selectors. */
 .site-room-tabs-header { --site-room-control-height:var(--ui-control-height-header); --site-room-control-padding:var(--ui-control-padding-inline); display:flex; min-width:0; align-items:center; gap:var(--site-space-copy); }
