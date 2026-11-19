@@ -100,7 +100,7 @@ function Showcase({
             <br />
             매장답게 보이도록
           </h2>
-          <p className="site-body">
+          <p className="type-body-lg">
             공간의 분위기에 맞는 디자인을 고르고 나만의 메뉴를 담아보세요.
           </p>
         </div>
@@ -179,7 +179,7 @@ export function MarketingServicePage({ service }: { service: Service }) {
             <h2 id="feature-heading" className="type-section-title">
               {copy.section}
             </h2>
-            <p className="type-body">
+            <p className="type-body-lg">
               {service === "display"
                 ? "정식 공개를 준비 중인 디스플레이의 구성과 활용 방법을 소개합니다."
                 : "메뉴를 보여주는 일부터 매장을 운영하는 순간까지."}

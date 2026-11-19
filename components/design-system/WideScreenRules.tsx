@@ -1,4 +1,4 @@
-import { getSiteWideTypeScale, SITE_WIDE_TYPE_POLICY, SITE_MARKETING_TITLE_POLICY, SITE_HOME_HERO_TITLE_POLICY, SITE_HOME_TYPE_POLICY } from "@/lib/site-typography";
+import { getSiteWideTypeScale, SITE_WIDE_TYPE_POLICY, SITE_MANAGEMENT_INTRO, SITE_TYPE_ROLES } from "@/lib/site-typography";
 import { getMenuPreviewPresentation, MENU_PREVIEW_PRESENTATION } from "@/lib/menu-preview-fit";
 import { getMenuPreviewFrame } from "@/lib/menu-preview-devices";
 import styles from "./SiteComponentGallery.module.css";
@@ -7,6 +7,9 @@ export default function WideScreenRules({ id }: { id: string }) {
   const { startWidth, endWidth, maxScale } = SITE_WIDE_TYPE_POLICY;
   const rows = [startWidth, 1920, 2560, endWidth];
   const size = (base: number, width: number) => Number((base * getSiteWideTypeScale(width)).toFixed(2));
+  const pageTitle = SITE_TYPE_ROLES.find(role => role.key === "page-title")!;
+  const pageDescription = SITE_TYPE_ROLES.find(role => role.key === "page-description")!;
+  const body = SITE_TYPE_ROLES.find(role => role.key === "body")!;
   const previewRows = (["pc", "tablet", "mobile"] as const).map(device => ({
     device, frame: getMenuPreviewFrame(device, "landscape"),
     wide: getMenuPreviewPresentation(MENU_PREVIEW_PRESENTATION.compactBreakpoint, device),
@@ -19,24 +22,14 @@ export default function WideScreenRules({ id }: { id: string }) {
       <p className="type-body text-zinc-600">모니터 제품 해상도가 아닌 브라우저 안의 실제 너비를 기준으로 합니다. {startWidth.toLocaleString("ko-KR")}px까지 기본 크기를 유지하고, 이후 같은 글자 역할을 함께 키워 최대 {(maxScale - 1) * 100}%로 제한합니다.</p>
     </div>
     <div className={styles.usageTable}><table aria-label="와이드 화면 글자 크기 기준">
-      <thead><tr><th>브라우저 너비 · PC</th><th>공통 보정</th><th>페이지 제목</th><th>본문·페이지 설명</th></tr></thead>
+      <thead><tr><th>브라우저 너비 · PC</th><th>공통 보정</th><th>페이지 제목</th><th>페이지 설명</th><th>일반 본문</th><th>관리 페이지 제목</th></tr></thead>
       <tbody>{rows.map(width => <tr key={width}>
         <td>{width.toLocaleString("ko-KR")}px{width === startWidth ? " 이하" : width === endWidth ? " 이상" : ""}</td>
-        <td>+{Number(((getSiteWideTypeScale(width) - 1) * 100).toFixed(1))}%</td><td>{size(36, width)}px</td><td>{size(16, width)}px</td>
+        <td>+{Number(((getSiteWideTypeScale(width) - 1) * 100).toFixed(1))}%</td><td>{size(pageTitle.desktop, width)}px</td><td>{size(pageDescription.desktop, width)}px</td><td>{size(body.desktop, width)}px</td><td>{size(SITE_MANAGEMENT_INTRO.title.desktop, width)}px</td>
       </tr>)}</tbody>
     </table></div>
     <p className="type-body-sm mt-4 text-zinc-600">새 페이지와 수정 화면은 공통 제목·본문 역할, 버튼 컴포넌트, 페이지·구역 간격을 사용하면 같은 보정을 자동으로 받습니다. 화면마다 별도 확대 배율을 넣지 않습니다. 표는 PC의 기본 rem 기준이며 모바일·태블릿은 각 기기의 기본 크기와 브라우저 글자 확대를 유지합니다.</p>
-    <div className="site-stack-copy">
-      <h3 className="type-content-title">마케팅 제목과 메인 시범 기준</h3>
-      <div className={styles.usageTable}><table aria-label="메인·서비스 소개 제목 기준"><thead><tr><th>범위</th><th>모바일</th><th>태블릿</th><th>PC</th><th>굵기 / 줄높이</th></tr></thead><tbody><tr><td>기존 마케팅 제목 · 메인 시범 제외</td><td>{SITE_MARKETING_TITLE_POLICY.mobile}px</td><td>{SITE_MARKETING_TITLE_POLICY.tablet}px</td><td>{SITE_MARKETING_TITLE_POLICY.desktop}px</td><td>{SITE_MARKETING_TITLE_POLICY.weight} / {SITE_MARKETING_TITLE_POLICY.lineHeight}</td></tr><tr><td>예약된 확대 히어로 · 현재 미사용</td><td>{SITE_HOME_HERO_TITLE_POLICY.mobile}px</td><td>{SITE_HOME_HERO_TITLE_POLICY.tablet}px</td><td>{SITE_HOME_HERO_TITLE_POLICY.desktop}px</td><td>{SITE_HOME_HERO_TITLE_POLICY.weight} / {SITE_HOME_HERO_TITLE_POLICY.lineHeight}</td></tr></tbody></table></div>
-      <h3 className="type-content-title">메인페이지 글자 비율 시범 적용</h3>
-      <div className={styles.usageTable}><table aria-label="메인페이지 시범 타이포그래피">
-        <thead><tr><th>역할</th><th>모바일</th><th>태블릿</th><th>PC</th><th>굵기 / 줄높이</th><th>자간 모바일 / 태블릿·PC</th></tr></thead>
-        <tbody>{SITE_HOME_TYPE_POLICY.map(role=><tr key={role.key}><th scope="row">{role.label}</th><td>{role.mobile}px</td><td>{role.tablet}px</td><td>{role.desktop}px</td><td>{role.weight} / {role.lineHeight}</td><td>{role.tracking.mobile}em / {role.tracking.desktop}em</td></tr>)}</tbody>
-      </table></div>
-      <p className="type-body-sm site-copy-muted">위 시범 비율은 메인 본문에만 적용합니다. 현재 첫 스크롤 장면도 주요 제목 역할을 사용하며, 확대 히어로 역할은 예약된 스타일입니다. 소개 문장은 강조 본문 역할로 구분하고 자세한 설명은16px을 유지합니다. 다른 페이지·헤더·푸터·조작 글자와 실제 메뉴판 화면은 기존 기준입니다.</p>
-      <p className="type-body-sm site-copy-muted">메인 본문의 제목·설명·버튼과 콘텐츠 그리드는 헤더·푸터와 같은 최대1600px 중앙 컨테이너를 사용합니다. 배경 사진·배경색·시연 카메라는 화면 전체를 유지하며, 좁은 화면은 기존 공통 gutter를 사용합니다. 베이직·다이닝·디스플레이 소개는 메인 안의 서비스 프레임으로 통합되어 같은 콘텐츠 경계를 따릅니다. 제목 크기는 기존 와이드 글자 보정을 함께 받고 카드·본문·시연 화면은 각 역할을 유지합니다.</p>
-    </div>
+    <p className="type-body-sm site-copy-muted">메인 콘텐츠는 공통 최대 폭 1600px과 좌우 여백을 사용합니다. 사진과 시연 영역에는 각 장면의 구성 기준을 적용합니다.</p>
     <div className="site-collection mt-5">
       <h3 className="type-content-title" id={`${id}-mockups`}>미리보기 목업 크기 기준</h3>
       <p className="type-body-sm mt-2 text-zinc-600">미리보기를 여는 브라우저 너비와 상단에서 선택한 기기를 나눠 적용합니다. 옵션 창과 상단 도구는 고정 레이어이며 화면 영역을 밀지 않습니다. 태블릿·모바일 목업은 페이지 전체의 중앙에서 대칭 여백 안을 채우며 최대1.25배를 넘지 않습니다.</p>

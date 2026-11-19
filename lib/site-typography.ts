@@ -27,10 +27,11 @@ export const SITE_TYPE_ROLES = [
     "tablet": 32,
     "desktop": 36,
     "weight": 700,
-    "lineHeight": 1.2,
+    "lineHeight": 1.28,
     "className": "type-display",
-    "usage": "독립 대표 문구. 메인·서비스 소개는 전용 공통 제목 기준",
-    "letterSpacing": "-0.04em"
+    "usage": "페이지의 독립 대표 문구",
+    "letterSpacing": "-0.04em",
+    "tabletLetterSpacing": "-0.05em"
   },
   {
     "key": "page-title",
@@ -39,34 +40,36 @@ export const SITE_TYPE_ROLES = [
     "tablet": 32,
     "desktop": 36,
     "weight": 700,
-    "lineHeight": 1.25,
+    "lineHeight": 1.28,
     "className": "type-page-title",
     "usage": "로그인·마이페이지·신청 등 화면의 주제",
-    "letterSpacing": "-0.04em"
+    "letterSpacing": "-0.04em",
+    "tabletLetterSpacing": "-0.05em"
   },
   {
     "key": "page-description",
     "label": "페이지 설명",
-    "mobile": 16,
-    "tablet": 16,
-    "desktop": 16,
-    "weight": 400,
-    "lineHeight": 1.5,
+    "mobile": 18,
+    "tablet": 18,
+    "desktop": 20,
+    "weight": 500,
+    "lineHeight": 1.55,
     "className": "type-page-description",
-    "usage": "모든 일반 페이지에서 H1 바로 아래에 오는 한두 문장",
-    "letterSpacing": "-0.025em"
+    "usage": "공식 페이지 제목 아래 필요한 소개 문장. 관리 화면은16px",
+    "letterSpacing": "-0.03em"
   },
   {
     "key": "section-title",
     "label": "큰 구역 제목",
-    "mobile": 24,
-    "tablet": 28,
-    "desktop": 28,
+    "mobile": 28,
+    "tablet": 32,
+    "desktop": 36,
     "weight": 700,
-    "lineHeight": 1.25,
+    "lineHeight": 1.28,
     "className": "type-section-title",
     "usage": "페이지 안의 큰 콘텐츠 구획",
-    "letterSpacing": "-0.04em"
+    "letterSpacing": "-0.04em",
+    "tabletLetterSpacing": "-0.05em"
   },
   {
     "key": "subsection-title",
@@ -74,23 +77,23 @@ export const SITE_TYPE_ROLES = [
     "mobile": 20,
     "tablet": 20,
     "desktop": 24,
-    "weight": 700,
-    "lineHeight": 1.3,
+    "weight": 500,
+    "lineHeight": 1.35,
     "className": "type-subsection-title",
     "usage": "서비스 카드명·폼 구역 제목",
-    "letterSpacing": "-0.03em"
+    "letterSpacing": "-0.04em"
   },
   {
     "key": "content-title",
     "label": "콘텐츠 제목",
     "mobile": 18,
     "tablet": 18,
-    "desktop": 20,
-    "weight": 600,
+    "desktop": 18,
+    "weight": 500,
     "lineHeight": 1.4,
     "className": "type-content-title",
     "usage": "콘텐츠의 하위 제목",
-    "letterSpacing": "-0.025em"
+    "letterSpacing": "-0.03em"
   },
   {
     "key": "item-title",
@@ -110,11 +113,11 @@ export const SITE_TYPE_ROLES = [
     "mobile": 18,
     "tablet": 18,
     "desktop": 20,
-    "weight": 400,
-    "lineHeight": 1.5,
+    "weight": 500,
+    "lineHeight": 1.55,
     "className": "type-body-lg",
-    "usage": "섹션 안에서 기본 본문보다 강조할 짧은 문장",
-    "letterSpacing": "-0.025em"
+    "usage": "섹션의 짧은 소개 문장이나 강조 설명",
+    "letterSpacing": "-0.03em"
   },
   {
     "key": "body",
@@ -123,10 +126,10 @@ export const SITE_TYPE_ROLES = [
     "tablet": 16,
     "desktop": 16,
     "weight": 400,
-    "lineHeight": 1.5,
+    "lineHeight": 1.65,
     "className": "type-body",
     "usage": "읽는 설명·상세 본문",
-    "letterSpacing": "-0.025em"
+    "letterSpacing": "-0.02em"
   },
   {
     "key": "body-sm",
@@ -135,10 +138,10 @@ export const SITE_TYPE_ROLES = [
     "tablet": 14,
     "desktop": 14,
     "weight": 400,
-    "lineHeight": 1.45,
+    "lineHeight": 1.6,
     "className": "type-body-sm",
     "usage": "카드·폼의 보조 설명",
-    "letterSpacing": "-0.025em"
+    "letterSpacing": "-0.02em"
   },
   {
     "key": "label",
@@ -219,10 +222,10 @@ export const SITE_TYPE_ROLES = [
     "tablet": 14,
     "desktop": 14,
     "weight": 400,
-    "lineHeight": 1.45,
+    "lineHeight": 1.6,
     "className": "type-card-body",
     "usage": "좁은 카드 안 요약",
-    "letterSpacing": "-0.025em"
+    "letterSpacing": "-0.02em"
   },
   {
     "key": "card-detail",
@@ -303,23 +306,13 @@ export function siteTypeSizeCss(pixels: number): string {
   return `var(--site-type-${nearest})`;
 }
 
-/** Major titles of /, /services/basic, /services/dining and /services/display only. */
-export const SITE_MARKETING_TITLE_POLICY = {
-  mobile: 24, tablet: 32, desktop: 36, weight: 700, lineHeight: 1.2,
-  scope: "site-marketing-page", container: "site-marketing-container",
+/** Management screens adapt the shared hierarchy to dense work and smaller headers. */
+export const SITE_MANAGEMENT_INTRO = {
+  title: { mobile: 28, tablet: 28, desktop: 32, weight: 700, lineHeight: 1.28, letterSpacing: "-0.04em" },
+  description: { size: 16, weight: 400, lineHeight: 1.5 },
 } as const;
 
-/** Explicit homepage-only hero; inherits the same bounded wide-screen growth. */
+/** Reserved homepage-only hero, with the shared title weight and leading. */
 export const SITE_HOME_HERO_TITLE_POLICY = {
-  mobile: 32, tablet: 44, desktop: 56, weight: 500, lineHeight: 1.28,
+  mobile: 32, tablet: 44, desktop: 56, weight: 700, lineHeight: 1.28,
 } as const;
-
-/** Homepage-only reading hierarchy trial; shared roles elsewhere remain intact. */
-export const SITE_HOME_TYPE_POLICY = [
-  { key:'title', label:'주요 제목', classes:['type-page-title','type-section-title'], mobile:28, tablet:32, desktop:36, weight:500, lineHeight:1.28, tracking:{mobile:-.04,tablet:-.05,desktop:-.05} },
-  { key:'lead', label:'제목 아래 소개 문장', classes:['type-body-lg'], mobile:18, tablet:18, desktop:20, weight:500, lineHeight:1.55, tracking:{mobile:-.03,tablet:-.03,desktop:-.03} },
-  { key:'subsection', label:'하위 구역 제목', classes:['type-subsection-title'], mobile:20, tablet:20, desktop:24, weight:500, lineHeight:1.35, tracking:{mobile:-.04,tablet:-.04,desktop:-.04} },
-  { key:'content', label:'콘텐츠 제목', classes:['type-content-title'], mobile:18, tablet:18, desktop:18, weight:500, lineHeight:1.4, tracking:{mobile:-.03,tablet:-.03,desktop:-.03} },
-  { key:'body', label:'자세한 본문', classes:['type-body','site-body'], mobile:16, tablet:16, desktop:16, weight:400, lineHeight:1.65, tracking:{mobile:-.02,tablet:-.02,desktop:-.02} },
-  { key:'support', label:'보조 설명', classes:['type-body-sm','site-body-sm'], mobile:14, tablet:14, desktop:14, weight:400, lineHeight:1.6, tracking:{mobile:-.02,tablet:-.02,desktop:-.02} },
-] as const;

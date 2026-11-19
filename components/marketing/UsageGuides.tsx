@@ -111,7 +111,7 @@ export default function UsageGuides({
           <h2 id="usage-heading" className="type-section-title">
             지금 쓰는 기기에서 시작하세요
           </h2>
-          <p className="site-body text-zinc-500">
+          <p className="type-body-lg text-zinc-500">
             기기와 브라우저에 맞는 방법으로 메뉴판을 열어보세요.
           </p>
         </div>

@@ -34,11 +34,19 @@
 
 /*
  * Account, editor and store-operation screens are dense working surfaces.
- * Page titles and their introductory copy keep the public-site hierarchy.
- * Dense content below that header uses a compact role hierarchy so fields,
- * cards and metadata retain the same visual relationship on every route.
+ * The shared roles use compact sizes and leading for scan-heavy work.
  */
 .site-management-scope {
+  --type-page-title-size: var(--site-type-28);
+  --type-page-description-size: var(--site-type-16);
+  --type-body-lg-size: var(--site-type-16);
+  --site-leading-page-description: 1.5;
+  --site-leading-body: 1.5;
+  --site-leading-reading-support: 1.45;
+  --site-tracking-title: -0.04em;
+  --site-weight-page-description: var(--font-weight-regular);
+  --site-weight-subsection-title: var(--font-weight-strong);
+  --site-weight-content-title: var(--font-weight-semibold);
   --type-section-title-size: var(--site-type-24);
   --type-subsection-title-size: var(--site-type-20);
   --type-content-title-size: var(--site-type-18);
@@ -59,10 +67,10 @@
   --site-tab-font: var(--site-type-15);
   --site-segment-font: var(--site-type-14);
 }
+@media (min-width: 1024px) {
+  .site-management-scope { --type-page-title-size: var(--site-type-32); }
+}
 .site-management-scope :where(p, li).text-copy { font-weight: var(--font-weight-regular); }
-.site-management-scope :where(.type-page-title, .type-section-title, .type-subsection-title) { font-weight: var(--font-weight-strong); }
-.site-management-scope :where(.type-content-title, .type-control) { font-weight: var(--font-weight-semibold); }
-.site-management-scope :where(.type-item-title, .type-label) { font-weight: var(--font-weight-medium); }
 .site-management-scope :where(input, textarea, select):not(:where(
     [type="checkbox"],
     [type="radio"],
@@ -350,7 +358,7 @@
 .site-template-structure, .site-template-moods { font-size: var(--type-card-detail-size); font-weight: var(--font-weight-regular); line-height: var(--site-leading-meta); letter-spacing: var(--site-tracking-meta); }
 .site-template-structure { color: var(--site-text-secondary); }
 .site-template-moods { display: flex; flex-wrap: wrap; gap: var(--site-space-detail) var(--site-space-copy); padding: 0; color: var(--site-text-muted); list-style: none; }
-.site-template-description { font-size: var(--type-card-body-size); line-height: var(--site-leading-support); color: var(--site-text-secondary); letter-spacing: var(--site-tracking-copy); }
+.site-template-description { font-size: var(--type-card-body-size); line-height: var(--site-leading-reading-support); color: var(--site-text-secondary); letter-spacing: var(--site-tracking-reading); }
 .site-template-actions { margin-top: auto; }
 .site-template-artwork { overflow: hidden; border-radius: var(--ui-radius-preview); }
 .site-template-artwork > * { border-radius: inherit; }

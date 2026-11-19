@@ -122,7 +122,7 @@ export default function ServicePricingSection({ service }: { service: ServicePri
             {data.title}
           </h2>
           {data.description ? (
-            <p className="mt-5 break-keep text-copy font-medium leading-relaxed text-zinc-500 md:text-lg">
+            <p className="type-body-lg mt-5 text-zinc-500">
               {data.description}
             </p>
           ) : null}

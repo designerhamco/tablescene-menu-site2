@@ -4,6 +4,9 @@ import { chromium } from "@playwright/test";
 const base = process.env.SITE_TYPE_QA_BASE_URL || "http://127.0.0.1:3039";
 const screenshotPath = process.env.SITE_TYPE_QA_SCREENSHOT || "/tmp/artimenu-site-type-scale-1440.png";
 const routes = [
+  "/",
+  "/apply",
+  "/guides",
   "/design-system",
   "/templates",
   "/templates/cafe_mocha_forest_a",
@@ -17,7 +20,9 @@ const results = [];
 const browser = await chromium.launch({ headless: true });
 
 const exactRoles = {
-  "type-page-description": [16],
+  "type-page-description": [18, 20],
+  "type-section-title": [28, 32, 36],
+  "type-body-lg": [18, 20],
   "type-body": [14, 16],
   "type-body-sm": [14],
   "type-card-body": [14],

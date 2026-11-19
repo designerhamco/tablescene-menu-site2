@@ -30,7 +30,7 @@ export default async function TemplatesPage({ searchParams }: { searchParams: Pr
     <section className="site-dark-cta site-catalog-consultation">
       <div className="mx-auto max-w-2xl">
         <h2 className="type-section-title">브랜드 맞춤 제작</h2>
-        <p className="site-body mt-5 text-zinc-400">
+        <p className="type-body-lg mt-5 text-zinc-400">
           템플릿 범위를 넘어선 별도 브랜딩과 기능이 필요하다면 커스텀 제작을 상담해 주세요.
         </p>
       </div>

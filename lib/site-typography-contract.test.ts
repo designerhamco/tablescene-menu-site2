@@ -12,9 +12,8 @@ import {
   SITE_TYPE_ROLES,
   SITE_TYPE_STEPS,
   SITE_WIDE_TYPE_POLICY,
-  SITE_MARKETING_TITLE_POLICY,
+  SITE_MANAGEMENT_INTRO,
   SITE_HOME_HERO_TITLE_POLICY,
-  SITE_HOME_TYPE_POLICY,
   getSiteWideTypeScale,
   siteTypeSizeCss,
 } from "./site-typography";
@@ -123,9 +122,23 @@ test("마이페이지와 편집·운영 화면은 동일한 관리 화면 타이
   assert.match(siteDesignSource, /\.site-management-scope[\s\S]*?--text-support: var\(--site-type-14\);/);
   assert.match(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-nav-size: var\(--site-type-15\);/);
   assert.match(siteDesignSource, /\.site-management-scope :where\(input, textarea, select\)[\s\S]*?font-size: var\(--ui-field-font-size\);/);
-  assert.doesNotMatch(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-page-title-size:/);
-  assert.doesNotMatch(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-page-description-size:/);
-  assert.doesNotMatch(siteDesignSource, /\.site-management-scope\s*\{[^}]*--type-body-lg-size:/);
+  const management = postcss.parse(siteDesignSource);
+  const scopes = new Map<string, Map<string, string>>();
+  management.walkRules(".site-management-scope", rule => {
+    const width = rule.parent?.type === "atrule" ? rule.parent.params : "base";
+    const values = new Map<string, string>();
+    rule.walkDecls(decl => { values.set(decl.prop, decl.value); });
+    scopes.set(width, values);
+  });
+  const base = scopes.get("base")!;
+  const { title, description } = SITE_MANAGEMENT_INTRO;
+  assert.equal(base.get("--type-page-title-size"), `var(--site-type-${title.mobile})`);
+  assert.equal(title.tablet, title.mobile);
+  assert.equal(scopes.get("(min-width: 1024px)")?.get("--type-page-title-size"), `var(--site-type-${title.desktop})`);
+  assert.equal(base.get("--type-page-description-size"), `var(--site-type-${description.size})`);
+  assert.equal(base.get("--type-body-lg-size"), `var(--site-type-${description.size})`);
+  assert.equal(base.get("--site-leading-page-description"), String(description.lineHeight));
+  assert.equal(base.get("--site-weight-page-description"), "var(--font-weight-regular)");
 
   for (const file of collectTsxFiles(join(appRoot, "mypage"))) {
     const source = readFileSync(file, "utf8");
@@ -169,8 +182,8 @@ test("디자인 시스템은 글자 역할 이름과 화면 예시를 같은 계
   assert.equal(emphasizedBody?.label, "강조 본문");
   assert.equal(pageDescription?.label, "페이지 설명");
   assert.match(gallerySource, /<SitePageHeader[^>]*description="디자인 기준과 실제 사이트/);
-  assert.match(foundationsSource, /type-page-description[^>]*>페이지 제목 바로 아래의 설명은 로그인·서비스·고객센터·신청 화면에서 모두 같은 역할과 크기/);
-  assert.match(foundationsSource, /type-body-lg[^>]*>기본 본문보다 한 단계 강조해야 하는 짧은 문장/);
+  assert.match(foundationsSource, /type-page-description[^>]*>페이지 제목 바로 아래에 필요한 소개 문장/);
+  assert.match(foundationsSource, /type-body-lg[^>]*>섹션의 짧은 소개 문장/);
   assert.match(typographySource, /\.type-body,\s*\n\.site-body\s*\{/);
   assert.doesNotMatch(typographySource, /\.type-body-lg,\s*\n\.site-body\s*\{/);
 });
@@ -313,7 +326,7 @@ test("읽기·컨트롤·강조 크기는 중복 없이 정해진 단계만 사�
   assert.deepEqual(SITE_TYPE_STEPS, [13,14,15,16,18,20,24,28,32,36,44]);
 
   const roles = new Map<string, (typeof SITE_TYPE_ROLES)[number]>(SITE_TYPE_ROLES.map(role => [role.key, role]));
-  for (const key of ["page-description", "body"]) {
+  for (const key of ["body"]) {
     const role = roles.get(key);
     assert.deepEqual([role?.mobile, role?.tablet, role?.desktop], [16,16,16]);
   }
@@ -352,11 +365,11 @@ test("컴포넌트 밀도 조정은 사이트 탐색·페이지 제목·본문 �
     ["nav", [15,15,16]],
     ["display", [28,32,36]],
     ["page-title", [28,32,36]],
-    ["section-title", [24,28,28]],
+    ["section-title", [28,32,36]],
     ["subsection-title", [20,20,24]],
-    ["content-title", [18,18,20]],
+    ["content-title", [18,18,18]],
     ["item-title", [18,18,18]],
-    ["page-description", [16,16,16]],
+    ["page-description", [18,18,20]],
     ["body-lg", [18,18,20]],
     ["body", [16,16,16]],
   ] as const) {
@@ -364,12 +377,8 @@ test("컴포넌트 밀도 조정은 사이트 탐색·페이지 제목·본문 �
     assert.deepEqual([role?.mobile, role?.tablet, role?.desktop], sizes, key);
     postcss.parse(typographySource).walkDecls(`--type-${key}-size`, declaration => {
       const selector = declaration.parent?.type === "rule" && declaration.parent.selector;
-      if (selector === '.site-marketing-page[data-marketing-page="home"]' && ["display", "section-title", "content-title"].includes(key)) {
-        if(key === "display")assert.equal(declaration.value, "var(--site-home-hero-title-size)");
-        else if(key === "content-title")assert.equal(declaration.value, "var(--site-type-18)");
-        else assert.match(declaration.value,/^var\(--site-type-(?:28|32|36)\)$/);
-      } else if (selector === ".site-marketing-page" && ["display", "page-title", "section-title"].includes(key)) {
-        assert.match(declaration.value, /^var\(--(?:site-type-(?:24|32|36)|type-section-title-size)\)$/);
+      if (selector === '.site-marketing-page[data-marketing-page="home"]' && key === "display") {
+        assert.equal(declaration.value, "var(--site-home-hero-title-size)");
       } else {
         assert.equal(selector, ":root", `${key} must not inherit a compact control scope`);
       }
@@ -406,7 +415,7 @@ test("공통 역할의 굵기·행간·자간은 라이브러리 표와 실제 C
   const declarations = new Map<string, Map<string, string>>();
   const controls = readFileSync(join(projectRoot, "styles/ui-system.css"), "utf8");
   for (const source of [typographySource, controls]) postcss.parse(source).walkRules(rule => {
-    if (rule.selector === ":root") rule.walkDecls(decl => { roots.set(decl.prop, decl.value); });
+    if (rule.selector === ":root" && rule.parent?.type === "root") rule.walkDecls(decl => { roots.set(decl.prop, decl.value); });
     for (const selector of rule.selectors ?? []) {
       const values = declarations.get(selector) ?? new Map<string, string>();
       for (const node of rule.nodes ?? []) if (node.type === "decl") values.set(node.prop, node.value);
@@ -518,22 +527,6 @@ test("reading UI cannot use off-scale large utilities or private numeric type si
 });
 
 
-test("requested marketing titles share bounded readable sizes without changing general site roles", () => {
-  assert.deepEqual([SITE_MARKETING_TITLE_POLICY.mobile, SITE_MARKETING_TITLE_POLICY.tablet, SITE_MARKETING_TITLE_POLICY.desktop], [24, 32, 36]);
-  const css = postcss.parse(typographySource);
-  const declarations = new Map<string, string[]>();
-  css.walkRules(".site-marketing-page", rule => {
-    const width = rule.parent?.type === "atrule" ? rule.parent.params : "mobile";
-    rule.walkDecls("--type-section-title-size", d => { declarations.set(width, [d.value]); });
-  });
-  assert.deepEqual([...declarations], [["mobile", ["var(--site-type-24)"]], ["(min-width: 768px)", ["var(--site-type-32)"]], ["(min-width: 1024px)", ["var(--site-type-36)"]]]);
-  assert.match(typographySource, /\.site-marketing-page :is\(\.type-page-title, \.type-section-title, \.type-display\) \{[^}]*line-height: 1\.2;/);
-  const source = readFileSync(join(projectRoot, "components/marketing/MarketingPages.tsx"), "utf8");
-  assert.match(source, /<main>\{children\}<\/main>/, "shared shell also serves non-marketing pages and must not own this scope");
-  assert.equal((source.match(/className=\{`site-marketing-page/g) ?? []).length, 2);
-});
-
-
 test("animated home uses one title style while the larger hero role remains available", () => {
   assert.deepEqual([SITE_HOME_HERO_TITLE_POLICY.mobile, SITE_HOME_HERO_TITLE_POLICY.tablet, SITE_HOME_HERO_TITLE_POLICY.desktop], [32,44,56]);
   const source = readFileSync(join(projectRoot, "components/marketing/MarketingPages.tsx"), "utf8");
@@ -547,41 +540,26 @@ test("animated home uses one title style while the larger hero role remains avai
   assert.match(typographySource, /--site-home-hero-title-size: clamp\(3\.5rem, calc\(2\.8rem \+ \.7vw\), 3\.9375rem\)/);
 });
 
-test('homepage trial keeps a responsive title/lead/body hierarchy inside its own scope',()=>{
-  const scope='.site-marketing-page[data-marketing-page="home"]';
-  const css=postcss.parse(typographySource);
-  for(const [width,device] of [[390,'mobile'],[820,'tablet'],[1440,'desktop']] as const){
-    const variables=new Map<string,string>();
-    const applied=new Map<string,Map<string,string>>();
-    for(const role of SITE_HOME_TYPE_POLICY)for(const name of role.classes)applied.set(name,new Map());
-    css.walkRules(rule=>{
-      const media=rule.parent;
-      if(media?.type==='atrule'){
-        const min=Number(media.params.match(/min-width: (\d+)px/)?.[1]??0);
-        if(width<min)return;
-      }
-      if(rule.selector===':root'||rule.selector===scope||rule.selector==='.site-marketing-page')rule.walkDecls(d=>{if(d.prop.startsWith('--'))variables.set(d.prop,d.value);});
-      if(!rule.selector.startsWith(scope)&&!rule.selector.startsWith('.site-marketing-page :is(')&&!rule.selectors.some(s=>applied.has(s.slice(1))))return;
-      for(const [name,values]of applied){
-        if(!new RegExp(`\\.${name}(?![\\w-])`).test(rule.selector))continue;
-        rule.walkDecls(d=>{values.set(d.prop,d.value);});
-      }
-    });
-    const resolve=(value:string):string=>value.replace(/var\((--[\w-]+)\)/g,(_,name)=>resolve(variables.get(name)??''));
-    for(const role of SITE_HOME_TYPE_POLICY)for(const name of role.classes){
-      const values=applied.get(name)!;
-      const size=values.get('font-size')??`var(--type-${role.key}-size)`;
-      assert.equal(parseFloat(resolve(size))*16,role[device],`${name}: size at ${width}`);
-      assert.equal(Number(resolve(values.get('font-weight')!)),role.weight,`${name}: weight`);
-      assert.equal(Number(resolve(values.get('line-height')!)),role.lineHeight,`${name}: leading`);
-      assert.equal(parseFloat(resolve(values.get('letter-spacing')!)),role.tracking[device],`${name}: tracking at ${width}`);
-    }
+test("공식 사이트의 주요 제목과 소개 문장은 화면 폭별 공통 위계를 따른다", () => {
+  const css = postcss.parse(typographySource);
+  const titleRoles = SITE_TYPE_ROLES.filter(role => "tabletLetterSpacing" in role);
+  for (const role of titleRoles) {
+    assert.equal(role.weight, 700);
+    assert.equal(role.lineHeight, 1.28);
+    assert.equal(role.tabletLetterSpacing, "-0.05em");
   }
-  const intro=SITE_HOME_TYPE_POLICY.find(role=>role.key==='lead')!;
-  const body=SITE_HOME_TYPE_POLICY.find(role=>role.key==='body')!;
-  const title=SITE_HOME_TYPE_POLICY.find(role=>role.key==='title')!;
-  for(const device of ['mobile','tablet','desktop'] as const){assert.ok(title[device]>intro[device]);assert.ok(intro[device]>body[device]);}
-  const trial=postcss.parse(typographySource.slice(typographySource.indexOf('/* Homepage trial:')));
-  trial.walkRules(rule=>assert.ok(rule.selector.startsWith(scope),'trial must not style another route, header, footer or renderer'));
-  assert.deepEqual(SITE_TYPE_ROLES.find(role=>role.key==='body')?.lineHeight,1.5,'ordinary page roles remain unchanged');
+  css.walkRules(".site-marketing-page", rule => {
+    assert.ok(!rule.nodes.some(node => node.type === "decl" && node.prop.endsWith("-size")));
+  });
+  const breakpoint = css.nodes.find(node => node.type === "atrule" && node.params === "(min-width: 768px)");
+  assert.match(breakpoint?.toString() ?? "", /--site-tracking-title: -0\.05em;/);
+  const description = SITE_TYPE_ROLES.find(role => role.key === "page-description")!;
+  const lead = SITE_TYPE_ROLES.find(role => role.key === "body-lg")!;
+  const body = SITE_TYPE_ROLES.find(role => role.key === "body")!;
+  const title = SITE_TYPE_ROLES.find(role => role.key === "page-title")!;
+  for (const device of ["mobile", "tablet", "desktop"] as const) {
+    assert.ok(title[device] > description[device]);
+    assert.equal(description[device], lead[device]);
+    assert.ok(lead[device] > body[device]);
+  }
 });
