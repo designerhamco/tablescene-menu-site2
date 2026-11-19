@@ -53,10 +53,10 @@ export default function TemplateFeatureAccordion({ feature, headingId, label, ti
   return <div ref={root} className={styles.feature} data-feature-accordion={feature} data-selected-item={selected} data-auto-playing={playing} data-image-ready={Boolean(loaded[slide.image])} data-slide-interval={INTERVAL_MS}
     onFocusCapture={event => setKeyboardFocus(event.target instanceof HTMLElement && event.target.matches(":focus-visible"))}
     onBlurCapture={event => { if (!event.currentTarget.contains(event.relatedTarget)) setKeyboardFocus(false); }}>
-    <header className={styles.sectionCopy}>
+    <header className={`site-stack-title ${styles.sectionCopy}`}>
       <p className={`type-caption ${styles.featureLabel}`}>{label}</p>
       <h2 id={headingId} className="type-section-title">{title}</h2>
-      <p className={`type-body ${styles.lede}`}>{description}</p>
+      <p className={`type-body-lg ${styles.lede}`}>{description}</p>
     </header>
     <figure className={styles.figure}>
       <div className={styles.imageBox} data-feature-image={slide.image}>
@@ -76,9 +76,9 @@ export default function TemplateFeatureAccordion({ feature, headingId, label, ti
           <button type="button" data-feature-trigger="" aria-pressed={selected === index} className={styles.trigger}
             onClick={event => { if (event.detail > 0) setKeyboardFocus(false); select(index); }}>
             <span className={`type-caption ${styles.itemNumber}`} aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-            <span className={styles.itemCopy}>
+            <span className="site-stack-copy">
               <span className={`type-content-title ${styles.itemTitle}`} role="heading" aria-level={3}>{item.title}</span>
-              <span className={`type-body-sm ${styles.itemDescription}`}>{item.description}</span>
+              <span className={`type-body ${styles.itemDescription}`}>{item.description}</span>
             </span>
           </button>
           <span className={styles.track} aria-hidden="true">{selected === index ? <span key={`${selected}-${cycle}`} className={styles.progress} style={{ animationDuration: `${INTERVAL_MS}ms`, animationPlayState: playing ? "running" : "paused" }} onAnimationEnd={() => { if (playing && !document.hidden) select(selected + 1); }} /> : null}</span>

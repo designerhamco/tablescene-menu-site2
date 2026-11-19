@@ -13,11 +13,11 @@ const icons = [PanelsTopLeft, ImageIcon, Tags, Timer, LayoutPanelTop, Megaphone,
 export default function TemplateDetailStory({ template }: { template: PublicTemplateDetail }) {
   const { info, album, supported } = getDetailFeaturePresentation(template);
   return <div className={styles.story} data-template-story="">
-    <section aria-labelledby="template-overview-title">
+    <section className="site-stack-content" aria-labelledby="template-overview-title">
       <div className={styles.heroImage}>
         <Image src={info.image} alt={`${template.name} 메뉴판 전체 구성`} width={1200} height={900} loading="eager" sizes="(min-width: 1600px) 1000px, (min-width: 768px) 63vw, 100vw" />
       </div>
-      <div className={styles.overviewCopy}>
+      <div className="site-stack-title">
         <h2 id="template-overview-title" className="type-section-title">메뉴판 하나에, 매일 필요한 기능을 담았어요</h2>
         <p className={`type-body-lg ${styles.description}`}>메뉴 소개부터 손님의 요청까지. 디자인별로 사용할 수 있는 기능을 확인해보세요.</p>
       </div>
@@ -26,8 +26,10 @@ export default function TemplateDetailStory({ template }: { template: PublicTemp
           const Icon = icons[index];
           return <li key={feature.id}><a href={`#feature-${feature.id}`} className={styles.featureCard} data-feature-card={feature.id}>
             <Icon size={24} strokeWidth={1.5} aria-hidden="true" />
-            <h3 className="type-content-title">{feature.label}</h3>
-            <p className="type-body-sm">{feature.summary}</p>
+            <div className="site-stack-copy">
+              <h3 className="type-content-title">{feature.label}</h3>
+              <p className="type-body">{feature.summary}</p>
+            </div>
           </a></li>;
         })}
       </ul>
