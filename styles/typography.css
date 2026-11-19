@@ -269,3 +269,45 @@
 @media (min-width: 1600px) {
   :root { --site-home-hero-title-size: clamp(3.5rem, calc(2.8rem + .7vw), 3.9375rem); }
 }
+
+/* Homepage trial: separate introductory copy from reading copy without
+ * changing shared navigation, other routes, or the renderer foundations. */
+.site-marketing-page[data-marketing-page="home"] {
+  --type-section-title-size: var(--site-type-28);
+  --type-content-title-size: var(--site-type-18);
+}
+.site-marketing-page[data-marketing-page="home"] :is(.type-page-title, .type-section-title, .type-display) {
+  font-weight: var(--font-weight-medium);
+  line-height: 1.28;
+  letter-spacing: -0.04em;
+}
+.site-marketing-page[data-marketing-page="home"] .type-body-lg {
+  font-weight: var(--font-weight-medium);
+  line-height: 1.55;
+  letter-spacing: -0.03em;
+}
+.site-marketing-page[data-marketing-page="home"] .type-subsection-title {
+  font-weight: var(--font-weight-medium);
+  line-height: 1.35;
+  letter-spacing: -0.04em;
+}
+.site-marketing-page[data-marketing-page="home"] .type-content-title {
+  font-weight: var(--font-weight-medium);
+  line-height: 1.4;
+  letter-spacing: -0.03em;
+}
+.site-marketing-page[data-marketing-page="home"] :is(.type-body, .site-body) {
+  line-height: 1.65;
+  letter-spacing: -0.02em;
+}
+.site-marketing-page[data-marketing-page="home"] :is(.type-body-sm, .site-body-sm) {
+  line-height: 1.6;
+  letter-spacing: -0.02em;
+}
+@media (min-width: 768px) {
+  .site-marketing-page[data-marketing-page="home"] { --type-section-title-size: var(--site-type-32); }
+  .site-marketing-page[data-marketing-page="home"] :is(.type-page-title, .type-section-title, .type-display) { letter-spacing: -0.05em; }
+}
+@media (min-width: 1024px) {
+  .site-marketing-page[data-marketing-page="home"] { --type-section-title-size: var(--site-type-36); }
+}

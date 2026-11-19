@@ -275,7 +275,7 @@ export function MarketingHome() {
               <br />
               한눈에 정리되도록
             </h2>
-            <p className="site-body text-zinc-500">
+            <p className="type-body-lg text-zinc-500">
               테이블과 키오스크, 주문과 호출까지. 매장에 필요한 운영 도구를 한곳에 모았습니다.
             </p>
           </MarketingCopyReveal>
@@ -316,7 +316,7 @@ export function MarketingHome() {
               <br />
               조금 더 넓게
             </h2>
-            <p className="site-body text-zinc-500">
+            <p className="type-body-lg text-zinc-500">
               손님의 선택은 편하게, 메뉴 관리는 간결하게.
             </p>
           </MarketingCopyReveal>
@@ -343,7 +343,7 @@ export function MarketingHome() {
               <br />
               바로 보여주세요
             </h2>
-            <p className="site-body text-zinc-500">
+            <p className="type-body-lg text-zinc-500">
               메뉴의 구성과 사용할 화면에 맞는 플랜을 선택하세요.
             </p>
           </MarketingCopyReveal>
