@@ -1,0 +1,34 @@
+[
+  {
+    "scene": "venue",
+    "sourceFilename": "01-venue Firefly Upscaler 2x 비율.jpg",
+    "sha256": "de8e808eaac556b9a34c6c8b6193d95ccbef225e022baa8ca689defe1ea3fb0c",
+    "width": 4344,
+    "height": 1448,
+    "upscale": 2
+  },
+  {
+    "scene": "counter",
+    "sourceFilename": "02-counter-hand-v2 Firefly Upscaler 2x 비율.jpg",
+    "sha256": "27e0f25148cdcf2710bfd3c96d90b8dde001062fa20b2617b5d875be17a96e52",
+    "width": 4344,
+    "height": 1448,
+    "upscale": 2
+  },
+  {
+    "scene": "dining",
+    "sourceFilename": "03-dining-server Firefly Upscaler 2x 비율.jpg",
+    "sha256": "dea30b791a88a54a26de11455906395ad38dad26f4ac129ecb3ea32b4aec0510",
+    "width": 4344,
+    "height": 1448,
+    "upscale": 2
+  },
+  {
+    "scene": "phone",
+    "sourceFilename": "04-phone-qr Firefly Upscaler 2x 비율.jpg",
+    "sha256": "dd4d7c887ed7f0064e70190883d4b5da4769547a6f8c3fdaa63851b5164057e1",
+    "width": 4344,
+    "height": 1448,
+    "upscale": 2
+  }
+]

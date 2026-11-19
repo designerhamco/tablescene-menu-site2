@@ -3,7 +3,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import sharp from 'sharp';
-const output='public/assets/hero-cafe-v6';
+const output='public/assets/hero-cafe-v7';
 const width=4608,height=1536;
 const profiles={
  lateral:[[0,0],[12,0],[26,1],[74,1],[88,0],[100,0]],
@@ -18,10 +18,10 @@ const masks=Object.entries(profiles).map(([id,stops])=>{
 const geometry=JSON.parse(await readFile('lib/hero-photo-geometry.json','utf8'));
 await mkdir(output,{recursive:true});const assets=[];
 for(const scene of ['venue','counter','dining','phone']){
- const sourcePath=`assets/hero-photo-sources-v6/${geometry[scene].source}`,source=await readFile(sourcePath),metadata=await sharp(source).metadata();
+ const sourcePath=`assets/hero-photo-sources-v7/${geometry[scene].source}`,source=await readFile(sourcePath),metadata=await sharp(source).metadata();
  if(metadata.width*height!==metadata.height*width)throw new Error(`${scene}: expected finished3:1 photograph`);
  // Encode the complete approved photograph once; never restore an old rectangle.
- const display=await sharp(source).rotate().webp({quality:90,effort:5}).toBuffer();
+ const display=await sharp(source).rotate().webp({quality:95,effort:5}).toBuffer();
  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}"><defs>${masks}<filter id="edgeBlur" filterUnits="userSpaceOnUse" x="-128" y="-128" width="4864" height="1792"><feGaussianBlur stdDeviation="48"/></filter><image id="photo" width="${width}" height="${height}" href="data:image/webp;base64,${display.toString('base64')}"/></defs><g mask="url(#verticalMask)"><use href="#photo" filter="url(#edgeBlur)" mask="url(#lateralMask)"/></g><g mask="url(#clearVerticalMask)"><use href="#photo" mask="url(#clearLateralMask)"/></g></svg>`;
  const file=`${scene}-composition.svg`;await writeFile(`${output}/${file}`,svg);
  assets.push({scene,file,sourcePath,sourceSha256:createHash('sha256').update(source).digest('hex'),nativeWidth:metadata.width,nativeHeight:metadata.height,displayBytes:display.length,embeddedPhotographs:1});

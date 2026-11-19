@@ -17,8 +17,8 @@ export function heroLandscapePosition(width: number, height: number, scale: numb
 }
 /** One finished photograph per scene; no old-photo inserts or internal joins. */
 export const HERO_COMPOSITIONS = {
-  venue: "/assets/hero-cafe-v6/venue-composition.svg",
-  counter: "/assets/hero-cafe-v6/counter-composition.svg",
-  dining: "/assets/hero-cafe-v6/dining-composition.svg",
-  phone: "/assets/hero-cafe-v6/phone-composition.svg",
+  venue: "/assets/hero-cafe-v7/venue-composition.svg",
+  counter: "/assets/hero-cafe-v7/counter-composition.svg",
+  dining: "/assets/hero-cafe-v7/dining-composition.svg",
+  phone: "/assets/hero-cafe-v7/phone-composition.svg",
 } as const;
