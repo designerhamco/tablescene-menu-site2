@@ -77,11 +77,15 @@ body {
   padding-inline: var(--site-gutter);
 }
 
-/* Only the home/basic/dining/display body opts into edge gutters, without a wide-screen max-width. */
+/* Marketing gutters remain shared; the current homepage bounds content only. */
 .site-marketing-container {
   width: 100%;
   margin-inline: auto;
   padding-inline: var(--site-gutter);
+}
+
+.site-marketing-page[data-marketing-page="home"] .site-marketing-container {
+  max-width: var(--site-content-max);
 }
 
 .site-page-spacing {

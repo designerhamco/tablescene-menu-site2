@@ -157,7 +157,7 @@ test("사이트 UI는 의미 기반 타이포 역할과 영문 Tenor Sans·한�
 });
 
 
-test("only marketing bodies use edge gutters and all four introductions share their top rhythm", () => {
+test("marketing gutters stay shared and homepage content uses the canonical container cap", () => {
   const source = readSource("../components/marketing/MarketingPages.tsx");
   const styles = readSource("../components/marketing/marketing.module.css");
   assert.match(source, /<SitePageHeader/);
@@ -166,6 +166,7 @@ test("only marketing bodies use edge gutters and all four introductions share th
   assert.match(readSource("../components/marketing/UsageGuides.tsx"), /site-marketing-container/);
   assert.match(globalsSource, /\.site-marketing-container \{[^}]*padding-inline: var\(--site-gutter\);/);
   assert.doesNotMatch(globalsSource.match(/\.site-marketing-container \{[^}]*\}/)?.[0] ?? "", /max-width/);
+  assert.match(globalsSource, /\.site-marketing-page\[data-marketing-page="home"\] \.site-marketing-container \{\s*max-width: var\(--site-content-max\);/);
   assert.match(styles, /\.hero \{\s*padding-block: var\(--site-page-heading-top\)/);
   assert.doesNotMatch(styles, /max-width: (?:70|72|80)rem/);
 });

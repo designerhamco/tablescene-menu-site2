@@ -2,7 +2,7 @@
 
 네 파일 모두2172×724(3:1). 사진 자체는 재보정·접합하지 않는다.
 
-- `counter.jpg`: 사용자가 전달한 `/Users/hamco/Downloads/바꾼여자손.jpg`의 동일한 복사본. SHA256 `a86495898b69c77515e8fc1163510b462e4fb63c7db0b73cce39e9f09ec6bf3b`.
+- `counter.jpg`: 사용자가 전달한 `/Users/hamco/Downloads/바꾼여자손2.jpg`의 동일한 복사본. SHA256 `94860c7bd2f74114a0f3edd898dc5c998001765a94e866db17d82865102b744e`.
 - `dining.jpg`: 사용자가 전달한 `/Users/hamco/Downloads/서버있는접합.jpg`의 동일한 복사본. SHA256 `218ae3f687a7c0ee826bf6c9c23775c6f897e1e6e18aa659d343e81465c7e569`.
 - `venue.png`: 기존 생성 결과 `exec-41ebc69a-72ba-44cd-84e8-143c9533e035.png`. 사용자가 복도·창·카운터·테이블의 기준으로 지정한 최초3:1 매장 전경. 이후 변형 전경으로 바꾸지 않는다.
 - `phone.webp`: 기존 생성 결과 `exec-bf26a6a2-c0af-4342-aecb-8fa1948b0341.png`를 lossless WebP로 보관한 최신 QR 사진. 직선 복도·목재 문으로 교정된 버전이다.
