@@ -1,0 +1,18 @@
+/* ArtiMenu viewer chrome: independent of customer artwork and saved menu fonts. */
+.surface, .languageMenu {
+  font-family: var(--font-family-site); font-size: var(--type-control-size); line-height: var(--site-leading-control);
+  color: var(--ui-text); background: #fff; border: 1px solid var(--ui-border);
+  border-radius: 1rem; box-shadow: 0 6px 24px rgb(0 0 0 / 10%), 0 1px 3px rgb(0 0 0 / 5%);
+}
+.pagination { display: flex; align-items: center; gap: .25rem; padding: .25rem; }
+.counter { display: inline-flex; align-items: baseline; justify-content: center; gap: .375rem; min-width: 4rem; padding: .625rem .75rem; border-radius: .625rem; background: #17191d; color: #fff; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.current { font-weight: 600; }
+.total { color: #c7c9ce; }
+.languageTrigger { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: calc(var(--ui-control-height-md) + .5rem + 2px); padding: .625rem .875rem; font-weight: 600; cursor: pointer; transition: background-color var(--ui-transition); }
+.languageTrigger:hover:not(:disabled), .languageTrigger[aria-expanded="true"] { background: #f4f4f5; }
+.languageTrigger:focus-visible, .languageItem:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 2px; }
+.languageTrigger:disabled { cursor: default; }
+.languageMenu { position: absolute; z-index: 30; min-width: 9rem; padding: var(--ui-menu-inset); overflow: hidden; }
+.languageItem { display: flex; align-items: center; min-height: var(--ui-menu-row-height); padding: 0 .75rem; border-radius: .625rem; color: var(--ui-text); font-weight: 500; text-decoration: none; }
+.languageItem:hover { background: #f4f4f5; }
+.languageItem[aria-current="true"] { background: #17191d; color: #fff; }

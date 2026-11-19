@@ -418,7 +418,7 @@ test("catalog and saved preview collapse arrows stay bare in both states without
 test("display actual previews keep manual bottom navigation and a dedicated onboarding layer", () => {
   assert.doesNotMatch(displayTemplateSource, /isPlaybackPreview/);
   assert.match(displayTemplateSource, /if \(props.mode !== "public" \|\| displayPages.length <= 1\)/);
-  assert.match(displayTemplateSource, /data-display-bottom-page-count/);
+  assert.match(displayTemplateSource, /<MenuViewerPagination/);
   assert.match(fullscreenControlSource, /!guideOpen \|\| isFullscreen/);
   const hint = readFileSync(new URL("../components/menu/DisplayBottomControlsGuide.tsx", import.meta.url), "utf8");
   assert.match(hint, /showModal\(\)/);

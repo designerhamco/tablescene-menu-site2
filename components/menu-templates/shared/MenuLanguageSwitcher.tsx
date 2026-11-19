@@ -7,6 +7,8 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import { LOCALE_LABELS, type SupportedLocale } from "@/lib/locales";
 import ScriptAwareText from "./ScriptAwareText";
+import MenuViewerLanguageLabel from "@/components/menu/MenuViewerLanguageLabel";
+import viewerStyles from "@/components/menu/MenuViewerControls.module.css";
 
 type MenuLanguageSwitcherProps = {
   currentLocale: SupportedLocale;
@@ -14,7 +16,7 @@ type MenuLanguageSwitcherProps = {
   compact?: boolean;
   menuPlacement?: "top" | "bottom";
   extraSearchParams?: Record<string, string | null | undefined>;
-  triggerVariant?: "default" | "cafe" | "aube";
+  triggerVariant?: "default" | "cafe" | "aube" | "viewer";
   menuAlign?: "left" | "right";
   tone?: "default" | "inverse";
   scriptAwareLabels?: boolean;
@@ -72,7 +74,8 @@ export default function MenuLanguageSwitcher({
   const rootRef = useRef<HTMLDivElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const visibleLocales = enabledLocales.filter((locale, index) => enabledLocales.indexOf(locale) === index);
-  const menuPlacementClassName = menuPlacement === "top" ? "bottom-12" : "top-12";
+  const viewer = triggerVariant === "viewer";
+  const menuPlacementClassName = viewer ? (menuPlacement === "top" ? "bottom-full mb-2" : "top-full mt-2") : menuPlacement === "top" ? "bottom-12" : "top-12";
   const menuAlignClassName = menuAlign === "left" ? "left-0" : "right-0";
 
   // Keep either anchor inside the actual viewport, including iframe previews.
@@ -122,7 +125,7 @@ export default function MenuLanguageSwitcher({
   if (visibleLocales.length === 0 || (visibleLocales.length === 1 && triggerVariant !== "aube" && !iconOnly && !showCurrentLocale)) return null;
 
   const triggerClassName =
-    triggerVariant === "cafe"
+    viewer ? `${viewerStyles.surface} ${viewerStyles.languageTrigger}` : triggerVariant === "cafe"
       ? `inline-flex cursor-pointer list-none items-center justify-center border border-transparent bg-transparent shadow-none transition-colors focus-visible:outline-none focus-visible:ring-2 [&::-webkit-details-marker]:hidden ${
           tone === "inverse"
             ? "text-[#F4EDDC] hover:bg-[#F4EDDC]/10 focus-visible:ring-[#F4EDDC]/40"
@@ -167,12 +170,12 @@ export default function MenuLanguageSwitcher({
           if (visibleLocales.length > 1) setIsOpen((current) => !current);
         }}
       >
-        {triggerVariant === "cafe" ? (
+        {viewer ? null : triggerVariant === "cafe" ? (
           <CafeWireframeGlobeIcon className={iconClassName} />
         ) : triggerVariant === "default" || (triggerVariant === "aube" && iconOnly) ? (
           <Globe2 className={iconClassName} strokeWidth={2} aria-hidden="true" />
         ) : null}
-        {triggerVariant === "cafe" && !iconOnly ? (
+        {viewer ? <MenuViewerLanguageLabel locale={SHORT_LOCALE_LABELS[currentLocale]} expanded={isOpen} /> : triggerVariant === "cafe" && !iconOnly ? (
           <>
             <span className="leading-none">{scriptAwareLabels ? <ScriptAwareText text={SHORT_LOCALE_LABELS[currentLocale]} /> : SHORT_LOCALE_LABELS[currentLocale]}</span>
             <ChevronDown className={chevronClassName} strokeWidth={1.8} aria-hidden="true" />
@@ -192,7 +195,7 @@ export default function MenuLanguageSwitcher({
           role="menu"
           data-language-menu-surface=""
           style={triggerVariant === "aube" ? { color: "var(--menu-dining-language-ink, #191c1b)" } : undefined}
-          className={`absolute z-30 overflow-hidden border border-zinc-200 bg-white py-1 text-left ${menuPlacementClassName} ${menuAlignClassName} ${
+          className={viewer ? `${viewerStyles.languageMenu} ${menuPlacementClassName} ${menuAlignClassName}` : `absolute z-30 overflow-hidden border border-zinc-200 bg-white py-1 text-left ${menuPlacementClassName} ${menuAlignClassName} ${
             triggerVariant === "aube" ? "min-w-20 rounded-md shadow-none" : "min-w-36 rounded-lg shadow-xl"
           }`}
         >
@@ -203,7 +206,7 @@ export default function MenuLanguageSwitcher({
               role="menuitem"
               data-language-menu-item=""
               aria-current={locale === currentLocale ? "true" : undefined}
-              className={`block px-3 py-2 transition hover:bg-zinc-50 ${
+              className={viewer ? viewerStyles.languageItem : `block px-3 py-2 transition hover:bg-zinc-50 ${
                 triggerVariant === "aube" ? "text-[13px] font-medium tracking-[0.1em]" : "text-sm font-bold"
               } ${
                 locale === currentLocale ? "text-zinc-950" : "text-zinc-500"

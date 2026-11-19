@@ -1,7 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { Clock3, ChevronLeft, ChevronRight } from "lucide-react";
+import { Clock3 } from "lucide-react";
+import MenuViewerPagination from "@/components/menu/MenuViewerPagination";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
@@ -1505,12 +1506,8 @@ function DisplayPageIndicator({
   onSelect: (pageId: string) => void;
 }) {
   const index = pages.findIndex(page => page.id === activePageId);
-  const buttonClass = "inline-flex h-11 min-w-11 items-center justify-center gap-1 rounded-full px-2 text-[13px] font-semibold text-slate-800 hover:bg-[#EFF7F6] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#007C89] disabled:pointer-events-none disabled:opacity-40";
-  return <nav aria-label="디스플레이 페이지 이동" className="flex items-center gap-1 rounded-full border border-[#D7E4E3] bg-white p-1">
-    <button type="button" className={buttonClass} aria-label="이전 페이지" disabled={index <= 0} onClick={() => onSelect(pages[index - 1].id)}><ChevronLeft className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">이전</span></button>
-    <span role="status" aria-live="polite" className="whitespace-nowrap px-2 text-[13px] font-semibold tabular-nums" data-display-bottom-page-count="">{index + 1} / {pages.length}</span>
-    <button type="button" className={buttonClass} aria-label="다음 페이지" disabled={index >= pages.length - 1} onClick={() => onSelect(pages[index + 1].id)}><span className="hidden sm:inline">다음</span><ChevronRight className="h-4 w-4" aria-hidden="true" /></button>
-  </nav>;
+  return <MenuViewerPagination page={index + 1} count={pages.length}
+    onPrevious={() => onSelect(pages[index - 1].id)} onNext={() => onSelect(pages[index + 1].id)} />;
 }
 
 function useDisplayBottomControls() {
@@ -1779,7 +1776,7 @@ export default function DisplayMenuA(props: PublicMenuTemplateProps) {
             compact
             menuPlacement="top"
             extraSearchParams={{ page: activePageParam }}
-            triggerVariant="cafe"
+            triggerVariant="viewer"
           />
         </div>
         <section className={`relative h-screen w-screen overflow-hidden ${
