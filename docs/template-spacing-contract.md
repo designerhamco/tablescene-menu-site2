@@ -328,6 +328,14 @@ Representative alignment has its own Design section. Store identity follows the 
 
 Every Basic catalog/default/album presentation offers independent ordinary-chip and time-sale-chip background and text colors. Temporary validated `designPreview.chipColors` values apply through the shared appearance scope; background-only edits choose readable foregrounds. Sold-out/state chips, discounted price colors and original customer content remain independent. Device navigation, detached views and reset retain the existing preview contract. Dining/Display do not gain controls for unsupported chip features. The default neutral LOGO asset centers its combined icon/text artwork without changing its frame ratio.
 
+### 베이직 확대 아이콘 박스와 좌상단 대표영역 예외 — 2026-11-19 (현행)
+
+베이직 기본·디자인 템플릿의 리스트형·앨범형에서 상품 이미지 안의 확대 아이콘 배경 박스도 공통 라운드를 따른다. 이미지 0·8·16·24px에 각각 확대 박스 0·2·4·6px을 사용한다. 기존 개별 저장값은 상품 이미지 라운드의 1/4을 사용하되 최대 6px로 제한하며, 저장값 자체를 바꾸지 않는다. 루프베이글의 별도 고정 라운드도 이 공통 연동값을 따른다. 아이콘 도형·크기·색상·위치와 상품 이미지 전체의 확대 클릭 영역은 유지한다.
+
+온유 테이블과 기본 좌상단 배치형은 대표영역 사진의 바깥 프레임과 내부 이미지 프레임을 항상 0px로 유지한다. 이 구조적 예외는 대표영역에만 적용하고 상품·광고·위젯 이미지와 텍스트칩은 공통 선택값을 따른다. 기존 대표 이미지 저장값은 보존하며 화면 렌더링에서만 예외를 적용한다. 대표영역의 PC·태블릿 4:3, 모바일 1:1 비율과 내용·아이콘 배치는 유지한다.
+
+두 규칙은 PC·태블릿·모바일의 카탈로그 보기 옵션, 메뉴판 편집의 디자인 설정과 저장된 실제 메뉴판에 같은 `MenuAppearanceScope`로 적용한다. 다이닝·디스플레이에는 확대 아이콘을 추가하거나 기존 모양을 변경하지 않는다. `scripts/qa-basic-image-shapes.mjs`에서 실제 프레임 라운드, 확대 박스 연동, 대표 이미지 비율, 프리셋 변경·초기화와 이미지 확대 동작을 확인한다.
+
 ## Center-column responsive geometry and actions — 2026-11-19 (current)
 
 User-approved final policy for ROSY ORANGE and the neutral `basic-center-column` list on PC/tablet. This replaces the 2026-10-23 side-by-side action rule and the review-only 24%-left and 50:50 trials. Mobile keeps its independent representative, Call bar, reading flow and bottom dock; other layout families, Dining, Display and retained canvas engines are unchanged.
