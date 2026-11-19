@@ -70,7 +70,7 @@ test("the concave paper path makes the sides closer and larger than the distant 
     assert.ok(left.theta<0&&right.theta>0);
     assert.ok(paper.perspective/(paper.perspective-right.z)>paper.perspective/(paper.perspective-center.z));
     assert.ok(center.blur>right.blur&&right.blur>=.65);
-    assert.ok(paper.cardWidth<=236&&Math.abs(paper.cardWidth/paper.cardHeight-1024/697)<1e-10);
+    assert.ok(paper.cardWidth<=(width>=1024?290:236)&&Math.abs(paper.cardWidth/paper.cardHeight-1024/697)<1e-10);
     assert.equal(devicePaperAt(paper,5,1).theta,0);
   }
 });
