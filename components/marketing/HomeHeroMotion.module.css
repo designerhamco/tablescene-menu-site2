@@ -8,14 +8,11 @@
 .plane[data-active="true"] { visibility:visible; transition-delay:0s; }
 .stage[data-rendering="false"] .plane { visibility:hidden; transition:none; }
 .ambient { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; filter:blur(48px); transform:scale(1.1); opacity:.65; }
-.framing { position:absolute; top:0; height:100%; overflow:hidden; }
-.framing[data-feathered="true"] { mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent); }
+.framing { position:absolute; top:0; height:100%; overflow:visible; }
 .canvas { position:absolute; top:0; left:0; width:1536px; height:1024px; transform-origin:0 0; }
 .photo { position:absolute; inset:0; width:1536px; height:1024px; max-width:none; object-fit:cover; }
 .surroundings { transform-origin:0 0; }
-@media (max-width:1023px) {
-  .original { mask-image:linear-gradient(transparent,#000 8%,#000 92%,transparent),linear-gradient(90deg,transparent,#000 4%,#000 96%,transparent); mask-composite:intersect; }
-}
+.original,.finger { mask-image:linear-gradient(transparent,#000 3%,#000 97%,transparent),linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent); mask-composite:intersect; }
 /* Phone outline is traced in photo coordinates; the projected UI extends behind it. */
 .phoneMask { position:absolute; inset:0; clip-path:path("M900 181 L1102.5 190.7 C1118 191.2 1126.7 202.5 1124 222 L1072.5 765 C1071 783 1060 795 1038.5 793 L837 776.7 C821 775 812 764 814 748 L868 218 C870 196 877 181 900 181 Z"); }
 .screen { position:absolute; top:0; left:0; transform-origin:0 0; overflow:hidden; background:#f9faf7; backface-visibility:hidden; }
