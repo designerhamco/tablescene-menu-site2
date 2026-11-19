@@ -2908,6 +2908,7 @@ export default function ApplyOrderForm({
             type="button"
             onClick={handlePayment}
             disabled={paymentButtonDisabled}
+            data-purpose="primary-action"
             className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center"
           >
             {activeProduct.product_key === personalTrialBasicProduct.product_key && paymentButtonLabel.includes("신청") ? "동의하고 첫 달 체험 시작하기" : isFormReady && !isLoading ? "동의하고 메뉴판 생성하기" : paymentButtonLabel}

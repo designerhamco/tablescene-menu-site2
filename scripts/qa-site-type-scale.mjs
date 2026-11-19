@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { chromium } from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 
 const base = process.env.SITE_TYPE_QA_BASE_URL || "http://127.0.0.1:3039";
 const screenshotPath = process.env.SITE_TYPE_QA_SCREENSHOT || "/tmp/artimenu-site-type-scale-1440.png";
@@ -13,6 +13,7 @@ const routes = [
   "/sign-in",
   "/pricing",
   "/faq",
+  "/faq/notices",
 ];
 const widths = [390, 820, 1440];
 const forbiddenSizes = new Set([17, 22, 26]);
@@ -60,7 +61,7 @@ try {
   for (const width of widths) {
     const page = await browser.newPage({ viewport: { width, height: 1100 }, reducedMotion: "reduce" });
     const pageErrors = [];
-    page.on("pageerror", error => pageErrors.push(error.message));
+    page.on("pageerror", error => pageErrors.push(`${page.url()}: ${error.stack ?? error.message}`));
 
     for (const route of routes) {
       const response = await page.goto(`${base}${route}`, { waitUntil: "domcontentloaded" });
@@ -74,6 +75,34 @@ try {
 
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
       assert.ok(overflow <= 1, `${route} ${width}px has ${overflow}px horizontal overflow`);
+
+      if (width >= 1024) {
+        const primaryActions = page.locator('main :is(.site-button-lg.site-button-primary, .site-button[data-purpose="primary-action"]):visible');
+        if (["/apply", "/pricing", "/sign-in", "/templates/cafe_mocha_forest_a"].includes(route)) {
+          await expect(primaryActions.first(), `${route} has a visible primary action`).toBeVisible();
+        }
+        for (const button of await primaryActions.all()) await expect(button).toHaveCSS("font-size", "16px");
+
+        const mainTabs = page.locator('.site-page-tabs[data-purpose="page"] > .site-tab:visible');
+        if (["/templates", "/guides", "/faq/notices"].includes(route)) {
+          await expect(mainTabs.first(), `${route} has visible principal tabs`).toBeVisible();
+        }
+        for (const tab of await mainTabs.all()) await expect(tab).toHaveCSS("font-size", "16px");
+
+        const sections = page.locator('.site-area-tabs[data-purpose="section"] > .site-area-tab:visible');
+        for (const tab of await sections.all()) await expect(tab).toHaveCSS("font-size", "14px");
+
+        if (route === "/templates") {
+          const service = page.getByRole("tablist", { name: "서비스 선택" });
+          const basic = service.getByRole("tab", { name: "베이직", exact: true });
+          await page.waitForLoadState("load");
+          await basic.click();
+          await basic.press("ArrowRight");
+          await expect(service.getByRole("tab", { name: "다이닝", exact: true })).toHaveAttribute("aria-selected", "true");
+          await service.getByRole("tab", { name: "베이직", exact: true }).click();
+          await expect(basic).toHaveAttribute("aria-selected", "true");
+        }
+      }
 
       const metrics = await semanticMetrics(page);
       const step = widths.indexOf(width);

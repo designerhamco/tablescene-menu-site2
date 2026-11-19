@@ -39,7 +39,7 @@ export default function PricingPage() {
           <div className="site-notice mb-8 p-5">
             <p className="type-body-sm">모든 금액은 부가세 포함입니다. 오픈 얼리버드는 2026년 10월 1일부터 12월 31일까지 가입할 수 있으며, 구독 유지 중 할인 가격이 유지됩니다.</p>
             <p className="type-body-sm mt-2">메뉴판마다 기본 디자인 또는 디자인 포함 이용권을 선택합니다. 같은 서비스 안에서 이용권에 포함된 디자인끼리 교체할 수 있습니다.</p>
-            <div className="mt-4 flex flex-wrap gap-3"><Link href="/apply" className="site-button site-button-primary">상품 선택하기</Link><Link href="/mypage" className="site-button site-button-link">마이페이지</Link></div>
+            <div className="mt-4 flex flex-wrap gap-3"><Link href="/apply" data-purpose="primary-action" className="site-button site-button-primary">상품 선택하기</Link><Link href="/mypage" className="site-button site-button-link">마이페이지</Link></div>
           </div>
 
           <section aria-labelledby="basic-products-heading">
@@ -68,6 +68,7 @@ export default function PricingPage() {
                   {"href" in plan ? (
                     <Link
                       href={plan.href}
+                      data-purpose="primary-action"
                       className="site-button site-button-primary mt-6 inline-flex w-full items-center justify-center"
                     >
                       {plan.cta}

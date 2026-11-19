@@ -70,6 +70,7 @@ export default async function ApplyDisplayPage({
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/apply"
+                data-purpose="primary-action"
                 className="site-button site-button-primary inline-flex items-center justify-center"
               >
                 상품 선택으로 돌아가기
