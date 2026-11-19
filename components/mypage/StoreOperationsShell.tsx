@@ -81,8 +81,8 @@ export default async function StoreOperationsShell({
   const allCalls = allMenuOperationSites(sites, "calls");
 
   return (
-    <SitePage title="매장 운영" align="start">
-      <div className="site-management-scope site-account-page">
+    <SitePage title="매장 운영" align="start" typography="management">
+      <div className="site-account-page">
           <div className="site-account-layout">
             <StoreOperationsNavigation
               activeKey={`${allMenus ? ALL_MENU_SITE_ID : selectedSite?.menuSiteId ?? "none"}:${activeSection}`}
