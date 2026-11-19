@@ -52,7 +52,7 @@ export default function BasicServiceStory() {
         <div className={`site-marketing-container ${styles.introLayout}`}>
           <div className={`site-stack-title ${styles.introCopy}`} style={staticLayout ? undefined : { opacity: state.introCopy, transform: `translateY(${(1 - state.introCopy) * 12}px)` }}>
             <h2 id="service-basic-heading" className="type-section-title">베이직</h2>
-            <p className={`type-body ${styles.description}`}>시그니처부터 오늘의 혜택까지, 한 장에 담는 우리 매장의 메뉴판.</p>
+            <p className={`type-body-lg ${styles.description}`}>시그니처부터 오늘의 혜택까지, 한 장에 담는 우리 매장의 메뉴판.</p>
           </div>
           <BasicTemplateShowcase active={state.chapter === -1 || staticLayout} reveal={staticLayout ? 1 : state.tablet}/>
         </div>

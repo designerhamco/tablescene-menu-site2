@@ -37,7 +37,7 @@ export default function DevicePlatformStory(){
           <MarketingCopyReveal>
             <motion.div key={String(linkCopy)} className="site-stack-title" data-device-message={linkCopy?"link":"devices"} initial={reduced?false:{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{duration:reduced?0:.35}}>
               <h2 id="device-platform-heading" className="type-section-title">{linkCopy?<>웹 링크 하나로, <br className={styles.copyBreak}/>어디서든 자유롭게.</>:<>하나의 메뉴판, <br className={styles.copyBreak}/>모든 디바이스에서.</>}</h2>
-              <p className="type-body site-copy-muted">{linkCopy?<>화면이 크든 작든, 폴더블이든 걱정 없이 <br className={styles.copyBreak}/>반응형 웹 기술로 자연스럽게 보여집니다.</>:<>PC부터 태블릿, 스마트폰까지. <br className={styles.copyBreak}/>우리 매장의 메뉴를 어디서나 보여주세요.</>}</p>
+              <p className="type-body-lg site-copy-muted">{linkCopy?<>화면이 크든 작든, 폴더블이든 걱정 없이 <br className={styles.copyBreak}/>반응형 웹 기술로 자연스럽게 보여집니다.</>:<>PC부터 태블릿, 스마트폰까지. <br className={styles.copyBreak}/>우리 매장의 메뉴를 어디서나 보여주세요.</>}</p>
             </motion.div>
           </MarketingCopyReveal>
         </div>

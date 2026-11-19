@@ -134,7 +134,7 @@ export default function HomeHeroMotion() {
         <motion.div key={chapter} className={styles.caption} aria-live="off" initial={reduced?false:{opacity:0,y:12}} animate={{opacity:1,y:0}} transition={{duration:reduced?0:.5,ease:[.22,1,.36,1]}}>
           <p className="type-caption">{scene.label}</p>
           <Heading className="type-section-title">{scene.title}</Heading>
-          <p className="type-body">{scene.body}</p>
+          <p className="type-body-lg">{scene.body}</p>
         </motion.div>
         <nav className={styles.progress} data-hero-progress aria-label="서비스 소개 진행">
           {HERO_CAFE_CHAPTERS.map((item,index)=>{

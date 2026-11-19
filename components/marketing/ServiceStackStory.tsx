@@ -35,7 +35,7 @@ export default function ServiceStackStory() {
           </div>
           <div className="site-stack-title">
             <h2 id={`service-${service.key}-heading`} className="type-section-title">{service.name}</h2>
-            <p className={`type-body ${styles.description}`}>{service.body}</p>
+            <p className={`type-body-lg ${styles.description}`}>{service.body}</p>
           </div>
         </MarketingCopyReveal>
         <div className={styles.composition} data-service-artwork>

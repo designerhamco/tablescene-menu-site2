@@ -14,6 +14,7 @@ import {
   SITE_WIDE_TYPE_POLICY,
   SITE_MARKETING_TITLE_POLICY,
   SITE_HOME_HERO_TITLE_POLICY,
+  SITE_HOME_TYPE_POLICY,
   getSiteWideTypeScale,
   siteTypeSizeCss,
 } from "./site-typography";
@@ -363,8 +364,9 @@ test("컴포넌트 밀도 조정은 사이트 탐색·페이지 제목·본문 �
     assert.deepEqual([role?.mobile, role?.tablet, role?.desktop], sizes, key);
     postcss.parse(typographySource).walkDecls(`--type-${key}-size`, declaration => {
       const selector = declaration.parent?.type === "rule" && declaration.parent.selector;
-      if (selector === '.site-marketing-page[data-marketing-page="home"]' && key === "display") {
-        assert.equal(declaration.value, "var(--site-home-hero-title-size)");
+      if (selector === '.site-marketing-page[data-marketing-page="home"]' && ["display", "section-title"].includes(key)) {
+        if(key === "display")assert.equal(declaration.value, "var(--site-home-hero-title-size)");
+        else assert.match(declaration.value,/^var\(--site-type-(?:28|32|36)\)$/);
       } else if (selector === ".site-marketing-page" && ["display", "page-title", "section-title"].includes(key)) {
         assert.match(declaration.value, /^var\(--(?:site-type-(?:24|32|36)|type-section-title-size)\)$/);
       } else {
@@ -542,4 +544,43 @@ test("animated home uses one title style while the larger hero role remains avai
   assert.match(motion, /<Heading className="type-section-title">\{scene.title\}<\/Heading>/);
   assert.match(readFileSync(join(projectRoot, "components/layout/SitePageHeader.tsx"), "utf8"), /titleRole === "hero" \? "type-display" : "type-page-title"/);
   assert.match(typographySource, /--site-home-hero-title-size: clamp\(3\.5rem, calc\(2\.8rem \+ \.7vw\), 3\.9375rem\)/);
+});
+
+test('homepage trial keeps a responsive title/lead/body hierarchy inside its own scope',()=>{
+  const scope='.site-marketing-page[data-marketing-page="home"]';
+  const css=postcss.parse(typographySource);
+  for(const [width,device] of [[390,'mobile'],[820,'tablet'],[1440,'desktop']] as const){
+    const variables=new Map<string,string>();
+    const applied=new Map<string,Map<string,string>>();
+    for(const role of SITE_HOME_TYPE_POLICY)for(const name of role.classes)applied.set(name,new Map());
+    css.walkRules(rule=>{
+      const media=rule.parent;
+      if(media?.type==='atrule'){
+        const min=Number(media.params.match(/min-width: (\d+)px/)?.[1]??0);
+        if(width<min)return;
+      }
+      if(rule.selector===':root'||rule.selector===scope||rule.selector==='.site-marketing-page')rule.walkDecls(d=>{if(d.prop.startsWith('--'))variables.set(d.prop,d.value);});
+      if(!rule.selector.startsWith(scope)&&!rule.selector.startsWith('.site-marketing-page :is(')&&!rule.selectors.some(s=>applied.has(s.slice(1))))return;
+      for(const [name,values]of applied){
+        if(!new RegExp(`\\.${name}(?![\\w-])`).test(rule.selector))continue;
+        rule.walkDecls(d=>{values.set(d.prop,d.value);});
+      }
+    });
+    const resolve=(value:string):string=>value.replace(/var\((--[\w-]+)\)/g,(_,name)=>resolve(variables.get(name)??''));
+    for(const role of SITE_HOME_TYPE_POLICY)for(const name of role.classes){
+      const values=applied.get(name)!;
+      const size=values.get('font-size')??`var(--type-${role.key}-size)`;
+      assert.equal(parseFloat(resolve(size))*16,role[device],`${name}: size at ${width}`);
+      assert.equal(Number(resolve(values.get('font-weight')!)),role.weight,`${name}: weight`);
+      assert.equal(Number(resolve(values.get('line-height')!)),role.lineHeight,`${name}: leading`);
+      assert.equal(parseFloat(resolve(values.get('letter-spacing')!)),role.tracking[device],`${name}: tracking at ${width}`);
+    }
+  }
+  const intro=SITE_HOME_TYPE_POLICY.find(role=>role.key==='lead')!;
+  const body=SITE_HOME_TYPE_POLICY.find(role=>role.key==='body')!;
+  const title=SITE_HOME_TYPE_POLICY.find(role=>role.key==='title')!;
+  for(const device of ['mobile','tablet','desktop'] as const){assert.ok(title[device]>intro[device]);assert.ok(intro[device]>body[device]);}
+  const trial=postcss.parse(typographySource.slice(typographySource.indexOf('/* Homepage trial:')));
+  trial.walkRules(rule=>assert.ok(rule.selector.startsWith(scope),'trial must not style another route, header, footer or renderer'));
+  assert.deepEqual(SITE_TYPE_ROLES.find(role=>role.key==='body')?.lineHeight,1.5,'ordinary page roles remain unchanged');
 });
