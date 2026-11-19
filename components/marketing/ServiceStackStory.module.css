@@ -13,6 +13,9 @@
 .details { padding-block:var(--site-section-space); }
 .features { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--site-space-card) var(--site-space-section); margin:0; padding:0; list-style:none; }
 .features .description { max-width:none; }
+.layout[data-service-intro="basic"] { height:100svh; grid-template-columns:minmax(0,1fr); grid-template-rows:auto minmax(0,1fr); gap:var(--site-space-group); padding-bottom:var(--site-space-group); }
+.layout[data-service-intro="basic"] .copy { text-align:center; }
+.layout[data-service-intro="basic"] .description { margin-inline:auto; }
 @media (max-width:1023px) {
   .layout { grid-template-columns:minmax(0,1fr); align-content:center; gap:var(--site-space-content); }
   .copy { gap:var(--site-space-group); }
