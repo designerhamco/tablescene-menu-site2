@@ -316,7 +316,9 @@ Time-sale explanation, deadline and remaining-time/countdown copy always use the
 
 ### 베이직 기본 디자인 기간할인 글자 두께 — 2026-11-19 (현행)
 
-베이직 기본 디자인의 리스트형·앨범형은 기간할인 안내 문구, 마감 안내, 남은 시간과 카운트다운 숫자를 모두 `font-weight: 900`으로 표시한다. 리얼마차의 기본 강조 두께와 같으며, PC·태블릿·모바일의 카탈로그 미리보기와 저장된 공개 메뉴판에 적용한다. 일반 메뉴 설명의 글자 두께가 이 강조 두께를 덮어쓰지 않도록 한다. 기존 설명 글자 크기·저장 서체와 기간할인 텍스트칩 배경색을 따르는 문구색 규칙을 유지한다. 검수는 `scripts/qa-time-sale-color-contract.mjs`에서 실제 계산된 문구·숫자 두께와 색상을 함께 확인한다.
+베이직 기본 디자인의 리스트형·앨범형에서 기간할인 안내 문구, 마감 안내, 남은 시간과 카운트다운 숫자는 Pretendard 선택 시 900을 사용한다. 다른 서체는 선택된 한글 서체 패밀리가 실제 제공하는 가장 굵은 정자체를 사용하며, 해당 폰트 파일도 로딩한다. 한 가지 굵기만 있는 패밀리는 그 굵기를 그대로 사용하고 합성 굵게 처리는 하지 않는다. 이 경우 메뉴 설명과 굵기가 같을 수 있다. PC·태블릿·모바일의 카탈로그 미리보기와 저장된 공개 메뉴판에 적용한다.
+
+기존 설명 글자 크기·서체 선택과 기간할인 텍스트칩 배경색을 따르는 문구색 규칙을 유지한다. `lib/basic-time-sale-font.ts`에서 등록된 서체의 최대 굵기를 관리하며, 추가 파일이 필요한 패밀리는 `public/fonts/time-sale/`의 할인 전용 패밀리로 연결한다. 예를 들어 Asta Sans는 800, 고운바탕은 700, 나눔고딕은 800이다. `scripts/qa-basic-sale-fonts.mjs`에서 실제 선택한 폰트 파일과 두께를, `scripts/qa-time-sale-color-contract.mjs`에서 문구색과 칩 배경색 일치를 검증한다.
 
 ## Shared preview shapes and chip colors — 2026-10-23
 
@@ -693,6 +695,8 @@ Dining operational chrome follows the current Dining page/title/copy contract ab
 
 ## Common Basic standard sample — 2026-11-19
 
-All seven Basic standard designs share `ARTIMENU` and “취향에 맞는 메뉴로 맛있는 시간을 즐겨보세요.”, with four categories and sixteen items: `MAIN`, `SIDES`, `DESSERTS`, `DRINKS`. `lib/basic-standard-sample.ts` owns their copy and prices for both catalog previews and new starters. Designer samples and Dining remain independent; switching designs must preserve existing customer content.
+All seven Basic standard designs share `ARTIMENU` and “따뜻한 한 끼를 정성껏 차립니다. 함께 나누기 좋은 곁들임과 달콤한 디저트도 즐겨보세요.”, with four categories and sixteen items: `MAIN`, `SIDES`, `DESSERTS`, `DRINKS`. The introduction in `lib/menu-ui-copy.ts` is one paragraph without forced line breaks, with English, Japanese and Chinese translations maintained together. It wraps naturally with the actual available width. `lib/basic-standard-sample.ts` owns category/item copy and prices for both catalog previews and new starters. Designer samples and Dining remain independent; switching designs must preserve existing customer content.
+
+Basic standard list starters and catalog previews default product images and category descriptions OFF. Category-description copy remains available when enabled. Album starters retain their existing initial image/description presentation. Explicit preview options can enable the examples. Existing customer menus retain their saved content and settings.
 
 List designs show 단품/세트 columns on every main item, with the set priced 3,000 won above the single dish. Names contain only the dish name. The normal menu description is followed by “(세트 선택 시 오늘의 수프 + 에이드 1잔 추가)”. Other categories have one price and no price options. Only drinks carry the price note `ICE ONLY`; sides and desserts have no price notes or portion labels. Preserve the existing album exclusion from price options; its main dishes keep single prices and food descriptions without the set sentence. English, Japanese and Chinese examples must use this same content without restoring the renderer’s café copy. Featured and sale references must resolve to the new sample items. Catalog thumbnails must match the updated samples.

@@ -60,7 +60,7 @@ try {
         await p.setViewportSize({width:1200,height:900});
         await p.waitForTimeout(300);
         await p.addStyleTag({content:'nextjs-portal { display: none !important; }'});
-        await p.screenshot({path:`public/template-previews/default-${design}-20261119-en-categories.jpg`,type:'jpeg',quality:86,animations:'disabled'});
+        await p.screenshot({path:`public/template-previews/default-${design}-20261119-current.jpg`,type:'jpeg',quality:86,animations:'disabled'});
       }
       results.push({design,device,width,height,lang,...geometry});
       console.log('PASS',design,device,width,lang);
