@@ -42,7 +42,7 @@ export default function MenuPreviewOptionsPanel({ open, onToggle, tab, onTabChan
   const patternOption = patternBandsAvailable ? <fieldset data-preview-pattern-bands>
     <legend className={designStyles.legend}>상·하단 패턴 띠<InfoTooltip layer="preview" label="패턴 띠 도움말">패턴 이미지와 띠 두께는 메뉴판 관리의 디자인 설정에서 바꿀 수 있어요.</InfoTooltip></legend>
     <div className={styles.choices}>
-      <label className={styles.choice}>
+      <label className={`${styles.choice} ${designStyles.choice}`}>
         <input type="checkbox" aria-label="패턴 띠 표시" checked={!design.hidePatternBands} disabled={pending} onChange={event => onDesignChange({ ...design, hidePatternBands: event.target.checked ? undefined : true })} />표시
       </label>
     </div>

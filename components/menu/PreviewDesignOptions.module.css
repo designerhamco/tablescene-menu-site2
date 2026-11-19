@@ -1,7 +1,9 @@
 .panel { padding: 0 0 .25rem; container-type: inline-size; }
 .panel > * + * { margin-top: 1rem; }
 .intro { display: flex; align-items: center; justify-content: flex-end; gap: .5rem; color: #5d6672; }
-.legend { margin-bottom: .6rem; font-weight: 600; }
+.legend { display: flex; align-items: center; margin-bottom: .6rem; font-weight: 600; }
+.legend > :global(.site-help-anchor) { block-size: 1lh; }
+.panel .choice { align-items: flex-start; }
 .backgrounds { display: grid; grid-template-columns: minmax(0, 1fr); gap: .75rem; }
 .colorGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
 .colorGrid > :global([data-preview-color-field]) { flex-wrap: wrap; align-content: flex-start; gap: .35rem .5rem; }
