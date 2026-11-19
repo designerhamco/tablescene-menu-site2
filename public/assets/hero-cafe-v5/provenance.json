@@ -1,0 +1,164 @@
+{
+  "treatment": "one sharp original-plus-outpainting photograph; blur/fade only at full expanded outer edges",
+  "profiles": {
+    "lateral": [
+      [
+        0,
+        0
+      ],
+      [
+        4,
+        1
+      ],
+      [
+        96,
+        1
+      ],
+      [
+        100,
+        0
+      ]
+    ],
+    "vertical": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        1
+      ],
+      [
+        99,
+        1
+      ],
+      [
+        100,
+        0
+      ]
+    ],
+    "clearLateral": [
+      [
+        0,
+        0
+      ],
+      [
+        5,
+        0
+      ],
+      [
+        15,
+        1
+      ],
+      [
+        85,
+        1
+      ],
+      [
+        95,
+        0
+      ],
+      [
+        100,
+        0
+      ]
+    ],
+    "clearVertical": [
+      [
+        0,
+        0
+      ],
+      [
+        1,
+        0
+      ],
+      [
+        5,
+        1
+      ],
+      [
+        95,
+        1
+      ],
+      [
+        99,
+        0
+      ],
+      [
+        100,
+        0
+      ]
+    ]
+  },
+  "blur": 48,
+  "coordinates": {
+    "width": 3072,
+    "height": 2048
+  },
+  "original": {
+    "x": 768,
+    "y": 512,
+    "width": 1536,
+    "height": 1024,
+    "seamPercent": 1
+  },
+  "assets": [
+    {
+      "scene": "venue",
+      "file": "venue-composition.svg",
+      "sourcePath": "public/assets/hero-cafe-v2/venue-expanded.webp",
+      "sourceCommit": "f0cc63774aef405c007c2f22e1356a4e194e54bc",
+      "sourceSha256": "81751f5f45b8e4243accef75c73bbb037b65d5ccd27460acd45dade4d079969e",
+      "originalPath": "public/assets/hero-cafe-v1/venue.webp",
+      "originalInsert": {
+        "x": 768,
+        "y": 512,
+        "width": 1536,
+        "height": 1024
+      },
+      "originalSha256": "b83ecfe6f8f9aac5ac650c083ab77355276a11daa513cc61024952645b21468c"
+    },
+    {
+      "scene": "counter",
+      "file": "counter-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v5/counter.webp",
+      "sourceSha256": "0fb9298e00b5041584560a021cec75d4bbfe056d739fb49fe3a91a3cb33b9c9c",
+      "originalPath": "public/assets/hero-cafe-v1/counter.webp",
+      "originalInsert": {
+        "x": 768,
+        "y": 512,
+        "width": 1536,
+        "height": 1024
+      },
+      "originalSha256": "545b592e0f50e9d13e415780b12ee4fe950952948ff52ba35b0091efecae9108"
+    },
+    {
+      "scene": "dining",
+      "file": "dining-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v5/dining.webp",
+      "sourceSha256": "5917971673932f42edf1abaeabfbb92331ad87bf63b6aa21236920e17cf34db2",
+      "originalPath": "public/assets/hero-cafe-v1/dining.webp",
+      "originalInsert": {
+        "x": 1248,
+        "y": 757,
+        "width": 825,
+        "height": 560
+      },
+      "originalSha256": "d677f081ca14e55f86590ef2121a744c98c6b212a816d3afc8b88098b45cd757"
+    },
+    {
+      "scene": "phone",
+      "file": "phone-composition.svg",
+      "sourcePath": "assets/hero-photo-sources-v5/phone.webp",
+      "sourceSha256": "0ff7cd1be3e7c7ec29147806ddbd213f299d26228b9fc6b8e50904a6aeb52cee",
+      "originalPath": "public/assets/hero-cafe-v1/phone-v3.webp",
+      "originalInsert": {
+        "x": 768,
+        "y": 512,
+        "width": 1536,
+        "height": 1024
+      },
+      "originalSha256": "03b2c21bf2b78c6474c654e2578fcff6ada82d6dc7573d58ac3767221b4edfd8"
+    }
+  ]
+}
