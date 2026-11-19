@@ -48,7 +48,9 @@
 @media (max-width: 767px) {
   .controls { justify-content: flex-start; }
   .controls > :global([data-template-language-control]) { text-align: left; }
-  .intro[data-photo="false"], .intro :global(.cafe-a-cover-frame) { padding-top: env(safe-area-inset-top, 0px); }
+  .intro[data-photo="false"], .intro :global(.cafe-a-cover-frame) {
+    padding-top: var(--cafe-a-mobile-operation-top-inset, env(safe-area-inset-top, 0px));
+  }
   .intro[data-photo="true"] { aspect-ratio: 1 / 1; }
 }
 
