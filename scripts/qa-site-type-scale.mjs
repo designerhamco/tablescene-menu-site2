@@ -26,9 +26,7 @@ const exactRoles = {
   "type-body": [14, 16],
   "type-body-sm": [14],
   "type-card-body": [14],
-  "type-card-detail": [13],
-  "type-caption": [13],
-  "type-footnote": [13],
+  "type-plan-title": [16],
 };
 
 async function settle(page) {
@@ -81,7 +79,15 @@ try {
       const step = widths.indexOf(width);
       const pageTitle = [28, 28, 32][step];
       const sectionTitle = (route === "/" ? [28, 32, 36] : [24, 24, 28])[step];
-      const expectedRoles = { ...exactRoles, "type-page-title": [pageTitle], "type-section-title": [sectionTitle] };
+      const metaSize = width >= 1024 ? 14 : 13;
+      const expectedRoles = {
+        ...exactRoles,
+        "type-page-title": [pageTitle],
+        "type-section-title": [sectionTitle],
+        "type-card-detail": [metaSize],
+        "type-caption": [metaSize],
+        "type-footnote": [metaSize],
+      };
       assert.ok(metrics.length > 0, `${route} ${width}px has no semantic typography roles`);
       for (const item of metrics) {
         assert.ok(

@@ -667,7 +667,7 @@
   border-radius: 50%;
   background: #15181e;
   color: #fff;
-  font-size: var(--site-type-13);
+  font-size: var(--type-caption-size);
 }
 .guideNote {
   padding: 1rem;
