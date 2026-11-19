@@ -1,6 +1,8 @@
 .scope { display: contents; }
 .scope[data-radius-cover] :global(.cafe-a-cover-frame), .scope[data-radius-cover] :global(.cafe-a-cover-hero) { border-radius: var(--menu-image-radius-cover) !important; overflow: hidden; }
 .scope[data-radius-item] :global(.cafe-a-menu-item-image-slot), .scope[data-radius-item] :global(.cafe-a-menu-item-image) { border-radius: var(--menu-image-radius-item) !important; }
+.scope[data-menu-appearance-basic="true"][data-radius-item] :global(.cafe-a-menu-item-image-zoom) { border-radius: min(6px, calc(var(--menu-image-radius-item) / 4)) !important; }
+.scope[data-square-representative] :global(.cafe-a-cover-frame), .scope[data-square-representative] :global(.cafe-a-cover-hero) { border-radius: 0 !important; }
 .scope[data-radius-item] :global(.aube-table-image-trigger), .scope[data-radius-item] :global(.aube-table-item-image) { border-radius: var(--menu-image-radius-item) !important; }
 .scope[data-radius-widget] :global([data-cafe-a-widget-media]) { border-radius: var(--menu-image-radius-widget) !important; overflow: hidden; }
 .scope[data-radius-logo] :global(.cafe-a-store-logo), .scope[data-radius-logo] :global(.aube-table-cover-logo) { border-radius: var(--menu-image-radius-logo) !important; }

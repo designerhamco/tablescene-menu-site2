@@ -1,6 +1,6 @@
 "use client";
 import { useRef, type CSSProperties, type ReactNode } from "react";
-import { useDefaultAlbum } from "../defaults/DefaultDesignScope";
+import { useDefaultAlbum, useDefaultDesignLayout } from "../defaults/DefaultDesignScope";
 import { getTemplateCapabilities } from "@/lib/template-capabilities";
 import { isAubeTableTemplate } from "@/lib/aube-table";
 import { menuAppearanceStyle, resolveMenuAppearance } from "@/lib/menu-appearance";
@@ -14,6 +14,8 @@ import { useRegularPriceColors } from "./useRegularPriceColors";
 import styles from "./MenuAppearanceScope.module.css";
 export default function MenuAppearanceScope({ pageSettings, templateKey, designId, children }: { pageSettings: unknown; templateKey: string; designId?: string; children: ReactNode }) {
   const album = useDefaultAlbum(), basic = getTemplateCapabilities(templateKey).menuCover.coverMode === "section";
+  const defaultLayout = useDefaultDesignLayout();
+  const squareRepresentative = basic && (templateKey === "restaurant_onue_a" || defaultLayout === "basic-upper-left");
   const supportsShapes = basic || isAubeTableTemplate(templateKey);
   const supportsCorners = supportsShapes || templateKey === "display_menu_a";
   const scopeRef = useRef<HTMLDivElement>(null);
@@ -43,6 +45,7 @@ export default function MenuAppearanceScope({ pageSettings, templateKey, designI
     data-preview-sale-chip-background={previewChipColors.saleBackground ? "custom" : undefined} data-preview-sale-chip-text={previewChipColors.saleText ? "custom" : undefined}
     data-design-brand-ink={supportsShapes && titleColors.brand ? "custom" : undefined} data-design-category-ink={supportsShapes && titleColors.category ? "custom" : undefined}
     data-design-page-background={supportsShapes && backgrounds.page ? "custom" : undefined} data-design-aux-background={basic && backgrounds.auxiliary ? "custom" : undefined} data-design-colored-panel={basic && backgrounds.coloredPanel ? "true" : undefined} data-design-sidebar-background={!basic && backgrounds.sidebar ? "custom" : undefined}
+    data-square-representative={squareRepresentative ? "true" : undefined}
     data-radius-cover={basic && appearance.imageRadii.cover != null ? "custom" : undefined} data-radius-item={supportsCorners && appearance.imageRadii.item != null ? "custom" : undefined}
     data-radius-widget={supportsCorners && appearance.imageRadii.widget != null ? "custom" : undefined} data-radius-logo={supportsCorners && appearance.imageRadii.logo != null ? "custom" : undefined}
     data-chip-shape={supportsCorners && appearance.chipShape !== "template" ? appearance.chipShape : undefined} data-album-image-ratio={album ? appearance.albumImageRatio : undefined}>{children}</div>;
