@@ -5901,13 +5901,12 @@ video {
   background: transparent;
   color: var(--cafe-a-call-ink, #191c1b);
 }
-/* Align the painted strokes to the reading inset. The transparent row can
-   extend into the space above them, including behind Loop Bagel's checker. */
+/* Measure from the inner edge of the top band or the safe area, whichever
+   reaches farther into the page. Account for the centered 24px icon box. */
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] {
-  --menu-pattern-band-top: min(var(--menu-pattern-band-thickness), calc(var(--cafe-a-page-inline) - .125rem));
   --cafe-a-mobile-operation-safe-top: env(safe-area-inset-top, 0px);
   --cafe-a-mobile-operation-top-inset: calc(
-    var(--cafe-a-mobile-operation-safe-top) + var(--cafe-a-page-inline)
+    max(var(--cafe-a-mobile-operation-safe-top), var(--menu-pattern-band-top, 0px)) + var(--cafe-a-page-inline)
     - (var(--cafe-a-mobile-call-row-size) - var(--cafe-a-mobile-call-icon-size)) / 2
   );
   padding-top: 0;
@@ -5994,6 +5993,22 @@ video {
   inset-inline: 1.5rem;
   bottom: calc(.75rem + env(safe-area-inset-bottom, 0px));
 }
+/* The patterned menu ends in this order: content, actions, then the band.
+   Stick to the viewport while reading and stop at the in-flow row at the end. */
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-menu-pattern-bands]:has(> .cafe-a-mobile-call-dock) {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(var(--cafe-a-page-inline) + max(var(--menu-pattern-band-thickness), env(safe-area-inset-bottom, 0px)));
+}
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-menu-pattern-bands]:has(> .cafe-a-mobile-call-dock) > [data-cafe-a-content-shell] {
+  flex: 1 0 auto;
+  min-height: 0;
+}
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-menu-pattern-bands][data-one-page-call-enabled="true"] > .cafe-a-mobile-call-dock {
+  position: sticky;
+  inset-inline: auto;
+  margin-inline: var(--cafe-a-page-inline);
+}
 .cafe-a-mobile-call-dock-button {
   display: flex;
   align-items: center;
@@ -6016,6 +6031,9 @@ video {
 .cafe-a-mobile-call-dock-button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"]:has(.cafe-a-mobile-call-dock) [data-cafe-a-scroll-content] {
   padding-bottom: calc(var(--cafe-a-page-block-end) + 5rem + env(safe-area-inset-bottom, 0px));
+}
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-menu-pattern-bands]:has(> .cafe-a-mobile-call-dock) [data-cafe-a-scroll-content] {
+  padding-bottom: var(--cafe-a-page-block-end);
 }
 
 /* Order controls occupy the same measured footer as Call; no viewport overlay on fitted boards. */

@@ -27,7 +27,9 @@ export function measureOnePageMobileRhythm() {
   const callBar = header?.querySelector('[data-one-page-call-bar]');
   const operationIcons = [...root.querySelectorAll('[data-one-page-call-bar] button > svg')].filter(visible);
   const safeTop = Number.parseFloat(style.getPropertyValue('--cafe-a-mobile-operation-safe-top')) || 0;
-  const usableTop = root.getBoundingClientRect().top + safeTop;
+  const patternTop = root.hasAttribute('data-menu-pattern-bands')
+    ? Number.parseFloat(getComputedStyle(root, '::before').height) || 0 : 0;
+  const usableTop = root.getBoundingClientRect().top + Math.max(safeTop, patternTop);
   const operationIconInsets = operationIcons.map((icon) => {
     const box = icon.getBoundingClientRect();
     const viewBox = icon.viewBox.baseVal;
@@ -116,7 +118,7 @@ export function getOnePageMobileRhythmFailures(measurement) {
   if (measurement.contract !== 'mobile-reading') failures.push('mobile spacing contract is not separate from canvas-fit');
   if (measurement.copyAware === 'true') failures.push('PC/tablet copy-aware rhythm leaked into mobile');
   if (measurement.bodyInlineInset != null && measurement.operationIconInsets?.some((inset) => Math.abs(inset - measurement.bodyInlineInset) > 0.25)) {
-    failures.push('painted operation icon top does not match the body inset below the safe area');
+    failures.push('painted operation icon top does not match the body inset below the safe area or pattern band');
   }
   if (measurement.autoBrand && measurement.brandState !== 'ready') failures.push('mobile brand-width measurement is not ready');
   if ((measurement.noticeGaps ?? []).some((gap) => Math.abs(gap) > 0.2)) failures.push('notice rows have extra paragraph spacing');
