@@ -5355,7 +5355,10 @@ video {
 }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"] .cafe-a-panel-intro [data-cafe-a-cover-indicators] { top: auto; right: auto; bottom: 1rem; left: 50%; transform: translateX(-50%); }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-intro .cafe-a-cover-frame {
-  padding-top: env(safe-area-inset-top, 0px);
+  padding-top: var(--cafe-a-mobile-operation-top-inset, env(safe-area-inset-top, 0px));
+}
+.cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-plain-intro {
+  padding-top: var(--cafe-a-mobile-operation-top-inset, var(--panel-hero-inset));
 }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-identity { gap: 0; }
 .cafe-a-typography[data-one-page-layout-shell="brand_panel_flow"][data-cafe-a-mobile-style="true"] .cafe-a-panel-identity .cafe-a-store-description { margin-top: 0.75rem; }
@@ -5872,13 +5875,13 @@ video {
   background: transparent;
   color: var(--cafe-a-call-ink, #191c1b);
 }
-/* Enabled mobile Call starts at the page edge; OFF retains the reading inset. */
-.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] header,
-.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] .cafe-a-mobile-upper-box {
-  padding-top: env(safe-area-inset-top, 0px);
-}
+/* The representative surface owns the inset so the photo or color stays full bleed. */
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] {
+  --cafe-a-mobile-operation-top-inset: calc(env(safe-area-inset-top, 0px) + var(--cafe-a-page-inline));
   padding-top: 0;
+}
+.cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] :is(header:has(> [data-cafe-a-mobile-language-row] [data-one-page-call-bar]):not(.cafe-a-mobile-upper-box header), .cafe-a-mobile-upper-box) {
+  padding-top: var(--cafe-a-mobile-operation-top-inset);
 }
 .cafe-a-typography[data-cafe-a-mobile-style="true"][data-one-page-call-enabled="true"] header .cafe-a-mobile-language-row + .cafe-a-mobile-header-copy {
   margin-top: 1rem;
@@ -6100,7 +6103,7 @@ video {
 
 .cafe-a-typography[data-cafe-a-mobile-style="true"]:has([data-upper-left-intro]) [data-cafe-a-scroll-content] { background: var(--menu-design-aux-bg, #fff); }
 
-/* Panel top tools start at the safe top edge, like other mobile menus. */
+/* Mobile representative panels share the same horizontal control inset. */
 .cafe-a-typography[data-cafe-a-mobile-style="true"] {
   --basic-panel-hero-inset: 1rem;
   --basic-panel-controls-size: 3rem;
