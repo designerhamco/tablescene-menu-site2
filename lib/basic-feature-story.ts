@@ -12,5 +12,12 @@ export function basicTabletScreenMatrix(sceneWidth: number) {
 }
 
 export function basicFeatureIndex(index: number, count: number) {
-  return Math.max(0, Math.min(count-1, index));
+  return Math.max(-1, Math.min(count-1, index));
 }
+
+export const BASIC_FEATURE_INTRO = {
+  title: "베이직, 한 장에 담는",
+  subtitle: "우리 매장의 메뉴판.",
+  body: "시그니처부터 오늘의 혜택, 테이블 주문까지. 필요한 기능을 골라 매장에 맞는 메뉴판을 완성하세요.",
+  image: "/assets/device-platform-v2/menu-monitor.webp",
+} as const;
