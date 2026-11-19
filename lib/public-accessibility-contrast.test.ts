@@ -20,7 +20,7 @@ test("public product and support surfaces keep secondary copy at accessible cont
   const controls = readSource("../styles/ui-system.css");
   assert.match(controls, /--ui-text-muted: #4b515b/);
   assert.match(controls, /\.site-filter \{[^}]*color: var\(--ui-text-muted\)/);
-  assert.match(footer, /type-caption uppercase tracking-wide text-zinc-600/);
+  assert.match(footer, /type-body-sm uppercase tracking-wide text-zinc-600/);
 });
 
 test("auth consent and compact product previews avoid low-opacity essential copy", () => {
