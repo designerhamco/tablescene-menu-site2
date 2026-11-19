@@ -1,7 +1,7 @@
 import { getDiningTemplateFeatures, getDiningTemplateTier } from '@/lib/dining-product-tiers';
 import { templateSubscriptionPricing } from '@/lib/template-subscription-pricing';
 import { getTemplatePreviewRouteKey, resolveTemplatePreviewRouteKey, templateCatalog, type TemplateCatalogItem } from '@/lib/templates';
-import { getCatalogDesign, getCatalogPricing } from './catalog-designs';
+import { getCatalogDesign, getCatalogPricing, getSelectableCatalogDesign } from './catalog-designs';
 import { getServiceCategoryLabel } from './service-categories';
 export type PublicTemplateDetail = Omit<TemplateCatalogItem, "key" | "categoryLabel" | "name" | "description"> & {key:string;categoryLabel:string;name:string;description:string};
 export function getPublicTemplateDetail(routeKey:string) {
@@ -11,7 +11,7 @@ export function getPublicTemplateDetail(routeKey:string) {
     return base?{...base,key:design.id,name:design.name,description:design.description,categoryLabel:'기본 디자인'}:null;
   }
   const key=resolveTemplatePreviewRouteKey(routeKey);
-  const template=templateCatalog.find(t=>t.key===key&&t.status==='available');
+  const template=templateCatalog.find(t=>t.key===key&&(t.status==='available'||(t.status==='retired'&&design?.templateKey===t.key)));
   return template?{...template,name:design?.name??template.name}:null;
 }
 export function getTemplateDetailHref(templateKey:string) {
@@ -25,7 +25,7 @@ export function getTemplateDetailInfo(template:PublicTemplateDetail) {
   const pricing=display?templateSubscriptionPricing.display:getCatalogPricing(multiPage?'dining':'basic',design?.kind??'designer');
   const productKey=display?'business_display_monthly':multiPage?'business_basic_multi_monthly':'business_basic_single_monthly';
   const serviceLabel=getServiceCategoryLabel(display?'display':multiPage?'dining':'basic');
-  return {display,multiPage,features,pricing,serviceLabel,
+  return {display,multiPage,features,pricing,serviceLabel,selectable: Boolean(getSelectableCatalogDesign(template.key)),
     formatLabel:`${serviceLabel} ${design?.kind==='standard'?'기본 디자인':'디자인 포함'}`,
     previewHref:design?.previewHref??`${getTemplateDetailHref(template.key)}/preview`,
     startHref:design?.startHref??(display?`/apply/display?template=${template.key}`:`/apply/basic?product=${productKey}&template=${template.key}`),

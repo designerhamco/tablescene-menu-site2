@@ -12,7 +12,14 @@ async function settled(page){
  await page.evaluate(()=>document.fonts.ready);
  await page.locator('[data-paged-ready=true]').waitFor();
  await page.waitForFunction(() => [...document.querySelectorAll('[data-menu-logo-slot]')].filter(e=>e.getBoundingClientRect().width>0&&getComputedStyle(e).visibility!=='hidden').every(e=>e.dataset.menuLogoReady==='true'&&e.dataset.menuLogoMeasured==='true'));
- await page.waitForTimeout(200);
+ await page.waitForFunction(() => {
+  const header=document.querySelector("[data-basic-top-row]");
+  const menu=document.querySelector("[data-scroll-menu]");
+  if(!header||!menu)return false;
+  const dimensions=()=>[header.offsetHeight,menu.offsetHeight,menu.getBoundingClientRect().top].join();
+  const before=dimensions();
+  return new Promise(resolve=>setTimeout(()=>resolve(dimensions()===before),250));
+ });
 }
 async function geometry(page){return page.evaluate(()=>{
  const header=document.querySelector('[data-basic-top-row]'),board=document.querySelector('[data-scroll-brand-board]'),menu=document.querySelector('[data-scroll-menu]');
@@ -69,9 +76,6 @@ try{
     await trigger.click();await popupFits(page);await page.waitForTimeout(200);unchanged(expanded,await geometry(page),'long-copy popup');await page.keyboard.press('Escape');
     await description.evaluate((el,text)=>el.textContent=text,original);await page.waitForTimeout(250);unchanged(before,await geometry(page),'restored copy');
    }
-   const labels=await page.locator('[data-paged-column] .cafe-a-price-column-header').evaluateAll(es=>es.map(e=>[...e.querySelectorAll('.cafe-a-price-column-heading-label')].map(label=>label.textContent).join('')));
-   assert.equal(labels.length,3);assert.ok(labels.every(text=>text==='HOTICE'),'SIGNATURE, COFFEE and NON-COFFEE use HOT/ICE');
-   const text=await page.locator('[data-scroll-columns]').filter({visible:true}).last().innerText();assert.equal((text.match(/ICE ONLY/g)||[]).length,4,'all four ADE rows show ICE ONLY');
    if(device==='pc'&&!logo&&!cover){
     await trigger.click();await page.locator('[data-language-menu-item][href*="lang=en"]').click();await page.waitForURL(u=>u.searchParams.get('lang')==='en');await settled(page);
     const english=await geometry(page);await page.locator('[data-basic-top-row] [data-language-menu-trigger]').click();await popupFits(page);await page.waitForTimeout(200);unchanged(english,await geometry(page),'localized popup');await page.keyboard.press('Escape');

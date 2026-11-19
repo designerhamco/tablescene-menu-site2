@@ -1,4 +1,4 @@
-import { getCatalogDesign } from './catalog-designs';
+import { getCatalogDesign, getSelectableCatalogDesign } from './catalog-designs';
 import { getMenuPlanMonthlyPrice, menuPlanPricebook } from './menu-plan-pricing';
 import type { MenuDesignAccess, MenuService } from './menu-design-policy';
 export const MENU_PLAN_CONTRACT_VERSION='2026-10-21';
@@ -9,7 +9,11 @@ export function getMenuPlanSelection(productKey:unknown,designId:unknown,templat
   return {version:MENU_PLAN_CONTRACT_VERSION,pricebookVersion:menuPlanPricebook.version,service,access:(design.kind==='standard'?'standard':'all') as MenuDesignAccess,designId:design.id,templateKey:design.templateKey,
     regularAmount:getMenuPlanMonthlyPrice(service,design.kind==='standard'?'standard':'all','regular'),earlyBirdAmount:getMenuPlanMonthlyPrice(service,design.kind==='standard'?'standard':'all','earlyBird')};
 }
+export function getNewMenuPlanSelection(productKey: unknown, designId: unknown, templateKey?: unknown) {
+  return getSelectableCatalogDesign(designId) ? getMenuPlanSelection(productKey, designId, templateKey) : null;
+}
+
 export function canSelectMenuDesign(service:MenuService,access:MenuDesignAccess,id:unknown) {
-  const design=getCatalogDesign(id);
+  const design=getSelectableCatalogDesign(id);
   return !!design&&design.service===service&&(access==='all'||design.kind==='standard');
 }

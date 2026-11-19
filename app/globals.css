@@ -5597,6 +5597,10 @@ video {
   justify-content: flex-end;
 }
 
+.cafe-a-typography[data-cafe-a-mobile-style="true"] .cafe-a-mobile-language-row > [data-template-language-control]:has([data-language-menu-appearance="standard"]) {
+  align-self: center;
+}
+
 .cafe-a-typography[data-cafe-a-proportion-policy="true"][data-cafe-a-mobile-style="true"] header .cafe-a-mobile-language-row button {
   min-height: 2.75rem;
   min-width: 2.75rem;

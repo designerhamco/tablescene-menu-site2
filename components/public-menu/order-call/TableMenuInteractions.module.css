@@ -165,7 +165,7 @@
 .diningToolbar .table { grid-column: 2; max-width: min(12rem, 28vw); }
 .diningToolbar > [data-dining-cart] { grid-column: 3; justify-self: end; }
 .diningToolbar .actions { gap: .25rem; }
-.diningToolbar button {
+.diningToolbar button:not([data-language-menu-appearance="standard"]) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -180,9 +180,7 @@
 }
 .diningToolbar button:not(:disabled):hover { opacity: .65; }
 .diningToolbar button:disabled { cursor: not-allowed; }
-.diningToolbar svg { width: 24px; height: 24px; }
-.diningToolbar [data-language-menu-trigger] { width: auto; min-width: 64px; gap: .375rem; padding-inline: .5rem; }
-.diningToolbar [data-language-menu-trigger] svg { width: 16px; height: 16px; }
+.diningToolbar > button svg { width: 24px; height: 24px; }
 .shell[data-presentation="aube"] :is(.circle, .mobileDock, [data-menu-order-add]) svg { stroke-width: 1.6; }
 .diningFloatingCall {
   position: fixed;

@@ -1,7 +1,7 @@
 import { getFixedOnePageLayoutShell, getOnePageTopRowAlignment, type OnePageLayoutShell } from "./one-page-layout-shells";
 import { getCatalogTemplateName } from "./catalog-template-names";
 import { getCatalogFacets, normalizeCatalogSearch, normalizeCatalogSelections, CATALOG_MOODS, CATALOG_COLORS, type CatalogFacets, type CatalogMoodFilter, type CatalogColorFilter } from "./catalog-facets";
-import { DEFAULT_DESIGN_REVIEWS, MENU_LAYOUTS, getDefaultDesignReviewUrl, type MenuLayoutId } from './menu-design-policy';
+import { DEFAULT_DESIGN_REVIEWS, MENU_LAYOUTS, RETIRED_STANDARD_DESIGN_IDS, getDefaultDesignReviewUrl, type MenuLayoutId } from './menu-design-policy';
 import { getDiningTemplateTier } from './dining-product-tiers';
 import { getMenuPlanMonthlyPrice } from './menu-plan-pricing';
 import { getTemplatePreviewRouteKey, templateCatalog, type TemplateCategoryKey } from './templates';
@@ -100,7 +100,7 @@ const catalogGalleries: Readonly<Partial<Record<string, readonly CatalogImage[]>
     { src: '/template-previews/cafe_mocha_forest_a-desktop-20261113-v2.png', label: 'PC 메뉴 모니터' },
   ],
 };
-const designers: CatalogDesign[]=templateCatalog.filter(t=>t.status==='available').map(t=>{
+const designers: CatalogDesign[]=templateCatalog.filter(t=>t.status==='available'||t.key==='cafe_round_focus_a').map(t=>{
   const service=t.service==='display'?'display':getDiningTemplateTier(t.key)==='multi'?'dining':'basic';
   const route=getTemplatePreviewRouteKey(t.key);
   const facets=getCatalogFacets(t.key,"designer");
@@ -109,10 +109,25 @@ const designers: CatalogDesign[]=templateCatalog.filter(t=>t.status==='available
   return {...facets,id:t.key,name:getCatalogTemplateName(t.key,t.name),description:t.description,service,kind:'designer',templateKey:t.key,structureLabel:designerStructureLabel(t.key,service),itemLayout:'list',categories,categoryLabel:getCatalogIndustryLabel(categories,t.categoryLabel),
     image:images[0].src,images,previewHref:`/templates/${route}/preview`,detailHref:`/templates/${route}`,startHref:getCatalogStartHref(service,t.key,t.key)};
 });
-export const catalogDesigns: readonly CatalogDesign[]=[...standards,...designers];
+const registeredDesigns: readonly CatalogDesign[] = [...standards, ...designers];
+const availableRendererKeys = new Set<string>(templateCatalog.filter(template => template.status === "available").map(template => template.key));
+
+export const catalogDesigns = registeredDesigns.filter(design =>
+  availableRendererKeys.has(design.templateKey) && !RETIRED_STANDARD_DESIGN_IDS.has(design.id),
+);
+
+function findCatalogDesign(designs: readonly CatalogDesign[], id: unknown) {
+  if (typeof id !== "string") return null;
+  return designs.find(design => design.id === id || design.detailHref === `/templates/${id}`) ?? null;
+}
+
+/** Registered design metadata is also needed by saved menus and purchase recovery. */
 export function getCatalogDesign(id: unknown) {
-  if(typeof id!=='string')return null;
-  return catalogDesigns.find(d=>d.id===id||d.detailHref===`/templates/${id}`)??null;
+  return findCatalogDesign(registeredDesigns, id);
+}
+
+export function getSelectableCatalogDesign(id: unknown) {
+  return findCatalogDesign(catalogDesigns, id);
 }
 export type CatalogFilters = {
   industry: Exclude<CatalogIndustry, "all">[];

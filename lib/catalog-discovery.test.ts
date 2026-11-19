@@ -41,7 +41,7 @@ test("search handles Korean, case and whitespace while preserving service and de
 test("neutral standard designs remain industry-independent and old layout links still work", () => {
   assert.equal(filterCatalogDesigns("basic", "standard", "japanese", "album", { mood: "minimal", color: "white" }).length, 2);
   assert.equal(filterCatalogDesigns("basic", "standard", "album").length, 2);
-  assert.equal(filterCatalogDesigns("basic", "standard", "all", "all", { color: "red" }).length, 7);
+  assert.equal(filterCatalogDesigns("basic", "standard", "all", "all", { color: "red" }).length, 6);
   assert.deepEqual(ids(filterCatalogDesigns("display", "designer", "cafe_bakery", "all", { mood: "lively", color: "blue", query: "썸머" })), ["display_menu_a"]);
 });
 
@@ -73,7 +73,7 @@ test("CSV and repeated URL choices restore in canonical order with unknown and d
 
 test("standard designs use only layout and search; Display facets remain effective with a retained standard kind", () => {
   assert.deepEqual(normalizeCatalogFilters({ industry: "album", mood: "cozy", color: "red" }, "standard"), { industry: [], mood: [], color: [], layout: ["album"] });
-  assert.equal(filterCatalogDesigns("basic", "standard", ["japanese"], ["list", "album"], { mood: ["cozy"], color: ["red"] }).length, 7);
+  assert.equal(filterCatalogDesigns("basic", "standard", ["japanese"], ["list", "album"], { mood: ["cozy"], color: ["red"] }).length, 6);
   assert.equal(filterCatalogDesigns("basic", "standard", [], ["list", "album"], { query: "앨범" }).length, 2);
   assert.equal(filterCatalogDesigns("display", "standard", [], [], { color: ["red"] }).length, 0);
   assert.equal(filterCatalogDesigns("display", "standard", [], [], { color: ["blue", "red"] }).length, 1);

@@ -1,7 +1,7 @@
 "use client";
 
 import { catalogDesigns, getCatalogDesign, getCatalogPricing } from "@/lib/catalog-designs";
-import { getMenuPlanSelection } from "@/lib/menu-plan-contract";
+import { getMenuPlanSelection, getNewMenuPlanSelection } from "@/lib/menu-plan-contract";
 
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -842,7 +842,7 @@ export default function ApplyOrderForm({
   const firstMenuTemplateGroup = getMenuTemplateGroupByTemplateCategory(firstTemplate?.template_category).key;
   const firstDisplayTemplateGroup = getDisplayTemplateGroupByTemplateCategory(firstTemplate?.template_category).key;
   const [selectedMenuDesignId, setSelectedMenuDesignId] = useState(() => {
-    const requestedDesign = getMenuPlanSelection(initialBasicProduct.product_key, initialMenuDesignId, firstTemplate?.key);
+    const requestedDesign = getNewMenuPlanSelection(initialBasicProduct.product_key, initialMenuDesignId, firstTemplate?.key);
     if (requestedDesign) return requestedDesign.designId;
     if (compatibleRequestedTemplate) return compatibleRequestedTemplate.key;
     const service = initialBasicProduct.product_key === "business_basic_multi_monthly" ? "dining" : "basic";

@@ -1,4 +1,4 @@
-import { getMenuPlanSelection } from "@/lib/menu-plan-contract";
+import { getNewMenuPlanSelection } from "@/lib/menu-plan-contract";
 import { NextResponse } from "next/server";
 
 import { isDisplayCheckoutQaEnabled } from "@/lib/display-checkout-qa";
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
   const templateServiceType = getTemplateServiceTypeForPlan(planKey);
   const buyerType = getString(order.buyerType) === "business" ? "business" : "individual";
   const menuDesignId = ["business_basic_single_monthly", "business_basic_multi_monthly"].includes(productKey) ? getString(order.menuDesignId) || templateKey : undefined;
-  if (menuDesignId && !getMenuPlanSelection(productKey, menuDesignId, templateKey)) return jsonError("선택한 요금제와 디자인이 일치하지 않습니다.");
+  if (menuDesignId && !getNewMenuPlanSelection(productKey, menuDesignId, templateKey)) return jsonError("선택한 요금제와 디자인이 일치하지 않습니다.");
   const promotionValidation = validatePromotionForOrder({
     menuDesignId,
     productKey,

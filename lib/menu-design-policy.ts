@@ -27,6 +27,9 @@ export function canUseMenuDesign(service: MenuService, access: MenuDesignAccess,
     && (design.kind === "standard" || access === "all");
 }
 
+// Keep the legacy design entry so saved menus still resolve their original layout.
+export const RETIRED_STANDARD_DESIGN_IDS: ReadonlySet<string> = new Set(["basic-center-column"]);
+
 export const DEFAULT_DESIGN_REVIEWS = [
   { id: "basic-first-column", label: "베이직 기본 디자인", layout: "basic-first-column", kind: "standard", renderer: "cafe_design_a", itemLayout: "list" },
   { id: "basic-top-row", label: "베이직 기본 디자인", layout: "basic-top-row", kind: "standard", renderer: "cafe_design_a", itemLayout: "list" },

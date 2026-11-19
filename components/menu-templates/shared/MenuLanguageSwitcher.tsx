@@ -9,6 +9,7 @@ import { LOCALE_LABELS, type SupportedLocale } from "@/lib/locales";
 import ScriptAwareText from "./ScriptAwareText";
 import MenuViewerLanguageLabel from "@/components/menu/MenuViewerLanguageLabel";
 import viewerStyles from "@/components/menu/MenuViewerControls.module.css";
+import styles from "./MenuLanguageSwitcher.module.css";
 
 type MenuLanguageSwitcherProps = {
   currentLocale: SupportedLocale;
@@ -78,7 +79,12 @@ export default function MenuLanguageSwitcher({
   const menuRef = useRef<HTMLDivElement | null>(null);
   const visibleLocales = enabledLocales.filter((locale, index) => enabledLocales.indexOf(locale) === index);
   const viewer = triggerVariant === "viewer";
-  const menuPlacementClassName = viewer ? (menuPlacement === "top" ? "bottom-full mb-2" : "top-full mt-2") : menuPlacement === "top" ? "bottom-12" : "top-12";
+  const standard = !iconOnly && (triggerVariant === "cafe" || triggerVariant === "aube");
+  const menuPlacementClassName = viewer
+    ? (menuPlacement === "top" ? "bottom-full mb-2" : "top-full mt-2")
+    : standard
+      ? (menuPlacement === "top" ? "bottom-full mb-1" : "top-full mt-1")
+      : (menuPlacement === "top" ? "bottom-12" : "top-12");
   const menuAlignClassName = menuAlign === "left" ? "left-0" : "right-0";
 
   // Keep either anchor inside the actual viewport, including iframe previews.
@@ -113,6 +119,9 @@ export default function MenuLanguageSwitcher({
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setIsOpen(false);
+        if (standard && rootRef.current?.contains(document.activeElement)) {
+          triggerRef.current?.focus({ preventScroll: true });
+        }
       }
     }
 
@@ -123,12 +132,14 @@ export default function MenuLanguageSwitcher({
       document.removeEventListener("pointerdown", handlePointerDown, true);
       document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, standard]);
 
   if (visibleLocales.length === 0 || (visibleLocales.length === 1 && triggerVariant !== "aube" && !iconOnly && !showCurrentLocale)) return null;
 
   const triggerClassName =
-    viewer ? `${viewerStyles.surface} ${viewerStyles.languageTrigger}` : triggerVariant === "cafe"
+    viewer ? `${viewerStyles.surface} ${viewerStyles.languageTrigger}`
+    : standard ? `${styles.trigger} ${triggerVariant === "aube" ? styles.dining : tone === "inverse" ? "text-[#F4EDDC]" : "text-[#191c1b]"}`
+    : triggerVariant === "cafe"
       ? `inline-flex cursor-pointer list-none items-center justify-center border border-transparent bg-transparent shadow-none transition-colors focus-visible:outline-none focus-visible:ring-2 [&::-webkit-details-marker]:hidden ${
           tone === "inverse"
             ? "text-[#F4EDDC] hover:bg-[#F4EDDC]/10 focus-visible:ring-[#F4EDDC]/40"
@@ -164,6 +175,7 @@ export default function MenuLanguageSwitcher({
         ref={triggerRef}
         type="button"
         data-language-menu-trigger=""
+        data-language-menu-appearance={standard ? "standard" : undefined}
         className={triggerClassName}
         aria-label={visibleLocales.length > 1 ? t("언어 변경") : t("현재 언어: {0}", SHORT_LOCALE_LABELS[currentLocale])}
         aria-haspopup={visibleLocales.length > 1 ? "menu" : undefined}
@@ -175,23 +187,24 @@ export default function MenuLanguageSwitcher({
           if (visibleLocales.length > 1 && !isPending) setIsOpen((current) => !current);
         }}
       >
-        {viewer ? null : triggerVariant === "cafe" ? (
+        {viewer ? null : standard ? (
+          <CafeWireframeGlobeIcon className={styles.globe} />
+        ) : triggerVariant === "cafe" ? (
           <CafeWireframeGlobeIcon className={iconClassName} />
         ) : triggerVariant === "default" || (triggerVariant === "aube" && iconOnly) ? (
           <Globe2 className={iconClassName} strokeWidth={2} aria-hidden="true" />
         ) : null}
-        {viewer ? <MenuViewerLanguageLabel locale={SHORT_LOCALE_LABELS[currentLocale]} expanded={isOpen} /> : triggerVariant === "cafe" && !iconOnly ? (
+        {viewer ? <MenuViewerLanguageLabel locale={SHORT_LOCALE_LABELS[currentLocale]} expanded={isOpen} /> : standard ? (
           <>
-            <span className="leading-none">{scriptAwareLabels ? <ScriptAwareText text={SHORT_LOCALE_LABELS[currentLocale]} /> : SHORT_LOCALE_LABELS[currentLocale]}</span>
-            <ChevronDown className={chevronClassName} strokeWidth={1.8} aria-hidden="true" />
-          </>
-        ) : triggerVariant === "aube" && !iconOnly ? (
-          <>
-            <span className="leading-none"><ScriptAwareText text={SHORT_LOCALE_LABELS[currentLocale]} /></span>
-            {visibleLocales.length > 1 ? <ChevronDown className={chevronClassName} strokeWidth={1.6} aria-hidden="true" /> : null}
+            <span className={styles.label}>
+              {scriptAwareLabels || triggerVariant === "aube"
+                ? <ScriptAwareText text={SHORT_LOCALE_LABELS[currentLocale]} />
+                : SHORT_LOCALE_LABELS[currentLocale]}
+            </span>
+            {visibleLocales.length > 1 ? <ChevronDown className={`${styles.chevron} ${chevronClassName}`} strokeWidth={1.8} aria-hidden="true" /> : null}
           </>
         ) : (
-          !compact && <span>{LOCALE_LABELS[currentLocale]}</span>
+          !iconOnly && !compact && <span>{LOCALE_LABELS[currentLocale]}</span>
         )}
       </button>
       {isOpen && visibleLocales.length > 1 && (

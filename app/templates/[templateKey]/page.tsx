@@ -47,16 +47,16 @@ export default async function TemplateDetailPage({ params }: Props) {
             gallery={<TemplateDetailGallery images={info.images} name={template.name} />}
             actions={<>
               <Link href={info.previewHref} target="_blank" rel="noopener noreferrer" className="site-button site-button-outline">미리보기 <ArrowUpRight size={17} aria-hidden="true" /></Link>
-              {checkoutEnabled ? <Link href={info.startHref} className="site-button site-button-primary">이 디자인으로 시작 <ArrowUpRight size={17} aria-hidden="true" /></Link> : <button type="button" disabled className="site-button site-button-primary">디스플레이 신청 준비 중</button>}
+              {info.selectable ? (checkoutEnabled ? <Link href={info.startHref} className="site-button site-button-primary">이 디자인으로 시작 <ArrowUpRight size={17} aria-hidden="true" /></Link> : <button type="button" disabled className="site-button site-button-primary">디스플레이 신청 준비 중</button>) : null}
             </>}
-            note={<p className={`type-caption ${styles.billingNote}`}>{info.display ? "디스플레이는 현재 출시 준비 중입니다." : "첫 구독은 계정당 최초 1회 30일 무료체험. 결제수단 등록 후 시작하며, 체험 종료 후 매월 자동결제됩니다."}</p>}
+            note={info.selectable ? <p className={`type-caption ${styles.billingNote}`}>{info.display ? "디스플레이는 현재 출시 준비 중입니다." : "첫 구독은 계정당 최초 1회 30일 무료체험. 결제수단 등록 후 시작하며, 체험 종료 후 매월 자동결제됩니다."}</p> : null}
           >
             <ul className={`${styles.included} type-body-sm`} aria-label="상품 설명">{included.map(label => <li key={label}><Check size={15} aria-hidden="true" /><span>{label}</span></li>)}</ul>
-            <div className={styles.purchase}>
+            {info.selectable ? <div className={styles.purchase}>
               <div className={styles.priceHeader}><span className="type-label">{info.formatLabel}</span><span className="type-caption">메뉴판 1개 · 월 구독</span></div>
               <div className={styles.price}><span className="type-body-sm">얼리버드</span><strong>{formatProductPrice(info.pricing.earlyBirdMonthly)}<span> / 월</span></strong><del className="type-caption">{formatProductPrice(info.pricing.regularMonthly)}</del></div>
               {!info.display && <p className="type-caption mt-3 text-zinc-600">{standard ? "같은 서비스의 기본 디자인끼리 교체할 수 있습니다." : "같은 서비스의 기본 디자인과 디자인 템플릿을 자유롭게 교체할 수 있습니다."}</p>}
-            </div>
+            </div> : null}
           </TemplateDetailSidebar>
           <TemplateDetailStory template={template} />
         </div>

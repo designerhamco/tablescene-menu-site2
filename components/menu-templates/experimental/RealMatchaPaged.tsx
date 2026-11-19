@@ -599,7 +599,7 @@ export default function RealMatchaPaged(data: PublicMenuTemplateProps) {
     ? <MenuClampedCopy text={notices.join("\n")} />
     : notices.map((notice, index) => <p key={index}><ScriptAwareText text={notice} /></p>);
   const footerNotices = notices.length ? <div className={`${styles.notices} cafe-a-description-text cafe-a-menu-description`} data-paged-notices>{noticeCopy}</div> : null;
-  const languageControl = <div className={styles.brandControls} data-paged-controls><CafeLanguageHoverControl data={baseProps} menuAlign={topRow ? "right" : "left"} iconOnly /></div>;
+  const languageControl = <div className={styles.brandControls} data-paged-controls><CafeLanguageHoverControl data={baseProps} menuAlign={topRow ? "right" : "left"} showCurrentLocale /></div>;
   const storeIdentity = <CafeAStoreIdentity data={baseProps} capabilities={capabilities}
     titleClassName="cafe-a-store-title cafe-a-rail-title" logoClassName={styles.logo}
     layoutShell={topRow ? "brand_top_band" : centerColumn ? "brand_center_column" : "brand_left_rail"} />;
