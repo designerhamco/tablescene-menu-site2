@@ -25,6 +25,15 @@ export function measureOnePageMobileRhythm() {
   const header = panelIntro || [...root.querySelectorAll('header')].find(visible);
   const language = header?.querySelector(panelIntro ? '.cafe-a-panel-controls' : '[data-cafe-a-mobile-language-row]');
   const callBar = header?.querySelector('[data-one-page-call-bar]');
+  const operationIcons = [...root.querySelectorAll('[data-one-page-call-bar] button > svg')].filter(visible);
+  const safeTop = Number.parseFloat(style.getPropertyValue('--cafe-a-mobile-operation-safe-top')) || 0;
+  const usableTop = root.getBoundingClientRect().top + safeTop;
+  const operationIconInsets = operationIcons.map((icon) => {
+    const box = icon.getBoundingClientRect();
+    const viewBox = icon.viewBox.baseVal;
+    const strokeRadius = Number.parseFloat(getComputedStyle(icon).strokeWidth) / 2;
+    return box.top - usableTop + (icon.getBBox().y - viewBox.y - strokeRadius) * box.height / viewBox.height;
+  });
   const brand = header?.querySelector('[data-cafe-a-store-title], [data-cafe-a-store-logo]');
   const brandLine = brand?.querySelector('[data-mobile-brand-line]');
   const brandDescription = header?.querySelector('[data-cafe-a-store-description]');
@@ -37,6 +46,8 @@ export function measureOnePageMobileRhythm() {
     contract: root.getAttribute('data-spacing-contract'),
     copyAware: root.getAttribute('data-cafe-a-copy-aware-rhythm'),
     itemGap, sectionGap,
+    operationIconInsets,
+    bodyInlineInset: scroll ? Number.parseFloat(getComputedStyle(scroll).paddingInlineStart) : null,
     autoBrand: Boolean(root.querySelector('[data-mobile-brand-fit]')),
     brandState: root.querySelector('[data-mobile-brand-fit]')?.getAttribute('data-mobile-brand-fit'),
     noticeSizes: [...root.querySelectorAll('.cafe-a-mobile-notice-list > p, .cafe-a-round-focus-notice-list > p')].filter(visible).map((element) => Number.parseFloat(getComputedStyle(element).fontSize)),
@@ -104,6 +115,9 @@ export function getOnePageMobileRhythmFailures(measurement) {
   if (measurement.mobileStyle !== 'true') failures.push('mobile reading style is not active');
   if (measurement.contract !== 'mobile-reading') failures.push('mobile spacing contract is not separate from canvas-fit');
   if (measurement.copyAware === 'true') failures.push('PC/tablet copy-aware rhythm leaked into mobile');
+  if (measurement.bodyInlineInset != null && measurement.operationIconInsets?.some((inset) => Math.abs(inset - measurement.bodyInlineInset) > 0.25)) {
+    failures.push('painted operation icon top does not match the body inset below the safe area');
+  }
   if (measurement.autoBrand && measurement.brandState !== 'ready') failures.push('mobile brand-width measurement is not ready');
   if ((measurement.noticeGaps ?? []).some((gap) => Math.abs(gap) > 0.2)) failures.push('notice rows have extra paragraph spacing');
   if (!Number.isFinite(measurement.sectionGap) || measurement.sectionGap <= 0) failures.push('invalid section-gap token');

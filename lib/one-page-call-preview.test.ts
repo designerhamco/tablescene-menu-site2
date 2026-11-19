@@ -29,8 +29,9 @@ test("호출 미리보기는 기기·회전·언어·새 창 URL을 따라가며
 });
 test("모바일 호출 바와 루프 상단 장식은 공통 호출 리듬을 따른다", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
-  assert.match(css, /\.cafe-a-mobile-call-bar \{[^}]*height: 3\.5rem;[^}]*min-height: 3\.5rem;/);
+  assert.match(css, /--cafe-a-mobile-call-row-size: 3\.5rem;/);
+  assert.match(css, /\.cafe-a-mobile-call-bar \{[^}]*height: var\(--cafe-a-mobile-call-row-size\);[^}]*min-height: var\(--cafe-a-mobile-call-row-size\);/);
   assert.match(css, /data-one-page-call-enabled="true"[^}]*\.cafe-a-mobile-language-row \+ \.cafe-a-mobile-header-copy \{[^}]*margin-top: 1rem;/);
-  assert.match(css, /data-one-page-call-enabled="true"\]\[data-template-key="fast_food_loop_bagel_a"\] \{[^}]*padding-top: calc\(var\(--loop-bagel-checker-square\) \* 2\);/);
-  assert.match(css, /data-one-page-call-enabled="true"\]\[data-template-key="fast_food_loop_bagel_a"\]::before \{[^}]*inset-block-start: 0;/);
+  assert.match(css, /data-template-key="fast_food_loop_bagel_a"\]::before \{[^}]*inset-block-start: 0;/);
+  assert.doesNotMatch(css, /data-one-page-call-enabled="true"\]\[data-template-key="fast_food_loop_bagel_a"\] \{[^}]*padding-top:/);
 });
