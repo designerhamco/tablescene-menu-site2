@@ -4,7 +4,7 @@ import test from "node:test";
 import {createElement} from "react";
 import {renderToStaticMarkup} from "react-dom/server";
 import HomeHeroMotion from "../components/marketing/HomeHeroMotion";
-import {HERO_CAFE_CHAPTERS,HERO_CAFE_SCREENS,HERO_CHAPTER_DURATION_MS,HERO_CHAPTER_SCROLL_LENGTHS,HERO_SCROLL_LENGTH,HERO_COUNTER_TIMELINE,HERO_PHONE_TIMELINE,heroTween,heroProgressAt,heroChapterAt,heroSceneAt,heroScreenMatrix,heroScaleQuad,heroSaleZoom,heroDemoPhase,heroTemplateAt,heroPulseAt,heroPhoneValue,heroLiveSceneAt,heroSegmentProgressAt,type HeroQuad} from "./hero-cafe-motion";
+import {HERO_CAFE_CHAPTERS,HERO_CAFE_SCREENS,HERO_CHAPTER_DURATION_MS,HERO_CHAPTER_SCROLL_LENGTHS,HERO_SCROLL_LENGTH,HERO_COUNTER_TIMELINE,HERO_SALE_HIGHLIGHT,HERO_PHONE_TIMELINE,heroTween,heroProgressAt,heroChapterAt,heroSceneAt,heroScreenMatrix,heroScaleQuad,heroSaleZoom,heroSaleHighlightAt,heroDemoPhase,heroTemplateAt,heroPulseAt,heroPhoneValue,heroLiveSceneAt,heroSegmentProgressAt,type HeroQuad} from "./hero-cafe-motion";
 
 test("only one demo is eligible, with a bounded tablet warmup before its scene",()=>{
  assert.deepEqual([0,1,2,3,4,-1].map(chapter=>heroLiveSceneAt(chapter,true,true,false)),[null,"counter","dining","phone",null,null]);
@@ -139,6 +139,20 @@ test("sale zoom is stronger on desktop while preserving the approved compact cam
  const duration=HERO_CHAPTER_DURATION_MS[1]/1000;
  const holdDistance=(duration-HERO_COUNTER_TIMELINE.zoom[1])/duration*HERO_CHAPTER_SCROLL_LENGTHS[1];
  assert.ok(holdDistance>=1.09,"the enlarged countdown remains for over one viewport of scrolling");
+});
+
+test("sale annotation begins after zoom and makes exactly three reversible waves",()=>{
+ assert.ok(HERO_SALE_HIGHLIGHT.start>HERO_COUNTER_TIMELINE.zoom[1]);
+ for(const time of [0,27,36,HERO_SALE_HIGHLIGHT.start-.001,HERO_SALE_HIGHLIGHT.end,46,NaN])assert.equal(heroSaleHighlightAt(time),null);
+ const duration=HERO_SALE_HIGHLIGHT.end-HERO_SALE_HIGHLIGHT.start;
+ for(let cycle=0;cycle<3;cycle++){
+  const start=HERO_SALE_HIGHLIGHT.start+duration*cycle/3;
+  const peak=heroSaleHighlightAt(start)!,fade=heroSaleHighlightAt(start+duration*.99/3)!;
+  assert.ok(peak.spread<.001&&peak.opacity>.89);
+  assert.ok(fade.spread>13&&fade.opacity<.02);
+ }
+ const forward=[37,39,41,43,45].map(heroSaleHighlightAt);
+ assert.deepEqual([45,43,41,39,37].map(heroSaleHighlightAt),[...forward].reverse());
 });
 
 test("tablet browsing owns over two viewport lengths before sale enlargement starts",()=>{

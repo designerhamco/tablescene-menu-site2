@@ -5,9 +5,10 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { AnimatePresence, motion, useInView, useReducedMotion } from "motion/react";
 import { ProgressBar } from "@/app/components/ui/loading-state";
 import { Button } from "@/app/components/ui/button";
-import { HERO_CAFE_CHAPTERS, HERO_CAFE_PHOTOS, HERO_CAFE_SCREENS, HERO_CHAPTER_DURATION_MS, HERO_TEMPLATE_SCREENS, HERO_STORY_SVH, HERO_COUNTER_TIMELINE, HERO_PHONE_TIMELINE, heroTween, heroSceneAt, heroProgressAt, heroSaleZoom, heroScreenMatrix, heroScaleQuad, heroTemplateAt, heroPulseAt, heroLiveSceneAt, heroSegmentProgressAt, type HeroQuad } from "@/lib/hero-cafe-motion";
+import { HERO_CAFE_CHAPTERS, HERO_CAFE_PHOTOS, HERO_CAFE_SCREENS, HERO_CHAPTER_DURATION_MS, HERO_TEMPLATE_SCREENS, HERO_STORY_SVH, HERO_COUNTER_TIMELINE, HERO_PHONE_TIMELINE, heroTween, heroSceneAt, heroProgressAt, heroSaleZoom, heroSaleHighlightAt, heroScreenMatrix, heroScaleQuad, heroTemplateAt, heroPulseAt, heroLiveSceneAt, heroSegmentProgressAt, type HeroQuad, type HeroScreenRect } from "@/lib/hero-cafe-motion";
 import styles from "./HomeHeroMotion.module.css";
 import HeroLiveMenu from "./HeroLiveMenu";
+import HeroSaleHighlight from "./HeroSaleHighlight";
 import { HERO_COMPOSITIONS, HERO_RESPONSIVE_COMPOSITIONS, heroLandscapeFrame, heroLandscapeScale, heroLandscapePosition } from "@/lib/hero-background-layout";
 
 const ASSETS = "/assets/hero-cafe-v1/";
@@ -25,6 +26,7 @@ export default function HomeHeroMotion() {
   const root=useRef<HTMLElement>(null), stage=useRef<HTMLDivElement>(null), firstPhoto=useRef<HTMLImageElement>(null);
   const reduced=useReducedMotion(), inView=useInView(stage,{amount:.15});
   const [detailFocus,setDetailFocus]=useState<readonly [number,number]>([1220,370]), [progress,setProgress]=useState(0), [visible,setVisible]=useState(true), [loaded,setLoaded]=useState(false), [size,setSize]=useState({width:1536,height:1024,gutter:40,copyHeight:0,copyBottom:0});
+  const [saleTarget,setSaleTarget]=useState<HeroScreenRect|null>(null);
   const scenePosition=heroSceneAt(progress),chapter=scenePosition.chapter,scene=HERO_CAFE_CHAPTERS[chapter];
   const liveScene=heroLiveSceneAt(chapter,inView,visible,Boolean(reduced),scenePosition.fraction);
   const localProgress=scenePosition.fraction;
@@ -38,6 +40,10 @@ export default function HomeHeroMotion() {
     window.scrollTo({top:top+(root.current.offsetHeight-stage.current.offsetHeight)*heroProgressAt(index)+.5,behavior:"instant"});
   },[]);
   const onDetail=useCallback((point:readonly [number,number])=>setDetailFocus(current=>Math.abs(current[0]-point[0])+Math.abs(current[1]-point[1])<.2?current:point),[]);
+  const onSaleTarget=useCallback((next:HeroScreenRect|null)=>setSaleTarget(current=>{
+    if(current&&next&&(["left","top","width","height"] as const).every(key=>Math.abs(current[key]-next[key])<.0001))return current;
+    return next;
+  }),[]);
   useEffect(()=>{
     let active=true;
     void firstPhoto.current?.decode().then(()=>{if(active)setLoaded(true);}).catch(()=>{});
@@ -96,7 +102,7 @@ export default function HomeHeroMotion() {
                 <img ref={image==="venue"?firstPhoto:undefined} src={HERO_COMPOSITIONS[image]} className={styles.composition} data-hero-composition={image} width={4608} height={1536} alt="" fetchPriority={image==="venue"?"high":"auto"} onLoad={()=>{if(image==="venue")setLoaded(true);}}/>
               </picture>
               {image==="venue"?<>{HERO_CAFE_SCREENS.televisions.map((quad,i)=><Screen key={i} quad={quad}><CapturedScreen selected={selected}/></Screen>)}<Screen quad={HERO_CAFE_SCREENS.venueTablet}><CapturedScreen selected={selected}/></Screen></>:null}
-              {image==="counter"?<div className={styles.screenMask} style={{maskImage:"url(/assets/hero-cafe-v7/counter-screen-mask.png)"}} data-hero-ui-mask="counter"><Screen quad={HERO_CAFE_SCREENS.counter} width={1280} height={800}>{liveScene===image?<HeroLiveMenu key="counter" kind="counter" active={active} onDetail={onDetail} seconds={active?localProgress*HERO_CHAPTER_DURATION_MS[chapter]/1000:0} reduced={false}/>:<IdleScreen image={image}/>}</Screen></div>:null}
+              {image==="counter"?<div className={styles.screenMask} style={{maskImage:"url(/assets/hero-cafe-v7/counter-screen-mask.png)"}} data-hero-ui-mask="counter"><Screen quad={HERO_CAFE_SCREENS.counter} width={1280} height={800}>{liveScene===image?<HeroLiveMenu key="counter" kind="counter" active={active} onDetail={onDetail} onSaleTarget={onSaleTarget} seconds={active?localProgress*HERO_CHAPTER_DURATION_MS[chapter]/1000:0} reduced={false}/>:<IdleScreen image={image}/>}</Screen></div>:null}
               {image==="dining"?<div className={styles.screenMask} style={{maskImage:"url(/assets/hero-cafe-v7/dining-screen-mask.png)"}} data-hero-ui-mask="dining"><Screen quad={HERO_CAFE_SCREENS.dining} width={820} height={512}>{liveScene===image?<HeroLiveMenu key="dining" kind="dining" active seconds={localProgress*HERO_CHAPTER_DURATION_MS[chapter]/1000} reduced={false}/>:<IdleScreen image={image}/>}</Screen></div>:null}
               {image==="phone"?<><div className={styles.screenMask} style={{maskImage:"url(/assets/hero-cafe-v7/phone-screen-mask.png)"}} data-hero-ui-mask="phone"><Screen quad={HERO_CAFE_SCREENS.phone} width={390} height={900} phone>{liveScene===image?<HeroLiveMenu key="phone" kind="phone" active seconds={localProgress*HERO_CHAPTER_DURATION_MS[chapter]/1000} reduced={false}/>:<IdleScreen image={image}/>}</Screen></div>{chapter===3?<span className={styles.qrPulse} data-hero-qr-cue aria-hidden="true" style={{transform:heroScreenMatrix(heroScaleQuad(HERO_CAFE_SCREENS.qrCode,1.4),156,80),opacity:qrProgress>=0&&qrProgress<1?.2+.8*heroPulseAt(qrProgress):0}}/>:null}</>:null}
             </motion.div>
@@ -107,6 +113,7 @@ export default function HomeHeroMotion() {
       </div>
       <div className={styles.shade}/>
       <div className={styles.headerShade} aria-hidden="true"/>
+      <HeroSaleHighlight stage={stage} target={saleTarget} minimumScale={cameraFor(1).scale*.995} pulse={chapter===1&&inView&&visible&&!reduced?heroSaleHighlightAt(localProgress*HERO_CHAPTER_DURATION_MS[1]/1000):null}/>
       {/* Keep native touch scrolling on the home document, above transformed preview frames. */}
       <div className={styles.gestureSurface} data-hero-gesture-surface aria-hidden="true"/>
       <div className={`site-marketing-container ${styles.sceneCopy}`} data-hero-copy>
