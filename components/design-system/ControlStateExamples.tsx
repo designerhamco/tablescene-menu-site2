@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { BookOpen, Plus, Sparkles, Square, Trash2 } from "@/app/components/ui/site-icon";
+import { BookOpen, CircleHelp, Plus, Sparkles, Square, Trash2 } from "@/app/components/ui/site-icon";
 import { Button, ButtonGroupDivider } from "@/app/components/ui/button";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/app/components/ui/tabs";
 import IconControlExamples from "./IconControlExamples";
 import styles from "./SiteComponentGallery.module.css";
+import MenuViewerPagination from "@/components/menu/MenuViewerPagination";
 
 const states = [
   ["default", "기본"], ["hover", "Hover"], ["pressed", "누르는 중"], ["focus", "키보드 포커스"], ["disabled", "비활성"],
@@ -20,6 +21,7 @@ const actions = [
 export default function ControlStateExamples() {
   const [clicks, setClicks] = useState(0);
   const [previewDevice, setPreviewDevice] = useState("태블릿");
+  const [viewerPage, setViewerPage] = useState(2);
   return <section className={styles.section} aria-labelledby="control-states-title">
     <div className={styles.heading}><h2 className="type-section-title" id="control-states-title">버튼·탭 공통 기준과 상태</h2>
       <p className="type-body text-zinc-600">텍스트 밀집 도구 32px, 일반 실행 40px, 헤더 44px, 로그인·결제 같은 주요 완료 행동 48px을 사용합니다. 본문 버튼은 8px 모서리와 14px·600 글자를 공유합니다.</p>
@@ -72,7 +74,11 @@ export default function ControlStateExamples() {
       <tbody>{(["page", "underline", "area", "outline", "document"] as const).map(variant => <tr key={variant}><th scope="row">{{page:"페이지 전환",underline:"밑줄",area:"영역형",outline:"상태값 전환",document:"문서형"}[variant]}</th>{states.map(([state,stateLabel]) => <td key={state}><Tabs variant={variant} defaultValue="selected"><TabsList aria-label={`${variant} ${stateLabel} 예시`}>
         <TabsTrigger value="selected" data-ui-state={state === "default" || state === "disabled" ? undefined : state} disabled={state === "disabled"}>선택</TabsTrigger>
       </TabsList><TabsContent value="selected" className="sr-only" tabIndex={-1}>상태 예시</TabsContent></Tabs></td>)}</tr>)}</tbody></table></div>
-    <div className={styles.inverseToolbar} role="group" aria-label="미리보기 도구 스타일 예시">{["태블릿","PC","모바일"].map(label => <button key={label} type="button" className="site-preview-control" aria-pressed={previewDevice === label} onClick={() => setPreviewDevice(label)}>{label}</button>)}<button type="button" className="site-preview-control" disabled>준비 중</button></div>
+    <p className="type-body-sm text-zinc-600">어두운 미리보기 막대에서는 버튼에 밝은 회색 면과 얇은 밝은 경계를 사용합니다. 선택은 흰색, 비활성은 경계를 유지한 흐린 상태입니다. 펼치기·접기 화살표는 기존 투명 스타일을 유지합니다.</p>
+    <div className={styles.inverseToolbar} role="group" aria-label="미리보기 도구 스타일 예시">{["태블릿","PC","모바일"].map(label => <button key={label} type="button" className="site-preview-control" aria-pressed={previewDevice === label} onClick={() => setPreviewDevice(label)}>{label}</button>)}<button type="button" className="site-preview-control">실제 화면 보기</button><button type="button" className="site-preview-control site-preview-control-icon" aria-label="미리보기 안내 예시"><CircleHelp className="h-4 w-4" aria-hidden="true" /></button><button type="button" className="site-preview-control" disabled>준비 중</button></div>
+    <div className={styles.inverseToolbar} role="group" aria-label="미리보기 도구 상태 비교">{states.map(([state,label]) => <button key={state} type="button" className="site-preview-control" data-ui-state={state} disabled={state === "disabled"}>{label}</button>)}</div>
+    <p className="type-body-sm text-zinc-600">메뉴 뷰어의 하단 탐색은 템플릿 색상·서체와 분리된 흰 표면, 검정 카운터, 공통 화살표를 사용합니다.</p>
+    <div className={styles.buttonRow}><MenuViewerPagination page={viewerPage} count={4} onPrevious={() => setViewerPage(page => Math.max(1, page - 1))} onNext={() => setViewerPage(page => Math.min(4, page + 1))} /></div>
     <div className="site-filter-group" role="group" aria-label="하위 필터 예시"><button type="button" className="site-filter" aria-pressed>전체</button><button type="button" className="site-filter" aria-pressed={false}>카페</button><button type="button" className="site-filter" disabled>준비 중</button></div>
   </section>;
 }

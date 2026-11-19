@@ -1,5 +1,9 @@
 :root {
   --ui-layer-preview-modal: 260;
+  --ui-preview-button-surface: rgb(255 255 255 / 14%);
+  --ui-preview-button-boundary: rgb(255 255 255 / 30%);
+  --ui-preview-button-hover: rgb(255 255 255 / 22%);
+  --ui-preview-button-pressed: rgb(255 255 255 / 28%);
   --ui-media-ink: #ffffff;
   --ui-media-hover-ink: #d4d4d8;
   --ui-media-counter-surface: rgb(9 9 11 / 60%);
@@ -1219,14 +1223,14 @@ textarea.site-field,
 .site-filter[aria-pressed="true"]:hover:not(:disabled) { border-color: var(--ui-text); }
 
 /* Device preview tools use one compact inverse palette above customer artwork. */
-.site-preview-control { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: .375rem; min-height: var(--ui-preview-control-height, 2.25rem); padding: .5rem; border: 1px solid transparent; border-radius: var(--ui-radius-control-rounded); background: rgb(9 9 11 / 45%); color: #fff; font-size: var(--type-caption-size); font-weight: 600; line-height: 1.5; white-space: nowrap; cursor: pointer; transition: background-color var(--ui-transition), color var(--ui-transition); }
-.site-preview-control:hover:not(:disabled):not([aria-disabled="true"]) { background: rgb(9 9 11 / 65%); }
-.site-preview-control:active:not(:disabled):not([aria-disabled="true"]) { background: #4b515b; }
-.site-preview-control:is([aria-current], [aria-pressed="true"]) { background: var(--ui-surface); color: var(--ui-text); }
+.site-preview-control { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: .375rem; min-height: var(--ui-preview-control-height, 2.25rem); padding: .5rem; border: 1px solid var(--ui-preview-button-boundary); border-radius: var(--ui-radius-control-rounded); background: var(--ui-preview-button-surface); color: #fff; font-size: var(--type-caption-size); font-weight: 600; line-height: 1.5; white-space: nowrap; cursor: pointer; transition: background-color var(--ui-transition), color var(--ui-transition); }
+.site-preview-control:not(.site-preview-toolbar-toggle):is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { background: var(--ui-preview-button-hover); border-color: rgb(255 255 255 / 44%); }
+.site-preview-control:not(.site-preview-toolbar-toggle):is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { background: var(--ui-preview-button-pressed); }
+.site-preview-control:is([aria-current], [aria-pressed="true"]) { background: var(--ui-surface); border-color: var(--ui-surface); color: var(--ui-text); }
 .site-preview-control:is([aria-current], [aria-pressed="true"]):hover:not(:disabled):not([aria-disabled="true"]) { background: var(--ui-surface-muted); }
 .site-preview-control:is([aria-current], [aria-pressed="true"]):active:not(:disabled):not([aria-disabled="true"]) { background: var(--ui-action-soft-pressed); }
-.site-preview-control:focus-visible { outline: 2px solid #8bbcff; outline-offset: 2px; }
-.site-preview-control:is(:disabled, [aria-disabled="true"]), .site-preview-choice:has(:disabled) { cursor: not-allowed; opacity: .45; }
+.site-preview-control:is(:focus-visible, [data-ui-state="focus"]) { outline: 2px solid #8bbcff; outline-offset: 2px; }
+.site-preview-control:is(:disabled, [aria-disabled="true"]), .site-preview-choice:has(:disabled) { cursor: not-allowed; opacity: 1; background: rgb(255 255 255 / 5%); border-color: rgb(255 255 255 / 14%); color: rgb(255 255 255 / 42%); }
 .site-preview-control-icon { width: var(--ui-preview-control-height, 2.25rem); min-width: var(--ui-preview-control-height, 2.25rem); padding: 0; }
 [data-preview-device-toolbar] { --ui-preview-control-height: 2.25rem; }
 [data-preview-device-toolbar] .site-preview-control { padding: .375rem .5rem; font-size: var(--site-type-14); }
@@ -1235,7 +1239,7 @@ textarea.site-field,
 .site-preview-control.site-preview-toolbar-toggle { position: absolute; right: .5rem; top: 50%; width: var(--ui-preview-control-height); height: var(--ui-preview-control-height); padding: 0; transform: translateY(-50%); border: 0; background: transparent; box-shadow: none; color: #fff; }
 .site-preview-control.site-preview-toolbar-toggle[aria-expanded="false"] { right: auto; top: auto; bottom: 0; left: 50%; width: 3rem; height: 1.75rem; min-height: 1.75rem; transform: translateX(-50%); }
 @media (max-width: 767px) { [data-preview-device-toolbar] { --ui-preview-control-height: var(--ui-control-height-header); } }
-.site-preview-choice { background: rgb(255 255 255 / 10%); }
+.site-preview-choice { background: var(--ui-preview-button-surface); }
 @media (prefers-reduced-motion: reduce) { .site-preview-control { transition: none; } }
 
 /* Site selects share the sculpted filled SVG chevron at16px and a12px trailing inset.
