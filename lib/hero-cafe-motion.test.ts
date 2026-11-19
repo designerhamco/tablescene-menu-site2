@@ -65,7 +65,7 @@ test("each scene owns a complete 0–100% timeline, with reversible scroll seeki
  assert.deepEqual(heroSceneAt(NaN),{chapter:0,fraction:0,elapsed:0});
 });
 test("projective screen overlays meet every authored device corner",()=>{
- for(const quad of [...HERO_CAFE_SCREENS.televisions,HERO_CAFE_SCREENS.venueTablet,HERO_CAFE_SCREENS.counter,HERO_CAFE_SCREENS.dining,HERO_CAFE_SCREENS.phone]) {
+ for(const quad of [...HERO_CAFE_SCREENS.televisions,HERO_CAFE_SCREENS.venueTablet,HERO_CAFE_SCREENS.counter,HERO_CAFE_SCREENS.dining,HERO_CAFE_SCREENS.phone,HERO_CAFE_SCREENS.qrCode]) {
   const m=heroScreenMatrix(quad,1280,800).slice(9,-1).split(",").map(Number);
   [[0,0],[1280,0],[1280,800],[0,800]].forEach(([x,y],i)=>{
    const z=m[3]*x+m[7]*y+m[15];
