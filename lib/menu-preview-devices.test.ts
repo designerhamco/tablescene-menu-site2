@@ -193,7 +193,7 @@ test("preview workspaces do not launch the actual-screen zoom guide", () => {
   assert.match(fullscreenControlSource, /<BrowserZoomGuide/);
   assert.match(fullscreenControlSource, /브라우저 오른쪽 상단의 더보기/);
   assert.match(fullscreenControlSource, /setGuideOpen\(false\)/);
-  assert.match(fullscreenControlSource, /if \(isFullscreen\) return null/);
+  assert.match(fullscreenControlSource, /if \(isFullscreen\) return displayHint/);
 });
 
 test("browser guide uses a filled round profile and restores the address pill without guest text", () => {
@@ -347,7 +347,7 @@ test("detached actual previews expose a user-triggered fullscreen control", () =
   assert.match(fullscreenControlSource, /document\.documentElement\.requestFullscreen\(\)/);
   assert.match(fullscreenControlSource, /event\.key === "Escape" && document\.fullscreenElement/);
   assert.match(fullscreenControlSource, /data-preview-fullscreen-control=""/);
-  assert.match(displayTemplatePreviewSource, /isDetachedView \? <PreviewFullscreenControl \/> : null/);
+  assert.match(displayTemplatePreviewSource, /isDetachedView \? <PreviewFullscreenControl displayGuide=\{templateKey === "display_menu_a"\} \/> : null/);
   assert.match(menuPreviewSource, /isDetachedView \? <PreviewFullscreenControl \/> : null/);
   assert.match(buildTemplatePreviewUrl("cafe_design_a", {}, { actual: true, embedded: true, detached: true }), /view=actual&embedded=1&detached=1$/);
 });
@@ -412,4 +412,18 @@ test("catalog and saved preview collapse arrows stay bare in both states without
   const barePaint = css.slice(css.indexOf("/* Bare is a paint choice"));
   assert.match(barePaint, /:is\(\.site-icon-control, \.site-button\.site-button-icon\):not\(\[data-icon-appearance="framed"\]\):is\(:hover, :active/);
   assert.match(barePaint, /background: transparent !important;/);
+});
+
+// The actual preview remains manual; only public signage may rotate itself.
+test("display actual previews keep manual bottom navigation and a dedicated onboarding layer", () => {
+  assert.doesNotMatch(displayTemplateSource, /isPlaybackPreview/);
+  assert.match(displayTemplateSource, /if \(props.mode !== "public" \|\| displayPages.length <= 1\)/);
+  assert.match(displayTemplateSource, /data-display-bottom-page-count/);
+  assert.match(fullscreenControlSource, /!guideOpen \|\| isFullscreen/);
+  const hint = readFileSync(new URL("../components/menu/DisplayBottomControlsGuide.tsx", import.meta.url), "utf8");
+  assert.match(hint, /showModal\(\)/);
+  assert.match(hint, /페이지 이동과 언어 메뉴/);
+  assert.match(hint, /onCancel/);
+  const css = readFileSync(new URL("../components/menu/DisplayBottomControlsGuide.module.css", import.meta.url), "utf8");
+  assert.match(css, /prefers-reduced-motion: reduce/);
 });

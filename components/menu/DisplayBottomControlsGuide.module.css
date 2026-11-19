@@ -1,0 +1,11 @@
+.overlay {
+  position: fixed; inset: 0; width: 100%; max-width: none; height: 100dvh; max-height: none;
+  margin: 0; border: 0; padding: 0; overflow: auto; background: rgb(0 0 0 / 74%); color: white;
+}
+.overlay::backdrop { background: transparent; }
+.hint { position: absolute; left: 0; right: 0; bottom: max(7rem, 14dvh); display: grid; justify-items: center; gap: var(--site-space-copy); padding-inline: var(--preview-gutter, 1rem); text-align: center; }
+.arrow { width: 2.5rem; height: 2.5rem; margin-top: var(--site-space-copy); animation: point-down 1.4s ease-in-out infinite; }
+.actions { position: absolute; inset-inline: 0; bottom: max(1.5rem, env(safe-area-inset-bottom)); display: flex; justify-content: center; }
+@keyframes point-down { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(.625rem); } }
+@media (prefers-reduced-motion: reduce) { .arrow { animation: none; } }
+@media (max-height: 400px) { .hint { bottom: 6rem; } .arrow { width: 1.75rem; height: 1.75rem; margin-top: 0; } }

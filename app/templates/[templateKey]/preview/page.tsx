@@ -1203,5 +1203,5 @@ export default async function TemplatePreviewPage({ params, searchParams }: Page
     data-preview-secondary={getTemplatePreviewOptionOverride(resolvedSearchParams, "secondaryNamesPreview") === true ? "on" : undefined}
     data-preview-category-description={getTemplatePreviewOptionOverride(resolvedSearchParams, "categoryDescriptionsPreview") === true ? "on" : undefined}>{preview}</div> : preview;
 
-  return <>{renderedPreview}{!isActualView ? <MobilePreviewEntryNotice /> : null}{isDetachedView ? <PreviewFullscreenControl /> : null}</>;
+  return <>{renderedPreview}{!isActualView ? <MobilePreviewEntryNotice /> : null}{isDetachedView ? <PreviewFullscreenControl displayGuide={templateKey === "display_menu_a"} /> : null}</>;
 }
