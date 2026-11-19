@@ -45,7 +45,9 @@
   --ui-field-height-md: 2.5rem;
   --ui-field-height-lg: 2.75rem;
   --ui-field-height-search: 3rem;
-  --ui-field-font-size: var(--site-type-14);
+  --ui-compact-field-font-size: var(--site-type-14);
+  --ui-field-font-size: var(--ui-compact-field-font-size);
+  --ui-field-md-padding-block: .5rem;
   --ui-menu-row-height: 2rem;
   --ui-menu-inset: .5rem;
   --ui-menu-section-gap: .25rem;
@@ -594,7 +596,7 @@
   font-size: var(--ui-field-font-size);
   font-weight: 400;
   line-height: 1.5;
-  padding: .5rem var(--ui-control-padding-inline);
+  padding: var(--ui-field-md-padding-block) var(--ui-control-padding-inline);
   transition:
     border-color var(--ui-transition),
     background-color var(--ui-transition),
@@ -606,6 +608,7 @@
 
 textarea.site-field,
 :where(textarea):not(.menu-typography *):not(.menu-typography, .aube-table-root, .aube-table-root *, [data-template-artwork], [data-template-artwork] *) {
+  --ui-field-md-padding-block: .5rem;
   min-height: 7rem;
   resize: vertical;
 }
@@ -1292,7 +1295,7 @@ select:not([multiple]):is(:not([size]), [size="1"]):not(:where(.menu-typography,
 }
 .site-field[data-field-size="md"], .site-field-md,
 [data-field-size="md"]:is(input, select, [data-slot="select-trigger"]) {
-  min-height: var(--ui-field-height-md); padding-block: .5rem;
+  min-height: var(--ui-field-height-md); padding-block: var(--ui-field-md-padding-block);
 }
 .site-field[data-field-size="lg"], .site-field-lg,
 [data-field-size="lg"]:is(input, select, [data-slot="select-trigger"]) {
@@ -1660,8 +1663,30 @@ svg.site-edit-icon {
 [data-appearance="segmented"] > [data-slot="toggle-group-item"][data-state="on"] { background: var(--ui-text); color: var(--ui-surface); }
 [data-appearance="segmented"] > [data-slot="toggle-group-item"]:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 1px; box-shadow: none; }
 @media (pointer: coarse) {
-  :root { --ui-field-height-sm: 2.5rem; --ui-field-height-md: 2.75rem; --ui-field-font-size: var(--site-type-16); --ui-menu-row-height: 2.5rem; }
+  :root { --ui-field-height-sm: 2.5rem; --ui-field-height-md: 2.75rem; --ui-compact-field-font-size: var(--site-type-16); --ui-menu-row-height: 2.5rem; }
   [data-appearance="segmented"] > [data-slot="toggle-group-item"] { min-width: var(--ui-control-height-header); height: var(--ui-control-height-header); }
+}
+
+/* Official desktop form values are distinct from labels and option text. */
+@media (min-width: 1024px) {
+  body:has([data-site-header]) {
+    --ui-field-font-size: var(--site-type-16);
+    /* Fit the 1.5 line box and 1px borders within the standard field height. */
+    --ui-field-md-padding-block: clamp(0px, calc((var(--ui-field-height-md) - 2px - 1.5em) / 2), .5rem);
+  }
+  :where(body:has([data-site-header])) :is(
+    [data-field-density="compact"], .site-filter-panel, .site-filter-toolbar,
+    .site-management-table, .site-field[data-field-size="sm"], .site-field-sm,
+    .site-multiselect-control, .site-select-icon,
+    .menu-typography, .aube-table-root, [data-template-artwork], [data-preview-device]
+  ) {
+    --ui-field-font-size: var(--ui-compact-field-font-size);
+    --ui-field-md-padding-block: .5rem;
+  }
+  :where(body:has([data-site-header])) select:not(:where(
+    .menu-typography, .menu-typography *, .aube-table-root, .aube-table-root *,
+    [data-template-artwork], [data-template-artwork] *, [data-preview-device], [data-preview-device] *
+  )) option { font-size: var(--site-type-14); }
 }
 
 /* Font specimens alone use menu font families; surrounding site UI stays unchanged. */

@@ -185,7 +185,7 @@ export default function CallDashboard({
             onClick={() => refresh(() => router.refresh())}
           />
         </div>
-        <div className="site-form-row">
+        <div className="site-form-row" data-field-density="compact">
           <div className="site-field-stack">
             <label htmlFor={queryId} className="type-label">호출 내역 검색</label>
             <SearchField id={queryId} label="호출 내역 검색" value={query} onValueChange={setQuery} placeholder="테이블·요청·처리자 검색" />

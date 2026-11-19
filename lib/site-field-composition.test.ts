@@ -85,11 +85,20 @@ test("view size switches expose exactly one selected option in the shared segmen
   assert.doesNotMatch(html,/site-tool-button/);
 });
 
-test("compact controls document the same density and keep a separate coarse-pointer field policy", () => {
+test("shared fields distinguish desktop form values, compact values and touch input", () => {
   assert.ok(SITE_CONTROL_DENSITY.some(role=>role.token==="--ui-menu-inset"&&role.value==="8px"));
   assert.match(css,/--ui-menu-row-height: 2rem;/);assert.match(css,/--ui-menu-inset: \.5rem;/);
-  assert.match(css,/--ui-field-font-size: var\(--site-type-14\);/);
-  assert.match(css,/@media \(pointer: coarse\) \{[\s\S]*?--ui-field-font-size: var\(--site-type-16\); --ui-menu-row-height: 2\.5rem;/);
+  assert.match(css,/--ui-compact-field-font-size: var\(--site-type-14\);/);
+  assert.match(css,/--ui-field-font-size: var\(--ui-compact-field-font-size\);/);
+  assert.match(css,/@media \(pointer: coarse\) \{[\s\S]*?--ui-compact-field-font-size: var\(--site-type-16\); --ui-menu-row-height: 2\.5rem;/);
+  assert.match(css,/@media \(min-width: 1024px\) \{\s*body:has\(\[data-site-header\]\) \{\s*--ui-field-font-size: var\(--site-type-16\);/);
+  const desktopFields = css.split("/* Official desktop form values")[1].split("/* Font specimens")[0];
+  for (const scope of ['[data-field-density="compact"]', ".site-filter-panel", ".site-management-table", ".menu-typography", "[data-template-artwork]"]) {
+    assert.ok(desktopFields.includes(scope), scope);
+  }
+  assert.match(css,/\)\) option \{ font-size: var\(--site-type-14\); \}/);
+  assert.ok(SITE_CONTROL_DENSITY.some(role => role.token === "--ui-field-font-size" && role.value.includes("PC 16px")));
+  assert.ok(SITE_CONTROL_DENSITY.some(role => role.token === "--ui-compact-field-font-size" && role.value.includes("PC 14px")));
   assert.match(css,/\.site-multiselect-options \{ display: grid; gap: 0; \}/);
   assert.match(css,/\.site-multiselect-body > \.site-content-divider \{[^}]*padding: 0;/);
   assert.match(css,/\.site-multiselect-option:has\(input:focus-visible\)/);
