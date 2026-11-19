@@ -22,7 +22,7 @@
 | --- | --- | --- | --- |
 | 디스플레이 | `type-display` | 28px | 32px (태블릿 28px) | 일반 대표 문구 |
 | 페이지 제목 | `type-page-title` | 28px | 32px (태블릿 28px) | 일반 페이지 H1 |
-| 페이지 설명 | `type-page-description` | 18px | 20px (태블릿 18px) | 모든 일반 페이지의 H1 바로 아래 설명 |
+| 페이지 설명 | `type-page-description` | 18px | 20px (태블릿 18px) | 일반 페이지의 도입 문구 |
 | 메인 섹션 제목 | `type-section-title` | 28px | 36px (태블릿 32px) | 메인 스크롤 장면과 서비스 소개 |
 | 일반 섹션 제목 | `type-section-title` | 24px | 28px (태블릿 24px) | 일반 페이지의 콘텐츠 구획 |
 | 하위 섹션 | `type-subsection-title` | 20px | 24px (태블릿 20px) | 폼 단계·카드군 제목 |
@@ -37,7 +37,7 @@
 - 토큰과 클래스의 단일 기준: `styles/typography.css`
 - 마케팅 설명 섹션의 공통 구현: `app/components/home/MarketingSectionCopy.tsx`
 - 제목은 역할에 맞는 클래스를 반드시 사용하고, 개별 페이지에서 임의의 `text-*`, `font-black` 조합으로 다시 정의하지 않는다.
-- 문구는 위치가 아니라 역할로 고른다. 로그인·서비스·고객센터·신청·템플릿 목록과 상세를 포함한 모든 일반 페이지의 H1 바로 아래 설명은 `type-page-description`을 사용한다.
+- 문구는 위치가 아니라 역할로 고른다. 로그인·서비스·고객센터·신청·템플릿 목록의 페이지 소개는 `type-page-description`을 사용한다. 템플릿 상세의 디자인 설명과 개별 기능 소개문은 `type-body`를 사용한다.
 - 읽는 문구는 페이지 설명·강조 본문·일반 본문·보조 본문·캡션 중 하나를 선택한다. 섹션의 짧은 소개에는 `type-body-lg`를 사용한다.
 - 베이직·다이닝·디스플레이 같은 탭 문구는 본문이 아니라 컨트롤 라벨이다. `TabsList`의 lg/md/sm 크기와 각각 16/15/14px로 연결한다.
 - 메뉴판과 공유하는 `text-xs`부터 `text-7xl`까지 기초 크기는 변경하지 않는다. 사이트 본문은 `text-copy`/`text-support`/`text-meta` 의미 유틸리티를 사용한다. 기초 크기는 `styles/theme.css`에서 승인된 `--font-size-*` 기초 토큰에 연결한다.
