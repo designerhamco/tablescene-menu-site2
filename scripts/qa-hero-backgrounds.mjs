@@ -5,7 +5,7 @@ import { HERO_COUNTER_TIMELINE, HERO_CHAPTER_DURATION_MS, heroProgressAt } from 
 
 const base=process.env.QA_BASE||'http://localhost:3047';
 const out=process.env.QA_OUT||'tmp/qa/hero-backgrounds';
-const sizes=process.env.QA_COMPACT?[[390,844],[1512,762],[3440,1440]]:[[320,740],[390,844],[430,932],[820,1180],[1440,900],[1512,762],[1920,1080],[2560,1440],[3440,1440],[5120,1440]];
+const sizes=process.env.QA_WIDE_ONLY?[[3440,1440],[5120,1440]]:process.env.QA_COMPACT?[[390,844],[1512,762],[3440,1440]]:[[320,740],[390,844],[430,932],[820,1180],[1440,900],[1512,762],[1920,1080],[2560,1440],[3440,1440],[5120,1440]];
 await mkdir(out,{recursive:true});
 let browser;
 const results=[],errors=[],writes=[],outpaintRequests=[];
@@ -26,15 +26,16 @@ try {
     // Render the ACTUAL SVG sharp-layer masks against solid white. Alpha is sharp
     // coverage, rather than total opacity (which includes the blurred underlay).
     const xml=new DOMParser().parseFromString(await (await fetch(image.src)).text(),'image/svg+xml');
+    if(xml.querySelectorAll('image').length!==1||xml.getElementById('seamX'))throw new Error('photo must be one approved flat image without an old-photo insert');
     const photo=xml.getElementById('photo'),rect=xml.createElementNS('http://www.w3.org/2000/svg','rect');
-    rect.setAttribute('id','photo');rect.setAttribute('width','3072');rect.setAttribute('height','2048');rect.setAttribute('fill','white');photo.replaceWith(rect);
+    rect.setAttribute('id','photo');rect.setAttribute('width','4608');rect.setAttribute('height','1536');rect.setAttribute('fill','white');photo.replaceWith(rect);
     [...xml.documentElement.children].find(child=>child.getAttribute('mask')==='url(#verticalMask)').remove();
     const diagnostic=new Image(),url=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(xml)],{type:'image/svg+xml'}));diagnostic.src=url;await diagnostic.decode();
-    const canvas=document.createElement('canvas');canvas.width=3072;canvas.height=2048;const context=canvas.getContext('2d');context.drawImage(diagnostic,0,0);URL.revokeObjectURL(url);
+    const canvas=document.createElement('canvas');canvas.width=4608;canvas.height=1536;const context=canvas.getContext('2d');context.drawImage(diagnostic,0,0);URL.revokeObjectURL(url);
     const alpha=(x,y)=>context.getImageData(x,y,1,1).data[3],scene=image.dataset.heroComposition;
     window.__heroSharpMaps[scene]=canvas;
-    const positions=[0,154,307,461,614,1536];
-    return {scene,center:alpha(1536,1024),left:positions.map(x=>alpha(x,1024)),right:positions.map(x=>alpha(3071-x,1024)),top10:alpha(1536,205)};
+    const positions=[0,461,1014,1337,1536,2304];
+    return {scene,center:alpha(2304,768),left:positions.map(x=>alpha(x,768)),right:positions.map(x=>alpha(4607-x,768)),top20:alpha(2304,307)};
    }));
   });
   assert.equal(masking.length,4);
@@ -42,7 +43,7 @@ try {
    assert.equal(mask.center,255);
    for(const profile of [mask.left,mask.right]){assert.equal(profile[0],0);assert.ok(profile.every((a,i)=>i===0||a>=profile[i-1]),'sharp coverage increases continuously from the full photo edge');}
    mask.left.forEach((a,i)=>assert.ok(Math.abs(a-mask.right[i])<=4,'one symmetric lateral profile'));
-   assert.equal(mask.top10,255,'top/bottom transition is shallow');assert.ok(mask.left[2]<255,'sides have a wider transition');
+   assert.equal(mask.top20,255,'top/bottom transition is shallow');assert.ok(mask.left[2]<255,'sides have a wider transition');
    assert.deepEqual(mask.left,masking[0].left,'all compositions share the same true-edge treatment');
   }
   const states=[];
@@ -50,22 +51,24 @@ try {
     const hero=document.querySelector('[data-hero-motion]'),plane=hero.querySelector('[data-hero-plane][data-active="true"]'),photo=plane.querySelector('[data-hero-composition]'),canvas=plane.querySelector('[data-hero-canvas]'),r=canvas.getBoundingClientRect(),frame=plane.querySelector('[data-hero-framing]'),f=frame.getBoundingClientRect(),ambient=plane.querySelector('[data-hero-ambient]'),a=ambient.getBoundingClientRect();
     const scale=r.width/1536,b=photo.getBoundingClientRect(),map=window.__heroSharpMaps[plane.dataset.heroPlane],ctx=map.getContext('2d'),sharpCoverage=[];
     for(let row=0;row<=8;row++)for(let col=0;col<=10;col++){
-     const x=Math.floor(((innerWidth-1)*col/10-r.x)/scale+768),y=Math.floor(((innerHeight-1)*row/8-r.y)/scale+512);
-     sharpCoverage.push(x<0||x>=3072||y<0||y>=2048?0:ctx.getImageData(x,y,1,1).data[3]);
+     const x=Math.floor(((innerWidth-1)*col/10-r.x)/scale+1536),y=Math.floor(((innerHeight-1)*row/8-r.y)/scale+256);
+     sharpCoverage.push(x<0||x>=4608||y<0||y>=1536?0:ctx.getImageData(x,y,1,1).data[3]);
     }
     const screens=[...plane.querySelectorAll('[data-hero-screen]')].map(screen=>{const s=screen.getBoundingClientRect();return {width:s.width/innerHeight,height:s.height/innerHeight,center:(s.x+s.width/2-innerWidth/2)/innerHeight,y:s.y/innerHeight};});
-    const finger=plane.querySelector('img:not([data-hero-composition]):not([data-hero-ambient])');
-    return {image:plane.dataset.heroPlane,chapter:Number(hero.dataset.chapter),stageHeight:hero.firstElementChild.clientHeight,original:{x:r.x,y:r.y,width:r.width,height:r.height},composition:{src:photo.getAttribute('src'),x:b.x,y:b.y,width:b.width,height:b.height,loaded:photo.naturalWidth===3072,filter:getComputedStyle(photo).filter,edgeMask:getComputedStyle(photo).maskImage},sharpViewport:{minimum:Math.min(...sharpCoverage),softSamples:sharpCoverage.filter(a=>a<255).length,total:sharpCoverage.length},fingerMask:finger?getComputedStyle(finger).maskImage:null,scale,screens,frame:{left:f.left,width:f.width,mask:getComputedStyle(frame).maskImage,overflow:getComputedStyle(frame).overflow},ambient:{src:ambient.getAttribute('src'),filter:getComputedStyle(ambient).filter,opacity:getComputedStyle(ambient).opacity,covers:a.left<=0&&a.top<=0&&a.right>=innerWidth&&a.bottom>=innerHeight},overflow:document.documentElement.scrollWidth>innerWidth+1,frames:hero.querySelectorAll('iframe').length};
+    const uiMask=plane.querySelector('[data-hero-ui-mask]');
+    return {image:plane.dataset.heroPlane,chapter:Number(hero.dataset.chapter),stageHeight:hero.firstElementChild.clientHeight,original:{x:r.x,y:r.y,width:r.width,height:r.height},composition:{src:photo.getAttribute('src'),x:b.x,y:b.y,width:b.width,height:b.height,loaded:photo.naturalWidth===4608,filter:getComputedStyle(photo).filter,edgeMask:getComputedStyle(photo).maskImage},sharpViewport:{minimum:Math.min(...sharpCoverage),softSamples:sharpCoverage.filter(a=>a<255).length,total:sharpCoverage.length},uiMask:uiMask?getComputedStyle(uiMask).maskImage:null,oldOriginals:plane.querySelectorAll('img[src$="/counter.webp"],img[src$="/dining.webp"],img[src$="/phone-v3.webp"]').length,scale,screens,frame:{left:f.left,width:f.width,mask:getComputedStyle(frame).maskImage,overflow:getComputedStyle(frame).overflow},ambient:{src:ambient.getAttribute('src'),filter:getComputedStyle(ambient).filter,opacity:getComputedStyle(ambient).opacity,covers:a.left<=0&&a.top<=0&&a.right>=innerWidth&&a.bottom>=innerHeight},overflow:document.documentElement.scrollWidth>innerWidth+1,frames:hero.querySelectorAll('iframe').length};
   });}
   function verifyPhoto(state){
    assert.equal(state.composition.loaded,true);assert.equal(state.overflow,false);
    assert.equal(state.ambient.covers,true);assert.ok(state.ambient.src.endsWith('/venue.webp'));assert.equal(state.ambient.filter,'blur(48px)');
    assert.equal(state.frame.overflow,'visible');assert.equal(state.frame.mask,'none');assert.equal(state.composition.filter,'none');assert.equal(state.composition.edgeMask,'none');
-   if(state.image==='counter')assert.equal(state.fingerMask,'none','normal pointing hand has no fade');
+   assert.equal(state.oldOriginals,0,'no original photo may be reinserted over the approved source');
+   if(state.image!=='venue')assert.ok(state.uiMask.includes(`${state.image}-screen-mask.png`),'only the projected UI is clipped to the actual device screen');
    assert.ok(state.composition.src.endsWith(`/${state.image}-composition.svg`));
-   assert.ok(Math.abs(state.composition.width-state.original.width*2)<.25);
-   assert.ok(Math.abs(state.composition.x-(state.original.x-768*state.scale))<.25);
-   assert.ok(Math.abs(state.composition.y-(state.original.y-512*state.scale))<.25);
+   assert.ok(Math.abs(state.composition.width-state.original.width*3)<.25);
+   assert.ok(Math.abs(state.composition.height-state.original.height*1.5)<.25);
+   assert.ok(Math.abs(state.composition.x-(state.original.x-1536*state.scale))<.25);
+   assert.ok(Math.abs(state.composition.y-(state.original.y-256*state.scale))<.25);
    if([1440,1512,1920,2560].includes(width))assert.equal(state.sharpViewport.minimum,255,`${width}/${state.image}: EVERY visible viewport sample must be fully sharp, including both sides and corners`);
    assert.ok(state.frames<=2);
   }
