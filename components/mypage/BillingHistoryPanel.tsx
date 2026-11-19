@@ -578,7 +578,7 @@ export default function BillingHistoryPanel({ entries, restoreCheckoutEnabled = 
           </button>
         </div>
 
-        <div className="site-field-grid" data-columns="4">
+        <div className="site-field-grid" data-columns="4" data-field-density="compact">
           <div className="site-field-stack">
             <label htmlFor={`${queryId}-from`} className="type-label site-copy-muted">결제 시작일</label>
             <DateField id={`${queryId}-from`} label="결제 시작일" value={filters.from} onValueChange={from => setFilters(current => ({ ...current, from }))} />

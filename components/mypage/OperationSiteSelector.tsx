@@ -16,7 +16,7 @@ export default function OperationSiteSelector({ selectedId, items }: {
       <div className="site-stack-copy site-operations-site-selector-field">
         <label htmlFor="operation-menu-site" className="type-label block">운영할 메뉴판</label>
         <div className="site-operations-site-selector-control">
-          <select id="operation-menu-site" className="site-field w-full min-w-0" value={selectedId} disabled={pending} aria-busy={pending}
+          <select id="operation-menu-site" data-field-density="compact" className="site-field w-full min-w-0" value={selectedId} disabled={pending} aria-busy={pending}
             onChange={event => {
               const item = items.find(item => item.id === event.target.value);
               if (item && item.id !== selectedId) void confirmUnsavedChanges().then(allowed => { if (allowed) startTransition(() => router.push(item.href)); });

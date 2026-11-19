@@ -36,7 +36,7 @@ export default function SiteSpacingRules() {
       <ContentPanel surface="muted" aria-label="회색 작업 박스 예시"><div className="site-stack-title"><h3 className="type-content-title">운영관리의 별도 설정 묶음</h3><p className="type-body-sm site-copy-muted">관리 작업 안에서 별도 설정을 구분할 필요가 있을 때만 선택합니다. 일반 본문·필터·보조 설명의 기본 바탕으로 사용하지 않습니다.</p></div><div className="site-action-row"><Button variant="outline">보조 실행 예시</Button></div></ContentPanel>
       <ContentPanel surface="notice" density="compact" as="aside" aria-label="안내 박스 예시"><div className="site-stack-title"><h3 className="type-content-title">다음 행동을 알려주는 안내</h3><p className="type-body-sm site-copy-muted">밝은 노랑·무테·6px 모서리, 안쪽 16px입니다. 일반 작업 박스의 12px 모서리와 역할을 구분합니다.</p></div></ContentPanel>
     </div>
-    <p className="type-body-sm site-copy-muted">관리 화면은 시작 정렬입니다. 라벨이 포함된 폼 열은 하단을 맞추고, 입력·선택 박스 자체와 버튼을 나란히 놓는 행은 <code>site-form-row data-alignment=&quot;center&quot;</code>로 높이 중심을 맞춥니다. 640px 미만에서는 기존 순서대로 쌓습니다. 제목 20px/700, 콘텐츠 제목 18px/600, 보조 설명 14px/400, 라벨 14px/600, 입력은 기본14px·터치16px/400입니다. 공통 버튼·입력의 자체 높이와 포커스는 유지합니다.</p>
+    <p className="type-body-sm site-copy-muted">관리 화면은 시작 정렬입니다. 라벨이 포함된 폼 열은 하단을 맞추고, 입력·선택 박스 자체와 버튼을 나란히 놓는 행은 <code>site-form-row data-alignment=&quot;center&quot;</code>로 높이 중심을 맞춥니다. 640px 미만에서는 기존 순서대로 쌓습니다. 제목 20px/700, 콘텐츠 제목 18px/600, 보조 설명 14px/400, 라벨 14px/600, 일반 폼의 PC 입력값·선택값은 16px/400, 필터와 표 안은 14px/400입니다. 터치 기기의 입력값·선택값은 16px/400입니다. 공통 버튼·입력의 자체 높이와 포커스는 유지합니다.</p>
   </section><section className={styles.section} id="mobile-spacing">
     <div className={styles.heading}>
       <h2 className="type-section-title">모바일 간격과 여백</h2>

@@ -15,7 +15,7 @@ export default function OrderHistoryFilters({path,filters,tables,error,onApply}:
   const invalid=values.from>values.to;
   function submit(event:FormEvent<HTMLFormElement>){event.preventDefault();if(invalid||pending)return;start(()=>{if(onApply)onApply(values);else router.push(orderHistoryHref(path,values));});}
   const update=(key:keyof Filters,value:string)=>setValues(previous=>({...previous,[key]:value}));
-  return <ContentPanel surface="muted" density="controls"><form action={path} method="get" onSubmit={submit} className="site-stack-block" aria-label="주문 이력 조회 조건" aria-busy={pending}>
+  return <ContentPanel surface="muted" density="controls"><form action={path} method="get" onSubmit={submit} className="site-stack-block" data-field-density="compact" aria-label="주문 이력 조회 조건" aria-busy={pending}>
     <input type="hidden" name="tab" value="history"/>
     <fieldset disabled={pending} className="site-stack-block"><legend className="sr-only">기간과 주문 조건</legend>
       <div className="site-form-row">
