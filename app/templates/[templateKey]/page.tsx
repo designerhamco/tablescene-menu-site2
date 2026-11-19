@@ -51,7 +51,7 @@ export default async function TemplateDetailPage({ params }: Props) {
             </>}
             note={info.selectable ? <p className={`type-caption ${styles.billingNote}`}>{info.display ? "디스플레이는 현재 출시 준비 중입니다." : "첫 구독은 계정당 최초 1회 30일 무료체험. 결제수단 등록 후 시작하며, 체험 종료 후 매월 자동결제됩니다."}</p> : null}
           >
-            <ul className={`${styles.included} type-body-sm`} aria-label="상품 설명">{included.map(label => <li key={label}><Check size={15} aria-hidden="true" /><span>{label}</span></li>)}</ul>
+            <ul className={`${styles.included} type-body`} aria-label="상품 설명">{included.map(label => <li key={label}><Check size={15} aria-hidden="true" /><span>{label}</span></li>)}</ul>
             {info.selectable ? <div className={styles.purchase}>
               <div className={styles.priceHeader}><span className="type-label">{info.formatLabel}</span><span className="type-caption">메뉴판 1개 · 월 구독</span></div>
               <div className={styles.price}><span className="type-body-sm">얼리버드</span><strong>{formatProductPrice(info.pricing.earlyBirdMonthly)}<span> / 월</span></strong><del className="type-caption">{formatProductPrice(info.pricing.regularMonthly)}</del></div>
