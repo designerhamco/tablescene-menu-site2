@@ -14,7 +14,7 @@ const measure=()=>{
  const widgets=query('[data-cafe-a-widget-block]');
  const stream=query('[data-native-unit],[data-paged-block],[data-album-category]').filter(e=>e.querySelector('[data-cafe-a-widget-block]')||e.matches('[data-kind="item"]')||e.querySelector('.cafe-a-menu-item'));
  const order=(stream.length?stream:query('.cafe-a-menu-item,[data-cafe-a-widget-block]')).map(e=>e.matches('[data-cafe-a-widget-block]')||e.querySelector('[data-cafe-a-widget-block]')?'widget':'item');
- const notes=query('[data-native-notices],[data-paged-notices]:not([data-scroll-header-copy]),[data-cafe-a-footer-info]')[0];
+ const notes=query('[data-native-notices],[data-paged-notices],[data-cafe-a-footer-info]').find(e=>!e.closest('[data-basic-top-row]'));
  const last=query('[data-native-unit],[data-paged-block],[data-album-category],.cafe-a-menu-item,[data-cafe-a-widget-block]').at(-1);
  const divider=query('[data-menu-column-divider]').map(e=>{const right=e.closest('[data-native-column]'),left=right.previousElementSibling;return {left:rect(e).left-rect(left).right,right:rect(right).left-rect(e).right,width:rect(e).width,inset:parseFloat(getComputedStyle(document.querySelector('[data-native-scroll]')).paddingRight)};});
  const menu=document.querySelector('[data-native-menu],[data-scroll-menu]');
@@ -98,7 +98,8 @@ for(const design of ['dining-full-page','dining-sidebar','dining-full-page-album
 }
 if(process.env.WIDGET_QA_CASES==='extra'){cases.length=0;for(const key of keys){for(const [device,width,height] of [devices[0],devices[1]])cases.push({key,device,width,height,call:true});for(const width of [320,430])cases.push({key,device:'mobile',width,height:844,call:true});}for(const key of ['dining_aube_table_a','dining_aube_table_b'])for(const [device,width,height] of devices)cases.push({key,device,width,height,cover:true,notices:3,call:true,coverImage:'off',longNotice:true});}
 const selected=process.env.WIDGET_QA_CASES==='cover-edge'?[...cases.filter(c=>c.cover&&c.design).map(c=>({...c,call:true})),...['dining_aube_table_a','dining_aube_table_b'].flatMap(key=>devices.map(([device,width,height])=>({key,device,width,height,cover:true,notices:3,call:true,coverImage:'off',longNotice:true}))),...['dining_aube_table_a','dining_aube_table_b'].flatMap(key=>[320,430].map(width=>({key,device:'mobile',width,height:844,cover:true,notices:3,call:true,longNotice:true})))]:process.env.WIDGET_QA_CASES==='covers'?cases.filter(c=>c.cover&&!c.design):process.env.WIDGET_QA_CASES==='designs'?cases.filter(c=>c.design):process.env.WIDGET_QA_CASES==='smoke'?[cases[1],cases[4],cases[13],cases.find(c=>c.cover&&c.device==='mobile'&&c.notices===3)]:process.env.WIDGET_QA_CASES==='retry'?JSON.parse(await fs.readFile(`${output}/results.json`,'utf8')).failures.map(({error,...c})=>{void error;return c;}):cases;
-for(let i=0;i<selected.length;i+=2)await Promise.all(selected.slice(i,i+2).map(run));
+const scoped = process.env.WIDGET_QA_SERVICE === 'basic' ? selected.filter(c => !c.key.startsWith('dining')) : selected;
+for(let i=0;i<scoped.length;i+=2)await Promise.all(scoped.slice(i,i+2).map(run));
 await browser.close();await fs.writeFile(`${output}/results.json`,JSON.stringify({results,failures,errors,writes},null,2));
 console.log(JSON.stringify({passed:results.length,failed:failures.length,errors,writes}));
 if(failures.length||errors.length||writes.length)process.exitCode=1;

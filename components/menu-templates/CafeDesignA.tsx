@@ -21,6 +21,7 @@ import NativeBasicScroll from "./one-page/NativeBasicScroll";
 import { Clock3, RefreshCw, X, ZoomIn } from "lucide-react";
 import { useRouter } from "next/navigation";
 import KoreanFontAssets from "@/components/menu-templates/shared/KoreanFontAssets";
+import { getBasicTimeSaleFont } from "@/lib/basic-time-sale-font";
 import ScriptAwareText from "@/components/menu-templates/shared/ScriptAwareText";
 import CafeAWidgetBlock, { type CafeAWidgetPreview } from "@/components/menu-templates/CafeAWidgetBlock";
 import { applyOrderedCanvasLayout, clearOrderedCanvasLayout } from "@/components/menu-templates/one-page/pc-tablet/ordered-canvas-layout";
@@ -3877,12 +3878,17 @@ function DesktopToplineFeaturedSlot({
 
 
 export function CafeATypographyFontAssets({ typographySettings }: { typographySettings: TypographySettings }) {
+  const layout = useDefaultDesignLayout();
+  const timeSaleAsset = layout?.startsWith("basic-") ? getBasicTimeSaleFont(typographySettings.korean_font_key).asset : null;
   const koreanFontAssets = getKoreanFontLoadAssets(typographySettings.korean_font_key);
   const englishFontAssets = getEnglishFontLoadAssets(typographySettings.english_font_key);
   const noticeFontAssets = getKoreanFontLoadAssets("pretendard");
   const roleFontAssets = getTypographyRoleFontLoadAssets(typographySettings.typography_roles);
 
-  return <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets, noticeFontAssets, ...roleFontAssets]} />;
+  return <>
+    <KoreanFontAssets assets={[koreanFontAssets, englishFontAssets, noticeFontAssets, ...roleFontAssets]} />
+    {timeSaleAsset ? <KoreanFontAssets assets={timeSaleAsset} /> : null}
+  </>;
 }
 
 

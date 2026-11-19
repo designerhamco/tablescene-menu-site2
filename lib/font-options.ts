@@ -215,7 +215,13 @@ export const KOREAN_FONT_OPTIONS = [
     value: "jeju-gothic",
     category: "modern",
     fontFamily: "'Jeju Gothic', sans-serif",
-    href: "https://fonts.googleapis.com/earlyaccess/jejugothic.css",
+    cssText: `@font-face {
+  font-family: 'Jeju Gothic';
+  src: url('https://cdn.jsdelivr.net/gh/google/fonts@90abd17b4f97671435798b6147b698aa9087612f/ofl/jejugothic/JejuGothic-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}`,
   },
   {
     label: "Lotte Mart Dream",

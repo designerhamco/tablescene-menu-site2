@@ -60,13 +60,13 @@ function designerStructureLabel(templateKey: string, service: CatalogService) {
   return MENU_LAYOUTS[layout].label;
 }
 const standardPreviewVersions: Readonly<Record<string, string>> = {
-  "basic-first-column": "20261119-en-categories",
-  "basic-top-row": "20261119-en-categories",
-  "basic-top-row-left-logo": "20261119-en-categories",
-  "basic-center-column": "20261119-en-categories",
-  "basic-upper-left": "20261119-en-categories",
-  "basic-first-column-album": "20261119-en-categories",
-  "basic-top-row-album": "20261119-en-categories",
+  "basic-first-column": "20261119-current",
+  "basic-top-row": "20261119-current",
+  "basic-top-row-left-logo": "20261119-current",
+  "basic-center-column": "20261119-current",
+  "basic-upper-left": "20261119-current",
+  "basic-first-column-album": "20261119-current",
+  "basic-top-row-album": "20261119-current",
 };
 const standards: CatalogDesign[]=DEFAULT_DESIGN_REVIEWS.map(design=>{
   const service=MENU_LAYOUTS[design.layout].service;

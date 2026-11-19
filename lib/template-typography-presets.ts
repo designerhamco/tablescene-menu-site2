@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { getBasicTimeSaleFont } from "./basic-time-sale-font";
 import { MELLOW_COLORS } from "./mocha-forest-panels";
 
 import {
@@ -517,10 +518,13 @@ export function getTypographyRoleFontLoadAssets(settings: TypographyRoleSettings
 }
 
 export function getTypographyCssVariables(settings: TypographySettings, templateKey?: string | null): CSSProperties {
+  const timeSaleFont = getBasicTimeSaleFont(settings.korean_font_key);
   const cssVariables: Record<string, string> = {
     "--menu-font-ko": getKoreanFontFamily(settings.korean_font_key),
     "--menu-font-en": getEnglishFontFamily(settings.english_font_key),
     "--menu-font-size-scale": String(getFontSizeMultiplier(settings.font_size_scale_key, templateKey)),
+    "--menu-time-sale-font-weight": String(timeSaleFont.weight),
+    "--menu-time-sale-font-family": timeSaleFont.family,
   };
 
   TYPOGRAPHY_ROLE_KEYS.forEach((role) => {
