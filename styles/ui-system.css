@@ -1,9 +1,9 @@
 :root {
   --ui-layer-preview-modal: 260;
-  --ui-preview-button-surface: rgb(255 255 255 / 14%);
-  --ui-preview-button-boundary: rgb(255 255 255 / 30%);
-  --ui-preview-button-hover: rgb(255 255 255 / 22%);
-  --ui-preview-button-pressed: rgb(255 255 255 / 28%);
+  --ui-preview-button-surface: var(--ui-surface-hover);
+  --ui-preview-button-boundary: rgb(0 0 0 / 8%);
+  --ui-preview-button-hover: var(--ui-surface-soft);
+  --ui-preview-button-pressed: var(--ui-border);
   --ui-media-ink: #ffffff;
   --ui-media-hover-ink: #d4d4d8;
   --ui-media-counter-surface: rgb(9 9 11 / 60%);
@@ -1223,15 +1223,17 @@ textarea.site-field,
 .site-filter[aria-pressed="true"]:hover:not(:disabled) { border-color: var(--ui-text); }
 
 /* Device preview tools use one compact inverse palette above customer artwork. */
-.site-preview-control { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: .375rem; min-height: var(--ui-preview-control-height, 2.25rem); padding: .5rem; border: 1px solid var(--ui-preview-button-boundary); border-radius: var(--ui-radius-control-rounded); background: var(--ui-preview-button-surface); color: #fff; font-size: var(--type-caption-size); font-weight: 600; line-height: 1.5; white-space: nowrap; cursor: pointer; transition: background-color var(--ui-transition), color var(--ui-transition); }
-.site-preview-control:not(.site-preview-toolbar-toggle):is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { background: var(--ui-preview-button-hover); border-color: rgb(255 255 255 / 44%); }
-.site-preview-control:not(.site-preview-toolbar-toggle):is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { background: var(--ui-preview-button-pressed); }
+.site-preview-control { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: .375rem; min-height: var(--ui-preview-control-height, 2.25rem); padding: .5rem; border: 1px solid var(--ui-preview-button-boundary); border-radius: var(--ui-radius-control-rounded); background: var(--ui-preview-button-surface); color: var(--ui-text); font-size: var(--type-caption-size); font-weight: 600; line-height: 1.5; white-space: nowrap; cursor: pointer; transition: background-color var(--ui-transition), color var(--ui-transition); }
+.site-preview-control:not(.site-preview-toolbar-toggle):is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]):not(:has(:disabled)) { background: var(--ui-preview-button-hover); }
+.site-preview-control:not(.site-preview-toolbar-toggle):is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]):not(:has(:disabled)) { background: var(--ui-preview-button-pressed); }
 .site-preview-control:is([aria-current], [aria-pressed="true"]) { background: var(--ui-surface); border-color: var(--ui-surface); color: var(--ui-text); }
 .site-preview-control:is([aria-current], [aria-pressed="true"]):hover:not(:disabled):not([aria-disabled="true"]) { background: var(--ui-surface-muted); }
 .site-preview-control:is([aria-current], [aria-pressed="true"]):active:not(:disabled):not([aria-disabled="true"]) { background: var(--ui-action-soft-pressed); }
 .site-preview-control:is(:focus-visible, [data-ui-state="focus"]) { outline: 2px solid #8bbcff; outline-offset: 2px; }
 .site-preview-control:is(:disabled, [aria-disabled="true"]), .site-preview-choice:has(:disabled) { cursor: not-allowed; opacity: 1; background: rgb(255 255 255 / 5%); border-color: rgb(255 255 255 / 14%); color: rgb(255 255 255 / 42%); }
-.site-preview-control-icon { width: var(--ui-preview-control-height, 2.25rem); min-width: var(--ui-preview-control-height, 2.25rem); padding: 0; }
+.site-preview-control-icon { width: var(--ui-preview-control-height, 2.25rem); min-width: var(--ui-preview-control-height, 2.25rem); height: var(--ui-preview-control-height, 2.25rem); padding: 0; }
+.site-preview-control.site-icon-control:not([data-icon-appearance="framed"]):not(:disabled):not([aria-disabled="true"]) { color: var(--ui-media-ink); }
+.site-preview-control.site-icon-control:not([data-icon-appearance="framed"]):is(:hover, [data-ui-state="hover"], :active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { color: var(--ui-media-hover-ink); }
 [data-preview-device-toolbar] { --ui-preview-control-height: 2.25rem; }
 [data-preview-device-toolbar] .site-preview-control { padding: .375rem .5rem; font-size: var(--site-type-14); }
 [data-preview-device-toolbar] .site-preview-control-icon { padding: 0; }
