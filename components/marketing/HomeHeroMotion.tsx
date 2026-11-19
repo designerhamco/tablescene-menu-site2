@@ -151,6 +151,15 @@ export default function HomeHeroMotion() {
               <ProgressBar label={`${item.label} 장면 스크롤 진행`} value={Math.round(heroSegmentProgressAt(index,chapter,localProgress)*1000)/10} appearance="media"/>
             </div>;
           })}
+          <a className={`${styles.skip} type-caption`} href="#device-platform" aria-label="Skip: 소개를 건너뛰고 다음 섹션으로 이동" data-hero-skip onClick={event=>{
+            if(event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button!==0)return;
+            const target=document.getElementById("device-platform");
+            if(!target)return;
+            event.preventDefault();
+            const inset=parseFloat(getComputedStyle(target).scrollMarginTop)||0;
+            window.scrollTo({top:Math.ceil(window.scrollY+target.getBoundingClientRect().top-inset),behavior:"instant"});
+            document.getElementById("device-platform-heading")?.focus({preventScroll:true});
+          }}>Skip</a>
         </nav>
       </div>
     </div>
