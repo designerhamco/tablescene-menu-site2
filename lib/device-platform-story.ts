@@ -1,18 +1,21 @@
 import { heroScreenMatrix, type HeroQuad } from "./hero-cafe-motion";
 
+/** Measured inner glass edge, including the phone notch, in original photograph pixels. */
+const PHONE_SCREEN_CONTOUR = [[103,501],[104,248],[110,228],[121,210],[139,193],[156,184],[172,179],[189,177],[271,178],[277,185],[279,198],[286,210],[299,221],[318,226],[573,226],[587,223],[595,219],[604,211],[611,200],[614,184],[620,178],[698,177],[722,181],[742,190],[743,192],[751,196],[770,217],[778,233],[783,254],[783,1537],[777,1560],[767,1577],[753,1592],[751,1592],[748,1596],[741,1599],[740,1601],[721,1609],[706,1612],[181,1612],[159,1607],[143,1599],[135,1592],[133,1592],[122,1581],[120,1576],[115,1571],[107,1554],[103,1535]] as const;
+
 /** Photograph coordinates stay independent of the actual customer-menu renderer. */
 export const DEVICE_ASSETS = {
   monitor:{file:"monitor.webp",width:1374,height:1145,body:{x:46,y:42,width:1282,height:1062},screen:[[61,57],[1313,57],[1313,763],[61,763]] as HeroQuad,screenRadius:2},
   tablet:{file:"tablet.webp",width:1448,height:1086,body:{x:93,y:100,width:1262,height:886},screen:[[135,143],[1314,143],[1314,946],[135,946]] as HeroQuad,screenRadius:18},
-  phone:{file:"phone.webp",width:887,height:1774,body:{x:60,y:137,width:767,height:1516},screen:[[103,245],[783,245],[783,1545],[103,1545]] as HeroQuad,screenRadius:0},
+  phone:{file:"phone.webp",width:887,height:1774,body:{x:60,y:137,width:767,height:1516},screen:[[102,177],[784,177],[784,1612],[102,1612]] as HeroQuad,screenRadius:0,screenContour:PHONE_SCREEN_CONTOUR},
 } as const;
 export type DeviceKind = keyof typeof DEVICE_ASSETS;
 export const DEVICE_STAGE_ITEMS = ["monitor","tablet","phone"] as const;
 export const DEVICE_CAPTURE_SIZE = {
-  monitor:{width:1280,height:722},tablet:{width:1024,height:697},phone:{width:390,height:746},
+  monitor:{width:1280,height:722},tablet:{width:1024,height:697},phone:{width:390,height:821},
 } as const;
 const screenPack = (id:string) => Object.fromEntries(DEVICE_STAGE_ITEMS.map(kind=>[
-  kind,{...DEVICE_CAPTURE_SIZE[kind],src:`/assets/device-template-scroll-v1/${id}-${kind}.webp`},
+  kind,{...DEVICE_CAPTURE_SIZE[kind],src:kind==="phone"?`/assets/device-screen-correction-v1/${id}-phone.webp`:`/assets/device-template-scroll-v1/${id}-${kind}.webp`},
 ])) as Record<DeviceKind,{src:string;width:number;height:number}>;
 
 /** Only static captures are used, including the tablet-shaped paper thumbnails. */
@@ -20,7 +23,7 @@ export const DEVICE_TEMPLATE_SCENES = [
   {id:"matcha",name:"REAL MATCHA",key:"cafe_real_matcha_a",screens:{
     monitor:{...DEVICE_CAPTURE_SIZE.monitor,src:"/assets/device-platform-v2/menu-monitor.webp"},
     tablet:{...DEVICE_CAPTURE_SIZE.tablet,src:"/assets/device-platform-v2/menu-tablet.webp"},
-    phone:{...DEVICE_CAPTURE_SIZE.phone,src:"/assets/device-platform-v2/menu-phone.webp"},
+    phone:{...DEVICE_CAPTURE_SIZE.phone,src:"/assets/device-screen-correction-v1/matcha-phone.webp"},
   }},
   {id:"mellow",name:"MELLOW",key:"cafe_mocha_forest_a",screens:screenPack("mellow")},
   {id:"crema",name:"MELLO CREMA",key:"cafe_sunday_line_a",screens:screenPack("crema")},
@@ -45,6 +48,13 @@ export function deviceTemplateSequenceAt(progress:number) {
 export const deviceScreenMatrix = (kind:DeviceKind) => heroScreenMatrix(
   DEVICE_ASSETS[kind].screen,DEVICE_CAPTURE_SIZE[kind].width,DEVICE_CAPTURE_SIZE[kind].height,
 );
+
+export function deviceScreenClipPath(kind:DeviceKind) {
+  const asset=DEVICE_ASSETS[kind];
+  if(!("screenContour" in asset))return undefined;
+  const [[left,top],[right],,[,bottom]]=asset.screen;
+  return `polygon(${asset.screenContour.map(([x,y])=>`${((x-left)/(right-left)*100).toFixed(4)}% ${((y-top)/(bottom-top)*100).toFixed(4)}%`).join(",")})`;
+}
 
 /** Approved grounded draft, fitted as one artwork unit below measured site copy. */
 export function deviceStageFrame(width:number,height:number,copyBottom=0,gutter=0,copyGap=24) {
