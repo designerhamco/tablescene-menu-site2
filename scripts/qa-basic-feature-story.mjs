@@ -29,6 +29,18 @@ try {
       await enter(page);
       const story=page.locator('[data-basic-feature-story]'), next=story.getByRole("button",{name:"다음 기능 보기"}), previous=story.getByRole("button",{name:"이전 기능 보기"});
       assert.ok(await previous.isDisabled());
+      assert.equal(await story.getAttribute("data-feature-index"),"-1");
+      assert.ok((await story.locator('h2').textContent()).includes("베이직, 한 장에 담는"));
+      assert.equal(await story.locator('[data-basic-management]').count(),0);
+      assert.ok((await story.locator('nav').textContent()).includes("소개"));
+      await story.locator('img').evaluateAll(images=>Promise.all(images.map(image=>image.decode().catch(()=>{}))));
+      await page.screenshot({path:`${output}/intro-${width}-${height}.png`});
+      await next.click();
+      assert.equal(await story.getAttribute("data-feature-index"),"0");
+      assert.ok(!(await previous.isDisabled()),"first feature can return to introduction");
+      await previous.click();
+      assert.equal(await story.getAttribute("data-feature-index"),"-1");
+      await next.click();
       assert.equal(await story.locator('[data-basic-tablet-screen] button').count(),0);
       assert.equal(await story.locator('ol,iframe,[role="dialog"]').count(),0);
       assert.equal(await story.locator('[data-basic-management]').isVisible(),width>=768);
@@ -45,8 +57,8 @@ try {
       await previous.focus();
       await previous.press("ArrowLeft");
       assert.equal(await story.getAttribute("data-feature-index"),"6","keyboard changes selected demo");
-      while(!(await previous.isDisabled())) await previous.click();
-      await story.locator('[data-basic-demo] img').evaluateAll(images=>Promise.all(images.map(image=>image.decode().catch(()=>{}))));
+      while((await story.getAttribute("data-feature-index"))!=="0") await previous.click();
+      await story.locator('img').evaluateAll(images=>Promise.all(images.map(image=>image.decode().catch(()=>{}))));
       const geometry=await story.evaluate(element=>{
         const rect=element.getBoundingClientRect(), nav=element.querySelector('nav').getBoundingClientRect(), screen=element.querySelector('[data-basic-tablet-screen]').getBoundingClientRect(), title=element.querySelector('h2').getBoundingClientRect();
         return {viewport:[innerWidth,innerHeight],x:rect.x,width:rect.width,overflow:document.documentElement.scrollWidth-innerWidth,navBottom:nav.bottom,screen:{x:screen.x,y:screen.y,width:screen.width,height:screen.height},titleRight:title.right,screenRight:screen.right};
@@ -65,6 +77,7 @@ try {
   try {
     await enter(page);
     const story=page.locator('[data-basic-feature-story]');
+    await story.getByRole("button",{name:"다음 기능 보기"}).click();
     await page.waitForFunction(()=>document.querySelector('[data-basic-feature-preview]').dataset.playing==="true");
     for(let index=0;index<3;index++) await story.getByRole("button",{name:"다음 기능 보기"}).click();
     const timer=story.locator('[data-basic-demo="sale"] [data-demo-motion]');

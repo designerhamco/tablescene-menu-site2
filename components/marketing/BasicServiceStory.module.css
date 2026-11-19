@@ -12,6 +12,7 @@
 .visual { position:relative; min-width:0; height:max(32rem,calc(100svh - var(--site-header-height) - var(--site-section-space) * 2)); }
 .reveal { height:100%; }
 .demo { position:relative; width:100%; height:100%; animation:feature-in 280ms ease both; }
+.introScreen { padding:var(--site-space-block); background:#fff; }
 .error { position:absolute; inset-inline:var(--site-space-block); bottom:var(--site-space-block); margin:0; padding:var(--site-space-copy); color:var(--ui-text); background:var(--ui-surface); }
 @keyframes feature-in { from { opacity:0; transform:translateY(var(--site-space-copy)); } to { opacity:1; transform:translateY(0); } }
 @media (min-width:768px) and (max-width:1023px) { .story { grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); } .visual { align-self:center; height:min(48rem,75svh); } }
