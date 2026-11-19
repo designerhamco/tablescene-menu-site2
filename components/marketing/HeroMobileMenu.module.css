@@ -1,0 +1,8 @@
+.surface { position:relative; width:100%; height:100%; overflow:hidden; background:#fff; pointer-events:none; }
+.still { position:absolute; top:0; left:0; width:100%; height:100%; max-width:none; display:block; object-fit:fill; }
+.menuWindow { position:absolute; overflow:hidden; }
+.phoneContent { position:absolute; top:0; left:0; width:100%; }
+.dim { position:absolute; inset:0; background:#09090b; }
+.dialog { z-index:2; }
+.scrollbar { position:absolute; z-index:3; width:4px; overflow:hidden; border-radius:4px; background:rgb(0 0 0 / 5%); }
+.scrollbar i { display:block; width:100%; border-radius:inherit; background:rgb(0 0 0 / 40%); }

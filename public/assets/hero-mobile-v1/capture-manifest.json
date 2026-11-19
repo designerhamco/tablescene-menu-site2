@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "captured": "2026-11-19",
+  "source": "ArtiMenu public catalog previewOnly; current starter data",
+  "counter": {
+    "width": 1280,
+    "height": 800,
+    "identityWidth": 345,
+    "menu": {
+      "left": 345,
+      "top": 34,
+      "width": 902,
+      "height": 733,
+      "contentHeight": 900
+    },
+    "sale": {
+      "left": 968,
+      "top": 143,
+      "width": 96,
+      "height": 18
+    }
+  },
+  "dining": {
+    "width": 820,
+    "height": 512
+  },
+  "phone": {
+    "width": 390,
+    "height": 900,
+    "contentHeight": 3314,
+    "tiles": [
+      {
+        "file": "phone-menu-0.webp",
+        "top": 0,
+        "width": 390,
+        "height": 900
+      },
+      {
+        "file": "phone-menu-1.webp",
+        "top": 900,
+        "width": 390,
+        "height": 900
+      },
+      {
+        "file": "phone-menu-2.webp",
+        "top": 1800,
+        "width": 390,
+        "height": 900
+      },
+      {
+        "file": "phone-menu-3.webp",
+        "top": 2700,
+        "width": 390,
+        "height": 614
+      }
+    ]
+  }
+}

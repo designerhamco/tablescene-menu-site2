@@ -29,9 +29,11 @@ test("initial hero renders no nested applications and one capture per venue scre
  assert.equal((markup.match(/data-hero-capture="true"/g)??[]).length,4);
  assert.doesNotMatch(markup,/hero-cafe-v2|expanded\.webp|data-hero-expanded/);
  assert.doesNotMatch(markup,/src="[^\"]*\/(?:counter|dining|phone-v3)\.webp"/);
- assert.equal((markup.match(/data-hero-ui-mask="/g)??[]).length,3);
- assert.equal((markup.match(/data-hero-composition="/g)??[]).length,4,"each chapter loads one approved flat photograph with soft full-image edges");
- assert.equal((markup.match(/src="\/assets\/hero-cafe-v1\/venue.webp"[^>]*data-hero-ambient/g)??[]).length,4,"only the person-free room may fill the surroundings");
+ assert.match(markup,/data-presentation="pending"/);
+ assert.equal((markup.match(/data-hero-ui-mask="/g)??[]).length,0);
+ assert.equal((markup.match(/data-hero-composition="/g)??[]).length,1,"only the active chapter is server-rendered until device selection");
+ assert.equal((markup.match(/src="\/assets\/hero-cafe-v1\/venue.webp"[^>]*data-hero-ambient/g)??[]).length,1,"only the person-free room may fill the surroundings");
+ assert.match(markup,/data-hero-edge-source="mobile-flat"/);
 });
 
 test("hero chapters follow scroll boundaries in either direction",()=>{
