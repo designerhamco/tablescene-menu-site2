@@ -2,6 +2,7 @@ import photoGeometry from "./hero-photo-geometry.json";
 /** Marketing-only geometry in the shared1536×1024 camera plane. */
 export type HeroPoint = readonly [number, number];
 export type HeroQuad = readonly [HeroPoint, HeroPoint, HeroPoint, HeroPoint];
+export type HeroScreenRect = { left: number; top: number; width: number; height: number };
 export const HERO_CAFE_CHAPTERS = [
   { label: "천장형 디스플레이", title: "큰 화면으로 보여주는 우리 매장 메뉴", body: "천장에 설치한 디스플레이에 메뉴판을 띄워, 멀리 있는 손님에게도 메뉴를 보여주세요.", image: "venue", focus: [1010, 480], mobileFocus: [950, 410], zoom: 1 },
   { label: "카운터 태블릿", title: "카운터에 놓고 보여주는 메뉴판", body: "카운터나 테이블에 태블릿을 거치해, 손님이 메뉴를 직접 살펴볼 수 있게 하세요.", image: "counter", focus: [1010, 515], mobileFocus: [1030, 500], zoom: 1.08 },
@@ -31,6 +32,12 @@ export const HERO_CAFE_SCREENS = {
 export const HERO_CHAPTER_DURATION_MS = [12000, 46000, 36000, 66000] as const;
 export const HERO_CHAPTER_SCROLL_LENGTHS = [1.6, 5.06, 2.8, 6.6] as const;
 export const HERO_COUNTER_TIMELINE = { browse: [5, 21], focus: [21, 27], zoom: [28, 36] } as const;
+export const HERO_SALE_HIGHLIGHT = { start: 36.5, end: 45.5, cycles: 3, spread: 14 } as const;
+export function heroSaleHighlightAt(seconds: number) {
+  if (!Number.isFinite(seconds) || seconds < HERO_SALE_HIGHLIGHT.start || seconds >= HERO_SALE_HIGHLIGHT.end) return null;
+  const phase = ((seconds - HERO_SALE_HIGHLIGHT.start) / (HERO_SALE_HIGHLIGHT.end - HERO_SALE_HIGHLIGHT.start) * HERO_SALE_HIGHLIGHT.cycles) % 1;
+  return { spread: phase * HERO_SALE_HIGHLIGHT.spread, opacity: .9 * (1 - phase) };
+}
 export const HERO_PHONE_TIMELINE = {
   qr: [.4, 5.8], camera: [5, 9], browse: [9, 20], reposition: [20, 22],
   item: [22, 28, 29], add: [29, 35, 36], cart: [36, 42, 43],
