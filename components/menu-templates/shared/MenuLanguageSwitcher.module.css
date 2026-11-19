@@ -1,0 +1,39 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .375em;
+  min-inline-size: 2.75rem;
+  min-block-size: 2.75rem;
+  padding: .375rem 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: .8125rem;
+  font-weight: 500;
+  line-height: 1.25;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.trigger:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.trigger:disabled { cursor: default; }
+.dining { color: inherit; letter-spacing: .1em; }
+.label { flex: none; }
+
+.trigger > .globe,
+.trigger > .chevron { flex: none; }
+
+.trigger > .globe {
+  inline-size: max(1.125rem, 1.2em);
+  block-size: max(1.125rem, 1.2em);
+}
+
+.trigger > .chevron {
+  inline-size: max(.875rem, .9em);
+  block-size: max(.875rem, .9em);
+}

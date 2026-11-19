@@ -1,4 +1,4 @@
-import { getMenuPlanSelection } from "@/lib/menu-plan-contract";
+import { getMenuPlanSelection, getNewMenuPlanSelection } from "@/lib/menu-plan-contract";
 import { initializePurchasedMenuDesign } from "@/lib/server/menu-plan-design-service";
 import { NextResponse } from "next/server";
 
@@ -452,7 +452,8 @@ function normalizeBusinessOrder(value: unknown, recoveryContract?: { amount: num
   const planKey = getString(payload.plan_key) || "basic";
   const restaurantType = getString(payload.restaurantType);
   const menuDesignId = recoveryContract ? recoveryContract.designId ?? undefined : product && ["business_basic_single_monthly", "business_basic_multi_monthly"].includes(product.productKey) ? getString(payload.menuDesignId) || templateKey : undefined;
-  if (menuDesignId && !getMenuPlanSelection(product?.productKey, menuDesignId, templateKey)) return null;
+  const resolveSelection = recoveryContract ? getMenuPlanSelection : getNewMenuPlanSelection;
+  if (menuDesignId && !resolveSelection(product?.productKey, menuDesignId, templateKey)) return null;
   const promotionValidation = recoveryContract ? {ok: true as const, promotion: null} : validatePromotionForOrder({
     menuDesignId,
     productKey: product?.productKey,

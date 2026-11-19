@@ -3731,7 +3731,7 @@ function HeaderBlock({
     <header className={`w-full shrink-0 px-[var(--cafe-a-page-inline)] pt-[var(--cafe-a-page-block-start)] pb-0 lg:border-b lg:border-[#191c1b] lg:px-[var(--board-padding)] lg:py-[var(--board-padding)] ${className}`}>
       {hasLanguageSwitcher || call.enabled ? (
         <div className={`cafe-a-mobile-language-row ${isRoundFocusSkin(templateSkin) ? "cafe-a-corner-language-row" : ""}`} data-cafe-a-mobile-language-row="">
-          {call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} iconOnly menuAlign={isRoundFocusSkin(templateSkin) ? "left" : "right"} />} /> : <CafeLanguageHoverControl data={data} className="cursor-default" iconOnly={isRoundFocusSkin(templateSkin)} menuAlign={isRoundFocusSkin(templateSkin) ? "left" : "right"} />}
+          {call.enabled ? <OnePageMobileCallBar languageControl={<CafeLanguageHoverControl data={data} iconOnly menuAlign={isRoundFocusSkin(templateSkin) ? "left" : "right"} />} /> : <CafeLanguageHoverControl data={data} className="cursor-default" menuAlign={isRoundFocusSkin(templateSkin) ? "left" : "right"} />}
         </div>
       ) : null}
       <div className="cafe-a-mobile-header-copy flex min-w-0 items-start gap-[clamp(16px,2vw,32px)]">

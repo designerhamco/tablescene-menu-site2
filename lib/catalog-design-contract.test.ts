@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { CATALOG_INDUSTRIES, catalogDesigns, filterCatalogDesigns, getCatalogDesign, getCatalogIndustryLabel, getCatalogPricing, normalizeCatalogLayoutFilter } from './catalog-designs';
-import { canSelectMenuDesign, getMenuPlanSelection } from './menu-plan-contract';
+import { getPublicTemplateDetail, getTemplateDetailInfo } from "./template-details";
+import { canSelectMenuDesign, getMenuPlanSelection, getNewMenuPlanSelection } from './menu-plan-contract';
 import { getOpenPromotionSnapshot, getPromotionAwareChargeAmount, validatePromotionForOrder } from './promotions';
 import { readTemplateFavorites, setTemplateFavorite, TEMPLATE_FAVORITES_KEY } from './template-favorites';
 
@@ -34,6 +35,20 @@ test('untrusted service, renderer and design combinations fail closed',()=>{
   assert.equal(canSelectMenuDesign('basic','all','cafe_mocha_forest_a'),true);
 });
 
+test('retired central-column designs keep saved metadata but cannot be newly selected', () => {
+  const product = 'business_basic_single_monthly';
+  for (const [id, renderer] of [['basic-center-column', 'cafe_design_a'], ['cafe_round_focus_a', 'cafe_round_focus_a']]) {
+    assert.equal(catalogDesigns.some(design => design.id === id), false);
+    assert.equal(canSelectMenuDesign('basic', 'all', id), false);
+    assert.equal(getNewMenuPlanSelection(product, id, renderer), null);
+    assert.equal(getCatalogDesign(id)?.templateKey, renderer);
+    assert.equal(getMenuPlanSelection(product, id, renderer)?.designId, id);
+    const detail = getPublicTemplateDetail(id);
+    assert.ok(detail);
+    assert.equal(getTemplateDetailInfo(detail).selectable, false);
+  }
+});
+
 test('a designer purchase cannot reuse the cheaper standard promotion snapshot',()=>{
   const standard=getOpenPromotionSnapshot('business_basic_single_monthly',new Date(),'basic-first-column')!;
   assert.equal(validatePromotionForOrder({productKey:'business_basic_single_monthly',menuDesignId:'cafe_mocha_forest_a',promotionCode:'OPEN',promotion:standard}).ok,false);
@@ -43,8 +58,8 @@ test('a designer purchase cannot reuse the cheaper standard promotion snapshot',
 });
 
 test('public catalog, checkout and filter identities are complete and unique',()=>{
-  assert.equal(catalogDesigns.length,21);assert.equal(new Set(catalogDesigns.map(d=>d.id)).size,21);
-  assert.equal(filterCatalogDesigns('basic','standard').length,7);
+  assert.equal(catalogDesigns.length,19);assert.equal(new Set(catalogDesigns.map(d=>d.id)).size,19);
+  assert.equal(filterCatalogDesigns('basic','standard').length,6);
   assert.equal(getCatalogDesign('basic-top-row-left-logo')?.name,'상단행 고정형(왼쪽 로고) · 리스트형');
   assert.equal(canSelectMenuDesign('basic','standard','basic-top-row-left-logo'),true);
   assert.equal(filterCatalogDesigns('basic','standard','album').length,2);

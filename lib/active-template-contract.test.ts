@@ -25,7 +25,7 @@ test("every Basic launch template is service-compatible without changing catalog
     cafe_mocha_forest_a: "available",
     cafe_sunday_line_a: "available",
     cafe_van_gogh_a: "available",
-    cafe_round_focus_a: "available",
+    cafe_round_focus_a: "retired",
     fast_food_loop_bagel_a: "available",
     dining_aube_table_a: "available",
     dining_aube_table_b: "available",

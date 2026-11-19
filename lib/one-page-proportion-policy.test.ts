@@ -6,9 +6,10 @@ import { getTemplateCapabilities } from "./template-capabilities";
 import { getAllTemplates } from "./templates";
 import { getOnePageItemRhythmMultiplier, getOnePageRhythmMode, ONE_PAGE_PROPORTION_TEMPLATE_KEYS, usesOnePageProportionFitPolicy, usesOnePageProportionPolicy } from "./one-page-proportion-policy";
 
-test("the common policy covers every available dining single-page template, not other engines", () => {
+test("the common policy covers selectable and saved Basic single-page templates", () => {
   const singlePageKeys = getAllTemplates().filter((template) =>
-    template.active && template.service === "basic" && !getTemplateCapabilities(template.key).multiPage?.enabled,
+    (template.active || template.key === "cafe_round_focus_a") &&
+    template.service === "basic" && !getTemplateCapabilities(template.key).multiPage?.enabled,
   ).map((template) => template.key).sort();
   assert.deepEqual([...ONE_PAGE_PROPORTION_TEMPLATE_KEYS].sort(), singlePageKeys);
   for (const key of singlePageKeys) {
