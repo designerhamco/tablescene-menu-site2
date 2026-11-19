@@ -1,12 +1,12 @@
 import type { SupportedLocale } from "./locales";
 
-export const BASIC_STANDARD_INTRO = "정성껏 차린 따뜻한 한 끼.\n함께 나누기 좋은 곁들임부터\n달콤한 디저트까지 즐겨보세요.";
+export const BASIC_STANDARD_INTRO = "따뜻한 한 끼를 정성껏 차립니다. 함께 나누기 좋은 곁들임과 달콤한 디저트도 즐겨보세요.";
 
 export const MENU_UI_COPY: Record<string, readonly [string, string, string]> = {
   [BASIC_STANDARD_INTRO]: [
-    "Sit down to a meal made with care.\nShare a side or two,\nand finish with something sweet.",
-    "心を込めた温かいお食事。\nシェアできるサイドから、\n食後のデザートまで。",
-    "用心准备每一份热乎的餐点。\n从适合分享的小食，\n到饭后的甜点，都可尽情享用。",
+    "We serve warm meals made with care. Order a side to share and finish with something sweet.",
+    "心を込めた温かいお食事を。シェアできるサイドや食後のデザートもどうぞ。",
+    "我们用心准备每一份热腾腾的餐点。佐餐小食适合分享，饭后还可以来一份甜点。",
   ],
   "취향에 맞는 메뉴로 맛있는 시간을 즐겨보세요.": ["Enjoy delicious moments with dishes you love.", "お好みのメニューで、おいしいひとときを。", "挑选喜爱的美食，享受美味时光。"],
   "음식점": ["Restaurant", "飲食店", "餐厅"],
