@@ -770,7 +770,7 @@ textarea.site-field,
   background: var(--ui-surface) !important;
   color: var(--ui-text) !important;
   box-shadow: var(--site-shadow-popover) !important;
-  font-family: var(--font-family-site) !important;
+  font-family: var(--font-family-site-ui) !important;
 }
 
 /*

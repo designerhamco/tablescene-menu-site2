@@ -131,7 +131,7 @@ test("주요 공개 페이지는 표준 페이지 타이틀을 사용한다", ()
   assert.doesNotMatch(privacySource, /text-5xl/);
 });
 
-test("사이트 UI는 의미 기반 타이포 역할과 영문 Tenor Sans·한글 Pretendard를 사용한다", () => {
+test("사이트 UI는 의미 기반 타이포 역할과 영문 알파벳 Tenor Sans·한글 숫자 기호 Pretendard를 사용한다", () => {
   for (const role of [
     "type-display",
     "type-page-title",
@@ -148,7 +148,14 @@ test("사이트 UI는 의미 기반 타이포 역할과 영문 Tenor Sans·한�
     assert.match(typographySource, new RegExp(`\\.${role}`));
   }
 
+  assert.match(typographySource, /--font-family-site-ui:\s*"ArtiMenu Site Latin",\s*"Pretendard",\s*"Noto Sans KR"/);
+  // Menu viewer/renderer references retain their original unrestricted stack.
   assert.match(typographySource, /--font-family-site:\s*"Tenor Sans",\s*"Pretendard",\s*"Noto Sans KR"/);
+  const fontsSource = readSource("../styles/fonts.css");
+  assert.match(fontsSource, /family=Tenor\+Sans&/);
+  assert.match(fontsSource, /font-family: "ArtiMenu Site Latin";[\s\S]*unicode-range: U\+0041-005A, U\+0061-007A;/);
+  assert.match(globalsSource, /body\s*\{[^}]*font-family: var\(--font-family-site-ui\)/);
+  assert.match(themeSource, /body\s*\{[^}]*font-family: var\(--font-family-site-ui\)/);
   assert.doesNotMatch(typographySource, /Outfit/);
   assert.doesNotMatch(themeSource, /Global Typography Scale/);
   assert.doesNotMatch(themeSource, /h1\s*\{[\s\S]*@apply text-4xl/);
