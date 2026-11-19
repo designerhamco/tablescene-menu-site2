@@ -76,7 +76,9 @@ export function deviceStageFrame(width:number,height:number,copyBottom=0,gutter=
   const cardWidth=w>=1024?290:Math.max(150,Math.min(236,w*.25)),cardHeight=cardWidth*697/1024;
   const centerY=Math.max(copy+cardHeight*.59+14,commonScreenY-monitorScreenHeight*.55)+(w>=1024?32:0);
   const perspective=w<640?560:900;
-  return {compact:w<1024,width:w,height:artHeight,items,floor,scale,x:(w-w*scale)/2,y:copy*(1-scale),
+  const inwardOffset=w*(w<1024?.02:.03);
+  const clusteredItems=items.map(item=>({...item,x:item.x+(item.id==="tablet"?inwardOffset:item.id==="phone"?-inwardOffset:0)}));
+  return {compact:w<1024,width:w,height:artHeight,items:clusteredItems,floor,scale,x:(w-w*scale)/2,y:copy*(1-scale),
     paper:{cardWidth,cardHeight,centerY,perspective,farDepth:perspective*.48,depthBend:perspective*2.7,radius:w*.88,angleStep:w<640?.46:.32,curveDrop:w<640?4:8}};
 }
 
