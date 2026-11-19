@@ -33,7 +33,7 @@ try {
       assert.ok((await story.locator('h2').textContent()).includes("베이직, 한 장에 담는"));
       assert.equal(await story.locator('[data-basic-management]').count(),0);
       assert.ok((await story.locator('nav').textContent()).includes("소개"));
-      await story.locator('[data-basic-demo] img').evaluateAll(images=>Promise.all(images.map(image=>image.decode().catch(()=>{}))));
+      await story.locator('img').evaluateAll(images=>Promise.all(images.map(image=>image.decode().catch(()=>{}))));
       await page.screenshot({path:`${output}/intro-${width}-${height}.png`});
       await next.click();
       assert.equal(await story.getAttribute("data-feature-index"),"0");
@@ -58,7 +58,7 @@ try {
       await previous.press("ArrowLeft");
       assert.equal(await story.getAttribute("data-feature-index"),"6","keyboard changes selected demo");
       while((await story.getAttribute("data-feature-index"))!=="0") await previous.click();
-      await story.locator('[data-basic-demo] img').evaluateAll(images=>Promise.all(images.map(image=>image.decode().catch(()=>{}))));
+      await story.locator('img').evaluateAll(images=>Promise.all(images.map(image=>image.decode().catch(()=>{}))));
       const geometry=await story.evaluate(element=>{
         const rect=element.getBoundingClientRect(), nav=element.querySelector('nav').getBoundingClientRect(), screen=element.querySelector('[data-basic-tablet-screen]').getBoundingClientRect(), title=element.querySelector('h2').getBoundingClientRect();
         return {viewport:[innerWidth,innerHeight],x:rect.x,width:rect.width,overflow:document.documentElement.scrollWidth-innerWidth,navBottom:nav.bottom,screen:{x:screen.x,y:screen.y,width:screen.width,height:screen.height},titleRight:title.right,screenRight:screen.right};
