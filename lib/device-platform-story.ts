@@ -74,20 +74,23 @@ export function deviceStageFrame(width:number,height:number,copyBottom=0,gutter=
   const widthFit=Math.max(1,w-2*Math.max(0,Math.min(w/2-1,gutter)))/(2*halfExtent);
   const resolutionFit=Math.min(...items.map(item=>1.25/item.sourceScale));
   const scale=Math.min(1,(h-copy)/Math.max(1,artHeight-copy),widthFit,resolutionFit);
-  const cardWidth=w>=1024?290:Math.max(150,Math.min(236,w*.25)),cardHeight=cardWidth*697/1024;
+  const cardWidth=(w>=1024?290:Math.max(150,Math.min(236,w*.25)))*.9,cardHeight=cardWidth*697/1024;
   const centerY=commonScreenY;
   const perspective=w<640?560:900;
   const inwardOffset=w*(w<1024?.02:.03);
   const monitorRight=items[0].x+items[0].width;
   const clusteredItems=items.map(item=>({...item,x:item.id==="tablet"?item.x+inwardOffset:item.id==="phone"?Math.min(item.x-inwardOffset,monitorRight-item.width*.18):item.x}));
   return {compact:w<1024,width:w,height:artHeight,items:clusteredItems,floor,scale,x:(w-w*scale)/2,y:copy*(1-scale),
-    paper:{cardWidth,cardHeight,centerY,perspective,farDepth:perspective*.48,depthBend:perspective*2.7,radius:w*.88,angleStep:cardWidth*.92/(w*.88),curveDrop:w<640?4:8}};
+    paper:{cardWidth,cardHeight,centerY,perspective,farDepth:perspective*.48,depthBend:perspective*2.7,radius:w*.88,angleStep:cardWidth*.92/(w*.88),curveDrop:w<640?4:8,monitorLeft:items[0].x-w/2,monitorRight:monitorRight-w/2}};
 }
 
 export function devicePaperAt(paper:ReturnType<typeof deviceStageFrame>["paper"],index:number,position:number) {
   const theta=Math.atan((index-DEVICE_PAPER_CENTER_INDEX-position)*paper.angleStep);
   const x=paper.radius*Math.sin(theta),z=-paper.farDepth+paper.depthBend*(1-Math.cos(theta));
   const y=paper.curveDrop*(theta/.64)**2,yaw=-theta*180/Math.PI;
-  return {visible:Math.abs(theta)<=.90,theta,z,blur:Number((.65+.55*Math.max(0,1-Math.abs(theta)/.72)).toFixed(4)),
+  const projectedX=x*paper.perspective/Math.max(1,paper.perspective-z);
+  const distance=Math.max(0,paper.monitorLeft-projectedX,projectedX-paper.monitorRight);
+  const proximity=1-smooth(distance/(paper.cardWidth*1.5));
+  return {visible:Math.abs(theta)<=.90,theta,z,blur:Number((.65+3.35*proximity).toFixed(4)),
     transform:`translate3d(${x.toFixed(4)}px,${y.toFixed(4)}px,${z.toFixed(4)}px) rotateY(${yaw.toFixed(4)}deg)`};
 }
