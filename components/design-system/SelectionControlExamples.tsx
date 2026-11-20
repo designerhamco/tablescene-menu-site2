@@ -63,7 +63,7 @@ export default function SelectionControlExamples() {
       <p className="type-body-sm text-zinc-600">모양은 역할, 크기는 화면 밀도로 고릅니다. 영역 콘텐츠에는 둘레 테두리를 두지 않으며, 카탈로그처럼 결과를 묶는 곳은 공통 밝은 회색 표면을 사용할 수 있습니다. 실제 탭 패널은 방향키·Home·End로 이동하고, 주제 필터·링크는 본래 버튼·링크 키보드 동작을 유지합니다.</p>
     </section>
     <section className={styles.section} aria-labelledby="select-contract-title">
-      <div className={styles.heading}><h2 className="type-section-title" id="select-contract-title">셀렉트박스</h2><p className="type-body text-zinc-600">화살표는 16px·선 굵기 2.25, 오른쪽 여백은 12px입니다. 문구가 화살표에 겹치지 않도록 40px 공간을 확보합니다.</p></div>
+      <div className={styles.heading}><h2 className="type-section-title" id="select-contract-title">셀렉트박스</h2><p className="type-body text-zinc-600">Remix Line 꺾쇠는 16px, 오른쪽 여백은 12px입니다. 문구 오른쪽은 모바일 40px, 태블릿·PC 36px을 확보합니다.</p></div>
       <div className={styles.ruleGrid}>
         <label className="type-label grid min-w-0 content-start gap-2">기본 셀렉트<select className="site-field w-full min-w-0" value={nativeValue} onChange={event => setNativeValue(event.target.value)}>{options.map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         <div className="grid min-w-0 content-start gap-2"><label className="type-label" htmlFor="custom-select-demo">아이콘·목록 셀렉트</label><Select value={customValue} onValueChange={setCustomValue}><SelectTrigger id="custom-select-demo"><SelectValue /></SelectTrigger><SelectContent>{options.map(([value,label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}<SelectItem value="unavailable" disabled>준비 중</SelectItem></SelectContent></Select></div>

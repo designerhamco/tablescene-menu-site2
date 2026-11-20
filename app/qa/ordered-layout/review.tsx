@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowUpRight } from "@/app/components/ui/site-arrow";
 import { useEffect, useRef, useState } from "react";
 import { ONE_PAGE_QA_TEMPLATES, ONE_PAGE_QA_VIEWPORTS, getOnePageQaPreviewUrl } from "@/lib/one-page-qa";
 
@@ -46,7 +47,7 @@ export default function OrderedLayoutReview() {
         <select aria-label="언어" value={locale} onChange={e => setLocale(e.target.value)} className={control}><option value="ko">한국어</option><option value="en">English</option><option value="zh">中文</option><option value="ja">日本語</option></select>
         <label className="flex items-center gap-2 text-copy"><input type="checkbox" checked={call} onChange={e => setCall(e.target.checked)} />호출 미리보기</label>
         <button className={control} onClick={() => { setStatus("불러오는 중"); setReload(v => v + 1); }}>다시 불러오기</button>
-        <a className={control} href={src} target="_blank" rel="noreferrer">새 창에서 열기 ↗</a>
+        <a className={`${control} inline-flex items-center gap-2`} href={src} target="_blank" rel="noreferrer">새 창에서 열기 <ArrowUpRight size={16} /></a>
       </header>
       <nav aria-label="검수 템플릿" className="flex flex-wrap gap-2 border-b border-stone-300 px-5 py-3">{ONE_PAGE_QA_TEMPLATES.map(t => <button key={t.key} aria-pressed={template === t.key} onClick={() => { setStatus("불러오는 중"); setTemplate(t.key); }} className={`rounded-full border px-3 py-2 text-copy ${template === t.key ? "border-stone-900 bg-stone-900 text-white" : "border-stone-300 bg-white"}`}>{t.name}</button>)}</nav>
       <div className="flex items-center justify-between px-5 py-2 text-support text-stone-600"><span>{status}</span><span>화면 맞춤 {Math.round(scale * 100)}% · 메뉴 계산은 선택한 실제 해상도 기준</span></div>

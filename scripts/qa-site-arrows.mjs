@@ -14,22 +14,35 @@ for (const width of [375, 768, 1440, 2560]) {
  await page.evaluate(()=>document.fonts.ready);
  if (width < 768) {const notice=page.getByRole('dialog').filter({hasText:'위치 편집은 PC에서 해 주세요'});await expect(notice).toBeVisible({timeout:15000});await notice.getByRole('button',{name:'확인',exact:true}).click();await expect(notice).toBeHidden();}
  await page.locator('#site-arrows').scrollIntoViewIfNeeded();
- const icons=await page.locator('#site-arrows svg[data-site-arrow]').evaluateAll(els=>els.map(el=>{
-  const r=el.getBoundingClientRect();const p=el.querySelector('path');return {kind:el.dataset.siteArrow,direction:el.dataset.direction,width:r.width,height:r.height,fill:getComputedStyle(p).fill,stroke:getComputedStyle(p).stroke,linecap:getComputedStyle(p).strokeLinecap};
+ const icons = await page.locator('#site-arrows svg[data-site-arrow]').evaluateAll(elements => elements.map(svg => {
+  const rect = svg.getBoundingClientRect();
+  const path = svg.querySelector('path');
+  const glyphStyle = getComputedStyle(path);
+  return {
+   kind: svg.dataset.siteArrow, name: svg.dataset.siteIcon, source: svg.dataset.iconSource,
+   width: rect.width, height: rect.height, pathCount: svg.querySelectorAll('path').length,
+   fill: glyphStyle.fill, stroke: glyphStyle.stroke,
+  };
  }));
- assert.equal(icons.length,46);assert.equal(icons.filter(i=>i.kind==='shaft'&&i.linecap==='butt').length,14);
- assert.equal(icons.filter(i=>i.kind==='chevron'&&i.fill!=='none').length,4);
- assert.equal(icons.filter(i=>i.kind==='refresh'&&i.fill!=='none'&&i.stroke==='none').length,6);
- assert.equal(await page.locator('#site-arrows [data-site-arrow="refresh"][data-icon-source="remix"]').count(),6);
+ assert.equal(new Set(icons.map(icon => icon.name)).size, 31);
+ assert.ok(icons.every(icon => icon.source === 'remix' && icon.pathCount === 1 && icon.fill !== 'none' && icon.stroke === 'none'));
+ assert.deepEqual([...new Set(icons.map(icon => icon.width))].sort((a, b) => a - b), [16, 20, 24]);
+ assert.equal(icons.filter(icon => icon.name === 'refresh-line').length, 6);
  await page.locator('#site-arrows').screenshot({path:`${out}/arrows-${width}.png`});
  const bounds = await page.locator('#site-arrows svg[data-site-arrow]').evaluateAll(els => els.map(el => { const s=el.getBoundingClientRect(); const paths=[...el.querySelectorAll('path')].map(path=>path.getBoundingClientRect()); return {kind:el.dataset.siteArrow,direction:el.dataset.direction,inside:paths.every(p=>p.left>=s.left-.1&&p.right<=s.right+.1&&p.top>=s.top-.1&&p.bottom<=s.bottom+.1)}; }));
  assert.ok(bounds.every(b=>b.inside),JSON.stringify(bounds.filter(b=>!b.inside)));
- const select=page.locator('button[role="combobox"]').first();
+ const select = page.locator('#custom-select-demo');
  await select.scrollIntoViewIfNeeded();await select.focus();await page.keyboard.press('Enter');
  await expect(select).toHaveAttribute('data-state','open');
  await page.keyboard.press('Escape');await expect(select).toHaveAttribute('data-state','closed');
  assert.ok(await select.evaluate(el=>el===document.activeElement));
- const selectIcon=select.locator('[data-site-arrow="chevron"]');assert.equal(await selectIcon.count(),1);
+ const selectIcon = select.locator('[data-site-icon="arrow-down-s-line"][data-icon-source="remix"]');
+ assert.equal(await selectIcon.count(), 1);
+ const native = page.locator('section[aria-labelledby="select-contract-title"] select').first();
+ assert.ok((await native.evaluate(el => getComputedStyle(el).backgroundImage)).includes('/icons/site-chevron-down.svg'));
+ const svgAsset = await (await page.request.get(`${base}/icons/site-chevron-down.svg`)).text();
+ const downPath = await selectIcon.locator('path').getAttribute('d');
+ assert.ok(svgAsset.includes(`d="${downPath}"`));
  const pagination=page.getByRole('navigation',{name:'게시글 페이지 예시'});await pagination.scrollIntoViewIfNeeded();
  await pagination.getByRole('button',{name:'다음 페이지',exact:true}).filter({visible:true}).click();
  await expect(pagination.locator('[aria-current="page"]').filter({visible:true})).toHaveAttribute('aria-label','2페이지');
@@ -37,8 +50,6 @@ for (const width of [375, 768, 1440, 2560]) {
  const template=await page.evaluate(()=>({viewport:innerWidth,overflow:document.documentElement.scrollWidth-innerWidth,arrows:document.querySelectorAll('[data-site-arrow]').length,legacy:document.querySelectorAll('svg.lucide-arrow-up-right').length}));
  assert.equal(template.overflow,0);assert.equal(template.legacy,0);assert.ok(template.arrows>0);
  await page.screenshot({path:`${out}/templates-${width}.png`});
- const native=page.locator('select').first();
- if(await native.count()) assert.ok((await native.evaluate(el=>getComputedStyle(el).backgroundImage)).includes('/icons/site-chevron-down.svg'));
  await page.goto(base,{waitUntil:'networkidle'});await page.evaluate(()=>document.fonts.ready);
  const home=await page.evaluate(()=>({viewport:innerWidth,overflow:document.documentElement.scrollWidth-innerWidth,arrows:document.querySelectorAll('[data-site-arrow]').length,legacy:document.querySelectorAll('svg[class*="lucide-arrow-"],svg[class*="lucide-chevron-"]').length}));
  assert.equal(home.overflow,0);assert.equal(home.legacy,0);assert.ok(home.arrows>0);
@@ -55,7 +66,7 @@ for (const key of ['cafe_van_gogh_a','dining_aube_table_a']) {
  await page.goto(`${base}/templates/${key}/preview?device=pc&view=actual&embedded=1`,{waitUntil:'networkidle'});await page.evaluate(()=>document.fonts.ready);
  const artwork=page.locator('[data-template-artwork],.menu-typography,.aube-table-root,[data-native-ready=true]');
  await expect(artwork.first()).toBeVisible({timeout:20000});
- assert.equal(await artwork.locator('[data-site-arrow]').count(),0);
+ assert.equal(await artwork.locator('[data-site-arrow], [data-icon-source="remix"]').count(), 0);
  results.push({key,artworkCount:await artwork.count(),siteArrowLeaks:0});await page.close();
 }
 await writeFile(`${out}/results.json`,JSON.stringify({base,results},null,2));console.log(JSON.stringify({base,widths:[375,768,1440,2560],passed:results.length,out}));

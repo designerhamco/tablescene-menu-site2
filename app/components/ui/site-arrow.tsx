@@ -1,68 +1,60 @@
 import type { SVGProps } from "react";
-import { SITE_ARROW_PATHS, SITE_ARROW_ROTATION, SITE_CIRCULAR_ARROW_HEADS, type SiteArrowDirection, type SiteArrowKind } from "@/lib/site-arrow";
+import { SITE_ARROW_PATHS, type SiteArrowName } from "@/lib/site-arrow";
 
-export type SiteArrowProps = SVGProps<SVGSVGElement> & {
-  size?: number | string;
-  direction?: SiteArrowDirection;
-  kind?: SiteArrowKind;
-  mirrored?: boolean;
-};
+type SiteArrowProps = SVGProps<SVGSVGElement> & { size?: number | string };
+type Direction = "right" | "down-right" | "down" | "down-left" | "left" | "up-left" | "up" | "up-right";
+type Kind = "shaft" | "chevron" | "double-chevron" | "turn" | "turn-back" | "bidirectional" | "refresh" | "rotate";
 
-/** Curved, square-ended shaft or sculpted filled chevron on a shared 24px grid.
- * Ref remains an SVG prop for React 19 / Radix asChild. Never use inside menu artwork.
- */
-export function SiteArrow({ size = 24, direction = "right", kind = "shaft", mirrored = false, strokeWidth = 2, children, ...props }: SiteArrowProps) {
-  const filled = kind === "chevron" || kind === "double-chevron" || kind === "refresh";
-  const circularHead = kind === "rotate" ? SITE_CIRCULAR_ARROW_HEADS.rotate : null;
-  return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none"
-    aria-hidden="true" focusable="false" data-site-arrow={kind} data-direction={direction} data-icon-source={kind === "refresh" ? "remix" : undefined} {...props}>
-    <g transform={`rotate(${SITE_ARROW_ROTATION[direction]} 12 12)`}>
-      <path transform={mirrored ? "translate(0 24) scale(1 -1)" : undefined} d={SITE_ARROW_PATHS[kind]}
-        fill={filled ? "currentColor" : "none"} stroke={filled ? "none" : "currentColor"}
-        strokeWidth={kind === "refresh" ? undefined : strokeWidth} strokeLinecap="butt" strokeLinejoin="miter" />
-      {circularHead ? <path transform={mirrored ? "translate(0 24) scale(1 -1)" : undefined} d={circularHead} fill="currentColor" stroke="none" /> : null}
-    </g>{children}
-  </svg>;
+/** The official site's Remix Line arrows share SVG props and React 19 ref behavior. */
+function arrow(name: SiteArrowName, direction: Direction, kind: Kind = "shaft", mirrored = false) {
+  function SiteArrow({ size = 24, children, ...props }: SiteArrowProps) {
+    return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
+      fill="none" aria-hidden="true" focusable="false" {...props} stroke="none" strokeWidth={undefined}
+      data-site-arrow={kind} data-direction={direction} data-site-icon={name} data-icon-source="remix">
+      <path d={SITE_ARROW_PATHS[name]} fill="currentColor" transform={mirrored ? "translate(0 24) scale(1 -1)" : undefined} />
+      {children}
+    </svg>;
+  }
+  SiteArrow.displayName = `SiteArrow(${name})`;
+  return SiteArrow;
 }
 
-function directionalIcon(direction: SiteArrowDirection, kind: SiteArrowKind = "shaft", mirrored = false) {
-  return function DirectionalIcon(props: SiteArrowProps) { return <SiteArrow {...props} direction={direction} kind={kind} mirrored={mirrored} />; };
-}
+export const ArrowRight = /* @__PURE__ */ arrow("arrow-right-line", "right");
+export const ArrowDownRight = /* @__PURE__ */ arrow("arrow-right-down-line", "down-right");
+export const ArrowDown = /* @__PURE__ */ arrow("arrow-down-line", "down");
+export const ArrowDownLeft = /* @__PURE__ */ arrow("arrow-left-down-line", "down-left");
+export const ArrowLeft = /* @__PURE__ */ arrow("arrow-left-line", "left");
+export const ArrowUpLeft = /* @__PURE__ */ arrow("arrow-left-up-line", "up-left");
+export const ArrowUp = /* @__PURE__ */ arrow("arrow-up-line", "up");
+export const ArrowUpRight = /* @__PURE__ */ arrow("arrow-right-up-line", "up-right");
 
-export const ArrowRight = directionalIcon("right");
-export const ArrowDownRight = directionalIcon("down-right");
-export const ArrowDown = directionalIcon("down");
-export const ArrowDownLeft = directionalIcon("down-left");
-export const ArrowLeft = directionalIcon("left");
-export const ArrowUpLeft = directionalIcon("up-left");
-export const ArrowUp = directionalIcon("up");
-export const ArrowUpRight = directionalIcon("up-right");
-export const ChevronRight = directionalIcon("right", "chevron");
-export const ChevronDown = directionalIcon("down", "chevron");
-export const ChevronLeft = directionalIcon("left", "chevron");
-export const ChevronUp = directionalIcon("up", "chevron");
-export const ChevronsRight = directionalIcon("right", "double-chevron");
-export const ChevronsLeft = directionalIcon("left", "double-chevron");
+export const ChevronRight = /* @__PURE__ */ arrow("arrow-right-s-line", "right", "chevron");
+export const ChevronDown = /* @__PURE__ */ arrow("arrow-down-s-line", "down", "chevron");
+export const ChevronLeft = /* @__PURE__ */ arrow("arrow-left-s-line", "left", "chevron");
+export const ChevronUp = /* @__PURE__ */ arrow("arrow-up-s-line", "up", "chevron");
+export const ChevronsRight = /* @__PURE__ */ arrow("arrow-right-double-line", "right", "double-chevron");
+export const ChevronsLeft = /* @__PURE__ */ arrow("arrow-left-double-line", "left", "double-chevron");
+
+export const ArrowTurnUpRight = /* @__PURE__ */ arrow("corner-up-right-line", "right", "turn");
+export const ArrowTurnRightDown = /* @__PURE__ */ arrow("corner-right-down-line", "down", "turn");
+export const ArrowTurnDownLeft = /* @__PURE__ */ arrow("corner-down-left-line", "left", "turn");
+export const ArrowTurnLeftUp = /* @__PURE__ */ arrow("corner-left-up-line", "up", "turn");
+export const ArrowTurnDownRight = /* @__PURE__ */ arrow("corner-down-right-line", "right", "turn");
+export const ArrowTurnRightUp = /* @__PURE__ */ arrow("corner-right-up-line", "up", "turn");
+export const ArrowTurnUpLeft = /* @__PURE__ */ arrow("corner-up-left-line", "left", "turn");
+export const ArrowTurnLeftDown = /* @__PURE__ */ arrow("corner-left-down-line", "down", "turn");
+export const ArrowUTurnLeft = /* @__PURE__ */ arrow("arrow-go-back-line", "left", "turn-back");
+export const ArrowUTurnRight = /* @__PURE__ */ arrow("arrow-go-forward-line", "right", "turn-back");
+export const ArrowUTurnUp = /* @__PURE__ */ arrow("arrow-turn-forward-line", "up", "turn-back");
+export const ArrowUTurnDown = /* @__PURE__ */ arrow("arrow-turn-back-line", "down", "turn-back");
+
+export const ArrowLeftRight = /* @__PURE__ */ arrow("arrow-left-right-line", "right", "bidirectional");
+export const ArrowUpDown = /* @__PURE__ */ arrow("arrow-up-down-line", "down", "bidirectional");
+// Remix provides one refresh-line path. Reflect it for the existing counterclockwise control.
+export const RefreshCcw = /* @__PURE__ */ arrow("refresh-line", "right", "refresh", true);
+export const RefreshCw = /* @__PURE__ */ arrow("refresh-line", "right", "refresh");
+export const RotateCcw = /* @__PURE__ */ arrow("reset-left-line", "right", "rotate");
+export const RotateCw = /* @__PURE__ */ arrow("reset-right-line", "right", "rotate");
+
 export { ChevronRight as ChevronRightIcon, ChevronDown as ChevronDownIcon, ChevronLeft as ChevronLeftIcon, ChevronUp as ChevronUpIcon };
-
-// Elbows name the travel before and after the bend.
-export const ArrowTurnUpRight = directionalIcon("right", "turn");
-export const ArrowTurnRightDown = directionalIcon("down", "turn");
-export const ArrowTurnDownLeft = directionalIcon("left", "turn");
-export const ArrowTurnLeftUp = directionalIcon("up", "turn");
-export const ArrowTurnDownRight = directionalIcon("right", "turn", true);
-export const ArrowTurnRightUp = directionalIcon("up", "turn", true);
-export const ArrowTurnUpLeft = directionalIcon("left", "turn", true);
-export const ArrowTurnLeftDown = directionalIcon("down", "turn", true);
-export const ArrowUTurnLeft = directionalIcon("left", "turn-back", true);
-export const ArrowUTurnRight = directionalIcon("right", "turn-back");
-export const ArrowUTurnUp = directionalIcon("up", "turn-back");
-export const ArrowUTurnDown = directionalIcon("down", "turn-back", true);
-export const ArrowLeftRight = directionalIcon("right", "bidirectional");
-export const ArrowUpDown = directionalIcon("down", "bidirectional");
-// The Remix original turns clockwise; mirror only the counterclockwise export.
-export const RefreshCcw = directionalIcon("right", "refresh", true);
-export const RefreshCw = directionalIcon("right", "refresh");
-export const RotateCcw = directionalIcon("right", "rotate");
-export const RotateCw = directionalIcon("right", "rotate", true);
 export { ArrowUTurnLeft as Undo2, ArrowUTurnRight as Redo2 };

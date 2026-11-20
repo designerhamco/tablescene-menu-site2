@@ -8,16 +8,15 @@
 
 > 버튼·필드 라벨·드롭다운 옵션 내부의 글자·높이·간격은 [컴포넌트 크기·간격 기준](site-component-density.md)을 우선한다. 기본 조작14px, 필드32/40/44/48px, 옵션32px·gap0·안쪽8px이며 터치 기준은 별도로 유지한다. GNB·계정/사이드바 탐색·페이지/섹션/콘텐츠 제목·설명·본문은 컴포넌트 밀도 조정에서 제외하며 기존 크기와 와이드 보정을 유지한다.
 
-## 화살표 SVG (2026-11-11)
+## 화살표 SVG (2026-11-20)
 
-공식 사이트는 `app/components/ui/site-arrow.tsx`의 공통 SVG를 사용한다. `/design-system#site-arrows`에서 실제 예시를 확인한다. 정본은 `lib/site-arrow.ts`다.
+공식 사이트는 Remix Line 4.8.0 원본 SVG 경로를 사용한다. 공통 컴포넌트는 `app/components/ui/site-arrow.tsx`, 경로 원본은 `lib/site-arrow.ts`에 둔다. [디자인 시스템 화살표](/design-system#site-arrows)에서 16·20·24px 예시를 비교할 수 있다.
 
-- 일반·대각선·꺾임·U턴·양방향은 승인된 곡선 머리, 단일/이중 꺾쇠는 안쪽이 파인 채움형을 유지한다.
-- 새로고침은2026-11-13 승인된 Remix Line `refresh-line` 원본 윤곽을 사용한다. `RefreshCw`는 원본 시계 방향, `RefreshCcw`는 반전된 반시계 방향이다. `currentColor` 채움과 stroke 없음으로 원본 굵기를 유지하며 별도 곡선 머리를 덧붙이지 않는다. 회전·초기화의 `RotateCw`/`RotateCcw`는 기존 한쪽 곡선 날개를 유지한다. 라이브러리에서16/20/24px의 새로고침·회전을 함께 표시한다.
-- SVG24px 그리드와 기존 호출 크기, 색, 클릭 영역, 포커스, 로딩 회전, 비활성 상태와 행동을 유지한다. 새 화면에 별도 Lucide 방향 화살표·문자형 조작 화살표·로컬 변형을 추가하지 않는다.
-- 네이티브 select는 동일 꺾쇠의 `public/icons/site-chevron-down.svg`를 사용한다. 기존 gutter와 강제 색상 모드, 메뉴판 제외 selector를 유지한다.
-- `components/menu-templates`·`components/public-menu`의 고객 메뉴판 디자인·언어·페이지 이동·주문/호출은 별도 경계다. 툴팁 꼬리와 기기 회전 안내는 별도 도형을 유지한다. 재생/일시정지는 일반 UI 아이콘 정책을 따른다.
-
+- 화면·링크 이동은 `arrow-*-line`, 상세·셀렉트·이전/다음은 `arrow-*-s-line`, 처음/마지막은 `arrow-*-double-line`을 사용한다. 새 창은 `NewWindowIndicator`를 통해 `arrow-right-up-line`과 접근성 안내를 함께 제공한다.
+- 방향 전환은 `corner-*-line`, 되돌리기는 `arrow-go-*-line` 또는 `arrow-turn-*-line`, 정렬·교환은 `arrow-up-down-line` 또는 `arrow-left-right-line`을 사용한다. 초기화·회전은 `reset-left-line`과 `reset-right-line`을 사용한다.
+- 새로고침은 `refresh-line`을 사용한다. 반시계 방향은 동일 경로를 반전해 표시한다. SVG는 24px 그리드에서 원본 경로의 굵기와 주변 글자색을 따르며, 시각 크기와 버튼 조작 영역·포커스·로딩 상태는 각 공통 컴포넌트가 관리한다.
+- 네이티브 select와 React 셀렉트는 `arrow-down-s-line` 경로를 공유한다. 네이티브용 SVG는 `public/icons/site-chevron-down.svg`에 둔다.
+- 고객 메뉴판 디자인·언어 선택·메뉴 페이지 탐색·주문/호출 및 툴팁 말풍선 꼬리는 독립된 규칙을 따른다.
 
 ## 템플릿 검색·필터 표면 (2026-11-13)
 
@@ -717,7 +716,7 @@ OrderHistoryFilters는 ContentPanel density=controls, site-form-row/site-field-s
 - 일반 UI 아이콘은 `app/components/ui/site-icon.tsx`의 Remix Line을 사용한다. 24px 그리드의 로컬 SVG이며16/20/24/32px에서도 같은 윤곽 비율을 유지한다. 외부 CDN/아이콘 API 요청은 없다. 색은 `currentColor`, 굵기는 원본 윤곽을 따른다. 기존 `strokeWidth`로 윤곽을 덧그리지 않는다.
 - 알림·닫기·말풍선·하트·공유·저장·검색·추가·업종/색상/분위기/레이아웃 필터·마이페이지·미리보기 도구·사이트 마케팅 UI 모두 같은 출처를 사용한다. 업종은 커피잔/식기/그릇/고블릿/빵으로 구분한다. 매장 룸에 저장된 이모지는 사용자 데이터이므로 유지한다.
 - `lib/site-icon-map.ts`는 기존 이름과 원본 glyph의 매핑, `/design-system#site-icons`는 전체 glyph 예시를 제공한다. 좋아요는 `Heart`의 `filled` 또는 기존 `fill` 선택값으로 실제 채움형을 표시한다. 라디오와 메뉴의 선택점은 채움형 원이다. 의미/접근성/선택 상태를 보존한다.
-- 화살표는 기존 `site-arrow.tsx`를 유지한다. 새 창/외부 링크도 기존 ↗를 유지한다. 새로고침은 사용자 선택에 따라 Remix Line `refresh-line`으로 표시한다(2026-11-13). 회전은 기존 원호 바깥의 한쪽 곡선 날개를 유지한다.
+- 공식 사이트 화살표는 `site-arrow.tsx`의 Remix Line 원본을 사용한다. 용도별 SVG는 [화살표 SVG](#화살표-svg-2026-11-20) 항목을 따른다.
 - 툴팁 말풍선의 모양·꼬리·동작, 데이터 스와치/차트/QR/제스처 그림, 고객 메뉴판 렌더러는 변경 대상이 아니다. 메뉴판 영역에 새 사이트 아이콘을 가져오지 않는다.
 - 출처는 Iconify의 Remix Icon4.8.0 Apache-2.0 스냅샷으로 고정한다. 정확한 커밋과 라이선스는 `public/licenses/remix-icon-NOTICE.txt`, `remix-icon-LICENSE.txt`에 포함한다.
 
