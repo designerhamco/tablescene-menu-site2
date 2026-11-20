@@ -13,7 +13,17 @@
   aspect-ratio:3/2;
   transform:translate(-50%,-54.2%);
 }
-.tablet { position:relative; z-index:1; display:block; width:100%; height:auto; transform:scaleX(-1); mask-image:linear-gradient(90deg,transparent,#000 12%); pointer-events:none; }
+.tablet {
+  position:relative;
+  z-index:1;
+  display:block;
+  width:100%;
+  height:auto;
+  transform:scaleX(-1);
+  mask-image:linear-gradient(90deg, transparent, #000 12%), linear-gradient(180deg, #000 84%, transparent);
+  mask-composite:intersect;
+  pointer-events:none;
+}
 .screen { position:absolute; z-index:2; left:0; top:0; transform-origin:0 0; overflow:hidden; border-radius:24px; background:#eeeae3; pointer-events:none; }
 @media (max-width:767px) {
   .showcase {
