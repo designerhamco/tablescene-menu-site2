@@ -7,7 +7,6 @@ import { MediaPlayback } from "@/app/components/ui/media-playback";
 import { MARKETING_SERVICE_FEATURES, type MarketingFeature, type MarketingDemoMedia } from "@/lib/marketing-service-features";
 import { SERVICE_HOME_HREFS } from "@/lib/service-home-navigation";
 import StoryProgress from "./StoryProgress";
-import BasicIdleScrollHint from "./BasicIdleScrollHint";
 import { revealDiningFromBasic } from "@/lib/home-dining-cover";
 import { basicFeatureIndex, BASIC_FEATURE_INTRO } from "@/lib/basic-feature-story";
 import MarketingCopyReveal from "./MarketingCopyReveal";
@@ -146,7 +145,6 @@ export default function BasicServiceStory({ features=MARKETING_SERVICE_FEATURES.
           }
         />
       </div>
-      <BasicIdleScrollHint enabled={visible} />
     </div>
     <div ref={runway} className={styles.runway} style={{ "--basic-scene-count": features.length + 1 } as CSSProperties} aria-hidden="true" data-basic-scroll-runway/>
   </div>;

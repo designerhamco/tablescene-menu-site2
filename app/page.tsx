@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import HomeIdleScrollHint from "@/components/marketing/HomeIdleScrollHint";
 
 import {
   MarketingHome,
@@ -13,8 +14,11 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <MarketingShell>
-      <MarketingHome />
-    </MarketingShell>
+    <>
+      <MarketingShell>
+        <MarketingHome />
+      </MarketingShell>
+      <HomeIdleScrollHint />
+    </>
   );
 }

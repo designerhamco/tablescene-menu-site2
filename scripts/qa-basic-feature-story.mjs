@@ -92,12 +92,17 @@ try {
   const page=await browser.newPage({viewport:{width:1440,height:900},reducedMotion:"no-preference"});
   page.on("pageerror",error=>errors.push(error.message));
   try {
+    const hint = page.locator('[data-home-scroll-hint]');
+    await page.goto(base);
+    await expect(page.locator('[data-hero-motion]')).toBeVisible();
+    await page.mouse.move(535, 530);
+    await expect(hint).toBeVisible({ timeout:4000 });
+
     await enter(page);
     const story=page.locator('[data-basic-feature-story]');
     const runway=await story.evaluate(element => element.closest('[data-basic-scroll-track]').querySelector('[data-basic-scroll-runway]').getBoundingClientRect().height);
     const label=story.locator('[data-service-frame-label]');
     const introY=(await label.boundingBox()).y;
-    const hint = page.locator('[data-basic-scroll-hint]');
     await page.mouse.move(1330, 320);
     await expect(hint).toBeHidden();
     await expect(hint).toBeVisible({ timeout:4000 });
@@ -145,7 +150,9 @@ try {
     const resumed=await timer.textContent();
     await expect.poll(()=>timer.textContent()).not.toBe(resumed);
     results.push({automatic:true,loop:true,coveredPause:true,resume:true});
-    console.log("PASS automatic loop, cover pause and resume");
+    await page.goto(`${base}/pricing`);
+    await expect(hint).toHaveCount(0);
+    console.log("PASS home-only cue, automatic loop, cover pause and resume");
   } finally { await page.close(); }
   assert.deepEqual(errors,[]);
 } finally {

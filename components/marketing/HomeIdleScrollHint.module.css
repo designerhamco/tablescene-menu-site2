@@ -1,0 +1,30 @@
+/* Above the home presentation frames and below the site header and overlays. */
+.scrollHint {
+  position:fixed;
+  inset:0 auto auto 0;
+  z-index:45;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  color:var(--ui-media-ink);
+  mix-blend-mode:difference;
+  pointer-events:none;
+  visibility:hidden;
+  opacity:0;
+  transform:translate3d(var(--scroll-hint-x,0px),var(--scroll-hint-y,0px),0);
+  transition:opacity 160ms ease;
+}
+.scrollHint[data-visible] { visibility:visible; opacity:1; }
+.scrollHintArrow { margin-block-start:-2px; }
+.scrollHint[data-visible] .scrollHintWheel { animation:scroll-hint-wheel 1.25s ease-out 2; }
+.scrollHint[data-visible] .scrollHintArrow { animation:scroll-hint-down 1.25s ease-in-out 2; }
+@keyframes scroll-hint-wheel {
+  0%, 15% { opacity:1; transform:translateY(0); }
+  70%, 100% { opacity:0; transform:translateY(4px); }
+}
+@keyframes scroll-hint-down { 60% { transform:translateY(3px); } }
+@media (hover:none), (pointer:coarse) { .scrollHint { display:none; } }
+@media (prefers-reduced-motion:reduce) {
+  .scrollHint[data-visible] :is(.scrollHintWheel,.scrollHintArrow) { animation:none; }
+  .scrollHint { transition:none; }
+}
