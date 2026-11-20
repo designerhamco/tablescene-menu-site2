@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { ArrowUp } from "@/app/components/ui/site-arrow";
 import AiSupportChatLauncher from '@/app/support/chat/AiSupportChatLauncher';
 
-const ScrollToTop = () => {
+const ScrollToTop = ({ adaptToBackdrop = false }: { adaptToBackdrop?: boolean }) => {
   const [isVisible, setIsVisible] = useState(false);
   const reduceMotion = useReducedMotion();
 
@@ -30,6 +30,7 @@ const ScrollToTop = () => {
               onClick={() => window.scrollTo({ top: 0, behavior: reduceMotion ? 'instant' : 'smooth' })}
               className="site-button site-button-secondary site-button-icon site-scroll-top-control"
               data-icon-appearance="framed"
+              data-adapt-to-backdrop={adaptToBackdrop || undefined}
               aria-label="맨 위로 이동"
             >
               <ArrowUp className="h-5 w-5" aria-hidden="true" />
