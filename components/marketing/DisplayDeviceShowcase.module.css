@@ -16,14 +16,31 @@
 /* Trace the hardware silhouettes so the photos' studio background blends into navy. */
 .photograph { position:relative; }
 .ceiling {
+  aspect-ratio:1254 / 510;
+  mask-image:linear-gradient(transparent 13%, #000 34%);
+}
+.ceilingPanel {
+  position:absolute;
+  inset:0;
+  transform-origin:0 0;
+}
+.ceilingLeft {
   clip-path:polygon(
     9.8% 51.1%, 24.9% 47.9%, 24.9% 14%, 27.1% 14%, 27.1% 47.5%,
-    37.1% 45.8%, 37.1% 46.6%, 51.3% 43.9%, 51.3% 10%, 53.4% 10%,
-    53.4% 43.5%, 65.4% 40.9%, 65.4% 41.5%, 80.5% 38.6%, 80.5% 7%,
-    82.7% 7%, 82.7% 38.2%, 95.4% 35.3%, 95.4% 80.4%, 66% 84.2%,
-    37.4% 88.1%, 9.8% 91.7%
+    37.1% 45.8%, 37.4% 88.1%, 9.8% 91.7%
   );
-  mask-image:linear-gradient(transparent 13%, #000 34%);
+}
+.ceilingMiddle {
+  clip-path:polygon(
+    37.1% 46.6%, 51.3% 43.9%, 51.3% 10%, 53.4% 10%, 53.4% 43.5%,
+    65.4% 40.9%, 66% 84.2%, 37.4% 88.1%
+  );
+}
+.ceilingRight {
+  clip-path:polygon(
+    65.4% 41.5%, 80.5% 38.6%, 80.5% 7%, 82.7% 7%, 82.7% 38.2%,
+    95.4% 35.3%, 95.4% 80.4%, 66% 84.2%
+  );
 }
 .closeUp {
   margin-block-start:-7%;

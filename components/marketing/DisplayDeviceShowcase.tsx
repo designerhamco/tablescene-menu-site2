@@ -1,7 +1,7 @@
-/* eslint-disable @next/next/no-img-element -- The two photographs and the projected menu share the original image dimensions. */
+/* eslint-disable @next/next/no-img-element -- These photographs use calibrated artwork coordinates. */
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { heroScreenMatrix, type HeroQuad } from "@/lib/hero-cafe-motion";
 import styles from "./DisplayDeviceShowcase.module.css";
 
@@ -10,6 +10,38 @@ const photoWidth = 1254;
 const closeUpScreen = [[77, 134], [1168, 40], [1170, 714], [71, 752]] satisfies HeroQuad;
 const screenWidth = 1280;
 const screenHeight = 720;
+
+// Screen edges sampled from the original ceiling photograph, in image pixels.
+const ceilingPanels = [
+  { clip: styles.ceilingLeft, face: [[130, 267.3], [458, 242.8], [458, 438.7], [130, 458.8]] },
+  { clip: styles.ceilingMiddle, face: [[475, 243.3], [808, 216.9], [808, 419.5], [475, 441.1]] },
+  { clip: styles.ceilingRight, face: [[831, 216.7], [1180, 188.5], [1180, 398.3], [831, 420.7]] },
+] satisfies { clip: string; face: HeroQuad }[];
+
+const [topLeft, topRight, bottomRight, bottomLeft] = closeUpScreen;
+const topSlope = (topRight[1] - topLeft[1]) / (topRight[0] - topLeft[0]);
+const bottomSlope = (bottomRight[1] - bottomLeft[1]) / (bottomRight[0] - bottomLeft[0]);
+const [firstPanelTop, , , firstPanelBottom] = ceilingPanels[0].face;
+const heightRatio = (firstPanelBottom[1] - firstPanelTop[1]) / (bottomLeft[1] - topLeft[1]);
+// The ceiling row is shallower than the close-up. Transfer the reference convergence
+// in proportion to that height, with both rails shared by all three screens.
+const ceilingBottomSlope = topSlope + (bottomSlope - topSlope) * heightRatio;
+
+function scaledQuad(quad: HeroQuad, scale: number): HeroQuad {
+  return quad.map(([x, y]) => [x * scale, y * scale]) as unknown as HeroQuad;
+}
+
+function ceilingPanelTransform(face: HeroQuad, scale: number): string {
+  const target = face.map(([x], corner) => {
+    const isTop = corner < 2;
+    const anchor = isTop ? firstPanelTop : firstPanelBottom;
+    const slope = isTop ? topSlope : ceilingBottomSlope;
+    return [x, anchor[1] + (x - anchor[0]) * slope];
+  }) as unknown as HeroQuad;
+  const sourceMatrix = new DOMMatrix(heroScreenMatrix(scaledQuad(face, scale), screenWidth, screenHeight));
+  const targetMatrix = new DOMMatrix(heroScreenMatrix(scaledQuad(target, scale), screenWidth, screenHeight));
+  return targetMatrix.multiply(sourceMatrix.inverse()).toString();
+}
 
 export default function DisplayDeviceShowcase({ children, label, capture }: {
   children: ReactNode;
@@ -42,7 +74,11 @@ export default function DisplayDeviceShowcase({ children, label, capture }: {
   }, [capture]);
 
   const scale = width / photoWidth;
-  const quad = closeUpScreen.map(([x, y]) => [x * scale, y * scale]) as unknown as HeroQuad;
+  const quad = scaledQuad(closeUpScreen, scale);
+  const ceilingTransforms = useMemo(
+    () => scale > 0 ? ceilingPanels.map(({ face }) => ceilingPanelTransform(face, scale)) : [],
+    [scale],
+  );
 
   const screen = children ?? (capture && readyCapture ? (
     <img className={styles.capture} src={readyCapture} alt="" decoding="async" draggable={false} />
@@ -51,8 +87,21 @@ export default function DisplayDeviceShowcase({ children, label, capture }: {
   return (
     <div className={styles.showcase} data-display-device-showcase role="img" aria-label={`${label} 디스플레이 시연`}>
       <div className={styles.composition} data-display-composition>
-        <div className={`${styles.photograph} ${styles.ceiling}`}>
-          <img className={styles.hardware} src={`${directory}/display-ceiling-three.webp`} width={photoWidth} height={510} alt="" loading="lazy" decoding="async" draggable={false} />
+        <div className={`${styles.photograph} ${styles.ceiling}`} data-display-ceiling>
+          {ceilingPanels.map(({ clip }, index) => (
+            <img
+              key={clip}
+              className={`${styles.hardware} ${styles.ceilingPanel} ${clip}`}
+              src={`${directory}/display-ceiling-three.webp`}
+              width={photoWidth}
+              height={510}
+              style={{ transform: ceilingTransforms[index] }}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+            />
+          ))}
         </div>
         <div ref={closeUp} className={`${styles.photograph} ${styles.closeUp}`}>
           <img className={styles.hardware} src={`${directory}/display-close-up-single.webp`} width={photoWidth} height={834} alt="" loading="lazy" decoding="async" draggable={false} />
