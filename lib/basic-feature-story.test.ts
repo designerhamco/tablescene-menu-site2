@@ -2,18 +2,21 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import BasicServiceStory from "../components/marketing/BasicServiceStory";
+import ServiceFeatureStory from "../components/marketing/ServiceFeatureStory";
+import { existsSync } from "node:fs";
+import { BASIC_STORY_SCREENS, SERVICE_STORY_INTROS, TABLET_STORY_SCREENS } from "./service-story-screens";
 import { MARKETING_SERVICE_FEATURES } from "./marketing-service-features";
 import { BASIC_TABLET_SCREEN, basicTabletScreenMatrix, basicFeatureIndex } from "./basic-feature-story";
 
 const features=MARKETING_SERVICE_FEATURES.basic.map(feature=>({...feature,media:{poster:"/poster.jpg",mp4:"/clip.mp4"}}));
 test("the Basic introduction does not add a progress segment",()=>{
-  const html=renderToStaticMarkup(createElement(BasicServiceStory,{features}));
+  const html=renderToStaticMarkup(createElement(ServiceFeatureStory,{service:"basic",features}));
   assert.match(html,/베이직, 한 장에 담는/);
   assert.match(html,/우리 매장의 메뉴판/);
   assert.match(html,/data-feature-index="-1"/);
   assert.match(html,/data-basic-feature-preview="intro"/);
-  assert.equal((html.match(/data-basic-tablet-screen/g)??[]).length,1);
+  assert.match(html,/data-basic-device-screen="monitor" data-device-scene="intro"/);
+  assert.match(html,/data-basic-device-screen="phone" data-device-scene="intro"/);
   assert.equal((html.match(/data-basic-segment=/g)??[]).length,6);
   assert.match(html,/aria-label="1. 대표 상품 영역 · 장면 보기"/);
   assert.doesNotMatch(html,/aria-current="step"|직원 호출|테이블 주문/);
@@ -38,4 +41,30 @@ test("the six Basic topics retain their order and the remaining services retain 
   assert.equal(basicFeatureIndex(0, features.length), 0);
   assert.equal(basicFeatureIndex(features.length, features.length), 5);
   assert.deepEqual(MARKETING_SERVICE_FEATURES.dining.slice(-2).map(feature => feature.kind), ["call", "order"]);
+});
+
+test("Dining and Display use the shared scroll layout and approved tablet photograph", () => {
+  for (const [service, count, destination] of [["dining", 8, "service-display"], ["display", 4, "home-operations"]] as const) {
+    const html = renderToStaticMarkup(createElement(ServiceFeatureStory, { service }));
+    assert.ok(html.includes(`data-service-story="${service}"`));
+    assert.ok(html.includes(`href="/#${destination}"`));
+    assert.equal((html.match(/data-service-segment=/g) ?? []).length, count);
+    assert.match(html, /tablet-hands-cutout\.png/);
+    assert.doesNotMatch(html, /data-basic-device-screen|aria-current="step"/);
+  }
+});
+
+test("All service chapters reference available screen captures", () => {
+  for (const { desktop, mobile } of Object.values(BASIC_STORY_SCREENS)) {
+    assert.notEqual(desktop, mobile);
+    assert.ok(existsSync(`public${desktop}`), desktop);
+    assert.ok(existsSync(`public${mobile}`), mobile);
+  }
+  for (const service of ["dining", "display"] as const) {
+    for (const feature of MARKETING_SERVICE_FEATURES[service]) {
+      const screens: Record<string, string> = TABLET_STORY_SCREENS[service];
+      assert.ok(existsSync(`public${screens[feature.kind]}`), `${service} ${feature.kind}`);
+    }
+    assert.ok(existsSync(`public${SERVICE_STORY_INTROS[service].image}`));
+  }
 });

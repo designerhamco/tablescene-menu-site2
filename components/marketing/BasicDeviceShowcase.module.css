@@ -1,0 +1,64 @@
+.showcase {
+  position:relative;
+  inline-size:100%;
+  block-size:100%;
+  container-type:size;
+}
+.scene {
+  position:absolute;
+  inset:0;
+  isolation:isolate;
+}
+.scene::before {
+  content:"";
+  position:absolute;
+  inset:8% 5% 8% 18%;
+  background:radial-gradient(ellipse at 58% 50%, rgb(186 154 122 / 16%), transparent 70%);
+  filter:blur(24px);
+  pointer-events:none;
+}
+.monitor, .phone { position:absolute; }
+.monitor {
+  /* Match the column edge to the bezel's visible right edge. */
+  --monitor-width:min(106cqw, 165cqh);
+  inset:max(1%, calc(82cqh - var(--monitor-width) * .51)) calc(-1 * var(--monitor-width) * .0742) auto auto;
+  width:var(--monitor-width);
+  /* Correct the photographed screen around its center with the bezel and menu aligned. */
+  transform:scaleY(1.076);
+  transform-origin:center 40%;
+  mask-image:linear-gradient(#000 76.5%, rgb(0 0 0 / 22%) 81.5%, rgb(0 0 0 / 6%) 88%, transparent 97%);
+}
+.phone {
+  --phone-width:min(31cqw, 48cqh);
+  inset:auto auto calc(-1 * var(--showcase-bleed) + clamp(0.5rem, 1.3cqh, 0.875rem)) 0;
+  width:var(--phone-width);
+  mask-image:linear-gradient(90deg, transparent, #000 10%), linear-gradient(#000 82%, transparent);
+  mask-composite:intersect;
+}
+.hardware { display:block; width:100%; height:auto; }
+.screen {
+  position:absolute;
+  inset:0 auto auto 0;
+  transform-origin:0 0;
+  overflow:hidden;
+  pointer-events:none;
+  background:#eeeae3;
+}
+.phone .screen { border-radius:46px 45px 45px 45px; }
+.screen img {
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+@media (max-width:767px) {
+  .scene {
+    --device-offset:clamp(0.5rem, 4cqw, 1.25rem);
+    inset:auto auto calc(-1 * var(--showcase-bleed)) 50%;
+    inline-size:min(108%, calc((100cqh + var(--showcase-bleed)) / .81));
+    aspect-ratio:100/78;
+    transform:translateX(-50%);
+  }
+  .monitor { inset:0 calc(-1 * var(--device-offset)) auto auto; width:100%; }
+  .phone { inset:auto auto 0 calc(-2% - var(--device-offset)); width:36%; }
+}

@@ -39,6 +39,7 @@
   .caption { max-width:calc(100% - var(--site-space-card) - var(--site-space-block)); }
 }
 @media (prefers-reduced-motion:reduce) {
+  .caption { opacity:1 !important; transform:none !important; }
   .plane,.captured,.preview { transition:none; }
   .cue,.qrPulse,.saleHighlight { display:none; }
   .canvas { will-change:auto; }

@@ -266,11 +266,11 @@ export function MarketingHome() {
         <DevicePlatformStory />
         <ServiceStackStory />
       </div>
-      <section className={styles.homeFeatures} data-home-section="operations">
+      <section className={styles.homeFeatures} id="home-operations" data-home-section="operations">
         <div className="site-marketing-container">
           <MarketingCopyReveal className={styles.sectionHeading}>
 
-            <h2 className="type-section-title">
+            <h2 id="home-operations-heading" tabIndex={-1} className="type-section-title">
               매장 운영도,
               <br />
               한눈에 정리되도록
