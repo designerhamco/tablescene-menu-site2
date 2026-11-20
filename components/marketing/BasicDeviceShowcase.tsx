@@ -16,10 +16,10 @@ const monitor = {
 };
 
 const phone = {
-  asset: "/assets/service-mockups-v2/handheld-phone.webp",
+  asset: "/assets/service-mockups-v2/handheld-phone-soft-white.webp",
   width: 1024,
   height: 1536,
-  display: [[312, 124], [815, 80], [817, 1227], [312, 1227]] satisfies HeroQuad,
+  display: [[312, 124], [817, 80], [820, 1228], [312, 1228]] satisfies HeroQuad,
   canvas: { width: 390, height: 844 },
 };
 
