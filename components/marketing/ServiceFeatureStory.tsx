@@ -124,14 +124,14 @@ export default function ServiceFeatureStory({
               </div>
             </div>
           </MarketingCopyReveal>
-          {feature ? <div className={`site-stack-block ${styles.management}`} data-service-management data-basic-management={basic ? "" : undefined}>
-            <h3 className="type-label">{feature.label} 관리 화면</h3>
-            <div className={styles.managementMedia} key={feature.kind}>
-              {feature.managementMedia && desktop ? <DemoMedia media={feature.managementMedia} label={`${feature.label} 관리 화면`} running={visible && desktop && managementPlaying}/> : null}
-              <MediaPlayback disabled={!feature.managementMedia} playing={managementPlaying} label={`${feature.label} 관리 화면${feature.managementMedia ? "" : " 영상 준비 중"}`} title={feature.managementMedia ? undefined : "관리 화면 영상 준비 중"} onClick={()=>setManagementPlaying(value=>!value)}/>
-            </div>
-          </div> : null}
         </div>
+        {feature ? <div className={`site-stack-block ${styles.management}`} data-service-management data-basic-management={basic ? "" : undefined}>
+          <h3 className="type-label">{feature.label} 관리 화면</h3>
+          <div className={styles.managementMedia} key={feature.kind}>
+            {feature.managementMedia && desktop ? <DemoMedia media={feature.managementMedia} label={`${feature.label} 관리 화면`} running={visible && desktop && managementPlaying}/> : null}
+            <MediaPlayback disabled={!feature.managementMedia} playing={managementPlaying} label={`${feature.label} 관리 화면${feature.managementMedia ? "" : " 영상 준비 중"}`} title={feature.managementMedia ? undefined : "관리 화면 영상 준비 중"} onClick={()=>setManagementPlaying(value=>!value)}/>
+          </div>
+        </div> : null}
         <div ref={preview} className={styles.visual} data-service-preview={sceneKey} data-basic-feature-preview={basic ? sceneKey : undefined} data-playing={running}>
           <MarketingCopyReveal className={styles.reveal}>
             {basic ? (

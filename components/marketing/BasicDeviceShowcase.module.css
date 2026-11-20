@@ -55,9 +55,10 @@
   .scene {
     --device-offset:clamp(0.5rem, 4cqw, 1.25rem);
     inset:auto auto calc(-1 * var(--showcase-bleed)) 50%;
-    inline-size:min(108%, calc((100cqh + var(--showcase-bleed)) / .81));
+    /* Center the visible monitor and phone together, including their side offsets. */
+    inline-size:min(108%, calc((100cqh + var(--showcase-bleed)) / .81), calc((100cqw + 2 * (var(--site-gutter) - var(--site-space-copy) - var(--device-offset))) / .946));
     aspect-ratio:100/78;
-    transform:translateX(-50%);
+    transform:translateX(-45.3%);
   }
   .monitor { inset:0 calc(-1 * var(--device-offset)) auto auto; width:100%; }
   .phone { inset:auto auto 0 calc(-2% - var(--device-offset)); width:36%; }
