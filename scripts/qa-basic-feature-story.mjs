@@ -101,6 +101,9 @@ try {
     await page.mouse.move(1330, 320);
     await expect(hint).toBeHidden();
     await expect(hint).toBeVisible({ timeout:4000 });
+    await expect(hint).toHaveText("");
+    await expect(hint.locator("svg")).toHaveCount(2);
+    await expect(hint).toHaveCSS("mix-blend-mode","difference");
     const initialHint = await hint.boundingBox();
     await page.mouse.move(1280, 320);
     await expect.poll(async () => (await hint.boundingBox()).x).not.toBe(initialHint.x);

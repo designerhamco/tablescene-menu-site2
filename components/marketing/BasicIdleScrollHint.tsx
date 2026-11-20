@@ -88,8 +88,11 @@ export default function BasicIdleScrollHint({ enabled }: { enabled: boolean }) {
     };
   }, [enabled]);
 
-  return <div ref={hintRef} className={`${styles.scrollHint} type-caption`} data-basic-scroll-hint aria-hidden="true">
-    <ChevronDown size={16} />
-    스크롤하세요
+  return <div ref={hintRef} className={styles.scrollHint} data-basic-scroll-hint aria-hidden="true">
+    <svg width={22} height={25} viewBox="0 0 22 25" fill="none" stroke="currentColor" strokeWidth={1.5} focusable="false">
+      <rect x={4.25} y={1.75} width={13.5} height={21} rx={6.75} />
+      <path className={styles.scrollHintWheel} d="M11 6.5v3" strokeLinecap="round" />
+    </svg>
+    <ChevronDown className={styles.scrollHintArrow} size={16} />
   </div>;
 }
