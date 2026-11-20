@@ -2,20 +2,21 @@
 
 import { useEffect, useRef } from "react";
 import { ChevronDown } from "@/app/components/ui/site-arrow";
-import styles from "./BasicServiceStory.module.css";
+import styles from "./HomeIdleScrollHint.module.css";
 
 const IDLE_DELAY_MS = 2400;
 const POINTER_OFFSET = 14;
 const VIEWPORT_INSET = 8;
-const INTERACTIVE = "a, button, input, select, textarea, [role='button'], [contenteditable='true']";
+const INTERACTIVE = "a, button, input, select, textarea, summary, [role='button'], [role='menu'], [role='listbox'], [role='dialog'], [data-slot='dialog-overlay'], [data-slot='sheet-overlay'], [contenteditable='true']";
 
-export default function BasicIdleScrollHint({ enabled }: { enabled: boolean }) {
+export default function HomeIdleScrollHint() {
   const hintRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const hint = hintRef.current;
-    const stage = hint?.parentElement;
-    if (!hint || !stage || !enabled) return;
+    if (!hint) return;
+
+    const root = document.documentElement;
 
     const mouseQuery = matchMedia("(hover: hover) and (pointer: fine)");
     let pointer: { x: number; y: number } | null = null;
@@ -30,13 +31,16 @@ export default function BasicIdleScrollHint({ enabled }: { enabled: boolean }) {
       hide();
     };
     const positionHint = () => {
-      if (!pointer || document.hidden || !mouseQuery.matches || stage.getBoundingClientRect().top > 1) return false;
+      if (!pointer || document.hidden || !mouseQuery.matches) return false;
+
+      const page = document.scrollingElement;
+      if (!page || page.scrollHeight - page.clientHeight - page.scrollTop <= 1) return false;
 
       const target = document.elementFromPoint(pointer.x, pointer.y);
-      if (!target || !stage.contains(target) || target.closest(INTERACTIVE)) return false;
+      if (!target || target.closest(INTERACTIVE)) return false;
 
       const { offsetWidth: width, offsetHeight: height } = hint;
-      const { clientWidth, clientHeight } = document.documentElement;
+      const { clientWidth, clientHeight } = root;
       const x = pointer.x + POINTER_OFFSET + width <= clientWidth - VIEWPORT_INSET
         ? pointer.x + POINTER_OFFSET
         : pointer.x - POINTER_OFFSET - width;
@@ -64,9 +68,9 @@ export default function BasicIdleScrollHint({ enabled }: { enabled: boolean }) {
       if (!hint.dataset.visible || !positionHint()) waitForIdle();
     };
 
-    stage.addEventListener("pointermove", onPointerMove, { passive: true });
-    stage.addEventListener("pointerleave", clear);
-    stage.addEventListener("pointerdown", clear);
+    root.addEventListener("pointermove", onPointerMove, { passive: true });
+    root.addEventListener("pointerleave", clear);
+    root.addEventListener("pointerdown", clear);
     window.addEventListener("scroll", waitForIdle, { passive: true });
     window.addEventListener("wheel", waitForIdle, { passive: true });
     window.addEventListener("resize", clear);
@@ -76,9 +80,9 @@ export default function BasicIdleScrollHint({ enabled }: { enabled: boolean }) {
 
     return () => {
       clear();
-      stage.removeEventListener("pointermove", onPointerMove);
-      stage.removeEventListener("pointerleave", clear);
-      stage.removeEventListener("pointerdown", clear);
+      root.removeEventListener("pointermove", onPointerMove);
+      root.removeEventListener("pointerleave", clear);
+      root.removeEventListener("pointerdown", clear);
       window.removeEventListener("scroll", waitForIdle);
       window.removeEventListener("wheel", waitForIdle);
       window.removeEventListener("resize", clear);
@@ -86,9 +90,9 @@ export default function BasicIdleScrollHint({ enabled }: { enabled: boolean }) {
       document.removeEventListener("visibilitychange", clear);
       mouseQuery.removeEventListener("change", clear);
     };
-  }, [enabled]);
+  }, []);
 
-  return <div ref={hintRef} className={styles.scrollHint} data-basic-scroll-hint aria-hidden="true">
+  return <div ref={hintRef} className={styles.scrollHint} data-home-scroll-hint aria-hidden="true">
     <svg width={22} height={25} viewBox="0 0 22 25" fill="none" stroke="currentColor" strokeWidth={1.5} focusable="false">
       <rect x={4.25} y={1.75} width={13.5} height={21} rx={6.75} />
       <path className={styles.scrollHintWheel} d="M11 6.5v3" strokeLinecap="round" />
