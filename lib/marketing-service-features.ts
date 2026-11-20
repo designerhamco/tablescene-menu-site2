@@ -63,8 +63,6 @@ export const MARKETING_SERVICE_FEATURES: Record<Service, Feature[]> = {
       body: "추천 메뉴와 이벤트, 꼭 전하고 싶은 안내를 위젯으로 배치해 매장만의 메뉴판을 완성하세요.",
     },
     shared.advertising,
-    shared.call,
-    shared.order,
   ],
   dining: [
     {

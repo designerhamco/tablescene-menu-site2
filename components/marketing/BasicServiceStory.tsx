@@ -7,6 +7,7 @@ import { MediaPlayback } from "@/app/components/ui/media-playback";
 import { MARKETING_SERVICE_FEATURES, type MarketingFeature, type MarketingDemoMedia } from "@/lib/marketing-service-features";
 import { SERVICE_HOME_HREFS } from "@/lib/service-home-navigation";
 import StoryProgress from "./StoryProgress";
+import BasicIdleScrollHint from "./BasicIdleScrollHint";
 import { revealDiningFromBasic } from "@/lib/home-dining-cover";
 import { basicFeatureIndex, BASIC_FEATURE_INTRO } from "@/lib/basic-feature-story";
 import MarketingCopyReveal from "./MarketingCopyReveal";
@@ -108,22 +109,6 @@ export default function BasicServiceStory({ features=MARKETING_SERVICE_FEATURES.
                 <p className={`type-body-lg ${styles.description}`}>{feature?.body ?? BASIC_FEATURE_INTRO.body}</p>
               </div>
             </div>
-            <StoryProgress
-              label="베이직 기능 탐색"
-              chapters={["Start", ...features.map(item => item.label)]}
-              active={index + 1}
-              progress={progress}
-              onSelect={select}
-              story="basic"
-              skip={
-                <a href={SERVICE_HOME_HREFS.dining} className="type-caption" aria-label="Skip · 베이직 기능 소개를 건너뛰고 다이닝으로 이동" onClick={event => {
-                  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                  if (!document.getElementById("service-dining")) return;
-                  event.preventDefault();
-                  revealDiningFromBasic();
-                }}><span lang="en">Skip</span></a>
-              }
-            />
           </MarketingCopyReveal>
           {feature ? <div className={`site-stack-block ${styles.management}`} data-basic-management>
             <h3 className="type-label">{feature.label} 관리 화면</h3>
@@ -142,7 +127,26 @@ export default function BasicServiceStory({ features=MARKETING_SERVICE_FEATURES.
             </BasicTemplateShowcase>
           </MarketingCopyReveal>
         </div>
+        <StoryProgress
+          label="베이직 기능 탐색"
+          chapters={features.map(item => item.label)}
+          active={index}
+          progress={progress}
+          onSelect={featureIndex => select(featureIndex + 1)}
+          onStart={() => select(0)}
+          story="basic"
+          className={styles.progress}
+          skip={
+            <a href={SERVICE_HOME_HREFS.dining} className="type-caption" aria-label="Skip · 베이직 기능 소개를 건너뛰고 다이닝으로 이동" onClick={event => {
+              if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+              if (!document.getElementById("service-dining")) return;
+              event.preventDefault();
+              revealDiningFromBasic();
+            }}><span lang="en">Skip</span></a>
+          }
+        />
       </div>
+      <BasicIdleScrollHint enabled={visible} />
     </div>
     <div ref={runway} className={styles.runway} style={{ "--basic-scene-count": features.length + 1 } as CSSProperties} aria-hidden="true" data-basic-scroll-runway/>
   </div>;
