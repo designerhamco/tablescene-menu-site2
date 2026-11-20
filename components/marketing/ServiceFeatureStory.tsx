@@ -9,11 +9,12 @@ import type { HomeService } from "@/lib/service-home-navigation";
 import StoryProgress from "./StoryProgress";
 import { revealNextHomeSection } from "@/lib/home-service-cover";
 import { basicFeatureIndex } from "@/lib/basic-feature-story";
-import { BASIC_STORY_SCREENS, SERVICE_STORY_INTROS, TABLET_STORY_SCREENS } from "@/lib/service-story-screens";
+import { BASIC_STORY_SCREENS, SERVICE_STORY_INTROS, SERVICE_STORY_SCREENS } from "@/lib/service-story-screens";
 import MarketingCopyReveal from "./MarketingCopyReveal";
 import ServiceFrameLabel from "./ServiceFrameLabel";
 import BasicDeviceShowcase from "./BasicDeviceShowcase";
 import ServiceTabletShowcase from "./ServiceTabletShowcase";
+import DisplayDeviceShowcase from "./DisplayDeviceShowcase";
 import styles from "./ServiceFeatureStory.module.css";
 
 export function DemoMedia({ media, label, running }: { media: MarketingDemoMedia; label:string; running:boolean }) {
@@ -62,7 +63,16 @@ export default function ServiceFeatureStory({
   const feature=index<0 ? undefined : features[index];
   const sceneKey=feature?.kind ?? "intro";
   const sceneLabel = feature?.label ?? `${names[service]} 소개`;
-  const tabletScreens: Record<string, string> | undefined = basic ? undefined : TABLET_STORY_SCREENS[service];
+  const screens: Record<string, string> | undefined = basic ? undefined : SERVICE_STORY_SCREENS[service];
+  const chapters = [
+    intro,
+    ...features.map(item => ({
+      title: item.kind === "featured" ? "사진으로 시선을 끄는" : item.title,
+      subtitle: item.label,
+      body: item.body,
+    })),
+  ];
+  const copy = chapters[index + 1] ?? intro;
   useEffect(() => {
     const query=matchMedia("(min-width:768px)");
     const update=() => { setDesktop(query.matches); if(!query.matches) setManagementPlaying(false); };
@@ -111,6 +121,14 @@ export default function ServiceFeatureStory({
     window.scrollTo({ top: Math.ceil(trackTop + chapter * chapterLength), behavior: "instant" });
   };
   const running=visible && !reduced && !!feature;
+  const capture = screens?.[sceneKey] ?? intro.image;
+  const demo = basic ? null : (
+    <div key={sceneKey} className={styles.demo} data-service-demo={sceneKey}>
+      {feature?.media ? <DemoMedia media={feature.media} label={feature.label} running={running} /> : (
+        <img className={styles.menuCapture} src={capture} alt={`${sceneLabel} 메뉴판`} decoding="async" draggable={false} />
+      )}
+    </div>
+  );
   return <div ref={track} className={styles.track} data-service-scroll-track={service} data-basic-scroll-track={basic ? "" : undefined}>
     <div className={styles.stage}>
       <div ref={root} className={`site-marketing-container ${styles.story}`} data-service-story={service} data-basic-feature-story={basic ? "" : undefined} data-feature-index={index}>
@@ -118,9 +136,19 @@ export default function ServiceFeatureStory({
           <MarketingCopyReveal className="site-stack-content">
             <div className="site-stack-title">
               <ServiceFrameLabel service={service}/>
-              <div key={sceneKey} className={`site-stack-content ${styles.featureCopy}`} data-service-copy data-basic-feature-copy={basic ? "" : undefined} aria-live="polite" aria-atomic="true">
-                <h2 id={`service-${service}-heading`} tabIndex={-1} className="type-section-title">{feature ? <>{feature.kind==="featured" ? "사진으로 시선을 끄는" : feature.title}<br/>{feature.label}</> : <>{intro.title}<br/>{intro.subtitle}</>}</h2>
-                <p className={`type-body-lg ${styles.description}`}>{feature?.body ?? intro.body}</p>
+              <div className={styles.sceneCopy}>
+                <div className={styles.copyReserve} aria-hidden="true">
+                  {chapters.map(chapter => (
+                    <div key={chapter.subtitle} className="site-stack-content">
+                      <p className="type-section-title">{chapter.title}<br/>{chapter.subtitle}</p>
+                      <p className={`type-body-lg ${styles.description}`}>{chapter.body}</p>
+                    </div>
+                  ))}
+                </div>
+                <div key={sceneKey} className={`site-stack-content ${styles.featureCopy}`} data-service-copy data-basic-feature-copy={basic ? "" : undefined} aria-live="polite" aria-atomic="true">
+                  <h2 id={`service-${service}-heading`} tabIndex={-1} className="type-section-title">{copy.title}<br/>{copy.subtitle}</h2>
+                  <p className={`type-body-lg ${styles.description}`}>{copy.body}</p>
+                </div>
               </div>
             </div>
           </MarketingCopyReveal>
@@ -136,14 +164,12 @@ export default function ServiceFeatureStory({
           <MarketingCopyReveal className={styles.reveal}>
             {basic ? (
               <BasicDeviceShowcase screens={BASIC_STORY_SCREENS[sceneKey] ?? BASIC_STORY_SCREENS.intro} label={sceneLabel} />
+            ) : service === "display" ? (
+              <DisplayDeviceShowcase label={sceneLabel} capture={feature && !feature.media ? capture : undefined}>
+                {feature?.media ? demo : null}
+              </DisplayDeviceShowcase>
             ) : (
-              <ServiceTabletShowcase label={sceneLabel}>
-                <div key={sceneKey} className={styles.demo} data-service-demo={sceneKey}>
-                  {feature?.media ? <DemoMedia media={feature.media} label={feature.label} running={running} /> : (
-                    <img className={styles.menuCapture} src={tabletScreens?.[sceneKey] ?? intro.image} alt={`${sceneLabel} 메뉴판`} decoding="async" draggable={false} />
-                  )}
-                </div>
-              </ServiceTabletShowcase>
+              <ServiceTabletShowcase label={sceneLabel}>{demo}</ServiceTabletShowcase>
             )}
           </MarketingCopyReveal>
         </div>

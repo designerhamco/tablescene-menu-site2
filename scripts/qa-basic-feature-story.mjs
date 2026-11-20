@@ -51,6 +51,9 @@ try {
         element.getBoundingClientRect().bottom-element.closest('[data-service-story]').getBoundingClientRect().top
       );
       const progressBottom=await bottomInStage(nav);
+      const monitor=story.locator('[data-basic-device-screen="monitor"]');
+      if(width<768) await expect(monitor).toBeVisible();
+      const mobileMonitor=width<768 ? await monitor.boundingBox() : null;
       await expect(segments).toHaveCount(kinds.length);
       await expect(nav.locator('[aria-current="step"]')).toHaveCount(0);
       await expect(nav.getByRole("progressbar").and(nav.locator('[aria-valuenow="0"]'))).toHaveCount(kinds.length);
@@ -75,6 +78,12 @@ try {
         await expectDevicePair(story, kinds[index]);
         assert.ok(Math.abs(await bottomInStage(nav)-progressBottom)<1,"progress is pinned to the stage bottom");
         if(width>=768) assert.ok(Math.abs(await bottomInStage(management)-managementBottom)<1,"management preview is pinned above progress");
+        if(mobileMonitor) {
+          const position=await monitor.boundingBox();
+          for(const dimension of ["x","y","width","height"]) {
+            assert.ok(Math.abs(position[dimension]-mobileMonitor[dimension])<1,"mobile mockup stays in place across chapters");
+          }
+        }
         assert.ok((await story.locator('h2').textContent()).includes(labels[index]));
         assert.ok((await story.locator('[data-basic-management] h3').textContent()).includes(labels[index]));
         assert.equal(await story.locator('[data-basic-feature-preview]').getAttribute("data-playing"),"false","reduced motion keeps preview static");
