@@ -14,7 +14,7 @@ import CustomServicePage from './original-pages/services/CustomServicePage';
 import VisualStudioPage from './original-pages/branding/VisualStudioPage';
 import GoodsPackagePage from './original-pages/branding/GoodsPackagePage';
 import Store from './original-pages/Store';
-import ScrollToTopButton from './components/ui/ScrollToTop';
+import AiSupportChatLauncher from './support/chat/AiSupportChatLauncher';
 import Footer from './components/layout/Footer';
 
 const ScrollToTop = () => {
@@ -42,7 +42,7 @@ export default function App() {
       {/* Added 'relative' to ensure any absolute/fixed children or libraries requiring a positioned ancestor find one immediately */}
       <div className="min-h-screen bg-background text-foreground selection:bg-primary/30 relative">
         <Navbar />
-        <ScrollToTopButton />
+        <AiSupportChatLauncher />
         
         <main className="relative">
           {/* Next Link owns navigation; never match against BrowserRouter's stale pathname. */}

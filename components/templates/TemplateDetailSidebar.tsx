@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
+import ScrollToTopButton from "@/app/components/ui/ScrollToTop";
+
 import styles from "./template-detail.module.css";
 
 export default function TemplateDetailSidebar({ heading, gallery, children, actions, note }: {
@@ -101,5 +103,6 @@ export default function TemplateDetailSidebar({ heading, gallery, children, acti
         <div className={styles.actions}>{actions}</div>
       </div>
     </div>
+    <ScrollToTopButton avoidActions={footerRef} />
   </aside>;
 }
