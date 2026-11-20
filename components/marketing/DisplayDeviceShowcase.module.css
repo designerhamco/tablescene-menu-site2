@@ -11,7 +11,7 @@
   --display-width:min(100cqw, calc((100cqh + var(--display-top-space)) / .865));
   position:absolute;
   inset-inline-start:50%;
-  inset-block-end:calc(max(0px, (100cqh - var(--display-width) * .865) / 2) - var(--display-width) * .04);
+  inset-block-end:calc(max(0px, (100cqh - var(--display-width) * .865) / 2) - var(--display-width) * .04 + var(--display-lift, 0px));
   inline-size:var(--display-width);
   transform:translateX(-50.25%);
 }
@@ -67,6 +67,9 @@
   block-size:100%;
   object-fit:contain;
   background:#fff;
+}
+@media (min-width:1024px) and (hover:hover) and (pointer:fine) {
+  .composition { --display-lift:var(--site-space-title-copy); }
 }
 @media (max-width:767px) {
   .showcase { block-size:calc(100% + var(--service-story-progress-gap)); }
