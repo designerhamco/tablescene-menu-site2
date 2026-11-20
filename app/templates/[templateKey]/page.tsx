@@ -34,7 +34,7 @@ export default async function TemplateDetailPage({ params }: Props) {
     : [info.multiPage ? "커버와 여러 페이지 메뉴 구성" : "대표 상품과 메뉴를 한 화면에", "매장에 맞춘 글꼴과 색상 설정", "할인·광고와 지원 디자인의 위젯"];
 
   return <>
-    <OfficialSiteNavbar showQuickMenu={false} />
+    <OfficialSiteNavbar showSupportLauncher={false} />
     <main className={styles.page}>
       <div className="site-container">
         <nav className={styles.breadcrumb} aria-label="현재 위치"><Link href={info.listHref}><ArrowLeft size={16} aria-hidden="true" />디자인 템플릿</Link><ChevronRight size={13} aria-hidden="true" /><span aria-current="page">{template.name}</span></nav>

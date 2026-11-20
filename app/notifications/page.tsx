@@ -33,7 +33,7 @@ export default async function NotificationsPage() {
   const { data, error } = eventsResult;
 
   return <>
-    <OfficialSiteNavbar showQuickMenu={false} />
+    <OfficialSiteNavbar showSupportLauncher={false} />
     <main className="site-management-scope site-gutter flex-1 bg-white pb-8 pt-6 text-zinc-950 md:py-10" data-notification-inbox>
       <div className="mx-auto w-full max-w-2xl">
         <header className="mb-5 flex items-center gap-3">
