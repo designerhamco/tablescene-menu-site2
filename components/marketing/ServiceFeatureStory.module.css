@@ -29,11 +29,38 @@
 .managementMedia > video,.managementMedia > img,.demo > video,.demo > img { display:block; width:100%; height:100%; object-fit:contain; }
 .visual {
   --showcase-bleed:var(--service-story-story-padding-bottom);
+  --service-wall-light:187 159 129;
+  --service-wall-light-opacity:.16;
+  --service-wall-light-origin:55% 53%;
   grid-area:1 / 2 / 4;
   position:relative;
   min-width:0;
   min-height:0;
   container-type:size;
+}
+/* One diffuse light behind the hardware keeps the photographed rim light visible. */
+.visual::before {
+  content:"";
+  position:absolute;
+  inset-block:calc(-1 * var(--site-space-card));
+  inset-inline:calc(-1 * var(--site-space-copy)) calc(-1 * var(--site-space-card));
+  background:radial-gradient(
+    ellipse closest-side at var(--service-wall-light-origin),
+    rgb(var(--service-wall-light) / var(--service-wall-light-opacity)),
+    rgb(var(--service-wall-light) / calc(var(--service-wall-light-opacity) * .62)) 54%,
+    transparent
+  );
+  pointer-events:none;
+}
+.story[data-service-story="dining"] .visual {
+  --service-wall-light:177 94 123;
+  --service-wall-light-opacity:.22;
+  --service-wall-light-origin:51% 49%;
+}
+.story[data-service-story="display"] .visual {
+  --service-wall-light:101 128 164;
+  --service-wall-light-opacity:.12;
+  --service-wall-light-origin:52% 63%;
 }
 /* The fixed navigation rail and the Basic camera use independent bottom insets. */
 .visual[data-basic-feature-preview] { --showcase-bleed:var(--basic-visual-inset); }
@@ -73,6 +100,10 @@
   }
   .visual, .visual[data-basic-feature-preview] {
     --showcase-bleed:calc(var(--service-story-progress-height) + var(--service-story-progress-gap));
+  }
+  .visual::before {
+    inset-block:0 calc(-1 * var(--site-space-block));
+    inset-inline:calc(-1 * var(--site-gutter));
   }
   .visual::after {
     content:"";
