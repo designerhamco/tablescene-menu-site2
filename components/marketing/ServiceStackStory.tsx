@@ -33,7 +33,7 @@ export default function ServiceStackStory() {
         <MarketingCopyReveal className={`site-stack-content ${styles.copy}`}>
           <ServiceFrameLabel service={service.key}/>
           <div className="site-stack-title">
-            <h2 id={`service-${service.key}-heading`} className="type-section-title">{service.name}</h2>
+            <h2 id={`service-${service.key}-heading`} className="type-section-title" tabIndex={service.key === "dining" ? -1 : undefined}>{service.name}</h2>
             <p className={`type-body-lg ${styles.description}`}>{service.body}</p>
           </div>
         </MarketingCopyReveal>
