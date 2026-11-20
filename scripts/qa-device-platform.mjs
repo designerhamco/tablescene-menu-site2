@@ -2,87 +2,147 @@ import assert from "node:assert/strict";
 import { mkdir, writeFile } from "node:fs/promises";
 import { chromium } from "@playwright/test";
 
-const base=process.env.DEVICE_PLATFORM_QA_BASE_URL||"http://127.0.0.1:3043";
-const output=process.env.DEVICE_PLATFORM_QA_OUTPUT||"/tmp/artimenu-device-platform-qa";
-const scenes=["matcha","mellow","crema","rosy"];
-const viewports=[{width:320,height:740},{width:390,height:844},{width:820,height:1180},{width:1024,height:768},{width:1440,height:900},{width:2560,height:1440}];
-const results=[];
-await mkdir(output,{recursive:true});
-const browser=await chromium.launch({headless:true});
-const context=await browser.newContext();
+const base = process.env.DEVICE_PLATFORM_QA_BASE_URL || "http://127.0.0.1:3043";
+const output = process.env.DEVICE_PLATFORM_QA_OUTPUT || "/tmp/artimenu-device-platform-qa";
+const scenes = ["monitor", "tablet-landscape", "tablet-portrait", "phone"];
+const viewports = [
+  { width: 320, height: 740 }, { width: 390, height: 844 }, { width: 820, height: 1180 },
+  { width: 1024, height: 768 }, { width: 1440, height: 900 }, { width: 2560, height: 1440 },
+];
+await mkdir(output, { recursive: true });
+const browser = await chromium.launch({ headless: true });
+const results = [];
 
-async function geometry(page){
-  return page.locator("[data-device-platform]").evaluate(root=>{
-    const stage=root.children[0].getBoundingClientRect();
-    return {width:innerWidth,height:innerHeight,index:Number(root.dataset.templateIndex),position:Number(root.dataset.templatePosition),
-      mode:root.dataset.imageMode,iframes:root.querySelectorAll("iframe").length,
-      bodies:[...root.querySelectorAll("[data-device-body]")].map(node=>{const box=node.getBoundingClientRect();return {x:box.x-stage.x,y:box.y-stage.y,width:box.width,height:box.height,bottom:box.bottom-stage.y};}),
-      contacts:[...root.querySelectorAll("[data-device-contact-shadow]")].map(node=>{const box=node.getBoundingClientRect();return box.y+box.height/2-stage.y;}),
-      templates:[...root.querySelectorAll("[data-device-item]")].map(node=>node.dataset.deviceTemplate),
-      screens:[...root.querySelectorAll("[data-device-screen]")].map(node=>[...node.querySelectorAll("img")].map(image=>({scene:image.dataset.deviceScreenScene,opacity:Number(image.style.opacity),loaded:image.complete&&image.naturalWidth>0,filter:getComputedStyle(image).filter}))),
-      paper:[...root.querySelectorAll("[data-device-paper]")].map(node=>{const box=node.getBoundingClientRect();return {width:box.width,height:box.height,depth:Number(node.dataset.paperDepth),angle:Number(node.dataset.paperAngle),visible:getComputedStyle(node).visibility==="visible"};}),
-      transform:root.querySelector("[data-device-frame]").style.transform,
-      horizontalOverflow:document.documentElement.scrollWidth-innerWidth};
-  });
-}
+const nextFrame = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+const readPose = root => {
+  const visual = root.querySelector("[role=img]");
+  const body = root.querySelector("[data-device-body]");
+  const screen = root.querySelector("[data-device-screen]");
+  const bounds = visual.getBoundingClientRect();
+  const frame = body.getBoundingClientRect();
+  const rotation = parseFloat(visual.style.getPropertyValue("--device-rotation"));
+  return {
+    index: Number(root.dataset.deviceIndex),
+    progress: Number(root.dataset.progress),
+    template: root.dataset.menuTemplate,
+    matches: root.querySelectorAll("[data-device-body]").length,
+    frame: { width: body.offsetWidth, height: body.offsetHeight, rotation },
+    inFrame: frame.left >= bounds.left - 1 && frame.right <= bounds.right + 1 &&
+      frame.top >= bounds.top - 1 && frame.bottom <= bounds.bottom + 1,
+    overlap: document.documentElement.scrollWidth > innerWidth + 1,
+    screens: [...screen.querySelectorAll("img")].map(image => ({
+      scene: image.dataset.deviceScreenScene,
+      opacity: Number(image.style.opacity),
+      loaded: image.complete && image.naturalWidth > 0,
+      filter: getComputedStyle(image).filter,
+    })),
+  };
+};
 
-try{
-  for(const viewport of viewports){
-    const page=await context.newPage();await page.setViewportSize(viewport);
-    const errors=[];page.on("pageerror",error=>errors.push(error.message));
-    const response=await page.goto(`${base}/#device-platform`,{waitUntil:"domcontentloaded",timeout:90000});
-    assert.ok(response?.ok(),`homepage HTTP ${response?.status()}`);
-    const story=page.locator("[data-device-platform]");await story.waitFor();
-    await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(500);
-    await page.waitForFunction(()=>[...document.querySelectorAll("[data-device-screen] img")].every(image=>image.complete&&image.naturalWidth>0),{},{timeout:30000});
-    const scroll=await story.evaluate(root=>({
-      start:scrollY+root.getBoundingClientRect().top-parseFloat(getComputedStyle(root.parentElement).scrollMarginTop),
-      range:root.offsetHeight-root.children[0].offsetHeight,
-    }));
-    const seek=async progress=>{
-      await page.evaluate(({start,range,progress})=>scrollTo({top:start+range*progress,behavior:"instant"}),{...scroll,progress});
-      await page.waitForTimeout(180);
+try {
+  for (const viewport of viewports) {
+    const page = await browser.newPage({ viewport });
+    const errors = [];
+    page.on("pageerror", error => errors.push(error.message));
+    const response = await page.goto(`${base}/#device-platform`, { waitUntil: "domcontentloaded", timeout: 90000 });
+    assert.ok(response?.ok(), `homepage HTTP ${response?.status()}`);
+    const section = page.locator("[data-device-section]");
+    const story = section.locator("[data-device-platform]");
+    const header = page.locator("[data-site-header]");
+    await page.evaluate(() => document.fonts.ready);
+    await page.waitForFunction(() => {
+      const section = document.querySelector("[data-device-section]");
+      if (!section) return false;
+      const header = document.querySelector("[data-site-header]");
+      return Math.abs(section.getBoundingClientRect().top - header.offsetHeight) < 2 &&
+        [...section.querySelectorAll("img")].every(image => image.complete && image.naturalWidth > 0);
+    }, null, { timeout: 30000 });
+    assert.deepEqual(await page.evaluate(() => ({ width: innerWidth, height: innerHeight })), viewport);
+    assert.equal(await story.getAttribute("data-image-mode"), "static");
+    assert.equal(await story.locator("iframe, [data-device-paper], nav, button, [role=progressbar]").count(), 0);
+    const scroll = await section.evaluate(node => {
+      const stage = node.querySelector("[data-device-stage]");
+      return {
+        start: scrollY + node.getBoundingClientRect().top - parseFloat(getComputedStyle(node).scrollMarginTop),
+        range: node.offsetHeight - stage.offsetHeight,
+      };
+    });
+    const seek = async progress => {
+      await page.evaluate(top => scrollTo({ top, behavior: "instant" }), scroll.start + scroll.range * progress);
+      await page.evaluate(nextFrame);
+      return story.evaluate(readPose);
     };
-    await seek(0);const initial=await geometry(page);
-    assert.equal(initial.mode,"static");assert.equal(initial.iframes,0);
-    assert.equal(initial.bodies.length,3);assert.ok(initial.horizontalOverflow<=1);
-    assert.ok(Math.max(...initial.bodies.map(body=>body.bottom))-Math.min(...initial.bodies.map(body=>body.bottom))<.2,"physical bottoms must share the floor");
-    for(const contact of initial.contacts)assert.ok(Math.abs(contact-initial.bodies[0].bottom)<1,"contact shadows meet the floor");
-    for(const body of initial.bodies)assert.ok(body.x>=0&&body.x+body.width<=initial.width+1);
-    const centerPaper=initial.paper.findIndex(paper=>Math.abs(paper.angle)<.0001);
-    assert.ok(centerPaper>=0&&initial.paper[centerPaper+1].depth>initial.paper[centerPaper].depth);
-    assert.ok(initial.paper[centerPaper+1].height>initial.paper[centerPaper].height,"side thumbnails must appear closer/larger");
-    const visual=page.locator("[data-device-platform] [role=img]");const box=await visual.boundingBox();
-    await page.mouse.move(box.x+box.width/2,box.y+box.height*.6);const before=await page.evaluate(()=>scrollY);
-    await page.mouse.wheel(0,220);await page.waitForTimeout(150);assert.ok(await page.evaluate(()=>scrollY)>before,"native wheel scroll");
-    for(const index of [0,1,2,3,2,1,0]){
-      await seek(index/3);const state=await geometry(page);
-      assert.equal(state.index,index,`${viewport.width}px template ${index}`);
-      assert.equal(new Set(state.templates).size,1,"all three screens use the same template");
-      assert.equal(state.transform,initial.transform,"scroll and copy changes must not move artwork");
-      for(let item=0;item<state.bodies.length;item++)for(const prop of ["x","y","width","height","bottom"]){
-        assert.ok(Math.abs(state.bodies[item][prop]-initial.bodies[item][prop])<1,`${viewport.width}px ${prop} changed during scroll`);
-      }
-      for(const screen of state.screens){assert.ok(screen[index].opacity>.999&&screen[index].loaded);assert.equal(screen[index].scene,scenes[index]);assert.ok(screen.every(image=>image.filter==="none"));}
-      results.push({viewport:state.width,height:state.height,template:scenes[index],floor:state.bodies[0].bottom});
-      if(index===0||index===3)await page.screenshot({path:`${output}/${viewport.width}-${scenes[index]}.png`});
+    const initial = await seek(0);
+    await page.mouse.move(viewport.width / 2, viewport.height / 2);
+    const before = await page.evaluate(() => scrollY);
+    await page.mouse.wheel(0, 160);
+    await page.waitForFunction(y => scrollY > y, before);
+    for (const index of [0, 1, 2, 3, 2, 1, 0]) {
+      const pose = await seek(index / 3);
+      assert.equal(pose.index, index, `${viewport.width}px device ${index}`);
+      assert.equal(pose.matches, 1);
+      assert.equal(pose.template, "cafe_sunday_line_a");
+      assert.ok(pose.inFrame && !pose.overlap);
+      assert.equal(pose.frame.rotation, index > 1 ? -90 : 0);
+      assert.deepEqual(pose.screens.map(screen => screen.scene), scenes);
+      assert.ok(pose.screens.every(screen => screen.loaded && screen.filter === "none"));
+      assert.deepEqual(pose.screens.map(screen => screen.opacity), scenes.map((_, step) => index === step ? 1 : 0));
+      results.push({ ...viewport, device: scenes[index] });
     }
-    await seek(1);const last=await geometry(page);
-    await page.evaluate(y=>scrollTo({top:y,behavior:"instant"}),scroll.start+scroll.range+viewport.height*.35);await page.waitForTimeout(180);
-    assert.equal((await geometry(page)).transform,last.transform,"the outgoing device artwork stays fixed under the next service section");
-    await seek(0);assert.equal((await geometry(page)).index,0);
-    assert.deepEqual(errors,[],`${viewport.width}px runtime errors`);
+    const landscape = await seek(1 / 3);
+    const turning = await seek(.5);
+    assert.ok(turning.inFrame && turning.frame.rotation < -40 && turning.frame.rotation > -50);
+    assert.equal(turning.frame.width, landscape.frame.width);
+    assert.equal(turning.frame.height, landscape.frame.height);
+    await seek(.85);
+    assert.deepEqual(await seek(.5), turning, "reverse scroll returns the same pose");
+    const last = await seek(1);
+    assert.equal(last.index, 3);
+    assert.ok(last.progress >= .999);
+    await header.evaluate(node => {
+      if (node.dataset.homeHero === "true") throw new Error("Basic colors appeared before the section arrived");
+    });
+    assert.equal(await header.getAttribute("data-home-basic-approach"), "true");
+    await page.screenshot({ path: `${output}/${viewport.width}-phone.png` });
+
+    const services = page.locator("[data-service-stack]");
+    await services.evaluate(node => scrollTo({
+      top: window.scrollY + node.getBoundingClientRect().top + 2, behavior: "instant",
+    }));
+    await page.waitForFunction(() => document.querySelector("[data-site-header]")?.dataset.homeHero === "true");
+    assert.equal((await story.evaluate(readPose)).index, 3);
+    await seek(0);
+    assert.deepEqual(await story.evaluate(readPose), initial);
+    assert.equal(await header.getAttribute("data-home-basic-approach"), null);
+    if (viewport.width === 1440) {
+      await page.screenshot({ path: `${output}/1440-monitor.png` });
+      await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+      await page.locator("[data-hero-skip]").click();
+      await page.waitForFunction(() => document.activeElement?.id === "device-platform-heading");
+      await page.waitForFunction(() => document.querySelector("[data-device-platform]")?.dataset.progress === "0.0000");
+      assert.equal((await story.evaluate(readPose)).index, 0);
+    }
+    assert.deepEqual(errors, [], `${viewport.width}px runtime errors`);
     await page.close();
   }
-  const reducedContext=await browser.newContext({reducedMotion:"reduce",viewport:{width:390,height:844}});
-  const page=await reducedContext.newPage();await page.goto(`${base}/#device-platform`,{waitUntil:"domcontentloaded"});
-  const story=page.locator("[data-device-platform]");await story.waitFor();
-  await page.waitForFunction(()=>document.querySelector("[data-device-platform]")?.getAttribute("data-reduced")==="true",{},{timeout:20000});
-  assert.equal(await story.getAttribute("data-reduced"),"true");
-  assert.equal(await story.getAttribute("data-template-index"),"0");
-  assert.equal(await story.evaluate(node=>getComputedStyle(node.children[0]).position),"relative");
-  assert.equal(await story.locator("iframe").count(),0);await reducedContext.close();
-}finally{await browser.close();}
 
-await writeFile(`${output}/results.json`,JSON.stringify({passed:results.length,reducedMotion:true,results},null,2));
-console.log(JSON.stringify({passed:results.length,viewports:viewports.length,reducedMotion:true,output}));
+  const reduced = await browser.newPage({ reducedMotion: "reduce", viewport: { width: 390, height: 844 } });
+  await reduced.goto(`${base}/#device-platform`, { waitUntil: "domcontentloaded" });
+  const story = reduced.locator("[data-device-platform]");
+  await reduced.waitForFunction(() => document.querySelector("[data-device-platform]")?.dataset.reduced === "true");
+  assert.equal(await story.locator("[data-device-stage]").evaluate(node => getComputedStyle(node).position), "relative");
+  assert.equal(await story.locator("nav, button, [role=progressbar]").count(), 0);
+  assert.equal((await story.evaluate(readPose)).index, 0);
+  await reduced.mouse.wheel(0, 220);
+  await reduced.evaluate(nextFrame);
+  const still = await story.evaluate(readPose);
+  assert.equal(still.index, 0);
+  assert.equal(still.frame.rotation, 0);
+  await reduced.close();
+} finally {
+  await browser.close();
+}
+
+const summary = { passed: results.length, viewports: viewports.length, reducedMotion: true, results };
+await writeFile(`${output}/results.json`, JSON.stringify(summary, null, 2));
+console.log(JSON.stringify({ passed: summary.passed, viewports: summary.viewports, reducedMotion: summary.reducedMotion, output }));
