@@ -62,7 +62,7 @@ test("모바일 푸터는 핵심 정보만 먼저 보이고 상세 묶음은 기
   assert.match(footerStyles, /@media \(max-width: 767px\) \{[\s\S]*?\.desktopNavigation, \.desktopBusiness \{ display: none; \}/);
   assert.match(footerStyles, /\.disclosure\[open\] summary svg \{ transform: rotate\(180deg\); \}/);
   assert.match(footerSource, /<h2 className="type-content-title">\{group\.title\}<\/h2>/);
-  assert.match(footerStyles, /\.group li a \{[^}]*font-size: var\(--type-body-size\);/);
+  assert.match(footerStyles, /\.group li a \{[^}]*font-size: var\(--type-body-sm-size\);/);
   assert.match(footerStyles, /\.business \{[^}]*font-size: var\(--type-body-sm-size\);/);
   assert.match(footerStyles, /\.legal \{[^}]*font-size: var\(--type-body-sm-size\);/);
 });

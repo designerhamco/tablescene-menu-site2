@@ -27,6 +27,7 @@ export const SITE_CONTENT_COMPOSITION = [
 
 /** Compact control internals; never reuse content-panel gaps for menu rows. */
 export const SITE_CONTROL_DENSITY = [
+  { role: "푸터 메뉴 글자", value: "PC·태블릿 제목16px / 메뉴·연락처14px", token: "--type-body-size / --type-body-sm-size / --type-label-size", rule: "모바일 서비스·이용 안내 제목과 메뉴·연락처는14px. 기존 조작 높이 유지" },
   { role: "모바일 푸터 목록·링크", value: "44px / 펼친 메뉴1열", token: "--ui-control-height-header", rule: "서비스·이용 안내·사업자 정보3개 기본 접힘. 별도 고객지원 묶음 없이 문의는 이용 안내, 연락처는 사업자 정보에 보존. 모바일 이용 안내의 마이 메뉴 제외" },
   { role: "모바일 푸터 묶음 간격", value: "안쪽·소개→메뉴24px / 메뉴 위4·아래12px", token: "--site-space-group / --site-space-detail / --site-space-title-copy", rule: "링크 사이 세로 gap0. 요약·링크44px 복구. 사업자 정보 행8px·연락처 앞8px, 하단 정책 앞16px" },
   { role: "검색창 기본 경계", value: "1px · #b5bac3", token: "--ui-search-boundary", rule: "공통 검색만 일반 필드보다 진하게 구분. 캡슐과 기존 hover/focus/error/disabled 상태 유지" },

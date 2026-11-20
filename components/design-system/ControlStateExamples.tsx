@@ -30,7 +30,7 @@ export default function ControlStateExamples() {
   const [viewerPage, setViewerPage] = useState(2);
   return <section className={styles.section} aria-labelledby="control-states-title">
     <div className={styles.heading}><h2 className="type-section-title" id="control-states-title">버튼·탭 공통 기준과 상태</h2>
-      <p className="type-body text-zinc-600">텍스트 밀집 도구 32px, 일반 실행 40px, 헤더 44px, 로그인·결제 같은 주요 완료 행동 48px을 사용합니다. PC에서 주요 실행 버튼과 화면 전환 탭은 16px, 보조 조작과 관리 화면의 작업 버튼·탭은 14px입니다.</p>
+      <p className="type-body text-zinc-600">밀집 텍스트 버튼은 최소 32px, 일반 실행과 헤더는 44px, 로그인·결제 같은 주요 완료 버튼은 48px입니다. 주요 실행의 기본 글자는 16px, 보조 실행은 14px입니다.</p>
     </div>
     <p className="type-body-sm site-copy-muted">아이콘의 표현과 클릭 영역은 분리합니다. 불필요한 장식은 생략하고 버튼 식별에 필요한 형태·중앙 정렬·포커스는 유지합니다.</p><div className={styles.buttonRow}>
       <Button onClick={() => setClicks(n => n + 1)}><Plus />동작 확인</Button>
@@ -68,7 +68,7 @@ export default function ControlStateExamples() {
     <p className="type-body-sm text-zinc-600">상태 표는 실제 공통 스타일을 고정해 비교합니다. 비활성 실행 버튼은 옅은 회색 표면·흐린 문구·무테를 사용하며 hover·클릭 색상으로 바뀌지 않습니다. 고객지원 퀵 버튼은 56px의 둥근 정사각형이며 무배경 아이콘 도구와 구분합니다.</p>
     <div className={styles.ruleGrid}>{([
       ["underline", "목록 주제 분류", "밑줄 탭 · 3px 선택선"],
-      ["area", "독립 콘텐츠 영역 전환", "흰 콘텐츠 면 · 상단 연결 탭"],
+      ["area", "독립 콘텐츠 영역 전환", "연결된 사각 버튼 · 검정 선택 면"],
     ] as const).map(([variant,title,description]) => <div key={variant} className="min-w-0">
       <h3 className="type-content-title mb-2">{title}</h3><p className="type-caption mb-4 text-zinc-600">{description}</p>
       <Tabs variant={variant} defaultValue="first"><TabsList aria-label={`${title} 동작 예시`}>
