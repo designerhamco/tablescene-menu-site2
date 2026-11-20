@@ -5,7 +5,8 @@ import path from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Heart, Check, CircleIcon, Bell } from "../app/components/ui/site-icon";
-import { SITE_CIRCULAR_ARROW_HEADS, SITE_ARROW_PATHS } from "./site-arrow";
+import * as Arrows from "../app/components/ui/site-arrow";
+import { SITE_ARROW_PATHS, type SiteArrowName } from "./site-arrow";
 
 function sources(dir: string): string[] {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
@@ -40,10 +41,24 @@ test("Remix icons preserve SVG props, names and actual selected heart geometry",
   assert.doesNotMatch(named, /stroke-width/);
   for (const Glyph of [Check, CircleIcon]) assert.match(renderToStaticMarkup(createElement(Glyph)), /<path fill="currentColor"/);
 });
-test("refresh uses Remix while rotate and other approved arrow paths remain intact", () => {
-  // One line and one curve per wing, without the former second wing's quadratic back.
-  assert.equal((SITE_CIRCULAR_ARROW_HEADS.rotate.match(/L/g) ?? []).length, 1);
-  assert.equal((SITE_CIRCULAR_ARROW_HEADS.rotate.match(/Q/g) ?? []).length, 1);
-  assert.match(SITE_ARROW_PATHS.refresh, /^M5\.463 4\.433A9\.96/);
-  assert.match(SITE_ARROW_PATHS.shaft, /^M3 12H21M13 4C/);
+test("every shared arrow renders its named Remix path without custom strokes", () => {
+  const names = new Set<string>();
+  for (const Glyph of Object.values(Arrows)) {
+    const html = renderToStaticMarkup(createElement(Glyph, { size: 16, strokeWidth: 3 }));
+    const name = html.match(/data-site-icon="([^"]+)"/)?.[1] as SiteArrowName;
+    names.add(name);
+    assert.match(html, /data-icon-source="remix"/);
+    assert.match(html, /width="16" height="16"/);
+    assert.match(html, /stroke="none"/);
+    assert.doesNotMatch(html, /stroke-width=/);
+    assert.ok(html.includes(`<path d="${SITE_ARROW_PATHS[name]}" fill="currentColor"`), name);
+    assert.equal((html.match(/<path /g) ?? []).length, 1);
+  }
+  assert.deepEqual([...names].sort(), Object.keys(SITE_ARROW_PATHS).sort());
+  assert.match(renderToStaticMarkup(createElement(Arrows.ArrowUpRight)), /data-site-icon="arrow-right-up-line"/);
+  assert.match(renderToStaticMarkup(createElement(Arrows.ChevronDown)), /data-site-icon="arrow-down-s-line"/);
+  assert.match(renderToStaticMarkup(createElement(Arrows.Undo2)), /data-site-icon="arrow-go-back-line"/);
+  assert.match(renderToStaticMarkup(createElement(Arrows.RotateCcw)), /data-site-icon="reset-left-line"/);
+  assert.match(renderToStaticMarkup(createElement(Arrows.RefreshCcw)), /transform="translate\(0 24\) scale\(1 -1\)"/);
+  assert.doesNotMatch(renderToStaticMarkup(createElement(Arrows.RefreshCw)), /transform=/);
 });

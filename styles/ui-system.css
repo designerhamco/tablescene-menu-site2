@@ -1264,7 +1264,7 @@ textarea.site-field,
 .site-preview-choice { background: var(--ui-preview-button-surface); }
 @media (prefers-reduced-motion: reduce) { .site-preview-control { transition: none; } }
 
-/* Site selects share the sculpted filled SVG chevron at16px and a12px trailing inset.
+/* Site selects share the Remix Line chevron at16px and a12px trailing inset.
    Preserve native form/keyboard behavior; multi-select/listboxes have no arrow. */
 :root { --site-select-chevron-size: 1rem; --site-select-chevron-inset: .75rem; --site-select-trailing-space: 2.5rem; --ui-multiselect-count-gap: 1rem; }
 @media (min-width: 768px) { :root { --site-select-trailing-space: 2.25rem; --ui-multiselect-count-gap: .5rem; } }
@@ -1507,7 +1507,7 @@ svg.site-edit-icon {
 .site-button-media:is(:hover, [data-ui-state="hover"]):not(:disabled):not([aria-disabled="true"]) { background: transparent; color: var(--ui-media-hover-ink); }
 .site-button-media:is(:active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { background: transparent; }
 .site-button-media:disabled, .site-button-media[aria-disabled="true"] { background: transparent; border-color: transparent; color: var(--ui-disabled-text); }
-.site-button-media svg { width: var(--ui-media-arrow-size); height: var(--ui-media-arrow-size); stroke-width: 1.75; filter: drop-shadow(var(--ui-media-arrow-shadow)); }
+.site-button-media svg { width: var(--ui-media-arrow-size); height: var(--ui-media-arrow-size); filter: drop-shadow(var(--ui-media-arrow-shadow)); }
 .site-button-media:is(:focus-visible, [data-ui-state="focus"]) { outline-color: var(--ui-media-ink); box-shadow: none; }
 .site-image-carousel { min-width: 0; width: 100%; border-radius: inherit; }
 .site-image-carousel:focus-visible { outline: 2px solid var(--ui-focus); outline-offset: 3px; }

@@ -1,46 +1,36 @@
-/** Official-site geometry only. Customer menu artwork keeps its own icons. */
-export const SITE_ARROW_ROTATION = {
-  right: 0, "down-right": 45, down: 90, "down-left": 135,
-  left: 180, "up-left": 225, up: 270, "up-right": 315,
-} as const;
-export type SiteArrowDirection = keyof typeof SITE_ARROW_ROTATION;
-
-/** Shafts and bends share this curved head profile. */
-function curvedHead(x: number, y: number, angle: number, size = 8) {
-  const radians = angle * Math.PI / 180;
-  const point = (px: number, py: number) => {
-    const scale = size / 8;
-    const round = (value: number) => Number(value.toFixed(3));
-    return `${round(x + (px * Math.cos(radians) - py * Math.sin(radians)) * scale)} ${round(y + (px * Math.sin(radians) + py * Math.cos(radians)) * scale)}`;
-  };
-  return `M${point(-8, -8)}C${point(-6.8, -4.2)} ${point(-3.8, -1.2)} ${point(0, 0)}C${point(-3.8, 1.2)} ${point(-6.8, 4.2)} ${point(-8, 8)}`;
-}
-
-export const SITE_ARROW_SHAFT = `M3 12H21${curvedHead(21, 12, 0)}`;
-export const SITE_ARROW_CHEVRON = "M7.5 3.5L17 12L7.5 20.5L11 12Z";
-export const SITE_ARROW_DOUBLE_CHEVRON = "M3.5 4L13 12L3.5 20L7 12ZM10.5 4L20 12L10.5 20L14 12Z";
+/** Original Remix Line paths from the snapshot pinned in public/licenses/remix-icon-NOTICE.txt. */
 export const SITE_ARROW_PATHS = {
-  shaft: SITE_ARROW_SHAFT,
-  chevron: SITE_ARROW_CHEVRON,
-  "double-chevron": SITE_ARROW_DOUBLE_CHEVRON,
-  turn: `M4 21V15A7 7 0 0 1 11 8H21${curvedHead(21, 8, 0, 6)}`,
-  "turn-back": `M10 20H9A6.5 6.5 0 0 1 9 7H21${curvedHead(21, 7, 0, 5.5)}`,
-  bidirectional: `M3 7H21${curvedHead(21, 7, 0, 5)}M21 17H3${curvedHead(3, 17, 180, 5)}`,
-  // Remix Line refresh-line, pinned source/license: public/licenses/remix-icon-NOTICE.txt.
-  refresh: "M5.463 4.433A9.96 9.96 0 0 1 12 2c5.523 0 10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3A8 8 0 0 0 6.46 6.228zm13.074 15.134A9.96 9.96 0 0 1 12 22C6.477 22 2 17.523 2 12c0-2.136.67-4.116 1.81-5.74L7 12H4a8 8 0 0 0 13.54 5.772z",
-  rotate: "M5 12A7 7 0 1 0 7.05 7.05",
+  "arrow-right-line": "m16.172 11l-5.364-5.364l1.414-1.414L20 12l-7.778 7.778l-1.414-1.414L16.172 13H4v-2z",
+  "arrow-right-down-line": "M14.59 16.003L5.983 7.397l1.414-1.415l8.607 8.607V7.003h2v11h-11v-2z",
+  "arrow-down-line": "m13 16.172l5.364-5.364l1.414 1.414L12 20l-7.778-7.778l1.414-1.414L11 16.172V4h2z",
+  "arrow-left-down-line": "m9 13.589l8.607-8.607l1.414 1.415l-8.607 8.606H18v2H7v-11h2z",
+  "arrow-left-line": "M7.828 11H20v2H7.828l5.364 5.364l-1.414 1.414L4 12l7.778-7.778l1.414 1.414z",
+  "arrow-left-up-line": "m9.414 8l8.607 8.607l-1.414 1.414L8 9.414V17H6V6h11v2z",
+  "arrow-up-line": "M13 7.828V20h-2V7.828l-5.364 5.364l-1.414-1.414L12 4l7.778 7.778l-1.414 1.414z",
+  "arrow-right-up-line": "m16.004 9.414l-8.607 8.607l-1.414-1.414L14.59 8H7.003V6h11v11h-2z",
+  "arrow-right-s-line": "m13.172 12l-4.95-4.95l1.414-1.413L16 12l-6.364 6.364l-1.414-1.415z",
+  "arrow-down-s-line": "m12 13.171l4.95-4.95l1.414 1.415L12 16L5.636 9.636L7.05 8.222z",
+  "arrow-left-s-line": "m10.828 12l4.95 4.95l-1.414 1.415L8 12l6.364-6.364l1.414 1.414z",
+  "arrow-up-s-line": "m12 10.828l-4.95 4.95l-1.414-1.414L12 8l6.364 6.364l-1.414 1.414z",
+  "arrow-right-double-line": "m19.164 12l-6.207-6.207l-1.414 1.414L16.336 12l-4.793 4.793l1.414 1.414zm-5.65 0L7.307 5.793L5.893 7.207L10.686 12l-4.793 4.793l1.414 1.414z",
+  "arrow-left-double-line": "m4.836 12l6.207 6.207l1.414-1.414L7.664 12l4.793-4.793l-1.414-1.414zm5.65 0l6.207 6.207l1.414-1.414L13.314 12l4.793-4.793l-1.414-1.414z",
+  "corner-up-right-line": "M5 10v9h2v-7h10.172l-3.95 3.95l1.414 1.414L21 11l-6.364-6.364l-1.414 1.414l3.95 3.95z",
+  "corner-right-down-line": "M14 5H5v2h7v10.172l-3.95-3.95l-1.414 1.414L13 21l6.364-6.364l-1.414-1.414l-3.95 3.95z",
+  "corner-down-left-line": "M19 14V5h-2v7H6.828l3.95-3.95l-1.414-1.414L3 13l6.364 6.364l1.414-1.414L6.828 14z",
+  "corner-left-up-line": "M10 19h9v-2h-7V6.828l3.95 3.95l1.414-1.414L11 3L4.636 9.364l1.414 1.414L10 6.828z",
+  "corner-down-right-line": "M5 14V5h2v7h10.172l-3.95-3.95l1.414-1.414L21 13l-6.364 6.364l-1.414-1.414l3.95-3.95z",
+  "corner-right-up-line": "M14 19H5v-2h7V6.828l-3.95 3.95l-1.414-1.414L13 3l6.364 6.364l-1.414 1.414L14 6.828z",
+  "corner-up-left-line": "M19 10v9h-2v-7H6.828l3.95 3.95l-1.414 1.414L3 11l6.364-6.364l1.414 1.414L6.828 10z",
+  "corner-left-down-line": "M10 5h9v2h-7v10.172l3.95-3.95l1.414 1.414L11 21l-6.364-6.364l1.414-1.414l3.95 3.95z",
+  "arrow-go-back-line": "m5.828 7l2.536 2.535L6.95 10.95L2 6l4.95-4.95l1.414 1.415L5.828 5H13a8 8 0 1 1 0 16H4v-2h9a6 6 0 0 0 0-12z",
+  "arrow-go-forward-line": "M18.172 7H11a6 6 0 0 0 0 12h9v2h-9a8 8 0 0 1 0-16h7.172l-2.536-2.536L17.05 1.05L22 6l-4.95 4.95l-1.414-1.415z",
+  "arrow-turn-forward-line": "M17 5.828V13a6 6 0 0 1-12 0V4H3v9a8 8 0 1 0 16 0V5.828l2.536 2.536L22.95 6.95L18 2l-4.95 4.95l1.415 1.414z",
+  "arrow-turn-back-line": "m17 18.172l-2.535-2.536l-1.414 1.414L18 22l4.95-4.95l-1.415-1.414L19 18.172V11a8 8 0 1 0-16 0v9h2v-9a6 6 0 1 1 12 0z",
+  "arrow-left-right-line": "M16.05 12.05L21 17l-4.95 4.95l-1.414-1.415L17.172 18H4v-2h13.172l-2.536-2.535zm-8.1-10l1.414 1.414l-2.536 2.535H20v2H6.828l2.536 2.536L7.95 11.95L3 7z",
+  "arrow-up-down-line": "m11.95 7.95l-1.414 1.414L8 6.828V20H6V6.828L3.466 9.364L2.05 7.95L7 3zm10 8.1L17 21l-4.95-4.95l1.414-1.414l2.537 2.536L16 4h2v13.172l2.536-2.536z",
+  "refresh-line": "M5.463 4.433A9.96 9.96 0 0 1 12 2c5.523 0 10 4.477 10 10c0 2.136-.67 4.116-1.81 5.74L17 12h3A8 8 0 0 0 6.46 6.228zm13.074 15.134A9.96 9.96 0 0 1 12 22C6.477 22 2 17.523 2 12c0-2.136.67-4.116 1.81-5.74L7 12H4a8 8 0 0 0 13.54 5.772z",
+  "reset-left-line": "M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2v2a8 8 0 1 0 4.5 1.385V8h-2V2h6v2H18a9.99 9.99 0 0 1 4 8",
+  "reset-right-line": "M2 12c0 5.523 4.477 10 10 10s10-4.477 10-10S17.523 2 12 2v2a8 8 0 1 1-4.5 1.385V8h2V2h-6v2H6a9.99 9.99 0 0 0-4 8",
 } as const;
-export type SiteArrowKind = keyof typeof SITE_ARROW_PATHS;
 
-/** Rotate arrows use one curved outer wing, keeping the inner counter open.
- * A longer, wider wing and advanced tip remain legible at16–24px.
- * Filled geometry avoids acute stroked joins at small UI sizes.
- */
-function circularHead(x: number, y: number, angle: number) {
-  const radians = angle * Math.PI / 180;
-  const point = (px: number, py: number) => `${Number((x + px * Math.cos(radians) - py * Math.sin(radians)).toFixed(3))} ${Number((y + px * Math.sin(radians) + py * Math.cos(radians)).toFixed(3))}`;
-  return `M${point(0, 0)}L${point(-6.6, 4.4)}Q${point(-5.4, 1.5)} ${point(-3.4, 0)}Z`;
-}
-export const SITE_CIRCULAR_ARROW_HEADS = {
-  rotate: circularHead(5.1, 9, 135),
-} as const;
+export type SiteArrowName = keyof typeof SITE_ARROW_PATHS;

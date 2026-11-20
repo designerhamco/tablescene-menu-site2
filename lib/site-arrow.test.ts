@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
-import { SITE_ARROW_CHEVRON } from "./site-arrow";
+import { SITE_ARROW_PATHS } from "./site-arrow";
 
 const root = process.cwd();
 function sources(dir: string): string[] {
@@ -30,10 +30,10 @@ test("official site keeps a single arrow family while menu artwork stays indepen
   assert.deepEqual(leakedSiteIcons, [], "Menu designs must keep their own icon family");
 });
 
-test("native selects use the same sculpted SVG as custom controls and preserve menu exclusions", () => {
+test("native selects share the original Remix down chevron and preserve menu exclusions", () => {
   const asset = fs.readFileSync(path.join(root, "public/icons/site-chevron-down.svg"), "utf8");
-  assert.ok(asset.includes(`d="${SITE_ARROW_CHEVRON}"`));
-  assert.match(asset, /transform="rotate\(90 12 12\)"/);
+  assert.ok(asset.includes(`d="${SITE_ARROW_PATHS["arrow-down-s-line"]}"`));
+  assert.doesNotMatch(asset, /transform=|stroke-width=/);
   const css = fs.readFileSync(path.join(root, "styles/ui-system.css"), "utf8");
   assert.ok(css.includes('url("/icons/site-chevron-down.svg")'));
   assert.match(css, /select:not\(\[multiple\]\)[^]*?menu-typography[^]*?aube-table-root[^]*?data-template-artwork/);

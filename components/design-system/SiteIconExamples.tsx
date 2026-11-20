@@ -118,7 +118,7 @@ export default function SiteIconExamples() {
   return <section id="site-icons" className={styles.section} aria-labelledby="site-icons-title">
     <div className={styles.heading}>
       <h2 id="site-icons-title" className="type-section-title">공식 사이트 아이콘 · Remix Line</h2>
-      <p className="type-body-sm text-zinc-600">24px SVG 그리드와 글자색을 공유합니다. 화살표는 기존 곡선형을 유지하며, 메뉴판 디자인과 툴팁 말풍선 모양은 별도로 유지합니다.</p>
+      <p className="type-body-sm text-zinc-600">24px SVG 그리드와 글자색을 공유합니다. 방향·펼침·새 창 등의 예시는 화살표 항목에서 확인할 수 있습니다.</p>
     </div>
     <ContentPanel surface="muted">
       <div className="site-card-grid grid grid-cols-2 lg:grid-cols-4">{glyphs.map(([Glyph, label, name]) => <div key={name} className="site-action-row min-w-0 flex-nowrap" data-site-icon-example={name}>
