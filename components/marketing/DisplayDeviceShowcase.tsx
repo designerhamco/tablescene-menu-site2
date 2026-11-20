@@ -13,10 +13,10 @@ const screenHeight = 720;
 
 // Bezel edges sampled from the ceiling photograph, in image pixels.
 const ceilingPanels = [
-  { clip: styles.ceilingLeft, bezel: [[130, 258.9], [458, 232.4], [458, 447.8], [130, 464.9]] },
-  { clip: styles.ceilingMiddle, bezel: [[475, 236.4], [808, 209.6], [808, 428.3], [475, 446.7]] },
-  { clip: styles.ceilingRight, bezel: [[831, 210.4], [1180, 181.4], [1180, 408.7], [831, 426.7]] },
-] satisfies { clip: string; bezel: HeroQuad }[];
+  { clip: styles.ceilingLeft, offsetX: -18, bezel: [[130, 258.9], [458, 232.4], [458, 447.8], [130, 464.9]] },
+  { clip: styles.ceilingMiddle, offsetX: 0, bezel: [[475, 236.4], [808, 209.6], [808, 428.3], [475, 446.7]] },
+  { clip: styles.ceilingRight, offsetX: 18, bezel: [[831, 210.4], [1180, 181.4], [1180, 408.7], [831, 426.7]] },
+] satisfies { clip: string; offsetX: number; bezel: HeroQuad }[];
 
 const [topLeft, topRight] = closeUpScreen;
 const railSlope = (topRight[1] - topLeft[1]) / (topRight[0] - topLeft[0]);
@@ -26,12 +26,13 @@ function scaledQuad(quad: HeroQuad, scale: number): HeroQuad {
   return quad.map(([x, y]) => [x * scale, y * scale]) as unknown as HeroQuad;
 }
 
-function ceilingPanelTransform(bezel: HeroQuad, scale: number): string {
+function ceilingPanelTransform(bezel: HeroQuad, offsetX: number, scale: number): string {
   const target = bezel.map(([x], corner) => {
     const isTop = corner < 2;
     const anchor = isTop ? firstPanelTop : firstPanelBottom;
-    // Both ceiling edges follow the close-up's top edge, as in the review guides.
-    return [x, anchor[1] + (x - anchor[0]) * railSlope];
+    const shiftedX = x + offsetX;
+    // Move each panel along the reference rails to preserve their shared angle.
+    return [shiftedX, anchor[1] + (shiftedX - anchor[0]) * railSlope];
   }) as unknown as HeroQuad;
   const sourceMatrix = new DOMMatrix(heroScreenMatrix(scaledQuad(bezel, scale), screenWidth, screenHeight));
   const targetMatrix = new DOMMatrix(heroScreenMatrix(scaledQuad(target, scale), screenWidth, screenHeight));
@@ -71,7 +72,7 @@ export default function DisplayDeviceShowcase({ children, label, capture }: {
   const scale = width / photoWidth;
   const quad = scaledQuad(closeUpScreen, scale);
   const ceilingTransforms = useMemo(
-    () => scale > 0 ? ceilingPanels.map(({ bezel }) => ceilingPanelTransform(bezel, scale)) : [],
+    () => scale > 0 ? ceilingPanels.map(({ bezel, offsetX }) => ceilingPanelTransform(bezel, offsetX, scale)) : [],
     [scale],
   );
 
