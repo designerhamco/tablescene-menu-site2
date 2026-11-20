@@ -29,9 +29,9 @@
 .managementMedia > video,.managementMedia > img,.demo > video,.demo > img { display:block; width:100%; height:100%; object-fit:contain; }
 .visual {
   --showcase-bleed:var(--service-story-story-padding-bottom);
-  --service-wall-light:187 159 129;
-  --service-wall-light-opacity:.16;
-  --service-wall-light-origin:55% 53%;
+  --service-wall-light:213 189 162;
+  --service-wall-light-opacity:.34;
+  --service-wall-light-origin:57% 53%;
   grid-area:1 / 2 / 4;
   position:relative;
   min-width:0;
@@ -47,20 +47,20 @@
   background:radial-gradient(
     ellipse closest-side at var(--service-wall-light-origin),
     rgb(var(--service-wall-light) / var(--service-wall-light-opacity)),
-    rgb(var(--service-wall-light) / calc(var(--service-wall-light-opacity) * .62)) 54%,
+    rgb(var(--service-wall-light) / calc(var(--service-wall-light-opacity) * .72)) 57%,
     transparent
   );
   pointer-events:none;
 }
 .story[data-service-story="dining"] .visual {
-  --service-wall-light:177 94 123;
-  --service-wall-light-opacity:.22;
-  --service-wall-light-origin:51% 49%;
+  --service-wall-light:212 122 155;
+  --service-wall-light-opacity:.40;
+  --service-wall-light-origin:53% 50%;
 }
 .story[data-service-story="display"] .visual {
-  --service-wall-light:101 128 164;
-  --service-wall-light-opacity:.12;
-  --service-wall-light-origin:52% 63%;
+  --service-wall-light:125 160 204;
+  --service-wall-light-opacity:.27;
+  --service-wall-light-origin:54% 61%;
 }
 /* The fixed navigation rail and the Basic camera use independent bottom insets. */
 .visual[data-basic-feature-preview] { --showcase-bleed:var(--basic-visual-inset); }

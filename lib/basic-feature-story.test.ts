@@ -17,6 +17,7 @@ test("the Basic introduction does not add a progress segment",()=>{
   assert.match(html,/data-basic-feature-preview="intro"/);
   assert.match(html,/data-basic-device-screen="monitor" data-device-scene="intro"/);
   assert.match(html,/data-basic-device-screen="phone" data-device-scene="intro"/);
+  assert.match(html,/handheld-phone-soft-white\.webp/);
   assert.equal((html.match(/data-basic-segment=/g)??[]).length,6);
   assert.match(html,/aria-label="1. 대표 상품 영역 · 장면 보기"/);
   assert.doesNotMatch(html,/aria-current="step"|직원 호출|테이블 주문/);
@@ -49,11 +50,11 @@ test("Dining and Display use the shared scroll layout with their respective mock
     assert.ok(html.includes(`data-service-story="${service}"`));
     assert.ok(html.includes(`href="/#${destination}"`));
     assert.equal((html.match(/data-service-segment=/g) ?? []).length, count);
-    if (service === "dining") assert.match(html, /tablet-hands-cutout\.png/);
+    if (service === "dining") assert.match(html, /handheld-tablet-soft-rose\.webp/);
     else {
       assert.match(html, /display-ceiling-three\.webp/);
       assert.match(html, /display-close-up-single\.webp/);
-      assert.doesNotMatch(html, /tablet-hands-cutout\.png/);
+      assert.doesNotMatch(html, /handheld-tablet-soft-rose\.webp/);
     }
     assert.doesNotMatch(html, /data-basic-device-screen|aria-current="step"/);
   }
