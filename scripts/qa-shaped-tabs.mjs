@@ -142,7 +142,7 @@ try {
     await page.goto(`${baseUrl}/guides`, { waitUntil: "domcontentloaded" });
     await assertPageTabs(page.getByRole('tablist', { name: '플랜별 사용가이드' }));
     const guideOverflow = await noOverflow(page);
-    await page.goto(`${baseUrl}/faq?tab=faq`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${baseUrl}/faq?tab=faq`, { waitUntil: "load" });
     await expect(page.getByRole('tablist', { name: '고객센터 메뉴' })).toHaveCount(0);
     await expect(page.getByRole('heading', { name: '자주 묻는 질문', exact: true })).toBeVisible();
     const categories = page.getByRole('group', { name: '주제 선택' });
