@@ -9,14 +9,6 @@
   inset:0;
   isolation:isolate;
 }
-.scene::before {
-  content:"";
-  position:absolute;
-  inset:8% 5% 8% 18%;
-  background:radial-gradient(ellipse at 58% 50%, rgb(186 154 122 / 16%), transparent 70%);
-  filter:blur(24px);
-  pointer-events:none;
-}
 .monitor, .phone { position:absolute; }
 .monitor {
   /* Match the column edge to the bezel's visible right edge. */
