@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
-import { chromium } from "@playwright/test";
+import { chromium, expect } from "@playwright/test";
 
 const base=process.env.BASIC_STORY_QA_BASE || "http://localhost:3064";
 const output=process.env.BASIC_STORY_QA_OUTPUT || "/tmp/basic-feature-story-qa";
@@ -21,31 +21,34 @@ async function enter(page) {
   await page.waitForFunction(()=>[...document.querySelectorAll('[data-basic-feature-story] [data-marketing-copy-reveal]')].every(element=>Number(getComputedStyle(element).opacity)>.99));
 }
 try {
-  for(const [width,height] of [[320,844],[390,844],[820,1180],[1180,820],[1440,900],[2560,1080],[1440,600]]) {
+  for(const [width,height] of [[320,568],[320,844],[390,844],[820,1180],[1180,820],[1440,900],[2560,1080],[1440,600]]) {
     const page=await browser.newPage({viewport:{width,height},reducedMotion:"reduce",isMobile:width<768,hasTouch:width<768});
     page.on("pageerror",error=>errors.push(error.message));
     await page.route("**/api/**",route=>route.request().method()==="GET" ? route.continue() : route.abort());
     try {
       await enter(page);
       const story=page.locator('[data-basic-feature-story]'), next=story.getByRole("button",{name:"다음 기능 보기"}), previous=story.getByRole("button",{name:"이전 기능 보기"});
-      assert.ok(await previous.isDisabled());
+      await expect(previous).toBeDisabled();
+      const disabledInk = await previous.evaluate(element => getComputedStyle(element).color);
+      assert.notEqual(disabledInk, await next.evaluate(element => getComputedStyle(element).color));
       assert.equal(await story.getAttribute("data-feature-index"),"-1");
       assert.ok((await story.locator('h2').textContent()).includes("베이직, 한 장에 담는"));
       assert.equal(await story.locator('[data-basic-management]').count(),0);
-      assert.ok((await story.locator('nav').textContent()).includes("소개"));
+      assert.ok((await story.locator('nav').textContent()).includes("Start"));
       await story.locator('img').evaluateAll(images=>Promise.all(images.map(image=>image.decode().catch(()=>{}))));
       await page.screenshot({path:`${output}/intro-${width}-${height}.png`});
       await next.click();
-      assert.equal(await story.getAttribute("data-feature-index"),"0");
+      await expect(story).toHaveAttribute("data-feature-index","0");
       assert.ok(!(await previous.isDisabled()),"first feature can return to introduction");
       await previous.click();
-      assert.equal(await story.getAttribute("data-feature-index"),"-1");
+      await expect(story).toHaveAttribute("data-feature-index","-1");
       await next.click();
+      await expect(story).toHaveAttribute("data-feature-index","0");
       assert.equal(await story.locator('[data-basic-tablet-screen] button').count(),0);
       assert.equal(await story.locator('ol,iframe,[role="dialog"]').count(),0);
       assert.equal(await story.locator('[data-basic-management]').isVisible(),width>=768);
       for(let index=0;index<8;index++) {
-        assert.equal(await story.getAttribute("data-feature-index"),String(index));
+        await expect(story).toHaveAttribute("data-feature-index",String(index));
         assert.equal(await story.locator('[data-basic-demo]').getAttribute("data-basic-demo"),kinds[index]);
         assert.ok((await story.locator('h2').textContent()).includes(labels[index]));
         assert.ok((await story.locator('[data-basic-management] h3').textContent()).includes(labels[index]));
@@ -56,19 +59,30 @@ try {
       assert.ok((await story.locator('[data-basic-feature-copy]').textContent()).includes("선결제는 준비 중"));
       await previous.focus();
       await previous.press("ArrowLeft");
-      assert.equal(await story.getAttribute("data-feature-index"),"6","keyboard changes selected demo");
-      while((await story.getAttribute("data-feature-index"))!=="0") await previous.click();
+      await expect(story).toHaveAttribute("data-feature-index","6");
+      for (let index=5;index>=0;index--) {
+        await previous.click();
+        await expect(story).toHaveAttribute("data-feature-index",String(index));
+      }
       await story.locator('img').evaluateAll(images=>Promise.all(images.map(image=>image.decode().catch(()=>{}))));
       const geometry=await story.evaluate(element=>{
         const rect=element.getBoundingClientRect(), nav=element.querySelector('nav').getBoundingClientRect(), screen=element.querySelector('[data-basic-tablet-screen]').getBoundingClientRect(), title=element.querySelector('h2').getBoundingClientRect();
-        return {viewport:[innerWidth,innerHeight],x:rect.x,width:rect.width,overflow:document.documentElement.scrollWidth-innerWidth,navBottom:nav.bottom,screen:{x:screen.x,y:screen.y,width:screen.width,height:screen.height},titleRight:title.right,screenRight:screen.right};
+        return {viewport:[innerWidth,innerHeight],x:rect.x,width:rect.width,overflow:document.documentElement.scrollWidth-innerWidth,navBottom:nav.bottom,screen:{x:screen.x,y:screen.y,width:screen.width,height:screen.height},titleRight:title.right,screenRight:screen.right,titleTop:title.top,headerBottom:document.querySelector("[data-site-header]").getBoundingClientRect().bottom};
       });
       assert.deepEqual(geometry.viewport,[width,height]);
       assert.equal(geometry.overflow,0);
+      assert.ok(geometry.titleTop>=geometry.headerBottom,"feature title stays below the header");
       assert.ok(geometry.width<=1600 && Math.abs(geometry.x-(width-geometry.width)/2)<1);
       if(width>=768) assert.ok(geometry.titleRight<geometry.screen.x+10,"copy stays clear of tablet display");
       if(width<768) assert.ok(geometry.navBottom<geometry.screen.y,"mobile navigation precedes the screen");
       await page.screenshot({path:`${output}/basic-${width}-${height}.png`});
+      const skip = story.getByRole("link", { name: /Skip.*다이닝으로 이동/ });
+      assert.ok((await skip.boundingBox()).x > (await next.boundingBox()).x);
+      await skip.click();
+      await page.waitForURL("**/#service-dining");
+      await expect(page.locator("#service-dining-heading")).toBeFocused();
+      await expect.poll(() => page.locator('#service-dining').evaluate(element => Math.abs(element.getBoundingClientRect().top))).toBeLessThan(1);
+      await expect(story.locator('[data-basic-feature-preview]')).toHaveAttribute("data-playing","false");
       results.push(geometry); console.log("PASS",JSON.stringify(geometry));
     } finally { await page.close(); }
   }
@@ -77,9 +91,22 @@ try {
   try {
     await enter(page);
     const story=page.locator('[data-basic-feature-story]');
-    await story.getByRole("button",{name:"다음 기능 보기"}).click();
-    await page.waitForFunction(()=>document.querySelector('[data-basic-feature-preview]').dataset.playing==="true");
-    for(let index=0;index<3;index++) await story.getByRole("button",{name:"다음 기능 보기"}).click();
+    const runway=await story.evaluate(element => element.closest('[data-basic-scroll-track]').querySelector('[data-basic-scroll-runway]').getBoundingClientRect().height);
+    const label=story.locator('[data-service-frame-label]');
+    const introY=(await label.boundingBox()).y;
+    const step=Math.ceil(runway/9);
+    for (let index=0;index<8;index++) {
+      await page.mouse.wheel(0,step);
+      await expect(story).toHaveAttribute("data-feature-index",String(index));
+      await expect(story.locator('[data-basic-demo]')).toHaveAttribute("data-basic-demo",kinds[index]);
+      assert.ok(Math.abs((await label.boundingBox()).y-introY)<2,"service label stays pinned while the feature changes");
+    }
+    for (let index=6;index>=3;index--) {
+      await page.mouse.wheel(0,-step);
+      await expect(story).toHaveAttribute("data-feature-index",String(index));
+    }
+    await expect(story.locator('[data-basic-feature-preview]')).toHaveAttribute("data-playing","true");
+    const salePosition=await page.evaluate(()=>window.scrollY);
     const timer=story.locator('[data-basic-demo="sale"] [data-demo-motion]');
     const before=await timer.textContent();
     await page.waitForTimeout(1150);
@@ -88,12 +115,12 @@ try {
     await page.screenshot({path:`${output}/basic-sale-playing.png`});
     await page.locator('[data-service-anchor="dining"]').evaluate(element=>window.scrollTo({top:scrollY+element.getBoundingClientRect().top+1,behavior:"instant"}));
     await page.waitForFunction(()=>document.querySelector('[data-basic-feature-preview]').dataset.playing==="false");
-    const paused=await timer.textContent(); await page.waitForTimeout(1100);
-    assert.equal(await timer.textContent(),paused,"covered sticky panel pauses countdown");
-    await page.locator('[data-service-anchor="basic"]').evaluate(element=>window.scrollTo({top:scrollY+element.getBoundingClientRect().top,behavior:"instant"}));
+    await expect(story).toHaveAttribute("data-feature-index","7");
+    await page.evaluate(top=>window.scrollTo({top,behavior:"instant"}),salePosition);
+    await expect(story).toHaveAttribute("data-feature-index","3");
     await page.waitForFunction(()=>document.querySelector('[data-basic-feature-preview]').dataset.playing==="true");
-    await page.waitForTimeout(1150);
-    assert.notEqual(await timer.textContent(),paused,"visible demo resumes automatically");
+    const resumed=await timer.textContent();
+    await expect.poll(()=>timer.textContent()).not.toBe(resumed);
     results.push({automatic:true,loop:true,coveredPause:true,resume:true});
     console.log("PASS automatic loop, cover pause and resume");
   } finally { await page.close(); }

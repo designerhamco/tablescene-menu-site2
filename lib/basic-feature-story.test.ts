@@ -18,7 +18,8 @@ test("service introduction is the initial scene and does not count as a ninth fe
   assert.match(html,/aria-label="이전 기능 보기"[^>]*disabled/);
   assert.match(html,/aria-label="다음 기능 보기"/);
   assert.doesNotMatch(html,/<ol|<iframe|role="dialog"|data-service-gallery/);
-  assert.match(html,/>소개<\/span>/);
+  assert.match(html,/>Start<\/span>/);
+  assert.match(html,/href="\/#service-dining"/);
   assert.doesNotMatch(html,/data-basic-management|site-media-playback|01.*08|<video/);
 });
 test("projected screen remains attached to every photo corner across phone and wide scene sizes",()=>{
