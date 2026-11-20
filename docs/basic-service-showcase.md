@@ -8,7 +8,7 @@
 
 - 베이직은 실버 모니터 앞에 손에 든 휴대폰을 놓는다. 모니터와 휴대폰은 같은 기능의 REAL MATCHA PC·모바일 캡처를 사용한다. 두 파일을 디코딩한 뒤 함께 교체하며, 확대나 원근 변환에도 사진과 합성 화면이 같은 모서리를 공유한다.
 - 다이닝은 승인된 `public/assets/basic-showcase-v1/tablet-hands-cutout.png`와 기존 화면 좌표를 재사용한다.
-- 디스플레이는 별도 이미지인 `display-ceiling-three.webp`와 `display-close-up-single.webp`를 위아래로 합성한다. 소개와 상단 세 화면에는 목업의 임시 썸머블루가 보인다. 아래 큰 화면의 기능별 메뉴 캡처는 `lib/service-story-screens.ts`에 등록하며 사진의 네 모서리에 맞춰 합성한다.
+- 디스플레이는 별도 이미지인 `display-ceiling-three.webp`와 `display-close-up-single.webp`를 위아래로 합성한다. 큰 모니터의 베젤을 기준으로 전체 크기와 위치를 잡고, 천장형 세 대는 위에 한 단계 작게 배치한다. 소개와 상단 세 화면에는 목업의 임시 썸머블루가 보인다. 아래 큰 화면의 기능별 메뉴 캡처는 `lib/service-story-screens.ts`에 등록하며 사진의 네 모서리에 맞춰 합성한다.
 - 실제 고객 메뉴는 그대로 렌더링한다. 홈의 캡처는 정지 이미지이며 주문이나 호출을 전송하지 않는다. 관리 화면 영상이 등록되면 데스크톱에서 공통 `MediaPlayback`으로 재생하며 장면 전환이나 이탈 시 정지한다. 현재는 비활성 재생 자리로 표시한다.
 
 ### 이미지 생성
