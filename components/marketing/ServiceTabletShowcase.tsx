@@ -18,7 +18,7 @@ export default function ServiceTabletShowcase({ children, label }: { children: R
   }, []);
   return <div className={styles.showcase} data-service-tablet-showcase>
     <div ref={scene} className={styles.scene}>
-      <img className={styles.tablet} src="/assets/service-mockups-v2/handheld-tablet-soft-rose.webp" width={1536} height={1024} alt="" loading="lazy" decoding="async" draggable={false}/>
+      <img className={styles.tablet} src="/assets/service-mockups-v2/handheld-tablet-soft-rose-v2.webp" width={1536} height={1024} alt="" loading="lazy" decoding="async" draggable={false}/>
       <div className={styles.screen} style={{ width:BASIC_DEMO_CANVAS.width, height:BASIC_DEMO_CANVAS.height, transform:width ? basicTabletScreenMatrix(width) : undefined, visibility:width ? "visible" : "hidden" }} role="img" aria-label={`${label} 태블릿 시연`} data-service-tablet-screen>
         {children}
       </div>
