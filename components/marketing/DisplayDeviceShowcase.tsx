@@ -11,34 +11,29 @@ const closeUpScreen = [[77, 134], [1168, 40], [1170, 714], [71, 752]] satisfies 
 const screenWidth = 1280;
 const screenHeight = 720;
 
-// Screen edges sampled from the original ceiling photograph, in image pixels.
+// Bezel edges sampled from the ceiling photograph, in image pixels.
 const ceilingPanels = [
-  { clip: styles.ceilingLeft, face: [[130, 267.3], [458, 242.8], [458, 438.7], [130, 458.8]] },
-  { clip: styles.ceilingMiddle, face: [[475, 243.3], [808, 216.9], [808, 419.5], [475, 441.1]] },
-  { clip: styles.ceilingRight, face: [[831, 216.7], [1180, 188.5], [1180, 398.3], [831, 420.7]] },
-] satisfies { clip: string; face: HeroQuad }[];
+  { clip: styles.ceilingLeft, bezel: [[130, 258.9], [458, 232.4], [458, 447.8], [130, 464.9]] },
+  { clip: styles.ceilingMiddle, bezel: [[475, 236.4], [808, 209.6], [808, 428.3], [475, 446.7]] },
+  { clip: styles.ceilingRight, bezel: [[831, 210.4], [1180, 181.4], [1180, 408.7], [831, 426.7]] },
+] satisfies { clip: string; bezel: HeroQuad }[];
 
-const [topLeft, topRight, bottomRight, bottomLeft] = closeUpScreen;
-const topSlope = (topRight[1] - topLeft[1]) / (topRight[0] - topLeft[0]);
-const bottomSlope = (bottomRight[1] - bottomLeft[1]) / (bottomRight[0] - bottomLeft[0]);
-const [firstPanelTop, , , firstPanelBottom] = ceilingPanels[0].face;
-const heightRatio = (firstPanelBottom[1] - firstPanelTop[1]) / (bottomLeft[1] - topLeft[1]);
-// The ceiling row is shallower than the close-up. Transfer the reference convergence
-// in proportion to that height, with both rails shared by all three screens.
-const ceilingBottomSlope = topSlope + (bottomSlope - topSlope) * heightRatio;
+const [topLeft, topRight] = closeUpScreen;
+const railSlope = (topRight[1] - topLeft[1]) / (topRight[0] - topLeft[0]);
+const [firstPanelTop, , , firstPanelBottom] = ceilingPanels[0].bezel;
 
 function scaledQuad(quad: HeroQuad, scale: number): HeroQuad {
   return quad.map(([x, y]) => [x * scale, y * scale]) as unknown as HeroQuad;
 }
 
-function ceilingPanelTransform(face: HeroQuad, scale: number): string {
-  const target = face.map(([x], corner) => {
+function ceilingPanelTransform(bezel: HeroQuad, scale: number): string {
+  const target = bezel.map(([x], corner) => {
     const isTop = corner < 2;
     const anchor = isTop ? firstPanelTop : firstPanelBottom;
-    const slope = isTop ? topSlope : ceilingBottomSlope;
-    return [x, anchor[1] + (x - anchor[0]) * slope];
+    // Both ceiling edges follow the close-up's top edge, as in the review guides.
+    return [x, anchor[1] + (x - anchor[0]) * railSlope];
   }) as unknown as HeroQuad;
-  const sourceMatrix = new DOMMatrix(heroScreenMatrix(scaledQuad(face, scale), screenWidth, screenHeight));
+  const sourceMatrix = new DOMMatrix(heroScreenMatrix(scaledQuad(bezel, scale), screenWidth, screenHeight));
   const targetMatrix = new DOMMatrix(heroScreenMatrix(scaledQuad(target, scale), screenWidth, screenHeight));
   return targetMatrix.multiply(sourceMatrix.inverse()).toString();
 }
@@ -76,7 +71,7 @@ export default function DisplayDeviceShowcase({ children, label, capture }: {
   const scale = width / photoWidth;
   const quad = scaledQuad(closeUpScreen, scale);
   const ceilingTransforms = useMemo(
-    () => scale > 0 ? ceilingPanels.map(({ face }) => ceilingPanelTransform(face, scale)) : [],
+    () => scale > 0 ? ceilingPanels.map(({ bezel }) => ceilingPanelTransform(bezel, scale)) : [],
     [scale],
   );
 
