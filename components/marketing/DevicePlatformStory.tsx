@@ -92,8 +92,8 @@ export default function DevicePlatformStory() {
         <div ref={stage} className={styles.stage} data-device-stage>
           <div className={`site-marketing-container ${styles.copy}`}>
             <MarketingCopyReveal className="site-stack-title">
-              <h2 id="device-platform-heading" tabIndex={-1} className="type-section-title">웹 링크 하나로, 어디서든 자유롭게.</h2>
-              <p className="type-body-lg site-copy-muted">{reduced ? "같은 메뉴판이 기기 크기와 방향에 맞춰 바뀝니다." : "스크롤하면 같은 메뉴판이 기기 크기와 방향에 맞춰 바뀝니다."}</p>
+              <h2 id="device-platform-heading" tabIndex={-1} className="type-section-title">화면은 달라도, 메뉴판은 하나.</h2>
+              <p className="type-body-lg site-copy-muted">매장 모니터부터 손님 휴대폰까지, 같은 링크로 메뉴를 열 수 있어요.</p>
             </MarketingCopyReveal>
           </div>
           <div className={`site-marketing-container ${styles.visual}`}>
