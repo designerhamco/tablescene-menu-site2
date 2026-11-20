@@ -47,6 +47,10 @@ try {
       const story=page.locator('[data-basic-feature-story]');
       const segments=story.locator('[data-basic-segment]');
       const nav=story.locator('[data-basic-progress]');
+      const bottomInStage=locator=>locator.evaluate(element=>
+        element.getBoundingClientRect().bottom-element.closest('[data-service-story]').getBoundingClientRect().top
+      );
+      const progressBottom=await bottomInStage(nav);
       await expect(segments).toHaveCount(kinds.length);
       await expect(nav.locator('[aria-current="step"]')).toHaveCount(0);
       await expect(nav.getByRole("progressbar").and(nav.locator('[aria-valuenow="0"]'))).toHaveCount(kinds.length);
@@ -63,10 +67,14 @@ try {
       await expect(story).toHaveAttribute("data-feature-index","0");
       assert.equal(await story.locator('[data-basic-device-screen] button').count(),0);
       assert.equal(await story.locator('ol,iframe,[role="dialog"]').count(),0);
-      assert.equal(await story.locator('[data-basic-management]').isVisible(),width>=768);
+      const management=story.locator('[data-basic-management]');
+      assert.equal(await management.isVisible(),width>=768);
+      const managementBottom=width>=768 ? await bottomInStage(management) : 0;
       for(let index=0;index<kinds.length;index++) {
         await expect(story).toHaveAttribute("data-feature-index",String(index));
         await expectDevicePair(story, kinds[index]);
+        assert.ok(Math.abs(await bottomInStage(nav)-progressBottom)<1,"progress is pinned to the stage bottom");
+        if(width>=768) assert.ok(Math.abs(await bottomInStage(management)-managementBottom)<1,"management preview is pinned above progress");
         assert.ok((await story.locator('h2').textContent()).includes(labels[index]));
         assert.ok((await story.locator('[data-basic-management] h3').textContent()).includes(labels[index]));
         assert.equal(await story.locator('[data-basic-feature-preview]').getAttribute("data-playing"),"false","reduced motion keeps preview static");
