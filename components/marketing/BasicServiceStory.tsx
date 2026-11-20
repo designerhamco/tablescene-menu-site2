@@ -9,6 +9,7 @@ import { MediaPlayback } from "@/app/components/ui/media-playback";
 import { MARKETING_SERVICE_FEATURES, type MarketingFeature, type MarketingDemoMedia } from "@/lib/marketing-service-features";
 import { basicFeatureIndex, BASIC_FEATURE_INTRO } from "@/lib/basic-feature-story";
 import MarketingCopyReveal from "./MarketingCopyReveal";
+import ServiceFrameLabel from "./ServiceFrameLabel";
 import BasicTemplateShowcase from "./BasicTemplateShowcase";
 import ServiceFeatureDemo from "./ServiceFeatureDemo";
 import styles from "./BasicServiceStory.module.css";
@@ -76,9 +77,12 @@ export default function BasicServiceStory({ features=MARKETING_SERVICE_FEATURES.
   }}>
     <div className={styles.copy}>
       <MarketingCopyReveal className="site-stack-content">
-        <div key={sceneKey} id={contentId} className={`site-stack-content ${styles.featureCopy}`} data-basic-feature-copy aria-live="polite" aria-atomic="true">
-          <h2 id="service-basic-heading" className="type-section-title">{feature ? <>{feature.kind==="featured" ? "사진으로 시선을 끄는" : feature.title}<br/>{feature.label}</> : <>{BASIC_FEATURE_INTRO.title}<br/>{BASIC_FEATURE_INTRO.subtitle}</>}</h2>
-          <p className={`type-body-lg ${styles.description}`}>{feature?.body ?? BASIC_FEATURE_INTRO.body}</p>
+        <div className="site-stack-title">
+          <ServiceFrameLabel service="basic"/>
+          <div key={sceneKey} id={contentId} className={`site-stack-content ${styles.featureCopy}`} data-basic-feature-copy aria-live="polite" aria-atomic="true">
+            <h2 id="service-basic-heading" className="type-section-title">{feature ? <>{feature.kind==="featured" ? "사진으로 시선을 끄는" : feature.title}<br/>{feature.label}</> : <>{BASIC_FEATURE_INTRO.title}<br/>{BASIC_FEATURE_INTRO.subtitle}</>}</h2>
+            <p className={`type-body-lg ${styles.description}`}>{feature?.body ?? BASIC_FEATURE_INTRO.body}</p>
+          </div>
         </div>
         <nav className="site-action-row" aria-label="베이직 기능 탐색">
           <Button variant="media" size="icon" aria-label="이전 기능 보기" aria-controls={contentId} disabled={index===-1} onClick={()=>select(index-1)}><ArrowLeft/></Button>
