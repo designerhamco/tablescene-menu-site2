@@ -50,11 +50,11 @@ test("Dining and Display use the shared scroll layout with their respective mock
     assert.ok(html.includes(`data-service-story="${service}"`));
     assert.ok(html.includes(`href="/#${destination}"`));
     assert.equal((html.match(/data-service-segment=/g) ?? []).length, count);
-    if (service === "dining") assert.match(html, /tablet-hands-cutout\.webp/);
+    if (service === "dining") assert.match(html, /handheld-tablet-dining\.webp/);
     else {
       assert.match(html, /display-ceiling-three\.webp/);
       assert.match(html, /display-close-up-single\.webp/);
-      assert.doesNotMatch(html, /tablet-hands-cutout\.webp/);
+      assert.doesNotMatch(html, /handheld-tablet-soft-rose\.webp/);
     }
     assert.doesNotMatch(html, /data-basic-device-screen|aria-current="step"/);
   }
