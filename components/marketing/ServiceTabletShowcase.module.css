@@ -17,12 +17,19 @@
 .tablet { position:relative; z-index:1; display:block; width:100%; height:auto; transform:scaleX(-1); mask-image:linear-gradient(90deg,transparent,#000 12%); pointer-events:none; }
 .screen { position:absolute; z-index:2; left:0; top:0; transform-origin:0 0; overflow:hidden; border-radius:24px; background:#eeeae3; pointer-events:none; }
 @media (max-width:767px) {
+  .showcase {
+    width:calc(100% + 2 * var(--site-gutter));
+    height:calc(100% + var(--showcase-bleed));
+    margin-inline:calc(-1 * var(--site-gutter));
+    /* Only the wrist reaches the fade. The full bezel stays inside the opaque area. */
+    mask-image:linear-gradient(90deg, #000 91.5%, rgb(0 0 0 / 72%) 95%, rgb(0 0 0 / 24%) 98%, transparent);
+  }
   .scene {
-    /* The flipped photo's bezel midpoint is at 49.1%; the faded wrist reaches 99%. */
+    /* The flipped photo's bezel midpoint is 49.1% of the artwork width. */
     --tablet-bezel-center:49.1%;
-    --tablet-top-space:0px;
-    --tablet-width:min(calc(80cqw / var(--tablet-bezel-ratio)), calc((100cqw + 2 * var(--site-gutter)) / .998), var(--tablet-width-by-height));
+    --tablet-width:min(calc(82cqw / var(--tablet-bezel-ratio)), calc(100cqh / .605));
     left:50%;
+    top:50%;
     transform:translate(calc(-1 * var(--tablet-bezel-center)),-54.2%);
   }
 }
