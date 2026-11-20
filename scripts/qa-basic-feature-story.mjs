@@ -109,6 +109,8 @@ try {
     await expect(hint).toHaveText("");
     await expect(hint.locator("svg")).toHaveCount(2);
     await expect(hint).toHaveCSS("mix-blend-mode","difference");
+    const arrow = hint.locator('[data-site-icon="arrow-down-s-line"]');
+    await expect(arrow).toHaveCSS("animation-iteration-count", "infinite");
     const initialHint = await hint.boundingBox();
     await page.mouse.move(1280, 320);
     await expect.poll(async () => (await hint.boundingBox()).x).not.toBe(initialHint.x);
