@@ -88,11 +88,15 @@ test("view size switches expose exactly one selected option in the shared segmen
 test("shared fields use standard form values and retain compact and touch field roles", () => {
   assert.ok(SITE_CONTROL_DENSITY.some(role=>role.token==="--ui-menu-inset"&&role.value==="8px"));
   assert.match(css,/--ui-menu-row-height: 2rem;/);assert.match(css,/--ui-menu-inset: \.5rem;/);
+  assert.match(css,/--ui-control-height-md: 2\.5rem;/);
+  assert.match(css,/--ui-field-height-sm: 2rem;\s*--ui-compact-field-height: var\(--ui-control-height-md\);\s*--ui-field-height-md: var\(--ui-compact-field-height\);/);
+  assert.match(css,/--ui-field-height-search: 3rem;/);
   assert.match(css,/--ui-compact-field-font-size: var\(--site-type-14\);/);
   assert.match(css,/--ui-field-font-size: var\(--ui-compact-field-font-size\);/);
-  assert.match(css,/@media \(pointer: coarse\) \{[\s\S]*?--ui-compact-field-font-size: var\(--site-type-16\); --ui-menu-row-height: 2\.5rem;/);
+  assert.match(css,/@media \(pointer: coarse\) \{[\s\S]*?--ui-field-height-sm: 2\.5rem; --ui-compact-field-height: 2\.75rem; --ui-compact-field-font-size: var\(--site-type-16\); --ui-menu-row-height: 2\.5rem;/);
   assert.match(css,/body:has\(\[data-site-header\]\) \{[^}]*--ui-field-height-md: var\(--ui-field-height-lg\);[^}]*--ui-field-font-size: var\(--site-type-16\);/);
   assert.match(css,/--ui-field-height-lg: 2\.75rem;/);
+  assert.match(css,/\[data-field-size="lg"\]:is\(input, select, \[data-slot="select-trigger"\]\) \{\s*min-height: var\(--ui-field-height-lg\); padding-block: var\(--ui-field-md-padding-block\);/);
   assert.match(css,/\.site-filter-panel \{[^}]*--ui-field-height-md: var\(--ui-field-height-sm\);[^}]*--ui-field-font-size: var\(--ui-compact-field-font-size\);/);
   const siteControls = css.split("/* Standard official-site actions")[1].split("/* Font specimens")[0];
   for (const scope of ['[data-field-density="compact"]', ".site-management-table", ".menu-typography", "[data-template-artwork]"]) {
