@@ -154,7 +154,9 @@ try {
     await page.screenshot({ path: `${output}/support-${width}.png`, fullPage: true });
     await page.goto(`${baseUrl}/faq/notices`, { waitUntil: 'domcontentloaded' });
     await expect(page).toHaveURL(/\/faq\/notices$/);
-    await expect(categories.getByRole('button', { name: '전체', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    const noticeTabs = page.getByRole('tablist', { name: '공지 유형' });
+    await assertPageTabs(noticeTabs);
+    await expect(noticeTabs.getByRole('tab', { name: '전체 공지', exact: true, selected: true })).toBeVisible();
     const supportOverflow = await noOverflow(page);
     assert.deepEqual(errors, [], `browser errors at ${width}px`);
     results.push({ width, designSystemOverflow, catalogOverflow, guideOverflow, supportOverflow });
