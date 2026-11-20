@@ -1,16 +1,15 @@
-import { SERVICE_HOME_HREFS, SERVICE_HOME_SECTIONS } from "./service-home-navigation";
 import { scrollToHomeService } from "./service-home-scroll";
 
-export function revealDiningFromBasic() {
+export function revealNextHomeSection(anchor: string, heading: string) {
   const root = document.documentElement;
-  if (root.dataset.homeDiningCover !== undefined) return;
+  if (root.dataset.homeServiceCover !== undefined) return;
 
   const arrive = () => {
-    if (window.location.hash !== `#${SERVICE_HOME_SECTIONS.dining}`) {
-      window.history.pushState(window.history.state, "", SERVICE_HOME_HREFS.dining);
+    if (window.location.hash !== `#${anchor}`) {
+      window.history.pushState(window.history.state, "", `/#${anchor}`);
     }
-    scrollToHomeService(SERVICE_HOME_SECTIONS.dining, "instant");
-    document.getElementById("service-dining-heading")?.focus({ preventScroll:true });
+    scrollToHomeService(anchor, "instant");
+    document.getElementById(heading)?.focus({ preventScroll:true });
   };
 
   if (!document.startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -18,7 +17,7 @@ export function revealDiningFromBasic() {
     return;
   }
 
-  root.dataset.homeDiningCover = "";
+  root.dataset.homeServiceCover = "";
   const transition = document.startViewTransition(async () => {
     arrive();
     // Give the destination's scroll-driven copy time to reach its visible position.
@@ -35,7 +34,7 @@ export function revealDiningFromBasic() {
   const inputs = ["wheel", "touchstart", "pointerdown", "keydown", "popstate"] as const;
   for (const input of inputs) window.addEventListener(input, interrupt, { passive:true });
   const cleanup = () => {
-    delete root.dataset.homeDiningCover;
+    delete root.dataset.homeServiceCover;
     for (const input of inputs) window.removeEventListener(input, interrupt);
   };
   void transition.ready.catch(() => {});

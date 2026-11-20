@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { Button } from "@/app/components/ui/button";
 import { ProgressBar } from "@/app/components/ui/loading-state";
+import type { HomeService } from "@/lib/service-home-navigation";
 import { heroSegmentProgressAt } from "@/lib/hero-cafe-motion";
 import styles from "./StoryProgress.module.css";
 
@@ -14,7 +15,7 @@ type Props = {
   onSelect: (index: number) => void;
   onStart?: () => void;
   skip: ReactNode;
-  story: "hero" | "basic";
+  story: "hero" | HomeService;
   className?: string;
 };
 
@@ -22,6 +23,7 @@ export default function StoryProgress({ label, chapters, active, progress, onSel
   return <nav
     className={className ? `${styles.nav} ${className}` : styles.nav}
     data-hero-progress={story === "hero" ? "" : undefined}
+    data-service-progress={story !== "hero" ? story : undefined}
     data-basic-progress={story === "basic" ? "" : undefined}
     aria-label={label}
   >
@@ -40,6 +42,7 @@ export default function StoryProgress({ label, chapters, active, progress, onSel
             title={name}
             aria-current={current ? "step" : undefined}
             data-hero-segment={story === "hero" ? index : undefined}
+            data-service-segment={story !== "hero" ? index : undefined}
             data-basic-segment={story === "basic" ? index : undefined}
             data-active={current}
             onClick={() => onSelect(index)}

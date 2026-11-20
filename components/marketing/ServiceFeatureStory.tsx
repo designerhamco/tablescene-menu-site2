@@ -1,19 +1,20 @@
 /* eslint-disable @next/next/no-img-element -- GIF demo sources must retain their animation. */
 "use client";
 
-import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useReducedMotion } from "motion/react";
 import { MediaPlayback } from "@/app/components/ui/media-playback";
 import { MARKETING_SERVICE_FEATURES, type MarketingFeature, type MarketingDemoMedia } from "@/lib/marketing-service-features";
-import { SERVICE_HOME_HREFS } from "@/lib/service-home-navigation";
+import type { HomeService } from "@/lib/service-home-navigation";
 import StoryProgress from "./StoryProgress";
-import { revealDiningFromBasic } from "@/lib/home-dining-cover";
-import { basicFeatureIndex, BASIC_FEATURE_INTRO } from "@/lib/basic-feature-story";
+import { revealNextHomeSection } from "@/lib/home-service-cover";
+import { basicFeatureIndex } from "@/lib/basic-feature-story";
+import { BASIC_STORY_SCREENS, SERVICE_STORY_INTROS, TABLET_STORY_SCREENS } from "@/lib/service-story-screens";
 import MarketingCopyReveal from "./MarketingCopyReveal";
 import ServiceFrameLabel from "./ServiceFrameLabel";
-import BasicTemplateShowcase from "./BasicTemplateShowcase";
-import ServiceFeatureDemo from "./ServiceFeatureDemo";
-import styles from "./BasicServiceStory.module.css";
+import BasicDeviceShowcase from "./BasicDeviceShowcase";
+import ServiceTabletShowcase from "./ServiceTabletShowcase";
+import styles from "./ServiceFeatureStory.module.css";
 
 export function DemoMedia({ media, label, running }: { media: MarketingDemoMedia; label:string; running:boolean }) {
   const video = useRef<HTMLVideoElement>(null);
@@ -35,19 +36,33 @@ export function DemoMedia({ media, label, running }: { media: MarketingDemoMedia
 }
 
 /** The vertical page position selects which feature is shown in the sticky stage. */
-export default function BasicServiceStory({ features=MARKETING_SERVICE_FEATURES.basic }: { features?: readonly MarketingFeature[] }) {
+const names = { basic: "베이직", dining: "다이닝", display: "디스플레이" } as const;
+
+const nextSection = {
+  basic: { anchor: "service-dining", heading: "service-dining-heading", label: "다이닝으로" },
+  dining: { anchor: "service-display", heading: "service-display-heading", label: "디스플레이로" },
+  display: { anchor: "home-operations", heading: "home-operations-heading", label: "매장 운영으로" },
+} as const;
+
+export default function ServiceFeatureStory({
+  service,
+  features = MARKETING_SERVICE_FEATURES[service],
+}: { service: HomeService; features?: readonly MarketingFeature[] }) {
+  const basic = service === "basic";
+  const intro = SERVICE_STORY_INTROS[service];
+  const next = nextSection[service];
   const track = useRef<HTMLDivElement>(null);
   const runway = useRef<HTMLDivElement>(null);
   const root = useRef<HTMLDivElement>(null);
   const preview = useRef<HTMLDivElement>(null);
   const activeIndex = useRef(-1);
-  const contentId=useId();
   const reduced=useReducedMotion();
   const [progress, setProgress] = useState(0);
   const [index,setIndex]=useState(-1), [visible,setVisible]=useState(false), [managementPlaying,setManagementPlaying]=useState(false), [desktop,setDesktop]=useState(false);
   const feature=index<0 ? undefined : features[index];
   const sceneKey=feature?.kind ?? "intro";
-  const sceneLabel=feature?.label ?? "베이직 소개";
+  const sceneLabel = feature?.label ?? `${names[service]} 소개`;
+  const tabletScreens: Record<string, string> | undefined = basic ? undefined : TABLET_STORY_SCREENS[service];
   useEffect(() => {
     const query=matchMedia("(min-width:768px)");
     const update=() => { setDesktop(query.matches); if(!query.matches) setManagementPlaying(false); };
@@ -96,20 +111,20 @@ export default function BasicServiceStory({ features=MARKETING_SERVICE_FEATURES.
     window.scrollTo({ top: Math.ceil(trackTop + chapter * chapterLength), behavior: "instant" });
   };
   const running=visible && !reduced && !!feature;
-  return <div ref={track} className={styles.track} data-basic-scroll-track>
+  return <div ref={track} className={styles.track} data-service-scroll-track={service} data-basic-scroll-track={basic ? "" : undefined}>
     <div className={styles.stage}>
-      <div ref={root} className={`site-marketing-container ${styles.story}`} data-basic-feature-story data-feature-index={index}>
+      <div ref={root} className={`site-marketing-container ${styles.story}`} data-service-story={service} data-basic-feature-story={basic ? "" : undefined} data-feature-index={index}>
         <div className={styles.copy}>
           <MarketingCopyReveal className="site-stack-content">
             <div className="site-stack-title">
-              <ServiceFrameLabel service="basic"/>
-              <div key={sceneKey} id={contentId} className={`site-stack-content ${styles.featureCopy}`} data-basic-feature-copy aria-live="polite" aria-atomic="true">
-                <h2 id="service-basic-heading" className="type-section-title">{feature ? <>{feature.kind==="featured" ? "사진으로 시선을 끄는" : feature.title}<br/>{feature.label}</> : <>{BASIC_FEATURE_INTRO.title}<br/>{BASIC_FEATURE_INTRO.subtitle}</>}</h2>
-                <p className={`type-body-lg ${styles.description}`}>{feature?.body ?? BASIC_FEATURE_INTRO.body}</p>
+              <ServiceFrameLabel service={service}/>
+              <div key={sceneKey} className={`site-stack-content ${styles.featureCopy}`} data-service-copy data-basic-feature-copy={basic ? "" : undefined} aria-live="polite" aria-atomic="true">
+                <h2 id={`service-${service}-heading`} tabIndex={-1} className="type-section-title">{feature ? <>{feature.kind==="featured" ? "사진으로 시선을 끄는" : feature.title}<br/>{feature.label}</> : <>{intro.title}<br/>{intro.subtitle}</>}</h2>
+                <p className={`type-body-lg ${styles.description}`}>{feature?.body ?? intro.body}</p>
               </div>
             </div>
           </MarketingCopyReveal>
-          {feature ? <div className={`site-stack-block ${styles.management}`} data-basic-management>
+          {feature ? <div className={`site-stack-block ${styles.management}`} data-service-management data-basic-management={basic ? "" : undefined}>
             <h3 className="type-label">{feature.label} 관리 화면</h3>
             <div className={styles.managementMedia} key={feature.kind}>
               {feature.managementMedia && desktop ? <DemoMedia media={feature.managementMedia} label={`${feature.label} 관리 화면`} running={visible && desktop && managementPlaying}/> : null}
@@ -117,35 +132,41 @@ export default function BasicServiceStory({ features=MARKETING_SERVICE_FEATURES.
             </div>
           </div> : null}
         </div>
-        <div ref={preview} className={styles.visual} data-basic-feature-preview={sceneKey} data-playing={running}>
+        <div ref={preview} className={styles.visual} data-service-preview={sceneKey} data-basic-feature-preview={basic ? sceneKey : undefined} data-playing={running}>
           <MarketingCopyReveal className={styles.reveal}>
-            <BasicTemplateShowcase label={sceneLabel}>
-              <div key={sceneKey} className={styles.demo} data-basic-demo={sceneKey}>
-                {feature ? (feature.media ? <DemoMedia media={feature.media} label={feature.label} running={running}/> : <ServiceFeatureDemo kind={feature.kind} playing={running}/>) : <img className={styles.introScreen} src={BASIC_FEATURE_INTRO.image} alt="리얼 맛차 베이직 메뉴판 전체 화면" loading="eager" decoding="async"/>}
-              </div>
-            </BasicTemplateShowcase>
+            {basic ? (
+              <BasicDeviceShowcase screens={BASIC_STORY_SCREENS[sceneKey] ?? BASIC_STORY_SCREENS.intro} label={sceneLabel} />
+            ) : (
+              <ServiceTabletShowcase label={sceneLabel}>
+                <div key={sceneKey} className={styles.demo} data-service-demo={sceneKey}>
+                  {feature?.media ? <DemoMedia media={feature.media} label={feature.label} running={running} /> : (
+                    <img className={styles.menuCapture} src={tabletScreens?.[sceneKey] ?? intro.image} alt={`${sceneLabel} 메뉴판`} decoding="async" draggable={false} />
+                  )}
+                </div>
+              </ServiceTabletShowcase>
+            )}
           </MarketingCopyReveal>
         </div>
         <StoryProgress
-          label="베이직 기능 탐색"
+          label={`${names[service]} 기능 탐색`}
           chapters={features.map(item => item.label)}
           active={index}
           progress={progress}
           onSelect={featureIndex => select(featureIndex + 1)}
           onStart={() => select(0)}
-          story="basic"
+          story={service}
           className={styles.progress}
           skip={
-            <a href={SERVICE_HOME_HREFS.dining} className="type-caption" aria-label="Skip · 베이직 기능 소개를 건너뛰고 다이닝으로 이동" onClick={event => {
+            <a href={`/#${next.anchor}`} className="type-caption" aria-label={`Skip · ${names[service]} 기능 소개를 건너뛰고 ${next.label} 이동`} onClick={event => {
               if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-              if (!document.getElementById("service-dining")) return;
+              if (!document.getElementById(next.anchor)) return;
               event.preventDefault();
-              revealDiningFromBasic();
+              revealNextHomeSection(next.anchor, next.heading);
             }}><span lang="en">Skip</span></a>
           }
         />
       </div>
     </div>
-    <div ref={runway} className={styles.runway} style={{ "--basic-scene-count": features.length + 1 } as CSSProperties} aria-hidden="true" data-basic-scroll-runway/>
+    <div ref={runway} className={styles.runway} style={{ "--service-story-scene-count": features.length + 1 } as CSSProperties} aria-hidden="true" data-service-scroll-runway data-basic-scroll-runway={basic ? "" : undefined}/>
   </div>;
 }
