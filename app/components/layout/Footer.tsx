@@ -80,7 +80,7 @@ const Footer = () => {
             <div className={styles.mobileSections} aria-label="푸터 상세 메뉴">
               {mobileGroups.map((group) => (
                 <details key={group.title} className={styles.disclosure}>
-                  <summary><span>{group.title}</span><ChevronDown aria-hidden="true" /></summary>
+                  <summary><span className="type-label">{group.title}</span><ChevronDown aria-hidden="true" /></summary>
                   <div className={`${styles.group} ${styles.disclosureContent}`}>
                     <FooterLinkList links={group.links} />
                   </div>

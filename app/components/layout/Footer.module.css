@@ -7,9 +7,10 @@
 .navigation { display: grid; min-width: 0; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2rem; }
 .mobileSections { display: none; }
 .group { display: grid; min-width: 0; align-content: start; gap: .75rem; }
+.group h2 { font-size: var(--type-body-size); }
 .group ul { display: grid; gap: .125rem; }
 .group li { min-width: 0; }
-.group li a { display: inline-flex; align-items: center; min-height: 2rem; color: var(--ui-text-muted); font-size: var(--type-body-size); line-height: 1.6; overflow-wrap: anywhere; }
+.group li a { display: inline-flex; align-items: center; min-height: 2rem; color: var(--ui-text-muted); font-size: var(--type-body-sm-size); line-height: 1.6; overflow-wrap: anywhere; }
 .group li a:hover, .legal a:hover { color: var(--ui-text); text-decoration: underline; text-underline-offset: .25rem; }
 .contact { justify-items: start; }
 .contact :global(.site-button) { margin-top: .25rem; }
@@ -61,7 +62,7 @@
   .group ul { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .group li a { display: flex; width: 100%; }
   .businessContact { display: grid; gap: 0; margin-top: var(--site-space-copy); }
-  .businessContact a { display: inline-flex; align-items: center; font-size: var(--type-body-size); overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: .2em; }
+  .businessContact a { display: inline-flex; align-items: center; font-size: var(--type-body-sm-size); overflow-wrap: anywhere; text-decoration: underline; text-underline-offset: .2em; }
   .businessContact a:hover { color: var(--ui-text); }
   .business dl { display: grid; gap: var(--site-space-copy); }
   .business dl > div { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: baseline; }

@@ -8,9 +8,9 @@ import styles from "./SiteComponentGallery.module.css";
 import SupportNavigation from "@/components/layout/SupportNavigation";
 
 const sizes = [
-  ["대", "영역 48px / 주요 40px · 16px", "공개 페이지의 넓은 주요 전환"],
-  ["중", "영역 44px / 주요 36px · 14px", "마이페이지·편집기의 일반 분류"],
-  ["소", "영역 40px / 기타 32px · 14px", "영역 안의 세부 전환·필터"],
+  ["대", "40px", "48px"],
+  ["중", "36px", "44px"],
+  ["소", "32px", "40px"],
 ] as const;
 const options = [
   ["all", "전체 상태"], ["draft", "작성 중"], ["published", "공개 중"],
@@ -40,7 +40,7 @@ export default function SelectionControlExamples() {
           <div className={styles.heading}><h3 className="type-content-title">디자인 템플릿 구조</h3><p className="type-body-sm text-zinc-600">주요 화면 전환 → 독립 콘텐츠 영역 전환 → 영역 안의 업종 필터 → 결과</p></div>
           <Tabs purpose="page" defaultValue="basic"><TabsList size="lg" aria-label="템플릿 구조 주요 화면"><TabsTrigger value="basic">베이직</TabsTrigger><TabsTrigger value="dining">다이닝</TabsTrigger><TabsTrigger value="display" disabled>준비 중</TabsTrigger></TabsList>
             {["basic", "dining"].map(service => <TabsContent key={service} value={service} className="pt-4">
-              <Tabs purpose="section" defaultValue="designer"><TabsList size="sm" aria-label="템플릿 구조 영역 선택"><TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger></TabsList>
+              <Tabs purpose="section" defaultValue="designer"><TabsList size="md" distribution="equal" aria-label="템플릿 구조 영역 선택"><TabsTrigger value="designer">디자인 템플릿</TabsTrigger><TabsTrigger value="standard">기본 템플릿</TabsTrigger></TabsList>
                 {["designer", "standard"].map(kind => <TabsContent key={kind} value={kind}>
                   <div className="site-filter-group" role="group" aria-label="템플릿 구조 업종 필터">{[["all", "전체"], ["cafe", "카페"], ["dining", "레스토랑"]].map(([value, label]) => <button key={value} type="button" className="site-filter" aria-pressed={industry === value} onClick={() => setIndustry(value)}>{label}</button>)}</div>
                   <p className="type-body-sm mt-5" role="status">{service === "basic" ? "베이직" : "다이닝"} · {kind === "designer" ? "디자인 템플릿" : "기본 템플릿"} · {industry === "all" ? "전체 업종" : industry === "cafe" ? "카페" : "레스토랑"} 결과</p>
@@ -59,11 +59,11 @@ export default function SelectionControlExamples() {
       <div className="min-w-0"><h3 className="type-content-title mb-2">상태값 변경</h3><p className="type-body-sm mb-4 text-zinc-600">최상위 탭은 선택한 문구만 두껍게 표시하고 글자 가까이에 놓인 검정 밑줄을 사용하며 클릭 높이는 유지합니다. 비선택 문구는 더 가벼운 굵기와 중성 회색으로 구분합니다. 상태 세그먼트는 회색 레일 안에 묶이고 흰 선택 면을 사용해 역할을 구별합니다. URL에 상태가 기록되더라도 현재 화면의 값만 바뀌면 상태 전환입니다.</p>
         <Tabs purpose="state" defaultValue="active"><TabsList size="lg" aria-label="상태값 변경 예시"><TabsTrigger value="active">이용 중</TabsTrigger><TabsTrigger value="holding">보관 중</TabsTrigger><TabsTrigger value="ended">종료됨</TabsTrigger></TabsList><TabsContent value="active" className="type-caption">이용 중인 메뉴판</TabsContent><TabsContent value="holding" className="type-caption">보관 중인 메뉴판</TabsContent><TabsContent value="ended" className="type-caption">종료된 메뉴판</TabsContent></Tabs>
       </div>
-      <div className={styles.usageTable}><table aria-label="탭 크기 기준"><thead><tr><th>밀도</th><th>높이 / 글자</th><th>적용</th></tr></thead><tbody>{sizes.map(([size, metrics, use]) => <tr key={size}><td>{size}</td><td>{metrics}</td><td>{use}</td></tr>)}</tbody></table></div>
-      <p className="type-body-sm text-zinc-600">모양은 역할, 크기는 화면 밀도로 고릅니다. 영역 콘텐츠에는 둘레 테두리를 두지 않으며, 카탈로그처럼 결과를 묶는 곳은 공통 밝은 회색 표면을 사용할 수 있습니다. 실제 탭 패널은 방향키·Home·End로 이동하고, 주제 필터·링크는 본래 버튼·링크 키보드 동작을 유지합니다.</p>
+      <div className={styles.usageTable}><table aria-label="탭 크기 기준"><thead><tr><th>밀도</th><th>주요 화면 최소 높이</th><th>연결형 최소 높이</th></tr></thead><tbody>{sizes.map(([size, pageHeight, sectionHeight]) => <tr key={size}><td>{size}</td><td>{pageHeight}</td><td>{sectionHeight}</td></tr>)}</tbody></table></div>
+      <p className="type-body-sm text-zinc-600">마이페이지 상태 탭은 36px, 레일은 44px입니다. PC 주요 화면 탭은 기본 16px, 연결형·상태 탭은 14px입니다. 모바일·태블릿의 주요 화면 탭은 대형 16px, 중·소형 14px입니다. 영역 콘텐츠에는 둘레 테두리를 두지 않으며, 카탈로그처럼 결과를 묶는 곳은 공통 밝은 회색 표면을 사용할 수 있습니다. 실제 탭 패널은 방향키·Home·End로 이동하고, 주제 필터·링크는 본래 버튼·링크 키보드 동작을 유지합니다.</p>
     </section>
     <section className={styles.section} aria-labelledby="select-contract-title">
-      <div className={styles.heading}><h2 className="type-section-title" id="select-contract-title">셀렉트박스</h2><p className="type-body text-zinc-600">Remix Line 꺾쇠는 16px, 오른쪽 여백은 12px입니다. 문구 오른쪽은 모바일 40px, 태블릿·PC 36px을 확보합니다.</p></div>
+      <div className={styles.heading}><h2 className="type-section-title" id="select-contract-title">셀렉트박스</h2><p className="type-body text-zinc-600">일반 셀렉트의 최소 높이는 44px이고 선택값은 기본 16px입니다. Remix Line 꺾쇠는 16px, 오른쪽 여백은 12px입니다. 문구 오른쪽은 모바일 40px, 태블릿·PC 36px을 확보합니다.</p></div>
       <div className={styles.ruleGrid}>
         <label className="type-label grid min-w-0 content-start gap-2">기본 셀렉트<select className="site-field w-full min-w-0" value={nativeValue} onChange={event => setNativeValue(event.target.value)}>{options.map(([value,label]) => <option key={value} value={value}>{label}</option>)}</select></label>
         <div className="grid min-w-0 content-start gap-2"><label className="type-label" htmlFor="custom-select-demo">아이콘·목록 셀렉트</label><Select value={customValue} onValueChange={setCustomValue}><SelectTrigger id="custom-select-demo"><SelectValue /></SelectTrigger><SelectContent>{options.map(([value,label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}<SelectItem value="unavailable" disabled>준비 중</SelectItem></SelectContent></Select></div>
