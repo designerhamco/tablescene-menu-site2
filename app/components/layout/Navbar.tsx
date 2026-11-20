@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import { formatNotificationBadgeCount, getNotificationDisplaySince, NOTIFICATION_COMPACT_NOTICE, NOTIFICATION_FALLBACK_HREF, NOTIFICATION_VISIBLE_CHANNELS } from '@/lib/notification-display-policy';
 import { createClient } from '@/lib/supabase/client';
 import { getSiteHeaderSurface } from '@/lib/site-header-policy';
-import { useHomeHeroHeader } from '@/components/layout/useHomeHeroHeader';
+import { useHomeHeaderSurface } from '@/components/layout/useHomeHeaderSurface';
 import { useActiveHomeService } from '@/components/layout/useActiveHomeService';
 import ServiceHomeLink from '@/components/layout/ServiceHomeLink';
 import { applyNotificationsReadAll, getNotificationsReadAll, NOTIFICATIONS_READ_ALL_EVENT, requestNotificationsReadAll } from '@/lib/notification-read-state';
@@ -69,7 +69,8 @@ const Navbar = () => {
   const [navigationAccount, setNavigationAccount] = useState<{ userId: string; account: NavigationAccount | null } | null>(null);
   const scrolledRef = useRef(false);
   const pathname = usePathname();
-  const homeHeroHeader = useHomeHeroHeader(pathname);
+  const homeHeaderSurface = useHomeHeaderSurface(pathname);
+  const homeHeroHeader = homeHeaderSurface === "dark-overlay";
   const activeHomeService = useActiveHomeService(pathname);
 
   const closeMobileMenu = () => {
@@ -289,7 +290,7 @@ const Navbar = () => {
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
-      <nav aria-label="공식 사이트 메뉴" data-site-header data-header-surface={getSiteHeaderSurface(pathname)} data-scrolled={isScrolled} data-home-hero={homeHeroHeader} className={styles.shell}>
+      <nav aria-label="공식 사이트 메뉴" data-site-header data-header-surface={getSiteHeaderSurface(pathname)} data-scrolled={isScrolled} data-home-hero={homeHeroHeader} data-home-basic-approach={homeHeaderSurface === "clear" || undefined} className={styles.shell}>
         <div className={`site-container relative flex h-full items-center justify-between ${styles.panel}`}>
           <HomeStartLink className={`group z-50 flex shrink-0 items-center ${styles.brand}`}>
             <span className={styles.wordmark}>ArtiMenu</span>

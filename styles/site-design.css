@@ -957,3 +957,22 @@
 @keyframes siteNotificationSheetIn { from { transform: translateY(100%); } to { transform: translateY(0); } }
 @keyframes siteNotificationSheetOut { from { transform: translateY(0); } to { transform: translateY(100%); } }
 @media (prefers-reduced-motion: reduce) { .site-dialog-panel.site-notification-sheet[data-state] { animation: none; } }
+
+/* Only Basic's Skip uses a view transition. The new Dining viewport covers the old frame. */
+html[data-home-dining-cover] [data-site-header] { view-transition-name: home-dining-cover-header; }
+html[data-home-dining-cover]::view-transition { pointer-events: none; }
+html[data-home-dining-cover]::view-transition-group(root),
+html[data-home-dining-cover]::view-transition-old(root),
+html[data-home-dining-cover]::view-transition-group(home-dining-cover-header),
+html[data-home-dining-cover]::view-transition-new(home-dining-cover-header) { animation: none; }
+html[data-home-dining-cover]::view-transition-group(home-dining-cover-header) { z-index: 1; }
+html[data-home-dining-cover]::view-transition-old(home-dining-cover-header) { display: none; }
+html[data-home-dining-cover]::view-transition-old(root) { mix-blend-mode: normal; }
+html[data-home-dining-cover]::view-transition-new(root) {
+  animation: home-dining-cover-enter 620ms cubic-bezier(.22, 1, .36, 1) both;
+  mix-blend-mode: normal;
+}
+@keyframes home-dining-cover-enter {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}

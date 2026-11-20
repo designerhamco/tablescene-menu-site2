@@ -1,14 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { isHomeHeroHeaderOverlay, isHomeServiceHeaderOverlay } from "@/lib/site-header-policy";
+import { isHomeBasicHeaderApproach, isHomeHeroHeaderOverlay, isHomeServiceHeaderOverlay } from "@/lib/site-header-policy";
 
-/** Only the home hero and dark service stack own transparent header boundaries. */
-export function useHomeHeroHeader(pathname: string) {
-  const [state, setState] = useState({ pathname, overlay: pathname === "/" });
+type HomeHeaderSurface = "default" | "dark-overlay" | "clear";
+
+export function useHomeHeaderSurface(pathname: string): HomeHeaderSurface {
+  const [state, setState] = useState<{ pathname: string; surface: HomeHeaderSurface }>({
+    pathname,
+    surface: pathname === "/" ? "dark-overlay" : "default",
+  });
   useEffect(() => {
     if (pathname !== "/") {
-      const reset = requestAnimationFrame(() => setState({ pathname, overlay: false }));
+      const reset = requestAnimationFrame(() => setState({ pathname, surface: "default" }));
       return () => cancelAnimationFrame(reset);
     }
     let scheduled = 0;
@@ -18,12 +22,15 @@ export function useHomeHeroHeader(pathname: string) {
       const hero = document.querySelector<HTMLElement>("[data-hero-motion]");
       const services = document.querySelector<HTMLElement>("[data-service-stack]");
       const header = document.querySelector<HTMLElement>("[data-site-header]");
-      for (const target of [hero, services]) if (target && !observed.has(target)) { resize.observe(target); observed.add(target); }
-      if (hero && services) content.disconnect();
+      const deviceStage = document.querySelector<HTMLElement>("[data-device-stage]");
+      for (const target of [hero, services, deviceStage]) if (target && !observed.has(target)) { resize.observe(target); observed.add(target); }
+      if (hero && services && deviceStage) content.disconnect();
       const bounds = services?.getBoundingClientRect(), height = header?.offsetHeight ?? 0;
       const overlay = isHomeHeroHeaderOverlay(pathname, hero?.getBoundingClientRect().bottom ?? null, height)
         || isHomeServiceHeaderOverlay(pathname, bounds?.top ?? null, bounds?.bottom ?? null, height);
-      setState(current => current.pathname === pathname && current.overlay === overlay ? current : { pathname, overlay });
+      const approachingBasic = isHomeBasicHeaderApproach(pathname, bounds?.top ?? null, deviceStage ? deviceStage.offsetHeight + height : 0);
+      const surface = overlay ? "dark-overlay" : approachingBasic ? "clear" : "default";
+      setState(current => current.pathname === pathname && current.surface === surface ? current : { pathname, surface });
     };
     const schedule = () => { if (!scheduled) scheduled = requestAnimationFrame(update); };
     const resize = new ResizeObserver(schedule);
@@ -39,5 +46,6 @@ export function useHomeHeroHeader(pathname: string) {
       window.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule);
     };
   }, [pathname]);
-  return pathname === "/" && (state.pathname === pathname ? state.overlay : true);
+  if (pathname !== "/") return "default";
+  return state.pathname === pathname ? state.surface : "dark-overlay";
 }

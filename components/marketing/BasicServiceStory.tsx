@@ -3,12 +3,11 @@
 
 import { useEffect, useId, useRef, useState, type CSSProperties } from "react";
 import { useReducedMotion } from "motion/react";
-import { Button } from "@/app/components/ui/button";
-import { ArrowLeft, ArrowRight } from "@/app/components/ui/site-arrow";
 import { MediaPlayback } from "@/app/components/ui/media-playback";
 import { MARKETING_SERVICE_FEATURES, type MarketingFeature, type MarketingDemoMedia } from "@/lib/marketing-service-features";
 import { SERVICE_HOME_HREFS } from "@/lib/service-home-navigation";
-import ServiceHomeLink from "@/components/layout/ServiceHomeLink";
+import StoryProgress from "./StoryProgress";
+import { revealDiningFromBasic } from "@/lib/home-dining-cover";
 import { basicFeatureIndex, BASIC_FEATURE_INTRO } from "@/lib/basic-feature-story";
 import MarketingCopyReveal from "./MarketingCopyReveal";
 import ServiceFrameLabel from "./ServiceFrameLabel";
@@ -44,6 +43,7 @@ export default function BasicServiceStory({ features=MARKETING_SERVICE_FEATURES.
   const activeIndex = useRef(-1);
   const contentId=useId();
   const reduced=useReducedMotion();
+  const [progress, setProgress] = useState(0);
   const [index,setIndex]=useState(-1), [visible,setVisible]=useState(false), [managementPlaying,setManagementPlaying]=useState(false), [desktop,setDesktop]=useState(false);
   const feature=index<0 ? undefined : features[index];
   const sceneKey=feature?.kind ?? "intro";
@@ -65,7 +65,9 @@ export default function BasicServiceStory({ features=MARKETING_SERVICE_FEATURES.
       frame=0;
       const chapterLength = scrollRunway.getBoundingClientRect().height / (features.length + 1);
       const distance = -scrollTrack.getBoundingClientRect().top;
-      const nextIndex = chapterLength > 0 ? basicFeatureIndex(Math.floor(distance / chapterLength) - 1, features.length) : -1;
+      const position = chapterLength > 0 ? Math.max(0, distance / chapterLength) : 0;
+      const nextIndex = basicFeatureIndex(Math.floor(position) - 1, features.length);
+      setProgress(Math.round(Math.min(1, position - (nextIndex + 1)) * 1000) / 1000);
       if (nextIndex !== activeIndex.current) {
         activeIndex.current = nextIndex;
         setIndex(nextIndex);
@@ -87,20 +89,16 @@ export default function BasicServiceStory({ features=MARKETING_SERVICE_FEATURES.
     schedule();
     return () => { current=false; observer.disconnect(); cancelAnimationFrame(frame); window.removeEventListener("scroll",schedule); window.removeEventListener("resize",schedule); document.removeEventListener("visibilitychange",schedule); };
   },[features.length]);
-  const select = (direction: -1 | 1) => {
+  const select = (chapter: number) => {
     if (!track.current || !runway.current) return;
-    const next = basicFeatureIndex(activeIndex.current + direction, features.length);
-    if (next === activeIndex.current) return;
     const chapterLength = runway.current.getBoundingClientRect().height / (features.length + 1);
     const trackTop = window.scrollY + track.current.getBoundingClientRect().top;
-    window.scrollTo({ top: Math.ceil(trackTop + (next + 1) * chapterLength), behavior: "instant" });
+    window.scrollTo({ top: Math.ceil(trackTop + chapter * chapterLength), behavior: "instant" });
   };
   const running=visible && !reduced && !!feature;
   return <div ref={track} className={styles.track} data-basic-scroll-track>
     <div className={styles.stage}>
-      <div ref={root} className={`site-marketing-container ${styles.story}`} data-basic-feature-story data-feature-index={index} onKeyDown={event => {
-        if(event.key==="ArrowLeft" || event.key==="ArrowRight") { event.preventDefault(); select(event.key==="ArrowRight" ? 1 : -1); }
-      }}>
+      <div ref={root} className={`site-marketing-container ${styles.story}`} data-basic-feature-story data-feature-index={index}>
         <div className={styles.copy}>
           <MarketingCopyReveal className="site-stack-content">
             <div className="site-stack-title">
@@ -110,15 +108,22 @@ export default function BasicServiceStory({ features=MARKETING_SERVICE_FEATURES.
                 <p className={`type-body-lg ${styles.description}`}>{feature?.body ?? BASIC_FEATURE_INTRO.body}</p>
               </div>
             </div>
-            <nav className="site-action-row" aria-label="베이직 기능 탐색">
-              <Button variant="media" size="icon" data-media-surface="dark" aria-label="이전 기능 보기" aria-controls={contentId} disabled={index===-1} onClick={()=>select(-1)}><ArrowLeft/></Button>
-              <span className={`type-caption ${styles.count}`} aria-live="polite" aria-atomic="true">{feature ? <><span>{String(index+1).padStart(2,"0")}</span><span className={styles.countTotal}> / {String(features.length).padStart(2,"0")}</span></> : <span lang="en">Start</span>}</span>
-              <Button variant="media" size="icon" data-media-surface="dark" aria-label="다음 기능 보기" aria-controls={contentId} disabled={index===features.length-1} onClick={()=>select(1)}><ArrowRight/></Button>
-              <ServiceHomeLink href={SERVICE_HOME_HREFS.dining} instant className={`type-caption ${styles.skip}`} aria-label="Skip · 베이직 기능 소개를 건너뛰고 다이닝으로 이동" onClick={event => {
-                if (event.defaultPrevented || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-                document.getElementById("service-dining-heading")?.focus({ preventScroll:true });
-              }}><span lang="en">Skip</span></ServiceHomeLink>
-            </nav>
+            <StoryProgress
+              label="베이직 기능 탐색"
+              chapters={["Start", ...features.map(item => item.label)]}
+              active={index + 1}
+              progress={progress}
+              onSelect={select}
+              story="basic"
+              skip={
+                <a href={SERVICE_HOME_HREFS.dining} className="type-caption" aria-label="Skip · 베이직 기능 소개를 건너뛰고 다이닝으로 이동" onClick={event => {
+                  if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                  if (!document.getElementById("service-dining")) return;
+                  event.preventDefault();
+                  revealDiningFromBasic();
+                }}><span lang="en">Skip</span></a>
+              }
+            />
           </MarketingCopyReveal>
           {feature ? <div className={`site-stack-block ${styles.management}`} data-basic-management>
             <h3 className="type-label">{feature.label} 관리 화면</h3>

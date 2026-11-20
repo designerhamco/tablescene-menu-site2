@@ -44,7 +44,7 @@ export default function DevicePlatformStory(){
   const linkCopy=view.progress>=.48;
   return <section id="device-platform" className={styles.section} aria-labelledby="device-platform-heading" data-device-section data-reduced={Boolean(reduced)}>
     <div ref={root} className={styles.story} data-device-platform data-progress={view.progress.toFixed(4)} data-reduced={Boolean(reduced)} data-menu-template={active.key} data-template-index={sequence.activeIndex} data-template-position={sequence.position.toFixed(4)} data-image-mode="static" data-layout={frame.compact?"compact":"wide"}>
-      <div ref={stage} className={styles.stage}>
+      <div ref={stage} className={styles.stage} data-device-stage>
         <div ref={copy} className={`site-marketing-container ${styles.copy}`} data-device-copy>
           <MarketingCopyReveal>
             <motion.div key={String(linkCopy)} className="site-stack-title" data-device-message={linkCopy?"link":"devices"} initial={reduced?false:{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{duration:reduced?0:.35}}>
