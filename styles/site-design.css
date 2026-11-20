@@ -282,6 +282,18 @@
 .site-scroll-top { bottom: calc(var(--site-support-launcher-edge) + 4.5rem + env(safe-area-inset-bottom, 0px)); }
 /* Filled quick-menu controls are identified by their fill, not an outline. */
 .site-scroll-top-control { border: 0; }
+@supports ((-webkit-backdrop-filter: invert(1)) or (backdrop-filter: invert(1))) {
+  @media (forced-colors: none) {
+    .site-scroll-top-control[data-adapt-to-backdrop]:not(:disabled):not([aria-disabled="true"]) {
+      background: rgb(0 0 0 / var(--scroll-top-overlay, 14%));
+      color: var(--ui-media-ink);
+      -webkit-backdrop-filter: grayscale(1) invert(1) brightness(.57);
+      backdrop-filter: grayscale(1) invert(1) brightness(.57);
+    }
+    .site-scroll-top-control[data-adapt-to-backdrop]:hover { --scroll-top-overlay: 8%; }
+    .site-scroll-top-control[data-adapt-to-backdrop]:active { --scroll-top-overlay: 28%; }
+  }
+}
 .site-scroll-top, .site-support-launcher { right: max(var(--site-gutter), calc((100vw - var(--site-content-width)) / 2)); }
 @media (min-width: 768px) {
   :root { --site-support-launcher-edge: 2rem; }
