@@ -21,7 +21,10 @@
 .monitor {
   /* Match the column edge to the bezel's visible right edge. */
   --monitor-width:min(106cqw, 165cqh);
-  inset:max(1%, calc(82cqh - var(--monitor-width) * .51)) calc(-1 * var(--monitor-width) * .0742) auto auto;
+  inset:
+    calc(max(1%, 82cqh - var(--monitor-width) * .51) - var(--monitor-lift, 0px))
+    calc(-1 * var(--monitor-width) * .0742 + var(--monitor-left-shift, 0px))
+    auto auto;
   width:var(--monitor-width);
   /* Correct the photographed screen around its center with the bezel and menu aligned. */
   transform:scaleY(1.076);
@@ -50,6 +53,12 @@
   width:100%;
   height:100%;
   object-fit:cover;
+}
+@media (min-width:1024px) and (hover:hover) and (pointer:fine) {
+  .monitor {
+    --monitor-lift:var(--site-space-copy);
+    --monitor-left-shift:var(--site-space-title-copy);
+  }
 }
 @media (max-width:767px) {
   .scene {

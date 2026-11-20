@@ -4,7 +4,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ServiceFeatureStory from "../components/marketing/ServiceFeatureStory";
 import { existsSync } from "node:fs";
-import { BASIC_STORY_SCREENS, SERVICE_STORY_INTROS, TABLET_STORY_SCREENS } from "./service-story-screens";
+import { BASIC_STORY_SCREENS, SERVICE_STORY_INTROS, SERVICE_STORY_SCREENS } from "./service-story-screens";
 import { MARKETING_SERVICE_FEATURES } from "./marketing-service-features";
 import { BASIC_TABLET_SCREEN, basicTabletScreenMatrix, basicFeatureIndex } from "./basic-feature-story";
 
@@ -43,13 +43,18 @@ test("the six Basic topics retain their order and the remaining services retain 
   assert.deepEqual(MARKETING_SERVICE_FEATURES.dining.slice(-2).map(feature => feature.kind), ["call", "order"]);
 });
 
-test("Dining and Display use the shared scroll layout and approved tablet photograph", () => {
+test("Dining and Display use the shared scroll layout with their respective mockups", () => {
   for (const [service, count, destination] of [["dining", 8, "service-display"], ["display", 4, "home-operations"]] as const) {
     const html = renderToStaticMarkup(createElement(ServiceFeatureStory, { service }));
     assert.ok(html.includes(`data-service-story="${service}"`));
     assert.ok(html.includes(`href="/#${destination}"`));
     assert.equal((html.match(/data-service-segment=/g) ?? []).length, count);
-    assert.match(html, /tablet-hands-cutout\.png/);
+    if (service === "dining") assert.match(html, /tablet-hands-cutout\.png/);
+    else {
+      assert.match(html, /display-ceiling-three\.webp/);
+      assert.match(html, /display-close-up-single\.webp/);
+      assert.doesNotMatch(html, /tablet-hands-cutout\.png/);
+    }
     assert.doesNotMatch(html, /data-basic-device-screen|aria-current="step"/);
   }
 });
@@ -62,7 +67,7 @@ test("All service chapters reference available screen captures", () => {
   }
   for (const service of ["dining", "display"] as const) {
     for (const feature of MARKETING_SERVICE_FEATURES[service]) {
-      const screens: Record<string, string> = TABLET_STORY_SCREENS[service];
+      const screens: Record<string, string> = SERVICE_STORY_SCREENS[service];
       assert.ok(existsSync(`public${screens[feature.kind]}`), `${service} ${feature.kind}`);
     }
     assert.ok(existsSync(`public${SERVICE_STORY_INTROS[service].image}`));

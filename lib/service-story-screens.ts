@@ -33,7 +33,7 @@ export const BASIC_STORY_SCREENS = {
   ),
 } as Record<string, { key: string; desktop: string; mobile: string }>;
 
-export const TABLET_STORY_SCREENS = {
+export const SERVICE_STORY_SCREENS = {
   dining: {
     pages: "/assets/hero-mobile-v1/dining-page-2.webp",
     cover: `${directory}/dining-cover.webp`,
