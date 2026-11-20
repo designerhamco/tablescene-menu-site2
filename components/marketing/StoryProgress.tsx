@@ -12,12 +12,13 @@ type Props = {
   active: number;
   progress: number;
   onSelect: (index: number) => void;
+  onStart?: () => void;
   skip: ReactNode;
   story: "hero" | "basic";
   className?: string;
 };
 
-export default function StoryProgress({ label, chapters, active, progress, onSelect, skip, story, className }: Props) {
+export default function StoryProgress({ label, chapters, active, progress, onSelect, onStart, skip, story, className }: Props) {
   return <nav
     className={className ? `${styles.nav} ${className}` : styles.nav}
     data-hero-progress={story === "hero" ? "" : undefined}
@@ -49,7 +50,14 @@ export default function StoryProgress({ label, chapters, active, progress, onSel
                 case "ArrowDown": next = Math.min(chapters.length - 1, index + 1); break;
                 case "ArrowLeft":
                 case "ArrowUp": next = Math.max(0, index - 1); break;
-                case "Home": next = 0; break;
+                case "Home":
+                  if (onStart) {
+                    event.preventDefault();
+                    onStart();
+                    return;
+                  }
+                  next = 0;
+                  break;
                 case "End": next = chapters.length - 1; break;
                 default: return;
               }
