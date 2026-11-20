@@ -94,8 +94,8 @@ try {
   try {
     const hint = page.locator('[data-home-scroll-hint]');
     await page.goto(base);
-    await expect(page.locator('[data-hero-motion]')).toBeVisible();
-    await page.mouse.move(535, 530);
+    await expect(page.locator('[data-hero-motion]')).toHaveAttribute("data-in-view", "true");
+    await page.mouse.move(83, 335);
     await expect(hint).toBeVisible({ timeout:4000 });
 
     await enter(page);
