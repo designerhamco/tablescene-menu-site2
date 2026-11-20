@@ -45,14 +45,23 @@ export default function DisplayDeviceShowcase({ children, label, capture }: {
   capture?: string;
 }) {
   const closeUp = useRef<HTMLDivElement>(null);
+  const ceiling = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
+  const [ceilingWidth, setCeilingWidth] = useState(0);
   const [readyCapture, setReadyCapture] = useState<string>();
 
   useEffect(() => {
-    const element = closeUp.current;
-    if (!element) return;
-    const observer = new ResizeObserver(([entry]) => setWidth(entry.contentRect.width));
-    observer.observe(element);
+    const primary = closeUp.current;
+    const rack = ceiling.current;
+    if (!primary || !rack) return;
+    const observer = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        if (entry.target === primary) setWidth(entry.contentRect.width);
+        else setCeilingWidth(entry.contentRect.width);
+      }
+    });
+    observer.observe(primary);
+    observer.observe(rack);
     return () => observer.disconnect();
   }, []);
 
@@ -71,9 +80,10 @@ export default function DisplayDeviceShowcase({ children, label, capture }: {
 
   const scale = width / photoWidth;
   const quad = scaledQuad(closeUpScreen, scale);
+  const ceilingScale = ceilingWidth / photoWidth;
   const ceilingTransforms = useMemo(
-    () => scale > 0 ? ceilingPanels.map(({ bezel, offsetX }) => ceilingPanelTransform(bezel, offsetX, scale)) : [],
-    [scale],
+    () => ceilingScale > 0 ? ceilingPanels.map(({ bezel, offsetX }) => ceilingPanelTransform(bezel, offsetX, ceilingScale)) : [],
+    [ceilingScale],
   );
 
   const screen = children ?? (capture && readyCapture ? (
@@ -83,7 +93,7 @@ export default function DisplayDeviceShowcase({ children, label, capture }: {
   return (
     <div className={styles.showcase} data-display-device-showcase role="img" aria-label={`${label} 디스플레이 시연`}>
       <div className={styles.composition} data-display-composition>
-        <div className={`${styles.photograph} ${styles.ceiling}`} data-display-ceiling>
+        <div ref={ceiling} className={`${styles.photograph} ${styles.ceiling}`} data-display-ceiling>
           {ceilingPanels.map(({ clip }, index) => (
             <img
               key={clip}

@@ -6,17 +6,24 @@
 }
 
 .composition {
+  --display-top-space:min(var(--site-space-group), calc(var(--service-story-story-padding-top) - var(--site-header-height) - var(--site-space-copy)));
+  /* Size and center the primary bezel first. The height cap includes the ceiling brackets. */
+  --display-width:min(100cqw, calc((100cqh + var(--display-top-space)) / .865));
   position:absolute;
-  inset:50% auto auto 50%;
-  /* The two image heights minus their overlap are approximately the composition width. */
-  inline-size:min(100cqw, 99.8cqh);
-  transform:translate(-50%,-50%);
+  inset-inline-start:50%;
+  inset-block-end:calc(max(0px, (100cqh - var(--display-width) * .865) / 2) - var(--display-width) * .04);
+  inline-size:var(--display-width);
+  transform:translateX(-50.25%);
 }
 
 /* Trace the hardware silhouettes so the photos' studio background blends into navy. */
 .photograph { position:relative; }
 .ceiling {
+  position:absolute;
+  inset:auto auto 90% 50%;
+  inline-size:86%;
   aspect-ratio:1254 / 510;
+  transform:translateX(-52.4%);
   mask-image:linear-gradient(transparent 13%, #000 34%);
 }
 .ceilingPanel {
@@ -43,7 +50,6 @@
   );
 }
 .closeUp {
-  margin-block-start:-7%;
   clip-path:polygon(5.2% 15%, 93.1% 3.6%, 95.3% 4.5%, 95.5% 87.8%, 5% 92%);
 }
 .hardware { display:block; inline-size:100%; block-size:auto; }
@@ -64,4 +70,5 @@
 }
 @media (max-width:767px) {
   .showcase { block-size:calc(100% + var(--service-story-progress-gap)); }
+  .composition { --display-top-space:0px; }
 }
