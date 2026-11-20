@@ -14,7 +14,7 @@
   top: var(--site-header-height);
   height: calc(100svh - var(--site-header-height));
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: var(--site-space-block);
   padding-block: var(--site-space-group) var(--site-space-block);
   isolation: isolate;
@@ -117,34 +117,8 @@
   filter: blur(4px);
 }
 
-.controls {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--site-space-copy);
-  max-width: 31.25rem;
-  margin-inline: auto;
-}
-
-.control {
-  position: relative;
-  display: grid;
-  align-content: center;
-  min-height: var(--ui-control-height-md);
-  text-align: center;
-  color: var(--ui-text-muted);
-}
-
-.controlDisplay { z-index: 1; display: grid; gap: var(--site-space-copy); white-space: nowrap; pointer-events: none; }
-.control[data-active="true"] { color: var(--ui-text); font-weight: 700; }
-.control > .action { position: absolute; inset: 0; width: 100%; }
-
 @media (max-height: 540px) {
   .stage { gap: var(--site-space-copy); padding-block: var(--site-space-copy); }
-}
-
-@media (max-width: 639px) {
-  /* Keep all four steps reachable above the shared floating controls. */
-  .stage { padding-block-end: calc(var(--site-scroll-top-offset) + var(--ui-control-height-md) + var(--site-space-copy)); }
 }
 
 @media (prefers-reduced-motion: reduce) {

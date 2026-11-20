@@ -30,7 +30,6 @@ const readPose = root => {
     inFrame: frame.left >= bounds.left - 1 && frame.right <= bounds.right + 1 &&
       frame.top >= bounds.top - 1 && frame.bottom <= bounds.bottom + 1,
     overlap: document.documentElement.scrollWidth > innerWidth + 1,
-    active: root.querySelector("button[aria-current=step]")?.getAttribute("aria-label"),
     screens: [...screen.querySelectorAll("img")].map(image => ({
       scene: image.dataset.deviceScreenScene,
       opacity: Number(image.style.opacity),
@@ -60,7 +59,7 @@ try {
     }, null, { timeout: 30000 });
     assert.deepEqual(await page.evaluate(() => ({ width: innerWidth, height: innerHeight })), viewport);
     assert.equal(await story.getAttribute("data-image-mode"), "static");
-    assert.equal(await story.locator("iframe, [data-device-paper]").count(), 0);
+    assert.equal(await story.locator("iframe, [data-device-paper], nav, button, [role=progressbar]").count(), 0);
     const scroll = await section.evaluate(node => {
       const stage = node.querySelector("[data-device-stage]");
       return {
@@ -97,9 +96,9 @@ try {
     assert.equal(turning.frame.height, landscape.frame.height);
     await seek(.85);
     assert.deepEqual(await seek(.5), turning, "reverse scroll returns the same pose");
-    await story.getByRole("button", { name: "모바일", exact: true }).click();
-    await page.waitForFunction(() => document.querySelector("[data-device-platform]")?.dataset.progress === "1.0000");
-    assert.equal((await story.evaluate(readPose)).active, "모바일");
+    const last = await seek(1);
+    assert.equal(last.index, 3);
+    assert.ok(last.progress >= .999);
     await header.evaluate(node => {
       if (node.dataset.homeHero === "true") throw new Error("Basic colors appeared before the section arrived");
     });
@@ -132,10 +131,13 @@ try {
   const story = reduced.locator("[data-device-platform]");
   await reduced.waitForFunction(() => document.querySelector("[data-device-platform]")?.dataset.reduced === "true");
   assert.equal(await story.locator("[data-device-stage]").evaluate(node => getComputedStyle(node).position), "relative");
-  const scrollBefore = await reduced.evaluate(() => scrollY);
-  await story.getByRole("button", { name: "세로 태블릿", exact: true }).press("Enter");
-  assert.equal((await story.evaluate(readPose)).frame.rotation, -90);
-  assert.equal(await reduced.evaluate(() => scrollY), scrollBefore);
+  assert.equal(await story.locator("nav, button, [role=progressbar]").count(), 0);
+  assert.equal((await story.evaluate(readPose)).index, 0);
+  await reduced.mouse.wheel(0, 220);
+  await reduced.evaluate(nextFrame);
+  const still = await story.evaluate(readPose);
+  assert.equal(still.index, 0);
+  assert.equal(still.frame.rotation, 0);
   await reduced.close();
 } finally {
   await browser.close();

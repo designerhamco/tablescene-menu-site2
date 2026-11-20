@@ -2,10 +2,8 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Button } from "@/app/components/ui/button";
-import { ProgressBar } from "@/app/components/ui/loading-state";
 import {
-  DEVICE_MONITOR_PHOTO, DEVICE_STAGES, clampDeviceProgress, deviceMorphAt, deviceStageProgress,
+  DEVICE_MONITOR_PHOTO, DEVICE_STAGES, clampDeviceProgress, deviceMorphAt,
 } from "@/lib/device-platform-story";
 import MarketingCopyReveal from "./MarketingCopyReveal";
 import styles from "./DevicePlatformStory.module.css";
@@ -17,7 +15,6 @@ export default function DevicePlatformStory() {
   const stage = useRef<HTMLDivElement>(null);
   const visual = useRef<HTMLDivElement>(null);
   const [view, setView] = useState({ progress: 0, width: 0, height: 0, reduced: false });
-  const [stillIndex, setStillIndex] = useState(0);
 
   useEffect(() => {
     const marker = start.current, root = section.current, track = story.current;
@@ -67,22 +64,7 @@ export default function DevicePlatformStory() {
     };
   }, []);
 
-  function select(index: number) {
-    if (view.reduced) {
-      setStillIndex(index);
-      return;
-    }
-    const marker = start.current, root = section.current, track = story.current, sticky = stage.current;
-    if (!marker || !root || !track || !sticky) return;
-    const inset = parseFloat(getComputedStyle(root).scrollMarginTop) || 0;
-    const range = track.offsetHeight - sticky.offsetHeight;
-    window.scrollTo({
-      top: Math.ceil(window.scrollY + marker.getBoundingClientRect().top - inset + range * deviceStageProgress(index)),
-      behavior: "smooth",
-    });
-  }
-
-  const progress = view.reduced ? deviceStageProgress(stillIndex) : view.progress;
+  const { progress, reduced } = view;
   const frame = deviceMorphAt(view.width, view.height, progress);
   const style = {
     "--device-width": `${frame.width}px`,
@@ -106,12 +88,12 @@ export default function DevicePlatformStory() {
     <div ref={start} aria-hidden="true" />
     <section ref={section} id="device-platform" className={styles.section} aria-labelledby="device-platform-heading" data-device-section>
       <div ref={story} className={styles.story} data-device-platform data-progress={progress.toFixed(4)}
-        data-device-index={frame.active} data-reduced={view.reduced} data-menu-template="cafe_sunday_line_a" data-image-mode="static">
+        data-device-index={frame.active} data-reduced={reduced} data-menu-template="cafe_sunday_line_a" data-image-mode="static">
         <div ref={stage} className={styles.stage} data-device-stage>
           <div className={`site-marketing-container ${styles.copy}`}>
             <MarketingCopyReveal className="site-stack-title">
               <h2 id="device-platform-heading" tabIndex={-1} className="type-section-title">웹 링크 하나로, 어디서든 자유롭게.</h2>
-              <p className="type-body-lg site-copy-muted">{view.reduced ? "기기를 선택하면 같은 메뉴판의 화면 배치가 바뀝니다." : "스크롤하면 같은 메뉴판이 기기 크기와 방향에 맞춰 바뀝니다."}</p>
+              <p className="type-body-lg site-copy-muted">{reduced ? "같은 메뉴판이 기기 크기와 방향에 맞춰 바뀝니다." : "스크롤하면 같은 메뉴판이 기기 크기와 방향에 맞춰 바뀝니다."}</p>
             </MarketingCopyReveal>
           </div>
           <div className={`site-marketing-container ${styles.visual}`}>
@@ -140,22 +122,6 @@ export default function DevicePlatformStory() {
               </div>
             </div>
           </div>
-          <nav className={`site-marketing-container ${styles.navigation}`} aria-label="미리 볼 기기 선택">
-            <div className={styles.controls}>
-              {DEVICE_STAGES.map((device, index) => {
-                const active = frame.active === index;
-                return <div className={styles.control} key={device.id} data-active={active}>
-                  <div className={styles.controlDisplay} aria-hidden="true">
-                    <ProgressBar label={device.label} value={active ? 100 : 0} />
-                    <span className="type-caption">{device.label}</span>
-                  </div>
-                  <Button className={styles.action} type="button" variant="ghost" size="icon"
-                    aria-label={device.label} aria-current={active ? "step" : undefined}
-                    onClick={() => select(index)} />
-                </div>;
-              })}
-            </div>
-          </nav>
         </div>
       </div>
     </section>

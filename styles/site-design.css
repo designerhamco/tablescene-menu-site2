@@ -277,12 +277,9 @@
   .site-account-nav-shell::after, .site-account-nav-more { display: none; }
   .site-account-nav .site-nav-item { min-height: 3.25rem; border-radius: .5rem; padding: .75rem 1rem; }
 }
-:root {
-  --site-support-launcher-edge: 1.25rem;
-  --site-scroll-top-offset: calc(var(--site-support-launcher-edge) + 4.5rem + env(safe-area-inset-bottom, 0px));
-}
+:root { --site-support-launcher-edge: 1.25rem; }
 .site-support-launcher { bottom: calc(var(--site-support-launcher-edge) + env(safe-area-inset-bottom, 0px)); }
-.site-scroll-top { bottom: var(--site-scroll-top-offset); }
+.site-scroll-top { bottom: calc(var(--site-support-launcher-edge) + 4.5rem + env(safe-area-inset-bottom, 0px)); }
 /* Filled quick-menu controls are identified by their fill, not an outline. */
 .site-scroll-top-control { border: 0; }
 .site-scroll-top, .site-support-launcher { right: max(var(--site-gutter), calc((100vw - var(--site-content-width)) / 2)); }

@@ -4,7 +4,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import test from "node:test";
 import DevicePlatformStory from "../components/marketing/DevicePlatformStory";
-import { DEVICE_MONITOR_PHOTO, DEVICE_STAGES, deviceMorphAt, deviceStageProgress } from "./device-platform-story";
+import { DEVICE_MONITOR_PHOTO, DEVICE_STAGES, deviceMorphAt } from "./device-platform-story";
 
 test("one device and four MELLO CREMA captures are rendered without mounting a menu", () => {
   assert.deepEqual(DEVICE_STAGES.map(stage => stage.id), ["monitor", "tablet-landscape", "tablet-portrait", "phone"]);
@@ -17,11 +17,11 @@ test("one device and four MELLO CREMA captures are rendered without mounting a m
   assert.equal((markup.match(/data-device-body=/g) ?? []).length, 1);
   assert.equal((markup.match(/data-device-screen-scene=/g) ?? []).length, 4);
   assert.match(markup, /id="device-platform-heading"/);
-  assert.doesNotMatch(markup, /<iframe|<video|data-device-paper|\/templates\/[^" ]+\/preview/);
+  assert.doesNotMatch(markup, /<iframe|<video|<nav|<button|role="progressbar"|data-device-paper|\/templates\/[^" ]+\/preview/);
 });
 
 test("the sequence has four complete views with an unchanged tablet shell turning 90 degrees", () => {
-  const frames = DEVICE_STAGES.map((_, index) => deviceMorphAt(1440, 650, deviceStageProgress(index)));
+  const frames = DEVICE_STAGES.map((_, index) => deviceMorphAt(1440, 650, index / (DEVICE_STAGES.length - 1)));
   frames.forEach((frame, index) => {
     assert.equal(frame.rotation, index < 2 ? 0 : -90);
     assert.equal(frame.active, index);

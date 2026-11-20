@@ -1,8 +1,8 @@
 export const DEVICE_STAGES = [
-  { id: "monitor", label: "PC 모니터", src: "/assets/device-template-scroll-v1/crema-monitor.webp" },
-  { id: "tablet-landscape", label: "가로 태블릿", src: "/assets/device-template-scroll-v1/crema-tablet.webp" },
-  { id: "tablet-portrait", label: "세로 태블릿", src: "/assets/device-template-scroll-v1/crema-tablet-portrait.webp" },
-  { id: "phone", label: "모바일", src: "/assets/device-screen-correction-v1/crema-phone.webp" },
+  { id: "monitor", src: "/assets/device-template-scroll-v1/crema-monitor.webp" },
+  { id: "tablet-landscape", src: "/assets/device-template-scroll-v1/crema-tablet.webp" },
+  { id: "tablet-portrait", src: "/assets/device-template-scroll-v1/crema-tablet-portrait.webp" },
+  { id: "phone", src: "/assets/device-screen-correction-v1/crema-phone.webp" },
 ] as const;
 
 export const DEVICE_MONITOR_PHOTO = {
@@ -16,7 +16,6 @@ export const DEVICE_MONITOR_PHOTO = {
 } as const;
 
 const lastStage = DEVICE_STAGES.length - 1;
-export const deviceStageProgress = (index: number) => index / lastStage;
 export const clampDeviceProgress = (value: number) => Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0));
 
 function smoothBetween(value: number, start: number, end: number) {
