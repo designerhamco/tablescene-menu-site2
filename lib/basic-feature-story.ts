@@ -1,8 +1,8 @@
 import { heroScreenMatrix, type HeroQuad } from "./hero-cafe-motion";
 
-// Approved 1536×1024 foreground, mirrored to match the supplied composition.
+// Dining tablet photo mirrored to match the existing scene composition.
 // Coordinates are the display corners, not the outside of the tablet bezel.
-export const BASIC_TABLET_SCREEN = [[302,221],[1120,116],[1229,667],[436,812]] as const satisfies HeroQuad;
+export const BASIC_TABLET_SCREEN = [[301,211],[1118,106],[1228,669],[440,813]] as const satisfies HeroQuad;
 export const BASIC_TABLET_CANVAS = { width:1536, height:1024 } as const;
 export const BASIC_DEMO_CANVAS = { width:800, height:600 } as const;
 
