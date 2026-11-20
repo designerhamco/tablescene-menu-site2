@@ -122,19 +122,21 @@ try {
     const serviceTabs = page.getByRole("tablist", { name: "서비스 선택" });
     await assertPageTabs(serviceTabs);
     const catalogTabs = page.getByRole("tablist", { name: "템플릿 종류 선택" });
-    await assertArea(catalogTabs.locator('xpath=..'));
+    await assertArea(catalogTabs.locator('xpath=ancestor::*[@data-slot="tabs"][1]'));
     await page.screenshot({ path: `${output}/templates-${width}.png`, fullPage: true });
     await catalogTabs.getByRole('tab', { name: '기본 템플릿' }).click();
     await expect(catalogTabs.getByRole('tab', { selected: true })).toHaveText('기본 템플릿');
     const catalogOverflow = await noOverflow(page);
 
-    await page.goto(`${baseUrl}/templates/cafe_real_matcha_a/preview?device=pc`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${baseUrl}/templates/cafe_real_matcha_a/preview?device=pc`, { waitUntil: "load" });
+    await page.evaluate(() => document.fonts.ready);
     const guide = page.getByRole("dialog", { name: "메뉴판 미리보기 사용 안내" });
     if (await guide.isVisible()) await guide.getByRole("button", { name: "닫기" }).click();
     const toggle = page.locator('[data-preview-options-toggle]');
-    if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click();
+    if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.press('Enter');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
     const previewTabs = page.getByRole('tablist', { name: '미리보기 옵션 종류' });
-    await assertArea(previewTabs.locator('xpath=..'));
+    await assertArea(previewTabs.locator('xpath=ancestor::*[@data-slot="tabs"][1]'));
     await page.screenshot({ path: `${output}/preview-options-${width}.png` });
 
     await page.goto(`${baseUrl}/guides`, { waitUntil: "domcontentloaded" });
