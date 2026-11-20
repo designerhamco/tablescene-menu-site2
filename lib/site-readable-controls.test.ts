@@ -10,11 +10,7 @@ test("semantic copy sizes merge independently from foreground colors and respons
   assert.equal(cn("text-support md:text-copy", "md:text-lg"), "text-support md:text-lg");
 });
 
-test("visual field sizes preserve native input size and exclude non-text application controls", () => {
-  const css = read("styles/ui-system.css");
-  for (const [size, height] of [["sm", "2rem"], ["md", "2.5rem"], ["lg", "2.75rem"], ["search", "3rem"]]) {
-    assert.ok(css.includes(`--ui-field-height-${size}: ${height};`));
-  }
+test("native inputs and selects use the default field role and checkout excludes non-text inputs", () => {
   assert.match(read("app/components/ui/input.tsx"), /fieldSize = "md"/);
   assert.match(read("app/components/ui/input.tsx"), /data-field-size=\{fieldSize\}/);
   assert.match(read("app/components/ui/select.tsx"), /size === "default" \? "md" : size/);

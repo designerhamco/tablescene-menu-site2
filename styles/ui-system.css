@@ -1289,8 +1289,8 @@ select:not([multiple]):is(:not([size]), [size="1"]):not(:where(.menu-typography,
 }
 
 
-/* Form hierarchy: filters 32, ordinary forms 40, applications 44, hero search 48.
- * These classes and data attributes are opt-in site UI; menu controls are isolated. */
+/* Field-size roles use shared tokens. The official-site scope sets standard
+ * inputs and selects to 44px and preserves compact and renderer overrides. */
 .site-field[data-field-size="sm"], .site-field-sm,
 [data-field-size="sm"]:is(input, select, [data-slot="select-trigger"]) {
   min-height: var(--ui-field-height-sm); padding-block: .25rem;
@@ -1301,7 +1301,7 @@ select:not([multiple]):is(:not([size]), [size="1"]):not(:where(.menu-typography,
 }
 .site-field[data-field-size="lg"], .site-field-lg,
 [data-field-size="lg"]:is(input, select, [data-slot="select-trigger"]) {
-  min-height: var(--ui-field-height-lg); padding-block: .5rem;
+  min-height: var(--ui-field-height-lg); padding-block: var(--ui-field-md-padding-block);
 }
 .site-field.site-field-search, input[data-field-size="search"] {
   min-height: var(--ui-field-height-search); border-radius: 1rem;
