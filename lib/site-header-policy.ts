@@ -10,5 +10,7 @@ export function isHomeHeroHeaderOverlay(pathname: string, heroBottom: number | n
 
 /** Dark service panels extend behind the fixed header only after reaching the top. */
 export function isHomeServiceHeaderOverlay(pathname: string, top: number | null, bottom: number | null, headerHeight: number): boolean {
-  return pathname === "/" && top !== null && bottom !== null && Number.isFinite(top) && Number.isFinite(bottom) && top <= 0 && bottom > Math.max(0, headerHeight);
+  // scrollIntoView may round to a whole pixel while layout edges remain fractional.
+  const reachesViewportTop = top !== null && Number.isFinite(top) && top < 1;
+  return pathname === "/" && reachesViewportTop && bottom !== null && Number.isFinite(bottom) && bottom > Math.max(0, headerHeight);
 }
