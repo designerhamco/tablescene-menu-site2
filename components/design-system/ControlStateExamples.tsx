@@ -80,8 +80,7 @@ export default function ControlStateExamples() {
       <tbody>{(["page", "underline", "area", "outline", "document"] as const).map(variant => <tr key={variant}><th scope="row">{{page:"페이지 전환",underline:"밑줄",area:"영역형",outline:"상태값 전환",document:"문서형"}[variant]}</th>{states.map(([state,stateLabel]) => <td key={state}><Tabs variant={variant} defaultValue="selected"><TabsList aria-label={`${variant} ${stateLabel} 예시`}>
         <TabsTrigger value="selected" data-ui-state={state === "default" || state === "disabled" ? undefined : state} disabled={state === "disabled"}>선택</TabsTrigger>
       </TabsList><TabsContent value="selected" className="sr-only" tabIndex={-1}>상태 예시</TabsContent></Tabs></td>)}</tr>)}</tbody></table></div>
-    <p className="type-body-sm text-zinc-600">어두운 미리보기 막대에서 선택한 기기·배치는 흰색, 비선택 탭과 꺼진 기능은 진한 회색 면·흰 글자입니다. 실행 버튼은 밝은 회색 면·검정 글자, 조작 불가는 더 어두운 면·흐린 글자로 구분합니다. 도움말·접기는 무배경 흰색 아이콘, 일반 기본 버튼은 검정 면을 유지합니다.</p>
-    <p className="type-body-sm text-zinc-600">기기 선택과 태블릿 회전, 호출·주문, 묶음형·채움형을 각각 같은 회색 배경으로 묶습니다.</p>
+    <p className="type-body-sm text-zinc-600">선택한 기기·배치는 흰색으로 강조하고, 호출·주문 상태는 체크박스로 표시합니다. 회전·도움말·접기는 배경 없는 아이콘을 쓰고, 실제 화면 보기는 밝은 회색 실행 버튼으로 구분합니다.</p>
     <div className={styles.inverseToolbar} role="group" aria-label="미리보기 도구 스타일 예시">
       <div className="site-preview-control-group" role="group" aria-label="기기 선택 그룹 예시">
         {MENU_PREVIEW_DEVICE_ORDER.map(device => (
@@ -91,7 +90,7 @@ export default function ControlStateExamples() {
           </button>
         ))}
         {previewDevice === "tablet" ? (
-          <button type="button" className="site-preview-control site-preview-control-icon" data-icon-appearance="framed"
+          <button type="button" className="site-icon-control site-preview-control site-preview-control-icon" data-icon-appearance="bare"
             aria-label={`태블릿을 ${MENU_PREVIEW_ORIENTATIONS[previewPortrait ? "landscape" : "portrait"]}로 회전 예시`}
             onClick={() => setPreviewPortrait(current => !current)}>
             <PreviewOrientationIcon />

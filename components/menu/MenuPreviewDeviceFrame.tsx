@@ -277,7 +277,7 @@ export default function MenuPreviewDeviceFrame(
           data-preview-device-toolbar=""
           data-preview-service-controls={supportsLayoutPreview && device !== "mobile" ? "layout" : supportsCallPreview || supportsOrderPreview ? "services" : undefined}
           data-toolbar-open={showToolbar ? "true" : "false"}
-          className={`${styles.toolbar} pointer-events-auto relative min-w-0 shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-zinc-950/90 p-2 text-white backdrop-blur-[2px] transition-[width,transform] duration-300 ease-out`}
+          className={`${styles.toolbar} pointer-events-auto relative min-w-0 shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/90 p-2 text-white backdrop-blur-[2px] transition-[width,transform] duration-300 ease-out`}
           style={{
             transform: showToolbar
               ? "translateY(0.5rem)"
@@ -336,7 +336,7 @@ export default function MenuPreviewDeviceFrame(
                   })}
                   scroll={false}
                   tabIndex={showToolbar ? undefined : -1}
-                  className="site-preview-control site-preview-control-icon" data-icon-appearance="framed"
+                  className="site-icon-control site-preview-control site-preview-control-icon" data-icon-appearance="bare"
                 >
                   <PreviewOrientationIcon />
                 </Link>

@@ -4,13 +4,12 @@
   --ui-preview-button-boundary: rgb(0 0 0 / 8%);
   --ui-preview-button-hover: var(--ui-surface-soft);
   --ui-preview-button-pressed: var(--ui-border);
-  --ui-preview-selection-surface: #35373c;
-  --ui-preview-selection-hover: #464950;
-  --ui-preview-selection-pressed: #292b30;
-  --ui-preview-selection-boundary: rgb(255 255 255 / 8%);
+  --ui-preview-selection-ink: #e2e4e8;
+  --ui-preview-selection-hover: #35373c;
+  --ui-preview-selection-pressed: #1c1d21;
   --ui-preview-disabled-surface: #202126;
-  --ui-preview-disabled-ink: #6f737c;
-  --ui-preview-group-surface: #55585f;
+  --ui-preview-disabled-ink: #9397a0;
+  --ui-preview-group-surface: #242528;
   --ui-media-ink: #ffffff;
   --ui-media-hover-ink: #d4d4d8;
   --ui-media-counter-surface: rgb(9 9 11 / 60%);
@@ -1243,14 +1242,16 @@ textarea.site-field,
 .site-preview-control { display: inline-flex; flex: none; align-items: center; justify-content: center; gap: .375rem; min-height: var(--ui-preview-control-height, 2.25rem); padding: .5rem; border: 1px solid var(--ui-preview-button-boundary); border-radius: var(--ui-radius-control-rounded); background: var(--ui-preview-button-surface); color: var(--ui-text); font-size: var(--type-caption-size); font-weight: 600; line-height: 1.5; white-space: nowrap; cursor: pointer; transition: background-color var(--ui-transition), color var(--ui-transition); }
 .site-preview-control:where(:not(.site-preview-toolbar-toggle):not(:disabled):not([aria-disabled="true"]):not(:has(:disabled))):is(:hover, [data-ui-state="hover"]) { background: var(--ui-preview-button-hover); }
 .site-preview-control:where(:not(.site-preview-toolbar-toggle):not(:disabled):not([aria-disabled="true"]):not(:has(:disabled))):is(:active, [data-ui-state="pressed"]) { background: var(--ui-preview-button-pressed); }
-.site-preview-control:is([aria-current="false"], [aria-pressed="false"]), .site-preview-choice:has(input:not(:checked)) { background: var(--ui-preview-selection-surface); border-color: var(--ui-preview-selection-boundary); color: var(--ui-media-ink); }
-:is(.site-preview-control:is([aria-current="false"], [aria-pressed="false"]), .site-preview-choice:has(input:not(:checked))):where(:not(:disabled):not([aria-disabled="true"]):not(:has(:disabled))):is(:hover, [data-ui-state="hover"]) { background: var(--ui-preview-selection-hover); }
-:is(.site-preview-control:is([aria-current="false"], [aria-pressed="false"]), .site-preview-choice:has(input:not(:checked))):where(:not(:disabled):not([aria-disabled="true"]):not(:has(:disabled))):is(:active, [data-ui-state="pressed"]) { background: var(--ui-preview-selection-pressed); }
+.site-preview-control:is([aria-current="false"], [aria-pressed="false"]), .site-preview-choice { background: transparent; border-color: transparent; color: var(--ui-preview-selection-ink); }
+.site-preview-choice input[type="checkbox"] { color-scheme: dark; accent-color: var(--ui-surface); }
+.site-preview-choice:has(input:checked) { color: var(--ui-media-ink); }
+:is(.site-preview-control:is([aria-current="false"], [aria-pressed="false"]), .site-preview-choice):where(:not(:disabled):not([aria-disabled="true"]):not(:has(:disabled))):is(:hover, [data-ui-state="hover"]) { background: var(--ui-preview-selection-hover); }
+:is(.site-preview-control:is([aria-current="false"], [aria-pressed="false"]), .site-preview-choice):where(:not(:disabled):not([aria-disabled="true"]):not(:has(:disabled))):is(:active, [data-ui-state="pressed"]) { background: var(--ui-preview-selection-pressed); }
 .site-preview-control:is([aria-current="page"], [aria-current="true"], [aria-pressed="true"]) { background: var(--ui-surface); border-color: var(--ui-surface); color: var(--ui-text); }
 .site-preview-control:is([aria-current="page"], [aria-current="true"], [aria-pressed="true"]):hover:not(:disabled):not([aria-disabled="true"]) { background: var(--ui-surface-muted); }
 .site-preview-control:is([aria-current="page"], [aria-current="true"], [aria-pressed="true"]):active:not(:disabled):not([aria-disabled="true"]) { background: var(--ui-action-soft-pressed); }
 .site-preview-control:is(:focus-visible, [data-ui-state="focus"]) { outline: 2px solid #8bbcff; outline-offset: 2px; }
-.site-preview-control:is(:disabled, [aria-disabled="true"]), .site-preview-control.site-preview-choice:has(:disabled) { cursor: not-allowed; opacity: 1; background: var(--ui-preview-disabled-surface); border-color: var(--ui-preview-selection-boundary); color: var(--ui-preview-disabled-ink); }
+.site-preview-control:is(:disabled, [aria-disabled="true"]), .site-preview-control.site-preview-choice:has(:disabled) { cursor: not-allowed; opacity: 1; background: var(--ui-preview-disabled-surface); border-color: transparent; color: var(--ui-preview-disabled-ink); }
 .site-preview-control-icon { width: var(--ui-preview-control-height, 2.25rem); min-width: var(--ui-preview-control-height, 2.25rem); height: var(--ui-preview-control-height, 2.25rem); padding: 0; }
 .site-preview-control.site-icon-control:not([data-icon-appearance="framed"]):not(:disabled):not([aria-disabled="true"]) { color: var(--ui-media-ink); }
 .site-preview-control.site-icon-control:not([data-icon-appearance="framed"]):is(:hover, [data-ui-state="hover"], :active, [data-ui-state="pressed"]):not(:disabled):not([aria-disabled="true"]) { color: var(--ui-media-hover-ink); }
@@ -1261,7 +1262,6 @@ textarea.site-field,
 .site-preview-control.site-preview-toolbar-toggle { position: absolute; right: .5rem; top: 50%; width: var(--ui-preview-control-height); height: var(--ui-preview-control-height); padding: 0; transform: translateY(-50%); border: 0; background: transparent; box-shadow: none; color: #fff; }
 .site-preview-control.site-preview-toolbar-toggle[aria-expanded="false"] { right: auto; top: auto; bottom: 0; left: 50%; width: 3rem; height: 1.75rem; min-height: 1.75rem; transform: translateX(-50%); }
 @media (max-width: 767px) { [data-preview-device-toolbar] { --ui-preview-control-height: var(--ui-control-height-header); } }
-.site-preview-choice { background: var(--ui-preview-button-surface); }
 @media (prefers-reduced-motion: reduce) { .site-preview-control { transition: none; } }
 
 /* Site selects share the Remix Line chevron at16px and a12px trailing inset.
