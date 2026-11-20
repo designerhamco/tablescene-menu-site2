@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
-import { getSiteHeaderSurface, isHomeHeroHeaderOverlay, isHomeServiceHeaderOverlay } from "./site-header-policy";
+import { getSiteHeaderSurface, isHomeBasicHeaderApproach, isHomeHeroHeaderOverlay, isHomeServiceHeaderOverlay } from "./site-header-policy";
 
 const navbarSource = readFileSync(
   new URL("../app/components/layout/Navbar.tsx", import.meta.url),
@@ -54,4 +54,11 @@ test("service header becomes transparent only over dark panels and restores at e
   for (const [top,bottom] of [[1,2701],[72,2772],[-2628,72],[-2700,0],[NaN,900],[0,Infinity]]) assert.equal(isHomeServiceHeaderOverlay("/",top,bottom,72),false);
   assert.equal(isHomeServiceHeaderOverlay("/",null,null,72),false);
   for (const path of ["/services/basic","/services/dining","/services/display","/templates"]) assert.equal(isHomeServiceHeaderOverlay(path,-10,900,72),false);
+});
+
+test("Basic entrance clears the background through the device handoff before the dark overlay", () => {
+  for (const top of [901, 900, 450, 72, 1]) assert.equal(isHomeBasicHeaderApproach("/", top, 900), true);
+  for (const top of [902, 0, -10, null, NaN, Infinity]) assert.equal(isHomeBasicHeaderApproach("/", top, 900), false);
+  assert.equal(isHomeBasicHeaderApproach("/faq", 450, 900), false);
+  assert.match(navbarStyles, /\.shell\[data-home-basic-approach="true"\] \{ background: transparent; transition-property: color; \}/);
 });

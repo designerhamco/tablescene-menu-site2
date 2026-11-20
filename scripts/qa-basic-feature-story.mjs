@@ -27,22 +27,21 @@ try {
     await page.route("**/api/**",route=>route.request().method()==="GET" ? route.continue() : route.abort());
     try {
       await enter(page);
-      const story=page.locator('[data-basic-feature-story]'), next=story.getByRole("button",{name:"다음 기능 보기"}), previous=story.getByRole("button",{name:"이전 기능 보기"});
-      await expect(previous).toBeDisabled();
-      const disabledInk = await previous.evaluate(element => getComputedStyle(element).color);
-      assert.notEqual(disabledInk, await next.evaluate(element => getComputedStyle(element).color));
-      assert.equal(await story.getAttribute("data-feature-index"),"-1");
+      const story=page.locator('[data-basic-feature-story]');
+      const segments=story.locator('[data-basic-segment]');
+      const nav=story.locator('[data-basic-progress]');
+      await expect(segments).toHaveCount(9);
+      await expect(segments.first()).toHaveAttribute("aria-current","step");
+      await expect(story).toHaveAttribute("data-feature-index","-1");
       assert.ok((await story.locator('h2').textContent()).includes("베이직, 한 장에 담는"));
-      assert.equal(await story.locator('[data-basic-management]').count(),0);
-      assert.ok((await story.locator('nav').textContent()).includes("Start"));
+      await expect(story.locator('[data-basic-management]')).toHaveCount(0);
       await story.locator('img').evaluateAll(images=>Promise.all(images.map(image=>image.decode().catch(()=>{}))));
       await page.screenshot({path:`${output}/intro-${width}-${height}.png`});
-      await next.click();
+      await segments.nth(1).click();
       await expect(story).toHaveAttribute("data-feature-index","0");
-      assert.ok(!(await previous.isDisabled()),"first feature can return to introduction");
-      await previous.click();
+      await segments.first().click();
       await expect(story).toHaveAttribute("data-feature-index","-1");
-      await next.click();
+      await segments.nth(1).click();
       await expect(story).toHaveAttribute("data-feature-index","0");
       assert.equal(await story.locator('[data-basic-tablet-screen] button').count(),0);
       assert.equal(await story.locator('ol,iframe,[role="dialog"]').count(),0);
@@ -53,17 +52,16 @@ try {
         assert.ok((await story.locator('h2').textContent()).includes(labels[index]));
         assert.ok((await story.locator('[data-basic-management] h3').textContent()).includes(labels[index]));
         assert.equal(await story.locator('[data-basic-feature-preview]').getAttribute("data-playing"),"false","reduced motion keeps preview static");
-        if(index<7) await next.click();
+        await expect(segments.nth(index+1)).toHaveAttribute("aria-current","step");
+        await expect(nav.getByRole("progressbar").nth(index)).toHaveAttribute("aria-valuenow","100");
+        if(index<7) await segments.nth(index+2).click();
       }
-      assert.ok(await next.isDisabled());
       assert.ok((await story.locator('[data-basic-feature-copy]').textContent()).includes("선결제는 준비 중"));
-      await previous.focus();
-      await previous.press("ArrowLeft");
+      await segments.last().press("ArrowLeft");
       await expect(story).toHaveAttribute("data-feature-index","6");
-      for (let index=5;index>=0;index--) {
-        await previous.click();
-        await expect(story).toHaveAttribute("data-feature-index",String(index));
-      }
+      await expect(segments.nth(7)).toBeFocused();
+      await segments.nth(1).click();
+      await expect(story).toHaveAttribute("data-feature-index","0");
       await story.locator('img').evaluateAll(images=>Promise.all(images.map(image=>image.decode().catch(()=>{}))));
       const geometry=await story.evaluate(element=>{
         const rect=element.getBoundingClientRect(), nav=element.querySelector('nav').getBoundingClientRect(), screen=element.querySelector('[data-basic-tablet-screen]').getBoundingClientRect(), title=element.querySelector('h2').getBoundingClientRect();
@@ -77,7 +75,7 @@ try {
       if(width<768) assert.ok(geometry.navBottom<geometry.screen.y,"mobile navigation precedes the screen");
       await page.screenshot({path:`${output}/basic-${width}-${height}.png`});
       const skip = story.getByRole("link", { name: /Skip.*다이닝으로 이동/ });
-      assert.ok((await skip.boundingBox()).x > (await next.boundingBox()).x);
+      assert.ok((await skip.boundingBox()).x > (await segments.last().boundingBox()).x);
       await skip.click();
       await page.waitForURL("**/#service-dining");
       await expect(page.locator("#service-dining-heading")).toBeFocused();
@@ -113,7 +111,15 @@ try {
     assert.notEqual(await timer.textContent(),before,"selected countdown starts automatically");
     assert.equal(await story.locator('[data-demo-motion]').evaluate(element=>getComputedStyle(element).animationIterationCount),"infinite");
     await page.screenshot({path:`${output}/basic-sale-playing.png`});
-    await page.locator('[data-service-anchor="dining"]').evaluate(element=>window.scrollTo({top:scrollY+element.getBoundingClientRect().top+1,behavior:"instant"}));
+    await story.getByRole("link",{name:/Skip.*다이닝/}).click();
+    await page.waitForURL("**/#service-dining");
+    await page.waitForFunction(() => {
+      const transform = getComputedStyle(document.documentElement, "::view-transition-new(root)").transform;
+      if (!transform.startsWith("matrix")) return false;
+      return new DOMMatrixReadOnly(transform).m42 > 10;
+    }, undefined, { timeout:3000 });
+    await expect(page.locator('html')).not.toHaveAttribute('data-home-dining-cover');
+    await expect(page.locator('#service-dining-heading')).toBeFocused();
     await page.waitForFunction(()=>document.querySelector('[data-basic-feature-preview]').dataset.playing==="false");
     await expect(story).toHaveAttribute("data-feature-index","7");
     await page.evaluate(top=>window.scrollTo({top,behavior:"instant"}),salePosition);

@@ -3,9 +3,8 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion, useInView, useReducedMotion } from "motion/react";
-import { ProgressBar } from "@/app/components/ui/loading-state";
-import { Button } from "@/app/components/ui/button";
-import { HERO_CAFE_CHAPTERS, HERO_CAFE_PHOTOS, HERO_CAFE_SCREENS, HERO_CHAPTER_DURATION_MS, HERO_TEMPLATE_SCREENS, HERO_STORY_SVH, HERO_COUNTER_TIMELINE, HERO_PHONE_TIMELINE, heroTween, heroSceneAt, heroProgressAt, heroSaleZoom, heroSaleHighlightAt, heroScreenMatrix, heroScaleQuad, heroTemplateAt, heroPulseAt, heroLiveSceneAt, heroSegmentProgressAt, type HeroQuad, type HeroScreenRect } from "@/lib/hero-cafe-motion";
+import StoryProgress from "./StoryProgress";
+import { HERO_CAFE_CHAPTERS, HERO_CAFE_PHOTOS, HERO_CAFE_SCREENS, HERO_CHAPTER_DURATION_MS, HERO_TEMPLATE_SCREENS, HERO_STORY_SVH, HERO_COUNTER_TIMELINE, HERO_PHONE_TIMELINE, heroTween, heroSceneAt, heroProgressAt, heroSaleZoom, heroSaleHighlightAt, heroScreenMatrix, heroScaleQuad, heroTemplateAt, heroPulseAt, heroLiveSceneAt, type HeroQuad, type HeroScreenRect } from "@/lib/hero-cafe-motion";
 import styles from "./HomeHeroMotion.module.css";
 import HeroLiveMenu from "./HeroLiveMenu";
 import HeroMobileMenu from "./HeroMobileMenu";
@@ -145,22 +144,8 @@ export default function HomeHeroMotion() {
           <Heading className="type-section-title">{scene.title}</Heading>
           <p className="type-body-lg">{scene.body}</p>
         </motion.div>
-        <nav className={styles.progress} data-hero-progress aria-label="서비스 소개 진행">
-          {HERO_CAFE_CHAPTERS.map((item,index)=>{
-            const active=chapter===index;
-            const label=`${index+1}. ${item.label} · ${active?"현재 장면":"장면 보기"}`;
-            return <div className={styles.segment} key={item.image}>
-              <Button className={styles.segmentAction} type="button" variant="ghost" size="icon" aria-label={label} title={label}
-                aria-current={active?"step":undefined} data-hero-segment={index} data-active={active}
-                onClick={()=>select(index)} onKeyDown={event=>{
-                  const next=["ArrowRight","ArrowDown"].includes(event.key)?Math.min(HERO_CAFE_CHAPTERS.length-1,index+1):["ArrowLeft","ArrowUp"].includes(event.key)?Math.max(0,index-1):event.key==="Home"?0:event.key==="End"?HERO_CAFE_CHAPTERS.length-1:null;
-                  if(next===null)return;event.preventDefault();event.stopPropagation();select(next);
-                  event.currentTarget.closest("nav")?.querySelectorAll<HTMLButtonElement>("button")[next]?.focus({preventScroll:true});
-                }}/>
-              <ProgressBar label={`${item.label} 장면 스크롤 진행`} value={Math.round(heroSegmentProgressAt(index,chapter,localProgress)*1000)/10} appearance="media"/>
-            </div>;
-          })}
-          <a className={`${styles.skip} type-caption`} href="#device-platform" aria-label="Skip: 소개를 건너뛰고 다음 섹션으로 이동" data-hero-skip onClick={event=>{
+        <StoryProgress label="서비스 소개 진행" chapters={HERO_CAFE_CHAPTERS.map(item=>item.label)} active={chapter} progress={localProgress} onSelect={select} story="hero" className={styles.progress} skip={
+          <a className="type-caption" href="#device-platform" aria-label="Skip: 소개를 건너뛰고 다음 섹션으로 이동" data-hero-skip onClick={event=>{
             if(event.metaKey||event.ctrlKey||event.shiftKey||event.altKey||event.button!==0)return;
             const target=document.getElementById("device-platform");
             if(!target)return;
@@ -169,7 +154,7 @@ export default function HomeHeroMotion() {
             window.scrollTo({top:Math.ceil(window.scrollY+target.getBoundingClientRect().top-inset),behavior:"instant"});
             document.getElementById("device-platform-heading")?.focus({preventScroll:true});
           }}>Skip</a>
-        </nav>
+        }/>
       </div>
     </div>
   </section>;

@@ -14,6 +14,7 @@
   --site-header-link-hover: rgb(255 255 255 / 75%);
 }
 .shell[data-header-surface="dark"][data-scrolled="false"] .accountDivider { background: rgb(255 255 255 / 30%); }
+.shell[data-home-basic-approach="true"] { background: transparent; transition-property: color; }
 .shell[data-home-hero="true"] {
   background: transparent;
   color: var(--ui-media-ink);

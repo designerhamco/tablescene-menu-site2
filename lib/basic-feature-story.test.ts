@@ -14,11 +14,9 @@ test("service introduction is the initial scene and does not count as a ninth fe
   assert.match(html,/data-feature-index="-1"/);
   assert.match(html,/data-basic-feature-preview="intro"/);
   assert.equal((html.match(/data-basic-tablet-screen/g)??[]).length,1);
-  assert.equal((html.match(/aria-controls=/g)??[]).length,2);
-  assert.match(html,/aria-label="이전 기능 보기"[^>]*disabled/);
-  assert.match(html,/aria-label="다음 기능 보기"/);
-  assert.doesNotMatch(html,/<ol|<iframe|role="dialog"|data-service-gallery/);
-  assert.match(html,/>Start<\/span>/);
+  assert.equal((html.match(/data-basic-segment=/g)??[]).length,9);
+  assert.match(html,/aria-label="1. Start · 현재 장면"/);
+  assert.doesNotMatch(html,/이전 기능 보기|다음 기능 보기|<ol|<iframe|role="dialog"|data-service-gallery/);
   assert.match(html,/href="\/#service-dining"/);
   assert.doesNotMatch(html,/data-basic-management|site-media-playback|01.*08|<video/);
 });

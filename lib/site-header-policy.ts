@@ -14,3 +14,9 @@ export function isHomeServiceHeaderOverlay(pathname: string, top: number | null,
   const reachesViewportTop = top !== null && Number.isFinite(top) && top < 1;
   return pathname === "/" && reachesViewportTop && bottom !== null && Number.isFinite(bottom) && bottom > Math.max(0, headerHeight);
 }
+
+/** Clear the header as the dark Basic frame enters the completed device stage. */
+export function isHomeBasicHeaderApproach(pathname: string, serviceTop: number | null, deviceViewportHeight: number): boolean {
+  // The device stage and header together fill the same viewport used for the sticky handoff.
+  return pathname === "/" && serviceTop !== null && serviceTop >= 1 && serviceTop <= deviceViewportHeight + 1;
+}
