@@ -107,8 +107,7 @@ try {
     await expect(areaList.getByRole("tab", { selected: true })).toHaveText("기본 템플릿");
     await page.keyboard.press("ArrowRight");
     await expect(areaList.getByRole("tab", { selected: true })).toHaveText("디자인 템플릿");
-    // Existing wide examples can overflow the library independently of its tab rails.
-    const designSystemOverflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+    const designSystemOverflow = await noOverflow(page);
     await section.screenshot({ path: `${output}/library-${width}.png` });
     const notificationTabs = page.getByRole('tablist', { name: '알림 분류' });
     await expect(notificationTabs).toHaveAttribute('data-purpose', 'category');

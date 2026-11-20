@@ -1420,8 +1420,8 @@ svg.site-edit-icon {
 .site-floor-object:has(> .site-floor-object-interaction:focus-visible) { outline: 2px solid var(--ui-focus); outline-offset: -2px; }
 @media (min-width: 768px) { .site-floor-workspace-tools, .site-floor-workspace-footer { padding: var(--site-panel-inset-wide); } }
 
-/* One reserved row keeps canvas coordinates stable when an object is selected. */
-.site-floor-workspace-selection { display: flex; align-items: center; min-block-size: calc(var(--ui-control-height-header) + var(--site-space-copy) * 2); padding: var(--site-space-copy) var(--site-panel-inset); border-bottom: 1px solid var(--ui-border); overflow-x: auto; }
+/* Keep the reserved row height and contain absolutely positioned assistive text in the scroller. */
+.site-floor-workspace-selection { position: relative; display: flex; align-items: center; min-block-size: calc(var(--ui-control-height-header) + var(--site-space-copy) * 2); padding: var(--site-space-copy) var(--site-panel-inset); border-bottom: 1px solid var(--ui-border); overflow-x: auto; }
 .site-floor-workspace-selection > p { margin: 0; white-space: nowrap; }
 /* Categories use stronger shared headings and functional dividers, without cards. */
 .site-control-category-row { display: flex; inline-size: 100%; min-inline-size: max-content; min-block-size: var(--ui-control-height-header); align-items: center; gap: var(--site-space-block); white-space: nowrap; }
