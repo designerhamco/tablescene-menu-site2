@@ -92,8 +92,8 @@ export default function DevicePlatformStory() {
         <div ref={stage} className={styles.stage} data-device-stage>
           <div className={`site-marketing-container ${styles.copy}`}>
             <MarketingCopyReveal className="site-stack-title">
-              <h2 id="device-platform-heading" tabIndex={-1} className="type-section-title">화면은 달라도, 메뉴판은 하나.</h2>
-              <p className="type-body-lg site-copy-muted">매장 모니터부터 손님 휴대폰까지, 같은 링크로 메뉴를 열 수 있어요.</p>
+              <h2 id="device-platform-heading" tabIndex={-1} className="type-section-title">어떤 기기에서도 사용할 수 있는 메뉴판</h2>
+              <p className="type-body-lg site-copy-muted">매장 모니터부터 손님 휴대폰까지, 다양한 화면에서 메뉴판을 이용해 보세요.</p>
             </MarketingCopyReveal>
           </div>
           <div className={`site-marketing-container ${styles.visual}`}>
