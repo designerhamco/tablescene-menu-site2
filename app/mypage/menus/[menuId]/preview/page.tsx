@@ -12,7 +12,7 @@ import PreviewFullscreenControl from "@/components/menu/PreviewFullscreenControl
 import MobilePreviewEntryNotice from "@/components/menu/MobilePreviewEntryNotice";
 import MenuPageRenderer from "@/components/menu/MenuPageRenderer";
 import { normalizeLocale } from "@/lib/locales";
-import { getAuthorizedPreviewMenuPageData, type MenuPageData } from "@/lib/menu-page-data";
+import { getAuthorizedPreviewMenuPageData, getAuthorizedPreviewOrderCustomization, type MenuPageData } from "@/lib/menu-page-data";
 import {
   buildMenuPreviewUrl,
   normalizeMenuPreviewDevice,
@@ -182,7 +182,10 @@ export default async function MenuPreviewPage({ params, searchParams }: PageProp
     );
   }
 
-  const previewOrderCallConfig = buildInteractivePreviewConfig(data, features.call, features.order);
+  const orderCustomization = features.order
+    ? await getAuthorizedPreviewOrderCustomization(accessContext)
+    : undefined;
+  const previewOrderCallConfig = buildInteractivePreviewConfig(data, features.call, features.order, orderCustomization);
 
   return (
     <>

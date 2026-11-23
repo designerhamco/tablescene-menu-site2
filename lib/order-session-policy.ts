@@ -14,10 +14,12 @@ export function normalizeOrderPhone(value: unknown) {
   return phone;
 }
 
-export function orderCartSignature(lines: {menuItemId?: string; menuCategoryId?: string; quantity: number; optionValueIds: string[]}[]) {
+export function orderCartSignature(lines: {menuItemId?: string; menuCategoryId?: string; quantity: number; optionValueIds: string[]; productOption?: string | null; lineRequest?: string | null}[]) {
   const totals = new Map<string, number>();
   for (const line of lines) {
-    const key = JSON.stringify([line.menuItemId ?? `course:${line.menuCategoryId}`, [...line.optionValueIds].sort()]);
+    const identity = [line.menuItemId ?? `course:${line.menuCategoryId}`, [...line.optionValueIds].sort()];
+    if (line.productOption || line.lineRequest) identity.push([line.productOption ?? "", line.lineRequest ?? ""]);
+    const key = JSON.stringify(identity);
     totals.set(key, (totals.get(key) ?? 0) + line.quantity);
   }
   return JSON.stringify([...totals].sort(([a], [b]) => a.localeCompare(b)));

@@ -62,7 +62,7 @@ export function parseCustomerOrderHistory(value: unknown): {orders: CustomerOrde
   const orders = parsePreviewOrderHistory(JSON.stringify(value.orders));
   if (orders.length !== value.orders.length || new Set(orders.map(order => order.id)).size !== orders.length
     || orders.some(order => !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(order.id) || !Number.isSafeInteger(order.orderNumber) || order.orderNumber < 1
-      || order.example || order.lines.length > 20 || order.lines.some(line => line.quantity > 20 || line.options.length > 20))) throw new Error("Invalid order history");
+      || order.example || order.lines.length > 20 || order.lines.some(line => line.quantity > 20 || line.options.length > 22))) throw new Error("Invalid order history");
   return {orders: orders.map(order => ({id: order.id, orderNumber: order.orderNumber, tableLabel: order.tableLabel,
     createdAt: order.createdAt, status: order.status, paymentStatus: order.paymentStatus, totalAmount: order.totalAmount,
     lines: order.lines.map(line => ({name: line.name, quantity: line.quantity, unitPrice: line.unitPrice, options: [...line.options]})),

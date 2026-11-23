@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { isOrderCustomizationValid, parseMenuOrderCustomization } from "./menu-order-customization";
 
 const payloadModule = await import(
   new URL("./postpay-order-payload.ts", import.meta.url).href
@@ -70,6 +71,37 @@ test("postpay payload caps customer request length", () => {
     () => parsePostpayOrderPayload({ ...validPayload(), requestText: "가".repeat(301) }),
     /300자/,
   );
+});
+
+test("line customization preserves a choice, a request, or both independently from paid options", () => {
+  const line = validPayload().lines[0];
+  const lines = [
+    { ...line, productOption: " 덜 맵게 " },
+    { ...line, lineRequest: " 파 제외 " },
+    { ...line, productOption: "맵게", lineRequest: "양파 제외" },
+  ];
+  assert.deepEqual(parsePostpayOrderPayload({ ...validPayload(), lines }).lines, [
+    { ...line, productOption: "덜 맵게" },
+    { ...line, lineRequest: "파 제외" },
+    lines[2],
+  ]);
+  assert.throws(() => parsePostpayOrderPayload({ ...validPayload(), lines: [{ ...line, lineRequest: "가".repeat(61) }] }));
+  assert.throws(() => parsePostpayOrderPayload({ ...validPayload(), lines: [{ ...line, productOption: "가".repeat(21) }] }));
+  assert.throws(() => parsePostpayOrderPayload({ ...validPayload(), lines: [{ ...line, lineRequest: "파\n제외" }] }));
+});
+
+test("editor product options default the title and enforce saved selection rules", () => {
+  const choices = [" 덜 맵게 ", "보통", "맵게", "아주 맵게", "순하게"];
+  const config = parseMenuOrderCustomization({ title: "", choices, allowRequest: false });
+  assert.equal(config.title, "상품 옵션");
+  assert.equal(config.choices[0], "덜 맵게");
+  assert.equal(isOrderCustomizationValid(config, "덜 맵게", null), true);
+  assert.equal(isOrderCustomizationValid(config, null, "파 제외"), false);
+  assert.equal(isOrderCustomizationValid({ ...config, allowRequest: true }, null, "파 제외"), true);
+  assert.equal(isOrderCustomizationValid(config, "삭제된 선택지", null), false);
+  assert.throws(() => parseMenuOrderCustomization({ ...config, choices: [...choices, "여섯 번째"] }));
+  assert.throws(() => parseMenuOrderCustomization({ ...config, choices: ["가".repeat(21)] }));
+  assert.throws(() => parseMenuOrderCustomization({ ...config, choices: ["HOT", "hot"] }));
 });
 
 

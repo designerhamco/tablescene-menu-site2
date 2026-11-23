@@ -185,6 +185,7 @@ type MenuCategory = Pick<
   Database["public"]["Tables"]["menu_categories"]["Row"],
   "id" | "menu_page_id" | "name" | "description" | "description_visible" | "section_key" | "sort_order" | "visible"
 > & {
+  allow_course_order_request?: boolean;
   course_price?: number | null;
   course_price_label?: string | null;
   course_price_visible?: boolean;
@@ -232,6 +233,7 @@ type MenuItem = Pick<
   | "price"
   | "price_label"
   | "price_note"
+  | "order_customization"
   | "price_visible"
   | "portion_label"
   | "portion_visible"
@@ -1256,7 +1258,7 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       supabase
         .from("menu_categories")
         .select((isAubeTable
-          ? "id, menu_page_id, name, description, description_visible, section_key, sort_order, visible, course_price, course_price_label, course_price_visible, course_price_description, course_price_description_visible"
+          ? "id, menu_page_id, name, description, description_visible, section_key, sort_order, visible, course_price, course_price_label, course_price_visible, course_price_description, course_price_description_visible, allow_course_order_request"
           : "id, menu_page_id, name, description, description_visible, section_key, sort_order, visible") as never)
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
@@ -1270,8 +1272,8 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       supabase
         .from("menu_items")
         .select((isAubeTable
-          ? "id, category_id, menu_page_id, name, set_name, description, price, price_label, price_note, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
-          : "id, category_id, name, set_name, description, price, price_label, price_note, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order") as never)
+          ? "id, category_id, menu_page_id, name, set_name, description, price, price_label, price_note, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order, order_customization"
+          : "id, category_id, name, set_name, description, price, price_label, price_note, price_visible, portion_label, portion_visible, image_url, image_path, badge_label, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order, order_customization") as never)
         .eq("menu_site_id", menuId)
         .order("sort_order", { ascending: true })
         .order("created_at", { ascending: true }),
@@ -1365,13 +1367,15 @@ export default async function EditMenuPage({ params, searchParams }: PageProps) 
       ? await supabase
           .from("menu_items")
           .select(
-            "id, category_id, name, set_name, description, price, price_label, price_note, price_visible, portion_label, portion_visible, image_url, image_path, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order"
+            "id, category_id, name, set_name, description, price, price_label, price_note, price_visible, portion_label, portion_visible, image_url, image_path, badge_type, recommended, origin_info, is_best, is_sold_out, traits_visible, visible, sort_order, order_customization"
           )
           .eq("menu_site_id", menuId)
           .order("sort_order", { ascending: true })
           .order("created_at", { ascending: true })
       : { data: null };
-  const baseItems = ((isMissingBadgeLabelColumn ? legacyItemsData : itemsData) ?? []) as MenuItem[];
+  const baseItems: MenuItem[] = isMissingBadgeLabelColumn
+    ? (legacyItemsData ?? []).map(item => ({ ...item, badge_label: null }))
+    : (itemsData ?? []) as unknown as MenuItem[];
   const baseItemIds = baseItems.map((item) => item.id);
   const { data: itemPriceColumnValuesData, error: itemPriceColumnValuesError } =
     baseItemIds.length > 0

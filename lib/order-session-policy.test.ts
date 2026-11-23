@@ -21,3 +21,15 @@ test("repeat comparison includes quantities/options and ignores line order/split
   assert.notEqual(signature,orderCartSignature([{...a,quantity:1},b]));
   assert.notEqual(signature,orderCartSignature([{...a,optionValueIds:["ice","large"]},b]));
 });
+
+test("repeat comparison preserves legacy signatures and distinguishes customized lines", () => {
+  const line = { menuItemId: "a", quantity: 1, optionValueIds: [] };
+  const mild = { ...line, productOption: "덜 맵게", lineRequest: "파 제외" };
+  const hot = { ...mild, productOption: "맵게" };
+  const onion = { ...mild, lineRequest: "양파 제외" };
+  assert.equal(orderCartSignature([line]), orderCartSignature([{ ...line, productOption: null, lineRequest: null }]));
+  assert.equal(orderCartSignature([mild, onion]), orderCartSignature([onion, mild]));
+  assert.notEqual(orderCartSignature([mild]), orderCartSignature([hot]));
+  assert.notEqual(orderCartSignature([mild]), orderCartSignature([onion]));
+  assert.notEqual(orderCartSignature([mild, onion]), orderCartSignature([{ ...mild, quantity: 2 }]));
+});
