@@ -7624,6 +7624,22 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   const usesCategoryPriceOptionColumns = Boolean(templateCapabilities.categoryPriceOptionColumns && templateCapabilities.priceOptions);
   const basicPricingCapabilities = getBasicPricingCapabilities(menuSite.template_key);
   const canManageCategoryPriceColumns = basicPricingCapabilities.supportsBasicPriceColumns;
+  if (supportsOrderCustomization) {
+    const categoriesById = new Map(categoryDrafts.map(category => [category.id, category]));
+    for (const item of itemDrafts) {
+      const scope = item.orderCustomization?.priceColumnIds;
+      if (!scope) continue;
+      const category = categoriesById.get(item.categoryId ?? "");
+      const columns = normalizeBasicPriceColumnDrafts(menuId, category?.priceColumns, basicPricingCapabilities.maxCategoryPriceColumns);
+      const prices = normalizeItemPriceColumnValueDrafts(menuId, item.priceColumnValues);
+      if (!canManageCategoryPriceColumns || scope.some(id =>
+        !columns.some(column => column.id === id && column.visible)
+        || !prices.some(price => price.priceColumnId === id && price.visible)
+      )) {
+        redirectToMenuEditWithError(menuId, "가격이 입력된 옵션 중 상품 옵션을 적용할 항목을 선택해 주세요.");
+      }
+    }
+  }
   const supportsPriceDisplayMode = basicPricingCapabilities.supportsPriceDisplayMode;
   const supportsPriceNote = basicPricingCapabilities.supportsPriceNote;
   const supportsPriceNoteWithPriceColumns = basicPricingCapabilities.supportsPriceNoteWithPriceColumns;
@@ -8530,7 +8546,14 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
     }
     const payloadInput = {
       ...(supportsOrderCustomization && item.orderCustomization !== undefined
-        ? { order_customization: item.orderCustomization.choices.length || item.orderCustomization.allowRequest ? item.orderCustomization : null }
+        ? { order_customization: item.orderCustomization.choices.length || item.orderCustomization.allowRequest
+          ? {
+              ...item.orderCustomization,
+              ...(item.orderCustomization.priceColumnIds ? {
+                priceColumnIds: item.orderCustomization.priceColumnIds.map(id => priceColumnIdMap.get(id) ?? id),
+              } : {}),
+            }
+          : null }
         : {}),
       name: normalizeDraftString(item.name),
       set_name: normalizeDraftString(item.setName) || null,

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isOrderCustomizationValid, parseMenuOrderCustomization } from "./menu-order-customization";
+import { getApplicableOrderCustomization, isOrderCustomizationValid, parseMenuOrderCustomization } from "./menu-order-customization";
 
 const payloadModule = await import(
   new URL("./postpay-order-payload.ts", import.meta.url).href
@@ -102,6 +102,22 @@ test("editor product options default the title and enforce saved selection rules
   assert.throws(() => parseMenuOrderCustomization({ ...config, choices: [...choices, "여섯 번째"] }));
   assert.throws(() => parseMenuOrderCustomization({ ...config, choices: ["가".repeat(21)] }));
   assert.throws(() => parseMenuOrderCustomization({ ...config, choices: ["HOT", "hot"] }));
+});
+
+test("set-only product choices depend on the selected price column and remain required", () => {
+  const config = { title: "음료", choices: ["레몬 에이드"], allowRequest: true, priceColumnIds: ["set"] };
+  const parsed = parseMenuOrderCustomization(config);
+  assert.deepEqual(parsed, config);
+  assert.throws(() => parseMenuOrderCustomization({ ...config, priceColumnIds: [] }));
+  for (const column of ["single", undefined]) {
+    const inactive = getApplicableOrderCustomization(config, column);
+    assert.equal(isOrderCustomizationValid(inactive, null, null), true);
+    assert.equal(isOrderCustomizationValid(inactive, "레몬 에이드", null), false);
+    assert.equal(isOrderCustomizationValid(inactive, null, "얼음 제외"), false);
+  }
+  const active = getApplicableOrderCustomization(config, "set");
+  assert.equal(isOrderCustomizationValid(active, null, "얼음 제외"), false);
+  assert.equal(isOrderCustomizationValid(active, "레몬 에이드", "얼음 제외"), true);
 });
 
 

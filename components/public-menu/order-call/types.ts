@@ -11,6 +11,7 @@ export type PostpayOrderCatalogOptionValue = {
   id: string;
   name: string;
   priceDelta: number;
+  priceColumnId?: string;
 };
 
 export type PostpayOrderCatalogOptionGroup = {

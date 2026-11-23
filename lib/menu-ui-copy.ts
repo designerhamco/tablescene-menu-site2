@@ -200,6 +200,7 @@ export const MENU_UI_COPY: Record<string, readonly [string, string, string]> = {
   "상품 옵션을 선택하거나 요청사항을 입력해 주세요.": ["Choose an item option or enter a request.", "商品オプションを選ぶか、ご要望を入力してください。", "请选择商品选项或填写备注。"],
   "상품 옵션을 선택해 주세요.": ["Choose an item option.", "商品オプションを選んでください。", "请选择商品选项。"],
   "상품 옵션": ["Item options", "商品オプション", "商品选项"],
+  "가격 옵션": ["Price option", "価格オプション", "价格选项"],
   "요청사항": ["Request", "ご要望", "备注"],
   "메뉴 정보를 다시 확인해 주세요.": ["Please check the item details.", "商品情報をご確認ください。", "请检查商品信息。"],
   "한 메뉴는 20개, 장바구니 전체는 50개까지 담을 수 있어요.": ["Up to 20 per item and 50 items per cart.", "1商品20個、カート全体50個までです。", "每种最多20件，购物车最多50件。"],

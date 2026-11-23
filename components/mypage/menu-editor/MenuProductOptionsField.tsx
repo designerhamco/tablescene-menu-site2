@@ -2,6 +2,7 @@
 
 import { useId } from "react";
 import { Button } from "@/app/components/ui/button";
+import { Checkbox } from "@/app/components/ui/checkbox";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import { Input } from "@/app/components/ui/input";
 import { Switch } from "@/app/components/ui/switch";
@@ -21,10 +22,12 @@ export function OrderRequestSwitch({ label, checked, onCheckedChange }: {
   );
 }
 
-export default function MenuProductOptionsField({ value, onChange, error }: {
+export default function MenuProductOptionsField({ value, onChange, error, priceColumns = [], canScopeToPrices = false }: {
   value: MenuOrderCustomization;
   onChange: (value: MenuOrderCustomization) => void;
   error: string;
+  priceColumns?: { id: string; label: string }[];
+  canScopeToPrices?: boolean;
 }) {
   const headingId = useId();
   return (
@@ -51,6 +54,38 @@ export default function MenuProductOptionsField({ value, onChange, error }: {
       </div>
       <OrderRequestSwitch label="고객 직접 입력 허용" checked={value.allowRequest}
         onCheckedChange={allowRequest => onChange({ ...value, allowRequest })} />
+      {canScopeToPrices && (value.choices.length > 0 || value.allowRequest) && (
+        <>
+          <label className="site-field-stack">
+            <span className="type-label">상품 옵션 적용 범위</span>
+            <select className="site-field" data-field-size="md" value={value.priceColumnIds ? "selected" : "all"}
+              onChange={event => onChange({ ...value, priceColumnIds: event.target.value === "selected" ? [] : undefined })}>
+              <option value="all">모든 가격에 적용</option>
+              <option value="selected">선택한 가격 옵션에만 적용</option>
+            </select>
+          </label>
+          {value.priceColumnIds && (
+            <fieldset className="site-field-stack">
+              <legend className="type-label">적용할 가격 옵션</legend>
+              <div className="site-action-row">
+                {priceColumns.map(column => {
+                  const checkedIds = value.priceColumnIds ?? [];
+                  const id = headingId + "-" + column.id;
+                  return (
+                    <div key={column.id} className="site-action-row" data-wrap="nowrap">
+                      <Checkbox id={id} checked={checkedIds.includes(column.id)}
+                        onCheckedChange={checked => onChange({ ...value, priceColumnIds: checked === true
+                          ? [...checkedIds, column.id]
+                          : checkedIds.filter(columnId => columnId !== column.id) })} />
+                      <label htmlFor={id} className="type-label">{column.label}</label>
+                    </div>
+                  );
+                })}
+              </div>
+            </fieldset>
+          )}
+        </>
+      )}
       {error && <p role="alert" className="type-body-sm text-red-700">{error}</p>}
     </ContentPanel>
   );

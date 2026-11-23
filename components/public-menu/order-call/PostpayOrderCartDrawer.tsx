@@ -41,7 +41,7 @@ import { MenuOrderIcon, type MenuOrderIconVariant } from "./MenuActionIcons";
 import {normalizeOrderPhone,orderCartSignature,TERMINAL_CART_IDLE_MS,TERMINAL_CART_WARNING_MS,type OrderChannel} from "@/lib/order-session-policy";
 import {useCustomerOrderAccess} from "./useCustomerOrderAccess";
 import OrderPolicyDialog from "./OrderPolicyDialog";
-import { EMPTY_MENU_ORDER_CUSTOMIZATION, ORDER_LINE_REQUEST_LIMIT, PRODUCT_OPTION_NAME_LIMIT, isOrderCustomizationValid, readOrderLineText } from "@/lib/menu-order-customization";
+import { getApplicableOrderCustomization, ORDER_LINE_REQUEST_LIMIT, PRODUCT_OPTION_NAME_LIMIT, isOrderCustomizationValid, readOrderLineText } from "@/lib/menu-order-customization";
 
 type StoredCartLine = {
   menuItemId: string;
@@ -87,6 +87,12 @@ function getLineKey(line: StoredCartLine) {
   return JSON.stringify([line.menuItemId, [...line.optionValueIds].sort(), line.productOption, line.lineRequest]);
 }
 
+function getSelectedItemCustomization(item: PostpayOrderCatalogItem, selectedIds: ReadonlySet<string>) {
+  const column = item.optionGroups.flatMap(group => group.values)
+    .find(value => value.priceColumnId && selectedIds.has(value.id));
+  return getApplicableOrderCustomization(item.customization, column?.priceColumnId);
+}
+
 function hydrateCartLine(
   line: StoredCartLine,
   catalog: PostpayOrderCatalogItem[],
@@ -113,7 +119,8 @@ function hydrateCartLine(
     values.find((value) => value.id === id),
   );
   if (selected.some((value) => !value)) return null;
-  const customization = item.customization ?? EMPTY_MENU_ORDER_CUSTOMIZATION;
+  const customization = getSelectedItemCustomization(item, new Set(line.optionValueIds));
+  const priceOption = selected.find(value => value?.priceColumnId);
   let productOption: string | null;
   let lineRequest: string | null;
   try {
@@ -134,7 +141,8 @@ function hydrateCartLine(
       selected.reduce((sum, value) => sum + (value?.priceDelta ?? 0), 0),
     canEditOptions: Boolean(item.optionGroups.length || customization.choices.length || customization.allowRequest),
     optionNames: [
-      ...selected.flatMap((value) => value?.name ?? []),
+      ...(priceOption ? [priceOption.name] : []),
+      ...selected.flatMap((value) => value && !value.priceColumnId ? [value.name] : []),
       ...(productOption ? [`${customization.title}: ${productOption}`] : []),
       ...(lineRequest ? [`요청사항: ${lineRequest}`] : []),
     ],
@@ -262,6 +270,9 @@ export default function PostpayOrderCartDrawer({
   const [selectedOptionIds, setSelectedOptionIds] = useState<Set<string>>(
     new Set(),
   );
+  const activeCustomization = activeItem
+    ? getSelectedItemCustomization(activeItem, selectedOptionIds)
+    : null;
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -418,9 +429,14 @@ export default function PostpayOrderCartDrawer({
     group: PostpayOrderCatalogOptionGroup,
     optionId: string,
   ) {
-    setSelectedOptionIds((current) =>
-      toggleOrderOption(group, current, optionId),
-    );
+    const next = toggleOrderOption(group, selectedOptionIds, optionId);
+    setSelectedOptionIds(next);
+    if (activeItem?.customization?.priceColumnIds) {
+      const customization = getSelectedItemCustomization(activeItem, next);
+      if (productOption && !customization.choices.includes(productOption)) setProductOption(null);
+      if (lineRequest && !customization.allowRequest) setLineRequest("");
+      setMessage("");
+    }
   }
 
   function addActiveItem() {
@@ -433,8 +449,9 @@ export default function PostpayOrderCartDrawer({
       setMessage(t("필수 옵션과 선택 개수를 확인해 주세요."));
       return;
     }
-    if (!isOrderCustomizationValid(activeItem.customization ?? EMPTY_MENU_ORDER_CUSTOMIZATION, productOption, lineRequest.trim() || null)) {
-      setMessage(activeItem.customization?.allowRequest
+    const customization = getSelectedItemCustomization(activeItem, selectedOptionIds);
+    if (!isOrderCustomizationValid(customization, productOption, lineRequest.trim() || null)) {
+      setMessage(customization.allowRequest && !customization.priceColumnIds
         ? t("상품 옵션을 선택하거나 요청사항을 입력해 주세요.")
         : t("상품 옵션을 선택해 주세요."));
       return;
@@ -755,7 +772,9 @@ export default function PostpayOrderCartDrawer({
                       >
                         <span>{value.name}</span>
                         <span>
-                          {value.priceDelta > 0 ? (
+                          {value.priceColumnId ? (
+                            formatPrice(activeItem.price + value.priceDelta)
+                          ) : value.priceDelta > 0 ? (
                             `+${formatPrice(value.priceDelta)}`
                           ) : selected ? (
                             <Check className="h-4 w-4" />
@@ -769,10 +788,13 @@ export default function PostpayOrderCartDrawer({
                 </div>
               </fieldset>
             ))}
-            {activeItem.customization && activeItem.customization.choices.length > 0 && (
+            {activeCustomization && activeCustomization.choices.length > 0 && (
               <fieldset className="space-y-2 border-0 border-b border-zinc-200 pb-4">
-                <legend className="mb-2 px-1 text-sm font-semibold">{t(activeItem.customization.title)}</legend>
-                {activeItem.customization.choices.map(choice => (
+                <legend className="mb-2 px-1 text-sm font-semibold">
+                  {t(activeCustomization.title)}
+                  {activeCustomization.priceColumnIds && <span className="ml-2 text-zinc-500">{t("필수")}</span>}
+                </legend>
+                {activeCustomization.choices.map(choice => (
                   <button key={choice} type="button" aria-pressed={productOption === choice}
                     className={`flex w-full items-center justify-between rounded-lg border px-3 py-3 text-left text-sm font-medium ${productOption === choice ? ui.primary : "border-zinc-200"}`}
                     onClick={() => { setProductOption(productOption === choice ? null : choice); setMessage(""); }}>
@@ -782,7 +804,7 @@ export default function PostpayOrderCartDrawer({
                 ))}
               </fieldset>
             )}
-            {activeItem.customization?.allowRequest && (
+            {activeCustomization?.allowRequest && (
               <label className="grid gap-2 text-sm font-semibold">
                 {t("요청사항")}
                 <input value={lineRequest} maxLength={ORDER_LINE_REQUEST_LIMIT}
