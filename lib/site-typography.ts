@@ -19,6 +19,8 @@ export const SITE_MANAGEMENT_TYPE_ROLES = [
   { key: "caption", label: "메타·작은 안내", size: 13, desktopSize: 14, weight: 400, usage: "날짜·분류·보충 정보" },
   { key: "metric", label: "통계·작은 결제 수치", size: 24, weight: 700, usage: "운영 지표·결제 요약" },
 ] as const;
+export const SITE_HOME_SECTION_TITLE_POLICY = { mobile: 28, tablet: 32, desktop: 36 } as const;
+
 export const SITE_TYPE_ROLES = [
   {
     "key": "display",
@@ -36,13 +38,11 @@ export const SITE_TYPE_ROLES = [
   {
     "key": "page-title",
     "label": "페이지 제목",
-    "mobile": 28,
-    "tablet": 28,
-    "desktop": 32,
+    ...SITE_HOME_SECTION_TITLE_POLICY,
     "weight": 700,
     "lineHeight": 1.28,
     "className": "type-page-title",
-    "usage": "로그인·마이페이지·신청 등 화면의 주제",
+    "usage": "로그인·신청 등 일반 페이지의 주제",
     "letterSpacing": "-0.04em",
     "tabletLetterSpacing": "-0.05em"
   },
@@ -323,8 +323,6 @@ export const SITE_MANAGEMENT_INTRO = {
   title: { mobile: 28, tablet: 28, desktop: 32, weight: 700, lineHeight: 1.28, letterSpacing: "-0.04em" },
   description: { size: 16, weight: 400, lineHeight: 1.5 },
 } as const;
-
-export const SITE_HOME_SECTION_TITLE_POLICY = { mobile: 28, tablet: 32, desktop: 36 } as const;
 
 /** Reserved homepage-only hero, with the shared title weight and leading. */
 export const SITE_HOME_HERO_TITLE_POLICY = {
