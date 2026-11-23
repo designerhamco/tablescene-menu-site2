@@ -1,3 +1,5 @@
+import { ORDER_LINE_REQUEST_LIMIT, PRODUCT_OPTION_NAME_LIMIT, readOrderLineText } from "./menu-order-customization";
+
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function isUuid(value: unknown): value is string {
@@ -15,6 +17,8 @@ export type PostpayOrderLineInput = {
   menuCategoryId?: string;
   quantity: number;
   optionValueIds: string[];
+  productOption?: string | null;
+  lineRequest?: string | null;
 };
 
 export type PostpayOrderInput = {
@@ -78,11 +82,22 @@ export function parsePostpayOrderPayload(value: unknown): PostpayOrderInput {
       throw new InvalidPostpayOrderPayloadError();
     }
     if (line.menuCategoryId && optionValueIds.length) throw new InvalidPostpayOrderPayloadError("코스 주문에는 개별 요리 옵션을 선택할 수 없습니다.");
+    let productOption: string | null;
+    let lineRequest: string | null;
+    try {
+      productOption = readOrderLineText(line.productOption, PRODUCT_OPTION_NAME_LIMIT);
+      lineRequest = readOrderLineText(line.lineRequest, ORDER_LINE_REQUEST_LIMIT);
+    } catch {
+      throw new InvalidPostpayOrderPayloadError("주문 옵션과 요청사항을 확인해 주세요.");
+    }
+    if (line.menuCategoryId && productOption) throw new InvalidPostpayOrderPayloadError("코스 주문에는 개별 요리 옵션을 선택할 수 없습니다.");
     totalUnits += quantity;
     return {
       ...(isUuid(line.menuItemId) ? {menuItemId:line.menuItemId} : {menuCategoryId:line.menuCategoryId as string}),
       quantity,
       optionValueIds: [...optionValueIds] as string[],
+      ...(productOption ? { productOption } : {}),
+      ...(lineRequest ? { lineRequest } : {}),
     };
   });
 

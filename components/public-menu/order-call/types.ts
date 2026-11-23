@@ -1,3 +1,4 @@
+import type { MenuOrderCustomization } from "@/lib/menu-order-customization";
 import { isKnownTemplateKey } from "@/lib/templates";
 import { readMenuOrderSettings } from "@/lib/menu-order-settings";
 import type { StaffCallItem } from "@/lib/call-items";
@@ -27,6 +28,7 @@ export type PostpayOrderCatalogItem = {
   price: number;
   imageUrl?: string;
   optionGroups: PostpayOrderCatalogOptionGroup[];
+  customization?: MenuOrderCustomization;
 };
 
 export type OrderCallEntryConfig = {

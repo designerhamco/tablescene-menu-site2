@@ -41,11 +41,14 @@ import { MenuOrderIcon, type MenuOrderIconVariant } from "./MenuActionIcons";
 import {normalizeOrderPhone,orderCartSignature,TERMINAL_CART_IDLE_MS,TERMINAL_CART_WARNING_MS,type OrderChannel} from "@/lib/order-session-policy";
 import {useCustomerOrderAccess} from "./useCustomerOrderAccess";
 import OrderPolicyDialog from "./OrderPolicyDialog";
+import { EMPTY_MENU_ORDER_CUSTOMIZATION, ORDER_LINE_REQUEST_LIMIT, PRODUCT_OPTION_NAME_LIMIT, isOrderCustomizationValid, readOrderLineText } from "@/lib/menu-order-customization";
 
 type StoredCartLine = {
   menuItemId: string;
   quantity: number;
   optionValueIds: string[];
+  productOption?: string | null;
+  lineRequest?: string | null;
 };
 
 type CartLine = StoredCartLine & {
@@ -53,6 +56,7 @@ type CartLine = StoredCartLine & {
   name: string;
   unitPrice: number;
   optionNames: string[];
+  canEditOptions: boolean;
 };
 
 type PostpayOrderCartDrawerProps = {
@@ -79,8 +83,8 @@ type PostpayOrderCartDrawerProps = {
 };
 
 
-function getLineKey(menuItemId: string, optionValueIds: string[]) {
-  return `${menuItemId}:${[...optionValueIds].sort().join(",")}`;
+function getLineKey(line: StoredCartLine) {
+  return JSON.stringify([line.menuItemId, [...line.optionValueIds].sort(), line.productOption, line.lineRequest]);
 }
 
 function hydrateCartLine(
@@ -109,14 +113,31 @@ function hydrateCartLine(
     values.find((value) => value.id === id),
   );
   if (selected.some((value) => !value)) return null;
+  const customization = item.customization ?? EMPTY_MENU_ORDER_CUSTOMIZATION;
+  let productOption: string | null;
+  let lineRequest: string | null;
+  try {
+    productOption = readOrderLineText(line.productOption, PRODUCT_OPTION_NAME_LIMIT);
+    lineRequest = readOrderLineText(line.lineRequest, ORDER_LINE_REQUEST_LIMIT);
+  } catch {
+    return null;
+  }
+  if (!isOrderCustomizationValid(customization, productOption, lineRequest)) return null;
   return {
     ...line,
-    key: getLineKey(line.menuItemId, line.optionValueIds),
+    productOption,
+    lineRequest,
+    key: getLineKey({ ...line, productOption, lineRequest }),
     name: item.name,
     unitPrice:
       item.price +
       selected.reduce((sum, value) => sum + (value?.priceDelta ?? 0), 0),
-    optionNames: selected.flatMap((value) => value?.name ?? []),
+    canEditOptions: Boolean(item.optionGroups.length || customization.choices.length || customization.allowRequest),
+    optionNames: [
+      ...selected.flatMap((value) => value?.name ?? []),
+      ...(productOption ? [`${customization.title}: ${productOption}`] : []),
+      ...(lineRequest ? [`요청사항: ${lineRequest}`] : []),
+    ],
   };
 }
 
@@ -236,6 +257,8 @@ export default function PostpayOrderCartDrawer({
     null,
   );
   const [editingLineKey, setEditingLineKey] = useState<string | null>(null);
+  const [productOption, setProductOption] = useState<string | null>(null);
+  const [lineRequest, setLineRequest] = useState("");
   const [selectedOptionIds, setSelectedOptionIds] = useState<Set<string>>(
     new Set(),
   );
@@ -307,10 +330,12 @@ export default function PostpayOrderCartDrawer({
   useEffect(() => {
     if (hydratedScope !== storageKey) return;
     const stored = cart.map(
-      ({ menuItemId, quantity: lineQuantity, optionValueIds }) => ({
+      ({ menuItemId, quantity: lineQuantity, optionValueIds, productOption, lineRequest }) => ({
         menuItemId,
         quantity: lineQuantity,
         optionValueIds,
+        productOption,
+        lineRequest,
       }),
     );
     {
@@ -353,6 +378,8 @@ export default function PostpayOrderCartDrawer({
       setActiveItem(item);
       setEditingLineKey(null);
       setSelectedOptionIds(new Set());
+      setProductOption(null);
+      setLineRequest("");
       setQuantity(1);
       setMessage("");
     });
@@ -406,9 +433,15 @@ export default function PostpayOrderCartDrawer({
       setMessage(t("필수 옵션과 선택 개수를 확인해 주세요."));
       return;
     }
+    if (!isOrderCustomizationValid(activeItem.customization ?? EMPTY_MENU_ORDER_CUSTOMIZATION, productOption, lineRequest.trim() || null)) {
+      setMessage(activeItem.customization?.allowRequest
+        ? t("상품 옵션을 선택하거나 요청사항을 입력해 주세요.")
+        : t("상품 옵션을 선택해 주세요."));
+      return;
+    }
     const optionValueIds = [...selectedOptionIds].sort();
     const hydrated = hydrateCartLine(
-      { menuItemId: activeItem.id, quantity, optionValueIds },
+      { menuItemId: activeItem.id, quantity, optionValueIds, productOption, lineRequest },
       catalog,
     );
     if (!hydrated) {
@@ -480,6 +513,8 @@ export default function PostpayOrderCartDrawer({
     setActiveItem(item);
     setEditingLineKey(line.key);
     setSelectedOptionIds(new Set(line.optionValueIds));
+    setProductOption(line.productOption ?? null);
+    setLineRequest(line.lineRequest ?? "");
     setQuantity(line.quantity);
     setMessage("");
   }
@@ -534,12 +569,14 @@ export default function PostpayOrderCartDrawer({
           notificationPhone,
           repeatOrderId:confirmedRepeatId,
           lines: cart.map(
-            ({ menuItemId, quantity: lineQuantity, optionValueIds }) => ({
+            ({ menuItemId, quantity: lineQuantity, optionValueIds, productOption, lineRequest }) => ({
               ...(menuItemId.startsWith("course:")
                 ? { menuCategoryId: menuItemId.slice(7) }
                 : { menuItemId }),
               quantity: lineQuantity,
               optionValueIds,
+              productOption,
+              lineRequest,
             }),
           ),
         }),
@@ -732,6 +769,27 @@ export default function PostpayOrderCartDrawer({
                 </div>
               </fieldset>
             ))}
+            {activeItem.customization && activeItem.customization.choices.length > 0 && (
+              <fieldset className="space-y-2 border-0 border-b border-zinc-200 pb-4">
+                <legend className="mb-2 px-1 text-sm font-semibold">{t(activeItem.customization.title)}</legend>
+                {activeItem.customization.choices.map(choice => (
+                  <button key={choice} type="button" aria-pressed={productOption === choice}
+                    className={`flex w-full items-center justify-between rounded-lg border px-3 py-3 text-left text-sm font-medium ${productOption === choice ? ui.primary : "border-zinc-200"}`}
+                    onClick={() => { setProductOption(productOption === choice ? null : choice); setMessage(""); }}>
+                    {choice}
+                    {productOption === choice && <Check aria-hidden="true" className="h-4 w-4" />}
+                  </button>
+                ))}
+              </fieldset>
+            )}
+            {activeItem.customization?.allowRequest && (
+              <label className="grid gap-2 text-sm font-semibold">
+                {t("요청사항")}
+                <input value={lineRequest} maxLength={ORDER_LINE_REQUEST_LIMIT}
+                  className="w-full min-w-0 rounded-lg border border-zinc-200 px-3 py-3"
+                  onChange={event => { setLineRequest(event.target.value); setMessage(""); }} />
+              </label>
+            )}
             <div className="flex items-center justify-between border-y border-zinc-100 py-4">
               <span className="text-sm font-semibold">{t("수량")}</span>
               <div className="flex items-center gap-4">
@@ -844,8 +902,7 @@ export default function PostpayOrderCartDrawer({
                         </div>
                         <div className="mt-3 flex items-center justify-between gap-3">
                           <div className="flex items-center gap-1">
-                            {catalog.find((item) => item.id === line.menuItemId)
-                              ?.optionGroups.length ? (
+                            {line.canEditOptions ? (
                               <button
                                 type="button"
                                 className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100"

@@ -1,5 +1,8 @@
 "use server";
 
+import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
+import { parseMenuOrderCustomization, type MenuOrderCustomization } from "@/lib/menu-order-customization";
+
 import { setMenuPublicationStatus } from "@/lib/server/menu-publication-service";
 import { setMenuTextColorsFromForm } from "@/lib/menu-text-colors";
 
@@ -5240,6 +5243,7 @@ type MenuManagementBasicPageDraft = {
 };
 
 type MenuManagementBasicCategoryDraft = {
+  allowCourseOrderRequest?: boolean;
   id: string;
   isNew?: boolean;
   pageId?: string;
@@ -5264,6 +5268,7 @@ type MenuManagementBasicCategoryDraft = {
 };
 
 type MenuManagementBasicItemDraft = {
+  orderCustomization?: MenuOrderCustomization;
   id: string;
   categoryId?: string;
   pageId?: string;
@@ -7581,6 +7586,17 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
   const pageDrafts = parseDraftArray<MenuManagementBasicPageDraft>(formData, "page_basic_drafts");
   let categoryDrafts = parseDraftArray<MenuManagementBasicCategoryDraft>(formData, "category_basic_drafts");
   const itemDrafts = parseDraftArray<MenuManagementBasicItemDraft>(formData, "item_basic_drafts");
+  const supportsOrderCustomization = getDiningTemplateFeatures(menuSite.template_key).order;
+  if (supportsOrderCustomization) {
+    for (const item of itemDrafts) {
+      if (item.orderCustomization === undefined) continue;
+      try {
+        item.orderCustomization = parseMenuOrderCustomization(item.orderCustomization);
+      } catch (error) {
+        redirectToMenuEditWithError(menuId, error instanceof Error ? error.message : "상품 옵션을 확인해 주세요.");
+      }
+    }
+  }
   const deletedPageIds = parseDraftStringArray(formData, "deleted_page_ids");
   const deletedCategoryIds = parseDraftStringArray(formData, "deleted_category_ids");
   const deletedItemIds = parseDraftStringArray(formData, "deleted_item_ids");
@@ -8308,6 +8324,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       visible: category.visible === undefined ? true : normalizeDraftBoolean(category.visible),
       sortOrder: normalizeDraftNumber(category.sortOrder),
       isNew: category.isNew === true,
+      allowCourseOrderRequest: typeof category.allowCourseOrderRequest === "boolean" ? category.allowCourseOrderRequest : undefined,
       coursePrice: normalizeDraftString(category.coursePrice) ? Number(normalizeDraftString(category.coursePrice)) : null,
       coursePriceLabel: normalizeDraftString(category.coursePriceLabel) || null,
       coursePriceVisible: category.coursePriceVisible === undefined ? true : normalizeDraftBoolean(category.coursePriceVisible),
@@ -8341,6 +8358,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       ...(isAubeTable
         ? {
             course_price: category.coursePrice,
+            ...(category.allowCourseOrderRequest !== undefined ? { allow_course_order_request: category.allowCourseOrderRequest } : {}),
             course_price_label: category.coursePriceLabel,
             course_price_visible: category.coursePriceVisible,
             course_price_description: category.coursePriceDescription,
@@ -8365,6 +8383,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
         visible: category.visible === undefined ? true : normalizeDraftBoolean(category.visible),
         sortOrder: normalizeDraftNumber(category.sortOrder),
         isNew: category.isNew === true,
+        allowCourseOrderRequest: typeof category.allowCourseOrderRequest === "boolean" ? category.allowCourseOrderRequest : undefined,
         coursePrice: normalizeDraftString(category.coursePrice) ? Number(normalizeDraftString(category.coursePrice)) : null,
         coursePriceLabel: normalizeDraftString(category.coursePriceLabel) || null,
         coursePriceVisible: category.coursePriceVisible === undefined ? true : normalizeDraftBoolean(category.coursePriceVisible),
@@ -8388,6 +8407,7 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
           ...(isAubeTable
             ? {
                 course_price: category.coursePrice,
+                ...(category.allowCourseOrderRequest !== undefined ? { allow_course_order_request: category.allowCourseOrderRequest } : {}),
                 course_price_label: category.coursePriceLabel,
                 course_price_visible: category.coursePriceVisible,
                 course_price_description: category.coursePriceDescription,
@@ -8509,6 +8529,9 @@ export async function saveMenuManagementBasicDraftAction(formData: FormData) {
       redirectToMenuEditWithError(menuId, "가격은 숫자로 입력해주세요.");
     }
     const payloadInput = {
+      ...(supportsOrderCustomization && item.orderCustomization !== undefined
+        ? { order_customization: item.orderCustomization.choices.length || item.orderCustomization.allowRequest ? item.orderCustomization : null }
+        : {}),
       name: normalizeDraftString(item.name),
       set_name: normalizeDraftString(item.setName) || null,
       origin_info: normalizeDraftString(item.originInfo) || null,

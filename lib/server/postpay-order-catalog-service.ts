@@ -1,4 +1,5 @@
 import "server-only";
+import { EMPTY_MENU_ORDER_CUSTOMIZATION, readMenuOrderCustomization } from "@/lib/menu-order-customization";
 import { hasPaidTableOperationsAccess } from "@/lib/server/table-operations-eligibility-service";
 
 import type { PublicMenuTemplateProps } from "@/components/menu-templates/types";
@@ -26,11 +27,11 @@ export async function getPostpayOrderCatalog(
   if (!isPostpayOrderRuntimeEnabledForSite(menuSiteId) || !await hasPaidTableOperationsAccess(menuSiteId)) return [];
 
   const supabase = createAdminClient();
-  const [itemsResult, groupsResult, valuesResult] = await Promise.all([
+  const [itemsResult, groupsResult, valuesResult, coursesResult] = await Promise.all([
     supabase
       .from("menu_items")
       .select(
-        "id, name, price, price_label, category_id, image_url, sort_order",
+        "id, name, price, price_label, category_id, image_url, sort_order, order_customization",
       )
       .eq("menu_site_id", menuSiteId)
       .eq("visible", true)
@@ -54,9 +55,11 @@ export async function getPostpayOrderCatalog(
       .eq("status", "active")
       .order("display_order")
       .limit(5000),
+    supabase.from("menu_categories").select("id, allow_course_order_request")
+      .eq("menu_site_id", menuSiteId).eq("allow_course_order_request", true).limit(500),
   ]);
 
-  if (itemsResult.error || groupsResult.error || valuesResult.error) return [];
+  if (itemsResult.error || groupsResult.error || valuesResult.error || coursesResult.error) return [];
 
   const valuesByGroup = new Map<
     string,
@@ -120,7 +123,9 @@ export async function getPostpayOrderCatalog(
         : item.price,
       imageUrl: item.image_url ?? undefined,
       optionGroups: groupsByItem.get(item.id) ?? [],
+      customization: readMenuOrderCustomization(item.order_customization),
     }));
+  const coursesAllowingRequests = new Set((coursesResult.data ?? []).map(course => course.id));
   for (const course of publicData?.categories ?? []) {
     if (
       course.visible !== false &&
@@ -133,6 +138,7 @@ export async function getPostpayOrderCatalog(
         name: course.name + " · 코스",
         price: course.course_price,
         optionGroups: [],
+        customization: { ...EMPTY_MENU_ORDER_CUSTOMIZATION, allowRequest: coursesAllowingRequests.has(course.id) },
       });
   }
   return catalog;

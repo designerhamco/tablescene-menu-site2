@@ -3,6 +3,8 @@ import "server-only";
 
 import type { PublicMenuTemplateProps, PublicMenuTimeSale } from "@/components/menu-templates/types";
 import { buildPublicFeaturedSlides } from "@/lib/menu-featured-slides";
+import { EMPTY_MENU_ORDER_CUSTOMIZATION, readMenuOrderCustomization } from "@/lib/menu-order-customization";
+import { assertMenuSitePermission, type MenuSiteAccessContext } from "@/lib/menu-site-permissions";
 import { DEFAULT_LOCALE, getEffectiveLocale, getEnabledLocales, getLocalizedValue, type SupportedLocale } from "@/lib/locales";
 import { parseMenuWidgetRows, type MenuWidgetRow } from "@/lib/menu-widget-db-mappers";
 import { getMenuPublicServiceType } from "@/lib/menu-public-capabilities";
@@ -1290,6 +1292,26 @@ export async function getAuthorizedPreviewMenuPageData(menuId: string, options: 
   const data = site ? await normalizeMenuPageData(site, options, supabase) : null;
 
   return { accessContext, accessState, data };
+}
+
+export async function getAuthorizedPreviewOrderCustomization(accessContext: MenuSiteAccessContext) {
+  assertMenuSitePermission(accessContext, "menu.read");
+  const { menuSiteId, isOwner } = accessContext;
+  const supabase = isOwner ? await createClient() : createAdminClient();
+  const [items, courses] = await Promise.all([
+    supabase.from("menu_items").select("id, order_customization").eq("menu_site_id", menuSiteId)
+      .eq("visible", true).not("order_customization", "is", null),
+    supabase.from("menu_categories").select("id").eq("menu_site_id", menuSiteId)
+      .eq("visible", true).eq("allow_course_order_request", true),
+  ]);
+  if (items.error) throw items.error;
+  if (courses.error) throw courses.error;
+
+  const result = new Map(items.data.map(item => [item.id, readMenuOrderCustomization(item.order_customization)]));
+  for (const course of courses.data) {
+    result.set("course:" + course.id, { ...EMPTY_MENU_ORDER_CUSTOMIZATION, allowRequest: true });
+  }
+  return result;
 }
 
 export const getPublicMenuDataBySlug = getPublicMenuPageData;

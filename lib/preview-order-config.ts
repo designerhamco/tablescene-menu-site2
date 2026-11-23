@@ -4,6 +4,8 @@ import { buildMenuPreviewOrderCatalog } from "./menu-preview-experience";
 import { translateMenuText } from "./menu-ui-copy";
 import { isAubeTableTemplate } from "./aube-table";
 import { getPreviewStaffCallItems } from "./staff-call-preview";
+import type { MenuOrderCustomization } from "./menu-order-customization";
+
 export function buildInteractivePreviewConfig(
   data: Pick<
     PublicMenuTemplateProps,
@@ -17,6 +19,7 @@ export function buildInteractivePreviewConfig(
   >,
   callEnabled: boolean,
   orderEnabled: boolean,
+  customizationByItem?: ReadonlyMap<string, MenuOrderCustomization>,
 ): OrderCallEntryConfig | undefined {
   if (!callEnabled && !orderEnabled) return undefined;
   const catalog = buildMenuPreviewOrderCatalog(
@@ -37,7 +40,14 @@ export function buildInteractivePreviewConfig(
     storeName: data.menuSite.restaurant_name || data.menuSite.name,
     menuSiteId: data.menuSite.id,
     cartScope: "preview",
-    orderCatalog: catalog.map(item => ({ ...item, optionGroups: item.optionGroups.map(group => ({ ...group, name: translateMenuText(group.name, data.locale) })) })),
+    orderCatalog: catalog.map(item => {
+      const customization = customizationByItem?.get(item.id);
+      return {
+        ...item,
+        ...(customization ? { customization } : {}),
+        optionGroups: item.optionGroups.map(group => ({ ...group, name: translateMenuText(group.name, data.locale) })),
+      };
+    }),
     checkoutModes: ["postpay", "prepay"],
     previewOnly: true,
     callItems: getPreviewStaffCallItems(isAubeTableTemplate(data.menuSite.template_key) ? "dining" : "basic").map(item => ({ ...item, label: translateMenuText(item.label, data.locale) })),

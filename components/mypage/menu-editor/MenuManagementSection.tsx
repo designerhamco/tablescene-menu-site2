@@ -1,4 +1,8 @@
 "use client";
+
+import { getDiningTemplateFeatures } from "@/lib/dining-product-tiers";
+import { parseMenuOrderCustomization, readMenuOrderCustomization, type MenuOrderCustomization } from "@/lib/menu-order-customization";
+import MenuProductOptionsField, { OrderRequestSwitch } from "./MenuProductOptionsField";
 import { ArrowUp, ArrowDown, ChevronUp, ChevronDown } from "@/app/components/ui/site-arrow";
 import { getEffectiveWidgetPlacement, orderWidgetContentBlocks } from "@/lib/menu-widget-placement";
 
@@ -165,6 +169,7 @@ type MenuCategory = Pick<
   "id" | "menu_page_id" | "name" | "description" | "description_visible" | "sort_order" | "visible"
 > & {
   section_key: string | null;
+  allow_course_order_request?: boolean;
   course_price?: number | null;
   course_price_label?: string | null;
   course_price_visible?: boolean;
@@ -200,6 +205,7 @@ type MenuItem = Omit<Pick<
   price: number | null;
   menu_page_id?: string | null;
   priceColumnValues?: ItemPriceColumnValueDraft[];
+  order_customization?: unknown;
 };
 type MenuItemTrait = Database["public"]["Tables"]["menu_item_traits"]["Row"];
 type MenuItemPriceOption = Database["public"]["Tables"]["menu_item_price_options"]["Row"];
@@ -258,6 +264,7 @@ type DraftTarget =
       visible?: boolean;
       priceOptionLabels?: string[];
       priceColumns?: CategoryPriceColumnDraft[];
+      allowCourseOrderRequest?: boolean;
       coursePrice?: string;
       coursePriceLabel?: string;
       coursePriceVisible?: boolean;
@@ -290,6 +297,7 @@ type PageBasicDraft = {
 };
 
 type CategoryBasicDraft = {
+  allowCourseOrderRequest?: boolean;
   isNew?: boolean;
   pageId?: string;
   name: string;
@@ -315,6 +323,7 @@ type CategoryPriceColumnDraft = {
 };
 
 type ItemBasicDraft = {
+  orderCustomization?: MenuOrderCustomization;
   categoryId?: string;
   pageId?: string;
   isNew?: boolean;
@@ -2447,6 +2456,7 @@ function MenuCategoryForm({
   const [descriptionVisible, setDescriptionVisible] = useState(category?.description_visible ?? false);
   const [visible, setVisible] = useState(category?.visible ?? true);
   const [sortOrder, setSortOrder] = useState(category?.sort_order ?? 0);
+  const [allowCourseOrderRequest, setAllowCourseOrderRequest] = useState(category?.allow_course_order_request ?? false);
   const [coursePrice, setCoursePrice] = useState(category?.course_price == null ? "" : String(category.course_price));
   const [coursePriceLabel, setCoursePriceLabel] = useState(category?.course_price_label ?? "");
   const [coursePriceVisible, setCoursePriceVisible] = useState(category?.course_price_visible ?? true);
@@ -2481,6 +2491,7 @@ function MenuCategoryForm({
     (supportsDescription && descriptionVisible !== (category.description_visible ?? false)) ||
     visible !== (category.visible ?? true) ||
     normalizeDraftNumberText(sortOrder) !== normalizeDraftNumberText(category.sort_order) ||
+    (supportsCourseFields && allowCourseOrderRequest !== (category.allow_course_order_request ?? false)) ||
     (supportsCourseFields && normalizeDraftText(coursePrice) !== normalizeDraftText(category.course_price == null ? "" : String(category.course_price))) ||
     (supportsCourseFields && normalizeDraftText(coursePriceLabel) !== normalizeDraftText(category.course_price_label ?? "")) ||
     (supportsCourseFields && coursePriceVisible !== (category.course_price_visible ?? true)) ||
@@ -2561,6 +2572,7 @@ function MenuCategoryForm({
       sortOrder,
       ...(supportsCourseFields
         ? {
+            allowCourseOrderRequest,
             coursePrice,
             coursePriceLabel,
             coursePriceVisible,
@@ -2705,6 +2717,13 @@ function MenuCategoryForm({
             />
           </div>
         </section>
+      )}
+      {supportsCourseFields && (
+        <OrderRequestSwitch label="코스 요청사항 직접 입력 허용" checked={allowCourseOrderRequest}
+          onCheckedChange={checked => {
+            setAllowCourseOrderRequest(checked);
+            if (!category) onDraftChange?.({ allowCourseOrderRequest: checked });
+          }} />
       )}
       {supportCategoryPriceOptionColumns && (
         <section className="site-section site-editor-subpanel p-4">
@@ -2916,6 +2935,7 @@ function MenuItemForm({
   selectedCategoryId,
   selectedPageId = "",
   allowDirectItem = false,
+  supportsOrderCustomization = false,
   priceOptions = [],
   traits = [],
   priceMode = "single",
@@ -2955,6 +2975,7 @@ function MenuItemForm({
   selectedCategoryId: string;
   selectedPageId?: string;
   allowDirectItem?: boolean;
+  supportsOrderCustomization?: boolean;
   priceOptions?: MenuItemPriceOption[];
   traits?: MenuItemTrait[];
   priceMode?: PriceMode;
@@ -3004,6 +3025,7 @@ function MenuItemForm({
   const canEditPortionLabel = supportsPortionLabel && !canManageCategoryPriceColumns;
   const priceOptionLimitMessage = getPriceOptionLimitMessage(labels, maxPriceOptionsPerItem);
   const formId = item ? `menu-item-form-${item.id}` : "menu-item-form-new";
+  const [orderCustomization, setOrderCustomization] = useState(() => draftItem?.orderCustomization ?? readMenuOrderCustomization(item?.order_customization));
   const [priceValue, setPriceValue] = useState(draftItem?.price ?? (item?.price == null ? "" : String(item.price)));
   const [priceLabelValue, setPriceLabelValue] = useState(draftItem?.priceLabel ?? item?.price_label ?? "");
   const [singlePriceInputMode, setSinglePriceInputMode] = useState<SinglePriceInputMode>(() => getSinglePriceInputMode(draftItem, item));
@@ -3232,6 +3254,11 @@ function MenuItemForm({
     : undefined;
   const isCustomBadge = selectedBadgeLabel === MENU_BADGE_CUSTOM_VALUE;
   const customBadgeTooLong = isCustomBadge && customBadgeLabel.length > MENU_BADGE_MAX_LENGTH;
+  let orderCustomizationError = "";
+  if (supportsOrderCustomization) {
+    try { parseMenuOrderCustomization(orderCustomization); }
+    catch (error) { orderCustomizationError = error instanceof Error ? error.message : "상품 옵션 설정을 확인해 주세요."; }
+  }
   const itemSaveDisabledReason = nameInvalid
     ? `${labels.itemNameLabel}을 입력해야 반영할 수 있습니다.`
     : categoryInvalid
@@ -3250,7 +3277,7 @@ function MenuItemForm({
           ? "가격 옵션의 옵션명과 가격 또는 표시용 가격을 입력해야 반영할 수 있습니다."
             : customBadgeTooLong
               ? `배지 문구는 최대 ${MENU_BADGE_MAX_LENGTH}자까지 입력할 수 있습니다.`
-              : timeSaleInvalidReason;
+              : orderCustomizationError || timeSaleInvalidReason;
   const itemDraftSaveDisabled =
     nameInvalid ||
     categoryInvalid ||
@@ -3260,7 +3287,7 @@ function MenuItemForm({
     draftPriceOptionLimitExceeded ||
     draftPriceOptionInvalid ||
     customBadgeTooLong ||
-    Boolean(timeSaleInvalidReason);
+    Boolean(orderCustomizationError || timeSaleInvalidReason);
   const itemDraftActionLabel = item ? "수정 내용 반영" : labels.itemLabel === "서비스" ? "서비스 추가" : "아이템 추가";
   const hasPortionData = Boolean(portionLabelValue.trim());
   const hasTraitData = traitLabelValues.some((label) => label.trim());
@@ -3410,6 +3437,7 @@ function MenuItemForm({
     }));
 
     return {
+      ...(supportsOrderCustomization ? { orderCustomization: parseMenuOrderCustomization(orderCustomization) } : {}),
       categoryId: String(formData?.get("item_category_id") ?? categoryId),
       pageId: draftItem?.pageId ?? item?.menu_page_id ?? selectedPageId,
       name: String(formData?.get("item_name") ?? nameValue),
@@ -4278,6 +4306,14 @@ function MenuItemForm({
           />
         </div>
       </section>
+
+      {supportsOrderCustomization && (
+        <MenuProductOptionsField value={orderCustomization} error={orderCustomizationError}
+          onChange={value => {
+            setOrderCustomization(value);
+            updateDraftItem({ orderCustomization: value });
+          }} />
+      )}
 
       {canManageTimeSales && (
         <section className="site-section site-editor-subpanel p-4">
@@ -5186,6 +5222,7 @@ export default function MenuManagementSection({
   finalSaveError,
 }: MenuManagementSectionProps) {
   const isAubeTable = isAubeTableTemplate(templateKey);
+  const supportsOrderCustomization = getDiningTemplateFeatures(templateKey).order;
   const cafeAStarterReset = useCafeAStarterResetCoordinator();
   const labels = editorLabels ?? getEditorLabelsByTemplateType("menu");
   const initialTimeSaleDraftByItemId = new Map(
@@ -5256,6 +5293,7 @@ export default function MenuManagementSection({
     Object.fromEntries(categories.map((category) => [category.id, {
       name: category.name,
       sortOrder: category.sort_order,
+      allowCourseOrderRequest: category.allow_course_order_request ?? false,
       coursePrice: category.course_price == null ? "" : String(category.course_price),
       coursePriceLabel: category.course_price_label ?? "",
       coursePriceVisible: category.course_price_visible ?? true,
@@ -5359,6 +5397,7 @@ export default function MenuManagementSection({
           visible: categoryBasicDrafts[category.id]?.visible ?? category.visible,
           sort_order: categoryBasicDrafts[category.id]?.sortOrder ?? category.sort_order,
           priceColumns: categoryBasicDrafts[category.id]?.priceColumns ?? normalizeCategoryPriceColumnDrafts(category.priceColumns),
+          allow_course_order_request: categoryBasicDrafts[category.id]?.allowCourseOrderRequest ?? category.allow_course_order_request,
           course_price: categoryBasicDrafts[category.id]?.coursePrice?.trim()
             ? Number(categoryBasicDrafts[category.id]?.coursePrice)
             : category.course_price ?? null,
@@ -5379,6 +5418,7 @@ export default function MenuManagementSection({
           sort_order: draft.sortOrder,
           visible: draft.visible ?? true,
           priceColumns: normalizeCategoryPriceColumnDrafts(draft.priceColumns),
+          allow_course_order_request: draft.allowCourseOrderRequest ?? false,
           course_price: draft.coursePrice?.trim() ? Number(draft.coursePrice) : null,
           course_price_label: draft.coursePriceLabel?.trim() || null,
           course_price_visible: draft.coursePriceVisible ?? true,
@@ -5758,6 +5798,7 @@ export default function MenuManagementSection({
           sortOrder: categoryBasicDrafts[category.id]?.sortOrder ?? category.sort_order,
           priceOptionLabels: usesLegacyCategoryPriceOptionColumns ? getCategoryPriceOptionLabels(category.id) : undefined,
           priceColumns: canManageCategoryPriceColumns ? getCategoryPriceColumns(category.id) : undefined,
+          allowCourseOrderRequest: isAubeTable ? categoryBasicDrafts[category.id]?.allowCourseOrderRequest : undefined,
           coursePrice: isAubeTable ? (categoryBasicDrafts[category.id]?.coursePrice ?? (category.course_price == null ? "" : String(category.course_price))) : undefined,
           coursePriceLabel: isAubeTable ? (categoryBasicDrafts[category.id]?.coursePriceLabel ?? category.course_price_label ?? "") : undefined,
           coursePriceVisible: isAubeTable ? (categoryBasicDrafts[category.id]?.coursePriceVisible ?? category.course_price_visible ?? true) : undefined,
@@ -5800,6 +5841,7 @@ export default function MenuManagementSection({
               priceLabel: draft?.priceLabel ?? item.price_label ?? "",
               singlePriceInputMode: getSinglePriceInputMode(draft, item),
               priceNote: draft?.priceNote ?? item.price_note ?? "",
+              orderCustomization: draft?.orderCustomization,
               badgeLabel: draft?.badgeLabel ?? getMenuItemBadgeLabel(item) ?? "",
               visible: draft?.visible ?? item.visible,
               sortOrder: draft?.sortOrder ?? item.sort_order,
@@ -6490,6 +6532,7 @@ export default function MenuManagementSection({
         visible: currentDrafts[categoryId]?.visible ?? sourceCategory?.visible ?? true,
         sortOrder: currentDrafts[categoryId]?.sortOrder ?? sourceCategory?.sort_order ?? 0,
         priceOptionLabels: currentDrafts[categoryId]?.priceOptionLabels,
+        allowCourseOrderRequest: currentDrafts[categoryId]?.allowCourseOrderRequest ?? sourceCategory?.allow_course_order_request,
         ...patch,
       },
     }));
@@ -6546,6 +6589,7 @@ export default function MenuManagementSection({
       price: existingDraft?.price ?? (sourceItem?.price == null ? "" : String(sourceItem.price)),
       priceLabel: existingDraft?.priceLabel ?? sourceItem?.price_label ?? "",
       priceNote: existingDraft?.priceNote ?? sourceItem?.price_note ?? "",
+      orderCustomization: existingDraft?.orderCustomization,
       badgeLabel: existingDraft?.badgeLabel ?? (sourceItem ? getMenuItemBadgeLabel(sourceItem) ?? "" : ""),
       visible: existingDraft?.visible ?? sourceItem?.visible ?? true,
       sortOrder,
@@ -7260,6 +7304,7 @@ export default function MenuManagementSection({
             visible: currentDrafts[category.id]?.visible ?? category.visible,
             sortOrder: index + 1,
             priceColumns: currentDrafts[category.id]?.priceColumns ?? normalizeCategoryPriceColumnDrafts(category.priceColumns),
+            allowCourseOrderRequest: currentDrafts[category.id]?.allowCourseOrderRequest ?? category.allow_course_order_request,
             coursePrice: currentDrafts[category.id]?.coursePrice ?? (category.course_price == null ? "" : String(category.course_price)),
             coursePriceLabel: currentDrafts[category.id]?.coursePriceLabel ?? category.course_price_label ?? "",
             coursePriceVisible: currentDrafts[category.id]?.coursePriceVisible ?? category.course_price_visible ?? true,
@@ -7279,6 +7324,7 @@ export default function MenuManagementSection({
           sortOrder: 0,
           priceOptionLabels: draftTarget?.type === "category" ? draftTarget.priceOptionLabels : undefined,
           priceColumns: draftTarget?.type === "category" ? normalizeCategoryPriceColumnDrafts(draftTarget.priceColumns) : undefined,
+          allowCourseOrderRequest: draftTarget?.type === "category" ? draftTarget.allowCourseOrderRequest ?? false : false,
           coursePrice: draftTarget?.type === "category" ? draftTarget.coursePrice ?? "" : "",
           coursePriceLabel: draftTarget?.type === "category" ? draftTarget.coursePriceLabel ?? "" : "",
           coursePriceVisible: draftTarget?.type === "category" ? draftTarget.coursePriceVisible ?? true : true,
@@ -7609,6 +7655,7 @@ export default function MenuManagementSection({
           sortOrder: index,
           priceOptionLabels: currentDrafts[category.id]?.priceOptionLabels ?? getCategoryPriceOptionLabels(category.id),
           priceColumns: copyCategoryPriceColumnDrafts(currentDrafts[category.id]?.priceColumns ?? getCategoryPriceColumns(category.id)),
+          allowCourseOrderRequest: currentDrafts[category.id]?.allowCourseOrderRequest ?? category.allow_course_order_request,
           coursePrice: currentDrafts[category.id]?.coursePrice ?? (category.course_price == null ? "" : String(category.course_price)),
           coursePriceLabel: currentDrafts[category.id]?.coursePriceLabel ?? category.course_price_label ?? "",
           coursePriceVisible: currentDrafts[category.id]?.coursePriceVisible ?? category.course_price_visible ?? true,
@@ -7646,6 +7693,7 @@ export default function MenuManagementSection({
             price: sourceDraft?.price ?? (item.price == null ? "" : String(item.price)),
             priceLabel: sourceDraft?.priceLabel ?? item.price_label ?? "",
             priceNote: sourceDraft?.priceNote ?? item.price_note ?? "",
+            orderCustomization: sourceDraft?.orderCustomization ?? readMenuOrderCustomization(item.order_customization),
             badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(item) ?? "" : ""),
             visible: sourceDraft?.visible ?? item.visible,
             isSoldOut: false,
@@ -7683,6 +7731,7 @@ export default function MenuManagementSection({
           price: sourceDraft?.price ?? (item.price == null ? "" : String(item.price)),
           priceLabel: sourceDraft?.priceLabel ?? item.price_label ?? "",
           priceNote: sourceDraft?.priceNote ?? item.price_note ?? "",
+          orderCustomization: sourceDraft?.orderCustomization ?? readMenuOrderCustomization(item.order_customization),
           badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(item) ?? "" : ""),
           visible: sourceDraft?.visible ?? item.visible,
           isSoldOut: false,
@@ -7756,6 +7805,7 @@ export default function MenuManagementSection({
         price: sourceDraft?.price ?? (sourceItem.price == null ? "" : String(sourceItem.price)),
         priceLabel: sourceDraft?.priceLabel ?? sourceItem.price_label ?? "",
         priceNote: sourceDraft?.priceNote ?? sourceItem.price_note ?? "",
+        orderCustomization: sourceDraft?.orderCustomization ?? readMenuOrderCustomization(sourceItem.order_customization),
         badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(sourceItem) ?? "" : ""),
         visible: sourceDraft?.visible ?? sourceItem.visible,
         isSoldOut: false,
@@ -7835,6 +7885,7 @@ export default function MenuManagementSection({
       const nextDrafts = { ...currentDrafts };
       pageCategories.forEach((category, index) => {
         nextDrafts[category.id] = {
+          ...nextDrafts[category.id],
           isNew: nextDrafts[category.id]?.isNew,
           pageId: nextDrafts[category.id]?.pageId ?? category.menu_page_id ?? undefined,
           name: nextDrafts[category.id]?.name ?? category.name,
@@ -7856,6 +7907,7 @@ export default function MenuManagementSection({
         sortOrder: 0,
         priceOptionLabels: getCategoryPriceOptionLabels(sourceCategory.id),
         priceColumns: copyCategoryPriceColumnDrafts(getCategoryPriceColumns(sourceCategory.id)),
+        allowCourseOrderRequest: sourceCategory.allow_course_order_request,
       };
       return nextDrafts;
     });
@@ -7881,6 +7933,7 @@ export default function MenuManagementSection({
           price: sourceDraft?.price ?? (item.price == null ? "" : String(item.price)),
           priceLabel: sourceDraft?.priceLabel ?? item.price_label ?? "",
           priceNote: sourceDraft?.priceNote ?? item.price_note ?? "",
+          orderCustomization: sourceDraft?.orderCustomization ?? readMenuOrderCustomization(item.order_customization),
           badgeLabel: sourceDraft?.badgeLabel ?? (capabilities.itemBadges ? getMenuItemBadgeLabel(item) ?? "" : ""),
           visible: sourceDraft?.visible ?? item.visible,
           isSoldOut: false,
@@ -9400,6 +9453,7 @@ export default function MenuManagementSection({
                   }
                 />
                 <MenuItemForm
+                  supportsOrderCustomization={supportsOrderCustomization}
                   menuId={menuId}
                   categories={categoriesForPage}
                   capabilities={capabilities}
@@ -9446,6 +9500,7 @@ export default function MenuManagementSection({
             ) : editingItemId && selectedEditingItem ? (
               <div>
                 <MenuItemCard
+                  supportsOrderCustomization={supportsOrderCustomization}
                   key={selectedEditingItem.id}
                   menuId={menuId}
                   categories={categoriesForPage}
@@ -9577,6 +9632,7 @@ export default function MenuManagementSection({
                     <div className="mt-4 grid gap-3">
                       {itemsForCategory.map((item) => (
                         <MenuItemCard
+                          supportsOrderCustomization={supportsOrderCustomization}
                           key={item.id}
                           menuId={menuId}
                           categories={categoriesForPage}
@@ -10066,6 +10122,7 @@ export default function MenuManagementSection({
 }
 
 function MenuItemCard({
+  supportsOrderCustomization,
   menuId,
   categories,
   item,
@@ -10138,6 +10195,7 @@ function MenuItemCard({
   onConfirmDelete: () => void;
   onCopy: (draftPatch?: Partial<ItemBasicDraft>) => void;
   allowDirectItem?: boolean;
+  supportsOrderCustomization: boolean;
   selectedPageId?: string;
 }) {
   const badgeLabel = capabilities.itemBadges ? getMenuItemBadgeLabel(item) : null;
@@ -10166,6 +10224,7 @@ function MenuItemCard({
             </button>
           </div>
           <MenuItemForm
+            supportsOrderCustomization={supportsOrderCustomization}
             menuId={menuId}
             categories={categories}
             capabilities={capabilities}

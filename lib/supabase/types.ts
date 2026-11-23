@@ -512,6 +512,7 @@ export type Database = {
       }
       menu_categories: {
         Row: {
+          allow_course_order_request: boolean
           catalog_category_id: string | null
           course_price: number | null
           course_price_description: string | null
@@ -531,6 +532,7 @@ export type Database = {
           visible: boolean
         }
         Insert: {
+          allow_course_order_request?: boolean
           catalog_category_id?: string | null
           course_price?: number | null
           course_price_description?: string | null
@@ -550,6 +552,7 @@ export type Database = {
           visible?: boolean
         }
         Update: {
+          allow_course_order_request?: boolean
           catalog_category_id?: string | null
           course_price?: number | null
           course_price_description?: string | null
@@ -1542,6 +1545,7 @@ export type Database = {
       }
       menu_items: {
         Row: {
+          order_customization: Json | null
           allergens: Json
           badge: string | null
           badge_label: string | null
@@ -1576,6 +1580,7 @@ export type Database = {
           visible: boolean
         }
         Insert: {
+          order_customization?: Json | null
           allergens?: Json
           badge?: string | null
           badge_label?: string | null
@@ -1610,6 +1615,7 @@ export type Database = {
           visible?: boolean
         }
         Update: {
+          order_customization?: Json | null
           allergens?: Json
           badge?: string | null
           badge_label?: string | null
