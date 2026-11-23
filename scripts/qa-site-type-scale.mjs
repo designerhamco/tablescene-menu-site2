@@ -106,8 +106,8 @@ try {
 
       const metrics = await semanticMetrics(page);
       const step = widths.indexOf(width);
-      const pageTitle = [28, 28, 32][step];
-      const sectionTitle = (route === "/" ? [28, 32, 36] : [24, 24, 28])[step];
+      const pageTitle = [28, 32, 36][step];
+      const sectionTitle = route === "/" ? pageTitle : [24, 24, 28][step];
       const metaSize = width >= 1024 ? 14 : 13;
       const expectedRoles = {
         ...exactRoles,
@@ -125,6 +125,7 @@ try {
         );
         const sizes = item.management ? {
           ...expectedRoles,
+          "type-page-title": [[28, 28, 32][step]],
           "type-section-title": [24],
           "type-page-description": [16],
           "type-body-lg": [16],

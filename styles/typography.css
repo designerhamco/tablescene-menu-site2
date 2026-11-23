@@ -34,7 +34,7 @@
   --site-type-36: 2.25rem;
   --site-type-44: 2.75rem;
   --type-display-size: var(--site-type-28);
-  --type-page-title-size: var(--site-type-28);
+  --type-page-title-size: var(--site-home-section-title-size);
   --type-page-description-size: var(--site-type-18);
   --type-section-title-size: var(--site-type-24);
   --site-home-section-title-size: var(--site-type-28);
@@ -218,7 +218,6 @@
 @media (min-width: 1024px) {
   :root {
     --type-display-size: var(--site-type-32);
-    --type-page-title-size: var(--site-type-32);
     --type-page-description-size: var(--site-type-20);
     --type-section-title-size: var(--site-type-28);
     --site-home-section-title-size: var(--site-type-36);
@@ -257,7 +256,7 @@
   text-wrap: balance;
 }
 
-/* The homepage uses its own chapter and service title scale. */
+/* The homepage uses the page-title scale for chapters and service sections. */
 :root { --site-home-hero-title-size: 2rem; }
 .site-marketing-page[data-marketing-page="home"] {
   --type-display-size: var(--site-home-hero-title-size);

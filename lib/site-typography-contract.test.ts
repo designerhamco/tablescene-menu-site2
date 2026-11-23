@@ -384,7 +384,7 @@ test("컴포넌트 밀도 조정은 사이트 탐색·페이지 제목·본문 �
   for (const [key, sizes] of [
     ["nav", [15,15,16]],
     ["display", [28,28,32]],
-    ["page-title", [28,28,32]],
+    ["page-title", [28,32,36]],
     ["section-title", [24,24,28]],
     ["subsection-title", [20,20,24]],
     ["content-title", [18,18,18]],
@@ -425,7 +425,8 @@ test("all semantic roles resolve to the reference steps at each breakpoint", () 
     assert.equal(values.get("--site-home-section-title-size"), `var(--site-type-${SITE_HOME_SECTION_TITLE_POLICY[device]})`, `home chapter at ${width}`);
     for (const role of SITE_TYPE_ROLES) {
       assert.ok(SITE_TYPE_STEPS.includes(role[device]));
-      assert.equal(values.get(`--type-${role.key}-size`), `var(--site-type-${role[device]})`, `${role.key} at ${width}`);
+      const expected = role.key === "page-title" ? "--site-home-section-title-size" : `--site-type-${role[device]}`;
+      assert.equal(values.get(`--type-${role.key}-size`), `var(${expected})`, `${role.key} at ${width}`);
     }
   }
   assert.equal(siteTypeSizeCss(2), "var(--site-type-13)");
