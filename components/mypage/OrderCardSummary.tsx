@@ -1,16 +1,48 @@
-import {Badge} from "@/app/components/ui/badge";
-import type {OperationHistoryRecord} from "@/lib/operations-history";
-/** One representative order; full contents and every order remain in the detail dialog. */
-export default function OrderCardSummary({order,records}:{order:OperationHistoryRecord;records:readonly OperationHistoryRecord[]}){
-  const processing=records.filter(record=>record.processing).length,unpaid=records.filter(record=>record.unpaid).length;
-  const date=order.createdAt?new Intl.DateTimeFormat("sv-SE",{timeZone:"Asia/Seoul",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).format(new Date(order.createdAt)).replaceAll("-","."):order.time;
+import { formatElapsedMinutes, formatKoreanClockTime, formatKoreanDateTime } from "@/lib/korean-date-time";
+import type { OperationHistoryRecord } from "@/lib/operations-history";
+import { formatAmount } from "./OrderReceipt";
+import OrderStage from "./OrderStage";
+
+export const ORDER_CARD_FIELDS = [
+  { id: "time", label: "주문시각" },
+  { id: "elapsed", label: "경과시간" },
+  { id: "orders", label: "주문수량" },
+  { id: "items", label: "메뉴수량" },
+  { id: "status", label: "상태" },
+  { id: "number", label: "주문번호" },
+  { id: "total", label: "합계" },
+] as const;
+
+export type OrderCardField = (typeof ORDER_CARD_FIELDS)[number]["id"];
+export const DEFAULT_ORDER_CARD_FIELDS: readonly OrderCardField[] = ["elapsed", "orders", "items", "status"];
+
+export default function OrderCardSummary({ pointLabel, order, records, fields, now }: {
+  pointLabel: string;
+  order: OperationHistoryRecord;
+  records: readonly OperationHistoryRecord[];
+  fields: ReadonlySet<OrderCardField>;
+  now: number | null;
+}) {
+  const time = formatKoreanClockTime(order.createdAt);
+  const elapsed = order.processing ? formatElapsedMinutes(order.createdAt, now) : null;
   return <>
-    <span data-order-card="counts">진행 중 {processing}건 · 미결제 {unpaid}건</span>
-    <span data-order-card="metadata">대표 주문 #{order.orderNumber} · <time dateTime={order.createdAt}>{date}</time></span>
-    <span data-order-card="statuses">{order.orderStatusLabel&&order.paymentStatusLabel?<><Badge>{order.orderStatusLabel}</Badge><Badge>{order.paymentStatusLabel}</Badge></>:order.status}</span>
-    <span data-order-card="products" className="type-body-sm">{order.summary||"상품 정보 없음"}</span>
-    {order.options?<span data-order-card="options">옵션: {order.options}</span>:null}
-    <span data-order-card="amount">대표 주문 금액 <strong className="type-label">{order.amount}</strong></span>
-    <span data-order-card="detail">열기 · 주문 {records.length}건</span>
+    {fields.has("number") && <span data-order-card="number" className="site-copy-muted">#{order.orderNumber}</span>}
+    <div className="site-order-card-heading">
+      <strong className="type-label">{pointLabel}</strong>
+      {fields.has("status") && order.orderStatus && (
+        <span data-order-card="status">
+          <OrderStage status={order.orderStatus} />
+          {order.orderStatus === "served" && order.unpaid && <span className="site-copy-muted"> · 미결제</span>}
+        </span>
+      )}
+    </div>
+    {fields.has("time") && <span data-order-card="time">주문시각 {time
+      ? <time dateTime={order.createdAt} title={formatKoreanDateTime(order.createdAt)}>{time}</time>
+      : "–"}</span>}
+    {fields.has("elapsed") && elapsed && <span data-order-card="elapsed">주문 후 {elapsed}</span>}
+    {fields.has("orders") && <span data-order-card="orders">주문 총 {records.length}건</span>}
+    {fields.has("items") && <span data-order-card="items">메뉴 총 {records.reduce((sum, record) => sum + (record.itemCount ?? 0), 0)}개</span>}
+    {fields.has("total") && <span data-order-card="total"><strong className="type-label">합계 {formatAmount(records.reduce((sum, record) => sum + (record.totalAmount ?? 0), 0))}</strong></span>}
+    <span data-order-card="detail" className="type-label">열기</span>
   </>;
 }

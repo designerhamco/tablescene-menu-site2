@@ -6,10 +6,11 @@ import { Checkbox } from "@/app/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/app/components/ui/dialog";
 import { MessageCircle, PrinterFill } from "@/app/components/ui/site-icon";
 import OrderCookingFlag from "@/components/mypage/OrderCookingFlag";
+import OrderStage from "@/components/mypage/OrderStage";
 import { formatAmount, PAYMENT_LABELS } from "@/components/mypage/OrderReceipt";
 import { getKitchenOptionLabels } from "@/lib/kitchen-order";
 import { canCancelTableOrder, canRecordTableOrderPayment } from "@/lib/order-management";
-import { formatKoreanDateTime } from "@/lib/korean-date-time";
+import { formatElapsedMinutes, formatKoreanClockTime, formatKoreanDateTime } from "@/lib/korean-date-time";
 import type { OrderDashboardOrder, OrderDashboardPageData } from "@/lib/server/order-management-service";
 import { initialOrderManagementActionState, type OrderManagementActionState } from "./action-state";
 import styles from "./OrderPointDetail.module.css";
@@ -17,34 +18,13 @@ import styles from "./OrderPointDetail.module.css";
 type Order = OrderDashboardOrder;
 type Operation = { kind: "payment" | "cancel"; orderId: string };
 
-const orderClock = new Intl.DateTimeFormat("ko-KR", {
-  timeZone: "Asia/Seoul", hourCycle: "h23", hour: "2-digit", minute: "2-digit", second: "2-digit",
-});
-
-function OrderStage({ status }: { status: string }) {
-  const stage = status === "received" || status === "accepted" ? "before" : status;
-  const labels: Record<string, string> = {
-    before: "조리전", cooking: "조리중", ready: "조리완료", served: "픽업·서빙 완료", cancelled: "주문 취소",
-  };
-  return <span className={styles.stage} data-stage={stage}>
-    <span className={styles.dot} aria-hidden="true" />{labels[stage] ?? status}
-  </span>;
-}
-
-function elapsedTime(createdAt: string, now: number | null) {
-  const created = Date.parse(createdAt);
-  if (now === null || !Number.isFinite(created)) return null;
-  const minutes = Math.max(0, Math.floor((now - created) / 60_000));
-  return minutes >= 60 ? `${Math.floor(minutes / 60)}시간 ${minutes % 60}분` : `${minutes}분`;
-}
-
 function OrderTimes({ order, now }: { order: Order; now: number | null }) {
-  const validTime = Number.isFinite(Date.parse(order.createdAt));
-  const elapsed = order.status === "served" || order.status === "cancelled" ? null : elapsedTime(order.createdAt, now);
+  const clock = formatKoreanClockTime(order.createdAt);
+  const elapsed = order.status === "served" || order.status === "cancelled" ? null : formatElapsedMinutes(order.createdAt, now);
   return (
     <p className="type-body-sm">
-      주문시각{" "}{validTime
-        ? <time dateTime={order.createdAt} title={formatKoreanDateTime(order.createdAt)}>{orderClock.format(new Date(order.createdAt))}</time>
+      주문시각{" "}{clock
+        ? <time dateTime={order.createdAt} title={formatKoreanDateTime(order.createdAt)}>{clock}</time>
         : "–"}
       {elapsed && <span className="site-copy-muted"> · 주문 후 {elapsed}</span>}
     </p>
@@ -61,14 +41,15 @@ function PointOrderItems({ order }: { order: Order }) {
         return (
           <li key={item.id} className="site-stack-detail">
             <div className={`${styles.itemLine} type-body-sm`}>
-              <span className="min-w-0 break-words">
-                {item.name}{item.priceNote ? `(${item.priceNote})` : ""} × {item.quantity}
-              </span>
-              <span className={styles.leader} aria-hidden="true" />
+              <div className={styles.itemDescription}>
+                <span className="min-w-0 break-words">
+                  {item.name}{item.priceNote ? ` (${item.priceNote})` : ""} × {item.quantity}
+                </span>
+                {trackCooking && <span role="img" aria-label={done ? "조리 완료" : "조리 미완성"} className={styles.flagSlot}>
+                  <OrderCookingFlag done={done} />
+                </span>}
+              </div>
               <span className={styles.amount}>{formatAmount(item.lineTotal)}</span>
-              {trackCooking && <span role="img" aria-label={done ? "조리 완료" : "조리 미완성"} className={styles.flagSlot}>
-                <OrderCookingFlag done={done} />
-              </span>}
             </div>
             {options.product && <p className="type-caption site-copy-muted break-words">상품옵션 · {options.product}</p>}
             {options.price && <p className="type-caption site-copy-muted break-words">가격옵션 · {options.price}</p>}
@@ -138,98 +119,108 @@ export default function OrderPointDetail({ pointLabel, menuSiteId, orders, permi
 
   return (
     <>
-      <DialogHeader reserveCloseButton>
-        <div className="site-stack-detail">
-          {lead && <p className="type-caption site-copy-muted">주문번호 #{lead.orderNumber}</p>}
-          <div className="site-action-row">
-            <DialogTitle ref={header} tabIndex={-1}>{pointLabel} 주문 내역</DialogTitle>
-            {lead && <span className="type-label"><OrderStage status={lead.status} /></span>}
-          </div>
-        </div>
-      </DialogHeader>
-      {!ordered.length ? (
-        <div className="site-stack-copy">
-          {feedback.message && <p role="status" className="type-body-sm">{feedback.message}</p>}
-          <p className="type-body-sm site-copy-muted">현재 조건에 맞는 내역이 없습니다.</p>
-        </div>
-      ) : (
-        <>
-          <div className="site-action-row" data-distribution="between">
-            <p className="type-label">주문 총 {ordered.length}건</p>
-            <label className="site-action-row type-label" data-wrap="nowrap">
-              <Checkbox shape="circle" disabled={pending} checked={allSelected || (selected.length > 0 ? "indeterminate" : false)}
-                onCheckedChange={() => setSelectedIds(allSelected ? new Set() : null)} />
-              전체선택
-            </label>
-          </div>
-          <div className="site-stack-block">
-            {ordered.map(order => (
-              <article key={order.id} className="site-content-divider site-stack-detail" data-density="compact" aria-label={`주문 #${order.orderNumber}`}>
-                <div className="site-action-row">
-                  <Checkbox shape="circle" aria-label={`주문 #${order.orderNumber} 선택`} disabled={pending}
-                    checked={selectedIds === null || selectedIds.has(order.id)}
-                    onCheckedChange={checked => selectOrder(order.id, checked === true)} />
-                  <h3 className="type-label">#{order.orderNumber}</h3>
-                  <span className="type-label"><OrderStage status={order.status} /></span>
-                  <span className="type-caption site-copy-muted">{PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}</span>
-                  <Button type="button" variant="ghost" size="icon" iconSize="compact"
-                    disabled={!canPrint(order) || pending} aria-label={`주문 #${order.orderNumber} 청구서 인쇄`}
-                    title={canPrint(order) ? "청구서 인쇄" : "조리 시작 후 인쇄할 수 있습니다."} onClick={() => onPrint([order])}><PrinterFill /></Button>
-                  {(order.status === "ready" || order.status === "served") && (
-                    <Button type="button" variant="outline" size="compact" disabled title="알림톡 연동 준비 중"><MessageCircle /> 알림톡</Button>
-                  )}
-                </div>
-                <OrderTimes order={order} now={now} />
-                <p className="type-label">주문내역 ({order.items.length}개)</p>
-                <PointOrderItems order={order} />
-                {order.cancellationReason && <p className="type-body-sm break-words">취소 사유 · {order.cancellationReason}</p>}
-                <div className="site-content-divider site-action-row type-label" data-density="compact" data-distribution="between">
-                  <span>합계</span><strong className={styles.amount}>{formatAmount(order.totalAmount)}</strong>
-                </div>
-                {permissions.canManage && order.nextStatus === "served" && (
-                  <form action={submit} className="site-action-row" data-distribution="end">
-                    <input type="hidden" name="menuSiteId" value={menuSiteId} />
-                    <input type="hidden" name="orderId" value={order.id} />
-                    <input type="hidden" name="nextStatus" value="served" />
-                    <Button type="submit" name="intent" value="transition" size="compact" disabled={pending}>
-                      픽업·서빙 완료
-                    </Button>
-                  </form>
-                )}
-              </article>
-            ))}
-          </div>
-          <div className={styles.total} aria-live="polite">
-            <div className="site-action-row type-label" data-distribution="between">
-              <span>총 합계 <span className="type-caption site-copy-muted">({selected.length}건 선택)</span></span>
-              <strong className={styles.amount}>{formatAmount(total)}</strong>
+      <div className={styles.layout}>
+        <header className="site-stack-copy">
+          <DialogHeader reserveCloseButton className="text-left">
+            <div className="site-stack-detail">
+              {lead && <p className="type-caption site-copy-muted">주문번호 #{lead.orderNumber}</p>}
+              <div className="site-action-row">
+                <DialogTitle ref={header} tabIndex={-1}>{pointLabel} 주문 내역</DialogTitle>
+                {lead && <span className="type-label"><OrderStage status={lead.status} /></span>}
+              </div>
             </div>
+          </DialogHeader>
+          {ordered.length > 0 && (
+            <div className="site-action-row" data-distribution="between">
+              <p className="type-label">주문 총 {ordered.length}건</p>
+              <label className="site-action-row type-label" data-wrap="nowrap">
+                <Checkbox shape="circle" disabled={pending} checked={allSelected || (selected.length > 0 ? "indeterminate" : false)}
+                  onCheckedChange={() => setSelectedIds(allSelected ? new Set() : null)} />
+                전체선택
+              </label>
+            </div>
+          )}
+        </header>
+        {!ordered.length ? (
+          <div className="site-stack-copy">
+            {feedback.message && <p role="status" className="type-body-sm">{feedback.message}</p>}
+            <p className="type-body-sm site-copy-muted">현재 조건에 맞는 내역이 없습니다.</p>
           </div>
-          {feedback.message && !operation && <p role="status" className="type-body-sm">{feedback.message}</p>}
-          <div className="site-action-row" data-distribution="center">
-            {permissions.canMarkManualPayment && ordered.some(order => order.paymentStatus === "unpaid") && (
-              <Button type="button" variant="secondary" disabled={pending || !canPay(selectedOrder)}
-                title={canPay(selectedOrder) ? undefined : "픽업·서빙이 끝난 미결제 주문 한 건을 선택해 주세요."}
-                onClick={event => {
-                  if (!selectedOrder) return;
-                  operationTrigger.current = event.currentTarget;
-                  setOperation({ kind: "payment", orderId: selectedOrder.id });
-                }}>결제하기</Button>
-            )}
-            {permissions.canCancelUnpaid && (
-              <Button type="button" variant="outline-danger" disabled={pending || !canCancel(selectedOrder)}
-                title={canCancel(selectedOrder) ? undefined : "조리전 상태의 미결제 주문 한 건을 선택해 주세요."}
-                onClick={event => {
-                  if (!selectedOrder) return;
-                  operationTrigger.current = event.currentTarget;
-                  setOperation({ kind: "cancel", orderId: selectedOrder.id });
-                }}>주문취소</Button>
-            )}
-            <Button type="button" variant="outline" disabled={pending || !selected.length || !selected.every(canPrint)}
-              title="조리가 시작된 주문만 인쇄할 수 있습니다." onClick={() => onPrint(selected)}><PrinterFill /> 청구서 인쇄</Button>
-          </div>
-        </>
-      )}
+        ) : (
+          <>
+            <div className={styles.orders} role="region" aria-label="주문 목록" tabIndex={0}>
+              {ordered.map(order => (
+                <article key={order.id} className={styles.order} aria-label={`주문 #${order.orderNumber}`}>
+                  <div className="site-action-row" data-distribution="between">
+                    <div className="site-action-row">
+                      <Checkbox shape="circle" aria-label={`주문 #${order.orderNumber} 선택`} disabled={pending}
+                        checked={selectedIds === null || selectedIds.has(order.id)}
+                        onCheckedChange={checked => selectOrder(order.id, checked === true)} />
+                      <h3 className="type-label">#{order.orderNumber}</h3>
+                      <span className="type-label"><OrderStage status={order.status} /></span>
+                      <span className="type-caption site-copy-muted">{PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}</span>
+                    </div>
+                    <div className="site-action-row" data-wrap="nowrap">
+                      <Button type="button" variant="ghost" size="icon" iconSize="compact"
+                        disabled={!canPrint(order) || pending} aria-label={`주문 #${order.orderNumber} 청구서 인쇄`}
+                        title={canPrint(order) ? "청구서 인쇄" : "조리 시작 후 인쇄할 수 있습니다."} onClick={() => onPrint([order])}><PrinterFill /></Button>
+                      {(order.status === "ready" || order.status === "served") && (
+                        <Button type="button" variant="outline" size="compact" disabled title="알림톡 연동 준비 중"><MessageCircle /> 알림톡</Button>
+                      )}
+                    </div>
+                  </div>
+                  <OrderTimes order={order} now={now} />
+                  <p className="type-caption site-copy-muted">주문내역 ({order.items.length}개)</p>
+                  <PointOrderItems order={order} />
+                  {order.cancellationReason && <p className="type-body-sm break-words">취소 사유 · {order.cancellationReason}</p>}
+                  <div className="site-action-row type-label" data-distribution="between">
+                    <span>합계</span><strong className={styles.amount}>{formatAmount(order.totalAmount)}</strong>
+                  </div>
+                  {permissions.canManage && order.nextStatus === "served" && (
+                    <form action={submit} className="site-action-row" data-distribution="end">
+                      <input type="hidden" name="menuSiteId" value={menuSiteId} />
+                      <input type="hidden" name="orderId" value={order.id} />
+                      <input type="hidden" name="nextStatus" value="served" />
+                      <Button type="submit" name="intent" value="transition" size="compact" disabled={pending}>
+                        픽업·서빙 완료
+                      </Button>
+                    </form>
+                  )}
+                </article>
+              ))}
+            </div>
+            <footer className={styles.footer}>
+              <div className="site-action-row type-label" data-distribution="between" aria-live="polite">
+                <span>총 합계 <span className="type-caption site-copy-muted">({selected.length}건 선택)</span></span>
+                <strong className={styles.amount}>{formatAmount(total)}</strong>
+              </div>
+              {feedback.message && !operation && <p role="status" className="type-body-sm">{feedback.message}</p>}
+              <div className="site-action-row" data-distribution="end">
+                {permissions.canMarkManualPayment && ordered.some(order => order.paymentStatus === "unpaid") && (
+                  <Button type="button" variant="secondary" disabled={pending || !canPay(selectedOrder)}
+                    title={canPay(selectedOrder) ? undefined : "픽업·서빙이 끝난 미결제 주문 한 건을 선택해 주세요."}
+                    onClick={event => {
+                      if (!selectedOrder) return;
+                      operationTrigger.current = event.currentTarget;
+                      setOperation({ kind: "payment", orderId: selectedOrder.id });
+                    }}>결제하기</Button>
+                )}
+                {permissions.canCancelUnpaid && (
+                  <Button type="button" variant="outline-danger" disabled={pending || !canCancel(selectedOrder)}
+                    title={canCancel(selectedOrder) ? undefined : "조리전 상태의 미결제 주문 한 건을 선택해 주세요."}
+                    onClick={event => {
+                      if (!selectedOrder) return;
+                      operationTrigger.current = event.currentTarget;
+                      setOperation({ kind: "cancel", orderId: selectedOrder.id });
+                    }}>주문취소</Button>
+                )}
+                <Button type="button" variant="outline" disabled={pending || !selected.length || !selected.every(canPrint)}
+                  title="조리가 시작된 주문만 인쇄할 수 있습니다." onClick={() => onPrint(selected)}><PrinterFill /> 청구서 인쇄</Button>
+              </div>
+            </footer>
+          </>
+        )}
+      </div>
       <Dialog open={Boolean(operation && activeOrder)} onOpenChange={open => { if (!open && !pending) setOperation(null); }}>
         {operation && activeOrder && (
           <DialogContent scrollable className="print:hidden" onCloseAutoFocus={event => {

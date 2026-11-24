@@ -1,14 +1,15 @@
 "use client";
 import {FloorPlanViewport} from "@/app/components/ui/floor-plan-viewport";
 import {readableFloorDocument} from "@/lib/menu-floor-plan";
-import OrderCardSummary from "./OrderCardSummary";
+import OrderCardSummary, { DEFAULT_ORDER_CARD_FIELDS, ORDER_CARD_FIELDS, type OrderCardField } from "./OrderCardSummary";
+import { Checkbox } from "@/app/components/ui/checkbox";
 import InfoTooltip from "@/components/ui/InfoTooltip";
 import {SectionHeader} from "@/app/components/ui/section-header";
 import {ViewStyleSelect} from "@/app/components/ui/view-style-select";
 import {RoomLabel} from "@/app/components/ui/room-label";
 import {useOperationsView} from "./OperationsViewLayout";
-import { useRef, useState, type ReactNode } from "react";
-import { Armchair, Monitor } from "@/app/components/ui/site-icon";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Armchair, FilterFill, Monitor } from "@/app/components/ui/site-icon";
 import { ContentPanel } from "@/app/components/ui/content-panel";
 import {
   FloorPlanCanvas,
@@ -56,6 +57,29 @@ export default function OperationsHistoryViews({
   const [selection, setSelection] = useState<
     { pointId: string; label: string } | { recordId: string; label: string } | null
   >(null);
+  const orderMap = noun === "주문" && !listOnly;
+  const [cardFields, setCardFields] = useState<ReadonlySet<OrderCardField>>(() => new Set(DEFAULT_ORDER_CARD_FIELDS));
+  const [now, setNow] = useState<number | null>(null);
+  const trackElapsed = orderMap && view === "map" && cardFields.has("elapsed");
+  useEffect(() => {
+    if (!trackElapsed) return;
+    const frame = window.requestAnimationFrame(() => setNow(Date.now()));
+    const interval = window.setInterval(() => setNow(Date.now()), 15_000);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearInterval(interval);
+    };
+  }, [trackElapsed]);
+
+  function setCardField(field: OrderCardField, checked: boolean) {
+    setCardFields(previous => {
+      const next = new Set(previous);
+      if (checked) next.add(field);
+      else next.delete(field);
+      return next;
+    });
+  }
+
   const groups = groupOperationHistory(records),
     placements = getHistoryPlacements({...floorPlan,document:readableFloorDocument(floorPlan.document)});
   const room =
@@ -148,6 +172,18 @@ export default function OperationsHistoryViews({
                 </TabsList>
                 <TabsContent value={room.id}>
                   <section className="site-stack-group" aria-label={`${room.name} ${noun} 배치도`}>
+                    {orderMap && (
+                      <div className="site-action-row site-order-map-filters" role="group" aria-label="보기필터">
+                        <span className="site-action-row type-label" data-wrap="nowrap" aria-hidden="true"><FilterFill /> 보기필터</span>
+                        {ORDER_CARD_FIELDS.map(({ id, label }) => (
+                          <label key={id} className="site-action-row type-label" data-wrap="nowrap">
+                            <Checkbox shape="circle" checked={cardFields.has(id)}
+                              onCheckedChange={checked => setCardField(id, checked === true)} />
+                            {label}
+                          </label>
+                        ))}
+                      </div>
+                    )}
                     <FloorPlanViewport name={room.name}><FloorPlanCanvas
                       data-mobile-cards="true"
                       name={room.name}
@@ -166,7 +202,11 @@ export default function OperationsHistoryViews({
                           const count = history.filter(
                             (item) => item.attention,
                           ).length;
-                          const summary = latest ? noun === "주문" && latest.orderNumber !== undefined ? <OrderCardSummary order={latest} records={history}/> : (
+                          const orderCard = Boolean(orderMap && latest?.orderNumber !== undefined);
+                          const summary = latest ? orderCard ? (
+                            <OrderCardSummary pointLabel={point.status === "active" ? point.label : `${point.label} · 비활성`}
+                              order={latest} records={history} fields={cardFields} now={now} />
+                          ) : (
                             <>
                               <span>
                                 {count
@@ -185,14 +225,14 @@ export default function OperationsHistoryViews({
                                 </span>
                               ) : null}
                             </>
-                          ) : (
-                            <span>{noun === "주문" ? "진행 중·미결제 주문 없음" : "표시 내역 없음"}</span>
-                          );
+                          ) : orderMap ? null : <span>표시 내역 없음</span>;
                           return (
                             <FloorPlanObject
                               key={point.id}
                               rect={placement}
                               label={point.label}
+                              showLabel={!orderCard}
+                              data-order-map-card={orderCard || undefined}
                               typeLabel={
                                 point.kind === "kiosk" ? "키오스크" : "테이블"
                               }

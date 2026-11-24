@@ -19,3 +19,23 @@ export function formatKoreanDateTime(value: string | Date | null | undefined) {
 
   return `${year}. ${month}. ${day}. ${period} ${hour12}:${minute}:${second}`;
 }
+
+const koreanClock = new Intl.DateTimeFormat("ko-KR", {
+  timeZone: "Asia/Seoul",
+  hourCycle: "h23",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
+
+export function formatKoreanClockTime(value: string | undefined) {
+  const timestamp = Date.parse(value ?? "");
+  return Number.isFinite(timestamp) ? koreanClock.format(timestamp) : null;
+}
+
+export function formatElapsedMinutes(value: string | undefined, now: number | null) {
+  const timestamp = Date.parse(value ?? "");
+  if (now === null || !Number.isFinite(timestamp)) return null;
+  const minutes = Math.max(0, Math.floor((now - timestamp) / 60_000));
+  return minutes >= 60 ? `${Math.floor(minutes / 60)}시간 ${minutes % 60}분` : `${minutes}분`;
+}

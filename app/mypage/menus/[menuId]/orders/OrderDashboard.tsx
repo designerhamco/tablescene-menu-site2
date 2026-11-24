@@ -297,11 +297,11 @@ export default function OrderDashboard({
             status: `${STATUS_LABELS[order.status] ?? order.status} · ${PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus}`,
             attention:
               isCurrentOrder(order),
-            orderStatusLabel: STATUS_LABELS[order.status] ?? order.status,
-            paymentStatusLabel: PAYMENT_LABELS[order.paymentStatus] ?? order.paymentStatus,
+            orderStatus: order.status,
             orderNumber: order.orderNumber,
             createdAt: order.createdAt,
-            amount: formatAmount(order.totalAmount),
+            totalAmount: order.totalAmount,
+            itemCount: order.items.reduce((count, item) => count + item.quantity, 0),
             processing: order.status !== "served" && order.status !== "cancelled",
             unpaid: order.paymentStatus === "unpaid" && order.status !== "cancelled",
           }))}
