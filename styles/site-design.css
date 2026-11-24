@@ -138,6 +138,30 @@
   }
 }
 
+.site-basic-menu-management {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--site-space-group);
+  reading-flow: grid-rows;
+}
+.site-basic-editor-layout-settings {
+  margin-block-start: var(--site-space-block);
+}
+@media (min-width: 64rem) {
+  .site-basic-menu-management > .site-menu-editor-credit-summary {
+    grid-row: 1;
+  }
+}
+@media (width < 64rem) {
+  html:has([data-basic-item-editor]) {
+    overflow: hidden;
+  }
+  [data-basic-item-editor] {
+    overscroll-behavior-block: contain;
+  }
+}
+
 .site-editor-subpanel {
   border: 0;
   border-radius: .75rem;
